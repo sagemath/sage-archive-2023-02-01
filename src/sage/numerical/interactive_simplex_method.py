@@ -589,7 +589,7 @@ class LPProblem(SageObject):
 
         OUTPUT:
 
-        - a string.
+        - a string
 
         TESTS::
 
@@ -705,7 +705,7 @@ class LPProblem(SageObject):
 
         OUTPUT:
 
-        - a tuple.
+        - a tuple
 
         EXAMPLES::
 
@@ -725,13 +725,13 @@ class LPProblem(SageObject):
         r"""
         Return the base ring of ``self``.
 
-        .. note::
+        .. NOTE::
 
             The base ring of LP problems is always a field.
 
         OUTPUT:
 
-        - a ring.
+        - a ring
 
         EXAMPLES::
 
@@ -755,7 +755,7 @@ class LPProblem(SageObject):
 
         OUTPUT:
 
-        - a vector.
+        - a vector
 
         EXAMPLES::
 
@@ -776,7 +776,7 @@ class LPProblem(SageObject):
 
         OUTPUT:
 
-        - a matrix.
+        - a matrix
 
         EXAMPLES::
 
@@ -799,7 +799,7 @@ class LPProblem(SageObject):
 
         OUTPUT:
 
-        - a vector.
+        - a vector
 
         EXAMPLES::
 
@@ -820,13 +820,13 @@ class LPProblem(SageObject):
 
         INPUT:
 
-        - ``y`` -- (default: "x" if the prefix of ``self`` is "y", "y"
-          otherwise) a vector of dual decision variables or a string giving the
-          base name.
+        - ``y`` -- (default: ``"x"`` if the prefix of ``self`` is ``"y"``,
+          ``"y"`` otherwise) a vector of dual decision variables or a string
+          giving the base name
 
         OUTPUT:
 
-        - an :class:`LPProblem`.
+        - an :class:`LPProblem`
 
         EXAMPLES::
 
@@ -877,7 +877,7 @@ class LPProblem(SageObject):
 
         OUTPUT:
 
-        - a :mod:`Polyhedron <sage.geometry.polyhedron.constructor>`.
+        - a :mod:`Polyhedron <sage.geometry.polyhedron.constructor>`
 
         EXAMPLES::
 
@@ -917,7 +917,7 @@ class LPProblem(SageObject):
 
         OUTPUT:
 
-        - ``True`` is ``self`` is bounded, ``False`` otherwise.
+        - ``True`` is ``self`` is bounded, ``False`` otherwise
 
         EXAMPLES::
 
@@ -936,7 +936,7 @@ class LPProblem(SageObject):
 
         OUTPUT:
 
-        - ``True`` is ``self`` is feasible, ``False`` otherwise.
+        - ``True`` is ``self`` is feasible, ``False`` otherwise
 
         EXAMPLES::
 
@@ -955,7 +955,7 @@ class LPProblem(SageObject):
 
         OUTPUT:
 
-        - an integer.
+        - an integer
 
         EXAMPLES::
 
@@ -976,7 +976,7 @@ class LPProblem(SageObject):
 
         OUTPUT:
 
-        - an integer.
+        - an integer
 
         EXAMPLES::
 
@@ -997,7 +997,7 @@ class LPProblem(SageObject):
 
         OUTPUT:
 
-        - a vector.
+        - a vector
 
         EXAMPLES::
 
@@ -1018,7 +1018,7 @@ class LPProblem(SageObject):
 
         OUTPUT:
 
-        - a vector or ``None`` if there are no optimal solutions.
+        - a vector or ``None`` if there are no optimal solutions
 
         EXAMPLES::
 
@@ -1038,7 +1038,7 @@ class LPProblem(SageObject):
         OUTPUT:
 
         - a number if the problem is bounded, `\pm \infty` if it is unbounded,
-          or ``None`` if it is infeasible.
+          or ``None`` if it is infeasible
 
         EXAMPLES::
 
@@ -1057,20 +1057,23 @@ class LPProblem(SageObject):
 
         INPUT:
 
-        - same as for :meth:`plot_feasible_set`.
+        - ``xmin``, ``xmax``, ``ymin``, ``ymax`` -- bounds for the axes, if
+          not given, an attempt will be made to pick reasonable values
+
+        - ``alpha`` -- (default: 0.2) determines how opaque are shadows
 
         OUTPUT:
 
-        - a plot.
+        - a plot
 
         This only works for problems with two decision variables. On the plot
         the black arrow indicates the direction of growth of the objective. The
         lines perpendicular to it are level curves of the objective. If there
         are optimal solutions, the arrow originates in one of them and the
-        corresponding level curve is solid: all points of the feasible set on it
-        are optimal solutions. Otherwise the arrow is placed in the center. If
-        the problem is infeasible or the objective is zero, a plot of the
-        feasible set only is returned.
+        corresponding level curve is solid: all points of the feasible set
+        on it are optimal solutions. Otherwise the arrow is placed in the
+        center. If the problem is infeasible or the objective is zero, a plot
+        of the feasible set only is returned.
 
         EXAMPLES::
 
@@ -1134,19 +1137,19 @@ class LPProblem(SageObject):
         INPUT:
 
         - ``xmin``, ``xmax``, ``ymin``, ``ymax`` -- bounds for the axes, if
-          not given, an attempt will be made to pick reasonable values;
+          not given, an attempt will be made to pick reasonable values
 
-        - ``alpha`` -- (default: 0.2) determines how opaque are shadows.
+        - ``alpha`` -- (default: 0.2) determines how opaque are shadows
 
         OUTPUT:
 
-        - a plot.
+        - a plot
 
         This only works for a problem with two decision variables. The plot
         shows boundaries of constraints with a shadow on one side for
-        inequalities. If the :meth:`feasible_set` is not empty and at least part
-        of it is in the given boundaries, it will be shaded gray and `F` will be
-        placed in its middle.
+        inequalities. If the :meth:`feasible_set` is not empty and at least
+        part of it is in the given boundaries, it will be shaded gray and `F`
+        will be placed in its middle.
 
         EXAMPLES::
 
@@ -1237,7 +1240,7 @@ class LPProblem(SageObject):
 
         OUTPUT:
 
-        - an :class:`LPProblemStandardForm`.
+        - an :class:`LPProblemStandardForm`
 
         EXAMPLES::
 

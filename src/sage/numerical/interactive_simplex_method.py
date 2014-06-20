@@ -145,10 +145,14 @@ helper methods that will try their best to tell you what are your next options::
      for feasible dictionaries with a set entering variable
      or for dual feasible dictionaries
 
-It is also possible to obtain :meth:`feasible sets <LPProblem.feasible_set>` and
-:meth:`final dictionaries <LPProblemStandardForm.final_dictionary>` of problems,
-work with :class:`revised dictionaries <LPRevisedDictionary>`, and use the dual
-simplex method!
+It is also possible to obtain :meth:`feasible sets <LPProblem.feasible_set>`
+and :meth:`final dictionaries <LPProblemStandardForm.final_dictionary>` of
+problems, work with :class:`revised dictionaries <LPRevisedDictionary>`,
+and use the dual simplex method!
+
+.. NOTE::
+
+    Currently this does not have a display format for the terminal.
 """
 
 
@@ -209,7 +213,7 @@ def _assemble_arrayl(lines, stretch=None):
 
     OUTPUT:
 
-    - a :class:`LatexExpr`.
+    - a :class:`LatexExpr`
 
     EXAMPLES::
 
@@ -1921,14 +1925,15 @@ class LPProblemStandardForm(LPProblem):
             \text{The optimal value: $6250$. An optimal solution: $\left(250,\,750\right)$.}
             \end{gather*}
         """
+        result = []
+        d = self.initial_dictionary()
+        result.append(latex(d))
+
         def step(entering, leaving):
             result.append(r"\text{{Entering: ${}$. Leaving: ${}$.}}"
                           .format(latex(entering), latex(leaving)))
             result.append(d.ELLUL(entering, leaving))
 
-        result = []
-        d = self.initial_dictionary()
-        result.append(latex(d))
         if d.is_feasible():
             is_feasible = True
         else:

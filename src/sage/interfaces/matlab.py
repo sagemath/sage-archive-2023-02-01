@@ -248,7 +248,7 @@ for hints on how to do that).
         cmd = '%s=%s;'%(var,value)
         out = self.eval(cmd)
         if out.find("error") != -1:
-            raise TypeError, "Error executing code in Matlab\nCODE:\n\t%s\nMatlab ERROR:\n\t%s"%(cmd, out)
+            raise TypeError("Error executing code in Matlab\nCODE:\n\t%s\nMatlab ERROR:\n\t%s"%(cmd, out))
 
     def get(self, var):
         """
@@ -323,7 +323,7 @@ for hints on how to do that).
 
 class MatlabElement(ExpectElement):
     def __getitem__(self, n):
-        raise RuntimeError, "Use parenthesis for MATLAB matrices instead."
+        raise RuntimeError("Use parenthesis for MATLAB matrices instead.")
 
     def _matrix_(self, R):
         r"""

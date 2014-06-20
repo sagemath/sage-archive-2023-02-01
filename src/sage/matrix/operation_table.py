@@ -375,7 +375,7 @@ class OperationTable(SageObject):
                     raise ValueError('%s is infinite' % S)
             try:
                 elems = tuple(S)
-            except StandardError:
+            except Exception:
                 raise ValueError('unable to determine elements of %s' % S)
         else:
             elems = []
@@ -384,7 +384,7 @@ class OperationTable(SageObject):
                     coerced = S(e)
                     if not(coerced in elems):
                         elems.append(coerced)
-            except StandardError:
+            except Exception:
                 raise TypeError('unable to coerce %s into %s' % (e, S))
         self._elts = elems
         self._n = len(self._elts)
@@ -426,7 +426,7 @@ class OperationTable(SageObject):
                     row.append(self._elts.index(result))
                 except ValueError:  # list/index condition
                     raise ValueError('%s%s%s=%s, and so the set is not closed' % (g, self._ascii_symbol, h, result))
-                except StandardError:
+                except Exception:
                     raise TypeError('elements %s and %s of %s are incompatible with operation: %s' % (g,h,S,self._operation))
             self._table.append(row)
 
@@ -476,7 +476,7 @@ class OperationTable(SageObject):
             sage: T._name_maker(['x'])
             Traceback (most recent call last):
             ...
-            ValueError: list of element names must be the same size as the set, 1 <> 3
+            ValueError: list of element names must be the same size as the set, 1 != 3
             sage: T._name_maker(['x', 'y', 4])
             Traceback (most recent call last):
             ...
@@ -516,7 +516,7 @@ class OperationTable(SageObject):
                 name_list.append(estr)
         elif isinstance(names, list):
             if len(names) != self._n:
-                raise ValueError('list of element names must be the same size as the set, %s <> %s'%(len(names), self._n))
+                raise ValueError('list of element names must be the same size as the set, %s != %s'%(len(names), self._n))
             width = 0
             for str in names:
                 if not isinstance(str, basestring):

@@ -470,7 +470,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
 
             sage: F.<bla,alpha,z> = FreeAlgebra(QQ, implementation='letterplace', degrees=[1,2,3])
             sage: latex(F)
-            \Bold{Q}\langle \mbox{bla}, \alpha, z\rangle
+            \Bold{Q}\langle \mathit{bla}, \alpha, z\rangle
 
         """
         from sage.all import latex

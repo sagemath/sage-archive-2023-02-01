@@ -37,8 +37,7 @@ class CoxeterGroups(Category_singleton):
 
     EXAMPLES::
 
-        sage: C = CoxeterGroups()
-        sage: C                            # todo: uppercase for Coxeter
+        sage: C = CoxeterGroups(); C
         Category of coxeter groups
         sage: C.super_categories()
         [Category of groups, Category of enumerated sets]
@@ -65,9 +64,9 @@ class CoxeterGroups(Category_singleton):
         sage: DihedralGroup(5)
         Dihedral group of order 10 as a permutation group
 
-    TODO: add a demo of usual computations on Coxeter groups.
+    .. TODO:: add a demo of usual computations on Coxeter groups.
 
-    SEE ALSO: :class:`WeylGroups`, :mod:`sage.combinat.root_system`
+    .. SEEALSO:: :class:`WeylGroups`, :mod:`sage.combinat.root_system`
 
     TESTS::
 
@@ -387,7 +386,7 @@ class CoxeterGroups(Category_singleton):
 
             """
             if not i in self.index_set():
-                raise ValueError, "%s is not in the Dynkin node set %s"%(i,self.index_set())
+                raise ValueError("%s is not in the Dynkin node set %s"%(i,self.index_set()))
             return self.one().apply_simple_reflection(i) # don't care about left/right
 
         @cached_method
@@ -488,7 +487,7 @@ class CoxeterGroups(Category_singleton):
 
             """
             if not (i in self.index_set() or i == 0):
-                raise ValueError, "%s is not 0 and not in the Dynkin node set %s"%(i, self.index_set())
+                raise ValueError("%s is not 0 and not in the Dynkin node set %s"%(i, self.index_set()))
             if toward_max is not None:
                 deprecation("the toward_max option of CoxeterGroups.ParentMethods.simple_projection is deprecated; please use length_increasing instead", 'Sage Version 5.0')
                 length_increasing = toward_max
@@ -616,6 +615,22 @@ class CoxeterGroups(Category_singleton):
                 ret.append(nextlayer)
             return flatten(ret)
 
+        def canonical_representation(self):
+            r"""
+            Return the canonical faithful representation of ``self``.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup("A3")
+                sage: W.canonical_representation()
+                Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+                [1 3 2]
+                [3 1 3]
+                [2 3 1]
+            """
+            from sage.groups.matrix_gps.coxeter_group import CoxeterMatrixGroup
+            return CoxeterMatrixGroup(self.coxeter_matrix(), index_set=self.index_set())
+
         # TODO: Groups() should have inverse() call __invert__
         # With strong doc stating that this is just a convenience for the user
         # and links to ~ / __invert__
@@ -708,11 +723,11 @@ class CoxeterGroups(Category_singleton):
             :meth:`.has_left_descent` and :meth:`.has_right_descent`.
             """
             if not isinstance(positive, bool):
-                raise TypeError, "%s is not a boolean"%(bool)
+                raise TypeError("%s is not a boolean"%(bool))
             if side == 'right':
                 return self.has_right_descent(i) != positive
             if side != 'left':
-                raise ValueError, "%s is neither 'right' nor 'left'"%(side)
+                raise ValueError("%s is neither 'right' nor 'left'"%(side))
             return self.has_left_descent(i)  != positive
 
 #        @abstract_method(optional = True)
@@ -795,7 +810,7 @@ class CoxeterGroups(Category_singleton):
             """
             INPUT:
 
-            - ``index_set`` - a subset (as a list or iterable) of the nodes of the dynkin diagram;
+            - ``index_set`` - a subset (as a list or iterable) of the nodes of the Dynkin diagram;
               (default: all of them)
             - ``side`` - 'left' or 'right' (default: 'right')
             - ``positive`` - a boolean (default: ``False``)
@@ -983,14 +998,89 @@ v            EXAMPLES::
             """
             return len(self.reduced_word())
 
+        def absolute_length(self):
+            """
+            Return the absolute length of ``self``
+
+            The absolute length is the length of the shortest expression
+            of the element as a product of reflections.
+
+            .. SEEALSO:: :meth:`absolute_le`.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(["A", 3])
+                sage: s = W.simple_reflections()
+                sage: (s[1]*s[2]*s[3]).absolute_length()
+                3
+            """
+            M = self.canonical_matrix()
+            return (M - 1).image().dimension()
+
+        def absolute_le(self, other):
+            r"""
+            Return whether ``self`` is smaller than ``other`` in the absolute
+            order.
+
+            A general reflection is an element of the form `w s_i w^{-1}`,
+            where `s_i` is a simple reflection. The absolute order is defined
+            analogously to the weak order but using general reflections rather
+            than just simple reflections.
+
+            This partial order can be used to define noncrossing partitions
+            associated with this Coxeter group.
+
+            .. SEEALSO:: :meth:`absolute_length`
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(["A", 3])
+                sage: s = W.simple_reflections()
+                sage: w0 = s[1]
+                sage: w1 = s[1]*s[2]*s[3]
+                sage: w0.absolute_le(w1)
+                True
+                sage: w1.absolute_le(w0)
+                False
+                sage: w1.absolute_le(w1)
+                True
+            """
+            if self == other:
+                return True
+            if self.absolute_length() >= other.absolute_length():
+                return False
+            return self.absolute_length() + (self.inverse() * other).absolute_length() == other.absolute_length()
+
+        def canonical_matrix(self):
+            r"""
+            Return the matrix of ``self`` in the canonical faithful
+            representation.
+
+            This is an `n`-dimension real faithful essential representation,
+            where `n` is the number of generators of the Coxeter group.
+            Note that this is not always the most natural matrix
+            representation, for instance in type `A_n`.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(["A", 3])
+                sage: s = W.simple_reflections()
+                sage: (s[1]*s[2]*s[3]).canonical_matrix()
+                [ 0  0 -1]
+                [ 1  0 -1]
+                [ 0  1 -1]
+            """
+            G = self.parent().canonical_representation()
+            return G.prod(G.simple_reflection(i) for i in self.reduced_word()).matrix()
+
         def coset_representative(self, index_set, side = 'right'):
             r"""
             INPUT:
 
-            - ``index_set`` - a subset (or iterable) of the nodes of the dynkin diagram
+            - ``index_set`` - a subset (or iterable) of the nodes of the Dynkin diagram
             - ``side`` - 'left' or 'right'
 
-            Returns the unique shortest element of the coxeter group
+            Returns the unique shortest element of the Coxeter group
             $W$ which is in the same left (resp. right) coset as
             ``self``, with respect to the parabolic subgroup $W_I$.
 
@@ -1083,7 +1173,7 @@ v            EXAMPLES::
             that `l(self) = l(u) + l(v)`.
 
             Iterating through this set is Constant Amortized Time
-            (counting arithmetic operations in the coxeter group as
+            (counting arithmetic operations in the Coxeter group as
             constant time) complexity, and memory linear in the length
             of `self`.
 
@@ -1126,7 +1216,8 @@ v            EXAMPLES::
             if not predicate(W.one()):
                 return FiniteCombinatorialClass([])
             s = W.simple_reflections()
-            def succ((u,v)):
+            def succ(u_v):
+                (u, v) = u_v
                 for i in v.descents(side = 'left'):
                     u1 = u * s[i]
                     if i == u1.first_descent() and predicate(u1):
@@ -1363,7 +1454,7 @@ v            EXAMPLES::
 
                 sage: P = W.bruhat_poset()
 
-            The algorithm is taken from Stembridge's coxeter/weyl package for Maple.
+            The algorithm is taken from Stembridge's 'coxeter/weyl' package for Maple.
             """
             desc = self.first_descent()
             if desc is not None:
@@ -1567,7 +1658,7 @@ v            EXAMPLES::
 
             """
             if not have_same_parent(self, other):
-                raise TypeError, "%s and %s do not have the same parent"%(self, other)
+                raise TypeError("%s and %s do not have the same parent"%(self, other))
             # could first compare the length, when that information is cheap
             desc = other.first_descent()
             if desc is not None:
@@ -1631,7 +1722,7 @@ v            EXAMPLES::
                 ...           assert u.permutohedron_lequal(v, side='left') == P4toW(u).weak_le(P4toW(v), side='left')
             """
             if not have_same_parent(self, other):
-                raise TypeError, "%s and %s do not have the same parent"%(self,other)
+                raise TypeError("%s and %s do not have the same parent"%(self,other))
             # could first compare the length, when that information is cheap
             prefix_side = 'left' if side == 'right' else 'right'
 
@@ -1731,10 +1822,10 @@ v            EXAMPLES::
                 if isinstance(element, (tuple)):
                     element = [x for x in element]
                 if not isinstance(element, (list)):
-                    raise TypeError, "Bad Coxeter group element input: %s"%(element)
+                    raise TypeError("Bad Coxeter group element input: %s"%(element))
                 I = self.parent().index_set()
                 if not all(i in I for i in element):
-                    raise ValueError, "%s does not have all its members in the index set of the %s"%(element, self.parent())
+                    raise ValueError("%s does not have all its members in the index set of the %s"%(element, self.parent()))
                 # the copy is so that if we need to reverse the list, the original will not
                 # get reversed
                 the_word = copy(element)
@@ -1772,10 +1863,10 @@ v            EXAMPLES::
             # else require that ``element`` is a list or tuple of index_set elements
             else:
                 if not isinstance(element, (tuple,list)):
-                    raise TypeError, "Bad Coxeter group element input: %s"%(element)
+                    raise TypeError("Bad Coxeter group element input: %s"%(element))
                 I = self.parent().index_set()
                 if not all(i in I for i in element):
-                    raise ValueError, "%s does not have all its members in the index set of the %s"%(element, self.parent())
+                    raise ValueError("%s does not have all its members in the index set of the %s"%(element, self.parent()))
                 the_word = element
             for i in the_word:
                 if self.has_descent(i, side = 'left'):
@@ -1821,11 +1912,11 @@ v            EXAMPLES::
             """
 
             if self != self.coset_representative(index_set):
-                raise ValueError, "%s is not of minimum length in its coset for the parabolic subgroup with index set %s"%(self.reduced_word(),index_set)
+                raise ValueError("%s is not of minimum length in its coset for the parabolic subgroup with index set %s"%(self.reduced_word(),index_set))
             if w != w.coset_representative(index_set):
-                raise ValueError, "%s is not of minimum length in its coset for the parabolic subgroup with index set %s"%(w.reduced_word(),index_set)
+                raise ValueError("%s is not of minimum length in its coset for the parabolic subgroup with index set %s"%(w.reduced_word(),index_set))
             if not self.bruhat_le(w):
-                raise ValueError, "Must have %s <= %s"%(self.reduced_word(), w.reduced_word())
+                raise ValueError("Must have %s <= %s"%(self.reduced_word(), w.reduced_word()))
             if w.is_one():
                 return w
             i = w.first_descent(side = 'left')
@@ -1870,7 +1961,7 @@ v            EXAMPLES::
             vmin = self.coset_representative(index_set)
             wmin = w.coset_representative(index_set)
             if not vmin.bruhat_le(wmin):
-                raise ValueError, "Must have %s <= %s mod the parabolic subgroup with index set %s"%(self.reduced_word(), w.reduced_word(), index_set)
+                raise ValueError("Must have %s <= %s mod the parabolic subgroup with index set %s"%(self.reduced_word(), w.reduced_word(), index_set))
             vJ = vmin.inverse() * self
             dsp = vmin.deodhar_factor_element(wmin,index_set)
             return wmin * vJ.min_demazure_product_greater(dsp)
@@ -1906,7 +1997,7 @@ v            EXAMPLES::
             vmin = self.coset_representative(index_set)
             wmin = w.coset_representative(index_set)
             if not wmin.bruhat_le(vmin):
-                raise ValueError, "Must have %s <= %s mod the parabolic subgroup with index set %s"%(w.reduced_word(), self.reduced_word(), index_set)
+                raise ValueError("Must have %s <= %s mod the parabolic subgroup with index set %s"%(w.reduced_word(), self.reduced_word(), index_set))
 
             vJ = vmin.inverse() * self
             dsp = wmin.deodhar_factor_element(vmin,index_set)

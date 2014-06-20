@@ -121,7 +121,7 @@ def isogeny_determine_algorithm(E, kernel, codomain, degree, model):
 
     """
 
-    kernel_is_list = (type(kernel) == list)
+    kernel_is_list = isinstance(kernel, list)
 
     if not kernel_is_list and kernel in E :
         kernel = [kernel]
@@ -132,7 +132,7 @@ def isogeny_determine_algorithm(E, kernel, codomain, degree, model):
     elif (kernel_is_list) and (kernel[0] in E): # note that if kernel[0] is on an extension of E this condition will be false
         algorithm = "velu"
     else:
-        raise ValueError, "Invalid Parameters to EllipticCurveIsogeny constructor."
+        raise ValueError("Invalid Parameters to EllipticCurveIsogeny constructor.")
 
     return algorithm
 
@@ -350,13 +350,13 @@ def compute_codomain_kohel(E, kernel, degree):
         kernel_list = psi.list()
         poly_ring = psi.parent()
         x = psi.variables()[0]
-    elif (list == type(kernel)) and (kernel[0] in base_field):
+    elif isinstance(kernel, list) and (kernel[0] in base_field):
         kernel_list = kernel
         poly_ring = base_field.polynomial_ring()
         psi = poly_ring(kernel_list)
         x = poly_ring.gen()
     else:
-        raise ValueError, "input not of correct type"
+        raise ValueError("input not of correct type")
 
 
     # next determine the even / odd part of the isogeny
@@ -367,7 +367,7 @@ def compute_codomain_kohel(E, kernel, degree):
         psi_quo = poly_ring(psi/psi_2tor)
 
         if (0 != psi_quo.degree()):
-            raise ArithmeticError, "For basic Kohel's algorithm, if the kernel degree is even then the kernel must be contained in the two torsion."
+            raise ArithmeticError("For basic Kohel's algorithm, if the kernel degree is even then the kernel must be contained in the two torsion.")
 
         n = psi_2tor.degree()
 
@@ -873,9 +873,9 @@ class EllipticCurveIsogeny(Morphism):
         """
 
         if not is_EllipticCurve(E):
-            raise ValueError, "E parameter must be an EllipticCurve."
+            raise ValueError("E parameter must be an EllipticCurve.")
 
-        if type(kernel) != type([1,1]) and kernel in E :
+        if not isinstance(kernel, type([1,1])) and kernel in E :
             # a single point was given, we put it in a list
             # the first condition assures that [1,1] is treated as x+1
             kernel = [kernel]
@@ -890,7 +890,7 @@ class EllipticCurveIsogeny(Morphism):
         if (kernel is None) and (codomain is not None):
 
             if (degree is None):
-                raise ValueError, "If specifying isogeny by domain and codomain, degree parameter must be set."
+                raise ValueError("If specifying isogeny by domain and codomain, degree parameter must be set.")
 
             # save the domain/codomain: really used now (trac #7096)
             old_domain = E
@@ -982,7 +982,7 @@ class EllipticCurveIsogeny(Morphism):
         # is an extension of this ring
         if (E1 != E_P):
             if (E1.a_invariants() != E_P.a_invariants()) :
-                raise ValueError, "P must be on a curve with same Weierstrass model as the domain curve of this isogeny."
+                raise ValueError("P must be on a curve with same Weierstrass model as the domain curve of this isogeny.")
             change_output_ring = True
 
 
@@ -992,7 +992,7 @@ class EllipticCurveIsogeny(Morphism):
         (xP, yP) = P.xy()
 
         if not self.__E1.is_on_curve(xP,yP):
-            raise InputError, "Input point must be on the domain curve of this isogeny."
+            raise InputError("Input point must be on the domain curve of this isogeny.")
 
         # if there is a pre isomorphism, apply it
         if (self.__pre_isomorphism is not None):
@@ -1483,7 +1483,7 @@ class EllipticCurveIsogeny(Morphism):
         if ("velu" == self.__algorithm):
             ker_poly_list = self.__init_kernel_polynomial_velu()
         else:
-            raise InputError, "The kernel polynomial should already be defined!"
+            raise InputError("The kernel polynomial should already be defined!")
 
         return ker_poly_list
 
@@ -1621,25 +1621,25 @@ class EllipticCurveIsogeny(Morphism):
         if (model is not None):
 
             if (codomain is not None):
-                raise ValueError, "Cannot specify a codomain and model flag simultaneously."
+                raise ValueError("Cannot specify a codomain and model flag simultaneously.")
 
             if ('minimal' == model):
 
                 if (not is_RationalField(oldE2.base_field())):
-                    raise ValueError, "specifying minimal for model flag only valid with curves over the rational numbers."
+                    raise ValueError("specifying minimal for model flag only valid with curves over the rational numbers.")
 
                 newE2 = oldE2.minimal_model()
                 post_isom = oldE2.isomorphism_to(newE2)
 
             else:
-                raise ValueError, "Unknown value of model flag."
+                raise ValueError("Unknown value of model flag.")
 
         elif (codomain is not None):
             if (not is_EllipticCurve(codomain)):
-                raise ValueError,  "Codomain parameter must be an elliptic curve."
+                raise ValueError("Codomain parameter must be an elliptic curve.")
 
             if (not oldE2.is_isomorphic(codomain)):
-                raise ValueError, "Codomain parameter must be isomorphic to computed codomain isogeny"
+                raise ValueError("Codomain parameter must be isomorphic to computed codomain isogeny")
 
             newE2 = codomain
             post_isom = oldE2.isomorphism_to(newE2)
@@ -1676,7 +1676,7 @@ class EllipticCurveIsogeny(Morphism):
         if self.__check :
             for P in kernel_gens:
                 if not P.has_finite_order():
-                    raise ValueError, "The points in the kernel must be of finite order."
+                    raise ValueError("The points in the kernel must be of finite order.")
         # work around the current implementation of torsion points. When they are done better this could be
         # reduced but it won't speed things up too much.
         kernel_list = Set([self.__E1(0)])
@@ -1744,7 +1744,7 @@ class EllipticCurveIsogeny(Morphism):
                 self.__kernel_2tor[xQ] = (xQ,yQ,gxQ,gyQ,vQ,uQ)
                 v = v + vQ
                 w = w + (uQ + xQ*vQ)
-            elif (not self.__kernel_non2tor.has_key(xQ)): # Q is not a 2-torsion
+            elif xQ not in self.__kernel_non2tor: # Q is not a 2-torsion
                 vQ = 2*gxQ - a1*gyQ
                 self.__kernel_non2tor[xQ] = (xQ,yQ,gxQ,gyQ,vQ,uQ)
                 v = v + vQ
@@ -1858,7 +1858,7 @@ class EllipticCurveIsogeny(Morphism):
 
         """
         # first check if the point is in the kernel
-        if ( self.__kernel_2tor.has_key(xP) or self.__kernel_non2tor.has_key(xP) ) :
+        if xP in self.__kernel_2tor or xP in self.__kernel_non2tor:
             return self.__intermediate_codomain(0)
 
         outP = self.__compute_via_velu(xP,yP)
@@ -2034,7 +2034,7 @@ class EllipticCurveIsogeny(Morphism):
         n = len(kernel_polynomial)-1
 
         if kernel_polynomial[-1] != 1:
-            raise ValueError, "The kernel polynomial must be monic."
+            raise ValueError("The kernel polynomial must be monic.")
 
         self.__kernel_polynomial_list = kernel_polynomial
 
@@ -2056,7 +2056,7 @@ class EllipticCurveIsogeny(Morphism):
             psi_quo = poly_ring(psi/psi_G)
 
             if (0 != psi_quo.degree()):
-                raise NotImplementedError, "For basic Kohel's algorithm, if the kernel degree is even then the kernel must be contained in the two torsion."
+                raise NotImplementedError("For basic Kohel's algorithm, if the kernel degree is even then the kernel must be contained in the two torsion.")
 
             (phi, omega, v, w, n, d) = self.__init_even_kernel_polynomial(E, psi_G)
 
@@ -2134,7 +2134,7 @@ class EllipticCurveIsogeny(Morphism):
 
         #check if the polynomial really divides the two_torsion_polynomial
         if  self.__check and E.division_polynomial(2, x=self.__x_var) % psi_G  != 0 :
-            raise ValueError, "The polynomial does not define a finite subgroup of the elliptic curve."
+            raise ValueError("The polynomial does not define a finite subgroup of the elliptic curve.")
 
         n = psi_G.degree()
         d = n+1
@@ -2187,7 +2187,7 @@ class EllipticCurveIsogeny(Morphism):
             (v,w) = compute_vw_kohel_even_deg3(b2,b4,s1,s2,s3)
 
         else:
-            raise ValueError, "input polynomial must be of degree 1 or 3, not %d" % n
+            raise ValueError("input polynomial must be of degree 1 or 3, not %d" % n)
 
         return (phi, omega, v, w, n, d)
 
@@ -2242,7 +2242,7 @@ class EllipticCurveIsogeny(Morphism):
         if self.__check:
             alpha = psi.parent().quotient(psi).gen()
             if not E.division_polynomial(d, x=alpha).is_zero():
-                raise ValueError, "The polynomial does not define a finite subgroup of the elliptic curve."
+                raise ValueError("The polynomial does not define a finite subgroup of the elliptic curve.")
 
         x = self.__x_var
 
@@ -2781,11 +2781,11 @@ class EllipticCurveIsogeny(Morphism):
         WIdom = preWI.domain().codomain()
         WIcod = preWI.codomain().codomain()
 
-        if (type(preWI) != WeierstrassIsomorphism):
-            raise ValueError, "Invalid parameter: isomorphism must be of type Weierstrass isomorphism."
+        if not isinstance(preWI, WeierstrassIsomorphism):
+            raise ValueError("Invalid parameter: isomorphism must be of type Weierstrass isomorphism.")
 
         if (self.__E1 != WIcod):
-            raise ValueError, "Invalid parameter: isomorphism must have codomain curve equal to this isogenies' domain."
+            raise ValueError("Invalid parameter: isomorphism must have codomain curve equal to this isogenies' domain.")
 
         if (self.__pre_isomorphism is None):
             isom = preWI
@@ -2845,11 +2845,11 @@ class EllipticCurveIsogeny(Morphism):
         WIdom = postWI.domain().codomain()
         WIcod = postWI.codomain().codomain()
 
-        if (type(postWI) != WeierstrassIsomorphism):
-            raise ValueError, "Invalid parameter: isomorphism must be of type Weierstrass isomorphism."
+        if not isinstance(postWI, WeierstrassIsomorphism):
+            raise ValueError("Invalid parameter: isomorphism must be of type Weierstrass isomorphism.")
 
         if (self.__E2 != WIdom):
-            raise ValueError, "Invalid parameter: isomorphism must have domain curve equal to this isogenies' codomain."
+            raise ValueError("Invalid parameter: isomorphism must have domain curve equal to this isogenies' codomain.")
 
         if (self.__post_isomorphism is None):
             isom = postWI
@@ -3244,7 +3244,7 @@ class EllipticCurveIsogeny(Morphism):
 
         # trac 7096
         if F(d) == 0:
-            raise NotImplementedError, "The dual isogeny is not separable, but only separable isogenies are implemented so far"
+            raise NotImplementedError("The dual isogeny is not separable, but only separable isogenies are implemented so far")
 
         # trac 7096
         # this should take care of the case when the isogeny is not normalized.
@@ -3280,7 +3280,7 @@ class EllipticCurveIsogeny(Morphism):
             auts = phi_hat.codomain().automorphsims()
             aut = [a for a in auts if a.u == sc]
             if len(aut) != 1:
-                raise ValueError, "There is a bug in dual()."
+                raise ValueError("There is a bug in dual().")
             phi_hat.set_post_isomorphism(a[0])
 
         self.__dual = phi_hat
@@ -3487,7 +3487,7 @@ class EllipticCurveIsogeny(Morphism):
             NotImplementedError: Numerical approximations do not make sense for Elliptic Curve Isogenies
 
         """
-        raise NotImplementedError, "Numerical approximations do not make sense for Elliptic Curve Isogenies"
+        raise NotImplementedError("Numerical approximations do not make sense for Elliptic Curve Isogenies")
 
 # no longer needed (trac 7096)
 # def starks_find_r_and_t(T, Z):

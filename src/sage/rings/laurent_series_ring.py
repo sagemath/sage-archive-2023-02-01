@@ -80,11 +80,11 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=
     """
     if not names is None: name = names
     if name is None:
-        raise TypeError, "You must specify the name of the indeterminate of the Laurent series ring."
+        raise TypeError("You must specify the name of the indeterminate of the Laurent series ring.")
 
     global laurent_series
     key = (base_ring, name, default_prec, sparse)
-    if laurent_series.has_key(key):
+    if key in laurent_series:
         x = laurent_series[key]()
         if x != None: return x
 
@@ -95,7 +95,7 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=
     elif isinstance(base_ring, commutative_ring.CommutativeRing):
         R = LaurentSeriesRing_generic(base_ring, name, default_prec, sparse)
     else:
-        raise TypeError, "base_ring must be a commutative ring"
+        raise TypeError("base_ring must be a commutative ring")
     laurent_series[key] = weakref.ref(R)
     return R
 
@@ -172,7 +172,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         if R.has_coerce_map_from(self.base_ring()):
             return self.change_ring(R)
         else:
-            raise TypeError, "no valid base extension defined"
+            raise TypeError("no valid base extension defined")
 
     def change_ring(self, R):
         """
@@ -381,7 +381,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
                     if self.has_coerce_map_from(P.base_ring()):
                         return self(x)
                     else:
-                        raise TypeError, "no natural map between bases of power series rings"
+                        raise TypeError("no natural map between bases of power series rings")
         except AttributeError:
             pass
 
@@ -532,7 +532,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             x
         """
         if n != 0:
-            raise IndexError, "Generator n not defined."
+            raise IndexError("Generator n not defined.")
         try:
             return self.__generator
         except AttributeError:

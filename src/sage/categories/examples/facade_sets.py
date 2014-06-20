@@ -114,7 +114,7 @@ class PositiveIntegerMonoid(UniqueRepresentation, Parent):
         if object > ZZ(0):
             return object
         else:
-            raise ValueError, "%s should be positive"
+            raise ValueError("%s should be positive")
 
 class IntegersCompletion(UniqueRepresentation, Parent):
     r"""

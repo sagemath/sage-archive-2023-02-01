@@ -264,7 +264,7 @@ class ChowCycle(FGP_Element):
         for i, cone in enumerate(self.parent()._cones):
             if self.lift()[i]!=0:
                 if cone_dim not in [None,cone.dim()]:
-                    raise ValueError, 'Chow cycle is not of definite degree.'
+                    raise ValueError('Chow cycle is not of definite degree.')
                 cone_dim = cone.dim()
         self._dim = ambient_dim - cone_dim
         return self._dim
@@ -532,7 +532,7 @@ class ChowCycle(FGP_Element):
         """
         toric_variety = self.parent().scheme()
         if not toric_variety.is_orbifold():
-            raise(ValueError, 'The toric variety may have at most orbifold singularities!')
+            raise ValueError
         HH = toric_variety.cohomology_ring()
         coeff = self.lift()
         return sum([ HH(cone) * coeff[i] for i,cone in enumerate(self.parent()._cones) ])
@@ -565,10 +565,10 @@ class ChowGroupFactory(UniqueFactory):
             True
         """
         if not is_ToricVariety(toric_variety):
-            raise ValueError, 'First argument must be a toric variety.'
+            raise ValueError('First argument must be a toric variety.')
 
         if not base_ring in [ZZ,QQ]:
-            raise ValueError, 'Base ring must be either ZZ or QQ.'
+            raise ValueError('Base ring must be either ZZ or QQ.')
 
         key = tuple([toric_variety, base_ring])
         extra = {'check':check}
@@ -803,7 +803,7 @@ class ChowGroup_class(FGP_Module_class):
             ...
             NotImplementedError: Quotients of the Chow group are not implemented.
         """
-        raise NotImplementedError, 'Quotients of the Chow group are not implemented.'
+        raise NotImplementedError('Quotients of the Chow group are not implemented.')
 
 
     def _repr_(self):
@@ -824,7 +824,7 @@ class ChowGroup_class(FGP_Module_class):
         elif self.base_ring() == ZZ:
             return "Chow group of " + str(self._variety)
         else:
-            raise(ValueError, 'Base ring must be QQ or ZZ.')
+            raise ValueError
 
 
     def __eq__(self, other):
@@ -916,7 +916,7 @@ class ChowGroup_class(FGP_Module_class):
         Second, an example with `A_2(X)=\ZZ^2`::
 
             sage: points = [[1,0,0],[0,1,0],[0,0,1],[1,-1,1],[-1,0,-1]]
-            sage: l = LatticePolytope(matrix(points).transpose())
+            sage: l = LatticePolytope(points)
             sage: l.show3d()
             sage: X = ToricVariety(FaceFan(l))
             sage: A = X.Chow_group()
@@ -927,7 +927,7 @@ class ChowGroup_class(FGP_Module_class):
 
             sage: cube = [[ 1,0,0],[0, 1,0],[0,0, 1],[-1, 1, 1],
             ...           [-1,0,0],[0,-1,0],[0,0,-1],[ 1,-1,-1]]
-            sage: lat_cube = LatticePolytope(matrix(cube).transpose())
+            sage: lat_cube = LatticePolytope(cube)
             sage: X = ToricVariety(FaceFan((LatticePolytope(lat_cube))))
             sage: X.Chow_group().degree(2)
             Z^5
@@ -1188,7 +1188,7 @@ class ChowGroup_degree_class(SageObject):
         elif self._Chow_group.base_ring()==QQ:
             ring = 'Q'
         else:
-            raise NotImplementedError, 'Base ring must be ZZ or QQ.'
+            raise NotImplementedError('Base ring must be ZZ or QQ.')
 
         s = ['C' + str(x) for x in tors]
         if len(free)==1:

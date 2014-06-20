@@ -11,7 +11,7 @@ AUTHORS:
 
 TESTS::
 
-    sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
+    sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
     sage: from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
     sage: bijection = KRTToRCBijectionTypeA(KRT(pathlist=[[5,2]]))
     sage: TestSuite(bijection).run()
@@ -51,7 +51,7 @@ class KRTToRCBijectionTypeA(KRTToRCBijectionAbstract):
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
             sage: bijection = KRTToRCBijectionTypeA(KRT(pathlist=[[4,3]]))
             sage: bijection.cur_path.insert(0, [])

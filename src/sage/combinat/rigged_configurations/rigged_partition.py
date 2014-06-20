@@ -55,7 +55,7 @@ class RiggedPartition(CombinatorialObject):
         sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
         sage: RP = RC(partition_list=[[2],[2,2],[2,1],[2]])[2]
         sage: RP
-        0[ ][ ]0
+         0[ ][ ]0
         -1[ ]-1
         <BLANKLINE>
         sage: type(RP)

@@ -110,38 +110,64 @@ def IntervalGraph(intervals, points_ordered = False):
 
 def PermutationGraph(second_permutation, first_permutation = None):
     r"""
-    Builds a permutation graph from one (or two) permutations.
+    Build a permutation graph from one permutation or from two lists.
 
-    General definition
+    Definition:
 
-    A Permutation Graph can be encoded by a permutation `\sigma`
-    of `1, ..., n`. It is then built in the following way :
+    If `\sigma` is a permutation of `\{ 1, 2, \ldots, n \}`, then the
+    permutation graph of `\sigma` is the graph on vertex set
+    `\{ 1, 2, \ldots, n \}` in which two vertices `i` and `j` satisfying
+    `i < j` are connected by an edge if and only if
+    `\sigma^{-1}(i) > \sigma^{-1}(j)`. A visual way to construct this
+    graph is as follows:
 
-      Take two horizontal lines in the euclidean plane, and mark points `1, ...,
-      n` from left to right on the first of them. On the second one, still from
-      left to right, mark point in the order in which they appear in `\sigma`.
-      Now, link by a segment the two points marked with 1, then link together
-      the points marked with 2, and so on. The permutation graph defined by the
-      permutation is the intersection graph of those segments : there exists a
-      point in this graph for each element from `1` to `n`, two vertices `i, j`
-      being adjacent if the segments `i` and `j` cross each other.
+      Take two horizontal lines in the euclidean plane, and mark points
+      `1, ..., n` from left to right on the first of them. On the second
+      one, still from left to right, mark `n` points
+      `\sigma(1), \sigma(2), \ldots, \sigma(n)`.
+      Now, link by a segment the two points marked with `1`, then link
+      together the points marked with `2`, and so on. The permutation
+      graph of `\sigma` is the intersection graph of those segments: there
+      exists a vertex in this graph for each element from `1` to `n`, two
+      vertices `i, j` being adjacent if the segments `i` and `j` cross
+      each other.
 
-    The set of edges of the resulting graph is equal to the set of inversions of
-    the inverse of the given permutation.
+    The set of edges of the permutation graph can thus be identified with
+    the set of inversions of the inverse of the given permutation
+    `\sigma`.
+
+    A more general notion of permutation graph can be defined as
+    follows: If `S` is a set, and `(a_1, a_2, \ldots, a_n)` and
+    `(b_1, b_2, \ldots, b_n)` are two lists of elements of `S`, each of
+    which lists contains every element of `S` exactly once, then the
+    permutation graph defined by these two lists is the graph on the
+    vertex set `S` in which two vertices `i` and `j` are connected by an
+    edge if and only if the order in which these vertices appear in the
+    list `(a_1, a_2, \ldots, a_n)` is the opposite of the order in which
+    they appear in the list `(b_1, b_2, \ldots, b_n)`. When
+    `(a_1, a_2, \ldots, a_n) = (1, 2, \ldots, n)`, this graph is the
+    permutation graph of the permutation
+    `(b_1, b_2, \ldots, b_n) \in S_n`. Notice that `S` does not have to
+    be a set of integers here, but can be a set of strings, tuples, or
+    anything else. We can still use the above visual description to
+    construct the permutation graph, but now we have to mark points
+    `a_1, a_2, \ldots, a_n` from left to right on the first horizontal
+    line and points `b_1, b_2, \ldots, b_n` from left to right on the
+    second horizontal line.
 
     INPUT:
 
-    - ``second_permutation`` -- the permutation from which the graph should be
-      built. It corresponds to the ordering of the elements on the second line
-      (see previous definition)
+    - ``second_permutation`` -- the unique permutation/list defining the graph,
+      or the second of the two (if the graph is to be built from two
+      permutations/lists).
 
-    - ``first_permutation`` (optional) -- the ordering of the elements on the
-      *first* line. This is useful when the elements have no natural ordering,
-      for instance when they are strings, or tuples, or anything else.
+    - ``first_permutation`` (optional) -- the first of the two
+      permutations/lists from which the graph should be built, if it is to be
+      built from two permutations/lists.
 
-      When ``first_permutation == None`` (default), it is set to be equal to
-      ``sorted(second_permutation)``, which just yields the expected
-      ordering when the elements of the graph are integers.
+      When ``first_permutation is None`` (default), it is set to be equal to
+      ``sorted(second_permutation)``, which yields the expected ordering when
+      the elements of the graph are integers.
 
     .. SEEALSO:
 
@@ -158,12 +184,60 @@ def PermutationGraph(second_permutation, first_permutation = None):
 
       - :meth:`~sage.combinat.permutation.Permutation.inversions`
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: p = Permutations(5).random_element()
-        sage: edges = graphs.PermutationGraph(p).edges(labels =False)
+        sage: PG = graphs.PermutationGraph(p)
+        sage: edges = PG.edges(labels=False)
         sage: set(edges) == set(p.inverse().inversions())
         True
+
+        sage: PG = graphs.PermutationGraph([3,4,5,1,2])
+        sage: sorted(PG.edges())
+        [(1, 3, None),
+         (1, 4, None),
+         (1, 5, None),
+         (2, 3, None),
+         (2, 4, None),
+         (2, 5, None)]
+        sage: PG = graphs.PermutationGraph([3,4,5,1,2], [1,4,2,5,3])
+        sage: sorted(PG.edges())
+        [(1, 3, None),
+         (1, 4, None),
+         (1, 5, None),
+         (2, 3, None),
+         (2, 5, None),
+         (3, 4, None),
+         (3, 5, None)]
+        sage: PG = graphs.PermutationGraph([1,4,2,5,3], [3,4,5,1,2])
+        sage: sorted(PG.edges())
+        [(1, 3, None),
+         (1, 4, None),
+         (1, 5, None),
+         (2, 3, None),
+         (2, 5, None),
+         (3, 4, None),
+         (3, 5, None)]
+
+        sage: PG = graphs.PermutationGraph(Permutation([1,3,2]), Permutation([1,2,3]))
+        sage: sorted(PG.edges())
+        [(2, 3, None)]
+
+        sage: graphs.PermutationGraph([]).edges()
+        []
+        sage: graphs.PermutationGraph([], []).edges()
+        []
+
+        sage: PG = graphs.PermutationGraph("graph", "phrag")
+        sage: sorted(PG.edges())
+        [('a', 'g', None),
+         ('a', 'h', None),
+         ('a', 'p', None),
+         ('g', 'h', None),
+         ('g', 'p', None),
+         ('g', 'r', None),
+         ('h', 'r', None),
+         ('p', 'r', None)]
 
     TESTS::
 
@@ -186,8 +260,6 @@ def PermutationGraph(second_permutation, first_permutation = None):
 
     from sage.combinat.permutation import Permutation
     p2 = Permutation(map(lambda x:vertex_to_index[x], second_permutation))
-    p1 = Permutation(map(lambda x:vertex_to_index[x], first_permutation))
-    p2 = p2 * p1.inverse()
     p2 = p2.inverse()
 
     g = Graph(name="Permutation graph for "+str(second_permutation))

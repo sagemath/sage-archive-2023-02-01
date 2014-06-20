@@ -114,6 +114,7 @@ from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.libs.pari.all import pari
 from sage.misc.functional import sqrt, log
 from sage.rings.arith import integer_ceil as ceil
+from sage.misc.superseded import deprecated_function_alias
 
 from sage.categories.fields import Fields
 _Fields = Fields()
@@ -287,17 +288,22 @@ cdef class PowerSeries(AlgebraElement):
         r"""
         Comparison of self and right.
 
-        We say two approximate power series are equal, if they agree for
+        We say two approximate power series are equal if they agree for
         all coefficients up to the *minimum* of the precisions of each.
-        Thus, e.g., `f=1+q+O(q^2)` is equal to `g=1+O(q)`.
+        Thus, e.g., `f = 1 + q + O(q^2)` is equal to `g = 1 + O(q)`.
+
         This is how PARI defines equality of power series, but not how
-        MAGMA defines equality. (MAGMA would declare f and g unequal.) I
-        side with PARI, because even if `g=1+q+O(q^2)`, we don't
-        really know whether f equals g, since we don't know the
-        coefficients of `q^2`.
+        Magma defines equality. (Magma would declare f and g unequal.)
+        The PARI/Sage convention is consistent with the idea that
+        comparison should take place after coercing both elements into
+        a common parent.  Hence, in the above example `f` is truncated
+        to `f + O(q)`, which is considered to be equal to `g`, even
+        though the coefficients of `q` are unknown for both series in
+        that comparison.
 
         Comparison is done in dictionary order from lowest degree to
-        highest degree coefficients (this is different than polynomials).
+        highest degree coefficients.  This is different than polynomial
+        comparison.
 
         EXAMPLES::
 
@@ -308,6 +314,22 @@ cdef class PowerSeries(AlgebraElement):
             True
             sage: 1 - 2*q + q^2 +O(q^3) == 1 - 2*q^2 + q^2 + O(q^4)
             False
+
+        TESTS:
+
+        Ticket :trac:`9457` is fixed::
+
+            sage: A.<t> = PowerSeriesRing(ZZ)
+            sage: g = t + t^3 + t^5 + O(t^6); g
+            t + t^3 + t^5 + O(t^6)
+            sage: [g == g.add_bigoh(i) for i in range(7)]
+            [True, True, True, True, True, True, True]
+            sage: A(g.polynomial()) == g
+            True
+
+            sage: f = t + t^2 + O(t^10)
+            sage: f == f.truncate()
+            True
         """
         # A very common case throughout code
         if PY_TYPE_CHECK(right, int):
@@ -317,7 +339,9 @@ cdef class PowerSeries(AlgebraElement):
         x = self.list()
         y = right.list()
         if not (prec is infinity):
-            x = x[:prec]
+            x += [0]*(prec - len(x)) # self.list() does not include trailing zeroes
+            x = x[:prec] # truncate x to common prec
+            y += [0]*(prec - len(y))
             y = y[:prec]
         return cmp(x,y)
 
@@ -459,11 +483,11 @@ cdef class PowerSeries(AlgebraElement):
         """
         Return the absolute precision of this series.
 
-        By definition, the absolute precision of 
+        By definition, the absolute precision of
         `...+O(x^r)` is `r`.
-        
+
         EXAMPLES::
-        
+
             sage: R.<t> = ZZ[[]]
             sage: (t^2 + O(t^3)).precision_absolute()
             3
@@ -475,14 +499,14 @@ cdef class PowerSeries(AlgebraElement):
     def precision_relative(self):
         """
         Return the relative precision of this series, that
-        is the difference between its absolute precision 
+        is the difference between its absolute precision
         and its valuation.
 
         By convension, the relative precision of `0` (or
         `O(x^r)` for any `r`) is `0`.
-        
+
         EXAMPLES::
-        
+
             sage: R.<t> = ZZ[[]]
             sage: (t^2 + O(t^3)).precision_relative()
             1
@@ -1758,9 +1782,10 @@ cdef class PowerSeries(AlgebraElement):
         """
         return self._parent.laurent_series_ring()(self)
 
-    def ogf(self):
+    def egf_to_ogf(self):
         r"""
-        Returns the ordinary generating function associated to self.
+        Returns the ordinary generating function power series,
+        assuming self is an exponential generating function power series.
 
         This function is known as ``serlaplace`` in PARI/GP.
 
@@ -1768,14 +1793,15 @@ cdef class PowerSeries(AlgebraElement):
 
             sage: R.<t> = PowerSeriesRing(QQ)
             sage: f = t + t^2/factorial(2) + 2*t^3/factorial(3)
-            sage: f.ogf()
+            sage: f.egf_to_ogf()
             t + t^2 + 2*t^3
         """
         return self.parent()([self[i] * arith.factorial(i) for i in range(self.degree()+1)])
 
-    def egf(self):
+    def ogf_to_egf(self):
         r"""
-        Returns the exponential generating function associated to self.
+        Returns the exponential generating function power series,
+        assuming self is an ordinary generating function power series.
 
         This can also be computed as ``serconvol(f,exp(t))`` in PARI/GP.
 
@@ -1783,10 +1809,13 @@ cdef class PowerSeries(AlgebraElement):
 
             sage: R.<t> = PowerSeriesRing(QQ)
             sage: f = t + t^2 + 2*t^3
-            sage: f.egf()
+            sage: f.ogf_to_egf()
             t + 1/2*t^2 + 1/3*t^3
         """
         return self.parent()([self[i] / arith.factorial(i) for i in range(self.degree()+1)])
+
+    ogf = deprecated_function_alias(15705, egf_to_ogf)
+    egf = deprecated_function_alias(15705, ogf_to_egf)
 
     def _pari_(self):
         """

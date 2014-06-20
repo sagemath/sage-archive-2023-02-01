@@ -979,13 +979,16 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             sage: QuaternionAlgebra(QQ[sqrt(2)],3,19).discriminant()
             Fractional ideal (1)
         """
-        try: return self.__discriminant
-        except AttributeError: pass
+        try:
+            return self.__discriminant
+        except AttributeError:
+            pass
         if not is_RationalField(self.base_ring()):
             try:
                 F = self.base_ring()
-                self.__discriminant = F.hilbert_conductor(self._a,self._b)
-            except NotImplementedError: raise "base field must be rational numbers or number field"
+                self.__discriminant = F.hilbert_conductor(self._a, self._b)
+            except NotImplementedError:
+                raise ValueError("base field must be rational numbers or number field")
         else:
             self.__discriminant = hilbert_conductor(self._a, self._b)
         return self.__discriminant
@@ -1318,7 +1321,7 @@ class QuaternionOrder(Algebra):
             # has rank 4
             V = A.base_ring()**4
             if V.span([ V(x.coefficient_tuple()) for x in basis]).dimension() != 4:
-                raise ValueError, "basis must have rank 4"
+                raise ValueError("basis must have rank 4")
 
             # The additional checks will work over QQ and over number fields,
             # but we can't actually do much with an order defined over a number
@@ -1329,13 +1332,13 @@ class QuaternionOrder(Algebra):
                 v = M.solve_left(V([1,0,0,0]))
 
                 if v.denominator() != 1:
-                    raise ValueError, "lattice must contain 1"
+                    raise ValueError("lattice must contain 1")
 
                 # check if multiplicatively closed
                 M1 = basis_for_quaternion_lattice(basis)
                 M2 = basis_for_quaternion_lattice(list(basis) + [ x*y for x in basis for y in basis])
                 if M1 != M2:
-                    raise ValueError, "given lattice must be a ring"
+                    raise ValueError("given lattice must be a ring")
 
             if A.base_ring() != QQ:     # slow code over number fields (should eventually use PARI's nfhnf)
                 O = None
@@ -1349,13 +1352,13 @@ class QuaternionOrder(Algebra):
                     v = M.solve_left(V([1,0,0,0]))
 
                     if any([ not a in O for a in v]):
-                        raise ValueError, "lattice must contain 1"
+                        raise ValueError("lattice must contain 1")
 
                     # check if multiplicatively closed
                     Y = matrix(QQ, 16, 4, [ (x*y).coefficient_tuple() for x in basis for y in basis])
                     X = M.solve_left(Y)
                     if any([ not a in O for x in X for a in x ]):
-                        raise ValueError, "given lattice must be a ring"
+                        raise ValueError("given lattice must be a ring")
 
         self.__basis = basis
         self.__quaternion_algebra = A
@@ -2854,15 +2857,15 @@ def maxord_solve_aux_eq(a, b, p):
         ...           assert mod(1 - a*y^2 - b*z^2 + a*b*w^2, 4) == 0
     """
     if p != ZZ(2):
-        raise NotImplementedError, "Algorithm only implemented over ZZ at the moment"
+        raise NotImplementedError("Algorithm only implemented over ZZ at the moment")
 
     v_a = a.valuation(p)
     v_b = b.valuation(p)
 
     if v_a != 0:
-        raise RuntimeError, "a must have v_p(a)=0"
+        raise RuntimeError("a must have v_p(a)=0")
     if v_b != 0 and v_b != 1:
-        raise RuntimeError, "b must have v_p(b) in {0,1}"
+        raise RuntimeError("b must have v_p(b) in {0,1}")
 
     R = ZZ.quo(ZZ(4))
     lut = {

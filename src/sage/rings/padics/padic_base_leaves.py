@@ -487,7 +487,7 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
 
             sage: a = ZpFM(5)(4); b = ZpFM(5)(5)
         """
-        raise TypeError, "This implementation of the p-adic ring does not support fields of fractions."
+        raise TypeError("This implementation of the p-adic ring does not support fields of fractions.")
 
 
 class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGeneric):
@@ -611,4 +611,4 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
             a = ZZ.random_element(self.prime()**self.precision_cap())
             return self(self.prime()**k * a, absprec = k + self.precision_cap())
         else:
-            raise NotImplementedError, "Don't know %s algorithm"%algorithm
+            raise NotImplementedError("Don't know %s algorithm"%algorithm)

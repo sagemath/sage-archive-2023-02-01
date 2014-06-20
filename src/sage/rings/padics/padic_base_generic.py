@@ -137,7 +137,7 @@ class pAdicBaseGeneric(pAdicGeneric):
             5 + O(5^21)
         """
         if n != 0:
-            raise IndexError, "only one generator"
+            raise IndexError("only one generator")
         return self(self.prime())
 
     def absolute_discriminant(self):
@@ -174,7 +174,7 @@ class pAdicBaseGeneric(pAdicGeneric):
         if (K is None or K is self):
             return 1
         else:
-            raise ValueError, "Ground Ring must be a subring of self"
+            raise ValueError("Ground Ring must be a subring of self")
 
     def is_abelian(self):
         """
@@ -308,7 +308,7 @@ class pAdicBaseGeneric(pAdicGeneric):
             if n == 1:
                 return self(1)
             else:
-                raise ValueError, "No, %sth root of unity in self"%n
+                raise ValueError("No, %sth root of unity in self"%n)
         else:
             from sage.rings.finite_rings.constructor import GF
             return self.teichmuller(GF(self.prime()).zeta(n).lift())
@@ -356,7 +356,7 @@ class pAdicBaseGeneric(pAdicGeneric):
             sage: Zp(5).plot(max_points=625)
             sage: Zp(23).plot(rgbcolor=(1,0,0))
         """
-        if not args.has_key('pointsize'):
+        if 'pointsize' not in args:
             args['pointsize'] = 1
         from sage.misc.mrange import cartesian_product_iterator
         from sage.rings.real_double import RDF

@@ -454,7 +454,6 @@ def line2d(points, **options):
 
         sage: E = EllipticCurve('37a')
         sage: vals = E.lseries().values_along_line(1-I, 1+10*I, 100) # critical line
-          ***   Warning:...new stack size = ...
         sage: L = [(z[1].real(), z[1].imag()) for z in vals]
         sage: line(L, rgbcolor=(3/4,1/2,5/8))
 

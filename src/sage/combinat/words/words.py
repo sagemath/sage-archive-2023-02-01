@@ -28,10 +28,10 @@ EXAMPLES::
 #                          Sébastien Labbé <slabqc@gmail.com>,
 #                          Franco Saliola <saliola@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License version 2 (GPLv2)
-#
-#  The full text of the GPLv2 is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.combinat.combinat import InfiniteAbstractCombinatorialClass
@@ -108,7 +108,7 @@ def Words(alphabet=None, length=None, finite=True, infinite=True):
                 return InfiniteWords_over_OrderedAlphabet(alphabet)
         elif isinstance(length, (int,Integer)):
                 return FiniteWords_length_k_over_OrderedAlphabet(alphabet, length)
-    raise ValueError, "do not know how to make a combinatorial class of words from your input"
+    raise ValueError("do not know how to make a combinatorial class of words from your input")
 
 from sage.structure.unique_representation import UniqueRepresentation
 class Words_all(InfiniteAbstractCombinatorialClass):
@@ -126,6 +126,11 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         NotImplementedError: infinite list
         sage: Words_all().cardinality()
         +Infinity
+
+        sage: isinstance(Words('ab'), Words_all)
+        True
+        sage: isinstance(33, Words_all)
+        False
 
     We would like the instance of this class to be unique::
 
@@ -175,6 +180,27 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             'Word_iter_with_caching': word.Word_iter_with_caching,
             'Word_iter': word.Word_iter
             }
+
+    def _an_element_(self):
+        r"""
+        Return an element of self.
+
+        EXAMPLES::
+
+            sage: W = Words(4)
+            sage: W.an_element()
+            word:
+
+        TESTS:
+
+        Check that :trac:`16125` is fixed::
+
+            sage: W = Words(4)
+            sage: w = W([3,1,2,1])
+            sage: w in ZZ
+            False
+        """
+        return self([])
 
     def __call__(self, data=None, length=None, datatype=None, caching=True, **kwds):
         r"""
@@ -470,7 +496,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             elif isinstance(data, WordDatatype):
                 data = data._data
             else:
-                raise TypeError, "Any instance of Word_class must be an instance of WordDatatype."
+                raise TypeError("Any instance of Word_class must be an instance of WordDatatype.")
 
         if data is None:
             data = []
@@ -488,16 +514,16 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             elif hasattr(data,"__iter__"):
                 datatype = "iter"
             else:
-                raise ValueError, "Cannot guess a datatype from data (=%s); please specify one"%data
+                raise ValueError("Cannot guess a datatype from data (=%s); please specify one"%data)
         else:
             # type check the datatypes
             if datatype == "iter" and not hasattr(data, "__iter__"):
-                raise ValueError, "Your data is not iterable"
+                raise ValueError("Your data is not iterable")
             elif datatype == "callable" and not callable(data):
-                raise ValueError, "Your data is not callable"
+                raise ValueError("Your data is not callable")
             elif datatype not in ("list", "tuple", "str",
                                 "callable", "iter", "pickled_function"):
-                raise ValueError, "Unknown datatype (=%s)" % datatype
+                raise ValueError("Unknown datatype (=%s)" % datatype)
 
         # If `data` is a pickled_function, restore the function
         if datatype == 'pickled_function':
@@ -527,12 +553,12 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             elif length in ZZ and length >= 0:
                 cls_str = 'FiniteWord_iter'
             else:
-                raise ValueError, "not a correct value for length (%s)" % length
+                raise ValueError("not a correct value for length (%s)" % length)
             if caching:
                 cls_str += '_with_caching'
             kwds = dict(parent=self,iter=data,length=length)
         else:
-            raise ValueError, "Not known datatype"
+            raise ValueError("Not known datatype")
 
         wordclass = self._element_classes
         cls = wordclass[cls_str]
@@ -564,7 +590,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         """
         for a in itertools.islice(w, length):
             if a not in self._alphabet:
-                raise ValueError, "%s not in alphabet!" % a
+                raise ValueError("%s not in alphabet!" % a)
 
     def _repr_(self):
         """
@@ -713,6 +739,12 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             sage: W = Words_over_Alphabet(build_alphabet('ab'))
             sage: W.alphabet()
             {'a', 'b'}
+
+            sage: w = Word('abaccefa')
+            sage: w.parent().alphabet()
+            Set of Python objects of type 'object'
+            sage: Words('456').alphabet()
+            {'4', '5', '6'}
         """
         return self._alphabet
 
@@ -723,6 +755,8 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         EXAMPLES::
 
             sage: Words().size_of_alphabet()
+            +Infinity
+            sage: Word('abaccefa').parent().size_of_alphabet()
             +Infinity
         """
         return Infinity
@@ -839,6 +873,8 @@ class Words_over_Alphabet(Words_all):
             6
             sage: Words('').size_of_alphabet()
             0
+            sage: Words('456').size_of_alphabet()
+            3
         """
         return self.alphabet().cardinality()
 
@@ -869,7 +905,7 @@ class Words_over_Alphabet(Words_all):
             NotImplementedError: size of alphabet must be finite
         """
         if self.size_of_alphabet() not in ZZ:
-            raise NotImplementedError, 'size of alphabet must be finite'
+            raise NotImplementedError('size of alphabet must be finite')
         from sage.combinat.words.morphism import WordMorphism
         return WordMorphism(dict((a,a) for a in self.alphabet()))
 
@@ -960,7 +996,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             TypeError: the parameter l (='a') must be an integer
         """
         if not isinstance(l, (int,Integer)):
-            raise TypeError, "the parameter l (=%r) must be an integer"%l
+            raise TypeError("the parameter l (=%r) must be an integer"%l)
         #if l == Integer(0):
         #    yield self()
         for w in xmrange([self.size_of_alphabet()]*l):
@@ -1219,12 +1255,6 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             ...
             TypeError: codomain (=a) must be an instance of Words_over_OrderedAlphabet
 
-        The argument ``l`` is now deprecated::
-
-            sage: W = Words('ab')
-            sage: it = W.iter_morphisms(l=None)
-            doctest:...: DeprecationWarning: use the option 'arg' instead of 'l'
-            See http://trac.sagemath.org/10134 for details.
         """
         n = self.size_of_alphabet()
         # create an iterable of compositions (all "compositions" if arg is
@@ -1251,7 +1281,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         if codomain is None:
             codomain = self
         elif not isinstance(codomain, Words_over_OrderedAlphabet):
-            raise TypeError, "codomain (=%s) must be an instance of Words_over_OrderedAlphabet"%codomain
+            raise TypeError("codomain (=%s) must be an instance of Words_over_OrderedAlphabet"%codomain)
 
         # iterate through the morphisms
         from sage.combinat.words.morphism import WordMorphism
@@ -1485,27 +1515,4 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
             return iter(self)
         else:
             return iter([])
-
-###########################################################################
-##### DEPRECATION WARNINGS ################################################
-##### Added July 2009 #####################################################
-###########################################################################
-
-def is_Words(obj):
-    r"""
-    Returns True if obj is a word set and False otherwise.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.words.words import is_Words
-        sage: is_Words(33)
-        doctest:1: DeprecationWarning: is_Words is deprecated, use isinstance(your_object, Words_all) instead!
-        See http://trac.sagemath.org/6519 for details.
-        False
-        sage: is_Words(Words('ab'))
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(6519, "is_Words is deprecated, use isinstance(your_object, Words_all) instead!")
-    return isinstance(obj, Words_all)
 

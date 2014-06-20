@@ -115,9 +115,9 @@ def local_good_density_congruence_odd(self, p, m, Zvec, NZvec):
     ## -------------------------------
     Sn = Set(range(n))
     if (Zvec != None) and (len(Set(Zvec) + Sn) > n):
-        raise RuntimeError, "Zvec must be a subset of {0, ..., n-1}."
+        raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
     if (NZvec != None) and (len(Set(NZvec) + Sn) > n):
-        raise RuntimeError, "NZvec must be a subset of {0, ..., n-1}."
+        raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
 
@@ -250,9 +250,9 @@ def local_good_density_congruence_even(self, m, Zvec, NZvec):
     ## -------------------------------
     Sn = Set(range(n))
     if (Zvec != None) and (len(Set(Zvec) + Sn) > n):
-        raise RuntimeError, "Zvec must be a subset of {0, ..., n-1}."
+        raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
     if (NZvec != None) and (len(Set(NZvec) + Sn) > n):
-        raise RuntimeError, "NZvec must be a subset of {0, ..., n-1}."
+        raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
 
@@ -410,9 +410,9 @@ def local_good_density_congruence(self, p, m, Zvec=None, NZvec=None):
     ## -------------------------------
     Sn = Set(range(n))
     if (Zvec != None) and (len(Set(Zvec) + Sn) > n):
-        raise RuntimeError, "Zvec must be a subset of {0, ..., n-1}."
+        raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
     if (NZvec != None) and (len(Set(NZvec) + Sn) > n):
-        raise RuntimeError, "NZvec must be a subset of {0, ..., n-1}."
+        raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
 
@@ -434,7 +434,7 @@ def local_good_density_congruence(self, p, m, Zvec=None, NZvec=None):
         #print "\n Using the (p=2) Local_Good_Density_Even routine! \n"
         return self.local_good_density_congruence_even(m, Zvec, NZvec)
 
-    raise RuntimeError, "\n Error in Local_Good_Density: The 'prime' p = " + str(p) + " is < 2. \n"
+    raise RuntimeError("\n Error in Local_Good_Density: The 'prime' p = " + str(p) + " is < 2. \n")
 
 
 
@@ -504,9 +504,9 @@ def local_zero_density_congruence(self, p, m, Zvec=None, NZvec=None):
     ## -------------------------------
     Sn = Set(range(n))
     if (Zvec != None) and (len(Set(Zvec) + Sn) > n):
-        raise RuntimeError, "Zvec must be a subset of {0, ..., n-1}."
+        raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
     if (NZvec != None) and (len(Set(NZvec) + Sn) > n):
-        raise RuntimeError, "NZvec must be a subset of {0, ..., n-1}."
+        raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
     p2 = p * p
@@ -611,9 +611,9 @@ def local_badI_density_congruence(self, p, m, Zvec=None, NZvec=None):
     ## -------------------------------
     Sn = Set(range(n))
     if (Zvec != None) and (len(Set(Zvec) + Sn) > n):
-        raise RuntimeError, "Zvec must be a subset of {0, ..., n-1}."
+        raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
     if (NZvec != None) and (len(Set(NZvec) + Sn) > n):
-        raise RuntimeError, "NZvec must be a subset of {0, ..., n-1}."
+        raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
 
@@ -662,7 +662,7 @@ def local_badI_density_congruence(self, p, m, Zvec=None, NZvec=None):
     if (S0 == []):
         print " Using Q = " + str(self)
         print " and p = " + str(p)
-        raise RuntimeError, "Oops! The form is not primitive!"
+        raise RuntimeError("Oops! The form is not primitive!")
 
 
 
@@ -784,9 +784,9 @@ def local_badII_density_congruence(self, p, m, Zvec=None, NZvec=None):
     ## -------------------------------
     Sn = Set(range(n))
     if (Zvec != None) and (len(Set(Zvec) + Sn) > n):
-        raise RuntimeError, "Zvec must be a subset of {0, ..., n-1}."
+        raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
     if (NZvec != None) and (len(Set(NZvec) + Sn) > n):
-        raise RuntimeError, "NZvec must be a subset of {0, ..., n-1}."
+        raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
     ## Define the indexing sets S_i:
@@ -836,7 +836,7 @@ def local_badII_density_congruence(self, p, m, Zvec=None, NZvec=None):
     if (S0 == []):
         print " Using Q = " + str(self)
         print " and p = " + str(p)
-        raise RuntimeError, "Oops! The form is not primitive!"
+        raise RuntimeError("Oops! The form is not primitive!")
 
 
 

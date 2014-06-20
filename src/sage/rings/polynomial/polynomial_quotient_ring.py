@@ -155,14 +155,14 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
         Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^2 - 1
     """
     if not isinstance(ring, PolynomialRing_commutative):
-        raise TypeError, "ring must be a polynomial ring"
+        raise TypeError("ring must be a polynomial ring")
     if not isinstance(polynomial, polynomial_element.Polynomial):
-        raise TypeError, "must be a polynomial"
+        raise TypeError("must be a polynomial")
     if not polynomial.parent() == ring:
-        raise TypeError, "polynomial must be in ring"
+        raise TypeError("polynomial must be in ring")
     c = polynomial.leading_coefficient()
     if not c.is_unit():
-        raise TypeError, "polynomial must have unit leading coefficient"
+        raise TypeError("polynomial must have unit leading coefficient")
     if names is None:
         names = tuple([x + 'bar' for x in ring.variable_names()])
     else:
@@ -265,7 +265,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         sage: first_class == Q.__class__
         False
         sage: [s for s in dir(Q.category().element_class) if not s.startswith('_')]
-        ['cartesian_product', 'gcd', 'is_idempotent', 'is_one', 'is_unit', 'lcm', 'lift']
+        ['cartesian_product', 'gcd', 'is_idempotent', 'is_one', 'is_unit', 'lcm', 'lift', 'xgcd']
 
     As one can see, the elements are now inheriting additional methods: lcm and gcd. Even though
     ``Q.an_element()`` belongs to the old and not to the new element class, it still inherits
@@ -303,13 +303,13 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
 
         """
         if not isinstance(ring, PolynomialRing_commutative):
-            raise TypeError, "R must be a univariate polynomial ring."
+            raise TypeError("R must be a univariate polynomial ring.")
 
         if not isinstance(polynomial, polynomial_element.Polynomial):
-            raise TypeError, "f must be a Polynomial"
+            raise TypeError("f must be a Polynomial")
 
         if polynomial.parent() != ring:
-            raise TypeError, "f must have parent R"
+            raise TypeError("f must have parent R")
 
         self.__ring = ring
         self.__polynomial = polynomial
@@ -441,7 +441,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         try:
             return self.element_class(self, self.__ring(x), check=False)
         except TypeError:
-            raise TypeError, "unable to convert %s into an element of %s"%(x,repr(self))
+            raise TypeError("unable to convert %s into an element of %s"%(x,repr(self)))
 
     def _coerce_map_from_(self, R):
         """
@@ -771,7 +771,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             gamma
         """
         if n != 0:
-            raise IndexError, "Only one generator."
+            raise IndexError("Only one generator.")
         try:
             return self.__gen
         except AttributeError:
@@ -845,10 +845,10 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             17*alpha + 1
         """
         if self.characteristic() != 0:
-            raise ArithmeticError, "Polynomial quotient ring is not isomorphic to a number field (it has positive characteristic)."
+            raise ArithmeticError("Polynomial quotient ring is not isomorphic to a number field (it has positive characteristic).")
 
         if not isinstance(self.base_ring(), sage.rings.rational_field.RationalField):
-            raise NotImplementedError, "Computation of number field only implemented for quotients of the polynomial ring over the rational field."
+            raise NotImplementedError("Computation of number field only implemented for quotients of the polynomial ring over the rational field.")
         return sage.rings.number_field.all.NumberField(self.modulus(), self.variable_name())
 
     def order(self):

@@ -3286,7 +3286,7 @@ def McLaughlinGraph():
     blocks = map(Set, blocks)
     B = [b for b in blocks if 0 in b]
     C = [b for b in blocks if not 0 in b]
-    g = graph.Graph()
+    g = Graph()
     for b in B:
         for x in range(23):
             if not x in b:

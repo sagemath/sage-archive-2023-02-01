@@ -217,7 +217,7 @@ class Function_exp_integral_e(BuiltinFunction):
 
         return None # leaves the expression unevaluated
 
-    def _evalf_(self, n, z, parent=None):
+    def _evalf_(self, n, z, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -328,7 +328,7 @@ class Function_exp_integral_e1(BuiltinFunction):
 
         return None # leaves the expression unevaluated
 
-    def _evalf_(self, z, parent=None):
+    def _evalf_(self, z, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -453,7 +453,7 @@ class Function_log_integral(BuiltinFunction):
                 return z
         return None # leaves the expression unevaluated
 
-    def _evalf_(self, z, parent=None):
+    def _evalf_(self, z, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -638,7 +638,7 @@ class Function_log_integral_offset(BuiltinFunction):
         # If we return:(li(z)-li(2)) we get correct symbolic integration.
         # But on definite integration it returns x.xxxx-li(2).
 
-    def _evalf_(self, z, parent=None):
+    def _evalf_(self, z, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -813,7 +813,7 @@ class Function_sin_integral(BuiltinFunction):
 
         return None # leaves the expression unevaluated
 
-    def _evalf_(self, z, parent=None):
+    def _evalf_(self, z, parent=None, algorithm=None):
         """
         EXAMPLES:
 
@@ -973,7 +973,7 @@ class Function_cos_integral(BuiltinFunction):
 
         return None # leaves the expression unevaluated
 
-    def _evalf_(self, z, parent=None):
+    def _evalf_(self, z, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -1128,7 +1128,7 @@ class Function_sinh_integral(BuiltinFunction):
 
         return None # leaves the expression unevaluated
 
-    def _evalf_(self, z, parent=None):
+    def _evalf_(self, z, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -1262,7 +1262,7 @@ class Function_cosh_integral(BuiltinFunction):
 
         return None
 
-    def _evalf_(self, z, parent=None):
+    def _evalf_(self, z, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -1397,7 +1397,7 @@ class Function_exp_integral(BuiltinFunction):
             return self._evalf_(x, parent(x))
         return None
 
-    def _evalf_(self, x, parent=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 

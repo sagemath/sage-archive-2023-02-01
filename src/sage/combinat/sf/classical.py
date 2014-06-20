@@ -33,7 +33,6 @@ import llt
 import macdonald
 import jack
 import orthotriang
-import kschur
 
 ZZ = IntegerRing()
 QQ = RationalField()
@@ -114,7 +113,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             sage: s([[],[]])
             s[]
 
-            sage: McdJ = SymmetricFunctions(QQ['q','t'].base_ring())
+            sage: McdJ = SymmetricFunctions(QQ['q','t'].fraction_field()).macdonald().J()
             sage: s = SymmetricFunctions(McdJ.base_ring()).s()
             sage: s._element_constructor_(McdJ(s[2,1]))
             s[2, 1]
@@ -181,7 +180,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             try:
                 t = conversion_functions[(xP.basis_name(),self.basis_name())]
             except AttributeError:
-                raise TypeError, "do not know how to convert from %s to %s"%(xP.basis_name(), self.basis_name())
+                raise TypeError("do not know how to convert from %s to %s"%(xP.basis_name(), self.basis_name()))
 
             if R == QQ and xP.base_ring() == QQ:
                 if xm:
@@ -227,7 +226,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             zero = BR.zero()
             PBR = P.base_ring()
             if not BR.has_coerce_map_from(PBR):
-                raise TypeError, "no coerce map from x's parent's base ring (= %s) to self's base ring (= %s)"%(PBR, self.base_ring())
+                raise TypeError("no coerce map from x's parent's base ring (= %s) to self's base ring (= %s)"%(PBR, self.base_ring()))
 
             z_elt = {}
             for m, c in x._monomial_coefficients.iteritems():
@@ -276,17 +275,6 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             else:
                 raise TypeError
 
-        #####################
-        # k-Schur Functions #
-        #####################
-        if isinstance(x, kschur.kSchurFunctions_generic.Element):
-            if isinstance(x, kschur.kSchurFunctions_t.Element):
-                P = x.parent()
-                sx = P._s._from_cache(x, P._s_cache, P._self_to_s_cache, t=P.t)
-                return self(sx)
-            else:
-                raise TypeError
-
         ####################################################
         # Bases defined by orthogonality and triangularity #
         ####################################################
@@ -325,8 +313,8 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         else:
             try:
                 return eclass(self, {sage.combinat.partition.Partition([]):R(x)})
-            except StandardError:
-                raise TypeError, "do not know how to make x (= %s) an element of self"%(x)
+            except Exception:
+                raise TypeError("do not know how to make x (= %s) an element of self"%(x))
 
     # This subclass is currently needed for the test above:
     #    isinstance(x, SymmetricFunctionAlgebra_classical.Element):

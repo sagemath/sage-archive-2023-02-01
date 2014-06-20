@@ -38,7 +38,7 @@ EXAMPLES::
 This method :meth:`ascii_art` could be automatically use by the display hook
 manager activated by the magic function: ``%display ascii_art``::
 
-    sage: from sage.misc.interpreter import get_test_shell
+    sage: from sage.repl.interpreter import get_test_shell
     sage: shell = get_test_shell()
     sage: shell.run_cell('%display ascii_art')
     sage: shell.run_cell("i = var('i')")

@@ -139,7 +139,7 @@ class Function_HurwitzZeta(BuiltinFunction):
         else:
             return
 
-    def _evalf_(self, s, x, parent):
+    def _evalf_(self, s, x, parent=None, algorithm=None):
         r"""
         TESTS::
 
@@ -254,7 +254,7 @@ class Function_zetaderiv(GinacFunction):
         """
         GinacFunction.__init__(self, "zetaderiv", nargs=2)
 
-    def _evalf_(self, n, x, parent):
+    def _evalf_(self, n, x, parent=None, algorithm=None):
         from mpmath import zeta
         return mpmath_utils.call(zeta, x, 1, n, parent=parent)
 
@@ -407,7 +407,7 @@ class DickmanRho(BuiltinFunction):
         elif x <= 2:
             return 1 - x.log()
         n = x.floor()
-        if self._cur_prec < x.parent().prec() or not self._f.has_key(n):
+        if self._cur_prec < x.parent().prec() or n not in self._f:
             self._cur_prec = rel_prec = x.parent().prec()
             # Go a bit beyond so we're not constantly re-computing.
             max = x.parent()(1.1)*x + 10

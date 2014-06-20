@@ -154,7 +154,7 @@ class Minimog():
         elif type == "modulo11":
             self.minimog = minimog_modulo11
         else:
-            raise ValueError, "That Minimog type is not implemented."
+            raise ValueError("That Minimog type is not implemented.")
         # This initializes the variables in the game.
         MS34 = MatrixSpace(SR,3,4)
         A = self.minimog
@@ -535,29 +535,29 @@ class Minimog():
                 if list(L2)[0] == MINIMOG[2][1]:
                           L1 = LL - L2
                           H,WHAT = self.find_hexad3(L1,MINIMOG[0][0],MINIMOG[2][1])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
                           L1 = LL - L2
                           H,WHAT = self.find_hexad3(L1,MINIMOG[0][2],MINIMOG[2][1])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
                 if list(L2)[0] == MINIMOG[0][0]:
                           L1 = (LL - L2)
                           H,WHAT = self.find_hexad3(L1,MINIMOG[0][0],MINIMOG[2][1])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
                           L1 = (LL - L2)
                           H,WHAT = self.find_hexad3(L1,MINIMOG[0][0],MINIMOG[0][2])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
                 if list(L2)[0] == MINIMOG[0][2]:
                           L1 = (LL - L2)
                           H,WHAT = self.find_hexad3(L1,MINIMOG[0][0],MINIMOG[0][2])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
                           L1 = (LL - L2)
                           H,WHAT = self.find_hexad3(L1,MINIMOG[2][1],MINIMOG[0][2])
-                          if H <> []:
+                          if H != []:
                               return list(H),WHAT
             return list(H),WHAT
             ## a cross in a pic at infty

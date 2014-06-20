@@ -1,0 +1,27 @@
+diff --git a/Makefile.in b/Makefile.in
+index 7a1f42a..101044e 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -11,6 +11,7 @@ system_libdir		= @SYSTEM_LIBDIR@
+ pkgconfigdir		= @PKGCONFIGDIR@
+ 
+ CC			= @CC@
++INSTALL			= @INSTALL@
+ PROG			= pkgconf@EXEEXT@
+ SRCS			= main.c cache.c pkg.c bsdstubs.c getopt_long.c fragment.c argvsplit.c fileio.c tuple.c dependency.c queue.c
+ OBJS			= ${SRCS:.c=.o}
+@@ -30,11 +31,11 @@ clean:
+ 
+ install:
+ 	mkdir -p $(DESTDIR)$(bindir)
+-	install -c -m755 $(PROG) $(DESTDIR)$(bindir)/$(PROG)
++	@INSTALL_PROGRAM@ $(PROG) $(DESTDIR)$(bindir)/$(PROG)
+ 	mkdir -p $(DESTDIR)$(datarootdir)/aclocal
+-	install -c -m644 $(srcdir)/pkg.m4 $(DESTDIR)$(datarootdir)/aclocal/pkg.m4
++	@INSTALL_DATA@ $(srcdir)/pkg.m4 $(DESTDIR)$(datarootdir)/aclocal/pkg.m4
+ 	mkdir -p $(DESTDIR)$(MANDIR)
+-	install -c -m644 $(srcdir)/pkgconf.1 $(DESTDIR)$(MANDIR)/pkgconf.1
++	@INSTALL_DATA@ $(srcdir)/pkgconf.1 $(DESTDIR)$(MANDIR)/pkgconf.1
+ 
+ check: $(PROG)
+ 	$(SHELL) tests/run.sh ./$(PROG)

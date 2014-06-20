@@ -448,7 +448,10 @@ cdef class SetSystem:
         if E is None:
             E = xrange(self._len)
         if P is None:
-            P = SetSystem(self._groundset, [self._groundset], capacity=self._groundset_size)
+            if self._groundset:
+                P = SetSystem(self._groundset, [self._groundset], capacity=self._groundset_size)
+            else:
+                P = SetSystem([], [])
         cnt = self._incidence_count(E)
         self._groundset_partition(P, cnt)
         return P
@@ -607,6 +610,9 @@ cdef class SetSystem:
             ....:                                      ['a', 'c', 'd']])
             sage: S._isomorphism(T)
             {1: 'c', 2: 'd', 3: 'b', 4: 'a'}
+            sage: S = SetSystem([], [])
+            sage: S._isomorphism(S)
+            {}
         """
         cdef long l, p
         if SP is None or OP is None:

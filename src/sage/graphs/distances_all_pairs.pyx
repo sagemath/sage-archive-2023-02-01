@@ -128,6 +128,7 @@ Functions
 ##############################################################################
 
 include "sage/misc/bitset.pxi"
+include "sage/misc/binary_matrix.pxi"
 from libc.stdint cimport uint64_t, uint32_t, INT32_MAX
 from sage.graphs.base.c_graph cimport CGraph
 from sage.graphs.base.c_graph cimport vertex_label
@@ -449,20 +450,26 @@ def is_distance_regular(G, parameters = False):
     r"""
     Tests if the graph is distance-regular
 
-    A graph `G` is distance-regular if there exist integers `d_1,...,d_n` such
-    that for every vertex `v\in G` we have `d_i=\#\{u:d_G(u,v) =i\}`. Thus a
-    strongly-regular graph is also distance-regular, and a distance-regular
-    graph is necessarily regular too.
+    A graph `G` is distance-regular if for any integers `j,k` the value
+    of `|\{x:d_G(x,u)=j,x\in V(G)\} \cap \{y:d_G(y,v)=j,y\in V(G)\}|` is constant
+    for any two vertices `u,v\in V(G)` at distance `i` from each other.
+    In particular `G` is regular, of degree `b_0` (see below), as one can take `u=v`.
 
-    For more information on distance-regular graphs, see its associated
-    :wikipedia:`wikipedia page <Distance-regular_graph>`.
+    Equivalently a graph is distance-regular if there exist integers `b_i,c_i`
+    such that for any two vertices `u,v` at distance `i` we have
+
+    * `b_i = |\{x:d_G(x,u)=i+1,x\in V(G)\}\cap N_G(v)\}|, \ 0\leq i\leq d-1`
+    * `c_i = |\{x:d_G(x,u)=i-1,x\in V(G)\}\cap N_G(v)\}|, \ 1\leq i\leq d,`
+
+    where `d` is the diameter of the graph.  For more information on
+    distance-regular graphs, see its associated :wikipedia:`wikipedia
+    page <Distance-regular_graph>`.
 
     INPUT:
 
-    - ``parameters`` (boolean) -- whether to replace ``True`` answers with a
-      dictionary associating `d_i` to an integer `i>0` if `d_i>0` (one can then
-      obtain `d_i` by doing ``dictionary.get(i,0)``). Set to ``False`` by
-      default.
+    - ``parameters`` (boolean) -- if set to ``True``, the function returns the
+      pair ``(b,c)`` of lists of integers instead of ``True`` (see the definition
+      above). Set to ``False`` by default.
 
     .. SEEALSO::
 
@@ -475,76 +482,106 @@ def is_distance_regular(G, parameters = False):
         sage: g.is_distance_regular()
         True
         sage: g.is_distance_regular(parameters = True)
-        {1: 3, 2: 6}
+        ([3, 2, None], [None, 1, 1])
 
     Cube graphs, which are not strongly regular, are a bit more interesting::
 
-        sage: graphs.CubeGraph(4).is_distance_regular(parameters = True)
-        {1: 4, 2: 6, 3: 4, 4: 1}
+        sage: graphs.CubeGraph(4).is_distance_regular()
+        True
+        sage: graphs.OddGraph(5).is_distance_regular()
+        True
+
+    Disconnected graph::
+
+        sage: (2*graphs.CubeGraph(4)).is_distance_regular()
+        True
 
     TESTS::
 
         sage: graphs.PathGraph(2).is_distance_regular(parameters = True)
-        {1: 1}
+        ([1, None], [None, 1])
+        sage: graphs.Tutte12Cage().is_distance_regular(parameters=True)
+        ([3, 2, 2, 2, 2, 2, None], [None, 1, 1, 1, 1, 1, 3])
 
     """
-    cdef int i,l
+    cdef int i,l,u,v,d,b,c,k
     cdef int n = G.order()
+    cdef int infinity = <unsigned short> -1
 
     if n <= 1:
-        return {} if parameters else True
+        return ([],[]) if parameters else True
 
     if not G.is_regular():
         return False
+    k = G.degree(G.vertex_iterator().next())
 
+    # Matrix of distances
     cdef unsigned short * distance_matrix = c_distances_all_pairs(G)
 
-    # - d_array is the vector of d_i corresponding to the first vertex
-    #
-    # - d_tmp is a vector that we use to check that d_array is the same for
-    #   every vertex v
-    cdef unsigned short * d_array = <unsigned short *> sage_calloc(2*n, sizeof(unsigned short))
-    cdef unsigned short * d_tmp   = d_array + n
+    # The diameter, i.e. the longest *finite* distance between two vertices
+    cdef int diameter = 0
+    for i in range(n*n):
+        if distance_matrix[i] > diameter and distance_matrix[i] != infinity:
+            diameter = distance_matrix[i]
 
-    if d_array == NULL:
+    # b_distance_matrix[d*n+v] is the set of vertices at distance d from v.
+    cdef binary_matrix_t b_distance_matrix
+    try:
+        binary_matrix_init(b_distance_matrix,n*(diameter+2),n)
+        binary_matrix_fill(b_distance_matrix, 0)
+    except MemoryError:
         sage_free(distance_matrix)
-        raise MemoryError()
+        raise
 
-    # Filling d_array
-    cdef unsigned short * pointer = distance_matrix
-    for i in range(n):
-        if pointer[i] < n:
-            d_array[pointer[i]] += 1
-    pointer += n
+    # Fills b_distance_matrix
+    for u in range(n):
+        for v in range(u,n):
+            d = distance_matrix[u*n+v]
+            if d != infinity:
+                binary_matrix_set1(b_distance_matrix, d*n+u,v)
+                binary_matrix_set1(b_distance_matrix, d*n+v,u)
 
-    # For each of the n-1 other vertices
-    for l in range(1,n):
+    cdef list bi = [-1 for i in range(diameter +1)]
+    cdef list ci = [-1 for i in range(diameter +1)]
 
-        # We set d_tmp and fill it with the data from the l^th row
-        memset(d_tmp, 0, n*sizeof(unsigned short))
-        for i in range(n):
-            if pointer[i] < n:
-                d_tmp[pointer[i]] += 1
+    # Applying the definition with b_i,c_i
+    for u in range(n):
+        for v in range(n):
+            if u == v:
+               continue
 
-        # If d_tmp != d_array, we are done
-        if memcmp(d_array, d_tmp, n*sizeof(unsigned short)) != 0:
-            sage_free(distance_matrix)
-            sage_free(d_array)
-            return False
+            d = distance_matrix[u*n+v]
+            if d == infinity:
+                continue
 
-        pointer += n
+            # Computations of b_d and c_d for u,v. We intersect sets stored in
+            # b_distance_matrix.
+            b = 0
+            c = 0
+            for l in range(b_distance_matrix.width):
+                b += __builtin_popcountl(b_distance_matrix.rows[(d+1)*n+u][l] & b_distance_matrix.rows[1*n+v][l])
+                c += __builtin_popcountl(b_distance_matrix.rows[(d-1)*n+u][l] & b_distance_matrix.rows[1*n+v][l])
 
-    cdef dict dict_parameters
-    if parameters:
-        dict_parameters = {i:d_array[i] for i in range(n) if i and d_array[i] > 0}
+            # Consistency of b_d and c_d
+            if bi[d] == -1:
+                bi[d] = b
+                ci[d] = c
+
+            elif bi[d] != b or ci[d] != c:
+                sage_free(distance_matrix)
+                binary_matrix_free(b_distance_matrix)
+                return False
 
     sage_free(distance_matrix)
-    sage_free(d_array)
+    binary_matrix_free(b_distance_matrix)
 
     if parameters:
-        return dict_parameters
+        bi[0] = k
+        bi[diameter] = None
+        ci[0] = None
+        return bi, ci
     else:
-        return True
+        return  True
 
 ###################################
 # Both distances and predecessors #

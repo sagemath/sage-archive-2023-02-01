@@ -18,7 +18,7 @@ AUTHORS:
  ****************************************************************************/
 
 #include <Python.h>
-#include <mpir.h>
+#include <gmp.h>
 #include "interrupt.h"
 #include "memory.h"
 
@@ -30,27 +30,27 @@ static void alloc_error(size_t size)
     sig_error();
 }
 
-/* mpir memory functions */
-void* sage_mpir_malloc(size_t size)
+/* gmp memory functions */
+void* sage_gmp_malloc(size_t size)
 {
     void* p = sage_malloc(size);
     if (unlikely(!p)) alloc_error(size);
     return p;
 }
 
-void* sage_mpir_realloc(void *ptr, size_t old_size, size_t new_size)
+void* sage_gmp_realloc(void *ptr, size_t old_size, size_t new_size)
 {
     void* p = sage_realloc(ptr, new_size);
     if (unlikely(!p)) alloc_error(new_size);
     return p;
 }
 
-void sage_mpir_free(void *ptr, size_t size)
+void sage_gmp_free(void *ptr, size_t size)
 {
     sage_free(ptr);
 }
 
 void init_memory_functions()
 {
-    mp_set_memory_functions(sage_mpir_malloc, sage_mpir_realloc, sage_mpir_free);
+    mp_set_memory_functions(sage_gmp_malloc, sage_gmp_realloc, sage_gmp_free);
 }

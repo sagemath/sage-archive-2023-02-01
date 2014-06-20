@@ -455,7 +455,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         """
         try:
             return self.is_canonical(self.element_class(self, list(v), check=False), check=False)
-        except StandardError:
+        except Exception:
             return False
 
     def __call__(self, v, check=True):
@@ -473,8 +473,8 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             if v.parent() is self:
                 return v
             else:
-                raise ValueError, '%s shoud be a Python list of integer'%(v)
-        except StandardError:
+                raise ValueError('%s shoud be a Python list of integer'%(v))
+        except Exception:
             return self.element_class(self, list(v), check=check)
 
     def orbit(self, v):
@@ -505,7 +505,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             if v.parent() is self:
                 return orbit(self._sgs, v)
             raise TypeError
-        except StandardError:
+        except Exception:
             return orbit(self._sgs, self.element_class(self, v, check=False))
 
     def subset(self, sum=None, max_part=None):
@@ -698,7 +698,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         """
         try:
             return (self(v)).parent() is self
-        except StandardError:
+        except Exception:
             return False
 
     def __call__(self, v, check=True):
@@ -719,8 +719,8 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             if v.parent() is self:
                 return v
             else:
-                raise ValueError, '%s shoud be a Python list of integer'%(v)
-        except StandardError:
+                raise ValueError('%s shoud be a Python list of integer'%(v))
+        except Exception:
             return self.element_class(self, list(v), check=check)
 
     def __iter__(self):
@@ -936,7 +936,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         try:
             if v.parent() is self:
                 return orbit(self._sgs, v)
-        except StandardError:
+        except Exception:
             return orbit(self._sgs, self.element_class(self, v, check=False))
 
     class Element(ClonableIntArray):

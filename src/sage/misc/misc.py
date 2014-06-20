@@ -12,11 +12,19 @@ AUTHORS:
 
 TESTS:
 
-Check the fix from trac #8323::
+The following test, verifying that :trac:`16181` has been resolved, needs
+to stay at the beginning of this file so that its context is not
+poisoned by other tests::
 
-    sage: globals().has_key('name')
+    sage: sage.misc.misc.inject_variable('a', 0)
+    sage: a
+    0
+
+Check the fix from :trac:`8323`::
+
+    sage: 'name' in globals()
     False
-    sage: globals().has_key('func')
+    sage: 'func' in globals()
     False
 
 """
@@ -93,7 +101,7 @@ sage_makedirs(DOT_SAGE)
 _mode = os.stat(DOT_SAGE)[stat.ST_MODE]
 _desired_mode = 040700     # drwx------
 if _mode != _desired_mode:
-    print "Setting permissions of DOT_SAGE directory so only you can read and write it."
+    print("Setting permissions of DOT_SAGE directory so only you can read and write it.")
     # Change mode of DOT_SAGE.
     os.chmod(DOT_SAGE, _desired_mode)
 
@@ -454,14 +462,14 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
         s = "verbose %s (%s: %s, %s) %s"%(level, lineno, short_file_name, caller_name, mesg)
     if t!=0:
         s = s + " (time = %s)"%cputime(t)
-    print s
+    print(s)
     sys.stdout.flush()
     #open(LOGFILE,"a").write(s+"\n")
     return cputime()
 
 def todo(mesg=""):
     caller_name = sys._getframe(1).f_code.co_name
-    raise NotImplementedError, "%s: todo -- %s"%(caller_name, mesg)
+    raise NotImplementedError("{}: todo -- {}".format(caller_name, mesg))
 
 def set_verbose(level, files='all'):
     """
@@ -652,8 +660,7 @@ def uniq(x):
         sage: set(v) == set(['a', 'x', -5, 1, 3, 8])
         True
     """
-    v = list(set(x))
-    v.sort()
+    v = sorted(set(x))
     return v
 
 
@@ -888,7 +895,7 @@ def newton_method_sizes(N):
 
     N = int(N)
     if N < 1:
-        raise ValueError, "N (=%s) must be a positive integer" % N
+        raise ValueError("N (={}) must be a positive integer".format(N))
 
     output = []
     while N > 1:
@@ -910,7 +917,7 @@ def assert_attribute(x, attr, init=None):
     If the object x has the attribute attr, do nothing. If not, set
     x.attr to init.
     """
-    if x.__dict__.has_key(attr): return
+    if attr in x.__dict__: return
     if attr[:2] == "__":
         z = str(x.__class__).split("'")
         if len(z) > 1:
@@ -997,7 +1004,7 @@ def self_compose(f, n):
 
     typecheck(n, (int, long, Integer), 'n')
     if n < 0:
-        raise ValueError, "n must be a nonnegative integer, not %s." % n
+        raise ValueError("n must be a nonnegative integer, not {}.".format(n))
 
     return lambda x: nest(f, n, x)
 
@@ -1042,7 +1049,7 @@ def nest(f, n, x):
 
     typecheck(n, (int, long, Integer), 'n')
     if n < 0:
-        raise ValueError, "n must be a nonnegative integer, not %s." % n
+        raise ValueError("n must be a nonnegative integer, not {}.".format(n))
 
     for i in xrange(n):
         x = f(x)
@@ -1192,7 +1199,7 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
         start, end, step = universe(start), universe(end), universe(step)
 
     if step == Sequence([step]).universe()(0):
-        raise ValueError, "srange() step argument must not be zero"
+        raise ValueError("srange() step argument must not be zero")
 
     if universe in [int, long, ZZ]:
         if include_endpoint and (end-start) % step == 0:
@@ -1287,7 +1294,7 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
         start, end, step = universe(start), universe(end), universe(step)
 
     if step == Sequence([step]).universe()(0):
-        raise ValueError, "xsrange() step argument must not be zero"
+        raise ValueError("xsrange() step argument must not be zero")
 
     if universe in [int, long, ZZ]:
         if include_endpoint and (end-start) % step == 0:
@@ -1427,7 +1434,7 @@ def ellipsis_range(*args, **kwds):
             skip = False
         elif args[i] is Ellipsis:
             if len(args) == i+1:
-                raise IndexError, "Ellipsis range must have an endpoint, use (n..) for infinite sequence."
+                raise IndexError("Ellipsis range must have an endpoint, use (n..) for infinite sequence.")
             start, end = args[i-1], args[i+1]
             if i < 2 or args[i-2] is not Ellipsis:
                 L.pop()
@@ -1633,7 +1640,7 @@ def is_iterator(it):
     # see trac #7398 for a discussion
     try:
         return it is iter(it)
-    except StandardError:
+    except Exception:
         return False
 
 
@@ -1756,7 +1763,7 @@ def typecheck(x, C, var="x"):
     error message.
     """
     if not isinstance(x, C):
-        raise TypeError, "%s (=%s) must be of type %s."%(var,x,C)
+        raise TypeError("{} (={}) must be of type {}.".format(var, x, C))
 
 #################################################################
 # This will likely eventually be useful.
@@ -1797,7 +1804,7 @@ class lazy_prop(object):
         if obj is None:
             return self
         value = self._calculate(obj)
-        setattr(obj, self._calculate.func_name, value)
+        setattr(obj, self._calculate.__name__, value)
         return value
 
 def prop(f):
@@ -2268,7 +2275,7 @@ def is_in_string(line, pos):
 
 def get_main_globals():
     """
-    Return the main global namespace
+    Return the main global namespace.
 
     EXAMPLES::
 
@@ -2288,9 +2295,9 @@ def get_main_globals():
     from any function, even if it is in a Python module::
 
         sage: def f():
-        ...       G = get_main_globals()
-        ...       assert G['bli'] == 14
-        ...       G['blo'] = 42
+        ....:     G = get_main_globals()
+        ....:     assert G['bli'] == 14
+        ....:     G['blo'] = 42
         sage: bli = 14
         sage: f()
         sage: blo
@@ -2312,7 +2319,7 @@ def get_main_globals():
     depth = 0
     while True:
         G = sys._getframe(depth).f_globals
-        if G["__name__"] == "__main__" and G["__package__"] is None:
+        if G.get("__name__", None) == "__main__":
             break
         depth += 1
     return G
@@ -2320,11 +2327,12 @@ def get_main_globals():
 
 def inject_variable(name, value):
     """
-    inject a variable into the main global namespace
+    Inject a variable into the main global namespace.
 
     INPUT:
-     - ``name``  - a string
-     - ``value`` - anything
+
+    - ``name``  -- a string
+    - ``value`` -- anything
 
     EXAMPLES::
 
@@ -2352,7 +2360,7 @@ def inject_variable(name, value):
 
     Use with care!
     """
-    assert type(name) is str
+    assert isinstance(name, str)
     # Using globals() does not work, even in Cython, because
     # inject_variable is called not only from the interpreter, but
     # also from functions in various modules.

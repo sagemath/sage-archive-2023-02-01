@@ -435,8 +435,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def __getitem__(self, x):
         """
-        Return the ring `\ZZ[...]` obtained by adjoining to the integers a list
-        ``x`` of several elements.
+        Return the ring `\ZZ[...]` obtained by adjoining to the integers one
+        or several elements.
 
         EXAMPLES::
 
@@ -457,15 +457,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         if x in self:
             return self
-        if isinstance(x, str):
-            return PrincipalIdealDomain.__getitem__(self, x)
-        from sage.symbolic.ring import is_SymbolicVariable
-
-        if is_SymbolicVariable(x):
-            return PrincipalIdealDomain.__getitem__(self, repr(x))
 
         from sage.rings.number_field.all import is_NumberFieldElement
-
         if is_NumberFieldElement(x):
             K, from_K = x.parent().subfield(x)
             return K.order(K.gen())
@@ -1292,26 +1285,6 @@ def IntegerRing():
         True
     """
     return ZZ
-
-def factor(*args, **kwds):
-    """
-    This function is deprecated.  To factor an Integer `n`, call
-    ``n.factor()``. For other objects, use the factor method from
-    :mod:`sage.rings.arith`.
-
-    EXAMPLES::
-
-        sage: sage.rings.integer_ring.factor(1)
-        doctest:...: DeprecationWarning: This function is deprecated...
-        1
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(5945, "This function is deprecated.  Call the factor method of an Integer,"
-                +"or sage.arith.factor instead.")
-    #deprecated 4.6.2
-
-    late_import()
-    return arith.factor(*args, **kwds)
 
 import sage.misc.misc
 def crt_basis(X, xgcd=None):

@@ -308,7 +308,7 @@ class Scilab(Expect):
         cmd = '%s=%s;'%(var,value)
         out = self.eval(cmd)
         if out.find("error") != -1:
-            raise TypeError, "Error executing code in Scilab\nCODE:\n\t%s\nScilab ERROR:\n\t%s"%(cmd, out)
+            raise TypeError("Error executing code in Scilab\nCODE:\n\t%s\nScilab ERROR:\n\t%s"%(cmd, out))
 
     def get(self, var):
         """

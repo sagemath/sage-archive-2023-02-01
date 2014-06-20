@@ -108,12 +108,12 @@ def mass__by_Siegel_densities(self, odd_algorithm="Pall", even_algorithm="Watson
             elif even_algorithm == "Watson":
                 p_adjustment = p_adjustment / self.Watson_mass_at_2()
             else:
-                raise TypeError, "There is a problem -- your even_algorithm argument is invalid.  Try again. =("
+                raise TypeError("There is a problem -- your even_algorithm argument is invalid.  Try again. =(")
         else:
             if odd_algorithm == "Pall":
                 p_adjustment = p_adjustment / self.Pall_mass_density_at_odd_prime(p)
             else:
-                raise TypeError, "There is a problem -- your optional arguments are invalid.  Try again. =("
+                raise TypeError("There is a problem -- your optional arguments are invalid.  Try again. =(")
 
         #print "p_adjustment for p =", p, "is", p_adjustment
 
@@ -160,7 +160,7 @@ def Pall_mass_density_at_odd_prime(self, p):
     """
     ## Check that p is a positive prime -- unnecessary since it's done implicitly in the next step. =)
     if p<=2:
-        raise TypeError, "Oops!  We need p to be a prime > 2."
+        raise TypeError("Oops!  We need p to be a prime > 2.")
 
     ## Step 1: Obtain a p-adic (diagonal) local normal form, and
     ## compute the invariants for each Jordan block.

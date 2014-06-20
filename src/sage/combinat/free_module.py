@@ -95,6 +95,41 @@ class CombinatorialFreeModuleElement(Element):
         """
         return x in self._monomial_coefficients and self._monomial_coefficients[x] != 0
 
+    @cached_method
+    def __hash__(self):
+        """
+        Return the hash value for ``self``.
+
+        The result is cached.
+
+        EXAMPLES::
+
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] + 3*B['c']
+            sage: hash(f)
+            6429418278783588506           # 64-bit
+            726440090                     # 32-bit
+
+            sage: F = RootSystem(['A',2]).ambient_space()
+            sage: f = F.simple_root(0)
+            sage: hash(f)
+            6920829894162680369           # 64-bit
+            -528971215                    # 32-bit
+
+        This uses the recipe that was proposed for frozendicts in `PEP
+        0416 <http://legacy.python.org/dev/peps/pep-0416/>`_ (and adds
+        the hash of the parent). This recipe relies on the hash
+        function for frozensets which uses tricks to mix the hash
+        values of the items in case they are similar.
+
+        .. TODO::
+
+            It would be desirable to make the hash value depend on the
+            hash value of the parent. See :trac:`15959`.
+        """
+        return hash(frozenset(self._monomial_coefficients.items()))
+
     def monomial_coefficients(self):
         """
         Return the internal dictionary which has the combinatorial objects
@@ -156,8 +191,8 @@ class CombinatorialFreeModuleElement(Element):
         v = self._monomial_coefficients.items()
         try:
             v.sort(cmp = print_options['monomial_cmp'],
-                   key = lambda (monomial,coeff): monomial)
-        except StandardError: # Sorting the output is a plus, but if we can't, no big deal
+                   key = lambda monomial_coeff: monomial_coeff[0])
+        except Exception: # Sorting the output is a plus, but if we can't, no big deal
             pass
         return v
 
@@ -416,8 +451,7 @@ class CombinatorialFreeModuleElement(Element):
         if have_same_parent(left, right) and left._monomial_coefficients == right._monomial_coefficients:
             return 0
         nonzero = lambda mc: mc[1] != 0
-        v = filter(nonzero, left._monomial_coefficients.items())
-        v.sort()
+        v = sorted(filter(nonzero, left._monomial_coefficients.items()))
         w = filter(nonzero, right._monomial_coefficients.items())
         w.sort()
         return cmp(v, w)
@@ -658,8 +692,7 @@ class CombinatorialFreeModuleElement(Element):
         BR = self.parent().base_ring()
         zero = BR( 0 )
 
-        supp = [ key for key, coeff in self._monomial_coefficients.iteritems() if coeff != zero ]
-        supp.sort()
+        supp = sorted([ key for key, coeff in self._monomial_coefficients.iteritems() if coeff != zero ])
 
         return supp
 
@@ -681,8 +714,7 @@ class CombinatorialFreeModuleElement(Element):
         zero = BR( 0 )
         one = BR( 1 )
 
-        supp = [ key for key, coeff in self._monomial_coefficients.iteritems() if coeff != zero ]
-        supp.sort()
+        supp = sorted([ key for key, coeff in self._monomial_coefficients.iteritems() if coeff != zero ])
 
         return [ P._from_dict( { key : one }, remove_zeros=False ) for key in supp ]
 
@@ -702,8 +734,7 @@ class CombinatorialFreeModuleElement(Element):
         """
         BR = self.parent().base_ring()
         zero = BR( 0 )
-        v = [ ( key, value ) for key, value in self._monomial_coefficients.iteritems() if value != zero ]
-        v.sort()
+        v = sorted([ ( key, value ) for key, value in self._monomial_coefficients.iteritems() if value != zero ])
         from_dict = self.parent()._from_dict
         return [ from_dict( { key : value } ) for key,value in v ]
 
@@ -729,8 +760,7 @@ class CombinatorialFreeModuleElement(Element):
         """
         BR = self.parent().base_ring()
         zero = BR( 0 )
-        v = [ ( key, value ) for key, value in self._monomial_coefficients.iteritems() if value != zero ]
-        v.sort()
+        v = sorted([ ( key, value ) for key, value in self._monomial_coefficients.iteritems() if value != zero ])
         return [ value for key,value in v ]
 
     def _vector_(self, new_base_ring=None):
@@ -942,7 +972,7 @@ def _divide_if_possible(x, y):
     """
     q, r = x.quo_rem(y)
     if r != 0:
-        raise ValueError, "%s is not divisible by %s"%(x, y)
+        raise ValueError("%s is not divisible by %s"%(x, y))
     else:
         return q
 
@@ -1287,7 +1317,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         #Make sure R is a ring with unit element
         from sage.categories.all import Rings
         if R not in Rings():
-            raise TypeError, "Argument R must be a ring."
+            raise TypeError("Argument R must be a ring.")
 
         if category is None:
             category = ModulesWithBasis(R)
@@ -1369,13 +1399,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         R = self.base_ring()
         try:
             x = x + self.monomial(I.an_element())
-        except StandardError:
+        except Exception:
             pass
         try:
             g = iter(self.basis().keys())
             for c in range(1,4):
                 x = x + self.term(g.next(), R(c))
-        except (StandardError, StopIteration):
+        except Exception:
             pass
         return x
 
@@ -1530,7 +1560,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             if x == 0:
                 return self.zero()
             else:
-                raise TypeError, "do not know how to make x (= %s) an element of %s"%(x, self)
+                raise TypeError("do not know how to make x (= %s) an element of %s"%(x, self))
         #x is an element of the basis enumerated set;
         # This is a very ugly way of testing this
         elif ((hasattr(self._basis_keys, 'element_class') and
@@ -1546,7 +1576,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
                     return self._coerce_end(x)
                 except TypeError:
                     pass
-            raise TypeError, "do not know how to make x (= %s) an element of self (=%s)"%(x,self)
+            raise TypeError("do not know how to make x (= %s) an element of self (=%s)"%(x,self))
 
     def _an_element_impl(self):
         """
@@ -1561,30 +1591,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             True
         """
         return self.element_class(self, {})
-
-    def combinatorial_class(self):
-        """
-        Returns the combinatorial class that indexes the basis elements.
-
-        Deprecated: use self.basis().keys() instead.
-
-        EXAMPLES::
-
-            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
-            sage: F.combinatorial_class()
-            doctest:...: DeprecationWarning: "FM.combinatorial_class()" is deprecated. Use "F.basis().keys()" instead !
-            See http://trac.sagemath.org/6136 for details.
-            {'a', 'b', 'c'}
-
-        ::
-
-            sage: s = SymmetricFunctions(QQ).schur()
-            sage: s.combinatorial_class()
-            Partitions
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(6136, '"FM.combinatorial_class()" is deprecated. Use "F.basis().keys()" instead !')
-        return self._basis_keys
 
     def dimension(self):
         """
@@ -1771,7 +1777,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
                              ]:
                     self._print_options[option] = kwds[option]
                 else:
-                    raise ValueError, '%s is not a valid print option.' % option
+                    raise ValueError('%s is not a valid print option.' % option)
         else:
             return self._print_options
 
@@ -1885,7 +1891,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         try:
             if el == self.one_basis():
                 return AsciiArt(["1"])
-        except StandardError:
+        except Exception:
             pass
         pref = AsciiArt([self.prefix()])
         r = pref * (AsciiArt([" "**Integer(len(pref))]) + ascii_art(el))
@@ -2713,7 +2719,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                     and all(self._sets[i].has_coerce_map_from(M)
                             for i,M in enumerate(R._sets)):
                 modules = R._sets
-                vector_map = [self._sets[i].coerce_map_from(M)
+                vector_map = [self._sets[i]._internal_coerce_map_from(M)
                               for i,M in enumerate(modules)]
                 return R.module_morphism(lambda x: self._tensor_of_elements(
                         [vector_map[i](M.monomial(x[i]))
@@ -2901,7 +2907,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         """
         assert i in self._sets_keys()
         module = self._sets[i]
-        return self._module_morphism(lambda (j,t): module.monomial(t) if i == j else module.zero(), codomain = module)
+        return self._module_morphism(lambda j_t: module.monomial(j_t[1]) if i == j_t[0] else module.zero(), codomain = module)
 
     def _cartesian_product_of_elements(self, elements):
         """

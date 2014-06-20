@@ -113,7 +113,7 @@ class MPolynomialRing_macaulay2_repr:
         elif is_IntegerRing(self.base_ring()):
             return "ZZ"
         else:
-            raise TypeError, "no conversion of to a Macaulay2 ring defined"
+            raise TypeError("no conversion of to a Macaulay2 ring defined")
 
     def _macaulay2_set_ring(self, macaulay2):
         macaulay2.ring(self._macaulay2_base_str(), str(self.gens()), \
@@ -448,14 +448,14 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             if x.denominator() == 1:
                 return x.numerator()
             else:
-                raise TypeError, "unable to coerce since the denominator is not 1"
+                raise TypeError("unable to coerce since the denominator is not 1")
 
         elif is_SingularElement(x) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return x.sage_poly(self)
             except TypeError:
-                raise TypeError, "unable to coerce singular object"
+                raise TypeError("unable to coerce singular object")
 
         elif hasattr(x, '_polynomial_'):
             return x._polynomial_(self)
@@ -464,8 +464,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             try:
                 from sage.misc.sage_eval import sage_eval
                 return self(sage_eval(x, self.gens_dict_recursive()))
-            except NameError, e:
-                raise TypeError, "unable to convert string"
+            except NameError as e:
+                raise TypeError("unable to convert string")
 
         elif is_Macaulay2Element(x):
             try:
@@ -478,7 +478,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
                 # This took a while to figure out!
                 return self(eval(s, {}, self.gens_dict()))
             except (AttributeError, TypeError, NameError, SyntaxError):
-                raise TypeError, "Unable to coerce macaulay2 object"
+                raise TypeError("Unable to coerce macaulay2 object")
             return MPolynomial_polydict(self, x)
 
         if isinstance(x, dict):
@@ -525,7 +525,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             do_coerce = True
         elif not isinstance(gens, (list, tuple)):
             gens = [gens]
-        if (kwds.has_key('coerce') and kwds['coerce']) or do_coerce:
+        if ('coerce' in kwds and kwds['coerce']) or do_coerce:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
         return multi_polynomial_ideal.MPolynomialIdeal(self, gens, **kwds)
 
@@ -745,9 +745,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         EXAMPLES::
 
-            sage: P.<x,y,z>=MPolynomialRing(ZZ,3, order='degrevlex')
-            doctest:1: DeprecationWarning: MPolynomialRing is deprecated, use PolynomialRing instead!
-            See http://trac.sagemath.org/6500 for details.
+            sage: P.<x,y,z>=PolynomialRing(ZZ,3, order='degrevlex')
             sage: P.monomial_divides(x*y*z, x^3*y^2*z^4)
             True
             sage: P.monomial_divides(x^3*y^2*z^4, x*y*z)
@@ -755,7 +753,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         TESTS::
 
-            sage: P.<x,y,z>=MPolynomialRing(ZZ,3, order='degrevlex')
+            sage: P.<x,y,z>=PolynomialRing(ZZ,3, order='degrevlex')
             sage: P.monomial_divides(P(1), P(0))
             True
             sage: P.monomial_divides(P(1), x)
@@ -861,7 +859,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             return tempvector
 
         if not t.is_monomial():
-          raise TypeError, "Only monomials are supported"
+          raise TypeError("Only monomials are supported")
 
         R = self
         one = self.base_ring()(1)

@@ -709,7 +709,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             lower = self.__lower_field._coerce_(x)
             upper = self.__upper_field._coerce_(x)
             return self(lower, upper)
-        except TypeError, msg:
+        except TypeError as msg:
             raise TypeError, "no canonical coercion of element into self"
 
     def __cmp__(self, other):
@@ -1020,18 +1020,6 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         x = self._new()
         mpfi_const_log2(x.value)
         return x
-
-# MPFI does not have factorial
-#     def factorial(self, int n):
-#         """
-#         Return the factorial of the integer n as a real number.
-#         """
-#         cdef RealIntervalFieldElement x
-#         if n < 0:
-#             raise ArithmeticError, "n must be nonnegative"
-#         x = self._new()
-#         mpfr_fac_ui(x.value, n, self.rnd)
-#         return x
 
     def scientific_notation(self, status=None):
         """
@@ -1804,6 +1792,23 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             '[0.26794919243112269 .. 0.26794919243112276]'
             sage: -v
             -0.2679491924311227?
+
+        Check that :trac:`15166` is fixed::
+
+            sage: RIF(1.84e13).exp()
+            [2.0985787164673874e323228496 .. +infinity] # 32-bit
+            6.817557048799520?e7991018467019 # 64-bit
+            sage: from sage.rings.real_mpfr import mpfr_get_exp_min, mpfr_get_exp_max
+            sage: v = RIF(1.0 << (mpfr_get_exp_max() - 1)); v
+            1.0492893582336939?e323228496 # 32-bit
+            2.9378268945557938?e1388255822130839282 # 64-bit
+            sage: -v
+            -1.0492893582336939?e323228496 # 32-bit
+            -2.9378268945557938?e1388255822130839282 # 64-bit
+            sage: v = RIF(1.0 >> -mpfr_get_exp_min()+1); v
+            2.3825649048879511?e-323228497 # 32-bit
+            8.5096913117408362?e-1388255822130839284 # 64-bit
+
         """
         if not(mpfr_number_p(&self.value.left) and mpfr_number_p(&self.value.right)):
             raise ValueError, "_str_question_style on NaN or infinity"
@@ -1896,7 +1901,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         # the right of the last mantissa digit (that is, so the number
         # is mantissa*base^exponent, if you interpret mantissa as an integer).
 
-        cdef int digits
+        cdef long digits
         digits = strlen(lower_s)
         if lower_s[0] == '-':
             digits -= 1
@@ -1943,7 +1948,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         if mpfr_zero_p(&self.value.right):
             upper_expo = lower_expo
 
-        cdef int expo_delta
+        cdef mp_exp_t expo_delta
 
         if lower_expo < upper_expo:
             expo_delta = upper_expo - lower_expo
@@ -1974,7 +1979,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
                 mpz_cdiv_q(upper_mpz, upper_mpz, tmp)
             upper_expo = lower_expo
 
-        cdef int expo = lower_expo
+        cdef mp_exp_t expo = lower_expo
 
         # Now the basic plan is to repeat
         # lower = floor(lower/base); upper = ceiling(upper/base)
@@ -2014,8 +2019,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         # the internals of mpz_sizeinbase, or by writing our own
         # approximate logarithm.)
 
-        cdef int cur_error_digits = mpz_sizeinbase(cur_error, base)
-        cdef int max_error_digits = mpz_sizeinbase(max_error, base)
+        cdef long cur_error_digits = mpz_sizeinbase(cur_error, base)
+        cdef long max_error_digits = mpz_sizeinbase(max_error, base)
 
         # The GMP documentation claims that mpz_sizeinbase will be either
         # the true number of digits, or one too high.  So
@@ -2028,7 +2033,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         # k-1 = cur_error_digits-2-max_error_digits, and
         # k = cur_error_digits-1-max_error_digits.
 
-        cdef int k = cur_error_digits - 1 - max_error_digits
+        cdef long k = cur_error_digits - 1 - max_error_digits
 
         if k > 0:
             mpz_ui_pow_ui(tmp, base, k)
@@ -2108,7 +2113,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         # If we use scientific notation, we put the radix point to the
         # right of the first digit; that would give us an exponent of:
-        cdef int sci_expo = expo + digits - 1
+        cdef mp_exp_t sci_expo = expo + digits - 1
         if abs(sci_expo) >= 6:
             scientific = True
 
@@ -2721,8 +2726,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             6
         """
         cdef RealIntervalFieldElement x
-        if n > sys.maxint:
-            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxint)
+        if n > sys.maxsize:
+            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxsize)
         x = self._new()
         mpfi_mul_2exp(x.value, self.value, n)
         return x
@@ -2752,8 +2757,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: RIF(1.5)._rshift_(2)
             0.37500000000000000?
         """
-        if n > sys.maxint:
-            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxint)
+        if n > sys.maxsize:
+            raise OverflowError("n (=%s) must be <= %s" % (n, sys.maxsize))
         cdef RealIntervalFieldElement x
         x = self._new()
         mpfi_div_2exp(x.value, self.value, n)
@@ -3548,7 +3553,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         try:
             other_intv = self._parent(other)
             return mpfi_is_inside(other_intv.value, self.value)
-        except TypeError, msg:
+        except TypeError as msg:
             return False
 
     def contains_zero(self):
@@ -4562,6 +4567,31 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         known_bits = -self.relative_diameter().log2()
 
         return sage.rings.arith.algdep(self.center(), n, known_bits=known_bits)
+        
+    def factorial(self):
+        """
+        Return the factorial evaluated on ``self``.
+
+        EXAMPLES::
+
+            sage: RIF(5).factorial()
+            120
+            sage: RIF(2.3,5.7).factorial()
+            1.?e3
+            sage: RIF(2.3).factorial()
+            2.683437381955768?
+
+        Recover the factorial as integer::
+
+            sage: f = RealIntervalField(200)(50).factorial()
+            sage: f
+            3.0414093201713378043612608166064768844377641568960512000000000?e64
+            sage: f.unique_integer()
+            30414093201713378043612608166064768844377641568960512000000000000
+            sage: 50.factorial()
+            30414093201713378043612608166064768844377641568960512000000000000
+        """
+        return (self+1).gamma()
 
     def gamma(self):
         """

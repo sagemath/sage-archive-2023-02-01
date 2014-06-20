@@ -511,7 +511,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
                     try:
                         u, v = r
                     except ValueError:
-                        raise TypeError, "not a list of relations"
+                        raise TypeError("not a list of relations")
             D = DiGraph()
             D.add_vertices(elements)
             D.add_edges(relations)
@@ -519,11 +519,11 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
             # type 3, list/tuple of upper covers
             D = DiGraph(dict([[Integer(i),data[i]] for i in range(len(data))]))
         else:
-            raise ValueError, "not valid poset data."
+            raise ValueError("not valid poset data.")
 
     # DEBUG: At this point D should be a DiGraph.
     if not isinstance(D,DiGraph):
-        raise TypeError, "BUG: D should be a digraph."
+        raise TypeError("BUG: D should be a digraph.")
 
     # Determine cover relations, if necessary.
     if cover_relations is False:
@@ -532,11 +532,11 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
     # Check that the digraph does not contain loops, multiple edges
     # and is transitively reduced.
     if D.has_loops():
-        raise ValueError, "Hasse diagram contains loops."
+        raise ValueError("Hasse diagram contains loops.")
     elif D.has_multiple_edges():
-        raise ValueError, "Hasse diagram contains multiple edges."
+        raise ValueError("Hasse diagram contains multiple edges.")
     elif cover_relations is True and not D.is_transitively_reduced():
-        raise ValueError, "Hasse diagram is not transitively reduced."
+        raise ValueError("Hasse diagram is not transitively reduced.")
 
     if linear_extension and elements is not None:
         lin_ext = list(elements)
@@ -544,8 +544,8 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         # Compute a linear extension of the poset (a topological sort).
         try:
             lin_ext = D.topological_sort()
-        except StandardError:
-            raise ValueError, "Hasse diagram contains cycles."
+        except Exception:
+            raise ValueError("Hasse diagram contains cycles.")
 
     # Relabel using the linear_extension.
     # So range(len(D)) becomes a linear extension of the poset.
@@ -740,7 +740,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                 facade = hasse_diagram in Sets().Facades()
             hasse_diagram = hasse_diagram._hasse_diagram
         else:
-            hasse_diagram = HasseDiagram(hasse_diagram)
+            hasse_diagram = HasseDiagram(hasse_diagram, data_structure="static_sparse")
             if elements is None:
                 elements = hasse_diagram.vertices()
             if facade is None:
@@ -881,7 +881,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             try:
                 return self._element_to_vertex_dict[element]
             except KeyError:
-                raise ValueError, "element (=%s) not in poset"%element
+                raise ValueError("element (=%s) not in poset"%element)
 
     def _vertex_to_element(self, vertex):
         """
@@ -1041,7 +1041,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                     return self.element_class(self, \
                         self._elements[element], self.cardinality()+element)
             else:
-                raise ValueError, "%s is not an element of this poset"%type(element)
+                raise ValueError("%s is not an element of this poset"%type(element))
 
     def __call__(self, element):
         """
@@ -1116,22 +1116,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset(([1,2], [[1,2]]), cover_relations = True)
             sage: print P._latex_() #optional - dot2tex graphviz
-            \begin{tikzpicture}
-            %
-            \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
-            %
-            \definecolor{cv0}{rgb}{0.0,0.0,0.0}
-            \definecolor{cfv0}{rgb}{1.0,1.0,1.0}
-            \definecolor{clv0}{rgb}{0.0,0.0,0.0}
-            \definecolor{cv1}{rgb}{0.0,0.0,0.0}
-            \definecolor{cfv1}{rgb}{1.0,1.0,1.0}
-            \definecolor{clv1}{rgb}{0.0,0.0,0.0}
-            \definecolor{cv0v1}{rgb}{0.0,0.0,0.0}
-            %
-            \Vertex[style={minimum size=1.0cm,draw=cv0,fill=cfv0,text=clv0,shape=circle},LabelOut=false,L=\hbox{$1$},x=0.0cm,y=0.0cm]{v0}
-            \Vertex[style={minimum size=1.0cm,draw=cv1,fill=cfv1,text=clv1,shape=circle},LabelOut=false,L=\hbox{$2$},x=5.0cm,y=5.0cm]{v1}
-            %
-            \Edge[lw=0.1cm,style={post, bend right,color=cv0v1,},](v0)(v1)
+            \begin{tikzpicture}[>=latex,line join=bevel,]
+            %%
+            \node (node_1) at (6bp,57bp) [draw,draw=none] {$2$};
+              \node (node_0) at (6bp,7bp) [draw,draw=none] {$1$};
+              \draw [black,<-] (node_1) ..controls (6bp,31.269bp) and (6bp,20.287bp)  .. (node_0);
             %
             \end{tikzpicture}
         """
@@ -1477,21 +1466,23 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Poset({0:[1,2],1:[3],2:[3],3:[]})
-            sage: P.to_graph()
-            Graph on 4 vertices
-            sage: P = Poset()
             sage: G = P.to_graph(); G
+            Graph on 4 vertices
+            sage: S = Poset()
+            sage: H = S.to_graph(); H
             Graph on 0 vertices
 
-        Check that it is hashable::
+        Check that it is hashable and coincides with the Hasse diagram as a
+        graph::
 
             sage: hash(G) == hash(G)
             True
+            sage: G == Graph(P.hasse_diagram())
+            True
+
         """
         from sage.graphs.graph import Graph
-        G = Graph(self.hasse_diagram())
-        G._immutable = True
-        return G
+        return Graph(self.hasse_diagram(), immutable=True)
 
     def level_sets(self):
         """
@@ -2205,7 +2196,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         elif self.is_ranked():
             return self.rank_function()(element)
         else:
-            raise ValueError, "Poset is not ranked."
+            raise ValueError("Poset is not ranked.")
 
     def is_ranked(self):
         r"""
@@ -2639,7 +2630,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         if hasattr(other,'hasse_diagram'):
             return self.hasse_diagram().is_isomorphic( other.hasse_diagram() )
         else:
-            raise ValueError, 'The input is not a finite poset.'
+            raise ValueError('The input is not a finite poset.')
 
     import __builtin__ # Caveat: list is overridden by the method list above!!!
     def antichains(self, element_constructor = __builtin__.list):
@@ -4539,7 +4530,7 @@ def _ford_fulkerson_chronicle(G, s, t, a):
         else:
             # Step MC2b in Britz-Fomin, Algorithm 7.2.
             for v in G.vertex_iterator():
-                if not X.has_key(v):
+                if v not in X:
                     pi[v] += 1
             p += 1
 

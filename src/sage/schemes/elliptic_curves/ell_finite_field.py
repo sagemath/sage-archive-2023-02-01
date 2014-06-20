@@ -276,10 +276,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         try:
             n = Integer(n)
         except TypeError:
-            raise TypeError, "n must be a positive integer"
+            raise TypeError("n must be a positive integer")
 
         if n<1:
-            raise ValueError, "n must be a positive integer"
+            raise ValueError("n must be a positive integer")
 
         if n==1:
             return self.cardinality()
@@ -484,6 +484,17 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             True
             sage: [E._cardinality_with_j_invariant_1728() for E in curves]
             [387459856, 387400807, 387420490, 387420490, 387381124, 387440173]
+
+        TESTS:
+
+        Check that a bug noted at :trac:`15667` is fixed::
+
+            sage: F.<a>=GF(3^6,'a')
+            sage: EllipticCurve([a^5 + 2*a^3 + 2*a^2 + 2*a, a^4 + a^3 + 2*a + 1]).cardinality()
+            784
+            sage: EllipticCurve([a^5 + 2*a^3 + 2*a^2 + 2*a, a^4 + a^3 + 2*a + 1]).cardinality_exhaustive()
+            784
+
         """
         try:
             return self._order
@@ -577,22 +588,23 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 # [0,0,0,g^2,0], [0,0,0,g^2,i*a*g^3]; where g
                 # generates the multiplicative group modulo 4th
                 # powers, and a has nonzero trace.
-                A4 = self.a4()-self.a1()*self.a3()
-                i = k(-1).sqrt()
-                t = 0
+
+                # The curve is isomorphic to [0,0,0,A4,A6]
+
+                A4 = self.a4() - self.a1()*self.a3() # = -b4 = 2*b4
                 if A4.is_square():
                     u = A4.sqrt()
                     t = (-3)**(d//2)
-                    if u.is_square():
-                        A6 = (self.a3()**2+self.a6())/u
-                        if (i*A6).trace()==0:
-                            t = 2*t
-                        else:
-                            t = -t
+                    i = k(-1).sqrt()
+                    A6 = self.a3()**2 + self.a6()   # = b6
+                    if (A6/(i*u*A4)).trace()==0:
+                        t *= 2
                     else:
-                        A6 = (self.a3()**2+self.a6())/(u*A4)
-                        if (i*A6).trace()==0:
-                            t = -2*t
+                        t *= -1
+                    if not u.is_square():
+                        t *= -1
+                else:
+                    t = 0
                 N = q+1-t
 
 # p>3, j=1728
@@ -886,9 +898,9 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 if N1 == N2:
                     N = N1
                 else:
-                    raise RuntimeError, "BUG! Cardinality with pari=%s but with bsgs=%s"%(N1, N2)
+                    raise RuntimeError("BUG! Cardinality with pari=%s but with bsgs=%s"%(N1, N2))
             else:
-                raise ValueError, "Algorithm is not known"
+                raise ValueError("Algorithm is not known")
             self._order = Integer(N)
             return self._order
 
@@ -1067,7 +1079,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         if k.degree()==1:
             return ZZ(p + 1 - int(self._pari_().ellap(p)))
         else:
-            raise ValueError, "cardinality_pari() only works over prime fields."
+            raise ValueError("cardinality_pari() only works over prime fields.")
 
     def cardinality_bsgs(self, verbose=False):
         r"""
@@ -1417,7 +1429,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             N=self._order
             if debug:
                 print "Group order already known to be ",N
-        except StandardError:
+        except Exception:
             if (q<50):
                 if debug:
                     print "Computing group order naively"
@@ -1658,11 +1670,11 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         """
         from ell_generic import is_EllipticCurve
         if not is_EllipticCurve(other):
-            raise ValueError, "Second argument is not an Elliptic Curve."
+            raise ValueError("Second argument is not an Elliptic Curve.")
         if self.is_isomorphic(other):
             return True
         elif self.base_field().characteristic() != other.base_field().characteristic():
-            raise ValueError, "The base fields must have the same characteristic."
+            raise ValueError("The base fields must have the same characteristic.")
         elif field==None:
             if self.base_field().degree() == other.base_field().degree():
                 if self.cardinality() == other.cardinality():
@@ -1680,10 +1692,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 else:
                     return False
             else:
-                raise ValueError, "Curves have different base fields: use the field parameter."
+                raise ValueError("Curves have different base fields: use the field parameter.")
         else:
             if not lcm(self.base_field().degree(), other.base_field().degree()).divides(field.degree()):
-                raise ValueError, "Field must be an extension of the base fields of both curves"
+                raise ValueError("Field must be an extension of the base fields of both curves")
             else:
                 if \
 self.cardinality(extension_degree=field.degree()//self.base_field().degree())\
@@ -1937,14 +1949,14 @@ def supersingular_j_polynomial(p):
     try:
         p = ZZ(p)
     except TypeError:
-        raise ValueError, "p (=%s) should be a prime number"%p
+        raise ValueError("p (=%s) should be a prime number"%p)
     if not p.is_prime():
-        raise ValueError, "p (=%s) should be a prime number"%p
+        raise ValueError("p (=%s) should be a prime number"%p)
 
     J = polygen(GF(p),'j')
     if p<13:
         return J.parent().one()
-    from sage.rings.all import binomial
+    from sage.rings.arith import binomial
     from sage.misc.all import prod
     m=(p-1)//2
     X,T = PolynomialRing(GF(p),2,names=['X','T']).gens()
@@ -2073,7 +2085,7 @@ def is_j_supersingular(j, proof=True):
 
     """
     if not is_FiniteFieldElement(j):
-        raise ValueError, "%s must be an element of a finite field"%j
+        raise ValueError("%s must be an element of a finite field"%j)
 
     F = j.parent()
     p = F.characteristic()

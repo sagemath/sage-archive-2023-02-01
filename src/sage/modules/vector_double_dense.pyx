@@ -741,7 +741,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
         else:
             try:
                 p = RDF(p)
-            except StandardError:
+            except Exception:
                 raise ValueError("vector norm 'p' must be +/- infinity or a real number, not %s" % p)
         n = numpy.linalg.norm(self._vector_numpy, ord=p)
         # p = 0 returns integer *count* of non-zero entries

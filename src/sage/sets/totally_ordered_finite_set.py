@@ -345,6 +345,6 @@ class TotallyOrderedFiniteSet(FiniteEnumeratedSet):
         """
         try:
             return self._elements.index(x) <= self._elements.index(y)
-        except StandardError:
+        except Exception:
             raise ValueError("arguments must be elements of the set")
 

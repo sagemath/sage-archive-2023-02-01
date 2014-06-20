@@ -403,7 +403,7 @@ class PiecewisePolynomial:
         elif mode == "midpoint":
             return self._riemann_sum_helper(N, lambda x0, x1: (x1-x0)*self((x0+x1)/2))
         else:
-            raise ValueError, "invalid mode"
+            raise ValueError("invalid mode")
 
     def riemann_sum(self,N,mode=None):
         """
@@ -452,7 +452,7 @@ class PiecewisePolynomial:
             rsum = self._riemann_sum_helper(N, lambda x0,x1: [[(x0,x1),SR(self((x0+x1)/2))]],
                                             initial=[])
         else:
-            raise ValueError, "invalid mode"
+            raise ValueError("invalid mode")
         return Piecewise(rsum)
 
     def trapezoid(self,N):
@@ -666,7 +666,7 @@ class PiecewisePolynomial:
         for i in range(n):
             if endpts[i] < x0 < endpts[i+1]:
                 return self.functions()[i](x0)
-        raise ValueError,"Value not defined outside of domain."
+        raise ValueError("Value not defined outside of domain.")
 
     def which_function(self,x0):
         """
@@ -685,7 +685,7 @@ class PiecewisePolynomial:
         for (a,b), f in self.list():
             if a <= x0 <= b:
                 return f
-        raise ValueError,"Function not defined outside of domain."
+        raise ValueError("Function not defined outside of domain.")
 
     def default_variable(self):
         r"""
@@ -833,11 +833,10 @@ class PiecewisePolynomial:
             return F(b) - F(a)
 
         if a != None or b != None:
-            raise TypeError, 'only one endpoint given'
+            raise TypeError('only one endpoint given')
 
         area = 0 # cumulative definite integral of parts to the left of the current interval
-        integrand_pieces = self.list()
-        integrand_pieces.sort()
+        integrand_pieces = sorted(self.list())
         new_pieces = []
 
         if x == None:
@@ -1629,8 +1628,7 @@ class PiecewisePolynomial:
         b = max(b1, b2)
         F = self.extend_by_zero_to(a,b)
         G = other.extend_by_zero_to(a,b)
-        endpts = list(set(F.end_points()).union(set(G.end_points())))
-        endpts.sort()
+        endpts = sorted(set(F.end_points()).union(set(G.end_points())))
         return F, G, zip(endpts, endpts[1:])
 
     def __add__(self,other):

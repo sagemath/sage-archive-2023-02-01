@@ -195,7 +195,7 @@ def tokenize(s):
         # check to see if '-', '<' or '>' are used incorrectly
         elif s[i] in '<->':
             msg = "'%s' can only be used as part of the operators '<->' or '->'." % (s[i])
-            raise SyntaxError, msg
+            raise SyntaxError(msg)
         if len(tok) > 0:
             toks.append(tok)
             i += skip
@@ -225,7 +225,7 @@ def tokenize(s):
                 msg = 'invalid variable name ' + tok
                 msg += ": identifiers must begin with a letter and contain only "
                 msg += "alphanumerics and underscores"
-                raise NameError, msg
+                raise NameError(msg)
 
     toks.append(')')
     return toks, vars_order
@@ -398,13 +398,13 @@ def apply_func(tree, func):
         sage: logicparser.apply_func(t, f)
         ['|', ['&', 'c', 'a'], ['&', 'b', 'a']]
     """
-    if type(tree[1]) is ListType and type(tree[2]) is ListType:
+    if isinstance(tree[1], ListType) and isinstance(tree[2], ListType):
         lval = apply_func(tree[1], func)
         rval = apply_func(tree[2], func)
-    elif type(tree[1]) is ListType:
+    elif isinstance(tree[1], ListType):
         lval = apply_func(tree[1], func)
         rval = tree[2]
-    elif type(tree[2]) is ListType:
+    elif isinstance(tree[2], ListType):
         lval = tree[1]
         rval = apply_func(tree[2], func)
     else:

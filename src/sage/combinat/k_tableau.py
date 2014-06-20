@@ -200,7 +200,7 @@ def WeakTableau(t, k, inner_shape = [], representation = "core"):
     elif representation == "factorized_permutation":
         return WeakTableau_factorized_permutation(t, k, inner_shape = inner_shape)
     else:
-        raise NotImplementedError, "The representation option needs to be 'core', 'bounded', or 'factorized_permuation'"
+        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permuation'")
 
 def WeakTableaux(k, shape , weight, representation = "core"):
     r"""
@@ -264,7 +264,7 @@ def WeakTableaux(k, shape , weight, representation = "core"):
     elif representation == "factorized_permutation":
         return WeakTableaux_factorized_permutation(k, shape, weight)
     else:
-        raise NotImplementedError, "The representation option needs to be 'core', 'bounded', or 'factorized_permuation'"
+        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permuation'")
 
 #Abstract class for the elements of weak tableau
 class WeakTableau_abstract(ClonableList):
@@ -1382,7 +1382,7 @@ class WeakTableau_bounded(WeakTableau_abstract):
         inner = tab.inner_shape()
         weight = tuple(tab.weight())
         if outer.conjugate().length() > k:
-            raise ValueError, "The shape of %s is not %s-bounded"%(t, k)
+            raise ValueError("The shape of %s is not %s-bounded"%(t, k))
         return WeakTableaux_bounded(k, [outer, inner], weight)(t)
 
     def __init__(self, parent, t):
@@ -1426,7 +1426,7 @@ class WeakTableau_bounded(WeakTableau_abstract):
         self.k = k
         self._list = [r for r in t]
         if parent._outer_shape.conjugate().length() > k:
-            raise ValueError, "%s is not a %s-bounded tableau"%(t, k)
+            raise ValueError("%s is not a %s-bounded tableau"%(t, k))
         ClonableList.__init__(self, parent, t)
 
     def _repr_diagram(self):
@@ -1805,7 +1805,7 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
             if isinstance(t[0], list) or isinstance(t[0], tuple):
                 w_tuple = tuple(W.from_reduced_word(p) for p in t)
             elif t[0] not in W:
-                raise ValueError, "The input must be a list of reduced words or Weyl group elements"
+                raise ValueError("The input must be a list of reduced words or Weyl group elements")
             else:
                 w_tuple = tuple(W(r) for r in t)
         else:
@@ -3947,7 +3947,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: StrongTableaux(3, [[],[]], weight=[])
             Set of strong 3-tableaux of shape [] and of weight ()
        """
-        if self._inner_shape==[]:
+        if self._inner_shape==Core([],self.k+1):
             s = "Set of strong %s-tableaux"%self.k
             s +=" of shape %s"%self._outer_shape
         else:

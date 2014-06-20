@@ -214,13 +214,13 @@ class SloaneSequence(SageObject):
             ValueError: input n (=0) must be a positive integer
         """
         if not isinstance(n, (int, long, Integer_class)):
-            raise TypeError, "input must be an int, long, or Integer"
+            raise TypeError("input must be an int, long, or Integer")
         m = ZZ(n)
         if m < self.offset:
             if self.offset == 1:
-                raise ValueError, "input n (=%s) must be a positive integer" % (n)
+                raise ValueError("input n (=%s) must be a positive integer" % (n))
             else:
-                raise ValueError, "input n (=%s) must be an integer >= %s" % (n, self.offset)
+                raise ValueError("input n (=%s) must be an integer >= %s" % (n, self.offset))
         return self._eval(m)
 
     def _eval(self, n):
@@ -291,7 +291,7 @@ class SloaneSequence(SageObject):
         LENGTH = 100000
         (start, stop, step) = n.indices(2*LENGTH)
         if abs(stop - start) > LENGTH:
-            raise IndexError, "slice (=%s) too long"%n
+            raise IndexError("slice (=%s) too long"%n)
         # The dirty work of generating indices is left to a range list
         # This could be slow but in practice seems fine
         # NOTE: n is a SLICE, not an index
@@ -375,7 +375,7 @@ class A000001(SloaneSequence):
             return self._small[n-1]
         try:
             return Integer(gap.gap.eval('NumberSmallGroups(%s)'%n))
-        except StandardError:  # help, don't know what to do here? Jaap
+        except Exception:  # help, don't know what to do here? Jaap
             print "Install database_gap first. See optional packages"
 
 
@@ -663,7 +663,7 @@ class A000009(SloaneSequence):
         k = 0
         yield ZZ(1)
         p = 1
-        while 1:
+        while True:
             k += 1
             p *= (1+x**k)
             yield ZZ(p.coeffs()[k])
@@ -768,7 +768,7 @@ class A000796(SloaneSequence):
             [3, 1, 4, 1, 5, 9, 2, 6, 5, 3]
         """
         k, a, b, a1, b1 = ZZ(2), ZZ(4), ZZ(1), ZZ(12), ZZ(4)
-        while 1:
+        while True:
             p, q, k = k*k, 2*k+1, k+1
             a, b, a1, b1 = a1, b1, p*a+q*a1, p*b+q*b1
             d, d1 = a//b, a1//b1
@@ -6777,7 +6777,7 @@ def recur_gen2b(a0,a1,a2,a3,b):
     x, y = ZZ(a0), ZZ(a1)
     n = 1
     yield x
-    while 1:
+    while True:
         n = n+1
         x, y = y, a3*x+a2*y + b(n)
         yield x
@@ -7627,7 +7627,7 @@ def recur_gen2(a0,a1,a2,a3):
     x, y = ZZ(a0), ZZ(a1)
     n = 0
     yield x
-    while 1:
+    while True:
         n = n+1
         x, y = y, a3*x+a2*y
         yield x
@@ -8632,7 +8632,7 @@ def recur_gen3(a0,a1,a2,a3,a4,a5):
     x, y ,z = Integer(a0), Integer(a1), Integer(a2)
     n = 0
     yield x
-    while 1:
+    while True:
         n = n+1
         x, y, z = y, z, a5*x+a4*y+a3*z
         yield x
@@ -9738,6 +9738,6 @@ class Sloane(SageObject):
                 setattr(self, name, seq)
                 return seq
             except AttributeError:
-                raise AttributeError, name
+                raise AttributeError(name)
 
 sloane = Sloane()

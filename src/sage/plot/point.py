@@ -122,7 +122,7 @@ class Point(GraphicPrimitive_xydata):
             del options['size']
         if 'faceted' in options:
             if options['faceted']:
-                raise NotImplementedError, "No 3d faceted points."
+                raise NotImplementedError("No 3d faceted points.")
             del options['faceted']
         options_3d.update(GraphicPrimitive_xydata._plot3d_options(self, options))
         return options_3d
@@ -207,7 +207,7 @@ class Point(GraphicPrimitive_xydata):
         options = self._plot3d_options()
         options.update(kwds)
         zdata=[]
-        if type(z) is list:
+        if isinstance(z, list):
             zdata=z
         else:
             zdata=[z]*len(self.xdata)
@@ -218,7 +218,7 @@ class Point(GraphicPrimitive_xydata):
             else:
                 return Graphics3dGroup(all)
         else:
-            raise ValueError, 'Incorrect number of heights given'
+            raise ValueError('Incorrect number of heights given')
 
     def _repr_(self):
         """

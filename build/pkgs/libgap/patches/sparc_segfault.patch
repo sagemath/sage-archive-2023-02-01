@@ -1,0 +1,25 @@
+Index: gap-4r7p3/src/pperm.c
+===================================================================
+--- gap-4r7p3.orig/src/pperm.c	2014-02-24 20:25:12.000000000 +0000
++++ gap-4r7p3/src/pperm.c	2014-02-24 20:26:00.000000000 +0000
+@@ -16,16 +16,16 @@
+ #define libGAP_MIN(a,b)          (a<b?a:b)
+ 
+ #define libGAP_NEW_PPERM2(deg)   libGAP_NewBag(libGAP_T_PPERM2, (deg+1)*sizeof(libGAP_UInt2)+2*sizeof(libGAP_Obj))
+-#define libGAP_CODEG_PPERM2(f)   (*((libGAP_UInt2*)(libGAP_ADDR_OBJ(f))))
+-#define libGAP_ADDR_PPERM2(f)    ((libGAP_UInt2*)(libGAP_ADDR_OBJ(f))+1)
++#define libGAP_CODEG_PPERM2(f)   (*((libGAP_UInt2*)(libGAP_ADDR_OBJ(f))+1))
++#define libGAP_ADDR_PPERM2(f)    ((libGAP_UInt2*)(libGAP_ADDR_OBJ(f)))
+ #define libGAP_IMG_PPERM2(f)     (*(libGAP_Obj*)(libGAP_ADDR_PPERM2(f)+libGAP_DEG_PPERM2(f)))
+ #define libGAP_DOM_PPERM2(f)     (*((libGAP_Obj*)(libGAP_ADDR_PPERM2(f)+libGAP_DEG_PPERM2(f))+1))
+ #define libGAP_DEG_PPERM2(f)     ((libGAP_UInt)(libGAP_SIZE_OBJ(f)-sizeof(libGAP_UInt2)-2*sizeof(libGAP_Obj))/sizeof(libGAP_UInt2))
+ #define libGAP_RANK_PPERM2(f)    (libGAP_IMG_PPERM2(f)==NULL?libGAP_INIT_PPERM2(f):libGAP_LEN_PLIST(libGAP_IMG_PPERM2(f)))
+ 
+ #define libGAP_NEW_PPERM4(deg)   libGAP_NewBag(libGAP_T_PPERM4, (deg+1)*sizeof(libGAP_UInt4)+2*sizeof(libGAP_Obj))
+-#define libGAP_CODEG_PPERM4(f)   (*((libGAP_UInt4*)(libGAP_ADDR_OBJ(f))))
+-#define libGAP_ADDR_PPERM4(f)    ((libGAP_UInt4*)(libGAP_ADDR_OBJ(f))+1)
++#define libGAP_CODEG_PPERM4(f)   (*((libGAP_UInt4*)(libGAP_ADDR_OBJ(f))+1))
++#define libGAP_ADDR_PPERM4(f)    ((libGAP_UInt4*)(libGAP_ADDR_OBJ(f)))
+ #define libGAP_IMG_PPERM4(f)     (*((libGAP_Obj*)(libGAP_ADDR_PPERM4(f)+libGAP_DEG_PPERM4(f))))
+ #define libGAP_DOM_PPERM4(f)     (*((libGAP_Obj*)(libGAP_ADDR_PPERM4(f)+libGAP_DEG_PPERM4(f))+1))
+ #define libGAP_DEG_PPERM4(f)     ((libGAP_UInt)(libGAP_SIZE_OBJ(f)-sizeof(libGAP_UInt4)-2*sizeof(libGAP_Obj))/sizeof(libGAP_UInt4))

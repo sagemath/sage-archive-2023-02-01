@@ -152,11 +152,11 @@ def _is_new_var(x, v, hidden):
         return False
     # If a variable names was not there at init time then it is
     # definitely new.
-    if not state_at_init.has_key(x):
+    if x not in state_at_init:
         return True
     # A variable could also be new even if it was there at init, say if
     # its value changed.
-    return not (state_at_init.has_key(x) and state_at_init[x] is v)
+    return x not in state_at_init or state_at_init[x] is not v
 
 def show_identifiers(hidden=False):
     r"""
@@ -297,7 +297,7 @@ def save_session(name='sage_session', verbose=False):
         try:
             x = state[k]
             if isinstance(x, (types.FunctionType, types.BuiltinFunctionType, types.BuiltinMethodType, types.TypeType, types.ClassType)):
-                raise TypeError, '%s is a function, method, class or type'%k
+                raise TypeError('{} is a function, method, class or type'.format(k))
 
             # We attempt to pickle *and* unpickle every variable to
             # make *certain* that we can pickled D at the end below.
@@ -310,9 +310,9 @@ def save_session(name='sage_session', verbose=False):
             if verbose:
                 print "Saving %s"%k
             D[k] = x
-        except Exception, msg:
+        except Exception as msg:
             if verbose:
-                print "Not saving %s: %s"%(k, msg)
+                print("Not saving {}: {}".format(k, msg))
             pass
     save(D, name)
     if embedded():

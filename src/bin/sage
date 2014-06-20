@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
-usage() {
-    echo "----------------------------------------------------------------------"
-    grep -i version "$SAGE_LOCAL/bin/sage-banner"
-    echo "----------------------------------------------------------------------"
+help_banner() {
+    grep -v 'Type' "$SAGE_LOCAL/bin/sage-banner"
     echo
+}
+
+usage() {
+    help_banner
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Optional arguments:"
@@ -46,10 +48,7 @@ usage() {
 }
 
 usage_advanced() {
-    echo "----------------------------------------------------------------------"
-    grep -i version "$SAGE_LOCAL/bin/sage-banner"
-    echo "----------------------------------------------------------------------"
-    echo
+    help_banner
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Running Sage:"
@@ -885,7 +884,7 @@ if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
             -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     else
         cygdb "$SAGE_SRC/build" "$SAGE_SRC/sage" \
-            -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
+            -- -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
             -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     fi
     exit $?

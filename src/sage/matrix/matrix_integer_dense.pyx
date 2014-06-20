@@ -2465,7 +2465,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         P = self._pari_()
         try:
             U = P.lllgramint()
-        except (RuntimeError, ArithmeticError), msg:
+        except (RuntimeError, ArithmeticError) as msg:
             raise ValueError("not a definite matrix")
         MS = matrix_space.MatrixSpace(ZZ,n)
         U = MS(U.python())
@@ -3351,7 +3351,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 # Use generic special cased code.
                 return matrix_dense.Matrix_dense.determinant(self)
             else:
-                det4x4 = ZZ(0)
+                det4x4 = Integer()
                 four_dim_det(det4x4.value, self._entries)
                 return det4x4
 
@@ -4314,7 +4314,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         j = 0
         R = det
 
-        while 1:
+        while True:
             if j == nrows-1:
                 T_i_i = T_rows[i][i]
                 d = ai.c_xgcd_int(T_i_i, R, &u, &v)

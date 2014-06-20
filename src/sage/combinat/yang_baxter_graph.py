@@ -224,7 +224,7 @@ class YangBaxterGraph_generic(SageObject):
             sage: Y3.__eq__(Y2)
             False
         """
-        return type(self) == type(other) and self._digraph.__eq__(other._digraph)
+        return isinstance(self, type(other)) and self._digraph.__eq__(other._digraph)
 
     def __ne__(self, other):
         r"""
@@ -384,9 +384,9 @@ class YangBaxterGraph_generic(SageObject):
             sage: Y.plot()
             sage: Y.plot(edge_labels=False)
         """
-        if not kwds.has_key("edge_labels"):
+        if "edge_labels" not in kwds:
             kwds["edge_labels"] = True
-        if not kwds.has_key("vertex_labels"):
+        if "vertex_labels" not in kwds:
             kwds["vertex_labels"] = True
         return self._digraph.plot(*args, **kwds)
 
@@ -763,7 +763,7 @@ class SwapOperator(SageObject):
             sage: s[1] < s[2]
             True
         """
-        if type(self) is type(other):
+        if isinstance(self, type(other)):
             return cmp(self._position, other._position)
         else:
             return cmp(type(self), type(other))

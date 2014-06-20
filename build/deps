@@ -34,6 +34,7 @@ all-sage: \
      $(INST)/$(CONWAY) \
      $(INST)/$(CVXOPT) \
      $(INST)/$(CYTHON) \
+     $(INST)/$(DATEUTIL) \
      $(INST)/$(DOCUTILS) \
      $(INST)/$(ECL) \
      $(INST)/$(ECLIB) \
@@ -81,12 +82,15 @@ all-sage: \
      $(INST)/$(PARI) \
      $(INST)/$(PEXPECT) \
      $(INST)/$(PILLOW) \
+     $(INST)/$(PKGCONF) \
+     $(INST)/$(PKGCONFIG) \
      $(INST)/$(POLYBORI) \
      $(INST)/$(POLYTOPES_DB) \
      $(INST)/$(PPL) \
      $(INST)/$(PYCRYPTO) \
      $(INST)/$(PYGMENTS) \
      $(INST)/$(PYNAC) \
+     $(INST)/$(PYPARSING) \
      $(INST)/$(PYTHON) \
      $(INST)/$(RATPOINTS) \
      $(INST)/$(R) \
@@ -99,6 +103,7 @@ all-sage: \
      $(INST)/$(SCONS) \
      $(INST)/$(SETUPTOOLS) \
      $(INST)/$(SINGULAR) \
+     $(INST)/$(SIX) \
      $(INST)/$(SPHINX) \
      $(INST)/$(SQLALCHEMY) \
      $(INST)/$(SQLITE) \
@@ -106,6 +111,7 @@ all-sage: \
      $(INST)/$(SYMPOW) \
      $(INST)/$(SYMPY) \
      $(INST)/$(TACHYON) \
+     $(INST)/$(TORNADO) \
      $(INST)/$(NCURSES) \
      $(INST)/$(ZLIB) \
      $(INST)/$(ZNPOLY) \
@@ -224,8 +230,15 @@ $(INST)/$(NTL): $(INST)/$(MPIR) $(INST)/$(GF2X)
 $(INST)/$(FPLLL): $(INST)/$(MPIR) $(INST)/$(MPFR)
 	+$(PIPE) "$(SAGE_SPKG) $(FPLLL) 2>&1" "tee -a $(SAGE_LOGS)/$(FPLLL).log"
 
-$(INST)/$(PARI): $(INST)/$(READLINE) $(INST)/$(MPIR)
+$(INST)/$(PARI): $(INST)/$(READLINE) $(INST)/$(MPIR) \
+    $(INST)/$(PARI_GALDATA) $(INST)/$(PARI_SEADATA_SMALL)
 	+$(PIPE) "$(SAGE_SPKG) $(PARI) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI).log"
+
+$(INST)/$(PARI_GALDATA):
+	+$(PIPE) "$(SAGE_SPKG) $(PARI_GALDATA) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI_GALDATA).log"
+
+$(INST)/$(PARI_SEADATA_SMALL):
+	+$(PIPE) "$(SAGE_SPKG) $(PARI_SEADATA_SMALL) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI_SEADATA_SMALL).log"
 
 $(INST)/$(POLYBORI): $(INST)/$(PYTHON) $(INST)/$(IPYTHON) \
          $(INST)/$(SCONS) $(INST)/$(BOOST_CROPPED) \
@@ -264,9 +277,6 @@ $(INST)/$(LINBOX): $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(GIVARO) \
 
 $(INST)/$(IML): $(INST)/$(MPIR) $(INST)/$(GSL) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(IML) 2>&1" "tee -a $(SAGE_LOGS)/$(IML).log"
-
-$(INST)/$(ECLIB): $(INST)/$(MPIR) $(INST)/$(PARI) $(INST)/$(NTL)
-	+$(PIPE) "$(SAGE_SPKG) $(ECLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(ECLIB).log"
 
 $(INST)/$(GENUS2REDUCTION): $(INST)/$(PARI)
 	+$(PIPE) "$(SAGE_SPKG) $(GENUS2REDUCTION) 2>&1" "tee -a $(SAGE_LOGS)/$(GENUS2REDUCTION).log"
@@ -351,9 +361,23 @@ $(INST)/$(FREETYPE): $(INST)/$(LIBPNG)
 $(INST)/$(LIBPNG): $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(LIBPNG) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBPNG).log"
 
+$(INST)/$(SIX): $(INST)/$(PYTHON)
+	+$(PIPE) "$(SAGE_SPKG) $(SIX) 2>&1" "tee -a $(SAGE_LOGS)/$(SIX).log"
+
+$(INST)/$(DATEUTIL): $(INST)/$(PYTHON) $(INST)/$(SIX) $(INST)/$(SETUPTOOLS)
+	+$(PIPE) "$(SAGE_SPKG) $(DATEUTIL) 2>&1" "tee -a $(SAGE_LOGS)/$(DATEUTIL).log"
+
+$(INST)/$(PYPARSING): $(INST)/$(PYTHON)
+	+$(PIPE) "$(SAGE_SPKG) $(PYPARSING) 2>&1" "tee -a $(SAGE_LOGS)/$(PYPARSING).log"
+
+$(INST)/$(TORNADO): $(INST)/$(PYTHON)
+	+$(PIPE) "$(SAGE_SPKG) $(TORNADO) 2>&1" "tee -a $(SAGE_LOGS)/$(TORNADO).log"
+
 $(INST)/$(MATPLOTLIB): $(INST)/$(PYTHON) $(INST)/$(NUMPY) \
 		       $(INST)/$(FREETYPE) $(INST)/$(LIBPNG) \
-		       $(INST)/$(GDMODULE)
+		       $(INST)/$(GDMODULE) $(INST)/$(DATEUTIL) \
+		       $(INST)/$(PKGCONF) $(INST)/$(PYPARSING) \
+                       $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(MATPLOTLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(MATPLOTLIB).log"
 
 $(INST)/$(CDDLIB): $(INST)/$(MPIR)
@@ -394,6 +418,9 @@ $(INST)/$(FLINTQS): $(INST)/$(MPIR)
 
 $(INST)/$(FLINT): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(NTL)
 	+$(PIPE) "$(SAGE_SPKG) $(FLINT) 2>&1" "tee -a $(SAGE_LOGS)/$(FLINT).log"
+
+$(INST)/$(ECLIB): $(INST)/$(PARI) $(INST)/$(NTL) $(INST)/$(FLINT)
+	+$(PIPE) "$(SAGE_SPKG) $(ECLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(ECLIB).log"
 
 $(INST)/$(M4RI): $(INST)/$(LIBPNG)
 	+$(PIPE) "$(SAGE_SPKG) $(M4RI) 2>&1" "tee -a $(SAGE_LOGS)/$(M4RI).log"
@@ -476,8 +503,6 @@ $(INST)/csage: $(INST)/$(SCONS) \
        $(INST)/$(MPIR) \
        $(INST)/$(NTL) \
        $(INST)/$(PARI) \
-       $(INST)/$(POLYBORI) \
-       $(INST)/$(PYNAC) \
        $(INST)/$(PYTHON)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && cd c_lib && \
@@ -496,6 +521,12 @@ $(INST)/$(GCC): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(MPC) \
 $(INST)/$(PILLOW): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(PILLOW) 2>&1" "tee -a $(SAGE_LOGS)/$(PILLOW).log"
 
+$(INST)/$(PKGCONF): 
+	+$(PIPE) "$(SAGE_SPKG) $(PKGCONF) 2>&1" "tee -a $(SAGE_LOGS)/$(PKGCONF).log"
+
+$(INST)/$(PKGCONFIG): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
+	+$(PIPE) "$(SAGE_SPKG) $(PKGCONFIG) 2>&1" "tee -a $(SAGE_LOGS)/$(PKGCONFIG).log"
+
 $(INST)/$(NUMPY): $(INST)/$(PYTHON) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(NUMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(NUMPY).log"
 
@@ -511,13 +542,3 @@ $(INST)/$(CVXOPT): $(INST)/$(NUMPY) \
 $(INST)/$(CEPHES):
 	+$(PIPE) "$(SAGE_SPKG) $(CEPHES) 2>&1" "tee -a $(SAGE_LOGS)/$(CEPHES).log"
 
-###############################################################################
-
-# setuptools forgets to update easy-install.pth during parallel
-# builds, so we build the relevant packages serially.
-
-$(INST)/$(SQLALCHEMY): $(INST)/$(PILLOW)
-$(INST)/$(PYGMENTS): $(INST)/$(SQLALCHEMY)
-$(INST)/$(JINJA2): $(INST)/$(PYGMENTS)
-$(INST)/$(SPHINX): $(INST)/$(JINJA2)
-$(INST)/$(SAGENB): $(INST)/$(SPHINX)

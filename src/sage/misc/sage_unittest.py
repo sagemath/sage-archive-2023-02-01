@@ -261,7 +261,7 @@ class TestSuite(object):
         In conjonction with ``%pdb on``, this allows for the debbuger
         to jump directly to the first failure location.
         """
-        if type(skip) == str:
+        if isinstance(skip, str):
             skip = [skip]
         else:
             skip = tuple(skip)
@@ -288,17 +288,17 @@ class TestSuite(object):
                         # which has already reported the details of
                         # that failure
                         if not tester._verbose:
-                            print tester._prefix+"Failure in %s"%method_name
+                            print(tester._prefix+"Failure in {}".format(method_name))
                     else:
                         if tester._verbose:
                             tester.info(" fail")
                         else:
-                            print tester._prefix+"Failure in %s:"%method_name
+                            print(tester._prefix+"Failure in {}:".format(method_name))
                         s = traceback.format_exc()
-                        print tester._prefix + s.strip().replace("\n", "\n"+tester._prefix)
-                        print tester._prefix + "-" * 60
+                        print(tester._prefix + s.strip().replace("\n", "\n"+tester._prefix))
+                        print(tester._prefix + "-" * 60)
         if len(failed) > 0:
-            print tester._prefix+"The following tests failed: %s"%(", ".join(failed))
+            print(tester._prefix+"The following tests failed: {}".format(", ".join(failed)))
             if raise_on_failure:
                 raise TestSuiteFailure
 

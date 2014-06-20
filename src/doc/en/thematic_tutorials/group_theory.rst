@@ -894,33 +894,31 @@ example, if `p` is a prime, and `p^r` divides the order of a group
 could be found among the output of the
 ``conjugacy_classes_subgroups()`` command by checking the orders of
 the subgroups produced.  The ``map()`` command is a quick way
-to do this.  The symmetric group on 8 symbols, `S_8`, has order
-`8! = 40320` and is divisible by `2^7 = 128`.  Let's find one example
-of a subgroup of permutations on 8 symbols with order 128. The next
-command takes a few minutes to run, so go get a cup of coffee after
-you set it in motion. ::
+to do this.  The symmetric group on 7 symbols, `S_7`, has order
+`7! = 5040` and is divisible by `2^4 = 16`.  Let's find one example
+of a subgroup of permutations on 4 symbols with order 16::
 
-    sage: G = SymmetricGroup(8)
-    sage: subgroups = G.conjugacy_classes_subgroups()  # long time (9s on sage.math, 2011)
-    sage: map(order, subgroups)  # long time
-    [1, 2, 2, 2, 2, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 10, 10, 10, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 14, 15, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 18, 18, 18, 18, 18, 18, 18, 20, 20, 20, 21, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 30, 30, 30, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 40, 42, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 56, 60, 60, 60, 60, 60, 64, 64, 64, 64, 64, 64, 64, 72, 72, 72, 72, 72, 72, 72, 72, 72, 72, 96, 96, 96, 96, 96, 96, 96, 96, 96, 96, 96, 96, 120, 120, 120, 120, 120, 120, 120, 128, 144, 144, 144, 168, 168, 168, 180, 192, 192, 192, 192, 192, 240, 240, 288, 288, 288, 336, 360, 360, 360, 360, 384, 576, 576, 576, 720, 720, 720, 720, 1152, 1344, 1440, 2520, 5040, 20160, 40320]
+    sage: G = SymmetricGroup(7)
+    sage: subgroups = G.conjugacy_classes_subgroups()
+    sage: map(order, subgroups)
+    [1, 2, 2, 2, 3, 3, 4, 4, 4, 4, 4, 4, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 8, 8, 8, 8, 8, 8, 8, 9, 10, 10, 10, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 14, 16, 18, 18, 18, 20, 20, 20, 21, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 36, 36, 36, 36, 40, 42, 48, 48, 48, 60, 60, 72, 72, 72, 72, 120, 120, 120, 120, 144, 168, 240, 360, 720, 2520, 5040]
 
 The ``map(order, subgroups)`` command will apply the ``order()``
-method to each of the subgroups in the list ``subgroups``.  The output
-is thus a large list of the orders of many  subgroups (296 to be
-precise).  If you count carefully, you will see that the 259-th
-subgroup has order 128.  You can retrieve this group for further study
-by referencing it as ``subgroups[258]`` (remember that counting starts at
-zero).
+function to each of the subgroups in the list ``subgroups``.  The
+output is thus a large list of the orders of many subgroups (96 to be
+precise).  If you count carefully, you will see that the 49-th
+subgroup has order 16.  You can retrieve this group for further study
+by referencing it as ``subgroups[48]`` (remember that counting starts
+at zero).
 
 If `p^r` is the highest power of `p` to divide the order of `G`, then
 a subgroup of order `p^r` is known as a "Sylow `p`-subgroup." Sylow's
 Theorems also say any two Sylow `p`-subgroups are conjugate, so the
 output of ``conjugacy_classes_subgroups()`` should only contain each
 Sylow `p`-subgroup once.  But there is an easier way,
-``sylow_subgroup(p)`` will return one.  Notice that the argument of
-the command is just the prime $p$, not the full power `p^r`.  Failure
-to use a prime will generate an informative error message.
+``sylow_subgroup(p)`` will return one. Notice that the argument of the
+command is just the prime $p$, not the full power `p^r`.  Failure to
+use a prime will generate an informative error message.
 
 
 Groups of small order as permutation groups

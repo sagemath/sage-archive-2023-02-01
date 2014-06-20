@@ -1728,7 +1728,8 @@ from sage.rings.all import QQ
 from sage.rings.laurent_series_ring import is_LaurentSeriesRing
 from sage.rings.integral_domain import is_IntegralDomain
 
-from sage.modules.all import FreeModule, is_FreeModuleElement
+from sage.modules.free_module import FreeModule
+from sage.modules.free_module_element import is_FreeModuleElement
 
 from sage.misc.profiler import Profiler
 from sage.misc.misc import repr_lincomb

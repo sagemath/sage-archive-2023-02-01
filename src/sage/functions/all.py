@@ -15,7 +15,7 @@ reciprocal_trig_functions = {'sec': cos, 'csc': sin, 'cot': tan, 'sech': cosh, '
 
 
 
-from other import ( ceil, floor, gamma, psi, factorial, beta,
+from other import ( ceil, floor, gamma, psi, factorial, beta, binomial,
                     abs_symbolic, erf, sqrt, log_gamma,
                     gamma_inc, incomplete_gamma,
                     arg, real_part, real,

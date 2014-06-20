@@ -185,10 +185,10 @@ Left-special and bispecial factors::
 #                     2008-2012 Sébastien Labbé <slabqc@gmail.com>,
 #                     2008-2010 Franco Saliola <saliola@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License version 2 (GPLv2)
-#
-#  The full text of the GPLv2 is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from itertools import islice, izip, cycle
@@ -296,12 +296,12 @@ class FiniteWord_class(Word_class):
             try:
                 other = self.parent()(other)
                 other.parent()._check(other, length=None)
-            except StandardError:
+            except Exception:
                 try:
                     self = other.parent()(self)
                     self.parent()._check(self, length=None)
-                except StandardError:
-                    raise TypeError, "no coercion rule between %r and %r" % (self.parent(), other.parent())
+                except Exception:
+                    raise TypeError("no coercion rule between %r and %r" % (self.parent(), other.parent()))
         return self, other
 
     def __hash__(self):
@@ -466,9 +466,9 @@ class FiniteWord_class(Word_class):
         if length in ZZ and length >= 0:
             return self._parent(fcn, length=length)
         else:
-            raise ValueError, "Power of the word is not defined on the \
+            raise ValueError("Power of the word is not defined on the \
 exponent %s: the length of the word (%s) times the exponent \
-(%s) must be a positive integer"  % (exp, self.length(), exp)
+(%s) must be a positive integer"  % (exp, self.length(), exp))
 
     def length(self):
         r"""
@@ -630,127 +630,6 @@ exponent %s: the length of the word (%s) times the exponent \
         index = dict((b,a) for (a,b) in enumerate(ordered_alphabet))
         return [index[a] for a in self]
 
-    def size_of_alphabet(self):
-        r"""
-        EXAMPLES::
-
-            sage: w = Word('abaccefa')
-            sage: w.size_of_alphabet()
-            doctest:1: DeprecationWarning: size_of_alphabet() is deprecated, use parent().size_of_alphabet() instead!
-            See http://trac.sagemath.org/8429 for details.
-            +Infinity
-            sage: y = Words('456')('64654564')
-            sage: y.size_of_alphabet()
-            3
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(8429, "size_of_alphabet() is deprecated, use parent().size_of_alphabet() instead!")
-        return self.parent().size_of_alphabet()
-
-    ###########################################################################
-    ##### DEPRECATION WARNINGS (next 4 functions) #############################
-    ##### Added July 2009 #####################################################
-    ###########################################################################
-    def is_suffix_of(self, other):
-        r"""
-        Returns True if w is a suffix of other, and False otherwise.
-
-        EXAMPLES::
-
-            sage: w = Word('0123456789')
-            sage: y = Word('56789')
-            sage: y.is_suffix_of(w)
-            doctest:1: DeprecationWarning: is_suffix_of is deprecated, use is_suffix instead!
-            See http://trac.sagemath.org/8429 for details.
-            True
-            sage: w.is_suffix_of(y)
-            False
-            sage: Word('579').is_suffix_of(w)
-            False
-            sage: Word().is_suffix_of(y)
-            True
-            sage: w.is_suffix_of(Word())
-            False
-            sage: Word().is_suffix_of(Word())
-            True
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(8429, "is_suffix_of is deprecated, use is_suffix instead!")
-        return self.is_suffix(other)
-
-    def is_proper_suffix_of(self, other):
-        r"""
-        Returns True if self is a proper suffix of other, and False otherwise.
-
-        EXAMPLES::
-
-            sage: Word('23').is_proper_suffix_of(Word('123'))
-            doctest:1: DeprecationWarning: is_proper_suffix_of is deprecated, use is_proper_suffix instead!
-            See http://trac.sagemath.org/8429 for details.
-            doctest:...: DeprecationWarning: is_suffix_of is deprecated, use is_suffix instead!
-            See http://trac.sagemath.org/8429 for details.
-            True
-            sage: Word('12').is_proper_suffix_of(Word('12'))
-            False
-            sage: Word().is_proper_suffix_of(Word('123'))
-            True
-            sage: Word('123').is_proper_suffix_of(Word('12'))
-            False
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(8429, "is_proper_suffix_of is deprecated, use is_proper_suffix instead!")
-        return self.is_proper_suffix(other)
-
-    def is_prefix_of(self, other):
-        r"""
-        Returns True if self is a prefix of other, and False otherwise.
-
-        EXAMPLES::
-
-            sage: w = Word('0123456789')
-            sage: y = Word('012345')
-            sage: y.is_prefix_of(w)
-            doctest:1: DeprecationWarning: is_prefix_of is deprecated, use is_prefix instead!
-            See http://trac.sagemath.org/8429 for details.
-            True
-            sage: w.is_prefix_of(y)
-            False
-            sage: w.is_prefix_of(Word())
-            False
-            sage: Word().is_prefix_of(w)
-            True
-            sage: Word().is_prefix_of(Word())
-            True
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(8429, "is_prefix_of is deprecated, use is_prefix instead!")
-        return self.is_prefix(other)
-
-    def is_proper_prefix_of(self, other):
-        r"""
-        Returns True if self is a proper prefix of other, and False otherwise.
-
-        EXAMPLES::
-
-            sage: Word('12').is_proper_prefix_of(Word('123'))
-            doctest:1: DeprecationWarning: is_proper_prefix_of is deprecated, use is_proper_prefix instead!
-            See http://trac.sagemath.org/8429 for details.
-            doctest:...: DeprecationWarning: is_prefix_of is deprecated, use is_prefix instead!
-            See http://trac.sagemath.org/8429 for details.
-            True
-            sage: Word('12').is_proper_prefix_of(Word('12'))
-            False
-            sage: Word().is_proper_prefix_of(Word('123'))
-            True
-            sage: Word('123').is_proper_prefix_of(Word('12'))
-            False
-            sage: Word().is_proper_prefix_of(Word())
-            False
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(8429, "is_proper_prefix_of is deprecated, use is_proper_prefix instead!")
-        return self.is_proper_prefix(other)
-
     # To fix : do not slice here ! (quite expensive in copy)
     def is_suffix(self, other):
         r"""
@@ -790,7 +669,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word('123').is_proper_suffix(Word('12'))
             False
         """
-        return self.is_suffix_of(other) and self.length() < other.length()
+        return self.is_suffix(other) and self.length() < other.length()
 
     def has_suffix(self, other):
         """
@@ -874,7 +753,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word().is_proper_prefix(Word())
             False
         """
-        return self.is_prefix_of(other) and self.length() < other.length()
+        return self.is_prefix(other) and self.length() < other.length()
 
     def has_prefix(self, other):
         r"""
@@ -2076,7 +1955,7 @@ exponent %s: the length of the word (%s) times the exponent \
             TypeError: other must be a finite word
         """
         if not isinstance(other, FiniteWord_class):
-            raise TypeError, "other must be a finite word"
+            raise TypeError("other must be a finite word")
 
         if self.is_empty():
             return self
@@ -2215,50 +2094,8 @@ exponent %s: the length of the word (%s) times the exponent \
             if not isinstance(f, WordMorphism):
                 f = WordMorphism(f)
             if not f.is_involution():
-                raise ValueError, "f must be an involution"
+                raise ValueError("f must be an involution")
             return self[:l/2 + l%2] == f(self[l/2:].reversal())
-
-    ###########################################################################
-    ##### DEPRECATION WARNINGS ################################################
-    ##### Added July 2009 #####################################################
-    ###########################################################################
-    def _lps(self, l=None, f=None):
-        r"""
-        Returns the longest palindromic (or `f`-palindromic) suffix of self.
-
-        INPUT:
-
-        -  ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism).
-        -  ``l`` - integer (default: None) the length of the longest palindrome
-           suffix of self[:-1], if known.
-
-        OUTPUT:
-
-            word -- If f is None, the longest palindromic suffix of self;
-                    otherwise, the longest f-palindromic suffix of self.
-
-        EXAMPLES::
-
-            sage: Word('0111')._lps()
-            doctest:1: DeprecationWarning: _lps is deprecated, use lps instead!
-            See http://trac.sagemath.org/8429 for details.
-            word: 111
-            sage: Word('011101')._lps()
-            word: 101
-            sage: Word('6667')._lps()
-            word: 7
-            sage: Word('abbabaab')._lps()
-            word: baab
-            sage: Word()._lps()
-            word:
-            sage: f = WordMorphism('a->b,b->a')
-            sage: Word('abbabaab')._lps(f=f)
-            word: abbabaab
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(8429, "_lps is deprecated, use lps instead!")
-        return self.lps(l=l, f=f)
 
     def lps(self, f=None, l=None):
         r"""
@@ -2771,7 +2608,7 @@ exponent %s: the length of the word (%s) times the exponent \
             if not isinstance(f, WordMorphism):
                 f = WordMorphism(f)
             if not f.is_involution():
-                raise ValueError, "f must be an involution"
+                raise ValueError("f must be an involution")
             D = f.domain()
             A = set(map(D,set(self)))
             while A:
@@ -3639,7 +3476,7 @@ exponent %s: the length of the word (%s) times the exponent \
         if all(x in ZZ for x in self):
             return sum(self)
 
-        raise TypeError, "degree is not defined for your word"
+        raise TypeError("degree is not defined for your word")
 
     def deg_lex_less(self, other, weights=None):
         r"""
@@ -3739,29 +3576,6 @@ exponent %s: the length of the word (%s) times the exponent \
         if d1 != d2:
             return d1 < d2
         return self.rev_lex_less(other)
-
-    ###########################################################################
-    ##### DEPRECATION WARNINGS ################################################
-    ##### Added July 2009 #####################################################
-    ###########################################################################
-    def last_position_table(self):
-        r"""
-        Returns a dictionary that contains the last position of each letter
-        in self.
-
-        EXAMPLES::
-
-            sage: Word('1231232').last_position_table()
-            doctest:1: DeprecationWarning: last_position_table is deprecated, use last_position_dict instead!
-            See http://trac.sagemath.org/8429 for details.
-            {'1': 3, '3': 5, '2': 6}
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(8429, "last_position_table is deprecated, use last_position_dict instead!")
-        lpd = self.last_position_dict()
-        if self.parent().size_of_alphabet() in ZZ:
-            return [lpd.get(a,-1) for a in self.parent().alphabet()]
-        return lpd
 
     @cached_method
     def last_position_dict(self):
@@ -3943,31 +3757,6 @@ exponent %s: the length of the word (%s) times the exponent \
             i -= 1
         return -1
 
-    ###########################################################################
-    ##### DEPRECATION WARNINGS ################################################
-    ##### Added July 2009 #####################################################
-    ###########################################################################
-    def is_factor_of(self, other):
-        r"""
-        Returns True if self is a factor of other, and False otherwise.
-
-        EXAMPLES::
-
-            sage: u = Word('2113')
-            sage: w = Word('123121332131233121132123')
-            sage: u.is_factor_of(w)
-            doctest:1: DeprecationWarning: is_factor_of is deprecated, use is_factor instead!
-            See http://trac.sagemath.org/8429 for details.
-            True
-            sage: u = Word('321')
-            sage: w = Word('1231241231312312312')
-            sage: u.is_factor_of(w)
-            False
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(8429, "is_factor_of is deprecated, use is_factor instead!")
-        return self.is_factor(other)
-
     def is_factor(self, other):
         r"""
         Returns True if self is a factor of other, and False otherwise.
@@ -4009,7 +3798,7 @@ exponent %s: the length of the word (%s) times the exponent \
             [0, 2, 8]
         """
         if self.length() == 0:
-            raise NotImplementedError, "The factor must be non empty"
+            raise NotImplementedError("The factor must be non empty")
         p = self._pos_in(other, 0)
         while p is not None:
             yield p
@@ -4055,7 +3844,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         ls = self.length()
         if ls == 0:
-            raise NotImplementedError, "undefined value"
+            raise NotImplementedError("undefined value")
         elif ls == 1:
             return self.nb_factor_occurrences_in(other)
         elif len(other) < ls:
@@ -4229,27 +4018,6 @@ exponent %s: the length of the word (%s) times the exponent \
                   return True
         return False
 
-    ###########################################################################
-    ##### DEPRECATION WARNINGS ################################################
-    ##### Added July 2009 #####################################################
-    ###########################################################################
-    def _quasiperiods_list(self):
-        r"""
-        Returns the quasiperiods of self as a list ordered from shortest to
-        longest.
-
-        EXAMPLES::
-
-            sage: l = Word('abaababaabaababaaba')._quasiperiods_list()
-            doctest:1: DeprecationWarning: _quasiperiods_list is deprecated, use quasiperiods instead!
-            See http://trac.sagemath.org/8429 for details.
-            sage: l
-            [word: aba, word: abaaba, word: abaababaaba]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(8429, "_quasiperiods_list is deprecated, use quasiperiods instead!")
-        return self.quasiperiods()
-
     def quasiperiods(self):
         r"""
         Returns the quasiperiods of self as a list ordered from shortest to
@@ -4350,40 +4118,6 @@ exponent %s: the length of the word (%s) times the exponent \
             v = self[sum(map(len,c)):] # = x_i ... x_n
         return c
 
-    ###########################################################################
-    ##### DEPRECATION WARNINGS ################################################
-    ##### Added July 2009 #####################################################
-    ###########################################################################
-    def freq(self):
-        r"""
-        Returns a table of the frequencies of the letters in self.
-
-        OUTPUT:
-
-            dict -- letters associated to their frequency
-
-        EXAMPLES::
-
-            sage: f = Word('1213121').freq()
-            doctest:1: DeprecationWarning: freq is deprecated, use evaluation_dict instead!
-            See http://trac.sagemath.org/8429 for details.
-            sage: f # keys appear in random order
-            {'1': 4, '2': 2, '3': 1}
-
-        TESTS::
-
-            sage: f = Word('1213121').freq()
-            sage: f['1'] == 4
-            True
-            sage: f['2'] == 2
-            True
-            sage: f['3'] == 1
-            True
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(8429, "freq is deprecated, use evaluation_dict instead!")
-        return self.evaluation_dict()
-
     def evaluation_dict(self):
         r"""
         Returns a dictionary keyed by the letters occurring in self with
@@ -4397,6 +4131,21 @@ exponent %s: the length of the word (%s) times the exponent \
             {'a': 1, 'c': 1, 'b': 3, 'd': 2}
             sage: Word().evaluation_dict()
             {}
+
+        ::
+
+            sage: f = Word('1213121').evaluation_dict() # keys appear in random order
+            {'1': 4, '2': 2, '3': 1}
+
+        TESTS::
+
+            sage: f = Word('1213121').evaluation_dict()
+            sage: f['1'] == 4
+            True
+            sage: f['2'] == 2
+            True
+            sage: f['3'] == 1
+            True
         """
         d = {}
         for a in self:
@@ -4601,18 +4350,18 @@ exponent %s: the length of the word (%s) times the exponent \
             109 pages.
         """
         if not isinstance(delay, (int, Integer)):
-            raise TypeError, "delay (=%s) must be an integer"%delay
+            raise TypeError("delay (=%s) must be an integer"%delay)
         elif delay < 0:
             return other.overlap_partition(self, -delay, p)
 
         from sage.sets.disjoint_set import DisjointSet_class
         if p is None:
             if self.parent().size_of_alphabet() is Infinity:
-                raise ValueError, "The alphabet of the parent must be finite"
+                raise ValueError("The alphabet of the parent must be finite")
             from sage.sets.disjoint_set import DisjointSet
             p = DisjointSet(self.parent().alphabet())
         elif not isinstance(p, DisjointSet_class):
-            raise TypeError, "p(=%s) is not a DisjointSet" % p
+            raise TypeError("p(=%s) is not a DisjointSet" % p)
 
         #Join the classes of each pair of letters that are one above the other
         from itertools import islice, izip
@@ -4631,7 +4380,7 @@ exponent %s: the length of the word (%s) times the exponent \
                 p.union(a, b)
                 p.union(involution(a), involution(b))
         else:
-            raise TypeError, "involution (=%s) must be callable"%involution
+            raise TypeError("involution (=%s) must be callable"%involution)
         return p
 
     # TODO: requires a parent with a cmp_letters method
@@ -4955,85 +4704,8 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         if self.is_empty():
            return self
-        conjugates = self._conjugates_list()
-        conjugates.sort()
+        conjugates = sorted(self._conjugates_list())
         return self.parent()([x[x.length()-1] for x in conjugates])
-
-    ###########################################################################
-    ##### DEPRECATION WARNINGS ################################################
-    ##### Added July 2009 #####################################################
-    ###########################################################################
-    def iterated_palindromic_closure(self, side='right', f=None):
-        r"""
-        Returns the iterated (`f`-)palindromic closure of ``self``.
-
-        INPUT:
-
-        -  ``side`` -- ``'right'`` or ``'left'`` (default: ``'right'``) the
-           direction of the closure
-
-        -  ``f`` -- involution (default: ``None``) on the alphabet of ``self``.
-           It must be callable on letters as well as words (e.g. WordMorphism).
-
-        OUTPUT:
-
-        word -- If `f` is ``None``, the right iterated palindromic closure of
-        ``self``; otherwise, the right iterated `f`-palindromic closure
-        of ``self``.  If side is ``'left'``, the left palindromic closure.
-
-        EXAMPLES::
-
-            sage: Word('123').iterated_palindromic_closure()
-            doctest:1: DeprecationWarning: iterated_palindromic_closure is deprecated, use iterated_left_palindromic_closure or iterated_right_palindromic_closure instead!
-            See http://trac.sagemath.org/8429 for details.
-            word: 1213121
-            sage: Word('123').iterated_palindromic_closure(side='left')
-            word: 3231323
-            sage: Word('1').iterated_palindromic_closure()
-            word: 1
-            sage: Word().iterated_palindromic_closure()
-            word:
-            sage: Word = Words('ab')
-            sage: f = WordMorphism('a->b,b->a')
-            sage: Word('ab').iterated_palindromic_closure(f=f)
-            word: abbaab
-            sage: Word('ab').iterated_palindromic_closure(f=f, side='left')
-            word: abbaab
-            sage: Word('aab').iterated_palindromic_closure(f=f)
-            word: ababbaabab
-            sage: Word('aab').iterated_palindromic_closure(f=f, side='left')
-            word: abbaabbaab
-
-        TESTS::
-
-            sage: Word('aab').iterated_palindromic_closure(f=f, side='leftt')
-            Traceback (most recent call last):
-            ...
-            ValueError: side must be either 'left' or 'right' (not leftt)
-
-        If f is not an involution:
-            sage: f = WordMorphism('a->b,b->b')
-            sage: Word('aab').iterated_palindromic_closure(f=f, side='left')
-            Traceback (most recent call last):
-            ...
-            TypeError: self (=a->b, b->b) is not an endomorphism
-
-        REFERENCES:
-
-        -   A. de Luca, A. De Luca, Pseudopalindrome closure operators
-            in free monoids, Theoret. Comput. Sci. 362 (2006) 282--300.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(8429, "iterated_palindromic_closure is deprecated, "
-                   +"use iterated_left_palindromic_closure or "
-                   +"iterated_right_palindromic_closure instead!")
-
-        if side == 'right':
-            return self.iterated_right_palindromic_closure(f=f)
-        elif side == 'left':
-            return self.iterated_left_palindromic_closure(f=f)
-        else:
-            raise ValueError, "side must be either 'left' or 'right' (not %s) " % side
 
     def iterated_left_palindromic_closure(self, f=None):
         r"""
@@ -5233,7 +4905,7 @@ exponent %s: the length of the word (%s) times the exponent \
             University Press, U.K., 2002.
         """
         if not isinstance(q, (int, Integer)) or q <= 0:
-            raise TypeError, "the balance level must be a positive integer"
+            raise TypeError("the balance level must be a positive integer")
         alphabet = set(self)
         for i in xrange(2, self.length()):
             empty_sets = [set() for _ in range(len(alphabet))]
@@ -5664,7 +5336,7 @@ exponent %s: the length of the word (%s) times the exponent \
             TypeError: the alphabet is infinite; specify a finite alphabet or use evaluation_dict() instead
         """
         if alphabet is None and self._parent.size_of_alphabet() is Infinity:
-            raise TypeError, "the alphabet is infinite; specify a finite alphabet or use evaluation_dict() instead"
+            raise TypeError("the alphabet is infinite; specify a finite alphabet or use evaluation_dict() instead")
         if alphabet is None:
             alphabet = self._parent._alphabet
         ev_dict = self.evaluation_dict()
@@ -5757,14 +5429,14 @@ exponent %s: the length of the word (%s) times the exponent \
             return ShuffleProduct_w1w2(self, other)
         else:
             if any(a not in ZZ for a in self) or any(a not in ZZ for a in other):
-                raise ValueError, "for a nonzero overlap, words must contain integers as letters"
+                raise ValueError("for a nonzero overlap, words must contain integers as letters")
             if overlap is True:
                 from sage.combinat.words.shuffle_product import ShuffleProduct_overlapping
                 return ShuffleProduct_overlapping(self, other)
             elif isinstance(overlap, (int,Integer)):
                 from sage.combinat.words.shuffle_product import ShuffleProduct_overlapping_r
                 return ShuffleProduct_overlapping_r(self, other, overlap)
-            raise ValueError, 'overlapping must be True or an integer'
+            raise ValueError('overlapping must be True or an integer')
 
     def shifted_shuffle(self, other, shift=None):
         r"""
@@ -5804,7 +5476,7 @@ exponent %s: the length of the word (%s) times the exponent \
             ValueError: for shifted shuffle, words must only contain integers as letters
         """
         if any(a not in ZZ for a in self) or any(a not in ZZ for a in other):
-            raise ValueError, "for shifted shuffle, words must only contain integers as letters"
+            raise ValueError("for shifted shuffle, words must only contain integers as letters")
         if shift is None:
             from sage.combinat.words.shuffle_product import ShuffleProduct_shifted
             return ShuffleProduct_shifted(self, other)
@@ -5841,7 +5513,7 @@ exponent %s: the length of the word (%s) times the exponent \
             s = cycle_alphabet.next()
         else:
             if s not in alphabet:
-                raise ValueError, "starting letter not in alphabet"
+                raise ValueError("starting letter not in alphabet")
             t = cycle_alphabet.next()
             while t != s:
                 t = cycle_alphabet.next()
@@ -6128,14 +5800,14 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         seen, res = {}, []
         for x in self:
-            if not seen.has_key(x):
+            if x not in seen:
                 res.append(x)
                 seen[x] = True
         return res
 
     def standard_factorization(self):
         r"""
-        Returns the standard factorization of self.
+        Returns the standard factorization of ``self``.
 
         The *standard factorization* of a word `w` of length greater than 1 is
         the unique factorization: `w = uv` where `v` is the longest proper
@@ -6209,29 +5881,6 @@ exponent %s: the length of the word (%s) times the exponent \
             suff = self[l:]
             if suff.is_lyndon():
                 return self[:l], suff
-
-    def standard_factorization_of_lyndon_factorization(self):
-        r"""
-        Returns the standard factorization of the Lyndon factorization
-        of self.
-
-        OUTPUT:
-
-            list of lists -- the factorization
-
-        EXAMPLES::
-
-            sage: Words('123')('1221131122').standard_factorization_of_lyndon_factorization()
-            doctest:...: DeprecationWarning: standard_factorization_of_lyndon_factorization(): is deprecated since March 2012 and will be removed in a later version of Sage.
-            See http://trac.sagemath.org/12469 for details.
-            [(word: 12, word: 2), (word: 1, word: 13), (word: 1, word: 122)]
-
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(12469, "standard_factorization_of_lyndon_factorization(): is "
-                    "deprecated since March 2012 and will be removed in "
-                    "a later version of Sage.")
-        return [x.standard_factorization() for x in self.lyndon_factorization()]
 
     def apply_permutation_to_positions(self, permutation):
         r"""
@@ -6372,7 +6021,7 @@ exponent %s: the length of the word (%s) times the exponent \
                                        isinstance(cm.__dict__[x], C)])
             import sage.misc.misc
             sage.misc.misc.verbose("The possible color maps include: %s"%possibilities, level=0)
-            raise RuntimeError, "Color map %s not known"%cmap
+            raise RuntimeError("Color map %s not known"%cmap)
 
         #Drawing the colored vector...
         from sage.plot.plot import polygon,line,text
@@ -6604,7 +6253,7 @@ class CallableFromListOfWords(tuple):
             if (j - c.length() < 0):
                 return c[j]
             j -= c.length()
-        raise IndexError, "index (=%s) out of range" % i
+        raise IndexError("index (=%s) out of range" % i)
 
 class Factorization(list):
     r"""

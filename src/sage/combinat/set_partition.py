@@ -1546,8 +1546,7 @@ def _listbloc(n, nbrepets, listint=None):
         yield Set([listint])
         return
 
-    l = list(listint)
-    l.sort()
+    l = sorted(listint)
     smallest = Set(l[:1])
     new_listint = Set(l[1:])
 

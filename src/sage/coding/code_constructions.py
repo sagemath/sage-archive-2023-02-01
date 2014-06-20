@@ -221,24 +221,22 @@ def cyclotomic_cosets(q, n, t = None):
     the cosets are in ZZ/nZZ and 2 = 0 in ZZ/2ZZ.
     """
     from sage.misc.misc import srange
-    if not(t==None) and type(t)<>Integer:
-        raise TypeError,  "Optional input %s must None or an integer."%t
+    if t is not None and not isinstance(t, Integer):
+        raise TypeError("Optional input %s must None or an integer."%t)
     if q<2 or n<2:
-        raise TypeError,  "Inputs %s and %s must be > 1."%(q,n)
-    if GCD(q,n) <> 1:
-        raise TypeError,  "Inputs %s and %s must be relative prime."%(q,n)
-    if t<>None and type(t)==Integer:
+        raise TypeError("Inputs %s and %s must be > 1."%(q,n))
+    if GCD(q,n) != 1:
+        raise TypeError("Inputs %s and %s must be relative prime."%(q,n))
+    if t is not None and isinstance(t, Integer):
         S = Set([t*q**i%n for i in srange(n)])
-        L = list(S)
-        L.sort()
+        L = sorted(S)
         return L
     ccs = Set([])
     ccs_list = [[0]]
     for s in range(1,n):
         if not(s in ccs):
             S = Set([s*q**i%n for i in srange(n)])
-            L = list(S)
-            L.sort()
+            L = sorted(S)
             ccs = ccs.union(S)
             ccs_list.append(L)
     return ccs_list
@@ -302,10 +300,10 @@ def is_a_splitting(S1,S2,n):
 
     This is a special case of Theorem 6.4.3 in [HP]_.
     """
-    if Set(S1).union(Set(S2)) <> Set(range(1,n)):
-        raise TypeError, "Lists must partition [1,2,...,n-1]."
+    if Set(S1).union(Set(S2)) != Set(range(1,n)):
+        raise TypeError("Lists must partition [1,2,...,n-1].")
     if n<3:
-        raise TypeError,  "Input %s must be > 2."%n
+        raise TypeError("Input %s must be > 2."%n)
     for b in range(2,n):
         SS1 = Set([b*x%n for x in S1])
         SS2 = Set([b*x%n for x in S2])
@@ -446,7 +444,7 @@ def permutation_action(g,v):
     - David Joyner, licensed under the GPL v2 or greater.
     """
     v_type_list = False
-    if type(v) == list:
+    if isinstance(v, list):
         v_type_list = True
         v = Sequence(v)
     V = v.parent()
@@ -489,7 +487,7 @@ def walsh_matrix(m0):
     if m > 1:
         row2 = [x.list() for x in walsh_matrix(m-1).augment(walsh_matrix(m-1)).rows()]
         return matrix(GF(2), m, 2**m, [[0]*2**(m-1) + [1]*2**(m-1)] + row2)
-    raise ValueError, "%s must be an integer > 0."%m0
+    raise ValueError("%s must be an integer > 0."%m0)
 
 
 ##################### main constructions #####################
@@ -563,7 +561,7 @@ def BCHCode(n,delta,F,b=0):
     g = P(LCM(L1))
     #print cosets, "\n", g, "\n", (x**n-1).factor(), "\n", L1, "\n", g.divides(x**n-1)
     if not(g.divides(x**n-1)):
-        raise ValueError, "BCH codes does not exist with the given input."
+        raise ValueError("BCH codes does not exist with the given input.")
     return CyclicCodeFromGeneratingPolynomial(n,g)
 
 
@@ -677,9 +675,9 @@ def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
     F = g.base_ring()
     p = F.characteristic()
     if not(ignore) and p.divides(n):
-        raise ValueError, 'The characteristic %s must not divide %s'%(p,n)
+        raise ValueError('The characteristic %s must not divide %s'%(p,n))
     if not(ignore) and not(g.divides(x**n-1)):
-        raise ValueError, '%s must divide x^%s - 1'%(g,n)
+        raise ValueError('%s must divide x^%s - 1'%(g,n))
     gn = GCD([g,x**n-1])
     d = gn.degree()
     coeffs = Sequence(gn.list())
@@ -720,9 +718,9 @@ def CyclicCodeFromCheckPolynomial(n,h,ignore=True):
     F = h.base_ring()
     p = F.characteristic()
     if not(ignore) and p.divides(n):
-        raise ValueError, 'The characteristic %s must not divide %s'%(p,n)
+        raise ValueError('The characteristic %s must not divide %s'%(p,n))
     if not(h.divides(x**n-1)):
-        raise ValueError, '%s must divide x^%s - 1'%(h,n)
+        raise ValueError('%s must divide x^%s - 1'%(h,n))
     g = P((x**n-1)/h)
     return CyclicCodeFromGeneratingPolynomial(n,g)
 
@@ -753,7 +751,7 @@ def DuadicCodeEvenPair(F,S1,S2):
     """
     n = max(S1+S2)+1
     if not(is_a_splitting(S1,S2,n)):
-        raise TypeError, "%s, %s must be a splitting of %s."%(S1,S2,n)
+        raise TypeError("%s, %s must be a splitting of %s."%(S1,S2,n))
     q = F.order()
     k = Mod(q,n).multiplicative_order()
     FF = GF(q**k,"z")
@@ -799,7 +797,7 @@ def DuadicCodeOddPair(F,S1,S2):
     """
     n = max(S1+S2)+1
     if not(is_a_splitting(S1,S2,n)):
-        raise TypeError, "%s, %s must be a splitting of %s."%(S1,S2,n)
+        raise TypeError("%s, %s must be a splitting of %s."%(S1,S2,n))
     q = F.order()
     k = Mod(q,n).multiplicative_order()
     FF = GF(q**k,"z")
@@ -1113,9 +1111,9 @@ def QuadraticResidueCodeEvenPair(n,F):
     Q = quadratic_residues(n); Q.remove(0)  # non-zero quad residues
     N = range(1,n); tmp = [N.remove(x) for x in Q]  # non-zero quad non-residues
     if (n.is_prime() and n>2 and not(q in Q)):
-        raise ValueError, "No quadratic residue code exists for these parameters."
+        raise ValueError("No quadratic residue code exists for these parameters.")
     if not(is_a_splitting(Q,N,n)):
-        raise TypeError, "No quadratic residue code exists for these parameters."
+        raise TypeError("No quadratic residue code exists for these parameters.")
     return DuadicCodeEvenPair(F,Q,N)
 
 
@@ -1165,9 +1163,9 @@ def QuadraticResidueCodeOddPair(n,F):
     Q = quadratic_residues(n); Q.remove(0)  # non-zero quad residues
     N = range(1,n); tmp = [N.remove(x) for x in Q]  # non-zero quad non-residues
     if (n.is_prime() and n>2 and not(q in Q)):
-        raise ValueError, "No quadratic residue code exists for these parameters."
+        raise ValueError("No quadratic residue code exists for these parameters.")
     if not(is_a_splitting(Q,N,n)):
-        raise TypeError, "No quadratic residue code exists for these parameters."
+        raise TypeError("No quadratic residue code exists for these parameters.")
     return DuadicCodeOddPair(F,Q,N)
 
 
@@ -1268,9 +1266,9 @@ def ReedSolomonCode(n,k,F,pts = None):
     q = F.order()
     power = lambda x,n,F: (x==0 and n==0) and F(1) or F(x**n) # since 0^0 is undefined
     if n>q or k>n or k>q:
-        raise ValueError, "RS codes does not exist with the given input."
+        raise ValueError("RS codes does not exist with the given input.")
     if not(pts == None) and not(len(pts)==n):
-        raise ValueError, "You must provide exactly %s distinct points of %s"%(n,F)
+        raise ValueError("You must provide exactly %s distinct points of %s"%(n,F))
     if (pts == None):
         pts = []
         i = 0

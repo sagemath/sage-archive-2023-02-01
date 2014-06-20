@@ -39,7 +39,8 @@ from sage.structure.element import Element
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
-from sage.rings.all import ZZ, factorial
+from sage.rings.all import ZZ
+from sage.rings.arith import factorial
 from sage.rings.integer import Integer
 from sage.combinat.posets.lattices import LatticePoset
 from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPatternsTopRow
@@ -1415,49 +1416,6 @@ from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'AlternatingSignMatrices_n', AlternatingSignMatrices)
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'MonotoneTriangles_n', MonotoneTriangles)
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'MonotoneTriangles_n', MonotoneTriangles_n)
-
-# Here are the previous implementations of the combinatorial structure
-# of the alternating sign matrices. Please, consider it obsolete and
-# tend to use the monotone triangles instead.
-
-def from_contre_tableau(comps):
-    r"""
-    Returns an alternating sign matrix from a contre-tableau.
-
-    EXAMPLES::
-
-        sage: import sage.combinat.alternating_sign_matrix as asm
-        sage: asm.from_contre_tableau([[1, 2, 3], [1, 2], [1]])
-        doctest:...: DeprecationWarning: You can use from_monotone_triangle instead.
-        See http://trac.sagemath.org/12930 for details.
-        [0 0 1]
-        [0 1 0]
-        [1 0 0]
-        sage: asm.from_contre_tableau([[1, 2, 3], [2, 3], [3]])
-        [1 0 0]
-        [0 1 0]
-        [0 0 1]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(12930, 'You can use from_monotone_triangle instead.')
-    n = len(comps)
-    MS = MatrixSpace(ZZ, n)
-    M = [ [0 for _ in range(n)] for _ in range(n) ]
-
-    previous_set = Set([])
-
-    for col in range(n-1, -1, -1):
-        s = Set( comps[col] )
-        for x in s - previous_set:
-            M[x-1][col] = 1
-
-        for x in previous_set - s:
-            M[x-1][col] = -1
-
-        previous_set = s
-
-    return MS(M)
-
 
 class ContreTableaux(Parent):
     """

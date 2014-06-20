@@ -902,7 +902,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         """
         n = self.ngens()
         if i < 0 or i >= n:
-            raise IndexError, "Argument i (= %s) must be between 0 and %s."%(i, n-1)
+            raise IndexError("Argument i (= %s) must be between 0 and %s."%(i, n-1))
         x = [0]*n
         if self._gens_orders[i] != 1:
             x[i] = 1
@@ -1219,7 +1219,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             (1,)
         """
         if not(self.is_finite()):
-           raise NotImplementedError, "Group must be finite"
+           raise NotImplementedError("Group must be finite")
         return tuple(self.__iter__())
 
     def __iter__(self):
@@ -1293,7 +1293,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: AbelianGroup([]).subgroups()
             [Trivial Abelian group]
         """
-        if not self.is_finite(): raise ValueError, "Group must be finite"
+        if not self.is_finite(): raise ValueError("Group must be finite")
         from sage.misc.misc import verbose
 
         if self.is_trivial():
@@ -1329,7 +1329,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             verbose("Running Gap cross-check")
             t = ZZ(gap.eval("Size(SubgroupsSolvableGroup(AbelianGroup(%s)))" % v))
             if t != len(subgps):
-                raise ArithmeticError, "For %s Gap finds %s subgroups, I found %s" % (v, t, len(subgps))
+                raise ArithmeticError("For %s Gap finds %s subgroups, I found %s" % (v, t, len(subgps)))
             verbose("Gap check OK for %s: %s" % (v, t))
         return subgps
 
@@ -1360,7 +1360,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         X = ZZ**d
         try:
             elt_lattice = X.submodule_with_basis(elts)
-        except ValueError, e:
+        except ValueError as e:
             # can't happen?
             print "Vectors not LI: ", elts
             raise e
@@ -1454,9 +1454,9 @@ class AbelianGroup_subgroup(AbelianGroup_class):
         """
         from sage.interfaces.all import gap
         if not isinstance(ambient, AbelianGroup_class):
-            raise TypeError, "ambient (=%s) must be an abelian group."%ambient
+            raise TypeError("ambient (=%s) must be an abelian group."%ambient)
         if not isinstance(gens, tuple):
-            raise TypeError, "gens (=%s) must be a tuple"%gens
+            raise TypeError("gens (=%s) must be a tuple"%gens)
 
         self._ambient_group = ambient
         Hgens = tuple(x for x in gens if x != ambient.one())  ## in case someone puts 1 in the list of generators

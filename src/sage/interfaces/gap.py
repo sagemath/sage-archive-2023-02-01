@@ -413,7 +413,7 @@ class Gap_generic(Expect):
             # the following input prompt is now the current input prompt
             E.expect('@i', timeout=timeout)
             success = True
-        except (pexpect.TIMEOUT, pexpect.EOF), msg:
+        except (pexpect.TIMEOUT, pexpect.EOF) as msg:
             # GAP died or hangs indefinitely
             # print 'GAP interrupt:', msg
             success = False
@@ -650,7 +650,7 @@ class Gap_generic(Expect):
             sage: import sage.tests.interrupt
             sage: try:
             ...     sage.tests.interrupt.interrupt_after_delay()
-            ...     while True: SymmetricGroup(8).conjugacy_classes_subgroups()
+            ...     while True: SymmetricGroup(7).conjugacy_classes_subgroups()
             ... except KeyboardInterrupt:
             ...     pass
             Interrupting Gap...
@@ -659,7 +659,7 @@ class Gap_generic(Expect):
         """
         print "Interrupting %s..."%self
         self.quit()
-        raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
+        raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=True):
         """
@@ -741,7 +741,7 @@ class Gap_generic(Expect):
                     self.quit()
                     gap_reset_workspace()
                 error = error.replace('\r','')
-                raise RuntimeError, "%s produced error output\n%s\n   executing %s"%(self, error,line)
+                raise RuntimeError("%s produced error output\n%s\n   executing %s"%(self, error,line))
             if len(normal) == 0:
                 return ''
 
@@ -758,7 +758,7 @@ class Gap_generic(Expect):
                 out = out[:-1]
             return out
 
-        except (RuntimeError,TypeError),message:
+        except (RuntimeError,TypeError) as message:
             if 'EOF' in message[0] or E is None or not E.isalive():
                 print "** %s crashed or quit executing '%s' **"%(self, line)
                 print "Restarting %s and trying again"%self
@@ -768,11 +768,11 @@ class Gap_generic(Expect):
                 else:
                     return ''
             else:
-                raise RuntimeError, message
+                raise RuntimeError(message)
 
         except KeyboardInterrupt:
             self._keyboard_interrupt()
-            raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
+            raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
     def unbind(self, var):
         """
@@ -857,8 +857,8 @@ class Gap_generic(Expect):
 
         EXAMPLES::
 
-            sage: gap.version()
-            '4.6.4'
+            sage: print gap.version()
+            4.7...
         """
         return self.eval('VERSION')[1:-1]
 
@@ -966,7 +966,7 @@ class GapElement_generic(ExpectElement):
         """
         s = ExpectElement.__repr__(self)
         if s.find('must have a value') != -1:
-            raise RuntimeError, "An error occurred creating an object in %s from:\n'%s'\n%s"%(self.parent().name(), self._create, s)
+            raise RuntimeError("An error occurred creating an object in %s from:\n'%s'\n%s"%(self.parent().name(), self._create, s))
         return s
 
     def bool(self):
@@ -1354,7 +1354,7 @@ class Gap(Gap_generic):
             line0 = 'Print( %s );'%line.rstrip().rstrip(';')
             try:  # this is necessary, since Print requires something as input, and some functions (e.g., Read) return nothing.
                 return Expect._eval_line_using_file(self, line0)
-            except RuntimeError, msg:
+            except RuntimeError as msg:
                 #if not ("Function call: <func> must return a value" in msg):
                 #    raise RuntimeError, msg
                 return ''
@@ -1508,13 +1508,14 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
 
     # Create new workspace with filename WORKSPACE
     g = Gap(use_workspace_cache=False, max_workspace_size=None)
+    g.eval('SetUserPreference("HistoryMaxLines", 30)')
     for pkg in ['GAPDoc', 'ctbllib', 'sonata', 'guava', 'factint', \
                 'gapdoc', 'grape', 'design', \
                 'toric', 'laguna', 'braid']:
         # NOTE: Do *not* autoload hap - it screws up PolynomialRing(Rationals,2)
         try:
             g.load_package(pkg, verbose=verbose)
-        except RuntimeError, msg:
+        except RuntimeError as msg:
             if verbose:
                 print '*** %s'%msg
             pass
@@ -1759,7 +1760,7 @@ def intmod_gap_to_sage(x):
     m = re.match(r'Zmod[np]ZObj\( ([0-9]*), ([0-9]*) \)', s)
     if m:
         return Mod(m.group(1), m.group(2))
-    raise ValueError, "Unable to convert Gap element '%s'" % s
+    raise ValueError("Unable to convert Gap element '%s'" % s)
 
 #############
 
@@ -1838,10 +1839,10 @@ def gap_version():
 
     EXAMPLES::
 
-        sage: gap_version()
+        sage: print gap_version()
         doctest:...: DeprecationWarning: use gap.version() instead
         See http://trac.sagemath.org/13211 for details.
-        '4.6.4'
+        4.7...
     """
     from sage.misc.superseded import deprecation
     deprecation(13211, 'use gap.version() instead')

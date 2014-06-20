@@ -230,9 +230,9 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
                                               algorithm='local',
                                               read_cache=False)
                 if ret[0]:
-                    raise RuntimeError, "Outputs of algorithms in " \
+                    raise RuntimeError("Outputs of algorithms in " \
                                         "has_rational_point disagree " \
-                                        "for conic %s" % self
+                                        "for conic %s" % self)
                 return ret
             if point:
                 return False, None
@@ -240,8 +240,8 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
 
         if algorithm == 'local':
             if point:
-                raise ValueError, "Algorithm 'local' cannot be combined " \
-                                  "with point = True in has_rational_point"
+                raise ValueError("Algorithm 'local' cannot be combined " \
+                                  "with point = True in has_rational_point")
             obs = self.local_obstructions(infinite = True, finite = False,
                                           read_cache = read_cache)
             if obs != []:
@@ -259,9 +259,9 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
         if algorithm == 'rnfisnorm':
             from sage.modules.free_module_element import vector
             if obstruction:
-                raise ValueError, "Algorithm rnfisnorm cannot be combined " \
+                raise ValueError("Algorithm rnfisnorm cannot be combined " \
                                   "with obstruction = True in " \
-                                  "has_rational_point"
+                                  "has_rational_point")
             D, T = self.diagonal_matrix()
             abc = [D[0,0], D[1,1], D[2,2]]
             for j in range(3):
@@ -302,11 +302,11 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
                 return False, None
             return False
         if algorithm == 'qfsolve':
-            raise TypeError, "Algorithm qfsolve in has_rational_point only " \
-                                 "for conics over QQ, not over %s" % B
+            raise TypeError("Algorithm qfsolve in has_rational_point only " \
+                                 "for conics over QQ, not over %s" % B)
         if obstruction:
-            raise ValueError, "Invalid combination: obstruction=True and " \
-                                 "algorithm=%s" % algorithm
+            raise ValueError("Invalid combination: obstruction=True and " \
+                                 "algorithm=%s" % algorithm)
 
         return ProjectiveConic_field.has_rational_point(self, point = point,
                            algorithm = algorithm, read_cache = False)

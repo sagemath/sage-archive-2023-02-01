@@ -53,10 +53,10 @@ An algebraic number can be coerced into ``ComplexIntervalField`` (or
 ``RealIntervalField``, for algebraic reals); every algebraic number has a
 cached interval of the highest precision yet calculated.
 
-Everything is done with intervals except for comparisons. By default,
-comparisons compute the two algebraic numbers with 128-bit precision
-intervals; if this does not suffice to prove that the numbers are different,
-then we fall back on exact computation.
+In most cases, computations that need to compare two algebraic numbers
+compute them with 128-bit precision intervals; if this does not suffice to
+prove that the numbers are different, then we fall back on exact
+computation.
 
 Note that division involves an implicit comparison of the divisor against
 zero, and may thus trigger exact computation.
@@ -482,6 +482,7 @@ Verify that :trac:`10981` is fixed::
     sage: P.partial_fraction_decomposition()
     (0, [(-0.3535533905932738?*x + 1/2)/(x^2 - 1.414213562373095?*x + 1), (0.3535533905932738?*x + 1/2)/(x^2 + 1.414213562373095?*x + 1)])
 """
+import itertools
 
 import sage.rings.ring
 from sage.structure.sage_object import SageObject
@@ -853,7 +854,7 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
         if n == 0:
             return self(1)
         else:
-            raise IndexError, "n must be 0"
+            raise IndexError("n must be 0")
 
     def ngens(self):
         r"""
@@ -958,6 +959,54 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
             raise ValueError("interval argument of .polynomial_root on algebraic real field must be real")
 
         return AlgebraicReal(ANRoot(poly, interval, multiplicity))
+
+    def _factor_univariate_polynomial(self, f):
+        """
+        Factor the univariate polynomial ``f``.
+
+        INPUT:
+
+        - ``f`` -- a univariate polynomial defined over the real algebraic field
+
+        OUTPUT:
+
+        - A factorization of ``f`` over the real algebraic numbers into a unit
+          and monic irreducible factors
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.factor`.
+
+        TESTS::
+
+            sage: R.<x> = AA[]
+            sage: AA._factor_univariate_polynomial(x)
+            x
+            sage: AA._factor_univariate_polynomial(2*x)
+            (2) * x
+            sage: AA._factor_univariate_polynomial((x^2 + 1)^2)
+            (x^2 + 1)^2
+            sage: AA._factor_univariate_polynomial(x^8 + 1)
+            (x^2 - 1.847759065022574?*x + 1.000000000000000?) * (x^2 - 0.7653668647301795?*x + 1.000000000000000?) * (x^2 + 0.7653668647301795?*x + 1.000000000000000?) * (x^2 + 1.847759065022574?*x + 1.000000000000000?)
+            sage: AA._factor_univariate_polynomial(R(3))
+            3
+            sage: AA._factor_univariate_polynomial(12*x^2 - 4)
+            (12) * (x - 0.5773502691896258?) * (x + 0.5773502691896258?)
+            sage: AA._factor_univariate_polynomial(12*x^2 + 4)
+            (12) * (x^2 + 0.3333333333333334?)
+            sage: AA._factor_univariate_polynomial(EllipticCurve('11a1').change_ring(AA).division_polynomial(5))
+            (5) * (x - 16.00000000000000?) * (x - 5.000000000000000?) * (x - 1.959674775249769?) * (x + 2.959674775249769?) * (x^2 - 2.854101966249685?*x + 15.47213595499958?) * (x^2 + 1.909830056250526?*x + 1.660606461254312?) * (x^2 + 3.854101966249685?*x + 6.527864045000421?) * (x^2 + 13.09016994374948?*x + 93.33939353874569?)
+
+        """
+        rr = f.roots()
+        cr = [(r,e) for r,e in f.roots(QQbar) if r.imag()>0]
+
+        from sage.structure.factorization import Factorization
+        return Factorization(
+            [(f.parent()([-r,1]),e) for r,e in rr] +
+            [(f.parent()([r.norm(),-2*r.real(),1]),e) for r,e in cr],
+            unit=f.leading_coefficient())
 
 def is_AlgebraicRealField(F):
     r"""
@@ -1355,6 +1404,46 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
         m = sage.misc.prandom.randint(0, len(roots)-1)
         return roots[m]
 
+    def _factor_univariate_polynomial(self, f):
+        """
+        Factor the univariate polynomial ``f``.
+
+        INPUT:
+
+        - ``f`` -- a univariate polynomial defined over the algebraic field
+
+        OUTPUT:
+
+        - A factorization of ``f`` over the algebraic numbers into a unit and
+          monic irreducible factors
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.factor`.
+
+        TESTS::
+
+            sage: R.<x> = QQbar[]
+            sage: QQbar._factor_univariate_polynomial(x)
+            x
+            sage: QQbar._factor_univariate_polynomial(2*x)
+            (2) * x
+            sage: QQbar._factor_univariate_polynomial((x^2 + 1)^2)
+            (x - I)^2 * (x + I)^2
+            sage: QQbar._factor_univariate_polynomial(x^8 - 1)
+            (x - 1) * (x - 0.7071067811865475? - 0.7071067811865475?*I) * (x - 0.7071067811865475? + 0.7071067811865475?*I) * (x - I) * (x + I) * (x + 0.7071067811865475? - 0.7071067811865475?*I) * (x + 0.7071067811865475? + 0.7071067811865475?*I) * (x + 1)
+            sage: QQbar._factor_univariate_polynomial(12*x^2 - 4)
+            (12) * (x - 0.5773502691896258?) * (x + 0.5773502691896258?)
+            sage: QQbar._factor_univariate_polynomial(R(-1))
+            -1
+            sage: QQbar._factor_univariate_polynomial(EllipticCurve('11a1').change_ring(QQbar).division_polynomial(5))
+            (5) * (x - 16) * (x - 5) * (x - 1.959674775249769?) * (x - 1.427050983124843? - 3.665468789467727?*I) * (x - 1.427050983124843? + 3.665468789467727?*I) * (x + 0.9549150281252629? - 0.8652998037182486?*I) * (x + 0.9549150281252629? + 0.8652998037182486?*I) * (x + 1.927050983124843? - 1.677599044300515?*I) * (x + 1.927050983124843? + 1.677599044300515?*I) * (x + 2.959674775249769?) * (x + 6.545084971874737? - 7.106423590645660?*I) * (x + 6.545084971874737? + 7.106423590645660?*I)
+
+        """
+        from sage.structure.factorization import Factorization
+        return Factorization([(f.parent()([-r,1]),e) for r,e in f.roots()], unit=f.leading_coefficient())
+
 def is_AlgebraicField(F):
     r"""
     Check whether ``F`` is an :class:`~AlgebraicField` instance.
@@ -1639,7 +1728,7 @@ def find_zero_result(fn, l):
         if ambig:
             continue
         if result is None:
-            raise ValueError, 'find_zero_result could not find any zeroes'
+            raise ValueError('find_zero_result could not find any zeroes')
         return result
 
 def conjugate_expand(v):
@@ -3289,6 +3378,19 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         else:
             return True
 
+    def is_integer(self):
+        """
+        Return True if this number is a integer
+
+        EXAMPLES::
+        
+            sage: QQbar(2).is_integer()
+            True
+            sage: QQbar(1/2).is_integer()
+            False
+        """
+        return self in ZZ
+
     def sqrt(self, all=False, extend=True):
         """
         Return the square root(s) of this number.
@@ -3662,7 +3764,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             1.41421356237309504880168872420969807857?
         """
         if diam <= 0:
-            raise ValueError, 'diameter must be positive in interval_diameter'
+            raise ValueError('diameter must be positive in interval_diameter')
 
         while self._value.diameter() > diam:
             self._more_precision()
@@ -4509,6 +4611,111 @@ class AlgebraicReal(AlgebraicNumber_base):
             raise ValueError("Cannot coerce irrational Algebraic Real %s to Integer" % self)
 
         return ZZ(self._descr.rational_value())
+
+    def _floor_ceil(self, method):
+        r"""
+        Helper method used by :meth:`floor()`, :meth:`ceil()`,
+        :meth:`round()`, and :meth:`trunc()`.
+
+        TESTS::
+
+            sage: x = polygen(QQ)
+            sage: a = AA.polynomial_root(x^5 - (1-2^(-80)), RIF((0,2)))
+            sage: b = AA.polynomial_root(x^5 - (1+2^(-80)), RIF((0,2)))
+            sage: two = (a+b)^5 - 5*(a^4*b+a*b^4) - 10*(a^3*b^2+a^2*b^3)
+            sage: one_half = 1/two
+            sage: [[z.floor(), z.ceil(), z.round(), z.trunc()] # indirect doctest
+            ....:  for z in [a, -a, b, -b, 6*(a+two),
+            ....:            AA(0), AA(1), AA(-1), AA(1/2), AA(-1/2)]]
+            [[0, 1, 1, 0], [-1, 0, -1, 0], [1, 2, 1, 1], [-2, -1, -1, -1],
+            [17, 18, 18, 17], [0, 0, 0, 0], [1, 1, 1, 1], [-1, -1, -1, -1],
+            [0, 1, 1, 0], [-1, 0, -1, 0]]
+            sage: [[z.floor(), z.ceil(), z.trunc()] for z in [two, a*b]] # long time
+            [[2, 2, 2], [0, 1, 0]]
+            sage: [one_half.round(), (-one_half).round()] # long time
+            [1, -1]
+        """
+        for i in itertools.count():
+            candidate = method(self._value.lower())
+            if candidate == method(self._value.upper()):
+                return candidate
+            self._more_precision()
+            # field elements are irrational by construction
+            if i == 2 and not self._descr.is_field_element():
+                try:
+                    return method(self._rational_())
+                except (ValueError, TypeError):
+                    pass
+
+    def floor(self):
+        r"""
+        Return the largest integer not greater than ``self``.
+
+        EXAMPLES::
+
+            sage: AA(sqrt(2)).floor()
+            1
+            sage: AA(-sqrt(2)).floor()
+            -2
+            sage: AA(42).floor()
+            42
+
+        TESTS:
+
+        Check that :trac:`15501` is fixed::
+
+            sage: a = QQbar((-1)^(1/4)).real()
+            sage: (floor(a-a) + a).parent()
+            Algebraic Real Field
+        """
+        return self._floor_ceil(lambda x: x.floor())
+
+    def ceil(self):
+        r"""
+        Return the smallest integer not smaller than ``self``.
+
+        EXAMPLES::
+
+            sage: AA(sqrt(2)).ceil()
+            2
+            sage: AA(-sqrt(2)).ceil()
+            -1
+            sage: AA(42).ceil()
+            42
+        """
+        return self._floor_ceil(lambda x: x.ceil())
+
+    def round(self):
+        r"""
+        Round ``self`` to the nearest integer.
+
+        EXAMPLES::
+
+            sage: AA(sqrt(2)).round()
+            1
+            sage: AA(1/2).round()
+            1
+            sage: AA(-1/2).round()
+            -1
+        """
+        return self._floor_ceil(lambda x: x.round())
+
+    def trunc(self):
+        r"""
+        Round ``self`` to the nearest integer toward zero.
+
+        EXAMPLES::
+
+            sage: AA(sqrt(2)).trunc()
+            1
+            sage: AA(-sqrt(2)).trunc()
+            -1
+            sage: AA(1).trunc()
+            1
+            sage: AA(-1).trunc()
+            -1
+        """
+        return self._floor_ceil(lambda x: x.trunc())
 
     def _rational_(self):
         """
@@ -5791,7 +5998,7 @@ class AlgebraicPolynomialTracker(SageObject):
              -1.189207115002721?*I,
              1.189207115002721?*I]
         """
-        if self._roots_cache.has_key(multiplicity):
+        if multiplicity in self._roots_cache:
             roots = self._roots_cache[multiplicity]
             if roots[0] >= prec:
                 return roots[1]

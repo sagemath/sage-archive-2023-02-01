@@ -416,7 +416,7 @@ la feuille de travail. Les commandes suivantes reprennent l'ensemble des
     sage: latex.engine('pdflatex')
     sage: latex.add_to_mathjax_avoid_list('tikzpicture')
     sage: latex.mathjax_avoid_list()
-    ['tikzpicture']
+    ['tikz', 'tikzpicture']
 
 La mise en forme du graphe est faite en traitant des commandes ``tkz-graph``
 qui le décrivent avec ``pdflatex``. Diverses options pour influencer ce rendu,

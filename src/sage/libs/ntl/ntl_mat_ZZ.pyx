@@ -124,7 +124,10 @@ cdef class ntl_mat_ZZ:
         mat_ZZ_construct(&self.x)
 
     def __dealloc__(self):
-        mat_ZZ_destruct(&self.x)
+        # With NTL 6.0.0, mat_ZZ is a proper C++ class.
+        # Therefore Cython automagically calls the class destructor.
+        #mat_ZZ_destruct(&self.x)
+        pass
 
     def __repr__(self):
         """

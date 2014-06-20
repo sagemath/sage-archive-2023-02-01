@@ -95,7 +95,7 @@ class InfiniteEnumeratedSets(Category_singleton):
 
             TODO: should this be an optional abstract_method instead?
             """
-            raise NotImplementedError, "infinite set"
+            raise NotImplementedError("infinite set")
 
         def list(self):
             """
@@ -109,7 +109,7 @@ class InfiniteEnumeratedSets(Category_singleton):
                 ...
                 NotImplementedError: infinite list
             """
-            raise NotImplementedError, "infinite list"
+            raise NotImplementedError("infinite list")
         _list_default  = list # needed by the check system.
 
         def _test_enumerated_set_iter_cardinality(self, **options):

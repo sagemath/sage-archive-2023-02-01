@@ -510,7 +510,7 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
         if n in ZZ and not kwds.get('hold', False):
             try:
                 return self._eval_(n, *args)
-            except StandardError:
+            except Exception:
                 pass
 
         return super(ChebyshevPolynomial,self).__call__(n, *args, **kwds)
@@ -577,7 +577,7 @@ class ChebyshevPolynomial(OrthogonalPolynomial):
             warnings.warn("mpmath failed, keeping expression unevaluated",
                           RuntimeWarning)
             return None
-        except StandardError:
+        except Exception:
             # Numerical evaluation failed => keep symbolic
             return None
 

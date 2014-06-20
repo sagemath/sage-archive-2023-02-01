@@ -144,7 +144,7 @@ operator*(const SL2Z& M, const vector<mpq_class>& v) {
 inline 
 mpz_class 
 floor(const mpq_class r) {
-  mpz_class result = r.get_num()/r.get_den();
+  mpz_class result = mpz_class(r.get_num()/r.get_den());
   if( r >= 0 ) {
     return result;
   } else {

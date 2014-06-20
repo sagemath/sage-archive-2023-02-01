@@ -14,6 +14,11 @@ class NormalFormGame(SageObject, MutableMapping):
 
     INPUT:
 
+    - ``arg1`` - Can be a list of 2 matrices, a single matrix or left blank.
+
+    - ``arg2`` - ``'zero-sum'`` if ``arg1`` is a single matrix. (Support for
+                    ``'bi-matrix'`` is planned).
+
 
     EXAMPLES:
 

@@ -189,6 +189,18 @@ class NormalFormGame(SageObject, MutableMapping):
             Traceback (most recent call last):
             ...
             NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms
+
+        TESTS:
+
+        Raise error if matrices aren't the same size. ::
+
+            sage: p1 = matrix([[1, 2], [3, 4]])
+            sage: p2 = matrix([[3, 3], [1, 4], [6, 6]])
+            sage: error = NormalFormGame([p1, p2])
+            Traceback (most recent call last):
+            ...
+            ValueError: matrices must be the same size
+
         """
         self.players = []
         flag = 'n-player'
@@ -206,8 +218,17 @@ class NormalFormGame(SageObject, MutableMapping):
             self._two_matrix_game(matrices)
 
     def _two_matrix_game(self, matrices):
-        """
+        r"""
         Populates ``self.strategy_profiles`` with the values from 2 matrices.
+
+        EXAMPLES:
+
+        A small example game. ::
+
+            sage: s1 = matrix([[1, 0], [-2, 3]])
+            sage: s2 = matrix([[3, 2], [-1, 0]])
+            sage: two_game = NormalFormGame()
+            sage: two_game._two_matrix_game([s1, s2])
         """
         self.players = []
         self.strategy_profiles = {}

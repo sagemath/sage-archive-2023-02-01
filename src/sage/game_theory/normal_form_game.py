@@ -86,7 +86,7 @@ class NormalFormGame(SageObject, MutableMapping):
         ....:             [-1, 1, 0, 1 , -1],
         ....:             [-1, 1, -1, 0, 1],
         ....:             [1, -1, 1, -1, 0]])
-        sage: g = NormalFormGame('zero-sum', A)
+        sage: g = NormalFormGame(A, 'zero-sum')
         sage: g.obtain_Nash()
         [[[0.2, 0.2, 0.2, 0.2, 0.2], [0.2, 0.2, 0.2, 0.2, 0.2]]]
 
@@ -200,10 +200,10 @@ class NormalFormGame(SageObject, MutableMapping):
             flag = 'two-matrix'
             if matrices[0].dimensions() != matrices[1].dimensions():
                 raise ValueError("matrices must be the same size")
-        elif arg1 == 'zero-sum':
+        elif arg2 == 'zero-sum':
             flag = 'two-matrix'
-            matrices = [arg2]
-            matrices.append(-arg2)
+            matrices = [arg1]
+            matrices.append(-arg1)
 
         if flag == 'two-matrix':
             self._two_matrix_game(matrices)

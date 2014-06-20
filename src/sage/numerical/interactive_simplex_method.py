@@ -214,7 +214,7 @@ def _assemble_arrayl(lines, stretch=None):
     EXAMPLES::
     
         sage: from sage.numerical.interactive_simplex_method \
-        ...       import _assemble_arrayl
+        ....:     import _assemble_arrayl
         sage: lines = ["1 + 1", "2"]
         sage: print _assemble_arrayl(lines)
         \begin{array}{l}
@@ -279,7 +279,7 @@ def _latex_product(coefficients, variables,
     TESTS::
     
         sage: from sage.numerical.interactive_simplex_method import \
-        ...         _latex_product
+        ....:       _latex_product
         sage: var("x, y")
         (x, y)
         sage: print _latex_product([-1, 3], [x, y])
@@ -353,7 +353,7 @@ def variable(R, v):
     EXAMPLES::
     
         sage: from sage.numerical.interactive_simplex_method \
-        ...       import variable
+        ....:     import variable
         sage: R = PolynomialRing(QQ, "x3, y5, x5, y")
         sage: R.inject_variables()
         Defining x3, y5, x5, y
@@ -468,12 +468,12 @@ class LPProblem(SageObject):
     Same problem, but more explicitly::
     
         sage: P = LPProblem(A, b, c, ["C", "B"],
-        ...         constraint_type="<=", variable_type=">=")
+        ....:     constraint_type="<=", variable_type=">=")
     
     Even more explicitly::
     
         sage: P = LPProblem(A, b, c, ["C", "B"], problem_type="max",
-        ...     constraint_type=["<=", "<="], variable_type=[">=", ">="])
+        ....:     constraint_type=["<=", "<="], variable_type=[">=", ">="])
         
     Using the last form you should be able to represent any LP problem, as long
     as all like terms are collected and in constraints variables and constants
@@ -2005,7 +2005,7 @@ class LPProblemStandardForm(LPProblem):
             sage: P.slack_variables()
             (x3, x4)
             sage: P = LPProblemStandardForm(A, b, c, ["C", "B"],
-            ...                             slack_variables=["L", "F"])
+            ....:     slack_variables=["L", "F"])
             sage: P.slack_variables()
             (L, F)
         """
@@ -2610,7 +2610,7 @@ class LPDictionary(LPAbstractDictionary):
         sage: c = vector(QQ, (10, 5))
         sage: R = PolynomialRing(QQ, "x1, x2, x3, x4", order="neglex")
         sage: from sage.numerical.interactive_simplex_method \
-        ...       import LPDictionary
+        ....:     import LPDictionary
         sage: D2 = LPDictionary(A, b, c, 0, R.gens()[2:], R.gens()[:2], "z")
         sage: D2 == D
         True
@@ -2628,7 +2628,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: c = vector(QQ, (10, 5))
             sage: R = PolynomialRing(QQ, "x1, x2, x3, x4", order="neglex")
             sage: from sage.numerical.interactive_simplex_method \
-            ...       import LPDictionary
+            ....:     import LPDictionary
             sage: D = LPDictionary(A, b, c, 0, R.gens()[2:], R.gens()[:2], "z")
             sage: TestSuite(D).run()
         """
@@ -2667,7 +2667,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: c = vector(QQ, (10, 5))
             sage: R = PolynomialRing(QQ, "x1, x2, x3, x4", order="neglex")
             sage: from sage.numerical.interactive_simplex_method \
-            ...       import LPDictionary
+            ....:     import LPDictionary
             sage: D2 = LPDictionary(A, b, c, 0, R.gens()[2:], R.gens()[:2], "z")
             sage: D2 == D
             True
@@ -3055,7 +3055,7 @@ def random_dictionary(m, n, bound=5, special_probability=0.2):
     EXAMPLES::
     
         sage: from sage.numerical.interactive_simplex_method \
-        ...       import random_dictionary
+        ....:     import random_dictionary
         sage: random_dictionary(3, 4)
         LP problem dictionary (use typeset mode to see details)
     """
@@ -3152,7 +3152,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         sage: c = (10, 5)
         sage: P = LPProblemStandardForm(A, b, c)
         sage: from sage.numerical.interactive_simplex_method \
-        ...       import LPRevisedDictionary
+        ....:     import LPRevisedDictionary
         sage: D = LPRevisedDictionary(P, [1, 2])
         sage: D.basic_variables()
         (x1, x2)
@@ -3204,7 +3204,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: c = (10, 5)
             sage: P = LPProblemStandardForm(A, b, c)
             sage: from sage.numerical.interactive_simplex_method \
-            ...       import LPRevisedDictionary
+            ....:     import LPRevisedDictionary
             sage: D = LPRevisedDictionary(P, [1, 2])
             sage: TestSuite(D).run()
         """
@@ -3237,7 +3237,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: c = (10, 5)
             sage: P = LPProblemStandardForm(A, b, c)
             sage: from sage.numerical.interactive_simplex_method \
-            ...       import LPRevisedDictionary
+            ....:     import LPRevisedDictionary
             sage: D1 = LPRevisedDictionary(P, [1, 2])
             sage: D2 = LPRevisedDictionary(P, [1, 2])
             sage: D1 is D2

@@ -677,32 +677,61 @@ def _check_pbd(B,v,S):
         Traceback (most recent call last):
         ...
         RuntimeError: All integers of S must be >=2
+
+    TESTS::
+
+        sage: _check_pbd([[1,2]],2,[2])
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The PBD covers a point 2 which is not in [0,...,1]
+        sage: _check_pbd([[1,2]]*2,2,[2])
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The pair (1,2) is covered more than once
+        sage: _check_pbd([],2,[2])
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The pair (0,1) is not covered
+        sage: _check_pbd([[1,2],[1]],2,[2])
+        Traceback (most recent call last):
+        ...
+        RuntimeError: A block has size 1 while S=[2]
     """
     from itertools import combinations
     from sage.graphs.graph import Graph
 
-    if not all(len(X) in S for X in B):
-        raise RuntimeError("Some block has wrong size: this is not a nice honest PBD from the good old days !")
+    for X in B:
+        if len(X) not in S:
+            raise RuntimeError("A block has size {} while S={}".format(len(X),S))
 
     if any(x < 2 for x in S):
         raise RuntimeError("All integers of S must be >=2")
 
     if v == 0 or v == 1:
         if B:
-            raise RuntimeError("This is not a nice honest PBD from the good old days!")
-        else:
-            return
+            raise RuntimeError("A PBD with v<=1 is expected to be empty.")
 
     g = Graph()
+    g.add_vertices(range(v))
     m = 0
     for X in B:
-        g.add_edges(list(combinations(X,2)))
-        if g.size() != m+binomial(len(X),2):
-            raise RuntimeError("This is not a nice honest PBD from the good old days !")
-        m = g.size()
+        for i,j in combinations(X,2):
+            g.add_edge(i,j)
+            m_tmp = g.size()
+            if m_tmp != m+1:
+                raise RuntimeError("The pair ({},{}) is covered more than once".format(i,j))
+            m = m_tmp
 
-    if not (g.is_clique() and g.vertices() == range(v)):
-        raise RuntimeError("This is not a nice honest PBD from the good old days !")
+    if g.vertices() != range(v):
+        p = list(set(g.vertices())-set(range(v)))[0]
+        raise RuntimeError("The PBD covers a point {} which is not in [0,...,{}]".format(p,v-1))
+    if not g.is_clique():
+        for p1 in g:
+            if g.degree(p1) != v-1:
+                break
+        neighbors = g.neighbors(p1)+[p1]
+        p2 = list(set(g.vertices())-set(neighbors))[0]
+        raise RuntimeError("The pair ({},{}) is not covered".format(p1,p2))
 
     return B
 

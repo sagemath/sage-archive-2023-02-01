@@ -265,7 +265,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         sage: designs.transversal_design(None, 1)
         Traceback (most recent call last):
         ...
-        ValueError: there are no bound on k when 0<=n<=1
+        ValueError: there is no upper bound on k when 0<=n<=1
     """
     # Is k is None we find the largest available
     if k is None:
@@ -273,7 +273,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
             if existence:
                 from sage.rings.infinity import Infinity
                 return Infinity
-            raise ValueError("there are no bound on k when 0<=n<=1")
+            raise ValueError("there is no upper bound on k when 0<=n<=1")
 
         k = orthogonal_array(None,n,existence=True)
         if existence:
@@ -801,25 +801,34 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
     TESTS:
 
-    The special case `n=1`::
+    The special cases `n=0,1`::
 
+        sage: designs.orthogonal_array(3,0)
+        []
         sage: designs.orthogonal_array(3,1)
         [[0, 0, 0]]
+        sage: designs.orthogonal_array(None,0,existence=True)
+        +Infinity
         sage: designs.orthogonal_array(None,1,existence=True)
         +Infinity
         sage: designs.orthogonal_array(None,1)
         Traceback (most recent call last):
         ...
-        ValueError: there are no bound on k when 0<=n<=1
-        sage: designs.orthogonal_array(None,14,existence=True)
-        6
+        ValueError: there is no upper bound on k when 0<=n<=1
+        sage: designs.orthogonal_array(None,0)
+        Traceback (most recent call last):
+        ...
+        ValueError: there is no upper bound on k when 0<=n<=1
+        sage: designs.orthogonal_array(16,0)
+        []
         sage: designs.orthogonal_array(16,1)
         [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
     when `t>2` and `k=None`::
 
-        sage: designs.orthogonal_array(None,5,t=3,existence=True)
-        1
+        sage: t = 3
+        sage: designs.orthogonal_array(None,5,t=t,existence=True) == t
+        True
     """
 
     from latin_squares import mutually_orthogonal_latin_squares
@@ -832,21 +841,23 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
             if existence:
                 from sage.rings.infinity import Infinity
                 return Infinity
-            raise ValueError("there are no bound on k when 0<=n<=1")
+            raise ValueError("there is no upper bound on k when 0<=n<=1")
         elif t == 2 and projective_plane(n,existence=True):
             k = n+1
         else:
-            for k in range(1,n+2):
+            for k in range(t-1,n+2):
                 if not orthogonal_array(k+1,n,t=t,existence=True):
                     break
         if existence:
             return k
 
-    if k < 2:
-        raise ValueError("undefined for k less than 2")
+    if k < t:
+        raise ValueError("undefined for k<t")
 
-    if n == 1:
-        OA = [[0]*k]
+    if n <= 1:
+        if existence:
+            return True
+        OA = [[0]*k]*n
 
     elif k >= n+t:
         # When t=2 then k<n+t as it is equivalent to the existence of n-1 MOLS.
@@ -857,12 +868,12 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
             return False
         raise EmptySetError("No Orthogonal Array exists when k>=n+t except when n<=1")
 
-    elif k == t:
+    elif k <= t:
         if existence:
             return True
 
         from itertools import product
-        OA = map(list, product(range(n), repeat=k))
+        return map(list, product(range(n), repeat=k))
 
     elif n in OA_constructions and k <= OA_constructions[n][0]:
         if existence:
@@ -1453,7 +1464,7 @@ def OA_from_PBD(k,n,PBD, check=True):
         sage: _ = OA_from_PBD(3,6,pbd)
         Traceback (most recent call last):
         ...
-        RuntimeError: This is not a nice honest PBD from the good old days !
+        RuntimeError: The PBD covers a point 8 which is not in [0,...,5]
     """
     # Size of the sets of the PBD
     K = set(map(len,PBD))

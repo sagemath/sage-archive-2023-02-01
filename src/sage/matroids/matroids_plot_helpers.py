@@ -34,7 +34,7 @@ AUTHORS:
     3) Internal point placement and orders deciding heuristics
     If a custom point placement and/or line orders is desired, then user can
     simply specify the custom points dictionary as ``M.cached info =
-    {'positions':<dictionary_of _points>,'lineorders':<list of lists>}``
+    {'plot_positions':<dictionary_of _points>,'plot_lineorders':<list of lists>}``
 
 
 
@@ -52,7 +52,7 @@ EXAMPLES::
     sage: pos_dict= {0: (0, 0),  1: (2, 0),  2: (1, 2),  3: (1.5, 1.0),
     ....: 4: (0.5, 1.0),  5: (1.0, 0.0), 6: (1.0, 0.6666666666666666),
     ....: 7: (3,3), 8: (4,0), 9: (-1,1), 10: (-2,-2)}
-    sage: M1._cached_info={'positions': pos_dict, 'lineorders': None}
+    sage: M1._cached_info={'plot_positions': pos_dict, 'plot_lineorders': None}
     sage: matroids_plot_helpers.geomrep(M1, sp=True)
 
 """
@@ -509,7 +509,7 @@ def addlp(M, M1, L, P, ptsdict, G=None, limits=None):
                        color='black', fill=False, thickness=4)
         G += text(looptext, (rectx+0.5, recty+0.3), color='black',
                   fontsize=13)
-        G += point((rectx+0.2, recty+0.3), color='black', size=300, zorder=2)
+        G += point((rectx+0.2, recty+0.3), color='gray', size=300, zorder=2)
         G += text('Loop(s)', (rectx+0.5+0.4*len(loops)+0.1, recty+0.3),
                   fontsize=13, color='black')
         limits = tracklims(limits, [rectx, rectx+rectw], [recty, recty+recth])
@@ -517,7 +517,7 @@ def addlp(M, M1, L, P, ptsdict, G=None, limits=None):
     if len(P) > 0:
         # create list of lists where inner lists are parallel classes
         pcls = []
-        gnd = sorted(M1.groundset_list())
+        gnd = sorted(list(M1.groundset()))
         for g in gnd:
             pcl = [g]
             for p in P:
@@ -531,9 +531,9 @@ def addlp(M, M1, L, P, ptsdict, G=None, limits=None):
                     # add side by side
                     ptsdict[pcl[1]] = (basept[0], basept[1]-0.13)
                     G += points(zip([basept[0]], [basept[1]-0.13]),
-                                color='black', size=300, zorder=2)
+                                color='gray', size=300, zorder=2)
                     G += text(pcl[1], (float(basept[0]),
-                              float(basept[1])-0.13), color='white',
+                              float(basept[1])-0.13), color='black',
                               fontsize=13)
                     limits = tracklims(limits, [basept[0]], [basept[1]-0.13])
                 else:
@@ -765,14 +765,17 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
 
     if M.rank() == 1:
         if M._cached_info is not None and \
-           'positions' in M._cached_info.keys() and \
-           M._cached_info['positions'] is not None:
-            pts = M._cached_info['positions']
+           'plot_positions' in M._cached_info.keys() and \
+           M._cached_info['plot_positions'] is not None:
+            pts = M._cached_info['plot_positions']
         else:
             pts = {}
             gnd = sorted(M.groundset())
         pts[gnd[0]] = (1, float(2)/3)
-        G += point((1, float(2)/3), size=300, zorder=2)
+        G += point((1, float(2)/3), size=300, color='gray', zorder=2)
+        pt=[1, float(2)/3]
+        G += text(gnd[0], (float(pt[0]), float(pt[1])), color='black',
+                      fontsize=13)
         pts2 = pts
         # track limits [xmin,xmax,ymin,ymax]
         pl = [list(x) for x in pts2.values()]
@@ -786,9 +789,9 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
                 bline.append(j)
         interval = len(bline)+1
         if M._cached_info is not None and \
-           'positions' in M._cached_info.keys() and \
-           M._cached_info['positions'] is not None:
-            pts2 = M._cached_info['positions']
+           'plot_positions' in M._cached_info.keys() and \
+           M._cached_info['plot_positions'] is not None:
+            pts2 = M._cached_info['plot_positions']
         else:
             pts2 = {}
             pts2[B1[0]] = (0, 0)
@@ -800,7 +803,7 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
                 pts2[bline[k]] = (cc*lpt[0]+(1-cc)*rpt[0],
                                   cc*lpt[1]+(1-cc)*rpt[1])
             if sp is True:
-                M._cached_info['positions'] = pts2
+                M._cached_info['plot_positions'] = pts2
         # track limits [xmin,xmax,ymin,ymax]
         pl = [list(x) for x in pts2.values()]
         lims = tracklims([None, None, None, None], [pt[0] for pt in pl],
@@ -812,15 +815,15 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
         allpts = [list(pts2[i]) for i in M.groundset()]
         xpts = [float(k[0]) for k in allpts]
         ypts = [float(k[1]) for k in allpts]
-        G += points(zip(xpts, ypts), color='black', size=300, zorder=2)
+        G += points(zip(xpts, ypts), color='gray', size=300, zorder=2)
         for i in pts2:
             pt = list(pts2[i])
-            G += text(i, (float(pt[0]), float(pt[1])), color='white',
+            G += text(i, (float(pt[0]), float(pt[1])), color='black',
                       fontsize=13)
     else:
         if M._cached_info is None or \
-           'positions' not in M._cached_info.keys() or \
-           M._cached_info['positions'] is None:
+           'plot_positions' not in M._cached_info.keys() or \
+           M._cached_info['plot_positions'] is None:
             (pts, trilines,
              nontripts, curvedlines) = it(M1, B1,
                                           list(set(M.groundset())-set(B1)),
@@ -828,7 +831,7 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
             pts2 = addnontripts([B1[0], B1[1], B1[2]], nontripts, pts)
             trilines.extend(curvedlines)
         else:
-            pts2 = M._cached_info['positions']
+            pts2 = M._cached_info['plot_positions']
             trilines = [list(set(list(x)).difference(L | P))
                         for x in M1.flats(2)
                         if len(list(x)) >= 3]
@@ -844,14 +847,14 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
         allpts = [list(pts2[i]) for i in M.groundset()]
         xpts = [float(k[0]) for k in allpts]
         ypts = [float(k[1]) for k in allpts]
-        G += points(zip(xpts, ypts), color='black', size=300, zorder=2)
+        G += points(zip(xpts, ypts), color='gray', size=300, zorder=2)
         for i in pts2:
             pt = list(pts2[i])
-            G += text(i, (float(pt[0]), float(pt[1])), color='white',
+            G += text(i, (float(pt[0]), float(pt[1])), color='black',
                       fontsize=13)
         if sp is True:
-            M1._cached_info['positions'] = pts2
-            M1._cached_info['lineorders'] = lineorders1
+            M1._cached_info['plot_positions'] = pts2
+            M1._cached_info['plot_lineorders'] = lineorders1
     # deal with loops and parallel elements
     G, lims = addlp(M1, M, L, P, pts2, G, lims)
     G.axes(False)

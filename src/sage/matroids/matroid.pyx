@@ -4761,7 +4761,7 @@ cdef class Matroid(SageObject):
 
         - ``B`` -- (optional) a list containing a basis.
           If internal point placement is used, these elements will be placed as vertices of a triangle.
-        - ``lineorders`` -- (optional) A list of lists where each of the inner lists 
+        - ``lineorders`` -- (optional) A list of lists where each of the inner lists
           specify ground set elements in a certain order which will be used to draw the
           corresponding line in geometric representation (if it exists).
         - ``pos_method`` -- An integer specifying positioning method.
@@ -4792,20 +4792,20 @@ cdef class Matroid(SageObject):
         if pos_method == 1  and pos_dict != None:
         # check sanity of pos_dict and add it to cached info if sane
             if matroids_plot_helpers.posdict_is_sane(self, pos_dict) == True: 
-                self._cached_info={'positions':pos_dict, 'lineorders':lineorders}
+                self._cached_info={'plot_positions':pos_dict, 'lineorders':lineorders}
         # placeholder for aditional placement methods. Only need to compute positions and update self._cached_info
         elif pos_method == 2:
             raise NotImplementedError
 
         if self._cached_info == None:
-            self._cached_info={'positions':None,'lineorders': None}
-        if 'positions' not in self._cached_info.keys():
-            self._cached_info['positions'] = None
+            self._cached_info={'plot_positions':None,'lineorders': None}
+        if 'plot_positions' not in self._cached_info.keys():
+            self._cached_info['plot_positions'] = None
         if 'lineorders'  not in self._cached_info.keys():
             self._cached_info['lineorders'] = None
 
         if self.rank() > 3:
-            return
+            raise NotImplementedError
         elif B == None:
             B = list(self.basis())
         elif B != None and self.is_basis(B)==False:
@@ -4888,13 +4888,15 @@ cdef class Matroid(SageObject):
             sage: M._fix_positions(pos_dict=pos)
             sage: M._cached_info['lineorders'] is None
             True
-            sage: M._cached_info['positions']['k']
+            sage: M._cached_info['plot_positions']['k']
             (0, 0)
         """
         # check sanity of pos_dict and add it to cached info if sane
+        if self.rank() > 3:
+            raise NotImplementedError
         if(pos_dict!=None):
             import matroids_plot_helpers
             if matroids_plot_helpers.posdict_is_sane(self,pos_dict) ==True:
-                self._cached_info={'positions':pos_dict,'lineorders':lineorders}
+                self._cached_info={'plot_positions':pos_dict,'lineorders':lineorders}
         return
 

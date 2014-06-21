@@ -168,6 +168,7 @@ from sage.misc.latex import latex
 from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
+from functools import reduce
 lazy_import('sage.categories.category_types', 'SimplicialComplexes')
 
 def lattice_paths(t1, t2, length=None):
@@ -727,13 +728,6 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
     -- use this if you plan to use the Stanley-Reisner ring for the
     simplicial complex.
 
-    .. WARNING::
-
-        Earlier versions of Sage supported a ``vertex_set`` argument
-        to specify the vertices. This is now deprecated -- see
-        :trac:`12587` -- the set of vertices is determined from the
-        maximal faces.
-
     EXAMPLES::
 
         sage: SimplicialComplex([[1,2], [1,4]])
@@ -778,14 +772,10 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         True
         """
 
-    def __init__(self, vertex_set=None, maximal_faces=None, **kwds):
+    def __init__(self, maximal_faces=None, **kwds):
         """
         Define a simplicial complex.  See ``SimplicialComplex`` for more
         documentation.
-
-        .. WARNING::
-
-            We are deprecating the option ``vertex_set`` in :trac:`12587`.
 
         EXAMPLES::
 
@@ -808,16 +798,8 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: S == loads(dumps(S))
             True
 
-            sage: Y = SimplicialComplex([1,2,3,4], [[1,2], [2,3], [3,4]])
-            doctest:1: DeprecationWarning: vertex_set is deprecated.
-            See http://trac.sagemath.org/12587 for details.
-            sage: Y = SimplicialComplex([1,2,3,4], [[1,2], [2,3], [3,4]], vertex_check=False)
-            doctest:1: DeprecationWarning: vertex_check is deprecated.
-            See http://trac.sagemath.org/12587 for details.
-
             sage: TestSuite(S).run()
             sage: TestSuite(S3).run()
-
         """
         CategoryObject.__init__(self, category=SimplicialComplexes())
         from sage.misc.misc import union
@@ -827,21 +809,9 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         name_check = kwds.get('name_check', False)
         # done with kwds except mutability
 
-        # For deprecation #12587
-        if maximal_faces is None:
-            maximal_faces = vertex_set
-        elif vertex_set is not None:
-            # We've passed in both vertex_set and maximal_faces
-            from sage.misc.superseded import deprecation
-            deprecation(12587, "vertex_set is deprecated.")
-
-        if 'vertex_check' in kwds:
-            from sage.misc.superseded import deprecation
-            deprecation(12587, "vertex_check is deprecated.")
-
         C = None
+        vertex_set = []
         if maximal_faces is None:
-            vertex_set = []
             maximal_faces = []
         elif isinstance(maximal_faces, SimplicialComplex):
             C = maximal_faces
@@ -2352,29 +2322,6 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
 
         return all( answer[1] for answer in all_homologies_in_list_vanish(facs_divided) )
 
-    def effective_vertices(self):
-        """
-        The set of vertices belonging to some face. Returns the list of
-        vertices.
-
-        .. WARNING::
-
-            This method is deprecated. See :trac:`12587`.
-
-        EXAMPLES::
-
-            sage: S = SimplicialComplex([[0,1,2,3],[6,7]])
-            sage: S
-            Simplicial complex with vertex set (0, 1, 2, 3, 6, 7) and facets {(6, 7), (0, 1, 2, 3)}
-            sage: S.effective_vertices()
-            doctest:1: DeprecationWarning: effective_vertices is deprecated. Use vertices instead
-            See http://trac.sagemath.org/12587 for details.
-            (0, 1, 2, 3, 6, 7)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(12587, "effective_vertices is deprecated. Use vertices instead")
-        return self._vertex_set
-
     def generated_subcomplex(self,sub_vertex_set, is_mutable=True):
         """
         Returns the largest sub-simplicial complex of ``self`` containing
@@ -2674,7 +2621,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         """
         if self._graph is None:
             edges = self.n_faces(1)
-            vertices = map(min, filter(lambda f: f.dimension() == 0, self._facets))
+            vertices = [min(f) for f in self._facets if f.dimension() == 0]
             used_vertices = []  # vertices which are in an edge
             d = {}
             for e in edges:
@@ -2802,7 +2749,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (1, 2, 3), (0, 1)}
         """
         # make sure it's a list (it will be a tuple if immutable)
-        facets = list(filter(lambda f: f.dimension()<n, self._facets))
+        facets = [f for f in self._facets if f.dimension() < n]
         facets.extend(self.n_faces(n))
         return SimplicialComplex(facets, is_mutable=self._is_mutable)
 
@@ -2895,7 +2842,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
 
         if subcomplex in self.__enlarged:
             return self.__enlarged[subcomplex]
-        faces = filter(lambda x: x not in subcomplex._facets, list(self._facets))
+        faces = [x for x in list(self._facets) if x not in subcomplex._facets]
         done = False
         new_facets = list(subcomplex._facets)
         while not done:

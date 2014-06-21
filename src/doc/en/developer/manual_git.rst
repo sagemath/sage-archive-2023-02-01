@@ -27,14 +27,15 @@ The Trac Server
 ===============
 
 The Sage trac server also holds a copy of the Sage repository, it is
-served via ssh. To add it as a remote repository to your local git
-repository, use the command::
+served via the ssh and git protocols. To add it as a remote repository
+to your local git repository, use these commands::
 
-    [user@localhost sage]$ git remote add trac git@trac.sagemath.org:sage.git -t master
+    [user@localhost sage]$ git remote add trac git://trac.sagemath.org/sage.git -t master
+    [user@localhost sage]$ git remote set-url --push trac git@trac.sagemath.org:sage.git
     [user@localhost sage]$ git remote -v
     origin      git://github.com/sagemath/sage.git (fetch)
     origin      git://github.com/sagemath/sage.git (push)
-    trac        git@trac.sagemath.org:sage.git (fetch)
+    trac        git://trac.sagemath.org/sage.git (fetch)
     trac        git@trac.sagemath.org:sage.git (push)
 
 Instead of ``trac`` you can use any local name you want, of course. It
@@ -54,23 +55,21 @@ of them as bookmarks. You can then use ``git pull`` to get changes and
     tell git which branch you want to get from trac. See the
     :ref:`section-git-checkout` section for examples.
 
-The way we set up the remote here is via ssh authentication (the
-``git@`` part), this requires you to have a trac account and to set up
-your ssh public key as described in
-:ref:`section-trac-ssh-key`. Authentication is necessary if you want
-to upload anything to ensure that it really is from you. However, if
-you just want to download branches from the trac server then you can
-set up the remote to use the git protocol without authentication::
+We set up the remote here to perform read-only operations (fetch)
+using the git protocol and write operations (push) using the ssh
+protocol (specified by the ``git@`` part). To use the ssh protocol you
+need to have a trac account and to set up your ssh public key as
+described in :ref:`section-trac-ssh-key`. Authentication is necessary
+if you want to upload anything to ensure that it really is from you.
 
-    [user@localhost sage]$ git remote add trac git://trac.sagemath.org/sage.git -t master
+If you want to use ssh only, use these commands::
 
-Setting up the remote repository this way allows you to perform all
-steps covered this manual (except for :ref:`section-git-push`) without
-having a trac account. To switch between the two setups, just remove
-the current remote repository with ``git remote remove trac`` and then
-run the respective ``git remote add trac ...`` command.
-     
-
+    [user@localhost sage]$ git remote add trac git@trac.sagemath.org:sage.git -t master
+    [user@localhost sage]$ git remote -v
+    origin      git://github.com/sagemath/sage.git (fetch)
+    origin      git://github.com/sagemath/sage.git (push)
+    trac        git@trac.sagemath.org:sage.git (fetch)
+    trac        git@trac.sagemath.org:sage.git (push)
 
 
 .. _section-git-checkout:

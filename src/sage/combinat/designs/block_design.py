@@ -299,7 +299,7 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
     assert len(OA) == n**2, "pplane is not a projective plane"
 
     if check:
-        from orthogonal_arrays import is_orthogonal_array
+        from designs_pyx import is_orthogonal_array
         is_orthogonal_array(OA,n+1,n,2)
 
     return OA
@@ -345,7 +345,7 @@ def OA_to_projective_plane(OA, check=True):
 
     return BlockDesign(n2+n+1, blcks, name="Projective plane of order %d (built from an OA(%d,%d,2))"%(n,n+1,n), test=check)
 
-def projective_plane(n):
+def projective_plane(n, check=True, existence=False):
     r"""
     Returns a projective plane of order ``n`` as a 2-design.
 
@@ -387,13 +387,28 @@ def projective_plane(n):
         Traceback (most recent call last):
         ...
         EmptySetError: By the Ryser-Chowla theorem, no projective plane of order 14 exists.
+
+    TESTS::
+
+        sage: designs.projective_plane(2197, existence=True)
+        True
+        sage: designs.projective_plane(6, existence=True)
+        False
+        sage: designs.projective_plane(10, existence=True)
+        False
+        sage: designs.projective_plane(12, existence=True)
+        Unknown
     """
     from sage.rings.arith import is_prime_power, two_squares
 
     if n <= 1:
+        if existence:
+            return False
         raise EmptySetError("There is no projective plane of order <= 1")
 
     if n == 10:
+        if existence:
+            return False
         ref = ("C. Lam, L. Thiel and S. Swiercz \"The nonexistence of finite "
                "projective planes of order 10\" (1989), Canad. J. Math.")
         raise EmptySetError("No projective plane of order 10 exists by %s"%ref)
@@ -402,14 +417,21 @@ def projective_plane(n):
         try:
             two_squares(n)
         except ValueError:
+            if existence:
+                return False
             raise EmptySetError("By the Ryser-Chowla theorem, no projective"
-                         " plane of order "+str(n)+" exists.")
+                             " plane of order "+str(n)+" exists.")
 
     if not is_prime_power(n):
+        if existence:
+            return Unknown
         raise NotImplementedError("If such a projective plane exists, we do "
                                   "not know how to build it.")
 
-    return DesarguesianProjectivePlaneDesign(n)
+    if existence:
+        return True
+    else:
+        return DesarguesianProjectivePlaneDesign(n, check=check)
 
 
 def AffineGeometryDesign(n, d, F):
@@ -535,6 +557,23 @@ def HadamardDesign(n):
         sage: print designs.HadamardDesign(7)
         HadamardDesign<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
 
+    For example, the Hadamard 2-design with `n = 11` is a design whose parameters are 2-(11, 5, 2).
+    We verify that `NJ = 5J` for this design. ::
+     
+        sage: D = designs.HadamardDesign(11); N = D.incidence_matrix()
+        sage: J = matrix(ZZ, 11, 11, [1]*11*11); N*J
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+
     REFERENCES:
 
     - [CvL] P. Cameron, J. H. van Lint, Designs, graphs, codes and
@@ -542,7 +581,7 @@ def HadamardDesign(n):
     """
     from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
     from sage.matrix.constructor import matrix
-    H = hadamard_matrix(n+1)
+    H = hadamard_matrix(n+1) #assumed to be normalised.
     H1 = H.matrix_from_columns(range(1,n+1))
     H2 = H1.matrix_from_rows(range(1,n+1))
     J = matrix(ZZ,n,n,[1]*n*n)
@@ -550,6 +589,66 @@ def HadamardDesign(n):
     A = MS((H2+J)/2) # convert -1's to 0's; coerce entries to ZZ
     # A is the incidence matrix of the block design
     return IncidenceStructureFromMatrix(A,name="HadamardDesign")
+
+def Hadamard3Design(n):
+    """
+    Return the Hadamard 3-design with parameters `3-(n, \\frac n 2, \\frac n 4 - 1)`.
+
+    This is the unique extension of the Hadamard `2`-design (see
+    :meth:`HadamardDesign`).  We implement the description from pp. 12 in
+    [CvL]_.
+
+    INPUT:
+
+    - ``n`` (integer) -- a multiple of 4 such that `n>4`.
+
+    EXAMPLES::
+
+        sage: designs.Hadamard3Design(12)
+        Incidence structure with 12 points and 22 blocks
+
+    We verify that any two blocks of the Hadamard `3`-design `3-(8, 4, 1)`
+    design meet in `0` or `2` points. More generally, it is true that any two
+    blocks of a Hadamard `3`-design meet in `0` or `\\frac{n}{4}` points (for `n
+    > 4`).
+
+    ::
+
+        sage: D = designs.Hadamard3Design(8)
+        sage: N = D.incidence_matrix()
+        sage: N.transpose()*N
+        [4 2 2 2 2 2 2 2 2 2 2 2 2 0]
+        [2 4 2 2 2 2 2 2 2 2 2 2 0 2]
+        [2 2 4 2 2 2 2 2 2 2 2 0 2 2]
+        [2 2 2 4 2 2 2 2 2 2 0 2 2 2]
+        [2 2 2 2 4 2 2 2 2 0 2 2 2 2]
+        [2 2 2 2 2 4 2 2 0 2 2 2 2 2]
+        [2 2 2 2 2 2 4 0 2 2 2 2 2 2]
+        [2 2 2 2 2 2 0 4 2 2 2 2 2 2]
+        [2 2 2 2 2 0 2 2 4 2 2 2 2 2]
+        [2 2 2 2 0 2 2 2 2 4 2 2 2 2]
+        [2 2 2 0 2 2 2 2 2 2 4 2 2 2]
+        [2 2 0 2 2 2 2 2 2 2 2 4 2 2]
+        [2 0 2 2 2 2 2 2 2 2 2 2 4 2]
+        [0 2 2 2 2 2 2 2 2 2 2 2 2 4]
+
+
+    REFERENCES:
+
+    .. [CvL] P. Cameron, J. H. van Lint, Designs, graphs, codes and
+      their links, London Math. Soc., 1991.
+    """
+    if n == 1 or n == 4:
+        raise ValueError("The Hadamard design with n = %s does not extend to a three design." % n)
+    from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
+    from sage.matrix.constructor import matrix, block_matrix
+    H = hadamard_matrix(n) #assumed to be normalised.
+    H1 = H.matrix_from_columns(range(1, n))
+    J = matrix(ZZ, n, n-1, [1]*(n-1)*n)
+    A1 = (H1+J)/2
+    A2 = (J-H1)/2
+    A = block_matrix(1, 2, [A1, A2]) #the incidence matrix of the design.
+    return IncidenceStructureFromMatrix(A, name="HadamardThreeDesign")
 
 def BlockDesign(max_pt, blks, name=None, test=True):
     """
@@ -584,4 +683,3 @@ def BlockDesign(max_pt, blks, name=None, test=True):
 # specialized methods are implemented later. In that case, BlockDesign_generic
 # should inherit from IncidenceStructure.
 BlockDesign_generic = IncidenceStructure
-

@@ -25,7 +25,7 @@ en utilisant la commande ``load``.
 
 ::
 
-    sage: load "example.sage"
+    sage: load("example.sage")
     Hello World
     8
 
@@ -36,7 +36,7 @@ la commande ``attach`` :
 
 ::
 
-    sage: attach "example.sage"
+    sage: attach("example.sage")
     Hello World
     8
 
@@ -152,7 +152,7 @@ Vous pouvez alors faire :
 
 ::
 
-    sage: attach "test.spyx"
+    sage: attach("test.spyx")
     Compiling (...)/test.spyx...
     sage: test(10)
     11

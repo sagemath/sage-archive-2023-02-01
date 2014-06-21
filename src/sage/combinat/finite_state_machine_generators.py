@@ -27,6 +27,7 @@ for more details and a lot of examples.
     :meth:`~TransducerGenerators.add` | Returns a transducer realizing addition.
     :meth:`~TransducerGenerators.sub` | Returns a transducer realizing subtraction.
     :meth:`~TransducerGenerators.CountSubblockOccurrences` | Returns a transducer counting the occurrences of a subblock.
+    :meth:`~TransducerGenerators.weight` | Returns a transducer realizing the Hamming weight
     :meth:`~TransducerGenerators.GrayCode` | Returns a transducer realizing binary Gray code.
 
 AUTHORS:
@@ -34,6 +35,7 @@ AUTHORS:
 - Clemens Heuberger (2014-04-07): initial version
 - Sara Kropf (2014-04-10): some changes in TransducerGenerator
 - Daniel Krenn (2014-04-15): improved common docstring during review
+- Sara Kropf (2014-04-29): weight transducer
 
 ACKNOWLEDGEMENT:
 
@@ -395,6 +397,72 @@ class TransducerGenerators(object):
         """
         import operator
         return self.operator(operator.sub, input_alphabet)
+
+    def weight(self, input_alphabet, zero=0):
+        r"""
+        Returns a transducer which realizes the Hamming weight of the input
+        over the given input alphabet.
+
+        INPUT:
+
+        - ``input_alphabet`` -- a list or other iterable.
+
+        - ``zero`` -- the zero symbol in the alphabet used
+
+        OUTPUT:
+
+        A transducer mapping `i_0\ldots i_k` to `(i_0\neq 0)\ldots(i_k\neq 0)`.
+
+        The Hamming weight is defined as the number of non-zero digits in the
+        input sequence over the alphabet ``input_alphabet`` (see
+        :wikipedia:`Hamming_weight`). The output sequence of the transducer is
+        a unary encoding of the Hamming weight. Thus the sum of the output
+        sequence is the Hamming weight of the input.
+
+        EXAMPLES::
+
+            sage: W = transducers.weight([-1, 0, 2])
+            sage: W.transitions()
+            [Transition from 0 to 0: -1|1,
+             Transition from 0 to 0: 0|0,
+             Transition from 0 to 0: 2|1]
+            sage: unary_weight = W([-1, 0, 0, 2, -1])
+            sage: unary_weight
+            [1, 0, 0, 1, 1]
+            sage: weight = add(unary_weight)
+            sage: weight
+            3
+
+        Also the joint Hamming weight can be computed::
+
+            sage: v1 = vector([-1, 0])
+            sage: v0 = vector([0, 0])
+            sage: W = transducers.weight([v1, v0])
+            sage: unary_weight = W([v1, v0, v1, v0])
+            sage: add(unary_weight)
+            2
+
+        For the input alphabet ``[-1, 0, 1]`` the weight transducer is the
+        same as the absolute value transducer
+        :meth:`~TransducerGenerators.abs`::
+
+            sage: W = transducers.weight([-1, 0, 1])
+            sage: A = transducers.abs([-1, 0, 1])
+            sage: W == A
+            True
+
+        For other input alphabets, we can specify the zero symbol::
+
+            sage: W = transducers.weight(['a', 'b'], zero='a')
+            sage: add(W(['a', 'b', 'b']))
+            2
+        """
+        def weight(state, input):
+            weight = int(input != zero)
+            return (0, weight)
+        return Transducer(weight, input_alphabet=input_alphabet,
+                          initial_states=[0],
+                          final_states=[0])
 
 
     def abs(self, input_alphabet):

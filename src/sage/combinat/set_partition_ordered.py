@@ -39,6 +39,7 @@ from sage.combinat.combinat import stirling_number2
 from sage.combinat.composition import Composition, Compositions
 from sage.combinat.words.word import Word
 import sage.combinat.permutation as permutation
+from functools import reduce
 
 class OrderedSetPartition(ClonableArray):
     """
@@ -574,3 +575,30 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             res = Word(x).standard_permutation().inverse()
             res = [lset[x-1] for x in res]
             yield self.element_class( self, [ Set( res[dcomp[i]+1:dcomp[i+1]+1] ) for i in range(l)] )
+
+##########################################################
+# Deprecations
+
+class SplitNK(OrderedSetPartitions_scomp):
+    def __setstate__(self, state):
+        r"""
+        For unpickling old ``SplitNK`` objects.
+
+        TESTS::
+
+            sage: loads("x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+.\xc8\xc9,"
+            ....:   "\x89\xcf\xcb\xe6\n\x061\xfc\xbcA\xccBF\xcd\xc6B\xa6\xda"
+            ....:   "Bf\x8dP\xa6\xf8\xbcB\x16\x88\x96\xa2\xcc\xbc\xf4b\xbd\xcc"
+            ....:   "\xbc\x92\xd4\xf4\xd4\"\xae\xdc\xc4\xec\xd4x\x18\xa7\x905"
+            ....:   "\x94\xd1\xb45\xa8\x90\r\xa8>\xbb\x90=\x03\xc85\x02r9J\x93"
+            ....:   "\xf4\x00\xb4\xc6%f")
+            Ordered set partitions of {0, 1, 2, 3, 4} into parts of size [2, 3]
+        """
+        self.__class__ = OrderedSetPartitions_scomp
+        n = state['_n']
+        k = state['_k']
+        OrderedSetPartitions_scomp.__init__(self, range(state['_n']), (k,n-k))
+
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override("sage.combinat.split_nk", "SplitNK_nk", SplitNK)
+

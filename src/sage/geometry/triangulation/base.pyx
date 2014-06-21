@@ -943,9 +943,9 @@ cdef class ConnectedTriangulationsIterator(SageObject):
             sage: len(list(ci))  # long time (26s on sage.math, 2012)
             1
         """
-        if star==None:
+        if star is None:
             star = -1
-        if seed==None:
+        if seed is None:
             seed = point_configuration.lexicographic_triangulation().enumerate_simplices()
         try:
             enumerated_simplices_seed = seed.enumerated_simplices()

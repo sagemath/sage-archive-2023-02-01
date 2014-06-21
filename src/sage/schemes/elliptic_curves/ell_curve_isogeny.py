@@ -69,9 +69,9 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.all import Integer, ZZ
 from sage.rings.laurent_series_ring import LaurentSeriesRing
-from sage.rings.polynomial.all import is_Polynomial
+from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.schemes.elliptic_curves.all import EllipticCurve
-from sage.schemes.elliptic_curves.all import is_EllipticCurve
+from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
 
 from sage.rings.number_field.number_field_base import is_NumberField
 
@@ -3350,7 +3350,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi*phi
             Traceback (most recent call last):
             ...
-            ValueError: Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7 is not in Category of hom sets in Category of Schemes
+            ValueError: Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7 is not in Category of hom sets in Category of schemes
 
         Here would be the desired output::
 

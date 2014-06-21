@@ -286,6 +286,13 @@ class ConstructionFunctor(Functor):
         """
         return [self]
 
+    # The pushout function below assumes that if F is a construction
+    # applied to an object X, then F(X) admits a coercion map from X.
+    # In derived classes, the following attribute should be set to
+    # True if F(X) has a coercion map _to_ X instead.  This is
+    # currently used for the subspace construction.
+    coercion_reversed = False
+
 
 class CompositeConstructionFunctor(ConstructionFunctor):
     """
@@ -1719,6 +1726,10 @@ class SubspaceFunctor(ConstructionFunctor):
     """
     rank = 11 # ranking of functor, not rank of module
 
+    # The subspace construction returns an object admitting a coercion
+    # map into the original, not vice versa.
+    coercion_reversed = True
+
     def __init__(self, basis):
         """
         INPUT:
@@ -3141,6 +3152,22 @@ def pushout(R, S):
         sage: pushout(Frac(ZZ['x']), QQ[['x']])
         Laurent Series Ring in x over Rational Field
 
+    A construction with ``coercion_reversed = True`` (currently only
+    the :class:`SubspaceFunctor` construction) is only applied if an
+    instance of it appears on each side, in which case the two
+    instances are correctly combined by their ``merge`` methods::
+
+        sage: V = (QQ^3).span([[1, 2, 3/4]])
+        sage: A = ZZ^3
+        sage: pushout(A, V)
+        Vector space of dimension 3 over Rational Field
+        sage: B = A.span([[0, 0, 2/3]])
+        sage: pushout(B, V)
+        Vector space of degree 3 and dimension 2 over Rational Field
+        User basis matrix:
+        [1 2 0]
+        [0 0 1]
+
     AUTHORS:
 
     -- Robert Bradshaw
@@ -3211,14 +3238,22 @@ def pushout(R, S):
             # print Z
             # if we are out of functors in either tower, there is no ambiguity
             if len(Sc) == 0:
-                all = Rc.pop() * all
+                c = Rc.pop()
+                if not c.coercion_reversed:
+                    all = c * all
             elif len(Rc) == 0:
-                all = Sc.pop() * all
+                c = Sc.pop()
+                if not c.coercion_reversed:
+                    all = c * all
             # if one of the functors has lower rank, do it first
             elif Rc[-1].rank < Sc[-1].rank:
-                all = Rc.pop() * all
+                c = Rc.pop()
+                if not c.coercion_reversed:
+                    all = c * all
             elif Sc[-1].rank < Rc[-1].rank:
-                all = Sc.pop() * all
+                c = Sc.pop()
+                if not c.coercion_reversed:
+                    all = c * all
             else:
                 # the ranks are the same, so things are a bit subtler
                 if Rc[-1] == Sc[-1]:

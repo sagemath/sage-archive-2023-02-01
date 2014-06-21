@@ -1133,29 +1133,6 @@ done from the right side.""")
         """
         return FreeModule(self.base_ring(), self.degree())
 
-    def base_extend(self, R):
-        r"""
-        Return the base extension of self to R. This is the same as
-        ``self.change_ring(R)`` except that a TypeError is
-        raised if there is no canonical coerce map from the base ring of
-        self to R.
-
-        INPUT:
-
-
-        -  ``R`` - ring
-
-
-        EXAMPLES::
-
-            sage: V = ZZ^7
-            sage: V.base_extend(QQ)
-            Vector space of dimension 7 over Rational Field
-        """
-        if R.has_coerce_map_from(self.base_ring()):
-            return self.change_ring(R)
-        raise TypeError("Base extension of self (over '%s') to ring '%s' not defined."%(self.base_ring(),R))
-
     def basis(self):
         """
         Return the basis of this module.

@@ -505,30 +505,20 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             Traceback (most recent call last):
             ...
             ValueError: cannot coerce element of order 4 into self
-        """
-        if self.character() is None:
-            return modsym.ModularSymbols(self.group(), self.weight(), self.sign(), R)
-        else:
-            return modsym.ModularSymbols(self.character(), self.weight(), self.sign(), R)
 
-    def base_extend(self, R):
-        r"""
-        Canonically change the base ring to R.
-
-        EXAMPLE::
+        Similarly with :meth:`base_extend`::
 
             sage: M = ModularSymbols(DirichletGroup(5).0, 7); MM = M.base_extend(CyclotomicField(8)); MM
             Modular Symbols space of dimension 6 and level 5, weight 7, character [zeta8^2], sign 0, over Cyclotomic Field of order 8 and degree 4
             sage: MM.base_extend(CyclotomicField(4))
             Traceback (most recent call last):
             ...
-            ValueError: No coercion defined
+            TypeError: Base extension of self (over 'Cyclotomic Field of order 8 and degree 4') to ring 'Cyclotomic Field of order 4 and degree 2' not defined.
         """
-        if not R.has_coerce_map_from(self.base_ring()):
-            raise ValueError("No coercion defined")
+        if self.character() is None:
+            return modsym.ModularSymbols(self.group(), self.weight(), self.sign(), R)
         else:
-            return self.change_ring(R)
-
+            return modsym.ModularSymbols(self.character(), self.weight(), self.sign(), R)
 
     def _action_on_modular_symbols(self, g):
         r"""

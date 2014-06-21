@@ -203,6 +203,69 @@ cdef class Module(sage.structure.parent.Parent):
             pass
         return None
 
+    def change_ring(self, R):
+        """
+        Return the base change of ``self`` to `R`.
+
+        EXAMPLES::
+
+            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,QQ).change_ring(GF(7))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the method change_ring() has not yet been implemented
+
+        """
+        if R is self.base_ring():
+            return self
+        raise NotImplementedError('the method change_ring() has not yet been implemented')
+
+    def base_extend(self, R):
+        r"""
+        Return the base extension of ``self`` to `R`.
+
+        This is the same as ``self.change_ring(R)`` except that a
+        ``TypeError`` is raised if there is no canonical coerce map
+        from the base ring of ``self`` to `R`.
+
+        INPUT:
+
+        - ``R`` -- ring
+
+        EXAMPLES::
+
+            sage: V = ZZ^7
+            sage: V.base_extend(QQ)
+            Vector space of dimension 7 over Rational Field
+
+        TESTS::
+
+            sage: N = ModularForms(6, 4)
+            sage: N.base_extend(CyclotomicField(7))
+            Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Cyclotomic Field of order 7 and degree 6
+
+            sage: m = ModularForms(DirichletGroup(13).0^2,2); m
+            Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 6 and degree 2
+            sage: m.base_extend(CyclotomicField(12))
+            Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 12 and degree 4
+
+            sage: chi = DirichletGroup(109, CyclotomicField(3)).0
+            sage: S3 = CuspForms(chi, 2)
+            sage: S9 = S3.base_extend(CyclotomicField(9))
+            sage: S9
+            Cuspidal subspace of dimension 8 of Modular Forms space of dimension 10, character [zeta3 + 1] and weight 2 over Cyclotomic Field of order 9 and degree 6
+            sage: S9.has_coerce_map_from(S3) # not implemented
+            True
+            sage: S9.base_extend(CyclotomicField(3))
+            Traceback (most recent call last):
+            ...
+            TypeError: Base extension of self (over 'Cyclotomic Field of order 9 and degree 6') to ring 'Cyclotomic Field of order 3 and degree 2' not defined.
+
+        """
+        if R.has_coerce_map_from(self.base_ring()):
+            return self.change_ring(R)
+        raise TypeError("Base extension of self (over '%s') to ring '%s' not defined."
+                        % (self.base_ring(), R))
+
     def endomorphism_ring(self):
         """
         Return the endomorphism ring of this module in its category.

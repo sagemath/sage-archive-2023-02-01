@@ -236,19 +236,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         """
         self.ambient().set_precision(new_prec)
 
-    def change_ring(self, R):
-        """
-        Change the base ring of this space of modular forms. To be implemented in derived classes.
-
-        EXAMPLES::
-
-            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,QQ).change_ring(GF(7))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: This function has not yet been implemented.
-        """
-        raise NotImplementedError("This function has not yet been implemented.")
-
     def weight(self):
         """
         Return the weight of this space of modular forms.
@@ -403,40 +390,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         if prec < 0:
             raise ValueError("prec (=%s) must be at least 0"%prec)
         return prec
-
-    def base_extend(self, base_ring):
-        """
-        Return the base extension of self to base_ring. This first checks
-        whether there is a canonical coercion defined, and if so it calls the
-        change_ring method.
-
-        EXAMPLE::
-
-            sage: N = ModularForms(6, 4)
-            sage: N.base_extend(CyclotomicField(7))
-            Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Cyclotomic Field of order 7 and degree 6
-
-            sage: m = ModularForms(DirichletGroup(13).0^2,2); m
-            Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 6 and degree 2
-            sage: m.base_extend(CyclotomicField(12))
-            Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 12 and degree 4
-
-            sage: chi = DirichletGroup(109, CyclotomicField(3)).0
-            sage: S3 = CuspForms(chi, 2)
-            sage: S9 = S3.base_extend(CyclotomicField(9))
-            sage: S9
-            Cuspidal subspace of dimension 8 of Modular Forms space of dimension 10, character [zeta3 + 1] and weight 2 over Cyclotomic Field of order 9 and degree 6
-            sage: S9.has_coerce_map_from(S3) # not implemented
-            True
-            sage: S9.base_extend(CyclotomicField(3))
-            Traceback (most recent call last):
-            ...
-            ValueError: No coercion defined
-        """
-        if not base_ring.has_coerce_map_from(self.base_ring()):
-            raise ValueError("No coercion defined")
-        else:
-            return self.change_ring(base_ring)
 
     def echelon_form(self):
         r"""

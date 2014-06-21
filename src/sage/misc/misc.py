@@ -451,7 +451,7 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
         mesg = "Finished."
 
     # see recipe 14.7 in Python Cookbook
-    if caller_name == None:
+    if caller_name is None:
         caller_name = frame.co_name
         if caller_name == "?: ":
             caller_name = ""

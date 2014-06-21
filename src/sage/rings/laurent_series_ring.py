@@ -86,7 +86,7 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=
     key = (base_ring, name, default_prec, sparse)
     if key in laurent_series:
         x = laurent_series[key]()
-        if x != None: return x
+        if x is not None: return x
 
     if isinstance(base_ring, field.Field):
         R = LaurentSeriesRing_field(base_ring, name, default_prec, sparse)

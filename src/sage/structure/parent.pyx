@@ -1963,16 +1963,12 @@ cdef class Parent(category_object.CategoryObject):
             [1 0 0]
             [0 1 0]
 
-        By default, one can't mix matrices and permutations::
+        In general one can't mix matrices and permutations::
 
             sage: G(p)
             Traceback (most recent call last):
             ...
             TypeError: entries must be coercible to a list or integer
-            sage: G(1) * p
-            Traceback (most recent call last):
-            ...
-            TypeError: ...
             sage: phi = S3.hom(lambda p: G(p.matrix()), codomain = G)
             sage: phi(p)
             [0 0 1]
@@ -1997,7 +1993,13 @@ cdef class Parent(category_object.CategoryObject):
         parents (see :trac:`14014`)::
 
             sage: G(p)                               # todo: not implemented
-            sage: G(1) * p                           # todo: not implemented
+
+        Though one can have a permutation act on the rows of a matrix::
+
+            sage: G(1) * p
+            [0 0 1]
+            [1 0 0]
+            [0 1 0]
 
         Some more advanced examples::
 
@@ -2277,16 +2279,13 @@ cdef class Parent(category_object.CategoryObject):
             Composite map:
               From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
               To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Ht basis
-              Defn:   Composite map:
+              Defn:   Generic morphism:
                       From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
+                      To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
+                    then
+                      Generic morphism:
+                      From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
                       To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
-                      Defn:   Generic morphism:
-                              From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
-                              To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
-                            then
-                              Generic morphism:
-                              From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
-                              To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
                     then
                       Generic morphism:
                       From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
@@ -3150,10 +3149,21 @@ cdef class EltPair:
 
             sage: from sage.structure.parent import EltPair
             sage: a = EltPair(ZZ, QQ, "coerce")
-            sage: hash(a) == hash((ZZ, QQ, "coerce"))
+            sage: b = EltPair(ZZ, QQ, "coerce")
+            sage: hash(a) == hash(b)
             True
+
+        TESTS:
+
+        Verify that :trac:`16341` has been resolved::
+
+            sage: K.<a> = Qq(9)
+            sage: E=EllipticCurve_from_j(0).base_extend(K)
+            sage: E.get_action(ZZ)
+            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+
         """
-        return hash((self.x, self.y, self.tag))
+        return hash((id(self.x), id(self.y), id(self.tag)))
 
     def short_repr(self):
         return self.tag, hex(<long><void*>self.x), hex(<long><void*>self.y)

@@ -138,7 +138,7 @@ about distutils, etc., is to create a file with the extension
 
    ::
 
-       sage: load "power2.spyx"
+       sage: load("power2.spyx")
        Compiling power2.spyx...
        sage: is2pow(12)
        False
@@ -151,7 +151,7 @@ it is reloaded whenever you make changes:
 
 ::
 
-    sage: attach "power2.spyx"
+    sage: attach("power2.spyx")
 
 Cython is used for its speed. Here is a timed test on a 2.6 GHz
 Opteron:
@@ -173,7 +173,7 @@ following:
 
 ::
 
-    sage: load "powerslow.py"
+    sage: load("powerslow.py")
     sage: %time [n for n in range(10^5) if is2pow(n)]
     [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536]
     CPU times: user 1.01 s, sys: 0.04 s, total: 1.05 s

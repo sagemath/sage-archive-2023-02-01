@@ -256,13 +256,13 @@ class WeightedIntegerVectors_nweight(UniqueRepresentation, Parent):
         w = l[-1]
         l = l[:-1]
         if l == []:
-            d = int(n) / int(w)
+            d = int(n) // int(w)
             if n % w == 0:
                 yield [d]
                 # Otherwise: bad branch
             return
 
-        for d in range(int(n)/int(w), -1, -1):
+        for d in range(int(n)//int(w), -1, -1):
             for x in self._recfun(n-d*w, l):
                 yield x + [d]
 

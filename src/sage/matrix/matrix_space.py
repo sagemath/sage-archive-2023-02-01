@@ -68,6 +68,7 @@ import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.integral_domain as integral_domain
 import sage.rings.number_field.all
 import sage.rings.finite_rings.integer_mod_ring
+import sage.rings.finite_rings.constructor
 import sage.rings.polynomial.multi_polynomial_ring_generic
 import sage.misc.latex as latex
 import sage.misc.mrange
@@ -250,14 +251,14 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             Basis matrix:
             124 x 125 dense matrix over Rational Field
             sage: MatrixSpace(ZZ,20,20)(1) \ MatrixSpace(ZZ,20,1).random_element()
-            20 x 1 dense matrix over Rational Field
+            20 x 1 dense matrix over Rational Field (use the '.str()' method to see the entries)
             sage: MatrixSpace(ZZ,200,200)(1) \ MatrixSpace(ZZ,200,1).random_element()
-            200 x 1 dense matrix over Rational Field
+            200 x 1 dense matrix over Rational Field (use the '.str()' method to see the entries)
             sage: A = MatrixSpace(RDF,1000,1000).random_element()
             sage: B = MatrixSpace(RDF,1000,1000).random_element()
             sage: C = A * B
         """
-        if ncols == None: ncols = nrows
+        if ncols is None: ncols = nrows
         from sage.categories.all import Modules, Algebras
         parent_gens.ParentWithGens.__init__(self, base_ring) # category = Modules(base_ring)
         # Temporary until the inheritance glitches are fixed
@@ -277,7 +278,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         self.__nrows = nrows
         self.__is_sparse = sparse
-        if ncols == None:
+        if ncols is None:
             self.__ncols = nrows
         else:
             self.__ncols = ncols
@@ -950,7 +951,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 elif R.order() < matrix_modn_dense_double.MAX_MODULUS:
                     return matrix_modn_dense_double.Matrix_modn_dense_double
                 return matrix_generic_dense.Matrix_generic_dense
-            elif sage.rings.finite_rings.all.is_FiniteField(R) and R.characteristic() == 2 and R.order() <= 65536:
+            elif sage.rings.finite_rings.constructor.is_FiniteField(R) and R.characteristic() == 2 and R.order() <= 65536:
                 return matrix_mod2e_dense.Matrix_mod2e_dense
             elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(R) and R.base_ring() in _Fields:
                 return matrix_mpolynomial_dense.Matrix_mpolynomial_dense

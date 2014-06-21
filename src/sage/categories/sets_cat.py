@@ -298,8 +298,7 @@ class Sets(Category_singleton):
                 sage: Semigroups().CartesianProducts()
                 Category of Cartesian products of semigroups
                 sage: EuclideanDomains().CartesianProducts()
-                Join of Category of Cartesian products of monoids
-                    and Category of Cartesian products of commutative additive groups
+                Join of Category of rings and Category of Cartesian products of ...
             """
             return CartesianProductsCategory.category_of(self)
 
@@ -671,8 +670,8 @@ class Sets(Category_singleton):
                 sage: Groups().Algebras(QQ)
                 Category of group algebras over Rational Field
 
-                sage: CommutativeAdditiveGroups().Algebras(QQ)
-                Category of commutative additive group algebras over Rational Field
+                sage: AdditiveMagmas().AdditiveAssociative().Algebras(QQ)
+                Category of additive semigroup algebras over Rational Field
 
                 sage: Monoids().Algebras(Rings())
                 Category of monoid algebras over Category of rings
@@ -1346,7 +1345,8 @@ class Sets(Category_singleton):
                 sage: type(C)
                 <class 'sage.sets.cartesian_product.CartesianProduct_with_category'>
                 sage: C.category()
-                Join of Category of Cartesian products of monoids and Category of Cartesian products of commutative additive groups
+                Join of Category of rings and ...
+                    and Category of Cartesian products of commutative additive groups
             """
             return parents[0].CartesianProduct(
                 parents,

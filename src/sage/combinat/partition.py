@@ -1662,11 +1662,11 @@ class Partition(CombinatorialObject, Element):
         mu = self
         muconj = mu.conjugate()     # Naive implementation
         if len(mu) <= len(muconj):
-            a = filter(lambda x: x>=0, [val-i-1 for i, val in enumerate(mu)])
-            b = filter(lambda x: x>=0, [muconj[i]-i-1 for i in range(len(a))])
+            a = [x for x in (val-i-1 for i, val in enumerate(mu)) if x>=0]
+            b = [x for x in (muconj[i]-i-1 for i in range(len(a))) if x>=0]
         else:
-            b = filter(lambda x: x>=0, [val-i-1 for i, val in enumerate(muconj)])
-            a = filter(lambda x: x>=0, [mu[i]-i-1 for i in range(len(b))])
+            b = [x for x in (val-i-1 for i, val in enumerate(muconj)) if x>=0]
+            a = [x for x in (mu[i]-i-1 for i in range(len(b))) if x>=0]
         return (a,b)
 
     def frobenius_rank(self):
@@ -3352,7 +3352,7 @@ class Partition(CombinatorialObject, Element):
             sage: Partition([3,2,1]).corners_residue(2, 3)
             [(0, 2)]
         """
-        return filter(lambda x: self.residue(*x, l=l) == i, self.corners())
+        return [x for x in self.corners() if self.residue(*x, l=l) == i]
 
     inside_corners_residue = corners_residue
     removable_cells_residue = corners_residue
@@ -3418,7 +3418,7 @@ class Partition(CombinatorialObject, Element):
             sage: Partition([3,2,1]).outside_corners_residue(2, 3)
             [(2, 1)]
         """
-        return filter(lambda x: self.residue(*x, l=l) == i, self.outside_corners())
+        return [x for x in self.outside_corners() if self.residue(*x, l=l) == i]
 
     addable_cells_residue = outside_corners_residue
 
@@ -3521,7 +3521,7 @@ class Partition(CombinatorialObject, Element):
         partitions).
 
         These are also known as **path sequences**, **Maya diagrams**,
-        **plus-minus diagrams**, **Comet code** [Sta1999]_, among others.
+        **plus-minus diagrams**, **Comet code** [Sta-EC2]_, among others.
 
         OUTPUT:
 
@@ -3604,7 +3604,7 @@ class Partition(CombinatorialObject, Element):
         #Remove the canonical vector
         part = [part[i-1]-len(part)+i for i in range(1, len(part)+1)]
         #Select the r-core
-        return Partition(filter(lambda x: x != 0, part))
+        return Partition([x for x in part if x != 0])
 
     def quotient(self, length):
         r"""
@@ -3672,7 +3672,7 @@ class Partition(CombinatorialObject, Element):
             tmp = []
             for i in reversed(range(len(part))):
                 if part[i] % length == e:
-                    tmp.append(ZZ((part[i]-k)/length))
+                    tmp.append(ZZ((part[i]-k)//length))
                     k += length
 
             a = [i for i in tmp if i != 0]
@@ -5149,7 +5149,7 @@ class Partitions(UniqueRepresentation, Parent):
         k = length*max(len(q) for q in components) + len(core)
         # k needs to be large enough. this seems to me like the smallest it can be
         v = [core[i]-i for i in range(len(core))] + [ -i for i in range(len(core),k) ]
-        w = [ filter(lambda x: (x-i) % length == 0, v) for i in range(1, length+1) ]
+        w = [ [x for x in v if (x-i) % length == 0] for i in range(1, length+1) ]
         new_w = []
         for i in range(length):
             lw = len(w[i])
@@ -6456,7 +6456,7 @@ class PartitionsInBox(Partitions):
                     new_list += add(element)
                 l = new_list
 
-            return [self.element_class(self, filter(lambda x: x!=0, p)) for p in l]
+            return [self.element_class(self, [x for x in p if x!=0]) for p in l]
 
 def PartitionsInBox_hw(h, w):
     """

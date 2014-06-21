@@ -1413,7 +1413,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: G = f.galois_group(); G            # optional - database_gap
             Transitive group number 5 of degree 4
             sage: G.gens()                           # optional - database_gap
-            [(1,2,3,4), (1,2)]
+            [(1,2), (1,2,3,4)]
             sage: G.order()                          # optional - database_gap
             24
 

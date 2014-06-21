@@ -2394,7 +2394,15 @@ class FiniteStateMachine(SageObject):
         relabel_iter = itertools.count(0)
         for state in self.iter_states():
             if relabel:
-                state._deepcopy_relabel_ = relabel_iter.next()
+                if self._deepcopy_labels_ is None:
+                    state._deepcopy_relabel_ = relabel_iter.next()
+                elif hasattr(self._deepcopy_labels_, '__call__'):
+                    state._deepcopy_relabel_ = self._deepcopy_labels_(state.label())
+                elif hasattr(self._deepcopy_labels_, '__getitem__'):
+                    state._deepcopy_relabel_ = self._deepcopy_labels_[state.label()]
+                else:
+                    raise TypeError("labels must be None, a callable "
+                                    "or a dictionary.")
             s = deepcopy(state, memo)
             if relabel:
                 del state._deepcopy_relabel_
@@ -2426,15 +2434,19 @@ class FiniteStateMachine(SageObject):
         return deepcopy(self, memo)
 
 
-    def relabeled(self, memo=None):
+    def relabeled(self, memo=None, labels=None):
         """
         Returns a deep copy of the finite state machine, but the
-        states are relabeled by integers starting with 0.
+        states are relabeled.
 
         INPUT:
 
         - ``memo`` -- (default: ``None``) a dictionary storing already
           processed elements.
+
+        - ``labels`` -- (default: ``None``) a dictionary or callable
+          mapping old labels to new labels. If ``None``, then the new
+          labels are integers starting with 0.
 
         OUTPUT:
 
@@ -2448,10 +2460,25 @@ class FiniteStateMachine(SageObject):
             sage: FSM2 = FSM1.relabeled()
             sage: FSM2.states()
             [0, 1, 2]
+            sage: FSM3 = FSM1.relabeled(labels={'A': 'a', 'B': 'b', 'C': 'c'})
+            sage: FSM3.states()
+            ['a', 'b', 'c']
+            sage: FSM4 = FSM2.relabeled(labels=lambda x: 2*x)
+            sage: FSM4.states()
+            [0, 2, 4]
+
+        TESTS::
+
+            sage: FSM2.relabeled(labels=1)
+            Traceback (most recent call last):
+            ...
+            TypeError: labels must be None, a callable or a dictionary.
         """
         self._deepcopy_relabel_ = True
+        self._deepcopy_labels_ = labels
         new = deepcopy(self, memo)
         del self._deepcopy_relabel_
+        del self._deepcopy_labels_
         return new
 
 
@@ -3515,9 +3542,7 @@ class FiniteStateMachine(SageObject):
         adjacent = {}
         for source in self.iter_states():
             for target in self.iter_states():
-                transitions = filter(lambda transition: \
-                                         transition.to_state == target,
-                                     source.transitions)
+                transitions = [transition for transition in source.transitions if transition.to_state == target]
                 adjacent[source, target] = transitions
 
         for ((source, target), transitions) in adjacent.iteritems():
@@ -5045,8 +5070,7 @@ class FiniteStateMachine(SageObject):
 
         memo = {}
         def accessible(sf, read):
-            trans = filter(lambda x: x.word_in[0] == read,
-                           self.transitions(sf))
+            trans = [x for x in self.transitions(sf) if x.word_in[0] == read]
             return map(lambda x: (deepcopy(x.to_state, memo), x.word_out),
                        trans)
 
@@ -5694,8 +5718,7 @@ class FiniteStateMachine(SageObject):
                                 new_word_in, None))
 
         if what == 'output':
-            states = filter(lambda s: s.final_word_out,
-                            self.iter_final_states())
+            states = [s for s in self.iter_final_states() if s.final_word_out]
             if not states:
                 return new
             number = 0
@@ -5857,8 +5880,7 @@ class FiniteStateMachine(SageObject):
         """
         DG = self.digraph()
         condensation = DG.strongly_connected_components_digraph()
-        final_labels = filter(lambda v: condensation.out_degree(v) == 0,
-                              condensation.vertices())
+        final_labels = [v for v in condensation.vertices() if condensation.out_degree(v) == 0]
         return [self.induced_sub_finite_state_machine(map(self.state, component))
                 for component in final_labels]
 

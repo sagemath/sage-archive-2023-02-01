@@ -34,6 +34,7 @@ Combinatorics
    sage/combinat/perfect_matching
    sage/combinat/six_vertex_model
    sage/combinat/tamari_lattices
+   sage/combinat/interval_posets
    sage/combinat/yang_baxter_graph
 
 **Compositions**
@@ -198,6 +199,7 @@ Combinatorics
 .. toctree::
    :maxdepth: 1
 
+   sage/combinat/shuffle
    sage/combinat/dict_addition
    sage/combinat/misc
    sage/combinat/combinatorial_map

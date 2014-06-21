@@ -222,6 +222,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.misc.misc import prod, uniq
 from copy import copy
+from functools import reduce
 
 
 def SymmetricFunctionAlgebra(R, basis="schur"):
@@ -4325,9 +4326,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             0
         """
         if exact:
-            res = dict( filter( lambda x: sum(x[0]) == d, self._monomial_coefficients.items()) )
+            res = dict(x for x in self._monomial_coefficients.items() if sum(x[0]) == d)
         else:
-            res = dict( filter( lambda x: sum(x[0]) <= d, self._monomial_coefficients.items()) )
+            res = dict(x for x in self._monomial_coefficients.items() if sum(x[0]) <= d)
         return self.parent()._from_dict(res)
 
     def restrict_partition_lengths(self, l, exact = True):
@@ -4358,9 +4359,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             s[1] + s[2, 1] + s[4]
         """
         if exact:
-            res = dict( filter( lambda x: len(x[0]) == l, self._monomial_coefficients.items()) )
+            res = dict(x for x in self._monomial_coefficients.items() if len(x[0]) == l)
         else:
-            res = dict( filter( lambda x: len(x[0]) <= l, self._monomial_coefficients.items()) )
+            res = dict(x for x in self._monomial_coefficients.items() if len(x[0]) <= l)
         return self.parent()._from_dict(res)
 
     def restrict_parts(self, n):
@@ -4382,7 +4383,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: z.restrict_parts(1)
             s[1] + s[1, 1, 1]
         """
-        res = dict( filter( lambda x: _lmax(x[0]) <= n, self._monomial_coefficients.items()) )
+        res = dict(x for x in self._monomial_coefficients.items() if _lmax(x[0]) <= n)
         return self.parent()._from_dict(res)
 
     def expand(self, n, alphabet = 'x'):

@@ -1180,8 +1180,8 @@ class Composition(CombinatorialObject, Element):
             return SkewPartition([[],[]])
 
         return SkewPartition(
-            [ filter(lambda x: x != 0, [l for l in reversed(outer)]),
-              filter(lambda x: x != 0, [l for l in reversed(inner)])])
+            [ [x for x in reversed(outer) if x != 0],
+              [x for x in reversed(inner) if x != 0] ])
 
 
     def shuffle_product(self, other, overlap=False):
@@ -1765,7 +1765,7 @@ class Compositions(Parent, UniqueRepresentation):
         if code == [0]:
             return []
 
-        L = filter(lambda x: code[x]==1, range(len(code))) #the positions of the letter 1
+        L = [x for x in range(len(code)) if code[x]==1] #the positions of the letter 1
         return self.element_class(self, [L[i]-L[i-1] for i in range(1, len(L))] + [len(code)-L[-1]])
 
 # Allows to unpickle old constrained Compositions_constraints objects.

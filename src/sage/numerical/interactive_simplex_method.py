@@ -67,7 +67,7 @@ The simplex method can be applied only to :class:`problems in standard form
     sage: LPProblemStandardForm(A, b, c, ["C", "B"])
     LP problem (use typeset mode to see details)
 
-or from an already constructed problem of "general type" ::
+or from an already constructed problem of "general type"::
 
     sage: P = P.standard_form()
 
@@ -75,7 +75,7 @@ In this case the problem does not require any modifications to be written in
 standard form, but this step is still necessary to enable methods related to
 the simplex method.
 
-The simplest way to use the simplex method is ::
+The simplest way to use the simplex method is::
 
     sage: P.run_simplex_method()
     '...'
@@ -134,7 +134,8 @@ objective value did not decrease::
     5000
 
 If you are unsure about picking entering and leaving variables, you can use
-helper methods that will try their best to tell you what are your next options::
+helper methods that will try their best to tell you what are your next
+options::
 
     sage: D.possible_entering()
     [B]
@@ -206,10 +207,10 @@ def _assemble_arrayl(lines, stretch=None):
 
     INPUT:
 
-    - ``lines`` -- a list of strings suitable for math mode typesetting;
+    - ``lines`` -- a list of strings suitable for math mode typesetting
 
     - ``stretch`` -- (default: None) if given, a command setting
-      ``\arraystretch`` to this value will be added before the array.
+      ``\arraystretch`` to this value will be added before the array
 
     OUTPUT:
 
@@ -559,7 +560,7 @@ class LPProblem(SageObject):
 
         INPUT:
 
-        - ``other`` -- anything.
+        - ``other`` -- anything
 
         OUTPUT:
 
@@ -640,7 +641,7 @@ class LPProblem(SageObject):
 
         OUTPUT:
 
-        - a string.
+        - a string
 
         TESTS::
 
@@ -660,9 +661,10 @@ class LPProblem(SageObject):
 
         OUTPUT:
 
-        - a pair consisting of a vector and a number. If the problem is
-          infeasible, both components are ``None``. If the problem is unbounded,
-          the first component is ``None`` and the second is `\pm \infty`.
+        - A pair consisting of a vector and a number. If the problem is
+          infeasible, both components are ``None``. If the problem is
+          unbounded, the first component is ``None`` and the second is
+          `\pm \infty`.
 
         This function uses "brute force" solution technique of evaluating the
         objective at all vertices of the feasible set and taking into account
@@ -1341,7 +1343,7 @@ class LPProblemStandardForm(LPProblem):
 
     - ``auxiliary_variable`` -- (default: same as ``x`` parameter with adjoined
       ``"0"`` if it was given as a string, otherwise ``"x0"``) the auxiliary
-       name, expected to be the same as the first decision variable for
+      name, expected to be the same as the first decision variable for
       auxiliary problems
 
     - ``objective`` -- (default: ``"z"``) the objective variable (used for the
@@ -2170,7 +2172,7 @@ class LPAbstractDictionary(SageObject):
 
           .. MATH::
 
-            x_i = b_i - \cdots - a_{ij} x_j - \cdots.
+              x_i = b_i - \cdots - a_{ij} x_j - \cdots.
 
           The order of pairs matches the order of
           :meth:`~LPDictionary.nonbasic_variables`,
@@ -2208,8 +2210,8 @@ class LPAbstractDictionary(SageObject):
         OUTPUT:
 
         - none, but the selected variable will be used as entering by methods
-          that require an entering variable and the corresponding column will be
-          typeset in green
+          that require an entering variable and the corresponding column
+          will be typeset in green
 
         EXAMPLES::
 
@@ -2524,11 +2526,11 @@ class LPAbstractDictionary(SageObject):
 
           .. MATH::
 
-            x_i = b_i - \cdots - a_{ik} x_k - \cdots.
+              x_i = b_i - \cdots - a_{ik} x_k - \cdots.
 
-         The order of pairs matches the order of
-         :meth:`~LPDictionary.basic_variables`,
-         but only `x_i` with positive `a_{ik}` are considered.
+          The order of pairs matches the order of
+          :meth:`~LPDictionary.basic_variables`,
+          but only `x_i` with positive `a_{ik}` are considered.
 
         EXAMPLES::
 

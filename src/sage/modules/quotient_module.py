@@ -20,12 +20,13 @@ Quotients of finite rank free modules over a field.
 from free_module import FreeModule_ambient_field
 
 class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
-    r"""
-    A quotient V/W of two vector spaces as a vector space.
+    """
+    A quotient `V/W` of two vector spaces as a vector space.
 
-    To obtain V or W use \code{self.V()} and \code{self.W()}.
+    To obtain `V` or `W` use ``self.V()`` and ``self.W()``.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: k.<i> = QuadraticField(-1)
         sage: A = k^3; V = A.span([[1,0,i], [2,i,0]])
         sage: W = A.span([[3,i,i]])
@@ -104,8 +105,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             <class 'sage.modules.quotient_module.FreeModule_ambient_field_quotient_with_category'>
 
         We do some consistency checks on the extra quotient and
-        lifting structure of Q.
-        ::
+        lifting structure of Q::
 
             sage: Q(V.0)
             (1)
@@ -128,20 +128,25 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         self.__lift_map = self.Hom(domain)(lift_matrix)
 
     def _repr_(self):
-        """
+        r"""
         Return the rather verbose string representation of this quotient space V/W.
 
         EXAMPLES:
-        We create a quotient vector space over a finite field:
+
+        We create a quotient vector space over a finite field::
+
             sage: k.<a> = GF(9); A = k^3; V = A.span_of_basis([[1,0,a], [a,a,1]]); W = V.span([V.1])
             sage: Q = V/W
 
-        Note the type:
+        Note the type::
+
             sage: type(Q)
             <class 'sage.modules.quotient_module.FreeModule_ambient_field_quotient_with_category'>
 
-        The string representation mentions that this is a quotient V/W, that the quotient
-        has dimension 1 and is over a finite field, and also describes V and W:
+        The string representation mentions that this is a quotient
+        `V/W`, that the quotient has dimension 1 and is over a finite
+        field, and also describes `V` and `W`::
+
             sage: Q._repr_()
             'Vector space quotient V/W of dimension 1 over Finite Field in a of size 3^2 where\nV: Vector space of degree 3 and dimension 2 over Finite Field in a of size 3^2\nUser basis matrix:\n[1 0 a]\n[a a 1]\nW: Vector space of degree 3 and dimension 1 over Finite Field in a of size 3^2\nBasis matrix:\n[    1     1 a + 2]'
         """
@@ -156,7 +161,10 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         the tuple (V,W).
 
         EXAMPLES:
-        We compute the hash of a certain 0-dimension quotient vector space:
+
+        We compute the hash of a certain 0-dimension quotient vector
+        space::
+
             sage: A = QQ^2; V = A.span_of_basis([[1,0], [1,1]]); W = V.span([V.1, V.0])
             sage: Q = V/W; Q.dimension()
             0
@@ -164,7 +172,8 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             954887582               # 32-bit
             -5856620741060301410    # 64-bit
 
-        The hash is just got by hashing both V and W.
+        The hash is just got by hashing both V and W::
+
             sage: hash((V, W))
             954887582             # 32-bit
             -5856620741060301410  # 64-bit
@@ -200,23 +209,22 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
 
     def _element_constructor_(self, x):
         """
-        Convert an element into this quotient space V/W if there is
+        Convert an element into this quotient space `V/W` if there is
         a way to make sense of it.
 
-        An element converts into self if it can be converted into V,
+        An element converts into self if it can be converted into `V`,
         or if not at least if it can be made sense of as a list of
         length the dimension of self.
 
         EXAMPLES:
 
         We create a 2-dimensional quotient of a 3-dimension ambient
-        vector space.
-        ::
+        vector space::
 
             sage: M = QQ^3 / [[1,2,3]]
 
-        A list of length 3 converts into ``QQ^3``, so it converts into M.
-        ::
+        A list of length 3 converts into ``QQ^3``, so it converts into
+        `M`::
 
             sage: M([1,2,4])  #indirect doctest
             (-1/3, -2/3)
@@ -224,8 +232,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             (0, 0)
 
         A list of length 2 converts into M, where here it just gives
-        the corresponding linear combination of the basis for M.
-        ::
+        the corresponding linear combination of the basis for `M`::
 
             sage: M([1,2])
             (1, 2)
@@ -246,8 +253,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             (2, 0)
 
         Here we start with something that is over ZZ, so it
-        canonically coerces into ``QQ^3`` hence self.
-        ::
+        canonically coerces into ``QQ^3``, hence into ``self``::
 
             sage: Q((ZZ^3)([1,2,3]))
             (2, 3)
@@ -303,7 +309,8 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         """
         Given this quotient space $Q = V/W$, return the natural quotient map from V to Q.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = QQ^3 / [[1,2,3]]
             sage: M.quotient_map()
             Vector space morphism represented by the matrix:
@@ -327,7 +334,8 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         Given this quotient space $Q = V/W$, return a fixed choice of linear homomorphism
         (a section) from Q to V.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = QQ^3 / [[1,2,3]]
             sage: M.lift_map()
             Vector space morphism represented by the matrix:
@@ -348,7 +356,8 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
 
         The lift is a fixed homomorphism.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = QQ^3 / [[1,2,3]]
             sage: M.lift(M.0)
             (1, 0, 0)
@@ -363,7 +372,8 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         """
         Given this quotient space $Q = V/W$, return W.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = QQ^10 / [range(10), range(2,12)]
             sage: M.W()
             Vector space of degree 10 and dimension 2 over Rational Field
@@ -377,7 +387,8 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         """
         Given this quotient space $Q = V/W$, return $V$.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = QQ^10 / [range(10), range(2,12)]
             sage: M.V()
             Vector space of dimension 10 over Rational Field
@@ -388,7 +399,8 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         """
         Given this quotient space $Q = V/W$, return $V$.  This is the same as self.V().
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = QQ^10 / [range(10), range(2,12)]
             sage: M.cover()
             Vector space of dimension 10 over Rational Field
@@ -399,7 +411,8 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         """
         Given this quotient space $Q = V/W$, return $W$.  This is the same as self.W().
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = QQ^10 / [range(10), range(2,12)]
             sage: M.relations()
             Vector space of degree 10 and dimension 2 over Rational Field

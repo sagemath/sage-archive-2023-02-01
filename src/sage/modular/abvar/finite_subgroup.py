@@ -1096,5 +1096,6 @@ class TorsionPoint(ModuleElement):
             sage: x._relative_element()
             (0, 1/7, 6/7, 5/7)
         """
-        return self.parent().abelian_variety().lattice().coordinate_vector(self.__element)
-
+        # check=False prevents testing that the element is really in
+        # the lattice, not just in the corresponding QQ-vector space.
+        return self.parent().abelian_variety().lattice().coordinate_vector(self.__element, check=False)

@@ -1332,12 +1332,13 @@ cdef class Parent(category_object.CategoryObject):
             ...
             ValueError: since it is infinite, cannot list Integer Ring
 
-        This is the motivation for :trac:`10470` ::
+        Trying to list an infinite vector space raises an error
+        instead of running forever (see :trac:`10470`)::
 
             sage: (QQ^2).list()
             Traceback (most recent call last):
             ...
-            ValueError: since it is infinite, cannot list Vector space of dimension 2 over Rational Field
+            AttributeError: 'FreeModule_ambient_field_with_category' object has no attribute 'list'
 
         TESTS:
 

@@ -467,7 +467,7 @@ cdef class Element(sage_object.SageObject):
     cdef base_extend_c_impl(self, Parent R):
         cdef Parent V
         V = self._parent.base_extend(R)
-        return (<Parent>V)._coerce_c(self)
+        return V.coerce(self)
 
     def base_extend(self, R):
         return self.base_extend_c_impl(R)

@@ -173,20 +173,17 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             # Compute the matrix of the morphism that sends the
             # generators of the domain to the elements of A.
             C = self.codomain()
-            if isfunction(A):
-                try:
+            try:
+                if isfunction(A):
                     v = [C(A(g)) for g in self.domain().gens()]
-                    A = matrix.matrix([C.coordinates(a) for a in v])
-                except TypeError as msg:
-                    # Let us hope that FreeModuleMorphism knows to handle that case
-                    pass
-            else:
-                try:
+                else:
                     v = [C(a) for a in A]
-                    A = matrix.matrix([C.coordinates(a) for a in v])
-                except TypeError as msg:
-                    # Let us hope that FreeModuleMorphism knows to handle that case
-                    pass
+                A = matrix.matrix([C.coordinates(a) for a in v],
+                                  ncols=C.rank())
+            except TypeError:
+                # Let us hope that FreeModuleMorphism knows to handle
+                # that case
+                pass
         return free_module_morphism.FreeModuleMorphism(self, A)
 
     @cached_method

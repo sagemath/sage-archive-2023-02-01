@@ -1280,12 +1280,10 @@ done from the right side.""")
 
         INPUT:
 
+        - ``v`` -- vector
 
-        -  ``v`` - vector
-
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
-
+        - ``check`` -- bool (default: True); if True, also verify that
+           `v` is really in self.
 
         OUTPUT: list
 
@@ -1294,11 +1292,9 @@ done from the right side.""")
 
         .. math::
 
-                             \sum c_i B_i = v.
+            \\sum c_i B_i = v.
 
-
-        If `v` is not in self, raises an
-        ``ArithmeticError`` exception.
+        If `v` is not in self, raise an ``ArithmeticError`` exception.
 
         EXAMPLES::
 
@@ -1316,12 +1312,10 @@ done from the right side.""")
 
         INPUT:
 
+        - ``v`` -- vector
 
-        -  ``v`` - vector
-
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
-
+        - ``check`` -- bool (default: True); if True, also verify that
+           `v` is really in self.
 
         OUTPUT: list
 
@@ -1728,14 +1722,12 @@ done from the right side.""")
 
         INPUT:
 
-
         -- ``prob`` - float. Each coefficient will be set to zero with
            probability `1-prob`. Otherwise coefficients will be chosen
            randomly from base ring (and may be zero).
 
         -- ``*args, **kwds`` - passed on to ``random_element()`` function
            of base ring.
-
 
         EXAMPLES::
 
@@ -1751,8 +1743,6 @@ done from the right side.""")
 
             sage: M.random_element(5,10)
             (9, 9)
-
-
         """
         rand = current_randstate().python_random().random
         R = self.base_ring()
@@ -2228,10 +2218,7 @@ class FreeModule_generic_pid(FreeModule_generic):
                     return sage.rings.infinity.infinity
             raise ArithmeticError("self must be contained in the vector space spanned by other.")
 
-        try:
-            C = [other.coordinates(b) for b in self.basis()]
-        except ArithmeticError:
-            raise
+        C = [other.coordinates(b) for b in self.basis()]
 
         if self.rank() < other.rank():
             return sage.rings.infinity.infinity
@@ -2589,8 +2576,8 @@ class FreeModule_generic_pid(FreeModule_generic):
             Echelon basis matrix:
             [3 3 0]
 
-        We try to create a submodule that isn't really a submodule, which
-        results in an ArithmeticError exception::
+        We try to create a submodule that isn't really a submodule,
+        which results in an ``ArithmeticError`` exception::
 
             sage: W.submodule([B[0] - B[1]])
             Traceback (most recent call last):
@@ -2654,9 +2641,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             [1/5 2/5   0]
             [1/7 1/7   0]
 
-        Of course the input basis vectors must be linearly independent.
-
-        ::
+        Of course the input basis vectors must be linearly independent::
 
             sage: W.span_of_basis([ [1,2,0], [2,4,0] ])
             Traceback (most recent call last):
@@ -2698,22 +2683,18 @@ class FreeModule_generic_pid(FreeModule_generic):
 
         INPUT:
 
+        - ``basis`` -- a list of linearly independent vectors
 
-        -  ``basis`` - a list of linearly independent vectors
-
-        -  ``check`` - whether or not to verify that each gen
-           is in the ambient vector space
-
+        - ``check`` -- whether or not to verify that each gen is in
+           the ambient vector space
 
         OUTPUT:
 
-
-        -  ``FreeModule`` - the R-submodule with given basis
-
+        - ``FreeModule`` -- the `R`-submodule with given basis
 
         EXAMPLES:
 
-        First we create a submodule of `\ZZ^3`::
+        First we create a submodule of `\\ZZ^3`::
 
             sage: M = FreeModule(ZZ, 3)
             sage: B = M.basis()
@@ -2837,12 +2818,10 @@ class FreeModule_generic_pid(FreeModule_generic):
 
         INPUT:
 
+        - ``basis`` -- a list of linearly independent vectors
 
-        -  ``basis`` - a list of linearly independent vectors
-
-        -  ``check`` - whether or not to verify that each gen
-           is in the ambient vector space
-
+        - ``check`` -- whether or not to verify that each gen is in
+           the ambient vector space
 
         OUTPUT: a vector subspace with user-specified basis
 
@@ -3287,10 +3266,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             [2 2 2]
             [3 3 0]
 
-        The basis vectors must be linearly independent or an
-        ArithmeticError exception is raised.
-
-        ::
+        The basis vectors must be linearly independent or a
+        ``ValueError`` exception is raised::
 
             sage: W.span_of_basis([[2,2,2], [3,3,3]])
             Traceback (most recent call last):
@@ -3319,7 +3296,6 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         INPUT:
 
-
         -  ``gens`` - list of vectors
 
         -  ``check`` - bool (default: True) verify that gens
@@ -3328,14 +3304,11 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         -  ``already_echelonized`` - bool (default: False) set
            to True if you know the gens are in Echelon form.
 
-
         EXAMPLES:
 
         First we create a 1-dimensional vector subspace of an
         ambient `3`-dimensional space over the finite field of
-        order `7`.
-
-        ::
+        order `7`::
 
             sage: V = VectorSpace(GF(7), 3)
             sage: W = V.subspace([[2,3,4]]); W
@@ -3345,20 +3318,15 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         Next we create an invalid subspace, but it's allowed since
         ``check=False``. This is just equivalent to computing
-        the span of the element.
-
-        ::
+        the span of the element::
 
             sage: W.subspace([[1,1,0]], check=False)
             Vector space of degree 3 and dimension 1 over Finite Field of size 7
             Basis matrix:
             [1 1 0]
 
-        With ``check=True`` (the default) the mistake is
-        correctly detected and reported with an
-        ``ArithmeticError`` exception.
-
-        ::
+        With ``check=True`` (the default) the mistake is correctly
+        detected and reported with an ``ArithmeticError`` exception::
 
             sage: W.subspace([[1,1,0]], check=True)
             Traceback (most recent call last):
@@ -3373,10 +3341,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         INPUT:
 
-
-        -  ``dim`` - int, dimension of subspaces to be
-           generated
-
+        - ``dim`` - int, dimension of subspaces to be generated
 
         EXAMPLE::
 
@@ -3604,12 +3569,17 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         INPUT:
 
-        - ``vectors`` - A list of vectors, all from the same vector space.
-        - ``zeros`` - default: ``'left'`` - ``'left'`` or ``'right'`` as a general
-          preference for where zeros are located in the returned coefficients
-        - ``check`` - default: ``True`` - if ``True`` each item in the list ``vectors``
-          is checked for membership in ``self``.  Set to ``False`` if you
-          can be certain the vectors come from the vector space.
+        - ``vectors`` -- A list of vectors, all from the same vector
+          space.
+
+        - ``zeros`` -- default: ``'left'`` - ``'left'`` or ``'right'``
+          as a general preference for where zeros are located in the
+          returned coefficients
+
+        - ``check`` -- default: ``True`` - if ``True`` each item in
+          the list ``vectors`` is checked for membership in ``self``.
+          Set to ``False`` if you can be certain the vectors come from
+          the vector space.
 
         OUTPUT:
 
@@ -4448,10 +4418,9 @@ class FreeModule_ambient(FreeModule_generic):
 
         .. math::
 
-                             \sum c_i B_i = v.
+            \\sum c_i B_i = v.
 
-        If `v` is not in self, raises an ArithmeticError
-        exception.
+        If `v` is not in self, raise an ``ArithmeticError`` exception.
 
         EXAMPLES::
 
@@ -4713,12 +4682,10 @@ class FreeModule_ambient_domain(FreeModule_ambient):
 
         INPUT:
 
+        - ``v`` -- vector
 
-        -  ``v`` - vector
-
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
-
+        - ``check`` -- bool (default: True); if True, also verify that
+           `v` is really in self.
 
         OUTPUT: list
 
@@ -4726,9 +4693,9 @@ class FreeModule_ambient_domain(FreeModule_ambient):
 
         .. math::
 
-                             \sum c_i B_i = v.
+            \\sum c_i B_i = v.
 
-        If `v` is not in self, raises an ArithmeticError exception.
+        If `v` is not in self, raise an ``ArithmeticError`` exception.
 
         EXAMPLES::
 
@@ -4782,13 +4749,11 @@ class FreeModule_ambient_pid(FreeModule_generic_pid, FreeModule_ambient_domain):
 
         INPUT:
 
+        - ``base_ring`` -- a principal ideal domain
 
-        -  ``base_ring`` - a principal ideal domain
+        - ``rank`` -- a non-negative integer
 
-        -  ``rank`` - a non-negative integer
-
-        -  ``sparse`` - bool (default: False)
-
+        - ``sparse`` -- bool (default: False)
 
         EXAMPLES::
 
@@ -5389,11 +5354,9 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         .. math::
 
-                             \sum c_i B_i = v.
+            \\sum c_i B_i = v.
 
-
-        If `v` is not in self, raises an
-        ``ArithmeticError`` exception.
+        If `v` is not in self, raise an ``ArithmeticError`` exception.
 
         EXAMPLES::
 
@@ -5794,12 +5757,10 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         INPUT:
 
+        - ``v`` -- vector
 
-        -  ``v`` - vector
-
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
-
+        - ``check`` -- bool (default: True); if True, also verify that
+           `v` is really in self.
 
         OUTPUT: list
 
@@ -5807,8 +5768,9 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         .. math::
 
+            \\sum c_i B_i = v.
 
-        If `v` is not in self, raises an ArithmeticError exception.
+        If `v` is not in self, raise an ``ArithmeticError`` exception.
 
         EXAMPLES::
 
@@ -5864,10 +5826,9 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         .. math::
 
-                             \sum c_i B_i = v.
+            \\sum c_i B_i = v.
 
-
-        If `v` is not in self, raises an ``ArithmeticError`` exception.
+        If `v` is not in self, raise an ``ArithmeticError`` exception.
 
         EXAMPLES::
 
@@ -6005,12 +5966,10 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
 
         INPUT:
 
+        - ``v`` -- vector
 
-        -  ``v`` - vector
-
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
-
+        - ``check`` -- bool (default: True); if True, also verify that
+           `v` is really in self.
 
         OUTPUT: list
 
@@ -6018,10 +5977,9 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
 
         .. math::
 
-                             \sum c_i B_i = v.
+            \\sum c_i B_i = v.
 
-
-        If `v` is not in self, raises an ``ArithmeticError`` exception.
+        If `v` is not in self, raise an ``ArithmeticError`` exception.
 
         EXAMPLES::
 
@@ -6416,10 +6374,9 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
         .. math::
 
-                             \sum c_i B_i = v.
+            \\sum c_i B_i = v.
 
-
-        If `v` is not in self, raises an ``ArithmeticError`` exception.
+        If `v` is not in self, raise an ``ArithmeticError`` exception.
 
         EXAMPLES::
 
@@ -6469,12 +6426,10 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
         INPUT:
 
+        - ``v`` -- vector
 
-        -  ``v`` - vector
-
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
-
+        - ``check`` -- bool (default: True); if True, also verify that
+           `v` is really in self.
 
         OUTPUT: list
 
@@ -6482,10 +6437,9 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
         .. math::
 
-                             \sum c_i B_i = v.
+            \\sum c_i B_i = v.
 
-
-        If `v` is not in self, raises an ``ArithmeticError`` exception.
+        If `v` is not in self, raise an ``ArithmeticError`` exception.
 
         EXAMPLES::
 

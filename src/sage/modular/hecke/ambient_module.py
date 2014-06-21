@@ -166,11 +166,9 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             sage: sage.modular.hecke.ambient_module.AmbientHeckeModule(QQ, 3, 2, 4)._hecke_image_of_ith_basis_element(4, 2)
             Traceback (most recent call last):
             ...
-            NotImplementedError
-
+            NotImplementedError: Derived class <class 'sage.modular.hecke.ambient_module.AmbientHeckeModule_with_category'> should implement __cmp__
         """
         return self.hecke_operator(n)(self.gen(i))
-
 
     def _set_dual_free_module(self, V):
         r"""

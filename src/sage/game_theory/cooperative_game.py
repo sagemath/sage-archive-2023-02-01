@@ -245,7 +245,6 @@ class CooperativeGame(SageObject):
        ISBN 9781608456529, :doi:`10.2200/S00355ED1V01Y201107AIM016`.
 
     .. [MSZ2013] Michael Maschler, Solan Eilon, and Zamir Shmuel.
-
        *Game Theory*.
        Cambridge: Cambridge University Press, (2013).
        ISBN 9781107005488.

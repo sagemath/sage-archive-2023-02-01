@@ -851,33 +851,57 @@ class AlgebraicClosureFiniteField_generic(Field):
             True
             sage: prod((x - c) for c,_ in r) == P
             True
+
+            sage: K = GF(5).algebraic_closure()
+            sage: R.<T> = PolynomialRing(K, 'T')
+            sage: P = K.gen(4) * T^4 + K.gen(3) * T^3 + K.gen(2) * T^2 + K.gen(1) * T + 1
+            sage: r = P.roots()    # indirect doctest
+            sage: sorted(r)
+            [(2*z36^34 + z36^33 + z36^30 + ... + 2*z36^2 + 4*z36, 1),
+             (z36^34 + z36^33 + z36^32 + ... + 3*z36^3 + z36^2 + 3, 1),
+             (3*z12^11 + 4*z12^10 + 2*z12^9 + ... + 4*z12^2 + 2*z12, 1),
+             (z36^35 + z36^34 + z36^33 + ... + 3*z36^2 + z36 + 4, 1)]
+            sage: all(P(c) == 0 for c,_ in r)
+            True
+            sage: P[4] * prod((T-c) for c,_ in r) == P
+            True
         """
         from sage.rings.arith import lcm
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
         # first build a polynomial over some finite field
+        # TODO: ideally we would set the option minimal=True in the following
+        # but it is currently broken
         coeffs = [v.as_finite_field_element() for v in p.list()]
         levels = [c[0].degree() for c in coeffs]
         l = lcm(levels)
         F,phi = self.subfield(l)
-        new_coeffs = [F(c[1]) for c in coeffs]
+        new_coeffs = [self.inclusion(c[0].degree(),l)(c[1]) for c in coeffs]
 
         # then factor it and for each factor add some root by going to a larger
         # finite field if needed
         P = PolynomialRing(F, 'x')
 
         roots = {} # root -> multiplicity
-        polys = [(g,m,F,phi) for g,m in P(new_coeffs).factor()]
-        while polys:
-            g,m,F,phi = polys.pop()
-            if g.degree() == 1: # got a root !
-                c = phi(-g.constant_coefficient())
+        for g,m in P(new_coeffs).factor():
+            if g.degree() == 1:
+                r = [phi(-g.constant_coefficient())]
+            else:
+                # TODO: once the coercion between the finite subfields are fixed
+                # this can be done in a more natural way using .change_ring
+                ll = l * g.degree()
+                psi = self.inclusion(l, ll)
+                FF, pphi = self.subfield(ll)
+                gg = PolynomialRing(FF, 'x')(map(psi, g))
+                r = []
+                for ggg,_ in gg.factor():
+                    r.append(pphi(-ggg.constant_coefficient()))
+
+            for c in r:
                 if c not in roots:
                     roots[c] = 0
                 roots[c] += m
-            else: # build an extension where the polynomial splits
-                FF,pphi = self.subfield(F.degree() * g.degree())
-                polys.extend([(gg,mm,FF,pphi) for gg,mm in g.change_ring(FF).factor()])
+
         if multiplicities:
             return list(roots.iteritems())
         return roots.keys()

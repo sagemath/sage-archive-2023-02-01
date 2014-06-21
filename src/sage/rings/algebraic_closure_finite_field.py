@@ -425,14 +425,32 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             sage: s.as_finite_field_element(minimal=True)[0]
             Finite Field of size 3
 
-        """
-        if not minimal:
-            l = self._level
-        else:
-            l = self._value.minpoly().degree()
+        This also works when the element has to be converted between
+        two non-trivial finite subfields (see :trac:16509)::
 
-        F, phi = self.parent().subfield(l)
-        return (F, F(self._value), phi)
+            sage: K = GF(5).algebraic_closure()
+            sage: z = K.gen(5) - K.gen(5) + K.gen(2)
+            sage: z.as_finite_field_element(minimal=True)
+            (Finite Field in z2 of size 5^2, z2, Ring morphism:
+               From: Finite Field in z2 of size 5^2
+               To:   Algebraic closure of Finite Field of size 5
+               Defn: z2 |--> z2)
+
+        """
+        Fbar = self.parent()
+        x = self._value
+        l = self._level
+
+        if minimal:
+            m = x.minpoly().degree()
+            if m == 1:
+                x = Fbar.base_ring()(x)
+            else:
+                x = Fbar.inclusion(m, l).section()(x)
+            l = m
+
+        F, phi = Fbar.subfield(l)
+        return (F, x, phi)
 
 
 class AlgebraicClosureFiniteField_generic(Field):

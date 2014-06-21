@@ -59,7 +59,7 @@ defined using properties of the zeros of `C`.
   `0\leq b\leq n-delta+1` and `m` is the multiplicative
   order of `q` modulo `n`. The default here is `b=0`
   (unlike Guava, which has default `b=1`). Here `C_k` are
-  the cyclotomic codes (see ``cyclotomic_cosets``).
+  the cyclotomic codes.
 
 - BinaryGolayCode, ExtendedBinaryGolayCode, TernaryGolayCode,
   ExtendedTernaryGolayCode the well-known"extremal" Golay codes,
@@ -166,104 +166,106 @@ from sage.rings.finite_rings.integer_mod import Mod
 
 def cyclotomic_cosets(q, n, t = None):
     r"""
+    This method is deprecated.
+
+    See the documentation in
+    :func:`~sage.categories.rings.Rings.Finite.ParentMethods.cyclotomic_cosets`.
+
     INPUT: q,n,t positive integers (or t=None) Some type-checking of
     inputs is performed.
 
     OUTPUT: q-cyclotomic cosets mod n (or, if t is not None, the q-cyclotomic
     coset mod n containing t)
 
-    Let q, n be relatively print positive integers and let
-    `A = q^{ZZ}`. The group A acts on ZZ/nZZ by multiplication.
-    The orbits of this action are "cyclotomic cosets", or more
-    precisely "q-cyclotomic cosets mod n". Sometimes the smallest
-    element of the coset is called the "coset leader". The algorithm
-    will always return the cosets as sorted lists of lists, so the
-    coset leader will always be the first element in the list.
-
-    These cosets arise in the theory of duadic codes and minimal
-    polynomials of finite fields. Fix a primitive element `z`
-    of `GF(q^k)`. The minimal polynomial of `z^s` over
-    `GF(q)` is given by
-
-    .. math::
-
-             M_s(x) = \prod_{i \in C_s} (x-z^i),
-
-
-    where `C_s` is the q-cyclotomic coset mod n containing s,
-    `n = q^k - 1`.
-
     EXAMPLES::
 
         sage: cyclotomic_cosets(2,11)
+        doctest:...: DeprecationWarning: cyclotomic_cosets(q,n,t) is deprecated.
+        Use Zmod(n).cyclotomic_cosets(q) or Zmod(n).cyclotomic_cosets(q,[t])
+        instead. Be careful that this method returns elements of Zmod(n).
+        See http://trac.sagemath.org/16464 for details.
         [[0], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
-        sage: cyclotomic_cosets(2,15)
-        [[0], [1, 2, 4, 8], [3, 6, 9, 12], [5, 10], [7, 11, 13, 14]]
-        sage: cyclotomic_cosets(2,15,5)
-        [5, 10]
-        sage: cyclotomic_cosets(3,16)
-        [[0], [1, 3, 9, 11], [2, 6], [4, 12], [5, 7, 13, 15], [8], [10, 14]]
-        sage: F.<z> = GF(2^4, "z")
-        sage: P.<x> = PolynomialRing(F,"x")
-        sage: a = z^5
-        sage: a.minimal_polynomial()
-        x^2 + x + 1
-        sage: prod([x-z^i for i in [5, 10]])
-        x^2 + x + 1
-        sage: cyclotomic_cosets(3,2,0)
-        [0]
-        sage: cyclotomic_cosets(3,2,1)
-        [1]
-        sage: cyclotomic_cosets(3,2,2)
-        [0]
 
-    This last output looks strange but is correct, since the elements of
-    the cosets are in ZZ/nZZ and 2 = 0 in ZZ/2ZZ.
+        sage: Zmod(11).cyclotomic_cosets(2)
+        [[0], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
+
+        sage: cyclotomic_cosets(5,11)
+        [[0], [1, 3, 4, 5, 9], [2, 6, 7, 8, 10]]
+        sage: cyclotomic_cosets(5,11,3)
+        [1, 3, 4, 5, 9]
     """
-    from sage.misc.misc import srange
-    if t is not None and not isinstance(t, Integer):
-        raise TypeError("Optional input %s must None or an integer."%t)
-    if q<2 or n<2:
-        raise TypeError("Inputs %s and %s must be > 1."%(q,n))
-    if GCD(q,n) != 1:
-        raise TypeError("Inputs %s and %s must be relative prime."%(q,n))
-    if t is not None and isinstance(t, Integer):
-        S = Set([t*q**i%n for i in srange(n)])
-        L = sorted(S)
-        return L
-    ccs = Set([])
-    ccs_list = [[0]]
-    for s in range(1,n):
-        if not(s in ccs):
-            S = Set([s*q**i%n for i in srange(n)])
-            L = sorted(S)
-            ccs = ccs.union(S)
-            ccs_list.append(L)
-    return ccs_list
+    from sage.misc.superseded import deprecation
+    deprecation(16464, """cyclotomic_cosets(q,n,t) is deprecated. Use
+                          Zmod(n).cyclotomic_cosets(q) or
+                          Zmod(n).cyclotomic_cosets(q,[t]) instead. Be careful
+                          that this method returns elements of Zmod(n).""")
 
-def is_a_splitting(S1,S2,n):
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    if t is None:
+        return [[x.lift() for x in cos] for cos in Zmod(n).cyclotomic_cosets(q)]
+    else:
+        return [x.lift() for x in Zmod(n).cyclotomic_cosets(q,[t])[0]]
+
+def is_a_splitting(S1, S2, n, return_automorphism=False):
     """
-    INPUT: S1, S2 are disjoint sublists partitioning [1, 2, ..., n-1]
-    n1 is an integer
+    Check wether ``(S1,S2)`` is a splitting of `\ZZ/n\ZZ`.
 
-    OUTPUT: a, b where a is True or False, depending on whether S1, S2
-    form a "splitting" of n (ie, if there is a b1 such that b\*S1=S2
-    (point-wise multiplication mod n), and b is a splitting (if a =
-    True) or 0 (if a = False)
+    A splitting of `R = \ZZ/n\ZZ` is a pair of subsets of `R` which is a
+    partition of `R \\backslash \{0\}` and such that there exists an element `r`
+    of `R` such that `r S_1 = S_2` and `r S_2 = S_1` (where `r S` is the
+    point-wise multiplication of the elements of `S` by `r`).
 
     Splittings are useful for computing idempotents in the quotient
-    ring `Q = GF(q)[x]/(x^n-1)`. For
+    ring `Q = GF(q)[x]/(x^n-1)`.
+
+    INPUT:
+
+    - ``S1, S2`` -- disjoint sublists partitioning ``[1, 2, ..., n-1]``
+
+    - ``n`` (integer)
+
+    - ``return_automorphism`` (boolean) -- whether to return the automorphism
+      exchanging `S_1` and `S_2`.
+
+    OUTPUT:
+
+    If ``return_automorphism is False`` (default) the function returns boolean values.
+
+    Otherwise, it returns a pair ``(b, r)`` where ``b`` is a boolean indicating
+    whether `S1`, `S2` is a splitting of `n`, and `r` is such that `r S_1 = S_2`
+    and `r S_2 = S_1` (if `b` is ``False``, `r` is equal to ``None``).
 
     EXAMPLES::
 
         sage: from sage.coding.code_constructions import is_a_splitting
+        sage: is_a_splitting([1,2],[3,4],5)
+        True
+        sage: is_a_splitting([1,2],[3,4],5,return_automorphism=True)
+        (True, 4)
+
+        sage: is_a_splitting([1,3],[2,4,5,6],7)
+        False
+        sage: is_a_splitting([1,3,4],[2,5,6],7)
+        False
+
+        sage: for P in SetPartitions(6,[3,3]):
+        ....:     res,aut= is_a_splitting(P[0],P[1],7,return_automorphism=True)
+        ....:     if res:
+        ....:         print aut, P[0], P[1]
+        6 {1, 2, 3} {4, 5, 6}
+        3 {1, 2, 4} {3, 5, 6}
+        6 {1, 3, 5} {2, 4, 6}
+        6 {1, 4, 5} {2, 3, 6}
+
+    We illustrate now how to find idempotents in quotient rings::
+
         sage: n = 11; q = 3
-        sage: C = cyclotomic_cosets(q,n); C
+        sage: C = Zmod(n).cyclotomic_cosets(q); C
         [[0], [1, 3, 4, 5, 9], [2, 6, 7, 8, 10]]
         sage: S1 = C[1]
         sage: S2 = C[2]
         sage: is_a_splitting(S1,S2,11)
-        (True, 2)
+        True
         sage: F = GF(q)
         sage: P.<x> = PolynomialRing(F,"x")
         sage: I = Ideal(P,[x^n-1])
@@ -300,16 +302,30 @@ def is_a_splitting(S1,S2,n):
 
     This is a special case of Theorem 6.4.3 in [HP]_.
     """
-    if Set(S1).union(Set(S2)) != Set(range(1,n)):
-        raise TypeError("Lists must partition [1,2,...,n-1].")
-    if n<3:
-        raise TypeError("Input %s must be > 2."%n)
+    R = IntegerModRing(n)
+    S1 = set(R(x) for x in S1)
+    S2 = set(R(x) for x in S2)
+
+    # we first check whether (S1,S2) is a partition of R - {0}
+    if (len(S1) + len(S2) != n-1 or len(S1) != len(S2) or
+        R.zero() in S1 or R.zero() in S2 or not S1.isdisjoint(S2)):
+        if return_automorphism:
+            return False, None
+        else:
+            return False
+
+    # now that we know that (S1,S2) is a partition, we look for an invertible
+    # element b that maps S1 to S2 by multiplication
     for b in range(2,n):
-        SS1 = Set([b*x%n for x in S1])
-        SS2 = Set([b*x%n for x in S2])
-        if SS1 == Set(S2) and SS2 == Set(S1):
-            return True, b
-    return False, 0
+        if GCD(b,n) == 1 and all(b*x in S2 for x in S1):
+            if return_automorphism:
+                return True, b
+            else:
+                return True
+    if return_automorphism:
+        return False, None
+    else:
+        return False
 
 
 def lift2smallest_field(a):
@@ -543,7 +559,6 @@ def BCHCode(n,delta,F,b=0):
         Linear code of length 26, dimension 10 over Finite Field of size 5
 
     """
-    from sage.misc.misc import srange
     q = F.order()
     R = IntegerModRing(n)
     m = R(q).multiplicative_order()
@@ -553,11 +568,9 @@ def BCHCode(n,delta,F,b=0):
     a = z**e # order n
     P = PolynomialRing(F,"x")
     x = P.gen()
-    cosets = Set([])
-    for i in srange(b,b+delta-1):
-        cosets = cosets.union(Set(cyclotomic_cosets(q, n, i)))
-    L0 = [a**j for j in cosets]
-    L1 = [P(ai.minpoly()) for ai in L0]
+    L1 = []
+    for coset in R.cyclotomic_cosets(q, range(b,b+delta-1)):
+        L1.extend(P((a**j).minpoly()) for j in coset)
     g = P(LCM(L1))
     #print cosets, "\n", g, "\n", (x**n-1).factor(), "\n", L1, "\n", g.divides(x**n-1)
     if not(g.divides(x**n-1)):
@@ -739,18 +752,18 @@ def DuadicCodeEvenPair(F,S1,S2):
 
         sage: from sage.coding.code_constructions import is_a_splitting
         sage: n = 11; q = 3
-        sage: C = cyclotomic_cosets(q,n); C
+        sage: C = Zmod(n).cyclotomic_cosets(q); C
         [[0], [1, 3, 4, 5, 9], [2, 6, 7, 8, 10]]
         sage: S1 = C[1]
         sage: S2 = C[2]
         sage: is_a_splitting(S1,S2,11)
-        (True, 2)
+        True
         sage: codes.DuadicCodeEvenPair(GF(q),S1,S2)
         (Linear code of length 11, dimension 5 over Finite Field of size 3,
          Linear code of length 11, dimension 5 over Finite Field of size 3)
     """
-    n = max(S1+S2)+1
-    if not(is_a_splitting(S1,S2,n)):
+    n = len(S1) + len(S2) + 1
+    if not is_a_splitting(S1,S2,n):
         raise TypeError("%s, %s must be a splitting of %s."%(S1,S2,n))
     q = F.order()
     k = Mod(q,n).multiplicative_order()
@@ -783,20 +796,20 @@ def DuadicCodeOddPair(F,S1,S2):
 
         sage: from sage.coding.code_constructions import is_a_splitting
         sage: n = 11; q = 3
-        sage: C = cyclotomic_cosets(q,n); C
+        sage: C = Zmod(n).cyclotomic_cosets(q); C
         [[0], [1, 3, 4, 5, 9], [2, 6, 7, 8, 10]]
         sage: S1 = C[1]
         sage: S2 = C[2]
         sage: is_a_splitting(S1,S2,11)
-        (True, 2)
+        True
         sage: codes.DuadicCodeOddPair(GF(q),S1,S2)
         (Linear code of length 11, dimension 6 over Finite Field of size 3,
          Linear code of length 11, dimension 6 over Finite Field of size 3)
 
     This is consistent with Theorem 6.1.3 in [HP]_.
     """
-    n = max(S1+S2)+1
-    if not(is_a_splitting(S1,S2,n)):
+    n = len(S1) + len(S2) + 1
+    if not is_a_splitting(S1,S2,n):
         raise TypeError("%s, %s must be a splitting of %s."%(S1,S2,n))
     q = F.order()
     k = Mod(q,n).multiplicative_order()
@@ -1075,9 +1088,9 @@ def QuadraticResidueCodeEvenPair(n,F):
     """
     Quadratic residue codes of a given odd prime length and base ring
     either don't exist at all or occur as 4-tuples - a pair of
-    "odd-like" codes and a pair of "even-like" codes. If n 2 is prime
-    then (Theorem 6.6.2 in [HP]_) a QR code exists over GF(q) iff q is a
-    quadratic residue mod n.
+    "odd-like" codes and a pair of "even-like" codes. If `n > 2` is prime
+    then (Theorem 6.6.2 in [HP]_) a QR code exists over `GF(q)` iff q is a
+    quadratic residue mod `n`.
 
     They are constructed as "even-like" duadic codes associated the
     splitting (Q,N) mod n, where Q is the set of non-zero quadratic
@@ -1094,10 +1107,9 @@ def QuadraticResidueCodeEvenPair(n,F):
         sage: codes.QuadraticResidueCodeEvenPair(13,GF(9,"z"))
         (Linear code of length 13, dimension 6 over Finite Field in z of size 3^2,
          Linear code of length 13, dimension 6 over Finite Field in z of size 3^2)
-        sage: C1 = codes.QuadraticResidueCodeEvenPair(7,GF(2))[0]
+        sage: C1,C2 = codes.QuadraticResidueCodeEvenPair(7,GF(2))
         sage: C1.is_self_orthogonal()
         True
-        sage: C2 = codes.QuadraticResidueCodeEvenPair(7,GF(2))[1]
         sage: C2.is_self_orthogonal()
         True
         sage: C3 = codes.QuadraticResidueCodeOddPair(17,GF(2))[0]
@@ -1106,16 +1118,35 @@ def QuadraticResidueCodeEvenPair(n,F):
         True
 
     This is consistent with Theorem 6.6.9 and Exercise 365 in [HP]_.
-    """
-    q = F.order()
-    Q = quadratic_residues(n); Q.remove(0)  # non-zero quad residues
-    N = range(1,n); tmp = [N.remove(x) for x in Q]  # non-zero quad non-residues
-    if (n.is_prime() and n>2 and not(q in Q)):
-        raise ValueError("No quadratic residue code exists for these parameters.")
-    if not(is_a_splitting(Q,N,n)):
-        raise TypeError("No quadratic residue code exists for these parameters.")
-    return DuadicCodeEvenPair(F,Q,N)
 
+    TESTS::
+
+        sage: codes.QuadraticResidueCodeEvenPair(14,Zmod(4))
+        Traceback (most recent call last):
+        ...
+        ValueError: the argument F must be a finite field
+        sage: codes.QuadraticResidueCodeEvenPair(14,GF(2))
+        Traceback (most recent call last):
+        ...
+        ValueError: the argument n must be an odd prime
+        sage: codes.QuadraticResidueCodeEvenPair(5,GF(2))
+        Traceback (most recent call last):
+        ...
+        ValueError: the order of the finite field must be a quadratic residue modulo n
+    """
+    from sage.misc.misc import srange
+    from sage.categories.finite_fields import FiniteFields
+    if F not in FiniteFields():
+        raise ValueError("the argument F must be a finite field")
+    q = F.order()
+    n = Integer(n)
+    if n <= 2 or not n.is_prime():
+        raise ValueError("the argument n must be an odd prime")
+    Q = quadratic_residues(n); Q.remove(0)       # non-zero quad residues
+    N = [x for x in srange(1,n) if x not in Q]   # non-zero quad non-residues
+    if q not in Q:
+        raise ValueError("the order of the finite field must be a quadratic residue modulo n")
+    return DuadicCodeEvenPair(F,Q,N)
 
 def QuadraticResidueCodeOddPair(n,F):
     """
@@ -1157,17 +1188,27 @@ def QuadraticResidueCodeOddPair(n,F):
         True
 
     This is consistent with Theorem 6.6.14 in [HP]_.
-    """
-    from sage.coding.code_constructions import is_a_splitting
-    q = F.order()
-    Q = quadratic_residues(n); Q.remove(0)  # non-zero quad residues
-    N = range(1,n); tmp = [N.remove(x) for x in Q]  # non-zero quad non-residues
-    if (n.is_prime() and n>2 and not(q in Q)):
-        raise ValueError("No quadratic residue code exists for these parameters.")
-    if not(is_a_splitting(Q,N,n)):
-        raise TypeError("No quadratic residue code exists for these parameters.")
-    return DuadicCodeOddPair(F,Q,N)
 
+    TESTS::
+
+        sage: codes.QuadraticResidueCodeOddPair(9,GF(2))
+        Traceback (most recent call last):
+        ...
+        ValueError: the argument n must be an odd prime
+    """
+    from sage.misc.misc import srange
+    from sage.categories.finite_fields import FiniteFields
+    if F not in FiniteFields():
+        raise ValueError("the argument F must be a finite field")
+    q = F.order()
+    n = Integer(n)
+    if n <= 2 or not n.is_prime():
+        raise ValueError("the argument n must be an odd prime")
+    Q = quadratic_residues(n); Q.remove(0)       # non-zero quad residues
+    N = [x for x in srange(1,n) if x not in Q]   # non-zero quad non-residues
+    if q not in Q:
+        raise ValueError("the order of the finite field must be a quadratic residue modulo n")
+    return DuadicCodeOddPair(F,Q,N)
 
 def RandomLinearCode(n,k,F):
     r"""

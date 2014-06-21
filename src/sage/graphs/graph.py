@@ -3888,7 +3888,7 @@ class Graph(GenericGraph):
         try:
             p.solve(log = verbose)
             b = p.get_values(b)
-            mapping = dict(map(lambda y:y[0],filter(lambda x:x[1], b.items())))
+            mapping = dict(x[0] for x in b.items() if x[1])
             return mapping
 
         except MIPSolverException:

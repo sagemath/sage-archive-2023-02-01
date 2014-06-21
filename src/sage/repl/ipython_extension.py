@@ -351,10 +351,11 @@ class SageCustomizations(object):
         """
         Set the exit hook to cleanly exit Sage.
         """
-        def quit(shell):
+        def quit():
             import sage.all
             sage.all.quit_sage(self.shell.verbose_quit)
-        self.shell.set_hook('shutdown_hook', quit)
+        import atexit
+        atexit.register(quit)
 
     def init_environment(self):
         """

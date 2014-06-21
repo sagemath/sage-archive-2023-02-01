@@ -356,3 +356,144 @@ def ToleranceGraph(tolrep):
     g.set_vertices(rep)
 
     return g
+
+def OrthogonalArrayBlockGraph(k,n,OA=None):
+    r"""
+    Returns the graph of an `OA(k,n)`.
+
+    The intersection graph of the blocks of a transversal design with parameters
+    `(k,n)`, or `TD(k,n)` for short, is a strongly regular graph (unless it is a
+    complete graph). Its parameters `(v,k',\lambda,\mu)` are determined by the
+    parameters `k,n` via:
+
+    .. MATH::
+
+        v=n^2, k'=k(n-1), \lambda=(k-1)(k-2)+n-2, \mu=k(k-1)
+
+    As transversal designs and orthogonal arrays (OA for short) are equivalent
+    objects, this graph can also be built from the blocks of an `OA(k,n)`, two
+    of them being adjacent if one of their coordinates match.
+
+    For more information on these graphs, see `Andries Brouwer's page
+    on Orthogonal Array graphs <www.win.tue.nl/~aeb/graphs/OA.html>`_.
+
+    .. WARNING::
+
+        - Brouwer's website uses the notation `OA(n,k)` instead of `OA(k,n)`
+
+        - For given parameters `k` and `n` there can be many `OA(k,n)` : the
+          graphs returned are not uniquely defined by their parameters (see the
+          examples below).
+
+        - If the function is called only with the parameter ``k`` and ``n`` the
+          results might be different with two versions of Sage, or even worse :
+          some could not be available anymore.
+
+    .. SEEALSO::
+
+        :mod:`sage.combinat.designs.orthogonal_arrays`
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    - ``OA`` -- An orthogonal array. If set to ``None`` (default) then
+      :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array` is
+      called to compute an `OA(k,n)`.
+
+    EXAMPLES::
+
+        sage: G = graphs.OrthogonalArrayBlockGraph(5,5); G
+        OA(5,5): Graph on 25 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (25, 20, 15, 20)
+        sage: G = graphs.OrthogonalArrayBlockGraph(4,10); G
+        OA(4,10): Graph on 100 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (100, 36, 14, 12)
+
+    Two graphs built from different orthogonal arrays are also different::
+
+        sage: k=4;n=10
+        sage: OAa = designs.orthogonal_array(k,n)
+        sage: OAb = [[(x+1)%n for x in R] for R in OAa]
+        sage: set(map(tuple,OAa)) == set(map(tuple,OAb))
+        False
+        sage: Ga = graphs.OrthogonalArrayBlockGraph(k,n,OAa)
+        sage: Gb = graphs.OrthogonalArrayBlockGraph(k,n,OAb)
+        sage: Ga == Gb
+        False
+
+    As ``OAb`` was obtained from ``OAa`` by a relabelling the two graphs are
+    isomorphic::
+
+        sage: Ga.is_isomorphic(Gb)
+        True
+
+    But there are examples of `OA(k,n)` for which the resulting graphs are not
+    isomorphic::
+
+        sage: oa0 = [[0, 0, 1], [0, 1, 3], [0, 2, 0], [0, 3, 2],
+        ....:        [1, 0, 3], [1, 1, 1], [1, 2, 2], [1, 3, 0],
+        ....:        [2, 0, 0], [2, 1, 2], [2, 2, 1], [2, 3, 3],
+        ....:        [3, 0, 2], [3, 1, 0], [3, 2, 3], [3, 3, 1]]
+        sage: oa1 = [[0, 0, 1], [0, 1, 0], [0, 2, 3], [0, 3, 2],
+        ....:        [1, 0, 3], [1, 1, 2], [1, 2, 0], [1, 3, 1],
+        ....:        [2, 0, 0], [2, 1, 1], [2, 2, 2], [2, 3, 3],
+        ....:        [3, 0, 2], [3, 1, 3], [3, 2, 1], [3, 3, 0]]
+        sage: g0 = graphs.OrthogonalArrayBlockGraph(3,4,oa0)
+        sage: g1 = graphs.OrthogonalArrayBlockGraph(3,4,oa1)
+        sage: g0.is_isomorphic(g1)
+        False
+
+    But nevertheless isospectral::
+
+        sage: g0.spectrum()
+        [9, 1, 1, 1, 1, 1, 1, 1, 1, 1, -3, -3, -3, -3, -3, -3]
+        sage: g1.spectrum()
+        [9, 1, 1, 1, 1, 1, 1, 1, 1, 1, -3, -3, -3, -3, -3, -3]
+
+    Note that the graph ``g0`` is actually isomorphic to the affine polar graph
+    `VO^+(4,2)`::
+
+        sage: graphs.AffineOrthogonalPolarGraph(4,2,'+').is_isomorphic(g0)
+        True
+
+    TESTS::
+
+        sage: G = graphs.OrthogonalArrayBlockGraph(4,6)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build an OA(4,6)!
+        sage: G = graphs.OrthogonalArrayBlockGraph(8,2)
+        Traceback (most recent call last):
+        ...
+        ValueError: There is no OA(8,2). Beware, Brouwer's website uses OA(n,k) instead of OA(k,n) !
+    """
+    if n>1 and k>=n+2:
+        raise ValueError("There is no OA({},{}). Beware, Brouwer's website uses OA(n,k) instead of OA(k,n) !".format(k,n))
+
+    from itertools import combinations
+
+    if OA is None:
+        from sage.combinat.designs.orthogonal_arrays import orthogonal_array
+        OA = orthogonal_array(k,n)
+    else:
+        assert len(OA) == n**2
+        assert n == 0 or k == len(OA[0])
+
+    OA = map(tuple,OA)
+
+    d = [[[] for j in range(n)] for i in range(k)]
+    for R in OA:
+        for i,x in enumerate(R):
+            d[i][x].append(R)
+
+    g = Graph()
+    for l in d:
+        for ll in l:
+            g.add_edges(combinations(ll,2))
+
+    g.name("OA({},{})".format(k,n))
+
+    return g

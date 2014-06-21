@@ -68,7 +68,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     This particular game has 3 Nash equilibrium ::
 
-        sage: g.obtain_Nash()
+        sage: g.obtain_Nash() # optional
         [[[1.0, 0.0, 0.0], [1.0, 0.0]],
          [[0.8, 0.2, 0.0], [0.6666666667, 0.3333333333]],
          [[0.0, 0.3333333333, 0.6666666667], [0.3333333333, 0.6666666667]]]
@@ -84,7 +84,7 @@ class NormalFormGame(SageObject, MutableMapping):
         ....:             [3, 4, 1],
         ....:             [4, 1, 2]])
         sage: g=NormalFormGame([A, B])
-        sage: g.obtain_Nash()
+        sage: g.obtain_Nash() # optional
         [[[0.0, 0.0, 0.75, 0.25], [0.0357142857, 0.9642857143, 0.0]]]
 
     One can also input a single matrix and then a zero sum game is constructed.
@@ -96,7 +96,7 @@ class NormalFormGame(SageObject, MutableMapping):
         ....:             [-1, 1, -1, 0, 1],
         ....:             [1, -1, 1, -1, 0]])
         sage: g = NormalFormGame(A, 'zero-sum')
-        sage: g.obtain_Nash()
+        sage: g.obtain_Nash() # optional
         [[[0.2, 0.2, 0.2, 0.2, 0.2], [0.2, 0.2, 0.2, 0.2, 0.2]]]
 
     Here is a slightly longer game.
@@ -126,7 +126,7 @@ class NormalFormGame(SageObject, MutableMapping):
     sage: A = matrix([[min(i,j) + 2 * sign(j-i)  for j in range(2, K+1)]  for i in range(2, K+1)])
     sage: B = matrix([[min(i,j) + 2 * sign(i-j)  for j in range(2, K+1)]  for i in range(2, K+1)])
     sage: g = NormalFormGame([A, B])
-    sage: g.obtain_Nash()
+    sage: g.obtain_Nash() # optional
     [[[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
       [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]]
 
@@ -185,7 +185,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: threegame[1, 1, 1][0] = 2
             sage: threegame[1, 1, 1][1] = 6
             sage: threegame[1, 1, 1][2] = 4
-            sage: threegame.obtain_Nash()
+            sage: threegame.obtain_Nash() # optional
             Traceback (most recent call last):
             ...
             NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms
@@ -373,9 +373,9 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [3, 4, 1],
             ....:             [4, 1, 2]])
             sage: g=NormalFormGame([A, B])
-            sage: g.obtain_Nash(algorithm='lrs')
+            sage: g.obtain_Nash(algorithm='lrs') # optional
             [([0, 0, 3/4, 1/4], [1/28, 27/28, 0])]
-            sage: g.obtain_Nash(algorithm='lrs', maximization=False)
+            sage: g.obtain_Nash(algorithm='lrs', maximization=False) # optional
             [([1, 0, 0, 0], [127/1212, 115/1212, 485/606]), ([0, 1, 0, 0], [0, 1/26, 25/26])]
 
         This particular game has 3 Nash equilibria. ::
@@ -387,7 +387,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [2,6],
             ....:             [3,1]])
             sage: g = NormalFormGame([A, B])
-            sage: g.obtain_Nash(maximization=False)
+            sage: g.obtain_Nash(maximization=False) # optional
             [[[1.0, 0.0, 0.0], [0.0, 1.0]]]
 
         2 random matrices. ::
@@ -403,9 +403,9 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:                   [1, -1, 3, -3, 2],
             ....:                   [8, -4, 1, 1, -17]])
             sage: fivegame = NormalFormGame([player1, player2])
-            sage: fivegame.obtain_Nash()
+            sage: fivegame.obtain_Nash() # optional
             [[[1.0, 0.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0, 0.0]]]
-            sage: fivegame.obtain_Nash(algorithm='lrs')
+            sage: fivegame.obtain_Nash(algorithm='lrs') # optional
             [([1, 0, 0, 0, 0], [0, 1, 0, 0, 0])]
 
         """
@@ -458,7 +458,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: a = matrix([[1, 0], [1/3, 4]])
             sage: b = matrix([[2.5, 3], [-0.75, 4]])
             sage: c = NormalFormGame([a, b])
-            sage: c._solve_LCP(maximization=True)
+            sage: c._solve_LCP(maximization=True) # optional
             [[[0.0, 1.0], [0.0, 1.0]]]
         """
         from gambit import Game
@@ -493,7 +493,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[1, 2], [3, 4]])
             sage: B = matrix([[3, 3], [1, 4]])
             sage: C = NormalFormGame([A, B])
-            sage: C._solve_lrs(A, B)
+            sage: C._solve_lrs(A, B) # optional
             [([0, 1], [0, 1])]
 
         2 random matrices. ::
@@ -509,7 +509,7 @@ class NormalFormGame(SageObject, MutableMapping):
         ....:              [1, 0, 1, 0, 0,],
         ....:              [1, -3, 1, 21, -2]])
         sage: biggame = NormalFormGame([p1, p2])
-        sage: biggame._solve_lrs(p1, p2)
+        sage: biggame._solve_lrs(p1, p2) # optional
         [([0, 0, 0, 20/21, 1/21], [11/12, 0, 0, 1/12, 0]), ([0, 0, 0, 1, 0], [9/10, 0, 1/10, 0, 0])]
         """
 

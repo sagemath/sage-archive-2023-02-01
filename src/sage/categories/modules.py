@@ -14,7 +14,7 @@ Modules
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from sage.categories.category import HomCategory
+from sage.categories.homsets import HomsetsCategory
 from category import Category, JoinCategory
 from category_types import Category_module, Category_over_base_ring
 from tensor import TensorProductsCategory
@@ -406,8 +406,8 @@ class Modules(Category_module):
 
         def extra_super_categories(self):
             """
-            Implements the fact that a finite dimensional module
-            over a finite ring is finite.
+            Implement the fact that a finite dimensional module over a finite
+            ring is finite.
 
             EXAMPLES::
 
@@ -464,7 +464,7 @@ class Modules(Category_module):
             return get_coercion_model().bin_op(left, right, operator.mul)
 
 
-    class HomCategory(HomCategory):
+    class Homsets(HomsetsCategory):
         r"""
         The category of homomorphism sets `\hom(X,Y)` for `X`, `Y` modules.
         """
@@ -473,10 +473,10 @@ class Modules(Category_module):
             """
             EXAMPLES::
 
-                sage: Modules(ZZ).hom_category().extra_super_categories()
+                sage: Modules(ZZ).Homsets().extra_super_categories()
                 [Category of modules over Integer Ring]
             """
-            return [Modules(self.base_category.base_ring())]
+            return [Modules(self.base_category().base_ring())]
 
         class ParentMethods:
 
@@ -536,7 +536,7 @@ class Modules(Category_module):
                 from sage.misc.constant_function import ConstantFunction
                 return self(ConstantFunction(self.codomain().zero()))
 
-    class EndCategory(HomCategory):
+    class EndCategory:#(HomsetsCategory): TODO: handle systematically endomorphism categories
         """
         The category of endomorphism sets `End(X)` for `X` module (this is
         not used yet)

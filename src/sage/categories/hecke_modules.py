@@ -11,7 +11,7 @@ Hecke modules
 #******************************************************************************
 
 from sage.categories.category_types import Category_module
-from sage.categories.category import HomCategory
+from sage.categories.homsets import HomsetsCategory
 from sage.categories.modules_with_basis import ModulesWithBasis
 
 class HeckeModules(Category_module):
@@ -146,13 +146,13 @@ class HeckeModules(Category_module):
             from sage.modular.hecke.homspace import HeckeModuleHomspace
             return HeckeModuleHomspace(self, Y, category = category)
 
-    class HomCategory(HomCategory):
-        def extra_super_categories(self):
+    class Homsets(HomsetsCategory):
+        def extra_super_categories_disabled(self):
             """
             EXAMPLES::
 
-                sage: HeckeModules(ZZ).hom_category().extra_super_categories()
-                []
+                sage: HeckeModules(ZZ).Homsets().extra_super_categories()
+                [Category of sets]
             """
             return [] # FIXME: what category structure is there on Homsets of hecke modules?
 
@@ -161,10 +161,10 @@ class HeckeModules(Category_module):
             """
             EXAMPLES::
 
-                sage: HeckeModules(QQ).hom_category().base_ring()
+                sage: HeckeModules(QQ).Homsets().base_ring()
                 Rational Field
             """
-            return self.base().base_ring()
+            return self.base_category().base_ring()
 
         class ParentMethods:
             pass

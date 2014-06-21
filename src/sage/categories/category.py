@@ -98,9 +98,10 @@ A parent ``P`` is in a category ``C`` if ``P.category()`` is a subcategory of
 import inspect
 from warnings import warn
 from sage.misc.abstract_method import abstract_method, abstract_methods_of_class
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.c3_controlled import C3_sorted_merge, category_sort_key, _cmp_key, _cmp_key_named
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.lazy_import import lazy_import
 from sage.misc.unknown import Unknown
 from sage.misc.weak_dict import WeakValueDictionary
 
@@ -138,8 +139,9 @@ class Category(UniqueRepresentation, SageObject):
     - Operations on the category itself (what is its super categories?
       its category of morphisms? its dual category?).
     - Generic operations on parents in this category, like the ring `\QQ[x]`.
-    - Generic operations on elements of this ring (e. g., the Euclidean
-      algorithm for computing gcds).
+    - Generic operations on elements of such parents (e. g., the
+      Euclidean algorithm for computing gcds).
+    - Generic operations on morphisms of this category.
 
     This is achieved as follows::
 
@@ -153,22 +155,31 @@ class Category(UniqueRepresentation, SageObject):
         ....:          pass
         ....:
         ....:     class ParentMethods: # holds the generic operations on parents
-        ....:          # find a good example of operation
+        ....:          # TODO: find a good example of operation
         ....:          pass
         ....:
         ....:     class ElementMethods:# holds the generic operations on elements
         ....:          def gcd(x,y):
         ....:              # Euclid algorithms
         ....:              pass
+        ....:
+        ....:     class MorphismMethods: # holds the generic operations on morphisms
+        ....:          # TODO: find a good example of operation
+        ....:          pass
+        ....:
 
-    Note that the ``EuclideanDomains.ParentMethods`` and ``.Element`` class
-    above do not inherit from anything. They are merely containers of
-    operations. The hierarchy between the different categories is defined once
-    at the level of the categories. Behind the scene, a parallel hierarchy of
-    classes is built automatically from all the ``.ParentMethods``
-    classes. Then, a parent in a category receives the appropriate operations
-    from all the super categories by usual class inheritance. Similarly, a
-    third hierarchy of classes is built for elements from the ``.Elements``.
+    Note that the nested class ``ParentMethods`` is merely container
+    of operations, and does not inherit from anything. Instead, the
+    hierarchy relation is defined once at the level of the categories,
+    and the actual hierarchy of classes is built in parallel from all
+    the ``ParentMethods`` nested classes, and stored in the attributes
+    ``parent_class``. Then, a parent in a category ``C`` receives the
+    appropriate operations from all the super categories by usual
+    class inheritance from ``C.parent_class``.
+
+    Similarly, two other hierarchies of classes, for elements and
+    morphisms respectively, are built from all the ``ElementsMethods``
+    and ``MorphismMethods`` nested classes
 
     EXAMPLES:
 
@@ -1270,7 +1281,7 @@ class Category(UniqueRepresentation, SageObject):
         semigroup morphism::
 
             sage: Semigroups().Finite().full_super_categories()
-            [Category of Semigroups]
+            [Category of semigroups]
 
         On the other hand a semigroup morphism between two monoids is
         not necessarily a monoid morphism (which must map the unit to
@@ -1279,7 +1290,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: Monoids().super_categories()
             [Category of semigroups, Category of unital magmas]
             sage: Monoids().full_super_categories()
-            []
+            [Category of unital magmas]
         """
         return [C for C in self.super_categories()
                 if self.is_full_subcategory(C)]
@@ -1552,8 +1563,18 @@ class Category(UniqueRepresentation, SageObject):
 
     @lazy_attribute
     def parent_class(self):
-        """
-        A common super class for all parents in this category.
+        r"""
+        A common super class for all parents in this category (and its
+        subcategories)..
+
+        This class contains the methods defined in the nested class
+        ``self.ParentMethods`` (if it exists), and has as bases the
+        parent classes of the super categories of ``self``.
+
+        .. SEEALSO::
+
+            - :meth:`element_class`, :meth:`morphism_class`
+            - :class:`Category` for details
 
         EXAMPLES::
 
@@ -1587,8 +1608,18 @@ class Category(UniqueRepresentation, SageObject):
 
     @lazy_attribute
     def element_class(self):
-        """
-        A common super class for all elements of parents in this category.
+        r"""
+        A common super class for all elements of parents in this category
+        (and its subcategories).
+
+        This class contains the methods defined in the nested class
+        ``self.ElementMethods`` (if it exists), and has as bases the
+        element classes of the super categories of ``self``.
+
+        .. SEEALSO::
+
+            - :meth:`parent_class`, :meth:`morphism_class`
+            - :class:`Category` for details
 
         EXAMPLES::
 
@@ -1613,6 +1644,97 @@ class Category(UniqueRepresentation, SageObject):
         .. SEEALSO:: :meth:`parent_class`
         """
         return self._make_named_class('element_class', 'ElementMethods')
+
+    @lazy_attribute
+    def morphism_class(self):
+        r"""
+        A common super class for all morphisms between parents in this
+        category (and its subcategories).
+
+        This class contains the methods defined in the nested class
+        ``self.MorphismMethods`` (if it exists), and has as bases the
+        morphims classes of the super categories of ``self``.
+
+        .. SEEALSO::
+
+            - :meth:`parent_class`, :meth:`element_class`
+            - :class:`Category` for details
+
+        EXAMPLES::
+
+            sage: C = Algebras(QQ).morphism_class; C
+            <class 'sage.categories.algebras.Algebras.morphism_class'>
+            sage: type(C)
+            <class 'sage.structure.dynamic_class.DynamicMetaclass'>
+        """
+        return self._make_named_class('morphism_class', 'MorphismMethods')
+
+    @lazy_attribute
+    def homsets_element_class(self):
+        """
+        A common super class for elements of homsets in this category.
+
+        This is the same as ``self.Homsets().element_class`` (see
+        :meth:`Objects.SubcategoryMethodsHomsets`,
+        :meth:`Category.element_class`), except that this class also
+        inherits from ``self.morphism_class``. This makes it possible
+        for a category to provide code for its morphisms and for
+        morphisms of all its subcategories, full or not.
+
+        .. TODO::
+
+            Decide on the precedence between the two classes. At this
+            point, ... the morphism classes take precedence over the
+            super homset element classes which is not quite
+            consistent.
+
+        EXAMPLES::
+
+            sage: C = Monoids().Finite().Commutative()
+            sage: cls = C.homsets_element_class; cls
+            <class 'sage.categories.homsets.JoinCategory.homset_element_class'>
+            sage: type(cls)
+            <class 'sage.structure.dynamic_class.DynamicMetaclass'>
+            sage: cls.__bases__ == (C.Homsets().element_class, C.morphism_class)
+            True
+
+        A morphism of finite commutative semigroups is also a morphism
+        of semigroups, of magmas, ...; it thus inherits code from all
+        those categories::
+
+            sage: issubclass(cls, Semigroups().Finite().morphism_class)
+            True
+            sage: issubclass(cls, Semigroups().morphism_class)
+            True
+            sage: issubclass(cls, Magmas().Commutative().morphism_class)
+            True
+            sage: issubclass(cls, Magmas().morphism_class)
+            True
+            sage: issubclass(cls, Sets().morphism_class)
+            True
+
+        Recall that FiniteMonoids() is a full subcategory of
+        ``Monoids()``, but not of ``FiniteSemigroups()``. Thus::
+
+            sage: issubclass(cls, Monoids().Finite().Homsets().element_class)
+            True
+            sage: issubclass(cls, Semigroups().Finite().Homsets().element_class)
+            False
+
+            sage: cls.mro()
+            [<class 'sage.categories.homsets.JoinCategory.homset_element_class'>,
+             <class 'sage.categories.homsets.Homsets.element_class'>,
+             <class 'sage.categories.sets_cat.Sets.element_class'>,
+             <class 'sage.categories.sets_with_partial_maps.SetsWithPartialMaps.element_class'>,
+             <class 'sage.categories.objects.Objects.element_class'>, <class 'sage.categories.category.JoinCategory.morphism_class'>, <class 'sage.categories.finite_monoids.FiniteMonoids.morphism_class'>, <class 'sage.categories.monoids.Monoids.morphism_class'>, <class 'sage.categories.finite_semigroups.FiniteSemigroups.morphism_class'>, <class 'sage.categories.semigroups.Semigroups.morphism_class'>, <class 'sage.categories.magmas.Magmas.Commutative.morphism_class'>, <class 'sage.categories.magmas.Magmas.Unital.morphism_class'>, <class 'sage.categories.magmas.Magmas.morphism_class'>, <class 'sage.categories.finite_enumerated_sets.FiniteEnumeratedSets.morphism_class'>, <class 'sage.categories.enumerated_sets.EnumeratedSets.morphism_class'>, <class 'sage.categories.finite_sets.FiniteSets.morphism_class'>, <class 'sage.categories.sets_cat.Sets.morphism_class'>, <class 'sage.categories.sets_with_partial_maps.SetsWithPartialMaps.morphism_class'>, <class 'sage.categories.objects.Objects.morphism_class'>, <type 'object'>]
+        """
+        # TODO: flatten the base classes where they come from join categories.
+        cls = self.__class__
+        if isinstance(cls, DynamicMetaclass):
+            cls = cls.__base__
+        class_name = "%s.%s"%(cls.__name__, "homset_element_class")
+        return dynamic_class(class_name, (self.Homsets().element_class, self.morphism_class))
+
 
     def required_methods(self):
         """
@@ -2453,30 +2575,6 @@ class Category(UniqueRepresentation, SageObject):
         from objects import Objects
         return Objects()
 
-    @cached_method
-    def hom_category(self):
-        """
-        Returns the category for homsets between objects this category.
-
-        A category which needs to give specific information about this
-        category should provide a HomCategory class.
-
-        To avoid generating billions of categories, if there is
-        nothing specific for homsets of this category, then this just
-        returns the join of the categories of homsets of the super
-        categories.
-
-        EXAMPLES::
-
-            sage: Sets().hom_category()
-            Category of hom sets in Category of sets
-
-        """
-        try:
-            return self.HomCategory(self)
-        except AttributeError:
-            return Category.join((category.hom_category() for category in self._super_categories))
-
     def example(self, *args, **keywords):
         """
         Returns an object in this category. Most of the time, this is a parent.
@@ -2571,7 +2669,7 @@ def category_sample():
          Category of weyl groups,...
     """
     import sage.categories.all
-    abstract_classes_for_categories = [Category, HomCategory]
+    abstract_classes_for_categories = [Category]
     return tuple(cls.an_instance()
                  for cls in sage.categories.all.__dict__.values()
                  if isinstance(cls, type) and issubclass(cls, Category) and cls not in abstract_classes_for_categories)
@@ -2621,95 +2719,7 @@ def category_graph(categories = None):
                 g.add_edge([source._repr_object_names(), target._repr_object_names()])
     return g
 
-#############################################################
-# Homsets categories
-#############################################################
-
-class HomCategory(Category):
-    """
-    An abstract base class for all categories of homsets
-
-    .. todo::
-
-        Get a consistent hierarchy of homset categories. Currently, it
-        is built in parallel to that of their base categories (which
-        is plain wrong!!!)
-
-    """
-    def __init__(self, category, name=None):
-        """
-        Initializes this HomCategory
-
-        INPUT:
-         - ``category`` -- the category whose Homsets are the objects of this category.
-         - ``name`` -- An optional name for this category.
-
-        EXAMPLES:
-
-        We need to skip one test, since the hierarchy of hom categories isn't
-        consistent yet::
-
-            sage: C = sage.categories.category.HomCategory(Rings()); C
-            Category of hom sets in Category of rings
-            sage: TestSuite(C).run(skip=['_test_category_graph'])
-        """
-        self.base_category = category
-        Category.__init__(self, name)
-
-    def _repr_object_names(self): # improve?
-        """
-        Print representation.
-
-        EXAMPLES::
-
-            sage: Sets().hom_category() #indirect doctest
-            Category of hom sets in Category of sets
-        """
-        return "hom sets in %s"%self.base_category
-
-    @cached_method
-    def base(self):
-        """
-        If this hom-category is subcategory of a category with a base, return that base.
-
-        EXAMPLES::
-
-            sage: ModulesWithBasis(ZZ).hom_category().base()
-            Integer Ring
-
-        """
-        from sage.categories.category_types import Category_over_base
-        for C in self._all_super_categories_proper:
-            if isinstance(C,Category_over_base):
-                return C.base()
-        raise AttributeError("This hom category has no base")
-
-    def super_categories(self):
-        """
-        Returns the immediate super categories, as per :meth:`Category.super_categories`.
-
-        EXAMPLES::
-
-            sage: HomCategory(Sets()).super_categories()
-            [Category of hom sets in Category of sets with partial maps]
-        """
-        return Category.join(self.extra_super_categories() +
-                             [category.hom_category()
-                              for category in self.base_category._super_categories],
-                             as_list=True)
-    @cached_method
-    def extra_super_categories(self):
-        """
-        The super categories of self that are not derived from the
-        inheritance diagram of the base category, as a list.
-
-        EXAMPLES::
-
-            sage: HomCategory(Sets()).extra_super_categories()
-            []
-        """
-        return []
-
+lazy_import('sage.categories.homsets', 'Homsets', 'HomCategory', deprecation=10668)
 
 ##############################################################################
 # Parametrized categories whose parent/element class depend only on
@@ -2763,6 +2773,8 @@ class CategoryWithParameters(Category):
         - ``method_provider`` -- a string; the name of an attribute of
           ``self`` that provides methods for the new class (in
           addition to what comes from the super categories)
+        - ``**options`` -- other named options to pass down to
+          :meth:`Category._make_named_class`, which see.
 
         ASSUMPTION:
 

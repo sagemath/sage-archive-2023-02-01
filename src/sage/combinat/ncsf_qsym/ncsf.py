@@ -268,7 +268,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
           From: NCSF in the Complete basis
           To:   NCSF in the Elementary basis
         sage: f.category()
-        Category of hom sets in Category of modules with basis over Rational Field
+        Category of homsets of modules with basis over Rational Field
         sage: f(elementary[1,2,2])
         S[1, 1, 1, 1, 1] - S[1, 1, 1, 2] - S[1, 2, 1, 1] + S[1, 2, 2]
         sage: g(complete[1,2,2])
@@ -1698,7 +1698,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
                     2*Psi[] + 3*Psi[1, 1, 3, 3, 2, 2] + Psi[2, 2, 4, 4]
                     sage: f.category()
-                    Join of Category of hom sets in Category of modules with basis over Rational Field and Category of hom sets in Category of rings
+                    Category of homsets of unital magmas and right modules over Rational Field and left modules over Rational Field
 
                 When extra properties about the morphism are known, one
                 can specify the category of which it is a morphism::
@@ -1710,7 +1710,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
                     2*Psi[] - 3*Psi[1, 3, 2] + Psi[2, 4]
                     sage: f.category()
-                    Join of Category of hom sets in Category of modules with basis over Rational Field and Category of hom sets in Category of rings
+                    Category of homsets of hopf algebras over Rational Field and graded modules over Rational Field
 
                 If ``anti`` is true, this returns an anti-algebra morphism::
 

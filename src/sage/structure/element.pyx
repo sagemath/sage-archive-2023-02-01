@@ -341,7 +341,7 @@ cdef class Element(sage_object.SageObject):
             dummy_error_message.cls = type(self)
             dummy_error_message.name = name
             raise dummy_attribute_error
-        return getattr_from_other_class(self, P._category.element_class, name)
+        return getattr_from_other_class(self, P._abstract_element_class, name)
 
     def __dir__(self):
         """

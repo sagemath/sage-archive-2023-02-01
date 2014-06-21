@@ -252,7 +252,7 @@ def Hom(X, Y, category=None, check=True):
         sage: Hom(PA,PJ)
         Set of Homomorphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'>
         sage: Hom(PA,PJ).category()
-        Join of Category of hom sets in Category of modules over Rational Field and Category of hom sets in Category of rings
+        Category of homsets of unital magmas and right modules over Rational Field and left modules over Rational Field
         sage: Hom(PA,PJ, Rngs())
         Set of Morphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'> in Category of rngs
 
@@ -545,7 +545,7 @@ class Homset(Set_generic):
             sage: H = MyHomset(X, Y, category=1, base = ZZ, check = False)
             Traceback (most recent call last):
             ...
-            AttributeError: 'sage.rings.integer.Integer' object has no attribute 'hom_category'
+            AttributeError: 'sage.rings.integer.Integer' object has no attribute 'Homsets'
             sage: P.<t> = ZZ[]
             sage: f = P.hom([1/2*t])
             sage: f.parent().domain()
@@ -586,11 +586,11 @@ class Homset(Set_generic):
             # The above is a lame but fast check that category is a
             # subcategory of Modules(...). That will do until
             # CategoryObject.base_ring will be gone and not prevent
-            # anymore from putting one in Modules.HomCategory.ParentMethods.
+            # anymore from implementing base_ring in Modules.Homsets.ParentMethods.
             # See also #15801.
             base = X.base_ring()
 
-        Parent.__init__(self, base = base, category = category.hom_category())
+        Parent.__init__(self, base = base, category = category.Homsets())
 
     def __reduce__(self):
         """
@@ -880,6 +880,41 @@ class Homset(Set_generic):
             return self.element_class_set_morphism(self, x)
 
         raise TypeError("Unable to coerce x (=%s) to a morphism in %s"%(x,self))
+
+    @lazy_attribute
+    def _abstract_element_class(self):
+        """
+        An abstract class for the elements of this homset.
+
+        This class is built from the element class of the homset
+        category and the morphism class of the category.
+
+        .. TODO::
+
+            - Decide in which order those two classes should be
+            - Find a better name
+            - Factor this out in ``C.homset_element_class`` or
+              something similar to benefit from class sharing?
+
+        .. SEEALSO::
+
+            - :meth:`Parent._abstract_element_class`
+
+        EXAMPLES::
+
+            sage: S = Monoids().example()
+            sage: H=Hom(S, S)
+            sage: H.homset_category()
+            Category of monoids
+            sage: H.category()
+            Category of homsets of unital magmas
+            sage: H._abstract_element_class
+            <class 'sage.categories.homsets.Monoids.homset_element_class'>
+            sage: H._abstract_element_class.__bases__
+            (<class 'sage.categories.homsets.Homsets.element_class'>,
+             <class 'sage.categories.monoids.Monoids.morphism_class'>)
+        """
+        return self.homset_category().homsets_element_class
 
     @lazy_attribute
     def element_class_set_morphism(self):

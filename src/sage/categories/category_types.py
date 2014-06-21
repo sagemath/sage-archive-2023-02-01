@@ -18,6 +18,8 @@ from sage.misc.latex import latex
 from sage.misc.unknown import Unknown
 from category import JoinCategory, Category, CategoryWithParameters
 from objects import Objects
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.categories.objects', 'Objects')
 
 ####################################################################
 #   Different types of categories

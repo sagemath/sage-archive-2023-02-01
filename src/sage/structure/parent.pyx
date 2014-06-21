@@ -578,6 +578,28 @@ cdef class Parent(category_object.CategoryObject):
             while issubclass(self.__class__, Sets_parent_class):
                 self.__class__ = self.__class__.__base__
 
+    @lazy_attribute
+    def _abstract_element_class(self):
+        """
+        An abstract class for the elements of this parent.
+
+        By default, this is the element class provided by the category
+        of the parent.
+
+        .. SEEALSO::
+
+            - :meth:`sage.categories.homset.Homset._abstract_element_class`
+            - :meth:`element_class`
+            - :meth:`Element.__getattr__`
+
+        EXAMPLES::
+
+            sage: S = Semigroups().example()
+            sage: S.category()
+            sage: S._abstract_element_class
+        """
+        return self.category().element_class
+
     # This probably should go into Sets().Parent
     @lazy_attribute
     def element_class(self):
@@ -609,7 +631,7 @@ cdef class Parent(category_object.CategoryObject):
         if inherit is None:
             inherit = not is_extension_type(cls)
         if inherit:
-            return dynamic_class(name, (cls, self.category().element_class))
+            return dynamic_class(name, (cls, self._abstract_element_class))
         else:
             return cls
 

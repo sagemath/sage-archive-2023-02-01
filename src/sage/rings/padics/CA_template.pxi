@@ -1186,7 +1186,7 @@ cdef class pAdicConvert_CA_ZZ(RingMap):
             sage: f = ZpCA(5).coerce_map_from(ZZ).section(); type(f)
             <type 'sage.rings.padics.padic_capped_absolute_element.pAdicConvert_CA_ZZ'>
             sage: f.category()
-            Category of hom sets in Category of sets
+            Category of homsets of sets
         """
         if R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
             RingMap.__init__(self, Hom(R, ZZ, SetsWithPartialMaps()))

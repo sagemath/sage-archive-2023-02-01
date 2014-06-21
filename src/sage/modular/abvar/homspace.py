@@ -740,7 +740,7 @@ class EndomorphismSubring(Homspace, Ring):
             sage: type(E)
             <class 'sage.modular.abvar.homspace.EndomorphismSubring_with_category'>
             sage: E.category()
-            Join of Category of rings and Category of hom sets in Category of sets
+            Join of Category of rings and Category of homsets of modular abelian varieties over Rational Field
             sage: E.homset_category()
             Category of modular abelian varieties over Rational Field
             sage: TestSuite(E).run(skip=["_test_prod"])

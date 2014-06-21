@@ -36,7 +36,7 @@ class Function_sin(GinacFunction):
 
             sage: conjugate(sin(x))
             sin(conjugate(x))
-            sage: sin(complex(1,1))     # rel tol 1e-12
+            sage: sin(complex(1,1))     # rel tol 1e-15
             (1.2984575814159773+0.6349639147847361j)
 
         """
@@ -76,7 +76,7 @@ class Function_cos(GinacFunction):
 
             sage: conjugate(cos(x))
             cos(conjugate(x))
-            sage: cos(complex(1,1))     # rel tol 1e-12
+            sage: cos(complex(1,1))     # rel tol 1e-15
             (0.8337300251311491-0.9888977057628651j)
 
         """
@@ -120,7 +120,7 @@ class Function_tan(GinacFunction):
 
             sage: conjugate(tan(x))
             tan(conjugate(x))
-            sage: tan(complex(1,1))     # rel tol 1e-12
+            sage: tan(complex(1,1))     # rel tol 1e-15
             (0.2717525853195118+1.0839233273386946j)
 
         """
@@ -176,7 +176,7 @@ class Function_sec(BuiltinFunction):
 
         Test complex input::
 
-            sage: sec(complex(1,1))     # rel tol 1e-12
+            sage: sec(complex(1,1))     # rel tol 1e-15
             (0.49833703055518686+0.5910838417210451j)
 
         """
@@ -275,7 +275,7 @@ class Function_csc(BuiltinFunction):
 
         Test complex input::
 
-            sage: csc(complex(1,1))     # rel tol 1e-12
+            sage: csc(complex(1,1))     # rel tol 1e-15
             (0.6215180171704284-0.30393100162842646j)
 
         """
@@ -403,7 +403,7 @@ class Function_cot(BuiltinFunction):
 
         Test complex input::
 
-            sage: cot(complex(1,1))     # rel tol 1e-12
+            sage: cot(complex(1,1))     # rel tol 1e-15
             (0.21762156185440273-0.8680141428959249j)
 
         """
@@ -636,7 +636,7 @@ class Function_arccot(BuiltinFunction):
 
         Test complex input::
 
-            sage: arccot(complex(1,1))  # rel tol 1e-12
+            sage: arccot(complex(1,1))  # rel tol 1e-15
             (0.5535743588970452-0.4023594781085251j)
 
         """
@@ -718,7 +718,7 @@ class Function_arccsc(BuiltinFunction):
 
         Test complex input::
 
-            sage: arccsc(complex(1,1))  # rel tol 1e-12
+            sage: arccsc(complex(1,1))  # rel tol 1e-15
             (0.45227844715119064-0.5306375309525178j)
 
         """
@@ -794,7 +794,7 @@ class Function_arcsec(BuiltinFunction):
 
         Test complex input::
 
-            sage: arcsec(complex(1,1))  # rel tol 1e-12
+            sage: arcsec(complex(1,1))  # rel tol 1e-15
             (1.118517879643706+0.5306375309525178j)
 
         """

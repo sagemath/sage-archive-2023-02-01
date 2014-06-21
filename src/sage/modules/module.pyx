@@ -153,6 +153,56 @@ cdef class Module(sage.structure.parent.Parent):
             category = Modules(base)
         Parent.__init__(self, base=base, category=category)
 
+    cpdef _coerce_map_from_(self, M):
+        """
+        Return a coercion map from `M` to ``self``, or None.
+
+        The implementation of this method in module classes should
+        observe the following guidelines:
+
+        1. We want to relate two different *ambient* modules if and
+           only if they have the same rank (which is the same as
+           degree) and if there is a coercion of the base rings.
+
+        2. Two modules embedded in other modules that have a coercion
+           may inherit a coercion if they are in fact sub-modules of
+           one another.
+
+        3. Since different embeddings of one abstract module are
+           related by non-identical coerce maps (in 2.), we must not
+           have coercion from a sub-module to the corresponding
+           abstract module, for otherwise non-commuting coercion
+           triangles emerge.
+
+        4. Quotient modules must not coerce unless their modulus `W`
+           is the same. There must not be forgetful maps.
+
+        5. Coerce maps for quotient modules are already registered on
+           construction.
+
+        TESTS:
+
+        Make sure :trac:`3638` is fixed::
+
+            sage: vector(ZZ,[1,2,11])==vector(Zmod(8),[1,2,3])
+            True
+
+        AUTHORS:
+
+        - Simon King (2010-12)
+
+        - Peter Bruin (June 2014)
+
+        """
+        try:
+            if (is_Module(M)
+                and self.base_ring().has_coerce_map_from(M.base_ring())
+                and M.change_ring(self.base_ring()).is_submodule(self)):
+                return M.hom([self._element_constructor_(x) for x in M.gens()], self)
+        except (TypeError, NotImplementedError, AttributeError, ArithmeticError):
+            pass
+        return None
+
     def endomorphism_ring(self):
         """
         Return the endomorphism ring of this module in its category.

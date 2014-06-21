@@ -138,7 +138,9 @@ AUTHORS:
 
 - Simon King (2010-12):
   Trac #8800: Fixing a bug in ``denominator()``.
-  Trac #...: New coercion model and category framework.
+
+- Simon King (2010-12), Peter Bruin (June 2014):
+  Trac #10513: New coercion model and category framework.
 
 """
 
@@ -896,66 +898,6 @@ done from the right side.""")
             return self.gen(0)
         except ValueError:
             return self(0)
-
-    def _coerce_map_from_(self,M):
-        """
-
-        TESTS:
-
-        Make sure ticket #3638 is fixed::
-
-            sage: vector(ZZ,[1,2,11])==vector(Zmod(8),[1,2,3])
-            True
-
-        Make sure ticket #10513 is fixed (an abstract module and
-        an isomorphic quotient module are not related by a coercion)::
-
-            sage: M = QQ^3 / [[1,2,3]]
-            sage: V = QQ^2
-            sage: M.coerce_map_from(V)
-            sage: V.coerce_map_from(M)
-
-
-        """
-        if not is_FreeModule(M):
-            return None
-        # 1. We want to relate two different *ambient* modules,
-        #    if they have the same rank (which is the same as degree)
-        #    and if there is a coercion of the base rings.
-        # 2. Two modules embedded in other modules that have a
-        #    coercion may inherit a coercion if they are in fact
-        #    sub-modules of one another.
-        # 3. Since different embeddings of one abstract module
-        #    are related by non-identic coerce maps (in 2.), we
-        #    must not have forgetfol coercion from a sub-module
-        #    to the corresponding abstract module, for otherwise
-        #    non-commuting coercion triangles emerge.
-        # 4. Quotient modules must not coerce unless
-        #    their modulus W() is the same. There must not be
-        #    forgetful maps.
-        # 5. Coerce embeddings of sub-modules and quotient maps
-        #    of quotient modues are alreay registered.
-
-        if self.is_ambient():
-            if M.is_ambient() and self.base_ring().has_coerce_map_from(M.base_ring()) and self.rank()==M.rank():
-                from sage.modules.quotient_module import FreeModule_ambient_field_quotient
-                if isinstance(self,FreeModule_ambient_field_quotient):
-                    if not (isinstance(M,FreeModule_ambient_field_quotient) and self.W()==M.W()):
-                        # No map between different quotients.
-                        # No map from quotient to abstract module.
-                        return None
-                elif isinstance(M,FreeModule_ambient_field_quotient):
-                    # No forgetful map.
-                    return None
-                return M.hom(self.basis(),self)
-        else:
-            if M.is_ambient():
-                return None
-            if self.ambient_module().has_coerce_map_from(M.ambient_module()):
-                A = self.ambient_vector_space()
-                Abasis = [A(x) for x in M.basis()]
-                if all([x in self for x in Abasis]):
-                    return M.hom([self._element_constructor_(x) for x in Abasis], self)
 
     def _element_constructor_(self, x, coerce=True, copy=True, check=True):
         r"""
@@ -4124,6 +4066,30 @@ class FreeModule_ambient(FreeModule_generic):
             # reconstruction (unpickle), and the above fields haven't been
             # filled in yet.
             return 0
+
+    def _coerce_map_from_(self, M):
+        """
+        Return a coercion map from `M` to ``self``, or None.
+
+        TESTS:
+
+        Make sure :trac:`10513` is fixed (no coercion from a quotient
+        vector space to an isomorphic abstract vector space)::
+
+            sage: M = QQ^3 / [[1,2,3]]
+            sage: V = QQ^2
+            sage: V.coerce_map_from(M)
+
+        """
+        if isinstance(M, FreeModule_ambient):
+            from sage.modules.quotient_module import FreeModule_ambient_field_quotient
+            if isinstance(M, FreeModule_ambient_field_quotient):
+                # No forgetful map.
+                return None
+            elif (self.base_ring().has_coerce_map_from(M.base_ring())
+                  and self.rank() == M.rank()):
+                return M.hom(self.basis(), self)
+        return super(FreeModule_ambient, self)._coerce_map_from_(M)
 
     def _dense_module(self):
         """

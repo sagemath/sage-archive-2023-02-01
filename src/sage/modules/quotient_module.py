@@ -259,6 +259,46 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             return self.__quo_map(self.__domain(x))
         return FreeModule_ambient_field._element_constructor_(self, x)
 
+    def _coerce_map_from_(self, M):
+        """
+        Return a coercion map from `M` to ``self``, or None.
+
+        EXAMPLES::
+
+            sage: V = QQ^2 / [[1, 2]]
+            sage: V.coerce_map_from(ZZ^2)
+            Free module morphism defined by the matrix
+            [   1]
+            [-1/2]
+            Domain: Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            Codomain: Vector space quotient V/W of dimension 1 over Rational Field where
+            V: Vector space of dimension 2 over Rational Field
+            W: Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 2]
+
+        Make sure :trac:`10513` is fixed (no coercion from an abstract
+        vector space to an isomorphic quotient vector space)::
+
+            sage: V = QQ^3 / [[1,2,3]]
+            sage: V.coerce_map_from(QQ^2)
+
+        """
+        from sage.modules.free_module import FreeModule_ambient
+        if (isinstance(M, FreeModule_ambient)
+            and not (isinstance(M, FreeModule_ambient_field_quotient)
+                     and self.W() == M.W())):
+            # No map between different quotients.
+            # No map from quotient to abstract module.
+            return None
+        f = super(FreeModule_ambient_field, self)._coerce_map_from_(M)
+        if f is not None:
+            return f
+        f = self.__domain.coerce_map_from(M)
+        if f is not None:
+            return self.__quo_map * f
+        return None
+
     def quotient_map(self):
         """
         Given this quotient space $Q = V/W$, return the natural quotient map from V to Q.

@@ -43,7 +43,8 @@ class CooperativeGame(SageObject):
     The type of game that is currently implemented is referred to as a
     Characteristic function game. This is a game on a set of players
     `\Omega` that is defined by a value function `v : C \to \RR` where
-    `C = 2^{\Omega}` is set of all coalitions of players. Let `N := |\Omega|`.
+    `C = 2^{\Omega}` is the set of all coalitions of players.
+    Let `N := |\Omega|`.
     An example of such a game is shown below:
 
     .. MATH::

@@ -240,7 +240,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
         try:
             return self.__matrix_space
         except AttributeError:
-            R = self.domain().base_ring()
+            R = self.codomain().base_ring()
             M = matrix.MatrixSpace(R, self.domain().rank(), self.codomain().rank())
             self.__matrix_space = M
             return M

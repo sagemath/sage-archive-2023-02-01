@@ -158,18 +158,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
-# python imports
-
-
-# Sage imports
 import free_module_element
-
-import module
-
 import sage.matrix.matrix_space
-
 import sage.misc.latex as latex
-
+from sage.modules.module import Module
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.field as field
@@ -188,7 +180,6 @@ from sage.categories.commutative_rings import CommutativeRings
 from sage.misc.randstate import current_randstate
 from sage.structure.sequence import Sequence
 
-from sage.structure.parent_gens import ParentWithGens
 from sage.misc.cachefunc import cached_method
 
 from warnings import warn
@@ -650,43 +641,63 @@ def is_FreeModule(M):
     """
     return isinstance(M, FreeModule_generic)
 
-class FreeModule_generic(module.Module_old):
+class FreeModule_generic(Module):
     """
     Base class for all free modules.
     """
-    def __init__(self, base_ring, rank, degree, sparse=False):
+    def __init__(self, base_ring, rank, degree, sparse=False, category=None):
         """
         Create the free module of given rank over the given base_ring.
 
         INPUT:
 
+        - ``base_ring`` -- a commutative ring
 
-        -  ``base_ring`` - a commutative ring
+        - ``rank`` -- a non-negative integer
 
-        -  ``rank`` - a non-negative integer
+        - ``degree`` -- a non-negative integer
 
-        -  ``degree`` - a non-negative integer
+        - ``sparse`` -- bool (default: False)
 
-        -  ``sparse`` - bool (default: False)
+        - ``category`` -- category (default: None)
 
+        If ``base_ring`` is a field, then the default category is the
+        category of vector spaces over that field; otherwise it is the
+        category of free modules over that ring.  In addition, the
+        category is intersected with the category of finite enumerated
+        sets if the ring is finite or the rank is 0.
 
         EXAMPLES::
 
             sage: PolynomialRing(QQ,3,'x')^3
             Ambient free module of rank 3 over the integral domain Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
 
-        If ``base_ring`` is a field, then the constructed module is in
-        the category of vector spaces over that field; otherwise it is
-        in the category of all free modules over that ring::
-
             sage: FreeModule(GF(7),3).category()
-            Category of vector spaces over Finite Field of size 7
+            Join of Category of vector spaces over Finite Field of size 7 and Category of finite enumerated sets
             sage: V = QQ^4; V.category()
             Category of vector spaces over Rational Field
             sage: V = GF(5)**20; V.category()
-            Category of vector spaces over Finite Field of size 5
+            Join of Category of vector spaces over Finite Field of size 5 and Category of finite enumerated sets
             sage: FreeModule(ZZ,3).category()
             Category of modules with basis over Integer Ring
+            sage: (QQ^0).category()
+            Join of Category of vector spaces over Rational Field and Category of finite enumerated sets
+
+        TESTS::
+
+            sage: M = FreeModule(ZZ,20,sparse=False)
+            sage: x = M.random_element()
+            sage: type(x)
+            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+            sage: M.element_class
+            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+
+            sage: N = FreeModule(ZZ,20,sparse=True)
+            sage: y = N.random_element()
+            sage: type(y)
+            <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+            sage: N.element_class
+            <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
 
         """
         if not base_ring.is_commutative():
@@ -696,26 +707,38 @@ of left/right and both sided modules, so be careful.
 It's also not guaranteed that all multiplications are
 done from the right side.""")
 
-        self.Element = element_class(base_ring, sparse)
+        if not hasattr(self, 'Element'):
+            self.Element = element_class(base_ring, sparse)
+
         rank = sage.rings.integer.Integer(rank)
         if rank < 0:
             raise ValueError("rank (=%s) must be nonnegative"%rank)
         degree = sage.rings.integer.Integer(degree)
         if degree < 0:
             raise ValueError("degree (=%s) must be nonnegative"%degree)
-        from sage.categories.all import Fields, FreeModules, VectorSpaces
-        if base_ring in Fields():
-            category = VectorSpaces(base_ring)
-        else:
-            category = FreeModules(base_ring)
 
-        ParentWithGens.__init__(self, base_ring, category = category)     # names aren't used anywhere.
+        if category is None:
+            from sage.categories.all import Fields, FreeModules, VectorSpaces
+            if base_ring in Fields():
+                category = VectorSpaces(base_ring)
+            else:
+                category = FreeModules(base_ring)
+            try:
+                if base_ring.is_finite() or rank == 0:
+                    # Put the module in the category of finite enumerated
+                    # sets, which magically gives us a list() method.
+                    from sage.categories.category import Category
+                    from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+                    category = Category.join((category, FiniteEnumeratedSets()))
+            except NotImplementedError:
+                pass
+
+        super(FreeModule_generic, self).__init__(base_ring, category=category)
         self.__uses_ambient_inner_product = True
         self.__rank = rank
         self.__degree = degree
         self.__is_sparse = sparse
         self._gram_matrix = None
-        # initialise the element class
 
     def construction(self):
         """
@@ -853,59 +876,26 @@ done from the right side.""")
         A = self.ambient_module().sparse_module()
         return A.span(self.basis())
 
-    def _an_element_impl(self):
+    def _an_element_(self):
         """
         Returns an arbitrary element of a free module.
 
         EXAMPLES::
 
             sage: V = VectorSpace(QQ,2)
-            sage: V._an_element_impl()
+            sage: V._an_element_()
             (1, 0)
             sage: U = V.submodule([[1,0]])
-            sage: U._an_element_impl()
+            sage: U._an_element_()
             (1, 0)
             sage: W = V.submodule([])
-            sage: W._an_element_impl()
+            sage: W._an_element_()
             (0, 0)
         """
         try:
             return self.gen(0)
         except ValueError:
             return self(0)
-
-    ######
-    ## Coercion (implemented by Simon King, 2010-12)
-
-    def _element_class(self):
-        """
-        The class of elements for this free module.
-
-        EXAMPLES::
-
-            sage: M = FreeModule(ZZ,20,sparse=False)
-            sage: x = M.random_element()
-            sage: type(x)
-            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
-            sage: M._element_class()
-            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
-
-        This method is also used to implement the defaul ``element_class`` lazy argument
-        (trac ticket #10513)::
-
-            sage: M.element_class
-            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
-
-        ::
-
-            sage: N = FreeModule(ZZ,20,sparse=True)
-            sage: y = N.random_element()
-            sage: type(y)
-            <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
-            sage: N._element_class()
-            <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
-        """
-        return element_class(self.base_ring(), self.is_sparse())
 
     def _coerce_map_from_(self,M):
         """
@@ -1054,6 +1044,20 @@ done from the right side.""")
             sage: M.is_submodule(N)
             True
 
+            sage: M = FreeModule(ZZ,2)
+            sage: M.is_submodule(M)
+            True
+            sage: N = M.scale(2)
+            sage: N.is_submodule(M)
+            True
+            sage: M.is_submodule(N)
+            False
+            sage: N = M.scale(1/2)
+            sage: N.is_submodule(M)
+            False
+            sage: M.is_submodule(N)
+            True
+
         Since basis() is not implemented in general, submodule testing does
         not work for all PID's. However, trivial cases are already used
         (and useful) for coercion, e.g.
@@ -1077,71 +1081,19 @@ done from the right side.""")
             pass
         if other.rank() < self.rank():
             return False
-        if self.base_ring() != other.base_ring():
+        R = self.base_ring()
+        S = other.base_ring()
+        if R != S:
             try:
-                if not self.base_ring().is_subring(other.base_ring()):
+                if not R.is_subring(S):
                     return False
             except NotImplementedError:
                 return False
-        for b in self.basis():
-            if not (b in other):
-                return False
-        return True
-
-    def __contains__(self, v):
-        r"""
-        EXAMPLES:
-
-        We create the module `\ZZ^3`, and the submodule
-        generated by one vector `(1,1,0)`, and check whether
-        certain elements are in the submodule.
-
-        ::
-
-            sage: R = FreeModule(ZZ, 3)
-            sage: V = R.submodule([R.gen(0) + R.gen(1)])
-            sage: R.gen(0) + R.gen(1) in V
-            True
-            sage: R.gen(0) + 2*R.gen(1) in V
-            False
-
-        ::
-
-            sage: w = (1/2)*(R.gen(0) + R.gen(1))
-            sage: w
-            (1/2, 1/2, 0)
-            sage: w.parent()
-            Vector space of dimension 3 over Rational Field
-            sage: w in V
-            False
-            sage: V.coordinates(w)
-            [1/2]
-        """
-        if not isinstance(v, free_module_element.FreeModuleElement):
-            return False
-        if v.parent() is self:
-            return True
         try:
-            #c = self.coordinates(v,check=False)
-            # We *must* have check=True for submodules! Otherwise,
-            # it would not be tested whether v
-            # really belongs to self (self could be
-            # a sub-module)!
-            c = self.coordinates(v, check=not self.is_ambient())
-        except (ArithmeticError, TypeError):
+            M = other.basis_matrix().solve_left(self.basis_matrix())
+        except ValueError:
             return False
-        # Finally, check that each coordinate lies in the base ring.
-        R = self.base_ring()
-        if not self.base_ring().is_field():
-            for a in c:
-                try:
-                    b = R(a)
-                except (TypeError, ValueError):
-                    return False
-                except NotImplementedError:
-                    from sage.rings.all import ZZ
-                    print "bad " + str((R, R.element_constructor, R is ZZ, type(R)))
-        return True
+        return all(x in S for x in M.list())
 
     def __iter__(self):
         """
@@ -1276,6 +1228,17 @@ done from the right side.""")
             ]
         """
         raise NotImplementedError
+
+    def gens(self):
+        """
+        Return a tuple of basis elements of ``self``.
+
+        EXAMPLES::
+
+            sage: FreeModule(Integers(12),3).gens()
+            ((1, 0, 0), (0, 1, 0), (0, 0, 1))
+        """
+        return tuple(self.basis())
 
     def basis_matrix(self):
         """
@@ -2474,45 +2437,6 @@ class FreeModule_generic_pid(FreeModule_generic):
         K = K.matrix_from_columns(range(n))
         B = K*A1
         return B.row_module(self.base_ring())
-
-    def is_submodule(self, other):
-        """
-        True if this module is a submodule of other.
-
-        EXAMPLES::
-
-            sage: M = FreeModule(ZZ,2)
-            sage: M.is_submodule(M)
-            True
-            sage: N = M.scale(2)
-            sage: N.is_submodule(M)
-            True
-            sage: M.is_submodule(N)
-            False
-            sage: N = M.scale(1/2)
-            sage: N.is_submodule(M)
-            False
-            sage: M.is_submodule(N)
-            True
-        """
-        if not isinstance(other, FreeModule_generic):
-            return False
-        if self.ambient_vector_space() != other.ambient_vector_space():
-            return False
-        if other == other.ambient_vector_space():
-            return True
-        if other.rank() < self.rank():
-            return False
-        if self.base_ring() != other.base_ring():
-            try:
-                if not self.base_ring().is_subring(other.base_ring()):
-                    return False
-            except NotImplementedError:
-                return False
-        for b in self.basis():
-            if not (b in other):
-                return False
-        return True
 
     def zero_submodule(self):
         """
@@ -4312,18 +4236,35 @@ class FreeModule_ambient(FreeModule_generic):
             sage: A < V
             False
 
-        Comparison with a quotient module (see trac ticket #10513)::
+        Comparison with a quotient module (see :trac:`10513`)::
 
             sage: M = QQ^3 / [[1,2,3]]
             sage: V = QQ^2
-            sage: V==M
+            sage: V == M
             False
-            sage: M==V
+            sage: M == V
             False
-            sage: V<M
+
+        We create the module `\\ZZ^3`, and the submodule generated by
+        one vector `(1,1,0)`, and check whether certain elements are
+        in the submodule::
+
+            sage: R = FreeModule(ZZ, 3)
+            sage: V = R.submodule([R.gen(0) + R.gen(1)])
+            sage: R.gen(0) + R.gen(1) in V
             True
-            sage: M<V
+            sage: R.gen(0) + 2*R.gen(1) in V
             False
+
+            sage: w = (1/2)*(R.gen(0) + R.gen(1))
+            sage: w
+            (1/2, 1/2, 0)
+            sage: w.parent()
+            Vector space of dimension 3 over Rational Field
+            sage: w in V
+            False
+            sage: V.coordinates(w)
+            [1/2]
 
         """
         if self is other:
@@ -4856,14 +4797,13 @@ class FreeModule_ambient_domain(FreeModule_ambient):
         """
         # Calling the element constructor directly, since the
         # usual call method indirectly relies on coordinate_vector,
-        # hence, an infiniite recursion would result
+        # hence, an infinite recursion would result
         try:
             out = self.ambient_vector_space()._element_constructor_(v)
         except TypeError:
-            raise ArithmeticError, "Error transforming the given vector into the ambient vector space"
-        if check:
-            if out not in self:
-                raise ArithmeticError, "The given vector does not belong to this free module"
+            raise ArithmeticError("Error transforming the given vector into the ambient vector space")
+        if check and out not in self:
+            raise ArithmeticError("The given vector does not belong to this free module")
         return out
 
     def vector_space(self, base_field=None):
@@ -5061,7 +5001,7 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
         """
         return self.base_ring()
 
-    def _element_constructor_(self, e, coerce=True, copy=True, check=True):
+    def _element_constructor_(self, e, *args, **kwds):
         """
         Create an element of this vector space.
 
@@ -5078,7 +5018,7 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
                 return self(e._vector_())
         except AttributeError:
             pass
-        return FreeModule_generic_field._element_constructor_(self,e)
+        return FreeModule_generic_field._element_constructor_(self, e, *args, **kwds)
 
 ###############################################################################
 #
@@ -5207,17 +5147,6 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if check and len(basis) != len(self.__echelonized_basis):
             raise ValueError("The given basis vectors must be linearly "
                              "independent.")
-        # register the embedding as coerce embedding,
-        # provided that we really have a submodule
-        try:
-            # directly call the element constructor, since
-            # otherwise coercion is prematurely invoked.
-            images = [ambient._element_constructor(x) for x in self.gens()]
-        except TypeError:
-            return
-        embedding = self.hom(images,ambient,check=False)
-        #self._unset_coercions_used()
-        self._populate_coercion_lists_(embedding=embedding)
 
     def __hash__(self):
         """
@@ -5887,16 +5816,14 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def change_ring(self, R):
         """
-        Return the free module over R obtained by coercing each element of
-        self into a vector over the fraction field of R, then taking the
-        resulting R-module. Raises a TypeError if coercion is not
-        possible.
+        Return the free module over `R` obtained by coercing each
+        element of ``self`` into a vector over the fraction field of
+        `R`, then taking the resulting R-module. raise a ``TypeError``
+        if coercion is not possible.
 
         INPUT:
 
-
         -  ``R`` - a principal ideal domain
-
 
         EXAMPLES::
 
@@ -5911,7 +5838,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             return self
         K = R.fraction_field()
         V = VectorSpace(K, self.degree())
-        B = [V(b) for b in self.basis()]
+        B = [V._element_constructor_(b) for b in self.basis()]
         M = FreeModule(R, self.degree())
         if self.has_user_basis():
             return M.span_of_basis(B)

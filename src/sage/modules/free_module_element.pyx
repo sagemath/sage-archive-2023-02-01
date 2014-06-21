@@ -1402,7 +1402,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         P = self.parent()
         if P.base_ring() is R:
             return self
-        return P.change_ring(R)(self)
+        v = [R(x) for x in self]
+        return P.change_ring(R)._element_constructor_(v)
 
     def additive_order(self):
         """
@@ -3553,7 +3554,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
             sage: v = vector([-1,0,3,pi])
             sage: type(v)
-            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+            <class 'sage.modules.vector_symbolic_dense.FreeModule_ambient_field_with_category.element_class'>
             sage: v._hash()   # random output
         """
         return hash(tuple(list(self)))
@@ -3566,7 +3567,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
             sage: v = vector([-1,0,3,pi])
             sage: type(v)
-            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+            <class 'sage.modules.vector_symbolic_dense.FreeModule_ambient_field_with_category.element_class'>
             sage: v.__copy__()
             (-1, 0, 3, pi)
             sage: v.__copy__() is v
@@ -3586,7 +3587,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         EXAMPLES::
 
             sage: type(vector([-1,0,3,pi]))   # indirect doctest
-            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+            <class 'sage.modules.vector_symbolic_dense.FreeModule_ambient_field_with_category.element_class'>
 
         TESTS:
 
@@ -3631,7 +3632,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
                     coefficient_ring = parent.basis()[0][0].parent()
                     try:
                         entries = [coefficient_ring(x) for x in entries]
-                    except TypeError:
+                    except (TypeError, ValueError):
                         raise TypeError("Unable to coerce entries (=%s) to coefficients in %s"%(entries, coefficient_ring))
             elif copy:
                 # Make a copy
@@ -3874,7 +3875,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: g
             (2*x, 2*y)
             sage: type(g)
-            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+            <class 'sage.modules.vector_symbolic_dense.FreeModule_ambient_field_with_category.element_class'>
             sage: g(y=2, x=3)
             (6, 4)
             sage: f(x,y) = x^2 + y^2

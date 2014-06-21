@@ -253,18 +253,10 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             (2, 3)
 
         """
-        try:
-            if x.parent() is self:
-                return x
-        except AttributeError:
-            pass
-        try:
-            return self.__quo_map._call_(self.__domain(x))
-        except TypeError:
-            pass
-        # The preparing steps in the default __call__ are
-        # done. Hence, we may call the element constructor
-        # directly
+        if isinstance(x, self.element_class) and x.parent() is self:
+            return x
+        if isinstance(x, (list, tuple)) and len(x) == self.__domain.rank():
+            return self.__quo_map(self.__domain(x))
         return FreeModule_ambient_field._element_constructor_(self, x)
 
     def quotient_map(self):

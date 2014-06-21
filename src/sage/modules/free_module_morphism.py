@@ -82,34 +82,6 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         A = parent._matrix_space()(A)
         matrix_morphism.MatrixMorphism.__init__(self, parent, A)
 
-    def _call_(self, x):
-        """
-        Evaluate this matrix morphism at an element x of the domain.
-
-        EXAMPLES::
-
-            sage: V = QQ^3; W = span([[1,2,3],[-1,2,5/3]], QQ)
-            sage: phi = V.hom(matrix(QQ,3,[1..9]))
-
-        We compute the image of some elements::
-
-            sage: phi(V.0)    #indirect doctest
-            (1, 2, 3)
-            sage: phi(V.1)
-            (4, 5, 6)
-            sage: phi(V.0  - 1/4*V.1)
-            (0, 3/4, 3/2)
-
-        We restrict phi to W and compute the image of an element::
-
-            sage: psi = phi.restrict_domain(W)
-            sage: psi(W.0) == phi(W.0)
-            True
-            sage: psi(W.1) == phi(W.1)
-            True
-        """
-        return matrix_morphism.MatrixMorphism._call_(self, x)
-
     def pushforward(self, x):
         """
         Compute the image of a sub-module of the domain.

@@ -1475,6 +1475,8 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
 
 
     class ElementMethods:
+        ## Should eventually contain the basic operations which are no math
+        ## latex, hash, ...
         ##def equal(x,y):
         ##def =(x,y):
 

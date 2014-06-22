@@ -1381,7 +1381,7 @@ def _plot(funcs, xrange, parametric=False,
         for x,fdata in data:
             try:
                 newdata.append((fdata, g(x)))
-            except ValueError:
+            except (ValueError, TypeError):
                 newdata.append((fdata, 0)) # append a dummy value 0
                 excluded_points.append(x)
         data = newdata

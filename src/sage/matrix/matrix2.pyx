@@ -5348,7 +5348,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: M = matrix(GF(3), [[0,1,1],[1,2,0],[2,0,1]])
             sage: ev = M.eigenvalues(); ev
-            [2*z3 + 2, 2*z3 + 1, 2*z3]
+            [2*z3, 2*z3 + 2, 2*z3 + 1]
 
         Similarly as in the case of QQbar, the eigenvalues belong to some
         algebraic closure but they can be converted to elements of a finite
@@ -5358,12 +5358,10 @@ cdef class Matrix(matrix1.Matrix):
             sage: e.parent()
             Algebraic closure of Finite Field of size 3
             sage: e.as_finite_field_element()
-            (Finite Field in z3 of size 3^3,
-             2*z3 + 2,
-             Ring morphism:
-               From: Finite Field in z3 of size 3^3
-               To:   Algebraic closure of Finite Field of size 3
-               Defn: z3 |--> z3)
+            (Finite Field in z3 of size 3^3, 2*z3, Ring morphism:
+              From: Finite Field in z3 of size 3^3
+              To:   Algebraic closure of Finite Field of size 3
+              Defn: z3 |--> z3)
         """
         x = self.fetch('eigenvalues')
         if x is not None:

@@ -828,84 +828,82 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         return (self(1), self.gen(2), 1+self.gen(3))
 
-
     def _roots_univariate_polynomial(self, p, ring=None, multiplicities=None, algorithm=None):
         r"""
-        Return the roots of the polynomial ``p``.
+        Return a list of pairs ``(root,multiplicity)`` of roots of the polynomial ``p``.
+
+        If the argument ``multiplicities`` is set to ``False`` then return the
+        list of roots.
+
+        .. SEEALSO::
+
+            :meth:`_factor_univariate_polynomial`
 
         EXAMPLES::
 
-            sage: R.<x> = PolynomialRing(GF(3),'x')
-            sage: P = x^7 + 2*x^6 + x^5 + x^4 + 2*x^3 + 2*x^2 + x + 1
-            sage: K = GF(3).algebraic_closure('t')
-            sage: r = P.roots(K)   # indirect doctest
-            sage: sorted(r)
-            [(t7^5 + t7 + 2, 1),
-             (t7^5 + 2*t7 + 2, 1),
-             (t7^5 + 2*t7^3 + t7 + 2, 1),
-             (t7^5 + 2*t7^4 + 2*t7^3 + t7^2 + t7 + 2, 1),
-             (t7^6 + t7^3 + t7 + 1, 1),
-             (t7^6 + 2*t7^4 + 2*t7^3 + 2*t7^2 + 2*t7 + 1, 1),
-             (t7^6 + 2*t7^5 + 2*t7^4 + 2*t7^3 + t7, 1)]
-            sage: all(P(c) == 0 for c,_ in r)
-            True
-            sage: prod((x - c) for c,_ in r) == P
-            True
+            sage: R.<x> = PolynomialRing(GF(5),'x')
+            sage: K = GF(5).algebraic_closure('t')
 
-            sage: K = GF(5).algebraic_closure()
-            sage: R.<T> = PolynomialRing(K, 'T')
-            sage: P = K.gen(4) * T^4 + K.gen(3) * T^3 + K.gen(2) * T^2 + K.gen(1) * T + 1
-            sage: r = P.roots()    # indirect doctest
-            sage: sorted(r)
-            [(2*z36^34 + z36^33 + z36^30 + ... + 2*z36^2 + 4*z36, 1),
-             (z36^34 + z36^33 + z36^32 + ... + 3*z36^3 + z36^2 + 3, 1),
-             (3*z12^11 + 4*z12^10 + 2*z12^9 + ... + 4*z12^2 + 2*z12, 1),
-             (z36^35 + z36^34 + z36^33 + ... + 3*z36^2 + z36 + 4, 1)]
-            sage: all(P(c) == 0 for c,_ in r)
-            True
-            sage: P[4] * prod((T-c) for c,_ in r) == P
-            True
+            sage: sorted((x^6 - 1).roots(K,multiplicities=False))
+            [1, 4, 2*t2 + 1, 2*t2 + 2, 3*t2 + 3, 3*t2 + 4]
+            sage: ((K.gen(2)*x - K.gen(3))**2).roots(K)
+            [(3*t6^5 + 2*t6^4 + 2*t6^2 + 3, 2)]
+
+            sage: for _ in xrange(10):
+            ....:     p = R.random_element(degree=randint(2,8))
+            ....:     for r in p.roots(K, multiplicities=False):
+            ....:         assert p(r).is_zero()
+
         """
         from sage.rings.arith import lcm
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
         # first build a polynomial over some finite field
-        # TODO: ideally we would set the option minimal=True in the following
-        # but it is currently broken
-        coeffs = [v.as_finite_field_element() for v in p.list()]
-        levels = [c[0].degree() for c in coeffs]
-        l = lcm(levels)
+        coeffs = [v.as_finite_field_element(minimal=True) for v in p.list()]
+        l = lcm([c[0].degree() for c in coeffs])
         F,phi = self.subfield(l)
+        P = p.parent().change_ring(F)
+
         new_coeffs = [self.inclusion(c[0].degree(),l)(c[1]) for c in coeffs]
 
-        # then factor it and for each factor add some root by going to a larger
-        # finite field if needed
-        P = PolynomialRing(F, 'x')
-
-        roots = {} # root -> multiplicity
+        roots = []    # a list of pair (root,multiplicity)
         for g,m in P(new_coeffs).factor():
             if g.degree() == 1:
-                r = [phi(-g.constant_coefficient())]
+                r = phi(-g.constant_coefficient())
+                roots.append((r,m))
             else:
-                # TODO: once the coercion between the finite subfields are fixed
-                # this can be done in a more natural way using .change_ring
                 ll = l * g.degree()
                 psi = self.inclusion(l, ll)
                 FF, pphi = self.subfield(ll)
                 gg = PolynomialRing(FF, 'x')(map(psi, g))
-                r = []
-                for ggg,_ in gg.factor():
-                    r.append(pphi(-ggg.constant_coefficient()))
-
-            for c in r:
-                if c not in roots:
-                    roots[c] = 0
-                roots[c] += m
+                for r,_ in gg.roots():  # note: we know that multiplicity is 1
+                    roots.append((pphi(r),m))
 
         if multiplicities:
-            return list(roots.iteritems())
-        return roots.keys()
+            return roots
+        else:
+            return [r[0] for r in roots]
 
+    def _factor_univariate_polynomial(self, p, **kwds):
+        r"""
+        Factorization of univariate polynomials.
+
+        EXAMPLES::
+
+            sage: K = GF(3).algebraic_closure()
+            sage: R = PolynomialRing(K, 'T')
+            sage: T = R.gen()
+            sage: (K.gen(2) * T^2 - 1).factor()
+            (z2) * (T + z4^3 + z4^2 + z4) * (T + 2*z4^3 + 2*z4^2 + 2*z4)
+
+            sage: for d in xrange(10):
+            ....:     p = R.random_element(degree=randint(2,8))
+            ....:     assert p.factor().prod() == p
+
+        """
+        from sage.structure.factorization import Factorization
+        R = p.parent()
+        return Factorization([(R([-root,self.one()]),m) for root,m in p.roots()], unit=p[p.degree()])
 
 class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_generic, WithEqualityById):
     """

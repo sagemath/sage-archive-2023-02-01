@@ -983,9 +983,16 @@ together::
     ....:             return [As().B(), As().C()]
 
     sage: A1s().B().C()
-    Category of b c e f a1s
+    Category of e f a1s
 
-Note that this is a join category::
+The axioms ``B`` and ``C`` do not show up in the name of the obtained
+category because, for concision, the printing uses some heuristics to
+not show axioms that are implied by others. But they are satisfied::
+
+    sage: sorted(A1s().B().C().axioms())
+    ['B', 'C', 'E', 'F']
+
+Note also that this is a join category::
 
     sage: type(A1s().B().C())
     <class 'sage.categories.category.JoinCategory_with_category'>
@@ -1032,7 +1039,9 @@ a2s``, and choose to do so in ``A2s.B.C``::
 
 
     sage: A2s().B().C()
-    Category of b c e f a2s
+    Category of e f a2s
+    sage: sorted(A2s().B().C().axioms())
+    ['B', 'C', 'E', 'F']
     sage: type(A2s().B().C())
     <class '__main__.A2s.B.C_with_category'>
 
@@ -1662,6 +1671,7 @@ all_axioms = ("Flying", "Blue",
               "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",
               "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
               "Distributive",
+              "Endset"
               )
 
 # TODO: Find a faster way to deal with the list of axioms, for instance by
@@ -2263,10 +2273,13 @@ class CategoryWithAxiom(Category):
                 # need not repeat it here. See the example with
                 # Sets().Finite().Subquotients() or Monoids()
                 continue
+            base_category = base_category._with_axiom(axiom)
             if axiom == "WithBasis":
                 result = result.replace(" over ", " with basis over ", 1)
             elif axiom == "Connected" and "graded " in result:
                 result = result.replace("graded ", "graded connected ", 1)
+            elif axiom == "Endset" and "homsets" in result:
+                result = result.replace("homsets ", "endsets ", 1)
             else:
                 result = uncamelcase(axiom) + " " + result
         return result
@@ -2380,6 +2393,7 @@ class CategoryWithAxiom(Category):
         axioms = self.axioms().difference([axiom])
         return self._without_axioms()._with_axioms(axioms)
 
+    @cached_method
     def _without_axioms(self, named=False):
         """
         Return the category without the axioms that have been
@@ -2416,15 +2430,9 @@ class CategoryWithAxiom(Category):
             sage: Algebras(QQ).Commutative()._without_axioms(named=True)
             Category of algebras over Rational Field
         """
-        if named:
-            base_category = self
-            axioms = []
-            while isinstance(base_category, CategoryWithAxiom) and base_category._base_category_class_and_axiom_origin != "hardcoded":
-                axioms.append(base_category._axiom)
-                base_category = base_category._base_category
-            return base_category
-        else:
-            return self._base_category._without_axioms()
+        if named and self._base_category_class_and_axiom_origin == "hardcoded":
+            return self
+        return self._base_category._without_axioms(named=named)
 
     @cached_method
     def axioms(self):
@@ -2442,7 +2450,7 @@ class CategoryWithAxiom(Category):
             frozenset(['Finite'])
 
             sage: C = Modules(GF(5)).FiniteDimensional(); C
-            Category of finite finite dimensional vector spaces over Finite Field of size 5
+            Category of finite dimensional vector spaces over Finite Field of size 5
             sage: sorted(C.axioms())
             ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse',
              'AdditiveUnital', 'Finite', 'FiniteDimensional']

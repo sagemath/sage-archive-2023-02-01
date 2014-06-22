@@ -152,7 +152,7 @@ class HeckeModules(Category_module):
             EXAMPLES::
 
                 sage: HeckeModules(ZZ).Homsets().extra_super_categories()
-                [Category of sets]
+                [Category of homsets]
             """
             return [] # FIXME: what category structure is there on Homsets of hecke modules?
 

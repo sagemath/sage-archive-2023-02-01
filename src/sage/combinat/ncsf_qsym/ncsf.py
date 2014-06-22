@@ -1720,7 +1720,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
                     2*Psi[] + 3*Psi[2, 2, 3, 3, 1, 1] + Psi[4, 4, 2, 2]
                     sage: f.category()
-                    Category of hom sets in Category of modules with basis over Rational Field
+                    Category of homsets of modules with basis over Rational Field
                 """
                 from sage.combinat.ncsf_qsym.generic_basis_code import AlgebraMorphism
                 return AlgebraMorphism(self, on_generators, **keywords)

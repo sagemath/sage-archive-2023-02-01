@@ -861,13 +861,13 @@ class AlgebraicClosureFiniteField_generic(Field):
         # first build a polynomial over some finite field
         coeffs = [v.as_finite_field_element(minimal=True) for v in p.list()]
         l = lcm([c[0].degree() for c in coeffs])
-        F,phi = self.subfield(l)
+        F, phi = self.subfield(l)
         P = p.parent().change_ring(F)
 
-        new_coeffs = [self.inclusion(c[0].degree(),l)(c[1]) for c in coeffs]
+        new_coeffs = [self.inclusion(c[0].degree(), l)(c[1]) for c in coeffs]
 
         roots = []    # a list of pair (root,multiplicity)
-        for g,m in P(new_coeffs).factor():
+        for g, m in P(new_coeffs).factor():
             if g.degree() == 1:
                 r = phi(-g.constant_coefficient())
                 roots.append((r,m))
@@ -876,8 +876,8 @@ class AlgebraicClosureFiniteField_generic(Field):
                 psi = self.inclusion(l, ll)
                 FF, pphi = self.subfield(ll)
                 gg = PolynomialRing(FF, 'x')(map(psi, g))
-                for r,_ in gg.roots():  # note: we know that multiplicity is 1
-                    roots.append((pphi(r),m))
+                for r, _ in gg.roots():  # note: we know that multiplicity is 1
+                    roots.append((pphi(r), m))
 
         if multiplicities:
             return roots
@@ -903,7 +903,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         from sage.structure.factorization import Factorization
         R = p.parent()
-        return Factorization([(R([-root,self.one()]),m) for root,m in p.roots()], unit=p[p.degree()])
+        return Factorization([(R([-root, self.one()]), m) for root, m in p.roots()], unit=p[p.degree()])
 
 class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_generic, WithEqualityById):
     """

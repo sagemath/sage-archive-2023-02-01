@@ -5394,7 +5394,7 @@ cdef class Matrix(matrix1.Matrix):
             raise NotImplementedError("algebraic closure is not implemented for %s"%K)
 
         res = []
-        for f,e in self.charpoly().change_ring(K).factor():
+        for f, e in self.charpoly().change_ring(K).factor():
             if f.degree() == 1:
                 res.extend([-f.constant_coefficient()]*e)
             else:

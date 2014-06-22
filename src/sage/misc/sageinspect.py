@@ -1764,7 +1764,7 @@ def sage_getsourcelines(obj, is_binary=False):
     Here is another example that relies on a nested class definition
     in the background::
 
-        sage: C = Magmas()
+        sage: C = AdditiveMagmas()
         sage: HC = C.Homsets()
         sage: sage_getsourcelines(HC)
         (['    class Homsets(HomsetsCategory):\n', ...], ...)

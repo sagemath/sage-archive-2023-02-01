@@ -99,8 +99,7 @@ class Objects(Category_singleton):
                 See http://trac.sagemath.org/10668 for details.
                 Category of homsets of sets
 
-
-            .. TOPIC:: Background
+            .. NOTE:: Background
 
                 Information, code, documentation, and tests about the
                 category of homsets of a category ``Cs`` should go in
@@ -123,9 +122,10 @@ class Objects(Category_singleton):
                 morphisms of all subcategories of ``Cs``, and not only
                 full subcategories.
 
+
             .. SEEALSO::
 
-                - :class:`~.covariant_functorial_construction.FunctorialConstruction`
+                :class:`~.covariant_functorial_construction.FunctorialConstruction`
 
             .. TODO::
 
@@ -141,7 +141,8 @@ class Objects(Category_singleton):
 
                 - For instances of redundant code due to this missing
                   feature, see:
-                  - :meth:`AdditiveMonoids.Homsets.extra_super_categories
+
+                  - :meth:`AdditiveMonoids.Homsets.extra_super_categories`
                   - :meth:`HomsetsCategory.extra_super_categories`
                     (slightly different nature)
                   - plus plenty of spots where this is not implemented.
@@ -150,10 +151,27 @@ class Objects(Category_singleton):
 
         hom_category = deprecated_function_alias(10668, Homsets)
 
-    class ParentMethods:
-        pass
+        @cached_method
+        def Endsets(self):
+            r"""
+            Return the category of endsets between objects of this category.
 
-    class ElementMethods:
-        ## Will eventually contain the basic operations which are no math
-        ## latex, hash, ...
-        pass
+            EXAMPLES::
+
+                sage: Sets().Endsets()
+                Category of homsets of sets
+
+                sage: Rings().Endsets()
+                Category of homsets of unital magmas and additive unital additive magmas
+
+
+            .. SEEALSO::
+
+                - :meth:`Homsets`
+            """
+            return self.Homsets()._with_axiom("Endset")
+
+    class ParentMethods:
+        """
+        Methods for all category objects
+        """

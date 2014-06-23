@@ -5769,25 +5769,25 @@ class FiniteStateMachine(SageObject):
         """
         transposition = self.empty_copy()
 
-        for state in self.states():
+        for state in self.iter_states():
             transposition.add_state(deepcopy(state))
 
-        for transition in self.transitions():
+        for transition in self.iter_transitions():
             transposition.add_transition(
                 transition.to_state.label(), transition.from_state.label(),
                 transition.word_in, transition.word_out)
 
-        for initial in self.initial_states():
+        for initial in self.iter_initial_states():
             state = transposition.state(initial.label())
             if not initial.is_final:
                 state.is_final = True
                 state.is_initial = False
 
-        for final in self.final_states():
+        for final in self.iter_final_states():
             state = transposition.state(final.label())
             if final.final_word_out:
-                raise NotImplementedError("Transposition for transducers " \
-                                          "with final output words is not " \
+                raise NotImplementedError("Transposition for transducers "
+                                          "with final output words is not "
                                           "implemented.")
             if not final.is_initial:
                 state.is_final = False
@@ -7288,7 +7288,7 @@ class FiniteStateMachine(SageObject):
         if len(self.initial_states()) != 1:
             raise ValueError("A unique initial state is required.")
 
-        if len(self.final_states()) != len(self.states()):
+        if not all(state.is_final for state in self.iter_states()):
             raise ValueError("Not all states are final.")
 
         if not self.is_complete():

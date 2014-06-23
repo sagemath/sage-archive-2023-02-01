@@ -3322,6 +3322,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: factor(f)
             (x - a1) * (x^2 + a1*x + a1^2)
 
+        We check that :trac:`7554` is fixed::
+
+            sage: L.<q> = LaurentPolynomialRing(QQ)
+            sage: F = L.fraction_field()
+            sage: R.<x> = PolynomialRing(F)
+            sage: factor(x)
+            x
+            sage: factor(x^2 - q^2)
+            (-1) * (-x + q) * (x + q)
+            sage: factor(x^2 - q^-2)
+            (1/q^2) * (q*x - 1) * (q*x + 1)
+
+            sage: P.<a,b,c> = PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(FractionField(P))
+            sage: p = (x - a)*(b*x + c)*(a*b*x + a*c) / (a + 2)
+            sage: factor(p)
+            (a/(a + 2)) * (x - a) * (b*x + c)^2
         """
         # PERFORMANCE NOTE:
         #     In many tests with SMALL degree PARI is substantially
@@ -3455,7 +3472,32 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 G = self._pari_with_name().factor()
 
         if G is None:
-            raise NotImplementedError
+            # See if we can do this as a singular polynomial as a fallback
+            # This was copied from the general multivariate implementation
+            try:
+                if R.is_finite():
+                    if R.characteristic() > 1<<29:
+                        raise NotImplementedError("Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
+
+                P = self.parent()
+                P._singular_().set_ring()
+                S = self._singular_().factorize()
+                factors = S[1]
+                exponents = S[2]
+                v = sorted([( P(factors[i+1]),
+                              sage.rings.integer.Integer(exponents[i+1]) ) 
+                            for i in range(len(factors))])
+                unit = P.one()
+                for i in range(len(v)):
+                    if v[i][0].is_unit():
+                        unit = unit * v[i][0]
+                        del v[i]
+                        break
+                F = Factorization(v, unit=unit)
+                F.sort()
+                return F
+            except (TypeError, AttributeError):
+                raise NotImplementedError
 
         return self._factor_pari_helper(G, n)
 

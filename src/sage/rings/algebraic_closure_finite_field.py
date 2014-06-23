@@ -425,14 +425,55 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             sage: s.as_finite_field_element(minimal=True)[0]
             Finite Field of size 3
 
-        """
-        if not minimal:
-            l = self._level
-        else:
-            l = self._value.minpoly().degree()
+        This also works when the element has to be converted between
+        two non-trivial finite subfields (see :trac:`16509`)::
 
-        F, phi = self.parent().subfield(l)
-        return (F, F(self._value), phi)
+            sage: K = GF(5).algebraic_closure()
+            sage: z = K.gen(5) - K.gen(5) + K.gen(2)
+            sage: z.as_finite_field_element(minimal=True)
+            (Finite Field in z2 of size 5^2, z2, Ring morphism:
+               From: Finite Field in z2 of size 5^2
+               To:   Algebraic closure of Finite Field of size 5
+               Defn: z2 |--> z2)
+
+        There is currently no automatic conversion between the various
+        subfields::
+
+            sage: a = K.gen(2) + 1
+            sage: _,b,_ = a.as_finite_field_element()
+            sage: K4 = K.subfield(4)[0]
+            sage: K4(b)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to coerce from a finite field other than the prime
+            subfield
+
+        Nevertheless it is possible to use the inclusions that are implemented at
+        the level of the algebraic closure::
+
+            sage: f = K.inclusion(2,4); f
+            Ring morphism:
+              From: Finite Field in z2 of size 5^2
+              To:   Finite Field in z4 of size 5^4
+              Defn: z2 |--> z4^3 + z4^2 + z4 + 3
+            sage: f(b)
+            z4^3 + z4^2 + z4 + 4
+
+        """
+        Fbar = self.parent()
+        x = self._value
+        l = self._level
+
+        if minimal:
+            m = x.minpoly().degree()
+            if m == 1:
+                x = Fbar.base_ring()(x)
+            else:
+                x = Fbar.inclusion(m, l).section()(x)
+            l = m
+
+        F, phi = Fbar.subfield(l)
+        return (F, x, phi)
 
 
 class AlgebraicClosureFiniteField_generic(Field):

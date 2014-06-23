@@ -226,6 +226,14 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         return str(self._strategy_profiles)
 
+    def _latex_(self):
+        if len(self.players) == 2:
+            pass
+            # latex with self._game_two_matrix()
+        else:
+            pass
+            # Vince can do fancy latex stuff
+
     def _two_matrix_game(self, matrices):
         r"""
         Populates ``self._strategy_profiles`` with the values from 2 matrices.

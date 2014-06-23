@@ -68,7 +68,26 @@ class LFunctionZeroSum_abstract(SageObject):
         """
         return self._k
 
-    def rankbound(self,Delta=1,function="sincsquared_fast"):
+    def C0(self):
+        """
+        Return the constant term of the logarithmic derivative of the
+        completed 'L'-function attached to self. This is equal to
+            '-\eta + \log(N)/2 - \log(2\pi)'
+        where '\eta' is the Euler-Mascheroni constant '= 0.5772\ldots'
+        and 'N' is the level of the form attached to self.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('389a')
+            sage: Z = LFunctionZeroSum(E)
+            sage: Z.C0()
+            0.566696940498
+
+        """
+        # Defined at initialization
+        return self._C0
+
+    def zerosum(self,Delta=1,function="sincsquared_fast"):
         r"""
         Bound from above the analytic rank of the form attached to self
         by computing
@@ -121,11 +140,11 @@ class LFunctionZeroSum_abstract(SageObject):
             sage: E = EllipticCurve('389a'); E.rank()
             2
             sage: Z = LFunctionZeroSum(E)
-            sage: Z.rankbound(Delta=1,function="sincsquared_fast")
+            sage: Z.zerosum(Delta=1,function="sincsquared_fast")
             2.0375000846
-            sage: Z.rankbound(Delta=1,function="sincsquared")
+            sage: Z.zerosum(Delta=1,function="sincsquared")
             2.0375000846
-            sage: Z.rankbound(Delta=1,function="gaussian")
+            sage: Z.zerosum(Delta=1,function="gaussian")
             2.05689042503
 
         """
@@ -136,15 +155,15 @@ class LFunctionZeroSum_abstract(SageObject):
             raise ValueError("Delta value too large; will result in overflow")
 
         if function=="sincsquared_fast":
-            return self._rankbound_sincsquared_fast(Delta=Delta)
+            return self._zerosum_sincsquared_fast(Delta=Delta)
         elif function=="sincsquared":
-            return self._rankbound_sincsquared(Delta=Delta)
+            return self._zerosum_sincsquared(Delta=Delta)
         elif function=="gaussian":
-            return self._rankbound_gaussian(Delta=Delta)
+            return self._zerosum_gaussian(Delta=Delta)
         else:
             raise ValueError("Input function not recognized.")
 
-    def _rankbound_sincsquared(self,Delta=1):
+    def _zerosum_sincsquared(self,Delta=1):
         r"""
         Bound from above the analytic rank of the form attached to self
         by computing
@@ -177,7 +196,7 @@ class LFunctionZeroSum_abstract(SageObject):
 
         .. SEEALSO::
 
-            :meth:`~sage.lfunctions.zero_sums.LFunctionZeroSum_abstract.rankbound`
+            :meth:`~sage.lfunctions.zero_sums.LFunctionZeroSum_abstract.zerosum`
             for the public method that calls this private method.
 
         EXAMPLES::
@@ -185,7 +204,7 @@ class LFunctionZeroSum_abstract(SageObject):
             sage: E = EllipticCurve('37a'); E.rank()
             1
             sage: Z = LFunctionZeroSum(E)
-            sage: Z._rankbound_sincsquared(Delta=1)
+            sage: Z._zerosum_sincsquared(Delta=1)
             1.01038406984
 
         """
@@ -211,7 +230,7 @@ class LFunctionZeroSum_abstract(SageObject):
 
         return 2*(u+w+y)/(t**2)
 
-    def _rankbound_gaussian(self,Delta=1):
+    def _zerosum_gaussian(self,Delta=1):
         r"""
         Bound from above the analytic rank of the form attached to self
         by computing
@@ -244,7 +263,7 @@ class LFunctionZeroSum_abstract(SageObject):
 
         .. SEEALSO::
 
-            :meth:`~sage.lfunctions.zero_sums.LFunctionZeroSum_abstract.rankbound`
+            :meth:`~sage.lfunctions.zero_sums.LFunctionZeroSum_abstract.zerosum`
             for the public method that calls this private method.
 
         EXAMPLES::
@@ -252,7 +271,7 @@ class LFunctionZeroSum_abstract(SageObject):
             sage: E = EllipticCurve('37a'); E.rank()
             1
             sage: Z = LFunctionZeroSum(E)
-            sage: Z._rankbound_gaussian(Delta=1)
+            sage: Z._zerosum_gaussian(Delta=1)
             1.05639507734
 
         """
@@ -284,9 +303,9 @@ class LFunctionZeroSum_abstract(SageObject):
         # exceeds the max amount we could have left out.
         return RDF(u+w+y+0.1)/Deltasqrtpi
 
-    def _rankbound_sincsquared_fast(self,Delta=1):
+    def _zerosum_sincsquared_fast(self,Delta=1):
         """
-        A faster, more intelligent implementation of self._rankbound_sincsquared().
+        A faster, more intelligent implementation of self._zerosum_sincsquared().
 
         .. NOTE::
 
@@ -306,10 +325,10 @@ class LFunctionZeroSum_abstract(SageObject):
 
         .. SEEALSO::
 
-            :meth:`~sage.lfunctions.zero_sums.LFunctionZeroSum_abstract.rankbound_sincsquared`
+            :meth:`~sage.lfunctions.zero_sums.LFunctionZeroSum_abstract.zerosum_sincsquared`
             for the more general but slower version of this method.
 
-            :meth:`~sage.lfunctions.zero_sums.LFunctionZeroSum_abstract.rankbound`
+            :meth:`~sage.lfunctions.zero_sums.LFunctionZeroSum_abstract.zerosum`
             for the public method that calls this private method.
 
         EXAMPLES::
@@ -317,7 +336,7 @@ class LFunctionZeroSum_abstract(SageObject):
             sage: E = EllipticCurve('37a'); E.rank()
             1
             sage: Z = LFunctionZeroSum(E)
-            sage: Z._rankbound_sincsquared_fast(Delta=1)
+            sage: Z._zerosum_sincsquared_fast(Delta=1)
             1.01038406984
         """
 
@@ -417,6 +436,9 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         self._pi = RDF(pi)
         self._euler_gamma = RDF(euler_gamma)
 
+        # This constant features in most (all?) sums over the L-function's zeros
+        self._C0 = -self._euler_gamma + log(RDF(self._N))/2 - log(self._pi*2)
+
     def __repr__(self):
         """
         Representation of self.
@@ -435,13 +457,27 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve([23,-100])
+            sage: E = EllipticCurve([23,100])
             sage: Z = LFunctionZeroSum(E)
             sage: Z.elliptic_curve()
-            Elliptic Curve defined by y^2 = x^3 + 23*x - 100 over Rational Field
+            Elliptic Curve defined by y^2 = x^3 + 23*x + 100 over Rational Field
 
         """
         return self._E
+
+    def lseries(self):
+        """
+        Return the 'L'-series associated with self.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([23,100])
+            sage: Z = LFunctionZeroSum(E)
+            sage: Z.lseries()
+            Complex L-series of the Elliptic Curve defined by y^2 = x^3 + 23*x + 100 over Rational Field
+
+        """
+        return self._E.lseries()
 
     def logarithmic_derivative_coefficient(self,n):
         r"""

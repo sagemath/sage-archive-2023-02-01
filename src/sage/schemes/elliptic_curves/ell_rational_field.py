@@ -1481,7 +1481,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         """
         Z = LFunctionZeroSum_EllipticCurve(self,N)
-        return Z.rankbound(Delta)
+        return Z.zerosum(Delta,function='sincsquared_fast')
 
     def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=3,
                           maxprob=20, limbigprime=30, known_points=None):

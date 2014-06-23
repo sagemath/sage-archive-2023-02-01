@@ -268,7 +268,7 @@ The Gray code is a binary :wikipedia:`numeral system <Numeral_system>`
 where two successive values differ in only one bit, cf. the
 :wikipedia:`Gray_code`. The Gray code of an integer `n` is obtained by
 a bitwise xor between the binary expansion of `n` and the binary
-expansion of `\\lfloor n/2\\rfloor`; the latter corresponds to a
+expansion of `\lfloor n/2\rfloor`; the latter corresponds to a
 shift by one position in binary.
 
 The purpose of this example is to construct a transducer converting the
@@ -279,7 +279,7 @@ For this construction, the least significant digit is at
 the left-most position.
 Note that it is easier to shift everything to
 the right first, i.e., multiply by `2` instead of building
-`\\lfloor n/2\\rfloor`. Then, we take the input xor with the right
+`\lfloor n/2\rfloor`. Then, we take the input xor with the right
 shift of the input and forget the first letter.
 
 We first construct a transducer shifting the binary expansion to the

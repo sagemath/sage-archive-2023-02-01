@@ -541,9 +541,12 @@ class NormalFormGame(SageObject, MutableMapping):
         support2 = list(chain(*s2))
         m1, m2 = self._game_two_matrix()
 
+        equilibria = []
         for i in support1:
             for j in support2:
-                self._check_support(i, j, m1, m2)
+                result = self._check_support(i, j, m1, m2)
+                if result[0]:
+                    equilibria.append((result[1], result[2]))
 
     def _check_support(self, p1_support, p2_support, m1, m2):
         matrix1 = matrix(len(p2_support)+1, len(p1_support))
@@ -551,13 +554,30 @@ class NormalFormGame(SageObject, MutableMapping):
 
         for j in range(len(p2_support)):
             for k in range(len(p1_support)):
-                matrix1[j][k] = m2[p1_support[k]][p2_support[j]] - m2[p1_support[k]][p2_support[j-1]]
+                if j == 0:
+                    matrix1[j][k] = 1
+                else:
+                    matrix1[j][k] = m2[p1_support[k]][p2_support[j]] - m2[p1_support[k]][p2_support[j-1]]
 
         for j in range(len(p1_support)):
             for k in range(len(p2_support)):
-                matrix2[j][k] = m1[p2_support[k]][p1_support[j]] - m1[p2_support[k]][p1_support[j-1]]
+                if j == 0:
+                    matrix2[j][k] = 1
+                else:
+                    matrix2[j][k] = m1[p2_support[k]][p1_support[j]] - m1[p2_support[k]][p1_support[j-1]]
 
-        vector1 =
+        vector1 = vector(ZZ, len(p2_support)+1)
+        vector1[0] = 1
+        vector2 = vector(ZZ, len(p1_support)+1)
+        vector2[0] = 1
+
+        try:
+            a = matrix1\vector1
+            b = matrix2\vector2
+            return [True, a, b]
+        except:
+            return [False]
+
 
     def _Hrepresentation(self, m1, m2):
         r"""

@@ -101,6 +101,19 @@ cdef class FiniteField(Field):
             category = FiniteFields()
         Field.__init__(self, base, names, normalize, category)
 
+    def is_perfect(self):
+        r"""
+        Return whether this field is perfect, i.e., every element has a `p`-th
+        root. Always returns ``True`` since finite fields are perfect.
+
+        EXAMPLES::
+
+            sage: GF(2).is_perfect()
+            True
+
+        """
+        return True
+
     def __repr__(self):
         """
         String representation of this finite field.

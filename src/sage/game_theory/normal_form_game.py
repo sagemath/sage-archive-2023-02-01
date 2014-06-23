@@ -552,34 +552,36 @@ class NormalFormGame(SageObject, MutableMapping):
         return equilibria
 
     def _check_support(self, p1_support, p2_support, m1, m2):
-        matrix1 = matrix(len(p2_support)+1, len(p1_support))
-        matrix2 = matrix(len(p1_support)+1, len(p2_support))
+        matrix1 = matrix(len(p2_support)+1, self.players[0].num_strategies)
+        matrix2 = matrix(len(p1_support)+1, self.players[1].num_strategies)
 
-        for j in range(len(p2_support)):
-            for k in range(len(p1_support)):
-                if j == 0:
-                    matrix1[j, k] = 1
-                else:
-                    matrix1[j, k] = m2[p1_support[k]][p2_support[j]] - m2[p1_support[k]][p2_support[j-1]]
+        for k in p1_support:
+            for j in range(len(p2_support)):
+                matrix1[j, k] = m2[k][p2_support[j]] - m2[k][p2_support[j-1]]
+            matrix1[-1, k] = 1
 
-        for j in range(len(p1_support)):
-            for k in range(len(p2_support)):
-                if j == 0:
-                    matrix2[j, k] = 1
-                else:
-                    matrix2[j, k] = m1[p1_support[j]][p2_support[k]] - m1[p1_support[j-1]][p2_support[k]]
+        for k in p2_support:
+            for j in range(len(p1_support)):
+                matrix2[j, k] = m1[p1_support[j]][k] - m1[p1_support[j-1]][k]
+            matrix2[-1, k] = 1
+
 
         v1 = [0 for i in range(len(p2_support)+1)]
         v2 = [0 for i in range(len(p1_support)+1)]
-        v1[0] = 1
-        v2[0] = 1
+        v1[-1] = 1
+        v2[-1] = 1
         vector1 = vector(v1)
         vector2 = vector(v2)
 
         try:
             a = matrix1.solve_right(vector1)
             b = matrix2.solve_right(vector2)
-            return [True, a, b]
+            checka = all(i >= 0 for i in a)
+            checkb = all(i >= 0 for i in b)
+            if checka and checkb:
+                return [True, a, b]
+            else:
+                return [False]
         except:
             return [False]
 

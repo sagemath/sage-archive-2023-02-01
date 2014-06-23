@@ -246,6 +246,15 @@ class NormalFormGame(SageObject, MutableMapping):
         for key in self._strategy_profiles:
             self._strategy_profiles[key] = [matrices[0][key], matrices[1][key]]
 
+    def payoff_matrices(self):
+        r"""
+        Returns 2 matrices representing the payoffs for each player.
+        """
+        if len(self.players) != 2:
+            raie ValueError("Only available for 2 player games")
+
+        return _game_two_matrix()
+
     def add_player(self, num_strategies):
         r"""
         Adds a player to a NormalFormGame.

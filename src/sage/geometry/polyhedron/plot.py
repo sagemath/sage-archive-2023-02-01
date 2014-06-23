@@ -1202,7 +1202,7 @@ class Projection(SageObject):
         edges = ''
         for vert in self.points:
             v = self.coords[vert]
-            v_vect = str(['%.5f' % i for i in v])
+            v_vect = str(['%.5f' % i for i in v]).replace('\'','')
             v_vect = v_vect.replace('[', '(')
             v_vect = v_vect.replace(']', ')')
             tag = '%s' %v_vect
@@ -1323,7 +1323,7 @@ class Projection(SageObject):
         edges = ''
         for vert in self.points:
             v = self.coords[vert]
-            v_vect = str(['%.5f' % i for i in v])
+            v_vect = str(['%.5f' % i for i in v]).replace('\'','')
             v_vect = v_vect.replace('[','(')
             v_vect = v_vect.replace(']',')')
             tag = '%s' %v_vect
@@ -1486,7 +1486,7 @@ class Projection(SageObject):
 
         for vert in self.points:
             v = self.coords[vert]
-            v_vect = str(['%.5f' % i for i in v])
+            v_vect = str(['%.5f' % i for i in v]).replace('\'','')
             v_vect = v_vect.replace('[','(')
             v_vect = v_vect.replace(']',')')
             tag = '%s' %v_vect

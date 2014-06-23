@@ -374,6 +374,13 @@ temporarily set
     sage: product_transducer = shift_right_transducer.cartesian_product(transducers.Identity([0, 1]))
     sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
     sage: Gray_transducer = xor_transducer(product_transducer)
+
+We use :meth:`~FiniteStateMachine.construct_final_word_out` to make sure that all output
+is written; otherwise, we would have to make sure that a sufficient number of trailing
+zeros is read.
+
+::
+
     sage: Gray_transducer.construct_final_word_out([0])
     sage: Gray_transducer.transitions()
     [Transition from (('I', 0), 0) to ((0, 0), 0): 0|-,
@@ -402,9 +409,7 @@ initial and final states, so we have to do it on our own here.
     True
 
 Finally, we check that this indeed computes the Gray code of the first
-10 non-negative integers. Note that we add a trailing zero at the most
-significant position of the input in order to flush all output digits.
-This is due to the left shift which delays its output.
+10 non-negative integers.
 
 ::
 
@@ -6955,7 +6960,9 @@ class FiniteStateMachine(SageObject):
             following agrees with the results in [HP2007]_.
 
             We first use the transducer to convert the standard binary
-            expansion to the NAF given in [HP2007]_::
+            expansion to the NAF given in [HP2007]_. We use the parameter
+            ``with_final_word_out`` such that we do not have to add
+            sufficiently many trailing zeros::
 
                 sage: NAF = Transducer([(0, 0, 0, 0),
                 ....:                   (0, '.1', 1, None),
@@ -6968,16 +6975,14 @@ class FiniteStateMachine(SageObject):
                 ....:                  with_final_word_out=[0])
 
             As an example, we compute the NAF of `27` by this
-            transducer. Note that we have to add two trailing (at the
-            most significant positions) digits `0` in order to be sure
-            to reach the final state.
+            transducer.
 
             ::
 
                 sage: binary_27 = 27.bits()
                 sage: binary_27
                 [1, 1, 0, 1, 1]
-                sage: NAF_27 = NAF(binary_27+[0, 0])
+                sage: NAF_27 = NAF(binary_27)
                 sage: NAF_27
                 [-1, 0, -1, 0, 0, 1, 0]
                 sage: ZZ(NAF_27, base=2)

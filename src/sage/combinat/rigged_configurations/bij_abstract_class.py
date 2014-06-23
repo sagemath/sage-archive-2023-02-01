@@ -257,7 +257,7 @@ class KRTToRCBijectionAbstract:
         """
         rigged_partition = self.ret_rig_con[a]
         for index, value in enumerate(rigged_partition.rigging):
-            if value == None:
+            if value is None:
                 rigged_partition.rigging[index] = rigged_partition.vacancy_numbers[index]
                 if index > 0 and rigged_partition[index - 1] == rigged_partition[index] \
                   and rigged_partition.rigging[index - 1] < rigged_partition.rigging[index]:

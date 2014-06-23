@@ -534,8 +534,8 @@ class ProjectiveSpace_ring(AmbientSpace):
             for col in range(M.ncols()):
                 f = monoms[col][:i] + monoms[col][i+1:]
                 if min([f[j]-e[j] for j in range(n)]) >= 0:
-                    M[row,col] = prod([binomial(f[j],e[j])*pt[j]**(f[j]-e[j]) \
-                               for j in filter(lambda k: f[k]>e[k], range(n))])
+                    M[row,col] = prod([ binomial(f[j],e[j]) * pt[j]**(f[j]-e[j]) 
+                                        for j in (k for k in range(n) if f[k] > e[k]) ])
         return M
 
     def _morphism(self, *args, **kwds):
@@ -952,7 +952,7 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
             sage: P.rational_points(GF(3^2, 'b'))
             [(0 : 1), (b : 1), (b + 1 : 1), (2*b + 1 : 1), (2 : 1), (2*b : 1), (2*b + 2 : 1), (b + 2 : 1), (1 : 1), (1 : 0)]
         """
-        if F == None:
+        if F is None:
             return [ P for P in self ]
         elif not is_FiniteField(F):
             raise TypeError("Second argument (= %s) must be a finite field."%F)

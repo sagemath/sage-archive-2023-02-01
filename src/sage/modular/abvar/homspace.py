@@ -753,6 +753,18 @@ class EndomorphismSubring(Homspace, Ring):
             sage: sage.modular.abvar.homspace.EndomorphismSubring(J1(12345))
             Endomorphism ring of Abelian variety J1(12345) of dimension 5405473
 
+        :trac:`16275` removed the custom ``__reduce__`` method, since
+        :meth:`Homset.__reduce__` already implements appropriate
+        unpickling by construction::
+
+            sage: E.__reduce__.__module__
+            'sage.categories.homset'
+            sage: E.__reduce__()
+            (<function Hom at ...>,
+             (Abelian variety J0(11) of dimension 1,
+              Abelian variety J0(11) of dimension 1,
+              Category of modular abelian varieties over Rational Field,
+             False))
         """
         self._J = A.ambient_variety()
         self._A = A
@@ -775,18 +787,6 @@ class EndomorphismSubring(Homspace, Ring):
         else:
             self._gens = tuple([ self._get_matrix(g) for g in gens ])
         self._is_full_ring = gens is None
-
-    def __reduce__(self):
-        """
-        Used in pickling.
-
-        EXAMPLES::
-
-            sage: E = J0(31).endomorphism_ring()
-            sage: loads(dumps(E)) == E
-            True
-        """
-        return End, (self.domain(),self.domain().category())
 
     def _repr_(self):
         """

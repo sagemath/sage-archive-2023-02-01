@@ -819,7 +819,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     x = p.new_variable(binary = integrality, nonnegative=bool(not integrality)) # at least one has to be set (#15221)
     u = p.new_variable(binary = integrality, nonnegative=bool(not integrality))
     y = p.new_variable(binary = True)
-    z = p.new_variable(integer = True)
+    z = p.new_variable(integer = True, nonnegative=True)
 
     N = G.num_verts()
     V = G.vertices()

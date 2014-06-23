@@ -8,7 +8,7 @@ either equalities or less-or-equal. For example::
 
     sage: p = MixedIntegerLinearProgram()
     sage: x = p.new_variable()
-    doctest:839: DeprecationWarning: The default behaviour of new_variable() will soon change ! It will return 'real' variables instead of nonnegative ones. Please be explicit and call new_variable(nonnegative=True) instead.
+    doctest:...: DeprecationWarning: The default value of 'nonnegative' will change, to False instead of True. You should add the explicit 'nonnegative=True'.
     See http://trac.sagemath.org/15521 for details.
     sage: f = 1 + x[1] + 2*x[2];  f     #  a linear function
     1 + x_0 + 2*x_1

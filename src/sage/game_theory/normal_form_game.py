@@ -259,7 +259,7 @@ class NormalFormGame(SageObject, MutableMapping):
         Returns 2 matrices representing the payoffs for each player.
         """
         if len(self.players) != 2:
-            raie ValueError("Only available for 2 player games")
+            raise ValueError("Only available for 2 player games")
 
         return _game_two_matrix()
 
@@ -553,8 +553,7 @@ class NormalFormGame(SageObject, MutableMapping):
         r"""
         EXAMPLES:
 
-        Returns extra strategies? Some of then are what you would expect if
-        maximization was true. See lines 368-380. ::
+        A degenerate Game. ::
 
             sage: A = matrix([[160, 205, 44],
             ....:       [175, 180, 45],
@@ -565,8 +564,31 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [3, 4, 1],
             ....:             [4, 1, 2]])
             sage: g=NormalFormGame([A, B])
-            sage: g.obtain_Nash(algorithm='enumeration')
+            sage: g._solve_enumeration()
             [([0, 0, 3/4, 1/4], [1/28, 27/28, 0])]
+
+        A zero-sum game. ::
+
+            sage: A = matrix([[0, -1, 1, 1, -1],
+            ....:             [1, 0, -1, -1, 1],
+            ....:             [-1, 1, 0, 1 , -1],
+            ....:             [-1, 1, -1, 0, 1],
+            ....:             [1, -1, 1, -1, 0]])
+            sage: g = NormalFormGame([A])
+            sage: g.obtain_Nash()
+            [[[0.2, 0.2, 0.2, 0.2, 0.2], [0.2, 0.2, 0.2, 0.2, 0.2]]]
+
+        A game with 3 equilibria. ::
+
+            sage: A = matrix([[3,3],
+            ....:             [2,5],
+            ....:             [0,6]])
+            sage: B = matrix([[3,2],
+            ....:             [2,6],
+            ....:             [3,1]])
+            sage: g = NormalFormGame([A, B])
+            sage: g._solve_enumeration()
+            [[(1, 0, 0), (1, 0)], [(4/5, 1/5, 0), (2/3, 1/3)], [(0, 1/3, 2/3), (1/3, 2/3)]]
         """
         m = range(self.players[0].num_strategies)
         n = range(self.players[1].num_strategies)

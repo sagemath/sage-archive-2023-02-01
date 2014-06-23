@@ -7,7 +7,28 @@ TESTS::
     sage: F = K.factor(3)[0][0].residue_field()
     sage: loads(dumps(F)) == F
     True
+
+AUTHORS:
+
+- Adrien Brochard, David Roe, Jeroen Demeyer, Julian Rueth, Niles Johnson,
+  Peter Bruin, Travis Scrimshaw, Xavier Caruso: initial version
+
 """
+#*****************************************************************************
+#       Copyright (C) 2009 David Roe <roed@math.harvard.edu>
+#       Copyright (C) 2010 Niles Johnson <nilesj@gmail.com>
+#       Copyright (C) 2011 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#       Copyright (C) 2012 Adrien Brochard <aaa.brochard@gmail.com>
+#       Copyright (C) 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
+#       Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
+#       Copyright (C) 2013 Peter Bruin <P.Bruin@warwick.ac.uk>
+#       Copyright (C) 2014 Julian Rueth <julian.rueth@fsfe.org>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 include "sage/ext/stdsage.pxi"
 
 from sage.categories.finite_fields import FiniteFields

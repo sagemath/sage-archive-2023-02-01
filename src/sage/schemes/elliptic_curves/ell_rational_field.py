@@ -117,13 +117,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     INPUT:
 
-    - ``ainvs`` (list or string) -- either `[a_1,a_2,a_3,a_4,a_6]` or
-      `[a_4,a_6]` (with `a_1=a_2=a_3=0`) or a valid label from the
-      database.
+    - ``ainvs`` -- a list or tuple `[a_1, a_2, a_3, a_4, a_6]` of
+      Weierstrass coefficients.
 
     .. note::
 
-       See constructor.py for more variants.
+        This class should not be called directly; use
+        :class:`sage.constructor.EllipticCurve` to construct
+        elliptic curves.
 
     EXAMPLES:
 
@@ -133,51 +134,25 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field
 
     Construction from Weierstrass coefficients (`a`-invariants),
-    short form (sets `a_1=a_2=a_3=0`)::
+    short form (sets `a_1 = a_2 = a_3 = 0`)::
 
         sage: EllipticCurve([4,5]).ainvs()
         (0, 0, 0, 4, 5)
 
-    Construction from a database label::
+    Constructor from a Cremona label::
 
         sage: EllipticCurve('389a1')
         Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
+
+    Constructor from an LMFDB label::
+
+        sage: EllipticCurve('462.f3')
+        Elliptic Curve defined by y^2 + x*y = x^3 - 363*x + 1305 over Rational Field
 
     """
     def __init__(self, ainvs, **kwds):
         r"""
         Constructor for the EllipticCurve_rational_field class.
-
-        INPUT:
-
-        - ``ainvs`` -- a list or tuple `[a_1, a_2, a_3, a_4, a_6]` of
-          Weierstrass coefficients.
-
-        .. NOTE::
-
-            This class should not be called directly; use
-            :class:`sage.constructor.EllipticCurve` to construct
-            elliptic curves.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve([1,2,3,4,5]); E
-            Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field
-
-        Constructor from `[a_4,a_6]` sets `a_1=a_2=a_3=0`::
-
-            sage: EllipticCurve([4,5]).ainvs()
-            (0, 0, 0, 4, 5)
-
-        Constructor from a Cremona label::
-
-            sage: EllipticCurve('389a1')
-            Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
-
-        Constructor from an LMFDB label::
-
-            sage: EllipticCurve('462.f3')
-            Elliptic Curve defined by y^2 + x*y = x^3 - 363*x + 1305 over Rational Field
 
         TESTS:
 

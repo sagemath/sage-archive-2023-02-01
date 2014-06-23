@@ -19,11 +19,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     INPUT:
 
-    - ``arg1`` - Can be a list of 2 matrices, a single matrix or left blank.
-
-    - ``arg2`` - ``'zero-sum'`` if ``arg1`` is a single matrix. (Support for
-                    ``'bi-matrix'`` is planned).
-
+    - ``generator`` - Can be a list of 2 matrices, a single matrix or left blank.
 
     EXAMPLES:
 
@@ -96,7 +92,7 @@ class NormalFormGame(SageObject, MutableMapping):
         ....:             [-1, 1, 0, 1 , -1],
         ....:             [-1, 1, -1, 0, 1],
         ....:             [1, -1, 1, -1, 0]])
-        sage: g = NormalFormGame(A, 'zero-sum')
+        sage: g = NormalFormGame([A])
         sage: g.obtain_Nash() # optional
         [[[0.2, 0.2, 0.2, 0.2, 0.2], [0.2, 0.2, 0.2, 0.2, 0.2]]]
 
@@ -150,7 +146,7 @@ class NormalFormGame(SageObject, MutableMapping):
     def __setitem__(self, key, value):
         self._strategy_profiles[key] = value
 
-    def __init__(self, arg1=None, arg2=None):
+    def __init__(self, generator=None):
         r"""
         Initializes a Normal Form game and checks the inputs.
 
@@ -204,18 +200,16 @@ class NormalFormGame(SageObject, MutableMapping):
 
         """
         self.players = []
-        flag = 'n-player'
-        if type(arg1) is list:
-            matrices = arg1
-            flag = 'two-matrix'
+        matrices = []
+        if type(generator) is not list and generator != None:
+            raise TypeError("Generator function must be a list or nothing")
+
+        if type(generator) is list:
+            if len(generator) == 1:
+                generator.append(-generator[-1])
+            matrices = generator
             if matrices[0].dimensions() != matrices[1].dimensions():
                 raise ValueError("matrices must be the same size")
-        elif arg2 == 'zero-sum':
-            flag = 'two-matrix'
-            matrices = [arg1]
-            matrices.append(-arg1)
-
-        if flag == 'two-matrix':
             self._two_matrix_game(matrices)
 
     def _repr_(self):
@@ -540,7 +534,7 @@ class NormalFormGame(SageObject, MutableMapping):
         Returns extra strategies? Some of then are what you would expect if
         maximization was true. See lines 368-380. ::
 
-        sage: A = matrix([[160, 205, 44],
+            sage: A = matrix([[160, 205, 44],
             ....:       [175, 180, 45],
             ....:       [201, 204, 50],
             ....:       [120, 207, 49]])

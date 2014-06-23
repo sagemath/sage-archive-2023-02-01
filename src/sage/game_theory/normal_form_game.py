@@ -7,6 +7,7 @@ lazy_import('sage.matrix.constructor', 'matrix')
 lazy_import('sage.matrix.constructor', 'vector')
 from parser import Parser
 lazy_import('sage.rings.rational', 'Rational')
+lazy_import('sage.rings.arith', 'lcm')
 lazy_import('sage.misc.temporary_file', 'tmp_filename')
 lazy_import('subprocess', 'Popen')
 lazy_import('subprocess', 'PIPE')
@@ -459,18 +460,22 @@ class NormalFormGame(SageObject, MutableMapping):
         strategy_sizes = [p.num_strategies for p in self.players]
         g = Game.new_table(strategy_sizes)
 
-        scalar = 1
+        s1 = []
+        s2 = []
         for key in self._strategy_profiles:
-            for player in range(len(self.players)):
-                utility = Rational(self._strategy_profiles[key][player])
-                scalar *= utility.denom()
+            s1.append(Rational(self._strategy_profiles[key][0]).denom())
+            s2.append(Rational(self._strategy_profiles[key][1]).denom())
+
+        scalar1 = lcm(s1)
+        scalar2 = lcm(s2)
 
         if maximization is False:
-            scalar *= -1
+            scalar1 *= -1
+            scalar2 *= -1
 
         for key in self._strategy_profiles:
-            for player in range(len(self.players)):
-                g[key][player] = int(scalar * self._strategy_profiles[key][player])
+            g[key][0] = int(scalar1 * self._strategy_profiles[key][0])
+            g[key][1] = int(scalar2 * self._strategy_profiles[key][1])
 
         output = ExternalLCPSolver().solve(g)
         nasheq = Parser(output, g).format_gambit()

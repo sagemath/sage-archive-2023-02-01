@@ -95,6 +95,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
 
     .. SEEALSO::
 
+        :func:`orthogonal_array` -- a tranversal design `TD(k,n)` is equivalent to an
         orthogonal array `OA(k,n,2)`.
 
     EXAMPLES::

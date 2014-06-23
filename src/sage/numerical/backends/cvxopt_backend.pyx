@@ -24,7 +24,6 @@ cdef class CVXOPTBackend(GenericBackend):
     cdef list G_matrix
     cdef str prob_name
     cdef bint is_maximize
-    cdef object sol
 
     cdef list row_lower_bound
     cdef list row_upper_bound

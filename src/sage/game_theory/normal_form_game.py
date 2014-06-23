@@ -547,7 +547,7 @@ class NormalFormGame(SageObject, MutableMapping):
             for j in support2:
                 result = self._check_support(i, j, m1, m2)
                 if result:
-                    equilibria.append((result[0], result[1]))
+                    equilibria.append([result[0], result[1]])
 
         return equilibria
 
@@ -557,7 +557,9 @@ class NormalFormGame(SageObject, MutableMapping):
 
         for k in p1_support:
             if len(p2_support) == 1:
-                matrix1[0, k] = m2[k][p2_support[0]]
+                for i in range(self.players[1].num_strategies):
+                    if m2[k][p2_support[0]] < m2[k][i]:
+                        return False
             else:
                 for j in range(len(p2_support)):
                     matrix1[j, k] = m2[k][p2_support[j]] - m2[k][p2_support[j-1]]
@@ -565,7 +567,9 @@ class NormalFormGame(SageObject, MutableMapping):
 
         for k in p2_support:
             if len(p1_support) == 1:
-                matrix2[0, k] = m1[p1_support[0]][k]
+                for i in range(self.players[0].num_strategies):
+                    if m1[p1_support[0]][k] < m1[i][k]:
+                        return False
             else:
                 for j in range(len(p1_support)):
                     matrix2[j, k] = m1[p1_support[j]][k] - m1[p1_support[j-1]][k]

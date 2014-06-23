@@ -6109,13 +6109,20 @@ class FiniteStateMachine(SageObject):
             ....:                           ("B", "C", 0, 0), ("B", "C", 1, 1),
             ....:                           ("C", "D", 0, 1), ("C", "D", 1, 0),
             ....:                           ("D", "A", 0, 0), ("D", "A", 1, 1)])
-            sage: fsm.equivalence_classes()
+            sage: sorted(fsm.equivalence_classes())
             [['A', 'C'], ['B', 'D']]
             sage: fsm.state("A").is_final = True
+            sage: sorted(fsm.equivalence_classes())
+            [['A'], ['B'], ['C'], ['D']]
+            sage: fsm.state("C").is_final = True
+            sage: sorted(fsm.equivalence_classes())
+            [['A', 'C'], ['B', 'D']]
             sage: fsm.state("A").final_word_out = 1
-            sage: fsm.equivalence_classes()
-            [['A'], ['B'], ['D'], ['C']]
-
+            sage: sorted(fsm.equivalence_classes())
+            [['A'], ['B'], ['C'], ['D']]
+            sage: fsm.state("C").final_word_out = 1
+            sage: sorted(fsm.equivalence_classes())
+            [['A', 'C'], ['B', 'D']]
         """
 
         # Two states `a` and `b` are j-equivalent if and only if there

@@ -885,11 +885,14 @@ def default_mip_solver(solver = None):
         - CVXOPT (``solver="CVXOPT"``). See the `CVXOPT
           <http://cvxopt.org/>`_ web site.
 
+        - PPL (``solver="PPL"``). See the `PPL
+          <http://www.gurobi.com/>`_ web site.
+
         - Gurobi (``solver="Gurobi"``). See the `Gurobi
           <http://www.gurobi.com/>`_ web site.
 
         ``solver`` should then be equal to one of ``"GLPK"``,
-        ``"Coin"``, ``"CPLEX"``,  ``"CVXOPT"`` or ``"Gurobi"``.
+        ``"Coin"``, ``"CPLEX"``,  ``"CVXOPT"``, ``"Gurobi"`` or ``"PPL"`` .
 
         - If ``solver=None`` (default), the current default solver's name is
           returned.
@@ -910,7 +913,7 @@ def default_mip_solver(solver = None):
         sage: default_mip_solver("Yeahhhhhhhhhhh")
         Traceback (most recent call last):
         ...
-        ValueError: 'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi', 'CVXOPT' or None.
+        ValueError: 'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'CVXOPT', 'Gurobi', 'PPL' or None.
         sage: default_mip_solver(former_solver)
     """
     global default_solver
@@ -921,7 +924,7 @@ def default_mip_solver(solver = None):
             return default_solver
 
         else:
-            for s in ["Cplex", "Gurobi", "Coin", "Glpk", "Cvxopt"]:
+            for s in ["Cplex", "Cvxopt", "Gurobi", "Coin", "Glpk", "Ppl"]:
                 try:
                     default_mip_solver(s)
                     return s
@@ -951,6 +954,13 @@ def default_mip_solver(solver = None):
         except ImportError:
             raise ValueError("CVXOPT is not available. Please refer to the documentation to install it.")
 
+    elif solver == "Ppl":
+        try:
+            from sage.numerical.backends.cvxopt_backend import CVXOPTBackend
+            default_solver = solver
+        except ImportError:
+            raise ValueError("PPL is not available. Please refer to the documentation to install it.")
+
     elif solver == "Gurobi":
         try:
             from sage.numerical.backends.gurobi_backend import GurobiBackend
@@ -962,7 +972,7 @@ def default_mip_solver(solver = None):
         default_solver = solver
 
     else:
-        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi', 'CVXOPT' or None.")
+        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi', 'CVXOPT', 'PPL' or None.")
 
 cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
     """
@@ -970,7 +980,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
 
     INPUT:
 
-    - ``solver`` -- 5 solvers should be available through this class:
+    - ``solver`` -- 6 solvers should be available through this class:
 
         - GLPK (``solver="GLPK"``). See the `GLPK
           <http://www.gnu.org/software/glpk/>`_ web site.

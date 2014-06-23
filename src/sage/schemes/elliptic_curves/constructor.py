@@ -177,11 +177,17 @@ class EllipticCurveFactory(UniqueFactory):
         sage: EllipticCurve(GF(144169),j=1728)
         Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 144169
 
+    Elliptic curves over the same ring with the same Weierstrass
+    coefficients are identical, even when they are constructed in
+    different ways (see :trac:`11474`)::
+
+        sage: EllipticCurve('11a3') is EllipticCurve(QQ, [0, -1, 1, 0, 0])
+        True
+
     By default, when a rational value of `j` is given, the constructed
     curve is a minimal twist (minimal conductor for curves with that
     `j`-invariant).  This can be changed by setting the optional
     parameter ``minimal_twist``, which is True by default, to False::
-
 
         sage: EllipticCurve(j=100)
         Elliptic Curve defined by y^2 = x^3 + x^2 + 3392*x + 307888 over Rational Field

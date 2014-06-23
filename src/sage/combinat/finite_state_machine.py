@@ -8090,15 +8090,13 @@ class Transducer(FiniteStateMachine):
             ....:                           ('2', '2', 1, 0),
             ....:                           ('2', '2', 0, 1)],
             ....:                          initial_states=['1'],
-            ....:                          final_states=['2'],
-            ....:                          determine_alphabets=True)
+            ....:                          final_states=['2'])
             sage: transducer2 = Transducer([('A', 'A', 1, 0),
             ....:                           ('A', 'B', 0, 0),
             ....:                           ('B', 'B', 0, 1),
             ....:                           ('B', 'A', 1, 1)],
             ....:                          initial_states=['A'],
-            ....:                          final_states=['B'],
-            ....:                          determine_alphabets=True)
+            ....:                          final_states=['B'])
             sage: res = transducer1.intersection(transducer2)
             sage: res.transitions()
             [Transition from ('1', 'A') to ('2', 'A'): 1|0,
@@ -8118,14 +8116,12 @@ class Transducer(FiniteStateMachine):
             ....:                  (0, 1, None, 'c'),
             ....:                  (1, 1, None, 'c')],
             ....:                 initial_states=[0],
-            ....:                 final_states=[0, 1],
-            ....:                 determine_alphabets=True)
+            ....:                 final_states=[0, 1])
             sage: t2 = Transducer([('A', 'A', None, 'b'),
             ....:                  ('A', 'B', 'a', 'c'),
             ....:                  ('B', 'B', 'a', 'c')],
             ....:                 initial_states=['A'],
-            ....:                 final_states=['A', 'B'],
-            ....:                 determine_alphabets=True)
+            ....:                 final_states=['A', 'B'])
             sage: t2.intersection(t1)
             Traceback (most recent call last):
             ...
@@ -8136,12 +8132,10 @@ class Transducer(FiniteStateMachine):
 
             sage: transducer1 = Transducer([('1', '2', 1, 0)],
             ....:                          initial_states=['1'],
-            ....:                          final_states=['2'],
-            ....:                          determine_alphabets=True)
+            ....:                          final_states=['2'])
             sage: transducer2 = Transducer([('A', 'B', 1, 0)],
             ....:                          initial_states=['A'],
-            ....:                          final_states=['B'],
-            ....:                          determine_alphabets=True)
+            ....:                          final_states=['B'])
             sage: res = transducer1.intersection(transducer2)
             sage: res.final_states()
             [('2', 'B')]

@@ -1,5 +1,5 @@
 from collections import MutableMapping
-from itertools import product
+from itertools import product, combinations, chain
 from sage.misc.lazy_import import lazy_import
 from sage.structure.sage_object import SageObject
 lazy_import('sage.misc.package', 'is_package_installed')
@@ -533,9 +533,31 @@ class NormalFormGame(SageObject, MutableMapping):
         return nasheq
 
     def _solve_enumeration(self):
-        # call _is_complete()
-        # write algorithm at some point
-        pass
+        m = range(self.players[0].num_strategies)
+        n = range(self.players[1].num_strategies)
+        s1 = [combinations(m, k+1) for k in len(m)]
+        s2 = [combinations(n, k+1) for k in len(n)]
+        support1 = list(chain(*s1))
+        support2 = list(chain(*s2))
+        m1, m2 = self._game_two_matrix()
+
+        for i in support1:
+            for j in support2:
+                self._check_support(i, j, m1, m2)
+
+    def _check_support(self, p1_support, p2_support, m1, m2):
+        matrix1 = matrix(len(p2_support)+1, len(p1_support))
+        matrix2 = matrix(len(p1_support)+1, len(p2_support))
+
+        for j in range(len(p2_support)):
+            for k in range(len(p1_support)):
+                matrix1[j][k] = m2[p1_support[k]][p2_support[j]] - m2[p1_support[k]][p2_support[j-1]]
+
+        for j in range(len(p1_support)):
+            for k in range(len(p2_support)):
+                matrix2[j][k] = m1[p2_support[k]][p1_support[j]] - m1[p2_support[k]][p1_support[j-1]]
+
+        vector1 =
 
     def _Hrepresentation(self, m1, m2):
         r"""

@@ -49,42 +49,42 @@ class EllipticCurveFactory(UniqueFactory):
     r"""
     Construct an elliptic curve.
 
-    In Sage, an elliptic curve is always specified by a long
-    Weierstrass equation
+    In Sage, an elliptic curve is always specified by
+    (the coefficients of) a long Weierstrass equation
 
     .. math::
 
-       y^2 + a_1 xy + a_3 y = x^3 + a_2 x^2 + a_4 x + a_6.
+        y^2 + a_1 xy + a_3 y = x^3 + a_2 x^2 + a_4 x + a_6.
 
     INPUT:
 
     There are several ways to construct an elliptic curve:
 
     - ``EllipticCurve([a1,a2,a3,a4,a6])``: Elliptic curve with given
-      a-invariants. The invariants are coerced into the parent of the
-      first element. If all are integers, they are coerced into the
-      rational numbers.
+      `a`-invariants. The invariants are coerced into a common parent.
+      If all are integers, they are coerced into the rational numbers.
 
     - ``EllipticCurve([a4,a6])``: Same as above, but `a_1=a_2=a_3=0`.
 
-    - ``EllipticCurve(label)``: Returns the elliptic curve over Q from
-      the Cremona database with the given label. The label is a
+    - ``EllipticCurve(label)``: Returns the elliptic curve over `\QQ`
+      from the Cremona database with the given label. The label is a
       string, such as ``"11a"`` or ``"37b2"``. The letters in the
       label *must* be lower case (Cremona's new labeling).
 
     - ``EllipticCurve(R, [a1,a2,a3,a4,a6])``: Create the elliptic
-      curve over ``R`` with given a-invariants. Here ``R`` can be an
-      arbitrary ring. Note that addition need not be defined.
+      curve over `R` with given `a`-invariants. Here `R` can be an
+      arbitrary commutative ring, although most functionality is only
+      implemented over fields.
 
     - ``EllipticCurve(j=j0)`` or ``EllipticCurve_from_j(j0)``: Return
-      an elliptic curve with j-invariant ``j0``.
+      an elliptic curve with `j`-invariant ``j0``.
 
-    - ``EllipticCurve(polynomial)``: Read off the a-invariants from
+    - ``EllipticCurve(polynomial)``: Read off the `a`-invariants from
       the polynomial coefficients, see
       :func:`EllipticCurve_from_Weierstrass_polynomial`.
 
-    In each case above where the input is a list of length 2 or 5, one
-    can instead give a 2 or 5-tuple instead.
+    Instead of giving the coefficients as a *list* of length 2 or 5,
+    one can also give a *tuple*.
 
     EXAMPLES:
 

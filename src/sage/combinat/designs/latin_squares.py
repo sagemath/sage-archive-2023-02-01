@@ -278,7 +278,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         sage: designs.mutually_orthogonal_latin_squares(1, None)
         Traceback (most recent call last):
         ...
-        ValueError: there are no bound on k when n=1.
+        ValueError: there are no bound on k when 0<=n<=1
         sage: designs.mutually_orthogonal_latin_squares(10,2,existence=True)
         True
         sage: designs.mutually_orthogonal_latin_squares(10,2)
@@ -302,11 +302,11 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
 
     # Is k is None we find the largest available
     if k is None:
-        if n == 1:
+        if n == 0 or n == 1:
             if existence:
                 from sage.rings.infinity import Infinity
                 return Infinity
-            raise ValueError("there are no bound on k when n=1.")
+            raise ValueError("there are no bound on k when 0<=n<=1")
 
         k = orthogonal_array(None,n,existence=True) - 2
         if existence:

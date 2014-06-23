@@ -478,15 +478,58 @@ cdef class CVXOPTBackend(GenericBackend):
                  6: -8.8000e+00 -8.8000e+00  3e-08  1e-16  6e-09  4e-09
                 Optimal solution found.
                 8.8
+            sage: #CVXOPT gives different  values for variables compared to the other solvers.
+            sage: c = MixedIntegerLinearProgram(solver = "cvxopt")
+            sage: p = MixedIntegerLinearProgram(solver = "ppl")
+            sage: g = MixedIntegerLinearProgram()
+            sage: xc=c.new_variable(nonnegative=True)[0]
+            sage: yc=c.new_variable(nonnegative=True)[0]
+            sage: zc=c.new_variable(nonnegative=True)[0]
+            sage: xp=p.new_variable(nonnegative=True)[0]
+            sage: yp=p.new_variable(nonnegative=True)[0]
+            sage: zp=p.new_variable(nonnegative=True)[0]
+            sage: xg=g.new_variable(nonnegative=True)[0]
+            sage: yg=g.new_variable(nonnegative=True)[0]
+            sage: zg=g.new_variable(nonnegative=True)[0]
+            sage: c.set_objective(zc)
+            sage: p.set_objective(zp)
+            sage: g.set_objective(zg)
+            sage: #we create a cube for all three solvers
+            sage: c.add_constraint(xc <= 100)
+            sage: c.add_constraint(yc <= 100)
+            sage: c.add_constraint(zc <= 100)
+            sage: p.add_constraint(xp <= 100)
+            sage: p.add_constraint(yp <= 100)
+            sage: p.add_constraint(zp <= 100)
+            sage: g.add_constraint(xg <= 100)
+            sage: g.add_constraint(yg <= 100)
+            sage: g.add_constraint(zg <= 100)
+            sage: round(c.solve(),2)
+            100.0
+            sage: round(c.get_values(xc),2)
+            50.0
+            sage: round(c.get_values(yc),2)
+            50.0
+            sage: round(c.get_values(zc),2)
+            100.0
+            sage: round(p.solve(),2)
+            100.0
+            sage: round(p.get_values(xp),2)
+            0.0
+            sage: round(p.get_values(yp),2)
+            0.0
+            sage: round(p.get_values(zp),2)
+            100.0
+            sage: round(g.solve(),2)
+            100.0
+            sage: round(g.get_values(xg),2)
+            0.0
+            sage: round(g.get_values(yg),2)
+            0.0
+            sage: round(g.get_values(zg),2)
+            100.0
         """
         from cvxopt import matrix, solvers
-        #multiply by -1 if necessary
-        #print str("G_matrix is: " ) + str(self.G_matrix)
-        #print str("lower bound eq is: " ) + str(self.row_lower_bound)
-        #print str("upper bound eq is: " ) + str(self.row_upper_bound)
-        #print str("lower bound var is: " ) + str(self.col_lower_bound)
-        #print str("upper bound var is: " ) + str(self.col_upper_bound)
-
         h = []
 
         #for the equation bounds
@@ -497,7 +540,7 @@ cdef class CVXOPTBackend(GenericBackend):
                 h.append(-1 * self.row_lower_bound[eq_index])
                 for cindex in range(len(self.G_matrix)):
                     if cindex == eq_index:
-                        self.G_matrix[cindex].append(-1) # after multiplying by -1
+                        self.G_matrix[cindex].append(-1) # after multiplying the eq by -1
                     else:
                         self.G_matrix[cindex].append(0)
 
@@ -516,7 +559,7 @@ cdef class CVXOPTBackend(GenericBackend):
                 h.append(self.col_lower_bound[i])
                 for cindex in range(len(self.G_matrix)):
                     if cindex == i:
-                        self.G_matrix[cindex].append(-1) # after multiplying by -1
+                        self.G_matrix[cindex].append(-1) # after multiplying the eq by -1
                     else:
                         self.G_matrix[cindex].append(0)
 
@@ -527,19 +570,15 @@ cdef class CVXOPTBackend(GenericBackend):
                 tempcol.append( float(col[i]) )
             G.append(tempcol)
 
-        #print str("G is: " ) + str(G)
         G = matrix(G)
 
-        #print "self.is_maximize: " + str(self.is_maximize)
+        #cvxopt minimizes on default
         if self.is_maximize:
             c = [-1 * float(e) for e in self.objective_function]
         else:
             c = [float(e) for e in self.objective_function]
-
-        #print str("c is: " ) + str(c)
         c = matrix(c)
 
-        #print str("h is: " ) + str(h)
         h = [float(e) for e in h]
         h = matrix(h)
 
@@ -548,6 +587,7 @@ cdef class CVXOPTBackend(GenericBackend):
             solvers.options[k] = v
         self.answer = solvers.lp(c,G,h)
 
+        #possible outcomes
         if self.answer['status'] == 'optimized':
             pass
         elif self.answer['status'] == 'primal infeasible':

@@ -1934,9 +1934,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.get_min(vv[9])
             5.0
         """
-        if isinstance(v, MIPVariable):
+        try:
             v.set_min(min)
-        else:
+        except AttributeError:
             self._backend.variable_lower_bound(self._variables[v], min)
 
     def set_max(self, v, max):
@@ -1971,9 +1971,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.get_max(vv[9])
             5.0
         """
-        if isinstance(v, MIPVariable):
+        try:
             v.set_max(max)
-        else:
+        except AttributeError:
             self._backend.variable_upper_bound(self._variables[v], max)
 
     def get_min(self, v):

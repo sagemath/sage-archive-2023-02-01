@@ -4,6 +4,7 @@ from sage.misc.lazy_import import lazy_import
 from sage.structure.sage_object import SageObject
 lazy_import('sage.misc.package', 'is_package_installed')
 lazy_import('sage.matrix.constructor', 'matrix')
+lazy_import('sage.matrix.constructor', 'vector')
 from parser import Parser
 lazy_import('sage.rings.rational', 'Rational')
 lazy_import('sage.misc.temporary_file', 'tmp_filename')
@@ -535,8 +536,8 @@ class NormalFormGame(SageObject, MutableMapping):
     def _solve_enumeration(self):
         m = range(self.players[0].num_strategies)
         n = range(self.players[1].num_strategies)
-        s1 = [combinations(m, k+1) for k in len(m)]
-        s2 = [combinations(n, k+1) for k in len(n)]
+        s1 = [combinations(m, k+1) for k in m]
+        s2 = [combinations(n, k+1) for k in n]
         support1 = list(chain(*s1))
         support2 = list(chain(*s2))
         m1, m2 = self._game_two_matrix()
@@ -548,6 +549,8 @@ class NormalFormGame(SageObject, MutableMapping):
                 if result[0]:
                     equilibria.append((result[1], result[2]))
 
+        return equilibria
+
     def _check_support(self, p1_support, p2_support, m1, m2):
         matrix1 = matrix(len(p2_support)+1, len(p1_support))
         matrix2 = matrix(len(p1_support)+1, len(p2_support))
@@ -555,29 +558,28 @@ class NormalFormGame(SageObject, MutableMapping):
         for j in range(len(p2_support)):
             for k in range(len(p1_support)):
                 if j == 0:
-                    matrix1[j][k] = 1
+                    matrix1[j, k] = 1
                 else:
-                    matrix1[j][k] = m2[p1_support[k]][p2_support[j]] - m2[p1_support[k]][p2_support[j-1]]
+                    matrix1[j, k] = m2[p1_support[k]][p2_support[j]] - m2[p1_support[k]][p2_support[j-1]]
 
         for j in range(len(p1_support)):
             for k in range(len(p2_support)):
                 if j == 0:
-                    matrix2[j][k] = 1
+                    matrix2[j, k] = 1
                 else:
-                    matrix2[j][k] = m1[p2_support[k]][p1_support[j]] - m1[p2_support[k]][p1_support[j-1]]
+                    matrix2[j, k] = m1[p2_support[k]][p1_support[j]] - m1[p2_support[k]][p1_support[j-1]]
 
-        vector1 = vector(ZZ, len(p2_support)+1)
+        vector1 = vector([0 for i in range(len(p2_support)+1)])
         vector1[0] = 1
-        vector2 = vector(ZZ, len(p1_support)+1)
+        vector2 = vector([0 for i in range(len(p1_support)+1)])
         vector2[0] = 1
 
         try:
-            a = matrix1\vector1
-            b = matrix2\vector2
+            a = matrix1.solve_right(vector1)
+            b = matrix2.solve_right(vector2)
             return [True, a, b]
         except:
             return [False]
-
 
     def _Hrepresentation(self, m1, m2):
         r"""

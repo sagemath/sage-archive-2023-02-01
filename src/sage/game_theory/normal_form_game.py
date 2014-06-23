@@ -432,6 +432,9 @@ class NormalFormGame(SageObject, MutableMapping):
 
             return self._solve_lrs(maximization)
 
+        if algorithm == "enumeration":
+            return self._solve_enumeration()
+
     def _game_two_matrix(self):
         m1 = matrix(self.players[0].num_strategies, self.players[1].num_strategies)
         m2 = matrix(self.players[0].num_strategies, self.players[1].num_strategies)
@@ -531,6 +534,24 @@ class NormalFormGame(SageObject, MutableMapping):
         return nasheq
 
     def _solve_enumeration(self):
+        r"""
+        EXAMPLES:
+
+        Returns extra strategies? Some of then are what you would expect if
+        maximization was true. See lines 368-380. ::
+
+        sage: A = matrix([[160, 205, 44],
+            ....:       [175, 180, 45],
+            ....:       [201, 204, 50],
+            ....:       [120, 207, 49]])
+            sage: B = matrix([[2, 2, 2],
+            ....:             [1, 0, 0],
+            ....:             [3, 4, 1],
+            ....:             [4, 1, 2]])
+            sage: g=NormalFormGame([A, B])
+            sage: g.obtain_Nash(algorithm='enumeration')
+            [([0, 0, 3/4, 1/4], [1/28, 27/28, 0])]
+        """
         m = range(self.players[0].num_strategies)
         n = range(self.players[1].num_strategies)
         s1 = [combinations(m, k+1) for k in m]

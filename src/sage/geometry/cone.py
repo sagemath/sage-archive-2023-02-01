@@ -3853,7 +3853,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         from sage.numerical.mip import MixedIntegerLinearProgram
         p = MixedIntegerLinearProgram(maximization=False)
         p.set_objective(None)
-        x = p.new_variable(integer=True)
+        x = p.new_variable(integer=True, nonnegative=True)
         x = [ x[i] for i in range(0,len(basis)) ]
         for i in range(0,self.lattice_dim()):
             p.add_constraint(sum(b[i]*x[j] for j,b in enumerate(basis)) == point[i])

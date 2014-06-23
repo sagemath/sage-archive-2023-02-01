@@ -567,12 +567,14 @@ class NormalFormGame(SageObject, MutableMapping):
                 if j == 0:
                     matrix2[j, k] = 1
                 else:
-                    matrix2[j, k] = m1[p2_support[k]][p1_support[j]] - m1[p2_support[k]][p1_support[j-1]]
+                    matrix2[j, k] = m1[p1_support[j]][p2_support[k]] - m1[p1_support[j-1]][p2_support[k]]
 
-        vector1 = vector([0 for i in range(len(p2_support)+1)])
-        vector1[0] = 1
-        vector2 = vector([0 for i in range(len(p1_support)+1)])
-        vector2[0] = 1
+        v1 = [0 for i in range(len(p2_support)+1)]
+        v2 = [0 for i in range(len(p1_support)+1)]
+        v1[0] = 1
+        v2[0] = 1
+        vector1 = vector(v1)
+        vector2 = vector(v2)
 
         try:
             a = matrix1.solve_right(vector1)

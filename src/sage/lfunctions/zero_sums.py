@@ -87,6 +87,56 @@ class LFunctionZeroSum_abstract(SageObject):
         # Defined at initialization
         return self._C0
 
+    def cnlist(self,n,python_floats=False):
+        r"""
+        Return a list of Dirichlet coefficient of the logarithmic
+        derivative of the L-function attached to self, shifted so that
+        the critical line lies on the imaginary axis, up to and
+        including n. The i-th element of the return list is a[i].
+
+        INPUT:
+
+        - ``n`` -- non-negative integer
+
+        - ``python_floats`` -- bool (default: False); if True return a list of
+          Python floats instead of Sage Real Double Field elements.
+
+        OUTPUT:
+
+        A list of real numbers
+
+        .. SEEALSO::
+
+            :meth:`~sage.lfunctions.zero_sums.LFunctionZeroSum_EllipticCurve.cn`
+
+        .. TODO::
+
+            Speed this up; make more efficient
+
+        EXAMPLES:
+
+            sage: E = EllipticCurve('11a')
+            sage: Z = LFunctionZeroSum(E)
+            sage: cnlist = Z.cnlist(11)
+            sage: for n in range(12): print(n,cnlist[n])
+            (0, 0.0)
+            (1, 0.0)
+            (2, 0.69314718056)
+            (3, 0.366204096223)
+            (4, 0.0)
+            (5, -0.321887582487)
+            (6, 0.0)
+            (7, 0.555974328302)
+            (8, -0.34657359028)
+            (9, 0.610340160371)
+            (10, 0.0)
+            (11, -0.217990479345)
+        """
+        if not python_floats:
+            return [self.cn(i) for i in xrange(n+1)]
+        else:
+            return [float(self.cn(i)) for i in xrange(n+1)]
+
     def zerosum(self,Delta=1,function="sincsquared_fast"):
         r"""
         Bound from above the analytic rank of the form attached to self
@@ -223,7 +273,7 @@ class LFunctionZeroSum_abstract(SageObject):
         n = int(0)
         while n < expt:
             n += 1
-            cn  = self.logarithmic_derivative_coefficient(n)
+            cn  = self.cn(n)
             if cn!=0:
                 logn = log(RDF(n))
                 y += cn*(t-logn)
@@ -294,7 +344,7 @@ class LFunctionZeroSum_abstract(SageObject):
         # avoid non-negligible trucation error
         while n < exp2piDelta:
             n += 1
-            cn  = self.logarithmic_derivative_coefficient(n)
+            cn  = self.cn(n)
             if cn != 0:
                 logn = log(RDF(n))
                 y += cn*exp(-(logn/(2*Delta))**2)
@@ -479,17 +529,18 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         """
         return self._E.lseries()
 
-    def logarithmic_derivative_coefficient(self,n):
+    def cn(self,n):
         r"""
-        Return the 'n'th derivative of the logarithmic derivative of the
-        L-function attached to self, shifted so that the critical line
-        lies on the imaginary axis. This is zero if 'n' is not a perfect
-        prime power; when 'n=p^e' it is '-a_p^e*log(p)/p^e', where
-        'a_p = p+1-\#{E(FF_p)}' is the trace of Frobenius at 'p'.
+        Return the 'n'th Dirichlet coefficient of the logarithmic
+        derivative of the L-function attached to self, shifted so that
+        the critical line lies on the imaginary axis. This is zero if
+        'n' is not a perfect prime power; and when 'n=p^e' it is
+        '-a_p^e*log(p)/p^e', where 'a_p = p+1-\#{E(FF_p)}' is the
+        trace of Frobenius at 'p'.
 
         INPUT:
 
-        - ``n`` -- positive integer
+        - ``n`` -- non-negative integer
 
         OUTPUT:
 
@@ -499,25 +550,26 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         sage: E = EllipticCurve('11a')
         sage: Z = LFunctionZeroSum(E)
-        sage: for n in range(1,12): print(n,Z.logarithmic_derivative_coefficient(n))
-        (1, 0)
+        sage: for n in range(12): print(n,Z.cn(n))
+        (0, 0.0)
+        (1, 0.0)
         (2, 0.69314718056)
         (3, 0.366204096223)
         (4, 0.0)
         (5, -0.321887582487)
-        (6, 0)
+        (6, 0.0)
         (7, 0.555974328302)
         (8, -0.34657359028)
         (9, 0.610340160371)
-        (10, 0)
+        (10, 0.0)
         (11, -0.217990479345)
 
         """
         n = ZZ(n)
-        if n==1:
-            return ZZ(0)
+        if n==0 or n==1:
+            return RDF(0)
         if not n.is_prime_power():
-            return ZZ(0)
+            return RDF(0)
 
         n_float = RDF(n)
         if n.is_prime():
@@ -533,6 +585,7 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             c = CDF(ap,(4*p-ap**2).sqrt())/2
             aq = (2*(c**e).real()).round()
             return -aq*logp/n_float
+
 
 def LFunctionZeroSum(X,*args,**kwds):
     """

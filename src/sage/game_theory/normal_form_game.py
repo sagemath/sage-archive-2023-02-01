@@ -567,7 +567,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g._solve_enumeration()
             [([0, 0, 3/4, 1/4], [1/28, 27/28, 0])]
 
-        A zero-sum game. ::
+        A zero-sum game (Rock-Paper-Scissors-Lizard-Spock). ::
 
             sage: A = matrix([[0, -1, 1, 1, -1],
             ....:             [1, 0, -1, -1, 1],
@@ -575,7 +575,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [-1, 1, -1, 0, 1],
             ....:             [1, -1, 1, -1, 0]])
             sage: g = NormalFormGame([A])
-            sage: g.obtain_Nash()
+            sage: g._solve_enumeration()
             [[[0.2, 0.2, 0.2, 0.2, 0.2], [0.2, 0.2, 0.2, 0.2, 0.2]]]
 
         A game with 3 equilibria. ::
@@ -589,6 +589,14 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g = NormalFormGame([A, B])
             sage: g._solve_enumeration()
             [[(1, 0, 0), (1, 0)], [(4/5, 1/5, 0), (2/3, 1/3)], [(0, 1/3, 2/3), (1/3, 2/3)]]
+
+        A simple example. ::
+
+            sage: s = matrix([[1, 0], [-2, 3]])
+            sage: t = matrix([[3, 2], [-1, 0]])
+            sage: example = NormalFormGame([s, t])
+            sage: example._solve_enumeration()
+            [[(1, 0), (1, 0)], [(0, 1), (0, 1)], [(1/2, 1/2), (1/2, 1/2)]]
         """
         m = range(self.players[0].num_strategies)
         n = range(self.players[1].num_strategies)

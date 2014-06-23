@@ -95,7 +95,6 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
 
     .. SEEALSO::
 
-        :func:`orthogonal_array` -- a tranversal design `TD(k,n)` is equivalent to an
         orthogonal array `OA(k,n,2)`.
 
     EXAMPLES::
@@ -829,6 +828,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         sage: t = 3
         sage: designs.orthogonal_array(None,5,t=t,existence=True) == t
         True
+        sage: _ = designs.orthogonal_array(t,5,t)
     """
 
     from latin_squares import mutually_orthogonal_latin_squares
@@ -1464,7 +1464,7 @@ def OA_from_PBD(k,n,PBD, check=True):
         sage: _ = OA_from_PBD(3,6,pbd)
         Traceback (most recent call last):
         ...
-        RuntimeError: The PBD covers a point 8 which is not in [0,...,5]
+        RuntimeError: The PBD covers a point 8 which is not in {0, .., 5}
     """
     # Size of the sets of the PBD
     K = set(map(len,PBD))

@@ -655,7 +655,10 @@ def BIBD_from_PBD(PBD,v,k,check=True,base_cases={}):
 
 def _check_pbd(B,v,S):
     r"""
-    Checks that ``B`` is a PBD on `v` points with given block sizes.
+    Checks that ``B`` is a PBD on ``v`` points with given block sizes ``S``.
+
+    The points of the balanced incomplete block design are implicitely assumed
+    to be `\{0, ..., v-1\}`.
 
     INPUT:
 
@@ -683,7 +686,7 @@ def _check_pbd(B,v,S):
         sage: _check_pbd([[1,2]],2,[2])
         Traceback (most recent call last):
         ...
-        RuntimeError: The PBD covers a point 2 which is not in [0,...,1]
+        RuntimeError: The PBD covers a point 2 which is not in {0, 1}
         sage: _check_pbd([[1,2]]*2,2,[2])
         Traceback (most recent call last):
         ...
@@ -723,14 +726,16 @@ def _check_pbd(B,v,S):
             m = m_tmp
 
     if g.vertices() != range(v):
-        p = list(set(g.vertices())-set(range(v)))[0]
-        raise RuntimeError("The PBD covers a point {} which is not in [0,...,{}]".format(p,v-1))
+        from sage.sets.integer_range import IntegerRange
+        p = (set(g.vertices())-set(range(v))).pop()
+        raise RuntimeError("The PBD covers a point {} which is not in {}".format(p,IntegerRange(v)))
+
     if not g.is_clique():
         for p1 in g:
             if g.degree(p1) != v-1:
                 break
         neighbors = g.neighbors(p1)+[p1]
-        p2 = list(set(g.vertices())-set(neighbors))[0]
+        p2 = (set(g.vertices())-set(neighbors)).pop()
         raise RuntimeError("The pair ({},{}) is not covered".format(p1,p2))
 
     return B

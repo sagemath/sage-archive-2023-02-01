@@ -429,14 +429,8 @@ class NormalFormGame(SageObject, MutableMapping):
         if algorithm == "lrs":
             if not is_package_installed('lrs'):
                 raise NotImplementedError("lrs is not installed")
-            m1, m2 = self._game_two_matrix()
-            if maximization is False:
-                min1 = - m1
-                min2 = - m2
-                nasheq = self._solve_lrs(min1, min2)
-            else:
-                nasheq = self._solve_lrs(m1, m2)
-            return nasheq
+
+            return self._solve_lrs(maximization)
 
     def _game_two_matrix(self):
         m1 = matrix(self.players[0].num_strategies, self.players[1].num_strategies)
@@ -513,7 +507,10 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: biggame._solve_lrs(p1, p2) # optional
         [([0, 0, 0, 20/21, 1/21], [11/12, 0, 0, 1/12, 0]), ([0, 0, 0, 1, 0], [9/10, 0, 1/10, 0, 0])]
         """
-
+        m1, m2 = self._game_two_matrix()
+        if maximization is False:
+            m1 = - m1
+            m2 = - m2
         # so that we don't call _Hrepresentation() twice.
         in_str = self._Hrepresentation(m1, m2)
         game1_str = in_str[0]

@@ -56,10 +56,11 @@ All classes and functions are also individually documented (with doctest example
 
 - **Analytic type:**
   The analytic type of forms, including the behavior at infinity:
-    - Meromorphic (and meromorphic at infinity)
-    - Weakly holomorphic (holomorphic and meromorphic at infinity)
-    - Holomorphic (and holomorphic at infinity)
-    - Cuspidal (holomorphic and zero at infinity)
+  
+  - Meromorphic (and meromorphic at infinity)
+  - Weakly holomorphic (holomorphic and meromorphic at infinity)
+  - Holomorphic (and holomorphic at infinity)
+  - Cuspidal (holomorphic and zero at infinity)
 
   Additionally the type specifies whether the form is modular or only quasi modular.
 
@@ -73,8 +74,10 @@ All classes and functions are also individually documented (with doctest example
 - **Modular form (for Hecke triangle groups):**
   A function of some analytic type which transforms like a modular form
   for the given group, weight ``k`` and multiplier ``epsilon``:
-    - ``f(z+lambda) = f(lambda)``
-    - ``f(-1/z) = epsilon * z^k * f(z)``
+
+  - ``f(z+lambda) = f(lambda)``
+  - ``f(-1/z) = epsilon * z^k * f(z)``
+
   The multiplier is either ``1`` or ``-1``.
   The weight is a rational number of the form ``4*(n*l+l')/(n-2) + (1-epsilon)*n/(n-2)``.
   If ``n`` is odd, then the multiplier is unique and given by ``(-1)^(k*(n-2)/2)``.
@@ -82,15 +85,16 @@ All classes and functions are also individually documented (with doctest example
   over the base ring. It is finite dimensional if the analytic type is ``holomorphic``.
 
   Modular forms can be constructed in several ways:
-    - Using some already available construction function for modular forms
-      (those function are available for all spaces/rings and in general
-      do not return elements of the same parent)
-    - Specifying the form as a rational function in the basic generators (see below)
-    - For weakly holomorphic modular forms it is possible to exactly determine the
-      form by specifying (sufficiently many) initial coefficients of its Fourier expansion.
-    - By specifying the coefficients with respect to a basis of the space
-      (if the corresponding space supports coordinate vectors)
-    - Arithmetic combination of forms or differential operators applied to forms
+
+  - Using some already available construction function for modular forms
+    (those function are available for all spaces/rings and in general
+    do not return elements of the same parent)
+  - Specifying the form as a rational function in the basic generators (see below)
+  - For weakly holomorphic modular forms it is possible to exactly determine the
+    form by specifying (sufficiently many) initial coefficients of its Fourier expansion.
+  - By specifying the coefficients with respect to a basis of the space
+    (if the corresponding space supports coordinate vectors)
+  - Arithmetic combination of forms or differential operators applied to forms
 
   The implementation is based on the implementation of the graded ring (see below).
   All calculations are exact (no precision argument is required).

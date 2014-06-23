@@ -402,15 +402,15 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLE:: 
 
-        sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
-        sage: QuasiModularForms(n=4, k=2, ep=1, base_ring=CC).construction()
-        (QuasiModularFormsFunctor(n=4, k=2, ep=1),
-         BaseFacade(Complex Field with 53 bits of precision))
+            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
+            sage: QuasiModularForms(n=4, k=2, ep=1, base_ring=CC).construction()
+            (QuasiModularFormsFunctor(n=4, k=2, ep=1),
+             BaseFacade(Complex Field with 53 bits of precision))
 
-        sage: from sage.modular.modform_hecketriangle.space import ModularForms
-        sage: MF=ModularForms(k=12)
-        sage: MF.subspace([MF.gen(1)]).construction()
-        (FormsSubSpaceFunctor with 1 basis element for the ModularFormsFunctor(n=3, k=12, ep=1), BaseFacade(Integer Ring))
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
+            sage: MF=ModularForms(k=12)
+            sage: MF.subspace([MF.gen(1)]).construction()
+            (FormsSubSpaceFunctor with 1 basis element for the ModularFormsFunctor(n=3, k=12, ep=1), BaseFacade(Integer Ring))
         """
 
         from functors import FormsSubSpaceFunctor, FormsSpaceFunctor, BaseFacade

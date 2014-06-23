@@ -388,13 +388,13 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return self.U()**(j-1) * self._T
 
-    #FIXME: Be more precise (transfinite diameter of what exactly)
-    #FIXME: Is d or 1/d the transfinite diameter?
     @cached_method
     def dvalue(self):
         r"""
         Return a symbolic expression (or an exact value in case n=3, 4, 6)
         for the transfinite diameter (or capacity) of ``self``.
+        I.e. the first nontrivial Fourier coefficient of the Hauptmodul
+        for the Hecke triangle group in case it is normalized to ``J_inv(i)=1``.
 
         EXAMPLES:
 
@@ -517,7 +517,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             inverses. See the remarks below as well.
 
             ``aut_factor`` has to be defined for ``t`` a complex number
-            or ``t``an element of AlgebraicField().
+            or ``t`` an element of AlgebraicField().
 
         OUTPUT:
 

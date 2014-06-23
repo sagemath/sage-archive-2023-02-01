@@ -270,15 +270,15 @@ class AnalyticTypeElement(LatticePosetElement):
 
         EXAMPLES::
 
-        sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
-        sage: el = AnalyticType()(["quasi", "weak"])
-        sage: prop_list =[prop for prop in el]
-        sage: prop_list
-        ['holo', 'cusp', 'quasi', 'weak']
-        sage: "mero" in el
-        False
-        sage: "cusp" in el
-        True
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
+            sage: el = AnalyticType()(["quasi", "weak"])
+            sage: prop_list =[prop for prop in el]
+            sage: prop_list
+            ['holo', 'cusp', 'quasi', 'weak']
+            sage: "mero" in el
+            False
+            sage: "cusp" in el
+            True
         """
         return iter([el.element for el in self.element])
 

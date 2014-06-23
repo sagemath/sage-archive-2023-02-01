@@ -617,8 +617,9 @@ class FormsRing_abstract(Parent):
         """
 
         # We only use two operators for now which do not involve 'd', so for performance
-        # reason we choose FractionField(base_ring) instead of self.coeff_ring().
-        ## FIXME: Base ring is not used, but ZZ instead.
+        # reason and due to restrictions for possible rings that can be used with algebra
+        # relations we choose FractionField(base_ring) instead of self.coeff_ring().
+        # For our purposes it is currently enough to define the operators over ZZ resp. QQ.
         free_alg         = FreeAlgebra(FractionField(ZZ),6,'X,Y,Z,dX,dY,dZ')
         (X,Y,Z,dX,dY,dZ) = free_alg.gens()
         diff_alg         = free_alg.g_algebra({dX*X:1+X*dX,dY*Y:1+Y*dY,dZ*Z:1+Z*dZ})

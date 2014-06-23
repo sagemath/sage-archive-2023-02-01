@@ -200,7 +200,7 @@ def FormsSpace(analytic_type, group=3, base_ring=ZZ, k=QQ(0), ep=None):
     - ``k``               -- The weight of the space, a rational number
                              (default: ``0``).
 
-    - ``ep``              -- The multiplier of the space, `1`, `-1
+    - ``ep``              -- The multiplier of the space, `1`, `-1`
                              or ``None`` (in case ``ep`` should be
                              determined from ``k``). Default: ``None``.
 
@@ -328,8 +328,6 @@ def FormsRing(analytic_type, group=3, base_ring=ZZ, red_hom=False):
         sage: from sage.modular.modform_hecketriangle.constructor import FormsRing
         sage: FormsRing("cusp", group=5, base_ring=CC)
         CuspFormsRing(n=5) over Complex Field with 53 bits of precision
-        sage: FormsRing("cusp", group=5, base_ring=CC) == FormsRing([], group=5, base_ring=CC)
-        True
 
         sage: FormsRing("holo")
         ModularFormsRing(n=3) over Integer Ring
@@ -342,8 +340,6 @@ def FormsRing(analytic_type, group=3, base_ring=ZZ, red_hom=False):
 
         sage: FormsRing(["quasi", "cusp"], group=5, base_ring=CC)
         QuasiCuspFormsRing(n=5) over Complex Field with 53 bits of precision
-        sage: FormsRing(["quasi", "cusp"], group=5, base_ring=CC) == FormsRing(["quasi"], group=5, base_ring=CC)
-        True
 
         sage: FormsRing(["quasi", "holo"])
         QuasiModularFormsRing(n=3) over Integer Ring
@@ -366,9 +362,11 @@ def FormsRing(analytic_type, group=3, base_ring=ZZ, red_hom=False):
         if analytic_type <= AT("weak"):
             if analytic_type <= AT("holo"):
                 if analytic_type <= AT("cusp"):
-                    ## FIXME: Raise (not implemented) error if zero type is passed
-                    from graded_ring import CuspFormsRing
-                    return CuspFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
+                    if analytic_type <=AT([]):
+                        raise ValueError("Analytic type Zero is not valid for forms rings.")
+                    else:
+                        from graded_ring import CuspFormsRing
+                        return CuspFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
                 else:
                     from graded_ring import ModularFormsRing
                     return ModularFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
@@ -382,9 +380,11 @@ def FormsRing(analytic_type, group=3, base_ring=ZZ, red_hom=False):
         if analytic_type <= AT(["weak", "quasi"]):
             if analytic_type <= AT(["holo", "quasi"]):
                 if analytic_type <= AT(["cusp", "quasi"]):
-                    ## FIXME: Raise (value) error if zero type is passed
-                    from graded_ring import QuasiCuspFormsRing
-                    return QuasiCuspFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
+                    if analytic_type <=AT(["quasi"]):
+                        raise ValueError("Analytic type Zero is not valid for forms rings.")
+                    else:
+                        from graded_ring import QuasiCuspFormsRing
+                        return QuasiCuspFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
                 else:
                     from graded_ring import QuasiModularFormsRing
                     return QuasiModularFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)

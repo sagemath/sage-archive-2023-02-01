@@ -103,6 +103,10 @@ class NormalFormGame(SageObject, MutableMapping):
     75% of the time. At this equilibrium point Amy and Bob will only ever
     do the same activity `3/8` of the time.
 
+    Allowing players to play mixed strategies ensures that there will always
+    be a Nash Equilibrium for a normal form game. This result is called Nash's
+    Theorem ([N1950]_).
+
 
     A basic 2-player game constructed from matrices. ::
 
@@ -210,6 +214,10 @@ class NormalFormGame(SageObject, MutableMapping):
 
     The equilibrium strategy is thus for both players to state that the value
     of their suitcase is 2.
+
+    REFERENCES:
+
+    .. [N1950] John Nash. *Equilibrium points in n-person games.* Proceedings of the national academy of sciences 36.1 (1950): 48-49.
 
     """
     def __delitem__(self, key):

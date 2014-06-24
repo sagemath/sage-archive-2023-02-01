@@ -484,7 +484,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLE:
 
-        In the following example, ``a`` and ``b`` compare equal. They can not
+        In the following example, ``a`` and ``b`` compare equal. They cannot
         have a meaningful hash value since then their hash value would have to
         be the same::
 
@@ -520,7 +520,10 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         elif self._is_inexact_zero():
             return (id(self.parent()), 0, self.valuation())
         else:
-            return id(self.parent()), tuple(tuple(c) if isinstance(c,list) else c for c in self.unit_part().list()), self.valuation(), self.precision_relative()
+            return (id(self.parent()),
+                    tuple(tuple(c) if isinstance(c, list) else c
+                          for c in self.unit_part().list()),
+                    self.valuation(), self.precision_relative())
 
     cdef int _set_inexact_zero(self, long absprec) except -1:
         """

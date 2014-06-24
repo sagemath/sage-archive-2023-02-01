@@ -223,13 +223,13 @@ cdef class SageObject:
 
     def _cache_key(self):
         r"""
-        Return a key which identifies this objects for caching. The output must
-        be hashable itself or a tuple of objects which are hashable or define a
-        ``_cache_key``.
+        Return a key which identifies this object for caching. The output must
+        be hashable itself, or a tuple of objects which are hashable or define
+        a ``_cache_key``.
 
         This method will only be called if the object itself is not hashable.
 
-        Some immutable objects (such as `p`-adic numbers) can not implement a
+        Some immutable objects (such as `p`-adic numbers) cannot implement a
         reasonable hash function because their ``==`` operator has been
         modified to return ``True`` for objects which might behave differently
         in some computations::
@@ -269,7 +269,10 @@ cdef class SageObject:
             sage: c._cache_key()
             (..., ((0, 1), (1,)), 0, 20)
 
-        An implementation must make sure that for elements ``a`` and ``b``, if ``a != b``, then also ``a._cache_key() != b._cache_key()``. In pratice this means that the ``_cache_key`` should always include the ``id`` of the parent.
+        An implementation must make sure that for elements ``a`` and ``b``,
+        if ``a != b``, then also ``a._cache_key() != b._cache_key()``.
+        In practice this means that the ``_cache_key`` should always include
+        the ``id`` of the parent.
 
             sage: S.<a> = Qq(4)
             sage: d = a + O(2)

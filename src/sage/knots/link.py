@@ -24,7 +24,8 @@ class Link:
     r"""
     The base class for Link, taking input in three formats namely Briadword, gauss_code, dt_code
     """
-    def __init__(self, input = None, gauss_code = None, dt_code = None):
+    #here the dt_code and gauss_code should be removed as we do not consider them as standard input.
+    def __init__(self, input = None, gauss_code = None, dt_code = None, oriented_gauss_code = None, PD_code = None):
         if type(input) == Braid:
             self._braid = input
             self._gauss_code = None
@@ -40,8 +41,17 @@ class Link:
             self._gauss_code = None
             self._dt_code = dt_code
 
+        elif oriented_gauss_code != None:
+            self._oriented_gauss_code = oriented_gauss_code
+            self._PD_code = None
+
+        elif PD_code != None:
+            self._PD_code = PD_code
+            self._oriented_gauss_code = None
+
         else:
             raise Exception("Invalid input")
+
 
     def braidword(self):
         r"""
@@ -86,6 +96,65 @@ class Link:
 
         elif self._dt_code != None:
             return "Not Implemented Error"
+
+    def PD_code(self):
+        if self._PD_code != None:
+            return self._PD_code
+
+        #Whatever is the crossing one should give the sign for that first
+        #the order of the sign is as per the ordering of the crossings as in the gauss code
+        #so for example if the gauss code is 1 -3 2 -1 3 -2 then the
+        #order of the sign of the crossings is sign of crossing 1 then 3 then at 2
+        #and so on and so forth.
+        elif self._oriented_gauss_code != None:
+            gc = self._oriented_gauss_code[0]
+            gc_sign = self._oriented_gauss_code[1]
+            l = [0 for i in range(len(gc))]
+            for i in range(len(gc)):
+                k = abs(gc[i])
+                if l[2*(k-1)] == 0:
+                    l[2*(k-1)] = (i + 1)*(cmp(gc[i],0))
+                else:
+                    l[2*k-1] = (i + 1)*(cmp(gc[i],0))
+            y = [None for i in range(2*len(gc_sign))]
+            for i in range(0,2*len(gc_sign),2):
+                if l[i] < 0:
+                    y[i] = 'under'
+                    y[i+1] = 'over'
+                elif l[i] > 0:
+                    y[i] = 'over'
+                    y[i+1] = 'under'
+            l1 = [abs(x) for x in l]
+            r = []
+            p = [[None for i in range(4)] for i in range(len(gc_sign))]
+            for i in range(len(gc_sign)):
+                if gc_sign[i] == '-':
+                    if y[2*i] == 'under':
+                        p[i][0] = l1[2*i]
+                        p[i][2] = p[i][0] + 1
+                        p[i][3] = l1[2*i+1]
+                        p[i][1] = p[i][3] + 1
+                    elif y[2*i+1] == 'under':
+                        p[i][0] = l1[2*i+1]
+                        p[i][3] = l1[2*i]
+                        p[i][2] = p[i][0] + 1
+                        p[i][1] = p[i][3] + 1
+                elif gc_sign[i] == '+':
+                    if y[2*i] == 'under':
+                        p[i][0] = l1[2*i]
+                        p[i][2] = p[i][0] + 1
+                        p[i][1] = l1[2*i+1]
+                        p[i][3] = p[i][1] + 1
+                    elif y[2*i+1] == 'under':
+                        p[i][0] = l1[2*i+1]
+                        p[i][1] = l1[2*i]
+                        p[i][2] = p[i][0] + 1
+                        p[i][3] = p[i][1] + 1
+            for i in range(len(p)):
+                for j in range(4):
+                    if p[i][j] == max(l1) + 1:
+                        p[i][j] = 1
+            return p
 
     def gauss_code(self):
         r"""
@@ -675,7 +744,8 @@ class Link:
         else:
             raise Exception("Arf invariant is defined only for knots")
 
-    def PD_code(self):
+    #braid to planar
+    def pd_code(self):
         b = list(self._braid.Tietze())
         N = len(b)
         label = [0 for i in range(2*N)]
@@ -817,87 +887,297 @@ class Link:
     #*****************************************************************************
 
     #**************************** PART - 1 ***************************************
-    #Whatever is the crossing one should give the sign for that first
-    #the order of the sign is as per the ordering of the crossings as in the gauss code
-    #so for example if the gauss code is 1 -3 2 -1 3 -2 then the
-    #order of the sign of the crossings is sign of crossing 1 then 3 then at 2
-    #and so on and so forth.
-    def PD_code_ogc(self, oriented_gauss_code):
-        self.oriented_gauss_code = oriented_gauss_code
-        gc = self.oriented_gauss_code[0]
-        gc_sign = self.oriented_gauss_code[1]
-        l = [0 for i in range(len(gc))]
-        for i in range(len(gc)):
-            k = abs(gc[i])
-            if l[2*(k-1)] == 0:
-                l[2*(k-1)] = (i + 1)*(cmp(gc[i],0))
-            else:
-                l[2*k-1] = (i + 1)*(cmp(gc[i],0))
-        y = [None for i in range(2*len(gc_sign))]
-        for i in range(0,2*len(gc_sign),2):
-            if l[i] < 0:
-                y[i] = 'under'
-                y[i+1] = 'over'
-            elif l[i] > 0:
-                y[i] = 'over'
-                y[i+1] = 'under'
-        l1 = [abs(x) for x in l]
-        r = []
-        p = [[None for i in range(4)] for i in range(len(gc_sign))]
-        for i in range(len(gc_sign)):
-            if gc_sign[i] == '-':
-                if y[2*i] == 'under':
-                    p[i][0] = l1[2*i]
-                    p[i][2] = p[i][0] + 1
-                    p[i][3] = l1[2*i+1]
-                    p[i][1] = p[i][3] + 1
-                elif y[2*i+1] == 'under':
-                    p[i][0] = l1[2*i+1]
-                    p[i][3] = l1[2*i]
-                    p[i][2] = p[i][0] + 1
-                    p[i][1] = p[i][3] + 1
-            elif gc_sign[i] == '+':
-                if y[2*i] == 'under':
-                    p[i][0] = l1[2*i]
-                    p[i][2] = p[i][0] + 1
-                    p[i][1] = l1[2*i+1]
-                    p[i][3] = p[i][1] + 1
-                elif y[2*i+1] == 'under':
-                    p[i][0] = l1[2*i+1]
-                    p[i][1] = l1[2*i]
-                    p[i][2] = p[i][0] + 1
-                    p[i][3] = p[i][1] + 1
-        return p
 
-
-    def regions(self, oriented_gauss_code):
-        self.oriented_gauss_code = oriented_gauss_code
-        print self.oriented_gauss_code
-        x = self.PD_code_ogc(self.oriented_gauss_code)
-        print x
+    def seifert_circles(self):
+        y = self.PD_code()
+        x = deepcopy(y)
         s = [[None for i in range(4)] for i in range(len(x))]
         for i in range(len(x)):
             s[i][0] = 'entering'
             s[i][2] = 'leaving'
-            if self.oriented_gauss_code[1][i] == '-':
-                s[i][1] = 'leaving'
-                s[i][3] = 'entering'
-            elif self.oriented_gauss_code[1][i] == '+':
+            if x[i][1] < x[i][3]:
                 s[i][1] = 'entering'
                 s[i][3] = 'leaving'
-        print s
-        q = []
-        q = [[None for i in range(len(x))] for i in range(len(x))]
+            if x[i][1] > x[i][3]:
+                s[i][1] = 'leaving'
+                s[i][3] = 'entering'
+        x1 = x #the arrays are not being copied, just a tag
+        s1 = s
+        r = [[[None,None],[None,None]] for i in range(len(x))]
         for i in range(len(x)):
-            for j in range(len(x)):
-                q[i][j] = (list(set(x[i]).intersection(set(x[j]))))
-        '''p = [[None for i in range(len(x))] for i in range(len(x))]
+            for j in [1,3]:
+                if s[i][j] == 'leaving':
+                    r[i][0][0] = x1[i][0]
+                    r[i][0][1] = x1[i][j]
+                    del x1[i][j]
+                    del x1[i][0]
+                    del s1[i][j]
+                    del s1[i][0]
+                    break
         for i in range(len(x)):
-            for j in range(len(x)):
-                if len(q[i][j]) == 4 or len(q[i][j]) == 0:
-                    p[i][j] = 0
+            for j in [0,1]:
+                if s1[i][0] == "entering":
+                    r[i][1][0] = x1[i][0]
+                    r[i][1][1] = x1[i][1]
+                elif s1[i][0] == "leaving":
+                    r[i][1][0] = x1[i][1]
+                    r[i][1][1] = x1[i][0]
+        r1 = [a for b in r for a in b]
+        dic = dict(sorted(r1))
+        for i in dic:
+            dic[i] = [dic[i]]
+        D = DiGraph(dic)
+        d = D.all_simple_cycles()
+        for i in d:
+            del i[0]
+        return d
+
+    def regions(self):
+        y = self.PD_code()
+        x = deepcopy(y)
+        x1 = deepcopy(x)
+        s = [[None for i in range(4)] for i in range(len(x))]
+        for i in range(len(x)):
+            s[i][0] = 'entering'
+            s[i][2] = 'leaving'
+            if x[i][1] < x[i][3]:
+                s[i][1] = 'entering'
+                s[i][3] = 'leaving'
+            if x[i][1] > x[i][3]:
+                s[i][1] = 'leaving'
+                s[i][3] = 'entering'
+        ou = [["under","over","under","over"] for i in range(len(x))]
+        r = [[[None,None],[None,None]] for i in range(len(x))]
+        r1 = [[[None,None],[None,None]] for i in range(len(x))]
+        for i in range(len(x)):
+            r[i][0][0] = x[i][0]
+            r1[i][0][0] = "under"
+            for j in range(1,4):
+                if s[i][j] == "entering":
+                    r[i][0][1] = x[i][j]
+                    r1[i][0][1] = ou[i][j]
+                    del x[i][j]
+                    del ou[i][j]
+                    s[i][j] = 0
+                    del ou[i][0]
+                    s[i][0] = 0
+                    del x[i][0]
+        for i in range(len(x)):
+            r[i][1][0] = x[i][0]
+            r[i][1][1] = x[i][1]
+            r1[i][1][0] = ou[i][0]
+            r1[i][1][1] = ou[i][1]
+            del x[i][1]
+            del x[i][0]
+            del ou[i][1]
+            del ou[i][0]
+        r = [a for b in r for a in b]
+        r1 = [a for b in r1 for a in b]
+        r3 = deepcopy(r)
+        lc = [[None,None] for i in range(len(x))]
+        for i in range(len(x)):
+            if x1[i][1] > x1[i][3]:
+                if r1[2*i+1][0] == 'over':
+                    lc[i][0] = r[2*i+1][0]
+                lc[i][1] = (-1)*r[2*i][0]
+            elif x1[i][1] < x1[i][3]:
+                if r1[2*i+1][0] == 'under':
+                    lc[i][1] = r[2*i+1][0]
+                lc[i][0] = (-1)*r[2*i][1]
+        r2 = []
+        for i in reversed(range(len(x))):
+            r2.append(r[2*i])
+            del r[2*i]
+        entering = r2[::-1]
+        left_component_entering = lc
+        leaving = r
+        r4 = deepcopy(r)
+        for i in r4:
+            i[0] = (-1)*i[0]
+            i[1] = (-1)*i[1]
+        lc1 = [[None,None] for i in range(len(x))]
+        for i in range(len(x)):
+            if x1[i][1] > x1[i][3]:
+                if r1[2*i+1][0] == 'over':
+                    lc1[i][0] = r3[2*i+1][1]
+                    if r1[2*i][0] == 'over':
+                        lc1[i][1] = (-1)*r3[2*i][0]
+                    elif r1[2*i][1] == 'over':
+                        lc1[i][1] = (-1)*r3[2*i][1]
+            elif x1[i][1] < x1[i][3]:
+                if r1[2*i+1][1] == 'over':
+                    lc1[i][0] = r3[2*i+1][1]
+                    if r1[2*i][0] == 'under':
+                        lc1[i][1] = (-1)*r3[2*i][0]
+                    elif r1[2*i][1] == 'under':
+                        lc1[i][1] = (-1)*r3[2*i][1]
+        left_component_leaving = lc1
+        '''
+        sage: L.regions([[-1, +2, -3, 1, -2, +3 ],['-','-','-']])
+        [[1, 4], [5, 2], [3, 6]]
+        [[5, -1], [3, -5], [1, -3]]
+        [[5, 2], [3, 6], [1, 4]]
+        read as 1 has left component as 5, 4 has left componet as -1, ...
+        read as [1,4], [5,2], [3,6] enter the crossing
+        read as [5,2], [3,6], [1,4] leave the crossing
+        '''
+        w = {}
+        w1 = {}
+        for i in range(len(x)):
+            w.update({entering[i][0] : left_component_entering[i][0]})
+            w.update({entering[i][1] : left_component_entering[i][1]})
+            w1.update({r4[i][0] : left_component_leaving[i][0]})
+            w1.update({r4[i][1] : left_component_leaving[i][1]})
+        for i in range(1,len(w)+1):
+            w[i] = [w[i]]
+        for i in range(-len(w),0):
+            w1[i] = [w1[i]]
+        w2 = dict(w.items() + w1.items())
+        d = DiGraph(w2)
+        regions = d.all_simple_cycles()
+        for i in regions:
+            del i[0]
+        check = [i for i in range(-len(w), len(w)+1)]
+        del check[len(w)]
+        regions1 = [a for b in regions for a in b]
+        r5 = sorted(regions1)
+        if r5 == check:
+            return regions
+        else:
+            raise Exception("Incorrect Input")
+
+    def remove_regions(self):
+        y = self.PD_code()
+        x = deepcopy(y)
+        sc = self.seifert_circles()
+        regions = self.regions()
+        q1 = deepcopy(regions)
+        q = [[[],[]] for i in range(len(regions))]
+        for i in range(len(regions)):
+            for j in range(len(regions[i])):
+                if regions[i][j] < 0:
+                    q[i][0].append(regions[i][j])
+                elif regions[i][j] > 0:
+                    q[i][1].append(regions[i][j])
+        r = [[] for i in range(len(q))]
+        for i in range(len(q)):
+            for j in range(len(q[i])):
+                r[i].append(None)
+                for k in range(len(q[i][j])):
+                    if q[i][j][k] < 0:
+                        q[i][j][k] = (-1)*q[i][j][k]
+        for i in range(len(q)):
+            for j in range(len(q[i])):
+                for k in sc:
+                    if set(q[i][j]).intersection(set(k)) == set(q[i][j]):
+                        r[i][j] = None
+                        break
                 else:
-                    p[i][j] = 1
+                    r[i][j] = q[i][j]
+        for i in reversed(range(len(r))):
+            for j in reversed(range(len(r[i]))):
+                if r[i][j] == None:
+                    del r[i][j]
+         #we see whether they belong to the same region if it is so we remove the other.
+        for i in reversed(range(len(r))):
+            if len(r[i]) > 1:
+                del r[i][1]
+            if len(r[i]) == 0:
+                del r[i]
+        # r has the components together
+        r = [a for b in r for a in b]
+        # we flat r to get r1
+        r1 = deepcopy(r)
+        r1 = sum(r1,[])
+        # we sort r1 to get r2 this is in order to computer c
+        r2 = sorted(r1)
+        # c has the new components after the move has been made
+        c = [[None for i in range(3)] for i in range(len(r2))]
+        for i in range(len(c)):
+            c[i][0] = r2[i] + 2*i
+            c[i][1] = c[i][0] + 1
+            c[i][2] = c[i][1] + 1
+        #here we update c1 after comparing r1 & r2
+        c1 = []
+        for i in range(len(r1)):
+            for j in range(len(r2)):
+                if r1[i] == r2[j]:
+                    c1.append(c[j])
+                    break
+        #now using the above data in c1 compute the PD info at the new crossings
+        #we always pull the component numbered higher onto the component numbered lower
+        npd = [[None for i in range(4)] for i in range(len(r1))]
+        for i in range(len(r)):
+            if max(r[i]) == r1[2*i]:
+                npd[2*i+1][0] = c1[2*i][0]
+                npd[2*i+1][2] = npd[2*i][0] + 1
+                npd[2*i][0] = npd[2*i][2]
+                npd[2*i][2] = npd[2*i][0] + 1
+            elif max(r[i]) == r1[2*i+1]:
+                npd[2*i+1][0] = c1[2*i+1][0]
+                npd[2*i+1][2] = npd[2*i+1][0] + 1
+                npd[2*i][0] = npd[2*i+1][2]
+                npd[2*i][2] = npd[2*i][0] + 1
+        #now we need to decide the over crossings, for this we need to find which crossing has
+        #the highest component leaving since that has the new lowest component entering
+        for i in range(len(r)):
+            if max(r[i]) == r1[2*i+1]:
+                if max(c1[2*i+1]) == max(npd[2*i]):
+                    npd[2*i][1] = c1[2*i][1]
+                    npd[2*i][3] = c1[2*i][0]
+                    npd[2*i+1][1] = c1[2*i][1]
+                    npd[2*i+1][3] = c1[2*i][2]
+                elif max(c1[2*i+1]) == max(npd[2*i+1]):
+                    npd[2*i+1][1] = c1[2*i][1]
+                    npd[2*i+1][3] = c1[2*i][0]
+                    npd[2*i][1] = c1[2*i][1]
+                    npd[2*i][3] = c1[2*i][2]
+            elif max(r[i]) == r1[2*i]:
+                if max(c1[2*i]) == max(npd[2*i]):
+                    npd[2*i][1] = c1[2*i][1]
+                    npd[2*i][3] = c1[2*i][0]
+                    npd[2*i+1][1] = c1[2*i][1]
+                    npd[2*i+1][3] = c1[2*i][2]
+                elif max(c1[2*i]) == max(npd[2*i+1]):
+                    npd[2*i+1][1] = c1[2*i][1]
+                    npd[2*i+1][3] = c1[2*i][0]
+                    npd[2*i][1] = c1[2*i][1]
+                    npd[2*i][3] = c1[2*i][2]
+        #here we computer the planar diagram and store it in y with the new components
+        #the npd has the PD Code for new crossings, now we need to modify the previous
+        #crossings.
+        y = [[None for i in range(4)] for i in range(len(x))]
+        for i in range(len(r2)):
+            if i+1  < len(r2):
+                for j in range(len(x)):
+                    for k in range(4):
+                        if x[j][k] < r2[0]:
+                            y[j][k] = x[j][k]
+                        elif x[j][k] > r2[i] and x[j][k] < r2[i+1]:
+                            y[j][k] = x[j][k] + 2*(i+1)
+                        elif x[j][k] > r2[len(r2)-1]:
+                            y[j][k] = x[j][k] + 2*(i+2)
+        #the above PD code has only few elements and not all, as we are updating the
+        #previous crossings we can use the sign information from the input.
+        #gc_sign = self.oriented_gauss_code[1]
         for i in range(len(x)):
-            q[i].remove(q[i][i])'''
-        return q
+            if x[i][1] > x[i][3]:
+                if y[i][0] == None:
+                    y[i][0] = y[i][2] - 1
+                if y[i][2] == None:
+                    y[i][2] = y[i][0] + 1
+                if y[i][3] == None:
+                    y[i][3] = y[i][1] - 1
+                if y[i][1] == None:
+                    y[i][1] = y[i][3] + 1
+            elif x[i][1] < x[i][3]:
+                if y[i][0] == None:
+                    y[i][0] = y[i][2] - 1
+                if y[i][2] == None:
+                    y[i][2] = y[i][0] + 1
+                if y[i][3] == None:
+                    y[i][3] = y[i][1] + 1
+                if y[i][1] == None:
+                    y[i][1] = y[i][3] - 1
+        y = y + npd
+        return y

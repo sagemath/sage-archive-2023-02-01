@@ -176,6 +176,14 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: matching_pennies.obtain_Nash()
         [[[0.5, 0.5], [0.5, 0.5]]]
 
+    The utilities to both players at this Nash equilibrium
+    is easily computed ::
+
+        sage: vector([1/2, 1/2]) * A * vector([1/2, 1/2])
+        0
+        sage: vector([1/2, 1/2]) * B * vector([1/2, 1/2])
+        0
+
     A basic 2-player game constructed from matrices. ::
 
         sage: A = matrix([[1, 2], [3, 4]])

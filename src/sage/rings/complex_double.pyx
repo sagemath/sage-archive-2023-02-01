@@ -1507,6 +1507,48 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return (self.real() in ZZ) and (self.imag()==0)
 
+    def is_positive_infinity(self):
+        r"""
+        Check if ``self`` is `+\infty`.
+
+        EXAMPLES::
+
+            sage: CDF(1, 2).is_positive_infinity()
+            False
+            sage: CDF(oo, 0).is_positive_infinity()
+            True
+            sage: CDF(0, oo).is_positive_infinity()
+            False
+        """
+        return self.real().is_positive_infinity() and self.imag().is_zero()
+
+    def is_negative_infinity(self):
+        r"""
+        Check if ``self`` is `-\infty`.
+
+        EXAMPLES::
+
+            sage: CDF(1, 2).is_negative_infinity()
+            False
+            sage: CDF(-oo, 0).is_negative_infinity()
+            True
+            sage: CDF(0, -oo).is_negative_infinity()
+            False
+        """
+        return self.real().is_negative_infinity() and self.imag().is_zero()
+
+    def is_infinity(self):
+        r"""
+        Check if ``self`` is `\infty`.
+
+        EXAMPLES::
+
+            sage: CDF(1, 2).is_infinity()
+            False
+            sage: CDF(0, oo).is_infinity()
+            True
+        """
+        return self.real().is_infinity() or self.imag().is_infinity()
 
     def _pow_(self, ComplexDoubleElement a):
         """

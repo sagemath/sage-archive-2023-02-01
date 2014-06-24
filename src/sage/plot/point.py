@@ -114,7 +114,7 @@ class Point(GraphicPrimitive_xydata):
             sage: b.size
             3
         """
-        if options == None:
+        if options is None:
             options = dict(self.options())
         options_3d = {}
         if 'size' in options:

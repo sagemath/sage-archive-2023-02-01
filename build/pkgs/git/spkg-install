@@ -62,6 +62,7 @@ $MAKE GIT-VERSION-FILE
 # some systems, leading for example to a different "make" being used.
 echo "Configuring git..."
 ./configure --prefix="$SAGE_LOCAL" \
+            --libexecdir="$SAGE_LOCAL"/libexec \
             --with-python="$SAGE_LOCAL"/bin/python \
             --without-tcltk \
             --with-sane-tool-path=

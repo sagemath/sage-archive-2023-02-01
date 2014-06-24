@@ -227,7 +227,7 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             im_gens = domain.modulus().any_root(codomain)
             check=False
         RingHomomorphism_im_gens.__init__(self, parent, im_gens, check)
-        if section_class == None:
+        if section_class is None:
             self._section_class = SectionFiniteFieldHomomorphism_generic
         else:
             self._section_class = section_class

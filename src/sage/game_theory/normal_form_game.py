@@ -191,7 +191,6 @@ class NormalFormGame(SageObject, MutableMapping):
         [-1  1], [ 1 -1]
         )
 
-
     A basic 2-player game constructed from matrices. ::
 
         sage: A = matrix([[1, 2], [3, 4]])

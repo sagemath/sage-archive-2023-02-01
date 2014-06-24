@@ -690,7 +690,7 @@ class NormalFormGame(SageObject, MutableMapping):
         nasheq = Parser(output, g).format_gambit()
         return nasheq
 
-    def _solve_lrs(self, maximization):
+    def _solve_lrs(self, maximization=True):
         r"""
         EXAMPLES:
 
@@ -699,7 +699,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[1, 2], [3, 4]])
             sage: B = matrix([[3, 3], [1, 4]])
             sage: C = NormalFormGame([A, B])
-            sage: C._solve_lrs(A, B) # optional - lrs
+            sage: C._solve_lrs() # optional - lrs
             [([0, 1], [0, 1])]
 
         2 random matrices. ::
@@ -715,7 +715,7 @@ class NormalFormGame(SageObject, MutableMapping):
         ....:              [1, 0, 1, 0, 0,],
         ....:              [1, -3, 1, 21, -2]])
         sage: biggame = NormalFormGame([p1, p2])
-        sage: biggame._solve_lrs(p1, p2) # optional - lrs
+        sage: biggame._solve_lrs() # optional - lrs
         [([0, 0, 0, 20/21, 1/21], [11/12, 0, 0, 1/12, 0]), ([0, 0, 0, 1, 0], [9/10, 0, 1/10, 0, 0])]
         """
         m1, m2 = self._game_two_matrix()

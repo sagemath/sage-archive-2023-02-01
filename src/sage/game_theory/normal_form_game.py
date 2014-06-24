@@ -276,6 +276,47 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: f
         {(0, 1): [2, 3], (0, 0): [1, 3], (2, 1): [False, False], (2, 0): [False, False], (1, 0): [3, 1], (1, 1): [4, 4]}
 
+    We can use the same syntax as above to create games with more than 2 players ::
+
+        sage: threegame = NormalFormGame()
+        sage: threegame.add_player(2)
+        sage: threegame.add_player(2)
+        sage: threegame.add_player(2)
+        sage: threegame[0, 0, 0][0] = 3
+        sage: threegame[0, 0, 0][1] = 1
+        sage: threegame[0, 0, 0][2] = 4
+        sage: threegame[0, 0, 1][0] = 1
+        sage: threegame[0, 0, 1][1] = 5
+        sage: threegame[0, 0, 1][2] = 9
+        sage: threegame[0, 1, 0][0] = 2
+        sage: threegame[0, 1, 0][1] = 6
+        sage: threegame[0, 1, 0][2] = 5
+        sage: threegame[0, 1, 1][0] = 3
+        sage: threegame[0, 1, 1][1] = 5
+        sage: threegame[0, 1, 1][2] = 8
+        sage: threegame[1, 0, 0][0] = 9
+        sage: threegame[1, 0, 0][1] = 7
+        sage: threegame[1, 0, 0][2] = 9
+        sage: threegame[1, 0, 1][0] = 3
+        sage: threegame[1, 0, 1][1] = 2
+        sage: threegame[1, 0, 1][2] = 3
+        sage: threegame[1, 1, 0][0] = 8
+        sage: threegame[1, 1, 0][1] = 4
+        sage: threegame[1, 1, 0][2] = 6
+        sage: threegame[1, 1, 1][0] = 2
+        sage: threegame[1, 1, 1][1] = 6
+        sage: threegame[1, 1, 1][2] = 4
+        sage: threegame
+        {(0, 1, 1): [3, 5, 8], (1, 1, 0): [8, 4, 6], (1, 0, 0): [9, 7, 9], (0, 0, 1): [1, 5, 9], (1, 0, 1): [3, 2, 3], (0, 0, 0): [3, 1, 4], (0, 1, 0): [2, 6, 5], (1, 1, 1): [2, 6, 4]}
+
+    At present no algorithm has been implemented in Sage for games with
+    more than 2 players ::
+
+        sage: threegame.obtain_Nash()
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms
+
     A basic 2-player game constructed from matrices. ::
 
         sage: A = matrix([[1, 2], [3, 4]])

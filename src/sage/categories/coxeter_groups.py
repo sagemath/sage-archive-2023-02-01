@@ -649,6 +649,40 @@ class CoxeterGroups(Category_singleton):
             I = self.weak_order_ideal(ConstantFunction(True), side='right')
             return I.elements_of_depth_iterator(n)
 
+        def random_element_of_length(self, n):
+            r"""
+            Returns a random element of length `n` in ``self``.
+
+            Starts at the identity, then chooses an upper cover at random.
+
+            Not very uniform: actually constructs a uniformly random
+            reduced word of length `n`. Thus we most likely get
+            elements with lots of reduced words!
+
+            EXAMPLES::
+
+                sage: A = AffinePermutationGroup(['A', 7, 1])
+                sage: p = A.random_element_of_length(10)
+                sage: p in A
+                True
+                sage: p.length() == 10
+                True
+
+                sage: W = CoxeterGroup(['A', 4])
+                sage: p = W.random_element_of_length(5)
+                sage: p in W
+                True
+                sage: p.length() == 5
+                True
+            """
+            from sage.misc.prandom import randint
+            x = self.one()
+            for i in xrange(1, n + 1):
+                antiD = x.descents(positive=True)
+                rnd = randint(0, len(antiD) - 1)
+                x = x.apply_simple_reflection_right(antiD[rnd])
+            return x
+
         # TODO: Groups() should have inverse() call __invert__
         # With strong doc stating that this is just a convenience for the user
         # and links to ~ / __invert__

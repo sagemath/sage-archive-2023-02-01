@@ -498,7 +498,7 @@ class NormalFormGame(SageObject, MutableMapping):
         nasheq = Parser(output, g).format_gambit()
         return nasheq
 
-    def _solve_lrs(self, m1, m2):
+    def _solve_lrs(self, maximization):
         r"""
         EXAMPLES:
 
@@ -567,7 +567,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g._solve_enumeration()
             [([0, 0, 3/4, 1/4], [1/28, 27/28, 0])]
 
-        A zero-sum game (Rock-Paper-Scissors-Lizard-Spock). ::
+        A degenerate zero-sum game (Rock-Paper-Scissors-Lizard-Spock). ::
 
             sage: A = matrix([[0, -1, 1, 1, -1],
             ....:             [1, 0, -1, -1, 1],
@@ -597,6 +597,32 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: example = NormalFormGame([s, t])
             sage: example._solve_enumeration()
             [[(1, 0), (1, 0)], [(0, 1), (0, 1)], [(1/2, 1/2), (1/2, 1/2)]]
+
+        Another. ::
+
+            sage: A = matrix([[0, 1, 7, 1],
+            ....:             [2, 1, 3, 1],
+            ....:             [3, 1, 3, 5],
+            ....:             [6, 4, 2, 7]])
+            sage: B = matrix([[3, 2, 8, 4],
+            ....:             [6, 2, 0, 3],
+            ....:             [1, 3, -1, 1],
+            ....:             [3, 2, 1, 1]])
+            sage: C = NormalFormGame([A, B])
+            sage: C.obtain_Nash()
+            sage: C._solve_enumeration()
+
+        Again. ::
+
+            sage: X = matrix([[1, 4, 2],
+            ....:             [4, 0, 3],
+            ....:             [2, 3, 5]])
+            sage: Y = matrix([[3, 9, 2],
+            ....:             [0, 3, 1],
+            ....:             [5, 4, 6]])
+            sage: Z = NormalFormGame([X, Y])
+            sage: Z.obtain_Nash(algorithm='lrs')
+            sage: Z._solve_enumeration()
         """
         m = range(self.players[0].num_strategies)
         n = range(self.players[1].num_strategies)
@@ -652,9 +678,9 @@ class NormalFormGame(SageObject, MutableMapping):
             checka = all(i >= 0 for i in a)
             checkb = all(i >= 0 for i in b)
             if checka and checkb:
-                return [a, b]
-            else:
-                return False
+                if sum(x > 0 for x in a) == sum(x > 0 for x in b):
+                    return [a, b]
+            return False
         except:
             return False
 

@@ -99,8 +99,8 @@ class NormalFormGame(SageObject, MutableMapping):
 
     To obtain the Nash equilibria we run the `obtain_Nash()` method ::
 
-        sage: battle_of_the_sexes.obtain_Nash()
-        [[(1.0, 0.0), (1.0, 0.0)], [(0.75, 0.25), (0.25, 0.75)], [(0.0, 1.0), (0.0, 1.0)]]
+        sage: battle_of_the_sexes.obtain_Nash(algorithm='enumeration')
+        [[(1, 0), (1, 0)], [(0, 1), (0, 1)], [(3/4, 1/4), (1/4, 3/4)]]
 
     If we look a bit closer at our output we see that a list of three
     pairs of tuples have been returned. Each of these correspond to a
@@ -135,15 +135,15 @@ class NormalFormGame(SageObject, MutableMapping):
 
     To compute this in sage we have ::
 
-        sage: for ne in battle_of_the_sexes.obtain_Nash():
+        sage: for ne in battle_of_the_sexes.obtain_Nash(algorithm='enumeration'):
         ....:     print "Utility for %s: " % ne
         ....:     print vector(ne[0]) * A * vector(ne[1]), vector(ne[0]) * B * vector(ne[1])
-        Utility for [(1.0, 0.0), (1.0, 0.0)]:
-        3.0 2.0
-        Utility for [(0.75, 0.25), (0.25, 0.75)]:
-        1.5 1.5
-        Utility for [(0.0, 1.0), (0.0, 1.0)]:
-        2.0 3.0
+        Utility for [(1, 0), (1, 0)]:
+        3 2
+        Utility for [(0, 1), (0, 1)]:
+        2 3
+        Utility for [(3/4, 1/4), (1/4, 3/4)]:
+        3/2 3/2
 
     Allowing players to play mixed strategies ensures that there will always
     be a Nash Equilibrium for a normal form game. This result is called Nash's
@@ -190,8 +190,8 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: A = matrix([[1, -1], [-1, 1]])
         sage: B = matrix([[-1, 1], [1, -1]])
         sage: matching_pennies = NormalFormGame([A, B])
-        sage: matching_pennies.obtain_Nash()
-        [[(0.5, 0.5), (0.5, 0.5)]]
+        sage: matching_pennies.obtain_Nash(algorithm='enumeration')
+        [[(1/2, 1/2), (1/2, 1/2)]]
 
     The utilities to both players at this Nash equilibrium
     is easily computed ::

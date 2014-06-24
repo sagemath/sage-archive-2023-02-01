@@ -586,7 +586,7 @@ class NormalFormGame(SageObject, MutableMapping):
             results.append(all(type(i) is not bool for i in profile))
         return all(results)
 
-    def obtain_Nash(self, algorithm="LCP", maximization=True):
+    def obtain_Nash(self, algorithm=False, maximization=True):
         r"""
         A function to return the Nash equilibrium for a game.
         Optional arguments can be used to specify the algorithm used.
@@ -671,6 +671,14 @@ class NormalFormGame(SageObject, MutableMapping):
 
         if not self._is_complete():
             raise ValueError("_strategy_profiles hasn't been populated")
+
+        if not algorithm:
+            if is_package_installed('gambit'):
+                algorithm = "LCP"
+            elif is_package_installed('lrs'):
+                algorithm = "lrs"
+            else:
+                algorithm = "enumeration"
 
         if algorithm == "LCP":
             if not is_package_installed('gambit'):

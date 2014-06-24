@@ -24,6 +24,7 @@ from sage.categories.all import GroupAlgebras
 
 permutation_options = PermutationOptions
 
+# TODO: Remove this function and replace it with the class
 def SymmetricGroupAlgebra(R, n):
     """
     Return the symmetric group algebra of order ``n`` over the ring ``R``.
@@ -117,12 +118,37 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: TestSuite(QS3).run()
         """
         self.n = n
-        self._name = "Symmetric group algebra of order %s"%self.n
-        CombinatorialFreeModule.__init__(self, R, Permutations(n), prefix='', latex_prefix='', category = (GroupAlgebras(R),FiniteDimensionalAlgebrasWithBasis(R)))
-        # This is questionable, and won't be inherited properly
-        if n > 0:
-            S = SymmetricGroupAlgebra(R, n-1)
-            self.register_coercion(S.canonical_embedding(self))
+        cat = (GroupAlgebras(R), FiniteDimensionalAlgebrasWithBasis(R))
+        CombinatorialFreeModule.__init__(self, R, Permutations(n), prefix='',
+                                         latex_prefix='', category = cat)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: SymmetricGroupAlgebra(QQ, 3)
+            Symmetric group algebra of order 3 over Rational Field
+        """
+        return "Symmetric group algebra of order {}".format(self.n)
+
+    def _coerce_map_from_(self, S):
+        """
+        Return ``True`` or a morphism if there exists a coercion from ``S``
+        into ``self`` or ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: SGA4 = SymmetricGroupAlgebra(QQ, 4)
+            sage: SGA2 = SymmetricGroupAlgebra(QQ, 2)
+            sage: SGA4.has_coerce_map_from(SGA2)
+            True
+        """
+        if (isinstance(S, SymmetricGroupAlgebra_n) and S.n <= self.n
+                and self.base_ring().has_coerce_map_from(S.base_ring())):
+            return S.canonical_embedding(self)
+        return super(SymmetricGroupAlgebra_n, self)._coerce_map_from_(S)
 
     # _repr_ customization: output the basis element indexed by [1,2,3] as [1,2,3]
     _repr_option_bracket = False

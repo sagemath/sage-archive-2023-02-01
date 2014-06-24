@@ -369,6 +369,7 @@ cdef class CVXOPTBackend(GenericBackend):
         - ``name`` - an optional name for this row (default: ``None``)
 
         EXAMPLE::
+
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
             sage: p.add_variables(5)
@@ -439,6 +440,7 @@ cdef class CVXOPTBackend(GenericBackend):
             exists, or the LP solver was not able to find it, etc...)
 
         EXAMPLE::
+
             sage: p = MixedIntegerLinearProgram(solver = "cvxopt", maximization=False)
             sage: x=p.new_variable(nonnegative=True)[0]
             sage: y=p.new_variable(nonnegative=True)[0]
@@ -987,6 +989,7 @@ cdef class CVXOPTBackend(GenericBackend):
           (default), the method returns the current value.
 
         EXAMPLE::
+
             sage: from sage.numerical.backends.generic_backend import get_solver
 
             sage: p = get_solver(solver = "CVXOPT")

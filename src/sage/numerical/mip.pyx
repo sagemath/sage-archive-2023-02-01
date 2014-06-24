@@ -601,6 +601,20 @@ cdef class MixedIntegerLinearProgram(SageObject):
             ...
             ValueError: Exactly one of the available types has to be True
 
+        Unbounded real variables::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: x = p.new_variable(real=True, nonnegative=False)
+            sage: p.add_constraint(x[0]+x[3]<= 8)
+            sage: p.show()
+            Maximization:
+            <BLANKLINE>
+            Constraints:
+              x_0 + x_1 <= 8.0
+            Variables:
+              x_0 is a continuous variable (min=-oo, max=+oo)
+              x_1 is a continuous variable (min=-oo, max=+oo)
+
         TESTS:
 
         Default behaviour (:trac:`15521`)::

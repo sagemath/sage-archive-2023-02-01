@@ -213,14 +213,40 @@ class NormalFormGame(SageObject, MutableMapping):
 
     When obtaining Nash equilibrium there are 3 algorithms currently available:
 
+        * `LCP`: Linear complementarity program algorithm for 2 player games.
+        This algorithm uses the excellent game theory package:
+        [gambit](http://gambit.sourceforge.net/). At present this is the only
+        gambit algorithm available in sage but further development will hope to
+        implement more algorithms
+        (in particular for games with more than 2 players). Gambit is not
+        yet an optional sage package but instructions for installing
+        it can be found [here](http://goo.gl/4bxYgp).
+
+        * `lrs`: Reverse search vertex enumeration for 2 player games. This algorithm uses the
+        optional `lrs` package. To install it type `sage -i lrs` at the command line.
+        For more information see [A2000]_.
+
         * `enumeration`: Support enumeration for 2 player games. This algorithm is hard coded in
         Sage and checks through all potential supports of a strategy.
         Note: this is not the preferred algorithm and will fail in the case
         of degenerate games. For more information about this see [NN2007]_.
 
-        * `lrs`: Reverse search vertex enumeration for 2 player games. This algorithm uses the
-        optional `lrs` package. To install it type `sage -i lrs` at the command line.
-        For more information see [A2000]_.
+    Below we show how all three algorithms are called ::
+
+        sage: matching_pennies.obtain_Nash(algorithm='LCP')  # optional - gambit
+        [[(0.5, 0.5), (0.5, 0.5)]]
+        sage: matching_pennies.obtain_Nash(algorithm='lrs')  # optional - lrs
+        [[(1/2, 1/2), (1/2, 1/2)]]
+        sage: matching_pennies.obtain_Nash(algorithm='enumeration')
+        [[(1/2, 1/2), (1/2, 1/2)]]
+
+    Note that if no algorithm argument is passed then the default will be
+    selected according to the following order (if the corresponding package is
+    installed):
+
+        1. `LCP`
+        2. `lrs`
+        3. `enumeration`
 
     A basic 2-player game constructed from matrices. ::
 

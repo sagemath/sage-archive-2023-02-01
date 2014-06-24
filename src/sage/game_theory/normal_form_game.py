@@ -755,14 +755,48 @@ class NormalFormGame(SageObject, MutableMapping):
         try:
             a = matrix1.solve_right(vector1)
             b = matrix2.solve_right(vector2)
-            checka = all(i >= 0 for i in a)
-            checkb = all(i >= 0 for i in b)
-            if checka and checkb:
-                if sum(x > 0 for x in a) == sum(x > 0 for x in b):
-                    return [a, b]
+
+            if self._is_valid_vector(a, b, p1_support, p2_support, m1, m2):
+                return [a, b]
             return False
         except:
             return False
+
+    def _is_valid_vector(self, vector1, vector2, p1_support, p2_support, m1, m2):
+        r"""
+        TESTS:
+
+            sage: X = matrix([[1, 4, 2],
+            ....:             [4, 0, 3],
+            ....:             [2, 3, 5]])
+            sage: Y = matrix([[3, 9, 2],
+            ....:             [0, 3, 1],
+            ....:             [5, 4, 6]])
+            sage: Z = NormalFormGame([X, Y])
+            sage: Z._is_valid_vector([0, 1/4, 3/4], [3/5, 2/5, 0], (1,2,), (0,1,), X, Y)
+
+        """
+        checkv1 = all(i >= 0 for i in vector1)
+        checkv2 = all(i >= 0 for i in vector2)
+        if not checkv1 or not checkv2:
+            return False
+
+        if sum(x > 0 for x in vector1) != sum(x > 0 for x in vector2):
+            return False
+
+        p1_payoffs = []
+        p2_payoffs = []
+        for row in range(self.players[0].num_strategies):
+            p1_payoffs.append(sum(v*m1[row][i] for i, v in enumerate(vector2)))
+        for col in range(self.players[1].num_strategies):
+            p2_payoffs.append(sum(v*m2[i][col] for i, v in enumerate(vector1)))
+
+        if p1_payoffs.index(max(p1_payoffs)) not in p1_support:
+            return False
+        if p2_payoffs.index(max(p2_payoffs)) not in p2_support:
+            return False
+
+        return True
 
     def _Hrepresentation(self, m1, m2):
         r"""

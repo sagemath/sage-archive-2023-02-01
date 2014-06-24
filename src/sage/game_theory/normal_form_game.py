@@ -103,6 +103,31 @@ class NormalFormGame(SageObject, MutableMapping):
     75% of the time. At this equilibrium point Amy and Bob will only ever
     do the same activity `3/8` of the time.
 
+    We can use sage to compute the expected utility for any mixed strategy
+    pair `(\sigma_1, sigma_2)`. The payoff to player 1 is given by:
+
+    .. MATH::
+
+        \sigma_1 A \sigma_2
+
+    The payoff to player 2 is given by:
+
+    .. MATH::
+
+        \sigma_1 B \sigma_2
+
+    To compute this in sage we have ::
+
+        sage: for ne in battle_of_the_sexes.obtain_Nash():
+        ....:     print "Utility for %s: " % ne
+        ....:     print vector(ne[0]) * A * vector(ne[1]), vector(ne[0]) * B * vector(ne[1])
+        Utility for [[1.0, 0.0], [1.0, 0.0]]:
+        3.0 2.0
+        Utility for [[0.75, 0.25], [0.25, 0.75]]:
+        1.5 1.5
+        Utility for [[0.0, 1.0], [0.0, 1.0]]:
+        2.0 3.0
+
     Allowing players to play mixed strategies ensures that there will always
     be a Nash Equilibrium for a normal form game. This result is called Nash's
     Theorem ([N1950]_).
@@ -135,10 +160,8 @@ class NormalFormGame(SageObject, MutableMapping):
 
         sage: y = var('y')
         sage: A = matrix([[1, -1], [-1, 1]])
-        sage: p = plot(A * vector([y, 1 - y])[0], y, 0, 1, color='blue',
-                    legend_label='$u_1(r_1, (y, 1-y)$', axes_labels=['$y$', ''])
-        sage: p += plot(A * vector([y, 1 - y])[1], y, 0, 1, color='red',
-                    legend_label='$u_1(r_2, (y, 1-y)$')
+        sage: p = plot((A * vector([y, 1 - y]))[0], y, 0, 1, color='blue', legend_label='$u_1(r_1, (y, 1-y)$', axes_labels=['$y$', ''])
+        sage: p += plot((A * vector([y, 1 - y]))[1], y, 0, 1, color='red', legend_label='$u_1(r_2, (y, 1-y)$')
 
     We see that the only point at which player 1 is indifferent amongst
     available strategies is when `y=1/2`.
@@ -151,7 +174,7 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: B = matrix([[-1, 1], [1, -1]])
         sage: matching_pennies = NormalFormGame([A, B])
         sage: matching_pennies.obtain_Nash()
-        [[[0.75, 0.25], [0.25, 0.75]]]
+        [[[0.5, 0.5], [0.5, 0.5]]]
 
     A basic 2-player game constructed from matrices. ::
 

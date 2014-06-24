@@ -138,6 +138,13 @@ class DescentAlgebra(Parent, UniqueRepresentation):
         self._category = FiniteDimensionalAlgebrasWithBasis(R)
         Parent.__init__(self, base=R, category=self._category.WithRealizations())
 
+        # Coercion to symmetric group algebra
+        D = self.D()
+        SGA = SymmetricGroupAlgebra(R, n)
+        D.module_morphism(D.to_symmetric_group_algebra_on_basis,
+                          codomain=SGA, category=Algebras(R)
+                          ).register_as_coercion()
+
     def _repr_(self):
         r"""
         Return a string representation of ``self``.
@@ -202,6 +209,25 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: TestSuite(DescentAlgebra(QQ, 4).D()).run()
+
+            TESTS:
+
+            We check that the issue with coercions noted on :trac:`15475`
+            is fixed::
+
+            sage: def descent_test(n):
+            ....:     DA = DescentAlgebra(QQ, n)
+            ....:     DAD = DA.D()
+            ....:     DAB = DA.B()
+            ....:     for I in Compositions(n):
+            ....:         DAD(DAB[I])
+            sage: descent_test(3)
+            sage: descent_test(4)
+            sage: SGA4 = SymmetricGroupAlgebra(QQ, 4)
+            sage: DAB = DescentAlgebra(QQ, 4).B()
+            sage: x = DAB[4]
+            sage: SGA4(x)
+            [1, 2, 3, 4]
             """
             self._prefix = prefix
             self._basis_name = "standard"
@@ -220,12 +246,6 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             B.module_morphism(B.to_D_basis,
                               codomain=self, category=self.category()
                               ).register_as_coercion()
-
-            # Coercion to symmetric group algebra
-            SGA = SymmetricGroupAlgebra(alg.base_ring(), alg._n)
-            self.module_morphism(self.to_symmetric_group_algebra_on_basis,
-                                 codomain=SGA, category=Algebras(alg.base_ring())
-                                 ).register_as_coercion()
 
         def _element_constructor_(self, x):
             """

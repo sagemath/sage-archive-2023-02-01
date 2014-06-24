@@ -25,6 +25,7 @@ from sage.categories.all import GroupAlgebras
 permutation_options = PermutationOptions
 
 # TODO: Remove this function and replace it with the class
+# TODO: Create parents for other bases (such as the seminormal basis)
 def SymmetricGroupAlgebra(R, n):
     """
     Return the symmetric group algebra of order ``n`` over the ring ``R``.
@@ -144,6 +145,12 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: SGA2 = SymmetricGroupAlgebra(QQ, 2)
             sage: SGA4.has_coerce_map_from(SGA2)
             True
+            sage: SGA2Z = SymmetricGroupAlgebra(ZZ, 2)
+            sage: SGA4.has_coerce_map_from(SGA2Z)
+            True
+            sage: p = Permutation([2,1])
+            sage: SGA4(-3*SGA2Z.monomial(p))
+            -3*[2, 1, 3, 4]
         """
         if (isinstance(S, SymmetricGroupAlgebra_n) and S.n <= self.n
                 and self.base_ring().has_coerce_map_from(S.base_ring())):

@@ -170,7 +170,6 @@ from sage.structure.sage_object cimport SageObject
 from sage.misc.cachefunc import cached_method
 from sage.numerical.linear_functions import is_LinearFunction, is_LinearConstraint
 from sage.misc.superseded import deprecated_function_alias, deprecation
-from sage.misc.superseded import deprecated_function_alias
 
 cdef class MixedIntegerLinearProgram(SageObject):
     r"""
@@ -242,7 +241,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
          sage: b = p.new_variable(binary=True)
          sage: p.set_objective(sum([b[v] for v in g]))
          sage: for (u,v) in g.edges(labels=None):
-         ...       p.add_constraint(b[u] + b[v], max=1)
+         ....:     p.add_constraint(b[u] + b[v], max=1)
          sage: p.solve(objective_only=True)
          4.0
     """
@@ -601,19 +600,24 @@ cdef class MixedIntegerLinearProgram(SageObject):
             ...
             ValueError: Exactly one of the available types has to be True
 
-        Unbounded real variables::
+        Unbounded variables::
 
             sage: p = MixedIntegerLinearProgram()
             sage: x = p.new_variable(real=True, nonnegative=False)
-            sage: p.add_constraint(x[0]+x[3]<= 8)
+            sage: y = p.new_variable(integer=True, nonnegative=False)
+            sage: p.add_constraint(x[0]+x[3] <= 8)
+            sage: p.add_constraint(y[0] >= y[1])
             sage: p.show()
             Maximization:
             <BLANKLINE>
             Constraints:
               x_0 + x_1 <= 8.0
+              - x_2 + x_3 <= 0.0
             Variables:
               x_0 is a continuous variable (min=-oo, max=+oo)
               x_1 is a continuous variable (min=-oo, max=+oo)
+              x_2 is an integer variable (min=-oo, max=+oo)
+              x_3 is an integer variable (min=-oo, max=+oo)
 
         TESTS:
 
@@ -626,10 +630,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
         if sum([real, binary, integer]) > 1:
             raise ValueError("Exactly one of the available types has to be True")
 
-        if nonnegative is None and not binary:
-            deprecation(15521, "The default value of 'nonnegative' will change, to "+
-                               "False instead of True. You should add the explicit "+
-                               "'nonnegative=True'.")
+        if nonnegative is None:
+            if not binary:
+                deprecation(15521, "The default value of 'nonnegative' will change, to "+
+                                   "False instead of True. You should add the explicit "+
+                                   "'nonnegative=True'.")
             nonnegative=True
 
         if binary:
@@ -639,14 +644,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
         else:
             vtype = self.__REAL
 
-        v=MIPVariable(self,
+        return MIPVariable(self,
                       vtype,
                       dim=dim,
                       name=name,
                       lower_bound=0 if (nonnegative or binary) else None,
                       upper_bound=1 if binary else None)
-
-        return v
 
     cpdef int number_of_constraints(self):
       r"""
@@ -1939,7 +1942,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         With a :class:`MIPVariable` as an argument::
 
-            sage: vv = p.new_variable(real=True,nonnegative=False)
+            sage: vv = p.new_variable(real=True, nonnegative=False)
             sage: p.get_min(vv)
             sage: p.get_min(vv[0])
             sage: p.set_min(vv,5)
@@ -1976,7 +1979,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         With a :class:`MIPVariable` as an argument::
 
-            sage: vv = p.new_variable(real=True,nonnegative=False)
+            sage: vv = p.new_variable(real=True, nonnegative=False)
             sage: p.get_max(vv)
             sage: p.get_max(vv[0])
             sage: p.set_max(vv,5)
@@ -2016,9 +2019,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.set_min(v[1], None)
             sage: p.get_min(v[1])
         """
-        if isinstance(v, MIPVariable):
-            return (<MIPVariable> v)._lower_bound
-        else:
+        try:
+            return (<MIPVariable?>v)._lower_bound
+        except TypeError:
             return self._backend.variable_lower_bound(self._variables[v])
 
     def get_max(self, v):
@@ -2044,9 +2047,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.get_max(v[1])
             6.0
         """
-        if isinstance(v, MIPVariable):
-            return (<MIPVariable> v)._upper_bound
-        else:
+        try:
+            return (<MIPVariable?>v)._upper_bound
+        except TypeError:
             return self._backend.variable_upper_bound(self._variables[v])
 
     def solver_parameter(self, name, value = None):
@@ -2267,8 +2270,9 @@ cdef class MIPVariable(SageObject):
 
         - ``name`` -- A name for the ``MIPVariable``.
 
-        - ``lower_bound, upper_bound`` -- lower bound and upper bound on the
-          variable. Set to ``None`` to indicate that the variable is unbounded.
+        - ``lower_bound``, ``upper_bound`` -- lower bound and upper
+          bound on the variable. Set to ``None`` to indicate that the
+          variable is unbounded.
 
         For more informations, see the method
         ``MixedIntegerLinearProgram.new_variable``.
@@ -2373,7 +2377,7 @@ cdef class MIPVariable(SageObject):
         EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
-            sage: v = p.new_variable(real=True,nonnegative=True,dim=2)
+            sage: v = p.new_variable(real=True, nonnegative=True, dim=2)
             sage: p.get_min(v)
             0
             sage: p.get_min(v[0])
@@ -2408,7 +2412,7 @@ cdef class MIPVariable(SageObject):
         EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
-            sage: v = p.new_variable(real=True,nonnegative=True,dim=2)
+            sage: v = p.new_variable(real=True, nonnegative=True, dim=2)
             sage: p.get_max(v)
             sage: p.get_max(v[0])
             sage: p.get_max(v[0][0])

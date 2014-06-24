@@ -76,7 +76,7 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: B = matrix([[2, 1], [0, 3]])
         sage: battle_of_the_sexes = NormalFormGame([A, B])
         sage: battle_of_the_sexes
-        {(0, 1): [1, 0], (1, 0): [0, 1], (0, 0): [3, 2], (1, 1): [2, 3]}
+        {(0, 1): [1, 1], (1, 0): [0, 0], (0, 0): [3, 2], (1, 1): [2, 3]}
 
     To obtain the Nash equilibria we run the `obtain_Nash()` method ::
 
@@ -645,7 +645,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [4, 1, 2]])
             sage: g=NormalFormGame([A, B])
             sage: g._solve_enumeration()
-            [([0, 0, 3/4, 1/4], [1/28, 27/28, 0])]
+            [[(0, 0, 3/4, 1/4), (1/28, 27/28, 0)]]
 
         A degenerate zero-sum game (Rock-Paper-Scissors-Lizard-Spock). ::
 
@@ -656,7 +656,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [1, -1, 1, -1, 0]])
             sage: g = NormalFormGame([A])
             sage: g._solve_enumeration()
-            [[[0.2, 0.2, 0.2, 0.2, 0.2], [0.2, 0.2, 0.2, 0.2, 0.2]]]
+            [[(1/5, 1/5, 1/5, 1/5, 1/5), (1/5, 1/5, 1/5, 1/5, 1/5)]]
 
         A game with 3 equilibria. ::
 
@@ -689,8 +689,8 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [1, 3, -1, 1],
             ....:             [3, 2, 1, 1]])
             sage: C = NormalFormGame([A, B])
-            sage: C.obtain_Nash()
             sage: C._solve_enumeration()
+            [[(1, 0, 0, 0), (0, 0, 1, 0)], [(0, 0, 0, 1), (1, 0, 0, 0)], [(2/7, 0, 0, 5/7), (5/11, 0, 6/11, 0)]]
 
         Again. ::
 
@@ -701,8 +701,8 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [0, 3, 1],
             ....:             [5, 4, 6]])
             sage: Z = NormalFormGame([X, Y])
-            sage: Z.obtain_Nash(algorithm='lrs')
             sage: Z._solve_enumeration()
+            [[(1, 0, 0), (0, 1, 0)], [(0, 0, 1), (0, 0, 1)], [(2/9, 0, 7/9), (0, 3/4, 1/4)]]
         """
         m = range(self.players[0].num_strategies)
         n = range(self.players[1].num_strategies)
@@ -774,7 +774,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [5, 4, 6]])
             sage: Z = NormalFormGame([X, Y])
             sage: Z._is_valid_vector([0, 1/4, 3/4], [3/5, 2/5, 0], (1,2,), (0,1,), X, Y)
-
+            False
         """
         checkv1 = all(i >= 0 for i in vector1)
         checkv2 = all(i >= 0 for i in vector2)

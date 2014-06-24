@@ -1,3 +1,22 @@
+"""
+Normal Form games with N players.
+
+AUTHOR:
+
+    - James Campbell 06-2014: Original version
+    - Vince Knight 06-2014
+
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2014 James Campbell james.campbell@tanti.org.uk
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from collections import MutableMapping
 from itertools import product, combinations, chain
 from sage.misc.lazy_import import lazy_import
@@ -287,20 +306,22 @@ class NormalFormGame(SageObject, MutableMapping):
 
     In the following we create the game and solve it ::
 
-    sage: K = 10  # Modifying this value lets us play with games of any size
-    sage: A = matrix([[min(i,j) + 2 * sign(j-i)  for j in range(2, K+1)]  for i in range(2, K+1)])
-    sage: B = matrix([[min(i,j) + 2 * sign(i-j)  for j in range(2, K+1)]  for i in range(2, K+1)])
-    sage: g = NormalFormGame([A, B])
-    sage: g.obtain_Nash() # optional
-    [[[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-      [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]]
+        sage: K = 10  # Modifying this value lets us play with games of any size
+        sage: A = matrix([[min(i,j) + 2 * sign(j-i)  for j in range(2, K+1)]  for i in range(2, K+1)])
+        sage: B = matrix([[min(i,j) + 2 * sign(i-j)  for j in range(2, K+1)]  for i in range(2, K+1)])
+        sage: g = NormalFormGame([A, B])
+        sage: g.obtain_Nash() # optional
+        [[[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]]
 
     The equilibrium strategy is thus for both players to state that the value
     of their suitcase is 2.
 
     REFERENCES:
 
-    .. [N1950] John Nash. *Equilibrium points in n-person games.* Proceedings of the national academy of sciences 36.1 (1950): 48-49.
+    .. [N1950] John Nash.
+       *Equilibrium points in n-person games.*
+       Proceedings of the national academy of sciences 36.1 (1950): 48-49.
 
     """
     def __delitem__(self, key):

@@ -832,10 +832,13 @@ cdef class CoinBackend(GenericBackend):
         cdef double v
         solution = <double*> self.model.solver().getColSolution()
         if solution == NULL:
-           v = 0.0
-           return v
+            v = 0.0
         else:
-           return solution[variable]
+            v = solution[variable]
+        if self.is_variable_binary(variable):
+            return round(v)
+        else:
+            return v
 
     cpdef int ncols(self):
         r"""

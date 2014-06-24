@@ -425,7 +425,7 @@ class NormalFormGame(SageObject, MutableMapping):
         if len(self.players) != 2:
             raise ValueError("Only available for 2 player games")
 
-        return _game_two_matrix()
+        return self._game_two_matrix()
 
     def add_player(self, num_strategies):
         r"""

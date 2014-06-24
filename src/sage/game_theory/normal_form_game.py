@@ -179,10 +179,18 @@ class NormalFormGame(SageObject, MutableMapping):
     The utilities to both players at this Nash equilibrium
     is easily computed ::
 
-        sage: vector([1/2, 1/2]) * A * vector([1/2, 1/2])
-        0
-        sage: vector([1/2, 1/2]) * B * vector([1/2, 1/2])
-        0
+        sage: [vector([1/2, 1/2]) * M * vector([1/2, 1/2]) for M in matching_pennies.payoff_matrices()]
+        [0, 0]
+
+    Note that the above uses the `payoff_matrices` method
+    which returns the payoff matrices for a 2 player game ::
+
+        sage: matching_pennies.payoff_matrices()
+        (
+        [ 1 -1]  [-1  1]
+        [-1  1], [ 1 -1]
+        )
+
 
     A basic 2-player game constructed from matrices. ::
 

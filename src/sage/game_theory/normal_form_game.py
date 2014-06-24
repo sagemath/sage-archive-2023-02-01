@@ -38,13 +38,13 @@ class NormalFormGame(SageObject, MutableMapping):
 
         A = \begin{pmatrix}
             3&1\\
-            0,2\\
+            0&2\\
             \end{pmatrix}
 
 
         B = \begin{pmatrix}
             2&1\\
-            0,3\\
+            0&3\\
             \end{pmatrix}
 
     Matrix `A` represents the utilities of Amy and matrix `B` represents the
@@ -76,7 +76,7 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: B = matrix([[2, 1], [0, 3]])
         sage: battle_of_the_sexes = NormalFormGame([A, B])
         sage: battle_of_the_sexes
-        {(0, 1): [1, 0], (1, 0): [0, 1], (0, 0): [3, 2], (1, 1): [2, 3]}
+        {(0, 1): [1, 1], (1, 0): [0, 0], (0, 0): [3, 2], (1, 1): [2, 3]}
 
     To obtain the Nash equilibria we run the `obtain_Nash()` method ::
 
@@ -107,6 +107,51 @@ class NormalFormGame(SageObject, MutableMapping):
     be a Nash Equilibrium for a normal form game. This result is called Nash's
     Theorem ([N1950]_).
 
+    If we consider the game called 'matching pennies' where two players each
+    present a coin with either HEADS or TAILS showing. If the coins show the
+    same side then player 1 wins, otherwise player 2 wins:
+
+
+    .. MATH::
+
+        A = \begin{pmatrix}
+            1&-1\\
+            -1&1\\
+            \end{pmatrix}
+
+
+        B = \begin{pmatrix}
+            -1&1\\
+            1&-1\\
+            \end{pmatrix}
+
+    It should be relatively straightforward to note that there is no situation
+    where both players always do the same thing and have no incentive to
+    deviate.
+
+    We can plot the utility of player 1 when player 2 is playing a mixed
+    strategy `\sigma_2=(y,1-y)` (so that the utility to player 1 for
+    playing strategy `i` is given by (`(Ay)_i`):
+
+        sage: y = var('y')
+        sage: A = matrix([[1, -1], [-1, 1]])
+        sage: p = plot(A * vector([y, 1 - y])[0], y, 0, 1, color='blue',
+                    legend_label='$u_1(r_1, (y, 1-y)$', axes_labels=['$y$', ''])
+        sage: p += plot(A * vector([y, 1 - y])[1], y, 0, 1, color='red',
+                    legend_label='$u_1(r_2, (y, 1-y)$')
+
+    We see that the only point at which player 1 is indifferent amongst
+    available strategies is when `y=1/2`.
+
+    If we compute the Nash equilibria we see that this corresponds to a point
+    at which both players are indifferent ::
+
+        sage: y = var('y')
+        sage: A = matrix([[1, -1], [-1, 1]])
+        sage: B = matrix([[-1, 1], [1, -1]])
+        sage: matching_pennies = NormalFormGame([A, B])
+        sage: matching_pennies.obtain_Nash()
+        [[[0.75, 0.25], [0.25, 0.75]]]
 
     A basic 2-player game constructed from matrices. ::
 

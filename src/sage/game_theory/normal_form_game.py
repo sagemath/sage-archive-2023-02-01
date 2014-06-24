@@ -33,7 +33,7 @@ lazy_import('subprocess', 'PIPE')
 
 
 class NormalFormGame(SageObject, MutableMapping):
-    r"""
+    """
     An object representing a Normal Form Game. Primarily used to compute the
     Nash Equilibria.
 
@@ -391,6 +391,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         """
         self.players = []
+        self._strategy_profiles = {}
         matrices = []
         if type(generator) is not list and generator != None:
             raise TypeError("Generator function must be a list or nothing")

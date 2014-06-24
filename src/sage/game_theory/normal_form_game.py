@@ -21,6 +21,7 @@ from collections import MutableMapping
 from itertools import product, combinations, chain
 from sage.misc.lazy_import import lazy_import
 from sage.structure.sage_object import SageObject
+from sage.rings.all import QQ
 lazy_import('sage.misc.package', 'is_package_installed')
 lazy_import('sage.matrix.constructor', 'matrix')
 lazy_import('sage.matrix.constructor', 'vector')
@@ -661,8 +662,8 @@ class NormalFormGame(SageObject, MutableMapping):
             return self._solve_enumeration()
 
     def _game_two_matrix(self):
-        m1 = matrix(self.players[0].num_strategies, self.players[1].num_strategies)
-        m2 = matrix(self.players[0].num_strategies, self.players[1].num_strategies)
+        m1 = matrix(QQ, self.players[0].num_strategies, self.players[1].num_strategies)
+        m2 = matrix(QQ, self.players[0].num_strategies, self.players[1].num_strategies)
         for key in self._strategy_profiles:
                 m1[key] = self[key][0]
                 m2[key] = self[key][1]
@@ -855,8 +856,8 @@ class NormalFormGame(SageObject, MutableMapping):
         return equilibria
 
     def _check_support(self, p1_support, p2_support, m1, m2):
-        matrix1 = matrix(len(p2_support)+1, self.players[0].num_strategies)
-        matrix2 = matrix(len(p1_support)+1, self.players[1].num_strategies)
+        matrix1 = matrix(QQ, len(p2_support)+1, self.players[0].num_strategies)
+        matrix2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)
 
         for k in p1_support:
             if len(p2_support) == 1:

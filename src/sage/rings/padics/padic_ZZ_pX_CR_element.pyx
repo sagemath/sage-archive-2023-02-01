@@ -474,8 +474,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
     def _cache_key(self):
         r"""
-        Return a hashable key which uniquely identifies this element among all
-        elements in the parent.
+        Return a hashable key which identifies this element.
 
         This enables caching for `p`-adic numbers which are not hashable.
 
@@ -502,26 +501,26 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         ``_cache_key`` which is hashable and uniquely identifies them::
 
             sage: a._cache_key()
-            (((0, 1),), 0, 20)
+            (..., ((0, 1),), 0, 20)
             sage: b._cache_key()
-            (((0, 1),), 0, 1)
+            (..., ((0, 1),), 0, 1)
 
         TESTS:
 
         Check that zero values are handled correctly::
 
             sage: K.zero()._cache_key()
-            0
+            (..., 0)
             sage: K(0,1)._cache_key()
-            (0, 1)
+            (..., 0, 1)
 
         """
         if self._is_exact_zero():
-            return 0
+            return (id(self.parent()), 0)
         elif self._is_inexact_zero():
-            return 0, self.valuation()
+            return (id(self.parent()), 0, self.valuation())
         else:
-            return tuple(tuple(c) if isinstance(c,list) else c for c in self.unit_part().list()), self.valuation(), self.precision_relative()
+            return id(self.parent()), tuple(tuple(c) if isinstance(c,list) else c for c in self.unit_part().list()), self.valuation(), self.precision_relative()
 
     cdef int _set_inexact_zero(self, long absprec) except -1:
         """

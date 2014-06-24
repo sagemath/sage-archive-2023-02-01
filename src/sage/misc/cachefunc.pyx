@@ -483,21 +483,21 @@ def _cache_key(o):
         sage: a = K(1); a
         1 + O(3^20)
         sage: _cache_key(a)
-        (((1,),), 0, 20)
+        (..., ((1,),), 0, 20)
 
     This function works if ``o`` is a tuple. In this case it unpacks its
     entries recursively::
 
         sage: o = (1, 2, (3, a))
         sage: _cache_key(o)
-        (1, 2, (3, (((1,),), 0, 20)))
+        (1, 2, (3, (..., ((1,),), 0, 20)))
 
     Note that tuples are only partially unpacked if some of its entries are
     hashable::
 
-        sage: o = (matrix([1, 2, 3]), a)
+        sage: o = (1/2, a)
         sage: _cache_key(o)
-        ([1 2 3], (((1,),), 0, 20))
+        (1/2, (..., ((1,),), 0, 20))
 
     .. SEEALSO::
 
@@ -844,7 +844,7 @@ cdef class CachedFunction(object):
             sage: f(y)
             1 + O(2^2)
             sage: f.cache
-            {(((((1,),), 0, 1),), ()): 1 + O(2), (((((1,),), 0, 2),), ()): 1 + O(2^2)}
+            {(((..., ((1,),), 0, 2),), ()): 1 + O(2^2), (((..., ((1,),), 0, 1),), ()): 1 + O(2)}
 
         """
         # We shortcut a common case of no arguments
@@ -1192,7 +1192,7 @@ cdef class WeakCachedFunction(CachedFunction):
             sage: f(y)
             (1 + O(2^20))*t + 1 + O(2^2)
             sage: list(f.cache.keys())
-            [((((((1,),), 0, 2), (((1,),), 0, 20)),), ()), ((((((1,),), 0, 1), (((1,),), 0, 20)),), ())]
+            [(((..., ((..., ((1,),), 0, 1), (..., ((1,),), 0, 20))),), ()), (((..., ((..., ((1,),), 0, 2), (..., ((1,),), 0, 20))),), ())]
 
         """
         # We shortcut a common case of no arguments
@@ -1744,7 +1744,7 @@ cdef class CachedMethodCaller(CachedFunction):
             sage: a.f(y)
             1 + O(2^2)
             sage: a.f.cache
-            {(((((1,),), 0, 1),), ()): 1 + O(2), (((((1,),), 0, 2),), ()): 1 + O(2^2)}
+            {(((..., ((1,),), 0, 2),), ()): 1 + O(2^2), (((..., ((1,),), 0, 1),), ()): 1 + O(2)}
 
         """
         if self._instance is None:

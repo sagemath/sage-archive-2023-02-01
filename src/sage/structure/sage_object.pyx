@@ -223,14 +223,13 @@ cdef class SageObject:
 
     def _cache_key(self):
         r"""
-        Return a key which uniquely identifies this objects for caching. The
-        output must be hashable itself or a tuple of objects which are hashable
-        or define a ``_cache_key``.
+        Return a key which identifies this objects for caching. The output must
+        be hashable itself or a tuple of objects which are hashable or define a
+        ``_cache_key``.
 
         This method will only be called if the object itself is not hashable.
 
-        For most objects this will just be the object itself. However, some
-        immutable objects (such as `p`-adic numbers) can not implement a
+        Some immutable objects (such as `p`-adic numbers) can not implement a
         reasonable hash function because their ``==`` operator has been
         modified to return ``True`` for objects which might behave differently
         in some computations::
@@ -266,33 +265,24 @@ cdef class SageObject:
             False
 
             sage: b._cache_key()
-            (((0, 1),), 0, 1)
+            (..., ((0, 1),), 0, 1)
             sage: c._cache_key()
-            (((0, 1), (1,)), 0, 20)
+            (..., ((0, 1), (1,)), 0, 20)
 
-        Note that such ``_cache_key`` often does not uniquely identify an
-        object in a strict sense::
+        An implementation must make sure that for elements ``a`` and ``b``, if ``a != b``, then also ``a._cache_key() != b._cache_key()``. In pratice this means that the ``_cache_key`` should always include the ``id`` of the parent.
 
             sage: S.<a> = Qq(4)
             sage: d = a + O(2)
-            sage: b._cache_key() == d._cache_key()
-            True
-
-        However, this kind of behaviour is common for many elements with
-        different parents. Special care has to be taken when mixing such
-        elements in caches::
-
-            sage: A = matrix([[1]],base_ring=GF(2))
-            sage: A.set_immutable()
-            sage: B = matrix([[1]],base_ring=GF(3))
-            sage: B.set_immutable()
-            sage: A == B
-            True
-            sage: hash(A) == hash(B)
-            True
+            sage: b._cache_key() == d._cache_key() # this would be True if the parents were not included
+            False
 
         """
-        return self
+        try:
+            hash(self)
+        except TypeError:
+            raise NotImplementedError("{} is not hashable and does not implement _cache_key()".format(type(self)))
+        else:
+            assert False, "_cache_key() must not be called for hashable elements"
 
     #############################################################################
     # DATABASE Related code

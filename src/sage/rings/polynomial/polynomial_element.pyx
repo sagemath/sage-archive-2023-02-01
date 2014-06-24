@@ -14,7 +14,7 @@ AUTHORS:
 -  Simon King: Use a faster way of conversion from the base ring.
 
 -  Julian Rueth (2012-05-25,2014-05-09): Fixed is_squarefree() for imperfect
-   fields, fixed division without remainder over QQbar, added ``_cache_key``
+   fields, fixed division without remainder over QQbar; added ``_cache_key``
    for polynomials with unhashable coefficients
 
 -  Simon King (2013-10): Implement copying of :class:`PolynomialBaseringInjection`.
@@ -832,8 +832,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def _cache_key(self):
         """
-        Return a key which uniquely identifies this element among all elements
-        in the parent.
+        Return a key which identifies this element.
 
         .. SEEALSO::
 
@@ -852,7 +851,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ...
             TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
             sage: f._cache_key()
-            (0, 1 + O(2^20))
+            (..., (0, 1 + O(2^20)))
 
             sage: @cached_function
             ....: def foo(t): return t
@@ -861,7 +860,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (1 + O(2^20))*x
 
         """
-        return tuple(self)
+        return id(self.parent()), tuple(self)
 
     # you may have to replicate this boilerplate code in derived classes if you override
     # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html

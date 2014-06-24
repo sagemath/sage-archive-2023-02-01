@@ -16,13 +16,93 @@ lazy_import('subprocess', 'PIPE')
 class NormalFormGame(SageObject, MutableMapping):
     r"""
     An object representing a Normal Form Game. Primarily used to compute the
-    Nash Equilibrium.
+    Nash Equilibria.
 
     INPUT:
 
     - ``generator`` - Can be a list of 2 matrices, a single matrix or left blank.
 
     EXAMPLES:
+
+    Normal form games, also referred to as strategic form games are used to
+    model situations where agents/players make strategic choices the outcome
+    of which depends on the strategic choices of all players involved.
+
+    A very simple and well known example of this is referred to as the
+    'Battle of the Sexes' in which two players Amy and Bob are modelled.
+    Amy prefers to player video games and Bob prefers to watch a movie.
+    They both however want to spend their evening together.
+    This can be modelled using the following two matrices:
+
+    .. MATH::
+
+        A = \begin{pmatrix}
+            3&1\\
+            0,2\\
+            \end{pmatrix}
+
+
+        B = \begin{pmatrix}
+            2&1\\
+            0,3\\
+            \end{pmatrix}
+
+    Matrix `A` represents the utilities of Amy and matrix `B` represents the
+    utility of Bob. The choices of Amy correspond to the rows of the matrices:
+
+    * The first row corresponds to video games.
+    * The second row corresponds to movies.
+
+    Similarly Bob's choices are represented by the columns:
+
+    * The first column corresponds to video games.
+    * The second column corresponds to movies.
+
+    Thus if both Amy and Bob choose to play video games: Amy receives a utility
+    of 3 and Bob a utility of 2. If Amy is indeed going to stick with video games
+    Bob has no incentive to deviate (and vice versa).
+
+    This situation repeats itself if both Amy and Bob choose to watch a movie:
+    neither has an incentive to deviate.
+
+    This loosely described situation is referred to as Nash Equilibrium.
+    We can use Sage to find them and more importantly see if there is any
+    other situation where Amy and Bob have no reason to change their choice
+    of action:
+
+    Here is how we create the game in Sage ::
+
+        sage: A = matrix([[3, 1], [0, 2]])
+        sage: B = matrix([[2, 1], [0, 3]])
+        sage: battle_of_the_sexes = NormalFormGame([A, B])
+        sage: battle_of_the_sexes
+        {(0, 1): [1, 0], (1, 0): [0, 1], (0, 0): [3, 2], (1, 1): [2, 3]}
+
+    To obtain the Nash equilibria we run the `obtain_Nash()` method ::
+
+        sage: battle_of_the_sexes.obtain_Nash()
+        [[[1.0, 0.0], [1.0, 0.0]],
+         [[0.75, 0.25], [0.25, 0.75]],
+         [[0.0, 1.0], [0.0, 1.0]]]
+
+    If we look a bit closer at our output we see that a list of three
+    pairs of tuples have been returned. Each of these correspond to a
+    Nash Equilibrium represented as a probability distribution over the
+    available strategies:
+
+    * `[[1.0, 0.0], [1.0, 0.0]]` corresponds to the first player only playing
+    their first strategy and the second player also only playing their first
+    strategy. In other words Amy and Bob both play video games.
+
+    * `[[0.0, 1.0], [0.0, 1.0]]` corresponds to the first player only playing
+    their second strategy and the second player also only playing their second
+    strategy. In other words Amy and Bob both watch movies.
+
+    * `[[0.75, 0.25], [0.25, 0.75]]` corresponds to players `mixing` their
+    strategies. Amy plays video games 75% of the time and Bob watches movies
+    75% of the time. At this equilibrium point Amy and Bob will only ever
+    do the same activity `3/8` of the time.
+
 
     A basic 2-player game constructed from matrices. ::
 

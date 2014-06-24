@@ -248,15 +248,13 @@ class NormalFormGame(SageObject, MutableMapping):
         2. `lrs`
         3. `enumeration`
 
-    A basic 2-player game constructed from matrices. ::
-
-        sage: A = matrix([[1, 2], [3, 4]])
-        sage: B = matrix([[3, 3], [1, 4]])
-        sage: C = NormalFormGame([A, B])
-        sage: C
-        {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
-
-    The same game can be constructed manually using Gambit syntax ([website]). ::
+    As mentioned above the prefered engine for the equilibrium analysis is
+    gambit. Gambit has it's own Python api which can be used independently from
+    Sage and to ensure compatibility between the two system, gambit like syntax
+    is compatible.
+    Here is a game being constructed using gambit syntax (note that a
+    `NormalFormGame` object acts like a dictionary with strategy tuples as
+    keys and payoffs as their values) ::
 
         sage: f = NormalFormGame()
         sage: f.add_player(2)
@@ -277,6 +275,14 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: f.add_strategy(0)
         sage: f
         {(0, 1): [2, 3], (0, 0): [1, 3], (2, 1): [False, False], (2, 0): [False, False], (1, 0): [3, 1], (1, 1): [4, 4]}
+
+    A basic 2-player game constructed from matrices. ::
+
+        sage: A = matrix([[1, 2], [3, 4]])
+        sage: B = matrix([[3, 3], [1, 4]])
+        sage: C = NormalFormGame([A, B])
+        sage: C
+        {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
 
     Here is an example of a 3 by 2 game ::
 

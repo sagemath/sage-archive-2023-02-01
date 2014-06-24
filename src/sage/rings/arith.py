@@ -4946,7 +4946,7 @@ def two_squares(n):
     See http://www.schorn.ch/howto.html
     """
     from sage.rings.all import Integer
-    n = pari(n)
+    n = Integer(n)
 
     if n <= 0:
         if n == 0:
@@ -4960,8 +4960,8 @@ def two_squares(n):
     # First check whether it is possible to write n as a sum of two
     # squares: all prime powers p^e must have p = 2 or p = 1 mod 4
     # or e even.
-    for i in range(F.nrows()):
-        if F[1][i] % 2 == 1 and F[0][i] % 4 == 3:
+    for (p,e) in F:
+        if e % 2 == 1 and p % 4 == 3:
             raise ValueError("%s is not a sum of 2 squares"%n)
 
     # We run over all factors of n, write each factor p^e as
@@ -4969,14 +4969,12 @@ def two_squares(n):
     # (using multiplication in Z[I]) in a^2 + b^2.
     a = pari(1)
     b = pari(0)
-    for i in range(F.nrows()):
-        e = int(F[1][i])
+    for (p,e) in F:
         if e >= 2:
-            m = F[0][i] ** (e//2)
+            m = p ** (e//2)
             a *= m
             b *= m
         if e % 2 == 1:
-            p = F[0][i]
             if p == 2:
                 # (a + bi) *= (1 + I)
                 a,b = a - b, a + b

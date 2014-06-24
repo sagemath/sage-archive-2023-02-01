@@ -97,7 +97,9 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: battle_of_the_sexes
         {(0, 1): [1, 1], (1, 0): [0, 0], (0, 0): [3, 2], (1, 1): [2, 3]}
 
-    To obtain the Nash equilibria we run the `obtain_Nash()` method ::
+    To obtain the Nash equilibria we run the `obtain_Nash()` method. In the
+    first few examples we will use the 'support enumeration' algorithm.
+    A discussion about the different algorithms will be given later ::
 
         sage: battle_of_the_sexes.obtain_Nash(algorithm='enumeration')
         [[(1, 0), (1, 0)], [(0, 1), (0, 1)], [(3/4, 1/4), (1/4, 3/4)]]
@@ -207,6 +209,17 @@ class NormalFormGame(SageObject, MutableMapping):
         [ 1 -1]  [-1  1]
         [-1  1], [ 1 -1]
         )
+
+    When obtaining Nash equilibrium there are 3 algorithms currently available:
+
+        * `enumeration`: Support enumeration for 2 player games. This algorithm is hard coded in
+        Sage and checks through all potential supports of a strategy.
+        Note: this is not the preferred algorithm and will fail in the case
+        of degenerate games. For more information about this see [NN2007]_.
+
+        * `lrs`: Reverse search vertex enumeration for 2 player games. This algorithm uses the
+        optional `lrs` package. To install it type `sage -i lrs` at the command line.
+        For more information see [A2000]_.
 
     A basic 2-player game constructed from matrices. ::
 
@@ -320,6 +333,15 @@ class NormalFormGame(SageObject, MutableMapping):
     .. [N1950] John Nash.
        *Equilibrium points in n-person games.*
        Proceedings of the national academy of sciences 36.1 (1950): 48-49.
+
+    .. [NN2007] Nisan, Noam, et al., eds.
+       *Algorithmic game theory.*
+       Cambridge University Press, 2007.
+
+    .. [A2000] Avis, David.
+       *A revised implementation of the reverse search vertex enumeration algorithm.*
+       Polytopes—combinatorics and computation
+       Birkhäuser Basel, 2000.
 
     """
     def __delitem__(self, key):

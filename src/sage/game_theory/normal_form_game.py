@@ -69,13 +69,13 @@ class NormalFormGame(SageObject, MutableMapping):
     Matrix `A` represents the utilities of Amy and matrix `B` represents the
     utility of Bob. The choices of Amy correspond to the rows of the matrices:
 
-    * The first row corresponds to video games.
-    * The second row corresponds to movies.
+        * The first row corresponds to video games.
+        * The second row corresponds to movies.
 
     Similarly Bob's choices are represented by the columns:
 
-    * The first column corresponds to video games.
-    * The second column corresponds to movies.
+        * The first column corresponds to video games.
+        * The second column corresponds to movies.
 
     Thus if both Amy and Bob choose to play video games: Amy receives a utility
     of 3 and Bob a utility of 2. If Amy is indeed going to stick with video games
@@ -109,18 +109,18 @@ class NormalFormGame(SageObject, MutableMapping):
     Nash Equilibrium represented as a probability distribution over the
     available strategies:
 
-    * `[[1.0, 0.0], [1.0, 0.0]]` corresponds to the first player only playing
-    their first strategy and the second player also only playing their first
-    strategy. In other words Amy and Bob both play video games.
+        * `[[1.0, 0.0], [1.0, 0.0]]` corresponds to the first player only playing
+        their first strategy and the second player also only playing their first
+        strategy. In other words Amy and Bob both play video games.
 
-    * `[[0.0, 1.0], [0.0, 1.0]]` corresponds to the first player only playing
-    their second strategy and the second player also only playing their second
-    strategy. In other words Amy and Bob both watch movies.
+        * `[[0.0, 1.0], [0.0, 1.0]]` corresponds to the first player only playing
+        their second strategy and the second player also only playing their second
+        strategy. In other words Amy and Bob both watch movies.
 
-    * `[[0.75, 0.25], [0.25, 0.75]]` corresponds to players `mixing` their
-    strategies. Amy plays video games 75% of the time and Bob watches movies
-    75% of the time. At this equilibrium point Amy and Bob will only ever
-    do the same activity `3/8` of the time.
+        * `[[0.75, 0.25], [0.25, 0.75]]` corresponds to players `mixing` their
+        strategies. Amy plays video games 75% of the time and Bob watches movies
+        75% of the time. At this equilibrium point Amy and Bob will only ever
+        do the same activity `3/8` of the time.
 
     We can use sage to compute the expected utility for any mixed strategy
     pair `(\sigma_1, sigma_2)`. The payoff to player 1 is given by:
@@ -252,7 +252,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     This particular game has 3 Nash equilibrium ::
 
-        sage: g.obtain_Nash() # optional
+        sage: g.obtain_Nash() # optional - gambit
         [[[1.0, 0.0, 0.0], [1.0, 0.0]],
          [[0.8, 0.2, 0.0], [0.6666666667, 0.3333333333]],
          [[0.0, 0.3333333333, 0.6666666667], [0.3333333333, 0.6666666667]]]
@@ -268,7 +268,7 @@ class NormalFormGame(SageObject, MutableMapping):
         ....:             [3, 4, 1],
         ....:             [4, 1, 2]])
         sage: g=NormalFormGame([A, B])
-        sage: g.obtain_Nash() # optional
+        sage: g.obtain_Nash() # optional - gambit
         [[[0.0, 0.0, 0.75, 0.25], [0.0357142857, 0.9642857143, 0.0]]]
 
     One can also input a single matrix and then a zero sum game is constructed.
@@ -280,7 +280,7 @@ class NormalFormGame(SageObject, MutableMapping):
         ....:             [-1, 1, -1, 0, 1],
         ....:             [1, -1, 1, -1, 0]])
         sage: g = NormalFormGame([A])
-        sage: g.obtain_Nash() # optional
+        sage: g.obtain_Nash() # optional - gambit
         [[[0.2, 0.2, 0.2, 0.2, 0.2], [0.2, 0.2, 0.2, 0.2, 0.2]]]
 
     Here is a slightly longer game.
@@ -310,7 +310,7 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: A = matrix([[min(i,j) + 2 * sign(j-i)  for j in range(2, K+1)]  for i in range(2, K+1)])
         sage: B = matrix([[min(i,j) + 2 * sign(i-j)  for j in range(2, K+1)]  for i in range(2, K+1)])
         sage: g = NormalFormGame([A, B])
-        sage: g.obtain_Nash() # optional
+        sage: g.obtain_Nash() # optional - gambit
         [[[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]]
 
@@ -375,7 +375,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: threegame[1, 1, 1][0] = 2
             sage: threegame[1, 1, 1][1] = 6
             sage: threegame[1, 1, 1][2] = 4
-            sage: threegame.obtain_Nash() # optional
+            sage: threegame.obtain_Nash() # optional - gambit
             Traceback (most recent call last):
             ...
             NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms
@@ -578,9 +578,9 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [3, 4, 1],
             ....:             [4, 1, 2]])
             sage: g=NormalFormGame([A, B])
-            sage: g.obtain_Nash(algorithm='lrs') # optional
+            sage: g.obtain_Nash(algorithm='lrs') # optional - lrs
             [([0, 0, 3/4, 1/4], [1/28, 27/28, 0])]
-            sage: g.obtain_Nash(algorithm='lrs', maximization=False) # optional
+            sage: g.obtain_Nash(algorithm='lrs', maximization=False) # optional - lrs
             [([1, 0, 0, 0], [127/1212, 115/1212, 485/606]), ([0, 1, 0, 0], [0, 1/26, 25/26])]
 
         This particular game has 3 Nash equilibria. ::
@@ -592,7 +592,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [2,6],
             ....:             [3,1]])
             sage: g = NormalFormGame([A, B])
-            sage: g.obtain_Nash(maximization=False) # optional
+            sage: g.obtain_Nash(maximization=False) # optional - gambit
             [[[1.0, 0.0, 0.0], [0.0, 1.0]]]
 
         2 random matrices. ::
@@ -608,9 +608,9 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:                   [1, -1, 3, -3, 2],
             ....:                   [8, -4, 1, 1, -17]])
             sage: fivegame = NormalFormGame([player1, player2])
-            sage: fivegame.obtain_Nash() # optional
+            sage: fivegame.obtain_Nash() # optional - gambit
             [[[1.0, 0.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0, 0.0]]]
-            sage: fivegame.obtain_Nash(algorithm='lrs') # optional
+            sage: fivegame.obtain_Nash(algorithm='lrs') # optional - lrs
             [([1, 0, 0, 0, 0], [0, 1, 0, 0, 0])]
 
         """
@@ -660,7 +660,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: a = matrix([[1, 0], [1/3, 4]])
             sage: b = matrix([[2.5, 3], [-0.75, 4]])
             sage: c = NormalFormGame([a, b])
-            sage: c._solve_LCP(maximization=True) # optional
+            sage: c._solve_LCP(maximization=True) # optional - gambit
             [[[0.0, 1.0], [0.0, 1.0]]]
         """
         from gambit import Game
@@ -699,7 +699,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[1, 2], [3, 4]])
             sage: B = matrix([[3, 3], [1, 4]])
             sage: C = NormalFormGame([A, B])
-            sage: C._solve_lrs(A, B) # optional
+            sage: C._solve_lrs(A, B) # optional - lrs
             [([0, 1], [0, 1])]
 
         2 random matrices. ::
@@ -715,7 +715,7 @@ class NormalFormGame(SageObject, MutableMapping):
         ....:              [1, 0, 1, 0, 0,],
         ....:              [1, -3, 1, 21, -2]])
         sage: biggame = NormalFormGame([p1, p2])
-        sage: biggame._solve_lrs(p1, p2) # optional
+        sage: biggame._solve_lrs(p1, p2) # optional - lrs
         [([0, 0, 0, 20/21, 1/21], [11/12, 0, 0, 1/12, 0]), ([0, 0, 0, 1, 0], [9/10, 0, 1/10, 0, 0])]
         """
         m1, m2 = self._game_two_matrix()

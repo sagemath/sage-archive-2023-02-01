@@ -959,15 +959,15 @@ class NormalFormGame(SageObject, MutableMapping):
                     linearsystem1[p2_strategy, p1_strategy] = M2[p1_strategy][p2_support[p2_strategy]] - M2[p1_strategy][p2_support[p2_strategy-1]]
             linearsystem1[-1, p1_strategy] = 1
 
-        for k in p2_support:
+        for p2_strategy in p2_support:
             if len(p1_support) == 1:
                 for i in range(self.players[0].num_strategies):
-                    if M1[p1_support[0]][k] < M1[i][k]:
+                    if M1[p1_support[0]][p2_strategy] < M1[i][p2_strategy]:
                         return False
             else:
                 for j in range(len(p1_support)):
-                    linearsystem2[j, k] = M1[p1_support[j]][k] - M1[p1_support[j-1]][k]
-            linearsystem2[-1, k] = 1
+                    linearsystem2[j, p2_strategy] = M1[p1_support[j]][p2_strategy] - M1[p1_support[j-1]][p2_strategy]
+            linearsystem2[-1, p2_strategy] = 1
 
         linearsystemrhs1 = vector([0 for i in range(len(p2_support))] + [1])
         linearsystemrhs2 = vector([0 for i in range(len(p1_support))] + [1])

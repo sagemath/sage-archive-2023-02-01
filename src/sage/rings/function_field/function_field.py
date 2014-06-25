@@ -7,11 +7,10 @@ AUTHORS:
 
 - Robert Bradshaw (2010-05-30): added is_finite()
 
-- Julian Rueth (2011-06-08): fixed hom(), extension()
+- Julian Rueth (2011-06-08, 2011-09-14, 2014-06-24): fixed hom(), extension();
+  use @cached_method; added support for relative vector spaces
 
 - Maarten Derickx (2011-09-11): added doctests
-
-- Julian Rueth (2011-09-14): use @cached_method
 
 - Syed Ahmad Lavasani (2011-12-16): added genus(), is_RationalFunctionField()
 
@@ -67,7 +66,7 @@ be fixed in another ticket::
 #*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
-#       Copyright (C) 2011 Julian Rueth <julian.rueth@gmail.com>
+#       Copyright (C) 2011-2014 Julian Rueth <julian.rueth@gmail.com>
 #       Copyright (C) 2011 Maarten Derickx <m.derickx.student@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -306,6 +305,60 @@ class FunctionField(Field):
         if isinstance(R, FunctionFieldOrder) and R.fraction_field() == self:
             return True
         return False
+
+    def _intermediate_fields(self, base):
+        r"""
+        Return the fields which lie in between ``base`` and this field in the
+        tower of function fields.
+
+        INPUT:
+
+        - ``base`` -- a function field, either this field or a field from which
+          this field has been created as an extension
+
+        OUTPUT:
+
+        A list of fields. The first entry is ``base``, the last entry is this field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: K._intermediate_fields(K)
+            [Rational function field in x over Rational Field]
+
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2-x)
+            sage: L._intermediate_fields(K)
+            [Function field in y defined by y^2 - x, Rational function field in x over Rational Field]
+
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2-y)
+            sage: M._intermediate_fields(L)
+            [Function field in z defined by z^2 - y, Function field in y defined by y^2 - x]
+            sage: M._intermediate_fields(K)
+            [Function field in z defined by z^2 - y, Function field in y defined by y^2 - x, Rational function field in x over Rational Field]
+
+        TESTS::
+
+            sage: K._intermediate_fields(M)
+            Traceback (most recent call last):
+            ...
+            ValueError: field has not been constructed as a finite extension of base
+            sage: K._intermediate_fields(QQ)
+            Traceback (most recent call last):
+            ...
+            TypeError: base must be a function field
+
+        """
+        if not is_FunctionField(base):
+            raise TypeError("base must be a function field")
+
+        ret = [self]
+        while ret[-1] is not base:
+            ret.append(ret[-1].base_field())
+            if ret[-1] is ret[-2]:
+                raise ValueError("field has not been constructed as a finite extension of base")
+        return ret
 
 class FunctionField_polymod(FunctionField):
     """

@@ -4928,10 +4928,10 @@ def two_squares(n):
         ValueError: 21 is not a sum of 2 squares
         sage: two_squares(21^2)
         (0, 21)
-        sage: a,b = two_squares(2009); a,b
-        (28, 35)
+        sage: a,b = two_squares(100000000000000000129); a,b
+        (4418521500, 8970878873)
         sage: a^2 + b^2
-        2009
+        100000000000000000129
         sage: two_squares(2^222+1)
         (253801659504708621991421712450521, 2583712713213354898490304645018692)
         sage: two_squares(0)
@@ -4945,7 +4945,7 @@ def two_squares(n):
 
     See http://www.schorn.ch/howto.html
     """
-    from sage.rings.all import Integer
+    from sage.rings.all import Integer, Mod
     n = Integer(n)
 
     if n <= 0:
@@ -4953,6 +4953,10 @@ def two_squares(n):
             z = ZZ.zero()
             return (z, z)
         raise ValueError("%s is not a sum of 2 squares"%n)
+
+    if n.nbits() <= 32:
+        from sage.rings import sum_of_squares
+        return sum_of_squares.two_squares_pyx(n)
 
     # Start by factoring n (which seems to be unavoidable)
     F = n.factor(proof=False)
@@ -4967,8 +4971,8 @@ def two_squares(n):
     # We run over all factors of n, write each factor p^e as
     # a sum of 2 squares and accumulate the product
     # (using multiplication in Z[I]) in a^2 + b^2.
-    a = pari(1)
-    b = pari(0)
+    a = Integer(1)
+    b = Integer(0)
     for (p,e) in F:
         if e >= 2:
             m = p ** (e//2)
@@ -4981,7 +4985,7 @@ def two_squares(n):
             else:  # p = 1 mod 4
                 # Find a square root of -1 mod p.
                 # If y is a non-square, then y^((p-1)/4) is a square root of -1.
-                y = pari(2).Mod(p)
+                y = Mod(2,p)
                 while True:
                     s = y**((p-1)/4)
                     if not s*s + 1:
@@ -4997,8 +5001,8 @@ def two_squares(n):
                 # Multiply (a + bI) by (r + sI)
                 a,b = a*r - b*s, b*r + a*s
 
-    a = Integer(a.abs())
-    b = Integer(b.abs())
+    a = a.abs()
+    b = b.abs()
     assert a*a + b*b == n
     if a <= b:
         return (a,b)
@@ -5020,19 +5024,21 @@ def three_squares(n):
     EXAMPLES::
 
         sage: three_squares(389)
-        (7, 12, 14)
+        (1, 8, 18)
         sage: three_squares(946)
-        (3, 19, 24)
+        (9, 9, 28)
         sage: three_squares(2986)
-        (12, 21, 49)
+        (3, 24, 49)
         sage: three_squares(7^100)
         (0, 0, 1798465042647412146620280340569649349251249)
         sage: three_squares(11^111-1)
         (616274160655975340150706442680, 901582938385735143295060746161, 6270382387635744140394001363065311967964099981788593947233)
-        sage: three_squares(16 * 7)
+        sage: three_squares(7 * 2^41)
+        (1048576, 2097152, 3145728)
+        sage: three_squares(7 * 2^42)
         Traceback (most recent call last):
         ...
-        ValueError: 112 is not a sum of 3 squares
+        ValueError: 30786325577728 is not a sum of 3 squares
         sage: three_squares(0)
         (0, 0, 0)
         sage: three_squares(-1)
@@ -5045,7 +5051,7 @@ def three_squares(n):
     See http://www.schorn.ch/howto.html
     """
     from sage.rings.all import Integer
-    n = pari(n)
+    n = Integer(n)
 
     if n <= 0:
         if n == 0:
@@ -5053,17 +5059,20 @@ def three_squares(n):
             return (z, z, z)
         raise ValueError("%s is not a sum of 3 squares"%n)
 
+    if n.nbits() <= 32:
+        from sage.rings import sum_of_squares
+        return sum_of_squares.three_squares_pyx(n)
+
     # First, remove all factors 4 from n
     e = n.valuation(2)//2
-    m = 2**e
-    N = n/(m*m)
-    m = Integer(m)
+    m = Integer(1) << e
+    N = n >> (2*e)
 
     # Let x be the largest integer at most sqrt(N)
-    x = N.sqrtint()
+    x, r = N.sqrtrem()
     # We need to check for this special case,
     # otherwise N - x^2 will always factor.
-    if x*x == N:
+    if not r:
         z = ZZ.zero()
         return (z, z, x*m)
 
@@ -5076,7 +5085,7 @@ def three_squares(n):
             x -= 1
         while x >= 0:
             p = N - x*x
-            if p.ispseudoprime():
+            if p.is_pseudoprime():
                 break
             x -= 2
     elif N % 4 == 2:
@@ -5085,7 +5094,7 @@ def three_squares(n):
             x -= 1
         while x >= 0:
             p = N - x*x
-            if p.ispseudoprime():
+            if p.is_pseudoprime():
                 break
             x -= 2
     elif N % 8 == 3:
@@ -5093,8 +5102,8 @@ def three_squares(n):
         if x % 2 == 0:
             x -= 1
         while x >= 0:
-            p = (N - x*x)/2
-            if p.ispseudoprime():
+            p = (N - x*x) >> 1
+            if p.is_pseudoprime():
                 break
             x -= 2
     else:  # 7 mod 8
@@ -5106,7 +5115,7 @@ def three_squares(n):
         if N > 10000:
             from warnings import warn
             warn("Brute forcing sum of 3 squares for large N = %s"%N, RuntimeWarning)
-        x = N.sqrtint()
+        x = N.isqrt()
 
     # In the usual case, this loop will only be executed once, since
     # we already know the "right" value of x.
@@ -5147,15 +5156,15 @@ def four_squares(n):
         sage: four_squares(130)
         (0, 0, 3, 11)
         sage: four_squares(1101011011004)
-        (130, 348, 1170, 1049290)
+        (90, 102, 1220, 1049290)
         sage: four_squares(10^100-1)
         (155024616290, 2612183768627, 14142135623730950488016887, 99999999999999999999999999999999999999999999999999)
-        sage: for i in range(10000):  # long time
+        sage: for i in range(2^129, 2^129+10000):  # long time
         ....:     S = four_squares(i)
         ....:     assert sum(x^2 for x in S) == i
     """
     from sage.rings.all import Integer
-    n = pari(n)
+    n = Integer(n)
     
     if n <= 0:
         if n == 0:
@@ -5163,15 +5172,18 @@ def four_squares(n):
             return (z, z, z, z)
         raise ValueError("%s is not a sum of 4 squares"%n)
 
+    if n.nbits() <= 32:
+        from sage.rings import sum_of_squares
+        return sum_of_squares.four_squares_pyx(n)
+
     # First, remove all factors 4 from n
     e = n.valuation(2)//2
-    m = 2**e
-    N = n/(m*m)
-    m = Integer(m)
+    m = Integer(1) << e
+    N = n >> (2*e)
 
     # Subtract a suitable x^2 such that N - x^2 is 1,2,3,5,6 mod 8,
     # which can then be written as a sum of 3 squares.
-    x = N.sqrtint()
+    x = N.isqrt()
     y = N - x*x
     if y >= 7 and (y % 4 == 0 or y % 8 == 7):
         x -= 1
@@ -5239,7 +5251,7 @@ def sum_of_k_squares(k,n):
         ValueError: k = -1 must be non-negative
     """
     from sage.rings.all import Integer
-    n = pari(n)
+    n = Integer(n)
     k = int(k)
     
     if k <= 4:
@@ -5251,9 +5263,9 @@ def sum_of_k_squares(k,n):
             return two_squares(n)
         if k == 1:
             if n >= 0:
-                x = n.sqrtint()
-                if n == x*x:
-                    return (Integer(x),)
+                x, r = n.sqrtrem()
+                if not r:
+                    return (x,)
             raise ValueError("%s is not a sum of 1 square"%n)
         if k == 0:
             if n == 0:
@@ -5267,8 +5279,8 @@ def sum_of_k_squares(k,n):
     # Recursively subtract the largest square
     t = []
     while k > 4:
-        x = n.sqrtint()
-        t.insert(0,Integer(x))
+        x = n.isqrt()
+        t.insert(0, x)
         n -= x*x
         k -= 1
 

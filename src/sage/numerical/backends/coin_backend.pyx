@@ -835,10 +835,10 @@ cdef class CoinBackend(GenericBackend):
             v = 0.0
         else:
             v = solution[variable]
-        if self.is_variable_binary(variable):
-            return round(v)
-        else:
+        if self.is_variable_continuous(variable):
             return v
+        else:
+            return round(v)
 
     cpdef int ncols(self):
         r"""

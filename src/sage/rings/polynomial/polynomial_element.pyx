@@ -3879,6 +3879,154 @@ cdef class Polynomial(CommutativeAlgebraElement):
         else:
             raise NotImplementedError("%s does not provide a gcd implementation for univariate polynomials"%self.base_ring())
 
+    def pseudo_quo_rem(self,other):
+        """
+        Compute the pseudo-division of two polynomials.
+
+        INPUT:
+
+        - ``self`` -- A polynomial
+
+        - ``other`` -- A nonzero polynomial, otherwise an exception ValueError is raised
+
+        OUTPUT:
+
+        If ``other`` is nonzero, this algorithm finds Q and R such that
+        l^(m-n+1) self = Q * other + R where m = deg(self), n = deg(other),
+        l is the leading coefficient of other, and such that deg(R) < deg(other).
+
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ,Sparse=True)
+            sage: p = x^4 + 6*x^3 + x^2 - x + 2
+            sage: q = 2*x^2 - 3*x - 1
+            sage: (quo,rem)=p.pseudo_quo_rem(q); quo,rem
+            (4*x^2 + 30*x + 51, 175*x + 67)
+            sage: 2^(4-2+1)*p == quo*q + rem
+            True
+
+            sage: S.<T> = R[]
+            sage: p = (-3*x^2 - x)*T^3 - 3*x*T^2 + (x^2 - x)*T + 2*x^2 + 3*x - 2
+            sage: q = (-x^2 - 4*x - 5)*T^2 + (6*x^2 + x + 1)*T + 2*x^2 - x
+            sage: quo,rem=p.pseudo_quo_rem(q); quo,rem
+            ((3*x^4 + 13*x^3 + 19*x^2 + 5*x)*T + 18*x^4 + 12*x^3 + 16*x^2 + 16*x,
+             (-113*x^6 - 106*x^5 - 133*x^4 - 101*x^3 - 42*x^2 - 41*x)*T - 34*x^6 + 13*x^5 + 54*x^4 + 126*x^3 + 134*x^2 - 5*x - 50)
+            sage: (-x^2 - 4*x - 5)^(3-2+1) * p == quo*q + rem
+            True
+
+        AUTHORS:
+
+        - Bruno Grenet (2014-06-25)
+        """
+        # This is Algorithm 3.1.2 in Cohen [GTM 138]
+        if other.degree() < 0:
+            raise ValueError("Pseudo-division by zero is not possible")
+
+        R = self
+        B = other
+        Q = self.parent().zero_element()
+        e = self.degree() - other.degree() + 1
+        d = B.leading_coefficient()
+        X = self.parent().gen()
+
+        while not R.degree() < B.degree():
+            S = R.leading_coefficient()*X**(R.degree()-B.degree())
+            Q = d*Q+S
+            R = d*R-S*B
+            e -= 1
+
+        q = d**e
+        return (q*Q,q*R)
+
+    @coerce_binop
+    def gcd(self, other):
+        """
+        Return the gcd of self and other
+
+        INPUT:
+
+        - ``self`` -- A polynomial
+
+        - ``other`` -- A polynomial
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ,Sparse=True)
+            sage: p = x^4 + 6*x^3 + x^2 - x + 2
+            sage: q = 2*x^2 - 3*x - 1
+            sage: gcd(p,q)
+            1
+            sage: r = x^2 + x + 1
+            sage: gcd(p*r,q*r)
+            x^2 + x + 1
+
+            sage: S.<T> = R[]
+            sage: p = (-3*x^2 - x)*T^3 - 3*x*T^2 + (x^2 - x)*T + 2*x^2 + 3*x - 2
+            sage: q = (-x^2 - 4*x - 5)*T^2 + (6*x^2 + x + 1)*T + 2*x^2 - x
+            sage: gcd(p,q)
+            1
+            sage: r = (1 + x)*T^2 + (x - 1)*T + 2*x + 3
+            sage: gcd(p*r,q*r)
+            (x + 1)*T^2 + (x - 1)*T + 2*x + 3
+
+        AUTHORS:
+
+        - Bruno Grenet (2014-06-25)
+        """
+        # This is Algorithm 3.3.1 in Cohen [GTM 138]
+        if not self.parent().base_ring().is_unique_factorization_domain():
+            raise ValueError("The base ring must be a unique factorization domain")
+
+        if self.degree() < other.degree():
+            A,B = other, self
+        else:
+            A,B = self, other
+
+        if B.is_zero():
+            return A
+
+        #from sage.rings.arith import gcd
+
+        a = b = self.base_ring().zero_element()
+        for c in A.coefficients():
+            a = a.gcd(c)
+            if a.is_one():
+                break
+        for c in B.coefficients():
+            b = b.gcd(c)
+            if b.is_one():
+                break
+
+        d = a.gcd(b)
+        A = self.parent()(A/a)
+        B = self.parent()(B/b)
+        g = h = 1
+
+        delta = A.degree()-B.degree()
+        _,R = A.pseudo_quo_rem(B)
+
+        while R.degree() > 0:
+            A = B
+            B = self.parent()(R/(g*h**delta))
+            g = A.leading_coefficient()
+            h = self.parent().base_ring()(h*g**delta/h**delta)
+            delta = A.degree() - B.degree()
+            _, R = A.pseudo_quo_rem(B)
+
+        if R.is_zero():
+            b = self.base_ring().zero_element()
+            for c in B.coefficients():
+                b = b.gcd(c)
+                if b.is_one():
+                    break
+            return self.parent()(d*B/b)
+
+        return d
+
+
+
+
     @coerce_binop
     def lcm(self, other):
         """

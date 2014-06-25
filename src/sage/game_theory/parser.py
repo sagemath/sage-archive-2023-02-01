@@ -15,21 +15,21 @@ class Parser():
         for i in self.mess:
             if i.startswith('2'):
                 nums = [sage_eval(k) for k in i.split()]
-                p2_strategies.append(nums[1:-1])
+                p2_strategies.append(tuple(nums[1:-1]))
             elif i.startswith('1'):
                 nums = [sage_eval(k) for k in i.split()]
-                p1_strategies.append(nums[1:-1])
+                p1_strategies.append(tuple(nums[1:-1]))
 
-        return zip(p1_strategies, p2_strategies)
+        return [list(a) for a in zip(p1_strategies, p2_strategies)]
 
     def format_gambit(self):
         nice_stuff = []
         for gambitstrategy in self.mess:
             gambitstrategy = eval(str(gambitstrategy)[str(gambitstrategy).index("["): str(gambitstrategy).index("]") + 1])
-            profile = [gambitstrategy[:len(self.game.players[int(0)].strategies)]]
+            profile = [tuple(gambitstrategy[:len(self.game.players[int(0)].strategies)])]
             for player in list(self.game.players)[1:]:
                 previousplayerstrategylength = len(profile[-1])
-                profile.append(gambitstrategy[previousplayerstrategylength: previousplayerstrategylength + len(player.strategies)])
+                profile.append(tuple(gambitstrategy[previousplayerstrategylength: previousplayerstrategylength + len(player.strategies)]))
             nice_stuff.append(profile)
 
         return nice_stuff

@@ -355,7 +355,7 @@ class Posets(object):
             raise ValueError("number of elements must be non-negative, not {0}".format(n))
         try:
             p = float(p)
-        except StandardError:
+        except Exception:
             raise TypeError("probability must be a real number, not {0}".format(p))
         if p < 0 or p> 1:
             raise ValueError("probability must be between 0 and 1, not {0}".format(p))
@@ -481,7 +481,7 @@ class Posets(object):
             nodes[perm] = [succ_perm for succ_perm in perm.bruhat_succ()
                                 if succ_perm.bruhat_lequal(end)]
             for succ_perm in nodes[perm]:
-                if not nodes.has_key(succ_perm):
+                if succ_perm not in nodes:
                     unseen.append(succ_perm)
         return Poset(nodes)
 

@@ -43,7 +43,7 @@ class HyperbolicFunction(BuiltinFunction):
         BuiltinFunction.__init__(self, name, latex_name=latex_name,
                 conversions=conversions)
 
-    def _evalf_(self, x, parent):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 

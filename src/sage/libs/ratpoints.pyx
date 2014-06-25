@@ -27,7 +27,8 @@ cdef int process(long x, long z, mpz_t y, void *info0, int *quit):
             quit[0] = -1
     return 1 # weight for counting the points
 
-def ratpoints(list coeffs, long H, verbose=False, long max=0):
+def ratpoints(list coeffs, long H, verbose=False, long max=0,
+              min_x_denom=None, max_x_denom=None, intervals=[]):
     """
     Access the ratpoints library to find points on the hyperelliptic curve:
 
@@ -82,22 +83,63 @@ def ratpoints(list coeffs, long H, verbose=False, long max=0):
         201 25353012004564588029934064107520000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 200
         201 -25353012004564588029934064107520000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 200
 
+    The denominator of `x` can be restricted, for example to find
+    integral points::
 
+        sage: from sage.libs.ratpoints import ratpoints
+        sage: coeffs = [400, -112, 0, 1]
+        sage: ratpoints(coeffs, 10^6, max_x_denom=1, intervals=[[-10,0],[1000,2000]])
+        [(1, 0, 0), (-8, 28, 1), (-8, -28, 1), (-7, 29, 1), (-7, -29, 1),
+         (-4, 28, 1), (-4, -28, 1), (0, 20, 1), (0, -20, 1), (1368, 50596, 1),
+         (1368, -50596, 1), (1624, 65444, 1), (1624, -65444, 1)]
+
+        sage: ratpoints(coeffs, 1000, min_x_denom=100, max_x_denom=200)
+        [(1, 0, 0),
+        (-656, 426316, 121),
+        (-656, -426316, 121),
+        (452, 85052, 121),
+        (452, -85052, 121),
+        (988, 80036, 121),
+        (988, -80036, 121),
+        (-556, 773188, 169),
+        (-556, -773188, 169),
+        (264, 432068, 169),
+        (264, -432068, 169)]
+
+    Finding the integral points on the compact component of an elliptic curve::
+
+        sage: E = EllipticCurve([0,1,0,-35220,-1346400])
+        sage: e1, e2, e3 = E.division_polynomial(2).roots(multiplicities=False)
+        sage: coeffs = [E.a6(),E.a4(),E.a2(),1]
+        sage: ratpoints(coeffs, 1000, max_x_denom=1, intervals=[[e3,e2]])
+        [(1, 0, 0),
+        (-165, 0, 1),
+        (-162, 366, 1),
+        (-162, -366, 1),
+        (-120, 1080, 1),
+        (-120, -1080, 1),
+        (-90, 1050, 1),
+        (-90, -1050, 1),
+        (-85, 1020, 1),
+        (-85, -1020, 1),
+        (-42, 246, 1),
+        (-42, -246, 1),
+        (-40, 0, 1)]
     """
     cdef ratpoints_args args
     cdef long i, total, verby
     cdef Integer sage_int, s_x, s_y, s_z
     cdef point_list *plist
 
-    coeffs = [Integer(a) for a in coeffs]
 
     verby = ~0 if verbose else 0
 
+    # Set the soefficient array:
+    coeffs = [Integer(a) for a in coeffs]
     args.degree = len(coeffs)-1
-
     args.cof = <mpz_t *> sage_malloc((args.degree+1) * sizeof(mpz_t))
-                                          # example uses RATPOINTS_MAX_DEGREE -- necessary?
-    args.domain = <ratpoints_interval *> sage_malloc(2*args.degree * sizeof(ratpoints_interval))
+
+    # Create an array to hold the points found:
     plist = <point_list *> sage_malloc(sizeof(point_list))
     if max == 0:
         plist.array_size = 64
@@ -111,10 +153,24 @@ def ratpoints(list coeffs, long H, verbose=False, long max=0):
     plist.num_points = 0
     plist.max_num_points = max
 
+    # Set the height bound:
     args.height = H
-    args.num_inter = 0
-    args.b_low = 1
-    args.b_high = H
+
+    # Set the intervals to be searched, including any specified:
+    args.num_inter = len(intervals)
+    args.domain = <ratpoints_interval *> sage_malloc((args.num_inter + args.degree) * sizeof(ratpoints_interval))
+    for i,I in enumerate(intervals):
+        args.domain[i].low = I[0]
+        args.domain[i].up  = I[1]
+
+    # Set the minimum and maximum denominators:
+    if not min_x_denom:  min_x_denom = 1
+    if not max_x_denom:  max_x_denom = H
+    args.b_low = min_x_denom
+    args.b_high = max_x_denom
+
+    # Set the remaining arguments, whose non-default use is technical
+    # (see ratpoints documentation)
     args.sp1 = RATPOINTS_DEFAULT_SP1
     args.sp2 = RATPOINTS_DEFAULT_SP2
     args.array_size = RATPOINTS_ARRAY_SIZE

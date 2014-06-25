@@ -35,7 +35,7 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
         sage: f._mathematica_init_()
         'Foo'
 
-        sage: def evalf_f(self, x, parent=None): return x*.5r
+        sage: def evalf_f(self, x, parent=None, algorithm=None): return x*.5r
         sage: g = function_factory('g',1,evalf_func=evalf_f)
         sage: g(2)
         g(2)
@@ -85,7 +85,7 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
         func = l.get(func_name+"_func", None)
         if func:
             if not callable(func):
-                raise ValueError, func_name + "_func" + " parameter must be callable"
+                raise ValueError(func_name + "_func" + " parameter must be callable")
             setattr(NewSymbolicFunction, '_%s_'%func_name, func)
 
     return NewSymbolicFunction()
@@ -112,7 +112,7 @@ def unpickle_function(name, nargs, latex_name, conversions, evalf_params_first,
         'Foo'
 
         sage: from sage.symbolic.function import pickle_wrapper
-        sage: def evalf_f(self, x, parent=None): return 2r*x + 5r
+        sage: def evalf_f(self, x, parent=None, algorithm=None): return 2r*x + 5r
         sage: def conjugate_f(self, x): return x/2r
         sage: nf = unpickle_function('g', 1, None, None, True, [None, pickle_wrapper(evalf_f), pickle_wrapper(conjugate_f)] + [None]*8)
         sage: nf
@@ -238,7 +238,7 @@ def function(s, *args, **kwds):
         sage: bar(x)
         bar(x)
 
-        sage: def evalf_f(self, x, parent=None): return 6
+        sage: def evalf_f(self, x, parent=None, algorithm=None): return 6
         sage: foo = function("foo", nargs=1, evalf_func=evalf_f)
         sage: foo(x)
         foo(x)
@@ -300,7 +300,7 @@ def function(s, *args, **kwds):
         2*x
     """
     if not isinstance(s, (str, unicode)):
-        raise TypeError, "expect string as first argument"
+        raise TypeError("expect string as first argument")
 
     # create the function
     if ',' in s:
@@ -360,18 +360,18 @@ def deprecated_custom_evalf_wrapper(func):
 def eval_on_operands(f):
     """
     Given a method ``f`` return a new method which takes a single symbolic
-    expression argument and passes the operands of the given expression as
-    arguments to ``f``.
+    expression argument and appends operands of the given expression to
+    the arguments of ``f``.
 
     EXAMPLES::
 
-        sage: def f(x, y):
+        sage: def f(ex, x, y):
         ....:     '''
         ....:     Some documentation.
         ....:     '''
         ....:     return x + 2*y
         ....:
-        sage: f(x, 1)
+        sage: f(None, x, 1)
         x + 2
         sage: from sage.symbolic.function_factory import eval_on_operands
         sage: g = eval_on_operands(f)
@@ -381,6 +381,8 @@ def eval_on_operands(f):
         'Some documentation.'
     """
     @sage_wraps(f)
-    def new_f(ex):
-        return f(*ex.operands())
+    def new_f(ex, *args, **kwds):
+        new_args = list(ex._unpack_operands())
+        new_args.extend(args)
+        return f(ex, *new_args, **kwds)
     return new_f

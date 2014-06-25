@@ -67,7 +67,7 @@ def MeetSemilattice(data, *args, **options):
         return data
     P = Poset(data, *args, **options)
     if not P.is_meet_semilattice():
-        raise ValueError, "Not a meet semilattice."
+        raise ValueError("Not a meet semilattice.")
     return FiniteMeetSemilattice(P)
 
 class FiniteMeetSemilattice(FinitePoset):
@@ -191,7 +191,7 @@ def JoinSemilattice(data, *args, **options):
         return data
     P = Poset(data, *args, **options)
     if not P.is_join_semilattice():
-        raise ValueError, "Not a join semilattice."
+        raise ValueError("Not a join semilattice.")
     return FiniteJoinSemilattice(P)
 
 class FiniteJoinSemilattice(FinitePoset):
@@ -318,7 +318,7 @@ def LatticePoset(data, *args, **options):
 
         sage: L = LatticePoset([[1,2],[3],[3]], facade = True)
         sage: L.category()
-        Category of facade finite lattice posets
+        Join of Category of finite lattice posets and Category of finite enumerated sets and Category of facade sets
         sage: parent(L[0])
         Integer Ring
         sage: TestSuite(L).run(skip = ['_test_an_element']) # is_parent_of is not yet implemented
@@ -328,7 +328,7 @@ def LatticePoset(data, *args, **options):
         return data
     P = Poset(data, *args, **options)
     if not P.is_lattice():
-        raise ValueError, "Not a lattice."
+        raise ValueError("Not a lattice.")
 
     return FiniteLatticePoset(P, category = FiniteLatticePosets(), facade = P._is_facade)
 

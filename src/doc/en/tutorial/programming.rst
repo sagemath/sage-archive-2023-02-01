@@ -25,7 +25,7 @@ command.
 
 ::
 
-    sage: load "example.sage"
+    sage: load("example.sage")
     Hello World
     8
 
@@ -36,7 +36,7 @@ You can also attach a Sage file to a running session using the
 
 ::
 
-    sage: attach "example.sage"
+    sage: attach("example.sage")
     Hello World
     8
 
@@ -99,32 +99,7 @@ command-line interface, you can attach and load compiled code
 exactly like with interpreted code (at the moment, attaching and
 loading Cython code is not supported with the notebook interface).
 The actual compilation is done "behind the scenes" without your
-having to do anything explicit. See
-``$SAGE_ROOT/examples/programming/sagex/factorial.spyx`` for an
-example of a compiled implementation of the factorial function that
-directly uses the GMP C library. To try this out for yourself, cd
-to ``$SAGE_ROOT/examples/programming/sagex/``, then do the
-following:
-
-.. skip
-
-::
-
-    sage: load "factorial.spyx"
-    ***************************************************
-                    Recompiling factorial.spyx
-    ***************************************************
-    sage: factorial(50)
-    30414093201713378043612608166064768844377641568960512000000000000L
-    sage: time n = factorial(10000)
-    CPU times: user 0.03 s, sys: 0.00 s, total: 0.03 s
-    Wall time: 0.03
-
-Here the trailing L indicates a Python long integer (see
-:ref:`section-mathannoy`).
-
-Note that Sage will recompile ``factorial.spyx`` if you quit and restart Sage.
-The compiled shared object library is stored under
+having to do anything explicit. The compiled shared object library is stored under
 ``$HOME/.sage/temp/hostname/pid/spyx``. These files are deleted
 when you exit Sage.
 
@@ -170,7 +145,7 @@ Then the following works:
 
 ::
 
-    sage: attach "test.spyx"
+    sage: attach("test.spyx")
     Compiling (...)/test.spyx...
     sage: test(10)
     11

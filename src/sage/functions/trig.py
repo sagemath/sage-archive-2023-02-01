@@ -154,7 +154,7 @@ class Function_sec(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "sec", latex_name=r"\sec")
 
-    def _evalf_(self, x, parent=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -245,7 +245,7 @@ class Function_csc(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "csc", latex_name=r"\csc")
 
-    def _evalf_(self, x, parent=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -365,7 +365,7 @@ class Function_cot(BuiltinFunction):
         """
         return 1 / tan(x)
 
-    def _evalf_(self, x, parent=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -590,7 +590,7 @@ class Function_arccot(BuiltinFunction):
         BuiltinFunction.__init__(self, "arccot", latex_name=r'{\rm arccot}',
                 conversions=dict(maxima='acot', sympy='acot'))
 
-    def _evalf_(self, x, parent=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -658,7 +658,7 @@ class Function_arccsc(BuiltinFunction):
         BuiltinFunction.__init__(self, "arccsc", latex_name=r'{\rm arccsc}',
                                    conversions=dict(maxima='acsc'))
 
-    def _evalf_(self, x, parent=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -722,7 +722,7 @@ class Function_arcsec(BuiltinFunction):
         BuiltinFunction.__init__(self, "arcsec", latex_name=r'{\rm arcsec}',
                                    conversions=dict(maxima='asec'))
 
-    def _evalf_(self, x, parent=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 

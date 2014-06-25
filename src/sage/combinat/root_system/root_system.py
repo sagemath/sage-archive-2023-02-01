@@ -8,7 +8,7 @@ Quickref
 - ``T.dynkin_diagram(), DynkinDiagram(["G",2])``  -- Dynkin diagrams
 - ``T.cartan_matrix(),  CartanMatrix(["F",4])``   -- Cartan matrices
 - ``RootSystem(T).weight_lattice()``              -- Root systems
-- ``WeylGroup(["B", 6, 1]).simple_reflections()`` -- Affine weyl groups
+- ``WeylGroup(["B", 6, 1]).simple_reflections()`` -- Affine Weyl groups
 - ``WeylCharacterRing(["D", 4])``                 -- Weyl character rings
 
 Documentation
@@ -229,13 +229,13 @@ class RootSystem(UniqueRepresentation, SageObject):
         sage: W = L.weyl_group()
         sage: S3 = [ w.action(id) for w in W.classical() ]
         sage: [L.classical()(x) for x in S3]
-        [(3, 2, 1), (3, 1, 2), (2, 3, 1), (2, 1, 3), (1, 3, 2), (1, 2, 3)]
+        [(1, 2, 3), (3, 2, 1), (3, 1, 2), (2, 1, 3), (2, 3, 1), (1, 3, 2)]
 
     And the action of `s_0` on these yields::
 
         sage: s = W.simple_reflections()
         sage: [L.classical()(s[0].action(x)) for x in S3]
-        [(-2, 2, 6), (-1, 1, 6), (-2, 3, 5), (0, 1, 5), (-1, 3, 4), (0, 2, 4)]
+        [(0, 2, 4), (-2, 2, 6), (-1, 1, 6), (0, 1, 5), (-2, 3, 5), (-1, 3, 4)]
 
     We can also plot various components of the ambient spaces::
 
@@ -336,7 +336,7 @@ class RootSystem(UniqueRepresentation, SageObject):
             # still fails for CartanType G2xA1
             try:
                 self.dual = RootSystem(self._cartan_type.dual(), as_dual_of=self);
-            except StandardError:
+            except Exception:
                 pass
         else:
             self.dual_side = True
@@ -516,12 +516,12 @@ class RootSystem(UniqueRepresentation, SageObject):
 
             sage: Phi = RootSystem(['A',2]).root_poset(); Phi
             Finite poset containing 3 elements
-            sage: Phi.cover_relations()
+            sage: sorted(Phi.cover_relations(), key=str)
             [[alpha[1], alpha[1] + alpha[2]], [alpha[2], alpha[1] + alpha[2]]]
 
             sage: Phi = RootSystem(['A',3]).root_poset(restricted=True); Phi
             Finite poset containing 3 elements
-            sage: Phi.cover_relations()
+            sage: sorted(Phi.cover_relations(), key=str)
             [[alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3]], [alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[3]]]
 
             sage: Phi = RootSystem(['B',2]).root_poset(); Phi

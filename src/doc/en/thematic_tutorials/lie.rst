@@ -11,9 +11,9 @@ These notes explain how to use the mathematical software Sage for
 Lie group computations. Sage also contains many combinatorial
 algorithms. We will cover only some of these.
 
-
-Preparation of this document was supported in part by NSF grant DMS-0652817,
-DMS-1001079, DMS--0652641, DMS--0652652, and DMS--1001256.
+Preparation of this document was supported in part by NSF grants DMS-0652817,
+DMS-1001079, OCI-1147463, DMS--0652641, DMS--0652652, DMS--1001256 and
+and OCI–1147247.
 
 .. toctree::
    :maxdepth: 2

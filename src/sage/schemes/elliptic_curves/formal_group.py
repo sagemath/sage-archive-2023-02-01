@@ -530,7 +530,7 @@ class EllipticCurveFormalGroup(SageObject):
         """
         prec = max(prec,0)
         if prec <= 0:
-            raise ValueError, "The precision must be positive."
+            raise ValueError("The precision must be positive.")
 
         R = rings.PowerSeriesRing(self.curve().base_ring(), 2, 't1,t2')
         t1, t2 = R.gens()

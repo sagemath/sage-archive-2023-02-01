@@ -473,7 +473,7 @@ class HyperbolicIsometry(SageObject):
 
         - a list of hyperbolic points
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import *
             sage: H = HyperbolicIsometryUHP(matrix(2, [-2/3,-1/3,-1/3,-2/3]))
@@ -530,7 +530,7 @@ class HyperbolicIsometry(SageObject):
 
         - a hyperbolic point
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import *
             sage: A = HyperbolicIsometryUHP(Matrix(2,[4,0,0,1/4]))

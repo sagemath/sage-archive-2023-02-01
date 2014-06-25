@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Hyperbolic Models
 
@@ -29,7 +30,7 @@ AUTHORS:
 EXAMPLES:
 
 We illustrate how the classes in this module encode data by comparing
-the upper half plane (UHP), Poincare disk (PD) and hyperboloid (HM)
+the upper half plane (UHP), Poincaré disk (PD) and hyperboloid (HM)
 models.  First we import::
 
     sage: from sage.geometry.hyperbolic_space.hyperbolic_model import HyperbolicModelUHP as U
@@ -408,8 +409,10 @@ class HyperbolicModel(UniqueRepresentation):
     @classmethod
     def isometry_test(cls, A): #Abstract
         r"""
-        Test whether an isometry is in the model.  If the isometry is in
-        the model, do nothing; otherwise, raise a ``ValueError``.
+        Test whether an isometry is in the model.
+
+        If the isometry is in the model, do nothing. Otherwise, raise
+        a ``ValueError``.
 
         EXAMPLES::
 
@@ -531,6 +534,7 @@ class HyperbolicModel(UniqueRepresentation):
         cls.isometry_test(A)
         return cls.isom_conversion_dict[model_name](A)
 
+
 class HyperbolicModelUHP(HyperbolicModel, UniqueRepresentation):
     r"""
     Upper Half Plane model.
@@ -587,7 +591,7 @@ class HyperbolicModelUHP(HyperbolicModel, UniqueRepresentation):
         return bool(imag(CC(p)) > 0)
 
     @classmethod
-    def bdry_point_in_model(cls,p): #UHP
+    def bdry_point_in_model(cls, p): #UHP
         r"""
         Check whether a complex number is a real number or ``\infty``.
         In the ``UHP.model_name_name``, this is the ideal boundary of
@@ -632,7 +636,7 @@ class HyperbolicModelUHP(HyperbolicModel, UniqueRepresentation):
         return mobius_transform(A, p)
 
     @classmethod
-    def isometry_in_model(cls,A): #UHP
+    def isometry_in_model(cls, A): #UHP
         r"""
         Check that ``A`` acts as an isometry on the upper half plane.
         That is, ``A`` must be an invertible `2 \times 2` matrix with real
@@ -715,6 +719,7 @@ class HyperbolicModelUHP(HyperbolicModel, UniqueRepresentation):
         - the coordinates of a point in the ``short_name`` model
 
         EXAMPLES::
+
             sage: from sage.geometry.hyperbolic_space.hyperbolic_model import HyperbolicModelUHP
             sage: HyperbolicModelUHP.isometry_to_model(matrix(2,[0, 1, 1, 0]),'PD')
             [0 I]
@@ -722,15 +727,15 @@ class HyperbolicModelUHP(HyperbolicModel, UniqueRepresentation):
         """
         cls.isometry_test(A)
         if A.det() < 0 and model_name == 'PD':
-            return cls.isom_conversion_dict[model_name](I*A)
+            return cls.isom_conversion_dict[model_name](I * A)
         return cls.isom_conversion_dict[model_name](A)
 
 
 class HyperbolicModelPD(HyperbolicModel, UniqueRepresentation):
     r"""
-    Poincare Disk Model.
+    Poincaré Disk Model.
     """
-    name = "Poincare Disk Model"
+    name = "Poincaré Disk Model"
     short_name = "PD"
     bounded = True
     conformal = True
@@ -780,7 +785,7 @@ class HyperbolicModelPD(HyperbolicModel, UniqueRepresentation):
 
 
     @classmethod
-    def bdry_point_in_model(cls,p): #PD
+    def bdry_point_in_model(cls, p): #PD
         r"""
         Check whether a complex number lies in the open unit disk.
 
@@ -945,7 +950,7 @@ class HyperbolicModelKM(HyperbolicModel, UniqueRepresentation):
         return len(p) == 2 and bool(p[0]**2 + p[1]**2 < 1)
 
     @classmethod
-    def bdry_point_in_model(cls,p): #KM
+    def bdry_point_in_model(cls, p): #KM
         r"""
         Check whether a point lies in the unit circle, which corresponds
         to the ideal boundary of the hyperbolic plane in the Klein model.
@@ -1073,10 +1078,10 @@ class HyperbolicModelHM(HyperbolicModel, UniqueRepresentation):
             sage: HM.point_in_model((1,2,1))
             False
         """
-        return  len(p) == 3 and bool(p[0]**2 + p[1]**2 - p[2]**2 +1 < EPSILON)
+        return len(p) == 3 and bool(p[0]**2 + p[1]**2 - p[2]**2 + 1 < EPSILON)
 
     @classmethod
-    def bdry_point_in_model(cls,p):  #HM
+    def bdry_point_in_model(cls, p):  #HM
         r"""
         Return ``False`` since the Hyperboloid model has no boundary points.
 

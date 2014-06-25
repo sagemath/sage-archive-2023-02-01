@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Interface to Hyperbolic Models
 
@@ -9,7 +10,7 @@ hyperbolic space to be sufficiently decoupled while still providing a
 convenient user experience.
 
 The interfaces are by default given abbreviated names.  For example,
-UHP (upper half plane model), PD (Poincare disk model), KM (Klein disk
+UHP (upper half plane model), PD (Poincaré disk model), KM (Klein disk
 model), and HM (hyperboloid model).
 
 AUTHORS:
@@ -89,7 +90,7 @@ class HyperbolicUserInterface(UniqueRepresentation):
             sage: UHP.model_name()
             'Upper Half Plane Model'
             sage: PD.model_name()
-            'Poincare Disk Model'
+            'Poincaré Disk Model'
             sage: KM.model_name()
             'Klein Disk Model'
             sage: HM.model_name()

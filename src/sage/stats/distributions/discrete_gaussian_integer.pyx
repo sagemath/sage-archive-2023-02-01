@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
-"""Discrete Gaussian Samplers.
+"""Discrete Gaussian Samplers over the Integers.
 
 This class realizes oracles which returns integers proportionally to
-$exp(-(x-c)^2/(2σ^2))$. All oracles are implemented using rejection
-sampling. See DiscreteGaussianIntegerSampler.__init__ for which algorithms are
+`\exp(-(x-c)^2/(2σ^2))`. All oracles are implemented using rejection
+sampling. See :func:`DiscreteGaussianIntegerSampler.__init__` for which algorithms are
 available.
 
 AUTHOR: Martin Albrecht <martinralbrecht+dgs@googlemail.com>
 
-EXAMPLE:
-
-We sample proportionally to exp(-x^2/(2σ^2))::
+EXAMPLE::
 
     sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
     sage: sigma = 3.0; n=100000
@@ -46,7 +44,6 @@ from dgs cimport dgs_disc_gauss_dp_init, dgs_disc_gauss_dp_clear
 from dgs cimport DGS_DISC_GAUSS_UNIFORM_TABLE, DGS_DISC_GAUSS_UNIFORM_ONLINE, DGS_DISC_GAUSS_UNIFORM_LOGTABLE, DGS_DISC_GAUSS_SIGMA2_LOGTABLE
 
 
-
 cdef class DiscreteGaussianIntegerSampler(SageObject):
     """
     A Discrete Gaussian Sampler using rejection sampling.
@@ -65,7 +62,7 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
         INPUT:
 
         - ``sigma`` - samples `x` are accepted with probability proportional to
-          `exp(-(x-c)^2/(2σ^2))`
+          `\exp(-(x-c)^2/(2σ^2))`
 
         - ``c`` - the mean of the distribution. The value of ``c`` does not have
           to be an integer. However, some algorithms only support integer-valued
@@ -88,42 +85,42 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
 
         - ``"uniform+table"`` - classical rejection sampling, sampling from the
           uniform distribution and accepted with probability proportional to
-          `exp(-(x-c)^2/(2σ^2))` where `exp(-(x-c)^2/(2σ^2))` is precomputed and
+          `\exp(-(x-c)^2/(2σ^2))` where `\exp(-(x-c)^2/(2σ^2))` is precomputed and
           stored in a table. Any real-valued `c` is supported.
 
         - ``"uniform+logtable"`` - samples are drawn from a uniform distribution and
-          accepted with probability proportional to `exp(-(x-c)^2/(2σ^2))` where
-          `exp(-(x-c)^2/(2σ^2))` is computed using logarithmically many calls to
+          accepted with probability proportional to `\exp(-(x-c)^2/(2σ^2))` where
+          `\exp(-(x-c)^2/(2σ^2))` is computed using logarithmically many calls to
           Bernoulli distributions. See [DDLL13]_ for details.  Only
           integer-valued `c` are supported.
 
         - ``"uniform+online"`` - samples are drawn from a uniform distribution and
-          accepted with probability proportional to `exp(-(x-c)^2/(2σ^2))` where
-          `exp(-(x-c)^2/(2σ^2))` is computed in each invocation. Typically this
+          accepted with probability proportional to `\exp(-(x-c)^2/(2σ^2))` where
+          `\exp(-(x-c)^2/(2σ^2))` is computed in each invocation. Typically this
           is very slow.  See [DDLL13]_ for details.  Any real-valued `c` is
           accepted.
 
         - ``"sigma2+logtable"`` - samples are drawn from an easily samplable
-          distribution k·σ2 and accepted with probability proportional to 
-          `exp(-(x-c)^2/(2σ^2))` where `exp(-(x-c)^2/(2σ^2))` is computed using 
+          distribution `k·σ_2` and accepted with probability proportional to 
+          `\exp(-(x-c)^2/(2σ^2))` where `\exp(-(x-c)^2/(2σ^2))` is computed using 
           logarithmically many calls to Bernoulli distributions. 
-          See [DDLL13]_ for details. Note that this sampler adjusts sigma to match `σ2·k`
+          See [DDLL13]_ for details. Note that this sampler adjusts sigma to match `σ_2·k`
           for some integer `k`. Only integer-valued `c` are supported.
 
         EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
             sage: DiscreteGaussianIntegerSampler(3.0, algorithm="uniform+online")
-            Discrete Gaussian sampler with sigma = 3.000000 and c = 0
+            Discrete Gaussian sampler over the Integers with sigma = 3.000000 and c = 0
             sage: DiscreteGaussianIntegerSampler(3.0, algorithm="uniform+table")
-            Discrete Gaussian sampler with sigma = 3.000000 and c = 0
+            Discrete Gaussian sampler over the Integers with sigma = 3.000000 and c = 0
             sage: DiscreteGaussianIntegerSampler(3.0, algorithm="uniform+logtable")
-            Discrete Gaussian sampler with sigma = 3.000000 and c = 0
+            Discrete Gaussian sampler over the Integers with sigma = 3.000000 and c = 0
 
         Note that "sigma2+logtable" adjusts sigma::
         
             sage: DiscreteGaussianIntegerSampler(3.0, algorithm="sigma2+logtable")
-            Discrete Gaussian sampler with sigma = 3.397287 and c = 0
+            Discrete Gaussian sampler over the Integers with sigma = 3.397287 and c = 0
 
         TESTS:
 
@@ -320,9 +317,9 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
         
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
             sage: repr(DiscreteGaussianIntegerSampler(3.0, 2))
-            'Discrete Gaussian sampler with sigma = 3.000000 and c = 2'
+            'Discrete Gaussian sampler over the Integers with sigma = 3.000000 and c = 2'
         """
-        return "Discrete Gaussian sampler with sigma = %f and c = %d"%(self._sigma, self._c)
+        return "Discrete Gaussian sampler over the Integers with sigma = %f and c = %d"%(self._sigma, self._c)
 
     @property
     def sigma(self):

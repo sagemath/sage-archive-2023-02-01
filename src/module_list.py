@@ -1973,7 +1973,8 @@ ext_modules = [
     Extension('sage.stats.discrete_gaussians',
               sources = ['sage/stats/discrete_gaussians.pyx', 'sage/stats/dgs_gauss_mp.c', 'sage/stats/dgs_gauss_dp.c', 'sage/stats/dgs_bern.c'],
               libraries = ['gmp', 'mpfr'],
-              extra_compile_args=["-std=c99", "-D_XOPEN_SOURCE=600"]
+              extra_compile_args=["-std=c99", "-D_XOPEN_SOURCE=600"],
+              include_dirs = [SAGE_ROOT + os.path.sep + os.path.join("src", "sage", "stats")],
           ),
 
     ################################

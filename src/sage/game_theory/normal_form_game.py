@@ -941,8 +941,8 @@ class NormalFormGame(SageObject, MutableMapping):
         return equilibria
 
     def _solve_indifference(self, p1_support, p2_support):
-        matrix1 = matrix(QQ, len(p2_support)+1, self.players[0].num_strategies)
-        matrix2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)
+        linearsystem1 = matrix(QQ, len(p2_support)+1, self.players[0].num_strategies)
+        linearsystem2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)
 
         M1, M2 = self.payoff_matrices()
 
@@ -953,8 +953,8 @@ class NormalFormGame(SageObject, MutableMapping):
                         return False
             else:
                 for j in range(len(p2_support)):
-                    matrix1[j, k] = M2[k][p2_support[j]] - M2[k][p2_support[j-1]]
-            matrix1[-1, k] = 1
+                    linearsystem1[j, k] = M2[k][p2_support[j]] - M2[k][p2_support[j-1]]
+            linearsystem1[-1, k] = 1
 
         for k in p2_support:
             if len(p1_support) == 1:
@@ -963,19 +963,15 @@ class NormalFormGame(SageObject, MutableMapping):
                         return False
             else:
                 for j in range(len(p1_support)):
-                    matrix2[j, k] = M1[p1_support[j]][k] - M1[p1_support[j-1]][k]
-            matrix2[-1, k] = 1
+                    linearsystem2[j, k] = M1[p1_support[j]][k] - M1[p1_support[j-1]][k]
+            linearsystem2[-1, k] = 1
 
-        v1 = [0 for i in range(len(p2_support)+1)]
-        v2 = [0 for i in range(len(p1_support)+1)]
-        v1[-1] = 1
-        v2[-1] = 1
-        vector1 = vector(v1)
-        vector2 = vector(v2)
+        linearsystemrhs1 = vector([0 for i in range(len(p2_support))] + [1])
+        linearsystemrhs2 = vector([0 for i in range(len(p1_support))] + [1])
 
         try:
-            a = matrix1.solve_right(vector1)
-            b = matrix2.solve_right(vector2)
+            a = linearsystem1.solve_right(linearsystemrhs1)
+            b = linearsystem2.solve_right(linearsystemrhs2)
 
             if self._is_valid_vector(a, b, p1_support, p2_support):
                 return [a, b]

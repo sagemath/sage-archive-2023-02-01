@@ -419,19 +419,19 @@ class NormalFormGame(SageObject, MutableMapping):
 
     """
     def __delitem__(self, key):
-        self._strategy_profiles.pop(key, None)
+        self.utilities.pop(key, None)
 
     def __getitem__(self, key):
-        return self._strategy_profiles[key]
+        return self.utilities[key]
 
     def __iter__(self):
-        return iter(self._strategy_profiles)
+        return iter(self.utilities)
 
     def __len__(self):
-        return len(self._strategy_profiles)
+        return len(self.utilities)
 
     def __setitem__(self, key, value):
-        self._strategy_profiles[key] = value
+        self.utilities[key] = value
 
     def __init__(self, generator=None):
         r"""
@@ -487,7 +487,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         """
         self.players = []
-        self._strategy_profiles = {}
+        self.utilities = {}
         matrices = []
         if type(generator) is not list and generator != None:
             raise TypeError("Generator function must be a list or nothing")
@@ -511,7 +511,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
 
         """
-        return str(self._strategy_profiles)
+        return str(self.utilities)
 
     def _latex_(self):
         if len(self.players) == 2:
@@ -523,7 +523,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def _two_matrix_game(self, matrices):
         r"""
-        Populates ``self._strategy_profiles`` with the values from 2 matrices.
+        Populates ``self.utilities`` with the values from 2 matrices.
 
         EXAMPLES:
 
@@ -535,11 +535,11 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: two_game._two_matrix_game([A, B])
         """
         self.players = []
-        self._strategy_profiles = {}
+        self.utilities = {}
         self.add_player(matrices[0].dimensions()[0])
         self.add_player(matrices[1].dimensions()[1])
-        for key in self._strategy_profiles:
-            self._strategy_profiles[key] = [matrices[0][key], matrices[1][key]]
+        for key in self.utilities:
+            self.utilities[key] = [matrices[0][key], matrices[1][key]]
 
     def payoff_matrices(self):
         r"""
@@ -568,11 +568,11 @@ class NormalFormGame(SageObject, MutableMapping):
         {(1, 0, 0): [False, False, False], (0, 0, 0): [False, False, False]}
         """
         self.players.append(_Player(num_strategies))
-        self._generate_strategy_profiles(True)
+        self._generateutilities(True)
 
-    def _generate_strategy_profiles(self, replacement):
+    def _generateutilities(self, replacement):
         r"""
-        Creates all the required keys for ``self._strategy_profiles``.
+        Creates all the required keys for ``self.utilities``.
 
         INPUT:
 
@@ -581,10 +581,10 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         strategy_sizes = [range(p.num_strategies) for p in self.players]
         if replacement is True:
-            self._strategy_profiles = {}
+            self.utilities = {}
         for profile in product(*strategy_sizes):
-            if profile not in self._strategy_profiles.keys():
-                self._strategy_profiles[profile] = [False]*len(self.players)
+            if profile not in self.utilities.keys():
+                self.utilities[profile] = [False]*len(self.players)
 
     def add_strategy(self, player):
         r"""
@@ -610,11 +610,11 @@ class NormalFormGame(SageObject, MutableMapping):
 
         """
         self.players[player].add_strategy()
-        self._generate_strategy_profiles(False)
+        self._generateutilities(False)
 
     def _is_complete(self):
         r"""
-        Checks if ``_strategy_profiles`` has been completed and returns a
+        Checks if ``utilities`` has been completed and returns a
         boolean.
 
         EXAMPLES:
@@ -629,7 +629,7 @@ class NormalFormGame(SageObject, MutableMapping):
             False
         """
         results = []
-        for profile in self._strategy_profiles.values():
+        for profile in self.utilities.values():
             results.append(all(type(i) is not bool for i in profile))
         return all(results)
 
@@ -717,7 +717,7 @@ class NormalFormGame(SageObject, MutableMapping):
                                       "available algorithms")
 
         if not self._is_complete():
-            raise ValueError("_strategy_profiles hasn't been populated")
+            raise ValueError("utilities hasn't been populated")
 
         if not algorithm:
             if is_package_installed('gambit'):
@@ -745,7 +745,7 @@ class NormalFormGame(SageObject, MutableMapping):
     def _game_two_matrix(self):
         m1 = matrix(QQ, self.players[0].num_strategies, self.players[1].num_strategies)
         m2 = matrix(QQ, self.players[0].num_strategies, self.players[1].num_strategies)
-        for key in self._strategy_profiles:
+        for key in self.utilities:
                 m1[key] = self[key][0]
                 m2[key] = self[key][1]
         return m1, m2
@@ -774,9 +774,9 @@ class NormalFormGame(SageObject, MutableMapping):
 
         s1 = []
         s2 = []
-        for key in self._strategy_profiles:
-            s1.append(Rational(self._strategy_profiles[key][0]).denom())
-            s2.append(Rational(self._strategy_profiles[key][1]).denom())
+        for key in self.utilities:
+            s1.append(Rational(self.utilities[key][0]).denom())
+            s2.append(Rational(self.utilities[key][1]).denom())
 
         scalar1 = lcm(s1)
         scalar2 = lcm(s2)
@@ -785,9 +785,9 @@ class NormalFormGame(SageObject, MutableMapping):
             scalar1 *= -1
             scalar2 *= -1
 
-        for key in self._strategy_profiles:
-            g[key][0] = int(scalar1 * self._strategy_profiles[key][0])
-            g[key][1] = int(scalar2 * self._strategy_profiles[key][1])
+        for key in self.utilities:
+            g[key][0] = int(scalar1 * self.utilities[key][0])
+            g[key][1] = int(scalar2 * self.utilities[key][1])
 
         output = ExternalLCPSolver().solve(g)
         nasheq = Parser(output, g).format_gambit()

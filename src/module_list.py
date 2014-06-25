@@ -255,6 +255,9 @@ ext_modules = [
     Extension('sage.combinat.crystals.letters',
               sources=['sage/combinat/crystals/letters.pyx']),
 
+    Extension('sage.combinat.designs.designs_pyx',
+              sources=['sage/combinat/designs/designs_pyx.pyx']),
+
     ################################
     ##
     ## sage.crypto
@@ -1481,6 +1484,10 @@ ext_modules = [
     ## sage.rings
     ##
     ################################
+
+    Extension('sage.rings.sum_of_squares',
+              sources = ['sage/rings/sum_of_squares.pyx'],
+              libraries = ['m']),
 
     Extension('sage.rings.bernmm',
               sources = ['sage/rings/bernmm.pyx',

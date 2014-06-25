@@ -302,8 +302,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                 if s == t:
                     return False
                 for p in s:
-                    f = lambda z: z.intersection(p) != Set([])
-                    if len(filter(f, list(t)) ) != 1:
+                    if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
                         return False
                 return True
 
@@ -1576,8 +1575,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                 if s == t:
                     return False
                 for p in s:
-                    f = lambda z: z.intersection(p) != Set([])
-                    if len(filter(f, list(t)) ) != 1:
+                    if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
                         return False
                 return True
 

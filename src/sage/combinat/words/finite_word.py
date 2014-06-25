@@ -3137,7 +3137,7 @@ exponent %s: the length of the word (%s) times the exponent \
             possible = (i for i in xrange(1,n) if n % i == 0)
         else:
             possible = xrange(1, n)
-        return filter(self.has_period, possible)
+        return [x for x in possible if self.has_period(x)]
 
     def longest_common_subword(self,other):
         r"""

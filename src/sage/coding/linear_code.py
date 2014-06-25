@@ -1418,10 +1418,20 @@ class LinearCode(module.Module_old):
 
         Does not work for very long codes since the syndrome table grows too
         large.
+
+        TESTS:
+
+        Test that the codeword returned is immutable (see :trac:`16469`)::
+
+            sage: (C.decode(v)).is_immutable()
+            True
+
         """
         from decoder import decode
         if algorithm == 'syndrome' or algorithm == 'nearest neighbor':
-            return decode(self,right)
+            c = decode(self, right)
+            c.set_immutable()
+            return c
         elif algorithm == 'guava':
             gap.load_package('guava')
             code = gap.GeneratorMatCode(self.gen_mat(), self.base_ring())
@@ -1431,7 +1441,9 @@ class LinearCode(module.Module_old):
             result = gap.VectorCodeword(result)
             from sage.interfaces.gap import gfq_gap_to_sage
             result = [gfq_gap_to_sage(v, self.base_ring()) for v in result]
-            return self.ambient_space()(result)
+            c = self.ambient_space()(result)
+            c.set_immutable()
+            return c
         else:
             raise NotImplementedError("Only 'syndrome','nearest neighbor','guava' are implemented.")
 
@@ -2465,10 +2477,21 @@ class LinearCode(module.Module_old):
 
             sage: C.random_element(prob=.5, distribution='1/n') # random test
             (1, 0, a, 0, 0, 0, 0, a + 1, 0, 0, 0, 0, 0, 0, 0, 0, a + 1, a + 1, 1, 0, 0)
+
+        TESTS:
+
+        Test that the codeword returned is immutable (see :trac:`16469`)::
+
+            sage: c = C.random_element()
+            sage: c.is_immutable()
+            True
+
         """
         V = self.ambient_space()
         S = V.subspace(self.basis())
-        return S.random_element(*args, **kwds)
+        c = S.random_element(*args, **kwds)
+        c.set_immutable()
+        return c
 
     def redundancy_matrix(C):
         """

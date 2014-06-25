@@ -3841,7 +3841,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                         gb = toy_d_basis.d_basis(I, *args, **kwds)
 
                         R = self.ring()
-                        gb = filter(lambda f: f,[R(f) for f in gb])
+                        gb = [r for r in (R(f) for f in gb) if r]
                     else:
                         if self.ring().term_order().is_global():
                             verbose("Warning: falling back to very slow toy implementation.", level=0)

@@ -711,16 +711,13 @@ class Homset(Set_generic):
             Composite map:
               From: Integer Ring
               To:   Univariate Polynomial Ring in t over Rational Field
-              Defn:   Composite map:
+              Defn:   (map internal to coercion system -- copy before use)
+                    Polynomial base injection morphism:
                       From: Integer Ring
                       To:   Univariate Polynomial Ring in t over Integer Ring
-                      Defn:   (map internal to coercion system -- copy before use)
-                            Polynomial base injection morphism:
-                              From: Integer Ring
-                              To:   Univariate Polynomial Ring in t over Integer Ring
-                            then
-                              Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
-                              Defn: t |--> 2*t
+                    then
+                      Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+                      Defn: t |--> 2*t
                     then
                       (map internal to coercion system -- copy before use)
                     Ring morphism:
@@ -730,15 +727,12 @@ class Homset(Set_generic):
             Composite map:
               From: Integer Ring
               To:   Univariate Polynomial Ring in t over Rational Field
-              Defn:   Composite map:
+              Defn:   Polynomial base injection morphism:
                       From: Integer Ring
                       To:   Univariate Polynomial Ring in t over Integer Ring
-                      Defn:   Polynomial base injection morphism:
-                              From: Integer Ring
-                              To:   Univariate Polynomial Ring in t over Integer Ring
-                            then
-                              Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
-                              Defn: t |--> 2*t
+                    then
+                      Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+                      Defn: t |--> 2*t
                     then
                       Ring morphism:
                       From: Univariate Polynomial Ring in t over Integer Ring
@@ -792,17 +786,14 @@ class Homset(Set_generic):
             Composite map:
               From: Symmetric group of order 4! as a permutation group
               To:   Symmetric group of order 7! as a permutation group
-              Defn:   Composite map:
+              Defn:   (map internal to coercion system -- copy before use)
+                    Call morphism:
                       From: Symmetric group of order 4! as a permutation group
+                      To:   Symmetric group of order 5! as a permutation group
+                    then
+                      Coercion morphism:
+                      From: Symmetric group of order 5! as a permutation group
                       To:   Symmetric group of order 6! as a permutation group
-                      Defn:   (map internal to coercion system -- copy before use)
-                            Call morphism:
-                              From: Symmetric group of order 4! as a permutation group
-                              To:   Symmetric group of order 5! as a permutation group
-                            then
-                              Coercion morphism:
-                              From: Symmetric group of order 5! as a permutation group
-                              To:   Symmetric group of order 6! as a permutation group
                     then
                       (map internal to coercion system -- copy before use)
                     Call morphism:
@@ -816,21 +807,17 @@ class Homset(Set_generic):
             Composite map:
               From: Symmetric group of order 4! as a permutation group
               To:   Symmetric group of order 7! as a permutation group
-              Defn:   Composite map:
+              Defn:   Call morphism:
                       From: Symmetric group of order 4! as a permutation group
+                      To:   Symmetric group of order 5! as a permutation group
+                    then
+                      Coercion morphism:
+                      From: Symmetric group of order 5! as a permutation group
                       To:   Symmetric group of order 6! as a permutation group
-                      Defn:   Call morphism:
-                              From: Symmetric group of order 4! as a permutation group
-                              To:   Symmetric group of order 5! as a permutation group
-                            then
-                              Coercion morphism:
-                              From: Symmetric group of order 5! as a permutation group
-                              To:   Symmetric group of order 6! as a permutation group
                     then
                       Call morphism:
                       From: Symmetric group of order 6! as a permutation group
                       To:   Symmetric group of order 7! as a permutation group
-
             sage: H = Hom(ZZ, ZZ, Sets())
             sage: f = H( lambda x: x + 1 )
             sage: f.parent()

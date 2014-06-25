@@ -6,7 +6,11 @@ to transversal designs.
 
 .. TODO::
 
-    Implement an improvement of Wilson's construction for u=1,2 in [CD96]_
+    - Implement an improvement of Wilson's construction for u=1,2 in [CD96]_
+
+    - A resolvable `OA(k,n)` is equivalent to a `OA(k+1,n)`. Sage should be able
+      to return resolvable OA, with sorted rows (so that building the
+      decomposition is easy.
 
 REFERENCES:
 
@@ -22,6 +26,8 @@ Functions
 from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
+from sage.rings.infinity import Infinity
+from designs_pyx import is_orthogonal_array
 
 def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
     r"""
@@ -155,11 +161,11 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         sage: designs.transversal_design(47, 100)
         Traceback (most recent call last):
         ...
-        NotImplementedError: I don't know how to build this Transversal Design!
+        NotImplementedError: I don't know how to build a TD(47,100)!
         sage: designs.transversal_design(55, 54)
         Traceback (most recent call last):
         ...
-        EmptySetError: There exists no TD(55, 54)!
+        EmptySetError: There exists no TD(55,54)!
 
     Those two errors correspond respectively to the cases where Sage answer
     ``Unknown`` or ``False`` when the parameter ``existence`` is set to
@@ -242,7 +248,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         15: ( 7, 17)
         16: (18, 18)
         17: (19, 19)
-        18: ( 6, 20)
+        18: ( 8, 20)
         19: (21, 21)
         20: ( 7, 22)
         21: ( 8, 22)
@@ -313,7 +319,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         else:
             if existence:
                 return False
-            raise EmptySetError("There exists no TD"+str((k,n))+"!")
+            raise EmptySetError("There exists no TD({},{})!".format(k,n))
 
         OA = orthogonal_array(k,n, check = False, who_asked = who_asked + (transversal_design,))
         TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
@@ -321,7 +327,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
     else:
         if existence:
             return Unknown
-        raise NotImplementedError("I don't know how to build this Transversal Design!")
+        raise NotImplementedError("I don't know how to build a TD({},{})!".format(k,n))
 
     if check:
         assert is_transversal_design(TD,k,n)
@@ -359,28 +365,7 @@ def is_transversal_design(B,k,n, verbose=False):
         sage: is_transversal_design(TD, 4, 4)
         False
     """
-    from sage.graphs.generators.basic import CompleteGraph
-    from itertools import combinations
-    g = k*CompleteGraph(n)
-    m = g.size()
-    for X in B:
-        if len(X) != k:
-            if verbose:
-                print "A set has wrong size"
-            return False
-        g.add_edges(list(combinations(X,2)))
-        if g.size() != m+(len(X)*(len(X)-1))/2:
-            if verbose:
-                print "A pair appears twice"
-            return False
-        m = g.size()
-
-    if not g.is_clique():
-        if verbose:
-            print "A pair did not appear"
-        return False
-
-    return True
+    return is_orthogonal_array([[x%n for x in R] for R in B],k,n,verbose=verbose)
 
 @cached_function
 def find_wilson_decomposition(k,n):
@@ -411,7 +396,8 @@ def find_wilson_decomposition(k,n):
     for t in range(max(1,k),n-1):
         u = n%t
         # We ensure that 1<=u, and that there can exists a TD(k,u), i.e k<u+2
-        if u == 0 or k >= u+2:
+        # (unless u == 1)
+        if u == 0 or (u>1 and k >= u+2):
             continue
 
         m = n//t
@@ -461,7 +447,7 @@ def wilson_construction(k,m,t,u, check = True):
         ....:            k,m,t,u = find_wilson_decomposition(k,n)
         ....:            _ = wilson_construction(k,m,t,u, check=True)
         sage: print total
-        32
+        41
     """
     # Raises a NotImplementedError if one of them does not exist.
     TDkm = transversal_design(k,m,check=False)
@@ -610,6 +596,92 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
 
     return TD
 
+# Stores for every integer n the four values :
+# - max_true
+# - min_unknown
+# - max_unknown
+# - min_false
+#
+# corresponding to the max/min values of which orthogonal_array returns
+# truth_value.
+
+_OA_cache = {0:(Infinity,None,None,None),1:(Infinity,None,None,None)}
+def _set_OA_cache(k,n,truth_value):
+    r"""
+    Sets a value in the OA cache of existence results
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    - ``truth_value`` -- one of ``True,False,Unknown``
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import _set_OA_cache, _get_OA_cache
+        sage: _get_OA_cache(4,10)
+        sage: _set_OA_cache(4,10,True)
+        sage: _get_OA_cache(4,10)
+        True
+    """
+    global _OA_cache
+
+    k = int(k)
+    n = int(n)
+
+    max_true, min_unknown, max_unknown, min_false = _OA_cache.get(n,(0,None,None,n+2))
+
+    if truth_value is True:
+        max_true    = k if k>max_true else max_true
+    elif truth_value is Unknown:
+        min_unknown = k if (min_unknown is None or k<min_unknown) else min_unknown
+        max_unknown = k if (max_unknown is None or k>max_unknown) else max_unknown
+    else:
+        min_false   = k if k<min_false else min_false
+
+    _OA_cache[n] = (max_true, min_unknown, max_unknown, min_false)
+
+def _get_OA_cache(k,n):
+    r"""
+    Gets a value from the OA cache of existence results
+
+    INPUT:
+
+    ``k,n`` (integers)
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import _set_OA_cache, _get_OA_cache
+        sage: _get_OA_cache(0,10)
+        True
+        sage: _get_OA_cache(1,10)
+        True
+        sage: _get_OA_cache(2,10)
+        True
+        sage: _get_OA_cache(2**10+1,2**10)
+        sage: _set_OA_cache(2**10+1,2**10,True)
+        sage: _get_OA_cache(2**10+1,2**10)
+        True
+    """
+    global _OA_cache
+
+    k = int(k)
+    n = int(n)
+
+    try:
+        max_true, min_unknown, max_unknown, min_false = _OA_cache[n]
+    except KeyError:
+        return None
+
+    if k <= max_true:
+        return True
+    elif min_unknown is not None and (k >= min_unknown or k <= max_unknown):
+        return Unknown
+    elif k >= min_false:
+        return False
+
+    return None
+
 def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
     r"""
     Return an orthogonal array of parameters `k,n,t`.
@@ -717,7 +789,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         sage: designs.orthogonal_array(12,20)
         Traceback (most recent call last):
         ...
-        NotImplementedError: I don't know how to build this orthogonal array!
+        NotImplementedError: I don't know how to build an OA(12,20)!
 
     Note that these errors correspond respectively to the answers ``False`` and
     ``Unknown`` when the parameter ``existence`` is set to ``True``::
@@ -745,7 +817,6 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
     """
 
-    from sage.rings.finite_rings.constructor import FiniteField
     from latin_squares import mutually_orthogonal_latin_squares
     from database import OA_constructions
     from block_design import projective_plane, projective_plane_to_OA
@@ -801,12 +872,12 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
             if existence:
                 return projective_plane(n, existence=True)
             p = projective_plane(n, check=False)
-            OA = projective_plane_to_OA(p)
+            OA = projective_plane_to_OA(p, check=False)
         else:
             if existence:
                 return True
             p = projective_plane(n, check=False)
-            OA = [l[:k] for l in projective_plane_to_OA(p)]
+            OA = [l[:k] for l in projective_plane_to_OA(p, check=False)]
 
     # Constructions from the database
     elif n in OA_constructions and k <= OA_constructions[n][0]:
@@ -831,7 +902,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         else:
             if existence:
                 return False
-            raise EmptySetError("There exists no OA"+str((k,n))+"!")
+            raise EmptySetError("There exists no OA({},{})!".format(k,n))
 
     # Section 6.5.1 from [Stinson2004]
     elif (t == 2 and mutually_orthogonal_latin_squares not in who_asked and
@@ -849,15 +920,306 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         else:
             if existence:
                 return False
-            raise EmptySetError("There exists no OA"+str((k,n))+"!")
+            raise EmptySetError("There exists no OA({},{})!".format(k,n))
 
     else:
         if existence:
             return Unknown
-        raise NotImplementedError("I don't know how to build this orthogonal array!")
+        raise NotImplementedError("I don't know how to build an OA({},{})!".format(k,n))
 
     if check:
         assert is_orthogonal_array(OA,k,n,t)
+
+    return OA
+
+def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
+    r"""
+    Returns an `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)`.
+
+    An `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)` is an orthogonal array from
+    which have been removed disjoint `OA(k,s_1),...,OA(k,s_x)`. So it can
+    exist only if a `OA(k,n)` exists.
+
+    A very useful particular case (see e.g. the Wilson construction in
+    :func:`wilson_construction`) is when all `s_i=1`. In that case the
+    incomplete design is a `OA(k,n)-x.OA(k,1)`. Such design is equivalent to
+    transversal design `TD(k,n)` from which has been removed `x` disjoint
+    blocks. This specific case is the only one available through this function
+    at the moment.
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    - ``holes_sizes`` (list of integers) -- respective sizes of the holes to be
+      found.
+
+      .. NOTE::
+
+          Right now the feature is only available when all holes have size 1,
+          i.e. `s_i=1`.
+
+    - ``existence`` (boolean) -- instead of building the design, returns:
+
+        - ``True`` -- meaning that Sage knows how to build the design
+
+        - ``Unknown`` -- meaning that Sage does not know how to build the
+          design, but that the design may exist (see :mod:`sage.misc.unknown`).
+
+        - ``False`` -- meaning that the design does not exist.
+
+    .. NOTE::
+
+        By convention, the ground set is always `V = \{0, ..., n-1\}` and the
+        holes are `\{n-1, ..., n-s_1\}^k`, `\{n-s_1-1,...,n-s_1-s_2\}^k`, etc.
+
+    .. SEEALSO::
+
+        :func:`OA_find_disjoint_blocks`
+
+    EXAMPLES::
+
+        sage: IOA = designs.incomplete_orthogonal_array(3,3,[1,1,1])
+        sage: IOA
+        [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]]
+        sage: missing_blocks = [[0,0,0],[1,1,1],[2,2,2]]
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: is_orthogonal_array(IOA + missing_blocks,3,3,2)
+        True
+
+    TESTS:
+
+    Affine planes and projective planes::
+
+        sage: for q in xrange(2,100):
+        ....:     if is_prime_power(q):
+        ....:         assert designs.incomplete_orthogonal_array(q,q,[1]*q,existence=True)
+        ....:         assert not designs.incomplete_orthogonal_array(q+1,q,[1]*2,existence=True)
+
+    Further tests::
+
+        sage: designs.incomplete_orthogonal_array(8,4,[1,1,1],existence=True)
+        False
+        sage: designs.incomplete_orthogonal_array(5,10,[1,1,1],existence=True)
+        Unknown
+        sage: designs.incomplete_orthogonal_array(5,10,[1,1,1])
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build an OA(5,10)!
+        sage: designs.incomplete_orthogonal_array(4,3,[1,1])
+        Traceback (most recent call last):
+        ...
+        EmptySetError: There is no OA(n+1,n) - 2.OA(n+1,1) as all blocks do
+        intersect in a projective plane.
+        sage: n=10
+        sage: k=designs.orthogonal_array(None,n,existence=True)
+        sage: designs.incomplete_orthogonal_array(k,n,[1,1,1],existence=True)
+        True
+        sage: _ = designs.incomplete_orthogonal_array(k,n,[1,1,1])
+        sage: _ = designs.incomplete_orthogonal_array(k,n,[1])
+
+    REFERENCES:
+
+    .. [BvR82] More mutually orthogonal Latin squares,
+      Andries Brouwer and John van Rees
+      Discrete Mathematics
+      vol.39, num.3, pages 263-281
+      1982
+    """
+    assert all(xx > 0 for xx in holes_sizes)
+
+    y = sum(holes_sizes)
+    x = len(holes_sizes)
+    if y > n:
+        if existence:
+            return False
+        raise EmptySetError("The total size of holes must be smaller or equal than the size of the ground set")
+
+    if any(xx != 1 for xx in holes_sizes):
+        if existence:
+            return Unknown
+        raise NotImplementedError("This function is only implemented for holes of size 1")
+
+    # Easy case
+    if x <= 1:
+        if existence:
+            return orthogonal_array(k,n,existence=True)
+        OA = orthogonal_array(k,n)
+        independent_set = OA[:x]
+
+    elif x <= 3 and n > k-1 and k >= 3 and existence:
+        # This is lemma 2.3 from [BvR82]_ with u=1
+        return orthogonal_array(k,n,existence=True)
+
+    elif x >= 2 and k == n+1:
+        if existence:
+            return False
+        raise EmptySetError("There is no OA(n+1,n) - {}.OA(n+1,1) as all blocks do intersect in a projective plane.".format(x))
+
+    # If we can build OA(k+1,n) then we can find n disjoint blocks in OA(k,n)
+    elif orthogonal_array(k+1,n,existence=True):
+        if existence:
+            return True
+        OA = orthogonal_array(k+1,n)
+        independent_set = [B[:-1] for B in OA if B[-1] == 0][:x]
+        OA = [B[:-1] for B in OA]
+
+    elif orthogonal_array(k,n,existence=True):
+        OA = orthogonal_array(k,n)
+        try:
+            independent_set = OA_find_disjoint_blocks(OA,k,n,x)
+        except ValueError:
+            if existence:
+                return Unknown
+            raise NotImplementedError("I was not able to build this OA({},{})-{}.OA({},1)".format(k,n,x,k))
+        if existence:
+            return True
+        independent_set = OA_find_disjoint_blocks(OA,k,n,x)
+
+    else:
+        return orthogonal_array(k,n,existence=existence)
+
+    assert x == len(independent_set)
+
+    for B in independent_set:
+        OA.remove(B)
+
+    OA = OA_relabel(OA,k,n,blocks=independent_set)
+
+    return OA
+
+def OA_find_disjoint_blocks(OA,k,n,x):
+    r"""
+    Returns `x` disjoint blocks contained in a given `OA(k,n)`.
+
+    `x` blocks of an `OA` are said to be disjoint if they all have
+    different values for a every given index, i.e. if they correspond to
+    disjoint blocks in the `TD` assciated with the `OA`.
+
+    INPUT:
+
+    - ``OA`` -- an orthogonal array
+
+    - ``k,n,x`` (integers)
+
+    .. SEEALSO::
+
+        :func:`incomplete_orthogonal_array`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import OA_find_disjoint_blocks
+        sage: k=3;n=4;x=3
+        sage: Bs = OA_find_disjoint_blocks(designs.orthogonal_array(k,n),k,n,x)
+        sage: assert len(Bs) == x
+        sage: for i in range(k):
+        ....:     assert len(set([B[i] for B in Bs])) == x
+        sage: OA_find_disjoint_blocks(designs.orthogonal_array(k,n),k,n,5)
+        Traceback (most recent call last):
+        ...
+        ValueError: There does not exist 5 disjoint blocks in this OA(3,4)
+    """
+
+    # Computing an independent set of order x with a Linear Program
+    from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+    p = MixedIntegerLinearProgram()
+    b = p.new_variable(binary=True)
+    p.add_constraint(p.sum(b[i] for i in range(len(OA))) == x)
+
+    # t[i][j] lists of blocks of the OA whose i'th component is j
+    t = [[[] for _ in range(n)] for _ in range(k)]
+    for c,B in enumerate(OA):
+        for i,j in enumerate(B):
+            t[i][j].append(c)
+
+    for R in t:
+        for L in R:
+            p.add_constraint(p.sum(b[i] for i in L) <= 1)
+
+    try:
+        p.solve()
+    except MIPSolverException:
+        raise ValueError("There does not exist {} disjoint blocks in this OA({},{})".format(x,k,n))
+
+    b = p.get_values(b)
+    independent_set = [OA[i] for i,v in b.items() if v]
+    return independent_set
+
+def OA_relabel(OA,k,n,blocks=tuple(),matrix=None):
+    r"""
+    Returns a relabelled version of the OA.
+
+    INPUT:
+
+    - ``OA`` -- an OA, or rather a list of blocks of length `k`, each
+      of which contains integers from `0` to `n-1`.
+
+    - ``k,n`` (integers)
+
+    - ``blocks`` (list of blocks) -- relabels the integers of the OA
+      from `[0..n-1]` into `[0..n-1]` in such a way that the `i`
+      blocks from ``block`` are respectively relabeled as
+      ``[n-i,...,n-i]``, ..., ``[n-1,...,n-1]``. Thus, the blocks from
+      this list are expected to have disjoint values for each
+      coordinate.
+
+      If set to the empty list (default) no such relabelling is
+      performed.
+
+    - ``matrix`` -- a matrix of dimensions `k,n` such that if the i th
+      coordinate of a block is `x`, this `x` will be relabelled with
+      ``matrix[i][x]``. This is not necessarily an integer between `0`
+      and `n-1`, and it is not necessarily an integer either. This is
+      performed *after* the previous relabelling.
+
+      If set to ``None`` (default) no such relabelling is performed.
+
+      .. NOTE::
+
+          A ``None`` coordinate in one block remains a ``None``
+          coordinate in the final block.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import OA_relabel
+        sage: OA = designs.orthogonal_array(3,2)
+        sage: OA_relabel(OA,3,2,matrix=[["A","B"],["C","D"],["E","F"]])
+        [['A', 'C', 'E'], ['A', 'D', 'F'], ['B', 'C', 'F'], ['B', 'D', 'E']]
+
+        sage: TD = OA_relabel(OA,3,2,matrix=[[0,1],[2,3],[4,5]]); TD
+        [[0, 2, 4], [0, 3, 5], [1, 2, 5], [1, 3, 4]]
+        sage: from sage.combinat.designs.orthogonal_arrays import is_transversal_design
+        sage: is_transversal_design(TD,3,2)
+        True
+
+    Making sure that ``[2,2,2,2]`` is a block of `OA(4,3)`. We do this
+    by relabelling block ``[0,0,0,0]`` which belongs to the design.
+
+        sage: designs.orthogonal_array(4,3)
+        [[0, 0, 0, 0], [0, 1, 2, 1], [0, 2, 1, 2], [1, 0, 2, 2], [1, 1, 1, 0], [1, 2, 0, 1], [2, 0, 1, 1], [2, 1, 0, 2], [2, 2, 2, 0]]
+        sage: OA_relabel(designs.orthogonal_array(4,3),4,3,blocks=[[0,0,0,0]])
+        [[2, 2, 2, 2], [2, 0, 1, 0], [2, 1, 0, 1], [0, 2, 1, 1], [0, 0, 0, 2], [0, 1, 2, 0], [1, 2, 0, 0], [1, 0, 2, 1], [1, 1, 1, 2]]
+
+    TESTS::
+
+        sage: OA_relabel(designs.orthogonal_array(3,2),3,2,blocks=[[0,1],[0,1]])
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Two block have the same coordinate for one of the k dimensions
+
+    """
+    if blocks:
+        l = []
+        for i,B in enumerate(zip(*blocks)): # the blocks are disjoint
+            if len(B) != len(set(B)):
+                raise RuntimeError("Two block have the same coordinate for one of the k dimensions")
+
+            l.append(dict(zip([xx for xx in range(n) if xx not in B] + list(B),range(n))))
+
+        OA = [[l[i][x] for i,x in enumerate(R)] for R in OA]
+
+    if matrix:
+        OA = [[matrix[i][j] if j is not None else None for i,j in enumerate(R)] for R in OA]
 
     return OA
 
@@ -967,9 +1329,9 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
 
 def OA_from_Vmt(m,t,V):
     r"""
-    Returns an Orthogonal Array from a V(m,t)
+    Returns an Orthogonal Array from a `V(m,t)`
 
-    *Definition*
+    **Definition**
 
     Let `q` be a prime power and let `q=mt+1` for `m,t` integers. Let `\omega`
     be a primitive element of `\mathbb{F}_q`. A `V(m,t)` vector is a vector
@@ -1033,6 +1395,84 @@ def OA_from_Vmt(m,t,V):
 
     return M
 
+def OA_from_PBD(k,n,PBD, check=True):
+    r"""
+    Returns an `OA(k,n)` from a PBD
+
+    **Construction**
+
+    Let `\\mathcal B` be a `(n,K,1)`-PBD. If there exists for every `i\in K` a
+    `TD(k,i)-i\times TD(k,1)` (i.e. if there exist `k` idempotent MOLS), then
+    one can obtain a `OA(k,n)` by concatenating:
+
+    - A `TD(k,i)-i\times TD(k,1)` defined over the elements of `B` for every `B
+      \in \\mathcal B`.
+
+    - The rows `(i,...,i)` of length `k` for every `i\in [n]`.
+
+    .. NOTE::
+
+        This function raises an exception when Sage is unable to build the
+        necessary designs.
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    - ``PBD`` -- a PBD on `0,...,n-1`.
+
+    EXAMPLES:
+
+    We start from the example VI.1.2 from the [DesignHandbook]_ to build an
+    `OA(3,10)`::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import OA_from_PBD
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: pbd = [[0,1,2,3],[0,4,5,6],[0,7,8,9],[1,4,7],[1,5,8],
+        ....: [1,6,9],[2,4,9],[2,5,7],[2,6,8],[3,4,8],[3,5,9],[3,6,7]]
+        sage: oa = OA_from_PBD(3,10,pbd)
+        sage: is_orthogonal_array(oa, 3, 10)
+        True
+
+    But we cannot build an `OA(4,10)`::
+
+        sage: OA_from_PBD(4,10,pbd)
+        Traceback (most recent call last):
+        ...
+        EmptySetError: There is no OA(n+1,n) - 3.OA(n+1,1) as all blocks do intersect in a projective plane.
+
+    Or an `OA(6,10)`::
+
+        sage: _ = OA_from_PBD(3,6,pbd)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: This is not a nice honest PBD from the good old days !
+    """
+    # Size of the sets of the PBD
+    K = set(map(len,PBD))
+    if check:
+        from bibd import _check_pbd
+        _check_pbd(PBD, n, K)
+
+    # Building the IOA
+    OAs = {i:incomplete_orthogonal_array(k,i,(1,)*i) for i in K}
+
+    OA = []
+    # For every block B of the PBD we add to the OA rows covering all pairs of
+    # (distinct) coordinates within the elements of B.
+    for S in PBD:
+        for B in OAs[len(S)]:
+            OA.append([S[i] for i in B])
+
+    # Adding the 0..0, 1..1, 2..2 .... rows
+    for i in range(n):
+        OA.append([i]*k)
+
+    if check:
+        assert is_orthogonal_array(OA,k,n,2)
+
+    return OA
+
 def OA_from_wider_OA(OA,k):
     r"""
     Returns the first `k` columns of `OA`.
@@ -1056,51 +1496,3 @@ def OA_from_wider_OA(OA,k):
     if len(OA[0]) == k:
         return OA
     return [L[:k] for L in OA]
-
-def is_orthogonal_array(M,k,n,t,verbose=False):
-    r"""
-    Check that the integer matrix `M` is an `OA(k,n,t)`.
-
-    See :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`
-    for a definition.
-
-    INPUT:
-
-    - ``M`` -- an integer matrix of size `k^t \times n`
-
-    - ``k, n, t`` -- integers
-
-    - ``verbose`` -- boolean, if ``True`` provide an information on where ``M``
-      fails to be an `OA(k,n,t)`.
-
-    EXAMPLES::
-
-        sage: OA = designs.orthogonal_array(5,9,check=True) # indirect doctest
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
-        sage: is_orthogonal_array(OA, 5, 9, 2)
-        True
-        sage: is_orthogonal_array(OA, 4, 5, 2)
-        False
-    """
-    if t != 2:
-        raise NotImplementedError("only implemented for t=2")
-
-    if len(M) != n**2:
-        if verbose:
-            print "wrong number of rows"
-        return False
-
-    if any(len(l) != k for l in M):
-        if verbose:
-            print "a row has the wrong size"
-        return False
-
-    from itertools import combinations
-    for S in combinations(range(k),2):
-        fs = frozenset([tuple([l[i] for i in S]) for l in M])
-        if len(fs) != n**2:
-            if verbose:
-                print "for the choice %s of columns we do not get all tuples"%(S,)
-            return False
-
-    return True

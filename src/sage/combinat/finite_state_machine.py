@@ -3542,9 +3542,7 @@ class FiniteStateMachine(SageObject):
         adjacent = {}
         for source in self.iter_states():
             for target in self.iter_states():
-                transitions = filter(lambda transition: \
-                                         transition.to_state == target,
-                                     source.transitions)
+                transitions = [transition for transition in source.transitions if transition.to_state == target]
                 adjacent[source, target] = transitions
 
         for ((source, target), transitions) in adjacent.iteritems():
@@ -5072,8 +5070,7 @@ class FiniteStateMachine(SageObject):
 
         memo = {}
         def accessible(sf, read):
-            trans = filter(lambda x: x.word_in[0] == read,
-                           self.transitions(sf))
+            trans = [x for x in self.transitions(sf) if x.word_in[0] == read]
             return map(lambda x: (deepcopy(x.to_state, memo), x.word_out),
                        trans)
 
@@ -5721,8 +5718,7 @@ class FiniteStateMachine(SageObject):
                                 new_word_in, None))
 
         if what == 'output':
-            states = filter(lambda s: s.final_word_out,
-                            self.iter_final_states())
+            states = [s for s in self.iter_final_states() if s.final_word_out]
             if not states:
                 return new
             number = 0
@@ -5884,8 +5880,7 @@ class FiniteStateMachine(SageObject):
         """
         DG = self.digraph()
         condensation = DG.strongly_connected_components_digraph()
-        final_labels = filter(lambda v: condensation.out_degree(v) == 0,
-                              condensation.vertices())
+        final_labels = [v for v in condensation.vertices() if condensation.out_degree(v) == 0]
         return [self.induced_sub_finite_state_machine(map(self.state, component))
                 for component in final_labels]
 

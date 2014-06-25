@@ -1186,9 +1186,9 @@ class WeakTableau_core(WeakTableau_abstract):
             sage: t._height_of_restricted_subword(s,6)
             4
         """
-        R = filter(lambda v : self[v[0]][v[1]] < r, self.shape().to_partition().cells())
-        L = filter(lambda v: self[v[0]][v[1]] <= r, sw)
-        return max([v[0] for v in L+R])
+        R = [v for v in self.shape().to_partition().cells() if self[v[0]][v[1]] < r]
+        L = [v for v in sw if self[v[0]][v[1]] <= r]
+        return max(v[0] for v in L+R)
 
 class WeakTableaux_core(WeakTableaux_abstract):
     r"""
@@ -2357,9 +2357,9 @@ class StrongTableau(ClonableList):
         if isinstance(T, cls):
             return T
         outer_shape = Core(map(len, T),k+1)
-        inner_shape = Core(filter(lambda x: x>0, [row.count(None) for row in T]), k+1)
+        inner_shape = Core([x for x in [row.count(None) for row in T] if x>0], k+1)
         Te = [v for row in T for v in row if v is not None]+[0]
-        count_marks = tuple([Te.count(-(i+1)) for i in range(-min(Te))])
+        count_marks = tuple(Te.count(-(i+1)) for i in range(-min(Te)))
         if not all( v==1 for v in count_marks ):
             # if T is not standard -> turn into standard
             if weight is not None and tuple(weight)!=count_marks:
@@ -2491,7 +2491,7 @@ class StrongTableau(ClonableList):
         """
         T = self.to_standard_list()
         size = Core(map(len,T), self.k+1).length()
-        inner_size = Core(map(len,filter(lambda y: len(y)>0, map(lambda row: filter(lambda x: x is None, row ), T))),self.k+1).length()
+        inner_size = Core(map(len,[y for y in map(lambda row: [x for x in row if x is None], T) if len(y)>0]),self.k+1).length()
         if len(uniq([v for v in flatten(list(T)) if v in ZZ and v<0]))!=size-inner_size:
             return False # TT does not have exactly self.size() marked cells
         for i in range(len(T)):
@@ -3638,7 +3638,7 @@ class StrongTableau(ClonableList):
             []
         """
         rr = sum(self.weight()[:r])
-        rest_tab = filter(lambda y: len(y)>0, map(lambda row: filter(lambda x: x is None or abs(x)<=rr, row ), self.to_standard_list()))
+        rest_tab = [y for y in map(lambda row: [x for x in row if x is None or abs(x)<=rr], self.to_standard_list()) if len(y)>0]
         new_parent = StrongTableaux( self.k, (Core(map(len, rest_tab), self.k+1), self.inner_shape()), self.weight()[:r] )
         return new_parent(rest_tab)
 
@@ -4481,7 +4481,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
                         if msh.length()==sh.length()-1:
                             # if applying t_{j-l,j+1} reduces the size of the shape by 1
                             valcells = [LL[c[0]][c[1]] for c in SkewPartition([sh.to_partition(),msh.to_partition()]).cells()]
-                            if all(x is not None for x in valcells) and all(abs(x)==v for x in valcells) and filter( lambda x: x==-v, valcells )==[-v]:
+                            if all(x is not None for x in valcells) and all(abs(x)==v for x in valcells) and [x for x in valcells if x==-v] == [-v]:
                                 # if all values are \pm v and exactly one of them is -v
                                 transeq.append([j-l, j+1])
                                 LL = [[LL[a][b] for b in range(len(LL[a])) if (a,b) in msh.to_partition().cells()] for a in range(len(msh.to_partition()))]

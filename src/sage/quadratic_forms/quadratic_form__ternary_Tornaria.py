@@ -317,8 +317,7 @@ def hasse_conductor(self):
         10
     """
     D = self.disc()
-    return prod(filter(lambda p: self.hasse_invariant(p) == -1,
-                       map(lambda x: x[0], factor(2 * self.level()))))
+    return prod([x[0] for x in factor(2 * self.level()) if self.hasse_invariant(x[0]) == -1])
 
 def clifford_invariant(self, p):
     """
@@ -393,8 +392,7 @@ def clifford_conductor(self):
 
     """
     D = self.disc()
-    return prod(filter(lambda p: self.clifford_invariant(p) == -1,
-                       map(lambda x: x[0], factor(2 * self.level()))))
+    return prod([x[0] for x in factor(2 * self.level()) if self.clifford_invariant(x[0]) == -1])
 
 
 ### Genus theory

@@ -1244,19 +1244,24 @@ class SubsetsSorted(Subsets_s):
     have to explicitly build all `2^n` subsets in memory).
     For example, :class:`CliffordAlgebra`.
     """
+    element_class = tuple
+
     def __iter__(self):
         """
         Iterate over ``self``.
 
         EXAMPLES::
 
-            sage: from sage.misc.subsets_sorted import SubsetsSorted
+            sage: from sage.combinat.subset import SubsetsSorted
             sage: S = SubsetsSorted(range(3))
             sage: [s for s in S]
             [(), (0,), (1,), (2,), (0, 1), (0, 2), (1, 2), (0, 1, 2)]
         """
-        for x in Subsets_s.__iter__(self):
-            yield tuple(sorted(x))
+        k = ZZ_0
+        while k <= self._s.cardinality():
+            for ss in Subsets_sk(self._s, k)._fast_iterator():
+                yield self.element_class(sorted(ss))
+            k += 1
 
     def first(self):
         """
@@ -1269,7 +1274,7 @@ class SubsetsSorted(Subsets_s):
             sage: S.first()
             ()
         """
-        return ()
+        return self.element_class([])
 
     def last(self):
         """
@@ -1282,7 +1287,7 @@ class SubsetsSorted(Subsets_s):
             sage: S.last()
             (0, 1, 2)
         """
-        return tuple(sorted(self.s))
+        return tuple(sorted(self._s))
 
     def random_element(self):
         """
@@ -1308,7 +1313,19 @@ class SubsetsSorted(Subsets_s):
             sage: S.unrank(4)
             (0, 1)
         """
-        return tuple(sorted(Subsets_s.unrank(self, r)))
+        r = Integer(r)
+        if r >= self.cardinality() or r < 0:
+            raise IndexError("index out of range")
+
+        k = ZZ_0
+        n = self._s.cardinality()
+        binom = ZZ.one()
+        while r >= binom:
+            r -= binom
+            k += 1
+            binom = binomial(n,k)
+        C = choose_nk.from_rank(r, n, k)
+        return self.element_class(sorted([self._s.unrank(i) for i in C]))
 
     def _an_element_(self):
         """
@@ -1321,7 +1338,7 @@ class SubsetsSorted(Subsets_s):
             sage: S.an_element()
             (0, 1)
         """
-        return tuple(sorted(Subsets_s._an_element_(self)))
+        return self.element_class(sorted(Subsets_s._an_element_(self)))
 
     def _element_constructor_(self, x):
         """
@@ -1334,5 +1351,5 @@ class SubsetsSorted(Subsets_s):
             sage: [s for s in S]
             [(), (0,), (1,), (2,), (0, 1), (0, 2), (1, 2), (0, 1, 2)]
         """
-        return tuple(sorted(Set(x)))
+        return self.element_class(sorted(set(x)))
 

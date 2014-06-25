@@ -133,36 +133,10 @@ class DescentAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: TestSuite(DescentAlgebra(QQ, 4)).run()
-
-        TESTS:
-
-        We check that the issue with coercions and weak references
-        noted on :trac:`15475` is fixed::
-
-            sage: SGA4 = SymmetricGroupAlgebra(QQ, 4)
-            sage: DAB = DescentAlgebra(QQ, 4).B()
-            sage: del SGA4
-            sage: import gc
-            sage: gc.collect() # random
-            317
-            sage: SGA4 = SymmetricGroupAlgebra(QQ, 4)
-            sage: SGA4.has_coerce_map_from(DAB)
-            True
-            sage: x = DAB[4]
-            sage: SGA4(x)
-            [1, 2, 3, 4]
         """
         self._n = n
         self._category = FiniteDimensionalAlgebrasWithBasis(R)
         Parent.__init__(self, base=R, category=self._category.WithRealizations())
-
-        # We keep a strong reference to the corresponding SGA in order
-        #   to prevent it from being recreated (and hence would need a
-        #   new coercion morphism that would never get created).
-        # See :trac:`15475`.
-        # It's probably better to keep this even if this above
-        #   coercion issue is fixed.
-        self._SGA = SymmetricGroupAlgebra(R, n)
 
     def _repr_(self):
         r"""
@@ -246,13 +220,6 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             B.module_morphism(B.to_D_basis,
                               codomain=self, category=self.category()
                               ).register_as_coercion()
-
-            # Coercion to symmetric group algebra
-            cat = Algebras(alg.base_ring())
-            phi = self.module_morphism(self.to_symmetric_group_algebra_on_basis,
-                                       codomain=alg._SGA, category=cat)
-            #self.register_embedding(phi) # Once #15303, use this
-            phi.register_as_coercion()
 
         def _element_constructor_(self, x):
             """
@@ -366,7 +333,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
                  [4, 3, 2, 1]]
             """
             n = self.realization_of()._n
-            SGA = self.realization_of()._SGA
+            SGA = SymmetricGroupAlgebra(self.base_ring(), n)
             # Need to convert S to a list of positions by -1 for indexing
             P = Permutations(descents=([x-1 for x in S], n))
             return SGA.sum_of_terms([(p, 1) for p in P])
@@ -988,7 +955,7 @@ class DescentAlgebraBases(Category_realization_of_parent):
                  + [2, 1, 4, 3] + [2, 3, 4, 1] + [3, 1, 2, 4] + [3, 1, 4, 2]
                  + [3, 2, 4, 1] + [4, 1, 2, 3] + [4, 1, 3, 2] + [4, 2, 3, 1]
             """
-            SGA = self.realization_of()._SGA
+            SGA = SymmetricGroupAlgebra(self.base_ring(), self.realization_of()._n)
             return self.module_morphism(self.to_symmetric_group_algebra_on_basis,
                                         codomain=SGA)
 

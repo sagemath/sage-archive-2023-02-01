@@ -139,7 +139,9 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         Return ``True`` or a morphism if there exists a coercion from ``S``
         into ``self`` or ``False`` otherwise.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Symmetric group algebras::
 
             sage: SGA4 = SymmetricGroupAlgebra(QQ, 4)
             sage: SGA2 = SymmetricGroupAlgebra(QQ, 2)
@@ -151,10 +153,45 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: p = Permutation([2,1])
             sage: SGA4(-3*SGA2Z.monomial(p))
             -3*[2, 1, 3, 4]
+
+        Descent algebras::
+
+            sage: DA = DescentAlgebra(QQ, 4)
+            sage: SGA4 = SymmetricGroupAlgebra(QQ, 4)
+            sage: SGA4.has_coerce_map_from(DA.D())
+            True
+            sage: SGA4.has_coerce_map_from(DA.B())
+            True
+            sage: SGA4.has_coerce_map_from(DA.I())
+            True
+            sage: x = DA.B()[4]
+            sage: SGA4(x)
+            [1, 2, 3, 4]
+
+            sage: DAB = DescentAlgebra(ZZ,2).B()
+            sage: SGA4.has_coerce_map_from(DAB)
+            True
+            sage: SGA4(DAB[2])
+            [1, 2, 3, 4]
         """
+        # Symmetric group algebras of smaller rank
         if (isinstance(S, SymmetricGroupAlgebra_n) and S.n <= self.n
                 and self.base_ring().has_coerce_map_from(S.base_ring())):
             return S.canonical_embedding(self)
+
+        # Descent algebras
+        from sage.combinat.descent_algebra import DescentAlgebra
+        # TODO: A better way to handle all of the bases
+        if isinstance(S, (DescentAlgebra.D, DescentAlgebra.B, DescentAlgebra.I)):
+            # Same rank and base ring, just the natural morphism
+            if S.realization_of()._n == self.n and self.base_ring() == S.base_ring():
+                return S.to_symmetric_group_algebra
+            # Otherwise compose with the canonical embedding
+            if (S.realization_of()._n <= self.n and
+                    self.base_ring().has_coerce_map_from(S.base_ring())):
+                phi = S.to_symmetric_group_algebra
+                return phi.codomain().canonical_embedding(self) * phi
+
         return super(SymmetricGroupAlgebra_n, self)._coerce_map_from_(S)
 
     # _repr_ customization: output the basis element indexed by [1,2,3] as [1,2,3]

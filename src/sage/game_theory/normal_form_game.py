@@ -24,7 +24,6 @@ from sage.structure.sage_object import SageObject
 from sage.rings.all import QQ, ZZ
 from sage.misc.misc import powerset
 from sage.combinat.cartesian_product import CartesianProduct
-from sage.matrix.constructor import block_diagonal_matrix
 lazy_import('sage.misc.package', 'is_package_installed')
 lazy_import('sage.matrix.constructor', 'matrix')
 lazy_import('sage.matrix.constructor', 'vector')
@@ -970,19 +969,12 @@ class NormalFormGame(SageObject, MutableMapping):
                     linearsystem2[j, k] = M1[p1_support[j]][k] - M1[p1_support[j-1]][k]
             linearsystem2[-1, k] = 1
 
-#        linearsystemrhs1 = [0 for i in range(len(p2_support))] + [1]
-#        linearsystemrhs2 = [0 for i in range(len(p1_support))] + [1]
         linearsystemrhs1 = vector([0 for i in range(len(p2_support))] + [1])
         linearsystemrhs2 = vector([0 for i in range(len(p1_support))] + [1])
-
-#        linearsystem = block_diagonal_matrix(linearsystem1, linearsystem2)
-#        rhs = vector(linearsystemrhs1 + linearsystemrhs2)
 
         try:
             a = linearsystem1.solve_right(linearsystemrhs1)
             b = linearsystem2.solve_right(linearsystemrhs2)
-#            c = linearsystem.solve_right(rhs)
-#            a, b = c[:self.players[0].num_strategies], c[self.players[0].num_strategies:]
 
             if self._is_valid_vector(a, b, p1_support, p2_support):
                 return [a, b]

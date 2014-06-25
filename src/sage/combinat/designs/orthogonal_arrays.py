@@ -1465,7 +1465,7 @@ def OA_from_PBD(k,n,PBD, check=True):
         sage: _ = OA_from_PBD(3,6,pbd)
         Traceback (most recent call last):
         ...
-        RuntimeError: The PBD covers a point 8 which is not in {0, .., 5}
+        RuntimeError: The PBD covers a point 8 which is not in {0, ..., 5}
     """
     # Size of the sets of the PBD
     K = set(map(len,PBD))

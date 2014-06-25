@@ -5992,16 +5992,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
     @coerce_binop
     def xgcd(self, other):
         r"""
-        Compute an extended gcd for ``self`` and ``other``.
+        Compute an extended gcd of this polynomialn and ``other``.
 
         INPUT:
 
-            - ``other`` -- a polynomial in the same ring as ``self``
+            - ``other`` -- a polynomial in the same ring as this polynomial
 
         OUTPUT:
 
             A tuple ``(r,s,t)`` where ``r`` is a greatest common divisor of
-            ``self`` and ``other``, and ``s`` and ``t`` are such that ``r =
+            this polynomial and ``other``, and ``s`` and ``t`` are such that ``r =
             s*self + t*other`` holds.
 
         .. NOTE::

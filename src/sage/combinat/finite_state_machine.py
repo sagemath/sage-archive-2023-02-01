@@ -8667,18 +8667,18 @@ class Transducer(FiniteStateMachine):
 #*****************************************************************************
 
 
-class FSMTape(SageObject):
-    def __init__(self, tapes, tapes_raw, tapes_raw_ended,
+class FSMTapeCache(SageObject):
+    def __init__(self, tape_cache_manager, tape, tape_ended,
                  position, is_multitape):
         """
-        TODO: position nicht in FSMTape?
+        TODO: position nicht in FSMTapeCache?
 
         INPUT:
 
-        - ``tapes`` -- a list of the existing instances of
-          FSMTape. ``self`` will be appended to ``tapes``.
+        - ``tape_cache_manager`` -- a list of the existing instances of
+          FSMTapeCache. ``self`` will be appended to ``tape_cache_manager``.
 
-        - ``tapes_raw`` -- a tuple or list of the input tapes.
+        - ``tape`` -- a tuple or list of the input tapes.
 
         - ``position`` -- a tuple of the current positions of each of
           the input tapes. TODO
@@ -8687,26 +8687,26 @@ class FSMTape(SageObject):
           input-word-tuple of a transition is interpreted as word for
           the corresponding input tape.
         """
-        if len(tapes_raw) != len(position):
+        if len(tape) != len(position):
             raise TypeError('The length of the inputs do not match')
         self.position = position
-        self.tapes_raw = tapes_raw
-        self.tapes_raw_ended = tapes_raw_ended
+        self.tape = tape
+        self.tape_ended = tape_ended
         self.is_multitape = is_multitape
 
-        self.tapes = tapes
-        self.tapes.append(self)
-        self.tape = tuple(collections.deque() for _ in self.tapes_raw)
+        self.tape_cache_manager = tape_cache_manager
+        self.tape_cache_manager.append(self)
+        self.cache = tuple(collections.deque() for _ in self.tape)
 
 
     def _repr_(self):
-        return 'tape ' + repr(self.tape) + ' at ' + repr(self.position)
+        return 'tape ' + repr(self.cache) + ' at ' + repr(self.position)
 
 
     def __deepcopy__(self, memo):
-        new = FSMTape(self.tapes, self.tapes_raw, self.tapes_raw_ended,
+        new = FSMTapeCache(self.tape_cache_manager, self.tape, self.tape_ended,
                       self.position, self.is_multitape)
-        new.tape = deepcopy(self.tape, memo)
+        new.cache = deepcopy(self.cache, memo)
         return new
 
 
@@ -8716,24 +8716,24 @@ class FSMTape(SageObject):
 
     def read(self, tape_number):
         try:
-            newval = next(self.tapes_raw[tape_number])
+            newval = next(self.tape[tape_number])
         except StopIteration:
-            self.tapes_raw_ended[tape_number] = True
+            self.tape_ended[tape_number] = True
             return False
 
         # update all tapes
-        for tape in self.tapes:
-            tape.tape[tape_number].append(newval)
+        for tape in self.tape_cache_manager:
+            tape.cache[tape_number].append(newval)
 
         return True
 
 
     def finished(self, tape_number=None):
         if tape_number is None:
-            return all(self.finished(n) for n, _ in enumerate(self.tape))
-        if not self.tape[tape_number]:
-            self.read(tape_number)  # to make sure tapes_raw_ended is set
-        return self.tapes_raw_ended[tape_number] and not self.tape[tape_number]
+            return all(self.finished(n) for n, _ in enumerate(self.cache))
+        if not self.cache[tape_number]:
+            self.read(tape_number)  # to make sure tape_ended is set
+        return self.tape_ended[tape_number] and not self.cache[tape_number]
 
 
     def read_letter(self, tape_number=None):
@@ -8765,10 +8765,10 @@ class FSMTape(SageObject):
         if tape_number is None:
             if self.is_multitape:
                 return tuple(self.read_letter(n)
-                             for n, _ in enumerate(self.tape))
+                             for n, _ in enumerate(self.cache))
             else:
                 return self.read_letter(0)
-        t = self.tape[tape_number]
+        t = self.cache[tape_number]
         while not t:
             if not self.read(tape_number):
                 raise StopIteration
@@ -8776,7 +8776,7 @@ class FSMTape(SageObject):
 
 
     def compare_to_tape(self, tape_number, word):
-        t = self.tape[tape_number]
+        t = self.cache[tape_number]
         while len(t) < len(word):
             if not self.read(tape_number):
                 return False
@@ -8790,7 +8790,7 @@ class FSMTape(SageObject):
             increments = (len(transition.word_in),)
 
         for tape_number, (t, i) in \
-                enumerate(izip(self.tape, increments)):
+                enumerate(izip(self.cache, increments)):
             for _ in range(i):
                 if not t:
                     if not self.read(tape_number):
@@ -8807,10 +8807,10 @@ class FSMTape(SageObject):
             word_in = transition.word_in
         else:
             word_in = (transition.word_in,)
-        if len(word_in) != len(self.tape):
+        if len(word_in) != len(self.cache):
             raise TypeError('transition %s has wrong input word (%s entries '
                             'instead of %s)' % (transition,
-                                                len(word_in), len(self.tape)))
+                                                len(word_in), len(self.cache)))
         return self._transition_possible_test_(word_in)
 
 
@@ -8828,7 +8828,7 @@ class FSMTape(SageObject):
 #*****************************************************************************
 
 
-class FSMTapeDetectEpsilon(FSMTape):
+class FSMTapeCacheDetectEpsilon(FSMTapeCache):
     def _transition_possible_test_(self, word_in):
         return self._transition_possible_epsilon_(word_in)
 
@@ -8836,7 +8836,7 @@ class FSMTapeDetectEpsilon(FSMTape):
 #*****************************************************************************
 
 
-class FSMTapeDetectAll(FSMTape):
+class FSMTapeCacheDetectAll(FSMTapeCache):
     def _transition_possible_test_(self, word_in):
         return True
 
@@ -9061,26 +9061,26 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                 raise ValueError("Given input tape is not iterable.")
         if not input_tapes:
             input_tapes.append(iter([]))
-        self._input_tapes_raw_ = tuple(iter(tape) for tape in input_tapes)
-        self._input_tapes_raw_ended_ = [False for _ in input_tapes]
+        self._input_tape_ = tuple(iter(tape) for tape in input_tapes)
+        self._input_tape_ended_ = [False for _ in input_tapes]
 
         if use_multitape_input is None:
-            self.is_multitape = len(self._input_tapes_raw_) >= 2
+            self.is_multitape = len(self._input_tape_) >= 2
         else:
             self.is_multitape = use_multitape_input
-        if len(self._input_tapes_raw_) >= 2 and not self.is_multitape:
+        if len(self._input_tape_) >= 2 and not self.is_multitape:
             raise ValueError('%s tapes given, so use_multitape_input should '
-                             'be True' % (len(self._input_tapes_raw_),))
+                             'be True' % (len(self._input_tape_),))
 
         self._input_tapes_ = []
         position_zero = tuple((ZZ(0), i)
-                              for i in srange(len(self._input_tapes_raw_)))
+                              for i in srange(len(self._input_tape_)))
         if not hasattr(self, 'tape_type'):
-            self.tape_type = FSMTape
+            self.tape_type = FSMTapeCache
         for _ in initial_states:
             self.tape_type(self._input_tapes_,
-                           self._input_tapes_raw_,
-                           self._input_tapes_raw_ended_,
+                           self._input_tape_,
+                           self._input_tape_ended_,
                            position_zero,
                            self.is_multitape)
 
@@ -9097,7 +9097,6 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             self.add_current(state, tape, [[]])
 
         self._finished_ = []  # contains (accept, state, output)
-
 
 
     def _add_current_(self, state, tape, output):
@@ -9386,7 +9385,7 @@ class FSMProcessIteratorEpsilon(FSMProcessIterator):
         {4: ['']}
     """
     def __init__(self, *args, **kwargs):
-        self.tape_type = FSMTapeDetectEpsilon
+        self.tape_type = FSMTapeCacheDetectEpsilon
         self.visited_states = {}
         kwargs['check_epsilon_transitions'] = False
         return super(FSMProcessIteratorEpsilon, self).__init__(*args, **kwargs)

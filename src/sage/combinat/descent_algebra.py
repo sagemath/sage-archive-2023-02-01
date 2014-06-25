@@ -248,9 +248,11 @@ class DescentAlgebra(Parent, UniqueRepresentation):
                               ).register_as_coercion()
 
             # Coercion to symmetric group algebra
-            self.module_morphism(self.to_symmetric_group_algebra_on_basis,
-                                 codomain=alg._SGA, category=Algebras(alg.base_ring())
-                                 ).register_as_coercion()
+            cat = Algebras(alg.base_ring())
+            phi = self.module_morphism(self.to_symmetric_group_algebra_on_basis,
+                                       codomain=alg._SGA, category=cat)
+            #self.register_embedding(phi) # Once #15303, use this
+            phi.register_as_coercion()
 
         def _element_constructor_(self, x):
             """

@@ -997,9 +997,9 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: Z._is_valid_vector([0, 1/4, 3/4], [3/5, 2/5, 0], (1,2,), (0,1,), X, Y)
             False
         """
-        checkv1 = all(i >= 0 for i in vector1)
-        checkv2 = all(i >= 0 for i in vector2)
-        if not checkv1 or not checkv2:
+        if (not all(i >= 0 for i in vector1)
+            or not all(i >= 0 for i in vector1)):
+
             return False
 
         if sum(x > 0 for x in vector1) != sum(x > 0 for x in vector2):

@@ -121,7 +121,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         self.n = n
         cat = (GroupAlgebras(R), FiniteDimensionalAlgebrasWithBasis(R))
         CombinatorialFreeModule.__init__(self, R, Permutations(n), prefix='',
-                                         latex_prefix='', category = cat)
+                                         latex_prefix='', category=cat)
 
     def _repr_(self):
         """
@@ -132,7 +132,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: SymmetricGroupAlgebra(QQ, 3)
             Symmetric group algebra of order 3 over Rational Field
         """
-        return "Symmetric group algebra of order {}".format(self.n)
+        return "Symmetric group algebra of order {} over {}".format(self.n, self.base_ring())
 
     def _coerce_map_from_(self, S):
         """

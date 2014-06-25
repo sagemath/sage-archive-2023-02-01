@@ -56,6 +56,8 @@ AUTHORS:
 """
 
 import sys, __builtin__
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.matrix.matrix','is_Matrix')
 
 class ListFormatter(object):
 
@@ -228,7 +230,6 @@ class ListFormatter(object):
 
 format_list = ListFormatter()
 
-
 class DisplayHookBase(object):
 
     def simple_format_obj(self, obj):
@@ -271,6 +272,20 @@ class DisplayHookBase(object):
         """
         if isinstance(obj, type):
             return repr(obj)
+
+        # since #15036, we check in displayhook if a matrix is has
+        # large enough dimensions to be printed in abbreviated form.
+        # If so, we append a helpful message to indicate how to print
+        # the entries of the matrix.
+        # we need to do a late import of the is_Matrix method here to
+        # avoid startup problems.
+
+        if is_Matrix(obj):
+            from sage.matrix.matrix0 import max_rows,max_cols
+            if obj.nrows() >= max_rows or obj.ncols() >= max_cols:
+                return repr(obj) + " (use the '.str()' method to see the entries)"
+            else:
+                return None
         if isinstance(obj, (tuple, list)) and len(obj) > 0:
             return format_list.try_format_list(obj)
         else:

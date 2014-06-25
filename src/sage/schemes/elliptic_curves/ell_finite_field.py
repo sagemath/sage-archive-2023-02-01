@@ -36,7 +36,7 @@ from constructor import EllipticCurve, EllipticCurve_from_j
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
 import sage.rings.ring as ring
 from sage.rings.all import Integer, ZZ, PolynomialRing, GF, polygen
-from sage.rings.finite_rings.all import is_FiniteFieldElement
+from sage.rings.finite_rings.element_base import is_FiniteFieldElement
 import sage.groups.generic as generic
 import ell_point
 from sage.rings.arith import gcd, lcm
@@ -1489,7 +1489,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                         break
                     except ValueError:
                         pass
-                assert a != None
+                assert a is not None
                 a *= (m*n1a)
                 if debug: print "linear relation gives m=",m,", a=",a
                 if debug: assert m*Q==a*P1
@@ -1675,7 +1675,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             return True
         elif self.base_field().characteristic() != other.base_field().characteristic():
             raise ValueError("The base fields must have the same characteristic.")
-        elif field==None:
+        elif field is None:
             if self.base_field().degree() == other.base_field().degree():
                 if self.cardinality() == other.cardinality():
                     return True

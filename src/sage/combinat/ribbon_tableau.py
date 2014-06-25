@@ -784,7 +784,7 @@ def graph_implementation_rec(skp, weight, length, function):
         retire = [ retire[i] - len(partp) + (i+1) for i in range(len(retire))]
 
         if retire[-1] >= 0 and retire == [i for i in reversed(sorted(retire))]:
-            retire = Partition(filter(lambda x: x != 0, retire)).conjugate()
+            retire = Partition([x for x in retire if x != 0]).conjugate()
 
             # Cutting branches if the retired partition has a line strictly included into the inner one
             append = True

@@ -2974,6 +2974,15 @@ class RationalPolyhedralFan(IntegralRayCollection,
             N(0, 0, 0, 1)
             in 4-d lattice N
 
+        Make sure that :trac:`16344` is fixed and one can compute
+        the virtual rays of fans in non-saturated lattices::
+
+            sage: N = ToricLattice(1)
+            sage: B = N.submodule([(2,)]).basis()
+            sage: f = Fan([Cone([B[0]])])
+            sage: len(f.virtual_rays())
+            0
+
         TESTS::
 
             sage: N = ToricLattice(4)
@@ -2987,8 +2996,10 @@ class RationalPolyhedralFan(IntegralRayCollection,
             virtual = self._virtual_rays
         except AttributeError:
             N = self.lattice()
-            quotient = N.quotient(self.rays().matrix().saturation().rows())
-            virtual = [ gen.lift() for gen in quotient.gens() ]
+            Np = N.ambient_module()
+            qp = Np.quotient(self.rays().matrix().saturation().rows())
+            quotient = qp.submodule(N.gens())
+            virtual = [gen.lift() for gen in quotient.gens()]
             for v in virtual:
                 v.set_immutable()
             virtual = PointCollection(virtual, N)

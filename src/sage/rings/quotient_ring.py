@@ -114,7 +114,7 @@ import commutative_ring, ring
 import ideal
 import sage.rings.polynomial.multi_polynomial_ideal
 import sage.structure.parent_gens
-from sage.interfaces.all import singular as singular_default, is_SingularElement
+from sage.interfaces.singular import singular as singular_default, is_SingularElement
 from sage.misc.cachefunc import cached_method
 from sage.categories.rings import Rings
 from sage.categories.commutative_rings import CommutativeRings

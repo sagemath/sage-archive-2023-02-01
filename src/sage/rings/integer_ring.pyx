@@ -755,7 +755,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         We return a sample from a discrete Gaussian distribution::
 
              sage: ZZ.random_element(11.0, distribution="gaussian")
-             
+             5
 
         """
         cdef integer.Integer z

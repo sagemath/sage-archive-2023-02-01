@@ -949,6 +949,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         M1, M2 = self.payoff_matrices()
 
+        # Build linear system for player 1
         for p1_strategy in p1_support:
             if len(p2_support) == 1:
                 for p2_strategy in range(self.players[1].num_strategies):
@@ -959,6 +960,7 @@ class NormalFormGame(SageObject, MutableMapping):
                     linearsystem1[p2_strategy, p1_strategy] = M2[p1_strategy][p2_support[p2_strategy]] - M2[p1_strategy][p2_support[p2_strategy-1]]
             linearsystem1[-1, p1_strategy] = 1
 
+        # Build linear system for player 2
         for p2_strategy in p2_support:
             if len(p1_support) == 1:
                 for i in range(self.players[0].num_strategies):
@@ -969,9 +971,11 @@ class NormalFormGame(SageObject, MutableMapping):
                     linearsystem2[j, p2_strategy] = M1[p1_support[j]][p2_strategy] - M1[p1_support[j-1]][p2_strategy]
             linearsystem2[-1, p2_strategy] = 1
 
+        # Create rhs of linear systems
         linearsystemrhs1 = vector([0 for i in range(len(p2_support))] + [1])
         linearsystemrhs2 = vector([0 for i in range(len(p1_support))] + [1])
 
+        # Solve both linear systems
         try:
             a = linearsystem1.solve_right(linearsystemrhs1)
             b = linearsystem2.solve_right(linearsystemrhs2)
@@ -998,7 +1002,6 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         if (not all(i >= 0 for i in vector1)
             or not all(i >= 0 for i in vector1)):
-
             return False
 
         if sum(x > 0 for x in vector1) != sum(x > 0 for x in vector2):
@@ -1006,13 +1009,12 @@ class NormalFormGame(SageObject, MutableMapping):
 
         M1, M2 = self.payoff_matrices()
 
-        p1_payoffs = []
-        p2_payoffs = []
-
-        for row in range(self.players[0].num_strategies):
-            p1_payoffs.append(sum(v * M1[row][i] for i, v in enumerate(vector2)))
-        for col in range(self.players[1].num_strategies):
-            p2_payoffs.append(sum(v * M2[i][col] for i, v in enumerate(vector1)))
+#        if p1_payoffs.index(max(p1_payoffs)) not in p1_support:
+#            return False
+#        if p2_payoffs.index(max(p2_payoffs)) not in p2_support:
+#            return False
+        p1_payoffs = [sum(v * row[i] for i, v in enumerate(vector2)) for row in M1.rows()]
+        p2_payoffs = [sum(v * col[j] for j, v in enumerate(vector1)) for col in M2.columns()]
 
         if p1_payoffs.index(max(p1_payoffs)) not in p1_support:
             return False

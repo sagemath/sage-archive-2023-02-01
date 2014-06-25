@@ -730,24 +730,6 @@ class GenericCellComplex(SageObject):
         """
         raise NotImplementedError
 
-    def category(self):
-        """
-        Return the category to which this chain complex belongs: the
-        category of all cell complexes.
-
-        This is not implemented for general cell complexes.
-
-        EXAMPLES::
-
-            sage: from sage.homology.cell_complex import GenericCellComplex
-            sage: A = GenericCellComplex()
-            sage: A.category()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-
     def _string_constants(self):
         """
         Tuple containing the name of the type of complex, and the

@@ -391,7 +391,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         # getting the optional argument "bracket" right
         if isinstance(bracket,str) and len(bracket) % 2 == 0:
             bracket_len = len(bracket)
-            bracket = (bracket[:bracket_len/2],bracket[bracket_len/2:])
+            bracket = (bracket[:bracket_len//2],bracket[bracket_len//2:])
         else:
             raise ValueError("The given bracket %s is not a string of even length."%bracket)
 

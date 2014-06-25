@@ -63,7 +63,7 @@ graphs.
     :meth:`~Graph.is_half_transitive` | Returns true if self is a half-transitive graph.
     :meth:`~Graph.is_semi_symmetric` | Returns true if self is a semi-symmetric graph.
 
-**Connectivity and orientations:**
+**Connectivity, orientations, trees:**
 
 .. csv-table::
     :class: contentstable
@@ -75,6 +75,8 @@ graphs.
     :meth:`~Graph.bounded_outdegree_orientation` | Computes an orientation of ``self`` such that every vertex `v` has out-degree less than `b(v)`
     :meth:`~Graph.strong_orientation` | Returns a strongly connected orientation of the current graph.
     :meth:`~Graph.degree_constrained_subgraph` | Returns a degree-constrained subgraph.
+    :meth:`~Graph.bridges` | Returns the list of all bridges.
+    :meth:`~Graph.spanning_trees` | Returns the list of all spanning trees.
 
 **Clique-related methods:**
 
@@ -1249,7 +1251,6 @@ class Graph(GenericGraph):
                 else:
                     raise ValueError("Edges input must all follow the same format.")
 
-
         if format is None:
             import networkx
             data = networkx.MultiGraph(data)
@@ -1491,6 +1492,8 @@ class Graph(GenericGraph):
                 verts = [curve.cremona_label() for curve in data]
 
         # weighted, multiedges, loops, verts and num_verts should now be set
+        #
+        # From now on, we actually build the graph
 
         if implementation == 'networkx':
             import networkx
@@ -1557,12 +1560,11 @@ class Graph(GenericGraph):
             for i in xrange(n):
                 for j in xrange(i):
                     if m[k] == '1':
-                        self.add_edge(i, j)
+                        self._backend.add_edge(i, j, None, False)
                     k += 1
 
         elif format == 'sparse6':
-            for i,j in edges:
-                self.add_edge(i,j)
+            self.add_edges(edges)
 
         elif format == 'adjacency_matrix':
             e = []
@@ -1592,7 +1594,7 @@ class Graph(GenericGraph):
                 for v in xrange(u+1):
                     uu,vv = verts[u], verts[v]
                     if f(uu,vv):
-                        self.add_edge(uu,vv)
+                        self._backend.add_edge(uu,vv,None,False)
 
         elif format == 'dict_of_dicts':
             if convert_empty_dict_labels_to_None:
@@ -1600,24 +1602,26 @@ class Graph(GenericGraph):
                     for v in data[u]:
                         if hash(u) <= hash(v) or v not in data or u not in data[v]:
                             if multiedges:
-                                self.add_edges([(u,v,l) for l in data[u][v]])
+                                for l in data[u][v]:
+                                    self._backend.add_edge(u,v,l,False)
                             else:
-                                self.add_edge((u,v,data[u][v] if data[u][v] != {} else None))
+                                self._backend.add_edge(u,v,data[u][v] if data[u][v] != {} else None,False)
             else:
                 for u in data:
                     for v in data[u]:
                         if hash(u) <= hash(v) or v not in data or u not in data[v]:
                             if multiedges:
-                                self.add_edges([(u,v,l) for l in data[u][v]])
+                                for l in data[u][v]:
+                                    self._backend.add_edge(u,v,l,False)
                             else:
-                                self.add_edge((u,v,data[u][v]))
+                                self._backend.add_edge(u,v,data[u][v],False)
 
         elif format == 'dict_of_lists':
             for u in data:
                 for v in data[u]:
-                    if multiedges or hash(u) <= hash(v) or \
-                       v not in data or u not in data[v]:
-                        self.add_edge(u,v)
+                    if (multiedges or hash(u) <= hash(v) or
+                        v not in data or u not in data[v]):
+                        self._backend.add_edge(u,v,None,False)
 
         elif format == 'elliptic_curve_congruence':
             from sage.rings.arith import lcm, prime_divisors
@@ -1642,7 +1646,7 @@ class Graph(GenericGraph):
                             P = prime_divisors(n)
                             p_edges = [p for p in p_edges if p in P]
                     if len(p_edges) > 0:
-                        self.add_edge(E.cremona_label(), F.cremona_label(), str(p_edges)[1:-1])
+                        self._backend.add_edge(E.cremona_label(), F.cremona_label(), str(p_edges)[1:-1], False)
         else:
             assert format == 'int'
 
@@ -1749,7 +1753,7 @@ class Graph(GenericGraph):
 
             # split into groups of 6, and convert numbers to decimal, adding 63
             six_bits = ''
-            for i in range(len(s)/6):
+            for i in range(len(s)//6):
                 six_bits += chr( int( s[6*i:6*(i+1)], 2) + 63 )
             return ':' + generic_graph_pyx.N(n) + six_bits
 
@@ -1781,6 +1785,112 @@ class Graph(GenericGraph):
             False
         """
         return False
+
+    def bridges(self):
+        r"""
+        Returns a list of the bridges (or cut edges).
+
+        A bridge is an edge so that deleting it disconnects the graph.
+
+        .. NOTE::
+
+            This method assumes the graph is connected.
+
+        EXAMPLES::
+
+             sage: g = 2*graphs.PetersenGraph()
+             sage: g.add_edge(1,10)
+             sage: g.is_connected()
+             True
+             sage: g.bridges()
+             [(1, 10, None)]
+        """
+        gs = self.strong_orientation()
+        bridges = []
+        for scc in gs.strongly_connected_components():
+            bridges.extend(gs.edge_boundary(scc))
+        return bridges
+
+    def spanning_trees(self):
+        """
+        Returns a list of all spanning trees.
+
+        If the graph is disconnected, returns the empty list.
+
+        Uses the Read-Tarjan backtracking algorithm [RT75]_.
+
+        EXAMPLES::
+
+            sage: G = Graph([(1,2),(1,2),(1,3),(1,3),(2,3),(1,4)])
+            sage: len(G.spanning_trees())
+            8
+            sage: G.spanning_trees_count()
+            8
+            sage: G = Graph([(1,2),(2,3),(3,1),(3,4),(4,5),(4,5),(4,6)])
+            sage: len(G.spanning_trees())
+            6
+            sage: G.spanning_trees_count()
+            6
+
+        .. SEEALSO::
+
+            :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
+            -- counts the number of spanning trees.
+
+        REFERENCES:
+
+        .. [RT75] Read, R. C. and Tarjan, R. E.
+          Bounds on Backtrack Algoritms for Listing Cycles, Paths, and Spanning Trees
+          Networks, Volume 5 (1975), numer 3, pages 237-252.
+        """
+
+        def _recursive_spanning_trees(G,forest):
+            """
+            Returns all the spanning trees of G containing forest
+            """
+            if not G.is_connected():
+                return []
+
+            if G.size() == forest.size():
+                return [forest.copy()]
+            else:
+                # Pick an edge e from G-forest
+                for e in G.edges():
+                    if not forest.has_edge(e):
+                        break
+
+                # 1) Recursive call with e removed from G
+                G.delete_edge(e)
+                trees = _recursive_spanning_trees(G,forest)
+                G.add_edge(e)
+
+                # 2) Recursive call with e include in forest
+                #
+                # e=xy links the CC (connected component) of forest containing x
+                # with the CC containing y. Any other edge which does that
+                # cannot be added to forest anymore, and B is the list of them
+                c1 = forest.connected_component_containing_vertex(e[0])
+                c2 = forest.connected_component_containing_vertex(e[1])
+                G.delete_edge(e)
+                B = G.edge_boundary(c1,c2,sort=False)
+                G.add_edge(e)
+
+                # Actual call
+                forest.add_edge(e)
+                G.delete_edges(B)
+                trees.extend(_recursive_spanning_trees(G,forest))
+                G.add_edges(B)
+                forest.delete_edge(e)
+
+                return trees
+
+        if self.is_connected():
+            forest = Graph([])
+            forest.add_vertices(self.vertices())
+            forest.add_edges(self.bridges())
+            return _recursive_spanning_trees(self,forest)
+        else:
+            return []
 
     ### Properties
     def is_tree(self, certificate=False, output='vertex'):
@@ -3000,9 +3110,15 @@ class Graph(GenericGraph):
 
         The same goes for the CubeGraph in any dimension ::
 
-
             sage: all(len(graphs.CubeGraph(i).strong_orientation().strongly_connected_components()) == 1 for i in xrange(2,6))
             True
+
+        A multigraph also has a strong orientation ::
+
+            sage: g = Graph([(1,2),(1,2)])
+            sage: g.strong_orientation()
+            Multi-digraph on 2 vertices
+
         """
         from sage.graphs.all import DiGraph
         d = DiGraph(multiedges=self.allows_multiple_edges())
@@ -3049,7 +3165,7 @@ class Graph(GenericGraph):
         tmp = None
         for e in self.multiple_edges():
             if tmp == (e[0],e[1]):
-                if d.has_edge(e[0].e[1]):
+                if d.has_edge(e[0],e[1]):
                     d.add_edge(e[1],e[0],e[2])
                 else:
                     d.add_edge(e)
@@ -3772,7 +3888,7 @@ class Graph(GenericGraph):
         try:
             p.solve(log = verbose)
             b = p.get_values(b)
-            mapping = dict(map(lambda y:y[0],filter(lambda x:x[1], b.items())))
+            mapping = dict(x[0] for x in b.items() if x[1])
             return mapping
 
         except MIPSolverException:
@@ -4417,7 +4533,7 @@ class Graph(GenericGraph):
             1.0
         """
         import networkx
-        if v==None:
+        if v is None:
             return networkx.degree_centrality(self.networkx_graph(copy=False))
         else:
             return networkx.degree_centrality(self.networkx_graph(copy=False))[v]
@@ -4492,8 +4608,8 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().to_directed()
             Petersen graph: Digraph on 10 vertices
         """
-        if sparse != None:
-            if data_structure != None:
+        if sparse is not None:
+            if data_structure is not None:
                 raise ValueError("The 'sparse' argument is an alias for "
                                  "'data_structure'. Please do not define both.")
             data_structure = "sparse" if sparse else "dense"
@@ -4953,6 +5069,10 @@ class Graph(GenericGraph):
 
              (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
+           - If ``algorithm = "mcqd"`` - Uses the MCQD solver
+             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+             package must be installed.
+
         .. NOTE::
 
             Currently only implemented for undirected graphs. Use to_undirected
@@ -4985,7 +5105,8 @@ class Graph(GenericGraph):
             sage: C.clique_maximum(algorithm = "BFS")
             Traceback (most recent call last):
             ...
-            NotImplementedError: Only 'MILP' and 'Cliquer' are supported.
+            NotImplementedError: Only 'MILP', 'Cliquer' and 'mcqd' are supported.
+
         """
         self._scream_if_not_simple(allow_multiple_edges=True)
         if algorithm=="Cliquer":
@@ -4993,8 +5114,14 @@ class Graph(GenericGraph):
             return max_clique(self)
         elif algorithm == "MILP":
             return self.complement().independent_set(algorithm = algorithm)
+        elif algorithm == "mcqd":
+            try:
+                from sage.graphs.mcqd import mcqd
+            except ImportError:
+                raise ImportError("Please install the mcqd package")
+            return mcqd(self)
         else:
-            raise NotImplementedError("Only 'MILP' and 'Cliquer' are supported.")
+            raise NotImplementedError("Only 'MILP', 'Cliquer' and 'mcqd' are supported.")
 
     def clique_number(self, algorithm="Cliquer", cliques=None):
         r"""
@@ -5010,15 +5137,21 @@ class Graph(GenericGraph):
 
         - ``algorithm`` -- the algorithm to be used :
 
-           - If ``algorithm = "Cliquer"`` - This wraps the C program Cliquer [NisOst2003]_.
+           - If ``algorithm = "Cliquer"`` - This wraps the C program Cliquer
+             [NisOst2003]_.
 
-           - If ``algorithm = "networkx"`` - This function is based on NetworkX's implementation
-             of the Bron and Kerbosch Algorithm [BroKer1973]_.
+           - If ``algorithm = "networkx"`` - This function is based on
+             NetworkX's implementation of the Bron and Kerbosch Algorithm
+             [BroKer1973]_.
 
            - If ``algorithm = "MILP"``, the problem is solved through a Mixed
              Integer Linear Program.
 
              (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
+
+           - If ``algorithm = "mcqd"`` - Uses the MCQD solver
+             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+             package must be installed.
 
         - ``cliques`` - an optional list of cliques that can be input if
           already computed. Ignored unless ``algorithm=="networkx"``.
@@ -5057,6 +5190,10 @@ class Graph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: g.clique_number(algorithm="MILP")
             2
+            sage: for i in range(10):                                            # optional - mcqd
+            ...       g = graphs.RandomGNP(15,.5)                                # optional - mcqd
+            ...       if g.clique_number() != g.clique_number(algorithm="mcqd"): # optional - mcqd
+            ...           print "This is dead wrong !"                           # optional - mcqd
         """
         self._scream_if_not_simple(allow_loops=False)
         if algorithm=="Cliquer":
@@ -5067,8 +5204,14 @@ class Graph(GenericGraph):
             return networkx.graph_clique_number(self.networkx_graph(copy=False),cliques)
         elif algorithm == "MILP":
             return len(self.complement().independent_set(algorithm = algorithm))
+        elif algorithm == "mcqd":
+            try:
+                from sage.graphs.mcqd import mcqd
+            except ImportError:
+                raise ImportError("Please install the mcqd package")
+            return len(mcqd(self))
         else:
-            raise NotImplementedError("Only 'networkx' 'MILP' and 'Cliquer' are supported.")
+            raise NotImplementedError("Only 'networkx' 'MILP' 'Cliquer' and 'mcqd' are supported.")
 
     def cliques_number_of(self, vertices=None, cliques=None):
         """
@@ -5207,6 +5350,10 @@ class Graph(GenericGraph):
 
               (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
+           * If ``algorithm = "mcqd"`` - Uses the MCQD solver
+             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+             package must be installed.
+
         - ``value_only`` -- boolean (default: ``False``). If set to ``True``,
           only the size of a maximum independent set is returned. Otherwise,
           a maximum independent set is returned as a list of vertices.
@@ -5233,9 +5380,9 @@ class Graph(GenericGraph):
 
         .. NOTE::
 
-            While Cliquer is usually (and by far) the most efficient of the two
-            implementations, the Mixed Integer Linear Program formulation
-            sometimes proves faster on very "symmetrical" graphs.
+            While Cliquer/MCAD are usually (and by far) the most efficient
+            implementations, the MILP formulation sometimes proves faster on
+            very "symmetrical" graphs.
 
         EXAMPLES:
 
@@ -5289,6 +5436,10 @@ class Graph(GenericGraph):
 
           - ``"MILP"`` will compute a minimum vertex cover through a mixed
             integer linear program.
+
+          - If ``algorithm = "mcqd"`` - Uses the MCQD solver
+            (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+            package must be installed.
 
         - ``value_only`` -- boolean (default: ``False``). If set to ``True``,
           only the size of a minimum vertex cover is returned. Otherwise,
@@ -5364,13 +5515,17 @@ class Graph(GenericGraph):
            ...       if g.size() != 0:
            ...           print "This thing is not a vertex cover !"
 
+        Testing mcqd::
+
+            sage: graphs.PetersenGraph().vertex_cover(algorithm="mcqd",value_only=True) # optional - mcqd
+            6
 
         Given a wrong algorithm::
 
             sage: graphs.PetersenGraph().vertex_cover(algorithm = "guess")
             Traceback (most recent call last):
             ...
-            ValueError: The algorithm must be either "Cliquer" or "MILP".
+            ValueError: The algorithm must be "Cliquer" "MILP" or "mcqd".
 
         REFERENCE:
 
@@ -5479,9 +5634,8 @@ class Graph(GenericGraph):
             size_cover_g = 0
             cover_g = []
 
-        elif algorithm == "Cliquer":
-            from sage.graphs.cliquer import max_clique
-            independent = max_clique(g.complement())
+        elif algorithm == "Cliquer" or algorithm == "mcqd":
+            independent = g.complement().clique_maximum(algorithm=algorithm)
             if value_only:
                 size_cover_g = g.order() - len(independent)
             else:
@@ -5507,7 +5661,7 @@ class Graph(GenericGraph):
                 b = p.get_values(b)
                 cover_g = [v for v in g.vertices() if b[v] == 1]
         else:
-            raise ValueError("The algorithm must be either \"Cliquer\" or \"MILP\".")
+            raise ValueError("The algorithm must be \"Cliquer\" \"MILP\" or \"mcqd\".")
 
         #########################
         # Returning the results #
@@ -5588,7 +5742,7 @@ class Graph(GenericGraph):
 
         if algorithm=="cliquer":
             from sage.graphs.cliquer import clique_number
-            if vertices==None:
+            if vertices is None:
                 vertices=self
             value={}
             for v in vertices:
@@ -5812,7 +5966,7 @@ class Graph(GenericGraph):
         for v in verts:
 
             # If all the vertices have a degree larger than k, we can
-            # return our answer if k != None
+            # return our answer if k is not None
             if k is not None and core[v] >= k:
                 return verts[:vert_pos[v]], verts[vert_pos[v]:]
 
@@ -6504,4 +6658,3 @@ def compare_edges(x, y):
             return 1
         else:
             return 0
-

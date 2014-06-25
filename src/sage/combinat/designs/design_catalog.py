@@ -87,20 +87,6 @@ from sage.combinat.designs.difference_family import difference_family
 from sage.combinat.designs.bibd import balanced_incomplete_block_design, steiner_triple_system
 
 # deprecated in june 2014 (#16446)
-def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
-    r"""
-    This function is deprecated.
-
-    TESTS::
-
-        sage: bibd = designs.BalancedIncompleteBlockDesign(21,5)
-        doctest:...: DeprecationWarning: designs.BalancedIncompleteBlockDesign is
-        deprecated. Please use designs.balanced_incomplete_block_design instead.
-        See http://trac.sagemath.org/16446 for details.
-        sage: bibd
-        Incidence structure with 21 points and 21 blocks
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(16446, "designs.BalancedIncompleteBlockDesign is deprecated. Please use designs.balanced_incomplete_block_design instead.")
-
-    return balanced_incomplete_block_design(v, k, existence=existence, use_LJCR=use_LJCR)
+from sage.misc.superseded import deprecated_function_alias
+BalancedIncompleteBlockDesign = deprecated_function_alias(16446,
+        balanced_incomplete_block_design)

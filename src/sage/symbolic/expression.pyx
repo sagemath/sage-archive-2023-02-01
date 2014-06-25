@@ -9148,7 +9148,6 @@ cdef class Expression(CommutativeRingElement):
 
         INPUT:
 
-
         -  ``x`` - variable(s) to solve for
 
         -  ``multiplicities`` - bool (default: False); if True,
@@ -9275,7 +9274,7 @@ cdef class Expression(CommutativeRingElement):
             sage: sol.sage()
             [[x == 1/4*pi + pi*z...]]
 
-        We can be also solved for several variables::
+        We can also solve for several variables::
 
             sage: var('b, c')
             (b, c)
@@ -9292,9 +9291,6 @@ cdef class Expression(CommutativeRingElement):
             sage: x,y=var('x,y'); (ln(x)>ln(y)).solve(x) # not tested - output depends on system
             [[0 < y, y < x, 0 < x]]
             [[y < x, 0 < y]]
-
-
-
 
         TESTS:
 
@@ -9384,8 +9380,6 @@ cdef class Expression(CommutativeRingElement):
         if isinstance(x, (list, tuple)):
             if not all([isinstance(i, Expression) for i in x]):
                 raise TypeError("%s are not valid variables." % repr(x))
-
-
         else:
             if x is None:
                 v = ex.variables()

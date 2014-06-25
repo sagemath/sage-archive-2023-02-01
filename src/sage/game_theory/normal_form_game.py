@@ -773,14 +773,15 @@ class NormalFormGame(SageObject, MutableMapping):
         strategy_sizes = [p.num_strategies for p in self.players]
         g = Game.new_table(strategy_sizes)
 
-        s1 = []
-        s2 = []
+        # Scale the matrix if it is not in ZZ
+        denominators = [[], []]
         for strategy_profile in self.utilities:
-            s1.append(Rational(self.utilities[strategy_profile][0]).denom())
-            s2.append(Rational(self.utilities[strategy_profile][1]).denom())
+            for player in range(2):
+                denominators[player].append(Rational(
+                                self.utilities[strategy_profile][0]).denom())
 
-        scalar1 = lcm(s1)
-        scalar2 = lcm(s2)
+        scalar1 = lcm(denominators[0])
+        scalar2 = lcm(denominators[1])
 
         if maximization is False:
             scalar1 *= -1

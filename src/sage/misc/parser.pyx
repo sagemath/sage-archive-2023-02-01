@@ -390,7 +390,7 @@ cdef class Tokenizer:
             '+'
         """
         if self.pos == self.last_pos and self.token != EOS:
-            raise NotImplementedError, "Can only backtrack once."
+            raise NotImplementedError("Can only backtrack once.")
         else:
             self.pos = self.last_pos
             self.token = 0
@@ -531,7 +531,7 @@ cdef class Parser:
         all = self.p_sequence(tokens)
         if tokens.next() != EOS:
             self.parse_error(tokens)
-        if len(all) == 1 and type(all) is list:
+        if len(all) == 1 and isinstance(all, list):
             all = all[0]
         return all
 
@@ -970,7 +970,7 @@ cdef class Parser:
             return self.p_expr(tokens)
 
     cdef parse_error(self, Tokenizer tokens, msg="Malformed expression"):
-        raise SyntaxError, (msg, tokens.s, tokens.pos)
+        raise SyntaxError(msg, tokens.s, tokens.pos)
 
 
 cdef class LookupNameMaker:
@@ -994,6 +994,7 @@ cdef class LookupNameMaker:
         """
         self.names = names
         self.fallback = fallback
+
     def __call__(self, name):
         """
         TESTS:
@@ -1011,6 +1012,5 @@ cdef class LookupNameMaker:
         except KeyError:
             if self.fallback is not None:
                 return self.fallback(name)
-            raise NameError, "Unknown variable: '%s'" % name
-
+            raise NameError("Unknown variable: '{}'".format(name))
 

@@ -10,6 +10,7 @@ TESTS::
 """
 include "sage/ext/stdsage.pxi"
 
+from sage.categories.finite_fields import FiniteFields
 from sage.structure.parent cimport Parent
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
@@ -74,13 +75,12 @@ cdef class FiniteFieldIterator:
         """
         return self
 
-from sage.categories.finite_fields import FiniteFields
-_FiniteFields = FiniteFields()
+
 cdef class FiniteField(Field):
     """
     Abstract base class for finite fields.
     """
-    def __init__(self, base, names, normalize):
+    def __init__(self, base, names, normalize, category=None):
         """
         Initialize ``self``.
 
@@ -97,7 +97,9 @@ cdef class FiniteField(Field):
             sage: loads(K.dumps()) == K
             True
         """
-        Field.__init__(self, base, names, normalize, category=_FiniteFields)
+        if category is None:
+            category = FiniteFields()
+        Field.__init__(self, base, names, normalize, category)
 
     def __repr__(self):
         """
@@ -320,20 +322,20 @@ cdef class FiniteField(Field):
             ...
             TypeError: images do not define a valid homomorphism
         """
-        if (self.characteristic() != codomain.characteristic()):
-            raise ValueError, "no map from %s to %s"%(self, codomain)
-        if (len(im_gens) != 1):
+        if not codomain.characteristic().divides(self.characteristic()):
+            raise ValueError, "no map from %s to %s" % (self, codomain)
+        if len(im_gens) != 1:
             raise ValueError, "only one generator for finite fields."
 
-        return (im_gens[0].charpoly())(self.gen(0)).is_zero()
+        return self.modulus()(im_gens[0]).is_zero()
 
-    def _Hom_(self, codomain, cat=None):
+    def _Hom_(self, codomain, category=None):
         """
-        Return homset of homomorphisms from ``self`` to the finite field
-        codomain. This function is implicitly called by the Hom method or
-        function.
+        Return the set of homomorphisms from ``self`` to ``codomain``
+        in ``category``.
 
-        The ``cat`` option is currently ignored.
+        This function is implicitly called by the ``Hom`` method or
+        function.
 
         EXAMPLES::
 
@@ -343,7 +345,11 @@ cdef class FiniteField(Field):
             Automorphism group of Finite Field in a of size 5^2
         """
         from sage.rings.finite_rings.homset import FiniteFieldHomset
-        return FiniteFieldHomset(self, codomain)
+        from sage.rings.homset import RingHomset
+        if category.is_subcategory(FiniteFields()):
+            return FiniteFieldHomset(self, codomain, category)
+        else:
+            return RingHomset(self, codomain, category)
 
     def gen(self):
         r"""
@@ -522,7 +528,7 @@ cdef class FiniteField(Field):
             sage: GF(997).order()
             997
         """
-        raise NotImplementedError
+        return self.characteristic()**self.degree()
 
     # cached because constructing the Factorization is slow;
     # see :trac:`11628`.
@@ -807,9 +813,9 @@ cdef class FiniteField(Field):
             if R.characteristic() == self.characteristic():
                 if R.degree() == 1:
                     return True
-                if self.degree() % R.degree() == 0:
-                    if hasattr(self, '_prefix') and hasattr(R, '_prefix'):
-                        return R.hom((self.gen() ** ((self.order() - 1)//(R.order() - 1)),))
+                elif (R.degree().divides(self.degree())
+                      and hasattr(self, '_prefix') and hasattr(R, '_prefix')):
+                    return R.hom((self.gen() ** ((self.order() - 1)//(R.order() - 1)),))
 
     def construction(self):
         """
@@ -838,7 +844,7 @@ cdef class FiniteField(Field):
             return (AlgebraicExtensionFunctor([self.polynomial()], [self.variable_name()], [None]),
                     self.base_ring())
 
-    def extension(self, modulus, name=None, names=None, embedding=None, **kwds):
+    def extension(self, modulus, name=None, names=None, map=False, embedding=None, **kwds):
         """
         Return an extension of this finite field.
 
@@ -849,6 +855,10 @@ cdef class FiniteField(Field):
 
         - ``name`` -- string: the name of the generator in the new
           extension
+
+        - ``map`` -- boolean (default: ``False``): if ``False``,
+          return just the extension `E`; if ``True``, return a pair
+          `(E, f)`, where `f` is an embedding of ``self`` into `E`.
 
         - ``embedding`` -- currently not used; for compatibility with
           other ``AlgebraicExtensionFunctor`` calls.
@@ -872,6 +882,19 @@ cdef class FiniteField(Field):
             sage: k.extension(3, conway=True, prefix='z')
             Finite Field in z12 of size 3^12
 
+        An example using the ``map`` argument::
+
+            sage: F = GF(5)
+            sage: E, f = F.extension(2, 'b', map=True)
+            sage: E
+            Finite Field in b of size 5^2
+            sage: f
+            Conversion map:
+              From: Finite Field of size 5
+              To:   Finite Field in b of size 5^2
+            sage: f.parent()
+            Set of field embeddings from Finite Field of size 5 to Finite Field in b of size 5^2
+
         Extensions of non-prime finite fields by polynomials are not yet
         supported: we fall back to generic code::
 
@@ -879,24 +902,32 @@ cdef class FiniteField(Field):
             Univariate Quotient Polynomial Ring in x over Finite Field in z4 of size 3^4 with modulus x^5 + x^2 + x + 2
         """
         from constructor import GF
-        from sage.rings.polynomial.all import is_Polynomial
+        from sage.rings.polynomial.polynomial_element import is_Polynomial
         from sage.rings.integer import Integer
         if name is None and names is not None:
             name = names
         if self.degree() == 1:
             if isinstance(modulus, Integer):
-                return GF(self.characteristic()**modulus, name=name, **kwds)
+                E = GF(self.characteristic()**modulus, name=name, **kwds)
             elif isinstance(modulus, (list, tuple)):
-                return GF(self.characteristic()**(len(modulus) - 1), name=name, modulus=modulus, **kwds)
+                E = GF(self.characteristic()**(len(modulus) - 1), name=name, modulus=modulus, **kwds)
             elif is_Polynomial(modulus):
                 if modulus.change_ring(self).is_irreducible():
-                    return GF(self.characteristic()**(modulus.degree()), name=name, modulus=modulus, **kwds)
+                    E = GF(self.characteristic()**(modulus.degree()), name=name, modulus=modulus, **kwds)
                 else:
-                    return Field.extension(self, modulus, name=name, embedding=embedding)
+                    E = Field.extension(self, modulus, name=name, embedding=embedding)
         elif isinstance(modulus, Integer):
-            return GF(self.order()**modulus, name=name, **kwds)
+            E = GF(self.order()**modulus, name=name, **kwds)
         else:
-            return Field.extension(self, modulus, name=name, embedding=embedding)
+            E = Field.extension(self, modulus, name=name, embedding=embedding)
+        if not map:
+            return E
+        # Use the canonical map if it exists.
+        f = E.coerce_map_from(self)
+        if f is None:
+            from sage.categories.homset import Hom
+            f = Hom(self, E).an_element()
+        return (E, f)
 
     def subfields(self, degree=0, name=None):
         """
@@ -982,22 +1013,85 @@ cdef class FiniteField(Field):
                 raise ValueError, "name must be None, a string or a dictionary indexed by divisors of the degree"
             return [self.subfields(m, name=name[m])[0] for m in divisors]
 
-    def algebraic_closure(self):
+    @cached_method
+    def algebraic_closure(self, name='z', **kwds):
         """
-        Return the algebraic closure of ``self`` (not implemented).
+        Return an algebraic closure of ``self``.
+
+        INPUT:
+
+        - ``name`` -- string (default: 'z'): prefix to use for
+          variable names of subfields
+
+        - ``implementation`` -- string (optional): specifies how to
+          construct the algebraic closure.  The only value supported
+          at the moment is ``'pseudo_conway'``.  For more details, see
+          :mod:`~sage.rings.algebraic_closure_finite_field`.
+
+        OUTPUT:
+
+        An algebraic closure of ``self``.  Note that mathematically
+        speaking, this is only unique up to *non-unique* isomorphism.
+        To obtain canonically defined algebraic closures, one needs an
+        algorithm that also provides a canonical isomorphism between
+        any two algebraic closures constructed using the algorithm.
+
+        This non-uniqueness problem can in principle be solved by
+        using *Conway polynomials*; see for example [CP]_.  These have
+        the drawback that computing them takes a long time.  Therefore
+        Sage implements a variant called *pseudo-Conway polynomials*,
+        which are easier to compute but do not determine an algebraic
+        closure up to unique isomorphism.
+
+        The output of this method is cached, so that within the same
+        Sage session, calling it multiple times will return the same
+        algebraic closure (i.e. the same Sage object).  Despite this,
+        the non-uniqueness of the current implementation means that
+        coercion and pickling cannot work as one might expect.  See
+        below for an example.
+
+        EXAMPLE::
+
+            sage: F = GF(5).algebraic_closure()
+            sage: F
+            Algebraic closure of Finite Field of size 5
+            sage: F.gen(3)
+            z3
+
+        The default name is 'z' but you can change it through the option
+        ``name``::
+
+            sage: Ft = GF(5).algebraic_closure('t')
+            sage: Ft.gen(3)
+            t3
+
+        Because Sage currently only implements algebraic closures
+        using a non-unique definition (see above), it is currently
+        impossible to implement pickling in such a way that a pickled
+        and unpickled element compares equal to the original::
+
+            sage: F = GF(7).algebraic_closure()
+            sage: x = F.gen(2)
+            sage: loads(dumps(x)) == x
+            False
 
         .. NOTE::
 
-           This is not yet implemented for finite fields.
+            This is currently only implemented for prime fields.
 
-        EXAMPLES::
+        REFERENCE:
 
-            sage: GF(5).algebraic_closure()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Algebraic closures of finite fields not implemented.
+        .. [CP] Wikipedia entry on Conway polynomials,
+           :wikipedia:`Conway_polynomial_(finite_fields)`
+
+        TEST::
+
+            sage: GF(5).algebraic_closure() is GF(5).algebraic_closure()
+            True
+
         """
-        raise NotImplementedError, "Algebraic closures of finite fields not implemented."
+        from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
+        return AlgebraicClosureFiniteField(self, name, **kwds)
 
     @cached_method
     def is_conway(self):

@@ -296,10 +296,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             x0 = x[0]
             if isinstance(x, Polynomial_integer_dense_flint):
                 f = self._new()
-                _sig_on
+                sig_on()
                 fmpz_poly_compose(f.__poly, self.__poly, \
                     (<Polynomial_integer_dense_flint> x0).__poly)
-                _sig_off
+                sig_off()
                 return f
             if isinstance(x0, (int, long)):
                 x0 = Integer(x0)

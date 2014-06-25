@@ -453,8 +453,8 @@ class GroupMixinLibGAP(object):
             sage: gens = [matrix(F,2, [1,0, -1,1]), matrix(F, 2, [1,1,0,1])]
             sage: G = MatrixGroup(gens)
             sage: iter(G).next()
+            [1 0]
             [0 1]
-            [2 0]
         """
         if hasattr(self.list, 'get_cache') and self.list.get_cache() is not None:
             for g in self.list():
@@ -486,8 +486,8 @@ class GroupMixinLibGAP(object):
             24
             sage: v[:5]
             (
-            [0 1]  [0 1]  [0 1]  [0 2]  [0 2]
-            [2 0], [2 1], [2 2], [1 0], [1 1]
+            [1 0]  [2 0]  [0 1]  [0 2]  [1 2]
+            [0 1], [0 2], [2 0], [1 0], [2 2]
             )
             sage: all(g in G for g in G.list())
             True
@@ -500,12 +500,12 @@ class GroupMixinLibGAP(object):
             sage: MG = MatrixGroup([M1, M2, M3])
             sage: MG.list()
             (
-            [-1  0]  [-1  0]  [ 1  0]  [1 0]
-            [ 0 -1], [ 0  1], [ 0 -1], [0 1]
+            [1 0]  [ 1  0]  [-1  0]  [-1  0]
+            [0 1], [ 0 -1], [ 0  1], [ 0 -1]
             )
             sage: MG.list()[1]
-            [-1  0]
-            [ 0  1]
+            [ 1  0]
+            [ 0 -1]
             sage: MG.list()[1].parent()
             Matrix group over Integer Ring with 3 generators (
             [-1  0]  [ 1  0]  [-1  0]

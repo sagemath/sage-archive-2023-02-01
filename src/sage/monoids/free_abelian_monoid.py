@@ -128,9 +128,9 @@ class FreeAbelianMonoid_class(ParentWithGens):
     """
     def __init__(self, n, names):
         if not isinstance(n, (int, long, Integer)):
-            raise TypeError, "n (=%s) must be an integer."%n
+            raise TypeError("n (=%s) must be an integer."%n)
         if n < 0:
-            raise ValueError, "n (=%s) must be nonnegative."%n
+            raise ValueError("n (=%s) must be nonnegative."%n)
         self.__ngens = int(n)
         assert not names is None
         self._assign_names(names)
@@ -198,7 +198,7 @@ class FreeAbelianMonoid_class(ParentWithGens):
         """
         n = self.__ngens
         if i < 0 or not i < n:
-            raise IndexError, "Argument i (= %s) must be between 0 and %s."%(i, n-1)
+            raise IndexError("Argument i (= %s) must be between 0 and %s."%(i, n-1))
         x = [ 0 for j in range(n) ]
         x[int(i)] = 1
         return FreeAbelianMonoidElement(self,x)

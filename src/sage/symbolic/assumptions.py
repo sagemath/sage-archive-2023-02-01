@@ -114,7 +114,7 @@ class GenericDeclaration(SageObject):
             # We get the list here because features may be added with time.
             valid_features = list(maxima("features"))
             if self._assumption not in [repr(x).strip() for x in list(valid_features)]:
-                raise ValueError, "%s not a valid assumption, must be one of %s" % (self._assumption, valid_features)
+                raise ValueError("%s not a valid assumption, must be one of %s" % (self._assumption, valid_features))
             cur = maxima.get("context")
             self._context = maxima.newcontext('context' + maxima._next_var_name())
             try:
@@ -122,9 +122,9 @@ class GenericDeclaration(SageObject):
 #            except TypeError, mess:
 #                if 'inconsistent' in str(mess): # note Maxima doesn't tell you if declarations are redundant
 #                    raise ValueError, "Assumption is inconsistent"
-            except RuntimeError, mess:
+            except RuntimeError as mess:
                 if 'inconsistent' in str(mess): # note Maxima doesn't tell you if declarations are redundant
-                    raise ValueError, "Assumption is inconsistent"
+                    raise ValueError("Assumption is inconsistent")
                 else:
                     raise
             maxima.set("context", cur)
@@ -411,7 +411,7 @@ def assume(*args):
             try:
                 x.assume()
             except KeyError:
-                raise TypeError, "assume not defined for objects of type '%s'"%type(x)
+                raise TypeError("assume not defined for objects of type '%s'"%type(x))
 
 def forget(*args):
     """
@@ -461,7 +461,7 @@ def forget(*args):
             try:
                 x.forget()
             except KeyError:
-                raise TypeError, "forget not defined for objects of type '%s'"%type(x)
+                raise TypeError("forget not defined for objects of type '%s'"%type(x))
 
 def assumptions(*args):
     """

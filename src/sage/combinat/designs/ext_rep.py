@@ -503,7 +503,7 @@ def check_dtrs_protocols(input_name, input_pv):
     ipv_major, ipv_minor = input_pv.split('.')
     if ppv_major != ipv_major or int(ppv_minor) < int(ipv_minor):
         msg = ('''Incompatible dtrs_protocols: program: %s %s: %s''' % (program_pv, input_name, input_pv))
-        raise RuntimeError, msg
+        raise RuntimeError(msg)
 
 def open_extrep_file(fname):
     """
@@ -660,7 +660,7 @@ class XTree(object):
         """
 
 
-        if type(node) == StringType:
+        if isinstance(node, StringType):
             node = (node, {}, [])
         name, attributes, children = node
         self.xt_node = node
@@ -694,7 +694,7 @@ class XTree(object):
             [0, 1, 2]
         """
 
-        if self.xt_attributes.has_key(attr):
+        if attr in self.xt_attributes:
             return self.xt_attributes[attr]
         else:
             for child in self.xt_children:
@@ -707,7 +707,7 @@ class XTree(object):
                             # need this to get an empty Xtree, for append
                             return XTree(child)
                         grandchild = children[0]
-                        if type(grandchild) == TupleType:
+                        if isinstance(grandchild, TupleType):
                             if len(grandchild[1]) == 0 and \
                                 len(grandchild[2]) == 0:
                                 return grandchild[0]
@@ -717,7 +717,7 @@ class XTree(object):
                             return grandchild
         msg = '"%s" is not found in attributes of %s or its children.' % \
               (attr, self)
-        raise AttributeError, msg
+        raise AttributeError(msg)
 
     def __getitem__(self, i):
         """
@@ -731,19 +731,25 @@ class XTree(object):
             [0, 1, 2]
             sage: xt.__getitem__(1)
             [0, 3, 4]
-        """
 
+        TESTS::
+
+            sage: xt.__getitem__(119)
+            Traceback (most recent call last):
+            ...
+            IndexError: XTree<blocks> has no index 119
+        """
         try:
             child = self.xt_children[i]
         except IndexError:
-            raise IndexError, '%s no index %s' % (self.__repr__(), `i`)
-        if type(child) == TupleType:
+            raise IndexError('{} has no index {}'.format(self.__repr__(), i))
+        if isinstance(child, TupleType):
             name, attributes, children = child
             if len(attributes) > 0:
                 return XTree(child)
             else:
                 grandchild = children[0]
-                if type(grandchild) == TupleType:
+                if isinstance(grandchild, TupleType):
                     if len(grandchild[1]) == 0 and len(grandchild[2]) == 0:
                         return grandchild[0]
                     else:
@@ -887,7 +893,7 @@ class XTreeProcessor(object):
 
         if self.in_item:
             children = self.current_node[2]
-            if len(children) > 0 and type(children[0]) == TupleType:
+            if len(children) > 0 and isinstance(children[0], TupleType):
                 if children[0][0] == 'z' or children[0][0] == 'd' \
                    or children[0][0] == 'q':
                     if children[0][0] == 'z':
@@ -895,7 +901,7 @@ class XTreeProcessor(object):
                     elif children[0][0] == 'd':
                         convert = float
                     else:
-                        raise NotImplementedError, 'rational numbers'
+                        raise NotImplementedError('rational numbers')
                     ps = []
                     for x in children:
                         ps.append(convert(''.join(x[2])))
@@ -1010,7 +1016,7 @@ def designs_from_XML(fname):
         sage: d = BlockDesign(v, blocks)
         sage: d.blocks()
         [[0, 1], [0, 1]]
-        sage: d.parameters()
+        sage: d.parameters(t=2)
         (2, 2, 2, 2)
     """
 

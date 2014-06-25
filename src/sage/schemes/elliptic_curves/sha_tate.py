@@ -447,9 +447,9 @@ class Sha(SageObject):
            C. R. Acad. Sci. Paris, Ser I. Math, 317 (1993), no 3,
            227-232.
 
-        .. [SW] William Stein and Christian Wuthrich, Computations
-           About Tate-Shafarevich Groups using Iwasawa theory,
-           preprint 2009.
+        .. [SW] William Stein and Christian Wuthrich, Algorithms
+           for the Arithmetic of Elliptic Curves using Iwasawa Theory
+           Mathematics of Computation 82 (2013), 1757-1792.
 
         INPUT:
 
@@ -474,29 +474,32 @@ class Sha(SageObject):
         Good ordinary examples::
 
             sage: EllipticCurve('11a1').sha().an_padic(5)    # rank 0
-            1 + O(5^2)
+            1 + O(5^22)
             sage: EllipticCurve('43a1').sha().an_padic(5)    # rank 1
             1 + O(5)
             sage: EllipticCurve('389a1').sha().an_padic(5,4) # rank 2, long time (2s on sage.math, 2011)
             1 + O(5^3)
             sage: EllipticCurve('858k2').sha().an_padic(7)   # rank 0, non trivial sha, long time (10s on sage.math, 2011)
-            7^2 + O(7^6)
+            Traceback (most recent call last):                           # 32-bit (see ticket :trac: `11211`)
+            ...                                                          # 32-bit
+            OverflowError: Python int too large to convert to C long     # 32-bit
+            7^2 + O(7^24) # 64-bit
             sage: EllipticCurve('300b2').sha().an_padic(3)   # 9 elements in sha, long time (2s on sage.math, 2011)
-            3^2 + O(3^6)
+            3^2 + O(3^24)
             sage: EllipticCurve('300b2').sha().an_padic(7, prec=6)  # long time
             2 + 7 + O(7^8)
 
         Exceptional cases::
 
             sage: EllipticCurve('11a1').sha().an_padic(11) # rank 0
-            1 + O(11^2)
+            1 + O(11^22)
             sage: EllipticCurve('130a1').sha().an_padic(5) # rank 1
             1 + O(5)
 
         Non-split, but rank 0 case (:trac:`7331`)::
 
             sage: EllipticCurve('270b1').sha().an_padic(5) # rank 0, long time (2s on sage.math, 2011)
-            1 + O(5^2)
+            1 + O(5^22)
 
         The output has the correct sign::
 
@@ -506,7 +509,7 @@ class Sha(SageObject):
         Supersingular cases::
 
             sage: EllipticCurve('34a1').sha().an_padic(5) # rank 0
-            1 + O(5^2)
+            1 + O(5^22)
             sage: EllipticCurve('53a1').sha().an_padic(5) # rank 1, long time (11s on sage.math, 2011)
             1 + O(5)
 
@@ -518,8 +521,15 @@ class Sha(SageObject):
             4 + O(5)
             sage: EllipticCurve('448c5').sha().an_padic(7,prec=4, use_twists=False)  # long time (2s on sage.math, 2011)
             2 + 7 + O(7^6)
-            sage: EllipticCurve([-19,34]).sha().an_padic(5)  # see trac 6455, long time (4s on sage.math, 2011)
+            sage: EllipticCurve([-19,34]).sha().an_padic(5)  # see :trac: `6455`, long time (4s on sage.math, 2011)
             1 + O(5)
+
+        Test for :trac: `15737`::
+
+            sage: E = EllipticCurve([-100,0])
+            sage: s = E.sha()
+            sage: s.an_padic(13)
+            1 + O(13^20)
         """
         try:
             return self.__an_padic[(p,prec)]
@@ -532,7 +542,6 @@ class Sha(SageObject):
         tam = E.tamagawa_product()
         tors = E.torsion_order()**2
         reg = E.padic_regulator(p)
-        # todo : here we should cache the rank computation
         r = E.rank()
 
 
@@ -575,7 +584,8 @@ class Sha(SageObject):
             lstar = ms(0)/E.real_components()
             bsd = tam/tors
             if prec == 0:
-                prec = valuation(lstar/bsd, p)
+                #prec = valuation(lstar/bsd, p)
+                prec = 20
             shan = Qp(p,prec=prec+2)(lstar/bsd)
 
 
@@ -737,7 +747,10 @@ class Sha(SageObject):
 
             sage: e = EllipticCurve('858k2')
             sage: e.sha().p_primary_bound(3)  # long time (10s on sage.math, 2011)
-            0
+            Traceback (most recent call last):                           # 32-bit (see :trac: `11211`)
+            ...                                                          # 32-bit
+            OverflowError: Python int too large to convert to C long     # 32-bit
+            0                                                            # 64-bit
 
         Some checks for :trac:`6406`::
 
@@ -745,8 +758,12 @@ class Sha(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: The mod-p Galois representation is not surjective. Current knowledge about Euler systems does not provide an upper bound in this case. Try an_padic for a conjectural bound.
+
             sage: e.sha().an_padic(7)  # long time (depends on "e.sha().p_primary_bound(3)" above)
-            7^2 + O(7^6)
+            Traceback (most recent call last):                           # 32-bit
+            ...                                                          # 32-bit
+            OverflowError: Python int too large to convert to C long     # 32-bit
+            7^2 + O(7^24)                                                 # 64-bit
 
             sage: e = EllipticCurve('11a3')
             sage: e.sha().p_primary_bound(5)
@@ -754,7 +771,7 @@ class Sha(SageObject):
             ...
             ValueError: The mod-p Galois representation is not surjective. Current knowledge about Euler systems does not provide an upper bound in this case. Try an_padic for a conjectural bound.
             sage: e.sha().an_padic(5)
-            1 + O(5^2)
+            1 + O(5^22)
         """
         p = Integer(p)
         E = self.Emin
@@ -914,7 +931,7 @@ class Sha(SageObject):
                 LE1, err_E = E.lseries().at1(k_E)
                 err_F = max(err_F, MIN_ERR)
                 err_E = max(err_E, MIN_ERR)
-                if regulator != None:
+                if regulator is not None:
                     hZ = regulator/2
                 else:
                     hZ = F.regulator(use_database=True)/2
@@ -924,7 +941,7 @@ class Sha(SageObject):
 
             else:          # E has odd rank
 
-                if regulator != None:
+                if regulator is not None:
                     hZ = regulator/2
                 else:
                     hZ = E.regulator(use_database=True)/2
@@ -961,8 +978,7 @@ class Sha(SageObject):
         if not ignore_nonsurj_hypothesis:
             for p in E.galois_representation().non_surjective():
                 B.append(p)
-        B = list(set([int(x) for x in B]))
-        B.sort()
+        B = sorted(set([int(x) for x in B]))
         return B, n
 
 
@@ -1047,8 +1063,7 @@ class Sha(SageObject):
         for p, n in factor(self.an()):
             if n >= 2:    # use parity of Sha
                 B.append(int(p))
-        B = list(set(B))
-        B.sort()
+        B = sorted(set(B))
         return B
 
     def bound(self):

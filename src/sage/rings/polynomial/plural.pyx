@@ -163,7 +163,7 @@ class G_AlgFactory(UniqueFactory):
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y}) # indirect doctest
             Noncommutative Multivariate Polynomial Ring in x, y, z over Rational
-            Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
 
         """
         # key = (base_ring,names, c,d, order, category)
@@ -705,9 +705,9 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: x*y == y*x
             True
             sage: H.relations()
-            {z*y: y*z - 2*y, z*x: x*z + 2*x}
+            {z*x: x*z + 2*x, z*y: y*z - 2*y}
             sage: H.relations(add_commutative=True)
-            {y*x: x*y, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y}
 
         """
         if add_commutative:
@@ -1704,7 +1704,7 @@ cdef class NCPolynomial_plural(RingElement):
             sage: I.std()
             Left Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2) of
             Noncommutative Multivariate Polynomial Ring in x, y, z over Rational
-            Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
 
         """
         cdef ideal *_I
@@ -1719,7 +1719,7 @@ cdef class NCPolynomial_plural(RingElement):
             try:
                 strat = I._groebner_strategy()
                 return strat.normal_form(self)
-            except (TypeError, NotImplementedError),msg:
+            except (TypeError, NotImplementedError) as msg:
                 pass
             I = I.gens()
 
@@ -1729,7 +1729,7 @@ cdef class NCPolynomial_plural(RingElement):
                    and <NCPolynomialRing_plural>(<NCPolynomial_plural>f)._parent is parent):
                 try:
                     f = parent._coerce_c(f)
-                except TypeError, msg:
+                except TypeError as msg:
                     id_Delete(&_I,r)
                     raise TypeError(msg)
 
@@ -2945,7 +2945,7 @@ def ExteriorAlgebra(base_ring, names,order='degrevlex'):
 
         sage: from sage.rings.polynomial.plural import ExteriorAlgebra
         sage: E = ExteriorAlgebra(QQ, ['x', 'y', 'z']) ; E
-        Quotient of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: -x*y, z*y: -y*z, z*x: -x*z} by the ideal (z^2, y^2, x^2)
+        Quotient of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: -x*z, z*y: -y*z, y*x: -x*y} by the ideal (z^2, y^2, x^2)
         sage: E.inject_variables()
         Defining xbar, ybar, zbar
         sage: x,y,z = (xbar,ybar,zbar)

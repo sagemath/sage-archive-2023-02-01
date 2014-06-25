@@ -5,6 +5,18 @@
 /logs
 /upstream
 
+#############################
+# Autotools generated files #
+#############################
+/aclocal.m4
+/autom4te.cache/
+/config/
+/config.log
+/config.status
+/configure
+/build/Makefile-auto
+/build/Makefile-auto.in
+
 ###################
 # Temporary Files #
 ###################

@@ -646,7 +646,7 @@ class ModularFormsRing(SageObject):
 
         gen_weight = min(6, weight)
 
-        while 1:
+        while True:
             verbose("Trying to generate the %s-dimensional space at weight %s using generators of weight up to %s" % (d, weight, gen_weight))
             G = self.generators(maxweight=gen_weight, prec=working_prec)
             V = _span_of_forms_in_weight(G, weight, prec=working_prec, use_random=use_random, stop_dim=d)
@@ -783,7 +783,7 @@ class ModularFormsRing(SageObject):
 
         gen_weight = min(6, weight)
 
-        while 1:
+        while True:
             verbose("Trying to generate the %s-dimensional cuspidal submodule at weight %s using generators of weight up to %s" % (d, weight, gen_weight))
             G = self.cuspidal_ideal_generators(maxweight=gen_weight, prec=working_prec)
 

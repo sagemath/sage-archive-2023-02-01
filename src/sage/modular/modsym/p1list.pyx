@@ -880,7 +880,7 @@ cdef class P1List:
 
         ::
 
-            This operation is an involution:
+            This operation is an involution::
 
             sage: all([L.apply_I(L.apply_I(i))==i for i in xrange(len(L))])
             True
@@ -916,7 +916,7 @@ cdef class P1List:
 
         ::
 
-            This operation is an involution:
+            This operation is an involution::
 
             sage: all([L.apply_S(L.apply_S(i))==i for i in xrange(len(L))])
             True
@@ -952,7 +952,7 @@ cdef class P1List:
 
         ::
 
-            This operation has order three:
+            This operation has order three::
 
             sage: all([L.apply_T(L.apply_T(L.apply_T(i)))==i for i in xrange(len(L))])
             True
@@ -1270,7 +1270,8 @@ def lift_to_sl2z_llong(llong c, llong d, int N):
 
         sage: from sage.modular.modsym.p1list import lift_to_sl2z_llong
         sage: lift_to_sl2z_llong(2,6,11)
-        [1L, 8L, 2L, 17L]
+        [1L, 8L, 2L, 17L] # 32-bit
+        [1, 8, 2, 17]     # 64-bit
         sage: m=Matrix(Integers(),2,2,lift_to_sl2z_llong(2,6,11))
         sage: m
         [ 1  8]
@@ -1333,7 +1334,8 @@ def lift_to_sl2z(c, d, N):
         sage: lift_to_sl2z(2,3,6)
         [1, 1, 2, 3]
         sage: lift_to_sl2z(2,3,6000000)
-        [1L, 1L, 2L, 3L]
+        [1L, 1L, 2L, 3L] # 32-bit
+        [1, 1, 2, 3]     # 64-bit
 
     You will get a ValueError exception if the input is invalid.  Note
     that here gcd(15,6,24)=3::

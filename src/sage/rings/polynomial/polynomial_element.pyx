@@ -3885,8 +3885,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``self`` -- A polynomial
-
         - ``other`` -- A nonzero polynomial, otherwise an exception ValueError is raised
 
         OUTPUT:
@@ -3946,9 +3944,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``self`` -- A polynomial
-
-        - ``other`` -- A polynomial
+        - ``other`` -- a polynomial defined over the same ring as ``self``
 
         EXAMPLES::
 

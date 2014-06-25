@@ -538,8 +538,9 @@ class NormalFormGame(SageObject, MutableMapping):
         self.utilities = {}
         self.add_player(matrices[0].dimensions()[0])
         self.add_player(matrices[1].dimensions()[1])
-        for key in self.utilities:
-            self.utilities[key] = [matrices[0][key], matrices[1][key]]
+        for strategy_profile in self.utilities:
+            self.utilities[strategy_profile] = [matrices[0][strategy_profile],
+                                                matrices[1][strategy_profile]]
 
     def payoff_matrices(self):
         r"""

@@ -1246,6 +1246,27 @@ class SubsetsSorted(Subsets_s):
     """
     element_class = tuple
 
+    def __contains__(self, value):
+        """
+        TESTS::
+
+            sage: from sage.combinat.subset import SubsetsSorted
+            sage: S = SubsetsSorted(range(3))
+            sage: Set([1,2]) in S
+            True
+            sage: Set([1,4]) in S
+            False
+            sage: Set([]) in S
+            True
+            sage: (0,2) in S
+            True
+            sage: 2 in S
+            False
+        """
+        if not isinstance(value, (list, tuple)) and value not in Sets():
+            return False
+        return all(v in self._s for v in value)
+
     def __iter__(self):
         """
         Iterate over ``self``.

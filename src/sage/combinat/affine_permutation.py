@@ -2096,7 +2096,7 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
             sage: AffinePermutationGroup(['A',7,1]).rank()
             8
         """
-        return self.k+1
+        return self.k + 1
 
     def random_element(self, n):
         r"""
@@ -2107,18 +2107,16 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
         of length `n`.  Thus we most likely get elements with lots of reduced
         words!
 
+        For the actual code, see :meth:`sage.categories.coxeter_group.random_element_of_length`
+
         EXAMPLES::
 
-            sage: A=AffinePermutationGroup(['A',7,1])
-            sage: p=A.random_element(10)
-            sage: p.length()==10
+            sage: A = AffinePermutationGroup(['A',7,1])
+            sage: p = A.random_element(10)
+            sage: p.length() == 10
             True
         """
-        x=self.one()
-        for i in xrange(1,n+1):
-            antiD=x.descents(positive=True)
-            x=x.apply_simple_reflection_right(antiD[ randint(0, len(antiD)-1) ])
-        return x
+        return self.random_element_of_length(n)
 
     def from_word(self, w):
         r"""

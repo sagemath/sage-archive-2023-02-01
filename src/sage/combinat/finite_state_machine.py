@@ -8769,8 +8769,7 @@ class FSMTapeCache(SageObject):
             else:
                 return self.read_letter(0)
         t = self.cache[track_number]
-        while not t:
-            if not self.read(track_number):
+        if not t and not self.read(track_number):
                 raise StopIteration
         return t[0]
 
@@ -8921,7 +8920,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         sage: T.process(input)
         (True, 'A', [1, 0, 0, 1, 0, 1, 0])
 
-    The function :meth:`FiniteStateMachine.process` created a new
+    The function :meth:`FiniteStateMachine.process` creates a new
     ``FSMProcessIterator``. We can do that manually, too, and get full
     access to the iteration process::
 
@@ -9073,8 +9072,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                              'be True' % (len(self._input_tape_),))
 
         self._input_tapes_ = []
-        position_zero = tuple((ZZ(0), i)
-                              for i in srange(len(self._input_tape_)))
+        position_zero = tuple((0, i) for i, _ in enumerate(self._input_tape_))
         if not hasattr(self, 'tape_type'):
             self.tape_type = FSMTapeCache
         for _ in initial_states:
@@ -9212,14 +9210,14 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             if not next_transitions:
                 # this branch has to end here...
                 if not (input_tape.finished() or state_said_finished):
-                    return False
+                    return
                 successful = current_state.is_final
                 if successful:
                     self.write_word(output, current_state.final_word_out)
                 for o in output:
                     self._finished_.append((successful, current_state,
                                             self.format_output(o)))
-                return True
+                return
 
             # at this point we know that there is at least one
             # outgoing transition to take
@@ -9241,7 +9239,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                 state = transition.to_state
                 tape.forward(transition)
                 self.add_current(state, tape, out)
-            return None
+            return
 
         states_dict = self._current_.pop(self._current_positions_.pop(0))
         for state, (tape, output) in states_dict.iteritems():

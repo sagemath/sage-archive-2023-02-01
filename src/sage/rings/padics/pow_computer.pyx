@@ -439,7 +439,9 @@ cdef class PowComputer_base(PowComputer_class):
         for i from 2 <= i <= cache_limit:
             mpz_init(self.small_powers[i])
             mpz_mul(self.small_powers[i], self.small_powers[i - 1], prime.value)
+        sig_on()
         mpz_pow_ui(self.top_power, prime.value, prec_cap)
+        sig_off()
         self.deg = 1
         self.e = 1
         self.f = 1
@@ -505,7 +507,9 @@ cdef class PowComputer_base(PowComputer_class):
             return &(self.small_powers[n])
         if n == self.prec_cap:
             return &(self.top_power)
+        sig_on()
         mpz_pow_ui(self.temp_m, self.prime.value, n)
+        sig_off()
         return &(self.temp_m)
 
 pow_comp_cache = {}

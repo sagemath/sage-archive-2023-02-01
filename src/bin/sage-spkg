@@ -586,7 +586,9 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
-    mv 2>/dev/null "${PKG_NAME_UPSTREAM%.tar*}" src
+    shopt -s nocaseglob      # see trac:16415
+    mv "${PKG_NAME_UPSTREAM%.tar*}"* src
+    shopt -u nocaseglob
     echo "Finished set up"
 else
     echo "Finished extraction"

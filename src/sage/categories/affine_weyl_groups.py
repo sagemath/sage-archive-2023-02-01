@@ -163,7 +163,7 @@ class AffineWeylGroups(Category_singleton):
             rword = self.reduced_word()
             kp1 = self.parent().n
             for i in range(len(rword)):
-                for c in filter( lambda x: (x[1]-x[0])%kp1==rword[-i-1], out.outside_corners()):
+                for c in (x for x in out.outside_corners() if (x[1]-x[0])%kp1 == rword[-i-1] ):
                     out = out.add_cell(c[0],c[1])
             return Core(out._list,kp1)
 

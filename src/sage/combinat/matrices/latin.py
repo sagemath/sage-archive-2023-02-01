@@ -518,7 +518,7 @@ class LatinSquare:
         """
 
         symbols = uniq(flatten(map(lambda x: list(x), list(self.square))))
-        symbols = filter(lambda x: x >= 0, symbols)
+        symbols = [x for x in symbols if x >= 0]
 
         return len(symbols)
 
@@ -709,7 +709,7 @@ class LatinSquare:
             return False
 
         # Every cell must be filled:
-        if len(filter(lambda x: x >= 0, self.list())) != self.nrows()*self.ncols():
+        if len([x for x in self.list() if x >= 0]) != self.nrows()*self.ncols():
             return False
 
         # By necessity self must be a partial latin square:
@@ -2534,14 +2534,14 @@ def is_row_and_col_balanced(T1, T2):
     """
 
     for r in range(T1.nrows()):
-        val1 = set(filter(lambda x: x >= 0, T1.row(r)))
-        val2 = set(filter(lambda x: x >= 0, T2.row(r)))
+        val1 = set(x for x in T1.row(r) if x >= 0)
+        val2 = set(x for x in T2.row(r) if x >= 0)
 
         if val1 != val2: return False
 
     for c in range(T1.ncols()):
-        val1 = set(filter(lambda x: x >= 0, T1.column(c)))
-        val2 = set(filter(lambda x: x >= 0, T2.column(c)))
+        val1 = set(x for x in T1.column(c) if x >= 0)
+        val2 = set(x for x in T2.column(c) if x >= 0)
 
         if val1 != val2: return False
 

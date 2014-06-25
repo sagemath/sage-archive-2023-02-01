@@ -2003,9 +2003,6 @@ class Category(UniqueRepresentation, SageObject):
         Note that several of the above examples are actually join
         categories; they are just nicely displayed::
 
-            sage: (Rings().Commutative() & Sets().Finite())._repr_(as_join=True)
-            'Join of Category of commutative rings and Category of finite monoids'
-
             sage: AlgebrasWithBasis(QQ) & FiniteSets().Algebras(QQ)
             Join of Category of finite dimensional algebras with basis over Rational Field
                 and Category of finite set algebras over Rational Field
@@ -2029,7 +2026,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: TCF.axioms()
             frozenset(['Facade', 'Commutative'])
             sage: type(TCF)
-            <class 'sage.categories.category_with_axiom.Commutative.Facade_with_category'>
+            <class 'sage.categories.category_with_axiom.TestObjects.Commutative.Facade_with_category'>
 
             sage: TCF = T.Commutative().FiniteDimensional()
             sage: TCF is T.FiniteDimensional().Commutative()
@@ -2039,7 +2036,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: TCF is T.FiniteDimensional() & T.Commutative()
             True
             sage: type(TCF)
-            <class 'sage.categories.category_with_axiom.Commutative.FiniteDimensional_with_category'>
+            <class 'sage.categories.category_with_axiom.TestObjects.Commutative.FiniteDimensional_with_category'>
 
             sage: TCU = T.Commutative().Unital()
             sage: TCU is T.Unital().Commutative()
@@ -2052,7 +2049,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: TUCF = T.Unital().Commutative().FiniteDimensional(); TUCF
             Category of finite dimensional commutative unital test objects
             sage: type(TUCF)
-            <class 'sage.categories.category_with_axiom.Unital.Commutative_with_category'>
+            <class 'sage.categories.category_with_axiom.TestObjects.FiniteDimensional.Unital.Commutative_with_category'>
 
             sage: TFFC = T.Facade().FiniteDimensional().Commutative(); TFFC
             Category of facade finite dimensional commutative test objects

@@ -4543,7 +4543,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: AA(-16)^(1/4)/QQbar.zeta(8)
             2
 
-        We check that #7859 is fixed::
+        We check that :trac:`7859` is fixed::
 
             sage: (AA(2)^(1/2)-AA(2)^(1/2))^(1/2)
             0
@@ -6800,11 +6800,16 @@ class ANRoot(ANDescr):
             sage: x = polygen(QQ); y = (x^3 + x + 1).roots(AA,multiplicities=False)[0]._descr
             sage: y._interval_fast(128)
             -0.68232780382801932736948373971104825689?
+
+        Check that :trac:`15493` is fixed::
+
+            sage: y._interval_fast(20).parent() is RealIntervalField(20)
+            True
         """
         if prec == self._interval.prec():
             return self._interval
         if prec < self._interval.prec():
-            return type(self._interval.parent())(prec)(self._interval)
+            return self._interval.parent().to_prec(prec)(self._interval)
         self._more_precision()
         return self._interval_fast(prec)
 

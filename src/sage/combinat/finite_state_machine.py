@@ -9087,17 +9087,6 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             raise ValueError('%s tapes given, so use_multitape_input should '
                              'be True' % (len(self._input_tape_),))
 
-        self._input_tapes_ = []
-        position_zero = tuple((0, i) for i, _ in enumerate(self._input_tape_))
-        if not hasattr(self, 'tape_type'):
-            self.tape_type = FSMTapeCache
-        for _ in initial_states:
-            self.tape_type(self._input_tapes_,
-                           self._input_tape_,
-                           self._input_tape_ended_,
-                           position_zero,
-                           self.is_multitape)
-
         if format_output is None:
             self.format_output = lambda o: list(o)
         else:
@@ -9107,8 +9096,18 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         self._current_ = {}
         self._current_positions_ = []  # a sorted list of the keys of _current_
-        for state, tape in izip(initial_states, self._input_tapes_):
-            self.add_current(state, tape, [[]])
+        self._tape_cache_manager_ = []
+        position_zero = tuple((0, i) for i, _ in enumerate(self._input_tape_))
+        if not hasattr(self, 'tape_type'):
+            self.tape_type = FSMTapeCache
+
+        for state in initial_states:
+            self.tape_type(self._tape_cache_manager_,
+                           self._input_tape_,
+                           self._input_tape_ended_,
+                           position_zero,
+                           self.is_multitape)
+            self.add_current(state, self._tape_cache_manager_[-1], [[]])
 
         self._finished_ = []  # contains (accept, state, output)
 

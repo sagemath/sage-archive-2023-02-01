@@ -149,9 +149,9 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     For `k > 5` there are currently very few constructions::
 
         sage: [v for v in xrange(150) if designs.balanced_incomplete_block_design(v,6,existence=True) is True]
-        [1, 6, 31]
+        [1, 6, 31, 91]
         sage: [v for v in xrange(150) if designs.balanced_incomplete_block_design(v,6,existence=True) is Unknown]
-        [16, 21, 36, 46, 51, 61, 66, 76, 81, 91, 96, 106, 111, 121, 126, 136, 141]
+        [16, 21, 36, 46, 51, 61, 66, 76, 81, 96, 106, 111, 121, 126, 136, 141]
     """
     if v == 1:
         if existence:

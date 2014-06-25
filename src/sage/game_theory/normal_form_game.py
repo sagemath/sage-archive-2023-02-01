@@ -986,7 +986,7 @@ class NormalFormGame(SageObject, MutableMapping):
         except:
             return False
 
-    def _is_NE(self, vector1, vector2, p1_support, p2_support):
+    def _is_NE(self, a, b, p1_support, p2_support):
         r"""
         TESTS:
 
@@ -1000,21 +1000,20 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: Z._is_NE([0, 1/4, 3/4], [3/5, 2/5, 0], (1,2,), (0,1,))
             False
         """
-        if (not all(i >= 0 for i in vector1)
-            or not all(i >= 0 for i in vector1)):
+        # Verify that vectors are indeed probability vectors
+        if (not all(i >= 0 for i in a)
+            or not all(i >= 0 for i in a)):
             return False
 
-        if sum(x > 0 for x in vector1) != sum(x > 0 for x in vector2):
+        # I have no idea what this is for
+        if sum(x > 0 for x in a) != sum(x > 0 for x in b):
             return False
 
+        # Verify that indifference vector is indeed a point at which no deviation is worthwhile
         M1, M2 = self.payoff_matrices()
 
-#        if p1_payoffs.index(max(p1_payoffs)) not in p1_support:
-#            return False
-#        if p2_payoffs.index(max(p2_payoffs)) not in p2_support:
-#            return False
-        p1_payoffs = [sum(v * row[i] for i, v in enumerate(vector2)) for row in M1.rows()]
-        p2_payoffs = [sum(v * col[j] for j, v in enumerate(vector1)) for col in M2.columns()]
+        p1_payoffs = [sum(v * row[i] for i, v in enumerate(b)) for row in M1.rows()]
+        p2_payoffs = [sum(v * col[j] for j, v in enumerate(a)) for col in M2.columns()]
 
         if p1_payoffs.index(max(p1_payoffs)) not in p1_support:
             return False

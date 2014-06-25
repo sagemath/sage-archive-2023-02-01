@@ -8138,7 +8138,7 @@ cdef class Expression(CommutativeRingElement):
 
         if complexity_measure is None:
             return simplified_expr
-        
+
         if complexity_measure(simplified_expr) < complexity_measure(self):
             return simplified_expr
         else:
@@ -9348,7 +9348,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x.solve((1,2))
             Traceback (most recent call last):
             ...
-            TypeError: 1 is not a valid variable.
+            TypeError: (1, 2) are not valid variables.
         """
         import operator
         cdef Expression ex
@@ -9370,25 +9370,24 @@ cdef class Expression(CommutativeRingElement):
         if multiplicities and to_poly_solve:
             raise NotImplementedError("to_poly_solve does not return multiplicities")
 
-        # Take care of cases like solve([x^2-1], [x]) for consistency with
-        # multiple variable input in sage.symbolic.relation.solve().
-        # There *should* be only one variable in the list, since it is
-        # passed from sage.symbolic.relation.solve() and multiple variables
-        # there don't call this function.
+
         if isinstance(x, (list, tuple)):
-            x = x[0]
+            if not all([isinstance(i, Expression) for i in x]):
+                raise TypeError("%s are not valid variables." % repr(x))
 
-        if x is None:
-            v = ex.variables()
-            if len(v) == 0:
-                if multiplicities:
-                    return [], []
-                else:
-                    return []
-            x = v[0]
 
-        if not isinstance(x, Expression):
-            raise TypeError("%s is not a valid variable." % repr(x))
+        else:
+            if x is None:
+                v = ex.variables()
+                if len(v) == 0:
+                    if multiplicities:
+                        return [], []
+                    else:
+                        return []
+                x = v[0]
+
+            if not isinstance(x, Expression):
+                raise TypeError("%s is not a valid variable." % repr(x))
 
         m = ex._maxima_()
         P = m.parent()

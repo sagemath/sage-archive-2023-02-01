@@ -248,7 +248,7 @@ class NormalFormGame(SageObject, MutableMapping):
         2. `lrs`
         3. `enumeration`
 
-    As mentioned above the prefered engine for the equilibrium analysis is
+    As mentioned above the preferred engine for the equilibrium analysis is
     gambit. Gambit has it's own Python api which can be used independently from
     Sage and to ensure compatibility between the two system, gambit like syntax
     is compatible.

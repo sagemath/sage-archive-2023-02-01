@@ -11,7 +11,6 @@ Modular abelian varieties
 #******************************************************************************
 
 from category_types import Category_over_base
-from sage.misc.cachefunc import cached_method
 from sets_cat import Sets
 
 class ModularAbelianVarieties(Category_over_base):

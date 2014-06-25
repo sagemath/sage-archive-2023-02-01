@@ -261,8 +261,8 @@ class FiniteFieldFactory(UniqueFactory):
         sage: K.<a> = GF(5**5, name='a', modulus=x^3 + 3*x + 3)
         Traceback (most recent call last):
         ...
-        ValueError: The degree of the modulus does not correspond to the
-        cardinality of the field.
+        ValueError: the degree of the modulus does not equal the
+        degree of the field.
 
     If you wish to live dangerously, you can tell the constructor not
     to test irreducibility using ``check_irreducible=False``, but this
@@ -410,15 +410,15 @@ class FiniteFieldFactory(UniqueFactory):
                 # is no good place to store a specific choice of
                 # pseudo-Conway polynomials.
                 if name is None:
-                    if not (kwds.has_key('conway') and kwds['conway']):
+                    if not ('conway' in kwds and kwds['conway']):
                         raise ValueError("parameter 'conway' is required if no name given")
-                    if not kwds.has_key('prefix'):
+                    if 'prefix' not in kwds:
                         raise ValueError("parameter 'prefix' is required if no name given")
                     name = kwds['prefix'] + str(n)
 
-                if kwds.has_key('conway') and kwds['conway']:
+                if 'conway' in kwds and kwds['conway']:
                     from conway_polynomials import conway_polynomial
-                    if not kwds.has_key('prefix'):
+                    if 'prefix' not in kwds:
                         raise ValueError("a prefix must be specified if conway=True")
                     if modulus is not None:
                         raise ValueError("no modulus may be specified if conway=True")
@@ -492,7 +492,7 @@ class FiniteFieldFactory(UniqueFactory):
                     if not modulus.is_irreducible():
                         raise ValueError("finite field modulus must be irreducible but it is not.")
                     if modulus.degree() != n:
-                        raise ValueError("The degree of the modulus does not correspond to the cardinality of the field.")
+                        raise ValueError("the degree of the modulus does not equal the degree of the field.")
                 if name is None:
                     raise TypeError("you must specify the generator name.")
                 if impl is None:
@@ -506,7 +506,7 @@ class FiniteFieldFactory(UniqueFactory):
                     else:
                         impl = 'pari_ffelt'
                 if impl == 'givaro':
-                    if kwds.has_key('repr'):
+                    if 'repr' in kwds:
                         repr = kwds['repr']
                     else:
                         repr = 'poly'
@@ -525,7 +525,7 @@ class FiniteFieldFactory(UniqueFactory):
                     raise ValueError("no such finite field implementation: %s" % impl)
 
             # Temporary; see create_key_and_extra_args() above.
-            if kwds.has_key('prefix'):
+            if 'prefix' in kwds:
                 K._prefix = kwds['prefix']
 
         return K

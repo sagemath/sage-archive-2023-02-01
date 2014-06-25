@@ -96,12 +96,15 @@ family of reflections::
 If instead you want a dictionary whose keys are the roots and whose
 values are the reflections, you may use the inverse family::
 
+    sage: from pprint import pprint
     sage: W = WeylGroup("B3",prefix="s")
     sage: [s1,s2,s3] = W.simple_reflections()
-    sage: altref = W.reflections().inverse_family(); altref
-    Finite family {(1, 0, 0): s1*s2*s3*s2*s1, (1, 0, 1): s3*s1*s2*s3*s1, (0, 1, 0): s2*s3*s2,
-    (0, 1, -1): s2, (1, 0, -1): s1*s2*s1, (0, 1, 1): s3*s2*s3, (1, 1, 0): s2*s3*s1*s2*s3*s1*s2,
-    (0, 0, 1): s3, (1, -1, 0): s1}
+    sage: altref = W.reflections().inverse_family()
+    sage: pprint(altref)
+    Finite family {(1, 0, 0): s1*s2*s3*s2*s1, (0, 1, 1): s3*s2*s3,
+                   (0, 1, -1): s2, (0, 0, 1): s3, (1, -1, 0): s1,
+                   (1, 1, 0): s2*s3*s1*s2*s3*s1*s2, (1, 0, -1): s1*s2*s1,
+                   (1, 0, 1): s3*s1*s2*s3*s1, (0, 1, 0): s2*s3*s2}
     sage: [a1,a2,a3] = W.domain().simple_roots()
     sage: a1+a2+a3
     (1, 0, 0)
@@ -212,7 +215,7 @@ this as follows::
     sage: def bi(u,v) : return [t for t in W if u.bruhat_le(t) and t.bruhat_le(v)]
     ...
     sage: bi(s1,s1*s2*s1)
-    [s1*s2*s1, s1*s2, s2*s1, s1]
+    [s1*s2*s1, s1*s2, s1, s2*s1]
 
 This would not be a good definition since it would fail if `W` is
 affine and be inefficient of `W` is large. Sage has a Bruhat interval

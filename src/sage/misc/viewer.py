@@ -133,7 +133,7 @@ def default_viewer(viewer=None):
     elif viewer.startswith('pdf'):
         return PDF_VIEWER
     else:
-        raise ValueError, 'Unknown type of viewer: %s.' % viewer
+        raise ValueError('Unknown type of viewer: {}.'.format(viewer))
 
 
 from sage.structure.sage_object import SageObject
@@ -177,7 +177,7 @@ class Viewer:
         """
         TYPE = TYPE.lower()
         if TYPE not in VIEWERS:
-            raise ValueError, 'Unrecognized type of viewer: %s' % TYPE
+            raise ValueError('Unrecognized type of viewer: {}'.format(TYPE))
         if app is None:
             try:
                 return _viewer_prefs[TYPE]

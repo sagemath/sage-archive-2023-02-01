@@ -1,7 +1,7 @@
 # Declare system calls related to signal handling
 
 cdef extern from "<stdlib.h>":
-    void abort()
+    void abort() nogil
 
 cdef extern from "<signal.h>":
     ctypedef void *sigset_t
@@ -14,7 +14,7 @@ cdef extern from "<signal.h>":
 
     int SIG_BLOCK, SIG_UNBLOCK, SIG_SETMASK
     int SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGABRT, SIGFPE, SIGKILL
-    int SIGSEGV, SIGPIPE, SIGALRM, SIGTERM, SIGBUS
+    int SIGSEGV, SIGPIPE, SIGALRM, SIGTERM, SIGBUS, SIGCHLD
     int signal_raise "raise"(int signum)
     int sigprocmask(int how, sigset_t *set, sigset_t *oldset)
     int sigemptyset(sigset_t *set)

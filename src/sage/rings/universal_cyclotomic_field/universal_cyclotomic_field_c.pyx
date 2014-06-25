@@ -498,7 +498,7 @@ cpdef galois_conjugates_cython(dict D, int n, int m, list coprimes):
 
     :param D: a dictionary representing an element in the universal cyclotomic field
     :param n: order of the element in ``D``
-    :param m: a multiple of ``n`` in which field the galois conjugates should be considered
+    :param m: a multiple of ``n`` in which field the Galois conjugates should be considered
     :param coprimes: list of coprimes of ``n``
 
     EXAMPLES::

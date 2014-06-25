@@ -176,7 +176,7 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
             [(9, 3), (81, 9), (729, 27), (6561, 81), (59049, 243)]
         """
         Q=copy(self)
-        if type(N)==list or type(N)==tuple:
+        if isinstance(N, list) or isinstance(N, tuple):
             Bounds=list(N)
         else:
             Bounds=[0,N]

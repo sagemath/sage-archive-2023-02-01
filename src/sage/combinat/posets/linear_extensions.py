@@ -139,7 +139,7 @@ class LinearExtensionOfPoset(ClonableArray):
         """
         P = self.parent().poset()
         if not P.is_linear_extension(self):
-            raise ValueError, "%s is not a linear extension of %s"%(self, P)
+            raise ValueError("%s is not a linear extension of %s"%(self, P))
 
     def poset(self):
         r"""
@@ -478,11 +478,8 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         """
         if not self._is_facade:
             return super(LinearExtensionsOfPoset, self).__contains__(obj)
-        return \
-            isinstance(obj, (list, tuple)) and \
-            len(obj) == len(self.poset())  and \
-            set(obj) == set(self.poset())  and \
-            self.poset().is_linear_extension(obj)
+        return (isinstance(obj, (list, tuple)) and
+                self.poset().is_linear_extension(obj))
 
     def markov_chain_digraph(self, action = 'promotion', labeling = 'identity'):
         r"""
@@ -675,7 +672,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             [4, 3, 2, 1]
         """
         if not isinstance(lst, (list, tuple)):
-            raise TypeError, "Input should be a list or tuple."
+            raise TypeError("Input should be a list or tuple.")
         lst = map(self._poset, lst)
         if self._is_facade:
             return lst

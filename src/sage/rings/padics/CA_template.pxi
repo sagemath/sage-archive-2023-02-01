@@ -521,6 +521,14 @@ cdef class CAElement(pAdicTemplateElement):
             2 + 3 + 3^2 + 3^3 + O(3^5)
             sage: a.add_bigoh(3)
             2 + 3 + 3^2 + O(3^3)
+
+        TESTS:
+
+        Verify that :trac:`13591` has been resolved::
+
+            sage: k(3).add_bigoh(-1)
+            O(3^-1)
+
         """
         cdef long aprec, newprec
         if PY_TYPE_CHECK(absprec, int):

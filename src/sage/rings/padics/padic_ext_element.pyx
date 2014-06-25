@@ -458,7 +458,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
             sage: (a/3).residue(0)
             Traceback (most recent call last):
             ...
-            ValueError: Element must have non-negative valuation in order to compute residue.
+            ValueError: element must have non-negative valuation in order to compute residue.
 
             sage: R = ZpFM(3,5)
             sage: S.<a> = R[]
@@ -468,24 +468,25 @@ cdef class pAdicExtElement(pAdicGenericElement):
             sage: a.residue(-1)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot reduce modulo a negative power of the uniformizer.
+            ValueError: cannot reduce modulo a negative power of the uniformizer.
             sage: a.residue(16)
             Traceback (most recent call last):
             ...
-            PrecisionError: Not enough precision known in order to compute residue.
+            PrecisionError: not enough precision known in order to compute residue.
 
         """
         if absprec < 0:
-            raise ValueError("Cannot reduce modulo a negative power of the uniformizer.")
+            raise ValueError("cannot reduce modulo a negative power of the uniformizer.")
         if absprec > self.precision_absolute():
-            raise PrecisionError("Not enough precision known in order to compute residue.")
+            from precision_error import PrecisionError
+            raise PrecisionError("not enough precision known in order to compute residue.")
         if self.valuation() < 0:
-            raise ValueError("Element must have non-negative valuation in order to compute residue.")
+            raise ValueError("element must have non-negative valuation in order to compute residue.")
 
         if absprec == 0:
             from sage.rings.finite_rings.integer_mod import Mod
             return Mod(0,1)
         elif absprec == 1:
-            return self[0]
-
-        raise NotImplementedError
+            return self.parent().residue_field()(self[0])
+        else:
+            raise NotImplementedError("residue() not implemented in extensions for absprec larger than one.")

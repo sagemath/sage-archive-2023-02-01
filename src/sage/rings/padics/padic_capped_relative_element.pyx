@@ -255,7 +255,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
             sage: b.residue()
             Traceback (most recent call last):
             ...
-            ValueError: Element must have non-negative valuation in order to compute residue.
+            ValueError: element must have non-negative valuation in order to compute residue.
 
         TESTS::
 
@@ -266,11 +266,11 @@ cdef class pAdicCappedRelativeElement(CRElement):
             sage: a.residue(-1)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot reduce modulo a negative power of p.
+            ValueError: cannot reduce modulo a negative power of p.
             sage: a.residue(5)
             Traceback (most recent call last):
             ...
-            PrecisionError: Not enough precision known in order to compute residue.
+            PrecisionError: not enough precision known in order to compute residue.
 
         """
         cdef Integer selfvalue, modulus
@@ -278,12 +278,12 @@ cdef class pAdicCappedRelativeElement(CRElement):
         if not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
         if absprec > self.precision_absolute():
-            raise PrecisionError, "Not enough precision known in order to compute residue."
+            raise PrecisionError("not enough precision known in order to compute residue.")
         elif absprec < 0:
-            raise ValueError, "cannot reduce modulo a negative power of p."
+            raise ValueError("cannot reduce modulo a negative power of p.")
         aprec = mpz_get_ui((<Integer>absprec).value)
         if self.ordp < 0:
-            raise ValueError, "Element must have non-negative valuation in order to compute residue."
+            raise ValueError("element must have non-negative valuation in order to compute residue.")
         modulus = PY_NEW(Integer)
         mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
         selfvalue = PY_NEW(Integer)

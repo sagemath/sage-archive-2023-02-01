@@ -173,20 +173,20 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
             sage: a.residue(-1)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot reduce modulo a negative power of p.
+            ValueError: cannot reduce modulo a negative power of p.
             sage: a.residue(5)
             Traceback (most recent call last):
             ...
-            PrecisionError: Not enough precision known in order to compute residue.
+            PrecisionError: not enough precision known in order to compute residue.
 
         """
         cdef Integer selfvalue, modulus
         if not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_cmp_si((<Integer>absprec).value, self.absprec) > 0:
-            raise PrecisionError, "Not enough precision known in order to compute residue."
+            raise PrecisionError("not enough precision known in order to compute residue.")
         elif mpz_sgn((<Integer>absprec).value) < 0:
-            raise ValueError, "cannot reduce modulo a negative power of p."
+            raise ValueError("cannot reduce modulo a negative power of p.")
         cdef long aprec = mpz_get_ui((<Integer>absprec).value)
         modulus = PY_NEW(Integer)
         mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])

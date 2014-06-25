@@ -24,11 +24,12 @@ AUTHORS:
 ##############################################################################
 
 from sage.structure.sage_object import SageObject
-from scipy.special import erfcx,spence
+from scipy.special import erfcx, spence, psi
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.functions.log import log, exp
+from sage.functions.other import real, imag
 from sage.symbolic.constants import pi, euler_gamma
 from sage.libs.pari.all import pari
 
@@ -69,7 +70,7 @@ class LFunctionZeroSum_abstract(SageObject):
         return self._k
 
     def C0(self):
-        """
+        r"""
         Return the constant term of the logarithmic derivative of the
         completed 'L'-function attached to self. This is equal to
             '-\eta + \log(N)/2 - \log(2\pi)'
@@ -137,6 +138,130 @@ class LFunctionZeroSum_abstract(SageObject):
         else:
             return [float(self.cn(i)) for i in xrange(n+1)]
 
+    def logarithmic_derivative(self,s,term_cap=10000):
+        r"""
+        Compute the value of the logarithmic derivative '\frac{L^{\prime}}{L}'
+        at the point s to *low* precision, where 'L' is the L-function
+        attached to self.
+
+        .. WARNING::
+
+            The value is computed naively by evaluating the Dirichlet series
+            for '\frac{L^{\prime}}{L}'; convergence is controlled by the
+            distance of s from the critical strip '0.5<=\Re(s)<=1.5'.
+            You may use this method to attempt to compute values inside the
+            critical strip; however, results are then *not* guaranteed
+            to be correct to any number of digits.
+
+        INPUT:
+
+        - ``s`` -- Real or complex value
+        - ``term_cap`` -- (default: 10000) the maximum number of terms
+          summed in the Dirichlet series.
+
+        OUTPUT:
+
+        A tuple (z,prec), where z is the computed value, and prec is the
+        guaranteed number of bits of accuracy (<=53) thereof.
+
+        .. NOTE::
+
+        For the default term cap of 10000, a value accurate to all 53
+        bits of a double precision floating point number will only be
+        given when '|Re(s-1)|>4.58'.
+
+        EXAMPLES::
+
+        """
+        #raise NotImplementedError("Method not yet implemented.")
+
+        z = s-1
+        sigma = RDF(real(z))
+        if sigma<0:
+            z = -z
+            sigma = -sigma
+        log2 = log(RDF(2))
+        # Compute guaranteed precision given term cap using error
+        # estimates on tail of Dirichlet series sum
+        a = RDF(sigma)-RDF(0.5)
+        b = log(RDF(term_cap))*a
+        c = (b+1)*exp(-b)/a**2
+        prec = ZZ((-log(c)/log2).floor())
+
+        # If prec>53, reduce number of needed terms in Dirichlet sum
+        # to get 53 precision
+        if prec > 53:
+            prec = ZZ(53)
+            b = RDF(a**2 * 2**prec * exp(RDF(3.01)) * (prec*log2-2*log(a)+1))
+            num_terms = int(b**(RDF(1)/a))+1
+        else:
+            num_terms = term_cap
+            if prec<0: prec = ZZ(0)
+
+        if imag(z)==0:
+            F = RDF
+        else:
+            F = CDF
+        y = F(0)
+        for n in xrange(1,num_terms+1):
+            cn = self.cn(n)
+            if cn != 0:
+                y += cn/F(n)**z
+
+        if real(s-1)>0:
+            return (y,prec)
+        else:
+            # Inputs with negative real parts are handled via the functional
+            # equation of the logarithmic derivative
+            a = -2*self._C1-psi(complex(s))-psi(complex(2-s))
+            return (F(a)+y,prec)
+
+    def completed_logarithmic_derivative(self,s,term_cap=10000):
+        r"""
+        Compute the value of the completed logarithmic derivative
+            '\frac{\Lambda^{\prime}}{\Lambda}'
+        at the point s to *low* precision, where
+            '\Lambda = N^{s/2}(2\pi)^s \Gamma(s) L(s)'
+        and 'L is the' L-function attached to self.
+
+        .. WARNING::
+
+            This is computed naively by evaluating the Dirichlet series
+            for '\frac{L^{\prime}}{L}'; the convergence thereof is
+            controlled by the distance of s from the critical strip
+            '0.5<=\Re(s)<=1.5'.
+            You may use this method to attempt to compute values inside the
+            critical strip; however, results are then *not* guaranteed
+            to be correct to any number of digits.
+
+        INPUT:
+
+        - ``s`` -- Real or complex value
+        - ``term_cap`` -- (default: 10000) the maximum number of terms
+          summed in the Dirichlet series.
+
+        OUTPUT:
+
+        A tuple (z,prec), where z is the computed value, and prec is the
+        guaranteed number of bits of accuracy (<=53) thereof.
+
+        .. NOTE::
+
+        For the default term cap of 10000, a value accurate to all 53
+        bits of a double precision floating point number will only be
+        given when '|Re(s-1)|>4.58'.
+
+        EXAMPLES::
+
+        """
+
+        if real(s-1)>=0:
+            Ls = self.logarithmic_derivative(s,term_cap)
+            return (self._C1 + psi(complex(s)) + Ls[0], Ls[1])
+        else:
+            Ls = self.logarithmic_derivative(2-s,term_cap)
+            return (-self._C1 - psi(complex(2-s)) - Ls[0], Ls[1])
+
     def zerosum(self,Delta=1,function="sincsquared_fast"):
         r"""
         Bound from above the analytic rank of the form attached to self
@@ -165,6 +290,8 @@ class LFunctionZeroSum_abstract(SageObject):
             implementation; however self must be attached to an elliptic curve
             over QQ given by its global minimal model, otherwise the returned
             result will be incorrect.
+          - ``cauchy`` -- f(x) = \frac{1}{1+x^2}; this is only computable to
+            low precion, and only when Delta < 2.
 
         .. WARNING::
 
@@ -210,6 +337,8 @@ class LFunctionZeroSum_abstract(SageObject):
             return self._zerosum_sincsquared(Delta=Delta)
         elif function=="gaussian":
             return self._zerosum_gaussian(Delta=Delta)
+        elif function=="cauchy":
+            return self._zerosum_cauchy(Delta=Delta)
         else:
             raise ValueError("Input function not recognized.")
 
@@ -286,7 +415,7 @@ class LFunctionZeroSum_abstract(SageObject):
         by computing
             '\sum_{\gamma} f(\Delta*\gamma),'
         where '\gamma' ranges over the imaginary parts of the zeros of 'L_E(s)'
-        along the critical strip, and 'f(x) = exp(-x^2)'
+        along the critical strip, and 'f(x) = \exp(-x^2)'
 
         As '\Delta' increases this sum limits from above to the analytic rank
         of the form, as 'f(0) = 1' is counted with multiplicity 'r', and the
@@ -353,20 +482,32 @@ class LFunctionZeroSum_abstract(SageObject):
         # exceeds the max amount we could have left out.
         return RDF(u+w+y+0.1)/Deltasqrtpi
 
-    def _zerosum_sincsquared_fast(self,Delta=1):
-        """
-        A faster, more intelligent implementation of self._zerosum_sincsquared().
+    def _zerosum_cauchy(self,Delta=1):
+        r"""
+        Bound from above the analytic rank of the form attached to self
+        by computing
+            '\sum_{\gamma} f(\Delta*\gamma),'
+        where '\gamma' ranges over the imaginary parts of the zeros of 'L_E(s)'
+        along the critical strip, and 'f(x) = \frac{1}{1+x^2}'.
 
-        .. NOTE::
-
-            This will only produce correct output if self._E is given by its
-            global minimal model, i.e. if self._E.is_minimal()==True.
+        As '\Delta' increases this sum limits from above to the analytic rank
+        of the form, as 'f(0) = 1' is counted with multiplicity 'r', and the
+        other terms all go to 0 uniformly.
 
         INPUT:
 
         - ``Delta`` -- positive real number (default: 1) parameter defining the
           tightness of the zero sum, and thus the closeness of the returned
           estimate to the actual analytic rank of the form attached to self.
+
+        .. WARNING::
+
+            This value can only be computed when Delta < 2. An error will be
+            thrown if a Delta value larger than 2 is supplied. Furthermore,
+            beware that computation time is exponential in '\Delta', roughly
+            doubling for every increase of 0.1 thereof. Using '\Delta=1' will
+            yield a computation time of a few milliseconds, while '\Delta=2'
+            takes a few seconds.
 
         OUTPUT:
 
@@ -375,76 +516,13 @@ class LFunctionZeroSum_abstract(SageObject):
 
         .. SEEALSO::
 
-            :meth:`~sage.lfunctions.zero_sums.LFunctionZeroSum_abstract.zerosum_sincsquared`
-            for the more general but slower version of this method.
-
             :meth:`~sage.lfunctions.zero_sums.LFunctionZeroSum_abstract.zerosum`
             for the public method that calls this private method.
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('37a'); E.rank()
-            1
-            sage: Z = LFunctionZeroSum(E)
-            sage: Z._zerosum_sincsquared_fast(Delta=1)
-            1.01038406984
         """
-
-        npi = self._pi
-        twopi = 2*npi
-        eg = self._euler_gamma
-
-        t = RDF(Delta*twopi)
-        expt = exp(t)
-
-        u = t*(-eg + log(RDF(self._N))/2 - log(twopi))
-        w = RDF(npi**2/RDF(6)-spence(RDF(1)-RDF(1)/expt))
-
-        y = RDF(0)
-        bound1 = int(exp(t/2))
-        bound2 = int(expt)
-        n = int(2)
-        while n <= bound1:
-            if pari(n).isprime():
-                logp = log(RDF(n))
-                ap = RDF(self._e.ellap(n))
-                p = RDF(n)
-
-                z = (ap/p)*(t-logp)
-
-                # The p^n coefficients are calculated differently
-                # depending on whether p divides the level or not
-                if self._N%n==0:
-                    aq = ap**2
-                    q = p**2
-                    logq = logp*2
-                    while logq < t:
-                        z += (aq/q)*(t-logq)
-                        logq += logp
-                        q = q*p
-                        aq = aq*ap
-                else:
-                    alpha_p = CDF(ap,(4*p-ap**2).sqrt())/2
-                    alpha = alpha_p**2
-                    q = p**2
-                    logq = logp*2
-                    while logq < t:
-                        aq = RDF(round(2*alpha.real()))
-                        z += (aq/q)*(t-logq)
-                        logq += logp
-                        q = q*p
-                        alpha = alpha*alpha_p
-                y -= z*logp
-            n += 1
-        while n <= bound2:
-            if pari(n).isprime():
-                logp = log(RDF(n))
-                ap = RDF(self._e.ellap(n))
-                y -= ap*logp/RDF(n)*(t-logp)
-            n += 1
-
-        return 2*(u+w+y)/(t**2)
-
+        raise NotImplemedError("Method not yet implemented.")
 
 class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
     """
@@ -486,8 +564,9 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         self._pi = RDF(pi)
         self._euler_gamma = RDF(euler_gamma)
 
-        # This constant features in most (all?) sums over the L-function's zeros
-        self._C0 = -self._euler_gamma + log(RDF(self._N))/2 - log(self._pi*2)
+        # These constants feature in most (all?) sums over the L-function's zeros
+        self._C1 = log(RDF(self._N))/2 - log(self._pi*2)
+        self._C0 = self._C1 - self._euler_gamma
 
     def __repr__(self):
         """
@@ -585,6 +664,98 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             c = CDF(ap,(4*p-ap**2).sqrt())/2
             aq = (2*(c**e).real()).round()
             return -aq*logp/n_float
+
+    def _zerosum_sincsquared_fast(self,Delta=1):
+        """
+        A faster, more intelligent implementation of self._zerosum_sincsquared().
+
+        .. NOTE::
+
+            This will only produce correct output if self._E is given by its
+            global minimal model, i.e. if self._E.is_minimal()==True.
+
+        INPUT:
+
+        - ``Delta`` -- positive real number (default: 1) parameter defining the
+          tightness of the zero sum, and thus the closeness of the returned
+          estimate to the actual analytic rank of the form attached to self.
+
+        OUTPUT:
+
+        A positive real number that bounds the analytic rank of the modular form
+        attached to self from above.
+
+        .. SEEALSO::
+
+            :meth:`~sage.lfunctions.zero_sums.LFunctionZeroSum_abstract.zerosum_sincsquared`
+            for the more general but slower version of this method.
+
+            :meth:`~sage.lfunctions.zero_sums.LFunctionZeroSum_abstract.zerosum`
+            for the public method that calls this private method.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a'); E.rank()
+            1
+            sage: Z = LFunctionZeroSum(E)
+            sage: Z._zerosum_sincsquared_fast(Delta=1)
+            1.01038406984
+        """
+
+        npi = self._pi
+        twopi = 2*npi
+        eg = self._euler_gamma
+
+        t = RDF(Delta*twopi)
+        expt = exp(t)
+
+        u = t*(-eg + log(RDF(self._N))/2 - log(twopi))
+        w = RDF(npi**2/RDF(6)-spence(RDF(1)-RDF(1)/expt))
+
+        y = RDF(0)
+        bound1 = int(exp(t/2))
+        bound2 = int(expt)
+        n = int(2)
+        while n <= bound1:
+            if pari(n).isprime():
+                logp = log(RDF(n))
+                ap = RDF(self._e.ellap(n))
+                p = RDF(n)
+
+                z = (ap/p)*(t-logp)
+
+                # The p^n coefficients are calculated differently
+                # depending on whether p divides the level or not
+                if self._N%n==0:
+                    aq = ap**2
+                    q = p**2
+                    logq = logp*2
+                    while logq < t:
+                        z += (aq/q)*(t-logq)
+                        logq += logp
+                        q = q*p
+                        aq = aq*ap
+                else:
+                    alpha_p = CDF(ap,(4*p-ap**2).sqrt())/2
+                    alpha = alpha_p**2
+                    q = p**2
+                    logq = logp*2
+                    while logq < t:
+                        aq = RDF(round(2*alpha.real()))
+                        z += (aq/q)*(t-logq)
+                        logq += logp
+                        q = q*p
+                        alpha = alpha*alpha_p
+                y -= z*logp
+            n += 1
+        while n <= bound2:
+            if pari(n).isprime():
+                logp = log(RDF(n))
+                ap = RDF(self._e.ellap(n))
+                y -= ap*logp/RDF(n)*(t-logp)
+            n += 1
+
+        return 2*(u+w+y)/(t**2)
 
 
 def LFunctionZeroSum(X,*args,**kwds):

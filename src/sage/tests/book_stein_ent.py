@@ -411,10 +411,10 @@ sage: c = continued_fraction(pi); c
 sage: [c.convergent(i) for i in xrange(5)]
 [3, 22/7, 333/106, 355/113, 103993/33102]
 sage: for n in range(-1, 13):
-...    print c.p(n)*c.q(n-1) - c.q(n)*c.p(n-1),
+....:     print c.p(n)*c.q(n-1) - c.q(n)*c.p(n-1),
 1 -1 1 -1 1 -1 1 -1 1 -1 1 -1 1 -1
 sage: for n in range(13):
-...    print c.p(n)*c.q(n-2) - c.q(n)*c.p(n-2),
+....:     print c.p(n)*c.q(n-2) - c.q(n)*c.p(n-2),
 3 -7 15 -1 292 -1 1 -1 2 -1 3 -1 14
 sage: c = continued_fraction([1,2,3,4,5])
 sage: c.convergents()

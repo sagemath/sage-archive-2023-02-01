@@ -19,11 +19,12 @@ from sage.misc.unknown import Unknown
 from orthogonal_arrays import orthogonal_array, wilson_construction
 from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
 
-def find_recursive_construction(k,n,existence=False):
+@cached_function
+def find_recursive_construction(k,n):
     r"""
     Find a recursive construction of a `OA(k,n)`
 
-    This method attempts to build an `OA(k,n)` through the following
+    This determines whether an `OA(k,n)` can be built through the following
     constructions:
 
     - :func:`construction_3_3`
@@ -35,8 +36,10 @@ def find_recursive_construction(k,n,existence=False):
 
     - ``k,n`` (integers)
 
-    - ``existence`` (boolean) -- whether to return the actual OA, or only
-      indicate whether it can be built.
+    OUTPUT:
+
+    Returns a pair ``f,args`` such that ``f(*args)`` returns the requested `OA`
+    if possible, and ``Unknown`` otherwise.
 
     EXAMPLES::
 
@@ -45,9 +48,10 @@ def find_recursive_construction(k,n,existence=False):
         sage: count = 0
         sage: for n in range(10,150):
         ....:     k = designs.orthogonal_array(None,n,existence=True)
-        ....:     if find_recursive_construction(k,n,existence=True):
+        ....:     if find_recursive_construction(k,n):
         ....:         count = count + 1
-        ....:         OA = find_recursive_construction(k,n,existence=False)
+        ....:         f,args = find_recursive_construction(k,n)
+        ....:         OA = f(*args)
         ....:         assert is_orthogonal_array(OA,k,n,2,verbose=True)
         sage: print count
         40
@@ -56,17 +60,12 @@ def find_recursive_construction(k,n,existence=False):
                    find_construction_3_4,
                    find_construction_3_5,
                    find_construction_3_6]:
-
-        if find_c(k,n):
-            if existence:
-                return True
-            else:
-                f,args = find_c(k,n)
-                return f(*args)
+        res = find_c(k,n)
+        if res:
+            return res
 
     return Unknown
 
-@cached_function
 def find_construction_3_3(k,n):
     r"""
     Finds a decomposition for construction 3.3
@@ -148,7 +147,6 @@ def construction_3_3(k,n,m,i):
     assert is_orthogonal_array(OA,k,n*m+i)
     return OA
 
-@cached_function
 def find_construction_3_4(k,n):
     r"""
     Finds a decomposition for construction 3.4
@@ -253,7 +251,6 @@ def construction_3_4(k,n,m,r,s):
     OA = wilson_construction(OA,k,n,m,r+1,[1]*r+[s],check=False)
     return OA
 
-@cached_function
 def find_construction_3_5(k,n):
     r"""
     Finds a decomposition for construction 3.5
@@ -382,7 +379,6 @@ def construction_3_5(k,n,m,r,s,t):
     OA = wilson_construction(OA,k,q,m,3,[r,s,t], check=False)
     return OA
 
-@cached_function
 def find_construction_3_6(k,n):
     r"""
     Finds a decomposition for construction 3.6

@@ -714,7 +714,7 @@ cdef class BooleanFunction(SageObject):
         """
         d = {}
         for i in self.walsh_hadamard_transform():
-            if d.has_key(abs(i)):
+            if abs(i) in d:
                 d[abs(i)] += 1
             else:
                 d[abs(i)] = 1
@@ -885,7 +885,7 @@ cdef class BooleanFunction(SageObject):
         """
         d = {}
         for i in self.autocorrelation():
-            if d.has_key(abs(i)):
+            if abs(i) in d:
                 d[abs(i)] += 1
             else:
                 d[abs(i)] = 1

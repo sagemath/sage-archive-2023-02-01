@@ -118,7 +118,7 @@ def find_next_available_port(host, start, max_tries=100, verbose=False):
             alarm(1)
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((host, port))
-        except socket.error, msg:
+        except socket.error as msg:
             if msg[1] == 'Connection refused':
                 if verbose:
                     print "Using port = %s" % port

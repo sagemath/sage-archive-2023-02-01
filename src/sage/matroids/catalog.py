@@ -897,9 +897,18 @@ def Uniform(r, n):
         False
         sage: M.is_valid()
         True
+
+    Check that bug #15292 was fixed::
+
+        sage: M = matroids.Uniform(4,4)
+        sage: len(M.circuit_closures())
+        0
     """
     E = range(n)
-    CC = {r: [E]}
+    if r < n:
+        CC = {r: [E]}
+    else:
+        CC = {}
     M = CircuitClosuresMatroid(groundset=E, circuit_closures=CC)
     M.rename('U(' + str(r) + ', ' + str(n) + '): ' + repr(M))
     return M

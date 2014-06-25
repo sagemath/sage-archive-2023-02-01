@@ -248,7 +248,7 @@ class StringMonoidElement(FreeMonoidElement):
         """
         try:
             c = self._element_list[n]
-        except StandardError:
+        except Exception:
             raise IndexError("Argument n (= %s) is not a valid index." % n)
         if not isinstance(c, list):
             c = [c]
@@ -328,9 +328,6 @@ class StringMonoidElement(FreeMonoidElement):
             RR = RealField(prec)
         char_dict = {}
         for i in self._element_list:
-            # if char_dict.has_key(i):
-            # The method .has_key() has been deprecated since Python 2.2. Use
-            # "k in Dict" instead of "Dict.has_key(k)".
             if i in char_dict:
                 char_dict[i] += 1
             else:
@@ -508,9 +505,6 @@ class StringMonoidElement(FreeMonoidElement):
         eps = RR(Integer(1)/N)
         for i in range(N):
             c = self[i:i+length]
-            # if X.has_key(c):
-            # The method .has_key() has been deprecated since Python 2.2. Use
-            # "k in Dict" instead of "Dict.has_key(k)".
             if c in X:
                 X[c] += eps
             else:

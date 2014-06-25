@@ -43,6 +43,8 @@ See http://www.mpir.org
    bail out with an error when encountering "define(,1)".
    These files were patched using
      find mpn -name '*.asm' -exec sed -i 's/define(\(OPERATION[^,]*\),/define(\`\1'"'"',/' {} \;
+ * configure-cxx.patch: remove libtool C++ hack to let MPIR build correctly
+   on Cygwin when C++ support is disabled.
  * configure.patch: add some extra run-time configure tests, remove
    mentions of Fortran. Re-generated configure (using the same versions
    of autoconf, automake and libtool as the original files).
@@ -61,6 +63,10 @@ See http://www.mpir.org
  * apple.patch: make sure 32 bits Apple Darwin use the correct asm directories.
 
 == Changelog ==
+
+=== mpir-2.6.0.p4 (Jean-Pierre Flori, 6 November 2013) ===
+ * #15364: remove libtool hack for C++ support.
+ * Taken from upstream commit 2320c7d965e3277fddaf2390fdf7032d34954c8c.
 
 === mpir-2.6.0.p3 (Jeroen Demeyer, 2 October 2013) ===
  * #13948: clang-config.patch: fix configure script for Clang.
@@ -371,4 +377,3 @@ Work by
  * Joe Weening
  * David Harvey
  * Wilson Cheung
-

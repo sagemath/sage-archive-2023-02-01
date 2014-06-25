@@ -296,13 +296,13 @@ def EllipticCurve(x=None, y=None, j=None, minimal_twist=True):
                 try:
                     j = x(j)
                 except (ZeroDivisionError, ValueError, TypeError):
-                    raise ValueError, "First parameter must be a ring containing %s"%j
+                    raise ValueError("First parameter must be a ring containing %s"%j)
             else:
-                raise ValueError, "First parameter (if present) must be a ring when j is specified"
+                raise ValueError("First parameter (if present) must be a ring when j is specified")
         return EllipticCurve_from_j(j, minimal_twist)
 
     if x is None:
-        raise TypeError, "invalid input to EllipticCurve constructor"
+        raise TypeError("invalid input to EllipticCurve constructor")
 
     if is_SymbolicEquation(x):
         x = x.lhs() - x.rhs()
@@ -336,14 +336,14 @@ def EllipticCurve(x=None, y=None, j=None, minimal_twist=True):
         return ell_rational_field.EllipticCurve_rational_field(x)
 
     if is_RingElement(x) and y is None:
-        raise TypeError, "invalid input to EllipticCurve constructor"
+        raise TypeError("invalid input to EllipticCurve constructor")
 
     if not isinstance(x, (list, tuple)):
-        raise TypeError, "invalid input to EllipticCurve constructor"
+        raise TypeError("invalid input to EllipticCurve constructor")
 
     x = Sequence(x)
     if not (len(x) in [2,5]):
-        raise ValueError, "sequence of coefficients must have length 2 or 5"
+        raise ValueError("sequence of coefficients must have length 2 or 5")
     R = x.universe()
 
     if isinstance(x[0], (rings.Rational, rings.Integer, int, long)):
@@ -868,6 +868,12 @@ def chord_and_tangent(F, P):
         [<type 'sage.rings.rational.Rational'>,
          <type 'sage.rings.rational.Rational'>,
          <type 'sage.rings.rational.Rational'>]
+
+    See :trac:`16068`::
+
+        sage: F = x**3 - 4*x**2*y - 65*x*y**2 + 3*x*y*z - 76*y*z**2
+        sage: chord_and_tangent(F, [0, 1, 0])
+        [0, 0, -1]
     """
     # check the input
     R = F.parent()
@@ -923,7 +929,7 @@ def chord_and_tangent(F, P):
 
     # first case: the third point is at t=infinity
     if Ft.is_constant():
-        return projective_point([dy, -dx, 0])
+        return projective_point([dy, -dx, K(0)])
     # second case: the third point is at finite t
     else:
         assert Ft.degree() == 1
@@ -952,9 +958,10 @@ def projective_point(p):
         sage: projective_point([F(4), F(8), F(2)])
         [4, 8, 2]
     """
+    from sage.rings.integer import GCD_list, LCM_list
     try:
-        p_gcd = rings.integer.GCD_list([x.numerator() for x in p])
-        p_lcm = rings.integer.LCM_list([x.denominator() for x in p])
+        p_gcd = GCD_list([x.numerator() for x in p])
+        p_lcm = LCM_list([x.denominator() for x in p])
     except AttributeError:
         return p
     scale = p_lcm / p_gcd

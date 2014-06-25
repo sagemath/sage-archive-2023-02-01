@@ -127,7 +127,7 @@ class HyperellipticJacobian_generic(Jacobian_generic):
         try:
             return self(self.base_ring())(mumford)
         except AttributeError:
-            raise ValueError, "Arguments must determine a valid Mumford divisor."
+            raise ValueError("Arguments must determine a valid Mumford divisor.")
 
     def _point_homset(self, *args, **kwds):
         return jacobian_homset.JacobianHomset_divisor_classes(*args, **kwds)

@@ -249,20 +249,20 @@ struct ZZ_pEX;
 //////// mat_ZZ //////////
 
 #ifndef __cplusplus
-struct mat_ZZ;
+typedef struct {} mat_ZZ;
 #endif
 
-EXTERN void mat_ZZ_SetDims(struct mat_ZZ* mZZ, long nrows, long ncols);
-EXTERN struct mat_ZZ* mat_ZZ_pow(const struct mat_ZZ* x, long e);
-EXTERN long mat_ZZ_nrows(const struct mat_ZZ* x);
-EXTERN long mat_ZZ_ncols(const struct mat_ZZ* x);
-EXTERN void mat_ZZ_setitem(struct mat_ZZ* x, int i, int j, const struct ZZ* z);
-EXTERN struct ZZ* mat_ZZ_getitem(const struct mat_ZZ* x, int i, int j);
-EXTERN struct ZZ* mat_ZZ_determinant(const struct mat_ZZ* x, long deterministic);
-EXTERN struct mat_ZZ* mat_ZZ_HNF(const struct mat_ZZ* A, const struct ZZ* D);
-EXTERN struct ZZX* mat_ZZ_charpoly(const struct mat_ZZ* A);
-EXTERN long mat_ZZ_LLL(struct ZZ **det, struct mat_ZZ *x, long a, long b, long verbose);
-EXTERN long mat_ZZ_LLL_U(struct ZZ **det, struct mat_ZZ *x, struct mat_ZZ *U, long a, long b, long verbose);
+EXTERN void mat_ZZ_SetDims(mat_ZZ* mZZ, long nrows, long ncols);
+EXTERN mat_ZZ* mat_ZZ_pow(const mat_ZZ* x, long e);
+EXTERN long mat_ZZ_nrows(const mat_ZZ* x);
+EXTERN long mat_ZZ_ncols(const mat_ZZ* x);
+EXTERN void mat_ZZ_setitem(mat_ZZ* x, int i, int j, const struct ZZ* z);
+EXTERN struct ZZ* mat_ZZ_getitem(const mat_ZZ* x, int i, int j);
+EXTERN struct ZZ* mat_ZZ_determinant(const mat_ZZ* x, long deterministic);
+EXTERN mat_ZZ* mat_ZZ_HNF(const mat_ZZ* A, const struct ZZ* D);
+EXTERN struct ZZX* mat_ZZ_charpoly(const mat_ZZ* A);
+EXTERN long mat_ZZ_LLL(struct ZZ **det, mat_ZZ *x, long a, long b, long verbose);
+EXTERN long mat_ZZ_LLL_U(struct ZZ **det, mat_ZZ *x, mat_ZZ *U, long a, long b, long verbose);
 
 /* //////// ZZ_p ////////// */
 /* #ifndef __cplusplus */
@@ -314,15 +314,15 @@ EXTERN struct GF2EContext* GF2EContext_construct(void *mem, const struct GF2X *p
 //////// mat_GF2E //////////
 
 #ifndef __cplusplus
-struct mat_GF2E;
+typedef struct {} mat_GF2E;
 #endif
 
-EXTERN void mat_GF2E_setitem(struct mat_GF2E* x, int i, int j, const struct GF2E* z);
+EXTERN void mat_GF2E_setitem(mat_GF2E* x, int i, int j, const struct GF2E* z);
 
 //////// mat_GF2 //////////
 
 #ifndef __cplusplus
-struct mat_GF2;
+typedef struct {} mat_GF2;
 #endif
 
-EXTERN void mat_GF2_setitem(struct mat_GF2* x, int i, int j, const struct GF2* z);
+EXTERN void mat_GF2_setitem(mat_GF2* x, int i, int j, const struct GF2* z);

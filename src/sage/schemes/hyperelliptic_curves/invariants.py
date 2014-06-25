@@ -245,7 +245,7 @@ def clebsch_invariants(f):
     """
     R = f.parent().base_ring()
     if R.characteristic() in [2, 3, 5]:
-        raise NotImplementedError, "Invariants of binary sextics/genus 2 hyperelliptic curves not implemented in characteristics 2, 3, and 5"
+        raise NotImplementedError("Invariants of binary sextics/genus 2 hyperelliptic curves not implemented in characteristics 2, 3, and 5")
 
     U = ubs(f)
     L = U['A'], U['B'], U['C'], U['D']

@@ -487,7 +487,7 @@ class IntervalExchangeTransformation(SageObject):
             True
         """
         return (
-            type(self) == type(other) and
+            isinstance(self, type(other)) and
             self._permutation == other._permutation and
             self._lengths == other._lengths)
 
@@ -502,7 +502,7 @@ class IntervalExchangeTransformation(SageObject):
             False
         """
         return (
-            type(self) != type(other) or
+            not isinstance(self, type(other)) or
             self._permutation != other._permutation or
             self._lengths != other._lengths)
 

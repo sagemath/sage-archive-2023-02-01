@@ -717,9 +717,9 @@ how it is built:
   information about this variable.
 
 - ``make ptest`` and ``make ptestlong``: these run Sage's test suite.
-  The first version skips tests that needs more than a few seconds to complete
-  and those which depends on optional packages or additional software.
-  The second version includes them the former, and so it takes longer.
+  The first version skips tests that need more than a few seconds to complete
+  and those which depend on optional packages or additional software.
+  The second version includes the former, and so it takes longer.
   The "p" in ``ptest`` stands for "parallel": tests are run in parallel.
   If you want to run tests serially, you can use ``make test`` or
   ``make testlong`` instead.
@@ -886,9 +886,10 @@ Here are some of the more commonly used variables affecting the build process:
   and uses more memory and disk space than using MathJax.
 
 - :envvar:`SAGE_BUILD_DIR` - the default behavior is to build each spkg in a
-  subdirectory of :file:`$SAGE_ROOT/spkg/build/`; for example, build
-  :file:`atlas-3.8.3.p12.spkg` in the directory
-  :file:`$SAGE_ROOT/spkg/build/atlas-3.8.3.p12/`.
+  subdirectory of :file:`$SAGE_ROOT/local/var/tmp/sage/build/`; for
+  example, build version 3.8.3.p12 of
+  :file:`atlas` in the directory
+  :file:`$SAGE_ROOT/local/var/tmp/sage/build/atlas-3.8.3.p12/`.
   If this variable is set, then build in
   :file:`$SAGE_BUILD_DIR/atlas-3.8.3.p12/` instead.
   If the directory :file:`$SAGE_BUILD_DIR` does not exist, it is created.
@@ -909,7 +910,8 @@ Here are some of the more commonly used variables affecting the build process:
 
 - :envvar:`SAGE_KEEP_BUILT_SPKGS` - the default behavior is to delete each
   build directory -- the appropriate subdirectory of
-  :file:`$SAGE_ROOT/spkg/build` or :file:`$SAGE_BUILD_DIR` -- after each spkg
+  :file:`$SAGE_ROOT/local/var/tmp/sage/build` or
+  :file:`$SAGE_BUILD_DIR` -- after each spkg
   is successfully built, and to keep it if there were errors installing the
   spkg.
   Set this variable to ``yes`` to keep the subdirectory regardless.
@@ -917,7 +919,8 @@ Here are some of the more commonly used variables affecting the build process:
   corresponding subdirectory, for example left over from a previous build,
   then the default behavior is to delete that old subdirectory.
   If this variable is set to ``yes``, then the old subdirectory is moved to
-  :file:`$SAGE_ROOT/spkg/build/old/` (or :file:`$SAGE_BUILD_DIR/old`),
+  :file:`$SAGE_ROOT/local/var/tmp/sage/build/old/` (or
+  :file:`$SAGE_BUILD_DIR/old`),
   overwriting any already existing file or directory with the same name.
 
   .. note::
@@ -1034,10 +1037,10 @@ Environment variables dealing with specific Sage packages:
   own version of ATLAS, set this variable to be the directory containing your
   ATLAS installation.
   It should contain the files :file:`libatlas`, :file:`liblapack`,
-  :file:`libcblas`, :file:`libptcblas`, :file:`libf77blas`, and
-  :file:`libptf77blas`, with extensions ``.a``, ``.so``, or ``.dylib``.
-  For backward compatibility, the libraries may also be in the subdirectory
-  :file:`SAGE_ATLAS_LIB/lib/`.
+  :file:`libcblas`, :file:`libf77blas` (and optionally :file:`libptcblas` and
+  :file:`libptf77blas` for multi-threaded computations), with extensions ``.a``,
+  ``.so``, or ``.dylib``.  For backward compatibility, the libraries may also be
+  in the subdirectory :file:`SAGE_ATLAS_LIB/lib/`.
 
 - :envvar:`SAGE_MATPLOTLIB_GUI` - if set to anything non-empty except ``no``,
   then Sage will attempt to build the graphical backend when it builds the
@@ -1089,18 +1092,6 @@ Some standard environment variables which are used by Sage:
   The same comments apply to these: setting them may cause problems, because
   they are not universally respected among the Sage packages.
 
-The following Fortran-related environment variables are **deprecated** since
-Sage 5.3 and support for these will likely be removed.
-They are still recognized, but should not be used for new setups.
-
-- :envvar:`SAGE_FORTRAN` - the path to the Fortran compiler.
-  Deprecated, use :envvar:`FC` instead.
-
-- :envvar:`SAGE_FORTRAN_LIB` - the path to the Fortran runtime library.
-  Normally, you don't need to set this.
-  If you really need to, you can add the directory containing the library to
-  :envvar:`LIBRARY_PATH` and/or :envvar:`LD_LIBRARY_PATH`.
-
 Sage uses the following environment variables when it runs:
 
 - :envvar:`DOT_SAGE` - this is the directory, to which the user has read and
@@ -1116,15 +1107,19 @@ Sage uses the following environment variables when it runs:
   address ``http://www.sagemath.org/`` by default, or the address given by
   :envvar:`SAGE_SERVER` if it is set.
   If you wish to set up your own server, then note that Sage will search the
-  directories:
+  directory
+
+  - ``SAGE_SERVER/packages/upstream``
+
+  for clean upstream tarballs, and it searches the directories
 
   - ``SAGE_SERVER/packages/standard/``,
   - ``SAGE_SERVER/packages/optional/``,
   - ``SAGE_SERVER/packages/experimental/``,
   - and ``SAGE_SERVER/packages/archive/``
 
-  for packages.
-  See the script :file:`$SAGE_ROOT/spkg/bin/sage-spkg` for the implementation.
+  for old-style Sage packages.
+  See the script :file:`$SAGE_ROOT/src/bin/sage-spkg` for the implementation.
 
 - :envvar:`SAGE_PATH` - a colon-separated list of directories which Sage
   searches when trying to locate Python libraries.
@@ -1141,7 +1136,7 @@ Sage uses the following environment variables when it runs:
   set the :envvar:`DYLD_LIBRARY_PATH` variable.
 
 - :envvar:`SAGE_CBLAS` - used in the file
-  :file:`SAGE_ROOT/devel/sage/sage/misc/cython.py`.
+  :file:`SAGE_ROOT/src/sage/misc/cython.py`.
   Set this to the base name of the BLAS library file on your system if you want
   to override the default setting.
   That is, if the relevant file is called :file:`libcblas_new.so` or
@@ -1171,7 +1166,7 @@ Variables dealing with doctesting:
   jar, set this to something non-empty and run the doctest suite.
   See the documentation for the functions :func:`picklejar` and
   :func:`unpickle_all` in
-  :file:`$SAGE_ROOT/devel/sage/sage/structure/sage_object.pyx`, online
+  :file:`$SAGE_ROOT/src/sage/structure/sage_object.pyx`, online
   `here (picklejar)
   <http://sagemath.org/doc/reference/sage/structure/sage_object.html#sage.structure.sage_object.picklejar>`_
   and `here (unpickle_all)
@@ -1299,4 +1294,4 @@ would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in October 2013 (Sage 5.12).**
+**This page was last updated in May 2014 (Sage 6.2).**

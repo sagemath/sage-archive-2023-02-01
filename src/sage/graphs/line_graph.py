@@ -226,6 +226,7 @@ def is_line_graph(g, certificate = False):
         sage: g.line_graph().is_isomorphic(gl)
         True
     """
+    g._scream_if_not_simple()
     from sage.graphs.graph_generators import graphs
 
     for fg in graphs.line_graph_forbidden_subgraphs():
@@ -341,6 +342,7 @@ def line_graph(self, labels=True):
         sage: C.line_graph().is_isomorphic(g.line_graph())
         True
     """
+    self._scream_if_not_simple()
     if self._directed:
         from sage.graphs.digraph import DiGraph
         G=DiGraph()

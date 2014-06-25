@@ -275,7 +275,7 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
             if status != libGAP_STATUS_END:
                 libgap_call_error_handler()
             sig_off()
-        except RuntimeError, msg:
+        except RuntimeError as msg:
             raise ValueError('libGAP: '+str(msg).strip())
 
         if libGAP_Symbol != libGAP_S_SEMICOLON:
@@ -459,7 +459,7 @@ def command(command_string):
             if status != libGAP_STATUS_END:
                 libgap_call_error_handler()
             sig_off()
-        except RuntimeError, msg:
+        except RuntimeError as msg:
             raise ValueError('libGAP: '+str(msg).strip())
 
         assert libGAP_Symbol == libGAP_S_SEMICOLON, 'Did not end with semicolon?'

@@ -24,8 +24,8 @@ ATLAS_MACHTYPE = (  # static char *machnam
     'CoreDuo', 'Core2Solo', 'Core2', 'Corei1', 'Corei2', 'Atom', 'P4', 'P4E',
     'Efficeon', 'K7', 'HAMMER', 'AMD64K10h', 'AMDDOZER', 'UNKNOWNx86',
     'IA64Itan', 'IA64Itan2',
-    'USI', 'USII', 'USIII', 'USIV', 'UST2', 'UnknownUS',
-    'MIPSR1xK', 'MIPSICE9', 'ARMv7')
+    'USI', 'USII', 'USIII', 'USIV', 'UST1', 'UST2', 'UnknownUS',
+    'MIPSR1xK', 'MIPSICE9', 'ARMv6', 'ARMv7')
 
 ATLAS_ISAEXT = (  # static char *ISAXNAM
     'None', 'VSX', 'AltiVec', 'AVXMAC', 'AVXFMA4', 'AVX', 'SSE3', 'SSE2', 'SSE1',
@@ -79,11 +79,13 @@ Architectural enums (Config's enum MACHTYPE):
     39 = 'USII'
     40 = 'USIII'
     41 = 'USIV'
-    42 = 'UST2'
-    43 = 'UnknownUS'
-    44 = 'MIPSR1xK'
-    45 = 'MIPSICE9'
-    46 = 'ARMv7'
+    42 = 'UST1'
+    43 = 'UST2'
+    44 = 'UnknownUS'
+    45 = 'MIPSR1xK'
+    46 = 'MIPSICE9'
+    47 = 'ARMv6'
+    48 = 'ARMv7'
 
 Operating System enums (Config's enum OSTYPE):
      0 = 'UNKNOWN'

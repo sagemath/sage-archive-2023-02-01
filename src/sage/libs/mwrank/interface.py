@@ -151,7 +151,7 @@ class mwrank_EllipticCurve(SageObject):
 
         # if not isinstance(ainvs, list) and len(ainvs) <= 5:
         if not isinstance(ainvs, (list,tuple)) or not len(ainvs) <= 5:
-            raise TypeError, "ainvs must be a list or tuple of length at most 5."
+            raise TypeError("ainvs must be a list or tuple of length at most 5.")
 
         # Pad ainvs on the beginning by 0's, so e.g.
         # [a4,a5] works.
@@ -161,7 +161,7 @@ class mwrank_EllipticCurve(SageObject):
         try:
             a_int = [IntegerRing()(x) for x in ainvs]
         except (TypeError, ValueError):
-            raise TypeError, "ainvs must be a list or tuple of integers."
+            raise TypeError("ainvs must be a list or tuple of integers.")
         self.__ainvs = a_int
         self.__curve = _Curvedata(a_int[0], a_int[1], a_int[2],
                                   a_int[3], a_int[4])
@@ -423,7 +423,7 @@ class mwrank_EllipticCurve(SageObject):
                                       n_aux,
                                       second_descent)
         if not self.__two_descent_data().ok():
-            raise RuntimeError, "A 2-descent did not complete successfully."
+            raise RuntimeError("A 2-descent did not complete successfully.")
 
     def __two_descent_data(self):
         r"""
@@ -598,7 +598,7 @@ class mwrank_EllipticCurve(SageObject):
         """
         self.saturate()
         if not self.certain():
-            raise RuntimeError, "Unable to saturate Mordell-Weil group."
+            raise RuntimeError("Unable to saturate Mordell-Weil group.")
         R = self.__two_descent_data().regulator()
         return float(R)
 
@@ -889,7 +889,7 @@ class mwrank_MordellWeil(SageObject):
             Subgroup of Mordell-Weil group: []
         """
         if not isinstance(curve, mwrank_EllipticCurve):
-            raise TypeError, "curve (=%s) must be an mwrank_EllipticCurve"%curve
+            raise TypeError("curve (=%s) must be an mwrank_EllipticCurve"%curve)
         self.__curve = curve
         self.__verbose = verbose
         self.__pp = pp
@@ -1041,11 +1041,11 @@ class mwrank_MordellWeil(SageObject):
             (True, 1, '[ ]')
         """
         if not isinstance(v, list):
-            raise TypeError, "v (=%s) must be a list"%v
+            raise TypeError("v (=%s) must be a list"%v)
         sat = int(sat)
         for P in v:
             if not isinstance(P, (list,tuple)) or len(P) != 3:
-                raise TypeError, "v (=%s) must be a list of 3-tuples (or 3-element lists) of ints"%v
+                raise TypeError("v (=%s) must be a list of 3-tuples (or 3-element lists) of ints"%v)
             self.__mw.process(P, sat)
 
     def regulator(self):
@@ -1354,7 +1354,7 @@ class mwrank_MordellWeil(SageObject):
         """
         height_limit = float(height_limit)
         if height_limit >= 21.4:	# TODO: docstring says 21.48 (for 32-bit machines; what about 64-bit...?)
-            raise ValueError, "The height limit must be < 21.4."
+            raise ValueError("The height limit must be < 21.4.")
 
         moduli_option = 0  # Use Stoll's sieving program... see strategies in ratpoints-1.4.c
 

@@ -1,3 +1,5 @@
+.. _section-rings:
+
 ***************
 Anneaux de base
 ***************

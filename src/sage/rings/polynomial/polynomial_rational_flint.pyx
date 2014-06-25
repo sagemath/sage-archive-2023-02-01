@@ -1412,7 +1412,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: G = f.galois_group(); G            # optional - database_gap
             Transitive group number 5 of degree 4
             sage: G.gens()                           # optional - database_gap
-            [(1,2,3,4), (1,2)]
+            [(1,2), (1,2,3,4)]
             sage: G.order()                          # optional - database_gap
             24
 
@@ -1486,7 +1486,7 @@ cdef class Polynomial_rational_flint(Polynomial):
                 d = int(kash.eval('%s.ext1'%G.name()))
                 n = int(kash.eval('%s.ext2'%G.name()))
                 return TransitiveGroup(d, n)
-            except RuntimeError, msg:
+            except RuntimeError as msg:
                 raise NotImplementedError, (str(msg) + "\nSorry, " +
                     "computation of Galois groups of fields of degree " +
                     "bigger than 11 is not yet implemented.  Try installing " +
@@ -1501,7 +1501,7 @@ cdef class Polynomial_rational_flint(Polynomial):
                 n, d = X.TransitiveGroupIdentification(nvals=2)
                 d = int(d)
                 n = int(n)
-            except RuntimeError, msg:
+            except RuntimeError as msg:
                 raise RuntimeError, (str(msg) + "\nUnable to lookup " +
                     "description of Galois group as a transitive " +
                     "group.\n%s" %X)

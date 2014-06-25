@@ -1,7 +1,8 @@
 r"""
 Rigged Configuration Elements
 
-A rigged configuration element is a sequence of :class:`RiggedPartition`
+A rigged configuration element is a sequence of
+:class:`~sage.combinat.rigged_configurations.rigged_partition.RiggedPartition`
 objects.
 
 AUTHORS:
@@ -125,7 +126,8 @@ class RiggedConfigurationElement(ClonableArray):
         <BLANKLINE>
 
     We can go between
-    :class:`tensor products of KR tableaux<TensorProductOfKirillovReshetikhinTableaux>`
+    :class:`tensor products of KR tableaux
+    <sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux>`
     and tensor products of
     :mod:`KR crystals <sage.combinat.crystals.kirillov_reshetikhin>`::
 
@@ -273,12 +275,12 @@ class RiggedConfigurationElement(ClonableArray):
 
     def _repr_(self):
         """
-        Return the string representation of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
-            sage: RC(partition_list=[[2], [3,1], [3], [3]])
+            sage: elt = RC(partition_list=[[2], [3,1], [3], [3]]); elt
             <BLANKLINE>
             -1[ ][ ]-1
             <BLANKLINE>
@@ -289,7 +291,33 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
             -2[ ][ ][ ]-2
             <BLANKLINE>
-            sage: RC(partition_list=[[],[],[],[]])
+            sage: RC.global_options(display='horizontal')
+            sage: elt
+            -1[ ][ ]-1   2[ ][ ][ ]2   -2[ ][ ][ ]-2   -2[ ][ ][ ]-2
+                         0[ ]0
+            sage: RC.global_options.reset()
+        """
+        return self.parent().global_options.dispatch(self, '_repr_', 'display')
+
+    def _repr_vertical(self):
+        """
+        Return the string representation of ``self`` verically.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
+            sage: print RC(partition_list=[[2], [3,1], [3], [3]])._repr_vertical()
+            <BLANKLINE>
+            -1[ ][ ]-1
+            <BLANKLINE>
+            2[ ][ ][ ]2
+            0[ ]0
+            <BLANKLINE>
+            -2[ ][ ][ ]-2
+            <BLANKLINE>
+            -2[ ][ ][ ]-2
+            <BLANKLINE>
+            sage: print RC(partition_list=[[],[],[],[]])._repr_vertical()
             <BLANKLINE>
             (/)
             <BLANKLINE>
@@ -305,6 +333,36 @@ class RiggedConfigurationElement(ClonableArray):
             ret_str += "\n" + repr(tableau)
         return(ret_str)
 
+    def _repr_horizontal(self):
+        """
+        Return the string representation of ``self`` horizontally.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
+            sage: print RC(partition_list=[[2], [3,1], [3], [3]])._repr_horizontal()
+            -1[ ][ ]-1   2[ ][ ][ ]2   -2[ ][ ][ ]-2   -2[ ][ ][ ]-2
+                         0[ ]0
+            sage: print RC(partition_list=[[],[],[],[]])._repr_horizontal()
+            (/)   (/)   (/)   (/)
+        """
+        tab_str = map(lambda x: repr(x).splitlines(), self)
+        height = max(len(t) for t in tab_str)
+        widths = [max(len(x) for x in t) for t in tab_str]
+        ret_str = ''
+        for i in range(height):
+            if i != 0:
+                ret_str += '\n'
+            line = []
+            for j,t in enumerate(tab_str):
+                if j != 0:
+                    ret_str += '   '
+                if i < len(t):
+                    ret_str += t[i] + ' ' * (widths[j]-len(t[i]))
+                else:
+                    ret_str += ' ' * widths[j]
+        return ret_str
+
     def _latex_(self):
         r"""
         Return the LaTeX representation of ``self``.
@@ -316,29 +374,29 @@ class RiggedConfigurationElement(ClonableArray):
             {
             \begin{array}[t]{r|c|c|l}
             \cline{2-3} -1 &\phantom{|}&\phantom{|}& -1 \\
-             \cline{2-3} 
+             \cline{2-3}
             \end{array}
-            } 
+            }
             \quad
              {
             \begin{array}[t]{r|c|c|c|l}
             \cline{2-4} 2 &\phantom{|}&\phantom{|}&\phantom{|}& 2 \\
              \cline{2-4} 0 &\phantom{|}& \multicolumn{3 }{l}{ 0 } \\
-             \cline{2-2} 
+             \cline{2-2}
             \end{array}
-            } 
+            }
             \quad
              {
             \begin{array}[t]{r|c|c|c|l}
             \cline{2-4} -2 &\phantom{|}&\phantom{|}&\phantom{|}& -2 \\
-             \cline{2-4} 
+             \cline{2-4}
             \end{array}
-            } 
+            }
             \quad
              {
             \begin{array}[t]{r|c|c|c|l}
             \cline{2-4} -2 &\phantom{|}&\phantom{|}&\phantom{|}& -2 \\
-             \cline{2-4} 
+             \cline{2-4}
             \end{array}
             }
             sage: latex(RC(partition_list=[[],[],[],[]]))
@@ -642,7 +700,7 @@ class RiggedConfigurationElement(ClonableArray):
                     new_vac_nums[i] += 2
                     new_rigging[i] += 2
 
-                
+
                 if k != 1 and not set_vac_num: # If we did not remove a row nor found another row of length k-1
                     new_vac_nums[rigging_index] += 2
 

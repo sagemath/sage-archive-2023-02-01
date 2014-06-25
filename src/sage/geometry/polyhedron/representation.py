@@ -336,8 +336,7 @@ class Hrepresentation(PolyhedronRepresentation):
         """
         assert polyhedron.parent() is self._polyhedron_parent
         if len(data) != self._vector.degree():
-            raise ValueError, \
-                'H-representation data requires a list of length ambient_dim+1'
+            raise ValueError('H-representation data requires a list of length ambient_dim+1')
 
         for i in range(0, self._vector.degree()):
             self._vector.set(i, data[i])
@@ -852,8 +851,7 @@ class Vrepresentation(PolyhedronRepresentation):
         """
         assert polyhedron.parent() is self._polyhedron_parent
         if len(data) != self._vector.degree():
-            raise ValueError, \
-                'V-representation data requires a list of length ambient_dim'
+            raise ValueError('V-representation data requires a list of length ambient_dim')
 
         for i in range(0, self._vector.degree()):
             self._vector.set(i, data[i])

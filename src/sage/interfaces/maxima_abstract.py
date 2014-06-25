@@ -270,7 +270,7 @@ class MaximaAbstract(Interface):
         EXAMPLES::
 
             sage: sorted(maxima.completions('gc', verbose=False))
-            ['gcd', 'gcdex', 'gcfactor', 'gcprint', 'gctime']
+            ['gcd', 'gcdex', 'gcfactor', 'gctime']
         """
         if verbose:
             print s,
@@ -420,7 +420,7 @@ class MaximaAbstract(Interface):
         EXAMPLES::
 
             sage: maxima.version()
-            '5.29.1'
+            '5.33.0'
         """
         return maxima_version()
 
@@ -601,11 +601,11 @@ class MaximaAbstract(Interface):
         EXAMPLES::
 
             sage: f = maxima.function('x', 'sin(x)')
-            sage: f(3.2)
-            -.058374143427580...
+            sage: f(3.2)  # abs tol 2e-16
+            -0.058374143427579909
             sage: f = maxima.function('x,y', 'sin(x)+cos(y)')
-            sage: f(2,3.5)
-            sin(2)-.9364566872907963
+            sage: f(2, 3.5)  # abs tol 2e-16
+            sin(2)-0.9364566872907963
             sage: f
             sin(x)+cos(y)
 
@@ -850,7 +850,7 @@ class MaximaAbstract(Interface):
         self.eval('depends(%s)'%str_vars)
         m = self(de)
         a = 'ode2(%s, %s)'%(m.name(), str_vars)
-        if ics != None:
+        if ics is not None:
             if len(ics) == 3:
                 cmd = "ic2("+a+",%s=%s,%s=%s,diff(%s,%s)=%s);"%(vars[0],ics[0], vars[1],ics[1], vars[1], vars[0], ics[2])
                 return self(cmd)
@@ -970,7 +970,7 @@ class MaximaAbstract(Interface):
         # n is not squarefree.)
         n = Integer(n).squarefree_part()
         if n < 1:
-            raise ValueError, "n (=%s) must be >= 1"%n
+            raise ValueError("n (=%s) must be >= 1"%n)
         s = repr(self('qunit(%s)'%n)).lower()
         r = re.compile('sqrt\(.*\)')
         s = r.sub('a', s)
@@ -1513,7 +1513,7 @@ class MaximaAbstractElement(InterfaceElement):
         EXAMPLES::
 
             sage: maxima('exp(-sqrt(x))').nintegral('x',0,1)
-            (.5284822353142306, 4.16331413788384...e-11, 231, 0)
+            (0.5284822353142306, 4.16331413788384...e-11, 231, 0)
 
         Note that GP also does numerical integration, and can do so to very
         high precision very quickly::
@@ -1575,7 +1575,7 @@ class MaximaAbstractElement(InterfaceElement):
             return I(var)
         else:
             if max is None:
-                raise ValueError, "neither or both of min/max must be specified."
+                raise ValueError("neither or both of min/max must be specified.")
             return I(var, min, max)
 
     integrate = integral
@@ -1600,7 +1600,7 @@ class MaximaAbstractElement(InterfaceElement):
         try:
             return float(repr(self.numer()))
         except ValueError:
-            raise TypeError, "unable to coerce '%s' to float"%repr(self)
+            raise TypeError("unable to coerce '%s' to float"%repr(self))
 
     def __len__(self):
         """
@@ -1670,7 +1670,7 @@ class MaximaAbstractElement(InterfaceElement):
         """
         n = int(n)
         if n < 0 or n >= len(self):
-            raise IndexError, "n = (%s) must be between %s and %s"%(n, 0, len(self)-1)
+            raise IndexError("n = (%s) must be between %s and %s"%(n, 0, len(self)-1))
         # If you change the n+1 to n below, better change __iter__ as well.
         return InterfaceElement.__getitem__(self, n+1)
 
@@ -1763,7 +1763,7 @@ class MaximaAbstractElement(InterfaceElement):
         P = self.parent()
         s = P._eval_line('tex(%s);'%self.name(), reformat=False)
         if not '$$' in s:
-            raise RuntimeError, "Error texing Maxima object."
+            raise RuntimeError("Error texing Maxima object.")
         i = s.find('$$')
         j = s.rfind('$$')
         s = s[i+2:j]
@@ -1908,8 +1908,8 @@ class MaximaAbstractElement(InterfaceElement):
 
         try:
             return P.new('%s %s %s'%(self._name, operation, right._name))
-        except Exception, msg:
-            raise TypeError, msg
+        except Exception as msg:
+            raise TypeError(msg)
 
 
 class MaximaAbstractFunctionElement(InterfaceFunctionElement):
@@ -2352,7 +2352,7 @@ def maxima_version():
 
         sage: from sage.interfaces.maxima_abstract import maxima_version
         sage: maxima_version()
-        '5.29.1'
+        '5.33.0'
     """
     return os.popen('maxima --version').read().split()[-1]
 

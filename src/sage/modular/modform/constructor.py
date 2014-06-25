@@ -94,17 +94,17 @@ def canonical_parameters(group, level, weight, base_ring):
     """
     weight = rings.Integer(weight)
     if weight <= 0:
-        raise NotImplementedError, "weight must be at least 1"
+        raise NotImplementedError("weight must be at least 1")
 
     if isinstance(group, dirichlet.DirichletCharacter):
         if ( group.level() != rings.Integer(level) ):
-            raise ValueError, "group.level() and level do not match."
+            raise ValueError("group.level() and level do not match.")
         group = group.minimize_base_ring()
         level = rings.Integer(level)
 
     elif arithgroup.is_CongruenceSubgroup(group):
         if ( rings.Integer(level) != group.level() ):
-            raise ValueError, "group.level() and level do not match."
+            raise ValueError("group.level() and level do not match.")
         # normalize the case of SL2Z
         if arithgroup.is_SL2Z(group) or \
            arithgroup.is_Gamma1(group) and group.level() == rings.Integer(1):
@@ -117,14 +117,14 @@ def canonical_parameters(group, level, weight, base_ring):
         try:
             m = rings.Integer(group)
         except TypeError:
-            raise TypeError, "group of unknown type."
+            raise TypeError("group of unknown type.")
         level = rings.Integer(level)
         if ( m != level ):
-            raise ValueError, "group and level do not match."
+            raise ValueError("group and level do not match.")
         group = arithgroup.Gamma0(m)
 
     if not is_CommutativeRing(base_ring):
-        raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring
+        raise TypeError("base_ring (=%s) must be a commutative ring"%base_ring)
 
     # it is *very* important to include the level as part of the data
     # that defines the key, since dirichlet characters of different
@@ -306,7 +306,7 @@ def ModularForms(group  = 1,
 
     key = canonical_parameters(group, level, weight, base_ring)
 
-    if use_cache and _cache.has_key(key):
+    if use_cache and key in _cache:
          M = _cache[key]()
          if not (M is None):
              M.set_precision(prec)
@@ -336,7 +336,7 @@ def ModularForms(group  = 1,
             # TODO -- implement this
             # Need to add a lift_to_char_0 function for characters,
             # and need to still remember eps.
-            raise NotImplementedError, "currently the character must be over a ring of characteristic 0."
+            raise NotImplementedError("currently the character must be over a ring of characteristic 0.")
         eps = eps.minimize_base_ring()
         if eps.is_trivial():
             return ModularForms(eps.modulus(), weight, base_ring,
@@ -347,8 +347,7 @@ def ModularForms(group  = 1,
             M = M.base_extend(base_ring) # ambient_R.ModularFormsAmbient_R(M, base_ring)
 
     if M is None:
-        raise NotImplementedError, \
-           "computation of requested space of modular forms not defined or implemented"
+        raise NotImplementedError("computation of requested space of modular forms not defined or implemented")
 
     M.set_precision(prec)
     _cache[key] = weakref.ref(M)
@@ -479,11 +478,11 @@ def Newform(identifier, group=None, weight=2, base_ring=rings.QQ, names=None):
     if isinstance(identifier, str):
         group, identifier = parse_label(identifier)
         if weight != 2:
-            raise ValueError, "Canonical label not implemented for higher weight forms."
+            raise ValueError("Canonical label not implemented for higher weight forms.")
         elif base_ring != rings.QQ:
-            raise ValueError, "Canonical label not implemented except for over Q."
+            raise ValueError("Canonical label not implemented except for over Q.")
     elif group is None:
-        raise ValueError, "Must specify a group or a label."
+        raise ValueError("Must specify a group or a label.")
     return Newforms(group, weight, base_ring, names=names)[identifier]
 
 
@@ -503,7 +502,7 @@ def parse_label(s):
     """
     m = re.match(r'(\d+)([a-z]+)((?:G.*)?)$', s)
     if not m:
-        raise ValueError, "Invalid label: %s" % s
+        raise ValueError("Invalid label: %s" % s)
     N, order, G = m.groups()
     N = int(N)
     index = 0
@@ -515,11 +514,11 @@ def parse_label(s):
         G = arithgroup.Gamma1(N)
     elif G[:2] == 'GH':
         if G[2] != '[' or G[-1] != ']':
-            raise ValueError, "Invalid congruence subgroup label: %s" % G
+            raise ValueError("Invalid congruence subgroup label: %s" % G)
         gens = [int(g.strip()) for g in G[3:-1].split(',')]
         return arithgroup.GammaH(N, gens)
     else:
-        raise ValueError, "Invalid congruence subgroup label: %s" % G
+        raise ValueError("Invalid congruence subgroup label: %s" % G)
     return G, index
 
 

@@ -30,6 +30,7 @@ Basic Structures
    sage/sets/disjoint_union_enumerated_sets
    sage/sets/set_from_iterator
    sage/sets/finite_enumerated_set
+   sage/sets/recursively_enumerated_set
    sage/sets/finite_set_maps
    sage/sets/finite_set_map_cy
    sage/sets/integer_range
@@ -37,6 +38,7 @@ Basic Structures
    sage/sets/non_negative_integers
    sage/sets/primes
    sage/sets/totally_ordered_finite_set
+   sage/sets/real_set
 
    sage/structure/parent
 

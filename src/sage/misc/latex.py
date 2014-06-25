@@ -4,6 +4,11 @@ LaTeX printing support
 In order to support latex formatting, an object should define a
 special method ``_latex_(self)`` that returns a string, which will be typeset
 in a mathematical mode (the exact mode depends on circumstances).
+
+    AUTHORS:
+
+    - William Stein: original implementation
+    - Joel B. Mohler: latex_variable_name() drastic rewrite and many doc-tests
 """
 
 #*****************************************************************************
@@ -14,7 +19,6 @@ in a mathematical mode (the exact mode depends on circumstances).
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 
 EMBEDDED_MODE = False
 
@@ -2659,9 +2663,12 @@ def latex_variable_name(x, is_fname=False):
         sage: latex_variable_name('x_ast')
         'x_{\\ast}'
 
-    AUTHORS:
-
-    - Joel B. Mohler: drastic rewrite and many doc-tests
+    TESTS::
+    
+        sage: latex_variable_name('_C')  # :trac:`16007`
+        'C'
+        sage: latex_variable_name('_K1')
+        'K_{1}'
     """
     underscore = x.find("_")
     if underscore == -1:

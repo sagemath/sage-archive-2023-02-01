@@ -529,10 +529,10 @@ class NormalFormGame(SageObject, MutableMapping):
 
         A small example game. ::
 
-            sage: s1 = matrix([[1, 0], [-2, 3]])
-            sage: s2 = matrix([[3, 2], [-1, 0]])
+            sage: A = matrix([[1, 0], [-2, 3]])
+            sage: B = matrix([[3, 2], [-1, 0]])
             sage: two_game = NormalFormGame()
-            sage: two_game._two_matrix_game([s1, s2])
+            sage: two_game._two_matrix_game([A, B])
         """
         self.players = []
         self._strategy_profiles = {}

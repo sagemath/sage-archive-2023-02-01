@@ -4625,7 +4625,10 @@ class FiniteStateMachine(SageObject):
             sage: it.result()
             [(True, 'A', [1, 0, 0])]
         """
-        return FSMProcessIterator(self, input_tape, initial_state, **kwargs)
+        return FSMProcessIterator(self,
+                                  input_tape=input_tape,
+                                  initial_state=initial_state,
+                                  **kwargs)
 
 
     #*************************************************************************
@@ -9032,8 +9035,9 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         [(False, 0, []), (False, 1, [])]
     """
     def __init__(self, fsm,
-                 input_tape=None, initial_state=None,
-                 input_tapes=[], initial_states=[],
+                 input_tape=None,
+                 input_single_tape=None, input_multi_tape=None,
+                 initial_state=None, initial_states=[],
                  use_multitape_input=None,
                  check_epsilon_transitions=True,
                  format_output=None,
@@ -9068,16 +9072,19 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                 raise ValueError("No state is initial.")
 
         # input tapes
-        input_tapes = list(input_tapes)
-        if input_tape:
-            input_tapes.append(input_tape)
-        for tape in input_tapes:
-            if not hasattr(tape, '__iter__'):
-                raise ValueError("Given input tape is not iterable.")
-        if not input_tapes:
-            input_tapes.append(iter([]))
-        self._input_tape_ = tuple(iter(tape) for tape in input_tapes)
-        self._input_tape_ended_ = [False for _ in input_tapes]
+        tape = []
+        if input_tape is not None:
+            tape.append(input_tape)
+        if input_single_tape is not None:
+            tape.append(input_single_tape)
+        if input_multi_tape is not None:
+            tape.extend(list(input_multi_tape))
+        if not tape:
+            tape.append(iter([]))
+        if not all(hasattr(track, '__iter__') for track in tape):
+            raise ValueError('Given input tape is not iterable.')
+        self._input_tape_ = tuple(iter(track) for track in tape)
+        self._input_tape_ended_ = [False for _ in tape]
 
         if use_multitape_input is None:
             self.is_multitape = len(self._input_tape_) >= 2

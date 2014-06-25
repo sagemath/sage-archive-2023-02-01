@@ -442,32 +442,28 @@ cdef class CVXOPTBackend(GenericBackend):
         EXAMPLE::
 
             sage: p = MixedIntegerLinearProgram(solver = "cvxopt", maximization=False)
-            sage: x=p.new_variable(nonnegative=True)[0]
-            sage: y=p.new_variable(nonnegative=True)[0]
-            sage: p.set_objective(-4*x - 5*y)
-            sage: p.add_constraint(2*x + y <= 3)
-            sage: p.add_constraint(x + 2*y <= 3)
+            sage: x=p.new_variable(nonnegative=True)
+            sage: p.set_objective(-4*x[0] - 5*x[1])
+            sage: p.add_constraint(2*x[0] + x[1] <= 3)
+            sage: p.add_constraint(2*x[1] + x[0] <= 3)
             sage: round(p.solve(), 2)
             -9.0
             sage: p = MixedIntegerLinearProgram(solver = "cvxopt", maximization=False)
-            sage: x=p.new_variable(nonnegative=True)[0]
-            sage: y=p.new_variable(nonnegative=True)[0]
-            sage: p.set_objective(x + 2*y)
-            sage: p.add_constraint(-5*x + y  <=   7)
-            sage: p.add_constraint(-5*x + y  >=   7)
-            sage: p.add_constraint(x + y >= 26  )
-            sage: p.add_constraint( x >= 3)
-            sage: p.add_constraint( y >= 4)
+            sage: x=p.new_variable(nonnegative=True)
+            sage: p.set_objective(x[0] + 2*x[1])
+            sage: p.add_constraint(-5*x[0] + x[1]  <=   7)
+            sage: p.add_constraint(-5*x[0] + x[1]  >=   7)
+            sage: p.add_constraint(x[0] + x[1] >= 26  )
+            sage: p.add_constraint( x[0] >= 3)
+            sage: p.add_constraint( x[1] >= 4)
             sage: round(p.solve(),2)
             48.83
             sage: p = MixedIntegerLinearProgram(solver = "cvxopt")
-            sage: x=p.new_variable(nonnegative=True)[0]
-            sage: y=p.new_variable(nonnegative=True)[0]
-            sage: z=p.new_variable(nonnegative=True)[0]
-            sage: p.set_objective(x + y + 3*z)
+            sage: x=p.new_variable(nonnegative=True)
+            sage: p.set_objective(x[0] + x[1] + 3*x[2])
             sage: p.solver_parameter("show_progress",True)
-            sage: p.add_constraint(x + 2*y <= 4)
-            sage: p.add_constraint(5*z - y <= 8)
+            sage: p.add_constraint(x[0] + 2*x[1] <= 4)
+            sage: p.add_constraint(5*x[2] - x[1] <= 8)
             sage: round(p.solve(), 2)
                      pcost       dcost       gap    pres   dres   k/t
                  0: -7.3165e+00 -2.3038e+01  6e+00  0e+00  2e+00  1e+00
@@ -483,51 +479,45 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: c = MixedIntegerLinearProgram(solver = "cvxopt")
             sage: p = MixedIntegerLinearProgram(solver = "ppl")
             sage: g = MixedIntegerLinearProgram()
-            sage: xc=c.new_variable(nonnegative=True)[0]
-            sage: yc=c.new_variable(nonnegative=True)[0]
-            sage: zc=c.new_variable(nonnegative=True)[0]
-            sage: xp=p.new_variable(nonnegative=True)[0]
-            sage: yp=p.new_variable(nonnegative=True)[0]
-            sage: zp=p.new_variable(nonnegative=True)[0]
-            sage: xg=g.new_variable(nonnegative=True)[0]
-            sage: yg=g.new_variable(nonnegative=True)[0]
-            sage: zg=g.new_variable(nonnegative=True)[0]
-            sage: c.set_objective(zc)
-            sage: p.set_objective(zp)
-            sage: g.set_objective(zg)
+            sage: xc=c.new_variable(nonnegative=True)
+            sage: xp=p.new_variable(nonnegative=True)
+            sage: xg=g.new_variable(nonnegative=True)
+            sage: c.set_objective(xc[2])
+            sage: p.set_objective(xp[2])
+            sage: g.set_objective(xg[2])
             sage: #we create a cube for all three solvers
-            sage: c.add_constraint(xc <= 100)
-            sage: c.add_constraint(yc <= 100)
-            sage: c.add_constraint(zc <= 100)
-            sage: p.add_constraint(xp <= 100)
-            sage: p.add_constraint(yp <= 100)
-            sage: p.add_constraint(zp <= 100)
-            sage: g.add_constraint(xg <= 100)
-            sage: g.add_constraint(yg <= 100)
-            sage: g.add_constraint(zg <= 100)
+            sage: c.add_constraint(xc[0] <= 100)
+            sage: c.add_constraint(xc[1] <= 100)
+            sage: c.add_constraint(xc[2] <= 100)
+            sage: p.add_constraint(xp[0] <= 100)
+            sage: p.add_constraint(xp[1] <= 100)
+            sage: p.add_constraint(xp[2] <= 100)
+            sage: g.add_constraint(xg[0] <= 100)
+            sage: g.add_constraint(xg[1] <= 100)
+            sage: g.add_constraint(xg[2] <= 100)
             sage: round(c.solve(),2)
             100.0
-            sage: round(c.get_values(xc),2)
+            sage: round(c.get_values(xc[0]),2)
             50.0
-            sage: round(c.get_values(yc),2)
+            sage: round(c.get_values(xc[1]),2)
             50.0
-            sage: round(c.get_values(zc),2)
+            sage: round(c.get_values(xc[2]),2)
             100.0
             sage: round(p.solve(),2)
             100.0
-            sage: round(p.get_values(xp),2)
+            sage: round(p.get_values(xp[0]),2)
             0.0
-            sage: round(p.get_values(yp),2)
+            sage: round(p.get_values(xp[1]),2)
             0.0
-            sage: round(p.get_values(zp),2)
+            sage: round(p.get_values(xp[2]),2)
             100.0
             sage: round(g.solve(),2)
             100.0
-            sage: round(g.get_values(xg),2)
+            sage: round(g.get_values(xg[0]),2)
             0.0
-            sage: round(g.get_values(yg),2)
+            sage: round(g.get_values(xg[1]),2)
             0.0
-            sage: round(g.get_values(zg),2)
+            sage: round(g.get_values(xg[2]),2)
             100.0
         """
         from cvxopt import matrix, solvers

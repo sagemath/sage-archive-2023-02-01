@@ -230,8 +230,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         * `enumeration`: Support enumeration for 2 player games. This algorithm is hard coded in
         Sage and checks through all potential supports of a strategy.
-        Note: this is not the preferred algorithm and will fail in the case
-        of degenerate games. For more information about this see [NN2007]_.
+        Note: this is not the preferred algorithm. For more information about this see [NN2007]_.
 
     Below we show how all three algorithms are called ::
 
@@ -254,6 +253,28 @@ class NormalFormGame(SageObject, MutableMapping):
     gambit. Gambit has it's own Python api which can be used independently from
     Sage and to ensure compatibility between the two system, gambit like syntax
     is compatible.
+
+    If neither `LCP` or `lrs` is installed then the `enumeration` algorithm
+    can be used (as shown previously), however only a basic implementation is
+    available and this approach is not recommended for large games.
+
+    Importantly this algorithm is known to fail in the case of a degenerate
+    game. In fact degenerate games can cause problems for most algorithms ::
+
+        sage: A = matrix([[3,3],[2,5],[0,6]])
+        sage: B = matrix([[3,3],[2,6],[3,1]])
+        sage: degenerate_game = NormalFormGame([A,B])
+        sage: degenerate_game.obtain_Nash(algorithm='LCP')
+        [[(1.0, 0.0, 0.0), (1.0, 0.0)],
+         [(1.0, -0.0, 0.0), (0.6666666667, 0.3333333333)],
+         [(0.0, 0.3333333333, 0.6666666667), (0.3333333333, 0.6666666667)]]
+        sage: degenerate_game.obtain_Nash(algorithm='lrs')
+        [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (2/3, 1/3)]]
+        sage: degenerate_game.obtain_Nash(algorithm='enumeration')
+        [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (1/3, 2/3)]]
+
+    A good description of degenerate games can be found in [NN2007]_.
+
     Here is a game being constructed using gambit syntax (note that a
     `NormalFormGame` object acts like a dictionary with strategy tuples as
     keys and payoffs as their values) ::

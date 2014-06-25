@@ -835,8 +835,17 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: p = 37 * (x-1)^2 * (x-2)^2 * (x-3)^3 * (x-4)
             sage: p.squarefree_decomposition()
             (37) * (x - 4) * (x^2 - 3*x + 2)^2 * (x - 3)^3
-        """
 
+        TESTS:
+
+        Verify that :trac:`13053` has been resolved::
+
+            sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
+            sage: f=-x^2
+            sage: f.squarefree_decomposition()
+            (-1) * x^2
+
+        """
         cdef Polynomial_integer_dense_ntl p = self
         c = p.content()
         if c != 1:

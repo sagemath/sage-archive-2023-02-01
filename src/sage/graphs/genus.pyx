@@ -623,7 +623,7 @@ cdef class simple_connected_genus_backtracker:
             return self.record_genus
 
         next_swap = self.next_swap(vertex)
-        while 1:
+        while True:
             while next_swap == -1:
                 self.reset_swap(vertex)
                 vertex -= 1

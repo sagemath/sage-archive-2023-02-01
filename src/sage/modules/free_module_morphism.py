@@ -76,7 +76,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             <class 'sage.modules.free_module_morphism.FreeModuleMorphism'>
         """
         if not free_module_homspace.is_FreeModuleHomspace(parent):
-            raise TypeError, "parent (=%s) must be a free module hom space"%parent
+            raise TypeError("parent (=%s) must be a free module hom space"%parent)
         if isinstance(A, matrix_morphism.MatrixMorphism):
             A = A.matrix()
         A = parent._matrix_space()(A)
@@ -318,7 +318,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
 
         else:
             if not hasattr(A, 'hermite_form'):
-                raise NotImplementedError, "base ring (%s) must have hermite_form algorithm in order to compute inverse image"%R
+                raise NotImplementedError("base ring (%s) must have hermite_form algorithm in order to compute inverse image"%R)
 
             # 1. Compute H such that U*A = H = hnf(A) without zero
             # rows. What this "does" is find a basis for the image of
@@ -410,18 +410,18 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             try:
                 C = A.solve_left(x)
             except ValueError:
-                raise ValueError, "element is not in the image"
+                raise ValueError("element is not in the image")
         else:
             # see inverse_image for similar code but with comments
             if not hasattr(A, 'hermite_form'):
-                raise NotImplementedError, "base ring (%s) must have hermite_form algorithm in order to compute inverse image"%R
+                raise NotImplementedError("base ring (%s) must have hermite_form algorithm in order to compute inverse image"%R)
             H, U = A.hermite_form(transformation=True,include_zero_rows=False)
             Y = H.solve_left(vector(self.codomain().coordinates(x)))
             C = Y*U
         try:
             t = self.domain().linear_combination_of_basis(C)
         except TypeError:
-            raise ValueError, "element is not in the image"
+            raise ValueError("element is not in the image")
         assert self(t) == x
         return t
 
@@ -458,9 +458,9 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             if self.is_endomorphism():
                 return self.matrix().eigenvalues(extend=extend)
             else:
-                raise TypeError, "not an endomorphism"
+                raise TypeError("not an endomorphism")
         else:
-            raise NotImplementedError, "module must be a vector space"
+            raise NotImplementedError("module must be a vector space")
 
     def eigenvectors(self,extend=True):
         """
@@ -517,9 +517,9 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
                     resu.append((i[0],svectors,i[2]))
                 return resu
             else:
-                raise TypeError, "not an endomorphism"
+                raise TypeError("not an endomorphism")
         else:
-            raise NotImplementedError, "module must be a vector space"
+            raise NotImplementedError("module must be a vector space")
 
     def minimal_polynomial(self,var='x'):
         r"""
@@ -566,6 +566,6 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         if self.is_endomorphism():
             return self.matrix().minpoly(var)
         else:
-            raise TypeError, "not an endomorphism"
+            raise TypeError("not an endomorphism")
 
     minpoly = minimal_polynomial

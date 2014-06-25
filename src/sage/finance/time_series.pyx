@@ -2294,7 +2294,7 @@ cdef class TimeSeries:
         cdef double x1, x2, w, y1, y2
         cdef Py_ssize_t k
         for k from 0 <= k < self._length:
-            while 1:
+            while True:
                 x1 = 2*rstate.c_rand_double() - 1
                 x2 = 2*rstate.c_rand_double() - 1
                 w = x1*x1 + x2*x2
@@ -2346,7 +2346,7 @@ cdef class TimeSeries:
         z = d*d
         s = 1.5707963267948966192  # pi/2
         for k from 0 <= k < self._length:
-            while 1:
+            while True:
                 x = rstate.c_rand_double() * d - 1
                 y = rstate.c_rand_double() * s
                 if y*y + x*x < 1:
@@ -2403,7 +2403,7 @@ cdef class TimeSeries:
         cdef double x1, x2, w, y1, y2
         cdef Py_ssize_t k
         for k from 0 <= k < self._length:
-            while 1:
+            while True:
                 x1 = 2*rstate.c_rand_double() - 1
                 x2 = 2*rstate.c_rand_double() - 1
                 w = x1*x1 + x2*x2

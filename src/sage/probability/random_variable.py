@@ -47,7 +47,7 @@ class RandomVariable_generic(ParentWithBase):
     """
     def __init__(self, X, RR):
         if not is_ProbabilitySpace(X):
-            raise TypeError, "Argument X (= %s) must be a probability space" % X
+            raise TypeError("Argument X (= %s) must be a probability space" % X)
         ParentWithBase.__init__(self, X)
         self._codomain = RR
 
@@ -75,9 +75,9 @@ class DiscreteRandomVariable(RandomVariable_generic):
         value for x in X is the discrete function on X
         """
         if not is_DiscreteProbabilitySpace(X):
-            raise TypeError, "Argument X (= %s) must be a discrete probability space" % X
+            raise TypeError("Argument X (= %s) must be a discrete probability space" % X)
         if check:
-            raise NotImplementedError, "Not implemented"
+            raise NotImplementedError("Not implemented")
         if codomain is None:
             RR = RealField()
         else:
@@ -185,8 +185,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
         """
         Omega = self.probability_space()
         if Omega != other.probability_space():
-            raise ValueError, \
-                 "Argument other (= %s) must be defined on the same probability space." % other
+            raise ValueError("Argument other (= %s) must be defined on the same probability space." % other)
         muX = self.expectation()
         muY = other.expectation()
         cov = 0
@@ -209,8 +208,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
         """
         Omega = self.probability_space()
         if Omega != other.probability_space():
-            raise ValueError, \
-                 "Argument other (= %s) must be defined on the same probability space." % other
+            raise ValueError("Argument other (= %s) must be defined on the same probability space." % other)
         muX = self.expectation()
         muY = other.translation_expectation(map)
         cov = 0
@@ -258,8 +256,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
         sigX = self.standard_deviation()
         sigY = other.standard_deviation()
         if sigX == 0 or sigY == 0:
-            raise ValueError, \
-                "Correlation not defined if standard deviations are not both nonzero."
+            raise ValueError("Correlation not defined if standard deviations are not both nonzero.")
         return cov/(sigX*sigY)
 
     def translation_correlation(self, other, map):
@@ -271,8 +268,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
         sigX = self.standard_deviation()
         sigY = other.translation_standard_deviation(map)
         if sigX == 0 or sigY == 0:
-            raise ValueError, \
-                "Correlation not defined if standard deviations are not both nonzero."
+            raise ValueError("Correlation not defined if standard deviations are not both nonzero.")
         return cov/(sigX*sigY)
 
 ################################################################################
@@ -290,8 +286,7 @@ class ProbabilitySpace_generic(RandomVariable_generic):
         if isinstance(domain, list):
             domain = tuple(domain)
         if not isinstance(domain, tuple):
-            raise TypeError, \
-                "Argument domain (= %s) must be a list, tuple, or set containing." % domain
+            raise TypeError("Argument domain (= %s) must be a list, tuple, or set containing." % domain)
         self._domain = domain
         RandomVariable_generic.__init__(self, self, RR)
 
@@ -338,15 +333,15 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
         if codomain is None:
             codomain = RealField()
         if not is_RealField(codomain) and not is_RationalField(codomain):
-            raise TypeError, "Argument codomain (= %s) must be the reals or rationals" % codomain
+            raise TypeError("Argument codomain (= %s) must be the reals or rationals" % codomain)
         if check:
             one = sum([ P[x] for x in P.keys() ])
             if is_RationalField(codomain):
                 if not one == 1:
-                    raise TypeError, "Argument P (= %s) does not define a probability function"
+                    raise TypeError("Argument P (= %s) does not define a probability function")
             else:
                 if not Abs(one-1) < 2^(-codomain.precision()+1):
-                    raise TypeError, "Argument P (= %s) does not define a probability function"
+                    raise TypeError("Argument P (= %s) does not define a probability function")
         ProbabilitySpace_generic.__init__(self, X, codomain)
         DiscreteRandomVariable.__init__(self, self, P, codomain, check)
 

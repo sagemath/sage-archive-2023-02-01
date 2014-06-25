@@ -44,7 +44,7 @@ def _apply_function(func, list):
     while True:
         try:
             yield func(list)
-        except StandardError:
+        except Exception:
             break
 
 def Stream(x=None, const=None):
@@ -158,7 +158,7 @@ class Stream_class(SageObject):
 
         if func is not None:
             if gen is not None:
-                raise ValueError, "you cannot specify both a function and a generator"
+                raise ValueError("you cannot specify both a function and a generator")
             gen = _apply_function(func, self._list)
 
         #Constant stream
@@ -326,7 +326,7 @@ class Stream_class(SageObject):
             if self._constant is not False:
                 return self._constant
             else:
-                raise IndexError, "out of position"
+                raise IndexError("out of position")
         else:
             while self._last_index < i:
                 try:

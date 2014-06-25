@@ -1035,7 +1035,15 @@ cdef class LibraryCallHandler(BaseCallHandler):
 
     cdef leftv* handle_call(self, Converter argument_list, ring *_ring=NULL):
         if _ring != currRing: rChangeCurrRing(_ring)
-        return iiMake_proc(self.proc_idhdl, NULL, argument_list.args)
+        cdef bint error = iiMake_proc(self.proc_idhdl, NULL, argument_list.args)
+        cdef leftv * res
+        if not error:
+            res = <leftv*> omAllocBin(sleftv_bin)
+            res.Init()
+            res.Copy(&iiRETURNEXPR)
+            iiRETURNEXPR.Init();
+            return res
+        raise RuntimeError("Error raised calling singular function")
 
     cdef bint free_res(self):
         """

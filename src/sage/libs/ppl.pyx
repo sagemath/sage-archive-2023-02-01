@@ -187,11 +187,11 @@ restore_pre_PPL_rounding()
 ####################################################
 # Cython does not support ctypedef within cppclass; Hack around this restriction:
 cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library::Generator":
-    ctypedef enum PPL_GeneratorType:
+    ctypedef enum PPL_GeneratorType "Parma_Polyhedra_Library::Generator::Type":
         LINE, RAY, POINT, CLOSURE_POINT
 
 cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library::Constraint":
-    ctypedef enum PPL_ConstraintType:
+    ctypedef enum PPL_ConstraintType "Parma_Polyhedra_Library::Constraint::Type":
         EQUALITY, NONSTRICT_INEQUALITY, STRICT_INEQUALITY
 
 cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library::MIP_Problem":
@@ -328,7 +328,7 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
     cdef enum PPL_Optimization_Mode:
         MINIMIZATION, MAXIMIZATION
 
-    cdef enum PPL_MIP_Problem_Status:
+    cdef enum MIP_Problem_Status:
         UNFEASIBLE_MIP_PROBLEM, UNBOUNDED_MIP_PROBLEM, OPTIMIZED_MIP_PROBLEM
 
     cdef cppclass PPL_Polyhedron:
@@ -426,7 +426,7 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
         void set_optimization_mode(PPL_Optimization_Mode mode)
         PPL_Optimization_Mode optimization_mode()
         bint is_satisfiable()
-        PPL_MIP_Problem_Status solve()
+        MIP_Problem_Status solve()
         void evaluate_objective_function(PPL_Generator evaluating_point, PPL_Coefficient &num, PPL_Coefficient &den) except +ValueError
         PPL_Generator& feasible_point()
         PPL_Generator optimizing_point() except +ValueError

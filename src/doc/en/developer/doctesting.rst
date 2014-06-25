@@ -1148,7 +1148,7 @@ since the last commit::
 
     [roed@sage sage-6.0]$ sage -t --new
     Running doctests with ID 2012-07-07-01-15-52-645620ee.
-    Doctesting files changed since last HG commit.
+    Doctesting files changed since last git commit.
     Doctesting 1 file.
     sage -t src/sage/doctest/control.py
         [133 tests, 3.7 s]
@@ -1169,7 +1169,7 @@ use the ``--randorder`` flag and pass in a random seed::
 
     [roed@sage sage-6.0]$ sage -t --new --randorder 127
     Running doctests with ID 2012-07-07-01-19-06-97c8484e.
-    Doctesting files changed since last HG commit.
+    Doctesting files changed since last git commit.
     Doctesting 1 file.
     sage -t src/sage/doctest/control.py
         [133 tests, 3.6 s]

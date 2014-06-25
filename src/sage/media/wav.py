@@ -83,10 +83,10 @@ class Wave(SageObject):
                 self._nframes = kwds['nframes']
                 self._bytes = kwds['bytes']
                 self._channel_data = kwds['channel_data']
-            except KeyError, msg:
-                raise KeyError, msg + " invalid input to Wave initializer"
+            except KeyError as msg:
+                raise KeyError(msg + " invalid input to Wave initializer")
         else:
-            raise ValueError, "Must give a filename"
+            raise ValueError("Must give a filename")
 
 
     def save(self, filename='sage.wav'):
@@ -245,7 +245,7 @@ class Wave(SageObject):
         c = self.channel_data(channel)
         npoints = len(c)
         if len(values) != npoints:
-            raise ValueError, "values (of length %s) must have length %s"%(len(values), npoints)
+            raise ValueError("values (of length %s) must have length %s"%(len(values), npoints))
 
         # unscale the values
         scale = float(1 << (8*self._width -1))
@@ -367,7 +367,7 @@ class Wave(SageObject):
         inverse fft back.
         """
         if not isinstance(right, Wave):
-            raise TypeError, "right must be a wave"
+            raise TypeError("right must be a wave")
         npoints = self._nframes
         v = self.vector(npoints, channel=channel).fft()
         w = right.vector(npoints, channel=channel).fft()

@@ -21,7 +21,8 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
     """
     Numerically find a root of ``f`` on the closed interval `[a,b]`
     (or `[b,a]`) if possible, where ``f`` is a function in the one variable.
-
+    Note: this function only works in fixed (machine) precision, it is not
+    possible to get arbitrary precision approximations with it.
 
     INPUT:
 
@@ -66,7 +67,7 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
     Hypothesis::
 
         sage: find_root(f, 2, 4, rtol=0.0001)
-        2.0082590205656166
+        2.0082...
 
     This agrees with the plot::
 
@@ -326,7 +327,7 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
         f=func
 
     if algorithm=="default":
-        if gradient==None:
+        if gradient is None:
             min=optimize.fmin(f,map(float,x0),**args)
         else:
             min= optimize.fmin_bfgs(f,map(float,x0),fprime=gradient,**args)
@@ -442,8 +443,8 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         f=func
 
     if isinstance(cons,list):
-        if isinstance(cons[0],tuple) or isinstance(cons[0],list) or cons[0]==None:
-            if gradient!=None:
+        if isinstance(cons[0],tuple) or isinstance(cons[0],list) or cons[0] is None:
+            if gradient is not None:
                 if algorithm=='l-bfgs-b':
                     min= optimize.fmin_l_bfgs_b(f,x0,gradient,bounds=cons, iprint=-1, **args)[0]
                 else:
@@ -539,7 +540,7 @@ def linear_program(c,G,h,A=None,b=None,solver=None):
     c_=m(c.base_extend(RDF).numpy())
     G_=m(G.base_extend(RDF).numpy())
     h_=m(h.base_extend(RDF).numpy())
-    if A!=None and b!=None:
+    if A is not None and b is not None:
         A_=m(A.base_extend(RDF).numpy())
         b_=m(b.base_extend(RDF).numpy())
         sol=solvers.lp(c_,G_,h_,A_,b_,solver=solver)
@@ -661,7 +662,7 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
        variables is None or len(variables) == 0:
         raise ValueError("no variables given")
 
-    if initial_guess == None:
+    if initial_guess is None:
         initial_guess = len(parameters) * [1]
 
     if not isinstance(initial_guess, numpy.ndarray):
@@ -792,7 +793,7 @@ def binpacking(items,maximum=1,k=None):
     if max(items) > maximum:
         raise ValueError("This problem has no solution !")
 
-    if k==None:
+    if k is None:
         from sage.functions.other import ceil
         k=ceil(sum(items)/maximum)
         while True:
@@ -807,18 +808,17 @@ def binpacking(items,maximum=1,k=None):
 
     # Boolean variable indicating whether
     # the i th element belongs to box b
-    box=p.new_variable(dim=2)
+    box=p.new_variable(binary = True)
 
     # Each bin contains at most max
     for b in range(k):
-        p.add_constraint(p.sum([items[i]*box[i][b] for i in range(len(items))]),max=maximum)
+        p.add_constraint(p.sum([items[i]*box[i,b] for i in range(len(items))]) <= maximum)
 
     # Each item is assigned exactly one bin
     for i in range(len(items)):
-        p.add_constraint(p.sum([box[i][b] for b in range(k)]),min=1,max=1)
+        p.add_constraint(p.sum([box[i,b] for b in range(k)]) == 1)
 
     p.set_objective(None)
-    p.set_binary(box)
 
     try:
         p.solve()
@@ -829,8 +829,9 @@ def binpacking(items,maximum=1,k=None):
 
     boxes=[[] for i in range(k)]
 
-    for b in range(k):
-        boxes[b].extend([items[i] for i in range(len(items)) if round(box[i][b])==1])
+    for (i,b),value in box.iteritems():
+        if value == 1:
+            boxes[b].append(items[i])
 
     return boxes
 

@@ -1,3 +1,6 @@
+from sage.misc.lazy_import import lazy_import
+
+
 from cone import Cone
 
 from fan import Fan, FaceFan, NormalFan, Fan2d
@@ -19,3 +22,6 @@ import sage.geometry.pseudolines
 
 
 import toric_plotter
+
+lazy_import('sage.geometry.hyperplane_arrangement.arrangement', 'HyperplaneArrangements')
+lazy_import('sage.geometry.hyperplane_arrangement.library', 'hyperplane_arrangements')

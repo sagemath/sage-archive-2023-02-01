@@ -25,6 +25,7 @@ import re, sys
 import doctest
 import collections
 from sage.misc.preparser import preparse, strip_string_literals
+from functools import reduce
 
 float_regex = re.compile('([+-]?((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
 optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
@@ -492,7 +493,7 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: ex.want.tol
             2e-11
 
-        You can use continuation lines:
+        You can use continuation lines::
 
             sage: s = "sage: for i in range(4):\n....:     print i\n....:\n"
             sage: ex = DTP2.parse(s)[1]

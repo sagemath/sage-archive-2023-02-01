@@ -434,7 +434,7 @@ cdef balanced_list_sum(L, Py_ssize_t offset, Py_ssize_t count, Py_ssize_t cutoff
 #################################################################
 # 32/64-bit computer?
 #################################################################
-is_64_bit = sys.maxint >= 9223372036854775807
+is_64_bit = sys.maxsize >= 9223372036854775807
 is_32_bit = not is_64_bit
 
 

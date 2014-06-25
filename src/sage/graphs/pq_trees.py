@@ -337,7 +337,7 @@ class PQ:
         Returns the current ordering given by listing the leaves from
         left to right.
 
-        EXAMPLE:
+        EXAMPLE::
 
             sage: from sage.graphs.pq_trees import P, Q
             sage: p = Q([[1,2], [2,3], P([[2,4], [2,8], [2,9]])])
@@ -586,7 +586,8 @@ class P(PQ):
         n_PARTIAL_ALIGNED       = len(set_PARTIAL_ALIGNED)
         n_PARTIAL_UNALIGNED     = len(set_PARTIAL_UNALIGNED)
 
-        counts = dict(map(lambda (x,y) : (x,len(y)), sorting.iteritems()))
+        counts = dict(map(lambda x_y: (x_y[0], len(x_y[1])),
+                          sorting.iteritems()))
 
         # Excludes the situation where there is no solution.
         # read next comment for more explanations
@@ -832,7 +833,8 @@ class Q(PQ):
         n_PARTIAL_ALIGNED       = len(set_PARTIAL_ALIGNED)
         n_PARTIAL_UNALIGNED     = len(set_PARTIAL_UNALIGNED)
 
-        counts = dict(map(lambda (x,y) : (x,len(y)), sorting.iteritems()))
+        counts = dict(map(lambda x_y: (x_y[0], len(x_y[1])),
+                          sorting.iteritems()))
 
         ###################################################################
         #                                                                 #

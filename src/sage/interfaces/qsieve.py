@@ -68,7 +68,7 @@ def qsieve(n, block=True, time=False, verbose=False):
     Z = sage.rings.integer.Integer
     n = Z(n)
     if len(str(n)) < 40:
-        raise ValueError, "n must have at least 40 digits"
+        raise ValueError("n must have at least 40 digits")
     if block:
         return qsieve_block(n, time, verbose)
     else:
@@ -122,8 +122,7 @@ def data_to_list(out, n, time):
         t = ''
     Z = sage.rings.integer.Integer
     v = out.split()
-    v = list(set([Z(m) for m in v if Z(m) != n]))
-    v.sort()
+    v = sorted(set([Z(m) for m in v if Z(m) != n]))
     return v, t, verbose
 
 
@@ -211,7 +210,7 @@ class qsieve_nonblock:
         completed or the time is unknown.
         """
         if not self._do_time:
-            raise ValueError, "you have to start the sieve with the option time=True in order to get timing information"
+            raise ValueError("you have to start the sieve with the option time=True in order to get timing information")
         try:
             return data_to_list(self._get(), self._n, self._do_time)[1]
         except IndexError:
@@ -278,9 +277,9 @@ class qsieve_nonblock:
         e = self._p
         try:
             e.expect('xxx', timeout=timeout)
-        except pexpect.TIMEOUT, msg:
+        except pexpect.TIMEOUT as msg:
             pass
-        except pexpect.EOF, msg:
+        except pexpect.EOF as msg:
             pass
             self._done = True
             self._p.close()

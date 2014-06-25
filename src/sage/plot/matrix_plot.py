@@ -465,8 +465,8 @@ def matrix_plot(mat, **options):
             entries = list(mat._dict().items())
             try:
                 data = np.asarray([d for _,d in entries], dtype=float)
-            except StandardError:
-                raise ValueError, "can not convert entries to floating point numbers"
+            except Exception:
+                raise ValueError("can not convert entries to floating point numbers")
             positions = np.asarray([[row for (row,col),_ in entries],
                                     [col for (row,col),_ in entries]], dtype=int)
             mat = scipysparse.coo_matrix((data,positions), shape=(mat.nrows(), mat.ncols()))
@@ -484,12 +484,12 @@ def matrix_plot(mat, **options):
         else:
             xy_data_array = np.asarray(mat, dtype = float)
     except TypeError:
-        raise TypeError, "mat must be a Matrix or a two dimensional array"
+        raise TypeError("mat must be a Matrix or a two dimensional array")
     except ValueError:
-        raise ValueError, "can not convert entries to floating point numbers"
+        raise ValueError("can not convert entries to floating point numbers")
 
     if len(xy_data_array.shape) < 2:
-        raise TypeError, "mat must be a Matrix or a two dimensional array"
+        raise TypeError("mat must be a Matrix or a two dimensional array")
 
     xrange = (0, xy_data_array.shape[1])
     yrange = (0, xy_data_array.shape[0])

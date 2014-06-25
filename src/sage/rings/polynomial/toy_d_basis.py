@@ -212,13 +212,13 @@ def d_basis(F, strat=True):
     K = R.base_ring()
 
     G = set(inter_reduction(F.gens()))
-    B = set(filter(lambda (x,y): x!=y, [(f1,f2) for f1 in G for f2 in G]))
+    B = set((f1, f2) for f1 in G for f2 in G if f1 != f2)
     D = set()
     C = set(B)
 
     LCM = R.monomial_lcm
     divides = R.monomial_divides
-    divides_ZZ = lambda x,y: ZZ(x).divides(ZZ(y))
+    divides_ZZ = lambda x, y: ZZ(x).divides(ZZ(y))
 
     while B!=set():
         while C!=set():

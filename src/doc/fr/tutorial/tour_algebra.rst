@@ -333,7 +333,7 @@ Il nous faut réduire l'équation différentielle d'ordre 2 à un système de de
         3/4             0.82                 -0.16            -0.66          -0.081
           1             0.65                 -0.18            -0.74           0.022
 
-On en déduit :math:`z(1)\approx 0.75`.
+On en déduit :math:`z(1)\approx 0.65`.
 
 On peut également tracer le graphe des points :math:`(x,y)` pour obtenir
 une image approchée de la courbe. La fonction ``eulers_method_2x2_plot``

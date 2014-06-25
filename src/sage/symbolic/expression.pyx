@@ -9149,7 +9149,7 @@ cdef class Expression(CommutativeRingElement):
         INPUT:
 
 
-        -  ``x`` - variable to solve for
+        -  ``x`` - variable(s) to solve for
 
         -  ``multiplicities`` - bool (default: False); if True,
            return corresponding multiplicities.  This keyword is
@@ -9275,6 +9275,13 @@ cdef class Expression(CommutativeRingElement):
             sage: sol.sage()
             [[x == 1/4*pi + pi*z...]]
 
+        We can be also solved for several variables::
+
+            sage: var('b, c')
+            (b, c)
+            sage: solve((b-1)*(c-1), [b,c])
+            [[b == 1, c == r3], [b == r4, c == 1]]
+
         Some basic inequalities can be also solved::
 
             sage: x,y=var('x,y'); (ln(x)-ln(y)>0).solve(x)
@@ -9285,6 +9292,9 @@ cdef class Expression(CommutativeRingElement):
             sage: x,y=var('x,y'); (ln(x)>ln(y)).solve(x) # not tested - output depends on system
             [[0 < y, y < x, 0 < x]]
             [[y < x, 0 < y]]
+
+
+
 
         TESTS:
 

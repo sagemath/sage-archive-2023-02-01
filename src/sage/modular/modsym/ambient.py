@@ -641,7 +641,10 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         """
         if alpha.is_infinity():
             return self.manin_symbol((i,0,1), check=False)
-        v, c = arith.continued_fraction_list(alpha._rational_(), partial_convergents=True)
+        # v, c = arith.continued_fraction_list(alpha._rational_(), partial_convergents=True)
+        cf = alpha._rational_().continued_fraction()
+        v = list(cf)
+        c = [(cf.p(k),cf.q(k)) for k in xrange(len(cf))]
         a = self(0)
         zero = rings.ZZ(0)
         one = rings.ZZ(1)

@@ -8961,8 +8961,15 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         (True, 2, 'abc')
         sage: it = FSMProcessIterator(T, input_tape=[0, 0, 1],
         ....:                         format_output=lambda o: ''.join(o))
-        sage: for _ in it:
-        ....:     pass
+        sage: for current in it:
+        ....:     print current
+        {((1, 0),): {0: (tape at 1, [['a']]),
+                     1: (tape at 1, [['b']])}}
+        {((2, 0),): {0: (tape at 2, [['a', 'a']]),
+                     1: (tape at 2, [['a', 'b']])}}
+        {((3, 0),): {1: (tape at 3, [['a', 'b', 'c', 'd']]),
+                     2: (tape at 3, [['a', 'b', 'c']])}}
+        {}
         sage: it.result()
         [(False, 1, 'abcd'), (True, 2, 'abc')]
 
@@ -9040,8 +9047,11 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
             ....:     initial_states=['A'], final_states=['A'])
             sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
-            sage: for _ in it:
-            ....:     pass
+            sage: for current in it:
+            ....:     print current
+            {((1, 0),): {'A': (tape at 1, [[1]])}}
+            {((2, 0),): {'A': (tape at 2, [[1, 0]])}}
+            {}
             sage: it.result()
             [(True, 'A', [1, 0])]
         """
@@ -9281,20 +9291,26 @@ class FSMProcessIteratorEpsilon(FSMProcessIterator):
         sage: from sage.combinat.finite_state_machine import FSMProcessIteratorEpsilon
         sage: it = FSMProcessIteratorEpsilon(T, initial_state=T.state(0),
         ....:                                format_output=lambda o: ''.join(o))
-        sage: for _ in it:
-        ....:     pass
+        sage: for current in it:
+        ....:     print current
+        {((0, 0),): {2: (tape at 0, [['b']])}}
+        {((0, 0),): {1: (tape at 0, [['b', 'c']])}}
+        {}
         sage: it.visited_states
         {0: [''], 1: ['bc'], 2: ['b']}
         sage: it = FSMProcessIteratorEpsilon(T, initial_state=T.state(1),
         ....:                                format_output=lambda o: ''.join(o))
-        sage: for _ in it:
-        ....:     pass
+        sage: for current in it:
+        ....:     print current
+        {}
         sage: it.visited_states
         {1: ['']}
         sage: it = FSMProcessIteratorEpsilon(T, initial_state=T.state(2),
         ....:                                format_output=lambda o: ''.join(o))
-        sage: for _ in it:
-        ....:     pass
+        sage: for current in it:
+        ....:     print current
+        {((0, 0),): {1: (tape at 0, [['c']])}}
+        {}
         sage: it.visited_states
         {1: ['c'], 2: ['']}
 
@@ -9303,28 +9319,39 @@ class FSMProcessIteratorEpsilon(FSMProcessIterator):
         sage: A = Automaton([(0, 1, 0), (1, 2, None), (2, 3, None),
         ....:                (3, 1, None), (3, 4, None), (1, 4, None)])
         sage: it = FSMProcessIteratorEpsilon(A, initial_state=A.state(0))
-        sage: for _ in it:
-        ....:     pass
+        sage: for current in it:
+        ....:     print current
+        {}
         sage: it.visited_states
         {0: [[]]}
         sage: it = FSMProcessIteratorEpsilon(A, initial_state=A.state(1))
-        sage: for _ in it:
-        ....:     pass
+        sage: for current in it:
+        ....:     print current
+        {((0, 0),): {2: (tape at 0, [[]]), 4: (tape at 0, [[]])}}
+        {((0, 0),): {3: (tape at 0, [[]])}}
+        {}
         sage: it.visited_states
         {1: [[], []], 2: [[]], 3: [[]], 4: [[], []]}
         sage: it = FSMProcessIteratorEpsilon(A, initial_state=A.state(2))
-        sage: for _ in it:
-        ....:     pass
+        sage: for current in it:
+        ....:     print current
+        {((0, 0),): {3: (tape at 0, [[]])}}
+        {((0, 0),): {1: (tape at 0, [[]]), 4: (tape at 0, [[]])}}
+        {}
         sage: it.visited_states
         {1: [[]], 2: [[], []], 3: [[]], 4: [[], []]}
         sage: it = FSMProcessIteratorEpsilon(A, initial_state=A.state(3))
-        sage: for _ in it:
-        ....:     pass
+        sage: for current in it:
+        ....:     print current
+        {((0, 0),): {1: (tape at 0, [[]]), 4: (tape at 0, [[]])}}
+        {((0, 0),): {2: (tape at 0, [[]])}}
+        {}
         sage: it.visited_states
         {1: [[]], 2: [[]], 3: [[], []], 4: [[], []]}
         sage: it = FSMProcessIteratorEpsilon(A, initial_state=A.state(4))
-        sage: for _ in it:
-        ....:     pass
+        sage: for current in it:
+        ....:     print current
+        {}
         sage: it.visited_states
         {4: [[]]}
 
@@ -9335,35 +9362,47 @@ class FSMProcessIteratorEpsilon(FSMProcessIterator):
         ....:                 (3, 4, None, 'e'), (1, 4, None, 'f')])
         sage: it = FSMProcessIteratorEpsilon(T, initial_state=T.state(0),
         ....:                                format_output=lambda o: ''.join(o))
-        sage: for _ in it:
-        ....:     pass
+        sage: for current in it:
+        ....:     print current
+        {}
         sage: it.visited_states
         {0: ['']}
         sage: it = FSMProcessIteratorEpsilon(T, initial_state=T.state(1),
         ....:                                format_output=lambda o: ''.join(o))
-        sage: for _ in it:
-        ....:     pass
+        sage: for current in it:
+        ....:     print current
+        {((0, 0),): {2: (tape at 0, [['b']]), 4: (tape at 0, [['f']])}}
+        {((0, 0),): {3: (tape at 0, [['b', 'c']])}}
+        {}
         sage: it.visited_states
         {1: ['', 'bcd'], 2: ['b'],
          3: ['bc'], 4: ['f', 'bce']}
         sage: it = FSMProcessIteratorEpsilon(T, initial_state=T.state(2),
         ....:                                format_output=lambda o: ''.join(o))
-        sage: for _ in it:
-        ....:     pass
+        sage: for current in it:
+        ....:     print current
+        {((0, 0),): {3: (tape at 0, [['c']])}}
+        {((0, 0),): {1: (tape at 0, [['c', 'd']]),
+                     4: (tape at 0, [['c', 'e']])}}
+        {}
         sage: it.visited_states
         {1: ['cd'], 2: ['', 'cdb'],
          3: ['c'], 4: ['ce', 'cdf']}
         sage: it = FSMProcessIteratorEpsilon(T, initial_state=T.state(3),
         ....:                                format_output=lambda o: ''.join(o))
-        sage: for _ in it:
-        ....:     pass
+        sage: for current in it:
+        ....:     print current
+        {((0, 0),): {1: (tape at 0, [['d']]), 4: (tape at 0, [['e']])}}
+        {((0, 0),): {2: (tape at 0, [['d', 'b']])}}
+        {}
         sage: it.visited_states
         {1: ['d'], 2: ['db'],
          3: ['', 'dbc'], 4: ['e', 'df']}
         sage: it = FSMProcessIteratorEpsilon(T, initial_state=T.state(4),
         ....:                                format_output=lambda o: ''.join(o))
-        sage: for _ in it:
-        ....:     pass
+        sage: for current in it:
+        ....:     print current
+        {}
         sage: it.visited_states
         {4: ['']}
     """

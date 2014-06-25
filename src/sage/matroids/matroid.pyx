@@ -4843,7 +4843,7 @@ cdef class Matroid(SageObject):
             sage: pos = {'a':(0,0), 'b': (0,1), 'c':(1,0), 'd':(1,1), 'e':(1,-1), 'f':(-1,1), 'g':(-1,-1),'h':(2,0), 'i':(0,2)}
             sage: M.show(pos_method=1, pos_dict=pos,lims=[-3,3,-3,3])
         """
-        if self.rank() > 3 or self.rank() <= 0:
+        if self.rank() > 3:
             raise NotImplementedError
         elif B == None:
             B = list(self.basis())
@@ -4891,7 +4891,7 @@ cdef class Matroid(SageObject):
             sage: M._cached_info['plot_positions']['k']
             (0, 0)
         """
-        if self.rank() > 3 or self.rank() <= 0:
+        if self.rank() > 3:
             raise NotImplementedError
         # check sanity of pos_dict and add it to cached info if sane
         if(pos_dict!=None):

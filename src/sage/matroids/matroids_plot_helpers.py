@@ -530,6 +530,7 @@ def addlp(M, M1, L, P, ptsdict, G=None, limits=None):
                 if M.rank([g, p]) == 1:
                     pcl.extend([p])
             pcls.append(pcl)
+        ext_gnd = list(M.groundset())
         for pcl in pcls:
             if len(pcl) > 1:
                 basept = list(ptsdict[pcl[0]])
@@ -548,7 +549,8 @@ def addlp(M, M1, L, P, ptsdict, G=None, limits=None):
                 else:
                     # add in a bracket
                     pce = sorted([str(kk) for kk in pcl])
-                    l = newlabel(M.groundset())
+                    l = newlabel(set(ext_gnd))
+                    ext_gnd.append(l)
                     G += text(l+'={ '+", ".join(pce)+' }', (float(basept[0]),
                               float(basept[1]-0.2)-0.034), color='black',
                               fontsize=13)
@@ -776,7 +778,29 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
         B1 = list(M.basis())
     M._cached_info = M1._cached_info
 
-    if M.rank() == 1:
+    if M.rank() == 0:
+        limits = None
+        loops = L
+        looptext = ", ".join([str(l) for l in loops])
+        rectx = -1
+        recty = -1
+        rectw = 0.5 + 0.4*len(loops) + 0.5  # controlled based on len(loops)
+        recth = 0.6
+        G += polygon2d([[rectx, recty], [rectx, recty+recth],
+                        [rectx+rectw, recty+recth], [rectx+rectw, recty]],
+                       color='black', fill=False, thickness=4)
+        G += text(looptext, (rectx+0.5, recty+0.3), color='black',
+                  fontsize=13)
+        G += point((rectx+0.2, recty+0.3), color=Color('#BDBDBD'), size=300,
+                   zorder=2)
+        G += text('Loop(s)', (rectx+0.5+0.4*len(loops)+0.1, recty+0.3),
+                  fontsize=13, color='black')
+        limits = tracklims(limits, [rectx, rectx+rectw], [recty, recty+recth])
+        G.axes(False)
+        G.axes_range(xmin=limits[0]-0.5, xmax=limits[1]+0.5, 
+                     ymin=limits[2]-0.5, ymax=limits[3]+0.5)
+        return G
+    elif M.rank() == 1:
         if M._cached_info is not None and \
            'plot_positions' in M._cached_info.keys() and \
            M._cached_info['plot_positions'] is not None:

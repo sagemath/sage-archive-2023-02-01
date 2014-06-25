@@ -340,7 +340,7 @@ cdef inline int cinvert(celement out, celement a, long prec, PowComputer_ prime_
         fmpz_poly_scalar_divexact_fmpz(out, a, prime_pow.fmpz_cinv)
 
         fmpz_poly_xgcd(prime_pow.fmpz_cinv2, out, prime_pow.poly_cinv2, out, prime_pow.poly_cinv)
-        if fmpz_is_zero(prime_pow.cinv2): raise ValueError("polynomials are not coprime")
+        if fmpz_is_zero(prime_pow.fmpz_cinv2): raise ValueError("polynomials are not coprime")
 
         fmpz_mul(prime_pow.fmpz_cinv2, prime_pow.fmpz_cinv, prime_pow.fmpz_cinv2)
         if not fmpz_invmod(prime_pow.fmpz_cinv2, prime_pow.fmpz_cinv2, prime_pow.pow_fmpz_t_tmp(prec)[0]): raise ValueError("content or xgcd is not a unit")

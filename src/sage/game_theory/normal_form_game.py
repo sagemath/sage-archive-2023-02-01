@@ -21,7 +21,7 @@ from collections import MutableMapping
 from itertools import product, combinations, chain
 from sage.misc.lazy_import import lazy_import
 from sage.structure.sage_object import SageObject
-from sage.rings.all import QQ
+from sage.rings.all import QQ, ZZ
 from sage.misc.misc import powerset
 from sage.combinat.cartesian_product import CartesianProduct
 lazy_import('sage.misc.package', 'is_package_installed')
@@ -778,7 +778,7 @@ class NormalFormGame(SageObject, MutableMapping):
         # Scale the matrix if it is not in ZZ
         denominators = [[1], [1]]
         for player in range(2):
-            M = self.payoff_matrices[player]
+            M = self.payoff_matrices()[player]
             if M.base_ring() not in ZZ:
                 for row in M:
                     for utility in row:
@@ -927,18 +927,20 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: Z._solve_enumeration()
             [[(1, 0, 0), (0, 1, 0)], [(0, 0, 1), (0, 0, 1)], [(2/9, 0, 7/9), (0, 3/4, 1/4)]]
         """
-        potential_supports = [[tuple(support) for support in powerset(range(player.num_strategies))] for player in self.players]
+        potential_supports = [[tuple(support) for support in
+                               powerset(range(player.num_strategies))]
+                               for player in self.players]
 
         potential_support_pairs = [pair for pair in CartesianProduct(*potential_supports) if len(pair[0]) == len(pair[1])]
+
         equilibria = []
         for pair in potential_support_pairs:
-            result = self._check_support(*pair)
+            result = self._solve_indifference(*pair)
             if result:
                 equilibria.append([result[0], result[1]])
-
         return equilibria
 
-    def _check_support(self, p1_support, p2_support):
+    def _solve_indifference(self, p1_support, p2_support):
         matrix1 = matrix(QQ, len(p2_support)+1, self.players[0].num_strategies)
         matrix2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)
 

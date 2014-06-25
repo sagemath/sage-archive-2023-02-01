@@ -746,9 +746,9 @@ class NormalFormGame(SageObject, MutableMapping):
     def _game_two_matrix(self):
         m1 = matrix(QQ, self.players[0].num_strategies, self.players[1].num_strategies)
         m2 = matrix(QQ, self.players[0].num_strategies, self.players[1].num_strategies)
-        for key in self.utilities:
-                m1[key] = self[key][0]
-                m2[key] = self[key][1]
+        for strategy_profile in self.utilities:
+                m1[strategy_profile] = self[strategy_profile][0]
+                m2[strategy_profile] = self[strategy_profile][1]
         return m1, m2
 
     def _solve_LCP(self, maximization):
@@ -775,9 +775,9 @@ class NormalFormGame(SageObject, MutableMapping):
 
         s1 = []
         s2 = []
-        for key in self.utilities:
-            s1.append(Rational(self.utilities[key][0]).denom())
-            s2.append(Rational(self.utilities[key][1]).denom())
+        for strategy_profile in self.utilities:
+            s1.append(Rational(self.utilities[strategy_profile][0]).denom())
+            s2.append(Rational(self.utilities[strategy_profile][1]).denom())
 
         scalar1 = lcm(s1)
         scalar2 = lcm(s2)
@@ -786,9 +786,11 @@ class NormalFormGame(SageObject, MutableMapping):
             scalar1 *= -1
             scalar2 *= -1
 
-        for key in self.utilities:
-            g[key][0] = int(scalar1 * self.utilities[key][0])
-            g[key][1] = int(scalar2 * self.utilities[key][1])
+        for strategy_profile in self.utilities:
+            g[strategy_profile][0] = int(scalar1 *
+                                           self.utilities[strategy_profile][0])
+            g[strategy_profile][1] = int(scalar2 *
+                                           self.utilities[strategy_profile][1])
 
         output = ExternalLCPSolver().solve(g)
         nasheq = Parser(output, g).format_gambit()

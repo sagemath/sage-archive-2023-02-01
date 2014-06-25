@@ -1002,7 +1002,8 @@ class NormalFormGame(SageObject, MutableMapping):
 
             return False
 
-        if sum(x > 0 for x in vector1) != sum(x > 0 for x in vector2):
+        if (sum(x > 0 for x in vector1) != 1 or
+            sum(x > 0 for x in vector2) != 1):
             return False
 
         p1_payoffs = []

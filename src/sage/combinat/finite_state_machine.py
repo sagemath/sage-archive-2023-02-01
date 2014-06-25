@@ -9179,6 +9179,10 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         if not self._current_:
             raise StopIteration
 
+        def write_word(output, word):
+            for o in output:
+                o.extend(word)
+
         def step(current_state, input_tape, output):
             # process current state
             next_transitions = None
@@ -9199,7 +9203,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                                  'a list/tuple of transitions.')
 
             # write output word of state
-            self.write_word(output, current_state.word_out)
+            write_word(output, current_state.word_out)
 
             # get next
             if next_transitions is None:
@@ -9213,7 +9217,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                     return
                 successful = current_state.is_final
                 if successful:
-                    self.write_word(output, current_state.final_word_out)
+                    write_word(output, current_state.final_word_out)
                 for o in output:
                     self._finished_.append((successful, current_state,
                                             self.format_output(o)))
@@ -9233,7 +9237,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             for transition, (tape, out) in izip(next_transitions, new_currents):
                 if hasattr(transition, 'hook'):
                     transition.hook(transition, self)
-                self.write_word(out, transition.word_out)
+                write_word(out, transition.word_out)
 
                 # go to next state
                 state = transition.to_state
@@ -9256,31 +9260,6 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         return [r[:2] + format_output(r[2]) + r[3:] for r in self._finished_]
 
 
-    def write_word(self, output, word):
-        """
-        Writes a word on the output tape.
-
-        INPUT:
-
-        - ``word`` -- the word to be written.
-
-        OUTPUT:
-
-        Nothing.
-
-        TESTS::
-
-            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
-            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:     initial_states=['A'], final_states=['A'])
-            sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
-            sage: output = [[], [0], [0, 0]]
-            sage: it.write_word(output, [4, 2])
-            sage: output
-            [[4, 2], [0, 4, 2], [0, 0, 4, 2]]
-        """
-        for o in output:
-            o.extend(word)
 
 
 #*****************************************************************************

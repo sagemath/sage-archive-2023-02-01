@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Interface to Hyperbolic Models
 
@@ -9,7 +10,7 @@ hyperbolic space to be sufficiently decoupled while still providing a
 convenient user experience.
 
 The interfaces are by default given abbreviated names.  For example,
-UHP (upper half plane model), PD (Poincare disk model), KM (Klein disk
+UHP (upper half plane model), PD (Poincaré disk model), KM (Klein disk
 model), and HM (hyperboloid model).
 
 AUTHORS:
@@ -23,7 +24,6 @@ EXAMPLES::
 
     sage: PD.point(1/2 + I/2)
     Point in PD 1/2*I + 1/2.
-
 """
 
 #***********************************************************************
@@ -98,7 +98,7 @@ class HyperbolicUserInterface(UniqueRepresentation):
             sage: UHP.model_name()
             'Upper Half Plane Model'
             sage: PD.model_name()
-            'Poincare Disk Model'
+            'Poincaré Disk Model'
             sage: KM.model_name()
             'Klein Disk Model'
             sage: HM.model_name()
@@ -167,7 +167,7 @@ class HyperbolicUserInterface(UniqueRepresentation):
     @classmethod
     def point_in_model(cls, p):
         r"""
-        Return True if ``p`` gives the coordinates of a point in the
+        Return ``True`` if ``p`` gives the coordinates of a point in the
         interior of hyperbolic space in the model.
 
         EXAMPLES::
@@ -184,7 +184,7 @@ class HyperbolicUserInterface(UniqueRepresentation):
     @classmethod
     def bdry_point_in_model(cls, p):
         r"""
-        Return True if ``p`` gives the coordinates of a point on the
+        Return ``True`` if ``p`` gives the coordinates of a point on the
         ideal boundary of hyperbolic space in the current model.
 
         EXAMPLES::
@@ -199,7 +199,7 @@ class HyperbolicUserInterface(UniqueRepresentation):
     @classmethod
     def isometry_in_model(cls, A):
         r"""
-        Return True if the matrix ``A`` acts isometrically on hyperbolic
+        Return ``True`` if the matrix ``A`` acts isometrically on hyperbolic
         space in the current model.
 
         EXAMPLES::
@@ -306,11 +306,13 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         INPUT:
 
-        - ``p1``, ``p2`` -- points in the ideal boundary of hyperbolic space either as coordinates or as HyperbolicPoints.
+        - ``p1``, ``p2`` -- points in the ideal boundary of hyperbolic
+          space either as coordinates or as HyperbolicPoints.
 
         OUTPUT:
 
-        - A HyperbolicIsometry in the current model whose classification is hyperbolic that fixes ``p1`` and ``p2``.
+        - A HyperbolicIsometry in the current model whose
+          classification is hyperbolic that fixes ``p1`` and ``p2``.
 
         EXAMPLES::
 
@@ -354,9 +356,11 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         INPUT:
 
-        - ``p`` -- a point in the current model of hyperbolic space either as coordinates or as a HyperbolicPoint.
+        - ``p`` -- a point in the current model of hyperbolic space
+          either as coordinates or as a HyperbolicPoint.
 
-        - ``model`` -- the name of an implemented model of hyperbolic space of the same dimension.
+        - ``model`` -- the name of an implemented model of hyperbolic
+          space of the same dimension.
 
         EXAMPLES::
 
@@ -404,6 +408,7 @@ class UHP(HyperbolicUserInterface):
     Hyperbolic interface for the UHP model.
 
     EXAMPLES::
+
         sage: UHP.point(I)
         Point in UHP I.
     """
@@ -419,6 +424,7 @@ class PD(HyperbolicUserInterface):
     Hyperbolic interface for the PD model.
 
     EXAMPLES::
+
         sage: PD.point(I)
         Boundary point in PD I.
     """
@@ -434,6 +440,7 @@ class KM(HyperbolicUserInterface):
     Hyperbolic interface for the KM model.
 
     EXAMPLES::
+
         sage: KM.point((0,0))
         Point in KM (0, 0).
     """
@@ -449,6 +456,7 @@ class HM(HyperbolicUserInterface):
     Hyperbolic interface for the HM model.
 
     EXAMPLES::
+
         sage: HM.point((0,0,1))
         Point in HM (0, 0, 1).
     """

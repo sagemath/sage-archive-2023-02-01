@@ -193,7 +193,7 @@ class HyperbolicPoint(SageObject):
             0
             sage: q = HM.point((0,0,1))
             sage: latex(q)
-            \left(0, 0, 1\right)
+            \left(0,\,0,\,1\right)
         """
         return latex(self.coordinates())
 

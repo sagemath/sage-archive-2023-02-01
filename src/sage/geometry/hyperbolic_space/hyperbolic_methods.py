@@ -148,7 +148,7 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
             [  1/2  -3/2]
         """
         cls.model().point_test(p)
-        x,y = real(p), imag(p)
+        x, y = real(p), imag(p)
         if y > 0:
             return matrix(2,[x/y,-(x**2/y) - y,1/y,-(x/y)])
 
@@ -157,7 +157,7 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         r"""
         Return a random point in the upper half
         plane.  The points are uniformly distributed over the rectangle
-        `[-10,10]x[-10i,10i]`.
+        `[-10,10]\times[-10i,10i]`.
 
         EXAMPLES::
 
@@ -485,7 +485,7 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
 
         INPUT:
 
-        -``other`` -- a hyperbolic geodesic in the UHP model.
+        - ``other`` -- a hyperbolic geodesic in the UHP model.
 
         OUTPUT:
 
@@ -531,7 +531,7 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
     @classmethod
     def orientation_preserving(cls, M):
         r"""
-        Return `True` if self is orientation preserving and `False`
+        Return ``True`` if self is orientation preserving and ``False``
         otherwise.
 
         EXAMPLES::

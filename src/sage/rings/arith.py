@@ -4941,6 +4941,15 @@ def two_squares(n):
         ...
         ValueError: -1 is not a sum of 2 squares
 
+    TESTS::
+
+        sage: for _ in xrange(100):
+        ....:     a = ZZ.random_element(2**16, 2**20)
+        ....:     b = ZZ.random_element(2**16, 2**20)
+        ....:     n = a**2 + b**2
+        ....:     aa,bb = two_squares(n)
+        ....:     assert aa**2 + bb**2 == n
+
     ALGORITHM:
 
     See http://www.schorn.ch/howto.html
@@ -4971,8 +4980,8 @@ def two_squares(n):
     # We run over all factors of n, write each factor p^e as
     # a sum of 2 squares and accumulate the product
     # (using multiplication in Z[I]) in a^2 + b^2.
-    a = Integer(1)
-    b = Integer(0)
+    a = ZZ.one()
+    b = ZZ.zero()
     for (p,e) in F:
         if e >= 2:
             m = p ** (e//2)
@@ -5046,6 +5055,16 @@ def three_squares(n):
         ...
         ValueError: -1 is not a sum of 3 squares
 
+    TESTS::
+
+        sage: for _ in xrange(100):
+        ....:     a = ZZ.random_element(2**16, 2**20)
+        ....:     b = ZZ.random_element(2**16, 2**20)
+        ....:     c = ZZ.random_element(2**16, 2**20)
+        ....:     n = a**2 + b**2 + c**2
+        ....:     aa,bb,cc = three_squares(n)
+        ....:     assert aa**2 + bb**2 + cc**2 == n
+
     ALGORITHM:
 
     See http://www.schorn.ch/howto.html
@@ -5065,7 +5084,7 @@ def three_squares(n):
 
     # First, remove all factors 4 from n
     e = n.valuation(2)//2
-    m = Integer(1) << e
+    m = ZZ.one() << e
     N = n >> (2*e)
 
     # Let x be the largest integer at most sqrt(N)
@@ -5128,7 +5147,6 @@ def three_squares(n):
             x -= 1
             assert x >= 0
 
-    x = Integer(x)
     if x >= b:
         return (a*m, b*m, x*m)
     elif x >= a:
@@ -5162,10 +5180,17 @@ def four_squares(n):
         sage: for i in range(2^129, 2^129+10000):  # long time
         ....:     S = four_squares(i)
         ....:     assert sum(x^2 for x in S) == i
+
+    TESTS::
+
+        sage: for _ in xrange(100):
+        ....:     n = ZZ.random_element(2**32,2**34)
+        ....:     aa,bb,cc,dd = four_squares(n)
+        ....:     assert aa**2 + bb**2 + cc**2 + dd**2 == n
     """
     from sage.rings.all import Integer
     n = Integer(n)
-    
+
     if n <= 0:
         if n == 0:
             z = ZZ.zero()
@@ -5177,8 +5202,8 @@ def four_squares(n):
         return sum_of_squares.four_squares_pyx(n)
 
     # First, remove all factors 4 from n
-    e = n.valuation(2)//2
-    m = Integer(1) << e
+    e = n.valuation(2) // 2
+    m = ZZ.one() << e
     N = n >> (2*e)
 
     # Subtract a suitable x^2 such that N - x^2 is 1,2,3,5,6 mod 8,
@@ -5192,7 +5217,6 @@ def four_squares(n):
     a,b,c = three_squares(y)
 
     # Correct sorting is guaranteed by construction
-    x = Integer(x)
     return (a*m, b*m, c*m, x*m)
 
 def sum_of_k_squares(k,n):
@@ -5253,7 +5277,7 @@ def sum_of_k_squares(k,n):
     from sage.rings.all import Integer
     n = Integer(n)
     k = int(k)
-    
+
     if k <= 4:
         if k == 4:
             return four_squares(n)

@@ -405,10 +405,10 @@ def find_wilson_decomposition_with_one_truncated_group(k,n):
         if k >= m+2:
             break
 
-        if (transversal_design(k  ,m  , existence=True) and
-            transversal_design(k  ,m+1, existence=True) and
-            transversal_design(k+1,t  , existence=True) and
-            transversal_design(k  ,u  , existence=True)):
+        if (orthogonal_array(k  ,m  , existence=True) and
+            orthogonal_array(k  ,m+1, existence=True) and
+            orthogonal_array(k+1,t  , existence=True) and
+            orthogonal_array(k  ,u  , existence=True)):
             return k,m,t,u
 
     return False
@@ -473,15 +473,16 @@ def wilson_construction(OA,k,r,m,n_trunc,u,check=True):
     r"""
     Returns a `OA(k,rm+u)` from a truncated `OA(k+s,r)` by Wilson's construction.
 
-    Let `iOA` be an incomplete `OA(k+s,r)` with `s` truncated columns of sizes
+    Let `OA` be a truncated `OA(k+s,r)` with `s` truncated columns of sizes
     `u_1,...,u_s`, whose blocks have sizes in `\{k+b_1,...,k+b_t\}`. If there
     exist:
 
-    - An `OA(k,m+b_i)` for every `1\leq i\leq t`
+    - An `OA(k,m+b_i) - b_i.OA(k,1)` for every `1\leq i\leq t`
 
     - An `OA(k,u_i)` for every `1\leq i\leq s`
 
-    Then there exists an `OA(k,rm+\sum u_i)`.
+    Then there exists an `OA(k,rm+\sum u_i)`. The construction is a
+    generalization of Lemma 3.16 in [HananiBIBD]_.
 
     INPUT:
 
@@ -528,16 +529,13 @@ def wilson_construction(OA,k,r,m,n_trunc,u,check=True):
     assert n_trunc == len(u)
 
     # Computing the sizes of the blocks by filtering out None entries
-    block_sizes = set()
-    for B in OA:
-        s_b = sum(xx!=None for xx in B)
-        block_sizes.add(s_b)
+    block_sizes = set(sum(xx!=None for xx in B) for B in OA)
 
     # For each block of size k+i we need a OA(k,m+i)-i.OA(k,1)
-    OA_k_mpi = {i-k+m: incomplete_orthogonal_array( k ,i-k+m,(1,)*(i-k)) for i in block_sizes}
+    OA_k_mpi = {i-k+m: incomplete_orthogonal_array(k, i-k+m, (1,)*(i-k)) for i in block_sizes}
 
     # For each truncated column of size uu we need a OA(k,uu)
-    OA_k_u = {uu: orthogonal_array( k ,uu) for uu in u}
+    OA_k_u = {uu: orthogonal_array(k, uu) for uu in u}
 
     # Building the actual design ! The set of integers is :
     # 0*m+0...0*m+(m-1)|...|(r-1)m+0...(r-1)m+(m-1)|mr+0...mr+(r1-1)|mr+r1...mr+r1+r2-1
@@ -944,10 +942,14 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         from itertools import product
         return map(list, product(range(n), repeat=k))
 
+    elif t != 2:
+        if existence:
+            return Unknown
+        raise NotImplementedError("Only trivial orthogonal arrays are implemented for t>=2")
+
     # projective spaces are equivalent to OA(n+1,n,2)
-    elif (t == 2 and
-          (projective_plane(n, existence=True) or
-           (k == n+1 and projective_plane(n, existence=True) is False))):
+    elif (projective_plane(n, existence=True) or
+           (k == n+1 and projective_plane(n, existence=True) is False)):
         _set_OA_cache(n+1,n,projective_plane(n, existence=True))
         if k == n+1:
             if existence:
@@ -987,7 +989,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         OA = OA_relabel(OA,k+2,r,matrix=[range(r)]*k+[range(u1)+[None]*(r-u1),range(u2)+[None]*(r-u2)])
         OA = wilson_construction(OA,k,r,m,2,[u1,u2],check=False)
 
-    elif (t == 2 and transversal_design not in who_asked and
+    elif (transversal_design not in who_asked and
           transversal_design(k,n,existence=True,who_asked=who_asked+(orthogonal_array,)) is not Unknown):
 
         # forward existence
@@ -1005,7 +1007,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
             raise EmptySetError("There exists no OA({},{})!".format(k,n))
 
     # Section 6.5.1 from [Stinson2004]
-    elif (t == 2 and mutually_orthogonal_latin_squares not in who_asked and
+    elif (mutually_orthogonal_latin_squares not in who_asked and
           mutually_orthogonal_latin_squares(n,k-2, existence=True,who_asked=who_asked+(orthogonal_array,)) is not Unknown):
 
         # forward existence

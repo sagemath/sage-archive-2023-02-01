@@ -24,6 +24,7 @@ from sage.structure.sage_object import SageObject
 from sage.rings.all import QQ, ZZ
 from sage.misc.misc import powerset
 from sage.combinat.cartesian_product import CartesianProduct
+from sage.matrix.constructor import block_diagonal_matrix
 lazy_import('sage.misc.package', 'is_package_installed')
 lazy_import('sage.matrix.constructor', 'matrix')
 lazy_import('sage.matrix.constructor', 'vector')
@@ -941,20 +942,23 @@ class NormalFormGame(SageObject, MutableMapping):
         return equilibria
 
     def _solve_indifference(self, p1_support, p2_support):
+        r"""
+        For a support pair obtains vector pair that ensures indifference amongst support strategies.
+        """
         linearsystem1 = matrix(QQ, len(p2_support)+1, self.players[0].num_strategies)
         linearsystem2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)
 
         M1, M2 = self.payoff_matrices()
 
-        for k in p1_support:
+        for p1_strategy in p1_support:
             if len(p2_support) == 1:
-                for i in range(self.players[1].num_strategies):
-                    if M2[k][p2_support[0]] < M2[k][i]:
+                for p2_strategy in range(self.players[1].num_strategies):
+                    if M2[p1_strategy][p2_support[0]] < M2[p1_strategy][p2_strategy]:
                         return False
             else:
-                for j in range(len(p2_support)):
-                    linearsystem1[j, k] = M2[k][p2_support[j]] - M2[k][p2_support[j-1]]
-            linearsystem1[-1, k] = 1
+                for p2_strategy in range(len(p2_support)):
+                    linearsystem1[p2_strategy, p1_strategy] = M2[p1_strategy][p2_support[p2_strategy]] - M2[p1_strategy][p2_support[p2_strategy-1]]
+            linearsystem1[-1, p1_strategy] = 1
 
         for k in p2_support:
             if len(p1_support) == 1:
@@ -966,12 +970,19 @@ class NormalFormGame(SageObject, MutableMapping):
                     linearsystem2[j, k] = M1[p1_support[j]][k] - M1[p1_support[j-1]][k]
             linearsystem2[-1, k] = 1
 
+#        linearsystemrhs1 = [0 for i in range(len(p2_support))] + [1]
+#        linearsystemrhs2 = [0 for i in range(len(p1_support))] + [1]
         linearsystemrhs1 = vector([0 for i in range(len(p2_support))] + [1])
         linearsystemrhs2 = vector([0 for i in range(len(p1_support))] + [1])
+
+#        linearsystem = block_diagonal_matrix(linearsystem1, linearsystem2)
+#        rhs = vector(linearsystemrhs1 + linearsystemrhs2)
 
         try:
             a = linearsystem1.solve_right(linearsystemrhs1)
             b = linearsystem2.solve_right(linearsystemrhs2)
+#            c = linearsystem.solve_right(rhs)
+#            a, b = c[:self.players[0].num_strategies], c[self.players[0].num_strategies:]
 
             if self._is_valid_vector(a, b, p1_support, p2_support):
                 return [a, b]

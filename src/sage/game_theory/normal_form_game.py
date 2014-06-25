@@ -774,11 +774,13 @@ class NormalFormGame(SageObject, MutableMapping):
         g = Game.new_table(strategy_sizes)
 
         # Scale the matrix if it is not in ZZ
-        denominators = [[], []]
-        for strategy_profile in self.utilities:
-            for player in range(2):
-                denominators[player].append(Rational(
-                                self.utilities[strategy_profile][0]).denom())
+        denominators = [[1], [1]]
+        for player in range(2):
+            M = self.payoff_matrices[player]
+            if M.base_ring() not in ZZ:
+                for row in M:
+                    for utility in row:
+                        denominators[player].append(Rational(utility).denom())
 
         scalar1 = lcm(denominators[0])
         scalar2 = lcm(denominators[1])

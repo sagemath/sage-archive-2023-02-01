@@ -8777,18 +8777,18 @@ class FSMTapeCache(SageObject):
                              for n, _ in enumerate(self.cache))
             else:
                 return self.read_letter(0)
-        t = self.cache[track_number]
-        if not t and not self.read(track_number):
+        track_cache = self.cache[track_number]
+        if not track_cache and not self.read(track_number):
                 raise StopIteration
-        return t[0]
+        return track_cache[0]
 
 
     def compare_to_tape(self, track_number, word):
-        t = self.cache[track_number]
-        while len(t) < len(word):
+        track_cache = self.cache[track_number]
+        while len(track_cache) < len(word):
             if not self.read(track_number):
                 return False
-        return all(a == b for a, b in izip(word, iter(t)))
+        return all(a == b for a, b in izip(word, iter(track_cache)))
 
 
     def forward(self, transition):
@@ -9091,7 +9091,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         else:
             self.is_multitape = use_multitape_input
         if len(self._input_tape_) >= 2 and not self.is_multitape:
-            raise ValueError('%s tapes given, so use_multitape_input should '
+            raise ValueError('tape with %s tracks given, so '
+                             'use_multitape_input should '
                              'be True' % (len(self._input_tape_),))
 
         if format_output is None:
@@ -9104,7 +9105,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         self._current_ = {}
         self._current_positions_ = []  # a sorted list of the keys of _current_
         self._tape_cache_manager_ = []
-        position_zero = tuple((0, i) for i, _ in enumerate(self._input_tape_))
+        position_zero = tuple((0, t) for t, _ in enumerate(self._input_tape_))
         if not hasattr(self, 'tape_type'):
             self.tape_type = FSMTapeCache
 

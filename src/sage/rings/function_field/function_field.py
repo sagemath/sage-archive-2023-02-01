@@ -1104,7 +1104,7 @@ class FunctionField_polymod(FunctionField):
 
 def is_RationalFunctionField(x):
     """
-    Return True if ``x`` is of rational function field type.
+    Return ``True`` if ``x`` is of rational function field type.
 
     EXAMPLES::
 
@@ -1116,8 +1116,6 @@ def is_RationalFunctionField(x):
     """
     if isinstance(x, RationalFunctionField):
         return True
-#   if (x in FunctionFields()):
-#       return x == x.base_field()
     else:
         return False
 

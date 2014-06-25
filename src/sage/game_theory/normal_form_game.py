@@ -976,13 +976,13 @@ class NormalFormGame(SageObject, MutableMapping):
             a = linearsystem1.solve_right(linearsystemrhs1)
             b = linearsystem2.solve_right(linearsystemrhs2)
 
-            if self._is_valid_vector(a, b, p1_support, p2_support):
+            if self._is_NE(a, b, p1_support, p2_support):
                 return [a, b]
             return False
         except:
             return False
 
-    def _is_valid_vector(self, vector1, vector2, p1_support, p2_support):
+    def _is_NE(self, vector1, vector2, p1_support, p2_support):
         r"""
         TESTS:
 
@@ -993,7 +993,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [0, 3, 1],
             ....:             [5, 4, 6]])
             sage: Z = NormalFormGame([X, Y])
-            sage: Z._is_valid_vector([0, 1/4, 3/4], [3/5, 2/5, 0], (1,2,), (0,1,))
+            sage: Z._is_NE([0, 1/4, 3/4], [3/5, 2/5, 0], (1,2,), (0,1,))
             False
         """
         if (not all(i >= 0 for i in vector1)

@@ -29,6 +29,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.infinity import PlusInfinity
+from sage.rings.arith import prime_powers
 from sage.functions.log import log, exp
 from sage.functions.other import real, imag
 from sage.symbolic.constants import pi, euler_gamma
@@ -240,10 +241,9 @@ class LFunctionZeroSum_abstract(SageObject):
             err = (b+1)*exp(-b)/a**2
 
         y = F(0)
-        for n in xrange(1,num_terms+1):
+        for n in prime_powers(2,num_terms+1):
             cn = self.cn(n)
-            if cn != 0:
-                y += cn/F(n)**z
+            y += cn/F(n)**z
 
         return (y,err)
 

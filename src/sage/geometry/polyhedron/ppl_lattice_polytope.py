@@ -395,9 +395,8 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             ...        (-1,2,-1), (-1,2,-2), (-1,1,-2), (-1,-1,2), (-1,-3,2)]
             sage: P = LatticePolytope_PPL(*v)
             sage: pts1 = P.integral_points()                     # Sage's own code
-            sage: pts2 = LatticePolytope(v).points().columns()   # PALP
+            sage: pts2 = LatticePolytope(v).points_pc()          # PALP
             sage: for p in pts1: p.set_immutable()
-            sage: for p in pts2: p.set_immutable()
             sage: set(pts1) == set(pts2)
             True
 

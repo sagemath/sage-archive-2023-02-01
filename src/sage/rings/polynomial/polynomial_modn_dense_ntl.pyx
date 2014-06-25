@@ -370,12 +370,6 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         self.__singular = singular(str(self))
         return self.__singular
 
-    def lcm(self, singular=singular_default, have_ring=False):
-        return polynomial_singular_interface.lcm_func(self, singular, have_ring)
-
-    def resultant(self, other, variable=None):
-        return polynomial_singular_interface.resultant_func(self, other, variable)
-
     def small_roots(self, *args, **kwds):
         r"""
         See :func:`sage.rings.polynomial.polynomial_modn_dense_ntl.small_roots`
@@ -1756,7 +1750,7 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
 
         INPUT:
 
-            - ``other`` -- a polynomial defined over the same ring as ``self``
+        - ``other`` -- a polynomial defined over the same ring as ``self``
 
         EXAMPLES::
 
@@ -1776,12 +1770,12 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
 
         INPUT:
 
-            - ``other`` -- an element in the same polynomial ring
+        - ``other`` -- an element in the same polynomial ring
 
         OUTPUT:
 
-            A tuple ``r,s,t`` of elements in the polynomial ring such
-            that ``r = s*self + t*other``.
+        A tuple ``(r,s,t)`` of elements in the polynomial ring such
+        that ``r = s*self + t*other``.
 
         EXAMPLES::
 

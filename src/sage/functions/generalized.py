@@ -143,7 +143,7 @@ class FunctionDiracDelta(BuiltinFunction):
                     return None
                 else:
                     return 0
-        except StandardError:                     # x is symbolic
+        except Exception:                     # x is symbolic
             pass
         return None
 
@@ -249,7 +249,7 @@ class FunctionHeaviside(BuiltinFunction):
                     return 1
                 else:
                     return 0
-        except StandardError:                     # x is symbolic
+        except Exception:                     # x is symbolic
             pass
         return None
 
@@ -358,7 +358,7 @@ class FunctionUnitStep(BuiltinFunction):
                     return 1
                 else:
                     return 0
-        except StandardError:                     # x is symbolic
+        except Exception:                     # x is symbolic
             pass
         return None
 
@@ -494,7 +494,7 @@ class FunctionSignum(BuiltinFunction):
                     return ZZ(1)
                 else:
                     return ZZ(-1)
-        except StandardError:                     # x is symbolic
+        except Exception:                     # x is symbolic
             pass
         return None
 
@@ -599,7 +599,7 @@ class FunctionKroneckerDelta(BuiltinFunction):
                     return 0
             else:
                 return 0            # x is complex
-        except StandardError:                     # x is symbolic
+        except Exception:                     # x is symbolic
             pass
         return None
 

@@ -187,7 +187,7 @@ class Dokchitser(SageObject):
 
     def __reduce__(self):
         D = copy.copy(self.__dict__)
-        if D.has_key('_Dokchitser__gp'):
+        if '_Dokchitser__gp' in D:
             del D['_Dokchitser__gp']
         return reduce_load_dokchitser, (D, )
 
@@ -236,14 +236,14 @@ class Dokchitser(SageObject):
         try:
             t = self.gp().eval(s)
         except (RuntimeError, TypeError):
-            raise RuntimeError, "Unable to create L-series, due to precision or other limits in PARI."
+            raise RuntimeError("Unable to create L-series, due to precision or other limits in PARI.")
         if '***' in t:
-            raise RuntimeError, "Unable to create L-series, due to precision or other limits in PARI."
+            raise RuntimeError("Unable to create L-series, due to precision or other limits in PARI.")
         return t
 
     def __check_init(self):
         if not self.__init:
-            raise ValueError, "you must call init_coeffs on the L-function first"
+            raise ValueError("you must call init_coeffs on the L-function first")
 
     def num_coeffs(self, T=1):
         """
@@ -347,7 +347,7 @@ class Dokchitser(SageObject):
             self._gp_eval('initLdata("%s",%s,"%s")'%(v,cutoff,w))
             return
         if not isinstance(v, (list, tuple)):
-            raise TypeError, "v (=%s) must be a list, tuple, or string"%v
+            raise TypeError("v (=%s) must be a list, tuple, or string"%v)
         CC = self.__CC
         v = ','.join([CC(a)._pari_init_() for a in v])
         self._gp_eval('Avec = [%s]'%v)
@@ -434,7 +434,7 @@ class Dokchitser(SageObject):
         k = Integer(k)
         z = self.gp().eval('L(%s,,%s)'%(s,k))
         if 'pole' in z:
-            raise ArithmeticError, z
+            raise ArithmeticError(z)
         elif 'Warning' in z:
             i = z.rfind('\n')
             msg = z[:i].replace('digits','decimal digits')
@@ -491,11 +491,11 @@ class Dokchitser(SageObject):
         k = Integer(k)
         try:
             z = self.gp()('Vec(Lseries(%s,,%s))'%(a,k-1))
-        except TypeError, msg:
-            raise RuntimeError, "%s\nUnable to compute Taylor expansion (try lowering the number of terms)"%msg
+        except TypeError as msg:
+            raise RuntimeError("%s\nUnable to compute Taylor expansion (try lowering the number of terms)"%msg)
         r = repr(z)
         if 'pole' in r:
-            raise ArithmeticError, r
+            raise ArithmeticError(r)
         elif 'Warning' in r:
             i = r.rfind('\n')
             msg = r[:i].replace('digits','decimal digits')
@@ -584,7 +584,7 @@ class Dokchitser(SageObject):
             0.0374412812685155
         """
         if not isinstance(coefgrow, str):
-            raise TypeError, "coefgrow must be a string"
+            raise TypeError("coefgrow must be a string")
         g = self.gp()
         g.eval('coefgrow(n) = %s'%(coefgrow.replace('\n',' ')))
 

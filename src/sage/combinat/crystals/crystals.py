@@ -43,7 +43,7 @@ We construct the type `A_5` crystal on letters (or in representation
 theoretic terms, the highest weight crystal of type `A_5`
 corresponding to the highest weight `\Lambda_1`)::
 
-    sage: C = CrystalOfLetters(['A',5]); C
+    sage: C = crystals.Letters(['A',5]); C
     The crystal of letters for type ['A', 5]
 
 It has a single highest weight element::
@@ -67,11 +67,11 @@ as well as use it in for loops::
 Here are some more elaborate crystals (see their respective
 documentations)::
 
-    sage: Tens = TensorProductOfCrystals(C, C)
-    sage: Spin = CrystalOfSpins(['B', 3])
-    sage: Tab  = CrystalOfTableaux(['A', 3], shape = [2,1,1])
-    sage: Fast = FastCrystal(['B', 2], shape = [3/2, 1/2])
-    sage: KR = KirillovReshetikhinCrystal(['A',2,1],1,1)
+    sage: Tens = crystals.TensorProduct(C, C)
+    sage: Spin = crystals.Spins(['B', 3])
+    sage: Tab  = crystals.Tableaux(['A', 3], shape = [2,1,1])
+    sage: Fast = crystals.FastRankTwo(['B', 2], shape = [3/2, 1/2])
+    sage: KR = crystals.KirillovReshetikhin(['A',2,1],1,1)
 
 One can get (currently) crude plotting via::
 
@@ -79,12 +79,12 @@ One can get (currently) crude plotting via::
 
 If dot2tex is installed, one can obtain nice latex pictures via::
 
-    sage: K = KirillovReshetikhinCrystal(['A',3,1], 1,1)
+    sage: K = crystals.KirillovReshetikhin(['A',3,1], 1,1)
     sage: view(K, pdflatex=True, tightpage=True) #optional - dot2tex graphviz
 
 or with colored edges::
 
-    sage: K = KirillovReshetikhinCrystal(['A',3,1], 1,1)
+    sage: K = crystals.KirillovReshetikhin(['A',3,1], 1,1)
     sage: G = K.digraph()
     sage: G.set_latex_options(color_by_label = {0:"black", 1:"red", 2:"blue", 3:"green"}) #optional - dot2tex graphviz
     sage: view(G, pdflatex=True, tightpage=True) #optional - dot2tex graphviz
@@ -180,7 +180,7 @@ class CrystalBacktracker(GenericBacktracker):
         EXAMPLES::
 
             sage: from sage.combinat.crystals.crystals import CrystalBacktracker
-            sage: C = CrystalOfTableaux(['B',3],shape=[3,2,1])
+            sage: C = crystals.Tableaux(['B',3],shape=[3,2,1])
             sage: CB = CrystalBacktracker(C)
             sage: len(list(CB))
             1617
@@ -203,7 +203,7 @@ class CrystalBacktracker(GenericBacktracker):
         EXAMPLES::
 
             sage: from sage.combinat.crystals.crystals import CrystalBacktracker
-            sage: C = CrystalOfLetters(['A', 5])
+            sage: C = crystals.Letters(['A', 5])
             sage: CB = CrystalBacktracker(C)
             sage: list(CB._rec(C(1), 'n/a'))
             [(2, 'n/a', True)]

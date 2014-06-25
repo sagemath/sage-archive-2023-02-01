@@ -75,8 +75,7 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
             sage: a.transport(p)
             {'a', 'c'}
         """
-        l = [perm(i) for i in self._list]
-        l.sort()
+        l = sorted([perm(i) for i in self._list])
         return SubsetSpeciesStructure(self.parent(), self._labels, l)
 
     def automorphism_group(self):

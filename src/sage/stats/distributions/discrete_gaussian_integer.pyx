@@ -3,7 +3,7 @@
 
 This class realizes oracles which returns integers proportionally to
 $exp(-(x-c)^2/(2σ^2))$. All oracles are implemented using rejection
-sampling. See DiscreteGaussianSampler.__init__ for which algorithms are
+sampling. See DiscreteGaussianIntegerSampler.__init__ for which algorithms are
 available.
 
 AUTHOR: Martin Albrecht <martinralbrecht+dgs@googlemail.com>
@@ -12,9 +12,9 @@ EXAMPLE:
 
 We sample proportionally to exp(-x^2/(2σ^2))::
 
-    sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
+    sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
     sage: sigma = 3.0; n=100000
-    sage: D = DiscreteGaussianSampler(sigma=sigma)
+    sage: D = DiscreteGaussianIntegerSampler(sigma=sigma)
     sage: l = [D() for _ in xrange(n)]
     sage: c = sum([exp(-x^2/(2*sigma^2)) for x in xrange(-6*sigma,sigma*6+1)]); c
     7.519...
@@ -34,7 +34,7 @@ REFERENCES:
 
 """
 
-include '../ext/interrupt.pxi' 
+include '../../ext/interrupt.pxi' 
 
 from sage.rings.real_mpfr cimport RealNumber, RealField
 from sage.libs.mpfr cimport mpfr_set, GMP_RNDN
@@ -47,7 +47,7 @@ from dgs cimport DGS_DISC_GAUSS_UNIFORM_TABLE, DGS_DISC_GAUSS_UNIFORM_ONLINE, DG
 
 
 
-cdef class DiscreteGaussianSampler(SageObject):
+cdef class DiscreteGaussianIntegerSampler(SageObject):
     """
     A Discrete Gaussian Sampler using rejection sampling.
 
@@ -76,7 +76,7 @@ cdef class DiscreteGaussianSampler(SageObject):
           sample from the uniform distribution (default: ``6``)
 
         - ``algorithm`` - see list below (default: ``"uniform+table"`` for
-           `σt` bounded by ``DiscreteGaussianSampler.table_cutoff`` and
+           `σt` bounded by ``DiscreteGaussianIntegerSampler.table_cutoff`` and
            ``"uniform+online"`` for bigger `στ`)
 
         - ``precision`` - either "mp" for multi-precision where the actual
@@ -112,80 +112,80 @@ cdef class DiscreteGaussianSampler(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: DiscreteGaussianSampler(3.0, algorithm="uniform+online")
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: DiscreteGaussianIntegerSampler(3.0, algorithm="uniform+online")
             Discrete Gaussian sampler with sigma = 3.000000 and c = 0
-            sage: DiscreteGaussianSampler(3.0, algorithm="uniform+table")
+            sage: DiscreteGaussianIntegerSampler(3.0, algorithm="uniform+table")
             Discrete Gaussian sampler with sigma = 3.000000 and c = 0
-            sage: DiscreteGaussianSampler(3.0, algorithm="uniform+logtable")
+            sage: DiscreteGaussianIntegerSampler(3.0, algorithm="uniform+logtable")
             Discrete Gaussian sampler with sigma = 3.000000 and c = 0
 
         Note that "sigma2+logtable" adjusts sigma::
         
-            sage: DiscreteGaussianSampler(3.0, algorithm="sigma2+logtable")
+            sage: DiscreteGaussianIntegerSampler(3.0, algorithm="sigma2+logtable")
             Discrete Gaussian sampler with sigma = 3.397287 and c = 0
 
         TESTS:
 
         We are testing invalid inputs::
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: DiscreteGaussianSampler(-3.0)
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: DiscreteGaussianIntegerSampler(-3.0)
             Traceback (most recent call last):
             ...
             ValueError: sigma must be > 0.0 but got -3.000000
 
-            sage: DiscreteGaussianSampler(3.0, tau=-1)
+            sage: DiscreteGaussianIntegerSampler(3.0, tau=-1)
             Traceback (most recent call last):
             ...
             ValueError: tau must be >= 1 but got -1
 
-            sage: DiscreteGaussianSampler(3.0, tau=2, algorithm="superfastalgorithmyouneverheardof")        
+            sage: DiscreteGaussianIntegerSampler(3.0, tau=2, algorithm="superfastalgorithmyouneverheardof")        
             Traceback (most recent call last):
             ...
-            ValueError: Algorithm 'superfastalgorithmyouneverheardof' not supported by class 'DiscreteGaussianSampler'
+            ValueError: Algorithm 'superfastalgorithmyouneverheardof' not supported by class 'DiscreteGaussianIntegerSampler'
 
-            sage: DiscreteGaussianSampler(3.0, c=1.5, algorithm="sigma2+logtable")
+            sage: DiscreteGaussianIntegerSampler(3.0, c=1.5, algorithm="sigma2+logtable")
             Traceback (most recent call last):
             ...
             ValueError: algorithm 'uniform+logtable' requires c%1 == 0
 
         We are testing correctness for mult precision::
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: D = DiscreteGaussianSampler(1.0, c=0, tau=2)
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: D = DiscreteGaussianIntegerSampler(1.0, c=0, tau=2)
             sage: l = [D() for _ in xrange(2^16)]
             sage: min(l) == 0-2*1.0, max(l) == 0+2*1.0, abs(mean(l)) < 0.01
             (True, True, True)
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: D = DiscreteGaussianSampler(1.0, c=2.5, tau=2)
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: D = DiscreteGaussianIntegerSampler(1.0, c=2.5, tau=2)
             sage: l = [D() for _ in xrange(2^18)]
             sage: min(l)==2-2*1.0, max(l)==2+2*1.0, mean(l).n()
             (True, True, 2.45...)  
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: D = DiscreteGaussianSampler(1.0, c=2.5, tau=6)
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: D = DiscreteGaussianIntegerSampler(1.0, c=2.5, tau=6)
             sage: l = [D() for _ in xrange(2^18)]
             sage: min(l), max(l), abs(mean(l)-2.5) < 0.01
             (-2, 7, True)
 
         We are testing correctness for double precision::
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: D = DiscreteGaussianSampler(1.0, c=0, tau=2, precision="dp")
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: D = DiscreteGaussianIntegerSampler(1.0, c=0, tau=2, precision="dp")
             sage: l = [D() for _ in xrange(2^16)]
             sage: min(l) == 0-2*1.0, max(l) == 0+2*1.0, abs(mean(l)) < 0.01
             (True, True, True)
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: D = DiscreteGaussianSampler(1.0, c=2.5, tau=2, precision="dp")
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: D = DiscreteGaussianIntegerSampler(1.0, c=2.5, tau=2, precision="dp")
             sage: l = [D() for _ in xrange(2^18)]
             sage: min(l)==2-2*1.0, max(l)==2+2*1.0, mean(l).n()
             (True, True, 2.45...)  
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: D = DiscreteGaussianSampler(1.0, c=2.5, tau=6, precision="dp")
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: D = DiscreteGaussianIntegerSampler(1.0, c=2.5, tau=6, precision="dp")
             sage: l = [D() for _ in xrange(2^18)]
             sage: min(l), max(l), abs(mean(l)-2.5) < 0.01
             (-2, 7, True)
@@ -193,8 +193,8 @@ cdef class DiscreteGaussianSampler(SageObject):
         These generators cache random bits for performance reasons. Hence, resetting
         the seed of the PRNG might not have the expected outcome::
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: D = DiscreteGaussianSampler(3.0)
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: D = DiscreteGaussianIntegerSampler(3.0)
             sage: sage.misc.randstate.set_random_seed(0); D()
             3
             sage: sage.misc.randstate.set_random_seed(0); D()
@@ -202,7 +202,7 @@ cdef class DiscreteGaussianSampler(SageObject):
             sage: sage.misc.randstate.set_random_seed(0); D()
             -3
 
-            sage: D = DiscreteGaussianSampler(3.0)
+            sage: D = DiscreteGaussianIntegerSampler(3.0)
             sage: sage.misc.randstate.set_random_seed(0); D()
             3
             sage: sage.misc.randstate.set_random_seed(0); D()
@@ -219,7 +219,7 @@ cdef class DiscreteGaussianSampler(SageObject):
 
             
         if algorithm is None:
-            if sigma*tau <= DiscreteGaussianSampler.table_cutoff:
+            if sigma*tau <= DiscreteGaussianIntegerSampler.table_cutoff:
                 algorithm = "uniform+table"
             else:
                 algorithm = "uniform+online"
@@ -239,7 +239,7 @@ cdef class DiscreteGaussianSampler(SageObject):
                 raise ValueError("algorithm 'uniform+logtable' requires c%1 == 0")
             algorithm = DGS_DISC_GAUSS_SIGMA2_LOGTABLE
         else:
-            raise ValueError("Algorithm '%s' not supported by class 'DiscreteGaussianSampler'"%(algorithm))
+            raise ValueError("Algorithm '%s' not supported by class 'DiscreteGaussianIntegerSampler'"%(algorithm))
 
         if precision == "mp":
             if not isinstance(sigma, RealNumber):
@@ -275,8 +275,8 @@ cdef class DiscreteGaussianSampler(SageObject):
         """
         TESTS::
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: D = DiscreteGaussianSampler(3.0, algorithm="uniform+online")
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: D = DiscreteGaussianIntegerSampler(3.0, algorithm="uniform+online")
             sage: del D
         """
         if self._gen_mp:
@@ -290,16 +290,16 @@ cdef class DiscreteGaussianSampler(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: DiscreteGaussianSampler(3.0, algorithm="uniform+online")()
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: DiscreteGaussianIntegerSampler(3.0, algorithm="uniform+online")()
             -3
-            sage: DiscreteGaussianSampler(3.0, algorithm="uniform+table")()
+            sage: DiscreteGaussianIntegerSampler(3.0, algorithm="uniform+table")()
             3
 
         TESTS::
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: DiscreteGaussianSampler(3.0, algorithm="uniform+logtable", precision="dp")() # random output
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: DiscreteGaussianIntegerSampler(3.0, algorithm="uniform+logtable", precision="dp")() # random output
             13
         """
         cdef randstate rstate
@@ -318,8 +318,8 @@ cdef class DiscreteGaussianSampler(SageObject):
         """
         TESTS::
         
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: repr(DiscreteGaussianSampler(3.0, 2))
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: repr(DiscreteGaussianIntegerSampler(3.0, 2))
             'Discrete Gaussian sampler with sigma = 3.000000 and c = 2'
         """
         return "Discrete Gaussian sampler with sigma = %f and c = %d"%(self._sigma, self._c)
@@ -331,8 +331,8 @@ cdef class DiscreteGaussianSampler(SageObject):
         
         EXAMPLE::
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: D = DiscreteGaussianSampler(3.0, 2); D.sigma
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: D = DiscreteGaussianIntegerSampler(3.0, 2); D.sigma
             3.0...
         """
         return self._sigma
@@ -344,8 +344,8 @@ cdef class DiscreteGaussianSampler(SageObject):
         
         EXAMPLE::
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: D = DiscreteGaussianSampler(3.0, 2); D.c
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: D = DiscreteGaussianIntegerSampler(3.0, 2); D.c
             2.0...
         """
         return self._c
@@ -357,8 +357,8 @@ cdef class DiscreteGaussianSampler(SageObject):
         
         EXAMPLE::
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: D = DiscreteGaussianSampler(3.0, c=2); D.tau
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: D = DiscreteGaussianIntegerSampler(3.0, c=2); D.tau
             6
         """
         return self._tau
@@ -370,8 +370,8 @@ cdef class DiscreteGaussianSampler(SageObject):
         
         EXAMPLE::
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: D = DiscreteGaussianSampler(3.0, 2); D.algorithm
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: D = DiscreteGaussianIntegerSampler(3.0, 2); D.algorithm
             'uniform+table'
         """
         return self._algorithm

@@ -111,7 +111,7 @@ from sage.structure.element import parent
 from sage.structure.sage_object import SageObject
 from sage.symbolic.constants import pi
 
-from sage.stats.discrete_gaussians import DiscreteGaussianSampler
+from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
 
 class DiscreteGaussianPolynomialSamplerRejection(SageObject):
     """
@@ -129,7 +129,7 @@ class DiscreteGaussianPolynomialSamplerRejection(SageObject):
     .. automethod:: __init__
     .. automethod:: __call__
     """
-    def __init__(self, n, stddev, precision=53, tailcut=4, D=DiscreteGaussianSampler):
+    def __init__(self, n, stddev, precision=53, tailcut=4, D=DiscreteGaussianIntegerSampler):
         """
         Construct a sampler for univariate polynomials of degree ``n-1``
         where coefficients are drawn independently with standard deviation
@@ -143,7 +143,7 @@ class DiscreteGaussianPolynomialSamplerRejection(SageObject):
         - ``tailcut`` - cut the tail at ``tailcut`` standard deviations
           (default: ``4``)
         - ``D`` - a discrete Gaussian sampler (default:
-          :class:`DiscreteGaussianSampler`)
+          :class:`DiscreteGaussianIntegerSampler`)
 
         EXAMPLE::
 
@@ -334,7 +334,7 @@ class LWE(SageObject):
         - ``n`` - dimension (integer > 0)
         - ``q`` - modulus typically > n (integer > 0)
         - ``D`` - an error distribution such as an instance of
-          :class:`DiscreteGaussianSamplerRejection` or :class:`UniformSampler`
+          :class:`DiscreteGaussianIntegerSamplerRejection` or :class:`UniformSampler`
         - ``secret_dist`` - distribution of the secret (default: 'uniform'); one of
 
           - "uniform" - secret follows the uniform distribution in `\Zmod{q}`
@@ -348,8 +348,8 @@ class LWE(SageObject):
 
         First, we construct a noise distribution with standard deviation 3.0::
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            sage: D = DiscreteGaussianSampler(3.0)
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: D = DiscreteGaussianIntegerSampler(3.0)
 
         Next, we construct our oracle::
 
@@ -407,9 +407,9 @@ class LWE(SageObject):
         """
         EXAMPLE::
 
-            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
             sage: from sage.crypto.lwe import LWE
-            sage: D = DiscreteGaussianSampler(3.0)
+            sage: D = DiscreteGaussianIntegerSampler(3.0)
             sage: lwe = LWE(n=20, q=next_prime(400), D=D); lwe
             LWE(20, 401, Discrete Gaussian sampler with sigma = 3.000000 and c = 0, 'uniform', None)
 
@@ -426,8 +426,8 @@ class LWE(SageObject):
         """
         EXAMPLE::
 
-            sage: from sage.crypto.lwe import DiscreteGaussianSampler, LWE
-            sage: LWE(10, 401, DiscreteGaussianSampler(3))()
+            sage: from sage.crypto.lwe import DiscreteGaussianIntegerSampler, LWE
+            sage: LWE(10, 401, DiscreteGaussianIntegerSampler(3))()
             ((309, 347, 198, 194, 336, 360, 264, 123, 368, 398), 198)
         """
         if self.m is not None:
@@ -466,7 +466,7 @@ class Regev(LWE):
         """
         q = ZZ(next_prime(n**2))
         s = RR(1/(RR(n).sqrt() * log(n, 2)**2) * q)
-        D = DiscreteGaussianSampler(s/sqrt(2*pi.n()), q)
+        D = DiscreteGaussianIntegerSampler(s/sqrt(2*pi.n()), q)
         LWE.__init__(self, n=n, q=q, D=D, secret_dist=secret_dist, m=m)
 
 class LindnerPeikert(LWE):
@@ -514,7 +514,7 @@ class LindnerPeikert(LWE):
         s = sqrt(s_t_bound*floor(q/4))
         # Transform s into stddev
         stddev = s/sqrt(2*pi.n())
-        D   = DiscreteGaussianSampler(stddev)
+        D   = DiscreteGaussianIntegerSampler(stddev)
         LWE.__init__(self, n=n, q=q, D=D, secret_dist='noise', m=m)
 
 

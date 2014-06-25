@@ -686,7 +686,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
           If the distribution ``'gaussian'`` is specified, the output is sampled
           from a discrete Gaussian distribution with parameter sigma=x and centered
           at zero. That is, the integer v is returned with probability proportional
-          to exp(-v^2/(2*sigma^2)). See sage.stats.discrete_gaussians for details.
+          to exp(-v^2/(2*sigma^2)). See :mod:`sage.stats.distributions.discrete_gaussian_integer` for details.
           Note that if many samples from the same discrete Gaussian distribution
           are needed, it is much faster to construct a DiscreteGaussianSampler object
           which is then repeatedly queried.
@@ -811,8 +811,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 raise ValueError("must specify x to use 'distribution=mpz_rrandomb'")
             mpz_rrandomb(value, rstate.gmp_state, int(x))
         elif distribution == "gaussian":
-            from sage.stats.discrete_gaussians import DiscreteGaussianSampler
-            r = DiscreteGaussianSampler(sigma=x, algorithm="uniform+online")()
+            from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            r = DiscreteGaussianIntegerSampler(sigma=x, algorithm="uniform+online")()
             mpz_set(value, r.value)
         else:
             raise ValueError, "Unknown distribution for the integers: %s"%distribution

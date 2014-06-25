@@ -28,6 +28,7 @@ from scipy.special import erfcx, spence, psi
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
+from sage.rings.infinity import PlusInfinity
 from sage.functions.log import log, exp
 from sage.functions.other import real, imag
 from sage.symbolic.constants import pi, euler_gamma
@@ -138,7 +139,7 @@ class LFunctionZeroSum_abstract(SageObject):
         else:
             return [float(self.cn(i)) for i in xrange(n+1)]
 
-    def logarithmic_derivative(self,s,term_cap=10000):
+    def logarithmic_derivative(self,s,num_terms=10000,as_interval=False):
         r"""
         Compute the value of the logarithmic derivative '\frac{L^{\prime}}{L}'
         at the point s to *low* precision, where 'L' is the L-function
@@ -156,67 +157,97 @@ class LFunctionZeroSum_abstract(SageObject):
         INPUT:
 
         - ``s`` -- Real or complex value
-        - ``term_cap`` -- (default: 10000) the maximum number of terms
+        - ``num_terms`` -- (default: 10000) the maximum number of terms
           summed in the Dirichlet series.
 
         OUTPUT:
 
-        A tuple (z,prec), where z is the computed value, and prec is the
-        guaranteed number of bits of accuracy (<=53) thereof.
+        A tuple (z,err), where z is the computed value, and err is an
+        upper bound on the truncation error in this value introduced
+        by truncating the Dirichlet sum.
 
         .. NOTE::
 
         For the default term cap of 10000, a value accurate to all 53
-        bits of a double precision floating point number will only be
-        given when '|Re(s-1)|>4.58'.
+        bits of a double precision floating point number is only
+        guaranteed when '|Re(s-1)|>4.58', although in practice inputs
+        closer to the critical strip will still yield computed values
+        close to the true value.
 
         EXAMPLES::
 
+            sage: E = EllipticCurve([23,100])
+            sage: Z = LFunctionZeroSum(E)
+            sage: Z.logarithmic_derivative(10)
+            (5.64806674263e-05, 1.09741028598e-34)
+            sage: Z.logarithmic_derivative(2.2)
+            (0.575125706359, 0.024087912697)
+
+        Increasing the number of terms should see the truncation error
+        decrease:
+
+        ::
+
+            sage: Z.logarithmic_derivative(2.2,num_terms=50000) # long time
+            (0.575157964506, 0.00898877551916)
+
+        Attempting to compute values inside the critical strip
+        gives infinite error:
+
+        ::
+
+            sage: Z.logarithmic_derivative(1.3)
+            (5.44299441392, +Infinity)
+
+        Complex inputs and inputs to the left of the critical strip
+        are allowed:
+
+        ::
+
+            sage: Z.logarithmic_derivative(complex(3,-1))
+            (0.0476454857805 + 0.1651383281*I, 6.5846713591e-06)
+            sage: Z.logarithmic_derivative(complex(-3,-1.1))
+            (-13.9084521732 + 2.59144309907*I, 2.71315847363e-14)
+
+        The logarithmic derivative has poles at the negative integers:
+
+        ::
+
+            sage: Z.logarithmic_derivative(-3)
+            (-infinity, 2.71315847363e-14)
         """
-        #raise NotImplementedError("Method not yet implemented.")
-
-        z = s-1
-        sigma = RDF(real(z))
-        if sigma<0:
-            z = -z
-            sigma = -sigma
-        log2 = log(RDF(2))
-        # Compute guaranteed precision given term cap using error
-        # estimates on tail of Dirichlet series sum
-        a = RDF(sigma)-RDF(0.5)
-        b = log(RDF(term_cap))*a
-        c = (b+1)*exp(-b)/a**2
-        prec = ZZ((-log(c)/log2).floor())
-
-        # If prec>53, reduce number of needed terms in Dirichlet sum
-        # to get 53 precision
-        if prec > 53:
-            prec = ZZ(53)
-            b = RDF(a**2 * 2**prec * exp(RDF(3.01)) * (prec*log2-2*log(a)+1))
-            num_terms = int(b**(RDF(1)/a))+1
-        else:
-            num_terms = term_cap
-            if prec<0: prec = ZZ(0)
-
-        if imag(z)==0:
+        if imag(s)==0:
             F = RDF
         else:
             F = CDF
+        # Inputs left of the critical line are handled via the functional
+        # equation of the logarithmic derivative
+        if real(s-1)<0:
+            a = -2*self._C1-F(psi(F(s)))-F(psi(F(2-s)))
+            b,err = self.logarithmic_derivative(2-s,num_terms=num_terms)
+            return (a+b,err)
+
+        z = s-1
+        sigma = RDF(real(z))
+        log2 = log(RDF(2))
+        # Compute maximum possible Dirichlet series truncation error
+        # When s is in the critical strip: no guaranteed precision
+        if abs(sigma)<=0.5:
+            err = PlusInfinity()
+        else:
+            a = RDF(sigma)-RDF(0.5)
+            b = log(RDF(num_terms))*a
+            err = (b+1)*exp(-b)/a**2
+
         y = F(0)
         for n in xrange(1,num_terms+1):
             cn = self.cn(n)
             if cn != 0:
                 y += cn/F(n)**z
 
-        if real(s-1)>0:
-            return (y,prec)
-        else:
-            # Inputs with negative real parts are handled via the functional
-            # equation of the logarithmic derivative
-            a = -2*self._C1-psi(complex(s))-psi(complex(2-s))
-            return (F(a)+y,prec)
+        return (y,err)
 
-    def completed_logarithmic_derivative(self,s,term_cap=10000):
+    def completed_logarithmic_derivative(self,s,num_terms=10000):
         r"""
         Compute the value of the completed logarithmic derivative
             '\frac{\Lambda^{\prime}}{\Lambda}'
@@ -237,30 +268,53 @@ class LFunctionZeroSum_abstract(SageObject):
         INPUT:
 
         - ``s`` -- Real or complex value
-        - ``term_cap`` -- (default: 10000) the maximum number of terms
+        - ``num_terms`` -- (default: 10000) the maximum number of terms
           summed in the Dirichlet series.
 
         OUTPUT:
 
-        A tuple (z,prec), where z is the computed value, and prec is the
-        guaranteed number of bits of accuracy (<=53) thereof.
+        A tuple (z,err), where z is the computed value, and err is an
+        upper bound on the truncation error in this value introduced
+        by truncating the Dirichlet sum.
 
         .. NOTE::
 
         For the default term cap of 10000, a value accurate to all 53
-        bits of a double precision floating point number will only be
-        given when '|Re(s-1)|>4.58'.
+        bits of a double precision floating point number is only
+        guaranteed when '|Re(s-1)|>4.58', although in practice inputs
+        closer to the critical strip will still yield computed values
+        close to the true value.
+
+        .. SEEALSO::
+
+            :meth:`~sage.lfunctions.zero_sums.LFunctionZeroSum_EllipticCurve.logarithmic_derivative`
 
         EXAMPLES::
 
+            sage: E = EllipticCurve([23,100])
+            sage: Z = LFunctionZeroSum(E)
+            sage: Z.completed_logarithmic_derivative(3)
+            (6.64372066048, 6.5846713591e-06)
+
+        Complex values are handled. The function is odd about s=1, so
+        the value at 2-s should be minus the value at s:
+
+            sage: Z.completed_logarithmic_derivative(complex(-2.2,1))
+            (-6.89808063313 + 0.225570153942*I, 5.62385304981e-11)
+            sage: Z.completed_logarithmic_derivative(complex(4.2,-1))
+            (6.89808063313 - 0.225570153942*I, 5.62385304981e-11)
         """
+        if imag(s)==0:
+            F = RDF
+        else:
+            F = CDF
 
         if real(s-1)>=0:
-            Ls = self.logarithmic_derivative(s,term_cap)
-            return (self._C1 + psi(complex(s)) + Ls[0], Ls[1])
+            Ls = self.logarithmic_derivative(s,num_terms)
+            return (self._C1 + F(psi(F(s))) + Ls[0], Ls[1])
         else:
-            Ls = self.logarithmic_derivative(2-s,term_cap)
-            return (-self._C1 - psi(complex(2-s)) - Ls[0], Ls[1])
+            Ls = self.logarithmic_derivative(2-s,num_terms)
+            return (-self._C1 - F(psi(F(2-s))) - Ls[0], Ls[1])
 
     def zerosum(self,Delta=1,function="sincsquared_fast"):
         r"""

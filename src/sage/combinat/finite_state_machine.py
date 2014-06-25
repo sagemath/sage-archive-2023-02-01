@@ -8705,8 +8705,7 @@ class FSMTape(SageObject):
 
     def __deepcopy__(self, memo):
         new = FSMTape(self.tapes, self.tapes_raw, self.tapes_raw_ended,
-                      deepcopy(self.position, memo),
-                      deepcopy(self.is_multitape, memo))
+                      self.position, self.is_multitape)
         new.tape = deepcopy(self.tape, memo)
         return new
 
@@ -8731,7 +8730,7 @@ class FSMTape(SageObject):
 
     def finished(self, tape_number=None):
         if tape_number is None:
-            return all(self.finished(n) for n in srange(len(self.tape)))
+            return all(self.finished(n) for n, _ in enumerate(self.tape))
         if not self.tape[tape_number]:
             self.read(tape_number)  # to make sure tapes_raw_ended is set
         return self.tapes_raw_ended[tape_number] and not self.tape[tape_number]
@@ -8766,14 +8765,14 @@ class FSMTape(SageObject):
         if tape_number is None:
             if self.is_multitape:
                 return tuple(self.read_letter(n)
-                             for n in srange(len(self.tape)))
+                             for n, _ in enumerate(self.tape))
             else:
                 return self.read_letter(0)
         t = self.tape[tape_number]
         while not t:
             if not self.read(tape_number):
                 raise StopIteration
-        return next(iter(t))
+        return t[0]
 
 
     def compare_to_tape(self, tape_number, word):
@@ -8781,10 +8780,7 @@ class FSMTape(SageObject):
         while len(t) < len(word):
             if not self.read(tape_number):
                 return False
-        for a, b in izip(word, iter(t)):
-            if a != b:
-                return False
-        return True
+        return all(a == b for a, b in izip(word, iter(t)))
 
 
     def forward(self, transition):
@@ -8803,8 +8799,7 @@ class FSMTape(SageObject):
         position = []
         for p, t in self.position:
             position.append((p + increments[t], t))
-        position.sort()
-        self.position = tuple(position)
+        self.position = tuple(sorted(position))
 
 
     def transition_possible(self, transition):
@@ -8820,22 +8815,14 @@ class FSMTape(SageObject):
 
 
     def _transition_possible_epsilon_(self, word_in):
-        for word in word_in:
-            if not word:
-                continue
-            for letter in word:
-                if letter is not None:
-                    return False
-        return True
+        return all(all(letter is None for letter in word) for word in word_in)
 
 
     def _transition_possible_test_(self, word_in):
         if self._transition_possible_epsilon_(word_in):
             return False
-        for tape_number, word in enumerate(word_in):
-            if not self.compare_to_tape(tape_number, word):
-                return False
-        return True
+        return all(self.compare_to_tape(tape_number, word)
+                   for tape_number, word in enumerate(word_in))
 
 
 #*****************************************************************************
@@ -9144,8 +9131,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                 continue
                 # "eps_state == state" means epsilon cycle
                 # Since we excluded epsilon cycles where
-                # output is writte, this has to be one,
-                # which doesn't write output; therefore
+                # output is written, this has to be one
+                # which does not write output; therefore
                 # skipped.
             for eps_out in eps_output:
                 new_out = [o + list(eps_out) for o in output]
@@ -9208,11 +9195,11 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                     state_said_finished = True
             if isinstance(next_transitions, FSMTransition):
                 next_transitions = [next_transitions]
-                if next_transitions is not None and \
-                        not hasattr(next_transitions, '__iter__'):
-                    raise ValueError('hook of state should return a '
-                                     'transition or '
-                                     'a list/tuple of transitions.')
+            if next_transitions is not None and \
+                    not hasattr(next_transitions, '__iter__'):
+                raise ValueError('hook of state should return a '
+                                 'transition or '
+                                 'a list/tuple of transitions.')
 
             # write output word of state
             self.write_word(output, current_state.word_out)
@@ -9225,12 +9212,11 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
             if not next_transitions:
                 # this branch has to end here...
-                finished = (input_tape.finished() or state_said_finished)
-                successful = finished and current_state.is_final
+                if not (input_tape.finished() or state_said_finished):
+                    return False
+                successful = current_state.is_final
                 if successful:
                     self.write_word(output, current_state.final_word_out)
-                if not finished:
-                    return False
                 for o in output:
                     self._finished_.append((successful, current_state,
                                             self.format_output(o)))
@@ -9311,22 +9297,19 @@ class FSMProcessIteratorEpsilon(FSMProcessIterator):
         sage: T = Transducer([(0, 1, 0, 'a'), (0, 2, None, 'b'),
         ....:                 (2, 1, None, 'c')])
         sage: from sage.combinat.finite_state_machine import FSMProcessIteratorEpsilon
-        sage: it = FSMProcessIteratorEpsilon(T, input_tape=[],
-        ....:                                initial_state=T.state(0),
+        sage: it = FSMProcessIteratorEpsilon(T, initial_state=T.state(0),
         ....:                                format_output=lambda o: ''.join(o))
         sage: for _ in it:
         ....:     pass
         sage: it.visited_states
         {0: [''], 1: ['bc'], 2: ['b']}
-        sage: it = FSMProcessIteratorEpsilon(T, input_tape=[],
-        ....:                                initial_state=T.state(1),
+        sage: it = FSMProcessIteratorEpsilon(T, initial_state=T.state(1),
         ....:                                format_output=lambda o: ''.join(o))
         sage: for _ in it:
         ....:     pass
         sage: it.visited_states
         {1: ['']}
-        sage: it = FSMProcessIteratorEpsilon(T, input_tape=[],
-        ....:                                initial_state=T.state(2),
+        sage: it = FSMProcessIteratorEpsilon(T, initial_state=T.state(2),
         ....:                                format_output=lambda o: ''.join(o))
         sage: for _ in it:
         ....:     pass
@@ -9337,32 +9320,27 @@ class FSMProcessIteratorEpsilon(FSMProcessIterator):
 
         sage: A = Automaton([(0, 1, 0), (1, 2, None), (2, 3, None),
         ....:                (3, 1, None), (3, 4, None), (1, 4, None)])
-        sage: it = FSMProcessIteratorEpsilon(A, input_tape=[],
-        ....:                                initial_state=A.state(0))
+        sage: it = FSMProcessIteratorEpsilon(A, initial_state=A.state(0))
         sage: for _ in it:
         ....:     pass
         sage: it.visited_states
         {0: [[]]}
-        sage: it = FSMProcessIteratorEpsilon(A, input_tape=[],
-        ....:                                initial_state=A.state(1))
+        sage: it = FSMProcessIteratorEpsilon(A, initial_state=A.state(1))
         sage: for _ in it:
         ....:     pass
         sage: it.visited_states
         {1: [[], []], 2: [[]], 3: [[]], 4: [[], []]}
-        sage: it = FSMProcessIteratorEpsilon(A, input_tape=[],
-        ....:                                initial_state=A.state(2))
+        sage: it = FSMProcessIteratorEpsilon(A, initial_state=A.state(2))
         sage: for _ in it:
         ....:     pass
         sage: it.visited_states
         {1: [[]], 2: [[], []], 3: [[]], 4: [[], []]}
-        sage: it = FSMProcessIteratorEpsilon(A, input_tape=[],
-        ....:                                initial_state=A.state(3))
+        sage: it = FSMProcessIteratorEpsilon(A, initial_state=A.state(3))
         sage: for _ in it:
         ....:     pass
         sage: it.visited_states
         {1: [[]], 2: [[]], 3: [[], []], 4: [[], []]}
-        sage: it = FSMProcessIteratorEpsilon(A, input_tape=[],
-        ....:                                initial_state=A.state(4))
+        sage: it = FSMProcessIteratorEpsilon(A, initial_state=A.state(4))
         sage: for _ in it:
         ....:     pass
         sage: it.visited_states
@@ -9373,39 +9351,34 @@ class FSMProcessIteratorEpsilon(FSMProcessIterator):
         sage: T = Transducer([(0, 1, 0, 'a'), (1, 2, None, 'b'),
         ....:                 (2, 3, None, 'c'), (3, 1, None, 'd'),
         ....:                 (3, 4, None, 'e'), (1, 4, None, 'f')])
-        sage: it = FSMProcessIteratorEpsilon(T, input_tape=[],
-        ....:                                initial_state=T.state(0),
+        sage: it = FSMProcessIteratorEpsilon(T, initial_state=T.state(0),
         ....:                                format_output=lambda o: ''.join(o))
         sage: for _ in it:
         ....:     pass
         sage: it.visited_states
         {0: ['']}
-        sage: it = FSMProcessIteratorEpsilon(T, input_tape=[],
-        ....:                                initial_state=T.state(1),
+        sage: it = FSMProcessIteratorEpsilon(T, initial_state=T.state(1),
         ....:                                format_output=lambda o: ''.join(o))
         sage: for _ in it:
         ....:     pass
         sage: it.visited_states
         {1: ['', 'bcd'], 2: ['b'],
          3: ['bc'], 4: ['f', 'bce']}
-        sage: it = FSMProcessIteratorEpsilon(T, input_tape=[],
-        ....:                                initial_state=T.state(2),
+        sage: it = FSMProcessIteratorEpsilon(T, initial_state=T.state(2),
         ....:                                format_output=lambda o: ''.join(o))
         sage: for _ in it:
         ....:     pass
         sage: it.visited_states
         {1: ['cd'], 2: ['', 'cdb'],
          3: ['c'], 4: ['ce', 'cdf']}
-        sage: it = FSMProcessIteratorEpsilon(T, input_tape=[],
-        ....:                                initial_state=T.state(3),
+        sage: it = FSMProcessIteratorEpsilon(T, initial_state=T.state(3),
         ....:                                format_output=lambda o: ''.join(o))
         sage: for _ in it:
         ....:     pass
         sage: it.visited_states
         {1: ['d'], 2: ['db'],
          3: ['', 'dbc'], 4: ['e', 'df']}
-        sage: it = FSMProcessIteratorEpsilon(T, input_tape=[],
-        ....:                                initial_state=T.state(4),
+        sage: it = FSMProcessIteratorEpsilon(T, initial_state=T.state(4),
         ....:                                format_output=lambda o: ''.join(o))
         sage: for _ in it:
         ....:     pass

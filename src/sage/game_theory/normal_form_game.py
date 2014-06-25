@@ -931,39 +931,42 @@ class NormalFormGame(SageObject, MutableMapping):
         s2 = [combinations(n, k+1) for k in n]
         support1 = list(chain(*s1))
         support2 = list(chain(*s2))
-        m1, m2 = self._game_two_matrix()
+        #m1, m2 = self.payoff_matrices()
 
         equilibria = []
         for i in support1:
             for j in support2:
-                result = self._check_support(i, j, m1, m2)
+                #result = self._check_support(i, j, m1, m2)
+                result = self._check_support(i, j)
                 if result:
                     equilibria.append([result[0], result[1]])
 
         return equilibria
 
-    def _check_support(self, p1_support, p2_support, m1, m2):
+    def _check_support(self, p1_support, p2_support):
         matrix1 = matrix(QQ, len(p2_support)+1, self.players[0].num_strategies)
         matrix2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)
 
+
+        M1, M2 = self.payoff_matrices()
         for k in p1_support:
             if len(p2_support) == 1:
                 for i in range(self.players[1].num_strategies):
-                    if m2[k][p2_support[0]] < m2[k][i]:
+                    if M2[k][p2_support[0]] < M2[k][i]:
                         return False
             else:
                 for j in range(len(p2_support)):
-                    matrix1[j, k] = m2[k][p2_support[j]] - m2[k][p2_support[j-1]]
+                    matrix1[j, k] = M2[k][p2_support[j]] - M2[k][p2_support[j-1]]
             matrix1[-1, k] = 1
 
         for k in p2_support:
             if len(p1_support) == 1:
                 for i in range(self.players[0].num_strategies):
-                    if m1[p1_support[0]][k] < m1[i][k]:
+                    if M1[p1_support[0]][k] < M1[i][k]:
                         return False
             else:
                 for j in range(len(p1_support)):
-                    matrix2[j, k] = m1[p1_support[j]][k] - m1[p1_support[j-1]][k]
+                    matrix2[j, k] = M1[p1_support[j]][k] - M1[p1_support[j-1]][k]
             matrix2[-1, k] = 1
 
         v1 = [0 for i in range(len(p2_support)+1)]
@@ -977,7 +980,7 @@ class NormalFormGame(SageObject, MutableMapping):
             a = matrix1.solve_right(vector1)
             b = matrix2.solve_right(vector2)
 
-            if self._is_valid_vector(a, b, p1_support, p2_support, m1, m2):
+            if self._is_valid_vector(a, b, p1_support, p2_support, M1, M2):
                 return [a, b]
             return False
         except:
@@ -1002,14 +1005,13 @@ class NormalFormGame(SageObject, MutableMapping):
 
             return False
 
-        if (sum(x > 0 for x in vector1) != 1 or
-            sum(x > 0 for x in vector2) != 1):
+        if sum(x > 0 for x in vector1) != sum(x > 0 for x in vector2):
             return False
 
         p1_payoffs = []
         p2_payoffs = []
         for row in range(self.players[0].num_strategies):
-            p1_payoffs.append(sum(v*m1[row][i] for i, v in enumerate(vector2)))
+            p1_payoffs.append(sum(v * m1[row][i] for i, v in enumerate(vector2)))
         for col in range(self.players[1].num_strategies):
             p2_payoffs.append(sum(v*m2[i][col] for i, v in enumerate(vector1)))
 

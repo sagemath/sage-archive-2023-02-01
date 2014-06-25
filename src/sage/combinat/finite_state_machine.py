@@ -4618,9 +4618,9 @@ class FiniteStateMachine(SageObject):
             sage: it = inverter.iter_process(input_tape=[0, 1, 1])
             sage: for current in it:
             ....:     print current
-            {((1, 0),): {'A': (tape (deque([]),) at ((1, 0),), [[1]])}}
-            {((2, 0),): {'A': (tape (deque([]),) at ((2, 0),), [[1, 0]])}}
-            {((3, 0),): {'A': (tape (deque([]),) at ((3, 0),), [[1, 0, 0]])}}
+            {((1, 0),): {'A': (tape at 1, [[1]])}}
+            {((2, 0),): {'A': (tape at 2, [[1, 0]])}}
+            {((3, 0),): {'A': (tape at 3, [[1, 0, 0]])}}
             {}
             sage: it.result()
             [(True, 'A', [1, 0, 0])]
@@ -8700,7 +8700,13 @@ class FSMTapeCache(SageObject):
 
 
     def _repr_(self):
-        return 'tape ' + repr(self.cache) + ' at ' + repr(self.position)
+        if self.is_multitape:
+            pos = len(self.position) * [None]
+            for p, t in self.position:
+                pos[t] = p
+            return 'multi-tape at %s' % (pos,)
+        else:
+            return 'tape at %s' % (self.position[0][0],)
 
 
     def __deepcopy__(self, memo):
@@ -8928,16 +8934,16 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         sage: it = FSMProcessIterator(T, input_tape=input)
         sage: for current in it:
         ....:     print current
-        {((1, 0),): {'B': (tape (deque([]),) at ((1, 0),), [[]])}}
-        {((2, 0),): {'B': (tape (deque([]),) at ((2, 0),), [[]])}}
-        {((3, 0),): {'A': (tape (deque([]),) at ((3, 0),), [[1, 0]])}}
-        {((4, 0),): {'A': (tape (deque([]),) at ((4, 0),), [[1, 0, 0]])}}
-        {((5, 0),): {'B': (tape (deque([]),) at ((5, 0),), [[1, 0, 0]])}}
-        {((6, 0),): {'A': (tape (deque([]),) at ((6, 0),), [[1, 0, 0, 1, 0]])}}
-        {((7, 0),): {'B': (tape (deque([]),) at ((7, 0),), [[1, 0, 0, 1, 0]])}}
-        {((8, 0),): {'B': (tape (deque([]),) at ((8, 0),), [[1, 0, 0, 1, 0]])}}
-        {((9, 0),): {'B': (tape (deque([]),) at ((9, 0),), [[1, 0, 0, 1, 0]])}}
-        {((10, 0),): {'A': (tape (deque([]),) at ((10, 0),), [[1, 0, 0, 1, 0, 1, 0]])}}
+        {((1, 0),): {'B': (tape at 1, [[]])}}
+        {((2, 0),): {'B': (tape at 2, [[]])}}
+        {((3, 0),): {'A': (tape at 3, [[1, 0]])}}
+        {((4, 0),): {'A': (tape at 4, [[1, 0, 0]])}}
+        {((5, 0),): {'B': (tape at 5, [[1, 0, 0]])}}
+        {((6, 0),): {'A': (tape at 6, [[1, 0, 0, 1, 0]])}}
+        {((7, 0),): {'B': (tape at 7, [[1, 0, 0, 1, 0]])}}
+        {((8, 0),): {'B': (tape at 8, [[1, 0, 0, 1, 0]])}}
+        {((9, 0),): {'B': (tape at 9, [[1, 0, 0, 1, 0]])}}
+        {((10, 0),): {'A': (tape at 10, [[1, 0, 0, 1, 0, 1, 0]])}}
         {}
         sage: it.result()
         [(True, 'A', [1, 0, 0, 1, 0, 1, 0])]
@@ -9156,9 +9162,9 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             ....:     initial_states=['A'], final_states=['A'])
             sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
             sage: it.next()
-            {((1, 0),): {'A': (tape (deque([]),) at ((1, 0),), [[1]])}}
+            {((1, 0),): {'A': (tape at 1, [[1]])}}
             sage: it.next()
-            {((2, 0),): {'A': (tape (deque([]),) at ((2, 0),), [[1, 0]])}}
+            {((2, 0),): {'A': (tape at 2, [[1, 0]])}}
             sage: it.next()
             {}
             sage: it.next()

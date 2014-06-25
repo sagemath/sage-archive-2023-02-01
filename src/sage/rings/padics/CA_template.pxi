@@ -528,9 +528,17 @@ cdef class CAElement(pAdicTemplateElement):
         else:
             if not PY_TYPE_CHECK(absprec, Integer):
                 absprec = Integer(absprec)
-            aprec = mpz_get_si((<Integer>absprec).value)
+            if mpz_fits_slong_p((<Integer>absprec).value) == 0:
+                if mpz_sgn((<Integer>absprec).value) == -1:
+                    raise ValueError("absprec must fit into a signed long")
+                else:
+                    aprec = self.prime_pow.prec_cap
+            else:
+                aprec = mpz_get_si((<Integer>absprec).value)
         if aprec >= self.absprec:
             return self
+        if aprec < 0:
+            return self.parent().fraction_field()(self).add_bigoh(absprec)
         cdef CAElement ans = self._new_c()
         ans.absprec = aprec
         creduce(ans.value, self.value, ans.absprec, ans.prime_pow)

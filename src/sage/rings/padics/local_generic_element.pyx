@@ -8,11 +8,12 @@ AUTHORS:
 
 - David Roe: initial version
 
-- Julian Rueth (2012-10-15): added inverse_of_unit()
+- Julian Rueth (2012-10-15, 2014-06-25): added inverse_of_unit(); improved
+  add_bigoh()
 """
 #*****************************************************************************
-#       Copyright (C) 2007,2008,2009 David Roe <roed@math.harvard.edu>
-#                     2012 Julian Rueth <julian.rueth@fsfe.org>
+#       Copyright (C) 2007-2013 David Roe <roed@math.harvard.edu>
+#                     2012-2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -382,17 +383,12 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
     def add_bigoh(self, absprec):
         """
-        Returns a copy of ``self`` with absolute precision decreased to
+        Return a copy of this element with ablsolute precision decreased to
         ``absprec``.
 
         INPUT:
 
-            - ``absprec`` -- an integer or positive infinity
-
-        OUTPUT:
-
-            a copy of ``self`` with absolute precision set to the minimum of
-            ``absprec`` and the precisions of ``self``
+        - ``absprec`` -- an integer or positive infinity
 
         EXAMPLES::
 
@@ -410,23 +406,32 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: o.add_bigoh(5)
             1 + O(3^4)
 
-        Only over a field, negative values for ``absprec`` are allowed::
+        Negative values of ``absprec`` return an element in the fraction field
+        of the element's parent::
 
             sage: R = ZpCA(3,4)
             sage: R(3).add_bigoh(-5)
-            Traceback (most recent call last):
-            ...
-            ValueError: The precision of a local element can not be negative unless it is defined over a field.
+            O(3^-5)
 
-        The precision of fixed-mod elements can not be decreased::
+        For fixed-mod elements this method truncates the element::
 
             sage: R = ZpFM(3,4)
+            sage: R(3).add_bigoh(1)
+            O(3^4)
+
+        If ``absprec`` exceeds the precision of the element, then this method
+        has no effect::
+
             sage: R(3).add_bigoh(5)
             3 + O(3^4)
-            sage: R(3).add_bigoh(1)
+
+        However, a negative value for ``absprec`` leads to an error, since
+        there is no fraction field for fixed-mod elements::
+
+            sage: R(3).add_bigoh(-1)
             Traceback (most recent call last):
             ...
-            ValueError: The precision of a local element with a fixed modulus can not be decreased.
+            ValueError: absprec must be at least 0
 
         TESTS:
 
@@ -438,42 +443,13 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: R(0).add_bigoh(infinity)
             0
 
-        Test that this works over unramified extensions::
-
-            sage: R = ZpCA(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 + 1 )
-            sage: (t + 3).add_bigoh(1)
-            t + O(3)
-
-            sage: R = ZpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 + 1 )
-            sage: (t + 3).add_bigoh(1)
-            t + O(3)
-
-            sage: R = QpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 + 1 )
-            sage: (t + 3).add_bigoh(1)
-            t + O(3)
-
-        Test that this works over Eisenstein extensions::
-
-            sage: R = ZpCA(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
-            sage: (t + 3).add_bigoh(2)
-            t + O(t^2)
-
-            sage: R = ZpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
-            sage: (t + 3).add_bigoh(2)
-            t + O(t^2)
-
-            sage: R = QpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
-            sage: (t + 3).add_bigoh(2)
-            t + O(t^2)
-
         """
-        if not self.parent().is_field() and absprec < 0:
-            raise ValueError("The precision of a local element can not be negative unless it is defined over a field.")
+        parent = self.parent()
         if absprec >= self.precision_absolute():
             return self
-        if self.parent().is_fixed_mod():
-            raise ValueError("The precision of a local element with a fixed modulus can not be decreased.")
-        return self.parent()(self, absprec=absprec)
+        if absprec < 0:
+            parent = parent.fraction_field()
+        return parent(self, absprec=absprec)
 
     #def copy(self):
     #    raise NotImplementedError

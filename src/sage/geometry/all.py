@@ -23,5 +23,9 @@ import sage.geometry.pseudolines
 
 import toric_plotter
 
+
+from hyperbolic_space.all import *
+
 lazy_import('sage.geometry.hyperplane_arrangement.arrangement', 'HyperplaneArrangements')
 lazy_import('sage.geometry.hyperplane_arrangement.library', 'hyperplane_arrangements')
+

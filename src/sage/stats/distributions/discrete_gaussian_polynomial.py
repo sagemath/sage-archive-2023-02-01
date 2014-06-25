@@ -18,7 +18,7 @@ EXAMPLE::
 
     sage: from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianPolynomialSampler
     sage: sigma = 3.0; n=1000
-    sage: l = [DiscreteGaussianPolynomialSampler(64, sigma)() for _ in xrange(n)]
+    sage: l = [DiscreteGaussianPolynomialSampler(ZZ['x'], 64, sigma)() for _ in xrange(n)]
     sage: l = map(lambda f: vector(f).norm().n(), l)
     sage: mean(l), sqrt(64)*sigma
     (23.83..., 24.0...)
@@ -36,16 +36,16 @@ class DiscreteGaussianPolynomialSampler(SageObject):
     EXAMPLE::
 
         sage: from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianPolynomialSampler
-        sage: DiscreteGaussianPolynomialSampler(8, 3.0)()
+        sage: DiscreteGaussianPolynomialSampler(ZZ['x'], 8, 3.0)()
         3*x^7 + 3*x^6 - 3*x^5 - x^4 - 5*x^2 + 3
-        sage: gs = DiscreteGaussianPolynomialSampler(8, 3.0)
+        sage: gs = DiscreteGaussianPolynomialSampler(ZZ['x'], 8, 3.0)
         sage: [gs() for _ in xrange(3)]
         [4*x^7 + 4*x^6 - 2*x^5 + x^4 + 4*x^2 - 2*x + 7, 5*x^7 - 4*x^6 + 3*x^4 - 4*x^3 + x^2 - 4, 2*x^7 + 2*x^6 + x^5 + 2*x^3 - 3*x^2 + x]
 
     .. automethod:: __init__
     .. automethod:: __call__
     """
-    def __init__(self, n, sigma):
+    def __init__(self, P, n, sigma):
         """
         Construct a sampler for univariate polynomials of degree ``n-1``
         where coefficients are drawn independently with standard deviation
@@ -53,6 +53,7 @@ class DiscreteGaussianPolynomialSampler(SageObject):
 
         INPUT:
 
+        - ``P`` - a univariate polynomial ring over the Integers
         - ``n`` - number of coefficients to be sampled
         - ``sigma`` - coefficients `x` are accepted with probability proportional to
           `\exp(-x^2/(2σ^2))`. If an object of type
@@ -62,9 +63,9 @@ class DiscreteGaussianPolynomialSampler(SageObject):
         EXAMPLE::
 
             sage: from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianPolynomialSampler
-            sage: DiscreteGaussianPolynomialSampler(8, 3.0)()
+            sage: DiscreteGaussianPolynomialSampler(ZZ['x'], 8, 3.0)()
             3*x^7 + 3*x^6 - 3*x^5 - x^4 - 5*x^2 + 3
-            sage: gs = DiscreteGaussianPolynomialSampler(8, 3.0)
+            sage: gs = DiscreteGaussianPolynomialSampler(ZZ['x'], 8, 3.0)
             sage: [gs() for _ in xrange(3)]
             [4*x^7 + 4*x^6 - 2*x^5 + x^4 + 4*x^2 - 2*x + 7, 5*x^7 - 4*x^6 + 3*x^4 - 4*x^3 + x^2 - 4, 2*x^7 + 2*x^6 + x^5 + 2*x^3 - 3*x^2 + x]
         """
@@ -73,7 +74,7 @@ class DiscreteGaussianPolynomialSampler(SageObject):
         else:
             self.D = DiscreteGaussianIntegerSampler(RR(sigma))
         self.n = ZZ(n)
-        self.P = ZZ['x']
+        self.P = P
 
     def __call__(self):
         """
@@ -82,12 +83,12 @@ class DiscreteGaussianPolynomialSampler(SageObject):
         EXAMPLE::
 
             sage: from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianPolynomialSampler
-            sage: sampler = DiscreteGaussianPolynomialSampler(8, 12.0)
+            sage: sampler = DiscreteGaussianPolynomialSampler(ZZ['x'], 8, 12.0)
             sage: sampler()
             8*x^7 - 11*x^5 - 19*x^4 + 6*x^3 - 34*x^2 - 21*x + 9
         """
-        coeff = [self.D() for _ in range(self.n)]
-        f = self.P(coeff)
+        coeffs = [self.D() for _ in range(self.n)]
+        f = self.P(coeffs)
         return f
 
     def _repr_(self):
@@ -95,7 +96,7 @@ class DiscreteGaussianPolynomialSampler(SageObject):
         EXAMPLE::
 
             sage: from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianPolynomialSampler
-            sage: DiscreteGaussianPolynomialSampler(8, 3.0)
+            sage: DiscreteGaussianPolynomialSampler(ZZ['x'], 8, 3.0)
             Discrete Gaussian sampler for polynomials of degree < 8 with σ=3.000000 in each component
         """
         return "Discrete Gaussian sampler for polynomials of degree < %d with σ=%f in each component"%(self.n, self.D.sigma)

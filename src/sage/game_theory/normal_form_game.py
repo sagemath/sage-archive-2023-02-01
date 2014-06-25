@@ -22,6 +22,8 @@ from itertools import product, combinations, chain
 from sage.misc.lazy_import import lazy_import
 from sage.structure.sage_object import SageObject
 from sage.rings.all import QQ
+from sage.misc.misc import powerset
+from sage.combinat.cartesian_product import CartesianProduct
 lazy_import('sage.misc.package', 'is_package_installed')
 lazy_import('sage.matrix.constructor', 'matrix')
 lazy_import('sage.matrix.constructor', 'vector')
@@ -925,21 +927,14 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: Z._solve_enumeration()
             [[(1, 0, 0), (0, 1, 0)], [(0, 0, 1), (0, 0, 1)], [(2/9, 0, 7/9), (0, 3/4, 1/4)]]
         """
-        m = range(self.players[0].num_strategies)
-        n = range(self.players[1].num_strategies)
-        s1 = [combinations(m, k+1) for k in m]
-        s2 = [combinations(n, k+1) for k in n]
-        support1 = list(chain(*s1))
-        support2 = list(chain(*s2))
-        #m1, m2 = self.payoff_matrices()
+        potential_supports = [[tuple(support) for support in powerset(range(player.num_strategies))] for player in self.players]
 
+        potential_support_pairs = [pair for pair in CartesianProduct(*potential_supports) if len(pair[0]) == len(pair[1])]
         equilibria = []
-        for i in support1:
-            for j in support2:
-                #result = self._check_support(i, j, m1, m2)
-                result = self._check_support(i, j)
-                if result:
-                    equilibria.append([result[0], result[1]])
+        for pair in potential_support_pairs:
+            result = self._check_support(*pair)
+            if result:
+                equilibria.append([result[0], result[1]])
 
         return equilibria
 
@@ -947,8 +942,8 @@ class NormalFormGame(SageObject, MutableMapping):
         matrix1 = matrix(QQ, len(p2_support)+1, self.players[0].num_strategies)
         matrix2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)
 
-
         M1, M2 = self.payoff_matrices()
+
         for k in p1_support:
             if len(p2_support) == 1:
                 for i in range(self.players[1].num_strategies):
@@ -980,13 +975,13 @@ class NormalFormGame(SageObject, MutableMapping):
             a = matrix1.solve_right(vector1)
             b = matrix2.solve_right(vector2)
 
-            if self._is_valid_vector(a, b, p1_support, p2_support, M1, M2):
+            if self._is_valid_vector(a, b, p1_support, p2_support):
                 return [a, b]
             return False
         except:
             return False
 
-    def _is_valid_vector(self, vector1, vector2, p1_support, p2_support, m1, m2):
+    def _is_valid_vector(self, vector1, vector2, p1_support, p2_support):
         r"""
         TESTS:
 
@@ -997,7 +992,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [0, 3, 1],
             ....:             [5, 4, 6]])
             sage: Z = NormalFormGame([X, Y])
-            sage: Z._is_valid_vector([0, 1/4, 3/4], [3/5, 2/5, 0], (1,2,), (0,1,), X, Y)
+            sage: Z._is_valid_vector([0, 1/4, 3/4], [3/5, 2/5, 0], (1,2,), (0,1,))
             False
         """
         if (not all(i >= 0 for i in vector1)
@@ -1008,12 +1003,15 @@ class NormalFormGame(SageObject, MutableMapping):
         if sum(x > 0 for x in vector1) != sum(x > 0 for x in vector2):
             return False
 
+        M1, M2 = self.payoff_matrices()
+
         p1_payoffs = []
         p2_payoffs = []
+
         for row in range(self.players[0].num_strategies):
-            p1_payoffs.append(sum(v * m1[row][i] for i, v in enumerate(vector2)))
+            p1_payoffs.append(sum(v * M1[row][i] for i, v in enumerate(vector2)))
         for col in range(self.players[1].num_strategies):
-            p2_payoffs.append(sum(v*m2[i][col] for i, v in enumerate(vector1)))
+            p2_payoffs.append(sum(v * M2[i][col] for i, v in enumerate(vector1)))
 
         if p1_payoffs.index(max(p1_payoffs)) not in p1_support:
             return False

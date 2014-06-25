@@ -747,21 +747,27 @@ class FunctionField_polymod(FunctionField):
         """
         return self._ring
 
-    @cached_method
-    def vector_space(self):
+    @cached_method(key=lambda self, base: self.base_field() if base is None else base)
+    def vector_space(self, base=None):
         """
-        Return a vector space V and isomorphisms self --> V and V --> self.
+        Return a vector space `V` and isomorphisms from this field to `V` and
+        from `V` to this field.
 
-        This function allows us to identify the elements of self with
-        elements of a vector space over the base field, which is
-        useful for representation and arithmetic with orders, ideals,
-        etc.
+        This function allows us to identify the elements of this field with
+        elements of a vector space over the base field, which is useful for
+        representation and arithmetic with orders, ideals, etc.
+
+        INPUT:
+
+        - ``base`` -- a function field or ``None`` (default: ``None``), the
+          returned vector space is over ``base`` which defaults to the base
+          field of this function field.
 
         OUTPUT:
 
-            -  ``V`` -- a vector space over base field
-            -  ``from_V`` -- an isomorphism from V to self
-            -  ``to_V`` -- an isomorphism from self to V
+        - ``V`` -- a vector space over base field
+        - ``from_V`` -- an isomorphism from V to this field
+        - ``to_V`` -- an isomorphism from this field to V
 
         EXAMPLES:
 
@@ -820,9 +826,22 @@ class FunctionField_polymod(FunctionField):
               To:   Function field in z defined by z^2 - y, Isomorphism morphism:
               From: Function field in z defined by z^2 - y
               To:   Vector space of dimension 2 over Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x)
+
+        We can also get the vector space of ``M`` over ``K``::
+
+            sage: M.vector_space(K)
+            (Vector space of dimension 10 over Rational function field in x over Rational Field, Isomorphism morphism:
+              From: Vector space of dimension 10 over Rational function field in x over Rational Field
+              To:   Function field in z defined by z^2 - y, Isomorphism morphism:
+              From: Function field in z defined by z^2 - y
+              To:   Vector space of dimension 10 over Rational function field in x over Rational Field)
+
         """
-        V = self.base_field()**self.degree()
         from maps import MapVectorSpaceToFunctionField, MapFunctionFieldToVectorSpace
+        if base is None:
+            base = self.base_field()
+        degree = self.degree(base)
+        V = base**degree;
         from_V = MapVectorSpaceToFunctionField(V, self)
         to_V   = MapFunctionFieldToVectorSpace(self, V)
         return (V, from_V, to_V)
@@ -1574,3 +1593,55 @@ class RationalFunctionField(FunctionField):
         """
         return 0
 
+    @cached_method(key=lambda self, base: None)
+    def vector_space(self, base=None):
+        """
+        Return a vector space `V` and isomorphisms from this field to `V` and
+        from `V` to this field.
+
+        This function allows us to identify the elements of this field with
+        elements of a one-dimensional vector space over the field itself. This
+        method exists so that all function fields (rational or not) have the
+        same interface.
+
+        INPUT:
+
+        - ``base`` -- must be this field or ``None`` (default: ``None``); this
+          parameter is ignored and merely exists to have the same interface as
+          :meth:`FunctionField_polymod.vector_space`.
+
+        OUTPUT:
+
+        - ``V`` -- a vector space over base field
+        - ``from_V`` -- an isomorphism from V to this field
+        - ``to_V`` -- an isomorphism from this field to V
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: K.vector_space()
+            (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism morphism:
+              From: Vector space of dimension 1 over Rational function field in x over Rational Field
+              To:   Rational function field in x over Rational Field, Isomorphism morphism:
+              From: Rational function field in x over Rational Field
+              To:   Vector space of dimension 1 over Rational function field in x over Rational Field)
+
+        TESTS::
+
+            sage: K.vector_space()
+            (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism morphism:
+              From: Vector space of dimension 1 over Rational function field in x over Rational Field
+              To:   Rational function field in x over Rational Field, Isomorphism morphism:
+              From: Rational function field in x over Rational Field
+              To:   Vector space of dimension 1 over Rational function field in x over Rational Field)
+
+        """
+        from maps import MapVectorSpaceToFunctionField, MapFunctionFieldToVectorSpace
+        if base is None:
+            base = self
+        if base is not self:
+            raise ValueError("base must be the rational function field or None")
+        V = base**1
+        from_V = MapVectorSpaceToFunctionField(V, self)
+        to_V   = MapFunctionFieldToVectorSpace(self, V)
+        return (V, from_V, to_V)

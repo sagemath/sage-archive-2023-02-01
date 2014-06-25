@@ -8714,29 +8714,29 @@ class FSMTapeCache(SageObject):
          return deepcopy(self, memo)
 
 
-    def read(self, tape_number):
+    def read(self, track_number):
         try:
-            newval = next(self.tape[tape_number])
+            newval = next(self.tape[track_number])
         except StopIteration:
-            self.tape_ended[tape_number] = True
+            self.tape_ended[track_number] = True
             return False
 
         # update all tapes
         for tape in self.tape_cache_manager:
-            tape.cache[tape_number].append(newval)
+            tape.cache[track_number].append(newval)
 
         return True
 
 
-    def finished(self, tape_number=None):
-        if tape_number is None:
+    def finished(self, track_number=None):
+        if track_number is None:
             return all(self.finished(n) for n, _ in enumerate(self.cache))
-        if not self.cache[tape_number]:
-            self.read(tape_number)  # to make sure tape_ended is set
-        return self.tape_ended[tape_number] and not self.cache[tape_number]
+        if not self.cache[track_number]:
+            self.read(track_number)  # to make sure tape_ended is set
+        return self.tape_ended[track_number] and not self.cache[track_number]
 
 
-    def read_letter(self, tape_number=None):
+    def read_letter(self, track_number=None):
         """
         TODO
 
@@ -8762,23 +8762,23 @@ class FSMTapeCache(SageObject):
             sage: it.read_letter()  # not tested
             0
         """
-        if tape_number is None:
+        if track_number is None:
             if self.is_multitape:
                 return tuple(self.read_letter(n)
                              for n, _ in enumerate(self.cache))
             else:
                 return self.read_letter(0)
-        t = self.cache[tape_number]
+        t = self.cache[track_number]
         while not t:
-            if not self.read(tape_number):
+            if not self.read(track_number):
                 raise StopIteration
         return t[0]
 
 
-    def compare_to_tape(self, tape_number, word):
-        t = self.cache[tape_number]
+    def compare_to_tape(self, track_number, word):
+        t = self.cache[track_number]
         while len(t) < len(word):
-            if not self.read(tape_number):
+            if not self.read(track_number):
                 return False
         return all(a == b for a, b in izip(word, iter(t)))
 
@@ -8789,11 +8789,11 @@ class FSMTapeCache(SageObject):
         else:
             increments = (len(transition.word_in),)
 
-        for tape_number, (t, i) in \
+        for track_number, (t, i) in \
                 enumerate(izip(self.cache, increments)):
             for _ in range(i):
                 if not t:
-                    if not self.read(tape_number):
+                    if not self.read(track_number):
                         raise ValueError('forwarding tape is not possible')
                 t.popleft()
         position = []
@@ -8821,8 +8821,8 @@ class FSMTapeCache(SageObject):
     def _transition_possible_test_(self, word_in):
         if self._transition_possible_epsilon_(word_in):
             return False
-        return all(self.compare_to_tape(tape_number, word)
-                   for tape_number, word in enumerate(word_in))
+        return all(self.compare_to_tape(track_number, word)
+                   for track_number, word in enumerate(word_in))
 
 
 #*****************************************************************************

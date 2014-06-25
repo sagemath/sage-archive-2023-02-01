@@ -609,10 +609,17 @@ class FunctionField_polymod(FunctionField):
         """
         return self.base_field().constant_base_field()
 
-    def degree(self):
+    @cached_method(key=lambda self, base: self.base_field() if base is None else base)
+    def degree(self, base=None):
         """
-        Return the degree of this function field over its base
-        function field.
+        Return the degree of this function field over the function field
+        ``base``.
+
+        INPUT:
+
+        - ``base`` -- a function field or ``None`` (default: ``None``), a
+          function field from which this field has been constructed as a finite
+          extension.
 
         EXAMPLES::
 
@@ -622,8 +629,30 @@ class FunctionField_polymod(FunctionField):
             Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x
             sage: L.degree()
             5
+            sage: L.degree(L)
+            1
+
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2 - y)
+            sage: M.degree(L)
+            2
+            sage: M.degree(K)
+            10
+
+        TESTS::
+
+            sage: L.degree(M)
+            Traceback (most recent call last):
+            ...
+            ValueError: base must be None or the rational function field
+
         """
-        return self._polynomial.degree()
+        if base is None:
+            base = self.base_field()
+        if base is self:
+            from sage.rings.integer_ring import ZZ
+            return ZZ(1)
+        return self._polynomial.degree() * self.base_field().degree(base)
 
     def _repr_(self):
         """
@@ -1328,11 +1357,17 @@ class RationalFunctionField(FunctionField):
         """
         return self(self._field.random_element(*args, **kwds))
 
-    def degree(self):
+    def degree(self, base=None):
         """
         Return the degree over the base field of this rational
         function field. Since the base field is the rational function
         field itself, the degree is 1.
+
+        INPUT:
+
+        - ``base`` -- must be this field or ``None``; this parameter is ignored
+          and exists to resemble the interface of
+          :meth:`FunctionField_polymod.degree`.
 
         EXAMPLES::
 
@@ -1340,6 +1375,10 @@ class RationalFunctionField(FunctionField):
             sage: K.degree()
             1
         """
+        if base is None:
+            base = self
+        if base is not self:
+            raise ValueError("base must be None or the rational function field")
         from sage.rings.integer_ring import ZZ
         return ZZ(1)
 

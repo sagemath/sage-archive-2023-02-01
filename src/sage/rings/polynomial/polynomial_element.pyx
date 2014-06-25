@@ -6381,7 +6381,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         K = self.parent().base_ring()
         if hasattr(K, '_roots_univariate_polynomial'):
             ret = K._roots_univariate_polynomial(self, ring=ring, multiplicities=multiplicities, algorithm=algorithm)
-            if not ret is None: return ret
+            if ret is not None: return ret
 
         L = K if ring is None else ring
 

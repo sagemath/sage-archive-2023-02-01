@@ -1,4 +1,4 @@
-r"""
+"""
 Ring `\ZZ` of Integers
 
 The :class:`IntegerRing_class` represents the ring `\ZZ` of (arbitrary
@@ -1279,15 +1279,15 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         - ``multiplicities'' -- a boolean
 
-        - ``algorithm'' -- the algorithm to use 
+        - ``algorithm'' -- the algorithm to use
 
         .. NOTE::
-            
+
             This is a helper method for
             :meth:`sage.rings.polynomial.polynomial_element.Polynomial.roots`.
 
         TESTS::
-            
+
             sage: R.<x> = PolynomialRing(ZZ,sparse=True)
             sage: p = (x+1)^23*(x-1)^23*(x-100)*(x+5445)^5
             sage: ZZ._roots_univariate_polynomial(p)
@@ -1307,84 +1307,112 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         """
 
-        if ring != self and not ring is None: return None;
+        if p.degree() < 0:
+            raise ValueError("Roots of 0 are not defined");
 
-        if not p.parent().is_sparse():
-            return p._roots_from_factorization(p.factor(), multiplicities);
-
-        # Case p is sparse
+        if ring is not self and ring is not None: return None
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.arith import gcd
 
+        cdef int i, i_min, m1, m2
+
         #remove content
-        p = p.parent()(p/(p.content().gen()));
+        if p.parent().is_sparse():
+            p = p.parent()(p/(p.content().gen()))
+        else:
+            p = p.parent()(p/p.content())
 
-        v = p.valuation();
-        roots=[];
-        if v>0: 
-            if multiplicities: roots=[(0,v)];
-            else: roots=[0];
+        v = p.valuation()
 
-        p = p.shift(-v);
-        if p.is_constant(): return roots;
+        if algorithm is "dense": # or p.degree() - p.number_of_terms() - v < 10:
+            return p._roots_from_factorization(p.factor(),multiplicities)
 
-        c = p.coefficients();
-        e = p.exponents();
-        k = len(c);
-        K=p.base_ring();
-        x=p.variable_name();
-        R = PolynomialRing(K,x,sparse=False);
+        p = p.shift(-v)
 
-        c_max=c[0].abs();
-        i_min=0;
+        if algorithm is "dense_with_gcd":
+            if p.constant_coefficient().abs() < p.degree():
+                x=p.parent().gen()
+                q = 1;
+                for i in xrange(p.constant_coefficient().abs()+1):
+                    q *= x*x-i*i
+                p=gcd(p,q)
+            if multiplicities:
+                return [(self.zero(),v)].extend(p._roots_from_factorization(p.factor(),multiplicities))
+            else:
+                return [self.zero()].extend(p._roots_from_factorization(p.factor(),multiplicities))
+
+
+        roots=[]
+        if v>0:
+            if multiplicities: roots=[(self.zero(),v)]
+            else: roots=[self.zero()]
+
+        if p.is_constant(): return roots
+
+        c = p.coefficients()
+        e = p.exponents()
+        k = len(c)
+
+        K=p.base_ring()
+        x=p.variable_name()
+        R = PolynomialRing(K,x,sparse=False)
+
+        cst_coeff = c_max = c[0].abs()
+
+        # roots must divide constant coefficient
+        i_min=0
         polys=[]
 
         for i in xrange(1,k):
-            if e[i]-e[i-1] > c_max.nbits(): 
-                polys+=[ R(p[ e[i_min]:e[i] ].shift(-e[i_min])) ];
-                i_min=i;
-                c_max=c[i].abs();
+            if e[i]-e[i-1] > c_max.nbits():
+                polys.append(R(p[ e[i_min]:e[i] ].shift(-e[i_min])))
+                i_min=i
+                c_max=c[i].abs()
             else:
-                c_max=max(c[i].abs(),c_max);
-        polys+=[ R(p[ e[i_min]:1+e[k-1] ].shift(-e[i_min])) ];
+                c_max=max(c[i].abs(),c_max)
+        polys.append(R(p[ e[i_min]:1+e[k-1] ].shift(-e[i_min])))
 
         # if no gap, directly return the roots of p
         if len(polys) == 1:
-            return roots+polys[0].roots(K,multiplicities);
+            return roots.extend(polys[0]._roots_from_factorization(polys[0].factor(),multiplicities))
 
-        cc = c; ee = e;
-        m1 = m2 = 0;
+        cc = c; ee = e
+        m1 = m2 = 0
+        b1 = b2 = True
 
         for i in xrange(k):
-            if m1 == i:
-                s=0;
-                for j in xrange(k-i):
-                    s+= cc[j];
-                    if s==0: m1=i+1;
-            if m2 == i:
-                s=0;
-                for j in xrange(k-i):
-                    s += Integer(cc[j])*(-1)**(ee[j]%2)
-                    if s == 0: m2=i+1;
-            if m1<=i and m2<=i:
-                break;
-            ee=[ee[j]-ee[0]-1 for j in xrange(1,k-i)];
+            s1=s2=0
+            for j in xrange(k-i):
+                if b1:
+                    s1+= cc[j]
+                if b2:
+                    s2 += cc[j]*(-1)**(ee[j]%2)
+            if b1 and s1 <> 0:
+                m1=i
+                b1=False
+            if b2 and s2 <> 0:
+                m2=i
+                b2=False
+            if not (b1 or b2):
+                break
+            ee=[ee[j]-ee[0]-1 for j in xrange(1,k-i)]
             cc=[(ee[j]+1)*cc[j+1] for j in xrange(k-i-1)]
 
         if m1 > 0:
-            if multiplicities: roots +=[(1,m1)];
-            else: roots += [1];
+            if multiplicities: roots.append((1,m1))
+            else: roots.append(1)
         if m2 > 0:
-            if multiplicities: roots += [(-1,m2)];
-            else: roots += [-1];
+            if multiplicities: roots.append((-1,m2))
+            else: roots.append(-1)
 
+        g = gcd(polys)
         if multiplicities:
-            roots += [r for r in gcd(polys).roots(K,True) if r[0].abs()>1];
+            roots.extend(r for r in g._roots_from_factorization(g.factor(),True) if r[0].abs()>1)
         else:
-            roots += [r for r in gcd(polys).roots(K,False) if r.abs()>1];
+            roots.extend(r for r in g._roots_from_factorization(g.factor(),False) if r.abs()>1)
 
-        return roots;
+        return roots
 
 
     #################################

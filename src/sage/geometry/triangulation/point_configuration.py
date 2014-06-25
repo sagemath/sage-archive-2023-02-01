@@ -1218,7 +1218,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         d = [ self.face_codimension(i) for i in range(0,self.n_points()) ]
 
-        return tuple( tuple(filter( lambda i: d[i]==codim, range(0,self.n_points())) )
+        return tuple( tuple(i for i in range(0,self.n_points()) if d[i]==codim )
                       for codim in range(0,self.dim()+1) )
 
 

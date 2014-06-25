@@ -20,5 +20,6 @@ Constructions
    ../sage/combinat/designs/steiner_quadruple_systems
    ../sage/combinat/designs/latin_squares
    ../sage/combinat/designs/orthogonal_arrays
+   ../sage/combinat/designs/difference_family
    ../sage/combinat/designs/database
 

@@ -39,8 +39,8 @@ Currently, this module gathers the following designs :
     :delim: |
 
     :meth:`~sage.combinat.designs.block_design.ProjectiveGeometryDesign`
-    :meth:`~sage.combinat.designs.block_design.ProjectivePlaneDesign`
-    :meth:`~sage.combinat.designs.bibd.balanced_incomplete_block_design`
+    :meth:`~sage.combinat.designs.block_design.DesarguesianProjectivePlaneDesign`
+    :meth:`~sage.combinat.designs.bibd.BalancedIncompleteBlockDesign`
     :meth:`~sage.combinat.designs.block_design.AffineGeometryDesign`
     :meth:`~sage.combinat.designs.block_design.WittDesign`
     :meth:`~sage.combinat.designs.block_design.HadamardDesign`
@@ -50,6 +50,7 @@ Currently, this module gathers the following designs :
     :meth:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`
     :meth:`~sage.combinat.designs.bibd.steiner_triple_system`
     :meth:`~sage.combinat.designs.steiner_quadruple_systems.steiner_quadruple_system`
+    :meth:`~sage.combinat.designs.block_design.projective_plane`
 
 And the :meth:`designs.best_known_covering_design_from_LJCR
 <sage.combinat.designs.covering_design.best_known_covering_design_www>` function
@@ -78,7 +79,10 @@ from sage.combinat.designs.covering_design import best_known_covering_design_www
 
 from sage.combinat.designs.latin_squares import mutually_orthogonal_latin_squares
 
-from sage.combinat.designs.orthogonal_arrays import transversal_design, orthogonal_array
+from sage.combinat.designs.orthogonal_arrays import transversal_design, orthogonal_array, incomplete_orthogonal_array
+
+
+from sage.combinat.designs.difference_family import difference_family
 
 from sage.combinat.designs.bibd import balanced_incomplete_block_design, steiner_triple_system
 
@@ -100,4 +104,3 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
     deprecation(16446, "designs.BalancedIncompleteBlockDesign is deprecated. Please use designs.balanced_incomplete_block_design instead.")
 
     return balanced_incomplete_block_design(v, k, existence=existence, use_LJCR=use_LJCR)
-

@@ -19,3 +19,5 @@ from sage.groups.braid import BraidGroup as Braid
 from sage.groups.semimonomial_transformations.semimonomial_transformation_group import SemimonomialTransformationGroup as SemimonomialTransformation
 from sage.combinat.root_system.coxeter_group import CoxeterGroup
 from sage.combinat.root_system.weyl_group import WeylGroup
+from sage.groups.raag import RightAngledArtinGroup as RightAngledArtin
+

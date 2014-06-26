@@ -832,16 +832,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def _cache_key(self):
         """
-        Return a key which identifies this element.
+        Return a hashable key which identifies this element.
 
         .. SEEALSO::
 
             :meth:`sage.structure.sage_object.SageObject._cache_key`
 
-        EXAMPLES:
-
-        This enables caching for polynomials with unhashable coefficients such
-        as `p`-adics::
+        EXAMPLES::
 
             sage: K.<u> = Qq(4)
             sage: R.<x> = K[]

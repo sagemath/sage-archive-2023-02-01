@@ -828,7 +828,8 @@ cdef class CachedFunction(object):
             True
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
-        objects which are not hashable::
+        immutable unhashable objects which define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`.
 
             sage: @cached_function
             ....: def f(x): return x
@@ -907,7 +908,8 @@ cdef class CachedFunction(object):
         TESTS:
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
-        objects which are not hashable::
+        immutable unhashable objects which define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`.
 
             sage: @cached_function
             ....: def f(x): return x
@@ -951,7 +953,8 @@ cdef class CachedFunction(object):
         TESTS:
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
-        objects which are not hashable::
+        immutable unhashable objects which define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`.
 
             sage: @cached_function
             ....: def f(x): return x
@@ -1174,7 +1177,8 @@ cdef class WeakCachedFunction(CachedFunction):
             doing a computation
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
-        objects which are not hashable::
+        immutable unhashable objects which define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`.
 
             sage: from sage.misc.cachefunc import weak_cached_function
             sage: @weak_cached_function
@@ -1252,7 +1256,8 @@ cdef class WeakCachedFunction(CachedFunction):
         TESTS:
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
-        objects which are not hashable::
+        immutable unhashable objects which define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`.
 
             sage: from sage.misc.cachefunc import weak_cached_function
             sage: @weak_cached_function
@@ -1298,7 +1303,8 @@ cdef class WeakCachedFunction(CachedFunction):
         TESTS:
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
-        objects which are not hashable::
+        immutable unhashable objects which define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`.
 
             sage: from sage.misc.cachefunc import weak_cached_function
             sage: @weak_cached_function
@@ -1726,7 +1732,8 @@ cdef class CachedMethodCaller(CachedFunction):
             2
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
-        objects which are not hashable::
+        immutable unhashable objects which define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`.
 
             sage: K.<u> = Qq(4)
             sage: class A(object):

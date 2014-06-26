@@ -223,9 +223,9 @@ cdef class SageObject:
 
     def _cache_key(self):
         r"""
-        Return a key which identifies this objects for caching. The output must
-        be hashable itself or a tuple of objects which are hashable or define a
-        ``_cache_key``.
+        Return a hashable key which identifies this objects for caching. The
+        output must be hashable itself or a tuple of objects which are hashable
+        or define a ``_cache_key``.
 
         This method will only be called if the object itself is not hashable.
 
@@ -249,8 +249,8 @@ cdef class SageObject:
             False
 
         If such objects defined a non-trivial hash function, this would break
-        caching in many places. However, such objects should still be
-        cacheable. This can be achieved by defining an appropriate
+        caching in many places. However, such objects should still be usable in
+        caches. This can be achieved by defining an appropriate
         ``_cache_key``::
 
             sage: hash(b)
@@ -269,7 +269,10 @@ cdef class SageObject:
             sage: c._cache_key()
             (..., ((0, 1), (1,)), 0, 20)
 
-        An implementation must make sure that for elements ``a`` and ``b``, if ``a != b``, then also ``a._cache_key() != b._cache_key()``. In pratice this means that the ``_cache_key`` should always include the ``id`` of the parent.
+        An implementation must make sure that for elements ``a`` and ``b``, if
+        ``a != b``, then also ``a._cache_key() != b._cache_key()``. In pratice
+        this means that the ``_cache_key`` should always include the ``id`` of
+        the parent.
 
             sage: S.<a> = Qq(4)
             sage: d = a + O(2)

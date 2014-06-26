@@ -476,7 +476,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         r"""
         Return a hashable key which identifies this element.
 
-        This enables caching for `p`-adic numbers which are not hashable.
+        This makes it possible to use this element in caches such as methods
+        decorated with ``@cached_method``.
 
         .. SEEALSO::
 
@@ -497,8 +498,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             ...
             TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
 
-        However, they should be cacheable, therefore they define a
-        ``_cache_key`` which is hashable and uniquely identifies them::
+        However, we want to cache computations which depend on them. Therefore
+        they define a ``_cache_key`` which is hashable and uniquely identifies
+        them::
 
             sage: a._cache_key()
             (..., ((0, 1),), 0, 20)

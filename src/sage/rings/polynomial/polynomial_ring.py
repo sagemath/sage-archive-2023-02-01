@@ -470,8 +470,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: S.some_elements()
-            [x, 0, 1, -2, x^2 + x + 1, x^3, x^2 - 1, x^2 + 1, 2*x^2 + 2]
+            sage: R.some_elements()
+            [x, 0, 1, -2, x^2 + 2*x + 1, x^3, x^2 - 1, x^2 + 1, 2*x^2 + 2]
 
         """
         # the comments in the following lines describe the motivation for

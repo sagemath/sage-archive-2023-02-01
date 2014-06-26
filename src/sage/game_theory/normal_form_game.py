@@ -73,13 +73,15 @@ class NormalFormGame(SageObject, MutableMapping):
     Matrix `A` represents the utilities of Amy and matrix `B` represents the
     utility of Bob. The choices of Amy correspond to the rows of the matrices:
 
-        * The first row corresponds to video games.
-        * The second row corresponds to movies.
+    * The first row corresponds to video games.
+
+    * The second row corresponds to movies.
 
     Similarly Bob's choices are represented by the columns:
 
-        * The first column corresponds to video games.
-        * The second column corresponds to movies.
+    * The first column corresponds to video games.
+
+    * The second column corresponds to movies.
 
     Thus if both Amy and Bob choose to play video games: Amy receives a utility
     of 3 and Bob a utility of 2. If Amy is indeed going to stick with video
@@ -113,18 +115,18 @@ class NormalFormGame(SageObject, MutableMapping):
     Nash Equilibrium represented as a probability distribution over the
     available strategies:
 
-        * `[(1.0, 0.0), (1.0, 0.0)]` corresponds to the first player only
-          playing their first strategy and the second player also only playing
-          their first strategy. In other words Amy and Bob both play video games.
+    * `[(1.0, 0.0), (1.0, 0.0)]` corresponds to the first player only
+      playing their first strategy and the second player also only playing
+      their first strategy. In other words Amy and Bob both play video games.
 
-        * `[(0.0, 1.0), (0.0, 1.0)]` corresponds to the first player only
-          playing their second strategy and the second player also only playing
-          their second strategy. In other words Amy and Bob both watch movies.
+    * `[(0.0, 1.0), (0.0, 1.0)]` corresponds to the first player only
+      playing their second strategy and the second player also only playing
+      their second strategy. In other words Amy and Bob both watch movies.
 
-        * `[(0.75, 0.25), (0.25, 0.75)]` corresponds to players `mixing` their
-          strategies. Amy plays video games 75% of the time and Bob watches
-          movies 75% of the time. At this equilibrium point Amy and Bob will
-          only ever do the same activity `3/8` of the time.
+    * `[(0.75, 0.25), (0.25, 0.75)]` corresponds to players `mixing` their
+      strategies. Amy plays video games 75% of the time and Bob watches
+      movies 75% of the time. At this equilibrium point Amy and Bob will
+      only ever do the same activity `3/8` of the time.
 
     We can use sage to compute the expected utility for any mixed strategy
     pair `(\sigma_1, sigma_2)`. The payoff to player 1 is given by:
@@ -216,23 +218,23 @@ class NormalFormGame(SageObject, MutableMapping):
 
     When obtaining Nash equilibrium there are 3 algorithms currently available:
 
-        * `LCP`: Linear complementarity program algorithm for 2 player games.
-          This algorithm uses the excellent game theory package:
-          [gambit](http://gambit.sourceforge.net/). At present this is the only
-          gambit algorithm available in sage but further development will hope to
-          implement more algorithms
-          (in particular for games with more than 2 players). Gambit is not
-          yet an optional sage package but instructions for installing
-          it can be found [here](http://goo.gl/4bxYgp).
+    * `LCP`: Linear complementarity program algorithm for 2 player games.
+      This algorithm uses the excellent game theory package:
+      [gambit](http://gambit.sourceforge.net/). At present this is the only
+      gambit algorithm available in sage but further development will hope to
+      implement more algorithms
+      (in particular for games with more than 2 players). Gambit is not
+      yet an optional sage package but instructions for installing
+      it can be found [here](http://goo.gl/4bxYgp).
 
-        * `lrs`: Reverse search vertex enumeration for 2 player games. This
-          algorithm uses the optional `lrs` package. To install it type `sage -i
-          lrs` at the command line. For more information see [A2000]_.
+    * `lrs`: Reverse search vertex enumeration for 2 player games. This
+      algorithm uses the optional `lrs` package. To install it type `sage -i
+      lrs` at the command line. For more information see [A2000]_.
 
-        * `enumeration`: Support enumeration for 2 player games. This
-          algorithm is hard coded in Sage and checks through all potential
-          supports of a strategy. Note: this is not the preferred algorithm. For
-          more information about this see [NN2007]_.
+    * `enumeration`: Support enumeration for 2 player games. This
+      algorithm is hard coded in Sage and checks through all potential
+      supports of a strategy. Note: this is not the preferred algorithm. For
+      more information about this see [NN2007]_.
 
     Below we show how all three algorithms are called ::
 
@@ -678,20 +680,23 @@ class NormalFormGame(SageObject, MutableMapping):
                           this function:
 
           * ``"lrs"`` - This algorithm is only suited for 2 player games.
-          See the [insert website here] web site.
+            See the [insert website here] web site.
+
           * ``"LCP"`` - This algorithm is only suited for 2 player games.
-          See the [insert website here] web site. NOTE THAT WE NEED TO
-          GET THE ACTUAL NAME OF THE GAMBIT ALGORITHM
+            See the [insert website here] web site. NOTE THAT WE NEED TO
+            GET THE ACTUAL NAME OF THE GAMBIT ALGORITHM
+
           * ``"support enumeration"`` - This is a very inefficient
-          algorithm (in essence a brute force approach).
+            algorithm (in essence a brute force approach).
 
         - ``maximization`` - Whether a player is trying to maxize their utility
                              or miniize it.
 
           * When set to ``True`` (default) it is assumed that players
-          aim to maximise their utility.
+            aim to maximise their utility.
+
           * When set to ``False`` it is assumed that players aim to
-          minimise their utility.
+            minimise their utility.
 
         EXAMPLES:
 

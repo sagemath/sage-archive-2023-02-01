@@ -42,18 +42,6 @@ from sage.rings.infinity import infinity
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
 cdef class pAdicGenericElement(LocalGenericElement):
-    def __richcmp__(left, right, int op):
-        """
-        Comparison.
-
-        EXAMPLES::
-
-            sage: R = Zp(5); a = R(5, 6); b = R(5 + 5^6, 8)
-            sage: a == b #indirect doctest
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
     cdef int _cmp_c_impl(left, Element right) except -2:
         """
         First compare valuations, then compare normalized

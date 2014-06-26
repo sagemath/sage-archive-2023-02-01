@@ -914,7 +914,8 @@ cdef class Element(sage_object.SageObject):
     # then the total order will be available with cmp(), and the partial
     # order will be available with the relation operators; in this case
     # you must also define __cmp__ in your subclass).
-    # This is simply how Python works.
+    # This is simply how Python works:
+    # https://docs.python.org/2/c-api/typeobj.html#PyTypeObject.tp_richcompare
     #
     # For a *Python* class just define __cmp__ as always.
     # But note that when this gets called you can assume that

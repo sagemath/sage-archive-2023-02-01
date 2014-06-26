@@ -751,21 +751,6 @@ class FSMState(SageObject):
       the state is reached as the last state of some input; only for final
       states
 
-      .. WARNING::
-
-          ``final_word_out`` is not implemented everywhere. Currently it is
-          implemented in :meth:`FiniteStateMachine.process`,
-          in the LaTeX output,
-          :meth:`FiniteStateMachine.composition`,
-          :meth:`FiniteStateMachine.output_projection`,
-          :meth:`FiniteStateMachine.prepone_output`,
-          :meth:`Transducer.cartesian_product`, but not in
-          :meth:`FiniteStateMachine.determine_alphabets`,
-          :meth:`FiniteStateMachine.equivalence_classes`,
-          :meth:`FiniteStateMachine.transposition`,
-          :meth:`Transducer.intersection` and
-          :meth:`Transducer.simplification`.
-
     - ``hook`` -- (default: ``None``) A function which is called when
       the state is reached during processing input.
 
@@ -3796,6 +3781,10 @@ class FiniteStateMachine(SageObject):
         After this operation the input alphabet and the output
         alphabet of self are a list of letters.
 
+        TODO:
+
+        At the moment, the letters of the alphabets need to be hashable.
+
         EXAMPLES::
 
             sage: T = Transducer([(1, 1, 1, 0), (1, 2, 2, 1),
@@ -5542,6 +5531,17 @@ class FiniteStateMachine(SageObject):
             sage: B.determinisation()
             Automaton with 1 states
 
+        Transducers with non-empty final output words are not implemented::
+
+            sage: A = transducers.GrayCode()
+            sage: B = transducers.abs([0, 1])
+            sage: A.composition(B, algorithm='explorative')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Explorative composition is not
+            implemented for transducers with non-empty final output words. Try
+            the direct algorithm instead.
+
         TODO:
 
         The explorative algorithm should be re-implemented using the
@@ -5570,6 +5570,13 @@ class FiniteStateMachine(SageObject):
                 new_state2 = transition2.to_state
                 output += transition2.word_out
             return ((new_state1, new_state2), output)
+
+        if any(s.final_word_out for s in self.iter_final_states()) or \
+                any(s.final_word_out for s in other.iter_final_states()):
+            raise NotImplementedError("Explorative composition is not "
+                                      "implemented for transducers with "
+                                      "non-empty final output words. Try "
+                                      "the direct algorithm instead.")
 
         F = other.empty_copy()
         new_initial_states = [(other.initial_states()[0], self.initial_states()[0])]
@@ -7007,9 +7014,29 @@ class FiniteStateMachine(SageObject):
                 ....:                                input_alphabet=[-1, 0, 1],
                 ....:                                initial_states=[0],
                 ....:                                final_states=[0])
+
+            At the moment, we can not use composition with ``NAF``,
+            beacuse it has non-empty final output words::
+
+                sage: NAFweight = weight_transducer.composition(
+                ....:     NAF,
+                ....:     algorithm='explorative')
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: Explorative composition is not
+                implemented for transducers with non-empty final output
+                words. Try the direct algorithm instead.
+
+
+           Thus, we change ``NAF``, then compose and again construct 
+           the final output words::
+
+                sage: for s in NAF.final_states():
+                ....:     s.final_word_out = []
                 sage: NAFweight = weight_transducer.composition(
                 ....:     NAF,
                 ....:     algorithm='explorative').relabeled()
+                sage: NAFweight.construct_final_word_out(0)
                 sage: sorted(NAFweight.transitions())
                 [Transition from 0 to 0: 0|0,
                  Transition from 0 to 1: 1|-,

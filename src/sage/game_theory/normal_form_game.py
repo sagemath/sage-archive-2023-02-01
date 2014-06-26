@@ -531,7 +531,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         EXAMPLES:
 
-        Basic description of the game shown when calling the game instance. ::
+        Basic description of the game shown when calling the game instance.
 
 
 
@@ -609,6 +609,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
             - replacement - Boolean value of whether previously created
                             profiles should be replaced or not.
+
         """
         strategy_sizes = [range(p.num_strategies) for p in self.players]
         if replacement is True:
@@ -675,20 +676,22 @@ class NormalFormGame(SageObject, MutableMapping):
 
         - ``algorithm`` - the following algorithms should be available through
                           this function:
-                * ``"lrs"`` - This algorithm is only suited for 2 player games.
-                  See the [insert website here] web site.
-                * ``"LCP"`` - This algorithm is only suited for 2 player games.
-                  See the [insert website here] web site. NOTE THAT WE NEED TO
-                  GET THE ACTUAL NAME OF THE GAMBIT ALGORITHM
-                * ``"support enumeration"`` - This is a very inefficient
-                  algorithm (in essence a brute force approach).
+
+          * ``"lrs"`` - This algorithm is only suited for 2 player games.
+          See the [insert website here] web site.
+          * ``"LCP"`` - This algorithm is only suited for 2 player games.
+          See the [insert website here] web site. NOTE THAT WE NEED TO
+          GET THE ACTUAL NAME OF THE GAMBIT ALGORITHM
+          * ``"support enumeration"`` - This is a very inefficient
+          algorithm (in essence a brute force approach).
 
         - ``maximization`` - Whether a player is trying to maxize their utility
                              or miniize it.
-                * When set to ``True`` (default) it is assumed that players
-                  aim to maximise their utility.
-                * When set to ``False`` it is assumed that players aim to
-                  minimise their utility.
+
+          * When set to ``True`` (default) it is assumed that players
+          aim to maximise their utility.
+          * When set to ``False`` it is assumed that players aim to
+          minimise their utility.
 
         EXAMPLES:
 

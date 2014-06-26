@@ -74,7 +74,7 @@ class LegacyMatrixGroupElement(MatrixGroupElement_gap):
         parent = state[0]
         m = state[1]['_MatrixGroupElement__mat']
         m = parent.matrix_space()(m)
-        self.__init__(m, parent, check=False)
+        self.__init__(parent, m, check=False)
 
 
 register_unpickle_override(

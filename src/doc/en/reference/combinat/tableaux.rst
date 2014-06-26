@@ -9,3 +9,4 @@ Tableaux and Tableaux-like Objects
    sage/combinat/ribbon
    sage/combinat/ribbon_tableau
    sage/combinat/tableau_tuple
+   sage/combinat/k_tableau

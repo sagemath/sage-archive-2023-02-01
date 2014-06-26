@@ -18,40 +18,42 @@ University of Bayreuth. It has routines to handle the following topics
 For more details check http://www.symmetrica.de (currently redirects
 to http://www.algorithm.uni-bayreuth.de/en/research/SYMMETRICA)
 
-
 == License ==
 
-We include index.html, which is the above web site, which officially
-states that Symmetrica is PUBLIC DOMAIN.
-
+Public Domain (see the above web site)
 
 == SPKG Maintainers ==
  * Mike Hansen
 
-
 == Upstream Contact ==
  * Axel Kohnert - see http://www.mathe2.uni-bayreuth.de/axel/
 
-
 == Dependencies ==
  * GNU patch (for applying the patches to upstream)
-
 
 == Special Update/Build Instructions ==
 
 The following patches are applied in spkg-install:
 
- * de.patch (Turn off banner)
- * macro.h.patch (Change some return types, this can be avoided)
- * sort_sum_rename.patch (rename sort to sym_sort, sum to sym_sum)
+ * bruch.patch: store integers in a temporary variable before freeing memory
+ * de.patch: turn off banner
+ * int32.patch: use int32_t and uint32_t for type INT.
+ * sort_sum_rename.patch: rename sort to sym_sort, sum to sym_sum
  * We copy over our own Makefile:
    patches/makefile (Fix compiler, i.e., use $CC, and let it use $CFLAGS.)
 
 Permissions in the upstream tarball are funky, please run
-"chmod 644 src/" after unpacking.
-
+"chmod 644 src/*" after unpacking.
 
 == Changelog ==
+
+=== symmetrica-2.0.p9 (Mike Zabrocki, 22 October 2013) ===
+ * #15312: fix instances of accessing pointers to memory which was free'd
+
+=== symmetrica-2.0.p8 (Jeroen Demeyer, 17 October 2013) ===
+ * #13413: fix integer overflow bug on 64-bit systems, see int32.patch.
+ * Remove macro.h.patch (no longer needed due to change in Sage library)
+ * Use standard spkg-install template for applying patches.
 
 === symmetrica-2.0.p7 (Leif Leonhardy, October 6th 2011) ===
  #10719 (Fix linker errors on OpenSUSE 11.2 and Ubuntu 11.10):

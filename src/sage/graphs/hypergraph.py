@@ -2,9 +2,9 @@ r"""
 Hypergraphs
 
 This module consists in a very basic implementation of :class:`Hypergraph`,
-whose only current purpose is to provide method to visualize them. This is
-done at the moment through `\LaTeX` and TikZ, and can be obtained from Sage
-through the ``view`` command::
+whose only current purpose is to observe them: it can be used to compute
+automorphism groups and to draw them. The latter is done at the moment through
+`\LaTeX` and TikZ, and can be obtained from Sage through the ``view`` command::
 
     sage: H = Hypergraph([{1,2,3},{2,3,4},{3,4,5},{4,5,6}]); H
     Hypergraph on 6 vertices containing 4 sets
@@ -192,7 +192,6 @@ class Hypergraph:
             sage: sets = Set(map(Set,list(g.subgraph_search_iterator(C4))))
             sage: H = Hypergraph(sets)
             sage: view(H) # not tested
-
         """
         from sage.rings.integer import Integer
         from sage.functions.trig import arctan2
@@ -206,6 +205,7 @@ class Hypergraph:
              "The colors are picked for readability and have no other meaning.")
 
         latex.add_package_to_preamble_if_available("tikz")
+        latex.add_to_mathjax_avoid_list("tikz")
 
         if not latex.has_file("tikz.sty"):
             raise RuntimeError("You must have TikZ installed in order "
@@ -237,9 +237,9 @@ class Hypergraph:
 
             # Reorders the vertices of s according to their angle with the
             # "center", i.e. the vertex representing the set s
-            cx,cy = pos[s]
-            s = map(lambda x:pos[x],s)
-            s = sorted(s, key = lambda (x,y) : arctan2(x-cx,y-cy))
+            cx, cy = pos[s]
+            s = map(lambda x: pos[x], s)
+            s = sorted(s, key = lambda x_y: arctan2(x_y[0] - cx, x_y[1] - cy))
 
             for x in s:
                 tex += str(x)+" "
@@ -252,3 +252,65 @@ class Hypergraph:
         tex += "\\end{tikzpicture}"
         return tex
 
+    def to_bipartite_graph(self, with_partition=False):
+        r"""
+        Returns the associated bipartite graph
+
+        INPUT:
+
+        - with_partition -- boolean (default: False)
+
+        OUTPUT:
+
+        - a graph or a pair (graph, partition)
+
+        EXAMPLES::
+
+            sage: H = designs.steiner_triple_system(7).blocks()
+            sage: H = Hypergraph(H)
+            sage: g = H.to_bipartite_graph(); g
+            Graph on 14 vertices
+            sage: g.is_regular()
+            True
+        """
+        from sage.graphs.graph import Graph
+
+        G = Graph()
+        domain = list(self.domain())
+        G.add_vertices(domain)
+        for s in self._sets:
+            for i in s:
+                G.add_edge(s, i)
+        if with_partition:
+            return (G, [domain, list(self._sets)])
+        else:
+            return G
+
+    def automorphism_group(self):
+        r"""
+        Returns the automorphism group.
+
+        For more information on the automorphism group of a hypergraph, see the
+        :wikipedia:`Hypergraph`.
+
+        EXAMPLE::
+
+            sage: H = designs.steiner_triple_system(7).blocks()
+            sage: H = Hypergraph(H)
+            sage: g = H.automorphism_group(); g
+            Permutation Group with generators [(2,4)(5,6), (2,5)(4,6), (1,2)(3,4), (1,3)(5,6), (0,1)(2,5)]
+            sage: g.is_isomorphic(groups.permutation.PGL(3,2))
+            True
+        """
+        from sage.groups.perm_gps.permgroup import PermutationGroup
+
+        G, part = self.to_bipartite_graph(with_partition=True)
+
+        domain = part[0]
+
+        ag = G.automorphism_group(partition=part)
+
+        gens =  [[tuple(c) for c in g.cycle_tuples() if c[0] in domain]
+                 for g in ag.gens()]
+
+        return PermutationGroup(gens = gens, domain = domain)

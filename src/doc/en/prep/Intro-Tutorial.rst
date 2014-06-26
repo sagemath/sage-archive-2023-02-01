@@ -522,7 +522,7 @@ description you are now reading.
 
 Thanks to `the mini\-word processor TinyMCE
 <http://tinymce.moxiecode.com/>`_ and a TeX rendering engine called
-`jsmath <http://www.math.union.edu/~dpvc/jsMath/>`_, you can type much
+`MathJax <http://www.mathjax.org/>`_, you can type much
 more in Sage than just Sage commands.  This math\-aware setup makes Sage
 perfect for annotating computations.
 

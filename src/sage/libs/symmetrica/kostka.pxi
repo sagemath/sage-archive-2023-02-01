@@ -89,7 +89,7 @@ def kostka_tab_symmetrica(shape, content):
             shape = Partition(shape)
 
 
-    if isinstance(shape, <type>SkewPartition_class):
+    if isinstance(shape, <type>SkewPartition):
         _op_skew_partition(shape, cshape)
     else:
         _op_partition(shape, cshape)

@@ -259,7 +259,7 @@ def MPComplexField(prec=53, rnd="RNDNN", names=None):
     """
     global cache
     mykey = (prec, rnd)
-    if cache.has_key(mykey):
+    if mykey in cache:
         X = cache[mykey]
         C = X()
         if not C is None:
@@ -1269,7 +1269,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: C200(1+i).is_real()
             False
         """
-        return (mpfr_zero_p(self.value.im) <> 0)
+        return (mpfr_zero_p(self.value.im) != 0)
 
     def is_imaginary(self):
         """
@@ -1283,7 +1283,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: C200(1+i).is_imaginary()
             False
         """
-        return (mpfr_zero_p(self.value.re) <> 0)
+        return (mpfr_zero_p(self.value.re) != 0)
 
     def algebraic_dependency(self, n, **kwds):
         """
@@ -1571,7 +1571,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         else:
             try:
                 p = (<MPComplexField_class>x._parent)(right)
-            except StandardError:
+            except Exception:
                 raise ValueError
             mpc_pow(z.value, x.value, p.value, (<MPComplexField_class>x._parent).__rnd)
 
@@ -2422,7 +2422,7 @@ cdef class MPCtoMPC(Map):
               To:   Complex Field with 10 bits of precision
         """
         cdef MPComplexNumber y
-        y = (<MPComplexField_class>self._codomain)._new()
+        y = (<MPComplexField_class>self.codomain())._new()
         y._set(z)
         return y
 
@@ -2439,7 +2439,7 @@ cdef class MPCtoMPC(Map):
               From: Complex Field with 10 bits of precision
               To:   Complex Field with 100 bits of precision
         """
-        return MPCtoMPC(self._codomain, self._domain)
+        return MPCtoMPC(self.codomain(), self.domain())
 
 cdef class INTEGERtoMPC(Map):
     cpdef Element _call_(self, x):
@@ -2460,7 +2460,7 @@ cdef class INTEGERtoMPC(Map):
         cdef MPComplexNumber y
         cdef mpc_rnd_t rnd
         rnd =(<MPComplexField_class>self._parent).__rnd
-        y = (<MPComplexField_class>self._codomain)._new()
+        y = (<MPComplexField_class>self.codomain())._new()
         mpc_set_z(y.value, (<Integer>x).value, rnd)
         return y
 
@@ -2483,7 +2483,7 @@ cdef class MPFRtoMPC(Map):
         cdef MPComplexNumber y
 #        cdef mpc_rnd_t rnd
 #        rnd =(<MPComplexField_class>self._parent).__rnd
-        y = (<MPComplexField_class>self._codomain)._new()
+        y = (<MPComplexField_class>self.codomain())._new()
 #        mpc_set_fr(y.value, (<RealNumber>x).value, rnd)
         y._set(x)
         return y
@@ -2507,7 +2507,7 @@ cdef class CCtoMPC(Map):
         cdef MPComplexNumber y
         cdef mpc_rnd_t rnd
         rnd =(<MPComplexField_class>self._parent).__rnd
-        y = (<MPComplexField_class>self._codomain)._new()
+        y = (<MPComplexField_class>self.codomain())._new()
         mpc_set_fr_fr(y.value, (<ComplexNumber>z).__re, (<ComplexNumber>z).__im, rnd)
         return y
 

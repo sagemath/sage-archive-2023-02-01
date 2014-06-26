@@ -10,11 +10,10 @@ Groupoid
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category
-from sage.misc.cachefunc import cached_method
+from sage.categories.category import CategoryWithParameters
 from sets_cat import Sets
 
-class Groupoid(Category):
+class Groupoid(CategoryWithParameters):
     """
     The category of groupoids, for a set (usually a group) $G$.
 
@@ -39,7 +38,7 @@ class Groupoid(Category):
             sage: C = Groupoid(S8)
             sage: TestSuite(C).run()
         """
-        Category.__init__(self) #, "Groupoid")
+        CategoryWithParameters.__init__(self) #, "Groupoid")
         if G is None:
             from sage.groups.perm_gps.permgroup_named import SymmetricGroup
             G = SymmetricGroup(8)
@@ -57,6 +56,18 @@ class Groupoid(Category):
 
     #def construction(self):
     #    return (self.__class__, self.__G)
+
+    def _make_named_class_key(self, name):
+        """
+        The parent/element classes of all groupoids coincide.
+
+        EXAMPLES::
+
+            sage: Groupoid(DihedralGroup(3)).parent_class is Groupoid(ZZ).parent_class
+            True
+
+        """
+        return None
 
     def super_categories(self):
         """

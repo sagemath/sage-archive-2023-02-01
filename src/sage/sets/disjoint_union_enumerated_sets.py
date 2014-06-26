@@ -91,7 +91,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         sage: U3 = DisjointUnionEnumeratedSets(
         ...       Family([2,3,4], Permutations, lazy=True))
         sage: U3
-        Disjoint union of Lazy family (Permutations(i))_{i in [2, 3, 4]}
+        Disjoint union of Lazy family (<class 'sage.combinat.permutation.Permutations'>(i))_{i in [2, 3, 4]}
         sage: U3.cardinality()
         32
         sage: it = iter(U3)
@@ -105,7 +105,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         sage: U4 = DisjointUnionEnumeratedSets(
         ...       Family(NonNegativeIntegers(), Permutations))
         sage: U4
-        Disjoint union of Lazy family (Permutations(i))_{i in Non negative integers}
+        Disjoint union of Lazy family (<class 'sage.combinat.permutation.Permutations'>(i))_{i in Non negative integers}
         sage: U4.cardinality()
         +Infinity
         sage: it = iter(U4)
@@ -130,7 +130,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         sage: [it.next() for i in range(6)]
         [(0, []), (1, [1]), (2, [1, 2]), (2, [2, 1]), (3, [1, 2, 3]), (3, [1, 3, 2])]
         sage: type(it.next()[1])
-        <class 'sage.combinat.permutation.Permutation_class'>
+        <class 'sage.combinat.permutation.StandardPermutations_n_with_category.element_class'>
 
     We now demonstrate the ``facade`` option::
 
@@ -142,14 +142,13 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         sage: el = it.next(); el
         [2, 1, 3]
         sage: type(el)
-        <class 'sage.structure.element_wrapper.DisjointUnionEnumeratedSets_with_category.element_class'>
+        <type 'sage.structure.element_wrapper.ElementWrapper'>
         sage: el.parent() == UNoFacade
         True
         sage: elv = el.value; elv
         [2, 1, 3]
         sage: type(elv)
-        <class 'sage.combinat.permutation.Permutation_class'>
-
+        <class 'sage.combinat.permutation.StandardPermutations_n_with_category.element_class'>
 
     Possible extensions: the current enumeration order is not suitable
     for unions of infinite enumerated sets (except possibly for the
@@ -201,7 +200,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         sage: TestSuite(U2).run()
         sage: TestSuite(U3).run()
         sage: TestSuite(U4).run()
-        doctest:...: UserWarning: Disjoint union of Lazy family (Permutations(i))_{i in Non negative integers} is an infinite union
+        doctest:...: UserWarning: Disjoint union of Lazy family (<class 'sage.combinat.permutation.Permutations'>(i))_{i in Non negative integers} is an infinite union
         The default implementation of __contains__ can loop forever. Please overload it.
         sage: TestSuite(Ukeep).run()
         sage: TestSuite(UNoFacade).run()
@@ -374,7 +373,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
                 if self._facade:
                     yield el
                 else:
-                    yield self.element_class(el, parent=self) # Bypass correctness tests
+                    yield self.element_class(self, el) # Bypass correctness tests
 
     def an_element(self):
         """
@@ -476,9 +475,9 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         if isinstance(el, self.element_class):
             el = el.value
         if self._is_a(el):
-            return self.element_class(el, parent=self)
+            return self.element_class(self, el)
         else:
-            raise ValueError, "Value %s does not belong to %s"%(el, self)
+            raise ValueError("Value %s does not belong to %s"%(el, self))
 
     @lazy_attribute
     def Element(self):
@@ -488,7 +487,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
             sage: U = DisjointUnionEnumeratedSets(
             ...            Family([1,2,3], Partitions), facade=False)
             sage: U.Element
-            <class 'sage.structure.element_wrapper.ElementWrapper'>
+            <type 'sage.structure.element_wrapper.ElementWrapper'>
             sage: U = DisjointUnionEnumeratedSets(
             ...            Family([1,2,3], Partitions), facade=True)
             sage: U.Element

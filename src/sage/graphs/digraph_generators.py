@@ -261,7 +261,7 @@ class DiGraphGenerators():
         # We could switch to Sage integers to handle arbitrary n.
         if vertices=='strings':
             if n>=31:
-                raise NotImplementedError, "vertices='strings' is only valid for n<=30."
+                raise NotImplementedError("vertices='strings' is only valid for n<=30.")
             from sage.graphs.generic_graph_pyx import binary
             butterfly = {}
             for v in xrange(2**n):
@@ -287,7 +287,7 @@ class DiGraphGenerators():
                     # a vector from the tuple t, just call vector(t).
                     butterfly[(tuple(v),i)]=[(tuple(v),i+1), (tuple(w),i+1)]
         else:
-            raise NotImplementedError, "vertices must be 'strings' or 'vectors'."
+            raise NotImplementedError("vertices must be 'strings' or 'vectors'.")
         return DiGraph(butterfly)
 
     def Path(self,n):
@@ -323,7 +323,7 @@ class DiGraphGenerators():
 
         In this tournament there is an edge from `i` to `j` if `i<j`.
 
-        See :wikipedia:`Tournament (graph theory)`
+        See :wikipedia:`Tournament_(graph_theory)`
 
         INPUT:
 
@@ -367,7 +367,7 @@ class DiGraphGenerators():
         `i` to `j` with probability `1/2`, otherwise it has an edge
         from `j` to `i`.
 
-        See :wikipedia:`Tournament (graph theory)`
+        See :wikipedia:`Tournament_(graph_theory)`
 
         INPUT:
 

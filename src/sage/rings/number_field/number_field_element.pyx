@@ -47,11 +47,11 @@ import number_field
 
 from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.rational cimport Rational
+from sage.categories.fields import Fields
 
 from sage.modules.free_module_element import vector
 
-from sage.libs.all import pari_gen, pari
-from sage.libs.pari.gen import PariError
+from sage.libs.pari.all import pari_gen
 from sage.structure.element cimport Element, generic_power_c
 from sage.structure.element import canonical_coercion, parent
 
@@ -622,14 +622,14 @@ cdef class NumberFieldElement(FieldElement):
             sage: theta._pari_('theta')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: theta already exists with incompatible valence
             sage: theta._pari_()
             Mod(y, y^2 + 1)
             sage: k.<I> = QuadraticField(-1)
             sage: I._pari_('I')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: I already exists with incompatible valence
 
         Instead, request the variable be named different for the coercion::
 
@@ -709,7 +709,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: b._pari_init_('theta')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: theta already exists with incompatible valence
 
         Fortunately pari_init returns everything in terms of y by
         default::
@@ -1202,11 +1202,11 @@ cdef class NumberFieldElement(FieldElement):
             return self.is_norm(L, element=True, proof=proof)[0]
 
         K = self.parent()
-        from sage.rings.number_field.all import is_AbsoluteNumberField, \
-                                                is_NumberField
+        from sage.rings.number_field.number_field_base import is_NumberField
         if not is_NumberField(L):
             raise ValueError, "L (=%s) must be a NumberField in is_norm" % L
 
+        from sage.rings.number_field.number_field import is_AbsoluteNumberField
         if is_AbsoluteNumberField(L):
             Lrel = L.relativize(K.hom(L), ('a', 'b'))
             b, x = self.is_norm(Lrel, element=True, proof=proof)
@@ -1224,7 +1224,7 @@ cdef class NumberFieldElement(FieldElement):
         if L.is_galois_relative():
             return False, None
 
-        # The following gives the galois closure of K/QQ, but the galois
+        # The following gives the Galois closure of K/QQ, but the Galois
         # closure of K/self.parent() would suffice.
         M = L.galois_closure('a')
         from sage.functions.log import log
@@ -1317,7 +1317,7 @@ cdef class NumberFieldElement(FieldElement):
         - Francis Clarke (2010-12-26)
         """
         K = self.parent()
-        from sage.rings.number_field.all import is_RelativeNumberField
+        from sage.rings.number_field.number_field_rel import is_RelativeNumberField
         if (not is_RelativeNumberField(L)) or L.base_field() != K:
             raise ValueError, "L (=%s) must be a relative number field with base field K (=%s) in rnfisnorm" % (L, K)
 
@@ -1666,6 +1666,14 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: 2^I
             2^I
+            sage: K.<sqrt2> = QuadraticField(2) # :trac:`14895`
+            sage: 2^sqrt2
+            2^sqrt(2)
+            sage: K.<a> = NumberField(x^2+1)
+            sage: 2^a
+            Traceback (most recent call last):
+            ...
+            TypeError: An embedding into RR or CC must be specified.
         """
         if (PY_TYPE_CHECK(base, NumberFieldElement) and
             (PY_TYPE_CHECK(exp, Integer) or PY_TYPE_CHECK_EXACT(exp, int) or exp in ZZ)):
@@ -1680,7 +1688,7 @@ cdef class NumberFieldElement(FieldElement):
             # again. This would lead to infinite loops otherwise.
             from sage.symbolic.ring import SR
             try:
-                res = QQ(base)**exp
+                res = QQ(base)**QQ(exp)
             except TypeError:
                 pass
             else:
@@ -2207,11 +2215,11 @@ cdef class NumberFieldElement(FieldElement):
             [a]
             sage: K.<a> = NumberField(x^3 - 2)
             sage: c = a.galois_conjugates(K.galois_closure('a1')); c
-            [1/84*a1^4 + 13/42*a1, -1/252*a1^4 - 55/126*a1, -1/126*a1^4 + 8/63*a1]
+            [1/18*a1^4, -1/36*a1^4 + 1/2*a1, -1/36*a1^4 - 1/2*a1]
             sage: c[0]^3
             2
             sage: parent(c[0])
-            Number Field in a1 with defining polynomial x^6 + 40*x^3 + 1372
+            Number Field in a1 with defining polynomial x^6 + 108
             sage: parent(c[0]).is_galois()
             True
 
@@ -2344,7 +2352,7 @@ cdef class NumberFieldElement(FieldElement):
         - a list whose length corresponding to the degree of this
           element written in terms of a generator.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: K.<b> = NumberField(x^3 - 2)
             sage: (b^2 + 1)._coefficients()
@@ -2463,7 +2471,7 @@ cdef class NumberFieldElement(FieldElement):
         if isinstance(self.number_field(), number_field.NumberField_cyclotomic):
             t = self.number_field()._multiplicative_order_table()
             f = self.polynomial()
-            if t.has_key(f):
+            if f in t:
                 self.__multiplicative_order = t[f]
                 return self.__multiplicative_order
             else:
@@ -2595,6 +2603,16 @@ cdef class NumberFieldElement(FieldElement):
             sage: R(a).norm().parent()
             Integer Ring
 
+        When the base field is given by an embedding::
+
+            sage: K.<a> = NumberField(x^4 + 1)
+            sage: L.<a2> = NumberField(x^2 + 1)
+            sage: v = L.embeddings(K)
+            sage: a.norm(v[1])
+            a2
+            sage: a.norm(v[0])
+            -a2
+
         TESTS::
 
             sage: F.<z> = CyclotomicField(5)
@@ -2602,10 +2620,47 @@ cdef class NumberFieldElement(FieldElement):
             sage: t.norm(F)
             3*z^3 + 4*z^2 + 2
         """
-        if K is None:
+        if K is None or (K in Fields and K.absolute_degree() == 1):
             norm = self._pari_('x').norm()
-            return QQ(norm) if self._parent.is_field() else ZZ(norm)
+            return QQ(norm) if self._parent in Fields else ZZ(norm)
         return self.matrix(K).determinant()
+
+    def absolute_norm(self):
+        """
+        Return the absolute norm of this number field element.
+
+        EXAMPLES::
+
+            sage: K1.<a1> = CyclotomicField(11)
+            sage: K2.<a2> = K1.extension(x^2 - 3)
+            sage: K3.<a3> = K2.extension(x^2 + 1)
+            sage: (a1 + a2 + a3).absolute_norm()
+            1353244757701
+
+            sage: QQ(7/5).absolute_norm()
+            7/5
+        """
+        return self.norm()
+
+    def relative_norm(self):
+        """
+        Return the relative norm of this number field element over the next field
+        down in some tower of number fields.
+
+        EXAMPLES::
+
+            sage: K1.<a1> = CyclotomicField(11)
+            sage: K2.<a2> = K1.extension(x^2 - 3)
+            sage: (a1 + a2).relative_norm()
+            a1^2 - 3
+            sage: (a1 + a2).relative_norm().relative_norm() == (a1 + a2).absolute_norm()
+            True
+
+            sage: K.<x,y,z> = NumberField([x^2 + 1, x^3 - 3, x^2 - 5])
+            sage: (x + y + z).relative_norm()
+            y^2 + 2*z*y + 6
+        """
+        return self.norm(self.parent().base_field())
 
     def vector(self):
         """
@@ -3139,22 +3194,12 @@ cdef class NumberFieldElement(FieldElement):
         """
         Return the numerator ideal of this number field element.
 
-        .. note::
-
-           A ValueError will be raised if this function is called on
-           0.
+        The numerator ideal of a number field element `a` is the ideal of
+        the ring of integers `R` obtained by intersecting `aR` with `R`.
 
         .. seealso::
 
-           :meth:`~denominator_ideal`
-
-        OUTPUT:
-
-        (integral ideal) The numerator ideal `N` of this element,
-        where for a non-zero number field element `a`, the principal
-        ideal generated by `a` has the form `N/D` where `N` and `D`
-        are coprime integral ideals.  An error is raised if the
-        element is zero.
+            :meth:`denominator_ideal`
 
         EXAMPLES::
 
@@ -3168,40 +3213,24 @@ cdef class NumberFieldElement(FieldElement):
             3
             sage: (1/b).numerator_ideal()
             Fractional ideal (2, a + 1)
-
-        TESTS:
-
-        Undefined for 0::
-
             sage: K(0).numerator_ideal()
-            Traceback (most recent call last):
-            ...
-            ValueError: numerator ideal of 0 is not defined.
+            Ideal (0) of Number Field in a with defining polynomial x^2 + 5
         """
         if self.is_zero():
-            raise ValueError, "numerator ideal of 0 is not defined."
+            return self.number_field().ideal(0)
         return self.number_field().ideal(self).numerator()
 
     def denominator_ideal(self):
         """
         Return the denominator ideal of this number field element.
 
-        .. note::
-
-           A ValueError will be raised if this function is called on
-           0.
+        The denominator ideal of a number field element `a` is the
+        integral ideal consisting of all elements of the ring of
+        integers `R` whose product with `a` is also in `R`.
 
         .. seealso::
 
-           :meth:`~numerator_ideal`
-
-        OUTPUT:
-
-        (integral ideal) The denominator ideal `D` of this element,
-        where for a non-zero number field element `a`, the principal
-        ideal generated by `a` has the form `N/D` where `N` and `D`
-        are coprime integral ideals.  An error is raised if the
-        element is zero.
+            :meth:`numerator_ideal`
 
         EXAMPLES::
 
@@ -3215,18 +3244,11 @@ cdef class NumberFieldElement(FieldElement):
             2
             sage: (1/b).denominator_ideal()
             Fractional ideal (3, a + 1)
-
-        TESTS:
-
-        Undefined for 0::
-
             sage: K(0).denominator_ideal()
-            Traceback (most recent call last):
-            ...
-            ValueError: denominator ideal of 0 is not defined.
+            Fractional ideal (1)
         """
         if self.is_zero():
-            raise ValueError, "denominator ideal of 0 is not defined."
+            return self.number_field().ideal(1)
         return self.number_field().ideal(self).denominator()
 
     def support(self):

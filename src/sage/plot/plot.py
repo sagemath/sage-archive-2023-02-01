@@ -135,7 +135,7 @@ have a preference::
 
 You can even have custom tick labels along with custom positioning. ::
 
-    sage: plot(x**2, (x,0,3), ticks=[[1,2.5],pi/2], tick_formatter=[["$x_1$","$x_2$"],pi])
+    sage: plot(x**2, (x,0,3), ticks=[[1,2.5],pi/2], tick_formatter=[["$x_1$","$x_2$"],pi]) # long time
 
 We construct a plot involving several graphics objects::
 
@@ -196,7 +196,7 @@ the first few zeros::
 
 Many concentric circles shrinking toward the origin::
 
-    sage: show(sum(circle((i,0), i, hue=sin(i/10)) for i in [10,9.9,..,0]))
+    sage: show(sum(circle((i,0), i, hue=sin(i/10)) for i in [10,9.9,..,0])) # long time
 
 Here is a pretty graph::
 
@@ -237,7 +237,7 @@ Pi Axis::
 
     sage: g1 = plot(sin(x), 0, 2*pi)
     sage: g2 = plot(cos(x), 0, 2*pi, linestyle = "--")
-    sage: (g1+g2).show(ticks=pi/6, tick_formatter=pi)  # show their sum, nicely formatted
+    sage: (g1+g2).show(ticks=pi/6, tick_formatter=pi)  # long time # show their sum, nicely formatted
 
 An illustration of integration::
 
@@ -297,7 +297,7 @@ TESTS: We test dumping and loading a plot.
 
 Verify that a clean sage startup does *not* import matplotlib::
 
-    sage: os.system("sage -c \"if 'matplotlib' in sys.modules: sys.exit(1)\"")
+    sage: os.system("sage -c \"if 'matplotlib' in sys.modules: sys.exit(1)\"") # long time
     0
 
 AUTHORS:
@@ -349,6 +349,7 @@ AUTHORS:
 
 
 import os
+from functools import reduce
 
 ## IMPORTANT: Do *not* import matplotlib at module scope.  It takes a
 ## surprisingly long time to initialize itself.  It's better if it is
@@ -567,7 +568,7 @@ def xydata_from_point_list(points):
             pass
 
     if len(points)>0 and len(list(points[0]))!=2:
-        raise ValueError, "points must have 2 coordinates in a 2d line"
+        raise ValueError("points must have 2 coordinates in a 2d line")
 
 
     xdata = [float(z[0]) for z in points]
@@ -647,17 +648,14 @@ def plot(funcs, *args, **kwds):
     - ``detect_poles`` - (Default: False) If set to True poles are detected.
       If set to "show" vertical asymptotes are drawn.
 
+    - ``legend_color`` - the color of the text for this item in the legend
+
     - ``legend_label`` - the label for this item in the legend
 
     .. note::
 
         - If the ``scale`` is ``"linear"``, then irrespective of what
           ``base`` is set to, it will default to 10 and will remain unused.
-
-        - Although it is possible to provide a noninteger ``base``, the
-          tick labeling and formatting is not ideal. Hence, in case you do
-          use noninteger ``base`` for the logarithm, then provide your own
-          tick formatter using the option ``tick_formatter``.
 
         - If you want to limit the plot along the horizontal axis in the
           final rendered figure, then pass the ``xmin`` and ``xmax``
@@ -687,11 +685,11 @@ def plot(funcs, *args, **kwds):
 
     Any MATPLOTLIB line option may also be passed in.  E.g.,
 
-    - ``linestyle`` -- The style of the line, which is one of
-       - ``"-"`` (solid) -- default
-       - ``"--"`` (dashed)
-       - ``"-."`` (dash dot)
-       - ``":"`` (dotted)
+    - ``linestyle`` - (default: "-") The style of the line, which is one of
+       - ``"-"`` or ``"solid"``
+       - ``"--"`` or ``"dashed"``
+       - ``"-."`` or ``"dash dot"``
+       - ``":"`` or ``"dotted"``
        - ``"None"`` or ``" "`` or ``""`` (nothing)
 
        The linestyle can also be prefixed with a drawing style (e.g., ``"steps--"``)
@@ -839,6 +837,12 @@ def plot(funcs, *args, **kwds):
         sage: plot(sin, legend_label='$sin$')
         sage: plot(sin, legend_label='$\sin$')
 
+    It is possible to use a different color for the text of each label::
+
+        sage: p1 = plot(sin, legend_label='sin', legend_color='red')
+        sage: p2 = plot(cos, legend_label='cos', legend_color='green')
+        sage: p1 + p2
+
     Note that the independent variable may be omitted if there is no
     ambiguity::
 
@@ -859,13 +863,13 @@ def plot(funcs, *args, **kwds):
 
     ::
 
-        sage: plot(exp, (1, 10), scale='loglog', base=2) # base of log is 2
+        sage: plot(exp, (1, 10), scale='loglog', base=2) # long time # base of log is 2
 
     We can also change the scale of the axes in the graphics just before
     displaying::
 
-        sage: G = plot(exp, 1, 10)
-        sage: G.show(scale=('semilogy', 2))
+        sage: G = plot(exp, 1, 10) # long time
+        sage: G.show(scale=('semilogy', 2)) # long time
 
     The algorithm used to insert extra points is actually pretty
     simple. On the picture drawn by the lines below::
@@ -959,7 +963,7 @@ def plot(funcs, *args, **kwds):
         sage: p2 = plot(sin(x), -pi, pi, fill = 'min')
         sage: p3 = plot(sin(x), -pi, pi, fill = 'max')
         sage: p4 = plot(sin(x), -pi, pi, fill = 0.5)
-        sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False)
+        sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False) # long time
 
         sage: plot([sin(x), cos(2*x)*sin(4*x)], -pi, pi, fill = {0: 1}, fillcolor = 'red', fillalpha = 1)
 
@@ -983,7 +987,7 @@ def plot(funcs, *args, **kwds):
 
         sage: def b(n): return lambda x: bessel_J(n, x) + 0.5*(n-1)
         sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, [i+1]) for i in [0..3]]))
-        sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]]))
+        sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]])) # long time
 
     Extra options will get passed on to :meth:`~sage.plot.graphics.Graphics.show`,
     as long as they are valid::
@@ -1033,7 +1037,7 @@ def plot(funcs, *args, **kwds):
     Excluded points can also be given by an equation::
 
         sage: g(x) = x^2-2*x-2
-        sage: plot(1/g(x), (x, -3, 4), exclude = g(x) == 0, ymin = -5, ymax = 5)
+        sage: plot(1/g(x), (x, -3, 4), exclude = g(x) == 0, ymin = -5, ymax = 5) # long time 
 
     ``exclude`` and ``detect_poles`` can be used together::
 
@@ -1103,6 +1107,10 @@ def plot(funcs, *args, **kwds):
         sage: f(x)=x; f
         x |--> x
         sage: plot(f,(x,-1,1))
+
+    Check that :trac:`15030` is fixed::
+
+        sage: plot(abs(log(x)), x)
     """
     G_kwds = Graphics._extract_kwds_for_show(kwds, ignore=['xmin', 'xmax'])
 
@@ -1491,14 +1499,14 @@ def parametric_plot(funcs, *args, **kwargs):
 
         sage: parametric_plot([cos(x) + 2 * cos(x/4), sin(x) - 2 * sin(x/4)], (x,0, 8*pi), fill = True)
 
-        sage: parametric_plot( (5*cos(x), 5*sin(x), x), (x,-12, 12), plot_points=150, color="red")
+        sage: parametric_plot( (5*cos(x), 5*sin(x), x), (x,-12, 12), plot_points=150, color="red") # long time
 
         sage: y=var('y')
-        sage: parametric_plot( (5*cos(x), x*y, cos(x*y)), (x, -4,4), (y,-4,4))
+        sage: parametric_plot( (5*cos(x), x*y, cos(x*y)), (x, -4,4), (y,-4,4)) # long time`
 
         sage: t=var('t')
-        sage: parametric_plot( vector((sin(t), sin(2*t))), (t, 0, 2*pi), color='green')
-        sage: parametric_plot( vector([t, t+1, t^2]), (t, 0, 1))
+        sage: parametric_plot( vector((sin(t), sin(2*t))), (t, 0, 2*pi), color='green') # long time
+        sage: parametric_plot( vector([t, t+1, t^2]), (t, 0, 1)) # long time
 
     Plotting in logarithmic scale is possible with 2D plots. The keyword
     ``aspect_ratio`` will be ignored if the scale is not ``'loglog'`` or
@@ -1559,7 +1567,7 @@ def parametric_plot(funcs, *args, **kwargs):
 
     num_vars=len(sage.plot.misc.unify_arguments(funcs)[0])
     if num_vars>num_ranges:
-        raise ValueError, "there are more variables than variable ranges"
+        raise ValueError("there are more variables than variable ranges")
 
     # Reset aspect_ratio to 'automatic' in case scale is 'semilog[xy]'.
     # Otherwise matplotlib complains.
@@ -1575,7 +1583,7 @@ def parametric_plot(funcs, *args, **kwargs):
     elif (num_funcs == 3 and num_ranges <= 2):
         return sage.plot.plot3d.parametric_plot3d.parametric_plot3d(funcs, *args, **kwargs)
     else:
-        raise ValueError, "the number of functions and the number of variable ranges is not a supported combination for a 2d or 3d parametric plots"
+        raise ValueError("the number of functions and the number of variable ranges is not a supported combination for a 2d or 3d parametric plots")
 
 @options(aspect_ratio=1.0)
 def polar_plot(funcs, *args, **kwds):
@@ -1634,8 +1642,8 @@ def polar_plot(funcs, *args, **kwds):
 @options(aspect_ratio='automatic')
 def list_plot(data, plotjoined=False, **kwargs):
     r"""
-    ``list_plot`` takes either a list of numbers, a list of tuples,
-    or a dictionary and plots the corresponding points.
+    ``list_plot`` takes either a list of numbers, a list of tuples, a numpy
+    array, or a dictionary and plots the corresponding points.
 
     If given a list of numbers (that is, not a list of tuples or lists),
     ``list_plot`` forms a list of tuples ``(i, x_i)`` where ``i`` goes from
@@ -1662,7 +1670,7 @@ def list_plot(data, plotjoined=False, **kwargs):
 
     EXAMPLES::
 
-        sage: list_plot([i^2 for i in range(5)])
+        sage: list_plot([i^2 for i in range(5)]) # long time
 
     Here are a bunch of random red points::
 
@@ -1672,6 +1680,13 @@ def list_plot(data, plotjoined=False, **kwargs):
     This gives all the random points joined in a purple line::
 
         sage: list_plot(r, plotjoined=True, color='purple')
+
+    You can provide a numpy array.::
+
+        sage: import numpy
+        sage: list_plot(numpy.arange(10))
+
+        sage: list_plot(numpy.array([[1,2], [2,3], [3,4]]))
 
     Plot a list of complex numbers::
 
@@ -1714,7 +1729,7 @@ def list_plot(data, plotjoined=False, **kwargs):
     There are two different syntaxes available::
 
         sage: yl = [2**k for k in range(20)]
-        sage: list_plot(yl, scale='semilogy')       # log axis on vertical
+        sage: list_plot(yl, scale='semilogy')  # long time  # log axis on vertical
 
     ::
 
@@ -1733,17 +1748,17 @@ def list_plot(data, plotjoined=False, **kwargs):
 
         Instead this will work. We drop the point `(0,1)`.::
 
-            sage: list_plot(zip(range(1,len(yl)), yl[1:]), scale='loglog')
+            sage: list_plot(zip(range(1,len(yl)), yl[1:]), scale='loglog') # long time 
 
     We use :func:`list_plot_loglog` and plot in a different base.::
 
-        sage: list_plot_loglog(zip(range(1,len(yl)), yl[1:]), base=2)
+        sage: list_plot_loglog(zip(range(1,len(yl)), yl[1:]), base=2) # long time
 
     We can also change the scale of the axes in the graphics just before
     displaying::
 
-        sage: G = list_plot(yl)
-        sage: G.show(scale=('semilogy', 2))
+        sage: G = list_plot(yl) # long time
+        sage: G.show(scale=('semilogy', 2)) # long time
 
     TESTS:
 
@@ -1758,18 +1773,27 @@ def list_plot(data, plotjoined=False, **kwargs):
         100.0
     """
     from sage.plot.all import line, point
-    if data == {} or data == () or data == []:
-        return Graphics()
+    try:
+        if not data:
+            return Graphics()
+    except ValueError: # numpy raises ValueError if it is not empty
+        pass
+    if not isinstance(plotjoined, bool):
+        raise TypeError("The second argument 'plotjoined' should be boolean "
+                    "(True or False).  If you meant to plot two lists 'x' "
+                    "and 'y' against each other, use 'list_plot(zip(x,y))'.")
     if isinstance(data, dict):
         if plotjoined:
             list_data = sorted(list(data.iteritems()))
         else:
             list_data = list(data.iteritems())
         return list_plot(list_data, plotjoined=plotjoined, **kwargs)
-    if not isinstance(data[0], (list, tuple)):
-        data = zip(range(len(data)), data)
-    if isinstance(plotjoined, (list, tuple)):
-        raise TypeError, "The second argument 'plotjoined' should be boolean (True or False).  If you meant to plot two lists 'x' and 'y' against each other, use 'list_plot(zip(x,y))'."
+    try:
+        from sage.rings.all import RDF
+        tmp = RDF(data[0])
+        data = list(enumerate(data))
+    except TypeError:
+        pass
     try:
         if plotjoined:
             return line(data, **kwargs)
@@ -1782,7 +1806,7 @@ def list_plot(data, plotjoined=False, **kwargs):
         # gets to (1, I).
         from sage.rings.complex_field import ComplexField
         CC = ComplexField()
-        # if we get here, we already did "zip(range(len(data)), data)",
+        # if we get here, we already did "list(enumerate(data))",
         # so look at z[1] in inner list
         data = [(z.real(), z.imag()) for z in [CC(z[1]) for z in data]]
         if plotjoined:
@@ -1808,20 +1832,13 @@ def plot_loglog(funcs, *args, **kwds):
 
     For all other inputs, look at the documentation of :func:`plot`.
 
-    .. note::
-
-        - Although it is possible to provide a noninteger ``base``, the
-          tick labeling and formatting is not ideal. Hence, in case you do
-          use noninteger ``base`` for the logarithm, then provide your own
-          tick formatter using the option ``tick_formatter``.
-
     EXAMPLES::
 
         sage: plot_loglog(exp, (1,10)) # plot in loglog scale with base 10
 
     ::
 
-        sage: plot_loglog(exp, (1,10), base=2) # with base 2 on both axes
+        sage: plot_loglog(exp, (1,10), base=2.1) # long time # with base 2.1 on both axes
 
     ::
 
@@ -1845,16 +1862,9 @@ def plot_semilogx(funcs, *args, **kwds):
 
     For all other inputs, look at the documentation of :func:`plot`.
 
-    .. note::
-
-        - Although it is possible to provide a noninteger ``base``, the
-          tick labeling and formatting is not ideal. Hence, in case you do
-          use noninteger ``base`` for the logarithm, then provide your own
-          tick formatter using the option ``tick_formatter``.
-
     EXAMPLES::
 
-        sage: plot_semilogx(exp, (1,10)) # plot in semilogx scale, base 10
+        sage: plot_semilogx(exp, (1,10)) # long time # plot in semilogx scale, base 10
 
     ::
 
@@ -1878,20 +1888,13 @@ def plot_semilogy(funcs, *args, **kwds):
 
     For all other inputs, look at the documentation of :func:`plot`.
 
-    .. note::
-
-        - Although it is possible to provide a noninteger ``base``, the
-          tick labeling and formatting is not ideal. Hence, in case you do
-          use noninteger ``base`` for the logarithm, then provide your own
-          tick formatter using the option ``tick_formatter``.
-
     EXAMPLES::
 
-        sage: plot_semilogy(exp, (1,10)) # plot in semilogy scale, base 10
+        sage: plot_semilogy(exp, (1,10)) # long time # plot in semilogy scale, base 10
 
     ::
 
-        sage: plot_semilogy(exp, (1,10), base=2) # with base 2
+        sage: plot_semilogy(exp, (1,10), base=2) # long time # with base 2
 
     """
     return plot(funcs, *args, scale='semilogy', **kwds)
@@ -1912,25 +1915,18 @@ def list_plot_loglog(data, plotjoined=False, **kwds):
     For all other inputs, look at the documentation of :func:`list_plot`.
 
 
-    .. note::
-
-        - Although it is possible to provide a noninteger ``base``, the
-          tick labeling and formatting is not ideal. Hence, in case you do
-          use noninteger ``base`` for the logarithm, then provide your own
-          tick formatter using the option ``tick_formatter``.
-
     EXAMPLES::
 
         sage: yl = [5**k for k in range(10)]; xl = [2**k for k in range(10)]
-        sage: list_plot_loglog(zip(xl, yl)) # plot in loglog scale with base 10
+        sage: list_plot_loglog(zip(xl, yl)) # long time # plot in loglog scale with base 10
 
     ::
 
-        sage: list_plot_loglog(zip(xl, yl), base=2) # with base 2 on both axes
+        sage: list_plot_loglog(zip(xl, yl), base=2.1) # long time # with base 2.1 on both axes
 
     ::
 
-        sage: list_plot_loglog(zip(xl, yl), base=(2,5))
+        sage: list_plot_loglog(zip(xl, yl), base=(2,5)) # long time
 
     .. warning::
 
@@ -1963,14 +1959,6 @@ def list_plot_semilogx(data, plotjoined=False, **kwds):
       greater than 1.
 
     For all other inputs, look at the documentation of :func:`list_plot`.
-
-    .. note::
-
-        - Although it is possible to provide a noninteger ``base``, the
-          tick labeling and formatting is not ideal. Hence, in case you do
-          use noninteger ``base`` for the logarithm, then provide your own
-          tick formatter using the option ``tick_formatter``.
-
 
     EXAMPLES::
 
@@ -2011,13 +1999,6 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
       greater than 1.
 
     For all other inputs, look at the documentation of :func:`list_plot`.
-
-    .. note::
-
-        - Although it is possible to provide a noninteger ``base``, the
-          tick labeling and formatting is not ideal. Hence, in case you do
-          use noninteger ``base`` for the logarithm, then provide your own
-          tick formatter using the option ``tick_formatter``.
 
     EXAMPLES::
 
@@ -2144,20 +2125,20 @@ def graphics_array(array, n=None, m=None):
         sage: f(x) = sin(x)
         sage: g(x) = sin(2*x)
         sage: h(x) = sin(4*x)
-        sage: p1 = plot(f,(-2*pi,2*pi),color=hue(0.5))
-        sage: p2 = plot(g,(-2*pi,2*pi),color=hue(0.9))
-        sage: p3 = parametric_plot((f,g),(0,2*pi),color=hue(0.6))
-        sage: p4 = parametric_plot((f,h),(0,2*pi),color=hue(1.0))
+        sage: p1 = plot(f,(-2*pi,2*pi),color=hue(0.5)) # long time
+        sage: p2 = plot(g,(-2*pi,2*pi),color=hue(0.9)) # long time
+        sage: p3 = parametric_plot((f,g),(0,2*pi),color=hue(0.6)) # long time
+        sage: p4 = parametric_plot((f,h),(0,2*pi),color=hue(1.0)) # long time
 
     Now make a graphics array out of the plots::
 
-        sage: graphics_array(((p1,p2),(p3,p4)))
+        sage: graphics_array(((p1,p2),(p3,p4))) # long time
 
     One can also name the array, and then use :meth:`~sage.plot.graphics.GraphicsArray.show`
     or :meth:`~sage.plot.graphics.GraphicsArray.save`::
 
-        sage: ga = graphics_array(((p1,p2),(p3,p4)))
-        sage: ga.show()
+        sage: ga = graphics_array(((p1,p2),(p3,p4))) # long time
+        sage: ga.show() # long time
 
     Here we give only one row::
 
@@ -2227,9 +2208,9 @@ def var_and_list_of_values(v, plot_points):
     deprecation(7008, "var_and_list_of_values is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable")
     plot_points = int(plot_points)
     if plot_points < 2:
-        raise ValueError, "plot_points must be greater than 1"
+        raise ValueError("plot_points must be greater than 1")
     if not isinstance(v, (tuple, list)):
-        raise TypeError, "v must be a tuple or list"
+        raise TypeError("v must be a tuple or list")
     if len(v) == 3:
         var = v[0]
         a, b = v[1], v[2]
@@ -2237,7 +2218,7 @@ def var_and_list_of_values(v, plot_points):
         var = None
         a, b = v
     else:
-        raise ValueError, "parametric value range must be a list or tuple of length 2 or 3."
+        raise ValueError("parametric value range must be a list or tuple of length 2 or 3.")
 
     a = float(a)
     b = float(b)
@@ -2413,7 +2394,7 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
             # give up for this branch
             return []
 
-    except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
+    except (ZeroDivisionError, TypeError, ValueError, OverflowError) as msg:
         sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x), 1)
         # give up for this branch
         return []
@@ -2539,7 +2520,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                 exceptions += 1
                 exception_indices.append(i)
 
-        except (ArithmeticError, TypeError, ValueError), msg:
+        except (ArithmeticError, TypeError, ValueError) as msg:
             sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, xi),1)
 
             if i == 0: # Given an error for left endpoint, try to move it in slightly
@@ -2551,7 +2532,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                         if data[i][1] != data[i][1]:
                             continue
                         break
-                    except (ArithmeticError, TypeError, ValueError), msg:
+                    except (ArithmeticError, TypeError, ValueError) as msg:
                         pass
                 else:
                     exceptions += 1
@@ -2566,7 +2547,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                         if data[i][1] != data[i][1]:
                             continue
                         break
-                    except (ArithmeticError, TypeError, ValueError), msg:
+                    except (ArithmeticError, TypeError, ValueError) as msg:
                         pass
                 else:
                     exceptions += 1

@@ -48,7 +48,7 @@ class IdempotentSemigroups(Category):
 cdef class LeftZeroSemigroupElement(Element):
     cdef object _value
 
-    def __init__(self, value, parent):
+    def __init__(self, parent, value):
         """
         EXAMPLES::
 
@@ -80,9 +80,9 @@ cdef class LeftZeroSemigroupElement(Element):
             sage: x = S(3)
             sage: x.__reduce__()
             (<type 'sage.categories.examples.semigroups_cython.LeftZeroSemigroupElement'>,
-             (3, An example of a semigroup: the left zero semigroup))
+             (An example of a semigroup: the left zero semigroup, 3))
         """
-        return LeftZeroSemigroupElement, (self._value, self._parent)
+        return LeftZeroSemigroupElement, (self._parent, self._value)
 
     def __cmp__(LeftZeroSemigroupElement self, LeftZeroSemigroupElement other):
         """

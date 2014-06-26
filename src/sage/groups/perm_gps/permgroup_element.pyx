@@ -62,9 +62,14 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 from cpython.list cimport *
 
-from sage.rings.all      import ZZ, Integer, is_MPolynomial, is_Polynomial
+from sage.rings.all      import ZZ, Integer
+from sage.rings.polynomial.polynomial_element import is_Polynomial
+from sage.rings.polynomial.multi_polynomial import is_MPolynomial
+from sage.matrix.matrix import is_Matrix
 from sage.matrix.all     import MatrixSpace
-from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
+from sage.interfaces.all import gap
+from sage.interfaces.gap import is_GapElement
+from sage.interfaces.expect import is_ExpectElement
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
 from sage.misc.superseded import deprecated_function_alias
@@ -218,17 +223,16 @@ def standardize_generator(g, convert_dict=None):
     """
     from sage.interfaces.gap import GapElement
     from sage.combinat.permutation import Permutation
-    from sage.libs.pari.gen import gen
-    from sage.combinat.permutation import Permutation_class
+    from sage.libs.pari.all import pari_gen
 
-    if isinstance(g, gen):
+    if isinstance(g, pari_gen):
         g = list(g)
 
     needs_conversion = True
     if isinstance(g, GapElement):
         g = str(g)
         needs_conversion = False
-    if isinstance(g, Permutation_class):
+    if isinstance(g, Permutation):
         return g.cycle_tuples()
     if isinstance(g, PermutationGroupElement):
         g = g.cycle_tuples()
@@ -590,7 +594,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
             sage: S = SymmetricGroup(['a', 'b'])
             sage: latex(S.gens())
-            \left[(\verb|a|,\verb|b|)\right]
+            \left[(\text{\texttt{a}},\text{\texttt{b}})\right]
         """
         from sage.misc.latex import latex
         return "".join(["(" + ",".join([latex(x) for x in cycle])+")" for cycle in self.cycle_tuples()])
@@ -772,7 +776,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: v = IncreasingIntArrays()([1,2,3,4])
             sage: G = PermutationGroup([[(1,2,3,4)]])
             sage: id = G.identity()
@@ -798,6 +802,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         the indeterminates. This is a right action since the image of
         f(sigma\*x) under tau is f(sigma\*tau\*x).
 
+        Additionally, if ``left`` is a matrix, then sigma acts on the matrix
+        by permuting the rows.
+
         INPUT:
 
 
@@ -819,6 +826,15 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             2*x^2 - y^2 + z^2 + u^2
             sage: (f*sigma)*tau
             2*x^2 - y^2 + z^2 + u^2
+
+            sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
+            sage: M*sigma
+            [0 2 0 0 0]
+            [0 0 3 0 0]
+            [1 0 0 0 0]
+            [0 0 0 0 5]
+            [0 0 0 4 0]
+
         """
         if not self_on_left:
             left = x
@@ -834,6 +850,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 except IndexError:
                     raise TypeError, "%s does not act on %s"%(self, left.parent())
                 return left(tuple(sigma_x))
+            elif is_Matrix(left):
+                return left.with_permuted_rows(self)
 
     cpdef MonoidElement _mul_(left, MonoidElement _right):
         """

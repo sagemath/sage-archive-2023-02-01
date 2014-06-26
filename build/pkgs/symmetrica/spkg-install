@@ -15,23 +15,25 @@ if [ "x$SAGE64" = xyes ] ; then
     CFLAGS="$CFLAGS $CFLAG64"
 fi
 
-CFLAGS="-O2 -g $CFLAGS -fPIC -DFAST -DALLTRUE"
-export CFLAGS
+export CFLAGS="-O2 -g $CFLAGS -fPIC -DFAST -DALLTRUE"
 
 
 cd src
 
+# Apply patches.  See SPKG.txt for information about what each patch
+# does.
 for patch in ../patches/*.patch; do
-    patch < "$patch"
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
-        echo >&2 "Error: Patch \"$patch\" failed to apply."
+        echo >&2 "Error applying '$patch'"
         exit 1
     fi
 done
 
-# Patching the upstream Makefile doesn't make sense,
+# Patching the upstream makefile doesn't make sense,
 # as it has (syntactically) nothing in common with ours.
-cp -p -f ../patches/makefile makefile
+cp -f ../patches/makefile makefile
 if [ $? -ne 0 ]; then
     echo >&2 "Error copying over patched Makefile."
     exit 1
@@ -43,18 +45,15 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-cp -p -f libsymmetrica.a "$SAGE_LOCAL"/lib/
+cp -f libsymmetrica.a "$SAGE_LOCAL"/lib/
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing the Symmetrica library."
     exit 1
 fi
 
-# Upstream tarball has funky permissions:
-chmod 644 def.h macro.h &&
 mkdir -p "$SAGE_LOCAL"/include/symmetrica &&
-cp -p -f def.h macro.h "$SAGE_LOCAL"/include/symmetrica/
+cp -f *.h "$SAGE_LOCAL"/include/symmetrica/
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing Symmetrica's header files."
     exit 1
 fi
-

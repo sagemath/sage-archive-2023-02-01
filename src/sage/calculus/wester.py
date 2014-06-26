@@ -36,7 +36,7 @@ explicit calls to Maxima or other systems.
 ::
 
     sage: # (YES) Evaluate the Bessel function J[2] numerically at z=1+I.
-    sage: bessel_J (2, 1+I)
+    sage: bessel_J(2, 1+I).n()
     0.0415798869439621 + 0.247397641513306*I
 
 ::
@@ -120,8 +120,10 @@ explicit calls to Maxima or other systems.
     (e^x - 1)/(e^(1/2*x) + 1)
     sage: g
     e^(1/2*x) - 1
-    sage: f.simplify_full(),g
-    (e^(1/2*x) - 1, e^(1/2*x) - 1)
+    sage: f.simplify_radical()
+    e^(1/2*x) - 1
+    sage: g
+    e^(1/2*x) - 1
     sage: f(x=10.0).n(53), g(x=10.0).n(53)
     (147.413159102577, 147.413159102577)
     sage: bool(f == g)

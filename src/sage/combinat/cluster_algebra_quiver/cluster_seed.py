@@ -5,8 +5,7 @@ A *cluster seed* is a pair `(B,\mathbf{x})` with `B` being a *skew-symmetrizable
 and with `\mathbf{x}` being an `n`-tuple of *independent elements* in the field of rational functions in `n` variables.
 
 For the compendium on the cluster algebra and quiver package see
-
-http://arxiv.org/abs/1102.4844.
+:arxiv:`1102.4844`.
 
 AUTHORS:
 
@@ -26,16 +25,12 @@ AUTHORS:
 import time
 from sage.structure.sage_object import SageObject
 from copy import copy
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.all import cached_method
-from sage.rings.all import ZZ, QQ, infinity
+from sage.rings.all import QQ, infinity
 from sage.rings.all import FractionField, PolynomialRing
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.sets.all import Set
-from sage.graphs.all import Graph, DiGraph
-from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType, QuiverMutationType_Irreducible, QuiverMutationType_Reducible
-from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutation_type, is_mutation_finite
-from sage.groups.perm_gps.permgroup import PermutationGroup
+from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import  QuiverMutationType_Irreducible, QuiverMutationType_Reducible
+from sage.combinat.cluster_algebra_quiver.mutation_type import is_mutation_finite
 
 class ClusterSeed(SageObject):
     r"""
@@ -95,10 +90,9 @@ class ClusterSeed(SageObject):
             sage: TestSuite(S).run()
         """
         from quiver import ClusterQuiver
-        from sage.matrix.matrix import Matrix
 
         # constructs a cluster seed from a cluster seed
-        if type(data) is ClusterSeed:
+        if isinstance(data, ClusterSeed):
             if frozen:
                 print "The input \'frozen\' is ignored"
             self._M = copy( data._M )
@@ -112,7 +106,7 @@ class ClusterSeed(SageObject):
             self._is_principal = data._is_principal
 
         # constructs a cluster seed from a quiver
-        elif type(data) is ClusterQuiver:
+        elif isinstance(data, ClusterQuiver):
             if frozen:
                 print "The input \'frozen\' is ignored"
 
@@ -132,7 +126,7 @@ class ClusterSeed(SageObject):
             quiver = ClusterQuiver( data, frozen=frozen )
             self.__init__( quiver )
 
-        if is_principal != None:
+        if is_principal is not None:
             self._is_principal = is_principal
 
     def __eq__(self, other):
@@ -150,7 +144,7 @@ class ClusterSeed(SageObject):
             sage: S.__eq__( T )
             True
         """
-        return type( other ) is ClusterSeed and self._M == other._M and self._cluster == other._cluster
+        return isinstance(other, ClusterSeed) and self._M == other._M and self._cluster == other._cluster
 
     def _repr_(self):
         r"""
@@ -815,11 +809,11 @@ class ClusterSeed(SageObject):
             seq = [sequence]
         else:
             seq = sequence
-        if type( seq ) is tuple:
+        if isinstance(seq, tuple):
             seq = list( seq )
-        if not type( seq ) is list:
+        if not isinstance(seq, list):
             raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
-        if not type(inplace) is bool:
+        if not isinstance(inplace, bool):
             raise ValueError('The second parameter must be boolean.  To mutate at a sequence of length 2, input it as a list.')
         if any( v not in V for v in seq ):
             v = filter( lambda v: v not in V, seq )[0]
@@ -877,8 +871,6 @@ class ClusterSeed(SageObject):
             [(x1 + 1)/x0, (x0 + x1 + 1)/(x0*x1), (x0 + 1)/x1, x0]
         """
         seed = ClusterSeed( self )
-        n = seed._n
-        m = seed._m
 
         new_clust_var = []
         seed_sequence = []
@@ -923,6 +915,90 @@ class ClusterSeed(SageObject):
         eval_dict = dict( [ ( self.y(i), 1 ) for i in xrange(self._m) ] )
         seed = ClusterSeed( _principal_part( self._M ) )
         seed._cluster = [ self._cluster[k].subs(eval_dict) for k in xrange(self._n) ]
+        seed._mutation_type = self._mutation_type
+        return seed
+
+    def universal_extension(self):
+        r"""
+        Returns the universal extension of ``self``.
+
+        This is the initial seed of the associated cluster algebra
+        with universal coefficients, as defined in section 12 of
+        :arxiv:`math/0602259`.
+
+        This method works only if ``self`` is a bipartite, finite-type seed.
+
+        Due to some limitations in the current implementation of
+        ``CartanType``, we need to construct the set of almost positive
+        coroots by hand. As a consequence their ordering is not the
+        standard one (the rows of the bottom part of the exchange
+        matrix might be a shuffling of those you would expect).
+
+        EXAMPLES::
+
+            sage: S = ClusterSeed(['A',2])
+            sage: T = S.universal_extension()
+            sage: T.b_matrix()
+            [ 0  1]
+            [-1  0]
+            [-1  0]
+            [ 1  0]
+            [ 1 -1]
+            [ 0  1]
+            [ 0 -1]
+
+            sage: S = ClusterSeed(['A',3])
+            sage: T = S.universal_extension()
+            sage: T.b_matrix()
+            [ 0  1  0]
+            [-1  0 -1]
+            [ 0  1  0]
+            [-1  0  0]
+            [ 1  0  0]
+            [ 1 -1  0]
+            [ 1 -1  1]
+            [ 0  1  0]
+            [ 0 -1  0]
+            [ 0 -1  1]
+            [ 0  0 -1]
+            [ 0  0  1]
+
+            sage: S = ClusterSeed(['B',2])
+            sage: T = S.universal_extension()
+            sage: T.b_matrix()
+            [ 0  1]
+            [-2  0]
+            [-1  0]
+            [ 1  0]
+            [ 1 -1]
+            [ 2 -1]
+            [ 0  1]
+            [ 0 -1]
+
+        """
+        if self._m != 0:
+            raise ValueError("To have universal coefficients we need "
+                             "to start from a coefficient-free seed")
+        if not self.is_bipartite() or not self.is_finite():
+            raise ValueError("Universal coefficients are defined only "
+                             "for finite type cluster algebras at a "
+                             "bipartite initial cluster")
+
+        from sage.matrix.all import matrix
+        from sage.combinat.root_system.cartan_matrix import CartanMatrix
+
+        A = 2 - self.b_matrix().apply_map(abs).transpose()
+
+        rs = CartanMatrix(A).root_space()
+        almost_positive_coroots = rs.almost_positive_roots()
+
+        sign = [-1 if all(x <= 0 for x in self.b_matrix()[i]) else 1
+                for i in range(self._n)]
+        C = matrix([[sign[j] * alpha[j + 1] for j in range(self._n)]
+                    for alpha in almost_positive_coroots])
+
+        M = self._M.stack(C)
+        seed = ClusterSeed(M, is_principal=False)
         seed._mutation_type = self._mutation_type
         return seed
 
@@ -1778,7 +1854,7 @@ class ClusterSeed(SageObject):
             False
         """
         mt = self.mutation_type()
-        if type(mt) is str:
+        if isinstance(mt, str):
             return False
         else:
             return mt.is_finite()
@@ -1882,6 +1958,248 @@ class ClusterSeed(SageObject):
             self._mutation_type = self._quiver.mutation_type()
         return self._mutation_type
 
+    def greedy(self, a1, a2, method='by_recursion'):
+        r"""
+        Returns the greedy element `x[a_1,a_2]` assuming that self is rank two.
+
+        The third input can be 'by_recursion', 'by_combinatorics', or
+        'just_numbers' to specify if the user wants the element
+        computed by the recurrence, combinatorial formula, or wants to
+        set `x_1` and `x_2` to be one.
+
+        See [LeeLiZe]_ for more details.
+
+        EXAMPLES::
+
+            sage: S = ClusterSeed(['R2', [3, 3]])
+            sage: S.greedy(4, 4)
+            (x0^12 + x1^12 + 4*x0^9 + 4*x1^9 + 6*x0^6 + 4*x0^3*x1^3 + 6*x1^6 + 4*x0^3 + 4*x1^3 + 1)/(x0^4*x1^4)
+            sage: S.greedy(4, 4, 'by_combinatorics')
+            (x0^12 + x1^12 + 4*x0^9 + 4*x1^9 + 6*x0^6 + 4*x0^3*x1^3 + 6*x1^6 + 4*x0^3 + 4*x1^3 + 1)/(x0^4*x1^4)
+            sage: S.greedy(4, 4, 'just_numbers')
+            35
+            sage: S = ClusterSeed(['R2', [2, 2]])
+            sage: S.greedy(1, 2)
+            (x0^4 + 2*x0^2 + x1^2 + 1)/(x0*x1^2)
+            sage: S.greedy(1, 2, 'by_combinatorics')
+            (x0^4 + 2*x0^2 + x1^2 + 1)/(x0*x1^2)
+
+        REFERENCES:
+
+        .. [LeeLiZe] Lee-Li-Zelevinsky, Greedy elements in rank 2
+           cluster algebras, :arxiv:`1208.2391`
+        """
+        if self.b_matrix().dimensions() == (2, 2):
+            b = abs(self.b_matrix()[0, 1])
+            c = abs(self.b_matrix()[1, 0])
+            if method == 'by_recursion':
+                ans = self.x(0)**(-a1)*self.x(1)**(-a2)
+                for p in range(max(a2, 0)+1):
+                    for q in range(max(a1, 0)+1):
+                        if p != 0 or q != 0:
+                            ans += self._R(coeff_recurs(p, q, a1, a2, b, c))*self.x(0)**(b*p-a1)*self.x(1)**(c*q-a2)
+                return(ans)
+            elif method == 'by_combinatorics':
+                if b == 0:
+                    S = ClusterSeed([['A', 1], ['A', 1]])
+                else:
+                    S = ClusterSeed(['R2', [b, b]])
+                ans = 0
+                if a1 >= a2:
+                    PS = PathSubset(a1, a2)
+                elif a1 < a2:
+                    PS = PathSubset(a2, a1)
+                from sage.combinat.subset import Subsets
+                for T in Subsets(PS):
+                    if a1 >= a2:
+                        if is_LeeLiZel_allowable(T, a1, a2, b, c):
+                            oddT = set(T).intersection(PathSubset(a1, 0))
+                            evenT = set(T).symmetric_difference(oddT)
+                            ans = ans + S.x(0)**(b*len(evenT)) * S.x(1)**(c*len(oddT))
+                    elif a1 < a2:
+                        if is_LeeLiZel_allowable(T, a2, a1, b, c):
+                            oddT = set(T).intersection(PathSubset(a2, 0))
+                            evenT = set(T).symmetric_difference(oddT)
+                            ans = ans + S.x(0)**(b*len(oddT)) * S.x(1)**(c*len(evenT))
+                ans = ans*S.x(0)**(-a1)*S.x(1)**(-a2)
+                return ans
+            elif method == 'just_numbers':
+                ans = 1
+                for p in range(max(a2, 0)+1):
+                    for q in range(max(a1, 0)+1):
+                        if p != 0 or q != 0:
+                            ans += coeff_recurs(p, q, a1, a2, b, c)
+                return(ans)
+            else:
+                raise ValueError("The third input should be 'by_recursion', "
+                                 "'by_combinatorics', or 'just_numbers'.")
+        else:
+            raise ValueError("Greedy elements are only currently "
+                             "defined for cluster seeds of rank two.")
+
+def _bino(n, k):
+    """
+    Binomial coefficient which we define as zero for negative n.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _bino
+        sage: _bino(3, 2)
+        3
+        sage: _bino(-3, 2)
+        0
+    """
+    if n >= 0:
+        from sage.rings.arith import binomial
+        return binomial(n, k)
+    else:
+        return 0
+
+def coeff_recurs(p, q, a1, a2, b, c):
+    """
+    Coefficients in Laurent expansion of greedy element, as defined by recursion.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import coeff_recurs
+        sage: coeff_recurs(1, 1, 5, 5, 3, 3)
+        10
+    """
+    if p == 0 and q == 0:
+        return 1
+    elif p < 0 or q < 0:
+        return 0
+    else:
+        if c*a1*q <= b*a2*p:
+            return sum((-1)**(k-1)*coeff_recurs(p-k, q, a1, a2, b, c)*_bino(a2-c*q+k-1, k)
+                       for k in range(1, p+1))
+        else:
+            return sum((-1)**(k-1)*coeff_recurs(p, q-k, a1, a2, b, c)*_bino(a1-b*p+k-1, k)
+                       for k in range(1, q+1))
+
+def PathSubset(n,m):
+    r"""
+    Encodes a *maximal* Dyck path from (0,0) to (n,m) (for n >= m >= 0) as a subset of {0,1,2,..., 2n-1}.
+    The encoding is given by indexing horizontal edges by odd numbers and vertical edges by evens.
+
+    The horizontal between (i,j) and (i+1,j) is indexed by the odd number 2*i+1.
+    The vertical between (i,j) and (i,j+1) is indexed by the even number 2*j.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import PathSubset
+        sage: PathSubset(4,0)
+        set([1, 3, 5, 7])
+        sage: PathSubset(4,1)
+        set([1, 3, 5, 6, 7])
+        sage: PathSubset(4,2)
+        set([1, 2, 3, 5, 6, 7])
+        sage: PathSubset(4,3)
+        set([1, 2, 3, 4, 5, 6, 7])
+        sage: PathSubset(4,4)
+        set([0, 1, 2, 3, 4, 5, 6, 7])
+    """
+    from sage.misc.misc import union
+    from sage.functions.other import floor
+    S = [ ]
+    for i in range(n):
+        S = union(S, [2*i+1])
+    if m > 0:
+        for j in range(n):
+            if floor((j+1)*m/n) - floor(j*m/n) == 1:
+                S = union(S, [2*j])
+    return set(S)
+
+def SetToPath(T):
+    r"""
+    Rearranges the encoding for a *maximal* Dyck path (as a set) so that it is a list in the proper order of the edges.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import PathSubset
+        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import SetToPath
+        sage: SetToPath(PathSubset(4,0))
+        [1, 3, 5, 7]
+        sage: SetToPath(PathSubset(4,1))
+        [1, 3, 5, 7, 6]
+        sage: SetToPath(PathSubset(4,2))
+        [1, 3, 2, 5, 7, 6]
+        sage: SetToPath(PathSubset(4,3))
+        [1, 3, 2, 5, 4, 7, 6]
+        sage: SetToPath(PathSubset(4,4))
+        [1, 0, 3, 2, 5, 4, 7, 6]
+    """
+    n = (max(T)+1) // 2
+    ans = [1]
+    for i in range(n-1):
+        if 2*i in T:
+            ans.append(2*i)
+        ans.append(2*i+3)
+    if 2*n-2 in T:
+        ans.append(2*n-2)
+    return ans
+
+def is_LeeLiZel_allowable(T,n,m,b,c):
+    """
+    Check if the subset T contributes to the computation of the greedy
+    element x[m,n] in the rank two (b,c)-cluster algebra.
+
+    This uses the conditions of Lee-Li-Zelevinsky's paper [LeeLiZe]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import is_LeeLiZel_allowable
+        sage: is_LeeLiZel_allowable({1,3,2,5,7,6},4,2,6,6)
+        False
+        sage: is_LeeLiZel_allowable({1,2,5},3,3,1,1)
+        True
+    """
+    horiz = set(T).intersection( PathSubset(n, 0))
+    vert = set(T).symmetric_difference(horiz)
+    if len(horiz) == 0 or len(vert) == 0:
+        return True
+    else:
+        Latt = SetToPath(PathSubset(n, m))
+        for u in horiz:
+            from sage.combinat.words.word import Word
+            from sage.modules.free_module_element import vector
+            WW = Word(Latt)
+            LattCycled = vector(WW.conjugate(Latt.index(u))).list()
+            for v in vert:
+                uv_okay = False
+                for A in range(LattCycled.index(v)):
+                    EA = []
+                    AF = copy(LattCycled)
+                    for i in range(LattCycled.index(v), len(LattCycled)-1):
+                        AF.pop()
+                    AF.reverse()
+                    for i in range(A+1):
+                        EA.append(LattCycled[i])
+                        AF.pop()
+                    AF.reverse()
+                    nAF1 = 0
+                    for i in range(len(AF)):
+                        if AF[i] % 2 == 1:
+                            nAF1 += 1
+                    nAF2 = 0
+                    for i in range(len(AF)):
+                        if AF[i] % 2 == 0 and AF[i] in vert:
+                            nAF2 += 1
+                    nEA2 = 0
+                    for i in range(len(EA)):
+                        if EA[i] % 2 == 0:
+                            nEA2 += 1
+                    nEA1 = 0
+                    for i in range(len(EA)):
+                        if EA[i] % 2 == 1 and EA[i] in horiz:
+                            nEA1 += 1
+                    if nAF1 == b*nAF2 or nEA2 == c*nEA1:
+                        uv_okay = True
+                if uv_okay == False:
+                        return False
+        return True
+
+
 class ClusterVariable(FractionFieldElement):
     r"""
     This class is a thin wrapper for cluster variables in cluster seeds.
@@ -1943,13 +2261,14 @@ class ClusterVariable(FractionFieldElement):
         """
         if self._variable_type == 'frozen variable':
             raise ValueError('The variable is frozen.')
-        if type(self._mutation_type) is str:
+        if isinstance(self._mutation_type, str):
             raise ValueError('The cluster algebra for %s is not of finite type.'%self._repr_())
         else:
             if self._mutation_type is None:
                 self._mutation_type = self.parent().mutation_type()
             if self._mutation_type.is_finite():
                 from sage.combinat.root_system.root_system import RootSystem
+                # the import above is used in the line below
                 exec "Phi = RootSystem("+self._mutation_type._repr_()+")"
                 Phiplus = Phi.root_lattice().simple_roots()
                 if self.denominator() == 1:

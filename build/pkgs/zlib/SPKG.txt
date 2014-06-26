@@ -23,7 +23,12 @@ Free, Not to Mention Unencumbered by Patents)
 
 == Special Update/Build Instructions ==
 
- * None
+=== Patches ===
+
+ * cygwin_symbols.patch: remove undefined symbols on Cygwin.
+
+=== zlib-1.2.8.p0 (Jean-Pierre Flori, 6 August 2013) ===
+ * Trac #14985: Let zlib 1.2.>=7 build on Cygwin.
 
 === zlib-1.2.8 (Jeroen Demeyer, 30 May 2013) ===
  * Trac #14661: Upgrade to version 1.2.8

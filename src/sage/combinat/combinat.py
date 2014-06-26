@@ -44,52 +44,12 @@ docstrings.
 
 .. WARNING::
 
-   The following functions are deprecated and will soon be removed.
-
-    - Combinations of a multiset, :func:`combinations`,
-      :func:`combinations_iterator`, and :func:`number_of_combinations`. These
-      are unordered selections without repetition of k objects from a multiset
-      S.
-
-    - Arrangements of a multiset, :func:`arrangements` and
-      :func:`number_of_arrangements` These are ordered selections without
-      repetition of k objects from a multiset S.
+   The following function is deprecated and will soon be removed.
 
     - Permutations of a multiset, :func:`permutations`,
       :func:`permutations_iterator`, :func:`number_of_permutations`. A
       permutation is a list that contains exactly the same elements but possibly
       in different order.
-
-**Partitions:**
-
--  Partitions of a set, :func:`partitions_set`,
-   :func:`number_of_partitions_set`. An unordered partition
-   of set S is a set of pairwise disjoint nonempty sets with union S
-   and is represented by a sorted list of such sets.
-
--  Partitions of an integer, :func:`Partitions`.
-   An unordered partition of n is an unordered sum
-   `n = p_1+p_2 +\ldots+ p_k` of positive integers and is
-   represented by the list `p = [p_1,p_2,\ldots,p_k]`, in
-   nonincreasing order, i.e., `p1\geq p_2 ...\geq p_k`.
-
--  Ordered partitions of an integer,
-   :func:`ordered_partitions`,
-   :func:`number_of_ordered_partitions`. An ordered
-   partition of n is an ordered sum
-   `n = p_1+p_2 +\ldots+ p_k` of positive integers and is
-   represented by the list `p = [p_1,p_2,\ldots,p_k]`, in
-   nonincreasing order, i.e., `p1\geq p_2 ...\geq p_k`.
-
--  :func:`partitions_greatest` implements a special type
-   of restricted partition.
-
--  :func:`partitions_greatest_eq` is another type of
-   restricted partition.
-
--  Tuples of partitions, :class:`PartitionTuples`. A `k`-tuple of partitions is
-   represented by a list of all `k`-tuples of partitions which together form a
-   partition of `n`.
 
 **Related functions:**
 
@@ -136,7 +96,6 @@ contains the following combinatorial functions:
 .. TODO::
 
     GUAVA commands:
-        * MOLS returns a list of n Mutually Orthogonal Latin Squares (MOLS).
         * VandermondeMat
         * GrayMat returns a list of all different vectors of length n over
           the field F, using Gray ordering.
@@ -199,7 +158,6 @@ from sage.misc.misc import prod
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.superseded import deprecation
 from combinat_cython import _stirling_number2
 ######### combinatorial sequences
 
@@ -490,7 +448,7 @@ def euler_number(n):
     """
     n = ZZ(n)
     if n < 0:
-        raise ValueError, "n (=%s) must be a nonnegative integer"%n
+        raise ValueError("n (=%s) must be a nonnegative integer"%n)
     return ZZ(maxima.eval("euler(%s)"%n))
 
 def fibonacci(n, algorithm="pari"):
@@ -547,7 +505,7 @@ def fibonacci(n, algorithm="pari"):
     elif algorithm == 'gap':
         return ZZ(gap.eval("Fibonacci(%s)"%n))
     else:
-        raise ValueError, "no algorithm %s"%algorithm
+        raise ValueError("no algorithm %s"%algorithm)
 
 def lucas_number1(n,P,Q):
     """
@@ -668,11 +626,14 @@ def lucas_number2(n,P,Q):
     ans=gap.eval("Lucas(%s,%s,%s)[2]"%(QQ._coerce_(P),QQ._coerce_(Q),ZZ(n)))
     return sage_eval(ans)
 
-def stirling_number1(n,k):
-    """
-    Returns the n-th Stilling number `S_1(n,k)` of the first
-    kind (the number of permutations of n points with k cycles). Wraps
-    GAP's Stirling1.
+
+def stirling_number1(n, k):
+    r"""
+    Returns the `n`-th Stirling number `S_1(n,k)` of the first kind
+
+    This is the number of permutations of `n` points with `k` cycles.
+
+    This wraps GAP's Stirling1.
 
     EXAMPLES::
 
@@ -687,7 +648,9 @@ def stirling_number1(n,k):
 
     Indeed, `S_1(n,k) = S_1(n-1,k-1) + (n-1)S_1(n-1,k)`.
     """
-    return ZZ(gap.eval("Stirling1(%s,%s)"%(ZZ(n),ZZ(k))))
+    return Integer(gap.eval("Stirling1({0},{1})".format(Integer(n),
+                                                        Integer(k))))
+
 
 def stirling_number2(n, k, algorithm=None):
     """
@@ -883,9 +846,9 @@ class CombinatorialObject(SageObject):
             sage: sorted(L, cmp)
             [[1], [2], [3], [4]]
             sage: f = Foo([4])
-            sage: f == None
+            sage: f is None
             False
-            sage: f != None
+            sage: f is not None
             True
 
         .. WARNING::
@@ -1224,7 +1187,7 @@ class CombinatorialClass(Parent):
             ...
             AttributeError: __len__ has been removed; use .cardinality() instead
         """
-        raise AttributeError, "__len__ has been removed; use .cardinality() instead"
+        raise AttributeError("__len__ has been removed; use .cardinality() instead")
 
     def is_finite(self):
         """
@@ -1370,7 +1333,7 @@ class CombinatorialClass(Parent):
         if x in self:
             return self._element_constructor_(x)
         else:
-            raise ValueError, "%s not in %s"%(x, self)
+            raise ValueError("%s not in %s"%(x, self))
 
     Element = CombinatorialObject # mostly for backward compatibility
     @lazy_attribute
@@ -1388,10 +1351,6 @@ class CombinatorialClass(Parent):
             <class 'sage.combinat.partition.Partitions_n_with_category.element_class'>
         """
         # assert not isinstance(self, Parent) # Raises an alert if we override the proper definition from Parent
-        if hasattr(self, "object_class"):
-            deprecation(5891, "Using object_class for specifying the class "
-                        "of the elements of a combinatorial class is "
-                        "deprecated. Please use Element instead.")
         return self.Element
 
     def _element_constructor_(self, x):
@@ -1489,7 +1448,7 @@ class CombinatorialClass(Parent):
             except (TypeError, ValueError):
                 break
 
-            if l == None:
+            if l is None:
                 break
             else:
                 li.append(l)
@@ -1517,7 +1476,7 @@ class CombinatorialClass(Parent):
             except (TypeError, ValueError, IndexError):
                 break
 
-            if u == None:
+            if u is None:
                 break
             else:
                 yield u
@@ -1567,7 +1526,7 @@ class CombinatorialClass(Parent):
         elif self.list != self.__list_from_iterator:
             return self.__iterator_from_list()
         else:
-            raise NotImplementedError, "iterator called but not implemented"
+            raise NotImplementedError("iterator called but not implemented")
 
     def __unrank_from_iterator(self, r):
         """
@@ -1585,7 +1544,7 @@ class CombinatorialClass(Parent):
             if counter == r:
                 return u
             counter += 1
-        raise ValueError, "the value must be between %s and %s inclusive"%(0,counter-1)
+        raise ValueError("the value must be between %s and %s inclusive"%(0,counter-1))
 
     #Set the default implementation of unrank
     unrank = __unrank_from_iterator
@@ -1622,7 +1581,7 @@ class CombinatorialClass(Parent):
             ...
             NotImplementedError: Deprecated: use random_element() instead
         """
-        raise NotImplementedError, "Deprecated: use random_element() instead"
+        raise NotImplementedError("Deprecated: use random_element() instead")
 
     def __rank_from_iterator(self, obj):
         """
@@ -1725,7 +1684,8 @@ class CombinatorialClass(Parent):
 
         EXAMPLES::
 
-            sage: P = Permutations(3).filter(lambda x: x.avoids([1,2]))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(3).filter(lambda x: x.avoids([1,2]))
             sage: P.list()
             [[3, 2, 1]]
         """
@@ -1738,12 +1698,13 @@ class CombinatorialClass(Parent):
 
         EXAMPLES::
 
-            sage: P = Permutations(2).union(Permutations(1))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(2).union(Permutations_CC(1))
             sage: P.list()
             [[1, 2], [2, 1], [1]]
         """
         if not isinstance(right_cc, CombinatorialClass):
-            raise TypeError, "right_cc must be a CombinatorialClass"
+            raise TypeError("right_cc must be a CombinatorialClass")
         return UnionCombinatorialClass(self, right_cc, name=name)
 
     def map(self, f, name=None):
@@ -1788,7 +1749,8 @@ class FilteredCombinatorialClass(CombinatorialClass):
 
         TESTS::
 
-            sage: Permutations(3).filter(lambda x: x.avoids([1,2]))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: Permutations_CC(3).filter(lambda x: x.avoids([1,2]))
             Filtered subclass of Standard permutations of 3
         """
         self.f = f
@@ -1799,7 +1761,8 @@ class FilteredCombinatorialClass(CombinatorialClass):
         """
         EXAMPLES::
 
-            sage: P = Permutations(3).filter(lambda x: x.avoids([1,2]))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(3).filter(lambda x: x.avoids([1,2]))
             sage: P.__repr__()
             'Filtered subclass of Standard permutations of 3'
             sage: P._name = 'Permutations avoiding [1, 2]'
@@ -1815,7 +1778,8 @@ class FilteredCombinatorialClass(CombinatorialClass):
         """
         EXAMPLES::
 
-            sage: P = Permutations(3).filter(lambda x: x.avoids([1,2]))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(3).filter(lambda x: x.avoids([1,2]))
             sage: 'cat' in P
             False
             sage: [4,3,2,1] in P
@@ -1831,7 +1795,8 @@ class FilteredCombinatorialClass(CombinatorialClass):
         """
         EXAMPLES::
 
-            sage: P = Permutations(3).filter(lambda x: x.avoids([1,2]))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(3).filter(lambda x: x.avoids([1,2]))
             sage: P.cardinality()
             1
         """
@@ -1844,7 +1809,8 @@ class FilteredCombinatorialClass(CombinatorialClass):
         """
         EXAMPLES::
 
-            sage: P = Permutations(3).filter(lambda x: x.avoids([1,2]))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(3).filter(lambda x: x.avoids([1,2]))
             sage: list(P)
             [[3, 2, 1]]
         """
@@ -1860,7 +1826,8 @@ class UnionCombinatorialClass(CombinatorialClass):
 
         TESTS::
 
-            sage: P = Permutations(3).union(Permutations(2))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(3).union(Permutations_CC(2))
             sage: P == loads(dumps(P))
             True
         """
@@ -1872,7 +1839,8 @@ class UnionCombinatorialClass(CombinatorialClass):
         """
         TESTS::
 
-            sage: print repr(Permutations(3).union(Permutations(2)))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: print repr(Permutations_CC(3).union(Permutations_CC(2)))
             Union combinatorial class of
                 Standard permutations of 3
             and
@@ -1887,7 +1855,8 @@ class UnionCombinatorialClass(CombinatorialClass):
         """
         EXAMPLES::
 
-            sage: P = Permutations(3).union(Permutations(2))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(3).union(Permutations_CC(2))
             sage: [1,2] in P
             True
             sage: [3,2,1] in P
@@ -1901,7 +1870,8 @@ class UnionCombinatorialClass(CombinatorialClass):
         """
         EXAMPLES::
 
-            sage: P = Permutations(3).union(Permutations(2))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(3).union(Permutations_CC(2))
             sage: P.cardinality()
             8
         """
@@ -1911,7 +1881,8 @@ class UnionCombinatorialClass(CombinatorialClass):
         """
         EXAMPLES::
 
-            sage: P = Permutations(3).union(Permutations(2))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(3).union(Permutations_CC(2))
             sage: P.list()
             [[1, 2, 3],
              [1, 3, 2],
@@ -1929,7 +1900,8 @@ class UnionCombinatorialClass(CombinatorialClass):
         """
         EXAMPLES::
 
-            sage: P = Permutations(3).union(Permutations(2))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(3).union(Permutations_CC(2))
             sage: list(P)
             [[1, 2, 3],
              [1, 3, 2],
@@ -1949,7 +1921,8 @@ class UnionCombinatorialClass(CombinatorialClass):
         """
         EXAMPLES::
 
-            sage: P = Permutations(3).union(Permutations(2))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(3).union(Permutations_CC(2))
             sage: P.first()
             [1, 2, 3]
         """
@@ -1959,7 +1932,8 @@ class UnionCombinatorialClass(CombinatorialClass):
         """
         EXAMPLES::
 
-            sage: P = Permutations(3).union(Permutations(2))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(3).union(Permutations_CC(2))
             sage: P.last()
             [2, 1]
         """
@@ -1969,7 +1943,8 @@ class UnionCombinatorialClass(CombinatorialClass):
         """
         EXAMPLES::
 
-            sage: P = Permutations(3).union(Permutations(2))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(3).union(Permutations_CC(2))
             sage: P.rank(Permutation([2,1]))
             7
             sage: P.rank(Permutation([1,2,3]))
@@ -1984,7 +1959,8 @@ class UnionCombinatorialClass(CombinatorialClass):
         """
         EXAMPLES::
 
-            sage: P = Permutations(3).union(Permutations(2))
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(3).union(Permutations_CC(2))
             sage: P.unrank(7)
             [2, 1]
             sage: P.unrank(0)
@@ -1995,6 +1971,54 @@ class UnionCombinatorialClass(CombinatorialClass):
         except (TypeError, ValueError):
             return self.right_cc.unrank(x - self.left_cc.cardinality())
 
+class Permutations_CC(CombinatorialClass):
+    """
+    A testing class for :class:`CombinatorialClass` since :class:`Permutations`
+    no longer inherits from :class:`CombinatorialClass` in :trac:`14772`.
+    """
+    def __init__(self, n):
+        """
+        EXAMPLES::
+
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(4)
+            sage: loads(dumps(P)) == P
+            True
+        """
+        from sage.combinat.permutation import StandardPermutations_n
+        self._permutations = StandardPermutations_n(n)
+
+    def __repr__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: Permutations_CC(3)
+            Standard permutations of 3
+        """
+        return repr(self._permutations)
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(3)
+            sage: [1, 3, 2] in P
+            True
+        """
+        return x in self._permutations
+
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.combinat.combinat import Permutations_CC
+            sage: P = Permutations_CC(3)
+            sage: P.list()
+            [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+        """
+        return self._permutations.__iter__()
 
 ##############################################################################
 class MapCombinatorialClass(CombinatorialClass):
@@ -2101,7 +2125,7 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
             ...
             NotImplementedError: infinite list
         """
-        raise NotImplementedError, "infinite list"
+        raise NotImplementedError("infinite list")
 
     def __iter__(self):
         """
@@ -2131,161 +2155,8 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
                 yield c
             i+=1
 
-
-
-def hurwitz_zeta(s,x,N):
-    """
-    Returns the value of the `\zeta(s,x)` to `N`
-    decimals, where s and x are real.
-
-    The Hurwitz zeta function is one of the many zeta functions. It
-    defined as
-
-    .. math::
-
-             \zeta(s,x) = \sum_{k=0}^\infty (k+x)^{-s}.
-
-
-    When `x = 1`, this coincides with Riemann's zeta function.
-    The Dirichlet L-functions may be expressed as a linear combination
-    of Hurwitz zeta functions.
-
-    Note that if you use floating point inputs, then the results may be
-    slightly off.
-
-    EXAMPLES::
-
-        sage: hurwitz_zeta(3,1/2,6)
-        8.41439000000000
-        sage: hurwitz_zeta(11/10,1/2,6)
-        12.1041000000000
-        sage: hurwitz_zeta(11/10,1/2,50)
-        12.10381349568375510570907741296668061903364861809
-
-    REFERENCES:
-
-    - http://en.wikipedia.org/wiki/Hurwitz_zeta_function
-    """
-    maxima.eval('load ("bffac")')
-    s = maxima.eval("bfhzeta (%s,%s,%s)"%(s,x,N))
-
-    #Handle the case where there is a 'b' in the string
-    #'1.2000b0' means 1.2000 and
-    #'1.2000b1' means 12.000
-    i = s.rfind('b')
-    if i == -1:
-        return sage_eval(s)
-    else:
-        if s[i+1:] == '0':
-            return sage_eval(s[:i])
-        else:
-            return sage_eval(s[:i])*10**sage_eval(s[i+1:])
-
-    return s  ## returns an odd string
-
-
 #####################################################
 #### combinatorial sets/lists
-
-def combinations(mset,k):
-    r"""
-    A combination of a multiset (a list of objects which may contain
-    the same object several times) mset is an unordered selection
-    without repetitions and is represented by a sorted sublist of ``mset``.
-    Returns the set of all combinations of the multiset ``mset`` with ``k``
-    elements.
-
-    INPUT:
-
-    - ``mset`` -- (list) the multiset presented as a list of objects.
-
-    - ``k`` -- (integer) the size of each set.
-
-    .. NOTE::
-
-        This function is deprecated in favor of
-        :func:`sage.combinat.combination.Combinations`. Use
-        ``Combinations(mset, k).list()`` directly to get the list of
-        combinations of ``mset``.
-
-    EXAMPLES::
-
-        sage: combinations([1,2,3], 2)
-        doctest:...: DeprecationWarning: Use Combinations(mset,k).list()
-        instead. See http://trac.sagemath.org/13821 for details.
-        [[1, 2], [1, 3], [2, 3]]
-        sage: mset = [1,1,2,3,4,4,5]
-        sage: combinations(mset,2)
-        [[1, 1],
-         [1, 2],
-         [1, 3],
-         [1, 4],
-         [1, 5],
-         [2, 3],
-         [2, 4],
-         [2, 5],
-         [3, 4],
-         [3, 5],
-         [4, 4],
-         [4, 5]]
-         sage: mset = ["d","a","v","i","d"]
-         sage: combinations(mset,3)
-         [['d', 'd', 'a'],
-         ['d', 'd', 'v'],
-         ['d', 'd', 'i'],
-         ['d', 'a', 'v'],
-         ['d', 'a', 'i'],
-         ['d', 'v', 'i'],
-         ['a', 'v', 'i']]
-
-    It is possible to take combinations of Sage objects::
-
-        sage: combinations([vector([1,1]), vector([2,2]), vector([3,3])], 2)
-        [[(1, 1), (2, 2)], [(1, 1), (3, 3)], [(2, 2), (3, 3)]]
-    """
-    from sage.combinat.combination import Combinations
-    deprecation(13821, 'Use Combinations(mset,k).list() instead.')
-    return Combinations(mset, k).list()
-
-def combinations_iterator(mset, k=None):
-    """
-    An iterator for combinations of the elements of a multiset ``mset``.
-
-    INPUT:
-
-    - ``mset`` -- (list) the multiset presented as a list of objects.
-
-    - ``k`` -- (integer, default: None) the size of each set.
-
-    .. NOTE::
-
-        This function is deprecated in favor of
-        :func:`sage.combinat.combination.Combinations`. Use
-        ``Combinations(mset, k)`` instead.
-
-    EXAMPLES::
-
-        sage: X = combinations_iterator([1,2,3,4,5],3)
-        doctest:...: DeprecationWarning: Use Combinations(mset,k) instead.
-        See http://trac.sagemath.org/13821 for details.
-        sage: [x for x in X]
-        [[1, 2, 3],
-         [1, 2, 4],
-         [1, 2, 5],
-         [1, 3, 4],
-         [1, 3, 5],
-         [1, 4, 5],
-         [2, 3, 4],
-         [2, 3, 5],
-         [2, 4, 5],
-         [3, 4, 5]]
-    """
-    # It is not possible to use deprecated_function_alias since it leads to
-    # a circular import of combinat from combination and
-    # combination.Combinations from combinat.
-    from sage.combinat.combination import Combinations
-    deprecation(13821, 'Use Combinations(mset,k) instead.')
-    return Combinations(mset, k)
 
 def number_of_combinations(mset,k):
     """
@@ -2301,71 +2172,9 @@ def number_of_combinations(mset,k):
         12
     """
     from sage.combinat.combination import Combinations
+    from sage.misc.superseded import deprecation
     deprecation(14138, 'Use Combinations(mset,k).cardinality() instead.')
     return Combinations(mset,k).cardinality()
-
-def arrangements(mset,k):
-    r"""
-    An arrangement of ``mset`` is an ordered selection without repetitions
-    and is represented by a list that contains only elements from mset,
-    but maybe in a different order.
-
-    ``arrangements`` returns the set of arrangements of the
-    multiset ``mset`` that contain ``k`` elements.
-
-    INPUT:
-
-    - ``mset`` -- (list) the multiset presented as a list of objects.
-
-    - ``k`` -- (integer) the size of each set.
-
-    .. NOTE::
-
-        This function is deprecated in favor of
-        :func:`sage.combinat.permutation.Arrangements`. Use
-        ``Arrangements(mset, k).list()`` directly to get the list of
-        arrangements of ``mset``.
-
-    EXAMPLES::
-
-        sage: arrangements([1,2,3], 2)
-        doctest:...: DeprecationWarning: Use Arrangements(mset,k).list()
-        instead. See http://trac.sagemath.org/13821 for details.
-        [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
-        sage: mset = [1,1,2,3,4,4,5]
-        sage: arrangements(mset,2)
-        [[1, 1],
-         [1, 2],
-         [1, 3],
-         [1, 4],
-         [1, 5],
-         [2, 1],
-         [2, 3],
-         [2, 4],
-         [2, 5],
-         [3, 1],
-         [3, 2],
-         [3, 4],
-         [3, 5],
-         [4, 1],
-         [4, 2],
-         [4, 3],
-         [4, 4],
-         [4, 5],
-         [5, 1],
-         [5, 2],
-         [5, 3],
-         [5, 4]]
-         sage: arrangements( ["c","a","t"], 2 )
-         [['c', 'a'], ['c', 't'], ['a', 'c'],
-          ['a', 't'], ['t', 'c'], ['t', 'a']]
-         sage: arrangements( ["c","a","t"], 3 )
-         [['c', 'a', 't'], ['c', 't', 'a'], ['a', 'c', 't'],
-          ['a', 't', 'c'], ['t', 'c', 'a'], ['t', 'a', 'c']]
-    """
-    from sage.combinat.permutation import Arrangements
-    deprecation(13821, 'Use Arrangements(mset,k).list() instead.')
-    return Arrangements(mset, k).list()
 
 def number_of_arrangements(mset,k):
     """
@@ -2380,6 +2189,7 @@ def number_of_arrangements(mset,k):
         22
     """
     from sage.combinat.permutation import Arrangements
+    from sage.misc.superseded import deprecation
     deprecation(14138, 'Use Arrangements(mset,k).cardinality() instead.')
     return Arrangements(mset, k).cardinality()
 
@@ -2524,6 +2334,10 @@ def number_of_unordered_tuples(S,k):
 
 def permutations(mset):
     """
+    This is deprecated in :trac:`14772`. Use :class:`Permutations` instead.
+    To get the same output as `permutations(mset)`, use
+    ``Permutations(mset).list()``.
+
     A permutation is represented by a list that contains exactly the
     same elements as mset, but possibly in different order. If mset is
     a proper set there are `|mset| !` such permutations.
@@ -2532,13 +2346,14 @@ def permutations(mset):
     of permutations is `|mset|! / (k_1! k_2! \ldots)`, which
     is sometimes called a multinomial coefficient.
 
-    permutations returns the set of all permutations of a multiset.
-    Calls a function written by Mike Hansen, not GAP.
+    ``permutations`` returns the list of all permutations of a multiset.
 
     EXAMPLES::
 
         sage: mset = [1,1,2,2,2]
         sage: permutations(mset)
+        doctest:...: DeprecationWarning: Use the Permutations object instead.
+        See http://trac.sagemath.org/14772 for details.
         [[1, 1, 2, 2, 2],
          [1, 2, 1, 2, 2],
          [1, 2, 2, 1, 2],
@@ -2551,26 +2366,30 @@ def permutations(mset):
          [2, 2, 2, 1, 1]]
         sage: MS = MatrixSpace(GF(2),2,2)
         sage: A = MS([1,0,1,1])
-        sage: permutations(A.rows())
+        sage: rows = A.rows()
+        sage: rows[0].set_immutable()
+        sage: rows[1].set_immutable()
+        sage: permutations(rows)
         [[(1, 0), (1, 1)], [(1, 1), (1, 0)]]
     """
+    from sage.misc.superseded import deprecation
+    deprecation(14772, 'Use the Permutations object instead.')
     from sage.combinat.permutation import Permutations
     ans = Permutations(mset)
     return ans.list()
 
 def permutations_iterator(mset,n=None):
     """
-    Do not use this function. It will be deprecated in future version
-    of Sage and eventually removed. Use Permutations instead; instead
-    of
+    Do not use this function. It is deprecated in :trac:`14138`.
+    Use Permutations instead. For example, instead of
 
-    for p in permutations_iterator(range(1, m+1), n)
+    ``for p in permutations_iterator(range(1, m+1), n)``
 
     use
 
-    for p in Permutations(m, n).
+    ``for p in Permutations(m, n)``.
 
-    Note that Permutations, unlike this function, treats repeated
+    Note that :class:`Permutations`, unlike this function, treats repeated
     elements as identical.
 
     If you insist on using this now:
@@ -2588,9 +2407,11 @@ def permutations_iterator(mset,n=None):
         sage: from sage.combinat.combinat import permutations, permutations_iterator
         sage: mset = [1,2,2]
         sage: permutations(mset)
+        doctest:...: DeprecationWarning: Use the Permutations object instead.
+        See http://trac.sagemath.org/14772 for details.
         [[1, 2, 2], [2, 1, 2], [2, 2, 1]]
         sage: for p in permutations_iterator(mset): print p
-        doctest:1: DeprecationWarning: Use the Permutations object instead.
+        doctest:...: DeprecationWarning: Use the Permutations object instead.
         See http://trac.sagemath.org/14138 for details.
         [1, 2, 2]
         [2, 1, 2]
@@ -2604,6 +2425,7 @@ def permutations_iterator(mset,n=None):
         sage: [x for x in X]
         [[0, 1], [0, 2], [1, 0], [1, 2], [2, 0], [2, 1]]
     """
+    from sage.misc.superseded import deprecation
     deprecation(14138, 'Use the Permutations object instead.')
     items = mset
     if n is None:
@@ -2616,19 +2438,18 @@ def permutations_iterator(mset,n=None):
         else:
             rest = items[:i] + items[i+1:]
             for p in Permutations(rest, n-1):
-                yield v + p
+                yield v + list(p)
 
 def number_of_permutations(mset):
     """
-    Do not use this function. It will be deprecated in future version
-    of Sage and eventually removed. Use Permutations instead; instead
-    of
+    Do not use this function. It was deprecated in :trac:`14138`.
+    Use :class:`Permutations` instead. For example, instead of
 
-    number_of_permutations(mset)
+    ``number_of_permutations(mset)``
 
     use
 
-    Permutations(mset).cardinality().
+    ``Permutations(mset).cardinality()``.
 
     If you insist on using this now:
 
@@ -2642,18 +2463,25 @@ def number_of_permutations(mset):
 
         sage: mset = [1,1,2,2,2]
         sage: number_of_permutations(mset)
-        doctest:1: DeprecationWarning: Use the Permutations object instead.
+        doctest:...: DeprecationWarning: Use the Permutations object instead.
         See http://trac.sagemath.org/14138 for details.
         10
     """
+    from sage.misc.superseded import deprecation
     deprecation(14138, 'Use the Permutations object instead.')
     from sage.combinat.permutation import Permutations
     return Permutations(mset).cardinality()
 
 def cyclic_permutations(mset):
     """
-    Returns a list of all cyclic permutations of mset. Treats mset as a
-    list, not a set, i.e. entries with the same value are distinct.
+    This function is deprecated in :trac:`14772`. Use instead
+    :class:`CyclicPermutations`.
+
+    Return a list of all cyclic permutations of ``mset``. Treats ``mset``
+    as a list, not a set, i.e. entries with the same value are distinct.
+
+    Note that :class:`CyclicPermutations`, unlike this function, treats
+    repeated elements as identical.
 
     AUTHORS:
 
@@ -2663,9 +2491,13 @@ def cyclic_permutations(mset):
 
         sage: from sage.combinat.combinat import cyclic_permutations, cyclic_permutations_iterator
         sage: cyclic_permutations(range(4))
+        doctest:...: DeprecationWarning: Use the CyclicPermutations object instead.
+        See http://trac.sagemath.org/14772 for details.
+        doctest:...: DeprecationWarning: Use the CyclicPermutations object instead.
+        See http://trac.sagemath.org/14772 for details.
         [[0, 1, 2, 3], [0, 1, 3, 2], [0, 2, 1, 3], [0, 2, 3, 1], [0, 3, 1, 2], [0, 3, 2, 1]]
         sage: for cycle in cyclic_permutations(['a', 'b', 'c']):
-        ...       print cycle
+        ....:     print cycle
         ['a', 'b', 'c']
         ['a', 'c', 'b']
 
@@ -2674,13 +2506,21 @@ def cyclic_permutations(mset):
         sage: cyclic_permutations([1,1,1])
         [[1, 1, 1]]
     """
+    from sage.misc.superseded import deprecation
+    deprecation(14772, 'Use the CyclicPermutations object instead.')
     return list(cyclic_permutations_iterator(mset))
 
 def cyclic_permutations_iterator(mset):
     """
-    Iterates over all cyclic permutations of mset in cycle notation.
-    Treats mset as a list, not a set, i.e. entries with the same value
+    This function is deprecated in :trac:`14772`. Use instead
+    :class:`CyclicPermutations`.
+
+    Iterates over all cyclic permutations of ``mset`` in cycle notation.
+    Treats ``mset`` as a list, not a set, i.e. entries with the same value
     are distinct.
+
+    Note that :class:`CyclicPermutations`, unlike this function, treats
+    repeated elements as identical.
 
     AUTHORS:
 
@@ -2690,9 +2530,11 @@ def cyclic_permutations_iterator(mset):
 
         sage: from sage.combinat.combinat import cyclic_permutations, cyclic_permutations_iterator
         sage: cyclic_permutations(range(4))
+        doctest:...: DeprecationWarning: Use the CyclicPermutations object instead.
+        See http://trac.sagemath.org/14772 for details.
         [[0, 1, 2, 3], [0, 1, 3, 2], [0, 2, 1, 3], [0, 2, 3, 1], [0, 3, 1, 2], [0, 3, 2, 1]]
         sage: for cycle in cyclic_permutations(['a', 'b', 'c']):
-        ...       print cycle
+        ....:     print cycle
         ['a', 'b', 'c']
         ['a', 'c', 'b']
 
@@ -2701,11 +2543,12 @@ def cyclic_permutations_iterator(mset):
         sage: cyclic_permutations([1,1,1])
         [[1, 1, 1]]
     """
+    from sage.misc.superseded import deprecation
+    deprecation(14772, 'Use the CyclicPermutations object instead.')
     if len(mset) > 2:
         from sage.combinat.permutation import Permutations
-
         for perm in Permutations(mset[1:]):
-            yield [mset[0]] + perm
+            yield [mset[0]] + list(perm)
     else:
         yield mset
 
@@ -2925,7 +2768,7 @@ def bernoulli_polynomial(x, n):
         if n < 0:
             raise TypeError
     except TypeError:
-        raise ValueError, "The second argument must be a non-negative integer"
+        raise ValueError("The second argument must be a non-negative integer")
 
     if n == 0:
         return ZZ(1)

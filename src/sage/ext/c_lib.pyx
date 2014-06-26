@@ -21,6 +21,111 @@ AUTHORS:
 
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/interrupt.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/signals.pxi'
+
+class AlarmInterrupt(KeyboardInterrupt):
+    """
+    Exception class for :func:`alarm` timeouts.
+
+    EXAMPLES::
+
+        sage: raise AlarmInterrupt
+        Traceback (most recent call last):
+        ...
+        AlarmInterrupt
+        sage: from sage.ext.c_lib import do_raise_exception
+        sage: import signal
+        sage: do_raise_exception(signal.SIGALRM)
+        Traceback (most recent call last):
+        ...
+        AlarmInterrupt
+    """
+    pass
+
+class SignalError(BaseException):
+    """
+    Exception class for critical signals such as ``SIGSEGV``. Inherits
+    from ``BaseException`` because these normally should not be handled.
+
+    EXAMPLES::
+
+        sage: from sage.ext.c_lib import do_raise_exception
+        sage: import signal
+        sage: do_raise_exception(signal.SIGSEGV)
+        Traceback (most recent call last):
+        ...
+        SignalError: Segmentation fault
+    """
+    pass
+
+cdef int sig_raise_exception(int sig, const char* msg) except 0:
+    """
+    Raise an exception for signal number ``sig`` with message ``msg``
+    (or a default message if ``msg`` is ``NULL``).
+    """
+    if sig == SIGHUP or sig == SIGTERM:
+        # Redirect stdin from /dev/null to close interactive sessions
+        freopen("/dev/null", "r", stdin);
+        # This causes Python to exit
+        raise SystemExit
+    if sig == SIGINT:
+        raise KeyboardInterrupt
+    if sig == SIGALRM:
+        if msg == NULL:
+            msg = ""
+        raise AlarmInterrupt(msg)
+    if sig == SIGILL:
+        if msg == NULL:
+            msg = "Illegal instruction"
+        raise SignalError(msg)
+    if sig == SIGABRT:
+        if msg == NULL:
+            msg = "Aborted"
+        raise RuntimeError(msg)
+    if sig == SIGFPE:
+        if msg == NULL:
+            msg = "Floating point exception"
+        raise FloatingPointError(msg)
+    if sig == SIGBUS:
+        if msg == NULL:
+            msg = "Bus error"
+        raise SignalError(msg)
+    if sig == SIGSEGV:
+        if msg == NULL:
+            msg = "Segmentation fault";
+        raise SignalError(msg)
+
+    raise SystemError("unknown signal number %s"%sig)
+
+def do_raise_exception(sig, msg=None):
+    """
+    Python version of :func:`sig_raise_exception`, just for doctesting.
+
+    EXAMPLES::
+
+        sage: from sage.ext.c_lib import do_raise_exception
+        sage: import signal
+        sage: do_raise_exception(signal.SIGFPE)
+        Traceback (most recent call last):
+        ...
+        FloatingPointError: Floating point exception
+        sage: do_raise_exception(signal.SIGBUS, "CUSTOM MESSAGE")
+        Traceback (most recent call last):
+        ...
+        SignalError: CUSTOM MESSAGE
+        sage: do_raise_exception(0)
+        Traceback (most recent call last):
+        ...
+        SystemError: unknown signal number 0
+    """
+    cdef const char* m
+    if msg is None:
+        m = NULL
+    else:
+        m = msg
+    sig_raise_exception(sig, m)
+
 
 def _init_csage():
     """
@@ -41,6 +146,7 @@ def _init_csage():
     signal.signal(signal.SIGINT, sage_python_check_interrupt)
 
     init_csage()
+    _signals.raise_exception = sig_raise_exception
 
 
 def _sig_on_reset():

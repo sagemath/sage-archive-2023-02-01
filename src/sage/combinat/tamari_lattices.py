@@ -169,7 +169,7 @@ def GeneralizedTamariLattice(a,b,m=1):
     When the slope `m` is `0`, two paths are comparable if and only if
     one is always above the other.
 
-    The usual :wikipedia:`Tamari lattice<Tamari lattice>` of index `b` is the special
+    The usual :wikipedia:`Tamari lattice<Tamari_lattice>` of index `b` is the special
     case `a=b+1` and `m=1`.
 
     Other special cases give the `m`-Tamari lattices studied in [BMFPR]_.
@@ -225,7 +225,7 @@ def TamariLattice(n):
 
     The elements of the lattice are :func:`Dyck paths<sage.combinat.dyck_word.DyckWord>` in the `(n+1 \times n)`-rectangle.
 
-    See :wikipedia:`Tamari lattice<Tamari lattice>` for mathematical background.
+    See :wikipedia:`Tamari lattice<Tamari_lattice>` for mathematical background.
 
     EXAMPLES::
 

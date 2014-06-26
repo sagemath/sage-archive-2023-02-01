@@ -1,8 +1,6 @@
-cimport matrix_dense
+from sage.ext.mod_int cimport *
 
-cdef extern from "../ext/multi_modular.h":
-    ctypedef unsigned long mod_int
-    mod_int MOD_INT_OVERFLOW
+cimport matrix_dense
 
 cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     cdef mod_int **_matrix

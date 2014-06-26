@@ -47,7 +47,7 @@ cdef double c_f(double t,void *params):
          value=wrapper.the_function(t,wrapper.the_parameters)
       else:
          value=wrapper.the_function(t)
-   except Exception, msg:
+   except Exception as msg:
       print msg
       return 0
 

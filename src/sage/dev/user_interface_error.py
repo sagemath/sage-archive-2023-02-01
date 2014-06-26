@@ -17,6 +17,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+
 class OperationCancelledError(RuntimeError):
     r"""
     Indicates that the user cancelled an interactive action, e.g., the user was
@@ -29,7 +31,6 @@ class OperationCancelledError(RuntimeError):
         Traceback (most recent call last):
         ...
         OperationCancelledError: cancelled
-
     """
     def __init__(self, reason):
         r"""
@@ -40,6 +41,5 @@ class OperationCancelledError(RuntimeError):
             sage: from sage.dev.user_interface_error import OperationCancelledError
             sage: type(OperationCancelledError("cancelled"))
             <class 'sage.dev.user_interface_error.OperationCancelledError'>
-
         """
         RuntimeError.__init__(self, reason)

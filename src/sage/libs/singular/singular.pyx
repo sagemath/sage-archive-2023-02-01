@@ -43,8 +43,8 @@ from sage.libs.singular.decl cimport WerrorS_callback, const_char_ptr
 from sage.rings.rational_field import RationalField
 from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
+from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn
-from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.finite_rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 from sage.libs.pari.all import pari
@@ -159,7 +159,7 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
     order = cache.objectptr.cardinality() - 1
 
     while z:
-        c = cache.objectptr.initi(c,<long>napGetCoeff(z))
+        c = cache.objectptr.initi(c, <long>napGetCoeff(z))
         e = napGetExpFrom(z,1, _ring)
         if e == 0:
             ret = cache.objectptr.add(ret, c, ret)
@@ -182,7 +182,8 @@ cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, Cache_ntl_gf2e cache):
         <type 'sage.rings.finite_rings.element_ntl_gf2e.FiniteField_ntl_gf2eElement'>
     """
     cdef napoly *z
-    cdef int c, e
+    cdef long c
+    cdef int e
     cdef FFgf2eE a
     cdef FFgf2eE ret
 
@@ -202,7 +203,7 @@ cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, Cache_ntl_gf2e cache):
         z = <napoly*>pNext(<poly*>z)
     return ret
 
-cdef object si2sa_GFqPari(number *n, ring *_ring, object base):
+cdef object si2sa_GFq_generic(number *n, ring *_ring, object base):
     """
     TESTS::
 
@@ -212,21 +213,31 @@ cdef object si2sa_GFqPari(number *n, ring *_ring, object base):
         sage: f.lc()
         a^12 + a^11 + a^9 + a^8 + a^7 + 2*a^6 + a^5
         sage: type(f.lc())
-        <class 'sage.rings.finite_rings.element_ext_pari.FiniteField_ext_pariElement_with_category'>
+        <type 'sage.rings.finite_rings.element_pari_ffelt.FiniteFieldElement_pari_ffelt'>
+
+    Try the largest characteristic which Singular supports::
+
+        sage: p = previous_prime(2^31)
+        sage: F.<a> = FiniteField(p^2)
+        sage: R.<x,y> = F[]
+        sage: R(-1).constant_coefficient()  # indirect doctest
+        2147483646
+
     """
     cdef napoly *z
-    cdef int c, e
+    cdef long c
+    cdef int e
     cdef object a
     cdef object ret
 
     if naIsZero(n):
-        return base._zero_element
+        return base.zero_element()
     elif naIsOne(n):
-        return base._one_element
+        return base.one_element()
     z = (<lnumber*>n).z
 
-    a = pari("a")
-    ret = pari(int(0)).Mod(int(_ring.ch))
+    a = base.gen()
+    ret = base.zero_element()
 
     while z:
         c = <long>napGetCoeff(z)
@@ -236,7 +247,7 @@ cdef object si2sa_GFqPari(number *n, ring *_ring, object base):
         elif c != 0:
             ret = ret  + c * a**e
         z = <napoly*>pNext(<poly*>z)
-    return base(ret)
+    return ret
 
 cdef object si2sa_NF(number *n, ring *_ring, object base):
     """
@@ -408,20 +419,20 @@ cdef number *sa2si_GFqNTLGF2E(FFgf2eE elem, ring *_ring):
 
     return n1
 
-cdef number *sa2si_GFqPari(object elem, ring *_ring):
+cdef number *sa2si_GFq_generic(object elem, ring *_ring):
     """
     """
     cdef int i
     cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
-    elem = elem._pari_().lift().lift()
+    elem = elem.polynomial()
 
     if _ring != currRing: rChangeCurrRing(_ring)
-    if len(elem) > 1:
+    if elem.degree() > 0:
         n1 = naInit(0, _ring)
         a = naPar(1)
         apow1 = naInit(1, _ring)
 
-        for i from 0 <= i < len(elem):
+        for i from 0 <= i <= elem.degree():
             coeff = naInit(int(elem[i]), _ring)
 
             if not naIsZero(coeff):
@@ -556,11 +567,11 @@ cdef object si2sa(number *n, ring *_ring, object base):
     elif PY_TYPE_CHECK(base, FiniteField_givaro):
         return si2sa_GFqGivaro(n, _ring, base._cache)
 
-    elif PY_TYPE_CHECK(base, FiniteField_ext_pari):
-        return si2sa_GFqPari(n, _ring, base)
-
     elif PY_TYPE_CHECK(base, FiniteField_ntl_gf2e):
         return si2sa_GFqNTLGF2E(n, _ring, <Cache_ntl_gf2e>base._cache)
+
+    elif PY_TYPE_CHECK(base, FiniteField):
+        return si2sa_GFq_generic(n, _ring, base)
 
     elif PY_TYPE_CHECK(base, NumberField) and base.is_absolute():
         return si2sa_NF(n, _ring, base)
@@ -587,11 +598,11 @@ cdef number *sa2si(Element elem, ring * _ring):
     elif isinstance(elem._parent, FiniteField_givaro):
         return sa2si_GFqGivaro( (<FFgivE>elem)._cache.objectptr.convert(i, (<FFgivE>elem).element ), _ring )
 
-    elif PY_TYPE_CHECK(elem._parent, FiniteField_ext_pari):
-        return sa2si_GFqPari(elem, _ring)
-
     elif PY_TYPE_CHECK(elem._parent, FiniteField_ntl_gf2e):
         return sa2si_GFqNTLGF2E(elem, _ring)
+
+    elif PY_TYPE_CHECK(elem._parent, FiniteField):
+        return sa2si_GFq_generic(elem, _ring)
 
     elif PY_TYPE_CHECK(elem._parent, NumberField) and elem._parent.is_absolute():
         return sa2si_NF(elem, _ring)

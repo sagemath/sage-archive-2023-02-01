@@ -55,22 +55,21 @@ REFERENCES:
 
 .. [Go09] Alexey G. Gorinov, "Combinatorics of double cosets and fundamental
    domains for the subgroups of the modular group", preprint
-   http://arxiv.org/abs/0901.1340
+   :arxiv:`0901.1340`
 
 .. [KSV11] Ian Kiming, Matthias Schuett and Helena Verrill, "Lifts of
    projective congruence groups", J. London Math. Soc. (2011) 83 (1): 96-120,
    http://dx.doi.org/10.1112/jlms/jdq062. Arxiv version:
-   http://arxiv.org/abs/0905.4798.
+   :arxiv:`0905.4798`.
 
 .. [Kul91] Ravi Kulkarni "An arithmetic geometric method in the study of the
    subgroups of the modular group", American Journal of Mathematics 113 (1991),
    no 6, 1053-1133
 
-.. [Kur08] Chris Kurth, "K Farey package for Sage",
-   http://www.public.iastate.edu/~kurthc/research/index.html
+.. [Kur08] Chris Kurth, "K Farey package for Sage"
 
 .. [KuLo] Chris Kurth and Ling Long, "Computations with finite index subgroups
-   of `{\rm PSL}_2(\ZZ)` using Farey symbols"
+   of `{\rm PSL}_2(\ZZ)` using Farey symbols", :arxiv:`0710.1835`
 
 .. [Ve] Helena Verrill, "Fundamental domain drawer", Java program,
    http://www.math.lsu.edu/~verrill/
@@ -120,14 +119,11 @@ AUTHORS:
 
 from all import SL2Z
 from arithgroup_generic import ArithmeticSubgroup
-from arithgroup_element import ArithmeticSubgroupElement
-from sage.rings.all import Zmod, ZZ
-from sage.rings.infinity import Infinity
+from sage.rings.all import Zmod
 from sage.misc.cachefunc import cached_method
 import sage.rings.arith as arith
 
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-
 
 Idm = SL2Z([1,0,0,1])    # identity
 
@@ -392,11 +388,11 @@ def ArithmeticSubgroup_Permutation(
          L=(1,2)(3,5,4)
          R=(1,2)(3,4,5)
     """
-    gens = filter(lambda x: x is not None, [S2,S3,L,R])
+    gens = [x for x in [S2,S3,L,R] if x is not None]
     if len(gens) == 0:
         S2 = S3 = L = R = ''
     elif len(gens) < 2:
-        raise ValueError, "Need at least two generators"
+        raise ValueError("Need at least two generators")
 
     if S2 is not None:
         S2 = PermutationGroupElement(S2,check=check)
@@ -441,15 +437,15 @@ def ArithmeticSubgroup_Permutation(
             R = S3 * S2
 
     if check and (L != ~S3 * ~S2 or R != S3 * S2):
-        raise ValueError, "Wrong relations between generators"
+        raise ValueError("Wrong relations between generators")
 
     inv = S2*S2
 
     if check:
         if inv != S3*S3*S3:
-            raise ValueError, "S2^2 does not equal to S3^3"
+            raise ValueError("S2^2 does not equal to S3^3")
         elif not (inv*inv).is_one():
-            raise ValueError, "S2^2 = S3^3 must have order 1 or 2"
+            raise ValueError("S2^2 = S3^3 must have order 1 or 2")
 
         # Check transitivity. This is the most expensive check, so we do it
         # last.
@@ -457,7 +453,7 @@ def ArithmeticSubgroup_Permutation(
 
         G = PermutationGroup(gens)
         if not G.is_transitive():
-            raise ValueError, "Permutations do not generate a transitive group"
+            raise ValueError("Permutations do not generate a transitive group")
 
     s2 = [i-1 for i in S2.domain()]
     s3 = [i-1 for i in S3.domain()]
@@ -514,16 +510,15 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         True
 
         sage: G = ArithmeticSubgroup_Permutation(S2='',S3='')
-        sage: G == loads(dumps(G))
-        True
+        sage: TestSuite(G).run()
 
         sage: S2 = '(1,2)(3,4)(5,6)'
         sage: S3 = '(1,2,3)(4,5,6)'
         sage: G = ArithmeticSubgroup_Permutation(S2=S2, S3=S3)
-        sage: loads(dumps(G)) == G
-        True
+        sage: TestSuite(G).run()
     """
-    def __eq__(self, other):
+
+    def __cmp__(self, other):
         r"""
         Equality test.
 
@@ -547,15 +542,16 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         """
         if isinstance(other, ArithmeticSubgroup_Permutation_class):
 
-            return (self.is_odd() == other.is_odd() and
-                    self.index() == other.index() and
-                    self.relabel(inplace=False)._S2 == other.relabel(inplace=False)._S2 and
-                    self.relabel(inplace=False)._S3 == other.relabel(inplace=False)._S3)
+            return (cmp(self.is_odd(), other.is_odd()) or
+                    cmp(self.index(), other.index()) or
+                    cmp(self.relabel(inplace=False)._S2, other.relabel(inplace=False)._S2) or
+                    cmp(self.relabel(inplace=False)._S3, other.relabel(inplace=False)._S3))
 
         elif isinstance(other, ArithmeticSubgroup):
-            return self == other.as_permutation_group()
+            return cmp(self, other.as_permutation_group())
 
-        raise NotImplemented
+        else:
+            return cmp(type(self), type(other))
 
     def __hash__(self):
         r"""
@@ -939,7 +935,6 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         n = len(x)
 
         k = 0
-        seen = [True] * n
         mapping = [None] * n
         waiting = []
 
@@ -1007,9 +1002,9 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
 
         return (l_cycle_length, r_cycle_length)
 
-    def __contains__(self, x):
+    def _contains_sl2(self, a,b,c,d):
         r"""
-        Test whether ``x`` is in the group or not.
+        Test whether ``[a,b;c,d]`` is in the group or not.
 
         ALGORITHM:
 
@@ -1033,10 +1028,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             sage: m4 in P
             False
         """
-        #if x.parent() is self or x.parent() == self: return True
-        if x not in SL2Z: return False
-
-        w = sl2z_word_problem(x)
+        w = sl2z_word_problem([a,b,c,d])
 
         perms = [self.relabel(inplace=False)._L,self.relabel(inplace=False)._R]
         widths = self._index_to_lr_cusp_width()
@@ -1102,31 +1094,6 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             (1,4,6,2,10,5,3,7,8,9)
         """
         return word_of_perms(sl2z_word_problem(x), self.L(), self.R())
-
-    def __call__(self, g, check=True):
-        r"""
-        Create an element of this group from ``g``. If check=True (the default),
-        perform the (possibly rather computationally-intensive) check to make
-        sure ``g`` is in this group.
-
-        EXAMPLE::
-
-            sage: import sage.modular.arithgroup.arithgroup_perm as ap
-            sage: m = SL2Z([1,1,0,1])
-            sage: m in ap.HsuExample10()
-            False
-            sage: ap.HsuExample10()(m)
-            Traceback (most recent call last):
-            ...
-            TypeError: The element is not in group
-            sage: ap.HsuExample10()(m, check=False)
-            [1 1]
-            [0 1]
-        """
-        g = SL2Z(g, check=check)
-        if not check or g in self:
-            return g
-        raise TypeError, "The element is not in group"
 
     #
     # Group stuff
@@ -1356,8 +1323,7 @@ class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
              S3=(1,3)(2,4)
              L=(1,2,3,4)
              R=(1,4,3,2)
-            sage: loads(dumps(G)) == G
-            True
+            sage: TestSuite(G).run()
         """
         self._S2 = S2
         self._S3 = S3
@@ -1365,6 +1331,7 @@ class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
         self._R = R
         if canonical_labels:
             self._canonical_label_group = self
+        ArithmeticSubgroup_Permutation_class.__init__(self)
 
     def __reduce__(self):
         r"""
@@ -1450,10 +1417,10 @@ class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
                 e.append((i,j))
 
         # build the quotient permutations
-        ss2 = [None]*(N/2)
-        ss3 = [None]*(N/2)
-        ll = [None]*(N/2)
-        rr = [None]*(N/2)
+        ss2 = [None]*(N//2)
+        ss3 = [None]*(N//2)
+        ll = [None]*(N//2)
+        rr = [None]*(N//2)
 
         s3 = self._S3
         l = self._L
@@ -1736,6 +1703,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
         self._R = R
         if canonical_labels:
             self._canonical_label_group = self
+        ArithmeticSubgroup_Permutation_class.__init__(self)
 
     def __reduce__(self):
         r"""
@@ -2003,7 +1971,6 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
         Take care of the shape of the spanning tree as in Helena Verrill's program.
         """
         from sage.misc.prandom import randint
-        from copy import copy
 
         if on_right:
             s = self._S2
@@ -2120,7 +2087,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             elif e[2] == 's3':
                 gens.append(self(reps[e[0]] * S3m * ~reps[e[1]]))
             else:
-                raise ValueError, "this should not happen"
+                raise ValueError("this should not happen")
 
         return reps, gens, self._S2[:], self._S3[:]
 
@@ -2167,7 +2134,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             elif e[2] == 's':
                 gens.append(self(reps[e[0]] * S2m * ~reps[e[1]]))
             else:
-                raise ValueError, "this should not happen"
+                raise ValueError("this should not happen")
 
         return reps, gens, self._L[:], self._S2[:]
 
@@ -2434,7 +2401,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             True
         """
         if self.nu2() != 0:
-            raise ValueError, "Group contains an element of order 4, hence no index 2 odd subgroups"
+            raise ValueError("Group contains an element of order 4, hence no index 2 odd subgroups")
         n = self.index()
         s2old, s3old = self.S2(), self.S3()
         s2cycs = s2old.cycle_tuples() # no singletons can exist

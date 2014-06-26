@@ -25,6 +25,17 @@ AUTHORS:
 cdef class _lazy_attribute(object):
     """
     Cython base class for lazy attributes.
+
+    EXAMPLE:
+
+    Only Python subclasses of this class are supposed to be instantiated::
+
+        sage: from sage.misc.lazy_attribute import _lazy_attribute
+        sage: _lazy_attribute(lambda x:1)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Only instantiate wrapper python class
+
     """
 
     cdef public f
@@ -62,21 +73,21 @@ cdef class _lazy_attribute(object):
             sage: Parent.element_class.__module__
             'sage.misc.lazy_attribute'
         """
-        raise NotImplemented("Only instantiate wrapper python class")
+        raise NotImplementedError("Only instantiate wrapper python class")
 
     def _sage_src_lines_(self):
         r"""
         Returns the source code location for the wrapped function.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.misc.sageinspect import sage_getsourcelines
             sage: g = lazy_attribute(banner)
             sage: (src, lines) = sage_getsourcelines(g)
             sage: src[0]
             'def banner():\n'
             sage: lines
-            77
-
+            78
         """
         from sage.misc.sageinspect import sage_getsourcelines
         return sage_getsourcelines(self.f)
@@ -106,7 +117,7 @@ cdef class _lazy_attribute(object):
             if CM is None:
                 CM = {}
                 setattr(a, '__cached_methods', CM)
-        except AttributeError,msg:
+        except AttributeError as msg:
             CM = None
         if CM is not None:
             try:
@@ -581,12 +592,12 @@ class lazy_attribute(_lazy_attribute):
             '__main__'
         """
         self.f = f
-        if hasattr(f, "func_doc"):
-            self.__doc__ = f.func_doc
+        if hasattr(f, "__doc__"):
+            self.__doc__ = f.__doc__
         elif hasattr(f, "__doc__"): # Needed to handle Cython methods
             self.__doc__ = f.__doc__
-        if hasattr(f, "func_name"):
-            self.__name__ = f.func_name
+        if hasattr(f, "__name__"):
+            self.__name__ = f.__name__
         elif hasattr(f, "__name__"): # Needed to handle Cython methods
             self.__name__ = f.__name__
         if hasattr(f, "__module__"):

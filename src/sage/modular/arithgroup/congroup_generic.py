@@ -28,9 +28,8 @@ from sage.sets.set import Set
 from sage.groups.matrix_gps.all import MatrixGroup
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.misc_c import prod
+from arithgroup_generic import ArithmeticSubgroup
 
-from arithgroup_element import ArithmeticSubgroupElement
-from arithgroup_generic import ArithmeticSubgroup, is_ArithmeticSubgroup
 
 def CongruenceSubgroup_constructor(*args):
     r"""
@@ -91,7 +90,7 @@ def CongruenceSubgroup_constructor(*args):
     if is_MatrixGroup(args[0]):
         G = args[0]
 
-    elif type(args[0]) == type([]):
+    elif isinstance(args[0], type([])):
         G = MatrixGroup(args[0])
 
     elif args[0] in ZZ:
@@ -100,10 +99,10 @@ def CongruenceSubgroup_constructor(*args):
 
     R = G.matrix_space().base_ring()
     if not hasattr(R, "cover_ring") or R.cover_ring() != ZZ:
-        raise TypeError, "Ring of definition must be Z / NZ for some N"
+        raise TypeError("Ring of definition must be Z / NZ for some N")
 
     if not all([x.matrix().det() == 1 for x in G.gens()]):
-        raise ValueError, "Group must be contained in SL(2, Z / N)"
+        raise ValueError("Group must be contained in SL(2, Z / N)")
     GG = _minimize_level(G)
     if GG in ZZ:
         from all import Gamma
@@ -153,9 +152,22 @@ class CongruenceSubgroupBase(ArithmeticSubgroup):
         """
         level = ZZ(level)
         if level <= 0:
-            raise ArithmeticError, "Congruence groups only defined for positive levels."
+            raise ArithmeticError("Congruence groups only defined for positive levels.")
         self.__level = level
         ArithmeticSubgroup.__init__(self)
+
+    def _an_element_(self):
+        r"""
+        Return an element of self (mainly for use by the test suite).
+
+        EXAMPLE::
+
+            sage: Gamma(3).an_element() # indirect doctest
+            [-2 -3]
+            [ 3  4]
+        """
+        N = self.level()
+        return self([1-N, -N, N, 1+N])
 
     def is_congruence(self):
         r"""
@@ -197,8 +209,17 @@ class CongruenceSubgroupBase(ArithmeticSubgroup):
             sage: CongruenceSubgroup(3,[ [1,1,0,1] ]) == QQ
             False
         """
+        # This is carefully laid out so it can be called early on in the Sage
+        # startup process when we want to create the standard generators of
+        # SL2Z for use in arithgroup_perm. Hence it must work in this case
+        # without being able to import the arithgroup_perm module. That's why
+        # the most general case is *first*, not last.
+        # Note that lazy_import doesn't work here, because it doesn't play
+        # nicely with isinstance().
+        if not isinstance(other, ArithmeticSubgroup):
+            return cmp(type(self), type(other))
 
-        if is_CongruenceSubgroup(other):
+        elif is_CongruenceSubgroup(other):
             t = cmp(self.level(), other.level())
             if t: return t
             if self.level() == 1: return 0 # shouldn't come up except with pickling/unpickling
@@ -206,11 +227,13 @@ class CongruenceSubgroupBase(ArithmeticSubgroup):
             if t: return t
             return cmp(self.image_mod_n(),other.image_mod_n())
 
-        elif is_ArithmeticSubgroup(other):
+        from sage.modular.arithgroup.arithgroup_perm import ArithmeticSubgroup_Permutation_class
+        if isinstance(other, ArithmeticSubgroup_Permutation_class):
             return cmp(self.as_permutation_group(), other)
 
         else:
-            return cmp(type(self), type(other))
+            # we shouldn't ever get here
+            raise NotImplementedError
 
 class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
     r"""
@@ -233,8 +256,7 @@ class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
         [0 4]
         [1 0]
         )
-        sage: G == loads(dumps(G))
-        True
+        sage: TestSuite(G).run()
     """
 
     def __init__(self, G):
@@ -268,12 +290,9 @@ class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
         """
         return CongruenceSubgroup_constructor, (self.image_mod_n(),)
 
-    def __call__(self, x, check=True):
+    def _contains_sl2(self, a,b,c,d):
         r"""
-        Attempt to convert `x` into an element of self. This converts `x` into
-        an element of `SL(2, \ZZ)`. If ``check`` is True (the default) it
-        checks if the resulting element is in self, and otherwise raises an
-        error.
+        Test whether ``[a,b;c,d]`` is an element of self.
 
         EXAMPLE::
 
@@ -285,8 +304,12 @@ class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
             sage: H([0,-1,1,0])
             Traceback (most recent call last):
             ...
-            TypeError: Element [ 0 -1]
-            [ 1 0] not in group
+            TypeError: matrix [ 0 -1]
+            [ 1  0] is not an element of Congruence subgroup of SL(2,Z) of level 2, preimage of:
+             Matrix group over Ring of integers modulo 2 with 1 generators (
+            [1 1]
+            [1 0]
+            )
             sage: H([1,2,0,1])
             [1 2]
             [0 1]
@@ -296,16 +319,7 @@ class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
             sage: H([1,2,0,1]).parent()
             Modular Group SL(2,Z)
         """
-        from sage.modular.arithgroup.all import SL2Z
-        x = SL2Z(x,check=check)
-        if not check:
-            return x
-        else:
-            y = x.matrix().change_ring(Zmod(self.level()))
-            if y in self.image_mod_n():
-                return x
-            else:
-                raise TypeError, "Element %s not in group" % x
+        return ([a,b,c,d] in self.image_mod_n())
 
     def to_even_subgroup(self):
         r"""
@@ -375,14 +389,14 @@ class CongruenceSubgroup(CongruenceSubgroupFromGroup):
     `\Gamma(N)`, or `\Gamma_H(N)` (for some `H`).
 
     This class is not intended to be instantiated directly. Derived subclasses
-    must override ``__call__``, ``_repr_``, and ``image_mod_n``.
+    must override ``_contains_sl2``, ``_repr_``, and ``image_mod_n``.
     """
 
     def image_mod_n(self):
         r"""
         Raise an error: all derived subclasses should override this function.
 
-        EXAMPLE:
+        EXAMPLE::
 
             sage: sage.modular.arithgroup.congroup_generic.CongruenceSubgroup(5).image_mod_n()
             Traceback (most recent call last):
@@ -489,7 +503,7 @@ class CongruenceSubgroup(CongruenceSubgroupFromGroup):
         from all import Gamma0, Gamma1, GammaH
         N = self.level()
         if (level%N) and (N%level):
-            raise ValueError, "one level must divide the other"
+            raise ValueError("one level must divide the other")
         if is_Gamma0(self):
             return Gamma0(level)
         elif is_Gamma1(self):

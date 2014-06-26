@@ -5,7 +5,8 @@ from sage.combinat.combinat import CombinatorialObject, CombinatorialClass
 from sage.combinat.words.word import Word
 from sage.combinat.combination import Combinations
 from sage.combinat.permutation import Permutation
-from sage.rings.all import QQ, PolynomialRing, prod
+from sage.rings.all import QQ, PolynomialRing
+from sage.misc.misc import prod
 from sage.combinat.backtrack import GenericBacktracker
 import copy
 
@@ -28,8 +29,8 @@ class LatticeDiagram(CombinatorialObject):
 
     def __getitem__(self, i):
         """
-        Returns the `i^{th}` entry of ``self``. Note that the indexing
-        starts for lattice diagrams starts at `1`.
+        Return the `i^{th}` entry of ``self``. Note that the indexing
+        for lattice diagrams starts at `1`.
 
         EXAMPLES::
 
@@ -44,14 +45,14 @@ class LatticeDiagram(CombinatorialObject):
             2
         """
         if i == 0:
-            raise ValueError, "indexing starts at 1"
+            raise ValueError("indexing starts at 1")
         elif i < 0:
             i += 1
         return self._list[i-1]
 
     def leg(self, i, j):
         """
-        Returns the leg of the box (i,j) in self.
+        Return the leg of the box ``(i,j)`` in ``self``.
 
         EXAMPLES::
 
@@ -63,7 +64,7 @@ class LatticeDiagram(CombinatorialObject):
 
     def arm_left(self, i, j):
         """
-        Returns the left arm of the box (i,j) in self.
+        Return the left arm of the box ``(i,j)`` in ``self``.
 
         EXAMPLES::
 
@@ -75,7 +76,7 @@ class LatticeDiagram(CombinatorialObject):
 
     def arm_right(self, i, j):
         """
-        Returns the right arm of the box (i,j) in self.
+        Return the right arm of the box ``(i,j)`` in ``self``.
 
         EXAMPLES::
 
@@ -87,7 +88,7 @@ class LatticeDiagram(CombinatorialObject):
 
     def arm(self, i, j):
         """
-        Returns the arm of the box (i,j) in self.
+        Return the arm of the box ``(i,j)`` in ``self``.
 
         EXAMPLES::
 
@@ -99,7 +100,7 @@ class LatticeDiagram(CombinatorialObject):
 
     def l(self, i, j):
         """
-        Returns the self[i] - j.
+        Return ``self[i] - j``.
 
         EXAMPLES::
 
@@ -112,7 +113,7 @@ class LatticeDiagram(CombinatorialObject):
 
     def a(self, i, j):
         """
-        Returns len(self.arm(i,j)).
+        Return the length of the arm of the box ``(i,j)`` in ``self``.
 
         EXAMPLES::
 
@@ -125,7 +126,7 @@ class LatticeDiagram(CombinatorialObject):
 
     def size(self):
         """
-        Returns the number of boxes in self.
+        Return the number of boxes in ``self``.
 
         EXAMPLES::
 
@@ -138,8 +139,8 @@ class LatticeDiagram(CombinatorialObject):
 
     def flip(self):
         """
-        Returns the flip of the self where flip is defined as follows. Let
-        r = max(self). Then self.flip()[i] = r - self[i].
+        Return the flip of ``self``, where flip is defined as follows. Let
+        ``r = max(self)``. Then ``self.flip()[i] = r - self[i]``.
 
         EXAMPLES::
 
@@ -152,9 +153,10 @@ class LatticeDiagram(CombinatorialObject):
 
     def boxes_same_and_lower_right(self, ii, jj):
         """
-        Returns a list of the boxes that are in the same row as self, and
-        in the row below self (including the basement) that are strictly to
-        the right of self.
+        Return a list of the boxes of ``self`` that are in row ``jj``
+        but not identical with ``(ii, jj)``, or lie in the row
+        ``jj - 1`` (the row directly below ``jj``; this might be the
+        basement) and strictly to the right of ``(ii, jj)``.
 
         EXAMPLES::
 
@@ -219,7 +221,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
             4
         """
         if i < 1:
-            raise ValueError, "indexing starts at 1"
+            raise ValueError("indexing starts at 1")
         if isinstance(i, tuple):
             i,j = i
             return self._list[i-1][j]
@@ -227,7 +229,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def shape(self):
         """
-        Returns the shape of self.
+        Return the shape of ``self``.
 
         EXAMPLES::
 
@@ -239,7 +241,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def __contains__(self, ij):
         """
-        Returns True if the box (i,j) (= ij) is in self. Note that this
+        Return ``True`` if the box ``(i,j) (= ij)`` is in ``self``. Note that this
         does not include the basement row.
 
         EXAMPLES::
@@ -258,7 +260,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def are_attacking(self, i,j, ii, jj):
         """
-        Returns True if the boxes (i,j) and (ii,jj) in self are attacking.
+        Return ``True`` if the boxes ``(i,j)`` and ``(ii,jj)`` in ``self`` are attacking.
 
         EXAMPLES::
 
@@ -287,7 +289,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def boxes(self):
         """
-        Returns a list of the coordinates of the boxes of self, including
+        Return a list of the coordinates of the boxes of ``self``, including
         the 'basement row'.
 
         EXAMPLES::
@@ -313,7 +315,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def attacking_boxes(self):
         """
-        Returns a list of pairs of boxes in self that are attacking.
+        Returns a list of pairs of boxes in ``self`` that are attacking.
 
         EXAMPLES::
 
@@ -335,7 +337,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def is_non_attacking(self):
         """
-        Returns True if self in non-attacking.
+        Return ``True`` if ``self`` is non-attacking.
 
         EXAMPLES::
 
@@ -360,7 +362,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def weight(self):
         """
-        Returns the weight of self.
+        Return the weight of ``self``.
 
         EXAMPLES::
 
@@ -375,7 +377,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def descents(self):
         """
-        Returns a list of the descents of self.
+        Return a list of the descents of ``self``.
 
         EXAMPLES::
 
@@ -391,7 +393,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def maj(self):
         """
-        Returns the major index of self.
+        Return the major index of ``self``.
 
         EXAMPLES::
 
@@ -407,9 +409,9 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def reading_order(self):
         """
-        Returns a list of coordinates of the boxes in self, starting from
+        Return a list of coordinates of the boxes in ``self``, starting from
         the top right, and reading from right to left. Note that this
-        includes the 'basement row' of self.
+        includes the 'basement row' of ``self``.
 
         EXAMPLES::
 
@@ -437,7 +439,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def reading_word(self):
         """
-        Return the reading word of self, obtained by reading the boxes
+        Return the reading word of ``self``, obtained by reading the boxes
         entries of self from right to left, starting in the upper right.
 
         EXAMPLES::
@@ -452,7 +454,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def inversions(self):
         """
-        Returns a list of the inversions of self.
+        Return a list of the inversions of ``self``.
 
         EXAMPLES::
 
@@ -496,7 +498,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def inv(self):
         """
-        Returns self's inversion statistic.
+        Return ``self``'s inversion statistic.
 
         EXAMPLES::
 
@@ -511,7 +513,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def coinv(self):
         """
-        Returns self's co-inversion statistic.
+        Return ``self``'s co-inversion statistic.
 
         EXAMPLES::
 
@@ -525,7 +527,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def coeff(self, q, t):
         """
-        Returns the coefficient in front of self in the HHL formula for the
+        Return the coefficient in front of ``self`` in the HHL formula for the
         expansion of the non-symmetric Macdonald polynomial
         E(self.shape()).
 
@@ -545,7 +547,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
 
     def coeff_integral(self, q, t):
         """
-        Returns the coefficient in front of self in the HHL formula for the
+        Return the coefficient in front of ``self`` in the HHL formula for the
         expansion of the integral non-symmetric Macdonald polynomial
         E(self.shape())
 
@@ -687,7 +689,7 @@ class NonattackingBacktracker(GenericBacktracker):
         self._shape = shape
         self._n = sum(shape)
         self._initial_data = [ [None]*s for s in shape ]
-        if pi==None:
+        if pi is None:
             pi=Permutation([1]).to_permutation_group_element()
         self.pi=pi
 
@@ -767,7 +769,7 @@ class NonattackingBacktracker(GenericBacktracker):
             if self._shape[i] >= jj + 1:
                 return i, jj + 1
 
-        raise ValueError, "we should never be here"
+        raise ValueError("we should never be here")
 
 
 def _check_muqt(mu, q, t, pi=None):
@@ -809,10 +811,10 @@ def _check_muqt(mu, q, t, pi=None):
         q,t = P.gens()
     elif q is not None and t is not None:
         if q.parent() != t.parent():
-            raise ValueError, "the parents of q and t must be the same"
+            raise ValueError("the parents of q and t must be the same")
         P = q.parent()
     else:
-        raise ValueError, "you must specify either both q and t or neither of them"
+        raise ValueError("you must specify either both q and t or neither of them")
     n = NonattackingFillings(mu, pi)
     R = PolynomialRing(P, len(n._shape), 'x')
     x = R.gens()
@@ -829,9 +831,16 @@ def E(mu, q=None, t=None, pi=None):
 
     REFERENCE:
 
-    - 'A combinatorial formula for non-symmetric Macdonald
-      polynomials'. Haiman, Haglund, and Loehr.
-      http://arxiv.org/abs/math/0601693
+    - J. Haglund, M. Haiman, N. Loehr.
+      *A combinatorial formula for non-symmetric Macdonald polynomials*.
+      :arXiv:`math/0601693v3`.
+
+    .. SEEALSO::
+
+        :class:`~sage.combinat.root_system.non_symmetric_macdonald_polynomials.NonSymmetricMacdonaldPolynomials`
+        for a type free implementation where the polynomials are
+        constructed recursively by the application of intertwining
+        operators.
 
     EXAMPLES::
 
@@ -872,9 +881,9 @@ def E_integral(mu, q=None, t=None, pi=None):
 
     REFERENCE:
 
-    - 'A combinatorial formula for non-symmetric Macdonald
-      polynomials'. Haiman, Haglund, and Loehr.
-      http://arxiv.org/abs/math/0601693
+    - J. Haglund, M. Haiman, N. Loehr.
+      *A combinatorial formula for non-symmetric Macdonald polynomials*.
+      :arXiv:`math/0601693v3`.
 
     EXAMPLES::
 
@@ -915,9 +924,9 @@ def Ht(mu, q=None, t=None, pi=None):
 
     REFERENCE:
 
-    - 'A combinatorial formula for non-symmetric Macdonald
-      polynomials'. Haiman, Haglund, and Loehr.
-      http://arxiv.org/abs/math/0601693
+    - J. Haglund, M. Haiman, N. Loehr.
+      *A combinatorial formula for non-symmetric Macdonald polynomials*.
+      :arXiv:`math/0601693v3`.
 
     EXAMPLES::
 

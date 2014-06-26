@@ -386,17 +386,13 @@ wir dies mit der ``simplify_full()`` Funktion::
     sage: (sin(x)^2 + cos(x)^2).simplify_full()
     1
 
-Dabei werden auch Additionstheoreme für trigonometrische Funktionen und
-Logarithmengesetzte eingesetzt::
+Dabei werden auch Additionstheoreme für trigonometrische Funktionen und manche
+Logarithmengesetze eingesetzt::
 
     sage: var('x, y, z')
     (x, y, z)
     sage: (sin(x + y)/(log(x) + log(y))).simplify_full()
     (cos(y)*sin(x) + cos(x)*sin(y))/log(x*y)
-
-    sage: (log(8)/log(2)).simplify_full()
-    3
-
     sage: (sin(x)^2 + cos(x)^2).simplify_full()
     1
 
@@ -693,15 +689,25 @@ dies wie folgt ein::
      sage: log(8,2)
      3
 
-Die oben betrachtete Funktion ``simplify_full()`` wendet auch die Logarithmengesetze an, um Terme zu vereinfachen.
+
+Man kann auch die Logarithmengesetze benutzen, um Terme zu zerlegen.
 So können wir zum Beispiel Sage die Zerlegung
 
 .. math:: \log(10^5) = 5\log(2) + 5\log(5)
 
-machen lassen::
+machen lassen.  In diesem Fall benutzen wir nicht ``simplify_full()``, sondern
+die ähnliche Funktion ``simplify_exp``::
 
-    sage: log(10^5).simplify_full()
+    sage: log(10^5).simplify_exp()
     5*log(5) + 5*log(2)
+
+Diese Gesetze können auch umgekehrt verwendet werden, wie in diesem Beispiel::
+
+    sage: (5*log(2) + 5*log(5)).simplify_log()
+    log(100000)
+
+Es geben weitere mögliche Vereinfachungen, die wir hier nicht weiter erwähnen.
+
 
 Trigonometrie
 =============

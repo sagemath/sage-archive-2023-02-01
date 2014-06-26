@@ -7,7 +7,7 @@ groups, Lie algebras, Lie groups, crystals, etc. up to an
 isomorphism. *Cartan types* are a standard set of names for those
 Dynkin diagrams (see :wikipedia:`Dynkin_diagram`).
 
-Let us consider for example, the Cartan type `A_4`::
+Let us consider, for example, the Cartan type `A_4`::
 
     sage: T = CartanType(['A', 4])
     sage: T
@@ -46,7 +46,7 @@ root system::
     sage: RootSystem(T)
     Root system of type ['A', 4]
 
-The associated Weyl group is the symmetric group `S_{n+1}`::
+The associated Weyl group of `A_n` is the symmetric group `S_{n+1}`::
 
     sage: W = WeylGroup(T)
     sage: W
@@ -60,13 +60,13 @@ while the Lie algebra is `sl_{n+1}`, and the Lie group `SL_{n+1}`
 One may also construct crystals associated to various Dynkin diagrams.
 For example::
 
-    sage: C = CrystalOfLetters(T)
+    sage: C = crystals.Letters(T)
     sage: C
     The crystal of letters for type ['A', 4]
     sage: C.list()
     [1, 2, 3, 4, 5]
 
-    sage: C = CrystalOfTableaux(T, shape=[2])
+    sage: C = crystals.Tableaux(T, shape=[2])
     sage: C
     The crystal of tableaux of type ['A', 4] and shape(s) [[2]]
     sage: C.cardinality()
@@ -104,8 +104,6 @@ mathematical properties::
 
     sage: T.is_finite(), T.is_simply_laced(), T.is_affine(), T.is_crystallographic()
     (True, True, False, True)
-
-It will eventually include Coxeter numbers, etc.
 
 In particular, a Sage Cartan type is endowed with a fixed choice of
 labels for the nodes of the Dynkin diagram. This choice follows the
@@ -170,7 +168,7 @@ Contributions implementing other conventions are very welcome.
 Another option is to build from scratch a new Dynkin diagram.  The
 architecture has been designed to make it fairly easy to add other
 labelling conventions. In particular, we strived at choosing type free
-algorithms whenever possible, so in principle most feature should
+algorithms whenever possible, so in principle most features should
 remain available even with custom Cartan types. This has not been used
 much yet, so some rough corners certainly remain.
 
@@ -277,7 +275,7 @@ Therefore, the Cartan types are considered as distinct::
 
 For affine types, we use the usual conventions for affine Coxeter groups: each affine type
 is either untwisted (that is arise from the natural affinisation
-of a finite cartan type)::
+of a finite Cartan type)::
 
     sage: CartanType(["A", 4, 1]).dynkin_diagram()
     0
@@ -407,7 +405,7 @@ from sage.misc.decorators import rename_keyword
 
 # TODO:
 # Implement the Kac conventions by relabeling/dual/... of the above
-# Implement coxeter diagrams for non crystallographic
+# Implement Coxeter diagrams for non crystallographic
 
 
 # Intention: we want simultaneously CartanType to be a factory for
@@ -510,7 +508,7 @@ class CartanTypeFactory(SageObject):
 
         - ``str`` -- a string
 
-        - ``object`` -- a cartan type, or an object with a cartan type method
+        - ``object`` -- a Cartan type, or an object with a Cartan type method
 
         EXAMPLES:
 
@@ -526,6 +524,28 @@ class CartanTypeFactory(SageObject):
             ['D', 4]
 
         .. SEEALSO:: :func:`~sage.combinat.root_system.cartan_type.CartanType`
+
+        TESTS:
+
+        Check that this is compatible with :class:`CartanTypeFolded`::
+
+            sage: fct = CartanType(['C', 4, 1]).as_folding()
+            sage: CartanType(fct)
+            ['C', 4, 1]
+
+        Check that :trac:`13774` is fixed::
+
+            sage: CT = CartanType([['A',2]])
+            sage: CT.is_irreducible()
+            True
+            sage: CT.cartan_matrix()
+            [ 2 -1]
+            [-1  2]
+            sage: CT = CartanType(['A2'])   
+            sage: CT.is_irreducible()
+            True
+            sage: CartanType('A2')
+            ['A', 2]
         """
         if len(args) == 1:
             t = args[0]
@@ -534,9 +554,12 @@ class CartanTypeFactory(SageObject):
         if isinstance(t, CartanType_abstract):
             return t
         if hasattr(t, "cartan_type"):
-            return  t.cartan_type()
+            return t.cartan_type()
 
-        if type(t)==str:
+        if len(t) == 1: # Fix for trac #13774
+            t = t[0]
+
+        if isinstance(t, str):
             if "x" in t:
                 import type_reducible
                 return type_reducible.CartanType([CartanType(u) for u in t.split("x")])
@@ -549,7 +572,7 @@ class CartanTypeFactory(SageObject):
 
         t = list(t)
 
-        if type(t[0]) == str and t[1] in ZZ and t[1] >= 0:
+        if isinstance(t[0], str) and t[1] in ZZ and t[1] >= 0:
             letter, n = t[0], t[1]
             if len(t) == 2:
                 if letter == "A":
@@ -597,7 +620,7 @@ class CartanTypeFactory(SageObject):
                         import type_I
                         return type_I.CartanType(n)
             if len(t) == 3:
-                if t[2] == 1: # Untwisted affind
+                if t[2] == 1: # Untwisted affine
                     if letter == "A":
                         if n >= 1:
                             import type_A_affine
@@ -642,7 +665,7 @@ class CartanTypeFactory(SageObject):
                         return CartanType(["G", 2, 1]).dual().relabel([0,2,1])
                     if letter == "E" and t[2] == 2 and n == 6:
                         return CartanType(["F", 4, 1]).dual()
-            raise ValueError("%s is not a valid cartan type"%t)
+            raise ValueError("%s is not a valid Cartan type"%t)
         import type_reducible
         return type_reducible.CartanType([ CartanType(subtype) for subtype in t ])
 
@@ -772,7 +795,7 @@ class CartanTypeFactory(SageObject):
     @classmethod
     def color(cls, i):
         """
-        Default color scheme for the vertices of a dynkin diagram (and associated objects)
+        Default color scheme for the vertices of a Dynkin diagram (and associated objects)
 
         EXAMPLES::
 
@@ -917,27 +940,27 @@ class CartanType_abstract(object):
         EXAMPLES::
 
             sage: CartanType(['A', 3, 1]).index_set()
-            [0, 1, 2, 3]
+            (0, 1, 2, 3)
             sage: CartanType(['D', 4]).index_set()
-            [1, 2, 3, 4]
+            (1, 2, 3, 4)
             sage: CartanType(['A', 7, 2]).index_set()
-            [0, 1, 2, 3, 4]
+            (0, 1, 2, 3, 4)
             sage: CartanType(['A', 7, 2]).index_set()
-            [0, 1, 2, 3, 4]
+            (0, 1, 2, 3, 4)
             sage: CartanType(['A', 6, 2]).index_set()
-            [0, 1, 2, 3]
+            (0, 1, 2, 3)
             sage: CartanType(['D', 6, 2]).index_set()
-            [0, 1, 2, 3, 4, 5]
+            (0, 1, 2, 3, 4, 5)
             sage: CartanType(['E', 6, 1]).index_set()
-            [0, 1, 2, 3, 4, 5, 6]
+            (0, 1, 2, 3, 4, 5, 6)
             sage: CartanType(['E', 6, 2]).index_set()
-            [0, 1, 2, 3, 4]
+            (0, 1, 2, 3, 4)
             sage: CartanType(['A', 2, 2]).index_set()
-            [0, 1]
+            (0, 1)
             sage: CartanType(['G', 2, 1]).index_set()
-            [0, 1, 2]
+            (0, 1, 2)
             sage: CartanType(['F', 4, 1]).index_set()
-            [0, 1, 2, 3, 4]
+            (0, 1, 2, 3, 4)
         """
 
     # This coloring scheme is used for crystal graphs and will eventually
@@ -989,7 +1012,7 @@ class CartanType_abstract(object):
 
     def dual(self):
         """
-        Return the dual cartan type, possibly just as a formal dual.
+        Return the dual Cartan type, possibly just as a formal dual.
 
         EXAMPLES::
 
@@ -1215,7 +1238,7 @@ class CartanType_abstract(object):
         try:
             self.coxeter_diagram()
             return True
-        except StandardError:
+        except Exception:
             return False
 
     def root_system(self):
@@ -1230,11 +1253,76 @@ class CartanType_abstract(object):
         from sage.combinat.root_system.root_system import RootSystem
         return RootSystem(self)
 
+    def as_folding(self, folding_of=None, sigma=None):
+        r"""
+        Return ``self`` realized as a folded Cartan type.
+
+        For finite and affine types, this is realized by the Dynkin
+        diagram foldings:
+
+        .. MATH::
+
+            \begin{array}{ccl}
+            C_n^{(1)}, A_{2n}^{(2)}, A_{2n}^{(2)\dagger}, D_{n+1}^{(2)}
+            & \hookrightarrow & A_{2n-1}^{(1)}, \\
+            A_{2n-1}^{(2)}, B_n^{(1)} & \hookrightarrow & D_{n+1}^{(1)}, \\
+            E_6^{(2)}, F_4^{(1)} & \hookrightarrow & E_6^{(1)}, \\
+            D_4^{(3)}, G_2^{(1)} & \hookrightarrow & D_4^{(1)}, \\
+            C_n & \hookrightarrow & A_{2n-1}, \\
+            B_n & \hookrightarrow & D_{n+1}, \\
+            F_4 & \hookrightarrow & E_6, \\
+            G_2 & \hookrightarrow & D_4.
+            \end{array}
+
+        For general types, this returns ``self`` as a folded type of ``self``
+        with `\sigma` as the identity map.
+
+        For more information on these foldings and folded Cartan types, see
+        :class:`sage.combinat.root_system.type_folded.CartanTypeFolded`.
+
+        If the optional inputs ``folding_of`` and ``sigma`` are specified, then
+        this returns the folded Cartan type of ``self`` in ``folding_of`` given
+        by the automorphism ``sigma``.
+
+        EXAMPLES::
+
+            sage: CartanType(['B', 3, 1]).as_folding()
+            ['B', 3, 1] as a folding of  ['D', 4, 1]
+            sage: CartanType(['F', 4]).as_folding()
+            ['F', 4] as a folding of  ['E', 6]
+            sage: CartanType(['BC', 3, 2]).as_folding()
+            ['BC', 3, 2] as a folding of  ['A', 5, 1]
+            sage: CartanType(['D', 4, 3]).as_folding()
+            ['G', 2, 1]^* relabelled by {0: 0, 1: 2, 2: 1} as a folding of ['D', 4, 1]
+        """
+        from sage.combinat.root_system.type_folded import CartanTypeFolded
+        if folding_of is None and sigma is None:
+            return self._default_folded_cartan_type()
+        if folding_of is None or sigma is None:
+            raise ValueError("Both folding_of and sigma must be given")
+        return CartanTypeFolded(self, folding_of, sigma)
+
+    def _default_folded_cartan_type(self):
+        """
+        Return the default folded Cartan type.
+
+        In general, this just returns ``self`` in ``self`` with `\sigma` as
+        the identity map.
+
+        EXAMPLES::
+
+            sage: D = CartanMatrix([[2, -3], [-2, 2]]).dynkin_diagram()
+            sage: D._default_folded_cartan_type()
+            Dynkin diagram of rank 2 as a folding of  Dynkin diagram of rank 2
+        """
+        from sage.combinat.root_system.type_folded import CartanTypeFolded
+        return CartanTypeFolded(self, self, [[i] for i in self.index_set()])
+
     global_options = CartanTypeOptions
 
 class CartanType_crystallographic(CartanType_abstract):
     """
-    An abstract class for crystallographic cartan types.
+    An abstract class for crystallographic Cartan types.
     """
     # The default value should really be lambda x:x, but sphinx does
     # not like it currently (see #14553); since this is an abstract method
@@ -1448,7 +1536,6 @@ class CartanType_crystallographic(CartanType_abstract):
             sage: print T.ascii_art(lambda i: alpha[i].scalar(alpha[i]))
             O---O---O---O=<=O
             2   2   2   2   4
-
         """
         from sage.matrix.constructor import matrix, diagonal_matrix
         m = self.cartan_matrix()
@@ -1464,7 +1551,7 @@ class CartanType_crystallographic(CartanType_abstract):
             return None
         assert kern.dimension() == c
         # Now the basis contains one vector v per connected component
-        # C of the dynkin diagram, or equivalently diagonal block of
+        # C of the Dynkin diagram, or equivalently diagonal block of
         # the Cartan matrix. The support of v is exactly that
         # connected component, and it symmetrizes the corresponding
         # diagonal block of the Cartan matrix. We sum all those vectors.
@@ -1503,7 +1590,7 @@ class CartanType_crystallographic(CartanType_abstract):
 
 class CartanType_simply_laced(CartanType_crystallographic):
     """
-    An abstract class for simply laced cartan types.
+    An abstract class for simply laced Cartan types.
     """
     def is_simply_laced(self):
         """
@@ -1520,7 +1607,7 @@ class CartanType_simply_laced(CartanType_crystallographic):
 
     def dual(self):
         """
-        Simply laced cartan types are self-dual, so return ``self``.
+        Simply laced Cartan types are self-dual, so return ``self``.
 
         EXAMPLES::
 
@@ -1643,9 +1730,9 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         the nodes of the classical Dynkin diagram::
 
             sage: CartanType(['A', 3, 1]).index_set()
-            [0, 1, 2, 3]
+            (0, 1, 2, 3)
             sage: CartanType(['A', 3, 1]).classical().index_set()
-            [1, 2, 3]
+            (1, 2, 3)
         """
 
     @abstract_method
@@ -1699,6 +1786,43 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
 
         """
 
+    @abstract_method
+    def basic_untwisted(self):
+        r"""
+        Return the basic untwisted Cartan type associated with this affine
+        Cartan type.
+
+        Given an affine type `X_n^{(r)}`, the basic untwisted type is `X_n`.
+        In other words, it is the classical Cartan type that is twisted to
+        obtain ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', 1, 1]).basic_untwisted()
+            ['A', 1]
+            sage: CartanType(['A', 3, 1]).basic_untwisted()
+            ['A', 3]
+            sage: CartanType(['B', 3, 1]).basic_untwisted()
+            ['B', 3]
+            sage: CartanType(['E', 6, 1]).basic_untwisted()
+            ['E', 6]
+            sage: CartanType(['G', 2, 1]).basic_untwisted()
+            ['G', 2]
+
+            sage: CartanType(['A', 2, 2]).basic_untwisted()
+            ['A', 2]
+            sage: CartanType(['A', 4, 2]).basic_untwisted()
+            ['A', 4]
+            sage: CartanType(['A', 11, 2]).basic_untwisted()
+            ['A', 11]
+            sage: CartanType(['D', 5, 2]).basic_untwisted()
+            ['D', 5]
+            sage: CartanType(['E', 6, 2]).basic_untwisted()
+            ['E', 6]
+            sage: CartanType(['D', 4, 3]).basic_untwisted()
+            ['D', 4]
+        """
+
     def row_annihilator(self, m = None):
         r"""
         Return the unique minimal non trivial annihilating linear
@@ -1735,7 +1859,7 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         """
         if m is None:
             m = self.cartan_matrix()
-        assert self.index_set() == list(range(m.ncols()))
+        assert self.index_set() == tuple(range(m.ncols()))
         annihilator_basis = m.integer_kernel().gens()
         assert(len(annihilator_basis) == 1)
         assert(all(coef > 0 for coef in annihilator_basis[0]))
@@ -2002,6 +2126,31 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         tester.assertTrue( self.classical().dual() == self.dual().classical() )
         tester.assertTrue( self.special_node() == self.dual().special_node() )
 
+    def other_affinization(self):
+        """
+        Return the other affinization of the same classical type.
+
+        EXAMPLES::
+
+            sage: CartanType(["A", 3, 1]).other_affinization()
+            ['A', 3, 1]
+            sage: CartanType(["B", 3, 1]).other_affinization()
+            ['C', 3, 1]^*
+            sage: CartanType(["C", 3, 1]).dual().other_affinization()
+            ['B', 3, 1]
+
+        Is this what we want?::
+
+            sage: CartanType(["BC", 3, 2]).dual().other_affinization()
+            ['B', 3, 1]
+        """
+        if self.is_untwisted_affine():
+            result = self.classical().dual().affine().dual()
+        else:
+            result = self.dual().classical().dual().affine()
+        assert result.classical() is self.classical()
+        return result
+
 ##############################################################################
 # Concrete base classes
 
@@ -2142,9 +2291,9 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
         EXAMPLES::
 
             sage: CartanType(['A', 5]).index_set()
-            [1, 2, 3, 4, 5]
+            (1, 2, 3, 4, 5)
         """
-        return range(1,self.n+1)
+        return tuple(range(1,self.n+1))
 
     def rank(self):
         """
@@ -2175,6 +2324,42 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
             ['A', 3, 1]
         """
         return CartanType([self.letter, self.n, 1])
+
+    def coxeter_number(self):
+        """
+        Return the Coxeter number associated with ``self``.
+
+        The Coxeter number is the order of a Coxeter element of the
+        corresponding Weyl group.
+
+        See Bourbaki, Lie Groups and Lie Algebras V.6.1 or
+        :wikipedia:`Coxeter_element` for more information.
+
+        EXAMPLES::
+
+            sage: CartanType(['A',4]).coxeter_number()
+            5
+            sage: CartanType(['B',4]).coxeter_number()
+            8
+            sage: CartanType(['C',4]).coxeter_number()
+            8
+        """
+        return sum(self.affine().a())
+
+    def dual_coxeter_number(self):
+        """
+        Return the Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A',4]).dual_coxeter_number()
+            5
+            sage: CartanType(['B',4]).dual_coxeter_number()
+            7
+            sage: CartanType(['C',4]).dual_coxeter_number()
+            5
+        """
+        return sum(self.affine().acheck())
 
     def type(self):
         """
@@ -2340,9 +2525,9 @@ class CartanType_standard_affine(UniqueRepresentation, SageObject, CartanType_af
         EXAMPLES::
 
             sage: CartanType(['A', 5, 1]).index_set()
-            [0, 1, 2, 3, 4, 5]
+            (0, 1, 2, 3, 4, 5)
         """
-        return range(0,self.n+1)
+        return tuple(range(self.n+1))
 
     def special_node(self):
         r"""
@@ -2396,6 +2581,30 @@ class CartanType_standard_untwisted_affine(CartanType_standard_affine):
             ['G', 2]
         """
         return CartanType([self.letter,self.n])
+
+    def basic_untwisted(self):
+        r"""
+        Return the basic_untwisted Cartan type associated with this affine
+        Cartan type.
+
+        Given an affine type `X_n^{(r)}`, the basic_untwisted type is `X_n`. In
+        other words, it is the classical Cartan type that is twisted to
+        obtain ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', 1, 1]).basic_untwisted()
+            ['A', 1]
+            sage: CartanType(['A', 3, 1]).basic_untwisted()
+            ['A', 3]
+            sage: CartanType(['B', 3, 1]).basic_untwisted()
+            ['B', 3]
+            sage: CartanType(['E', 6, 1]).basic_untwisted()
+            ['E', 6]
+            sage: CartanType(['G', 2, 1]).basic_untwisted()
+            ['G', 2]
+        """
+        return self.classical()
 
     def is_untwisted_affine(self):
         """

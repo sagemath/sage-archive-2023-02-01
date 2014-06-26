@@ -119,13 +119,10 @@ def ecmfactor(number, double B1, verbose=False):
     Check that ``ecmfactor`` can be interrupted (factoring a large
     prime number)::
 
-        sage: import sage.tests.interrupt
-        sage: try:
-        ...     sage.tests.interrupt.interrupt_after_delay()
-        ...     ecmfactor(2^521-1, 1e7)
-        ... except KeyboardInterrupt:
-        ...     print "Caught KeyboardInterrupt"
-        Caught KeyboardInterrupt
+        sage: alarm(0.5); ecmfactor(2^521-1, 1e7)
+        Traceback (most recent call last):
+        ...
+        AlarmInterrupt
 
     Some special cases::
 

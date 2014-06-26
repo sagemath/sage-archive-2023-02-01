@@ -16,6 +16,8 @@ AUTHORS:
 
 - " (2009-05): removed all calls to Guava but left it as an option.
 
+- Dima Pasechnik (2012-10): added LP bounds.
+
 Let `F` be a finite field (we denote the finite field with
 `q` elements by `\GF{q}`).
 A subset `C` of `V=F^n` is called a code of
@@ -156,6 +158,7 @@ This module implements:
 -  mrrw1_bound_asymp(delta,q), "first" asymptotic
    McEliese-Rumsey-Rodemich-Welsh bound for the information rate.
 
+-  Delsarte (a.k.a. Linear Programming (LP)) upper bounds.
 
 PROBLEM: In this module we shall typically either (a) seek bounds
 on k, given n, d, q, (b) seek bounds on R, delta, q (assuming n is
@@ -188,12 +191,14 @@ from sage.rings.all import QQ, RR, ZZ, RDF
 from sage.rings.arith import factorial
 from sage.functions.all import log, sqrt
 from sage.misc.decorators import rename_keyword
+from delsarte_bounds import delsarte_bound_hamming_space, \
+                delsarte_bound_additive_hamming_space
 
 @rename_keyword(deprecation=6094, method="algorithm")
 def codesize_upper_bound(n,d,q,algorithm=None):
     r"""
     This computes the minimum value of the upper bound using the
-    algorithms of Singleton, Hamming, Plotkin and Elias.
+    methods of Singleton, Hamming, Plotkin, and Elias.
 
     If algorithm="gap" then this returns the best known upper
     bound `A(n,d)=A_q(n,d)` for the size of a code of length n,
@@ -205,17 +210,32 @@ def codesize_upper_bound(n,d,q,algorithm=None):
     `A(n, 2\ell-1) = A(n+1,2\ell)`, so the function
     takes the minimum of the values obtained from all algorithms for the
     parameters `(n, 2\ell-1)` and `(n+1, 2\ell)`. This
-    wraps GUAVA's UpperBound( n, d, q ).
+    wraps GUAVA's (i.e. GAP's package Guava) UpperBound( n, d, q ).
+
+    If algorithm="LP" then this returns the Delsarte (a.k.a. Linear
+    Programming) upper bound.
 
     EXAMPLES::
+
         sage: codesize_upper_bound(10,3,2)
         93
+        sage: codesize_upper_bound(24,8,2,algorithm="LP")
+        4096
         sage: codesize_upper_bound(10,3,2,algorithm="gap")  # optional - gap_packages (Guava package)
         85
+        sage: codesize_upper_bound(11,3,4,algorithm=None)
+        123361
+        sage: codesize_upper_bound(11,3,4,algorithm="gap")  # optional - gap_packages (Guava package)
+        123361
+        sage: codesize_upper_bound(11,3,4,algorithm="LP")
+        109226
 
     """
     if algorithm=="gap":
+        gap.load_package('guava')
         return int(gap.eval("UpperBound(%s,%s,%s)"%( n, d, q )))
+    if algorithm=="LP":
+        return int(delsarte_bound_hamming_space(n,d,q))
     else:
         eub = elias_upper_bound(n,q,d)
         gub = griesmer_upper_bound(n,q,d)
@@ -224,19 +244,31 @@ def codesize_upper_bound(n,d,q,algorithm=None):
         sub = singleton_upper_bound(n,q,d)
         return min([eub,gub,hub,pub,sub])
 
-def dimension_upper_bound(n,d,q):
+@rename_keyword(deprecation=6094, method="algorithm")
+def dimension_upper_bound(n,d,q,algorithm=None):
     r"""
     Returns an upper bound `B(n,d) = B_q(n,d)` for the
     dimension of a linear code of length n, minimum distance d over a
     field of size q.
+    Parameter "algorithm" has the same meaning as in :func:`codesize_upper_bound`
 
     EXAMPLES::
 
         sage: dimension_upper_bound(10,3,2)
         6
+        sage: dimension_upper_bound(30,15,4)
+        13
+        sage: dimension_upper_bound(30,15,4,algorithm="LP")
+        12
+
     """
     q = ZZ(q)
-    return int(log(codesize_upper_bound(n,d,q),q))
+    if algorithm=="LP":
+        return delsarte_bound_additive_hamming_space(n,d,q)
+
+    else:       # algorithm==None or algorithm=="gap":
+        return int(log(codesize_upper_bound(n,d,q,algorithm=algorithm),q))
+
 
 def volume_hamming(n,q,r):
     r"""
@@ -273,6 +305,7 @@ def plotkin_upper_bound(n,q,d, algorithm=None):
     The algorithm="gap" option wraps Guava's UpperBoundPlotkin.
 
     EXAMPLES::
+
         sage: plotkin_upper_bound(10,2,3)
         192
         sage: plotkin_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
@@ -304,6 +337,7 @@ def griesmer_upper_bound(n,q,d,algorithm=None):
     Wraps GAP's UpperBoundGriesmer.
 
     EXAMPLES::
+
         sage: griesmer_upper_bound(10,2,3)
         128
         sage: griesmer_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
@@ -358,7 +392,7 @@ def elias_upper_bound(n,q,d,algorithm=None):
         for i in range(1,int(r*n)+1):
             if i**2-2*r*n*i+r*n*d>0:
                 I.append(i)
-            return I
+        return I
     I = get_list(n,d,q)
     bnd = min([ff(n,d,w,q) for w in I])
     return int(bnd)
@@ -417,6 +451,7 @@ def singleton_upper_bound(n,q,d):
     (MDS).
 
     EXAMPLES::
+
         sage: singleton_upper_bound(10,2,3)
         256
     """
@@ -436,7 +471,7 @@ def gv_info_rate(n,delta,q):
     ans=log(gilbert_lower_bound(n,q,int(n*delta)),q)/n
     return ans
 
-def entropy(x,q):
+def entropy(x, q=2):
     """
     Computes the entropy at `x` on the `q`-ary symmetric channel.
 
@@ -444,7 +479,8 @@ def entropy(x,q):
 
     - ``x`` - real number in the interval `[0, 1]`.
 
-    - ``q`` - integer greater than 1. This is the base of the logarithm.
+    - ``q`` - (default: 2) integer greater than 1. This is the base of the
+      logarithm.
 
     EXAMPLES::
 
@@ -479,11 +515,62 @@ def entropy(x,q):
     H = x*log(q-1,q)-x*log(x,q)-(1-x)*log(1-x,q)
     return H
 
+def entropy_inverse(x, q=2):
+    """
+    Find the inverse of the ``q``-ary entropy function at the point ``x``.
+
+    INPUT:
+
+    - ``x`` -- real number in the interval `[0, 1]`.
+
+    - ``q`` - (default: 2) integer greater than 1. This is the base of the
+      logarithm.
+
+    OUTPUT:
+
+    Real number in the interval `[0, 1-1/q]`. The function has multiple
+    values if we include the entire interval `[0, 1]`; hence only the
+    values in the above interval is returned.
+
+    EXAMPLES::
+
+        sage: from sage.coding.code_bounds import entropy_inverse
+        sage: entropy_inverse(0.1)
+        0.012986862055848683
+        sage: entropy_inverse(1)
+        1/2
+        sage: entropy_inverse(0, 3)
+        0
+        sage: entropy_inverse(1, 3)
+        2/3
+
+    """
+    # No nice way to compute the inverse. We resort to root finding.
+    if x < 0 or x > 1:
+        raise ValueError("The inverse entropy function is defined only for "
+                         "x in the interval [0, 1]")
+    q = ZZ(q)   # This will error out if q is not an integer
+    if q < 2:   # Here we check that q is actually at least 2
+        raise ValueError("The value q must be an integer greater than 1")
+
+    eps  = 4.5e-16 # find_root has about this as the default xtol
+    ymax = 1 - 1/q
+    if x <= eps:
+        return 0
+    if x >= 1-eps:
+        return ymax
+
+    # find_root will error out if the root can not be found
+    from sage.numerical.optimize import find_root
+    f = lambda y: entropy(y, q) - x
+    return find_root(f, 0, ymax)
+
 def gv_bound_asymp(delta,q):
     """
     Computes the asymptotic GV bound for the information rate, R.
 
     EXAMPLES::
+
         sage: RDF(gv_bound_asymp(1/4,2))
         0.188721875541
         sage: f = lambda x: gv_bound_asymp(x,2)
@@ -497,6 +584,7 @@ def hamming_bound_asymp(delta,q):
     Computes the asymptotic Hamming bound for the information rate.
 
     EXAMPLES::
+
         sage: RDF(hamming_bound_asymp(1/4,2))
         0.4564355568
         sage: f = lambda x: hamming_bound_asymp(x,2)
@@ -509,6 +597,7 @@ def singleton_bound_asymp(delta,q):
     Computes the asymptotic Singleton bound for the information rate.
 
     EXAMPLES::
+
         sage: singleton_bound_asymp(1/4,2)
         3/4
         sage: f = lambda x: singleton_bound_asymp(x,2)
@@ -532,7 +621,7 @@ def plotkin_bound_asymp(delta,q):
 def elias_bound_asymp(delta,q):
     """
     Computes the asymptotic Elias bound for the information rate,
-    provided `0 < \delta 1-1/q`.
+    provided `0 < \delta < 1-1/q`.
 
     EXAMPLES::
 
@@ -553,8 +642,3 @@ def mrrw1_bound_asymp(delta,q):
         0.354578902665
     """
     return RDF(entropy((q-1-delta*(q-2)-2*sqrt((q-1)*delta*(1-delta)))/q,q))
-
-
-
-
-

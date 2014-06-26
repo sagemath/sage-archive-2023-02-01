@@ -2,7 +2,7 @@
 r"""
 Small graphs
 
-The methods defined here appear in sage.graphs.grah_generators.
+The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
 #*****************************************************************************
 #           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
@@ -18,7 +18,6 @@ The methods defined here appear in sage.graphs.grah_generators.
 
 # import from Sage library
 from sage.graphs.graph import Graph
-from sage.graphs import graph
 from math import sin, cos, pi
 from sage.graphs.graph_plot import _circle_embedding, _line_embedding
 
@@ -379,6 +378,194 @@ def WellsGraph():
 
     return g
 
+def Cell600(embedding=1):
+    r"""
+    Returns the 600-Cell graph
+
+    This is the adjacency graph of the 600-cell. It has 120 vertices and 720
+    edges. For more information, see the :wikipedia:`600-cell`.
+
+    INPUT:
+
+    - ``embedding`` (1 (default) or 2) -- two different embeddings for a plot.
+
+    EXAMPLES::
+
+        sage: g = graphs.Cell600()      # long time
+        sage: g.size()                  # long time
+        720
+        sage: g.is_regular(12)          # long time
+        True
+        sage: g.is_vertex_transitive()  # long time
+        True
+    """
+    from sage.rings.rational_field import QQ
+    from sage.rings.polynomial.polynomial_ring import polygen
+    from sage.rings.number_field.number_field import NumberField
+    from sage.modules.free_module import VectorSpace
+    from sage.groups.perm_gps.permgroup_named import AlternatingGroup
+
+    x = polygen(QQ, 'x')
+    K = NumberField(x ** 2 - x - 1, 'f')
+    f = K.gen()
+    K4 = VectorSpace(K, 4)
+
+    # first 96 vertices
+    step = [[a * f / 2, b * K(1) / 2, c * (f - 1) / 2, 0]
+            for a in [-1, 1] for b in [-1, 1] for c in [-1, 1]]
+    vert96 = [K4([v[s(1) - 1], v[s(2) - 1], v[s(3) - 1], v[s(4) - 1]])
+              for v in step for s in AlternatingGroup(4)]
+
+    # 16 more vertices
+    vert16 = [K4([K(a) / 2, K(b) / 2, K(c) / 2, K(d) / 2])
+              for a in [-1, 1] for b in [-1, 1]
+              for c in [-1, 1] for d in [-1, 1]]
+
+    # 8 last vertices
+    vert8 = [K4([1, 0, 0, 0]), K4([-1, 0, 0, 0]),
+             K4([0, 1, 0, 0]), K4([0, -1, 0, 0]),
+             K4([0, 0, 1, 0]), K4([0, 0, -1, 0]),
+             K4([0, 0, 0, 1]), K4([0, 0, 0, -1])]
+
+    # all vertices together
+    U = vert96 + vert16 + vert8
+
+    g = Graph([range(120), lambda i, j: U[i].inner_product(U[j]) == f / 2])
+
+    # Embedding
+    from sage.graphs.graph_plot import _circle_embedding
+    if embedding == 1:
+        pos = [0, 1, 3, 13, 78, 90, 93, 110, 29, 104, 11, 48, 107, 83, 92, 55,
+               32, 16, 117, 24, 26, 56, 52, 47, 75, 72, 66, 112, 27, 115, 21,
+               33, 118, 79, 91, 37, 2, 5, 96, 31, 82, 88, 94, 74, 50, 28, 20,
+               105, 45, 99, 70, 25, 101, 54, 46, 51, 17, 35, 98, 41, 84, 85,
+               87, 73, 18, 6, 9, 97, 65, 103, 95, 36, 100, 23, 8, 43, 68, 76,
+               116, 60, 62, 44, 40, 59, 15, 12, 30, 113, 63, 114, 81, 69, 119,
+               19, 7, 49, 86, 89, 111, 67, 22, 4, 10, 14, 38, 64, 80, 102, 57,
+               108, 34, 61, 106, 42, 58, 39, 77, 71, 109, 53]
+    else:
+        pos = [0, 1, 2, 3, 4, 6, 7, 8, 10, 13, 14, 21, 37, 103, 36, 65, 113,
+               25, 80, 26, 12, 78, 24, 83, 54, 66, 114, 46, 63, 101, 109, 93,
+               79, 75, 51, 44, 31, 119, 43, 5, 57, 100, 11, 108, 34, 41, 69,
+               96, 82, 116, 68, 64, 47, 102, 52, 35, 17, 76, 110, 38, 84, 85,
+               86, 87, 88, 90, 91, 92, 94, 73, 74, 81, 49, 104, 48, 29, 112,
+               61, 20, 62, 72, 18, 60, 23, 42, 30, 115, 58, 27, 106, 98, 9, 19,
+               15, 39, 56, 67, 118, 55, 89, 45, 107, 95, 99, 70, 53, 33, 111,
+               22, 117, 32, 28, 59, 105, 40, 71, 77, 16, 97, 50]
+
+    _circle_embedding(g, pos)
+
+    return g
+
+def Cell120():
+    r"""
+    Returns the 120-Cell graph
+
+    This is the adjacency graph of the 120-cell. It has 600 vertices and 1200
+    edges. For more information, see the :wikipedia:`120-cell`.
+
+    EXAMPLES::
+
+        sage: g = graphs.Cell120()      # long time
+        sage: g.size()                  # long time
+        1200
+        sage: g.is_regular(4)           # long time
+        True
+        sage: g.is_vertex_transitive()  # long time
+        True
+    """
+    from sage.rings.rational_field import QQ
+    from sage.rings.polynomial.polynomial_ring import polygen
+    from sage.rings.number_field.number_field import NumberField
+    from sage.modules.free_module import VectorSpace
+    from sage.groups.perm_gps.permgroup_named import AlternatingGroup
+    from sage.combinat.permutation import Permutations
+
+    x = polygen(QQ, 'x')
+    K = NumberField(x ** 2 - x - 1, 'f')
+    f = K.gen()
+    K4 = VectorSpace(K, 4)
+
+    # first 216 vertices
+    step = [(0, 0, K(a) * 2, K(b) * 2)
+            for a in [-1, 1] for b in [-1, 1]]
+    step += [(a * K(1), b * K(1), c * K(1), d * (2 * f - 1))
+            for a in [-1, 1] for b in [-1, 1]
+            for c in [-1, 1] for d in [-1, 1]]
+    step += [(a * (2 - f), b * f, c * f, d * f)
+             for a in [-1, 1] for b in [-1, 1]
+             for c in [-1, 1] for d in [-1, 1]]
+    step += [(a * (f - 1), b * (f - 1), c * (f - 1), d * (f + 1))
+             for a in [-1, 1] for b in [-1, 1]
+             for c in [-1, 1] for d in [-1, 1]]
+    ens1 = frozenset([(v[s(1) - 1], v[s(2) - 1], v[s(3) - 1], v[s(4) - 1])
+                      for v in step for s in Permutations(4)])
+    vert1 = [K4(w) for w in ens1]
+
+    # 384 more vertices
+    step = [(0, a * (2 - f), b * K(1), c * (f + 1))
+            for a in [-1, 1] for b in [-1, 1] for c in [-1, 1]]
+    step += [(0, a * (f - 1), b * f, c * (2 * f - 1))
+            for a in [-1, 1] for b in [-1, 1] for c in [-1, 1]]
+    step += [(a * (f - 1), b * K(1), c * f, d * K(2))
+             for a in [-1, 1] for b in [-1, 1]
+             for c in [-1, 1] for d in [-1, 1]]
+    vert2 = [K4([v[s(1) - 1], v[s(2) - 1], v[s(3) - 1], v[s(4) - 1]])
+              for v in step for s in AlternatingGroup(4)]
+
+    # all vertices together
+    U = vert1 + vert2
+
+    g = Graph([range(600), lambda i, j: U[i].inner_product(U[j]) == 6*f-2])
+
+    from sage.graphs.graph_plot import _circle_embedding
+    pos = [0, 1, 3, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 20, 21, 23, 24, 25,
+           27, 33, 40, 47, 49, 76, 77, 216, 217, 218, 219, 220, 222, 224, 225,
+           226, 230, 231, 232, 233, 235, 238, 241, 242, 245, 247, 249, 251, 253,
+           260, 261, 211, 66, 26, 307, 598, 305, 187, 374, 311, 205, 296, 108,
+           366, 172, 255, 89, 229, 81, 529, 548, 439, 382, 166, 496, 313, 484,
+           402, 234, 530, 256, 358, 406, 553, 577, 583, 401, 334, 417, 257, 438,
+           373, 544, 509, 365, 378, 487, 377, 390, 349, 325, 65, 78, 184, 13,
+           185, 18, 210, 84, 145, 83, 180, 158, 118, 109, 103, 130, 105, 51,
+           178, 155, 110, 85, 206, 95, 204, 190, 514, 513, 515, 466, 467, 441,
+           442, 587, 585, 576, 565, 564, 566, 540, 506, 436, 435, 424, 507, 543,
+           545, 547, 582, 440, 169, 63, 29, 575, 237, 549, 37, 375, 430, 159,
+           457, 61, 331, 208, 498, 39, 578, 48, 244, 486, 411, 364, 73, 455,
+           321, 240, 381, 542, 243, 500, 343, 333, 271, 518, 552, 357, 314, 299,
+           499, 412, 376, 596, 561, 319, 400, 264, 388, 362, 355, 386, 87, 186,
+           52, 99, 125, 113, 36, 121, 41, 127, 149, 100, 31, 137, 177, 43, 32,
+           45, 62, 191, 188, 106, 195, 141, 142, 96, 489, 491, 490, 475, 474,
+           447, 448, 589, 588, 517, 472, 473, 471, 450, 419, 519, 521, 468, 562,
+           594, 595, 488, 554, 413, 167, 116, 4, 557, 504, 536, 170, 389, 410,
+           128, 559, 203, 348, 147, 477, 22, 516, 162, 423, 266, 274, 320, 144,
+           246, 395, 437, 363, 452, 425, 478, 315, 312, 428, 288, 270, 344, 323,
+           493, 479, 275, 387, 286, 284, 347, 359, 462, 336, 368, 392, 324, 44,
+           75, 69, 46, 57, 138, 35, 80, 88, 199, 70, 152, 161, 181, 34, 207,
+           164, 71, 115, 55, 163, 72, 171, 93, 165, 124, 300, 301, 302, 303,
+           304, 306, 308, 309, 310, 290, 291, 292, 293, 295, 298, 277, 278, 281,
+           283, 285, 287, 265, 272, 273, 19, 10, 107, 223, 418, 221, 67, 338,
+           227, 196, 236, 91, 354, 154, 267, 30, 289, 215, 469, 464, 571, 346,
+           151, 508, 397, 520, 318, 294, 470, 268, 370, 322, 445, 421, 427, 317,
+           394, 597, 269, 570, 337, 460, 497, 353, 342, 523, 341, 330, 361, 385,
+           126, 92, 94, 176, 135, 117, 114, 197, 214, 179, 60, 42, 198, 202,
+           102, 101, 174, 104, 146, 90, 38, 111, 122, 157, 153, 133, 502, 501,
+           503, 550, 551, 573, 574, 431, 429, 420, 433, 432, 434, 456, 494, 568,
+           567, 580, 495, 459, 461, 463, 426, 572, 182, 58, 82, 443, 297, 465,
+           86, 339, 586, 209, 541, 140, 391, 143, 510, 28, 422, 213, 280, 522,
+           591, 352, 120, 563, 405, 276, 345, 458, 279, 512, 379, 393, 259, 482,
+           444, 369, 398, 239, 511, 592, 340, 416, 453, 403, 316, 252, 328, 350,
+           367, 326, 2, 175, 97, 139, 74, 131, 173, 134, 193, 192, 132, 79, 50,
+           200, 64, 150, 201, 194, 212, 183, 54, 56, 98, 123, 112, 156, 525,
+           527, 526, 535, 534, 555, 556, 409, 408, 481, 532, 533, 531, 558, 599,
+           483, 485, 528, 454, 414, 415, 524, 446, 593, 160, 59, 68, 449, 492,
+           476, 148, 329, 590, 119, 451, 189, 360, 53, 537, 129, 480, 136, 579,
+           254, 262, 404, 168, 282, 335, 569, 351, 560, 581, 538, 399, 396, 584,
+           228, 258, 380, 407, 505, 539, 263, 327, 250, 248, 383, 371, 546, 372,
+           356, 332, 384]
+    _circle_embedding(g, pos)
+
+    return g
+
 
 def HallJankoGraph(from_string=True):
     r"""
@@ -413,15 +600,15 @@ def HallJankoGraph(from_string=True):
 
         sage: nu = set(g.neighbors(0))
         sage: for v in range(1, 100):
-        ...     if v in nu:
-        ...        expected = 14
-        ...     else:
-        ...        expected = 12
-        ...     nv = set(g.neighbors(v))
-        ...     nv.discard(0)
-        ...     if len(nu & nv) != expected:
-        ...        print "Something is wrong here!!!"
-        ...        break
+        ....:     if v in nu:
+        ....:         expected = 14
+        ....:     else:
+        ....:         expected = 12
+        ....:     nv = set(g.neighbors(v))
+        ....:     nv.discard(0)
+        ....:     if len(nu & nv) != expected:
+        ....:         print "Something is wrong here!!!"
+        ....:         break
 
     Some other properties that we know how to check::
 
@@ -483,7 +670,7 @@ def HallJankoGraph(from_string=True):
               "HB`CQCp[WFQGgIQgkJQ{rLbc{Nc@APsdLRt@PSt\\WUtt_Wn")
 
     if from_string:
-        g = graph.Graph(string, loops = False, multiedges = False)
+        g = Graph(string, loops = False, multiedges = False)
     else:
 
         # The following construction is due to version 3 of the ATLAS of
@@ -509,7 +696,7 @@ def HallJankoGraph(from_string=True):
 
         gap.eval("G := Group([g1,g2]);")
         edges = gap('Orbit(G,[1,5],OnSets)').sage()
-        g = graph.Graph([(int(u), int(v)) for u,v in edges])
+        g = Graph([(int(u), int(v)) for u,v in edges])
         g.relabel()
 
     _circle_embedding(g, range(100))
@@ -749,7 +936,7 @@ def Balaban11Cage(embedding = 1):
             "165": ["162", "163", "164"],   "175": ["172", "173", "174"]
         }
 
-        return graph.Graph(edge_dict, pos=pos_dict, name="Balaban 11-cage")
+        return Graph(edge_dict, pos=pos_dict, name="Balaban 11-cage")
 
     elif embedding == 2 or embedding == 3:
         L = [44, 26, -47, -15, 35, -39, 11, -27, 38, -37, 43, 14, 28, 51,
@@ -862,7 +1049,7 @@ def BidiakisCube():
         9: [-1, 0],
         10: [-0.866025403784439, 0.5],
         11: [-0.5, 0.866025403784439]}
-    return graph.Graph(edge_dict, pos=pos_dict, name="Bidiakis cube")
+    return Graph(edge_dict, pos=pos_dict, name="Bidiakis cube")
 
 def BiggsSmithGraph(embedding=1):
     r"""
@@ -952,6 +1139,98 @@ def BiggsSmithGraph(embedding=1):
 
     return g
 
+def BlanusaFirstSnarkGraph():
+    r"""
+    Returns the first Blanusa Snark Graph.
+
+    The Blanusa graphs are two snarks on 18 vertices and 27 edges. For more
+    information on them, see the :wikipedia:`Blanusa_snarks`.
+
+    .. SEEALSO::
+
+        * :meth:`~sage.graphs.graph_generators.GraphGenerators.BlanusaSecondSnarkGraph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.BlanusaFirstSnarkGraph()
+        sage: g.order()
+        18
+        sage: g.size()
+        27
+        sage: g.diameter()
+        4
+        sage: g.girth()
+        5
+        sage: g.automorphism_group().cardinality()
+        8
+    """
+    g = Graph({17:[4,7,1],0:[5],
+               3:[8],13:[9],12:[16],
+               10:[15],11:[6],14:[2]},
+              name="Blanusa First Snark Graph")
+
+    g.add_cycle(range(17))
+    _circle_embedding(g, range(17), shift=0.25)
+    g.get_pos()[17] = (0,0)
+    return g
+
+def BlanusaSecondSnarkGraph():
+    r"""
+    Returns the second Blanusa Snark Graph.
+
+    The Blanusa graphs are two snarks on 18 vertices and 27 edges. For more
+    information on them, see the :wikipedia:`Blanusa_snarks`.
+
+    .. SEEALSO::
+
+        * :meth:`~sage.graphs.graph_generators.GraphGenerators.BlanusaFirstSnarkGraph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.BlanusaSecondSnarkGraph()
+        sage: g.order()
+        18
+        sage: g.size()
+        27
+        sage: g.diameter()
+        4
+        sage: g.girth()
+        5
+        sage: g.automorphism_group().cardinality()
+        4
+    """
+    g = Graph({0:[(0,0),(1,4),1],1:[(0,3),(1,1)],(0,2):[(0,5)],
+               (0,6):[(0,4)],(0,7):[(0,1)],(1,7):[(1,2)],
+               (1,0):[(1,6)],(1,3):[(1,5)]},
+              name="Blanusa Second Snark Graph")
+
+    g.add_cycle([(0,i) for i in range(5)])
+    g.add_cycle([(1,i) for i in range(5)])
+    g.add_cycle([(0,5),(0,6),(0,7),(1,5),(1,6),(1,7)])
+
+    _circle_embedding(g,
+                      [(0,(2*i)%5) for i in range(5)],
+                      center = (-1.5,0),
+                      shift = .5)
+    _circle_embedding(g,
+                      [(1,(2*i)%5) for i in range(5)],
+                      center = (1.5,0))
+
+    _circle_embedding(g,
+                      [(0,i) for i in range(5,8)]+[0]*4,
+                      center = (-1.2,0),
+                      shift = 2.5,
+                      radius = 2.2)
+    _circle_embedding(g,
+                      [(1,i) for i in range(5,8)]+[0]*4,
+                      center = (1.2,0),
+                      shift = -1,
+                      radius = 2.2)
+
+    _circle_embedding(g,[0,1], shift=.5)
+    g.relabel()
+    return g
+
 def BrinkmannGraph():
     r"""
     Returns the Brinkmann graph.
@@ -1039,7 +1318,7 @@ def BrinkmannGraph():
         18: [-0.781831482468030, -0.623489801858733],
         19: [-0.974927912181824, 0.222520933956315],
         20: [-0.433883739117558, 0.900968867902419]}
-    return graph.Graph(edge_dict, pos=pos_dict, name="Brinkmann graph")
+    return Graph(edge_dict, pos=pos_dict, name="Brinkmann graph")
 
 def BrouwerHaemersGraph():
     r"""
@@ -1089,6 +1368,125 @@ def BrouwerHaemersGraph():
     _circle_embedding(G, ordering)
     G.name("Brouwer-Haemers")
     return G
+
+def BuckyBall():
+    r"""
+    Create the Bucky Ball graph.
+
+    This graph is a 3-regular 60-vertex planar graph. Its vertices
+    and edges correspond precisely to the carbon atoms and bonds
+    in buckminsterfullerene.  When embedded on a sphere, its 12
+    pentagon and 20 hexagon faces are arranged exactly as the
+    sections of a soccer ball.
+
+    EXAMPLES:
+
+    The Bucky Ball is planar. ::
+
+        sage: g = graphs.BuckyBall()
+        sage: g.is_planar()
+        True
+
+    The Bucky Ball can also be created by extracting the 1-skeleton
+    of the Bucky Ball polyhedron, but this is much slower. ::
+
+        sage: g = polytopes.buckyball().vertex_graph()
+        sage: g.remove_loops()
+        sage: h = graphs.BuckyBall()
+        sage: g.is_isomorphic(h)
+        True
+
+    The graph is returned along with an attractive embedding. ::
+
+        sage: g = graphs.BuckyBall()
+        sage: g.plot(vertex_labels=False, vertex_size=10).show() # long time
+    """
+    edges = [(0, 2), (0, 48), (0, 59), (1, 3), (1, 9), (1, 58),
+             (2, 3), (2, 36), (3, 17), (4, 6), (4, 8), (4, 12),
+             (5, 7), (5, 9), (5, 16), (6, 7), (6, 20), (7, 21),
+             (8, 9), (8, 56), (10, 11), (10, 12), (10, 20), (11, 27),
+             (11, 47), (12, 13), (13, 46), (13, 54), (14, 15), (14, 16),
+             (14, 21), (15, 25), (15, 41), (16, 17), (17, 40), (18, 19),
+             (18, 20), (18, 26), (19, 21), (19, 24), (22, 23), (22, 31),
+             (22, 34), (23, 25), (23, 38), (24, 25), (24, 30), (26, 27),
+             (26, 30), (27, 29), (28, 29), (28, 31), (28, 35), (29, 44),
+             (30, 31), (32, 34), (32, 39), (32, 50), (33, 35), (33, 45),
+             (33, 51), (34, 35), (36, 37), (36, 40), (37, 39), (37, 52),
+             (38, 39), (38, 41), (40, 41), (42, 43), (42, 46), (42, 55),
+             (43, 45), (43, 53), (44, 45), (44, 47), (46, 47), (48, 49),
+             (48, 52), (49, 53), (49, 57), (50, 51), (50, 52), (51, 53),
+             (54, 55), (54, 56), (55, 57), (56, 58), (57, 59), (58, 59)
+             ]
+    g = Graph()
+    g.add_edges(edges)
+    g.name("Bucky Ball")
+
+    pos = {
+        0 :  (1.00000000000000, 0.000000000000000),
+        1 :  (-1.00000000000000, 0.000000000000000),
+        2 :  (0.500000000000000, 0.866025403784439),
+        3 :  (-0.500000000000000, 0.866025403784439),
+        4 :  (-0.252886764483159, -0.146004241548845),
+        5 :  (-0.368953972399043, 0.0928336233191176),
+        6 :  (-0.217853192651371, -0.0480798425451855),
+        7 :  (-0.255589950938772, 0.0495517623332213),
+        8 :  (-0.390242139418333, -0.225306404242310),
+        9 :  (-0.586398703939125, -0.0441575936410641),
+        10:  (-0.113926229169631, -0.101751920396670),
+        11:  (-0.0461308635969359, -0.0928422349110366),
+        12:  (-0.150564961379772, -0.164626477859040),
+        13:  (-0.0848818904865275, -0.246123271631605),
+        14:  (-0.170708060452244, 0.196571509298384),
+        15:  (-0.0672882312715990, 0.212706320404226),
+        16:  (-0.264873262319233, 0.273106701265196),
+        17:  (-0.254957754106411, 0.529914971178085),
+        18:  (-0.103469165775548, 0.00647061768205703),
+        19:  (-0.113590051906687, 0.0655812470455896),
+        20:  (-0.145082862532183, -0.0477870484199328),
+        21:  (-0.179962687765901, 0.103901506225732),
+        22:  (0.0573383021786124, 0.0863716172289798),
+        23:  (0.0311566333625530, 0.149538968816603),
+        24:  (-0.0573383021786121, 0.0863716172289799),
+        25:  (-0.0311566333625527, 0.149538968816603),
+        26:  (-0.0517345828877740, 0.00161765442051429),
+        27:  (-0.0244663616211774, -0.0456122902452611),
+        28:  (0.0517345828877743, 0.00161765442051431),
+        29:  (0.0244663616211777, -0.0456122902452611),
+        30:  (-0.0272682212665964, 0.0439946358247470),
+        31:  (0.0272682212665968, 0.0439946358247470),
+        32:  (0.179962687765901, 0.103901506225732),
+        33:  (0.145082862532184, -0.0477870484199329),
+        34:  (0.113590051906687, 0.0655812470455895),
+        35:  (0.103469165775548, 0.00647061768205698),
+        36:  (0.254957754106411, 0.529914971178085),
+        37:  (0.264873262319233, 0.273106701265196),
+        38:  (0.0672882312715993, 0.212706320404226),
+        39:  (0.170708060452245, 0.196571509298384),
+        40:  (1.59594559789866e-16, 0.450612808484620),
+        41:  (2.01227923213310e-16, 0.292008483097691),
+        42:  (0.0848818904865278, -0.246123271631605),
+        43:  (0.150564961379773, -0.164626477859040),
+        44:  (0.0461308635969362, -0.0928422349110366),
+        45:  (0.113926229169631, -0.101751920396670),
+        46:  (1.66533453693773e-16, -0.207803012451463),
+        47:  (1.80411241501588e-16, -0.131162494091179),
+        48:  (0.586398703939126, -0.0441575936410641),
+        49:  (0.390242139418333, -0.225306404242310),
+        50:  (0.255589950938772, 0.0495517623332212),
+        51:  (0.217853192651372, -0.0480798425451855),
+        52:  (0.368953972399044, 0.0928336233191175),
+        53:  (0.252886764483159, -0.146004241548845),
+        54:  (-0.104080710079810, -0.365940324584313),
+        55:  (0.104080710079811, -0.365940324584313),
+        56:  (-0.331440949832714, -0.485757377537020),
+        57:  (0.331440949832715, -0.485757377537021),
+        58:  (-0.500000000000000, -0.866025403784438),
+        59:  (0.500000000000000, -0.866025403784439)
+    }
+
+    g.set_pos(pos)
+
+    return g
 
 def DoubleStarSnark():
     r"""
@@ -1146,9 +1544,109 @@ def DoubleStarSnark():
         , 29: [25, 22, 15]
         }
 
-    g = graph.Graph(d, pos={}, name="Double star snark")
+    g = Graph(d, pos={}, name="Double star snark")
     _circle_embedding(g, range(15), radius=2)
     _circle_embedding(g, range(15, 30), radius=1.4)
+
+    return g
+
+def MeredithGraph():
+    r"""
+    Returns the Meredith Graph
+
+    The Meredith Graph is a 4-regular 4-connected non-hamiltonian graph. For
+    more information on the Meredith Graph, see the :wikipedia:`Meredith_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.MeredithGraph()
+        sage: g.is_regular(4)
+        True
+        sage: g.order()
+        70
+        sage: g.size()
+        140
+        sage: g.radius()
+        7
+        sage: g.diameter()
+        8
+        sage: g.girth()
+        4
+        sage: g.chromatic_number()
+        3
+        sage: g.is_hamiltonian() # long time
+        False
+    """
+    g = Graph(name="Meredith Graph")
+    g.add_vertex(0)
+
+    # Edges between copies of K_{4,3}
+    for i in range(5):
+        g.add_edge(('outer',i,3),('outer',(i+1)%5,0))
+        g.add_edge(('inner',i,3),('inner',(i+2)%5,0))
+        g.add_edge(('outer',i,1),('inner',i      ,1))
+        g.add_edge(('outer',i,2),('inner',i      ,2))
+
+    # Edges inside of the K_{4,3}s.
+    for i in range(5):
+        for j in range(4):
+            for k in range(3):
+                g.add_edge(('inner',i,j),('inner',i,k+4))
+                g.add_edge(('outer',i,j),('outer',i,k+4))
+
+    _circle_embedding(g, sum([[('outer',i,j) for j in range(4)]+10*[0] for i in range(5)],[]), radius = 1, shift = 2)
+    _circle_embedding(g, sum([[('outer',i,j) for j in range(4,7)]+10*[0] for i in range(5)],[]), radius = 1.2, shift = 2.2)
+    _circle_embedding(g, sum([[('inner',i,j) for j in range(4)]+7*[0] for i in range(5)],[]), radius = .6, shift = 1.24)
+    _circle_embedding(g, sum([[('inner',i,j) for j in range(4,7)]+5*[0] for i in range(5)],[]), radius = .4, shift = 1.05)
+
+    g.delete_vertex(0)
+    g.relabel()
+    return g
+
+def KittellGraph():
+    r"""
+    Returns the Kittell Graph.
+
+    For more information, see the `Wolfram page about the Kittel Graph
+    <http://mathworld.wolfram.com/KittellGraph.html>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.KittellGraph()
+        sage: g.order()
+        23
+        sage: g.size()
+        63
+        sage: g.radius()
+        3
+        sage: g.diameter()
+        4
+        sage: g.girth()
+        3
+        sage: g.chromatic_number()
+        4
+    """
+    g = Graph({0: [1, 2, 4, 5, 6, 7], 1: [0, 2, 7, 10, 11, 13],
+               2: [0, 1, 11, 4, 14], 3: [16, 12, 4, 5, 14], 4: [0, 2, 3, 5, 14],
+               5: [0, 16, 3, 4, 6], 6: [0, 5, 7, 15, 16, 17, 18],
+               7: [0, 1, 6, 8, 13, 18], 8: [9, 18, 19, 13, 7],
+               9: [8, 10, 19, 20, 13], 10: [1, 9, 11, 13, 20, 21],
+               11: [1, 2, 10, 12, 14, 15, 21], 12: [11, 16, 3, 14, 15],
+               13: [8, 1, 10, 9, 7], 14: [11, 12, 2, 3, 4],
+               15: [6, 11, 12, 16, 17, 21, 22],
+               16: [3, 12, 5, 6, 15], 17: [18, 19, 22, 6, 15],
+               18: [8, 17, 19, 6, 7], 19: [8, 9, 17, 18, 20, 22],
+               20: [9, 10, 19, 21, 22], 21: [10, 11, 20, 22, 15],
+               22: [17, 19, 20, 21, 15]},
+              name = "Kittell Graph")
+
+    _circle_embedding(g, range(3), shift=.75)
+    _circle_embedding(g, range(3,13), radius = .4)
+    _circle_embedding(g, range(15,22), radius = .2, shift=-.15)
+    pos = g.get_pos()
+    pos[13] = (-.65,-.35)
+    pos[14] = (.65,-.35)
+    pos[22] = (0,0)
 
     return g
 
@@ -1244,7 +1742,7 @@ def ChvatalGraph():
     pos_dict[10] = (0.5, 0)
     pos_dict[11] = (-0.5, 0)
 
-    return graph.Graph(networkx.chvatal_graph(), pos=pos_dict, name="Chvatal graph")
+    return Graph(networkx.chvatal_graph(), pos=pos_dict, name="Chvatal graph")
 
 def ClebschGraph():
     r"""
@@ -1263,7 +1761,7 @@ def ClebschGraph():
         2
         sage: g.show(figsize=[10, 10]) # long time
     """
-    g = graph.Graph(pos={})
+    g = Graph(pos={})
     x = 0
     for i in range(8):
         g.add_edge(x % 16, (x + 1) % 16)
@@ -1300,7 +1798,7 @@ def CoxeterGraph():
         4
         sage: g.show(figsize=[10, 10]) # long time
     """
-    g = graph.Graph({
+    g = Graph({
             27: [6, 22, 14],
             24: [0, 7, 18],
             25: [8, 15, 2],
@@ -1402,7 +1900,7 @@ def DurerGraph():
         9: [-1, 0],
         10: [-0.5, -0.866025403784439],
         11: [0.5, -0.866025403784439]}
-    return graph.Graph(edge_dict, pos=pos_dict, name="Durer graph")
+    return Graph(edge_dict, pos=pos_dict, name="Durer graph")
 
 def DyckGraph():
     """
@@ -1495,7 +1993,69 @@ def DyckGraph():
         0O27: [0O16, 0O10,   0O37], 0O37: [0O27,   0O34, 0O32],
     }
 
-    return graph.Graph(edge_dict, pos=pos_dict, name="Dyck graph")
+    return Graph(edge_dict, pos=pos_dict, name="Dyck graph")
+
+def HortonGraph():
+    r"""
+    Returns the Horton Graph.
+
+    The Horton graph is a cubic 3-connected non-hamiltonian graph. For more
+    information, see the :wikipedia:`Horton_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.HortonGraph()
+        sage: g.order()
+        96
+        sage: g.size()
+        144
+        sage: g.radius()
+        10
+        sage: g.diameter()
+        10
+        sage: g.girth()
+        6
+        sage: g.automorphism_group().cardinality()
+        96
+        sage: g.chromatic_number()
+        2
+        sage: g.is_hamiltonian() # not tested -- veeeery long
+        False
+    """
+    g = Graph(name = "Horton Graph")
+
+    # Each group of the 6 groups of vertices is based on the same 3-regular
+    # graph.
+    from sage.graphs.generators.families import LCFGraph
+    lcf = LCFGraph(16,[5,-5],8)
+    lcf.delete_edge(15,0)
+    lcf.delete_edge(7,8)
+
+    for i in range(6):
+        for u,v in lcf.edges(labels=False):
+            g.add_edge((i,u),(i,v))
+
+    # Modifying the groups and linking them together
+    for i in range(3):
+        g.add_edge((2*i,0),(2*i+1,7))
+        g.add_edge((2*i+1,8),(2*i,7))
+        g.add_edge((2*i,15),(2*i+1,0))
+        g.add_edge((2*i,8),1)
+        g.add_edge((2*i+1,14),2)
+        g.add_edge((2*i+1,10),0)
+
+    # Embedding
+    for i in range(6):
+        _circle_embedding(g, [(i,j) for j in range(16)], center=(cos(2*i*pi/6),sin(2*i*pi/6)), radius=.3)
+
+    for i in range(3):
+        g.delete_vertex((2*i+1,15))
+
+    _circle_embedding(g, range(3), radius=.2, shift=-0.75)
+
+    g.relabel()
+
+    return g
 
 def EllinghamHorton54Graph():
     r"""
@@ -1622,7 +2182,7 @@ def EllinghamHorton78Graph():
 
         sage: g.show(figsize=[10, 10]) # not tested - too long
     """
-    g = graph.Graph({
+    g = Graph({
             0: [1, 5, 60], 1: [2, 12], 2: [3, 7], 3: [4, 14], 4: [5, 9],
             5: [6], 6: [7, 11], 7: [15], 8: [9, 13, 22], 9: [10],
             10: [11, 72], 11: [12], 12: [13], 13: [14], 14: [72],
@@ -1732,7 +2292,7 @@ def ErreraGraph():
         11: [13],
         13: [15],
         14: [16]}
-    return graph.Graph(edge_dict, name="Errera graph")
+    return Graph(edge_dict, name="Errera graph")
 
 def FlowerSnark():
     """
@@ -1774,10 +2334,48 @@ def FlowerSnark():
         x = float(cos((pi/2) + ((2*pi)/5)*i))
         y = float(sin((pi/2) + ((2*pi)/5)*i))
         pos_dict[i] = (x,y)
-    return graph.Graph({0:[1,14,15],1:[2,11],2:[3,7],3:[2,4,16],4:[5,14], \
+    return Graph({0:[1,14,15],1:[2,11],2:[3,7],3:[2,4,16],4:[5,14], \
                         5:[6,10],6:[5,7,17],8:[7,9,13],9:[10,18],11:[10,12], \
                         12:[13,19],13:[14],15:[19],16:[15,17],18:[17,19]}, \
                         pos=pos_dict, name="Flower Snark")
+
+
+def FolkmanGraph():
+    """
+    Returns the Folkman graph.
+
+    See the :wikipedia:`Wikipedia page on the Folkman Graph
+    <Folkman_graph>`.
+
+    EXAMPLE::
+
+        sage: g = graphs.FolkmanGraph()
+        sage: g.order()
+        20
+        sage: g.size()
+        40
+        sage: g.diameter()
+        4
+        sage: g.girth()
+        4
+        sage: g.charpoly().factor()
+        (x - 4) * (x + 4) * x^10 * (x^2 - 6)^4
+        sage: g.chromatic_number()
+        2
+        sage: g.is_eulerian()
+        True
+        sage: g.is_hamiltonian()
+        True
+        sage: g.is_vertex_transitive()
+        False
+        sage: g.is_bipartite()
+        True
+    """
+    from sage.graphs.generators.families import LCFGraph
+    g= LCFGraph(20, [5, -7, -7, 5], 5)
+    g.name("Folkman Graph")
+    return g
+
 
 def FosterGraph():
     """
@@ -1876,7 +2474,7 @@ def FranklinGraph():
         9: [-1, 0],
         10: [-0.5, -0.866025403784439],
         11: [0.5, -0.866025403784439]}
-    return graph.Graph(edge_dict, pos=pos_dict, name="Franklin graph")
+    return Graph(edge_dict, pos=pos_dict, name="Franklin graph")
 
 def FruchtGraph():
     """
@@ -1919,7 +2517,7 @@ def FruchtGraph():
     pos_dict[11] = (0,0)
     import networkx
     G = networkx.frucht_graph()
-    return graph.Graph(G, pos=pos_dict, name="Frucht graph")
+    return Graph(G, pos=pos_dict, name="Frucht graph")
 
 def GoldnerHararyGraph():
     r"""
@@ -1988,7 +2586,7 @@ def GoldnerHararyGraph():
         9: (-0.5, -0.5),
         10: (0, 0)}
 
-    return graph.Graph(edge_dict, pos = pos, name="Goldner-Harary graph")
+    return Graph(edge_dict, pos = pos, name="Goldner-Harary graph")
 
 def GrayGraph(embedding=1):
     r"""
@@ -2087,7 +2685,7 @@ def GrotzschGraph():
         sage: ag.is_isomorphic(DihedralGroup(5))
         True
     """
-    g = graph.Graph()
+    g = Graph()
     g.add_vertices(range(11))
 
     edges = [];
@@ -2158,7 +2756,7 @@ def HeawoodGraph():
         pos_dict[i] = (x,y)
     import networkx
     G = networkx.heawood_graph()
-    return graph.Graph(G, pos=pos_dict, name="Heawood graph")
+    return Graph(G, pos=pos_dict, name="Heawood graph")
 
 def HerschelGraph():
     r"""
@@ -2227,7 +2825,7 @@ def HerschelGraph():
         8: [-0.5, -0.866025403784439],
         9: [0.5, -0.866025403784439],
         10: [0, 0]}
-    return graph.Graph(edge_dict, pos=pos_dict, name="Herschel graph")
+    return Graph(edge_dict, pos=pos_dict, name="Herschel graph")
 
 def HigmanSimsGraph(relabel=True):
     r"""
@@ -2309,7 +2907,7 @@ def HigmanSimsGraph(relabel=True):
 
         - Rob Beezer (2009-10-24)
     """
-    HS = graph.Graph()
+    HS = Graph()
     HS.name('Higman-Sims graph')
 
     # Four groups of either five pentagons, or five pentagrams
@@ -2440,7 +3038,7 @@ def HoffmanSingletonGraph():
         (-0.904..., 0.425...)
 
     """
-    H = graph.Graph({ \
+    H = Graph({ \
     'q00':['q01'], 'q01':['q02'], 'q02':['q03'], 'q03':['q04'], 'q04':['q00'], \
     'q10':['q11'], 'q11':['q12'], 'q12':['q13'], 'q13':['q14'], 'q14':['q10'], \
     'q20':['q21'], 'q21':['q22'], 'q22':['q23'], 'q23':['q24'], 'q24':['q20'], \
@@ -2457,11 +3055,11 @@ def HoffmanSingletonGraph():
                 con = (i+j*k)%5
                 H.add_edge(('q%d%d'%(k,con),'p%d%d'%(j,i)))
     H.name('Hoffman-Singleton graph')
-    from sage.combinat.combinat import permutations
+    from sage.combinat.permutation import Permutations
     from sage.misc.prandom import randint
-    P = permutations([1,2,3,4])
-    qpp = [0]+P[randint(0,23)]
-    ppp = [0]+P[randint(0,23)]
+    P = Permutations([1,2,3,4])
+    qpp = [0] + list(P[randint(0,23)])
+    ppp = [0] + list(P[randint(0,23)])
     qcycle = lambda i,s : ['q%s%s'%(i,(j+s)%5) for j in qpp]
     pcycle = lambda i,s : ['p%s%s'%(i,(j+s)%5) for j in ppp]
     l = 0
@@ -2509,7 +3107,7 @@ def HoffmanGraph():
         sage: g.automorphism_group().cardinality()
         48
     """
-    g = graph.Graph({
+    g = Graph({
             0: [1, 7, 8, 13],
             1: [2, 9, 14],
             2: [3, 8, 10],
@@ -2560,7 +3158,7 @@ def HoltGraph():
         sage: g.automorphism_group().cardinality()
         54
     """
-    g = graph.Graph(loops=False, name = "Holt graph", pos={})
+    g = Graph(loops=False, name = "Holt graph", pos={})
     for x in range(9):
         for y in range(3):
             g.add_edge((x,y),((4*x+1)%9,(y-1)%3))
@@ -2574,6 +3172,49 @@ def HoltGraph():
                         last=(cos(2*(j+1)*pi/6),sin(2*(j+1)*pi/6)))
 
     return g
+
+def KrackhardtKiteGraph():
+    """
+    Returns a Krackhardt kite graph with 10 nodes.
+
+    The Krackhardt kite graph was originally developed by David
+    Krackhardt for the purpose of studying social networks. It is used
+    to show the distinction between: degree centrality, betweeness
+    centrality, and closeness centrality. For more information read the
+    plotting section below in conjunction with the example.
+
+    REFERENCES:
+
+    - [1] Kreps, V. (2002). "Social Network Analysis".  [Online] Available:
+      http://www.orgnet.com/sna.html
+
+    This constructor depends on NetworkX numeric labeling.
+
+    PLOTTING: Upon construction, the position dictionary is filled to
+    override the spring-layout algorithm. By convention, the graph is
+    drawn left to right, in top to bottom row sequence of [2, 3, 2, 1,
+    1, 1] nodes on each row. This places the fourth node (3) in the
+    center of the kite, with the highest degree. But the fourth node
+    only connects nodes that are otherwise connected, or those in its
+    clique (i.e.: Degree Centrality). The eighth (7) node is where the
+    kite meets the tail. It has degree = 3, less than the average, but
+    is the only connection between the kite and tail (i.e.: Betweenness
+    Centrality). The sixth and seventh nodes (5 and 6) are drawn in the
+    third row and have degree = 5. These nodes have the shortest path
+    to all other nodes in the graph (i.e.: Closeness Centrality).
+    Please execute the example for visualization.
+
+    EXAMPLE: Construct and show a Krackhardt kite graph
+
+    ::
+
+        sage: g = graphs.KrackhardtKiteGraph()
+        sage: g.show() # long time
+    """
+    pos_dict = {0:(-1,4),1:(1,4),2:(-2,3),3:(0,3),4:(2,3),5:(-1,2),6:(1,2),7:(0,1),8:(0,0),9:(0,-1)}
+    import networkx
+    G = networkx.krackhardt_kite_graph()
+    return Graph(G, pos=pos_dict, name="Krackhardt Kite Graph")
 
 def LjubljanaGraph(embedding=1):
     r"""
@@ -2624,9 +3265,6 @@ def LjubljanaGraph(embedding=1):
     g.name("Ljubljana graph")
 
     if embedding == 1:
-        return g
-
-    elif embedding == 2:
         dh = HeawoodGraph().get_pos()
 
         # Correspondence between the vertices of the Heawood Graph and
@@ -2656,6 +3294,9 @@ def LjubljanaGraph(embedding=1):
             _circle_embedding(g, vertices, center=dh[u], radius=.1,
                     shift=8.*i/14)
 
+        return g
+
+    elif embedding == 2:
         return g
 
     else:
@@ -2692,6 +3333,52 @@ def M22Graph():
                 15, 8, 18, 13, 59, 37, 30, 57, 75, 74, 42]
 
     _circle_embedding(g, ordering)
+
+    return g
+
+def MarkstroemGraph():
+    r"""
+    Returns the Markström Graph.
+
+    The Markström Graph is a cubic planar graph with no cycles of length 4 nor
+    8, but containing cycles of length 16. For more information, see the
+    `Wolfram page about the Markström Graph
+    <http://mathworld.wolfram.com/MarkstroemGraph.html>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.MarkstroemGraph()
+        sage: g.order()
+        24
+        sage: g.size()
+        36
+        sage: g.is_planar()
+        True
+        sage: g.is_regular(3)
+        True
+        sage: g.subgraph_search(graphs.CycleGraph(4)) is None
+        True
+        sage: g.subgraph_search(graphs.CycleGraph(8)) is None
+        True
+        sage: g.subgraph_search(graphs.CycleGraph(16))
+        Subgraph of (Markstroem Graph): Graph on 16 vertices
+    """
+    g = Graph(name="Markstroem Graph")
+
+    g.add_cycle(range(9))
+    g.add_path([0,9,10,11,2,1,11])
+    g.add_path([3,12,13,14,5,4,14])
+    g.add_path([6,15,16,17,8,7,17])
+    g.add_cycle([10,9,18])
+    g.add_cycle([12,13,19])
+    g.add_cycle([15,16,20])
+    g.add_cycle([21,22,23])
+    g.add_edges([(19,22),(18,21),(20,23)])
+
+    _circle_embedding(g, sum([[9+3*i+j for j in range(3)]+[0]*2 for i in range(3)],[]), radius=.6, shift=.7)
+    _circle_embedding(g, [18,19,20], radius=.35, shift=.25)
+    _circle_embedding(g, [21,22,23], radius=.15, shift=.25)
+    _circle_embedding(g, range(9))
 
     return g
 
@@ -2755,6 +3442,64 @@ def McGeeGraph(embedding=2):
 
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
+
+def McLaughlinGraph():
+    r"""
+    Returns the McLaughlin Graph.
+
+    The McLaughlin Graph is the unique strongly regular graph of parameters
+    `(275, 112, 30, 56)`.
+
+    For more information on the McLaughlin Graph, see its web page on `Andries
+    Brouwer's website <http://www.win.tue.nl/~aeb/graphs/McL.html>`_ which gives
+    the definition that this method implements.
+
+    .. NOTE::
+
+        To create this graph you must have the gap_packages spkg installed.
+
+    EXAMPLES::
+
+        sage: g = graphs.McLaughlinGraph()           # optional gap_packages
+        sage: g.is_strongly_regular(parameters=True) # optional gap_packages
+        (275, 112, 30, 56)
+        sage: set(g.spectrum()) == {112, 2, -28}     # optional gap_packages
+        True
+    """
+    from sage.combinat.designs.block_design import WittDesign
+    from itertools import combinations
+    from sage.sets.set import Set
+
+    blocks = WittDesign(23).blocks()
+    blocks = map(Set, blocks)
+    B = [b for b in blocks if 0 in b]
+    C = [b for b in blocks if not 0 in b]
+    g = Graph()
+    for b in B:
+        for x in range(23):
+            if not x in b:
+                g.add_edge(b, x)
+
+    for b in C:
+        for x in b:
+            g.add_edge(b, x)
+
+    for b, bb in combinations(B, 2):
+        if len(b & bb) == 1:
+            g.add_edge(b, bb)
+
+    for c, cc in combinations(C, 2):
+        if len(c & cc) == 1:
+            g.add_edge(c, cc)
+
+    for b in B:
+        for c in C:
+            if len(b & c) == 3:
+                g.add_edge(b, c)
+
+    g.relabel()
+    g.name("McLaughlin")
+    return g
 
 def MoebiusKantorGraph():
     """
@@ -2842,7 +3587,7 @@ def MoserSpindle():
         4: [1.90211303259031, 0.618033988749895],
         5: [1, 0],
         6: [-1, 0]}
-    return graph.Graph(edge_dict, pos=pos_dict, name="Moser spindle")
+    return Graph(edge_dict, pos=pos_dict, name="Moser spindle")
 
 
 def NauruGraph(embedding=2):
@@ -2917,10 +3662,39 @@ def PappusGraph():
                            (2/3.0)*float(sin(pi/2 + ((2*pi)/6)*i))]
         pos_dict[12 + i] = [(1/3.0)*float(cos(pi/2 + ((2*pi)/6)*i)),\
                             (1/3.0)*float(sin(pi/2 + ((2*pi)/6)*i))]
-    return graph.Graph({0:[1,5,6],1:[2,7],2:[3,8],3:[4,9],4:[5,10],\
+    return Graph({0:[1,5,6],1:[2,7],2:[3,8],3:[4,9],4:[5,10],\
                         5:[11],6:[13,17],7:[12,14],8:[13,15],9:[14,16],\
                         10:[15,17],11:[12,16],12:[15],13:[16],14:[17]},\
                        pos=pos_dict, name="Pappus Graph")
+
+def PoussinGraph():
+    r"""
+    Returns the Poussin Graph.
+
+    For more information on the Poussin Graph, see its corresponding `Wolfram
+    page <http://mathworld.wolfram.com/PoussinGraph.html>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.PoussinGraph()
+        sage: g.order()
+        15
+        sage: g.is_planar()
+        True
+    """
+    g = Graph({2:[7,8,3,4],1:[7,6],0:[6,5,4],3:[5]},name="Poussin Graph")
+
+    g.add_cycle(range(3))
+    g.add_cycle(range(3,9))
+    g.add_cycle(range(9,14))
+    g.add_path([8,12,7,11,6,10,5,9,3,13,8,12])
+    g.add_edges([(14,i) for i in range(9,14)])
+    _circle_embedding(g, range(3), shift=.75)
+    _circle_embedding(g, range(3,9), radius=.4, shift=0)
+    _circle_embedding(g, range(9,14), radius=.2, shift=.4)
+    g.get_pos()[14] = (0,0)
+
+    return g
 
 def PetersenGraph():
     """
@@ -2946,6 +3720,41 @@ def PetersenGraph():
     P=GeneralizedPetersenGraph(5,2)
     P.name("Petersen graph")
     return P
+
+
+def RobertsonGraph():
+    """
+    Returns the Robertson graph.
+
+    See the :wikipedia:`Wikipedia page on the Robertson Graph
+    <Robertson_graph>`.
+
+    EXAMPLE::
+
+        sage: g = graphs.RobertsonGraph()
+        sage: g.order()
+        19
+        sage: g.size()
+        38
+        sage: g.diameter()
+        3
+        sage: g.girth()
+        5
+        sage: g.charpoly().factor()
+        (x - 4) * (x - 1)^2 * (x^2 + x - 5) * (x^2 + x - 1) * (x^2 - 3)^2 * (x^2 + x - 4)^2 * (x^2 + x - 3)^2
+        sage: g.chromatic_number()
+        3
+        sage: g.is_hamiltonian()
+        True
+        sage: g.is_vertex_transitive()
+        False
+    """
+    from sage.graphs.generators.families import LCFGraph
+    lcf = [8, 4, 7, 4, 8, 5, 7, 4, 7, 8, 4, 5, 7, 8, 4, 8, 4, 8, 4]
+    g = LCFGraph(19, lcf, 1)
+    g.name("Robertson Graph")
+    return g
+
 
 def SchlaefliGraph():
     r"""
@@ -3021,8 +3830,8 @@ def ShrikhandeGraph():
         sage: G.is_regular(6)
         True
         sage: set([ len([x for x in G.neighbors(i) if x in G.neighbors(j)])
-        ...     for i in range(G.order())
-        ...     for j in range(i) ])
+        ....:     for i in range(G.order())
+        ....:     for j in range(i) ])
         set([2])
 
     It is non-planar, and both Hamiltonian and Eulerian::
@@ -3085,7 +3894,7 @@ def ShrikhandeGraph():
         0O17: [0O11, 0O12, 0O14, 0O15,   0O06, 0O00]
     }
 
-    return graph.Graph(edge_dict, pos=pos_dict, name="Shrikhande graph")
+    return Graph(edge_dict, pos=pos_dict, name="Shrikhande graph")
 
 def SylvesterGraph():
     """
@@ -3165,12 +3974,93 @@ def SimsGewirtzGraph():
     g.name("Sims-Gewirtz Graph")
     return g
 
+def SousselierGraph():
+    r"""
+    Returns the Sousselier Graph.
+
+    The Sousselier graph is a hypohamiltonian graph on 16 vertices and 27
+    edges. For more information, see the corresponding `Wikipedia page (in
+    French) <http://fr.wikipedia.org/wiki/Graphe_de_Sousselier>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.SousselierGraph()
+        sage: g.order()
+        16
+        sage: g.size()
+        27
+        sage: g.radius()
+        2
+        sage: g.diameter()
+        3
+        sage: g.automorphism_group().cardinality()
+        2
+        sage: g.is_hamiltonian()
+        False
+        sage: g.delete_vertex(g.random_vertex())
+        sage: g.is_hamiltonian()
+        True
+    """
+    g = Graph(name="Sousselier Graph")
+
+    g.add_cycle(range(15))
+    g.add_path([12,8,3,14])
+    g.add_path([9,5,0,11])
+    g.add_edge(6,2)
+    g.add_edges([(15,i) for i in range(15) if i%3==1])
+
+    _circle_embedding(g, range(15), shift=-.25)
+    g.get_pos()[15] = (0,0)
+
+    return g
+
+def SzekeresSnarkGraph():
+    r"""
+    Returns the Szekeres Snark Graph.
+
+    The Szekeres graph is a snark with 50 vertices and 75 edges. For more
+    information on this graph, see the :wikipedia:`Szekeres_snark`.
+
+    EXAMPLES::
+
+        sage: g = graphs.SzekeresSnarkGraph()
+        sage: g.order()
+        50
+        sage: g.size()
+        75
+        sage: g.chromatic_number()
+        3
+    """
+    g = Graph(name="Szekeres Snark Graph")
+
+    for i in range(5):
+        g.add_cycle([(i,j) for j in range(9)])
+        g.delete_edge((i,0),(i,8))
+        g.add_edge((i,1),i)
+        g.add_edge((i,4),i)
+        g.add_edge((i,7),i)
+        g.add_edge((i,0),(i,5))
+        g.add_edge((i,8),(i,3))
+
+        g.add_edge((i,0),((i+1)%5,8))
+        g.add_edge((i,6),((i+2)%5,2))
+        _circle_embedding(g, [(i,j) for j in range(9)],
+                          radius=.3,
+                          center=(cos(2*(i+.25)*pi/5),sin(2*(i+.25)*pi/5)),
+                          shift=5.45+1.8*i)
+
+    _circle_embedding(g, range(5), radius=1, shift=.25)
+
+    g.relabel()
+    return g
+
+
 def ThomsenGraph():
     """
     Returns the Thomsen Graph.
 
-    The Thomsen Graph is actually a complete bipartite graph with (n1,
-    n2) = (3, 3). It is also called the Utility graph.
+    The Thomsen Graph is actually a complete bipartite graph with `(n1, n2) =
+    (3, 3)`. It is also called the Utility graph.
 
     PLOTTING: See CompleteBipartiteGraph.
 
@@ -3186,7 +4076,38 @@ def ThomsenGraph():
     pos_dict = {0:(-1,1),1:(0,1),2:(1,1),3:(-1,0),4:(0,0),5:(1,0)}
     import networkx
     G = networkx.complete_bipartite_graph(3,3)
-    return graph.Graph(G, pos=pos_dict, name="Thomsen graph")
+    return Graph(G, pos=pos_dict, name="Thomsen graph")
+
+def TietzeGraph():
+    r"""
+    Returns the Tietze Graph.
+
+    For more information on the Tietze Graph, see the
+    :wikipedia:`Tietze's_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.TietzeGraph()
+        sage: g.order()
+        12
+        sage: g.size()
+        18
+        sage: g.diameter()
+        3
+        sage: g.girth()
+        3
+        sage: g.automorphism_group().cardinality()
+        12
+        sage: g.automorphism_group().is_isomorphic(groups.permutation.Dihedral(6))
+        True
+    """
+    g = Graph([(0,9),(3,10),(6,11),(1,5),(2,7),(4,8),(7,2)], name="Tietze Graph")
+    g.add_cycle(range(9))
+    g.add_cycle([9,10,11])
+    _circle_embedding(g,range(9))
+    _circle_embedding(g,[9,10,11],radius=.5)
+
+    return g
 
 def Tutte12Cage():
     r"""
@@ -3279,6 +4200,65 @@ def TutteCoxeterGraph(embedding=2):
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
 
+def TutteGraph():
+    r"""
+    Returns the Tutte Graph.
+
+    The Tutte graph is a 3-regular, 3-connected, and planar non-hamiltonian
+    graph. For more information on the Tutte Graph, see the
+    :wikipedia:`Tutte_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.TutteGraph()
+        sage: g.order()
+        46
+        sage: g.size()
+        69
+        sage: g.is_planar()
+        True
+        sage: g.vertex_connectivity() # long
+        3
+        sage: g.girth()
+        4
+        sage: g.automorphism_group().cardinality()
+        3
+        sage: g.is_hamiltonian()
+        False
+    """
+    g = Graph(name="Tutte Graph")
+    from sage.graphs.graph_plot import _circle_embedding
+
+    g.add_cycle([(i,j) for i in range(3) for j in range(3) ])
+    for i in range(3):
+        g.add_cycle([(i,j) for j in range(9)])
+        g.add_cycle([(i,j) for j in range(9,14)])
+        g.add_edge((i,5),0)
+        g.add_edge((i,13),(i,3))
+        g.add_edge((i,12),(i,1))
+        g.add_edge((i,11),(i,8))
+        g.add_edge((i,10),(i,7))
+        g.add_edge((i,6),(i,14))
+        g.add_edge((i,4),(i,14))
+        g.add_edge((i,9),(i,14))
+
+    _circle_embedding(g, [(i,j) for i in range(3)  for j in range(6)], shift=.5)
+    _circle_embedding(g, [(i,14) for i in range(3) ], radius=.3,shift=.25)
+
+    for i in range(3):
+        _circle_embedding(g, [(i,j) for j in range(3,9)]+[0]*5,
+                          shift=3.7*(i-2)+.75,
+                          radius=.4,
+                          center=(.6*cos(2*(i+.25)*pi/3),.6*sin(2*(i+.25)*pi/3)))
+        _circle_embedding(g, [(i,j) for j in range(9,14)],
+                          shift=1.7*(i-2)+1,
+                          radius=.2,
+                          center=(.6*cos(2*(i+.25)*pi/3),.6*sin(2*(i+.25)*pi/3)))
+
+    g.get_pos()[0] = (0,0)
+
+    return g
+
 def WagnerGraph():
     """
     Returns the Wagner Graph.
@@ -3304,3 +4284,100 @@ def WagnerGraph():
     g.name("Wagner Graph")
     return g
 
+def WatkinsSnarkGraph():
+    r"""
+    Returns the Watkins Snark Graph.
+
+    The Watkins Graph is a snark with 50 vertices and 75 edges. For more
+    information, see the :wikipedia:`Watkins_snark`.
+
+    EXAMPLES::
+
+        sage: g = graphs.WatkinsSnarkGraph()
+        sage: g.order()
+        50
+        sage: g.size()
+        75
+        sage: g.chromatic_number()
+        3
+    """
+    g = Graph(name="Watkins Snark Graph")
+
+    for i in range(5):
+        g.add_cycle([(i,j) for j in range(9)])
+        _circle_embedding(g,
+                          [(i,j) for j in range(4)]+[0]*2+[(i,4)]+[0]*2+[(i,j) for j in range(5,9)],
+                          radius=.3,
+                          center=(cos(2*(i+.25)*pi/5),sin(2*(i+.25)*pi/5)),
+                          shift=2.7*i+7.55)
+        g.add_edge((i,5),((i+1)%5,0))
+        g.add_edge((i,8),((i+2)%5,3))
+        g.add_edge((i,1),i)
+        g.add_edge((i,7),i)
+        g.add_edge((i,4),i)
+        g.add_edge((i,6),(i,2))
+
+    _circle_embedding(g, range(5), shift=.25, radius=1.1)
+    return g
+
+def WienerArayaGraph():
+    r"""
+    Returns the Wiener-Araya Graph.
+
+    The Wiener-Araya Graph is a planar hypohamiltonian graph on 42 vertices and
+    67 edges. For more information, see the `Wolfram Page on the Wiener-Araya
+    Graph <http://mathworld.wolfram.com/Wiener-ArayaGraph.html>`_ or its
+    `(french) Wikipedia page
+    <http://fr.wikipedia.org/wiki/Graphe_de_Wiener-Araya>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.WienerArayaGraph()
+        sage: g.order()
+        42
+        sage: g.size()
+        67
+        sage: g.girth()
+        4
+        sage: g.is_planar()
+        True
+        sage: g.is_hamiltonian() # not tested -- around 30s long
+        False
+        sage: g.delete_vertex(g.random_vertex())
+        sage: g.is_hamiltonian()
+        True
+    """
+    g = Graph(name="Wiener-Araya Graph")
+    from sage.graphs.graph_plot import _circle_embedding
+
+    g.add_cycle([(0,i) for i in range(4)])
+    g.add_cycle([(1,i) for i in range(12)])
+    g.add_cycle([(2,i) for i in range(20)])
+    g.add_cycle([(3,i) for i in range(6)])
+    _circle_embedding(g, [(0,i) for i in range(4)], shift=.5)
+    _circle_embedding(g,
+                      sum([[(1,3*i),(1,3*i+1)]+[0]*3+[(1,3*i+2)]+[0]*3 for i in range(4)],[]),
+                      shift=4,
+                      radius=.65)
+    _circle_embedding(g, [(2,i) for i in range(20)], radius=.5)
+    _circle_embedding(g, [(3,i) for i in range(6)], radius=.3, shift=.5)
+
+    for i in range(4):
+        g.delete_edge((1,3*i),(1,3*i+1))
+        g.add_edge((1,3*i),(0,i))
+        g.add_edge((1,3*i+1),(0,i))
+        g.add_edge((2,5*i+2),(1,3*i))
+        g.add_edge((2,5*i+3),(1,3*i+1))
+        g.add_edge((2,(5*i+5)%20),(1,3*i+2))
+        g.add_edge((2,(5*i+1)%20),(3,i+(i>=1)+(i>=3)))
+        g.add_edge((2,(5*i+4)%20),(3,i+(i>=1)+(i>=3)))
+
+    g.delete_edge((3,1),(3,0))
+    g.add_edge((3,1),(2,4))
+    g.delete_edge((3,4),(3,3))
+    g.add_edge((3,4),(2,14))
+    g.add_edge((3,1),(3,4))
+
+    g.get_pos().pop(0)
+    g.relabel()
+    return g

@@ -36,7 +36,6 @@ include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
 from sage.structure.element cimport Element
-from sage.rings.integer cimport Integer
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -172,12 +171,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             mpz_set(self.a, (<NumberFieldElement_quadratic>f).a)
             mpz_set(self.b, (<NumberFieldElement_quadratic>f).b)
             mpz_set(self.denom, (<NumberFieldElement_quadratic>f).denom)
-
-        elif PY_TYPE_CHECK_EXACT(f, Rational):
-            NumberFieldElement_absolute.__init__(self, parent, None)
-            mpz_set(self.a, mpq_numref((<Rational>f).value))
-            mpz_set_ui(self.b, 0)
-            mpz_set(self.denom, mpq_denref((<Rational>f).value))
 
         elif PY_TYPE_CHECK_EXACT(f, tuple) and len(f) == 2:
             NumberFieldElement_absolute.__init__(self, parent, None)
@@ -2039,6 +2032,127 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         R = self.parent()
         return R(_inverse_mod_generic(self, I))
 
+cdef class Z_to_quadratic_field_element(Morphism):
+    """
+    Morphism that coerces from integers to elements of a quadratic number
+    field K.
+    """
+    cdef NumberFieldElement_quadratic zero_element    # the zero element of K
+
+    # TODO: implement __cmp__ properly so we can have a loads/dumps doctest
+
+    def __init__(self, K):
+        """
+        ``K`` is the target quadratic field
+
+        EXAMPLE::
+
+            sage: K.<a> = QuadraticField(3)
+            sage: phi = K.coerce_map_from(ZZ) # indirect doctest
+            sage: type(phi)
+            <type 'sage.rings.number_field.number_field_element_quadratic.Z_to_quadratic_field_element'>
+            sage: phi == loads(dumps(phi)) # todo: comparison not implemented
+            True
+
+            sage: R.<b> = CyclotomicField(6)
+            sage: psi = R.coerce_map_from(ZZ) # indirect doctest
+            sage: type(psi)
+            <type 'sage.rings.number_field.number_field_element_quadratic.Z_to_quadratic_field_element'>
+            sage: psi == loads(dumps(psi)) # todo: comparison not implemented
+            True
+        """
+        import sage.categories.homset
+        Morphism.__init__(self, sage.categories.homset.Hom(ZZ, K))
+        self.zero_element = K.zero_element()
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for pickling and copying.
+
+        TESTS::
+
+            sage: K.<a> = QuadraticField(3)
+            sage: phi = K.coerce_map_from(ZZ) # indirect doctest
+            sage: phi(4)
+            4
+            sage: phi(5).parent() is K
+            True
+
+        """
+        _slots['zero_element'] = self.zero_element
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for pickling and copying.
+
+        TESTS::
+
+            sage: K.<a> = QuadraticField(3)
+            sage: phi = K.coerce_map_from(ZZ) # indirect doctest
+            sage: phi(4)
+            4
+            sage: phi(5).parent() is K
+            True
+
+        """
+        Morphism._update_slots(self, _slots)
+        self.zero_element = _slots['zero_element']
+
+    cpdef Element _call_(self, x):
+        r"""
+        Evaluate at an integer ``x``.
+
+        EXAMPLE::
+
+            sage: K.<a> = QuadraticField(3)
+            sage: phi = K.coerce_map_from(ZZ)
+            sage: a = phi(2); a # indirect doctest
+            2
+            sage: a.parent() is K
+            True
+
+            sage: R.<b> = CyclotomicField(6)
+            sage: psi = R.coerce_map_from(ZZ)
+            sage: b = psi(-42); b # indirect doctest
+            -42
+            sage: b.parent() is R
+            True
+        """
+        cdef NumberFieldElement_quadratic y
+        if mpz_sgn((<Integer> x).value) == 0:
+            return self.zero_element
+        y = self.zero_element._new()
+        mpz_set(y.a, (<Integer> x).value)
+
+        # we need to set the denominator to 1 as it is 0 for
+        # the zero element of K... (because gcd(0,0) = 0).
+        mpz_set_ui(y.denom, 1)
+
+        return y
+
+    def _repr_type(self):
+        r"""
+        Return a short name for this morphism.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(3)
+            sage: phi = K.coerce_map_from(ZZ)
+            sage: phi # indirect doctest
+            Natural morphism:
+              From: Integer Ring
+              To:   Number Field in a with defining polynomial x^2 - 3
+
+            sage: R.<b> = CyclotomicField(6)
+            sage: psi = R.coerce_map_from(ZZ)
+            sage: psi # indirect doctest
+            Natural morphism:
+              From: Integer Ring
+              To:   Cyclotomic Field of order 6 and degree 2
+        """
+        return "Natural"
+
 cdef class Q_to_quadratic_field_element(Morphism):
     """
     Morphism that coerces from rationals to elements of a quadratic number
@@ -2050,7 +2164,7 @@ cdef class Q_to_quadratic_field_element(Morphism):
 
     def __init__(self, K):
         """
-        K is the target quadratic field
+        ``K`` is the target quadratic field
 
         EXAMPLE::
 
@@ -2058,16 +2172,63 @@ cdef class Q_to_quadratic_field_element(Morphism):
             sage: phi = K.coerce_map_from(QQ) # indirect doctest
             sage: type(phi)
             <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
-            sage: phi == loads(dumps(phi)) # not implemented
+            sage: phi == loads(dumps(phi))  # todo: comparison not implemented
+            True
+
+            sage: R.<b> = CyclotomicField(6)
+            sage: psi = R.coerce_map_from(QQ)
+            sage: type(psi)
+            <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
+            sage: psi == loads(dumps(psi))  # todo: comparison not implemented
             True
         """
         import sage.categories.homset
         Morphism.__init__(self, sage.categories.homset.Hom(QQ, K))
         self.zero_element = K.zero_element()
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for pickling and copying.
+
+        TESTS::
+
+            sage: K.<a> = QuadraticField(-3) ## line 8983 ##
+            sage: f = K.coerce_map_from(QQ); f # indirect doctest
+            Natural morphism:
+              From: Rational Field
+              To:   Number Field in a with defining polynomial x^2 + 3
+            sage: f(3/1)
+            3
+            sage: f(1/2).parent() is K
+            True
+
+        """
+        _slots['zero_element'] = self.zero_element
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for pickling and copying.
+
+        TESTS::
+
+            sage: K.<a> = QuadraticField(-3) ## line 8983 ##
+            sage: f = K.coerce_map_from(QQ); f # indirect doctest
+            Natural morphism:
+              From: Rational Field
+              To:   Number Field in a with defining polynomial x^2 + 3
+            sage: f(3/1)
+            3
+            sage: f(1/2).parent() is K
+            True
+
+        """
+        Morphism._update_slots(self, _slots)
+        self.zero_element = _slots['zero_element']
+
     cpdef Element _call_(self, x):
         r"""
-        Evaluate at a rational x.
+        Evaluate at a rational ``x``.
 
         EXAMPLE::
 
@@ -2077,9 +2238,15 @@ cdef class Q_to_quadratic_field_element(Morphism):
             2/3
             sage: a.parent() is K
             True
+
+            sage: R.<b> = CyclotomicField(6)
+            sage: psi = R.coerce_map_from(QQ)
+            sage: b = psi(-23/15); b # indirect doctest
+            -23/15
+            sage: b.parent() is R
+            True
         """
         cdef NumberFieldElement_quadratic y = self.zero_element._new()
-        y.D = self.zero_element.D
         mpz_set(y.a, mpq_numref((<Rational>x).value))
         mpz_set(y.denom, mpq_denref((<Rational>x).value))
         return y
@@ -2088,11 +2255,20 @@ cdef class Q_to_quadratic_field_element(Morphism):
         r"""
         Return a short name for this morphism.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(3)
             sage: phi = K.coerce_map_from(QQ)
-            sage: repr(phi) # indirect doctest
-            'Natural morphism:\n  From: Rational Field\n  To:   Number Field in a with defining polynomial x^2 - 3'
+            sage: phi # indirect doctest
+            Natural morphism:
+              From: Rational Field
+              To:   Number Field in a with defining polynomial x^2 - 3
+
+            sage: R.<b> = CyclotomicField(6)
+            sage: psi = R.coerce_map_from(QQ)
+            sage: psi # indirect doctest
+            Natural morphism:
+              From: Rational Field
+              To:   Cyclotomic Field of order 6 and degree 2
         """
         return "Natural"

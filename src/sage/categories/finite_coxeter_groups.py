@@ -11,20 +11,19 @@ Finite Coxeter Groups
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.categories.category import Category
+from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.coxeter_groups import CoxeterGroups
-from sage.categories.finite_groups import FiniteGroups
 
-class FiniteCoxeterGroups(Category):
+class FiniteCoxeterGroups(CategoryWithAxiom):
     r"""
     The category of finite Coxeter groups.
 
     EXAMPLES::
 
-        sage: FiniteSemigroups()
-        Category of finite semigroups
-        sage: FiniteSemigroups().super_categories()
-        [Category of semigroups, Category of finite enumerated sets]
+        sage: FiniteCoxeterGroups()
+        Category of finite coxeter groups
+        sage: FiniteCoxeterGroups().super_categories()
+        [Category of finite groups, Category of coxeter groups]
 
         sage: G = FiniteCoxeterGroups().example()
         sage: G.cayley_graph(side = "right").plot()
@@ -45,21 +44,36 @@ class FiniteCoxeterGroups(Category):
         Dihedral group of order 10 as a permutation group
     """
 
-    @cached_method
-    def super_categories(self):
-        r"""
-        EXAMPLES::
-
-            sage: FiniteCoxeterGroups().super_categories()
-            [Category of coxeter groups, Category of finite groups]
-        """
-        return [CoxeterGroups(), FiniteGroups()]
-
     class ParentMethods:
+
+        """
+        Ambiguity resolution: the implementation of ``some_elements``
+        is preferable to that of :class:`FiniteGroups`. The same holds
+        for ``__iter__``, although a breath first search would be more
+        natural; at least this maintains backward compatibility after
+        :trac:`13589`.
+
+        TESTS::
+
+            sage: W = FiniteCoxeterGroups().example(3)
+
+            sage: W.some_elements.__module__
+            'sage.categories.coxeter_groups'
+            sage: W.__iter__.__module__
+            'sage.categories.coxeter_groups'
+
+            sage: W.some_elements()
+            [(1,), (2,), (), (1, 2)]
+            sage: list(W)
+            [(), (1,), (1, 2), (1, 2, 1), (2,), (2, 1)]
+        """
+        some_elements = CoxeterGroups.ParentMethods.__dict__["some_elements"]
+        __iter__      = CoxeterGroups.ParentMethods.__dict__["__iter__"]
+
         @lazy_attribute
         def w0(self):
             r"""
-            Return the longest element of self.
+            Return the longest element of ``self``.
 
             This attribute is deprecated.
 
@@ -80,10 +94,10 @@ class FiniteCoxeterGroups(Category):
             INPUT:
 
             - ``index_set`` - a subset (as a list or iterable) of the
-              nodes of the dynkin diagram; (default: all of them)
+              nodes of the Dynkin diagram; (default: all of them)
 
             Returns the longest element of ``self``, or of the
-            parabolic subgroup corresponding to the given index_set.
+            parabolic subgroup corresponding to the given ``index_set``.
 
             Should this method be called maximal_element? longest_element?
 
@@ -117,7 +131,7 @@ class FiniteCoxeterGroups(Category):
         @cached_method
         def bruhat_poset(self, facade = False):
             """
-            Returns the Bruhat poset of ``self``
+            Returns the Bruhat poset of ``self``.
 
             EXAMPLES::
 
@@ -177,7 +191,7 @@ class FiniteCoxeterGroups(Category):
             INPUT:
 
             - ``side`` -- "left", "right", or "twosided" (default: "right")
-            - ``facade`` -- a boolean (default: False)
+            - ``facade`` -- a boolean (default: ``False``)
 
             Returns the left (resp. right) poset for weak order.  In
             this poset, `u` is smaller than `v` if some reduced word
@@ -291,9 +305,9 @@ class FiniteCoxeterGroups(Category):
                 [5, 6, 5, 1]]
 
             Recursive algorithm: write `w` for ``self``. If `i` is a
-            non-descent of `w``, then the covers of `w` are exactly
-            `\{ws_i, u_1s_i, u_2s_i,..., u_js_i\}', where the 'u_k'
-            are those covers of 'ws_i' that have a descent at `i`.
+            non-descent of `w`, then the covers of `w` are exactly
+            `\{ws_i, u_1s_i, u_2s_i,..., u_js_i\}`, where the `u_k`
+            are those covers of `ws_i` that have a descent at `i`.
             """
 
             i = self.first_descent(positive=True)

@@ -18,6 +18,7 @@ Matrix Constructor
 #*****************************************************************************
 import types
 import sage.rings.all as rings
+from sage.rings.ring import is_Ring
 import sage.matrix.matrix_space as matrix_space
 from sage.modules.free_module_element import vector
 from sage.structure.element import is_Vector
@@ -543,10 +544,10 @@ def _matrix_constructor(*args, **kwds):
         # integer ring.
         return matrix_space.MatrixSpace(rings.ZZ, 0, 0, sparse=sparse)([])
 
-    if len(args) >= 1 and rings.is_Ring(args[0]):
+    if len(args) >= 1 and is_Ring(args[0]):
         # A ring is specified
         if kwds.get('ring', args[0]) != args[0]:
-            raise ValueError, "Specified rings are not the same"
+            raise ValueError("Specified rings are not the same")
         else:
             ring = args[0]
             args.pop(0)
@@ -562,7 +563,7 @@ def _matrix_constructor(*args, **kwds):
             nrows = int(args[0])
             args.pop(0)
             if kwds.get('nrows', nrows) != nrows:
-                raise ValueError, "Number of rows specified in two places and they are not the same"
+                raise ValueError("Number of rows specified in two places and they are not the same")
         except TypeError:
             nrows = kwds.get('nrows', None)
     else:
@@ -577,7 +578,7 @@ def _matrix_constructor(*args, **kwds):
             ncols = int(args[0])
             args.pop(0)
             if kwds.get('ncols', ncols) != ncols:
-                raise ValueError, "Number of columns specified in two places and they are not the same"
+                raise ValueError("Number of columns specified in two places and they are not the same")
         except TypeError:
             ncols = kwds.get('ncols', None)
     else:
@@ -596,7 +597,7 @@ def _matrix_constructor(*args, **kwds):
     elif len(args) == 1:
         if isinstance(args[0], (types.FunctionType, types.LambdaType, types.MethodType)):
             if ncols is None and nrows is None:
-                raise ValueError, "When passing in a callable, the dimensions of the matrix must be specified"
+                raise ValueError("When passing in a callable, the dimensions of the matrix must be specified")
             if ncols is None:
                 ncols = nrows
             elif nrows is None:
@@ -614,16 +615,16 @@ def _matrix_constructor(*args, **kwds):
                 # Ensure we have a list of lists, each inner list having the same number of elements
                 first_len = len(args[0][0])
                 if not all( (isinstance(v, (list, tuple)) or is_Vector(v)) and len(v) == first_len for v in args[0]):
-                    raise ValueError, "List of rows is not valid (rows are wrong types or lengths)"
+                    raise ValueError("List of rows is not valid (rows are wrong types or lengths)")
                 # We have a list of rows or vectors
                 if nrows is None:
                     nrows = len(args[0])
                 elif nrows != len(args[0]):
-                    raise ValueError, "Number of rows does not match up with specified number."
+                    raise ValueError("Number of rows does not match up with specified number.")
                 if ncols is None:
                     ncols = len(args[0][0])
                 elif ncols != len(args[0][0]):
-                    raise ValueError, "Number of columns does not match up with specified number."
+                    raise ValueError("Number of columns does not match up with specified number.")
 
                 entries = []
                 for v in args[0]:
@@ -638,9 +639,9 @@ def _matrix_constructor(*args, **kwds):
                     if ncols is None:
                         ncols = len(args[0]) // nrows
                     elif ncols != len(args[0]) // nrows:
-                        raise ValueError, "entries has the wrong length"
+                        raise ValueError("entries has the wrong length")
                 elif len(args[0]) > 0:
-                    raise ValueError, "entries has the wrong length"
+                    raise ValueError("entries has the wrong length")
 
                 entries = args[0]
 
@@ -709,9 +710,9 @@ def _matrix_constructor(*args, **kwds):
                     entry_ring = args[0].parent()
                 entries = args[0]
             else:
-                raise ValueError, "Invalid matrix constructor.  Type matrix? for help"
+                raise ValueError("Invalid matrix constructor.  Type matrix? for help")
     else:
-        raise ValueError, "Invalid matrix constructor.  Type matrix? for help"
+        raise ValueError("Invalid matrix constructor.  Type matrix? for help")
 
     if nrows is None:
         nrows = 0
@@ -802,8 +803,8 @@ def prepare(w):
         ring = rings.RDF
     elif ring is complex:
         ring = rings.CDF
-    elif not rings.is_Ring(ring):
-        raise TypeError, "unable to find a common ring for all elements"
+    elif not is_Ring(ring):
+        raise TypeError("unable to find a common ring for all elements")
     return entries, ring
 
 def prepare_dict(w):
@@ -1019,6 +1020,15 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
     -  ``*args, **kwds`` - arguments and keywords to describe additional properties.
        See more detailed documentation below.
 
+    .. warning::
+
+        An upper bound on the absolute value of the entries may be set
+        when the ``algorithm`` is ``echelonizable`` or ``unimodular``.
+        In these cases it is possible for this constructor to fail with
+        a ``ValueError``.   If you *must* have this routine return
+        successfully, do not set ``upper_bound``.  This behavior can
+        be partially controlled by a ``max_tries`` keyword.
+
     .. note::
 
         When constructing matrices with random entries and no additional properties
@@ -1115,7 +1125,7 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
     say 10,000 entries, each limited to 16 bits.  ::
 
         sage: A = random_matrix(ZZ, 100, 100, x=2^16); A
-        100 x 100 dense matrix over Integer Ring (type 'print A.str()' to see all of the entries)
+        100 x 100 dense matrix over Integer Ring (use the '.str()' method to see the entries)
 
     Random rational matrices.  Now ``num_bound`` and ``den_bound`` control the
     generation of random elements, by specifying limits on the absolute value of
@@ -1527,7 +1537,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
     # Leads with a ring?
     # Formats 3, 4, else remains None
     ring = None
-    if rings.is_Ring(arg0):
+    if is_Ring(arg0):
         ring = arg0
         arg0 = arg1
         arg1 = arg2
@@ -2054,10 +2064,10 @@ def elementary_matrix(arg0, arg1=None, **kwds):
     """
     import sage.structure.element
     # determine ring and matrix size
-    if not arg1 is None and not rings.is_Ring(arg0):
+    if not arg1 is None and not is_Ring(arg0):
         raise TypeError('optional first parameter must be a ring, not {0}'.format(arg0))
     scale = kwds.pop('scale', None)
-    if rings.is_Ring(arg0):
+    if is_Ring(arg0):
         R = arg0
         arg0 = arg1
     elif scale is not None:
@@ -2112,7 +2122,7 @@ def elementary_matrix(arg0, arg1=None, **kwds):
     if not scale is None:
         try:
             scale = R(scale)
-        except StandardError:
+        except Exception:
             raise TypeError('scale parameter of elementary matrix must an element of {0}, not {1}'.format(R, scale))
 
     # determine type of matrix and adjust an identity matrix
@@ -2534,7 +2544,7 @@ def block_matrix(*args, **kwds):
         else:
             return matrix_space.MatrixSpace(rings.ZZ, 0, 0)([])
 
-    if len(args) >= 1 and rings.is_Ring(args[0]):
+    if len(args) >= 1 and is_Ring(args[0]):
         # A ring is specified
         if kwds.get('ring', args[0]) != args[0]:
             raise ValueError("base ring specified twice and they are different")
@@ -3171,7 +3181,7 @@ def random_rref_matrix(parent, num_pivots):
     return return_matrix
 
 @matrix_method
-def random_echelonizable_matrix(parent, rank, upper_bound=None):
+def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
     r"""
     Generate a matrix of a desired size and rank, over a desired ring, whose reduced
     row-echelon form has only integral values.
@@ -3186,11 +3196,22 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None):
 
     - ``upper_bound`` - If designated, size control of the matrix entries is desired.
       Set ``upper_bound`` to 1 more than the maximum value entries can achieve.
-      If None, no size control occurs. (default: None)
+      If None, no size control occurs. But see the warning below.  (default: None)
+
+    - ``max_tries`` - If designated, number of tries used to generate each new random row;
+      only matters when upper_bound!=None. Used to prevent endless looping. (default: 100)
 
     OUTPUT:
 
     A matrix not in reduced row-echelon form with the desired dimensions and properties.
+
+    .. warning::
+
+        When ``upper_bound`` is set, it is possible for this constructor to
+        fail with a ``ValueError``.  This may happen when the ``upper_bound``,
+        ``rank`` and/or matrix dimensions are all so small that it becomes
+        infeasible or unlikely to create the requested matrix.  If you *must*
+        have this routine return successfully, do not set ``upper_bound``.
 
     .. note::
 
@@ -3271,12 +3292,21 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None):
 
     TESTS:
 
-    Matrices must have a rank zero or greater zero. ::
+    Matrices must have a rank zero or greater, and less than
+    both the number of rows and the number of columns. ::
 
         sage: random_matrix(QQ, 3, 4, algorithm='echelonizable', rank=-1)
         Traceback (most recent call last):
         ...
         ValueError: matrices must have rank zero or greater.
+        sage: random_matrix(QQ, 3, 8, algorithm='echelonizable', rank=4)
+        Traceback (most recent call last):
+        ...
+        ValueError: matrices cannot have rank greater than min(ncols,nrows).
+        sage: random_matrix(QQ, 8, 3, algorithm='echelonizable', rank=4)
+        Traceback (most recent call last):
+        ...
+        ValueError: matrices cannot have rank greater than min(ncols,nrows).
 
     The base ring must be exact. ::
 
@@ -3284,6 +3314,12 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None):
         Traceback (most recent call last):
         ...
         TypeError: the base ring must be exact.
+
+    Works for rank==1, too. ::
+
+        sage: random_matrix( QQ, 3, 3, algorithm='echelonizable', rank=1).ncols()
+        3
+
 
     AUTHOR:
 
@@ -3296,44 +3332,16 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None):
     rows = parent.nrows()
     if rank<0:
         raise ValueError("matrices must have rank zero or greater.")
+    if rank>min(rows,parent.ncols()):
+        raise ValueError("matrices cannot have rank greater than min(ncols,nrows).")
     matrix = random_rref_matrix(parent, rank)
+
     # Entries of matrices over the ZZ or QQ can get large, entry size is regulated by finding the largest
     # entry of the resultant matrix after addition of scalar multiple of a row.
     if ring==QQ or ring==ZZ:
         # If upper_bound is not set, don't control entry size.
-        if upper_bound==None:
-            upper_bound=50
-            size=False
-        else:
-            size=True
-        if size:
-            for pivots in range(len(matrix.pivots())-1,-1,-1):
-            # keep track of the pivot column positions from the pivot column with the largest index to
-            # the one with the smallest.
-                row_index=0
-                while row_index<rows:
-                    # To each row in a pivot column add a scalar multiple of the pivot row.
-                    # for full rank, square matrices, using only this row operation preserves the determinant of 1.
-                    if pivots!=row_index:
-                    # To ensure a leading one is not removed by the addition of the pivot row by its
-                    # additive inverse.
-                        matrix_copy=matrix.with_added_multiple_of_row(row_index,matrix.pivot_rows()[pivots],randint(-5,5))
-                        # Range for scalar multiples determined experimentally.
-                    if max(map(abs,matrix_copy.list()))<upper_bound:
-                    # Continue if the the largest entry after a row operation is within the bound.
-                        matrix=matrix_copy
-                        row_index+=1
-            # The leading one in row one has not been altered, so add a scalar multiple of a random row
-            # to row one.
-            row1=0
-            if rows>1:
-                while row1<1:
-                    matrix_copy=matrix.with_added_multiple_of_row(0,randint(1,rows-1),randint(-3,3))
-                    if max(map(abs,matrix_copy.list()))<upper_bound:
-                        matrix=matrix_copy
-                        row1+=1
+        if upper_bound is None:
         # If size control is not desired, the routine will run slightly faster, particularly with large matrices.
-        else:
             for pivots in range(rank-1,-1,-1):
                 row_index=0
                 while row_index<rows:
@@ -3344,6 +3352,47 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None):
                         row_index+=1
             if rows>1:
                 matrix.add_multiple_of_row(0,randint(1,rows-1),randint(-3,3))
+        else:
+            if rank==1:  # would be better just to have a special generator...
+               tries = 0
+               while max(map(abs,matrix.list()))>=upper_bound:
+                  matrix = random_rref_matrix(parent, rank)
+                  tries += 1
+                  if tries > max_tries: # to prevent endless attempts
+                     raise ValueError("tried "+str(max_tries)+" times to get a rank 1 random matrix. Try bigger upper_bound?")
+               matrix_copy = matrix
+
+            rrr = range(len(matrix.pivots())-1,-1,-1)
+            for pivots in rrr:
+            # keep track of the pivot column positions from the pivot column with the largest index to
+            # the one with the smallest.
+                row_index=0
+                tries = 0
+                while row_index<rows:
+                    # To each row in a pivot column add a scalar multiple of the pivot row.
+                    # for full rank, square matrices, using only this row operation preserves the determinant of 1.
+                    if pivots!=row_index:
+                    # To ensure a leading one is not removed by the addition of the pivot row by its
+                    # additive inverse.
+                        matrix_copy=matrix.with_added_multiple_of_row(row_index,matrix.pivot_rows()[pivots],randint(-5,5))
+                        tries += 1
+                        # Range for scalar multiples determined experimentally.
+                    if max(map(abs,matrix_copy.list()))<upper_bound:
+                    # Continue if the the largest entry after a row operation is within the bound.
+                        matrix=matrix_copy
+                        row_index+=1
+                        tries = 0
+                    if tries > max_tries: # to prevent endless unsuccessful row adding
+                        raise ValueError("tried "+str(max_tries)+" times to get row number "+str(row_index)+". Try bigger upper_bound?")
+            # The leading one in row one has not been altered, so add a scalar multiple of a random row
+            # to row one.
+            row1=0
+            if rows>1:
+                while row1<1:
+                    matrix_copy=matrix.with_added_multiple_of_row(0,randint(1,rows-1),randint(-3,3))
+                    if max(map(abs,matrix_copy.list()))<upper_bound:
+                        matrix=matrix_copy
+                        row1+=1
     # If the matrix generated over a different ring, random elements from the designated ring are used as and
     # the routine is run similarly to the size unchecked version for rationals and integers.
     else:
@@ -3494,12 +3543,17 @@ def random_subspaces_matrix(parent, rank=None):
 
     TESTS:
 
-    The designated rank of the L matrix cannot be greater than the number of desired rows. ::
+    The designated rank of the L matrix cannot be greater than the
+    number of desired rows, nor can the rank be negative. ::
 
         sage: random_matrix(QQ, 19, 20, algorithm='subspaces', rank=21)
         Traceback (most recent call last):
         ...
         ValueError: rank cannot exceed the number of rows or columns.
+        sage: random_matrix(QQ, 19, 20, algorithm='subspaces', rank=-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: matrices must have rank zero or greater.
 
     REFERENCES:
 
@@ -3517,33 +3571,40 @@ def random_subspaces_matrix(parent, rank=None):
     rows = parent.nrows()
     columns = parent.ncols()
 
-    if rank>rows or rank>columns:
+    # If rank is not designated, generate using probability distribution
+    # skewing to smaller numbers, always at least 1.
+    if rank is None:
+        left_nullity_generator = pd.RealDistribution("beta", [1.4, 5.5])
+        nullity = int(left_nullity_generator.get_random_element()*(rows-1) + 1)
+        rank = rows - nullity
+    if rank<0:
+        raise ValueError("matrices must have rank zero or greater.")
+    if rank > rows or rank > columns:
         raise ValueError("rank cannot exceed the number of rows or columns.")
-    # If rank is not designated, generate using probability distribution skewing to smaller numbers, always at least 1.
-    if rank==None:
-        left_nullity_generator=pd.RealDistribution("beta",[1.4,5.5])
-        nullity=int(left_nullity_generator.get_random_element()*(rows-1)+1)
-        rank=rows-nullity
-    else:
-        rank=rank
-    nullity=rows-rank
-    B=random_matrix(ring, rows, columns, algorithm='echelon_form', num_pivots=rank)
-    # Create a nonsingular matrix whose columns will be used to stack a matrix over the L matrix, forming a nonsingular matrix.
-    K_nonzero_columns=random_matrix(ring, rank, rank, algorithm='echelonizable', rank=rank)
-    K=matrix(QQ,rank,rows)
-    L=random_matrix(ring, nullity, rows, algorithm='echelon_form', num_pivots=nullity)
+    nullity = rows - rank
+    B = random_matrix(ring, rows, columns, algorithm='echelon_form',
+            num_pivots=rank)
+
+    # Create a nonsingular matrix whose columns will be used to stack a matrix
+    # over the L matrix, forming a nonsingular matrix.
+    K_nonzero_columns = random_matrix(ring, rank, rank,
+            algorithm='echelonizable', rank=rank)
+    K = matrix(QQ, rank, rows)
+    L = random_matrix(ring, nullity, rows, algorithm='echelon_form',
+            num_pivots=nullity)
     for column in range(len(L.nonpivots())):
         for entry in range(rank):
-            K[entry,L.nonpivots()[column]]=K_nonzero_columns[entry,column]
-    J=K.stack(L)
-    # by multiplying the B matrix by J.inverse() we hide the B matrix
-    # of the solution using row operations required to change the solution
-    # K matrix to the identity matrix.
+            K[entry, L.nonpivots()[column]] = K_nonzero_columns[entry, column]
+    J = K.stack(L)
+
+    # By multiplying the B matrix by J.inverse() we hide the B matrix of the
+    # solution using row operations required to change the solution K matrix to
+    # the identity matrix.
     return J.inverse()*B
 
 @matrix_method
-def random_unimodular_matrix(parent, upper_bound=None):
-    """
+def random_unimodular_matrix(parent, upper_bound=None, max_tries=100):
+    r"""
     Generate a random unimodular (determinant 1) matrix of a desired size over a desired ring.
 
     INPUT:
@@ -3553,11 +3614,25 @@ def random_unimodular_matrix(parent, upper_bound=None):
       must be exact.
 
     - ``upper_bound`` - For large matrices over QQ or ZZ,
-      ``upper_bound`` is the largest value matrix entries can achieve.
+      ``upper_bound`` is the largest value matrix entries can achieve.  But
+      see the warning below.
+
+    - ``max_tries`` - If designated, number of tries used to generate each new random row;
+      only matters when upper_bound!=None. Used to prevent endless looping. (default: 100)
+
+    A matrix not in reduced row-echelon form with the desired dimensions and properties.
 
     OUTPUT:
 
     An invertible matrix with the desired properties and determinant 1.
+
+    .. warning::
+
+        When ``upper_bound`` is set, it is possible for this constructor to
+        fail with a ``ValueError``.  This may happen when the ``upper_bound``,
+        ``rank`` and/or matrix dimensions are all so small that it becomes
+        infeasible or unlikely to create the requested matrix.  If you *must*
+        have this routine return successfully, do not set ``upper_bound``.
 
     .. note::
 
@@ -3632,13 +3707,13 @@ def random_unimodular_matrix(parent, upper_bound=None):
     size=parent.nrows()
     if parent.nrows()!=parent.ncols():
         raise TypeError("a unimodular matrix must be square.")
-    if upper_bound!=None and (ring!=ZZ and ring!=QQ):
+    if upper_bound is not None and (ring!=ZZ and ring!=QQ):
         raise TypeError("only matrices over ZZ or QQ can have size control.")
-    if upper_bound==None:
+    if upper_bound is None:
         # random_echelonizable_matrix() always returns a determinant one matrix if given full rank.
         return random_matrix(ring, size, algorithm='echelonizable', rank=size)
-    elif upper_bound!=None and (ring==ZZ or ring==QQ):
-        return random_matrix(ring, size,algorithm='echelonizable',rank=size, upper_bound=upper_bound)
+    elif upper_bound is not None and (ring==ZZ or ring==QQ):
+        return random_matrix(ring, size,algorithm='echelonizable',rank=size, upper_bound=upper_bound, max_tries=max_tries)
 
 
 @matrix_method
@@ -3805,11 +3880,11 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
     size=parent.nrows()
     if parent.nrows()!=parent.ncols():
         raise TypeError("a diagonalizable matrix must be square.")
-    if eigenvalues!=None and dimensions==None:
+    if eigenvalues is not None and dimensions is None:
         raise ValueError("the list of eigenvalues must have a list of dimensions corresponding to each eigenvalue.")
-    if eigenvalues==None and dimensions!=None:
+    if eigenvalues is None and dimensions is not None:
         raise ValueError("the list of dimensions must have a list of corresponding eigenvalues.")
-    if eigenvalues==None and dimensions==None:
+    if eigenvalues is None and dimensions is None:
         values=[]
         #create a list with "size" number of entries
         for eigen_index in range(size):
@@ -3837,8 +3912,7 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
     if len(eigenvalues)!=len(dimensions):
         raise ValueError("each eigenvalue must have a corresponding dimension and each dimension a corresponding eigenvalue.")
     #sort the dimensions in order of increasing size, and sort the eigenvalues list in an identical fashion, to maintain corresponding values.
-    dimensions_sort=zip(dimensions,eigenvalues)
-    dimensions_sort.sort()
+    dimensions_sort=sorted(zip(dimensions,eigenvalues))
     dimensions=[x[0] for x in dimensions_sort]
     eigenvalues=[x[1] for x in dimensions_sort]
     #Create the matrix of eigenvalues on the diagonal.  Use a lower limit and upper limit determined by the eigenvalue dimensions.

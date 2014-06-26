@@ -221,7 +221,7 @@ class Sage(Expect):
                 os.killpg(pid, 9)
                 os.kill(pid, 9)
 
-            except (RuntimeError, OSError), msg:
+            except (RuntimeError, OSError) as msg:
                 pass
 
             try:
@@ -336,7 +336,7 @@ class Sage(Expect):
         cmd = '%s=%s'%(var,value)
         out = self.eval(cmd)
         if 'Traceback' in out:
-            raise TypeError, "Error executing code in Sage\nCODE:\n\t%s\nSage ERROR:\n\t%s"%(cmd, out)
+            raise TypeError("Error executing code in Sage\nCODE:\n\t%s\nSage ERROR:\n\t%s"%(cmd, out))
 
     def get(self, var):
         """
@@ -423,7 +423,24 @@ class Sage(Expect):
         """
         return SageElement(self, x)
 
+
 class SageElement(ExpectElement):
+
+    def _graphics_(self):
+        """
+        Disable graphical output.
+
+        This is necessary because otherwise our :meth:`__getattr__`
+        would be called.
+
+        EXAMPLES::
+
+            sage: m = sage0(4)
+            sage: m._graphics_()
+            False
+        """
+        return False
+
     def __getattr__(self, attrname):
         """
         EXAMPLES::

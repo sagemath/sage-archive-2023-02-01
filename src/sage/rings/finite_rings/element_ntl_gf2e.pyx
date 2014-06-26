@@ -108,8 +108,8 @@ cdef int late_import() except -1:
     import sage.databases.conway
     ConwayPolynomials = sage.databases.conway.ConwayPolynomials
 
-    import sage.rings.finite_rings.constructor
-    conway_polynomial = sage.rings.finite_rings.constructor.conway_polynomial
+    import sage.rings.finite_rings.conway_polynomials
+    conway_polynomial = sage.rings.finite_rings.conway_polynomials.conway_polynomial
 
     import sage.rings.polynomial.multi_polynomial_element
     MPolynomial = sage.rings.polynomial.multi_polynomial_element.MPolynomial
@@ -138,7 +138,6 @@ cdef unsigned int switch_endianess(unsigned int i):
     for j from 0 <= j < sizeof(int):
         (<unsigned char*>&ret)[j] = (<unsigned char*>&i)[sizeof(int)-j-1]
     return ret
-
 
 cdef class Cache_ntl_gf2e(SageObject):
     """
@@ -1266,7 +1265,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             'Z(65536)^1'
         """
         F = self._parent
-        if not F._is_conway:
+        if not F.is_conway():
             raise NotImplementedError, "conversion of (NTL) finite field element to GAP not implemented except for fields defined by Conway polynomials."
         if F.order() > 65536:
             raise TypeError, "order (=%s) must be at most 65536."%F.order()

@@ -27,11 +27,11 @@ from sage.rings.fast_arith cimport arith_llong
 cdef arith_llong ai
 ai = arith_llong()
 
-# We use both integer and double operations, hence the min.
-# MAX_MODULUS = min(int(sqrt(int(MOD_INT_OVERFLOW))-1), int(2)**int(20))
+# This is the maximum modulus for the code in this module, i.e. the
+# largest prime that can be used as modulus is
+# previous_prime(MAX_MODULUS)
+MAX_MODULUS = MOD_INT_MAX
 
-# This is what matrix_modn_* supports.
-MAX_MODULUS = 2**23
 
 cdef class MultiModularBasis_base:
     r"""
@@ -70,6 +70,24 @@ cdef class MultiModularBasis_base:
         MultiModularBasis with moduli [3, 5, 7]
         sage: mm = MultiModularBasis_base(primes(10,20)); mm
         MultiModularBasis with moduli [11, 13, 17, 19]
+
+    There is no overflow if the modulus is below ``MAX_MODULUS`` ::
+
+        sage: from sage.ext.multi_modular import MAX_MODULUS
+        sage: p0 = previous_prime(MAX_MODULUS)
+        sage: p1 = previous_prime(p0)
+        sage: MultiModularBasis_base([p0, p1]).crt([p0-1, p1-1])
+        -1
+
+    If we add another bit to the prime length then there is an
+    overflow, as expected::
+
+        sage: p0 = previous_prime(2*MAX_MODULUS)
+        sage: p1 = previous_prime(p0)
+        sage: MultiModularBasis_base([p0, p1]).crt([p0-1, p1-1])
+        Traceback (most recent call last):
+        ...
+        ValueError: given modulus cannot be manipulated in a single machine word
     """
 
     def __cinit__(self):
@@ -454,10 +472,10 @@ cdef class MultiModularBasis_base:
         cdef mpz_t z
         mpz_init(z)
         if start == 0:
-            mpz_set_ui(self.partial_products[0], self.moduli[0])
+            mpz_set_si(self.partial_products[0], self.moduli[0])
             start += 1
         for i from start <= i < self.n:
-            mpz_set_ui(z, self.moduli[i])
+            mpz_set_si(z, self.moduli[i])
             mpz_mul(self.partial_products[i], self.partial_products[i-1], z)
         mpz_clear(z)
         self._refresh_prod()
@@ -568,14 +586,14 @@ cdef class MultiModularBasis_base:
         mpz_init(u)
         if offset == 0:
             s = 1
-            mpz_init_set_ui(z, b[0])
+            mpz_init_set_si(z, b[0])
             if b[0] == 0:
                 while s < len and b[s] == 0: # fast forward to first non-zero
                     s += 1
         else:
             s = 0
         for i from s <= i < len:
-            mpz_set_ui(u, ((b[i] + m[i] - mpz_fdiv_ui(z, m[i])) * self.C[i]) % m[i])
+            mpz_set_si(u, ((b[i] + m[i] - mpz_fdiv_ui(z, m[i])) * self.C[i]) % m[i])
             mpz_mul(u, u, self.partial_products[i-1])
             mpz_add(z, z, u)
 
@@ -619,12 +637,12 @@ cdef class MultiModularBasis_base:
         for j from 0 <= j < vc:
             i = s
             if offset == 0:
-                mpz_set_ui(z[j], b[0][j])
+                mpz_set_si(z[j], b[0][j])
                 if b[0][j] == 0:
                     while i < len and b[i][j] == 0: # fast forward to first non-zero
                         i += 1
             while i < len:
-                mpz_set_ui(u, ((b[i][j] + m[i] - mpz_fdiv_ui(z[j], m[i])) * self.C[i]) % m[i]) # u = ((b_i - z) * C_i) % m_i
+                mpz_set_si(u, ((b[i][j] + m[i] - mpz_fdiv_ui(z[j], m[i])) * self.C[i]) % m[i]) # u = ((b_i - z) * C_i) % m_i
                 mpz_mul(u, u, self.partial_products[i-1])
                 mpz_add(z[j], z[j], u)
                 i += 1
@@ -829,7 +847,8 @@ cdef class MultiModularBasis_base:
             sage: from sage.ext.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([10007, 10009])
             sage: mm[1]
-            10009L
+            10009             # 64-bit
+            10009L            # 32-bit
             sage: mm[-1]
             Traceback (most recent call last):
             ...
@@ -948,7 +967,8 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
             sage: from sage.ext.multi_modular import MutableMultiModularBasis
             sage: mm = MutableMultiModularBasis([10007])
             sage: mm.next_prime()
-            4561L
+            4561             # 64-bit
+            4561L            # 32-bit
             sage: mm
             MultiModularBasis with moduli [10007, 4561]
 
@@ -977,7 +997,8 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
             sage: mm.partial_product(2)
             1005306552331
             sage: mm.replace_prime(1)
-            4561L
+            4561             # 64-bit
+            4561L            # 32-bit
             sage: mm
             MultiModularBasis with moduli [10007, 4561, 10037, 10039]
             sage: mm.prod()

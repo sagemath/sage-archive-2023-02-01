@@ -1,9 +1,7 @@
 include 'sage/ext/cdefs.pxi'
 include 'sage/modules/vector_integer_sparse_h.pxi'
 
-cdef extern from "../ext/multi_modular.h":
-    ctypedef unsigned long mod_int
-
+from sage.ext.mod_int cimport *
 cimport matrix_sparse
 
 cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):

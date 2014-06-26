@@ -1128,7 +1128,7 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
 
     TESTS:
 
-    We check that the bug described in #8406 is gone::
+    We check that the bug described in :trac:`8406` is gone::
 
         sage: G = Graph()
         sage: R.<a> = GF(3**3)
@@ -1138,7 +1138,7 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
         sage: G.vertices()
         [a^2, x]
 
-    And that the bug described in #9610 is gone::
+    And that the bug described in :trac:`9610` is gone::
 
         sage: n = 20
         sage: k = 3
@@ -1149,15 +1149,25 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
         sage: g.strongly_connected_components()
         [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]
 
+    The bug in :trac:`14967` and :trac:`14853` is fixed::
+
+        sage: DiGraph({0: {}, 1/2: {}})
+        Multi-digraph on 2 vertices
+        sage: A = Set([RDF.random_element(min=0, max=10) for k in range(10)])
+        sage: G = Graph()
+        sage: G.add_vertices(A)
+        sage: Set(G.vertices()) == A
+        True
+
     """
     cdef int u_int
     if u in vertex_ints:
         return vertex_ints[u]
     try:
         u_int = u
-    except StandardError:
+    except Exception:
         return -1
-    if u_int < 0 or u_int >= G.active_vertices.size or u_int in vertex_labels:
+    if u_int < 0 or u_int >= G.active_vertices.size or u_int in vertex_labels or u_int != u:
         return -1
     return u_int
 
@@ -1689,6 +1699,9 @@ class CGraphBackend(GenericGraphBackend):
             sage: list(P._backend.iterator_nbrs(0))
             [1, 4, 5]
         """
+        if not self._directed:
+            return self.iterator_out_nbrs(v)
+
         return iter(set(self.iterator_in_nbrs(v)) |
                     set(self.iterator_out_nbrs(v)))
 
@@ -1725,18 +1738,13 @@ class CGraphBackend(GenericGraphBackend):
                                     self._cg)
         # Sparse
         if self._cg_rev is not None:
-            return iter([vertex_label(u_int,
-                                      self.vertex_ints,
-                                      self.vertex_labels,
-                                      self._cg)
-                         for u_int in self._cg_rev.out_neighbors(v_int)])
+            for u_int in self._cg_rev.out_neighbors(v_int):
+                yield vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+
         # Dense
         else:
-            return iter([vertex_label(u_int,
-                                      self.vertex_ints,
-                                      self.vertex_labels,
-                                      self._cg)
-                         for u_int in self._cg.in_neighbors(v_int)])
+            for u_int in self._cg.in_neighbors(v_int):
+                yield vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
 
     def iterator_out_nbrs(self, v):
         """
@@ -1769,11 +1777,9 @@ class CGraphBackend(GenericGraphBackend):
                                     self.vertex_ints,
                                     self.vertex_labels,
                                     self._cg)
-        return iter([vertex_label(u_int,
-                                  self.vertex_ints,
-                                  self.vertex_labels,
-                                  self._cg)
-                     for u_int in self._cg.out_neighbors(v_int)])
+
+        for u_int in self._cg.out_neighbors(v_int):
+            yield vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
 
     def iterator_verts(self, verts=None):
         """
@@ -1823,7 +1829,7 @@ class CGraphBackend(GenericGraphBackend):
         try:
             v = hash(verts)
             is_hashable = True
-        except StandardError:
+        except Exception:
             pass
         if is_hashable and self.has_vertex(verts):
             return iter([verts])
@@ -1866,33 +1872,6 @@ class CGraphBackend(GenericGraphBackend):
             self._loops = True
         else:
             self._loops = False
-
-    def name(self, new=None):
-        """
-        Returns the name of this graph.
-
-        INPUT:
-
-        - ``new`` -- (default: ``None``); boolean (to set) or ``None``
-          (to get).
-
-        OUTPUT:
-
-        - If ``new=None``, return the name of this graph. Otherwise, set the
-          name of this graph to the value of ``new``.
-
-        EXAMPLE::
-
-            sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
-            sage: G._backend.name()
-            'Petersen graph'
-            sage: G._backend.name("Peter Pan's graph")
-            sage: G._backend.name()
-            "Peter Pan's graph"
-        """
-        if new is None:
-            return self._name
-        self._name = new
 
     def num_edges(self, directed):
         """
@@ -2408,7 +2387,7 @@ class CGraphBackend(GenericGraphBackend):
 
             sage: g = 2*graphs.RandomGNP(20,.3)
             sage: paths = g._backend.shortest_path_all_vertices(0)
-            sage: all([ (not paths.has_key(v) and g.distance(0,v) == +Infinity) or len(paths[v])-1 == g.distance(0,v) for v in g])
+            sage: all([ (v not in paths and g.distance(0,v) == +Infinity) or len(paths[v])-1 == g.distance(0,v) for v in g])
             True
         """
         cdef list current_layer
@@ -2643,16 +2622,22 @@ class CGraphBackend(GenericGraphBackend):
            False
 
         A graph with non-integer vertex labels::
+
             sage: Graph(graphs.CubeGraph(3), implementation='c_graph').is_connected()
             True
         """
-        cdef int v_int = 0
-        v_int = bitset_first((<CGraph>self._cg).active_vertices)
+        cdef int v_int
+        cdef CGraph cg = <CGraph> self._cg
+
+        if cg.num_edges() < cg.num_verts - 1:
+            return False
+
+        v_int = bitset_first(cg.active_vertices)
 
         if v_int == -1:
             return True
-        v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
-        return len(list(self.depth_first_search(v, ignore_direction=True))) == (<CGraph>self._cg).num_verts
+        v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, cg)
+        return len(list(self.depth_first_search(v, ignore_direction=True))) == cg.num_verts
 
     def is_strongly_connected(self):
         r"""
@@ -2955,6 +2940,7 @@ cdef class Search_iterator:
     cdef bitset_t seen
     cdef bint test_out
     cdef bint test_in
+    cdef in_neighbors
 
     def __init__(self, graph, v, direction=0, reverse=False,
                  ignore_direction=False):
@@ -3009,6 +2995,12 @@ cdef class Search_iterator:
             Traceback (most recent call last):
             ...
             LookupError: Vertex ('') is not a vertex of the graph.
+
+        Immutable graphs (see :trac:`16019`)::
+
+            sage: DiGraph([[1,2]], immutable=True).connected_components()
+            [[1, 2]]
+
         """
         self.graph = graph
         self.direction = direction
@@ -3026,11 +3018,17 @@ cdef class Search_iterator:
 
         self.stack = [v_id]
 
-        if not self.graph.directed:
+        if not self.graph._directed:
             ignore_direction = False
 
         self.test_out = (not reverse) or ignore_direction
         self.test_in = reverse or ignore_direction
+
+        if self.test_in: # How do we list in_neighbors ?
+            if self.graph._cg_rev is None:
+                self.in_neighbors = self.graph._cg.in_neighbors
+            else:
+                self.in_neighbors = self.graph._cg_rev.out_neighbors
 
     def __iter__(self):
         r"""
@@ -3072,7 +3070,7 @@ cdef class Search_iterator:
                 if self.test_out:
                     self.stack.extend(self.graph._cg.out_neighbors(v_int))
                 if self.test_in:
-                    self.stack.extend(self.graph._cg_rev.out_neighbors(v_int))
+                    self.stack.extend(self.in_neighbors(v_int))
 
                 break
         else:

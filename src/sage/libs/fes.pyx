@@ -66,8 +66,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-cdef extern from "stdint.h":
-    ctypedef unsigned long long uint64_t
+from libc.stdint cimport uint64_t
 
 cdef extern from "fes_interface.h":
     ctypedef int (*solution_callback_t)(void *, uint64_t)

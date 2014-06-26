@@ -17,7 +17,7 @@ EXAMPLES::
     sage: type(u)
     <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
     sage: u.simplify_full()
-    (1, log(6) + 2*log(y))
+    (1, log(6*y^2))
 
 TESTS:
 

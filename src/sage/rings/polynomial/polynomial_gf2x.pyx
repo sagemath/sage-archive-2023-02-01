@@ -276,3 +276,74 @@ cdef class Polynomial_GF2X(Polynomial_template):
             return False
         else:
             return True
+
+
+# The three functions below are used in polynomial_ring.py, but are in
+# this Cython file since they call C++ functions.  They return
+# polynomials as lists so that no variable has to be specified.
+# AUTHOR: Peter Bruin (June 2013)
+
+def GF2X_BuildIrred_list(n):
+    """
+    Return the list of coefficients of the lexicographically smallest
+    irreducible polynomial of degree `n` over the field of 2 elements.
+
+    EXAMPLE::
+
+        sage: from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildIrred_list
+        sage: GF2X_BuildIrred_list(2)
+        [1, 1, 1]
+        sage: GF2X_BuildIrred_list(3)
+        [1, 1, 0, 1]
+        sage: GF2X_BuildIrred_list(4)
+        [1, 1, 0, 0, 1]
+        sage: GF(2)['x'](GF2X_BuildIrred_list(33))
+        x^33 + x^6 + x^3 + x + 1
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    cdef GF2X_c f
+    GF2 = FiniteField(2)
+    GF2X_BuildIrred(f, int(n))
+    return [GF2(not GF2_IsZero(GF2X_coeff(f, i))) for i in xrange(n + 1)]
+
+def GF2X_BuildSparseIrred_list(n):
+    """
+    Return the list of coefficients of an irreducible polynomial of
+    degree `n` of minimal weight over the field of 2 elements.
+
+    EXAMPLE::
+
+        sage: from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildIrred_list, GF2X_BuildSparseIrred_list
+        sage: all([GF2X_BuildSparseIrred_list(n) == GF2X_BuildIrred_list(n)
+        ....:      for n in range(1,33)])
+        True
+        sage: GF(2)['x'](GF2X_BuildSparseIrred_list(33))
+        x^33 + x^10 + 1
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    cdef GF2X_c f
+    GF2 = FiniteField(2)
+    GF2X_BuildSparseIrred(f, int(n))
+    return [GF2(not GF2_IsZero(GF2X_coeff(f, i))) for i in xrange(n + 1)]
+
+def GF2X_BuildRandomIrred_list(n):
+    """
+    Return the list of coefficients of an irreducible polynomial of
+    degree `n` of minimal weight over the field of 2 elements.
+
+    EXAMPLE::
+
+        sage: from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildRandomIrred_list
+        sage: GF2X_BuildRandomIrred_list(2)
+        [1, 1, 1]
+        sage: GF2X_BuildRandomIrred_list(3) in [[1, 1, 0, 1], [1, 0, 1, 1]]
+        True
+    """
+    from sage.misc.randstate import current_randstate
+    from sage.rings.finite_rings.constructor import FiniteField
+    cdef GF2X_c tmp, f
+    GF2 = FiniteField(2)
+    current_randstate().set_seed_ntl(False)
+    GF2X_BuildSparseIrred(tmp, int(n))
+    GF2X_BuildRandomIrred(f, tmp)
+    return [GF2(not GF2_IsZero(GF2X_coeff(f, i))) for i in xrange(n + 1)]

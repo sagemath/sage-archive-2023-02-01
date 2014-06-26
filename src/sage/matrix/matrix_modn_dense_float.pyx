@@ -17,9 +17,7 @@ AUTHORS:
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
-# randstate in template needs this
-include 'sage/ext/random.pxi'
-
+from sage.rings.finite_rings.stdint cimport *
 from sage.libs.linbox.echelonform cimport BlasMatrixFloat as BlasMatrix
 from sage.libs.linbox.modular cimport ModFloatField as ModField, ModFloatFieldElement as ModFieldElement
 from sage.libs.linbox.echelonform cimport EchelonFormDomainFloat as EchelonFormDomain
@@ -49,6 +47,18 @@ cdef class Matrix_modn_dense_float(Matrix_modn_dense_template):
     Routines here are for the most basic access, see the
     `matrix_modn_dense_template.pxi` file for higher-level routines.
     """
+    def __cinit__(self):
+        """
+        The Cython constructor
+
+        TESTS::
+
+            sage: A = random_matrix(GF(7), 4, 4)
+            sage: type(A[0,0])
+            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+        """
+        self._get_template = self._base_ring.zero()
+
     cdef set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
         r"""
         Set the (i,j) entry of self to the int value.
@@ -119,6 +129,11 @@ cdef class Matrix_modn_dense_float(Matrix_modn_dense_template):
         r"""
         Return the (i,j) entry with no bounds-checking.
 
+        OUTPUT:
+
+        A :class:`sage.rings.finite_rings.integer_mod.IntegerMod_int`
+        object.
+
         EXAMPLES::
 
             sage: A = random_matrix(Integers(100), 4, 4); A
@@ -141,4 +156,5 @@ cdef class Matrix_modn_dense_float(Matrix_modn_dense_template):
             sage: b in B.base_ring()
             True
         """
-        return IntegerMod_int(self._base_ring, <mod_int>(<Matrix_modn_dense_template>self)._matrix[i][j])
+        cdef float result = (<Matrix_modn_dense_template>self)._matrix[i][j]
+        return (<Matrix_modn_dense_float>self)._get_template._new_c(<int_fast32_t>result)

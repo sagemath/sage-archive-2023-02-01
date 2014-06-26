@@ -24,21 +24,25 @@ import sage.combinat.partition
 
 class SymmetricFunctionAlgebra_multiplicative(classical.SymmetricFunctionAlgebra_classical):
     """
-    The class of multiplicative symmetric functions.
+    The class of multiplicative bases of the ring of symmetric functions.
 
-    A realization `h` of the ring of symmetric functions is multiplicative if for
-    a partition `\lambda = (\lambda_1,\lambda_2,\ldots)` we have
-    `h_\lambda = h_{\lambda_1} h_{\lambda_2} \cdots`.
+    A realization `q` of the ring of symmetric functions is multiplicative if
+    for a partition `\lambda = (\lambda_1,\lambda_2,\ldots)` we have
+    `q_\lambda = q_{\lambda_1} q_{\lambda_2} \cdots` (with `q_0` meaning `1`).
+
+    Examples of multiplicative realizations are the elementary symmetric basis,
+    the complete homogeneous basis, the powersum basis (if the base ring is a
+    `\QQ`-algebra), and the Witt basis (but not the Schur basis or the
+    monomial basis).
     """
 
     def _multiply_basis(self, left, right):
         """
-        Returns the product of ``left`` and ``right``.
+        Return the product of ``left`` and ``right``.
 
         INPUT:
 
-        - ``self`` -- a multiplicative basis of the symmetric functions
-        - ``left``, ``right`` -- instances of the multiplicative basis ``self`` of the ring of symmetric functions.
+        - ``left``, ``right`` -- partitions
 
         OUTPUT:
 
@@ -77,16 +81,16 @@ class SymmetricFunctionAlgebra_multiplicative(classical.SymmetricFunctionAlgebra
 
     def coproduct_on_basis(self, mu):
         r"""
-        Returns coproduct on basis for multiplicative bases.
+        Return the coproduct on a basis element for multiplicative bases.
 
         INPUT:
 
-        - ``self`` -- a multiplicative basis of the symmetric functions
         - ``mu`` -- a partition
 
         OUTPUT:
 
-        - an element of the tensor square of ``self``
+        - the image of ``self[mu]`` under comultiplication; this is an
+          element of the tensor square of ``self``
 
         EXAMPLES::
 
@@ -105,3 +109,4 @@ class SymmetricFunctionAlgebra_multiplicative(classical.SymmetricFunctionAlgebra
         """
         T = self.tensor_square()
         return T.prod(self.coproduct_on_generators(p) for p in mu)
+

@@ -9,6 +9,7 @@ Hopf algebras
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.misc.lazy_import import LazyImport
 from category import Category
 from category_types import Category_over_base_ring
 from sage.categories.bialgebras import Bialgebras
@@ -56,6 +57,8 @@ class HopfAlgebras(Category_over_base_ring):
             Category of hopf algebras over Rational Field
         """
         return self
+
+    WithBasis = LazyImport('sage.categories.hopf_algebras_with_basis',  'HopfAlgebrasWithBasis')
 
     class ElementMethods:
         def antipode(self):
@@ -111,9 +114,10 @@ class HopfAlgebras(Category_over_base_ring):
             """
             EXAMPLES::
 
-                sage: HopfAlgebras(QQ).TensorProducts().extra_super_categories()
+                sage: C = HopfAlgebras(QQ).TensorProducts()
+                sage: C.extra_super_categories()
                 [Category of hopf algebras over Rational Field]
-                sage: HopfAlgebras(QQ).TensorProducts().super_categories()
+                sage: sorted(C.super_categories(), key=str)
                 [Category of hopf algebras over Rational Field,
                  Category of tensor products of algebras over Rational Field,
                  Category of tensor products of coalgebras over Rational Field]

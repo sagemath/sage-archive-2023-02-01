@@ -7,8 +7,11 @@ cdef class CachedFunction(object):
     # cache is not always of type "dict"!
     cdef public object cache
     cdef tuple _default_key
+    cdef bint is_classmethod
+    cdef argfix_init(self)
     cpdef get_cache(self)
     cpdef clear_cache(self)
+    cdef object key
 
 cdef class CachedMethod
 
@@ -22,6 +25,8 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
 
 cdef class CachedMethod(object):
     cdef str _cache_name
+    cdef public str __name__
+    cdef public str __module__
     cdef CachedFunction _cachedfunc
     cdef int nargs
     cpdef dict _get_instance_cache(self, inst)

@@ -403,16 +403,16 @@ In this case those variables are defined implicitly::
         sage: # edit here
 
     Do you recognize the coefficients of the Taylor series expansion? You might
-    want to use the `On-Line Encyclopedia of Integer Sequences <http://oeis.org>`_,
-    or better yet, Sage's command :func:`sloane_find` which queries the
-    encyclopedia:
+    want to use the `On-Line Encyclopedia of Integer Sequences
+    <http://oeis.org>`_, or better yet, Sage's class :class:`OEIS` which
+    queries the encyclopedia:
 
     .. skip
 
     ::
 
 
-        sage: sloane_find?<tab>
+        sage: oeis?<tab>
 
     ::
 

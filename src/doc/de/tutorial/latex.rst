@@ -66,7 +66,7 @@ Hier führen wir einige grundlegenden Funktionen von ``latex()`` vor. ::
     sage: latex(integrate(z^4, z))
     \frac{1}{5} \, z^{5}
     sage: latex('a string')
-    \verb|a|\phantom{\verb!x!}\verb|string|
+    \text{\texttt{a{ }string}}
     sage: latex(QQ)
     \Bold{Q}
     sage: latex(matrix(QQ, 2, 3, [[2,4,6],[-1,-1,-1]]))
@@ -443,7 +443,7 @@ mittels LaTeX in einem Notebook darzustellen. ::
     sage: latex.engine('pdflatex')
     sage: latex.add_to_mathjax_avoid_list('tikzpicture')
     sage: latex.mathjax_avoid_list()
-    ['tikzpicture']
+    ['tikz', 'tikzpicture']
 
 Beachten Sie, dass es eine Vielzahl von Optionen gibt, die die
 Darstellung des Graphen in LaTeX mit ``tkz-graph`` beeinflussen. Auch

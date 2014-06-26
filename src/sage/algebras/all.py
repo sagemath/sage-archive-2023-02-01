@@ -16,25 +16,30 @@ Algebras
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.misc.lazy_import import lazy_import
 
 from quatalg.all import *
 
 # Algebra base classes
-from algebra import Algebra, is_Algebra
+from algebra import Algebra
 
 # Ring element base classes
-from algebra_element import AlgebraElement, is_AlgebraElement
+from algebra_element import AlgebraElement
 
 
-from free_algebra import FreeAlgebra, is_FreeAlgebra
+from free_algebra import FreeAlgebra
 from free_algebra_quotient import FreeAlgebraQuotient
 
 from steenrod.all import *
 
+from finite_dimensional_algebras.all import FiniteDimensionalAlgebra
+
 from group_algebra_new import GroupAlgebra
 
-from iwahori_hecke_algebra import IwahoriHeckeAlgebraT
+from iwahori_hecke_algebra import IwahoriHeckeAlgebra, IwahoriHeckeAlgebraT
 from affine_nil_temperley_lieb import AffineNilTemperleyLiebTypeA
-from nil_coxeter_algebra import NilCoxeterAlgebra
+lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra')
 
-from shuffle_algebra import ShuffleAlgebra
+lazy_import('sage.algebras.hall_algebra', 'HallAlgebra')
+
+lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra')

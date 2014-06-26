@@ -54,7 +54,14 @@ class HyperbolicArc(BezierPath):
     def _repr_(self):
         """
         String representation of HyperbolicArc.
+
+        TESTS::
+
+            sage: from sage.plot.hyperbolic_arc import HyperbolicArc
+            sage: HyperbolicArc(0, 1/2+I*sqrt(3)/2, {})._repr_()
+            'Hyperbolic arc (0.000000000000000, 0.500000000000000 + 0.866025403784439*I)'
         """
+
         return "Hyperbolic arc (%s, %s)" % (self.A, self.B)
 
     def _hyperbolic_arc(self, z0, z3, first=False):
@@ -112,7 +119,9 @@ def hyperbolic_arc(a, b, **options):
 
     - ``rgbcolor`` - default: 'blue'
 
-    - ``linestyle`` - default: 'solid'
+    - ``linestyle`` - (default: ``'solid'``) The style of the line, which is one
+      of ``'dashed'``, ``'dotted'``, ``'solid'``, ``'dashdot'``, or ``'--'``,
+      ``':'``, ``'-'``, ``'-.'``, respectively.
 
     Examples:
 
@@ -127,6 +136,7 @@ def hyperbolic_arc(a, b, **options):
     Show a hyperbolic arc form `i` to `2 i` with dashed line::
 
          sage: hyperbolic_arc(I, 2*I, linestyle='dashed')
+         sage: hyperbolic_arc(I, 2*I, linestyle='--')
     """
     from sage.plot.all import Graphics
     g = Graphics()

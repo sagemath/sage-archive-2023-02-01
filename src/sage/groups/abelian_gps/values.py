@@ -236,7 +236,7 @@ class AbelianGroupWithValuesElement(AbelianGroupElement):
         sage: TestSuite(a*b).run()
     """
 
-    def __init__(self, exponents, parent, value=None):
+    def __init__(self, parent, exponents, value=None):
         """
         Create an element
 
@@ -250,7 +250,7 @@ class AbelianGroupWithValuesElement(AbelianGroupElement):
             -1
         """
         self._value = value
-        AbelianGroupElement.__init__(self, exponents, parent)
+        AbelianGroupElement.__init__(self, parent, exponents)
 
     def value(self):
         """

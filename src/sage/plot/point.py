@@ -90,6 +90,7 @@ class Point(GraphicPrimitive_xydata):
             'How big the point is (i.e., area in points^2=(1/72 inch)^2).'
         """
         return {'alpha':'How transparent the point is.',
+                'legend_color':'The color of the legend text',
                 'legend_label':'The label for this item in the legend.',
                 'size': 'How big the point is (i.e., area in points^2=(1/72 inch)^2).',
                 'faceted': 'If True color the edge of the point.',
@@ -113,7 +114,7 @@ class Point(GraphicPrimitive_xydata):
             sage: b.size
             3
         """
-        if options == None:
+        if options is None:
             options = dict(self.options())
         options_3d = {}
         if 'size' in options:
@@ -121,7 +122,7 @@ class Point(GraphicPrimitive_xydata):
             del options['size']
         if 'faceted' in options:
             if options['faceted']:
-                raise NotImplementedError, "No 3d faceted points."
+                raise NotImplementedError("No 3d faceted points.")
             del options['faceted']
         options_3d.update(GraphicPrimitive_xydata._plot3d_options(self, options))
         return options_3d
@@ -206,7 +207,7 @@ class Point(GraphicPrimitive_xydata):
         options = self._plot3d_options()
         options.update(kwds)
         zdata=[]
-        if type(z) is list:
+        if isinstance(z, list):
             zdata=z
         else:
             zdata=[z]*len(self.xdata)
@@ -217,7 +218,7 @@ class Point(GraphicPrimitive_xydata):
             else:
                 return Graphics3dGroup(all)
         else:
-            raise ValueError, 'Incorrect number of heights given'
+            raise ValueError('Incorrect number of heights given')
 
     def _repr_(self):
         """
@@ -279,7 +280,8 @@ def point(points, **kwds):
 
     INPUT:
 
-    -  ``points`` - either a single point (as a tuple) or a list of points.
+    -  ``points`` - either a single point (as a tuple), a list of
+       points, a single complex number, or a list of complex numbers.
 
     For information regarding additional arguments, see either point2d?
     or point3d?.
@@ -312,11 +314,16 @@ def point(points, **kwds):
         return point3d(points, **kwds)
 
 @rename_keyword(color='rgbcolor', pointsize='size')
-@options(alpha=1, size=10, faceted=False, rgbcolor=(0,0,1), legend_label=None, aspect_ratio='automatic')
+@options(alpha=1, size=10, faceted=False, rgbcolor=(0,0,1),
+         legend_color=None, legend_label=None, aspect_ratio='automatic')
 def point2d(points, **options):
     r"""
     A point of size ``size`` defined by point = `(x,y)`.
-    Point takes either a single tuple of coordinates or a list of tuples.
+
+    INPUT:
+
+    -  ``points`` - either a single point (as a tuple), a list of
+       points, a single complex number, or a list of complex numbers.
 
     Type ``point2d.options`` to see all options.
 
@@ -329,6 +336,7 @@ def point2d(points, **options):
     Passing an empty list returns an empty plot::
 
         sage: point([])
+        sage: import numpy; point(numpy.array([]))
 
     If you need a 2D point to live in 3-space later,
     this is possible::
@@ -352,6 +360,11 @@ def point2d(points, **options):
 
         sage: point((0,0), rgbcolor='black', pointsize=40, legend_label='origin')
 
+    The legend can be colored::
+
+        sage: P = points([(0,0),(1,0)], pointsize=40, legend_label='origin', legend_color='red')
+        sage: P + plot(x^2,(x,0,1), legend_label='plot', legend_color='green')
+
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)], frame=True)
@@ -371,17 +384,34 @@ def point2d(points, **options):
     ::
 
         sage: point((3,4), pointsize=100)
+
+    We can plot a single complex number::
+
+        sage: point(CC(1+I), pointsize=100)
+
+    We can also plot a list of complex numbers::
+
+        sage: point([CC(I), CC(I+1), CC(2+2*I)], pointsize=100)
+
     """
     from sage.plot.plot import xydata_from_point_list
     from sage.plot.all import Graphics
-    if points == []:
-        return Graphics()
+    from sage.rings.all import CC, CDF
+    if points in CC or points in CDF:
+        pass
+    else:
+        try:
+            if not points:
+                return Graphics()
+        except ValueError: # numpy raises a ValueError if not empty
+            pass
     xdata, ydata = xydata_from_point_list(points)
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
     g.add_primitive(Point(xdata, ydata, options))
     if options['legend_label']:
         g.legend(True)
+        g._legend_colors = [options['legend_color']]
     return g
 
 points = point

@@ -249,3 +249,38 @@ class CartanType(CartanType_standard_affine):
         import cartan_type
         return cartan_type.CartanType(["C", self.n])
 
+    def basic_untwisted(self):
+        r"""
+        Return the basic untwisted Cartan type associated with this affine
+        Cartan type.
+
+        Given an affine type `X_n^{(r)}`, the basic untwisted type is `X_n`.
+        In other words, it is the classical Cartan type that is twisted to
+        obtain ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', 2, 2]).basic_untwisted()
+            ['A', 2]
+            sage: CartanType(['A', 4, 2]).basic_untwisted()
+            ['A', 4]
+            sage: CartanType(['BC', 4, 2]).basic_untwisted()
+            ['A', 8]
+        """
+        import cartan_type
+        return cartan_type.CartanType(["A", 2*self.n])
+
+    def _default_folded_cartan_type(self):
+        """
+        Return the default folded Cartan type.
+
+        EXAMPLES::
+
+            sage: CartanType(['BC', 3, 2])._default_folded_cartan_type()
+            ['BC', 3, 2] as a folding of ['A', 5, 1]
+        """
+        from sage.combinat.root_system.type_folded import CartanTypeFolded
+        n = self.n
+        return CartanTypeFolded(self, ['A', 2*n - 1, 1],
+            [[0]] + [[i, 2*n-i] for i in range(1, n)] + [[n]])
+

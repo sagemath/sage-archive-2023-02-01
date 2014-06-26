@@ -116,12 +116,12 @@ This base class provides a lot more methods than a general parent::
      '_zero_element', '_zero_ideal', 'algebraic_closure',
      'base_extend', 'cardinality', 'class_group', 'coerce_map_from_c',
      'coerce_map_from_impl', 'content', 'divides', 'extension',
-     'fraction_field', 'gcd', 'gen', 'gens', 'get_action_c',
-     'get_action_impl', 'has_coerce_map_from_c',
+     'fraction_field', 'frobenius_endomorphism', 'gcd', 'gen', 'gens',
+     'get_action_c', 'get_action_impl', 'has_coerce_map_from_c',
      'has_coerce_map_from_impl', 'ideal', 'ideal_monoid',
      'integral_closure', 'is_commutative', 'is_field', 'is_finite',
      'is_integral_domain', 'is_integrally_closed', 'is_noetherian',
-     'is_prime_field', 'is_ring', 'is_subring', 'is_zero',
+     'is_prime_field', 'is_ring', 'is_subring',
      'krull_dimension', 'list', 'ngens', 'one', 'one_element',
      'order', 'prime_subfield', 'principal_ideal', 'quo', 'quotient',
      'quotient_ring', 'random_element', 'unit_ideal', 'zero',
@@ -133,16 +133,16 @@ be complemented later.
 
     sage: from sage.structure.unique_representation import UniqueRepresentation
     sage: class MyFrac(UniqueRepresentation, Field):
-    ...       def __init__(self, base):
-    ...           if base not in IntegralDomains():
-    ...               raise ValueError, "%s is no integral domain"%base
-    ...           Field.__init__(self, base)
-    ...       def _repr_(self):
-    ...           return "NewFrac(%s)"%repr(self.base())
-    ...       def base_ring(self):
-    ...           return self.base().base_ring()
-    ...       def characteristic(self):
-    ...           return self.base().characteristic()
+    ....:     def __init__(self, base):
+    ....:         if base not in IntegralDomains():
+    ....:             raise ValueError, "%s is no integral domain"%base
+    ....:         Field.__init__(self, base)
+    ....:     def _repr_(self):
+    ....:         return "NewFrac(%s)"%repr(self.base())
+    ....:     def base_ring(self):
+    ....:         return self.base().base_ring()
+    ....:     def characteristic(self):
+    ....:         return self.base().characteristic()
 
 .. end ouf output
 
@@ -261,12 +261,12 @@ considerations:
   comparison does not work in the way expected in Python::
 
       sage: class Foo(sage.structure.element.Element):
-      ...    def __init__(self, x, parent=None):
-      ...        self.x = x
-      ...    def _repr_(self):
-      ...        return "<%s>"%self.x
-      sage: a = Foo(1,parent=ZZ)
-      sage: b = Foo(2,parent=ZZ)
+      ....:  def __init__(self, parent, x):
+      ....:      self.x = x
+      ....:  def _repr_(self):
+      ....:      return "<%s>"%self.x
+      sage: a = Foo(ZZ, 1)
+      sage: b = Foo(ZZ, 2)
       sage: cmp(a,b)
       Traceback (most recent call last):
       ...
@@ -279,49 +279,47 @@ considerations:
 This gives rise to the following code::
 
     sage: class MyElement(FieldElement):
-    ...       def __init__(self, n,d=None, parent=None):
-    ...           if parent is None:
-    ...               raise ValueError, "The parent must be provided"
-    ...           B = parent.base()
-    ...           if d is None:
-    ...               d = B.one_element()
-    ...           if n not in B or d not in B:
-    ...               raise ValueError, "Numerator and denominator must be elements of %s"%B
-    ...           # Numerator and denominator should not just be "in" B,
-    ...           # but should be defined as elements of B
-    ...           d = B(d)
-    ...           n = B(n)
-    ...           if d==0:
-    ...               raise ZeroDivisionError, "The denominator must not be zero"
-    ...           if d<0:
-    ...               self.n = -n
-    ...               self.d = -d
-    ...           else:
-    ...               self.n = n
-    ...               self.d = d
-    ...           FieldElement.__init__(self,parent)
-    ...       def numerator(self):
-    ...           return self.n
-    ...       def denominator(self):
-    ...           return self.d
-    ...       def _repr_(self):
-    ...           return "(%s):(%s)"%(self.n,self.d)
-    ...       def __cmp__(self, other):
-    ...           return cmp(self.n*other.denominator(), other.numerator()*self.d)
-    ...       def _add_(self, other):
-    ...           C = self.__class__
-    ...           D = self.d*other.denominator()
-    ...           return C(self.n*other.denominator()+self.d*other.numerator(),D, self.parent())
-    ...       def _sub_(self, other):
-    ...           C = self.__class__
-    ...           D = self.d*other.denominator()
-    ...           return C(self.n*other.denominator()-self.d*other.numerator(),D, self.parent())
-    ...       def _mul_(self, other):
-    ...           C = self.__class__
-    ...           return C(self.n*other.numerator(), self.d*other.denominator(), self.parent())
-    ...       def _div_(self, other):
-    ...           C = self.__class__
-    ...           return C(self.n*other.denominator(), self.d*other.numerator(), self.parent())
+    ....:     def __init__(self, parent,n,d=None):
+    ....:         B = parent.base()
+    ....:         if d is None:
+    ....:             d = B.one_element()
+    ....:         if n not in B or d not in B:
+    ....:             raise ValueError("Numerator and denominator must be elements of %s"%B)
+    ....:         # Numerator and denominator should not just be "in" B,
+    ....:         # but should be defined as elements of B
+    ....:         d = B(d)
+    ....:         n = B(n)
+    ....:         if d==0:
+    ....:             raise ZeroDivisionError("The denominator must not be zero")
+    ....:         if d<0:
+    ....:             self.n = -n
+    ....:             self.d = -d
+    ....:         else:
+    ....:             self.n = n
+    ....:             self.d = d
+    ....:         FieldElement.__init__(self,parent)
+    ....:     def numerator(self):
+    ....:         return self.n
+    ....:     def denominator(self):
+    ....:         return self.d
+    ....:     def _repr_(self):
+    ....:         return "(%s):(%s)"%(self.n,self.d)
+    ....:     def __cmp__(self, other):
+    ....:         return cmp(self.n*other.denominator(), other.numerator()*self.d)
+    ....:     def _add_(self, other):
+    ....:         C = self.__class__
+    ....:         D = self.d*other.denominator()
+    ....:         return C(self.parent(), self.n*other.denominator()+self.d*other.numerator(), D)
+    ....:     def _sub_(self, other):
+    ....:         C = self.__class__
+    ....:         D = self.d*other.denominator()
+    ....:         return C(self.parent(), self.n*other.denominator()-self.d*other.numerator(),D)
+    ....:     def _mul_(self, other):
+    ....:         C = self.__class__
+    ....:         return C(self.parent(), self.n*other.numerator(), self.d*other.denominator())
+    ....:     def _div_(self, other):
+    ....:         C = self.__class__
+    ....:         return C(self.parent(), self.n*other.denominator(), self.d*other.numerator())
 
 .. end of output
 
@@ -333,11 +331,11 @@ Thanks to the single underscore methods, some basic arithmetics works, **if**
 we stay inside a single parent structure::
 
     sage: P = MyFrac(ZZ)
-    sage: a = MyElement(3,4,P)
-    sage: b = MyElement(1,2,P)
+    sage: a = MyElement(P, 3, 4)
+    sage: b = MyElement(P, 1, 2)
     sage: a+b, a-b, a*b, a/b
     ((10):(8), (2):(8), (3):(8), (6):(4))
-    sage: a-b == MyElement(1,4,P)
+    sage: a-b == MyElement(P, 1, 4)
     True
 
 .. end of output
@@ -401,16 +399,23 @@ Sage's category framework can differentiate the two cases::
 
 .. end of output
 
-Surprisingly, ``MS2`` has *more* methods than ``MS1``, even though their classes
-coincide::
+And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    55
+    57
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    78
-    sage: MS1.__class__ is MS2.__class__
-    True
+    81
+
+This is because the class of ``MS2`` also inherits from the parent
+class for algebras::
+
+    sage: MS1.__class__.__bases__
+    (<class 'sage.matrix.matrix_space.MatrixSpace'>,
+     <class 'sage.categories.vector_spaces.VectorSpaces.parent_class'>)
+    sage: MS2.__class__.__bases__
+    (<class 'sage.matrix.matrix_space.MatrixSpace'>,
+     <class 'sage.categories.algebras.Algebras.parent_class'>)
 
 .. end of output
 
@@ -504,10 +509,10 @@ category::
 
     sage: from sage.categories.quotient_fields import QuotientFields
     sage: class MyFrac(MyFrac):
-    ...       def __init__(self, base, category=None):
-    ...           if base not in IntegralDomains():
-    ...               raise ValueError, "%s is no integral domain"%base
-    ...           Field.__init__(self, base, category=category or QuotientFields())
+    ....:     def __init__(self, base, category=None):
+    ....:         if base not in IntegralDomains():
+    ....:             raise ValueError, "%s is no integral domain"%base
+    ....:         Field.__init__(self, base, category=category or QuotientFields())
 
 When constructing instances of ``MyFrac``, their class is dynamically changed
 into a new class called ``MyFrac_with_category``. It is a common sub\--class of
@@ -528,17 +533,17 @@ monoids\---see
 :meth:`~sage.categories.commutative_additive_monoids.CommutativeAdditiveMonoids.ParentMethods.sum`::
 
     sage: P.sum.__module__
-    'sage.categories.commutative_additive_monoids'
+    'sage.categories.additive_monoids'
 
 .. end of output
 
 We have seen above that we can add elements. Nevertheless, the ``sum`` method
 does not work, yet::
 
-    sage: a = MyElement(3,4,P)
-    sage: b = MyElement(1,2,P)
-    sage: c = MyElement(-1,2,P)
-    sage: P.sum([a,b,c])
+    sage: a = MyElement(P, 3, 4)
+    sage: b = MyElement(P, 1, 2)
+    sage: c = MyElement(P, -1, 2)
+    sage: P.sum([a, b, c])
     Traceback (most recent call last):
     ...
     NotImplementedError
@@ -566,7 +571,7 @@ Hence, for providing our fraction fields with their own element classes, **we
 just need to add a single line to our class**::
 
     sage: class MyFrac(MyFrac):
-    ...       Element = MyElement
+    ....:     Element = MyElement
 
 
 .. end of output
@@ -586,9 +591,9 @@ This little change provides several benefits:
 
 - The ``sum`` method mentioned above suddenly works::
 
-      sage: a = MyElement(9,4,P)
-      sage: b = MyElement(1,2,P)
-      sage: c = MyElement(-1,2,P)
+      sage: a = MyElement(P, 9, 4)
+      sage: b = MyElement(P, 1, 2)
+      sage: c = MyElement(P, -1, 2)
       sage: P.sum([a,b,c])
       (36):(16)
 
@@ -753,7 +758,7 @@ thus have::
     sage: P1.has_coerce_map_from(P2)
     True
     sage: P1.coerce_map_from(P2)
-    Call morphism:
+    Conversion map:
       From: Multivariate Polynomial Ring in w, v over Integer Ring
       To:   Multivariate Polynomial Ring in v, w over Rational Field
 
@@ -761,7 +766,7 @@ While there is a conversion from `P_1` to `P_2` (namely restricted to
 polynomials with integral coefficients), this conversion is not a coercion::
 
     sage: P2.convert_map_from(P1)
-    Call morphism:
+    Conversion map:
       From: Multivariate Polynomial Ring in v, w over Rational Field
       To:   Multivariate Polynomial Ring in w, v over Integer Ring
     sage: P2.has_coerce_map_from(P1)
@@ -819,9 +824,15 @@ The four axioms requested for coercions
    In addition, if there is a *coercion* from `P_2` to `P_1`, then a
    *conversion* from `P_2` to `P_1` is defined for all elements of `P_2` and
    coincides with the coercion.
-   ::
+   Nonetheless, user-exposed maps are copies of the internally used maps whence
+   the lack of identity between different instantiations::
 
        sage: P1.coerce_map_from(P2) is P1.convert_map_from(P2)
+       False
+
+   For internally used maps, the maps are identical::
+
+       sage: P1._internal_coerce_map_from(P2) is P1._internal_convert_map_from(P2)
        True
 
    .. end of output
@@ -862,17 +873,17 @@ refactor them!
 ::
 
     sage: class MyFrac(MyFrac):
-    ...       def _element_constructor_(self, *args,**kwds):
-    ...           if len(args)!=1:
-    ...               return self.element_class(*args,parent=self,**kwds)
-    ...           x = args[0]
-    ...           try:
-    ...               P = x.parent()
-    ...           except AttributeError:
-    ...               return self.element_class(x,parent=self,**kwds)
-    ...           if P in QuotientFields() and P != self.base():
-    ...               return self.element_class(x.numerator(),x.denominator(),parent=self,**kwds)
-    ...           return self.element_class(x,parent=self,**kwds)
+    ....:     def _element_constructor_(self, *args, **kwds):
+    ....:         if len(args)!=1:
+    ....:             return self.element_class(self, *args, **kwds)
+    ....:         x = args[0]
+    ....:         try:
+    ....:             P = x.parent()
+    ....:         except AttributeError:
+    ....:             return self.element_class(self, x, **kwds)
+    ....:         if P in QuotientFields() and P != self.base():
+    ....:             return self.element_class(self, x.numerator(), x.denominator(), **kwds)
+    ....:         return self.element_class(self, x, **kwds)
 
 
 .. end of output
@@ -932,14 +943,14 @@ rational field, since ``QQ.base()`` is not the ring of integers.
 ::
 
     sage: class MyFrac(MyFrac):
-    ...       def _coerce_map_from_(self, S):
-    ...           if self.base().has_coerce_map_from(S):
-    ...               return True
-    ...           if S in QuotientFields():
-    ...               if self.base().has_coerce_map_from(S.base()):
-    ...                   return True
-    ...               if hasattr(S,'ring_of_integers') and self.base().has_coerce_map_from(S.ring_of_integers()):
-    ...                   return True
+    ....:     def _coerce_map_from_(self, S):
+    ....:         if self.base().has_coerce_map_from(S):
+    ....:             return True
+    ....:         if S in QuotientFields():
+    ....:             if self.base().has_coerce_map_from(S.base()):
+    ....:                 return True
+    ....:             if hasattr(S,'ring_of_integers') and self.base().has_coerce_map_from(S.ring_of_integers()):
+    ....:                 return True
 
 
 .. end of output
@@ -1089,10 +1100,10 @@ In particular, the construction functors can be composed::
 
 .. end of output
 
-In addition, it is assumed that we have a coercion from input to output of the
+In addition, it is often assumed that we have a coercion from input to output of the
 construction functor::
 
-    sage: ((Poly*Fract)(ZZ))._coerce_map_from_(ZZ)
+    sage: ((Poly*Fract)(ZZ)).coerce_map_from(ZZ)
     Composite map:
       From: Integer Ring
       To:   Univariate Polynomial Ring in x over Rational Field
@@ -1284,14 +1295,14 @@ default implementation. Hence:
 
     sage: from sage.categories.pushout import ConstructionFunctor
     sage: class MyFracFunctor(ConstructionFunctor):
-    ...       rank = 5
-    ...       def __init__(self):
-    ...           ConstructionFunctor.__init__(self, IntegralDomains(), Fields())
-    ...       def _apply_functor(self, R):
-    ...           return MyFrac(R)
-    ...       def merge(self, other):
-    ...           if isinstance(other, (type(self), sage.categories.pushout.FractionField)):
-    ...               return self
+    ....:     rank = 5
+    ....:     def __init__(self):
+    ....:         ConstructionFunctor.__init__(self, IntegralDomains(), Fields())
+    ....:     def _apply_functor(self, R):
+    ....:         return MyFrac(R)
+    ....:     def merge(self, other):
+    ....:         if isinstance(other, (type(self), sage.categories.pushout.FractionField)):
+    ....:             return self
 
 
 .. end of output
@@ -1333,8 +1344,8 @@ There remains to let our new fraction fields know about the new construction fun
 ::
 
     sage: class MyFrac(MyFrac):
-    ...       def construction(self):
-    ...           return MyFracFunctor(), self.base()
+    ....:     def construction(self):
+    ....:         return MyFracFunctor(), self.base()
 
 
 .. end of output
@@ -1451,9 +1462,9 @@ For example, if one forgets to implement required methods, one obtains the
 following error::
 
     sage: class Foo(Parent):
-    ...    Element = sage.structure.element.Element
-    ...    def __init__(self):
-    ...        Parent.__init__(self, category=QuotientFields())
+    ....:  Element = sage.structure.element.Element
+    ....:  def __init__(self):
+    ....:      Parent.__init__(self, category=QuotientFields())
     sage: Bar = Foo()
     sage: bar = Bar.element_class(Bar)
     sage: bar._test_not_implemented_methods()
@@ -1553,16 +1564,16 @@ that. We also override the some_elements method.
 ::
 
     sage: class MyFrac(MyFrac):
-    ...       def _an_element_(self):
-    ...           a = self.base().an_element()
-    ...           b = self.base_ring().an_element()
-    ...           if (a+b)!=0:
-    ...               return self(a)**2/(self(a+b)**3)
-    ...           if b != 0:
-    ...               return self(a)/self(b)**2
-    ...           return self(a)**2*self(b)**3
-    ...       def some_elements(self):
-    ...           return [self.an_element(),self(self.base().an_element()),self(self.base_ring().an_element())]
+    ....:     def _an_element_(self):
+    ....:         a = self.base().an_element()
+    ....:         b = self.base_ring().an_element()
+    ....:         if (a+b)!=0:
+    ....:             return self(a)**2/(self(a+b)**3)
+    ....:         if b != 0:
+    ....:             return self(a)/self(b)**2
+    ....:         return self(a)**2*self(b)**3
+    ....:     def some_elements(self):
+    ....:         return [self.an_element(),self(self.base().an_element()),self(self.base_ring().an_element())]
 
 
 .. end of output
@@ -1611,14 +1622,14 @@ the category, as follows::
 
     sage: from sage.categories.category import Category
     sage: class QuotientFieldsWithTest(Category): # do *not* inherit from QuotientFields, but ...
-    ...       def super_categories(self):
-    ...           return [QuotientFields()]       # ... declare QuotientFields as a super category!
-    ...       class ParentMethods:
-    ...           pass
-    ...       class ElementMethods:
-    ...           def _test_factorisation(self, **options):
-    ...               P = self.parent()
-    ...               assert self == P.prod([P(b)**e for b,e in self.factor()])
+    ....:     def super_categories(self):
+    ....:         return [QuotientFields()]       # ... declare QuotientFields as a super category!
+    ....:     class ParentMethods:
+    ....:         pass
+    ....:     class ElementMethods:
+    ....:         def _test_factorisation(self, **options):
+    ....:             P = self.parent()
+    ....:             assert self == P.prod([P(b)**e for b,e in self.factor()])
 
 
 .. end of output
@@ -1721,23 +1732,23 @@ Appendix: The complete code
 
     # Fraction field elements
     class MyElement(FieldElement):
-        def __init__(self, n,d=None, parent=None):
+        def __init__(self, parent, n, d=None):
             if parent is None:
-                raise ValueError, "The parent must be provided"
+                raise ValueError("The parent must be provided")
             B = parent.base()
             if d is None:
                 # The default denominator is one
                 d = B.one_element()
             # verify that both numerator and denominator belong to the base
             if n not in B or d not in B:
-                raise ValueError, "Numerator and denominator must be elements of %s"%B
+                raise ValueError("Numerator and denominator must be elements of %s"%B)
             # Numerator and denominator should not just be "in" B,
             # but should be defined as elements of B
             d = B(d)
             n = B(n)
             # the denominator must not be zero
             if d==0:
-                raise ZeroDivisionError, "The denominator must not be zero"
+                raise ZeroDivisionError("The denominator must not be zero")
             # normalize the denominator: WLOG, it shall be non-negative.
             if d<0:
                 self.n = -n
@@ -1770,17 +1781,17 @@ Appendix: The complete code
         def _add_(self, other):
             C = self.__class__
             D = self.d*other.denominator()
-            return C(self.n*other.denominator()+self.d*other.numerator(),D, self.parent())
+            return C(self.parent(), self.n*other.denominator()+self.d*other.numerator(),D)
         def _sub_(self, other):
             C = self.__class__
             D = self.d*other.denominator()
-            return C(self.n*other.denominator()-self.d*other.numerator(),D, self.parent())
+            return C(self.parent(), self.n*other.denominator()-self.d*other.numerator(),D)
         def _mul_(self, other):
             C = self.__class__
-            return C(self.n*other.numerator(), self.d*other.denominator(), self.parent())
+            return C(self.parent(), self.n*other.numerator(), self.d*other.denominator())
         def _div_(self, other):
             C = self.__class__
-            return C(self.n*other.denominator(), self.d*other.numerator(), self.parent())
+            return C(self.parent(), self.n*other.denominator(), self.d*other.numerator())
 
     # Inheritance from UniqueRepresentation implements the unique parent
     # behaviour. Moreover, it implements pickling (provided that Python
@@ -1809,17 +1820,17 @@ Appendix: The complete code
             return self.base().characteristic()
 
         # Implement conversions. Do not override __call__!
-        def _element_constructor_(self, *args,**kwds):
+        def _element_constructor_(self, *args, **kwds):
             if len(args)!=1:
-               return self.element_class(*args,parent=self,**kwds)
+               return self.element_class(self, *args, **kwds)
             x = args[0]
             try:
                 P = x.parent()
             except AttributeError:
-                return self.element_class(x,parent=self,**kwds)
+                return self.element_class(self, x, **kwds)
             if P in QuotientFields() and P != self.base():
-                return self.element_class(x.numerator(),x.denominator(),parent=self,**kwds)
-            return self.element_class(x,parent=self,**kwds)
+                return self.element_class(self, x.numerator(), x.denominator(), **kwds)
+            return self.element_class(self, x, **kwds)
 
         # Implement coercion from the base and from fraction fields
         # over a ring that coerces into the base

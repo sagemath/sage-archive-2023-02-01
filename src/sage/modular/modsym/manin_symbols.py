@@ -181,7 +181,7 @@ class ManinSymbolList(SageObject):
             NotImplementedError: Only implemented in derived classes
 
         """
-        raise NotImplementedError, "Only implemented in derived classes"
+        raise NotImplementedError("Only implemented in derived classes")
 
     def _apply_S_only_0pm1(self):
         """
@@ -217,7 +217,7 @@ class ManinSymbolList(SageObject):
             ...
             NotImplementedError: Only implemented in derived classes
         """
-        raise NotImplementedError, "Only implemented in derived classes"
+        raise NotImplementedError("Only implemented in derived classes")
 
     def apply_I(self, j):
         """
@@ -234,7 +234,7 @@ class ManinSymbolList(SageObject):
             ...
             NotImplementedError: Only implemented in derived classes
         """
-        raise NotImplementedError, "Only implemented in derived classes"
+        raise NotImplementedError("Only implemented in derived classes")
 
     def apply_T(self, j):
         """
@@ -251,7 +251,7 @@ class ManinSymbolList(SageObject):
             ...
             NotImplementedError: Only implemented in derived classes
         """
-        raise NotImplementedError, "Only implemented in derived classes"
+        raise NotImplementedError("Only implemented in derived classes")
 
     def apply_TT(self, j):
         """
@@ -268,7 +268,7 @@ class ManinSymbolList(SageObject):
             ...
             NotImplementedError: Only implemented in derived classes
         """
-        raise NotImplementedError, "Only implemented in derived classes"
+        raise NotImplementedError("Only implemented in derived classes")
 
     def index(self, x):
         """
@@ -292,7 +292,7 @@ class ManinSymbolList(SageObject):
             sage: all([i == m.index(m[i]) for i in xrange(len(m))])
             True
         """
-        if self._index.has_key(x):
+        if x in self._index:
             return self._index[x]
         x = self.normalize(x)
         try:
@@ -382,7 +382,7 @@ class ManinSymbolList(SageObject):
             sage: m.normalize((0,6,7)) # not implemented in base class
 
         """
-        raise NotImplementedError, "Only implemented in derived classes"
+        raise NotImplementedError("Only implemented in derived classes")
 
     def weight(self):
         """
@@ -1266,7 +1266,7 @@ class ManinSymbolList_character(ManinSymbolList):
             (16, 1),
             (17, 1)]
         """
-        if self._index.has_key(x):
+        if x in self._index:
             return self._index[x], 1
         x, s= self.normalize(x)
         try:
@@ -1547,11 +1547,11 @@ class ManinSymbol(SageObject):
 
         """
         if not isinstance(parent, ManinSymbolList):
-            raise TypeError, "parent (=%s) must be of type ManinSymbolList."%(
-                parent)
+            raise TypeError("parent (=%s) must be of type ManinSymbolList."%(
+                parent))
         self.__parent = parent
         if not isinstance(t, tuple):
-            raise TypeError, "t (=%s) must be of type tuple."%t
+            raise TypeError("t (=%s) must be of type tuple."%t)
         self.__t = t
 
     def tuple(self):
@@ -1691,18 +1691,20 @@ class ManinSymbol(SageObject):
             Traceback (most recent call last):
             ...
             NotImplementedError: ModSym * Matrix only implemented in weight 2
-
         """
         if self.weight() > 2:
-            raise NotImplementedError, "ModSym * Matrix only implemented in weight 2"
-        if sage.matrix.all.is_Matrix(matrix):
-            assert matrix.nrows() == 2 and matrix.ncols()==2, "matrix must be 2x2"
+            raise NotImplementedError("ModSym * Matrix only implemented "
+                                      "in weight 2")
+        from sage.matrix.matrix import is_Matrix
+        if is_Matrix(matrix):
+            if (not matrix.nrows() == 2) or (not matrix.ncols() == 2):
+                raise ValueError("matrix(=%s) must be 2x2" % matrix)
             matrix = matrix.list()
         return ManinSymbol(self.parent(), \
                            (self.i,
                            matrix[0]*self.u + matrix[2]*self.v,\
                            matrix[1]*self.u + matrix[3]*self.v))
-        raise ArithmeticError, "Multiplication of %s by %s not defined."%(self, matrix)
+        raise ArithmeticError("Multiplication of %s by %s not defined." % (self, matrix))
 
 
     def apply(self, a,b,c,d):
@@ -1812,7 +1814,7 @@ class ManinSymbol(SageObject):
         else:
             N=int(N)
             if N < 1:
-                raise ArithmeticError, "N must be positive"
+                raise ArithmeticError("N must be positive")
         a,b,c,d = self.lift_to_sl2z()
         return cusps.Cusp(b,d), cusps.Cusp(a,c)
 

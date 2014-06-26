@@ -26,51 +26,9 @@ Support for elliptic functions and integrals was written by Raymond
 Toy. It is placed under the terms of the General Public License
 (GPL) that governs the distribution of Maxima.
 
-The (usual) Bessel functions and Airy functions are part of the
-standard Maxima package. Some Bessel functions also are implemented
-in PARI. (Caution: The PARI versions are sometimes different than
-the Maxima version.) For example, the J-Bessel function
-`J_\nu (z)` can be computed using either Maxima or PARI,
-depending on an optional variable you pass to bessel_J.
-
 Next, we summarize some of the properties of the functions
 implemented here.
 
-
--  Bessel functions, first defined by the Swiss mathematician
-   Daniel Bernoulli and named after Friedrich Bessel, are canonical
-   solutions y(x) of Bessel's differential equation:
-
-
-   .. math::
-
-         x^2 \frac{d^2 y}{dx^2} + x \frac{dy}{dx} + (x^2 - \alpha^2)y = 0,
-
-
-   for an arbitrary real number `\alpha` (the order).
-
--  Another important formulation of the two linearly independent
-   solutions to Bessel's equation are the Hankel functions
-   `H_\alpha^{(1)}(x)` and `H_\alpha^{(2)}(x)`,
-   defined by:
-
-
-   .. math::
-
-         H_\alpha^{(1)}(x) = J_\alpha(x) + i Y_\alpha(x)
-
-
-
-   .. math::
-
-         H_\alpha^{(2)}(x) = J_\alpha(x) - i Y_\alpha(x)
-
-
-   where `i` is the imaginary unit (and `J_*` and
-   `Y_*` are the usual J- and Y-Bessel functions). These
-   linear combinations are also known as Bessel functions of the third
-   kind; they are two linearly independent solutions of Bessel's
-   differential equation. They are named for Hermann Hankel.
 
 -  Airy function The function `Ai(x)` and the related
    function `Bi(x)`, which is also called an Airy function,
@@ -190,135 +148,6 @@ implemented here.
    solution, called Kummer's function `M(a,b,x)`, which is not
    implemented.)
 
--  Jacobi elliptic functions can be thought of as generalizations
-   of both ordinary and hyperbolic trig functions. There are twelve
-   Jacobian elliptic functions. Each of the twelve corresponds to an
-   arrow drawn from one corner of a rectangle to another.
-
-   ::
-
-                    n ------------------- d
-                    |                     |
-                    |                     |
-                    |                     |
-                    s ------------------- c
-
-   Each of the corners of the rectangle are labeled, by convention, s,
-   c, d and n. The rectangle is understood to be lying on the complex
-   plane, so that s is at the origin, c is on the real axis, and n is
-   on the imaginary axis. The twelve Jacobian elliptic functions are
-   then pq(x), where p and q are one of the letters s,c,d,n.
-
-   The Jacobian elliptic functions are then the unique
-   doubly-periodic, meromorphic functions satisfying the following
-   three properties:
-
-
-   #. There is a simple zero at the corner p, and a simple pole at the
-      corner q.
-
-   #. The step from p to q is equal to half the period of the function
-      pq(x); that is, the function pq(x) is periodic in the direction pq,
-      with the period being twice the distance from p to q. Also, pq(x)
-      is also periodic in the other two directions as well, with a period
-      such that the distance from p to one of the other corners is a
-      quarter period.
-
-   #. If the function pq(x) is expanded in terms of x at one of the
-      corners, the leading term in the expansion has a coefficient of 1.
-      In other words, the leading term of the expansion of pq(x) at the
-      corner p is x; the leading term of the expansion at the corner q is
-      1/x, and the leading term of an expansion at the other two corners
-      is 1.
-
-
-   We can write
-
-   .. math::
-
-      pq(x)=\frac{pr(x)}{qr(x)}
-
-
-   where `p`, `q`, and `r` are any of the
-   letters `s`, `c`, `d`, `n`, with
-   the understanding that `ss=cc=dd=nn=1`.
-
-   Let
-
-   .. math::
-
-         u=\int_0^\phi \frac{d\theta} {\sqrt {1-m \sin^2 \theta}}
-
-
-   Then the *Jacobi elliptic function* `sn(u)` is given by
-
-   .. math::
-
-        {sn}\; u = \sin \phi
-
-   and `cn(u)` is given by
-
-   .. math::
-
-       {cn}\; u = \cos \phi
-
-   and
-
-   .. math::
-
-     {dn}\; u = \sqrt {1-m\sin^2 \phi}.
-
-   To emphasize the dependence on `m`, one can write
-   `sn(u,m)` for example (and similarly for `cn` and
-   `dn`). This is the notation used below.
-
-   For a given `k` with `0 < k < 1` they therefore are
-   solutions to the following nonlinear ordinary differential
-   equations:
-
-
-   -  `\mathrm{sn}\,(x;k)` solves the differential equations
-
-      .. math::
-
-          \frac{\mathrm{d}^2 y}{\mathrm{d}x^2} + (1+k^2) y - 2 k^2 y^3 = 0,
-
-      and
-
-      .. math::
-
-         \left(\frac{\mathrm{d} y}{\mathrm{d}x}\right)^2 = (1-y^2) (1-k^2 y^2).
-
-   -  `\mathrm{cn}\,(x;k)` solves the differential equations
-
-
-      .. math::
-
-         \frac{\mathrm{d}^2 y}{\mathrm{d}x^2} + (1-2k^2) y + 2 k^2 y^3 = 0,
-
-      and `\left(\frac{\mathrm{d} y}{\mathrm{d}x}\right)^2 = (1-y^2) (1-k^2 + k^2 y^2)`.
-
-   -  `\mathrm{dn}\,(x;k)` solves the differential equations
-
-      .. math::
-
-         \frac{\mathrm{d}^2 y}{\mathrm{d}x^2} - (2 - k^2) y + 2 y^3 = 0,
-
-      and `\left(\frac{\mathrm{d} y}{\mathrm{d}x}\right)^2= y^2 (1 - k^2 - y^2)`.
-
-      If `K(m)` denotes the complete elliptic integral of the
-      first kind (denoted ``elliptic_kc``), the elliptic functions
-      `sn (x,m)` and `cn (x,m)` have real periods
-      `4K(m)`, whereas `dn (x,m)` has a period
-      `2K(m)`. The limit `m\rightarrow 0` gives
-      `K(0) = \pi/2` and trigonometric functions:
-      `sn(x, 0) = \sin x`, `cn(x, 0) = \cos x`,
-      `dn(x, 0) = 1`. The limit `m \rightarrow 1` gives
-      `K(1) \rightarrow \infty` and hyperbolic functions:
-      `sn(x, 1) = \tanh x`,
-      `cn(x, 1) = \mbox{\rm sech} x`,
-      `dn(x, 1) = \mbox{\rm sech} x`.
-
    -  The incomplete elliptic integrals (of the first kind, etc.) are:
 
       .. math::
@@ -333,18 +162,11 @@ REFERENCES:
 - Abramowitz and Stegun: Handbook of Mathematical Functions,
   http://www.math.sfu.ca/~cbm/aands/
 
-- http://en.wikipedia.org/wiki/Bessel_function
-
 - http://en.wikipedia.org/wiki/Airy_function
 
 - http://en.wikipedia.org/wiki/Spherical_harmonics
 
 - http://en.wikipedia.org/wiki/Helmholtz_equation
-
-- http://en.wikipedia.org/wiki/Jacobi's_elliptic_functions
-
-- A. Khare, U. Sukhatme, 'Cyclic Identities Involving
-  Jacobi Elliptic Functions', Math ArXiv, math-ph/0201004
 
 - Online Encyclopedia of Special Function
   http://algo.inria.fr/esf/index.html
@@ -477,7 +299,7 @@ class MaximaFunction(BuiltinFunction):
         Check if complex numbers in the arguments are converted to maxima
         correctly :trac:`7557`::
 
-            sage: t = jacobi('sn',1.2+2*I*elliptic_kc(1-.5),.5)
+            sage: t = f(1.2+2*I*elliptic_kc(1-.5),.5)
             sage: t._maxima_init_(maxima)
             '0.88771548861927...*%i'
             sage: t.n() # abs tol 1e-13
@@ -517,7 +339,7 @@ class MaximaFunction(BuiltinFunction):
         """
         parent = kwds['parent']
         if hasattr(parent, 'prec') and parent.prec() > 53:
-            raise NotImplementedError, "%s not implemented for precision > 53"%self.name()
+            raise NotImplementedError("%s not implemented for precision > 53"%self.name())
         _init()
         return parent(maxima("%s, numer"%self._maxima_init_evaled_(*args)))
 
@@ -567,8 +389,6 @@ def maxima_function(name):
 
     EXAMPLES::
 
-        sage: n(bessel_J(3,10,"maxima"))
-        0.0583793793051...
         sage: spherical_hankel2(2,i)
         -e
     """
@@ -582,8 +402,6 @@ def maxima_function(name):
 
             TESTS::
 
-                sage: n(bessel_J(3,10,"maxima"))
-                0.0583793793051...
                 sage: spherical_hankel2(2,x)
                 (-I*x^2 - 3*x + 3*I)*e^(-I*x)/x^3
             """
@@ -665,558 +483,6 @@ def airy_bi(x):
    return RDF(meval("airy_bi(%s)"%RDF(x)))
 
 
-def bessel_I(nu,z,algorithm = "pari",prec=53):
-    r"""
-    Implements the "I-Bessel function", or "modified Bessel function,
-    1st kind", with index (or "order") nu and argument z.
-
-    INPUT:
-
-
-    -  ``nu`` - a real (or complex, for pari) number
-
-    -  ``z`` - a real (positive) algorithm - "pari" or
-       "maxima" or "scipy" prec - real precision (for PARI only)
-
-
-    DEFINITION::
-
-            Maxima:
-                             inf
-                            ====   - nu - 2 k  nu + 2 k
-                            \     2          z
-                             >    -------------------
-                            /     k! Gamma(nu + k + 1)
-                            ====
-                            k = 0
-
-            PARI:
-
-                             inf
-                            ====   - 2 k  2 k
-                            \     2      z    Gamma(nu + 1)
-                             >    -----------------------
-                            /       k! Gamma(nu + k + 1)
-                            ====
-                            k = 0
-
-
-
-    Sometimes ``bessel_I(nu,z)`` is denoted
-    ``I_nu(z)`` in the literature.
-
-    .. warning::
-
-       In Maxima (the manual says) i0 is deprecated but
-       ``bessel_i(0,*)`` is broken. (Was fixed in recent CVS patch
-       though.)
-
-    EXAMPLES::
-
-        sage: bessel_I(1,1,"pari",500)
-        0.565159103992485027207696027609863307328899621621092009480294489479255640964371134092664997766814410064677886055526302676857637684917179812041131208121
-        sage: bessel_I(1,1)
-        0.565159103992485
-        sage: bessel_I(2,1.1,"maxima")
-        0.16708949925104...
-        sage: bessel_I(0,1.1,"maxima")
-        1.32616018371265...
-        sage: bessel_I(0,1,"maxima")
-        1.2660658777520...
-        sage: bessel_I(1,1,"scipy")
-        0.565159103992...
-
-    Check whether the return value is real whenever the argument is real (#10251)::
-
-        sage: bessel_I(5, 1.5, algorithm='scipy') in RR
-        True
-
-    """
-    if algorithm=="pari":
-        from sage.libs.pari.all import pari
-        try:
-            R = RealField(prec)
-            nu = R(nu)
-            z = R(z)
-        except TypeError:
-            C = ComplexField(prec)
-            nu = C(nu)
-            z = C(z)
-            K = C
-        K = z.parent()
-        return K(pari(nu).besseli(z, precision=prec))
-    elif algorithm=="scipy":
-        if prec != 53:
-            raise ValueError, "for the scipy algorithm the precision must be 53"
-        import scipy.special
-        ans = str(scipy.special.iv(float(nu),complex(real(z),imag(z))))
-        ans = ans.replace("(","")
-        ans = ans.replace(")","")
-        ans = ans.replace("j","*I")
-        ans = sage_eval(ans)
-        return real(ans) if z in RR else ans # Return real value when arg is real
-    elif algorithm == "maxima":
-        if prec != 53:
-            raise ValueError, "for the maxima algorithm the precision must be 53"
-        return sage_eval(maxima.eval("bessel_i(%s,%s)"%(float(nu),float(z))))
-    else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
-
-def bessel_J(nu,z,algorithm="pari",prec=53):
-    r"""
-    Return value of the "J-Bessel function", or "Bessel function, 1st
-    kind", with index (or "order") nu and argument z.
-
-    ::
-
-            Defn:
-            Maxima:
-                             inf
-                            ====          - nu - 2 k  nu + 2 k
-                            \     (-1)^k 2           z
-                             >    -------------------------
-                            /        k! Gamma(nu + k + 1)
-                            ====
-                            k = 0
-
-            PARI:
-
-                             inf
-                            ====          - 2k    2k
-                            \     (-1)^k 2      z    Gamma(nu + 1)
-                             >    ----------------------------
-                            /         k! Gamma(nu + k + 1)
-                            ====
-                            k = 0
-
-
-    Sometimes bessel_J(nu,z) is denoted J_nu(z) in the literature.
-
-    .. warning::
-
-       Inaccurate for small values of z.
-
-    EXAMPLES::
-
-        sage: bessel_J(2,1.1)
-        0.136564153956658
-        sage: bessel_J(0,1.1)
-        0.719622018527511
-        sage: bessel_J(0,1)
-        0.765197686557967
-        sage: bessel_J(0,0)
-        1.00000000000000
-        sage: bessel_J(0.1,0.1)
-        0.777264368097005
-
-    We check consistency of PARI and Maxima::
-
-        sage: n(bessel_J(3,10,"maxima"))
-        0.0583793793051...
-        sage: n(bessel_J(3,10,"pari"))
-        0.0583793793051868
-        sage: bessel_J(3,10,"scipy")
-        0.0583793793052...
-
-    Check whether the return value is real whenever the argument is real (#10251)::
-        sage: bessel_J(5, 1.5, algorithm='scipy') in RR
-        True
-    """
-
-    if algorithm=="pari":
-        from sage.libs.pari.all import pari
-        try:
-            R = RealField(prec)
-            nu = R(nu)
-            z = R(z)
-        except TypeError:
-            C = ComplexField(prec)
-            nu = C(nu)
-            z = C(z)
-            K = C
-        if nu == 0:
-            nu = ZZ(0)
-        K = z.parent()
-        return K(pari(nu).besselj(z, precision=prec))
-    elif algorithm=="scipy":
-        if prec != 53:
-            raise ValueError, "for the scipy algorithm the precision must be 53"
-        import scipy.special
-        ans = str(scipy.special.jv(float(nu),complex(real(z),imag(z))))
-        ans = ans.replace("(","")
-        ans = ans.replace(")","")
-        ans = ans.replace("j","*I")
-        ans = sage_eval(ans)
-        return real(ans) if z in RR else ans
-    elif algorithm == "maxima":
-        if prec != 53:
-            raise ValueError, "for the maxima algorithm the precision must be 53"
-        return maxima_function("bessel_j")(nu, z)
-    else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
-
-def bessel_K(nu,z,algorithm="pari",prec=53):
-    r"""
-    Implements the "K-Bessel function", or "modified Bessel function,
-    2nd kind", with index (or "order") nu and argument z. Defn::
-
-                    pi*(bessel_I(-nu, z) - bessel_I(nu, z))
-                   ----------------------------------------
-                                2*sin(pi*nu)
-
-
-    if nu is not an integer and by taking a limit otherwise.
-
-    Sometimes bessel_K(nu,z) is denoted K_nu(z) in the literature. In
-    PARI, nu can be complex and z must be real and positive.
-
-    EXAMPLES::
-
-        sage: bessel_K(3,2,"scipy")
-        0.64738539094...
-        sage: bessel_K(3,2)
-        0.64738539094...
-        sage: bessel_K(1,1)
-        0.60190723019...
-        sage: bessel_K(1,1,"pari",10)
-        0.60
-        sage: bessel_K(1,1,"pari",100)
-        0.60190723019723457473754000154
-
-    TESTS::
-
-        sage: bessel_K(2,1.1, algorithm="maxima")
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: The K-Bessel function is only implemented for the pari and scipy algorithms
-
-        Check whether the return value is real whenever the argument is real (#10251)::
-
-        sage: bessel_K(5, 1.5, algorithm='scipy') in RR
-        True
-
-    """
-    if algorithm=="scipy":
-        if prec != 53:
-            raise ValueError, "for the scipy algorithm the precision must be 53"
-        import scipy.special
-        ans = str(scipy.special.kv(float(nu),float(z)))
-        ans = ans.replace("(","")
-        ans = ans.replace(")","")
-        ans = ans.replace("j","*I")
-        ans = sage_eval(ans)
-        return real(ans) if z in RR else ans
-    elif algorithm == 'pari':
-        from sage.libs.pari.all import pari
-        try:
-            R = RealField(prec)
-            nu = R(nu)
-            z = R(z)
-        except TypeError:
-            C = ComplexField(prec)
-            nu = C(nu)
-            z = C(z)
-            K = C
-        K = z.parent()
-        return K(pari(nu).besselk(z, precision=prec))
-    elif algorithm == 'maxima':
-        raise NotImplementedError, "The K-Bessel function is only implemented for the pari and scipy algorithms"
-    else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
-
-
-def bessel_Y(nu,z,algorithm="maxima", prec=53):
-    r"""
-    Implements the "Y-Bessel function", or "Bessel function of the 2nd
-    kind", with index (or "order") nu and argument z.
-
-    .. note::
-
-       Currently only prec=53 is supported.
-
-    Defn::
-
-                    cos(pi n)*bessel_J(nu, z) - bessel_J(-nu, z)
-                   -------------------------------------------------
-                                     sin(nu*pi)
-
-    if nu is not an integer and by taking a limit otherwise.
-
-    Sometimes bessel_Y(n,z) is denoted Y_n(z) in the literature.
-
-    This is computed using Maxima by default.
-
-    EXAMPLES::
-
-        sage: bessel_Y(2,1.1,"scipy")
-        -1.4314714939...
-        sage: bessel_Y(2,1.1)
-        -1.4314714939590...
-        sage: bessel_Y(3.001,2.1)
-        -1.0299574976424...
-
-    TESTS::
-
-        sage: bessel_Y(2,1.1, algorithm="pari")
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: The Y-Bessel function is only implemented for the maxima and scipy algorithms
-    """
-    if algorithm=="scipy":
-        if prec != 53:
-            raise ValueError, "for the scipy algorithm the precision must be 53"
-        import scipy.special
-        ans = str(scipy.special.yv(float(nu),complex(real(z),imag(z))))
-        ans = ans.replace("(","")
-        ans = ans.replace(")","")
-        ans = ans.replace("j","*I")
-        ans = sage_eval(ans)
-        return real(ans) if z in RR else ans
-    elif algorithm == "maxima":
-        if prec != 53:
-            raise ValueError, "for the maxima algorithm the precision must be 53"
-        return RR(maxima.eval("bessel_y(%s,%s)"%(float(nu),float(z))))
-    elif algorithm == "pari":
-        raise NotImplementedError, "The Y-Bessel function is only implemented for the maxima and scipy algorithms"
-    else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
-
-class Bessel():
-    """
-    A class implementing the I, J, K, and Y Bessel functions.
-
-    EXAMPLES::
-
-        sage: g = Bessel(2); g
-        J_{2}
-        sage: print g
-        J-Bessel function of order 2
-        sage: g.plot(0,10)
-
-    ::
-
-        sage: Bessel(2, typ='I')(pi)
-        2.61849485263445
-        sage: Bessel(2, typ='J')(pi)
-        0.485433932631509
-        sage: Bessel(2, typ='K')(pi)
-        0.0510986902537926
-        sage: Bessel(2, typ='Y')(pi)
-        -0.0999007139289404
-    """
-    def __init__(self, nu, typ = "J", algorithm = None, prec = 53):
-        """
-        Initializes new instance of the Bessel class.
-
-        INPUT:
-
-         - ``typ`` -- (default: J) the type of Bessel function: 'I', 'J', 'K'
-           or 'Y'.
-
-         - ``algorithm`` -- (default: maxima for type Y, pari for other types)
-           algorithm to use to compute the Bessel function: 'pari', 'maxima' or
-           'scipy'.  Note that type K is not implemented in Maxima and type Y
-           is not implemented in PARI.
-
-         - ``prec`` -- (default: 53) precision in bits of the Bessel function.
-           Only supported for the PARI algorithm.
-
-        EXAMPLES::
-
-            sage: g = Bessel(2); g
-            J_{2}
-            sage: Bessel(1,'I')
-            I_{1}
-            sage: Bessel(6, prec=120)(pi)
-            0.014545966982505560573660369604001804
-            sage: Bessel(6, algorithm="pari")(pi)
-            0.0145459669825056
-
-        For the Bessel J-function, Maxima returns a symbolic result.  For
-        types I and Y, we always get a numeric result::
-
-            sage: b = Bessel(6, algorithm="maxima")(pi); b
-            bessel_j(6, pi)
-            sage: b.n(53)
-            0.0145459669825056
-            sage: Bessel(6, typ='I', algorithm="maxima")(pi)
-            0.0294619840059568
-            sage: Bessel(6, typ='Y', algorithm="maxima")(pi)
-            -4.33932818939038
-
-        SciPy usually gives less precise results::
-
-            sage: Bessel(6, algorithm="scipy")(pi)
-            0.0145459669825000...
-
-        TESTS::
-
-            sage: Bessel(1,'Z')
-            Traceback (most recent call last):
-            ...
-            ValueError: typ must be one of I, J, K, Y
-        """
-        if not (typ in ['I', 'J', 'K', 'Y']):
-            raise ValueError, "typ must be one of I, J, K, Y"
-
-        # Did the user ask for the default algorithm?
-        if algorithm is None:
-            if typ == 'Y':
-                algorithm = 'maxima'
-            else:
-                algorithm = 'pari'
-
-        self._system = algorithm
-        self._order = nu
-        self._type = typ
-        prec = int(prec)
-        if prec < 0:
-            raise ValueError, "prec must be a positive integer"
-        self._prec = int(prec)
-
-    def __str__(self):
-        """
-        Returns a string representation of this Bessel object.
-
-        TEST::
-
-            sage: a = Bessel(1,'I')
-            sage: str(a)
-            'I-Bessel function of order 1'
-        """
-        return self.type()+"-Bessel function of order "+str(self.order())
-
-    def __repr__(self):
-        """
-        Returns a string representation of this Bessel object.
-
-        TESTS::
-
-            sage: Bessel(1,'I')
-            I_{1}
-        """
-        return self.type()+"_{"+str(self.order())+"}"
-
-    def type(self):
-        """
-        Returns the type of this Bessel object.
-
-        TEST::
-
-            sage: a = Bessel(3,'K')
-            sage: a.type()
-            'K'
-        """
-        return self._type
-
-    def prec(self):
-        """
-        Returns the precision (in number of bits) used to represent this
-        Bessel function.
-
-        TESTS::
-
-            sage: a = Bessel(3,'K')
-            sage: a.prec()
-            53
-            sage: B = Bessel(20,prec=100); B
-            J_{20}
-            sage: B.prec()
-            100
-        """
-        return self._prec
-
-    def order(self):
-        """
-        Returns the order of this Bessel function.
-
-        TEST::
-
-            sage: a = Bessel(3,'K')
-            sage: a.order()
-            3
-        """
-        return self._order
-
-    def system(self):
-        """
-        Returns the package used, e.g. Maxima, PARI, or SciPy, to compute with
-        this Bessel function.
-
-        TESTS::
-
-            sage: Bessel(20,algorithm='maxima').system()
-            'maxima'
-            sage: Bessel(20,prec=100).system()
-            'pari'
-        """
-        return self._system
-
-    def __call__(self,z):
-        """
-        Implements evaluation of all the Bessel functions directly
-        from the Bessel class. This essentially allows a Bessel object to
-        behave like a function that can be invoked.
-
-        TESTS::
-
-            sage: Bessel(3,'K')(5.0)
-            0.00829176841523093
-            sage: Bessel(20,algorithm='maxima')(5.0)
-            2.77033005213e-11
-            sage: Bessel(20,prec=100)(5.0101010101010101)
-            2.8809188227195382093062257967e-11
-            sage: B = Bessel(2,'Y',algorithm='scipy',prec=50)
-            sage: B(2.0)
-            Traceback (most recent call last):
-            ...
-            ValueError: for the scipy algorithm the precision must be 53
-        """
-        nu = self.order()
-        t = self.type()
-        s = self.system()
-        p = self.prec()
-        if t == "I":
-            return bessel_I(nu,z,algorithm=s,prec=p)
-        if t == "J":
-            return bessel_J(nu,z,algorithm=s,prec=p)
-        if t == "K":
-            return bessel_K(nu,z,algorithm=s,prec=p)
-        if t == "Y":
-            return bessel_Y(nu,z,algorithm=s,prec=p)
-
-    def plot(self,a,b):
-        """
-        Enables easy plotting of all the Bessel functions directly
-        from the Bessel class.
-
-        TESTS::
-
-            sage: plot(Bessel(2),3,4)
-            sage: Bessel(2).plot(3,4)
-            sage: P = Bessel(2,'I').plot(1,5)
-            sage: P += Bessel(2,'J').plot(1,5)
-            sage: P += Bessel(2,'K').plot(1,5)
-            sage: P += Bessel(2,'Y').plot(1,5)
-            sage: show(P)
-        """
-        nu = self.order()
-        s = self.system()
-        t = self.type()
-        if t == "I":
-            f = lambda z: bessel_I(nu,z,s)
-            P = plot(f,a,b)
-        if t == "J":
-            f = lambda z: bessel_J(nu,z,s)
-            P = plot(f,a,b)
-        if t == "K":
-            f = lambda z: bessel_K(nu,z,s)
-            P = plot(f,a,b)
-        if t == "Y":
-            f = lambda z: bessel_Y(nu,z,s)
-            P = plot(f,a,b)
-        return P
-
 def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
     r"""
     Default is a wrap of PARI's hyperu(alpha,beta,x) function.
@@ -1252,7 +518,7 @@ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
     """
     if algorithm=="scipy":
         if prec != 53:
-            raise ValueError, "for the scipy algorithm the precision must be 53"
+            raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
         ans = str(scipy.special.hyperu(float(alpha),float(beta),float(x)))
         ans = ans.replace("(","")
@@ -1264,7 +530,7 @@ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
         R = RealField(prec)
         return R(pari(R(alpha)).hyperu(R(beta), R(x), precision=prec))
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 def spherical_bessel_J(n, var, algorithm="maxima"):
     r"""
@@ -1289,7 +555,7 @@ def spherical_bessel_J(n, var, algorithm="maxima"):
         _init()
         return meval("spherical_bessel_j(%s,%s)"%(ZZ(n),var))
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 def spherical_bessel_Y(n,var, algorithm="maxima"):
     r"""
@@ -1315,7 +581,7 @@ def spherical_bessel_Y(n,var, algorithm="maxima"):
         _init()
         return meval("spherical_bessel_y(%s,%s)"%(ZZ(n),var))
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 def spherical_hankel1(n, var):
     r"""
@@ -1396,6 +662,12 @@ def elliptic_j(z):
        sage: elliptic_j(z).real().round()
        -32768
 
+    ::
+
+       sage: tau = (1 + sqrt(-163))/2
+       sage: (-elliptic_j(tau.n(100)).real().round())^(1/3)
+       640320
+
    """
    CC = z.parent()
    from sage.rings.complex_field import is_ComplexField
@@ -1404,57 +676,9 @@ def elliptic_j(z):
       try:
          z = CC(z)
       except ValueError:
-         raise ValueError, "elliptic_j only defined for complex arguments."
+         raise ValueError("elliptic_j only defined for complex arguments.")
    from sage.libs.all import pari
    return CC(pari(z).ellj())
-
-def jacobi(sym,x,m):
-    r"""
-    Here sym = "pq", where p,q in c,d,n,s. This returns the value of
-    the Jacobi function pq(x,m), as described in the documentation for
-    Sage's "special" module. There are a total of 12 functions
-    described by this.
-
-    EXAMPLES::
-
-        sage: jacobi("sn",1,1)
-        tanh(1)
-        sage: jacobi("cd",1,1/2)
-        jacobi_cd(1, 1/2)
-        sage: RDF(jacobi("cd",1,1/2))
-        0.724009721659
-        sage: RDF(jacobi("cn",1,1/2)); RDF(jacobi("dn",1,1/2)); RDF(jacobi("cn",1,1/2)/jacobi("dn",1,1/2))
-        0.595976567672
-        0.823161001632
-        0.724009721659
-        sage: jsn = jacobi("sn",x,1)
-        sage: P = plot(jsn,0,1)
-
-    To view this, type P.show().
-    """
-    return maxima_function("jacobi_%s"%sym)(x,m)
-
-def inverse_jacobi(sym,x,m):
-    """
-    Here sym = "pq", where p,q in c,d,n,s. This returns the value of
-    the inverse Jacobi function `pq^{-1}(x,m)`. There are a
-    total of 12 functions described by this.
-
-    EXAMPLES::
-
-        sage: jacobi("sn",1/2,1/2)
-        jacobi_sn(1/2, 1/2)
-        sage: float(jacobi("sn",1/2,1/2))
-        0.4707504736556572
-        sage: float(inverse_jacobi("sn",0.47,1/2))
-        0.4990982313222196
-        sage: float(inverse_jacobi("sn",0.4707504,0.5))
-        0.4999999114665548
-        sage: P = plot(inverse_jacobi('sn', x, 0.5), 0, 1, plot_points=20)
-
-    Now to view this, just type show(P).
-    """
-    return maxima_function("inverse_jacobi_%s"%sym)(x,m)
 
 #### elliptic integrals
 
@@ -1478,18 +702,15 @@ class EllipticE(MaximaFunction):
         2*round(z/pi) + sin(z)
         sage: elliptic_e(z, 0)
         z
-        sage: elliptic_e(0.5, 0.1)
+        sage: elliptic_e(0.5, 0.1)  # abs tol 2e-15
         0.498011394498832
-
-        sage: loads(dumps(elliptic_e))
-        elliptic_e
     """
     def __init__(self):
         """
-        EXAMPLES::
+        TESTS::
 
-            sage: elliptic_e(0.5, 0.1)
-            0.498011394498832
+            sage: loads(dumps(elliptic_e))
+            elliptic_e
         """
         MaximaFunction.__init__(self, "elliptic_e")
 
@@ -1728,7 +949,7 @@ def error_fcn(t):
         from sage.rings.real_mpfr import RR
         try:
             return RR(t).erfc()
-        except StandardError:
+        except Exception:
             raise NotImplementedError
 
 

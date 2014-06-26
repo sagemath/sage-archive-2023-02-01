@@ -6,11 +6,7 @@ The Boehm-Demers-Weiser conservative garbage collector.
 
 == License ==
 
-Permissive BSD + GPL 2.0+
-
-== SPKG Maintainers ==
-
-  * William Stein
+* Permissive BSD + GPL 2.0+
 
 == Upstream Contact ==
 
@@ -23,9 +19,16 @@ None.
 
 == Special Update/Build Instructions ==
 
-None. Sources in src are vanilla.
+=== Patches ===
+ * cygwin64.patch: let libgc build on Cygwin64.
 
 == Changelog ==
+
+=== boehm_gc-7.2d.p0 (Jean-Pierre Flori, 11 June 2013) ===
+ * #14710: Update to version 7.2d.
+ * Remove patches integrated upstream.
+ * Add cygwin64.patch from Cygwin64 libgc package to let it build
+   on Cygwin64.
 
 === boehm_gc-7.2.alpha6.p2 (Simon King, Dec 10 2011) ===
  * #12131: Use --libdir, to make the package work on openSUSE
@@ -78,4 +81,3 @@ None. Sources in src are vanilla.
 
 === boehm_gc-7.1 (Gary Furnish) ===
  * Initial version
-

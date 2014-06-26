@@ -428,7 +428,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
         sage: parametric_plot3d([fx, fy, fz], (u, -pi, pi), (v, -pi, pi), plot_points = [50,50], frame=False, color="red")
 
     Kuen's surface
-    (http://www.math.umd.edu/research/bianchi/Gifccsurfs/ccsurfs.html)::
+    (http://virtualmathmuseum.org/Surface/kuen/kuen.html)::
 
         sage: fx = (2*(cos(u) + u*sin(u))*sin(v))/(1+ u^2*sin(v)^2)
         sage: fy = (2*(sin(u) - u*cos(u))*sin(v))/(1+ u^2*sin(v)^2)
@@ -501,7 +501,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
         return sum([parametric_plot3d(v, urange, vrange, plot_points=plot_points, **kwds) for v in f])
 
     if not isinstance(f, (tuple, list)) or len(f) != 3:
-        raise ValueError, "f must be a list, tuple, or vector of length 3"
+        raise ValueError("f must be a list, tuple, or vector of length 3")
 
     if vrange is None:
         if plot_points == "automatic":

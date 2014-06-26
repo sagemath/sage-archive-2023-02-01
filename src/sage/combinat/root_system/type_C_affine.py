@@ -165,3 +165,19 @@ class CartanType(CartanType_standard_untwisted_affine):
         ret += "   ".join("%s"%label(i) for i in range(1,n+1))
         return ret
 
+    def _default_folded_cartan_type(self):
+        """
+        Return the default folded Cartan type.
+
+        EXAMPLES::
+
+            sage: CartanType(['C', 3, 1])._default_folded_cartan_type()
+            ['C', 3, 1] as a folding of ['A', 5, 1]
+        """
+        from sage.combinat.root_system.type_folded import CartanTypeFolded
+        n = self.n
+        if n == 1:
+            return CartanTypeFolded(self, ['A', 1, 1], [[0], [1]])
+        return CartanTypeFolded(self, ['A', 2*n-1, 1],
+            [[0]] + [[i, 2*n-i] for i in range(1, n)] + [[n]])
+

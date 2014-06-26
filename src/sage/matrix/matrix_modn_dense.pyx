@@ -101,13 +101,11 @@ include 'sage/ext/stdsage.pxi'
 include 'sage/ext/random.pxi'
 from cpython.string cimport *
 
-import sage.ext.multi_modular
 cimport sage.rings.fast_arith
 import sage.rings.fast_arith
 cdef sage.rings.fast_arith.arith_int ArithIntObj
 ArithIntObj  = sage.rings.fast_arith.arith_int()
 
-MAX_MODULUS = sage.ext.multi_modular.MAX_MODULUS
 
 # TODO: DO NOT change this back until all the ints, etc., below are changed
 # and get_unsafe is rewritten to return the right thing.  E.g., with
@@ -221,6 +219,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef long p
         p = self._base_ring.characteristic()
         self.p = p
+        MAX_MODULUS = 2**23
         if p >= MAX_MODULUS:
             raise OverflowError, "p (=%s) must be < %s"%(p, MAX_MODULUS)
         self.gather = MOD_INT_OVERFLOW/<mod_int>(p*p)

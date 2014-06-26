@@ -121,7 +121,7 @@ class QuadraticFormLocalRepresentationConditions():
 
         ## Check that the form Q is integer-valued (we can relax this later)
         if Q.base_ring() != ZZ:
-            raise TypeError, "We require that the quadratic form be defined over ZZ (integer-values) for now."
+            raise TypeError("We require that the quadratic form be defined over ZZ (integer-values) for now.")
 
 
         ## Basic structure initialization
@@ -198,7 +198,7 @@ class QuadraticFormLocalRepresentationConditions():
             if self.dim >= 2:
                 ## Check that all entries are zero or 'None'
                 for x in tmp_local_repn_vec[1:]:
-                    if not ((x == 0) or (x == None)):
+                    if not ((x == 0) or (x is None)):
                         omit_flag = False
 
             ## Add the results for this prime if there is a congruence obstruction
@@ -383,7 +383,7 @@ class QuadraticFormLocalRepresentationConditions():
             else:
                 return [p, infinity, infinity, infinity, infinity, None, None, None, None]
 
-        raise RuntimeError, "Error... The dimension stored should be a non-negative integer!"
+        raise RuntimeError("Error... The dimension stored should be a non-negative integer!")
 
 
 
@@ -422,21 +422,21 @@ class QuadraticFormLocalRepresentationConditions():
         if p == infinity:
             v = self.local_repn_array[0]
             if p != v[0]:
-                raise RuntimeError, "Error... The first vector should be for the real numbers!"
+                raise RuntimeError("Error... The first vector should be for the real numbers!")
             return (v[1:3] == [0,0])     ## True iff the form is indefinite
 
         ## Check non-generic "finite" primes
         v = self.local_conditions_vector_for_prime(p)
         Zp_univ_flag = True
         for nu in v[1:]:
-            if (nu != None) and ((nu != 0) or (nu == infinity)):
+            if (nu is not None) and ((nu != 0) or (nu == infinity)):
                 Zp_univ_flag = False
         return Zp_univ_flag
 
 
     def is_universal_at_all_finite_primes(self):
         """
-        Determines if the quadratic form represents `Z_p` for all finite/non-archimedian primes.
+        Determines if the quadratic form represents `Z_p` for all finite/non-archimedean primes.
 
         INPUT:
             none
@@ -475,7 +475,7 @@ class QuadraticFormLocalRepresentationConditions():
     def is_universal_at_all_places(self):
         """
         Determines if the quadratic form represents `Z_p` for all
-        finite/non-archimedian primes, and represents all real numbers.
+        finite/non-archimedean primes, and represents all real numbers.
 
         INPUT:
             none
@@ -555,7 +555,7 @@ class QuadraticFormLocalRepresentationConditions():
         """
         ## Sanity Check
         if not m in QQ:
-            raise TypeError, "Oops!  m = " + str(m) +  " is not a rational number!"
+            raise TypeError("Oops!  m = " + str(m) +  " is not a rational number!")
 
        ## Representing zero
         if m == 0:
@@ -590,7 +590,7 @@ class QuadraticFormLocalRepresentationConditions():
         for s in sqclass:
             #print "m =", m, "   s =", s, "   m/s =", (QQ(m)/s)
             if (QQ(m)/s).is_padic_square(p):
-                nu = valuation(m/s, p)
+                nu = valuation(m//s, p)
                 return local_vec[sqclass.index(s) + 1] <= (nu / 2)
 
 
@@ -823,7 +823,7 @@ def is_locally_universal_at_prime(self, p):
 
 def is_locally_universal_at_all_primes(self):
     """
-    Determines if the quadratic form represents `Z_p` for all finite/non-archimedian primes.
+    Determines if the quadratic form represents `Z_p` for all finite/non-archimedean primes.
 
     INPUT:
         none
@@ -858,7 +858,7 @@ def is_locally_universal_at_all_primes(self):
 def is_locally_universal_at_all_places(self):
     """
     Determines if the quadratic form represents `Z_p` for all
-    finite/non-archimedian primes, and represents all real numbers.
+    finite/non-archimedean primes, and represents all real numbers.
 
     INPUT:
         none

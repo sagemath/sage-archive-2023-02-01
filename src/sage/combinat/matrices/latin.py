@@ -14,7 +14,7 @@ A latin square `L` is a
 A *latin bitrade* `(T_1,\, T_2)` is a pair of partial
 latin squares such that:
 
-#. `\{ (i,\,j) \mid (i,\,j,\,k) \in T_1 \mbox{ for some symbol $k$} \} = \{ (i,\,j) \mid (i,\,j,\,k') \in T_2 \mbox{ for some symbol $k'$} \};`
+#. `\{ (i,\,j) \mid (i,\,j,\,k) \in T_1 \text{ for some symbol }k \} = \{ (i,\,j) \mid (i,\,j,\,k') \in T_2 \text{ for some symbol }k' \};`
 
 #. for each `(i,\,j,\,k) \in T_1` and `(i,\,j,\,k') \in T_2`,
    `k \neq k'`;
@@ -148,6 +148,7 @@ from sage.misc.flatten import flatten
 #load "dancing_links.sage"
 
 from dlxcpp import DLXCPP
+from functools import reduce
 
 class LatinSquare:
     def __init__(self, *args):
@@ -180,13 +181,13 @@ class LatinSquare:
             [2 3]
         """
 
-        if len(args) == 1 and (type(args[0]) == Integer or type(args[0]) == int):
+        if len(args) == 1 and (isinstance(args[0], Integer) or isinstance(args[0], int)):
             self.square = matrix(ZZ, args[0], args[0])
             self.clear_cells()
-        elif len(args) == 2 and (type(args[0]) == Integer or type(args[0]) == int) and (type(args[1]) == Integer or type(args[1]) == int):
+        elif len(args) == 2 and (isinstance(args[0], Integer) or isinstance(args[0], int)) and (isinstance(args[1], Integer) or isinstance(args[1], int)):
             self.square = matrix(ZZ, args[0], args[1])
             self.clear_cells()
-        elif len(args) == 1 and type(args[0]) == Matrix_integer_dense:
+        elif len(args) == 1 and isinstance(args[0], Matrix_integer_dense):
             self.square = args[0]
         else:
             raise NotImplemented
@@ -517,7 +518,7 @@ class LatinSquare:
         """
 
         symbols = uniq(flatten(map(lambda x: list(x), list(self.square))))
-        symbols = filter(lambda x: x >= 0, symbols)
+        symbols = [x for x in symbols if x >= 0]
 
         return len(symbols)
 
@@ -663,7 +664,7 @@ class LatinSquare:
                 if e >= n: return False
 
                 # Entry has already appeared in this row:
-                if vals_in_row.has_key(e): return False
+                if e in vals_in_row: return False
 
                 vals_in_row[e] = True
 
@@ -679,7 +680,7 @@ class LatinSquare:
                 if e >= n: return False
 
                 # Entry has already appeared in this column:
-                if vals_in_col.has_key(e): return False
+                if e in vals_in_col: return False
 
                 vals_in_col[e] = True
 
@@ -708,7 +709,7 @@ class LatinSquare:
             return False
 
         # Every cell must be filled:
-        if len(filter(lambda x: x >= 0, self.list())) != self.nrows()*self.ncols():
+        if len([x for x in self.list() if x >= 0]) != self.nrows()*self.ncols():
             return False
 
         # By necessity self must be a partial latin square:
@@ -1057,8 +1058,8 @@ class LatinSquare:
                     if (not allow_subtrade) and self[r, c] == e: continue
 
                     # The permissible symbols must come from this row/column.
-                    if not(valsrow.has_key(e)): continue
-                    if not(valscol.has_key(e)): continue
+                    if e not in valsrow: continue
+                    if e not in valscol: continue
 
                     dlx_rows.append([c_OFFSET, r_OFFSET, xy_OFFSET])
 
@@ -1173,7 +1174,7 @@ def genus(T1, T2):
     """
 
     cells_map, t1, t2, t3 = tau123(T1, T2)
-    return (len(t1.to_cycles()) + len(t2.to_cycles()) + len(t3.to_cycles()) - T1.nr_filled_cells() - 2)/(-2)
+    return (len(t1.to_cycles()) + len(t2.to_cycles()) + len(t3.to_cycles()) - T1.nr_filled_cells() - 2) // (-2)
 
 def tau123(T1, T2):
     """
@@ -1251,14 +1252,36 @@ def tau123(T1, T2):
 
     return (cells_map, t1, t2, t3)
 
-
 def isotopism(p):
     """
-    Returns a Permutation object that represents an isotopism (for
-    rows, columns or symbols of a partial latin square). Since matrices
-    in Sage are indexed from 0, this function translates +1 to agree
-    with the Permutation class. We also handle
-    PermutationGroupElements.
+    Return a Permutation object that represents an isotopism (for rows,
+    columns or symbols of a partial latin square).
+
+    Technically, all this function does is take as input a
+    representation of a permutation of `0,...,n-1` and return a
+    :class:`Permutation` object defined on `1,...,n`.
+
+    For a definition of isotopism, see the :wikipedia:`wikipedia section on
+    isotopism <Latin_square#Equivalence_classes_of_Latin_squares>`.
+
+    INPUT:
+
+    According to the type of input (see examples below) :
+
+    - an integer `n` -- the function returns the identity on `1,...,n`.
+
+    - a string representing a permutation in disjoint cycles notation,
+      e.g. `(0,1,2)(3,4,5)` -- the corresponding permutation is returned,
+      shifted by 1 to act on `1,...,n`.
+
+    - list/tuple of tuples -- assumes disjoint cycle notation, see previous
+      entry.
+
+    - a list of integers -- the function adds `1` to each member of the
+      list, and returns the corresponding permutation.
+
+    - a :class:`PermutationGroupElement` ``p`` -- returns a permutation
+      describing ``p`` **without** any shift.
 
     EXAMPLES::
 
@@ -1293,29 +1316,29 @@ def isotopism(p):
     """
 
     # Identity isotopism on p points:
-    if type(p) == Integer or type(p) == int:
+    if isinstance(p, Integer) or isinstance(p, int):
         return Permutation(range(1, p+1))
 
-    if type(p) == PermutationGroupElement:
+    if isinstance(p, PermutationGroupElement):
         # fixme Ask the Sage mailing list about the tuple/list issue!
         return Permutation(list(p.tuple()))
 
-    if type(p) == list:
+    if isinstance(p, list):
         # We expect a list like [0,3,2,1] which means
         # that 0 goes to 0, 1 goes to 3, etc.
         return Permutation(map(lambda x: x+1, p))
 
-    if type(p) == tuple:
+    if isinstance(p, tuple):
         # We have a single cycle:
-        if type(p[0]) == Integer:
+        if isinstance(p[0], Integer):
             return Permutation(tuple(map(lambda x: x+1, p)))
 
         # We have a tuple of cycles:
-        if type(p[0]) == tuple:
+        if isinstance(p[0], tuple):
             x = isotopism(p[0])
 
             for i in range(1, len(p)):
-                x = x * isotopism(p[i])
+                x = x._left_to_right_multiply_on_left(isotopism(p[i]))
 
             return x
 
@@ -1793,7 +1816,7 @@ def elementary_abelian_2group(s):
         L_prev = elementary_abelian_2group(s-1)
         L = LatinSquare(2**s, 2**s)
 
-        offset = L.nrows()/2
+        offset = L.nrows() // 2
 
         for r in range(L_prev.nrows()):
             for c in range(L_prev.ncols()):
@@ -2194,7 +2217,7 @@ def pq_group_bitrade_generators(p, q):
     P = []
     seenValues = {}
     for i in range(2, q):
-        if seenValues.has_key(i):
+        if i in seenValues:
             continue
 
         cycle = []
@@ -2511,14 +2534,14 @@ def is_row_and_col_balanced(T1, T2):
     """
 
     for r in range(T1.nrows()):
-        val1 = set(filter(lambda x: x >= 0, T1.row(r)))
-        val2 = set(filter(lambda x: x >= 0, T2.row(r)))
+        val1 = set(x for x in T1.row(r) if x >= 0)
+        val2 = set(x for x in T2.row(r) if x >= 0)
 
         if val1 != val2: return False
 
     for c in range(T1.ncols()):
-        val1 = set(filter(lambda x: x >= 0, T1.column(c)))
-        val2 = set(filter(lambda x: x >= 0, T2.column(c)))
+        val1 = set(x for x in T1.column(c) if x >= 0)
+        val2 = set(x for x in T2.column(c) if x >= 0)
 
         if val1 != val2: return False
 
@@ -2572,8 +2595,8 @@ def dlxcpp_rows_and_map(P):
                 # We only want the correct value to pop in here
                 if P[r, c] >= 0 and P[r, c] != e: continue
 
-                if P[r, c] < 0 and valsrow.has_key(e): continue
-                if P[r, c] < 0 and valscol.has_key(e): continue
+                if P[r, c] < 0 and e in valsrow: continue
+                if P[r, c] < 0 and e in valscol: continue
 
                 dlx_rows.append([c_OFFSET, r_OFFSET, xy_OFFSET])
 

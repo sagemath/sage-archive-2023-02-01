@@ -19,6 +19,7 @@ from sage.graphs.digraph import DiGraph
 from sage.structure.sage_object import SageObject
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.partition import Partition
+from sage.combinat.permutation import Permutation
 
 def YangBaxterGraph(partition=None, root=None, operators=None):
     r"""
@@ -223,7 +224,7 @@ class YangBaxterGraph_generic(SageObject):
             sage: Y3.__eq__(Y2)
             False
         """
-        return type(self) == type(other) and self._digraph.__eq__(other._digraph)
+        return isinstance(self, type(other)) and self._digraph.__eq__(other._digraph)
 
     def __ne__(self, other):
         r"""
@@ -383,9 +384,9 @@ class YangBaxterGraph_generic(SageObject):
             sage: Y.plot()
             sage: Y.plot(edge_labels=False)
         """
-        if not kwds.has_key("edge_labels"):
+        if "edge_labels" not in kwds:
             kwds["edge_labels"] = True
-        if not kwds.has_key("vertex_labels"):
+        if "vertex_labels" not in kwds:
             kwds["vertex_labels"] = True
         return self._digraph.plot(*args, **kwds)
 
@@ -762,7 +763,7 @@ class SwapOperator(SageObject):
             sage: s[1] < s[2]
             True
         """
-        if type(self) is type(other):
+        if isinstance(self, type(other)):
             return cmp(self._position, other._position)
         else:
             return cmp(type(self), type(other))
@@ -809,6 +810,8 @@ class SwapOperator(SageObject):
             [1, 2, 3, 5, 4]
         """
         i = self._position
+        if isinstance(u, Permutation):
+            return Permutation(u[:i] + u[i:i+2][::-1] + u[i+2:])
         return type(u)(u[:i] + u[i:i+2][::-1] + u[i+2:])
 
     def position(self):
@@ -867,6 +870,8 @@ class SwapIncreasingOperator(SwapOperator):
         if u[i] < u[j]:
             v = list(u)
             (v[j], v[i]) = (v[i], v[j])
+            if isinstance(u, Permutation):
+                return Permutation(v)
             return type(u)(v)
         else:
             return u

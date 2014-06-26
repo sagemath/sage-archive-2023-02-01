@@ -80,7 +80,7 @@ class GraphicPrimitive(SageObject):
             ...
             NotImplementedError: 3D plotting not implemented for Graphics primitive
         """
-        raise NotImplementedError, "3D plotting not implemented for %s" % self._repr_()
+        raise NotImplementedError("3D plotting not implemented for %s" % self._repr_())
 
     def _plot3d_options(self, options=None):
         """
@@ -97,7 +97,7 @@ class GraphicPrimitive(SageObject):
             sage: q.texture.opacity
             0.500000000000000
         """
-        if options == None:
+        if options is None:
             options = self.options()
         options_3d = {}
         if 'rgbcolor' in options:
@@ -106,12 +106,14 @@ class GraphicPrimitive(SageObject):
         if 'alpha' in options:
             options_3d['opacity'] = options['alpha']
             del options['alpha']
-        if 'legend_label' in options:
-            del options['legend_label'] # no equivalent in 3d for now
-        if 'zorder' in options:
-            del options['zorder']
+
+        for o in ('legend_color', 'legend_label', 'zorder'):
+            if o in options:
+                del options[o]
+
         if len(options) != 0:
-            raise NotImplementedError, "Unknown plot3d equivalent for %s" % ", ".join(options.keys())
+            raise NotImplementedError("Unknown plot3d equivalent for {}".format(
+                                      ", ".join(options.keys())))
         return options_3d
 
     def set_zorder(self, zorder):
@@ -134,6 +136,20 @@ class GraphicPrimitive(SageObject):
             3
         """
         self._options['zorder'] = zorder
+
+    def set_options(self, new_options):
+        """
+        Change the options to `new_options`.
+
+        EXAMPLES::
+
+            sage: from sage.plot.circle import Circle
+            sage: c = Circle(0,0,1,{})
+            sage: c.set_options({'thickness': 0.6})
+            sage: c.options()
+            {'thickness': 0.6...}
+        """
+        if new_options is not None: self._options = new_options
 
     def options(self):
         """
@@ -164,7 +180,7 @@ class GraphicPrimitive(SageObject):
                 s = "\nThe allowed options for %s are:\n"%self
                 K.sort()
                 for k in K:
-                    if A.has_key(k):
+                    if k in A:
                         s += "    %-15s%-60s\n"%(k,A[k])
                 verbose(s, level=0)
 

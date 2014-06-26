@@ -26,8 +26,8 @@ the spring-layout algorithm.
 
 **Plot options**
 
-Here is the list of options accepted by :meth:`GenericGraph.plot
-<sage.graphs.generic_graph.GenericGraph.plot>` and the constructor of
+Here is the list of options accepted by
+:meth:`~sage.graphs.generic_graph.GenericGraph.plot` and the constructor of
 :class:`GraphPlot`.
 
 .. csv-table::
@@ -55,19 +55,35 @@ graphplot_options = layout_options.copy()
 graphplot_options.update(
                    {'pos': 'The position dictionary of vertices',
                     'vertex_labels': 'Whether or not to draw vertex labels.',
-                    'vertex_colors': 'Dictionary of vertex coloring : each key is a color recognizable by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed, it looks invisible on the resulting plot (it doesn\'t get drawn).',
+                    'vertex_colors': 'Dictionary of vertex coloring : each '
+                        'key is a color recognizable by matplotlib, and each '
+                        'corresponding entry is a list of vertices. '
+                        'If a vertex is not listed, it looks invisible on '
+                        'the resulting plot (it does not get drawn).',
                     'vertex_size': 'The size to draw the vertices.',
-                    'vertex_shape': 'The shape to draw the vertices, Currently unavailable for Multi-edged DiGraphs.',
+                    'vertex_shape': 'The shape to draw the vertices. '
+                        'Currently unavailable for Multi-edged DiGraphs.',
                     'edge_labels': 'Whether or not to draw edge labels.',
-                    'edge_style': 'The linestyle of the edges-- one of "solid", "dashed", "dotted", dashdot". This currently only works for directed graphs, since we pass off the undirected graph to networkx',
+                    'edge_style': 'The linestyle of the edges. It should be '
+                        'one of "solid", "dashed", "dotted", dashdot", or '
+                        '"-", "--", ":", "-.", respectively. '
+                        'This currently only works for directed graphs, '
+                        'since we pass off the undirected graph to networkx.',
                     'edge_color': 'The default color for edges.',
-                    'edge_colors': 'a dictionary specifying edge colors: each key is a color recognized by matplotlib, and each entry is a list of edges.',
-                    'color_by_label': 'Whether to color the edges according to their labels. This also accepts a function or dictionary mapping labels to colors.',
-                    'partition': 'A partition of the vertex set.  If specified, plot will show each cell in a different color. vertex_colors takes precedence.',
+                    'edge_colors': 'a dictionary specifying edge colors: each '
+                        'key is a color recognized by matplotlib, and each '
+                        'entry is a list of edges.',
+                    'color_by_label': 'Whether to color the edges according '
+                        'to their labels. This also accepts a function or '
+                        'dictionary mapping labels to colors.',
+                    'partition': 'A partition of the vertex set. If specified, '
+                        'plot will show each cell in a different color. '
+                        'vertex_colors takes precedence.',
                     'loop_size': 'The radius of the smallest loop.',
                     'dist': 'The distance between multiedges.',
                     'max_dist': 'The max distance range to allow multiedges.',
-                    'talk': 'Whether to display the vertices in talk mode (larger and white)',
+                    'talk': 'Whether to display the vertices in talk mode '
+                        '(larger and white).',
                     'graph_border': 'Whether or not to draw a frame around the graph.'})
 
 for key, value in graphplot_options.iteritems():
@@ -78,16 +94,17 @@ __doc__ += """
 **Default options**
 
 This module defines two dictionaries containing default options for the
-:meth:`GenericGraph.plot` and :meth:`GenericGraph.show` methods. These two
-dictionaries are ``sage.graphs.graph_plot.DEFAULT_PLOT_OPTIONS`` and
+:meth:`~sage.graphs.generic_graph.GenericGraph.plot` and
+:meth:`~sage.graphs.generic_graph.GenericGraph.show` methods. These two dictionaries are
+``sage.graphs.graph_plot.DEFAULT_PLOT_OPTIONS`` and
 ``sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS``, respectively.
 
 
 Obviously, these values are overruled when arguments are given explicitly.
 
 Here is how to define the default size of a graph drawing to be ``[6,6]``. The
-first two calls to :meth:`~sage.graphs.generic_graph.show` use this option,
-while the third does not (a value for ``figsize`` is explicitly given)::
+first two calls to :meth:`~sage.graphs.generic_graph.GenericGraph.show` use this
+option, while the third does not (a value for ``figsize`` is explicitly given)::
 
     sage: sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS['figsize'] = [6,6]
     sage: graphs.PetersenGraph().show() # long time
@@ -107,7 +124,7 @@ previously::
       settings from ``DEFAULT_SHOW_OPTIONS`` only affects ``G.show()``.
 
     * In order to define a default value permanently, you can add a couple of
-      lines to `Sage's startup scripts <../../../cmd/startup.html>`_. Example ::
+      lines to `Sage's startup scripts <../../../repl/startup.html>`_. Example ::
 
        sage: import sage.graphs.graph_plot
        sage: sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS['figsize'] = [4,4]
@@ -465,7 +482,10 @@ class GraphPlot(SageObject):
         # Handle base edge options: thickness, linestyle
         eoptions={}
         if 'edge_style' in self._options:
-            eoptions['linestyle'] = self._options['edge_style']
+            from sage.plot.misc import get_matplotlib_linestyle
+            eoptions['linestyle'] = get_matplotlib_linestyle(
+                                        self._options['edge_style'],
+                                        return_type='long')
         if 'thickness' in self._options:
             eoptions['thickness'] = self._options['thickness']
 
@@ -590,7 +610,7 @@ class GraphPlot(SageObject):
                     distance = dist
                     if len(local_labels)*dist > max_dist:
                         distance = float(max_dist)/len(local_labels)
-                    for i in range(len(local_labels)/2):
+                    for i in range(len(local_labels)//2):
                         k = (i+1.0)*distance
                         if self._arcdigraph:
                             odd_start = self._polar_hack_for_multidigraph(p1, [odd_x(k),odd_y(k)], self._vertex_radius)[0]
@@ -677,7 +697,7 @@ class GraphPlot(SageObject):
               information on default values of this method.
 
             - Any options not used by plot will be passed on to the
-              :meth:`~sage.plot.plot.Graphics.show` method.
+              :meth:`~sage.plot.graphics.Graphics.show` method.
 
         EXAMPLE::
 
@@ -700,7 +720,7 @@ class GraphPlot(SageObject):
 
         The options accepted by this method are to be found in the documentation
         of the :mod:`sage.graphs.graph_plot` module, and the
-        :meth:`~sage.plot.plot.Graphics.show` method.
+        :meth:`~sage.plot.graphics.Graphics.show` method.
 
         .. NOTE::
 
@@ -840,6 +860,10 @@ class GraphPlot(SageObject):
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed').plot()
+
+        The ``edge_style`` option may be provided in the short format too::
+
+            sage: g.graphplot(edge_labels=True, color_by_label=True, edge_style='--').plot()
 
         TESTS:
 

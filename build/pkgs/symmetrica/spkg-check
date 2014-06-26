@@ -15,7 +15,7 @@ if [ "x$SAGE64" = xyes ] ; then
     LDFLAGS="$LDFLAGS $CFLAG64" # Could use an LDFLAG64 here.
 fi
 
-CFLAGS="-O2 -g $CFLAGS -fPIC -DFAST -DALLTRUE"
+CFLAGS="-O2 -g $CFLAGS -DFAST -DALLTRUE"
 export CFLAGS LDFLAGS # Currently redundant, but safe.
 
 
@@ -36,7 +36,7 @@ cat <<EOF > spkg-check.expected
  960000.000000.000000.000000.000000
 EOF
 
-if ! diff spkg-check.actual spkg-check.expected; then
+if ! diff -b spkg-check.actual spkg-check.expected; then
     echo >&2 "Error: The Symmetrica check failed."
     exit 1
 fi

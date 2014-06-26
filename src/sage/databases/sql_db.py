@@ -663,7 +663,7 @@ class SQLQuery(SageObject):
         try:
             cur = self.__database__.__connection__.cursor()
             cur.execute(self.__query_string__, self.__param_tuple__)
-        except StandardError:
+        except Exception:
             raise RuntimeError('Failure to fetch query.')
 
         print(_create_print_table(cur, [des[0] for des in cur.description], \
@@ -1281,7 +1281,7 @@ class SQLDatabase(SageObject):
         try:
             cur = self.__connection__.cursor()
             cur.execute('SELECT * FROM ' + table_name)
-        except StandardError:
+        except Exception:
             raise RuntimeError('Failure to fetch data.')
         print(_create_print_table(cur, [des[0] for des in cur.description], \
                 **kwds))
@@ -2069,7 +2069,7 @@ class SQLDatabase(SageObject):
         try:
             cur = self.get_cursor()
             cur.execute(delete_statement, query.__param_tuple__)
-        except StandardError:
+        except Exception:
             raise RuntimeError('Failure to complete delete. Check your data.')
 
     def add_rows(self, table_name, rows, entry_order=None):

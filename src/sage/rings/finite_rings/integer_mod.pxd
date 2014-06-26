@@ -1,13 +1,6 @@
 include "sage/ext/cdefs.pxi"
-#from sage.structure.element cimport Element
-#from sage.structure.parent_base cimport ParentWithBase
 
-cdef extern from "stdint.h":
-    ctypedef int int_fast32_t
-    ctypedef int int_fast64_t
-    int_fast32_t INTEGER_MOD_INT32_LIMIT
-    int_fast64_t INTEGER_MOD_INT64_LIMIT
-
+from sage.rings.finite_rings.stdint cimport *
 from sage.rings.finite_rings.element_base cimport FiniteRingElement
 from sage.rings.integer cimport Integer
 

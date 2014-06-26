@@ -1,4 +1,4 @@
-"""
+r"""
 Trigonometric Functions
 """
 from sage.symbolic.function import BuiltinFunction, GinacFunction
@@ -82,7 +82,7 @@ cos = Function_cos()
 class Function_tan(GinacFunction):
     def __init__(self):
         """
-        The tangent function
+        The tangent function.
 
         EXAMPLES::
 
@@ -121,8 +121,8 @@ tan = Function_tan()
 
 class Function_sec(BuiltinFunction):
     def __init__(self):
-        """
-        The secant function
+        r"""
+        The secant function.
 
         EXAMPLES::
 
@@ -154,7 +154,7 @@ class Function_sec(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "sec", latex_name=r"\sec")
 
-    def _evalf_(self, x, parent=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -212,7 +212,7 @@ sec = Function_sec()
 
 class Function_csc(BuiltinFunction):
     def __init__(self):
-        """
+        r"""
         The cosecant function.
 
         EXAMPLES::
@@ -245,7 +245,7 @@ class Function_csc(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "csc", latex_name=r"\csc")
 
-    def _evalf_(self, x, parent=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -304,7 +304,7 @@ csc = Function_csc()
 
 class Function_cot(BuiltinFunction):
     def __init__(self):
-        """
+        r"""
         The cotangent function.
 
         EXAMPLES::
@@ -365,7 +365,7 @@ class Function_cot(BuiltinFunction):
         """
         return 1 / tan(x)
 
-    def _evalf_(self, x, parent=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -421,7 +421,7 @@ class Function_arcsin(GinacFunction):
             sage: a = arcsin(0,hold=True); a.simplify()
             0
 
-        ``conjugate(arcsin(x))==arcsin(conjugate(x))`` unless on the branch
+        ``conjugate(arcsin(x))==arcsin(conjugate(x))``, unless on the branch
         cuts which run along the real axis outside the interval [-1, +1].::
 
             sage: conjugate(arcsin(x))
@@ -452,7 +452,7 @@ arcsin = asin = Function_arcsin()
 class Function_arccos(GinacFunction):
     def __init__(self):
         """
-        The arccosine function
+        The arccosine function.
 
         EXAMPLES::
 
@@ -476,8 +476,8 @@ class Function_arccos(GinacFunction):
             sage: a = arccos(0,hold=True); a.simplify()
             1/2*pi
 
-        ``conjugate(arccos(x))==arccos(conjugate(x))`` unless on the branch
-        cuts which run along the real axis outside the interval [-1, +1].::
+        ``conjugate(arccos(x))==arccos(conjugate(x))``, unless on the branch
+        cuts, which run along the real axis outside the interval [-1, +1].::
 
             sage: conjugate(arccos(x))
             conjugate(arccos(x))
@@ -531,7 +531,7 @@ class Function_arctan(GinacFunction):
             sage: a = arctan(0,hold=True); a.simplify()
             0
 
-        ``conjugate(arctan(x))==arctan(conjugate(x))`` unless on the branch
+        ``conjugate(arctan(x))==arctan(conjugate(x))``, unless on the branch
         cuts which run along the imaginary axis outside the interval [-I, +I].::
 
             sage: conjugate(arctan(x))
@@ -590,7 +590,7 @@ class Function_arccot(BuiltinFunction):
         BuiltinFunction.__init__(self, "arccot", latex_name=r'{\rm arccot}',
                 conversions=dict(maxima='acot', sympy='acot'))
 
-    def _evalf_(self, x, parent=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -658,7 +658,7 @@ class Function_arccsc(BuiltinFunction):
         BuiltinFunction.__init__(self, "arccsc", latex_name=r'{\rm arccsc}',
                                    conversions=dict(maxima='acsc'))
 
-    def _evalf_(self, x, parent=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -722,7 +722,7 @@ class Function_arcsec(BuiltinFunction):
         BuiltinFunction.__init__(self, "arcsec", latex_name=r'{\rm arcsec}',
                                    conversions=dict(maxima='asec'))
 
-    def _evalf_(self, x, parent=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -758,7 +758,7 @@ arcsec = asec = Function_arcsec()
 
 class Function_arctan2(GinacFunction):
     def __init__(self):
-        """
+        r"""
         The modified arctangent function.
 
         Returns the arc tangent (measured in radians) of `y/x`, where
@@ -839,12 +839,12 @@ class Function_arctan2(GinacFunction):
             sage: arctan2(y,x).operator()
             arctan2
 
-        Check if #8565 is fixed::
+        Check if :trac:`8565` is fixed::
 
             sage: atan2(-pi,0)
             -1/2*pi
 
-        Check if #8564 is fixed::
+        Check if :trac:`8564` is fixed::
 
             sage: arctan2(x,x)._sympy_()
             atan2(x, x)

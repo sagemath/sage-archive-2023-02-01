@@ -55,13 +55,14 @@ from sage.misc.mathml import mathml
 
 import sage.misc.misc as misc
 import sage.rings.rational_field
-import sage.libs.pari.all
 
 cimport integer
 import integer
 from integer cimport Integer
 
-from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
+import sage.libs.pari.pari_instance
+from sage.libs.pari.gen cimport gen as pari_gen
+from sage.libs.pari.pari_instance cimport PariInstance
 
 from integer_ring import ZZ
 
@@ -528,7 +529,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 raise ValueError, "denominator must not be 0"
             mpq_canonicalize(self.value)
 
-        elif isinstance(x, sage.libs.pari.all.pari_gen):
+        elif isinstance(x, pari_gen):
             x = x.simplify()
             if typ((<pari_gen>x).g) == t_FRAC:
                 t_FRAC_to_QQ(self.value, (<pari_gen>x).g)
@@ -901,28 +902,6 @@ cdef class Rational(sage.structure.element.FieldElement):
         from sage.rings.arith import gcd, lcm
         return gcd(nums) / lcm(denoms)
 
-#    def gcd_rational(self, other, **kwds):
-#        """
-#        Return a gcd of the rational numbers self and other.
-#
-#        If self = other = 0, this is by convention 0.  In all other
-#        cases it can (mathematically) be any nonzero rational number,
-#        but for simplicity we choose to always return 1.
-#
-#        EXAMPLES::
-#
-#            sage: (1/3).gcd_rational(2/1)
-#            1
-#            sage: (1/1).gcd_rational(0/1)
-#            1
-#            sage: (0/1).gcd_rational(0/1)
-#            0
-#        """
-#        if self == 0 and other == 0:
-#            return Rational(0)
-#        else:
-#            return Rational(1)
-
     def valuation(self, p):
         r"""
         Return the power of ``p`` in the factorization of self.
@@ -1253,7 +1232,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         if not element:
             return self.is_norm(L, element=True, proof=proof)[0]
 
-        from sage.rings.number_field.all import is_NumberField
+        from sage.rings.number_field.number_field_base import is_NumberField
         if not is_NumberField(L):
             raise ValueError, "L (=%s) must be a NumberField in is_norm" % L
         if L.degree() == 1 or self.is_zero():
@@ -1335,7 +1314,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         - Marco Streng (2010-12-03)
         """
-        from sage.rings.number_field.all import is_NumberField
+        from sage.rings.number_field.number_field_base import is_NumberField
         if not is_NumberField(K):
             raise ValueError, "K must be a NumberField in bnfisnorm"
 
@@ -1494,42 +1473,6 @@ cdef class Rational(sage.structure.element.FieldElement):
             30
         """
         return self.numer().squarefree_part() * self.denom().squarefree_part()
-
-    def sqrt_approx(self, prec=None, all=False):
-        """
-        Return numerical approximation with given number of bits of
-        precision to this rational number. If all is given, return both
-        approximations.
-
-        INPUT:
-
-        -  ``prec`` -- integer
-
-        -  ``all`` -- bool
-
-        EXAMPLES::
-
-            sage: (5/3).sqrt_approx()
-            doctest:...: DeprecationWarning: This function is deprecated.  Use sqrt with a given number of bits of precision instead.
-            See http://trac.sagemath.org/9859 for details.
-            1.29099444873581
-            sage: (990829038092384908234098239048230984/4).sqrt_approx()
-            4.9770197862083713747374920870362581922510725585130996993055116540856385e17
-            sage: (5/3).sqrt_approx(prec=200)
-            1.2909944487358056283930884665941332036109739017638636088625
-            sage: (9/4).sqrt_approx()
-            3/2
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(9859, "This function is deprecated.  Use sqrt with a given number of bits of precision instead.")
-        try:
-            return self.sqrt(extend=False,all=all)
-        except ValueError:
-            pass
-        if prec is None:
-            prec = max(max(53, 2*(mpz_sizeinbase(mpq_numref(self.value), 2)+2)),
-                   2*(mpz_sizeinbase(mpq_denref(self.value), 2)+2))
-        return self.sqrt(prec=prec, all=all)
 
     def is_padic_square(self, p):
         """
@@ -2005,6 +1948,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             0.3333333333333333
             sage: float(1/10)
             0.1
+            sage: n = QQ(902834098234908209348209834092834098); float(n)
+            9.028340982349083e+35
 
         TESTS:
 
@@ -2393,7 +2338,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             except AttributeError:
                 try:
                     return type(n)(self)**n
-                except StandardError:
+                except Exception:
                     raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
 
         except OverflowError:
@@ -2404,7 +2349,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                     return self
                 elif mpz_cmp_si(mpq_numref(_self.value), -1) == 0:
                     return self if n % 2 else -self
-            raise RuntimeError, "exponent must be at most %s" % sys.maxint
+            raise RuntimeError("exponent must be at most %s" % sys.maxsize)
 
         cdef Rational x = <Rational> PY_NEW(Rational)
 
@@ -2569,10 +2514,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         sig_off()
         return int((num * ai.inverse_mod_int(den, n)) % n)
 
-    def __mod__(Rational self, other):
+    def __mod__(x, y):
         """
-        Return the remainder of division of ``self`` by other, where other is
-        coerced to an integer.
+        Return the remainder of division of ``x`` by ``y``, where ``y`` is
+        something that can be coerced to an integer.
 
         INPUT:
 
@@ -2584,14 +2529,26 @@ cdef class Rational(sage.structure.element.FieldElement):
 
             sage: (-4/17).__mod__(3/1)
             1
+
+        TESTS:
+
+        Check that :trac:`14870` is fixed::
+
+            sage: int(4) % QQ(3)
+            1
         """
-        other = integer.Integer(other)
+        cdef Rational rat
+        if not isinstance(x, Rational):
+            rat = Rational(x)
+        else:
+            rat = x
+        cdef other = integer.Integer(y)
         if not other:
-            raise ZeroDivisionError, "Rational modulo by zero"
-        n = self.numer() % other
-        d = self.denom() % other
+            raise ZeroDivisionError("Rational modulo by zero")
+        n = rat.numer() % other
+        d = rat.denom() % other
         d = d.inverse_mod(other)
-        return (n*d)%other
+        return (n * d) % other
 
     def norm(self):
         r"""
@@ -2610,6 +2567,34 @@ cdef class Rational(sage.structure.element.FieldElement):
         AUTHORS:
 
         - Craig Citro
+        """
+        return self
+
+    def relative_norm(self):
+        """
+        Returns the norm from Q to Q of x (which is just x). This was added for compatibility with NumberFields
+
+        EXAMPLES::
+
+            sage: (6/5).relative_norm()
+            6/5
+
+            sage: QQ(7/5).relative_norm()
+            7/5
+        """
+        return self
+
+    def absolute_norm(self):
+        """
+        Returns the norm from Q to Q of x (which is just x). This was added for compatibility with NumberFields
+
+        EXAMPLES::
+
+            sage: (6/5).absolute_norm()
+            6/5
+
+            sage: QQ(7/5).absolute_norm()
+            7/5
         """
         return self
 
@@ -2658,7 +2643,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         QQ = self.parent()
         return QQ[var]([-self,1])
 
-    def minpoly(self, var):
+    def minpoly(self, var='x'):
         """
         Return the minimal polynomial of this rational number. This will
         always be just ``x - self``; this is really here so that code written
@@ -2672,8 +2657,10 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: (1/3).minpoly('x')
-             x - 1/3
+            sage: (1/3).minpoly()
+            x - 1/3
+            sage: (1/3).minpoly('y')
+            y - 1/3
 
         AUTHORS:
 
@@ -2955,6 +2942,26 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpz_cdiv_q(n.value, mpq_numref(self.value), mpq_denref(self.value))
         return n
 
+    def trunc(self):
+        """
+        Round this rational number to the nearest integer toward zero.
+
+        EXAMPLES::
+
+            sage: (5/3).trunc()
+            1
+            sage: (-5/3).trunc()
+            -1
+            sage: QQ(42).trunc()
+            42
+            sage: QQ(-42).trunc()
+            -42
+        """
+        cdef integer.Integer n
+        n = integer.Integer()
+        mpz_tdiv_q(n.value, mpq_numref(self.value), mpq_denref(self.value))
+        return n
+
     def round(Rational self, mode="away"):
         """
         Returns the nearest integer to ``self``, rounding away from 0 by
@@ -3102,33 +3109,6 @@ cdef class Rational(sage.structure.element.FieldElement):
             return Rational(0)
         return Rational(1)
 
-    def _gcd(self, Rational other):
-        """
-        Returns the least common multiple, in the rational numbers, of ``self``
-        and ``other``. This function returns either 0 or 1 (as a rational
-        number).
-
-        INPUT:
-
-        -  ``other`` - Rational
-
-        OUTPUT:
-
-        -  ``Rational`` - 0 or 1
-
-        EXAMPLES::
-
-            sage: (2/3)._gcd(3/5)
-            1
-            sage: (0/1)._gcd(0/1)
-            0
-        """
-        if mpz_cmp_si(mpq_numref(self.value), 0) == 0 and \
-               mpz_cmp_si(mpq_numref(other.value), 0) == 0:
-            return Rational(0)
-        return Rational(1)
-
-
     def additive_order(self):
         """
         Return the additive order of ``self``.
@@ -3209,6 +3189,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             True
         """
         return mpz_cmp_si(mpq_denref(self.value), 1) == 0
+
+
+    #Function alias for checking if the number is a integer.Added to solve ticket 15500    
+    is_integer = is_integral
+
 
     def is_S_integral(self, S=[]):
         r"""
@@ -3402,7 +3387,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: m.type()
             't_FRAC'
         """
-        cdef PariInstance P = sage.libs.pari.gen.pari
+        cdef PariInstance P = sage.libs.pari.pari_instance.pari
         return P.new_gen_from_mpq_t(self.value)
 
     def _interface_init_(self, I=None):
@@ -3472,7 +3457,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
 
     TESTS::
 
-        sage: q= QQ(); float(q)
+        sage: q = QQ(); float(q)
         0.0
         sage: q = 2^-10000; float(q)
         0.0
@@ -3589,10 +3574,9 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
     cdef mpz_t q, r
     mpz_init(q)
     mpz_init(r)
-    cdef bint remainder_is_zero
+    cdef int remainder_is_zero
     if shift > 0:
-        mpz_tdiv_r_2exp(r, a, shift)
-        remainder_is_zero = (mpz_cmp_ui(r, 0) == 0)
+        remainder_is_zero = mpz_divisible_2exp_p(a, shift)
         mpz_tdiv_q_2exp(q, a, shift)
     else:
         mpz_mul_2exp(q, a, -shift)
@@ -3605,7 +3589,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
     if remainder_is_zero:
         remainder_is_zero = (mpz_cmp_ui(r, 0) == 0)
 
-    # Convert q to a 64-bit integer.
+    # Convert abs(q) to a 64-bit integer.
     cdef mp_limb_t* q_limbs = (<__mpz_struct*>q)._mp_d
     cdef uint64_t q64
     if sizeof(mp_limb_t) >= 8:
@@ -3645,6 +3629,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
             remainder_is_zero = ((q64 & mask) == 0)
         q64 = q64 >> add_shift
 
+    # Round q64 from 54 to 53 bits of precision.
     if ((q64 & 1) == 0):
         # Round towards zero
         pass
@@ -3653,6 +3638,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
             # Remainder is non-zero: round away from zero
             q64 += 1
         else:
+            # Halfway case: round to even
             q64 += (q64 & 2) - 1
 
     # The conversion of q64 to double is *exact*.
@@ -3783,7 +3769,7 @@ cdef class Z_to_Q(Morphism):
               From: Rational Field
               To:   Integer Ring
         """
-        return Q_to_Z(self._codomain, self._domain)
+        return Q_to_Z(self._codomain, self.domain())
 
 cdef class Q_to_Z(Map):
     r"""

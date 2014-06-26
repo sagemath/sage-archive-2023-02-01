@@ -6,8 +6,7 @@ problems such as linear and quadratic programming packages. It also
 has a very nice sparse matrix library that provides an interface to
 umfpack (the same sparse matrix solver that matlab uses), it also
 has a nice interface to lapack. For more details on cvxopt please
-refer to its documentation at
-http://abel.ee.ucla.edu/cvxopt/documentation/users-guide/
+refer to its documentation at `<http://cvxopt.org/userguide/index.html>`_
 
 Sparse matrices are represented in triplet notation that is as a
 list of nonzero values, row indices and column indices. This is

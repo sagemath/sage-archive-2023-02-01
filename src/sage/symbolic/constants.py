@@ -711,9 +711,11 @@ class NotANumber(Constant):
 
         EXAMPLES::
 
-            sage: import sympy
-            sage: sympy.nan == NaN # indirect doctest
+            sage: bool(NaN._sympy_()._sage_() == NaN)
             True
+            sage: import sympy
+            sage: sympy.nan == NaN  # this should be fixed
+            False
         """
         import sympy
         return sympy.nan
@@ -846,7 +848,7 @@ class Log2(Constant):
         sage: maxima(log2)
         log(2)
         sage: maxima(log2).float()
-        .6931471805599453
+        0.6931471805599453
         sage: gp(log2)
         0.6931471805599453094172321215             # 32-bit
         0.69314718055994530941723212145817656808   # 64-bit
@@ -1146,6 +1148,7 @@ class TwinPrime(Constant):
 
 twinprime = TwinPrime().expression()
 
+
 class Mertens(Constant):
     """
     The Mertens constant is related to the Twin Primes constant and
@@ -1192,7 +1195,8 @@ class Mertens(Constant):
         """
         return 0.26149721284764278375542683861
 
-merten = mertens = Mertens().expression()
+mertens = Mertens().expression()
+
 
 class Glaisher(Constant):
     r"""
@@ -1292,7 +1296,7 @@ class LimitedPrecisionConstant(Constant):
         """
         if R.precision() <= self._bits:
             return R(self._value)
-        raise NotImplementedError, "%s is only available up to %s bits"%(self.name(), self._bits)
+        raise NotImplementedError("%s is only available up to %s bits"%(self.name(), self._bits))
 
     def _real_double_(self, R):
         """
@@ -1305,7 +1309,7 @@ class LimitedPrecisionConstant(Constant):
         """
         if R.precision() <= self._bits:
             return R(self._value)
-        raise NotImplementedError, "%s is only available up to %s bits"%(self.name(), self._bits)
+        raise NotImplementedError("%s is only available up to %s bits"%(self.name(), self._bits))
 
     def __float__(self):
         """
@@ -1318,7 +1322,7 @@ class LimitedPrecisionConstant(Constant):
 
         """
         if self._bits < 53:
-            raise NotImplementedError, "%s is only available up to %s bits"%(self.name(), self._bits)
+            raise NotImplementedError("%s is only available up to %s bits"%(self.name(), self._bits))
         return float(self._value)
 
 class Brun(LimitedPrecisionConstant):

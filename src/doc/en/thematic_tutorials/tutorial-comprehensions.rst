@@ -329,16 +329,13 @@ one may iterate through their elements::
     True
 
     sage: for p in GL(2, 2): print p; print
+    [1 0]
+    [0 1]
+    <BLANKLINE>
     [0 1]
     [1 0]
     <BLANKLINE>
     [0 1]
-    [1 1]
-    <BLANKLINE>
-    [1 0]
-    [0 1]
-    <BLANKLINE>
-    [1 0]
     [1 1]
     <BLANKLINE>
     [1 1]
@@ -346,6 +343,9 @@ one may iterate through their elements::
     <BLANKLINE>
     [1 1]
     [1 0]
+    <BLANKLINE>
+    [1 0]
+    [1 1]
     <BLANKLINE>
 
     sage: for p in Partitions(3): print p

@@ -1,15 +1,10 @@
 global-include *.c *.cc *.cpp *.h *.hh *.hpp *.inc *.py *.pyx *.pxd *.pxi *.rst *.txt *.tex
 
-graft   .hg
-include .hgignore .hgtags
 include MANIFEST.in
-include bundle export install pull sage-push
-include spkg-delauto spkg-dist spkg-install
 
 include c_lib/SConstruct
-graft   sage/server/notebook/templates
 graft   sage/libs/gap/test
-recursive-include sage README
+recursive-include sage
 recursive-exclude sage/ext/interpreters *.c *.h *.pyx *.pxd
 exclude sage/libs/pari/gen.h
 exclude sage/modular/arithgroup/farey_symbol.h
@@ -35,6 +30,8 @@ include doc/fr/a_tour_of_sage/eigen_plot.png
 include doc/fr/a_tour_of_sage/sin_plot.png
 include doc/tr/a_tour_of_sage/eigen_plot.png
 include doc/tr/a_tour_of_sage/sin_plot.png
+include doc/pt/a_tour_of_sage/eigen_plot.png
+include doc/pt/a_tour_of_sage/sin_plot.png
 graft   doc/en/reference/*/media
 graft   doc/en/thematic_tutorials/media
 graft   doc/en/prep/media

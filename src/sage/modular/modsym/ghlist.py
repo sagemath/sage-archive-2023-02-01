@@ -47,8 +47,7 @@ class GHlist:
         N = group.level()
         coset_reps = set([a for a, b, _ in v if b == 1])
         w = [group._reduce_coset(x*u, x*v) for x in coset_reps for u,v in p1list.P1List(N).list()]
-        w = list(set(w))
-        w.sort()
+        w = sorted(set(w))
         self.__list = w
 
     def __getitem__(self, i):
@@ -68,7 +67,7 @@ class GHlist:
 
             sage: L1 = sage.modular.modsym.ghlist.GHlist(GammaH(18, [11]))
             sage: L2 = sage.modular.modsym.ghlist.GHlist(GammaH(18, [13]))
-            sage: L1 < L2
+            sage: L1 > L2
             True
             sage: L1 == QQ
             False

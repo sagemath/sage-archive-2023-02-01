@@ -289,8 +289,22 @@ latex_elements['preamble'] = r"""
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{textcomp}
+\usepackage{mathrsfs}
 \DeclareUnicodeCharacter{01CE}{\capitalcaron a}
 \DeclareUnicodeCharacter{0428}{cyrillic Sha}
+\DeclareUnicodeCharacter{250C}{+}
+\DeclareUnicodeCharacter{2510}{+}
+\DeclareUnicodeCharacter{2514}{+}
+\DeclareUnicodeCharacter{2518}{+}
+\DeclareUnicodeCharacter{03BC}{\mu}
+\DeclareUnicodeCharacter{03B4}{\delta}
+\DeclareUnicodeCharacter{03B7}{\eta}
+\DeclareUnicodeCharacter{03BB}{\lambda}
+\DeclareUnicodeCharacter{2266}{\le}
+\DeclareUnicodeCharacter{221A}{\sqrt}
+
+\let\textLaTeX\LaTeX
+\renewcommand*{\LaTeX}{\hbox{\textLaTeX}}
 """
 
 # Documents to append as an appendix to all manuals.

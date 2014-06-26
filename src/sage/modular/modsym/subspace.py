@@ -307,30 +307,10 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         r = self.dimension()
         s = sum([A.rank()*mult for A, mult in D])
         if r != s:
-            raise NotImplementedError, "modular symbols factorization not fully implemented yet --  self has dimension %s, but sum of dimensions of factors is %s"%(
-            r, s)
+            raise NotImplementedError("modular symbols factorization not fully implemented yet --  self has dimension %s, but sum of dimensions of factors is %s"%(
+            r, s))
         self._factorization = sage.structure.factorization.Factorization(D, cr=True)
         return self._factorization
-
-    def hecke_bound(self):
-        """
-        Compute the Hecke bound for self; that is, a number n such that the
-        T_m for m = n generate the Hecke algebra.
-
-        EXAMPLES::
-
-            sage: M = ModularSymbols(24,8)
-            sage: M.hecke_bound()
-            53
-            sage: M.cuspidal_submodule().hecke_bound()
-            32
-            sage: M.eisenstein_submodule().hecke_bound()
-            53
-        """
-        if self.is_cuspidal():
-            return self.sturm_bound()
-        else:
-            return self.ambient_hecke_module().hecke_bound()
 
     def is_cuspidal(self):
         """

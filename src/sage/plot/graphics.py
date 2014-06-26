@@ -36,7 +36,6 @@ from colors import rgbcolor
 ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.png', '.ps', '.sobj', '.svg']
 DEFAULT_DPI = 100
 DOCTEST_MODE_FILE = os.path.join(sage.misc.misc.SAGE_TMP, 'test.png')
-SHOW_DEFAULT = True
 
 def show_default(default=None):
     r"""
@@ -47,36 +46,22 @@ def show_default(default=None):
     when displayed will be displayed as an actual plot instead of text,
     i.e., the show command is not needed.
 
-    EXAMPLES: The default starts out as ``True``::
+    EXAMPLES:
 
-        sage: show_default()
-        True
+    The default starts out as ``True`` in interactive use and
+    ``False`` in doctests::
 
-    We set it to ``False``.
-
-    ::
-
-        sage: show_default(False)
-
-    We see that it is ``False``.
-
-    ::
-
-        sage: show_default()
+        sage: show_default()  # long time
+        doctest:1: DeprecationWarning: this is done automatically by the doctest framework
+        See http://trac.sagemath.org/14469 for details.
         False
-
-    Now plot commands will not display their plots by default.
-
-    Turn back on default display.
-
-    ::
-
-        sage: show_default(True)
     """
-    global SHOW_DEFAULT
+    from sage.misc.superseded import deprecation
+    deprecation(14469, 'this is done automatically by the doctest framework')
+    import sage.doctest
     if default is None:
-        return SHOW_DEFAULT
-    SHOW_DEFAULT = bool(default)
+        return not sage.doctest.DOCTEST_MODE
+    sage.doctest.DOCTEST_MODE = not bool(default)
 
 # If do_verify is True, options are checked when drawing a
 # GraphicsPrimitive.  See primitive.py
@@ -116,14 +101,14 @@ class Graphics(SageObject):
         sage: h=10; c=0.4; p=0.5;
         sage: G = Graphics()
         sage: for x in srange(1,h+1):
-        ...        l = [[0,x*sqrt(3)],[-x/2,-x*sqrt(3)/2],[x/2,-x*sqrt(3)/2],[0,x*sqrt(3)]]
-        ...        G+=line(l,color=hue(c + p*(x/h)))
+        ....:     l = [[0,x*sqrt(3)],[-x/2,-x*sqrt(3)/2],[x/2,-x*sqrt(3)/2],[0,x*sqrt(3)]]
+        ....:     G+=line(l,color=hue(c + p*(x/h)))
         sage: G.show(figsize=[5,5])
 
     We can change the scale of the axes in the graphics before displaying.::
 
-        sage: G = plot(exp, 1, 10)
-        sage: G.show(scale='semilogy')
+        sage: G = plot(exp, 1, 10) # long time
+        sage: G.show(scale='semilogy') # long time
 
     TESTS:
 
@@ -161,6 +146,7 @@ class Graphics(SageObject):
         self._bbox_extra_artists = []
         self._extra_kwds = {}
         self._fontsize = 10
+        self._legend_colors = []
         self._legend_opts = {}
         self._objects = []
         self._show_axes = True
@@ -209,7 +195,7 @@ class Graphics(SageObject):
         if ratio != 'auto' and ratio != 'automatic':
             ratio = float(ratio)
             if ratio <= 0:
-                raise ValueError, "the aspect ratio must be positive or 'automatic'"
+                raise ValueError("the aspect ratio must be positive or 'automatic'")
         else:
             ratio = 'automatic'
         self._extra_kwds['aspect_ratio'] = ratio
@@ -650,9 +636,9 @@ class Graphics(SageObject):
                 self._axes_labels = None
                 return self._axes_labels
         if not isinstance(l, (list, tuple)):
-            raise TypeError, "l must be a list or tuple"
+            raise TypeError("l must be a list or tuple")
         if len(l) != 2:
-            raise ValueError, "l must have length 2"
+            raise ValueError("l must have length 2")
         self._axes_labels = tuple(l)
 
     def axes_label_color(self, c=None):
@@ -780,90 +766,81 @@ class Graphics(SageObject):
 
     def _repr_(self):
         r"""
-        Show this graphics objects.
+        Return a string representation of the graphics objects.
 
-        If the ``show_default`` function has been called with
-        True (the default), then you'll see this graphics object displayed.
-        Otherwise you'll see a text representation of it.
+        OUTPUT:
 
-        EXAMPLES: We create a plot and call ``_repr_`` on it,
-        which causes it to be displayed as a plot::
+        String.
+
+        EXAMPLES:
+
+        We create a plot and call :meth:`show` on it, which causes it
+        to be displayed as a plot::
 
             sage: P = plot(cos, (-1,1))
-            sage: P._repr_()
-            ''
+            sage: P.show()
 
         Just doing this also displays the plot::
 
             sage: P
 
-        Note that printing P with the ``print`` statement does
-        not display the plot::
+        Using the Python `repr` or `str` commands do not display the
+        plot::
 
-            sage: print P
+            sage: repr(P)
+            'Graphics object consisting of 1 graphics primitive'
+            sage: str(P)
+            'Graphics object consisting of 1 graphics primitive'
+            sage: print(P)
             Graphics object consisting of 1 graphics primitive
 
-        Now we turn off showing plots by default::
-
-            sage: show_default(False)
-
-        Now we just get a string. To show P you would have to do
-        ``show(P)``.
-
-        ::
+        TESTS::
 
             sage: P._repr_()
             'Graphics object consisting of 1 graphics primitive'
-            sage: P
-            Graphics object consisting of 1 graphics primitive
-
-        Finally, we turn ``show_default`` back on::
-
-            sage: show_default(True)
         """
-        if SHOW_DEFAULT:
-            self.show()
-            return ''
-        else:
-            return self.__str__()
+        return self.__str__()
+
+    def _graphics_(self):
+        """
+        Show graphics.
+
+        The presence of this method is used by the displayhook to
+        decide that we want to see a graphical output by default.
+
+        OUTPUT:
+
+        Return ``True`` if graphical output was generated (might not
+        be shown in doctest mode), otherwise ``False``.
+
+        EXAMPLES::
+
+            sage: g = Graphics()
+            sage: g._graphics_()
+            True
+            sage: [g, g]
+            [Graphics object consisting of 0 graphics primitives,
+             Graphics object consisting of 0 graphics primitives]
+        """
+        self.show()
+        return True
 
     def __str__(self):
         r"""
         Return string representation of this plot.
 
+        OUTPUT:
+
+        String.
+
         EXAMPLES::
 
             sage: S = circle((0,0), 2); S.__str__()
             'Graphics object consisting of 1 graphics primitive'
+            sage: str(S)
+            'Graphics object consisting of 1 graphics primitive'
             sage: print S
             Graphics object consisting of 1 graphics primitive
-
-        .. warning::
-
-           ``__str__`` is not called when printing lists of graphics
-           objects, which can be confusing, since they will all pop
-           up. One workaround is to call ``show_default``:
-
-        For example, below when we do ``print v`` two plots are
-        displayed::
-
-            sage: v = [circle((0,0), 2), circle((2,3), 1)]
-            sage: print v
-            [, ]
-
-        However, if we call ``show_default`` then we see the
-        text representations of the graphics::
-
-            sage: show_default(False)
-            sage: print v
-            [Graphics object consisting of 1 graphics primitive, Graphics object consisting of 1 graphics primitive]
-            sage: v
-            [Graphics object consisting of 1 graphics primitive,
-             Graphics object consisting of 1 graphics primitive]
-
-        ::
-
-            sage: show_default(True)
         """
         s = "Graphics object consisting of %s graphics primitives"%(len(self))
         if len(self) == 1:
@@ -938,7 +915,7 @@ class Graphics(SageObject):
         """
         from sage.plot.primitive import GraphicPrimitive
         if not isinstance(x, GraphicPrimitive):
-            raise TypeError, "x must be a GraphicPrimitive"
+            raise TypeError("x must be a GraphicPrimitive")
         self._objects[int(i)] = x
 
     def __radd__(self, other):
@@ -1031,12 +1008,13 @@ class Graphics(SageObject):
             from sage.plot.plot3d.base import Graphics3d
             if isinstance(other, Graphics3d):
                 return self.plot3d() + other
-            raise TypeError, "other (=%s) must be a Graphics objects"%other
+            raise TypeError("other (=%s) must be a Graphics objects"%other)
         g = Graphics()
         g._objects = self._objects + other._objects
         g._show_legend = self._show_legend or other._show_legend
         g._extra_kwds.update(self._extra_kwds)
         g._extra_kwds.update(other._extra_kwds)
+        g._legend_colors = self._legend_colors + other._legend_colors
         g._legend_opts.update(self._legend_opts)
         g._legend_opts.update(other._legend_opts)
         if self.aspect_ratio()=='automatic':
@@ -1238,7 +1216,7 @@ class Graphics(SageObject):
 
     SHOW_OPTIONS = dict(filename=None,
                         # axes options
-                        axes=None, axes_labels=None, axes_pad=.02,
+                        axes=None, axes_labels=None, axes_pad=None,
                         base=None, scale=None,
                         xmin=None, xmax=None, ymin=None, ymax=None,
                         # Figure options
@@ -1267,7 +1245,7 @@ class Graphics(SageObject):
                 markerscale=0.6, ncol=1, numpoints=2,
                 shadow=False, title=None)
     def show(self, **kwds):
-        """
+        r"""
         Show this graphics image with the default image viewer.
 
         OPTIONAL INPUT:
@@ -1340,11 +1318,21 @@ class Graphics(SageObject):
 
         - ``transparent`` - (default: False) If True, make the background transparent.
 
-        - ``axes_pad`` - (default: 0.02) The percentage of the axis
-          range that is added to each end of each axis.  This helps
-          avoid problems like clipping lines because of line-width,
-          etc.  To get axes that are exactly the specified limits, set
-          ``axes_pad`` to zero.
+        - ``axes_pad`` - (default: 0.02 on ``"linear"`` scale, 1 on
+          ``"log"`` scale).
+
+          - In the ``"linear"`` scale, it determines the percentage of the
+            axis range that is added to each end of each axis. This helps
+            avoid problems like clipping lines because of line-width, etc.
+            To get axes that are exactly the specified limits, set
+            ``axes_pad`` to zero.
+
+          - On the ``"log"`` scale, it determines the exponent of the
+            fraction of the minimum (resp. maximum) that is subtracted from
+            the minimum (resp. added to the maximum) value of the axis. For
+            instance if the minimum is `m` and the base of the axis is `b`
+            then the new minimum after padding the axis will be
+            `m - m/b^{\mathrm{axes\_pad}}`.
 
         - ``ticks_integer`` - (default: False) guarantee that the ticks
           are integers (the ``ticks`` option, if specified, will
@@ -1465,11 +1453,6 @@ class Graphics(SageObject):
               ``base`` is set to, it will default to 10 and will remain
               unused.
 
-            - Although it is possible to provide a noninteger ``base``, the
-              tick labeling and formatting is not ideal. Hence, in case you
-              do use noninteger ``base`` for the logarithm, then provide
-              your own tick formatter using the option ``tick_formatter``.
-
         - ``typeset`` -- (default: ``"default"``) string. The type of
           font rendering that should be used for the text. The possible
           values are
@@ -1544,7 +1527,7 @@ class Graphics(SageObject):
         the ``base`` argument will ignore any changes to the axis which is
         in linear scale.::
 
-            sage: G.show(scale='semilogy', base=2) # y axis as powers of 2
+            sage: G.show(scale='semilogy', base=2) # long time # y axis as powers of 2
 
         ::
 
@@ -1552,23 +1535,22 @@ class Graphics(SageObject):
 
         The scale can be also given as a 2-tuple or a 3-tuple.::
 
-            sage: G.show(scale=('loglog', 2)) # both x and y axes in base 2
+            sage: G.show(scale=('loglog', 2.1)) # long time # both x and y axes in base 2.1
 
         ::
 
-            sage: G.show(scale=('loglog', 2, 3)) # x in base 2, y in base 3
+            sage: G.show(scale=('loglog', 2, 3)) # long time # x in base 2, y in base 3
 
         The base need not be an integer, though it does have to be made
-        a float.  Also, currently the formatting is wrong for non-integer bases,
-        such as in this example::
+        a float.::
 
             sage: G.show(scale='semilogx', base=float(e)) # base is e
 
         Logarithmic scale can be used for various kinds of plots. Here are
         some examples.::
 
-            sage: G = list_plot(map(lambda i: 10**i, range(10)))
-            sage: G.show(scale='semilogy')
+            sage: G = list_plot(map(lambda i: 10**i, range(10))) # long time
+            sage: G.show(scale='semilogy') # long time
 
         ::
 
@@ -1584,15 +1566,6 @@ class Graphics(SageObject):
             sage: x, y = var('x, y')
             sage: G =  plot_vector_field((2^x,y^2),(x,1,10),(y,1,100))
             sage: G.show(scale='semilogx',base=2)
-
-        But be sure to only plot things that will have a wide enough range
-        for the logarithmic scale to be interpretable::
-
-            sage: G = arc((2,3), 2, 1, angle=pi/2, sector=(0,pi/2))
-            sage: G.show(scale=('loglog', 2))
-            Traceback (most recent call last):
-            ...
-            ValueError: Either expand the range of the dependent variable to allow two different integer powers of your `base`, or change your `base` to a smaller number.
 
         Add grid lines at the major ticks of the axes.
 
@@ -1626,7 +1599,7 @@ class Graphics(SageObject):
 
             sage: x, y = var('x, y')
             sage: p = implicit_plot((y^2-x^2)*(x-1)*(2*x-3)-4*(x^2+y^2-2*x)^2, \
-            ...             (x,-2,2), (y,-2,2), plot_points=1000)
+            ....:             (x,-2,2), (y,-2,2), plot_points=1000)
             sage: p.show(gridlines=[[1,0],[-1,0,1]])
 
         Add grid lines at specific positions (using iterators).
@@ -1634,7 +1607,7 @@ class Graphics(SageObject):
         ::
 
             sage: def maple_leaf(t):
-            ...     return (100/(100+(t-pi/2)^8))*(2-sin(7*t)-cos(30*t)/2)
+            ....:     return (100/(100+(t-pi/2)^8))*(2-sin(7*t)-cos(30*t)/2)
             sage: p = polar_plot(maple_leaf, -pi/4, 3*pi/2, color="red",plot_points=1000) # long time
             sage: p.show(gridlines=( [-3,-2.75,..,3], xrange(-1,5,2) )) # long time
 
@@ -1653,7 +1626,7 @@ class Graphics(SageObject):
 
             sage: b = bar_chart([-3,5,-6,11], color='red')
             sage: b.show(gridlines=([-1,-0.5,..,4],True),
-            ...     gridlinesstyle=dict(color="blue", linestyle=":"))
+            ....:     gridlinesstyle=dict(color="blue", linestyle=":"))
 
         Change the style of the horizontal or vertical grid lines
         separately.
@@ -1662,8 +1635,8 @@ class Graphics(SageObject):
 
             sage: p = polar_plot(2 + 2*cos(x), 0, 2*pi, color=hue(0.3))
             sage: p.show(gridlines=True,
-            ...     hgridlinesstyle=dict(color="orange", linewidth=1.0),
-            ...     vgridlinesstyle=dict(color="blue", linestyle=":"))
+            ....:     hgridlinesstyle=dict(color="orange", linewidth=1.0),
+            ....:     vgridlinesstyle=dict(color="blue", linestyle=":"))
 
         Change the style of each grid line individually.
 
@@ -1671,19 +1644,19 @@ class Graphics(SageObject):
 
             sage: x, y = var('x, y')
             sage: p = implicit_plot((y^2-x^2)*(x-1)*(2*x-3)-4*(x^2+y^2-2*x)^2,
-            ...             (x,-2,2), (y,-2,2), plot_points=1000)
+            ....:             (x,-2,2), (y,-2,2), plot_points=1000)
             sage: p.show(gridlines=(
-            ...    [
-            ...     (1,{"color":"red","linestyle":":"}),
-            ...     (0,{"color":"blue","linestyle":"--"})
-            ...    ],
-            ...    [
-            ...     (-1,{"color":"red","linestyle":":"}),
-            ...     (0,{"color":"blue","linestyle":"--"}),
-            ...     (1,{"color":"red","linestyle":":"}),
-            ...    ]
-            ...    ),
-            ...    gridlinesstyle=dict(marker='x',color="black"))
+            ....:    [
+            ....:     (1,{"color":"red","linestyle":":"}),
+            ....:     (0,{"color":"blue","linestyle":"--"})
+            ....:    ],
+            ....:    [
+            ....:     (-1,{"color":"red","linestyle":":"}),
+            ....:     (0,{"color":"blue","linestyle":"--"}),
+            ....:     (1,{"color":"red","linestyle":":"}),
+            ....:    ]
+            ....:    ),
+            ....:    gridlinesstyle=dict(marker='x',color="black"))
 
         Grid lines can be added to contour plots.
 
@@ -1713,6 +1686,19 @@ class Graphics(SageObject):
             sage: plot(sin(x), (x, -pi, pi),thickness=2)+point((pi, -1), pointsize=15)
             sage: plot(sin(x), (x, -pi, pi),thickness=2,axes_pad=0)+point((pi, -1), pointsize=15)
 
+        The behavior of the ``axes_pad`` parameter is different if the axis
+        is in the ``"log"`` scale. If `b` is the base of the axis, the
+        minimum value of the axis, is decreased by the factor
+        `1/b^{\mathrm{axes\_pad}}` of the minimum and the maximum value of the axis
+        is increased by the same factor of the maximum value.  Compare the
+        axes in the following two plots to see the difference.
+
+        ::
+
+            sage: plot_loglog(x, (1.1*10**-2, 9990))
+
+            sage: plot_loglog(x, (1.1*10**-2, 9990), axes_pad=0)
+
         Via matplotlib, Sage allows setting of custom ticks.  See above
         for more details.
 
@@ -1741,19 +1727,16 @@ class Graphics(SageObject):
             sage: plot(1.5/(1+e^(-x)), (x, -10, 10), ticks=[None, 1.5/4]) # It's right at f(x)=0.75!
 
         But be careful to leave enough room for at least two major ticks, so that
-        the user can tell what the scale is.
+        the user can tell what the scale is::
 
-        ::
-
-            sage: plot(x^2,(x,1,8),ticks=6)
+            sage: plot(x^2,(x,1,8),ticks=6).show()
             Traceback (most recent call last):
             ...
-            ValueError: Expand the range of the independent variable to allow two multiples of your tick locator (option `ticks`).
+            ValueError: Expand the range of the independent variable to
+            allow two multiples of your tick locator (option `ticks`).
 
         We can also do custom formatting if you need it.  See above for full
-        details.
-
-        ::
+        details::
 
             sage: plot(2*x+1,(x,0,5),ticks=[[0,1,e,pi,sqrt(20)],2],tick_formatter="latex")
 
@@ -1788,7 +1771,7 @@ class Graphics(SageObject):
         If the number of tick labels do not match the number of positions of
         tick labels, then it results in an error.::
 
-            sage: plot(x**2, (x,0,2), ticks=[[2], None], tick_formatter=[["$x_1$","$x_2$"], None])
+            sage: plot(x**2, (x,0,2), ticks=[[2], None], tick_formatter=[["$x_1$","$x_2$"], None]).show()
             Traceback (most recent call last):
             ...
             ValueError: If the first component of the list `tick_formatter` is a list then the first component of `ticks` must also be a list of equal length.
@@ -1796,14 +1779,30 @@ class Graphics(SageObject):
         When using logarithmic scale along the axis, make sure to have
         enough room for two ticks so that the user can tell what the scale
         is. This can be effected by increasing the range of the independent
-        variable, or by changing the ``base``.::
+        variable, or by changing the ``base``, or by providing enough tick
+        locations by using the ``ticks`` parameter.
 
-            sage: p = list_plot(range(1, 10), plotjoined=True)
-            sage: p.show(scale='loglog')
-            Traceback (most recent call last):
-            ...
-            ValueError: Either expand the range of the dependent variable to allow two different integer powers of your `base`, or change your `base` to a smaller number.
-            sage: p.show(scale='loglog', base=8) # this works.
+        By default, Sage will expand the variable range so that at least two
+        ticks are included along the logarithmic axis. However, if you
+        specify ``ticks`` manually, this safety measure can be defeated::
+
+            sage: list_plot_loglog([(1,2),(2,3)], plotjoined=True, ticks=[[1],[1]])
+            doctest:...: UserWarning: The x-axis contains fewer than
+            2 ticks; the logarithmic scale of the plot may not be apparent
+            to the reader.
+            doctest:...: UserWarning: The y-axis contains fewer than
+            2 ticks; the logarithmic scale of the plot may not be apparent
+            to the reader.
+
+        This one works, since the horizontal axis is automatically expanded
+        to contain two ticks and the vertical axis is provided with two ticks::
+
+            sage: list_plot_loglog([(1,2),(2,3)], plotjoined=True, ticks=[None,[1,10]])
+
+        Another example in the log scale where both the axes are automatically
+        expanded to show two major ticks::
+
+            sage: list_plot_loglog([(2,0.5), (3, 4)], plotjoined=True)
 
         When using ``title_pos``, it must be ensured that a list or a tuple
         of length two is used. Otherwise, an error is raised.::
@@ -1814,7 +1813,6 @@ class Graphics(SageObject):
             ValueError: 'title_pos' must be a list or tuple of two real numbers.
 
         """
-
         # This option should not be passed on to save().
         linkmode = kwds.pop('linkmode', False)
 
@@ -2088,26 +2086,138 @@ class Graphics(SageObject):
         subplot.xaxis.set_major_formatter(x_formatter)
         subplot.yaxis.set_major_formatter(y_formatter)
 
-        # Check for whether there will be too few ticks in the log scale case
-        # If part of the data is nonpositive, we assume there are enough ticks
-        if scale[0] == 'log' and xmin > 0:
-            import math
-            base0 = base[0]
-            if (math.floor(math.log(xmax)/math.log(base0)) -
-                    math.ceil(math.log(xmin)/math.log(base0)) < 1):
-                raise ValueError('Either expand the range of the independent '
-                'variable to allow two different integer powers of your `base`, '
-                'or change your `base` to a smaller number.')
-        if scale[1] == 'log' and ymin > 0:
-            import math
-            base1 = base[1]
-            if (math.floor(math.log(ymax)/math.log(base1)) -
-                    math.ceil(math.log(ymin)/math.log(base1)) < 1):
-                raise ValueError('Either expand the range of the dependent '
-                'variable to allow two different integer powers of your `base`, '
-                'or change your `base` to a smaller number.')
+        # Check for whether there will be too few ticks in the log scale case.
+        # If there are not enough ticks (2 or more) to determine that the scale
+        # is non-linear, we throw a warning.
+        from warnings import warn
+        tickwarnmsg  = 'The %s-axis contains fewer than 2 ticks; '
+        tickwarnmsg += 'the logarithmic scale of the plot may not be apparent '
+        tickwarnmsg += 'to the reader.'
+
+        if (scale[0] == 'log' and not isinstance(x_locator, NullLocator)
+                and len(subplot.xaxis.get_ticklocs()) < 2):
+            warn(tickwarnmsg % 'x')
+
+        if (scale[1] == 'log' and not isinstance(y_locator, NullLocator)
+                and len(subplot.yaxis.get_ticklocs()) < 2):
+            warn(tickwarnmsg % 'y')
 
         return (subplot, x_locator, y_locator, x_formatter, y_formatter)
+
+
+    def _get_vmin_vmax(self, vmin, vmax, basev, axes_pad):
+        r"""
+        Determine the min/max value for a variable plotted on a logarithmic
+        scale. The motivation is that we desire at least two ticks for a log
+        plot; otherwise the reader may assume that the scale is linear. For
+        internal use only.
+
+        We check if this case occurs (for e.g. assuming xmin < xmax):
+
+           floor(logxmin)              ceil(logxmax)
+           ----|---------+----------+----------|----------------------|--
+                      logxmin     logxmax
+
+        Or if this case occurs (assuming xmin < xmax):
+
+           floor(logxmin)             floor(logxmax)         ceil(logxmax)
+           ----|---------+---------------------|-----+----------------|--
+                      logxmin                     logxmax
+
+
+        INPUT:
+
+        -  ``vmin`` - the current min for this variable (e.g. xmin or ymin)
+
+        -  ``vmax`` - the current max for this variable (e.g. xmax or ymax)
+
+        -  ``basev`` - the base of the logarithmic scale for this variable
+
+        - ``axes_pad`` - the padding for the axis. It determines the
+          exponent of the fraction of the minimum (resp. maximum) that is
+          subtracted from the minimum (resp. added to the maximum) value of
+          the axis. For instance if the minimum is `m` and the base of the
+          axis is `b` then the new minimum after padding the axis will be
+          `m - m/b^{\mathrm{axes\_pad}}`.
+
+        OUTPUT:
+
+        A new (min,max) pair for this variable, suitable for its logarithmic
+        scale.
+
+        EXAMPLES:
+
+        On a base-10 logarithmic scale, we should have ``vmin``/``vmax``
+        at least 10 units apart::
+
+            sage: p = Graphics()
+            sage: p._get_vmin_vmax(1, 2, 10, None)
+            (9/10, 10.0)
+            sage: p._get_vmin_vmax(1, 5, 10, None)
+            (9/10, 10.0)
+            sage: p._get_vmin_vmax(1, 10, 10, None)
+            (9/10, 11)
+            sage: p._get_vmin_vmax(1, 11, 10, None)
+            (9/10, 121/10)
+            sage: p._get_vmin_vmax(1, 50, 10, None)
+            (9/10, 55)
+
+        We can set the ``axes_pad`` separately::
+
+            sage: p._get_vmin_vmax(1, 50, 2, 2)
+            (0.75, 62.5)
+
+        Nonpositive values of ``vmin`` are not accepted due to the domain
+        of the logarithm function::
+
+            sage: p = Graphics()
+            sage: p._get_vmin_vmax(-1,2,10, None)
+            Traceback (most recent call last):
+            ...
+            ValueError: vmin must be positive
+
+        And ``vmax`` must be greater than ``vmin``::
+
+            sage: p._get_vmin_vmax(1,-2,10, None)
+            Traceback (most recent call last):
+            ...
+            ValueError: vmin must be less than vmax
+
+        """
+        if vmin <= 0:
+            raise ValueError('vmin must be positive')
+
+        if vmin >= vmax:
+            raise ValueError('vmin must be less than vmax')
+
+        import math
+        if axes_pad is None:
+            axes_pad = 1
+        else:
+            axes_pad = float(abs(axes_pad))
+
+        logvmin = math.log(vmin)/math.log(basev)
+        logvmax = math.log(vmax)/math.log(basev)
+
+        if math.floor(logvmax) - math.ceil(logvmin) < 0:
+            vmax = basev**math.ceil(logvmax)
+            vmin = basev**math.floor(logvmin)
+        elif math.floor(logvmax) - math.ceil(logvmin) < 1:
+            if logvmax-math.floor(logvmax) > math.ceil(logvmin)-logvmin:
+                vmax = basev**math.ceil(logvmax)
+                if axes_pad > 0:
+                    vmin -= vmin * basev**(-axes_pad)
+            else:
+                vmin = basev**math.floor(logvmin)
+                if axes_pad > 0:
+                    vmax += vmax * basev**(-axes_pad)
+        elif axes_pad > 0:
+            # pad the axes if we haven't expanded the axes earlier.
+            vmin -= vmin * basev**(-axes_pad)
+            vmax += vmax * basev**(-axes_pad)
+
+        return vmin,vmax
+
 
     def matplotlib(self, filename=None,
                    xmin=None, xmax=None, ymin=None, ymax=None,
@@ -2118,7 +2228,7 @@ class Graphics(SageObject):
                    gridlines=None, gridlinesstyle=None,
                    vgridlinesstyle=None, hgridlinesstyle=None,
                    show_legend=None, legend_options={},
-                   axes_pad=0.02, ticks_integer=None,
+                   axes_pad=None, ticks_integer=None,
                    tick_formatter=None, ticks=None, title=None,
                    title_pos=None, base=None, scale=None,
                    typeset='default'):
@@ -2177,6 +2287,14 @@ class Graphics(SageObject):
             ...
             ValueError: typeset must be set to one of 'default', 'latex', or
             'type1'; got 'garbage'.
+
+        We verify that numerical options are changed to float before saving (:trac:`14741`).
+        By default, Sage 5.10 changes float objects to the `RealLiteral` type.
+        The patch changes them to float before creating `matplotlib` objects.::
+
+            sage: f = lambda x, y : (abs(cos((x + I * y) ** 4)) - 1) # long time
+            sage: g = implicit_plot(f,(-4, 4),(-3, 3),linewidth=0.6) # long time
+            sage: gm = g.matplotlib() # long time # without the patch, this goes BOOM -- er, TypeError
         """
         if not isinstance(ticks, (list, tuple)):
             ticks = (ticks, None)
@@ -2187,21 +2305,6 @@ class Graphics(SageObject):
                 tick_formatter = (tick_formatter, "latex")
             else:
                 tick_formatter = (tick_formatter, None)
-
-        self.set_axes_range(xmin, xmax, ymin, ymax)
-        d = self.get_axes_range()
-        xmin = d['xmin']
-        xmax = d['xmax']
-        ymin = d['ymin']
-        ymax = d['ymax']
-
-        x_pad=(xmax-xmin)*float(axes_pad)
-        y_pad=(ymax-ymin)*float(axes_pad)
-
-        xmin-=x_pad
-        xmax+=x_pad
-        ymin-=y_pad
-        ymax+=y_pad
 
         global do_verify
         do_verify = verify
@@ -2244,14 +2347,52 @@ class Graphics(SageObject):
         else:
             subplot.set_aspect(aspect_ratio, adjustable='box')
         #add all the primitives to the subplot
+        old_opts = dict()
         for g in self._objects:
+            opts, old_opts[g] = g.options(), g.options()
+            for k,v in opts.items():
+                try:
+                    if v.parent() in sage.categories.fields.Fields(): opts[k] = float(v)
+                except (AttributeError, TypeError): pass
+            g.set_options(opts)
             g._render_on_subplot(subplot)
             if hasattr(g, '_bbox_extra_artists'):
                 self._bbox_extra_artists.extend(g._bbox_extra_artists)
 
-        #--------------------------- Set the scale -----------------------#
+        #---------------- Set the axes limits and scale ------------------#
+        self.set_axes_range(xmin, xmax, ymin, ymax)
+        d = self.get_axes_range()
+        xmin = d['xmin']
+        xmax = d['xmax']
+        ymin = d['ymin']
+        ymax = d['ymax']
+
         xscale, yscale, basex, basey = self._set_scale(figure, scale=scale,
                                                        base=base)
+
+        # If any of the x-data are negative, we leave the min/max alone.
+        if xscale == 'log' and min(xmin, xmax) > 0:
+            if xmin < xmax:
+                xmin, xmax = self._get_vmin_vmax(xmin, xmax, basex, axes_pad)
+            else:
+                xmax, xmin = self._get_vmin_vmax(xmax, xmin, basex, axes_pad)
+        else:
+            xpad = 0.02 if axes_pad is None else axes_pad
+            xpad = (xmax - xmin)*float(xpad)
+            xmax += xpad
+            xmin -= xpad
+
+        # Likewise for the y-data.
+        if yscale == 'log' and min(ymin, ymax) > 0:
+            if ymin < ymax:
+                ymin, ymax = self._get_vmin_vmax(ymin, ymax, basey, axes_pad)
+            else:
+                ymax, ymin = self._get_vmin_vmax(ymax, ymin, basey, axes_pad)
+        else:
+            ypad = 0.02 if axes_pad is None else axes_pad
+            ypad = (ymax - ymin)*float(ypad)
+            ymax += ypad
+            ymin -= ypad
 
         #-------------------------- Set the legend -----------------------#
         if show_legend is None:
@@ -2277,7 +2418,10 @@ class Graphics(SageObject):
                 # color
                 lframe = leg.get_frame()
                 lframe.set_facecolor(color)
-
+                from sage.plot.colors import to_mpl_color
+                for txt,color in zip(leg.get_texts(), self._legend_colors):
+                    if color is not None:
+                        txt.set_color(to_mpl_color(color))
 
         subplot.set_xlim([xmin, xmax])
         subplot.set_ylim([ymin, ymax])
@@ -2605,7 +2749,33 @@ class Graphics(SageObject):
                     title_pos = (0.5, 1.05)
                 subplot.set_title(title, fontsize=fontsize, position=title_pos)
 
+        for g in self._objects:
+            g.set_options(old_opts[g])
+
         return figure
+
+    def save_image(self, filename=None, *args, **kwds):
+        r"""
+        Save an image representation of self.  The image type is
+        determined by the extension of the filename.  For example,
+        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
+        ``.svg``.  Currently this is implemented by calling the
+        :meth:`save` method of self, passing along all arguments and
+        keywords.
+
+        .. Note::
+
+            Not all image types are necessarily implemented for all
+            graphics types.  See :meth:`save` for more details.
+
+        EXAMPLES::
+
+            sage: c = circle((1,1), 1, color='red')
+            sage: filename = os.path.join(SAGE_TMP, 'test.png')
+            sage: c.save_image(filename, xmin=-1, xmax=3, ymin=-1, ymax=3)
+        """
+        self.save(filename, *args, **kwds)
+
 
     # ALLOWED_EXTENSIONS is the list of recognized formats.
     # filename argument is written explicitly so that it can be used as a
@@ -2667,7 +2837,7 @@ class Graphics(SageObject):
         ``fig_tight=False``::
 
             sage: c.save(filename, figsize=[8,4], fig_tight=False,
-            ...       xmin=-1, xmax=3, ymin=-1, ymax=3)
+            ....:       xmin=-1, xmax=3, ymin=-1, ymax=3)
 
         You can also pass extra options to the plot command instead of this
         method, e.g. ::
@@ -2805,7 +2975,7 @@ class GraphicsArray(SageObject):
             sage: graphics_array(L)
             Traceback (most recent call last):
             ...
-            TypeError: array (=[[, ], []]) must be a list of lists of Graphics objects
+            TypeError: array (=[[Graphics object consisting of 1 graphics primitive, Graphics object consisting of 1 graphics primitive], [Graphics object consisting of 1 graphics primitive]]) must be a list of lists of Graphics objects
             sage: G = plot(x,(x,0,1))
             sage: graphics_array(G)
             Traceback (most recent call last):
@@ -2818,7 +2988,7 @@ class GraphicsArray(SageObject):
             TypeError: every element of array must be a Graphics object
         """
         if not isinstance(array, (list, tuple)):
-            raise TypeError,"array (=%s) must be a list of lists of Graphics objects"%(array)
+            raise TypeError("array (=%s) must be a list of lists of Graphics objects"%(array))
         array = list(array)
         self._glist = []
         self._rows = len(array)
@@ -2832,10 +3002,10 @@ class GraphicsArray(SageObject):
         self._dims = self._rows*self._cols
         for row in array: #basically flatten the list
             if not isinstance(row, (list, tuple)) or len(row) != self._cols:
-                raise TypeError,"array (=%s) must be a list of lists of Graphics objects"%(array)
+                raise TypeError("array (=%s) must be a list of lists of Graphics objects"%(array))
             for g in row:
                 if not isinstance(g, Graphics):
-                    raise TypeError, "every element of array must be a Graphics object"
+                    raise TypeError("every element of array must be a Graphics object")
                 self._glist.append(g)
         self._figsize = None
 
@@ -2847,21 +3017,31 @@ class GraphicsArray(SageObject):
 
             sage: R = rainbow(6)
             sage: L = [plot(x^n,(x,0,1),color=R[n]) for n in range(6)]
-            sage: G = graphics_array(L,2,3)
-            sage: G # plot shown is default (indirect doctest)
-
-        We can make commands not display their plots by default. ::
-
-            sage: show_default(False)
-            sage: graphics_array(L) # indirect doctest
-            Graphics Array of size 1 x 6
-            sage: show_default(True)
+            sage: graphics_array(L,2,3)
         """
-        if SHOW_DEFAULT:
-            self.show()
-            return ''
-        else:
-            return self.__str__()
+        return self.__str__()
+
+    def _graphics_(self):
+        """
+        Show graphics.
+
+        The presence of this method is used by the displayhook to
+        decide that we want to see a graphical output by default.
+
+        OUTPUT:
+
+        Return ``True`` if graphical output was generated (might not
+        be shown in doctest mode), otherwise ``False``.
+
+        EXAMPLES::
+
+            sage: from sage.plot.graphics import GraphicsArray
+            sage: g = GraphicsArray([])
+            sage: g._graphics_()
+            True
+        """
+        self.show()
+        return True
 
     def __str__(self):
         """
@@ -2872,15 +3052,10 @@ class GraphicsArray(SageObject):
             sage: R = rainbow(6)
             sage: L = [plot(x^n,(x,0,1),color=R[n]) for n in range(6)]
             sage: G = graphics_array(L,2,3)
+            sage: G.__str__()
+            'Graphics Array of size 2 x 3'
             sage: str(G)
             'Graphics Array of size 2 x 3'
-
-        We can make commands not display their plots by default. ::
-
-            sage: show_default(False)
-            sage: graphics_array(L)
-            Graphics Array of size 1 x 6
-            sage: show_default(True)
         """
         return "Graphics Array of size %s x %s"%(self._rows, self._cols)
 
@@ -3056,12 +3231,19 @@ class GraphicsArray(SageObject):
         EXAMPLES::
 
             sage: graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
+
+        TESTS::
+
+            sage: graphics_array([])
         """
         #glist is a list of Graphics objects:
         glist = self._glist
         rows = self._rows
         cols = self._cols
         dims = self._dims
+        if rows == 0 or cols == 0:
+            glist = [Graphics()]
+            rows = cols = dims = 1
         #make a blank matplotlib Figure:
         from matplotlib.figure import Figure
         figure = Figure(figsize)
@@ -3073,6 +3255,28 @@ class GraphicsArray(SageObject):
                          verify=do_verify, axes = axes, **args)
         g.save(filename, dpi=dpi, figure=figure, sub=subplot,
                verify=do_verify, axes = axes, **args)
+
+    def save_image(self, filename=None, *args, **kwds):
+        r"""
+        Save an image representation of self.  The image type is
+        determined by the extension of the filename.  For example,
+        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
+        ``.svg``.  Currently this is implemented by calling the
+        :meth:`save` method of self, passing along all arguments and
+        keywords.
+
+        .. Note::
+
+            Not all image types are necessarily implemented for all
+            graphics types.  See :meth:`save` for more details.
+
+        EXAMPLES::
+
+            sage: plots = [[plot(m*cos(x + n*pi/4), (x,0, 2*pi)) for n in range(3)] for m in range(1,3)]
+            sage: G = graphics_array(plots)
+            sage: G.save_image(tmp_filename()+'.png')
+        """
+        self.save(filename, *args, **kwds)
 
     def save(self, filename=None, dpi=DEFAULT_DPI, figsize=None,
              axes = None, **args):

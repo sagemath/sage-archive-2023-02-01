@@ -70,9 +70,9 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             -826511807095108317
         """
         try:
-            return hash((self.__class__, id(self._reference)))
+            return hash(('CombinatorialSpecies', id(self._reference)))
         except AttributeError:
-            return hash(self.__class__)
+            return hash('CombinatorialSpecies')
 
     def __eq__(self, other):
         """
@@ -382,10 +382,10 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             [1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
         """
         if not isinstance(x, GenericCombinatorialSpecies):
-            raise TypeError, "x must be a combinatorial species"
+            raise TypeError("x must be a combinatorial species")
 
         if self.__class__ is not CombinatorialSpecies:
-            raise TypeError, "only undefined combinatorial species can be set"
+            raise TypeError("only undefined combinatorial species can be set")
 
         self._reference = x
 

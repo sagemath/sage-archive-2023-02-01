@@ -1,6 +1,20 @@
 """
 This module provides the core implementation of multiprecision
 floating-point arithmetic. Operations are done in-place.
+
+TESTS:
+
+See if :trac:`15118` is fixed::
+
+    sage: import mpmath
+    sage: mpmath.mpf(0)^(-2)
+    Traceback (most recent call last):
+    ...
+    ZeroDivisionError
+    sage: mpmath.zeta(2r, -3r)
+    Traceback (most recent call last):
+    ...
+    ZeroDivisionError
 """
 
 include 'sage/ext/interrupt.pxi'
@@ -1646,7 +1660,7 @@ cdef MPF_complex_exp(MPF *re, MPF *im, MPF *a, MPF *b, MPopts opts):
     MPF_clear(&c)
     MPF_clear(&s)
 
-cdef int MPF_pow(MPF *z, MPF *x, MPF *y, MPopts opts):
+cdef int MPF_pow(MPF *z, MPF *x, MPF *y, MPopts opts) except -1:
     """
     Set z = x^y for real x and y and returns 0 if the result is real-valued.
     If the result is complex, does nothing and returns 1.

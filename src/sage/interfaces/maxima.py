@@ -10,7 +10,7 @@ many functions relating to the invariant theory of the symmetric
 group `S_n`. (However, the commands for group invariants,
 and the corresponding Maxima documentation, are in French.) For many
 links to Maxima documentation see
-http://maxima.sourceforge.net/docs.shtml/.
+http://maxima.sourceforge.net/documentation.html.
 
 AUTHORS:
 
@@ -110,7 +110,7 @@ Tutorial
 --------
 
 We follow the tutorial at
-http://maxima.sourceforge.net/docs/intromax/.
+http://maxima.sourceforge.net/docs/intromax/intromax.html.
 
 ::
 
@@ -524,7 +524,7 @@ class Maxima(MaximaAbstract, Expect):
         SAGE_MAXIMA_DIR = os.path.join(DOT_SAGE,"maxima")
 
         if not os.path.exists(STARTUP):
-            raise RuntimeError, 'You must get the file local/bin/sage-maxima.lisp'
+            raise RuntimeError('You must get the file local/bin/sage-maxima.lisp')
 
         #self.__init_code = init_code
         if init_code is None:
@@ -543,7 +543,7 @@ class Maxima(MaximaAbstract, Expect):
         MaximaAbstract.__init__(self,"maxima")
         Expect.__init__(self,
                         name = 'maxima',
-                        prompt = '\(\%i[0-9]+\)',
+                        prompt = '\(\%i[0-9]+\) ',
                         command = 'maxima --userdir="%s" -p "%s"'%(SAGE_MAXIMA_DIR,STARTUP),
                         maxread = 10000,
                         script_subdirectory = script_subdirectory,
@@ -552,10 +552,13 @@ class Maxima(MaximaAbstract, Expect):
                         init_code = init_code,
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
-        self._display_prompt = '<sage-display>'  # must match what is in the file local/bin/sage-maxima.lisp!!
-        self._output_prompt_re = re.compile('\(\%o[0-9]+\)')
-        self._ask = ['zero or nonzero?', 'an integer?', 'positive, negative, or zero?',
-                     'positive or negative?', 'positive or zero?']
+        # Must match what is in the file local/bin/sage-maxima.lisp
+        self._display_prompt = '<sage-display>'
+        # See #15440 for the importance of the trailing space
+        self._output_prompt_re = re.compile('\(\%o[0-9]+\) ')
+        self._ask = ['zero or nonzero\\?', 'an integer\\?',
+                     'positive, negative or zero\\?', 'positive or negative\\?',
+                     'positive or zero\\?', 'equal to .*\\?']
         self._prompt_wait = [self._prompt] + [re.compile(x) for x in self._ask] + \
                             ['Break [0-9]+'] #note that you might need to change _expect_expr if you
                                              #change this
@@ -577,7 +580,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: m.is_running()
             True
 
-        Test that we can use more than 256MB RAM (see trac 6722):
+        Test that we can use more than 256MB RAM (see trac :trac:`6722`)::
 
             sage: a = maxima(10)^(10^5)
             sage: b = a^600              # long time -- about 10-15 seconds
@@ -640,7 +643,7 @@ class Maxima(MaximaAbstract, Expect):
             TypeError: Computation failed since Maxima requested additional
             constraints (try the command "maxima.assume('a>0')"
             before integral or limit evaluation, for example):
-            Is  a  positive or negative?
+            Is a positive or negative?
             sage: maxima.assume('a>0')
             [a>0]
             sage: maxima('integrate(1/(x^3*(a+b*x)^(1/3)),x)')
@@ -649,9 +652,9 @@ class Maxima(MaximaAbstract, Expect):
             Traceback (most recent call last):
             ...
             TypeError: Computation failed since Maxima requested additional
-            constraints (try the command "maxima.assume('n+1>0')" before
+            constraints (try the command "maxima.assume('n>0')" before
             integral or limit evaluation, for example):
-            Is  n+1  zero or nonzero?
+            Is n equal to -1?
             sage: maxima.assume('n+1>0')
             [n>-1]
             sage: maxima('integrate(x^n,x)')
@@ -668,7 +671,7 @@ class Maxima(MaximaAbstract, Expect):
             TypeError: Computation failed since Maxima requested additional
             constraints (try the command "maxima.assume('a>0')" before
             integral or limit evaluation, for example):
-            Is  a  positive, negative, or zero?
+            Is a positive, negative or zero?
         """
         if expr is None:
             expr = self._prompt_wait
@@ -686,16 +689,16 @@ class Maxima(MaximaAbstract, Expect):
                 #Note that this depends on the order of self._prompt_wait
                 if expr is self._prompt_wait and i > len(self._ask):
                     self.quit()
-                    raise ValueError, "%s\nComputation failed due to a bug in Maxima -- NOTE: Maxima had to be restarted."%v
+                    raise ValueError("%s\nComputation failed due to a bug in Maxima -- NOTE: Maxima had to be restarted."%v)
 
                 j = v.find('Is ')
                 v = v[j:]
-                k = v.find(' ',4)
-                msg = """Computation failed since Maxima requested additional constraints (try the command "maxima.assume('""" + v[4:k] +""">0')" before integral or limit evaluation, for example):\n""" + v + self._ask[i-1]
+                k = v.find(' ', 3)
+                msg = """Computation failed since Maxima requested additional constraints (try the command "maxima.assume('""" + v[3:k] + """>0')" before integral or limit evaluation, for example):\n""" + v + self._expect.after
                 self._sendline(";")
                 self._expect_expr()
-                raise ValueError, msg
-        except KeyboardInterrupt, msg:
+                raise ValueError(msg)
+        except KeyboardInterrupt as msg:
             #print self._expect.before
             i = 0
             while True:
@@ -712,7 +715,7 @@ class Maxima(MaximaAbstract, Expect):
                     pass
                 else:
                     break
-            raise KeyboardInterrupt, msg
+            raise KeyboardInterrupt(msg)
 
     def _eval_line(self, line, allow_use_file=False,
                    wait_for_prompt=True, reformat=True, error_check=True, restart_if_needed=False):
@@ -754,53 +757,23 @@ class Maxima(MaximaAbstract, Expect):
         line_echo = self._expect.readline()
         if not wait_for_prompt:
             return
-        assert line_echo.strip() == line.strip(), 'mismatch:\n' + line_echo + line
-
-        # This broke in maxima-5.22.1 as discussed in
-        # http://trac.sagemath.org/sage_trac/ticket/10187
-        #self._expect_expr(self._display_prompt)
-        #pre_out = self._before()
-        #self._expect_expr()
-        #out = self._before()
-        #
-        # if error_check:
-        #     self._error_check(line, pre_out)
-        #     self._error_check(line, out)
-        #
-        # if not reformat:
-        #     return out
-        #
-        # r = self._output_prompt_re
-        # m = r.search(out)
-        # if m is None:
-        #     o = out[:-2]
-        # else:
-        #     o = out[m.end()+1:-2]
-        # o = ''.join([x.strip() for x in o.split()])
-        # return o
-        #
-        # i = o.rfind('(%o')
-        # return o[:i]
+        # line_echo sometimes has randomly inserted terminal echo in front #15811
+        assert line_echo.strip().endswith(line.strip()), 'mismatch:\n' + line_echo + line
 
         self._expect_expr(self._display_prompt)
         out = self._before()        # input echo + output prompt + output
         if error_check:
             self._error_check(line, out)
-
         if not reformat:
             return out
 
         self._expect_expr()
         assert len(self._before())==0, 'Maxima expect interface is confused!'
-
         r = self._output_prompt_re
         m = r.search(out)
-        if m is None:
-            o = out[:-2]
-        else:
-            o = out[m.end()+1:-2]
-        o = ''.join([x.strip() for x in o.split()])
-        return o
+        if m is not None:
+            out = out[m.end():]
+        return re.sub('\s+', '', out)
 
     def _synchronize(self):
         """
@@ -947,7 +920,7 @@ class Maxima(MaximaAbstract, Expect):
             Maxima ERROR:
                 Principal Value
         """
-        raise TypeError, "Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(cmd, out.replace('-- an error.  To debug this try debugmode(true);',''))
+        raise TypeError("Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(cmd, out.replace('-- an error.  To debug this try debugmode(true);','')))
 
     ###########################################
     # Direct access to underlying lisp interpreter.

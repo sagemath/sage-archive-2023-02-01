@@ -1,8 +1,4 @@
-cdef extern from "stdint.h":
-    ctypedef unsigned long uint_fast64_t
-
-cdef extern from "../ext/multi_modular.h":
-    ctypedef uint_fast64_t mod_int
+from sage.ext.mod_int cimport *
 
 cimport free_module_element
 import  free_module_element

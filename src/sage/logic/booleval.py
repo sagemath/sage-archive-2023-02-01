@@ -1,56 +1,71 @@
 r"""
-Evaluate Boolean Formulas
-
-Perform boolean evaluation of boolean formulas.
+Evaluation of Boolean Formulas
 
 AUTHORS:
 
-- Chris Gorecki
+- Chris Gorecki (2006): initial version
 
-EXAMPLES::
+- Paul Scurek (2013-08-05): updated docstring formatting
+
+EXAMPLES:
+
+We can assign values to the variables and evaluate a formula::
 
     sage: import sage.logic.booleval as booleval
     sage: t = ['|', ['&', 'a', 'b'], ['&', 'a', 'c']]
     sage: d = {'a' : True, 'b' : False, 'c' : True}
     sage: booleval.eval_formula(t, d)
     True
+
+We can change our assignment of values by modifying the dictionary::
+
     sage: d['a'] = False
     sage: booleval.eval_formula(t, d)
     False
-
-
-Classes and functions
-=====================
 """
+#*****************************************************************************
+#       Copyright (C) 2006 Chris Gorecki <chris.k.gorecki@gmail.com>
+#       Copyright (C) 2013 Paul Scurek <scurek86@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 import logicparser
 
 # dictionary containing variable keys and boolean values
 __vars = {}
 
+
 def eval_formula(tree, vdict):
     r"""
-    Evaluates the tree using the boolean values contained in dictionary
-    and returns a single boolean value.
+    Evaluate the tree and return a boolean value.
 
     INPUT:
 
     - ``tree`` -- a list of three elements corresponding to a branch of a
-      parse tree.
+      parse tree
 
-    - ``vdict`` -- a dictionary containing variable keys and boolean values.
+    - ``vdict`` -- a dictionary containing variable keys and boolean values
 
     OUTPUT:
 
-    - Returns the boolean evaluation of a boolean formula.
+    The result of the evaluation as a boolean value.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    This example illustrates evaluating a boolean formula::
 
         sage: import sage.logic.booleval as booleval
         sage: t = ['|', ['&', 'a', 'b'], ['&', 'a', 'c']]
         sage: d = {'a' : True, 'b' : False, 'c' : True}
         sage: booleval.eval_formula(t, d)
         True
+
+    ::
+
         sage: d['a'] = False
         sage: booleval.eval_formula(t, d)
         False
@@ -62,24 +77,28 @@ def eval_formula(tree, vdict):
 
 def eval_f(tree):
     r"""
-    This function can be applied to a parse tree to evaluate it.
+    Evaluate the tree.
 
     INPUT:
 
     - ``tree`` -- a list of three elements corresponding to a branch of a
-      parse tree.
+      parse tree
 
     OUTPUT:
 
-    - Returns a boolean evaluation of the tree.
+    The result of the evaluation as a boolean value.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    This example illustrates how to evaluate a parse tree::
 
          sage: import sage.logic.booleval as booleval
          sage: booleval.eval_f(['&', True, False])
          False
+
          sage: booleval.eval_f(['^', True, True])
          False
+
          sage: booleval.eval_f(['|', False, True])
          True
     """
@@ -87,27 +106,31 @@ def eval_f(tree):
 
 def eval_op(op, lv, rv):
     r"""
-    This function evaluates ``lv`` and ``rv`` according to the operator ``op``.
+    Evaluate ``lv`` and ``rv`` according to the operator ``op``.
 
     INPUT:
 
-    - ``op`` -- a string or character representing a boolean operator.
+    - ``op`` -- a string or character representing a boolean operator
 
-    - ``lv`` -- a boolean or variable.
+    - ``lv`` -- a boolean or variable
 
-    - ``rv`` -- a boolean or variable.
+    - ``rv`` -- a boolean or variable
 
     OUTPUT:
 
-    - Returns the evaluation of ``lv op rv``.
+    The evaluation of ``lv op rv`` as a boolean value.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    We can evaluate an operator given the values on either side::
 
         sage: import sage.logic.booleval as booleval
         sage: booleval.eval_op('&', True, False)
         False
+
         sage: booleval.eval_op('^', True, True)
         False
+
         sage: booleval.eval_op('|', False, True)
         True
     """

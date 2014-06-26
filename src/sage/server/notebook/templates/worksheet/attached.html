@@ -1,9 +1,0 @@
-{#
-INPUT:
-- attached_files - dictionary of attached files
-#}
-{% for file, tm in attached_files %}
-<div class="attached_filename" onClick="inspect_attached_file('{{ file }}')">
-    {{ file }}
-</div>
-{% endfor %}

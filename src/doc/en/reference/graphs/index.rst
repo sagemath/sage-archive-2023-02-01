@@ -37,7 +37,10 @@ Low-level implementation
    sage/graphs/base/c_graph
    sage/graphs/base/sparse_graph
    sage/graphs/base/dense_graph
+   sage/graphs/base/static_dense_graph
    sage/graphs/base/static_sparse_graph
+   sage/graphs/base/static_sparse_backend
+   sage/graphs/base/graph_backends
 
 Hypergraphs
 -----------
@@ -58,6 +61,7 @@ Libraries of algorithms
 
    sage/graphs/graph_coloring
    sage/graphs/cliquer
+   sage/graphs/independent_sets
    sage/graphs/comparability
    sage/graphs/line_graph
    sage/graphs/spanning_tree
@@ -67,6 +71,7 @@ Libraries of algorithms
    sage/graphs/linearextensions
    sage/graphs/schnyder
    sage/graphs/graph_plot
+   sage/graphs/graph_plot_js
    sage/graphs/graph_decompositions/vertex_separation
    sage/graphs/graph_decompositions/rankwidth
    sage/graphs/graph_decompositions/graph_products
@@ -77,5 +82,6 @@ Libraries of algorithms
    sage/graphs/graph_latex
    sage/graphs/graph_list
    sage/graphs/hyperbolicity
+   sage/graphs/tutte_polynomial
 
 .. include:: ../footer.txt

@@ -58,8 +58,8 @@ def trace(code, preparse=True):
 
     ::
 
-        sage: print s.before[s.before.find('-'):]
-        ---...
+        sage: print s.before[s.before.find('--'):]
+        --...
         ipdb> c
         2 * 5
 
@@ -73,7 +73,7 @@ def trace(code, preparse=True):
     """
     from sage.plot.plot import EMBEDDED_MODE
     if EMBEDDED_MODE:
-        raise NotImplementedError, "the trace command is not implemented in the Sage notebook; you must use the command line."
+        raise NotImplementedError("the trace command is not implemented in the Sage notebook; you must use the command line.")
 
     from IPython.core.debugger import Pdb
     pdb = Pdb()

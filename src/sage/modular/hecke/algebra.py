@@ -98,7 +98,7 @@ def AnemicHeckeAlgebra(M):
         k = (M, M.basis_matrix())
     except AttributeError:
         k = M
-    if _anemic_cache.has_key(k):
+    if k in _anemic_cache:
         T = _anemic_cache[k]()
         if not (T is None):
             return T
@@ -134,7 +134,7 @@ def HeckeAlgebra(M):
         k = (M, M.basis_matrix())
     except AttributeError:
         k = M
-    if _cache.has_key(k):
+    if k in _cache:
         T = _cache[k]()
         if not (T is None):
             return T
@@ -206,7 +206,7 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
             Full Hecke algebra acting on Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
         """
         if not module.is_HeckeModule(M):
-            raise TypeError, "M (=%s) must be a HeckeModule"%M
+            raise TypeError("M (=%s) must be a HeckeModule"%M)
         self.__M = M
         sage.rings.commutative_algebra.CommutativeAlgebra.__init__(self, M.base_ring())
 
@@ -321,11 +321,11 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
                 A = self.matrix_space()(x)
                 if check:
                     if not A.is_scalar():
-                        raise NotImplementedError, "Membership testing for '%s' not implemented" % self
+                        raise NotImplementedError("Membership testing for '%s' not implemented" % self)
                 return hecke_operator.HeckeAlgebraElement_matrix(self, A)
 
         except TypeError:
-            raise TypeError, "Don't know how to construct an element of %s from %s" % (self, x)
+            raise TypeError("Don't know how to construct an element of %s from %s" % (self, x))
 
     def _coerce_impl(self, x):
         r"""
@@ -408,7 +408,7 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
         EXAMPLES::
 
             sage: latex(CuspForms(3, 24).hecke_algebra()) # indirect doctest
-            \mathbf{T}_{\verb|Cuspidal|...Gamma0(3)...24...}
+            \mathbf{T}_{\text{\texttt{Cuspidal...Gamma0(3)...24...}
         """
         from sage.misc.latex import latex
         return "\\mathbf{T}_{%s}" % latex(self.__M)
@@ -517,6 +517,9 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
             6144
             sage: ModularSymbols(1,4,sign=1).cuspidal_submodule().hecke_algebra().discriminant()
             1
+            sage: H = CuspForms(1, 24).hecke_algebra()
+            sage: H.discriminant()
+            83041344
         """
         try:
             return self.__disc
@@ -741,7 +744,7 @@ class HeckeAlgebra_anemic(HeckeAlgebra_base):
         """
         n = int(n)
         if arith.gcd(self.module().level(), n) != 1:
-            raise IndexError, "Hecke operator T_%s not defined in the anemic Hecke algebra"%n
+            raise IndexError("Hecke operator T_%s not defined in the anemic Hecke algebra"%n)
         return self.module()._hecke_operator_class()(self, n)
 
     def is_anemic(self):

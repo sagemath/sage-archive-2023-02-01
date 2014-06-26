@@ -32,7 +32,8 @@ def is_FiniteFieldElement(x):
 cdef class FiniteRingElement(CommutativeRingElement):
     def _nth_root_common(self, n, all, algorithm, cunningham):
         """
-        This function exists to reduce code duplication between finite field nth roots and integer_mod nth roots.
+        This function exists to reduce code duplication between finite field
+        nth roots and integer_mod nth roots.
 
         The inputs are described there.
 
@@ -175,22 +176,6 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         """
         return self.minpoly(var)
 
-    def vector(self, reverse=False):
-        r"""
-        See :meth:`_vector_`.
-
-        EXAMPLE::
-
-            sage: k.<a> = GF(2^16)
-            sage: e = a^2 + 1
-            sage: e.vector() # random-ish error message
-            doctest:1: DeprecationWarning:The function vector is replaced by _vector_.
-            (1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(8218, "The function vector is replaced by _vector_.")
-        return self._vector_()
-
     def _vector_(self, reverse=False):
         """
         Return a vector in self.parent().vector_space() matching
@@ -240,38 +225,6 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         if reverse:
             ret = list(reversed(ret))
         return k.vector_space()(ret)
-
-    def matrix(self, reverse=False):
-        r"""
-        See :meth:`_matrix_`.
-
-        EXAMPLE::
-
-            sage: k.<a> = GF(2^16)
-            sage: e = a^2 + 1
-            sage: e.matrix() # random-ish error message
-            doctest:1: DeprecationWarning:The function matrix is replaced by _matrix_.
-            [1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0]
-            [0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1]
-            [1 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0]
-            [0 1 0 1 0 0 0 0 0 0 0 0 0 0 1 1]
-            [0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 1]
-            [0 0 0 1 0 1 0 0 0 0 0 0 0 0 1 0]
-            [0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 1]
-            [0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0]
-            [0 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0]
-            [0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 0]
-            [0 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0]
-            [0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0]
-            [0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0]
-            [0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0]
-            [0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0]
-            [0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(8218, "The function matrix is replaced by _matrix_.")
-        return self._matrix_()
-
 
     def _matrix_(self, reverse=False):
         """
@@ -553,13 +506,13 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         OUTPUT:
 
         If self has an `n`\th root, returns one (if ``all`` is ``False``) or a
-        list of all of them (if ``all`` is ``True``).  Otherwise, raises a
-        ValueError (if ``extend`` is ``False``) or a ``NotImplementedError`` (if
-        ``extend`` is ``True``).
+        list of all of them (if ``all`` is ``True``).
+        Otherwise, raises a ``ValueError`` (if ``extend`` is ``False``)
+        or a ``NotImplementedError`` (if ``extend`` is ``True``).
 
         .. warning::
 
-           The 'extend' option is not implemented (yet).
+           The ``extend`` option is not implemented (yet).
 
         EXAMPLES::
 

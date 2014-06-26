@@ -141,7 +141,7 @@ cdef class GenericBackend:
 
             *  1  Integer
             *  0  Binary
-            * -1  Continuous
+            *  -1  Continuous
 
         EXAMPLE::
 
@@ -848,7 +848,7 @@ cdef class GenericBackend:
         .. NOTE::
 
            The list of available parameters is available at
-           :meth:`sage.numerical.mip.MixedIntegerlinearProgram.solver_parameter`
+           :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solver_parameter`.
 
         EXAMPLE::
 
@@ -974,18 +974,20 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
           <http://www.gurobi.com/>`_ web site.
 
         - PPL (``solver="PPL"``). See the `PPL
-          <http://bugseng.com/products/ppl>` _ web site.
+          <http://bugseng.com/products/ppl>`_ web site.
 
         ``solver`` should then be equal to one of ``"GLPK"``, ``"Coin"``,
         ``"CPLEX"``, ``"Gurobi"``, ``"PPL"``, or ``None``. If ``solver=None`` (default),
         the default solver is used (see ``default_mip_solver`` method.
 
-    - ``constraint_generation`` (boolean) -- whether the solver
-      returned is to be used for constraint/variable generation. As
-      the interface with Coin does not support constraint/variable
-      generation, setting ``constraint_generation`` to ``False``
-      ensures that the backend to Coin is not returned when ``solver =
-      None``. This is set to ``False`` by default.
+    - ``constraint_generation`` -- Only used when ``solver=None``.
+
+      - When set to ``True``, after solving the ``MixedIntegerLinearProgram``,
+        it is possible to add a constraint, and then solve it again.
+        The effect is that solvers that do not support this feature will not be
+        used.
+
+      - Defaults to ``False``.
 
     .. SEEALSO::
 
@@ -996,7 +998,6 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
         sage: from sage.numerical.backends.generic_backend import get_solver
         sage: p = get_solver()
     """
-
     if solver is None:
         solver = default_mip_solver()
 

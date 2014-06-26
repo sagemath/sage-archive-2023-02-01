@@ -141,7 +141,7 @@ class AffineNilTemperleyLiebTypeA(CombinatorialFreeModule):
 
             sage: A = AffineNilTemperleyLiebTypeA(3)
             sage: A.index_set()
-            [0, 1, 2]
+            (0, 1, 2)
         """
         return self._index_set
 

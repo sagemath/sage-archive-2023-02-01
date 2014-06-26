@@ -333,7 +333,7 @@ Il nous faut réduire l'équation différentielle d'ordre 2 à un système de de
         3/4             0.82                 -0.16            -0.66          -0.081
           1             0.65                 -0.18            -0.74           0.022
 
-On en déduit :math:`z(1)\approx 0.75`.
+On en déduit :math:`z(1)\approx 0.65`.
 
 On peut également tracer le graphe des points :math:`(x,y)` pour obtenir
 une image approchée de la courbe. La fonction ``eulers_method_2x2_plot``
@@ -373,12 +373,12 @@ et *Special functions*, respectively) du manuel de référence de Sage
     sage: x = polygen(QQ, 'x')
     sage: chebyshev_U(2,x)
     4*x^2 - 1
-    sage: bessel_I(1,1,"pari",250)
+    sage: bessel_I(1,1).n(250)
     0.56515910399248502720769602760986330732889962162109200948029448947925564096
-    sage: bessel_I(1,1)
+    sage: bessel_I(1,1).n()
     0.565159103992485
-    sage: bessel_I(2,1.1,"maxima")  # les quelques derniers chiffres sont aléatoires
-    0.167089499251049...
+    sage: bessel_I(2,1.1).n()
+    0.167089499251049
 
 Pour l'instant, ces fonctions n'ont été adaptées à Sage que pour une
 utilisation numérique. Pour faire du calcul formel, il faut utiliser

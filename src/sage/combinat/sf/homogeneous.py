@@ -46,7 +46,7 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
         classical.SymmetricFunctionAlgebra_classical.__init__(self, Sym, "homogeneous", 'h')
 
     def _dual_basis_default(self):
-        """
+        r"""
         Returns the dual basis to ``self``.
 
         INPUT:
@@ -54,7 +54,7 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
         - ``self`` -- a homogeneous basis of symmetric functions
         - ``scalar`` -- optional input which specifies a function ``zee`` on partitions. The function
                         ``zee`` determines the scalar product on the power sum basis
-                        with normalization `<p_\mu, p_\mu> = zee(mu)`.
+                        with normalization `\langle p_\mu, p_\mu \rangle = \mathrm{zee}(mu)`.
                         (default: uses standard ``zee`` function)
         - ``scalar_name`` -- specifies the name of the scalar function (optional)
         - ``prefix`` -- optional input, specifies the prefix to be used to display the basis.
@@ -116,12 +116,40 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
         def omega(self):
-            """
-            Returns the image of ``self`` under the Frobenius / omega automorphism.
+            r"""
+            Return the image of ``self`` under the omega automorphism.
 
-            INPUT:
+            The *omega automorphism* is defined to be the unique algebra
+            endomorphism `\omega` of the ring of symmetric functions that
+            satisfies `\omega(e_k) = h_k` for all positive integers `k`
+            (where `e_k` stands for the `k`-th elementary symmetric
+            function, and `h_k` stands for the `k`-th complete homogeneous
+            symmetric function). It furthermore is a Hopf algebra
+            endomorphism and an involution, and it is also known as the
+            *omega involution*. It sends the power-sum symmetric function
+            `p_k` to `(-1)^{k-1} p_k` for every positive integer `k`.
 
-            - ``self`` -- an element of the homogeneous basis of symmetric functions
+            The images of some bases under the omega automorphism are given by
+
+            .. MATH::
+
+                \omega(e_{\lambda}) = h_{\lambda}, \qquad
+                \omega(h_{\lambda}) = e_{\lambda}, \qquad
+                \omega(p_{\lambda}) = (-1)^{|\lambda| - \ell(\lambda)}
+                p_{\lambda}, \qquad
+                \omega(s_{\lambda}) = s_{\lambda^{\prime}},
+
+            where `\lambda` is any partition, where `\ell(\lambda)` denotes
+            the length (:meth:`~sage.combinat.partition.Partition.length`)
+            of the partition `\lambda`, where `\lambda^{\prime}` denotes the
+            conjugate partition
+            (:meth:`~sage.combinat.partition.Partition.conjugate`) of
+            `\lambda`, and where the usual notations for bases are used
+            (`e` = elementary, `h` = complete homogeneous, `p` = powersum,
+            `s` = Schur).
+
+            :meth:`omega_involution()` is a synonym for the :meth:`omega()`
+            method.
 
             OUTPUT:
 
@@ -140,6 +168,8 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
             """
             e = self.parent().realization_of().e()
             return self.parent()(e._from_element(self))
+
+        omega_involution = omega
 
         def expand(self, n, alphabet='x'):
             """

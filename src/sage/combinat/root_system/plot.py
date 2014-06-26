@@ -214,7 +214,9 @@ thought. Here, we draw the root lattice, with the positive roots of
 small height in the root poset::
 
     sage: L = RootSystem(["A",1,1]).root_lattice()
-    sage: positive_roots = TransitiveIdealGraded(attrcall("pred"), L.simple_roots())
+    sage: seed = L.simple_roots()
+    sage: succ = attrcall("pred")
+    sage: positive_roots = RecursivelyEnumeratedSet(seed, succ, structure='graded')
     sage: it = iter(positive_roots)
     sage: first_positive_roots = [it.next() for i in range(10)]
     sage: L.plot(roots=first_positive_roots, affine=False, alcoves=False)
@@ -238,7 +240,9 @@ small height in the root poset::
 Here is a polished solution for the first exercise::
 
     sage: L = RootSystem(["A",1,1]).weight_space()
-    sage: positive_coroots = TransitiveIdealGraded(attrcall("pred"), L.simple_coroots())
+    sage: seed = L.simple_coroots()
+    sage: succ = attrcall("pred")
+    sage: positive_coroots = RecursivelyEnumeratedSet(seed, succ, structure='graded')
     sage: it = iter(positive_coroots)
     sage: first_positive_coroots = [it.next() for i in range(20)]
     sage: p = L.plot(fundamental_chamber=True, reflection_hyperplanes=first_positive_coroots,
@@ -480,7 +484,7 @@ The same picture for `A_3` gives a nice 3D permutohedron::
 Similarly, we display a crystal graph by positioning each element
 according to its weight::
 
-    sage: C = CrystalOfTableaux(["A",2], shape=[4,2])
+    sage: C = crystals.Tableaux(["A",2], shape=[4,2])
     sage: L = C.weight_lattice_realization()
     sage: plot_options = L.plot_parse_options()
 
@@ -503,7 +507,7 @@ according to its weight::
 
 Here is an analogue picture in 3D::
 
-    sage: C = CrystalOfTableaux(["A",3], shape=[3,2,1])
+    sage: C = crystals.Tableaux(["A",3], shape=[3,2,1])
     sage: L = C.weight_lattice_realization()
     sage: plot_options = L.plot_parse_options()
     sage: g = C.digraph()
@@ -533,6 +537,7 @@ Enjoy and please post your best pictures on the
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.latex import latex
 from sage.misc.lazy_import import lazy_import
+from sage.structure.element import parent
 from sage.modules.free_module_element import vector
 from sage.rings.all import ZZ, QQ
 from sage.combinat.root_system.cartan_type import CartanType
@@ -557,6 +562,7 @@ class PlotOptions:
                  labels=True,
                  level=None,
                  affine=None,
+                 arrowsize=5,
                  ):
         r"""
         TESTS::
@@ -597,8 +603,9 @@ class PlotOptions:
             3
         """
         self.space = space
-        self._color=color
-        self.labels=labels
+        self._color = color
+        self._arrowsize = arrowsize
+        self.labels = labels
 
         # self.level = l != None: whether to intersect the alcove picture at level l
         # self.affine: whether to project at level l and then onto the classical space
@@ -720,16 +727,76 @@ class PlotOptions:
         else:
             return self.empty()
 
-    def color(self, i):
+    def index_of_object(self, i):
+        """
+        Try to return the node of the Dynkin diagram indexing the object `i`.
+
+        OUTPUT: a node of the Dynkin diagram or ``None``
+
+        EXAMPLES::
+
+            sage: L = RootSystem(["A",3]).root_lattice()
+            sage: alpha = L.simple_roots()
+            sage: omega = RootSystem(["A",3]).weight_lattice().fundamental_weights()
+            sage: options = L.plot_parse_options(labels=False)
+            sage: options.index_of_object(3)
+            3
+            sage: options.index_of_object(alpha[1])
+            1
+            sage: options.index_of_object(omega[2])
+            2
+            sage: options.index_of_object(omega[2]+omega[3])
+            sage: options.index_of_object(30)
+            sage: options.index_of_object("bla")
+        """
+        if parent(i) in RootLatticeRealizations and  len(i) == 1 and i.leading_coefficient().is_one():
+            i = i.leading_support()
+        if i in self.space.cartan_type().index_set():
+            return i
+        return None
+
+    def thickness(self, i):
         r"""
-        Return the color to be used for `i`.
+        Return the thickness to be used for lines indexed by `i`.
 
         INPUT:
 
-        - ``i`` -- an element of the index, or an element of a root lattice
-          realization
+        - ``i`` -- an index
 
-        If ``i`` is a monomial like `\alpha_j` then ``j`` is used as index.
+        .. SEEALSO:: :meth:`index_of_object`
+
+        EXAMPLES::
+
+            sage: L = RootSystem(["A",2,1]).root_lattice()
+            sage: options = L.plot_parse_options(labels=False)
+            sage: alpha = L.simple_roots()
+            sage: options.thickness(0)
+            2
+            sage: options.thickness(1)
+            1
+            sage: options.thickness(2)
+            1
+            sage: for alpha in L.simple_roots():
+            ....:     print alpha, options.thickness(alpha)
+            alpha[0] 2
+            alpha[1] 1
+            alpha[2] 1
+        """
+        ct = self.space.cartan_type()
+        if ct.is_affine() and ct.special_node() == self.index_of_object(i):
+            return 2
+        else:
+            return 1
+
+    def color(self, i):
+        r"""
+        Return the color to be used for objects indexed by `i`.
+
+        INPUT:
+
+        - ``i`` -- an index
+
+        .. SEEALSO:: :meth:`index_of_object`
 
         EXAMPLES::
 
@@ -749,14 +816,7 @@ class PlotOptions:
             -alpha[2]            black
             -alpha[1] - alpha[2] black
         """
-        if i in ZZ:
-            return self._color(i)
-        else:
-            assert i.parent() in RootLatticeRealizations
-            if len(i) == 1 and i.leading_coefficient().is_one():
-                return self._color(i.leading_support())
-            else:
-                return self._color("other")
+        return self._color(self.index_of_object(i))
 
     def projection(self, v):
         r"""
@@ -969,11 +1029,11 @@ class PlotOptions:
                 continue
             head = self.projection(vectors[i])
             if head != tail:
-                G += arrow(tail, head, rgbcolor=self.color(i))
+                G += arrow(tail, head, rgbcolor=self.color(i), arrowsize=self._arrowsize)
             G += self.text(i, 1.05*head)
         return self.finalize(G)
 
-    def cone(self, rays=[], lines=[], color="black", alpha=1, wireframe=False,
+    def cone(self, rays=[], lines=[], color="black", thickness=1, alpha=1, wireframe=False,
              label=None, draw_degenerate=True, as_polyhedron=False):
         r"""
         Return the cone generated by the given rays and lines.
@@ -1025,6 +1085,18 @@ class PlotOptions:
             sage: options.cone(rays=[alpha[1]], lines=[alpha[2]], color='green', label=2)
             0
 
+        Test that the options are properly passed down::
+
+            sage: L = RootSystem(["A",2]).root_lattice()
+            sage: options = L.plot_parse_options()
+            sage: p = options.cone(rays=[alpha[1]+alpha[2]], color='green', label=2, thickness=4, alpha=.5)
+            sage: list(p)
+            [Line defined by 2 points, Text '$2$' at the point (3.15,3.15)]
+            sage: sorted(p[0].options().items())
+            [('alpha', 0.500000000000000), ('legend_color', None),
+             ('legend_label', None), ('rgbcolor', 'green'), ('thickness', 4),
+             ('zorder', 1)]
+
         This method is tested indirectly but extensively by the
         various plot methods of root lattice realizations.
         """
@@ -1063,7 +1135,7 @@ class PlotOptions:
                 center = q.center()
                 q = q.translation(-center).dilation(ZZ(95)/ZZ(100)).translation(center)
             else:
-                options = dict(wireframe=False)
+                options = dict(wireframe=False, line={"thickness":thickness})
             result = q.plot(color = color, alpha=alpha, **options)
             if label is not None:
                 # Put the label on the vertex having largest z, then y, then x coordinate.

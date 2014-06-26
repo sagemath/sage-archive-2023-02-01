@@ -18,6 +18,10 @@ Bibliography
 .. [Dyer1993] M. J. Dyer. The nil Hecke ring and Deodhar's conjecture
    on Bruhat intervals. Inventiones Mathematicae, 111(1):571--574, 1993.
 
+.. [Dynkin1952] E. B. Dynkin,
+   Semisimple subalgebras of semisimple Lie algebras. (Russian) 
+   Mat. Sbornik N.S. 30(72):349–462, 1952.
+
 .. [FauserEtAl2006] B. Fauser, P. D. Jarvis, R. C. King, and
    B. G. Wybourne. New branching rules induced by plethysm. *Journal of
    Physics A*. 39(11):2611--2655, 2006.
@@ -39,7 +43,7 @@ Bibliography
    pp. 205--272.
 
 .. [HainesEtAl2009] T. J. Haines, R. E. Kottwitz, and
-   A. Parsad. Iwahori-Hecke Algebras. arXiv:math/0309168,
+   A. Prasad. Iwahori-Hecke Algebras. arXiv:math/0309168,
    http://arxiv.org/abs/math/0309168.
 
 .. [HongKang2002] J. Hong and S.-J. Kang. *Introduction to Quantum
@@ -94,6 +98,14 @@ Bibliography
    Kirillov--Reshetikhin crystals for nonexceptional types.
    *Representation Theory* 12:186--207, 2008.
 
+.. [Seitz1991] G. Seitz,
+   Maximal subgroups of exceptional algebraic groups. 
+   Mem. Amer. Math. Soc. 90 (1991), no. 441.
+
+.. [Rubenthaler2008] H. Rubenthaler, 
+   The (A2,G2) duality in E6, octonions and the triality principle.
+   Trans. Amer. Math. Soc. 360 (2008), no. 1, 347–367 
+
 .. [SchillingTingley2011] A. Schilling, P. Tingley.
    Demazure crystals, Kirillov-Reshetikhin crystals, and the energy function.
    preprint arXiv:1104.2359
@@ -101,3 +113,9 @@ Bibliography
 .. [Stanley1999] R. P. Stanley. *Enumerative Combinatorics, Volume
    2*. Cambridge University Press, 1999.
 
+.. [Testerman1989] Testerman, Donna M.
+   A construction of certain maximal subgroups of the algebraic groups E6 and F4. 
+   J. Algebra 122 (1989), no. 2, 299–322. 
+
+.. [Testerman1992] Testerman, Donna M. The construction of the maximal A1's in
+   the exceptional algebraic groups. Proc. Amer. Math. Soc. 116 (1992), no. 3, 635–644.

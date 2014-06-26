@@ -85,7 +85,7 @@ class AffineGroupElement(MatrixGroupElement_base):
               [2 0]     [0]
         x |-> [0 2] x + [0]
     """
-    def __init__(self, A, b=0, parent=None, convert=True, check=True):
+    def __init__(self, parent, A, b=0, convert=True, check=True):
         r"""
         Create element of an affine group.
 
@@ -277,7 +277,7 @@ class AffineGroupElement(MatrixGroupElement_base):
         parent = self.parent()
         A = self._A * other._A
         b = self._b + self._A * other._b
-        return parent.element_class(A, b, parent, check=False)
+        return parent.element_class(parent, A, b, check=False)
 
     def __call__(self, v):
         """
@@ -386,7 +386,7 @@ class AffineGroupElement(MatrixGroupElement_base):
         parent = self.parent()
         A = parent.matrix_space()(self._A.inverse())
         b = -A*self.b()
-        return parent.element_class(A, b, parent, check=False)
+        return parent.element_class(parent, A, b, check=False)
 
     __invert__ = inverse
 

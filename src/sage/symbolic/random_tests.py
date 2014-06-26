@@ -47,8 +47,7 @@ def _mk_full_functions():
     random_expr will fail as well.  That's OK; just fix the doctest
     to match the new output.
     """
-    items = sage.symbolic.pynac.symbol_table['functions'].items()
-    items.sort()
+    items = sorted(sage.symbolic.pynac.symbol_table['functions'].items())
     return [(1.0, f, f.number_of_arguments())
             for (name, f) in items
             if hasattr(f, 'number_of_arguments') and
@@ -256,7 +255,7 @@ def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5,
     EXAMPLES::
 
         sage: from sage.symbolic.random_tests import *
-        sage: set_random_seed(1)
+        sage: set_random_seed(53)
         sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element) # random
         (v1^(0.97134084277 + 0.195868299334*I)/csc(-pi + v1^2 + v3) + sgn(1/
         ((-v3 - 0.760455994772 - 0.554367254855*I)*erf(v3 + 0.982759757946 -
@@ -354,20 +353,20 @@ def assert_strict_weak_order(a,b,c, cmp_func):
     msg += str(cmp)
 
     for i in range(0,3):   # irreflexivity
-        if cmp[i,i]: raise ValueError, msg
+        if cmp[i,i]: raise ValueError(msg)
 
     for i,j in indices:    # asymmetric
         if i==j: continue
         #if x[i] == x[j]: continue
-        if cmp[i,j] and cmp[j,i]: raise ValueError, msg
+        if cmp[i,j] and cmp[j,i]: raise ValueError(msg)
 
     for i,j,k in Permutations([0,1,2]):   # transitivity
-        if cmp[i,j] and cmp[j,k] and not cmp[i,k]: raise ValueError, msg
+        if cmp[i,j] and cmp[j,k] and not cmp[i,k]: raise ValueError(msg)
 
     def incomparable(i,j):
         return (not cmp[i,j]) and (not cmp[j,i])
     for i,j,k in Permutations([0,1,2]):   # transitivity of equivalence
-        if incomparable(i,j) and incomparable(j,k) and not incomparable(i,k): raise ValueError, msg
+        if incomparable(i,j) and incomparable(j,k) and not incomparable(i,k): raise ValueError(msg)
 
 def test_symbolic_expression_order(repetitions=100):
     r"""

@@ -68,7 +68,7 @@ def reset(vars=None, attached=False):
     G = globals()  # this is the reason the code must be in Cython.
     T = type(sys)
     for k in G.keys():
-        if k[0] != '_' and type(k) != T and k not in EXCLUDE:
+        if k[0] != '_' and not isinstance(k, T) and k not in EXCLUDE:
             try:
                 del G[k]
             except KeyError:
@@ -77,7 +77,8 @@ def reset(vars=None, attached=False):
     forget()
     reset_interfaces()
     if attached:
-        reset_attached()
+        import sage.misc.attached_files
+        sage.misc.attached_files.reset()
 
 def restore(vars=None):
     """
@@ -118,7 +119,7 @@ def restore(vars=None):
         NameError: name 'ww' is not defined
     """
     G = globals()  # this is the reason the code must be in Cython.
-    if not G.has_key('sage_mode'):
+    if 'sage_mode' not in G:
         import sage.all
         D = sage.all.__dict__
     else:
@@ -147,7 +148,7 @@ def _restore(G, D, vars):
             else:
                 vars = vars.split()
         for k in vars:
-            if D.has_key(k):
+            if k in D:
                 G[k] = D[k]
             else:
                 try:
@@ -159,23 +160,3 @@ def _restore(G, D, vars):
 def reset_interfaces():
     from sage.interfaces.quit import expect_quitall
     expect_quitall()
-
-def reset_attached():
-    """
-    Remove all the attached files from the list of attached files.
-
-    EXAMPLES::
-
-        sage: sage.misc.reset.reset_attached()
-        sage: t = tmp_filename(ext='.py')
-        sage: open(t,'w').write("print 'hello world'")
-        sage: attach(t)
-        hello world
-        sage: attached_files() == [t]
-        True
-        sage: sage.misc.reset.reset_attached()
-        sage: attached_files()
-        []
-    """
-    import preparser
-    preparser.attached = {}

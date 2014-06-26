@@ -97,13 +97,22 @@ def init_sage():
     import sage.misc.displayhook
     sys.displayhook = sage.misc.displayhook.DisplayHook(sys.displayhook)
 
+    # Switch on extra debugging
+    from sage.structure.debug_options import debug
+    debug.refine_category_hash_check = True
+
     # Disable IPython colors during doctests
-    from sage.misc.interpreter import DEFAULT_SAGE_CONFIG
-    DEFAULT_SAGE_CONFIG['TerminalInteractiveShell']['colors'] = 'NoColor'
+    from sage.repl.interpreter import DEFAULT_SAGE_CONFIG
+    DEFAULT_SAGE_CONFIG.TerminalInteractiveShell.colors = 'NoColor'
 
     # We import readline before forking, otherwise Pdb doesn't work
-    # os OS X: http://trac.sagemath.org/sage_trac/ticket/14289
+    # os OS X: http://trac.sagemath.org/14289
     import readline
+
+    # Disable SymPy terminal width detection
+    from sympy.printing.pretty.stringpict import stringPict
+    stringPict.terminal_width = lambda self:0
+
 
 def warning_function(file):
     r"""
@@ -782,7 +791,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
             sage: FDS = FileDocTestSource(filename,DD)
             sage: globs = RecordingDict(globals())
-            sage: globs.has_key('doctest_var')
+            sage: 'doctest_var' in globs
             False
             sage: doctests, extras = FDS.create_doctests(globs)
             sage: ex0 = doctests[0].examples[0]
@@ -1090,13 +1099,15 @@ class SageDocTestRunner(doctest.DocTestRunner):
                         print(src)
                         if ex.want:
                             print(doctest._indent(ex.want[:-1]))
-                    from sage.misc.interpreter import DEFAULT_SAGE_CONFIG
-                    from IPython import embed
-                    cfg = DEFAULT_SAGE_CONFIG.copy()
+                    from sage.repl.interpreter import DEFAULT_SAGE_CONFIG
+                    from IPython.terminal.embed import InteractiveShellEmbed
+                    import copy
+                    cfg = copy.deepcopy(DEFAULT_SAGE_CONFIG)
                     prompt_config = cfg.PromptManager
                     prompt_config.in_template = 'debug: '
                     prompt_config.in2_template = '.....: '
-                    embed(config=cfg, banner1='', user_ns=dict(globs))
+                    shell = InteractiveShellEmbed(config=cfg, banner1='', user_ns=dict(globs))
+                    shell(header='', stack_depth=2)
                 except KeyboardInterrupt:
                     # Assume this is a *real* interrupt. We need to
                     # escalate this to the master docbuilding process.
@@ -1194,7 +1205,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: _ = sage0.eval("DTR = sdf.SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)")
             sage: sage0._prompt = r"\(Pdb\) "
             sage: sage0.eval("DTR.run(DT, clear_globs=False)") # indirect doctest
-            '... "Invariants %s define a singular curve."%ainvs'
+            '... ArithmeticError("Invariants %s define a singular curve."%ainvs)'
             sage: sage0.eval("l")
             '...if self.discriminant() == 0:...raise ArithmeticError...'
             sage: sage0.eval("u")
@@ -1276,7 +1287,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             [('cputime', [...]), ('err', None), ('failures', 0), ('walltime', [...])]
         """
         for key in ["cputime","walltime"]:
-            if not D.has_key(key):
+            if key not in D:
                 D[key] = []
             if hasattr(self, key):
                 D[key].append(self.__dict__[key])
@@ -2059,7 +2070,6 @@ class DocTestTask(object):
         try:
             file = self.source.path
             basename = self.source.basename
-            import sage.all_cmdline
             runner = SageDocTestRunner(
                     SageOutputChecker(),
                     verbose=options.verbose,
@@ -2071,9 +2081,17 @@ class DocTestTask(object):
             N = options.file_iterations
             results = DictAsObject(dict(walltime=[],cputime=[],err=None))
             for it in range(N):
-                sage_namespace = RecordingDict(dict(sage.all_cmdline.__dict__))
+                # Make the right set of globals available to doctests
+                if basename.startswith("sagenb."):
+                    import sage.all_notebook as sage_all
+                else:
+                    import sage.all_cmdline as sage_all
+                dict_all = sage_all.__dict__
+                # Remove '__package__' item from the globals since it is not
+                # always in the globals in an actual Sage session.
+                dict_all.pop('__package__', None)
+                sage_namespace = RecordingDict(dict_all)
                 sage_namespace['__name__'] = '__main__'
-                sage_namespace['__package__'] = None
                 doctests, extras = self.source.create_doctests(sage_namespace)
                 timer = Timer().start()
 

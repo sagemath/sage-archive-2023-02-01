@@ -27,7 +27,6 @@ class TracError(RuntimeError):
         sage: from sage.dev.trac_error import TracError
         sage: TracError()
         TracError()
-
     """
     pass
 
@@ -40,7 +39,6 @@ class TracConnectionError(TracError):
         sage: from sage.dev.trac_error import TracConnectionError
         sage: TracConnectionError()
         TracConnectionError('Connection to trac server failed.',)
-
     """
     def __init__(self):
         r"""
@@ -55,6 +53,29 @@ class TracConnectionError(TracError):
         """
         TracError.__init__(self, "Connection to trac server failed.")
 
+class TracAuthenticationError(TracError):
+    r"""
+    Trac authentication error.
+
+    EXAMPLES::
+
+        sage: from sage.dev.trac_error import TracAuthenticationError
+        sage: TracAuthenticationError()
+        TracAuthenticationError('Authentication with trac server failed.',)
+    """
+    def __init__(self):
+        r"""
+        Initialization.
+
+        TESTS::
+
+            sage: from sage.dev.trac_error import TracAuthenticationError
+            sage: type(TracAuthenticationError())
+            <class 'sage.dev.trac_error.TracAuthenticationError'>
+
+        """
+        TracError.__init__(self, "Authentication with trac server failed.")
+
 class TracInternalError(TracError):
     r"""
     Error to indicate that the XML-RPC interface of trac returned an error.
@@ -63,11 +84,13 @@ class TracInternalError(TracError):
 
         sage: from sage.dev.trac_error import TracInternalError
         sage: import xmlrpclib
-        sage: raise TracInternalError(xmlrpclib.Fault(403, "TICKET_CREATE privileges are required to perform this operation. You don't have the required permissions."))
+        sage: raise TracInternalError(xmlrpclib.Fault(403, 
+        ....:     "TICKET_CREATE privileges are required to perform this operation."
+        ....:     " You don't have the required permissions."))
         Traceback (most recent call last):
         ...
-        TracInternalError: <Fault 403: "TICKET_CREATE privileges are required to perform this operation. You don't have the required permissions.">
-
+        TracInternalError: <Fault 403: "TICKET_CREATE privileges are required to 
+        perform this operation. You don't have the required permissions.">
     """
     def __init__(self, fault):
         r"""
@@ -77,9 +100,10 @@ class TracInternalError(TracError):
 
             sage: from sage.dev.trac_error import TracInternalError
             sage: import xmlrpclib
-            sage: type(TracInternalError(xmlrpclib.Fault(403, "TICKET_CREATE privileges are required to perform this operation. You don't have the required permissions.")))
+            sage: type(TracInternalError(xmlrpclib.Fault(403, 
+            ....:      "TICKET_CREATE privileges are required to perform this operation."
+            ....:      " You don't have the required permissions.")))
             <class 'sage.dev.trac_error.TracInternalError'>
-
         """
         self._fault = fault
         self.faultCode = fault.faultCode

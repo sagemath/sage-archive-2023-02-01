@@ -154,7 +154,7 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
         if i in self:
             return self.from_integer(i)
         else:
-            raise ValueError, "Value %s in not in %s."%(i, self)
+            raise ValueError("Value %s in not in %s."%(i, self))
 
     from_integer = Integer
 

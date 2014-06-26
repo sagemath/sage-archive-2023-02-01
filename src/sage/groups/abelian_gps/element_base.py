@@ -52,7 +52,7 @@ class AbelianGroupElementBase(MultiplicativeGroupElement):
         True
     """
 
-    def __init__(self, exponents, parent):
+    def __init__(self, parent, exponents):
         """
         Create an element.
 
@@ -71,7 +71,7 @@ class AbelianGroupElementBase(MultiplicativeGroupElement):
         else:
             self._exponents = tuple( ZZ(e) for e in exponents )
             if len(self._exponents) != n:
-                raise IndexError('argument length (= %s) must be %s.'%(len(X), n))
+                raise IndexError('argument length (= %s) must be %s.'%(len(exponents), n))
 
     def exponents(self):
         """
@@ -233,7 +233,7 @@ class AbelianGroupElementBase(MultiplicativeGroupElement):
         exponents = [ (x-y)%order if order!=0 else x-y
                       for x, y, order in
                       zip(left._exponents, right._exponents, G.gens_orders()) ]
-        return G.element_class(exponents, G)
+        return G.element_class(G, exponents)
 
     def _mul_(left, right):
         """
@@ -252,7 +252,7 @@ class AbelianGroupElementBase(MultiplicativeGroupElement):
         exponents = [ (x+y)%order if order!=0 else x+y
                       for x, y, order in
                       zip(left._exponents, right._exponents, G.gens_orders()) ]
-        return G.element_class(exponents, G)
+        return G.element_class(G, exponents)
 
     def __pow__(self, n):
         """
@@ -270,7 +270,7 @@ class AbelianGroupElementBase(MultiplicativeGroupElement):
         G = self.parent()
         exponents = [ (m*e) % order if order!=0 else m*e
                       for e,order in zip(self._exponents, G.gens_orders()) ]
-        return G.element_class(exponents, G)
+        return G.element_class(G, exponents)
 
     def inverse(self):
         """
@@ -295,7 +295,7 @@ class AbelianGroupElementBase(MultiplicativeGroupElement):
         G = self.parent()
         exponents = [ (-e)%order if order!=0 else -e
                       for e,order in zip(self._exponents, G.gens_orders()) ]
-        return G.element_class(exponents, G)
+        return G.element_class(G, exponents)
 
     __invert__ = inverse
 

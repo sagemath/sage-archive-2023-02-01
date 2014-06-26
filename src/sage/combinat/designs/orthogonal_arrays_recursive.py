@@ -11,13 +11,20 @@ queries all implemented recursive constructions of designs. It is used by
 Sage's function
 :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`.
 
+REFERENCES:
+
+.. [AC07] Concerning eight mutually orthogonal latin squares
+  Julian R. Abel, Nicholas Cavenagh
+  Journal of Combinatorial Designs
+  Vol. 15, n.3, pp. 255-261
+  2007
+
 Functions
 ---------
 """
 from sage.misc.cachefunc import cached_function
-from sage.misc.unknown import Unknown
-from orthogonal_arrays import orthogonal_array, wilson_construction
-from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+from orthogonal_arrays import orthogonal_array
+from designs_pyx import is_orthogonal_array
 
 @cached_function
 def find_recursive_construction(k,n):
@@ -39,7 +46,7 @@ def find_recursive_construction(k,n):
     OUTPUT:
 
     Returns a pair ``f,args`` such that ``f(*args)`` returns the requested `OA`
-    if possible, and ``Unknown`` otherwise.
+    if possible, and ``False`` otherwise.
 
     EXAMPLES::
 
@@ -56,6 +63,7 @@ def find_recursive_construction(k,n):
         sage: print count
         40
     """
+    assert k >= 3
     for find_c in [find_construction_3_3,
                    find_construction_3_4,
                    find_construction_3_5,
@@ -64,11 +72,11 @@ def find_recursive_construction(k,n):
         if res:
             return res
 
-    return Unknown
+    return False
 
 def find_construction_3_3(k,n):
     r"""
-    Finds a decomposition for construction 3.3
+    Finds a decomposition for construction 3.3 from [AC07]_
 
     INPUT:
 
@@ -89,9 +97,9 @@ def find_construction_3_3(k,n):
         (11, 11, 16, 1)
         sage: find_construction_3_3(12,11)
     """
-    for mm in range(2,n//2+1):
-        if (not orthogonal_array( k , mm , existence=True) or
-            not orthogonal_array( k ,mm+1, existence=True)):
+    for mm in range(k-1,n//2+1):
+        if (not orthogonal_array(k ,mm  , existence=True) or
+            not orthogonal_array(k ,mm+1, existence=True)):
             continue
 
         for nn in range(2,n//mm+1):
@@ -99,19 +107,19 @@ def find_construction_3_3(k,n):
             if i<=0:
                 continue
 
-            if (orthogonal_array(k+i, nn , existence=True) and
-                orthogonal_array( k ,mm+i, existence=True)):
+            if (orthogonal_array(k+i, nn  , existence=True) and
+                orthogonal_array(k  , mm+i, existence=True)):
                 return construction_3_3, (k,nn,mm,i)
 
 def construction_3_3(k,n,m,i):
     r"""
     Returns an `OA(k,nm+i)`.
 
-    This is Wilson's construction with `i` truncated columns of size `1`, such
-    that a block `B_0` of the incomplete OA intersects all truncated
-    columns. There is a slight difference however, as the block `B_0` is only
-    considered up to its first `k` coordinates, and a `OA(k,i)` is used instead
-    of `iOA(k,1)` (thus there is no need for an `OA(k,m+i)`.
+    This is Wilson's construction with `i` truncated columns of size 1 and such
+    that a block `B_0` of the incomplete OA intersects all truncated columns. As
+    a consequence, all other blocks intersect only `0` or `1` of the last `i`
+    columns. This allow to consider the block `B_0` only up to its first `k`
+    coordinates and then use a `OA(k,i)` instead of a `OA(k,m+i) - i.OA(k,1)`.
 
     This is construction 3.3 from [AC07]_.
 
@@ -133,7 +141,7 @@ def construction_3_3(k,n,m,i):
         sage: is_orthogonal_array(construction_3_3(*find_construction_3_3(k,n)[1]),k,n,2)
         True
     """
-    from orthogonal_arrays import OA_relabel, incomplete_orthogonal_array
+    from orthogonal_arrays import wilson_construction, OA_relabel, incomplete_orthogonal_array
     # Builds an OA(k+i,n) containing a block [0]*(k+i)
     OA = incomplete_orthogonal_array(k+i,n,(1,))
     OA = [[(x+1)%n for x in B] for B in OA]
@@ -149,7 +157,7 @@ def construction_3_3(k,n,m,i):
 
 def find_construction_3_4(k,n):
     r"""
-    Finds a decomposition for construction 3.4
+    Finds a decomposition for construction 3.4 from [AC07]_
 
     INPUT:
 
@@ -170,7 +178,7 @@ def find_construction_3_4(k,n):
         (8, 25, 7, 12, 9)
         sage: find_construction_3_4(9,24)
     """
-    for mm in range(2,n//2+1):
+    for mm in range(k-1,n//2+1):
         if (not orthogonal_array(k,mm+0,existence=True) or
             not orthogonal_array(k,mm+1,existence=True) or
             not orthogonal_array(k,mm+2,existence=True)):
@@ -192,11 +200,11 @@ def construction_3_4(k,n,m,r,s):
     r"""
     Returns a `OA(k,nm+rs)`.
 
-    This is Wilson's construction applied to an incomplete `OA(k+r+1,n)` with
-    `k` columns of size 1 and a column of size `s`.
+    This is Wilson's construction applied to a truncated `OA(k+r+1,n)` with `k`
+    columns of size `1` and one column of size `s`.
 
-    The the unique elements of the `k` columns are picked so that a block `B_0`
-    contains them all.
+    The unique elements of the `k` truncated columns are picked so that a block
+    `B_0` contains them all.
 
     - If there exists an `OA(k,m+r+1)` the column of size `s` is truncated in
       order to intersect `B_0`.
@@ -226,7 +234,7 @@ def construction_3_4(k,n,m,r,s):
         sage: is_orthogonal_array(construction_3_4(*find_construction_3_4(k,n)[1]),k,n,2)
         True
     """
-    from orthogonal_arrays import OA_relabel
+    from orthogonal_arrays import wilson_construction, OA_relabel
     assert s<n
     master_design = orthogonal_array(k+r+1,n)
 
@@ -253,7 +261,7 @@ def construction_3_4(k,n,m,r,s):
 
 def find_construction_3_5(k,n):
     r"""
-    Finds a decomposition for construction 3.5
+    Finds a decomposition for construction 3.5 from [AC07]_
 
     INPUT:
 
@@ -274,7 +282,7 @@ def find_construction_3_5(k,n):
         (8, 13, 6, 11, 11, 11)
         sage: find_construction_3_5(9,24)
     """
-    from sage.combinat.composition import Compositions
+    from sage.combinat.integer_list import IntegerListsLex
 
     for mm in range(2,n//2+1):
         if (mm+3 >= n or
@@ -291,11 +299,7 @@ def find_construction_3_5(k,n):
             if not orthogonal_array(k+3,nn,existence=True):
                 continue
 
-            for r,s,t in Compositions(i+3,length=3,max_part=nn):
-                # avoid warning on Compositions(...,min_part=0)
-                r = r-1
-                s = s-1
-                t = t-1
+            for r,s,t in IntegerListsLex(i,length=3,ceiling=[nn-1,nn-1,nn-1]):
                 if (r <= s and
                     (nn-r-1)*(nn-s) < t and
                     (r==0 or orthogonal_array(k,r,existence=True)) and
@@ -336,7 +340,7 @@ def construction_3_5(k,n,m,r,s,t):
         sage: is_orthogonal_array(construction_3_5(*find_construction_3_5(k,n)[1]),k,n,2)
         True
     """
-    from orthogonal_arrays import OA_relabel
+    from orthogonal_arrays import wilson_construction, OA_relabel
     assert r <= s
     q = n
     assert (q-r-1)*(q-s) >= (q-s-1)*(q-r)
@@ -381,7 +385,7 @@ def construction_3_5(k,n,m,r,s,t):
 
 def find_construction_3_6(k,n):
     r"""
-    Finds a decomposition for construction 3.6
+    Finds a decomposition for construction 3.6 from [AC07]_
 
     INPUT:
 
@@ -404,7 +408,7 @@ def find_construction_3_6(k,n):
     """
     from sage.rings.arith import is_prime_power
 
-    for mm in range(2,n//2+1):
+    for mm in range(k-1,n//2+1):
         if (not orthogonal_array(k,mm+0,existence=True) or
             not orthogonal_array(k,mm+1,existence=True) or
             not orthogonal_array(k,mm+2,existence=True)):
@@ -423,7 +427,7 @@ def construction_3_6(k,n,m,i):
     r"""
     Returns a `OA(k,nm+i)`
 
-    This is Wilson's construction with `r` columns of order `1`, in which every
+    This is Wilson's construction with `r` columns of order `1`, in which each
     block intersects at most two truncated columns. Such a design exists when
     `n` is a prime power and is returned by :func:`OA_and_oval`.
 
@@ -448,6 +452,7 @@ def construction_3_6(k,n,m,i):
         sage: is_orthogonal_array(construction_3_6(*find_construction_3_6(k,n)[1]),k,n,2)
         True
     """
+    from orthogonal_arrays import wilson_construction
     OA = OA_and_oval(n)
     OA = [B[:k+i] for B in OA]
     OA = [B[:k] + [x if x==0 else None for x in B[k:]] for B in OA]
@@ -482,20 +487,13 @@ def OA_and_oval(q):
         sage: from sage.combinat.designs.orthogonal_arrays_recursive import OA_and_oval
         sage: _ = OA_and_oval
 
-    REFERENCES:
-
-    .. [AC07] Concerning eight mutually orthogonal latin squares
-      Julian R. Abel, Nicholas Cavenagh
-      Journal of Combinatorial Designs
-      Vol. 15, n.3, pp. 255-261
-      2007
     """
     from sage.rings.arith import is_prime_power
     from sage.combinat.designs.block_design import projective_plane
     from orthogonal_arrays import OA_relabel
 
     assert is_prime_power(q)
-    B = projective_plane(q)
+    B = projective_plane(q, check=False)
 
     # We compute the oval with a linear program
     from sage.numerical.mip import MixedIntegerLinearProgram

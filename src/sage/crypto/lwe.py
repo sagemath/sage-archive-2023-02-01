@@ -775,7 +775,9 @@ def balance_sample(s, q=None):
 
         sage: from sage.crypto.lwe import balance_sample, samples, Regev
         sage: map(balance_sample, samples(10, 5, Regev))
-        [((-9, -4, -4, 4, -4), 4), ((-8, 11, 12, -11, -11), -6), ((-13, -7, -12, 7, 7), -10), ((-6, -12, -3, -2, -6), -7), ((-5, -10, 1, 5, -5), -10), ((-14, 5, 12, 14, -9), 1), ((12, 11, 13, -1, 9), 10), ((1, -6, 2, -10, 4), 7), ((-11, 12, 0, -6, -3), 7), ((-7, 14, 8, 11, -8), -11)]
+        [((-9, -4, -4, 4, -4), 4), ((-8, 11, 12, -11, -11), -6),
+        ...
+        ((-11, 12, 0, -6, -3), 7), ((-7, 14, 8, 11, -8), -11)]
 
 
         sage: from sage.crypto.lwe import balance_sample, DiscreteGaussianPolynomialSampler, RingLWE, samples

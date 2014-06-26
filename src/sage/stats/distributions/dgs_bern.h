@@ -140,6 +140,18 @@ static inline unsigned long dgs_bern_uniform_call_libc(dgs_bern_uniform_t *self)
 }
 
 /**
+ * Clear cache of random bits.
+ *
+ * \param self Bernoulli state
+ *
+ * \ingroup Bernoulli
+ */
+
+static inline void dgs_bern_uniform_flush_cache(dgs_bern_uniform_t *self) {
+  self->count = self->length;
+}
+
+/**
  * \brief Clear uniformly random bit sampler
  * 
  * \ingroup Bernoulli

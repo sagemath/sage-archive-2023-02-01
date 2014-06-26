@@ -39,10 +39,9 @@ from sage.libs.mpfr cimport mpfr_set, GMP_RNDN
 from sage.rings.integer cimport Integer
 from sage.misc.randstate cimport randstate, current_randstate
 
-from dgs cimport dgs_disc_gauss_mp_init, dgs_disc_gauss_mp_clear
-from dgs cimport dgs_disc_gauss_dp_init, dgs_disc_gauss_dp_clear
+from dgs cimport dgs_disc_gauss_mp_init, dgs_disc_gauss_mp_clear, dgs_disc_gauss_mp_flush_cache
+from dgs cimport dgs_disc_gauss_dp_init, dgs_disc_gauss_dp_clear, dgs_disc_gauss_dp_flush_cache
 from dgs cimport DGS_DISC_GAUSS_UNIFORM_TABLE, DGS_DISC_GAUSS_UNIFORM_ONLINE, DGS_DISC_GAUSS_UNIFORM_LOGTABLE, DGS_DISC_GAUSS_SIGMA2_LOGTABLE
-
 
 cdef class DiscreteGaussianIntegerSampler(SageObject):
     """
@@ -101,11 +100,12 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
           accepted.
 
         - ``"sigma2+logtable"`` - samples are drawn from an easily samplable
-          distribution `k·σ_2` and accepted with probability proportional to 
-          `\exp(-(x-c)^2/(2σ^2))` where `\exp(-(x-c)^2/(2σ^2))` is computed using 
-          logarithmically many calls to Bernoulli distributions. 
-          See [DDLL13]_ for details. Note that this sampler adjusts sigma to match `σ_2·k`
-          for some integer `k`. Only integer-valued `c` are supported.
+          distribution with `σ = k·σ_2` with `σ_2 = \sqrt{1/(2\log 2)}` is and accepted
+          with probability proportional to `\exp(-(x-c)^2/(2σ^2))` where
+          `\exp(-(x-c)^2/(2σ^2))` is computed using  logarithmically many calls to Bernoulli
+          distributions (but no calls to `\exp`). See [DDLL13]_ for details. Note that this
+          sampler adjusts sigma to match `σ_2·k` for some integer `k`.
+          Only integer-valued `c` are supported.
 
         EXAMPLES::
 
@@ -188,7 +188,8 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
             (-2, 7, True)
 
         These generators cache random bits for performance reasons. Hence, resetting
-        the seed of the PRNG might not have the expected outcome::
+        the seed of the PRNG might not have the expected outcome. You can flush this cache with
+        ``DiscreteGaussianIntegerSampler.flush_cache``::
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
             sage: D = DiscreteGaussianIntegerSampler(3.0)
@@ -196,8 +197,8 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
             3
             sage: sage.misc.randstate.set_random_seed(0); D()
             3
-            sage: sage.misc.randstate.set_random_seed(0); D()
-            -3
+            sage: sage.misc.randstate.set_random_seed(0); D._flush_cache(); D()
+            3
 
             sage: D = DiscreteGaussianIntegerSampler(3.0)
             sage: sage.misc.randstate.set_random_seed(0); D()
@@ -205,7 +206,7 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
             sage: sage.misc.randstate.set_random_seed(0); D()
             3
             sage: sage.misc.randstate.set_random_seed(0); D()
-            -3            
+            -3        
         """
 
         if sigma <= 0.0:
@@ -249,9 +250,9 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
             self._gen_mp = dgs_disc_gauss_mp_init((<RealNumber>sigma).value, (<RealNumber>c).value, tau, algorithm)
             sig_off()
             self._gen_dp = NULL
-            self._sigma = sigma.parent()(0)
-            mpfr_set(self._sigma.value, self._gen_mp.sigma, GMP_RNDN)
-            self._c = c
+            self.sigma = sigma.parent()(0)
+            mpfr_set(self.sigma.value, self._gen_mp.sigma, GMP_RNDN)
+            self.c = c
         elif precision == "dp":
             RR = RealField()
             if not isinstance(sigma, RealNumber):
@@ -260,15 +261,51 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
             self._gen_dp = dgs_disc_gauss_dp_init(sigma, c, tau, algorithm)
             sig_off()
             self._gen_mp = NULL
-            self._sigma = RR(sigma)
-            self._c = RR(c)
+            self.sigma = RR(sigma)
+            self.c = RR(c)
         else:
             raise ValueError("Parameter precision '%s' not supported."%precision)
             
-        self._tau = Integer(tau)
-        self._algorithm = algorithm_str
+        self.tau = Integer(tau)
+        self.algorithm = algorithm_str
 
-    def __clear__(self):
+    def _flush_cache(self):
+        """
+        Flush the internal cache of random bits.
+
+        EXAMPLE::
+          
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+
+            sage: f = lambda: sage.misc.randstate.set_random_seed(0)
+
+            sage: f()
+            sage: D = DiscreteGaussianIntegerSampler(30.0)
+            sage: for i in range(16):
+            ...      print D(),
+            ...
+            21 23 37 6 -64 29 8 -22 -3 -10 7 -43 1 -29 25 38
+            
+            sage: f()
+            sage: D = DiscreteGaussianIntegerSampler(30.0)
+            sage: for i in range(16):
+            ...      f(); print D(),
+            ...
+            21 21 21 21 -21 21 21 -21 -21 -21 21 -21 21 -21 21 21
+            
+            sage: f()
+            sage: D = DiscreteGaussianIntegerSampler(30.0)
+            sage: for i in range(16):
+            ...      f(); D._flush_cache(); print D(),
+            ...
+            21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21
+        """
+        if self._gen_mp:
+            dgs_disc_gauss_mp_flush_cache(self._gen_mp)
+        if self._gen_dp:
+            dgs_disc_gauss_dp_flush_cache(self._gen_dp)
+        
+    def __dealloc__(self):
         """
         TESTS::
 
@@ -319,56 +356,4 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
             sage: repr(DiscreteGaussianIntegerSampler(3.0, 2))
             'Discrete Gaussian sampler over the Integers with sigma = 3.000000 and c = 2'
         """
-        return "Discrete Gaussian sampler over the Integers with sigma = %f and c = %d"%(self._sigma, self._c)
-
-    @property
-    def sigma(self):
-        """
-        Gaussian parameter sigma.
-        
-        EXAMPLE::
-
-            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
-            sage: D = DiscreteGaussianIntegerSampler(3.0, 2); D.sigma
-            3.0...
-        """
-        return self._sigma
-
-    @property
-    def c(self):
-        """
-        Center of Gaussian distribution
-        
-        EXAMPLE::
-
-            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
-            sage: D = DiscreteGaussianIntegerSampler(3.0, 2); D.c
-            2.0...
-        """
-        return self._c
-
-    @property
-    def tau(self):
-        """
-        tails are cut at `⌈στ⌉` (inclusive)
-        
-        EXAMPLE::
-
-            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
-            sage: D = DiscreteGaussianIntegerSampler(3.0, c=2); D.tau
-            6
-        """
-        return self._tau
-
-    @property
-    def algorithm(self):
-        """
-        Algorithm used ot sample elements.
-        
-        EXAMPLE::
-
-            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
-            sage: D = DiscreteGaussianIntegerSampler(3.0, 2); D.algorithm
-            'uniform+table'
-        """
-        return self._algorithm
+        return "Discrete Gaussian sampler over the Integers with sigma = %f and c = %d"%(self.sigma, self.c)

@@ -88,6 +88,8 @@ cdef void late_import():
 
 cdef int number_of_integer_rings = 0
 
+_prev_discrete_gaussian_integer_sampler = (None, None)
+
 def is_IntegerRing(x):
     r"""
     Internal function: return ``True`` iff ``x`` is the ring `\ZZ` of integers.
@@ -688,7 +690,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
           at zero. That is, the integer v is returned with probability proportional
           to exp(-v^2/(2*sigma^2)). See :mod:`sage.stats.distributions.discrete_gaussian_integer` for details.
           Note that if many samples from the same discrete Gaussian distribution
-          are needed, it is much faster to construct a DiscreteGaussianSampler object
+          are needed, it is faster to construct a
+          :class:`sage.stats.distributions.discrete_gaussian_integer.DiscreteGaussianIntegerSampler` object
           which is then repeatedly queried.
 
         The default distribution for ``ZZ.random_element()`` is based on
@@ -811,8 +814,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 raise ValueError("must specify x to use 'distribution=mpz_rrandomb'")
             mpz_rrandomb(value, rstate.gmp_state, int(x))
         elif distribution == "gaussian":
-            from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
-            r = DiscreteGaussianIntegerSampler(sigma=x, algorithm="uniform+online")()
+            global _prev_discrete_gaussian_integer_sampler
+            if x == _prev_discrete_gaussian_integer_sampler[0]:
+                r = _prev_discrete_gaussian_integer_sampler[1]()
+            else:
+                from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+                D = DiscreteGaussianIntegerSampler(sigma=x, algorithm="uniform+logtable")
+                r = D()
+                _prev_discrete_gaussian_integer_sampler = (x, D)
             mpz_set(value, r.value)
         else:
             raise ValueError, "Unknown distribution for the integers: %s"%distribution

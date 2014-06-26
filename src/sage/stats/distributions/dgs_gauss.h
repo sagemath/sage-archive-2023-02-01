@@ -170,9 +170,16 @@ void dgs_disc_gauss_mp_call_uniform_online(mpz_t rop, dgs_disc_gauss_mp_t *self,
 
 void dgs_disc_gauss_mp_call_sigma2_logtable(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
 
+/**
+ * Clear cache of random bits.
+ *
+ * \param self Discrete Gaussian sampler
+ *
+ */
 
-
-void dgs_disc_gauss_mp_clear(dgs_disc_gauss_mp_t *self);
+static inline void dgs_disc_gauss_mp_flush_cache(dgs_disc_gauss_mp_t *self) {
+  self->B->count = self->B->length;
+}
 
 /**
  * \brief Discrete Gaussians, double-precision version
@@ -261,6 +268,17 @@ long dgs_disc_gauss_dp_call_uniform_logtable(dgs_disc_gauss_dp_t *self);
  */
 
 long dgs_disc_gauss_dp_call_sigma2_logtable(dgs_disc_gauss_dp_t *self);
+
+/**
+ * Clear cache of random bits.
+ *
+ * \param self Discrete Gaussian sadpler
+ *
+ */
+
+static inline void dgs_disc_gauss_dp_flush_cache(dgs_disc_gauss_dp_t *self) {
+  self->B->count = self->B->length;
+}
 
 void dgs_disc_gauss_dp_clear(dgs_disc_gauss_dp_t *self);
 

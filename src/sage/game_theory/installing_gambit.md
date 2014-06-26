@@ -7,6 +7,9 @@ Make sure that you are using the most recent recent branch form this repository.
     git clone --single-branch --branch sage_integration https://github.com/tturocy/gambit
     cd gambit
     make dist
+
+Alternatively, you can download the tar straight from [here](http://www.vincent-knight.com/static/gambit/gambit-14.0.2.tar.gz). Once the tar has been created/downloaded:
+
     mv gambit-14.0.2.tar.gz SAGE_ROOT/upstream
     cd SAGE_ROOT
     ./sage -i gambit

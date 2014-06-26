@@ -9101,7 +9101,10 @@ class _FSMTapeCache_(SageObject):
             (39, 14)
             sage: TC2, TC2.cache
             (multi-tape at (2, 3), (deque([39]), deque([14])))
-            sage: TC2.forward(FSMTransition(0, 0, [[0], [0]]))
+            sage: TC2.forward(FSMTransition(0, 0, [[None], [None, None]]))
+            sage: TC2, TC2.cache
+            (multi-tape at (2, 3), (deque([39]), deque([14])))
+            sage: TC2.forward(FSMTransition(0, 0, [[0, None], [None, 0]]))
             sage: TC2, TC2.cache
             (multi-tape at (3, 4), (deque([]), deque([])))
             sage: TC2.forward(FSMTransition(0, 0, [[0], [0]]))
@@ -9109,10 +9112,13 @@ class _FSMTapeCache_(SageObject):
             ...
             ValueError: forwarding tape is not possible
         """
+        def length(word):
+            return len(tuple(letter for letter in word if letter is not None))
+
         if self.is_multitape:
-            increments = tuple(len(word) for word in transition.word_in)
+            increments = tuple(length(word) for word in transition.word_in)
         else:
-            increments = (len(transition.word_in),)
+            increments = (length(transition.word_in),)
 
         for track_number, (track_cache, inc) in \
                 enumerate(izip(self.cache, increments)):

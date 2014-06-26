@@ -9198,6 +9198,27 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: s.final_word_out = [1, 2]
             sage: Z.process([])
             (True, 0, [1, 2])
+
+        TESTS::
+
+            sage: N = Transducer([(0, 0, 0, 1)], initial_states=[0])
+            sage: def h_old(state, process):
+            ....:     print state, process
+            sage: N.state(0).hook = h_old
+            sage: N.process([0, 0])
+            doctest:...: DeprecationWarning: The hook of state 0 cannot
+            be processed: It seem that you are using an old-style hook,
+            which is deprecated.
+            See http://trac.sagemath.org/16538 for details.
+            (False, 0, [1, 1])
+            sage: def h_new(process, state, input, output):
+            ....:     print state, input, output
+            sage: N.state(0).hook = h_new
+            sage: N.process([0, 0])
+            0 tape at 0 [[]]
+            0 tape at 1 [[1]]
+            0 tape at 2 [[1, 1]]
+            (False, 0, [1, 1])
         """
         if not self._current_:
             raise StopIteration
@@ -9211,12 +9232,20 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             next_transitions = None
             state_said_finished = False
             if hasattr(current_state, 'hook'):
-                try:
-                    next_transitions = current_state.hook(
-                        self, current_state, input_tape, output)
-                except StopIteration:
-                    next_transitions = []
-                    state_said_finished = True
+                import inspect
+                if len(inspect.getargspec(current_state.hook)[0]) == 2:
+                    from sage.misc.superseded import deprecation
+                    deprecation(16538, 'The hook of state %s cannot be '
+                                'processed: It seem that you are using an '
+                                'old-style hook, which is deprecated. '
+                                % (current_state,))
+                else:
+                    try:
+                        next_transitions = current_state.hook(
+                            self, current_state, input_tape, output)
+                    except StopIteration:
+                        next_transitions = []
+                        state_said_finished = True
             if isinstance(next_transitions, FSMTransition):
                 next_transitions = [next_transitions]
             if next_transitions is not None and \
@@ -9300,7 +9329,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: for current in it:
             ....:     s = it.current_state
             ....:     print current, s
-            doctest:2: DeprecationWarning: This attribute will be removed
+            doctest:...: DeprecationWarning: This attribute will be removed
             in future releases. Use result() at the end of our iteration
             or the output of next().
             See http://trac.sagemath.org/16538 for details.
@@ -9335,7 +9364,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: for current in it:
             ....:     t = it.output_tape
             ....:     print current, t
-            doctest:2: DeprecationWarning: This attribute will be removed
+            doctest:...: DeprecationWarning: This attribute will be removed
             in future releases. Use result() at the end of our iteration
             or the output of next().
             See http://trac.sagemath.org/16538 for details.
@@ -9373,7 +9402,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: it.result()
             [(True, 'A', [1, 0, 0])]
             sage: it.accept_input
-            doctest:1: DeprecationWarning: This attribute will be removed
+            doctest:...: DeprecationWarning: This attribute will be removed
             in future releases. Use result() at the end of our iteration
             or the output of next().
             See http://trac.sagemath.org/16538 for details.

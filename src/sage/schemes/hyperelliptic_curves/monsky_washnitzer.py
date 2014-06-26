@@ -1848,7 +1848,7 @@ class SpecialHyperellipticQuotientRing(UniqueRepresentation, CommutativeAlgebra)
 
             sage: R.<x> = QQ['x']
             sage: E = HyperellipticCurve(x^5-3*x+1)
-            sage: from sage.schemes.elliptic_curves.monsky_washnitzer import SpecialHyperellipticQuotientRing
+            sage: from sage.schemes.hyperelliptic_curves.monsky_washnitzer import SpecialHyperellipticQuotientRing
             sage: SpecialHyperellipticQuotientRing(E) is SpecialHyperellipticQuotientRing(E)
             True
 
@@ -2606,7 +2606,7 @@ class MonskyWashnitzerDifferentialRing(UniqueRepresentation, Module):
 
             sage: R.<x> = QQ['x']
             sage: E = HyperellipticCurve(x^5-3*x+1)
-            sage: from sage.schemes.elliptic_curves.monsky_washnitzer import SpecialHyperellipticQuotientRing, MonskyWashnitzerDifferentialRing
+            sage: from sage.schemes.hyperelliptic_curves.monsky_washnitzer import SpecialHyperellipticQuotientRing, MonskyWashnitzerDifferentialRing
             sage: S = SpecialHyperellipticQuotientRing(E)
             sage: MonskyWashnitzerDifferentialRing(S) is MonskyWashnitzerDifferentialRing(S)
             True

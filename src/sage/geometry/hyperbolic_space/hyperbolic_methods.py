@@ -12,8 +12,9 @@ input, they instead take the coordinates of points, the endpoints of
 geodesics, or matrices.  Similarly, they output coordinates or matrices
 rather than Hyperbolic objects.
 
-The methods are factored out of the HyperbolicPoint, HyperbolicGeodesic,
-and HyperbolicIsometry classes to allow the implementation of additional
+The methods are factored out of the :class:`HyperbolicPoint`,
+:class:`HyperbolicGeodesic`, and :class:`HyperbolicIsometry` classes
+to allow the implementation of additional
 models of hyperbolic space with minimal work.  For example, to implement
 a model of 2-dimensional hyperbolic space, as long as one provides an
 isometry of that model with the upper half plane, one can use the upper
@@ -26,10 +27,10 @@ must be added to implement a new model of hyperbolic space.
 In practice, all of the current models of 2 dimensional hyperbolic space
 use the upper half plane model for their computations.  This can lead to
 some problems, such as long coordinate strings for symbolic points.  For
-example, the vector (1, 0, sqrt(2)) defines a point in the hyperboloid
+example, the vector ``(1, 0, sqrt(2))`` defines a point in the hyperboloid
 model.  Performing mapping this point to the upper half plane and
 performing computations there may return with vector whose components
-are unsimplified strings have several sqrt(2)'s.  Presently, this
+are unsimplified strings have several ``sqrt(2)``'s.  Presently, this
 drawback is outweighed by the rapidity with which new models can be
 implemented.
 
@@ -67,7 +68,7 @@ from sage.rings.all import Integer, RR, RDF, infinity
 from sage.geometry.hyperbolic_space.hyperbolic_constants import EPSILON
 from sage.geometry.hyperbolic_space.hyperbolic_model import HyperbolicModel
 from sage.geometry.hyperbolic_space.hyperbolic_model import HyperbolicModelUHP
-from sage.geometry.hyperbolic_space.hyperbolic_model import _mobius_transform
+from sage.geometry.hyperbolic_space.hyperbolic_model import mobius_transform
 
 
 class HyperbolicAbstractMethods(UniqueRepresentation):
@@ -364,7 +365,7 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
              matrix(2,[cos(pi/4),-sin(pi/4),sin(pi/4),cos(pi/4)]))
         S= cls._to_std_geod(end_1, start, end_2)
         H = S.inverse()*T*S
-        return [_mobius_transform(H ,k) for k in [end_1, end_2]]
+        return [mobius_transform(H ,k) for k in [end_1, end_2]]
 
     @classmethod
     def midpoint(cls, start, end):
@@ -400,7 +401,7 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
             end_p = start
         else:
             end_p = end
-        end_p = _mobius_transform (M, end_p)
+        end_p = mobius_transform (M, end_p)
         return end_p
 
     @classmethod
@@ -446,7 +447,7 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
             # Map the endpoints to 0 and infinity and another endpoint
             # to 1
             T = cls._crossratio_matrix(bd_1, bd_1 + 1, bd_2)
-        x = _mobius_transform(T, p)
+        x = mobius_transform(T, p)
         return cls.point_dist(x, abs(x)*I)
 
     @classmethod
@@ -473,8 +474,8 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
             radius = abs(real(end) - center)
             p = center + radius*I
         A = cls._to_std_geod(start, p, end).inverse()
-        p1 = _mobius_transform(A, I/Integer(3))
-        p2 = _mobius_transform(A, 3*I)
+        p1 = mobius_transform(A, I/Integer(3))
+        p2 = mobius_transform(A, 3*I)
         return [p1, p2]
 
     @classmethod
@@ -516,7 +517,7 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
             # with endpoints [0,oo]
             T = cls._crossratio_matrix(p_1, p_1 +1, p_2)
         # b_1 and b_2 are the endpoints of the image of other
-        b_1, b_2 = [_mobius_transform(T, k) for k in [q_1, q_2]]
+        b_1, b_2 = [mobius_transform(T, k) for k in [q_1, q_2]]
         # If other is now a straight line...
         if (b_1 == infinity or b_2 == infinity):
             # then since they intersect, they are equal
@@ -620,8 +621,8 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
 
             sage: H = HyperbolicMethodsUHP.isometry_from_fixed_points(-1,1)
             sage: p = exp(i*7*pi/8)
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_model import _mobius_transform
-            sage: Hp = _mobius_transform(H, p)
+            sage: from sage.geometry.hyperbolic_space.hyperbolic_model import mobius_transform
+            sage: Hp = mobius_transform(H, p)
             sage: bool((HyperbolicMethodsUHP.point_dist(p, Hp) - HyperbolicMethodsUHP.translation_length(H)) < 10**-9)
             True
         """
@@ -646,15 +647,14 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
             sage: HyperbolicMethodsUHP.isometry_from_fixed_points(2 + I, 3 + I)
             Traceback (most recent call last):
             ...
-            ValueError: Fixed points of hyperbolic elements must be ideal.
+            ValueError: fixed points of hyperbolic elements must be ideal
 
             sage: HyperbolicMethodsUHP.isometry_from_fixed_points(2, 0)
             [  -1    0]
             [-1/3 -1/3]
         """
         if imag(repel) + imag(attract) > EPSILON:
-            raise ValueError("Fixed points of hyperbolic elements must be"
-                             " ideal.")
+            raise ValueError("fixed points of hyperbolic elements must be ideal")
         repel = real(repel)
         attract = real(attract)
         if repel == infinity:
@@ -684,24 +684,24 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
             sage: from sage.geometry.hyperbolic_space.hyperbolic_methods import HyperbolicMethodsUHP
             sage: H = matrix(2, [-2/3,-1/3,-1/3,-2/3])
             sage: (p1,p2) = HyperbolicMethodsUHP.fixed_point_set(H)
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_model import _mobius_transform
-            sage: bool(_mobius_transform(H, p1) == p1)
+            sage: from sage.geometry.hyperbolic_space.hyperbolic_model import mobius_transform
+            sage: bool(mobius_transform(H, p1) == p1)
             True
-            sage: bool(_mobius_transform(H, p2) == p2)
+            sage: bool(mobius_transform(H, p2) == p2)
             True
 
             sage: HyperbolicMethodsUHP.fixed_point_set(identity_matrix(2))
             Traceback (most recent call last):
             ...
-            ValueError: The identity transformation fixes the entire hyperbolic plane.
+            ValueError: the identity transformation fixes the entire hyperbolic plane
         """
         d = sqrt(M.det()**2)
         M = M/sqrt(d)
         tau = M.trace()**2
         M_cls = cls.classification(M)
         if M_cls == 'identity':
-            raise ValueError("The identity transformation fixes the entire "
-                             "hyperbolic plane.")
+            raise ValueError("the identity transformation fixes the entire "
+                             "hyperbolic plane")
         if M_cls == 'parabolic':
             if abs(M[1,0]) < EPSILON:
                 return [infinity]
@@ -845,14 +845,14 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         EXAMPLES::
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_methods import HyperbolicMethodsUHP
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_model import _mobius_transform
+            sage: from sage.geometry.hyperbolic_space.hyperbolic_model import mobius_transform
             sage: (p_1, p_2, p_3) = [HyperbolicMethodsUHP.random_point() for k in range(3)]
             sage: A = HyperbolicMethodsUHP._to_std_geod(p_1, p_2, p_3)
-            sage: bool(abs(_mobius_transform(A, p_1)) < 10**-9)
+            sage: bool(abs(mobius_transform(A, p_1)) < 10**-9)
             True
-            sage: bool(abs(_mobius_transform(A, p_2) - I) < 10**-9)
+            sage: bool(abs(mobius_transform(A, p_2) - I) < 10**-9)
             True
-            sage: bool(_mobius_transform(A, p_3) == infinity)
+            sage: bool(mobius_transform(A, p_3) == infinity)
             True
         """
         B = matrix(2, [1, 0, 0, -I])
@@ -877,14 +877,14 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         EXAMPLES::
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_methods import HyperbolicMethodsUHP
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_model import _mobius_transform
+            sage: from sage.geometry.hyperbolic_space.hyperbolic_model import mobius_transform
             sage: (p_1, p_2, p_3) = [HyperbolicMethodsUHP.random_point() for k in range(3)]
             sage: A = HyperbolicMethodsUHP._crossratio_matrix(p_1, p_2, p_3)
-            sage: bool(abs(_mobius_transform(A, p_1) < 10**-9))
+            sage: bool(abs(mobius_transform(A, p_1) < 10**-9))
             True
-            sage: bool(abs(_mobius_transform(A, p_2) - 1) < 10**-9)
+            sage: bool(abs(mobius_transform(A, p_2) - 1) < 10**-9)
             True
-            sage: bool(_mobius_transform(A, p_3) == infinity)
+            sage: bool(mobius_transform(A, p_3) == infinity)
             True
             sage: (x,y,z) = var('x,y,z');  HyperbolicMethodsUHP._crossratio_matrix(x,y,z)
             [     y - z -x*(y - z)]
@@ -911,12 +911,12 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         EXAMPLES::
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_methods import HyperbolicMethodsUHP
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_model import _mobius_transform
-            sage: bool(abs(_mobius_transform(HyperbolicMethodsUHP._mobius_sending([1,2,infinity],[3 - I, 5*I,-12]),1) - 3 + I) < 10^-4)
+            sage: from sage.geometry.hyperbolic_space.hyperbolic_model import mobius_transform
+            sage: bool(abs(mobius_transform(HyperbolicMethodsUHP._mobius_sending([1,2,infinity],[3 - I, 5*I,-12]),1) - 3 + I) < 10^-4)
             True
-            sage: bool(abs(_mobius_transform(HyperbolicMethodsUHP._mobius_sending([1,2,infinity],[3 - I, 5*I,-12]),2) - 5*I) < 10^-4)
+            sage: bool(abs(mobius_transform(HyperbolicMethodsUHP._mobius_sending([1,2,infinity],[3 - I, 5*I,-12]),2) - 5*I) < 10^-4)
             True
-            sage: bool(abs(_mobius_transform(HyperbolicMethodsUHP._mobius_sending([1,2,infinity],[3 - I, 5*I,-12]),infinity) + 12) < 10^-4)
+            sage: bool(abs(mobius_transform(HyperbolicMethodsUHP._mobius_sending([1,2,infinity],[3 - I, 5*I,-12]),infinity) + 12) < 10^-4)
             True
         """
         if len(list1) != 3  or len(list2) != 3:

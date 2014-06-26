@@ -735,7 +735,7 @@ class HyperbolicModelPD(HyperbolicModel, UniqueRepresentation):
     r"""
     Poincaré Disk Model.
     """
-    name = "Poincaré Disk Model"
+    name = "Poincare Disk Model" # u"Poincaré Disk Model"
     short_name = "PD"
     bounded = True
     conformal = True

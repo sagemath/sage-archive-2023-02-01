@@ -8704,9 +8704,9 @@ class _FSMTapeCache_(SageObject):
     TESTS::
 
         sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
-        sage: TC1 = _FSMTapeCache_([], (srange(37, 42),),
+        sage: TC1 = _FSMTapeCache_([], (xsrange(37, 42),),
         ....:                      [False], ((0, 0),), False)
-        sage: TC2 = _FSMTapeCache_([], (srange(37, 42), srange(11,15)),
+        sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
         ....:                      [False, False], ((0, 0), (0, 1)), True)
         sage: TC1
         tape at 0
@@ -8725,23 +8725,23 @@ class _FSMTapeCache_(SageObject):
         TESTS::
 
             sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
-            sage: TC1 = _FSMTapeCache_([], (srange(37, 42),),
+            sage: TC1 = _FSMTapeCache_([], (xsrange(37, 42),),
             ....:                      [False], ((0, 0),), False)
-            sage: TC2 = _FSMTapeCache_([], (srange(37, 42), srange(11,15)),
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
-            sage: TC1m = _FSMTapeCache_([], (srange(37, 42),),
+            sage: TC1m = _FSMTapeCache_([], (xsrange(37, 42),),
             ....:                       [False], ((0, 0),), True)
-            sage: TC3 = _FSMTapeCache_([], (srange(37, 42), srange(11,15)),
+            sage: TC3 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False], ((0, 0),), False)
             Traceback (most recent call last):
             ...
             TypeError: The length of the inputs do not match
-            sage: TC4 = _FSMTapeCache_([], (srange(37, 42), srange(11,15)),
+            sage: TC4 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0),), False)
             Traceback (most recent call last):
             ...
             TypeError: The length of the inputs do not match
-            sage: TC5 = _FSMTapeCache_([], (srange(37, 42)),
+            sage: TC5 = _FSMTapeCache_([], (xsrange(37, 42),),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             Traceback (most recent call last):
             ...
@@ -8777,11 +8777,11 @@ class _FSMTapeCache_(SageObject):
         TESTS::
 
             sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
-            sage: TC1 = _FSMTapeCache_([], (srange(37, 42),),
+            sage: TC1 = _FSMTapeCache_([], (xsrange(37, 42),),
             ....:                      [False], ((0, 0),), False)
-            sage: TC2 = _FSMTapeCache_([], (srange(37, 42), srange(11,15)),
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
-            sage: TC1m = _FSMTapeCache_([], (srange(37, 42),),
+            sage: TC1m = _FSMTapeCache_([], (xsrange(37, 42),),
             ....:                       [False], ((0, 0),), True)
             sage: repr(TC1)  # indirect doctest
             'tape at 0'
@@ -8884,6 +8884,14 @@ class _FSMTapeCache_(SageObject):
             sage: TC2.cache, TC3.cache
             ((deque([37]), deque([11, 12, 13])),
              (deque([37]), deque([11, 12, 13])))
+            sage: TC2.read(1), TC2.read(1)
+            (True, False)
+            sage: TC2.cache
+            (deque([37]), deque([11, 12, 13, 14]))
+            sage: TC2.tape_ended
+            [False, True]
+            sage: TC2.read(1)
+            False
         """
         try:
             newval = next(self.tape[track_number])
@@ -8902,45 +8910,84 @@ class _FSMTapeCache_(SageObject):
         if track_number is None:
             return all(self.finished(n) for n, _ in enumerate(self.cache))
         if not self.cache[track_number]:
-            self.read(track_number)  # to make sure tape_ended is set
+            self.read(track_number)  # to make sure tape_ended is correct
         return self.tape_ended[track_number] and not self.cache[track_number]
 
 
     def read_letter(self, track_number=None):
         """
-        TODO
-
         Reads a letter from the input tape.
 
         INPUT:
 
-        Nothing.
+        - ``track_number`` -- an integer or ``None``. If ``None``,
+          then a tuple of letters (one from each track) is returned.
 
         OUTPUT:
 
-        A letter.
+        A letter or a tuple of letters.
 
-        Exception ``StopIteration`` is thrown if tape has reached
-        the end.
+        An exception ``StopIteration`` is thrown if tape (at least one
+        track) has reached its end.
 
-        EXAMPLES::
+        Typically, this method is called from a hook-function of a
+        state.
 
-            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
-            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:     initial_states=['A'], final_states=['A'])
-            sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
-            sage: it.read_letter()  # not tested
-            0
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine \
+            ....:     import _FSMTapeCache_, FSMTransition
+            sage: TC1 = _FSMTapeCache_([], (xsrange(37, 42),),
+            ....:                      [False], ((0, 0),), False)
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: t = FSMTransition(0, 0, [[l] for l in (1,2,3)])
+            sage: t.word_in
+            sage: while True:
+            ....:     try:
+            ....:         letter = TC2.read_letter()
+            ....:         print 'read:', letter
+            ....:         print 'cache:', TC2.cache, TC2
+            ....:         TC2.forward(
+            ....:             FSMTransition(0, 0, [[l] for l in letter]))
+            ....:         print 'cache:', TC2.cache, TC2
+            ....:     except StopIteration:
+            ....:         print 'stop'
+            ....:         break
+            read: (37, 11)
+            cache: (deque([37]), deque([11])) multi-tape at (0, 0)
+            cache: (deque([]), deque([])) multi-tape at (1, 1)
+            read: (38, 12)
+            cache: (deque([38]), deque([12])) multi-tape at (1, 1)
+            cache: (deque([]), deque([])) multi-tape at (2, 2)
+            read: (39, 13)
+            cache: (deque([39]), deque([13])) multi-tape at (2, 2)
+            cache: (deque([]), deque([])) multi-tape at (3, 3)
+            read: (40, 14)
+            cache: (deque([40]), deque([14])) multi-tape at (3, 3)
+            cache: (deque([]), deque([])) multi-tape at (4, 4)
+            stop
+            sage: print 'cache:', TC2.cache, TC2
+            cache: (deque([41]), deque([])) multi-tape at (4, 4)
+            sage: TC2.read_letter()
+            Traceback (most recent call last):
+            ...
+            StopIteration
+            sage: print 'cache:', TC2.cache, TC2
+            cache: (deque([41]), deque([])) multi-tape at (4, 4)
         """
         if track_number is None:
             if self.is_multitape:
-                return tuple(self.read_letter(n)
-                             for n, _ in enumerate(self.cache))
+                result = tuple(self.read_letter(n)
+                               for n, _ in enumerate(self.cache))
+                if len(result) != len(self.cache):
+                    raise StopIteration
+                return result
             else:
                 return self.read_letter(0)
         track_cache = self.cache[track_number]
         if not track_cache and not self.read(track_number):
-                raise StopIteration
+            raise StopIteration
         return track_cache[0]
 
 
@@ -8953,18 +9000,67 @@ class _FSMTapeCache_(SageObject):
 
 
     def forward(self, transition):
+        """
+        Forwards the tape according to the given transition.
+
+        INPUT:
+
+        - ``transition`` -- a transition of a finite state machine.
+
+        OUTPUT:
+
+        Nothing.
+
+        If ``self.is_multitape`` is ``False``, then this function
+        forwards ``self`` (track `0`) by the length of
+        ``transition.word_in``. Otherwise (if ``self.is_multitape`` is
+        ``True``), this function forwards each track of ``self`` by
+        the length of each entry of ``transition.word_in``. Note that
+        the actual values of in the input word do not play a role
+        (just the length).
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine \
+            ....:     import _FSMTapeCache_, FSMTransition
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC2, TC2.cache
+            (multi-tape at (0, 0), (deque([]), deque([])))
+            sage: letter = TC2.read_letter(); letter
+            (37, 11)
+            sage: TC2, TC2.cache
+            (multi-tape at (0, 0), (deque([37]), deque([11])))
+            sage: TC2.forward(FSMTransition(0, 0, [[l] for l in letter]))
+            sage: TC2, TC2.cache
+            (multi-tape at (1, 1), (deque([]), deque([])))
+            sage: TC2.forward(FSMTransition(0, 0, [[0], [0, 0]]))
+            sage: TC2, TC2.cache
+            (multi-tape at (2, 3), (deque([]), deque([])))
+            sage: letter = TC2.read_letter(); letter
+            (39, 14)
+            sage: TC2, TC2.cache
+            (multi-tape at (2, 3), (deque([39]), deque([14])))
+            sage: TC2.forward(FSMTransition(0, 0, [[0], [0]]))
+            sage: TC2, TC2.cache
+            (multi-tape at (3, 4), (deque([]), deque([])))
+            sage: TC2.forward(FSMTransition(0, 0, [[0], [0]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: forwarding tape is not possible
+        """
         if self.is_multitape:
             increments = tuple(len(word) for word in transition.word_in)
         else:
             increments = (len(transition.word_in),)
 
-        for track_number, (t, i) in \
+        for track_number, (track_cache, inc) in \
                 enumerate(izip(self.cache, increments)):
-            for _ in range(i):
-                if not t:
+            for _ in range(inc):
+                if not track_cache:
                     if not self.read(track_number):
                         raise ValueError('forwarding tape is not possible')
-                t.popleft()
+                track_cache.popleft()
         position = []
         for p, t in self.position:
             position.append((p + increments[t], t))

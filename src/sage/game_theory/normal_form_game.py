@@ -539,7 +539,7 @@ class NormalFormGame(SageObject, MutableMapping):
     def _latex_(self):
         if len(self.players) == 2:
             pass
-            # latex with self._game_two_matrix()
+            # latex with self.payoff_matrices()
         else:
             pass
             # Vince can do fancy latex stuff
@@ -572,7 +572,12 @@ class NormalFormGame(SageObject, MutableMapping):
         if len(self.players) != 2:
             raise ValueError("Only available for 2 player games")
 
-        return self._game_two_matrix()
+        m1 = matrix(QQ, self.players[0].num_strategies, self.players[1].num_strategies)
+        m2 = matrix(QQ, self.players[0].num_strategies, self.players[1].num_strategies)
+        for strategy_profile in self.utilities:
+                m1[strategy_profile] = self[strategy_profile][0]
+                m2[strategy_profile] = self[strategy_profile][1]
+        return m1, m2
 
     def add_player(self, num_strategies):
         r"""
@@ -766,14 +771,6 @@ class NormalFormGame(SageObject, MutableMapping):
         if algorithm == "enumeration":
             return self._solve_enumeration()
 
-    def _game_two_matrix(self):
-        m1 = matrix(QQ, self.players[0].num_strategies, self.players[1].num_strategies)
-        m2 = matrix(QQ, self.players[0].num_strategies, self.players[1].num_strategies)
-        for strategy_profile in self.utilities:
-                m1[strategy_profile] = self[strategy_profile][0]
-                m2[strategy_profile] = self[strategy_profile][1]
-        return m1, m2
-
     def _solve_LCP(self, maximization):
         r"""
         Solves a NormalFormGame using Gambit's LCP algorithm. Gambit only takes
@@ -850,7 +847,7 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: biggame._solve_lrs() # optional - lrs
         [[(0, 0, 0, 20/21, 1/21), (11/12, 0, 0, 1/12, 0)], [(0, 0, 0, 1, 0), (9/10, 0, 1/10, 0, 0)]]
         """
-        m1, m2 = self._game_two_matrix()
+        m1, m2 = self.payoff_matrices()
         if maximization is False:
             m1 = - m1
             m2 = - m2

@@ -928,6 +928,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
     from latin_squares import mutually_orthogonal_latin_squares
     from database import OA_constructions
     from block_design import projective_plane, projective_plane_to_OA
+    from orthogonal_arrays_recursive import find_recursive_construction
 
     assert n>=0
 
@@ -1022,6 +1023,13 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         OA = orthogonal_array(k+2,r,check=False)
         OA = OA_relabel(OA,k+2,r,matrix=[range(r)]*k+[range(u1)+[None]*(r-u1),range(u2)+[None]*(r-u2)])
         OA = wilson_construction(OA,k,r,m,2,[u1,u2],check=False)
+
+    elif may_be_available and find_recursive_construction(k,n):
+        _OA_cache_set(k,n,True)
+        if existence:
+            return True
+        f,args = find_recursive_construction(k,n)
+        OA = f(*args)
 
     elif (transversal_design not in who_asked and
           transversal_design(k,n,existence=True,who_asked=who_asked+(orthogonal_array,)) is not Unknown):

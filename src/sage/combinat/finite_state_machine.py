@@ -749,7 +749,7 @@ class FSMState(SageObject):
 
     - ``final_word_out`` -- (default: ``None``) a word that is written when
       the state is reached as the last state of some input; only for final
-      states
+      states.
 
     - ``hook`` -- (default: ``None``) A function which is called when
       the state is reached during processing input.
@@ -3781,9 +3781,9 @@ class FiniteStateMachine(SageObject):
         After this operation the input alphabet and the output
         alphabet of self are a list of letters.
 
-        TODO:
+        .. TODO::
 
-        At the moment, the letters of the alphabets need to be hashable.
+            At the moment, the letters of the alphabets need to be hashable.
 
         EXAMPLES::
 
@@ -5407,6 +5407,18 @@ class FiniteStateMachine(SageObject):
             sage: H.transitions()[0].word_out is H.transitions()[1].word_out
             True
 
+        In the explorative algorithm, transducers with non-empty final
+        output words are currently not implemented::
+
+            sage: A = transducers.GrayCode()
+            sage: B = transducers.abs([0, 1])
+            sage: A.composition(B, algorithm='explorative')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Explorative composition is not
+            implemented for transducers with non-empty final output
+            words. Try the direct algorithm instead.
+
         TESTS:
 
         Due to the limitations of the two algorithms the following
@@ -5531,21 +5543,10 @@ class FiniteStateMachine(SageObject):
             sage: B.determinisation()
             Automaton with 1 states
 
-        Transducers with non-empty final output words are not implemented::
+        .. TODO::
 
-            sage: A = transducers.GrayCode()
-            sage: B = transducers.abs([0, 1])
-            sage: A.composition(B, algorithm='explorative')
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Explorative composition is not
-            implemented for transducers with non-empty final output words. Try
-            the direct algorithm instead.
-
-        TODO:
-
-        The explorative algorithm should be re-implemented using the
-        process iterators of both finite state machines.
+            The explorative algorithm should be re-implemented using the
+            process iterators of both finite state machines.
         """
         def composition_transition(state, input):
             (state1, state2) = state
@@ -7016,7 +7017,7 @@ class FiniteStateMachine(SageObject):
                 ....:                                final_states=[0])
 
             At the moment, we can not use composition with ``NAF``,
-            beacuse it has non-empty final output words::
+            because it has non-empty final output words::
 
                 sage: NAFweight = weight_transducer.composition(
                 ....:     NAF,
@@ -7028,8 +7029,8 @@ class FiniteStateMachine(SageObject):
                 words. Try the direct algorithm instead.
 
 
-           Thus, we change ``NAF``, then compose and again construct
-           the final output words::
+            Thus, we change ``NAF``, then compose and again construct
+            the final output words::
 
                 sage: for s in NAF.final_states():
                 ....:     s.final_word_out = []

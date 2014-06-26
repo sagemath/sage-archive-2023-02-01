@@ -9283,6 +9283,110 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         return [r[:2] + format_output(r[2]) + r[3:] for r in self._finished_]
 
 
+    @property
+    def current_state(self):
+        """
+        The current/reached state in the process.
+
+        This attribute is deprecated and should not be used any longer
+        (it may return a wrong result for non-deterministic finite
+        state machines).
+
+        TESTS::
+
+            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: it = inverter.iter_process(input_tape=[0, 1, 1])
+            sage: for current in it:
+            ....:     s = it.current_state
+            ....:     print current, s
+            doctest:2: DeprecationWarning: This attribute will be removed
+            in future releases. Use result() at the end of our iteration
+            or the output of next().
+            See http://trac.sagemath.org/16538 for details.
+            {((1, 0),): {'A': (tape at 1, [[1]])}} 'A'
+            {((2, 0),): {'A': (tape at 2, [[1, 0]])}} 'A'
+            {((3, 0),): {'A': (tape at 3, [[1, 0, 0]])}} 'A'
+            {} None
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(16538, 'This attribute will be removed in future '
+                    'releases. Use result() at the end of our iteration '
+                    'or the output of next().')
+        if not self._current_:
+            return None
+        return next(next(self._current_.itervalues()).iterkeys())
+
+
+    @property
+    def output_tape(self):
+        """
+        The written output.
+
+        This attribute is deprecated and should not be used any longer
+        (it may return a wrong result for non-deterministic finite
+        state machines).
+
+        TESTS::
+
+            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: it = inverter.iter_process(input_tape=[0, 1, 1])
+            sage: for current in it:
+            ....:     t = it.output_tape
+            ....:     print current, t
+            doctest:2: DeprecationWarning: This attribute will be removed
+            in future releases. Use result() at the end of our iteration
+            or the output of next().
+            See http://trac.sagemath.org/16538 for details.
+            {((1, 0),): {'A': (tape at 1, [[1]])}} [1]
+            {((2, 0),): {'A': (tape at 2, [[1, 0]])}} [1, 0]
+            {((3, 0),): {'A': (tape at 3, [[1, 0, 0]])}} [1, 0, 0]
+            {} None
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(16538, 'This attribute will be removed in future '
+                    'releases. Use result() at the end of our iteration '
+                    'or the output of next().')
+        if not self._current_:
+            return None
+        return next(next(self._current_.itervalues()).itervalues())[1][0]
+
+
+    @property
+    def accept_input(self):
+        """
+        Is ``True`` if teh reached state is accepted. This is only available
+        at the end of the iteration process.
+
+        This attribute is deprecated and should not be used any longer
+        (it may return a wrong result for non-deterministic finite
+        state machines).
+
+        TESTS::
+
+            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: it = inverter.iter_process(input_tape=[0, 1, 1])
+            sage: for _ in it:
+            ....:     pass
+            sage: it.result()
+            [(True, 'A', [1, 0, 0])]
+            sage: it.accept_input
+            doctest:1: DeprecationWarning: This attribute will be removed
+            in future releases. Use result() at the end of our iteration
+            or the output of next().
+            See http://trac.sagemath.org/16538 for details.
+            True
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(16538, 'This attribute will be removed in future '
+                    'releases. Use result() at the end of our iteration '
+                    'or the output of next().')
+        try:
+            return self._finished_[0][0]
+        except KeyError:
+            raise AttributeError
 
 
 #*****************************************************************************

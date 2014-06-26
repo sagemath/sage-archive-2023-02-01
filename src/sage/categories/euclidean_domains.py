@@ -90,6 +90,8 @@ class EuclideanDomains(Category_singleton):
 
             from sage.combinat.cartesian_product import CartesianProduct
             for a,b in tester.some_elements(CartesianProduct(S,S)):
+                if a.is_zero() or (a*b).is_zero():
+                    continue
                 tester.assertLessEqual(a.euclidean_degree(), (a*b).euclidean_degree())
 
         def _test_quo_rem(self, **options):

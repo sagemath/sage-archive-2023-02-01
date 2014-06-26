@@ -62,7 +62,7 @@ def find_recursive_construction(k,n):
         ....:         OA = f(*args)
         ....:         assert is_orthogonal_array(OA,k,n,2,verbose=True)
         sage: print count
-        39
+        38
     """
     assert k >= 3
     for find_c in [find_construction_3_3,

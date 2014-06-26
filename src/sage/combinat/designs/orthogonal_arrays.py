@@ -185,7 +185,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         sage: designs.transversal_design(None, 30, existence=True)
         6
         sage: designs.transversal_design(None, 120, existence=True)
-        8
+        9
 
     TESTS:
 

@@ -36,13 +36,14 @@ lazy_import('subprocess', 'PIPE')
 
 
 class NormalFormGame(SageObject, MutableMapping):
-    """
+    r"""
     An object representing a Normal Form Game. Primarily used to compute the
     Nash Equilibria.
 
     INPUT:
 
-    - ``generator`` - Can be a list of 2 matrices, a single matrix or left blank.
+    - ``generator`` - Can be a list of 2 matrices, a single matrix or left
+                      blank.
 
     EXAMPLES:
 
@@ -81,8 +82,8 @@ class NormalFormGame(SageObject, MutableMapping):
         * The second column corresponds to movies.
 
     Thus if both Amy and Bob choose to play video games: Amy receives a utility
-    of 3 and Bob a utility of 2. If Amy is indeed going to stick with video games
-    Bob has no incentive to deviate (and vice versa).
+    of 3 and Bob a utility of 2. If Amy is indeed going to stick with video
+    games Bob has no incentive to deviate (and vice versa).
 
     This situation repeats itself if both Amy and Bob choose to watch a movie:
     neither has an incentive to deviate.
@@ -112,18 +113,18 @@ class NormalFormGame(SageObject, MutableMapping):
     Nash Equilibrium represented as a probability distribution over the
     available strategies:
 
-        * `[(1.0, 0.0), (1.0, 0.0)]` corresponds to the first player only playing
-        their first strategy and the second player also only playing their first
-        strategy. In other words Amy and Bob both play video games.
+        * `[(1.0, 0.0), (1.0, 0.0)]` corresponds to the first player only
+        playing their first strategy and the second player also only playing
+        their first strategy. In other words Amy and Bob both play video games.
 
-        * `[(0.0, 1.0), (0.0, 1.0)]` corresponds to the first player only playing
-        their second strategy and the second player also only playing their second
-        strategy. In other words Amy and Bob both watch movies.
+        * `[(0.0, 1.0), (0.0, 1.0)]` corresponds to the first player only
+        playing their second strategy and the second player also only playing
+        their second strategy. In other words Amy and Bob both watch movies.
 
         * `[(0.75, 0.25), (0.25, 0.75)]` corresponds to players `mixing` their
-        strategies. Amy plays video games 75% of the time and Bob watches movies
-        75% of the time. At this equilibrium point Amy and Bob will only ever
-        do the same activity `3/8` of the time.
+        strategies. Amy plays video games 75% of the time and Bob watches
+        movies 75% of the time. At this equilibrium point Amy and Bob will
+        only ever do the same activity `3/8` of the time.
 
     We can use sage to compute the expected utility for any mixed strategy
     pair `(\sigma_1, sigma_2)`. The payoff to player 1 is given by:
@@ -224,13 +225,14 @@ class NormalFormGame(SageObject, MutableMapping):
         yet an optional sage package but instructions for installing
         it can be found [here](http://goo.gl/4bxYgp).
 
-        * `lrs`: Reverse search vertex enumeration for 2 player games. This algorithm uses the
-        optional `lrs` package. To install it type `sage -i lrs` at the command line.
-        For more information see [A2000]_.
+        * `lrs`: Reverse search vertex enumeration for 2 player games. This
+        algorithm uses the optional `lrs` package. To install it type `sage -i
+        lrs` at the command line. For more information see [A2000]_.
 
-        * `enumeration`: Support enumeration for 2 player games. This algorithm is hard coded in
-        Sage and checks through all potential supports of a strategy.
-        Note: this is not the preferred algorithm. For more information about this see [NN2007]_.
+        * `enumeration`: Support enumeration for 2 player games. This
+        algorithm is hard coded in Sage and checks through all potential
+        supports of a strategy. Note: this is not the preferred algorithm. For
+        more information about this see [NN2007]_.
 
     Below we show how all three algorithms are called ::
 

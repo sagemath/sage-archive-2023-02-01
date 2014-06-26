@@ -351,7 +351,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
         - ``other`` -- a symmetric group algebra with order `p`
           satisfying `p \geq n`, where `n` is the order of ``self``,
-          over a ground ring into which ``self`` coerces.
+          over a ground ring into which the ground ring of ``self``
+          coerces.
 
         EXAMPLES::
 

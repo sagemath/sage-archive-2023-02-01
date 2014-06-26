@@ -440,7 +440,7 @@ class NormalFormGame(SageObject, MutableMapping):
     .. [A2000] Avis, David.
        *A revised implementation of the reverse search vertex enumeration algorithm.*
        Polytopes-combinatorics and computation
-       Birkhäuser Basel, 2000.
+       Birkhauser Basel, 2000.
 
     """
     def __delitem__(self, key):

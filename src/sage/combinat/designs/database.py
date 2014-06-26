@@ -862,7 +862,7 @@ def OA_9_135():
     truncated_OA = [B[1:-7]+[x if x==0 else None for x in B[-7:]] for B in OA]
 
     # And call Wilson's construction
-    return wilson_construction(truncated_OA, 9, 16, 8,7,(1,)*7,check=False)
+    return wilson_construction(truncated_OA, 9, 16, 8,(1,)*7,check=False)
 
 def OA_11_160():
     r"""
@@ -1496,7 +1496,7 @@ def OA_17_560():
 
     OA=zip(*OA)
 
-    return wilson_construction(OA,k,n,m,3,[p**beta]*3,check=False)
+    return wilson_construction(OA,k,n,m,[p**beta]*3,check=False)
 
 def OA_11_640():
     r"""
@@ -2377,6 +2377,8 @@ Vmt_vectors = {
               """A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
               Discrete Mathematics 1982, vol 39, num 3, pp 263-281"""),
 
+    (9,14) : ((0,1,11,25,37,8,100,23,95,42),"Handbook of Combinatorial Designs 2ed"),
+
     (10,13) : ((0,1,5,10,22,6,14,9,53,129,84),
                """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
                Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
@@ -2526,6 +2528,7 @@ EXAMPLES::
                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
     V(8,57):   A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
                   Discrete Mathematics 1982, vol 39, num 3, pp 263-281
+    V(9,14):   Handbook of Combinatorial Designs 2ed
     V(10,13):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
                    Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
     V(10,19):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,

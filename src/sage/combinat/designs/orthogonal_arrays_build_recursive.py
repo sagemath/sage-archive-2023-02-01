@@ -80,7 +80,7 @@ def simple_wilson_construction(k,r,m,u):
             matrix.append(range(uu)+[None]*(r-uu))
     OA = OA_relabel(OA,k+n_trunc,r,matrix=matrix)
 
-    return wilson_construction(OA,k,r,m,n_trunc,u,False)
+    return wilson_construction(OA,k,r,m,u,False)
 
 
 def construction_3_3(k,n,m,i):
@@ -121,7 +121,7 @@ def construction_3_3(k,n,m,i):
     # Truncated version
     OA = [B[:k]+[0 if x == 0 else None for x in B[k:]] for B in OA]
 
-    OA = wilson_construction(OA,k,n,m,i,[1]*i,check=False)[:-i]
+    OA = wilson_construction(OA,k,n,m,[1]*i,check=False)[:-i]
     matrix = [range(m)+range(n*m,n*m+i)]*k
     OA.extend(OA_relabel(orthogonal_array(k,m+i),k,m+i,matrix=matrix))
     assert is_orthogonal_array(OA,k,n*m+i)
@@ -188,7 +188,7 @@ def construction_3_4(k,n,m,r,s):
         matrix[-1][x] = i
 
     OA = OA_relabel(master_design,k+r+1,n, matrix=matrix)
-    OA = wilson_construction(OA,k,n,m,r+1,[1]*r+[s],check=False)
+    OA = wilson_construction(OA,k,n,m,[1]*r+[s],check=False)
     return OA
 
 def construction_3_5(k,n,m,r,s,t):
@@ -264,7 +264,7 @@ def construction_3_5(k,n,m,r,s,t):
         r3[x] = i
 
     OA = OA_relabel(master_design, k+3,q, matrix=[range(q)]*k+[r1,r2,r3])
-    OA = wilson_construction(OA,k,q,m,3,[r,s,t], check=False)
+    OA = wilson_construction(OA,k,q,m,[r,s,t], check=False)
     return OA
 
 def construction_3_6(k,n,m,i):
@@ -301,7 +301,7 @@ def construction_3_6(k,n,m,i):
     OA = OA_and_oval(n)
     OA = [B[:k+i] for B in OA]
     OA = [B[:k] + [x if x==0 else None for x in B[k:]] for B in OA]
-    OA = wilson_construction(OA,k,n,m,i,[1]*i)
+    OA = wilson_construction(OA,k,n,m,[1]*i)
     assert is_orthogonal_array(OA,k,n*m+i)
     return OA
 
@@ -678,7 +678,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
                 R[-4] = None
         sizes.insert(0,d)
 
-    return wilson_construction(OA,k,n,m,len(sizes),sizes, check=False)
+    return wilson_construction(OA,k,n,m,sizes, check=False)
 
 def thwart_lemma_4_1(k,n,m):
     r"""
@@ -784,7 +784,7 @@ def thwart_lemma_4_1(k,n,m):
             if B[k+i] >= n-2:
                 B[k+i] = None
 
-    return wilson_construction(OA,k,n,m,4,[n-2,]*4,check=False)
+    return wilson_construction(OA,k,n,m,[n-2,]*4,check=False)
 
 def three_factor_product(k,n1,n2,n3,check=False):
     r"""

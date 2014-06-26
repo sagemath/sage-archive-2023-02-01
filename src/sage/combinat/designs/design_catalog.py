@@ -81,6 +81,12 @@ from sage.combinat.designs.latin_squares import mutually_orthogonal_latin_square
 
 from sage.combinat.designs.orthogonal_arrays import transversal_design, orthogonal_array, incomplete_orthogonal_array
 
-from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign, steiner_triple_system
 
 from sage.combinat.designs.difference_family import difference_family
+
+from sage.combinat.designs.bibd import balanced_incomplete_block_design, steiner_triple_system
+
+# deprecated in june 2014 (#16446)
+from sage.misc.superseded import deprecated_function_alias
+BalancedIncompleteBlockDesign = deprecated_function_alias(16446,
+        balanced_incomplete_block_design)

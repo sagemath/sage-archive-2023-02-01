@@ -1313,9 +1313,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if ring is not self and ring is not None: return None
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.arith import gcd
-
-        cdef int i, i_min, m1, m2
 
         #remove content
         if p.parent().is_sparse():
@@ -1325,23 +1322,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         v = p.valuation()
 
-        if algorithm is "dense": # or p.degree() - p.number_of_terms() - v < 10:
+        if algorithm is "dense": # or algorithm is not "sparse" and 2*(p.degree() - v) < 3*p.number_of_terms():
             return p._roots_from_factorization(p.factor(),multiplicities)
 
         p = p.shift(-v)
-
-        if algorithm is "dense_with_gcd":
-            if p.constant_coefficient().abs() < p.degree():
-                x=p.parent().gen()
-                q = 1;
-                for i in xrange(p.constant_coefficient().abs()+1):
-                    q *= x*x-i*i
-                p=gcd(p,q)
-            if multiplicities:
-                return [(self.zero(),v)].extend(p._roots_from_factorization(p.factor(),multiplicities))
-            else:
-                return [self.zero()].extend(p._roots_from_factorization(p.factor(),multiplicities))
-
 
         roots=[]
         if v>0:
@@ -1358,24 +1342,26 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         x=p.variable_name()
         R = PolynomialRing(K,x,sparse=False)
 
-        cst_coeff = c_max = c[0].abs()
+        cst_coeff = c[0]
+        c_max_nbits = cst_coeff.nbits()
 
-        # roots must divide constant coefficient
         i_min=0
-        polys=[]
+        g = R.zero_element()
 
         for i in xrange(1,k):
-            if e[i]-e[i-1] > c_max.nbits():
-                polys.append(R(p[ e[i_min]:e[i] ].shift(-e[i_min])))
+            if e[i]-e[i-1] > c_max_nbits:
+                g = g.gcd(R(p[e[i_min]:e[i]].shift(-e[i_min])))
+                if g is R.one_element(): break
                 i_min=i
-                c_max=c[i].abs()
+                c_max_nbits = c[i].nbits()
             else:
-                c_max=max(c[i].abs(),c_max)
-        polys.append(R(p[ e[i_min]:1+e[k-1] ].shift(-e[i_min])))
+                c_max_nbits = max(c[i].nbits(), c_max_nbits)
 
-        # if no gap, directly return the roots of p
-        if len(polys) == 1:
-            return roots.extend(polys[0]._roots_from_factorization(polys[0].factor(),multiplicities))
+            # if no gap, directly return the roots of p
+            if g is R.zero_element():
+                return roots.extend(p._roots_from_factorization(p.factor(),multiplicities))
+
+            g = g.gcd(R(p[e[i_min]:1+e[k-1]].shift(-e[i_min])))
 
         cc = c; ee = e
         m1 = m2 = 0
@@ -1406,7 +1392,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             if multiplicities: roots.append((-1,m2))
             else: roots.append(-1)
 
-        g = gcd(polys)
         if multiplicities:
             roots.extend(r for r in g._roots_from_factorization(g.factor(),True) if r[0].abs()>1)
         else:

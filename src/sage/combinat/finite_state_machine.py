@@ -8907,6 +8907,64 @@ class _FSMTapeCache_(SageObject):
 
 
     def finished(self, track_number=None):
+        """
+        Returns whether the tape (or particular tracks) are have
+        reached an end, i.e., there are no more letters in the cache
+        and nothing more to read on the original tape.
+
+        INPUT:
+
+        - ``track_number`` -- an integer or ``None``. If ``None``,
+          then ``True`` is returned if all tracks are finished.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine \
+            ....:     import _FSMTapeCache_, FSMTransition
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: while True:
+            ....:     try:
+            ....:         letter = TC2.read_letter()
+            ....:         print 'cache:', TC2.cache, TC2
+            ....:         print 'finished:', TC2.finished(), \
+            ....:             TC2.finished(0), TC2.finished(1)
+            ....:         TC2.forward(
+            ....:             FSMTransition(0, 0, [[l] for l in letter]))
+            ....:     except StopIteration:
+            ....:         print 'stop'
+            ....:         break
+            cache: (deque([37]), deque([11])) multi-tape at (0, 0)
+            finished: False False False
+            cache: (deque([38]), deque([12])) multi-tape at (1, 1)
+            finished: False False False
+            cache: (deque([39]), deque([13])) multi-tape at (2, 2)
+            finished: False False False
+            cache: (deque([40]), deque([14])) multi-tape at (3, 3)
+            finished: False False False
+            stop
+            sage: print 'cache:', TC2.cache, TC2
+            cache: (deque([41]), deque([])) multi-tape at (4, 4)
+            sage: print 'finished:', TC2.finished(), \
+            ....:     TC2.finished(0), TC2.finished(1)
+            finished: False False True
+            sage: TC2.read_letter()
+            Traceback (most recent call last):
+            ...
+            StopIteration
+            sage: print 'cache:', TC2.cache, TC2
+            cache: (deque([41]), deque([])) multi-tape at (4, 4)
+            sage: TC2.read(0)
+            False
+            sage: TC2.forward(FSMTransition(0, 0, [[0], []]))
+            sage: print 'finished:', TC2.finished(), \
+            ....:     TC2.finished(0), TC2.finished(1)
+            finished: True True True
+        """
         if track_number is None:
             return all(self.finished(n) for n, _ in enumerate(self.cache))
         if not self.cache[track_number]:
@@ -8933,6 +8991,8 @@ class _FSMTapeCache_(SageObject):
         Typically, this method is called from a hook-function of a
         state.
 
+        The attribute ``position`` is not changed.
+
         TESTS::
 
             sage: from sage.combinat.finite_state_machine \
@@ -8941,8 +9001,6 @@ class _FSMTapeCache_(SageObject):
             ....:                      [False], ((0, 0),), False)
             sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
-            sage: t = FSMTransition(0, 0, [[l] for l in (1,2,3)])
-            sage: t.word_in
             sage: while True:
             ....:     try:
             ....:         letter = TC2.read_letter()
@@ -9018,6 +9076,8 @@ class _FSMTapeCache_(SageObject):
         the length of each entry of ``transition.word_in``. Note that
         the actual values of in the input word do not play a role
         (just the length).
+
+        This function changes the attribute ``position``.
 
         TESTS::
 

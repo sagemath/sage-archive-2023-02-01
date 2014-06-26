@@ -26,12 +26,6 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
-cp "$SPKGDIR"/patches/testjava.sh "$SPKGDIR"/src/jmol/
-if [ $? -ne 0 ]; then
-   echo "Error adding testjava.sh to jmol directory. Exiting."
-   exit 1
-fi
-
 # Check for sagenb location
 if [ ! -d "$SAGE_ROOT/devel/sagenb/sagenb/data/jmol" ]; then
     echo "No old Jmol install in notebook. Skipping removal of Jmol from notebook."

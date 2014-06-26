@@ -880,12 +880,12 @@ def eratosthenes(n):
         return []
     s = range(3,n+3,2)
     mroot = n ** 0.5
-    half = (n+1)/2
+    half = (n+1) // 2
     i = 0
     m = 3
     while m <= mroot:
         if s[i]:
-            j = (m*m-3)/2
+            j = (m*m-3) // 2
             s[j] = 0
             while j < half:
                 s[j] = 0
@@ -991,7 +991,7 @@ def primes(start, stop=None, proof=None):
     from sage.rings.infinity import infinity
 
     start = ZZ(start)
-    if stop == None:
+    if stop is None:
         stop = start
         start = ZZ(2)
     elif stop != infinity:
@@ -1818,7 +1818,7 @@ def __LCM_sequence(v):
             return g
     return g
 
-def xlcm(m,n):
+def xlcm(m, n):
     r"""
     Extended lcm function: given two positive integers `m,n`, returns
     a triple `(l,m_1,n_1)` such that `l=\mathop{\mathrm{lcm}}(m,n)=m_1
@@ -1833,17 +1833,17 @@ def xlcm(m,n):
         sage: xlcm(120,36)
         (360, 40, 9)
     """
-    g=gcd(m,n)
-    l=m*n//g      # = lcm(m,n)
-    g=gcd(m,n//g) # divisible by those primes which divide n to a
-                  # higher power than m
+    g = gcd(m, n)
+    l = m*n//g       # = lcm(m, n)
+    g = gcd(m, n//g) # divisible by those primes which divide n to a
+                     # higher power than m
 
     while not g==1:
-        m//=g
-        g=gcd(m,g)
+        m //= g
+        g = gcd(m, g)
 
-    n=l//m;
-    return (l,m,n)
+    n = l//m
+    return (l, m, n)
 
 def xgcd(a, b):
     r"""
@@ -3759,7 +3759,7 @@ def quadratic_residues(n):
         159
     """
     n = abs(int(n))
-    X = sorted(set([ZZ((a*a)%n) for a in range(n/2+1)]))
+    X = sorted(set([ZZ((a*a)%n) for a in range(n//2+1)]))
     return X
 
 ## This much slower than above, for obvious reasons.
@@ -4364,7 +4364,7 @@ def convergents(v):
 ##     See Graham, Knuth and Patashnik: Concrete Mathematics: 6.7 Continuants
 ##     """
 ##     m = len(v)
-##     if n == None or m < n:
+##     if n is None or m < n:
 ##         n = m
 ##     if n == 0:
 ##         return 1
@@ -4434,7 +4434,7 @@ def continuant(v, n=None):
     - Jaap Spies (2007-02-06)
     """
     m = len(v)
-    if n == None or m < n:
+    if n is None or m < n:
         n = m
     if n == 0:
         return 1

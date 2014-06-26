@@ -562,7 +562,7 @@ class tr_data_rel:
                     betak = self.beta[k]
                     akmin = [-numpy.polyval(gnks[j], betak[j][mk+1]) - \
                                abs(numpy.polyval(gnkm1s[j], betak[j][mk+1]))*eps_global for j in range(self.d)]
-                    for i in range(1,(mk+1)/2+1):
+                    for i in range(1,(mk+1)//2+1):
                         # Use the fact that f(z) <= f(x)+|f'(x)|eps if |x-z| < eps
                         # for sufficiently small eps, f(z) = 0, and f''(z) < 0.
                         akmin = [max(akmin[j],
@@ -571,7 +571,7 @@ class tr_data_rel:
 
                     akmax = [-numpy.polyval(gnks[j], betak[j][mk]) + \
                                abs(numpy.polyval(gnkm1s[j], betak[j][mk]))*eps_global for j in range(self.d)]
-                    for i in range(1,mk/2+1):
+                    for i in range(1,mk//2+1):
                         akmax = [min(akmax[j],
                                     -numpy.polyval(gnks[j], betak[j][mk-2*i]) + \
                                        abs(numpy.polyval(gnkm1s[j], betak[j][mk-2*i])*eps_global)) for j in range(self.d)]

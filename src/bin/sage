@@ -135,11 +135,6 @@ usage_advanced() {
     echo "Building and testing the Sage library:"
     echo "  -b [branch]         -- build Sage library.  If branch is given, switch to"
     echo "                         branch in devel/sage-branch and build that branch"
-    echo "  -sync-build         -- delete old code and other files in the Sage library"
-    echo "                         that have already been deleted from devel/sage but"
-    echo "                         remain in the build directory.  This is sometimes"
-    echo "                         necessary because \`sage -b\` merely copies new or"
-    echo "                         modified files to the target directory."
     echo "  -ba [branch]        -- same as -b and rebuild all Cython code"
     echo "  -ba-force [branch]  -- same as -ba, but don't query before rebuilding"
     echo "  -br [branch]        -- switch to, build, and run Sage given branch"
@@ -244,6 +239,14 @@ if [ "$1" = '--nodotsage' ]; then
     status=$?
     rm -rf "$DOT_SAGE"
     exit $status
+fi
+
+# Check for '--patchbot' before sourcing sage-env: patchbot needs
+# an unclobbered environment before testing unsafe tickets.
+if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
+    shift
+    cd "$SAGE_ROOT"
+    exec local/bin/patchbot/patchbot.py "$@"
 fi
 
 # Check for '--upgrade' before sourcing sage-env: the top-level "make"
@@ -677,35 +680,10 @@ if [ "$1" = '-r' ]; then
    interactive_sage
 fi
 
-if [ "$1" = '-ba' ]; then
-    shift
-    echo " *** WARNING ***"
-    echo " You are about to rebuild the entire Sage library."
-    echo " This will take a significant amount of time."
-    echo " (Use --ba-force instead of -ba to skip this prompt.)"
-    echo -n " Do you want to proceed? [y/n] "
-    read CHOICE
-    while [ "$CHOICE" != "y" -a "$CHOICE" != "n" ]; do
-        echo -n " Choose one of y, n: "
-        read CHOICE
-    done
-    if [ $CHOICE = 'n' ]; then
-        exit 0
-    fi
-    build_sage -b "$@"
-    exit $?
-fi
-
-if [ "$1" = '-ba-force' -o "$1" = '--ba-force' ]; then
+if [ "$1" = '-ba' -o "$1" = '-ba-force' -o "$1" = '--ba-force' ]; then
     shift
     build_sage -b "$@"
     exit $?
-fi
-
-if [ "$1" = '-sync-build' -o "$1" = '--sync-build' ]; then
-    shift
-    cd "$SAGE_ROOT"
-    exec sage-sync-build.py "$@"
 fi
 
 if [ "$1" = '-t' -o "$1" = '-bt' -o "$1" = '-tp' -o "$1" = '-btp' ]; then
@@ -742,12 +720,6 @@ if [ "$1" = '-testall' -o "$1" = "--testall" ]; then
     SAGE_BANNER="no"
     sage_setup
     exec sage-runtests -a "$@"
-fi
-
-if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
-    shift
-    cd "$SAGE_ROOT"
-    exec "$SAGE_LOCAL/bin/patchbot/patchbot.py" "$@"
 fi
 
 if [ "$1" = '-c' ]; then

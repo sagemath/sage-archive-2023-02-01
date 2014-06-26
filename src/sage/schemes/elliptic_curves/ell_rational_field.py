@@ -190,7 +190,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [True, True]
 
         """
-        if extra != None:   # possibility of two arguments (the first would be the field)
+        if extra is not None:   # possibility of two arguments (the first would be the field)
             ainvs = extra
         self.__np = {}
         self.__gens = {}
@@ -4222,7 +4222,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     raise ValueError("%s is not prime."%l)
             except AttributeError:
                 raise ValueError("%s is not prime."%l)
-        if l == None:
+        if l is None:
             isogs = isogenies_prime_degree_genus_0(self)
             if isogs != []:
                 return isogs

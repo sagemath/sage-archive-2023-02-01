@@ -947,6 +947,17 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: Z = NormalFormGame([X, Y])
             sage: Z._solve_enumeration()
             [[(1, 0, 0), (0, 1, 0)], [(0, 0, 1), (0, 0, 1)], [(2/9, 0, 7/9), (0, 3/4, 1/4)]]
+
+        TESTS:
+
+        This game can return vectors with negative probabilities. Check to make
+        sure they are not included. :
+
+            sage: a = matrix([[-13, 59],
+            ....:             [27, 86]])
+            sage: b = matrix([[14, 6],
+            ....:             [58, -14]])
+            sage: c = NormalFormGame([a, b])
         """
         potential_supports = [[tuple(support) for support in
                                powerset(range(player.num_strategies))]
@@ -1020,6 +1031,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: Z = NormalFormGame([X, Y])
             sage: Z._is_NE([0, 1/4, 3/4], [3/5, 2/5, 0], (1,2,), (0,1,))
             False
+
         """
         # Verify that vectors are indeed probability vectors
         if (not all(i >= 0 for i in a)

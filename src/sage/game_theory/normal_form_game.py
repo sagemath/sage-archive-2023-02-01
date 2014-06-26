@@ -399,7 +399,7 @@ class NormalFormGame(SageObject, MutableMapping):
     airline manager tasked to settle the claims of both travelers explains
     that the airline is liable for a maximum of 10 per suitcase, and in order
     to determine an honest appraised value of the antiques the manager
-    separates both travelers so they can’t confer, and asks them to write down
+    separates both travelers so they can't confer, and asks them to write down
     the amount of their value at no less than 2 and no larger than 100. He
     also tells them that if both write down the same number, he will treat
     that number as the true dollar value of both suitcases and reimburse both

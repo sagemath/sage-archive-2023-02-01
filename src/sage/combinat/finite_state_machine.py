@@ -8671,26 +8671,83 @@ class Transducer(FiniteStateMachine):
 
 
 class _FSMTapeCache_(SageObject):
+    """
+    This is a class for caching an input tape. It is used in
+    :class:`FSMProcessIterator`.
+
+    INPUT:
+
+    - ``tape_cache_manager`` -- a list of the existing instances of
+      ``_FSMTapeCache_``. ``self`` will be appended to this list.
+
+    - ``tape`` -- a tuple or list of the input tracks (iterables).
+
+    - ``tape_ended`` -- a list of booleans (one for each track of the
+      tape), which indicate if the track iterator has already received
+      a ``StopIteration``-exception.
+
+    - ``position`` -- a tuple of pairs `(p, t)` marking the current
+      positions of each of the input tracks. There `p` is the number
+      of letter read from track `t`. The pairs of ``position`` are
+      sorted first by `p` (smallest first) and then by `t`, i.e.,
+      lexicographically.
+
+    - ``is_multitape`` -- If ``True`` each entry of the
+      input-word-tuple of a transition is interpreted as word for the
+      corresponding input track. If ``False`` input-words are
+      interpreted as an iterable of letters.
+
+    OUTPUT:
+
+    A tape-cache.
+
+    TESTS::
+
+        sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
+        sage: TC1 = _FSMTapeCache_([], (srange(37, 42),),
+        ....:                      [False], ((0, 0),), False)
+        sage: TC2 = _FSMTapeCache_([], (srange(37, 42), srange(11,15)),
+        ....:                      [False, False], ((0, 0), (0, 1)), True)
+        sage: TC1
+        tape at 0
+        sage: TC1.tape_cache_manager
+        [tape at 0]
+        sage: TC2
+        multi-tape at (0, 0)
+        sage: TC2.tape_cache_manager
+        [multi-tape at (0, 0)]
+    """
     def __init__(self, tape_cache_manager, tape, tape_ended,
                  position, is_multitape):
         """
-        TODO: position nicht in FSMTapeCache?
+        See :class:`_FSMTapeCache_` for more details.
 
-        INPUT:
+        TESTS::
 
-        - ``tape_cache_manager`` -- a list of the existing instances of
-          _FSMTapeCache_. ``self`` will be appended to ``tape_cache_manager``.
-
-        - ``tape`` -- a tuple or list of the input tapes.
-
-        - ``position`` -- a tuple of the current positions of each of
-          the input tapes. TODO
-
-        - ``is_multitape`` -- If ``True`` each entry of the
-          input-word-tuple of a transition is interpreted as word for
-          the corresponding input tape.
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
+            sage: TC1 = _FSMTapeCache_([], (srange(37, 42),),
+            ....:                      [False], ((0, 0),), False)
+            sage: TC2 = _FSMTapeCache_([], (srange(37, 42), srange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC1m = _FSMTapeCache_([], (srange(37, 42),),
+            ....:                       [False], ((0, 0),), True)
+            sage: TC3 = _FSMTapeCache_([], (srange(37, 42), srange(11,15)),
+            ....:                      [False], ((0, 0),), False)
+            Traceback (most recent call last):
+            ...
+            TypeError: The length of the inputs do not match
+            sage: TC4 = _FSMTapeCache_([], (srange(37, 42), srange(11,15)),
+            ....:                      [False, False], ((0, 0),), False)
+            Traceback (most recent call last):
+            ...
+            TypeError: The length of the inputs do not match
+            sage: TC5 = _FSMTapeCache_([], (srange(37, 42)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            Traceback (most recent call last):
+            ...
+            TypeError: The length of the inputs do not match
         """
-        if len(tape) != len(position):
+        if not len(tape) == len(position) == len(tape_ended):
             raise TypeError('The length of the inputs do not match')
         self.position = position
         self.tape = tape
@@ -8703,27 +8760,131 @@ class _FSMTapeCache_(SageObject):
 
 
     def _repr_(self):
+        """
+        Returns a string representation of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        Note that this representation depends on the parameter
+        ``is_multitape`` of ``self``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
+            sage: TC1 = _FSMTapeCache_([], (srange(37, 42),),
+            ....:                      [False], ((0, 0),), False)
+            sage: TC2 = _FSMTapeCache_([], (srange(37, 42), srange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC1m = _FSMTapeCache_([], (srange(37, 42),),
+            ....:                       [False], ((0, 0),), True)
+            sage: repr(TC1)  # indirect doctest
+            'tape at 0'
+            sage: repr(TC1m)  # indirect doctest
+            'multi-tape at (0,)'
+            sage: repr(TC2)  # indirect doctest
+            'multi-tape at (0, 0)'
+        """
         if self.is_multitape:
             pos = len(self.position) * [None]
             for p, t in self.position:
                 pos[t] = p
-            return 'multi-tape at %s' % (pos,)
+            return 'multi-tape at %s' % (tuple(pos),)
         else:
             return 'tape at %s' % (self.position[0][0],)
 
 
     def __deepcopy__(self, memo):
-        new = _FSMTapeCache_(self.tape_cache_manager, self.tape, self.tape_ended,
-                      self.position, self.is_multitape)
+        """
+        See :meth:`deepcopy` for details.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC3 = deepcopy(TC2)  # indirect doctest
+            sage: TC3
+            multi-tape at (0, 0)
+            sage: TC2.tape_cache_manager
+            [multi-tape at (0, 0), multi-tape at (0, 0)]
+            sage: TC2.tape_cache_manager is TC3.tape_cache_manager
+            True
+        """
+        new = _FSMTapeCache_(self.tape_cache_manager,
+                             self.tape, self.tape_ended,
+                             self.position, self.is_multitape)
         new.cache = deepcopy(self.cache, memo)
         return new
 
 
     def deepcopy(self, memo=None):
-         return deepcopy(self, memo)
+        """
+        Returns a deepcopy of ``self``.
+
+        INPUT:
+
+        - ``memo`` -- a dictionary.
+
+        OUTPUT:
+
+        An instance of ``_FSMCacheTape_``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC3 = deepcopy(TC2)  # indirect doctest
+            sage: TC2
+            multi-tape at (0, 0)
+            sage: TC3
+            multi-tape at (0, 0)
+            sage: TC2.read(0), TC2.read(1), TC2.read(1), TC2.read_letter()
+            (True, True, True, (37, 11))
+            sage: TC2.cache is TC3.cache
+            False
+        """
+        return deepcopy(self, memo)
 
 
     def read(self, track_number):
+        """
+        Reads one letter from the given track of the input tape into
+        the cache.
+
+        INPUT:
+
+        - ``track_number`` -- an integer.
+
+        OUTPUT:
+
+        ``True`` if reading was successful, otherwise ``False``.
+
+        Note that this updates the cache of all tapes in
+        ``self.tape_cache_manager``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC2.read(0), TC2.read(1), TC2.read(1), TC2.read_letter()
+            (True, True, True, (37, 11))
+            sage: TC3 = deepcopy(TC2)
+            sage: TC2.cache, TC3.cache
+            ((deque([37]), deque([11, 12])), (deque([37]), deque([11, 12])))
+            sage: TC3.read(1)
+            True
+            sage: TC2.cache, TC3.cache
+            ((deque([37]), deque([11, 12, 13])),
+             (deque([37]), deque([11, 12, 13])))
+        """
         try:
             newval = next(self.tape[track_number])
         except StopIteration:

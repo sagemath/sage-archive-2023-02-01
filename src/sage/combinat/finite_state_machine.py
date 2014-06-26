@@ -8670,7 +8670,7 @@ class Transducer(FiniteStateMachine):
 #*****************************************************************************
 
 
-class FSMTapeCache(SageObject):
+class _FSMTapeCache_(SageObject):
     def __init__(self, tape_cache_manager, tape, tape_ended,
                  position, is_multitape):
         """
@@ -8679,7 +8679,7 @@ class FSMTapeCache(SageObject):
         INPUT:
 
         - ``tape_cache_manager`` -- a list of the existing instances of
-          FSMTapeCache. ``self`` will be appended to ``tape_cache_manager``.
+          _FSMTapeCache_. ``self`` will be appended to ``tape_cache_manager``.
 
         - ``tape`` -- a tuple or list of the input tapes.
 
@@ -8713,7 +8713,7 @@ class FSMTapeCache(SageObject):
 
 
     def __deepcopy__(self, memo):
-        new = FSMTapeCache(self.tape_cache_manager, self.tape, self.tape_ended,
+        new = _FSMTapeCache_(self.tape_cache_manager, self.tape, self.tape_ended,
                       self.position, self.is_multitape)
         new.cache = deepcopy(self.cache, memo)
         return new
@@ -8836,7 +8836,7 @@ class FSMTapeCache(SageObject):
 #*****************************************************************************
 
 
-class FSMTapeCacheDetectEpsilon(FSMTapeCache):
+class _FSMTapeCacheDetectEpsilon_(_FSMTapeCache_):
     def _transition_possible_test_(self, word_in):
         return self._transition_possible_epsilon_(word_in)
 
@@ -8844,7 +8844,7 @@ class FSMTapeCacheDetectEpsilon(FSMTapeCache):
 #*****************************************************************************
 
 
-class FSMTapeCacheDetectAll(FSMTapeCache):
+class _FSMTapeCacheDetectAll_(_FSMTapeCache_):
     def _transition_possible_test_(self, word_in):
         return True
 
@@ -9107,7 +9107,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         self._tape_cache_manager_ = []
         position_zero = tuple((0, t) for t, _ in enumerate(self._input_tape_))
         if not hasattr(self, 'tape_type'):
-            self.tape_type = FSMTapeCache
+            self.tape_type = _FSMTapeCache_
 
         for state in initial_states:
             self.tape_type(self._tape_cache_manager_,
@@ -9547,7 +9547,7 @@ class FSMProcessIteratorEpsilon(FSMProcessIterator):
         {4: ['']}
     """
     def __init__(self, *args, **kwargs):
-        self.tape_type = FSMTapeCacheDetectEpsilon
+        self.tape_type = _FSMTapeCacheDetectEpsilon_
         self.visited_states = {}
         kwargs['check_epsilon_transitions'] = False
         return super(FSMProcessIteratorEpsilon, self).__init__(*args, **kwargs)

@@ -114,17 +114,17 @@ class NormalFormGame(SageObject, MutableMapping):
     available strategies:
 
         * `[(1.0, 0.0), (1.0, 0.0)]` corresponds to the first player only
-        playing their first strategy and the second player also only playing
-        their first strategy. In other words Amy and Bob both play video games.
+          playing their first strategy and the second player also only playing
+          their first strategy. In other words Amy and Bob both play video games.
 
         * `[(0.0, 1.0), (0.0, 1.0)]` corresponds to the first player only
-        playing their second strategy and the second player also only playing
-        their second strategy. In other words Amy and Bob both watch movies.
+          playing their second strategy and the second player also only playing
+          their second strategy. In other words Amy and Bob both watch movies.
 
         * `[(0.75, 0.25), (0.25, 0.75)]` corresponds to players `mixing` their
-        strategies. Amy plays video games 75% of the time and Bob watches
-        movies 75% of the time. At this equilibrium point Amy and Bob will
-        only ever do the same activity `3/8` of the time.
+          strategies. Amy plays video games 75% of the time and Bob watches
+          movies 75% of the time. At this equilibrium point Amy and Bob will
+          only ever do the same activity `3/8` of the time.
 
     We can use sage to compute the expected utility for any mixed strategy
     pair `(\sigma_1, sigma_2)`. The payoff to player 1 is given by:
@@ -217,22 +217,22 @@ class NormalFormGame(SageObject, MutableMapping):
     When obtaining Nash equilibrium there are 3 algorithms currently available:
 
         * `LCP`: Linear complementarity program algorithm for 2 player games.
-        This algorithm uses the excellent game theory package:
-        [gambit](http://gambit.sourceforge.net/). At present this is the only
-        gambit algorithm available in sage but further development will hope to
-        implement more algorithms
-        (in particular for games with more than 2 players). Gambit is not
-        yet an optional sage package but instructions for installing
-        it can be found [here](http://goo.gl/4bxYgp).
+          This algorithm uses the excellent game theory package:
+          [gambit](http://gambit.sourceforge.net/). At present this is the only
+          gambit algorithm available in sage but further development will hope to
+          implement more algorithms
+          (in particular for games with more than 2 players). Gambit is not
+          yet an optional sage package but instructions for installing
+          it can be found [here](http://goo.gl/4bxYgp).
 
         * `lrs`: Reverse search vertex enumeration for 2 player games. This
-        algorithm uses the optional `lrs` package. To install it type `sage -i
-        lrs` at the command line. For more information see [A2000]_.
+          algorithm uses the optional `lrs` package. To install it type `sage -i
+          lrs` at the command line. For more information see [A2000]_.
 
         * `enumeration`: Support enumeration for 2 player games. This
-        algorithm is hard coded in Sage and checks through all potential
-        supports of a strategy. Note: this is not the preferred algorithm. For
-        more information about this see [NN2007]_.
+          algorithm is hard coded in Sage and checks through all potential
+          supports of a strategy. Note: this is not the preferred algorithm. For
+          more information about this see [NN2007]_.
 
     Below we show how all three algorithms are called ::
 

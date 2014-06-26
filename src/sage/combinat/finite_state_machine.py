@@ -9050,6 +9050,38 @@ class _FSMTapeCache_(SageObject):
 
 
     def compare_to_tape(self, track_number, word):
+        """
+        Returns whether it is possible to read ``word`` at given track
+        successfully.
+
+        INPUT:
+
+        - ``track_number`` -- an integer.
+
+        - ``word`` -- a tuple or list of letters.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC2.compare_to_tape(0, [37])
+            True
+            sage: TC2.compare_to_tape(1, [37])
+            False
+            sage: TC2.compare_to_tape(0, [37, 38])
+            True
+            sage: TC2.compare_to_tape(1, srange(11,15))
+            True
+            sage: TC2.compare_to_tape(1, srange(11,16))
+            False
+            sage: TC2.compare_to_tape(1, [])
+            True
+        """
         track_cache = self.cache[track_number]
         while len(track_cache) < len(word):
             if not self.read(track_number):

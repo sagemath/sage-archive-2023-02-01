@@ -1917,6 +1917,36 @@ cdef class Expression(CommutativeRingElement):
         """
         return is_a_infinity(self._gobj)
 
+    cpdef bint is_positive_infinity(self):
+        """
+        Return True if self is a positive infinite expression.
+
+        EXAMPLES::
+
+            sage: SR(oo).is_positive_infinity()
+            True
+            sage: SR(-oo).is_positive_infinity()
+            False
+            sage: x.is_infinity()
+            False
+        """
+        return is_a_infinity(self._gobj) and self._gobj.info(info_positive)
+
+    cpdef bint is_negative_infinity(self):
+        """
+        Return True if self is a negative infinite expression.
+
+        EXAMPLES::
+
+            sage: SR(oo).is_negative_infinity()
+            False
+            sage: SR(-oo).is_negative_infinity()
+            True
+            sage: x.is_negative_infinity()
+            False
+        """
+        return is_a_infinity(self._gobj) and self._gobj.info(info_negative)
+
     def left_hand_side(self):
         """
         If self is a relational expression, return the left hand side
@@ -4755,7 +4785,9 @@ cdef class Expression(CommutativeRingElement):
             sage: t = x - unsigned_infinity; t
             Infinity
             sage: t.n()
-            +infinity
+            Traceback (most recent call last):
+            ...
+            ValueError: can only convert signed infinity to RR
 
         Some expressions cannot be evaluated numerically::
 
@@ -6642,7 +6674,7 @@ cdef class Expression(CommutativeRingElement):
             sage: float(SR(0.7).arctan2(0.6))
             0.8621700546672264
             sage: maxima('atan2(0.7,0.6)')
-            .862170054667226...
+            0.8621700546672264
             sage: float(SR(0.7).arctan2(-0.6))
             2.279422598922567
             sage: maxima('atan2(0.7,-0.6)')
@@ -6650,7 +6682,7 @@ cdef class Expression(CommutativeRingElement):
             sage: float(SR(-0.7).arctan2(0.6))
             -0.8621700546672264
             sage: maxima('atan2(-0.7,0.6)')
-            -.862170054667226...
+            -0.8621700546672264
             sage: float(SR(-0.7).arctan2(-0.6))
             -2.279422598922567
             sage: maxima('atan2(-0.7,-0.6)')
@@ -6834,7 +6866,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(1.0).tanh()
             0.761594155955765
             sage: maxima('tanh(1.0)')
-            .7615941559557649
+            0.7615941559557649
             sage: plot(lambda x: SR(x).tanh(), -1, 1)
 
         To prevent automatic evaluation use the ``hold`` argument::
@@ -6990,8 +7022,8 @@ cdef class Expression(CommutativeRingElement):
             0.549306144334055
             sage: SR(0.5).arctanh().tanh()
             0.500000000000000
-            sage: maxima('atanh(0.5)')
-            .5493061443340...
+            sage: maxima('atanh(0.5)')  # abs tol 2e-16
+            0.5493061443340548
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -7337,7 +7369,7 @@ cdef class Expression(CommutativeRingElement):
             1
             sage: SR(10).gamma()
             362880
-            sage: SR(10.0r).gamma()
+            sage: SR(10.0r).gamma()  # For ARM: rel tol 2e-15
             362880.0
             sage: SR(CDF(1,1)).gamma()
             0.498015668118 - 0.154949828302*I
@@ -9231,7 +9263,7 @@ cdef class Expression(CommutativeRingElement):
             sage: from sage.calculus.calculus import maxima
             sage: sol = maxima(cos(x)==0).to_poly_solve(x)
             sage: sol.sage()
-            [[x == -1/2*pi + 2*pi*z...], [x == 1/2*pi + 2*pi*z...]]
+            [[x == 1/2*pi + pi*z82]]
 
         If a returned unsolved expression has a denominator, but the
         original one did not, this may also be true::
@@ -9838,6 +9870,8 @@ cdef class Expression(CommutativeRingElement):
 
             sage: abs(log(x))._plot_fast_callable(x)(-0.2)
             3.52985761682672
+            sage: f = function('f', evalf_func=lambda self,x,parent: I*x)
+            sage: plot(abs(f(x)), 0,5)
         """
         from sage.ext.fast_callable import fast_callable
         return fast_callable(self, vars=vars, expect_one_var=True)

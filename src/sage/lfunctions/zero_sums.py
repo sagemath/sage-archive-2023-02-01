@@ -140,6 +140,68 @@ class LFunctionZeroSum_abstract(SageObject):
         else:
             return [float(self.cn(i)) for i in xrange(n+1)]
 
+    def digamma(self,s,include_constant_term=True):
+        r"""
+        Return the digamma function on the complex input 's', given by
+            '\digamma(s) = -\eta + \sum_{k=1)^{\infty} frac{s-1}{k(k+s-1)}'
+        where '\eta' is the Euler-Mascheroni constant '=0.5772156649\ldots'.
+        This function is needed in the computing the logarithmic derivative
+        of the 'L'-function attached to self.
+
+        INPUT:
+
+        - ``s`` -- A complex number
+        - ``include_constant_term`` -- (default: True) boolean; if set False,
+          only the value of the sum over 'k' is returned without subtracting
+          off the Euler-Mascheroni constant, i.e. the returned value is
+          equal to '\sum_{k=1)^{\infty} frac{s-1}{k(k+s-1)}'.
+
+        OUTPUT:
+
+        A real double precision number if the input is real and not a negative
+        integer; Infinity if the input is a negative integer, and a complex
+        number otherwise.
+
+        EXAMPLES::
+
+            sage: Z = LFunctionZeroSum(EllipticCurve('37a'))
+            sage: Z.digamma(3.2)
+            0.998838891287
+            sage: Z.digamma(3.2,include_constant_term=False)
+            1.57605455619
+            sage: Z.digamma(1+I)
+            0.0946503206225 + 1.07667404747*I
+            sage: Z.digamma(-2)
+            +Infinity
+
+        Evaluating the sum without the constant term at the positive integers n
+        returns the (n-1)th harmonic number:
+
+        ::
+
+            sage: Z.digamma(3,include_constant_term=False)
+            1.5
+            sage: Z.digamma(6,include_constant_term=False)
+            2.28333333333
+        """
+        if real(s)<0 and imag(s)==0:
+            try:
+                z = ZZ(s)
+                return PlusInfinity()
+            except:
+                pass
+
+        if imag(s)==0:
+            F = RDF
+        else:
+            F = CDF
+        # Cheating: SciPy already has this function implemented
+        z = F(psi(F(s)))
+        if include_constant_term:
+            return z
+        else:
+            return z + self._euler_gamma
+
     def logarithmic_derivative(self,s,num_terms=10000,as_interval=False):
         r"""
         Compute the value of the logarithmic derivative '\frac{L^{\prime}}{L}'
@@ -215,7 +277,7 @@ class LFunctionZeroSum_abstract(SageObject):
         ::
 
             sage: Z.logarithmic_derivative(-3)
-            (-infinity, 2.71315847363e-14)
+            (-Infinity, 2.71315847363e-14)
         """
         if imag(s)==0:
             F = RDF
@@ -224,7 +286,7 @@ class LFunctionZeroSum_abstract(SageObject):
         # Inputs left of the critical line are handled via the functional
         # equation of the logarithmic derivative
         if real(s-1)<0:
-            a = -2*self._C1-F(psi(F(s)))-F(psi(F(2-s)))
+            a = -2*self._C1-self.digamma(s)-self.digamma(2-s)
             b,err = self.logarithmic_derivative(2-s,num_terms=num_terms)
             return (a+b,err)
 
@@ -311,10 +373,10 @@ class LFunctionZeroSum_abstract(SageObject):
 
         if real(s-1)>=0:
             Ls = self.logarithmic_derivative(s,num_terms)
-            return (self._C1 + F(psi(F(s))) + Ls[0], Ls[1])
+            return (self._C1 + self.digamma(s) + Ls[0], Ls[1])
         else:
             Ls = self.logarithmic_derivative(2-s,num_terms)
-            return (-self._C1 - F(psi(F(2-s))) - Ls[0], Ls[1])
+            return (-self._C1 - self.digamma(2-s) - Ls[0], Ls[1])
 
     def zerosum(self,Delta=1,function="sincsquared_fast"):
         r"""

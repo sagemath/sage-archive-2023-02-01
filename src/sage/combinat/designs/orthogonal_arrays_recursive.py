@@ -200,16 +200,17 @@ def construction_3_4(k,n,m,r,s):
     r"""
     Returns a `OA(k,nm+rs)`.
 
-    This is Wilson's construction applied to a truncated `OA(k+r+1,n)` with `k`
+    This is Wilson's construction applied to a truncated `OA(k+r+1,n)` with `r`
     columns of size `1` and one column of size `s`.
 
-    The unique elements of the `k` truncated columns are picked so that a block
+    The unique elements of the `r` truncated columns are picked so that a block
     `B_0` contains them all.
 
     - If there exists an `OA(k,m+r+1)` the column of size `s` is truncated in
       order to intersect `B_0`.
 
-    - If there exists an `OA(k,m+r+1)`, the last column must not intersect `B_0`
+    - Otherwise, if there exists an `OA(k,m+r)`, the last column must not
+      intersect `B_0`
 
     This is construction 3.4 from [AC07]_.
 

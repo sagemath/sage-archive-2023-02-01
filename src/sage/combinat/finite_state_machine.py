@@ -7028,7 +7028,7 @@ class FiniteStateMachine(SageObject):
                 words. Try the direct algorithm instead.
 
 
-           Thus, we change ``NAF``, then compose and again construct 
+           Thus, we change ``NAF``, then compose and again construct
            the final output words::
 
                 sage: for s in NAF.final_states():

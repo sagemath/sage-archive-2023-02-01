@@ -277,8 +277,10 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         if existence:
             return k
 
-    if existence and not who_asked and _get_OA_cache(k,n) is not None:
-        return _get_OA_cache(k,n)
+    if existence and not who_asked and _OA_cache_get(k,n) is not None:
+        return _OA_cache_get(k,n)
+
+    may_be_available = _OA_cache_construction_available(k,n) is not False
 
     if n == 1:
         if existence:
@@ -291,14 +293,14 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         raise EmptySetError("No Transversal Design exists when k>=n+2 if n>=2")
 
     elif n == 12 and k <= 6:
-        _set_OA_cache(6,12,True)
+        _OA_cache_set(6,12,True)
         if existence:
             return True
         from sage.combinat.designs.database import TD_6_12
         TD = [l[:k] for l in TD_6_12()]
 
-    elif TD_find_product_decomposition(k,n):
-        _set_OA_cache(k,n,True)
+    elif may_be_available and TD_find_product_decomposition(k,n):
+        _OA_cache_set(k,n,True)
         if existence:
             return True
         n1,n2 = TD_find_product_decomposition(k,n)
@@ -324,7 +326,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
 
     else:
         if not who_asked:
-            _set_OA_cache(k,n,Unknown)
+            _OA_cache_set(k,n,Unknown)
         if existence:
             return Unknown
         raise NotImplementedError("I don't know how to build a TD({},{})!".format(k,n))
@@ -665,7 +667,7 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
 # truth_value.
 
 _OA_cache = {0:(Infinity,None,None,None),1:(Infinity,None,None,None)}
-def _set_OA_cache(k,n,truth_value):
+def _OA_cache_set(k,n,truth_value):
     r"""
     Sets a value in the OA cache of existence results
 
@@ -677,12 +679,12 @@ def _set_OA_cache(k,n,truth_value):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import _set_OA_cache, _get_OA_cache, _OA_cache
+        sage: from sage.combinat.designs.orthogonal_arrays import _OA_cache_set, _OA_cache_get, _OA_cache
         sage: if 10 in _OA_cache:
         ....:    del _OA_cache[10]
-        sage: _get_OA_cache(4,10)
-        sage: _set_OA_cache(4,10,True)
-        sage: _get_OA_cache(4,10)
+        sage: _OA_cache_get(4,10)
+        sage: _OA_cache_set(4,10,True)
+        sage: _OA_cache_get(4,10)
         True
     """
     global _OA_cache
@@ -702,7 +704,7 @@ def _set_OA_cache(k,n,truth_value):
 
     _OA_cache[n] = (max_true, min_unknown, max_unknown, min_false)
 
-def _get_OA_cache(k,n):
+def _OA_cache_get(k,n):
     r"""
     Gets a value from the OA cache of existence results
 
@@ -712,16 +714,16 @@ def _get_OA_cache(k,n):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import _set_OA_cache, _get_OA_cache
-        sage: _get_OA_cache(0,10)
+        sage: from sage.combinat.designs.orthogonal_arrays import _OA_cache_set, _OA_cache_get
+        sage: _OA_cache_get(0,10)
         True
-        sage: _get_OA_cache(1,10)
+        sage: _OA_cache_get(1,10)
         True
-        sage: _get_OA_cache(2,10)
+        sage: _OA_cache_get(2,10)
         True
-        sage: _get_OA_cache(2**10+1,2**10)
-        sage: _set_OA_cache(2**10+1,2**10,True)
-        sage: _get_OA_cache(2**10+1,2**10)
+        sage: _OA_cache_get(2**10+1,2**10)
+        sage: _OA_cache_set(2**10+1,2**10,True)
+        sage: _OA_cache_get(2**10+1,2**10)
         True
     """
     global _OA_cache
@@ -742,6 +744,36 @@ def _get_OA_cache(k,n):
         return False
 
     return None
+
+def _OA_cache_construction_available(k,n):
+    r"""
+    Tests if a construction is implemented using the cache's information
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import _OA_cache_construction_available
+        sage: _OA_cache_construction_available(5,10)
+        Unknown
+        sage: designs.orthogonal_array(5,10,existence=True)
+        Unknown
+        sage: _OA_cache_construction_available(5,10)
+        False
+    """
+    ans = _OA_cache.get(n,None)
+    if ans is not None:
+        max_true, min_unknown, max_unknown, min_false = ans
+        if k <= max_true:
+            return True
+        if min_unknown is not None and k >= min_unknown:
+            return False
+        else:
+            return Unknown
+    else:
+        return Unknown
 
 def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
     r"""
@@ -918,8 +950,10 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
     if k < t:
         raise ValueError("undefined for k<t")
 
-    if existence and not who_asked and _get_OA_cache(k,n) is not None and t == 2:
-        return _get_OA_cache(k,n)
+    if existence and not who_asked and _OA_cache_get(k,n) is not None and t == 2:
+        return _OA_cache_get(k,n)
+
+    may_be_available = _OA_cache_construction_available(k,n) is not False
 
     if n <= 1:
         if existence:
@@ -950,7 +984,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
     # projective spaces are equivalent to OA(n+1,n,2)
     elif (projective_plane(n, existence=True) or
            (k == n+1 and projective_plane(n, existence=True) is False)):
-        _set_OA_cache(n+1,n,projective_plane(n, existence=True))
+        _OA_cache_set(n+1,n,projective_plane(n, existence=True))
         if k == n+1:
             if existence:
                 return projective_plane(n, existence=True)
@@ -963,16 +997,16 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
             OA = [l[:k] for l in projective_plane_to_OA(p, check=False)]
 
     # Constructions from the database
-    elif n in OA_constructions and k <= OA_constructions[n][0]:
-        _set_OA_cache(OA_constructions[n][0],n,True)
+    elif may_be_available and n in OA_constructions and k <= OA_constructions[n][0]:
+        _OA_cache_set(OA_constructions[n][0],n,True)
         if existence:
             return True
         _, construction = OA_constructions[n]
 
         OA = OA_from_wider_OA(construction(),k)
 
-    elif find_wilson_decomposition_with_one_truncated_group(k,n):
-        _set_OA_cache(k,n,True)
+    elif may_be_available and find_wilson_decomposition_with_one_truncated_group(k,n):
+        _OA_cache_set(k,n,True)
         if existence:
             return True
         k,m,r,u = find_wilson_decomposition_with_one_truncated_group(k,n)
@@ -980,8 +1014,8 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         OA = OA_relabel(OA,k+1,r,matrix=[range(r)]*k+[range(u)+[None]*(r-u)])
         OA = wilson_construction(OA,k,r,m,1,[u],check=False)
 
-    elif find_wilson_decomposition_with_two_truncated_groups(k,n):
-        _set_OA_cache(k,n,True)
+    elif may_be_available and find_wilson_decomposition_with_two_truncated_groups(k,n):
+        _OA_cache_set(k,n,True)
         if existence:
             return True
         k,r,m,u1,u2 = find_wilson_decomposition_with_two_truncated_groups(k,n)
@@ -1026,7 +1060,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
     else:
         if not who_asked:
-            _set_OA_cache(k,n,Unknown)
+            _OA_cache_set(k,n,Unknown)
         if existence:
             return Unknown
         raise NotImplementedError("I don't know how to build an OA({},{})!".format(k,n))

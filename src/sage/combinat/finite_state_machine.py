@@ -153,14 +153,11 @@ TikZ is used for typesetting the graphics, see the
     \end{tikzpicture}
 
 We can turn this into a graphical representation. Before doing this,
-we have to :func:`setup the latex preamble <setup_latex_preamble>` and
-make sure that TikZ pictures are not rendered by mathjax, but by
-actually running LaTeX.
+we have to :func:`setup the latex preamble <setup_latex_preamble>`.
 
 ::
 
     sage: sage.combinat.finite_state_machine.setup_latex_preamble()
-    sage: latex.mathjax_avoid_list('tikzpicture')
     sage: view(NAF) # not tested
 
 To actually see this, use the live documentation in the Sage notebook
@@ -3140,7 +3137,6 @@ class FiniteStateMachine(SageObject):
 
             sage: from sage.combinat.finite_state_machine import setup_latex_preamble
             sage: setup_latex_preamble()
-            sage: latex.mathjax_avoid_list('tikzpicture')
             sage: T = Transducer(initial_states=['I'],
             ....:     final_states=[0, 3])
             sage: for j in srange(4):
@@ -8909,9 +8905,6 @@ def setup_latex_preamble():
 
     Nothing.
 
-    In the Sage notebook, you probably want to use
-    ``latex.mathjax_avoid_list('tikzpicture')`` such that
-    :func:`~sage.misc.latex.view` actually shows the result.
     See the section on :ref:`finite_state_machine_LaTeX_output`
     in the introductory examples of this module.
 
@@ -8919,9 +8912,9 @@ def setup_latex_preamble():
 
         sage: from sage.combinat.finite_state_machine import setup_latex_preamble
         sage: setup_latex_preamble()
-        sage: latex.mathjax_avoid_list('tikzpicture')
     """
     latex.add_package_to_preamble_if_available('tikz')
+    latex.add_to_mathjax_avoid_list("tikz")
     latex.add_to_preamble('\\usetikzlibrary{automata}')
 
 

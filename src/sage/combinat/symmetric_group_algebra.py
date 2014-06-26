@@ -344,12 +344,14 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
     def canonical_embedding(self, other):
         """
-        Return the canonical embedding of ``self`` into ``other``.
+        Return the canonical coercion of ``self`` into a symmetric
+        group algebra ``other``.
 
         INPUT:
 
         - ``other`` -- a symmetric group algebra with order `p`
-          satisfying `p \leq n` where `n` is the order of ``self``.
+          satisfying `p \geq n`, where `n` is the order of ``self``,
+          over a ground ring into which ``self`` coerces.
 
         EXAMPLES::
 
@@ -368,6 +370,24 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             Generic morphism:
               From: Symmetric group algebra of order 2 over Rational Field
               To:   Symmetric group algebra of order 4 over Rational Field
+
+            sage: ZS2 = SymmetricGroupAlgebra(ZZ, 2)
+            sage: phi = ZS2.canonical_embedding(QS4); phi
+            Generic morphism:
+              From: Symmetric group algebra of order 2 over Integer Ring
+              To:   Symmetric group algebra of order 4 over Rational Field
+
+            sage: phi = ZS2.canonical_embedding(QS2); phi
+            Generic morphism:
+              From: Symmetric group algebra of order 2 over Integer Ring
+              To:   Symmetric group algebra of order 2 over Rational Field
+
+            sage: QS4.canonical_embedding(QS2)
+            Traceback (most recent call last):
+            ...
+            ValueError: There is no canonical embedding from Symmetric group
+             algebra of order 2 over Rational Field to Symmetric group
+             algebra of order 4 over Rational Field
         """
         if not isinstance(other, SymmetricGroupAlgebra_n) or self.n > other.n:
             raise ValueError("There is no canonical embedding from {0} to {1}".format(other, self))

@@ -23,6 +23,7 @@ from sage.misc.lazy_import import lazy_import
 from sage.structure.sage_object import SageObject
 from sage.rings.all import QQ, ZZ
 from sage.misc.misc import powerset
+from sage.misc.latex import latex
 from sage.combinat.cartesian_product import CartesianProduct
 lazy_import('sage.misc.package', 'is_package_installed')
 lazy_import('sage.matrix.constructor', 'matrix')
@@ -586,17 +587,36 @@ class NormalFormGame(SageObject, MutableMapping):
     def _latex_(self):
         r"""
         Returns the LaTeX code representing the ``NormalFormGame``.
+
+        EXAMPLES:
+
+        LaTeX method shows the two payoff matrices for a two player game: ::
+
+        sage: A = matrix([[-1, -2], [-12, 2]])
+        sage: B = matrix([[1, 0], [1, -1]])
+        sage: g = NormalFormGame([A, B])
+        sage: latex(g)
+        \left(\left(\begin{array}{rr}
+        -1 & -2 \\
+        -12 & 2
+        \end{array}\right), \left(\begin{array}{rr}
+        1 & 0 \\
+        1 & -1
+        \end{array}\right)\right)
+
+        LaTeX method shows nothing interesting for games with more players: ::
+
+        sage: g = NormalFormGame()
+        sage: g.add_player(2)
+        sage: g.add_player(2)
+        sage: g.add_player(2)  # Creating a game with three players
+        sage: latex(g)
+        \text{\texttt{<bound{ }method{ }NormalFormGame.{\char`\_}repr{\char`\_}{ }of{ }{\char`\{}(0,{ }1,{ }1):{ }[False,{ }False,{ }False],{ }(1,{ }1,{ }0):{ }[False,{ }False,{ }False],{ }(1,{ }0,{ }0):{ }[False,{ }False,{ }False],{ }(0,{ }0,{ }1):{ }[False,{ }False,{ }False],{ }(1,{ }0,{ }1):{ }[False,{ }False,{ }False],{ }(0,{ }0,{ }0):{ }[False,{ }False,{ }False],{ }(0,{ }1,{ }0):{ }[False,{ }False,{ }False],{ }(1,{ }1,{ }1):{ }[False,{ }False,{ }False]{\char`\}}>}}
         """
         if len(self.players) == 2:
-            m1, m2 = self.payoff_matrices()
-            output = "Player 1:\n"
-            output += m1._latex_()
-            output += "Player2:\n"
-            output += m2._latex_()
-            return output
-        else:
-            pass
-            # Vince can do fancy latex stuff
+            M1, M2 = self.payoff_matrices()
+            return "\left(%s, %s\\right)" % (M1._latex_(), M2._latex_())
+        return latex(self._repr_)
 
     def _two_matrix_game(self, matrices):
         r"""

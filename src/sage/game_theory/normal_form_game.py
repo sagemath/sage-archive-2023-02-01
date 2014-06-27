@@ -175,7 +175,7 @@ class NormalFormGame(SageObject, MutableMapping):
             1&-1\\
             \end{pmatrix}
 
-    It should be relatively straightforward to note that there is no situation
+    It should be relatively straightforward to observe that there is no situation
     where both players always do the same thing and have no incentive to
     deviate.
 

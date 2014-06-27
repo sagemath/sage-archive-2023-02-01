@@ -71,7 +71,7 @@ simply by
     sage: FiniteStateMachine([('night', 'day'), ('day', 'night')])
     Finite state machine with 2 states
 
-See :class:`FiniteStateMachine` for a lot of possibilities to created
+See :class:`FiniteStateMachine` for a lot of possibilities to create
 finite state machines.
 
 .. _finite_state_machine_recognizing_NAFs_example:
@@ -502,11 +502,11 @@ Let's try some other examples::
     sage: C.counter = 0; C([0, 1, 0, 0])
     (False, 'negative', [-1, 0, -1, -2])
 
-See also mathods :meth:`Automaton.process` and
+See also methods :meth:`Automaton.process` and
 :meth:`Transducer.process` (or even
-:meth:`FiniteStateMachine.process`), the explaination of the parameter
+:meth:`FiniteStateMachine.process`), the explanation of the parameter
 ``hook`` and the examples in :class:`FSMState` and
-:class:`FSMTransition`, and desciption and examples in
+:class:`FSMTransition`, and the description and examples in
 :class:`FSMProcessIterator` for more information on processing and
 hooks.
 
@@ -767,15 +767,15 @@ class FSMState(SageObject):
 
     - ``hook`` -- (default: ``None``) A function which is called when
       the state is reached during processing input. It takes two input
-      parameters: the first is the current state (to allowing the same
-      hook for more states), the second is the current process
+      parameters: the first is the current state (to allow using the same
+      hook for several states), the second is the current process
       iterator object (to have full access to everything; e.g. the
       next letter from the input tape can be read in). It can output
       the next transition, i.e. the transition to take next. If it
       returns ``None`` the process iterator chooses. Moreover, this
       function can raise a ``StopIteration`` exception to stop
       processing of a finite state machine the input immediately. See
-      also example below.
+      also the example below.
 
     - ``color`` -- (default: ``None``) In order to distinguish states,
       they can be given an arbitrary "color" (an arbitrary object).
@@ -877,7 +877,7 @@ class FSMState(SageObject):
         sage: A.determinisation()
         Automaton with 1 states
 
-    We can use a hook function of a state, to stop processing. This is
+    We can use a hook function of a state to stop processing. This is
     done by raising a ``StopIteration`` exception. The following code
     demonstrates this::
 

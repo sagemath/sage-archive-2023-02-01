@@ -144,3 +144,204 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
     sage_free(OAc)
     bitset_free(seen)
     return True
+
+def is_group_divisible_design(groups,blocks,v,lambd=1,verbose=False):
+    r"""
+    Checks that input is a Group Divisible Design
+
+    For more information on Group Divisible Designs, see
+    :class:`~sage.combinat.designs.incidence_structure.GroupDivisibleDesign`.
+
+    INPUT:
+
+    - ``groups`` -- a partition of `X`
+
+    - ``blocks`` -- collection of blocks
+
+    - ``v`` (integers) -- size of the ground set assumed to be `X=[0,...,v-1]`.
+
+    - ``lambd`` -- value of `\lambda`. Set to `1` by default.
+
+    - ``verbose`` (boolean) -- whether to display some information when the
+      design is not a GDD.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_group_divisible_design
+        sage: TD = designs.transversal_design(4,10)
+        sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
+        sage: is_group_divisible_design(groups,TD,40,1)
+        True
+
+    TESTS::
+
+        sage: TD = designs.transversal_design(4,10)
+        sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
+        sage: is_group_divisible_design(groups,TD,40,2,verbose=True)
+        the pair (0,10) has been seen 1 times but lambda=2
+        False
+        sage: is_group_divisible_design([[1,2],[3,4]],[[1,2]],40,1,verbose=True)
+        groups is not a partition of [0,...,39]
+        False
+        sage: is_group_divisible_design([range(40)],[[1,2]],40,1,verbose=True)
+        the pair (1,2) belongs to a group but appears in some block
+        False
+        sage: is_group_divisible_design([range(40)],[[2,2]],40,1,verbose=True)
+        The following block has repeated elements: [2, 2]
+        False
+        sage: is_group_divisible_design([range(40)],[["e",2]],40,1,verbose=True)
+        e does not belong to [0,...,39]
+        False
+    """
+    cdef int n = v
+    cdef int i,ii,j,jj,s,isok
+    cdef int l = lambd
+
+    if v < 0 or lambd < 0:
+        if verbose:
+            print "v={} and lambda={} must be positive integers".format(v,l)
+        return False
+
+    # Check that "groups" consists of disjoints sets whose union has length n
+    if sum(map(len,groups)) != n or len(set(sum(groups,[]))) != n:
+        if verbose:
+            print "groups is not a partition of [0,...,{}]".format(n-1)
+        return False
+
+    # Checks that the blocks are indeed sets and do not repeat elements
+    for b in blocks:
+        if len(b) != len(set(b)):
+            if verbose:
+                print "The following block has repeated elements: {}".format(b)
+            return False
+
+    # Check that the groups belong to [0,...,n-1]
+    for b in groups:
+        for x in b:
+            try:
+                i = x
+                isok = True
+            except TypeError:
+                isok = False
+            if not isok or i < 0 or i >= n:
+                if verbose:
+                    print "{} does not belong to [0,...,{}]".format(x,n-1)
+                return False
+
+    # Same for blocks
+    for b in blocks:
+        for x in b:
+            try:
+                i = x
+                isok = True
+            except TypeError:
+                isok = False
+            if not isok or i < 0 or i >= n:
+                if verbose:
+                    print "{} does not belong to [0,...,{}]".format(x,n-1)
+                return False
+
+    cdef unsigned short * matrix = <unsigned short *> sage_calloc(n*n,sizeof(unsigned short))
+    if matrix is NULL:
+        raise MemoryError
+
+    # Counts the number of occurrences of each pair of points
+    for b in blocks:
+        s = len(b)
+        for i in range(s):
+            ii = b[i]
+            for j in range(i+1,s):
+                jj = b[j]
+                matrix[ii*n+jj] += 1
+                matrix[jj*n+ii] += 1
+
+    # Checks that two points of the same group were never covered
+    for g in groups:
+        s = len(g)
+        for i in range(s):
+            ii = g[i]
+            for j in range(i+1,s):
+                jj = g[j]
+                if matrix[ii*n+jj] != 0:
+                    if verbose:
+                        print "the pair ({},{}) belongs to a group but appears in some block".format(ii,jj)
+                    sage_free(matrix)
+                    return False
+
+                # We fill the entries with what is expected by the next loop
+                matrix[ii*n+jj] = l
+                matrix[jj*n+ii] = l
+
+    # Checking that what should be equal to lambda IS equal to lambda
+    for i in range(n):
+        for j in range(i+1,n):
+            if i != j and matrix[i*n+j] != <unsigned short> -1 and matrix[i*n+j] != l:
+                if verbose:
+                    print "the pair ({},{}) has been seen {} times but lambda={}".format(i,j,matrix[i*n+j],l)
+                sage_free(matrix)
+                return False
+
+    sage_free(matrix)
+
+    return True
+
+def is_pairwise_balanced_design(blocks,v,K,lambd=1,verbose=False):
+    r"""
+    Checks that input is a Pairwise Balanced Design (PBD)
+
+    For more information on Pairwise Balanced Designs (PBD), see
+    :class:`~sage.combinat.designs.bibd.PairwiseBalancedDesign`.
+
+    INPUT:
+
+    - ``blocks`` -- collection of blocks
+
+    - ``v`` (integers) -- size of the ground set assumed to be `X=[0,...,v-1]`.
+
+    - ``K`` -- set of integers containing the block sizes.
+
+    - ``lambd`` -- value of `\lambda`. Set to `1` by default.
+
+    - ``verbose`` (boolean) -- whether to display some information when the
+      design is not a PBD.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_pairwise_balanced_design
+        sage: sts = designs.steiner_triple_system(9)
+        sage: is_pairwise_balanced_design(sts,9,[3],1)
+        True
+        sage: TD = designs.transversal_design(4,10).blocks()
+        sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
+        sage: is_pairwise_balanced_design(TD+groups,40,[4,10],1,verbose=True)
+        True
+
+    TESTS::
+
+        sage: from sage.combinat.designs.designs_pyx import is_pairwise_balanced_design
+        sage: is_pairwise_balanced_design(TD+groups,40,[4,10],2,verbose=True)
+        the pair (0,1) has been seen 1 times but lambda=2
+        False
+        sage: is_pairwise_balanced_design(TD+groups,40,[10],1,verbose=True)
+        A block has size 4 while K={10}
+        False
+        sage: is_pairwise_balanced_design([[2,2]],40,[2],1,verbose=True)
+        The following block has repeated elements: [2, 2]
+        False
+        sage: is_pairwise_balanced_design([["e",2]],40,[2],1,verbose=True)
+        e does not belong to [0,...,39]
+        False
+    """
+    K = set(K)
+    for b in blocks:
+        if len(b) not in K:
+            if verbose:
+                from sage.sets.set import Set
+                print "A block has size {} while K={}".format(len(b),Set(K))
+            return False
+
+    return is_group_divisible_design([[i] for i in range(v)],
+                                     blocks,
+                                     v,
+                                     lambd,
+                                     verbose=verbose)

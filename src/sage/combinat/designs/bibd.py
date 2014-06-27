@@ -11,9 +11,9 @@ method, available in Sage as ``designs.balanced_incomplete_block_design``.
 
 EXAMPLES::
 
-    sage: designs.balanced_incomplete_block_design(7,3)
-    Incidence structure with 7 points and 7 blocks
-    sage: designs.balanced_incomplete_block_design(7,3).blocks()
+    sage: BIBD = designs.balanced_incomplete_block_design(7,3); BIBD
+    (7,3,1)-Balanced Incomplete Block Design
+    sage: BIBD.blocks()
     [[0, 1, 3], [0, 2, 4], [0, 5, 6], [1, 2, 6], [1, 4, 5], [2, 3, 5], [3, 4, 6]]
     sage: designs.balanced_incomplete_block_design(13,4).blocks()
     [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 10], [0, 5, 7, 11], [1, 3, 8, 11],
@@ -51,6 +51,8 @@ from design_catalog import transversal_design
 from block_design import BlockDesign
 from sage.rings.arith import binomial
 from sage.rings.arith import is_prime_power
+from incidence_structures import GroupDivisibleDesign
+from designs_pyx import is_pairwise_balanced_design
 
 def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     r"""
@@ -133,9 +135,9 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     Some trivial BIBD::
 
         sage: designs.balanced_incomplete_block_design(10,10)
-        Incidence structure with 10 points and 1 blocks
+        (10,10,1)-Balanced Incomplete Block Design
         sage: designs.balanced_incomplete_block_design(1,10)
-        Incidence structure with 1 points and 0 blocks
+        (1,0,1)-Balanced Incomplete Block Design
 
     Existence of BIBD with `k=3,4,5`::
 
@@ -156,12 +158,12 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     if v == 1:
         if existence:
             return True
-        return BlockDesign(v, [], check=False)
+        return BalancedIncompleteBlockDesign([],v, check=False)
 
     if k == v:
         if existence:
             return True
-        return BlockDesign(v, [range(v)], check=False)
+        return BalancedIncompleteBlockDesign([range(v)],v, check=False, copy=False)
 
     if v < k or k < 2 or (v-1) % (k-1) != 0 or (v*(v-1)) % (k*(k-1)) != 0:
         if existence:
@@ -172,7 +174,7 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
         if existence:
             return True
         from itertools import combinations
-        return BlockDesign(v, combinations(range(v),2), check=False)
+        return BalancedIncompleteBlockDesign(combinations(range(v),2),v, check = False, copy=False)
     if k == 3:
         if existence:
             return v%6 == 1 or v%6 == 3
@@ -180,11 +182,11 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     if k == 4:
         if existence:
             return v%12 == 1 or v%12 == 4
-        return BlockDesign(v, v_4_1_BIBD(v), check=False)
+        return BalancedIncompleteBlockDesign(v_4_1_BIBD(v),v,copy=False)
     if k == 5:
         if existence:
             return v%20 == 1 or v%20 == 5
-        return BlockDesign(v, v_5_1_BIBD(v), check=False)
+        return BalancedIncompleteBlockDesign(v_5_1_BIBD(v),v,copy=False)
 
     from difference_family import difference_family
     from database import BIBD_constructions
@@ -196,17 +198,17 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     if BIBD_from_TD(v,k,existence=True):
         if existence:
             return True
-        return BlockDesign(v, BIBD_from_TD(v,k), check=False)
+        return BalancedIncompleteBlockDesign(BIBD_from_TD(v,k),v,copy=False)
     if v == (k-1)**2+k and is_prime_power(k-1):
         if existence:
             return True
         from block_design import projective_plane
-        return projective_plane(k-1)
+        return BalancedIncompleteBlockDesign(projective_plane(k-1),v,copy=False)
     if difference_family(v,k,existence=True):
         if existence:
             return True
         G,D = difference_family(v,k)
-        return BlockDesign(v, BIBD_from_difference_family(G,D,check=False), check=False)
+        return BalancedIncompleteBlockDesign(BIBD_from_difference_family(G,D,check=False,copy=False),v)
     if use_LJCR:
         from covering_design import best_known_covering_design_www
         B = best_known_covering_design_www(v,k,2)
@@ -256,7 +258,7 @@ def steiner_triple_system(n):
 
         sage: sts = designs.steiner_triple_system(9)
         sage: sts
-        Incidence structure with 9 points and 12 blocks
+        (9,3,1)-Balanced Incomplete Block Design
         sage: list(sts)
         [[0, 1, 5], [0, 2, 4], [0, 3, 6], [0, 7, 8], [1, 2, 3],
          [1, 4, 7], [1, 6, 8], [2, 5, 8], [2, 6, 7], [3, 4, 8],
@@ -312,7 +314,7 @@ def steiner_triple_system(n):
     from sage.sets.set import Set
     sts = Set(map(lambda x: Set(map(T,x)),sts))
 
-    return BlockDesign(n, sts, name=name)
+    return BalancedIncompleteBlockDesign(sts,n, name=name,check=False)
 
 def BIBD_from_TD(v,k,existence=False):
     r"""
@@ -403,10 +405,10 @@ def BIBD_from_TD(v,k,existence=False):
             return True
 
         v = v//k
-        BIBDvk = balanced_incomplete_block_design(v,k)
+        BIBDvk = balanced_incomplete_block_design(v,k).blocks(copy=False)
         TDkv = transversal_design(k,v,check=False)
 
-        BIBD = TDkv
+        BIBD = TDkv.blocks(copy=False)
         for i in range(k):
             BIBD.extend([[x+i*v for x in B] for B in BIBDvk])
 
@@ -419,8 +421,8 @@ def BIBD_from_TD(v,k,existence=False):
             return True
 
         v = (v-1)//k
-        BIBDv1k = balanced_incomplete_block_design(v+1,k)
-        TDkv = transversal_design(k,v,check=False)
+        BIBDv1k = balanced_incomplete_block_design(v+1,k).blocks(copy=False)
+        TDkv = transversal_design(k,v,check=False).blocks(copy=False)
 
         inf = v*k
         BIBD = TDkv
@@ -437,7 +439,7 @@ def BIBD_from_TD(v,k,existence=False):
 
         v = (v-k)//k
         BIBDvpkk = balanced_incomplete_block_design(v+k,k)
-        TDkv = transversal_design(k,v,check=False)
+        TDkv = transversal_design(k,v,check=False).blocks(copy=False)
         inf = v*k
         BIBD = TDkv
 
@@ -515,10 +517,8 @@ def BIBD_from_difference_family(G, D, check=True):
     r = {e:i for i,e in enumerate(G)}
     bibd = [[r[G(x)+g] for x in d] for d in D for g in r]
     if check:
-        assert _check_pbd(bibd, G.cardinality(), [len(D[0])])
+        assert is_pairwise_balanced_design(bibd, G.cardinality(), [len(D[0])], 1)
     return bibd
-
-
 
 ################
 # (v,4,1)-BIBD #
@@ -607,7 +607,7 @@ def v_4_1_BIBD(v, check=True):
     bibd = BIBD_from_PBD(PBD,v,k,check=False)
 
     if check:
-        _check_pbd(bibd,v,[k])
+        assert is_pairwise_balanced_design(bibd,v,[k])
 
     return bibd
 
@@ -635,9 +635,9 @@ def BIBD_from_PBD(PBD,v,k,check=True,base_cases={}):
 
         sage: from sage.combinat.designs.bibd import PBD_4_5_8_9_12
         sage: from sage.combinat.designs.bibd import BIBD_from_PBD
-        sage: from sage.combinat.designs.bibd import _check_pbd
+        sage: from sage.combinat.designs.bibd import is_pairwise_balanced_design
         sage: PBD = PBD_4_5_8_9_12(17)
-        sage: bibd = _check_pbd(BIBD_from_PBD(PBD,52,4),52,[4])
+        sage: bibd = is_pairwise_balanced_design(BIBD_from_PBD(PBD,52,4),52,[4])
     """
     r = (v-1) // (k-1)
     bibd = []
@@ -656,96 +656,9 @@ def BIBD_from_PBD(PBD,v,k,check=True,base_cases={}):
         bibd.append([x+i*r for i in range(k-1)]+[v-1])
 
     if check:
-        _check_pbd(bibd,v,[k])
+        assert is_pairwise_balanced_design(bibd,v,[k])
 
     return bibd
-
-def _check_pbd(B,v,S):
-    r"""
-    Checks that ``B`` is a PBD on ``v`` points with given block sizes ``S``.
-
-    The points of the balanced incomplete block design are implicitely assumed
-    to be `\{0, ..., v-1\}`.
-
-    INPUT:
-
-    - ``B`` -- a list of blocks
-
-    - ``v`` (integer) -- number of points
-
-    - ``S`` -- list of integers `\geq 2`.
-
-    EXAMPLE::
-
-        sage: designs.balanced_incomplete_block_design(40,4).blocks() # indirect doctest
-        [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 10],
-         [0, 5, 7, 11], [0, 13, 26, 39], [0, 14, 25, 28],
-         [0, 15, 27, 38], [0, 16, 22, 32], [0, 17, 23, 34],
-        ...
-        sage: from sage.combinat.designs.bibd import _check_pbd
-        sage: _check_pbd([[1],[]],1,[1,0])
-        Traceback (most recent call last):
-        ...
-        RuntimeError: All integers of S must be >=2
-
-    TESTS::
-
-        sage: _check_pbd([[1,2]],2,[2])
-        Traceback (most recent call last):
-        ...
-        RuntimeError: The PBD covers a point 2 which is not in {0, 1}
-        sage: _check_pbd([[1,2]]*2,2,[2])
-        Traceback (most recent call last):
-        ...
-        RuntimeError: The pair (1,2) is covered more than once
-        sage: _check_pbd([],2,[2])
-        Traceback (most recent call last):
-        ...
-        RuntimeError: The pair (0,1) is not covered
-        sage: _check_pbd([[1,2],[1]],2,[2])
-        Traceback (most recent call last):
-        ...
-        RuntimeError: A block has size 1 while S=[2]
-    """
-    from itertools import combinations
-    from sage.graphs.graph import Graph
-
-    for X in B:
-        if len(X) not in S:
-            raise RuntimeError("A block has size {} while S={}".format(len(X),S))
-
-    if any(x < 2 for x in S):
-        raise RuntimeError("All integers of S must be >=2")
-
-    if v == 0 or v == 1:
-        if B:
-            raise RuntimeError("A PBD with v<=1 is expected to be empty.")
-
-    g = Graph()
-    g.add_vertices(range(v))
-    m = 0
-    for X in B:
-        for i,j in combinations(X,2):
-            g.add_edge(i,j)
-            m_tmp = g.size()
-            if m_tmp != m+1:
-                raise RuntimeError("The pair ({},{}) is covered more than once".format(i,j))
-            m = m_tmp
-
-    if g.vertices() != range(v):
-        from sage.sets.integer_range import IntegerRange
-        p = (set(g.vertices())-set(range(v))).pop()
-        raise RuntimeError("The PBD covers a point {} which is not in {}".format(p,IntegerRange(v)))
-
-    if not g.is_clique():
-        for p1 in g:
-            if g.degree(p1) != v-1:
-                break
-        neighbors = g.neighbors(p1)+[p1]
-        p2 = (set(g.vertices())-set(neighbors)).pop()
-        raise RuntimeError("The pair ({},{}) is not covered".format(p1,p2))
-
-    return B
 
 def _relabel_bibd(B,n,p=None):
     r"""
@@ -825,7 +738,7 @@ def PBD_4_5_8_9_12(v, check=True):
     elif v == 13 or v == 28:
         PBD = v_4_1_BIBD(v, check=False)
     elif v == 29:
-        TD47 = transversal_design(4,7)
+        TD47 = transversal_design(4,7).blocks(copy=False)
         four_more_sets = [[28]+[i*7+j for j in range(7)] for i in range(4)]
         PBD = TD47 + four_more_sets
     elif v == 41:
@@ -869,7 +782,7 @@ def PBD_4_5_8_9_12(v, check=True):
         PBD = TD
 
     if check:
-        _check_pbd(PBD,v,[4,5,8,9,12])
+        assert is_pairwise_balanced_design(PBD,v,[4,5,8,9,12])
 
     return PBD
 
@@ -1025,7 +938,7 @@ def v_5_1_BIBD(v, check=True):
         bibd = BIBD_from_PBD(PBD_from_TD(5,t,u),v,5,check=False)
 
     if check:
-        _check_pbd(bibd,v,[5])
+        assert is_pairwise_balanced_design(bibd,v,[5])
 
     return bibd
 
@@ -1078,11 +991,11 @@ def PBD_from_TD(k,t,u):
     EXAMPLES::
 
         sage: from sage.combinat.designs.bibd import PBD_from_TD
-        sage: from sage.combinat.designs.bibd import _check_pbd
+        sage: from sage.combinat.designs.bibd import is_pairwise_balanced_design
         sage: PBD = PBD_from_TD(2,2,1); PBD
         [[0, 2, 4], [0, 3], [1, 2], [1, 3, 4], [0, 1], [2, 3]]
-        sage: _check_pbd(PBD,2*2+1,[2,3])
-        [[0, 2, 4], [0, 3], [1, 2], [1, 3, 4], [0, 1], [2, 3]]
+        sage: is_pairwise_balanced_design(PBD,2*2+1,[2,3])
+        True
 
     """
     from orthogonal_arrays import transversal_design
@@ -1133,3 +1046,119 @@ def BIBD_5q_5_for_q_prime_power(q):
                           ])
 
     return B
+
+class PairwiseBalancedDesign(GroupDivisibleDesign):
+    r"""
+    Pairwise Balanced Design (PBD)
+
+    A Pairwise Balanced Design, or `(v,K,\lambda)`-PBD, is a collection
+    `\mathcal B` of blocks defined on a set `X` of size `v`, such that any block
+    pair of points `p_1,p_2\in X` occurs in exactly `\lambda` blocks of
+    `\mathcal B`. Besides, for every block `B\in \mathcal B` we must have
+    `|B|\in K`.
+
+    INPUT:
+
+    - ``blocks`` -- collection of blocks
+
+    - ``v`` (integer) -- size of the ground set. Set to ``None`` (automatic
+      guess) by default.
+
+    - ``K`` -- list of integers. Set to ``None`` (automatic guess) by default.
+
+    - ``lambd`` (integer) -- value of `\lambda`, set to `1` by default.
+
+    - ``check`` (boolean) -- whether to check that the design is a `PBD` with
+      the right parameters.
+
+    - ``copy`` -- (use with caution) if set to ``False`` then ``blocks`` must be
+      a list of lists of integers. The list will not be copied but will be
+      modified in place (each block is sorted, and the whole list is
+      sorted). Your ``blocks`` object will become the instance's internal data.
+
+    """
+    def __init__(self,blocks, v=None, K=None, lambd=1, check=True, copy=True,**kwds):
+        r"""
+        Constructor
+        """
+        GroupDivisibleDesign.__init__(self,
+                                      [[i] for i in range(v)],
+                                      blocks,
+                                      v=v,
+                                      lambd=lambd,
+                                      check=check,
+                                      copy=copy,
+                                      **kwds)
+
+        if K is not None and check:
+            K = set(K)
+            assert all(b_size in K for b_size in self.block_sizes())
+
+    def __repr__(self):
+        r"""
+        Returns a string describing the PBD
+
+        EXAMPLES::
+        """
+        return "Pairwise Balanced Design on {} points with sets of sizes in {}".format(v,set(self.block_sizes()))
+
+class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
+    r""""
+    Balanced Incomplete Block Design (BIBD)
+
+    INPUT:
+
+    - ``blocks`` -- collection of blocks
+
+    - ``v`` (integer) -- size of the ground set. Set to ``None`` (automatic
+      guess) by default.
+
+    - ``k`` (integer) -- size of the blocks. Set to ``None`` (automatic guess)
+      by default.
+
+    - ``lambd`` (integer) -- value of `\lambda`, set to `1` by default.
+
+    - ``check`` (boolean) -- whether to check that the design is a `PBD` with
+      the right parameters.
+
+    - ``copy`` -- (use with caution) if set to ``False`` then ``blocks`` must be
+      a list of lists of integers. The list will not be copied but will be
+      modified in place (each block is sorted, and the whole list is
+      sorted). Your ``blocks`` object will become the instance's internal data.
+
+    EXAMPLES::
+
+        sage: b=designs.balanced_incomplete_block_design(9,3); b
+        (9,3,1)-Balanced Incomplete Block Design
+    """
+    def __init__(self, blocks, v=None, k=None, lambd=1, check=True, copy=True,**kwds):
+        r"""
+        Constructor
+
+        EXAMPLE::
+
+            sage: b=designs.balanced_incomplete_block_design(9,3); b
+            (9,3,1)-Balanced Incomplete Block Design
+        """
+        PairwiseBalancedDesign.__init__(self,
+                                        blocks,
+                                        v=v,
+                                        K=[k] if k is not None else None,
+                                        lambd=1,
+                                        check=check,
+                                        copy=copy,
+                                        **kwds)
+
+    def __repr__(self):
+        r"""
+        A string to describe self
+
+        EXAMPLE::
+
+            sage: b=designs.balanced_incomplete_block_design(9,3); b
+            (9,3,1)-Balanced Incomplete Block Design
+        """
+        v = self.num_points()
+        k = len(self._blocks[0]) if self._blocks else 0
+        l = self._lambd
+        return "({},{},{})-Balanced Incomplete Block Design".format(v,k,l)

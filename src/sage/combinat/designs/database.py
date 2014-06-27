@@ -3069,9 +3069,10 @@ def RBIBD_120_8_1():
     EXAMPLES::
 
         sage: from sage.combinat.designs.database import RBIBD_120_8_1
-        sage: from sage.combinat.designs.bibd import _check_pbd
+        sage: from sage.combinat.designs.bibd import is_pairwise_balanced_design
         sage: RBIBD = RBIBD_120_8_1()
-        sage: _ = _check_pbd(RBIBD,120,[8])
+        sage: is_pairwise_balanced_design(RBIBD,120,[8])
+        True
 
     It is indeed resolvable, and the parallel classes are given by 17 slices of
     consecutive 15 blocks::

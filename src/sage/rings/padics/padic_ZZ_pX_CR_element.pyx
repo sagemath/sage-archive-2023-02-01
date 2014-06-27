@@ -508,9 +508,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         Check that zero values are handled correctly::
 
-            sage: K.zero()._cache_key
+            sage: K.zero()._cache_key()
             (..., 0)
-            sage: K(0,1)._cache_key
+            sage: K(0,1)._cache_key()
             (..., 0, 1)
 
         """

@@ -649,6 +649,35 @@ def full_group_by(l, key=lambda x: x):
         elements[s].append(item)
     return [(original_keys[s], values ) for (s, values) in elements.items()]
 
+
+def startswith(list, prefix):
+    """
+    Determine whether list starts with the given prefix.
+
+    INPUT:
+
+    - ``list`` -- list
+    - ``prefix`` -- list representing the prefix
+
+    OUTPUT:
+
+    ``True`` or ``False``.
+
+    Similar to :meth:`str.startswith`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.finite_state_machine import startswith
+        sage: startswith([1, 2, 3], [1, 2])
+        True
+        sage: startswith([1], [1, 2])
+        False
+        sage: startswith([1, 3, 2], [1, 2])
+        False
+    """
+
+    return list[:len(prefix)] == prefix
+
 #*****************************************************************************
 
 FSMEmptyWordSymbol = '-'
@@ -4463,10 +4492,6 @@ class FiniteStateMachine(SageObject):
           processing (in the case the finite state machine runs as
           transducer).
 
-        Note that in the case the finite state machine is not
-        deterministic, one possible path is gone. This means, that in
-        this case the output can be wrong.
-
         EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import FSMState
@@ -4489,6 +4514,32 @@ class FiniteStateMachine(SageObject):
             sage: [NAF.process(w)[0] for w in [[0], [0, 1], [1, 1], [0, 1, 0, 1],
             ....:                           [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [True, True, False, True, False, False]
+
+        Non-deterministic finite state machines cannot be handeled.
+
+        ::
+
+            sage: T = Transducer([(0, 1, 0, 0), (0, 2, 0, 0)],
+            ....:     initial_states=[0])
+            sage: T.process([0])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Non-deterministic path encountered when processing input.
+            sage: T = Transducer([(0, 1, [0, 0], 0), (0, 2, [0, 0, 1], 0),
+            ....:                 (0, 1, 1, 2), (1, 0, [], 1), (1, 1, 1, 3)],
+            ....:     initial_states=[0], final_states=[0, 1])
+            sage: T.process([0])
+            (False, None, None)
+            sage: T.process([0, 0])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Non-deterministic path encountered when processing input.
+            sage: T.process([1])
+            (True, 1, [2])
+            sage: T.process([1, 1])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: process cannot handle epsilon transition leaving state 1.
         """
         it = self.iter_process(*args, **kwargs)
         for _ in it:
@@ -7720,7 +7771,10 @@ class Automaton(FiniteStateMachine):
             sage: auto.is_deterministic()
             False
             sage: auto.process(list('aaab'))
-            (False, 'A')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Non-deterministic path encountered
+            when processing input.
             sage: auto.states()
             ['A', 'C', 'B']
             sage: Ddet = auto.determinisation()
@@ -7936,12 +7990,6 @@ class Automaton(FiniteStateMachine):
           input tape (This is a state with label ``None`` if the input
           could not be processed, i.e., when at one point no
           transition to go could be found.).
-
-        Note that in the case the automaton is not
-        deterministic, one possible path is gone. This means that in
-        this case the output can be wrong. Use
-        :meth:`.determinisation` to get a deterministic automaton
-        machine and try again.
 
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
@@ -8562,10 +8610,6 @@ class Transducer(FiniteStateMachine):
         - the third gives a list of the output labels used during
           processing.
 
-        Note that in the case the transducer is not
-        deterministic, one possible path is gone. This means, that in
-        this case the output can be wrong.
-
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
 
@@ -8869,12 +8913,27 @@ class FSMProcessIterator(SageObject):
                 try:
                     while not found:
                         next_word.append(self.read_letter())
+                        if len(next_word) == 1 and any(not t.word_in
+                               for t in self.current_state.transitions):
+                            raise NotImplementedError(
+                                "process cannot handle epsilon transition "
+                                "leaving state %s." % self.current_state.label())
                         try:
                             transition = self.get_next_transition(
                                 next_word)
                             found = True
                         except ValueError:
                             pass
+
+                        if found and any(
+                            t is not transition and startswith(t.word_in,
+                                                               next_word)
+                            for t in self.current_state.transitions):
+                            raise NotImplementedError("Non-deterministic "
+                                                      "path encountered "
+                                                      "when processing "
+                                                      "input.")
+
                 except StopIteration:
                     # this means input tape is finished
                     if len(next_word) > 0:

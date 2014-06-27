@@ -24,9 +24,24 @@ class MatchingGame(SageObject):
         pass
 
     def _is_complete(self):
-        pass
+        r"""
+        """
+        if len(self.suitors) != len(self.reviewers):
+            raise ValueError("Must have the same number of reviewers as suitors")
+
+        for suitor in self.suitors:
+            if sorted(suitor.pref) != sorted(self.reviewers):
+                raise ValueError("Preferences incomplete")
+
+        for reviewer in self.reviewers:
+            if sorted(reviewer.pref) != sorted(self.suitors):
+                raise ValueError("Preferences incomplete")
+
+        return True
 
     def add_suitor(self, name=False):
+        r"""
+        """
         if name is False:
             name = len(self.suitors)
         new_suitor = _Player(name, 'suitor', len(self.reviewers))
@@ -35,6 +50,8 @@ class MatchingGame(SageObject):
             r.pref = [-1 for s in self.suitors]
 
     def add_reviewer(self, name=False):
+        r"""
+        """
         if name is False:
             name = len(self.reviewers)
         new_reviewer = _Player(name, 'reviewer', len(self.suitors))

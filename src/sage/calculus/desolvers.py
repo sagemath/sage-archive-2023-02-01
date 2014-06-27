@@ -45,6 +45,14 @@ AUTHORS:
 
 - Robert Marik (10-2009) - Some bugfixes and enhancements
 
+- Miguel Marco (06-2014) - Implementation of tides solver
+
+- Marcos Rodriguez (06-2014) - Implementation of tides solver
+
+- Alberto Abad (06-2014) - tides solver
+
+- Roberto Barrio (06-2014) - tides solver
+
 """
 
 ##########################################################################
@@ -62,6 +70,11 @@ from sage.symbolic.expression import is_SymbolicEquation
 from sage.symbolic.ring import is_SymbolicVariable
 from sage.calculus.functional import diff
 from sage.misc.decorators import rename_keyword
+from tempfile import mkdtemp
+import shutil
+import os
+from sage.rings.real_mpfr import RealField
+
 
 maxima = Maxima()
 
@@ -1556,3 +1569,46 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
         mxhnil=mxhnil, mxordn=mxordn, mxords=mxords, printmessg=printmessg)
 
     return sol
+
+def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16):
+    r"""
+    Solve numerically a system of first order differential equations using the
+    taylor series integrator implemeted in mintides.
+
+    INPUT:
+
+    - ``f`` - symbolic function
+
+    """
+    import subprocess
+    if subprocess.call(['which','gcc'], stdout=subprocess.PIPE, stderr=subprocess.PIPE):
+        raise RuntimeError('Unable to run because gcc cannot be found')
+    from sage.misc.misc import SAGE_ROOT
+    from sage.calculus.tides.file_generator import genfiles_mintides
+    tempdir = mkdtemp()
+    intfile = tempdir + '/integrator.c'
+    drfile = tempdir + '/driver.c'
+    fileoutput = tempdir + '/output'
+    runmefile = tempdir + '/runme'
+
+
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/minc_tides.c', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/minc_tides.h', tempdir)
+    genfiles_mintides(intfile, drfile, f, ics, initial, final, delta, tolrel,
+                     tolabs, fileoutput)
+
+    os.system('gcc -o ' + runmefile + ' ' + tempdir + '/*.c  -lm  -O2')
+    os.system(tempdir+'/runme ')
+    outfile = open(fileoutput)
+    res = outfile.readlines()
+    outfile.close()
+    for i in range(len(res)):
+        l=res[i]
+        l = l.split(' ')
+        l = filter(lambda a: len(a) > 2, l)
+        res[i] = map(RealField(),l)
+    shutil.rmtree(tempdir)
+
+    return res
+
+

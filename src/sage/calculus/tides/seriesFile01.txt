@@ -1,0 +1,13 @@
+	double XX[TT+1][MO+1];
+
+	for(j=0; j<=TT; j++)
+		for(i=0; i<=ORDER; i++)
+			XX[j][i] = 0.e0;
+	XX[0][0] = t;
+	XX[0][1] = 1.e0;
+	for(i=1;i<=VAR;i++) {
+		XX[i][0] = v[i-1];
+	}
+
+	for(i=0;i<ORDER;i++) {
+

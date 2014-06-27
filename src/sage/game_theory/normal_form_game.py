@@ -19,21 +19,21 @@ AUTHOR:
 #*****************************************************************************
 from collections import MutableMapping
 from itertools import product, combinations, chain
-from sage.misc.lazy_import import lazy_import
-from sage.structure.sage_object import SageObject
-from sage.rings.all import QQ, ZZ
-from sage.misc.misc import powerset
-from sage.misc.latex import latex
+from parser import Parser
 from sage.combinat.cartesian_product import CartesianProduct
-lazy_import('sage.misc.package', 'is_package_installed')
+from sage.misc.latex import latex
+from sage.misc.lazy_import import lazy_import
+from sage.misc.misc import powerset
+from sage.rings.all import QQ, ZZ
+from sage.structure.sage_object import SageObject
 lazy_import('sage.matrix.constructor', 'matrix')
 lazy_import('sage.matrix.constructor', 'vector')
-from parser import Parser
-lazy_import('sage.rings.rational', 'Rational')
-lazy_import('sage.rings.arith', 'lcm')
+lazy_import('sage.misc.package', 'is_package_installed')
 lazy_import('sage.misc.temporary_file', 'tmp_filename')
-lazy_import('subprocess', 'Popen')
+lazy_import('sage.rings.arith', 'lcm')
+lazy_import('sage.rings.rational', 'Rational')
 lazy_import('subprocess', 'PIPE')
+lazy_import('subprocess', 'Popen')
 
 
 class NormalFormGame(SageObject, MutableMapping):

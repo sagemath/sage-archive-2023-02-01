@@ -239,6 +239,47 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: prisoners_dilemma.obtain_Nash(algorithm='enumeration', maximization=False)
         [[(0, 1), (0, 1)]]
 
+    Here are a couple of more examples.
+
+    A basic 2-player game constructed from matrices. ::
+
+        sage: A = matrix([[1, 2], [3, 4]])
+        sage: B = matrix([[3, 3], [1, 4]])
+        sage: C = NormalFormGame([A, B])
+        sage: C
+        {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
+
+    Here is an example of a 3 by 2 game ::
+
+        sage: A = matrix([[3,3],
+        ....:             [2,5],
+        ....:             [0,6]])
+        sage: B = matrix([[3,2],
+        ....:             [2,6],
+        ....:             [3,1]])
+        sage: g = NormalFormGame([A, B])
+
+    This particular game has 3 Nash equilibrium ::
+
+        sage: g.obtain_Nash() # optional - gambit
+        [[(1.0, 0.0, 0.0), (1.0, 0.0)],
+         [(0.8, 0.2, 0.0), (0.6666666667, 0.3333333333)],
+         [(0.0, 0.3333333333, 0.6666666667), (0.3333333333, 0.6666666667)]]
+
+    Here is a slightly larger game ::
+
+        sage: A = matrix([[160, 205, 44],
+        ....:             [175, 180, 45],
+        ....:             [201, 204, 50],
+        ....:             [120, 207, 49]])
+        sage: B = matrix([[2, 2, 2],
+        ....:             [1, 0, 0],
+        ....:             [3, 4, 1],
+        ....:             [4, 1, 2]])
+        sage: g=NormalFormGame([A, B])
+        sage: g.obtain_Nash() # optional - gambit
+        [[(0.0, 0.0, 0.75, 0.25), (0.0357142857, 0.9642857143, 0.0)]]
+
     When obtaining Nash equilibrium there are 3 algorithms currently available:
 
     * ``LCP``: Linear complementarity program algorithm for 2 player games.
@@ -377,64 +418,8 @@ class NormalFormGame(SageObject, MutableMapping):
     however only a basic implementation is available and this approach is not
     recommended for large games.
 
-    Importantly this algorithm is known to fail in the case of a degenerate
-    game. In fact degenerate games can cause problems for most algorithms ::
-
-        sage: A = matrix([[3,3],[2,5],[0,6]])
-        sage: B = matrix([[3,3],[2,6],[3,1]])
-        sage: degenerate_game = NormalFormGame([A,B])
-        sage: degenerate_game.obtain_Nash(algorithm='LCP')
-        [[(1.0, 0.0, 0.0), (1.0, 0.0)],
-         [(1.0, -0.0, 0.0), (0.6666666667, 0.3333333333)],
-         [(0.0, 0.3333333333, 0.6666666667), (0.3333333333, 0.6666666667)]]
-        sage: degenerate_game.obtain_Nash(algorithm='lrs')
-        [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (2/3, 1/3)]]
-        sage: degenerate_game.obtain_Nash(algorithm='enumeration')
-        [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (1/3, 2/3)]]
-
-    A good description of degenerate games can be found in [NN2007]_.
-
-    A basic 2-player game constructed from matrices. ::
-
-        sage: A = matrix([[1, 2], [3, 4]])
-        sage: B = matrix([[3, 3], [1, 4]])
-        sage: C = NormalFormGame([A, B])
-        sage: C
-        {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
-
-    Here is an example of a 3 by 2 game ::
-
-        sage: A = matrix([[3,3],
-        ....:             [2,5],
-        ....:             [0,6]])
-        sage: B = matrix([[3,2],
-        ....:             [2,6],
-        ....:             [3,1]])
-        sage: g = NormalFormGame([A, B])
-
-    This particular game has 3 Nash equilibrium ::
-
-        sage: g.obtain_Nash() # optional - gambit
-        [[(1.0, 0.0, 0.0), (1.0, 0.0)],
-         [(0.8, 0.2, 0.0), (0.6666666667, 0.3333333333)],
-         [(0.0, 0.3333333333, 0.6666666667), (0.3333333333, 0.6666666667)]]
-
-    Here is a slightly larger game ::
-
-        sage: A = matrix([[160, 205, 44],
-        ....:             [175, 180, 45],
-        ....:             [201, 204, 50],
-        ....:             [120, 207, 49]])
-        sage: B = matrix([[2, 2, 2],
-        ....:             [1, 0, 0],
-        ....:             [3, 4, 1],
-        ....:             [4, 1, 2]])
-        sage: g=NormalFormGame([A, B])
-        sage: g.obtain_Nash() # optional - gambit
-        [[(0.0, 0.0, 0.75, 0.25), (0.0357142857, 0.9642857143, 0.0)]]
-
-    Here is a slightly longer game.
-    Consider the following:
+    Here is a slightly longer game that would take too long to solve with
+    ``enumeration``. Consider the following:
 
     An airline loses two suitcases belonging to two different travelers. Both
     suitcases happen to be identical and contain identical antiques. An
@@ -460,12 +445,31 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: A = matrix([[min(i,j) + 2 * sign(j-i)  for j in range(2, K+1)]  for i in range(2, K+1)])
         sage: B = matrix([[min(i,j) + 2 * sign(i-j)  for j in range(2, K+1)]  for i in range(2, K+1)])
         sage: g = NormalFormGame([A, B])
-        sage: g.obtain_Nash() # optional - gambit
+        sage: g.obtain_Nash(algorithm='LCP') # optional - gambit
         [[(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
           (1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)]]
 
     The equilibrium strategy is thus for both players to state that the value
     of their suitcase is 2.
+
+
+
+    Importantly this algorithm is known to fail in the case of a degenerate
+    game. In fact degenerate games can cause problems for most algorithms ::
+
+        sage: A = matrix([[3,3],[2,5],[0,6]])
+        sage: B = matrix([[3,3],[2,6],[3,1]])
+        sage: degenerate_game = NormalFormGame([A,B])
+        sage: degenerate_game.obtain_Nash(algorithm='LCP')
+        [[(1.0, 0.0, 0.0), (1.0, 0.0)],
+         [(1.0, -0.0, 0.0), (0.6666666667, 0.3333333333)],
+         [(0.0, 0.3333333333, 0.6666666667), (0.3333333333, 0.6666666667)]]
+        sage: degenerate_game.obtain_Nash(algorithm='lrs')
+        [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (2/3, 1/3)]]
+        sage: degenerate_game.obtain_Nash(algorithm='enumeration')
+        [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (1/3, 2/3)]]
+
+    A good description of degenerate games can be found in [NN2007]_.
 
     REFERENCES:
 

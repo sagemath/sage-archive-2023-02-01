@@ -595,12 +595,12 @@ class NormalFormGame(SageObject, MutableMapping):
 
         EXAMPLES:
 
-        sage: g = NormalFormGame()
-        sage: g.add_player(2)
-        sage: g.add_player(1)
-        sage: g.add_player(1)
-        sage: g
-        {(1, 0, 0): [False, False, False], (0, 0, 0): [False, False, False]}
+            sage: g = NormalFormGame()
+            sage: g.add_player(2)
+            sage: g.add_player(1)
+            sage: g.add_player(1)
+            sage: g
+            {(1, 0, 0): [False, False, False], (0, 0, 0): [False, False, False]}
         """
         self.players.append(_Player(num_strategies))
         self._generateutilities(True)

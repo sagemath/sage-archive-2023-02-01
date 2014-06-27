@@ -844,6 +844,7 @@ class NormalFormGame(SageObject, MutableMapping):
             return self._solve_lrs(maximization)
 
         if algorithm == "enumeration":
+            # Here is where we will put the error for large games
             return self._solve_enumeration()
 
     def _solve_LCP(self, maximization):
@@ -949,7 +950,7 @@ class NormalFormGame(SageObject, MutableMapping):
         r"""
         EXAMPLES:
 
-        A degenerate Game. ::
+        A Game. ::
 
             sage: A = matrix([[160, 205, 44],
             ....:       [175, 180, 45],
@@ -1011,8 +1012,9 @@ class NormalFormGame(SageObject, MutableMapping):
 
         TESTS:
 
-        This game can return vectors with negative probabilities. Check to make
-        sure they are not included. :
+        Due to the nature of the linear equations solved in this algorithm
+        some negative vectors can be returned. Here is a test that ensures
+        this doesn't happen. :
 
             sage: a = matrix([[-13, 59],
             ....:             [27, 86]])

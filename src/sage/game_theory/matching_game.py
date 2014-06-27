@@ -25,7 +25,7 @@ class MatchingGame(SageObject):
             sage: m.reviewers
             ['A', 'C', 'B', 'D']
 
-        works for numbers too? ::
+        works for numbers too. ::
 
             sage: suit = {0: [3, 4],
             ....:         1: [3, 4]}
@@ -100,6 +100,9 @@ class MatchingGame(SageObject):
         self.reviewers.append(new_reviewer)
         for s in self.suitors:
             s.pref = [-1 for r in self.reviewers]
+
+    def solve(self, invert=False):
+        pass
 
 
 class _Player():

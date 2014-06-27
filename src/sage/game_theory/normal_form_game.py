@@ -146,7 +146,7 @@ class NormalFormGame(SageObject, MutableMapping):
     To compute this in sage we have: ::
 
         sage: for ne in battle_of_the_sexes.obtain_Nash(algorithm='enumeration'):
-        ....:     print "Utility for %s: " % ne
+        ....:     print 'Utility for %s: ' % ne
         ....:     print vector(ne[0]) * A * vector(ne[1]), vector(ne[0]) * B * vector(ne[1])
         Utility for [(1, 0), (1, 0)]:
         3 2

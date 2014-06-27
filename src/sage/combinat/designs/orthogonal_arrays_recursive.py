@@ -65,7 +65,7 @@ def find_recursive_construction(k,n):
         sage: print count
         56
     """
-    assert k >= 3
+    assert k > 3
 
     for find_c in [find_product_decomposition,
                    find_wilson_decomposition_with_one_truncated_group,

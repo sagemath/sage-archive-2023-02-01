@@ -815,6 +815,11 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
             return Unknown
         raise NotImplementedError("Only trivial orthogonal arrays are implemented for t>=2")
 
+    elif k <= 3:
+        if existence:
+            return True
+        return [[i,j,(i+j)%n] for i in xrange(n) for j in xrange(n)]
+
     # projective spaces are equivalent to OA(n+1,n,2)
     elif (projective_plane(n, existence=True) or
            (k == n+1 and projective_plane(n, existence=True) is False)):

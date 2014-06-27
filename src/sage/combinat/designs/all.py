@@ -19,8 +19,7 @@ deprecated_callable_import(14499,
                            ["ProjectiveGeometryDesign",
                             "AffineGeometryDesign",
                             "WittDesign",
-                            "HadamardDesign",
-                            "BlockDesign_generic"],
+                            "HadamardDesign"],
                            ("This method soon will not be available in that "
                             "way anymore. To use it, you can now call it by "
                             "typing designs.%(name)s"))

@@ -33,6 +33,14 @@ class Matching_Game(SageObject):
         if any(suitor_check) or any(reviewer_check):
             raise ValueError("players preferences not completed")
 
+        for suitor in self.suitors:
+            if sorted(suitor.pref) != [i for i in range(len(self.reviewers))]:
+                raise ValueError("suitor preferences not complete")
+
+        for reviewer in self.reviewers:
+            if sorted(reviewer.pref) != [i for i in range(len(self.suitors))]:
+                raise ValueError("reviewer preferences not complete")
+
     def add_player(self, type):
         if type == 'suitor':
             self.suitors.append(_Player('suitor'))
@@ -44,8 +52,6 @@ class Matching_Game(SageObject):
                 suitor.preference = [-1 for i in range(len(self.reviewers))]
         else:
             raise ValueError("type must be suitor or wife")
-
-
 
 
 class _Player():

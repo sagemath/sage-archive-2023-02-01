@@ -287,6 +287,14 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: f
         {(0, 1): [2, 3], (0, 0): [1, 3], (2, 1): [False, False], (2, 0): [False, False], (1, 0): [3, 1], (1, 1): [4, 4]}
 
+    If we do this and try and obtain the Nash equilibrium (without
+    specifying the utilities), an error is returned: ::
+
+        sage: f.obtain_Nash()
+        Traceback (most recent call last):
+        ...
+        ValueError: utilities have not been populated
+
     We can use the same syntax as above to create games with more than 2 players ::
 
         sage: threegame = NormalFormGame()
@@ -773,7 +781,7 @@ class NormalFormGame(SageObject, MutableMapping):
                                       "available algorithms")
 
         if not self._is_complete():
-            raise ValueError("utilities hasn't been populated")
+            raise ValueError("utilities have not been populated")
 
         if not algorithm:
             if is_package_installed('gambit'):

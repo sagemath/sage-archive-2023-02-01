@@ -184,10 +184,15 @@ class Animation(SageObject):
         ....:              for k in srange(0,2*pi,0.3)])
         sage: a.show() # optional -- ImageMagick
 
-    Do not convert input iterator to a list::
+    Do not convert input iterator to a list, but ensure that
+    the frame count is known after rendering the frames::
 
-        sage: a = animate((x^p for p in sxrange(1,2,.1))); a
+        sage: a = animate((plot(x^p, (x,0,2)) for p in sxrange(1,2,.1))); a
         Animation with unknown number of frames
+        sage: a.png()    # long time
+        '.../'
+        sage: len(a)     # long time
+        10
         sage: a._frames
         <generator object ...
 
@@ -313,7 +318,7 @@ class Animation(SageObject):
         kwds = self._combine_kwds(self._kwds, other._kwds)
 
         #Combine the frames
-        m = max(len(self._frames), len(other._frames))
+        m = max(len(self), len(other))
         frames = [a+b for a,b in zip(self._frames, other._frames)]
         frames += self._frames[m:] + other._frames[m:]
 
@@ -357,7 +362,10 @@ class Animation(SageObject):
             sage: len(a)
             5
         """
-        return len(self._frames)
+        try:
+            return self._num_frames
+        except AttributeError:
+            return len(self._frames)
 
     def make_image(self, frame, filename, **kwds):
         r"""
@@ -426,18 +434,20 @@ class Animation(SageObject):
                 return self._png_dir
             except AttributeError:
                 pass
-            d = tmp_dir()
-        else:
-            d = dir
-        G = self._frames
-        for i, frame in enumerate(self._frames):
-            filename = '%s/%s'%(d,sage.misc.misc.pad_zeros(i,8))
+            dir = tmp_dir()
+        i = 0
+        for frame in self._frames:
+            filename = '%s/%08d.png'%(dir,i)
             try:
-                frame.save_image(filename + '.png', **self._kwds)
+                save_image = frame.save_image
             except AttributeError:
-                self.make_image(frame, filename + '.png', **self._kwds)
-        self._png_dir = d
-        return d
+                self.make_image(frame, filename, **self._kwds)
+            else:
+                save_image(filename, **self._kwds)
+            i += 1
+        self._num_frames = i
+        self._png_dir = dir
+        return dir
 
     def graphics_array(self, ncols=3):
         r"""

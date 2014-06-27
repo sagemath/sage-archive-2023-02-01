@@ -36,7 +36,7 @@ lazy_import('subprocess', 'PIPE')
 
 
 class NormalFormGame(SageObject, MutableMapping):
-    r"""
+    """
     An object representing a Normal Form Game. Primarily used to compute the
     Nash Equilibria.
 
@@ -833,7 +833,7 @@ class NormalFormGame(SageObject, MutableMapping):
             return self._solve_lrs(maximization)
 
         if algorithm == "enumeration":
-            return self._solve_enumeration()
+            return self._solve_enumeration(maximization)
 
     def _solve_LCP(self, maximization):
         r"""
@@ -934,7 +934,7 @@ class NormalFormGame(SageObject, MutableMapping):
         nasheq = Parser(lrs_output).format_lrs()
         return nasheq
 
-    def _solve_enumeration(self):
+    def _solve_enumeration(self, maximization):
         r"""
         EXAMPLES:
 
@@ -1028,12 +1028,12 @@ class NormalFormGame(SageObject, MutableMapping):
 
         equilibria = []
         for pair in potential_support_pairs:
-            result = self._solve_indifference(*pair)
+            result = self._solve_indifference(maximization, *pair)
             if result:
                 equilibria.append([result[0], result[1]])
         return equilibria
 
-    def _solve_indifference(self, p1_support, p2_support):
+    def _solve_indifference(self, maximization, p1_support, p2_support):
         r"""
         For a support pair obtains vector pair that ensures indifference amongst support strategies.
         """
@@ -1041,6 +1041,9 @@ class NormalFormGame(SageObject, MutableMapping):
         linearsystem2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)
 
         M1, M2 = self.payoff_matrices()
+        if maximization is False:
+            M1 = -M1
+            M2 = -M2
 
         # Build linear system for player 1
         for p1_strategy in p1_support:

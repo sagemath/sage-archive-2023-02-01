@@ -1020,6 +1020,12 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [58, -14]])
             sage: c = NormalFormGame([a, b])
         """
+
+        M1, M2 = self.payoff_matrices()
+        if maximization is False:
+            M1 = -M1
+            M2 = -M2
+
         potential_supports = [[tuple(support) for support in
                                powerset(range(player.num_strategies))]
                                for player in self.players]
@@ -1028,22 +1034,19 @@ class NormalFormGame(SageObject, MutableMapping):
 
         equilibria = []
         for pair in potential_support_pairs:
-            result = self._solve_indifference(pair[0], pair[1], maximization)
+            result = self._solve_indifference(pair[0], pair[1], M1, M2)
             if result:
                 equilibria.append([result[0], result[1]])
         return equilibria
 
-    def _solve_indifference(self, p1_support, p2_support, maximization=True):
+    def _solve_indifference(self, p1_support, p2_support, M1, M2):
         r"""
         For a support pair obtains vector pair that ensures indifference amongst support strategies.
         """
         linearsystem1 = matrix(QQ, len(p2_support)+1, self.players[0].num_strategies)
         linearsystem2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)
 
-        M1, M2 = self.payoff_matrices()
-        if maximization is False:
-            M1 = -M1
-            M2 = -M2
+
 
         # Build linear system for player 1
         for p1_strategy in p1_support:
@@ -1076,13 +1079,13 @@ class NormalFormGame(SageObject, MutableMapping):
             a = linearsystem1.solve_right(linearsystemrhs1)
             b = linearsystem2.solve_right(linearsystemrhs2)
 
-            if self._is_NE(a, b, p1_support, p2_support, M1, M2, maximization):
+            if self._is_NE(a, b, p1_support, p2_support, M1, M2):
                 return [a, b]
             return False
         except:
             return False
 
-    def _is_NE(self, a, b, p1_support, p2_support, M1, M2, maximization=True):
+    def _is_NE(self, a, b, p1_support, p2_support, M1, M2):
         r"""
         TESTS:
 
@@ -1105,12 +1108,6 @@ class NormalFormGame(SageObject, MutableMapping):
         # I have no idea what this is for
         if sum(x > 0 for x in a) != sum(x > 0 for x in b):
             return False
-
-        # Verify that indifference vector is indeed a point at which no deviation is worthwhile
-        # M1, M2 = self.payoff_matrices()
-        # if maximization is False:
-        #     M1 = -M1
-        #     M2 = -M2
 
         p1_payoffs = [sum(v * row[i] for i, v in enumerate(b)) for row in M1.rows()]
         p2_payoffs = [sum(v * col[j] for j, v in enumerate(a)) for col in M2.columns()]

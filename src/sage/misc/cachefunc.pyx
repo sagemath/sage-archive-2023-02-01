@@ -413,7 +413,7 @@ modified to return ``True`` for objects which might behave differently
 in some computations::
 
     sage: K.<a> = Qq(9)
-    sage: b = a + O(3)
+    sage: b = a.add_bigoh(1)
     sage: c = a + 3
     sage: b
     a + O(3)
@@ -458,7 +458,7 @@ In practice this means that the ``_cache_key`` should always include
 the parent as its first argument::
 
     sage: S.<a> = Qq(4)
-    sage: d = a + O(2)
+    sage: d = a.add_bigoh(1)
     sage: b._cache_key() == d._cache_key() # this would be True if the parents were not included
     False
 """

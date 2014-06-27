@@ -934,7 +934,7 @@ class NormalFormGame(SageObject, MutableMapping):
         nasheq = Parser(lrs_output).format_lrs()
         return nasheq
 
-    def _solve_enumeration(self, maximization):
+    def _solve_enumeration(self, maximization=True):
         r"""
         EXAMPLES:
 
@@ -972,8 +972,8 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [2,6],
             ....:             [3,1]])
             sage: g = NormalFormGame([A, B])
-            sage: g._solve_enumeration()
-            [[(1, 0, 0), (1, 0)], [(4/5, 1/5, 0), (2/3, 1/3)], [(0, 1/3, 2/3), (1/3, 2/3)]]
+            sage: g._solve_enumeration(maximization=False)
+            [[(1, 0, 0), (0, 1)]]
 
         A simple example. ::
 
@@ -1028,12 +1028,12 @@ class NormalFormGame(SageObject, MutableMapping):
 
         equilibria = []
         for pair in potential_support_pairs:
-            result = self._solve_indifference(maximization, *pair)
+            result = self._solve_indifference(pair[0], pair[1], maximization)
             if result:
                 equilibria.append([result[0], result[1]])
         return equilibria
 
-    def _solve_indifference(self, maximization, p1_support, p2_support):
+    def _solve_indifference(self, p1_support, p2_support, maximization=True):
         r"""
         For a support pair obtains vector pair that ensures indifference amongst support strategies.
         """
@@ -1076,13 +1076,13 @@ class NormalFormGame(SageObject, MutableMapping):
             a = linearsystem1.solve_right(linearsystemrhs1)
             b = linearsystem2.solve_right(linearsystemrhs2)
 
-            if self._is_NE(a, b, p1_support, p2_support):
+            if self._is_NE(a, b, p1_support, p2_support, maximization):
                 return [a, b]
             return False
         except:
             return False
 
-    def _is_NE(self, a, b, p1_support, p2_support):
+    def _is_NE(self, a, b, p1_support, p2_support, maximization=True):
         r"""
         TESTS:
 
@@ -1108,6 +1108,9 @@ class NormalFormGame(SageObject, MutableMapping):
 
         # Verify that indifference vector is indeed a point at which no deviation is worthwhile
         M1, M2 = self.payoff_matrices()
+        if maximization is False:
+            M1 = -M1
+            M2 = -M2
 
         p1_payoffs = [sum(v * row[i] for i, v in enumerate(b)) for row in M1.rows()]
         p2_payoffs = [sum(v * col[j] for j, v in enumerate(a)) for col in M2.columns()]

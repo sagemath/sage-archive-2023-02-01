@@ -95,7 +95,7 @@ class NormalFormGame(SageObject, MutableMapping):
     other situation where Amy and Bob have no reason to change their choice
     of action:
 
-    Here is how we create the game in Sage ::
+    Here is how we create the game in Sage: ::
 
         sage: A = matrix([[3, 1], [0, 2]])
         sage: B = matrix([[2, 1], [0, 3]])
@@ -105,7 +105,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     To obtain the Nash equilibria we run the ``obtain_Nash()`` method. In the
     first few examples we will use the 'support enumeration' algorithm.
-    A discussion about the different algorithms will be given later ::
+    A discussion about the different algorithms will be given later: ::
 
         sage: battle_of_the_sexes.obtain_Nash(algorithm='enumeration')
         [[(1, 0), (1, 0)], [(0, 1), (0, 1)], [(3/4, 1/4), (1/4, 3/4)]]
@@ -141,7 +141,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         \sigma_1 B \sigma_2
 
-    To compute this in sage we have ::
+    To compute this in sage we have: ::
 
         sage: for ne in battle_of_the_sexes.obtain_Nash(algorithm='enumeration'):
         ....:     print "Utility for %s: " % ne
@@ -192,7 +192,7 @@ class NormalFormGame(SageObject, MutableMapping):
     available strategies is when `y=1/2`.
 
     If we compute the Nash equilibria we see that this corresponds to a point
-    at which both players are indifferent ::
+    at which both players are indifferent: ::
 
         sage: y = var('y')
         sage: A = matrix([[1, -1], [-1, 1]])
@@ -202,13 +202,13 @@ class NormalFormGame(SageObject, MutableMapping):
         [[(1/2, 1/2), (1/2, 1/2)]]
 
     The utilities to both players at this Nash equilibrium
-    is easily computed ::
+    is easily computed: ::
 
         sage: [vector([1/2, 1/2]) * M * vector([1/2, 1/2]) for M in matching_pennies.payoff_matrices()]
         [0, 0]
 
     Note that the above uses the ``payoff_matrices`` method
-    which returns the payoff matrices for a 2 player game ::
+    which returns the payoff matrices for a 2 player game: ::
 
         sage: matching_pennies.payoff_matrices()
         (
@@ -236,7 +236,7 @@ class NormalFormGame(SageObject, MutableMapping):
       supports of a strategy. Note: this is not the preferred algorithm. For
       more information about this see [NN2007]_.
 
-    Below we show how all three algorithms are called ::
+    Below we show how all three algorithms are called: ::
 
         sage: matching_pennies.obtain_Nash(algorithm='LCP')  # optional - gambit
         [[(0.5, 0.5), (0.5, 0.5)]]

@@ -476,12 +476,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         r"""
         Return a hashable key which identifies this element.
 
-        This makes it possible to use this element in caches such as methods
-        decorated with ``@cached_method``.
-
-        .. SEEALSO::
-
-            :meth:`sage.structure.sage_object.SageObject._cache_key`
+        This makes it possible to use this element in caches such as
+        functions or methods decorated with ``@cached_function`` or
+        ``@cached_method`` respectively.
 
         EXAMPLE:
 
@@ -511,17 +508,27 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         Check that zero values are handled correctly::
 
-            sage: K.zero()._cache_key()
+            sage: K.zero()._cache_key
             (..., 0)
-            sage: K(0,1)._cache_key()
+            sage: K(0,1)._cache_key
             (..., 0, 1)
 
         """
+        print "enter"
         if self._is_exact_zero():
+            print "exact zero"
             return (self.parent(), 0)
         elif self._is_inexact_zero():
+            print "inexact zero"
             return (self.parent(), 0, self.valuation())
         else:
+            print "other"
+            print self.parent()
+            print self.valuation()
+            print self.precision_relative()
+            print self.unit_part().list()
+            print tuple(tuple(c) if isinstance(c, list) else c
+                          for c in self.unit_part().list())
             return (self.parent(),
                     tuple(tuple(c) if isinstance(c, list) else c
                           for c in self.unit_part().list()),

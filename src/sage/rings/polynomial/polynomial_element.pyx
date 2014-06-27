@@ -834,10 +834,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Return a hashable key which identifies this element.
 
-        .. SEEALSO::
-
-            :meth:`sage.structure.sage_object.SageObject._cache_key`
-
         EXAMPLES::
 
             sage: K.<u> = Qq(4)
@@ -857,7 +853,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (1 + O(2^20))*x
 
         """
-        return self.parent(), tuple(self)
+        return (self.parent(), tuple(self))
 
     # you may have to replicate this boilerplate code in derived classes if you override
     # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html

@@ -407,6 +407,60 @@ easier method::
     sage: timeit("a = Q.f(2,3)")   # random
     625 loops, best of 3: 931 ns per loop
 
+Some immutable objects (such as `p`-adic numbers) cannot implement a
+reasonable hash function because their ``==`` operator has been
+modified to return ``True`` for objects which might behave differently
+in some computations::
+
+    sage: K.<a> = Qq(9)
+    sage: b = a + O(3)
+    sage: c = a + 3
+    sage: b
+    a + O(3)
+    sage: c
+    a + 3 + O(3^20)
+    sage: b == c
+    True
+    sage: b == a
+    True
+    sage: c == a
+    False
+
+If such objects defined a non-trivial hash function, this would break
+caching in many places. However, such objects should still be usable
+in caches. This can be achieved by defining an appropriate attribute
+``_cache_key``. Generally one would want to make this a ``lazy_attribute``::
+
+    sage: hash(b)
+    Traceback (most recent call last):
+    ...
+    TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+    sage: @cached_method
+    ....: def f(x): return x==a
+    sage: f(b)
+    True
+    sage: f(c) # if b and c were hashable, this would return True
+    False
+
+    sage: b._cache_key
+    (..., ((0, 1),), 0, 1)
+    sage: c._cache_key
+    (..., ((0, 1), (1,)), 0, 20)
+
+.. NOTE::
+
+    This attribute will only be accessed if the object itself
+    is not hashable.
+
+An implementation must make sure that for elements ``a`` and ``b``,
+if ``a != b``, then also ``a._cache_key != b._cache_key``.
+In practice this means that the ``_cache_key`` should always include
+the parent as its first argument::
+
+    sage: S.<a> = Qq(4)
+    sage: d = a + O(2)
+    sage: b._cache_key == d._cache_key # this would be True if the parents were not included
+    False
 """
 ########################################################################
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
@@ -473,7 +527,7 @@ def _cache_key(o):
 
     This function is intended for objects which are not hashable such as
     `p`-adic numbers. The difference from calling an object's ``_cache_key``
-    method directly, is that it also works for tuples and unpacks them
+    attribute directly, is that it also works for tuples and unpacks them
     recursively (if necessary, i.e., if they are not hashable).
 
     EXAMPLES::
@@ -498,22 +552,12 @@ def _cache_key(o):
         sage: o = (1/2, a)
         sage: _cache_key(o)
         (1/2, (..., ((1,),), 0, 20))
-
-    .. SEEALSO::
-
-        :meth:`sage.structure.sage_object.SageObject._cache_key`
-
     """
-    try:
-        hash(o)
-        return o
-    except TypeError:
-        if isinstance(o, sage.structure.sage_object.SageObject):
-            o = o._cache_key()
-        if isinstance(o,tuple):
-            return tuple(_cache_key(item) for item in o)
-        else:
-            return o
+    if isinstance(o, sage.structure.sage_object.SageObject):
+        o = o._cache_key()
+    if isinstance(o, tuple):
+        return tuple(_cache_key(item) for item in o)
+    return o
 
 cdef class CachedFunction(object):
     """

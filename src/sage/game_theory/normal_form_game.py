@@ -217,7 +217,7 @@ class NormalFormGame(SageObject, MutableMapping):
         )
 
     One can also input a single matrix and then a zero sum game is constructed.
-    Here is an instance of Rock-Paper-Scissors-Lizard-Spock ::
+    Here is an instance of Rock-Paper-Scissors-Lizard-Spock: ::
 
         sage: A = matrix([[0, -1, 1, 1, -1],
         ....:             [1, 0, -1, -1, 1],
@@ -228,6 +228,15 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: g.obtain_Nash(algorithm='enumeration')
         [[(1/5, 1/5, 1/5, 1/5, 1/5), (1/5, 1/5, 1/5, 1/5, 1/5)]]
 
+    We can also study games where players aim to minimize their utility.
+    Here is the Prisoner's Dilemma (where players are aiming to reduce
+    time spent in prison): ::
+
+        sage: A = matrix([[2, 5], [0, 4]])
+        sage: B = matrix([[2, 0], [5, 4]])
+        sage: prisoners_dilemma = NormalFormGame([A, B])
+        sage: prisoners_dilemma.obtain_Nash(algorithm='enumeration', maximization=False)
+        [[(0, 1), (0, 1)]]
 
     When obtaining Nash equilibrium there are 3 algorithms currently available:
 

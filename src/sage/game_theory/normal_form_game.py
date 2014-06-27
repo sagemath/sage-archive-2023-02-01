@@ -1076,13 +1076,13 @@ class NormalFormGame(SageObject, MutableMapping):
             a = linearsystem1.solve_right(linearsystemrhs1)
             b = linearsystem2.solve_right(linearsystemrhs2)
 
-            if self._is_NE(a, b, p1_support, p2_support, maximization):
+            if self._is_NE(a, b, p1_support, p2_support, M1, M2, maximization):
                 return [a, b]
             return False
         except:
             return False
 
-    def _is_NE(self, a, b, p1_support, p2_support, maximization=True):
+    def _is_NE(self, a, b, p1_support, p2_support, M1, M2, maximization=True):
         r"""
         TESTS:
 
@@ -1093,7 +1093,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [0, 3, 1],
             ....:             [5, 4, 6]])
             sage: Z = NormalFormGame([X, Y])
-            sage: Z._is_NE([0, 1/4, 3/4], [3/5, 2/5, 0], (1,2,), (0,1,))
+            sage: Z._is_NE([0, 1/4, 3/4], [3/5, 2/5, 0], (1,2,), (0,1,), X, Y)
             False
 
         """
@@ -1107,10 +1107,10 @@ class NormalFormGame(SageObject, MutableMapping):
             return False
 
         # Verify that indifference vector is indeed a point at which no deviation is worthwhile
-        M1, M2 = self.payoff_matrices()
-        if maximization is False:
-            M1 = -M1
-            M2 = -M2
+        # M1, M2 = self.payoff_matrices()
+        # if maximization is False:
+        #     M1 = -M1
+        #     M2 = -M2
 
         p1_payoffs = [sum(v * row[i] for i, v in enumerate(b)) for row in M1.rows()]
         p2_payoffs = [sum(v * col[j] for j, v in enumerate(a)) for col in M2.columns()]

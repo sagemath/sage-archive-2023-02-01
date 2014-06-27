@@ -21,7 +21,7 @@ EXAMPLES:
 
 The sine function::
 
-    sage: sines = [plot(c*sin(x), (-2*pi,2*pi), color=Color(c,0,0), ymin=-1,ymax=1) for c in sxrange(0,1,.2)]
+    sage: sines = [plot(c*sin(x), (-2*pi,2*pi), color=Color(c,0,0), ymin=-1, ymax=1) for c in sxrange(0,1,.2)]
     sage: a = animate(sines)
     sage: a
     Animation with 5 frames
@@ -116,6 +116,8 @@ def animate(frames, **kwds):
         sage: t = var('t')
         sage: a = animate((cos(c*pi*t) for c in sxrange(1,2,.2)))
         sage: a.show()  # optional -- ImageMagick
+
+    See also :mod:`sage.plot.animate` for more examples.
     """
     return Animation(frames, **kwds)
 
@@ -179,7 +181,7 @@ class Animation(SageObject):
     We check that :trac:`7981` is fixed::
 
         sage: a = animate([plot(sin(x + float(k)), (0, 2*pi), ymin=-5, ymax=5)
-        ....:            for k in srange(0,2*pi,0.3)])
+        ....:              for k in srange(0,2*pi,0.3)])
         sage: a.show() # optional -- ImageMagick
 
     Do not convert input iterator to a list::
@@ -456,7 +458,7 @@ class Animation(SageObject):
 
             sage: g = a.graphics_array(); print g
             Graphics Array of size 2 x 3
-            sage: g.show(figsize=[4,1]) # optional
+            sage: g.show(figsize=[6,3]) # optional
 
         Specify different arrangement of array and save with different file name::
 

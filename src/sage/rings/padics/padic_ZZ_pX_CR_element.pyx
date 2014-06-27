@@ -518,11 +518,11 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         """
         if self._is_exact_zero():
-            return (id(self.parent()), 0)
+            return (self.parent(), 0)
         elif self._is_inexact_zero():
-            return (id(self.parent()), 0, self.valuation())
+            return (self.parent(), 0, self.valuation())
         else:
-            return (id(self.parent()),
+            return (self.parent(),
                     tuple(tuple(c) if isinstance(c, list) else c
                           for c in self.unit_part().list()),
                     self.valuation(), self.precision_relative())

@@ -272,7 +272,7 @@ cdef class SageObject:
         An implementation must make sure that for elements ``a`` and ``b``,
         if ``a != b``, then also ``a._cache_key() != b._cache_key()``.
         In practice this means that the ``_cache_key`` should always include
-        the ``id`` of the parent::
+        the parent as its first argument::
 
             sage: S.<a> = Qq(4)
             sage: d = a + O(2)

@@ -3288,6 +3288,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             ....:   print "overflow"
             overflow
         """
+        if not self._poly:
+            return self
+
         cdef int mi, i, need_map, try_symbolic
 
         cdef unsigned long degree = 0

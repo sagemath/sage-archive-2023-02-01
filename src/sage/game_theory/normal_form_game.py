@@ -542,9 +542,16 @@ class NormalFormGame(SageObject, MutableMapping):
         return str(self.utilities)
 
     def _latex_(self):
+        r"""
+        Returns the LaTeX code representing the ``NormalFormGame``.
+        """
         if len(self.players) == 2:
-            pass
-            # latex with self.payoff_matrices()
+            m1, m2 = self.payoff_matrices()
+            output = "Player 1:\n"
+            output += m1._latex_()
+            output += "Player2:\n"
+            output += m2._latex_()
+            return output
         else:
             pass
             # Vince can do fancy latex stuff

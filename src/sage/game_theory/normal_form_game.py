@@ -103,7 +103,7 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: battle_of_the_sexes
         {(0, 1): [1, 1], (1, 0): [0, 0], (0, 0): [3, 2], (1, 1): [2, 3]}
 
-    To obtain the Nash equilibria we run the ``obtain_Nash()`` method. In the
+    To obtain the Nash equilibria we run the obtain_Nash() method. In the
     first few examples we will use the 'support enumeration' algorithm.
     A discussion about the different algorithms will be given later ::
 

@@ -28,7 +28,7 @@ from sage.rings.infinity import Infinity
 from designs_pyx import is_orthogonal_array
 
 
-def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
+def transversal_design(k,n,check=True,existence=False):
     r"""
     Return a transversal design of parameters `k,n`.
 
@@ -71,12 +71,6 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
 
           When ``k=None`` and ``existence=True`` the function returns an
           integer, i.e. the largest `k` such that we can build a `TD(k,n)`.
-
-    - ``who_asked`` (internal use only) -- because of the equivalence between
-      OA/TD/MOLS, each of the three constructors calls the others. We must keep
-      track of who calls who in order to avoid infinite loops. ``who_asked`` is
-      the tuple of the other functions that were called before this one on the
-      same input `k,n`.
 
     OUTPUT:
 
@@ -278,7 +272,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         if existence:
             return k
 
-    if existence and not who_asked and _OA_cache_get(k,n) is not None:
+    if existence and _OA_cache_get(k,n) is not None:
         return _OA_cache_get(k,n)
 
     may_be_available = _OA_cache_construction_available(k,n) is not False
@@ -301,11 +295,10 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         TD = [l[:k] for l in TD_6_12()]
 
     # Section 6.6 of [Stinson2004]
-    elif (orthogonal_array not in who_asked and
-          orthogonal_array(k, n, existence=True, who_asked = who_asked + (transversal_design,)) is not Unknown):
+    elif orthogonal_array(k, n, existence=True) is not Unknown:
 
         # Forwarding non-existence results
-        if orthogonal_array(k, n, existence=True, who_asked = who_asked + (transversal_design,)):
+        if orthogonal_array(k, n, existence=True):
             if existence:
                 return True
         else:
@@ -313,12 +306,10 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
                 return False
             raise EmptySetError("There exists no TD({},{})!".format(k,n))
 
-        OA = orthogonal_array(k,n, check = False, who_asked = who_asked + (transversal_design,))
+        OA = orthogonal_array(k,n, check = False)
         TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
 
     else:
-        if not who_asked:
-            _OA_cache_set(k,n,Unknown)
         if existence:
             return Unknown
         raise NotImplementedError("I don't know how to build a TD({},{})!".format(k,n))
@@ -623,7 +614,7 @@ def _OA_cache_construction_available(k,n):
     else:
         return Unknown
 
-def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
+def orthogonal_array(k,n,t=2,check=True,existence=False):
     r"""
     Return an orthogonal array of parameters `k,n,t`.
 
@@ -665,12 +656,6 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
           When ``k=None`` and ``existence=True`` the function returns an
           integer, i.e. the largest `k` such that we can build a `TD(k,n)`.
-
-    - ``who_asked`` (internal use only) -- because of the equivalence between
-      OA/TD/MOLS, each of the three constructors calls the others. We must keep
-      track of who calls who in order to avoid infinite loops. ``who_asked`` is
-      the tuple of the other functions that were called before this one on the
-      same input `k,n`.
 
     OUTPUT:
 
@@ -774,7 +759,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
     """
 
     from latin_squares import mutually_orthogonal_latin_squares
-    from database import OA_constructions
+    from database import OA_constructions, MOLS_constructions
     from block_design import projective_plane, projective_plane_to_OA
     from orthogonal_arrays_recursive import find_recursive_construction
 
@@ -799,7 +784,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
     if k < t:
         raise ValueError("undefined for k<t")
 
-    if existence and not who_asked and _OA_cache_get(k,n) is not None and t == 2:
+    if existence and _OA_cache_get(k,n) is not None and t == 2:
         return _OA_cache_get(k,n)
 
     may_be_available = _OA_cache_construction_available(k,n) is not False
@@ -854,6 +839,31 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
         OA = OA_from_wider_OA(construction(),k)
 
+    # Constructions from the database II
+    elif may_be_available and k <= 6 and n == 12:
+        _OA_cache_set(6,12,True)
+
+        if existence:
+            return True
+        else:
+            from database import TD_6_12
+            TD = TD_6_12()
+            OA = [[x%n for x in R] for R in TD]
+
+    # Constructions from the database III
+    # Section 6.5.1 from [Stinson2004]
+    elif may_be_available and n in MOLS_constructions and k-2 <= MOLS_constructions[n][0]:
+        _OA_cache_set(MOLS_constructions[n][0]+2,n,True)
+
+        if existence:
+            return True
+        else:
+            construction = MOLS_constructions[n][1]
+            mols = construction()
+            OA = [[i,j]+[m[i,j] for m in mols]
+                  for i in range(n) for j in range(n)]
+            OA = OA_from_wider_OA(OA,k)
+
     elif may_be_available and find_recursive_construction(k,n):
         _OA_cache_set(k,n,True)
         if existence:
@@ -861,44 +871,8 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         f,args = find_recursive_construction(k,n)
         OA = f(*args)
 
-    elif (transversal_design not in who_asked and
-          transversal_design(k,n,existence=True,who_asked=who_asked+(orthogonal_array,)) is not Unknown):
-
-        # forward existence
-        if transversal_design(k,n,existence=True,who_asked=who_asked+(orthogonal_array,)):
-            if existence:
-                return True
-            else:
-                TD = transversal_design(k,n,check=False,who_asked=who_asked+(orthogonal_array,))
-                OA = [[x%n for x in R] for R in TD]
-
-        # forward non-existence
-        else:
-            if existence:
-                return False
-            raise EmptySetError("There exists no OA({},{})!".format(k,n))
-
-    # Section 6.5.1 from [Stinson2004]
-    elif (mutually_orthogonal_latin_squares not in who_asked and
-          mutually_orthogonal_latin_squares(n,k-2, existence=True,who_asked=who_asked+(orthogonal_array,)) is not Unknown):
-
-        # forward existence
-        if mutually_orthogonal_latin_squares(n,k-2, existence=True,who_asked=who_asked+(orthogonal_array,)):
-            if existence:
-                return True
-            else:
-                mols = mutually_orthogonal_latin_squares(n,k-2,who_asked=who_asked+(orthogonal_array,))
-                OA = [[i,j]+[m[i,j] for m in mols]
-                      for i in range(n) for j in range(n)]
-        # forward non-existence
-        else:
-            if existence:
-                return False
-            raise EmptySetError("There exists no OA({},{})!".format(k,n))
-
     else:
-        if not who_asked:
-            _OA_cache_set(k,n,Unknown)
+        _OA_cache_set(k,n,Unknown)
         if existence:
             return Unknown
         raise NotImplementedError("I don't know how to build an OA({},{})!".format(k,n))

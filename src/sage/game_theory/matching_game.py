@@ -11,15 +11,19 @@ class MatchingGame(SageObject):
 
         quick test. ::
 
-            sage: suitr_pref = {'M': ['C', 'A', 'B', 'D'],
-            ....:               'J': ['A', 'D', 'C', 'B'],
+            sage: suitr_pref = {'J': ['A', 'D', 'C', 'B'],
+            ....:               'K': ['A', 'B', 'C', 'D'],
             ....:               'L': ['B', 'D', 'C', 'A'],
-            ....:               'F': ['A', 'B', 'C', 'D']}
-            sage: reviewr_pref = {'A': ['L', 'J', 'F', 'M'],
-            ....:                 'B': ['J', 'M', 'L', 'F'],
-            ....:                 'C': ['F', 'M', 'L', 'J'],
-            ....:                 'D': ['M', 'F', 'J', 'L']}
+            ....:               'M': ['C', 'A', 'B', 'D']}
+            sage: reviewr_pref = {'A': ['L', 'J', 'K', 'M'],
+            ....:                 'B': ['J', 'M', 'L', 'K'],
+            ....:                 'C': ['K', 'M', 'L', 'J'],
+            ....:                 'D': ['M', 'K', 'J', 'L']}
             sage: m = MatchingGame([suitr_pref, reviewr_pref])
+            sage: m.suitors
+            ['K', 'J', 'M', 'L']
+            sage: m.reviewers
+            ['A', 'C', 'B', 'D']
         """
         self.suitors = []
         self.reviewers = []
@@ -39,9 +43,9 @@ class MatchingGame(SageObject):
             self.add_reviewer(k)
 
         for i in self.suitors:
-            i.pref = suitor_dict[i]
+            i.pref = suitor_dict[i.name]
         for k in self.reviewers:
-            k.pref = reviwer_dict[k]
+            k.pref = reviwer_dict[k.name]
 
     def _repr_(self):
         r"""

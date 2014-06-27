@@ -1498,6 +1498,15 @@ class MPolynomialIdeal_singular_repr(
             0
             sage: I.vector_space_dimension()
             4
+
+        When the ideal is not zero-dimensional, we return infinity::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: I = R.ideal(x)
+            sage: I.dimension()
+            1
+            sage: I.vector_space_dimension()
+            +Infinity
         """
         R = self.ring()
         gb = R.ideal(self.groebner_basis())
@@ -1507,7 +1516,8 @@ class MPolynomialIdeal_singular_repr(
         vd = Integer(vdim(gb, attributes={gb:{'isSB':1}}))
 
         if vd == -1:
-            raise TypeError("ideal is not zero dimensional")
+            from sage.rings.infinity import Infinity
+            return Infinity
         else:
             return vd
 

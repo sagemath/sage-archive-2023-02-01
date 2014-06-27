@@ -7,7 +7,7 @@ class Matching_Game(SageObject):
     def __init__(self, num_pairs=0):
         r"""
         """
-        self.husbands = []
+        self.suitors = []
         self.reviewers = []
         for i in range(num_pairs):
             self.add_player('suitor')
@@ -27,6 +27,12 @@ class Matching_Game(SageObject):
         if len(self.suitors) != len(self.reviewers):
             raise ValueError("must have the same number of suitors as reviewers.")
 
+        suitor_check = [any(i < 0 for i in s.pref) for s in self.suitors]
+        reviewer_check = [any(i < 0 for i in r.pref) for r in self.reviewers]
+
+        if any(suitor_check) or any(reviewer_check):
+            raise ValueError("players preferences not completed")
+
     def add_player(self, type):
         if type == 'suitor':
             self.suitors.append(_Player('suitor'))
@@ -45,4 +51,4 @@ class Matching_Game(SageObject):
 class _Player():
     def __init__(self, type):
         self.type = type
-        self.preference = []
+        self.pref = []

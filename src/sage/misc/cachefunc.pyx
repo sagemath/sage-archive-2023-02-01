@@ -881,7 +881,7 @@ cdef class CachedFunction(object):
         :meth:`sage.structure.sage_object.SageObject._cache_key`.
 
             sage: @cached_function
-            ....: def f(x): return x
+            ....: def f(x): return x+x
             sage: K.<u> = Qq(4)
             sage: x = K(1,1); x
             1 + O(2)
@@ -889,12 +889,10 @@ cdef class CachedFunction(object):
             1 + O(2^2)
             sage: x==y
             True
-            sage: f(x)
-            1 + O(2)
-            sage: f(y)
-            1 + O(2^2)
-            sage: f.cache
-            {(((..., ((1,),), 0, 2),), ()): 1 + O(2^2), (((..., ((1,),), 0, 1),), ()): 1 + O(2)}
+            sage: f(x) is f(x)
+            True
+            sage: f(y) is not f(x)
+            True
 
         """
         # We shortcut a common case of no arguments
@@ -914,7 +912,7 @@ cdef class CachedFunction(object):
             try:
                 return (<dict>self.cache)[k]
             except TypeError: # k is not hashable
-                k = _cache_key(k)
+                k = (_cache_key,_cache_key(k))
                 return (<dict>self.cache)[k]
         except KeyError:
             w = self.f(*args, **kwds)
@@ -979,7 +977,8 @@ cdef class CachedFunction(object):
         try:
             return k in (<dict>self.cache)
         except TypeError: # k is not hashable
-            return _cache_key(k) in (<dict>self.cache)
+            k = (_cache_key,_cache_key(k))
+            return k in <dict>self.cache
 
     def set_cache(self, value, *args, **kwds):
         """
@@ -1030,7 +1029,11 @@ cdef class CachedFunction(object):
         try:
             (<dict>self.cache)[k] = value
         except TypeError: # k is not hashable
-            (<dict>self.cache)[_cache_key(k)] = value
+            k = (_cache_key, _cache_key(k))
+            # to make sure that this key does not get confused with the key of
+            # a hashable object, such keys include _cache_key which is
+            # certainly not stored in the dictionary otherwise.
+            (<dict>self.cache)[k] = value
 
     def get_key(self, *args, **kwds):
         """
@@ -1231,7 +1234,7 @@ cdef class WeakCachedFunction(CachedFunction):
 
             sage: from sage.misc.cachefunc import weak_cached_function
             sage: @weak_cached_function
-            ....: def f(x): return x
+            ....: def f(x): return x+x
             sage: K.<u> = Qq(4)
             sage: R.<t> = K[]
             sage: x = t + K(1,1); x
@@ -1240,12 +1243,10 @@ cdef class WeakCachedFunction(CachedFunction):
             (1 + O(2^20))*t + 1 + O(2^2)
             sage: x==y
             True
-            sage: f(x)
-            (1 + O(2^20))*t + 1 + O(2)
-            sage: f(y)
-            (1 + O(2^20))*t + 1 + O(2^2)
-            sage: list(f.cache.keys())
-            [(((..., ((..., ((1,),), 0, 1), (..., ((1,),), 0, 20))),), ()), (((..., ((..., ((1,),), 0, 2), (..., ((1,),), 0, 20))),), ())]
+            sage: f(x) is f(x)
+            True
+            sage: f(y) is not f(x)
+            True
 
         """
         # We shortcut a common case of no arguments
@@ -1265,7 +1266,7 @@ cdef class WeakCachedFunction(CachedFunction):
             try:
                 return self.cache[k]
             except TypeError: # k is not hashable
-                k = _cache_key(k)
+                k = (_cache_key,_cache_key(k))
                 return self.cache[k]
         except KeyError:
             w = self.f(*args, **kwds)
@@ -1327,7 +1328,8 @@ cdef class WeakCachedFunction(CachedFunction):
         try:
             return k in self.cache
         except TypeError: # k is not hashable
-            return _cache_key(k) in self.cache
+            k = (_cache_key,_cache_key(k))
+            return k in self.cache
 
     def set_cache(self, value, *args, **kwds):
         """
@@ -1371,7 +1373,11 @@ cdef class WeakCachedFunction(CachedFunction):
         try:
             self.cache[k] = value
         except TypeError: # k is not hashable
-            self.cache[_cache_key(k)] = value
+            k = (_cache_key,_cache_key(k))
+            # to make sure that this key does not get confused with the key of
+            # a hashable object, such keys include _cache_key which is
+            # certainly not stored in the dictionary otherwise.
+            self.cache[k] = value
 
 weak_cached_function = decorator_keywords(WeakCachedFunction)
 
@@ -1787,7 +1793,7 @@ cdef class CachedMethodCaller(CachedFunction):
             sage: K.<u> = Qq(4)
             sage: class A(object):
             ....:   @cached_method
-            ....:   def f(self, x): return x
+            ....:   def f(self, x): return x+x
             sage: a=A()
             sage: x = K(1,1); x
             1 + O(2)
@@ -1795,12 +1801,10 @@ cdef class CachedMethodCaller(CachedFunction):
             1 + O(2^2)
             sage: x==y
             True
-            sage: a.f(x)
-            1 + O(2)
-            sage: a.f(y)
-            1 + O(2^2)
-            sage: a.f.cache
-            {(((..., ((1,),), 0, 2),), ()): 1 + O(2^2), (((..., ((1,),), 0, 1),), ()): 1 + O(2)}
+            sage: a.f(x) is a.f(x)
+            True
+            sage: a.f(y) is not a.f(x)
+            True
 
         """
         if self._instance is None:
@@ -1846,7 +1850,7 @@ cdef class CachedMethodCaller(CachedFunction):
             try:
                 return cache[k]
             except TypeError: # k is not hashable
-                k = _cache_key(k)
+                k = (_cache_key,_cache_key(k))
                 return cache[k]
         except KeyError:
             w = self._cachedmethod._instance_call(self._instance, *args, **kwds)

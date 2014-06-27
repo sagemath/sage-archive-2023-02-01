@@ -553,11 +553,16 @@ def _cache_key(o):
         sage: _cache_key(o)
         (1/2, (..., ((1,),), 0, 20))
     """
-    if isinstance(o, sage.structure.sage_object.SageObject):
-        o = o._cache_key()
-    if isinstance(o, tuple):
-        return tuple(_cache_key(item) for item in o)
-    return o
+    try:
+        hash(o)
+        return o
+    except TypeError:
+        if isinstance(o, sage.structure.sage_object.SageObject):
+            o = o._cache_key()
+        if isinstance(o,tuple):
+            return tuple(_cache_key(item) for item in o)
+        else:
+            return o
 
 cdef class CachedFunction(object):
     """

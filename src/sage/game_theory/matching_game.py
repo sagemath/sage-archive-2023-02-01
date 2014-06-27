@@ -24,6 +24,14 @@ class MatchingGame(SageObject):
             ['K', 'J', 'M', 'L']
             sage: m.reviewers
             ['A', 'C', 'B', 'D']
+
+        works for numbers too? ::
+
+            sage: suit = {0: [3, 4],
+            ....:         1: [3, 4]}
+            sage: revr = {3: [0, 1],
+            ....:         4: [1, 0]}
+            sage: g = MatchingGame([suit, revr])
         """
         self.suitors = []
         self.reviewers = []

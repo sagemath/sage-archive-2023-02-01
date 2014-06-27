@@ -1212,15 +1212,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def squarefree_decomposition(self):
         """
-        Return the square-free decomposition of self.  This is a
-        partial factorization of self into square-free, coprime
-        polynomials.
-
-        ALGORITHM: In characteristic 0, we use Yun's algorithm,
-        which works for arbitrary rings of characteristic 0.
-        If the characteristic is a prime number `p > 0`, we use
-        [Coh]_, algorithm 3.4.2.  This is basically Yun's algorithm
-        with special treatment for powers divisible by `p`.
+        Return the square-free decomposition of this polynomial.  This is a
+        partial factorization into square-free, coprime polynomials.
 
         EXAMPLES::
 
@@ -1238,111 +1231,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.squarefree_decomposition()
             1
 
-        TESTS::
-
-            sage: K.<a> = GF(3^2)
-            sage: R.<x> = K[]
-            sage: f = x^243+2*x^81+x^9+1
-            sage: f.squarefree_decomposition()
-            (x^27 + 2*x^9 + x + 1)^9
-            sage: f = x^243+a*x^27+1
-            sage: f.squarefree_decomposition()
-            (x^9 + (2*a + 1)*x + 1)^27
-
-            sage: for K in [GF(2^18,'a'), GF(3^2,'a'), GF(47^3,'a')]:
-            ....:     R.<x> = K[]
-            ....:     if K.characteristic() < 5: m = 4
-            ....:     else: m = 1
-            ....:     for _ in range(m):
-            ....:         f = (R.random_element(4)^3*R.random_element(m)^(m+1))(x^6)
-            ....:         F = f.squarefree_decomposition()
-            ....:         assert F.prod() == f
-            ....:         for i in range(len(F)):
-            ....:             assert gcd(F[i][0], F[i][0].derivative()) == 1
-            ....:             for j in range(len(F)):
-            ....:                 if i == j: continue
-            ....:                 assert gcd(F[i][0], F[j][0]) == 1
-            ....:
-
-        REFERENCES:
-
-        .. [Coh] H. Cohen, A Course in Computational Algebraic Number
-           Theory.  Springer-Verlag, 1993.
         """
-        if not self.base_ring().is_unique_factorization_domain():
-            raise NotImplementedError, "Squarefree decomposition not implemented for " + str(self.parent())
-
-        if self.degree() == 0:
-            return Factorization([], unit=self[0])
-
-        p = self.base_ring().characteristic()
-        factors = []
-        if p == 0:
-            f = [self]
-            cur = self
-            while cur.degree() > 0:
-                cur = cur.gcd(cur.derivative())
-                f.append(cur)
-
-            g = []
-            for i in range(len(f) - 1):
-                g.append(f[i] // f[i+1])
-
-            a = []
-            for i in range(len(g) - 1):
-                a.append(g[i] // g[i+1])
-            a.append(g[-1])
-
-            unit = f[-1]
-            for i in range(len(a)):
-                if a[i].degree() > 0:
-                    factors.append((a[i], i+1))
-                else:
-                    unit = unit * a[i].constant_coefficient() ** (i + 1)
-        else:
-            # Beware that `p`-th roots might not exist.
-            unit = self.leading_coefficient()
-            T0 = self.monic()
-            e = 1
-            if T0.degree() > 0:
-                der = T0.derivative()
-                while der.is_zero():
-                    T0 = T0.parent()([T0[p*i].pth_root() for i in range(T0.degree()//p + 1)])
-                    if T0 == 1:
-                        raise RuntimeError
-                    der = T0.derivative()
-                    e = e*p
-                T = T0.gcd(der)
-                V = T0 // T
-                k = 0
-                while T0.degree() > 0:
-                    k += 1
-                    if p.divides(k):
-                        T = T // V
-                        k += 1
-                    W = V.gcd(T)
-                    if W.degree() < V.degree():
-                        factors.append((V // W, e*k))
-                        V = W
-                        T = T // V
-                        if V.degree() == 0:
-                            if T.degree() == 0:
-                                break
-                            # T is of the form sum_{i=0}^n t_i X^{pi}
-                            T0 = T0.parent()([T[p*i].pth_root() for i in range(T.degree()//p + 1)])
-                            der = T0.derivative()
-                            e = p*e
-                            while der.is_zero():
-                                T0 = T0.parent()([T0[p*i].pth_root() for i in range(T0.degree()//p + 1)])
-                                der = T0.derivative()
-                                e = p*e
-                            T = T0.gcd(der)
-                            V = T0 // T
-                            k = 0
-                    else:
-                        T = T//V
-
-        return Factorization(factors, unit=unit, sort=False)
+        if self.degree() < 0:
+            raise ValueError("square-free decomposition not defined for zero polynomial")
+        if hasattr(self.base_ring(),'_squarefree_decomposition_univariate_polynomial'):
+            return self.base_ring()._squarefree_decomposition_univariate_polynomial(self)
+        raise NotImplementedError("square-free decomposition not implemented for this polynomial")
 
     def is_square(self, root=False):
         """

@@ -17,7 +17,9 @@ EXAMPLES::
   sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianLatticeSampler
   sage: D = DiscreteGaussianLatticeSampler(ZZ^10, 3.0)
   sage: D(), D(), D()
-  ((3, 0, 5, 0, 1, 3, 3, 2, -4, 7), (0, 1, 2, -4, 4, -4, 0, -1, -4, 3), (0, -4, -5, 0, 1, -3, 2, 0, 1, -2))
+  ((3, 0, -5, 0, -1, -3, 3, 3, -7, 2), (4, 0, 1, -2, -4, -4, 4, 0, 1, -4), (-3, 0, 4, 5, 0, 1, 3, 2, 0, -1))
+
+
 """
 
 from sage.functions.log import exp
@@ -133,7 +135,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
             200
             sage: DiscreteGaussianLatticeSampler.compute_precision(None, 3)
             53
-          
+
         """
         if precision is None:
             try:
@@ -166,8 +168,8 @@ class DiscreteGaussianLatticeSampler(SageObject):
             sage: l = [D() for _ in xrange(m)]
             sage: v = vector(ZZ, n, (0, 0, 0))
             sage: l.count(v), ZZ(round(m*f(v)/c))
-            (53, 27)
-        
+            (65, 27)
+
         """
         if self.B != identity_matrix(ZZ, self.B.nrows()):
             raise NotImplementedError("This function is only implemented when B is an identity matrix.")
@@ -206,11 +208,11 @@ class DiscreteGaussianLatticeSampler(SageObject):
             sage: l = [D() for _ in xrange(m)]
             sage: v = vector(ZZ, n, (-3,-3))
             sage: l.count(v), ZZ(round(m*f(v)/c))
-            (30, 33)
+            (47, 33)
 
             sage: target = vector(ZZ, n, (0,0))
             sage: l.count(target), ZZ(round(m*f(target)/c))
-            (93, 89)
+            (107, 89)
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianLatticeSampler
             sage: qf = QuadraticForm(matrix(3, [2, 1, 1,  1, 2, 1,  1, 1, 2]))
@@ -221,7 +223,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
             [1 2 1]
             [1 1 2]
             sage: D()
-            (-4, -2, -6)           
+            (-4, -4, -4)
         """
         precision = DiscreteGaussianLatticeSampler.compute_precision(precision, sigma)
 
@@ -239,7 +241,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
             pass
 
         self.B = B
-        self.G = B.gram_schmidt()[0]
+        self._G = B.gram_schmidt()[0]
 
         try:
             c = vector(ZZ, B.ncols(), c)
@@ -253,12 +255,21 @@ class DiscreteGaussianLatticeSampler(SageObject):
 
         self.f = lambda x: exp(-(vector(ZZ, B.ncols(), x)-c).norm()**2/(2*self._sigma**2))
 
+
+        # deal with trivial case first, it is common
+        if self._G == 1 and self._c == 0:
+            self._c_in_lattice = True
+            D = DiscreteGaussianIntegerSampler(sigma=sigma)
+            self.D = tuple([D for _ in range(self.B.nrows())])
+            self.VS = FreeModule(ZZ, B.nrows())
+            return
+
         w = B.solve_left(c)
         if w in ZZ**B.nrows():
             self._c_in_lattice = True
             D = []
             for i in range(self.B.nrows()):
-                sigma_ = self._sigma/self.G[i].norm()
+                sigma_ = self._sigma/self._G[i].norm()
                 D.append( DiscreteGaussianIntegerSampler(sigma=sigma_) )
             self.D = tuple(D)
             self.VS = FreeModule(ZZ, B.nrows())
@@ -276,7 +287,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
             sage: L = [D() for _ in range(2^12)]
             sage: abs(mean(L).n() - D.c)
             0.10...
-            
+
             sage: D = DiscreteGaussianLatticeSampler(ZZ^3, 3.0, c=(1/2,0,0))
             sage: L = [D() for _ in range(2^12)]
             sage: mean(L).n() - D.c
@@ -284,9 +295,12 @@ class DiscreteGaussianLatticeSampler(SageObject):
 
         """
         if self._c_in_lattice:
-            return self._call_in_lattice()
+            v = self._call_in_lattice()
         else:
-            return self._call()
+            v = self._call()
+        v.set_immutable()
+        return v
+
     @property
     def sigma(self):
         """Gaussian parameter `σ`.
@@ -303,6 +317,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
 
         """
         return self._sigma
+
     @property
     def c(self):
         """Center `c`.
@@ -323,7 +338,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
             (1, 0, 0)
         """
         return self._c
-            
+
     def __repr__(self):
         """
         EXAMPLE::
@@ -338,7 +353,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
 
         """
         return "Discrete Gaussian sampler with σ = %f, c=%s over lattice with basis\n\n%s"%(self._sigma, self._c, self.B)
-            
+
     def _call_in_lattice(self):
         """
         Return a new sample assuming `c ∈ Λ(B)`.
@@ -380,7 +395,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
         m = self.B.nrows()
 
         for i in range(m)[::-1]:
-            b_ = self.G[i]
+            b_ = self._G[i]
             c_ = c.dot_product(b_) / b_.dot_product(b_)
             sigma_ = sigma/b_.norm()
             assert(sigma_ > 0)

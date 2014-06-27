@@ -375,6 +375,29 @@ class FunctionField(Field):
                 raise ValueError("field has not been constructed as a finite extension of base")
         return ret
 
+    def rational_function_field(self):
+        r"""
+        Return the rational function field from which this field has been
+        created as an extension.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: K.rational_function_field()
+            Rational function field in x over Rational Field
+
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2-x)
+            sage: L.rational_function_field()
+            Rational function field in x over Rational Field
+
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2-y)
+            sage: M.rational_function_field()
+            Rational function field in x over Rational Field
+        """
+        return self if is_RationalFunctionField(self) else self.base_field().rational_function_field()
+
 class FunctionField_polymod(FunctionField):
     """
     A function field defined by a univariate polynomial, as an

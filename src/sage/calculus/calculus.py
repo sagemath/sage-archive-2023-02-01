@@ -1692,7 +1692,7 @@ _inverse_laplace = function_factory('ilt',
 
 #######################################################
 
-symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma'}
+symtable = {'%pi':'pi', 'e':'_e', '%e': 'e', 'i':'_i', 'I':'_I', '%i':'I', '%gamma':'euler_gamma'}
 
 from sage.misc.multireplace import multiple_replace
 import re
@@ -1766,6 +1766,18 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: solve([2*x==3, x != 5], x)
         [[x == (3/2), (-7/2) != 0]]
 
+    Check that some variables don't end up as special constants (:trac:`6882`)::
+    
+        sage: symbolic_expression_from_maxima_string('%i')^2
+        -1
+        sage: symbolic_expression_from_maxima_string('I')^2
+        _I^2
+        sage: symbolic_expression_from_maxima_string('i')^2
+        _i^2
+        sage: ln(symbolic_expression_from_maxima_string('%e'))
+        1
+        sage: ln(symbolic_expression_from_maxima_string('e'))
+        log(_e)
     """
     syms = sage.symbolic.pynac.symbol_table.get('maxima', {}).copy()
 

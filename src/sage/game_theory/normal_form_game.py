@@ -157,7 +157,7 @@ class NormalFormGame(SageObject, MutableMapping):
     be a Nash Equilibrium for a normal form game. This result is called Nash's
     Theorem ([N1950]_).
 
-    If we consider the game called 'matching pennies' where two players each
+    Let us consider the game called 'matching pennies' where two players each
     present a coin with either HEADS or TAILS showing. If the coins show the
     same side then player 1 wins, otherwise player 2 wins:
 

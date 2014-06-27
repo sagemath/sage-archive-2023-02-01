@@ -627,6 +627,9 @@ class NormalFormGame(SageObject, MutableMapping):
         if len(self.players) != 2:
             raise ValueError("Only available for 2 player games")
 
+        if not self._is_complete():
+            raise ValueError("utilities have not been populated")
+
         m1 = matrix(QQ, self.players[0].num_strategies, self.players[1].num_strategies)
         m2 = matrix(QQ, self.players[0].num_strategies, self.players[1].num_strategies)
         for strategy_profile in self.utilities:

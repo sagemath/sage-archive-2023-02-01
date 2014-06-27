@@ -22,6 +22,7 @@ from itertools import product, combinations, chain
 from parser import Parser
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.misc.latex import latex
+from gambit import Game
 from sage.misc.lazy_import import lazy_import
 from sage.misc.misc import powerset
 from sage.rings.all import QQ, ZZ
@@ -506,6 +507,22 @@ class NormalFormGame(SageObject, MutableMapping):
             ...
             NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms
 
+        Initiate from a gambit Game. ::
+
+            sage: from gambit import Game
+            sage: gambitgame= Game.new_table([2, 2])
+            sage: gambitgame[int(0), int(0)][int(0)] = int(8)
+            sage: gambitgame[int(0), int(0)][int(1)] = int(8)
+            sage: gambitgame[int(0), int(1)][int(0)] = int(2)
+            sage: gambitgame[int(0), int(1)][int(1)] = int(10)
+            sage: gambitgame[int(1), int(0)][int(0)] = int(10)
+            sage: gambitgame[int(1), int(0)][int(1)] = int(2)
+            sage: gambitgame[int(1), int(1)][int(0)] = int(5)
+            sage: gambitgame[int(1), int(1)][int(1)] = int(5)
+            sage: g = NormalFormGame(gambitgame)
+            sage: g
+            {(0, 1): [2.0, 10.0], (1, 0): [10.0, 2.0], (0, 0): [8.0, 8.0], (1, 1): [5.0, 5.0]}
+
         TESTS:
 
         Raise error if matrices aren't the same size. ::
@@ -522,7 +539,8 @@ class NormalFormGame(SageObject, MutableMapping):
         self.utilities = {}
         matrices = []
         if type(generator) is not list and generator != None:
-            raise TypeError("Generator function must be a list or nothing")
+            if type(generator) is not Game:
+                raise TypeError("Generator function must be a list, gambit game or nothing")
 
         if type(generator) is list:
             if len(generator) == 1:
@@ -531,6 +549,9 @@ class NormalFormGame(SageObject, MutableMapping):
             if matrices[0].dimensions() != matrices[1].dimensions():
                 raise ValueError("matrices must be the same size")
             self._two_matrix_game(matrices)
+        if type(generator) is Game:
+            game = generator
+            self._gambit_game(game)
 
     def _repr_(self):
         r"""
@@ -578,6 +599,16 @@ class NormalFormGame(SageObject, MutableMapping):
             M1, M2 = self.payoff_matrices()
             return "\left(%s, %s\\right)" % (M1._latex_(), M2._latex_())
         return latex(self._repr_)
+
+    def _gambit_game(self, game):
+        self.players = []
+        self.utilities = {}
+        for player in game.players:
+            num_strategies = len(player.strategies)
+            self.add_player(num_strategies)
+        for strategy_profile in self.utilities:
+            utility_vector = [float(game[strategy_profile][i]) for i in range(len(self.players))]
+            self.utilities[strategy_profile] = utility_vector
 
     def _two_matrix_game(self, matrices):
         r"""
@@ -862,7 +893,6 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: c._solve_LCP(maximization=True) # optional - gambit
             [[(0.0, 1.0), (0.0, 1.0)]]
         """
-        from gambit import Game
         from gambit.nash import ExternalLCPSolver
 
         strategy_sizes = [p.num_strategies for p in self.players]

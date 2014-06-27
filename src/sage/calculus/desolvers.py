@@ -45,13 +45,6 @@ AUTHORS:
 
 - Robert Marik (10-2009) - Some bugfixes and enhancements
 
-- Miguel Marco (06-2014) - Implementation of tides solver
-
-- Marcos Rodriguez (06-2014) - Implementation of tides solver
-
-- Alberto Abad (06-2014) - tides solver
-
-- Roberto Barrio (06-2014) - tides solver
 
 """
 
@@ -1573,7 +1566,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
 def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16):
     r"""
     Solve numerically a system of first order differential equations using the
-    taylor series integrator implemeted in mintides.
+    taylor series integrator implemented in mintides.
 
     INPUT:
 
@@ -1607,6 +1600,76 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
         l = l.split(' ')
         l = filter(lambda a: len(a) > 2, l)
         res[i] = map(RealField(),l)
+    shutil.rmtree(tempdir)
+
+    return res
+
+
+def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16, digits=50):
+    r"""
+    Solve numerically a system of first order differential equations using the
+    taylor series integrator implemented in tides_mpfr.
+
+    INPUT:
+
+    - ``f`` - symbolic function
+
+    """
+    import subprocess
+    if subprocess.call(['which','gcc'], stdout=subprocess.PIPE, stderr=subprocess.PIPE):
+        raise RuntimeError('Unable to run because gcc cannot be found')
+    from sage.misc.misc import SAGE_ROOT
+    from sage.calculus.tides.file_generator import genfiles_mpfr
+    from sage.functions.other import ceil
+    from sage.functions.log import log
+    tempdir = mkdtemp()
+    intfile = tempdir + '/integrator.c'
+    drfile = tempdir + '/driver.c'
+    fileoutput = tempdir + '/output'
+    runmefile = tempdir + '/runme'
+
+
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mp_tides.h', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrEVENTS.c', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrPOL.c', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrNUM.c', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubTODE.c', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubPOL.c', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubEVENTS.c', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrITER.h', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubITER.c', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/dp_tides.h', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubTODE.h', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubNUM.c', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrNUM.h', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubITER.h', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/commonITER.c', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubEVENTS.h', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrITER.c', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrTODE.c', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrEVENTS.h', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrNUMdef.h', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrPOL.h', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubNUMdef.h', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubNUM.h', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrTODE.h', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/commonITER.h', tempdir)
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubPOL.h', tempdir)
+
+
+    genfiles_mpfr(intfile, drfile, f, ics, initial, final, delta, [], [],
+                      digits, tolrel, tolabs, fileoutput)
+
+    os.system('gcc -o ' + runmefile + ' ' + tempdir + '/*.c  -lmpfr -lgmp -lm  -O2 -w')
+    os.system(tempdir+'/runme ')
+    outfile = open(fileoutput)
+    res = outfile.readlines()
+    outfile.close()
+    for i in range(len(res)):
+        l=res[i]
+        l = l.split(' ')
+        l = filter(lambda a: len(a) > 2, l)
+        res[i] = map(RealField(ceil(digits*log(10,2))),l)
     shutil.rmtree(tempdir)
 
     return res

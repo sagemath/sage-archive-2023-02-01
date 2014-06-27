@@ -1,3 +1,16 @@
+"""
+
+- Miguel Marco (06-2014) - Implementation of tides solver
+
+- Marcos Rodriguez (06-2014) - Implementation of tides solver
+
+- Alberto Abad (06-2014) - tides solver
+
+- Roberto Barrio (06-2014) - tides solver
+"""
+
+
+
 from  sage.rings.real_mpfr import RealField
 import shutil
 import os
@@ -7,6 +20,7 @@ from sage.ext.fast_callable import fast_callable
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.semirings.non_negative_integer_semiring', 'NN')
 from sage.misc.functional import N
+from sage.functions.other import floor
 
 
 def subexpressions_list(f, parameters=[]):
@@ -337,4 +351,152 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
     outfile.write('\treturn 0; \n }')
     outfile.close()
 
+def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
+                  parameters=[], parameter_values =[], dig = 20, tolrel=1e-16,
+                  tolabs=1e-16, output = ''):
+    r"""
+    """
+    from sage.misc.misc import SAGE_ROOT
+    RR = RealField()
+    l1, l2 = subexpressions_list(f, parameters)
+    remove_repeated(l1, l2)
+    remove_constants(l1, l2)
+    l3=[]
+    var = f[0].arguments()
+    for i in l2:
+        oper = i[0]
+        if oper in ["log", "exp", "sin", "cos"]:
+            a = i[1]
+            if a in var:
+                l3.append((oper, 'var[{}]'.format(var.index(a))))
+            elif a in parameters:
+                l3.append((oper, 'par[{}]'.format(parameters.index(a))))
+            else:
+                l3.append((oper, 'link[{}]'.format(l1.index(a))))
 
+        else:
+            a=i[1]
+            b=i[2]
+            consta=False
+            constb=False
+
+            if a in var:
+                aa = 'var[{}]'.format(var.index(a))
+            elif a in l1:
+                aa = 'link[{}]'.format(l1.index(a))
+            elif a in parameters:
+                aa = 'par[{}]'.format(parameters.index(a))
+            else:
+                consta=True
+                aa = str(a)
+            if b in var:
+                bb = 'var[{}]'.format(var.index(b))
+            elif b in l1:
+                bb = 'link[{}]'.format(l1.index(b))
+            elif b in parameters:
+                bb = 'par[{}]'.format(parameters.index(b))
+            else:
+                constb=True
+                bb = str(b)
+            if consta:
+                oper += '_c'
+                if not oper=='div':
+                    bb, aa = aa,bb
+            elif constb:
+                oper += '_c'
+            l3.append((oper, aa, bb))
+
+
+    n = len(var)
+    code = []
+
+
+    l1 = list(var)+l1
+    indices = [l1.index(i(*var))+n for i in f]
+    for i in range (1, n):
+        aux = indices[i-1]-n
+        if aux < n:
+            code.append('mpfrts_var_t(itd, var[{}], var[{}], i);'.format(aux, i))
+        else:
+            code.append('mpfrts_var_t(itd, link[{}], var[{}], i);'.format(aux-n, i))
+
+    for i in range(len(l3)):
+        el = l3[i]
+        string = "mpfrts_"
+        if el[0] == 'add':
+            string += 'add_t(itd, ' + el[1] + ', ' + el[2] + ', link[{}], i);'.format(i)
+        elif el[0] == 'add_c':
+            string += 'add_t_c(itd, "' + str(N(el[2])) + '", ' + el[1] + ', link[{}], i);'.format(i)
+        elif el[0] == 'mul':
+            string += 'mul_t(itd, ' + el[1] + ', ' + el[2] + ', link[{}], i);'.format(i)
+        elif el[0] == 'mul_c':
+            string += 'mul_t_c(itd, "' + str(N(el[2])) + '", ' + el[1] + ', link[{}], i);'.format(i)
+        elif el[0] == 'pow_c':
+            string += 'pow_t_c(itd, ' + el[1] + ', "' + str(N(el[2])) + '", link[{}], i);'.format(i)
+        elif el[0] == 'div':
+            string += 'div_t(itd, ' + el[2] + ', ' + el[1] + ', link[{}], i);'.format(i)
+        elif el[0] == 'div_c':
+            string += 'div_t_cv(itd, "' + str(N(el[2])) + '", ' + el[1] + ', link[{}], i);'.format(i)
+        elif el[0] == 'log':
+            string += 'log_t(itd, ' + el[1]  + ', link[{}], i);'.format(i)
+        elif el[0] == 'exp':
+            string += 'exp_t(itd, ' + el[1]  + ', link[{}], i);'.format(i)
+        elif el[0] == 'sin':
+            string += 'sin_t(itd, ' + el[1]  + ', ', + 'link[{}]'.format(i+1) + ', link[{}], i);'.format(i)
+        elif el[0] == 'cos':
+            string += 'cos_t(itd, ' + el[1]  + ', ', + 'link[{}]'.format(i-1) + ', link[{}], i);'.format(i)
+        code.append(string)
+
+    VAR = n-1
+    PAR = len(parameters)
+    TT =  len(code)+1-VAR
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/seriesFileMP00.txt', integrator)
+    outfile = open(integrator, 'a')
+    outfile.write("\n\tstatic int VARIABLES = {};\n".format(VAR))
+    outfile.write("\tstatic int PARAMETERS = {};\n".format(PAR))
+    outfile.write("\tstatic int LINKS = {};\n".format(TT))
+    outfile.write('\tstatic int   FUNCTIONS        = 0;\n')
+    outfile.write('\tstatic int   POS_FUNCTIONS[1] = {0};\n')
+    outfile.write('\n\tinitialize_mp_case();\n')
+    outfile.write('\n\tfor(i=0;  i<=ORDER; i++) {\n')
+    for i in code:
+        outfile.write('\t\t'+i+'\n')
+
+    outfile.write('\t}\n\twrite_mp_solution();\n\n')
+    outfile.write('\tclear_vpl();\n\tclear_cts();\n')
+    outfile.write('\treturn NUM_COLUMNS;\n}')
+    outfile.close()
+
+    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/driverFileMP00.txt', driver)
+    npar = len(parameter_values)
+    outfile = open(driver, 'a')
+    outfile.write('\tint nfun = 0;\n')
+    outfile.write('\tset_precision_digits({});'.format(dig))
+    outfile.write('\n\tint npar = {};\n'.format(npar))
+    outfile.write('\tmpfr_t p[npar];\n')
+    outfile.write('\tfor(i=0; i<npar; i++) mpfr_init2(p[i], TIDES_PREC);\n')
+
+    for i in range(npar):
+        outfile.write('\tmpfr_set_str(p[{}], "{}", 10, TIDES_RND);\n'.format(i,N(parameter_values[i],digits=dig)))
+    outfile.write('\tint nvar = {};\n\tmpfr_t v[nvar];\n'.format(VAR))
+    outfile.write('\tfor(i=0; i<nvar; i++) mpfr_init2(v[i], TIDES_PREC);\n')
+    for i in range(len(ics)):
+        outfile.write('\tmpfr_set_str(v[{}], "{}", 10, TIDES_RND);\n'.format(i,N(ics[i],digits=dig)))
+    outfile.write('\tmpfr_t tolrel, tolabs;\n')
+    outfile.write('\tmpfr_init2(tolrel, TIDES_PREC); \n')
+    outfile.write('\tmpfr_init2(tolabs, TIDES_PREC); \n')
+    outfile.write('\tmpfr_set_str(tolrel, "{}", 10, TIDES_RND);\n'.format(N(tolrel,digits=dig)))
+    outfile.write('\tmpfr_set_str(tolabs, "{}", 10, TIDES_RND);\n'.format(N(tolabs,digits=dig)))
+
+    outfile.write('\tmpfr_t tini, dt; \n')
+    outfile.write('\tmpfr_init2(tini, TIDES_PREC); \n')
+    outfile.write('\tmpfr_init2(dt, TIDES_PREC); \n')
+
+
+    outfile.write('\tmpfr_set_str(tini, "{}", 10, TIDES_RND);;\n'.format(N(initial,digits=dig)))
+    outfile.write('\tmpfr_set_str(dt, "{}", 10, TIDES_RND);\n'.format(N(delta,digits=dig)))
+    outfile.write('\tint nipt = {};\n'.format(floor((final-initial)/delta)))
+    outfile.write('\tFILE* fd = fopen("' + output + '", "w");\n')
+    outfile.write('\tmp_tides_delta(function_iteration, NULL, nvar, npar, nfun, v, p, tini, dt, nipt, tolrel, tolabs, NULL, fd);\n')
+    outfile.write('\tfclose(fd);\n\treturn 0;\n}')
+    outfile.close()

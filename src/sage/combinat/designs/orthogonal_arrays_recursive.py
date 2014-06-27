@@ -653,10 +653,8 @@ def construction_q_x(k,q,x,check=True):
     points_to_keep = set(range(q**2+2))-points_to_delete
     relabel = {i:j for j,i in enumerate(points_to_keep)}
 
-    from sage.combinat.designs.bibd import _check_pbd
+    # PBD is a (n,[q,q-x-1,q-x+1,x+2])-PBD
     PBD = [[relabel[xx] for xx in B if not xx in points_to_delete] for B in TD]
-
-    # _check_pbd(PBD,n,[q,q-x-1,q-x+1,x+2])
 
     # Taking the unique block of size x+2
     assert map(len,PBD).count(x+2)==1
@@ -717,12 +715,12 @@ def find_q_x(k,n):
     # n = (q-1)*(q-x) + x + 2
     #   = q^2 - q*x - q + 2*x + 2
 
-    for q in range(3,n):
+    for q in range(max(3,k+2),n):
         # n-q**2+q-2 = 2x-qx
         #            = x(2-q)
         x = (n-q**2+q-2)//(2-q)
         if (x < q and
-            1 < x and
+            0 < x and
             n == (q-1)*(q-x)+x+2 and
             is_prime_power(q) and
             orthogonal_array(k+1,q-x-1,existence=True) and

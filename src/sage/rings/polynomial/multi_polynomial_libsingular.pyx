@@ -731,7 +731,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             2
 
         """
-        cdef poly *_p, *mon, *El_poly
+        cdef poly *_p
+        cdef poly *mon
+        cdef poly *El_poly
         cdef ring *_ring = self._ring
         cdef number *_n
         cdef ring *El_ring
@@ -1520,7 +1522,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             z^3 + w^3 - z*w
         """
         cdef ring *_ring = self._ring
-        cdef char **_names, **_orig_names
+        cdef char **_names
+        cdef char **_orig_names
         cdef char *_name
         cdef int i
 
@@ -1617,7 +1620,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         """
         cdef poly *res
         cdef ring *r = self._ring
-        cdef number *n, *denom
+        cdef number *n
+        cdef number *denom
 
         if not <ParentWithBase>self is f._parent:
             f = self._coerce_c(f)
@@ -1832,7 +1836,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         """
         cdef int i
         cdef ring *r
-        cdef poly *p, *q
+        cdef poly *p
+        cdef poly *q
 
         if h._parent is not g._parent:
             g = h._parent._coerce_c(g)
@@ -3279,7 +3284,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             overflow    # 32-bit
             no overflow # 64-bit
 
-            sage: n=100000; 
+            sage: n=100000;
             sage: try:
             ....:   f = x^n
             ....:   f.subs(x = x^n)
@@ -3649,7 +3654,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f.variables()
             (x, z)
         """
-        cdef poly *p, *v
+        cdef poly *p
+        cdef poly *v
         cdef ring *r = self._parent_ring
         if(r != currRing): rChangeCurrRing(r)
         cdef int i
@@ -3883,7 +3889,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef ring *r = self._parent_ring
         if(r != currRing): rChangeCurrRing(r)
         cdef MPolynomial_libsingular _self, _right
-        cdef poly *quo, *temp, *p
+        cdef poly *quo
+        cdef poly *temp
+        cdef poly *p
 
         _self = self
 
@@ -4515,7 +4523,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             (a^2 + a)*x^6*y + (a^3 + a - 1)*x^4*y + (-a)*x^4
         """
         cdef ring *_ring = self._parent_ring
-        cdef poly *ret, *prod, *gcd
+        cdef poly *ret
+        cdef poly *prod
+        cdef poly *gcd
         cdef MPolynomial_libsingular _g
         if _ring!=currRing: rChangeCurrRing(_ring)
 
@@ -4606,7 +4616,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             ZeroDivisionError
 
         """
-        cdef poly *quo, *rem
+        cdef poly *quo
+        cdef poly *rem
         cdef MPolynomialRing_libsingular parent = self._parent
         cdef ring *r = self._parent_ring
         if r!=currRing: rChangeCurrRing(r)
@@ -4962,7 +4973,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         except ValueError:
             raise TypeError("not a variable in the same ring as self")
 
-        cdef poly *_p, *mon
+        cdef poly *_p
+        cdef poly *mon
         cdef ring *_ring = self._parent_ring
         if _ring != currRing:
             rChangeCurrRing(_ring)
@@ -5272,7 +5284,8 @@ def unpickle_MPolynomial_libsingular(MPolynomialRing_libsingular R, d):
         True
     """
     cdef ring *r = R._ring
-    cdef poly *m, *p
+    cdef poly *m
+    cdef poly *p
     cdef int _i, _e
     p = p_ISet(0,r)
     rChangeCurrRing(r)

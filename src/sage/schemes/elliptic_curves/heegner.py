@@ -103,6 +103,7 @@ from sage.misc.cachefunc import cached_method
 
 from sage.structure.sage_object import SageObject
 
+import sage.rings.number_field.number_field_element
 import sage.rings.number_field.number_field as number_field
 import sage.rings.arith as arith
 import sage.rings.all as rings
@@ -1487,10 +1488,13 @@ class GaloisAutomorphismQuadraticForm(GaloisAutomorphism):
         """
         EXAMPLES::
 
-            sage: H = heegner_points(389,-20,3); s = H.ring_class_field().galois_group(H.quadratic_field())[0]
-            sage: hash(s)
-            4262582128197601113     # 64-bit
-            -1994029223             # 32-bit
+            sage: H = heegner_points(389,-20,3)
+            sage: s = H.ring_class_field().galois_group(H.quadratic_field())[0]
+            sage: H = heegner_points(389,-20,3)
+            sage: ss = H.ring_class_field().galois_group(H.quadratic_field())[0]
+            sage: hash(s) == hash(ss)
+            True
+
         """
         return hash((self.parent(), tuple(self.__quadratic_form)))
 
@@ -2593,7 +2597,7 @@ class HeegnerPointOnX0N(HeegnerPoint):
                 elif isinstance(f, BinaryQF):
                     # convert from BinaryQF
                     f = tuple(f)
-                elif rings.is_NumberFieldElement(f):
+                elif sage.rings.number_field.number_field_element.is_NumberFieldElement(f):
                     # tau = number field element
                     g = f.minpoly()
                     if g.degree() != 2:

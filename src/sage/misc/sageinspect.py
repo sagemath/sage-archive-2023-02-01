@@ -1713,7 +1713,7 @@ def sage_getsourcelines(obj, is_binary=False):
         sage: sage_getsourcelines(obj)
         (['def create_set_partition_function(letter, k):\n',
         ...
-        '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 32)
+        '    raise ValueError("k must be an integer or an integer + 1/2")\n'], 34)
 
     Here are some cases that were covered in :trac`11298`;
     note that line numbers may easily change, and therefore we do
@@ -1918,13 +1918,6 @@ def sage_getvariablename(self, omit_underscore_names=True):
 
         sage: sage_getvariablename(random_matrix(ZZ, 60))
         []
-
-    Test that the problem in #10275 has been fixed::
-
-        sage: M = random_matrix(ZZ, 30); M
-        30 x 30 dense matrix over Integer Ring (type 'print M.str()' to see all of the entries)
-        sage: M.hermite_form()
-        30 x 30 dense matrix over Integer Ring
     """
     result = []
     for frame in inspect.stack():

@@ -900,7 +900,7 @@ def Lfunction_from_character(chi, type="complex"):
         raise TypeError("Dirichlet character is not primitive")
 
     modulus=chi.modulus()
-    if (chi(-1) == 1):
+    if chi.is_even():
         a=0
     else:
         a=1

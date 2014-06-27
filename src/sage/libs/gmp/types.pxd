@@ -4,6 +4,7 @@ cdef extern from "gmp.h":
 
     # Underlying typedefs
     ctypedef unsigned long mp_limb_t
+    ctypedef unsigned long mp_bitcnt_t
     ctypedef long mp_size_t
     ctypedef long mp_exp_t
 

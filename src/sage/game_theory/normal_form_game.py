@@ -411,8 +411,6 @@ class NormalFormGame(SageObject, MutableMapping):
     The equilibrium strategy is thus for both players to state that the value
     of their suitcase is 2.
 
-
-
     Importantly this algorithm is known to fail in the case of a degenerate
     game. In fact degenerate games can cause problems for most algorithms ::
 

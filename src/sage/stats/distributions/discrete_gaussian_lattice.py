@@ -88,7 +88,16 @@ class DiscreteGaussianLatticeSampler(SageObject):
         [0 0 0 0 0 0 0 1 0 0]
         [0 0 0 0 0 0 0 0 1 0]
         [0 0 0 0 0 0 0 0 0 1]
-          
+
+
+    We plot a histogram::
+
+        sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianLatticeSampler
+        sage: D = DiscreteGaussianLatticeSampler(identity_matrix(2), 3.0)
+        sage: S = [D() for _ in range(2^12)]
+        sage: l = [vector(v.list() + [S.count(v)]) for v in set(S)]
+        sage: list_plot3d(l, point_list=True, interploation='nn')
+
     REFERENCES:
 
     .. [GPV08] Craig Gentry, Chris Peikert, Vinod Vaikuntanathan. *How to Use a

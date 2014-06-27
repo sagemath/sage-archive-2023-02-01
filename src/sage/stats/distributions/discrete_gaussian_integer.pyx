@@ -187,6 +187,13 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
             sage: min(l), max(l), abs(mean(l)-2.5) < 0.01
             (-2, 7, True)
 
+        We plot a histogram::
+
+            sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+            sage: D = DiscreteGaussianIntegerSampler(17.0)
+            sage: S = [D() for _ in range(2^16)]
+            sage: list_plot([(v,S.count(v)) for v in set(S)])
+
         These generators cache random bits for performance reasons. Hence, resetting
         the seed of the PRNG might not have the expected outcome. You can flush this cache with
         ``DiscreteGaussianIntegerSampler.flush_cache``::

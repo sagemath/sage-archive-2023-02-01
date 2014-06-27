@@ -13,7 +13,7 @@ EXAMPLES::
     sage: K.<x> = FunctionField(QQ); R.<y> = K[]
     sage: K.hom(1/x)
     Morphism of function fields defined by x |--> 1/x
-    sage: L.<y> = K.extension(y^2-x)
+    sage: L.<y> = K.extension(y^2 - x)
     sage: K.hom(y)
     Morphism of function fields defined by x |--> y
     sage: L.hom([y,x])
@@ -131,6 +131,8 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
 
             sage: K.<x> = FunctionField(QQ)
             sage: d = K.derivation() # indirect doctest
+            sage: type(d)
+            <class 'sage.rings.function_field.maps.FunctionFieldDerivation_rational'>
 
         """
         from function_field import is_RationalFunctionField
@@ -171,6 +173,113 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
             return self.codomain().zero()
         else:
             return self._u * self.codomain()( numerator / g**2 )
+
+class FunctionFieldDerivation_separable(FunctionFieldDerivation):
+    r"""
+    The unique extension of the derivation ``d`` to ``L``.
+
+    INPUT:
+
+    - ``L`` -- a function field which is a separable extension of the domain of
+      ``d``
+
+    - ``d`` -- a derivation on a function field
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 - x)
+        sage: d = L.derivation()
+
+    """
+    def __init__(self, L, d):
+        r"""
+        Initialization.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(3))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: d = L.derivation() # indirect doctest
+            sage: type(d)
+            <class 'sage.rings.function_field.maps.FunctionFieldDerivation_separable'>
+
+        """
+        if not isinstance(d, FunctionFieldDerivation):
+            raise TypeError("d must be a derivation on a function field")
+        from function_field import is_FunctionField
+        if not is_FunctionField(L):
+            raise TypeError("L must be a function field")
+        if d.domain() is not L.base_ring():
+            raise ValueError("L must be an extension of the domain of d")
+        FunctionFieldDerivation.__init__(self, L)
+
+        self._d = d
+        f = self.domain().polynomial()
+        if not f.gcd(f.derivative()).is_one():
+            raise ValueError("L must be a separable extension of its base field.")
+        x = self.domain().gen()
+        self._gen_image = - f.map_coefficients(lambda c:d(c))(x) / f.derivative()(x)
+
+    def _call_(self, x):
+        r"""
+        Evaluate the derivation on ``x``.
+
+        INPUT:
+
+        - ``x`` -- an element of the function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: d = L.derivation()
+            sage: d(x) # indirect doctest
+            1
+            sage: d(y)
+            (-1/2/-x)*y
+            sage: d(y^2)
+            1
+
+        """
+        if x.is_zero():
+            return self.codomain().zero()
+        return x._x.map_coefficients(self._d) \
+               + x._x.derivative()(self.domain().gen()) * self._gen_image
+
+    def _repr_defn(self):
+        r"""
+        Helper method to print this map.
+
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: L.derivation() # indirect doctest
+            Derivation map:
+              From: Function field in y defined by y^2 - x
+              To:   Function field in y defined by y^2 - x
+              Defn: y |--> (-1/2/-x)*y
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2 - y)
+            sage: M.derivation()
+            Derivation map:
+              From: Function field in z defined by z^2 - y
+              To:   Function field in z defined by z^2 - y
+              Defn: y |--> (-1/2/-x)*y
+                    z |--> 1/4/x*z
+
+        """
+        base = self._d._repr_defn()
+        ret = "%s |--> %s"%(self.domain().gen(),self._gen_image)
+        if base:
+            return base + "\n" + ret
+        else:
+            return ret
 
 class FunctionFieldIsomorphism(Morphism):
     r"""

@@ -1137,10 +1137,7 @@ def is_RationalFunctionField(x):
         sage: is_RationalFunctionField(FunctionField(QQ,'t'))
         True
     """
-    if isinstance(x, RationalFunctionField):
-        return True
-    else:
-        return False
+    return isinstance(x, RationalFunctionField)
 
 class RationalFunctionField(FunctionField):
     """

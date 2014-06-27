@@ -177,7 +177,7 @@ from sage.libs.singular.decl cimport (
     p_NSet, p_GetCoeff, p_Delete, p_GetExp, pNext, rRingVar, omAlloc0, omStrDup,
     omFree, pDivide, p_SetCoeff0, n_Init, p_DivisibleBy, pLcm, p_LmDivisibleBy,
     pDivide, p_IsConstant, p_ExpVectorEqual, p_String, p_LmInit, n_Copy,
-    p_IsUnit, pInvers, p_Head, pSubst, idInit, fast_map, id_Delete,
+    p_IsUnit, pInvers, p_Head, idInit, fast_map, id_Delete,
     pIsHomogeneous, pHomogen, p_Totaldegree, singclap_pdivide, singclap_factorize,
     delete, idLift, IDELEMS, On, Off, SW_USE_CHINREM_GCD, SW_USE_EZGCD,
     p_LmIsConstant, pTakeOutComp1, singclap_gcd, pp_Mult_qq, p_GetMaxExp,
@@ -195,7 +195,7 @@ from sage.libs.singular.polynomial cimport (
     singular_polynomial_mul, singular_polynomial_div_coeff, singular_polynomial_pow,
     singular_polynomial_str, singular_polynomial_latex,
     singular_polynomial_str_with_changed_varnames, singular_polynomial_deg,
-    singular_polynomial_length_bounded )
+    singular_polynomial_length_bounded, singular_polynomial_subst )
 
 # singular rings
 from sage.libs.singular.ring cimport singular_ring_new, singular_ring_reference, singular_ring_delete
@@ -3266,9 +3266,31 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f = y
             sage: f.subs({y:x}).subs({x:z})
             z
+
+        We are catching overflows::
+
+            sage: R.<x,y> = QQ[]
+            sage: n=1000; f = x^n
+            sage: try:
+            ....:   f.subs(x = x^n)
+            ....:   print "no overflow"
+            ....: except OverflowError:
+            ....:   print "overflow"
+            overflow    # 32-bit
+            no overflow # 64-bit
+
+            sage: n=100000; 
+            sage: try:
+            ....:   f = x^n
+            ....:   f.subs(x = x^n)
+            ....:   print "no overflow"
+            ....: except OverflowError:
+            ....:   print "overflow"
+            overflow
         """
         cdef int mi, i, need_map, try_symbolic
 
+        cdef unsigned long degree = 0
         cdef MPolynomialRing_libsingular parent = self._parent
         cdef ring *_ring = parent._ring
 
@@ -3293,9 +3315,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                             mi = i
                             break
                     if i > _ring.N:
-                        raise TypeError, "key does not match"
+                        id_Delete(&to_id, _ring)
+                        p_Delete(&_p, _ring)
+                        raise TypeError("key does not match")
                 else:
-                    raise TypeError, "keys do not match self's parent"
+                    id_Delete(&to_id, _ring)
+                    p_Delete(&_p, _ring)
+                    raise TypeError("keys do not match self's parent")
                 try:
                     v = parent._coerce_c(v)
                 except TypeError:
@@ -3303,10 +3329,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     break
                 _f = (<MPolynomial_libsingular>v)._poly
                 if p_IsConstant(_f, _ring):
-                    if(_ring != currRing): rChangeCurrRing(_ring)
-                    _p = pSubst(_p, mi, _f)
+                    singular_polynomial_subst(&_p, mi-1, _f, _ring)
                 else:
                     need_map = 1
+                    degree = <unsigned long>p_GetExp(_p, mi, _ring) * <unsigned long>p_GetMaxExp(_f, _ring)
+                    if  degree > _ring.bitmask:
+                        id_Delete(&to_id, _ring)
+                        p_Delete(&_p, _ring)
+                        raise OverflowError("Exponent overflow (%d)."%(degree))
                     to_id.m[mi-1] = p_Copy(_f, _ring)
 
         if not try_symbolic:
@@ -3318,7 +3348,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                         mi = i
                         break
                 if i > _ring.N:
-                    raise TypeError, "key does not match"
+                    id_Delete(&to_id, _ring)
+                    p_Delete(&_p, _ring)
+                    raise TypeError("key does not match")
                 try:
                     v = parent._coerce_c(v)
                 except TypeError:
@@ -3326,12 +3358,16 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     break
                 _f = (<MPolynomial_libsingular>v)._poly
                 if p_IsConstant(_f, _ring):
-                    if(_ring != currRing): rChangeCurrRing(_ring)
-                    _p = pSubst(_p, mi, _f)
+                    singular_polynomial_subst(&_p, mi-1, _f, _ring)
                 else:
                     if to_id.m[mi-1] != NULL:
                         p_Delete(&to_id.m[mi-1],_ring)
                     to_id.m[mi-1] = p_Copy(_f, _ring)
+                    degree = <unsigned long>p_GetExp(_p, mi, _ring) * <unsigned long>p_GetMaxExp(_f, _ring)
+                    if degree > _ring.bitmask:
+                        id_Delete(&to_id, _ring)
+                        p_Delete(&_p, _ring)
+                        raise OverflowError("Exponent overflow (%d)."%(degree))
                     need_map = 1
 
             if need_map:

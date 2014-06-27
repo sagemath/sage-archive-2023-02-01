@@ -327,7 +327,7 @@ class NormalFormGame(SageObject, MutableMapping):
         ...
         ValueError: utilities have not been populated
 
-    We can use the same syntax as above to create games with more than 2 players ::
+    We can use the same syntax as above to create games with more than 2 players: ::
 
         sage: threegame = NormalFormGame()
         sage: threegame.add_player(2)
@@ -372,7 +372,7 @@ class NormalFormGame(SageObject, MutableMapping):
     further compatibility between Sage and gambit is actively being developed:
     https://github.com/tturocy/gambit/tree/sage_integration.
 
-    It is also possible to generate a Normal Form Game from a gambit Game:
+    It is also possible to generate a Normal Form Game from a gambit Game: ::
 
         sage: from gambit import Game
         sage: gambitgame= Game.new_table([2, 2])

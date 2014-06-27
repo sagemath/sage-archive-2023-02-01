@@ -225,8 +225,8 @@ class NormalFormGame(SageObject, MutableMapping):
         ....:             [-1, 1, -1, 0, 1],
         ....:             [1, -1, 1, -1, 0]])
         sage: g = NormalFormGame([A])
-        sage: g.obtain_Nash() # optional - gambit
-        [[(0.2, 0.2, 0.2, 0.2, 0.2), (0.2, 0.2, 0.2, 0.2, 0.2)]]
+        sage: g.obtain_Nash(algorithm='enumeration')
+        [[(1/5, 1/5, 1/5, 1/5, 1/5), (1/5, 1/5, 1/5, 1/5, 1/5)]]
 
 
     When obtaining Nash equilibrium there are 3 algorithms currently available:

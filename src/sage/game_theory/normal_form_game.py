@@ -157,7 +157,7 @@ class NormalFormGame(SageObject, MutableMapping):
     be a Nash Equilibrium for a normal form game. This result is called Nash's
     Theorem ([N1950]_).
 
-    If we consider the game called 'matching pennies' where two players each
+    Let us consider the game called 'matching pennies' where two players each
     present a coin with either HEADS or TAILS showing. If the coins show the
     same side then player 1 wins, otherwise player 2 wins:
 
@@ -175,7 +175,7 @@ class NormalFormGame(SageObject, MutableMapping):
             1&-1\\
             \end{pmatrix}
 
-    It should be relatively straightforward to note that there is no situation
+    It should be relatively straightforward to observe that there is no situation
     where both players always do the same thing and have no incentive to
     deviate.
 
@@ -219,8 +219,8 @@ class NormalFormGame(SageObject, MutableMapping):
     When obtaining Nash equilibrium there are 3 algorithms currently available:
 
     * ``LCP``: Linear complementarity program algorithm for 2 player games.
-      This algorithm uses the excellent game theory package:
-      [gambit](http://gambit.sourceforge.net/). At present this is the only
+      This algorithm uses the excellent open source game theory package:
+      `Gambit <http://gambit.sourceforge.net/>`_ [MMAT2014]_. At present this is the only
       gambit algorithm available in sage but further development will hope to
       implement more algorithms
       (in particular for games with more than 2 players). Gambit is not
@@ -253,35 +253,9 @@ class NormalFormGame(SageObject, MutableMapping):
         2. ``lrs``
         3. ``enumeration``
 
-    As mentioned above the preferred engine for the equilibrium analysis is
-    gambit. Gambit has it's own Python api which can be used independently from
-    Sage and to ensure compatibility between the two system, gambit like syntax
-    is compatible.
-
-    If neither ``LCP`` or ``lrs`` is installed then the ``enumeration`` algorithm
-    can be used (as shown previously), however only a basic implementation is
-    available and this approach is not recommended for large games.
-
-    Importantly this algorithm is known to fail in the case of a degenerate
-    game. In fact degenerate games can cause problems for most algorithms ::
-
-        sage: A = matrix([[3,3],[2,5],[0,6]])
-        sage: B = matrix([[3,3],[2,6],[3,1]])
-        sage: degenerate_game = NormalFormGame([A,B])
-        sage: degenerate_game.obtain_Nash(algorithm='LCP')
-        [[(1.0, 0.0, 0.0), (1.0, 0.0)],
-         [(1.0, -0.0, 0.0), (0.6666666667, 0.3333333333)],
-         [(0.0, 0.3333333333, 0.6666666667), (0.3333333333, 0.6666666667)]]
-        sage: degenerate_game.obtain_Nash(algorithm='lrs')
-        [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (2/3, 1/3)]]
-        sage: degenerate_game.obtain_Nash(algorithm='enumeration')
-        [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (1/3, 2/3)]]
-
-    A good description of degenerate games can be found in [NN2007]_.
-
     Here is a game being constructed using gambit syntax (note that a
     ``NormalFormGame`` object acts like a dictionary with strategy tuples as
-    keys and payoffs as their values) ::
+    keys and payoffs as their values): ::
 
         sage: f = NormalFormGame()
         sage: f.add_player(2)
@@ -297,11 +271,33 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: f
         {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
 
+    Once this game is constructed we can view the payoff matrices and solve the game: ::
+
+        sage: f.payoff_matrices()
+        (
+        [1 2]  [3 3]
+        [3 4], [1 4]
+        )
+        sage: f.obtain_Nash(algorithm='enumeration')
+        [[(0, 1), (0, 1)]]
+
     We can add an extra strategy to the first player. ::
 
         sage: f.add_strategy(0)
         sage: f
         {(0, 1): [2, 3], (0, 0): [1, 3], (2, 1): [False, False], (2, 0): [False, False], (1, 0): [3, 1], (1, 1): [4, 4]}
+
+    If we do this and try and obtain the Nash equilibrium or view the payoff
+    matrices(without specifying the utilities), an error is returned: ::
+
+        sage: f.obtain_Nash()
+        Traceback (most recent call last):
+        ...
+        ValueError: utilities have not been populated
+        sage: f.payoff_matrices()
+        Traceback (most recent call last):
+        ...
+        ValueError: utilities have not been populated
 
     We can use the same syntax as above to create games with more than 2 players ::
 
@@ -343,6 +339,32 @@ class NormalFormGame(SageObject, MutableMapping):
         Traceback (most recent call last):
         ...
         NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms
+
+    As mentioned above the preferred engine for the equilibrium analysis is
+    gambit. Gambit has it's own Python api which can be used independently from
+    Sage and to ensure compatibility between the two system, gambit like syntax
+    is compatible.
+
+    If neither ``LCP`` or ``lrs`` is installed then the ``enumeration`` algorithm
+    can be used (as shown previously), however only a basic implementation is
+    available and this approach is not recommended for large games.
+
+    Importantly this algorithm is known to fail in the case of a degenerate
+    game. In fact degenerate games can cause problems for most algorithms ::
+
+        sage: A = matrix([[3,3],[2,5],[0,6]])
+        sage: B = matrix([[3,3],[2,6],[3,1]])
+        sage: degenerate_game = NormalFormGame([A,B])
+        sage: degenerate_game.obtain_Nash(algorithm='LCP')
+        [[(1.0, 0.0, 0.0), (1.0, 0.0)],
+         [(1.0, -0.0, 0.0), (0.6666666667, 0.3333333333)],
+         [(0.0, 0.3333333333, 0.6666666667), (0.3333333333, 0.6666666667)]]
+        sage: degenerate_game.obtain_Nash(algorithm='lrs')
+        [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (2/3, 1/3)]]
+        sage: degenerate_game.obtain_Nash(algorithm='enumeration')
+        [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (1/3, 2/3)]]
+
+    A good description of degenerate games can be found in [NN2007]_.
 
     A basic 2-player game constructed from matrices. ::
 
@@ -443,6 +465,11 @@ class NormalFormGame(SageObject, MutableMapping):
        *A revised implementation of the reverse search vertex enumeration algorithm.*
        Polytopes-combinatorics and computation
        Birkhauser Basel, 2000.
+
+    .. [MMAT2014] McKelvey, Richard D., McLennan, Andrew M., and Turocy, Theodore L.
+       *Gambit: Software Tools for Game Theory, Version 13.1.2.*
+       http://www.gambit-project.org (2014).
+
 
     """
 
@@ -765,7 +792,7 @@ class NormalFormGame(SageObject, MutableMapping):
                                       "available algorithms")
 
         if not self._is_complete():
-            raise ValueError("utilities hasn't been populated")
+            raise ValueError("utilities have not been populated")
 
         if not algorithm:
             if is_package_installed('gambit'):

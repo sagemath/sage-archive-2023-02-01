@@ -303,9 +303,12 @@ class LFunctionZeroSum_abstract(SageObject):
             err = (b+1)*exp(-b)/a**2
 
         y = F(0)
-        for n in prime_powers(2,num_terms+1):
-            cn = self.cn(n)
-            y += cn/F(n)**z
+        n = ZZ(2)
+        while n <= num_terms:
+            if n.is_prime_power():
+                cn = self.cn(n)
+                y += cn/F(n)**z
+            n += 1
 
         return (y,err)
 
@@ -407,7 +410,7 @@ class LFunctionZeroSum_abstract(SageObject):
             over QQ given by its global minimal model, otherwise the returned
             result will be incorrect.
           - ``cauchy`` -- f(x) = \frac{1}{1+x^2}; this is only computable to
-            low precion, and only when Delta < 2.
+            low precision, and only when Delta < 2.
 
         .. WARNING::
 
@@ -598,7 +601,7 @@ class LFunctionZeroSum_abstract(SageObject):
         # exceeds the max amount we could have left out.
         return RDF(u+w+y+0.1)/Deltasqrtpi
 
-    def _zerosum_cauchy(self,Delta=1):
+    def _zerosum_cauchy(self,Delta=1,num_terms=None):
         r"""
         Bound from above the analytic rank of the form attached to self
         by computing
@@ -615,6 +618,12 @@ class LFunctionZeroSum_abstract(SageObject):
         - ``Delta`` -- positive real number (default: 1) parameter defining the
           tightness of the zero sum, and thus the closeness of the returned
           estimate to the actual analytic rank of the form attached to self.
+        - ``num_terms`` -- positive integer (default: None): the number of
+          terms computed in the truncated Dirichlet series for the L-function
+          attached to self. If left at None, this is set to
+          ceil(exp(2*\pi*\Delta)), the same number of terms used in the other
+          zero sum methods for this value of Delta.
+          Increase num_terms to get more accuracy.
 
         .. WARNING::
 
@@ -637,8 +646,43 @@ class LFunctionZeroSum_abstract(SageObject):
 
         EXAMPLES::
 
+            sage: E = EllipticCurve('11a')
+            sage: Z = LFunctionZeroSum(E)
+            sage: E = EllipticCurve('11a')
+            sage: Z._zerosum_cauchy(Delta=1)
+            0.970107398446
+
+        Because of the weak convergence of the Dirichlet series close to the
+        critical line, the bound will in general get *worse* for larger Delta.
+        This can be mitigated somewhat by increasing the number of terms.
+
+        ::
+
+            sage: Z._zerosum_cauchy(Delta=1.5)
+            12.9383525898
+            sage: Z._zerosum_cauchy(Delta=1.5,num_terms=100000)
+            10.3951839608
+
+        An error will be thrown if a Delta value >= 2 is passed:
+
+        ::
+            sage: Z._zerosum_cauchy(Delta=2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Bound not provably computable for Delta >= 2
         """
-        raise NotImplemedError("Method not yet implemented.")
+
+        if Delta >= 2:
+            raise ValueError("Bound not provably computable for Delta >= 2")
+        Del = RDF(Delta)
+
+        R1 = RDF(1)
+        s = R1/Del+R1
+        if num_terms is None:
+            num_terms = int(exp(2*self._pi*Del))
+        u,err = self.completed_logarithmic_derivative(s,num_terms)
+        return (u+err)/Del
+
 
 class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
     """

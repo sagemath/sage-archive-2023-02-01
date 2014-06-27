@@ -253,35 +253,9 @@ class NormalFormGame(SageObject, MutableMapping):
         2. ``lrs``
         3. ``enumeration``
 
-    As mentioned above the preferred engine for the equilibrium analysis is
-    gambit. Gambit has it's own Python api which can be used independently from
-    Sage and to ensure compatibility between the two system, gambit like syntax
-    is compatible.
-
-    If neither ``LCP`` or ``lrs`` is installed then the ``enumeration`` algorithm
-    can be used (as shown previously), however only a basic implementation is
-    available and this approach is not recommended for large games.
-
-    Importantly this algorithm is known to fail in the case of a degenerate
-    game. In fact degenerate games can cause problems for most algorithms ::
-
-        sage: A = matrix([[3,3],[2,5],[0,6]])
-        sage: B = matrix([[3,3],[2,6],[3,1]])
-        sage: degenerate_game = NormalFormGame([A,B])
-        sage: degenerate_game.obtain_Nash(algorithm='LCP')
-        [[(1.0, 0.0, 0.0), (1.0, 0.0)],
-         [(1.0, -0.0, 0.0), (0.6666666667, 0.3333333333)],
-         [(0.0, 0.3333333333, 0.6666666667), (0.3333333333, 0.6666666667)]]
-        sage: degenerate_game.obtain_Nash(algorithm='lrs')
-        [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (2/3, 1/3)]]
-        sage: degenerate_game.obtain_Nash(algorithm='enumeration')
-        [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (1/3, 2/3)]]
-
-    A good description of degenerate games can be found in [NN2007]_.
-
     Here is a game being constructed using gambit syntax (note that a
     ``NormalFormGame`` object acts like a dictionary with strategy tuples as
-    keys and payoffs as their values) ::
+    keys and payoffs as their values): ::
 
         sage: f = NormalFormGame()
         sage: f.add_player(2)
@@ -343,6 +317,32 @@ class NormalFormGame(SageObject, MutableMapping):
         Traceback (most recent call last):
         ...
         NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms
+
+    As mentioned above the preferred engine for the equilibrium analysis is
+    gambit. Gambit has it's own Python api which can be used independently from
+    Sage and to ensure compatibility between the two system, gambit like syntax
+    is compatible.
+
+    If neither ``LCP`` or ``lrs`` is installed then the ``enumeration`` algorithm
+    can be used (as shown previously), however only a basic implementation is
+    available and this approach is not recommended for large games.
+
+    Importantly this algorithm is known to fail in the case of a degenerate
+    game. In fact degenerate games can cause problems for most algorithms ::
+
+        sage: A = matrix([[3,3],[2,5],[0,6]])
+        sage: B = matrix([[3,3],[2,6],[3,1]])
+        sage: degenerate_game = NormalFormGame([A,B])
+        sage: degenerate_game.obtain_Nash(algorithm='LCP')
+        [[(1.0, 0.0, 0.0), (1.0, 0.0)],
+         [(1.0, -0.0, 0.0), (0.6666666667, 0.3333333333)],
+         [(0.0, 0.3333333333, 0.6666666667), (0.3333333333, 0.6666666667)]]
+        sage: degenerate_game.obtain_Nash(algorithm='lrs')
+        [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (2/3, 1/3)]]
+        sage: degenerate_game.obtain_Nash(algorithm='enumeration')
+        [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (1/3, 2/3)]]
+
+    A good description of degenerate games can be found in [NN2007]_.
 
     A basic 2-player game constructed from matrices. ::
 

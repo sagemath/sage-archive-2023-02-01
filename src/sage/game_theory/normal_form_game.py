@@ -372,6 +372,22 @@ class NormalFormGame(SageObject, MutableMapping):
     further compatibility between Sage and gambit is actively being developed:
     https://github.com/tturocy/gambit/tree/sage_integration.
 
+    It is also possible to generate a Normal Form Game from a gambit Game:
+
+        sage: from gambit import Game
+        sage: gambitgame= Game.new_table([2, 2])
+        sage: gambitgame[int(0), int(0)][int(0)] = int(8)
+        sage: gambitgame[int(0), int(0)][int(1)] = int(8)
+        sage: gambitgame[int(0), int(1)][int(0)] = int(2)
+        sage: gambitgame[int(0), int(1)][int(1)] = int(10)
+        sage: gambitgame[int(1), int(0)][int(0)] = int(10)
+        sage: gambitgame[int(1), int(0)][int(1)] = int(2)
+        sage: gambitgame[int(1), int(1)][int(0)] = int(5)
+        sage: gambitgame[int(1), int(1)][int(1)] = int(5)
+        sage: g = NormalFormGame(gambitgame)
+        sage: g
+        {(0, 1): [2.0, 10.0], (1, 0): [10.0, 2.0], (0, 0): [8.0, 8.0], (1, 1): [5.0, 5.0]}
+
     As mentioned above the preferred engine for the equilibrium analysis is
     ``LCP`` which requires gambit. If neither ``LCP`` or ``lrs`` is available
     then the ``enumeration`` algorithm can be used (as shown previously),

@@ -271,6 +271,16 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: f
         {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
 
+    Once this game is constructed we can view the payoff matrices and solve the game: ::
+
+        sage: f.payoff_matrices()
+        (
+        [1 2]  [3 3]
+        [3 4], [1 4]
+        )
+        sage: f.obtain_Nash(algorithm='enumeration')
+        [[(0, 1), (0, 1)]]
+
     We can add an extra strategy to the first player. ::
 
         sage: f.add_strategy(0)

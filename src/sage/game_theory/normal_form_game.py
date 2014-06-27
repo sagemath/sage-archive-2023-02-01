@@ -216,6 +216,28 @@ class NormalFormGame(SageObject, MutableMapping):
         [-1  1], [ 1 -1]
         )
 
+    One can also input a single matrix and then a zero sum game is constructed.
+    Here is an instance of Rock-Paper-Scissors-Lizard-Spock: ::
+
+        sage: A = matrix([[0, -1, 1, 1, -1],
+        ....:             [1, 0, -1, -1, 1],
+        ....:             [-1, 1, 0, 1 , -1],
+        ....:             [-1, 1, -1, 0, 1],
+        ....:             [1, -1, 1, -1, 0]])
+        sage: g = NormalFormGame([A])
+        sage: g.obtain_Nash(algorithm='enumeration')
+        [[(1/5, 1/5, 1/5, 1/5, 1/5), (1/5, 1/5, 1/5, 1/5, 1/5)]]
+
+    We can also study games where players aim to minimize their utility.
+    Here is the Prisoner's Dilemma (where players are aiming to reduce
+    time spent in prison): ::
+
+        sage: A = matrix([[2, 5], [0, 4]])
+        sage: B = matrix([[2, 0], [5, 4]])
+        sage: prisoners_dilemma = NormalFormGame([A, B])
+        sage: prisoners_dilemma.obtain_Nash(algorithm='enumeration', maximization=False)
+        [[(0, 1), (0, 1)]]
+
     When obtaining Nash equilibrium there are 3 algorithms currently available:
 
     * ``LCP``: Linear complementarity program algorithm for 2 player games.
@@ -249,9 +271,13 @@ class NormalFormGame(SageObject, MutableMapping):
     selected according to the following order (if the corresponding package is
     installed):
 
-        1. ``LCP``
-        2. ``lrs``
+        1. ``LCP`` (requires gambit)
+        2. ``lrs`` (requires lrs)
         3. ``enumeration``
+
+    Gambit has it's own Python api which can be used independently from
+    Sage and to ensure compatibility between the two systems, gambit like
+    syntax is compatible.
 
     Here is a game being constructed using gambit syntax (note that a
     ``NormalFormGame`` object acts like a dictionary with strategy tuples as
@@ -333,21 +359,22 @@ class NormalFormGame(SageObject, MutableMapping):
         {(0, 1, 1): [3, 5, 8], (1, 1, 0): [8, 4, 6], (1, 0, 0): [9, 7, 9], (0, 0, 1): [1, 5, 9], (1, 0, 1): [3, 2, 3], (0, 0, 0): [3, 1, 4], (0, 1, 0): [2, 6, 5], (1, 1, 1): [2, 6, 4]}
 
     At present no algorithm has been implemented in Sage for games with
-    more than 2 players ::
+    more than 2 players. ::
 
         sage: threegame.obtain_Nash()
         Traceback (most recent call last):
         ...
         NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms
 
-    As mentioned above the preferred engine for the equilibrium analysis is
-    gambit. Gambit has it's own Python api which can be used independently from
-    Sage and to ensure compatibility between the two system, gambit like syntax
-    is compatible.
+    There are however a variety of such algorithms available in gambit,
+    further compatibility between Sage and gambit is actively being developed:
+    https://github.com/tturocy/gambit/tree/sage_integration.
 
-    If neither ``LCP`` or ``lrs`` is installed then the ``enumeration`` algorithm
-    can be used (as shown previously), however only a basic implementation is
-    available and this approach is not recommended for large games.
+    As mentioned above the preferred engine for the equilibrium analysis is
+    ``LCP`` which requires gambit. If neither ``LCP`` or ``lrs`` is available
+    then the ``enumeration`` algorithm can be used (as shown previously),
+    however only a basic implementation is available and this approach is not
+    recommended for large games.
 
     Importantly this algorithm is known to fail in the case of a degenerate
     game. In fact degenerate games can cause problems for most algorithms ::
@@ -404,18 +431,6 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: g=NormalFormGame([A, B])
         sage: g.obtain_Nash() # optional - gambit
         [[(0.0, 0.0, 0.75, 0.25), (0.0357142857, 0.9642857143, 0.0)]]
-
-    One can also input a single matrix and then a zero sum game is constructed.
-    Here is an instance of Rock-Paper-Scissors-Lizard-Spock ::
-
-        sage: A = matrix([[0, -1, 1, 1, -1],
-        ....:             [1, 0, -1, -1, 1],
-        ....:             [-1, 1, 0, 1 , -1],
-        ....:             [-1, 1, -1, 0, 1],
-        ....:             [1, -1, 1, -1, 0]])
-        sage: g = NormalFormGame([A])
-        sage: g.obtain_Nash() # optional - gambit
-        [[(0.2, 0.2, 0.2, 0.2, 0.2), (0.2, 0.2, 0.2, 0.2, 0.2)]]
 
     Here is a slightly longer game.
     Consider the following:

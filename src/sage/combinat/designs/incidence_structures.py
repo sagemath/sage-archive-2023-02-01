@@ -537,127 +537,24 @@ class IncidenceStructure(object):
     # real computations #
     #####################
 
-    def _t_design_parameters(self, t=None):
-        r"""
-        Return a 4-tuple `(t,v,k,l)` such that the design is a `t-(v,k,l)`
-        design with `t` maximum. If `t` is provided, then only check for
-        `t`-design. If ``self`` is not a `t`-design return ``None``.
-
-        EXAMPLES::
-
-        Many affine geometry design are examples of `t`-designs::
-
-            sage: A = designs.AffineGeometryDesign(3, 1, GF(2))
-            sage: A._t_design_parameters()
-            (2, 8, 2, 1)
-            sage: A = designs.AffineGeometryDesign(4, 2, GF(2))
-            sage: A._t_design_parameters()
-            (3, 16, 4, 1)
-
-        Bad cases::
-
-            sage: I = designs.IncidenceStructure(2, [])
-            sage: I._t_design_parameters() is None
-            True
-
-            sage: I = designs.IncidenceStructure(2, [[0],[0,1]])
-            sage: I._t_design_parameters() is None
-            True
-        """
-        from sage.rings.arith import binomial
-
-        v = self.num_points()
-        b = self.num_blocks()
-
-        if v == 0 or b == 0:
-            return None
-
-        k = len(self._blocks[0])
-        if any(len(block) != k for block in self._blocks):
-            return None
-
-        if t is not None and t > k:
-            return None
-        if k == v:
-            # this is the design (X, {X,X,X,...})
-            if t is None:
-                return (v,v,v,b)
-            else:
-                return (t,v,v,b)
-
-        # here we have at least a 0-design
-        if t == 0:
-            return (0,v,k,b)
-        elif k == 0:
-            # this is the design (X, {{},{},...})
-            if t is None:
-                return (0,v,0,b)
-            else:
-                return None
-
-        s = {}
-        for block in self._blocks:
-            for i in block:
-                s[i] = s.get(i,0) + 1
-        K = set(s.values())
-        if len(K) != 1:
-            if t is None or t == 0:
-                return (0,v,k,b)
-            else:
-                return None
-        l = K.pop()
-
-        # here we have at least a 1-design
-
-        if t == 1:
-            return (1,v,k,l)
-        if k == 1:
-            if t is None or t == 1:
-                return (1,v,1,l)
-            else:
-                return None
-
-        # Handbook of combinatorial design theorem II.4.8: a t-(v,k,lambda) is
-        # also a s-(v,k,lambda_s) design with:
-        # lambda_s = lambda binomial(v-s,t-s) / binomial(k-s,t-s)
-        # so we check for increasing values of t whether we have a t-design
-        from itertools import combinations
-        for tt in (range(2,k+1) if t is None else [t]):
-            # is lambda an integer?
-            if (b*binomial(k,tt)) % binomial(v,tt) != 0:
-                tt -= 1
-                break
-
-            ll = b*binomial(k,tt) // binomial(v,tt)
-            s = {}
-            for block in self._blocks:
-                for i in combinations(block,tt):
-                    s[i] = s.get(i,0) + 1
-            K = set(s.values())
-            if len(K) != 1:
-                tt -= 1
-                break
-            l = ll
-
-        if t is not None and tt != t:
-            return None
-        return (tt,v,k,l)
-
     def is_t_design(self, t=None, v=None, k=None, l=None, return_parameters=False):
-        """
-        Test whether ``self`` is a ``t-(v,k,l)` design.
+        """Test whether ``self`` is a ``t-(v,k,l)` design.
 
         A `t-(v,k,\lambda)` (sometimes called `t`-design for short) is a block
         design in which:
+
         - the underlying set has cardinality `v`
         - the blocks have size `k`
         - each `t`-subset of points is covered by `\lambda` blocks
 
         INPUT:
 
-        - ``t``, ``v``, ``k``, ``l`` -- optional parameters
+        - ``t,v,k,l`` (integers) -- their value is set to ``None`` by
+          default. The function tests whether the design is a ``t-(v,k,l)``
+          design using the provided values. Note that `l`` cannot be specified
+          if ``t`` is not
 
-        - ``return_parameters`` -- whether to return the parameters of the
+        - ``return_parameters`` (boolean)-- whether to return the parameters of the
           `t`-design
 
         EXAMPLES::
@@ -747,26 +644,94 @@ class IncidenceStructure(object):
             [(8, 4, 7)]
             sage: [(v,k,l) for v in R for k in R for l in R if S4_8.is_t_design(0,v,k,l)]
             [(8, 4, 14)]
+            sage: A = designs.AffineGeometryDesign(3, 1, GF(2))
+            sage: A.is_t_design(return_parameters=True)
+            (True, (2, 8, 2, 1))
+            sage: A = designs.AffineGeometryDesign(4, 2, GF(2))
+            sage: A.is_t_design(return_parameters=True)
+            (True, (3, 16, 4, 1))
+            sage: I = designs.IncidenceStructure(2, [])
+            sage: I.is_t_design(return_parameters=True)
+            (True, (0, 2, 0, 0))
+            sage: I = designs.IncidenceStructure(2, [[0],[0,1]])
+            sage: I.is_t_design(return_parameters=True)
+            (False, (0, 0, 0, 0))
+
+
         """
-        res = self._t_design_parameters(t=t)
-        if res is None:
-            if return_parameters:
-                return False, (None,)*4
-            else:
-                return False
+        from sage.rings.arith import binomial
 
-        tt,vv,kk,ll = res
+        # Missing parameters ?
+        if v is None:
+            v = self.num_points()
 
-        if ((v is None or v == vv) and (k is None or k == kk) and (l is None or l == ll)):
-            if return_parameters:
-                return True, (tt,vv,kk,ll)
+        if k is None:
+            k = len(self._blocks[0]) if self._blocks else 0
+
+        if l is not None and t is None:
+            raise ValueError("t must be set when l=None")
+
+        b = self.num_blocks()
+
+        # Trivial wrong answers
+        if (any(len(block) != k for block in self._blocks) or # non k-uniform
+            v != self.num_points()):
+            return (False, (0,0,0,0)) if return_parameters else False
+
+        # Trivial case t>k
+        if (t is not None and t>k):
+            if (l is None or l == 0):
+                return (True, (t,v,k,0)) if return_parameters else True
             else:
-                return True
+                return (False, (0,0,0,0)) if return_parameters else False
+
+        # Trivial case k=0
+        if k==0:
+            if (l is None or l == 0):
+                return (True, (0,v,k,b)) if return_parameters else True
+            else:
+                return (False, (0,0,0,0)) if return_parameters else False
+
+        # Trivial case k=v (includes v=0)
+        if k == v:
+            if t is None:
+                t = v
+            if l is None or b == l:
+                return (True, (t,v,k,b)) if return_parameters else True
+            else:
+                return (True, (0,0,0,0)) if return_parameters else False
+
+        # Handbook of combinatorial design theorem II.4.8:
+        #
+        # a t-(v,k,l') is also a t'-(v,k,l')
+        # for t' < t and l' = l* binomial(v-t',t-t') / binomial(k-t',t-t')
+        #
+        # We look for the largest t such that self is a t-design
+        from itertools import combinations
+        for tt in (range(1,k+1) if t is None else [t]):
+            # is lambda an integer?
+            if (b*binomial(k,tt)) % binomial(v,tt) != 0:
+                tt -= 1
+                break
+
+            s = {}
+            for block in self._blocks:
+                for i in combinations(block,tt):
+                    s[i] = s.get(i,0) + 1
+
+            if len(set(s.values())) != 1:
+                tt -= 1
+                break
+
+            ll = b*binomial(k,tt) // binomial(v,tt)
+
+        if ((t is not None and t!=tt) or
+            (l is not None and l!=ll)):
+            return (False, (0,0,0,0)) if return_parameters else False
         else:
-            if return_parameters:
-                return False, (None,)*4
-            else:
-                return False
+            if tt == 0:
+                ll = b
+            return (True, (tt,v,k,ll)) if return_parameters else True
 
     def dual(self, algorithm=None):
         """

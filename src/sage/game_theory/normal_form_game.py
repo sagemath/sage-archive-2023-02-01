@@ -219,8 +219,8 @@ class NormalFormGame(SageObject, MutableMapping):
     When obtaining Nash equilibrium there are 3 algorithms currently available:
 
     * ``LCP``: Linear complementarity program algorithm for 2 player games.
-      This algorithm uses the excellent game theory package:
-      [gambit](http://gambit.sourceforge.net/). At present this is the only
+      This algorithm uses the excellent open source game theory package:
+      `Gambit <http://gambit.sourceforge.net/>`_ [MMAT2014]_. At present this is the only
       gambit algorithm available in sage but further development will hope to
       implement more algorithms
       (in particular for games with more than 2 players). Gambit is not
@@ -443,6 +443,11 @@ class NormalFormGame(SageObject, MutableMapping):
        *A revised implementation of the reverse search vertex enumeration algorithm.*
        Polytopes-combinatorics and computation
        Birkhauser Basel, 2000.
+
+    .. [MMAT2014] McKelvey, Richard D., McLennan, Andrew M., and Turocy, Theodore L.
+       *Gambit: Software Tools for Game Theory, Version 13.1.2.*
+       http://www.gambit-project.org (2014).
+
 
     """
 

@@ -7,8 +7,8 @@ class MatchingGame(SageObject):
     def __init__(self, num_pairs=0):
         r"""
         """
-        self.suitors = {}
-        self.reviewers = {}
+        self.suitors = []
+        self.reviewers = []
         for i in range(num_pairs):
             self.add_suitor()
             self.add_reviewer()
@@ -30,17 +30,17 @@ class MatchingGame(SageObject):
         if name is False:
             name = len(self.suitors)
         new_suitor = _Player(name, 'suitor', len(self.reviewers))
-        self.suitors[new_suitor] = new_suitor.pref
+        self.suitors.append(new_suitor)
         for r in self.reviewers:
-            self.reviewers[r] = [-1 for s in self.suitors]
+            r.pref = [-1 for s in self.suitors]
 
     def add_reviewer(self, name=False):
         if name is False:
             name = len(self.reviewers)
         new_reviewer = _Player(name, 'reviewer', len(self.suitors))
-        self.reviewers[new_reviewer] = new_reviewer.pref
+        self.reviewers.append(new_reviewer)
         for s in self.suitors:
-            self.suitors[s] = [-1 for r in self.reviewers]
+            s.pref = [-1 for r in self.reviewers]
 
 
 class _Player():

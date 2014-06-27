@@ -113,6 +113,21 @@ class FunctionField(Field):
         sage: isinstance(K, sage.rings.function_field.function_field.FunctionField)
         True
     """
+    def is_perfect(self):
+        r"""
+        Return whether this field is perfect, i.e., its characteristic is `p=0`
+        or every element has a `p`-th root.
+
+        EXAMPLES::
+
+            sage: FunctionField(QQ, 'x').is_perfect()
+            True
+            sage: FunctionField(GF(2), 'x').is_perfect()
+            False
+
+        """
+        return self.characteristic() == 0
+
     def some_elements(self):
          """
          Return a list of elements in the function field.

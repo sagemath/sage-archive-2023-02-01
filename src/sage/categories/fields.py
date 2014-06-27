@@ -6,7 +6,7 @@ Fields
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
-#                2012      Julian Rueth <julian.rueth@fsfe.org>
+#                2012-2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -182,7 +182,6 @@ class Fields(CategoryWithAxiom):
 
         def is_integrally_closed(self):
             r"""
-
             Return ``True``, as per :meth:`IntegralDomain.is_integrally_closed`:
             for every field `F`, `F` is its own field of fractions,
             hence every element of `F` is integral over `F`.
@@ -199,6 +198,25 @@ class Fields(CategoryWithAxiom):
                 True
             """
             return True
+
+        def is_perfect(self):
+            r"""
+            Return whether this field is perfect, i.e., its characteristic is
+            `p=0` or every element has a `p`-th root.
+
+            EXAMPLES::
+
+                sage: QQ.is_perfect()
+                True
+                sage: GF(2).is_perfect()
+                True
+                sage: FunctionField(GF(2), 'x').is_perfect()
+                False
+
+            """
+            if self.characteristic() == 0:
+                return True
+            else: raise NotImplementedError
 
         def _test_characteristic_fields(self, **options):
             """

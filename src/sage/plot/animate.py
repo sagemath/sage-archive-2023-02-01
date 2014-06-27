@@ -2,11 +2,18 @@ r"""
 Animated plots
 
 Animations are generated from a list (or other iterable) of graphics
-objects.  Images are produced by calling the ``save_image`` method on
-each input object, and using ImageMagick's ``convert`` program [IM] or
-``ffmpeg`` [FF] to generate an animation.  The output format is GIF by
-default, but can be any of the formats supported by ``convert`` or
-``ffmpeg``.
+objects.
+Images are produced by calling the ``save_image`` method on each input
+object, creating a sequence of PNG files.
+These are then assembled to various target formats using different
+tools.
+In particular, the ``convert`` program from ImageMagick_ can be used to
+generate an animated GIF file.
+FFmpeg_ (with the command line program ``ffmpeg``) provides support for
+various video formats, but also an alternative method of generating
+animated GIFs.
+For `browsers which support it`_, APNG_ can be used as another
+alternative which works without any extra dependencies.
 
 .. Warning::
 
@@ -15,7 +22,8 @@ default, but can be any of the formats supported by ``convert`` or
     convert`` at a command prompt to see if ``convert`` (part of the
     ImageMagick suite) is installed.  If it is, you will be given its
     location.  Similarly, you can check for ``ffmpeg`` with ``which
-    ffmpeg``.  See [IM] or [FF] for installation instructions.
+    ffmpeg``.  See the websites of ImageMagick_ or FFmpeg_ for
+    installation instructions.
 
 EXAMPLES:
 
@@ -27,10 +35,14 @@ The sine function::
     Animation with 5 frames
     sage: a.show()  # optional -- ImageMagick
 
-Animate using ffmpeg instead of ImageMagick::
+Animate using FFmpeg_ instead of ImageMagick::
 
     sage: f = tmp_filename(ext='.gif')
-    sage: a.save(filename=f,use_ffmpeg=True) # optional -- ffmpeg
+    sage: a.save(filename=f, use_ffmpeg=True) # optional -- ffmpeg
+
+Animate as an APNG_::
+
+    sage: a.apng()  # long time
 
 An animated :class:`sage.plot.graphics.GraphicsArray` of rotating ellipses::
 
@@ -82,12 +94,14 @@ AUTHORS:
 - William Stein
 - John Palmieri
 - Niles Johnson (2013-12): Expand to animate more graphics objects
+- Martin von Gagern
 
-REFERENCES:
+.. REFERENCES (not rendered as a section, but linked inline):
 
-.. [IM] http://www.imagemagick.org
-
-.. [FF]  http://www.ffmpeg.org
+.. _ImageMagick: http://www.imagemagick.org
+.. _FFmpeg: http://www.ffmpeg.org
+.. _APNG: https://wiki.mozilla.org/APNG_Specification
+.. _`browsers which support it`: http://caniuse.com/#feat=apng
 
 """
 
@@ -98,6 +112,8 @@ REFERENCES:
 ############################################################################
 
 import os
+import struct
+import zlib
 
 from sage.structure.sage_object import SageObject
 from sage.misc.temporary_file import tmp_dir, graphics_filename
@@ -503,9 +519,8 @@ class Animation(SageObject):
 
         This method will only work if either (a) the ImageMagick
         software suite is installed, i.e., you have the ``convert``
-        command or (b) ``ffmpeg`` is installed.  See
-        [IM] for more about ImageMagick, and see
-        [FF] for more about ``ffmpeg``.  By default, this
+        command or (b) ``ffmpeg`` is installed.  See the web sites of
+        ImageMagick_ and FFmpeg_ for more details.  By default, this
         produces the gif using ``convert`` if it is present.  If this
         can't find ``convert`` or if ``use_ffmpeg`` is True, then it
         uses ``ffmpeg`` instead.
@@ -552,6 +567,11 @@ class Animation(SageObject):
               packages, so please install one of them and try again.
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
+
+        .. REFERENCES (not rendered as a section, but linked inline):
+
+        .. _ImageMagick: http://www.imagemagick.org
+        .. _FFmpeg: http://www.ffmpeg.org
         """
         from sage.misc.sage_ostools import have_program
         have_convert = have_program('convert')
@@ -816,6 +836,64 @@ please install it and try again."""
                 print "Error running ffmpeg."
                 raise
 
+    def apng(self, savefile=None, show_path=False, delay=20, iterations=0):
+        r"""
+        Creates an animated PNG composed from rendering the graphics
+        objects in self. Return the absolute path to that file.
+
+        Notice that not all web browsers are capable of displaying APNG
+        files, though they should still present the first frame of the
+        animation as a fallback.
+
+        The generated file is not optimized, so it may be quite large.
+
+        Input:
+
+        -  ``delay`` - (default: 20) delay in hundredths of a
+           second between frames
+
+        -  ``savefile`` - file that the animated gif gets saved
+           to
+
+        -  ``iterations`` - integer (default: 0); number of
+           iterations of animation. If 0, loop forever.
+
+        -  ``show_path`` - boolean (default: False); if True,
+           print the path to the saved file
+
+        EXAMPLES::
+
+            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
+            ....:                xmin=0, xmax=2*pi, figsize=[2,1])
+            sage: dir = tmp_dir()
+            sage: a.apng()  # long time
+            sage: a.apng(savefile=dir + 'my_animation.png', delay=35, iterations=3)  # long time
+            sage: a.apng(savefile=dir + 'my_animation.png', show_path=True)  # long time
+            Animation saved to .../my_animation.png.
+
+        If the individual frames have different sizes, an error will be raised::
+
+            sage: a = animate([plot(sin(x), (x, 0, k)) for k in range(1,4)],
+            ....:             ymin=-1, ymax=1, aspect_ratio=1, figsize=[2,1])
+            sage: a.apng()  # long time
+            Traceback (most recent call last):
+            ...
+            ValueError: Chunk IHDR mismatch
+
+        """
+        pngdir = self.png()
+        if savefile is None:
+            savefile = graphics_filename('.png')
+        with open(savefile, "wb") as out:
+            apng = APngAssembler(
+                out, len(self),
+                delay=delay, num_plays=iterations)
+            for i in range(len(self)):
+                png = os.path.join(pngdir, "%08d.png" % i)
+                apng.add_frame(png)
+        if show_path:
+            print "Animation saved to file %s." % savefile
+
     def save(self, filename=None, show_path=False, use_ffmpeg=False):
         """
         Save this animation.
@@ -876,3 +954,325 @@ please install it and try again."""
         else:
             self.ffmpeg(savefile=filename, show_path=show_path)
             return
+
+
+class APngAssembler(object):
+    """
+    Builds an APNG_ (Animated PNG) from a sequence of PNG files.
+    This is used by the :meth:`sage.plot.animate.Animation.apng` method.
+
+    This code is quite simple; it does little more than copying chunks
+    from input PNG files to the output file. There is no optimization
+    involved. This does not depend on external programs or libraries.
+
+    INPUT:
+
+        - ``out`` -- a file opened for binary writing to which the data
+          will be written
+
+        - ``num_frames`` -- the number of frames in the animation
+
+        - ``num_plays`` -- how often to iterate, 0 means infinitely
+
+        - ``delay`` -- numerator of the delay fraction in seconds
+
+        - ``delay_denominator`` -- denominator of the delay in seconds
+
+    EXAMPLES::
+
+        sage: from sage.plot.animate import APngAssembler
+        sage: def assembleAPNG():
+        ....:     a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
+        ....:                 xmin=0, xmax=2*pi, figsize=[2,1])
+        ....:     pngdir = a.png()
+        ....:     outfile = sage.misc.temporary_file.tmp_filename(ext='.png')
+        ....:     with open(outfile, "wb") as f:
+        ....:         apng = APngAssembler(f, len(a))
+        ....:         for i in range(len(a)):
+        ....:             png = os.path.join(pngdir, "{:08d}.png".format(i))
+        ....:             apng.add_frame(png, delay=10*i + 10)
+        ....:     return outfile
+        ....:
+        sage: assembleAPNG()  # long time
+        '...png'
+
+    .. REFERENCES:
+
+    .. _APNG: https://wiki.mozilla.org/APNG_Specification
+    """
+
+    magic = b"\x89PNG\x0d\x0a\x1a\x0a"
+    mustmatch = frozenset([b"IHDR", b"PLTE", b"bKGD", b"cHRM", b"gAMA",
+                           b"pHYs", b"sBIT", b"tRNS"])
+
+    def __init__(self, out, num_frames,
+                 num_plays=0, delay=200, delay_denominator=100):
+        """
+        Initialize for creation of an APNG file.
+        """
+        self._last_seqno = -1
+        self._idx = 0
+        self._first = True
+        self.out = out
+        self.num_frames = num_frames
+        self.num_plays = num_plays
+        self.default_delay_numerator = delay
+        self.default_delay_denominator = delay_denominator
+        self._matchref = dict()
+        self.out.write(self.magic)
+
+    def add_frame(self, pngfile, delay=None, delay_denominator=None):
+        r"""
+        Adds a single frame to the APNG file.
+
+        INPUT:
+
+        - ``pngfile`` -- file name of the PNG file with data for this frame
+
+        - ``delay`` -- numerator of the delay fraction in seconds
+
+        - ``delay_denominator`` -- denominator of the delay in seconds
+
+        If the delay is not specified, the default from the constructor
+        applies.
+
+        TESTS::
+
+            sage: from sage.plot.animate import APngAssembler
+            sage: from StringIO import StringIO
+            sage: def h2b(h):
+            ....:     b = []
+            ....:     while h:
+            ....:         if h[0] in ' \n': # ignore whitespace
+            ....:             h = h[1:]
+            ....:         elif h[0] in '0123456789abcdef': # hex byte
+            ....:             b.append(int(h[:2], 16))
+            ....:             h = h[2:]
+            ....:         elif h[0] == '.': # for chunk type
+            ....:             b.extend(ord(h[i]) for i in range(1,5))
+            ....:             h = h[5:]
+            ....:         else: # for PNG magic
+            ....:             b.append(ord(h[0]))
+            ....:             h = h[1:]
+            ....:     return ''.join(map(chr,b))
+            ....:
+            sage: fn = tmp_filename(ext='.png')
+            sage: buf = StringIO()
+            sage: apng = APngAssembler(buf, 2)
+            sage: with open(fn, 'wb') as f: f.write(h2b('89 PNG 0d0a1a0a'
+            ....: '0000000d.IHDR 00000003000000020800000000 b81f39c6'
+            ....: '00000004.gAMA 000186a0 31e8965f'
+            ....: '00000007.tIME 07de061b0b2624 1f307ad5'
+            ....: '00000008.IDAT 696d673164617461 ce8a4999'
+            ....: '00000000.IEND ae426082'))
+            sage: apng.add_frame(fn, delay=0x567, delay_denominator=0x1234)
+            sage: with open(fn, 'wb') as f: f.write(h2b('89 PNG 0d0a1a0a'
+            ....: '0000000d.IHDR 00000003000000020800000000 b81f39c6'
+            ....: '00000004.gAMA 000186a0 31e8965f'
+            ....: '00000004.IDAT 696d6732 0e69ab1d'
+            ....: '00000004.IDAT 64617461 6694cb78'
+            ....: '00000000.IEND ae426082'))
+            sage: apng.add_frame(fn)
+            sage: len(buf.getvalue())
+            217
+            sage: expected = h2b('89 PNG 0d0a1a0a'
+            ....: '0000000d.IHDR 00000003000000020800000000 b81f39c6'
+            ....: '00000004.gAMA 000186a0 31e8965f'
+            ....: '00000008.acTL 0000000200000000 f38d9370'
+            ....: '0000001a.fcTL 000000000000000300000002'
+            ....: '              0000000000000000056712340100 b4f729c9'
+            ....: '00000008.IDAT 696d673164617461 ce8a4999'
+            ....: '0000001a.fcTL 000000010000000300000002'
+            ....: '              000000000000000000c800640100 1b92eb4d'
+            ....: '00000008.fdAT 00000002696d6732 9cfb89a3'
+            ....: '00000008.fdAT 0000000364617461 c966c076'
+            ....: '00000000.IEND ae426082')
+            sage: buf.getvalue() == expected
+            True
+            sage: apng.add_frame(fn)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Already reached the declared number of frames
+
+        """
+        if self._idx == self.num_frames:
+            raise RuntimeError("Already reached the declared number of frames")
+        self.delay_numerator = self.default_delay_numerator
+        self.delay_denominator = self.default_delay_denominator
+        self._actl_written = False
+        self._fctl_written = False
+        if delay is not None:
+            self.delay_numerator = delay
+        if delay_denominator is not None:
+            self.delay_denominator = delay_denominator
+        self._add_png(pngfile)
+        self._idx += 1
+        if self._idx == self.num_frames:
+            self._chunk(b"IEND", b"")
+
+    def set_default(self, pngfile):
+        r"""
+        Adds a default image for the APNG file.
+
+        This image is used as a fallback in case some application does
+        not understand the APNG format.  This method must be called
+        prior to any calls to the ``add_frame`` method, if it is called
+        at all.  If it is not called, then the first frame of the
+        animation will be the default.
+
+        INPUT:
+
+        - ``pngfile`` -- file name of the PNG file with data
+          for the default image
+
+        TESTS::
+
+            sage: from sage.plot.animate import APngAssembler
+            sage: from StringIO import StringIO
+            sage: def h2b(h):
+            ....:     b = []
+            ....:     while h:
+            ....:         if h[0] in ' \n': # ignore whitespace
+            ....:             h = h[1:]
+            ....:         elif h[0] in '0123456789abcdef': # hex byte
+            ....:             b.append(int(h[:2], 16))
+            ....:             h = h[2:]
+            ....:         elif h[0] == '.': # for chunk type
+            ....:             b.extend(ord(h[i]) for i in range(1,5))
+            ....:             h = h[5:]
+            ....:         else: # for PNG magic
+            ....:             b.append(ord(h[0]))
+            ....:             h = h[1:]
+            ....:     return ''.join(map(chr,b))
+            ....:
+            sage: fn = tmp_filename(ext='.png')
+            sage: buf = StringIO()
+            sage: apng = APngAssembler(buf, 1)
+            sage: with open(fn, 'wb') as f: f.write(h2b('89 PNG 0d0a1a0a'
+            ....: '0000000d.IHDR 00000003000000020800000000 b81f39c6'
+            ....: '00000004.gAMA 000186a0 31e8965f'
+            ....: '00000007.tIME 07de061b0b2624 1f307ad5'
+            ....: '00000008.IDAT 696d673164617461 ce8a4999'
+            ....: '00000000.IEND ae426082'))
+            sage: apng.set_default(fn)
+            sage: with open(fn, 'wb') as f: f.write(h2b('89 PNG 0d0a1a0a'
+            ....: '0000000d.IHDR 00000003000000020800000000 b81f39c6'
+            ....: '00000004.gAMA 000186a0 31e8965f'
+            ....: '00000004.IDAT 696d6732 0e69ab1d'
+            ....: '00000004.IDAT 64617461 6694cb78'
+            ....: '00000000.IEND ae426082'))
+            sage: apng.add_frame(fn, delay=0x567, delay_denominator=0x1234)
+            sage: len(buf.getvalue())
+            179
+            sage: expected = h2b('89 PNG 0d0a1a0a'
+            ....: '0000000d.IHDR 00000003000000020800000000 b81f39c6'
+            ....: '00000004.gAMA 000186a0 31e8965f'
+            ....: '00000008.acTL 0000000100000000 b42de9a0'
+            ....: '00000008.IDAT 696d673164617461 ce8a4999'
+            ....: '0000001a.fcTL 000000000000000300000002'
+            ....: '              0000000000000000056712340100 b4f729c9'
+            ....: '00000008.fdAT 00000001696d6732 db5bf373'
+            ....: '00000008.fdAT 0000000264617461 f406e9c6'
+            ....: '00000000.IEND ae426082')
+            sage: buf.getvalue() == expected
+            True
+            sage: apng.add_frame(fn)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Already reached the declared number of frames
+            
+        """
+        if self._idx != 0:
+            raise RuntimeError("Default image must precede all animation frames")
+        self._actl_written = False
+        self._fctl_written = True
+        self._add_png(pngfile)
+
+    def _add_png(self, pngfile):
+        """Add data from one PNG still image."""
+        with open(pngfile, 'rb') as png:
+            if png.read(8) != self.magic:
+                raise ValueError("{} is not a PNG file".format(pngfile))
+            while True:
+                chead = png.read(8)
+                if len(chead) == 0:
+                    break
+                clen, ctype = struct.unpack(">L4s", chead)
+                cdata = png.read(clen)
+                ccrc = png.read(4)
+                utype = ctype.decode("ascii")
+                self._current_chunk = (chead[:4], ctype, cdata, ccrc)
+                if ctype in self.mustmatch:
+                    ref = self._matchref.get(ctype)
+                    if ref is None:
+                        self._matchref[ctype] = cdata
+                        self._copy()
+                    else:
+                        if cdata != ref:
+                            raise ValueError("Chunk {} mismatch".format(utype))
+                met = ("_first_" if self._first else "_next_") + utype
+                try:
+                    met = getattr(self, met)
+                except AttributeError:
+                    pass
+                else:
+                    met(cdata)
+        self._first = False
+
+    def _seqno(self):
+        """Generate next sequence number."""
+        self._last_seqno += 1
+        return struct.pack(">L", self._last_seqno)
+
+    def _first_IHDR(self, data):
+        """Remember image size."""
+        w, h, d, ctype, comp, filt, ilace = struct.unpack(">2L5B", data)
+        self.width = w
+        self.height = h
+
+    def _first_IDAT(self, data):
+        """Write acTL and fcTL, then copy as IDAT."""
+        self._actl()
+        self._fctl()
+        self._copy()
+
+    def _next_IDAT(self, data):
+        """write fcTL, then convert to fdAT."""
+        self._fctl()
+        maxlen = 0x7ffffffb
+        while len(data) > maxlen:
+            self._chunk(b"fdAT", self._seqno() + data[:maxlen])
+            data = data[maxlen:]
+        self._chunk(b"fdAT", self._seqno() + data)
+
+    def _copy(self):
+        """Copy an existing chunk without modification."""
+        for d in self._current_chunk:
+            self.out.write(d)
+
+    def _actl(self):
+        """Write animation control data (acTL)."""
+        if self._actl_written:
+            return
+        data = struct.pack(">2L", self.num_frames, self.num_plays)
+        self._chunk(b"acTL", data)
+        self._actl_written = True
+
+    def _fctl(self):
+        """Write frame control data (fcTL)."""
+        if self._fctl_written:
+            return
+        data = struct.pack(
+            ">4L2H2B",
+            self.width, self.height, 0, 0,
+            self.delay_numerator, self.delay_denominator,
+            1, 0)
+        self._chunk(b"fcTL", self._seqno() + data)
+        self._fctl_written = True
+
+    def _chunk(self, ctype, cdata):
+        """Write a new (or modified) chunk of data"""
+        ccrc = struct.pack(">L", zlib.crc32(ctype + cdata) & 0xffffffff)
+        clen = struct.pack(">L", len(cdata))
+        for d in [clen, ctype, cdata, ccrc]:
+            self.out.write(d)

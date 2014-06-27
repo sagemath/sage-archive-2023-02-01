@@ -239,47 +239,6 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: prisoners_dilemma.obtain_Nash(algorithm='enumeration', maximization=False)
         [[(0, 1), (0, 1)]]
 
-    Here are a couple of more examples.
-
-    A basic 2-player game constructed from matrices. ::
-
-        sage: A = matrix([[1, 2], [3, 4]])
-        sage: B = matrix([[3, 3], [1, 4]])
-        sage: C = NormalFormGame([A, B])
-        sage: C
-        {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
-
-    Here is an example of a 3 by 2 game ::
-
-        sage: A = matrix([[3,3],
-        ....:             [2,5],
-        ....:             [0,6]])
-        sage: B = matrix([[3,2],
-        ....:             [2,6],
-        ....:             [3,1]])
-        sage: g = NormalFormGame([A, B])
-
-    This particular game has 3 Nash equilibrium ::
-
-        sage: g.obtain_Nash() # optional - gambit
-        [[(1.0, 0.0, 0.0), (1.0, 0.0)],
-         [(0.8, 0.2, 0.0), (0.6666666667, 0.3333333333)],
-         [(0.0, 0.3333333333, 0.6666666667), (0.3333333333, 0.6666666667)]]
-
-    Here is a slightly larger game ::
-
-        sage: A = matrix([[160, 205, 44],
-        ....:             [175, 180, 45],
-        ....:             [201, 204, 50],
-        ....:             [120, 207, 49]])
-        sage: B = matrix([[2, 2, 2],
-        ....:             [1, 0, 0],
-        ....:             [3, 4, 1],
-        ....:             [4, 1, 2]])
-        sage: g=NormalFormGame([A, B])
-        sage: g.obtain_Nash() # optional - gambit
-        [[(0.0, 0.0, 0.75, 0.25), (0.0357142857, 0.9642857143, 0.0)]]
-
     When obtaining Nash equilibrium there are 3 algorithms currently available:
 
     * ``LCP``: Linear complementarity program algorithm for 2 player games.
@@ -807,6 +766,20 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.obtain_Nash(maximization=False) # optional - gambit
             [[(1.0, 0.0, 0.0), (0.0, 1.0)]]
 
+        Here is a slightly larger game ::
+
+            sage: A = matrix([[160, 205, 44],
+            ....:             [175, 180, 45],
+            ....:             [201, 204, 50],
+            ....:             [120, 207, 49]])
+            sage: B = matrix([[2, 2, 2],
+            ....:             [1, 0, 0],
+            ....:             [3, 4, 1],
+            ....:             [4, 1, 2]])
+            sage: g=NormalFormGame([A, B])
+            sage: g.obtain_Nash() # optional - gambit
+            [[(0.0, 0.0, 0.75, 0.25), (0.0357142857, 0.9642857143, 0.0)]]
+
         2 random matrices. ::
 
             sage: player1 = matrix([[2, 8, -1, 1, 0],
@@ -824,6 +797,22 @@ class NormalFormGame(SageObject, MutableMapping):
             [[(1.0, 0.0, 0.0, 0.0, 0.0), (0.0, 1.0, 0.0, 0.0, 0.0)]]
             sage: fivegame.obtain_Nash(algorithm='lrs') # optional - lrs
             [[(1, 0, 0, 0, 0), (0, 1, 0, 0, 0)]]
+
+
+        Here is an example of a 3 by 2 game with 3 Nash equilibrium: ::
+
+            sage: A = matrix([[3,3],
+            ....:             [2,5],
+            ....:             [0,6]])
+            sage: B = matrix([[3,2],
+            ....:             [2,6],
+            ....:             [3,1]])
+            sage: g = NormalFormGame([A, B])
+            sage: g.obtain_Nash() # optional - gambit
+            [[(1.0, 0.0, 0.0), (1.0, 0.0)],
+             [(0.8, 0.2, 0.0), (0.6666666667, 0.3333333333)],
+             [(0.0, 0.3333333333, 0.6666666667), (0.3333333333, 0.6666666667)]]
+
 
         """
         if len(self.players) > 2:

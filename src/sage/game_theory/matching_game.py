@@ -1,17 +1,47 @@
 from sage.structure.sage_object import SageObject
+from sage.rings.integer import Integer
 
 
 class MatchingGame(SageObject):
     r"""
     """
-    def __init__(self, num_pairs=0):
+    def __init__(self, generator):
         r"""
+        EXAMPLES:
+
+        quick test. ::
+
+            sage: suitr_pref = {'M': ['C', 'A', 'B', 'D'],
+            ....:               'J': ['A', 'D', 'C', 'B'],
+            ....:               'L': ['B', 'D', 'C', 'A'],
+            ....:               'F': ['A', 'B', 'C', 'D']}
+            sage: reviewr_pref = {'A': ['L', 'J', 'F', 'M'],
+            ....:                 'B': ['J', 'M', 'L', 'F'],
+            ....:                 'C': ['F', 'M', 'L', 'J'],
+            ....:                 'D': ['M', 'F', 'J', 'L']}
+            sage: m = MatchingGame([suitr_pref, reviewr_pref])
         """
         self.suitors = []
         self.reviewers = []
-        for i in range(num_pairs):
-            self.add_suitor()
-            self.add_reviewer()
+        if type(generator) is Integer:
+            for i in range(generator):
+                self.add_suitor()
+                self.add_reviewer()
+        if type(generator[0]) is dict and type(generator[1]) is dict:
+            self._dict_game(generator[0], generator[1])
+        else:
+            raise TypeError("generator must be integer or a list of 2 dictionaries.")
+
+    def _dict_game(self, suitor_dict, reviwer_dict):
+        for i in suitor_dict:
+            self.add_suitor(i)
+        for k in reviwer_dict:
+            self.add_reviewer(k)
+
+        for i in self.suitors:
+            i.pref = suitor_dict[i]
+        for k in self.reviewers:
+            k.pref = reviwer_dict[k]
 
     def _repr_(self):
         r"""
@@ -65,6 +95,7 @@ class _Player():
         self.name = name
         self.type = player_type
         self.pref = [-1 for i in range(len_pref)]
+        self.partner = False
 
     def __hash__(self):
         return hash(self.name)

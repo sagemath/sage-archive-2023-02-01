@@ -2322,9 +2322,11 @@ def OA_9_135():
         such a way that a block contain 0, 1 or 3 points of the truncated
         groups.
 
-        This is possible, because `PG(2,2)` is a subdesign in `PG(2,16)`; in a
-        cyclic `PG(2,16)` or `BIBD(273,17,1)` the points `\equiv 0 \pmod{39}`
-        form such a subdesign.
+        This is possible, because `PG(2,2)` (the projective plane over `GF(2)`)
+        is a subdesign in `PG(2,16)` (the projective plane over `GF(16)`); in a
+        cyclic `PG(2,16)` or `BIBD(273,17,1)` the points `\equiv 0
+        \pmod{39}` form such a subdesign (note that `273=16^2 + 16 +1` and
+        `273 = 39 \times 7` and `7 = 2^2 + 2 + 1`).
 
     EXAMPLES::
 

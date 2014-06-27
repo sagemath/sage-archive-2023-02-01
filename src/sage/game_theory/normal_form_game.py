@@ -287,10 +287,14 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: f
         {(0, 1): [2, 3], (0, 0): [1, 3], (2, 1): [False, False], (2, 0): [False, False], (1, 0): [3, 1], (1, 1): [4, 4]}
 
-    If we do this and try and obtain the Nash equilibrium (without
-    specifying the utilities), an error is returned: ::
+    If we do this and try and obtain the Nash equilibrium or view the payoff
+    matrices(without specifying the utilities), an error is returned: ::
 
         sage: f.obtain_Nash()
+        Traceback (most recent call last):
+        ...
+        ValueError: utilities have not been populated
+        sage: f.payoff_matrices()
         Traceback (most recent call last):
         ...
         ValueError: utilities have not been populated

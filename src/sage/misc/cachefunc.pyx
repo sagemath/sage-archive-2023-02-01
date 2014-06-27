@@ -428,8 +428,8 @@ in some computations::
 
 If such objects defined a non-trivial hash function, this would break
 caching in many places. However, such objects should still be usable
-in caches. This can be achieved by defining an appropriate attribute
-``_cache_key``. Generally one would want to make this a ``lazy_attribute``::
+in caches. This can be achieved by defining an appropriate method
+``_cache_key``.
 
     sage: hash(b)
     Traceback (most recent call last):
@@ -442,9 +442,9 @@ in caches. This can be achieved by defining an appropriate attribute
     sage: f(c) # if b and c were hashable, this would return True
     False
 
-    sage: b._cache_key
+    sage: b._cache_key()
     (..., ((0, 1),), 0, 1)
-    sage: c._cache_key
+    sage: c._cache_key()
     (..., ((0, 1), (1,)), 0, 20)
 
 .. NOTE::
@@ -453,13 +453,13 @@ in caches. This can be achieved by defining an appropriate attribute
     is not hashable.
 
 An implementation must make sure that for elements ``a`` and ``b``,
-if ``a != b``, then also ``a._cache_key != b._cache_key``.
+if ``a != b``, then also ``a._cache_key() != b._cache_key()``.
 In practice this means that the ``_cache_key`` should always include
 the parent as its first argument::
 
     sage: S.<a> = Qq(4)
     sage: d = a + O(2)
-    sage: b._cache_key == d._cache_key # this would be True if the parents were not included
+    sage: b._cache_key() == d._cache_key() # this would be True if the parents were not included
     False
 """
 ########################################################################

@@ -2319,7 +2319,7 @@ def OA_9_135():
 
         This design can be built by Wilson's method (`135 = 8.16 + 7`) applied
         to an Orthogonal Array `OA(9+7,16)` with 7 groups truncated to size 1 in
-        such a way that a block contain 0,1, or 3 points of the truncated
+        such a way that a block contain 0, 1 or 3 points of the truncated
         groups.
 
         This is possible, because `PG(2,2)` is a subdesign in `PG(2,16)`; in a
@@ -2338,10 +2338,19 @@ def OA_9_135():
 
         sage: designs.orthogonal_array(9,135,existence=True)
         True
+
+    As this orthogonal array requires a `(273,17,1)` cyclic difference set, we check that
+    it is available::
+
+        sage: G,D = designs.difference_family(273,17,1)
+        sage: G
+        Ring of integers modulo 273
     """
-    n=273
-    B = (1,2,4,8,16,32,64,91,117,128,137,182,195,205,234,239,256) # a (273,17,1)-difference set
-    PG16 = [[(x+c)%n for x in B] for c in range(n)]
+    from bibd import BIBD_from_difference_family
+    G,B = CDF_273_17_1()
+    PG16 = BIBD_from_difference_family(G,B)
+
+    n = 273
 
     # PG2 is a (7,3,1)-design (fano plane) contained in PG16. It is a set of 7
     # points that any block of PG16 intersect on 0,1, or 3 points.
@@ -2927,7 +2936,27 @@ def CDF_221_5_1():
     from sage.rings.finite_rings.integer_mod_ring import Zmod
     return Zmod(221), D
 
-# Index of the (right now cyclic) difference families constructions
+def CDF_273_17_1():
+    r"""
+    A cyclic `(273,17,1)`-difference set.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import CDF_273_17_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G,D = CDF_273_17_1()
+        sage: is_difference_family(G,D,273,17,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(273,17,1)
+    """
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    D = [(1,2,4,8,16,32,64,91,117,128,137,182,195,205,234,239,256)]
+    return Zmod(273), D
+
+# Index of the (right now cyclic or Abelian) difference families constructions
 #
 # Associates to triple (v,k,lambda) a function that return a
 # (n,k,lambda)-difference family.
@@ -2944,5 +2973,6 @@ DF_constructions = {
     (141,5,1): CDF_141_5_1,
     (161,5,1): CDF_161_5_1,
     (201,5,1): CDF_201_5_1,
-    (221,5,1): CDF_221_5_1
+    (221,5,1): CDF_221_5_1,
+    (273,17,1): CDF_273_17_1,
 }

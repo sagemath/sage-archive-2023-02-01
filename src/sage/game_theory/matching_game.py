@@ -1,17 +1,17 @@
 from sage.structure.sage_object import SageObject
 
 
-class Matching_Game(SageObject):
+class MatchingGame(SageObject):
     r"""
     """
     def __init__(self, num_pairs=0):
         r"""
         """
-        self.suitors = []
-        self.reviewers = []
+        self.suitors = {}
+        self.reviewers = {}
         for i in range(num_pairs):
-            self.add_player('suitor')
-            self.add_player('reviewer')
+            self.add_suitor()
+            self.add_reviewer()
 
     def _repr_(self):
         r"""
@@ -24,37 +24,31 @@ class Matching_Game(SageObject):
         pass
 
     def _is_complete(self):
-        if len(self.suitors) != len(self.reviewers):
-            raise ValueError("must have the same number of suitors as reviewers.")
+        pass
 
-        suitor_check = [any(i < 0 for i in s.pref) for s in self.suitors]
-        reviewer_check = [any(i < 0 for i in r.pref) for r in self.reviewers]
+    def add_suitor(self, name=False):
+        if name is False:
+            name = len(self.suitors)
+        new_suitor = _Player(name, 'suitor', len(self.reviewers))
+        self.suitors[new_suitor] = new_suitor.pref
+        for r in self.reviewers:
+            self.reviewers[r] = [-1 for s in self.suitors]
 
-        if any(suitor_check) or any(reviewer_check):
-            raise ValueError("players preferences not completed")
-
-        for suitor in self.suitors:
-            if sorted(suitor.pref) != [i for i in range(len(self.reviewers))]:
-                raise ValueError("suitor preferences not complete")
-
-        for reviewer in self.reviewers:
-            if sorted(reviewer.pref) != [i for i in range(len(self.suitors))]:
-                raise ValueError("reviewer preferences not complete")
-
-    def add_player(self, type):
-        if type == 'suitor':
-            self.suitors.append(_Player('suitor'))
-            for reviewer in self.reviewers:
-                reviewer.preference = [-1 for i in range(len(self.suitors))]
-        elif type == 'reviewer':
-            self.reviewers.append(_Player('reviewer'))
-            for suitor in self.suitors:
-                suitor.preference = [-1 for i in range(len(self.reviewers))]
-        else:
-            raise ValueError("type must be suitor or wife")
+    def add_reviewer(self, name=False):
+        if name is False:
+            name = len(self.reviewers)
+        new_reviewer = _Player(name, 'reviewer', len(self.suitors))
+        self.reviewers[new_reviewer] = new_reviewer.pref
+        for s in self.suitors:
+            self.suitors[s] = [-1 for r in self.reviewers]
 
 
 class _Player():
-    def __init__(self, type):
-        self.type = type
-        self.pref = []
+    def __init__(self, name, player_type, len_pref):
+        self.name = name
+        self.type = player_type
+        self.pref = [-1 for i in range(len_pref)]
+
+    def __hash__(self):
+        return hash(self.name)
+

@@ -1149,7 +1149,7 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         # Verify that vectors are indeed probability vectors
         if (not all(i >= 0 for i in a)
-            or not all(i >= 0 for i in b)):
+           or not all(i >= 0 for i in b)):
             return False
 
         # I have no idea what this is for

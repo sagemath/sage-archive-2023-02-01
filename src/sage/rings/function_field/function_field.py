@@ -536,18 +536,30 @@ class FunctionField_polymod(FunctionField):
         """
         return self._hash
 
-    def monic_integral_model(self, names):
+    def monic_integral_model(self, names=None):
         """
-        Return a function field isomorphic to self, but with defining
-        polynomial that is monic and integral over the base field.
+        Return a function field isomorphic to this field but which is an
+        extension of a rational function field with defining polynomial that is
+        monic and integral over the constant base field.
 
         INPUT:
 
-            - ``names`` -- name of the generator of the new field this function constructs
+        - ``names`` -- a string, a tuple of up to two strings, or ``None``
+          (default: ``None``), the name of the generator of the field, and
+          the name of the generator of the underlying rational function
+          field (if a tuple); if ``None``, then the names are chosen
+          automatically.
+
+        OUTPUT:
+
+        A triple ``(F,f,t)`` where ``F`` is a function field, ``f`` is an
+        isomorphism from ``F`` to this field, and ``t`` is the inverse of
+        ``f``.
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
             sage: L.<y> = K.extension(x^2*y^5 - 1/x); L
             Function field in y defined by x^2*y^5 - 1/x
             sage: A, from_A, to_A = L.monic_integral_model('z')
@@ -558,11 +570,13 @@ class FunctionField_polymod(FunctionField):
               From: Function field in z defined by y^5 - x^12
               To:   Function field in y defined by x^2*y^5 - 1/x
               Defn: z |--> x^3*y
+                    x |--> x
             sage: to_A
             Function Field morphism:
               From: Function field in y defined by x^2*y^5 - 1/x
               To:   Function field in z defined by y^5 - x^12
               Defn: y |--> 1/x^3*z
+                    x |--> x
             sage: to_A(y)
             1/x^3*z
             sage: from_A(to_A(y))
@@ -571,13 +585,84 @@ class FunctionField_polymod(FunctionField):
             x^3*y^4
             sage: from_A(to_A(1/y)) == 1/y
             True
+
+        This also works for towers of function fields::
+
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2*y - 1/x)
+            sage: M.monic_integral_model()
+            (Function field in z_ defined by x^10 - x^18, Function Field morphism:
+              From: Function field in z_ defined by x^10 - x^18
+              To:   Function field in z defined by y*z^2 - 1/x
+              Defn: z_ |--> x^2*z
+                    x |--> x, Function Field morphism:
+              From: Function field in z defined by y*z^2 - 1/x
+              To:   Function field in z_ defined by x^10 - x^18
+              Defn: z |--> 1/x^2*z_
+                    y |--> 1/x^15*z_^8
+                    x |--> x)
+
+        TESTS:
+
+        If the field is already a monic integral extension, then it is returned
+        unchanged::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2-x)
+            sage: L.monic_integral_model()
+            (Function field in y defined by y^2 - x, Function Field endomorphism of Function field in y defined by y^2 - x
+              Defn: y |--> y
+                    x |--> x, Function Field endomorphism of Function field in y defined by y^2 - x
+              Defn: y |--> y
+                    x |--> x)
+
+        Unless ``names`` does not match with the current names::
+
+            sage: L.monic_integral_model(names=('yy','xx'))
+            (Function field in yy defined by y^2 - xx, Function Field morphism:
+              From: Function field in yy defined by y^2 - xx
+              To:   Function field in y defined by y^2 - x
+              Defn: yy |--> y
+                    xx |--> x, Function Field morphism:
+              From: Function field in y defined by y^2 - x
+              To:   Function field in yy defined by y^2 - xx
+              Defn: y |--> yy
+                    x |--> xx)
+
         """
-        g, d = self._make_monic_integral(self.polynomial())
-        R = self.base_field()
-        K = R.extension(g, names=names)
-        to_K = self.hom(K.gen() / d)
-        from_K = K.hom(self.gen() * d)
-        return K, from_K, to_K
+        if names is None:
+            pass
+        elif not isinstance(names, tuple):
+            names = (names,)
+        elif len(names) > 2:
+            raise ValueErorr("names must contain at most 2 entries")
+
+        if self.base_field() is not self.rational_function_field():
+            L,from_L,to_L = self.simple_model()
+            ret,ret_to_L,L_to_ret = L.monic_integral_model(names)
+            from_ret = ret.hom( [from_L(ret_to_L(ret.gen())), from_L(ret_to_L(ret.base_field().gen()))] )
+            to_ret = self.hom( [L_to_ret(to_L(k.gen())) for k in self._intermediate_fields(self.rational_function_field())] )
+            return ret, from_ret, to_ret
+        else:
+            if self.polynomial().is_monic() and all([c.denominator().is_one() for c in self.polynomial()]):
+                # self is already monic and integral
+                if names is None or names == ():
+                    names = (self.variable_name(),)
+                return self.change_variable_name(names)
+            else:
+                if names is None or names == ():
+                    names = (self.variable_name()+"_",)
+                if len(names) == 1:
+                    names = (names[0], self.rational_function_field().variable_name())
+
+                g, d = self._make_monic_integral(self.polynomial())
+                K,from_K,to_K = self.base_field().change_variable_name(names[1])
+                g = g.map_coefficients(to_K)
+                ret = K.extension(g, names=names[0])
+                from_ret = ret.hom([self.gen() * d, self.base_field().gen()])
+                to_ret = self.hom([ret.gen() / d, ret.base_field().gen()])
+                return ret, from_ret, to_ret
 
     def _make_monic_integral(self, f):
         r"""

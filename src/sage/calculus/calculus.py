@@ -1772,8 +1772,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         -1
         sage: ln(sefms('%e'))
         1
-        sage: sefms('%inf')
-        +Infinity
     """
     syms = sage.symbolic.pynac.symbol_table.get('maxima', {}).copy()
 
@@ -1820,6 +1818,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     s = s.replace("#","!=") # a lot of this code should be refactored somewhere...
 
+    s = polylog_ex.sub('polylog(\\1,',s)
     s = maxima_polygamma.sub('psi(\g<1>,',s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
 
     if equals_sub:

@@ -3049,7 +3049,7 @@ def RBIBD_120_8_1():
 
     The BIBD is available from the constructor::
 
-        sage: _ = designs.BalancedIncompleteBlockDesign(120,8)
+        sage: _ = designs.balanced_incomplete_block_design(120,8)
     """
     from incidence_structures import IncidenceStructure
     n=273

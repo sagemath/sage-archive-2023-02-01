@@ -561,7 +561,7 @@ cdef class Ring(ParentWithGens):
             sage: ZZ.zero_ideal() is ZZ.zero_ideal()
             True
 
-        TESTS::
+        TESTS:
 
         Make sure that :trac:`13644` is fixed::
 

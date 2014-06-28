@@ -34,7 +34,7 @@ def find_recursive_construction(k,n):
     This determines whether an `OA(k,n)` can be built through the following
     constructions:
 
-    - Wilson constructions with 0, 1 or 2 truncated groups
+    - :func:`simple_wilson_construction` (0, 1 or 2 truncated columns)
     - :func:`construction_3_3`
     - :func:`construction_3_4`
     - :func:`construction_3_5`
@@ -82,16 +82,23 @@ def find_recursive_construction(k,n):
 
 def find_product_decomposition(k,n):
     r"""
-    Attempts to find a factorization of `n` in order to build a `OA(k,n)`.
+    Look for a factorization of `n` in order to build an `OA(k,n)`.
 
     If Sage can build a `OA(k,n_1)` and a `OA(k,n_2)` such that `n=n_1\times
-    n_2` then a `OA(k,n)` can be built (from the function
-    :func:`transversal_design`). This method returns such a pair of integers if
-    it exists, and ``False`` otherwise.
+    n_2` then a `OA(k,n)` can be built by a product construction (which
+    correspond to Wilson's construction with no truncated column). This
+    function look for a pair of integers `(n_1,n_2)` with `n1 \leq n_2`, `n_1
+    \times n_2 = n` and such that both an `OA(k,n_1)` and an `OA(k,n_2)` are
+    available.
 
     INPUT:
 
     - ``k,n`` (integers) -- see above.
+
+    OUTPUT:
+
+    A pair ``f,args`` such that ``f(*args)`` is an `OA(k,n)` or ``False`` if no
+    product decomposition was found.
 
     EXAMPLES::
 
@@ -103,26 +110,29 @@ def find_product_decomposition(k,n):
     """
     from sage.rings.arith import divisors
     for n1 in divisors(n)[1:-1]: # we ignore 1 and n
-        n2 = n//n1
+        n2 = n//n1  # n2 is decreasing along the loop
+        if n2 < n1:
+            break
         if orthogonal_array(k, n1, existence=True) and orthogonal_array(k, n2, existence=True):
             return simple_wilson_construction, (k,n1,n2,())
     return False
 
 def find_wilson_decomposition_with_one_truncated_group(k,n):
     r"""
-    Finds a wilson decomposition of `k,n` with one truncated group.
+    Helper function for Wilson's construction with one truncated column.
 
-    This method looks for possible integers `m,t,u` satisfying that `mt+u=n` and
-    such that Sage knows how to build a `TD(k,m), TD(k,m+1),TD(k+1,t)` and a
-    `TD(k,u)`. These can then be used to feed :func:`wilson_construction`.
+    This function looks for possible integers `m,t,u` satisfying that `mt+u=n` and
+    such that Sage knows how to build a `OA(k,m), OA(k,m+1),OA(k+1,t)` and a
+    `OA(k,u)`.
 
     INPUT:
 
-    - `k,n` (integers)
+    - ``k,n`` (integers) -- see above
 
     OUTPUT:
 
-    Returns a 4-tuple `(k, r, m, (u,))` if it is found, and ``False`` otherwise.
+    A pair `f,args` such that `f(*args)` is an `OA(k,n)` or ``False`` if no
+    decomposition with one truncated block was found.
 
     EXAMPLES::
 
@@ -158,18 +168,20 @@ def find_wilson_decomposition_with_one_truncated_group(k,n):
 
 def find_wilson_decomposition_with_two_truncated_groups(k,n):
     r"""
-    Helper function for Wilson's construction with two trucated columns
+    Helper function for Wilson's construction with two trucated columns.
 
-    Find integers `r,m,r_1,r_2` satisfying `n=rm+r_1+r_2` and `1\leq r_1,r_2<r`
+    Look for integers `r,m,r_1,r_2` satisfying `n=rm+r_1+r_2` and `1\leq r_1,r_2<r`
     and such that the following designs exist : `OA(k+2,r)`, `OA(k,r1)`,
     `OA(k,r2)`, `OA(k,m)`, `OA(k,m+1)`, `OA(k,m+2)`.
 
     INPUT:
 
-    - ``k,n`` (integers)
+    - ``k,n`` (integers) -- see above
 
-    Indeed, under these constraints there exists a `OA(k,n)` that can be built
-    with :func:`wilson_construction`.
+    OUTPUT:
+
+    A pair ``f,args`` such that ``f(*args)`` is an `OA(k,n)` or ``False`` if no
+    decomposition with two truncated blocks was found.
 
     EXAMPLES::
 
@@ -215,7 +227,13 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
 
 def simple_wilson_construction(k,r,m,u):
     r"""
-    Return the Wilson construction with parameters `(k,r,m,u)`.
+    Return an `OA(k,r*m + \sum u_i)` from Wilson construction.
+
+    INPUT:
+
+    - ``k,r,m`` -- integers
+
+    - ``u`` -- list of positive integers
 
     .. TODO::
 

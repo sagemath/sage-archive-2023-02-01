@@ -168,6 +168,8 @@ from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
+from sage.interfaces.singular import singular_gb_standard_options
+from sage.libs.singular.standard_options import libsingular_gb_standard_options
 from sage.interfaces.singular import singular
 
 def is_PolynomialSequence(F):
@@ -922,6 +924,80 @@ class PolynomialSequence_generic(Sequence_generic):
             True
         """
         return PolynomialSequence, (self._ring, self._parts)
+
+    @singular_gb_standard_options
+    @libsingular_gb_standard_options
+    def reduced(self):
+        r"""
+        If this sequence is `(f_1, ..., f_n)` then this method
+        returns `(g_1, ..., g_s)` such that:
+
+        - `(f_1,...,f_n) = (g_1,...,g_s)`
+
+        - `LT(g_i) != LT(g_j)` for all `i != j`
+
+        - `LT(g_i)` does not divide `m` for all monomials `m` of
+           `\{g_1,...,g_{i-1},g_{i+1},...,g_s\}`
+
+        - `LC(g_i) == 1` for all `i` if the coefficient ring is a field.
+
+        EXAMPLE::
+
+            sage: R.<x,y,z> = PolynomialRing(QQ)
+            sage: F = Sequence([z*x+y^3,z+y^3,z+x*y])
+            sage: F.reduced()
+            [y^3 + z, x*y + z, x*z - z]
+
+        Note that tail reduction for local orderings is not well-defined::
+
+            sage: R.<x,y,z> = PolynomialRing(QQ,order='negdegrevlex')
+            sage: F = Sequence([z*x+y^3,z+y^3,z+x*y])
+            sage: F.reduced()
+            [z + x*y, x*y - y^3, x^2*y - y^3]
+
+        A fixed error with nonstandard base fields::
+
+            sage: R.<t>=QQ['t']
+            sage: K.<x,y>=R.fraction_field()['x,y']
+            sage: I=t*x*K
+            sage: I.basis.reduced()
+            [x]
+
+        The interreduced basis of 0 is 0::
+
+            sage: P.<x,y,z> = GF(2)[]
+            sage: Sequence([P(0)]).reduced()
+            [0]
+
+        ALGORITHM:
+
+        Uses Singular's interred command or
+        :func:`sage.rings.polynomial.toy_buchberger.inter_reduction``
+        if conversion to Singular fails.
+        """
+        from sage.rings.polynomial.multi_polynomial_ideal_libsingular import interred_libsingular
+        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+
+        R = self.ring()
+
+        if isinstance(R,MPolynomialRing_libsingular):
+            return PolynomialSequence(R, interred_libsingular(self), immutable=True)
+        else:
+            try:
+                s = self._singular_().parent()
+                o = s.option("get")
+                s.option("redTail")
+                ret = []
+                for f in self._singular_().interred():
+                    f = R(f)
+                    ret.append(f.lc()**(-1)*f) # lead coeffs are not reduced by interred
+                s.option("set",o)
+            except TypeError:
+                ret = toy_buchberger.inter_reduction(self.gens())
+
+        ret = sorted(ret, reverse=True)
+        ret = PolynomialSequence(R, ret, immutable=True)
+        return ret
 
 class PolynomialSequence_gf2(PolynomialSequence_generic):
     """

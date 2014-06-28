@@ -187,7 +187,12 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
         return BlockDesign(v, v_5_1_BIBD(v), test = False)
 
     from difference_family import difference_family
+    from database import BIBD_constructions
 
+    if (v,k,1) in BIBD_constructions:
+        if existence:
+            return True
+        return BlockDesign(v,BIBD_constructions[(v,k,1)]())
     if BIBD_from_TD(v,k,existence=True):
         if existence:
             return True

@@ -1692,9 +1692,8 @@ _inverse_laplace = function_factory('ilt',
 
 #######################################################
 
-symtable = {'%pi':'pi', 'e':'_e', '%e': 'e', 'i':'_i', 'I':'_I', '%i':'I', '%gamma':'euler_gamma'}
+symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma'}
 
-from sage.misc.multireplace import multiple_replace
 import re
 
 maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")
@@ -1768,16 +1767,13 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     Check that some variables don't end up as special constants (:trac:`6882`)::
     
-        sage: symbolic_expression_from_maxima_string('%i')^2
+        sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
+        sage: sefms('%i')^2
         -1
-        sage: symbolic_expression_from_maxima_string('I')^2
-        _I^2
-        sage: symbolic_expression_from_maxima_string('i')^2
-        _i^2
-        sage: ln(symbolic_expression_from_maxima_string('%e'))
+        sage: ln(sefms('%e'))
         1
-        sage: ln(symbolic_expression_from_maxima_string('e'))
-        log(_e)
+        sage: sefms('%inf')
+        +Infinity
     """
     syms = sage.symbolic.pynac.symbol_table.get('maxima', {}).copy()
 
@@ -1808,8 +1804,18 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
                 syms[X[2:]] = function_factory(X[2:])
         s = s.replace("?%","")
 
-    s = polylog_ex.sub('polylog(\\1,',s)
-    s = multiple_replace(symtable, s)
+    # Look up every variable in the symtable keys and fill a replacement list.
+    cursor = 0
+    l = []
+    for m in maxima_var.finditer(s):
+        if symtable.has_key(m.group(0)):
+            l.append(s[cursor:m.start()])
+            l.append(symtable.get(m.group(0)))
+            cursor = m.end()
+    if cursor > 0:
+        l.append(s[cursor:])
+        s = "".join(l)
+
     s = s.replace("%","")
 
     s = s.replace("#","!=") # a lot of this code should be refactored somewhere...

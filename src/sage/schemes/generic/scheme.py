@@ -544,7 +544,7 @@ class Scheme(Parent):
         try:
             return self._coordinate_ring
         except AttributeError:
-            raise ValueError, "This scheme has no associated coordinated ring (defined)."
+            raise ValueError("This scheme has no associated coordinated ring (defined).")
 
     def dimension_absolute(self):
         """
@@ -642,7 +642,7 @@ class Scheme(Parent):
             if is_Scheme(x):
                 return self.Hom(x).natural_map()
             else:
-                raise TypeError, "unable to determine codomain"
+                raise TypeError("unable to determine codomain")
         return self.Hom(Y)(x, check)
 
     def _Hom_(self, Y, category=None, check=True):
@@ -712,16 +712,14 @@ class Scheme(Parent):
             sage: C.count_points(4)
             [6, 12, 18, 96]
             sage: C.base_extend(GF(9,'a')).count_points(2)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Point counting only implemented for schemes over prime fields
+            [12, 96]
         """
         F = self.base_ring()
         if not F.is_finite():
-            raise TypeError, "Point counting only defined for schemes over finite fields"
+            raise TypeError("Point counting only defined for schemes over finite fields")
         q = F.cardinality()
         if not q.is_prime():
-            raise NotImplementedError, "Point counting only implemented for schemes over prime fields"
+            raise NotImplementedError("Point counting only implemented for schemes over prime fields")
         a = []
         for i in range(1, n+1):
             F1 = GF(q**i, name='z')
@@ -760,12 +758,12 @@ class Scheme(Parent):
             1 + 6*t + 24*t^2 + 78*t^3 + 240*t^4 + O(t^5)
 
         Note that this function depends on count_points, which is only
-        defined for prime order fields::
+        defined for prime order fields for general schemes.
+        Nonetheless, since :trac:`15108` and :trac:`15148`, it supports
+        hyperelliptic curves over non-prime fields::
 
             sage: C.base_extend(GF(9,'a')).zeta_series(4,t)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Point counting only implemented for schemes over prime fields
+            1 + 12*t + 120*t^2 + 1092*t^3 + 9840*t^4 + O(t^5)
         """
 
         F = self.base_ring()

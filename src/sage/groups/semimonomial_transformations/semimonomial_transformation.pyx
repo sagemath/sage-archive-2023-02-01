@@ -1,28 +1,35 @@
 r"""
-Elements of a semimonomial transformation group
+Elements of a semimonomial transformation group.
 
-A semimonomial transformation group over a ring `R` of length `n` is equal to
-the semidirect product of the monomial transformation group
-(also known as the complete monomial group) and the group of ring automorphisms.
+The semimonomial transformation group of degree `n` over a ring `R` is
+the semidirect product of the monomial transformation group of degree `n`
+(also known as the complete monomial group over the group of units 
+`R^{\times}` of `R`) and the group of ring automorphisms.
+
 The multiplication of two elements `(\phi, \pi, \alpha)(\psi, \sigma, \beta)`
 with
 
-    - `\phi, \psi \in  {R^*}^n`
+    - `\phi, \psi \in  {R^{\times}}^n`
 
-    - `\pi, \sigma \in S_n`
+    - `\pi, \sigma \in S_n` (with the multiplication `\pi\sigma`
+      done from left to right (like in GAP) -- 
+      that is, `(\pi\sigma)(i) = \sigma(\pi(i))` for all `i`.)
 
     - `\alpha, \beta \in Aut(R)`
 
-is defined by:
+is defined by
 
 .. math::
 
-(\phi, \pi, \alpha)(\psi, \sigma, \beta) =
-(\phi * \psi^{\pi, \alpha}, \pi * \sigma, \alpha * \beta)
+    (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
+    (\phi \cdot \psi^{\pi, \alpha}, \pi\sigma, \alpha \circ \beta)
 
-where
-`\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(0)}), \ldots, \alpha(\psi_{\pi(n-1)}))`
-and an elementwisely defined multiplication of vectors.
+with
+`\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(1)-1}), \ldots, \alpha(\psi_{\pi(n)-1}))`
+and an elementwisely defined multiplication of vectors. (The indexing
+of vectors is `0`-based here, so `\psi = (\psi_0, \psi_1, \ldots, \psi_{n-1})`.)
+
+
 
 The parent is
 :class:`~sage.groups.semimonomial_transformations.semimonomial_transformation_group.SemimonomialTransformationGroup`.
@@ -30,6 +37,8 @@ The parent is
 AUTHORS:
 
 - Thomas Feulner (2012-11-15): initial version
+- Thomas Feulner (2013-12-27): :trac:`15576` dissolve dependency on 
+    Permutations().global_options()['mul']
 
 EXAMPLES::
 
@@ -84,7 +93,7 @@ def _inverse(f, R):
 
 cdef class SemimonomialTransformation(MultiplicativeGroupElement):
     r"""
-    An element in a semimonomial group. See
+    An element in the semimonomial group over a ring `R`. See
     :class:`~sage.groups.semimonomial_transformations.semimonomial_transformation_group.SemimonomialTransformationGroup`
     for the details on the multiplication of two elements.
 
@@ -164,7 +173,32 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         return hash(self.v) + hash(self.perm) + hash(self.get_autom())
 
     cpdef MonoidElement _mul_(left, MonoidElement _right):
-        """
+        r"""
+        Multiplication of elements.
+        
+        The multiplication of two elements `(\phi, \pi, \alpha)` and 
+        `(\psi, \sigma, \beta)` with
+        
+            - `\phi, \psi \in  {R^{\times}}^n`
+        
+            - `\pi, \sigma \in S_n`
+        
+            - `\alpha, \beta \in Aut(R)`
+        
+        is defined by:
+        
+        .. math::
+
+            (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
+            (\phi \cdot \psi^{\pi, \alpha}, \pi\sigma, \alpha \circ \beta)
+
+        with
+        `\psi^{\pi, \alpha} = (\alpha(\psi_{\pi(1)-1}), \ldots, \alpha(\psi_{\pi(n)-1}))`
+        and an elementwisely defined multiplication of vectors. (The indexing
+        of vectors is `0`-based here, so `\psi = (\psi_0, \psi_1, \ldots, \psi_{n-1})`.)
+        Furthermore, the multiplication `\pi\sigma` is done from left to right
+        (like in GAP) -- that is, `(\pi\sigma)(i) = \sigma(\pi(i))` for all `i`.
+        
         EXAMPLES::
 
             sage: F.<a> = GF(9)
@@ -177,7 +211,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         v = left.perm.action(right.v)
         alpha = left.get_autom()
         v = [left.v[i]*alpha(v[i]) for i in range(left.parent().degree())]
-        return left.parent()(v=v, perm=left.perm*right.perm,
+        return left.parent()(v=v, perm=left.perm.right_action_product(right.perm),
                              autom=alpha*right.get_autom(), check=False)
 
     def __invert__(self):
@@ -241,14 +275,14 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
 
             sage: F.<a> = GF(9)
             sage: SemimonomialTransformationGroup(F, 4).an_element().__reduce__()
-            (Semimonomial transformation group over Finite Field in a of size 3^2of degree 4, (0, (a, 1, 1, 1), [4, 1, 2, 3], Ring endomorphism of Finite Field in a of size 3^2
+            (Semimonomial transformation group over Finite Field in a of size 3^2 of degree 4, (0, (a, 1, 1, 1), [4, 1, 2, 3], Ring endomorphism of Finite Field in a of size 3^2
               Defn: a |--> 2*a + 1))
         """
         return (self.parent(), (0, self.v, self.perm, self.get_autom()))
 
     def get_v(self):
         """
-        Returns the component corresponding to `{R^*}^n` of ``self``.
+        Returns the component corresponding to `{R^{\times}}^n` of ``self``.
 
         EXAMPLES::
 
@@ -261,7 +295,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
     def get_v_inverse(self):
         """
         Returns the (elementwise) inverse of the component corresponding to
-        `{R^*}^n` of ``self``.
+        `{R^{\times}}^n` of ``self``.
 
         EXAMPLES::
 
@@ -298,7 +332,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
     def invert_v(self):
         """
         Elementwisely inverts all entries of ``self`` which
-        correspond to the component `{R^*}^n`.
+        correspond to the component `{R^{\times}}^n`.
 
         The other components of ``self`` keep unchanged.
 

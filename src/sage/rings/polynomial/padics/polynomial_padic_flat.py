@@ -26,7 +26,7 @@ class Polynomial_padic_flat(Polynomial_generic_dense, Polynomial_padic):
         R = parent.base_ring()
         if sage.rings.fraction_field_element.is_FractionFieldElement(x):
             if x.denominator() != 1:
-                raise TypeError, "denominator must be 1"
+                raise TypeError("denominator must be 1")
             else:
                 x = x.numerator()
         if isinstance(x, Polynomial):

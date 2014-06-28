@@ -33,8 +33,6 @@ set_environment()
 
     # This is needed or there are weird locale problems involving rpath
     # with building Sage:
-    LC_ALL=C
-    export LC_ALL
     LANG=C
     export LANG
 

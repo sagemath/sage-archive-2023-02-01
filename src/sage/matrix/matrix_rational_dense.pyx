@@ -607,26 +607,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     # x * _multiply_multi_modular(self, Matrix_rational_dense right):
     # o * echelon_modular(self, height_guess=None):
     ########################################################################
-    def invert(self, check_invertible=True, algorithm="default"):
-        """
-        Compute the inverse of this matrix.
-
-        .. warning::
-
-            This function is deprecated.  Use ``inverse`` instead.
-
-        EXAMPLES::
-
-            sage: a = matrix(QQ,3,range(9))
-            sage: a.invert()
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: input matrix must be nonsingular
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(5460, "'invert' is deprecated; use 'inverse' instead.")
-        return self.__invert__()
-
     def __invert__(self):
         """
         EXAMPLES::

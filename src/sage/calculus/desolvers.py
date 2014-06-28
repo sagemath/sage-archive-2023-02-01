@@ -62,6 +62,7 @@ from sage.plot.all import line
 from sage.symbolic.expression import is_SymbolicEquation
 from sage.symbolic.ring import is_SymbolicVariable
 from sage.calculus.functional import diff
+from sage.misc.functional import N
 from sage.misc.decorators import rename_keyword
 from tempfile import mkdtemp
 import shutil
@@ -1570,9 +1571,65 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
 
     INPUT:
 
-    - ``f`` - symbolic function
+    - ``f`` -- symbolic function. Its first argument will be the independent
+    variable. Its output should be de derivatives of the deppendent variables.
+
+    - ``ics`` -- a list or tuple with the initial conditions.
+
+    - ``initial`` -- the starting value for the independent variable.
+
+    - ``final`` -- the final value for the independent value.
+
+    - ``delta`` -- the size of the steps in the output.
+
+    - ``tolrel`` -- the relative tolerance for the method.
+
+    - ``tolabs`` -- the absolute tolerance for the method.
+
+
+    OUTPUT:
+
+    - A list  with the positions of the IVP.
+
+
+    EXAMPLES:
+
+    We integrate a periodic orbit of the Kepler problem along 50 periods::
+
+        sage: var('t,x,y,X,Y')
+        (t, x, y, X, Y)
+        sage: f(t,x,y,X,Y)=[X, Y, -x/(x^2+y^2)^(3/2), -y/(x^2+y^2)^(3/2)]
+        sage: ics = [0.8, 0, 0, 1.22474487139159]
+        safe: t = 100*pi
+        sage: sol = desolve_mintides(f, ics, 0, t, t, 1e-12, 1e-12)  # abs rel 1e-5
+        sage: sol
+        [[0.000000000000000,
+        0.800000000000000,
+        0.000000000000000,
+        0.000000000000000,
+        1.22474487139159],
+        [314.159265358979,
+        0.800000000028622,
+        -5.91973525754241e-9,
+        7.56887091890590e-9,
+        1.22474487136329]]
+
+
+    ALGORITHM:
+
+    Uses TIDES [ALG924]_ [TI]_.
+
+    REFERENCES:
+
+    .. [ALG924] A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
+    Transactions on Mathematical Software*, *39*(1), 1–28.
+
+    .. [TI](http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
+    A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
+    TIDES tutorial: Integrating ODEs by using the Taylor Series Method.
 
     """
+
     import subprocess
     if subprocess.call(['which','gcc'], stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         raise RuntimeError('Unable to run because gcc cannot be found')
@@ -1587,7 +1644,7 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
 
     shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/minc_tides.c', tempdir)
     shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/minc_tides.h', tempdir)
-    genfiles_mintides(intfile, drfile, f, ics, initial, final, delta, tolrel,
+    genfiles_mintides(intfile, drfile, f, map(N, ics), N(initial), N(final), N(delta), N(tolrel),
                      tolabs, fileoutput)
 
     os.system('gcc -o ' + runmefile + ' ' + tempdir + '/*.c  -lm  -O2')
@@ -1608,11 +1665,72 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
 def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16, digits=50):
     r"""
     Solve numerically a system of first order differential equations using the
-    taylor series integrator implemented in tides_mpfr.
+    taylor series integrator in arbitrary precission implemented in tides.
 
     INPUT:
 
-    - ``f`` - symbolic function
+    - ``f`` -- symbolic function. Its first argument will be the independent
+    variable. Its output should be de derivatives of the deppendent variables.
+
+    - ``ics`` -- a list or tuple with the initial conditions.
+
+    - ``initial`` -- the starting value for the independent variable.
+
+    - ``final`` -- the final value for the independent value.
+
+    - ``delta`` -- the size of the steps in the output.
+
+    - ``tolrel`` -- the relative tolerance for the method.
+
+    - ``tolabs`` -- the absolute tolerance for the method.
+
+    - ``digits`` -- the digits of precission used in the computation.
+
+
+    OUTPUT:
+
+    - A list  with the positions of the IVP.
+
+
+    EXAMPLES:
+
+    We integrate the Lorenz equations with Salztman values for the parameters
+    along 10 periodic orbits with 100 digits of precission::
+
+        sage: var('t,x,y,z')
+        (t, x, y, z)
+        sage: s = 10
+        sage: r = 28
+        sage: b = 8/3
+        sage: f(t,x,y,z)= [s*(y-x),x*(r-z)-y,x*y-b*z]
+        sage: x0 = -13.7636106821342005250144010543616538641008648540923684535378642921202827747268115852940239346395038284
+        sage: y0 = -19.5787519424517955388380414460095588661142400534276438649791334295426354746147526415973165506704676171
+        sage: z0 = 27
+        sage: T = 15.586522107161747275678702092126960705284805489972439358895215783190198756258880854355851082660142374
+        sage: sol = desolve_tides_mpfr(f, [x0, y0, z0],0 , T, T, 1e-100, 1e-100, 100)
+        sage: sol # abs rel 1e-50
+        [[0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+        -13.7636106821342005250144010543616538641008648540923684535378642921202827747268115852940239346395038,
+        -19.5787519424517955388380414460095588661142400534276438649791334295426354746147526415973165506704676,
+        27.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000],
+        [15.5865221071617472756787020921269607052848054899724393588952157831901987562588808543558510826601424,
+        -13.7636106821342005250144010543616538641008648540923684535378642921202827747268115852940239346315658,
+        -19.5787519424517955388380414460095588661142400534276438649791334295426354746147526415973165506778440,
+        26.9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999636628]]
+
+
+    ALGORITHM:
+
+    Uses TIDES [ALG924]_ [TI]_.
+
+    REFERENCES:
+
+    .. [ALG924] A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
+    Transactions on Mathematical Software*, *39*(1), 1–28.
+
+    .. [TI](http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
+    A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
+    TIDES tutorial: Integrating ODEs by using the Taylor Series Method.
 
     """
     import subprocess

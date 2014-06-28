@@ -4945,11 +4945,14 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         return 0
 
 
-    def groebner_basis(self, **kwds):
-        r"""
+    def groebner_basis(self, algorithm='polybori', **kwds):
+        """
         Return a Groebner basis of this ideal.
 
         INPUT:
+
+        - ``algorithm`` - either ``"polybori"`` (built-in default)
+          or ``"magma"`` (requires Magma).
 
         - ``red_tail`` - tail reductions in intermediate polynomials,
           this options affects mainly heuristics. The reducedness of
@@ -5016,6 +5019,22 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             sage: I.groebner_basis()
             Polynomial Sequence with 36 Polynomials in 36 Variables
 
+        We compute the same example with Magma::
+
+            sage: sr = mq.SR(2,1,1,4,gf2=True, polybori=True)
+            sage: F,s = sr.polynomial_system()
+            sage: I = F.ideal()
+            sage: I.groebner_basis(algorithm='magma', prot='sage') # optional - magma
+            Leading term degree:  1. Critical pairs: 148.
+            Leading term degree:  2. Critical pairs: 144.
+            Leading term degree:  3. Critical pairs: 462.
+            Leading term degree:  1. Critical pairs: 167.
+            Leading term degree:  2. Critical pairs: 147.
+            Leading term degree:  3. Critical pairs: 101 (all pairs of current degree eliminated by criteria).
+            <BLANKLINE>
+            Highest degree reached during computation:  3.
+            Polynomial Sequence with 35 Polynomials in 36 Variables
+
         TESTS:
 
         This example shows, that a bug in our variable indices was
@@ -5057,13 +5076,17 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         except AttributeError:
             pass
 
-        if "redsb" not in kwds:
-            kwds["redsb"]=True
-        sig_on()
-        gb = self._groebner_basis(**kwds)
-        sig_off()
-        if gb:
-          if kwds.get("deg_bound", False) is False:
+        if algorithm == 'magma':
+            from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal_magma_repr
+            gb = MPolynomialIdeal_magma_repr._groebner_basis_magma(self, **kwds)
+        else:
+            if "redsb" not in kwds:
+                kwds["redsb"]=True
+            sig_on()
+            gb = self._groebner_basis(**kwds)
+            sig_off()
+
+        if kwds.get("deg_bound", False) is False:
             g = GroebnerStrategy(gb[0].ring())
             for p in gb:
                 g.add_as_you_wish(p)
@@ -8252,5 +8275,3 @@ cdef class PolynomialFactory:
                                           self._factory.call_monom((<BooleanMonomial>arg)._pbmonom))
 
             raise TypeError, "Cannot convert %s to BooleanPolynomial"%(type(arg))
-
-

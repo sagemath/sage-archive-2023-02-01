@@ -2,11 +2,11 @@ r"""
 This module contains tools to write the .c files needed for TIDES [TI]_ .
 
 Tides is an integration engine based on the Taylor method. It is implemented
-as a c library. The user must translate its IVP into a pair of .c files that
-will then be compiled and linked against the TIDES library. The reulting binary
-will produce the desored output. The tools in this module can be used to
-automate the generation of these files from the symbolic expression of the
-differential equation.
+as a c library. The user must translate its initial value problem (IVP) into a
+pair of .c files that will then be compiled and linked against the TIDES
+library. The reulting binary will produce the desired output. The tools in this
+module can be used to automate the generation of these files from the symbolic
+expression of the differential equation.
 
 ##########################################################################
 #  Copyright (C) 2014 Miguel Marco <mmarco@unizar.es>, Marcos Rodriguez
@@ -45,25 +45,24 @@ import os
 from sage.calculus.all import symbolic_expression
 from sage.misc.flatten import flatten
 from sage.ext.fast_callable import fast_callable
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.rings.semirings.non_negative_integer_semiring', 'NN')
+from sage.rings.semirings.non_negative_integer_semiring import NN
 from sage.misc.functional import N
 from sage.functions.log import log
 from sage.functions.other import floor, sqrt
-from sage.functions.trig import sin, cos, arcsin, arctan, arccos
 
 
-def subexpressions_list(f, parameters=[]):
+
+def subexpressions_list(f, pars=None):
     """
     Construct the lists with the intermediate steps on the evaluation of the
     function.
 
     INPUT:
 
-    - ``f`` -- a symbollic function of several components.
+    - ``f`` -- a symbolic function of several components.
 
-    - ``paramters`` -- a list of the parameters that appear in the function
-    this should be the symbollic constants that appear in f but are not
+    - ``pars`` -- a list of the parameters that appear in the function
+    this should be the symbolic constants that appear in f but are not
     arguments.
 
     OTUPUT:
@@ -102,9 +101,47 @@ def subexpressions_list(f, parameters=[]):
         ([sin(a), cos(a), a^2, a^2 + 1, arctan(a)],
         [('sin', a), ('cos', a), ('mul', a, a), ('add', 1, a^2), ('atan', a)])
 
+    ::
+
+        sage: from sage.interfaces.tides import subexpressions_list
+        sage: var('s,b,r')
+        (s, b, r)
+        sage: f(t,x,y,z)= [s*(y-x),x*(r-z)-y,x*y-b*z]
+        sage: subexpressions_list(f,[s,b,r])
+        ([-y,
+        x - y,
+        s*(x - y),
+        -s*(x - y),
+        -z,
+        r - z,
+        (r - z)*x,
+        -y,
+        (r - z)*x - y,
+        x*y,
+        b*z,
+        -b*z,
+        x*y - b*z],
+        [('mul', -1, y),
+        ('add', -y, x),
+        ('mul', x - y, s),
+        ('mul', -1, s*(x - y)),
+        ('mul', -1, z),
+        ('add', -z, r),
+        ('mul', x, r - z),
+        ('mul', -1, y),
+        ('add', -y, (r - z)*x),
+        ('mul', y, x),
+        ('mul', z, b),
+        ('mul', -1, b*z),
+        ('add', -b*z, x*y)])
 
     """
+    from sage.functions.trig import sin, cos, arcsin, arctan, arccos
     variables = f[0].arguments()
+    if not pars:
+        parameters = []
+    else:
+        parameters = pars
     varpar = list(parameters) + list(variables)
     F = symbolic_expression([i(*variables) for i in f]).function(*varpar)
     lis = flatten([fast_callable(i,vars=varpar).op_list() for i in F], max_level=1)
@@ -590,7 +627,8 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
     - ``parameters`` -- the variables inside the function that should be treated
     as parameters.
 
-    - ``parameter_values`` -- the values of the parameters for the particular IVP
+    - ``parameter_values`` -- the values of the parameters for the particular
+    initial value problem.
 
     - ``dig`` -- the number of digits of precission that will be used in the integration
 

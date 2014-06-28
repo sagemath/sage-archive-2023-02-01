@@ -48,6 +48,7 @@ from sage.ext.fast_callable import fast_callable
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.semirings.non_negative_integer_semiring', 'NN')
 from sage.misc.functional import N
+from sage.functions.log import log
 from sage.functions.other import floor, sqrt
 from sage.functions.trig import sin, cos, arcsin, arctan, arccos
 
@@ -264,7 +265,7 @@ def remove_repeated(l1, l2):
 
     EXAMPLES::
 
-        from sage.interfaces.tides import subexpressions_list, remove_repeated
+        sage: from sage.interfaces.tides import (subexpressions_list, remove_repeated)
         sage: f(a)=[1 + a^2, arcsin(a)]
         sage: l1, l2 = subexpressions_list(f)
         sage: l1, l2
@@ -365,12 +366,9 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
         sage: var('t,x,y,X,Y')
         (t, x, y, X, Y)
         sage: f(t,x,y,X,Y)=[X, Y, -x/(x^2+y^2)^(3/2), -y/(x^2+y^2)^(3/2)]
-        sage: intfile = tempdir + '/integrator.c'
-        sage: drfile = tempdir + '/driver.c'
-        sage: shutil.rmtree(tempdir)
         sage: tempdir = mkdtemp()
-        sage: drfile = tempdir + '/driver.c'
         sage: intfile = tempdir + '/integrator.c'
+        sage: drfile = tempdir + '/driver.c'
         sage: genfiles_mintides(intfile, drfile, f, [1,0, 0, 0.2], 0, 10, 0.1, output = 'out')
         sage: fileint = open(intfile)
         sage: l = fileint.readlines()
@@ -526,25 +524,110 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
     code = res
 
 
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/seriesFile00.txt', integrator)
     outfile = open(integrator, 'a')
+    outfile.write('/****************************************************************************\n')
+    outfile.write('\tThis file has been created by SageTIDES (1.00)\n')
+    outfile.write('\n')
+    outfile.write('\tCopyright (C) 2010 A. Abad, R. Barrio, F. Blesa, M. Marco, M. Rodriguez\n')
+    outfile.write('\tGrupo de Mecanica Espacial\n')
+    outfile.write('\tUniversity of Zaragoza\n')
+    outfile.write('\tSPAIN\n')
+    outfile.write('\n')
+    outfile.write('\thttp://gme.unizar.es/software/tides\n')
+    outfile.write('\tContact: <tides@unizar.es>\n')
+    outfile.write('\n')
+    outfile.write('\tThis file is part of TIDES.\n')
+    outfile.write('\n')
+    outfile.write('\tTIDES is free software: you can redistribute it and/or modify\n')
+    outfile.write('\tit under the terms of the GNU General Public License as published by\n')
+    outfile.write('\tthe Free Software Foundation, either version 3 of the License, or\n')
+    outfile.write('\t(at your option) any later version.\n')
+    outfile.write('\n')
+    outfile.write('\tTIDES is distributed in the hope that it will be useful,\n')
+    outfile.write('\tbut WITHOUT ANY WARRANTY; without even the implied warranty of\n')
+    outfile.write('\tMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n')
+    outfile.write('\tGNU General Public License for more details.\n')
+    outfile.write('\n')
+    outfile.write('\tYou should have received a copy of the GNU General Public License\n')
+    outfile.write('\talong with TIDES.  If not, see <http://www.gnu.org/licenses/>.\n')
+    outfile.write('\n')
+    outfile.write('*****************************************************************************/\n')
+    outfile.write('\n')
+    outfile.write('\n')
+    outfile.write('\n')
+    outfile.write('#include "minc_tides.h"\n')
+    outfile.write('\n')
+    outfile.write('void    mincseries(double t,double *v, double *p, double **XVAR,int ORDER, int MO)\n')
+    outfile.write('{\n')
+    outfile.write('\tint VAR,PAR,TT,i,j, inext;\n')
+    outfile.write('\n')
     outfile.write("\tVAR = {};\n".format(n))
     outfile.write("\tPAR = {};\n".format(0))
     outfile.write("\tTT = {};\n".format(len(res)))
-    infile = open(SAGE_ROOT+'/src/sage/calculus/tides/seriesFile01.txt')
-    for i in infile:
-        outfile.write(i)
-    infile.close()
+
+    outfile.write('\tdouble XX[TT+1][MO+1];\n')
+    outfile.write('\n')
+    outfile.write('\tfor(j=0; j<=TT; j++)\n')
+    outfile.write('\t\tfor(i=0; i<=ORDER; i++)\n')
+    outfile.write('\t\t\tXX[j][i] = 0.e0;\n')
+    outfile.write('\tXX[0][0] = t;\n')
+    outfile.write('\tXX[0][1] = 1.e0;\n')
+    outfile.write('\tfor(i=1;i<=VAR;i++) {\n')
+    outfile.write('\t\tXX[i][0] = v[i-1];\n')
+    outfile.write('\t}\n')
+    outfile.write('\n')
+    outfile.write('\tfor(i=0;i<ORDER;i++) {\n')
+    outfile.write('\n')
+
     outfile.writelines(["\t\t"+i+"\n" for i in code])
 
-    infile = open(SAGE_ROOT+'/src/sage/calculus/tides/seriesFile02.txt')
-    for i in infile:
-        outfile.write(i)
-    outfile.close()
+    outfile.write('\t}\n')
+    outfile.write('\n')
+    outfile.write('\tfor(j=0; j<=VAR; j++)\n')
+    outfile.write('\t\tfor(i=0; i<=ORDER; i++)\n')
+    outfile.write('\t\t\tXVAR[i][j] = XX[j][i];\n')
+    outfile.write('}\n')
+    outfile.write('\n')
 
 
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/driverFile00.txt', driver)
     outfile = open(driver, 'a')
+
+    outfile.write('/****************************************************************************\n')
+    outfile.write('    Driver file of the minc_tides program\n')
+    outfile.write('    This file has been created by SageTIDES\n')
+    outfile.write('\n')
+    outfile.write('    Copyright (C) 2010 A. Abad, R. Barrio, F. Blesa, M. Rodriguez\n')
+    outfile.write('    Grupo de Mecanica Espacial\n')
+    outfile.write('    University of Zaragoza\n')
+    outfile.write('    SPAIN\n')
+    outfile.write('\n')
+    outfile.write('    http://gme.unizar.es/software/tides\n')
+    outfile.write('    Contact: <tides@unizar.es>\n')
+    outfile.write('\n')
+    outfile.write('    This file is part of TIDES.\n')
+    outfile.write('\n')
+    outfile.write('    TIDES is free software: you can redistribute it and/or modify\n')
+    outfile.write('    it under the terms of the GNU General Public License as published by\n')
+    outfile.write('    the Free Software Foundation, either version 3 of the License, or\n')
+    outfile.write('    (at your option) any later version.\n')
+    outfile.write('\n')
+    outfile.write('    TIDES is distributed in the hope that it will be useful,\n')
+    outfile.write('    but WITHOUT ANY WARRANTY; without even the implied warranty of\n')
+    outfile.write('    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n')
+    outfile.write('    GNU General Public License for more details.\n')
+    outfile.write('\n')
+    outfile.write('    You should have received a copy of the GNU General Public License\n')
+    outfile.write('    along with TIDES.  If not, see <http://www.gnu.org/licenses/>.\n')
+    outfile.write('\n')
+    outfile.write('*****************************************************************************/\n')
+    outfile.write('\n')
+    outfile.write('#include "minc_tides.h"\n')
+    outfile.write('\n')
+    outfile.write('int main() {\n')
+    outfile.write('\n')
+    outfile.write('    int  i, VARS, PARS; ')
+
+
     outfile.write('\n\tVARS = {} ;\n'.format(n-1))
     outfile.write('\tPARS = 1;\n')
     outfile.write('\tdouble tolrel, tolabs, tini, tend, dt; \n')
@@ -610,9 +693,6 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
         sage: var('t,x,y,X,Y')
         (t, x, y, X, Y)
         sage: f(t,x,y,X,Y)=[X, Y, -x/(x^2+y^2)^(3/2), -y/(x^2+y^2)^(3/2)]
-        sage:     intfile = tempdir + '/integrator.c'
-        sage:     drfile = tempdir + '/driver.c'
-        sage: shutil.rmtree(tempdir)
         sage: tempdir = mkdtemp()
         sage: drfile = tempdir + '/driver.c'
         sage: intfile = tempdir + '/integrator.c'
@@ -620,72 +700,15 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
         sage: fileint = open(intfile)
         sage: l = fileint.readlines()
         sage: fileint.close()
-        sage: filter(lambda a: len(a)>2, l[28:])
-        ['#include "mp_tides.h"\n',
-        'long  function_iteration(iteration_data *itd, mpfr_t t, mpfr_t v[], mpfr_t p[], int ORDER, mpfr_t *cvfd)\n',
-        '\tint i;\n',
-        '    int NCONST = 0;\n',
-        '    mpfr_t ct[0];\n',
-        '\tstatic int VARIABLES = 4;\n',
-        '\tstatic int PARAMETERS = 0;\n',
-        '\tstatic int LINKS = 9;\n',
-        '\tstatic int   FUNCTIONS        = 0;\n',
-        '\tstatic int   POS_FUNCTIONS[1] = {0};\n',
-        '\tinitialize_mp_case();\n',
-        '\tfor(i=0;  i<=ORDER; i++) {\n',
-        '\t\tmpfrts_var_t(itd, var[3], var[1], i);\n',
-        '\t\tmpfrts_var_t(itd, var[4], var[2], i);\n',
-        '\t\tmpfrts_var_t(itd, link[5], var[3], i);\n',
-        '\t\tmpfrts_var_t(itd, link[7], var[4], i);\n',
-        '\t\tmpfrts_mul_t(itd, var[1], var[1], link[0], i);\n',
-        '\t\tmpfrts_mul_t(itd, var[2], var[2], link[1], i);\n',
-        '\t\tmpfrts_add_t(itd, link[1], link[0], link[2], i);\n',
-        '\t\tmpfrts_pow_t_c(itd, link[2], "-1.5000000000000000000000000000000000000000000000000", link[3], i);\n',
-        '\t\tmpfrts_mul_t(itd, var[1], link[3], link[4], i);\n',
-        '\t\tmpfrts_mul_t_c(itd, "-1.0000000000000000000000000000000000000000000000000", link[4], link[5], i);\n',
-        '\t\tmpfrts_mul_t(itd, var[2], link[3], link[6], i);\n',
-        '\t\tmpfrts_mul_t_c(itd, "-1.0000000000000000000000000000000000000000000000000", link[6], link[7], i);\n',
-        '\t}\n',
-        '\twrite_mp_solution();\n',
-        '\tclear_vpl();\n',
-        '\tclear_cts();\n',
+        sage: l[56]
+        '\t\tmpfrts_add_t(itd, link[1], link[0], link[2], i);\n'
         sage: filedr = open(drfile)
         sage: l = filedr.readlines()
         sage: filedr.close()
-        sage: filter(lambda a: len(a)>2, l[28:])
-        ['    #include "mpfr.h"\n',
-        '    #include "mp_tides.h"\n',
-        '    long  function_iteration(iteration_data *itd, mpfr_t t, mpfr_t v[], mpfr_t p[], int ORDER, mpfr_t *cvfd);\n',
-        '    int main() {\n',
-        '        int i;\n',
-        '\tint nfun = 0;\n',
-        '\tset_precision_digits(50);\n',
-        '\tint npar = 0;\n',
-        '\tmpfr_t p[npar];\n',
-        '\tfor(i=0; i<npar; i++) mpfr_init2(p[i], TIDES_PREC);\n',
-        '\tint nvar = 4;\n',
-        '\tmpfr_t v[nvar];\n',
-        '\tfor(i=0; i<nvar; i++) mpfr_init2(v[i], TIDES_PREC);\n',
-        '\tmpfr_set_str(v[0], "1.0000000000000000000000000000000000000000000000000", 10, TIDES_RND);\n',
-        '\tmpfr_set_str(v[1], "0.00000000000000000000000000000000000000000000000000", 10, TIDES_RND);\n',
-        '\tmpfr_set_str(v[2], "0.00000000000000000000000000000000000000000000000000", 10, TIDES_RND);\n',
-        '\tmpfr_set_str(v[3], "0.20000000000000000000000000000000000000000000000000", 10, TIDES_RND);\n',
-        '\tmpfr_t tolrel, tolabs;\n',
-        '\tmpfr_init2(tolrel, TIDES_PREC); \n',
-        '\tmpfr_init2(tolabs, TIDES_PREC); \n',
-        '\tmpfr_set_str(tolrel, "9.9999999999999997909778672403460356184111494084674e-17", 10, TIDES_RND);\n',
-        '\tmpfr_set_str(tolabs, "9.9999999999999997909778672403460356184111494084674e-17", 10, TIDES_RND);\n',
-        '\tmpfr_t tini, dt; \n',
-        '\tmpfr_init2(tini, TIDES_PREC); \n',
-        '\tmpfr_init2(dt, TIDES_PREC); \n',
-        '\tmpfr_set_str(tini, "0.00000000000000000000000000000000000000000000000000", 10, TIDES_RND);;\n',
-        '\tmpfr_set_str(dt, "0.10000000000000000000000000000000000000000000000000", 10, TIDES_RND);\n',
-        '\tint nipt = 100;\n',
-        '\tFILE* fd = fopen("out", "w");\n',
-        '\tmp_tides_delta(function_iteration, NULL, nvar, npar, nfun, v, p, tini, dt, nipt, tolrel, tolabs, NULL, fd);\n',
-        '\tfclose(fd);\n',
-        '\treturn 0;\n']
-        '\treturn NUM_COLUMNS;\n']
+        sage: l[45]
+        '\tfor(i=0; i<nvar; i++) mpfr_init2(v[i], TIDES_PREC);\n'
+        sage: l[56]
+        '\tmpfr_init2(tini, TIDES_PREC); \n'
         sage: shutil.rmtree(tempdir)
 
 
@@ -793,8 +816,52 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
     VAR = n-1
     PAR = len(parameters)
     TT =  len(code)+1-VAR
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/seriesFileMP00.txt', integrator)
+
     outfile = open(integrator, 'a')
+
+
+    outfile.write('/****************************************************************************\n')
+    outfile.write('\tThis file has been created by SageTIDES (1.0)\n')
+    outfile.write('\n')
+    outfile.write('\tCopyright (C) 2010 A. Abad, R. Barrio, F. Blesa, M. Rodriguez\n')
+    outfile.write('\tGrupo de Mecanica Espacial\n')
+    outfile.write('\tUniversity of Zaragoza\n')
+    outfile.write('\tSPAIN\n')
+    outfile.write('\n')
+    outfile.write('\thttp://gme.unizar.es/software/tides\n')
+    outfile.write('\tContact: <tides@unizar.es>\n')
+    outfile.write('\n')
+    outfile.write('\tThis file is part of TIDES.\n')
+    outfile.write('\n')
+    outfile.write('\tTIDES is free software: you can redistribute it and/or modify\n')
+    outfile.write('\tit under the terms of the GNU General Public License as published by\n')
+    outfile.write('\tthe Free Software Foundation, either version 3 of the License, or\n')
+    outfile.write('\t(at your option) any later version.\n')
+    outfile.write('\n')
+    outfile.write('\tTIDES is distributed in the hope that it will be useful,\n')
+    outfile.write('\tbut WITHOUT ANY WARRANTY; without even the implied warranty of\n')
+    outfile.write('\tMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n')
+    outfile.write('\tGNU General Public License for more details.\n')
+    outfile.write('\n')
+    outfile.write('\tYou should have received a copy of the GNU General Public License\n')
+    outfile.write('\talong with TIDES.  If not, see <http://www.gnu.org/licenses/>.\n')
+    outfile.write('\n')
+    outfile.write('*****************************************************************************/\n')
+    outfile.write('\n')
+    outfile.write('#include "mp_tides.h"\n')
+    outfile.write('\n')
+    outfile.write('\n')
+    outfile.write('\n')
+    outfile.write('long  function_iteration(iteration_data *itd, mpfr_t t, mpfr_t v[], mpfr_t p[], int ORDER, mpfr_t *cvfd)\n')
+    outfile.write('{\n')
+    outfile.write('\n')
+    outfile.write('\tint i;\n')
+    outfile.write('    int NCONST = 0;\n')
+    outfile.write('    mpfr_t ct[0];\n')
+    outfile.write('\n')
+    outfile.write('\n')
+
+
     outfile.write("\n\tstatic int VARIABLES = {};\n".format(VAR))
     outfile.write("\tstatic int PARAMETERS = {};\n".format(PAR))
     outfile.write("\tstatic int LINKS = {};\n".format(TT))
@@ -810,9 +877,49 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
     outfile.write('\treturn NUM_COLUMNS;\n}')
     outfile.close()
 
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/driverFileMP00.txt', driver)
+
     npar = len(parameter_values)
     outfile = open(driver, 'a')
+
+    outfile.write('/****************************************************************************\n')
+    outfile.write('Driver file of the mp_tides program\n')
+    outfile.write('This file has been created by SageTIDES (1.0)\n')
+    outfile.write('\n')
+    outfile.write('    Copyright (C) 2010 A. Abad, R. Barrio, F. Blesa, M. Rodriguez\n')
+    outfile.write('    Grupo de Mecanica Espacial\n')
+    outfile.write('    University of Zaragoza\n')
+    outfile.write('    SPAIN\n')
+    outfile.write('\n')
+    outfile.write('    http://gme.unizar.es/software/tides\n')
+    outfile.write('    Contact: <tides@unizar.es>\n')
+    outfile.write('\n')
+    outfile.write('    This file is part of TIDES.\n')
+    outfile.write('\n')
+    outfile.write('    TIDES is free software: you can redistribute it and/or modify\n')
+    outfile.write('    it under the terms of the GNU General Public License as published by\n')
+    outfile.write('    the Free Software Foundation, either version 3 of the License, or\n')
+    outfile.write('    (at your option) any later version.\n')
+    outfile.write('\n')
+    outfile.write('    TIDES is distributed in the hope that it will be useful,\n')
+    outfile.write('    but WITHOUT ANY WARRANTY; without even the implied warranty of\n')
+    outfile.write('    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n')
+    outfile.write('    GNU General Public License for more details.\n')
+    outfile.write('\n')
+    outfile.write('    You should have received a copy of the GNU General Public License\n')
+    outfile.write('    along with TIDES.  If not, see <http://www.gnu.org/licenses/>.\n')
+    outfile.write('\n')
+    outfile.write('    *****************************************************************************/\n')
+    outfile.write('\n')
+    outfile.write('    #include "mpfr.h"\n')
+    outfile.write('    #include "mp_tides.h"\n')
+    outfile.write('    long  function_iteration(iteration_data *itd, mpfr_t t, mpfr_t v[], mpfr_t p[], int ORDER, mpfr_t *cvfd);\n')
+    outfile.write('\n')
+    outfile.write('    int main() {\n')
+    outfile.write('\n')
+    outfile.write('        int i;\n')
+    outfile.write('\n')
+    outfile.write('\n')
+
     outfile.write('\tint nfun = 0;\n')
     outfile.write('\tset_precision_digits({});'.format(dig))
     outfile.write('\n\tint npar = {};\n'.format(npar))

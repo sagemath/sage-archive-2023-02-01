@@ -503,7 +503,7 @@ cdef class CAElement(pAdicTemplateElement):
 
         INPUT:
 
-        - ``absprec`` -- an integer
+        - ``absprec`` -- an integer or infinity
 
         OUTPUT:
 
@@ -531,6 +531,8 @@ cdef class CAElement(pAdicTemplateElement):
 
         """
         cdef long aprec, newprec
+        if absprec is infinity:
+            return self
         if PY_TYPE_CHECK(absprec, int):
             aprec = absprec
         else:

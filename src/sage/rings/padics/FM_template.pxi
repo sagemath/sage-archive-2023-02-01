@@ -416,7 +416,7 @@ cdef class FMElement(pAdicTemplateElement):
 
         INPUT:
 
-        - ``absprec`` -- an integer
+        - ``absprec`` -- an integer or infinity
 
         OUTPUT:
 
@@ -441,6 +441,8 @@ cdef class FMElement(pAdicTemplateElement):
 
         """
         cdef long aprec
+        if absprec is infinity:
+            return self
         if PY_TYPE_CHECK(absprec, int):
             aprec = absprec
         else:

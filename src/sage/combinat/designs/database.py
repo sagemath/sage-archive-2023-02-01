@@ -3060,9 +3060,9 @@ def RBIBD_120_8_1():
 
     # A (precomputed) set that every block of the BIBD intersects on 0 or 2 points
     hyperoval = [128, 192, 194, 4, 262, 140, 175, 48, 81, 180, 245, 271, 119, 212, 249, 189, 62, 255]
-    for B in BIBD:
-        len_trace = len([x for x in B if x in hyperoval])
-        assert len_trace == 0 or len_trace == 2
+    #for B in BIBD:
+    #    len_trace = sum(x in hyperoval for x in B)
+    #    assert len_trace == 0 or len_trace == 2
 
     # Equivalence classes
     p = hyperoval[0]
@@ -3077,14 +3077,14 @@ def RBIBD_120_8_1():
 
     BIBD = new_BIBD
 
-    r = {v:i for i,v in enumerate([x for x in range(n) if x not in hyperoval])}
+    r = {v:i for i,v in enumerate(x for x in range(n) if x not in hyperoval)}
     BIBD  = [[r[x] for x in B] for B in BIBD ]
     equiv = [[r[x] for x in B] for B in equiv]
 
     BIBD = IncidenceStructure(range(255),BIBD)
-    Matrix = BIBD.incidence_matrix()
+    M = BIBD.incidence_matrix()
 
-    equiv = [[Matrix[x].dict().keys() for x in S] for S in equiv]
+    equiv = [[M.nonzero_positions_in_row(x) for x in S] for S in equiv]
     return [B for S in equiv for B in S]
 
 # Index of the BIBD constructions

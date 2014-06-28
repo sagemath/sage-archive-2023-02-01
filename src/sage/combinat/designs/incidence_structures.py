@@ -548,7 +548,8 @@ class IncidenceStructure(object):
     #####################
 
     def is_t_design(self, t=None, v=None, k=None, l=None, return_parameters=False):
-        """Test whether ``self`` is a ``t-(v,k,l)` design.
+        r"""
+        Test whether ``self`` is a `t-(v,k,l)` design.
 
         A `t-(v,k,\lambda)` (sometimes called `t`-design for short) is a block
         design in which:
@@ -571,7 +572,7 @@ class IncidenceStructure(object):
         EXAMPLES::
 
             sage: fano_blocks = [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]]
-            sage: BD = designs.BlockDesign(7, fano_blocks)
+            sage: BD = designs.IncidenceStructure(7, fano_blocks)
             sage: BD.is_t_design()
             True
             sage: BD.is_t_design(return_parameters=True)
@@ -667,8 +668,6 @@ class IncidenceStructure(object):
             sage: I = designs.IncidenceStructure(2, [[0],[0,1]])
             sage: I.is_t_design(return_parameters=True)
             (False, (0, 0, 0, 0))
-
-
         """
         from sage.rings.arith import binomial
 
@@ -714,7 +713,7 @@ class IncidenceStructure(object):
 
         # Handbook of combinatorial design theorem II.4.8:
         #
-        # a t-(v,k,l') is also a t'-(v,k,l')
+        # a t-(v,k,l) is also a t'-(v,k,l')
         # for t' < t and l' = l* binomial(v-t',t-t') / binomial(k-t',t-t')
         #
         # We look for the largest t such that self is a t-design
@@ -869,6 +868,7 @@ class IncidenceStructure(object):
 
     dual_design = deprecated_function_alias(16553, dual)
     dual_incidence_structure = deprecated_function_alias(16553, dual)
+    is_block_design = deprecated_function_alias(16553, is_t_design)
 
     def block_design_checker(self, t, v, k, lmbda, type=None):
         """

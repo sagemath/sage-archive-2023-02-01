@@ -858,3 +858,7 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_set_coeff_mpz(fmpz_poly_t poly, long n, mpz_t x)
 
     void fmpz_poly_get_coeff_mpz(mpz_t x,  fmpz_poly_t poly, long n)
+<<<<<<< HEAD
+=======
+>>>>>>> 3bda21c... cleanup of fmpz_t and fmpz_poly_t to avoid Cython warnings about referencing before assignment
+>>>>>>> cleanup of fmpz_t and fmpz_poly_t to avoid Cython warnings about referencing before assignment

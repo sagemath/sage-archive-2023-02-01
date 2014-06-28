@@ -685,14 +685,15 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
           If the distribution ``'mpz_rrandomb'`` is specified, the output is
           in the range from 0 to `2^x - 1`.
 
-          If the distribution ``'gaussian'`` is specified, the output is sampled
-          from a discrete Gaussian distribution with parameter sigma=x and centered
-          at zero. That is, the integer v is returned with probability proportional
-          to exp(-v^2/(2*sigma^2)). See :mod:`sage.stats.distributions.discrete_gaussian_integer` for details.
-          Note that if many samples from the same discrete Gaussian distribution
-          are needed, it is faster to construct a
-          :class:`sage.stats.distributions.discrete_gaussian_integer.DiscreteGaussianIntegerSampler` object
-          which is then repeatedly queried.
+          If the distribution ``'gaussian'`` is specified, the output is
+          sampled from a discrete Gaussian distribution with parameter
+          `\sigma=x` and centered at zero. That is, the integer `v` is returned
+          with probability proportional to `\mathrm{exp}(-v^2/(2\sigma^2))`.
+          See :mod:`sage.stats.distributions.discrete_gaussian_integer` for
+          details.  Note that if many samples from the same discrete Gaussian
+          distribution are needed, it is faster to construct a
+          :class:`sage.stats.distributions.discrete_gaussian_integer.DiscreteGaussianIntegerSampler`
+          object which is then repeatedly queried.
 
         The default distribution for ``ZZ.random_element()`` is based on
         `X = \mbox{trunc}(4/(5R))`, where `R` is a random

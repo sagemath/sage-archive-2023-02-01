@@ -45,6 +45,7 @@ AUTHORS:
 
 - Robert Marik (10-2009) - Some bugfixes and enhancements
 
+- Miguel Marco (06-2014) - Tides desolvers
 
 """
 
@@ -1572,7 +1573,7 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
     INPUT:
 
     - ``f`` -- symbolic function. Its first argument will be the independent
-    variable. Its output should be de derivatives of the deppendent variables.
+      variable. Its output should be de derivatives of the deppendent variables.
 
     - ``ics`` -- a list or tuple with the initial conditions.
 
@@ -1600,7 +1601,7 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
         (t, x, y, X, Y)
         sage: f(t,x,y,X,Y)=[X, Y, -x/(x^2+y^2)^(3/2), -y/(x^2+y^2)^(3/2)]
         sage: ics = [0.8, 0, 0, 1.22474487139159]
-        safe: t = 100*pi
+        sage: t = 100*pi
         sage: sol = desolve_mintides(f, ics, 0, t, t, 1e-12, 1e-12)  # abs rel 1e-5
         sage: sol
         [[0.000000000000000,
@@ -1617,16 +1618,17 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
 
     ALGORITHM:
 
-    Uses TIDES [ALG924]_ [TI]_.
+    Uses TIDES.
 
     REFERENCES:
 
-    .. [ALG924] A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
-    Transactions on Mathematical Software*, *39*(1), 1–28.
+    - A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
+      Transactions on Mathematical Software* , *39* (1), 1-28.
 
-    .. [TI](http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
-    A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
-    TIDES tutorial: Integrating ODEs by using the Taylor Series Method.
+    - (http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
+      A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
+      TIDES tutorial: Integrating ODEs by using the Taylor Series Method.
+
 
     """
 
@@ -1634,7 +1636,7 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
     if subprocess.call(['which','gcc'], stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         raise RuntimeError('Unable to run because gcc cannot be found')
     from sage.misc.misc import SAGE_ROOT
-    from sage.calculus.tides.file_generator import genfiles_mintides
+    from sage.interfaces.tides import genfiles_mintides
     tempdir = mkdtemp()
     intfile = tempdir + '/integrator.c'
     drfile = tempdir + '/driver.c'
@@ -1642,12 +1644,10 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
     runmefile = tempdir + '/runme'
 
 
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/minc_tides.c', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/minc_tides.h', tempdir)
     genfiles_mintides(intfile, drfile, f, map(N, ics), N(initial), N(final), N(delta), N(tolrel),
-                     tolabs, fileoutput)
+                     N(tolabs), fileoutput)
 
-    os.system('gcc -o ' + runmefile + ' ' + tempdir + '/*.c  -lm  -O2')
+    os.system('gcc -o ' + runmefile + ' ' + tempdir + '/*.c $SAGE_ROOT/local/lib/libTIDES.a -lm  -O2')
     os.system(tempdir+'/runme ')
     outfile = open(fileoutput)
     res = outfile.readlines()
@@ -1670,7 +1670,7 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     INPUT:
 
     - ``f`` -- symbolic function. Its first argument will be the independent
-    variable. Its output should be de derivatives of the deppendent variables.
+      variable. Its output should be de derivatives of the deppendent variables.
 
     - ``ics`` -- a list or tuple with the initial conditions.
 
@@ -1721,16 +1721,17 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
 
     ALGORITHM:
 
-    Uses TIDES [ALG924]_ [TI]_.
+    Uses TIDES.
 
     REFERENCES:
 
-    .. [ALG924] A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
-    Transactions on Mathematical Software*, *39*(1), 1–28.
+    .. A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
+       Transactions on Mathematical Software* , *39* (1), 1-28.
 
-    .. [TI](http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
-    A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
-    TIDES tutorial: Integrating ODEs by using the Taylor Series Method.
+    .. (http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
+       A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
+       TIDES tutorial: Integrating ODEs by using the Taylor Series Method.
+
 
     """
     import subprocess
@@ -1747,38 +1748,11 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     runmefile = tempdir + '/runme'
 
 
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mp_tides.h', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrEVENTS.c', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrPOL.c', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrNUM.c', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubTODE.c', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubPOL.c', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubEVENTS.c', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrITER.h', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubITER.c', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/dp_tides.h', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubTODE.h', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubNUM.c', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrNUM.h', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubITER.h', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/commonITER.c', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubEVENTS.h', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrITER.c', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrTODE.c', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrEVENTS.h', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrNUMdef.h', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrPOL.h', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubNUMdef.h', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubNUM.h', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/mpfrTODE.h', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/commonITER.h', tempdir)
-    shutil.copy(SAGE_ROOT+'/src/sage/calculus/tides/doubPOL.h', tempdir)
-
 
     genfiles_mpfr(intfile, drfile, f, ics, initial, final, delta, [], [],
                       digits, tolrel, tolabs, fileoutput)
 
-    os.system('gcc -o ' + runmefile + ' ' + tempdir + '/*.c  -lmpfr -lgmp -lm  -O2 -w')
+    os.system('gcc -o ' + runmefile + ' ' + tempdir + '/*.c  $SAGE_ROOT/local/lib/libTIDES.a -lmpfr -lgmp -lm  -O2 -w')
     os.system(tempdir+'/runme ')
     outfile = open(fileoutput)
     res = outfile.readlines()

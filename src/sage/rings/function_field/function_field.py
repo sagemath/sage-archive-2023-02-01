@@ -538,6 +538,40 @@ class FunctionField_polymod(FunctionField):
         """
         return self._hash
 
+    def is_separable(self, base=None):
+        r"""
+        Return whether this is a separable extension of ``base``.
+
+        INPUT:
+
+        - ``base`` -- a function field from which this field has been created
+          as an extension or ``None`` (default: ``None``); if ``None``, then
+          return whether this is a separable extension over its base field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: L.is_separable()
+            False
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^3 - y)
+            sage: M.is_separable()
+            True
+            sage: M.is_separable(K)
+            False
+
+        """
+        if base is None:
+            base = self.base_field()
+        for k in self._intermediate_fields(base)[:-1]:
+            f = k.polynomial()
+            f /= f.leading_coefficient()
+            if not f.gcd(f.derivative()).is_one():
+                return False
+        return True
+
     def monic_integral_model(self, names=None):
         """
         Return a function field isomorphic to this field but which is an
@@ -1276,7 +1310,7 @@ class FunctionField_polymod(FunctionField):
 
         """
         from maps import FunctionFieldDerivation_separable
-        if self.polynomial().gcd(self.polynomial().derivative()).is_one():
+        if self.is_separable():
             return FunctionFieldDerivation_separable(self, self.base_ring().derivation())
         else:
             raise NotImplementedError("construction of separable models not implemented")
@@ -1737,7 +1771,7 @@ class FunctionField_polymod(FunctionField):
             t = self.hom([to_K(to_L(k.gen())) for k in self._intermediate_fields(self.rational_function_field())])
             return K, f, t
 
-        if self.polynomial().gcd(self.polynomial().derivative()).is_one():
+        if self.is_separable():
             # the model is already separable
             if names is None:
                 names = self.variable_name(), self.base_field().variable_name()
@@ -1751,7 +1785,7 @@ class FunctionField_polymod(FunctionField):
 
         L, from_L, to_L = self.monic_integral_model()
 
-        if L.polynomial().gcd(L.polynomial().derivative()).is_one():
+        if L.is_separable():
             # L is separable
             ret, ret_to_L, L_to_ret = L.change_variable_name(names)
             f = ret.hom([from_L(ret_to_L(ret.gen())), from_L(ret_to_L(ret.base_field().gen()))])

@@ -223,10 +223,10 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
         FunctionFieldDerivation.__init__(self, L)
 
         self._d = d
-        f = self.domain().polynomial()
-        if not f.gcd(f.derivative()).is_one():
+        if not L.is_separable():
             raise ValueError("L must be a separable extension of its base field.")
         x = self.domain().gen()
+        f = L.polynomial()
         self._gen_image = - f.map_coefficients(lambda c:d(c))(x) / f.derivative()(x)
 
     def _call_(self, x):

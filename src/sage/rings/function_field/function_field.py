@@ -1304,17 +1304,25 @@ class FunctionField_polymod(FunctionField):
 
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^3 - x)
-            sage: L.derivation()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: construction of separable models not implemented
+            sage: d = L.derivation(); d
+            Derivation map:
+                From: Function field in y defined by y^3 + 2*x
+                To:   Function field in y defined by y^3 + 2*x
+                Defn: y |--> 1
+                      x |--> 0
+            sage: d(x^2)
+            0
+            sage: d(y^2)
+            2*y
+            sage: d(x*y)
+            x
 
         """
-        from maps import FunctionFieldDerivation_separable
+        from maps import FunctionFieldDerivation_separable, FunctionFieldDerivation_inseparable
         if self.is_separable():
             return FunctionFieldDerivation_separable(self, self.base_ring().derivation())
         else:
-            raise NotImplementedError("construction of separable models not implemented")
+            return FunctionFieldDerivation_inseparable(self)
 
     def _simple_model(self, name='v'):
         r"""

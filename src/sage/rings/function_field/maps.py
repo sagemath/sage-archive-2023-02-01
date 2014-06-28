@@ -305,6 +305,117 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
         else:
             return ret
 
+class FunctionFieldDerivation_inseparable(FunctionFieldDerivation):
+    r"""
+    A generator of the space of derivations on ``L``.
+
+    INPUT:
+
+    - ``L`` -- a function field which is an inseparable extension of its base
+      field.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(GF(2))
+        sage: R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 - x)
+        sage: d = L.derivation()
+
+    This also works for iterated non-monic extensions::
+
+        sage: K.<x> = FunctionField(GF(2))
+        sage: R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 - 1/x)
+        sage: R.<z> = L[]
+        sage: M.<z> = L.extension(z^2*y - x^3)
+        sage: M.derivation()
+        Derivation map:
+          From: Function field in z defined by y*z^2 + x^3
+          To:   Function field in z defined by y*z^2 + x^3
+          Defn: z |--> 1
+                y |--> 0
+                x |--> 0
+
+    """
+    def __init__(self, L):
+        r"""
+        Initialization.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(3))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^3 - x)
+            sage: d = L.derivation() # indirect doctest
+            sage: type(d)
+            <class 'sage.rings.function_field.maps.FunctionFieldDerivation_inseparable'>
+
+        """
+        from function_field import is_FunctionField
+        if not is_FunctionField(L):
+            raise TypeError("L must be a function field")
+        FunctionFieldDerivation.__init__(self, L)
+
+        if L.is_separable():
+            raise ValueError("L must be an inseparable extension of its base field.")
+        M, self._f, self._t = L.separable_model()
+        self._d = M.derivation()
+
+    def _call_(self, x):
+        r"""
+        Evaluate the derivation on ``x``.
+
+        INPUT:
+
+        - ``x`` -- an element of the function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: d = L.derivation()
+            sage: d(x) # indirect doctest
+            0
+            sage: d(y)
+            1
+            sage: d(y^2)
+            0
+
+        """
+        if x.is_zero():
+            return self.codomain().zero()
+        return self._f(self._d(self._t(x)))
+
+    def _repr_defn(self):
+        r"""
+        Helper method to print this map.
+
+        TESTS::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: L.derivation() # indirect doctest
+            Derivation map:
+              From: Function field in y defined by y^2 + x
+              To:   Function field in y defined by y^2 + x
+              Defn: y |--> 1
+                    x |--> 0
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2 - y)
+            sage: M.derivation()
+            Derivation map:
+              From: Function field in z defined by z^2 + y
+              To:   Function field in z defined by z^2 + y
+              Defn: z |--> 1
+                    y |--> 0
+                    x |--> 0
+
+        """
+        ret = ["%s |--> %s"%(k.variable_name(), self(k.gen())) for k in self.domain()._intermediate_fields(self.domain().rational_function_field())]
+        return "\n".join(ret)
+
 class FunctionFieldIsomorphism(Morphism):
     r"""
     A base class for isomorphisms between function fields and

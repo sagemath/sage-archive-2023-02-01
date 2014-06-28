@@ -914,6 +914,27 @@ class PolynomialSequence_generic(Sequence_generic):
         from sage.libs.singular.groebner_strategy import GroebnerStrategy
         return GroebnerStrategy(self.ideal())
 
+    def maximal_degree(self):
+        """
+        Return the maximal degree of any polynomial in this sequence.
+
+        EXAMPLE::
+
+            sage: P.<x,y,z> = PolynomialRing(GF(7))
+            sage: F = Sequence([x*y + x, x])
+            sage: F.maximal_degree()
+            2
+            sage: P.<x,y,z> = PolynomialRing(GF(7))
+            sage: F = Sequence([], universe=P)
+            sage: F.maximal_degree()
+            -1
+
+        """
+        try:
+            return max(f.degree() for f in self)
+        except ValueError:
+            return -1 # empty sequence
+
     def __reduce__(self):
         """
         TESTS::

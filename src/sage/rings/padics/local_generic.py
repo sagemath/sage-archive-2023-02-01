@@ -548,7 +548,15 @@ class LocalGeneric(CommutativeRing):
         tester.assertEqual(self.residue_field().characteristic(), self.residue_characteristic())
 
         for x in tester.some_elements():
+            errors = []
+            if x.precision_absolute() <= 0:
+                from precision_error import PrecisionError
+                errors.append(PrecisionError)
             if x.valuation() < 0:
+                errors.append(ValueError)
+            if errors:
+                with tester.assertRaises(tuple(errors)):
+                    x.residue()
                 continue
             y = x.residue()
             # residue() is in `Z/pZ` which is not identical to the residue field `F_p`

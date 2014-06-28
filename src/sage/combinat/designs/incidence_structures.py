@@ -74,8 +74,8 @@ class IncidenceStructure(object):
 
     INPUT:
 
-    - ``points`` -- the underlying set. If it is an integer `v`, then the set is
-      considered to be `\{0, ..., v-1\}`.
+    - ``points`` -- the underlying set. If ``points`` is an integer `v`, then
+      the set is considered to be `\{0, ..., v-1\}`.
 
     - ``blocks`` -- the blocks (might be any iterable)
 
@@ -87,12 +87,14 @@ class IncidenceStructure(object):
 
     - ``copy`` -- (use with caution) if set to ``False`` then ``blocks`` must be
       a list of lists of integers. The list will not be copied but will be
-      modified (each block is sorted, and the whole list is sorted).
+      modified in place (each block is sorted, and the whole list is
+      sorted). Your ``blocks`` object will become the
+      :class:`IncidenceStructure` instance's internal data.
 
     EXAMPLES:
 
-    An incidence structure can be constructed by giving the number of points and the list of
-    blocks::
+    An incidence structure can be constructed by giving the number of points and
+    the list of blocks::
 
         sage: designs.IncidenceStructure(7, [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
         Incidence structure with 7 points and 7 blocks
@@ -104,7 +106,7 @@ class IncidenceStructure(object):
         sage: designs.IncidenceStructure(m)
         Incidence structure with 4 points and 3 blocks
 
-    The points need not be consecutive integers::
+    The points can be any (hashable) object::
 
         sage: V = [(0,'a'),(0,'b'),(1,'a'),(1,'b')]
         sage: B = [(V[0],V[1],V[2]), (V[1],V[2]), (V[0],V[2])]
@@ -114,8 +116,8 @@ class IncidenceStructure(object):
         sage: I.blocks()
         [[(0, 'a'), (0, 'b'), (1, 'a')], [(0, 'a'), (1, 'a')], [(0, 'b'), (1, 'a')]]
 
-    The order of the points and blocks do not matter as they are sorted on input
-    (see :trac:`11333`)::
+    The order of the points and blocks does not matter as they are sorted on
+    input (see :trac:`11333`)::
 
         sage: A = designs.IncidenceStructure([0,1,2], [[0],[0,2]])
         sage: B = designs.IncidenceStructure([1,0,2], [[0],[2,0]])
@@ -127,7 +129,7 @@ class IncidenceStructure(object):
         sage: C == D
         True
 
-    If you care for speed, you can set ``copy`` to ``True``, but in that
+    If you care for speed, you can set ``copy`` to ``False``, but in that
     case, your input must be a list of lists and the ground set must be `{0,
     ..., v-1}`::
 
@@ -144,7 +146,7 @@ class IncidenceStructure(object):
             sage: designs.IncidenceStructure(3, [[4]])
             Traceback (most recent call last):
             ...
-            ValueError: Block [4] not contained in the points
+            ValueError: Block [4] is not contained in the point set
 
             sage: designs.IncidenceStructure(3, [[0,1],[0,2]], test=True)
             doctest:...: DeprecationWarning: the keyword test is deprecated,
@@ -206,7 +208,7 @@ class IncidenceStructure(object):
             if check:
                 for block in blocks:
                     if any(x not in self._points for x in block):
-                        raise ValueError("Block {} not contained in the points".format(block))
+                        raise ValueError("Block {} is not contained in the point set".format(block))
                     if len(block) != len(set(block)):
                         raise ValueError("Repeated element in block {}".format(block))
 
@@ -218,8 +220,8 @@ class IncidenceStructure(object):
                 blocks = [sorted(block) for block in blocks]
             else:
                 # sort the data but avoid copying it
-                for i in xrange(len(blocks)):
-                    blocks[i].sort()
+                for b in blocks:
+                    b.sort()
 
             blocks.sort()
             self._blocks = blocks
@@ -284,10 +286,7 @@ class IncidenceStructure(object):
 
     def __eq__(self, other):
         """
-        Returns true if their points and blocks are equal (and in the same
-        order).
-
-        We are extra careful in this method since not everything can be sorted!
+        Tests is the two incidence structures are equal
 
         TESTS::
 
@@ -310,6 +309,8 @@ class IncidenceStructure(object):
             sage: I1 == I2 and I2 == I1 and I1 == I3 and I3 == I1 and I2 == I3 and I3 == I2
             True
         """
+        # We are extra careful in this method since we cannot assume that a
+        # total order is defined on the point set.
         if not isinstance(other, IncidenceStructure):
             return False
 
@@ -345,6 +346,12 @@ class IncidenceStructure(object):
     def points(self, copy=True):
         r"""
         Return the list of points.
+
+        INPUT:
+
+        - ``copy`` (boolean) -- ``True`` by default. When set to ``False``, a
+          pointer toward the object's internal data is given. Set it to
+          ``False`` only if you know what you are doing.
 
         EXAMPLES::
 
@@ -384,11 +391,13 @@ class IncidenceStructure(object):
         return len(self._blocks)
 
     def blocks(self, copy=True):
-        """
-        Return the list of blocks.
+        """Return the list of blocks.
 
-        If ``copy`` is set to ``False`` then the output must not be modified as
-        it is a pointer to the internal list of this design.
+        INPUT:
+
+        - ``copy`` (boolean) -- ``True`` by default. When set to ``False``, a
+          pointer toward the object's internal data is given. Set it to
+          ``False`` only if you know what you are doing.
 
         EXAMPLES::
 
@@ -402,6 +411,7 @@ class IncidenceStructure(object):
             sage: del blocks[0:6]
             sage: BD
             Incidence structure with 7 points and 1 blocks
+
         """
         if self._point_to_index is None:
             if copy:
@@ -551,11 +561,12 @@ class IncidenceStructure(object):
 
         - ``t,v,k,l`` (integers) -- their value is set to ``None`` by
           default. The function tests whether the design is a ``t-(v,k,l)``
-          design using the provided values. Note that `l`` cannot be specified
-          if ``t`` is not
+          design using the provided values and guesses the others. Note that
+          `l`` cannot be specified if ``t`` is not.
 
-        - ``return_parameters`` (boolean)-- whether to return the parameters of the
-          `t`-design
+        - ``return_parameters`` (boolean)-- whether to return the parameters of
+          the `t`-design. If set to ``True``, the function returns a pair
+          ``(boolean_answer,(t,v,k,l))``.
 
         EXAMPLES::
 

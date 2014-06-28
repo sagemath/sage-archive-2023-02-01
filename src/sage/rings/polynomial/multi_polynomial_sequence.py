@@ -995,6 +995,21 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: R
             [a + b + d, c + d]
 
+
+        If the input system is detected to be inconsistent then [1] is returned
+        and the list of reductors is empty::
+
+            sage: R.<x,y,z> = BooleanPolynomialRing()
+            sage: S = Sequence([x*y*z+x*y+z*y+x*z, x+y+z+1, x+y+z])
+            sage: S.eliminate_linear_variables()
+            [1]
+
+            sage: R.<x,y,z> = BooleanPolynomialRing()
+            sage: S = Sequence([x*y*z+x*y+z*y+x*z, x+y+z+1, x+y+z])
+            sage: S.eliminate_linear_variables(return_reductors=True)
+            ([1], [])
+
+
         TESTS:
 
         The function should really dispose of linear equations (:trac:`13968`)::
@@ -1019,19 +1034,12 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: f = a*d + a + b*d + c*d + 1
             sage: Sequence([f, a + b*c + c+d + 1]).eliminate_linear_variables()
             [a*d + a + b*d + c*d + 1, a + b*c + c + d + 1]
-        
+
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: f = a*d + a + b*d + c*d + 1
             sage: Sequence([f, a + b*c + c+d + 1]).eliminate_linear_variables(use_polybori=True)
             [b*c*d + b*c + b*d + c + d]
 
-        This used to produce a SIGSEGV::
-        
-            sage: R.<x,y,z> = BooleanPolynomialRing()
-            sage: S = Sequence([x*y*z+x*y+z*y+x*z, x+y+z+1, x+y+z])
-            sage: S.eliminate_linear_variables()
-            [1]
-        
         .. NOTE::
 
             This is called "massaging" in [CBJ07]_.
@@ -1350,4 +1358,3 @@ class PolynomialSequence_gf2e(PolynomialSequence_generic):
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialSystem_generic", PolynomialSequence_generic)
 register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialRoundSystem_generic", PolynomialSequence_generic)
-

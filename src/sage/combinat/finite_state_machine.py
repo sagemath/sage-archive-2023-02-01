@@ -2240,7 +2240,7 @@ class FiniteStateMachine(SageObject):
         if hasattr(on_duplicate_transition, '__call__'):
             self.on_duplicate_transition=on_duplicate_transition
         else:
-            raise TypeError, 'on_duplicate_transition must be callable'
+            raise TypeError('on_duplicate_transition must be callable')
 
         if data is None:
             pass

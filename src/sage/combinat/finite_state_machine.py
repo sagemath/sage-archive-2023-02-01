@@ -571,7 +571,7 @@ from copy import copy
 from copy import deepcopy
 
 import itertools
-from itertools import imap, ifilter
+from itertools import imap
 from collections import defaultdict
 
 
@@ -5070,15 +5070,24 @@ class FiniteStateMachine(SageObject):
             ....:               initial_states=[0])
             sage: F.accessible_components()
             Automaton with 1 states
+
+        TESTS:
+
+        Check whether input of length > 1 works::
+
+            sage: F = Automaton([(0, 1, [0, 1]), (0, 2, 0)],
+            ....:               initial_states=[0])
+            sage: F.accessible_components()
+            Automaton with 3 states
         """
         if len(self.initial_states()) == 0:
             return deepcopy(self)
 
         memo = {}
-        def accessible(sf, read):
-            trans = [x for x in self.transitions(sf) if x.word_in[0] == read]
-            return map(lambda x: (deepcopy(x.to_state, memo), x.word_out),
-                       trans)
+        def accessible(from_state, read):
+            return [(deepcopy(x.to_state, memo), x.word_out)
+                    for x in self.iter_transitions(from_state)
+                    if x.word_in[0] == read]
 
         new_initial_states=map(lambda x: deepcopy(x, memo),
                                self.initial_states())
@@ -5886,9 +5895,9 @@ class FiniteStateMachine(SageObject):
         """
         DG = self.digraph()
         condensation = DG.strongly_connected_components_digraph()
-        final_labels = [v for v in condensation.vertices() if condensation.out_degree(v) == 0]
         return [self.induced_sub_finite_state_machine(map(self.state, component))
-                for component in final_labels]
+                for component in condensation.vertices()
+                if condensation.out_degree(component) == 0]
 
 
     # *************************************************************************

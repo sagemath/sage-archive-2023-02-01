@@ -813,7 +813,7 @@ def construction_q_x(k,q,x,check=True):
         sage: from sage.combinat.designs.orthogonal_arrays_recursive import construction_q_x
         sage: _ = construction_q_x(9,16,6)
 
-    REFERENCES::
+    REFERENCES:
 
     .. [Greig99] Designs from projective planes and PBD bases
       Malcolm Greig

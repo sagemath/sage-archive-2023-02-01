@@ -1289,6 +1289,7 @@ class FunctionField_polymod(FunctionField):
                 From: Function field in y defined by y^2 + 2*x
                 To:   Function field in y defined by y^2 + 2*x
                 Defn: y |--> 2/x*y
+                      x |--> 1
             sage: d(x)
             1
             sage: d(x^3)
@@ -2417,6 +2418,7 @@ class RationalFunctionField(FunctionField):
             Derivation map:
               From: Rational function field in x over Finite Field of size 3
               To:   Rational function field in x over Finite Field of size 3
+              Defn: x |--> 1
 
         TESTS::
 

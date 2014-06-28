@@ -180,6 +180,22 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
         else:
             return self._u * self.codomain()( numerator / g**2 )
 
+    def _repr_defn(self):
+        r"""
+        Helper method to print this map.
+
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: K.derivation()
+            Derivation map:
+              From: Rational function field in x over Rational Field
+              To:   Rational function field in x over Rational Field
+              Defn: x |--> 1
+
+        """
+        return "%s |--> %s"%(self.domain().variable_name(), self(self.domain().gen()))
+
 class FunctionFieldDerivation_separable(FunctionFieldDerivation):
     r"""
     The unique extension of the derivation ``d`` to ``L``.
@@ -270,20 +286,22 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
               From: Function field in y defined by y^2 - x
               To:   Function field in y defined by y^2 - x
               Defn: y |--> (-1/2/-x)*y
+                    x |--> 1
             sage: R.<z> = L[]
             sage: M.<z> = L.extension(z^2 - y)
             sage: M.derivation()
             Derivation map:
               From: Function field in z defined by z^2 - y
               To:   Function field in z defined by z^2 - y
-              Defn: y |--> (-1/2/-x)*y
-                    z |--> 1/4/x*z
+              Defn: z |--> 1/4/x*z
+                    y |--> (-1/2/-x)*y
+                    x |--> 1
 
         """
         base = self._d._repr_defn()
-        ret = "%s |--> %s"%(self.domain().gen(),self._gen_image)
+        ret = "%s |--> %s"%(self.domain().variable_name(),self._gen_image)
         if base:
-            return base + "\n" + ret
+            return ret + "\n" + base
         else:
             return ret
 

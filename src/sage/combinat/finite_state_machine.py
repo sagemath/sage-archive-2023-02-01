@@ -5,7 +5,67 @@ Finite State Machines, Automata, Transducers
 This module adds support for finite state machines, automata and
 transducers. See classes :class:`Automaton` and :class:`Transducer`
 (or the more general class :class:`FiniteStateMachine`) and the
-examples below for details creating one.
+:ref:`examples <finite_state_machine_examples>` below for
+details creating one.
+
+Contents
+========
+
+:class:`FiniteStateMachine`
+---------------------------
+
+Manipulation
+^^^^^^^^^^^^
+
+Operations
+^^^^^^^^^^
+
+Output
+^^^^^^
+
+:class:`Transducer`
+-------------------
+
+
+:class:`Automaton`
+-------------------
+
+:class:`FSMState`
+-----------------
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :attr:`~FSMState.final_word_out`|Final output of a state
+    :attr:`~FSMState.is_final`|Describes whether a state is final or not
+    :attr:`~FSMState.is_initial`|Describes whether a state is initial or not
+    :meth:`~FSMState.label`|Label of a state
+    :meth:`~FSMState.relabeled`|Returns a relabeled deep copy of a state
+
+
+Helper Functions
+----------------
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :func:`full_group_by` | Group iterable by values of some key
+    :func:`FSMLetterSymbol` | Returns a string associated to the input letter
+    :func:`FSMWordSymbol` | Returns a string associated to a word
+    :func:`is_FSMState` | Tests whether an object inherits from :class:`FSMState`
+    :func:`is_FSMTransition` | Tests whether an object inherits from :class:`FSMTransition`
+    :func:`is_FiniteStateMachine` | Tests whether an object inherits from :class:`FiniteStateMachine`
+    :func:`duplicate_transition_ignore` |  Default function for handling duplicate transitions
+    :func:`duplicate_transition_raise_error` | Raise error when inserting a duplicate transition
+    :func:`duplicate_transition_add_input` | Add input when inserting a duplicate transition
+
+
+
+.. _finite_state_machine_examples:
 
 Examples
 ========
@@ -547,6 +607,8 @@ ACKNOWLEDGEMENT:
 - Clemens Heuberger, Daniel Krenn and Sara Kropf are supported by the
   Austrian Science Fund (FWF): P 24644-N26.
 
+Methods
+=======
 """
 #*****************************************************************************
 # Copyright (C) 2012--2014 Clemens Heuberger <clemens.heuberger@aau.at>

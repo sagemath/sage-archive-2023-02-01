@@ -5259,33 +5259,6 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             r = cmp(self.groebner_basis(),other.groebner_basis())
         return r
 
-#     def __richcmp__(self, other, int op):
-#         """
-#         EXAMPLE::
-#             sage: sr = mq.SR(1, 1, 1, 4, gf2=True, polybori=True)
-#             sage: F,s = sr.polynomial_system()
-#             sage: I = F.ideal()
-#             sage: J = Ideal(I.interreduced_basis())
-#             sage: I == J
-#             True
-#             sage: J = Ideal(I.gens()[1:] + (I.gens()[0] + 1,))
-#             sage: I == J
-#             False
-#         """
-#         r = self.__cmp__(other)
-#         if op == 0:  #<
-#             return r  < 0
-#         elif op == 2: #==
-#             return r == 0
-#         elif op == 4: #>
-#             return r  > 0
-#         elif op == 1: #<=
-#             return r <= 0
-#         elif op == 3: #!=
-#             return r != 0
-#         elif op == 5: #>=
-#             return r >= 0
-
 ##
 #
 # Various internal constructors for boolean polynomials from various

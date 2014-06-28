@@ -5172,7 +5172,7 @@ class FiniteStateMachine(SageObject):
           as a list.
 
         - ``only_accessible_components`` -- If true (default), then
-          the result is piped through ``accessible_components``. If no
+          the result is piped through :meth:`.accessible_components`. If no
           ``new_input_alphabet`` is given, it is determined by
           :meth:`.determine_alphabets`.
 
@@ -7469,7 +7469,7 @@ class Automaton(FiniteStateMachine):
         - ``other`` -- an automaton
 
         - ``only_accessible_components`` -- If ``True`` (default), then
-          the result is piped through ``accessible_components``. If no
+          the result is piped through :meth:`.accessible_components`. If no
           ``new_input_alphabet`` is given, it is determined by
           :meth:`.determine_alphabets`.
 
@@ -8057,7 +8057,7 @@ class Transducer(FiniteStateMachine):
         - ``other`` -- a transducer
 
         - ``only_accessible_components`` -- If ``True`` (default), then
-          the result is piped through ``accessible_components``. If no
+          the result is piped through :meth:`.accessible_components`. If no
           ``new_input_alphabet`` is given, it is determined by
           :meth:`.determine_alphabets`.
 
@@ -8164,7 +8164,7 @@ class Transducer(FiniteStateMachine):
         - ``other`` - a finite state machine
 
         - ``only_accessible_components`` -- If ``True`` (default), then
-          the result is piped through ``accessible_components``. If no
+          the result is piped through :meth:`.accessible_components`. If no
           ``new_input_alphabet`` is given, it is determined by
           :meth:`.determine_alphabets`.
 
@@ -8183,8 +8183,8 @@ class Transducer(FiniteStateMachine):
         EXAMPLES:
 
         Originally a different output was constructed by
-        ``Transducer.cartesian_product``. This output is now produced by
-        ``Transducer.intersection``.
+        :meth:`Transducer.cartesian_product`. This output is now produced by
+        :meth:`Transducer.intersection`.
 
         ::
 

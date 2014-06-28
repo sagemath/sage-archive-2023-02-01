@@ -1744,7 +1744,7 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     if subprocess.call(['which','gcc'], stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         raise RuntimeError('Unable to run because gcc cannot be found')
     from sage.misc.misc import SAGE_ROOT
-    from sage.calculus.tides.file_generator import genfiles_mpfr
+    from sage.interfaces.tides import genfiles_mpfr
     from sage.functions.other import ceil
     from sage.functions.log import log
     tempdir = mkdtemp()

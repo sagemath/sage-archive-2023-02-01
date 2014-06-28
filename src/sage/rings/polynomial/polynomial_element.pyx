@@ -6034,10 +6034,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             NotImplementedError: Univariate Polynomial Ring in x over Rational Field does not provide an xgcd implementation for univariate polynomials
             sage: T.<x,y> = QQ[]
             sage: def poor_xgcd(f,g):
-            ...       ret = S(T(f).gcd(g))
-            ...       if ret == f: return ret,S.one(),S.zero()
-            ...       if ret == g: return ret,S.zero(),S.one()
-            ...       raise NotImplementedError
+            ....:     ret = S(T(f).gcd(g))
+            ....:     if ret == f: return ret,S.one(),S.zero()
+            ....:     if ret == g: return ret,S.zero(),S.one()
+            ....:     raise NotImplementedError
             sage: R._xgcd_univariate_polynomial = poor_xgcd
             sage: h1.xgcd(h2)
             (x*y, 1, 0)

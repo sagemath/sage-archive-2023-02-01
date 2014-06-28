@@ -12,12 +12,18 @@ EXAMPLES::
 
     sage: K.<x> = FunctionField(QQ); R.<y> = K[]
     sage: K.hom(1/x)
-    Morphism of function fields defined by x |--> 1/x
-    sage: L.<y> = K.extension(y^2 - x)
+    Function Field endomorphism of Rational function field in x over Rational Field
+      Defn: x |--> 1/x
+    sage: L.<y> = K.extension(y^2-x)
     sage: K.hom(y)
-    Morphism of function fields defined by x |--> y
+    Function Field morphism:
+      From: Rational function field in x over Rational Field
+      To:   Function field in y defined by y^2 - x
+      Defn: x |--> y
     sage: L.hom([y,x])
-    Morphism of function fields defined by y |--> y,  x |--> x
+    Function Field endomorphism of Function field in y defined by y^2 - x
+      Defn: y |--> y
+            x |--> x
     sage: L.hom([x,y])
     Traceback (most recent call last):
     ...
@@ -296,7 +302,8 @@ class FunctionFieldIsomorphism(Morphism):
     """
     def _repr_type(self):
         """
-        Return the type of this map (an isomorphism), for the purposes of printing out self.
+        Return the type of this map (an isomorphism), for the purposes of
+        printing this map.
 
         EXAMPLES::
 
@@ -366,16 +373,47 @@ class MapVectorSpaceToFunctionField(FunctionFieldIsomorphism):
 
     def _call_(self, v):
         """
+        Map ``v`` to the function field.
+
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
             sage: V, f, t = L.vector_space()
-            sage: f(x*V.0 + (1/x^3)*V.1)         # indirect doctest
+            sage: f(x*V.0 + (1/x^3)*V.1) # indirect doctest
             1/x^3*y + x
+
+        TESTS:
+
+        Test that this map is a bijection for some random inputs::
+
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^3 - y - x)
+            sage: for F in [K,L,M]:
+            ....:     for base in F._intermediate_fields(K):
+            ....:         V, f, t = F.vector_space(base)
+            ....:         for i in range(100):
+            ....:             a = F.random_element()
+            ....:             assert(f(t(a)) == a)
+
         """
-        f = self._R(self._V(v).list())
-        return self._K(f)
+        fields = self._K._intermediate_fields(self._V.base_field())
+        fields.pop()
+        degrees = [k.degree() for k in fields]
+        gens = [k.gen() for k in fields]
+
+        # construct the basis composed of powers of the generators of all the
+        # intermediate fields, i.e., 1, x, y, x*y, ...
+        from sage.misc.misc_c import prod
+        from itertools import product
+        exponents = product(*[range(d) for d in degrees])
+        basis = [prod(g**e for g,e in zip(gens,es)) for es in exponents]
+
+        # multiply the entries of v with the values in basis
+        coefficients = self._V(v).list()
+        ret = sum([c*b for (c,b) in zip(coefficients,basis)])
+        return self._K(ret)
 
     def domain(self):
         """
@@ -464,6 +502,9 @@ class MapFunctionFieldToVectorSpace(FunctionFieldIsomorphism):
 
     def _repr_type(self):
         """
+        Return the type of this map (an isomorphism), for the purposes of
+        printing this map.
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -476,18 +517,39 @@ class MapFunctionFieldToVectorSpace(FunctionFieldIsomorphism):
 
     def _call_(self, x):
         """
+        Map ``x`` to the vector space.
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
             sage: V, f, t = L.vector_space()
-            sage: t(x + (1/x^3)*y)                       # indirect doctest
+            sage: t(x + (1/x^3)*y) # indirect doctest
             (x, 1/x^3)
+
+        TESTS:
+
+        Test that this map is a bijection for some random inputs::
+
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^3 - y - x)
+            sage: for F in [K,L,M]:
+            ....:     for base in F._intermediate_fields(K):
+            ....:         V, f, t = F.vector_space(base)
+            ....:         for i in range(100):
+            ....:             a = V.random_element()
+            ....:             assert(t(f(a)) == a)
+
         """
-        y = self._K(x)
-        v = y.list()
-        w = v + [self._zero]*(self._n - len(v))
-        return self._V(w)
+        ret = [x]
+        fields = self._K._intermediate_fields(self._V.base_field())
+        fields.pop()
+        from itertools import chain
+        for k in fields:
+            ret = chain.from_iterable([y.list() for y in ret])
+        ret = list(ret)
+        assert all([t.parent() is self._V.base_field() for t in ret])
+        return self._V(ret)
 
 class FunctionFieldMorphism(RingHomomorphism):
     r"""
@@ -499,7 +561,8 @@ class FunctionFieldMorphism(RingHomomorphism):
 
             sage: K.<x> = FunctionField(QQ)
             sage: f = K.hom(1/x); f
-            Morphism of function fields defined by x |--> 1/x
+            Function Field endomorphism of Rational function field in x over Rational Field
+              Defn: x |--> 1/x
             sage: isinstance(f, sage.rings.function_field.maps.FunctionFieldMorphism)
             True
         """
@@ -516,37 +579,42 @@ class FunctionFieldMorphism(RingHomomorphism):
 
             sage: K.<x> = FunctionField(QQ)
             sage: f = K.hom(1/x); f
-            Morphism of function fields defined by x |--> 1/x
+            Function Field endomorphism of Rational function field in x over Rational Field
+              Defn: x |--> 1/x
             sage: f.is_injective()
             True
         """
         return True
 
-    def __repr__(self):
+    def _repr_type(self):
+        r"""
+        Return the type of this map (a morphism of function fields), for the
+        purposes of printing this map.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
+            sage: L.<y> = K.extension(y^3 + 6*x^3 + x)
+            sage: f = L.hom(y*2)
+            sage: f._repr_type()
+            'Function Field'
+
+        """
+        return "Function Field"
+
+    def _repr_defn(self):
         """
         EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
             sage: L.<y> = K.extension(y^3 + 6*x^3 + x)
             sage: f = L.hom(y*2)
-            sage: f.__repr__()
-            'Morphism of function fields defined by y |--> 2*y'
-        """
-        return "Morphism of function fields defined by %s"%self._short_repr()
-
-    def _short_repr(self):
-        """
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
-            sage: L.<y> = K.extension(y^3 + 6*x^3 + x)
-            sage: f = L.hom(y*2)
-            sage: f._short_repr()
+            sage: f._repr_defn()
             'y |--> 2*y'
         """
-        a = '%s |--> %s'%(self.domain().gen(), self._im_gen)
+        a = '%s |--> %s'%(self.domain().variable_name(), self._im_gen)
         if self._base_morphism is not None:
-            a += ',  ' + self._base_morphism._short_repr()
+            a += '\n' + self._base_morphism._repr_defn()
         return a
 
 class FunctionFieldMorphism_polymod(FunctionFieldMorphism):
@@ -558,7 +626,8 @@ class FunctionFieldMorphism_polymod(FunctionFieldMorphism):
         sage: K.<x> = FunctionField(QQ); R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x)
         sage: f = L.hom(-y); f
-        Morphism of function fields defined by y |--> -y
+        Function Field endomorphism of Function field in y defined by y^2 - x
+          Defn: y |--> -y
     """
     def __init__(self, parent, im_gen, base_morphism):
         """
@@ -567,7 +636,8 @@ class FunctionFieldMorphism_polymod(FunctionFieldMorphism):
             sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
             sage: L.<y> = K.extension(y^3 + 6*x^3 + x)
             sage: f = L.hom(y*2); f
-            Morphism of function fields defined by y |--> 2*y
+            Function Field endomorphism of Function field in y defined by y^3 + 6*x^3 + x
+              Defn: y |--> 2*y
             sage: type(f)
             <class 'sage.rings.function_field.maps.FunctionFieldMorphism_polymod'>
             sage: factor(L.polynomial())
@@ -610,7 +680,8 @@ class FunctionFieldMorphism_rational(FunctionFieldMorphism):
 
         sage: K.<x> = FunctionField(QQ)
         sage: f = K.hom(1/x); f
-        Morphism of function fields defined by x |--> 1/x
+        Function Field endomorphism of Rational function field in x over Rational Field
+          Defn: x |--> 1/x
     """
     def __init__(self, parent, im_gen):
         """
@@ -618,7 +689,8 @@ class FunctionFieldMorphism_rational(FunctionFieldMorphism):
 
             sage: K.<x> = FunctionField(GF(7))
             sage: f = K.hom(1/x); f
-            Morphism of function fields defined by x |--> 1/x
+            Function Field endomorphism of Rational function field in x over Finite Field of size 7
+              Defn: x |--> 1/x
             sage: type(f)
             <class 'sage.rings.function_field.maps.FunctionFieldMorphism_rational'>
         """
@@ -630,7 +702,8 @@ class FunctionFieldMorphism_rational(FunctionFieldMorphism):
 
             sage: K.<x> = FunctionField(GF(7))
             sage: f = K.hom(1/x); f
-            Morphism of function fields defined by x |--> 1/x
+            Function Field endomorphism of Rational function field in x over Finite Field of size 7
+              Defn: x |--> 1/x
             sage: f(x+1)                          # indirect doctest
             (x + 1)/x
             sage: 1/x + 1

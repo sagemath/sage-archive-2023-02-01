@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Discrete Gaussian Samplers over the Integers.
+"""
+Discrete Gaussian Samplers over the Integers.
 
 This class realizes oracles which returns integers proportionally to
 `\exp(-(x-c)^2/(2σ^2))`. All oracles are implemented using rejection
@@ -8,21 +9,63 @@ available.
 
 AUTHOR: Martin Albrecht <martinralbrecht+dgs@googlemail.com>
 
-EXAMPLE::
+EXAMPLE:
 
+We construct a sampler for the distribution `D_{3,c}` with width `σ=3` and center `c=0`::
+  
     sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
-    sage: sigma = 3.0; n=100000
+    sage: sigma = 3.0
     sage: D = DiscreteGaussianIntegerSampler(sigma=sigma)
-    sage: l = [D() for _ in xrange(n)]
-    sage: c = sum([exp(-x^2/(2*sigma^2)) for x in xrange(-6*sigma,sigma*6+1)]); c
+
+We ask for 100000 samples::
+
+    sage: n=100000; l = [D() for _ in xrange(n)]
+
+These are sampled with a probability proportional to `\exp(-x²/18)`. More
+precisely we have to normalise by dividing by the overall probability over all
+integers. We use the fact that hitting anything more than 6 standard deviations
+away is very unlikely and compute::
+    
+    sage: norm_factor = sum([exp(-x^2/(2*sigma^2)) for x in xrange(-6*sigma,sigma*6+1)])
+    sage: norm_factor
     7.519...
-    sage: x=0; l.count(x), ZZ(round(n*exp(-x^2/(2*sigma^2))/c))
+
+With this normalisation factor, we can now test if our samples follow the
+expected distribution::
+    
+    sage: x=0; l.count(x), ZZ(round(n*exp(-x^2/(2*sigma^2))/norm_factor))
     (13350, 13298)
-    sage: x=4; l.count(x), ZZ(round(n*exp(-x^2/(2*sigma^2))/c))
+    sage: x=4; l.count(x), ZZ(round(n*exp(-x^2/(2*sigma^2))/norm_factor))
     (5543, 5467)
-    sage: x=-10; l.count(x), ZZ(round(n*exp(-x^2/(2*sigma^2))/c))
+    sage: x=-10; l.count(x), ZZ(round(n*exp(-x^2/(2*sigma^2))/norm_factor))
     (46, 51)
 
+We construct an instance with a larger width::
+
+    sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+    sage: sigma = 127
+    sage: D = DiscreteGaussianIntegerSampler(sigma=sigma, algorithm='uniform+online')
+
+ask for 100000 samples::
+    
+    sage: n=100000; l = [D() for _ in xrange(n)]
+
+and check if the proportions fit::
+
+    sage: x=0;   y=1; float(l.count(x))/l.count(y), exp(-x^2/(2*sigma^2))/exp(-y^2/(2*sigma^2)).n()
+    (1.0, 1.00...)
+    sage: x=0; y=-100; float(l.count(x))/l.count(y), exp(-x^2/(2*sigma^2))/exp(-y^2/(2*sigma^2)).n()
+    (1.32..., 1.36...)
+
+We construct a sampler with `c%1 != 0`::
+
+    sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
+    sage: sigma = 3
+    sage: D = DiscreteGaussianIntegerSampler(sigma=sigma, c=1/2)
+    sage: n=100000; l = [D() for _ in xrange(n)]
+    sage: mean(l).n()
+    0.48678000000...
+    
 REFERENCES:
 
 .. [DDLL13] Léo Ducas, Alain Durmus, Tancrède Lepoint and Vadim
@@ -221,7 +264,6 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
 
         if tau < 1:
             raise ValueError("tau must be >= 1 but got %d"%tau)
-
             
         if algorithm is None:
             if sigma*tau <= DiscreteGaussianIntegerSampler.table_cutoff:
@@ -289,22 +331,22 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
             sage: f()
             sage: D = DiscreteGaussianIntegerSampler(30.0)
             sage: for i in range(16):
-            ...      print D(),
-            ...
+            ....:     print D(),
+            ....:
             21 23 37 6 -64 29 8 -22 -3 -10 7 -43 1 -29 25 38
             
             sage: f()
             sage: D = DiscreteGaussianIntegerSampler(30.0)
             sage: for i in range(16):
-            ...      f(); print D(),
-            ...
+            ....:     f(); print D(),
+            ....:
             21 21 21 21 -21 21 21 -21 -21 -21 21 -21 21 -21 21 21
             
             sage: f()
             sage: D = DiscreteGaussianIntegerSampler(30.0)
             sage: for i in range(16):
-            ...      f(); D._flush_cache(); print D(),
-            ...
+            ....:     f(); D._flush_cache(); print D(),
+            ....:
             21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21
         """
         if self._gen_mp:

@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <limits.h>
 
+/** SIGMA2 **/
+
 dgs_disc_gauss_sigma2p_t *dgs_disc_gauss_sigma2p_init() {
   dgs_disc_gauss_sigma2p_t *self = (dgs_disc_gauss_sigma2p_t*)calloc(sizeof(dgs_disc_gauss_sigma2p_t),1);
   if (!self) dgs_die("out of memory");
@@ -63,6 +65,7 @@ void dgs_disc_gauss_sigma2p_clear(dgs_disc_gauss_sigma2p_t *self) {
   free(self);
 }
 
+/** GENERAL SIGMA :: INIT **/
 
 static inline void _dgs_disc_gauss_mp_init_f(mpfr_t f, const mpfr_t sigma) {
   mpfr_init2(f, mpfr_get_prec(sigma));
@@ -82,12 +85,12 @@ static inline void _dgs_disc_gauss_mp_init_upper_bound(mpz_t upper_bound,
   mpz_init(upper_bound);
   mpz_init(upper_bound_minus_one);
   mpz_init(two_upper_bound_minus_one);
-  mpfr_mul_ui(tmp, sigma, tailcut, MPFR_RNDN);
-  mpfr_add_ui(tmp, tmp, 1, MPFR_RNDN);
-  mpfr_get_z(upper_bound, tmp, MPFR_RNDU);
-  mpz_sub_ui(upper_bound_minus_one, upper_bound, 1);
+  mpfr_mul_ui(tmp, sigma, tailcut, MPFR_RNDN); // tmp = σ·τ
+  mpfr_add_ui(tmp, tmp, 1, MPFR_RNDN); // tmp = σ·τ + 1
+  mpfr_get_z(upper_bound, tmp, MPFR_RNDU); // upper_bound = ⌈σ·τ + 1⌉
+  mpz_sub_ui(upper_bound_minus_one, upper_bound, 1); // upper_bound - 1 = ⌈σ·τ⌉
   mpz_mul_ui(two_upper_bound_minus_one, upper_bound, 2);
-  mpz_sub_ui(two_upper_bound_minus_one, two_upper_bound_minus_one, 1);
+  mpz_sub_ui(two_upper_bound_minus_one, two_upper_bound_minus_one, 1); // 2·upper_bound - 1
   mpfr_clear(tmp);
 }
 
@@ -109,7 +112,7 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
   mpfr_prec_t prec = mpfr_get_prec(sigma);
   if (mpfr_get_prec(c) > prec)
     prec = mpfr_get_prec(c);
-  
+
   dgs_disc_gauss_mp_t *self = (dgs_disc_gauss_mp_t*)calloc(sizeof(dgs_disc_gauss_mp_t),1);
   if (!self) dgs_die("out of memory");
 
@@ -117,7 +120,7 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
   mpz_init(self->x2);
   mpfr_init2(self->y, prec);
   mpfr_init2(self->z, prec);
-  
+
   mpfr_init2(self->sigma, prec);
   mpfr_set(self->sigma, sigma, MPFR_RNDN);
 
@@ -137,7 +140,7 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
                                         self->upper_bound_minus_one,
                                         self->two_upper_bound_minus_one,
                                         self->sigma, self->tau);
-    
+
     self->call = dgs_disc_gauss_mp_call_uniform_online;
     _dgs_disc_gauss_mp_init_f(self->f, self->sigma);
 
@@ -177,6 +180,7 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
       self->call = dgs_disc_gauss_mp_call_uniform_table_offset;
       if (mpz_cmp_ui(self->two_upper_bound_minus_one, ULONG_MAX/sizeof(mpfr_t)) > 0)
         dgs_die("integer overflow");
+      // we need a bigger table
       self->rho = (mpfr_t*)malloc(sizeof(mpfr_t)*mpz_get_ui(self->two_upper_bound_minus_one));
       if (!self->rho) dgs_die("out of memory");
 
@@ -208,7 +212,7 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
       free(self);
       dgs_die("algorithm DGS_DISC_GAUSS_UNIFORM_LOGTABLE requires c%1 == 0");
     }
-          
+
     _dgs_disc_gauss_mp_init_bexp(self, self->sigma, self->upper_bound);
    break;
   }
@@ -226,14 +230,14 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
 
     mpfr_t sigma2;
     mpfr_init2(sigma2, prec);
-    mpfr_set_ui(sigma2, 2, MPFR_RNDN);
-    mpfr_log(sigma2, sigma2, MPFR_RNDN);
-    mpfr_mul_ui(sigma2, sigma2, 2, MPFR_RNDN);
-    mpfr_ui_div(sigma2, 1, sigma2, MPFR_RNDN);
-    mpfr_sqrt(sigma2, sigma2, MPFR_RNDN);
+    mpfr_set_ui(sigma2, 2, MPFR_RNDN); // 2
+    mpfr_log(sigma2, sigma2, MPFR_RNDN); //log₂ 2
+    mpfr_mul_ui(sigma2, sigma2, 2, MPFR_RNDN); //2·log₂ 2
+    mpfr_ui_div(sigma2, 1, sigma2, MPFR_RNDN); //1/(2·log₂ 2)
+    mpfr_sqrt(sigma2, sigma2, MPFR_RNDN); //σ₂ = sqrt(1/(2·log₂ 2))
     mpfr_div(tmp, sigma, sigma2, MPFR_RNDN);
     mpfr_get_z(self->k, tmp, MPFR_RNDN);
-    mpfr_mul_z(self->sigma, sigma2, self->k, MPFR_RNDN);
+    mpfr_mul_z(self->sigma, sigma2, self->k, MPFR_RNDN); //k·σ₂
     mpfr_clear(tmp);
     mpfr_clear(sigma2);
 
@@ -247,13 +251,15 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
     self->D2 = dgs_disc_gauss_sigma2p_init();
     break;
   }
-    
+
   default:
     free(self);
     dgs_die("unknown algorithm %d", algorithm);
-  }  
+  }
   return self;
 }
+
+/** GENERAL SIGMA :: CALL **/
 
 void dgs_disc_gauss_mp_call_uniform_table(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state) {
   unsigned long x;
@@ -293,7 +299,7 @@ void dgs_disc_gauss_mp_call_uniform_online(mpz_t rop, dgs_disc_gauss_mp_t *self,
     mpfr_exp(self->z, self->z, MPFR_RNDN);
     mpfr_urandomb(self->y, state);
   } while (mpfr_cmp(self->y, self->z) >= 0);
-  
+
   mpz_set(rop, self->x);
   mpz_add(rop, rop, self->c_z);
 }
@@ -332,6 +338,8 @@ void dgs_disc_gauss_mp_call_sigma2_logtable(mpz_t rop, dgs_disc_gauss_mp_t *self
     mpz_neg(rop, rop);
   mpz_add(rop, rop, self->c_z);
 }
+
+/** GENERAL SIGMA :: CLEAR **/
 
 void dgs_disc_gauss_mp_clear(dgs_disc_gauss_mp_t *self) {
   mpfr_clear(self->sigma);

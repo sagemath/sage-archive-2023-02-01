@@ -14,9 +14,9 @@ dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, double c, size_t tau, 
     dgs_die("σ must be > 0");
   if (tau == 0)
     dgs_die("τ must be > 0");
-  
+
   size_t upper_bound;
-  
+
   dgs_disc_gauss_dp_t *self = (dgs_disc_gauss_dp_t*)calloc(sizeof(dgs_disc_gauss_dp_t),1);
   if (!self) dgs_die("out of memory");
 
@@ -25,7 +25,7 @@ dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, double c, size_t tau, 
   self->c_z = (long)c;
   self->c_r = self->c - ((double)self->c_z);
   self->tau = tau;
-  
+
   switch(algorithm) {
 
   case DGS_DISC_GAUSS_UNIFORM_ONLINE:
@@ -82,7 +82,7 @@ dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, double c, size_t tau, 
 
     _dgs_disc_gauss_dp_init_bexp(self, self->sigma, self->upper_bound);
    break;
- 
+
   case DGS_DISC_GAUSS_SIGMA2_LOGTABLE: {
     self->call = dgs_disc_gauss_dp_call_sigma2_logtable;
 
@@ -107,7 +107,7 @@ dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, double c, size_t tau, 
     self->D2 = dgs_disc_gauss_sigma2p_init();
     break;
   }
-    
+
   default:
     dgs_disc_gauss_dp_clear(self);
     dgs_die("unknown algorithm %d", algorithm);
@@ -190,6 +190,3 @@ void dgs_disc_gauss_dp_clear(dgs_disc_gauss_dp_t *self) {
   if (self->rho) free(self->rho);
   free(self);
 }
-
-
-

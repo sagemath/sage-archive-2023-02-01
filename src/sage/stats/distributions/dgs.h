@@ -1,6 +1,8 @@
 /**
  * \file dgs.h
  *
+ * \brief Discrete Gaussian Samplers over the Integers
+ *
  * \author Martin Albrecht <martinralbrecht+dgs@googlemail.com>
  */
 

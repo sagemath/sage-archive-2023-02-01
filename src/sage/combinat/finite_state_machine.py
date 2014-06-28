@@ -892,6 +892,22 @@ class FSMState(SageObject):
         sage: T.process([9, 9, 9, 9])
         (False, 3, ['a', 'b', 'c'])
     """
+
+    is_initial = False
+    """
+    Describes whethter the state is initial.
+
+    EXAMPLES::
+
+        sage: T = Automaton([(0,0,0)])
+        sage: T.initial_states()
+        []
+        sage: T.state(0).is_initial = True
+        sage: T.initial_states()
+        [0]
+    """
+
+
     def __init__(self, label, word_out=None,
                  is_initial=False, is_final=False, final_word_out=None,
                  hook=None, color=None, allow_label_None=False):

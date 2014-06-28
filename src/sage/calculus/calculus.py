@@ -1692,7 +1692,8 @@ _inverse_laplace = function_factory('ilt',
 
 #######################################################
 
-symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma'}
+symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',
+            'e':'_e', 'i':'_i', 'I':'_I'}
 
 import re
 
@@ -1700,7 +1701,7 @@ maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")
 
 maxima_qp = re.compile("\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
 
-maxima_var = re.compile("\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
+maxima_var = re.compile("[a-z|A-Z|0-9|_\%]*")  # e.g., %jacobi_cd
 
 sci_not = re.compile("(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
 
@@ -1765,13 +1766,21 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: solve([2*x==3, x != 5], x)
         [[x == (3/2), (-7/2) != 0]]
 
-    Check that some variables don't end up as special constants (:trac:`6882`)::
+    Check that some hypothetical variables don't end up as special constants (:trac:`6882`)::
     
         sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
         sage: sefms('%i')^2
         -1
         sage: ln(sefms('%e'))
         1
+        sage: sefms('i')^2
+        _i^2
+        sage: sefms('I')^2
+        _I^2
+        sage: sefms('ln(e)')
+        ln(_e)
+        sage: sefms('%inf')
+        +Infinity
     """
     syms = sage.symbolic.pynac.symbol_table.get('maxima', {}).copy()
 

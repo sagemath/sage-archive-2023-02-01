@@ -59,7 +59,7 @@ from sage.misc.latex import latex
 from sage.structure.factorization import Factorization
 from sage.structure.element import coerce_binop
 
-from sage.interfaces.all import singular as singular_default, is_SingularElement
+from sage.interfaces.singular import singular as singular_default, is_SingularElement
 from sage.libs.all import pari, pari_gen, PariError
 
 from sage.rings.real_mpfr import RealField, is_RealField, RR
@@ -835,7 +835,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def __hash__(self):
         return self._hash_c()
 
-    cdef long _hash_c(self):
+    cdef long _hash_c(self) except -1:
         """
         This hash incorporates the variable name in an effort to respect
         the obvious inclusions into multi-variable polynomial rings.
@@ -858,6 +858,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x>=IntegerModRing(11)[]
             sage: hash(R.0)==hash(FractionField(R).0)  # respect inclusions into the fraction field
             True
+
+        TESTS:
+
+        Verify that :trac:`16251` has been resolved, i.e., polynomials with
+        unhashable coefficients are unhashable::
+
+            sage: K.<a> = Qq(9)
+            sage: R.<t> = K[]
+            sage: hash(t)
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+
         """
         cdef long result = 0 # store it in a c-int and just let the overflowing additions wrap
         cdef long result_mon
@@ -866,9 +879,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         cdef int i
         for i from 0<= i <= self.degree():
             if i == 1:
-                # we delay the hashing until now to not waste it one a constant poly
+                # we delay the hashing until now to not waste it on a constant poly
                 var_name_hash = hash((<ParentWithGens>self._parent)._names[0])
-            #  I'm assuming (incorrectly) that hashes of zero indicate that the element is 0.
+            # I'm assuming (incorrectly) that hashes of zero indicate that the element is 0.
             # This assumption is not true, but I think it is true enough for the purposes and it
             # it allows us to write fast code that omits terms with 0 coefficients.  This is
             # important if we want to maintain the '==' relationship with sparse polys.
@@ -1465,6 +1478,39 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: for _ in range(40):
             ....:     f = R.random_element(degree=4)
             ....:     assert f(f.any_root(K)) == 0
+
+        Check that our Cantor-Zassenhaus implementation does not loop
+        over finite fields of even characteristic (see :trac:`16162`)::
+
+            sage: K.<a> = GF(2**8)
+            sage: x = polygen(K)
+            sage: (x**2+x+1).any_root() # used to loop
+            Traceback (most recent call last):
+            ...
+            ValueError: no roots A 1
+            sage: (x**2+a+1).any_root()
+            a^7 + a^2
+
+        Also check that such computations can be interrupted::
+
+            sage: K.<a> = GF(2**8)
+            sage: x = polygen(K)
+            sage: alarm(1)
+            sage: (x**1000000+x+a).any_root()
+            Traceback (most recent call last):
+            ...
+            AlarmInterrupt
+
+        Check root computation over large finite fields::
+
+            sage: K.<a> = GF(2**50)
+            sage: x = polygen(K)
+            sage: (x**10+x+a).any_root()
+            a^49 + a^47 + a^44 + a^42 + a^41 + a^39 + a^38 + a^37 + a^36 + a^34 + a^33 + a^29 + a^27 + a^26 + a^25 + a^23 + a^18 + a^13 + a^7 + a^5 + a^4 + a^3 + a^2 + a
+            sage: K.<a> = GF(2**150)
+            sage: x = polygen(K)
+            sage: (x**10+x+a).any_root()
+            a^149 + a^148 + a^146 + a^144 + a^143 + a^140 + a^138 + a^136 + a^134 + a^132 + a^131 + a^130 + a^129 + a^127 + a^123 + a^120 + a^118 + a^114 + a^113 + a^112 + a^111 + a^108 + a^104 + a^103 + a^102 + a^99 + a^98 + a^94 + a^91 + a^90 + a^88 + a^79 + a^78 + a^75 + a^73 + a^72 + a^67 + a^65 + a^64 + a^63 + a^62 + a^61 + a^59 + a^57 + a^52 + a^50 + a^48 + a^47 + a^46 + a^45 + a^43 + a^41 + a^39 + a^37 + a^34 + a^31 + a^29 + a^27 + a^25 + a^23 + a^22 + a^20 + a^18 + a^16 + a^14 + a^11 + a^10 + a^8 + a^6 + a^5 + a^4 + a + 1
         """
         if self.base_ring().is_finite() and self.base_ring().is_field():
             if self.degree() < 0:
@@ -1488,7 +1534,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if ring is None:
                 allowed_deg_mult = Integer(1)
             else:
-                if not self.base_ring().is_prime_field():
+                if not (self.base_ring().is_field() and self.base_ring().is_finite()):
                     raise NotImplementedError
                 if ring.characteristic() != self.base_ring().characteristic():
                     raise ValueError, "ring must be an extension of the base ring"
@@ -1498,7 +1544,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if degree is None:
                 x = self.parent().gen()
                 if allowed_deg_mult == 1:
-                    self = self.gcd(x**q-x)
+                    xq = pow(x,q,self)
+                    self = self.gcd(xq-x)
                     degree = -1
                     if self.degree() == 0:
                         raise ValueError, "no roots B %s"%self
@@ -1515,7 +1562,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                             break
                         while d < allowed_deg_mult:
                             d = d+1
-                            xq = xq**q % self
+                            xq = pow(xq,q,self)
                             if d.divides(allowed_deg_mult):
                                 break
                         A = self.gcd(xq-x)
@@ -1540,7 +1587,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                             while True:
                                 # we waste a little effort here in computing the xq again.
                                 d = d+1
-                                xq = xq**q % self
+                                xq = pow(xq,q,self)
                                 if allowed_deg_mult.divides(d):
                                     break
                             A = self.gcd(xq-x)
@@ -1562,7 +1609,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                             raise ValueError, "no roots D %s"%self
                         break
                     d = d+1
-                    xq = xq**q % self
+                    xq = pow(xq,q,self)
                     if d == degree:
                         break
                     A = self.gcd(xq-x)
@@ -1588,28 +1635,28 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 except IndexError:
                     raise ValueError, "no roots F %s"%self
             if q % 2 == 0:
-                T = x
-                while True:
-                    C = T
-                    for i in range(degree-1):
-                        C = T + C**q % self
-                    h = self.gcd(C)
-                    hd = h.degree()
-                    if hd == 0 or hd == self.degree():
-                        T = T * x**q
-                    else:
-                        if 2*hd <= self.degree():
-                            return h.any_root(ring, -degree, True)
-                        else:
-                            return (self//h).any_root(ring, -degree, True)
-            else:
-                from sage.rings.arith import power_mod
                 while True:
                     T = R.random_element(2*degree-1)
                     if T == 0:
                         continue
                     T = T.monic()
-                    h = self.gcd(power_mod(T, Integer((q**degree-1)/2), self)-1)
+                    C = T
+                    for i in range(degree-1):
+                        C = T + pow(C,q,self)
+                    h = self.gcd(C)
+                    hd = h.degree()
+                    if hd != 0 or hd != self.degree():
+                        if 2*hd <= self.degree():
+                            return h.any_root(ring, -degree, True)
+                        else:
+                            return (self//h).any_root(ring, -degree, True)
+            else:
+                while True:
+                    T = R.random_element(2*degree-1)
+                    if T == 0:
+                        continue
+                    T = T.monic()
+                    h = self.gcd(pow(T, Integer((q**degree-1)/2), self)-1)
                     hd = h.degree()
                     if hd != 0 and hd != self.degree():
                         if 2*hd <= self.degree():
@@ -2035,6 +2082,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         _, R = self.quo_rem(other)
         return R
+
+    def mod(self, other):
+        """
+        Remainder of division of self by other.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: x % (x+1)
+            -1
+            sage: (x^3 + x - 1) % (x^2 - 1)
+            2*x - 1
+        """
+        return self.__mod__(other)
 
     def _is_atomic(self):
         """
@@ -3321,8 +3382,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if not (ch == 0 or sage.rings.arith.is_prime(ch)):
             raise NotImplementedError("factorization of polynomials over rings with composite characteristic is not implemented")
 
-        from sage.rings.number_field.all import is_NumberField, \
-             is_RelativeNumberField, NumberField
+        from sage.rings.number_field.number_field_base import is_NumberField
+        from sage.rings.number_field.number_field_rel import is_RelativeNumberField
+        from sage.rings.number_field.all import NumberField
         from sage.rings.finite_rings.constructor import is_FiniteField
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.rings.integer_ring import is_IntegerRing
@@ -3609,8 +3671,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         name = sage.structure.parent_gens.normalize_names(1, names)[0]
 
-        from sage.rings.number_field.all import is_NumberField
-        from sage.rings.finite_rings.all import is_FiniteField
+        from sage.rings.number_field.number_field_base import is_NumberField
+        from sage.rings.finite_rings.finite_field_base import is_FiniteField
 
         f = self.monic()            # Given polynomial, made monic
         F = f.parent().base_ring()  # Base field
@@ -4864,6 +4926,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g = (t + 1)*x + t^2
             sage: f.resultant(g)
             t^4 + t
+
+        Check that :trac:`15061` is fixed::
+
+            sage: R.<T> = PowerSeriesRing(QQ)
+            sage: F = R([1,1],2)
+            sage: RP.<x> = PolynomialRing(R)
+            sage: P = x^2 - F
+            sage: P.resultant(P.derivative())
+            -4 - 4*T + O(T^2)
         """
         variable = self.variable_name()
         if variable != 'x' and self.parent()._mpoly_base_ring() != self.parent().base_ring():
@@ -4871,9 +4942,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             newself = bigring(self)
             newother = bigring(other)
             return self.parent().base_ring()(newself.resultant(newother,bigring(self.parent().gen())))
-        # Single-variable polynomial or main variable is "x": we can use PARI to compute the resultant
-        res = self._pari_with_name().polresultant(other._pari_with_name())
-        return self.parent().base_ring()(res)
+        # Single-variable polynomial or main variable is "x": we can
+        # try PARI to compute the resultant
+        try:
+            res = self._pari_with_name().polresultant(other._pari_with_name())
+            return self.parent().base_ring()(res)
+        except (TypeError, ValueError):
+            return self.sylvester_matrix(other).det()
 
     def discriminant(self):
         r"""

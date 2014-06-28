@@ -1510,7 +1510,7 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
             #<class 'sage.rings.residue_field.ResidueFiniteField_prime_modn_with_category'>
         """
         ResidueField_generic.__init__(self, p)
-        FiniteField_prime_modn.__init__(self, intp, name)
+        FiniteField_prime_modn.__init__(self, intp)
         from sage.rings.finite_rings.integer_mod import IntegerMod_to_IntegerMod, Integer_to_IntegerMod, Int_to_IntegerMod
         K = OK = p.ring()
         if OK.is_field():

@@ -1,0 +1,7 @@
+	}
+
+	for(j=0; j<=VAR; j++)
+		for(i=0; i<=ORDER; i++)
+			XVAR[i][j] = XX[j][i];
+}
+

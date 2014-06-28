@@ -471,7 +471,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         if self.parent().degree() != 1:
             raise ArithmeticError("finite field must be prime")
         t = arith.rational_reconstruction(int(self), self.parent().characteristic())
-        if t == None or t[1] == 0:
+        if t is None or t[1] == 0:
             raise ZeroDivisionError("unable to compute rational reconstruction")
         return rational.Rational((t[0],t[1]))
 

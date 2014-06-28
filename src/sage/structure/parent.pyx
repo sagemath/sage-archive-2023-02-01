@@ -293,11 +293,11 @@ cdef class Parent(category_object.CategoryObject):
 
         - ``facade`` -- a parent, or tuple thereof, or ``True``
 
-        If ``facade`` is specified, then ``Sets().Facades()`` is added
+        If ``facade`` is specified, then ``Sets().Facade()`` is added
         to the categories of the parent. Furthermore, if ``facade`` is
         not ``True``, the internal attribute ``_facade_for`` is set
         accordingly for use by
-        :meth:`Sets.Facades.ParentMethods.facade_for`.
+        :meth:`Sets.Facade.ParentMethods.facade_for`.
 
         Internal invariants:
 
@@ -310,6 +310,17 @@ cdef class Parent(category_object.CategoryObject):
 
             Eventually, category should be
             :class:`~sage.categories.sets_cat.Sets` by default.
+
+
+        TESTS:
+
+        We check that the facade option is compatible with specifying
+        categories as a tuple::
+
+            sage: class MyClass(Parent): pass
+            sage: P = MyClass(facade = ZZ, category = (Monoids(), CommutativeAdditiveMonoids()))
+            sage: P.category()
+            Join of Category of monoids and Category of commutative additive monoids and Category of facade sets
 
         .. automethod:: __call__
         .. automethod:: _populate_coercion_lists_
@@ -326,6 +337,8 @@ cdef class Parent(category_object.CategoryObject):
         # (element_constructor would always be set by inheritance)
         # Then, all the element_constructor logic should be moved to init_coerce.
         CategoryObject.__init__(self, base = base)
+        if isinstance(category, (tuple, list)):
+            category = Category.join(category)
         if facade is not None and facade is not False:
             if isinstance(facade, Parent):
                 facade = (facade,)
@@ -333,12 +346,12 @@ cdef class Parent(category_object.CategoryObject):
                 assert isinstance(facade, tuple)
                 self._facade_for = facade
             if category is None:
-                category = Sets().Facades()
+                category = Sets().Facade()
             else:
                 if isinstance(category, (tuple,list)):
-                    category = Category.join(tuple(category) + (Sets().Facades(),))
+                    category = Category.join(tuple(category) + (Sets().Facade(),))
                 else:
-                    category = Category.join((category,Sets().Facades()))
+                    category = Category.join((category,Sets().Facade()))
         # Setting the categories is currently done in a separate
         # method to let some subclasses (like ParentsWithBase)
         # call it without calling the full constructor
@@ -1090,7 +1103,7 @@ cdef class Parent(category_object.CategoryObject):
         it is a ring, from the point of view of categories::
 
             sage: MS.category()
-            Category of algebras over Rational Field
+            Category of algebras over quotient fields
             sage: MS in Rings()
             True
 
@@ -1950,16 +1963,12 @@ cdef class Parent(category_object.CategoryObject):
             [1 0 0]
             [0 1 0]
 
-        By default, one can't mix matrices and permutations::
+        In general one can't mix matrices and permutations::
 
             sage: G(p)
             Traceback (most recent call last):
             ...
             TypeError: entries must be coercible to a list or integer
-            sage: G(1) * p
-            Traceback (most recent call last):
-            ...
-            TypeError: ...
             sage: phi = S3.hom(lambda p: G(p.matrix()), codomain = G)
             sage: phi(p)
             [0 0 1]
@@ -1984,7 +1993,13 @@ cdef class Parent(category_object.CategoryObject):
         parents (see :trac:`14014`)::
 
             sage: G(p)                               # todo: not implemented
-            sage: G(1) * p                           # todo: not implemented
+
+        Though one can have a permutation act on the rows of a matrix::
+
+            sage: G(1) * p
+            [0 0 1]
+            [1 0 0]
+            [0 1 0]
 
         Some more advanced examples::
 
@@ -2264,16 +2279,13 @@ cdef class Parent(category_object.CategoryObject):
             Composite map:
               From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
               To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Ht basis
-              Defn:   Composite map:
+              Defn:   Generic morphism:
                       From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
+                      To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
+                    then
+                      Generic morphism:
+                      From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
                       To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
-                      Defn:   Generic morphism:
-                              From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
-                              To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
-                            then
-                              Generic morphism:
-                              From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
-                              To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
                     then
                       Generic morphism:
                       From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
@@ -3137,10 +3149,21 @@ cdef class EltPair:
 
             sage: from sage.structure.parent import EltPair
             sage: a = EltPair(ZZ, QQ, "coerce")
-            sage: hash(a) == hash((ZZ, QQ, "coerce"))
+            sage: b = EltPair(ZZ, QQ, "coerce")
+            sage: hash(a) == hash(b)
             True
+
+        TESTS:
+
+        Verify that :trac:`16341` has been resolved::
+
+            sage: K.<a> = Qq(9)
+            sage: E=EllipticCurve_from_j(0).base_extend(K)
+            sage: E.get_action(ZZ)
+            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+
         """
-        return hash((self.x, self.y, self.tag))
+        return hash((id(self.x), id(self.y), id(self.tag)))
 
     def short_repr(self):
         return self.tag, hex(<long><void*>self.x), hex(<long><void*>self.y)

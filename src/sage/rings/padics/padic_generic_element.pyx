@@ -726,7 +726,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             0 and 3 in the 3-adic ring `\mathbb{Z}_3`. The greatest common
             divisior of `O(3)` and `O(3)` could be (among others) 3 or 0 which
             have different valuation. The algorithm implemented here, will
-            return an element of minimal valuation among the possible greatest
+            return an element of minimal valuation among the possible greatest
             common divisors.
 
         EXAMPLES:

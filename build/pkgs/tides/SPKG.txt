@@ -1,0 +1,26 @@
+= TIDES =
+
+== Description ==
+
+TIDES is a library for integration of ODE's with high precission.
+
+== License ==
+
+GPLv3
+
+== SPKG Maintainers ==
+
+* Miguel Marco
+
+== Upstream Contact ==
+
+* Marcos Rodriguez (marcos@unizar.es)
+
+== Dependencies ==
+
+* gcc
+* mpfr
+* gmp
+
+== Special Update/Build Instructions ==
+

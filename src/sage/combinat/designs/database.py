@@ -54,6 +54,7 @@ Implemented constructions :
   :func:`OA(11,80) <OA_11_80>`,
   :func:`OA(10,82) <OA_10_82>`,
   :func:`OA(10,100) <OA_10_100>`,
+  :func:`OA(9,135) <OA_9_135>`,
   :func:`OA(12,144) <OA_12_144>`,
   :func:`OA(10,154) <OA_10_154>`,
   :func:`OA(12,210) <OA_12_210>`,
@@ -2310,6 +2311,93 @@ def OA_10_100():
     M = OA_from_Vmt(8,11,[0,1,6,56,22,35,47,23,60])
     return M
 
+def OA_9_135():
+    r"""
+    Returns an OA(9,135)
+
+    Construction shared by Julian R. Abel:
+
+        This design can be built by Wilson's method (`135 = 8.16 + 7`) applied
+        to an Orthogonal Array `OA(9+7,16)` with 7 groups truncated to size 1 in
+        such a way that a block contain 0, 1 or 3 points of the truncated
+        groups.
+
+        This is possible, because `PG(2,2)` (the projective plane over `GF(2)`)
+        is a subdesign in `PG(2,16)` (the projective plane over `GF(16)`); in a
+        cyclic `PG(2,16)` or `BIBD(273,17,1)` the points `\equiv 0
+        \pmod{39}` form such a subdesign (note that `273=16^2 + 16 +1` and
+        `273 = 39 \times 7` and `7 = 2^2 + 2 + 1`).
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_135
+        sage: OA = OA_9_135()
+        sage: print is_orthogonal_array(OA,9,135,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(9,135,existence=True)
+        True
+
+    As this orthogonal array requires a `(273,17,1)` cyclic difference set, we check that
+    it is available::
+
+        sage: G,D = designs.difference_family(273,17,1)
+        sage: G
+        Ring of integers modulo 273
+    """
+    from bibd import BIBD_from_difference_family
+    G,B = CDF_273_17_1()
+    PG16 = BIBD_from_difference_family(G,B)
+
+    n = 273
+
+    # PG2 is a (7,3,1)-design (fano plane) contained in PG16. It is a set of 7
+    # points that any block of PG16 intersect on 0,1, or 3 points.
+    #
+    # We build it, then check that it works
+    PG2 = set([x*39 for x in range(7)])
+    traces = [[x for x in B if x%39 == 0] for B in PG16]
+    assert set(map(len,traces)) == set([0,1,3])
+
+    # We now build an OA(17,16) from our PG16, in such a way that all points of
+    # PG2 are in different columns. For this, we need to find a point p that is
+    # not located on any of the lines defined by the points of PG2
+
+    lines = [B for B in PG16 if len([x for x in B if x%39 == 0]) == 3]
+    union_of_the_lines = set(sum(lines,[]))
+    p = (set(range(237))-union_of_the_lines).pop()
+
+    # We can now build a TD from our PG16 by removing p.
+    for B in PG16:
+        B.sort(key=lambda x:int(x not in PG2))
+    PG16.sort(key=lambda B:sum(x for x in B if x in PG2))
+
+    r = {}
+    for B in PG16:
+        if p in B:
+            for x in B:
+                if x != p:
+                    r[x] = len(r)
+    r[p] = n-1
+
+    # The columns containing points from PG2 will be the last 7
+    assert all(r[x] >= (n-1)-16*7 for x in PG2)
+    # Those points are the first of each column
+    assert all(r[x]%16 == 0 for x in PG2)
+
+    PG = [sorted([r[x] for x in B]) for B in PG16]
+    OA = [[x%16 for x in B] for B in PG if n-1 not in B]
+
+    # We truncate the last 7 columns to size 1. We also drop the first column
+    truncated_OA = [B[1:-7]+[x if x==0 else None for x in B[-7:]] for B in OA]
+
+    # And call Wilson's construction
+    from orthogonal_arrays import wilson_construction
+    return wilson_construction(truncated_OA, 9, 16, 8,7,(1,)*7,check=False)
+
 def OA_12_144():
     r"""
     Returns an OA(12,144)
@@ -2609,6 +2697,7 @@ OA_constructions = {
     80  : (11 , OA_11_80),
     82  : (10 , OA_10_82),
     100 : (10 , OA_10_100),
+    135 : (9  , OA_9_135),
     144 : (12 , OA_12_144),
     154 : (10 , OA_10_154),
     210 : (12 , OA_12_210),
@@ -2849,7 +2938,27 @@ def CDF_221_5_1():
     from sage.rings.finite_rings.integer_mod_ring import Zmod
     return Zmod(221), D
 
-# Index of the (right now cyclic) difference families constructions
+def CDF_273_17_1():
+    r"""
+    A cyclic `(273,17,1)`-difference set.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import CDF_273_17_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G,D = CDF_273_17_1()
+        sage: is_difference_family(G,D,273,17,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(273,17,1)
+    """
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    D = [(1,2,4,8,16,32,64,91,117,128,137,182,195,205,234,239,256)]
+    return Zmod(273), D
+
+# Index of the (right now cyclic or Abelian) difference families constructions
 #
 # Associates to triple (v,k,lambda) a function that return a
 # (n,k,lambda)-difference family.
@@ -2866,5 +2975,6 @@ DF_constructions = {
     (141,5,1): CDF_141_5_1,
     (161,5,1): CDF_161_5_1,
     (201,5,1): CDF_201_5_1,
-    (221,5,1): CDF_221_5_1
+    (221,5,1): CDF_221_5_1,
+    (273,17,1): CDF_273_17_1,
 }

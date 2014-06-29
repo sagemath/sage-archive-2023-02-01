@@ -1106,10 +1106,10 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         INPUT:
 
-
         -  ``degree`` - maximum degree (default: 2 for len(var_set) > 1, 1 otherwise)
 
-        -  ``terms`` - number of terms (default: 5 for len(var_set) > 2, smaller otherwise)
+        -  ``terms`` - number of terms (default: 5 for len(var_set) > 2, smaller
+           otherwise), if it is ``True`` then the maximum number of terms is chosen.
 
         -  ``choose_degree`` - choose degree of monomials
            randomly first, rather than monomials uniformly random
@@ -1138,6 +1138,12 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P = BooleanPolynomialRing(1,'y')
             sage: P.random_element()
             1
+
+        We return uniformly random polynomials up to degree 2::
+
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()
+            sage: B.random_element(terms=True)
+            a*c + b*c + b*d + c*d + d + 1
 
         TESTS::
 
@@ -1181,8 +1187,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 terms = 2
             elif nvars == 1:
                 terms = 1
-        else:
-            terms = Integer(terms)
 
         if degree is None:
             if nvars > 1:
@@ -1203,6 +1207,11 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         for i from 0 <= i <= degree:
             tot_terms += binomial(nvars,i)
             monom_counts.append(tot_terms)
+
+        if terms is True:
+            terms = tot_terms//2 + (tot_terms%2)
+        else:
+            terms = Integer(terms)
 
         if terms > tot_terms:
             raise ValueError, "Cannot generate random polynomial with %s terms and maximum degree %s using %s variables"%(terms, degree, nvars)

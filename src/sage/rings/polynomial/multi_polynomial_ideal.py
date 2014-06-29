@@ -3005,7 +3005,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         Shortcut to ``gens()``.
 
         EXAMPLE::
-        
+
            sage: P.<x,y> = PolynomialRing(QQ,2)
            sage: I = Ideal([x,y+1])
            sage: I.basis
@@ -4181,6 +4181,85 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             MPolynomialIdeal_singular_repr.plot(self, kwds.get("singular",singular_default))
         else:
             raise TypeError("Ideal generator may not have either 2 or 3 variables.")
+
+    def random_element(self, degree, compute_gb=False, *args, **kwds):
+        """
+        Return a random element in this ideal as `r = \sum hᵢ·fᵢ`.
+
+        INPUT:
+
+        - ``compute_gb`` - if ``True`` then a Gröbner basis is computed first
+          and `fᵢ` are the elements in the Gröbner basis. Otherwise whatever
+          basis is returned by ``self.gens()`` is used.
+
+        - ``*args`` and ``**kwds`` are passed to ``R.random_element()`` with
+          ``R = self.ring()``.
+
+        EXAMPLE:
+
+        We compute a uniformly random element up to the provided degree.::
+
+            sage: P.<x,y,z> = GF(127)[]
+            sage: I = sage.rings.ideal.Katsura(P)
+            sage: I.random_element(degree=4, compute_gb=True, terms=True)
+            34*x^4 - 33*x^3*y + 45*x^2*y^2 - 51*x*y^3 - 55*y^4 + 43*x^3*z ... - 28*y - 33*z + 45
+
+        Note tha sampling uniformly at random from the ideal at some large enough degree is equivalent
+        to computing a Gröbner basis. We give an example showing how to compute a Gröbner basis if
+        we can sample uniformly at random from an ideal::
+
+            sage: n = 3; d = 4
+            sage: P = PolynomialRing(GF(127), n, 'x')
+            sage: I = sage.rings.ideal.Cyclic(P)
+
+        1. We sample `n^d` uniformly random elements in the ideal::
+
+            sage: F = Sequence(I.random_element(degree=d, compute_gb=True, terms=True) for _ in range(n^d))
+
+        2. We linearize and compute the echelon form::
+
+            sage: A,v = F.coefficient_matrix()
+            sage: A.echelonize()
+
+        3. The result is the desired Gröbner basis::
+
+            sage: G = Sequence((A*v).list())
+            sage: G.is_groebner()
+            True
+            sage: Ideal(G) == I
+            True
+
+        We return some element in the ideal with no guarantee on the distribution::
+
+            sage: P = PolynomialRing(GF(127), 10, 'x')
+            sage: I = sage.rings.ideal.Katsura(P)
+            sage: I.random_element(degree=3)
+            7*x0^2*x1 + 14*x1^3 + 57*x0*x1*x2 - 32*x1^2*x2 - ... + 49*x4 + 48*x5 - 40*x7 - 6*x8
+
+        We show that the default method does not sample uniformly at random from the ideal::
+
+            sage: P.<x,y,z> = GF(127)[]
+            sage: G = Sequence([x+7, y-2, z+110])
+            sage: I = Ideal([sum(P.random_element() * g for g in G) for _ in range(4)])
+            sage: all(I.random_element(degree=1) == 0 for _ in range(100))
+            True
+
+        """
+        if compute_gb:
+            gens = self.groebner_basis()
+        else:
+            gens = self.basis
+
+        R = self.ring()
+
+        r = R(0)
+
+        for f in gens:
+            d = degree - f.degree()
+            if d > 0:
+                h = R.random_element(degree=d, *args, **kwds)
+                r += h*f
+        return r
 
     @require_field
     def weil_restriction(self):

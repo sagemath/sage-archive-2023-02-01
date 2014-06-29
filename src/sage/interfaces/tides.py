@@ -603,7 +603,7 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
     outfile.close()
 
 def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
-                  parameters=[], parameter_values =[], dig = 20, tolrel=1e-16,
+                  parameters = None , parameter_values = None, dig = 20, tolrel=1e-16,
                   tolabs=1e-16, output = ''):
     r"""
         Generate the needed files for the mpfr module of the tides library.
@@ -691,6 +691,10 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
 
 
     """
+    if parameters == None:
+        parameters = []
+    if parameter_values == None:
+        parameter_values = []
     from sage.misc.misc import SAGE_ROOT
     RR = RealField()
     l1, l2 = subexpressions_list(f, parameters)

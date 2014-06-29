@@ -88,6 +88,11 @@ cdef void late_import():
 
 cdef int number_of_integer_rings = 0
 
+# Used by IntegerRing_class._randomize_mpz():
+#   When the user requests an integer sampled from a
+#   DiscreteGaussianIntegerSampler with parameter sigma, we store the pair
+#   (sigma, sampler) here.  When the user requests an integer for the same
+#   sigma, we do not recreate the sampler but take it from this "cache".
 _prev_discrete_gaussian_integer_sampler = (None, None)
 
 def is_IntegerRing(x):

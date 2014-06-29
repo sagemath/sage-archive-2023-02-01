@@ -346,7 +346,7 @@ long dgs_disc_gauss_dp_call_uniform_table_offset(dgs_disc_gauss_dp_t *self);
 
 /**
   Sample from ``dgs_disc_gauss_dp_t`` by rejection sampling using the uniform
-  distribution replacing all ``exp()`` calls with call to Bernoulli
+  distribution replacing all ``exp()`` calls with calls to Bernoulli
   distributions.
 
   :param self: discrete Gaussian sampler
@@ -360,7 +360,7 @@ long dgs_disc_gauss_dp_call_uniform_logtable(dgs_disc_gauss_dp_t *self);
 
 /**
    Sample from ``dgs_disc_gauss_dp_t`` by rejection sampling using the
-   ``D_{k·σ2,0}` distribution replacing all ``exp()`` calls with call to
+   ``D_{k·σ₂,0}` distribution replacing all ``exp()`` calls with calls to
    Bernoulli distributions.
 
    :param self: discrete Gaussian sampler
@@ -374,10 +374,10 @@ long dgs_disc_gauss_dp_call_uniform_logtable(dgs_disc_gauss_dp_t *self);
 long dgs_disc_gauss_dp_call_sigma2_logtable(dgs_disc_gauss_dp_t *self);
 
 /**
-   The uniform Bernoulli sampler which is used to design signs caches bits for
+   The uniform Bernoulli sampler which is used to decide signs caches bits for
    performance reasons. This functions clears this cache of random bits.
 
-   :param self: discrete Gaussian sadpler
+   :param self: discrete Gaussian sampler
 
  */
 
@@ -454,7 +454,7 @@ typedef struct _dgs_disc_gauss_mp_t {
 
 
   /**
-     `\D_{σ₂,0}` which is easily sampable`
+     `D_{σ₂,0}` which is easily sampable`
 
      Used when ``DGS_DISC_GAUSS_SIGMA2_LOGTABLE`` is set.
   */
@@ -527,7 +527,7 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
 
 /**
    Sample from ``dgs_disc_gauss_mp_t`` by rejection sampling using the uniform
-   distribution and tabulated exp() evaluations.
+   distribution and tabulated ``exp()`` evaluations.
 
    :param self: discrete Gaussian sampler
 

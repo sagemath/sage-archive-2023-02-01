@@ -313,7 +313,7 @@ dgs_bern_exp_mp_t* dgs_bern_exp_mp_init(mpfr_t f, size_t l);
 
 
 /**
-   Return 1 with probability `-exp(x/f)`.
+   Return 1 with probability `exp(-x/f)`.
 
    :param self: Bernoulli state
    :param x: integer with `0 < x < 2^l`
@@ -358,7 +358,7 @@ typedef struct {
 } dgs_bern_exp_dp_t;
 
 /**
-   Create new family of Bernoulli samples.
+   Create new family of Bernoulli samplers.
 
    :param f: samplers return 1 with probability `exp(-x/f)`
    :param l: we support inputs to call `x` up to `2^l-1`
@@ -372,7 +372,7 @@ typedef struct {
 dgs_bern_exp_dp_t* dgs_bern_exp_dp_init(double f, size_t l);
 
 /**
-   Return 1 with probability `-exp(x/f)`.
+   Return 1 with probability `exp(-x/f)`.
 
    :param self: Bernoulli state
    :param x: integer with `0 < x < 2^l`

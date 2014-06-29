@@ -139,8 +139,8 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
 
         - ``c`` - the mean of the distribution. The value of ``c`` does not have
           to be an integer. However, some algorithms only support integer-valued
-          `c` (default: ``0``)
-        
+          ``c`` (default: ``0``)
+
         - ``tau`` - samples outside the range `(⌊c⌉-⌈στ⌉,...,⌊c⌉+⌈στ⌉)` are
           considered to have probability zero. This bound applies to algorithms which
           sample from the uniform distribution (default: ``6``)
@@ -149,8 +149,8 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
            `σt` bounded by ``DiscreteGaussianIntegerSampler.table_cutoff`` and
            ``"uniform+online"`` for bigger `στ`)
 
-        - ``precision`` - either "mp" for multi-precision where the actual
-          precision used is taken from sigma or "dp" for double precision. In
+        - ``precision`` - either ``"mp"`` for multi-precision where the actual
+          precision used is taken from sigma or ``"dp"`` for double precision. In
           the latter case results are not reproducible across
           plattforms. (default: ``"mp"``)
 
@@ -191,8 +191,8 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
             sage: DiscreteGaussianIntegerSampler(3.0, algorithm="uniform+logtable")
             Discrete Gaussian sampler over the Integers with sigma = 3.000000 and c = 0
 
-        Note that "sigma2+logtable" adjusts sigma::
-        
+        Note that ``"sigma2+logtable"`` adjusts `σ`::
+
             sage: DiscreteGaussianIntegerSampler(3.0, algorithm="sigma2+logtable")
             Discrete Gaussian sampler over the Integers with sigma = 3.397287 and c = 0
 
@@ -221,7 +221,7 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
             ...
             ValueError: algorithm 'uniform+logtable' requires c%1 == 0
 
-        We are testing correctness for mult precision::
+        We are testing correctness for multi-precision::
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
             sage: D = DiscreteGaussianIntegerSampler(1.0, c=0, tau=2)
@@ -266,11 +266,11 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
             sage: D = DiscreteGaussianIntegerSampler(17.0)
             sage: S = [D() for _ in range(2^16)]
-            sage: list_plot([(v,S.count(v)) for v in set(S)])
+            sage: list_plot([(v,S.count(v)) for v in set(S)]) # long time
 
         These generators cache random bits for performance reasons. Hence, resetting
         the seed of the PRNG might not have the expected outcome. You can flush this cache with
-        ``DiscreteGaussianIntegerSampler.flush_cache``::
+        ``_flush_cache()``::
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
             sage: D = DiscreteGaussianIntegerSampler(3.0)

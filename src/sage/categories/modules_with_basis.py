@@ -205,27 +205,37 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
         def module_morphism(self, on_basis = None, diagonal = None, triangular = None, **keywords):
             r"""
-            Construct a morphism from ``self`` to ``codomain`` by
-            linearity from its restriction ``on_basis`` to the basis of
-            ``self``.
+            Construct a module morphism from ``self`` to ``codomain``.
 
-            Let ``self`` be the module `X` with a basis indexed by `I`.
-            This constructs a morphism `f: X \to Y` by linearity from
-            a map `I \to Y` which is to be its restriction to the
-            basis `(x_i)_{i \in I}` of `X`.
+            Let ``self`` be the module `X` with a basis indexed by
+            `I`.  This constructs a morphism `f: X \to Y` by linearity
+            from a map `I \to Y` which is to be its restriction to the
+            basis `(x_i)_{i \in I}` of `X`. Some variants are possible
+            too.
 
             INPUT:
 
-            - ``codomain`` -- the codomain `Y` of `f`: defaults to
-              ``f.codomain()`` if the latter is defined
-            - ``zero`` -- the zero of the codomain; defaults to
-              ``codomain.zero()``; can be used (with care) to define affine maps
-            - ``position`` -- a non-negative integer; defaults to 0
-            - ``on_basis`` -- a function `f` which accepts elements of `I`
-              (the indexing set of the basis of `X`) as ``position``-th argument
-              and returns elements of `Y`
-            - ``diagonal`` -- a function `d` from `I` to `R` (the base ring
-              of ``self`` and ``codomain``)
+            - ``self`` -- a parent `X` in ModulesWithBasis(R), with basis `x`
+
+            Exactly one of the three following options must be used to
+            define the morphism from:
+
+            - ``on_basis`` -- a function `f` which accepts elements of
+              `I` (the indexing set of the basis of `X`) as
+              ``position``-th argument and returns elements of `Y`
+            - ``diagonal`` -- a function `d` from `I` to the base ring
+              `R` of ``self`` and ``codomain``
+            - ``function`` - a function `f` from `X` to `Y`
+
+            Further options include:
+
+            - ``codomain`` -- the codomain `Y` of `f` (default:
+              ``f.codomain()`` if it's defined)
+            - ``zero`` -- the zero of the codomain (default: ``codomain.zero()``)
+              can be used (with care) to define affine maps
+            - ``position`` -- a non-negative integer specifying which
+               positional argument in used as the input of the function
+               (default: 0); this is currently only used with ``on_basis``
             - ``triangular`` --  (default: ``None``) ``"upper"`` or
               ``"lower"`` or ``None``:
 
@@ -237,9 +247,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             - ``category`` -- a category; by default, this is
               ``ModulesWithBasis(R)`` if `Y` is in this category, and
               otherwise this lets `Hom(X,Y)` decide
-
-            Exactly one of ``on_basis`` and ``diagonal`` options should
-            be specified.
 
             With the ``on_basis`` option, this returns a function `g`
             obtained by extending `f` by linearity on the ``position``-th
@@ -359,12 +366,11 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             This assumes that the respective bases `x` and `y` of `X`
             and `Y` have the same index set `I`.
 
-            With ``triangular = upper``, the constructed module
-            morphism is assumed to be upper triangular; that is its
-            matrix in the distinguished basis of `X` and `Y` would be
-            upper triangular with invertible elements on its
-            diagonal. This is used to compute preimages and
-            inverting the morphism::
+            With ``triangular = upper``, the constructed module morphism is
+            assumed to be upper triangular; that is its matrix in the
+            distinguished basis of `X` and `Y` would be upper triangular with
+            invertible elements on its diagonal. This is used to compute
+            preimages and inverting the morphism::
 
                 sage: I = range(1,200)
                 sage: X = CombinatorialFreeModule(QQ, I); X.rename("X"); x = X.basis()
@@ -389,14 +395,18 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             For details and further optional arguments, see
             :class:`sage.categories.modules_with_basis.TriangularModuleMorphism`.
 
+            .. WARNING::
 
-            Caveat: the returned element is in ``Hom(codomain, domain,
-            category``). This is only correct for unary functions.
+                The returned morphism is in ``Hom(codomain, domain,
+                category``). This is only correct for unary functions.
 
             .. TODO::
 
-                Should codomain be ``self`` by default in the
-                diagonal and triangular cases?
+               - should codomain be ``self`` by default in the
+                 diagonal and triangular cases?
+
+               - support for diagonal morphisms between modules not
+                 sharing the same index set
             """
             if diagonal is not None:
                 return DiagonalModuleMorphism(diagonal = diagonal, domain = self, **keywords)

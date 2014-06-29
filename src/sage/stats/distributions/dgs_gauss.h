@@ -2,7 +2,7 @@
    Discrete Gaussians over the Integers.
 
    A discrete Gaussian distribution on the Integers is a distribution where the
-   integer `x` is sampled with probability proportional to `exp(-(x-c)²/(2σ^2))`.
+   integer `x` is sampled with probability proportional to `exp(-(x-c)²/(2σ²))`.
    It is denoted by `D_{σ,c}` where `σ` is the width parameter (close to the
    standard deviation) and `c` is the center.
 
@@ -10,26 +10,26 @@
 
    - ``DGS_DISC_GAUSS_UNIFORM_TABLE`` - classical rejection sampling, sampling
      from the uniform distribution and accepted with probability proportional to
-     `\exp(-(x-c)^2/(2σ^2))` where `\exp(-(x-c)^2/(2σ^2))` is precomputed and
+     `\exp(-(x-c)²/(2σ²))` where `\exp(-(x-c)²/(2σ²))` is precomputed and
      stored in a table. Any real-valued `c` is supported.
 
  - ``DGS_DISC_GAUSS_UNIFORM_LOGTABLE`` - samples are drawn from a uniform
    distribution and accepted with probability proportional to
-   `\exp(-(x-c)^2/(2σ^2))` where `\exp(-(x-c)^2/(2σ^2))` is computed using
+   `\exp(-(x-c)²/(2σ²))` where `\exp(-(x-c)²/(2σ²))` is computed using
    logarithmically many calls to Bernoulli distributions. Only integer-valued
    `c` are supported.
 
  - ``DGS_DISC_GAUSS_UNIFORM_ONLINE`` - samples are drawn from a uniform
    distribution and accepted with probability proportional to
-   `\exp(-(x-c)^2/(2σ^2))` where `\exp(-(x-c)^2/(2σ^2))` is computed in each
+   `\exp(-(x-c)²/(2σ²))` where `\exp(-(x-c)²/(2σ²))` is computed in each
    invocation. Typically this is very slow. Any real-valued `c` is accepted.
 
   - ``DGS_DISC_SIGMA2_LOGTABLE`` - samples are drawn from an easily samplable
-    distribution with `σ = k·σ_2` where `σ_2 := \sqrt{1/(2\log 2)}` is and
-    accepted  with probability proportional to `\exp(-(x-c)^2/(2σ^2))` where
-    `\exp(-(x-c)^2/(2σ^2))` is computed using logarithmically many calls to
-    Bernoulli  distributions (but no calls to `\exp`). Note that this  sampler
-    adjusts sigma to match `σ_2·k` for some integer `k`.  Only integer-valued
+    distribution with `σ = k·σ₂` where `σ₂ := \sqrt{1/(2\log 2)}` and
+    accepted  with probability proportional to `\exp(-(x-c)²/(2σ²))` where
+    `\exp(-(x-c)²/(2σ²))` is computed using logarithmically many calls to
+    Bernoulli distributions (but no calls to `\exp`). Note that this sampler
+    adjusts sigma to match `σ₂·k` for some integer `k`.  Only integer-valued
     `c` are supported.
 
   AVAILABLE PRECISIONS:
@@ -126,9 +126,9 @@ typedef enum {
 
    Return integer `x` with probability
 
-   `ρ_{σ,c}(x) = exp(-(x-c)²/(2σ₂²))/exp(-(ZZ-c)²/(2σ₂²))`
+   `ρ_{σ,c}(x) = exp(-(x-c)²/(2σ₂²))/exp(-(\ZZ-c)²/(2σ₂²))`
 
-   where `exp(-(ZZ-c)²/(2σ₂²)) ≈ \sum_{i=-τσ₂}^{τσ₂} exp(-(i-c)²/(2σ₂^²))` is the
+   where `exp(-(\ZZ-c)²/(2σ₂²)) ≈ \sum_{i=-τσ₂}^{τσ₂} exp(-(i-c)²/(2σ₂²))` is the
    probability for all of the integers.
 
 */
@@ -179,9 +179,9 @@ void dgs_disc_gauss_sigma2p_clear(dgs_disc_gauss_sigma2p_t *self);
 
    Return integer `x` with probability
 
-   `ρ_{σ,c}(x) = exp(-(x-c)²/(2σ²))/exp(-(ZZ-c)²/(2σ²))`
+   `ρ_{σ,c}(x) = exp(-(x-c)²/(2σ²))/exp(-(\ZZ-c)²/(2σ²))`
 
-   where `exp(-(ZZ-c)²/(2σ²)) ≈ \sum_{i=-τσ}^{τσ} exp(-(i-c)²/(2σ^²))` is the
+   where `exp(-(\ZZ-c)²/(2σ²)) ≈ \sum_{i=-τσ}^{τσ} exp(-(i-c)²/(2σ²))` is the
    probability for all of the integers.
  */
 
@@ -191,7 +191,7 @@ typedef struct _dgs_disc_gauss_dp_t {
 
   /**
      The width paramter `σ`, i.e. samples are accepted with probability
-     proportional to `\exp(-(x-c)^2/(2σ^2))`
+     proportional to `\exp(-(x-c)²/(2σ²))`
   */
 
   double sigma;
@@ -282,7 +282,7 @@ typedef struct _dgs_disc_gauss_dp_t {
 
 
   /**
-   Precomputed `-1/(2σ^2)`.
+   Precomputed `-1/(2σ²)`.
   */
 
   double f;
@@ -400,9 +400,9 @@ void dgs_disc_gauss_dp_clear(dgs_disc_gauss_dp_t *self);
 
    Return integer `x` with probability
 
-   `ρ_{σ,c}(x) = exp(-(x-c)²/(2σ²))/exp(-(ZZ-c)²/(2σ²))`
+   `ρ_{σ,c}(x) = exp(-(x-c)²/(2σ²))/exp(-(\ZZ-c)²/(2σ²))`
 
-   where `exp(-(ZZ-c)²/(2σ²)) ≈ \sum_{i=-τσ}^{τσ} exp(-(i-c)²/(2σ^²))` is the
+   where `exp(-(\ZZ-c)²/(2σ²)) ≈ \sum_{i=-τσ}^{τσ} exp(-(i-c)²/(2σ^²))` is the
    probability for all of the integers.
 
 */
@@ -411,7 +411,7 @@ typedef struct _dgs_disc_gauss_mp_t {
 
   /**
       The width paramter `σ`, i.e. samples are accepted with probability
-      proportional to `\exp(-(x-c)^2/(2σ^2))`
+      proportional to `\exp(-(x-c)²/(2σ²))`
    */
 
   mpfr_t sigma;
@@ -503,7 +503,7 @@ typedef struct _dgs_disc_gauss_mp_t {
   mpz_t k;
 
   /**
-   Precomputed `-1/(2σ^2)`.
+   Precomputed `-1/(2σ²)`.
   */
 
   mpfr_t f;
@@ -577,7 +577,7 @@ void dgs_disc_gauss_mp_call_uniform_logtable(mpz_t rop, dgs_disc_gauss_mp_t *sel
 void dgs_disc_gauss_mp_call_uniform_online(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state);
 
 /**
-  Sample from ``dgs_disc_gauss_mp_t`` by rejection sampling using the `D_{k·σ2,0}`
+  Sample from ``dgs_disc_gauss_mp_t`` by rejection sampling using the `D_{k·σ₂,0}`
   distribution replacing all ``exp()`` calls with call to Bernoulli distributions.
 
   :param self: Discrete Gaussian sampler

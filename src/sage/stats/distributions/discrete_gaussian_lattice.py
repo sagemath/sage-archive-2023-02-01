@@ -2,11 +2,11 @@
 r"""
 Discrete Gaussian Samplers over Lattices
 
-This file implements oracles which return samples from a lattice
-following a discrete Gaussian distribution. That is, if `σ` is big
-enough relative to the provided basis, then vectors are returned with
-a probability proportional to `\exp(-|x-c|_2^2/(2σ^2))`. More precisely lattice vectors in `x ∈ Λ`
-are returned with probability:
+This file implements oracles which return samples from a lattice following a
+discrete Gaussian distribution. That is, if `σ` is big enough relative to the
+provided basis, then vectors are returned with a probability proportional to
+`\exp(-|x-c|_2^2/(2σ^2))`. More precisely lattice vectors in `x ∈ Λ` are
+returned with probability:
 
     `\exp(-|x-c|_2^2/(2σ²))/(∑_{x ∈ Λ} \exp(-|x|_2^2/(2σ²)))`
 
@@ -62,8 +62,9 @@ from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import vector
 
 def _iter_vectors(n, lower, upper, step=None):
-    """
-    Iterate over all integer vectors of length `n` between `lower` and `upper` bound.
+    r"""
+    Iterate over all integer vectors of length ``n`` between ``lower`` and
+    ``upper`` bound.
 
     INPUT:
 
@@ -101,7 +102,7 @@ def _iter_vectors(n, lower, upper, step=None):
                 yield v
 
 class DiscreteGaussianLatticeSampler(SageObject):
-    """
+    r"""
     GPV sampler for Discrete Gaussians over Lattices.
 
     EXAMPLE::
@@ -141,7 +142,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
     """
     @staticmethod
     def compute_precision(precision, sigma):
-        """
+        r"""
         Compute precision to use.
 
         INPUT:
@@ -176,15 +177,18 @@ class DiscreteGaussianLatticeSampler(SageObject):
         return precision
 
     def _normalisation_factor_zz(self, tau=3):
-        """
-        This function returns an approximation of `∑_{x ∈ \\ZZ^n} \exp(-|x|_2^2/(2σ²))`,
-        i.e. the normalisation factor such that the sum over all probabilities is 1 for `\\ZZⁿ`.
+        r"""
+        This function returns an approximation of `∑_{x ∈ \ZZ^n}
+        \exp(-|x|_2^2/(2σ²))`, i.e. the normalisation factor such that the sum
+        over all probabilities is 1 for `\ZZⁿ`.
 
-        If this `B` is not an identity matrix over `\\ZZ` a ``NotImplementedError`` is raise.
+        If this `B` is not an identity matrix over `\ZZ` a
+        ``NotImplementedError`` is raised.
 
         INPUT:
 
-        - ``tau`` -- all vectors `v` with `|v|_∞ ≤ τ·σ` are enumerated (default: ``3``).
+        - ``tau`` -- all vectors `v` with `|v|_∞ ≤ τ·σ` are enumerated
+                     (default: ``3``).
 
         EXAMPLE::
 
@@ -210,9 +214,9 @@ class DiscreteGaussianLatticeSampler(SageObject):
         return sum(f(x) for x in _iter_vectors(n, -ceil(tau*sigma), ceil(tau*sigma)))
 
     def __init__(self, B, sigma=1, c=None, precision=None):
-        """
+        r"""
         Construct a discrete Gaussian sampler over the lattice `Λ(B)`
-        with parameter `σ` and center `c`.
+        with parameter ``sigma`` and center `c`.
 
         INPUT:
 
@@ -223,7 +227,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
           - an object where ``matrix(B)`` succeeds, e.g. a list of vectors.
 
         - ``sigma`` -- Gaussian parameter `σ>0`.
-        - ``c`` -- center `c`, any vector in `\\ZZ^n` is supported, but `c ∈ Λ(B)` is faster.
+        - ``c`` -- center `c`, any vector in `\ZZ^n` is supported, but `c ∈ Λ(B)` is faster.
         - ``precision`` -- bit precision `≥ 53`.
 
         EXAMPLE::
@@ -306,7 +310,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
             self._c_in_lattice = False
 
     def __call__(self):
-        """
+        r"""
         Return a new sample.
 
         EXAMPLE::
@@ -332,7 +336,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
 
     @property
     def sigma(self):
-        """Gaussian parameter `σ`.
+        r"""Gaussian parameter `σ`.
 
         Samples from this sampler will have expected norm `\sqrt{n}σ` where `n`
         is the dimension of the lattice.
@@ -349,7 +353,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
 
     @property
     def c(self):
-        """Center `c`.
+        r"""Center `c`.
 
         Samples from this sampler will be centered at `c`.
 
@@ -369,7 +373,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
         return self._c
 
     def __repr__(self):
-        """
+        r"""
         EXAMPLE::
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianLatticeSampler
@@ -384,7 +388,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
         return "Discrete Gaussian sampler with σ = %f, c=%s over lattice with basis\n\n%s"%(self._sigma, self._c, self.B)
 
     def _call_in_lattice(self):
-        """
+        r"""
         Return a new sample assuming `c ∈ Λ(B)`.
 
         EXAMPLE::

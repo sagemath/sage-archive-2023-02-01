@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-Discrete Gaussian Samplers for `\\ZZ[x]`.
+r"""
+Discrete Gaussian Samplers for `\ZZ[x]`
 
-This class realizes oracles which returns polynomials in `\\ZZ[x]`
+This class realizes oracles which returns polynomials in `\ZZ[x]`
 where each coefficient is sampled independently with a probability
-proportional to `\exp(-(x-c)^2/(2σ^2))`.
+proportional to `\exp(-(x-c)²/(2σ²))`.
 
 AUTHORS:
 
@@ -61,7 +61,7 @@ from discrete_gaussian_integer import DiscreteGaussianIntegerSampler
 from sage.structure.sage_object import SageObject
 
 class DiscreteGaussianPolynomialSampler(SageObject):
-    """
+    r"""
     Discrete Gaussian sampler for polynomials.
 
     EXAMPLE::
@@ -77,7 +77,7 @@ class DiscreteGaussianPolynomialSampler(SageObject):
     .. automethod:: __call__
     """
     def __init__(self, P, n, sigma):
-        """
+        r"""
         Construct a sampler for univariate polynomials of degree ``n-1``
         where coefficients are drawn independently with standard deviation
         ``sigma``.
@@ -86,10 +86,10 @@ class DiscreteGaussianPolynomialSampler(SageObject):
 
         - ``P`` - a univariate polynomial ring over the Integers
         - ``n`` - number of coefficients to be sampled
-        - ``sigma`` - coefficients `x` are accepted with probability proportional to
-          `\exp(-x^2/(2σ^2))`. If an object of type
-          :class:`sage.stats.distributions.discrete_gaussian_integer.DiscreteGaussianIntegerSampler` is passed, then this sampler
-          is used to sample coefficients.
+        - ``sigma`` - coefficients `x` are accepted with probability
+          proportional to `\exp(-x²/(2σ²))`. If an object of type
+          :class:`sage.stats.distributions.discrete_gaussian_integer.DiscreteGaussianIntegerSampler`
+          is passed, then this sampler is used to sample coefficients.
 
         EXAMPLE::
 

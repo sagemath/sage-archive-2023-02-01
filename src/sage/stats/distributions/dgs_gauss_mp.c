@@ -102,10 +102,10 @@ void dgs_disc_gauss_sigma2p_clear(dgs_disc_gauss_sigma2p_t *self) {
 static inline void _dgs_disc_gauss_mp_init_f(mpfr_t f, const mpfr_t sigma) {
   mpfr_init2(f, mpfr_get_prec(sigma));
   mpfr_set(f, sigma, MPFR_RNDN);
-  mpfr_sqr(f, f, MPFR_RNDN); // f = σ^2
-  mpfr_mul_ui(f, f, 2, MPFR_RNDN); // f = 2 σ^2
-  mpfr_ui_div(f, 1, f, MPFR_RNDN);  // f = 1/(2 σ^2)
-  mpfr_neg(f, f, MPFR_RNDN); // f = -1/(2 σ^2)
+  mpfr_sqr(f, f, MPFR_RNDN); // f = σ²
+  mpfr_mul_ui(f, f, 2, MPFR_RNDN); // f = 2 σ²
+  mpfr_ui_div(f, 1, f, MPFR_RNDN);  // f = 1/(2 σ²)
+  mpfr_neg(f, f, MPFR_RNDN); // f = -1/(2 σ²)
 }
 
 static inline void _dgs_disc_gauss_mp_init_upper_bound(mpz_t upper_bound,

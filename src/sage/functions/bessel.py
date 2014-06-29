@@ -282,6 +282,11 @@ class Function_Bessel_J(BuiltinFunction):
 
         Numerical evaluation is handled by the mpmath library. Symbolics are
         handled by a combination of Maxima and Sage (Ginac/Pynac).
+        
+    Check whether the return value is real whenever the argument is real (#10251)::
+
+        sage: bessel_J(5, 1.5) in RR
+        True
     """
     def __init__(self):
         """
@@ -429,6 +434,11 @@ class Function_Bessel_Y(BuiltinFunction):
 
         Numerical evaluation is handled by the mpmath library. Symbolics are
         handled by a combination of Maxima and Sage (Ginac/Pynac).
+
+    Check whether the return value is real whenever the argument is real (#10251)::
+
+        sage: bessel_Y(5, 1.5) in RR
+        True
     """
     def __init__(self):
         """
@@ -578,6 +588,16 @@ class Function_Bessel_I(BuiltinFunction):
 
         Numerical evaluation is handled by the mpmath library. Symbolics are
         handled by a combination of Maxima and Sage (Ginac/Pynac).
+
+    TESTS::
+    
+        sage: N(bessel_I(1,1),500)
+        0.565159103992485027207696027609863307328899621621092009480294489479255640964371134092664997766814410064677886055526302676857637684917179812041131208121
+
+    Check whether the return value is real whenever the argument is real (#10251)::
+
+        sage: bessel_I(5, 1.5) in RR
+        True
     """
     def __init__(self):
         """
@@ -752,6 +772,11 @@ class Function_Bessel_K(BuiltinFunction):
         2.66182488515423e-23 - 8.59622057747552e-58*I
         4.11189776828337e-45 - 1.01494840019482e-80*I
         1.15159692553603e-88 - 6.75787862113718e-125*I
+
+    Check whether the return value is real whenever the argument is real (#10251)::
+
+        sage: bessel_K(5, 1.5) in RR
+        True
     """
     def __init__(self):
         """

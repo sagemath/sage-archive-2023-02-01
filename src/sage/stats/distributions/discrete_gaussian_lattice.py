@@ -89,9 +89,8 @@ def _iter_vectors(n, lower, upper, step=None):
             raise ValueError("Expected n>0 but got %d <= 0"%(n))
         step = n
 
-    if step <= 0:
-        raise RuntimeError("We reached an impossible state.")
-    elif step == 1:
+    assert(step > 0)
+    if step == 1:
         for x in xrange(lower, upper):
             v = vector(ZZ, n)
             v[0] = x

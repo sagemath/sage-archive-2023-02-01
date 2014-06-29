@@ -422,10 +422,14 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
         if self._gen_mp:
             rstate = current_randstate()
             rop = Integer()
+            sig_on()
             self._gen_mp.call(rop.value, self._gen_mp, rstate.gmp_state)
+            sig_off()
             return rop
         else:
+            sig_on()
             r = self._gen_dp.call(self._gen_dp)
+            sig_off()
             return Integer(r)
 
     def _repr_(self):

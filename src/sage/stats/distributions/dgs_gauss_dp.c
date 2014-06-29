@@ -43,9 +43,9 @@ static inline void _dgs_disc_gauss_dp_init_bexp(dgs_disc_gauss_dp_t *self, doubl
 
 dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, double c, size_t tau, dgs_disc_gauss_alg_t algorithm) {
   if (sigma <= 0.0)
-    dgs_die("σ must be > 0");
+    dgs_die("sigma must be > 0");
   if (tau == 0)
-    dgs_die("τ must be > 0");
+    dgs_die("tau must be > 0");
 
   size_t upper_bound;
 

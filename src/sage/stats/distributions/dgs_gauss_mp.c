@@ -129,17 +129,17 @@ static inline void _dgs_disc_gauss_mp_init_upper_bound(mpz_t upper_bound,
 static inline void _dgs_disc_gauss_mp_init_bexp(dgs_disc_gauss_mp_t *self, mpfr_t sigma, mpz_t upper_bound) {
   mpfr_init2(self->f, mpfr_get_prec(sigma));
   mpfr_set(self->f, sigma, MPFR_RNDN); // f = σ
-  mpfr_sqr(self->f, self->f, MPFR_RNDN); // f = σ^2
-  mpfr_mul_ui(self->f, self->f, 2, MPFR_RNDN); // f = 2 σ^2
+  mpfr_sqr(self->f, self->f, MPFR_RNDN); // f = σ²
+  mpfr_mul_ui(self->f, self->f, 2, MPFR_RNDN); // f = 2 σ²
   size_t l = 2*mpz_sizeinbase(upper_bound, 2);
   self->Bexp = dgs_bern_exp_mp_init(self->f, l);
 }
 
 dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, dgs_disc_gauss_alg_t algorithm) {
   if (mpfr_cmp_ui(sigma,0)<= 0)
-    dgs_die("σ must be > 0");
+    dgs_die("sigma must be > 0");
   if (tau == 0)
-    dgs_die("τ must be > 0");
+    dgs_die("tau must be > 0");
 
   mpfr_prec_t prec = mpfr_get_prec(sigma);
   if (mpfr_get_prec(c) > prec)

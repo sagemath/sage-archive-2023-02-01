@@ -189,6 +189,8 @@ include "sage/ext/python.pxi"
 
 import operator
 
+from sage.misc.cachefunc import cached_method
+
 from sage.misc.randstate import current_randstate
 import sage.misc.weak_dict
 from sage.rings.integer import Integer
@@ -4910,19 +4912,16 @@ cdef inline BooleanPolynomialIterator new_BPI_from_BooleanPolynomial(BooleanPoly
 
 class BooleanPolynomialIdeal(MPolynomialIdeal):
     def __init__(self, ring, gens=[], coerce=True):
-        r"""
+        """
         Construct an ideal in the boolean polynomial ring.
 
         INPUT:
-
 
         -  ``ring`` - the ring this ideal is defined in
 
         -  ``gens`` - a list of generators
 
-        - ``coerce`` - coerce all elements to the ring ``ring``
-           (default: ``True``)
-
+        - ``coerce`` - coerce all elements to the ring ``ring`` (default: ``True``)
 
         EXAMPLES::
 
@@ -4985,7 +4984,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
           to ``True`` linear algebra takes affect in this
           block. (default: ``True``)
 
-        - "gauss_on_linear" - perform Gaussian elimination on linear
+        - ``gauss_on_linear`` - perform Gaussian elimination on linear
            polynomials (default: ``True``)
 
         - ``selection_size`` - maximum number of polynomials for
@@ -5227,7 +5226,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         If this ideal is spanned by ``(f_1, ..., f_n)`` this method
         returns ``(g_1, ..., g_s)`` such that:
 
-        -  ``(f_1,...,f_n) = (g_1,...,g_s)``
+        -  ``<f_1,...,f_n> = <g_1,...,g_s>``
         -  ``LT(g_i) != LT(g_j)`` for all ``i != j```
         - ``LT(g_i)`` does not divide ``m`` for all monomials ``m`` of
           ``{g_1,...,g_{i-1},g_{i+1},...,g_s}``
@@ -5240,12 +5239,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             sage: I.interreduced_basis()
             [k100 + 1, k101 + k001 + 1, k102, k103 + 1, x100 + k001 + 1, x101 + k001, x102, x103 + k001, w100 + 1, w101 + k001 + 1, w102 + 1, w103 + 1, s000 + k001, s001 + k001 + 1, s002, s003 + k001 + 1, k000 + 1, k002 + 1, k003 + 1]
         """
-        R = self.ring()
-
-        from polybori.interred import interred as inter_red
-        l = [p for p in self.gens() if not p==0]
-        l = sorted(inter_red(l, completely=True), reverse=True)
-        return Sequence(l, R, check=False, immutable=True)
+        return self.basis.reduced()
 
     def __cmp__(self, other):
         """

@@ -1450,8 +1450,34 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         return solutions
 
+    def reduced(self):
+        """
+        If this sequence is `(f_1, ..., f_n)` this method returns `(g_1, ..., g_s)` such that:
 
+        -  `<f_1,...,f_n> = <g_1,...,g_s>`
+        -  `LT(g_i) != LT(g_j)` for all `i != j``
+        - `LT(g_i)` does not divide `m` for all monomials `m` of
+          `{g_1,...,g_{i-1},g_{i+1},...,g_s}`
 
+        EXAMPLE::
+
+            sage: sr = mq.SR(1, 1, 1, 4, gf2=True, polybori=True)
+            sage: F,s = sr.polynomial_system()
+            sage: F.reduced()
+            [k100 + 1, k101 + k001 + 1, k102, k103 + 1, ..., s002, s003 + k001 + 1, k000 + 1, k002 + 1, k003 + 1]
+
+        """
+
+        from sage.rings.polynomial.pbori import BooleanPolynomialRing
+        R = self.ring()
+
+        if isinstance(R, BooleanPolynomialRing):
+            from polybori.interred import interred as inter_red
+            l = [p for p in self if not p==0]
+            l = sorted(inter_red(l, completely=True), reverse=True)
+            return PolynomialSequence(l, R, immutable=True)
+        else:
+            return PolynomialSequence_generic.reduced(self)
 
 class PolynomialSequence_gf2e(PolynomialSequence_generic):
     """

@@ -163,8 +163,8 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 
             from sage.rings.all import (ComplexField,
-                                        RLF, CLF, AA, QQbar, InfinityRing,
-                                        is_FiniteField)
+                                        RLF, CLF, AA, QQbar, InfinityRing)
+            from sage.rings.finite_rings.finite_field_base import is_FiniteField
 
             from sage.interfaces.maxima import Maxima
 

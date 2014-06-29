@@ -246,6 +246,12 @@ cdef extern from "mpfr.h":
     long MPFR_VERSION_NUM (major, minor, patchlevel)
     char * mpfr_get_patches ()
 
+    # Printf-Like Functions
+    int mpfr_printf (const char*, ...)
+    int mpfr_asprintf (char**, const char*, ...)
+    int mpfr_sprintf (char**, const char*, ...)
+    int mpfr_snprintf (char*, size_t, const char*, ...)
+
     # Rounding Mode Related Functions
     void mpfr_set_default_rounding_mode (mp_rnd_t rnd)
     mp_rnd_t mpfr_get_default_rounding_mode ()

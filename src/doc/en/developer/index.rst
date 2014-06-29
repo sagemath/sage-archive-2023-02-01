@@ -28,9 +28,8 @@ Depending on your previous knowledge, there are several places you can
 start learning about the source code revision control process.
 
 -  First, although it is possible to try out bugfixes and explore the
-   code without having a developer account (see :ref:`Readonly Access
-   <section-git_trac-readonly>`), it is best to :ref:`acquire a Trac
-   account <section-trac-account>` first, then :ref:`configure git
+   code without having a developer account, it is best to :ref:`acquire a
+   Trac account <section-trac-account>` first, then :ref:`configure git
    <section-git-setup-name>` for use with Trac.
 -  An overview of the Sage development process, assuming you have ``git``
    installed and know the basics of how to use it, is in the :ref:`concise

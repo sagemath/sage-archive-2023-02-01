@@ -1387,8 +1387,8 @@ class _Bessel():
             bessel_j(6,pi)
             sage: b.n(53)
             0.0145459669825056
-            sage: _Bessel(6, typ='I', algorithm="maxima")(pi)
-            0.0294619840059568
+            sage: _Bessel(6, typ='I', algorithm="maxima")(pi)  # rel tol 5e-13
+            0.02946198400594384
             sage: _Bessel(6, typ='Y', algorithm="maxima")(pi)
             -4.33932818939038
 
@@ -1517,8 +1517,8 @@ class _Bessel():
             sage: from sage.functions.bessel import _Bessel
             sage: _Bessel(3,'K')(5.0)
             0.00829176841523093
-            sage: _Bessel(20,algorithm='maxima')(5.0)
-            27.703300521289436e-12
+            sage: _Bessel(20,algorithm='maxima')(5.0)  # rel tol 1e-15
+            2.770330052128942e-11
             sage: _Bessel(20,prec=100)(5.0101010101010101)
             2.8809188227195382093062257967e-11
             sage: B = _Bessel(2,'Y',algorithm='scipy',prec=50)

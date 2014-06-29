@@ -46,6 +46,7 @@ from sage.combinat.partition import Partition, Partitions
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
+from functools import reduce
 
 class SetPartition(ClonableArray):
     """
@@ -444,7 +445,7 @@ class SetPartition(ClonableArray):
         """
         res = Set(list(self))
         for p in t:
-            inters = Set(filter(lambda x: x.intersection(p) != Set([]), list(res)))
+            inters = Set([x for x in list(res) if x.intersection(p) != Set([])])
             res = res.difference(inters).union(_set_union(inters))
         return SetPartition(res)
 
@@ -1131,8 +1132,7 @@ class SetPartitions(Parent, UniqueRepresentation):
             return False
 
         for p in s:
-            f = lambda z: z.intersection(p) != Set([])
-            if len(filter(f, list(t)) ) != 1:
+            if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
                 return False
         return True
 
@@ -1182,7 +1182,7 @@ class SetPartitions(Parent, UniqueRepresentation):
             return False
 
         for p in t:
-            L = filter(lambda x: x.issubset(p), list(s))
+            L = [x for x in list(s) if x.issubset(p)]
             if sum(len(x) for x in L) != len(p) \
                     or any(max(L[i]) > min(L[i+1]) for i in range(len(L)-1)):
                 return False
@@ -1599,7 +1599,7 @@ def inf(s,t):
     from sage.misc.superseded import deprecation
     deprecation(14140, 'inf(s, t) is deprecated. Use s.inf(t) instead.')
     temp = [ss.intersection(ts) for ss in s for ts in t]
-    temp = filter(lambda x: x != Set([]), temp)
+    temp = [x for x in temp if x != Set([])]
     return Set(temp)
 
 def sup(s,t):
@@ -1620,7 +1620,7 @@ def sup(s,t):
     deprecation(14140, 'sup(s, t) is deprecated. Use s.sup(t) instead.')
     res = s
     for p in t:
-        inters = Set(filter(lambda x: x.intersection(p) != Set([]), list(res)))
+        inters = Set([x for x in list(res) if x.intersection(p) != Set([])])
         res = res.difference(inters).union(_set_union(inters))
     return res
 
@@ -1660,8 +1660,7 @@ def less(s, t):
     if s == t:
         return False
     for p in s:
-        f = lambda z: z.intersection(p) != Set([])
-        if len(filter(f, list(t)) ) != 1:
+        if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
             return False
     return True
 

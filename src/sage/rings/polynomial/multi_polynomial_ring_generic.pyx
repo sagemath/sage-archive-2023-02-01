@@ -737,7 +737,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         INPUT:
 
         - ``degree`` -- maximal degree (likely to be reached) (default: 2)
-        - ``terms`` -- number of terms requested (default: 5)
+        - ``terms`` -- number of terms requested (default: 5), if it is ``True``
+          then the maximum number of terms is chosen.
         - ``choose_degree`` -- choose degrees of monomials randomly first
           rather than monomials uniformly random.
         - ``**kwargs`` -- passed to the random element generator of the base
@@ -750,42 +751,56 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             -6/5*x^2 + 2/3*z^2 - 1
 
             sage: P.random_element(2, 5, choose_degree=True)
-            -1/4*x*y - 1/5*x*z - 1/14*y*z - z^2
+            -1/4*x*y - x - 1/14*z - 1
 
         Stacked rings::
 
             sage: R = QQ['x,y']
             sage: S = R['t,u']
             sage: S.random_element(degree=2, terms=1)
-            -3*x*y + 5/2*y^2 - 1/2*x - 1/4*y + 4
+            -1/2*x^2 - 1/4*x*y - 3*y^2 + 4*y
             sage: S.random_element(degree=2, terms=1)
-            (-1/2*x^2 - x*y - 2/7*y^2 + 3/2*x - y)*t*u
+            (-x^2 - 2*y^2 - 1/3*x + 2*y + 9)*u^2
 
         Default values apply if no degree and/or number of terms is
         provided::
 
             sage: random_matrix(QQ['x,y,z'], 2, 2)
-            [        2*y^2 - 2/27*y*z - z^2 + 2*z        1/2*x*y - 1/2*y^2 + 2*x - 2*y]
-            [-1/27*x^2 + 2/5*y^2 - 1/10*z^2 - 2*z              -13*y^2 + 2/3*z^2 + 2*y]
+            [357*x^2 + 1/4*y^2 + 2*y*z + 2*z^2 + 28*x      2*x*y + 3/2*y^2 + 2*y*z - 2*z^2 - z]
+            [                       x*y - y*z + 2*z^2         -x^2 - 4/3*x*z + 2*z^2 - x + 4*y]
 
             sage: random_matrix(QQ['x,y,z'], 2, 2, terms=1, degree=2)
-            [-1/4*x    1/2]
-            [ 1/3*x    x*y]
+            [ 1/2*y -1/4*x]
+            [   1/2  1/3*x]
 
             sage: P.random_element(0, 1)
-            -1
+            1
 
             sage: P.random_element(2, 0)
             0
 
             sage: R.<x> = PolynomialRing(Integers(3), 1)
             sage: R.random_element()
-            x + 1
+            -x^2 + x
+
+        To produce a dense polynomial, pick ``terms=True``::
+
+            sage: P.<x,y,z> = GF(127)[]
+            sage: P.random_element(degree=2, terms=True)
+            -55*x^2 - 51*x*y + 5*y^2 + 55*x*z - 59*y*z + 20*z^2 + 19*x - 55*y - 28*z + 17
+            sage: P.random_element(degree=3, terms=True)
+            -54*x^3 + 15*x^2*y - x*y^2 - 15*y^3 + 61*x^2*z - 12*x*y*z + 20*y^2*z - 61*x*z^2 - 5*y*z^2 + 62*z^3 + 15*x^2 - 47*x*y + 31*y^2 - 14*x*z + 29*y*z + 13*z^2 + 61*x - 40*y - 49*z + 30
+            sage: P.random_element(degree=3, terms=True, choose_degree=True)
+            57*x^3 - 58*x^2*y + 21*x*y^2 + 36*y^3 + 7*x^2*z - 57*x*y*z + 8*y^2*z - 11*x*z^2 + 7*y*z^2 + 6*z^3 - 38*x^2 - 18*x*y - 52*y^2 + 27*x*z + 4*y*z - 51*z^2 - 63*x + 7*y + 48*z + 14
+
         """
         k = self.base_ring()
         n = self.ngens()
 
         counts, total = self._precomp_counts(n, degree)
+
+        if terms is True:
+            terms = total
 
         if terms is None:
             if total >= 5:
@@ -842,9 +857,9 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                 for mi in xrange(terms):
                     d = ZZ.random_element(0,len(M)) #choose degree at random
                     m = ZZ.random_element(0,len(M[d])) # choose monomial at random
-                    Mbar.append( M[degree].pop(m) ) # remove and insert
-                    if len(M[degree]) == 0:
-                        M.pop(degree) # bookkeeping
+                    Mbar.append( M[d].pop(m) ) # remove and insert
+                    if len(M[d]) == 0:
+                        M.pop(d) # bookkeeping
                 M = map(tuple, Mbar)
 
         else:

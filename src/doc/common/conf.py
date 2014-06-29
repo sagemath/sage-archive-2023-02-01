@@ -344,10 +344,10 @@ latex_elements['preamble'] = r"""
 \DeclareUnicodeCharacter{2209}{\notin}
 \DeclareUnicodeCharacter{2202}{\partial}
 \DeclareUnicodeCharacter{222B}{\int}
-\DeclareUnicodeCharacter{2148}{\id}  
-\DeclareUnicodeCharacter{2248}{\approx}  
-\DeclareUnicodeCharacter{2260}{\neq}  
-\DeclareUnicodeCharacter{00B1}{\pm}  
+\DeclareUnicodeCharacter{2148}{\id}
+\DeclareUnicodeCharacter{2248}{\approx}
+\DeclareUnicodeCharacter{2260}{\neq}
+\DeclareUnicodeCharacter{00B1}{\pm}
 \DeclareUnicodeCharacter{2A02}{\otimes}
 \DeclareUnicodeCharacter{2A01}{\oplus}
 \DeclareUnicodeCharacter{00BD}{\nicefrac{1}{2}}

@@ -100,4 +100,3 @@ class DiscreteGaussianPolynomialSampler(SageObject):
             Discrete Gaussian sampler for polynomials of degree < 8 with σ=3.000000 in each component
         """
         return "Discrete Gaussian sampler for polynomials of degree < %d with σ=%f in each component"%(self.n, self.D.sigma)
-

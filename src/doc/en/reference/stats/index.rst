@@ -15,5 +15,4 @@ Statistics
    sage/stats/distributions/discrete_gaussian_polynomial
    sage/stats/distributions/discrete_gaussian_lattice
 
-   
 .. include:: ../footer.txt

@@ -109,7 +109,6 @@ class DiscreteGaussianLatticeSampler(SageObject):
     .. automethod:: __init__
     .. automethod:: __call__
     """
-
     @staticmethod
     def compute_precision(precision, sigma):
         """
@@ -254,7 +253,6 @@ class DiscreteGaussianLatticeSampler(SageObject):
         self._c = c
 
         self.f = lambda x: exp(-(vector(ZZ, B.ncols(), x)-c).norm()**2/(2*self._sigma**2))
-
 
         # deal with trivial case first, it is common
         if self._G == 1 and self._c == 0:

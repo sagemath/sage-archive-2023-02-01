@@ -79,17 +79,17 @@ cdef extern from "dgs.h":
         mpz_t x
         mpfr_t y
         mpfr_t *rho
-  
+
     dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tailcut, dgs_disc_gauss_alg_t algorithm)
     void dgs_disc_gauss_mp_call_uniform_table(mpz_t rop, dgs_disc_gauss_mp_t *self, gmp_randstate_t state)
-    void dgs_disc_gauss_mp_flush_cache(dgs_disc_gauss_mp_t *self) 
+    void dgs_disc_gauss_mp_flush_cache(dgs_disc_gauss_mp_t *self)
     void dgs_disc_gauss_mp_clear(dgs_disc_gauss_mp_t *self)
 
     ctypedef struct dgs_disc_gauss_dp_t:
         double sigma
         double c
         size_t tailcut
-        dgs_disc_gauss_alg_t algorithm        
+        dgs_disc_gauss_alg_t algorithm
         dgs_bern_uniform_t *B
         dgs_bern_exp_dp_t *Bexp
         dgs_disc_gauss_sigma2p_t *D2

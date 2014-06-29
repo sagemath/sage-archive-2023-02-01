@@ -185,7 +185,7 @@ void dgs_bern_uniform_clear(dgs_bern_uniform_t *self);
 
 typedef struct {
   /**
-     Return 1 wuth probability `p`
+     Return 1 with probability `p`
   */
   mpfr_t p;
   mpfr_t tmp; //< used internally

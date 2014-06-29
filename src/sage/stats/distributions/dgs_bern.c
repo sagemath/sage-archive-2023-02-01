@@ -71,7 +71,7 @@ dgs_bern_exp_mp_t* dgs_bern_exp_mp_init(mpfr_t f, size_t l) {
   /* l == 0, means we use the precision of f to decide l */
   if (l == 0)
     l = SIZE_MAX;
- 
+
   self->l = DGS_BERN_EXP_ALLOC_BLOCK_SIZE;
   self->p = (mpfr_t*)malloc(sizeof(mpfr_t)*self->l); 
   if (!self->p) abort();
@@ -128,7 +128,7 @@ long dgs_bern_exp_mp_call(dgs_bern_exp_mp_t *self, mpz_t x, gmp_randstate_t stat
 void dgs_bern_exp_mp_clear(dgs_bern_exp_mp_t *self) {
   if(!self)
     return;
-  
+
   for(size_t i=0; i<self->l; i++) {
     mpfr_clear(self->p[i]);
     dgs_bern_mp_clear(self->B[i]);
@@ -159,7 +159,7 @@ long dgs_bern_dp_call(dgs_bern_dp_t *self) {
   double c = drand48();
   if (c<self->p)
     return 1;
-  else 
+  else
     return 0;
 }
 
@@ -178,7 +178,7 @@ dgs_bern_exp_dp_t* dgs_bern_exp_dp_init(double f, size_t l) {
   /* l == 0, means we use the precision of f to decide l */
   if (l == 0)
     l = SIZE_MAX;
- 
+
   self->l = DGS_BERN_EXP_ALLOC_BLOCK_SIZE;
   self->p = (double*)malloc(sizeof(double)*self->l); 
   if (!self->p) abort();
@@ -186,8 +186,8 @@ dgs_bern_exp_dp_t* dgs_bern_exp_dp_init(double f, size_t l) {
   if (!self->B) abort();
 
   double tmp = -1.0/f;
-  double tmp2; 
-  
+  double tmp2;
+
   for(size_t i=0; i<l; i++) {
     tmp2 = exp(tmp);
     if (tmp2 == 0.0) {
@@ -202,7 +202,7 @@ dgs_bern_exp_dp_t* dgs_bern_exp_dp_init(double f, size_t l) {
       self->B = realloc(self->B, sizeof(dgs_bern_exp_dp_t)*self->l);
       if(!self->B) abort();
     }
-    
+
     self->p[i] = tmp2;
     self->B[i] = dgs_bern_dp_init(self->p[i]);
 
@@ -231,7 +231,7 @@ long dgs_bern_exp_dp_call(dgs_bern_exp_dp_t *self, long x) {
 void dgs_bern_exp_dp_clear(dgs_bern_exp_dp_t *self) {
   if(!self)
     return;
-  
+
   for(size_t i=0; i<self->l; i++) {
     dgs_bern_dp_clear(self->B[i]);
   }

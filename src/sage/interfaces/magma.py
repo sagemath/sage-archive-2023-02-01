@@ -2943,6 +2943,10 @@ class MagmaGBDefaultContext:
             sage: with MagmaGBDefaultContext(): magma.GetVerbose('Groebner')  # optional - magma
             0
         """
+        if magma is None:
+            from sage.interfaces.all import magma as magma_default
+            magma = magma_default
+
         self.magma = magma
 
     def __enter__(self):

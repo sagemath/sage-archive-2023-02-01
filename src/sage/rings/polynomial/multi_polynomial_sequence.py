@@ -238,8 +238,7 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
          2*a*b + 2*b*c + 2*c*d - b,
          b^2 + 2*a*c + 2*b*d - c]
 
-    If a list of polynomials is provided, the system has only one
-    part::
+    If a list of polynomials is provided, the system has only one part::
 
         sage: F = Sequence(I.gens(), I.ring()); F
         [a + 2*b + 2*c + 2*d - 1,
@@ -248,75 +247,92 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
          b^2 + 2*a*c + 2*b*d - c]
          sage: F.nparts()
          1
+
+    We test that the ring is inferred correctly::
+
+        sage: P.<x,y,z> = GF(2)[]
+        sage: from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+        sage: PolynomialSequence([1,x,y]).ring()
+        Multivariate Polynomial Ring in x, y, z over Finite Field of size 2
+
+        sage: PolynomialSequence([[1,x,y], [0]]).ring()
+        Multivariate Polynomial Ring in x, y, z over Finite Field of size 2
     """
 
     from sage.matrix.matrix import is_Matrix
+    from sage.rings.polynomial.pbori import BooleanMonomialMonoid, BooleanMonomial
 
-    if is_MPolynomialRing(arg1) or is_QuotientRing(arg1):
-        ring = arg1
-        gens = arg2
+    is_ring = lambda r: is_MPolynomialRing(r) or isinstance(r, BooleanMonomialMonoid) or (is_QuotientRing(r) and is_MPolynomialRing(r.cover_ring()))
+    is_poly = lambda f: is_MPolynomial(f) or isinstance(f, QuotientRingElement) or isinstance(f, BooleanMonomial)
 
-    elif is_MPolynomialRing(arg2) or is_QuotientRing(arg2):
-        ring = arg2
-        gens = arg1
+    if is_ring(arg1):
+        ring, gens = arg1, arg2
 
-    elif is_Matrix(arg1) and arg2 is None:
-        ring = arg1.base_ring()
-        gens = arg1.list()
+    elif is_ring(arg2):
+        ring, gens = arg2, arg1
 
-    elif isinstance(arg1, MPolynomialIdeal) and arg2 is None:
-        ring = arg1.ring()
-        gens = arg1.gens()
+    elif is_Matrix(arg1):
+        ring, gens = arg1.base_ring(), arg1.list()
 
-    elif isinstance(arg1, (list,tuple,GeneratorType)) and arg2 is None:
-        gens = arg1
+    elif isinstance(arg1, MPolynomialIdeal):
+        ring, gens = arg1.ring(), arg1.gens()
 
-        try:
-            e = iter(gens).next()
-        except StopIteration:
-            raise ValueError("Cannot determine ring from provided information.")
-
-        if is_MPolynomial(e) or isinstance(e, QuotientRingElement):
-            ring = e.parent()
-        else:
-            ring = iter(e).next().parent()
     else:
-        raise TypeError("Cannot understand input.")
+        gens = list(arg1)
+
+        if arg2:
+            ring = arg2
+            if not is_ring(ring):
+                raise TypeError("Ring '%s' not supported."%ring)
+        else:
+            try:
+                e = iter(gens).next()
+            except StopIteration:
+                raise ValueError("Cannot determine ring from provided information.")
+
+            import sage.structure.element as coerce
+
+            el = 0
+
+            for f in gens:
+                try:
+                    el, _ = coerce.canonical_coercion(el, f)
+                except TypeError:
+                    el = 0
+                    for part in gens:
+                        for f in part:
+                            el, _ = coerce.canonical_coercion(el, f)
+
+            if is_ring(el.parent()):
+                ring = el.parent()
+            else:
+                raise TypeError("Cannot determine ring.")
 
     try:
         e = iter(gens).next()
 
-        if is_MPolynomial(e) or isinstance(e, QuotientRingElement):
-            gens = tuple(gens)
-            parts = (gens,)
-            if not all(f.parent() is ring for f in gens):
-                parts = ((ring(f) for f in gens),)
-        else:
-            parts = []
-            _gens = []
-            for part in gens:
-                _part = []
-                for gen in part:
-                    if not gen.parent() is ring:
-                        ring(gen)
-                    _part.append(gen)
-                _gens.extend(_part)
-                parts.append(tuple(_part))
-            gens = _gens
+        try:
+            parts = tuple(map(ring, gens)),
+        except TypeError:
+            parts = tuple(tuple(ring(f) for f in part) for part in gens)
     except StopIteration:
-        gens = tuple()
         parts = ((),)
 
-    k = ring.base_ring()
+    K = ring.base_ring()
 
-    try: c = k.characteristic()
-    except NotImplementedError: c = -1
+    try:
+        c = K.characteristic()
+    except NotImplementedError:
+        c = 0
+
+    # make sure we use the polynomial ring as ring not the monoid
+    ring = (ring(1) + ring(1)).parent()
 
     if c != 2:
         return PolynomialSequence_generic(parts, ring, immutable=immutable, cr=cr, cr_str=cr_str)
-    elif k.degree() == 1:
+    elif K.degree() == 1:
         return PolynomialSequence_gf2(parts, ring, immutable=immutable, cr=cr, cr_str=cr_str)
-    elif k.degree() > 1:
+    elif K.degree() > 1:
         return PolynomialSequence_gf2e(parts, ring, immutable=immutable, cr=cr, cr_str=cr_str)
 
 class PolynomialSequence_generic(Sequence_generic):

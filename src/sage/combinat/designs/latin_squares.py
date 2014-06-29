@@ -157,7 +157,7 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
     from designs_pyx import is_orthogonal_array
     return is_orthogonal_array(zip(*[[x for R in M for x in R] for M in l]),k,n, verbose=verbose, terminology="MOLS")
 
-def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, existence=False, who_asked=tuple()):
+def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, existence=False):
     r"""
     Returns `k` Mutually Orthogonal `n\times n` Latin Squares (MOLS).
 
@@ -207,11 +207,6 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
       returning it. As this is expected to be useless (but we are cautious
       guys), you may want to disable it whenever you want speed. Set to
       ``True`` by default.
-
-    - ``who_asked`` (internal use only) -- because of the equivalence between
-      OA/TD/MOLS, each of the three constructors calls the others. We must keep
-      track of who calls who in order to avoid infinite loops. ``who_asked`` is
-      the tuple of the other functions that were called before this one.
 
     EXAMPLES::
 
@@ -327,7 +322,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         if existence:
             return k
 
-    if existence and not who_asked and _OA_cache_get(k+2,n) is not None:
+    if existence and _OA_cache_get(k+2,n) is not None:
         return _OA_cache_get(k+2,n)
 
     may_be_available = _OA_cache_construction_available(k+2,n) is not False
@@ -350,11 +345,9 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
 
         matrices = construction()[:k]
 
-    elif (orthogonal_array not in who_asked and
-        orthogonal_array(k+2,n,existence=True,who_asked = who_asked+(mutually_orthogonal_latin_squares,)) is not Unknown):
-
+    elif orthogonal_array(k+2,n,existence=True) is not Unknown:
         # Forwarding non-existence results
-        if orthogonal_array(k+2,n,existence=True,who_asked = who_asked+(mutually_orthogonal_latin_squares,)):
+        if orthogonal_array(k+2,n,existence=True):
             if existence:
                 return True
         else:
@@ -362,7 +355,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
                 return False
             raise EmptySetError("There does not exist {} MOLS of order {}!".format(k,n))
 
-        OA = orthogonal_array(k+2,n,check=False, who_asked = who_asked+(mutually_orthogonal_latin_squares,))
+        OA = orthogonal_array(k+2,n,check=False)
         OA.sort() # make sure that the first two columns are "11, 12, ..., 1n, 21, 22, ..."
 
         # We first define matrices as lists of n^2 values
@@ -376,8 +369,6 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         matrices = [Matrix(M) for M in matrices]
 
     else:
-        if not who_asked:
-            _OA_cache_set(k+2,n,Unknown)
         if existence:
             return Unknown
         raise NotImplementedError("I don't know how to build {} MOLS of order {}".format(k,n))

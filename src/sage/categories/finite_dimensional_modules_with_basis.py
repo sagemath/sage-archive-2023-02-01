@@ -37,7 +37,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
         pass
 
     class MorphismMethods:
-        def matrix(self):
+        def matrix(self, base_ring=None):
             """
             Returns the matrix of self in the distinguished basis
             of the domain and codomain.
@@ -65,7 +65,13 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 [0 0 0]
             """
             from sage.matrix.constructor import matrix
-            m = matrix([self.on_basis()(x).to_vector() for x in self.domain().basis().keys()]).transpose()
+            if base_ring is None:
+                base_ring = self.domain().base_ring()
+
+            on_basis = self.on_basis()
+            basis_keys = self.domain().basis().keys()
+            m = matrix(base_ring,
+                       [on_basis(x).to_vector() for x in basis_keys]).transpose()
             m.set_immutable()
             return m
 
@@ -167,3 +173,4 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 raise RuntimeError, "morphism is not invertible"
             return self._from_matrix(Hom(self.codomain(), self.domain(), category = self.category_for()),
                                      inv_mat)
+

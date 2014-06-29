@@ -83,7 +83,10 @@ dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, double c, size_t tau, 
     if(self->c_r == 0) {
       self->call = dgs_disc_gauss_dp_call_uniform_table;
       self->rho = (double*)malloc(sizeof(double)*self->upper_bound);
-      if (!self->rho) dgs_die("out of memory");
+      if (!self->rho){
+        dgs_disc_gauss_dp_clear(self);
+        dgs_die("out of memory");
+      }
       for(unsigned long x=0; x<self->upper_bound; x++) {
         self->rho[x] = exp( (((double)x) - self->c_r) * (((double)x) - self->c_r) * self->f);
       }
@@ -91,7 +94,10 @@ dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, double c, size_t tau, 
     } else {
       self->call = dgs_disc_gauss_dp_call_uniform_table_offset;
       self->rho = (double*)malloc(sizeof(double)*self->two_upper_bound_minus_one);
-      if (!self->rho) dgs_die("out of memory");
+      if (!self->rho){
+        dgs_disc_gauss_dp_clear(self);
+        dgs_die("out of memory");
+      }
       long absmax = self->upper_bound_minus_one;
       for(long x=-absmax; x<=absmax; x++) {
         self->rho[x+self->upper_bound_minus_one] = exp( (((double)x) - self->c_r) * (((double)x) - self->c_r) * self->f);
@@ -217,6 +223,7 @@ long dgs_disc_gauss_dp_call_sigma2_logtable(dgs_disc_gauss_dp_t *self) {
 
 
 void dgs_disc_gauss_dp_clear(dgs_disc_gauss_dp_t *self) {
+  assert(self != NULL);
   if (self->B) dgs_bern_uniform_clear(self->B);
   if (self->Bexp) dgs_bern_exp_dp_clear(self->Bexp);
   if (self->rho) free(self->rho);

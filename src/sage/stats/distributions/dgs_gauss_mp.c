@@ -150,6 +150,7 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
 
   mpz_init(self->x);
   mpz_init(self->x2);
+  mpz_init(self->k);
   mpfr_init2(self->y, prec);
   mpfr_init2(self->z, prec);
 
@@ -189,11 +190,15 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
 
     if (mpfr_zero_p(self->c_r)) { /* c is an integer */
       self->call = dgs_disc_gauss_mp_call_uniform_table;
-      if (mpz_cmp_ui(self->upper_bound, ULONG_MAX/sizeof(mpfr_t))>0)
+      if (mpz_cmp_ui(self->upper_bound, ULONG_MAX/sizeof(mpfr_t))>0){
+        dgs_disc_gauss_mp_clear(self);
         dgs_die("integer overflow");
+      }
       self->rho = (mpfr_t*)malloc(sizeof(mpfr_t)*mpz_get_ui(self->upper_bound));
-      if (!self->rho)
+      if (!self->rho){
+        dgs_disc_gauss_mp_clear(self);
         dgs_die("out of memory");
+      }
 
       mpfr_t x_;
       mpfr_init2(x_, prec);
@@ -210,11 +215,16 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
 
     } else { /* c is not an integer, we need a bigger table as our nice symmetry is lost */
       self->call = dgs_disc_gauss_mp_call_uniform_table_offset;
-      if (mpz_cmp_ui(self->two_upper_bound_minus_one, ULONG_MAX/sizeof(mpfr_t)) > 0)
+      if (mpz_cmp_ui(self->two_upper_bound_minus_one, ULONG_MAX/sizeof(mpfr_t)) > 0){
+        dgs_disc_gauss_mp_clear(self);
         dgs_die("integer overflow");
+      }
       // we need a bigger table
       self->rho = (mpfr_t*)malloc(sizeof(mpfr_t)*mpz_get_ui(self->two_upper_bound_minus_one));
-      if (!self->rho) dgs_die("out of memory");
+      if (!self->rho){
+        dgs_disc_gauss_mp_clear(self);
+        dgs_die("out of memory");
+      }
 
       mpfr_t x_;
       mpfr_init2(x_, prec);
@@ -241,7 +251,7 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
                                         self->sigma, self->tau);
 
     if (!mpfr_zero_p(self->c_r)) {
-      free(self);
+      dgs_disc_gauss_mp_clear(self);
       dgs_die("algorithm DGS_DISC_GAUSS_UNIFORM_LOGTABLE requires c%1 == 0");
     }
 
@@ -253,7 +263,7 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
     self->call = dgs_disc_gauss_mp_call_sigma2_logtable;
 
     if (!mpfr_zero_p(self->c_r)) {
-      free(self);
+      dgs_disc_gauss_mp_clear(self);
       dgs_die("algorithm DGS_DISC_GAUSS_SIGMA2_LOGTABLE requires c%1 == 0");
     }
 
@@ -270,8 +280,8 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
     mpfr_div(tmp, sigma, sigma2, MPFR_RNDN);
     mpfr_get_z(self->k, tmp, MPFR_RNDN);
     mpfr_mul_z(self->sigma, sigma2, self->k, MPFR_RNDN); //k·σ₂
-    mpfr_clear(tmp);
     mpfr_clear(sigma2);
+    mpfr_clear(tmp);
 
     _dgs_disc_gauss_mp_init_upper_bound(self->upper_bound,
                                         self->upper_bound_minus_one,
@@ -377,7 +387,10 @@ void dgs_disc_gauss_mp_clear(dgs_disc_gauss_mp_t *self) {
   mpfr_clear(self->sigma);
   if (self->B) dgs_bern_uniform_clear(self->B);
   if (self->Bexp) dgs_bern_exp_mp_clear(self->Bexp);
+  if (self->D2) dgs_disc_gauss_sigma2p_clear(self->D2);
   mpz_clear(self->x);
+  mpz_clear(self->x2);
+  mpz_clear(self->k);
   mpfr_clear(self->y);
   mpfr_clear(self->f);
   mpfr_clear(self->z);

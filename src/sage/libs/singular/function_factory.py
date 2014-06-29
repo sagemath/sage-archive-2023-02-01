@@ -50,8 +50,10 @@ class SingularFunctionFactory(object):
         """
         EXAMPLE::
 
-             sage: "groebner" in sage.libs.singular.ff.trait_names()
-             True
+            sage: import sage.libs.singular.function_factory
+            sage: "groebner" in sage.libs.singular.function_factory.ff.trait_names()
+            True
+            
         """
         return list_of_functions()
 

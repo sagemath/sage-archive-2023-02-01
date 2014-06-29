@@ -46,7 +46,7 @@ dgs_bern_uniform_t* dgs_bern_uniform_init(size_t length) {
   assert(length <= DGS_BERN_UNIFORM_MAX_LENGTH);
 
   dgs_bern_uniform_t *self = (dgs_bern_uniform_t *)malloc(sizeof(dgs_bern_uniform_t));
-  if (!self) abort();
+  if (!self) dgs_die("out of memory");
   self->length = length;
 
   self->count = self->length;
@@ -69,7 +69,7 @@ dgs_bern_mp_t* dgs_bern_mp_init(mpfr_t p) {
   assert((mpfr_cmp_d(p, 0.0) >= 0) && (mpfr_cmp_d(p, 1.0) < 0));
 
   dgs_bern_mp_t *self = malloc(sizeof(dgs_bern_mp_t));
-  if (!self) abort();
+  if (!self) dgs_die("out of memory");
 
   mpfr_init_set(self->p, p, MPFR_RNDN);
   mpfr_init2(self->tmp, mpfr_get_prec(p));
@@ -98,18 +98,18 @@ void dgs_bern_mp_clear(dgs_bern_mp_t *self) {
 
 dgs_bern_exp_mp_t* dgs_bern_exp_mp_init(mpfr_t f, size_t l) {
   dgs_bern_exp_mp_t *self = (dgs_bern_exp_mp_t *)malloc(sizeof(dgs_bern_exp_mp_t));
-  if (!self) abort();
+  if (!self) dgs_die("out of memory");
 
   /* l == 0, means we use the precision of f to decide l */
   if (l == 0)
     l = SIZE_MAX;
 
   self->l = DGS_BERN_EXP_ALLOC_BLOCK_SIZE;
-  self->p = (mpfr_t*)malloc(sizeof(mpfr_t)*self->l); 
-  if (!self->p) abort();
+  self->p = (mpfr_t*)malloc(sizeof(mpfr_t)*self->l);
+  if (!self->p) dgs_die("out of memory");
   self->B = (dgs_bern_mp_t**)malloc(sizeof(dgs_bern_mp_t)*self->l);
-  if (!self->B) abort();
- 
+  if (!self->B) dgs_die("out of memory");
+
   mpfr_t tmp, tmp2;
   mpfr_init2(tmp2, mpfr_get_prec(f));
   mpfr_init_set(tmp, f, MPFR_RNDN); // f
@@ -126,11 +126,11 @@ dgs_bern_exp_mp_t* dgs_bern_exp_mp_init(mpfr_t f, size_t l) {
       self->l += DGS_BERN_EXP_ALLOC_BLOCK_SIZE;
       self->l = (l>self->l) ? self->l : l;
       self->p = realloc(self->p, sizeof(mpfr_t)*self->l);
-      if(!self->p) abort();
+      if(!self->p) dgs_die("out of memory");
       self->B = realloc(self->B, sizeof(dgs_bern_exp_mp_t)*self->l);
-      if(!self->B) abort();
+      if(!self->B) dgs_die("out of memory");
     }
-    
+
     mpfr_init_set(self->p[i], tmp2, MPFR_RNDN);
     self->B[i] = dgs_bern_mp_init(self->p[i]);
 
@@ -181,7 +181,7 @@ dgs_bern_dp_t* dgs_bern_dp_init(double p) {
   assert((p >= 0) && (p < 1));
 
   dgs_bern_dp_t *self = malloc(sizeof(dgs_bern_dp_t));
-  if (!self) abort();
+  if (!self) dgs_die("out of memory");
 
   self->p = p;
   return self;
@@ -205,17 +205,17 @@ void dgs_bern_dp_clear(dgs_bern_dp_t *self) {
 
 dgs_bern_exp_dp_t* dgs_bern_exp_dp_init(double f, size_t l) {
   dgs_bern_exp_dp_t *self = (dgs_bern_exp_dp_t *)malloc(sizeof(dgs_bern_exp_dp_t));
-  if (!self) abort();
+  if (!self) dgs_die("out of memory");
 
   /* l == 0, means we use the precision of f to decide l */
   if (l == 0)
     l = SIZE_MAX;
 
   self->l = DGS_BERN_EXP_ALLOC_BLOCK_SIZE;
-  self->p = (double*)malloc(sizeof(double)*self->l); 
-  if (!self->p) abort();
+  self->p = (double*)malloc(sizeof(double)*self->l);
+  if (!self->p) dgs_die("out of memory");
   self->B = (dgs_bern_dp_t**)malloc(sizeof(dgs_bern_dp_t)*self->l);
-  if (!self->B) abort();
+  if (!self->B) dgs_die("out of memory");
 
   double tmp = -1.0/f;
   double tmp2;
@@ -230,9 +230,9 @@ dgs_bern_exp_dp_t* dgs_bern_exp_dp_init(double f, size_t l) {
       self->l += DGS_BERN_EXP_ALLOC_BLOCK_SIZE;
       self->l = (l>self->l) ? self->l : l;
       self->p = realloc(self->p, sizeof(double)*self->l);
-      if(!self->p) abort();
+      if(!self->p) dgs_die("out of memory");
       self->B = realloc(self->B, sizeof(dgs_bern_exp_dp_t)*self->l);
-      if(!self->B) abort();
+      if(!self->B) dgs_die("out of memory");
     }
 
     self->p[i] = tmp2;

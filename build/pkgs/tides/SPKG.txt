@@ -6,7 +6,7 @@ TIDES is a library for integration of ODE's with high precission.
 
 == License ==
 
-GPLv3
+GPLv3+
 
 == SPKG Maintainers ==
 

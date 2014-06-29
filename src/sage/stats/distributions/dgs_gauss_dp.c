@@ -111,7 +111,6 @@ dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, double c, size_t tau, 
     if (fabs(self->c_r) > DGS_DISC_GAUSS_INTEGER_CUTOFF) {
       dgs_disc_gauss_dp_clear(self);
       dgs_die("algorithm DGS_DISC_GAUSS_UNIFORM_LOGTABLE requires c%1 == 0");
-      self->c_r = 0.0;
     }
     upper_bound = ceil(self->sigma*tau) + 1;
     self->upper_bound = upper_bound;
@@ -127,7 +126,6 @@ dgs_disc_gauss_dp_t *dgs_disc_gauss_dp_init(double sigma, double c, size_t tau, 
     if (fabs(self->c_r) > DGS_DISC_GAUSS_INTEGER_CUTOFF) {
       dgs_disc_gauss_dp_clear(self);
       dgs_die("algorithm DGS_DISC_GAUSS_SIGMA2_LOGTABLE requires c%1 == 0");
-      self->c_r = 0.0;
     }
 
     double sigma2 = sqrt(1.0/(2*log(2.0)));
@@ -198,7 +196,6 @@ long dgs_disc_gauss_dp_call_uniform_logtable(dgs_disc_gauss_dp_t *self) {
   return x + self->c_z;
 }
 
-// TODO
 long dgs_disc_gauss_dp_call_sigma2_logtable(dgs_disc_gauss_dp_t *self) {
   long x, y, z;
   long k = self->k;

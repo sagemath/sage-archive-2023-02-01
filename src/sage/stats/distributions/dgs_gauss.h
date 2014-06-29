@@ -515,7 +515,7 @@ typedef struct _dgs_disc_gauss_mp_t {
   mpfr_t z; // space for temporary rational number
 
   /**
-     Precomputed values for `exp(-(x-2)²/(2σ²))` in
+     Precomputed values for `exp(-(x-c)²/(2σ²))` in
      ``DGS_DISC_GAUSS_UNIFORM_TABLE``
   */
 

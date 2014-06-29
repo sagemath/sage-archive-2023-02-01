@@ -183,7 +183,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
         \exp(-|x|_2^2/(2σ²))`, i.e. the normalisation factor such that the sum
         over all probabilities is 1 for `\ZZⁿ`.
 
-        If this `B` is not an identity matrix over `\ZZ` a
+        If this ``self.B`` is not an identity matrix over `\ZZ` a
         ``NotImplementedError`` is raised.
 
         INPUT:

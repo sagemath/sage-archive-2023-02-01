@@ -324,8 +324,8 @@ class DiscreteGaussianLatticeSampler(SageObject):
             0.10...
 
             sage: D = DiscreteGaussianLatticeSampler(ZZ^3, 3.0, c=(1/2,0,0))
-            sage: L = [D() for _ in range(2^12)]
-            sage: mean(L).n() - D.c
+            sage: L = [D() for _ in range(2^12)] # long time
+            sage: mean(L).n() - D.c # long time
             (0.058..., -0.13..., 0.02...)
 
         """
@@ -416,8 +416,8 @@ class DiscreteGaussianLatticeSampler(SageObject):
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianLatticeSampler
             sage: D = DiscreteGaussianLatticeSampler(ZZ^3, 3.0, c=(1/2,0,0))
-            sage: L = [D._call() for _ in range(2^12)]
-            sage: mean(L).n() - D.c
+            sage: L = [D._call() for _ in range(2^12)] # long time
+            sage: mean(L).n() - D.c # long time
             (-0.049..., -0.034..., -0.026...)
 
         .. note::

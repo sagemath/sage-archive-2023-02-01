@@ -49,14 +49,14 @@ We construct an instance with a larger width::
     sage: D = DiscreteGaussianIntegerSampler(sigma=sigma, algorithm='uniform+online')
 
 ask for 100000 samples::
-    
-    sage: n=100000; l = [D() for _ in xrange(n)]
+
+    sage: n=100000; l = [D() for _ in xrange(n)] # long time
 
 and check if the proportions fit::
 
-    sage: x=0;   y=1; float(l.count(x))/l.count(y), exp(-x^2/(2*sigma^2))/exp(-y^2/(2*sigma^2)).n()
+    sage: x=0;   y=1; float(l.count(x))/l.count(y), exp(-x^2/(2*sigma^2))/exp(-y^2/(2*sigma^2)).n() # long time
     (1.0, 1.00...)
-    sage: x=0; y=-100; float(l.count(x))/l.count(y), exp(-x^2/(2*sigma^2))/exp(-y^2/(2*sigma^2)).n()
+    sage: x=0; y=-100; float(l.count(x))/l.count(y), exp(-x^2/(2*sigma^2))/exp(-y^2/(2*sigma^2)).n() # long time
     (1.32..., 1.36...)
 
 We construct a sampler with `c%1 != 0`::
@@ -64,8 +64,8 @@ We construct a sampler with `c%1 != 0`::
     sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
     sage: sigma = 3
     sage: D = DiscreteGaussianIntegerSampler(sigma=sigma, c=1/2)
-    sage: n=100000; l = [D() for _ in xrange(n)]
-    sage: mean(l).n()
+    sage: n=100000; l = [D() for _ in xrange(n)] # long time
+    sage: mean(l).n() # long time
     0.48678000000...
 
 REFERENCES:

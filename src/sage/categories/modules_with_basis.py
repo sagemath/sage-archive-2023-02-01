@@ -1287,19 +1287,7 @@ class ModuleMorphismByLinearity(Morphism):
 
         TESTS::
 
-            sage: TestSuite(phi).run() # known issue
-            Failure in _test_category:
-            ...
-            The following tests failed: _test_category
-
-        Analysis: ``phi`` does not inherit from the element class of
-        the category of its parent::
-
-            sage: isinstance(phi, phi.parent().category().element_class)
-            False
-
-        To be fixed in the general morphism overhaul (#....), possibly
-        by making sure to create ``phi`` through its parent.
+            sage: TestSuite(phi).run()
         """
         # Might want to assert that domain is a module with basis
         base_ring = domain.base_ring()
@@ -1341,7 +1329,9 @@ class ModuleMorphismByLinearity(Morphism):
             else:
                 category = Sets()
 
-        Morphism.__init__(self, Hom(domain, codomain, category = category))
+        H = Hom(domain, codomain, category = category)
+        Morphism.__init__(self, H)
+        self.__class__ = H.__make_element_class__(self.__class__)
 
 
         self._position = position
@@ -1610,11 +1600,8 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: import __main__; __main__.ut = ut
             sage: phi = X.module_morphism(ut, triangular="lower", codomain = X)
             sage: phi.__class__
-            <class 'sage.categories.modules_with_basis.TriangularModuleMorphism'>
-            sage: TestSuite(phi).run() # known issue; see ModuleMorphism above
-            Failure in _test_category:
-            ...
-            The following tests failed: _test_category
+            <class 'sage.categories.modules_with_basis.TriangularModuleMorphism_with_category'>
+            sage: TestSuite(phi).run()
         """
         ModuleMorphismByLinearity.__init__(self, domain = domain, codomain = codomain, category = category)
         if triangular == "upper":
@@ -1814,6 +1801,9 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: phi.preimage(y[1] + y[2])
             B[1] - B[3]
 
+        The morphism need not be surjective. In the following example,
+        the codomain is of larger dimension than the domain::
+
             sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
             sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3, 4]); y = Y.basis()
             sage: uut = lambda i: sum(  y[j] for j in range(i,5)  ) # uni-upper
@@ -1821,12 +1811,18 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: phi.preimage(y[1] + y[2])
             B[1] - B[3]
 
-            sage: X = CombinatorialFreeModule(QQ, [1,2,3]); x = X.basis()
-            sage: X.rename("X")
-            sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4,5]); y = Y.basis()
+        Here are examples using ``inverse_on_support`` to handle a
+        morphism that shifts the leading indices by `1`::
+
+            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); x = X.basis()
+            sage: Y = CombinatorialFreeModule(QQ, [1, 2, 3, 4, 5]); y = Y.basis()
             sage: uut = lambda i: sum(  y[j] for j in range(i+1,6)  ) # uni-upper
             sage: phi = X.module_morphism(uut, triangular=True, codomain = Y,
             ....:         inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
+            sage: phi(x[1])
+            B[2] + B[3] + B[4] + B[5]
+            sage: phi(x[3])
+            B[4] + B[5]
             sage: phi.preimage(y[2] + y[3])
             B[1] - B[3]
             sage: phi(phi.preimage(y[2] + y[3])) == y[2] + y[3]
@@ -1835,12 +1831,31 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: phi.preimage(phi(el)) == el
             True
 
-            sage: phi = X.module_morphism(uut, triangular=True, codomain = Y,
-            ....:         inverse_on_support=lambda i: i-1 if i in [2,3,4] else None)
             sage: phi.preimage(y[1])
             Traceback (most recent call last):
             ...
             ValueError: B[1] is not in the image
+            sage: phi.preimage(y[4])
+            Traceback (most recent call last):
+            ...
+            ValueError: B[4] is not in the image
+
+        Over a base ring like `\ZZ`, the morphism can be non
+        surjective even when the dimensions match::
+
+            sage: X = CombinatorialFreeModule(ZZ, [1, 2, 3]); x = X.basis()
+            sage: Y = CombinatorialFreeModule(ZZ, [1, 2, 3]); y = Y.basis()
+            sage: uut = lambda i: sum( 2* y[j] for j in range(i,4)  ) # uni-upper
+            sage: phi = X.module_morphism(uut, triangular=True, codomain = Y)
+            sage: phi.preimage(2*y[1] + 2*y[2])
+            B[1] - B[3]
+
+        The error message in case of failure could be more specific though::
+
+            sage: phi.preimage(y[1] + y[2])
+            Traceback (most recent call last):
+              ...
+            TypeError: no conversion of this rational to integer
         """
         F = self.domain()
         G = self.codomain()
@@ -1865,7 +1880,10 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
                 raise ValueError("The morphism (={}) is not triangular at {}, and therefore a preimage cannot be computed".format(f, s))
 
             if not self._unitriangular:
-                c /= s[j]
+                # What's the appropriate way to request an exact
+                # division within the base ring and get an error if
+                # this is not possible?
+                c = c.parent()(c / s[j])
 
             remainder -= s._lmul_(c)
             out += F.term(j_preimage, c)
@@ -1993,11 +2011,8 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
             sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X")
             sage: phi = X.module_morphism(diagonal = factorial, codomain = X)
             sage: phi.__class__
-            <class 'sage.categories.modules_with_basis.DiagonalModuleMorphism'>
-            sage: TestSuite(phi).run() # known issue; see ModuleMorphismByLinearity.__init__
-            Failure in _test_category:
-            ...
-            The following tests failed: _test_category
+            <class 'sage.categories.modules_with_basis.DiagonalModuleMorphism_with_category'>
+            sage: TestSuite(phi).run()
         """
         assert codomain is not None
         assert domain.basis().keys() == codomain.basis().keys()

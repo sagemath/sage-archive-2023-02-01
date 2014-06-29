@@ -8,11 +8,8 @@ proportional to `\exp(-(x-c)²/(2σ²))`.
 
 AUTHORS:
 
-- Martin Albrecht
-- Robert Fitzpatrick
-- Daniel Cabracas
-- Florian Göpfert
-- Michael Schneider
+- Martin Albrecht, Robert Fitzpatrick, Daniel Cabracas, Florian Göpfert,
+  Michael Schneider: initial version
 
 EXAMPLE::
 

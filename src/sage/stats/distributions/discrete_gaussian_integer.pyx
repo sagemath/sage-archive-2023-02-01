@@ -7,7 +7,9 @@ This class realizes oracles which returns integers proportionally to
 See :func:`DiscreteGaussianIntegerSampler.__init__` for which algorithms are
 available.
 
-AUTHOR: Martin Albrecht <martinralbrecht+dgs@googlemail.com>
+AUTHORS:
+
+- Martin Albrecht (2014-06-28): initial version
 
 EXAMPLE:
 

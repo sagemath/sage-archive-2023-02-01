@@ -10,7 +10,9 @@ returned with probability:
 
     `\exp(-|x-c|_2^2/(2σ²))/(∑_{x ∈ Λ} \exp(-|x|_2^2/(2σ²)))`
 
-AUTHOR: Martin Albrecht <martinralbrecht+dgs@googlemail.com>
+AUTHORS:
+
+- Martin Albrecht (2014-06-28): initial version
 
 EXAMPLES::
 

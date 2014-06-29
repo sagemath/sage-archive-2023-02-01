@@ -111,7 +111,7 @@ class IncidenceStructure(object):
         sage: V = [(0,'a'),(0,'b'),(1,'a'),(1,'b')]
         sage: B = [(V[0],V[1],V[2]), (V[1],V[2]), (V[0],V[2])]
         sage: I = designs.IncidenceStructure(V, B)
-        sage: I.points()
+        sage: I.ground_set()
         [(0, 'a'), (0, 'b'), (1, 'a'), (1, 'b')]
         sage: I.blocks()
         [[(0, 'a'), (0, 'b'), (1, 'a')], [(0, 'a'), (1, 'a')], [(0, 'b'), (1, 'a')]]
@@ -166,7 +166,7 @@ class IncidenceStructure(object):
             True
             sage: blocks = [[e0,e1,e2],[e0,e1],[e2,e4]]
             sage: I = designs.IncidenceStructure(V, blocks)
-            sage: type(I.points()[0])
+            sage: type(I.ground_set()[0])
             <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
             sage: type(I.blocks()[0][0])
             <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
@@ -282,7 +282,7 @@ class IncidenceStructure(object):
             IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
         """
         return '{}<points={}, blocks={}>'.format(
-                self._name, self.points(), self.blocks())
+                self._name, self.ground_set(), self.blocks())
 
     def __eq__(self, other):
         """
@@ -323,7 +323,7 @@ class IncidenceStructure(object):
 
         p_to_i = self._point_to_index if self._point_to_index else range(self.num_points())
 
-        if any(p not in p_to_i for p in other.points()):
+        if any(p not in p_to_i for p in other.ground_set()):
             return False
 
         other_blocks = sorted(sorted(p_to_i[p] for p in b) for b in other.blocks())
@@ -343,9 +343,9 @@ class IncidenceStructure(object):
         """
         return not self.__eq__(other)
 
-    def points(self, copy=True):
+    def ground_set(self, copy=True):
         r"""
-        Return the list of points.
+        Return the ground set (i.e the list of points).
 
         INPUT:
 
@@ -355,7 +355,7 @@ class IncidenceStructure(object):
 
         EXAMPLES::
 
-            sage: designs.IncidenceStructure(3, [[0,1],[0,2]]).points()
+            sage: designs.IncidenceStructure(3, [[0,1],[0,2]]).ground_set()
             [0, 1, 2]
         """
         if copy:
@@ -413,13 +413,14 @@ class IncidenceStructure(object):
             Incidence structure with 7 points and 1 blocks
 
         """
-        if self._point_to_index is None:
-            if copy:
+        if copy:
+            if self._point_to_index is None:
                 from copy import deepcopy
                 return deepcopy(self._blocks)
             else:
-                return self._blocks
-        return [[self._points[i] for i in b] for b in self._blocks]
+                return [[self._points[i] for i in b] for b in self._blocks]
+        else:
+            return self._blocks
 
     def block_sizes(self):
         r"""

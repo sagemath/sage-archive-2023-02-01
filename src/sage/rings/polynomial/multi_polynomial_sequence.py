@@ -154,6 +154,8 @@ Classes
 -------
 """
 
+from sage.misc.cachefunc import cached_method
+
 from types import GeneratorType
 from sage.misc.package import is_package_installed
 
@@ -1035,6 +1037,33 @@ class PolynomialSequence_generic(Sequence_generic):
         ret = sorted(ret, reverse=True)
         ret = PolynomialSequence(R, ret, immutable=True)
         return ret
+
+    @cached_method
+    @singular_gb_standard_options
+    def is_groebner(self, singular=singular):
+        r"""
+        Returns ``True`` if the generators of this ideal (``self.gens()``)
+        form a Grbner basis.
+
+        Let `I` be the set of generators of this ideal. The check is
+        performed by trying to lift `Syz(LM(I))` to `Syz(I)` as `I`
+        forms a Groebner basis if and only if for every element `S` in
+        `Syz(LM(I))`:
+
+            `S * G = \sum_{i=0}^{m} h_ig_i ---->_G 0.`
+
+        EXAMPLE::
+
+            sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
+            sage: I = sage.rings.ideal.Cyclic(R,4)
+            sage: I.basis.is_groebner()
+            False
+            sage: I2 = Ideal(I.groebner_basis())
+            sage: I2.basis.is_groebner()
+            True
+
+        """
+        return self.ideal().basis_is_groebner()
 
 class PolynomialSequence_gf2(PolynomialSequence_generic):
     """

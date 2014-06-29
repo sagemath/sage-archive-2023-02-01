@@ -1874,34 +1874,27 @@ class MPolynomialIdeal_singular_repr(
 
         INPUT:
 
-        -  ``algorithm`` - see below for options.
+        - ``algorithm`` - see below for options.
 
         - ``other_ring`` - only valid for algorithm 'fglm', if
-           provided conversion will be performed to this
-           ring. Otherwise a lex Groebner basis will be returned.
+          provided conversion will be performed to this
+          ring. Otherwise a lex Groebner basis will be returned.
 
 
         ALGORITHMS:
 
-        fglm
-            FGLM algorithm. The input ideal must be given with a reduced
-            Groebner Basis of a zero-dimensional ideal
+        - ``fglm`` - FGLM algorithm. The input ideal must be given with a reduced
+          Groebner Basis of a zero-dimensional ideal
 
-        gwalk
-            Groebner Walk algorithm (*default*)
+        - ``gwalk`` - Groebner Walk algorithm (*default*)
 
-        awalk1
-            'first alternative' algorithm
+        - ``awalk1`` - 'first alternative' algorithm
 
-        awalk2
-            'second alternative' algorithm
+        - ``awalk2`` - 'second alternative' algorithm
 
-        twalk
-            Tran algorithm
+        - ``twalk`` - Tran algorithm
 
-        fwalk
-            Fractal Walk algorithm
-
+        - ``fwalk`` - Fractal Walk algorithm
 
         EXAMPLES::
 
@@ -1912,7 +1905,7 @@ class MPolynomialIdeal_singular_repr(
             sage: J = Ideal(I.transformed_basis('fglm',S))
             sage: J
             Ideal (z^4 + y^3 - y, x^2 + y^3, x*y^3 - y^3, y^4 + y^3)
-             of Multivariate Polynomial Ring in z, x, y over Rational Field
+            of Multivariate Polynomial Ring in z, x, y over Rational Field
 
         ::
 
@@ -1946,6 +1939,7 @@ class MPolynomialIdeal_singular_repr(
             lib("grwalk.lib")
             gb = singular_function(algorithm)(I)
             return PolynomialSequence(R, sorted(gb,reverse=True), immutable=True)
+
         elif algorithm == "fglm":
             # new ring
             if other_ring is None:

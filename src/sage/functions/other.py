@@ -662,6 +662,8 @@ class Function_gamma(GinacFunction):
 
             sage: gamma1(float(6))  # For ARM: rel tol 3e-16
             120.0
+            sage: gamma(6.)
+            120.000000000000
             sage: gamma1(x)
             gamma(x)
 

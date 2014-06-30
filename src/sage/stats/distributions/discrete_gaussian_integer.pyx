@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 r"""
-Discrete Gaussian Samplers over the Integers.
+Discrete Gaussian Samplers over the Integers
 
 This class realizes oracles which returns integers proportionally to
-`\exp(-(x-c)²/(2σ²))`. All oracles are implemented using rejection sampling.
+`\exp(-(x-c)^2/(2σ^2))`. All oracles are implemented using rejection sampling.
 See :func:`DiscreteGaussianIntegerSampler.__init__` for which algorithms are
 available.
 
@@ -23,7 +23,7 @@ We ask for 100000 samples::
 
     sage: n=100000; l = [D() for _ in xrange(n)]
 
-These are sampled with a probability proportional to `\exp(-x²/18)`. More
+These are sampled with a probability proportional to `\exp(-x^2/18)`. More
 precisely we have to normalise by dividing by the overall probability over all
 integers. We use the fact that hitting anything more than 6 standard deviations
 away is very unlikely and compute::
@@ -59,7 +59,7 @@ and check if the proportions fit::
     sage: x=0; y=-100; float(l.count(x))/l.count(y), exp(-x^2/(2*sigma^2))/exp(-y^2/(2*sigma^2)).n() # long time
     (1.32..., 1.36...)
 
-We construct a sampler with `c%1 != 0`::
+We construct a sampler with `c\%1 != 0`::
 
     sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
     sage: sigma = 3
@@ -176,11 +176,11 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
           accepted.
 
         - ``"sigma2+logtable"`` - samples are drawn from an easily samplable
-          distribution with `σ = k·σ₂` with `σ₂ = \sqrt{1/(2\log 2)}` and accepted
+          distribution with `σ = k·σ_2` with `σ_2 = \sqrt{1/(2\log 2)}` and accepted
           with probability proportional to `\exp(-(x-c)²/(2σ²))` where
           `\exp(-(x-c)²/(2σ²))` is computed using  logarithmically many calls to Bernoulli
           distributions (but no calls to `\exp`). See [DDLL13]_ for details. Note that this
-          sampler adjusts `σ` to match `k·σ₂` for some integer `k`.
+          sampler adjusts `σ` to match `k·σ_2` for some integer `k`.
           Only integer-valued `c` are supported.
 
         EXAMPLES::

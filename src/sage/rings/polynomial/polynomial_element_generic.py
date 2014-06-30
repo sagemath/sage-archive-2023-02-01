@@ -786,7 +786,7 @@ class Polynomial_generic_cdv(Polynomial):
         r"""
         Returns a list of vertices of the Newton polygon of this polynomial.
 
-        .. NOTES::
+        .. NOTE::
 
             If some coefficients have not enough precision an error is raised.
 

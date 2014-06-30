@@ -20,7 +20,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 ####################################################################################
 
-from sage.categories.all import Morphism, is_Morphism
+from sage.categories.morphism import Morphism, is_Morphism
 import fgp_module
 
 

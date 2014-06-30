@@ -1006,6 +1006,8 @@ def v_5_1_BIBD(v, check=True):
         bibd = BIBD_from_PBD(v_5_1_BIBD(45,check=False),181,5,check=False)
     elif v in (201,285,301,401,421,425):
         # Call directly the BIBD_from_TD function
+        # note: there are (201,5,1) and (421,5)-difference families that can be
+        # obtained from the general constructor
         bibd = BIBD_from_TD(v,5)
     # Theorem 31.2
     elif (v-1)//4 in [80, 81, 85, 86, 90, 91, 95, 96, 110, 111, 115, 116, 120, 121, 250, 251, 255, 256, 260, 261, 265, 266, 270, 271]:

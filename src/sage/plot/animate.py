@@ -97,7 +97,7 @@ REFERENCES:
 import os
 
 from sage.structure.sage_object import SageObject
-from sage.misc.temporary_file import tmp_filename, tmp_dir
+from sage.misc.temporary_file import tmp_filename, tmp_dir, graphics_filename
 import plot
 import sage.misc.misc
 import sage.misc.viewer
@@ -637,7 +637,10 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
             return
 
         if plot.EMBEDDED_MODE:
-            self.gif(delay = delay, iterations = iterations)
+            # graphics_filename is used so that notebook knows
+            # what file to display
+            filename = graphics_filename(ext='.gif')
+            self.gif(savefile=filename, delay=delay, iterations=iterations)
         else:
             filename = tmp_filename(ext='.gif')
             self.gif(delay=delay, savefile=filename, iterations=iterations)

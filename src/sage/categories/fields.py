@@ -265,12 +265,11 @@ class Fields(CategoryWithAxiom):
 
                 sage: QQ.one().euclidean_degree()
                 0
-
             """
             if self.is_zero():
                 raise NotImplementedError()
-            from sage.rings.all import Integer
-            return Integer(0)
+            from sage.rings.all import ZZ
+            return ZZ.zero()
 
         def quo_rem(self, other):
             r"""
@@ -286,7 +285,6 @@ class Fields(CategoryWithAxiom):
                 sage: f,g = QQ(1), QQ(2)
                 sage: f.quo_rem(g)
                 (1/2, 0)
-
             """
             if other.is_zero():
                 raise ZeroDivisionError

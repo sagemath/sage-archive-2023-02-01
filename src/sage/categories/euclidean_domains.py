@@ -75,7 +75,6 @@ class EuclideanDomains(Category_singleton):
             .. SEEALSO:
 
                 :meth:`_test_quo_rem`
-
             """
             tester = self._tester(**options)
             S = [s for s in tester.some_elements() if not s.is_zero()]
@@ -90,9 +89,9 @@ class EuclideanDomains(Category_singleton):
 
             from sage.combinat.cartesian_product import CartesianProduct
             for a,b in tester.some_elements(CartesianProduct(S,S)):
-                if a.is_zero() or (a*b).is_zero():
-                    continue
-                tester.assertLessEqual(a.euclidean_degree(), (a*b).euclidean_degree())
+                p = a * b
+                tester.assertFalse(p.is_zero())
+                tester.assertLessEqual(a.euclidean_degree(), p.euclidean_degree())
 
         def _test_quo_rem(self, **options):
             r"""
@@ -107,7 +106,6 @@ class EuclideanDomains(Category_singleton):
             .. SEEALSO:
 
                 :meth:`_test_euclidean_degree`
-
             """
             tester = self._tester(**options)
             S = tester.some_elements()
@@ -133,8 +131,8 @@ class EuclideanDomains(Category_singleton):
             satisfies the usual properties:
 
             1. if `b` is not zero, then there are elements `q` and `r` such
-            that `a=bq+r` with `r=0` or `f(r)<f(b)`
-            2. if `a,b` are not zero, then `f(a)\le f(ab)`
+               that `a = bq + r` with `r = 0` or `f(r) < f(b)`
+            2. if `a,b` are not zero, then `f(a) \leq f(ab)`
 
             .. NOTE::
 
@@ -155,9 +153,7 @@ class EuclideanDomains(Category_singleton):
                 1
                 sage: ZZ.one().euclidean_degree()
                 1
-
             """
-            pass
 
         @coerce_binop
         def gcd(self, other):
@@ -207,6 +203,5 @@ class EuclideanDomains(Category_singleton):
                 sage: R.<x> = QQ[]
                 sage: x.quo_rem(x)
                 (1, 0)
-
             """
-            pass
+

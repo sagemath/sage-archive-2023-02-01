@@ -1,6 +1,7 @@
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from copy import deepcopy
+from sage.matrix.constructor import matrix
 
 
 class MatchingGame(SageObject):
@@ -76,12 +77,12 @@ class MatchingGame(SageObject):
             raise ValueError("Must have the same number of reviewers as suitors")
 
         for suitor in self.suitors:
-            if sorted(suitor.pref) != sorted(self.reviewers):
-                raise ValueError("Preferences incomplete")
+            if suitor.pref.sort() != self.reviewers.sort():
+                raise ValueError("Suitor preferences incomplete")
 
         for reviewer in self.reviewers:
-            if sorted(reviewer.pref) != sorted(self.suitors):
-                raise ValueError("Preferences incomplete")
+            if reviewer.pref.sort() != self.suitors.sort():
+                raise ValueError("Reviewer preferences incomplete")
 
         return True
 
@@ -105,7 +106,17 @@ class MatchingGame(SageObject):
         for s in self.suitors:
             s.pref = [-1 for r in self.reviewers]
 
+    def _to_matrix(self):
+        m = matrix(len(self.suitors))
+        for i, v in self.suitors:
+            m[i][self.reviewers.index(v.partner)]
+
+
+
     def solve(self, invert=False):
+        if not self._is_complete():
+            raise ValueError("Preferences have not been populated")
+
         if invert:
             reviewers = deepcopy(self.suitors)
             suitors = deepcopy(self.reviewers)
@@ -136,6 +147,8 @@ class MatchingGame(SageObject):
             i.partner = j.partner
         for i, j in zip(self.reviewers, reviewers):
             i.partner = j.partner
+
+        return self._to_matrix()
 
 
 class _Player():

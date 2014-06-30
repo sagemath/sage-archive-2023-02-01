@@ -25,6 +25,9 @@ class MatchingGame(SageObject):
             ['K', 'J', 'M', 'L']
             sage: m.reviewers
             ['A', 'C', 'B', 'D']
+            sage: m.solve()
+            sage: m.suitors[0].partner
+            'C'
 
         works for numbers too. ::
 
@@ -33,7 +36,6 @@ class MatchingGame(SageObject):
             sage: revr = {3: [0, 1],
             ....:         4: [1, 0]}
             sage: g = MatchingGame([suit, revr])
-            sage: g.solve()
         """
         self.suitors = []
         self.reviewers = []
@@ -117,17 +119,16 @@ class MatchingGame(SageObject):
             r.matched = False
 
         while len([s for s in suitors if s.partner is False]) != 0:
-            s = deepcopy(suitors[0])
-            r = deepcopy(s.pref[0])
+            s = [s for s in suitors if s.partner is False][0]
+            r = next((x for x in reviewers if x.name == s.pref[0]), None)
             if r.partner is False:
                 r.partner = s
                 s.partner = r
-            elif r.index(s) < r.index(r.partner):
+            elif r.pref.index(s) < r.pref.index(r.partner):
                 old_s = r.partner
                 old_s.partner = False
                 r.partner = s
                 s.partner = r
-                self._check_match(s)
             else:
                 s.pref.remove(r)
 
@@ -149,4 +150,7 @@ class _Player():
 
     def __repr__(self):
         return repr(self.name)
+
+    def __eq__(self, other):
+        return self.__repr__() == other.__repr__()
 

@@ -1,5 +1,6 @@
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
+from copy import deepcopy
 
 
 class MatchingGame(SageObject):
@@ -32,6 +33,7 @@ class MatchingGame(SageObject):
             sage: revr = {3: [0, 1],
             ....:         4: [1, 0]}
             sage: g = MatchingGame([suit, revr])
+            sage: g.solve()
         """
         self.suitors = []
         self.reviewers = []
@@ -102,7 +104,37 @@ class MatchingGame(SageObject):
             s.pref = [-1 for r in self.reviewers]
 
     def solve(self, invert=False):
-        pass
+        if invert:
+            reviewers = deepcopy(self.suitors)
+            suitors = deepcopy(self.reviewers)
+        else:
+            suitors = deepcopy(self.suitors)
+            reviewers = deepcopy(self.reviewers)
+
+        for s in suitors:
+            s.matched = False
+        for r in reviewers:
+            r.matched = False
+
+        while len([s for s in suitors if s.partner is False]) != 0:
+            s = deepcopy(suitors[0])
+            r = deepcopy(s.pref[0])
+            if r.partner is False:
+                r.partner = s
+                s.partner = r
+            elif r.index(s) < r.index(r.partner):
+                old_s = r.partner
+                old_s.partner = False
+                r.partner = s
+                s.partner = r
+                self._check_match(s)
+            else:
+                s.pref.remove(r)
+
+        for i, j in zip(self.suitors, suitors):
+            i.partner = j.partner
+        for i, j in zip(self.reviewers, reviewers):
+            i.partner = j.partner
 
 
 class _Player():

@@ -37,47 +37,93 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
         pass
 
     class MorphismMethods:
-        def matrix(self, base_ring=None):
-            """
-            Returns the matrix of self in the distinguished basis
-            of the domain and codomain.
+        def matrix(self, base_ring=None, side="left"):
+            r"""
+            Return the matrix of this morphism in the distinguished
+            basis of the domain and codomain.
+
+            INPUT::
+
+            - ``base_ring`` -- a ring (default: ``None``, meaning the
+              base ring of the codomain)
+
+            - ``side`` -- "left" or "right" (default: "left")
+
+            If ``side`` is "left", this morphism is considered as
+            acting on the left; i.e. each column of the matrix
+            represents the image of an element of the basis of the
+            domain.
+
+            .. SEEALSO:: :func:`_from_matrix`
 
             EXAMPLES::
 
-                sage: category = FiniteDimensionalModulesWithBasis(ZZ)
-                sage: X = CombinatorialFreeModule(ZZ, [1,2], category = category); X.rename("X"); x = X.basis()
-                sage: Y = CombinatorialFreeModule(ZZ, [3,4], category = category); Y.rename("Y"); y = Y.basis()
+                sage: X = CombinatorialFreeModule(ZZ, [1,2]); x = X.basis()
+                sage: Y = CombinatorialFreeModule(ZZ, [3,4]); y = Y.basis()
                 sage: phi = X.module_morphism(on_basis = {1: y[3] + 3*y[4], 2: 2*y[3] + 5*y[4]}.__getitem__,
-                ...                           codomain = Y, category = category)
+                ...                           codomain = Y)
                 sage: phi.matrix()
                 [1 2]
                 [3 5]
+                sage: phi.matrix(side="right")
+                [1 3]
+                [2 5]
+
                 sage: phi.matrix().parent()
                 Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+                sage: phi.matrix(QQ).parent()
+                Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+
+            The resulting matrix is immutable::
+
                 sage: phi.matrix().is_mutable()
                 False
 
-                sage: category = FiniteDimensionalModulesWithBasis(QQ)
-                sage: X = CombinatorialFreeModule(QQ, [1, 3, 7], category = category); X.rename("X"); x = X.basis()
-                sage: Y = CombinatorialFreeModule(QQ, [2, 4], category = category); Y.rename("Y"); y = Y.basis()
+            The zero morphism has a zero matrix::
+
                 sage: Hom(X,Y).zero().matrix()
-                [0 0 0]
-                [0 0 0]
+                [0 0]
+                [0 0]
+
+            .. TODO::
+
+                Add support for morphisms where the codomain has a
+                different base ring than the domain::
+
+                    sage: Y = CombinatorialFreeModule(QQ, [3,4]); y = Y.basis()
+                    sage: phi = X.module_morphism(on_basis = {1: y[3] + 3*y[4], 2: 2*y[3] + 5/2*y[4]}.__getitem__,
+                    ...                           codomain = Y)
+                    sage: phi.matrix().parent()          # todo: not implemented
+                    Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+
+                This currently does not work because, in this case,
+                the morphism is just in the category of commutative
+                additive groups (i.e. the intersection of the
+                categories of modules over `\ZZ` and over `\QQ`)::
+
+                    sage: phi.parent().homset_category()
+                    Category of commutative additive semigroups
+                    sage: phi.parent().homset_category() # todo: not implemented
+                    Category of finite dimensional modules with basis over Integer Ring
             """
             from sage.matrix.constructor import matrix
             if base_ring is None:
-                base_ring = self.domain().base_ring()
+                base_ring = self.codomain().base_ring()
 
             on_basis = self.on_basis()
             basis_keys = self.domain().basis().keys()
             m = matrix(base_ring,
-                       [on_basis(x).to_vector() for x in basis_keys]).transpose()
+                       [on_basis(x).to_vector() for x in basis_keys])
+            if side == "left":
+                m = m.transpose()
             m.set_immutable()
             return m
 
         def _from_matrix(self, hom, m):
             """
-            Construct a morphism in the homset ``hom`` from the matrix ``m``
+            Construct a morphism in the homset ``hom`` from the matrix ``m``.
+
+            .. SEEALSO:: :func:`matrix`
 
             EXAMPLES::
 
@@ -87,7 +133,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: H = Hom(X,Y)
 
             This is a static method which can be called from any
-            element of ``hom``::
+            element of the homset::
 
                 sage: C = H.zero()
                 sage: phi = C._from_matrix(H, matrix([[1,2],[3,5]]))
@@ -118,10 +164,11 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
         def __invert__(self):
             """
-            Returns the inverse morphism of ``self``, or raise an
-            error if ``self`` is not invertible (should this
-            return None instead???). This is achieved by inverting
-            the ``self.matrix()``.
+            Return the inverse morphism of ``self``
+
+
+            If ``self`` is is not invertible an error is raised.
+            This is achieved by inverting the ``self.matrix()``.
 
             EXAMPLES::
 

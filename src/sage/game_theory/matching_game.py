@@ -1,6 +1,6 @@
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
-from copy import deepcopy
+from copy import deepcopy, copy
 from sage.matrix.constructor import matrix
 
 
@@ -26,9 +26,15 @@ class MatchingGame(SageObject):
             ['K', 'J', 'M', 'L']
             sage: m.reviewers
             ['A', 'C', 'B', 'D']
-            sage: m.solve()
-            sage: m.suitors[0].partner
-            'C'
+            sage: print m.solve()
+            {'A': ['J'],
+             'C': ['L'],
+             'B': ['K'],
+             'D': ['M'],
+             'K': ['B'],
+             'J': ['A'],
+             'M': ['D'],
+             'L': ['C']}
 
         works for numbers too. ::
 
@@ -106,12 +112,13 @@ class MatchingGame(SageObject):
         for s in self.suitors:
             s.pref = [-1 for r in self.reviewers]
 
-    def _to_matrix(self):
-        m = matrix(len(self.suitors))
-        for i, v in self.suitors:
-            m[i][self.reviewers.index(v.partner)]
-
-
+    def _sol_dict(self):
+        sol_dict = {}
+        for s in self.suitors:
+            sol_dict[s] = [s.partner]
+        for r in self.reviewers:
+            sol_dict[r] = [r.partner]
+        return sol_dict
 
     def solve(self, invert=False):
         if not self._is_complete():
@@ -148,7 +155,7 @@ class MatchingGame(SageObject):
         for i, j in zip(self.reviewers, reviewers):
             i.partner = j.partner
 
-        return self._to_matrix()
+        return self._sol_dict()
 
 
 class _Player():

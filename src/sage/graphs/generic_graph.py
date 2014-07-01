@@ -17951,7 +17951,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.canonical_label(edge_labels=True,certify=True)
             (Graph on 5 vertices, {0: 4, 1: 3, 2: 0, 3: 1, 4: 2})
 
-        Check for immutable graphs (:trac:`16XXX`)::
+        Check for immutable graphs (:trac:`16602`)::
 
             sage: G = Graph([[1, 2], [2, 3]], immutable=True)
             sage: C = G.canonical_label(); C

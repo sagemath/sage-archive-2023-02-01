@@ -2,6 +2,7 @@ from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from copy import deepcopy, copy
 from sage.matrix.constructor import matrix
+from sage.graphs.bipartite_graph import BipartiteGraph
 
 
 class MatchingGame(SageObject):
@@ -35,6 +36,9 @@ class MatchingGame(SageObject):
              'J': ['A'],
              'M': ['D'],
              'L': ['C']}
+            sage: m.bi_partite()
+            Bipartite graph on 8 vertices
+            sage: m.bi_partite().plot()
 
         works for numbers too. ::
 
@@ -75,6 +79,11 @@ class MatchingGame(SageObject):
         r"""
         """
         pass
+
+    def bi_partite(self):
+        sol_dict = self._sol_dict()
+        graph = BipartiteGraph(sol_dict)
+        return(graph)
 
     def _is_complete(self):
         r"""

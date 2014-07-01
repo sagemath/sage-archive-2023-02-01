@@ -1064,7 +1064,8 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
     - ``v`` (integer) -- size of the ground set. Set to ``None`` (automatic
       guess) by default.
 
-    - ``K`` -- list of integers. Set to ``None`` (automatic guess) by default.
+    - ``K`` -- list of integers of which the sizes of the blocks must be
+      elements. Set to ``None`` (automatic guess) by default.
 
     - ``lambd`` (integer) -- value of `\lambda`, set to `1` by default.
 
@@ -1085,14 +1086,11 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
                                       [[i] for i in range(v)],
                                       blocks,
                                       v=v,
+                                      K=K,
                                       lambd=lambd,
                                       check=check,
                                       copy=copy,
                                       **kwds)
-
-        if K is not None and check:
-            K = set(K)
-            assert all(b_size in K for b_size in self.block_sizes())
 
     def __repr__(self):
         r"""

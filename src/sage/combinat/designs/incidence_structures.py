@@ -958,13 +958,17 @@ class GroupDivisibleDesign(IncidenceStructure):
     r"""
     Group Divisible Design (GDD)
 
-    Let `\mathcal G` be a partition of `X`. A Group Divisible Design `G` on `X`
-    with groups `\mathcal G` is a collection `\mathcal B` of blocks such that
-    any pair of points `v_1,v_2\in X` from different groups occur in exactly
-    `\lambda` blocks of `G`.
+    Let `K` and `G` be sets of positive integers and let `\lambda` be a positive
+    integer. A Group Divisible Design of index `\lambda` and order `v` is a
+    triple `(V,\mathcal G,\mathcal B)` where:
 
-    If `K` is a set of integers and `|B|\in K` for every block `B\in G`, then
-    `G` is called a `K`-GDD.
+    - `V` is a set of cardinality `v`
+
+    - `\mathcal G` is a partition of `V` into groups whose size belongs to `G`
+
+    - `\mathcal B` is a family of subsets of `V` whose size belongs to `K` such
+      that any two points `p_1,p_2\in V` from different blocks belong together
+      to exactly `\lambda` elements of `mathcal B`.
 
     If `K=\{k_1,...,k_k\}` and `G` has exactly `m_i` groups of cardinality `k_i`
     then `G` is said to have type `k_1^{m_1}...k_k^{m_k}`.
@@ -977,6 +981,12 @@ class GroupDivisibleDesign(IncidenceStructure):
 
     - ``v`` (integer) -- size of the ground set. Set to ``None`` (automatic
       guess) by default.
+
+    - ``G`` -- list of integers of which the sizes of the groups must be
+      elements. Set to ``None`` (automatic guess) by default.
+
+    - ``K`` -- list of integers of which the sizes of the blocks must be
+      elements. Set to ``None`` (automatic guess) by default.
 
     - ``lambd`` (integer) -- value of `\lambda`, set to `1` by default.
 
@@ -996,7 +1006,7 @@ class GroupDivisibleDesign(IncidenceStructure):
         sage: GDD = GroupDivisibleDesign(groups,TD); GDD
         Group Divisible Design on 40 points and type 10^4
     """
-    def __init__(self, groups, blocks, v=None, lambd=1, check=True, copy=True,**kwds):
+    def __init__(self, groups, blocks, v=None, G=None, K=None, lambd=1, check=True, copy=True,**kwds):
         r"""
         Constructor function
 
@@ -1015,7 +1025,7 @@ class GroupDivisibleDesign(IncidenceStructure):
         self._lambd = lambd
 
         if check:
-            assert is_group_divisible_design(groups,blocks,v,lambd)
+            assert is_group_divisible_design(groups,blocks,v,G,K,lambd)
 
         IncidenceStructure.__init__(self,
                                     v,

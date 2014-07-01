@@ -114,12 +114,15 @@ class MatchingGame(SageObject):
         pass
 
     def plot(self):
+        r"""
+        Creates the plot representing the stable matching for the game.
+        """
         pl = self.bi_partite()
         return pl.plot()
 
     def bi_partite(self):
         r"""
-        Returns a ``BipartiteGraph`` Object of the game.
+        Constructs a ``BipartiteGraph`` Object of the game.
         """
         self._is_sovled()
 
@@ -230,6 +233,9 @@ class MatchingGame(SageObject):
                 s.partner = r
             else:
                 s.pref.remove(r)
+
+        if invert:
+            suitors, reviewers = reviewers, suitors
 
         for i, j in zip(self.suitors, suitors):
             i.partner = j.partner

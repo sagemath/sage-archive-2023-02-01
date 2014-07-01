@@ -7,10 +7,7 @@ from sage.graphs.bipartite_graph import BipartiteGraph
 
 class MatchingGame(SageObject):
     r"""
-    """
-    def __init__(self, generator):
-        r"""
-        EXAMPLES:
+    EXAMPLES:
 
         quick test. ::
 
@@ -36,9 +33,39 @@ class MatchingGame(SageObject):
              'J': ['A'],
              'M': ['D'],
              'L': ['C']}
-            sage: m.bi_partite()
+            sage: graph = m.bi_partite()
+            sage: graph
             Bipartite graph on 8 vertices
-            sage: m.bi_partite().plot()
+            sage: graph.plot()
+
+        works for numbers too. ::
+
+            sage: suit = {0: [3, 4],
+            ....:         1: [3, 4]}
+            sage: revr = {3: [0, 1],
+            ....:         4: [1, 0]}
+            sage: g = MatchingGame([suit, revr])
+    """
+    def __init__(self, generator):
+        r"""
+        Initializes a Matching Game and checks the inputs.
+        EXAMPLES:
+
+        quick test. ::
+
+            sage: suitr_pref = {'J': ['A', 'D', 'C', 'B'],
+            ....:               'K': ['A', 'B', 'C', 'D'],
+            ....:               'L': ['B', 'D', 'C', 'A'],
+            ....:               'M': ['C', 'A', 'B', 'D']}
+            sage: reviewr_pref = {'A': ['L', 'J', 'K', 'M'],
+            ....:                 'B': ['J', 'M', 'L', 'K'],
+            ....:                 'C': ['K', 'M', 'L', 'J'],
+            ....:                 'D': ['M', 'K', 'J', 'L']}
+            sage: m = MatchingGame([suitr_pref, reviewr_pref])
+            sage: m.suitors
+            ['K', 'J', 'M', 'L']
+            sage: m.reviewers
+            ['A', 'C', 'B', 'D']
 
         works for numbers too. ::
 
@@ -57,9 +84,13 @@ class MatchingGame(SageObject):
         if type(generator[0]) is dict and type(generator[1]) is dict:
             self._dict_game(generator[0], generator[1])
         else:
-            raise TypeError("generator must be integer or a list of 2 dictionaries.")
+            raise TypeError("generator must be an integer or a list of 2 dictionaries.")
 
     def _dict_game(self, suitor_dict, reviwer_dict):
+        r"""
+        Populates the game from 2 dictionaries. One for reviewers and one for
+        suitors.
+        """
         for i in suitor_dict:
             self.add_suitor(i)
         for k in reviwer_dict:
@@ -88,6 +119,9 @@ class MatchingGame(SageObject):
         return(graph)
 
     def _is_sovled(self):
+        r"""
+        Checks if the Game has been solved yet.
+        """
         suitor_check = all(s.partner for s in self.suitors)
         reviewer_check = all(r.partner for r in self.reviewers)
         if not suitor_check or not reviewer_check:

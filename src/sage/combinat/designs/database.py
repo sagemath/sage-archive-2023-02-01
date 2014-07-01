@@ -177,7 +177,7 @@ def _MOLS_from_string(s,k):
 
     EXAMPLES::
 
-        sage: _ = designs.mutually_orthogonal_latin_squares(10,2) # indirect doctest
+        sage: _ = designs.mutually_orthogonal_latin_squares(2,10) # indirect doctest
     """
     from sage.matrix.constructor import Matrix
     matrices = [[] for _ in range(k)]
@@ -203,7 +203,7 @@ def MOLS_10_2():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(10,2,existence=True)
+        sage: designs.mutually_orthogonal_latin_squares(2,10,existence=True)
         True
     """
     from sage.matrix.constructor import Matrix
@@ -276,7 +276,7 @@ def MOLS_14_4():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(14,4,existence=True)
+        sage: designs.mutually_orthogonal_latin_squares(4,14,existence=True)
         True
     """
     M = """
@@ -314,7 +314,7 @@ def MOLS_15_4():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(15,4,existence=True)
+        sage: designs.mutually_orthogonal_latin_squares(4,15,existence=True)
         True
     """
     M = """
@@ -353,7 +353,7 @@ def MOLS_18_3():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(18,3,existence=True)
+        sage: designs.mutually_orthogonal_latin_squares(3,18,existence=True)
         True
     """
     M = """
@@ -383,7 +383,7 @@ def MOLS_18_3():
 #
 # Associates to n the pair (k,f) where f() is a function that returns k MOLS of order n
 #
-# This dictionary is used by designs.mutually_orthogonal_latin_squares(n,k).
+# This dictionary is used by designs.mutually_orthogonal_latin_squares(k,n).
 
 MOLS_constructions = {
     10 : (2, MOLS_10_2),

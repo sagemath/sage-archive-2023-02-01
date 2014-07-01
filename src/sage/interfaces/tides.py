@@ -30,7 +30,7 @@ AUTHORS:
 REFERENCES:
 
 .. [ALG924] A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
-Transactions on Mathematical Software*, *39*(1), 1–28.
+Transactions on Mathematical Software*, *39*(1), 1-28.
 
 .. [TI](http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
 A. Abad, R. Barrio, F. Blesa, M. Rodriguez.

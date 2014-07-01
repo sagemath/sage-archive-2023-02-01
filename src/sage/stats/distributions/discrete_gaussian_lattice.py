@@ -437,4 +437,3 @@ class DiscreteGaussianLatticeSampler(SageObject):
             c = c - z*B[i]
             v = v + z*B[i]
         return v
-(

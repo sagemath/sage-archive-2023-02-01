@@ -48,7 +48,33 @@ class Domains(CategoryWithAxiom):
     Commutative = LazyImport('sage.categories.integral_domains', 'IntegralDomains', at_startup=True)
 
     class ParentMethods:
-        pass
+        def _test_zero_divisors(self, **options):
+            """
+            Check to see that there are no zero divisors.
+
+            EXAMPLES::
+
+                sage: ZZ._test_zero_divisors()
+                sage: Zp(5)._test_zero_divisors()
+            """
+            # This try-except is probably not needed as is_exact()
+            #   should be a method for every commutative ring
+            try:
+                if not self.is_exact():
+                    return # Can't check on inexact rings
+            except AttributeError:
+                # Assume a ring is exact if it doesn't have the method
+                pass
+
+            tester = self._tester(**options)
+
+            # Filter out zero
+            S = [s for s in tester.some_elements() if not s.is_zero()]
+
+            from sage.combinat.cartesian_product import CartesianProduct
+            for a,b in tester.some_elements(CartesianProduct(S,S)):
+                p = a * b
+                tester.assertFalse(p.is_zero())
 
     class ElementMethods:
         pass

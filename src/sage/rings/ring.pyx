@@ -128,6 +128,7 @@ cdef class Ring(ParentWithGens):
         running ._test_quo_rem() . . . pass
         running ._test_some_elements() . . . pass
         running ._test_zero() . . . pass
+        running ._test_zero_divisors() . . . pass
         sage: TestSuite(QQ['x','y']).run()
         sage: TestSuite(ZZ['x','y']).run()
         sage: TestSuite(ZZ['x','y']['t']).run()

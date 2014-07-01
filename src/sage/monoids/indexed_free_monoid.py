@@ -713,10 +713,10 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
         """
         self._indices = indices
         category = Monoids().or_subcategory(category)
-        #if indices.cardinality() == 0:
-        #    category = category.Finite()
-        #else:
-        #    category = category.Infinite()
+        if indices.cardinality() == 0:
+            category = category.Finite()
+        else:
+            category = category.Infinite()
         Parent.__init__(self, names=names, category=category)
 
         # ignore the optional 'key' since it only affects CachedRepresentation

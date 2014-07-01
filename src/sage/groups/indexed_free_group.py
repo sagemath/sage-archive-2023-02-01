@@ -159,7 +159,6 @@ class IndexedFreeGroup(IndexedGroup, Group):
             sage: G = Groups().free(index_set='abc')
             sage: TestSuite(G).run()
         """
-        Group.__init__(self)
         category = Groups().or_subcategory(category)
         IndexedGroup.__init__(self, indices, prefix, category, **kwds)
 
@@ -347,7 +346,6 @@ class IndexedFreeAbelianGroup(IndexedGroup, AbelianGroup):
             sage: G = Groups().Commutative().free(index_set='abc')
             sage: TestSuite(G).run()
         """
-        AbelianGroup.__init__(self)
         category = Groups().or_subcategory(category)
         IndexedGroup.__init__(self, indices, prefix, category, **kwds)
 

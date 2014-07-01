@@ -49,9 +49,10 @@ class MatchingGame(SageObject):
     def __init__(self, generator):
         r"""
         Initializes a Matching Game and checks the inputs.
-        EXAMPLES:
 
-        quick test. ::
+        TESTS:
+
+        8 player letter game. ::
 
             sage: suitr_pref = {'J': ['A', 'D', 'C', 'B'],
             ....:               'K': ['A', 'B', 'C', 'D'],
@@ -67,7 +68,7 @@ class MatchingGame(SageObject):
             sage: m.reviewers
             ['A', 'C', 'B', 'D']
 
-        works for numbers too. ::
+        Also works for numbers. ::
 
             sage: suit = {0: [3, 4],
             ....:         1: [3, 4]}
@@ -90,6 +91,7 @@ class MatchingGame(SageObject):
         r"""
         Populates the game from 2 dictionaries. One for reviewers and one for
         suitors.
+
         """
         for i in suitor_dict:
             self.add_suitor(i)
@@ -112,6 +114,9 @@ class MatchingGame(SageObject):
         pass
 
     def bi_partite(self):
+        r"""
+        Returns a ``BipartiteGraph`` Object of the game.
+        """
         self._is_sovled()
 
         sol_dict = self._sol_dict()
@@ -129,6 +134,7 @@ class MatchingGame(SageObject):
 
     def _is_complete(self):
         r"""
+        Checks that all players have acceptable preferences.
         """
         if len(self.suitors) != len(self.reviewers):
             raise ValueError("Must have the same number of reviewers as suitors")
@@ -143,6 +149,12 @@ class MatchingGame(SageObject):
 
     def add_suitor(self, name=False):
         r"""
+        Adds a suitor to the game.
+
+        INPUTS:
+
+        -``name`` - Can be a string or numer. If left blank will automatically
+                    generate an integer.
         """
         if name is False:
             name = len(self.suitors)
@@ -153,6 +165,12 @@ class MatchingGame(SageObject):
 
     def add_reviewer(self, name=False):
         r"""
+        Adds a reviewer to the game.
+
+        INPUTS:
+
+        -``name`` - Can be a string or numer. If left blank will automatically
+                    generate an integer.
         """
         if name is False:
             name = len(self.reviewers)
@@ -162,6 +180,11 @@ class MatchingGame(SageObject):
             s.pref = [-1 for r in self.reviewers]
 
     def _sol_dict(self):
+        r"""
+        Creates a dictionary of the stable matching. Keys are the player,
+        values are their match as the only element in a list. This is to allow
+        the creation of ``BipartiteGraph``.
+        """
         self._is_sovled()
 
         sol_dict = {}
@@ -172,6 +195,10 @@ class MatchingGame(SageObject):
         return sol_dict
 
     def solve(self, invert=False):
+        r"""
+        Computes a stable matching for the game using the Gale-Shapley
+        algorithm.
+        """
         self._is_complete()
 
         if invert:

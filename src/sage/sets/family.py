@@ -902,6 +902,16 @@ class LazyFamily(AbstractFamily):
             sage: h = LazyFamily(ZZ, lambda i: 2*i, name='foo')
             sage: hash(h) == hash(h)
             True
+
+        ::
+
+            sage: class X(object):
+            ....:     def __call__(self, x):
+            ....:         return x
+            ....:     __hash__ = None
+            sage: f = Family([1,2,3], X())
+            sage: hash(f) == hash(f)
+            True
         """
         try:
             return hash(self.keys()) + hash(self.function)

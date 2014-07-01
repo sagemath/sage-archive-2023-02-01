@@ -203,7 +203,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
             sage: l = [D() for _ in xrange(m)]
             sage: v = vector(ZZ, n, (0, 0, 0))
             sage: l.count(v), ZZ(round(m*f(v)/c))
-            (65, 27)
+            (57, 27)
 
         """
         if self.B != identity_matrix(ZZ, self.B.nrows()):
@@ -243,11 +243,11 @@ class DiscreteGaussianLatticeSampler(SageObject):
             sage: l = [D() for _ in xrange(m)]
             sage: v = vector(ZZ, n, (-3,-3))
             sage: l.count(v), ZZ(round(m*f(v)/c))
-            (47, 33)
+            (39, 33)
 
             sage: target = vector(ZZ, n, (0,0))
             sage: l.count(target), ZZ(round(m*f(target)/c))
-            (107, 89)
+            (116, 89)
 
             sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianLatticeSampler
             sage: qf = QuadraticForm(matrix(3, [2, 1, 1,  1, 2, 1,  1, 1, 2]))
@@ -258,7 +258,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
             [1 2 1]
             [1 1 2]
             sage: D()
-            (-4, -4, -4)
+            (0, 1, -1)
         """
         precision = DiscreteGaussianLatticeSampler.compute_precision(precision, sigma)
 
@@ -320,12 +320,12 @@ class DiscreteGaussianLatticeSampler(SageObject):
             sage: D = DiscreteGaussianLatticeSampler(ZZ^3, 3.0, c=(1,0,0))
             sage: L = [D() for _ in range(2^12)]
             sage: abs(mean(L).n() - D.c)
-            0.10...
+            0.08303258...
 
             sage: D = DiscreteGaussianLatticeSampler(ZZ^3, 3.0, c=(1/2,0,0))
             sage: L = [D() for _ in range(2^12)] # long time
             sage: mean(L).n() - D.c # long time
-            (0.058..., -0.13..., 0.02...)
+            (0.0607910156250000, -0.128417968750000, 0.0239257812500000)
 
         """
         if self._c_in_lattice:
@@ -398,7 +398,7 @@ class DiscreteGaussianLatticeSampler(SageObject):
             sage: D = DiscreteGaussianLatticeSampler(ZZ^3, 3.0, c=(1,0,0))
             sage: L = [D._call_in_lattice() for _ in range(2^12)]
             sage: abs(mean(L).n() - D.c)
-            0.10...
+            0.08303258...
 
         .. note::
 
@@ -437,3 +437,4 @@ class DiscreteGaussianLatticeSampler(SageObject):
             c = c - z*B[i]
             v = v + z*B[i]
         return v
+(

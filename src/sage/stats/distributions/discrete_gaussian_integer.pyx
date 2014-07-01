@@ -36,11 +36,11 @@ With this normalisation factor, we can now test if our samples follow the
 expected distribution::
 
     sage: x=0; l.count(x), ZZ(round(n*exp(-x^2/(2*sigma^2))/norm_factor))
-    (13350, 13298)
+    (13355, 13298)
     sage: x=4; l.count(x), ZZ(round(n*exp(-x^2/(2*sigma^2))/norm_factor))
-    (5543, 5467)
+    (5479, 5467)
     sage: x=-10; l.count(x), ZZ(round(n*exp(-x^2/(2*sigma^2))/norm_factor))
-    (46, 51)
+    (53, 51)
 
 We construct an instance with a larger width::
 
@@ -66,7 +66,7 @@ We construct a sampler with `c\%1 != 0`::
     sage: D = DiscreteGaussianIntegerSampler(sigma=sigma, c=1/2)
     sage: n=100000; l = [D() for _ in xrange(n)] # long time
     sage: mean(l).n() # long time
-    0.48678000000...
+    0.486650000000000
 
 REFERENCES:
 

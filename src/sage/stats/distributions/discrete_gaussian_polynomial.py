@@ -68,7 +68,7 @@ class DiscreteGaussianPolynomialSampler(SageObject):
         3*x^7 + 3*x^6 - 3*x^5 - x^4 - 5*x^2 + 3
         sage: gs = DiscreteGaussianPolynomialSampler(ZZ['x'], 8, 3.0)
         sage: [gs() for _ in xrange(3)]
-        [4*x^7 + 4*x^6 - 2*x^5 + x^4 + 4*x^2 - 2*x + 7, 5*x^7 - 4*x^6 + 3*x^4 - 4*x^3 + x^2 - 4, 2*x^7 + 2*x^6 + x^5 + 2*x^3 - 3*x^2 + x]
+        [4*x^7 + 4*x^6 - 4*x^5 + 2*x^4 + x^3 - 4*x + 7, -5*x^6 + 4*x^5 - 3*x^3 + 4*x^2 + x, 2*x^7 + 2*x^6 + 2*x^5 - x^4 - 2*x^2 + 3*x + 1]
 
     .. automethod:: __init__
     .. automethod:: __call__
@@ -95,7 +95,7 @@ class DiscreteGaussianPolynomialSampler(SageObject):
             3*x^7 + 3*x^6 - 3*x^5 - x^4 - 5*x^2 + 3
             sage: gs = DiscreteGaussianPolynomialSampler(ZZ['x'], 8, 3.0)
             sage: [gs() for _ in xrange(3)]
-            [4*x^7 + 4*x^6 - 2*x^5 + x^4 + 4*x^2 - 2*x + 7, 5*x^7 - 4*x^6 + 3*x^4 - 4*x^3 + x^2 - 4, 2*x^7 + 2*x^6 + x^5 + 2*x^3 - 3*x^2 + x]
+            [4*x^7 + 4*x^6 - 4*x^5 + 2*x^4 + x^3 - 4*x + 7, -5*x^6 + 4*x^5 - 3*x^3 + 4*x^2 + x, 2*x^7 + 2*x^6 + 2*x^5 - x^4 - 2*x^2 + 3*x + 1]
         """
         if isinstance(sigma, DiscreteGaussianIntegerSampler):
             self.D = sigma

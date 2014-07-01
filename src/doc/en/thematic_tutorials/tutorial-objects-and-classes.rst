@@ -303,8 +303,8 @@ Some particular actions modify the data structure of ``el``::
            'element_class')),
          '__doc__': "...",
          '_sage_src_lines_': <staticmethod object at 0x...>})
-        sage: e.__dict__.keys()
-        ['__module__', '_reduction', '__doc__', '_sage_src_lines_']
+        sage: sorted(e.__dict__.keys())
+        ['__doc__', '__module__', '_reduction', '_sage_src_lines_']
 
         sage: id4 = SymmetricGroup(4).one()
         sage: type(id4)

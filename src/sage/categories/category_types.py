@@ -218,8 +218,8 @@ class Category_over_base(CategoryWithParameters):
         sage: Algebras(GF(2)).parent_class is Algebras(C).parent_class
         True
 
-        sage: cat = EuclideanDomains() & InfiniteEnumeratedSets()
-        sage: Algebras(ZZ).element_class is Algebras(cat).element_class
+        sage: C = ZZ.category()
+        sage: Algebras(ZZ).element_class is Algebras(C).element_class
         True
     """
 

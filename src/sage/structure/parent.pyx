@@ -1405,13 +1405,7 @@ cdef class Parent(category_object.CategoryObject):
             pass
         # if known to be infinite, give up
         # if unsure, proceed (which will hang for an infinite set)
-        infinite = False # We do it this way so we can raise a NotImplementedError
-        try:
-            if self in Sets().Infinite() or not self.is_finite():
-                infinite = True
-        except (AttributeError, NotImplementedError):
-            pass
-        if infinite:
+        if self in Sets().Infinite():
             raise NotImplementedError( 'since it is infinite, cannot list {}'.format(self) )
         the_list = list(self.__iter__())
         try:

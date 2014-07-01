@@ -20,6 +20,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.cartesian_product import CartesianProductsCategory
+from sage.categories.quotients import QuotientsCategory
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.tensor import TensorProductsCategory
 from sage.categories.associative_algebras import AssociativeAlgebras
@@ -114,6 +115,29 @@ class Algebras(CategoryWithAxiom_over_base_ring):
                 ValueError: cannot invert self (= B[word: a])
             """
             return self.parent().product(self, ~y)
+
+    class Quotients(QuotientsCategory):
+
+        class ParentMethods:
+
+            def algebra_generators(self):
+                r"""
+                Return algebra generators for ``self``.
+
+                This implementation retracts the algebra generators
+                from the ambient algebra.
+
+                EXAMPLES::
+
+                    sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
+                    An example of a finite dimensional algebra with basis: the path algebra of the Kronecker quiver (containing the arrows a:x->y and b:x->y) over Rational Field
+                    sage: S = A.semisimple_quotient()
+                    sage: S.algebra_generators()
+                    Finite family {'y': B['y'], 'x': B['x'], 'b': 0, 'a': 0}
+
+                .. TODO:: this could possibly remove the elements that retract to zero
+                """
+                return self.ambient().algebra_generators().map(self.retract)
 
     class CartesianProducts(CartesianProductsCategory):
         """

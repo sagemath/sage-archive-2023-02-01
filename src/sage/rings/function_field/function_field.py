@@ -478,9 +478,15 @@ class FunctionField_polymod(FunctionField):
             sage: A
             Function field in z defined by y^5 - x^12
             sage: from_A
-            Morphism of function fields defined by z |--> x^3*y
+            Function Field morphism:
+              From: Function field in z defined by y^5 - x^12
+              To:   Function field in y defined by x^2*y^5 - 1/x
+              Defn: z |--> x^3*y
             sage: to_A
-            Morphism of function fields defined by y |--> 1/x^3*z
+            Function Field morphism:
+              From: Function field in y defined by x^2*y^5 - 1/x
+              To:   Function field in z defined by y^5 - x^12
+              Defn: y |--> 1/x^3*z
             sage: to_A(y)
             1/x^3*z
             sage: from_A(to_A(y))
@@ -869,7 +875,8 @@ class FunctionField_polymod(FunctionField):
         We make the field automorphism that sends y to -y::
 
             sage: f = L.hom(-y); f
-            Morphism of function fields defined by y |--> -y
+            Function Field endomorphism of Function field in y defined by y^2 - x^3 - 1
+              Defn: y |--> -y
 
         Evaluation works::
 
@@ -886,7 +893,8 @@ class FunctionField_polymod(FunctionField):
         We make a morphism of the base rational function field::
 
             sage: phi = K.hom(x+1); phi
-            Morphism of function fields defined by x |--> x + 1
+            Function Field endomorphism of Rational function field in x over Rational Field
+              Defn: x |--> x + 1
             sage: phi(x^3 - 3)
             x^3 + 3*x^2 + 3*x - 2
             sage: (x+1)^3-3
@@ -896,7 +904,9 @@ class FunctionField_polymod(FunctionField):
         base generators go::
 
             sage: L.hom([-y, x])
-            Morphism of function fields defined by y |--> -y,  x |--> x
+            Function Field endomorphism of Function field in y defined by y^2 - x^3 - 1
+              Defn: y |--> -y
+                    x |--> x
 
         The usage of the keyword base_morphism is not implemented yet::
 
@@ -913,7 +923,11 @@ class FunctionField_polymod(FunctionField):
         We define a morphism, by giving the images of generators::
 
             sage: f = L.hom([4*w, t+1]); f
-            Morphism of function fields defined by y |--> 4*w,  x |--> t + 1
+            Function Field morphism:
+              From: Function field in y defined by y^2 - x^3 - 1
+              To:   Function field in w defined by 16*w^2 - t^3 - 3*t^2 - 3*t - 2
+              Defn: y |--> 4*w
+                    x |--> t + 1
 
         Evaluation works, as expected::
 
@@ -930,7 +944,12 @@ class FunctionField_polymod(FunctionField):
         This is the function field L with the generators exchanged. We define a morphism to L::
 
             sage: g = L3.hom([x,y]); g
-            Morphism of function fields defined by xx |--> x, yy |--> y
+            Function Field morphism:
+              From: Function field in xx defined by -xx^3 + yy^2 - 1
+              To:   Function field in y defined by y^2 - x^3 - 1
+              Defn: xx |--> x
+                    yy |--> y
+
         """
         if base_morphism is not None:
             raise NotImplementedError("Function field homorphisms with optional argument base_morphism are not implemented yet. Please specify the images of the generators of the base fields manually.")
@@ -1033,7 +1052,10 @@ class RationalFunctionField(FunctionField):
         sage: K.<t> = FunctionField(QQ)
         sage: L = FunctionField(QQ, 'tbar') # give variable name as second input
         sage: K.hom(L.gen())
-        Morphism of function fields defined by t |--> tbar
+        Function Field morphism:
+          From: Rational function field in t over Rational Field
+          To:   Rational function field in tbar over Rational Field
+          Defn: t |--> tbar
     """
     def __init__(self, constant_field, names,
             element_class = FunctionFieldElement_rational,
@@ -1369,7 +1391,8 @@ class RationalFunctionField(FunctionField):
 
             sage: K.<x> = FunctionField(GF(7))
             sage: K.hom( (x^4 + 2)/x)
-            Morphism of function fields defined by x |--> (x^4 + 2)/x
+            Function Field endomorphism of Rational function field in x over Finite Field of size 7
+              Defn: x |--> (x^4 + 2)/x
 
         We construct a map from a rational function field into a
         non-rational extension field::
@@ -1377,7 +1400,10 @@ class RationalFunctionField(FunctionField):
             sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
             sage: L.<y> = K.extension(y^3 + 6*x^3 + x)
             sage: f = K.hom(y^2 + y  + 2); f
-            Morphism of function fields defined by x |--> y^2 + y + 2
+            Function Field morphism:
+              From: Rational function field in x over Finite Field of size 7
+              To:   Function field in y defined by y^3 + 6*x^3 + x
+              Defn: x |--> y^2 + y + 2
             sage: f(x)
             y^2 + y + 2
             sage: f(x^2)

@@ -273,6 +273,14 @@ def permanental_minor_vector(m, permanent_only=False):
 
     ::
 
+        sage: from sage.matrix.matrix_misc import permanental_minor_vector
+        sage: M = MatrixSpace(ZZ,4,4)
+        sage: A = M([1,0,1,0,1,0,1,0,1,0,10,10,1,0,1,1])
+        sage: permanental_minor_vector(A)
+        [1, 28, 114, 84, 0]
+
+    ::
+
         sage: M = MatrixSpace(QQ,2,2)
         sage: A = M([1/5,2/7,3/2,4/5])
         sage: permanental_minor_vector(A, 1)
@@ -321,7 +329,7 @@ def permanental_minor_vector(m, permanent_only=False):
         return K.zero()
     assert len(p) == 1
     a = p[0].coeffs()
-    len_a = min(nrows, ncols)
+    len_a = min(nrows, ncols) + 1
     if len(a) < len_a:
         a += [0]*(len_a - len(a))
     if permanent_only:

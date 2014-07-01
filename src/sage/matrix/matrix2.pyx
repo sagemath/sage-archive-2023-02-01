@@ -49,6 +49,7 @@ import sage.modules.free_module
 import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
+from sage.matrix.matrix_misc import permanental_minor_vector
 
 cdef class Matrix(matrix1.Matrix):
     def _backslash_(self, B):
@@ -946,6 +947,7 @@ cdef class Matrix(matrix1.Matrix):
         AUTHORS:
 
         - Jaap Spies (2006-02-24)
+        - Mario Pernici (2014-07-01)
         """
         m = self._nrows
         n = self._ncols
@@ -960,10 +962,8 @@ cdef class Matrix(matrix1.Matrix):
                     if not (x == 0 or x == 1):
                         raise ValueError, "must have zero or one, but we have (=%s)"%x
 
-        tmp = []
-        for k in range(m+1):
-            tmp.append(self.permanental_minor(k))
-        return tmp
+        p = permanental_minor_vector(self)
+        return p
 
     def minors(self,k):
         r"""

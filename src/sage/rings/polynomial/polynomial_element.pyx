@@ -3352,19 +3352,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             # adds back the unit of the factorization.
             return self._factor_pari_helper(G)
 
-        elif is_RealField(R):
-            n = pari.set_real_precision(int(3.5*R.prec()) + 1)
-            G = list(self._pari_with_name().factor())
-
-        elif sage.rings.complex_field.is_ComplexField(R):
-            # This is a hack to make the polynomial have complex coefficients, since
-            # otherwise PARI will factor over RR.
-            n = pari.set_real_precision(int(3.5*R.prec()) + 1)
-            if self.leading_coefficient() != R.gen():
-                G = list((pari(R.gen())*self._pari_with_name()).factor())
-            else:
-                G = self._pari_with_name().factor()
-
         if G is None:
             # See if we can do this as a singular polynomial as a fallback
             # This was copied from the general multivariate implementation

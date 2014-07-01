@@ -24,15 +24,15 @@ class MatchingGame(SageObject):
             ['K', 'J', 'M', 'L']
             sage: m.reviewers
             ['A', 'C', 'B', 'D']
-            sage: print m.solve()
+            sage: m.solve()
             {'A': ['J'],
-             'C': ['L'],
-             'B': ['K'],
-             'D': ['M'],
-             'K': ['B'],
+             'C': ['K'],
+             'B': ['M'],
+             'D': ['L'],
+             'K': ['C'],
              'J': ['A'],
-             'M': ['D'],
-             'L': ['C']}
+             'M': ['B'],
+             'L': ['D']}
             sage: plot(m)
             sage: graph = m.bi_partite()
             sage: graph
@@ -91,7 +91,6 @@ class MatchingGame(SageObject):
         r"""
         Populates the game from 2 dictionaries. One for reviewers and one for
         suitors.
-
         """
         for i in suitor_dict:
             self.add_suitor(i)
@@ -147,11 +146,11 @@ class MatchingGame(SageObject):
             raise ValueError("Must have the same number of reviewers as suitors")
 
         for suitor in self.suitors:
-            if suitor.pref.sort() != self.reviewers.sort():
+            if list(suitor.pref).sort() != self.reviewers.sort():
                 raise ValueError("Suitor preferences incomplete")
 
         for reviewer in self.reviewers:
-            if reviewer.pref.sort() != self.suitors.sort():
+            if list(reviewer.pref).sort() != self.suitors.sort():
                 raise ValueError("Reviewer preferences incomplete")
 
     def add_suitor(self, name=False):
@@ -189,7 +188,7 @@ class MatchingGame(SageObject):
     def _sol_dict(self):
         r"""
         Creates a dictionary of the stable matching. Keys are the player,
-        values are their match as the only element in a list. This is to allow
+        values are their partner as a single element list. This is to allow
         the creation of ``BipartiteGraph``.
         """
         self._is_sovled()
@@ -205,8 +204,40 @@ class MatchingGame(SageObject):
         r"""
         Computes a stable matching for the game using the Gale-Shapley
         algorithm.
+
+        EXAMPLES:
+
+        6 player game. ::
+
+            sage: left_dict = {'a': ('A', 'B', 'C'),
+            ....:              'b': ('B', 'C', 'A'),
+            ....:              'c': ('B', 'A', 'C')}
+            sage: right_dict = {'A': ('b', 'c', 'a'),
+            ....:               'B': ('a', 'c', 'b'),
+            ....:               'C': ('a', 'b', 'c')}
+            sage: quick_game = MatchingGame([left_dict, right_dict])
+            sage: quick_game.solve()
+            {'a': ['A'],
+             'A': ['a'],
+             'c': ['B'],
+             'b': ['C'],
+             'C': ['b'],
+             'B': ['c']}
+            sage: quick_game.solve(invert=True)
+            {'a': ['B'],
+             'A': ['c'],
+             'c': ['A'],
+             'b': ['C'],
+             'C': ['b'],
+             'B': ['a']}
+
         """
         self._is_complete()
+
+        for s in self.suitors:
+            s.partner = False
+        for r in self.reviewers:
+            r.partner = False
 
         if invert:
             reviewers = deepcopy(self.suitors)
@@ -215,11 +246,6 @@ class MatchingGame(SageObject):
             suitors = deepcopy(self.suitors)
             reviewers = deepcopy(self.reviewers)
 
-        for s in suitors:
-            s.matched = False
-        for r in reviewers:
-            r.matched = False
-
         while len([s for s in suitors if s.partner is False]) != 0:
             s = [s for s in suitors if s.partner is False][0]
             r = next((x for x in reviewers if x.name == s.pref[0]), None)
@@ -227,12 +253,11 @@ class MatchingGame(SageObject):
                 r.partner = s
                 s.partner = r
             elif r.pref.index(s) < r.pref.index(r.partner):
-                old_s = r.partner
-                old_s.partner = False
+                r.partner.partner = False
                 r.partner = s
                 s.partner = r
             else:
-                s.pref.remove(r)
+                s.pref = s.pref[1:]
 
         if invert:
             suitors, reviewers = reviewers, suitors

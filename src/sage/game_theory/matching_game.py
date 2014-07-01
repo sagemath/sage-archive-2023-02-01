@@ -11,14 +11,14 @@ class MatchingGame(SageObject):
 
         quick test. ::
 
-            sage: suitr_pref = {'J': ['A', 'D', 'C', 'B'],
-            ....:               'K': ['A', 'B', 'C', 'D'],
-            ....:               'L': ['B', 'D', 'C', 'A'],
-            ....:               'M': ['C', 'A', 'B', 'D']}
-            sage: reviewr_pref = {'A': ['L', 'J', 'K', 'M'],
-            ....:                 'B': ['J', 'M', 'L', 'K'],
-            ....:                 'C': ['K', 'M', 'L', 'J'],
-            ....:                 'D': ['M', 'K', 'J', 'L']}
+            sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
+            ....:               'K': ('A', 'B', 'C', 'D'),
+            ....:               'L': ('B', 'D', 'C', 'A'),
+            ....:               'M': ('C', 'A', 'B', 'D')}
+            sage: reviewr_pref = {'A': ('L', 'J', 'K', 'M'),
+            ....:                 'B': ('J', 'M', 'L', 'K'),
+            ....:                 'C': ('K', 'M', 'L', 'J'),
+            ....:                 'D': ('M', 'K', 'J', 'L')}
             sage: m = MatchingGame([suitr_pref, reviewr_pref])
             sage: m.suitors
             ['K', 'J', 'M', 'L']
@@ -40,10 +40,10 @@ class MatchingGame(SageObject):
 
         works for numbers too. ::
 
-            sage: suit = {0: [3, 4],
-            ....:         1: [3, 4]}
-            sage: revr = {3: [0, 1],
-            ....:         4: [1, 0]}
+            sage: suit = {0: (3, 4),
+            ....:         1: (3, 4)}
+            sage: revr = {3: (0, 1),
+            ....:         4: (1, 0)}
             sage: g = MatchingGame([suit, revr])
     """
     def __init__(self, generator):
@@ -54,14 +54,14 @@ class MatchingGame(SageObject):
 
         8 player letter game. ::
 
-            sage: suitr_pref = {'J': ['A', 'D', 'C', 'B'],
-            ....:               'K': ['A', 'B', 'C', 'D'],
-            ....:               'L': ['B', 'D', 'C', 'A'],
-            ....:               'M': ['C', 'A', 'B', 'D']}
-            sage: reviewr_pref = {'A': ['L', 'J', 'K', 'M'],
-            ....:                 'B': ['J', 'M', 'L', 'K'],
-            ....:                 'C': ['K', 'M', 'L', 'J'],
-            ....:                 'D': ['M', 'K', 'J', 'L']}
+            sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
+            ....:               'K': ('A', 'B', 'C', 'D'),
+            ....:               'L': ('B', 'D', 'C', 'A'),
+            ....:               'M': ('C', 'A', 'B', 'D')}
+            sage: reviewr_pref = {'A': ('L', 'J', 'K', 'M'),
+            ....:                 'B': ('J', 'M', 'L', 'K'),
+            ....:                 'C': ('K', 'M', 'L', 'J'),
+            ....:                 'D': ('M', 'K', 'J', 'L')}
             sage: m = MatchingGame([suitr_pref, reviewr_pref])
             sage: m.suitors
             ['K', 'J', 'M', 'L']
@@ -70,10 +70,10 @@ class MatchingGame(SageObject):
 
         Also works for numbers. ::
 
-            sage: suit = {0: [3, 4],
-            ....:         1: [3, 4]}
-            sage: revr = {3: [0, 1],
-            ....:         4: [1, 0]}
+            sage: suit = {0: (3, 4),
+            ....:         1: (3, 4)}
+            sage: revr = {3: (0, 1),
+            ....:         4: (1, 0)}
             sage: g = MatchingGame([suit, revr])
         """
         self.suitors = []
@@ -141,6 +141,23 @@ class MatchingGame(SageObject):
     def _is_complete(self):
         r"""
         Checks that all players have acceptable preferences.
+
+        TESTS:
+
+        Not enough reviewers. ::
+
+            sage: suit = {0: (3, 4),
+            ....:         1: (3, 4)}
+            sage: revr = {3: (0, 1)}
+            sage: g = MatchingGame([suit, revr])
+
+        Suitors preferences make no sense. ::
+
+            sage: suit = {0: (3, 8),
+            ....:         1: (0, 0)}
+            sage: revr = {3: (0, 1),
+            ....:         4: (1, 0)}
+            sage: g = MatchingGame([suit, revr])
         """
         if len(self.suitors) != len(self.reviewers):
             raise ValueError("Must have the same number of reviewers as suitors")

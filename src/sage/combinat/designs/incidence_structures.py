@@ -870,6 +870,7 @@ class IncidenceStructure(object):
     dual_design = deprecated_function_alias(16553, dual)
     dual_incidence_structure = deprecated_function_alias(16553, dual)
     is_block_design = deprecated_function_alias(16553, is_t_design)
+    points = deprecated_function_alias(16553, ground_set)
 
     def block_design_checker(self, t, v, k, lmbda, type=None):
         """

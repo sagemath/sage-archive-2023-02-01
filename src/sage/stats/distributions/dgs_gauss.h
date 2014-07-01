@@ -45,7 +45,7 @@
   TYPICAL USAGE::
 
       dgs_disc_gauss_dp_t *D = dgs_disc_gauss_dp_init(<sigma>, <c>, <tau>, <algorithm>);
-      D->call(); // as often as needed
+      D->call(D); // as often as needed
       dgs_disc_gauss_dp_clear(D);
 
    .. author:: Martin R. Albrecht <martinralbrecht+dgs@googlemail.com>

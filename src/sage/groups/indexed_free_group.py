@@ -36,6 +36,32 @@ class IndexedGroup(IndexedMonoid):
     """
     Base class for free (abelian) groups whose generators are indexed
     by a set.
+
+    TESTS:
+
+    We check finite properties::
+
+        sage: G = Groups().free(index_set=ZZ)
+        sage: G.is_finite()
+        False
+        sage: G = Groups().free(index_set='abc')
+        sage: G.is_finite()
+        False
+        sage: G = Groups().free(index_set=[])
+        sage: G.is_finite()
+        True
+
+    ::
+
+        sage: G = Groups().Commutative().free(index_set=ZZ)
+        sage: G.is_finite()
+        False
+        sage: G = Groups().Commutative().free(index_set='abc')
+        sage: G.is_finite()
+        False
+        sage: G = Groups().Commutative().free(index_set=[])
+        sage: G.is_finite()
+        True
     """
     def order(self):
         r"""
@@ -55,39 +81,6 @@ class IndexedGroup(IndexedMonoid):
             1
         """
         return self.cardinality()
-
-    # TODO: once #10963 is merged, use the categories
-    # Groups().Infinite() / Groups().Finite() and get rid of this
-    # method
-    def is_finite(self):
-        """
-        Return ``True`` if ``self`` is finite.
-
-        EXAMPLES::
-
-            sage: G = Groups().free(index_set=ZZ)
-            sage: G.is_finite()
-            False
-            sage: G = Groups().free(index_set='abc')
-            sage: G.is_finite()
-            False
-            sage: G = Groups().free(index_set=[])
-            sage: G.is_finite()
-            True
-
-        ::
-
-            sage: G = Groups().Commutative().free(index_set=ZZ)
-            sage: G.is_finite()
-            False
-            sage: G = Groups().Commutative().free(index_set='abc')
-            sage: G.is_finite()
-            False
-            sage: G = Groups().Commutative().free(index_set=[])
-            sage: G.is_finite()
-            True
-        """
-        return self.rank() == 0
 
     def rank(self):
         """

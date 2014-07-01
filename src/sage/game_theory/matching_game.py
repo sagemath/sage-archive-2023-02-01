@@ -81,9 +81,17 @@ class MatchingGame(SageObject):
         pass
 
     def bi_partite(self):
+        self._is_sovled()
+
         sol_dict = self._sol_dict()
         graph = BipartiteGraph(sol_dict)
         return(graph)
+
+    def _is_sovled(self):
+        suitor_check = all(s.partner for s in self.suitors)
+        reviewer_check = all(r.partner for r in self.reviewers)
+        if not suitor_check or not reviewer_check:
+            raise ValueError("Game has not been solved yet")
 
     def _is_complete(self):
         r"""
@@ -98,8 +106,6 @@ class MatchingGame(SageObject):
         for reviewer in self.reviewers:
             if reviewer.pref.sort() != self.suitors.sort():
                 raise ValueError("Reviewer preferences incomplete")
-
-        return True
 
     def add_suitor(self, name=False):
         r"""
@@ -122,6 +128,8 @@ class MatchingGame(SageObject):
             s.pref = [-1 for r in self.reviewers]
 
     def _sol_dict(self):
+        self._is_sovled()
+
         sol_dict = {}
         for s in self.suitors:
             sol_dict[s] = [s.partner]
@@ -130,8 +138,7 @@ class MatchingGame(SageObject):
         return sol_dict
 
     def solve(self, invert=False):
-        if not self._is_complete():
-            raise ValueError("Preferences have not been populated")
+        self._is_complete()
 
         if invert:
             reviewers = deepcopy(self.suitors)

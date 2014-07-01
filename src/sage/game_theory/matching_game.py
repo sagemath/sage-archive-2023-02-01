@@ -38,13 +38,37 @@ class MatchingGame(SageObject):
             sage: graph
             Bipartite graph on 8 vertices
 
-        works for numbers too. ::
+        A big example. ::
 
-            sage: suit = {0: (3, 4),
-            ....:         1: (3, 4)}
-            sage: revr = {3: (0, 1),
-            ....:         4: (1, 0)}
-            sage: g = MatchingGame([suit, revr])
+            sage: from itertools import permutations
+            sage: n = 10
+            sage: big_game = MatchingGame(n)
+            sage: suitr_preferences = list(permutations([-i-1 for i in range(n)]))
+            sage: revr_preferences = list(permutations([i+1 for i in range(n)]))
+            sage: for player in range(n):
+            ....:     big_game.suitors[player].pref = suitr_preferences[player]
+            ....:     big_game.reviewers[player].pref = revr_preferences[-player]
+            sage: big_game.solve()
+            {1: [-1],
+             2: [-8],
+             3: [-9],
+             4: [-10],
+             5: [-7],
+             6: [-6],
+             7: [-5],
+             8: [-4],
+             9: [-3],
+            10: [-2],
+            -2: [10],
+            -10: [4],
+            -9: [3],
+            -8: [2],
+            -7: [5],
+            -6: [6],
+            -5: [7],
+            -4: [8],
+            -3: [9],
+            -1: [1]}
     """
     def __init__(self, generator):
         r"""
@@ -75,6 +99,7 @@ class MatchingGame(SageObject):
             sage: revr = {3: (0, 1),
             ....:         4: (1, 0)}
             sage: g = MatchingGame([suit, revr])
+
         """
         self.suitors = []
         self.reviewers = []
@@ -82,7 +107,7 @@ class MatchingGame(SageObject):
             for i in range(generator):
                 self.add_suitor()
                 self.add_reviewer()
-        if type(generator[0]) is dict and type(generator[1]) is dict:
+        elif type(generator[0]) is dict and type(generator[1]) is dict:
             self._dict_game(generator[0], generator[1])
         else:
             raise TypeError("generator must be an integer or a list of 2 dictionaries.")
@@ -189,7 +214,7 @@ class MatchingGame(SageObject):
                     generate an integer.
         """
         if name is False:
-            name = len(self.suitors)
+            name = len(self.suitors) + 1
         new_suitor = _Player(name, 'suitor', len(self.reviewers))
         self.suitors.append(new_suitor)
         for r in self.reviewers:
@@ -205,7 +230,7 @@ class MatchingGame(SageObject):
                     generate an integer.
         """
         if name is False:
-            name = len(self.reviewers)
+            name = -len(self.reviewers) - 1
         new_reviewer = _Player(name, 'reviewer', len(self.suitors))
         self.reviewers.append(new_reviewer)
         for s in self.suitors:
@@ -278,7 +303,7 @@ class MatchingGame(SageObject):
             if r.partner is False:
                 r.partner = s
                 s.partner = r
-            elif r.pref.index(s) < r.pref.index(r.partner):
+            elif r.pref.index(s.name) < r.pref.index(r.partner.name):
                 r.partner.partner = False
                 r.partner = s
                 s.partner = r

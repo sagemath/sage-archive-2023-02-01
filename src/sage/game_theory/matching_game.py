@@ -33,10 +33,10 @@ class MatchingGame(SageObject):
              'J': ['A'],
              'M': ['D'],
              'L': ['C']}
+            sage: plot(m)
             sage: graph = m.bi_partite()
             sage: graph
             Bipartite graph on 8 vertices
-            sage: graph.plot()
 
         works for numbers too. ::
 
@@ -108,10 +108,14 @@ class MatchingGame(SageObject):
         """
         pass
 
-    def _latex(self):
+    def _latex_(self):
         r"""
         """
         pass
+
+    def plot(self):
+        pl = self.bi_partite()
+        return pl.plot()
 
     def bi_partite(self):
         r"""

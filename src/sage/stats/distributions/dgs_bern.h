@@ -127,7 +127,7 @@ dgs_bern_uniform_t* dgs_bern_uniform_init(size_t length);
 
 */
 
-static inline unsigned long dgs_bern_uniform_call(dgs_bern_uniform_t *self, gmp_randstate_t state) {
+static inline long dgs_bern_uniform_call(dgs_bern_uniform_t *self, gmp_randstate_t state) {
   assert(self != NULL);
   assert(state != NULL);
 
@@ -137,7 +137,7 @@ static inline unsigned long dgs_bern_uniform_call(dgs_bern_uniform_t *self, gmp_
     self->count = 0;
   }
 
-  unsigned long b = self->pool & 1;
+  long b = (long)(self->pool & 1);
   self->pool >>= 1;
   self->count++;
   return b;
@@ -150,14 +150,14 @@ static inline unsigned long dgs_bern_uniform_call(dgs_bern_uniform_t *self, gmp_
 
  */
 
-static inline unsigned long dgs_bern_uniform_call_libc(dgs_bern_uniform_t *self) {
+static inline long dgs_bern_uniform_call_libc(dgs_bern_uniform_t *self) {
   assert(self != NULL);
   if (__DGS_UNLIKELY(self->count == self->length)) {
     self->pool = _dgs_randomb_libc(self->length);
     self->count = 0;
   }
 
-  unsigned long b = self->pool & 1;
+  long b = (long)(self->pool & 1);
   self->pool >>= 1;
   self->count++;
   return b;

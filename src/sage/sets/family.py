@@ -560,9 +560,15 @@ class FiniteFamily(AbstractFamily):
             sage: f2 = Family(["a", "c", "b"], lambda x: x+x)
             sage: hash(f) == hash(f2)
             True
-            sage: g = Family(["a", "c", "b"], lambda x: x+x+x)
+            sage: g = Family(["b", "c", "a"], lambda x: x+x+x)
             sage: hash(f) == hash(g)
             False
+
+        ::
+
+            sage: f = Family({1:[1,2]})
+            sage: hash(f) == hash(f)
+            True
         """
         try:
             return hash(frozenset(self._dictionary.items()))
@@ -884,7 +890,7 @@ class LazyFamily(AbstractFamily):
         """
         Return a hash value for ``self``.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.sets.family import LazyFamily
             sage: f = LazyFamily([3,4,7], lambda i: 2*i)
@@ -1122,7 +1128,7 @@ class TrivialFamily(AbstractFamily):
         """
         Return a hash value for ``self``.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.sets.family import TrivialFamily
             sage: f = TrivialFamily((3,4,7))

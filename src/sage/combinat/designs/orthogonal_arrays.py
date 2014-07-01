@@ -27,7 +27,8 @@ from sage.misc.unknown import Unknown
 from sage.rings.infinity import Infinity
 from designs_pyx import is_orthogonal_array
 
-def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
+
+def transversal_design(k,n,check=True,existence=False):
     r"""
     Return a transversal design of parameters `k,n`.
 
@@ -70,12 +71,6 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
 
           When ``k=None`` and ``existence=True`` the function returns an
           integer, i.e. the largest `k` such that we can build a `TD(k,n)`.
-
-    - ``who_asked`` (internal use only) -- because of the equivalence between
-      OA/TD/MOLS, each of the three constructors calls the others. We must keep
-      track of who calls who in order to avoid infinite loops. ``who_asked`` is
-      the tuple of the other functions that were called before this one on the
-      same input `k,n`.
 
     OUTPUT:
 
@@ -185,7 +180,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         sage: designs.transversal_design(None, 30, existence=True)
         6
         sage: designs.transversal_design(None, 120, existence=True)
-        8
+        9
 
     TESTS:
 
@@ -277,8 +272,10 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         if existence:
             return k
 
-    if existence and not who_asked and _get_OA_cache(k,n) is not None:
-        return _get_OA_cache(k,n)
+    if existence and _OA_cache_get(k,n) is not None:
+        return _OA_cache_get(k,n)
+
+    may_be_available = _OA_cache_construction_available(k,n) is not False
 
     if n == 1:
         if existence:
@@ -291,27 +288,17 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         raise EmptySetError("No Transversal Design exists when k>=n+2 if n>=2")
 
     elif n == 12 and k <= 6:
-        _set_OA_cache(6,12,True)
+        _OA_cache_set(6,12,True)
         if existence:
             return True
         from sage.combinat.designs.database import TD_6_12
         TD = [l[:k] for l in TD_6_12()]
 
-    elif TD_find_product_decomposition(k,n):
-        _set_OA_cache(k,n,True)
-        if existence:
-            return True
-        n1,n2 = TD_find_product_decomposition(k,n)
-        TD1 = transversal_design(k,n1, check = False)
-        TD2 = transversal_design(k,n2, check = False)
-        TD = TD_product(k,TD1,n1,TD2,n2, check = False)
-
     # Section 6.6 of [Stinson2004]
-    elif (orthogonal_array not in who_asked and
-          orthogonal_array(k, n, existence=True, who_asked = who_asked + (transversal_design,)) is not Unknown):
+    elif orthogonal_array(k, n, existence=True) is not Unknown:
 
         # Forwarding non-existence results
-        if orthogonal_array(k, n, existence=True, who_asked = who_asked + (transversal_design,)):
+        if orthogonal_array(k, n, existence=True):
             if existence:
                 return True
         else:
@@ -319,12 +306,10 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
                 return False
             raise EmptySetError("There exists no TD({},{})!".format(k,n))
 
-        OA = orthogonal_array(k,n, check = False, who_asked = who_asked + (transversal_design,))
+        OA = orthogonal_array(k,n, check = False)
         TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
 
     else:
-        if not who_asked:
-            _set_OA_cache(k,n,Unknown)
         if existence:
             return Unknown
         raise NotImplementedError("I don't know how to build a TD({},{})!".format(k,n))
@@ -367,108 +352,6 @@ def is_transversal_design(B,k,n, verbose=False):
     """
     return is_orthogonal_array([[x%n for x in R] for R in B],k,n,verbose=verbose)
 
-@cached_function
-def find_wilson_decomposition_with_one_truncated_group(k,n):
-    r"""
-    Finds a wilson decomposition of `k,n` with one truncated group.
-
-    This method looks for possible integers `m,t,u` satisfying that `mt+u=n` and
-    such that Sage knows how to build a `TD(k,m), TD(k,m+1),TD(k+1,t)` and a
-    `TD(k,u)`. These can then be used to feed :func:`wilson_construction`.
-
-    INPUT:
-
-    - `k,n` (integers)
-
-    OUTPUT:
-
-    Returns a 4-tuple `(n, m, t, u)` if it is found, and ``False`` otherwise.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays import find_wilson_decomposition_with_one_truncated_group
-        sage: find_wilson_decomposition_with_one_truncated_group(4,38)
-        (4, 7, 5, 3)
-        sage: find_wilson_decomposition_with_one_truncated_group(4,20)
-        False
-    """
-    # If there exists a TD(k+1,t) then k+1 < t+2, i.e. k <= t
-    for t in range(max(1,k),n-1):
-        u = n%t
-        # We ensure that 1<=u, and that there can exists a TD(k,u), i.e k<u+2
-        # (unless u == 1)
-        if u == 0 or (u>1 and k >= u+2):
-            continue
-
-        m = n//t
-        # If there exists a TD(k,m) then k<m+2
-        if k >= m+2:
-            break
-
-        if (orthogonal_array(k  ,m  , existence=True) and
-            orthogonal_array(k  ,m+1, existence=True) and
-            orthogonal_array(k+1,t  , existence=True) and
-            orthogonal_array(k  ,u  , existence=True)):
-            return k,m,t,u
-
-    return False
-
-@cached_function
-def find_wilson_decomposition_with_two_truncated_groups(k,n):
-    r"""
-    Helper function for Wilson's construction with two trucated columns
-
-    Find integers `r,m,r_1,r_2` satisfying `n=rm+r_1+r_2` and `1\leq r_1,r_2<r`
-    and such that the following designs exist : `OA(k+2,r)`, `OA(k,r1)`,
-    `OA(k,r2)`, `OA(k,m)`, `OA(k,m+1)`, `OA(k,m+2)`.
-
-    INPUT:
-
-    - ``k,n`` (integers)
-
-    Indeed, under these constraints there exists a `OA(k,n)` that can be built
-    with :func:`wilson_construction`.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays import find_wilson_decomposition_with_two_truncated_groups
-        sage: find_wilson_decomposition_with_two_truncated_groups(5,58)
-        (5, 7, 7, 4, 5)
-    """
-    for r in [1] + range(k+1,n-2): # as r*1+1+1 <= n and because we need 
-                                   # an OA(k+2,r), necessarily r=1 or r >= k+1
-        if not orthogonal_array(k+2,r,existence=True):
-            continue
-        m_min = (n - (2*r-2))//r
-        m_max = (n - 2)//r
-        if m_min > 1:
-            m_values = range(max(m_min,k-1), m_max+1)
-        else:
-            m_values = [1] + range(k-1, m_max+1)
-        for m in m_values:
-            r1_p_r2 = n-r*m # the sum of r1+r2
-                            # it is automatically >= 2 since m <= m_max
-            if (r1_p_r2 > 2*r-2 or
-                not orthogonal_array(k,m  ,existence=True) or
-                not orthogonal_array(k,m+1,existence=True) or
-                not orthogonal_array(k,m+2,existence=True)):
-                continue
-
-            r1_min = r1_p_r2 - (r-1)
-            r1_max = min(r-1, r1_p_r2)
-            if r1_min > 1:
-                r1_values = range(max(k-1,r1_min), r1_max+1)
-            else:
-                r1_values = [1] + range(k-1, r1_max+1)
-            for r1 in r1_values:
-                if not orthogonal_array(k,r1,existence=True):
-                    continue
-                r2 = r1_p_r2-r1
-                if orthogonal_array(k,r2,existence=True):
-                    assert n == r*m+r1+r2
-                    return k,r,m,r1,r2
-    return False
-
 def wilson_construction(OA,k,r,m,n_trunc,u,check=True):
     r"""
     Returns a `OA(k,rm+u)` from a truncated `OA(k+s,r)` by Wilson's construction.
@@ -510,16 +393,14 @@ def wilson_construction(OA,k,r,m,n_trunc,u,check=True):
 
         sage: from sage.combinat.designs.orthogonal_arrays import wilson_construction
         sage: from sage.combinat.designs.orthogonal_arrays import OA_relabel
-        sage: from sage.combinat.designs.orthogonal_arrays import find_wilson_decomposition_with_one_truncated_group
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_wilson_decomposition_with_one_truncated_group
         sage: total = 0
         sage: for k in range(3,8):
         ....:    for n in range(1,30):
         ....:        if find_wilson_decomposition_with_one_truncated_group(k,n):
         ....:            total += 1
-        ....:            k,m,r,u = find_wilson_decomposition_with_one_truncated_group(k,n)
-        ....:            OA = designs.orthogonal_array(k+1,r,check=False)
-        ....:            OA = OA_relabel(OA,k+1,r,matrix=[range(r)]*k+[range(u)+[None]*(r-u)])
-        ....:            _ = wilson_construction(OA,k,r,m,1,[u],check=True)
+        ....:            f, args = find_wilson_decomposition_with_one_truncated_group(k,n)
+        ....:            _ = f(*args)
         sage: print total
         41
     """
@@ -567,42 +448,6 @@ def wilson_construction(OA,k,r,m,n_trunc,u,check=True):
 
     return OA
 
-@cached_function
-def TD_find_product_decomposition(k,n):
-    r"""
-    Attempts to find a factorization of `n` in order to build a `TD(k,n)`.
-
-    If Sage can build a `TD(k,n_1)` and a `TD(k,n_2)` such that `n=n_1\times
-    n_2` then a `TD(k,n)` can be built (from the function
-    :func:`transversal_design`). This method returns such a pair of integers if
-    it exists, and ``None`` otherwise.
-
-    INPUT:
-
-    - ``k,n`` (integers) -- see above.
-
-    .. SEEALSO::
-
-        :func:`TD_product` that actually build a product
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays import TD_find_product_decomposition
-        sage: TD_find_product_decomposition(6, 84)
-        (7, 12)
-
-        sage: TD1 = designs.transversal_design(6, 7)
-        sage: TD2 = designs.transversal_design(6, 12)
-        sage: from sage.combinat.designs.orthogonal_arrays import TD_product
-        sage: TD = TD_product(6, TD1, 7, TD2, 12)
-    """
-    from sage.rings.arith import divisors
-    for n1 in divisors(n)[1:-1]: # we ignore 1 and n
-        n2 = n//n1
-        if transversal_design(k, n1, existence = True) and transversal_design(k, n2, existence = True):
-            return n1,n2
-    return None
-
 def TD_product(k,TD1,n1,TD2,n2, check=True):
     r"""
     Returns the product of two transversal designs.
@@ -627,10 +472,6 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
       returning it. As this is expected to be useless (but we are cautious
       guys), you may want to disable it whenever you want speed. Set to ``True``
       by default.
-
-    .. SEEALSO::
-
-        :func:`TD_find_product_decomposition`
 
     .. NOTE::
 
@@ -665,7 +506,7 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
 # truth_value.
 
 _OA_cache = {0:(Infinity,None,None,None),1:(Infinity,None,None,None)}
-def _set_OA_cache(k,n,truth_value):
+def _OA_cache_set(k,n,truth_value):
     r"""
     Sets a value in the OA cache of existence results
 
@@ -677,12 +518,12 @@ def _set_OA_cache(k,n,truth_value):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import _set_OA_cache, _get_OA_cache, _OA_cache
+        sage: from sage.combinat.designs.orthogonal_arrays import _OA_cache_set, _OA_cache_get, _OA_cache
         sage: if 10 in _OA_cache:
         ....:    del _OA_cache[10]
-        sage: _get_OA_cache(4,10)
-        sage: _set_OA_cache(4,10,True)
-        sage: _get_OA_cache(4,10)
+        sage: _OA_cache_get(4,10)
+        sage: _OA_cache_set(4,10,True)
+        sage: _OA_cache_get(4,10)
         True
     """
     global _OA_cache
@@ -702,7 +543,7 @@ def _set_OA_cache(k,n,truth_value):
 
     _OA_cache[n] = (max_true, min_unknown, max_unknown, min_false)
 
-def _get_OA_cache(k,n):
+def _OA_cache_get(k,n):
     r"""
     Gets a value from the OA cache of existence results
 
@@ -712,16 +553,16 @@ def _get_OA_cache(k,n):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import _set_OA_cache, _get_OA_cache
-        sage: _get_OA_cache(0,10)
+        sage: from sage.combinat.designs.orthogonal_arrays import _OA_cache_set, _OA_cache_get
+        sage: _OA_cache_get(0,10)
         True
-        sage: _get_OA_cache(1,10)
+        sage: _OA_cache_get(1,10)
         True
-        sage: _get_OA_cache(2,10)
+        sage: _OA_cache_get(2,10)
         True
-        sage: _get_OA_cache(2**10+1,2**10)
-        sage: _set_OA_cache(2**10+1,2**10,True)
-        sage: _get_OA_cache(2**10+1,2**10)
+        sage: _OA_cache_get(2**10+1,2**10)
+        sage: _OA_cache_set(2**10+1,2**10,True)
+        sage: _OA_cache_get(2**10+1,2**10)
         True
     """
     global _OA_cache
@@ -743,7 +584,37 @@ def _get_OA_cache(k,n):
 
     return None
 
-def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
+def _OA_cache_construction_available(k,n):
+    r"""
+    Tests if a construction is implemented using the cache's information
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import _OA_cache_construction_available
+        sage: _OA_cache_construction_available(5,10)
+        Unknown
+        sage: designs.orthogonal_array(5,10,existence=True)
+        Unknown
+        sage: _OA_cache_construction_available(5,10)
+        False
+    """
+    ans = _OA_cache.get(n,None)
+    if ans is not None:
+        max_true, min_unknown, max_unknown, min_false = ans
+        if k <= max_true:
+            return True
+        if min_unknown is not None and k >= min_unknown:
+            return False
+        else:
+            return Unknown
+    else:
+        return Unknown
+
+def orthogonal_array(k,n,t=2,check=True,existence=False):
     r"""
     Return an orthogonal array of parameters `k,n,t`.
 
@@ -785,12 +656,6 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
           When ``k=None`` and ``existence=True`` the function returns an
           integer, i.e. the largest `k` such that we can build a `TD(k,n)`.
-
-    - ``who_asked`` (internal use only) -- because of the equivalence between
-      OA/TD/MOLS, each of the three constructors calls the others. We must keep
-      track of who calls who in order to avoid infinite loops. ``who_asked`` is
-      the tuple of the other functions that were called before this one on the
-      same input `k,n`.
 
     OUTPUT:
 
@@ -894,8 +759,9 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
     """
 
     from latin_squares import mutually_orthogonal_latin_squares
-    from database import OA_constructions
+    from database import OA_constructions, MOLS_constructions
     from block_design import projective_plane, projective_plane_to_OA
+    from orthogonal_arrays_recursive import find_recursive_construction
 
     assert n>=0
 
@@ -918,8 +784,10 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
     if k < t:
         raise ValueError("undefined for k<t")
 
-    if existence and not who_asked and _get_OA_cache(k,n) is not None and t == 2:
-        return _get_OA_cache(k,n)
+    if existence and _OA_cache_get(k,n) is not None and t == 2:
+        return _OA_cache_get(k,n)
+
+    may_be_available = _OA_cache_construction_available(k,n) is not False
 
     if n <= 1:
         if existence:
@@ -947,10 +815,15 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
             return Unknown
         raise NotImplementedError("Only trivial orthogonal arrays are implemented for t>=2")
 
+    elif k <= 3:
+        if existence:
+            return True
+        return [[i,j,(i+j)%n] for i in xrange(n) for j in xrange(n)]
+
     # projective spaces are equivalent to OA(n+1,n,2)
     elif (projective_plane(n, existence=True) or
            (k == n+1 and projective_plane(n, existence=True) is False)):
-        _set_OA_cache(n+1,n,projective_plane(n, existence=True))
+        _OA_cache_set(n+1,n,projective_plane(n, existence=True))
         if k == n+1:
             if existence:
                 return projective_plane(n, existence=True)
@@ -963,70 +836,48 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
             OA = [l[:k] for l in projective_plane_to_OA(p, check=False)]
 
     # Constructions from the database
-    elif n in OA_constructions and k <= OA_constructions[n][0]:
-        _set_OA_cache(OA_constructions[n][0],n,True)
+    elif may_be_available and n in OA_constructions and k <= OA_constructions[n][0]:
+        _OA_cache_set(OA_constructions[n][0],n,True)
         if existence:
             return True
         _, construction = OA_constructions[n]
 
         OA = OA_from_wider_OA(construction(),k)
 
-    elif find_wilson_decomposition_with_one_truncated_group(k,n):
-        _set_OA_cache(k,n,True)
+    # Constructions from the database II
+    elif may_be_available and k <= 6 and n == 12:
+        _OA_cache_set(6,12,True)
+
         if existence:
             return True
-        k,m,r,u = find_wilson_decomposition_with_one_truncated_group(k,n)
-        OA = orthogonal_array(k+1,r,check=False)
-        OA = OA_relabel(OA,k+1,r,matrix=[range(r)]*k+[range(u)+[None]*(r-u)])
-        OA = wilson_construction(OA,k,r,m,1,[u],check=False)
-
-    elif find_wilson_decomposition_with_two_truncated_groups(k,n):
-        _set_OA_cache(k,n,True)
-        if existence:
-            return True
-        k,r,m,u1,u2 = find_wilson_decomposition_with_two_truncated_groups(k,n)
-        OA = orthogonal_array(k+2,r,check=False)
-        OA = OA_relabel(OA,k+2,r,matrix=[range(r)]*k+[range(u1)+[None]*(r-u1),range(u2)+[None]*(r-u2)])
-        OA = wilson_construction(OA,k,r,m,2,[u1,u2],check=False)
-
-    elif (transversal_design not in who_asked and
-          transversal_design(k,n,existence=True,who_asked=who_asked+(orthogonal_array,)) is not Unknown):
-
-        # forward existence
-        if transversal_design(k,n,existence=True,who_asked=who_asked+(orthogonal_array,)):
-            if existence:
-                return True
-            else:
-                TD = transversal_design(k,n,check=False,who_asked=who_asked+(orthogonal_array,))
-                OA = [[x%n for x in R] for R in TD]
-
-        # forward non-existence
         else:
-            if existence:
-                return False
-            raise EmptySetError("There exists no OA({},{})!".format(k,n))
+            from database import TD_6_12
+            TD = TD_6_12()
+            OA = [[x%n for x in R] for R in TD]
 
+    # Constructions from the database III
     # Section 6.5.1 from [Stinson2004]
-    elif (mutually_orthogonal_latin_squares not in who_asked and
-          mutually_orthogonal_latin_squares(n,k-2, existence=True,who_asked=who_asked+(orthogonal_array,)) is not Unknown):
+    elif may_be_available and n in MOLS_constructions and k-2 <= MOLS_constructions[n][0]:
+        _OA_cache_set(MOLS_constructions[n][0]+2,n,True)
 
-        # forward existence
-        if mutually_orthogonal_latin_squares(n,k-2, existence=True,who_asked=who_asked+(orthogonal_array,)):
-            if existence:
-                return True
-            else:
-                mols = mutually_orthogonal_latin_squares(n,k-2,who_asked=who_asked+(orthogonal_array,))
-                OA = [[i,j]+[m[i,j] for m in mols]
-                      for i in range(n) for j in range(n)]
-        # forward non-existence
+        if existence:
+            return True
         else:
-            if existence:
-                return False
-            raise EmptySetError("There exists no OA({},{})!".format(k,n))
+            construction = MOLS_constructions[n][1]
+            mols = construction()
+            OA = [[i,j]+[m[i,j] for m in mols]
+                  for i in range(n) for j in range(n)]
+            OA = OA_from_wider_OA(OA,k)
+
+    elif may_be_available and find_recursive_construction(k,n):
+        _OA_cache_set(k,n,True)
+        if existence:
+            return True
+        f,args = find_recursive_construction(k,n)
+        OA = f(*args)
 
     else:
-        if not who_asked:
-            _set_OA_cache(k,n,Unknown)
+        _OA_cache_set(k,n,Unknown)
         if existence:
             return Unknown
         raise NotImplementedError("I don't know how to build an OA({},{})!".format(k,n))
@@ -1550,7 +1401,7 @@ def OA_from_PBD(k,n,PBD, check=True):
         sage: _ = OA_from_PBD(3,6,pbd)
         Traceback (most recent call last):
         ...
-        RuntimeError: The PBD covers a point 8 which is not in {0, .., 5}
+        RuntimeError: The PBD covers a point 8 which is not in {0, ..., 5}
     """
     # Size of the sets of the PBD
     K = set(map(len,PBD))

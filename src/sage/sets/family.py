@@ -564,7 +564,10 @@ class FiniteFamily(AbstractFamily):
             sage: hash(f) == hash(g)
             False
         """
-        return hash(frozenset(list(self.keys()) + map(repr, self.values())))
+        try:
+            return hash(frozenset(self._dictionary.items()))
+        except (TypeError, ValueError):
+            return hash(frozenset(list(self.keys()) + map(repr, self.values())))
 
     def keys(self):
         """
@@ -890,24 +893,13 @@ class LazyFamily(AbstractFamily):
             sage: g = LazyFamily(ZZ, lambda i: 2*i)
             sage: hash(g) == hash(g)
             True
+            sage: h = LazyFamily(ZZ, lambda i: 2*i, name='foo')
+            sage: hash(h) == hash(h)
+            True
         """
         try:
-            h = hash(self.keys())
-
-            if self.function_name is not None:
-                name = self.function_name + "(i)"
-            elif isinstance(self.function, type(lambda x:1)):
-                name = self.function.__name__
-                name = name+"(i)"
-            else:
-                name = repr(self.function)
-                if isinstance(self.function, AttrCallObject):
-                    name = "i"+name[1:]
-                else:
-                    name = name+"(i)"
-
-            return h + hash(name)
-        except TypeError:
+            return hash(self.keys()) + hash(self.function)
+        except (TypeError, ValueError):
             return super(LazyFamily, self).__hash__()
 
     def __eq__(self, other):

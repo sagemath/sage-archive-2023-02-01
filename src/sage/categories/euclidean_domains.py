@@ -90,7 +90,12 @@ class EuclideanDomains(Category_singleton):
             from sage.combinat.cartesian_product import CartesianProduct
             for a,b in tester.some_elements(CartesianProduct(S,S)):
                 p = a * b
-                tester.assertFalse(p.is_zero())
+                # For rings which are not exact, we might get something that
+                #   acts like a zero divisor.
+                # Therefore we skip the product if it evaluates to zero.
+                # Let the category of Domains handle the test for zero divisors.
+                if p.is_zero():
+                    continue
                 tester.assertLessEqual(a.euclidean_degree(), p.euclidean_degree())
 
         def _test_quo_rem(self, **options):

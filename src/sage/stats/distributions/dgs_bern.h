@@ -50,9 +50,13 @@
 
 /**
    Number of bits sampled at once in ``dgs_bern_uniform_t``
+
+   .. note::
+
+      We want machine independent behaviour at least for the MP functions, so we pick 32.
 */
 
-#define DGS_BERN_UNIFORM_DEFAULT_LENGTH (sizeof(unsigned long)*8)
+#define DGS_BERN_UNIFORM_DEFAULT_LENGTH 32
 
 /**
    Maximum number of bits sampled at once in ``dgs_bern_uniform_t``

@@ -150,6 +150,10 @@ class MatchingGame(SageObject):
             ....:         1: (3, 4)}
             sage: revr = {3: (0, 1)}
             sage: g = MatchingGame([suit, revr])
+            sage: g._is_complete()
+            Traceback (most recent call last):
+            ...
+            ValueError: Must have the same number of reviewers as suitors
 
         Suitors preferences make no sense. ::
 
@@ -158,17 +162,22 @@ class MatchingGame(SageObject):
             sage: revr = {3: (0, 1),
             ....:         4: (1, 0)}
             sage: g = MatchingGame([suit, revr])
+            sage: g._is_complete()
+            Traceback (most recent call last):
+            ...
+            ValueError: Suitor preferences are not complete
+
         """
         if len(self.suitors) != len(self.reviewers):
             raise ValueError("Must have the same number of reviewers as suitors")
 
         for suitor in self.suitors:
-            if list(suitor.pref).sort() != self.reviewers.sort():
-                raise ValueError("Suitor preferences incomplete")
+            if set(suitor.pref) != set(self.reviewers):
+                raise ValueError("Suitor preferences are not complete")
 
         for reviewer in self.reviewers:
-            if list(reviewer.pref).sort() != self.suitors.sort():
-                raise ValueError("Reviewer preferences incomplete")
+            if set(reviewer.pref) != set(self.suitors):
+                raise ValueError("Reviewer preferences are not complete")
 
     def add_suitor(self, name=False):
         r"""

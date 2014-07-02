@@ -432,8 +432,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     ivar_str=P(ivar).str()
     de00 = de00.str()
     def sanitize_var(exprs):
-        t = exprs.replace("'"+dvar_str+"(_SAGE_VAR_"+ivar_str+")",dvar_str)
-        return t.replace("'"+dvar_str+"("+ivar_str+")",dvar_str)
+        return exprs.replace("'"+dvar_str+"("+ivar_str+")",dvar_str)
     de0 = sanitize_var(de00)
     ode_solver="ode2"
     cmd="(TEMP:%s(%s,%s,%s), if TEMP=false then TEMP else substitute(%s=%s(%s),TEMP))"%(ode_solver,de0,dvar_str,ivar_str,dvar_str,dvar_str,ivar_str)
@@ -669,8 +668,7 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
 
     dvar_str = str(dvar)
     def sanitize_var(exprs):  # 'y(x) -> y(x)
-        t = exprs.replace("'"+dvar_str,dvar_str)
-        return t.replace("'_SAGE_VAR_"+dvar_str,dvar_str)
+        return exprs.replace("'"+dvar_str,dvar_str)
     de0=de._maxima_()
     P = de0.parent()
     i = dvar_str.find('(')

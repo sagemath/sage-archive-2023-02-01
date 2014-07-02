@@ -29,6 +29,7 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_set_coeff_fmpz(fmpz_poly_t poly, unsigned long n, fmpz_t x)
 
     void fmpz_poly_get_coeff_mpz(mpz_t x, fmpz_poly_t poly, unsigned long n)
+    void fmpz_poly_get_coeff_fmpz(fmpz_t x, fmpz_poly_t poly, unsigned long n)
     void fmpz_poly_get_coeff_mpz_read_only(mpz_t x, fmpz_poly_t poly, \
             unsigned long n)
     fmpz* fmpz_poly_get_coeff_ptr(fmpz_poly_t poly, unsigned long n)

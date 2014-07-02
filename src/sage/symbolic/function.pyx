@@ -697,7 +697,7 @@ cdef class Function(SageObject):
             sage: import numpy
             sage: a = numpy.arange(5)
             sage: csc(a)
-            doctest:270: RuntimeWarning: divide by zero encountered in divide
+            doctest:...: RuntimeWarning: divide by zero encountered in divide
             array([        inf,  1.18839511,  1.09975017,  7.0861674 , -1.32134871])
 
             sage: factorial(a)
@@ -934,9 +934,10 @@ cdef class BuiltinFunction(Function):
 
             # conversion to the original parent failed
             # we try if it works with the corresponding complex domain
-            if org_parent is float:
+            if org_parent is float or org_parent is complex:
                 try:
-                    return complex(res)
+                    from sage.rings.complex_double import CDF
+                    return complex(CDF(res))
                 except (TypeError, ValueError):
                     pass
             elif hasattr(org_parent, 'complex_field'):

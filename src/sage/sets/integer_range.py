@@ -64,7 +64,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         sage: list(IntegerRange(2,5))
         [2, 3, 4]
         sage: I = IntegerRange(2,100,5); I
-        {2, 7, .., 97}
+        {2, 7, ..., 97}
         sage: list(I)
         [2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 52, 57, 62, 67, 72, 77, 82, 87, 92, 97]
         sage: I.category()
@@ -90,7 +90,7 @@ class IntegerRange(UniqueRepresentation, Parent):
     arithmetic progression starting from the ``begin`` by step ``step``::
 
         sage: I = IntegerRange(54,Infinity,3); I
-        {54, 57, ..}
+        {54, 57, ...}
         sage: I.category()
         Category of facade infinite enumerated sets
         sage: p = iter(I)
@@ -98,7 +98,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         (54, 57, 60, 63, 66, 69)
 
         sage: I = IntegerRange(54,-Infinity,-3); I
-        {54, 51, ..}
+        {54, 51, ...}
         sage: I.category()
         Category of facade infinite enumerated sets
         sage: p = iter(I)
@@ -128,7 +128,7 @@ class IntegerRange(UniqueRepresentation, Parent):
     but the enumeration will begin with this ``middle_point``::
 
         sage: I = IntegerRange(123,-12,-14); I
-        {123, 109, .., -3}
+        {123, 109, ..., -3}
         sage: list(I)
         [123, 109, 95, 81, 67, 53, 39, 25, 11, -3]
         sage: J = IntegerRange(123,-12,-14,25); J
@@ -200,7 +200,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         ...           L2.sort()
         ...           assert L1 == L2
 
-    Thanks to #8543 empty integer range are allowed::
+    Thanks to :trac:`8543` empty integer range are allowed::
 
         sage: TestSuite(IntegerRange(0, 5, -1)).run()
     """
@@ -393,9 +393,9 @@ class IntegerRangeFinite(IntegerRange):
         if self.cardinality() < 6:
             return "{" + ", ".join(str(x) for x in self) + "}"
         elif self._step == 1:
-            return "{%s, .., %s}"%(self._begin, self._end-self._step)
+            return "{%s, ..., %s}"%(self._begin, self._end-self._step)
         else:
-            return "{%s, %s, .., %s}"%(self._begin, self._begin+self._step,
+            return "{%s, %s, ..., %s}"%(self._begin, self._begin+self._step,
                                      self._end-self._step)
 
     def rank(self,x):
@@ -537,16 +537,16 @@ class IntegerRangeInfinite(IntegerRange):
         TESTS::
 
             sage: IntegerRange(123,12,-4)            #indirect doctest
-            {123, 119, .., 15}
+            {123, 119, ..., 15}
             sage: IntegerRange(-57,1,3)              #indirect doctest
-            {-57, -54, .., 0}
+            {-57, -54, ..., 0}
 
             sage: IntegerRange(-57,Infinity,8)       #indirect doctest
-            {-57, -49, ..}
+            {-57, -49, ...}
             sage: IntegerRange(-112,-Infinity,-13)   #indirect doctest
-            {-112, -125, ..}
+            {-112, -125, ...}
         """
-        return "{%s, %s, ..}"%(self._begin, self._begin+self._step)
+        return "{%s, %s, ...}"%(self._begin, self._begin+self._step)
 
     def __contains__(self, elt):
         r"""

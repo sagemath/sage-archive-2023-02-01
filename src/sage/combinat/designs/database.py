@@ -54,16 +54,21 @@ Implemented constructions :
   :func:`OA(11,80) <OA_11_80>`,
   :func:`OA(10,82) <OA_10_82>`,
   :func:`OA(10,100) <OA_10_100>`,
+  :func:`OA(14,112) <OA_14_112>`,
   :func:`OA(9,120) <OA_9_120>`,
   :func:`OA(9,135) <OA_9_135>`,
   :func:`OA(12,144) <OA_12_144>`,
   :func:`OA(10,154) <OA_10_154>`,
+  :func:`OA(10,160) <OA_10_160>`,
   :func:`OA(12,210) <OA_12_210>`,
+  :func:`OA(14,224) <OA_14_224>`,
   :func:`OA(18,273) <OA_18_273>`,
   :func:`OA(12,276) <OA_12_276>`,
   :func:`OA(12,298) <OA_12_298>`,
   :func:`OA(12,342) <OA_12_342>`,
   :func:`OA(12,474) <OA_12_474>`,
+  :func:`OA(9,514) <OA_9_514>`,
+  :func:`OA(10,796) <OA_10_796>`,
   :func:`OA(33,993) <OA_33_993>`
 
 - :func:`two MOLS of order 10 <MOLS_10_2>`,
@@ -109,6 +114,7 @@ Functions
 
 from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_matrix,
                                                      OA_from_Vmt,
+                                                     QDM_from_Vmt,
                                                      OA_from_wider_OA,
                                                      OA_from_PBD,
                                                      orthogonal_array)
@@ -2324,6 +2330,82 @@ def OA_10_100():
     M = OA_from_Vmt(8,11,[0,1,6,56,22,35,47,23,60])
     return M
 
+def OA_14_112():
+    r"""
+    Returns an OA(14,112)
+
+    Published by Julian R. Abel in [AbelThesis]_.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_14_112
+        sage: OA = OA_14_112()
+        sage: print is_orthogonal_array(OA,14,112,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(14,112,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    from itertools import combinations
+
+    n = 4
+    k = 14
+    F = FiniteField(7)
+    Fq = FiniteField(2**n,'w')
+    G = F.cartesian_product(Fq)
+    w = Fq.primitive_element()
+    assert w**4 + w**1 + 1 == 0
+
+    A = [
+        [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
+        [(0,None), (1,None), (2,None), (3,   5), (4,   9), (5,  11), (6,  12), (1,  10), (0,  10), (1,  11), (4,  13), (2,   6), (2,   2), (4,   1)],
+        [(0,None), (2,   3), (4,   6), (6,   0), (1,   1), (3,  12), (5,   6), (4,   2), (1,   9), (0,   3), (1,   7), (4,   7), (2,   8), (2,   5)],
+        [(0,None), (3,   3), (6,   2), (2,   3), (5,   2), (1,   9), (4,  13), (2,   8), (4,  12), (1,  12), (0,   7), (1,  10), (4,  11), (2,  14)],
+        [(0,None), (4,None), (1,   0), (5,   1), (2,   0), (6,   7), (3,   4), (2,  11), (2,   9), (4,  13), (1,   3), (0,   7), (1,  11), (4,   2)],
+        [(0,None), (5,None), (3,  14), (1,   7), (6,   5), (4,   3), (2,   1), (4,   6), (2,   5), (2,  14), (4,  12), (1,   1), (0,   2), (1,   2)],
+        [(0,None), (6,None), (5,   0), (4,   4), (3,  11), (2,   2), (1,   7), (1,  13), (4,   8), (2,  11), (2,   3), (4,None), (1,   8), (0,  10)],
+        [(0,None), (4,   3), (2,  14), (1,   5), (1,   4), (2,   5), (4,   2), (0,   8), (6,  10), (3,  11), (5,   6), (5,   5), (3,   0), (6,  11)],
+        [(0,None), (5,   3), (4,   0), (4,   6), (5,   4), (0,   3), (3,  11), (6,None), (0,   4), (6,   5), (3,  13), (5,   6), (5,   4), (3,   4)],
+        [(0,None), (6,   3), (6,   4), (0,   5), (2,   5), (5,   5), (2,None), (3,   6), (6,   7), (0,  12), (6,  12), (3,  12), (5,None), (5,  10)],
+        [(0,None), (0,   3), (1,None), (3,   9), (6,   8), (3,  14), (1,  14), (5,   6), (3,   8), (6,  13), (0,   8), (6,   3), (3,   9), (5,   0)], # the last 3,9 was a 3,3
+        [(0,None), (1,   3), (3,   1), (6,   6), (3,None), (1,  10), (0,   1), (5,   7), (5,   7), (3,  14), (6,   0), (0,  10), (6,   9), (3,   6)],
+        [(0,None), (2,None), (5,   3), (2,  10), (0,   8), (6,   5), (6,   0), (3,   7), (5,   1), (5,  12), (3,  14), (6,   4), (0,  10), (6,   4)],
+        [(0,None), (3,None), (0,   4), (5,   6), (4,   1), (4,   7), (5,   1), (6,   8), (3,   2), (5,   2), (5,   2), (3,  13), (6,   7), (0,   2)]
+    ]
+    Y = [None, 0, 1, 14, 12, 7, 2, 11, 3, 4, 5, 10, 8, 6]
+
+    A = zip(*A)
+
+    r = lambda x : Fq(0) if x is None else w**x
+    A = [[(a,r(b)) for a,b in L] for L in A]
+    Y = map(r,Y)
+
+    def t(i,x):
+        assert i<=n-2
+        b = Y[x]
+        return G((0,b*w**i))
+
+    Mb = [[] for _ in range(k)]
+    Subsets = [S for s in range(n) for S in combinations(range(n-1),s)]
+    assert len(Subsets) == 2**(n-1)
+
+    for x in range(len(A)):
+        tt = [t(i,x) for i in range(n-1)]
+        for y in range(len(A[0])):
+            e = G(A[x][y])
+            Mb[x].extend([e+sum([tt[ii] for ii in S],G.zero()) for S in Subsets])
+
+    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
+    return M
+
 def OA_9_120():
     r"""
     Returns an OA(9,120)
@@ -2512,6 +2594,85 @@ def OA_10_154():
     M = OA_from_Vmt(8,17,[0,1,3,2,133,126,47,109,74])
     return M
 
+def OA_10_160():
+    r"""
+    Returns an OA(10,160)
+
+    Published by Julian R. Abel in [AbelThesis]_.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_160
+        sage: OA = OA_10_160()
+        sage: print is_orthogonal_array(OA,10,160,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,160,existence=True)
+        True
+
+    REFERENCES:
+
+    .. [AbelThesis] On the Existence of Balanced Incomplete Block Designs and Transversal Designs,
+      Julian R. Abel,
+      PhD Thesis,
+      University of New South Wales,
+      1995
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    from itertools import combinations
+
+    n = 5
+    k = 10
+    F = FiniteField(5)
+    Fq = FiniteField(2**n,'w')
+    G = F.cartesian_product(Fq)
+    w = Fq.primitive_element()
+    assert w**5 + w**2 + 1 == 0
+
+    A = [
+         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (4,None), (1,None)],
+         [(0,None), (1,None), (2,   5), (3,   9), (4,   9), (1,  16), (0,  20), (1,  23), (4,  24), (4,  19)],
+         [(0,None), (2,   4), (4,   3), (1,  10), (3,  10), (4,  20), (1,   1), (0,  24), (1,   5), (4,   2)],
+         [(0,None), (3,None), (1,  28), (4,   7), (2,   6), (4,   4), (4,  23), (1,   5), (0,   8), (1,   1)],
+         [(0,None), (4,   4), (3,  25), (2,  24), (1,  13), (1,   6), (4,   6), (4,   2), (1,  18), (0,   1)],
+         [(0,None), (2,None), (3,   3), (3,  21), (2,  18), (0,   6), (2,  20), (3,   3), (3,  11), (2,   1)],
+         [(0,None), (3,   4), (0,   5), (1,  27), (1,  30), (2,None), (0,   0), (2,   2), (3,   2), (3,  18)],
+         [(0,None), (4,None), (2,  19), (4,  26), (0,  12), (3,  19), (2,   4), (0,   2), (2,   0), (3,   0)],
+         [(0,None), (0,   4), (4,  29), (2,  29), (4,None), (3,   0), (3,   0), (2,   1), (0,  18), (2,None)],
+         [(0,None), (1,   4), (1,   5), (0,  19), (3,   2), (2,   0), (3,None), (3,   0), (2,None), (0,None)],
+        ]
+    A = zip(*A)
+    Y = [None, 0, 1, 2, 15, 27, 22, 12, 3, 28]
+
+    r = lambda x : Fq(0) if x is None else w**x
+    A = [[(a,r(b)) for a,b in L] for L in A]
+    Y = map(r,Y)
+
+    def t(i,x):
+        assert i<=n-2
+        b = Y[x]
+        return G((0,b*w**i))
+
+    Mb = [[] for _ in range(k)]
+    Subsets = [S for s in range(n) for S in combinations(range(n-1),s)]
+    assert len(Subsets) == 2**(n-1)
+
+    for x in range(len(A)):
+        tt = [t(i,x) for i in range(n-1)]
+        for y in range(len(A[0])):
+            e = G(A[x][y])
+            Mb[x].extend([e+sum([tt[ii] for ii in S],G.zero()) for S in Subsets])
+
+    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
+    return M
+
 def OA_12_210():
     r"""
     Returns an OA(12,210)
@@ -2537,6 +2698,80 @@ def OA_12_210():
         True
     """
     M = OA_from_Vmt(10,19,[0, 1, 3, 96, 143, 156, 182, 142, 4, 189, 25])
+    return M
+
+def OA_14_224():
+    r"""
+    Returns an OA(14,224)
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_14_224
+        sage: OA = OA_14_224()                         # long time
+        sage: print is_orthogonal_array(OA,14,224,2)   # long time
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(14,224,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    from itertools import combinations
+
+    n = 5
+    k = 14
+    F = FiniteField(7)
+    Fq = FiniteField(2**n,'w')
+    G = F.cartesian_product(Fq)
+    w = Fq.primitive_element()
+    assert w**5 + w**2 + 1 == 0
+
+    A = [
+        [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
+        [(0,None), (1,None), (2,   9), (3,  23), (4,  29), (5,   4), (6,  30), (1,  26), (0,None), (1,  11), (4,   2), (2,  28), (2,None), (4,  13)],
+        [(0,None), (2,None), (4,   8), (6,None), (1,  29), (3,  21), (5,   4), (4,   5), (1,   4), (0,  14), (1,   5), (4,   6), (2,   0), (2,   2)],
+        [(0,None), (3,None), (6,   8), (2,  12), (5,   4), (1,   1), (4,   2), (2,   1), (4,  18), (1,  27), (0,   5), (1,None), (4,   1), (2,None)],
+        [(0,None), (4,None), (1,   9), (5,   2), (2,  29), (6,  17), (3,   0), (2,  12), (2,   5), (4,  22), (1,   0), (0,  29), (1,  19), (4,None)],
+        [(0,None), (5,None), (3,  26), (1,   0), (6,  29), (4,  16), (2,  11), (4,  21), (2,  28), (2,  16), (4,   0), (1,   3), (0,  11), (1,   2)],
+        [(0,None), (6,None), (5,   3), (4,  19), (3,  24), (2,  20), (1,  28), (1,  12), (4,  23), (2,   0), (2,   5), (4,  29), (1,   0), (0,   2)],
+        [(0,None), (4,   4), (2,  14), (1,  23), (1,  22), (2,  17), (4,  17), (0,  25), (6,  21), (3,  11), (5,   2), (5,  27), (3,   5), (6,   2)],
+        [(0,None), (5,   4), (4,   3), (4,   0), (5,  20), (0,   4), (3,   8), (6,  28), (0,  16), (6,   1), (3,  22), (5,   0), (5,   0), (3,   2)],
+        [(0,None), (6,   4), (6,None), (0,  18), (2,   0), (5,  20), (2,   4), (3,  11), (6,  15), (0,  18), (6,   5), (3,   0), (5,None), (5,   2)],
+        [(0,None), (0,   4), (1,  15), (3,  29), (6,  20), (3,  24), (1,  13), (5,  30), (3,   2), (6,None), (0,  10), (6,   3), (3,   0), (5,None)],
+        [(0,None), (1,   4), (3,   4), (6,  12), (3,  28), (1,  27), (0,   6), (5,   7), (5,  29), (3,   0), (6,   0), (0,   0), (6,   0), (3,None)], # 6,19 became 6,12
+        [(0,None), (2,   4), (5,  11), (2,   5), (0,  21), (6,  11), (6,  24), (3,  24), (5,  11), (5,  30), (3,None), (6,None), (0,None), (6,   1)],
+        [(0,None), (3,   4), (0,  11), (5,  11), (4,  22), (4,   2), (5,  23), (6,  22), (3,  27), (5,   1), (5,   0), (3,None), (6,None), (0,None)]
+    ]
+    Y = [None, 0, 1, 2, 27, 22, 11, 4, 26, 25, 29, 24, 7, 20]
+    A = zip(*A)
+
+    r = lambda x : Fq(0) if x is None else w**x
+    A = [[(a,r(b)) for a,b in L] for L in A]
+    # A = [[(Fq(a),r(b)) for a,b in L] for L in A]
+    Y = map(r,Y)
+
+    def t(i,x):
+        assert i<=n-2
+        b = Y[x]
+        return G((0,b*w**i))
+
+    Mb = [[] for _ in range(k)]
+    Subsets = [S for s in range(n) for S in combinations(range(n-1),s)]
+    assert len(Subsets) == 2**(n-1)
+
+    for x in range(len(A)):
+        tt = [t(i,x) for i in range(n-1)]
+        for y in range(len(A[0])):
+            e = G(A[x][y])
+            Mb[x].extend([e+sum([tt[ii] for ii in S],G.zero()) for S in Subsets])
+
+    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
     return M
 
 def OA_18_273():
@@ -2678,6 +2913,113 @@ def OA_12_474():
     M = OA_from_Vmt(10,43,[0,1,6,29,170,207,385,290,375,32,336])
     return M
 
+def OA_9_514():
+    r"""
+    Returns an OA(9,514)
+
+    Construction shared by Julian R. Abel:
+
+        A `V(8,57)` vector appears on page p281 of the Brouwer-Van Rees paper
+        [BvR514]_. This gives a `TD(8+2, 514) - TD(8+2,57)`. Using a `TD(9,57)`
+        (not a `TD(10,57)`) it yields a `TD(9,514)`.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_514
+        sage: OA = OA_9_514()                           # not tested -- too long
+        sage: print is_orthogonal_array(OA,9,514,2)     # not tested -- too long
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(9,514,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    q = 8*57+1
+    Fq = FiniteField(q)
+
+    Vm8_57 = [0,1,3,2,12,333,363,154,340]
+    QDM = QDM_from_Vmt(8,57,Vm8_57)
+    QDM = QDM[:-1]
+    return OA_from_quasi_difference_matrix(QDM,Fq,add_col=False)
+
+def OA_10_796():
+    r"""
+    Returns an OA(10,796)
+
+    Construction shared by Julian R. Abel, from [AC07]_:
+
+        Truncate one block of a `TD(17,47)` to size `13`, then add an extra
+        point. Form a block on each group plus the extra point: we obtain a
+        `(796, \{13,16,17,47,48\})`-PBD in which only the extra point lies in
+        more than one block of size `48` (and each other point lies in exactly 1
+        such block).
+
+        For each block `B` (of size `k` say) not containing the extra point,
+        construct a `TD(10, k) - k.TD(k,1)` on `I(10) X B`.  For each block `B`
+        (of size `k=47` or `48`) containing the extra point, construct a
+        `TD(10,k) - TD(k,1)` on `I(10) X B`, the size `1` hole being on `I(10) X
+        P` where `P` is the extra point. Finally form `1` extra block of size
+        `10` on `I(10) X P`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_796
+        sage: OA = OA_10_796()
+        sage: print is_orthogonal_array(OA,10,796,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,796,existence=True)
+        True
+    """
+    from sage.combinat.designs.orthogonal_arrays import OA_relabel
+    from sage.combinat.designs.orthogonal_arrays import OA_from_PBD
+    from orthogonal_arrays import incomplete_orthogonal_array
+
+    OA = orthogonal_array(17,47)
+    OA = OA_relabel(OA,17,47,blocks=[OA[0]]) # making sure [46]*17 is a block
+    PBD = [[i*47+x for i,x in enumerate(B) if (x<46 or i<13)] for B in OA]
+    extra_point = 10000
+    PBD.extend([range(i*47,(i+1)*47-int(i>=13))+[extra_point] for i in range(17)]) # Adding the columns
+
+    rel = {v:i for i,v in enumerate(set(range(17*47)).difference([(i+1)*47-1 for i in range(13,17)]))}
+    rel[extra_point] = len(rel)
+
+    PBD = [[rel[x] for x in B] for B in PBD]
+    assert set(map(len,PBD)) == set([13, 16, 17, 47, 48])
+    extra_point = rel[extra_point]
+
+    others = []
+    OA = []
+    span = set()
+    iOA = {47: incomplete_orthogonal_array(10,47,(1,)),
+           48: incomplete_orthogonal_array(10,48,(1,))}
+
+    for B in PBD:
+        if len(B) >= 47:
+            B.sort(key=lambda x:int(x==extra_point))
+            OA.extend([[B[i] for i in BB] for BB in iOA[len(B)]])
+            span.update(B[:-1])
+        else:
+            others.append(B)
+
+    OA.extend(OA_from_PBD(10,796,others,check=False))
+    OA = OA[:-796] # removes the [x]*k
+
+    for x in set(range(796)).difference(span):
+        OA.append([x]*10)
+
+    return OA
+
 def OA_33_993():
     r"""
     Returns an OA(33,993)
@@ -2757,16 +3099,21 @@ OA_constructions = {
     80  : (11 , OA_11_80),
     82  : (10 , OA_10_82),
     100 : (10 , OA_10_100),
+    112 : (14 , OA_14_112),
     120 : (9  , OA_9_120),
     135 : (9  , OA_9_135),
     144 : (12 , OA_12_144),
     154 : (10 , OA_10_154),
+    160 : (10 , OA_10_160),
     210 : (12 , OA_12_210),
+    224 : (14 , OA_14_224),
     273 : (18 , OA_18_273),
     276 : (12 , OA_12_276),
     298 : (12 , OA_12_298),
     342 : (12 , OA_12_342),
     474 : (12 , OA_12_474),
+    514 : (9 , OA_9_514),
+    796 : (10 , OA_10_796),
     993 : (33 , OA_33_993)
 }
 

@@ -719,7 +719,7 @@ def solve(f, *args, **kwds):
         sage: solve([x == 1], (1, a))
         Traceback (most recent call last):
         ...
-        TypeError: 1 is not a valid variable.
+        TypeError: (1, a) are not valid variables.
 
     Test that the original version of a system in the French Sage book
     now works (:trac:`14306`)::

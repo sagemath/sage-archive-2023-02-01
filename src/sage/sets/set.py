@@ -992,7 +992,7 @@ class Set_object_enumerated(Set_object):
 
 class Set_object_binary(Set_object):
     r"""
-    An abstract common base class for sets defined by a binary operators (ex.
+    An abstract common base class for sets defined by a binary operation (ex.
     :class:`Set_object_union`, :class:`Set_object_intersection`,
     :class:`Set_object_difference`, and
     :class:`Set_object_symmetric_difference`).

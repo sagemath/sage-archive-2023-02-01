@@ -5287,7 +5287,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: a = matrix(QQ, 4, range(16)); a
+            sage: a = matrix(ZZ, 4, range(16)); a
             [ 0  1  2  3]
             [ 4  5  6  7]
             [ 8  9 10 11]
@@ -5344,49 +5344,66 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.eigenvalues(extend=False)
             [2]
 
+        The method also works for matrices over finite fields::
+
+            sage: M = matrix(GF(3), [[0,1,1],[1,2,0],[2,0,1]])
+            sage: ev = M.eigenvalues(); ev
+            [2*z3, 2*z3 + 2, 2*z3 + 1]
+
+        Similarly as in the case of QQbar, the eigenvalues belong to some
+        algebraic closure but they can be converted to elements of a finite
+        field::
+
+            sage: e = ev[0]
+            sage: e.parent()
+            Algebraic closure of Finite Field of size 3
+            sage: e.as_finite_field_element()
+            (Finite Field in z3 of size 3^3, 2*z3, Ring morphism:
+              From: Finite Field in z3 of size 3^3
+              To:   Algebraic closure of Finite Field of size 3
+              Defn: z3 |--> z3)
         """
         x = self.fetch('eigenvalues')
-        if not x is None:
+        if x is not None:
             if not extend:
-                x1=Sequence([])
-                for i in x:
-                    if i in self.base_ring():
-                        x1.append(i)
-                x=x1
+                x = Sequence(i for i in x if i in self.base_ring())
             return x
 
         if not self.base_ring().is_exact():
             from warnings import warn
             warn("Using generic algorithm for an inexact ring, which will probably give incorrect results due to numerical precision issues.")
 
-        from sage.rings.qqbar import QQbar
-        G = self.fcp()   # factored charpoly of self.
-        V = []
-        i=0
-        for h, e in G:
-            if h.degree() == 1:
-                alpha = [-h[0]/h[1]]
-                V.extend(alpha*e)
-            else:
-                if extend:
-                    F = h.root_field('%s%s'%('a',i))
-                    try:
-                        alpha = F.gen(0).galois_conjugates(QQbar)
-                    except AttributeError:
-                        raise NotImplementedError, "eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
-                    V.extend(alpha*e)
-            i+=1
-        V = Sequence(V)
-        if extend:
-            self.cache('eigenvalues', V)
         if not extend:
-            V1=Sequence([])
-            for i in V:
-                if i in self.base_ring():
-                    V1.append(i)
-            V=V1
-        return V
+            return Sequence(r for r,m in self.charpoly().roots() for _ in xrange(m))
 
+        # now we need to find a natural algebraic closure for the base ring
+        K = self.base_ring()
+        try:
+            is_field = K.is_field()
+        except (ValueError,AttributeError):
+            is_field = False
+
+        if not is_field:
+            if not K.is_integral_domain():
+                raise NotImplementedError("eigenvalues() not implemented for non integral domains")
+            K = K.fraction_field()
+
+        try:
+            A = K.algebraic_closure()
+        except (AttributeError,ValueError):
+            raise NotImplementedError("algebraic closure is not implemented for %s"%K)
+
+        res = []
+        for f, e in self.charpoly().change_ring(K).factor():
+            if f.degree() == 1:
+                res.extend([-f.constant_coefficient()]*e)
+            else:
+                for r,ee in f.change_ring(A).roots():
+                    res.extend([r]*(e*ee))
+
+        eigenvalues = Sequence(res)
+        self.cache('eigenvalues', eigenvalues)
+        return eigenvalues
 
 
     def eigenvectors_left(self,extend=True):
@@ -13211,7 +13228,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.eigenvalues()
             Traceback (most recent call last):
             ...
-            NotImplementedError: eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar
+            NotImplementedError: algebraic closures of finite fields are only implemented for prime fields
 
         Subdivisions are optional.  ::
 
@@ -13588,7 +13605,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.eigenvalues()
             Traceback (most recent call last):
             ...
-            NotImplementedError: eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar
+            NotImplementedError: algebraic closures of finite fields are only implemented for prime fields
 
         Companion matrices may be selected as any one of four different types.
         See the documentation for the companion matrix constructor,

@@ -174,7 +174,7 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
         if existence:
             return True
         from itertools import combinations
-        return BalancedIncompleteBlockDesign(v, combinations(range(v),2), check = False, copy=False)
+        return BalancedIncompleteBlockDesign(v, combinations(range(v),2), check=False, copy=False)
     if k == 3:
         if existence:
             return v%6 == 1 or v%6 == 3
@@ -182,11 +182,11 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     if k == 4:
         if existence:
             return v%12 == 1 or v%12 == 4
-        return BalancedIncompleteBlockDesign(v, v_4_1_BIBD(v),copy=False)
+        return BalancedIncompleteBlockDesign(v, v_4_1_BIBD(v), copy=False)
     if k == 5:
         if existence:
             return v%20 == 1 or v%20 == 5
-        return BalancedIncompleteBlockDesign(v, v_5_1_BIBD(v),copy=False)
+        return BalancedIncompleteBlockDesign(v, v_5_1_BIBD(v), copy=False)
 
     from difference_family import difference_family
     from database import BIBD_constructions
@@ -194,11 +194,11 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     if (v,k,1) in BIBD_constructions:
         if existence:
             return True
-        return BlockDesign(v,BIBD_constructions[(v,k,1)]())
+        return BlockDesign(v,BIBD_constructions[(v,k,1)](), copy=False)
     if BIBD_from_TD(v,k,existence=True):
         if existence:
             return True
-        return BalancedIncompleteBlockDesign(v, BIBD_from_TD(v,k),copy=False)
+        return BalancedIncompleteBlockDesign(v, BIBD_from_TD(v,k), copy=False)
     if v == (k-1)**2+k and is_prime_power(k-1):
         if existence:
             return True
@@ -208,7 +208,7 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
         if existence:
             return True
         G,D = difference_family(v,k)
-        return BalancedIncompleteBlockDesign(v, BIBD_from_difference_family(G,D,check=False),copy=False)
+        return BalancedIncompleteBlockDesign(v, BIBD_from_difference_family(G,D,check=False), copy=False)
     if use_LJCR:
         from covering_design import best_known_covering_design_www
         B = best_known_covering_design_www(v,k,2)
@@ -574,10 +574,10 @@ def v_4_1_BIBD(v, check=True):
     # Step 1. Base cases.
     if v == 13:
         from block_design import projective_plane
-        return projective_plane(3).blocks()
+        return projective_plane(3).blocks(copy=False)
     if v == 16:
         from block_design import AffineGeometryDesign
-        return AffineGeometryDesign(2,1,FiniteField(4,'x')).blocks()
+        return AffineGeometryDesign(2,1,FiniteField(4,'x')).blocks(copy=False)
     if v == 25 or v == 37:
         from difference_family import difference_family
         G,D = difference_family(v,4)

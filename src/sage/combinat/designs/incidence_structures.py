@@ -416,8 +416,7 @@ class IncidenceStructure(object):
         """
         if copy:
             if self._point_to_index is None:
-                from copy import deepcopy
-                return deepcopy(self._blocks)
+                return [b[:] for b in self._blocks]
             else:
                 return [[self._points[i] for i in b] for b in self._blocks]
         else:
@@ -1070,8 +1069,10 @@ class GroupDivisibleDesign(IncidenceStructure):
                                     check=False,
                                     **kwds)
 
-        if self._point_to_index is None:
-            self._groups = map(list,groups)
+        if copy is False and self._point_to_index is None:
+            self._groups = groups
+        elif self._point_to_index is None:
+            self._groups = [g[:] for g in groups]
         else:
             self._groups = [[self._point_to_index[x] for x in g] for g in groups]
 
@@ -1133,7 +1134,7 @@ class GroupDivisibleDesign(IncidenceStructure):
             Group Divisible Design on 40 points and type 10^4
         """
         from string import join
-        group_sizes = map(len,self.groups())
+        group_sizes = map(len, self.groups(copy=False))
 
         gdd_type = ["{}^{}".format(s,group_sizes.count(s))
                     for s in sorted(set(group_sizes))]

@@ -211,7 +211,7 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
 
     if v < 0 or lambd < 0:
         if verbose:
-            print "v={} and lambda={} must be positive integers".format(v,l)
+            print "v={} and lambda={} must be non-negative integers".format(v,l)
         return False
 
     # Group sizes are element of G
@@ -233,7 +233,7 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
                 return False
 
     # Check that "groups" consists of disjoints sets whose union has length n
-    if sum(map(len,groups)) != n or len(set(sum(groups,[]))) != n:
+    if sum(len(g) for g in groups) != n or len(set().union(*groups)) != n:
         if verbose:
             print "groups is not a partition of [0,...,{}]".format(n-1)
         return False

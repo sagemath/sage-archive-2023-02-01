@@ -13,8 +13,8 @@ Finite dimensional algebras with basis
 import operator
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from sage.categories.non_unital_algebras import NonUnitalAlgebras
 from sage.categories.algebras import Algebras
+from sage.categories.associative_algebras import AssociativeAlgebras
 from sage.categories.semisimple_algebras import SemisimpleAlgebras
 
 class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
@@ -238,7 +238,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: TestSuite(radical).run()
             """
-            category = NonUnitalAlgebras(self.base_ring()).WithBasis().FiniteDimensional().Subobjects()
+            category = AssociativeAlgebras(self.base_ring()).WithBasis().FiniteDimensional().Subobjects()
             return self.submodule(self.radical_basis(),
                                   category = category,
                                   already_echelonized = True)

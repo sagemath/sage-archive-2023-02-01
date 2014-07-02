@@ -891,12 +891,16 @@ cdef class NumberFieldElement(FieldElement):
             sage: a.abs(prec=128)
             1.2599210498948731647672106072782283506
         """
-        return self.abs(prec=53, i=0)
+        return self.abs(prec=53, i=None)
 
-    def abs(self, prec=53, i=0):
+    def abs(self, prec=53, i=None):
         r"""
-        Return the absolute value of this element with respect to the
-        `i`-th complex embedding of parent, to the given precision.
+        Return the absolute value of this element.
+
+        If ``i`` is provided, then the absolute of the `i`-th embedding is
+        given. Otherwise, if the number field as a defined embedding into `\CC`
+        then the corresponding absolute value is returned and if there is none,
+        it corresponds to the choice ``i=0``.
 
         If prec is 53 (the default), then the complex double field is
         used; otherwise the arbitrary precision (but slow) complex
@@ -938,9 +942,24 @@ cdef class NumberFieldElement(FieldElement):
             0.414213562373095
             sage: a.abs(i=1)
             2.41421356237309
+
+        Check that :trac:`16147` is fixed::
+
+            sage: x = polygen(ZZ)
+            sage: f = x^3 - x - 1
+            sage: beta = f.complex_roots()[0]; beta
+            1.32471795724475
+            sage: K.<b> = NumberField(f, embedding=beta)
+            sage: b.abs()
+            1.32471795724475
         """
-        P = self.number_field().complex_embeddings(prec)[i]
-        return abs(P(self))
+        CCprec = ComplexField(prec)
+        if i is None and CCprec.has_coerce_map_from(self.parent()):
+            return CCprec(self).abs()
+        else:
+            i = 0 if i is None else i
+            P = self.number_field().complex_embeddings(prec)[i]
+            return P(self).abs()
 
     def abs_non_arch(self, P, prec=None):
         r"""

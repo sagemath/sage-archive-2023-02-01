@@ -248,6 +248,28 @@ cdef class MixedIntegerLinearProgram(SageObject):
          sage: p.set_binary(b)
          sage: p.solve(objective_only=True)
          4.0
+
+    TESTS:
+
+    Check that :trac:`16497` is fixed::
+
+        sage: from sage.numerical.mip import MixedIntegerLinearProgram
+        sage: for type in ["binary", "integer"]:
+        ....:     k = 3
+        ....:     items = [1/5, 1/3, 2/3, 3/4, 5/7]
+        ....:     maximum=1
+        ....:     p=MixedIntegerLinearProgram()
+        ....:     box=p.new_variable(**{type:True})
+        ....:     for b in range(k):
+        ....:          p.add_constraint(p.sum([items[i]*box[i,b] for i in range(len(items))]) <= maximum)
+        ....:     for i in range(len(items)):
+        ....:         p.add_constraint(p.sum([box[i,b] for b in range(k)]) == 1)
+        ....:     p.set_objective(None)
+        ....:     _ = p.solve()
+        ....:     box=p.get_values(box)
+        ....:     print(all(v in ZZ for v in box.values()))
+        True
+        True
     """
 
     def __init__(self, solver=None, maximization=True,

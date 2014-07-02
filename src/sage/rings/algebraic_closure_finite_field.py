@@ -425,14 +425,55 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             sage: s.as_finite_field_element(minimal=True)[0]
             Finite Field of size 3
 
-        """
-        if not minimal:
-            l = self._level
-        else:
-            l = self._value.minpoly().degree()
+        This also works when the element has to be converted between
+        two non-trivial finite subfields (see :trac:`16509`)::
 
-        F, phi = self.parent().subfield(l)
-        return (F, F(self._value), phi)
+            sage: K = GF(5).algebraic_closure()
+            sage: z = K.gen(5) - K.gen(5) + K.gen(2)
+            sage: z.as_finite_field_element(minimal=True)
+            (Finite Field in z2 of size 5^2, z2, Ring morphism:
+               From: Finite Field in z2 of size 5^2
+               To:   Algebraic closure of Finite Field of size 5
+               Defn: z2 |--> z2)
+
+        There is currently no automatic conversion between the various
+        subfields::
+
+            sage: a = K.gen(2) + 1
+            sage: _,b,_ = a.as_finite_field_element()
+            sage: K4 = K.subfield(4)[0]
+            sage: K4(b)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to coerce from a finite field other than the prime
+            subfield
+
+        Nevertheless it is possible to use the inclusions that are implemented at
+        the level of the algebraic closure::
+
+            sage: f = K.inclusion(2,4); f
+            Ring morphism:
+              From: Finite Field in z2 of size 5^2
+              To:   Finite Field in z4 of size 5^4
+              Defn: z2 |--> z4^3 + z4^2 + z4 + 3
+            sage: f(b)
+            z4^3 + z4^2 + z4 + 4
+
+        """
+        Fbar = self.parent()
+        x = self._value
+        l = self._level
+
+        if minimal:
+            m = x.minpoly().degree()
+            if m == 1:
+                x = Fbar.base_ring()(x)
+            else:
+                x = Fbar.inclusion(m, l).section()(x)
+            l = m
+
+        F, phi = Fbar.subfield(l)
+        return (F, x, phi)
 
 
 class AlgebraicClosureFiniteField_generic(Field):
@@ -828,6 +869,82 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         return (self(1), self.gen(2), 1+self.gen(3))
 
+    def _roots_univariate_polynomial(self, p, ring=None, multiplicities=None, algorithm=None):
+        r"""
+        Return a list of pairs ``(root,multiplicity)`` of roots of the polynomial ``p``.
+
+        If the argument ``multiplicities`` is set to ``False`` then return the
+        list of roots.
+
+        .. SEEALSO::
+
+            :meth:`_factor_univariate_polynomial`
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(GF(5),'x')
+            sage: K = GF(5).algebraic_closure('t')
+
+            sage: sorted((x^6 - 1).roots(K,multiplicities=False))
+            [1, 4, 2*t2 + 1, 2*t2 + 2, 3*t2 + 3, 3*t2 + 4]
+            sage: ((K.gen(2)*x - K.gen(3))**2).roots(K)
+            [(3*t6^5 + 2*t6^4 + 2*t6^2 + 3, 2)]
+
+            sage: for _ in xrange(10):
+            ....:     p = R.random_element(degree=randint(2,8))
+            ....:     for r in p.roots(K, multiplicities=False):
+            ....:         assert p(r).is_zero()
+
+        """
+        from sage.rings.arith import lcm
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        # first build a polynomial over some finite field
+        coeffs = [v.as_finite_field_element(minimal=True) for v in p.list()]
+        l = lcm([c[0].degree() for c in coeffs])
+        F, phi = self.subfield(l)
+        P = p.parent().change_ring(F)
+
+        new_coeffs = [self.inclusion(c[0].degree(), l)(c[1]) for c in coeffs]
+
+        roots = []    # a list of pair (root,multiplicity)
+        for g, m in P(new_coeffs).factor():
+            if g.degree() == 1:
+                r = phi(-g.constant_coefficient())
+                roots.append((r,m))
+            else:
+                ll = l * g.degree()
+                psi = self.inclusion(l, ll)
+                FF, pphi = self.subfield(ll)
+                gg = PolynomialRing(FF, 'x')(map(psi, g))
+                for r, _ in gg.roots():  # note: we know that multiplicity is 1
+                    roots.append((pphi(r), m))
+
+        if multiplicities:
+            return roots
+        else:
+            return [r[0] for r in roots]
+
+    def _factor_univariate_polynomial(self, p, **kwds):
+        r"""
+        Factorization of univariate polynomials.
+
+        EXAMPLES::
+
+            sage: K = GF(3).algebraic_closure()
+            sage: R = PolynomialRing(K, 'T')
+            sage: T = R.gen()
+            sage: (K.gen(2) * T^2 - 1).factor()
+            (z2) * (T + z4^3 + z4^2 + z4) * (T + 2*z4^3 + 2*z4^2 + 2*z4)
+
+            sage: for d in xrange(10):
+            ....:     p = R.random_element(degree=randint(2,8))
+            ....:     assert p.factor().prod() == p
+
+        """
+        from sage.structure.factorization import Factorization
+        R = p.parent()
+        return Factorization([(R([-root, self.one()]), m) for root, m in p.roots()], unit=p[p.degree()])
 
 class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_generic, WithEqualityById):
     """

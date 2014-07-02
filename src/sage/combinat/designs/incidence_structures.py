@@ -391,7 +391,8 @@ class IncidenceStructure(object):
         return len(self._blocks)
 
     def blocks(self, copy=True):
-        """Return the list of blocks.
+        """
+        Return the list of blocks.
 
         INPUT:
 
@@ -543,6 +544,45 @@ class IncidenceStructure(object):
         from sage.graphs.bipartite_graph import BipartiteGraph
         A = self.incidence_matrix()
         return BipartiteGraph(A)
+
+    def relabel(self, perm):
+        r"""
+        Relabels the ground set
+
+        - ``label`` (dictionary) -- associated every point of the ground set
+          with its image. All images must be distinct.
+
+        EXAMPLES::
+
+            sage: TD=designs.transversal_design(5,5)
+            sage: TD.relabel({i:chr(97+i) for i in range(25)})
+            sage: print TD.ground_set()
+            ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
+            sage: print TD.blocks()[:3]
+            [['a', 'f', 'k', 'p', 'u'], ['a', 'g', 'm', 's', 'y'], ['a', 'h', 'o', 'q', 'x']]
+        """
+        assert len(set(perm.values())) == len(perm)
+
+        if self._point_to_index is None:
+            self._point_to_index = {i:i for i in self._points}
+
+        self._points = [perm[x] for x in self._points]
+
+    def __hash__(self):
+        r"""
+        Not Implemented
+
+        This object is mutable because of .relabel()
+
+        EXAMPLE::
+
+            sage: TD=designs.transversal_design(5,5)
+            sage: hash(TD)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: This object is mutable !
+        """
+        raise RuntimeError("This object is mutable !")
 
     #####################
     # real computations #
@@ -967,8 +1007,9 @@ class GroupDivisibleDesign(IncidenceStructure):
     - `\mathcal G` is a partition of `V` into groups whose size belongs to `G`
 
     - `\mathcal B` is a family of subsets of `V` whose size belongs to `K` such
-      that any two points `p_1,p_2\in V` from different blocks belong together
-      to exactly `\lambda` elements of `mathcal B`.
+      that any two points `p_1,p_2\in V` from different groups appear
+      simultaneously in exactly `\lambda` elements of `mathcal B`. Besides, a
+      group and a block intersect on at most one point.
 
     If `K=\{k_1,...,k_k\}` and `G` has exactly `m_i` groups of cardinality `k_i`
     then `G` is said to have type `k_1^{m_1}...k_k^{m_k}`.
@@ -1021,11 +1062,7 @@ class GroupDivisibleDesign(IncidenceStructure):
         from designs_pyx import is_group_divisible_design
 
         v = v if v is not None else max(map(max,blocks))+1
-        self._groups = tuple(map(tuple,groups)) if copy else groups
         self._lambd = lambd
-
-        if check:
-            assert is_group_divisible_design(groups,blocks,v,G,K,lambd)
 
         IncidenceStructure.__init__(self,
                                     v,
@@ -1034,9 +1071,24 @@ class GroupDivisibleDesign(IncidenceStructure):
                                     check=False,
                                     **kwds)
 
-    def groups(self):
+        if self._point_to_index is None:
+            self._groups = map(list,groups)
+        else:
+            self._groups = [[self._point_to_index[x] for x in g] for g in groups]
+
+        if check:
+            assert is_group_divisible_design(self._groups,self._blocks,v,G,K,lambd)
+
+
+    def groups(self, copy=True):
         r"""
-        Return the groups of the Goup-Divisible Design.
+        Return the groups of the Group-Divisible Design.
+
+        INPUT:
+
+        - ``copy`` (boolean) -- ``True`` by default. When set to ``False``, a
+          pointer toward the object's internal data is given. Set it to
+          ``False`` only if you know what you are doing.
 
         EXAMPLE::
 
@@ -1050,8 +1102,24 @@ class GroupDivisibleDesign(IncidenceStructure):
              [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
              [20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
              [30, 31, 32, 33, 34, 35, 36, 37, 38, 39]]
+
+        TESTS:
+
+        Non-integer ground set::
+
+            sage: TD=designs.transversal_design(5,5)
+            sage: TD.relabel({i:chr(97+i) for i in range(25)})
+            sage: TD.groups()
+            [['a', 'b', 'c', 'd', 'e'],
+             ['f', 'g', 'h', 'i', 'j'],
+             ['k', 'l', 'm', 'n', 'o'],
+             ['p', 'q', 'r', 's', 't'],
+             ['u', 'v', 'w', 'x', 'y']]
         """
-        return map(list,self._groups)
+        if not copy and self._point_to_index is None:
+            return self._groups
+        else:
+            return [[self._points[i] for i in g] for g in self._groups]
 
     def __repr__(self):
         r"""

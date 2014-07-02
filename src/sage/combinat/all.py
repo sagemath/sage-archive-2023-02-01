@@ -3,10 +3,9 @@ from combinat import bell_number, catalan_number, euler_number, fibonacci, \
         CombinatorialObject, CombinatorialClass, FilteredCombinatorialClass, \
         UnionCombinatorialClass, MapCombinatorialClass, \
         InfiniteAbstractCombinatorialClass, \
-        number_of_combinations, number_of_arrangements, \
-        derangements, number_of_derangements, tuples, number_of_tuples, \
+        tuples, number_of_tuples, \
         unordered_tuples, number_of_unordered_tuples, permutations, \
-        permutations_iterator, number_of_permutations, cyclic_permutations, \
+        cyclic_permutations, \
         cyclic_permutations_iterator, bell_polynomial, fibonacci_sequence, \
         fibonacci_xrange, bernoulli_polynomial
 

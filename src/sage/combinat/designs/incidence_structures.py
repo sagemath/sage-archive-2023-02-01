@@ -1016,12 +1016,12 @@ class GroupDivisibleDesign(IncidenceStructure):
 
     INPUT:
 
+    - ``points`` -- the underlying set. If ``points`` is an integer `v`, then
+      the set is considered to be `\{0, ..., v-1\}`.
+
     - ``groups`` -- the groups of the design
 
     - ``blocks`` -- collection of blocks
-
-    - ``v`` (integer) -- size of the ground set. Set to ``None`` (automatic
-      guess) by default.
 
     - ``G`` -- list of integers of which the sizes of the groups must be
       elements. Set to ``None`` (automatic guess) by default.
@@ -1044,10 +1044,10 @@ class GroupDivisibleDesign(IncidenceStructure):
         sage: from sage.combinat.designs.incidence_structures import GroupDivisibleDesign
         sage: TD = designs.transversal_design(4,10)
         sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
-        sage: GDD = GroupDivisibleDesign(groups,TD); GDD
+        sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
         Group Divisible Design on 40 points and type 10^4
     """
-    def __init__(self, groups, blocks, v=None, G=None, K=None, lambd=1, check=True, copy=True,**kwds):
+    def __init__(self, points, groups, blocks, G=None, K=None, lambd=1, check=True, copy=True,**kwds):
         r"""
         Constructor function
 
@@ -1056,16 +1056,15 @@ class GroupDivisibleDesign(IncidenceStructure):
             sage: from sage.combinat.designs.incidence_structures import GroupDivisibleDesign
             sage: TD = designs.transversal_design(4,10)
             sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
-            sage: GDD = GroupDivisibleDesign(groups,TD); GDD
+            sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
             Group Divisible Design on 40 points and type 10^4
         """
         from designs_pyx import is_group_divisible_design
 
-        v = v if v is not None else max(map(max,blocks))+1
         self._lambd = lambd
 
         IncidenceStructure.__init__(self,
-                                    v,
+                                    points,
                                     blocks,
                                     copy=copy,
                                     check=False,
@@ -1077,7 +1076,7 @@ class GroupDivisibleDesign(IncidenceStructure):
             self._groups = [[self._point_to_index[x] for x in g] for g in groups]
 
         if check:
-            assert is_group_divisible_design(self._groups,self._blocks,v,G,K,lambd)
+            assert is_group_divisible_design(self._groups,self._blocks,self.num_points(),G,K,lambd)
 
 
     def groups(self, copy=True):
@@ -1095,7 +1094,7 @@ class GroupDivisibleDesign(IncidenceStructure):
             sage: from sage.combinat.designs.incidence_structures import GroupDivisibleDesign
             sage: TD = designs.transversal_design(4,10)
             sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
-            sage: GDD = GroupDivisibleDesign(groups,TD); GDD
+            sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
             Group Divisible Design on 40 points and type 10^4
             sage: GDD.groups()
             [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
@@ -1130,7 +1129,7 @@ class GroupDivisibleDesign(IncidenceStructure):
             sage: from sage.combinat.designs.incidence_structures import GroupDivisibleDesign
             sage: TD = designs.transversal_design(4,10)
             sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
-            sage: GDD = GroupDivisibleDesign(groups,TD); GDD
+            sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
             Group Divisible Design on 40 points and type 10^4
         """
         from string import join

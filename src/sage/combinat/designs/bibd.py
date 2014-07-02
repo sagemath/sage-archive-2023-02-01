@@ -158,12 +158,12 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     if v == 1:
         if existence:
             return True
-        return BalancedIncompleteBlockDesign([],v, check=False)
+        return BalancedIncompleteBlockDesign(v, [], check=False)
 
     if k == v:
         if existence:
             return True
-        return BalancedIncompleteBlockDesign([range(v)],v, check=False, copy=False)
+        return BalancedIncompleteBlockDesign(v, [range(v)], check=False, copy=False)
 
     if v < k or k < 2 or (v-1) % (k-1) != 0 or (v*(v-1)) % (k*(k-1)) != 0:
         if existence:
@@ -174,7 +174,7 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
         if existence:
             return True
         from itertools import combinations
-        return BalancedIncompleteBlockDesign(combinations(range(v),2),v, check = False, copy=False)
+        return BalancedIncompleteBlockDesign(v, combinations(range(v),2), check = False, copy=False)
     if k == 3:
         if existence:
             return v%6 == 1 or v%6 == 3
@@ -182,11 +182,11 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     if k == 4:
         if existence:
             return v%12 == 1 or v%12 == 4
-        return BalancedIncompleteBlockDesign(v_4_1_BIBD(v),v,copy=False)
+        return BalancedIncompleteBlockDesign(v, v_4_1_BIBD(v),copy=False)
     if k == 5:
         if existence:
             return v%20 == 1 or v%20 == 5
-        return BalancedIncompleteBlockDesign(v_5_1_BIBD(v),v,copy=False)
+        return BalancedIncompleteBlockDesign(v, v_5_1_BIBD(v),copy=False)
 
     from difference_family import difference_family
     from database import BIBD_constructions
@@ -198,17 +198,17 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     if BIBD_from_TD(v,k,existence=True):
         if existence:
             return True
-        return BalancedIncompleteBlockDesign(BIBD_from_TD(v,k),v,copy=False)
+        return BalancedIncompleteBlockDesign(v, BIBD_from_TD(v,k),copy=False)
     if v == (k-1)**2+k and is_prime_power(k-1):
         if existence:
             return True
         from block_design import projective_plane
-        return BalancedIncompleteBlockDesign(projective_plane(k-1),v,copy=False)
+        return BalancedIncompleteBlockDesign(v, projective_plane(k-1),copy=False)
     if difference_family(v,k,existence=True):
         if existence:
             return True
         G,D = difference_family(v,k)
-        return BalancedIncompleteBlockDesign(BIBD_from_difference_family(G,D,check=False,copy=False),v)
+        return BalancedIncompleteBlockDesign(v, BIBD_from_difference_family(G,D,check=False),copy=False)
     if use_LJCR:
         from covering_design import best_known_covering_design_www
         B = best_known_covering_design_www(v,k,2)
@@ -314,7 +314,7 @@ def steiner_triple_system(n):
     from sage.sets.set import Set
     sts = Set(map(lambda x: Set(map(T,x)),sts))
 
-    return BalancedIncompleteBlockDesign(sts,n, name=name,check=False)
+    return BalancedIncompleteBlockDesign(n, sts, name=name,check=False)
 
 def BIBD_from_TD(v,k,existence=False):
     r"""
@@ -1059,10 +1059,10 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
 
     INPUT:
 
-    - ``blocks`` -- collection of blocks
+    - ``points`` -- the underlying set. If ``points`` is an integer `v`, then
+      the set is considered to be `\{0, ..., v-1\}`.
 
-    - ``v`` (integer) -- size of the ground set. Set to ``None`` (automatic
-      guess) by default.
+    - ``blocks`` -- collection of blocks
 
     - ``K`` -- list of integers of which the sizes of the blocks must be
       elements. Set to ``None`` (automatic guess) by default.
@@ -1078,14 +1078,21 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
       sorted). Your ``blocks`` object will become the instance's internal data.
 
     """
-    def __init__(self,blocks, v=None, K=None, lambd=1, check=True, copy=True,**kwds):
+    def __init__(self, points, blocks, K=None, lambd=1, check=True, copy=True,**kwds):
         r"""
         Constructor
         """
+        try:
+            int(points)
+        except:
+            pass
+        else:
+            points = range(points)
+
         GroupDivisibleDesign.__init__(self,
-                                      [[i] for i in range(v)],
+                                      points,
+                                      [[x] for x in points],
                                       blocks,
-                                      v=v,
                                       K=K,
                                       lambd=lambd,
                                       check=check,
@@ -1098,7 +1105,7 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
 
         EXAMPLES::
         """
-        return "Pairwise Balanced Design on {} points with sets of sizes in {}".format(v,set(self.block_sizes()))
+        return "Pairwise Balanced Design on {} points with sets of sizes in {}".format(self.num_points(),set(self.block_sizes()))
 
 class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
     r""""
@@ -1106,10 +1113,10 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
 
     INPUT:
 
-    - ``blocks`` -- collection of blocks
+    - ``points`` -- the underlying set. If ``points`` is an integer `v`, then
+      the set is considered to be `\{0, ..., v-1\}`.
 
-    - ``v`` (integer) -- size of the ground set. Set to ``None`` (automatic
-      guess) by default.
+    - ``blocks`` -- collection of blocks
 
     - ``k`` (integer) -- size of the blocks. Set to ``None`` (automatic guess)
       by default.
@@ -1129,7 +1136,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         sage: b=designs.balanced_incomplete_block_design(9,3); b
         (9,3,1)-Balanced Incomplete Block Design
     """
-    def __init__(self, blocks, v=None, k=None, lambd=1, check=True, copy=True,**kwds):
+    def __init__(self, points, blocks, k=None, lambd=1, check=True, copy=True,**kwds):
         r"""
         Constructor
 
@@ -1139,8 +1146,8 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
             (9,3,1)-Balanced Incomplete Block Design
         """
         PairwiseBalancedDesign.__init__(self,
+                                        points,
                                         blocks,
-                                        v=v,
                                         K=[k] if k is not None else None,
                                         lambd=1,
                                         check=check,

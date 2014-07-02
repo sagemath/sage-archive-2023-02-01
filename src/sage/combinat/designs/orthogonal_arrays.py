@@ -368,9 +368,9 @@ class TransversalDesign(GroupDivisibleDesign):
             assert is_transversal_design(blocks,k,n)
 
         GroupDivisibleDesign.__init__(self,
+                                      k*n,
                                       [range(i*n,(i+1)*n) for i in range(k)],
                                       blocks,
-                                      k*n,
                                       check=False,
                                       **kwds)
 

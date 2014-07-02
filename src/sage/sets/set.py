@@ -15,7 +15,8 @@ AUTHORS:
 
 - Nicolas M. Thiery (2011-03-15) - Added subset and superset methods
 
-- Julian Rueth (2013-04-09) - Collected common code in Set_object_binary, fixed __hash__.
+- Julian Rueth (2013-04-09) - Collected common code in
+  :class:`Set_object_binary`, fixed ``__hash__``.
 
 """
 
@@ -990,10 +991,11 @@ class Set_object_enumerated(Set_object):
         return Set_object_enumerated(self.set().symmetric_difference(other.set()))
 
 class Set_object_binary(Set_object):
-    """
-    An abstract common base class for :class:`Set_object_union`,
-    :class:`Set_object_intersection`, :class:`Set_object_difference`, and
-    :class:`Set_object_symmetric_difference`.
+    r"""
+    An abstract common base class for sets defined by a binary operators (ex.
+    :class:`Set_object_union`, :class:`Set_object_intersection`,
+    :class:`Set_object_difference`, and
+    :class:`Set_object_symmetric_difference`).
 
     INPUT:
 
@@ -1008,23 +1010,22 @@ class Set_object_binary(Set_object):
         sage: X = Set(QQ^2)
         sage: Y = Set(ZZ)
         sage: from sage.sets.set import Set_object_binary
-        sage: S = Set_object_binary(X,Y,"union","\\cup"); S
-        Set-theoretic union of Set of elements of Vector space of dimension 2 over Rational Field and Set of elements of Integer Ring
-
+        sage: S = Set_object_binary(X, Y, "union", "\\cup"); S
+        Set-theoretic union of Set of elements of Vector space of dimension 2
+         over Rational Field and Set of elements of Integer Ring
     """
     def __init__(self, X, Y, op, latex_op):
-        """
+        r"""
         Initialization.
 
         TESTS::
 
-        sage: from sage.sets.set import Set_object_binary
-        sage: X = Set(QQ^2)
-        sage: Y = Set(ZZ)
-        sage: S = Set_object_binary(X,Y,"union","\\cup")
-        sage: type(S)
-        <class 'sage.sets.set.Set_object_binary_with_category'>
-
+            sage: from sage.sets.set import Set_object_binary
+            sage: X = Set(QQ^2)
+            sage: Y = Set(ZZ)
+            sage: S = Set_object_binary(X, Y, "union", "\\cup")
+            sage: type(S)
+            <class 'sage.sets.set.Set_object_binary_with_category'>
         """
         self._X = X
         self._Y = Y
@@ -1040,9 +1041,8 @@ class Set_object_binary(Set_object):
 
             sage: Set(ZZ).union(Set(GF(5)))
             Set-theoretic union of Set of elements of Integer Ring and {0, 1, 2, 3, 4}
-
         """
-        return "Set-theoretic %s of %s and %s"%(self._op, self._X, self._Y)
+        return "Set-theoretic {} of {} and {}".format(self._op, self._X, self._Y)
 
     def _latex_(self):
         r"""
@@ -1052,9 +1052,8 @@ class Set_object_binary(Set_object):
 
             sage: latex(Set(ZZ).union(Set(GF(5))))
             \Bold{Z} \cup \left\{0, 1, 2, 3, 4\right\}
-
         """
-        return '%s %s %s'%(latex(self._X), self._latex_op, latex(self._Y))
+        return latex(self._X) + self._latex_op + latex(self._Y)
 
     def cardinality(self):
         """
@@ -1075,7 +1074,6 @@ class Set_object_binary(Set_object):
         """
         The hash value of this set.
 
-
         EXAMPLES:
 
         The hash values of equal sets are in general not equal since it is not
@@ -1094,9 +1092,8 @@ class Set_object_binary(Set_object):
             sage: T = Set(ZZ).union(Set([infinity]))
             sage: hash(S) == hash(T)
             True
-
         """
-        return hash((self._X,self._Y,self._op))
+        return hash((self._X, self._Y, self._op))
 
 class Set_object_union(Set_object_binary):
     """

@@ -547,6 +547,25 @@ class FiniteFamily(AbstractFamily):
             self.keys   = dictionary.keys
             self.values = dictionary.values
 
+    @cached_method
+    def __hash__(self):
+        """
+        Return a hash value for ``self``.
+
+        EXAMPLES::
+
+            sage: f = Family(["c", "a", "b"], lambda x: x+x)
+            sage: hash(f) == hash(f)
+            True
+            sage: f2 = Family(["a", "c", "b"], lambda x: x+x)
+            sage: hash(f) == hash(f2)
+            True
+            sage: g = Family(["a", "c", "b"], lambda x: x+x+x)
+            sage: hash(f) == hash(g)
+            False
+        """
+        return hash(frozenset(list(self.keys()) + map(repr, self.values())))
+
     def keys(self):
         """
         Returns the index set of this family
@@ -857,6 +876,40 @@ class LazyFamily(AbstractFamily):
         self.function = function
         self.function_name = name
 
+    @cached_method
+    def __hash__(self):
+        """
+        Return a hash value for ``self``.
+
+        TESTS::
+
+            sage: from sage.sets.family import LazyFamily
+            sage: f = LazyFamily([3,4,7], lambda i: 2*i)
+            sage: hash(f) == hash(f)
+            True
+            sage: g = LazyFamily(ZZ, lambda i: 2*i)
+            sage: hash(g) == hash(g)
+            True
+        """
+        try:
+            h = hash(self.keys())
+
+            if self.function_name is not None:
+                name = self.function_name + "(i)"
+            elif isinstance(self.function, type(lambda x:1)):
+                name = self.function.__name__
+                name = name+"(i)"
+            else:
+                name = repr(self.function)
+                if isinstance(self.function, AttrCallObject):
+                    name = "i"+name[1:]
+                else:
+                    name = name+"(i)"
+
+            return h + hash(name)
+        except TypeError:
+            return super(LazyFamily, self).__hash__()
+
     def __eq__(self, other):
         """
         WARNING: Since there is no way to compare function, we only compare
@@ -1072,6 +1125,19 @@ class TrivialFamily(AbstractFamily):
         """
         return (isinstance(other, self.__class__) and
                 self._enumeration == other._enumeration)
+
+    def __hash__(self):
+        """
+        Return a hash value for ``self``.
+
+        TESTS::
+
+            sage: from sage.sets.family import TrivialFamily
+            sage: f = TrivialFamily((3,4,7))
+            sage: hash(f) == hash(f)
+            True
+        """
+        return hash(self._enumeration)
 
     def _repr_(self):
         """

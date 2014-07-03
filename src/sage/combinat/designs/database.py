@@ -54,20 +54,21 @@ Implemented constructions :
   :func:`OA(11,80) <OA_11_80>`,
   :func:`OA(10,82) <OA_10_82>`,
   :func:`OA(10,100) <OA_10_100>`,
-  :func:`OA(14,112) <OA_14_112>`,
+  :func:`OA(15,112) <OA_15_112>`,
   :func:`OA(9,120) <OA_9_120>`,
   :func:`OA(9,135) <OA_9_135>`,
   :func:`OA(12,144) <OA_12_144>`,
   :func:`OA(10,154) <OA_10_154>`,
-  :func:`OA(10,160) <OA_10_160>`,
+  :func:`OA(11,160) <OA_11_160>`,
   :func:`OA(12,210) <OA_12_210>`,
-  :func:`OA(14,224) <OA_14_224>`,
+  :func:`OA(15,224) <OA_15_224>`,
   :func:`OA(18,273) <OA_18_273>`,
   :func:`OA(12,276) <OA_12_276>`,
   :func:`OA(12,298) <OA_12_298>`,
   :func:`OA(12,342) <OA_12_342>`,
   :func:`OA(12,474) <OA_12_474>`,
   :func:`OA(9,514) <OA_9_514>`,
+  :func:`OA(11,640) <OA_11_640>`,
   :func:`OA(10,796) <OA_10_796>`,
   :func:`OA(33,993) <OA_33_993>`
 
@@ -1120,10 +1121,10 @@ def OA_9_40():
     """
     from sage.rings.finite_rings.constructor import FiniteField
 
-    F8 = FiniteField(8,'x')
+    F8 = FiniteField(8,prefix='x',conway=True)
     F5 = FiniteField(5)
     F5F8 = F5.cartesian_product(F8)
-    w = F8.primitive_element()
+    w = F8.gens()[0]
     assert w**3 == w+1
 
     A = [
@@ -1392,10 +1393,10 @@ def OA_10_48():
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
-    F16 = FiniteField(16,'x')
+    F16 = FiniteField(16,prefix='x',conway=True)
     F3 = FiniteField(3)
     F3F16 = F3.cartesian_product(F16)
-    w = F16.primitive_element()
+    w = F16.gens()[0]
     assert w**4 == w+1
 
     A = [
@@ -1522,10 +1523,10 @@ def OA_7_52():
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     from sage.rings.finite_rings.constructor import FiniteField
-    F4  = FiniteField(4,'z')
+    F4  = FiniteField(4,prefix='z',conway=True)
     G13 = FiniteField(13)
     G = F4.cartesian_product(G13)
-    z = F4('z')
+    z = F4.gens()[0]
     assert z**2 == z+1
 
     M = [
@@ -1694,11 +1695,11 @@ def OA_9_56():
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
-    F8  = FiniteField(8,'z')
+    F8  = FiniteField(8,prefix='w',conway=True)
     F7  = FiniteField(7)
     G   = F8.cartesian_product(F7)
 
-    w = F8.primitive_element()
+    w = F8.gens()[0]
     assert w**3 == w+1
 
     M = [
@@ -2231,11 +2232,11 @@ def OA_11_80():
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
-    F16 = FiniteField(2**4,'w')
+    F16 = FiniteField(2**4,prefix='w',conway=True)
     F5  = FiniteField(5)
     G  = F5.cartesian_product(F16)
 
-    w = F16.primitive_element()
+    w = F16.gens()[0]
     assert w**4 == w+1
 
     A = [
@@ -2330,9 +2331,9 @@ def OA_10_100():
     M = OA_from_Vmt(8,11,[0,1,6,56,22,35,47,23,60])
     return M
 
-def OA_14_112():
+def OA_15_112():
     r"""
-    Returns an OA(14,112)
+    Returns an OA(15,112)
 
     Published by Julian R. Abel in [AbelThesis]_.
 
@@ -2343,14 +2344,14 @@ def OA_14_112():
     EXAMPLES::
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_14_112
-        sage: OA = OA_14_112()
-        sage: print is_orthogonal_array(OA,14,112,2)
+        sage: from sage.combinat.designs.database import OA_15_112
+        sage: OA = OA_15_112()
+        sage: print is_orthogonal_array(OA,15,112,2)
         True
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(14,112,existence=True)
+        sage: designs.orthogonal_array(15,112,existence=True)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -2359,9 +2360,9 @@ def OA_14_112():
     n = 4
     k = 14
     F = FiniteField(7)
-    Fq = FiniteField(2**n,'w')
+    Fq = FiniteField(2**n,prefix='w',conway=True)
     G = F.cartesian_product(Fq)
-    w = Fq.primitive_element()
+    w = Fq.gens()[0]
     assert w**4 + w**1 + 1 == 0
 
     A = [
@@ -2403,7 +2404,7 @@ def OA_14_112():
             e = G(A[x][y])
             Mb[x].extend([e+sum([tt[ii] for ii in S],G.zero()) for S in Subsets])
 
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
+    M = OA_from_quasi_difference_matrix(Mb,G,add_col = True)
     return M
 
 def OA_9_120():
@@ -2594,9 +2595,9 @@ def OA_10_154():
     M = OA_from_Vmt(8,17,[0,1,3,2,133,126,47,109,74])
     return M
 
-def OA_10_160():
+def OA_11_160():
     r"""
-    Returns an OA(10,160)
+    Returns an OA(11,160)
 
     Published by Julian R. Abel in [AbelThesis]_.
 
@@ -2607,14 +2608,14 @@ def OA_10_160():
     EXAMPLES::
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_10_160
-        sage: OA = OA_10_160()
-        sage: print is_orthogonal_array(OA,10,160,2)
+        sage: from sage.combinat.designs.database import OA_11_160
+        sage: OA = OA_11_160()
+        sage: print is_orthogonal_array(OA,11,160,2)
         True
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(10,160,existence=True)
+        sage: designs.orthogonal_array(11,160,existence=True)
         True
 
     REFERENCES:
@@ -2631,9 +2632,9 @@ def OA_10_160():
     n = 5
     k = 10
     F = FiniteField(5)
-    Fq = FiniteField(2**n,'w')
+    Fq = FiniteField(2**n,prefix='w',conway=True)
     G = F.cartesian_product(Fq)
-    w = Fq.primitive_element()
+    w = Fq.gens()[0]
     assert w**5 + w**2 + 1 == 0
 
     A = [
@@ -2670,7 +2671,7 @@ def OA_10_160():
             e = G(A[x][y])
             Mb[x].extend([e+sum([tt[ii] for ii in S],G.zero()) for S in Subsets])
 
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
+    M = OA_from_quasi_difference_matrix(Mb,G,add_col = True)
     return M
 
 def OA_12_210():
@@ -2700,9 +2701,11 @@ def OA_12_210():
     M = OA_from_Vmt(10,19,[0, 1, 3, 96, 143, 156, 182, 142, 4, 189, 25])
     return M
 
-def OA_14_224():
+def OA_15_224():
     r"""
-    Returns an OA(14,224)
+    Returns an OA(15,224)
+
+    Published by Julian R. Abel in [AbelThesis]_.
 
     .. SEEALSO::
 
@@ -2711,14 +2714,14 @@ def OA_14_224():
     EXAMPLES::
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_14_224
-        sage: OA = OA_14_224()                         # long time
-        sage: print is_orthogonal_array(OA,14,224,2)   # long time
+        sage: from sage.combinat.designs.database import OA_15_224
+        sage: OA = OA_15_224()                         # long time
+        sage: print is_orthogonal_array(OA,15,224,2)   # long time
         True
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(14,224,existence=True)
+        sage: designs.orthogonal_array(15,224,existence=True)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -2727,9 +2730,9 @@ def OA_14_224():
     n = 5
     k = 14
     F = FiniteField(7)
-    Fq = FiniteField(2**n,'w')
+    Fq = FiniteField(2**n,prefix='w',conway=True)
     G = F.cartesian_product(Fq)
-    w = Fq.primitive_element()
+    w = Fq.gens()[0]
     assert w**5 + w**2 + 1 == 0
 
     A = [
@@ -2771,7 +2774,7 @@ def OA_14_224():
             e = G(A[x][y])
             Mb[x].extend([e+sum([tt[ii] for ii in S],G.zero()) for S in Subsets])
 
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
+    M = OA_from_quasi_difference_matrix(Mb,G,add_col = True)
     return M
 
 def OA_18_273():
@@ -2920,7 +2923,7 @@ def OA_9_514():
     Construction shared by Julian R. Abel:
 
         A `V(8,57)` vector appears on page p281 of the Brouwer-Van Rees paper
-        [BvR514]_. This gives a `TD(8+2, 514) - TD(8+2,57)`. Using a `TD(9,57)`
+        [BvR82]_. This gives a `TD(8+2, 514) - TD(8+2,57)`. Using a `TD(9,57)`
         (not a `TD(10,57)`) it yields a `TD(9,514)`.
 
     .. SEEALSO::
@@ -2931,8 +2934,8 @@ def OA_9_514():
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_514
-        sage: OA = OA_9_514()                           # not tested -- too long
-        sage: print is_orthogonal_array(OA,9,514,2)     # not tested -- too long
+        sage: OA = OA_9_514()
+        sage: print is_orthogonal_array(OA,9,514,2)
         True
 
     The design is available from the general constructor::
@@ -2948,6 +2951,78 @@ def OA_9_514():
     QDM = QDM_from_Vmt(8,57,Vm8_57)
     QDM = QDM[:-1]
     return OA_from_quasi_difference_matrix(QDM,Fq,add_col=False)
+
+def OA_11_640():
+    r"""
+    Returns an OA(11,640)
+
+    Published by Julian R. Abel in [AbelThesis]_.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_11_640
+        sage: OA = OA_11_640()                        # not tested (too long)
+        sage: print is_orthogonal_array(OA,11,640,2)  # not tested (too long)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(11,640,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    from itertools import combinations
+
+    n = 7
+    k = 10
+    F = FiniteField(5)
+    Fq = FiniteField(2**n,prefix='w',conway=True)
+    G = F.cartesian_product(Fq)
+    w = Fq.gens()[0]
+    assert w**7 + w**1 + 1 == 0
+
+    A = [
+        [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (4,None), (1,None)],
+        [(0,None), (1,None), (2,   7), (3,  55), (4,  54), (1,  87), (0, 124), (1, 123), (4,  83), (4,  61)], # 0,25 became 0,124
+        [(0,None), (2,None), (4,  14), (1,  63), (3,   6), (4,  87), (1,  16), (0,  47), (1,  29), (4,  16)],
+        [(0,None), (3,None), (1,   1), (4,  15), (2,   5), (4,  32), (4,  30), (1,   3), (0,  12), (1,  14)],
+        [(0,None), (4,None), (3,  28), (2,  62), (1,  64), (1,  55), (4,  63), (4,   4), (1,   0), (0,   0)],
+        [(0,None), (2,   6), (3,   8), (3,   7), (2,  12), (0,   1), (2,   6), (3,  97), (3,  45), (2,   0)],
+        [(0,None), (3,   6), (0,  63), (1,   5), (1,   6), (2,  97), (0,  28), (2,  63), (3,   0), (3,   2)],
+        [(0,None), (4,   6), (2,   4), (4,  65), (0,   6), (3,  68), (2,   1), (0,  14), (2,   1), (3,   0)],
+        [(0,None), (0,   6), (4,   9), (2,None), (4,  29), (3,  15), (3,   0), (2,   1), (0,   7), (2,   4)],
+        [(0,None), (1,   6), (1,  14), (0,  14), (3,   4), (2,   0), (3,None), (3,   4), (2,   0), (0,None)]
+    ]
+    Y = [None, 0, 1, 2, 121, 66, 77, 78, 41, 100]
+
+    A = zip(*A)
+
+    r = lambda x : Fq(0) if x is None else w**x
+    A = [[(a,r(b)) for a,b in L] for L in A]
+    Y = map(r,Y)
+
+    def t(i,x):
+        assert i<=n-2
+        b = Y[x]
+        return G((0,b*w**i))
+
+    Mb = [[] for _ in range(k)]
+    Subsets = [S for s in range(n) for S in combinations(range(n-1),s)]
+    assert len(Subsets) == 2**(n-1)
+
+    for x in range(len(A)):
+        tt = [t(i,x) for i in range(n-1)]
+        for y in range(len(A[0])):
+            e = G(A[x][y])
+            Mb[x].extend([e+sum([tt[ii] for ii in S],G.zero()) for S in Subsets])
+
+    M = OA_from_quasi_difference_matrix(Mb,G,add_col = True)
+    return M
 
 def OA_10_796():
     r"""
@@ -3099,20 +3174,21 @@ OA_constructions = {
     80  : (11 , OA_11_80),
     82  : (10 , OA_10_82),
     100 : (10 , OA_10_100),
-    112 : (14 , OA_14_112),
+    112 : (15 , OA_15_112),
     120 : (9  , OA_9_120),
     135 : (9  , OA_9_135),
     144 : (12 , OA_12_144),
     154 : (10 , OA_10_154),
-    160 : (10 , OA_10_160),
+    160 : (11 , OA_11_160),
     210 : (12 , OA_12_210),
-    224 : (14 , OA_14_224),
+    224 : (15 , OA_15_224),
     273 : (18 , OA_18_273),
     276 : (12 , OA_12_276),
     298 : (12 , OA_12_298),
     342 : (12 , OA_12_342),
     474 : (12 , OA_12_474),
     514 : (9 , OA_9_514),
+    640 : (11 , OA_11_640),
     796 : (10 , OA_10_796),
     993 : (33 , OA_33_993)
 }

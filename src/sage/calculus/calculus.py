@@ -1083,8 +1083,9 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         Traceback (most recent call last):
         ...
         ValueError: Computation failed since Maxima requested additional
-        constraints; using the 'assume' command before limit evaluation
-        *may* help (see `assume?` for more details)
+        constraints; using the 'assume' command before evaluation
+        *may* help (example of legal syntax is 'assume(a>0)', see
+        `assume?` for more details)
         Is a positive, negative or zero?
 
     With this example, Maxima is looking for a LOT of information::
@@ -1094,16 +1095,18 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         Traceback (most recent call last):
         ...
         ValueError: Computation failed since Maxima requested additional
-        constraints; using the 'assume' command before limit evaluation
-        *may* help (see `assume?` for more details)
+        constraints; using the 'assume' command before evaluation *may* help
+        (example of legal syntax is 'assume(a>0)', see `assume?` for
+         more details)
         Is a an integer?
         sage: assume(a,'integer')
         sage: limit(x^a,x=0)
         Traceback (most recent call last):
         ...
         ValueError: Computation failed since Maxima requested additional
-        constraints; using the 'assume' command before limit evaluation
-        *may* help (see `assume?` for more details)
+        constraints; using the 'assume' command before evaluation *may* help
+        (example of legal syntax is 'assume(a>0)', see `assume?` for
+         more details)
         Is a an even number?
         sage: assume(a,'even')
         sage: limit(x^a,x=0)
@@ -1796,10 +1799,17 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: sefms("x # 3") == SR(x != 3)
         True
         sage: solve([x != 5], x)
-        #0: solve_rat_ineq(ineq=x # 5)
+        #0: solve_rat_ineq(ineq=_SAGE_VAR_x # 5)
         [[x - 5 != 0]]
         sage: solve([2*x==3, x != 5], x)
         [[x == (3/2), (-7/2) != 0]]
+
+    Make sure that we don't accidentally pick up variables in the maxima namespace (trac #8734)::
+
+        sage: sage.calculus.calculus.maxima('my_new_var : 2')
+        2
+        sage: var('my_new_var').full_simplify()
+        my_new_var
 
     Check that some hypothetical variables don't end up as special constants (:trac:`6882`)::
     
@@ -1827,6 +1837,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     #r = maxima._eval_line('listofvars(_tmp_);')[1:-1]
 
     s = maxima._eval_line('_tmp_;')
+    s = s.replace("_SAGE_VAR_","")
 
     formal_functions = maxima_tick.findall(s)
     if len(formal_functions) > 0:

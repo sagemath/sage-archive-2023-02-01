@@ -704,7 +704,7 @@ class R(Expect):
             ...
 
             .. note::
-            
+
             This is similar to typing r.command?.
         """
         s = self.eval('help("%s")'%command).strip()     # ?cmd is only an unsafe shortcut

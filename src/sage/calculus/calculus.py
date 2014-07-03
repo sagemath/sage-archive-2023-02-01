@@ -1730,16 +1730,16 @@ _inverse_laplace = function_factory('ilt',
 
 #######################################################
 
-symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma'}
+symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',
+            'e':'_e', 'i':'_i', 'I':'_I'}
 
-from sage.misc.multireplace import multiple_replace
 import re
 
 maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")
 
 maxima_qp = re.compile("\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
 
-maxima_var = re.compile("\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
+maxima_var = re.compile("[a-z|A-Z|0-9|_\%]*")  # e.g., %jacobi_cd
 
 sci_not = re.compile("(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
 
@@ -1811,7 +1811,22 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: var('my_new_var').full_simplify()
         my_new_var
 
-     """
+    Check that some hypothetical variables don't end up as special constants (:trac:`6882`)::
+    
+        sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
+        sage: sefms('%i')^2
+        -1
+        sage: ln(sefms('%e'))
+        1
+        sage: sefms('i')^2
+        _i^2
+        sage: sefms('I')^2
+        _I^2
+        sage: sefms('ln(e)')
+        ln(_e)
+        sage: sefms('%inf')
+        +Infinity
+    """
     syms = sage.symbolic.pynac.symbol_table.get('maxima', {}).copy()
 
     if len(x) == 0:
@@ -1842,12 +1857,23 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
                 syms[X[2:]] = function_factory(X[2:])
         s = s.replace("?%","")
 
-    s = polylog_ex.sub('polylog(\\1,',s)
-    s = multiple_replace(symtable, s)
+    # Look up every variable in the symtable keys and fill a replacement list.
+    cursor = 0
+    l = []
+    for m in maxima_var.finditer(s):
+        if symtable.has_key(m.group(0)):
+            l.append(s[cursor:m.start()])
+            l.append(symtable.get(m.group(0)))
+            cursor = m.end()
+    if cursor > 0:
+        l.append(s[cursor:])
+        s = "".join(l)
+
     s = s.replace("%","")
 
     s = s.replace("#","!=") # a lot of this code should be refactored somewhere...
 
+    s = polylog_ex.sub('polylog(\\1,',s)
     s = maxima_polygamma.sub('psi(\g<1>,',s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
 
     if equals_sub:

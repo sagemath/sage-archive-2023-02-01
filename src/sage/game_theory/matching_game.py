@@ -138,7 +138,17 @@ class MatchingGame(SageObject):
     def _latex_(self):
         r"""
         """
-        pass
+        suitors_dictionary, reviewer_dictionary = self.game_to_dict()
+
+
+    def game_to_dict(self):
+        suitor_dictionary = {}
+        reviewer_dictionary = {}
+        for suitor in self.suitors:
+            suitor_dictionary[suitor.name] = suitor.pref
+        for reviewer in self.reviewers:
+            reviewer_dictionary[reviewer.name] = reviewer.pref
+        return suitor_dictionary, reviewer_dictionary
 
     def plot(self):
         r"""

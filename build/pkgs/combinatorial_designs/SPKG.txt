@@ -11,6 +11,10 @@ Data for Combinatorial Designs. Current content:
 
  * Nathann Cohen
 
+== License ==
+
+Public domain.
+
 == Upstream Contact ==
 
  None

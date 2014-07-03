@@ -147,7 +147,7 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
 
 def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=False):
     r"""
-    Checks that input is a Group Divisible Design
+    Checks that input is a Group Divisible Design on `\{0,...,v-1\}`
 
     For more information on Group Divisible Designs, see
     :class:`~sage.combinat.designs.incidence_structure.GroupDivisibleDesign`.
@@ -158,7 +158,7 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
 
     - ``blocks`` -- collection of blocks
 
-    - ``v`` (integers) -- size of the ground set assumed to be `X=[0,...,v-1]`.
+    - ``v`` (integers) -- size of the ground set assumed to be `X=\{0,...,v-1\}`.
 
     - ``G`` -- list of integers of which the sizes of the groups must be
       elements. Set to ``None`` (automatic guess) by default.
@@ -305,7 +305,7 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
     # Checking that what should be equal to lambda IS equal to lambda
     for i in range(n):
         for j in range(i+1,n):
-            if i != j and matrix[i*n+j] != <unsigned short> -1 and matrix[i*n+j] != l:
+            if i != j and matrix[i*n+j] != l:
                 if verbose:
                     print "the pair ({},{}) has been seen {} times but lambda={}".format(i,j,matrix[i*n+j],l)
                 sage_free(matrix)
@@ -317,7 +317,7 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
 
 def is_pairwise_balanced_design(blocks,v,K=None,lambd=1,verbose=False):
     r"""
-    Checks that input is a Pairwise Balanced Design (PBD)
+    Checks that input is a Pairwise Balanced Design (PBD) on `\{0,...,v-1\}`
 
     For more information on Pairwise Balanced Designs (PBD), see
     :class:`~sage.combinat.designs.bibd.PairwiseBalancedDesign`.
@@ -326,7 +326,7 @@ def is_pairwise_balanced_design(blocks,v,K=None,lambd=1,verbose=False):
 
     - ``blocks`` -- collection of blocks
 
-    - ``v`` (integers) -- size of the ground set assumed to be `X=[0,...,v-1]`.
+    - ``v`` (integers) -- size of the ground set assumed to be `X=\{0,...,v-1\}`.
 
     - ``K`` -- list of integers of which the sizes of the blocks must be
       elements. Set to ``None`` (automatic guess) by default.

@@ -1116,8 +1116,10 @@ class GroupDivisibleDesign(IncidenceStructure):
              ['p', 'q', 'r', 's', 't'],
              ['u', 'v', 'w', 'x', 'y']]
         """
-        if not copy and self._point_to_index is None:
+        if copy is False:
             return self._groups
+        elif self._point_to_index is None:
+            return [list(g) for g in self._groups]
         else:
             return [[self._points[i] for i in g] for g in self._groups]
 

@@ -1,10 +1,5 @@
 r"""
 Quotients of Modules With Basis
-
-sage: H = IwahoriHeckeAlgebraT("A2", QQ(0))
-sage: C = H.submodule(H.center_basis(), H, category=FiniteDimensionalAlgebrasWithBasis(QQ).Subquotients())
-sage: TestSuite(C).run()
-
 """
 #*****************************************************************************
 #  Copyright (C) 2010 Florent Hivert <Florent.Hivert@univ-mlv.fr>
@@ -20,6 +15,7 @@ from sage.categories.all import ModulesWithBasis
 
 class QuotientModuleWithBasis(CombinatorialFreeModule):
     r"""
+    A class for quotients of a module with basis by a submodule.
     """
     @staticmethod
     def __classcall_private__(cls, submodule, category = None):
@@ -28,6 +24,11 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
 
         TESTS::
 
+            sage: X = CombinatorialFreeModule(QQ, range(3)); x = X.basis()
+            sage: I = X.submodule( (x[0]-x[1], x[1]-x[2]) )
+            sage: J1 = QuotientModuleWithBasis(I)
+            sage: J2 = QuotientModuleWithBasis(I, category=Modules(QQ).WithBasis().Quotients())
+            sage: J1 is J2
         """
         category = ModulesWithBasis(submodule.base_ring()).Quotients().or_subcategory(category, join=True)
         return super(QuotientModuleWithBasis, cls).__classcall__(
@@ -64,7 +65,7 @@ class QuotientModuleWithBasis(CombinatorialFreeModule):
 
     def ambient(self):
         r"""
-        Returns the ambient space of ``self``
+        Return the ambient space of ``self``.
 
         EXAMPLES::
 

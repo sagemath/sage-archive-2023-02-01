@@ -2430,6 +2430,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         mat.echelonize()
         return [self.from_vector(vec) for vec in mat if vec != 0]
 
+    quotient = ModulesWithBasis.ParentMethods.__dict__["quotient"]
+
 class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         """
         Tensor Product of Free Modules

@@ -2,7 +2,7 @@ r"""
 Examples of finite dimensional algebras with basis
 """
 #*****************************************************************************
-#  Copyright (C) 2008-2009 Franco Saliola <saliola@gmail.com>
+#  Copyright (C) 2008-2014 Franco Saliola <saliola@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -21,14 +21,13 @@ class KroneckerQuiverPathAlgebra(CombinatorialFreeModule):
     algebra with basis.
     """
 
-    def __init__(self, R):
+    def __init__(self, base_ring):
         r"""
         EXAMPLES::
 
             sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
             An example of a finite dimensional algebra with basis: the path algebra of the Kronecker quiver (containing the arrows a:x->y and b:x->y) over Rational Field 
             sage: TestSuite(A).run()
-
         """
         basis_keys = ['x', 'y', 'a', 'b']
         self._nonzero_products = {
@@ -36,7 +35,7 @@ class KroneckerQuiverPathAlgebra(CombinatorialFreeModule):
             'yy':'y', 'ay':'a', 'by':'b'
             }
 
-        CombinatorialFreeModule.__init__(self, R, basis_keys, category = FiniteDimensionalAlgebrasWithBasis(R))
+        CombinatorialFreeModule.__init__(self, base_ring, basis_keys, category = FiniteDimensionalAlgebrasWithBasis(base_ring))
 
     def _repr_(self):
         r"""
@@ -49,7 +48,9 @@ class KroneckerQuiverPathAlgebra(CombinatorialFreeModule):
 
     def one(self):
         r"""
-        Returns the multiplicative identity element of the algebra, as per :meth:`AlgebrasWithBasis.ParentMethods.one_basis`.
+        Return the unit of this algebra.
+
+        .. SEEALSO:: :meth:`AlgebrasWithBasis.ParentMethods.one_basis`
 
         EXAMPLES::
 
@@ -61,7 +62,9 @@ class KroneckerQuiverPathAlgebra(CombinatorialFreeModule):
 
     def product_on_basis(self, w1, w2):
         r"""
-        Product of basis elements, as per :meth:`AlgebrasWithBasis.ParentMethods.product_on_basis`.
+        Return the product of the two basis elements indexed by ``w1`` and ``w2``.
+
+        .. SEEALSO:: :meth:`AlgebrasWithBasis.ParentMethods.product_on_basis`.
 
         EXAMPLES::
 
@@ -97,7 +100,9 @@ class KroneckerQuiverPathAlgebra(CombinatorialFreeModule):
     @cached_method
     def algebra_generators(self):
         r"""
-        Returns the generators of this algebra, as per :meth:`Algebras.ParentMethods.algebra_generators`.
+        Return the generators of this algebra.
+
+        .. SEEALSO:: :meth:`Algebras.ParentMethods.algebra_generators`.
 
         EXAMPLES::
 

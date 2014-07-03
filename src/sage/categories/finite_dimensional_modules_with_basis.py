@@ -37,14 +37,13 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
         @cached_method
         def vectors_parent(self):
             """
-            Returns the parent of the vectors created with
-            ``x.to_vector()``.
+            Return the parent of the vectors created with ``x.to_vector()``.
 
-            EXAMPES::
+            EXAMPLES::
 
-                sage: F = Modules(QQ).WithBasis().example()
+                sage: F = Algebras(QQ).FiniteDimensional().WithBasis().example()
                 sage: F.vectors_parent()
-                
+                Vector space of dimension 4 over Rational Field
             """
             return self.zero().to_vector().parent()
 

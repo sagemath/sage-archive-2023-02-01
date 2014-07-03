@@ -610,7 +610,7 @@ class Rings(CategoryWithAxiom):
 
             NOTE:
 
-            This is a synonyme for :meth:`quotient`.
+            This is a synonym for :meth:`quotient`.
 
             EXAMPLE::
 

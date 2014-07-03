@@ -164,118 +164,152 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
         print "It is a ({},{},{})-difference family".format(v,k,l)
     return True
 
-def is_projective_plane_cardinality(n,return_parameter=False):
+def are_projective_space_parameters(v, k, lmbda, return_parameters=False):
     r"""
-    Test whether ``n`` is the cardinality of a finite (desarguesian) projective
-    plane.
+    Return ``True`` if there exists a prime power ``q`` and an integer ``d``
+    greater than two such that:
 
-    If ``return_parameter`` is set to ``True`` then the function returns a pair
-    ``(boolean,q)`` where ``boolean`` is the answer and ``q`` the prime power
-    such that `n = q^2 + q + 1`.
+    - `v = (q^{d+1}-1)/(q-1) = q^d + q^{d-1} + ... + 1`
+    - `k = (q^d - 1)/(q-1) = q^{d-1} + q^{d-2} + ... + 1`
+    - `lmbda = (q^{d-1}-1)/(q-1) = q^{d-2} + q^{d-3} + ... + 1`
+
+    If it exists, such a pair ``(q,d)`` is unique.
+
+    INPUT:
+
+    - ``v,k,lmbda`` (integers)
+
+    OUTPUT:
+
+    - a boolean or, if ``return_parameters`` is set to ``True`` a pair
+      ``(True, (q,d))`` or ``(False, (None,None))``.
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.difference_family import is_projective_plane_cardinality
-        sage: is_projective_plane_cardinality(7)
+        sage: from sage.combinat.designs.difference_family import are_projective_space_parameters
+        sage: are_projective_space_parameters(40,13,4)
         True
-        sage: is_projective_plane_cardinality(7,return_parameter=True)
-        (True, 2)
+        sage: are_projective_space_parameters(40,13,4,return_parameters=True)
+        (True, (3, 3))
 
-        sage: is_projective_plane_cardinality(8)
+        sage: are_projective_space_parameters(15,3,1)
         False
-        sage: is_projective_plane_cardinality(8,return_parameter=True)
-        (False, None)
+        sage: are_projective_space_parameters(15,3,1,return_parameters=True)
+        (False, (None, None))
 
-        sage: for n in xrange(1,300):
-        ....:     res = is_projective_plane_cardinality(n,True)
-        ....:     if res[0]:
-        ....:         print "{:>3}: {:>2}".format(n,res[1])
-          7:  2
-         13:  3
-         21:  4
-         31:  5
-         57:  7
-         73:  8
-         91:  9
-        133: 11
-        183: 13
-        273: 16
+    TESTS::
+
+        sage: sgp = lambda q,d: ((q**(d+1)-1)//(q-1), (q**d-1)//(q-1), (q**(d-1)-1)//(q-1))
+        sage: for q in [3,4,5,7,8,9,11]:
+        ....:     for d in [2,3,4,5]:
+        ....:         v,k,l = sgp(q,d)
+        ....:         assert are_projective_space_parameters(v,k,l,True) == (True, (q,d))
+        ....:         assert are_projective_space_parameters(v+1,k,l) is False
+        ....:         assert are_projective_space_parameters(v-1,k,l) is False
+        ....:         assert are_projective_space_parameters(v,k+1,l) is False
+        ....:         assert are_projective_space_parameters(v,k-1,l) is False
+        ....:         assert are_projective_space_parameters(v,k,l+1) is False
+        ....:         assert are_projective_space_parameters(v,k,l-1) is False
     """
-    if n < 7:
-        return (False,None) if return_parameter else False
-    from sage.rings.all import ZZ
-    q,r = ZZ(n).sqrtrem()
-    m = q**2 + q + 1
-    while m < n:
-        q += 1
-        m = q**2 + q + 1
-    if n == m and arith.is_prime_power(q):
-        return (True,q) if return_parameter else True
-    return (False,None) if return_parameter else False
+    q1 = Integer(v - k)
+    q2 = Integer(k - lmbda)
 
-def singer_difference_set(q):
+    if (lmbda <= 0 or q1 < 4 or q2 < 2 or
+        not q1.is_prime_power() or
+        not q2.is_prime_power()):
+        return (False,(None,None)) if return_parameters else False
+
+    p1,e1 = q1.factor()[0]
+    p2,e2 = q2.factor()[0]
+
+    k = arith.gcd(e1,e2)
+    d = e1//k
+    q = p1**k
+    if e2//k != d-1 or lmbda != (q**(d-1)-1)//(q-1):
+        return (False,(None,None)) if return_parameters else False
+
+    return (True, (q,d)) if return_parameters else True
+
+def singer_difference_set(q,d):
     r"""
-    Return a difference set in `\ZZ/(q^2+q+1)\ZZ` when `q` is a prime power.
+    Return a difference set associated to the projective space of dimension `d`
+    over `GF(q)`.
+
+    The result is a cyclic difference family with parameters
+
+    .. MATH::
+
+        v = \frac{q^{d+1}-1}{q-1}, \quad
+        k = \frac{q^d-1}{q-1}, \quad
+        \lambda = \frac{q^{d-1}-1}{q-1}.
 
     The idea of the construction is as follows. One consider the finite field `V
-    = GF(q^3)` as a vector space of dimension `3` over `GF(q)`. The set of
-    `GF(q)` lines in `V` is a projective plane and has cardinality `q^2 + q +
-    1`. Now, considering a multiplicative generator of `GF(q^3)`, we get a
-    transitive action of a cyclic group on our projective plane from which it is
-    possible to build a difference set.
+    = GF(q^{d+1})` as a vector space of dimension `d+1` over `GF(q)`. The set of
+    lines  in `V` is a projective plane and its set of hyperplanes form a
+    balanced incomplete block design with parameters `(v,k,\lambda)`. Now,
+    considering a multiplicative generator of `GF(q^{d+1})`, we get a transitive
+    action of a cyclic group on our projective plane from which it is possible
+    to build a difference set.
 
     The construction is given in details in [Stinson2004]_, section 3.3.
 
     EXAMPLES::
 
         sage: from sage.combinat.designs.difference_family import singer_difference_set, is_difference_family
-        sage: G,D = singer_difference_set(3)
+        sage: G,D = singer_difference_set(3,2)
         sage: is_difference_family(G,D,verbose=True)
         It is a (13,4,1)-difference family
         True
 
-        sage: G,D = singer_difference_set(4)
+        sage: G,D = singer_difference_set(4,2)
         sage: is_difference_family(G,D,verbose=True)
         It is a (21,5,1)-difference family
         True
 
-        sage: G,D = singer_difference_set(5)
+        sage: G,D = singer_difference_set(3,3)
         sage: is_difference_family(G,D,verbose=True)
-        It is a (31,6,1)-difference family
+        It is a (40,13,4)-difference family
         True
 
-    .. TODO::
-
-        make it work for the `(q^(d+1)-1)/(q-1), (q^d - 1)/(q-1),
-        (q^(d-1)-1)/(q-1))` families obtained from higher dimension projective
-        spaces/.
+        sage: G,D = singer_difference_set(9,3)
+        sage: is_difference_family(G,D,verbose=True)
+        It is a (820,91,10)-difference family
+        True
     """
-    assert arith.is_prime_power(q)
-    n = q**2 + q + 1
+    q = Integer(q)
+    assert q.is_prime_power()
+    assert d >= 2
 
     from sage.rings.finite_rings.constructor import GF
-
-    Kq3 = GF(q**3,'z')
-    x = Kq3.multiplicative_generator()
-
-    # compute the elements in Kq3 that are in Kq (i.e the (q-1)-th root of unity
-    xx = x**(q**2+q+1)
-    Kq = set(xx**i for i in xrange(q-1))
-    Kq.add(Kq3.zero())
-
-    # for each i such that x^(i) = j+x mod p where j in Kq we add i%n to the
-    # difference set
-    a = Kq3.one()
-    powers = [0]
-    for i in xrange(1,q**3):
-        a *= x
-        if (a-x) in Kq:
-            powers.append(i%n)
-    assert len(powers) * (len(powers)-1) == n-1
-    powers.sort()
-
+    from sage.rings.finite_rings.conway_polynomials import conway_polynomial
     from sage.rings.finite_rings.integer_mod_ring import Zmod
-    return Zmod(n), [powers]
+
+    # build a polynomial c over GF(q) such that GF(q)[x] / (c(x)) is a
+    # GF(q**(d+1)) and such that x is a multiplicative generator.
+    p,e = q.factor()[0]
+    c = conway_polynomial(p,e*(d+1))
+    if e != 1:  # i.e. q is not a prime, so we factorize c over GF(q) and pick
+                # one of its factor
+        K = GF(q,'z')
+        c = c.change_ring(K).factor()[0][0]
+    else:
+        K = GF(q)
+    z = c.parent().gen()
+
+    # now compute the set of i such that z^i belongs to the subspace spanned by
+    # (1,z,z^2,...,z^(d-1)) over GF(q) (up to the action of scalar
+    # multiplication)
+    powers = [0]
+    i = 1
+    x = z
+    k = (q**d-1)//(q-1)
+    while len(powers) < k:
+        if x.degree() <= (d-1):
+            powers.append(i)
+        x = (x*z).mod(c)
+        i += 1
+
+    return Zmod((q**(d+1)-1)//(q-1)), [powers]
 
 def difference_family(v, k, l=1, existence=False, check=True):
     r"""
@@ -367,6 +401,7 @@ def difference_family(v, k, l=1, existence=False, check=True):
          9: (4,3), (8,7)
         11: (5,2), (5,4)
         13: (3,2), (4,3), (6,5)
+        15: (7,3)
         16: (3,2), (5,4)
         17: (4,3), (8,7)
         19: (3,2), (6,5), (9,4), (9,8)
@@ -402,12 +437,16 @@ def difference_family(v, k, l=1, existence=False, check=True):
         ....:         assert designs.difference_family(q,k,1,existence=True) is True
         ....:         _ = designs.difference_family(q,k,1)
 
-    Check Singer difference set built from finite (Desarguesian) projective planes::
+    Check Singer difference sets::
 
-        sage: for q in xrange(2,20):
+        sage: sgp = lambda q,d: ((q**(d+1)-1)//(q-1), (q**d-1)//(q-1), (q**(d-1)-1)//(q-1))
+
+        sage: for q in range(2,10):
         ....:     if is_prime_power(q):
-        ....:         assert designs.difference_family(q**2+q+1,q+1,1,existence=True) is True
-        ....:         _ = designs.difference_family(q**2+q+1,q+1,1)
+        ....:         for d in [2,3,4]:
+        ....:           v,k,l = sgp(q,d)
+        ....:           assert designs.difference_family(v,k,l,existence=True) is True
+        ....:           _ = designs.difference_family(v,k,l)
 
     .. TODO::
 
@@ -517,13 +556,12 @@ def difference_family(v, k, l=1, existence=False, check=True):
                         D = [[x**(i*5) * b for b in B] for i in xrange(t)]
                         break
 
-    if D is None and l == 1 and is_projective_plane_cardinality(v):
-        _,q = is_projective_plane_cardinality(v,True)
-        if k == q+1:
-            if existence:
-                return True
-            else:
-                G,D = singer_difference_set(q)
+    if D is None and are_projective_space_parameters(v,k,l):
+        _, (q,d) = are_projective_space_parameters(v,k,l,True)
+        if existence:
+            return True
+        else:
+            G,D = singer_difference_set(q,d)
 
     if D is None:
         if existence:

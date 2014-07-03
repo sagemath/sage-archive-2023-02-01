@@ -2410,20 +2410,22 @@ def OA_9_135():
     """
     from bibd import BIBD_from_difference_family
     from difference_family import singer_difference_set
-    G,B = singer_difference_set(16)
+    G,B = singer_difference_set(16,2)
     PG16 = BIBD_from_difference_family(G,B)
 
     n = 273
 
-    # PG2 is a (7,3,1)-design (fano plane) contained in PG16. It is a set of 7
-    # points that any block of PG16 intersect on 0,1, or 3 points.
+    # We consider a PG(2,2) (or a (7,3,1)-design, or a Fano plane) contained in
+    # PG16: it is a set of 7 points such that any block of PG16 intersect on
+    # 0,1, or 3 points. The set of points congruent to 0 mod 39 does the job!
     #
     # ... check that it works
     assert all(sum((x%39 == 0) for x in B) in [0,1,3] for B in PG16)
 
     # We now build an OA(17,16) from our PG16, in such a way that all points of
-    # PG2 are in different columns. For this, we need to find a point p that is
-    # not located on any of the lines defined by the points of PG2
+    # our PG(2,2) are in different columns. For this, we need to find a point p
+    # that is not located on any of the lines defined by the points of the
+    # PG(2,2).
 
     lines = [B for B in PG16 if sum((x%39 == 0) for x in B) == 3]
     p = set(range(237)).difference(*lines).pop()

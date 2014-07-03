@@ -571,6 +571,7 @@ def v_4_1_BIBD(v, check=True):
 
     # Step 1. Base cases.
     if v == 13:
+        # note: this construction can also be obtained from difference_family
         from block_design import projective_plane
         return projective_plane(3).blocks()
     if v == 16:

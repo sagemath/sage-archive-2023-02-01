@@ -255,7 +255,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         ....:     items = [1/5, 1/3, 2/3, 3/4, 5/7]
         ....:     maximum=1
         ....:     p=MixedIntegerLinearProgram()
-        ....:     box=p.new_variable(**{type:True})
+        ....:     box=p.new_variable(nonnegative=True, **{type:True})
         ....:     for b in range(k):
         ....:          p.add_constraint(p.sum([items[i]*box[i,b] for i in range(len(items))]) <= maximum)
         ....:     for i in range(len(items)):
@@ -362,7 +362,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p = MixedIntegerLinearProgram()
             sage: v = p.new_variable(real=True)
-            doctest:839: DeprecationWarning: The default value of 'nonnegative' will change, to False instead of True. You should add the explicit 'nonnegative=True'.
+            doctest:...: DeprecationWarning: The default value of 'nonnegative' will change, to False instead of True. You should add the explicit 'nonnegative=True'.
             See http://trac.sagemath.org/15521 for details.
             sage: p.get_min(v[0])
             0.0

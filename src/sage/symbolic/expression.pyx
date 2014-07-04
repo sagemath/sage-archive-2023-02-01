@@ -8138,7 +8138,7 @@ cdef class Expression(CommutativeRingElement):
 
         if complexity_measure is None:
             return simplified_expr
-        
+
         if complexity_measure(simplified_expr) < complexity_measure(self):
             return simplified_expr
         else:
@@ -9148,8 +9148,7 @@ cdef class Expression(CommutativeRingElement):
 
         INPUT:
 
-
-        -  ``x`` - variable to solve for
+        -  ``x`` - variable(s) to solve for
 
         -  ``multiplicities`` - bool (default: False); if True,
            return corresponding multiplicities.  This keyword is
@@ -9275,6 +9274,13 @@ cdef class Expression(CommutativeRingElement):
             sage: sol.sage()
             [[x == 1/4*pi + pi*z...]]
 
+        We can also solve for several variables::
+
+            sage: var('b, c')
+            (b, c)
+            sage: solve((b-1)*(c-1), [b,c])
+            [[b == 1, c == r3], [b == r4, c == 1]]
+
         Some basic inequalities can be also solved::
 
             sage: x,y=var('x,y'); (ln(x)-ln(y)>0).solve(x)
@@ -9348,7 +9354,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x.solve((1,2))
             Traceback (most recent call last):
             ...
-            TypeError: 1 is not a valid variable.
+            TypeError: (1, 2) are not valid variables.
         """
         import operator
         cdef Expression ex
@@ -9370,25 +9376,22 @@ cdef class Expression(CommutativeRingElement):
         if multiplicities and to_poly_solve:
             raise NotImplementedError("to_poly_solve does not return multiplicities")
 
-        # Take care of cases like solve([x^2-1], [x]) for consistency with
-        # multiple variable input in sage.symbolic.relation.solve().
-        # There *should* be only one variable in the list, since it is
-        # passed from sage.symbolic.relation.solve() and multiple variables
-        # there don't call this function.
+
         if isinstance(x, (list, tuple)):
-            x = x[0]
+            if not all([isinstance(i, Expression) for i in x]):
+                raise TypeError("%s are not valid variables." % repr(x))
+        else:
+            if x is None:
+                v = ex.variables()
+                if len(v) == 0:
+                    if multiplicities:
+                        return [], []
+                    else:
+                        return []
+                x = v[0]
 
-        if x is None:
-            v = ex.variables()
-            if len(v) == 0:
-                if multiplicities:
-                    return [], []
-                else:
-                    return []
-            x = v[0]
-
-        if not isinstance(x, Expression):
-            raise TypeError("%s is not a valid variable." % repr(x))
+            if not isinstance(x, Expression):
+                raise TypeError("%s is not a valid variable." % repr(x))
 
         m = ex._maxima_()
         P = m.parent()
@@ -9887,7 +9890,6 @@ cdef class Expression(CommutativeRingElement):
         with respect to the variable `v` with endpoints
         `a` and `b`.
 
-
         INPUT:
 
         -  ``v`` - a variable or variable name
@@ -9923,6 +9925,41 @@ cdef class Expression(CommutativeRingElement):
             sage: (1/k^5).sum(k, 1, oo)
             zeta(5)
 
+        .. WARNING::
+        
+            This function only works with symbolic expressions. To sum any
+            other objects like list elements or function return values,
+            please use python summation, see
+            http://docs.python.org/library/functions.html#sum
+
+            In particular, this does not work::
+            
+                sage: n = var('n')
+                sage: list=[1,2,3,4,5]
+                sage: sum(list[n],n,0,3)
+                Traceback (most recent call last):
+                ...
+                TypeError: unable to convert x (=n) to an integer
+                
+            Use python ``sum()`` instead::
+            
+                sage: sum(list[n] for n in range(4))
+                10
+                
+            Also, only a limited number of functions are recognized in symbolic sums::
+            
+                sage: sum(valuation(n,2),n,1,5)
+                Traceback (most recent call last):
+                ...
+                AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'valuation'
+                
+            Again, use python ``sum()``::
+            
+                sage: sum(valuation(n+1,2) for n in range(5))
+                3
+                
+            (now back to the Sage ``sum`` examples)
+    
         A well known binomial identity::
 
             sage: assume(n>=0)

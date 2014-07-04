@@ -7,7 +7,28 @@ TESTS::
     sage: F = K.factor(3)[0][0].residue_field()
     sage: loads(dumps(F)) == F
     True
+
+AUTHORS:
+
+- Adrien Brochard, David Roe, Jeroen Demeyer, Julian Rueth, Niles Johnson,
+  Peter Bruin, Travis Scrimshaw, Xavier Caruso: initial version
+
 """
+#*****************************************************************************
+#       Copyright (C) 2009 David Roe <roed@math.harvard.edu>
+#       Copyright (C) 2010 Niles Johnson <nilesj@gmail.com>
+#       Copyright (C) 2011 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#       Copyright (C) 2012 Adrien Brochard <aaa.brochard@gmail.com>
+#       Copyright (C) 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
+#       Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
+#       Copyright (C) 2013 Peter Bruin <P.Bruin@warwick.ac.uk>
+#       Copyright (C) 2014 Julian Rueth <julian.rueth@fsfe.org>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 include "sage/ext/stdsage.pxi"
 
 from sage.categories.finite_fields import FiniteFields
@@ -100,6 +121,19 @@ cdef class FiniteField(Field):
         if category is None:
             category = FiniteFields()
         Field.__init__(self, base, names, normalize, category)
+
+    def is_perfect(self):
+        r"""
+        Return whether this field is perfect, i.e., every element has a `p`-th
+        root. Always returns ``True`` since finite fields are perfect.
+
+        EXAMPLES::
+
+            sage: GF(2).is_perfect()
+            True
+
+        """
+        return True
 
     def __repr__(self):
         """
@@ -350,6 +384,108 @@ cdef class FiniteField(Field):
             return FiniteFieldHomset(self, codomain, category)
         else:
             return RingHomset(self, codomain, category)
+
+    def _squarefree_decomposition_univariate_polynomial(self, f):
+        """
+        Return the square-free decomposition of this polynomial.  This is a
+        partial factorization into square-free, coprime polynomials.
+
+        This is a helper method for
+        :meth:`sage.rings.polynomial.squarefree_decomposition`.
+
+        INPUT:
+
+        - ``f`` -- a univariate non-zero polynomial over this field
+
+        ALGORITHM; [Coh]_, algorithm 3.4.2 which is basically the algorithm in
+        [Yun]_ with special treatment for powers divisible by `p`.
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(3^2)
+            sage: R.<x> = K[]
+            sage: f = x^243+2*x^81+x^9+1
+            sage: f.squarefree_decomposition()
+            (x^27 + 2*x^9 + x + 1)^9
+            sage: f = x^243+a*x^27+1
+            sage: f.squarefree_decomposition()
+            (x^9 + (2*a + 1)*x + 1)^27
+
+        TESTS::
+
+            sage: for K in [GF(2^18,'a'), GF(3^2,'a'), GF(47^3,'a')]:
+            ....:     R.<x> = K[]
+            ....:     if K.characteristic() < 5: m = 4
+            ....:     else: m = 1
+            ....:     for _ in range(m):
+            ....:         f = (R.random_element(4)^3*R.random_element(m)^(m+1))(x^6)
+            ....:         F = f.squarefree_decomposition()
+            ....:         assert F.prod() == f
+            ....:         for i in range(len(F)):
+            ....:             assert gcd(F[i][0], F[i][0].derivative()) == 1
+            ....:             for j in range(len(F)):
+            ....:                 if i == j: continue
+            ....:                 assert gcd(F[i][0], F[j][0]) == 1
+            ....:
+
+        REFERENCES:
+
+        .. [Coh] H. Cohen, A Course in Computational Algebraic Number
+           Theory.  Springer-Verlag, 1993.
+
+        .. [Yun] Yun, David YY. On square-free decomposition algorithms.
+           In Proceedings of the third ACM symposium on Symbolic and algebraic
+           computation, pp. 26-35. ACM, 1976.
+
+        """
+        from sage.structure.factorization import Factorization
+        if f.degree() == 0:
+            return Factorization([], unit=f[0])
+
+        factors = []
+        p = self.characteristic()
+        unit = f.leading_coefficient()
+        T0 = f.monic()
+        e = 1
+        if T0.degree() > 0:
+            der = T0.derivative()
+            while der.is_zero():
+                T0 = T0.parent()([T0[p*i].pth_root() for i in range(T0.degree()//p + 1)])
+                if T0 == 1:
+                    raise RuntimeError
+                der = T0.derivative()
+                e = e*p
+            T = T0.gcd(der)
+            V = T0 // T
+            k = 0
+            while T0.degree() > 0:
+                k += 1
+                if p.divides(k):
+                    T = T // V
+                    k += 1
+                W = V.gcd(T)
+                if W.degree() < V.degree():
+                    factors.append((V // W, e*k))
+                    V = W
+                    T = T // V
+                    if V.degree() == 0:
+                        if T.degree() == 0:
+                            break
+                        # T is of the form sum_{i=0}^n t_i X^{pi}
+                        T0 = T0.parent()([T[p*i].pth_root() for i in range(T.degree()//p + 1)])
+                        der = T0.derivative()
+                        e = p*e
+                        while der.is_zero():
+                            T0 = T0.parent()([T0[p*i].pth_root() for i in range(T0.degree()//p + 1)])
+                            der = T0.derivative()
+                            e = p*e
+                        T = T0.gcd(der)
+                        V = T0 // T
+                        k = 0
+                else:
+                    T = T//V
+
+        return Factorization(factors, unit=unit, sort=False)
 
     def gen(self):
         r"""

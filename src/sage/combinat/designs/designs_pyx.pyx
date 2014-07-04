@@ -95,6 +95,9 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
                    "MOLS" : "All squares do not have dimension n^2={}^2".format(n)}[terminology]
         return False
 
+    if n == 0:
+        return True
+
     cdef int i,j,l
 
     # A copy of OA

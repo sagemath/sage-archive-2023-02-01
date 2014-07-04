@@ -2980,7 +2980,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             fails to span the degree-`9` part of `\mathrm{QSym}`.
             (The corresponding computation is not tested as it takes
             a few minutes.) We have not checked if it spans
-            `\mathrm{QSym}` over `\ZZ`.
+            `\mathrm{QSym}` over `\QQ`.
             """
             # Much of this code is adapted from sage/combinat/sf/dual.py
             base_ring = self.base_ring()

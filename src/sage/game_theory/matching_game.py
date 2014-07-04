@@ -1,7 +1,6 @@
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
-from copy import deepcopy, copy
-from sage.matrix.constructor import matrix
+from copy import deepcopy
 from sage.graphs.bipartite_graph import BipartiteGraph
 
 
@@ -139,7 +138,7 @@ class MatchingGame(SageObject):
         r"""
         """
         suitors_dictionary, reviewer_dictionary = self.game_to_dict()
-
+        # return a latex version of the dictionaries.
 
     def game_to_dict(self):
         suitor_dictionary = {}
@@ -349,4 +348,3 @@ class _Player():
 
     def __eq__(self, other):
         return self.__repr__() == other.__repr__()
-

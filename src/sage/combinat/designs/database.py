@@ -70,6 +70,7 @@ Implemented constructions :
   :func:`OA(9,514) <OA_9_514>`,
   :func:`OA(11,640) <OA_11_640>`,
   :func:`OA(10,796) <OA_10_796>`,
+  :func:`OA(15,896) <OA_15_896>`,
   :func:`OA(33,993) <OA_33_993>`
 
 - :func:`two MOLS of order 10 <MOLS_10_2>`,
@@ -3095,6 +3096,81 @@ def OA_10_796():
 
     return OA
 
+def OA_15_896():
+    r"""
+    Returns an OA(15,896)
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_15_896
+        sage: OA = OA_15_896()                          # not tested -- too long (~2min)
+        sage: print is_orthogonal_array(OA,15,896,2)    # not tested -- too long
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(15,896,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    from itertools import combinations
+
+    n = 7
+    k = 14
+    F = FiniteField(7)
+    Fq = FiniteField(2**n,prefix='w',conway=True)
+    G = F.cartesian_product(Fq)
+    w = Fq.gens()[0]
+    assert w**7 + w**1 + 1 == 0
+
+    A = [
+        [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
+        [(0,None), (1,None), (2,  17), (3,  20), (4,  49), (5,   4), (6,  59), (1,  15), (0, 114), (1,  76), (4, 106), (2,  87), (2, 118), (4,  49)], # 4,120 became the leftmost 4,49
+        [(0,None), (2,None), (4,   2), (6,  98), (1,  53), (3,  97), (5, 123), (4,   3), (1,  32), (0,  10), (1,  45), (4,   3), (2,   1), (2,  14)],
+        [(0,None), (3,None), (6,  16), (2,  86), (5, 102), (1,  64), (4,  69), (2,  11), (4,  55), (1,  90), (0, 115), (1,  15), (4,   7), (2,   0)],
+        [(0,None), (4,None), (1,   4), (5, 110), (2,  51), (6, 118), (3,   8), (2,  81), (2,  79), (4,  98), (1,   2), (0,   3), (1,   7), (4,None)],
+        [(0,None), (5,None), (3,  66), (1,  70), (6, 102), (4, 119), (2,  20), (4,  86), (2,  59), (2,  15), (4,  63), (1, 126), (0,   1), (1,   0)],
+        [(0,None), (6,None), (5,  94), (4,  48), (3,  90), (2,   2), (1,  13), (1,  53), (4, 117), (2,  21), (2,   2), (4,   1), (1,   0), (0,   0)],
+        [(0,None), (4,   6), (2,  21), (1, 112), (1,  36), (2,  14), (4,  60), (0,   1), (6,  64), (3,   0), (5,  31), (5,   3), (3,   3), (6,  14)],
+        [(0,None), (5,   6), (4,  61), (4,None), (5, 108), (0,  91), (3,  10), (6,  15), (0,None), (6,  15), (3,   7), (5,   0), (5,   1), (3,   0)],
+        [(0,None), (6,   6), (6, 107), (0,  88), (2,  12), (5,  44), (2,  31), (3,  64), (6,   0), (0,None), (6,   2), (3,   3), (5,None), (5,   0)],
+        [(0,None), (0,   6), (1,  52), (3, 115), (6,  30), (3,  78), (1,  64), (5,  63), (3,   5), (6,None), (0,None), (6,   3), (3,   1), (5,None)],
+        [(0,None), (1,   6), (3, 117), (6,  19), (3,   9), (1,  31), (0,  56), (5,   0), (5,  63), (3,None), (6,None), (0,None), (6,   7), (3,None)],
+        [(0,None), (2,   6), (5, 116), (2,   3), (0,   0), (6,None), (6,   1), (3,   0), (5,   0), (5,   2), (3,None), (6,None), (0,None), (6,   0)],
+        [(0,None), (3,   6), (0,   0), (5,   0), (4,   1), (4,None), (5,None), (6,   0), (3,   2), (5,   0), (5,None), (3,None), (6,None), (0,None)] # 0,0 became the rightmost 0,None
+    ]
+
+    Y = [None, 0,1,2,121,66,77,78,41,100,74,118,108,43]
+
+    A = zip(*A)
+
+    r = lambda x : Fq(0) if x is None else w**x
+    A = [[(a,r(b)) for a,b in L] for L in A]
+    Y = map(r,Y)
+
+    def t(i,x):
+        assert i<=n-2
+        b = Y[x]
+        return G((0,b*w**i))
+
+    Mb = [[] for _ in range(k)]
+    Subsets = [S for s in range(n) for S in combinations(range(n-1),s)]
+    assert len(Subsets) == 2**(n-1)
+
+    for x in range(len(A)):
+        tt = [t(i,x) for i in range(n-1)]
+        for y in range(len(A[0])):
+            e = G(A[x][y])
+            Mb[x].extend([e+sum([tt[ii] for ii in S],G.zero()) for S in Subsets])
+
+    M = OA_from_quasi_difference_matrix(Mb,G,add_col = True)
+    return M
+
 def OA_33_993():
     r"""
     Returns an OA(33,993)
@@ -3190,6 +3266,7 @@ OA_constructions = {
     514 : (9 , OA_9_514),
     640 : (11 , OA_11_640),
     796 : (10 , OA_10_796),
+    896 : (15 , OA_15_896),
     993 : (33 , OA_33_993)
 }
 

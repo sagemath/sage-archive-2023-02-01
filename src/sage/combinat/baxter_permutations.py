@@ -1,9 +1,10 @@
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.combinat.permutation import Permutation
 
 
-class BaxterPermutations(UniqueRepresentation, Parent) :
+class BaxterPermutations(UniqueRepresentation, Parent):
     r"""
     The combinatorial class of Baxter permutations. A Baxter permutation
     is a permutation avoiding the generalized permutation patterns
@@ -28,46 +29,50 @@ class BaxterPermutations(UniqueRepresentation, Parent) :
         sage: BaxterPermutations(5)
         Baxter permutations of size 5
         sage: BaxterPermutations()
-        BaxterPermutations()
+        Baxter permutations
     """
-
     @staticmethod
-    def __classcall_private__(classe, n = None):
-        if n is None :
+    def __classcall_private__(classe, n=None):
+        if n is None:
             return BaxterPermutations_all()
-        else :
-            return BaxterPermutations_size(n)
+        return BaxterPermutations_size(n)
 
 
-class BaxterPermutations_size(BaxterPermutations) :
+class BaxterPermutations_size(BaxterPermutations):
     r"""
     The enumerated set of Baxter permutations of a given size.
 
     EXAMPLES::
 
+        sage: from sage.combinat.baxter_permutations import BaxterPermutations_size
         sage: BaxterPermutations_size(5)
         Baxter permutations of size 5
     """
 
-    def __init__(self, n) :
+    def __init__(self, n):
         self.element_class = type(Permutation([]))
         self._n = n
         from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-        super(BaxterPermutations, self).__init__(category = FiniteEnumeratedSets())
+        super(BaxterPermutations, self).__init__(category=FiniteEnumeratedSets())
 
-    def _element_constructor_(self, x) :
+    def _element_constructor_(self, x):
         return self.element_class(x)
 
-    def _repr_(self) :
-        return "Baxter permutations of size %s" %(self._n)
+    def _repr_(self):
+        """
+        Return a string representation of ``self``
 
-    def __contains__(self, x) :
+        EXAMPLES::
+        """
+        return "Baxter permutations of size %s" % self._n
+
+    def __contains__(self, x):
         r"""
-        INPUT::
+        INPUT:
 
-        - ``x`` -- any object.
+        - ``x`` -- a list or tuple or permutation.
 
-        OUTPUT::
+        OUTPUT:
 
         Returns ``True`` if and only if ``x`` is a Baxter permutation of
         size ``self._n``.
@@ -80,45 +85,45 @@ class BaxterPermutations_size(BaxterPermutations) :
             False
             sage: Permutation([3, 1, 4, 2]) in BaxterPermutations(4)
             False
-            sage: [len([p for p in Permutations(n) if p in BaxterPermutations(n)]) for n in xrange(8)]
-            [1, 1, 2, 6, 22, 92, 422, 2074]
-            sage: sorted([p for p in Permutations(6) if p in BaxterPermutations(6)]) == sorted(BaxterPermutations(6).list())
+            sage: [len([p for p in Permutations(n) if Permutation(list(p)) in BaxterPermutations(n)]) for n in range(7)]
+            [1, 1, 2, 6, 22, 92, 422]
+            sage: sorted([p for p in Permutations(6) if Permutation(list(p)) in BaxterPermutations(6)]) == sorted(BaxterPermutations(6).list())
             True
         """
-        if not isinstance(x, self.element_class) or len(x) != self._n :
+        if not isinstance(x, self.element_class) or len(x) != self._n:
             return False
-        for i in range(1, len(x) - 1) :
+        for i in range(1, len(x) - 1):
             a = x[i]
             b = x[i + 1]
-            if a < b : # Hunting pattern 3-14-2.
+            if a < b:  # Hunting pattern 3-14-2.
                 max_l = 0
-                for j in range(i) :
-                    if x[j] > a and x[j] < b and x[j] > max_l :
+                for j in range(i):
+                    if x[j] > a and x[j] < b and x[j] > max_l:
                         max_l = x[j]
                 min_r = len(x) + 1
-                for j in range(i + 2, len(x)) :
-                    if x[j] > a and x[j] < b and x[j] < min_r :
+                for j in range(i + 2, len(x)):
+                    if x[j] > a and x[j] < b and x[j] < min_r:
                         min_r = x[j]
-                if max_l != 0 and min_r != 0 and max_l > min_r :
+                if max_l != 0 and min_r != 0 and max_l > min_r:
                     return False
-            else : # Hunting pattern 2-41-3.
+            else:  # Hunting pattern 2-41-3.
                 min_l = len(x) + 1
-                for j in range(i) :
-                    if x[j] < a and x[j] > b and x[j] < min_l :
+                for j in range(i):
+                    if x[j] < a and x[j] > b and x[j] < min_l:
                         min_l = x[j]
                 max_r = 0
-                for j in range(i + 2, len(x)) :
-                    if x[j] < a and x[j] > b and x[j] > max_r :
+                for j in range(i + 2, len(x)):
+                    if x[j] < a and x[j] > b and x[j] > max_r:
                         max_r = x[j]
-                if min_l != 0 and max_r != 0 and min_l < max_r :
+                if min_l != 0 and max_r != 0 and min_l < max_r:
                     return False
         return True
 
-    def __iter__(self) :
+    def __iter__(self):
         r"""
         Efficient generation of Baxter permutations.
 
-        OUTPUT::
+        OUTPUT:
 
         An iterator over the Baxter permutations of size ``self._n``.
 
@@ -145,29 +150,31 @@ class BaxterPermutations_size(BaxterPermutations) :
 
         .. [BBF08] N. Bonichon, M. Bousquet-Melou, E. Fusy.
            Baxter permutations and plane bipolar orientations.
-           Seminaire Lotaringien de combinatoire 61A, article B61Ah, 2008.
+           Seminaire Lotharingien de combinatoire 61A, article B61Ah, 2008.
         """
-        if self._n == 0 :
+        if self._n == 0:
             yield Permutation([])
-        elif self._n == 1 :
+        elif self._n == 1:
             yield Permutation([1])
-        else :
-            for b in BaxterPermutations(self._n - 1) :
+        else:
+            for b in BaxterPermutations(self._n - 1):
                 # Left to right maxima.
-                for i in [self._n - 2 - i for i in b.reverse().saliances()] :
+                for i in [self._n - 2 - i for i in b.reverse().saliances()]:
                     yield Permutation(b[:i] + [self._n] + b[i:])
                 # Right to left maxima.
-                for i in b.saliances() :
+                for i in b.saliances():
                     yield Permutation(b[:i + 1] + [self._n] + b[i + 1:])
 
-    def _an_element_(self) :
+    def _an_element_(self):
+        """
+        """
         return self.first()
 
-    def cardinality(self) :
+    def cardinality(self):
         r"""
         The number of Baxter permutations.
 
-        OUTPUT::
+        OUTPUT:
 
         Returns the number of Baxter permutations of size ``self._n``.
 
@@ -176,42 +183,47 @@ class BaxterPermutations_size(BaxterPermutations) :
             sage: [BaxterPermutations(n).cardinality() for n in xrange(13)]
             [1, 1, 2, 6, 22, 92, 422, 2074, 10754, 58202, 326240, 1882960, 11140560]
         """
-        if self._n == 0 :
+        if self._n == 0:
             return 1
         from sage.rings.arith import binomial
-        return sum((binomial(self._n + 1, k) *\
-                    binomial(self._n + 1, k + 1) *\
-                    binomial(self._n + 1, k + 2)) /\
-                    ((self._n + 1) * binomial(self._n + 1, 2)) for k in xrange(self._n))
+        return sum((binomial(self._n + 1, k) *
+                    binomial(self._n + 1, k + 1) *
+                    binomial(self._n + 1, k + 2)) /
+                   ((self._n + 1) * binomial(self._n + 1, 2))
+                   for k in xrange(self._n))
 
 
-class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations) :
+class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations):
     r"""
     The enumerated set of all Baxter permutations.
 
     EXAMPLES::
 
+        sage: from sage.combinat.baxter_permutations import BaxterPermutations_all
         sage: BaxterPermutations_all()
         Baxter permutations
     """
-    def __init__(self, n = None) :
+    def __init__(self, n=None):
         self.element_class = type(Permutation([]))
         from sage.categories.examples.infinite_enumerated_sets import NonNegativeIntegers
         from sage.sets.family import Family
         DisjointUnionEnumeratedSets.__init__(self,
-            Family(NonNegativeIntegers(), BaxterPermutations_size),
-            facade = False, keepkey = False)
+                                             Family(NonNegativeIntegers(),
+                                                    BaxterPermutations_size),
+                                             facade=False, keepkey=False)
 
-    def _repr_(self) :
+    def _repr_(self):
+        """
+        """
         return "Baxter permutations"
 
-    def __contains__(self, x) :
+    def __contains__(self, x):
         r"""
-        INPUT::
+        INPUT:
 
         - ``x`` -- any object.
 
-        OUTPUT::
+        OUTPUT:
 
         Returns ``True`` if and only if ``x`` is a Baxter permutation.
 
@@ -222,20 +234,20 @@ class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations) :
             sage: Permutation([4, 3, 6, 9, 7, 5, 1, 2, 8]) in BaxterPermutations()
             True
         """
-        if not isinstance(x, self.element_class) :
+        if not isinstance(x, self.element_class):
             return False
         return x in BaxterPermutations(len(x))
 
-    def to_pair_of_twin_binary_trees(self, p) :
+    def to_pair_of_twin_binary_trees(self, p):
         r"""
         Computes a bijection between Baxter permutations of size ``self._n``
         and the set of pairs of twin binary trees with ``self._n`` nodes.
 
-        INPUT::
+        INPUT:
 
         - ``p`` -- a Baxter permutation.
 
-        OUTPUT::
+        OUTPUT:
 
         Returns the pair of twin binary trees `(T_L, T_R)` where `T_L`
         (resp. `T_R`) is obtained by inserting the letters of ``p`` from
@@ -254,8 +266,8 @@ class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations) :
         from sage.combinat.binary_tree import LabelledBinaryTree
         left = LabelledBinaryTree(None)
         right = LabelledBinaryTree(None)
-        for a in p :
+        for a in p:
             left = left.binary_search_insert(a)
-        for a in p.reverse() :
+        for a in p.reverse():
             right = right.binary_search_insert(a)
         return (left, right)

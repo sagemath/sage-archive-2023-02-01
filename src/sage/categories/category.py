@@ -1141,7 +1141,7 @@ class Category(UniqueRepresentation, SageObject):
             This method together with the methods overloading it
             provide the basic data to determine, for a given category,
             the super categories that define some structure (see
-            :meth:`super_structure_categories`), and to test whether a
+            :meth:`all_structure_super_categories`), and to test whether a
             category is a full subcategory of some other category (see
             :meth:`is_full_subcategory`).
 
@@ -1151,7 +1151,7 @@ class Category(UniqueRepresentation, SageObject):
         return True
 
     @cached_method
-    def super_structure_categories(self):
+    def all_structure_super_categories(self):
         r"""
         Return the super structure categories of ``self``.
 
@@ -1165,11 +1165,11 @@ class Category(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: Objects().super_structure_categories()
+            sage: Objects().all_structure_super_categories()
             frozenset([])
 
             sage: def structure_categories(C):
-            ....:     return Category._sort(C.super_structure_categories())
+            ....:     return Category._sort(C.all_structure_super_categories())
 
             sage: structure_categories(Sets())
             (Category of sets, Category of sets with partial maps)
@@ -1180,7 +1180,7 @@ class Category(UniqueRepresentation, SageObject):
         categories to get a more readable output::
 
             sage: def structure_categories(C):
-            ....:     return Category._sort_uniq(C.super_structure_categories())
+            ....:     return Category._sort_uniq(C.all_structure_super_categories())
 
             sage: structure_categories(Magmas())
             (Category of magmas,)
@@ -1196,7 +1196,7 @@ class Category(UniqueRepresentation, SageObject):
             (Category of hopf algebras over Rational Field,
              Category of graded modules over Rational Field)
         """
-        result = { D for C in self.super_categories() for D in C.super_structure_categories() }
+        result = { D for C in self.super_categories() for D in C.all_structure_super_categories() }
         if self.is_structure_category():
             result.add(self)
         return frozenset(result)
@@ -1212,7 +1212,7 @@ class Category(UniqueRepresentation, SageObject):
 
         This is computed by testing whether ``self`` is a subcategory
         of ``other`` and whether they have the same structure, as
-        determined by :meth:`super_structure_categories` from the
+        determined by :meth:`all_structure_super_categories` from the
         result of :meth:`is_structure_category` on the super
         categories.
 
@@ -1237,8 +1237,8 @@ class Category(UniqueRepresentation, SageObject):
                 False
         """
         return self.is_subcategory(other) and \
-           len(self.super_structure_categories()) == \
-           len(other.super_structure_categories())
+           len(self.all_structure_super_categories()) == \
+           len(other.all_structure_super_categories())
 
     @cached_method
     def full_super_categories(self):

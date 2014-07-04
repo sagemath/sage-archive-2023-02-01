@@ -2951,7 +2951,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: l(toy_to_self_cache)
                 []
                 sage: def toy_gen_function(I):
-                ....:     xs = flatten([i // gcd(I) for i in I] * gcd(I))
+                ....:     xs = [i // gcd(I) for i in I] * gcd(I)
                 ....:     return M[xs]
                 sage: HWL._precompute_cache(0, toy_to_self_cache,
                 ....:                          toy_from_self_cache,

@@ -2975,9 +2975,12 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: l(toy_to_self_cache)
                 [([], [([], 1)]), ([1], [([1], 1)]), ([1, 1], [([2], 1)]), ([2], [([1, 1], 1), ([2], -2)])]
 
-            This can be seen to form another `\ZZ`-basis of
-            `\mathrm{QSym}`, although it is not clear whether it has
-            any better properties than Hazewinkel's Lambda one.
+            This appears to form another `\ZZ`-basis of
+            `\mathrm{QSym}`, but the appearance is deceiving: it
+            fails to span the degree-`9` part of `\mathrm{QSym}`.
+            (The corresponding computation is not tested as it takes
+            a few minutes.) We have not checked if it spans
+            `\mathrm{QSym}` over `\ZZ`.
             """
             # Much of this code is adapted from sage/combinat/sf/dual.py
             base_ring = self.base_ring()

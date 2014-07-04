@@ -838,6 +838,13 @@ class MaximaLib(MaximaAbstract):
             ...
             RuntimeError: ECL says: Error executing code in Maxima: Zero to negative power computed.
 
+        Similar situation for :trac:`12410`::
+
+            sage: x = var('x')
+            sage: sum(1/x*(-1)^x, x, 0, oo)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: ECL says: Error executing code in Maxima: Zero to negative power computed.
         """
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_sum],([max_sum],[sr_to_max(SR(a)) for a in args])]]));

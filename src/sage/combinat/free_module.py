@@ -25,7 +25,7 @@ from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import lazy_attribute
 from sage.categories.poor_man_map import PoorManMap
-from sage.categories.all import ModulesWithBasis
+from sage.categories.all import Sets, ModulesWithBasis
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
 from sage.sets.family import Family
 from sage.misc.ascii_art import AsciiArt, empty_ascii_art
@@ -1317,9 +1317,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         if R not in Rings():
             raise TypeError("Argument R must be a ring.")
 
-        if category is None:
-            category = ModulesWithBasis(R)
-
         if element_class is not None:
             self.Element = element_class
 
@@ -1328,6 +1325,11 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         if isinstance(basis_keys, (list, tuple)):
             basis_keys = FiniteEnumeratedSet(basis_keys)
         self._basis_keys = basis_keys # Needs to be done early: #10127
+
+        if category is None:
+            category = ModulesWithBasis(R)
+        if basis_keys in Sets().Finite():
+            category = category.FiniteDimensional()
 
         Parent.__init__(self, base = R, category = category,
                         # Could we get rid of this?

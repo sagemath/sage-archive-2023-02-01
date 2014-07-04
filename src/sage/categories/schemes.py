@@ -155,7 +155,7 @@ class Schemes(Category):
                 sage: Schemes().Homsets().super_categories()
                 [Category of objects]
 
-            .. FIXME::
+            .. TODO::
 
                  What category structure is there on Homsets of schemes?
 

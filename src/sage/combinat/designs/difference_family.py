@@ -164,71 +164,6 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
         print "It is a ({},{},{})-difference family".format(v,k,l)
     return True
 
-def are_projective_space_parameters(v, k, lmbda, return_parameters=False):
-    r"""
-    Return ``True`` if there exists a prime power ``q`` and an integer ``d``
-    greater than two such that:
-
-    - `v = (q^{d+1}-1)/(q-1) = q^d + q^{d-1} + ... + 1`
-    - `k = (q^d - 1)/(q-1) = q^{d-1} + q^{d-2} + ... + 1`
-    - `lmbda = (q^{d-1}-1)/(q-1) = q^{d-2} + q^{d-3} + ... + 1`
-
-    If it exists, such a pair ``(q,d)`` is unique.
-
-    INPUT:
-
-    - ``v,k,lmbda`` (integers)
-
-    OUTPUT:
-
-    - a boolean or, if ``return_parameters`` is set to ``True`` a pair
-      ``(True, (q,d))`` or ``(False, (None,None))``.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.difference_family import are_projective_space_parameters
-        sage: are_projective_space_parameters(40,13,4)
-        True
-        sage: are_projective_space_parameters(40,13,4,return_parameters=True)
-        (True, (3, 3))
-
-        sage: are_projective_space_parameters(15,3,1)
-        False
-        sage: are_projective_space_parameters(15,3,1,return_parameters=True)
-        (False, (None, None))
-
-    TESTS::
-
-        sage: sgp = lambda q,d: ((q**(d+1)-1)//(q-1), (q**d-1)//(q-1), (q**(d-1)-1)//(q-1))
-        sage: for q in [3,4,5,7,8,9,11]:
-        ....:     for d in [2,3,4,5]:
-        ....:         v,k,l = sgp(q,d)
-        ....:         assert are_projective_space_parameters(v,k,l,True) == (True, (q,d))
-        ....:         assert are_projective_space_parameters(v+1,k,l) is False
-        ....:         assert are_projective_space_parameters(v-1,k,l) is False
-        ....:         assert are_projective_space_parameters(v,k+1,l) is False
-        ....:         assert are_projective_space_parameters(v,k-1,l) is False
-        ....:         assert are_projective_space_parameters(v,k,l+1) is False
-        ....:         assert are_projective_space_parameters(v,k,l-1) is False
-    """
-    q1 = Integer(v - k)
-    q2 = Integer(k - lmbda)
-
-    if (lmbda <= 0 or q1 < 4 or q2 < 2 or
-        not q1.is_prime_power() or
-        not q2.is_prime_power()):
-        return (False,(None,None)) if return_parameters else False
-
-    p1,e1 = q1.factor()[0]
-    p2,e2 = q2.factor()[0]
-
-    k = arith.gcd(e1,e2)
-    d = e1//k
-    q = p1**k
-    if e2//k != d-1 or lmbda != (q**(d-1)-1)//(q-1):
-        return (False,(None,None)) if return_parameters else False
-
-    return (True, (q,d)) if return_parameters else True
 
 def singer_difference_set(q,d):
     r"""
@@ -466,6 +401,7 @@ def difference_family(v, k, l=1, existence=False, check=True):
             return False
         raise EmptySetError("A (v,%d,%d)-difference family may exist only if %d*(v-1) = mod %d"%(k,l,l,k*(k-1)))
 
+    from block_design import are_hyperplanes_in_projective_geometry_parameters
     from database import DF_constructions
     if (v,k,l) in DF_constructions:
         if existence:
@@ -556,8 +492,8 @@ def difference_family(v, k, l=1, existence=False, check=True):
                         D = [[x**(i*5) * b for b in B] for i in xrange(t)]
                         break
 
-    if D is None and are_projective_space_parameters(v,k,l):
-        _, (q,d) = are_projective_space_parameters(v,k,l,True)
+    if D is None and are_hyperplanes_in_projective_geometry_parameters(v,k,l):
+        _, (q,d) = are_hyperplanes_in_projective_geometry_parameters(v,k,l,True)
         if existence:
             return True
         else:

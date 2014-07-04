@@ -2716,8 +2716,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         `\mathrm{QSym}` is a polynomial algebra. (The proof is correct
         but rests upon an unproven claim that the lexicographically
         largest term of the `n`-th shuffle power of a Lyndon word is
-        the `n`-fold concatenatenation of this Lyndon word with
-        itself, occuring `n!` times in that shuffle power. But this
+        the `n`-fold concatenation of this Lyndon word with
+        itself, occurring `n!` times in that shuffle power. But this
         can be deduced from Section 2 of [Rad1979]_.) More precisely,
         he showed that `\mathrm{QSym}` is generated, as a free
         commutative `\mathbf{k}`-algebra, by the elements

@@ -497,10 +497,11 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         # Handle the n == 0 case separately
         if n == 0:
             part = Partition([])
-            to_self_cache[ part ] = { part: base_ring.one() }
-            from_self_cache[ part ] = { part: base_ring.one() }
-            transition_matrices[n] = matrix(base_ring, [[1]])
-            inverse_transition_matrices[n] = matrix(base_ring, [[1]])
+            one = base_ring.one()
+            to_self_cache[ part ] = { part: one }
+            from_self_cache[ part ] = { part: one }
+            transition_matrices[n] = matrix(base_ring, [[one]])
+            inverse_transition_matrices[n] = matrix(base_ring, [[one]])
             return
 
         partitions_n = Partitions_n(n).list()

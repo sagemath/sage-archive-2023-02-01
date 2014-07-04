@@ -2981,15 +2981,16 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             """
             # Much of this code is adapted from sage/combinat/sf/dual.py
             base_ring = self.base_ring()
-            zero = base_ring(0)
+            zero = base_ring.zero()
 
             # Handle the n == 0 case separately
             if n == 0:
                 part = self._basis_keys([])
-                to_self_cache[ part ] = { part: base_ring(1) }
-                from_self_cache[ part ] = { part: base_ring(1) }
-                transition_matrices[n] = matrix(base_ring, [[1]])
-                inverse_transition_matrices[n] = matrix(base_ring, [[1]])
+                one = base_ring.one()
+                to_self_cache[ part ] = { part: one }
+                from_self_cache[ part ] = { part: one }
+                transition_matrices[n] = matrix(base_ring, [[one]])
+                inverse_transition_matrices[n] = matrix(base_ring, [[one]])
                 return
 
             compositions_n = Compositions(n).list()
@@ -3038,7 +3039,14 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             #
             # TODO: The way given in Hazewinkel's [Haz2004]_ paper might
             # be faster.
-            inverse_transition = ~transition_matrix_n
+            inverse_transition = matrix(base_ring, [[base_ring(a) for a in r] for r in ~transition_matrix_n])
+            # Note that we don't simply write
+            # "inverse_transition = ~transition_matrix_n" because that
+            # tends to cast the entries of the matrix into a quotient
+            # field even if this is unnecessary.
+
+            # TODO: This still looks fragile when the base ring is weird!
+            # Possibly work over ZZ in this method?
 
             for i in range(len_compositions_n):
                 self_coeffs = {}

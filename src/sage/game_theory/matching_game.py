@@ -1,3 +1,24 @@
+"""
+Matching games.
+
+This module implements a class for matching games (stable marriage problems)
+[DI1989]_. At present the extended Gale Shapley algorithm is implemented
+which can be used to obtain stable matchings.
+
+AUTHOR:
+
+    - James Campbell and Vince Knight 06-2014: Original version
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2014 James Campbell james.campbell@tanti.org.uk
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from copy import deepcopy
@@ -6,6 +27,13 @@ from sage.graphs.bipartite_graph import BipartiteGraph
 
 class MatchingGame(SageObject):
     r"""
+    An object representing a Matching Game. Includes an implementation of the
+    extended Gale-Shapley algorithm.
+
+    A matching game (also called a stable matching problem) models a situation
+    of in a population of `N` suitors and `N` reviewers. Suitors and reviewers
+    rank their preference and attempt to find a match.
+
     EXAMPLES:
 
         quick test. ::
@@ -70,6 +98,13 @@ class MatchingGame(SageObject):
             -4: [8],
             -3: [9],
             -1: [1]}
+
+
+    REFERENCES:
+
+    .. [DI1989]  Gusfield, Dan, and Robert W. Irving.
+       *The stable marriage problem: structure and algorithms.*
+       Vol. 54. Cambridge: MIT press, 1989.
     """
     def __init__(self, generator):
         r"""

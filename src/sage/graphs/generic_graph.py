@@ -6961,8 +6961,8 @@ class GenericGraph(GenericGraph_pyx):
 
             p = MixedIntegerLinearProgram(maximization = False, solver = solver)
 
-            b = p.new_variable(binary = True)
-            d = p.new_variable(integer = True)
+            b = p.new_variable(binary=True)
+            d = p.new_variable(integer=True, nonnegative=True)
             n = self.order()
 
             # The removed vertices cover all the back arcs ( third condition )

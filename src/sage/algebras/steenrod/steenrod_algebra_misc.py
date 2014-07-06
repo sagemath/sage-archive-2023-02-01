@@ -183,7 +183,7 @@ def get_basis_name(basis, p, generic=None):
 ######################################################
 # profile functions
 
-def is_valid_profile(profile, truncation_type, p=2):
+def is_valid_profile(profile, truncation_type, p=2, generic=None):
     """
     True if ``profile``, together with ``truncation_type``, is a valid
     profile at the prime `p`.
@@ -196,6 +196,8 @@ def is_valid_profile(profile, truncation_type, p=2):
     - ``truncation_type`` - either 0 or `\infty`
 
     - `p` - prime number, optional, default 2
+
+    - `generic` - boolean, optional, default None
 
     OUTPUT: True if the profile function is valid, False otherwise.
 
@@ -248,9 +250,13 @@ def is_valid_profile(profile, truncation_type, p=2):
         False
         sage: is_valid_profile(([1,2,1], []), 0, p=7)
         True
+        sage: is_valid_profile(([0,0,0], [2,1,1,1,2,2]), 0, p=2, generic=True)
+        True
     """
     from sage.rings.infinity import Infinity
-    if p == 2:
+    if generic is None:
+        generic = False if p==2 else True
+    if not generic:
         pro = list(profile) + [truncation_type]*len(profile)
         r = 0
         for pro_r in pro:
@@ -549,7 +555,7 @@ def normalize_profile(profile, precision=None, truncation_type='auto', p=2, gene
                 while len(k) > 0 and k[-1] == 2:
                     k = k[:-1]
             new_profile = (e, k)
-        if is_valid_profile(new_profile, truncation_type, p):
+        if is_valid_profile(new_profile, truncation_type, p, generic=True):
             return new_profile, truncation_type
         else:
             raise ValueError("Invalid profile")

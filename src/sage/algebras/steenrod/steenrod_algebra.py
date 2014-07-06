@@ -460,6 +460,9 @@ REFERENCES:
 
 - [SE] N. E. Steenrod and D. B. A. Epstein, Cohomology operations,
   Ann. of Math. Stud. 50 (Princeton University Press, 1962).
+
+- [Vo] V. Voevodsky, Reduced power operations in motivic cohomology,
+  Publ. Math. Inst. Hautes Études Sci. No. 98 (2003), 1-57.
 """
 
 #*****************************************************************************
@@ -4085,9 +4088,20 @@ def SteenrodAlgebra(p=2, basis='milnor', generic='auto', **kwds):
 
     The structure formulas for the Steenrod algebra at odd primes `p` also make sense
     when `p` is set to `2`. We refer to the resulting algebra as the "generic Steenrod algebra" for
-    the prime `2`. It is an associated graded algebra of the usual Steenrod algebra that is occasionally
-    useful. Its cohomology, for example, is the `E_2`-term of a spectral sequence that computes
-    the `E_2`-term of the Novikov spectral sequence.
+    the prime `2`. The dual Hopf algebra is given by
+
+        .. math::
+
+            A_* = \GF{2} [\xi_1, \xi_2, \xi_3, ...] \otimes \Lambda (\tau_0, \tau_1, ...)
+
+    The degree of `\xi_k` is `2^{k+1}-2` and the degree of `\tau_k` is `2^{k+1}-1`.
+
+    The generic Steenrod algebra is an associated graded algebra of the usual Steenrod algebra
+    that is occasionally useful. Its cohomology, for example, is the `E_2`-term of a spectral sequence
+    that computes the `E_2`-term of the Novikov spectral sequence. It can also be obtained as a
+    specialisation of Voevodsky's "motivic Steenrod algebra": in the notation of [VO], Remark 12.12,
+    it corresponds to setting `\rho = \tau = 0`. The usual Steenrod algebra is given by `\rho = 0`
+    and `\tau = 1`.
 
     In Sage this algebra is constructed using the 'generic' keyword.
 

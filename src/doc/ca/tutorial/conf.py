@@ -31,4 +31,3 @@ latex_documents = [
   ('index', 'TutorialdeSage.tex', u'Tutorial de Sage',
    u'The Sage Development Team', 'manual'),
 ]
-

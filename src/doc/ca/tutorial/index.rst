@@ -124,11 +124,11 @@ Cal tenir en compte que la indentació determina l'inici i fi dels blocs i que, 
  ::
 
     sage: if condicio1:
-    ...       bloc1
-    ...   elif condicio2:
-    ...       bloc2
-    ...   else:
-    ...       bloc3
+    ....:     bloc1
+    ....: elif condicio2:
+    ....:     bloc2
+    ....: else:
+    ....:     bloc3
 
 Composició iterativa
 --------------------
@@ -141,20 +141,20 @@ i la variable ``i`` prendrà valors consecutius :math:`i_0,\ldots,i_1`. El segon
 ::
 
     sage: for i in [i0..i1]:
-    ...       bloc
+    ....:     bloc
 
     sage: for i in llista:
-    ...       bloc
+    ....:     bloc
 
     sage: while condicio:
-    ...       bloc
+    ....:     bloc
 
 Exemples:
 
 ::
 
     sage: for i in [2..5]:
-    ...       print i + 1
+    ....:     print i + 1
     3
     4
     5
@@ -163,7 +163,7 @@ Exemples:
 ::
 
     sage: for i in [-1,"foo",3.4]:
-    ...       print i
+    ....:     print i
     -1
     foo
     3.40000000000000
@@ -172,8 +172,8 @@ Exemples:
 
     sage: i = 1
     sage: while i < 4:
-    ...       print i
-    ...       i += 1
+    ....:     print i
+    ....:     i += 1
     1
     2
     3
@@ -314,20 +314,20 @@ una sèrie d'operacions és::
 Per exemple::
 
     sage: def solucions_reals_equacio_segon_grau(a,b,c):
-    ...       discriminant = b^2 - 4*a*c
-    ...       arrel_discr = sqrt(discriminant)
-    ...       if discriminant > 0:
-    ...           print "hi ha dues solucions reals"
-    ...           sol1 = (-b + arrel_discr) / (2*a)
-    ...           sol2 = (-b - arrel_discr) / (2*a)
-    ...           return (sol1, sol2)
-    ...       elif discriminant == 0:
-    ...           print "hi ha una solucio real"
-    ...           sol = -b / (2*a)
-    ...           return (sol)
-    ...       else:
-    ...           print "no hi ha solucions reals"
-    ...           return ()
+    ....:     discriminant = b^2 - 4*a*c
+    ....:     arrel_discr = sqrt(discriminant)
+    ....:     if discriminant > 0:
+    ....:         print "hi ha dues solucions reals"
+    ....:         sol1 = (-b + arrel_discr) / (2*a)
+    ....:         sol2 = (-b - arrel_discr) / (2*a)
+    ....:         return (sol1, sol2)
+    ....:     elif discriminant == 0:
+    ....:         print "hi ha una solucio real"
+    ....:         sol = -b / (2*a)
+    ....:         return (sol)
+    ....:     else:
+    ....:         print "no hi ha solucions reals"
+    ....:         return ()
 
 Observem que l'indentat és important.
 Ara podem cridar-la:
@@ -364,8 +364,8 @@ no es modificarà a causa de la funció. Per exemple, considerem la funció `f`:
 ::
 
     sage: def f():
-    ...       a = 5
-    ...       return a
+    ....:     a = 5
+    ....:     return a
 
 Observem el resultat del codi següent:
 
@@ -905,7 +905,7 @@ a frontera. Per exemple, un deltoide verd:
 ::
 
     sage: L = [[-1+cos(pi*i/100)*(1+cos(pi*i/100)),\
-    ...   2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
+    ....: 2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
     sage: p = polygon(L, rgbcolor=(1/8,3/4,1/2))
     sage: p
 
@@ -916,7 +916,7 @@ També podem afegir text a un gràfic:
 ::
 
     sage: L = [[6*cos(pi*i/100)+5*cos((6/2)*pi*i/100),\
-    ...   6*sin(pi*i/100)-5*sin((6/2)*pi*i/100)] for i in range(200)]
+    ....: 6*sin(pi*i/100)-5*sin((6/2)*pi*i/100)] for i in range(200)]
     sage: p = polygon(L, rgbcolor=(1/8,1/4,1/2))
     sage: t = text("hipotrocoide", (5,4), rgbcolor=(1,0,0))
     sage: show(p+t)

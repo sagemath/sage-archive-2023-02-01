@@ -152,12 +152,10 @@ TikZ is used for typesetting the graphics, see the
     \path[->] (v0) edge[loop above] node {$0$} ();
     \end{tikzpicture}
 
-We can turn this into a graphical representation. Before doing this,
-we have to :func:`setup the latex preamble <setup_latex_preamble>`.
+We can turn this into a graphical representation.
 
 ::
 
-    sage: sage.combinat.finite_state_machine.setup_latex_preamble()
     sage: view(NAF) # not tested
 
 To actually see this, use the live documentation in the Sage notebook
@@ -3125,9 +3123,6 @@ class FiniteStateMachine(SageObject):
         means, it can be combined with directly setting some
         attributes as outlined above.
 
-        See also :func:`setup_latex_preamble` or the example below on
-        how to setup the LaTeX environment.
-
         EXAMPLES:
 
         See also the section on :ref:`finite_state_machine_LaTeX_output`
@@ -3135,8 +3130,6 @@ class FiniteStateMachine(SageObject):
 
         ::
 
-            sage: from sage.combinat.finite_state_machine import setup_latex_preamble
-            sage: setup_latex_preamble()
             sage: T = Transducer(initial_states=['I'],
             ....:     final_states=[0, 3])
             sage: for j in srange(4):
@@ -3429,6 +3422,8 @@ class FiniteStateMachine(SageObject):
                     # left has its label below the transition, otherwise above
                     anchor_label = "north"
             return "rotate=%.2f, anchor=%s" % (angle_label, anchor_label)
+
+        setup_latex_preamble()
 
         options = ["auto", "initial text=", ">=latex"]
 
@@ -8891,8 +8886,9 @@ class FSMProcessIterator(SageObject):
 #*****************************************************************************
 
 
+@cached_function
 def setup_latex_preamble():
-    """
+    r"""
     This function adds the package ``tikz`` with support for automata
     to the preamble of Latex so that the finite state machines can be
     drawn nicely.
@@ -8912,10 +8908,13 @@ def setup_latex_preamble():
 
         sage: from sage.combinat.finite_state_machine import setup_latex_preamble
         sage: setup_latex_preamble()
+        sage: ("\usepackage{tikz}" in latex.extra_preamble()) == latex.has_file("tikz.sty")
+        True
     """
     latex.add_package_to_preamble_if_available('tikz')
     latex.add_to_mathjax_avoid_list("tikz")
-    latex.add_to_preamble('\\usetikzlibrary{automata}')
+    if latex.has_file("tikz.sty"):
+        latex.add_to_preamble(r'\usetikzlibrary{automata}')
 
 
 #*****************************************************************************

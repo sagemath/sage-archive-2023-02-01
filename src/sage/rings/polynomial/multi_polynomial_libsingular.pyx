@@ -3282,6 +3282,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             ....: except OverflowError:
             ....:   print "overflow"
             overflow    # 32-bit
+            x^1000000   # 64-bit
             no overflow # 64-bit
 
             sage: n=100000;
@@ -3293,9 +3294,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             ....:   print "overflow"
             overflow
         """
-        if not self._poly:
-            return self
-
         cdef int mi, i, need_map, try_symbolic
 
         cdef unsigned long degree = 0
@@ -3303,6 +3301,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef ring *_ring = parent._ring
 
         if(_ring != currRing): rChangeCurrRing(_ring)
+
+        if self.is_zero():
+            return self
 
         cdef poly *_p = p_Copy(self._poly, _ring)
         cdef poly *_f

@@ -4,6 +4,8 @@ Algebras
 .. toctree::
    :maxdepth: 2
 
+   sage/algebras/catalog
+
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_element
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_ideal

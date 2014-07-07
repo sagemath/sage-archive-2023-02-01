@@ -136,9 +136,32 @@ class MatchingGame(SageObject):
 
     def _latex_(self):
         r"""
+        Creates the LaTeX representation of the dictionaries for suitors
+        and reviewers.
+
+        EXAMPLES::
+
+            sage: suit = {0: (3, 4),
+            ....:         1: (3, 4)}
+            sage: revr = {3: (0, 1),
+            ....:         4: (1, 0)}
+            sage: g = MatchingGame([suit, revr])
+            sage: latex(g)
+            Suitors
+            0=\{(3, 4)\}
+            1=\{(3, 4)\}
+            Reviewers
+            3=\{(0, 1)\}
+            4=\{(1, 0)\}
         """
-        suitors_dictionary, reviewer_dictionary = self.game_to_dict()
-        # return a latex version of the dictionaries.
+        suitor_dictionary, reviewer_dictionary = self.game_to_dict()
+        output = "Suitors"
+        for key in suitor_dictionary:
+            output += "\n%s=\{%s\}" % (key, suitor_dictionary[key])
+        output += "\nReviewers"
+        for key in reviewer_dictionary:
+            output += "\n%s=\{%s\}" % (key, reviewer_dictionary[key])
+        return output
 
     def game_to_dict(self):
         suitor_dictionary = {}

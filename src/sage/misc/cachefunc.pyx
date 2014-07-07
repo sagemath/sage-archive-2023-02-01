@@ -2550,6 +2550,19 @@ def cached_method(f, name=None, key=None):
         sage: c.f(4) is c.f(4)
         True
 
+    Different instances have distinct caches::
+
+        sage: b = Foo()
+        sage: b.f(3) is a.f(3)
+        computing
+        False
+        sage: b.f.clear_cache()
+        sage: a.f(3)
+        9
+        sage: b.f(3)
+        computing
+        9
+
     Using cached methods for the hash and other special methods was
     implemented in :trac:`12601`, by means of :class:`CachedSpecialMethod`. We
     show that it is used behind the scenes::

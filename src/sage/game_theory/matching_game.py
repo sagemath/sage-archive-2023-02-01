@@ -1,3 +1,24 @@
+"""
+Matching games.
+
+This module implements a class for matching games (stable marriage problems)
+[DI1989]_. At present the extended Gale Shapley algorithm is implemented
+which can be used to obtain stable matchings.
+
+AUTHOR:
+
+    - James Campbell and Vince Knight 06-2014: Original version
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2014 James Campbell james.campbell@tanti.org.uk
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from copy import deepcopy
@@ -6,70 +27,190 @@ from sage.graphs.bipartite_graph import BipartiteGraph
 
 class MatchingGame(SageObject):
     r"""
-    EXAMPLES:
+    An object representing a Matching Game. Includes an implementation of the
+    extended Gale-Shapley algorithm.
 
-        quick test. ::
+    A matching game (also called a stable matching problem) models a situation
+    of in a population of `N` suitors and `N` reviewers. Suitors and reviewers
+    rank their preference and attempt to find a match.
 
-            sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
-            ....:               'K': ('A', 'B', 'C', 'D'),
-            ....:               'L': ('B', 'D', 'C', 'A'),
-            ....:               'M': ('C', 'A', 'B', 'D')}
-            sage: reviewr_pref = {'A': ('L', 'J', 'K', 'M'),
-            ....:                 'B': ('J', 'M', 'L', 'K'),
-            ....:                 'C': ('K', 'M', 'L', 'J'),
-            ....:                 'D': ('M', 'K', 'J', 'L')}
-            sage: m = MatchingGame([suitr_pref, reviewr_pref])
-            sage: m
-            A matching game with 8 players
-            sage: m.suitors
-            ['K', 'J', 'M', 'L']
-            sage: m.reviewers
-            ['A', 'C', 'B', 'D']
-            sage: m.solve()
-            {'A': ['J'],
-             'C': ['K'],
-             'B': ['M'],
-             'D': ['L'],
-             'K': ['C'],
-             'J': ['A'],
-             'M': ['B'],
-             'L': ['D']}
-            sage: plot(m)
-            sage: graph = m.bi_partite()
-            sage: graph
-            Bipartite graph on 8 vertices
+    Formally, a matching game of size `N` is defined by two disjoint sets `S`
+    and `R` of size `N`. Associated to each element of `S` and `R` is a
+    preference list:
 
-        A big example. ::
+    .. MATH::
 
-            sage: from itertools import permutations
-            sage: n = 10
-            sage: big_game = MatchingGame(n)
-            sage: suitr_preferences = list(permutations([-i-1 for i in range(n)]))
-            sage: revr_preferences = list(permutations([i+1 for i in range(n)]))
-            sage: for player in range(n):
-            ....:     big_game.suitors[player].pref = suitr_preferences[player]
-            ....:     big_game.reviewers[player].pref = revr_preferences[-player]
-            sage: big_game.solve()
-            {1: [-1],
-             2: [-8],
-             3: [-9],
-             4: [-10],
-             5: [-7],
-             6: [-6],
-             7: [-5],
-             8: [-4],
-             9: [-3],
-            10: [-2],
-            -2: [10],
-            -10: [4],
-            -9: [3],
-            -8: [2],
-            -7: [5],
-            -6: [6],
-            -5: [7],
-            -4: [8],
-            -3: [9],
-            -1: [1]}
+        f:S\to R^N
+        \text{ and }
+        g:R\to S^N
+
+    Here is an example of matching game on 4 players:
+
+    .. MATH::
+
+        S = \{J, K, L, M\}\\
+        R = \{A, B, C, D\}
+
+    With preference functions:
+
+    .. MATH::
+
+        f(s) = \begin{cases}
+        (A, D, C, B),& \text{ if } s=J\\
+        (A, B, C, D),& \text{ if } s=K\\
+        (B, D, C, A),& \text{ if } s=L\\
+        (C, A, B, D),& \text{ if } s=M\\
+        \end{cases}
+
+        g(s) = \begin{cases}
+        (L, J, K, M),& \text{ if } s=A\\
+        (J, M, L, K),& \text{ if } s=B\\
+        (K, M, L, J),& \text{ if } s=C\\
+        (M, K, J, L),& \text{ if } s=D\\
+        \end{cases}
+
+    To implement the above game in Sage: ::
+
+        sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
+        ....:               'K': ('A', 'B', 'C', 'D'),
+        ....:               'L': ('B', 'D', 'C', 'A'),
+        ....:               'M': ('C', 'A', 'B', 'D')}
+        sage: reviewr_pref = {'A': ('L', 'J', 'K', 'M'),
+        ....:                 'B': ('J', 'M', 'L', 'K'),
+        ....:                 'C': ('K', 'M', 'L', 'J'),
+        ....:                 'D': ('M', 'K', 'J', 'L')}
+        sage: m = MatchingGame([suitr_pref, reviewr_pref])
+        sage: m
+        A matching game with 8 players
+        sage: m.suitors
+        ['K', 'J', 'M', 'L']
+        sage: m.reviewers
+        ['A', 'C', 'B', 'D']
+
+    A matching `M` is any bijection between `S` and `R`. If `s\in S` and
+    `r\in R` are matched by `M` we denote:
+
+    .. MATH::
+
+        M(s)=r
+
+    On any given matching game one intends to find a matching that is stable,
+    in other words so that no one individual has an incentive to break their
+    current match.
+
+    Formally, a stable matchin is a matching that has no blocking pairs.
+    A blocking pair is any pair `(s, r)` such that `M(s)\ne r` but `s` prefers
+    r to `M(r)` and `r` prefers `s` to `M^{-1}(r)`.
+
+    To obtain the stable matching in Sage we use the ``solve`` method which
+    uses the extended Gale-Shapley algorithm [DI1989]_: ::
+
+        sage: m.solve()
+        {'A': ['J'],
+         'C': ['K'],
+         'B': ['M'],
+         'D': ['L'],
+         'K': ['C'],
+         'J': ['A'],
+         'M': ['B'],
+         'L': ['D']}
+
+    Matchings have a natural representations as bi-partitie graph: ::
+
+        sage: plot(m)
+
+    The above plots the bi-partitite graph associated with the matching.
+    This plot can be accessed directly: ::
+
+        sage: graph = m.bi_partite()
+        sage: graph
+        Bipartite graph on 8 vertices
+
+    It is possible to initiate a matching game without having to name each
+    suitor and reviewer: ::
+
+        sage: n = 10
+        sage: big_game = MatchingGame(n)
+        sage: big_game.suitors
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        sage: big_game.reviewers
+        [-1, -2, -3, -4, -5, -6, -7, -8, -9, -10]
+
+    If we attempt to obtain the stable matching for the above game,
+    without defining the preference function we obtain an error: ::
+
+        sage: big_game.solve()
+        Traceback (most recent call last):
+        ...
+        ValueError: Suitor preferences are not complete
+
+    To continue we have to populate the preference dictionary. Here
+    is one example where the preferences are simply the corresponding
+    element of the permutation group: ::
+
+        sage: from itertools import permutations
+        sage: suitr_preferences = list(permutations([-i-1 for i in range(n)]))
+        sage: revr_preferences = list(permutations([i+1 for i in range(n)]))
+        sage: for player in range(n):
+        ....:     big_game.suitors[player].pref = suitr_preferences[player]
+        ....:     big_game.reviewers[player].pref = revr_preferences[-player]
+        sage: big_game.solve()
+        {1: [-1],
+         2: [-8],
+         3: [-9],
+         4: [-10],
+         5: [-7],
+         6: [-6],
+         7: [-5],
+         8: [-4],
+         9: [-3],
+        10: [-2],
+        -2: [10],
+        -10: [4],
+        -9: [3],
+        -8: [2],
+        -7: [5],
+        -6: [6],
+        -5: [7],
+        -4: [8],
+        -3: [9],
+        -1: [1]}
+
+
+    It can be shown that the Gale Shapley algorithm will return the stable
+    matching that is optimal from the point of view of the suitors and is in
+    fact the worst possible matching from the point of view of the reviewers.
+    To quickly obtain the matching that is optimal for the reviewes we use the
+    ``solve`` method with the ``invert=True`` option: ::
+
+        sage: left_dict = {'a': ('A', 'B', 'C'),
+        ....:              'b': ('B', 'C', 'A'),
+        ....:              'c': ('B', 'A', 'C')}
+        sage: right_dict = {'A': ('b', 'c', 'a'),
+        ....:               'B': ('a', 'c', 'b'),
+        ....:               'C': ('a', 'b', 'c')}
+        sage: quick_game = MatchingGame([left_dict, right_dict])
+        sage: quick_game.solve()
+        {'a': ['A'],
+         'A': ['a'],
+         'c': ['B'],
+         'b': ['C'],
+         'C': ['b'],
+         'B': ['c']}
+        sage: quick_game.solve(invert=True)
+        {'a': ['B'],
+         'A': ['c'],
+         'c': ['A'],
+         'b': ['C'],
+         'C': ['b'],
+         'B': ['a']}
+
+
+    REFERENCES:
+
+    .. [DI1989]  Gusfield, Dan, and Robert W. Irving.
+       *The stable marriage problem: structure and algorithms.*
+       Vol. 54. Cambridge: MIT press, 1989.
     """
     def __init__(self, generator):
         r"""
@@ -290,33 +431,6 @@ class MatchingGame(SageObject):
         r"""
         Computes a stable matching for the game using the Gale-Shapley
         algorithm.
-
-        EXAMPLES:
-
-        6 player game. ::
-
-            sage: left_dict = {'a': ('A', 'B', 'C'),
-            ....:              'b': ('B', 'C', 'A'),
-            ....:              'c': ('B', 'A', 'C')}
-            sage: right_dict = {'A': ('b', 'c', 'a'),
-            ....:               'B': ('a', 'c', 'b'),
-            ....:               'C': ('a', 'b', 'c')}
-            sage: quick_game = MatchingGame([left_dict, right_dict])
-            sage: quick_game.solve()
-            {'a': ['A'],
-             'A': ['a'],
-             'c': ['B'],
-             'b': ['C'],
-             'C': ['b'],
-             'B': ['c']}
-            sage: quick_game.solve(invert=True)
-            {'a': ['B'],
-             'A': ['c'],
-             'c': ['A'],
-             'b': ['C'],
-             'C': ['b'],
-             'B': ['a']}
-
         """
         self._is_complete()
 

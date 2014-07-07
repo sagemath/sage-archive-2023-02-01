@@ -2415,6 +2415,8 @@ cdef class CachedSpecialMethod(CachedMethod):
     The hash is computed only once, subsequent calls will use the value from
     the cache. This was implemented in :trac:`12601`.
 
+    ::
+
         sage: hash(c)       # indirect doctest
         compute hash
         5

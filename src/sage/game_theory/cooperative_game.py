@@ -25,6 +25,7 @@ from sage.misc.misc import powerset
 from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
 
+
 class CooperativeGame(SageObject):
     r"""
     An object representing a co-operative game. Primarily used to compute the
@@ -94,8 +95,9 @@ class CooperativeGame(SageObject):
 
     A characteristic function game `G = (N, v)` is monotone if it satisfies
     `v(C_2) \geq v(C_1)` for all `C_1 \subseteq C_2`. A characteristic
-    function game `G = (N, v)` is superadditive if it satisfies `v(C_2)
-    \geq v(C_1)` for all `C_1 \subseteq C_2` such that `C_1 \cap C_2 = \emptyset`.
+    function game `G = (N, v)` is superadditive if it satisfies
+    `v(C_1 \cup C_2) \geq v(C_1) v(C_2)` for all `C_1, C_2 \subseteq N` such
+    that `C_1 \cap C_2 = \emptyset`.
 
     We can test if a game is monotonic or superadditive. ::
 

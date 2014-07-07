@@ -11,15 +11,15 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 
 - :class:`algebras.FiniteDimensional
   <sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra.FiniteDimensionalAlgebra>`
-- :class:`algebras.Free <sage.algebras.free_algebra.FreeAlgebra>`
+- :class:`algebras.Free <sage.algebras.free_algebra.FreeAlgebraFactory>`
 - :class:`algebras.Group <sage.algebras.group_algebra_new.GroupAlgebra>`
 - :class:`algebras.Hall <sage.algebras.hall_algebra.HallAlgebra>`
 - :class:`algebras.IwahoriHecke
-  <sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra>`
+  <sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra>`
 - :class:`algebras.NilCoxeter
   <sage.algebras.nil_coxeter_algebra.NilCoxeterAlgebra>`
-- :class:`algebras.Quaternion
-  <sage.algebras.quatalg.quaternion_algebra.QuaternionAlgebra>`
+- :func:`algebras.Quaternion
+  <sage.algebras.quatalg.quaternion_algebra.QuaternionAlgebraFactory>`
 - :class:`algebras.Shuffle <sage.algebras.shuffle_algebra.ShuffleAlgebra>`
 - :class:`algebras.Steenrod
   <sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra>`

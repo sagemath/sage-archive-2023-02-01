@@ -2907,13 +2907,13 @@ class Graphics(SageObject):
             # tight_layout adjusts the *subplot* parameters so ticks aren't cut off, etc.
             figure.tight_layout()
 
+            opts = dict(dpi=dpi, transparent=transparent)
             if fig_tight is True:
-                figure.savefig(filename, dpi=dpi, bbox_inches='tight',
-                    bbox_extra_artists=self._bbox_extra_artists,
-                    transparent=transparent)
-            else:
-                figure.savefig(filename, dpi=dpi,
-                           transparent=transparent)
+                opts['bbox_inches'] = 'tight'
+            if self._bbox_extra_artists:
+                opts['bbox_extra_artists'] = self._bbox_extra_artists
+
+            figure.savefig(filename, **opts)
 
             # Restore the rcParams to the original, possibly user-set values
             (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],

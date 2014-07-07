@@ -539,6 +539,7 @@ cdef int singular_polynomial_subst(poly **p, int var_index, poly *value, ring *r
     - ``value`` - a polynomial
     - ``r`` - a ring
     """
+
     if p_IsConstant(value, r):
         p[0] = pSubst(p[0], var_index+1, value)
         return 0

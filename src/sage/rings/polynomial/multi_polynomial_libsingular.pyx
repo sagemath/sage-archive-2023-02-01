@@ -3272,6 +3272,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f.subs({y:x}).subs({x:z})
             z
 
+        We test that we change the ring even if there is nothing to do::
+
+            sage: P = QQ['x,y']
+            sage: x = var('x')
+            sage: parent(P.zero_element() / x)
+            Symbolic Ring
+
         We are catching overflows::
 
             sage: R.<x,y> = QQ[]
@@ -3302,9 +3309,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         if(_ring != currRing): rChangeCurrRing(_ring)
 
-        if self.is_zero():
-            return self
-
         cdef poly *_p = p_Copy(self._poly, _ring)
         cdef poly *_f
 
@@ -3314,7 +3318,11 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         need_map = 0
         try_symbolic = 0
 
-        if fixed is not None:
+        if self.is_zero():
+            # there is nothing to do except to change the ring
+            try_symbolic = 1
+
+        if not try_symbolic and fixed is not None:
             for m,v in fixed.iteritems():
                 if isinstance(m, (int, Integer)):
                     mi = m+1
@@ -3424,6 +3432,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
                 g[mi-1] = v
 
+        gd = parent.gens_dict()
         for m,v in kw.iteritems():
             m = gd[m]
             for i from 0 < i <= _ring.N:

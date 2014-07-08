@@ -202,7 +202,7 @@ class CooperativeGame(SageObject):
         True
         sage: letter_game.nullplayer(payoff_vector)
         True
-        sage: letter_game.symmetry(payoff_vector)
+        sage: letter_game.is_symmetric(payoff_vector)
         True
 
     Any payoff vector can be passed to the game and these properties
@@ -213,7 +213,7 @@ class CooperativeGame(SageObject):
         False
         sage: letter_game.nullplayer(payoff_vector)
         True
-        sage: letter_game.symmetry(payoff_vector)
+        sage: letter_game.is_symmetric(payoff_vector)
         True
 
     TESTS:
@@ -239,7 +239,7 @@ class CooperativeGame(SageObject):
         True
         sage: letter_game.nullplayer({'A': 2, 'C': 35, 'B': 5})
         True
-        sage: letter_game.symmetry({'A': 2, 'C': 35, 'B': 5})
+        sage: letter_game.is_symmetric({'A': 2, 'C': 35, 'B': 5})
         True
 
     Any payoff vector can be passed to the game and these properties can once
@@ -249,7 +249,7 @@ class CooperativeGame(SageObject):
         False
         sage: letter_game.nullplayer({'A': 0, 'C': 35, 'B': 3})
         True
-        sage: letter_game.symmetry({'A': 0, 'C': 35, 'B': 3})
+        sage: letter_game.is_symmetric({'A': 0, 'C': 35, 'B': 3})
         True
 
     REFERENCES:
@@ -823,7 +823,7 @@ class CooperativeGame(SageObject):
             ....:                     (2, 3,): 42,
             ....:                     (1, 2, 3,): 42}
             sage: integer_game = CooperativeGame(integer_function)
-            sage: integer_game.symmetry({1: 2, 2: 5, 3: 35})
+            sage: integer_game.is_symmetric({1: 2, 2: 5, 3: 35})
             False
 
         A longer example for symmetry::
@@ -845,7 +845,7 @@ class CooperativeGame(SageObject):
             ....:                  (2, 3, 4): 0,
             ....:                  (1, 2, 3, 4): 65}
             sage: long_game = CooperativeGame(long_function)
-            sage: long_game.symmetry({1: 20, 2: 20, 3: 5, 4: 20})
+            sage: long_game.is_symmetric({1: 20, 2: 20, 3: 5, 4: 20})
             True
         """
         sets = self.ch_f.keys()

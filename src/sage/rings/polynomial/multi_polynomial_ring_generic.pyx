@@ -929,7 +929,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         EXAMPLES::
 
-            sage: from sage.rings.polynomial.macaulay_resultant import is_reduced
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: R._macaulay_resultant_is_reduced([2,3,1],[2,3,3]) # the monomial x^2*y^3*z is not reduced w.r.t. degrees vector [2,3,3]
             False

@@ -164,10 +164,12 @@ class CooperativeGame(SageObject):
         sage: g.shapley_value()
         {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1}
 
-    For very large game it might be worth taking advantage of the particular
+    For very large games it might be worth taking advantage of the particular
     problem structure to calculate the Shapley value and there are also
-    various approximation approaches to obtaining the Shapley value of a game.
-    Implementing these would be a worthwhile development.
+    various approximation approaches to obtaining the Shapley value of a game
+    (see [SWJ2008]_ for one such example). Implementing these would be a
+    worthwhile development  For more information about the computational
+    complexity of calculating the Shapley value see [XP1994]_.
 
     We can test 3 basic properties of any payoff vector `\lambda`.
     The Shapley value (described above) is none to be the unique
@@ -254,6 +256,13 @@ class CooperativeGame(SageObject):
        Cambridge: Cambridge University Press, (2013).
        ISBN 9781107005488.
 
+    .. [XP1994] Deng Xiaotie, and Christos Papadimitriou.
+       *On the complexity of cooperative solution concepts.*
+       Mathematics of Operations Research 19.2 (1994): 257-266.
+
+    .. [SWJ2008] Fatima Shaheen, Michael Wooldridge, and Nicholas Jennings.
+       *A linear approximation method for the Shapley value.*
+       Artificial Intelligence 172.14 (2008): 1673-1699.
     """
     def __init__(self, characteristic_function):
         r"""

@@ -745,9 +745,11 @@ cdef class SymbolicRing(CommutativeRing):
         elif len(args) == 1 and isinstance(args[0], dict):
             d = args[0]
         else:
-            from sage.misc.superseded import deprecation
-            vars = _the_element.operands()
-            deprecation(5930, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
+            import inspect
+            if not hasattr(_the_element,'_fast_callable_') or not inspect.ismethod(_the_element._fast_callable_):
+                # only warn if _the_element is not dynamic
+                from sage.misc.superseded import deprecation
+                deprecation(5930, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
             d = {}
 
             vars = _the_element.variables()

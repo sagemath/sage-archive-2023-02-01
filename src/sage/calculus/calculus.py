@@ -1750,6 +1750,8 @@ polylog_ex = re.compile('li\[([0-9]+?)\]\(')
 
 maxima_polygamma = re.compile("psi\[(\d*)\]\(")  # matches psi[n]( where n is a number
 
+maxima_hyper = re.compile("\%f\[\d+,\d+\]")  # matches %f[m,n]
+
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     """
     Given a string representation of a Maxima expression, parse it and
@@ -1864,7 +1866,9 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
                 pass
             else:
                 syms[X[2:]] = function_factory(X[2:])
-        s = s.replace("?%","")
+        s = s.replace("?%", "")
+
+    s = maxima_hyper.sub('hypergeometric', s)
 
     # Look up every variable in the symtable keys and fill a replacement list.
     cursor = 0
@@ -1882,8 +1886,8 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     s = s.replace("#","!=") # a lot of this code should be refactored somewhere...
 
-    s = polylog_ex.sub('polylog(\\1,',s)
-    s = maxima_polygamma.sub('psi(\g<1>,',s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
+    s = polylog_ex.sub('polylog(\\1,', s)
+    s = maxima_polygamma.sub('psi(\g<1>,', s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
 
     if equals_sub:
         s = s.replace('=','==')

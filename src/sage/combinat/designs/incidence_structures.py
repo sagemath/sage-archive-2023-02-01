@@ -971,7 +971,7 @@ class IncidenceStructure(object):
         r"""
         Compute a proper edge-coloring.
 
-        A proper edge-coloring is an assignment of colors to the block of the
+        A proper edge-coloring is an assignment of colors to the sets of the
         incidence structure such that two sets with non-empty intersection
         receive different colors. The coloring returned minimizes the number of
         colors.
@@ -998,17 +998,17 @@ class IncidenceStructure(object):
 
     def _spring_layout(self):
         r"""
-        Return a spring layout for the vertices.
+        Return a spring layout for the points.
 
-        The layout is computed by creating a graph `G` on the vertices *and*
-        sets of the incidence structure. Each set is then made adjacent in `G`
-        with all vertices it contains before a spring layout is computed for
-        this graph. The position of the vertices in the hypergraph is the
-        position of the same vertices in the graph's layout.
+        The layout is computed by creating a graph `G` on the points *and* sets
+        of the incidence structure. Each set is then made adjacent in `G` with
+        all points it contains before a spring layout is computed for this
+        graph. The position of the points in the graph gives the position of the
+        points in the final drawing.
 
         .. NOTE::
 
-            This method also returns the position of the "fake" vertices,
+            This method also returns the position of the "fake" points,
             i.e. those representing the sets.
 
         EXAMPLES::
@@ -1067,8 +1067,8 @@ class IncidenceStructure(object):
 
         from sage.misc.misc import warn
         warn("\nThe hypergraph is drawn as a set of closed curves. The curve "
-             "representing a set S go **THROUGH** the vertices contained "
-             "in S.\n A vertex which is encircled by a curve but is not located "
+             "representing a set S go **THROUGH** the points contained "
+             "in S.\n A point which is encircled by a curve but is not located "
              "on its boundary is **NOT** included in the corresponding set.\n"
              "\n"
              "The colors are picked for readability and have no other meaning.")

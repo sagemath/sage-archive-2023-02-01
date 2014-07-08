@@ -180,7 +180,7 @@ class CooperativeGame(SageObject):
     complexity of calculating the Shapley value see [XP1994]_.
 
     We can test 3 basic properties of any payoff vector `\lambda`.
-    The Shapley value (described above) is none to be the unique
+    The Shapley value (described above) is known to be the unique
     payoff vector that satisfies these and 1 other property
     not implemented here (additivity). They are:
 
@@ -783,7 +783,7 @@ class CooperativeGame(SageObject):
                 return False
         return True
 
-    def symmetry(self, payoff_vector):
+    def is_symmetric(self, payoff_vector):
         r"""
         Return ``True`` if ``payoff_vector`` possesses the symmetry property.
 
@@ -809,7 +809,7 @@ class CooperativeGame(SageObject):
             ....:                    ('B', 'C',): 42,
             ....:                    ('A', 'B', 'C',): 42}
             sage: letter_game = CooperativeGame(letter_function)
-            sage: letter_game.symmetry({'A': 5, 'B': 14, 'C': 20})
+            sage: letter_game.is_symmetric({'A': 5, 'B': 14, 'C': 20})
             True
 
         A payoff vector that returns ``False``::

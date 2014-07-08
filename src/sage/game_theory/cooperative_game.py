@@ -126,9 +126,14 @@ class CooperativeGame(SageObject):
         \Delta_{\pi}^G(i) = v\bigl( S_{\pi}(i) \cup \{i\} \bigr)
         - v\bigl( S_{\pi}(i) \bigr)
 
-    where `S_{\pi}(i)` is the number of predecessors of `i` in `\pi`, i.e.
+    where `S_{\pi}(i)` is the set of predecessors of `i` in `\pi`, i.e.
     `S_{\pi}(i) = \{ j \mid \pi(i) > \pi(j) \}` (or the number of inversions
     of the form `(i, j)`).
+
+    This payoff vector is "fair" in that it has a collection of properties
+    referred to as: Efficiency, Symmetry, Linearity and Null player.
+    Some of these properties are considered in this documentation (and tests
+    are implemented in the class) but for a good overview see [CEW2011]_.
 
     Note ([MSZ2013]_) that an equivalent formula for the Shapley value is given by:
 

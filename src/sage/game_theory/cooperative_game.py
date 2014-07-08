@@ -36,7 +36,7 @@ class CooperativeGame(SageObject):
     - ``characteristic_function`` -- a dictionary containing all possible
       sets of players:
 
-      * key - each set must be entered as a tuple, not a string
+      * key - each set must be entered as a tuple.
       * value - a real number representing each set of players contribution
 
     EXAMPLES:
@@ -91,6 +91,12 @@ class CooperativeGame(SageObject):
         ....:                    ('B', 'C',): 42,
         ....:                    ('A', 'B', 'C',): 42}
         sage: letter_game = CooperativeGame(letter_function)
+
+    Please note that keys should be tuples. ``'1, 2, 3'`` is not a valid key,
+    neither is ``123``. The correct input would be ``(1, 2, 3)``, be
+    particulary careful with single element tuples as these should also
+    contain a comma ie; ``(1,)``, although  a check has been implemented to
+    convert ``(1)`` to ``(1,)``.
 
     Characteristic function games can be of various types.
 

@@ -476,7 +476,7 @@ class InterfaceInit(Converter):
             sage: m = InterfaceInit(maxima)
             sage: t = SR._force_pyobject((3, 4, e^x))
             sage: m.tuple(t)
-            '[3,4,exp(x)]'
+            '[3,4,exp(_SAGE_VAR_x)]'
         """
         x = map(self, ex.operands())
         X = ','.join(x)

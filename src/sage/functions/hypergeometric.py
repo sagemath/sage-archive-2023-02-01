@@ -108,7 +108,7 @@ Numeric evaluation::
 Conversions::
 
     sage: maxima(hypergeometric([1, 1, 1], [3, 3, 3], x))
-    hypergeometric([1,1,1],[3,3,3],x)
+    hypergeometric([1,1,1],[3,3,3],_SAGE_VAR_x)
     sage: hypergeometric((5, 4), (4, 4), 3)._sympy_()
     hyper((5, 4), (4, 4), 3)
     sage: hypergeometric((5, 4), (4, 4), 3)._mathematica_init_()
@@ -117,7 +117,7 @@ Conversions::
 Arbitrary level of nesting for conversions::
 
     sage: maxima(nest(lambda y: hypergeometric([y], [], x), 3, 1))
-    1/(1-x)^(1/(1-x)^(1/(1-x)))
+    1/(1-_SAGE_VAR_x)^(1/(1-_SAGE_VAR_x)^(1/(1-_SAGE_VAR_x)))
     sage: maxima(nest(lambda y: hypergeometric([y], [3], x), 3, 1))._sage_()
     hypergeometric((hypergeometric((hypergeometric((1,), (3,), x),), (3,),...
     x),), (3,), x)

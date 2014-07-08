@@ -11,24 +11,154 @@ details creating one.
 Contents
 ========
 
-:class:`FiniteStateMachine`
----------------------------
+:class:`FiniteStateMachine` and derived classes :class:`Transducer` and :class:`Automaton`
+------------------------------------------------------------------------------------------
+
+Accessing parts of a finite state machine
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+
+    :meth:`~FiniteStateMachine.state`|Get a state by its label
+    :meth:`~FiniteStateMachine.states`| List of states
+    :meth:`~FiniteStateMachine.iter_states`|Iterator over the states
+    :meth:`~FiniteStateMachine.initial_states`|List of initial states
+    :meth:`~FiniteStateMachine.iter_initial_states`|Iterator over initial states
+    :meth:`~FiniteStateMachine.final_states`|List of final states
+    :meth:`~FiniteStateMachine.iter_final_states`|Iterator over final states
+    :meth:`~FiniteStateMachine.transition`|Get a transition by its states and labels
+    :meth:`~FiniteStateMachine.transitions`|List of transitions
+    :meth:`~FiniteStateMachine.iter_transitions`|Iterator over the transitions
+    :meth:`~FiniteStateMachine.predecessors`|List of predecessors of a state
+    :meth:`~FiniteStateMachine.induced_sub_finite_state_machine`|Induced sub-machine
+    :meth:`~FiniteStateMachine.accessible_components`|Accessible components
+    :meth:`~FiniteStateMachine.final_components`|Final components (connected components which cannot be left again)
+
+(Modified) Copies
+^^^^^^^^^^^^^^^^^
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteStateMachine.empty_copy`|Returns an empty deep copy
+    :meth:`~FiniteStateMachine.deepcopy`|Returns a deep copy
+    :meth:`~FiniteStateMachine.relabeled`|Returns a relabeled deep copy
 
 Manipulation
 ^^^^^^^^^^^^
 
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteStateMachine.add_state`|Add a state
+    :meth:`~FiniteStateMachine.add_states`|Add states
+    :meth:`~FiniteStateMachine.delete_state`|Delete a state
+    :meth:`~FiniteStateMachine.add_transition`|Add a transition
+    :meth:`~FiniteStateMachine.add_transitions_from_function`|Add transitions
+    :meth:`~FiniteStateMachine.add_from_transition_function`|Add transitions by a transition function
+    :meth:`~FiniteStateMachine.delete_transition`|Delete a transition
+    :meth:`~FiniteStateMachine.remove_epsilon_transitions`|Remove epsilon transitions (not implemented)
+    :meth:`~FiniteStateMachine.split_transitions`|Split transitions with input words of length ``> 1``
+    :meth:`~FiniteStateMachine.determine_alphabets`|Determines input and output alphabets
+    :meth:`~FiniteStateMachine.construct_final_word_out`|Construct final output by implicitly reading trailing letters; cf. :meth:`~FiniteStateMachine.with_final_word_out`
+
+Properties
+^^^^^^^^^^
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteStateMachine.has_state`|Checks for a state
+    :meth:`~FiniteStateMachine.has_initial_state`|Checks for an initial state
+    :meth:`~FiniteStateMachine.has_initial_states`|Checks for initial states
+    :meth:`~FiniteStateMachine.has_final_state`|Checks for an final state
+    :meth:`~FiniteStateMachine.has_final_states`|Checks for final states
+    :meth:`~FiniteStateMachine.has_transition`|Checks for a transition
+    :meth:`~FiniteStateMachine.is_deterministic`|Checks for a deterministic machine
+    :meth:`~FiniteStateMachine.is_complete`|Checks for a complete machine
+    :meth:`~FiniteStateMachine.is_connected`|Checks for a connected machine
+    :meth:`~FiniteStateMachine.is_Markov_chain`|Checks for a Markov chain
+    :meth:`~FiniteStateMachine.asymptotic_moments`|Main terms of expectation and variance of sums of labels
+
 Operations
 ^^^^^^^^^^
 
-Output
-^^^^^^
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
 
-:class:`Transducer`
--------------------
+    :meth:`~FiniteStateMachine.disjoint_union`|Disjoint union (not implemented)
+    :meth:`~FiniteStateMachine.concatenation`|Concatenation (not implemented)
+    :meth:`~FiniteStateMachine.Kleene_closure`|Kleene closure (not implemented)
+    :meth:`Automaton.intersection`|Intersection of automata
+    :meth:`Transducer.intersection`|Intersection of transducer
+    :meth:`Transducer.cartesian_product`|Cartesian product of a transducer with another finite state machine
+    :meth:`~FiniteStateMachine.product_FiniteStateMachine`|Product of finite state machines
+    :meth:`~FiniteStateMachine.composition`|Composition (output of other is input of self)
+    :meth:`~FiniteStateMachine.input_projection`|Input projection (output is deleted)
+    :meth:`~FiniteStateMachine.output_projection`|Output projection (old output is new input)
+    :meth:`~FiniteStateMachine.projection`|Input or output projection
+    :meth:`~FiniteStateMachine.transposition`|Transposition (all transitions are reversed)
+    :meth:`~FiniteStateMachine.with_final_word_out`|Machine with final output constructed by implicitly reading trailing letters, cf. :meth:`~FiniteStateMachine.construct_final_word_out` for inplace version
+    :meth:`Automaton.determinisation`|Determinisation of an automaton
+    :meth:`~FiniteStateMachine.process`|Process input
+    :meth:`Automaton.process`|Process input of an automaton (output differs from general case)
+    :meth:`Transducer.process`|Process input of a transducer (output differs from general case)
+    :meth:`~FiniteStateMachine.iter_process`|Return process iterator
+
+Simplification
+^^^^^^^^^^^^^^
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
 
 
-:class:`Automaton`
--------------------
+    :meth:`~FiniteStateMachine.prepone_output`|Prepone output where possible
+    :meth:`~FiniteStateMachine.equivalence_classes`|List of equivalent states
+    :meth:`~FiniteStateMachine.quotient`|Quotient with respect to equivalence classes
+    :meth:`~FiniteStateMachine.merged_transitions`|Merge transitions while adding input
+    :meth:`~FiniteStateMachine.markov_chain_simplification`|Simplification of a Markov chain
+    :meth:`Automaton.minimization`|Minimization of an automaton
+    :meth:`Transducer.simplification`|Simplification of a transducer
+
+Conversion
+^^^^^^^^^^
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteStateMachine.adjacency_matrix`| (Weighted) adjacency :class:`matrix <Matrix>`
+    :meth:`~FiniteStateMachine.graph`|Underlying :class:`DiGraph`
+    :meth:`~FiniteStateMachine.plot`|Plot
+
+
+
+LaTeX output
+++++++++++++
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteStateMachine.latex_options`|Set options
+    :meth:`~FiniteStateMachine.set_coordinates`|Set coordinates of the states
+    :meth:`~FiniteStateMachine.default_format_transition_label`|Default formatting of words in transition labels
+    :meth:`~FiniteStateMachine.format_letter_negative`|Format negative numbers as overlined number
+    :meth:`~FiniteStateMachine.format_transition_label_reversed`|Format words in transition labels in reversed order
 
 :class:`FSMState`
 -----------------
@@ -43,6 +173,20 @@ Output
     :attr:`~FSMState.is_initial`|Describes whether a state is initial or not
     :meth:`~FSMState.label`|Label of a state
     :meth:`~FSMState.relabeled`|Returns a relabeled deep copy of a state
+
+:class:`FSMTransition`
+----------------------
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :attr:`~FSMTransition.from_state` | State in which transition starts
+    :attr:`~FSMTransition.to_state` | State in which transition ends
+    :attr:`~FSMTransition.word_in` | Input word of the transition
+    :attr:`~FSMTransition.word_out` | Output word of the transition
+    :meth:`~FSMTransition.deepcopy` | Returns a deep copy of the transition
 
 
 Helper Functions
@@ -957,7 +1101,7 @@ class FSMState(SageObject):
 
     is_initial = False
     """
-    Describes whethter the state is initial.
+    Describes whether the state is initial.
 
     EXAMPLES::
 
@@ -1551,6 +1695,19 @@ class FSMTransition(SageObject):
         False
 
     """
+
+    from_state = None
+    """State from which the transition starts. Read-only."""
+
+    to_state = None
+    """State in which the transition ends. Read-only."""
+
+    word_in = None
+    """Input word of the transition. Read-only."""
+
+    word_out = None
+    """Output word of the transition. Read-only."""
+
     def __init__(self, from_state, to_state,
                  word_in=None, word_out=None,
                  hook=None):

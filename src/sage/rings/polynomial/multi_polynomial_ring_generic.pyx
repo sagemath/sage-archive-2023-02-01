@@ -919,9 +919,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         INPUT:
 
-        - mon -- a monomial in the variables listed in xlist
+        - mon_degs -- a monomial represented by a vector of degrees
         - dlist -- a list of degrees with respect to which we check reducedness
-        - xlist -- a list of variables in some Polynomial ring.
 
         OUTPUT:
 
@@ -937,8 +936,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R._macaulay_resultant_is_reduced([1,3,2],[2,3,3]) # the monomial x*y^3*z^2 is not reduced w.r.t. degrees vector [2,3,3]
             True
         """
-        #TODO fix comments to reflect change in input parameters 
-        #RRR deg = [mon.degree(xi) for xi in xlist]
         diff = [mon_degs[i] - dlist[i] for i in xrange(0,len(dlist))]
         return len([1 for d in diff if d >= 0]) == 1
     
@@ -975,12 +972,9 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         d = sum(dlist) - len(dlist) + 1
         flist = []
         R = PolynomialRing(U,'x',n+1)
-        #TODO remove ugly prints
-        #print R
         ulist  = U.gens()
         for d in dlist:            
             xlist = R.gens()
-            #n = len(xlist) - 1
             degs = IntegerVectors(d, n+1)
             mon_d = [prod([xlist[i]**(deg[i]) for i in xrange(0,len(deg))])
                      for deg in degs]
@@ -1102,7 +1096,10 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
             sage: R.<x> = PolynomialRing(QQ,1)
             sage: f =  x^2+1; g = x^5+1
-            sage: f.resultant(g) == R.macaulay_resultant([f.homogenize(),g.homogenize()])
+            sage: fh = f.homogenize()
+            sage: gh = g.homogenize()
+            sage: RH = fh.parent()
+            sage: f.resultant(g) == RH.macaulay_resultant([fh,gh])
             True
         """
 
@@ -1113,23 +1110,17 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         #TODO add test that checks that the output of the function is a polynomial
         assert len(flist) > 0, 'you have to input least 1 polynomial in the list'
         assert all([f.is_homogeneous() for f in flist]), 'resultant for non-homogeneous polynomials is not supported'
-        R  = flist[0].parent()
         dlist = [f.degree() for f in flist]
-        xlist = R.gens()
+        xlist = self.gens()
         assert len(xlist) == len(dlist), 'number of polynomials(= %d) must equal number of variables (= %d)'%(len(dlist),len(xlist))
         n  = len(dlist) - 1
         d = sum(dlist) - len(dlist) + 1
-        #one_list = [1 for i in xrange(0,len(dlist))]
-        one_list = [1] * len(dlist)
-        #mons = WeightedIntegerVectors(d, one_list)  # list of exponent-vectors(/lists) of monomials of degree d
         mons = IntegerVectors(d, n+1).list()  # list of exponent-vectors(/lists) of monomials of degree d
-        #mon_d = [prod([xlist[i]**(deg[i]) for i in xrange(0,len(deg))]) for deg in mons]
         mons_num = len(mons)
         mons_to_keep = []
         newflist = []
         flist=[[f.exponents(),f.coefficients()] for f in flist] # strip coefficients of the input polynomials
-        #result = []
-        numer_matrix = zero_matrix(R.base_ring(),mons_num)
+        numer_matrix = zero_matrix(self.base_ring(),mons_num)
 
         for j in xrange(0,mons_num):
             if not self._macaulay_resultant_is_reduced(mons[j],dlist):
@@ -1139,19 +1130,12 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             new_mon = list(mons[j])
             new_mon[si_mon] -= dlist[si_mon]
             new_f = [[[g[k] + new_mon[k] for k in range(n+1)] for g in flist[si_mon][0]], flist[si_mon][1]]
-            #quo = prod([xlist[k]**(new_mon[k]) for k in xrange(0,n+1)]) # this produces the actual reduced monomial
 
-            #new_f = flist[si_mon]*quo
-            # we strip the coefficients of the new polynomial:
-            #result.append([new_f[mon] for mon in mons])
             i=0
             for mon in new_f[0]:
                 k=mons.index(mon)
                 numer_matrix[j,k]=new_f[1][i]
                 i+=1            
-
-
-        #numer_matrix = matrix(result)
 
         denom_matrix = numer_matrix.matrix_from_rows_and_columns(mons_to_keep,mons_to_keep)
         if denom_matrix.dimensions()[0] == 0: # here we choose the determinant of an empty matrix to be 1

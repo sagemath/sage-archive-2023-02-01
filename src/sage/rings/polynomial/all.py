@@ -46,7 +46,3 @@ from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialRin
 
 # Evaluation of cyclotomic polynomials
 from sage.rings.polynomial.cyclotomic import cyclotomic_value
-
-# Macaulay resultant for multivariable polynomials
-lazy_import('sage.rings.polynomial.macaulay_resultant', 'macaulay_resultant')
-lazy_import('sage.rings.polynomial.macaulay_resultant', 'macaulay_general_resultant')

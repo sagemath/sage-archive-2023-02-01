@@ -93,17 +93,17 @@ class CooperativeGame(SageObject):
         sage: letter_game = CooperativeGame(letter_function)
 
     Please note that keys should be tuples. ``'1, 2, 3'`` is not a valid key,
-    neither is ``123``. The correct input would be ``(1, 2, 3)``, be
-    particulary careful with single element tuples as these should also
-    contain a comma ie; ``(1,)``, although  a check has been implemented to
-    convert ``(1)`` to ``(1,)``.
+    neither is ``123``. The correct input would be ``(1, 2, 3)``. Similarly,
+    for coalitions containing a single element the bracket notation (which
+    tells Sage that it is a tuple) must be used. So ``(1)``, ``(1,)`` are
+    correct however simply inputting `1` is not.
 
     Characteristic function games can be of various types.
 
     A characteristic function game `G = (N, v)` is monotone if it satisfies
     `v(C_2) \geq v(C_1)` for all `C_1 \subseteq C_2`. A characteristic
     function game `G = (N, v)` is superadditive if it satisfies
-    `v(C_1 \cup C_2) \geq v(C_1) v(C_2)` for all `C_1, C_2 \subseteq N` such
+    `v(C_1 \cup C_2) \geq v(C_1) +  v(C_2)` for all `C_1, C_2 \subseteq N` such
     that `C_1 \cap C_2 = \emptyset`.
 
     We can test if a game is monotonic or superadditive. ::
@@ -139,7 +139,7 @@ class CooperativeGame(SageObject):
     of the form `(i, j)`).
 
     This payoff vector is "fair" in that it has a collection of properties
-    referred to as: Efficiency, Symmetry, Linearity and Null player.
+    referred to as: efficiency, symmetry, additivity and Null player.
     Some of these properties are considered in this documentation (and tests
     are implemented in the class) but for a good overview see [CEW2011]_.
 
@@ -194,8 +194,8 @@ class CooperativeGame(SageObject):
 
     * Symmetry property - If `v(C \cup i) = v(C \cup j)` for all
       `C \in 2^{\Omega} \setminus \{i,j\}`, then `x_i = x_j`.
-
-    If players contribute symmetrically then they should get the same payoff::
+      If players contribute symmetrically then they should get the same
+      payoff::
 
         sage: payoff_vector = letter_game.shapley_value()
         sage: letter_game.is_efficient(payoff_vector)

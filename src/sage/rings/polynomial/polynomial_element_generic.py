@@ -555,6 +555,59 @@ class Polynomial_generic_sparse(Polynomial):
                     output[index + n] = coeff
             return self.parent()(output, check=False)
 
+    @coerce_binop
+    def quo_rem(self, other):
+        """
+        Returns the quotient and remainder of the Euclidean division of
+        ``self`` and ``other``.
+
+        Raises ZerodivisionError if ``other`` is zero. Raises ArithmeticError 
+        if ``other`` has a nonunit leading coefficient.
+
+        EXAMPLES::
+
+            sage: P.<x> = PolynomialRing(QQ,sparse=True)
+            sage: R.<y> = PolynomialRing(P,sparse=True)
+            sage: f = R.random_element(10)
+            sage: g = y^5+R.random_element(4)
+            sage: q,r = f.quo_rem(g)
+            sage: f == q*g + r
+            True
+            sage: g = x*y^5
+            sage: f.quo_rem(g)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Nonunit leading coefficient
+            sage: g = 0
+            sage: f.quo_rem(g)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Division by zero polynomial
+        """
+        if other.is_zero():
+            raise ZeroDivisionError("Division by zero polynomial")
+        if not other.leading_coefficient().is_unit():
+            raise ArithmeticError("Nonunit leading coefficient")
+        if self.is_zero():
+            return self, self
+
+        R = self.parent()
+        
+        d = other.degree()
+        if self.degree() < d:
+            return R.zero_element(), self
+
+        quo = R.zero_element()
+        rem = self
+        inv_lc = R.base_ring().one_element()/other.leading_coefficient()
+
+        while rem.degree() > d:
+            c = inv_lc*rem.leading_coefficient()
+            e = rem.degree() - d
+            quo += c*R.one_element().shift(e) 
+            rem -= c*other.shift(e)
+        return (quo,rem)
+
 
 class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
     def __init__(self, parent, is_gen=False, construct=False):

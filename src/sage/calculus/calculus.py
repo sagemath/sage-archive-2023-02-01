@@ -1730,7 +1730,10 @@ _inverse_laplace = function_factory('ilt',
 
 #######################################################
 
-symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',
+# Conversion dict for special maxima objects
+# c,k1,k2 are from ode2()
+symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',\
+            '%c' : '_C', '%k1' : '_K1', '%k2' : '_K2', 
             'e':'_e', 'i':'_i', 'I':'_I'}
 
 import re
@@ -1810,6 +1813,12 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         2
         sage: var('my_new_var').full_simplify()
         my_new_var
+        
+    ODE solution constants are treated differently (:trac:`16007`)::
+    
+        sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
+        sage: sefms('%k1*x + %k2*y + %c')
+        _K1*x + _K2*y + _C
 
     Check that some hypothetical variables don't end up as special constants (:trac:`6882`)::
     

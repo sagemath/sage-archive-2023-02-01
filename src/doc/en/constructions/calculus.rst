@@ -283,9 +283,9 @@ An example, how to solve ODE's symbolically in Sage using the Maxima interface
     sage: y=function('y',x); desolve(diff(y,x,2) + 3*x == y, dvar = y, ics = [1,1,1])
     3*x - 2*e^(x - 1)
     sage: desolve(diff(y,x,2) + 3*x == y, dvar = y)
-    k2*e^(-x) + k1*e^x + 3*x
+    _K2*e^(-x) + _K1*e^x + 3*x
     sage: desolve(diff(y,x) + 3*x == y, dvar = y)
-    (3*(x + 1)*e^(-x) + c)*e^x
+    (3*(x + 1)*e^(-x) + _C)*e^x
     sage: desolve(diff(y,x) + 3*x == y, dvar = y, ics = [1,1]).expand()
     3*x - 5*e^(x - 1) + 3
 

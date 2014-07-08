@@ -135,7 +135,7 @@ def warning_function(file):
         sage: wrn("bad stuff", UserWarning, "myfile.py", 0)
         sage: F.seek(0)
         sage: F.read()
-        'doctest:0: UserWarning: bad stuff\n'
+        'doctest:...: UserWarning: bad stuff\n'
     """
     def doctest_showwarning(message, category, filename, lineno, file=file, line=None):
         try:

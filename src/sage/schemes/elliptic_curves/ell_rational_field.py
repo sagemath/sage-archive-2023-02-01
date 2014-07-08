@@ -3156,7 +3156,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve('17a1')
             sage: E.integral_weierstrass_model() #random
-            doctest:1: DeprecationWarning: integral_weierstrass_model is deprecated, use integral_short_weierstrass_model instead!
+            doctest:...: DeprecationWarning: integral_weierstrass_model is deprecated, use integral_short_weierstrass_model instead!
             Elliptic Curve defined by y^2  = x^3 - 11*x - 890 over Rational Field
         """
         from sage.misc.superseded import deprecation
@@ -4746,7 +4746,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: EllipticCurve('20a1').is_reducible(3) #random
-            doctest:1: DeprecationWarning: is_reducible is deprecated, use galois_representation().is_reducible(p) instead!
+            doctest:...: DeprecationWarning: is_reducible is deprecated, use galois_representation().is_reducible(p) instead!
             True
 
         """
@@ -4766,7 +4766,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: EllipticCurve('20a1').is_irreducible(7) #random
-            doctest:1: DeprecationWarning: is_irreducible is deprecated, use galois_representation().is_irreducible(p) instead!
+            doctest:...: DeprecationWarning: is_irreducible is deprecated, use galois_representation().is_irreducible(p) instead!
             True
 
         """
@@ -4786,7 +4786,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: EllipticCurve('20a1').is_surjective(7) #random
-            doctest:1: DeprecationWarning: is_surjective is deprecated, use galois_representation().is_surjective(p) instead!
+            doctest:...: DeprecationWarning: is_surjective is deprecated, use galois_representation().is_surjective(p) instead!
             True
 
         """
@@ -4806,7 +4806,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: EllipticCurve('20a1').reducible_primes() #random
-            doctest:1: DeprecationWarning: reducible_primes is deprecated, use galois_representation().reducible_primes() instead!
+            doctest:...: DeprecationWarning: reducible_primes is deprecated, use galois_representation().reducible_primes() instead!
             [2,3]
 
        """
@@ -4826,7 +4826,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: EllipticCurve('20a1').non_surjective() #random
-            doctest:1: DeprecationWarning: non_surjective is deprecated, use galois_representation().non_surjective() instead!
+            doctest:...: DeprecationWarning: non_surjective is deprecated, use galois_representation().non_surjective() instead!
             [2,3]
 
         """

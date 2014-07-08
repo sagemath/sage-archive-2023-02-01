@@ -657,7 +657,7 @@ class IncidenceStructure(object):
             sage: from sage.combinat.designs.block_design import BlockDesign
             sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: BD.points_from_gap()      # optional - gap_packages (design package)
-            doctest:1: DeprecationWarning: Unless somebody protests this method will be removed, as nobody seems to know why it is there.
+            doctest:...: DeprecationWarning: Unless somebody protests this method will be removed, as nobody seems to know why it is there.
             See http://trac.sagemath.org/14499 for details.
             [1, 2, 3, 4, 5, 6, 7]
         """

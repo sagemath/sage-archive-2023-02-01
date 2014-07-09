@@ -585,7 +585,7 @@ cdef class PowComputer_ext(PowComputer_class):
         mpz_clear(self.temp_m)
         ZZ_destruct(&self.temp_z)
 
-    cdef mpz_t* pow_mpz_t_tmp(self, long n):
+    cdef mpz_t* pow_mpz_t_tmp(self, long n) except NULL:
         """
         Provides fast access to an mpz_t* pointing to self.prime^n.
 
@@ -608,34 +608,25 @@ cdef class PowComputer_ext(PowComputer_class):
             sage: PC._pow_mpz_t_tmp_test(4) #indirect doctest
             625
         """
-        # READ THE DOCSTRING
         if n < 0:
-            # Exception will be ignored by Cython
-            raise ValueError("n must be positive")
+            raise ValueError("n must be non-negative")
         if n <= self.cache_limit:
             ZZ_to_mpz(&self.temp_m, &(self.small_powers[n]))
         elif n == self.prec_cap:
             ZZ_to_mpz(&self.temp_m, &self.top_power)
         else:
+            sig_on()
+            # n may exceed self.prec_cap. Very large values can, however, lead to
+            # out-of-memory situations in the following computation. This
+            # sig_on()/sig_off() prevents sage from crashing in such cases.
+            # It does not have a significant impact on performance. For small
+            # values of n the powers are taken from self.small_powers, for large
+            # values, the computation dominates the cost of the sig_on()/sig_off().
             mpz_pow_ui(self.temp_m, self.prime.value, n)
+            sig_off()
         return &self.temp_m
 
-    #def _pow_mpz_t_tmp_test(self, n):
-    #    """
-    #    Test for the pow_mpz_t_tmp function.  See that function's documentation for important warnings.
-    #
-    #    EXAMPLES:
-    #    sage: PC = PowComputer_ext_maker(5, 10, 10, 20, False, ntl.ZZ_pX([-5, 0, 1], 5^10), 'small', 'e',ntl.ZZ_pX([1],5^10))
-    #    sage: PC._pow_mpz_t_tmp_test(4) #indirect doctest
-    #    625
-    #    """
-    #    cdef Integer _n = Integer(n)
-    #    if _n < 0: raise ValueError
-    #    cdef Integer ans = PY_NEW(Integer)
-    #    mpz_set(ans.value, self.pow_mpz_t_tmp(mpz_get_si(_n.value))[0])
-    #    return ans
-
-    cdef ZZ_c* pow_ZZ_tmp(self, long n):
+    cdef ZZ_c* pow_ZZ_tmp(self, long n) except NULL:
         """
         Provides fast access to a ZZ_c* pointing to self.prime^n.
 
@@ -656,8 +647,7 @@ cdef class PowComputer_ext(PowComputer_class):
             625
         """
         if n < 0:
-            # Exception will be ignored by Cython
-            raise ValueError("n must be positive")
+            raise ValueError("n must be non-negative")
         if n <= self.cache_limit:
             return &(self.small_powers[n])
         if n == self.prec_cap:

@@ -984,7 +984,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             ulist = ulist[len(mon_d):]
         return flist, R
 
-    def macaulay_resultant(self, flist):
+    def macaulay_resultant(self, *args):
         r"""
         This is an implementation of the Macaulay Resultant. It computes
         the resultant of universal polynomials as well as polynomials
@@ -1008,11 +1008,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         INPUT:
 
-        - flist -- a list of n homogeneous polynomials in n variables
+        - args -- a list of n homogeneous polynomials in n variables.
+                  works when args[0] is the list of polynomials,
+                  or args is itself the list of polynomials
 
         OUTPUT:
 
-        - the resultant
+        - the macaulay resultant
 
         EXAMPLES:
 
@@ -1032,6 +1034,15 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             Traceback (most recent call last):
             ...
             AssertionError: resultant for non-homogeneous polynomials is not supported
+
+        All polynomials must be in the same ring::
+
+            sage: S.<x,y> = PolynomialRing(QQ, 2)
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: S.macaulay_resultant([y, z+x])
+            Traceback (most recent call last):
+            ...
+            AssertionError: not all inputs are polynomials in the calling ring
 
         The following example recreates Proposition 2.10 in Ch.3 of Using Algebraic Geometry::
 
@@ -1076,13 +1087,18 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R.macaulay_resultant([y,x^3+25*y^2*x,5*z])
             125
 
+        The input can given as an unpacked list of polynomials::
+
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: R.macaulay_resultant(y,x^3+25*y^2*x,5*z)
+            125
+
         an example when the coefficients live in a finite field::
 
             sage: F = FiniteField(11)
             sage: R.<x,y,z,w> = PolynomialRing(F,4)
             sage: R.macaulay_resultant([z,x^3,5*y,w])
             4
-
 
         example when the denominator in the algorithm vanishes(in this case
         the resultant is the constant term of the quotient of
@@ -1101,15 +1117,23 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: RH = fh.parent()
             sage: f.resultant(g) == RH.macaulay_resultant([fh,gh])
             True
+
         """
 
         from sage.matrix.constructor import matrix
         from sage.matrix.constructor import zero_matrix
         from sage.combinat.integer_vector import IntegerVectors
 
-        #TODO add test that checks that the output of the function is a polynomial
+        if len(args) == 1 and isinstance(args[0],list):
+            flist = args[0]
+        else: 
+            flist = args
+
         assert len(flist) > 0, 'you have to input least 1 polynomial in the list'
         assert all([f.is_homogeneous() for f in flist]), 'resultant for non-homogeneous polynomials is not supported'
+        assert all([self.is_parent_of(f) for f in flist]), 'not all inputs are polynomials in the calling ring'
+
+        U = self.base_ring() # ring of coefficients of self
         dlist = [f.degree() for f in flist]
         xlist = self.gens()
         assert len(xlist) == len(dlist), 'number of polynomials(= %d) must equal number of variables (= %d)'%(len(dlist),len(xlist))
@@ -1139,16 +1163,16 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         denom_matrix = numer_matrix.matrix_from_rows_and_columns(mons_to_keep,mons_to_keep)
         if denom_matrix.dimensions()[0] == 0: # here we choose the determinant of an empty matrix to be 1
-            return numer_matrix.det()
+            return U(numer_matrix.det())
         denom_det = denom_matrix.det()
         if denom_det != 0:
-            return numer_matrix.det()/denom_det
+            return U(numer_matrix.det()/denom_det)
         # if we get to this point, the determinant of the denominator was 0, and we get the resultant
         # by taking the free coefficient of the quotient of two characteristic polynomials
         poly_num  = numer_matrix.characteristic_polynomial('T')
         poly_denom  = denom_matrix.characteristic_polynomial('T')
         poly_quo  = poly_num.quo_rem(poly_denom)[0]
-        return poly_quo(0)
+        return U(poly_quo(0))
 
 ####################
 # Leave *all* old versions!

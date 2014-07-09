@@ -11423,6 +11423,20 @@ cdef class Matrix(matrix1.Matrix):
             sage: isinstance(ds, tuple), isinstance(dh, tuple)
             (True, True)
 
+        We check that :trac:`16633` is fixed::
+
+            sage: A = matrix(QQ, [[ 4, -2,  4,  2],
+            ....:                 [-2, 10, -2, -7],
+            ....:                 [ 4, -2,  8,  4],
+            ....:                 [ 2, -7,  4,  7]])
+            sage: A.set_immutable()
+            sage: L,d = A._indefinite_factorization('symmetric')
+            sage: A
+            [ 4 -2  4  2]
+            [-2 10 -2 -7]
+            [ 4 -2  8  4]
+            [ 2 -7  4  7]
+
         AUTHOR:
 
         - Rob Beezer (2012-05-24)
@@ -11470,6 +11484,10 @@ cdef class Matrix(matrix1.Matrix):
             # we need a copy no matter what, so we
             # (potentially) change to fraction field at the same time
             L = self.change_ring(F)
+            # The change ring doesn't necessarily return a copy if ``self``
+            #   is immutable and ``F`` is the same as the base ring
+            if L is self:
+                L = self.__copy__()
             m = L._nrows
             zero = F(0)
             one = F(1)

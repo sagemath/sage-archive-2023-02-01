@@ -1,5 +1,5 @@
 """
-Incidence structures.
+Incidence structures (i.e. hypergraphs, i.e. set systems)
 
 An incidence structure is specified by a list of points, blocks, and
 an incidence matrix ([1]_, [2]_).
@@ -20,6 +20,9 @@ AUTHORS:
   (version 0.6) written by Peter Dobcsanyi peter@designtheory.org.
 
 - Vincent Delecroix (2014): major rewrite
+
+Methods
+-------
 """
 #***************************************************************************
 #                              Copyright (C) 2007                          #
@@ -71,17 +74,33 @@ def IncidenceStructureFromMatrix(M, name=None):
 
 class IncidenceStructure(object):
     r"""
-    A base class for incidence structure (or block design) with explicit ground
-    set and blocks.
+    A base class for incidence structures (i.e. hypergraphs, i.e. set systems)
+
+    An incidence structure (i.e. hypergraph, i.e. set system) can be defined
+    from a collection of blocks (i.e. sets, i.e. edges), optionally with an
+    explicit ground set (i.e. point set, i.e. vertex set). Alternatively they
+    can be defined from a binary incidence matrix.
 
     INPUT:
 
-    - ``points`` -- the underlying set. If ``points`` is an integer `v`, then
-      the set is considered to be `\{0, ..., v-1\}`.
+    - ``points`` -- (i.e. ground set, i.e. vertex set) the underlying set. If
+      ``points`` is an integer `v`, then the set is considered to be `\{0, ...,
+      v-1\}`.
 
-    - ``blocks`` -- the blocks (might be any iterable)
+      .. NOTE::
 
-    - ``incidence_matrix`` -- the incidence matrix
+          The following syntax, where ``points`` is ommitted, automatically
+          defines the ground set as the union of the blocks::
+
+              sage: H = IncidenceStructure([['a','b','c'],['c','d','e']])
+              sage: H.ground_set()
+              ['a', 'b', 'c', 'd', 'e']
+
+    - ``blocks`` -- (i.e. edges, i.e. sets) the blocks defining the incidence
+      structure. Can be any iterable.
+
+    - ``incidence_matrix`` -- a binary incidence matrix. Each column represents
+      a set.
 
     - ``name`` (a string, such as "Fano plane").
 
@@ -189,16 +208,15 @@ class IncidenceStructure(object):
 
         # Reformatting input
         if isinstance(points, Matrix):
-            assert incidence_matrix is None
-            assert blocks is None
+            assert incidence_matrix is None, "'incidence_matrix' cannot be defined when 'points' is a matrix"
+            assert blocks is None, "'blocks' cannot be defined when 'points' is a matrix"
             incidence_matrix = points
             points = blocks = None
         elif points and blocks is None:
             blocks = points
             points = set().union(*blocks)
-            assert incidence_matrix is None
         if points:
-            assert incidence_matrix is None
+            assert incidence_matrix is None, "'incidence_matrix' cannot be defined when 'points' is defined"
 
         if incidence_matrix:
             M = matrix(incidence_matrix)
@@ -888,7 +906,7 @@ class IncidenceStructure(object):
     def block_design_checker(self, t, v, k, lmbda, type=None):
         """
         This method is deprecated and will soon be removed (see :trac:`16553`).
-        You could use :meth:`is_t_design` or :meth:`t_design_parameters` instead.
+        You could use :meth:`is_t_design` instead.
 
         This is *not* a wrapper for GAP Design's IsBlockDesign. The GAP
         Design function IsBlockDesign

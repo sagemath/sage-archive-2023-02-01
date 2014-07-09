@@ -279,7 +279,15 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: W = CoxeterGroup([[1,3,2],[3,1,-1],[2,-1,1]])
             sage: TestSuite(W).run(max_runs=30) # long time
 
-        We check that :trac:`16630` is fixed.
+        We check that :trac:`16630` is fixed::
+
+            sage: CoxeterGroup(['D',4]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['D',4], base_ring=QQ).category()
+            Category of finite coxeter groups
+            sage: CG = CoxeterGroup(['H',4], base_ring=QQbar)
+            sage: CG.category()
+            Category of finite coxeter groups
         """
         self._matrix = coxeter_matrix
         self._index_set = index_set
@@ -301,8 +309,11 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                              if coxeter_matrix[i, j] != 2})
         self._bilinear.set_immutable()
         category = CoxeterGroups()
-        if self._bilinear.is_positive_definite():
-            category = category.Finite()
+        try:
+            if self._bilinear.is_positive_definite():
+                category = category.Finite()
+        except TypeError:
+            pass
         FinitelyGeneratedMatrixGroup_generic.__init__(self, n, base_ring,
                                                       gens, category=category)
 
@@ -407,6 +418,10 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
             sage: W = CoxeterGroup(['D',4])
             sage: W.bilinear_form()
+            [   1 -1/2    0    0]
+            [-1/2    1 -1/2 -1/2]
+            [   0 -1/2    1    0]
+            [   0 -1/2    0    1]
         """
         return self._bilinear
 

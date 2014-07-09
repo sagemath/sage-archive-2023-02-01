@@ -507,9 +507,9 @@ cdef class PowComputer_base(PowComputer_class):
             return &(self.small_powers[n])
         if n == self.prec_cap:
             return &(self.top_power)
-        sig_on()
+        if n > self.prec_cap:
+            raise ValueError("n must be at most prec_cap")
         mpz_pow_ui(self.temp_m, self.prime.value, n)
-        sig_off()
         return &(self.temp_m)
 
 pow_comp_cache = {}

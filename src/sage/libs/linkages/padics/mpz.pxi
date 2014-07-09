@@ -133,9 +133,11 @@ cdef inline bint creduce(mpz_t out, mpz_t a, long prec, PowComputer_class prime_
 
     - returns True if the reduction is zero; False otherwise.
     """
-    sig_on()
+    # The following could fail if the value returned by
+    # prime_pow.pow_mpz_t_tmp(prec) is zero. We could add a sig_on()/sig_off()
+    # to keep sage from crashing. This comes at a performance penalty, however.
+    # A correct implementation of prime_pow should never return zero.
     mpz_mod(out, a, prime_pow.pow_mpz_t_tmp(prec)[0])
-    sig_off()
     return mpz_sgn(out) == 0
 
 cdef inline bint creduce_small(mpz_t out, mpz_t a, long prec, PowComputer_class prime_pow) except -1:

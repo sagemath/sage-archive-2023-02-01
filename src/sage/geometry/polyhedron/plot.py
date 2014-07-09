@@ -45,7 +45,7 @@ def render_2d(projection, *args, **kwds):
         sage: q3 = p3.projection()
         sage: p4 = Polyhedron(vertices=[[2,0]], rays=[[1,-1]], lines=[[1,1]])
         sage: q4 = p4.projection()
-        sage: q1.show() + q2.show() + q3.show() + q4.show()
+        sage: q1.plot() + q2.plot() + q3.plot() + q4.plot()
         sage: from sage.geometry.polyhedron.plot import render_2d
         sage: q = render_2d(p1.projection())
         doctest:...: DeprecationWarning: use Projection.render_2d instead
@@ -76,18 +76,18 @@ def render_3d(projection, *args, **kwds):
         sage: p1 = Polyhedron(vertices=[[1,1,1]], rays=[[1,1,1]])
         sage: p2 = Polyhedron(vertices=[[2,0,0], [0,2,0], [0,0,2]])
         sage: p3 = Polyhedron(vertices=[[1,0,0], [0,1,0], [0,0,1]], rays=[[-1,-1,-1]])
-        sage: p1.projection().show() + p2.projection().show() + p3.projection().show()
+        sage: p1.projection().plot() + p2.projection().plot() + p3.projection().plot()
 
     It correctly handles various degenerate cases::
 
-        sage: Polyhedron(lines=[[1,0,0],[0,1,0],[0,0,1]]).show()                              # whole space
-        sage: Polyhedron(vertices=[[1,1,1]], rays=[[1,0,0]], lines=[[0,1,0],[0,0,1]]).show()  # half space
-        sage: Polyhedron(vertices=[[1,1,1]], lines=[[0,1,0],[0,0,1]]).show()                  # R^2 in R^3
-        sage: Polyhedron(rays=[[0,1,0],[0,0,1]], lines=[[1,0,0]]).show()                      # quadrant wedge in R^2
-        sage: Polyhedron(rays=[[0,1,0]], lines=[[1,0,0]]).show()                              # upper half plane in R^3
-        sage: Polyhedron(lines=[[1,0,0]]).show()                                              # R^1 in R^2
-        sage: Polyhedron(rays=[[0,1,0]]).show()                                               # Half-line in R^3
-        sage: Polyhedron(vertices=[[1,1,1]]).show()                                           # point in R^3
+        sage: Polyhedron(lines=[[1,0,0],[0,1,0],[0,0,1]]).plot()                              # whole space
+        sage: Polyhedron(vertices=[[1,1,1]], rays=[[1,0,0]], lines=[[0,1,0],[0,0,1]]).plot()  # half space
+        sage: Polyhedron(vertices=[[1,1,1]], lines=[[0,1,0],[0,0,1]]).plot()                  # R^2 in R^3
+        sage: Polyhedron(rays=[[0,1,0],[0,0,1]], lines=[[1,0,0]]).plot()                      # quadrant wedge in R^2
+        sage: Polyhedron(rays=[[0,1,0]], lines=[[1,0,0]]).plot()                              # upper half plane in R^3
+        sage: Polyhedron(lines=[[1,0,0]]).plot()                                              # R^1 in R^2
+        sage: Polyhedron(rays=[[0,1,0]]).plot()                                               # Half-line in R^3
+        sage: Polyhedron(vertices=[[1,1,1]]).plot()                                           # point in R^3
     """
     from sage.misc.superseded import deprecation
     deprecation(16625, 'use Projection.render_3d instead')
@@ -123,9 +123,9 @@ def render_4d(polyhedron, point_opts={}, line_opts={}, polygon_opts={}, projecti
         sage: poly = polytopes.twenty_four_cell()
         sage: poly
         A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 24 vertices
-        sage: poly.show()
-        sage: poly.show(projection_direction=[2,5,11,17])
-        sage: type( poly.show() )
+        sage: poly.plot()
+        sage: poly.plot(projection_direction=[2,5,11,17])
+        sage: type( poly.plot() )
         <class 'sage.plot.plot3d.base.Graphics3dGroup'>
 
     TESTS::
@@ -458,11 +458,11 @@ class Projection(SageObject):
             The projection of a polyhedron into 2 dimensions
             sage: Projection(p,  lambda x: [x[1],x[2]] )   # another way of doing the same projection
             The projection of a polyhedron into 2 dimensions
-            sage: _.show()   # plot of the projected icosahedron in 2d
+            sage: _.plot()   # plot of the projected icosahedron in 2d
             sage: proj = Projection(p)
             sage: proj.stereographic([1,2,3])
             The projection of a polyhedron into 2 dimensions
-            sage: proj.show()
+            sage: proj.plot()
             sage: TestSuite(proj).run(skip='_test_pickling')
         """
         self.parent_polyhedron = polyhedron
@@ -559,7 +559,7 @@ class Projection(SageObject):
             sage: proj = Projection(polytopes.buckyball())  #long time
             sage: proj                                      #long time
             The projection of a polyhedron into 3 dimensions
-            sage: proj.stereographic([5,2,3]).show()        #long time
+            sage: proj.stereographic([5,2,3]).plot()        #long time
             sage: Projection( polytopes.twenty_four_cell() ).stereographic([2,0,0,0])
             The projection of a polyhedron into 3 dimensions
         """
@@ -598,7 +598,7 @@ class Projection(SageObject):
             sage: from sage.geometry.polyhedron.plot import Projection
             sage: Projection(cube4).schlegel([1,0,0,0])
             The projection of a polyhedron into 3 dimensions
-            sage: _.show()
+            sage: _.plot()
 
         TESTS::
 
@@ -672,7 +672,7 @@ class Projection(SageObject):
             sage: from sage.geometry.polyhedron.plot import Projection, render_2d
             sage: p = polytopes.n_simplex(2).projection()
             sage: test = p._init_dimension()
-            sage: p.show.__doc__ == p.render_2d.__doc__
+            sage: p.plot.__doc__ == p.render_2d.__doc__
             True
         """
         if self.transformed_coords:
@@ -707,8 +707,11 @@ class Projection(SageObject):
         EXAMPLES::
 
             sage: polytopes.n_cube(3).projection()._graphics_()
-            True
+            False
         """
+        from sage.doctest import DOCTEST_MODE
+        if DOCTEST_MODE:
+            return False
         try:
             self.plot().show()
             return True
@@ -1179,7 +1182,7 @@ class Projection(SageObject):
             sage: q3 = p3.projection()
             sage: p4 = Polyhedron(vertices=[[2,0]], rays=[[1,-1]], lines=[[1,1]])
             sage: q4 = p4.projection()
-            sage: q1.show() + q2.show() + q3.show() + q4.show()
+            sage: q1.plot() + q2.plot() + q3.plot() + q4.plot()
          """
         plt = Graphics()
         if isinstance(point_opts, dict):
@@ -1204,20 +1207,20 @@ class Projection(SageObject):
             sage: p1 = Polyhedron(vertices=[[1,1,1]], rays=[[1,1,1]])
             sage: p2 = Polyhedron(vertices=[[2,0,0], [0,2,0], [0,0,2]])
             sage: p3 = Polyhedron(vertices=[[1,0,0], [0,1,0], [0,0,1]], rays=[[-1,-1,-1]])
-            sage: p1.projection().show() + p2.projection().show() + p3.projection().show()
+            sage: p1.projection().plot() + p2.projection().plot() + p3.projection().plot()
     
         It correctly handles various degenerate cases::
     
-            sage: Polyhedron(lines=[[1,0,0],[0,1,0],[0,0,1]]).show()           # whole space
+            sage: Polyhedron(lines=[[1,0,0],[0,1,0],[0,0,1]]).plot()           # whole space
             sage: Polyhedron(vertices=[[1,1,1]], rays=[[1,0,0]], 
-            ....:            lines=[[0,1,0],[0,0,1]]).show()                   # half space
+            ....:            lines=[[0,1,0],[0,0,1]]).plot()                   # half space
             sage: Polyhedron(vertices=[[1,1,1]], 
-            ....:            lines=[[0,1,0],[0,0,1]]).show()                   # R^2 in R^3
-            sage: Polyhedron(rays=[[0,1,0],[0,0,1]], lines=[[1,0,0]]).show()   # quadrant wedge in R^2
-            sage: Polyhedron(rays=[[0,1,0]], lines=[[1,0,0]]).show()           # upper half plane in R^3
-            sage: Polyhedron(lines=[[1,0,0]]).show()                           # R^1 in R^2
-            sage: Polyhedron(rays=[[0,1,0]]).show()                            # Half-line in R^3
-            sage: Polyhedron(vertices=[[1,1,1]]).show()                        # point in R^3
+            ....:            lines=[[0,1,0],[0,0,1]]).plot()                   # R^2 in R^3
+            sage: Polyhedron(rays=[[0,1,0],[0,0,1]], lines=[[1,0,0]]).plot()   # quadrant wedge in R^2
+            sage: Polyhedron(rays=[[0,1,0]], lines=[[1,0,0]]).plot()           # upper half plane in R^3
+            sage: Polyhedron(lines=[[1,0,0]]).plot()                           # R^1 in R^2
+            sage: Polyhedron(rays=[[0,1,0]]).plot()                            # Half-line in R^3
+            sage: Polyhedron(vertices=[[1,1,1]]).plot()                        # point in R^3
         """
         from sage.plot.plot3d.base import Graphics3d
         plt = Graphics3d()

@@ -652,6 +652,16 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.lfunctions
+    ##
+    ################################
+
+    Extension('sage.lfunctions.zero_sums2',
+              sources = ['sage/lfunctions/zero_sums2.pyx'],
+              libraries = []),
+
+    ################################
+    ##
     ## sage.libs
     ##
     ################################

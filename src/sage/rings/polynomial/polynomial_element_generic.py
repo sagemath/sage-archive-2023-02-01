@@ -599,10 +599,10 @@ class Polynomial_generic_sparse(Polynomial):
 
         quo = R.zero_element()
         rem = self
-        inv_lc = R.base_ring().one_element()/other.leading_coefficient()
+        #inv_lc = R.base_ring().one_element()/other.leading_coefficient()
 
         while rem.degree() > d:
-            c = inv_lc*rem.leading_coefficient()
+            c = rem.leading_coefficient()/other.leading_coefficient()
             e = rem.degree() - d
             quo += c*R.one_element().shift(e) 
             rem -= c*other.shift(e)

@@ -4906,141 +4906,410 @@ def integer_floor(x):
     raise NotImplementedError("computation of floor of %s not implemented"%x)
 
 
-
-def two_squares(n, algorithm='gap'):
+def two_squares(n):
     """
-    Write the integer n as a sum of two integer squares if possible;
-    otherwise raise a ValueError.
+    Write the integer `n` as a sum of two integer squares if possible;
+    otherwise raise a ``ValueError``.
+
+    INPUT:
+
+    - ``n`` -- an integer
+
+    OUTPUT: a tuple `(a,b)` of non-negative integers such that
+    `n = a^2 + b^2` with `a <= b`.
 
     EXAMPLES::
 
         sage: two_squares(389)
         (10, 17)
-        sage: two_squares(7)
+        sage: two_squares(21)
         Traceback (most recent call last):
         ...
-        ValueError: 7 is not a sum of two squares
-        sage: a,b = two_squares(2009); a,b
-        (28, 35)
+        ValueError: 21 is not a sum of 2 squares
+        sage: two_squares(21^2)
+        (0, 21)
+        sage: a,b = two_squares(100000000000000000129); a,b
+        (4418521500, 8970878873)
         sage: a^2 + b^2
-        2009
+        100000000000000000129
+        sage: two_squares(2^222+1)
+        (253801659504708621991421712450521, 2583712713213354898490304645018692)
+        sage: two_squares(0)
+        (0, 0)
+        sage: two_squares(-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: -1 is not a sum of 2 squares
 
-    TODO: Create an implementation using PARI's continued fraction
-    implementation.
+    TESTS::
+
+        sage: for _ in xrange(100):
+        ....:     a = ZZ.random_element(2**16, 2**20)
+        ....:     b = ZZ.random_element(2**16, 2**20)
+        ....:     n = a**2 + b**2
+        ....:     aa,bb = two_squares(n)
+        ....:     assert aa**2 + bb**2 == n
+
+    ALGORITHM:
+
+    See http://www.schorn.ch/howto.html
+    """
+    from sage.rings.all import Integer, Mod
+    n = Integer(n)
+
+    if n <= 0:
+        if n == 0:
+            z = ZZ.zero()
+            return (z, z)
+        raise ValueError("%s is not a sum of 2 squares"%n)
+
+    if n.nbits() <= 32:
+        from sage.rings import sum_of_squares
+        return sum_of_squares.two_squares_pyx(n)
+
+    # Start by factoring n (which seems to be unavoidable)
+    F = n.factor(proof=False)
+
+    # First check whether it is possible to write n as a sum of two
+    # squares: all prime powers p^e must have p = 2 or p = 1 mod 4
+    # or e even.
+    for (p,e) in F:
+        if e % 2 == 1 and p % 4 == 3:
+            raise ValueError("%s is not a sum of 2 squares"%n)
+
+    # We run over all factors of n, write each factor p^e as
+    # a sum of 2 squares and accumulate the product
+    # (using multiplication in Z[I]) in a^2 + b^2.
+    a = ZZ.one()
+    b = ZZ.zero()
+    for (p,e) in F:
+        if e >= 2:
+            m = p ** (e//2)
+            a *= m
+            b *= m
+        if e % 2 == 1:
+            if p == 2:
+                # (a + bi) *= (1 + I)
+                a,b = a - b, a + b
+            else:  # p = 1 mod 4
+                # Find a square root of -1 mod p.
+                # If y is a non-square, then y^((p-1)/4) is a square root of -1.
+                y = Mod(2,p)
+                while True:
+                    s = y**((p-1)/4)
+                    if not s*s + 1:
+                        s = s.lift()
+                        break
+                    y += 1
+                # Apply Cornacchia's algorithm to write p as r^2 + s^2.
+                r = p
+                while s*s > p:
+                    r,s = s, r % s
+                r %= s
+
+                # Multiply (a + bI) by (r + sI)
+                a,b = a*r - b*s, b*r + a*s
+
+    a = a.abs()
+    b = b.abs()
+    assert a*a + b*b == n
+    if a <= b:
+        return (a,b)
+    else:
+        return (b,a)
+
+def three_squares(n):
+    """
+    Write the integer `n` as a sum of three integer squares if possible;
+    otherwise raise a ``ValueError``.
+
+    INPUT:
+
+    - ``n`` -- an integer
+
+    OUTPUT: a tuple `(a,b,c)` of non-negative integers such that
+    `n = a^2 + b^2 + c^2` with `a <= b <= c`.
+
+    EXAMPLES::
+
+        sage: three_squares(389)
+        (1, 8, 18)
+        sage: three_squares(946)
+        (9, 9, 28)
+        sage: three_squares(2986)
+        (3, 24, 49)
+        sage: three_squares(7^100)
+        (0, 0, 1798465042647412146620280340569649349251249)
+        sage: three_squares(11^111-1)
+        (616274160655975340150706442680, 901582938385735143295060746161, 6270382387635744140394001363065311967964099981788593947233)
+        sage: three_squares(7 * 2^41)
+        (1048576, 2097152, 3145728)
+        sage: three_squares(7 * 2^42)
+        Traceback (most recent call last):
+        ...
+        ValueError: 30786325577728 is not a sum of 3 squares
+        sage: three_squares(0)
+        (0, 0, 0)
+        sage: three_squares(-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: -1 is not a sum of 3 squares
+
+    TESTS::
+
+        sage: for _ in xrange(100):
+        ....:     a = ZZ.random_element(2**16, 2**20)
+        ....:     b = ZZ.random_element(2**16, 2**20)
+        ....:     c = ZZ.random_element(2**16, 2**20)
+        ....:     n = a**2 + b**2 + c**2
+        ....:     aa,bb,cc = three_squares(n)
+        ....:     assert aa**2 + bb**2 + cc**2 == n
+
+    ALGORITHM:
+
+    See http://www.schorn.ch/howto.html
     """
     from sage.rings.all import Integer
     n = Integer(n)
 
-    if algorithm == 'gap':
-        import sage.interfaces.gap as gap
-        a = gap.gap.eval('TwoSquares(%s)'%n)
-        if a == 'fail':
-            raise ValueError("%s is not a sum of two squares"%n)
-        x, y = eval(a)
-        return Integer(x), Integer(y)
+    if n <= 0:
+        if n == 0:
+            z = ZZ.zero()
+            return (z, z, z)
+        raise ValueError("%s is not a sum of 3 squares"%n)
+
+    if n.nbits() <= 32:
+        from sage.rings import sum_of_squares
+        return sum_of_squares.three_squares_pyx(n)
+
+    # First, remove all factors 4 from n
+    e = n.valuation(2)//2
+    m = ZZ.one() << e
+    N = n >> (2*e)
+
+    # Let x be the largest integer at most sqrt(N)
+    x, r = N.sqrtrem()
+    # We need to check for this special case,
+    # otherwise N - x^2 will always factor.
+    if not r:
+        z = ZZ.zero()
+        return (z, z, x*m)
+
+    # Consider different cases to find an x such that N - x^2 is easily
+    # written as the sum of 2 squares, because it is either p or 2p,
+    # with p a prime which is 1 mod 4.
+    if N % 4 == 1:
+        # Write N = x^2 + p with x even, p = 1 mod 4 prime
+        if x % 2 == 1:
+            x -= 1
+        while x >= 0:
+            p = N - x*x
+            if p.is_pseudoprime():
+                break
+            x -= 2
+    elif N % 4 == 2:
+        # Write N = x^2 + p with x odd, p = 1 mod 4 prime
+        if x % 2 == 0:
+            x -= 1
+        while x >= 0:
+            p = N - x*x
+            if p.is_pseudoprime():
+                break
+            x -= 2
+    elif N % 8 == 3:
+        # Write N = x^2 + 2p with x odd, p = 1 mod 4 prime
+        if x % 2 == 0:
+            x -= 1
+        while x >= 0:
+            p = (N - x*x) >> 1
+            if p.is_pseudoprime():
+                break
+            x -= 2
+    else:  # 7 mod 8
+        raise ValueError("%s is not a sum of 3 squares"%n)
+
+    if x < 0:
+        # We found no good x, brute force instead.
+        # Normally, this should only happen for small values of N.
+        if N > 10000:
+            from warnings import warn
+            warn("Brute forcing sum of 3 squares for large N = %s"%N, RuntimeWarning)
+        x = N.isqrt()
+
+    # In the usual case, this loop will only be executed once, since
+    # we already know the "right" value of x.
+    # This will only really loop if we hit the "x < 0" case above.
+    while True:
+        try:
+            a,b = two_squares(N - x*x)
+            break
+        except ValueError:
+            x -= 1
+            assert x >= 0
+
+    if x >= b:
+        return (a*m, b*m, x*m)
+    elif x >= a:
+        return (a*m, x*m, b*m)
     else:
-        raise RuntimeError("unknown algorithm '%s'"%algorithm)
-
-def _brute_force_four_squares(n):
-    """
-    Brute force search for decomposition into a sum of four squares,
-    for cases that the main algorithm fails to handle.
-
-    INPUT:
-
-    - ``n`` - a positive integer
-
-    OUTPUT:
-
-    - a list of four numbers whose squares sum to n
-
-    EXAMPLES::
-
-        sage: from sage.rings.arith import _brute_force_four_squares
-        sage: _brute_force_four_squares(567)
-        [1, 1, 6, 23]
-    """
-    from math import sqrt
-    for i in range(0,int(sqrt(n))+1):
-        for j in range(i,int(sqrt(n-i**2))+1):
-            for k in range(j, int(sqrt(n-i**2-j**2))+1):
-                rem = n-i**2-j**2-k**2
-                if rem >= 0:
-                    l = int(sqrt(rem))
-                    if rem-l**2==0:
-                        return [i,j,k,l]
+        return (x*m, a*m, b*m)
 
 def four_squares(n):
     """
-    Computes the decomposition into the sum of four squares,
-    using an algorithm described by Peter Schorn at:
-    http://www.schorn.ch/howto.html.
+    Write the integer `n` as a sum of four integer squares.
 
     INPUT:
 
-    - ``n`` - an integer
+    - ``n`` -- an integer
 
-    OUTPUT:
-
-    - a list of four numbers whose squares sum to n
+    OUTPUT: a tuple `(a,b,c,d)` of non-negative integers such that
+    `n = a^2 + b^2 + c^2 + d^2` with `a <= b <= c <= d`.
 
     EXAMPLES::
 
         sage: four_squares(3)
-        [0, 1, 1, 1]
+        (0, 1, 1, 1)
+        sage: four_squares(13)
+        (0, 0, 2, 3)
         sage: four_squares(130)
-        [0, 0, 3, 11]
+        (0, 0, 3, 11)
         sage: four_squares(1101011011004)
-        [2, 1049178, 2370, 15196]
-        sage: sum([i-sum([q^2 for q in four_squares(i)]) for i in range(2,10000)]) # long time
-        0
-    """
-    from sage.rings.finite_rings.integer_mod import mod
-    from math import sqrt
-    from sage.rings.arith import _brute_force_four_squares
-    try:
-        ts = two_squares(n)
-        return [0,0,ts[0],ts[1]]
-    except ValueError:
-        pass
-    m = n
-    v = 0
-    while mod(m,4) == 0:
-        v = v +1
-        m = m // 4
-    if mod(m,8) == 7:
-        d = 1
-        m = m - 1
-    else:
-        d = 0
-    if mod(m,8)==3:
-        x = int(sqrt(m))
-        if mod(x,2) == 0:
-            x = x - 1
-        p = (m-x**2) // 2
-        while not is_prime(p):
-            x = x - 2
-            p = (m-x**2) // 2
-            if x < 0:
-            # fall back to brute force
-                m = m + d
-                return [2**v*q for q in _brute_force_four_squares(m)]
-        y,z = two_squares(p)
-        return [2**v*q for q in [d,x,y+z,abs(y-z)]]
-    x = int(sqrt(m))
-    p = m - x**2
-    if p == 1:
-        return[2**v*q for q in [d,0,x,1]]
-    while not is_prime(p):
-        x = x - 1
-        p = m - x**2
-        if x < 0:
-            # fall back to brute force
-            m = m + d
-            return [2**v*q for q in _brute_force_four_squares(m)]
-    y,z = two_squares(p)
-    return [2**v*q for q in [d,x,y,z]]
+        (90, 102, 1220, 1049290)
+        sage: four_squares(10^100-1)
+        (155024616290, 2612183768627, 14142135623730950488016887, 99999999999999999999999999999999999999999999999999)
+        sage: for i in range(2^129, 2^129+10000):  # long time
+        ....:     S = four_squares(i)
+        ....:     assert sum(x^2 for x in S) == i
 
+    TESTS::
+
+        sage: for _ in xrange(100):
+        ....:     n = ZZ.random_element(2**32,2**34)
+        ....:     aa,bb,cc,dd = four_squares(n)
+        ....:     assert aa**2 + bb**2 + cc**2 + dd**2 == n
+    """
+    from sage.rings.all import Integer
+    n = Integer(n)
+
+    if n <= 0:
+        if n == 0:
+            z = ZZ.zero()
+            return (z, z, z, z)
+        raise ValueError("%s is not a sum of 4 squares"%n)
+
+    if n.nbits() <= 32:
+        from sage.rings import sum_of_squares
+        return sum_of_squares.four_squares_pyx(n)
+
+    # First, remove all factors 4 from n
+    e = n.valuation(2) // 2
+    m = ZZ.one() << e
+    N = n >> (2*e)
+
+    # Subtract a suitable x^2 such that N - x^2 is 1,2,3,5,6 mod 8,
+    # which can then be written as a sum of 3 squares.
+    x = N.isqrt()
+    y = N - x*x
+    if y >= 7 and (y % 4 == 0 or y % 8 == 7):
+        x -= 1
+        y += 2*x + 1
+
+    a,b,c = three_squares(y)
+
+    # Correct sorting is guaranteed by construction
+    return (a*m, b*m, c*m, x*m)
+
+def sum_of_k_squares(k,n):
+    """
+    Write the integer `n` as a sum of `k` integer squares if possible;
+    otherwise raise a ``ValueError``.
+
+    INPUT:
+
+    - ``k`` -- a non-negative integer
+
+    - ``n`` -- an integer
+
+    OUTPUT: a tuple `(x_1, ..., x_k)` of non-negative integers such that
+    their squares sum to `n`.
+
+    EXAMPLES::
+
+        sage: sum_of_k_squares(2, 9634)
+        (15, 97)
+        sage: sum_of_k_squares(3, 9634)
+        (0, 15, 97)
+        sage: sum_of_k_squares(4, 9634)
+        (1, 2, 5, 98)
+        sage: sum_of_k_squares(5, 9634)
+        (0, 1, 2, 5, 98)
+        sage: sum_of_k_squares(6, 11^1111-1)
+        (19215400822645944253860920437586326284, 37204645194585992174252915693267578306, 3473654819477394665857484221256136567800161086815834297092488779216863122, 5860191799617673633547572610351797996721850737768032876360978911074629287841061578270832330322236796556721252602860754789786937515870682024273948, 20457423294558182494001919812379023992538802203730791019728543439765347851316366537094696896669915675685581905102118246887673397020172285247862426612188418787649371716686651256443143210952163970564228423098202682066311189439731080552623884051737264415984619097656479060977602722566383385989, 311628095411678159849237738619458396497534696043580912225334269371611836910345930320700816649653412141574887113710604828156159177769285115652741014638785285820578943010943846225597311231847997461959204894255074229895666356909071243390280307709880906261008237873840245959883405303580405277298513108957483306488193844321589356441983980532251051786704380984788999660195252373574924026139168936921591652831237741973242604363696352878914129671292072201700073286987126265965322808664802662993006926302359371379531571194266134916767573373504566621665949840469229781956838744551367172353)
+        sage: sum_of_k_squares(7, 0)
+        (0, 0, 0, 0, 0, 0, 0)
+        sage: sum_of_k_squares(30,999999)
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 7, 44, 999)
+        sage: sum_of_k_squares(1, 9)
+        (3,)
+        sage: sum_of_k_squares(1, 10)
+        Traceback (most recent call last):
+        ...
+        ValueError: 10 is not a sum of 1 square
+        sage: sum_of_k_squares(1, -10)
+        Traceback (most recent call last):
+        ...
+        ValueError: -10 is not a sum of 1 square
+        sage: sum_of_k_squares(0, 9)
+        Traceback (most recent call last):
+        ...
+        ValueError: 9 is not a sum of 0 squares
+        sage: sum_of_k_squares(0, 0)
+        ()
+        sage: sum_of_k_squares(7, -1)
+        Traceback (most recent call last):
+        ...
+        ValueError: -1 is not a sum of 7 squares
+        sage: sum_of_k_squares(-1, 0)
+        Traceback (most recent call last):
+        ...
+        ValueError: k = -1 must be non-negative
+    """
+    from sage.rings.all import Integer
+    n = Integer(n)
+    k = int(k)
+
+    if k <= 4:
+        if k == 4:
+            return four_squares(n)
+        if k == 3:
+            return three_squares(n)
+        if k == 2:
+            return two_squares(n)
+        if k == 1:
+            if n >= 0:
+                x, r = n.sqrtrem()
+                if not r:
+                    return (x,)
+            raise ValueError("%s is not a sum of 1 square"%n)
+        if k == 0:
+            if n == 0:
+                return tuple()
+            raise ValueError("%s is not a sum of 0 squares"%n)
+        raise ValueError("k = %s must be non-negative"%k)
+
+    if n < 0:
+        raise ValueError("%s is not a sum of %s squares"%(n,k))
+
+    # Recursively subtract the largest square
+    t = []
+    while k > 4:
+        x = n.isqrt()
+        t.insert(0, x)
+        n -= x*x
+        k -= 1
+
+    t = list(four_squares(n)) + t
+    return tuple(t)
 
 def subfactorial(n):
     r"""

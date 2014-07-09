@@ -278,6 +278,8 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: TestSuite(W).run(max_runs=30) # long time
             sage: W = CoxeterGroup([[1,3,2],[3,1,-1],[2,-1,1]])
             sage: TestSuite(W).run(max_runs=30) # long time
+
+        We check that :trac:`16630` is fixed.
         """
         self._matrix = coxeter_matrix
         self._index_set = index_set
@@ -289,13 +291,20 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         else:
             from sage.functions.trig import cos
             from sage.symbolic.constants import pi
-            val = lambda x: base_ring(2*cos(pi / x)) if x != -1 else base_ring(2)
+            val = lambda x: base_ring(2*cos(pi / x)) if x != -1 else base_ring.one()
         gens = [MS.one() + MS({(i, j): val(coxeter_matrix[i, j])
                                for j in range(n)})
                 for i in range(n)]
+
+        self._bilinear = MS({(i, j): val(coxeter_matrix[i, j]) / base_ring(-2)
+                             for i in range(n) for j in range(n)
+                             if coxeter_matrix[i, j] != 2})
+        self._bilinear.set_immutable()
+        category = CoxeterGroups()
+        if self._bilinear.is_positive_definite():
+            category = category.Finite()
         FinitelyGeneratedMatrixGroup_generic.__init__(self, n, base_ring,
-                                                      gens,
-                                                      category=CoxeterGroups())
+                                                      gens, category=category)
 
     def _repr_(self):
         """
@@ -378,6 +387,28 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                 elif val == -1: # FIXME: Hack because there is no ZZ\cup\{\infty\}
                     G.add_edge(self._index_set[i], self._index_set[i+1+j], infinity)
         return G
+
+    def bilinear_form(self):
+        r"""
+        Return the bilinear form associated to ``self``.
+
+        Given a Coxeter group `G` with Coxeter matrix `M = (m_{ij})_{ij}`,
+        the associated bilinear form `A = (a_{ij})_{ij}` is given by
+
+        .. MATH::
+
+            a_{ij} = -\cos\left( \frac{\pi}{m_{ij}} \right).
+
+        If `A` is positive definite, then `G` is of finite type (and so
+        the associated Coxeter group is a finite group). If `A` is
+        positive semidefinite, then `G` is affine type.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['D',4])
+            sage: W.bilinear_form()
+        """
+        return self._bilinear
 
     def canonical_representation(self):
         r"""

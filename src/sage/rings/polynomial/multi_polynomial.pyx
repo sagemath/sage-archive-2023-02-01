@@ -1218,15 +1218,20 @@ cdef class MPolynomial(CommutativeRingElement):
         the resultant of universal polynomials as well as polynomials
         with constant coefficients. This is a project done in
         sage days 55. It's based on the implementation in Maple by
-        Manfred Minimair, which in turn is based on the following:
-
-        -Using Algebraic Geometry by Cox, Little, O'Shea
-        -Canny, J., "Generalised characteristic polynomials", p.241--250,
-                   J. Symbolic Comput. Vol. 9, No. 3, 1990
-        -The algebraic theory of modular systems by Macaulay
-
+        Manfred Minimair, which in turn is based on the references listed below:
         It calculates the Macaulay resultant for a list of Polynomials,
         up to sign!
+
+        REFERENCES:
+
+        .. [CLO] D. Cox, J. Little, D. O'Shea. Using Algebraic Geometry.
+                 Springer, 2005.
+
+        .. [Can] J. Canny. Generalised characteristic polynomials. 
+                 J. Symbolic Comput. Vol. 9, No. 3, 1990, 241--250.
+
+        .. [Mac] F.S. Macaulay. The algebraic theory of modular systems
+                 Cambridge university press, 1916.
 
         AUTHORS:
 
@@ -1236,8 +1241,8 @@ cdef class MPolynomial(CommutativeRingElement):
 
         INPUT:
 
-        - args -- a list of n homogeneous polynomials in n variables.
-                  works when args[0] is the list of polynomials,
+        - ``args`` -- a list of n homogeneous polynomials in n variables.
+                  works when ``args[0]`` is the list of polynomials,
                   or args is itself the list of polynomials
 
         OUTPUT:
@@ -1278,7 +1283,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: flist[0].macaulay_resultant(flist[1:])
             u2^2*u4^2*u6 - 2*u1*u2*u4*u5*u6 + u1^2*u5^2*u6 - u2^2*u3*u4*u7 + u1*u2*u3*u5*u7 + u0*u2*u4*u5*u7 - u0*u1*u5^2*u7 + u1*u2*u3*u4*u8 - u0*u2*u4^2*u8 - u1^2*u3*u5*u8 + u0*u1*u4*u5*u8 + u2^2*u3^2*u9 - 2*u0*u2*u3*u5*u9 + u0^2*u5^2*u9 - u1*u2*u3^2*u10 + u0*u2*u3*u4*u10 + u0*u1*u3*u5*u10 - u0^2*u4*u5*u10 + u1^2*u3^2*u11 - 2*u0*u1*u3*u4*u11 + u0^2*u4^2*u11
 
-        The following example degenerates into the determinant of a 3*3 matrix::
+        The following example degenerates into the determinant of a `3*3` matrix::
 
             sage: K.<x,y> = PolynomialRing(ZZ, 2)
             sage: flist,R = K._macaulay_resultant_universal_polynomials([1,1,1])
@@ -1307,7 +1312,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: (x+y).macaulay_resultant([y^2,x])
             0
 
-        an example of bad reduction at a prime p = 5::
+        an example of bad reduction at a prime ``p = 5``::
 
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: y.macaulay_resultant([x^3+25*y^2*x,5*z])

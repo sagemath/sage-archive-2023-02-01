@@ -882,18 +882,18 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
     def _macaulay_resultant_getS(self,mon_deg_tuple,dlist):
         r"""
-        In the Macaulay resultant algorithm the list of all monomials of the total degree is partitioned into sets S_i.
-        This function returns the index i for the set S_i for the inputted given monomial.
+        In the Macaulay resultant algorithm the list of all monomials of the total degree is partitioned into sets `S_i`.
+        This function returns the index i for the set `S_i` for the inputted given monomial.
 
         INPUT:
 
-        - `mon_deg_tuple` -- a list representing a monomial of a degree d
-        - `dlist` -- a list of degrees d_i of the polynomials in question, where
-        d =  sum(dlist) - len(dlist) + 1
+        - ``mon_deg_tuple`` -- a list representing a monomial of a degree d
+        - ``dlist`` -- a list of degrees `d_i` of the polynomials in question, where
+        ``d =  sum(dlist) - len(dlist) + 1``
 
         OUTPUT:
 
-        - the index i such that the input monomial lives in S_i
+        - the index `i` such that the input monomial lives in `S_i`
 
         EXAMPLES::
 
@@ -914,13 +914,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     def _macaulay_resultant_is_reduced(self,mon_degs,dlist):
         r"""
         Helper function for the Macaulay resultant algorithm.
-        A monomial in the variables x_0,...,x_n is called reduced with respect to the list of degrees d_0,...,d_n
-        if the degree of x_i in the monomial is >= d_i for exactly one i. This function checks this property for an inputted monomial.
+        A monomial in the variables `x_0,...,x_n` is called reduced with respect to the list of degrees `d_0,...,d_n`
+        if the degree of `x_i` in the monomial is `>= d_i` for exactly one `i`. This function checks this property for an inputted monomial.
 
         INPUT:
 
-        - mon_degs -- a monomial represented by a vector of degrees
-        - dlist -- a list of degrees with respect to which we check reducedness
+        - ``mon_degs`` -- a monomial represented by a vector of degrees
+        - ``dlist`` -- a list of degrees with respect to which we check reducedness
 
         OUTPUT:
 
@@ -941,13 +941,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     
     def _macaulay_resultant_universal_polynomials(self, dlist):
         r"""
-        Given a list of degrees, this function returns a list of len(dlist) polynomials with len(dlist) variables,
+        Given a list of degrees, this function returns a list of ``len(dlist)`` polynomials with ``len(dlist)`` variables,
         with generic coefficients. This is useful for generating polynomials for tests,
         and for getting a universal macaulay resultant for the given degrees.
 
         INPUT:
 
-        - dlist -- a list of degrees.
+        - ``dlist`` -- a list of degrees.
 
         OUTPUT:
 
@@ -990,15 +990,20 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         the resultant of universal polynomials as well as polynomials
         with constant coefficients. This is a project done in
         sage days 55. It's based on the implementation in Maple by
-        Manfred Minimair, which in turn is based on the following:
-
-        -Using Algebraic Geometry by Cox, Little, O'Shea
-        -Canny, J., "Generalised characteristic polynomials", p.241--250,
-                   J. Symbolic Comput. Vol. 9, No. 3, 1990
-        -The algebraic theory of modular systems by Macaulay
-
+        Manfred Minimair, which in turn is based on the references listed below:
         It calculates the Macaulay resultant for a list of Polynomials,
         up to sign!
+
+        REFERENCES:
+
+        .. [CLO] D. Cox, J. Little, D. O'Shea. Using Algebraic Geometry.
+                 Springer, 2005.
+
+        .. [Can] J. Canny. Generalised characteristic polynomials. 
+                 J. Symbolic Comput. Vol. 9, No. 3, 1990, 241--250.
+
+        .. [Mac] F.S. Macaulay. The algebraic theory of modular systems
+                 Cambridge university press, 1916.
 
         AUTHORS:
 
@@ -1008,9 +1013,9 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         INPUT:
 
-        - args -- a list of n homogeneous polynomials in n variables.
-                  works when args[0] is the list of polynomials,
-                  or args is itself the list of polynomials
+        - ``args`` -- a list of n homogeneous polynomials in n variables.
+                  works when ``args[0]`` is the list of polynomials,
+                  or ``args`` is itself the list of polynomials
 
         OUTPUT:
 
@@ -1044,14 +1049,14 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             ...
             AssertionError: not all inputs are polynomials in the calling ring
 
-        The following example recreates Proposition 2.10 in Ch.3 of Using Algebraic Geometry::
+        The following example recreates Proposition 2.10 in Ch.3 in [CLO]::
 
             sage: K.<x,y> = PolynomialRing(ZZ, 2)
             sage: flist,R = K._macaulay_resultant_universal_polynomials([1,1,2])
             sage: R.macaulay_resultant(flist)
             u2^2*u4^2*u6 - 2*u1*u2*u4*u5*u6 + u1^2*u5^2*u6 - u2^2*u3*u4*u7 + u1*u2*u3*u5*u7 + u0*u2*u4*u5*u7 - u0*u1*u5^2*u7 + u1*u2*u3*u4*u8 - u0*u2*u4^2*u8 - u1^2*u3*u5*u8 + u0*u1*u4*u5*u8 + u2^2*u3^2*u9 - 2*u0*u2*u3*u5*u9 + u0^2*u5^2*u9 - u1*u2*u3^2*u10 + u0*u2*u3*u4*u10 + u0*u1*u3*u5*u10 - u0^2*u4*u5*u10 + u1^2*u3^2*u11 - 2*u0*u1*u3*u4*u11 + u0^2*u4^2*u11
 
-        The following example degenerates into the determinant of a 3*3 matrix::
+        The following example degenerates into the determinant of a `3*3` matrix::
 
             sage: K.<x,y> = PolynomialRing(ZZ, 2)
             sage: flist,R = K._macaulay_resultant_universal_polynomials([1,1,1])
@@ -1081,7 +1086,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R.macaulay_resultant([x+y,y^2,x])
             0
 
-        an example of bad reduction at a prime p = 5::
+        an example of bad reduction at a prime `p = 5`::
 
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: R.macaulay_resultant([y,x^3+25*y^2*x,5*z])

@@ -575,7 +575,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         return False
 
     def _element_constructor_(self, x, base=10):
-        """
+        r"""
         Coerce ``x`` into this real field.
 
         EXAMPLES::
@@ -597,12 +597,27 @@ cdef class RealField_class(sage.rings.ring.Field):
             Traceback (most recent call last):
             ...
             ValueError: can only convert signed infinity to RR
+
+        We check that if our first attempt fails, we coerce through ``\QQ``::
+
+            sage: R('1/2')
+            0.50000
+            sage: UCF = UniversalCyclotomicField()
+            sage: R(UCF(2/5))
+            0.40000
         """
         if hasattr(x, '_mpfr_'):
             return x._mpfr_(self)
         cdef RealNumber z
         z = self._new()
-        z._set(x, base)
+        try:
+            z._set(x, base)
+        except TypeError:
+            if base != 10:
+                raise
+            # Try a little harder to see if it can be considered
+            #   as a rational number
+            return self(QQ(x))
         return z
 
     cpdef _coerce_map_from_(self, S):

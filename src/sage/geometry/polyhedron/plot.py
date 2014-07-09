@@ -21,7 +21,7 @@ from sage.misc.latex import LatexExpr
 from sage.symbolic.constants import pi
 from sage.structure.sequence import Sequence
 
-from sage.plot.all import point2d, line2d, arrow, polygon2d
+from sage.plot.all import Graphics, point2d, line2d, arrow, polygon2d
 from sage.plot.plot3d.all import point3d, line3d, arrow3d, polygon3d
 from sage.plot.plot3d.transform import rotate_arbitrary
 
@@ -30,7 +30,7 @@ from base import is_Polyhedron
 
 
 #############################################################
-def render_2d(projection, point_opts={}, line_opts={}, polygon_opts={}):
+def render_2d(projection, *args, **kwds):
     """
     Return 2d rendering of the projection of a polyhedron into
     2-dimensional ambient space.
@@ -48,29 +48,20 @@ def render_2d(projection, point_opts={}, line_opts={}, polygon_opts={}):
         sage: q1.show() + q2.show() + q3.show() + q4.show()
         sage: from sage.geometry.polyhedron.plot import render_2d
         sage: q = render_2d(p1.projection())
+        doctest:...: DeprecationWarning: use Projection.render_2d instead
+        See http://trac.sagemath.org/16625 for details.
         sage: q._objects
         [Point set defined by 1 point(s),
          Arrow from (1.0,1.0) to (2.0,2.0),
          Polygon defined by 3 points]
     """
+    from sage.misc.superseded import deprecation
+    deprecation(16625, 'use Projection.render_2d instead')
     if is_Polyhedron(projection):
         projection = Projection(projection)
-    from sage.plot.graphics import Graphics
-    plt = Graphics()
-    if isinstance(point_opts, dict):
-        point_opts.setdefault('zorder', 2)
-        point_opts.setdefault('pointsize', 10)
-        plt += projection.render_points_2d(**point_opts)
-    if isinstance(line_opts, dict):
-        line_opts.setdefault('zorder', 1)
-        plt += projection.render_outline_2d(**line_opts)
-    if isinstance(polygon_opts, dict):
-        polygon_opts.setdefault('zorder', 0)
-        plt += projection.render_fill_2d(**polygon_opts)
-    return plt
+    return projection.render_2d(*args, **kwds)
 
-
-def render_3d(projection, point_opts={}, line_opts={}, polygon_opts={}):
+def render_3d(projection, *args, **kwds):
     """
     Return 3d rendering of a polyhedron projected into
     3-dimensional ambient space.
@@ -98,19 +89,11 @@ def render_3d(projection, point_opts={}, line_opts={}, polygon_opts={}):
         sage: Polyhedron(rays=[[0,1,0]]).show()                                               # Half-line in R^3
         sage: Polyhedron(vertices=[[1,1,1]]).show()                                           # point in R^3
     """
+    from sage.misc.superseded import deprecation
+    deprecation(16625, 'use Projection.render_3d instead')
     if is_Polyhedron(projection):
         projection = Projection(projection)
-    from sage.plot.plot3d.base import Graphics3d
-    plt = Graphics3d()
-    if isinstance(point_opts, dict):
-        point_opts.setdefault('width', 3)
-        plt += projection.render_vertices_3d(**point_opts)
-    if isinstance(line_opts, dict):
-        line_opts.setdefault('width', 3)
-        plt += projection.render_wireframe_3d(**line_opts)
-    if isinstance(polygon_opts, dict):
-        plt += projection.render_solid_3d(**polygon_opts)
-    return plt
+    return projection.render_3d(*args, **kwds)
 
 def render_4d(polyhedron, point_opts={}, line_opts={}, polygon_opts={}, projection_direction=None):
     """
@@ -150,10 +133,16 @@ def render_4d(polyhedron, point_opts={}, line_opts={}, polygon_opts={}, projecti
         sage: from sage.geometry.polyhedron.plot import render_4d
         sage: p = polytopes.n_cube(4)
         sage: q = render_4d(p)
+        doctest:...: DeprecationWarning: use Polyhedron.schlegel_projection instead
+        See http://trac.sagemath.org/16625 for details.
+        doctest:...: DeprecationWarning: use Projection.render_3d instead
+        See http://trac.sagemath.org/16625 for details.
         sage: tach_str = q.tachyon()
         sage: tach_str.count('FCylinder')
         32
     """
+    from sage.misc.superseded import deprecation
+    deprecation(16625, 'use Polyhedron.schlegel_projection instead')
     if projection_direction is None:
         for ineq in polyhedron.inequality_generator():
             center = [v() for v in ineq.incident() if v.is_vertex()]
@@ -379,7 +368,7 @@ class ProjectionFuncSchlegel():
         sage: proj(vector([1.1,1.1,1.11]))[0]
         0.0302...
     """
-    def __init__(self, projection_direction, height = 1.1):
+    def __init__(self, projection_direction, height=1.1, center=0):
         """
         Initializes the projection.
 
@@ -392,6 +381,7 @@ class ProjectionFuncSchlegel():
             0.0302...
             sage: TestSuite(proj).run(skip='_test_pickling')
         """
+        self.center = center
         self.projection_dir = vector(RDF, projection_direction)
         if norm(self.projection_dir).is_zero():
             raise ValueError("projection direction must be a non-zero vector.")
@@ -420,7 +410,7 @@ class ProjectionFuncSchlegel():
             sage: proj.__call__([1,2,3])
             (0.56162854..., 2.09602626...)
         """
-        v = vector(RDF,x)
+        v = vector(RDF,x) - self.center
         if v.is_zero():
             raise ValueError("The origin must not be a vertex.")
         v = v/norm(v)         # normalize vertices to unit sphere
@@ -578,19 +568,29 @@ class Projection(SageObject):
         return self.__call__(ProjectionFuncStereographic(projection_point))
 
 
-    def schlegel(self, projection_direction=None, height = 1.1):
+    def schlegel(self, projection_direction=None, height=1.1):
         """
         Return the Schlegel projection.
 
-        The vertices are normalized to the unit sphere, and
-        stereographically projected from a point slightly outside of
-        the sphere.
+        * The polyhedron is translated such that its
+          :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.center`
+          is at the origin.
+
+        * The vertices are then normalized to the unit sphere
+
+        * The normalized points are stereographically projected from a
+          point slightly outside of the sphere.
 
         INPUT:
 
-        - ``projection_direction`` - The direction of the Schlegel
-          projection. By default, the vector consisting of the first n
-          primes is chosen.
+        - ``projection_direction`` -- coordinate list/tuple/iterable
+          or ``None`` (default). The direction of the Schlegel
+          projection. For a full-dimensional polyhedron, the default
+          is the first facet normal; Otherwise, the vector consisting
+          of the first n primes is chosen.
+
+        - ``height`` -- float (default: `1.1`). How far outside of the
+          unit sphere the focal point is.
 
         EXAMPLES::
 
@@ -604,20 +604,16 @@ class Projection(SageObject):
 
             sage: Projection(cube4).schlegel()
             The projection of a polyhedron into 3 dimensions
-
         """
+        center = self.parent_polyhedron.center()
         if projection_direction is None:
-            for poly in self.polygons:
-                center = sum([self.coords[i] for i in poly]) / len(poly)
-                print center, "\n"
-                if not center.is_zero():
-                    projection_direction = center
-                    break
-        if projection_direction is None:
-            from sage.rings.arith import primes_first_n
-            projection_direction = primes_first_n(self.polyhedron_ambient_dim)
-        return self.__call__(ProjectionFuncSchlegel(projection_direction, height = height))
-
+            if self.parent_polyhedron.is_full_dimensional():
+                projection_direction = self.parent_polyhedron.inequality_generator().next().A()
+            else:
+                from sage.rings.arith import primes_first_n
+                projection_direction = primes_first_n(self.polyhedron_ambient_dim)
+        return self.__call__(ProjectionFuncSchlegel(
+            projection_direction, height=height, center=center))
 
     def coord_index_of(self, v):
         """
@@ -676,17 +672,21 @@ class Projection(SageObject):
             sage: from sage.geometry.polyhedron.plot import Projection, render_2d
             sage: p = polytopes.n_simplex(2).projection()
             sage: test = p._init_dimension()
-            sage: p.show.__doc__ == render_2d.__doc__
+            sage: p.show.__doc__ == p.render_2d.__doc__
             True
         """
-        self.dimension = len(self.transformed_coords[0])
-
-        if self.dimension == 2:
-            self.show = lambda **kwds: render_2d(self,**kwds)
-            self.show.__doc__ = render_2d.__doc__
+        if self.transformed_coords:
+            self.dimension = len(self.transformed_coords[0])
+        else:
+            self.dimension = 0
+        if self.dimension == 0:
+            self.show = self.render_0d
+        elif self.dimension == 1:
+            self.show = self.render_1d
+        elif self.dimension == 2:
+            self.show = self.render_2d
         elif self.dimension == 3:
-            self.show = lambda **kwds: render_3d(self,**kwds)
-            self.show.__doc__ = render_3d.__doc__
+            self.show = self.render_3d
         else:
             try:
                 del self.show
@@ -931,6 +931,56 @@ class Projection(SageObject):
         self.polygons.extend( [self.coord_indices_of(p) for p in polygons] )
 
 
+    def render_points_1d(self, **kwds):
+        """
+        Return the points of a polyhedron in 1d.
+
+        INPUT:
+
+        - ``**kwds`` -- options passed through to
+          :func:`~sage.plot.point.point2d`.
+
+        OUTPUT:
+
+        A 2-d graphics object.
+
+        EXAMPLES::
+
+            sage: cube1 = polytopes.n_cube(1)
+            sage: proj = cube1.projection()
+            sage: points = proj.render_points_1d()
+            sage: points._objects
+            [Point set defined by 2 point(s)]
+        """
+        return point2d([c + [0] for c in self.coordinates_of(self.points)], **kwds)
+
+    def render_line_1d(self, **kwds):
+        """
+        Return the line of a polyhedron in 1d.
+
+        INPUT:
+
+        - ``**kwds`` -- options passed through to
+          :func:`~sage.plot.line.line2d`.
+
+        OUTPUT:
+
+        A 2-d graphics object.
+
+        EXAMPLES::
+
+            sage: outline = polytopes.n_cube(1).projection().render_line_1d()
+            sage: outline._objects[0]
+            Line defined by 2 points
+        """
+        if len(self.lines) == 0:
+            return Graphics()
+        elif len(self.lines) == 1:
+            line = self.coordinates_of(self.lines[0])
+            return line2d([line[0] + [0], line[1] + [0]], **kwds)
+        else:
+            assert False   # unreachable
+
     def render_points_2d(self, **kwds):
         """
         Return the points of a polyhedron in 2d.
@@ -1021,7 +1071,6 @@ class Projection(SageObject):
             wireframe.append(arrow3d(a_coords[0], a_coords[1], **kwds))
         return sum(wireframe)
 
-
     def render_solid_3d(self, **kwds):
         """
         Return solid 3d rendering of a 3d polytope.
@@ -1036,6 +1085,131 @@ class Projection(SageObject):
         return sum([ polygon3d(self.coordinates_of(f), **kwds)
                      for f in self.polygons ])
 
+    def render_0d(self, point_opts={}, line_opts={}, polygon_opts={}):
+        """
+        Return 0d rendering of the projection of a polyhedron into
+        2-dimensional ambient space.
+
+        INPUT:
+
+        See
+        :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.plot`.
+
+        OUTPUT:
+
+        A 2-d graphics object.
+
+        EXAMPLES::
+
+            sage: print(Polyhedron([]).projection().render_0d().description())
+            <BLANKLINE>
+            sage: print(Polyhedron(ieqs=[(1,)]).projection().render_0d().description())
+            Point set defined by 1 point(s):    [(0.0, 0.0)]
+        """
+        if isinstance(point_opts, dict):
+            point_opts.setdefault('zorder', 2)
+            point_opts.setdefault('pointsize', 10)
+        if self.points:
+            return point2d([0,0], **point_opts)
+        else:
+            return Graphics()
+
+
+    def render_1d(self, point_opts={}, line_opts={}, polygon_opts={}):
+        """
+        Return 1d rendering of the projection of a polyhedron into
+        2-dimensional ambient space.
+
+        INPUT:
+
+        See
+        :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.plot`.
+
+        OUTPUT:
+
+        A 2-d graphics object.
+
+        EXAMPLES::
+
+            sage: Polyhedron([(0,), (1,)]).projection().render_1d()
+        """
+        plt = Graphics()
+        if isinstance(point_opts, dict):
+            point_opts.setdefault('zorder', 2)
+            point_opts.setdefault('pointsize', 10)
+            plt += self.render_points_1d(**point_opts)
+        if isinstance(line_opts, dict):
+            line_opts.setdefault('zorder', 1)
+            plt += self.render_line_1d(**line_opts)
+        return plt
+
+    def render_2d(self, point_opts={}, line_opts={}, polygon_opts={}):
+        """
+        Return 2d rendering of the projection of a polyhedron into
+        2-dimensional ambient space.
+
+        EXAMPLES::
+
+            sage: p1 = Polyhedron(vertices=[[1,1]], rays=[[1,1]])
+            sage: q1 = p1.projection()
+            sage: p2 = Polyhedron(vertices=[[1,0], [0,1], [0,0]])
+            sage: q2 = p2.projection()
+            sage: p3 = Polyhedron(vertices=[[1,2]])
+            sage: q3 = p3.projection()
+            sage: p4 = Polyhedron(vertices=[[2,0]], rays=[[1,-1]], lines=[[1,1]])
+            sage: q4 = p4.projection()
+            sage: q1.show() + q2.show() + q3.show() + q4.show()
+         """
+        plt = Graphics()
+        if isinstance(point_opts, dict):
+            point_opts.setdefault('zorder', 2)
+            point_opts.setdefault('pointsize', 10)
+            plt += self.render_points_2d(**point_opts)
+        if isinstance(line_opts, dict):
+            line_opts.setdefault('zorder', 1)
+            plt += self.render_outline_2d(**line_opts)
+        if isinstance(polygon_opts, dict):
+            polygon_opts.setdefault('zorder', 0)
+            plt += self.render_fill_2d(**polygon_opts)
+        return plt
+    
+    def render_3d(self, point_opts={}, line_opts={}, polygon_opts={}):
+        """
+        Return 3d rendering of a polyhedron projected into
+        3-dimensional ambient space.
+    
+        EXAMPLES::
+    
+            sage: p1 = Polyhedron(vertices=[[1,1,1]], rays=[[1,1,1]])
+            sage: p2 = Polyhedron(vertices=[[2,0,0], [0,2,0], [0,0,2]])
+            sage: p3 = Polyhedron(vertices=[[1,0,0], [0,1,0], [0,0,1]], rays=[[-1,-1,-1]])
+            sage: p1.projection().show() + p2.projection().show() + p3.projection().show()
+    
+        It correctly handles various degenerate cases::
+    
+            sage: Polyhedron(lines=[[1,0,0],[0,1,0],[0,0,1]]).show()           # whole space
+            sage: Polyhedron(vertices=[[1,1,1]], rays=[[1,0,0]], 
+            ....:            lines=[[0,1,0],[0,0,1]]).show()                   # half space
+            sage: Polyhedron(vertices=[[1,1,1]], 
+            ....:            lines=[[0,1,0],[0,0,1]]).show()                   # R^2 in R^3
+            sage: Polyhedron(rays=[[0,1,0],[0,0,1]], lines=[[1,0,0]]).show()   # quadrant wedge in R^2
+            sage: Polyhedron(rays=[[0,1,0]], lines=[[1,0,0]]).show()           # upper half plane in R^3
+            sage: Polyhedron(lines=[[1,0,0]]).show()                           # R^1 in R^2
+            sage: Polyhedron(rays=[[0,1,0]]).show()                            # Half-line in R^3
+            sage: Polyhedron(vertices=[[1,1,1]]).show()                        # point in R^3
+        """
+        from sage.plot.plot3d.base import Graphics3d
+        plt = Graphics3d()
+        if isinstance(point_opts, dict):
+            point_opts.setdefault('width', 3)
+            plt += self.render_vertices_3d(**point_opts)
+        if isinstance(line_opts, dict):
+            line_opts.setdefault('width', 3)
+            plt += self.render_wireframe_3d(**line_opts)
+        if isinstance(polygon_opts, dict):
+            plt += self.render_solid_3d(**polygon_opts)
+        return plt
+    
     def tikz(self, view=[0,0,1], angle=0, scale=2,
              edge_color='blue!95!black', facet_color='blue!95!black',
              opacity=0.8, vertex_color='green', axis=False):

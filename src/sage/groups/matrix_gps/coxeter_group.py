@@ -285,8 +285,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             Category of finite coxeter groups
             sage: CoxeterGroup(['D',4], base_ring=QQ).category()
             Category of finite coxeter groups
-            sage: CG = CoxeterGroup(['H',4], base_ring=QQbar)
-            sage: CG.category()
+            sage: CoxeterGroup(['H',4], base_ring=QQbar).category()
             Category of finite coxeter groups
         """
         self._matrix = coxeter_matrix
@@ -304,16 +303,45 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                                for j in range(n)})
                 for i in range(n)]
 
-        self._bilinear = MS({(i, j): val(coxeter_matrix[i, j]) / base_ring(-2)
-                             for i in range(n) for j in range(n)
-                             if coxeter_matrix[i, j] != 2})
+        self._bilinear = matrix({(i, j): val(coxeter_matrix[i, j]) / base_ring(-2)
+                                 for i in range(n) for j in range(n)
+                                 if coxeter_matrix[i, j] != 2})
         self._bilinear.set_immutable()
         category = CoxeterGroups()
         try:
+            # Try first using the fact that the bilinear form for finite
+            #   groups is positive definite
             if self._bilinear.is_positive_definite():
                 category = category.Finite()
-        except TypeError:
-            pass
+        except (TypeError, OverflowError):
+            # Fallback by comparing the Coxeter matrices
+            if n == 1:
+                category = category.Finite()
+            elif n == 2:
+                if coxeter_matrix[0,1] > 0:
+                    category = category.Finite()
+            elif n == 3:
+                if coxeter_matrix == CartanType(['A',n]).coxeter_matrix() \
+                        or coxeter_matrix == CartanType(['B',n]).coxeter_matrix() \
+                        or coxeter_matrix == CartanType(['H',n]).coxeter_matrix():
+                    category = category.Finite()
+            elif n == 4:
+                if coxeter_matrix == CartanType(['A',n]).coxeter_matrix() \
+                        or coxeter_matrix == CartanType(['B',n]).coxeter_matrix() \
+                        or coxeter_matrix == CartanType(['D',n]).coxeter_matrix() \
+                        or coxeter_matrix == CartanType(['F',n]).coxeter_matrix() \
+                        or coxeter_matrix == CartanType(['H',n]).coxeter_matrix():
+                    category = category.Finite()
+            elif n in [6,7,8]:
+                if coxeter_matrix == CartanType(['A',n]).coxeter_matrix() \
+                        or coxeter_matrix == CartanType(['B',n]).coxeter_matrix() \
+                        or coxeter_matrix == CartanType(['D',n]).coxeter_matrix() \
+                        or coxeter_matrix == CartanType(['E',n]).coxeter_matrix():
+                    category = category.Finite()
+            elif coxeter_matrix == CartanType(['A',n]).coxeter_matrix() \
+                    or coxeter_matrix == CartanType(['B',n]).coxeter_matrix() \
+                    or coxeter_matrix == CartanType(['D',n]).coxeter_matrix():
+                category = category.Finite()
         FinitelyGeneratedMatrixGroup_generic.__init__(self, n, base_ring,
                                                       gens, category=category)
 

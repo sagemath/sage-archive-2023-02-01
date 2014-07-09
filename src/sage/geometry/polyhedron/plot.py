@@ -680,19 +680,40 @@ class Projection(SageObject):
         else:
             self.dimension = 0
         if self.dimension == 0:
-            self.show = self.render_0d
+            self.plot = self.render_0d
         elif self.dimension == 1:
-            self.show = self.render_1d
+            self.plot = self.render_1d
         elif self.dimension == 2:
-            self.show = self.render_2d
+            self.plot = self.render_2d
         elif self.dimension == 3:
-            self.show = self.render_3d
+            self.plot = self.render_3d
         else:
             try:
-                del self.show
+                del self.plot
             except AttributeError:
                 pass
 
+    def show(self, *args, **kwds):
+        from sage.misc.superseded import deprecation
+        deprecation(16625, 'use Projection.plot instead')
+        return self.plot(*args, **kwds)
+
+    def _graphics_(self):
+        """
+        Display projection graphically on the Sage command line.
+
+        See :meth:`~sage.plot.graphics.Graphics._graphics_`.
+
+        EXAMPLES::
+
+            sage: polytopes.n_cube(3).projection()._graphics_()
+            True
+        """
+        try:
+            self.plot().show()
+            return True
+        except AttributeError:
+            return False
 
     def _init_from_2d(self, polyhedron):
         """

@@ -651,15 +651,15 @@ class Polyhedron_base(Element):
 
         projection = project(self)
         try:
-            show_method = projection.show
+            plot_method = projection.plot
         except AttributeError:
             projection = project(self.affine_hull())
             try:
-                show_method = projection.show
+                plot_method = projection.plot
             except AttributeError:
                 raise NotImplementedError('plotting of {0}-dimensional polyhedra not implemented'
                                           .format(self.ambient_dim()))
-        return show_method(*opts)
+        return plot_method(*opts)
 
     show = plot
 

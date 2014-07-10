@@ -3921,17 +3921,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if other.degree() < 0:
             raise ValueError("Pseudo-division by zero is not possible")
 
+        # if other is a constant, then R = 0 and Q = self * other^(deg(self))
+        if other in self.parent().base_ring():
+            return (self * other**(self.degree()), self.parent().zero_element())
+
         R = self
         B = other
         Q = self.parent().zero_element()
         e = self.degree() - other.degree() + 1
         d = B.leading_coefficient()
-        X = self.parent().gen()
 
         while not R.degree() < B.degree():
-            S = R.leading_coefficient()*X**(R.degree()-B.degree())
-            Q = d*Q+S
-            R = d*R-S*B
+            c = R.leading_coefficient()
+            diffdeg = R.degree() - B.degree()
+            Q = d*Q + self.parent()(c).shift(diffdeg)
+            R = d*R - c*B.shift(diffdeg)
             e -= 1
 
         q = d**e
@@ -4016,6 +4020,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 b = b.gcd(c)
                 if b.is_one():
                     break
+
             return self.parent()(d*B/b)
 
         return d

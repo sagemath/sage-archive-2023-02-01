@@ -1603,6 +1603,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             Traceback (most recent call last):
             ...
             NotImplementedError: Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.
+
+        We check that the original issue in :trac:`7554` is fixed::
+
+            sage: K.<a> = PolynomialRing(QQ)
+            sage: R.<x,y> = PolynomialRing(FractionField(K))
+            sage: factor(x)
+            x
         """
         R = self.parent()
 

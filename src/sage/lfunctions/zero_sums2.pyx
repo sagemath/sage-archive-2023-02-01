@@ -35,6 +35,13 @@ from sage.functions.other import real, imag
 from sage.symbolic.constants import pi, euler_gamma
 from sage.libs.pari.all import pari
 
+cdef extern from "<math.h>":
+    double c_exp "exp"(double)
+    double c_log "log"(double)
+    double c_cos "cos"(double)
+    double c_acos "acos"(double)
+    double c_sqrt "sqrt"(double)
+
 cdef class LFunctionZeroSum_abstract(SageObject):
     """
     Abstract class for computing certain sums over zeros of a motivic L-function
@@ -461,6 +468,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             2.05689042503
 
         """
+        #cdef double Del = Delta
 
         # If Delta>6.95, then exp(2*pi*Delta)>sys.maxint, so we get overflow
         # when summing over the logarithmic derivative coefficients
@@ -468,13 +476,13 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             raise ValueError("Delta value too large; will result in overflow")
 
         if function=="sincsquared_fast":
-            return self._zerosum_sincsquared_fast(Delta=Delta)
+            return RDF(self._zerosum_sincsquared_fast(Delta=Delta))
         elif function=="sincsquared":
-            return self._zerosum_sincsquared(Delta=Delta)
+            return RDF(self._zerosum_sincsquared(Delta=Delta))
         elif function=="gaussian":
-            return self._zerosum_gaussian(Delta=Delta)
+            return RDF(self._zerosum_gaussian(Delta=Delta))
         elif function=="cauchy":
-            return self._zerosum_cauchy(Delta=Delta)
+            return RDF(self._zerosum_cauchy(Delta=Delta))
         else:
             raise ValueError("Input function not recognized.")
 
@@ -535,13 +543,17 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         w = RDF(npi**2/6-spence(1-RDF(1)/expt))
 
         y = RDF(0)
-        n = int(0)
+        n = int(1)
         while n < expt:
-            n += 1
             cn  = self.cn(n)
             if cn!=0:
                 logn = log(RDF(n))
                 y += cn*(t-logn)
+                #print(n,cn*(t-logn))
+            n += 1
+
+        #print(expt,t,u,w,y)
+        #print
 
         return 2*(u+w+y)/(t**2)
 
@@ -602,17 +614,17 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             w += RDF(1)/k-erfcx(Delta*k)*Deltasqrtpi
 
         y = RDF(0)
-        n = int(0)
+        n = int(1)
         exp2piDelta = exp(2*npi*Delta)
 
         # TO DO: Error analysis to make sure this bound is good enough to
         # avoid non-negligible trucation error
         while n < exp2piDelta:
-            n += 1
             cn  = self.cn(n)
             if cn != 0:
                 logn = log(RDF(n))
                 y += cn*exp(-(logn/(2*Delta))**2)
+            n += 1
 
         # y is the truncation of an infinite sum, so we must add a value which
         # exceeds the max amount we could have left out.
@@ -844,7 +856,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             aq = (2*(c**e).real()).round()
             return -aq*logp/n_float
 
-    def _zerosum_sincsquared_fast(self,Delta=1):
+    cpdef double _zerosum_sincsquared_fast(self,Delta=1,bad_primes=None):
         """
         A faster, more intelligent implementation of self._zerosum_sincsquared().
 
@@ -855,9 +867,13 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         INPUT:
 
-        - ``Delta`` -- positive real number (default: 1) parameter defining the
+        - ``Delta`` -- positive real parameter defining the
           tightness of the zero sum, and thus the closeness of the returned
           estimate to the actual analytic rank of the form attached to self.
+        - ``bad_primes`` -- (default: None) If not None, a list of primes dividing
+          the level of the form attached to self. This is passable so that this
+          method can be run on curves whose conductor is large enough to warrant
+          precomputing bad primes.
 
         OUTPUT:
 
@@ -880,59 +896,101 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: Z._zerosum_sincsquared_fast(Delta=1)
             1.01038406984
         """
+        # If Delta>6.619, then we will most likely get overflow: some ap values
+        # will be too large to fit into a c int
+        if Delta > 6.619:
+            raise ValueError("Delta value too large; will result in overflow")
 
-        npi = self._pi
-        twopi = 2*npi
-        eg = self._euler_gamma
+        cdef double npi = self._pi
+        cdef double twopi = npi*2
+        cdef double eg = self._euler_gamma
 
-        t = RDF(Delta*twopi)
-        expt = exp(t)
+        cdef double t,u,w,y,z,expt,bound1,logp,logq
+        cdef double thetap,thetaq,sqrtp,sqrtq,p,q
+        cdef int ap,aq
 
-        u = t*(-eg + log(RDF(self._N))/2 - log(twopi))
-        w = RDF(npi**2/RDF(6)-spence(RDF(1)-RDF(1)/expt))
+        cdef long long n
+        cdef double N_double = self._N
+        #cdef long long N_int = self._N
+        #N_int = ZZ(self._N)
 
-        y = RDF(0)
-        bound1 = int(exp(t/2))
-        bound2 = int(expt)
-        n = int(2)
+        t = twopi*Delta
+        expt = c_exp(t)
+
+        u = t*(-eg + c_log(N_double)/2 - c_log(twopi))
+        w = npi**2/6-spence(-expt**(-1)+1)
+
+        y = 0
+        # Do bad primes first. Add correct contributions and subtract
+        # incorrect contribution, since we'll add them back later on.
+        if bad_primes is None:
+            bad_primes = self._N.prime_divisors()
+        bad_primes = [prime for prime in bad_primes if prime<expt]
+        #print(expt,bad_primes)
+        for prime in bad_primes:
+            n = prime
+            ap = self._e.ellap(n)
+            p = n
+            sqrtp = c_sqrt(p)
+            thetap = c_acos(ap/(2*sqrtp))
+            logp = c_log(p)
+
+            q = 1
+            sqrtq = 1
+            aq = 1
+            thetaq = 0
+            logq = logp
+
+            z = 0
+            while logq < t:
+                q *= p
+                sqrtq *= sqrtp
+                aq *= ap
+                thetaq += thetap
+                # Actual value of this term
+                z += (aq/q)*(t-logq)
+                # Incorrect value of this term to be removed later
+                z -= 2*c_cos(thetaq)*(t-logq)/sqrtq
+                logq += logp
+            y -= z*logp
+
+        # Good prime case. Bad primes are treated as good primes, but their
+        # contribution here is cancelled out above. This way we don't
+        # have to check if each prime divides the level or not.
+        n = 2
+        bound1 = c_exp(t/2)
         while n <= bound1:
             if pari(n).isprime():
-                logp = log(RDF(n))
-                ap = RDF(self._e.ellap(n))
-                p = RDF(n)
+                ap = self._e.ellap(n)
+                p = n
+                sqrtp = c_sqrt(p)
+                thetap = c_acos(ap/(2*sqrtp))
+                logp = c_log(p)
 
-                z = (ap/p)*(t-logp)
+                sqrtq = 1
+                thetaq = 0
+                logq = logp
 
-                # The p^n coefficients are calculated differently
-                # depending on whether p divides the level or not
-                if self._N%n==0:
-                    aq = ap**2
-                    q = p**2
-                    logq = logp*2
-                    while logq < t:
-                        z += (aq/q)*(t-logq)
-                        logq += logp
-                        q = q*p
-                        aq = aq*ap
-                else:
-                    alpha_p = CDF(ap,(4*p-ap**2).sqrt())/2
-                    alpha = alpha_p**2
-                    q = p**2
-                    logq = logp*2
-                    while logq < t:
-                        aq = RDF(round(2*alpha.real()))
-                        z += (aq/q)*(t-logq)
-                        logq += logp
-                        q = q*p
-                        alpha = alpha*alpha_p
+                z = 0
+                while logq < t:
+                    sqrtq *= sqrtp
+                    thetaq += thetap
+                    z += 2*c_cos(thetaq)*(t-logq)/sqrtq
+                    #print(c_exp(logq),-2*c_cos(thetaq)*(t-logq)/sqrtq*logp)
+                    logq += logp
                 y -= z*logp
             n += 1
-        while n <= bound2:
+        while n <= expt:
             if pari(n).isprime():
-                logp = log(RDF(n))
-                ap = RDF(self._e.ellap(n))
-                y -= ap*logp/RDF(n)*(t-logp)
+                ap = self._e.ellap(n)
+                p = n
+                logp = c_log(p)
+                y -= (t-logp)*(logp/p)*ap
+                #print(n,-(logp/p)*(t-logp)*ap)
             n += 1
+
+        #print(expt,t,u,w,y)
+        #print
 
         return 2*(u+w+y)/(t**2)
 

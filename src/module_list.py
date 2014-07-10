@@ -658,7 +658,7 @@ ext_modules = [
 
     Extension('sage.lfunctions.zero_sums2',
               sources = ['sage/lfunctions/zero_sums2.pyx'],
-              libraries = []),
+              libraries = ["m"]),
 
     ################################
     ##

@@ -702,31 +702,6 @@ class FacadeParentPolicy(SetFactoryPolicy):
         self._parent_for = parent
         SetFactoryPolicy.__init__(self, factory)
 
-    def category(self, constraints):
-        r"""
-        Returns the policy category associated to ``self`` for parent
-        constructed with the given constraints as per
-        :meth:`SetFactoryPolicy.category`. Here constraints are ignored.
-
-        INPUT:
-
-        - ``constraints`` -- a set of constraints (ignored)
-
-        OUTPUT:
-
-        - an instance of :class:`FacadeParentPolicyCategory`.
-
-        EXAMPLE::
-
-            sage: from sage.structure.set_factories_example import *
-            sage: from sage.structure.set_factories import *
-            sage: F = FacadeParentPolicy(XYPairs, XYPairs()); F
-            Set factory policy for facade parent AllPairs
-            sage: F.category(())
-            NameError: global name 'FacadeParentPolicyCategory' is not defined
-        """
-        return FacadeParentPolicyCategory(self._parent_for)
-
     def _element_constructor_attributes(self, constraints):
         r"""
         Returns the element constructor attributes as per

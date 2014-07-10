@@ -468,7 +468,6 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             2.05689042503
 
         """
-        #cdef double Del = Delta
 
         # If Delta>6.95, then exp(2*pi*Delta)>sys.maxint, so we get overflow
         # when summing over the logarithmic derivative coefficients
@@ -476,13 +475,13 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             raise ValueError("Delta value too large; will result in overflow")
 
         if function=="sincsquared_fast":
-            return RDF(self._zerosum_sincsquared_fast(Delta=Delta))
+            return self._zerosum_sincsquared_fast(Delta=Delta)
         elif function=="sincsquared":
-            return RDF(self._zerosum_sincsquared(Delta=Delta))
+            return self._zerosum_sincsquared(Delta=Delta)
         elif function=="gaussian":
-            return RDF(self._zerosum_gaussian(Delta=Delta))
+            return self._zerosum_gaussian(Delta=Delta)
         elif function=="cauchy":
-            return RDF(self._zerosum_cauchy(Delta=Delta))
+            return self._zerosum_cauchy(Delta=Delta)
         else:
             raise ValueError("Input function not recognized.")
 
@@ -856,7 +855,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             aq = (2*(c**e).real()).round()
             return -aq*logp/n_float
 
-    cpdef double _zerosum_sincsquared_fast(self,Delta=1,bad_primes=None):
+    cpdef _zerosum_sincsquared_fast(self,Delta=1,bad_primes=None):
         """
         A faster, more intelligent implementation of self._zerosum_sincsquared().
 
@@ -890,11 +889,14 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('37a'); E.rank()
-            1
+            sage: E = EllipticCurve('37a')
             sage: Z = LFunctionZeroSum(E)
-            sage: Z._zerosum_sincsquared_fast(Delta=1)
-            1.01038406984
+            sage: print(E.rank(),Z._zerosum_sincsquared_fast(Delta=1))
+            (1, 1.01038406984)
+            sage: E = EllipticCurve('121a')
+            sage: Z = LFunctionZeroSum(E);
+            sage: print(E.rank(),Z._zerosum_sincsquared_fast(Delta=1.5))
+            (0, 0.0104712060087)
         """
         # If Delta>6.619, then we will most likely get overflow: some ap values
         # will be too large to fit into a c int
@@ -911,8 +913,6 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         cdef long long n
         cdef double N_double = self._N
-        #cdef long long N_int = self._N
-        #N_int = ZZ(self._N)
 
         t = twopi*Delta
         expt = c_exp(t)
@@ -949,13 +949,13 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
                 thetaq += thetap
                 # Actual value of this term
                 z += (aq/q)*(t-logq)
-                # Incorrect value of this term to be removed later
+                # Incorrect value of this term to be removed below
                 z -= 2*c_cos(thetaq)*(t-logq)/sqrtq
                 logq += logp
             y -= z*logp
 
         # Good prime case. Bad primes are treated as good primes, but their
-        # contribution here is cancelled out above. This way we don't
+        # contribution here is cancelled out above; this way we don't
         # have to check if each prime divides the level or not.
         n = 2
         bound1 = c_exp(t/2)
@@ -992,7 +992,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         #print(expt,t,u,w,y)
         #print
 
-        return 2*(u+w+y)/(t**2)
+        return RDF(2*(u+w+y)/(t**2))
 
 def LFunctionZeroSum(X,*args,**kwds):
     """

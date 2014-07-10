@@ -3220,7 +3220,8 @@ class GraphicsArray(SageObject):
         raise NotImplementedError('Appending to a graphics array is not yet implemented')
 
 
-    def save(self, filename=None, dpi=DEFAULT_DPI, figsize=None, **kwds):
+    def save(self, filename=None, dpi=DEFAULT_DPI, figsize=None, axes=None,
+             **kwds):
         r"""
         Save the ``graphics_array`` to a png called ``filename``.
 
@@ -3270,9 +3271,9 @@ class GraphicsArray(SageObject):
         for i,g in zip(range(1, dims+1), glist):
             subplot = figure.add_subplot(rows, cols, i)
             g.matplotlib(filename, figure=figure, sub=subplot,
-                         verify=do_verify, **kwds)
+                         verify=do_verify, axes = axes, **kwds)
         g.save(filename, dpi=dpi, figure=figure, sub=subplot,
-               verify=do_verify, **kwds)
+               verify=do_verify, axes = axes, **kwds)
 
     def save_image(self, filename=None, *args, **kwds):
         r"""
@@ -3297,7 +3298,8 @@ class GraphicsArray(SageObject):
         self.save(filename, *args, **kwds)
 
 
-    def show(self, filename=None, **kwds):
+    def show(self, filename=None, dpi=DEFAULT_DPI, figsize=None,
+             axes = None, **kwds):
         r"""
         Show this graphics array using the default viewer.
 
@@ -3326,7 +3328,7 @@ class GraphicsArray(SageObject):
         """
         if filename is None:
             filename = graphics_filename()
-        self.save(filename, **kwds)
+        self.save(filename, dpi=dpi, figsize=figsize, axes = axes, **kwds)
         if not sage.doctest.DOCTEST_MODE and not sage.plot.plot.EMBEDDED_MODE:
             os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                          sage.misc.viewer.png_viewer(), filename))

@@ -1496,9 +1496,10 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: R = PRing(CC, 'x'); R
             Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
             sage: type(R.gen())
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
 
-            #Demonstrate that Trac #8762 is fixed
+        Demonstrate that :trac:`8762` is fixed::
+
             sage: R.<x> = PolynomialRing(GF(next_prime(10^20)), sparse=True)
             sage: x^(10^20) # this should be fast
             x^100000000000000000000

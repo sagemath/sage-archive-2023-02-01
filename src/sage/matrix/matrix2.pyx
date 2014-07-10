@@ -35,7 +35,6 @@ from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.sequence import Sequence
 from sage.structure.element import is_Vector
 from sage.misc.misc import verbose, get_verbose
-from sage.misc.temporary_file import graphics_filename
 from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer import Integer
@@ -7941,7 +7940,7 @@ cdef class Matrix(matrix1.Matrix):
         EXAMPLE::
 
             sage: M = random_matrix(CC, 4)
-            sage: M.visualize_structure(os.path.join(SAGE_TMP, "matrix.png"))
+            sage: M.visualize_structure()
         """
         import gd
         import os
@@ -7996,6 +7995,7 @@ cdef class Matrix(matrix1.Matrix):
                 setPixel((y,x), val)
 
         if filename is None:
+            from sage.misc.temporary_file import graphics_filename
             filename = graphics_filename()
 
         im.writePng(filename)

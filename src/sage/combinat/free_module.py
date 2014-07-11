@@ -25,7 +25,7 @@ from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import lazy_attribute
 from sage.categories.poor_man_map import PoorManMap
-from sage.categories.all import Sets, ModulesWithBasis
+from sage.categories.all import Category, Sets, ModulesWithBasis
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
 from sage.sets.family import Family
 from sage.misc.ascii_art import AsciiArt, empty_ascii_art
@@ -1141,11 +1141,21 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
 
         sage: F2.print_options(prefix='F') #reset for following doctests
 
-    The default category is the category of modules with basis over
-    the base ring::
+    The constructed module is in the category of modules with basis
+    over the base ring::
 
-        sage: CombinatorialFreeModule(GF(3), ((1,2), (3,4))).category()
-        Category of vector spaces with basis over Finite Field of size 3
+        sage: CombinatorialFreeModule(QQ, Partitions()).category()
+        Category of vector spaces with basis over Rational Field
+
+    If furthermore the index set is finite (i.e. in the category
+    ``Sets().Finite()), then the module is declared as being finite
+    dimensional::
+
+        sage: CombinatorialFreeModule(QQ, [1,2,3,4]).category()
+        Category of finite dimensional vector spaces with basis over Rational Field
+        sage: CombinatorialFreeModule(QQ, Partitions(3),
+        ....:                         category=Algebras(QQ).WithBasis()).category()
+        Category of finite dimensional algebras with basis over Rational Field
 
     See :mod:`sage.categories.examples.algebras_with_basis` and
     :mod:`sage.categories.examples.hopf_algebras_with_basis` for
@@ -1270,19 +1280,27 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
 
             sage: F.category()
-            Category of vector spaces with basis over Rational Field
+            Category of finite dimensional vector spaces with basis over Rational Field
 
         One may specify the category this module belongs to::
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], category=AlgebrasWithBasis(QQ))
             sage: F.category()
-            Category of algebras with basis over Rational Field
+            Category of finite dimensional algebras with basis over Rational Field
+
+            sage: F = CombinatorialFreeModule(GF(3), ['a','b','c'],
+            ....:                             category=(Modules(GF(3)).WithBasis(), Semigroups()))
+            sage: F.category()
+            Join of Category of finite semigroups
+                 and Category of finite dimensional modules with basis over Finite Field of size 3
+                 and Category of vector spaces with basis over Finite Field of size 3
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], category = FiniteDimensionalModulesWithBasis(QQ))
             sage: F.basis()
             Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
             sage: F.category()
             Category of finite dimensional vector spaces with basis over Rational Field
+
             sage: TestSuite(F).run()
 
         TESTS:
@@ -1328,6 +1346,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
 
         if category is None:
             category = ModulesWithBasis(R)
+        elif isinstance(category, tuple):
+            category = Category.join(category)
         if basis_keys in Sets().Finite():
             category = category.FiniteDimensional()
 

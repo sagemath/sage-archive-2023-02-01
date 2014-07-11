@@ -992,7 +992,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
 
     - ``category`` - the category in which this module lies (optional,
       default None, in which case use the "category of modules with
-      basis" over the base ring ``R``)
+      basis" over the base ring ``R``); this should be a subcategory
+      of :class:`ModulesWithBasis`
 
     Options controlling the printing of elements:
 

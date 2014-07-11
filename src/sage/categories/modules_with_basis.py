@@ -63,7 +63,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
         sage: X = CombinatorialFreeModule(QQ, [1,2]); X.__custom_name = "X"
         sage: Y = CombinatorialFreeModule(QQ, [3,4]); Y.__custom_name = "Y"
         sage: H = Hom(X, Y); H
-        Set of Morphisms from X to Y in Category of vector spaces with basis over Rational Field
+        Set of Morphisms from X to Y in Category of finite dimensional vector spaces with basis over Rational Field
 
     The simplest morphism is the zero map::
 
@@ -268,7 +268,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 From: X
                 To:   Y
                 sage: phi.category_for()
-                Category of vector spaces with basis over Rational Field
+                Category of finite dimensional vector spaces with basis over Rational Field
                 sage: x = X.basis(); y = Y.basis()
                 sage: phi(x[1] + x[3])
                 B[1] + 2*B[2] + B[3] + 2*B[4]

@@ -17,6 +17,11 @@ import polynomial_ring
 from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
 from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default_category
+# added for macaulay_resultant:
+from sage.misc.misc_c import prod
+from sage.combinat.integer_vector import IntegerVectors
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.arith import binomial
 
 def is_MPolynomialRing(x):
     return bool(PY_TYPE_CHECK(x, MPolynomialRing_generic))
@@ -960,12 +965,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R._macaulay_resultant_universal_polynomials([1,1,2])
             ([u0*x0 + u1*x1 + u2*x2, u3*x0 + u4*x1 + u5*x2, u6*x0^2 + u7*x0*x1 + u9*x1^2 + u8*x0*x2 + u10*x1*x2 + u11*x2^2], Multivariate Polynomial Ring in x0, x1, x2 over Multivariate Polynomial Ring in u0, u1, u2, u3, u4, u5, u6, u7, u8, u9, u10, u11 over Integer Ring)
         """
-        from sage.misc.misc_c import prod
-        from sage.combinat.integer_vector import IntegerVectors
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.arith import binomial
-        from sage.rings.integer_ring import ZZ
-
         n  = len(dlist) - 1
         number_of_coeffs = sum([binomial(n+di,di) for di in dlist])
         U = PolynomialRing(ZZ,'u',number_of_coeffs)
@@ -984,7 +983,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             ulist = ulist[len(mon_d):]
         return flist, R
 
-    def macaulay_resultant(self, *args):
+    def macaulay_resultant(self, *args, **kwds):
         r"""
         This is an implementation of the Macaulay Resultant. It computes
         the resultant of universal polynomials as well as polynomials
@@ -1017,9 +1016,19 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                   works when ``args[0]`` is the list of polynomials,
                   or ``args`` is itself the list of polynomials
 
+        kwds:
+
+        - ``sparse`` -- boolean (optional - default: ``False``)
+                     if ``True`` function creates sparse matrices.
+
         OUTPUT:
 
         - the macaulay resultant, an element of the base ring of ``self``
+
+        .. TODO::
+            Working with sparse matrices should usually give faster results,
+            but with the current implementation it actually works slower. 
+            There should be a way to improve performance with regards to this.
 
         EXAMPLES:
 
@@ -1030,7 +1039,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R.macaulay_resultant([y,x+z])
             Traceback (most recent call last):
             ...
-            AssertionError: number of polynomials(= 2) must equal number of variables (= 3)
+            TypeError: number of polynomials(= 2) must equal number of variables (= 3)
 
         The polynomials need to be all homogeneous::
 
@@ -1038,7 +1047,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R.macaulay_resultant([y, x+z, z+x^3])
             Traceback (most recent call last):
             ...
-            AssertionError: resultant for non-homogeneous polynomials is not supported
+            TypeError: resultant for non-homogeneous polynomials is not supported
 
         All polynomials must be in the same ring::
 
@@ -1047,7 +1056,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: S.macaulay_resultant([y, z+x])
             Traceback (most recent call last):
             ...
-            AssertionError: not all inputs are polynomials in the calling ring
+            TypeError: not all inputs are polynomials in the calling ring
 
         The following example recreates Proposition 2.10 in Ch.3 in [CLO]::
 
@@ -1124,47 +1133,51 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             True
 
         """
-
         from sage.matrix.constructor import matrix
         from sage.matrix.constructor import zero_matrix
-        from sage.combinat.integer_vector import IntegerVectors
 
         if len(args) == 1 and isinstance(args[0],list):
             flist = args[0]
         else: 
             flist = args
 
-        assert len(flist) > 0, 'you have to input least 1 polynomial in the list'
-        assert all([f.is_homogeneous() for f in flist]), 'resultant for non-homogeneous polynomials is not supported'
-        assert all([self.is_parent_of(f) for f in flist]), 'not all inputs are polynomials in the calling ring'
+        if len(flist) <= 0:
+            raise TypeError('input list should contain at least 1 polynomial')
+        if not all([f.is_homogeneous() for f in flist]): 
+            raise TypeError('resultant for non-homogeneous polynomials is not supported')
+        if not all([self.is_parent_of(f) for f in flist]): 
+            raise TypeError('not all inputs are polynomials in the calling ring')
+
+        sparse = kwds.pop('sparse', False)
 
         U = self.base_ring() # ring of coefficients of self
         dlist = [f.degree() for f in flist]
         xlist = self.gens()
-        assert len(xlist) == len(dlist), 'number of polynomials(= %d) must equal number of variables (= %d)'%(len(dlist),len(xlist))
+        if len(xlist) != len(dlist): 
+            raise TypeError('number of polynomials(= %d) must equal number of variables (= %d)'%(len(dlist),len(xlist)))
         n = len(dlist) - 1
         d = sum(dlist) - len(dlist) + 1
         mons = IntegerVectors(d, n+1).list()  # list of exponent-vectors(/lists) of monomials of degree d
+        mons_idx = { str(mon) : idx for idx,mon in enumerate(mons)} # a reverse index lookup for monomials
         mons_num = len(mons)
         mons_to_keep = []
         newflist = []
         flist=[[f.exponents(),f.coefficients()] for f in flist] # strip coefficients of the input polynomials
-        numer_matrix = zero_matrix(self.base_ring(),mons_num)
+        numer_matrix = zero_matrix(self.base_ring(),mons_num, sparse=sparse)
 
-        for j in xrange(0,mons_num):
-            if not self._macaulay_resultant_is_reduced(mons[j],dlist):
+        for j,mon in enumerate(mons):
+            # if monomial is not reduced, then we keep it in the denominator matrix:
+            if not self._macaulay_resultant_is_reduced(mon,dlist):
                 mons_to_keep.append(j)
-            si_mon = self._macaulay_resultant_getS(mons[j], dlist)
+            si_mon = self._macaulay_resultant_getS(mon, dlist)
             # Monomial is in S_i under the partition, now we reduce the i'th degree of the monomial
-            new_mon = list(mons[j])
+            new_mon = list(mon)
             new_mon[si_mon] -= dlist[si_mon]
             new_f = [[[g[k] + new_mon[k] for k in range(n+1)] for g in flist[si_mon][0]], flist[si_mon][1]]
 
-            i=0
-            for mon in new_f[0]:
-                k=mons.index(mon)
+            for i,mon in enumerate(new_f[0]):
+                k = mons_idx[str(mon)]
                 numer_matrix[j,k]=new_f[1][i]
-                i+=1
 
         denom_matrix = numer_matrix.matrix_from_rows_and_columns(mons_to_keep,mons_to_keep)
         if denom_matrix.dimensions()[0] == 0: # here we choose the determinant of an empty matrix to be 1

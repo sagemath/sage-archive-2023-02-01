@@ -1246,7 +1246,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: y.macaulay_resultant(x+z)
             Traceback (most recent call last):
             ...
-            AssertionError: number of polynomials(= 2) must equal number of variables (= 3)
+            TypeError: number of polynomials(= 2) must equal number of variables (= 3)
 
         The polynomials need to be all homogeneous::
 
@@ -1254,7 +1254,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: y.macaulay_resultant([x+z, z+x^3])
             Traceback (most recent call last):
             ...
-            AssertionError: resultant for non-homogeneous polynomials is not supported
+            TypeError: resultant for non-homogeneous polynomials is not supported
 
         All polynomials must be in the same ring::
 
@@ -1263,7 +1263,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: y.macaulay_resultant(z+x,z)
             Traceback (most recent call last):
             ...
-            AssertionError: not all inputs are polynomials in the calling ring
+            TypeError: not all inputs are polynomials in the calling ring
 
         The following example recreates Proposition 2.10 in Ch.3 of Using Algebraic Geometry::
 

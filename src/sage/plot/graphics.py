@@ -2868,6 +2868,11 @@ class Graphics(SageObject):
             sage: a = plot_vector_field((x,-y),(x,-1,1),(y,-1,1))
             sage: filename=os.path.join(SAGE_TMP, 'test2.png')
             sage: a.save(filename)
+
+        The following plot should show the axes; fixes :trac:`14782` ::
+
+            sage: plot(x^2, (x, 1, 2), ticks=[[], []])
+
         """
         options = dict()
         options.update(self.SHOW_OPTIONS)

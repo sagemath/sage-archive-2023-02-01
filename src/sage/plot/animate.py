@@ -461,7 +461,8 @@ class Animation(SageObject):
 
             sage: g = a.graphics_array(ncols=2); print g
             Graphics Array of size 2 x 2
-            sage: g.show('sage.png') # optional
+            sage: f = sage.misc.temporary_file.tmp_filename(ext='.png')
+            sage: g.show(f) # optional
 
         Frames can be specified as a generator too; it is internally converted to a list::
 

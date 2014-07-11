@@ -1405,8 +1405,12 @@ cdef class Parent(category_object.CategoryObject):
             pass
         # if known to be infinite, give up
         # if unsure, proceed (which will hang for an infinite set)
-        # TODO: Once all infinite sets are in Sets().Infinite(), change to this
-        # if self in Sets().Infinite():
+        #
+        # TODO: The test below should really be:
+        #   if self in Sets().Infinite():
+        # However many infinite parents are not yet declared as such,
+        # which triggers some doctests failure; see e.g. matrix_space.py.
+        # For now we keep the current test as a workaround (see #16239).
         infinite = False # We do it this way so we can raise a NotImplementedError
         try:
             if self in Sets().Infinite() or not self.is_finite():

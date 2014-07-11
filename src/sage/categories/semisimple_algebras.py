@@ -11,7 +11,7 @@ Semisimple Algebras
 from category_types import Category_over_base_ring
 from algebras import Algebras
 from sage.misc.cachefunc import cached_method
-
+import operator
 
 class SemisimpleAlgebras(Category_over_base_ring):
     """

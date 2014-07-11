@@ -975,7 +975,7 @@ def _divide_if_possible(x, y):
         return q
 
 class CombinatorialFreeModule(UniqueRepresentation, Module):
-    r"""
+    r"""`
     Class for free modules with a named basis
 
     INPUT:
@@ -1148,7 +1148,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         Category of vector spaces with basis over Rational Field
 
     If furthermore the index set is finite (i.e. in the category
-    ``Sets().Finite()), then the module is declared as being finite
+    ``Sets().Finite()``), then the module is declared as being finite
     dimensional::
 
         sage: CombinatorialFreeModule(QQ, [1,2,3,4]).category()

@@ -65,7 +65,8 @@ REFERENCES:
 .. [1] La Jolla Covering Repository,
   http://www.ccrwest.org/cover.html
 """
-from sage.combinat.designs.block_design import (ProjectiveGeometryDesign,
+from sage.combinat.designs.block_design import (BlockDesign,
+                                                ProjectiveGeometryDesign,
                                                 DesarguesianProjectivePlaneDesign,
                                                 projective_plane,
                                                 AffineGeometryDesign,
@@ -84,6 +85,8 @@ from sage.combinat.designs.orthogonal_arrays import transversal_design, orthogon
 
 from sage.combinat.designs.difference_family import difference_family
 
+from sage.combinat.designs.incidence_structures import IncidenceStructure
+BlockDesign = IncidenceStructure    # just an alias
 from sage.combinat.designs.bibd import balanced_incomplete_block_design, steiner_triple_system
 
 # deprecated in june 2014 (#16446)

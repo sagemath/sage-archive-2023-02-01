@@ -156,12 +156,12 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     if v == 1:
         if existence:
             return True
-        return BlockDesign(v, [], test=False)
+        return BlockDesign(v, [], check=False)
 
     if k == v:
         if existence:
             return True
-        return BlockDesign(v, [range(v)], test=False)
+        return BlockDesign(v, [range(v)], check=False)
 
     if v < k or k < 2 or (v-1) % (k-1) != 0 or (v*(v-1)) % (k*(k-1)) != 0:
         if existence:
@@ -172,7 +172,7 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
         if existence:
             return True
         from itertools import combinations
-        return BlockDesign(v, combinations(range(v),2), test = False)
+        return BlockDesign(v, combinations(range(v),2), check=False)
     if k == 3:
         if existence:
             return v%6 == 1 or v%6 == 3
@@ -180,11 +180,11 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     if k == 4:
         if existence:
             return v%12 == 1 or v%12 == 4
-        return BlockDesign(v, v_4_1_BIBD(v), test = False)
+        return BlockDesign(v, v_4_1_BIBD(v), check=False)
     if k == 5:
         if existence:
             return v%20 == 1 or v%20 == 5
-        return BlockDesign(v, v_5_1_BIBD(v), test = False)
+        return BlockDesign(v, v_5_1_BIBD(v), check=False)
 
     from difference_family import difference_family
     from database import BIBD_constructions
@@ -196,7 +196,7 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     if BIBD_from_TD(v,k,existence=True):
         if existence:
             return True
-        return BlockDesign(v, BIBD_from_TD(v,k))
+        return BlockDesign(v, BIBD_from_TD(v,k), check=False)
     if v == (k-1)**2+k and is_prime_power(k-1):
         if existence:
             return True
@@ -206,7 +206,7 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
         if existence:
             return True
         G,D = difference_family(v,k)
-        return BlockDesign(v, BIBD_from_difference_family(G,D,check=False), test=False)
+        return BlockDesign(v, BIBD_from_difference_family(G,D,check=False), check=False)
     if use_LJCR:
         from covering_design import best_known_covering_design_www
         B = best_known_covering_design_www(v,k,2)
@@ -218,7 +218,7 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
                 return False
             raise EmptySetError("No such design exists !")
         B = B.incidence_structure()
-        if len(B.blcks) == expected_n_of_blocks:
+        if B.num_blocks() == expected_n_of_blocks:
             if existence:
                 return True
             else:
@@ -258,12 +258,14 @@ def steiner_triple_system(n):
         sage: sts
         Incidence structure with 9 points and 12 blocks
         sage: list(sts)
-        [[0, 1, 5], [0, 2, 4], [0, 3, 6], [0, 7, 8], [1, 2, 3], [1, 4, 7], [1, 6, 8], [2, 5, 8], [2, 6, 7], [3, 4, 8], [3, 5, 7], [4, 5, 6]]
+        [[0, 1, 5], [0, 2, 4], [0, 3, 6], [0, 7, 8], [1, 2, 3],
+         [1, 4, 7], [1, 6, 8], [2, 5, 8], [2, 6, 7], [3, 4, 8],
+         [3, 5, 7], [4, 5, 6]]
 
     As any pair of vertices is covered once, its parameters are ::
 
-        sage: sts.parameters(t=2)
-        (2, 9, 3, 1)
+        sage: sts.is_t_design(return_parameters=True)
+        (True, (2, 9, 3, 1))
 
     An exception is raised for invalid values of ``n`` ::
 
@@ -364,21 +366,21 @@ def BIBD_from_TD(v,k,existence=False):
         sage: from sage.combinat.designs.bibd import BIBD_from_TD
         sage: BIBD_from_TD(25,5,existence=True)
         True
-        sage: _ = BlockDesign(25,BIBD_from_TD(25,5))
+        sage: _ = designs.BlockDesign(25,BIBD_from_TD(25,5))
 
     Second construction::
 
         sage: from sage.combinat.designs.bibd import BIBD_from_TD
         sage: BIBD_from_TD(21,5,existence=True)
         True
-        sage: _ = BlockDesign(21,BIBD_from_TD(21,5))
+        sage: _ = designs.BlockDesign(21,BIBD_from_TD(21,5))
 
     Third construction::
 
         sage: from sage.combinat.designs.bibd import BIBD_from_TD
         sage: BIBD_from_TD(85,5,existence=True)
         True
-        sage: _ = BlockDesign(85,BIBD_from_TD(85,5))
+        sage: _ = designs.BlockDesign(85,BIBD_from_TD(85,5))
 
     No idea::
 
@@ -643,7 +645,7 @@ def BIBD_from_PBD(PBD,v,k,check=True,base_cases={}):
         n = len(X)
         N = (k-1)*n+1
         if not (n,k) in base_cases:
-            base_cases[n,k] = _relabel_bibd(balanced_incomplete_block_design(N,k).blcks,N)
+            base_cases[n,k] = _relabel_bibd(balanced_incomplete_block_design(N,k), N)
 
         for XX in base_cases[n,k]:
             if N-1 in XX:

@@ -561,7 +561,7 @@ www.ffmpeg.org, or use 'convert' to produce gifs instead."""
                 raise OSError(msg)
         else:
             if not savefile:
-                savefile = graphics_filename(ext='gif')
+                savefile = graphics_filename(ext='.gif')
             if not savefile.endswith('.gif'):
                 savefile += '.gif'
             savefile = os.path.abspath(savefile)
@@ -632,7 +632,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
-        filename = graphics_filename(ext='gif')
+        filename = graphics_filename(ext='.gif')
         self.gif(savefile=filename, delay=delay, iterations=iterations)
         if not (sage.doctest.DOCTEST_MODE or plot.EMBEDDED_MODE):
             os.system('%s %s 2>/dev/null 1>/dev/null &'%(
@@ -743,7 +743,7 @@ please install it and try again."""
                 else:
                     if output_format[0] != '.':
                         output_format = '.'+output_format
-                savefile = graphics_filename(ext=output_format[1:])
+                savefile = graphics_filename(ext=output_format)
             else:
                 if output_format is None:
                     suffix = os.path.splitext(savefile)[1]

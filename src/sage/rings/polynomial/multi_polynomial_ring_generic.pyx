@@ -943,7 +943,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         """
         diff = [mon_degs[i] - dlist[i] for i in xrange(0,len(dlist))]
         return len([1 for d in diff if d >= 0]) == 1
-    
+
     def _macaulay_resultant_universal_polynomials(self, dlist):
         r"""
         Given a list of degrees, this function returns a list of ``len(dlist)`` polynomials with ``len(dlist)`` variables,
@@ -998,7 +998,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         .. [CLO] D. Cox, J. Little, D. O'Shea. Using Algebraic Geometry.
                  Springer, 2005.
 
-        .. [Can] J. Canny. Generalised characteristic polynomials. 
+        .. [Can] J. Canny. Generalised characteristic polynomials.
                  J. Symbolic Comput. Vol. 9, No. 3, 1990, 241--250.
 
         .. [Mac] F.S. Macaulay. The algebraic theory of modular systems
@@ -1006,9 +1006,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         AUTHORS:
 
-        - Hao Chen <chenh123@uw.edu>
-        - Solomon Vishkautsan <wishcow@gmail.com>
-        - Ben Hutz <bhutz@fit.edu>
+        - Hao Chen, Solomon Vishkautsan (7-2014)
 
         INPUT:
 
@@ -1027,11 +1025,10 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         .. TODO::
             Working with sparse matrices should usually give faster results,
-            but with the current implementation it actually works slower. 
+            but with the current implementation it actually works slower.
             There should be a way to improve performance with regards to this.
 
         EXAMPLES:
-
 
         The number of polynomials has to match the number of variables::
 
@@ -1138,14 +1135,14 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         if len(args) == 1 and isinstance(args[0],list):
             flist = args[0]
-        else: 
+        else:
             flist = args
 
         if len(flist) <= 0:
             raise TypeError('input list should contain at least 1 polynomial')
-        if not all([f.is_homogeneous() for f in flist]): 
+        if not all([f.is_homogeneous() for f in flist]):
             raise TypeError('resultant for non-homogeneous polynomials is not supported')
-        if not all([self.is_parent_of(f) for f in flist]): 
+        if not all([self.is_parent_of(f) for f in flist]):
             raise TypeError('not all inputs are polynomials in the calling ring')
 
         sparse = kwds.pop('sparse', False)
@@ -1153,7 +1150,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         U = self.base_ring() # ring of coefficients of self
         dlist = [f.degree() for f in flist]
         xlist = self.gens()
-        if len(xlist) != len(dlist): 
+        if len(xlist) != len(dlist):
             raise TypeError('number of polynomials(= %d) must equal number of variables (= %d)'%(len(dlist),len(xlist)))
         n = len(dlist) - 1
         d = sum(dlist) - len(dlist) + 1

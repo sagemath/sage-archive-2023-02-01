@@ -1224,9 +1224,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
         AUTHORS:
 
-        - Hao Chen <chenh123@uw.edu>
-        - Solomon Vishkautsan <wishcow@gmail.com>
-        - Ben Hutz <bhutz@fit.edu>
+        - Hao Chen, Solomon Vishkautsan (7-2014)
 
         INPUT:
 

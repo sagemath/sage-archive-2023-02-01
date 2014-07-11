@@ -544,7 +544,7 @@ class Groups(CategoryWithAxiom):
 
                 EXAMPLES::
 
-                    sage:  sage: SymmetricGroupAlgebra(ZZ,3).center_basis()
+                    sage: SymmetricGroupAlgebra(ZZ,3).center_basis()
                     [[2, 3, 1], [2, 1, 3], [1, 2, 3]]
 
                 .. SEEALSO::
@@ -678,14 +678,14 @@ class Groups(CategoryWithAxiom):
                 EXAMPLES::
 
                     sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
-                    sage: A=QS3([2,3,1])+QS3([3,1,2])
+                    sage: A = QS3([2,3,1])+QS3([3,1,2])
                     sage: A.central_form()
                     B[[2, 3, 1]]
                     sage: QS4 = SymmetricGroupAlgebra(QQ, 4)
-                    sage: B=sum(len(s.cycle_type())*QS4(s) for s in Permutations(4))
+                    sage: B = sum(len(s.cycle_type())*QS4(s) for s in Permutations(4))
                     sage: B.central_form()
                     4*B[[1, 2, 3, 4]] + 3*B[[2, 1, 3, 4]] + 2*B[[2, 1, 4, 3]] + 2*B[[2, 3, 1, 4]] + B[[2, 3, 4, 1]]
-                    sage: QG=GroupAlgebras(QQ).example(PermutationGroup([[(1,2,3),(4,5)],[(3,4)]]))
+                    sage: QG = GroupAlgebras(QQ).example(PermutationGroup([[(1,2,3),(4,5)],[(3,4)]]))
                     sage: sum(i for i in QG.basis()).central_form()
                     B[()] + B[(4,5)] + B[(3,4,5)] + B[(2,3)(4,5)] + B[(2,3,4,5)] + B[(1,2)(3,4,5)] + B[(1,2,3,4,5)]
 

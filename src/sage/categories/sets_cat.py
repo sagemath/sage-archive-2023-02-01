@@ -1488,9 +1488,9 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
             category = category.Algebras(base_ring)
             # Maschke's theorem: under some conditions, the algebra is semisimple
             # If base_ring is of characteristic 0, this is handled in the FiniteGroups.Algebras category
-            if (self in Groups().Finite()) and (base_ring in Fields)
-                and base_ring.characteristic() > 0
-                and hasattr(self, "cardinality")
+            if self in Groups().Finite() and base_ring in Fields \
+                and base_ring.characteristic() > 0               \
+                and hasattr(self, "cardinality")                 \
                 and self.cardinality() % base_ring.characteristic() != 0:
                 from sage.categories.semisimple_algebras import SemisimpleAlgebras
                 category = (category, SemisimpleAlgebras(base_ring))

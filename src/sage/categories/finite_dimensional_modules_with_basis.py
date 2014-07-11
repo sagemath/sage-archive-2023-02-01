@@ -42,7 +42,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             Return the matrix of this morphism in the distinguished
             basis of the domain and codomain.
 
-            INPUT::
+            INPUT:
 
             - ``base_ring`` -- a ring (default: ``None``, meaning the
               base ring of the codomain)

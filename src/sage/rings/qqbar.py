@@ -3134,6 +3134,10 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             2/7*I + 1/3
             sage: QQbar.zeta(4) + 5
             I + 5
+            sage: QQbar.zeta(4)
+            1*I
+            sage: 3*QQbar.zeta(4)
+            3*I
             sage: QQbar.zeta(17)
             0.9324722294043558? + 0.3612416661871530?*I
             sage: AA(19).sqrt()
@@ -3149,6 +3153,36 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             return repr(CIF(self._value))
         else:
             return repr(RIF(self._value))
+
+    def _latex_(self):
+        r"""
+        Returns the latex representation of this number.
+
+        EXAMPLES::
+
+            sage: latex(AA(22/7))
+            \frac{22}{7}
+            sage: latex(QQbar(1/3 + 2/7*I))
+            \frac{2}{7} \sqrt{-1} + \frac{1}{3}
+            sage: latex(QQbar.zeta(4) + 5)
+            \sqrt{-1} + 5
+            sage: latex(QQbar.zeta(4))
+            1 \sqrt{-1}
+            sage: latex(3*QQbar.zeta(4))
+            3 \sqrt{-1}
+            sage: latex(QQbar.zeta(17))
+            0.9324722294043558? + 0.3612416661871530? \sqrt{-1}
+            sage: latex(AA(19).sqrt())
+            4.358898943540674?
+        """
+        from sage.misc.latex import latex
+        if self._descr.is_rational():
+            return latex(self._descr._value)
+        if isinstance(self._descr, ANRootOfUnity) and self._descr._angle == QQ_1_4:
+            return r'%s \sqrt{-1}'%self._descr._scale
+        if isinstance(self._descr, ANExtensionElement) and self._descr._generator is QQbar_I_generator:
+            return latex(self._descr._value)
+        return repr(self).replace('*I', r' \sqrt{-1}')
 
     def _sage_input_(self, sib, coerce):
         r"""

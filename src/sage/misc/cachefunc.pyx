@@ -2238,7 +2238,7 @@ cdef class CachedMethod(object):
         :meth:`sage.misc.superseded.deprecated_function_alias`::
 
             sage: a.g() is a.f()
-            doctest:1: DeprecationWarning: g is deprecated. Please use f instead.
+            doctest:...: DeprecationWarning: g is deprecated. Please use f instead.
             See http://trac.sagemath.org/57 for details.
             True
             sage: Foo.g(a) is a.f()

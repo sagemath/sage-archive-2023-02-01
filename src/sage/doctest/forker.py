@@ -135,7 +135,7 @@ def warning_function(file):
         sage: wrn("bad stuff", UserWarning, "myfile.py", 0)
         sage: F.seek(0)
         sage: F.read()
-        'doctest:0: UserWarning: bad stuff\n'
+        'doctest:...: UserWarning: bad stuff\n'
     """
     def doctest_showwarning(message, category, filename, lineno, file=file, line=None):
         try:
@@ -2105,6 +2105,8 @@ class DocTestTask(object):
             if extras['tab']:
                 results.err = 'tab'
                 results.tab_linenos = extras['tab']
+            if extras['line_number']:
+                results.err = 'line_number'
             results.optionals = extras['optionals']
             # We subtract 1 to remove the sig_on_count() tests
             result = (sum([max(0,len(test.examples) - 1) for test in doctests]), results)

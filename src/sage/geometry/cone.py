@@ -2841,7 +2841,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: halfplane = Cone([(1,0), (0,1), (-1,0)])
             sage: halfplane.line_set()
-            doctest:1: DeprecationWarning:
+            doctest:...: DeprecationWarning:
             line_set(...) is deprecated, please use lines().set() instead!
             See http://trac.sagemath.org/12544 for details.
             frozenset([N(1, 0)])

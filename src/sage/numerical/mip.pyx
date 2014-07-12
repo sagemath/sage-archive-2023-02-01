@@ -1227,7 +1227,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p = MixedIntegerLinearProgram()
             sage: b = p.new_variable(dim=2)
-            doctest:839: DeprecationWarning: The 'dim' argument will soon disappear. Fortunately variable[1,2] is easier to use than variable[1][2]
+            doctest:...: DeprecationWarning: The 'dim' argument will soon disappear. Fortunately variable[1,2] is easier to use than variable[1][2]
             See http://trac.sagemath.org/15489 for details.
             sage: p.add_constraint(b[1][2] +  b[2][3] == 0)
             sage: _ = p.solve()

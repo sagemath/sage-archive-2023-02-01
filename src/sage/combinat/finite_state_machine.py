@@ -6036,7 +6036,7 @@ class FiniteStateMachine(SageObject):
         obtained::
 
             sage: C = Transducer([(0,1,0,0)])
-            sage: C.prepone_output() # doctest: +ELLIPSIS
+            sage: C.prepone_output()
             verbose 0 (...: finite_state_machine.py, prepone_output)
             All transitions leaving state 0 have an output label with
             prefix 0.  However, there is no inbound transition and it
@@ -7144,7 +7144,7 @@ class FiniteStateMachine(SageObject):
                 sage: T = Transducer([[0, 0, 0, a_1], [0, 1, 1, a_3],
                 ....:                 [1, 0, 0, a_4], [1, 1, 1, a_2]],
                 ....:                initial_states=[0], final_states=[0, 1])
-                sage: moments = T.asymptotic_moments() # doctest: +ELLIPSIS
+                sage: moments = T.asymptotic_moments()
                 verbose 0 (...) Non-integer output weights lead to
                 significant performance degradation.
                 sage: moments['expectation']
@@ -7315,7 +7315,7 @@ class FiniteStateMachine(SageObject):
 
                 sage: T = Transducer([[0, 0, 0, 0], [0, 0, 1, -1/2]],
                 ....:                initial_states=[0], final_states=[0])
-                sage: moments = T.asymptotic_moments() # doctest: +ELLIPSIS
+                sage: moments = T.asymptotic_moments()
                 verbose 0 (...) Non-integer output weights lead to
                 significant performance degradation.
                 sage: moments['expectation']
@@ -7357,7 +7357,7 @@ class FiniteStateMachine(SageObject):
                 sage: s = FSMState(0, word_out=2/3)
                 sage: T = Transducer([(s, s, 0, 1/2)],
                 ....:                initial_states=[s], final_states=[s])
-                sage: T.asymptotic_moments()['expectation'] # doctest: +ELLIPSIS
+                sage: T.asymptotic_moments()['expectation']
                 verbose 0 (...) Non-integer output weights lead to
                 significant performance degradation.
                 7/6*n + Order(1)
@@ -8341,7 +8341,7 @@ class Transducer(FiniteStateMachine):
             ....:                          final_states=[1],
             ....:                          determine_alphabets=True)
             sage: result = transducer1.cartesian_product(transducer2)
-            doctest:1: DeprecationWarning: The output of
+            doctest:...: DeprecationWarning: The output of
             Transducer.cartesian_product will change.
             Please use Transducer.intersection for the original output.
             See http://trac.sagemath.org/16061 for details.

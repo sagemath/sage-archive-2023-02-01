@@ -950,19 +950,19 @@ class IncidenceStructure(object):
             True
 
             sage: BD.block_design_checker(2, 7, 3, 1,"binary")
-            doctest:1: DeprecationWarning: .block_design_checker(type='binary') is
+            doctest:...: DeprecationWarning: .block_design_checker(type='binary') is
             deprecated; use .is_binary() instead
             See http://trac.sagemath.org/16553 for details.
             True
 
             sage: BD.block_design_checker(2, 7, 3, 1,"connected")
-            doctest:1: DeprecationWarning: block_design_checker(type='connected') is
+            doctest:...: DeprecationWarning: block_design_checker(type='connected') is
             deprecated, please use .is_connected() instead
             See http://trac.sagemath.org/16553 for details.
             True
 
             sage: BD.block_design_checker(2, 7, 3, 1,"simple")
-            doctest:1: DeprecationWarning: .block_design_checker(type='simple')
+            doctest:...: DeprecationWarning: .block_design_checker(type='simple')
             is deprecated; all designs here are simple!
             See http://trac.sagemath.org/16553 for details.
             True

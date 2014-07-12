@@ -1484,7 +1484,7 @@ class Compositions(Parent, UniqueRepresentation):
     preferably consider using ``IntegerVectors`` instead::
 
         sage: Compositions(2, length=3, min_part=0).list()
-        doctest:... RuntimeWarning: Currently, setting min_part=0 produces Composition objects which violate internal assumptions.  Calling methods on these objects may produce errors or WRONG results!
+        doctest:...: RuntimeWarning: Currently, setting min_part=0 produces Composition objects which violate internal assumptions.  Calling methods on these objects may produce errors or WRONG results!
         [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
 
         sage: list(IntegerVectors(2, 3))
@@ -1956,7 +1956,7 @@ def from_descents(descents, nps=None):
         sage: [x-1 for x in Composition([1, 1, 3, 4, 3]).to_subset()]
         [0, 1, 4, 8]
         sage: sage.combinat.composition.from_descents([1,0,4,8],12)
-        doctest:1: DeprecationWarning: from_descents is deprecated. Use Compositions().from_descents instead.
+        doctest:...: DeprecationWarning: from_descents is deprecated. Use Compositions().from_descents instead.
         See http://trac.sagemath.org/14063 for details.
         [1, 1, 3, 4, 3]
     """
@@ -1973,7 +1973,7 @@ def composition_from_subset(S, n):
 
         sage: from sage.combinat.composition import composition_from_subset
         sage: composition_from_subset([2,1,5,9], 12)
-        doctest:1: DeprecationWarning: composition_from_subset is deprecated. Use Compositions().from_subset instead.
+        doctest:...: DeprecationWarning: composition_from_subset is deprecated. Use Compositions().from_subset instead.
         See http://trac.sagemath.org/14063 for details.
         [1, 1, 3, 4, 3]
     """
@@ -1992,7 +1992,7 @@ def from_code(code):
         sage: Composition([4,1,2,3,5]).to_code()
         [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
         sage: composition.from_code(_)
-        doctest:1: DeprecationWarning: from_code is deprecated. Use Compositions().from_code instead.
+        doctest:...: DeprecationWarning: from_code is deprecated. Use Compositions().from_code instead.
         See http://trac.sagemath.org/14063 for details.
         [4, 1, 2, 3, 5]
     """

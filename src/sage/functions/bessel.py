@@ -303,7 +303,7 @@ class Function_Bessel_J(BuiltinFunction):
         EXAMPLES::
 
             sage: bessel_J(0, 1.0, "maxima", 53)
-            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
+            doctest:...: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
             See http://trac.sagemath.org/4102 for details.
             0.7651976865579666
         """
@@ -473,7 +473,7 @@ class Function_Bessel_Y(BuiltinFunction):
         EXAMPLES::
 
             sage: bessel_Y(0, 1, "maxima", 53)
-            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
+            doctest:...: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
             See http://trac.sagemath.org/4102 for details.
             0.0882569642156769
         """
@@ -645,7 +645,7 @@ class Function_Bessel_I(BuiltinFunction):
         EXAMPLES::
 
             sage: bessel_I(0, 1, "maxima", 53)
-            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
+            doctest:...: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
             See http://trac.sagemath.org/4102 for details.
             1.266065877752009
         """
@@ -842,7 +842,7 @@ class Function_Bessel_K(BuiltinFunction):
         EXAMPLES::
 
             sage: bessel_K(0, 1, "maxima", 53)
-            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
+            doctest:...: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
             See http://trac.sagemath.org/4102 for details.
             0.0882569642156769
         """

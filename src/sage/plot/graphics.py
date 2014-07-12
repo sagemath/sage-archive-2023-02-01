@@ -51,7 +51,7 @@ def show_default(default=None):
     ``False`` in doctests::
 
         sage: show_default()  # long time
-        doctest:1: DeprecationWarning: this is done automatically by the doctest framework
+        doctest:...: DeprecationWarning: this is done automatically by the doctest framework
         See http://trac.sagemath.org/14469 for details.
         False
     """

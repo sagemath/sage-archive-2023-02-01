@@ -29,7 +29,7 @@ The sine function::
 
 Animate using ffmpeg instead of ImageMagick::
 
-    sage: f = sage.misc.temporary_file.tmp_filename(ext='.gif')
+    sage: f = tmp_filename(ext='.gif')
     sage: a.save(filename=f,use_ffmpeg=True) # optional -- ffmpeg
 
 An animated :class:`sage.plot.graphics.GraphicsArray` of rotating ellipses::
@@ -461,7 +461,7 @@ class Animation(SageObject):
 
             sage: g = a.graphics_array(ncols=2); print g
             Graphics Array of size 2 x 2
-            sage: f = sage.misc.temporary_file.tmp_filename(ext='.png')
+            sage: f = tmp_filename(ext='.png')
             sage: g.show(f) # optional
 
         Frames can be specified as a generator too; it is internally converted to a list::

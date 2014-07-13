@@ -133,9 +133,9 @@ class FiniteSubgroup(Module_old):
             True
         """
         if field_of_definition not in _Fields:
-            raise TypeError, "field_of_definition must be a field"
+            raise TypeError("field_of_definition must be a field")
         if not abelian_variety.is_ModularAbelianVariety(abvar):
-            raise TypeError, "abvar must be a modular abelian variety"
+            raise TypeError("abvar must be a modular abelian variety")
         Module_old.__init__(self, ZZ)
         self.__abvar = abvar
         self.__field_of_definition = field_of_definition
@@ -275,7 +275,7 @@ class FiniteSubgroup(Module_old):
             True
         """
         if not isinstance(other, FiniteSubgroup):
-            raise TypeError, "only addition of two finite subgroups is defined"
+            raise TypeError("only addition of two finite subgroups is defined")
         A = self.abelian_variety()
         B = other.abelian_variety()
         if not A.in_same_ambient_variety(B):
@@ -370,10 +370,10 @@ class FiniteSubgroup(Module_old):
         else:
             amb = A
             if not isinstance(other, FiniteSubgroup):
-                raise TypeError, "only addition of two finite subgroups is defined"
+                raise TypeError("only addition of two finite subgroups is defined")
             B = other.abelian_variety()
             if A.ambient_variety() != B.ambient_variety():
-                raise TypeError, "finite subgroups must be in the same ambient product Jacobian"
+                raise TypeError("finite subgroups must be in the same ambient product Jacobian")
             M = other.lattice()
             K = composite_field(self.field_of_definition(), other.field_of_definition())
 
@@ -645,11 +645,11 @@ class FiniteSubgroup(Module_old):
             elif x.parent().abelian_variety() == self.abelian_variety():
                 return self(x.element())
             else:
-                raise TypeError, "x does not define an element of self"
+                raise TypeError("x does not define an element of self")
         else:
             z = self.abelian_variety().vector_space()(x)
             if not z in self.lattice():
-                raise TypeError, "x does not define an element of self"
+                raise TypeError("x does not define an element of self")
             return TorsionPoint(self, z, check=False)
 
 
@@ -729,7 +729,7 @@ class FiniteSubgroup(Module_old):
             True
         """
         if not isinstance(gens, (tuple, list)):
-            raise TypeError, "gens must be a list or tuple"
+            raise TypeError("gens must be a list or tuple")
         A = self.abelian_variety()
         lattice = A._ambient_lattice().span([self(g).element() for g in gens])
         return FiniteSubgroup_lattice(self.abelian_variety(), lattice, field_of_definition=QQbar)
@@ -818,13 +818,13 @@ class FiniteSubgroup_lattice(FiniteSubgroup):
         """
         if check:
             if not is_FreeModule(lattice) or lattice.base_ring() != ZZ:
-                raise TypeError, "lattice must be a free module over ZZ"
+                raise TypeError("lattice must be a free module over ZZ")
             if not abelian_variety.is_ModularAbelianVariety(abvar):
-                raise TypeError, "abvar must be a modular abelian variety"
+                raise TypeError("abvar must be a modular abelian variety")
             if not abvar.lattice().is_submodule(lattice):
                 lattice += abvar.lattice()
             if lattice.rank() != abvar.lattice().rank():
-                raise ValueError, "lattice must contain the lattice of abvar with finite index"
+                raise ValueError("lattice must contain the lattice of abvar with finite index")
         FiniteSubgroup.__init__(self, abvar, field_of_definition)
         self.__lattice = lattice
 
@@ -879,7 +879,7 @@ class TorsionPoint(ModuleElement):
         ModuleElement.__init__(self, parent)
         if check:
             if not element in parent.abelian_variety().vector_space():
-                raise TypeError, "element must be a vector in the abelian variety's rational homology (embedded in the ambient Jacobian product)"
+                raise TypeError("element must be a vector in the abelian variety's rational homology (embedded in the ambient Jacobian product)")
         if element.denominator() == 1:
             element = element.parent().zero_vector()
         self.__element = element

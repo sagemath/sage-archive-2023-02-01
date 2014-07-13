@@ -105,6 +105,10 @@ def get_basis_name(basis, p):
         'pst_llex'
         sage: get_basis_name('wood_abcdedfg_y', 2)
         'woody'
+        sage: get_basis_name('wood', 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: wood is not a recognized basis at the prime 2.
         sage: get_basis_name('arnon--hello--long', 2)
         'arnona_long'
         sage: get_basis_name('arnona_long', p=5)
@@ -150,6 +154,8 @@ def get_basis_name(basis, p):
             result = 'woody'
         elif basis.find('z') >= 0:
             result = 'woodz'
+        else:
+             raise ValueError("%s is not a recognized basis at the prime %s." % (basis, p))
     elif p == 2 and basis.find('arnon') >= 0:
         if basis.find('c') >= 0:
             result = 'arnonc'

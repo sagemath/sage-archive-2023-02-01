@@ -316,4 +316,4 @@ def disk(point, radius, angle, **options):
     elif len(point)==3:
         return g[0].plot3d(z=point[2])
     else:
-        raise ValueError, 'The center point of a plotted disk should have two or three coordinates.'
+        raise ValueError('The center point of a plotted disk should have two or three coordinates.')

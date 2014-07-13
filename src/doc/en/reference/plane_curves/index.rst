@@ -26,6 +26,7 @@ Elliptic and Plane Curves
    sage/schemes/elliptic_curves/ell_number_field
    sage/schemes/elliptic_curves/ell_finite_field
    sage/schemes/elliptic_curves/ell_point
+   sage/schemes/elliptic_curves/height
    sage/schemes/elliptic_curves/ell_torsion
    sage/schemes/elliptic_curves/ell_local_data
    sage/schemes/elliptic_curves/kodaira_symbol
@@ -34,9 +35,9 @@ Elliptic and Plane Curves
    sage/schemes/elliptic_curves/isogeny_small_degree
    sage/schemes/elliptic_curves/ell_wp
    sage/schemes/elliptic_curves/period_lattice
+   sage/schemes/elliptic_curves/period_lattice_region
    sage/schemes/elliptic_curves/formal_group
    sage/schemes/elliptic_curves/ell_tate_curve
-   sage/schemes/elliptic_curves/monsky_washnitzer
    sage/schemes/elliptic_curves/padic_lseries
    sage/schemes/elliptic_curves/ell_modular_symbols
    sage/schemes/elliptic_curves/modular_parametrization
@@ -59,6 +60,8 @@ Hyperelliptic Curves
    sage/schemes/hyperelliptic_curves/hyperelliptic_generic
 
    sage/schemes/hyperelliptic_curves/mestre
+
+   sage/schemes/hyperelliptic_curves/monsky_washnitzer
 
    sage/schemes/hyperelliptic_curves/jacobian_g2
    sage/schemes/hyperelliptic_curves/jacobian_generic

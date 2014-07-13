@@ -111,7 +111,7 @@ Predefined classes
    * - BinaryTrees
 
      - :meth:`~sage.graphs.graph_generators.GraphGenerators.BalancedTree`,
-       :meth:`~sage.graphs.generic_graph.GenericGraph.is_tree`
+       :meth:`~Graph.is_tree`
 
    * - Bipartite
 
@@ -172,7 +172,7 @@ Predefined classes
    * - Tree
 
      - :meth:`~sage.graphs.graph_generators.GraphGenerators.trees`,
-       :meth:`~sage.graphs.generic_graph.GenericGraph.is_tree`
+       :meth:`~Graph.is_tree`
 
    * - UnitDisk
      - :meth:`~sage.graphs.graph_generators.GraphGenerators.IntervalGraph`,

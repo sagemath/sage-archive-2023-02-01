@@ -17,6 +17,7 @@ AUTHORS:
 - Martin Albrecht (2009): refactoring, clean-up, new functions
 - Martin Albrecht (2011): refactoring, moved to sage.rings.polynomial
 - Alex Raichev (2011-06): added algebraic_dependence()
+- Charles Bouillaguet (2013-1): added solve()
 
 EXAMPLES:
 
@@ -124,7 +125,7 @@ easily::
     sage: A,v = F2.coefficient_matrix(sparse=False)
     sage: A.echelonize()
     sage: A
-    6840 x 4474 dense matrix over Finite Field of size 2 (type 'print A.str()' to see all of the entries)
+    6840 x 4474 dense matrix over Finite Field of size 2 (use the '.str()' method to see the entries)
     sage: A.rank()
     4056
     sage: A[4055]*v
@@ -138,7 +139,7 @@ TEST::
     sage: loads(dumps(F)) == F
     True
 
-.. note::
+.. NOTE::
 
    In many other computer algebra systems (cf. Singular) this class
    would be called ``Ideal`` but an ideal is a very distinct object
@@ -154,10 +155,12 @@ Classes
 """
 
 from types import GeneratorType
+from sage.misc.package import is_package_installed
 
-from sage.structure.sequence import Sequence_generic
+from sage.structure.sequence import Sequence, Sequence_generic
 
 from sage.rings.infinity import Infinity
+from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.quotient_ring import is_QuotientRing
 from sage.rings.quotient_ring_element import QuotientRingElement
@@ -924,7 +927,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
     """
     Polynomial Sequences over `\mathbb{F}_2`.
     """
-    def eliminate_linear_variables(self, maxlength=Infinity, skip=None, return_reductors=False):
+    def eliminate_linear_variables(self, maxlength=Infinity, skip=None, return_reductors=False, use_polybori=False):
         """
         Return a new system where linear leading variables are
         eliminated if the tail of the polynomial has length at most
@@ -945,6 +948,11 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         - ``return_reductors`` - if ``True`` the list of polynomials
           with linear leading terms which were used for reduction is
           also returned (default: ``False``).
+
+        - ```use_polybori`` - if ``True`` then ``polybori.ll.eliminate`` is
+          called. While this is typically faster what is implemented here, it
+          is less flexible (``skip` is not supported) and may increase the
+          degree (default: ``False``)
 
         OUTPUT:
 
@@ -987,6 +995,21 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: R
             [a + b + d, c + d]
 
+
+        If the input system is detected to be inconsistent then [1] is returned
+        and the list of reductors is empty::
+
+            sage: R.<x,y,z> = BooleanPolynomialRing()
+            sage: S = Sequence([x*y*z+x*y+z*y+x*z, x+y+z+1, x+y+z])
+            sage: S.eliminate_linear_variables()
+            [1]
+
+            sage: R.<x,y,z> = BooleanPolynomialRing()
+            sage: S = Sequence([x*y*z+x*y+z*y+x*z, x+y+z+1, x+y+z])
+            sage: S.eliminate_linear_variables(return_reductors=True)
+            ([1], [])
+
+
         TESTS:
 
         The function should really dispose of linear equations (:trac:`13968`)::
@@ -1005,6 +1028,18 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: S.eliminate_linear_variables(return_reductors=True)
             ([], [x + y, z + 1])
 
+        We test a case which would increase the degree with ``polybori=True``::
+
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()
+            sage: f = a*d + a + b*d + c*d + 1
+            sage: Sequence([f, a + b*c + c+d + 1]).eliminate_linear_variables()
+            [a*d + a + b*d + c*d + 1, a + b*c + c + d + 1]
+
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()
+            sage: f = a*d + a + b*d + c*d + 1
+            sage: Sequence([f, a + b*c + c+d + 1]).eliminate_linear_variables(use_polybori=True)
+            [b*c*d + b*c + b*d + c + d]
+
         .. NOTE::
 
             This is called "massaging" in [CBJ07]_.
@@ -1016,10 +1051,11 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
            Multivariate Polynomials over GF(2) via SAT-Solvers*.
            Cryptology ePrint Archive: Report 2007/024. available at
            http://eprint.iacr.org/2007/024
+
         """
+        from sage.rings.polynomial.pbori import BooleanPolynomialRing
         from polybori import gauss_on_polys
         from polybori.ll import eliminate,ll_encode,ll_red_nf_redsb
-        from sage.rings.polynomial.pbori import BooleanPolynomialRing
 
         R = self.ring()
 
@@ -1029,7 +1065,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         F = self
         reductors = []
 
-        if skip is None and maxlength==Infinity:
+        if use_polybori and skip is None and maxlength==Infinity:
             # faster solution based on polybori.ll.eliminate
             while True:
                 (this_step_reductors, _, higher) = eliminate(F)
@@ -1060,6 +1096,11 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
                     break
 
                 linear = gauss_on_polys(linear)
+                if 1 in linear:
+                    if return_reductors:
+                        return PolynomialSequence(R, [R(1)]), PolynomialSequence(R, [])
+                    else:
+                        return PolynomialSequence(R, [R(1)])
                 rb = ll_encode(linear)
                 reductors.extend(linear)
 
@@ -1096,9 +1137,8 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: F._groebner_strategy()
             <sage.rings.polynomial.pbori.GroebnerStrategy object at 0x...>
         """
-        R = self.ring()
-
         from sage.rings.polynomial.pbori import BooleanPolynomialRing
+        R = self.ring()
 
         if not isinstance(R, BooleanPolynomialRing):
             from sage.libs.singular.groebner_strategy import GroebnerStrategy
@@ -1110,6 +1150,166 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
                 g.add_as_you_wish(p)
             g.reduction_strategy.opt_red_tail=True
             return g
+
+    def solve(self, algorithm='polybori', n=1,  eliminate_linear_variables=True, verbose=False, **kwds):
+        r"""
+        Find solutions of this boolean polynomial system.
+
+        This function provide a unified interface to several algorithms
+        dedicated to solving systems of boolean equations. Depending on
+        the particular nature of the system, some might be much faster
+        than some others.
+
+        INPUT:
+
+        * ``self`` - a sequence of boolean polynomials
+
+        * ``algorithm`` - the method to use. Possible values are
+          ``polybori``, ``sat`` and ``exhaustive_search``. (default:
+          ``polybori``, since it is always available)
+
+        * ``n`` - number of solutions to return. If ``n == +Infinity``
+          then all solutions are returned. If `n < \infty` then `n`
+          solutions are returned if the equations have at least `n`
+          solutions. Otherwise, all the solutions are
+          returned. (default: ``1``)
+
+        * ``eliminate_linear_variables`` - whether to eliminate
+          variables that appear linearly. This reduces the number of
+          variables (makes solving faster a priori), but is likely to
+          make the equations denser (may make solving slower depending
+          on the method).
+
+        * ``verbose`` - whether to display progress and (potentially)
+          useful information while the computation runs. (default:
+          ``False``)
+
+        EXAMPLES:
+
+        Without argument, a single arbitrary solution is returned::
+
+            sage: R.<x,y,z> = BooleanPolynomialRing()
+            sage: S = Sequence([x*y+z, y*z+x, x+y+z+1])
+            sage: sol = S.solve(); sol                       # random
+            [{y: 1, z: 0, x: 0}]
+
+        We check that it is actually a solution::
+
+            sage: S.subs( sol[0] )
+            [0, 0, 0]
+
+        We obtain all solutions::
+
+            sage: sols = S.solve(n=Infinity); sols           # random
+            [{x: 0, y: 1, z: 0}, {x: 1, y: 1, z: 1}]
+            sage: map( lambda x: S.subs(x), sols)
+            [[0, 0, 0], [0, 0, 0]]
+
+        We can force the use of exhaustive search if the optional
+        package ``FES`` is present::
+
+            sage: sol = S.solve(algorithm='exhaustive_search'); sol  # random, optional - FES
+            [{x: 1, y: 1, z: 1}]
+            sage: S.subs( sol[0] )
+            [0, 0, 0]
+
+        And we may use SAT-solvers if they are available::
+
+            sage: sol = S.solve(algorithm='sat'); sol                     # random, optional - CryptoMiniSat
+            [{y: 1, z: 0, x: 0}]
+            sage: S.subs( sol[0] )
+            [0, 0, 0]
+
+        TESTS:
+
+        Make sure that variables not occuring in the equations are no problem::
+
+            sage: R.<x,y,z,t> = BooleanPolynomialRing()
+            sage: S = Sequence([x*y+z, y*z+x, x+y+z+1])
+            sage: sols = S.solve(n=Infinity)
+            sage: map( lambda x: S.subs(x), sols)
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
+
+        Not eliminating linear variables::
+
+            sage: sols = S.solve(n=Infinity, eliminate_linear_variables=False)
+            sage: map( lambda x: S.subs(x), sols)
+            [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
+
+        A tricky case where the linear equations are insatisfiable::
+
+            sage: R.<x,y,z> = BooleanPolynomialRing()
+            sage: S = Sequence([x*y*z+x*y+z*y+x*z, x+y+z+1, x+y+z])
+            sage: S.solve()
+            []
+
+        """
+        from sage.rings.polynomial.pbori import BooleanPolynomialRing
+        from sage.modules.free_module import VectorSpace
+
+        S = self
+        R_origin = R_solving = self.ring()
+        reductors = []
+
+        if eliminate_linear_variables:
+            T, reductors = self.eliminate_linear_variables(return_reductors=True)
+            if T.variables() != ():
+                R_solving = BooleanPolynomialRing( T.nvariables(), map(str, list(T.variables())) )
+            S = PolynomialSequence( R_solving, [ R_solving(f) for f in T] )
+
+        if S != []:
+            if algorithm == "exhaustive_search":
+                if not is_package_installed('fes'):
+                    raise ValueError('algorithm=exhaustive_search requires the optional library FES. Run "install_package(\'fes\')" to install it.')
+                from sage.libs.fes import exhaustive_search
+                solutions = exhaustive_search(S, max_sols=n, verbose=verbose, **kwds)
+
+            elif algorithm == "polybori":
+                I = S.ideal()
+                if verbose:
+                    I.groebner_basis(full_prot=True, **kwds)
+                else:
+                    I.groebner_basis(**kwds)
+                solutions = I.variety()
+                if len(solutions) >= n:
+                    solutions = solutions[:n]
+
+            elif algorithm == "sat":
+                from sage.sat.boolean_polynomials import solve as solve_sat
+                if verbose:
+                    solutions = solve_sat(S, n=n, s_verbosity=1, **kwds)
+                else:
+                    solutions = solve_sat(S, n=n, **kwds)
+            else:
+                raise ValueError("unknown 'algorithm' value")
+        else:
+            solutions = []
+
+        if S.variables() == ():
+            solved_variables = set()
+        else:
+            solved_variables = { R_origin(x).lm() for x in R_solving.gens() }
+        eliminated_variables = { f.lex_lead() for f in reductors }
+        leftover_variables = { x.lm() for x in R_origin.gens() } - solved_variables - eliminated_variables
+
+        if leftover_variables != set():
+            partial_solutions = solutions
+            solutions = []
+            for sol in partial_solutions:
+                for v in VectorSpace( GF(2), len(leftover_variables) ):
+                    new_solution = sol.copy()
+                    for var,val in zip(leftover_variables, v):
+                        new_solution[ var ] = val
+                    solutions.append( new_solution )
+
+        for r in reductors:
+            for sol in solutions:
+                sol[ r.lm() ] = r.subs(sol).constant_coefficient()
+
+        return solutions
+
+
+
 
 class PolynomialSequence_gf2e(PolynomialSequence_generic):
     """
@@ -1158,4 +1358,3 @@ class PolynomialSequence_gf2e(PolynomialSequence_generic):
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialSystem_generic", PolynomialSequence_generic)
 register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialRoundSystem_generic", PolynomialSequence_generic)
-

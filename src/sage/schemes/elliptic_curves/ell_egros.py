@@ -377,7 +377,7 @@ def egros_get_j(S=[], proof=None, verbose=False):
 
     """
     if not all([p.is_prime() for p in S]):
-        raise ValueError, "Elements of S must be prime."
+        raise ValueError("Elements of S must be prime.")
 
         if proof is None:
             from sage.structure.proof.proof import get_flag

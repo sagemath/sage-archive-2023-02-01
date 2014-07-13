@@ -334,9 +334,9 @@ class SBox(SageObject):
             pass
 
         if len(str(X)) > 50:
-            raise TypeError, "Cannot apply SBox to provided element."
+            raise TypeError("Cannot apply SBox to provided element.")
         else:
-            raise TypeError, "Cannot apply SBox to %s."%(X,)
+            raise TypeError("Cannot apply SBox to %s."%(X,))
 
     def __getitem__(self, X):
         """
@@ -779,7 +779,7 @@ class SBox(SageObject):
             (a^2 + 1, 5)
         """
         if self.m != self.n:
-            raise TypeError, "Lagrange interpolation only supported if self.m == self.n."
+            raise TypeError("Lagrange interpolation only supported if self.m == self.n.")
 
         if k is None:
             k = GF(2**self.m,'a')

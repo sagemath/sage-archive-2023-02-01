@@ -37,7 +37,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         Always returns a copy (unless self is immutable, in which case
         returns self).
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A = matrix(QQ['x,y'], 2, [0,-1,2*x,-2], sparse=True); A
             [  0  -1]

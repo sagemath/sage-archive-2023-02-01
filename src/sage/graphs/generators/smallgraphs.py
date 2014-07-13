@@ -378,6 +378,194 @@ def WellsGraph():
 
     return g
 
+def Cell600(embedding=1):
+    r"""
+    Returns the 600-Cell graph
+
+    This is the adjacency graph of the 600-cell. It has 120 vertices and 720
+    edges. For more information, see the :wikipedia:`600-cell`.
+
+    INPUT:
+
+    - ``embedding`` (1 (default) or 2) -- two different embeddings for a plot.
+
+    EXAMPLES::
+
+        sage: g = graphs.Cell600()      # long time
+        sage: g.size()                  # long time
+        720
+        sage: g.is_regular(12)          # long time
+        True
+        sage: g.is_vertex_transitive()  # long time
+        True
+    """
+    from sage.rings.rational_field import QQ
+    from sage.rings.polynomial.polynomial_ring import polygen
+    from sage.rings.number_field.number_field import NumberField
+    from sage.modules.free_module import VectorSpace
+    from sage.groups.perm_gps.permgroup_named import AlternatingGroup
+
+    x = polygen(QQ, 'x')
+    K = NumberField(x ** 2 - x - 1, 'f')
+    f = K.gen()
+    K4 = VectorSpace(K, 4)
+
+    # first 96 vertices
+    step = [[a * f / 2, b * K(1) / 2, c * (f - 1) / 2, 0]
+            for a in [-1, 1] for b in [-1, 1] for c in [-1, 1]]
+    vert96 = [K4([v[s(1) - 1], v[s(2) - 1], v[s(3) - 1], v[s(4) - 1]])
+              for v in step for s in AlternatingGroup(4)]
+
+    # 16 more vertices
+    vert16 = [K4([K(a) / 2, K(b) / 2, K(c) / 2, K(d) / 2])
+              for a in [-1, 1] for b in [-1, 1]
+              for c in [-1, 1] for d in [-1, 1]]
+
+    # 8 last vertices
+    vert8 = [K4([1, 0, 0, 0]), K4([-1, 0, 0, 0]),
+             K4([0, 1, 0, 0]), K4([0, -1, 0, 0]),
+             K4([0, 0, 1, 0]), K4([0, 0, -1, 0]),
+             K4([0, 0, 0, 1]), K4([0, 0, 0, -1])]
+
+    # all vertices together
+    U = vert96 + vert16 + vert8
+
+    g = Graph([range(120), lambda i, j: U[i].inner_product(U[j]) == f / 2])
+
+    # Embedding
+    from sage.graphs.graph_plot import _circle_embedding
+    if embedding == 1:
+        pos = [0, 1, 3, 13, 78, 90, 93, 110, 29, 104, 11, 48, 107, 83, 92, 55,
+               32, 16, 117, 24, 26, 56, 52, 47, 75, 72, 66, 112, 27, 115, 21,
+               33, 118, 79, 91, 37, 2, 5, 96, 31, 82, 88, 94, 74, 50, 28, 20,
+               105, 45, 99, 70, 25, 101, 54, 46, 51, 17, 35, 98, 41, 84, 85,
+               87, 73, 18, 6, 9, 97, 65, 103, 95, 36, 100, 23, 8, 43, 68, 76,
+               116, 60, 62, 44, 40, 59, 15, 12, 30, 113, 63, 114, 81, 69, 119,
+               19, 7, 49, 86, 89, 111, 67, 22, 4, 10, 14, 38, 64, 80, 102, 57,
+               108, 34, 61, 106, 42, 58, 39, 77, 71, 109, 53]
+    else:
+        pos = [0, 1, 2, 3, 4, 6, 7, 8, 10, 13, 14, 21, 37, 103, 36, 65, 113,
+               25, 80, 26, 12, 78, 24, 83, 54, 66, 114, 46, 63, 101, 109, 93,
+               79, 75, 51, 44, 31, 119, 43, 5, 57, 100, 11, 108, 34, 41, 69,
+               96, 82, 116, 68, 64, 47, 102, 52, 35, 17, 76, 110, 38, 84, 85,
+               86, 87, 88, 90, 91, 92, 94, 73, 74, 81, 49, 104, 48, 29, 112,
+               61, 20, 62, 72, 18, 60, 23, 42, 30, 115, 58, 27, 106, 98, 9, 19,
+               15, 39, 56, 67, 118, 55, 89, 45, 107, 95, 99, 70, 53, 33, 111,
+               22, 117, 32, 28, 59, 105, 40, 71, 77, 16, 97, 50]
+
+    _circle_embedding(g, pos)
+
+    return g
+
+def Cell120():
+    r"""
+    Returns the 120-Cell graph
+
+    This is the adjacency graph of the 120-cell. It has 600 vertices and 1200
+    edges. For more information, see the :wikipedia:`120-cell`.
+
+    EXAMPLES::
+
+        sage: g = graphs.Cell120()      # long time
+        sage: g.size()                  # long time
+        1200
+        sage: g.is_regular(4)           # long time
+        True
+        sage: g.is_vertex_transitive()  # long time
+        True
+    """
+    from sage.rings.rational_field import QQ
+    from sage.rings.polynomial.polynomial_ring import polygen
+    from sage.rings.number_field.number_field import NumberField
+    from sage.modules.free_module import VectorSpace
+    from sage.groups.perm_gps.permgroup_named import AlternatingGroup
+    from sage.combinat.permutation import Permutations
+
+    x = polygen(QQ, 'x')
+    K = NumberField(x ** 2 - x - 1, 'f')
+    f = K.gen()
+    K4 = VectorSpace(K, 4)
+
+    # first 216 vertices
+    step = [(0, 0, K(a) * 2, K(b) * 2)
+            for a in [-1, 1] for b in [-1, 1]]
+    step += [(a * K(1), b * K(1), c * K(1), d * (2 * f - 1))
+            for a in [-1, 1] for b in [-1, 1]
+            for c in [-1, 1] for d in [-1, 1]]
+    step += [(a * (2 - f), b * f, c * f, d * f)
+             for a in [-1, 1] for b in [-1, 1]
+             for c in [-1, 1] for d in [-1, 1]]
+    step += [(a * (f - 1), b * (f - 1), c * (f - 1), d * (f + 1))
+             for a in [-1, 1] for b in [-1, 1]
+             for c in [-1, 1] for d in [-1, 1]]
+    ens1 = frozenset([(v[s(1) - 1], v[s(2) - 1], v[s(3) - 1], v[s(4) - 1])
+                      for v in step for s in Permutations(4)])
+    vert1 = [K4(w) for w in ens1]
+
+    # 384 more vertices
+    step = [(0, a * (2 - f), b * K(1), c * (f + 1))
+            for a in [-1, 1] for b in [-1, 1] for c in [-1, 1]]
+    step += [(0, a * (f - 1), b * f, c * (2 * f - 1))
+            for a in [-1, 1] for b in [-1, 1] for c in [-1, 1]]
+    step += [(a * (f - 1), b * K(1), c * f, d * K(2))
+             for a in [-1, 1] for b in [-1, 1]
+             for c in [-1, 1] for d in [-1, 1]]
+    vert2 = [K4([v[s(1) - 1], v[s(2) - 1], v[s(3) - 1], v[s(4) - 1]])
+              for v in step for s in AlternatingGroup(4)]
+
+    # all vertices together
+    U = vert1 + vert2
+
+    g = Graph([range(600), lambda i, j: U[i].inner_product(U[j]) == 6*f-2])
+
+    from sage.graphs.graph_plot import _circle_embedding
+    pos = [0, 1, 3, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 20, 21, 23, 24, 25,
+           27, 33, 40, 47, 49, 76, 77, 216, 217, 218, 219, 220, 222, 224, 225,
+           226, 230, 231, 232, 233, 235, 238, 241, 242, 245, 247, 249, 251, 253,
+           260, 261, 211, 66, 26, 307, 598, 305, 187, 374, 311, 205, 296, 108,
+           366, 172, 255, 89, 229, 81, 529, 548, 439, 382, 166, 496, 313, 484,
+           402, 234, 530, 256, 358, 406, 553, 577, 583, 401, 334, 417, 257, 438,
+           373, 544, 509, 365, 378, 487, 377, 390, 349, 325, 65, 78, 184, 13,
+           185, 18, 210, 84, 145, 83, 180, 158, 118, 109, 103, 130, 105, 51,
+           178, 155, 110, 85, 206, 95, 204, 190, 514, 513, 515, 466, 467, 441,
+           442, 587, 585, 576, 565, 564, 566, 540, 506, 436, 435, 424, 507, 543,
+           545, 547, 582, 440, 169, 63, 29, 575, 237, 549, 37, 375, 430, 159,
+           457, 61, 331, 208, 498, 39, 578, 48, 244, 486, 411, 364, 73, 455,
+           321, 240, 381, 542, 243, 500, 343, 333, 271, 518, 552, 357, 314, 299,
+           499, 412, 376, 596, 561, 319, 400, 264, 388, 362, 355, 386, 87, 186,
+           52, 99, 125, 113, 36, 121, 41, 127, 149, 100, 31, 137, 177, 43, 32,
+           45, 62, 191, 188, 106, 195, 141, 142, 96, 489, 491, 490, 475, 474,
+           447, 448, 589, 588, 517, 472, 473, 471, 450, 419, 519, 521, 468, 562,
+           594, 595, 488, 554, 413, 167, 116, 4, 557, 504, 536, 170, 389, 410,
+           128, 559, 203, 348, 147, 477, 22, 516, 162, 423, 266, 274, 320, 144,
+           246, 395, 437, 363, 452, 425, 478, 315, 312, 428, 288, 270, 344, 323,
+           493, 479, 275, 387, 286, 284, 347, 359, 462, 336, 368, 392, 324, 44,
+           75, 69, 46, 57, 138, 35, 80, 88, 199, 70, 152, 161, 181, 34, 207,
+           164, 71, 115, 55, 163, 72, 171, 93, 165, 124, 300, 301, 302, 303,
+           304, 306, 308, 309, 310, 290, 291, 292, 293, 295, 298, 277, 278, 281,
+           283, 285, 287, 265, 272, 273, 19, 10, 107, 223, 418, 221, 67, 338,
+           227, 196, 236, 91, 354, 154, 267, 30, 289, 215, 469, 464, 571, 346,
+           151, 508, 397, 520, 318, 294, 470, 268, 370, 322, 445, 421, 427, 317,
+           394, 597, 269, 570, 337, 460, 497, 353, 342, 523, 341, 330, 361, 385,
+           126, 92, 94, 176, 135, 117, 114, 197, 214, 179, 60, 42, 198, 202,
+           102, 101, 174, 104, 146, 90, 38, 111, 122, 157, 153, 133, 502, 501,
+           503, 550, 551, 573, 574, 431, 429, 420, 433, 432, 434, 456, 494, 568,
+           567, 580, 495, 459, 461, 463, 426, 572, 182, 58, 82, 443, 297, 465,
+           86, 339, 586, 209, 541, 140, 391, 143, 510, 28, 422, 213, 280, 522,
+           591, 352, 120, 563, 405, 276, 345, 458, 279, 512, 379, 393, 259, 482,
+           444, 369, 398, 239, 511, 592, 340, 416, 453, 403, 316, 252, 328, 350,
+           367, 326, 2, 175, 97, 139, 74, 131, 173, 134, 193, 192, 132, 79, 50,
+           200, 64, 150, 201, 194, 212, 183, 54, 56, 98, 123, 112, 156, 525,
+           527, 526, 535, 534, 555, 556, 409, 408, 481, 532, 533, 531, 558, 599,
+           483, 485, 528, 454, 414, 415, 524, 446, 593, 160, 59, 68, 449, 492,
+           476, 148, 329, 590, 119, 451, 189, 360, 53, 537, 129, 480, 136, 579,
+           254, 262, 404, 168, 282, 335, 569, 351, 560, 581, 538, 399, 396, 584,
+           228, 258, 380, 407, 505, 539, 263, 327, 250, 248, 383, 371, 546, 372,
+           356, 332, 384]
+    _circle_embedding(g, pos)
+
+    return g
+
 
 def HallJankoGraph(from_string=True):
     r"""
@@ -951,6 +1139,98 @@ def BiggsSmithGraph(embedding=1):
 
     return g
 
+def BlanusaFirstSnarkGraph():
+    r"""
+    Returns the first Blanusa Snark Graph.
+
+    The Blanusa graphs are two snarks on 18 vertices and 27 edges. For more
+    information on them, see the :wikipedia:`Blanusa_snarks`.
+
+    .. SEEALSO::
+
+        * :meth:`~sage.graphs.graph_generators.GraphGenerators.BlanusaSecondSnarkGraph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.BlanusaFirstSnarkGraph()
+        sage: g.order()
+        18
+        sage: g.size()
+        27
+        sage: g.diameter()
+        4
+        sage: g.girth()
+        5
+        sage: g.automorphism_group().cardinality()
+        8
+    """
+    g = Graph({17:[4,7,1],0:[5],
+               3:[8],13:[9],12:[16],
+               10:[15],11:[6],14:[2]},
+              name="Blanusa First Snark Graph")
+
+    g.add_cycle(range(17))
+    _circle_embedding(g, range(17), shift=0.25)
+    g.get_pos()[17] = (0,0)
+    return g
+
+def BlanusaSecondSnarkGraph():
+    r"""
+    Returns the second Blanusa Snark Graph.
+
+    The Blanusa graphs are two snarks on 18 vertices and 27 edges. For more
+    information on them, see the :wikipedia:`Blanusa_snarks`.
+
+    .. SEEALSO::
+
+        * :meth:`~sage.graphs.graph_generators.GraphGenerators.BlanusaFirstSnarkGraph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.BlanusaSecondSnarkGraph()
+        sage: g.order()
+        18
+        sage: g.size()
+        27
+        sage: g.diameter()
+        4
+        sage: g.girth()
+        5
+        sage: g.automorphism_group().cardinality()
+        4
+    """
+    g = Graph({0:[(0,0),(1,4),1],1:[(0,3),(1,1)],(0,2):[(0,5)],
+               (0,6):[(0,4)],(0,7):[(0,1)],(1,7):[(1,2)],
+               (1,0):[(1,6)],(1,3):[(1,5)]},
+              name="Blanusa Second Snark Graph")
+
+    g.add_cycle([(0,i) for i in range(5)])
+    g.add_cycle([(1,i) for i in range(5)])
+    g.add_cycle([(0,5),(0,6),(0,7),(1,5),(1,6),(1,7)])
+
+    _circle_embedding(g,
+                      [(0,(2*i)%5) for i in range(5)],
+                      center = (-1.5,0),
+                      shift = .5)
+    _circle_embedding(g,
+                      [(1,(2*i)%5) for i in range(5)],
+                      center = (1.5,0))
+
+    _circle_embedding(g,
+                      [(0,i) for i in range(5,8)]+[0]*4,
+                      center = (-1.2,0),
+                      shift = 2.5,
+                      radius = 2.2)
+    _circle_embedding(g,
+                      [(1,i) for i in range(5,8)]+[0]*4,
+                      center = (1.2,0),
+                      shift = -1,
+                      radius = 2.2)
+
+    _circle_embedding(g,[0,1], shift=.5)
+    g.relabel()
+    return g
+
 def BrinkmannGraph():
     r"""
     Returns the Brinkmann graph.
@@ -1267,6 +1547,106 @@ def DoubleStarSnark():
     g = Graph(d, pos={}, name="Double star snark")
     _circle_embedding(g, range(15), radius=2)
     _circle_embedding(g, range(15, 30), radius=1.4)
+
+    return g
+
+def MeredithGraph():
+    r"""
+    Returns the Meredith Graph
+
+    The Meredith Graph is a 4-regular 4-connected non-hamiltonian graph. For
+    more information on the Meredith Graph, see the :wikipedia:`Meredith_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.MeredithGraph()
+        sage: g.is_regular(4)
+        True
+        sage: g.order()
+        70
+        sage: g.size()
+        140
+        sage: g.radius()
+        7
+        sage: g.diameter()
+        8
+        sage: g.girth()
+        4
+        sage: g.chromatic_number()
+        3
+        sage: g.is_hamiltonian() # long time
+        False
+    """
+    g = Graph(name="Meredith Graph")
+    g.add_vertex(0)
+
+    # Edges between copies of K_{4,3}
+    for i in range(5):
+        g.add_edge(('outer',i,3),('outer',(i+1)%5,0))
+        g.add_edge(('inner',i,3),('inner',(i+2)%5,0))
+        g.add_edge(('outer',i,1),('inner',i      ,1))
+        g.add_edge(('outer',i,2),('inner',i      ,2))
+
+    # Edges inside of the K_{4,3}s.
+    for i in range(5):
+        for j in range(4):
+            for k in range(3):
+                g.add_edge(('inner',i,j),('inner',i,k+4))
+                g.add_edge(('outer',i,j),('outer',i,k+4))
+
+    _circle_embedding(g, sum([[('outer',i,j) for j in range(4)]+10*[0] for i in range(5)],[]), radius = 1, shift = 2)
+    _circle_embedding(g, sum([[('outer',i,j) for j in range(4,7)]+10*[0] for i in range(5)],[]), radius = 1.2, shift = 2.2)
+    _circle_embedding(g, sum([[('inner',i,j) for j in range(4)]+7*[0] for i in range(5)],[]), radius = .6, shift = 1.24)
+    _circle_embedding(g, sum([[('inner',i,j) for j in range(4,7)]+5*[0] for i in range(5)],[]), radius = .4, shift = 1.05)
+
+    g.delete_vertex(0)
+    g.relabel()
+    return g
+
+def KittellGraph():
+    r"""
+    Returns the Kittell Graph.
+
+    For more information, see the `Wolfram page about the Kittel Graph
+    <http://mathworld.wolfram.com/KittellGraph.html>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.KittellGraph()
+        sage: g.order()
+        23
+        sage: g.size()
+        63
+        sage: g.radius()
+        3
+        sage: g.diameter()
+        4
+        sage: g.girth()
+        3
+        sage: g.chromatic_number()
+        4
+    """
+    g = Graph({0: [1, 2, 4, 5, 6, 7], 1: [0, 2, 7, 10, 11, 13],
+               2: [0, 1, 11, 4, 14], 3: [16, 12, 4, 5, 14], 4: [0, 2, 3, 5, 14],
+               5: [0, 16, 3, 4, 6], 6: [0, 5, 7, 15, 16, 17, 18],
+               7: [0, 1, 6, 8, 13, 18], 8: [9, 18, 19, 13, 7],
+               9: [8, 10, 19, 20, 13], 10: [1, 9, 11, 13, 20, 21],
+               11: [1, 2, 10, 12, 14, 15, 21], 12: [11, 16, 3, 14, 15],
+               13: [8, 1, 10, 9, 7], 14: [11, 12, 2, 3, 4],
+               15: [6, 11, 12, 16, 17, 21, 22],
+               16: [3, 12, 5, 6, 15], 17: [18, 19, 22, 6, 15],
+               18: [8, 17, 19, 6, 7], 19: [8, 9, 17, 18, 20, 22],
+               20: [9, 10, 19, 21, 22], 21: [10, 11, 20, 22, 15],
+               22: [17, 19, 20, 21, 15]},
+              name = "Kittell Graph")
+
+    _circle_embedding(g, range(3), shift=.75)
+    _circle_embedding(g, range(3,13), radius = .4)
+    _circle_embedding(g, range(15,22), radius = .2, shift=-.15)
+    pos = g.get_pos()
+    pos[13] = (-.65,-.35)
+    pos[14] = (.65,-.35)
+    pos[22] = (0,0)
 
     return g
 
@@ -1614,6 +1994,68 @@ def DyckGraph():
     }
 
     return Graph(edge_dict, pos=pos_dict, name="Dyck graph")
+
+def HortonGraph():
+    r"""
+    Returns the Horton Graph.
+
+    The Horton graph is a cubic 3-connected non-hamiltonian graph. For more
+    information, see the :wikipedia:`Horton_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.HortonGraph()
+        sage: g.order()
+        96
+        sage: g.size()
+        144
+        sage: g.radius()
+        10
+        sage: g.diameter()
+        10
+        sage: g.girth()
+        6
+        sage: g.automorphism_group().cardinality()
+        96
+        sage: g.chromatic_number()
+        2
+        sage: g.is_hamiltonian() # not tested -- veeeery long
+        False
+    """
+    g = Graph(name = "Horton Graph")
+
+    # Each group of the 6 groups of vertices is based on the same 3-regular
+    # graph.
+    from sage.graphs.generators.families import LCFGraph
+    lcf = LCFGraph(16,[5,-5],8)
+    lcf.delete_edge(15,0)
+    lcf.delete_edge(7,8)
+
+    for i in range(6):
+        for u,v in lcf.edges(labels=False):
+            g.add_edge((i,u),(i,v))
+
+    # Modifying the groups and linking them together
+    for i in range(3):
+        g.add_edge((2*i,0),(2*i+1,7))
+        g.add_edge((2*i+1,8),(2*i,7))
+        g.add_edge((2*i,15),(2*i+1,0))
+        g.add_edge((2*i,8),1)
+        g.add_edge((2*i+1,14),2)
+        g.add_edge((2*i+1,10),0)
+
+    # Embedding
+    for i in range(6):
+        _circle_embedding(g, [(i,j) for j in range(16)], center=(cos(2*i*pi/6),sin(2*i*pi/6)), radius=.3)
+
+    for i in range(3):
+        g.delete_vertex((2*i+1,15))
+
+    _circle_embedding(g, range(3), radius=.2, shift=-0.75)
+
+    g.relabel()
+
+    return g
 
 def EllinghamHorton54Graph():
     r"""
@@ -2823,9 +3265,6 @@ def LjubljanaGraph(embedding=1):
     g.name("Ljubljana graph")
 
     if embedding == 1:
-        return g
-
-    elif embedding == 2:
         dh = HeawoodGraph().get_pos()
 
         # Correspondence between the vertices of the Heawood Graph and
@@ -2855,6 +3294,9 @@ def LjubljanaGraph(embedding=1):
             _circle_embedding(g, vertices, center=dh[u], radius=.1,
                     shift=8.*i/14)
 
+        return g
+
+    elif embedding == 2:
         return g
 
     else:
@@ -2891,6 +3333,52 @@ def M22Graph():
                 15, 8, 18, 13, 59, 37, 30, 57, 75, 74, 42]
 
     _circle_embedding(g, ordering)
+
+    return g
+
+def MarkstroemGraph():
+    r"""
+    Returns the Markström Graph.
+
+    The Markström Graph is a cubic planar graph with no cycles of length 4 nor
+    8, but containing cycles of length 16. For more information, see the
+    `Wolfram page about the Markström Graph
+    <http://mathworld.wolfram.com/MarkstroemGraph.html>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.MarkstroemGraph()
+        sage: g.order()
+        24
+        sage: g.size()
+        36
+        sage: g.is_planar()
+        True
+        sage: g.is_regular(3)
+        True
+        sage: g.subgraph_search(graphs.CycleGraph(4)) is None
+        True
+        sage: g.subgraph_search(graphs.CycleGraph(8)) is None
+        True
+        sage: g.subgraph_search(graphs.CycleGraph(16))
+        Subgraph of (Markstroem Graph): Graph on 16 vertices
+    """
+    g = Graph(name="Markstroem Graph")
+
+    g.add_cycle(range(9))
+    g.add_path([0,9,10,11,2,1,11])
+    g.add_path([3,12,13,14,5,4,14])
+    g.add_path([6,15,16,17,8,7,17])
+    g.add_cycle([10,9,18])
+    g.add_cycle([12,13,19])
+    g.add_cycle([15,16,20])
+    g.add_cycle([21,22,23])
+    g.add_edges([(19,22),(18,21),(20,23)])
+
+    _circle_embedding(g, sum([[9+3*i+j for j in range(3)]+[0]*2 for i in range(3)],[]), radius=.6, shift=.7)
+    _circle_embedding(g, [18,19,20], radius=.35, shift=.25)
+    _circle_embedding(g, [21,22,23], radius=.15, shift=.25)
+    _circle_embedding(g, range(9))
 
     return g
 
@@ -2986,7 +3474,7 @@ def McLaughlinGraph():
     blocks = map(Set, blocks)
     B = [b for b in blocks if 0 in b]
     C = [b for b in blocks if not 0 in b]
-    g = graph.Graph()
+    g = Graph()
     for b in B:
         for x in range(23):
             if not x in b:
@@ -3178,6 +3666,35 @@ def PappusGraph():
                         5:[11],6:[13,17],7:[12,14],8:[13,15],9:[14,16],\
                         10:[15,17],11:[12,16],12:[15],13:[16],14:[17]},\
                        pos=pos_dict, name="Pappus Graph")
+
+def PoussinGraph():
+    r"""
+    Returns the Poussin Graph.
+
+    For more information on the Poussin Graph, see its corresponding `Wolfram
+    page <http://mathworld.wolfram.com/PoussinGraph.html>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.PoussinGraph()
+        sage: g.order()
+        15
+        sage: g.is_planar()
+        True
+    """
+    g = Graph({2:[7,8,3,4],1:[7,6],0:[6,5,4],3:[5]},name="Poussin Graph")
+
+    g.add_cycle(range(3))
+    g.add_cycle(range(3,9))
+    g.add_cycle(range(9,14))
+    g.add_path([8,12,7,11,6,10,5,9,3,13,8,12])
+    g.add_edges([(14,i) for i in range(9,14)])
+    _circle_embedding(g, range(3), shift=.75)
+    _circle_embedding(g, range(3,9), radius=.4, shift=0)
+    _circle_embedding(g, range(9,14), radius=.2, shift=.4)
+    g.get_pos()[14] = (0,0)
+
+    return g
 
 def PetersenGraph():
     """
@@ -3457,12 +3974,93 @@ def SimsGewirtzGraph():
     g.name("Sims-Gewirtz Graph")
     return g
 
+def SousselierGraph():
+    r"""
+    Returns the Sousselier Graph.
+
+    The Sousselier graph is a hypohamiltonian graph on 16 vertices and 27
+    edges. For more information, see the corresponding `Wikipedia page (in
+    French) <http://fr.wikipedia.org/wiki/Graphe_de_Sousselier>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.SousselierGraph()
+        sage: g.order()
+        16
+        sage: g.size()
+        27
+        sage: g.radius()
+        2
+        sage: g.diameter()
+        3
+        sage: g.automorphism_group().cardinality()
+        2
+        sage: g.is_hamiltonian()
+        False
+        sage: g.delete_vertex(g.random_vertex())
+        sage: g.is_hamiltonian()
+        True
+    """
+    g = Graph(name="Sousselier Graph")
+
+    g.add_cycle(range(15))
+    g.add_path([12,8,3,14])
+    g.add_path([9,5,0,11])
+    g.add_edge(6,2)
+    g.add_edges([(15,i) for i in range(15) if i%3==1])
+
+    _circle_embedding(g, range(15), shift=-.25)
+    g.get_pos()[15] = (0,0)
+
+    return g
+
+def SzekeresSnarkGraph():
+    r"""
+    Returns the Szekeres Snark Graph.
+
+    The Szekeres graph is a snark with 50 vertices and 75 edges. For more
+    information on this graph, see the :wikipedia:`Szekeres_snark`.
+
+    EXAMPLES::
+
+        sage: g = graphs.SzekeresSnarkGraph()
+        sage: g.order()
+        50
+        sage: g.size()
+        75
+        sage: g.chromatic_number()
+        3
+    """
+    g = Graph(name="Szekeres Snark Graph")
+
+    for i in range(5):
+        g.add_cycle([(i,j) for j in range(9)])
+        g.delete_edge((i,0),(i,8))
+        g.add_edge((i,1),i)
+        g.add_edge((i,4),i)
+        g.add_edge((i,7),i)
+        g.add_edge((i,0),(i,5))
+        g.add_edge((i,8),(i,3))
+
+        g.add_edge((i,0),((i+1)%5,8))
+        g.add_edge((i,6),((i+2)%5,2))
+        _circle_embedding(g, [(i,j) for j in range(9)],
+                          radius=.3,
+                          center=(cos(2*(i+.25)*pi/5),sin(2*(i+.25)*pi/5)),
+                          shift=5.45+1.8*i)
+
+    _circle_embedding(g, range(5), radius=1, shift=.25)
+
+    g.relabel()
+    return g
+
+
 def ThomsenGraph():
     """
     Returns the Thomsen Graph.
 
-    The Thomsen Graph is actually a complete bipartite graph with (n1,
-    n2) = (3, 3). It is also called the Utility graph.
+    The Thomsen Graph is actually a complete bipartite graph with `(n1, n2) =
+    (3, 3)`. It is also called the Utility graph.
 
     PLOTTING: See CompleteBipartiteGraph.
 
@@ -3479,6 +4077,37 @@ def ThomsenGraph():
     import networkx
     G = networkx.complete_bipartite_graph(3,3)
     return Graph(G, pos=pos_dict, name="Thomsen graph")
+
+def TietzeGraph():
+    r"""
+    Returns the Tietze Graph.
+
+    For more information on the Tietze Graph, see the
+    :wikipedia:`Tietze's_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.TietzeGraph()
+        sage: g.order()
+        12
+        sage: g.size()
+        18
+        sage: g.diameter()
+        3
+        sage: g.girth()
+        3
+        sage: g.automorphism_group().cardinality()
+        12
+        sage: g.automorphism_group().is_isomorphic(groups.permutation.Dihedral(6))
+        True
+    """
+    g = Graph([(0,9),(3,10),(6,11),(1,5),(2,7),(4,8),(7,2)], name="Tietze Graph")
+    g.add_cycle(range(9))
+    g.add_cycle([9,10,11])
+    _circle_embedding(g,range(9))
+    _circle_embedding(g,[9,10,11],radius=.5)
+
+    return g
 
 def Tutte12Cage():
     r"""
@@ -3571,6 +4200,65 @@ def TutteCoxeterGraph(embedding=2):
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
 
+def TutteGraph():
+    r"""
+    Returns the Tutte Graph.
+
+    The Tutte graph is a 3-regular, 3-connected, and planar non-hamiltonian
+    graph. For more information on the Tutte Graph, see the
+    :wikipedia:`Tutte_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.TutteGraph()
+        sage: g.order()
+        46
+        sage: g.size()
+        69
+        sage: g.is_planar()
+        True
+        sage: g.vertex_connectivity() # long
+        3
+        sage: g.girth()
+        4
+        sage: g.automorphism_group().cardinality()
+        3
+        sage: g.is_hamiltonian()
+        False
+    """
+    g = Graph(name="Tutte Graph")
+    from sage.graphs.graph_plot import _circle_embedding
+
+    g.add_cycle([(i,j) for i in range(3) for j in range(3) ])
+    for i in range(3):
+        g.add_cycle([(i,j) for j in range(9)])
+        g.add_cycle([(i,j) for j in range(9,14)])
+        g.add_edge((i,5),0)
+        g.add_edge((i,13),(i,3))
+        g.add_edge((i,12),(i,1))
+        g.add_edge((i,11),(i,8))
+        g.add_edge((i,10),(i,7))
+        g.add_edge((i,6),(i,14))
+        g.add_edge((i,4),(i,14))
+        g.add_edge((i,9),(i,14))
+
+    _circle_embedding(g, [(i,j) for i in range(3)  for j in range(6)], shift=.5)
+    _circle_embedding(g, [(i,14) for i in range(3) ], radius=.3,shift=.25)
+
+    for i in range(3):
+        _circle_embedding(g, [(i,j) for j in range(3,9)]+[0]*5,
+                          shift=3.7*(i-2)+.75,
+                          radius=.4,
+                          center=(.6*cos(2*(i+.25)*pi/3),.6*sin(2*(i+.25)*pi/3)))
+        _circle_embedding(g, [(i,j) for j in range(9,14)],
+                          shift=1.7*(i-2)+1,
+                          radius=.2,
+                          center=(.6*cos(2*(i+.25)*pi/3),.6*sin(2*(i+.25)*pi/3)))
+
+    g.get_pos()[0] = (0,0)
+
+    return g
+
 def WagnerGraph():
     """
     Returns the Wagner Graph.
@@ -3596,3 +4284,100 @@ def WagnerGraph():
     g.name("Wagner Graph")
     return g
 
+def WatkinsSnarkGraph():
+    r"""
+    Returns the Watkins Snark Graph.
+
+    The Watkins Graph is a snark with 50 vertices and 75 edges. For more
+    information, see the :wikipedia:`Watkins_snark`.
+
+    EXAMPLES::
+
+        sage: g = graphs.WatkinsSnarkGraph()
+        sage: g.order()
+        50
+        sage: g.size()
+        75
+        sage: g.chromatic_number()
+        3
+    """
+    g = Graph(name="Watkins Snark Graph")
+
+    for i in range(5):
+        g.add_cycle([(i,j) for j in range(9)])
+        _circle_embedding(g,
+                          [(i,j) for j in range(4)]+[0]*2+[(i,4)]+[0]*2+[(i,j) for j in range(5,9)],
+                          radius=.3,
+                          center=(cos(2*(i+.25)*pi/5),sin(2*(i+.25)*pi/5)),
+                          shift=2.7*i+7.55)
+        g.add_edge((i,5),((i+1)%5,0))
+        g.add_edge((i,8),((i+2)%5,3))
+        g.add_edge((i,1),i)
+        g.add_edge((i,7),i)
+        g.add_edge((i,4),i)
+        g.add_edge((i,6),(i,2))
+
+    _circle_embedding(g, range(5), shift=.25, radius=1.1)
+    return g
+
+def WienerArayaGraph():
+    r"""
+    Returns the Wiener-Araya Graph.
+
+    The Wiener-Araya Graph is a planar hypohamiltonian graph on 42 vertices and
+    67 edges. For more information, see the `Wolfram Page on the Wiener-Araya
+    Graph <http://mathworld.wolfram.com/Wiener-ArayaGraph.html>`_ or its
+    `(french) Wikipedia page
+    <http://fr.wikipedia.org/wiki/Graphe_de_Wiener-Araya>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.WienerArayaGraph()
+        sage: g.order()
+        42
+        sage: g.size()
+        67
+        sage: g.girth()
+        4
+        sage: g.is_planar()
+        True
+        sage: g.is_hamiltonian() # not tested -- around 30s long
+        False
+        sage: g.delete_vertex(g.random_vertex())
+        sage: g.is_hamiltonian()
+        True
+    """
+    g = Graph(name="Wiener-Araya Graph")
+    from sage.graphs.graph_plot import _circle_embedding
+
+    g.add_cycle([(0,i) for i in range(4)])
+    g.add_cycle([(1,i) for i in range(12)])
+    g.add_cycle([(2,i) for i in range(20)])
+    g.add_cycle([(3,i) for i in range(6)])
+    _circle_embedding(g, [(0,i) for i in range(4)], shift=.5)
+    _circle_embedding(g,
+                      sum([[(1,3*i),(1,3*i+1)]+[0]*3+[(1,3*i+2)]+[0]*3 for i in range(4)],[]),
+                      shift=4,
+                      radius=.65)
+    _circle_embedding(g, [(2,i) for i in range(20)], radius=.5)
+    _circle_embedding(g, [(3,i) for i in range(6)], radius=.3, shift=.5)
+
+    for i in range(4):
+        g.delete_edge((1,3*i),(1,3*i+1))
+        g.add_edge((1,3*i),(0,i))
+        g.add_edge((1,3*i+1),(0,i))
+        g.add_edge((2,5*i+2),(1,3*i))
+        g.add_edge((2,5*i+3),(1,3*i+1))
+        g.add_edge((2,(5*i+5)%20),(1,3*i+2))
+        g.add_edge((2,(5*i+1)%20),(3,i+(i>=1)+(i>=3)))
+        g.add_edge((2,(5*i+4)%20),(3,i+(i>=1)+(i>=3)))
+
+    g.delete_edge((3,1),(3,0))
+    g.add_edge((3,1),(2,4))
+    g.delete_edge((3,4),(3,3))
+    g.add_edge((3,4),(2,14))
+    g.add_edge((3,1),(3,4))
+
+    g.get_pos().pop(0)
+    g.relabel()
+    return g

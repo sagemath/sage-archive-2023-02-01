@@ -1435,9 +1435,18 @@ cdef class MPolynomial(CommutativeRingElement):
             5
             sage: p.weighted_degree((1, 4, 1))
             4
+            sage: p.weighted_degree(2**64, 2**50, 2**128)
+            680564733841876926945195958937245974528
             sage: q = R.random_element(100, 20) #random
-            sage: q.weighted_degree(1,1,1) == q.total_degree()
+            sage: q.weighted_degree(1, 1, 1) == q.total_degree()
             True
+
+        You may also work with negative weights
+
+        ::
+
+            sage: p.weighted_degree(-1, -2, -1)
+            -2
 
         Note that only integer weights are allowed
 
@@ -1459,8 +1468,8 @@ cdef class MPolynomial(CommutativeRingElement):
             True
         """
         if self.is_zero():
-            #Corner case, note that the degree of zero is a python int
-            return -1
+            #Corner case, note that the degree of zero is an Integer
+            return Integer(-1)
 
         if len(weights) ==  1:
             # First unwrap it if it is given as one element argument
@@ -1469,14 +1478,21 @@ cdef class MPolynomial(CommutativeRingElement):
         if isinstance(weights, dict):
             weights = [ weights[g] for g in self.parent().gens() ]
 
-        weigths = map(int, weights)
+        weigths = map(Integer, weights)
 
         # Go through each monomial, calculating the weight
-        cdef int deg = -1
         cdef int n = self.parent().ngens()
-        cdef int i, l
-        for m in self.exponents(as_ETuples=False):
-            l = 0
+        cdef int i
+        cdef Integer deg
+        cdef Integer l
+        A = self.exponents(as_ETuples=False)
+        l = Integer(0)
+        m = A[0]
+        for 0 <= i <= n-1:
+            l += weights[i]*m[i]
+        deg = l
+        for m in self.exponents(as_ETuples=False)[1:]:
+            l = Integer(0)
             for 0 <= i <= n-1:
                 l += weights[i]*m[i]
             if deg < l:

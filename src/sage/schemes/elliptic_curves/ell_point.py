@@ -3420,6 +3420,20 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         except Exception:
             raise ValueError("ECDLog problem has no solution")
 
+    def has_finite_order(self):
+        r"""
+        Return True if this point has finite additive order as an element
+        of the group of points on this curve. Since the base field is finite,
+        the answer will always be True.
+        
+        EXAMPLE::        
+            sage: E = EllipticCurve(GF(7), [1,3])
+            sage: P=E.points()[3]
+            sage: P.has_finite_order()
+            True        
+        """
+        return True
+        
     def order(self):
         r"""
         Return the order of this point on the elliptic curve.

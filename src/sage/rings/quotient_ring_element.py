@@ -421,19 +421,21 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _im_gens_(self, codomain, im_gens):
         """
-        The image of ``self`` in ``codomain`` under the map that sends
-        ``self.parent().gens()`` to ``im_gens``.
+        Return the image of ``self`` in ``codomain`` under the map
+        that sends ``self.parent().gens()`` to ``im_gens``.
 
         INPUT:
 
-        - ``codomain``: a ring.
-        - ``im_gens``: The image of ``self.parent().gens()`` in ``codomain``.
+        - ``codomain`` -- a ring
+
+        - ``im_gens`` -- a tuple of elements `f(x)` in ``codomain``,
+          one for each `x` in ``self.parent().gens()``, that define
+          a homomorphism `f` from ``self.parent()`` to ``codomain``
 
         OUPUT:
 
-        The natural image of ``self`` in ``codomain`` under the
-        map that sends the images of the generators of the parent of
-        ``self`` to the tuple of elements of ``im_gens``.
+        The image of ``self`` in ``codomain`` under the above
+        homomorphism `f`.
 
         EXAMPLES:
 

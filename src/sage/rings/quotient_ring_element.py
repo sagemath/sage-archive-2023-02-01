@@ -421,7 +421,21 @@ class QuotientRingElement(ring_element.RingElement):
 
     def _im_gens_(self, codomain, im_gens):
         """
-        TESTS:
+        The image of ``self`` in ``codomain`` under the map that sends
+        ``self.parent().gens()`` to ``im_gens``.
+
+        INPUT:
+
+        - ``codomain``: a ring.
+        - ``im_gens``: The image of ``self.parent().gens()`` in ``codomain``.
+
+        OUPUT:
+
+        The natural image of ``self`` in ``codomain`` under the
+        map that sends the images of the generators of the parent of
+        ``self`` to the tuple of elements of ``im_gens``.
+
+        EXAMPLES:
 
         Ring homomorphisms whose domain is the fraction field of a
         quotient ring work correctly (see :trac:`16135`)::
@@ -432,7 +446,11 @@ class QuotientRingElement(ring_element.RingElement):
             sage: f = K.hom((t^3, t^2))
             sage: map(f, K.gens())
             [t^3, t^2]
-
+            sage: xbar, ybar = K.gens()
+            sage: f(1/ybar)
+            1/t^2
+            sage: f(xbar/ybar)
+            t
         """
         return self.lift()._im_gens_(codomain, im_gens)
 

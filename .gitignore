@@ -37,6 +37,9 @@
 .idea
 .iml
 
+# XCode
+xcuserdata/
+
 # Eclipse
 *.pydevproject
 .project

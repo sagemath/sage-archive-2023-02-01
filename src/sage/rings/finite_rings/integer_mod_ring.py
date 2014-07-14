@@ -197,8 +197,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         sage: FF
         Ring of integers modulo 29
         sage: FF.category()
-        Join of Category of commutative rings and
-         Category of finite monoids and
+        Join of Category of finite commutative rings and
          Category of subquotients of monoids and
          Category of quotients of semigroups
         sage: FF.is_field()
@@ -240,10 +239,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
         sage: Z16 = IntegerModRing(16)
         sage: Z16.category()
-        Join of Category of commutative rings
-            and Category of finite monoids
-            and Category of subquotients of monoids
-            and Category of quotients of semigroups
+        Join of Category of finite commutative rings and
+         Category of subquotients of monoids and
+         Category of quotients of semigroups
         sage: Z16.is_field()
         False
         sage: Z16.order()

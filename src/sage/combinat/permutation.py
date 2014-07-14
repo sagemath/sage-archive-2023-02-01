@@ -241,7 +241,6 @@ from sage.combinat.tools import transitive_ideal
 import sage.combinat.subword as subword
 from sage.combinat.composition import Composition
 import tableau
-from permutation_nk import PermutationsNK
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.misc.prandom import sample
@@ -1786,8 +1785,7 @@ class Permutation(CombinatorialObject, Element):
         """
         if k > len(self):
             return []
-        return filter( lambda pos: all( pos[i] < pos[i+1] for i in range(k-1) ),
-                                           subword.Subwords(self, k) )
+        return [pos for pos in subword.Subwords(self, k) if all( pos[i] < pos[i+1] for i in range(k-1) )]
 
     def number_of_noninversions(self, k):
         r"""
@@ -2135,7 +2133,7 @@ class Permutation(CombinatorialObject, Element):
         r=[]
         for x in self:
             if max(r+[0]) > x:
-                y = min(filter(lambda z: z > x, r))
+                y = min(z for z in r if z > x)
                 r[r.index(y)] = x
             else:
                 r.append(x)
@@ -4779,8 +4777,8 @@ class Permutations_nk(Permutations):
             sage: [p for p in Permutations(3,4)]
             []
         """
-        for x in PermutationsNK(self.n, self.k):
-            yield self.element_class(self, [i+1 for i in x])
+        for x in itertools.permutations(range(1,self.n+1), self.k):
+            yield self.element_class(self, x)
 
     def cardinality(self):
         """
@@ -5293,8 +5291,8 @@ class Permutations_setk(Permutations_set):
             sage: [i for i in Permutations([1,2,3],2)] # indirect doctest
             [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
         """
-        for perm in PermutationsNK(len(self._set), self.k):
-            yield self.element_class(self, [self._set[x] for x in perm])
+        for perm in itertools.permutations(self._set, self.k):
+            yield self.element_class(self, perm)
 
     def random_element(self):
         """
@@ -6477,7 +6475,7 @@ def from_major_code(mc, final_descent=False):
         d.reverse()
 
         #a is the list of all positions which are not descents
-        a = filter(lambda x: x not in d, range(len(w)))
+        a = [x for x in range(len(w)) if x not in d]
 
         #d_k = -1    -- 0 in the lemma, but -1 due to 0-based indexing
         d.append(-1)
@@ -7237,7 +7235,7 @@ class StandardPermutations_avoiding_123(StandardPermutations_avoiding_generic):
                     m = p[i]
 
             new_p = []
-            non_minima = filter(lambda x: x not in minima, range(self.n, 0, -1))
+            non_minima = [x for x in range(self.n, 0, -1) if x not in minima]
             a = 0
             b = 0
             for i in range(self.n):
@@ -7445,8 +7443,40 @@ def CyclicPermutations_mset(partition):
     deprecation(14772,'this class is deprecated. Use sage.combinat.permutation.CyclicPermutations instead')
     return CyclicPermutations(partition)
 
+class PermutationsNK(Permutations_setk):
+    """
+    This exists solely for unpickling ``PermutationsNK`` objects created
+    with Sage <= 6.3.
+    """
+    def __setstate__(self, state):
+        r"""
+        For unpickling old ``PermutationsNK`` objects.
+
+        EXAMPLES::
+
+            sage: loads("x\x9cM\x90\xcdN\xc30\x10\x84\xd5B\x0bM\x81\xf2\xd3\x1ex"
+            ....:   "\x03\xb8\xe4\x80x\x8bJ\x16B\xf2y\xb5qV\xa9\x95\xd8\xce"
+            ....:   "\xda[$\x0eHp\xe0\xc0[\xe3\xb4j\xe1bi\xfd\xcd\x8cg\xfd96"
+            ....:   "\t\x1b*Mp\x95\xf5(eO\xd1m\x05\xc5\x06\x0f\xbe-^\xfe\xc6"
+            ....:   "\xa4\xd6\x05\x8f\x1e\xbfx\xfc\xc1'\x0f\xba\x00r\x15\xd5"
+            ....:   "\xb5\xf5\r\x9f*\xbd\x04\x13\xfc\x1bE\x01G\xb2\t5xt\xc4"
+            ....:   "\x13\xa5\xa7`j\x14\xe4\xa9\xd230(\xd4\x84\xf8\xceg\x03"
+            ....:   "\x18$\x89\xcf\x95\x1e\x83\xe7\xd9\xbeH\xccy\xa9\xb4>\xeb"
+            ....:   "(\x16\x0e[\x82\xc3\xc0\x85\x1e=\x7f\xbf\xf2\\\xcf\xa1!O"
+            ....:   "\x11%\xc4\xc4\x17\x83\xbf\xe5\xcbM\xc6O\x19_\xe9\tT\x98"
+            ....:   "\x88\x17J/\xa0\xb7\xa6\xed\x08r\xb3\x94w\xe0\xeb\xf5(W"
+            ....:   "\xa5\x8e\x1cy\x19*'\x89[\x93s\xf8F\xe9U~\xca\x8a\xc5\xee"
+            ....:   "\xb8Kg\x93\xf0\xad\xd2\xf7G\xcb\xa0\x80\x1eS\xcaG\xcc\x17"
+            ....:   "|\xf7\x93\x03\x0f>4\xbb\x8f\xdb\xd9\x96\xea\x1f0\x81\xa2"
+            ....:   "\xa1=X\xa9mU\xfe\x02=\xaa\x87\x14")
+            Permutations of the set [0, 1, 2, 3] of length 2
+        """
+        self.__class__ = Permutations_setk
+        self.__init__(tuple(range(state['_n'])), state['_k'])
+
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override("sage.combinat.permutation", "Permutation_class", Permutation)
 register_unpickle_override("sage.combinat.permutation", "CyclicPermutationsOfPartition_partition", CyclicPermutationsOfPartition)
 register_unpickle_override("sage.combinat.permutation", "CyclicPermutations_mset", CyclicPermutations)
+register_unpickle_override('sage.combinat.permutation_nk', 'PermutationsNK', PermutationsNK)
 

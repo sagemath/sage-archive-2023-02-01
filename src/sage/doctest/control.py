@@ -461,6 +461,7 @@ class DocTestController(SageObject):
         def all_files():
             from glob import glob
             self.files.append(opj(SAGE_SRC, 'sage'))
+            self.files.append(opj(SAGE_SRC, 'sage_setup'))
             self.files.append(opj(SAGE_SRC, 'doc', 'common'))
             self.files.extend(glob(opj(SAGE_SRC, 'doc', '[a-z][a-z]')))
             self.options.sagenb = True
@@ -584,7 +585,7 @@ class DocTestController(SageObject):
             def is_failure(source):
                 basename = source.basename
                 return basename not in self.stats or self.stats[basename].get('failed')
-            self.sources = filter(is_failure, self.sources)
+            self.sources = [x for x in self.sources if is_failure(x)]
 
     def sort_sources(self):
         r"""

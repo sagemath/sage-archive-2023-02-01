@@ -3514,7 +3514,7 @@ class CohomologyClass(QuotientRingElement):
         """
         Q = self.parent()
         # We iterate over monomials of self.lift()
-        p = filter( lambda x: x[1].total_degree() == d, self.lift() )
+        p = [x for x in self.lift() if x[1].total_degree() == d]
         if len(p)==0:
             return Q.zero()
         else:

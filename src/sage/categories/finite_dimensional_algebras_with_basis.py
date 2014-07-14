@@ -111,7 +111,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A.radical_basis(cache_products=False)
                 []
 
-            .. TODO:: explain and check this example::
+            .. TODO:: explain and check this example
 
             ::
 

@@ -9,6 +9,7 @@ FiniteGroups
 #******************************************************************************
 
 from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.algebra_functor import AlgebrasCategory
 
 class FiniteGroups(CategoryWithAxiom):
     r"""
@@ -200,3 +201,29 @@ class FiniteGroups(CategoryWithAxiom):
             """
             return self.parent().conjugacy_class(self)
 
+    class Algebras(AlgebrasCategory):
+
+        def extra_super_categories(self):
+            r"""
+            Implement Maschke's theorem.
+
+            In characteristic 0 all finite group algebras are semisimple.
+
+            EXAMPLES::
+
+                sage: FiniteGroups().Algebras(QQ).is_subcategory(SemisimpleAlgebras(QQ))
+                True
+                sage: FiniteGroups().Algebras(FiniteField(7)).is_subcategory(SemisimpleAlgebras(QQ))
+                False
+                sage: FiniteGroups().Algebras(ZZ).is_subcategory(SemisimpleAlgebras(ZZ))
+                False
+                sage: FiniteGroups().Algebras(Fields()).is_subcategory(SemisimpleAlgebras(Fields()))
+                False
+            """
+            from sage.categories.semisimple_algebras import SemisimpleAlgebras
+            from sage.categories.fields import Fields
+            K = self.base_ring()
+            if (K in Fields) and K.characteristic() == 0:
+                return [SemisimpleAlgebras(self.base_ring())]
+            else:
+                return []

@@ -809,6 +809,99 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                        for (I, coeff) in S(self) if all(i % n == 0 for i in I)}
                 return parent(S._from_dict(dct))
 
+            def bernstein_creation_operator(self, n):
+                r"""
+                Return the image of ``self`` under the `n`-th Bernstein
+                creation operator.
+
+                Let `n` be an integer. The `n`-th Bernstein creation
+                operator `\mathbb{B}_n` is defined as the endomorphism of
+                the space `NSym` of noncommutative symmetric functions
+                which sends every `f` to
+
+                .. MATH::
+
+                    \sum_{i \geq 0} (-1)^i H_{n+i} F_{1^i}^\perp,
+
+                where usual notations are in place (the letter `H` stands
+                for the complete basis of `NSym`, the letter `F` stands
+                for the fundamental basis of the algebra `QSym` of
+                quasisymmetric functions, and `F_{1^i}^\perp` means
+                skewing (:meth:`skew_by`) by `F_{1^i}`). Notice that
+                `F_{1^i}` is nothing other than the elementary symmetric
+                function `e_i`.
+
+                This has been introduced in [BBSSZ2012]_, section 3.1, in
+                analogy to the Bernstein creation operators on the
+                symmetric functions
+                (:meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.bernstein_creation_operator`),
+                and studied further in [BBSSZ2012]_, mainly in the context
+                of immaculate functions
+                (:class:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.I`).
+                In fact, if `(\alpha_1, \alpha_2, \ldots, \alpha_n)` is
+                an `n`-tuple of integers, then
+
+                .. MATH::
+
+                    \mathbb{B}_n I_{(\alpha_1, \alpha_2, \ldots, \alpha_n)}
+                    = I_{(n, \alpha_1, \alpha_2, \ldots, \alpha_n)},
+
+                where `I_{(\alpha_1, \alpha_2, \ldots, \alpha_n)}` is the
+                immaculate function associated to the `n`-tuple
+                `(\alpha_1, \alpha_2, \ldots, \alpha_n)` (see
+                :meth:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.I.immaculate_function`).
+
+                EXAMPLES:
+
+                We get the immaculate functions by repeated application of
+                Bernstein creation operators::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                    sage: I = NSym.I()
+                    sage: S = NSym.S()
+                    sage: def immaculate_by_bernstein(xs):
+                    ....:     # immaculate function corresponding to integer
+                    ....:     # tuple ``xs``, computed by iterated application
+                    ....:     # of Bernstein creation operators.
+                    ....:     res = S.one()
+                    ....:     for i in reversed(xs):
+                    ....:         res = res.bernstein_creation_operator(i)
+                    ....:     return res
+                    sage: all( immaculate_by_bernstein(p) == I.immaculate_function(p)
+                    ....:      for p in CartesianProduct(range(-1, 3), range(-1, 3), range(-1, 3)) )
+                    True
+
+                Some examples::
+
+                    sage: S[3,2].bernstein_creation_operator(-2)
+                    S[2, 1]
+                    sage: S[3,2].bernstein_creation_operator(-1)
+                    S[1, 2, 1] - S[2, 2] - S[3, 1]
+                    sage: S[3,2].bernstein_creation_operator(0)
+                    -S[1, 2, 2] - S[1, 3, 1] + S[2, 2, 1] + S[3, 2]
+                    sage: S[3,2].bernstein_creation_operator(1)
+                    S[1, 3, 2] - S[2, 2, 2] - S[2, 3, 1] + S[3, 2, 1]
+                    sage: S[3,2].bernstein_creation_operator(2)
+                    S[2, 3, 2] - S[3, 2, 2] - S[3, 3, 1] + S[4, 2, 1]
+                """
+                # We use the definition of this operator.
+                parent = self.parent()
+                res = parent.zero()
+                if not self:
+                    return res
+                max_degree = max(sum(m) for m, c in self)
+                # ``max_degree`` is now the maximum degree in which ``self``
+                # has a nonzero coefficient.
+                NSym = parent.realization_of()
+                S = NSym.S()
+                F = NSym.dual().F()
+                for i in range(max_degree + 1):
+                    if n + i > 0:
+                        res += (-1) ** i * S[n + i] * self.skew_by(F[[1] * i])
+                    elif n + i == 0:
+                        res += (-1) ** i * self.skew_by(F[[1] * i])
+                return res
+
             def star_involution(self):
                 r"""
                 Return the image of the noncommutative symmetric function

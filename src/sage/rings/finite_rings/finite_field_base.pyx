@@ -7,9 +7,31 @@ TESTS::
     sage: F = K.factor(3)[0][0].residue_field()
     sage: loads(dumps(F)) == F
     True
+
+AUTHORS:
+
+- Adrien Brochard, David Roe, Jeroen Demeyer, Julian Rueth, Niles Johnson,
+  Peter Bruin, Travis Scrimshaw, Xavier Caruso: initial version
+
 """
+#*****************************************************************************
+#       Copyright (C) 2009 David Roe <roed@math.harvard.edu>
+#       Copyright (C) 2010 Niles Johnson <nilesj@gmail.com>
+#       Copyright (C) 2011 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#       Copyright (C) 2012 Adrien Brochard <aaa.brochard@gmail.com>
+#       Copyright (C) 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
+#       Copyright (C) 2012 Xavier Caruso <xavier.caruso@normalesup.org>
+#       Copyright (C) 2013 Peter Bruin <P.Bruin@warwick.ac.uk>
+#       Copyright (C) 2014 Julian Rueth <julian.rueth@fsfe.org>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 include "sage/ext/stdsage.pxi"
 
+from sage.categories.finite_fields import FiniteFields
 from sage.structure.parent cimport Parent
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
@@ -74,13 +96,12 @@ cdef class FiniteFieldIterator:
         """
         return self
 
-from sage.categories.finite_fields import FiniteFields
-_FiniteFields = FiniteFields()
+
 cdef class FiniteField(Field):
     """
     Abstract base class for finite fields.
     """
-    def __init__(self, base, names, normalize):
+    def __init__(self, base, names, normalize, category=None):
         """
         Initialize ``self``.
 
@@ -97,7 +118,22 @@ cdef class FiniteField(Field):
             sage: loads(K.dumps()) == K
             True
         """
-        Field.__init__(self, base, names, normalize, category=_FiniteFields)
+        if category is None:
+            category = FiniteFields()
+        Field.__init__(self, base, names, normalize, category)
+
+    def is_perfect(self):
+        r"""
+        Return whether this field is perfect, i.e., every element has a `p`-th
+        root. Always returns ``True`` since finite fields are perfect.
+
+        EXAMPLES::
+
+            sage: GF(2).is_perfect()
+            True
+
+        """
+        return True
 
     def __repr__(self):
         """
@@ -320,20 +356,20 @@ cdef class FiniteField(Field):
             ...
             TypeError: images do not define a valid homomorphism
         """
-        if (self.characteristic() != codomain.characteristic()):
-            raise ValueError, "no map from %s to %s"%(self, codomain)
-        if (len(im_gens) != 1):
+        if not codomain.characteristic().divides(self.characteristic()):
+            raise ValueError, "no map from %s to %s" % (self, codomain)
+        if len(im_gens) != 1:
             raise ValueError, "only one generator for finite fields."
 
-        return (im_gens[0].charpoly())(self.gen(0)).is_zero()
+        return self.modulus()(im_gens[0]).is_zero()
 
-    def _Hom_(self, codomain, cat=None):
+    def _Hom_(self, codomain, category=None):
         """
-        Return homset of homomorphisms from ``self`` to the finite field
-        codomain. This function is implicitly called by the Hom method or
-        function.
+        Return the set of homomorphisms from ``self`` to ``codomain``
+        in ``category``.
 
-        The ``cat`` option is currently ignored.
+        This function is implicitly called by the ``Hom`` method or
+        function.
 
         EXAMPLES::
 
@@ -343,7 +379,113 @@ cdef class FiniteField(Field):
             Automorphism group of Finite Field in a of size 5^2
         """
         from sage.rings.finite_rings.homset import FiniteFieldHomset
-        return FiniteFieldHomset(self, codomain)
+        from sage.rings.homset import RingHomset
+        if category.is_subcategory(FiniteFields()):
+            return FiniteFieldHomset(self, codomain, category)
+        else:
+            return RingHomset(self, codomain, category)
+
+    def _squarefree_decomposition_univariate_polynomial(self, f):
+        """
+        Return the square-free decomposition of this polynomial.  This is a
+        partial factorization into square-free, coprime polynomials.
+
+        This is a helper method for
+        :meth:`sage.rings.polynomial.squarefree_decomposition`.
+
+        INPUT:
+
+        - ``f`` -- a univariate non-zero polynomial over this field
+
+        ALGORITHM; [Coh]_, algorithm 3.4.2 which is basically the algorithm in
+        [Yun]_ with special treatment for powers divisible by `p`.
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(3^2)
+            sage: R.<x> = K[]
+            sage: f = x^243+2*x^81+x^9+1
+            sage: f.squarefree_decomposition()
+            (x^27 + 2*x^9 + x + 1)^9
+            sage: f = x^243+a*x^27+1
+            sage: f.squarefree_decomposition()
+            (x^9 + (2*a + 1)*x + 1)^27
+
+        TESTS::
+
+            sage: for K in [GF(2^18,'a'), GF(3^2,'a'), GF(47^3,'a')]:
+            ....:     R.<x> = K[]
+            ....:     if K.characteristic() < 5: m = 4
+            ....:     else: m = 1
+            ....:     for _ in range(m):
+            ....:         f = (R.random_element(4)^3*R.random_element(m)^(m+1))(x^6)
+            ....:         F = f.squarefree_decomposition()
+            ....:         assert F.prod() == f
+            ....:         for i in range(len(F)):
+            ....:             assert gcd(F[i][0], F[i][0].derivative()) == 1
+            ....:             for j in range(len(F)):
+            ....:                 if i == j: continue
+            ....:                 assert gcd(F[i][0], F[j][0]) == 1
+            ....:
+
+        REFERENCES:
+
+        .. [Coh] H. Cohen, A Course in Computational Algebraic Number
+           Theory.  Springer-Verlag, 1993.
+
+        .. [Yun] Yun, David YY. On square-free decomposition algorithms.
+           In Proceedings of the third ACM symposium on Symbolic and algebraic
+           computation, pp. 26-35. ACM, 1976.
+
+        """
+        from sage.structure.factorization import Factorization
+        if f.degree() == 0:
+            return Factorization([], unit=f[0])
+
+        factors = []
+        p = self.characteristic()
+        unit = f.leading_coefficient()
+        T0 = f.monic()
+        e = 1
+        if T0.degree() > 0:
+            der = T0.derivative()
+            while der.is_zero():
+                T0 = T0.parent()([T0[p*i].pth_root() for i in range(T0.degree()//p + 1)])
+                if T0 == 1:
+                    raise RuntimeError
+                der = T0.derivative()
+                e = e*p
+            T = T0.gcd(der)
+            V = T0 // T
+            k = 0
+            while T0.degree() > 0:
+                k += 1
+                if p.divides(k):
+                    T = T // V
+                    k += 1
+                W = V.gcd(T)
+                if W.degree() < V.degree():
+                    factors.append((V // W, e*k))
+                    V = W
+                    T = T // V
+                    if V.degree() == 0:
+                        if T.degree() == 0:
+                            break
+                        # T is of the form sum_{i=0}^n t_i X^{pi}
+                        T0 = T0.parent()([T[p*i].pth_root() for i in range(T.degree()//p + 1)])
+                        der = T0.derivative()
+                        e = p*e
+                        while der.is_zero():
+                            T0 = T0.parent()([T0[p*i].pth_root() for i in range(T0.degree()//p + 1)])
+                            der = T0.derivative()
+                            e = p*e
+                        T = T0.gcd(der)
+                        V = T0 // T
+                        k = 0
+                else:
+                    T = T//V
+
+        return Factorization(factors, unit=unit, sort=False)
 
     def gen(self):
         r"""
@@ -522,7 +664,7 @@ cdef class FiniteField(Field):
             sage: GF(997).order()
             997
         """
-        raise NotImplementedError
+        return self.characteristic()**self.degree()
 
     # cached because constructing the Factorization is slow;
     # see :trac:`11628`.
@@ -807,9 +949,9 @@ cdef class FiniteField(Field):
             if R.characteristic() == self.characteristic():
                 if R.degree() == 1:
                     return True
-                if self.degree() % R.degree() == 0:
-                    if hasattr(self, '_prefix') and hasattr(R, '_prefix'):
-                        return R.hom((self.gen() ** ((self.order() - 1)//(R.order() - 1)),))
+                elif (R.degree().divides(self.degree())
+                      and hasattr(self, '_prefix') and hasattr(R, '_prefix')):
+                    return R.hom((self.gen() ** ((self.order() - 1)//(R.order() - 1)),))
 
     def construction(self):
         """
@@ -896,7 +1038,7 @@ cdef class FiniteField(Field):
             Univariate Quotient Polynomial Ring in x over Finite Field in z4 of size 3^4 with modulus x^5 + x^2 + x + 2
         """
         from constructor import GF
-        from sage.rings.polynomial.all import is_Polynomial
+        from sage.rings.polynomial.polynomial_element import is_Polynomial
         from sage.rings.integer import Integer
         if name is None and names is not None:
             name = names
@@ -1007,22 +1149,85 @@ cdef class FiniteField(Field):
                 raise ValueError, "name must be None, a string or a dictionary indexed by divisors of the degree"
             return [self.subfields(m, name=name[m])[0] for m in divisors]
 
-    def algebraic_closure(self):
+    @cached_method
+    def algebraic_closure(self, name='z', **kwds):
         """
-        Return the algebraic closure of ``self`` (not implemented).
+        Return an algebraic closure of ``self``.
+
+        INPUT:
+
+        - ``name`` -- string (default: 'z'): prefix to use for
+          variable names of subfields
+
+        - ``implementation`` -- string (optional): specifies how to
+          construct the algebraic closure.  The only value supported
+          at the moment is ``'pseudo_conway'``.  For more details, see
+          :mod:`~sage.rings.algebraic_closure_finite_field`.
+
+        OUTPUT:
+
+        An algebraic closure of ``self``.  Note that mathematically
+        speaking, this is only unique up to *non-unique* isomorphism.
+        To obtain canonically defined algebraic closures, one needs an
+        algorithm that also provides a canonical isomorphism between
+        any two algebraic closures constructed using the algorithm.
+
+        This non-uniqueness problem can in principle be solved by
+        using *Conway polynomials*; see for example [CP]_.  These have
+        the drawback that computing them takes a long time.  Therefore
+        Sage implements a variant called *pseudo-Conway polynomials*,
+        which are easier to compute but do not determine an algebraic
+        closure up to unique isomorphism.
+
+        The output of this method is cached, so that within the same
+        Sage session, calling it multiple times will return the same
+        algebraic closure (i.e. the same Sage object).  Despite this,
+        the non-uniqueness of the current implementation means that
+        coercion and pickling cannot work as one might expect.  See
+        below for an example.
+
+        EXAMPLE::
+
+            sage: F = GF(5).algebraic_closure()
+            sage: F
+            Algebraic closure of Finite Field of size 5
+            sage: F.gen(3)
+            z3
+
+        The default name is 'z' but you can change it through the option
+        ``name``::
+
+            sage: Ft = GF(5).algebraic_closure('t')
+            sage: Ft.gen(3)
+            t3
+
+        Because Sage currently only implements algebraic closures
+        using a non-unique definition (see above), it is currently
+        impossible to implement pickling in such a way that a pickled
+        and unpickled element compares equal to the original::
+
+            sage: F = GF(7).algebraic_closure()
+            sage: x = F.gen(2)
+            sage: loads(dumps(x)) == x
+            False
 
         .. NOTE::
 
-           This is not yet implemented for finite fields.
+            This is currently only implemented for prime fields.
 
-        EXAMPLES::
+        REFERENCE:
 
-            sage: GF(5).algebraic_closure()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Algebraic closures of finite fields not implemented.
+        .. [CP] Wikipedia entry on Conway polynomials,
+           :wikipedia:`Conway_polynomial_(finite_fields)`
+
+        TEST::
+
+            sage: GF(5).algebraic_closure() is GF(5).algebraic_closure()
+            True
+
         """
-        raise NotImplementedError, "Algebraic closures of finite fields not implemented."
+        from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
+        return AlgebraicClosureFiniteField(self, name, **kwds)
 
     @cached_method
     def is_conway(self):

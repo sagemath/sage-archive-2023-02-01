@@ -107,7 +107,7 @@ class Line(GraphicPrimitive_xydata):
             Traceback (most recent call last):
             NotImplementedError: Invalid 3d line style: ':'
         """
-        if options == None:
+        if options is None:
             options = dict(self.options())
         options_3d = {}
         if 'thickness' in options:

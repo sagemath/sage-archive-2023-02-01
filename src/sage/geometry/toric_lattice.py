@@ -1385,13 +1385,13 @@ class ToricLattice_quotient(FGP_Module_class):
             'You may only specify a positive direction in the codimension one case.'
         quotient_generator = self.gen(0)
         lattice = self.V().ambient_module()
-        if (positive_point!=None) and (positive_dual_point==None):
+        if (positive_point is not None) and (positive_dual_point is None):
             assert positive_point in lattice, 'positive_point must be a lattice point.'
             point_quotient = self(positive_point)
             scalar_product = quotient_generator.vector()[0] * point_quotient.vector()[0]
             if scalar_product==0:
                 raise ValueError(str(positive_point)+' is zero in the quotient.')
-        elif (positive_point==None) and (positive_dual_point!=None):
+        elif (positive_point is None) and (positive_dual_point is not None):
             assert positive_dual_point in lattice.dual(), 'positive_dual_point must be a dual lattice point.'
             scalar_product = quotient_generator.lift() * positive_dual_point
             if scalar_product==0:

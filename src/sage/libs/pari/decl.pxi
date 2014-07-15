@@ -638,6 +638,7 @@ cdef extern from 'pari/pari.h':
     ulong   Fl_sqrt(ulong a, ulong p)
     GEN     znprimroot0(GEN m)
     GEN     znstar(GEN x)
+    GEN     sqrtint(GEN x)
 
     # arith2.c
 

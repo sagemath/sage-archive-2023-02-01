@@ -106,10 +106,8 @@ class FiniteFieldHomset(RingHomset_generic):
             sage: l.<b> = GF(625)
             sage: H = Hom(k, l)
             sage: G = loads(dumps(H))
-            sage: H == G
+            sage: H is G
             True
-            sage: H is G # this should change eventually
-            False
             sage: G.coerce(list(H)[0]) # indirect doctest
             Ring morphism:
               From: Finite Field in a of size 5^2

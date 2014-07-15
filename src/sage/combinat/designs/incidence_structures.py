@@ -217,31 +217,31 @@ class IncidenceStructure(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.designs.block_design import BlockDesign
-            sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: G = BD.automorphism_group(); G
-            Permutation Group with generators [(4,5)(6,7), (4,6)(5,7), (2,3)(6,7), (2,4)(3,5), (1,2)(5,6)]
-            sage: BD = BlockDesign(4,[[0],[0,1],[1,2],[3,3]],test=False)
-            sage: G = BD.automorphism_group(); G
-            Permutation Group with generators [()]
-            sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: G = BD.automorphism_group(); G
-            Permutation Group with generators [(4,5)(6,7), (4,6)(5,7), (2,3)(6,7), (2,4)(3,5), (1,2)(5,6)]
+            sage: P = designs.DesarguesianProjectivePlaneDesign(2); P
+            Incidence structure with 7 points and 7 blocks
+            sage: G = P.automorphism_group()
+            sage: G.is_isomorphic(PGL(3,2))
+            True
+            sage: G
+            Permutation Group with generators [(2,3)(4,5), (2,4)(3,5), (1,2)(4,6), (0,1)(4,5)]
+
+        A non self-dual example::
+
+            sage: from sage.combinat.designs.incidence_structures import IncidenceStructure
+            sage: IS = IncidenceStructure(range(4), [[0,1,2,3],[1,2,3]])
+            sage: IS.automorphism_group().cardinality()
+            6
+            sage: IS.dual_design().automorphism_group().cardinality()
+            1
         """
         from sage.groups.perm_gps.partn_ref.refinement_matrices import MatrixStruct
         from sage.groups.perm_gps.permgroup import PermutationGroup
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-        M1 = self.incidence_matrix()
+        M1 = self.incidence_matrix().transpose()
         M2 = MatrixStruct(M1)
         M2.run()
         gens = M2.automorphism_group()[0]
-        v = len(self.points())
-        G = SymmetricGroup(v)
-        gns = []
-        for g in gens:
-            L = [j+1 for j in g]
-            gns.append(G(L))
-        return PermutationGroup(gns)
+        return PermutationGroup(gens, domain=range(self.v))
 
     def block_design_checker(self, t, v, k, lmbda, type=None):
         """
@@ -517,11 +517,16 @@ class IncidenceStructure(object):
         A = self.incidence_matrix()
         return BipartiteGraph(A)
 
-    def is_block_design(self):
+    def is_block_design(self, verbose=False):
         """
         Returns a pair ``True, pars`` if the incidence structure is a
         `t`-design, for some `t`, where ``pars`` is the list of parameters `(t,
         v, k, lmbda)`.  The largest possible `t` is returned, provided `t=10`.
+
+        INPUT:
+
+        - ``verbose`` (boolean) -- prints useful information when the answer is
+          negative.
 
         EXAMPLES::
 
@@ -552,19 +557,22 @@ class IncidenceStructure(object):
         r_list = [0]*v
         for block in self.blcks:
             if len(block) != k:
+                if verbose:
+                    print "All blocks do not have the same size"
                 return False
             for x in block:
                 r_list[x] += 1
 
         r = r_list[0]
         if any(x!=r for x in r_list):
+            if verbose:
+                print "All points do not have the same degree"
             return False
 
         # Definition and consistency of 'l' (lambda) and 't'
         t_found_yet = False
 
         for t in range(2,min(v,k+1)):
-
             # Is lambda an integer ?
             if (b*binomial(k,t)) % binomial(v,t) == 0:
                 l = (b*binomial(k,t))/binomial(v,t)

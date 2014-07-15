@@ -727,7 +727,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             return self.__eisenstein_params
         except AttributeError:
             eps = self.character()
-            if eps == None:
+            if eps is None:
                 if arithgroup.is_Gamma1(self.group()):
                     eps = self.level()
                 else:

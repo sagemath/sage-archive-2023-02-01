@@ -1730,6 +1730,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
         sage: [phi.preimage(x[i]) for i in range(1, 4)]
         [-1/3*B[1] + B[2] - 1/12*B[3], 1/4*B[3], 1/3*B[1] - 1/6*B[3]]
     """
+
     def __init__(self, on_basis, domain, triangular = "upper", unitriangular=False,
                  codomain = None, category = None, cmp = None,
                  inverse = None, inverse_on_support = None, invertible = None):

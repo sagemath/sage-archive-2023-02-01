@@ -552,7 +552,8 @@ class Groups(CategoryWithAxiom):
                     - :meth:`Groups.Algebras.ElementMethods.central_form`
                     - :meth:`Monoids.Algebras.ElementMethods.is_central`
                 """
-                return self._conjugacy_classes_representatives_underlying_group()
+                return [self(c) for c in
+                        self._conjugacy_classes_representatives_underlying_group()]
 
             # Coalgebra structure
 

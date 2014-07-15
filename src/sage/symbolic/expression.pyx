@@ -9449,14 +9449,13 @@ cdef class Expression(CommutativeRingElement):
         if to_poly_solve:
             if len(X) == 0:
                 # Maxima's solve gave no solutions
-                todo = [ex]
+                solutions_so_far = [ex]
                 ignore_exceptions = True
             else:
-                todo = list(X)
+                solutions_so_far = X
                 ignore_exceptions = False
             X = []
-            while todo:
-                eq = todo.pop()
+            for eq in solutions_so_far:
                 if eq.lhs().is_symbol() and (eq.lhs() == x) and (x not in eq.rhs().variables()):
                     X.append(eq)
                     continue

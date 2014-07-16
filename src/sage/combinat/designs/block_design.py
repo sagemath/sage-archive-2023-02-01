@@ -374,7 +374,7 @@ def projective_plane(n, check=True, existence=False):
         sage: designs.projective_plane(6)
         Traceback (most recent call last):
         ...
-        EmptySetError: By the Ryser-Chowla theorem, no projective plane of order 6 exists.
+        EmptySetError: By the Bruck-Ryser theorem, no projective plane of order 6 exists.
         sage: designs.projective_plane(10)
         Traceback (most recent call last):
         ...
@@ -386,7 +386,7 @@ def projective_plane(n, check=True, existence=False):
         sage: designs.projective_plane(14)
         Traceback (most recent call last):
         ...
-        EmptySetError: By the Ryser-Chowla theorem, no projective plane of order 14 exists.
+        EmptySetError: By the Bruck-Ryser theorem, no projective plane of order 14 exists.
 
     TESTS::
 
@@ -399,7 +399,8 @@ def projective_plane(n, check=True, existence=False):
         sage: designs.projective_plane(12, existence=True)
         Unknown
     """
-    from sage.rings.arith import is_prime_power, two_squares
+    from sage.rings.arith import is_prime_power
+    from sage.rings.sum_of_squares import is_sum_of_two_squares_pyx
 
     if n <= 1:
         if existence:
@@ -413,14 +414,11 @@ def projective_plane(n, check=True, existence=False):
                "projective planes of order 10\" (1989), Canad. J. Math.")
         raise EmptySetError("No projective plane of order 10 exists by %s"%ref)
 
-    if (n%4) in [1,2]:
-        try:
-            two_squares(n)
-        except ValueError:
-            if existence:
-                return False
-            raise EmptySetError("By the Ryser-Chowla theorem, no projective"
-                             " plane of order "+str(n)+" exists.")
+    if (n%4) in [1,2] and not is_sum_of_two_squares_pyx(n):
+        if existence:
+            return False
+        raise EmptySetError("By the Bruck-Ryser theorem, no projective"
+                         " plane of order {} exists.".format(n))
 
     if not is_prime_power(n):
         if existence:

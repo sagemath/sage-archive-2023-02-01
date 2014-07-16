@@ -924,3 +924,161 @@ def find_q_x(k,n):
             orthogonal_array(k, x+2 ,existence=True)):
             return construction_q_x, (k,q,x)
     return False
+
+def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
+    r"""
+    Returns an `OA(k,nm+a+b+c+d)`
+
+    *(When `d=0`)*
+
+    According to [Thwarts]_ when `n` is a prime power and `a+b+c\leq n+1`, one
+    can build an `OA(k+3,n)` with three truncated columns of sizes `a,b,c` in
+    such a way that all blocks have size `\leq k+2`.
+
+    (in order to build a `OA(k,nm+a+b+c)` the following designs must also exist:
+    `OA(k,a),OA(k,b),OA(k,c),OA(k,m+0),OA(k,m+1),OA(k,m+2)`)
+
+    Conversely, by considering the complement of each truncated column, one can
+    build an `OA(k+3,n)` with three truncated columns of sizes `a,b,c` in such a
+    way that all blocks have size `>k` whenever `(n-a)+(n-b)+(n-c)\leq n+1`.
+
+    (in order to build a `OA(k,nm+a+b+c)` the following designs must also exist:
+    `OA(k,a),OA(k,b),OA(k,c),OA(k,m+1),OA(k,m+2),OA(k,m+3)`)
+
+    Here is the proof of Lemma 3.5 from [Thwarts]_ enriched with explanations
+    from Julian R. Abel:
+
+        For any prime power `n` one can build `k-1` MOLS by associating to every
+        nonzero `x\in \\mathbb F_n` the latin square:
+
+        .. MATH::
+
+            M_x(i,j) = i+x*j \text{ where }i,j\in \\mathbb F_n`
+
+        In particular `M_1(i,j)=i+j`, whose `n` columns and lines are indexed by
+        the elements of `\\mathbb F_n`. If we order the elements of `\\mathbb
+        F_n` as `0,1,...,n-1,x+0,...,x+n-1,x^2+0,...` and reorder the columns
+        and lines of `M_1` accordingly, the top-left `a\times b` squares
+        contains at most `a+b-1` distinct symbols.
+
+    *(When `d\neq 0`)*
+
+    If there exists an `OA(k+3,n)` with three truncated columns of sizes `a,b,c`
+    in such a way that all blocks have size `\leq k+2`, by truncating
+    arbitrarily another column to size `d` one obtains an `OA` with 4 truncated
+    columns whose blocks miss at least one value. Thus, following the proof
+    again one can build an `OA(k+4)` with four truncated columns of sizes
+    `a,b,c,d` with blocks of size `\leq k+3`.
+
+    (in order to build a `OA(k,nm+a+b+c+d)` the following designs must also
+    exist:
+    `OA(k,a),OA(k,b),OA(k,c),OA(k,c),OA(k,m+0),OA(k,m+1),OA(k,m+2),OA(k,m+3)`)
+
+    As before, this also shows that one can build an `OA(k+4,n)` with four
+    truncated columns of sizes `a,b,c,d` in such a way that all blocks have size
+    `>k` whenever `(n-a)+(n-b)+(n-c)\leq n+1`
+
+    (in order to build a `OA(k,nm+a+b+c+d)` the following designs must also
+    exist:
+    `OA(k,n-a),OA(k,n-b),OA(k,n-c),OA(k,d),OA(k,m+1),OA(k,m+2),OA(k,m+3),OA(k,m+4)`)
+
+    INPUT:
+
+    - ``k,n,m,a,b,c,d`` -- integers which must satisfy the constraints above. In
+      particular, `a+b+c\leq n+1` must hold. By default, `d=0`.
+
+    - ``complement`` (boolean) -- whether to complement the sets, i.e. follow
+      the `n-a,n-b,n-c` variant described above.
+
+    .. WARNING::
+
+        There is no "find" function associated with this recursive construction
+        as I was not able to write one which would not be unnecessarily ugly and
+        tricky (given that only 5 OA are built with it in the original
+        paper). Those designs appear in :mod:`sage.combinat.designs.database`
+        as: :func:`OA(10,1046) <sage.combinat.designs.database.OA_10_1046>`,
+        :func:`OA(10,1059) <sage.combinat.designs.database.OA_10_1059>`,
+        :func:`OA(11,2164) <sage.combinat.designs.database.OA_11_2164>`,
+        :func:`OA(12,3992) <sage.combinat.designs.database.OA_12_3992>`,
+        :func:`OA(12,3994) <sage.combinat.designs.database.OA_12_3994>`.
+
+    EXAMPLES:
+
+    With sets of parameters from [Thwarts]_::
+
+        sage: l = [
+        ....:    [11, 27, 78, 16, 17, 25, 0],
+        ....:    [12, 19, 208, 11, 13, 16, 0],
+        ....:    [12, 19, 208, 13, 13, 16, 0],
+        ....:    [10, 13, 78, 9, 9, 13, 1],
+        ....:    [10, 13, 79, 9, 9, 13, 1]]
+        sage: for k,n,m,a,b,c,d in l:                                       # not tested -- too long
+        ....:     OA = thwart_lemma_3_5(k,n,m,a,b,c,d,complement=True)      # not tested -- too long
+        ....:     assert is_orthogonal_array(OA,k,n*m+a+b+c+d,verbose=True) # not tested -- too long
+
+    REFERENCE:
+
+    .. [Thwarts] Thwarts in transversal designs
+      Charles J.Colbourn, Jeffrey H. Dinitz, Mieczyslaw Wojtas.
+      Designs, Codes and Cryptography 5, no. 3 (1995): 189-197.
+    """
+    from sage.rings.arith import is_prime_power
+    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.combinat.designs.orthogonal_arrays import wilson_construction
+
+    if complement:
+        a,b,c = n-a,n-b,n-c
+
+    assert is_prime_power(n), "n(={}) must be a prime power".format(n)
+    assert a<=n and b<=n and c<=n and d<=n, "a,b,c,d (={},{},{},{}) must be <=n(={})".format(a,b,c,d,n)
+    assert a+b+c<=n+1, "{}={}+{}+{}=a+b+c>n+1={}+1 violates the assumptions".format(a+b+c,a,b,c,n)
+    G = GF(n,prefix='x',conway=True)
+    G_set = sorted(G) # sorted by lexicographic order, G[1] = 1
+    G_to_int = {v:i for i,v in enumerate(G_set)}
+
+    # Builds an OA(n+1,n) whose last n-1 colums are
+    #
+    # \forall x \in G and x!=0, C_x(i,j) = i+x*j
+    #
+    # (only the necessary columns are built)
+    OA = [[G_to_int[i+x*j] for i in G_set for j in G_set] for x in G_set[1:k+2+bool(d)]]
+    # Adding the first two trivial columns
+    OA.insert(0,[j for i in range(n) for j in range(n)])
+    OA.insert(0,[i for i in range(n) for j in range(n)])
+    OA=zip(*OA)
+    OA.sort()
+
+    # Moves the first three columns to the end
+    OA = [list(B[3:]+B[:3]) for B in OA]
+
+    # Set of values in the axb square
+    third_complement= set([B[-1] for B in OA if B[-3] < a and B[-2] < b])
+
+    assert n-len(third_complement) >= c
+
+    # The keepers
+    first_set  = range(a)
+    second_set = range(b)
+    third_set  = [x for x in range(n) if x not in third_complement][:c]
+
+    last_sets  = [first_set,second_set,third_set]
+
+    if complement:
+        last_sets = [set(range(n)).difference(s) for s in last_sets]
+
+    sizes = map(len,last_sets)
+    last_sets_dict = [{v:i for i,v in enumerate(s)} for s in last_sets]
+
+    # Truncating the OA
+    for i,D in enumerate(last_sets_dict):
+        kk = len(OA[0])-3+i
+        for R in OA:
+            R[kk] = D[R[kk]] if R[kk] in D else None
+
+    if d:
+        for R in OA:
+            if R[-4] >= d:
+                R[-4] = None
+        sizes.insert(0,d)
+
+    return wilson_construction(OA,k,n,m,len(sizes),sizes, check=False)

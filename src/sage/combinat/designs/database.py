@@ -76,7 +76,12 @@ Implemented constructions :
   :func:`OA(11,640) <OA_11_640>`,
   :func:`OA(10,796) <OA_10_796>`,
   :func:`OA(15,896) <OA_15_896>`,
-  :func:`OA(33,993) <OA_33_993>`
+  :func:`OA(33,993) <OA_33_993>`,
+  :func:`OA(10,1046) <OA_10_1046>`,
+  :func:`OA(10,1059) <OA_10_1059>`,
+  :func:`OA(11,2164) <OA_11_2164>`,
+  :func:`OA(12,3992) <OA_12_3992>`,
+  :func:`OA(12,3994) <OA_12_3994>`
 
 - :func:`two MOLS of order 10 <MOLS_10_2>`,
   :func:`five MOLS of order 12 <MOLS_12_5>`,
@@ -3263,6 +3268,116 @@ def OA_33_993():
     M = OA_from_quasi_difference_matrix(Mb,G,add_col=True)
     return M
 
+def OA_10_1046():
+    r"""
+    Returns an `OA(10,1046)`.
+
+    Proved by Lemma 3.5 from [Thwarts]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_1046
+        sage: OA = OA_10_1046()                           # not tested -- around 5s
+        sage: print is_orthogonal_array(OA,10,1046,2)     # not tested
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,1046,existence=True)
+        True
+    """
+    from sage.combinat.designs.orthogonal_arrays_recursive import thwart_lemma_3_5
+    return thwart_lemma_3_5(10, 13, 78, 9, 9, 13, 1, complement=True)
+
+def OA_10_1059():
+    r"""
+    Returns an `OA(10,1059)`.
+
+    Proved by Lemma 3.5 from [Thwarts]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_1059
+        sage: OA = OA_10_1059()                           # not tested -- around 6s
+        sage: print is_orthogonal_array(OA,10,1059,2)     # not tested
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,1059,existence=True)
+        True
+    """
+    from sage.combinat.designs.orthogonal_arrays_recursive import thwart_lemma_3_5
+    return thwart_lemma_3_5(10, 13, 79, 9, 9, 13, 1, complement=True)
+
+def OA_11_2164():
+    r"""
+    Returns an `OA(11,2164)`.
+
+    Proved by Lemma 3.5 from [Thwarts]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_11_2164
+        sage: OA = OA_11_2164()                           # not tested -- around 15s
+        sage: print is_orthogonal_array(OA,11,2164,2)     # not tested
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,2164,existence=True)
+        True
+    """
+    from sage.combinat.designs.orthogonal_arrays_recursive import thwart_lemma_3_5
+    return thwart_lemma_3_5(11, 27, 78, 16, 17, 25, 0, complement=True)
+
+def OA_12_3992():
+    r"""
+    Returns an `OA(12,3992)`.
+
+    Proved by Lemma 3.5 from [Thwarts]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_12_3992
+        sage: OA = OA_12_3992()                           # not tested -- around 60s
+        sage: print is_orthogonal_array(OA,12,3992,2)     # not tested
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(12,3992,existence=True)
+        True
+    """
+    from sage.combinat.designs.orthogonal_arrays_recursive import thwart_lemma_3_5
+    return thwart_lemma_3_5(12, 19, 208, 11, 13, 16, 0, complement=True)
+
+def OA_12_3994():
+    r"""
+    Returns an `OA(12,3994)`.
+
+    Proved by Lemma 3.5 from [Thwarts]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_12_3994
+        sage: OA = OA_12_3994()                           # not tested -- around 60s
+        sage: print is_orthogonal_array(OA,12,3994,2)     # not tested
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(12,3994,existence=True)
+        True
+    """
+    from sage.combinat.designs.orthogonal_arrays_recursive import thwart_lemma_3_5
+    return thwart_lemma_3_5(12, 19, 208, 13, 13, 16, 0, complement=True)
+
 def _helper_function_when_n_is_prime_times_power_of_2(k,n,A,Y):
     r"""
     This is an helper function to build `OA(k,p2^c)`
@@ -3387,7 +3502,12 @@ OA_constructions = {
     640 : (11 , OA_11_640),
     796 : (10 , OA_10_796),
     896 : (15 , OA_15_896),
-    993 : (33 , OA_33_993)
+    993 : (33 , OA_33_993),
+    1046: (10,  OA_10_1046),
+    1059: (10,  OA_10_1059),
+    2164: (11,  OA_11_2164),
+    3992: (12,  OA_12_3992),
+    3994: (12,  OA_12_3994)
 }
 
 def CDF_21_5_1():

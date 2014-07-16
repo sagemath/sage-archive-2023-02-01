@@ -8181,13 +8181,14 @@ class Transducer(FiniteStateMachine):
             already be achieved by setting
             ``FSMOldCodeTransducerCartesianProduct`` to ``False``.
 
-        Return a new transducer which can simultaneously process an input with
-        ``self`` and ``other`` where the output labels are pairs of the
-        original output labels.
+        Return a new transducer which can simultaneously process an
+        input with the machines ``self`` and ``other`` where the
+        output labels are `d`-tuples of the original output labels.
 
         INPUT:
 
-        - ``other`` - a finite state machine
+        - ``other`` - a finite state machine (if `d=2`) or a list (or
+          other iterable) of `d-1` finite state machines
 
         - ``only_accessible_components`` -- If ``True`` (default), then
           the result is piped through ``accessible_components``. If no
@@ -8197,14 +8198,16 @@ class Transducer(FiniteStateMachine):
         OUTPUT:
 
         A transducer which can simultaneously process an input with ``self``
-        and ``other``.
+        and the machine(s) in ``other``.
 
         The set of states of the new transducer is the cartesian product of
         the set of states of ``self`` and ``other``.
 
-        Let `(A, B, a, b)` be a transition of self and `(C, D, c, d)` be
-        a transition of other. Then there is a transition `((A, C), (B,
-        D), a, (b, d))` in the new transducer if `a = c`.
+        Let `(A_j, B_j, a_j, b_j)` for `j\in\{1, \ldots, d\}` be
+        transitions in the machines ``self`` and in ``other``. Then
+        there is a transition `((A_1, \ldots, A_d), (B_1, \ldots,
+        B_d), a, (b_1, \ldots, b_d))` in the new transducer if `a_1 =
+        \cdots = a_d =: a`.
 
         EXAMPLES:
 
@@ -8327,6 +8330,38 @@ class Transducer(FiniteStateMachine):
             Traceback (most recent call last):
             ...
             TypeError: Only an automaton can be intersected with an automaton.
+
+        The cartesian product of more than two finite state machines can also
+        be computed::
+
+            sage: T0 = transducers.CountSubblockOccurrences([0, 0], [0, 1, 2])
+            sage: T1 = transducers.CountSubblockOccurrences([1, 1], [0, 1, 2])
+            sage: T2 = transducers.CountSubblockOccurrences([2, 2], [0, 1, 2])
+            sage: T = T0.cartesian_product([T1, T2])
+            sage: T.transitions()
+            [Transition from ((), (), ()) to ((0,), (), ()): 0|(0, 0, 0),
+             Transition from ((), (), ()) to ((), (1,), ()): 1|(0, 0, 0),
+             Transition from ((), (), ()) to ((), (), (2,)): 2|(0, 0, 0),
+             Transition from ((0,), (), ()) to ((0,), (), ()): 0|(1, 0, 0),
+             Transition from ((0,), (), ()) to ((), (1,), ()): 1|(0, 0, 0),
+             Transition from ((0,), (), ()) to ((), (), (2,)): 2|(0, 0, 0),
+             Transition from ((), (1,), ()) to ((0,), (), ()): 0|(0, 0, 0),
+             Transition from ((), (1,), ()) to ((), (1,), ()): 1|(0, 1, 0),
+             Transition from ((), (1,), ()) to ((), (), (2,)): 2|(0, 0, 0),
+             Transition from ((), (), (2,)) to ((0,), (), ()): 0|(0, 0, 0),
+             Transition from ((), (), (2,)) to ((), (1,), ()): 1|(0, 0, 0),
+             Transition from ((), (), (2,)) to ((), (), (2,)): 2|(0, 0, 1)]
+            sage: T([0, 0, 1, 1, 2, 2, 0, 1, 2, 2])
+            [(0, 0, 0),
+             (1, 0, 0),
+             (0, 0, 0),
+             (0, 1, 0),
+             (0, 0, 0),
+             (0, 0, 1),
+             (0, 0, 0),
+             (0, 0, 0),
+             (0, 0, 0),
+             (0, 0, 1)]
         """
         if FSMOldCodeTransducerCartesianProduct:
             from sage.misc.superseded import deprecation
@@ -8338,17 +8373,19 @@ class Transducer(FiniteStateMachine):
                 other,
                 only_accessible_components=only_accessible_components)
 
-        def function(transition1, transition2):
-            if transition1.word_in == transition2.word_in:
-                return (transition1.word_in,
-                        list(itertools.izip_longest(transition1.word_out,
-                                                    transition2.word_out)))
+        def function(*transitions):
+            if all(t.word_in == transitions[0].word_in
+                   for t in transitions):
+                return (transitions[0].word_in,
+                        list(itertools.izip_longest(
+                            *(t.word_out for t in transitions)
+                             )))
             else:
                 raise LookupError
 
-        def final_function(s1, s2):
-            return list(itertools.izip_longest(s1.final_word_out,
-                                               s2.final_word_out))
+        def final_function(*states):
+            return list(itertools.izip_longest(*(s.final_word_out
+                                                 for s in states)))
 
         return self.product_FiniteStateMachine(
             other,

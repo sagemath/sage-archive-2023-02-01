@@ -17,7 +17,7 @@ Note that `T^{(1,0)}(M) = M`.
 
 `T^{(k,l)}(M)` is itself a free module over `R`, of rank `n^{k+l}`, `n`
 being the rank of `M`. Accordingly the class :class:`TensorFreeModule` 
-inherits from the class :class:`FiniteFreeModule`
+inherits from the class :class:`FiniteRankFreeModule`
 
 Thanks to the canonical isomorphism `M^{**}\simeq M` (which holds because `M` 
 is a free module of finite rank), `T^{(k,l)}(M)` can be identified with the 
@@ -54,25 +54,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.modules.module import Module
-from finite_free_module import FiniteFreeModule
-from free_module_tensor import FreeModuleTensor, FiniteFreeModuleElement
+from finite_rank_free_module import FiniteRankFreeModule
+from free_module_tensor import FreeModuleTensor, FiniteRankFreeModuleElement
 
-
-# From sage/modules/module.pyx:
-# ----------------------------
-### The new Module class that should be the base of all Modules
-### The derived Module class must implement the element
-### constructor:
-#
-# class MyModule(sage.modules.module.Module):
-#     Element = MyElement
-#     def _element_constructor_(self, x):
-#         return self.element_class(x)
-#
-
-
-class TensorFreeModule(FiniteFreeModule):
+class TensorFreeModule(FiniteRankFreeModule):
     r"""
     Class for the free modules over a commutative ring `R` that are 
     tensor products of a given free module `M` over `R` with itself and its 
@@ -89,7 +74,7 @@ class TensorFreeModule(FiniteFreeModule):
     INPUT:
     
     - ``fmodule`` -- free module `M` of finite rank (must be an instance of 
-      :class:`FiniteFreeModule`)
+      :class:`FiniteRankFreeModule`)
     - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant rank and 
       `l` the covariant rank
     - ``name`` -- (string; default: None) name given to the tensor module
@@ -100,14 +85,14 @@ class TensorFreeModule(FiniteFreeModule):
     
     Set of tensors of type (1,2) on a free module of rank 3 over `\ZZ`::
     
-        sage: M = FiniteFreeModule(ZZ, 3, name='M')
+        sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
         sage: from sage.tensor.modules.tensor_free_module import TensorFreeModule
         sage: T = TensorFreeModule(M, (1,2)) ; T
         free module of type-(1,2) tensors on the rank-3 free module M over the Integer Ring
     
     Instead of importing TensorFreeModule in the global name space, it is 
     recommended to use the module's method 
-    :meth:`~sage.tensor.modules.finite_free_module.FiniteFreeModule.tensor_module`::
+    :meth:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule.tensor_module`::
     
         sage: T = M.tensor_module(1,2) ; T
         free module of type-(1,2) tensors on the rank-3 free module M over the Integer Ring
@@ -197,34 +182,33 @@ class TensorFreeModule(FiniteFreeModule):
     Element = FreeModuleTensor
     
     def __init__(self, fmodule, tensor_type, name=None, latex_name=None):
-        self.fmodule = fmodule
-        self.tensor_type = tuple(tensor_type)
+        self._fmodule = fmodule
+        self._tensor_type = tuple(tensor_type)
         rank = pow(fmodule._rank, tensor_type[0] + tensor_type[1])
         self._zero_element = 0 # provisory (to avoid infinite recursion in what
                                # follows)
         if tensor_type == (0,1):  # case of the dual
-            if name is None and fmodule.name is not None:
-                name = fmodule.name + '*'
-            if latex_name is None and fmodule.latex_name is not None:
-                latex_name = fmodule.latex_name + r'^*'
-        FiniteFreeModule.__init__(self, fmodule.ring, rank, name=name, 
+            if name is None and fmodule._name is not None:
+                name = fmodule._name + '*'
+            if latex_name is None and fmodule._latex_name is not None:
+                latex_name = fmodule._latex_name + r'^*'
+        FiniteRankFreeModule.__init__(self, fmodule._ring, rank, name=name, 
                                   latex_name=latex_name, 
-                                  start_index=fmodule.sindex,
-                                  output_formatter=fmodule.output_formatter)
+                                  start_index=fmodule._sindex,
+                                  output_formatter=fmodule._output_formatter)
         # Unique representation:
-        if self.tensor_type in self.fmodule._tensor_modules:
+        if self._tensor_type in self._fmodule._tensor_modules:
             raise TypeError("The module of tensors of type" + 
-                            str(self.tensor_type) + 
+                            str(self._tensor_type) + 
                             " has already been created.")
         else:
-            self.fmodule._tensor_modules[self.tensor_type] = self
+            self._fmodule._tensor_modules[self._tensor_type] = self
         # Zero element 
         self._zero_element = self._element_constructor_(name='zero', 
                                                         latex_name='0')
-        def_basis = self.fmodule.def_basis
-        if def_basis is not None:
-            self._zero_element.components[def_basis] = \
-                                        self._zero_element._new_comp(def_basis)
+        for basis in self._fmodule._known_bases:
+            self._zero_element._components[basis] = \
+                                            self._zero_element._new_comp(basis)
             # (since new components are initialized to zero)
     
     #### Methods required for any Parent 
@@ -235,7 +219,7 @@ class TensorFreeModule(FiniteFreeModule):
         """
         if comp == 0:
             return self._zero_element
-        resu = self.element_class(self.fmodule, self.tensor_type, name=name, 
+        resu = self.element_class(self._fmodule, self._tensor_type, name=name, 
                                   latex_name=latex_name, sym=sym, 
                                   antisym=antisym)
         if comp != []:
@@ -246,11 +230,11 @@ class TensorFreeModule(FiniteFreeModule):
         r"""
         Construct some (unamed) tensor
         """
-        resu = self.element_class(self.fmodule, self.tensor_type)
-        if self.fmodule.def_basis is not None:
-            sindex = self.fmodule.sindex
-            ind = [sindex for i in range(resu.tensor_rank)]
-            resu.set_comp()[ind] = self.fmodule.ring.an_element()
+        resu = self.element_class(self._fmodule, self._tensor_type)
+        if self._fmodule._def_basis is not None:
+            sindex = self._fmodule._sindex
+            ind = [sindex for i in range(resu._tensor_rank)]
+            resu.set_comp()[ind] = self._fmodule._ring.an_element()
         return resu
             
     #### End of methods required for any Parent 
@@ -259,15 +243,15 @@ class TensorFreeModule(FiniteFreeModule):
         r"""
         String representation of the object.
         """
-        if self.tensor_type == (0,1):
-            return "dual of the " + str(self.fmodule)
+        if self._tensor_type == (0,1):
+            return "dual of the " + str(self._fmodule)
         else:
             description = "free module "
-            if self.name is not None:
-                description += self.name + " "
+            if self._name is not None:
+                description += self._name + " "
             description += "of type-(%s,%s)" % \
-                           (str(self.tensor_type[0]), str(self.tensor_type[1]))
-            description += " tensors on the " + str(self.fmodule)
+                           (str(self._tensor_type[0]), str(self._tensor_type[1]))
+            description += " tensors on the " + str(self._fmodule)
             return description
 
     def base_module(self):
@@ -276,18 +260,18 @@ class TensorFreeModule(FiniteFreeModule):
         
         OUTPUT:
         
-        - instance of :class:`FiniteFreeModule` representing the free module 
+        - instance of :class:`FiniteRankFreeModule` representing the free module 
           on which the tensor module is defined. 
         
         EXAMPLE:
 
         Base module of a type-(1,2) tensor module::
         
-            sage: M = FiniteFreeModule(ZZ, 3, name='M')
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: T = M.tensor_module(1,2)
             sage: T.base_module()
             rank-3 free module M over the Integer Ring
 
         """
-        return self.fmodule
+        return self._fmodule
 

@@ -4,7 +4,7 @@ Tensors on free modules of finite rank
 .. toctree::
    :maxdepth: 2
 
-   sage/tensor/modules/finite_free_module
+   sage/tensor/modules/finite_rank_free_module
       
    sage/tensor/modules/free_module_basis
    

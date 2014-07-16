@@ -1,27 +1,24 @@
 """
-Specific rank-2 tensors on free modules
+Type-(1,1) tensors on free modules
 
-Four derived classes of 
+Three derived classes of 
 :class:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor` are devoted 
-to rank-2 tensors:
+to type-(1,1) tensors:
 
-* :class:`FreeModuleEndomorphism` for endomorphisms (type-(1,1) tensors)
+* :class:`FreeModuleEndomorphism` for endomorphisms (generic type-(1,1) tensors)
 
   * :class:`FreeModuleAutomorphism` for invertible endomorphisms
 
     * :class:`FreeModuleIdentityMap` for the identity map on a free module
 
-* :class:`FreeModuleSymBilinForm` for symmetric bilinear forms (symmetric 
-  type-(0,2) tensors)
-  
-Antisymmetric bilinear forms are dealt with by the class
-:class:`~sage.tensor.modules.free_module_alt_form.FreeModuleAltForm`.
-
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2014): initial version
 
-EXAMPLES:
+TODO:
+
+* Implement these specific tensors as elements of a parent class for free 
+  module endomorphisms, with coercion to the module of type-(1,1) tensors. 
 
 """
 #******************************************************************************
@@ -43,7 +40,7 @@ class FreeModuleEndomorphism(FreeModuleTensor):
     INPUT:
     
     - ``fmodule`` -- free module `M` over a commutative ring `R` 
-      (must be an instance of :class:`FiniteFreeModule`)
+      (must be an instance of :class:`FiniteRankFreeModule`)
     - ``name`` -- (default: None) name given to the endomorphism
     - ``latex_name`` -- (default: None) LaTeX symbol to denote the 
       endomorphism; if none is provided, the LaTeX symbol is set to ``name``
@@ -52,7 +49,7 @@ class FreeModuleEndomorphism(FreeModuleTensor):
     
     Endomorphism on a rank-3 module::
     
-        sage: M = FiniteFreeModule(ZZ, 3, name='M')
+        sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
         sage: t = M.endomorphism('T') ; t
         endomorphism T on the rank-3 free module M over the Integer Ring
 
@@ -60,13 +57,13 @@ class FreeModuleEndomorphism(FreeModuleTensor):
 
         sage: t.parent()
         free module of type-(1,1) tensors on the rank-3 free module M over the Integer Ring
-        sage: t.tensor_type
+        sage: t.tensor_type()
         (1, 1)
-        sage: t.tensor_rank
+        sage: t.tensor_rank()
         2
 
     Consequently, an endomorphism can also be created by the module method 
-    :meth:`~sage.tensor.modules.finite_free_module.FiniteFreeModule.tensor`::
+    :meth:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule.tensor`::
     
         sage: t = M.tensor((1,1), name='T') ; t
         endomorphism T on the rank-3 free module M over the Integer Ring
@@ -107,24 +104,24 @@ class FreeModuleEndomorphism(FreeModuleTensor):
         String representation of the object.
         """
         description = "endomorphism "
-        if self.name is not None:
-            description += self.name + " " 
-        description += "on the " + str(self.fmodule)
+        if self._name is not None:
+            description += self._name + " " 
+        description += "on the " + str(self._fmodule)
         return description
 
     def _new_instance(self):
         r"""
-        Create a :class:`FreeModuleEndomorphism` instance. 
+        Create an instance of the same class as ``self``. 
         
         """
-        return FreeModuleEndomorphism(self.fmodule)
+        return self.__class__(self._fmodule)
 
     def __call__(self, *arg):
         r"""
         Redefinition of :meth:`FreeModuleTensor.__call__` to allow for a single 
         argument (module element). 
         """
-        from free_module_tensor import FiniteFreeModuleElement
+        from free_module_tensor import FiniteRankFreeModuleElement
         if len(arg) > 1:
             # the endomorphism acting as a type (1,1) tensor on a pair 
             # (linear form, module element), returning a scalar:
@@ -132,12 +129,12 @@ class FreeModuleEndomorphism(FreeModuleTensor):
         # the endomorphism acting as such, on a module element, returning a
         # module element:
         vector = arg[0]
-        if not isinstance(vector, FiniteFreeModuleElement):
+        if not isinstance(vector, FiniteRankFreeModuleElement):
             raise TypeError("The argument must be an element of a free module.")
         basis = self.common_basis(vector)
-        t = self.components[basis]
-        v = vector.components[basis]
-        fmodule = self.fmodule
+        t = self._components[basis]
+        v = vector._components[basis]
+        fmodule = self._fmodule
         result = vector._new_instance()
         for i in fmodule.irange():
             res = 0
@@ -145,14 +142,14 @@ class FreeModuleEndomorphism(FreeModuleTensor):
                 res += t[[i,j]]*v[[j]]
             result.set_comp(basis)[i] = res
         # Name of the output:
-        result.name = None
-        if self.name is not None and vector.name is not None:
-            result.name = self.name + "(" + vector.name + ")"
+        result._name = None
+        if self._name is not None and vector._name is not None:
+            result._name = self._name + "(" + vector._name + ")"
         # LaTeX symbol for the output:
-        result.latex_name = None
-        if self.latex_name is not None and vector.latex_name is not None:
-            result.latex_name = self.latex_name + r"\left(" + \
-                              vector.latex_name + r"\right)"
+        result._latex_name = None
+        if self._latex_name is not None and vector._latex_name is not None:
+            result._latex_name = self._latex_name + r"\left(" + \
+                              vector._latex_name + r"\right)"
         return result
 
 #******************************************************************************
@@ -164,7 +161,7 @@ class FreeModuleAutomorphism(FreeModuleEndomorphism):
     INPUT:
     
     - ``fmodule`` -- free module `M` over a commutative ring `R` 
-      (must be an instance of :class:`FiniteFreeModule`)
+      (must be an instance of :class:`FiniteRankFreeModule`)
     - ``name`` -- (default: None) name given to the automorphism
     - ``latex_name`` -- (default: None) LaTeX symbol to denote the 
       automorphism; if none is provided, the LaTeX symbol is set to ``name``
@@ -173,7 +170,7 @@ class FreeModuleAutomorphism(FreeModuleEndomorphism):
     
     Automorphism on a rank-2 free module (vector space) on `\QQ`::
     
-        sage: M = FiniteFreeModule(QQ, 2, name='M')
+        sage: M = FiniteRankFreeModule(QQ, 2, name='M')
         sage: a = M.automorphism('A') ; a
         automorphism A on the rank-2 free module M over the Rational Field
 
@@ -181,9 +178,9 @@ class FreeModuleAutomorphism(FreeModuleEndomorphism):
     
         sage: a.parent()
         free module of type-(1,1) tensors on the rank-2 free module M over the Rational Field
-        sage: a.tensor_type
+        sage: a.tensor_type()
         (1, 1)
-        sage: a.tensor_rank
+        sage: a.tensor_rank()
         2
 
     Setting the components in a basis::
@@ -221,16 +218,10 @@ class FreeModuleAutomorphism(FreeModuleEndomorphism):
         String representation of the object.
         """
         description = "automorphism "
-        if self.name is not None:
-            description += self.name + " " 
-        description += "on the " + str(self.fmodule)
+        if self._name is not None:
+            description += self._name + " " 
+        description += "on the " + str(self._fmodule)
         return description
-
-    def _new_instance(self):
-        r"""
-        Create a :class:`FreeModuleAutomorphism` instance. 
-        """
-        return FreeModuleAutomorphism(self.fmodule)
         
     def _del_derived(self):
         r"""
@@ -255,7 +246,7 @@ class FreeModuleAutomorphism(FreeModuleEndomorphism):
         
         Inverse of an automorphism on a rank-3 free module::
         
-            sage: M = FiniteFreeModule(QQ, 3, name='M')
+            sage: M = FiniteRankFreeModule(QQ, 3, name='M')
             sage: a = M.automorphism('A')
             sage: e = M.basis('e')
             sage: a[:] = [[1,0,-1], [0,3,0], [0,0,2]]
@@ -283,19 +274,18 @@ class FreeModuleAutomorphism(FreeModuleEndomorphism):
         from sage.matrix.constructor import matrix
         from comp import Components
         if self._inverse is None:
-            if self.name is None:
+            if self._name is None:
                 inv_name = None
             else:
-                inv_name = self.name  + '^(-1)'
-            if self.latex_name is None:
+                inv_name = self._name  + '^(-1)'
+            if self._latex_name is None:
                 inv_latex_name = None
             else:
-                inv_latex_name = self.latex_name + r'^{-1}'
-            fmodule = self.fmodule
-            si = fmodule.sindex ; nsi = fmodule._rank + si
-            self._inverse = FreeModuleAutomorphism(fmodule, inv_name, 
-                                                   inv_latex_name)
-            for basis in self.components:
+                inv_latex_name = self._latex_name + r'^{-1}'
+            fmodule = self._fmodule
+            si = fmodule._sindex ; nsi = fmodule._rank + si
+            self._inverse = self.__class__(fmodule, inv_name, inv_latex_name)
+            for basis in self._components:
                 try:    
                     mat_self = matrix(
                               [[self.comp(basis)[[i, j]]
@@ -303,12 +293,12 @@ class FreeModuleAutomorphism(FreeModuleEndomorphism):
                 except (KeyError, ValueError):
                     continue
                 mat_inv = mat_self.inverse()
-                cinv = Components(fmodule.ring, basis, 2, start_index=si,
-                                  output_formatter=fmodule.output_formatter)
+                cinv = Components(fmodule._ring, basis, 2, start_index=si,
+                                  output_formatter=fmodule._output_formatter)
                 for i in range(si, nsi):
                     for j in range(si, nsi):   
                         cinv[i, j] = mat_inv[i-si,j-si]
-                self._inverse.components[basis] = cinv
+                self._inverse._components[basis] = cinv
         return self._inverse
 
 
@@ -321,7 +311,7 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
     INPUT:
     
     - ``fmodule`` -- free module `M` over a commutative ring `R` 
-      (must be an instance of :class:`FiniteFreeModule`)
+      (must be an instance of :class:`FiniteRankFreeModule`)
     - ``name`` -- (default: 'Id') name given to the identity map. 
     - ``latex_name`` -- (default: None) LaTeX symbol to denote the identity 
       map; if none is provided, the LaTeX symbol is set to ``name``
@@ -330,7 +320,7 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
     
     Identity map on a rank-3 free module::
     
-        sage: M = FiniteFreeModule(ZZ, 3, name='M')
+        sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
         sage: e = M.basis('e')
         sage: a = M.identity_map() ; a
         identity map on the rank-3 free module M over the Integer Ring
@@ -347,9 +337,9 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
     
         sage: a.parent()
         free module of type-(1,1) tensors on the rank-3 free module M over the Integer Ring
-        sage: a.tensor_type
+        sage: a.tensor_type()
         (1, 1)
-        sage: a.tensor_rank
+        sage: a.tensor_rank()
         2
 
     Its components are Kronecker deltas in any basis::
@@ -421,9 +411,9 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
         String representation of the object.
         """
         description = "identity map "
-        if self.name != 'Id':
-            description += self.name + " " 
-        description += "on the " + str(self.fmodule)
+        if self._name != 'Id':
+            description += self._name + " " 
+        description += "on the " + str(self._fmodule)
         return description
 
     def _del_derived(self):
@@ -433,13 +423,6 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
         """
         # FreeModuleAutomorphism._del_derived is bypassed:
         FreeModuleEndomorphism._del_derived(self)
-
-    def _new_instance(self):
-        r"""
-        Create a :class:`FreeModuleIdentityMap` instance. 
-        
-        """
-        return FreeModuleIdentityMap(self.fmodule)
         
     def _new_comp(self, basis): 
         r"""
@@ -447,11 +430,11 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
                 
         """
         from comp import KroneckerDelta
-        fmodule = self.fmodule  # the base free module
-        return KroneckerDelta(fmodule.ring, basis, start_index=fmodule.sindex,
-                              output_formatter=fmodule.output_formatter)
+        fmodule = self._fmodule  # the base free module
+        return KroneckerDelta(fmodule._ring, basis, start_index=fmodule._sindex,
+                              output_formatter=fmodule._output_formatter)
 
-    def comp(self, basis=None):
+    def comp(self, basis=None, from_basis=None):
         r"""
         Return the components in a given basis, as a Kronecker delta.
                 
@@ -460,6 +443,8 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
         - ``basis`` -- (default: None) module basis in which the components 
           are required; if none is provided, the components are assumed to 
           refer to the module's default basis
+        - ``from_basis`` -- (default: None) unused (present just for ensuring 
+          compatibility with FreeModuleTensor.comp calling list)
  
         OUTPUT: 
         
@@ -470,7 +455,7 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
 
         Components of the identity map on a rank-3 free module::
     
-            sage: M = FiniteFreeModule(ZZ, 3, name='M')
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
             sage: a = M.identity_map()
             sage: a.comp(basis=e) 
@@ -487,10 +472,10 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
          
         """
         if basis is None: 
-            basis = self.fmodule.def_basis
-        if basis not in self.components:
-            self.components[basis] = self._new_comp(basis)
-        return self.components[basis]
+            basis = self._fmodule._def_basis
+        if basis not in self._components:
+            self._components[basis] = self._new_comp(basis)
+        return self._components[basis]
 
     def set_comp(self, basis=None):
         r"""
@@ -514,12 +499,12 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
         r"""
         Redefinition of :meth:`FreeModuleEndomorphism.__call__`.
         """
-        from free_module_tensor import FiniteFreeModuleElement
+        from free_module_tensor import FiniteRankFreeModuleElement
         from free_module_alt_form import FreeModuleLinForm
         if len(arg) == 1:
             # the identity map acting as such, on a module element:
             vector = arg[0]
-            if not isinstance(vector, FiniteFreeModuleElement):
+            if not isinstance(vector, FiniteRankFreeModuleElement):
                 raise TypeError("The argument must be a module element.")
             return vector
             #!# should it be return vector.copy() instead ? 
@@ -530,132 +515,9 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
             if not isinstance(linform, FreeModuleLinForm):
                 raise TypeError("The first argument must be a linear form.")
             vector = arg[1]
-            if not isinstance(vector, FiniteFreeModuleElement):
+            if not isinstance(vector, FiniteRankFreeModuleElement):
                 raise TypeError("The second argument must be a module element.")
             return linform(vector)
         else:
-            raise TypeError("Bad number of arguments.")
-
-
-#******************************************************************************
-
-class FreeModuleSymBilinForm(FreeModuleTensor):
-    r"""
-    Symmetric bilinear form (considered as a type-(0,2) tensor) on a free 
-    module.
-
-    INPUT:
-    
-    - ``fmodule`` -- free module `M` over a commutative ring `R` 
-      (must be an instance of :class:`FiniteFreeModule`)
-    - ``name`` -- (default: None) name given to the symmetric bilinear form
-    - ``latex_name`` -- (default: None) LaTeX symbol to denote the symmetric 
-      bilinear form; if none is provided, the LaTeX symbol is set to ``name``
-    
-    EXAMPLES:
-    
-    Symmetric bilinear form on a rank-3 free module::
-    
-        sage: M = FiniteFreeModule(ZZ, 3, name='M')
-        sage: a = M.sym_bilinear_form('A') ; a
-        symmetric bilinear form A on the rank-3 free module M over the Integer Ring
-        
-    A symmetric bilinear form is a type-(0,2) tensor that is symmetric::
-    
-        sage: a.parent()
-        free module of type-(0,2) tensors on the rank-3 free module M over the Integer Ring
-        sage: a.tensor_type
-        (0, 2)
-        sage: a.tensor_rank
-        2
-        sage: a.symmetries()
-        symmetry: (0, 1);  no antisymmetry
-    
-    Components with respect to a given basis::
-    
-        sage: e = M.basis('e')
-        sage: a[0,0], a[0,1], a[0,2] = 1, 2, 3
-        sage: a[1,1], a[1,2] = 4, 5
-        sage: a[2,2] = 6
-            
-    Only independent components have been set; the other ones are deduced by 
-    symmetry::
-        
-        sage: a[1,0], a[2,0], a[2,1]
-        (2, 3, 5)
-        sage: a[:]
-        [1 2 3]
-        [2 4 5]
-        [3 5 6]
-       
-    A symmetric bilinear form acts on pairs of module elements::
-    
-        sage: u = M([2,-1,3]) ; v = M([-2,4,1])
-        sage: a(u,v)
-        61
-        sage: a(v,u) == a(u,v)
-        True
-    
-    The sum of two symmetric bilinear forms is another symmetric bilinear 
-    form::
-
-        sage: b = M.sym_bilinear_form('B')
-        sage: b[0,0], b[0,1], b[1,2] = -2, 1, -3
-        sage: s = a + b ; s
-        symmetric bilinear form A+B on the rank-3 free module M over the Integer Ring
-        sage: a[:], b[:], s[:]
-        (
-        [1 2 3]  [-2  1  0]  [-1  3  3]
-        [2 4 5]  [ 1  0 -3]  [ 3  4  2]
-        [3 5 6], [ 0 -3  0], [ 3  2  6]
-        )
-        
-    Adding a symmetric bilinear from with a non-symmetric one results in a 
-    generic type-(0,2) tensor::
-    
-        sage: c = M.tensor((0,2), name='C')
-        sage: c[0,1] = 4
-        sage: s = a + c ; s
-        type-(0,2) tensor A+C on the rank-3 free module M over the Integer Ring
-        sage: s.symmetries()
-        no symmetry;  no antisymmetry
-        sage: s[:]
-        [1 6 3]
-        [2 4 5]
-        [3 5 6]
-        
-
-
-    """
-    def __init__(self, fmodule, name=None, latex_name=None):
-        FreeModuleTensor.__init__(self, fmodule, (0,2), name=name, 
-                                  latex_name=latex_name, sym=(0,1))
-                                  
-    def _repr_(self):
-        r"""
-        String representation of the object.
-        """
-        description = "symmetric bilinear form "
-        if self.name is not None:
-            description += self.name + " " 
-        description += "on the " + str(self.fmodule)
-        return description
-
-    def _new_instance(self):
-        r"""
-        Create a :class:`FreeModuleSymBilinForm` instance. 
-        
-        """
-        return FreeModuleSymBilinForm(self.fmodule)
-
-    def _new_comp(self, basis): 
-        r"""
-        Create some components in the given basis. 
-                
-        """
-        from comp import CompFullySym
-        fmodule = self.fmodule  # the base free module
-        return CompFullySym(fmodule.ring, basis, 2, start_index=fmodule.sindex,
-                            output_formatter=fmodule.output_formatter)
-
+            raise TypeError("Wrong number of arguments.")
 

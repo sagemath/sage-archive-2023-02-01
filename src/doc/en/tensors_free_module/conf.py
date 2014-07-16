@@ -18,7 +18,7 @@ from common.conf import *
 # General information about the project.
 project = u"Tensors on free modules"
 name = 'tensors_free_modules_ref'
-release = "0.1"
+release = "0.2"
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

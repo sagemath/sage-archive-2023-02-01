@@ -1,1 +1,1 @@
-from finite_free_module import FiniteFreeModule
+from finite_rank_free_module import FiniteRankFreeModule

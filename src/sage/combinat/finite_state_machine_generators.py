@@ -27,6 +27,7 @@ for more details and a lot of examples.
     :meth:`~TransducerGenerators.add` | Returns a transducer realizing addition.
     :meth:`~TransducerGenerators.sub` | Returns a transducer realizing subtraction.
     :meth:`~TransducerGenerators.CountSubblockOccurrences` | Returns a transducer counting the occurrences of a subblock.
+    :meth:`~TransducerGenerators.Wait` | Returns a transducer writing ``False`` until first (or k-th) true input is read.
     :meth:`~TransducerGenerators.weight` | Returns a transducer realizing the Hamming weight
     :meth:`~TransducerGenerators.GrayCode` | Returns a transducer realizing binary Gray code.
 
@@ -77,6 +78,7 @@ class TransducerGenerators(object):
     - :meth:`~add`
     - :meth:`~sub`
     - :meth:`~CountSubblockOccurrences`
+    - :meth:`~Wait`
     - :meth:`~GrayCode`
 
     """
@@ -238,6 +240,49 @@ class TransducerGenerators(object):
             initial_states=[()])
         for s in T.iter_states():
             s.is_final = True
+        return T
+
+    def Wait(self, input_alphabet, threshold=1):
+        r"""
+        Writes ``False`` until reading the ``threshold``-th occurrence
+        of a true input letter; then writes ``True``.
+
+        INPUT:
+
+        - ``input_alphabet`` -- a list or other iterable.
+
+        - ``threshold`` -- a positive integer specifying how many
+          occurrences of True inputs are waited for.
+
+        OUTPUT:
+
+        A transducer writing ``False`` until the ``threshold``-th true
+        (Python's standard conversion to booleanis used to convert the
+        actual input to boolean) input is read. Subsequently, the
+        transducer writes ``True``.
+
+        EXAMPLES::
+
+            sage: T = transducers.Wait([0, 1])
+            sage: T([0, 0, 1, 0, 1, 0])
+            [False, False, True, True, True, True]
+            sage: T2 = transducers.Wait([0, 1], threshold=2)
+            sage: T2([0, 0, 1, 0, 1, 0])
+            [False, False, False, False, True, True]
+        """
+        def transition(state, input):
+            if state == threshold:
+                return (threshold, True)
+            if not input:
+                return (state, False)
+            return (state+1, state + 1 == threshold)
+
+        T = Transducer(transition,
+                       input_alphabet=input_alphabet,
+                       initial_states=[0])
+        for s in T.iter_states():
+            s.is_final = True
+
         return T
 
 

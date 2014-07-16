@@ -24,6 +24,8 @@ for more details and a lot of examples.
     :meth:`~TransducerGenerators.Identity` | Returns a transducer realizing the identity map.
     :meth:`~TransducerGenerators.abs` | Returns a transducer realizing absolute value.
     :meth:`~TransducerGenerators.operator` | Returns a transducer realizing a binary operation.
+    :meth:`~TransducerGenerators.all` | Returns a transducer realizing logical ``and``.
+    :meth:`~TransducerGenerators.any` | Returns a transducer realizing logical ``or``.
     :meth:`~TransducerGenerators.add` | Returns a transducer realizing addition.
     :meth:`~TransducerGenerators.sub` | Returns a transducer realizing subtraction.
     :meth:`~TransducerGenerators.CountSubblockOccurrences` | Returns a transducer counting the occurrences of a subblock.
@@ -74,6 +76,8 @@ class TransducerGenerators(object):
     - :meth:`~Identity`
     - :meth:`~abs`
     - :meth:`~TransducerGenerators.operator`
+    - :meth:`~all`
+    - :meth:`~any`
     - :meth:`~add`
     - :meth:`~sub`
     - :meth:`~CountSubblockOccurrences`
@@ -316,6 +320,111 @@ class TransducerGenerators(object):
                           initial_states=[0],
                           final_states=[0])
 
+
+    def all(self, input_alphabet, number_of_operands=2):
+        """
+        Returns a transducer which realizes logical ``and`` over the given
+        input alphabet.
+
+        INPUT:
+
+        - ``input_alphabet``  -- a list or other iterable.
+
+        - ``number_of_operands`` -- (default: `2`) specifies the number
+          of input arguments for the ``and`` operation.
+
+        OUTPUT:
+
+        A transducer mapping an input word
+        `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
+        `(i_{01} \land \cdots \land i_{0d})\ldots (i_{k1} \land \cdots \land i_{kd})`.
+
+        The input alphabet of the generated transducer is the cartesian
+        product of ``number_of_operands`` copies of ``input_alphabet``.
+
+        EXAMPLE:
+
+        The following transducer realizes letter-wise
+        logical ``and``::
+
+            sage: T = transducers.all([False, True])
+            sage: T.transitions()
+            [Transition from 0 to 0: (False, False)|False,
+             Transition from 0 to 0: (False, True)|False,
+             Transition from 0 to 0: (True, False)|False,
+             Transition from 0 to 0: (True, True)|True]
+            sage: T.input_alphabet
+            [(False, False), (False, True), (True, False), (True, True)]
+            sage: T.initial_states()
+            [0]
+            sage: T.final_states()
+            [0]
+            sage: T([(False, False), (False, True), (True, False), (True, True)])
+            [False, False, False, True]
+
+        More than two operands and other input alphabets (with
+        conversion to boolean) are also possible::
+
+            sage: T3 = transducers.all([0, 1], number_of_operands=3)
+            sage: T3([(0, 0, 0), (1, 0, 0), (1, 1, 1)])
+            [False, False, True]
+        """
+        def logical_and(*args):
+            return all(args)
+        return self.operator(logical_and, input_alphabet, number_of_operands)
+
+
+    def any(self, input_alphabet, number_of_operands=2):
+        """
+        Returns a transducer which realizes logical ``or`` over the given
+        input alphabet.
+
+        INPUT:
+
+        - ``input_alphabet``  -- a list or other iterable.
+
+        - ``number_of_operands`` -- (default: `2`) specifies the number
+          of input arguments for the ``or`` operation.
+
+        OUTPUT:
+
+        A transducer mapping an input word
+        `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
+        `(i_{01} \lor \cdots \lor i_{0d})\ldots (i_{k1} \lor \cdots \lor i_{kd})`.
+
+        The input alphabet of the generated transducer is the cartesian
+        product of ``number_of_operands`` copies of ``input_alphabet``.
+
+        EXAMPLE:
+
+        The following transducer realizes letter-wise
+        logical ``or``::
+
+            sage: T = transducers.any([False, True])
+            sage: T.transitions()
+            [Transition from 0 to 0: (False, False)|False,
+             Transition from 0 to 0: (False, True)|True,
+             Transition from 0 to 0: (True, False)|True,
+             Transition from 0 to 0: (True, True)|True]
+            sage: T.input_alphabet
+            [(False, False), (False, True), (True, False), (True, True)]
+            sage: T.initial_states()
+            [0]
+            sage: T.final_states()
+            [0]
+            sage: T([(False, False), (False, True), (True, False), (True, True)])
+            [False, True, True, True]
+
+        More than two operands and other input alphabets (with
+        conversion to boolean) are also possible::
+
+            sage: T3 = transducers.any([0, 1], number_of_operands=3)
+            sage: T3([(0, 0, 0), (1, 0, 0), (1, 1, 1)])
+            [False, True, True]
+        """
+        def logical_or(*args):
+            return any(args)
+        return self.operator(logical_or, input_alphabet, number_of_operands)
 
     def add(self, input_alphabet):
         """

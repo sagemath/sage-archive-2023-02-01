@@ -700,7 +700,6 @@ class EllipticCurveIsogeny(Morphism):
         True
         sage: phi_s.rational_maps() == phi.rational_maps()
         True
-        
 
     However only cyclic normalized isogenies can be constructed this
     way. So it won't find the isogeny [3]::
@@ -737,22 +736,22 @@ class EllipticCurveIsogeny(Morphism):
         sage: phi.rational_maps()
         (((4/25*i + 3/25)*x^5 + (4/5*i - 2/5)*x^3 - x)/(x^4 + (-4/5*i + 2/5)*x^2 + (-4/25*i - 3/25)),
          ((11/125*i + 2/125)*x^6*y + (-23/125*i + 64/125)*x^4*y + (141/125*i + 162/125)*x^2*y + (3/25*i - 4/25)*y)/(x^6 + (-6/5*i + 3/5)*x^4 + (-12/25*i - 9/25)*x^2 + (2/125*i - 11/125)))
-       
+
     Domain and codomain tests (see :trac:`12880`)::
-    
-       sage: E = EllipticCurve(QQ, [0,0,0,1,0])
-       sage: phi = EllipticCurveIsogeny(E,  E(0,0))
-       sage: phi.domain() == E
-       True
-       sage: phi.codomain()
-       Elliptic Curve defined by y^2 = x^3 - 4*x over Rational Field
-       
-       sage: E = EllipticCurve(GF(31), [1,0,0,1,2])
-       sage: phi = EllipticCurveIsogeny(E, [17, 1])
-       sage: phi.domain()
-       Elliptic Curve defined by y^2 + x*y = x^3 + x + 2 over Finite Field of size 31
-       sage: phi.codomain()
-       Elliptic Curve defined by y^2 + x*y = x^3 + 24*x + 6 over Finite Field of size 31
+
+        sage: E = EllipticCurve(QQ, [0,0,0,1,0])
+        sage: phi = EllipticCurveIsogeny(E,  E(0,0))
+        sage: phi.domain() == E
+        True
+        sage: phi.codomain()
+        Elliptic Curve defined by y^2 = x^3 - 4*x over Rational Field
+
+        sage: E = EllipticCurve(GF(31), [1,0,0,1,2])
+        sage: phi = EllipticCurveIsogeny(E, [17, 1])
+        sage: phi.domain()
+        Elliptic Curve defined by y^2 + x*y = x^3 + x + 2 over Finite Field of size 31
+        sage: phi.codomain()
+        Elliptic Curve defined by y^2 + x*y = x^3 + 24*x + 6 over Finite Field of size 31
     """
 
     ####################

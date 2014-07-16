@@ -544,8 +544,8 @@ class Groups(CategoryWithAxiom):
 
                 EXAMPLES::
 
-                    sage: SymmetricGroupAlgebra(ZZ,3).center_basis()
-                    [[2, 3, 1], [2, 1, 3], [1, 2, 3]]
+                    sage: SymmetricGroup(3).algebra(QQ).center_basis()
+                    [B[()], B[(2,3)] + B[(1,2)] + B[(1,3)], B[(1,2,3)] + B[(1,3,2)]]
 
                 .. SEEALSO::
 
@@ -664,8 +664,8 @@ class Groups(CategoryWithAxiom):
                 .. WARNING::
 
                     - This method requires the underlying group to
-                      have a method ``conjugacy_classes_representatives``
-                      (every permutation group has one, thanks GAP!).
+                      have a method
+                      ``conjugacy_classes_representatives_underlying_group``.
                     - This method does not check that the element is
                       indeed central. Use the method
                       :meth:`Monoids.Algebras.ElementMethods.is_central`
@@ -678,14 +678,15 @@ class Groups(CategoryWithAxiom):
 
                 EXAMPLES::
 
-                    sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
-                    sage: A = QS3([2,3,1])+QS3([3,1,2])
+                    sage: QS3 = SymmetricGroup(3).algebra(QQ)
+                    sage: A = QS3([2,3,1]) + QS3([3,1,2])
                     sage: A.central_form()
-                    B[[2, 3, 1]]
-                    sage: QS4 = SymmetricGroupAlgebra(QQ, 4)
+                    B[(1,2,3)]
+                    sage: QS4 = SymmetricGroup(4).algebra(QQ)
                     sage: B = sum(len(s.cycle_type())*QS4(s) for s in Permutations(4))
                     sage: B.central_form()
-                    4*B[[1, 2, 3, 4]] + 3*B[[2, 1, 3, 4]] + 2*B[[2, 1, 4, 3]] + 2*B[[2, 3, 1, 4]] + B[[2, 3, 4, 1]]
+                    4*B[()] + 3*B[(1,2)] + 2*B[(1,2)(3,4)] + 2*B[(1,2,3)] + B[(1,2,3,4)]
+
                     sage: QG = GroupAlgebras(QQ).example(PermutationGroup([[(1,2,3),(4,5)],[(3,4)]]))
                     sage: sum(i for i in QG.basis()).central_form()
                     B[()] + B[(4,5)] + B[(3,4,5)] + B[(2,3)(4,5)] + B[(2,3,4,5)] + B[(1,2)(3,4,5)] + B[(1,2,3,4,5)]
@@ -695,7 +696,7 @@ class Groups(CategoryWithAxiom):
                     - :meth:`Groups.Algebras.ParentMethods.center`
                     - :meth:`Monoids.Algebras.ElementMethods.is_central`
                 """
-                Z = self.parent().center()
+                from sage.combinat.free_module import CombinatorialFreeModule
+                Z = CombinatorialFreeModule(self.base_ring(),
+                        self.parent()._conjugacy_classes_representatives_underlying_group())
                 return sum(self[i] * Z.basis()[i] for i in Z.basis().keys())
-
-

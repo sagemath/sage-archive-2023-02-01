@@ -448,12 +448,6 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``projection_direction`` -- coordinate list/tuple/iterable
-          or ``None`` (default). The direction to use for the
-          :meth:`schlegel_projection`` of the polytope. If not
-          specified, no projection is used in dimensions `< 4` and
-          parallel projection is used in dimension `4`.
-
         - ``point``, ``line``, ``polygon`` -- Parameters to pass to
           point (0d), line (1d), and polygon (2d) plot commands.
           Allowed values are:
@@ -472,7 +466,13 @@ class Polyhedron_base(Element):
           objects in the dimension of the polytope (or of dimension 2
           for higher dimensional polytopes) and ``wireframe`` is used
           for all lower-dimensional graphics objects
-          (default: 'green' for fill and 'blue' for wireframe)
+          (default: 'green' for ``fill`` and 'blue' for ``wireframe``)
+
+        - ``projection_direction`` -- coordinate list/tuple/iterable
+          or ``None`` (default). The direction to use for the
+          :meth:`schlegel_projection`` of the polytope. If not
+          specified, no projection is used in dimensions `< 4` and
+          parallel projection is used in dimension `4`.
 
         - ``**kwds`` -- optional keyword parameters that are passed to
           all graphics objects.

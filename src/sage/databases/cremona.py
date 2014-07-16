@@ -847,15 +847,15 @@ class MiniCremonaDatabase(SQLDatabase):
 
         EXAMPLES::
 
-            sage: d = CremonaDatabase().data_from_coefficients([0, 0, 1, 3182, -53895])
+            sage: d = CremonaDatabase().data_from_coefficients([1, -1, 1, 31, 128])
             sage: d['conductor']
-            137411
+            1953
             sage: d['cremona_label']
-            '137411a1'
+            '1953c1'
             sage: d['rank']
             1
             sage: d['torsion_order']
-            1
+            2
         """
         ainvs = str(list(ainvs))
         if self.get_skeleton() == _miniCremonaSkeleton:

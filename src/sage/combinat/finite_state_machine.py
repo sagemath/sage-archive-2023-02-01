@@ -5332,12 +5332,12 @@ class FiniteStateMachine(SageObject):
                                   word[0], word[1])
 
         for state in result.states():
-            if all(map(lambda s: s.is_initial, state.label())):
+            if all(s.is_initial for s in state.label()):
                 state.is_initial = True
-            if all(map(lambda s: s.is_final, state.label())):
+            if all(s.is_final for s in state.label()):
                 state.is_final = True
                 state.final_word_out = final_function(*state.label())
-            state.color = tuple(map(lambda s: s.color, state.label()))
+            state.color = tuple(s.color for s in state.label())
 
         if only_accessible_components:
             if result.input_alphabet is None:

@@ -712,10 +712,10 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         return (u+err)/Del
 
 cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
-    r"""
-    Test Class
     """
-
+    Subclass for computing certain sums over zeros of an elliptic curve L-function
+    without having to determine the zeros themselves.
+    """
     cdef _E
     cdef _e
 
@@ -855,6 +855,62 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             aq = (2*(c**e).real()).round()
             return -aq*logp/n_float
 
+    cdef double _sincsquared_summand_1(self,
+                                       long long n,
+                                       double t,
+                                       int ap,
+                                       double p,
+                                       double logp,
+                                       double thetap,
+                                       double sqrtp,
+                                       double logq,
+                                       double thetaq,
+                                       double sqrtq,
+                                       double z):
+        r"""
+        Private cdef method to compute the logarithmic derivative
+        summand for the sinc^2 sum at prime values for when
+        n <= sqrt(bound), bound = exp(t)
+        Called in self._zerosum_sincsquared_fast() method
+        """
+        ap = self._e.ellap(n)
+        p = n
+        sqrtp = c_sqrt(p)
+        thetap = c_acos(ap/(2*sqrtp))
+        logp = c_log(p)
+
+        sqrtq = 1
+        thetaq = 0
+        logq = logp
+
+        z = 0
+        while logq < t:
+            sqrtq *= sqrtp
+            thetaq += thetap
+            z += 2*c_cos(thetaq)*(t-logq)/sqrtq
+            #print(c_exp(logq),-2*c_cos(thetaq)*(t-logq)/sqrtq*logp)
+            logq += logp
+        #print(n,-z*logp)
+        return -z*logp
+
+    cdef double _sincsquared_summand_2(self,
+                                       long long n,
+                                       double t,
+                                       int ap,
+                                       double p,
+                                       double logp):
+        r"""
+        Private cdef method to compute the logarithmic derivative
+        summand for the sinc^2 sum at prime values for when
+        sqrt(bound) < n < bound, bound = exp(t)
+        Called in self._zerosum_sincsquared_fast() method
+        """
+        ap = self._e.ellap(n)
+        p = n
+        logp = c_log(p)
+        #print(n,-(t-logp)*(logp/p)*ap)
+        return -(t-logp)*(logp/p)*ap
+
     cpdef _zerosum_sincsquared_fast(self,Delta=1,bad_primes=None):
         """
         A faster, more intelligent implementation of self._zerosum_sincsquared().
@@ -957,41 +1013,52 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         # Good prime case. Bad primes are treated as good primes, but their
         # contribution here is cancelled out above; this way we don't
         # have to check if each prime divides the level or not.
-        n = 2
+
+        # Must deal with n=2,3,5 separately
+        if t>2:
+            y += self._sincsquared_summand_1(2,t,ap,p,logp,thetap,sqrtp,
+                                                 logq,thetaq,sqrtq,z)
+        if t>3:
+            y += self._sincsquared_summand_1(3,t,ap,p,logp,thetap,sqrtp,
+                                                 logq,thetaq,sqrtq,z)
+        if t>5:
+            y += self._sincsquared_summand_1(5,t,ap,p,logp,thetap,sqrtp,
+                                                 logq,thetaq,sqrtq,z)
+        # Now iteratonly only over those n that are 1 or 5 mod 6
+        n = 11
+        # First: those n that are <= sqrt(bound)
         bound1 = c_exp(t/2)
         while n <= bound1:
+            if pari(n-4).isprime():
+                y += self._sincsquared_summand_1(n-4,t,ap,p,logp,thetap,sqrtp,
+                                                 logq,thetaq,sqrtq,z)
             if pari(n).isprime():
-                ap = self._e.ellap(n)
-                p = n
-                sqrtp = c_sqrt(p)
-                thetap = c_acos(ap/(2*sqrtp))
-                logp = c_log(p)
-
-                sqrtq = 1
-                thetaq = 0
-                logq = logp
-
-                z = 0
-                while logq < t:
-                    sqrtq *= sqrtp
-                    thetaq += thetap
-                    z += 2*c_cos(thetaq)*(t-logq)/sqrtq
-                    #print(c_exp(logq),-2*c_cos(thetaq)*(t-logq)/sqrtq*logp)
-                    logq += logp
-                y -= z*logp
-            n += 1
+                y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
+                                                 logq,thetaq,sqrtq,z)
+            n += 6
+        # Unlucky split case where n-4 <= sqrt(bound) but n isn't
+        if n-4 <= bound1 and n > bound1:
+            if pari(n-4).isprime():
+                y += self._sincsquared_summand_1(n-4,t,ap,p,logp,thetap,sqrtp,
+                                                 logq,thetaq,sqrtq,z)
+            if n <= expt and pari(n).isprime():
+                y += self._sincsquared_summand_2(n,t,ap,p,logp)
+            n += 6
+        # Now sqrt(bound)< n < bound, so we don't need to consider higher
+        # prime power logarithmic derivative coefficients
         while n <= expt:
+            if pari(n-4).isprime():
+                y += self._sincsquared_summand_2(n-4,t,ap,p,logp)
             if pari(n).isprime():
-                ap = self._e.ellap(n)
-                p = n
-                logp = c_log(p)
-                y -= (t-logp)*(logp/p)*ap
-                #print(n,-(logp/p)*(t-logp)*ap)
-            n += 1
+                y += self._sincsquared_summand_2(n,t,ap,p,logp)
+            n += 6
+        # Case where n-4 <= t but n isn't
+        n = n-4
+        if n <= expt and pari(n).isprime():
+            y += self._sincsquared_summand_2(n,t,ap,p,logp)
 
         #print(expt,t,u,w,y)
         #print
-
         return RDF(2*(u+w+y)/(t**2))
 
 def LFunctionZeroSum(X,*args,**kwds):

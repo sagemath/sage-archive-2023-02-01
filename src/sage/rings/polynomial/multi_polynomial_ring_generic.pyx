@@ -69,7 +69,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         # as well, assigning the names twice.
         #ParentWithGens.__init__(self, base_ring, names)
         sage.rings.ring.Ring.__init__(self, base_ring, names,
-                                      category=polynomial_default_category(base_ring,n>1))
+                                      category=polynomial_default_category(base_ring.category(),n>1))
 
     def is_integral_domain(self, proof = True):
         """

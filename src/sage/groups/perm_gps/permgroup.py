@@ -129,7 +129,7 @@ from sage.misc.randstate import current_randstate
 import sage.groups.old as group
 
 from sage.rings.all import QQ, Integer
-from sage.interfaces.all import is_ExpectElement
+from sage.interfaces.expect import is_ExpectElement
 from sage.interfaces.gap import gap, GapElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement, standardize_generator
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
@@ -2410,31 +2410,6 @@ class PermutationGroup_generic(group.Group):
         # FIXME: GAP certainly knows of a better way!
         phi = Q.RegularActionHomomorphism()
         return PermutationGroup(gap_group=phi.Image())
-
-    def quotient_group(self, N):
-        """
-        This function has been deprecated and will be removed in a
-        future version of Sage; use ``quotient`` instead.
-
-        Original docstring follows.
-
-        Returns the quotient of this permutation group by the normal
-        subgroup `N`.
-
-        Wraps the GAP operator "/".
-
-        TESTS::
-
-            sage: G = PermutationGroup([(1,2,3), (2,3)])
-            sage: N = PermutationGroup([(1,2,3)])
-            sage: G.quotient_group(N)
-            doctest:...: DeprecationWarning: quotient_group() is deprecated; use quotient() instead.
-            See http://trac.sagemath.org/7371 for details.
-            Permutation Group with generators [(1,2)]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(7371, 'quotient_group() is deprecated; use quotient() instead.')
-        return self.quotient(N)
 
     def commutator(self, other=None):
         r"""

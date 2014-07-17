@@ -563,7 +563,8 @@ class _Latex_prefs_object(SageObject):
     """
     An object that holds LaTeX global preferences.
     """
-    def __init__(self, bb=False, delimiters=["(", ")"]):
+    def __init__(self, bb=False, delimiters=["(", ")"],
+                 matrix_column_alignment="r"):
         """
         Define an object that holds LaTeX global preferences.
 
@@ -577,6 +578,7 @@ class _Latex_prefs_object(SageObject):
         self._option["blackboard_bold"] = bb
         self._option["matrix_delimiters"] = list(delimiters)
         self._option["vector_delimiters"] = list(delimiters)
+        self._option["matrix_column_alignment"] = matrix_column_alignment
         self._option["macros"] = ""
         self._option["preamble"] = ""
         self._option["engine"] = "pdflatex"
@@ -1287,6 +1289,52 @@ class Latex(LatexCall):
                 _Latex_prefs._option['vector_delimiters'][0] = left
             if right is not None:
                 _Latex_prefs._option['vector_delimiters'][1] = right
+
+    def matrix_column_alignment(self, align=None):
+        r"""nodetex
+        Changes the column-alignment of the LaTeX representation of
+        matrices.
+
+        INPUT:
+
+        - ``align`` - a string (``'r'`` for right, ``'c'`` for center,
+          ``'l'`` for left) or ``None``.
+
+        OUTPUT:
+
+        If ``align`` is ``None``, then returns the current
+        alignment-string. Otherwise, set this alignment.
+
+        The input ``align`` can be any string which the LaTeX
+        ``array``-environment understands as a parameter for
+        aligning a column.
+
+        EXAMPLES::
+
+            sage: a = matrix(1, 1, [42])
+            sage: latex(a)
+            \left(\begin{array}{r}
+            42
+            \end{array}\right)
+            sage: latex.matrix_column_alignment('c')
+            sage: latex(a)
+            \left(\begin{array}{c}
+            42
+            \end{array}\right)
+            sage: latex.matrix_column_alignment('l')
+            sage: latex(a)
+            \left(\begin{array}{l}
+            42
+            \end{array}\right)
+
+        Restore defaults::
+
+            sage: latex.matrix_column_alignment('r')
+        """
+        if align is None:
+            return _Latex_prefs._option['matrix_column_alignment']
+        else:
+            _Latex_prefs._option['matrix_column_alignment'] = align
 
     @cached_method
     def has_file(self, file_name):
@@ -2227,7 +2275,7 @@ def png(x, filename, density=150, debug=False,
     if not pdflatex:
         engine = "latex"
     import sage.plot.all
-    if sage.plot.all.is_Graphics(x):
+    if sage.plot.graphics.is_Graphics(x):
         x.save(filename)
         return
     # if not graphics: create a string of latex code to write in a file

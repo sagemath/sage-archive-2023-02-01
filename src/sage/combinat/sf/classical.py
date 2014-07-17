@@ -129,7 +129,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         # Partitions #
         ##############
         if x in sage.combinat.partition.Partitions():
-            return eclass(self, {sage.combinat.partition.Partition(filter(lambda x: x!=0, x)): R.one()})
+            return eclass(self, {sage.combinat.partition.Partition([z for z in x if z!=0]): R.one()})
 
         # Todo: discard all of this which is taken care by Sage's coercion
         # (up to changes of base ring)

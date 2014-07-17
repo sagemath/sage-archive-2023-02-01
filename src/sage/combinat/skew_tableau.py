@@ -252,7 +252,7 @@ class SkewTableau(CombinatorialObject, Element):
             sage: SkewTableau([[None,None,None,2,3],[None,1],[None],[2]]).inner_shape()
             [3, 1, 1]
         """
-        return Partition(filter(lambda x: x != 0, [row.count(None) for row in self]))
+        return Partition([x for x in (row.count(None) for row in self) if x != 0])
 
     def shape(self):
         r"""
@@ -302,7 +302,7 @@ class SkewTableau(CombinatorialObject, Element):
             sage: SkewTableau([[None, 2], [1, 3]]).size()
             3
         """
-        return sum([len(filter(lambda x: x is not None,row)) for row in self])
+        return sum(len([x for x in row if x is not None]) for row in self)
 
     def conjugate(self):
         """
@@ -564,7 +564,7 @@ class SkewTableau(CombinatorialObject, Element):
             [[None, 1], [1]]
         """
         t = self[:]
-        return SkewTableau( filter(lambda z: z != [], map(lambda x: filter(lambda y: y is None or y <= n, x), t)) )
+        return SkewTableau( [z for z in map(lambda x: [y for y in x if y is None or y <= n], t) if z != []] )
 
     def restriction_outer_shape(self, n):
         """
@@ -1571,7 +1571,7 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
         """
         Return the number of standard skew tableaux with shape of the skew
         partition ``skp``. This uses a formula due to Aitken
-        (see Cor. 7.16.3 of [Sta1999]_).
+        (see Cor. 7.16.3 of [Sta-EC2]_).
 
         EXAMPLES::
 

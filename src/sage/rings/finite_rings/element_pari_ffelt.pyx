@@ -194,7 +194,6 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
                 pari_catch_sig_on()
                 self.construct((<FiniteFieldElement_pari_ffelt>x).val)
             else:
-                # This is where we *would* do coercion from one finite field to another...
                 raise TypeError("no coercion defined")
 
         elif isinstance(x, Integer):

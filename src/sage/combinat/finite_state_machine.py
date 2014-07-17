@@ -2781,21 +2781,26 @@ class FiniteStateMachine(SageObject):
         return False
 
 
-    def is_Markov_chain(self):
+    def is_Markov_chain(self, is_zero=None):
         """
         Checks whether ``self`` is a Markov chain where the transition
         probabilities are modeled as input labels.
 
         INPUT:
 
-        Nothing.
+        - ``is_zero`` -- by default (``is_zero==None``), checking for
+          zero is simply done by
+          :meth:`~sage.structure.element.Element.is_zero`.  This
+          parameter can be used to provide a more sophisticated check
+          for zero, e.g. in the case of symbolic probabilities, see
+          the examples below.
 
         OUTPUT:
 
-        True or False.
+        ``True`` or ``False``.
 
-        ``on_duplicate_transition`` must be
-        ``duplicate_transition_add_input`` and the sum of the input
+        :attr:`on_duplicate_transition` must be
+        :func:`duplicate_transition_add_input` and the sum of the input
         weights of the transitions leaving a state must add up to 1.
 
         EXAMPLES::
@@ -2807,7 +2812,8 @@ class FiniteStateMachine(SageObject):
             sage: F.is_Markov_chain()
             True
 
-        ``on_duplicate_transition`` must be ``duplicate_transition_add_input``::
+        :attr:`on_duplicate_transition` must be
+        :func:`duplicate_transition_add_input`::
 
             sage: F = Transducer([[0, 0, 1/4, 0], [0, 1, 3/4, 1],
             ....:                 [1, 0, 1/2, 0], [1, 1, 1/2, 1]])
@@ -2821,12 +2827,46 @@ class FiniteStateMachine(SageObject):
             ....:                on_duplicate_transition=duplicate_transition_add_input)
             sage: F.is_Markov_chain()
             False
+
+        If the probabilities are variables in the symbolic ring,
+        :func:`~sage.symbolic.assumptions.assume` will do the trick::
+
+            sage: var('p q')
+            (p, q)
+            sage: F = Transducer([(0, 0, p, 1), (0, 0, q, 0)],
+            ....:                on_duplicate_transition=duplicate_transition_add_input)
+            sage: assume(p + q == 1)
+            sage: (p + q - 1).is_zero()
+            True
+            sage: F.is_Markov_chain()
+            True
+            sage: forget()
+            sage: del(p, q)
+
+        If the probabilities are variables in some polynomial ring,
+        the parameter ``is_zero`` can be used::
+
+            sage: R.<p, q> = PolynomialRing(QQ)
+            sage: def is_zero_polynomial(polynomial):
+            ....:     return polynomial in (p + q - 1)*R
+            sage: F = Transducer([(0, 0, p, 1), (0, 0, q, 0)],
+            ....:                on_duplicate_transition=duplicate_transition_add_input)
+            sage: F.is_Markov_chain()
+            False
+            sage: F.is_Markov_chain(is_zero_polynomial)
+            True
         """
+        def default_is_zero(expression):
+            return expression.is_zero()
+
+        is_zero_function = default_is_zero
+        if is_zero is not None:
+            is_zero_function = is_zero
 
         if self.on_duplicate_transition != duplicate_transition_add_input:
             return False
 
-        return all((sum(t.word_in[0] for t in state.transitions) - 1).is_zero()
+        return all(is_zero_function(sum(t.word_in[0] for t in state.transitions) - 1)
                    for state in self.states())
 
 

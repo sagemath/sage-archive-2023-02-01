@@ -1066,9 +1066,18 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             ((0, 0), (1, 1), (1, 2), (2, 1), (2, 2), (3, 3))
             sage: Z3square.lattice_automorphism_group(points, point_labels=(1,2,3,4,5,6))
             Permutation Group with generators [(), (3,4), (1,6)(2,5), (1,6)(2,5)(3,4)]
+
+        Point labels also work for lattice polytopes that are not
+        full-dimensional, see trac:`16669`::
+
+            sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
+            sage: lp = LatticePolytope_PPL((1,0,0),(0,1,0),(-1,-1,0))
+            sage: lp.lattice_automorphism_group(point_labels=(0,1,2))
+            Permutation Group with generators [(), (1,2), (0,1), (0,1,2), (0,2,1), (0,2)]
         """
         if not self.is_full_dimensional():
-            return self.affine_lattice_polytope().lattice_automorphism_group()
+            return self.affine_lattice_polytope().lattice_automorphism_group(
+                point_labels=point_labels)
 
         if points is None:
             points = self.vertices()

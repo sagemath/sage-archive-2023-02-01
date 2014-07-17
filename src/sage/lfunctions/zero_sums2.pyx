@@ -678,7 +678,10 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         eg = self._euler_gamma
         Deltasqrtpi = Delta*npi.sqrt()
 
-        u = -eg + log(RDF(self._N))/2 - log(npi*2)
+        t = RDF(Delta*npi*2)
+        expt = RDF(exp(t))
+
+        u = self.C0()
 
         w = RDF(0)
         for k in range(1,1001):
@@ -686,11 +689,10 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         y = RDF(0)
         n = int(1)
-        exp2piDelta = exp(2*npi*Delta)
 
         # TO DO: Error analysis to make sure this bound is good enough to
         # avoid non-negligible trucation error
-        while n < exp2piDelta:
+        while n < expt:
             cn  = self.cn(n)
             if cn != 0:
                 logn = log(RDF(n))
@@ -699,6 +701,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         # y is the truncation of an infinite sum, so we must add a value which
         # exceeds the max amount we could have left out.
+        # WARNING: The value of 0.1 has been thumbsucked
         return RDF(u+w+y+0.1)/Deltasqrtpi
 
     def _zerosum_cauchy(self,Delta=1,tau=0,num_terms=None):
@@ -1124,15 +1127,11 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         # have to check if each prime divides the level or not.
 
         # Must deal with n=2,3,5 separately
-        if t>2:
-            y += self._sincsquared_summand_1(2,t,ap,p,logp,thetap,sqrtp,
-                                                 logq,thetaq,sqrtq,z)
-        if t>3:
-            y += self._sincsquared_summand_1(3,t,ap,p,logp,thetap,sqrtp,
-                                                 logq,thetaq,sqrtq,z)
-        if t>5:
-            y += self._sincsquared_summand_1(5,t,ap,p,logp,thetap,sqrtp,
-                                                 logq,thetaq,sqrtq,z)
+        for m in [2,3,5]:
+            n = m
+            if t>n:
+                y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
+                                                     logq,thetaq,sqrtq,z)
         # Now iteratonly only over those n that are 1 or 5 mod 6
         n = 11
         # First: those n that are <= sqrt(bound)

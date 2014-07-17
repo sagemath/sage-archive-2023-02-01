@@ -24,6 +24,8 @@ for more details and a lot of examples.
     :meth:`~TransducerGenerators.Identity` | Returns a transducer realizing the identity map.
     :meth:`~TransducerGenerators.abs` | Returns a transducer realizing absolute value.
     :meth:`~TransducerGenerators.operator` | Returns a transducer realizing a binary operation.
+    :meth:`~TransducerGenerators.all` | Returns a transducer realizing logical ``and``.
+    :meth:`~TransducerGenerators.any` | Returns a transducer realizing logical ``or``.
     :meth:`~TransducerGenerators.add` | Returns a transducer realizing addition.
     :meth:`~TransducerGenerators.sub` | Returns a transducer realizing subtraction.
     :meth:`~TransducerGenerators.CountSubblockOccurrences` | Returns a transducer counting the occurrences of a subblock.
@@ -35,11 +37,14 @@ AUTHORS:
 - Clemens Heuberger (2014-04-07): initial version
 - Sara Kropf (2014-04-10): some changes in TransducerGenerator
 - Daniel Krenn (2014-04-15): improved common docstring during review
+- Clemens Heuberger, Daniel Krenn, Sara Kropf (2014-04-16 -- 2014-05-02):
+  A couple of improvements. Details see
+  #16141, #16142, #16143, #16186.
 - Sara Kropf (2014-04-29): weight transducer
 
 ACKNOWLEDGEMENT:
 
-- Daniel Krenn, Clemens Heuberger and Sara Kropf are supported by the
+- Clemens Heuberger, Daniel Krenn and Sara Kropf are supported by the
   Austrian Science Fund (FWF): P 24644-N26.
 
 Functions and methods
@@ -48,8 +53,8 @@ Functions and methods
 """
 #*****************************************************************************
 #       Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
+#                     2014 Daniel Krenn <dev@danielkrenn.at>
 #                     2014 Sara Kropf <sara.kropf@aau.at>
-#                     2014 Daniel Krenn <devel@danielkrenn.at>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -74,6 +79,8 @@ class TransducerGenerators(object):
     - :meth:`~Identity`
     - :meth:`~abs`
     - :meth:`~TransducerGenerators.operator`
+    - :meth:`~all`
+    - :meth:`~any`
     - :meth:`~add`
     - :meth:`~sub`
     - :meth:`~CountSubblockOccurrences`
@@ -317,7 +324,113 @@ class TransducerGenerators(object):
                           final_states=[0])
 
 
-    def add(self, input_alphabet):
+    def all(self, input_alphabet, number_of_operands=2):
+        """
+        Returns a transducer which realizes logical ``and`` over the given
+        input alphabet.
+
+        INPUT:
+
+        - ``input_alphabet``  -- a list or other iterable.
+
+        - ``number_of_operands`` -- (default: `2`) specifies the number
+          of input arguments for the ``and`` operation.
+
+        OUTPUT:
+
+        A transducer mapping an input word
+        `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
+        `(i_{01} \land \cdots \land i_{0d})\ldots (i_{k1} \land \cdots \land i_{kd})`.
+
+        The input alphabet of the generated transducer is the cartesian
+        product of ``number_of_operands`` copies of ``input_alphabet``.
+
+        EXAMPLE:
+
+        The following transducer realizes letter-wise
+        logical ``and``::
+
+            sage: T = transducers.all([False, True])
+            sage: T.transitions()
+            [Transition from 0 to 0: (False, False)|False,
+             Transition from 0 to 0: (False, True)|False,
+             Transition from 0 to 0: (True, False)|False,
+             Transition from 0 to 0: (True, True)|True]
+            sage: T.input_alphabet
+            [(False, False), (False, True), (True, False), (True, True)]
+            sage: T.initial_states()
+            [0]
+            sage: T.final_states()
+            [0]
+            sage: T([(False, False), (False, True), (True, False), (True, True)])
+            [False, False, False, True]
+
+        More than two operands and other input alphabets (with
+        conversion to boolean) are also possible::
+
+            sage: T3 = transducers.all([0, 1], number_of_operands=3)
+            sage: T3([(0, 0, 0), (1, 0, 0), (1, 1, 1)])
+            [False, False, True]
+        """
+        def logical_and(*args):
+            return all(args)
+        return self.operator(logical_and, input_alphabet, number_of_operands)
+
+
+    def any(self, input_alphabet, number_of_operands=2):
+        """
+        Returns a transducer which realizes logical ``or`` over the given
+        input alphabet.
+
+        INPUT:
+
+        - ``input_alphabet``  -- a list or other iterable.
+
+        - ``number_of_operands`` -- (default: `2`) specifies the number
+          of input arguments for the ``or`` operation.
+
+        OUTPUT:
+
+        A transducer mapping an input word
+        `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
+        `(i_{01} \lor \cdots \lor i_{0d})\ldots (i_{k1} \lor \cdots \lor i_{kd})`.
+
+        The input alphabet of the generated transducer is the cartesian
+        product of ``number_of_operands`` copies of ``input_alphabet``.
+
+        EXAMPLE:
+
+        The following transducer realizes letter-wise
+        logical ``or``::
+
+            sage: T = transducers.any([False, True])
+            sage: T.transitions()
+            [Transition from 0 to 0: (False, False)|False,
+             Transition from 0 to 0: (False, True)|True,
+             Transition from 0 to 0: (True, False)|True,
+             Transition from 0 to 0: (True, True)|True]
+            sage: T.input_alphabet
+            [(False, False), (False, True), (True, False), (True, True)]
+            sage: T.initial_states()
+            [0]
+            sage: T.final_states()
+            [0]
+            sage: T([(False, False), (False, True), (True, False), (True, True)])
+            [False, True, True, True]
+
+        More than two operands and other input alphabets (with
+        conversion to boolean) are also possible::
+
+            sage: T3 = transducers.any([0, 1], number_of_operands=3)
+            sage: T3([(0, 0, 0), (1, 0, 0), (1, 1, 1)])
+            [False, True, True]
+        """
+        def logical_or(*args):
+            return any(args)
+        return self.operator(logical_or, input_alphabet, number_of_operands)
+
+
+    def add(self, input_alphabet, number_of_operands=2):
         """
         Returns a transducer which realizes addition on pairs over the
         given input alphabet.
@@ -326,13 +439,17 @@ class TransducerGenerators(object):
 
         - ``input_alphabet``  -- a list or other iterable.
 
+        - ``number_of_operands`` -- (default: `2`) it specifies the number
+          of input arguments the operator takes.
+
         OUTPUT:
 
-        A transducer mapping an input word `(i_0, i'_0)\ldots (i_k, i'_k)`
-        to the word `(i_0 + i'_0)\ldots (i_k + i'_k)`.
+        A transducer mapping an input word
+        `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
+        `(i_{01} + \cdots + i_{0d})\ldots (i_{k1} + \cdots + i_{kd})`.
 
         The input alphabet of the generated transducer is the cartesian
-        product of two copies of ``input_alphabet``.
+        product of ``number_of_operands`` copies of ``input_alphabet``.
 
         EXAMPLE:
 
@@ -353,9 +470,21 @@ class TransducerGenerators(object):
             [0]
             sage: T([(0, 0), (0, 1), (1, 0), (1, 1)])
             [0, 1, 1, 2]
+
+        More than two operators can also be handled,
+        cf. :trac:`16186`::
+
+            sage: T3 = transducers.add([0, 1], number_of_operands=3)
+            sage: T3.input_alphabet
+            [(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1),
+             (1, 0, 0), (1, 0, 1), (1, 1, 0), (1, 1, 1)]
+            sage: T3([(0, 0, 0), (0, 1, 0), (0, 1, 1), (1, 1, 1)])
+            [0, 1, 2, 3]
         """
-        import operator
-        return self.operator(operator.add, input_alphabet)
+        def multioperand_add(*args):
+            return sum(args)
+        return self.operator(multioperand_add, input_alphabet,
+                             number_of_operands=number_of_operands)
 
 
     def sub(self, input_alphabet):

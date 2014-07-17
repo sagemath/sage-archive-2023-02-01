@@ -53,6 +53,9 @@ See spkg-src.
    nomials.  Collection / subset of upstream commits, latest
    being 28f4fe9464722511718050dfab7cd61d29898968.
    (Cf. #16462 and Singular trac #621.)
+ * singular-3.1.6-no_return_type.patch:
+   State return type of main functions so that Singular builds
+   with clang.
 
 Other notes
  * The option '--without-dynamic-kernel' is used on *all*

@@ -54,6 +54,14 @@ See spkg-src.
  * flint.patch: avoid underlinking FLINT in libsingular.
  * exeext.patch: Add $(EXEEXT) to some executable names.
  * cygwin64.path: Support for Cywgin64.
+ * singular-3.1.6-fix_mpoly_factor_segfault.patch:
+   Fix potential segfault in factorization of multivariate poly-
+   nomials.  Collection / subset of upstream commits, latest
+   being 28f4fe9464722511718050dfab7cd61d29898968.
+   (Cf. #16462 and Singular trac #621.)
+ * singular-3.1.6-no_return_type.patch:
+   State return type of main functions so that Singular builds
+   with clang.
 
 Other notes
  * The option '--without-dynamic-kernel' is used on *all*
@@ -74,3 +82,4 @@ Other notes
    omalloc will be replaced by xalloc. The resulting Singular executable
    and libsingular library will be slower than with omalloc, but allow
    for easier debugging of memory corruptions.
+

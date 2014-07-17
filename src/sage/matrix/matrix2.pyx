@@ -36,7 +36,7 @@ from sage.structure.sequence import Sequence
 from sage.structure.element import is_Vector
 from sage.misc.misc import verbose, get_verbose
 from sage.misc.temporary_file import graphics_filename
-from sage.rings.number_field.all import is_NumberField
+from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ, is_RationalField
@@ -4693,16 +4693,16 @@ cdef class Matrix(matrix1.Matrix):
             sage: A._eigenspace_format('galois') == 'galois'
             True
 
-        The algebraic closure of the rationals, the field of algebraic numbers,
-        (aka ``QQbar``) is implemented, while in general the algebraic closure
-        of a finite field is not implemented.  ::
+        The algebraic closure of the rationals (the field ``QQbar`` of
+        algebraic numbers) is implemented, as are algebraic closures
+        of finite fields::
 
             sage: A = matrix(QQ, 2, range(4))
             sage: A._eigenspace_format(None) == 'all'
             True
             sage: B = matrix(GF(13), 2, range(4))
-            sage: B._eigenspace_format(None) == 'galois'
-            True
+            sage: B._eigenspace_format(None)
+            'all'
 
         Subrings are promoted to fraction fields and then checked for the
         existence of algebraic closures.  ::
@@ -4715,19 +4715,12 @@ cdef class Matrix(matrix1.Matrix):
             msg = "format keyword must be None, 'all' or 'galois', not {0}"
             raise ValueError(msg.format(format))
 
-        # For subrings of implemented algebraically closed fields we
-        #   default to all eigenspaces in the absence of a format keyword
-        # Add newly implemented algebraically closed fields to list below
-        #   and implement the determintion of the actual eigenvalues
-        #   in the eigenspace_left() routine
+        # In the absence of a format keyword, we default to 'all' for
+        # subrings of fields of which an algebraic closure is implemented.
         if format is None:
-            R = self.base_ring()
-            from sage.rings.qqbar import QQbar
             try:
-                if R.fraction_field().algebraic_closure() in [QQbar]:
-                    return 'all'
-                else:
-                    return 'galois'
+                F = self.base_ring().fraction_field().algebraic_closure()
+                return 'all'
             except (NotImplementedError, AttributeError):
                 return 'galois'
         else:
@@ -5294,7 +5287,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: a = matrix(QQ, 4, range(16)); a
+            sage: a = matrix(ZZ, 4, range(16)); a
             [ 0  1  2  3]
             [ 4  5  6  7]
             [ 8  9 10 11]
@@ -5351,49 +5344,66 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.eigenvalues(extend=False)
             [2]
 
+        The method also works for matrices over finite fields::
+
+            sage: M = matrix(GF(3), [[0,1,1],[1,2,0],[2,0,1]])
+            sage: ev = M.eigenvalues(); ev
+            [2*z3, 2*z3 + 2, 2*z3 + 1]
+
+        Similarly as in the case of QQbar, the eigenvalues belong to some
+        algebraic closure but they can be converted to elements of a finite
+        field::
+
+            sage: e = ev[0]
+            sage: e.parent()
+            Algebraic closure of Finite Field of size 3
+            sage: e.as_finite_field_element()
+            (Finite Field in z3 of size 3^3, 2*z3, Ring morphism:
+              From: Finite Field in z3 of size 3^3
+              To:   Algebraic closure of Finite Field of size 3
+              Defn: z3 |--> z3)
         """
         x = self.fetch('eigenvalues')
-        if not x is None:
+        if x is not None:
             if not extend:
-                x1=Sequence([])
-                for i in x:
-                    if i in self.base_ring():
-                        x1.append(i)
-                x=x1
+                x = Sequence(i for i in x if i in self.base_ring())
             return x
 
         if not self.base_ring().is_exact():
             from warnings import warn
             warn("Using generic algorithm for an inexact ring, which will probably give incorrect results due to numerical precision issues.")
 
-        from sage.rings.qqbar import QQbar
-        G = self.fcp()   # factored charpoly of self.
-        V = []
-        i=0
-        for h, e in G:
-            if h.degree() == 1:
-                alpha = [-h[0]/h[1]]
-                V.extend(alpha*e)
-            else:
-                if extend:
-                    F = h.root_field('%s%s'%('a',i))
-                    try:
-                        alpha = F.gen(0).galois_conjugates(QQbar)
-                    except AttributeError:
-                        raise NotImplementedError, "eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
-                    V.extend(alpha*e)
-            i+=1
-        V = Sequence(V)
-        if extend:
-            self.cache('eigenvalues', V)
         if not extend:
-            V1=Sequence([])
-            for i in V:
-                if i in self.base_ring():
-                    V1.append(i)
-            V=V1
-        return V
+            return Sequence(r for r,m in self.charpoly().roots() for _ in xrange(m))
 
+        # now we need to find a natural algebraic closure for the base ring
+        K = self.base_ring()
+        try:
+            is_field = K.is_field()
+        except (ValueError,AttributeError):
+            is_field = False
+
+        if not is_field:
+            if not K.is_integral_domain():
+                raise NotImplementedError("eigenvalues() not implemented for non integral domains")
+            K = K.fraction_field()
+
+        try:
+            A = K.algebraic_closure()
+        except (AttributeError,ValueError):
+            raise NotImplementedError("algebraic closure is not implemented for %s"%K)
+
+        res = []
+        for f, e in self.charpoly().change_ring(K).factor():
+            if f.degree() == 1:
+                res.extend([-f.constant_coefficient()]*e)
+            else:
+                for r,ee in f.change_ring(A).roots():
+                    res.extend([r]*(e*ee))
+
+        eigenvalues = Sequence(res)
+        self.cache('eigenvalues', eigenvalues)
+        return eigenvalues
 
 
     def eigenvectors_left(self,extend=True):
@@ -10679,14 +10689,8 @@ cdef class Matrix(matrix1.Matrix):
             ValueError: matrix is not positive definite,
             so cannot compute Cholesky decomposition
 
-        Even in light of the above, you can sometimes get lucky
-        and arrive at a situation where a particular matrix has
-        a Cholesky decomposition when the general characteristics
-        of the matrix suggest this routine would fail. In this
-        example, the indefinite factorization produces a
-        diagonal matrix whose elements from the finite field
-        convert naturally to positive integers and are also
-        perfect squares.  ::
+        In certain cases, the algorithm can find an analogue of the
+        Cholesky decomposition over finite fields::
 
             sage: F.<a> = FiniteField(5^3)
             sage: A = matrix(F, [[         4,       2*a^2 + 3,         4*a + 1],
@@ -10697,6 +10701,12 @@ cdef class Matrix(matrix1.Matrix):
             sage: L = A.cholesky()
             sage: L*L.transpose() == A
             True
+
+            sage: F = FiniteField(7)
+            sage: A = matrix(F, [[4, 0], [0, 3]])
+            sage: A.cholesky()
+            [       2        0]
+            [       0 2*z2 + 6]
 
         TESTS:
 
@@ -10752,8 +10762,7 @@ cdef class Matrix(matrix1.Matrix):
                     except (NotImplementedError, AttributeError):
                         msg = "base field needs an algebraic closure with square roots, not {0}"
                         raise TypeError(msg.format(F))
-                    # try again
-                    sqrt = F(x.sqrt())
+                    sqrt = F(x).sqrt()
                 splits.append(sqrt)
             # move square root of the diagonal matrix
             # into the lower triangular matrix
@@ -13219,7 +13228,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.eigenvalues()
             Traceback (most recent call last):
             ...
-            NotImplementedError: eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar
+            NotImplementedError: algebraic closures of finite fields are only implemented for prime fields
 
         Subdivisions are optional.  ::
 
@@ -13596,7 +13605,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.eigenvalues()
             Traceback (most recent call last):
             ...
-            NotImplementedError: eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar
+            NotImplementedError: algebraic closures of finite fields are only implemented for prime fields
 
         Companion matrices may be selected as any one of four different types.
         See the documentation for the companion matrix constructor,

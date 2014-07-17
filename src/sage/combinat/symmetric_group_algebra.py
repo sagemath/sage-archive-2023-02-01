@@ -1624,7 +1624,6 @@ def b(tableau, star=0, base_ring=QQ):
         sage: from sage.combinat.symmetric_group_algebra import a, b, e
         sage: all( e(t) == b(t) * a(t) for t in StandardTableaux(5) )
         True
-
     """
     t = Tableau(tableau)
     if star:

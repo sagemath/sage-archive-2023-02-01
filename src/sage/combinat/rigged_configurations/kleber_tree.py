@@ -137,7 +137,7 @@ def _draw_tree(tree_node, node_label=True, style_point=None, style_node='fill=wh
         node_place_str = ".center"
 
     nb_children = len(tree_node.children)
-    half = int(nb_children/2)
+    half = nb_children // 2
     children_str = ''
     pos = [start[0],start[1]]
     start[1] += vspace

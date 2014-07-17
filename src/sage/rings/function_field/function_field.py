@@ -113,6 +113,21 @@ class FunctionField(Field):
         sage: isinstance(K, sage.rings.function_field.function_field.FunctionField)
         True
     """
+    def is_perfect(self):
+        r"""
+        Return whether this field is perfect, i.e., its characteristic is `p=0`
+        or every element has a `p`-th root.
+
+        EXAMPLES::
+
+            sage: FunctionField(QQ, 'x').is_perfect()
+            True
+            sage: FunctionField(GF(2), 'x').is_perfect()
+            False
+
+        """
+        return self.characteristic() == 0
+
     def some_elements(self):
          """
          Return a list of elements in the function field.
@@ -394,7 +409,7 @@ class FunctionField_polymod(FunctionField):
             sage: L.<w> = K.extension(y^5 - x^3 - 3*x + x*y); L
             Function field in w defined by y^5 + x*y - x^3 - 3*x
         """
-        from sage.rings.polynomial.all import is_Polynomial
+        from sage.rings.polynomial.polynomial_element import is_Polynomial
         if polynomial.parent().ngens()>1 or not is_Polynomial(polynomial):
             raise TypeError("polynomial must be univariate a polynomial")
         if names is None:

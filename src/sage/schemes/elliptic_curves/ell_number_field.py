@@ -2240,6 +2240,23 @@ class EllipticCurve_number_field(EllipticCurve_field):
         from sage.schemes.elliptic_curves.period_lattice import PeriodLattice_ell
         return PeriodLattice_ell(self,embedding)
 
+    def height_function(self):
+        """
+        Return the canonical height function attached to self.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^2 - 5)
+            sage: E = EllipticCurve(K, '11a3')
+            sage: E.height_function()
+            EllipticCurveCanonicalHeight object associated to Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in a with defining polynomial x^2 - 5
+
+        """
+        if not hasattr(self, '_height_function'):
+            from sage.schemes.elliptic_curves.height import EllipticCurveCanonicalHeight
+            self._height_function = EllipticCurveCanonicalHeight(self)
+        return self._height_function
+
     def is_isogenous(self, other, proof=True, maxnorm=100):
         """
         Returns whether or not self is isogenous to other.

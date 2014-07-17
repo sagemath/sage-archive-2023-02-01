@@ -131,7 +131,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         """
         g = self.genus()
         p = self.base_ring().characteristic()
-        return (ZZ(4*g).exact_log(p) + n/2).floor() + 1
+        return (ZZ(4*g).exact_log(p) + n//2).floor() + 1
 
     def frobenius_matrix_hypellfrob(self, N=None):
         """

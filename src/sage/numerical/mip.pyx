@@ -248,6 +248,28 @@ cdef class MixedIntegerLinearProgram(SageObject):
          sage: p.set_binary(b)
          sage: p.solve(objective_only=True)
          4.0
+
+    TESTS:
+
+    Check that :trac:`16497` is fixed::
+
+        sage: from sage.numerical.mip import MixedIntegerLinearProgram
+        sage: for type in ["binary", "integer"]:
+        ....:     k = 3
+        ....:     items = [1/5, 1/3, 2/3, 3/4, 5/7]
+        ....:     maximum=1
+        ....:     p=MixedIntegerLinearProgram()
+        ....:     box=p.new_variable(**{type:True})
+        ....:     for b in range(k):
+        ....:          p.add_constraint(p.sum([items[i]*box[i,b] for i in range(len(items))]) <= maximum)
+        ....:     for i in range(len(items)):
+        ....:         p.add_constraint(p.sum([box[i,b] for b in range(k)]) == 1)
+        ....:     p.set_objective(None)
+        ....:     _ = p.solve()
+        ....:     box=p.get_values(box)
+        ....:     print(all(v in ZZ for v in box.values()))
+        True
+        True
     """
 
     def __init__(self, solver=None, maximization=True,
@@ -755,8 +777,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         result = list()
 
-        # If indices == None, we actually want to return all constraints
-        if indices == None:
+        # If indices is None, we actually want to return all constraints
+        if indices is None:
           indices = range(b.nrows())
 
         # Only one constraint
@@ -1040,7 +1062,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
                 first = False
 
             # Upper bound
-            print ("<= "+str(ub) if ub!=None else "")
+            print ("<= "+str(ub) if ub is not None else "")
 
 
         ##### Variables
@@ -1058,8 +1080,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             lb, ub = b.col_bounds(i)
 
-            print "(min=" + ( str(lb) if lb != None else "-oo" )+",",
-            print "max=" + ( str(ub) if ub != None else "+oo" )+")"
+            print "(min=" + ( str(lb) if lb is not None else "-oo" )+",",
+            print "max=" + ( str(ub) if ub is not None else "+oo" )+")"
 
 
     def write_mps(self,filename,modern=True):
@@ -1445,8 +1467,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             constant_coefficient = f.get(-1,0)
 
             # We do not want to ignore the constant coefficient
-            max = (max - constant_coefficient) if max != None else None
-            min = (min - constant_coefficient) if min != None else None
+            max = (max - constant_coefficient) if max is not None else None
+            min = (min - constant_coefficient) if min is not None else None
 
             indices = []
             values = []
@@ -1458,11 +1480,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
               c = f[i]
               C = [(v,coeff/c) for (v,coeff) in f.iteritems() if v != -1]
               if c > 0:
-                min = min/c if min != None else None
-                max = max/c if max != None else None
+                min = min/c if min is not None else None
+                max = max/c if max is not None else None
               else:
-                tempmin = max/c if max != None else None
-                tempmax = min/c if min != None else None
+                tempmin = max/c if max is not None else None
+                tempmax = min/c if min is not None else None
                 min, max = tempmin, tempmax
               if (tuple(C),min,max) in self._constraints:
                 return None
@@ -1471,7 +1493,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             else:
               C = [(v,coeff) for (v,coeff) in f.iteritems() if v != -1]
 
-            if min == None and max == None:
+            if min is None and max is None:
                 raise ValueError("Both max and min are set to None ? Weird!")
 
             self._backend.add_linear_constraint(C, min, max, name)
@@ -1895,7 +1917,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.solve()
             9.0
         """
-        if log != None: self._backend.set_verbosity(log)
+        if log is not None: self._backend.set_verbosity(log)
 
         self._backend.solve()
 

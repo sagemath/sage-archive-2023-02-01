@@ -851,10 +851,18 @@ class LinearCode(module.Module_old):
              [0, 1, 0, 0, 1, 0, 1], [0, 0, 1, 0, 1, 1, 0],
              [1, 1, 1, 0, 0, 0, 0], [1, 0, 0, 1, 1, 0, 0],
              [0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 1, 0, 0, 1]]
+
+        TESTS::
+
+            sage: C = codes.HammingCode(3,GF(2))
+            sage: L = list(C)
+            sage: L[10].is_immutable()
+            True
+
         """
         from sage.modules.finite_submodule_iter import \
                                                 FiniteFieldsubspace_iterator
-        return FiniteFieldsubspace_iterator(self.gen_mat())
+        return FiniteFieldsubspace_iterator(self.gen_mat(), immutable=True)
 
     def ambient_space(self):
         r"""
@@ -1238,9 +1246,9 @@ class LinearCode(module.Module_old):
             # an easy thing to do. Some tricky gymnastics are used to
             # make Sage deal with objects over QQ(sqrt(q)) nicely.
             if is_even(n):
-                Pd = q**(k-n/2)*RT(Cd.zeta_polynomial())*T**(dperp - d)
-            if not(is_even(n)):
-                Pd = s*q**(k-(n+1)/2)*RT(Cd.zeta_polynomial())*T**(dperp - d)
+                Pd = q**(k-n//2) * RT(Cd.zeta_polynomial()) * T**(dperp - d)
+            else:
+                Pd = s * q**(k-(n+1)//2) * RT(Cd.zeta_polynomial()) * T**(dperp - d)
             CP = P+Pd
             f = CP/CP(1,s)
             return f(t,sqrt(q))
@@ -1410,10 +1418,20 @@ class LinearCode(module.Module_old):
 
         Does not work for very long codes since the syndrome table grows too
         large.
+
+        TESTS:
+
+        Test that the codeword returned is immutable (see :trac:`16469`)::
+
+            sage: (C.decode(v)).is_immutable()
+            True
+
         """
         from decoder import decode
         if algorithm == 'syndrome' or algorithm == 'nearest neighbor':
-            return decode(self,right)
+            c = decode(self, right)
+            c.set_immutable()
+            return c
         elif algorithm == 'guava':
             gap.load_package('guava')
             code = gap.GeneratorMatCode(self.gen_mat(), self.base_ring())
@@ -1423,7 +1441,9 @@ class LinearCode(module.Module_old):
             result = gap.VectorCodeword(result)
             from sage.interfaces.gap import gfq_gap_to_sage
             result = [gfq_gap_to_sage(v, self.base_ring()) for v in result]
-            return self.ambient_space()(result)
+            c = self.ambient_space()(result)
+            c.set_immutable()
+            return c
         else:
             raise NotImplementedError("Only 'syndrome','nearest neighbor','guava' are implemented.")
 
@@ -1699,6 +1719,11 @@ class LinearCode(module.Module_old):
             0 and 'q^k -1' (=624), inclusive, where 'q' is the size of the
             base field and 'k' is the dimension of the code.
 
+        Check that codewords are immutable. See :trac:`16338`::
+
+            sage: C[0].is_immutable()
+            True
+
         """
         # IMPORTANT: If the __iter__() function implementation is changed
         # then the implementation here must also be changed so that
@@ -1727,6 +1752,10 @@ class LinearCode(module.Module_old):
         for g in G:
             codeword += sum([ivec[j+row*m]*A[j] for j in xrange(m)])*g
             row += 1
+
+        # The codewords for a specific code can not change. So, we set them
+        # to be immutable.
+        codeword.set_immutable()
         return codeword
 
     def gen_mat(self):
@@ -2448,10 +2477,21 @@ class LinearCode(module.Module_old):
 
             sage: C.random_element(prob=.5, distribution='1/n') # random test
             (1, 0, a, 0, 0, 0, 0, a + 1, 0, 0, 0, 0, 0, 0, 0, 0, a + 1, a + 1, 1, 0, 0)
+
+        TESTS:
+
+        Test that the codeword returned is immutable (see :trac:`16469`)::
+
+            sage: c = C.random_element()
+            sage: c.is_immutable()
+            True
+
         """
         V = self.ambient_space()
         S = V.subspace(self.basis())
-        return S.random_element(*args, **kwds)
+        c = S.random_element(*args, **kwds)
+        c.set_immutable()
+        return c
 
     def redundancy_matrix(C):
         """
@@ -2532,16 +2572,16 @@ class LinearCode(module.Module_old):
         n = C.length()
         d = C.minimum_distance()
         if i == 1:
-            v = (n-4*d)/2 + 4
+            v = (n-4*d)//2 + 4
             m = d-3
-        if i == 2:
-            v = (n-6*d)/8 + 3
+        elif i == 2:
+            v = (n-6*d)//8 + 3
             m = d-5
-        if i == 3:
-            v = (n-4*d)/4 + 3
+        elif i == 3:
+            v = (n-4*d)//4 + 3
             m = d-4
-        if i == 4:
-            v = (n-3*d)/2 + 3
+        elif i == 4:
+            v = (n-3*d)//2 + 3
             m = d-3
         return [v,m]
 

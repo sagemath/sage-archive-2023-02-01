@@ -90,6 +90,7 @@ Properties
     :meth:`~FiniteStateMachine.is_connected`|Checks for a connected machine
     :meth:`~FiniteStateMachine.is_Markov_chain`|Checks for a Markov chain
     :meth:`~FiniteStateMachine.asymptotic_moments`|Main terms of expectation and variance of sums of labels
+    :meth:`~FiniteStateMachine.expected_waiting_time`|Expected waiting time for first true output
 
 Operations
 ^^^^^^^^^^
@@ -7684,6 +7685,220 @@ class FiniteStateMachine(SageObject):
         return {'expectation': e_2*variable + SR(1).Order(),
                 'variance': v_2*variable + SR(1).Order(),
                 'covariance': c*variable + SR(1).Order()}
+
+
+    def expected_waiting_time(self, is_zero=None):
+        r"""
+        If ``self`` is a Markov chain, return the expected number of
+        steps until first writing ``True``.
+
+        INPUT:
+
+        - ``is_zero`` -- by default (``is_zero==None``), checking for
+          zero is simply done by
+          :meth:`~sage.structure.element.Element.is_zero`.  This
+          parameter can be used to provide a more sophisticated check
+          for zero, e.g. in the case of symbolic probabilities, see
+          the examples below. This parameter is passed on to
+          :meth:`is_Markov_chain`.
+
+        OUTPUT:
+
+        Expected number of steps until first writing ``True`` (or
+        anything else evaluating to ``True`` when converted to a
+        boolean).
+
+        ALGORITHM:
+
+        Relies on a (classical and easy) probabilistic argument,
+        cf. [FGT1992]_, Eqns. (6) and (7).
+
+        EXAMPLES:
+
+        #.  The simplest example is to wait for the first `1` in a
+            `0`-`1`-string where both digits appear with probability
+            `1/2`. In fact, the waiting time equals `k` if and only if
+            the string starts with `0^{k-1}1`. This event occurs with
+            probability `2^{-k}`. Therefore, the expected waiting time
+            is `\sum_{k\ge 0} k2^{-k}=2`::
+
+                sage: var('k')
+                k
+                sage: sum(k*2^(-k), k, 0, infinity)
+                2
+
+            We now compute the same expectated value by using a Markov
+            chain::
+
+                sage: from sage.combinat.finite_state_machine import duplicate_transition_add_input
+                sage: T = Transducer([(0, 0, 1/2, 0), (0, 0, 1/2, 1)],
+                ....:                on_duplicate_transition=duplicate_transition_add_input,
+                ....:                initial_states=[0],
+                ....:                final_states=[0])
+                sage: T.expected_waiting_time()
+                2
+
+        #.  Make sure that the transducer is actually a Markov
+            chain. Although this is checked by the code, unexpected
+            behaviour may still occur if the transducer looks like a
+            Markov chain. In the following example, we 'forget' to
+            assign probabilities, but due to a coincidence, all
+            'probabilities' add up to one. Nevertheless, `0` is never
+            written, so the expectation is `1`.
+
+            ::
+
+                sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, 1)],
+                ....:                on_duplicate_transition=duplicate_transition_add_input,
+                ....:                initial_states=[0],
+                ....:                final_states=[0])
+                sage: T.expected_waiting_time()
+                1
+
+        #.  If ``True`` is never written, the expectation is ``+Infinity``::
+
+                sage: T = Transducer([(0, 0, 1, 0)],
+                ....:                on_duplicate_transition=duplicate_transition_add_input,
+                ....:                initial_states=[0],
+                ....:                final_states=[0])
+                sage: T.expected_waiting_time()
+                +Infinity
+
+        #.  Let `h` and `k` be positive integers. We consider random
+            strings of letters `1`, `\ldots`, `k` where the letter `j`
+            occurs with probability `p_j`. Let `B` be the random
+            variable giving the first position of a block of `h`
+            consecutive identical letters. Then
+
+            .. MATH::
+
+                \mathbb{E}(B)=\frac1{\sum_{j=1}^k \frac1{p_j^{-1}+\cdots+p_j^{-h}}},
+
+            cf. [S1986]_, p. 62. We now verify this with a transducer
+            approach. We need to set
+            ``FSMOldCodeTransducerCartesianProduct``,
+            cf. :meth:`Transducer.cartesian_product`.
+
+            ::
+
+                sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
+                sage: def test(h, k):
+                ....:     R = PolynomialRing(QQ,
+                ....:                        names=['p_%d' % j for j in range(k)])
+                ....:     p = R.gens()
+                ....:     def is_zero(polynomial):
+                ....:         return polynomial in (sum(p)-1)*R
+                ....:     theory = 1/(sum(1/sum(p[j]^(-i) for i in range(1, h+1))
+                ....:                     for j in range(k)))
+                ....:     alphabet = range(k)
+                ....:     counters = [transducers.CountSubblockOccurrences([j]*h, alphabet)
+                ....:                 for j in alphabet]
+                ....:     all_counter = counters[0].cartesian_product(counters[1:])
+                ....:     adder = transducers.add([0, 1], number_of_operands=k)
+                ....:     probabilities = Transducer([(0, 0, p[j], j) for j in alphabet],
+                ....:                                initial_states=[0],
+                ....:                                final_states=[0],
+                ....:                                on_duplicate_transition=duplicate_transition_add_input)
+                ....:     chain = adder(all_counter(probabilities))
+                ....:     result = chain.expected_waiting_time(is_zero=is_zero)
+                ....:     return  is_zero((result-theory).numerator())
+                sage: test(2, 2)
+                True
+                sage: test(2, 3)
+                True
+                sage: test(3, 3)
+                True
+                sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
+
+        TESTS:
+
+        Only Markov chains are acceptable::
+
+            sage: T = transducers.Identity([0, 1, 2])
+            sage: T.expected_waiting_time()
+            Traceback (most recent call last):
+            ...
+            ValueError: Only Markov chains can compute
+            expected_waiting_time.
+
+        There must be a unique initial state::
+
+            sage: T = Transducer([(0, 1, 1, 1), (1, 0, 1, 0)],
+            ....:                on_duplicate_transition=duplicate_transition_add_input)
+            sage: T.expected_waiting_time()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unique initial state is required.
+            sage: T.state(0).is_initial = True
+            sage: T.expected_waiting_time()
+            1
+            sage: T.state(1).is_initial = True
+            sage: T.expected_waiting_time()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unique initial state is required.
+
+        Detection of infinite waiting time for symbolic probabilities::
+
+            sage: R.<p, q> = PolynomialRing(QQ)
+            sage: T = Transducer([(0, 0, p, 0), (0, 0, q, 0)],
+            ....:                initial_states=[0],
+            ....:                on_duplicate_transition=duplicate_transition_add_input)
+            sage: T.expected_waiting_time(lambda e: e in (p + q -1)*R)
+            +Infinity
+
+        REFERENCES:
+
+        .. [FGT1992] Philippe Flajolet, Danièle Gardy, Loÿs Thimonier,
+           *Birthday paradox, coupon collectors, caching algorithms and
+           self-organizing search*, Discrete Appl. Math. 39 (1992),
+           207--229, :doi:`10.1016/0166-218X(92)90177-C`.
+
+        .. [S1986] Gábor J. Székely, *Paradoxes in Probability Theory
+           and Mathematical Statistics*, D. Reidel Publishing Company.
+        """
+        from sage.modules.free_module_element import vector
+        from sage.matrix.constructor import identity_matrix
+
+        def default_is_zero(expression):
+            return expression.is_zero()
+
+        is_zero_function = default_is_zero
+        if is_zero is not None:
+            is_zero_function = is_zero
+
+        if not self.is_Markov_chain(is_zero):
+            raise ValueError("Only Markov chains can compute "
+                             "expected_waiting_time.")
+
+        if len(self.initial_states()) != 1:
+            raise ValueError("Unique initial state is required.")
+
+        def entry(transition):
+            word_out = transition.word_out
+            if len(word_out)==0 or (
+                len(word_out) == 1 and not word_out[0]):
+                return transition.word_in[0]
+            else:
+                return 0
+
+        relabeled = self.relabeled()
+        n = len(relabeled.states())
+        assert [s.label() for s in relabeled.states()] == range(n)
+        entry_vector = vector(ZZ(s.is_initial) for s in relabeled.states())
+        exit_vector = vector([1] * n)
+        transition_matrix = relabeled.adjacency_matrix(entry=entry)
+        # we cannot use the input parameter of adjacency_matrix
+        # because we want to check for "true" input in the sense
+        # of python's boolean conversion. So we cannot give
+        # input=[False] as this might lead to strange phenomena.
+        if all(map(is_zero_function, transition_matrix * exit_vector - exit_vector)):
+            import sage.rings.infinity
+            return sage.rings.infinity.PlusInfinity()
+
+        system_matrix = identity_matrix(n) - transition_matrix
+
+        return entry_vector*system_matrix.solve_right(exit_vector)
 
 
 #*****************************************************************************

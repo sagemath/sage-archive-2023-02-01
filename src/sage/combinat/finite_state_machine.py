@@ -63,6 +63,7 @@ Manipulation
     :meth:`~FiniteStateMachine.delete_state`|Delete a state
     :meth:`~FiniteStateMachine.add_transition`|Add a transition
     :meth:`~FiniteStateMachine.add_transitions_from_function`|Add transitions
+    :attr:`~FiniteStateMachine.on_duplicate_transition`|Hook for handling duplicate transitions
     :meth:`~FiniteStateMachine.add_from_transition_function`|Add transitions by a transition function
     :meth:`~FiniteStateMachine.delete_transition`|Delete a transition
     :meth:`~FiniteStateMachine.remove_epsilon_transitions`|Remove epsilon transitions (not implemented)
@@ -2453,6 +2454,13 @@ class FiniteStateMachine(SageObject):
         sage: t4 = FSMTransition(c, d)
         sage: FiniteStateMachine([t1, t2, t3, t4])
         Finite state machine with 4 states
+    """
+
+    on_duplicate_transition = duplicate_transition_ignore
+    """
+    Which function to call when a duplicate transition is inserted.  See
+    the documentation of the parameter ``on_duplicate_transition`` of
+    the class :class:`FiniteStateMachine` for details.
     """
 
     #*************************************************************************

@@ -1169,7 +1169,7 @@ class Hankel1(BuiltinFunction):
             return self._evalf_(nu, z, parent(nu))
         return
 
-    def _evalf_(self, nu, z, parent):
+    def _evalf_(self, nu, z, parent, algorithm=None):
         r"""
         TESTS::
 
@@ -1263,7 +1263,7 @@ class Hankel2(BuiltinFunction):
             return self._evalf_(nu, z, parent(nu))
         return
 
-    def _evalf_(self, nu, z, parent):
+    def _evalf_(self, nu, z, parent, algorithm=None):
         r"""
         TESTS::
 
@@ -1357,7 +1357,7 @@ class SphericalBesselJ(BuiltinFunction):
             return self._evalf_(n, z, parent(n))
         return
 
-    def _evalf_(self, n, z, parent):
+    def _evalf_(self, n, z, parent, algorithm=None):
         r"""
         TESTS::
 
@@ -1452,7 +1452,7 @@ class SphericalBesselY(BuiltinFunction):
             return self._evalf_(n, z, parent(n))
         return
 
-    def _evalf_(self, n, z, parent):
+    def _evalf_(self, n, z, parent, algorithm=None):
         r"""
         TESTS::
 
@@ -1548,7 +1548,7 @@ class SphericalHankel1(BuiltinFunction):
             return self._evalf_(n, z, parent(n))
         return
 
-    def _evalf_(self, n, z, parent):
+    def _evalf_(self, n, z, parent, algorithm=None):
         r"""
         TESTS::
 
@@ -1644,7 +1644,7 @@ class SphericalHankel2(BuiltinFunction):
             return self._evalf_(n, z, parent(n))
         return
 
-    def _evalf_(self, n, z, parent):
+    def _evalf_(self, n, z, parent, algorithm=None):
         r"""
         TESTS::
 

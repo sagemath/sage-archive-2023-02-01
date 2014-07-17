@@ -364,7 +364,7 @@ def maxima_function(name):
 
     EXAMPLES::
 
-        sage: spherical_hankel2(2,i)
+        sage: spherical_hankel2(2,i).simplify()
         -e
     """
     # The superclass of MaximaFunction, BuiltinFunction, assumes that there
@@ -377,7 +377,7 @@ def maxima_function(name):
 
             TESTS::
 
-                sage: spherical_hankel2(2,x)
+                sage: spherical_hankel2(2,x).simplify()
                 (-I*x^2 - 3*x + 3*I)*e^(-I*x)/x^3
             """
             MaximaFunction.__init__(self, name)

@@ -428,8 +428,8 @@ cdef class LFunctionZeroSum_abstract(SageObject):
           of the 'L'-function as '\Delta' is increased. If 'tau' is the value
           of the imaginary part of a noncentral zero, the limit will be 1
           (assuming the zero is simple); otherwise the the limit will be 0.
-          Currently only implemented for the sincsquared function; otherwise
-          ignored.
+          Currently only implemented for the sincsquared and cauchy functions;
+          otherwise ignored.
 
         - ``function`` -- string (default: "sincsquared_fast") - the function
           'f(x)' as described above. Currently implemented options for 'f' are:
@@ -453,8 +453,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         OUTPUT:
 
-        A positive real number. When tau=0 this bounds from above the analytic
-        rank of the 'L'-function attached to self from above.
+        A positive real number that bounds from above the number of zeros with
+        imaginary part equal to tau. When tau=0 this is an upper bound for the
+        'L'-function's analytic rank.
 
         .. SEEALSO::
 
@@ -494,7 +495,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         elif function=="gaussian":
             return self._zerosum_gaussian(Delta=Delta)
         elif function=="cauchy":
-            return self._zerosum_cauchy(Delta=Delta)
+            return self._zerosum_cauchy(Delta=Delta,tau=tau)
         else:
             raise ValueError("Input function not recognized.")
 
@@ -502,13 +503,13 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         r"""
         Bound from above the analytic rank of the form attached to self
         by computing
-            '\sum_{\gamma} f(\Delta*\gamma),'
+            '\sum_{\gamma} f(\Delta*(\gamma-\tau)),'
         where '\gamma' ranges over the imaginary parts of the zeros of 'L_E(s)'
         along the critical strip, and 'f(x) = \sin(\pi*x)/(\pi*x)'
 
-        As '\Delta' increases this sum limits from above to the analytic rank
-        of the form, as 'f(0) = 1' is counted with multiplicity 'r', and the
-        other terms all go to 0 uniformly.
+        If '\tau=0', then as '\Delta' increases this sum limits from above to
+        the analytic rank of the 'L'-function, as 'f(0) = 1' is counted with
+        multiplicity 'r', and the other terms all go to 0 uniformly.
 
         INPUT:
 
@@ -531,8 +532,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         OUTPUT:
 
-        A positive real number. When tau=0 this bounds from above the analytic
-        rank of the 'L'-function attached to self from above.
+        A positive real number that bounds from above the number of zeros with
+        imaginary part equal to tau. When tau=0 this is an upper bound for the
+        'L'-function's analytic rank.
 
         .. SEEALSO::
 
@@ -546,10 +548,28 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: Z = LFunctionZeroSum(E)
             sage: E.lseries().zeros(2)
             [0.000000000, 5.00317001]
+
+        E is a rank 1 curve; the lowest noncentral zero has imaginary part
+        ~5.003. The zero sum with tau=0 indicates the probable existence of
+        a zero at or very close to the the central point:
+
+        ::
+
             sage: Z._zerosum_sincsquared(Delta=1,tau=0)
             1.01038406984
+
+        The zero sum also detects a zero at or near 5.003, as expected:
+
+        ::
+
             sage: Z._zerosum_sincsquared(Delta=1,tau=5.003)
             1.01681245469
+
+        However, there is definitely no zero with imaginary part near 2.5,
+        as the sum would have to be at least 1:
+
+        ::
+
             sage: Z._zerosum_sincsquared(Delta=1,tau=2.5)
             0.0580582108065
 
@@ -681,23 +701,29 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         # exceeds the max amount we could have left out.
         return RDF(u+w+y+0.1)/Deltasqrtpi
 
-    def _zerosum_cauchy(self,Delta=1,num_terms=None):
+    def _zerosum_cauchy(self,Delta=1,tau=0,num_terms=None):
         r"""
         Bound from above the analytic rank of the form attached to self
         by computing
-            '\sum_{\gamma} f(\Delta*\gamma),'
+            '\sum_{\gamma} f(\Delta*(\gamma-\tau)),'
         where '\gamma' ranges over the imaginary parts of the zeros of 'L_E(s)'
         along the critical strip, and 'f(x) = \frac{1}{1+x^2}'.
 
-        As '\Delta' increases this sum limits from above to the analytic rank
-        of the form, as 'f(0) = 1' is counted with multiplicity 'r', and the
-        other terms all go to 0 uniformly.
+        If '\tau=0', then as '\Delta' increases this sum limits from above to
+        the analytic rank of the 'L'-function, as 'f(0) = 1' is counted with
+        multiplicity 'r', and the other terms all go to 0 uniformly.
 
         INPUT:
 
-        - ``Delta`` -- positive real number (default: 1) parameter defining the
-          tightness of the zero sum, and thus the closeness of the returned
-          estimate to the actual analytic rank of the form attached to self.
+        - ``Delta`` -- positive real number (default: 1) parameter denoting the
+          tightness of the zero sum.
+
+        - ``tau`` -- real parameter (default: 0) denoting the offset of the sum
+          to be computed. When 'tau=0' the sum will limit to the analytic rank
+          of the 'L'-function as '\Delta' is increased. If 'tau' is the value
+          of the imaginary part of a noncentral zero, the limit will be 1
+          (assuming the zero is simple); otherwise the the limit will be 0.
+
         - ``num_terms`` -- positive integer (default: None): the number of
           terms computed in the truncated Dirichlet series for the L-function
           attached to self. If left at None, this is set to
@@ -707,17 +733,18 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         .. WARNING::
 
-            This value can only be computed when Delta < 2. An error will be
-            thrown if a Delta value larger than 2 is supplied. Furthermore,
-            beware that computation time is exponential in '\Delta', roughly
-            doubling for every increase of 0.1 thereof. Using '\Delta=1' will
-            yield a computation time of a few milliseconds, while '\Delta=2'
-            takes a few seconds.
+            This value can only be provably computed when Delta < 2; an error
+            will be thrown if a Delta value larger than 2 is supplied.
+            Furthermore, beware that computation time is exponential in
+            '\Delta', roughly doubling for every increase of 0.1 thereof.
+            Using '\Delta=1' will yield a computation time of a few
+            milliseconds, while '\Delta=2' takes a few seconds.
 
         OUTPUT:
 
-        A positive real number that bounds the analytic rank of the modular form
-        attached to self from above.
+        A positive real number that bounds from above the number of zeros with
+        imaginary part equal to tau. When tau=0 this is an upper bound for the
+        'L'-function's analytic rank.
 
         .. SEEALSO::
 
@@ -727,10 +754,33 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
+            sage: E.lseries().zeros(2)
+            [6.36261389, 8.60353962]
+
+        E is a rank zero curve; the lowest zero has imaginary part ~6.36. The
+        zero sum with tau=0 indicates that there are no zeros at the central
+        point (otherwise the returned value would be at least 1):
+
+        ::
+
             sage: Z = LFunctionZeroSum(E)
-            sage: E = EllipticCurve('11a')
-            sage: Z._zerosum_cauchy(Delta=1)
+            sage: Z._zerosum_cauchy(Delta=1,tau=0)
             0.970107398446
+
+        The zero sum with tau=6.36 indicates there might be a zero in the
+        vicinity:
+
+        ::
+
+            sage: Z._zerosum_cauchy(Delta=1,tau=6.36261389)
+            2.18090462633
+
+        However, there are no zeros with imaginary part close to 1.5:
+
+        ::
+
+            sage: Z._zerosum_cauchy(Delta=1,tau=1.5)
+            0.982707203755
 
         Because of the weak convergence of the Dirichlet series close to the
         critical line, the bound will in general get *worse* for larger Delta.
@@ -755,12 +805,19 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         if Delta >= 2:
             raise ValueError("Bound not provably computable for Delta >= 2")
         Del = RDF(Delta)
-
-        R1 = RDF(1)
-        s = R1/Del+R1
         if num_terms is None:
             num_terms = int(exp(2*self._pi*Del))
-        u,err = self.completed_logarithmic_derivative(s,num_terms)
+
+        if tau==0:
+            one = RDF(1)
+            s = one/Del+one
+            u,err = self.completed_logarithmic_derivative(s,num_terms)
+        else:
+            one = CDF(1)
+            s = CDF(one/Del+one, tau)
+            u,err = self.completed_logarithmic_derivative(s,num_terms)
+            u = u.real()
+
         return (u+err)/Del
 
 cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):

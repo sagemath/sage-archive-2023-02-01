@@ -441,7 +441,7 @@ interface to Singular::
           -2   # 64-bit
        [2]:
           2    # 32-bit
-          1    # 64-bit
+          -1    # 64-bit
        [3]:
           1
     ...

@@ -405,34 +405,41 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             Ls = self.logarithmic_derivative(2-s,num_terms)
             return (-self._C1 - self.digamma(2-s) - Ls[0], Ls[1])
 
-    def zerosum(self,Delta=1,function="sincsquared_fast"):
+    def zerosum(self,Delta=1,tau=0,function="sincsquared_fast"):
         r"""
         Bound from above the analytic rank of the form attached to self
         by computing
-            '\sum_{\gamma} f(\Delta*\gamma),'
+            '\sum_{\gamma} f(\Delta*(\gamma-\tau),'
         where '\gamma' ranges over the imaginary parts of the zeros of 'L_E(s)'
-        along the critical strip, and 'f(x)' is an appropriate continuous
+        along the critical strip, and 'f(x)' is an appropriate even continuous
         'L_2' function such that 'f(0)=1'.
 
-        As '\Delta' increases this sum limits from above to the analytic rank
-        of the form, as 'f(0) = 1' is counted with multiplicity 'r', and the
-        other terms all go to 0 uniformly.
+        If '\tau=0', then as '\Delta' increases this sum limits from above to
+        the analytic rank of the 'L'-function, as 'f(0) = 1' is counted with
+        multiplicity 'r', and the other terms all go to 0 uniformly.
 
         INPUT:
 
-        - ``Delta`` -- positive real number (default: 1) parameter defining the
-          tightness of the zero sum, and thus the closeness of the returned
-          estimate to the actual analytic rank of the form attached to self.
+        - ``Delta`` -- positive real number (default: 1) parameter denoting the
+          tightness of the zero sum.
+
+        - ``tau`` -- real parameter (default: 0) denoting the offset of the sum
+          to be computed. When 'tau=0' the sum will limit to the analytic rank
+          of the 'L'-function as '\Delta' is increased. If 'tau' is the value
+          of the imaginary part of a noncentral zero, the limit will be 1
+          (assuming the zero is simple); otherwise the the limit will be 0.
+          Currently only implemented for the sincsquared function; otherwise
+          ignored.
 
         - ``function`` -- string (default: "sincsquared_fast") - the function
           'f(x)' as described above. Currently implemented options for 'f' are:
 
           - ``sincquared`` -- 'f(x) = \left(\frac{\sin(\pi*x)}{(\pi*x)}\right)^2'
           - ``gaussian``   -- 'f(x) = \exp(-x^2)'
-          - ``sincquared_fast`` -- Same as "sincsquared", but faster
-            implementation; however self must be attached to an elliptic curve
-            over QQ given by its global minimal model, otherwise the returned
-            result will be incorrect.
+          - ``sincquared_fast`` -- Same as "sincsquared", but implementation
+            optimized for elliptic curve 'L'-functions with tau=0. self must
+            be attached to an elliptic curve over QQ given by its global minimal
+            model, otherwise the returned result will be incorrect.
           - ``cauchy`` -- f(x) = \frac{1}{1+x^2}; this is only computable to
             low precision, and only when Delta < 2.
 
@@ -446,8 +453,8 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         OUTPUT:
 
-        A positive real number that bounds the analytic rank of the modular form
-        attached to self from above.
+        A positive real number. When tau=0 this bounds from above the analytic
+        rank of the 'L'-function attached to self from above.
 
         .. SEEALSO::
 
@@ -460,10 +467,16 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: E = EllipticCurve('389a'); E.rank()
             2
             sage: Z = LFunctionZeroSum(E)
+            sage: E.lseries().zeros(3)
+            [0.000000000, 0.000000000, 2.87609907]
             sage: Z.zerosum(Delta=1,function="sincsquared_fast")
             2.0375000846
             sage: Z.zerosum(Delta=1,function="sincsquared")
             2.0375000846
+            sage: Z.zerosum(Delta=1,tau=2.876,function='sincsquared')
+            1.07555129565
+            sage: Z.zerosum(Delta=1,tau=1.2,function='sincsquared')
+            0.108315553775
             sage: Z.zerosum(Delta=1,function="gaussian")
             2.05689042503
 
@@ -477,7 +490,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         if function=="sincsquared_fast":
             return self._zerosum_sincsquared_fast(Delta=Delta)
         elif function=="sincsquared":
-            return self._zerosum_sincsquared(Delta=Delta)
+            return self._zerosum_sincsquared(Delta=Delta,tau=tau)
         elif function=="gaussian":
             return self._zerosum_gaussian(Delta=Delta)
         elif function=="cauchy":
@@ -485,7 +498,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         else:
             raise ValueError("Input function not recognized.")
 
-    def _zerosum_sincsquared(self,Delta=1):
+    def _zerosum_sincsquared(self,Delta=1,tau=0):
         r"""
         Bound from above the analytic rank of the form attached to self
         by computing
@@ -499,9 +512,14 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         INPUT:
 
-        - ``Delta`` -- positive real number (default: 1) parameter defining the
-          tightness of the zero sum, and thus the closeness of the returned
-          estimate to the actual analytic rank of the form attached to self.
+        - ``Delta`` -- positive real number (default: 1) parameter denoting the
+          tightness of the zero sum.
+
+        - ``tau`` -- real parameter (default: 0) denoting the offset of the sum
+          to be computed. When 'tau=0' the sum will limit to the analytic rank
+          of the 'L'-function as '\Delta' is increased. If 'tau' is the value
+          of the imaginary part of a noncentral zero, the limit will be 1
+          (assuming the zero is simple); otherwise the the limit will be 0.
 
         .. WARNING::
 
@@ -513,8 +531,8 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         OUTPUT:
 
-        A positive real number that bounds the analytic rank of the modular form
-        attached to self from above.
+        A positive real number. When tau=0 this bounds from above the analytic
+        rank of the 'L'-function attached to self from above.
 
         .. SEEALSO::
 
@@ -526,8 +544,14 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: E = EllipticCurve('37a'); E.rank()
             1
             sage: Z = LFunctionZeroSum(E)
-            sage: Z._zerosum_sincsquared(Delta=1)
+            sage: E.lseries().zeros(2)
+            [0.000000000, 5.00317001]
+            sage: Z._zerosum_sincsquared(Delta=1,tau=0)
             1.01038406984
+            sage: Z._zerosum_sincsquared(Delta=1,tau=5.003)
+            1.01681245469
+            sage: Z._zerosum_sincsquared(Delta=1,tau=2.5)
+            0.0580582108065
 
         """
 
@@ -538,23 +562,51 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         t = RDF(Delta*twopi)
         expt = RDF(exp(t))
 
-        u = t*(-eg + log(RDF(self._N))/2 - log(twopi))
-        w = RDF(npi**2/6-spence(1-RDF(1)/expt))
+        u = t*self.C0()
 
-        y = RDF(0)
-        n = int(1)
-        while n < expt:
-            cn  = self.cn(n)
-            if cn!=0:
-                logn = log(RDF(n))
-                y += cn*(t-logn)
-                #print(n,cn*(t-logn))
-            n += 1
+        # No offset: formulae are simpler
+        if tau==0:
+            w = RDF(npi**2/6-spence(1-RDF(1)/expt))
+
+            y = RDF(0)
+            n = int(1)
+            while n < expt:
+                cn  = self.cn(n)
+                if cn!=0:
+                    logn = log(RDF(n))
+                    y += cn*(t-logn)
+                    #print(n,cn*(t-logn))
+                n += 1
+        # When offset is nonzero, the digamma transform (w) must
+        # be computed as an infinite sum
+        else:
+            tau = RDF(tau)
+            cos_tau_t = (tau*t).cos()
+            sin_tau_t = (tau*t).sin()
+            w = RDF(0)
+            for k in range(1,1001):
+                a1 = tau**2/(k*(k**2+tau**2))
+                a2 = (k**2-tau**2)/(k**2+tau**2)**2
+                a3 = (2*k*tau)/(k**2+tau**2)**2
+
+                w0 = a1*t + a2
+                w0 -= (a2*cos_tau_t-a3*sin_tau_t)*exp(-k*t)
+                w += w0
+
+            y = RDF(0)
+            n = int(1)
+            while n < expt:
+                cn  = self.cn(n)
+                if cn!=0:
+                    logn = log(RDF(n))
+                    y += cn*(t-logn)*(tau*logn).cos()
+                    #print(n,cn*(t-logn))
+                n += 1
 
         #print(expt,t,u,w,y)
         #print
 
-        return 2*(u+w+y)/(t**2)
+        return (u+w+y)*2/(t**2)
 
     def _zerosum_gaussian(self,Delta=1):
         r"""

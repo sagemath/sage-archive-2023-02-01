@@ -215,7 +215,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             return self.monomial_from_smaller_permutation(
                     from_permutation_group_element(x))
 
-        return super(SymmetricGroupAlgebra, self)._element_constructor_(x)
+        return super(SymmetricGroupAlgebra_n, self)._element_constructor_(x)
 
     # _repr_ customization: output the basis element indexed by [1,2,3] as [1,2,3]
     _repr_option_bracket = False

@@ -6,7 +6,6 @@ AUTHORS:
 - William Stein (2006): initial implementation
 
 - Peter Bruin (2014): rewrite Spec as a functor
-
 """
 
 #*******************************************************************************
@@ -32,7 +31,7 @@ def Spec(R, S=None):
 
     OUTPUT:
 
-    - ``AffineScheme`` -- the affine scheme `\text{Spec}(R)`
+    - ``AffineScheme`` -- the affine scheme `\mathrm{Spec}(R)`
 
     EXAMPLES::
 
@@ -95,8 +94,8 @@ class SpecFunctor(Functor, UniqueRepresentation):
             sage: SpecFunctor()
             Spec functor from Category of commutative rings to Category of schemes
             sage: SpecFunctor(QQ)
-            Spec functor from Category of commutative rings to Category of schemes over Rational Field
-
+            Spec functor from Category of commutative rings to
+             Category of schemes over Rational Field
         """
         from sage.categories.all import CommutativeAlgebras, CommutativeRings, Schemes
 
@@ -111,7 +110,7 @@ class SpecFunctor(Functor, UniqueRepresentation):
             domain = CommutativeRings()
             codomain = Schemes(AffineScheme(base_ring))
         else:
-            raise TypeError('base (= %s) must be a commutative ring')
+            raise TypeError('base (= {}) must be a commutative ring'.format(base_ring))
         self._base_ring = base_ring
         super(SpecFunctor, self).__init__(domain, codomain)
 
@@ -119,40 +118,38 @@ class SpecFunctor(Functor, UniqueRepresentation):
         """
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.schemes.generic.spec import SpecFunctor
             sage: SpecFunctor(QQ)
-            Spec functor from Category of commutative rings to Category of schemes over Rational Field
-
+            Spec functor from Category of commutative rings to
+             Category of schemes over Rational Field
         """
-        return 'Spec functor from %s to %s' % (self.domain(), self.codomain())
+        return 'Spec functor from {} to {}'.format(self.domain(), self.codomain())
 
     def _latex_(self):
         r"""
         Return a LaTeX representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.schemes.generic.spec import SpecFunctor
             sage: latex(SpecFunctor())
             \mathrm{Spec}\colon \mathbf{CommutativeRings} \longrightarrow \mathbf{Schemes}
-
         """
-        return (r'\mathrm{Spec}\colon %s \longrightarrow %s'
-                % (self.domain()._latex_(), self.codomain()._latex_()))
+        return r'\mathrm{{Spec}}\colon {} \longrightarrow {}'.format(
+               self.domain()._latex_(), self.codomain()._latex_())
 
     def _apply_functor(self, A):
         """
         Apply the Spec functor to the commutative ring ``A``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.schemes.generic.spec import SpecFunctor
             sage: F = SpecFunctor()
-            sage: F(RR)
+            sage: F(RR) # indirect doctest
             Spectrum of Real Field with 53 bits of precision
-
         """
         return AffineScheme(A, self._base_ring)
 
@@ -160,7 +157,7 @@ class SpecFunctor(Functor, UniqueRepresentation):
         """
         Apply the Spec functor to the ring homomorphism ``f``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.schemes.generic.spec import SpecFunctor
             sage: F = SpecFunctor(GF(7))
@@ -176,7 +173,6 @@ class SpecFunctor(Functor, UniqueRepresentation):
                      To:   Univariate Polynomial Ring in t over Finite Field of size 7
                      Defn: x |--> t^2
                            y |--> t^3
-
         """
         A = f.domain()
         B = f.codomain()
@@ -193,3 +189,4 @@ is_Spec = deprecated_function_alias(16158, is_AffineScheme)
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.spec', 'Spec', AffineScheme)
+

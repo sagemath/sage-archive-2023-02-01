@@ -204,11 +204,10 @@ class SchemeHomsetFactory(UniqueFactory):
               To:   Affine Space of dimension 2 over Rational Field
         """
         category = key[2]
-        as_point_homset = key[3] if len(key) >= 4 else False
         X = extra_args.pop('X')
         Y = extra_args.pop('Y')
         base_ring = extra_args.pop('base_ring')
-        if as_point_homset:
+        if len(key) >= 4 and key[3]:
             return Y._point_homset(X, Y, category=category, base=base_ring, **extra_args)
         try:
             return X._homset(X, Y, category=category, base=base_ring, **extra_args)

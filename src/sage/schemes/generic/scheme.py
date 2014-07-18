@@ -858,13 +858,13 @@ class AffineScheme(Scheme):
         """
         from sage.categories.commutative_rings import CommutativeRings
         if not R in CommutativeRings():
-            raise TypeError("R (=%s) must be a commutative ring" % R)
+            raise TypeError("R (={}) must be a commutative ring".format(R))
         self.__R = R
         if not S is None:
             if not S in CommutativeRings():
-                raise TypeError("S (=%s) must be a commutative ring" % S)
+                raise TypeError("S (={}) must be a commutative ring".format(S))
             if not R.has_coerce_map_from(S):
-                raise ValueError("There must be a natural map S --> R, but S = %s and R = %s" % (S, R))
+                raise ValueError("There must be a natural map S --> R, but S = {} and R = {}".format(S, R))
         Scheme.__init__(self, S, category=category)
 
     def __setstate__(self, state):
@@ -893,7 +893,7 @@ class AffineScheme(Scheme):
 
         INPUT:
 
-        - ``X`` -- anything.
+        - ``X`` -- anything
 
         OUTPUT:
 
@@ -958,10 +958,10 @@ class AffineScheme(Scheme):
             sage: Spec(PolynomialRing(QQ, 3, 'x'))._repr_()
             'Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field'
         """
-        return "Spectrum of %s"%self.__R
+        return "Spectrum of {}".format(self.__R)
 
     def _latex_(self):
-        """
+        r"""
         Return a LaTeX representation of ``self``.
 
         OUTPUT:
@@ -976,7 +976,7 @@ class AffineScheme(Scheme):
             sage: S._latex_()
             '\\mathrm{Spec}(\\Bold{Z}[x_{0}, x_{1}])'
         """
-        return "\\mathrm{Spec}(%s)" % self.__R._latex_()
+        return "\\mathrm{{Spec}}({})".format(self.__R._latex_())
 
     def __call__(self, *args):
         """
@@ -987,10 +987,10 @@ class AffineScheme(Scheme):
         The argument ``x`` must be one of the following:
 
         - a prime ideal of the coordinate ring; the output will
-          be the corresponding point of X
+          be the corresponding point of `X`
 
-        - a ring or a scheme S; the output will be the set X(S) of
-          S-valued points on X
+        - a ring or a scheme `S`; the output will be the set `X(S)` of
+          `S`-valued points on `X`
 
         EXAMPLES::
 
@@ -1010,6 +1010,7 @@ class AffineScheme(Scheme):
             of Multivariate Polynomial Ring in x, y, z over Rational Field
 
         This indicates the fix of :trac:`12734`::
+
             sage: S = Spec(ZZ)
             sage: S(ZZ)
             Set of rational points of Spectrum of Integer Ring
@@ -1074,7 +1075,7 @@ class AffineScheme(Scheme):
 
         OUTPUT:
 
-        Boolean. Return True if this scheme is Noetherian.
+        Boolean. Return ``True`` if this scheme is Noetherian.
 
         EXAMPLES::
 
@@ -1125,7 +1126,7 @@ class AffineScheme(Scheme):
 
         INPUT:
 
-        - ``R`` -- an affine scheme or a commutative ring.
+        - ``R`` -- an affine scheme or a commutative ring
 
         EXAMPLES::
 
@@ -1138,7 +1139,7 @@ class AffineScheme(Scheme):
         if R in CommutativeRings():
             return AffineScheme(self.coordinate_ring().base_extend(R), self.base_ring())
         if not self.base_scheme() == R.base_scheme():
-            raise ValueError('The new base scheme must be a scheme over the old base scheme.')
+            raise ValueError('the new base scheme must be a scheme over the old base scheme')
         return AffineScheme(self.coordinate_ring().base_extend(new_base.coordinate_ring()),
                             self.base_ring())
 
@@ -1163,13 +1164,13 @@ class AffineScheme(Scheme):
         INPUT:
 
         - ``x`` -- anything hat determines a scheme morphism. If ``x``
-          is a scheme, try to determine a natural map to ``x``.
+          is a scheme, try to determine a natural map to ``x``
 
-        - ``Y`` -- the codomain scheme (optional). If ``Y`` is not
-          given, try to determine ``Y`` from context.
+        - ``Y`` -- the codomain scheme (optional); if ``Y`` is not
+          given, try to determine ``Y`` from context
 
-        - ``check`` -- boolean (optional, default=``True``). Whether
-          to check the defining data for consistency.
+        - ``check`` -- boolean (optional, default: ``True``); whether
+          to check the defining data for consistency
 
         OUTPUT:
 
@@ -1192,7 +1193,7 @@ class AffineScheme(Scheme):
 
         TESTS:
 
-        We can construct a morphism to an affine curve (trac #7956)::
+        We can construct a morphism to an affine curve (:trac:`7956`)::
 
             sage: S.<p,q> = QQ[]
             sage: A1.<r> = AffineSpace(QQ,1)
@@ -1203,7 +1204,6 @@ class AffineScheme(Scheme):
               To:   Affine Curve over Rational Field defined by p - 2
               Defn: Defined on coordinates by sending (r) to
                     (2, r)
-
         """
         if is_Scheme(x):
             return self.Hom(x).natural_map()

@@ -40,6 +40,7 @@ def find_recursive_construction(k,n):
     - :func:`construction_q_x`
     - :func:`thwart_lemma_3_5`
     - :func:`thwart_lemma_4_1`
+    - :func:`three_factor_product`
 
     INPUT:
 
@@ -76,7 +77,8 @@ def find_recursive_construction(k,n):
                    find_construction_3_6,
                    find_q_x,
                    find_thwart_lemma_3_5,
-                   find_thwart_lemma_4_1]:
+                   find_thwart_lemma_4_1,
+                   find_three_factor_product]:
         res = find_c(k,n)
         if res:
             return res
@@ -1349,3 +1351,288 @@ def thwart_lemma_4_1(k,n,m):
                 B[k+i] = None
 
     return wilson_construction(OA,k,n,m,4,[n-2,]*4,check=False)
+
+def find_three_factor_product(k,n):
+    r"""
+    Finds a decomposition for a three-factor product from [DukesLing14]_
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    .. SEEALSO::
+
+        :func:`three_factor_product`
+
+    OUTPUT:
+
+    A pair ``f,args`` such that ``f(*args)`` returns the requested OA.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_three_factor_product
+        sage: find_three_factor_product(10,648)[1]
+        (9, 8, 9, 9)
+        sage: find_three_factor_product(10,50)
+        False
+    """
+    # we want to write n=n1*n2*n3 where n1<=n2<=n3 and we can build:
+    # - a OA(k-1,n1)
+    # - a OA( k ,n2)
+    # - a OA( k ,n3)
+    from sage.rings.arith import divisors
+    for n1 in divisors(n)[1:-1]:
+        if not orthogonal_array(k-1,n1,existence=True):
+            continue
+        for n2 in divisors(n//n1):
+            n3 = n//n1//n2
+            if (n2<n1 or
+                n3<n2 or
+                not orthogonal_array(k,n2,existence=True) or
+                not orthogonal_array(k,n3,existence=True)):
+                continue
+            return three_factor_product,(k-1,n1,n2,n3)
+
+    return False
+
+def three_factor_product(k,n1,n2,n3,check=False):
+    r"""
+    Returns an `OA(k+1,n_1n_2n_3)`
+
+    The three factor product construction from [DukesLing14]_ does the following:
+
+        If `n_1\leq n_2\leq n_3` are such that there exists an
+        `OA(k,n_1),OA(k+1,n_2)` and `OA(k+1,n_3)`, then there exists a
+        `OA(k+1,n_1n_2n_3)`.
+
+    It works with a modified product of orthogonal arrays ([Rees93]_, [Rees00]_)
+    which keeps track of parallel classes in the `OA` (the definition is given
+    for transversal designs).
+
+        A subset of blocks in an `TD(k,n)` is called a `c`-parallel class if
+        every point is covered exactly `c` times. A 1-parallel class is a
+        parallel class.
+
+    The modified product:
+
+        If there exists an `OA(k,n_1)`, and if there exists an `OA(k,n_2)` whose
+        blocks are partitionned into `s` `n_1`-parallel classes and `n_2-sn_1`
+        parallel classes, then there exists an `OA(k,n_1n_2)` whose blocks can
+        be partitionned into `sn_1^2` parallel classes and
+        `(n_1n_2-sn_1^2)/n_1=n_2-sn_1` `n_1`-parallel classes.
+
+        Proof:
+
+        - The product of the blocks of a parallel class with an `OA(k,n_1)`
+          yields an `n_1`-parallel class of an `OA(k,n_1n_2)`.
+
+        - The product of the blocks of a `n_1`-parallel class of `OA(k,n_2)`
+          with an `OA(k,n_1)` can be done in such a way that it yields `n_1n_2`
+          parallel classes of `OA(k,n_1n_2)`. Those classes cover exactly the
+          pairs that woud have been covered with the usual product.
+
+          This can be achieved by simple cyclic permutations. Let us build the
+          product of the `n_1`-parallel class `\mathcal P\subseteq OA(k,n_2)`
+          with `OA(k,n_1)`: when computing the product of `P\in\mathcal P` with
+          `B^1\in OA(k,n_1)` the `i`-th coordinate should not be `(B^1_i,P_i)`
+          but `(B^1_i+r,P_i)` (the sum is mod `n_1`) where `r` is the number of
+          blocks of `\mathcal P` we have already processed whose `i`-th
+          coordinate is equal to `P_i` (note that `r< n_1` as `\mathcal P` is
+          `n_1`-parallel).
+
+    With these tools, one can obtain the designs promised by the three factors
+    construction applied to `k,n_1,n_2,n_3` (thanks to Julian R. Abel's help):
+
+        1) Let `s` be the largest integer `\leq n_3/n_1`. Apply the product
+           construction to `OA(k,n_1)` and a resolvable `OA(k,n_3)` whose blocks
+           are partitionned into `s` `n_1`-parallel classes and `n_3-sn_1`
+           parallel classes. It results in a `OA(k,n_1n_3)` partitionned into
+           `sn_1^2` parallel classes plus `(n_1n_3-sn_1^2)/n_1=n_3-sn_1`
+           `n_1`-parallel classes.
+
+        2) Add `n_3-n_1` parallel classes to every `n_1`-parallel class to turn
+           them into `n_3`-parallel classes. Apply the product construction to
+           this partitionned `OA(k,n_1n_3)` with a resolvable `OA(k,n_2)`.
+
+        3) As `OA(k,n_2)` is resolvable, the `n_2`-parallel classes of
+           `OA(k,n_1n_2n_3)` are actually the union of `n_2` parallel classes,
+           thus the `OA(k,n_1n_2n_3)` is resolvable and can be turned into an
+           `OA(k+1,n_1n_2n_3)`
+
+    INPUT:
+
+    - ``k,n1,n2,n3`` (integers)
+
+    - ``check`` -- (boolean) Whether to check that everything is going smoothly
+      while the design is being built. It is disabled by default, as the
+      constructor of orthogonal arrays checks the final design anyway.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import three_factor_product
+        sage: OA = three_factor_product(9,8,9,9) # long time
+        sage: is_orthogonal_array(OA,10,8*9*9)   # long time
+        True
+
+    REFERENCE:
+
+    .. [DukesLing14] A three-factor product construction for mutually orthogonal latin squares,
+      Peter J. Dukes, Alan C.H. Ling,
+      http://arxiv.org/abs/1401.1466
+
+    .. [Rees00] Truncated Transversal Designs: A New Lower Bound on the Number of Idempotent MOLS of Side,
+      Rolf S. Rees,
+      Journal of Combinatorial Theory, Series A 90.2 (2000): 257-266.
+
+    .. [Rees93] Two new direct product-type constructions for resolvable group-divisible designs,
+      Rolf S. Rees,
+      Journal of Combinatorial Designs 1.1 (1993): 15-26.
+    """
+    from itertools import izip
+    assert n1<=n2 and n2<=n3
+
+    def assert_c_partition(classs,k,n,c):
+        r"""
+        Makes sure that ``classs`` contains blocks `B` of size `k` such that the list of
+        ``B[i]`` covers `[n]` exactly `c` times for every index `i`.
+        """
+        c = int(c)
+        assert all(len(B)==k for B in classs), "A block has length {}!=k(={})".format(len(B),k)
+        assert len(classs) == n*c, "not the right number of blocks"
+        for p in zip(*classs):
+            assert all(x==i//c for i,x in enumerate(sorted(p))), "A class is not c(={})-parallel".format(c)
+
+    def product_with_parallel_classes(OA1,k,g1,g2,g1_parall,parall,check=True):
+        r"""
+        Returns the product of two OA while keeping track of parallel classes
+
+        INPUT:
+
+        - ``OA1`` (an `OA(k,g_1)`
+
+        - ``k,g1,g2`` integers
+
+        - ``g1_parall`` -- list of `g_1`-parallel classes
+
+        - ``parall`` -- list of parallel classes
+
+        .. NOTE::
+
+            The list ``s_parall+parall`` should be a `OA(k,g_2)`
+
+        OUTPUT:
+
+        Two lists of classes ``g1_parall`` and ``parallel`` which are respectively
+        `g_1`-parallel and parallel classes such that ``g1_parall+parallel`` is an
+        `OA(k,g1*g2)``.
+        """
+        if check:
+            for classs in g1_parall:
+                assert_c_partition(classs,k,g2,g1)
+            for classs in parall:
+                assert_c_partition(classs,k,g2,1)
+
+        # New parallel classes, built from a g1-parallel class with shifted copies
+        # of OA1
+
+        new_parallel_classes = []
+        for classs2 in g1_parall:
+
+            # Keep track of how many times we saw each point of [k]x[g2]
+            count = [[0]*g2 for _ in range(k)]
+
+            copies_of_OA1 = []
+            for B2 in classs2:
+                copy_of_OA1 = []
+
+                shift = [count[i][x2] for i,x2 in enumerate(B2)]
+                assert max(shift) < g1
+
+                for B1 in OA1:
+                    copy_of_OA1.append([x2*g1+(x1+sh)%g1 for sh,x1,x2 in izip(shift,B1,B2)])
+
+                copies_of_OA1.append(copy_of_OA1)
+
+                # Update the counts
+                for i,x2 in enumerate(B2):
+                    count[i][x2]+=1
+
+            new_parallel_classes.extend(map(list,zip(*copies_of_OA1)))
+
+        # New g1-parallel classes, each one built from the product of a parallel
+        # class with a OA1
+
+        new_g1_parallel_classes = []
+        for classs2 in parall:
+            disjoint_copies_of_OA1 = []
+            for B2 in classs2:
+                for B1 in OA1:
+                    disjoint_copies_of_OA1.append([x2*g1+x1 for x1,x2 in izip(B1,B2)])
+            new_g1_parallel_classes.append(disjoint_copies_of_OA1)
+
+        # Check our stuff before we return it
+        if check:
+            profile = [i for i in range(g2*g1) for _ in range(g1)]
+            for classs in new_g1_parallel_classes:
+                assert_c_partition(classs,k,g2*g1,g1)
+            profile = range(g2*g1)
+            for classs in new_parallel_classes:
+                assert_c_partition(classs,k,g2*g1,1)
+
+        return new_g1_parallel_classes, new_parallel_classes
+
+    # The three factors product construction begins !
+    #
+    # OA1 and resolvable OA2 and OA3
+    OA1 = orthogonal_array(k,n1)
+    OA3 = orthogonal_array(k+1,n3)
+    OA3.sort()
+    OA3 = [B[1:] for B in OA3]
+    OA2 = orthogonal_array(k+1,n2)
+    OA2.sort()
+    OA2 = [B[1:] for B in OA2]
+
+    # We split OA3 into as many n1-parallel classes as possible, i.e. n3//n1 classes of size n1*n3
+    OA3_n1_parall = [OA3[i*n1*n3:(i+1)*n1*n3] for i in range(n3//n1)]
+
+    # Leftover blocks become parallel classes. We must split them into slices of
+    # length n3
+    OA3_parall    = OA3[len(OA3_n1_parall)*n1*n3:]
+    OA3_parall    = [OA3_parall[i*n3:(i+1)*n3] for i in range(len(OA3_parall)/n3)]
+
+    # First product: OA1 and OA3
+    n1_parall, parall = product_with_parallel_classes(OA1,k,n1,n3,OA3_n1_parall,OA3_parall,check=check)
+
+    if check:
+        OA_13 = [block for classs in parall+n1_parall for block in classs]
+        assert is_orthogonal_array(OA_13,k,n1*n3,2,1)
+
+    # Add parallel classes to turn the n1-parall classes into n2-parallel classes
+    for classs in n1_parall:
+        for i in range(n2-n1):
+            classs.extend(parall.pop())
+
+    n2_parall = n1_parall
+    del n1_parall
+
+    # We compute the product of OA2 with our decomposition of OA1xOA2 into
+    # n2-parallel classes and parallel classes
+    n2_parall, parall = product_with_parallel_classes(OA2,k,n2,n1*n3,n2_parall,parall,check=check)
+    for n2_classs in n2_parall:
+        for i in range(n2):
+            partition = [B for j in range(n1*n3) for B in n2_classs[j*n2**2+i*n2:j*n2**2+(i+1)*n2]]
+            parall.append(partition)
+
+    # That's what we fought for: this design is resolvable, so let's add a last
+    # column to them
+    for i,classs in enumerate(parall):
+        for B in classs:
+            B.append(i)
+
+    OA = [block for classs in parall for block in classs]
+
+    if check:
+        assert is_orthogonal_array(OA,k+1,n1*n2*n3,2,1)
+
+    return OA

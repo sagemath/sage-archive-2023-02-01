@@ -93,6 +93,7 @@ Properties
     :meth:`~FiniteStateMachine.is_complete` | Checks for a complete machine
     :meth:`~FiniteStateMachine.is_connected` | Checks for a connected machine
     :meth:`~FiniteStateMachine.is_Markov_chain` | Checks for a Markov chain
+    :meth:`~FiniteStateMachine.is_monochromatic` | Checks whether the colors of all states are equal
     :meth:`~FiniteStateMachine.asymptotic_moments` | Main terms of expectation and variance of sums of labels
 
 
@@ -183,6 +184,7 @@ LaTeX output
     :attr:`~FSMState.is_initial` | Describes whether a state is initial or not
     :meth:`~FSMState.label` | Label of a state
     :meth:`~FSMState.relabeled` | Returns a relabeled deep copy of a state
+    :meth:`~FSMState.fully_equal` | Checks whether two states are fully equal (including all attributes)
 
 
 :class:`FSMTransition`
@@ -208,7 +210,9 @@ Helper Functions
     :widths: 30, 70
     :delim: |
 
+    :func:`equal` | Checks whether all elements of ``iterator`` are equal
     :func:`full_group_by` | Group iterable by values of some key
+    :func:`startswith` | Determine whether list starts with the given prefix
     :func:`FSMLetterSymbol` | Returns a string associated to the input letter
     :func:`FSMWordSymbol` | Returns a string associated to a word
     :func:`is_FSMState` | Tests whether an object inherits from :class:`FSMState`

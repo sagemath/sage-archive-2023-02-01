@@ -1418,7 +1418,7 @@ class FSMState(SageObject):
         return (not (left == right))
 
 
-    def fully_equal(left, right):
+    def fully_equal(left, right, compare_color=True):
         """
         Checks whether two states are fully equal, i.e., including all
         attributes except ``hook``.
@@ -1428,6 +1428,9 @@ class FSMState(SageObject):
         - ``left`` -- a state.
 
         - ``right`` -- a state.
+
+        - ``compare_color`` -- If ``True`` (default) colors are
+          compared as well, otherwise not.
 
         OUTPUT:
 
@@ -1444,13 +1447,19 @@ class FSMState(SageObject):
             False
             sage: A == B
             True
+            sage: A.is_initial = True; A.color = 'green'
+            sage: A.fully_equal(B)
+            True
+            sage: A.fully_equal(B, compare_color=False)
+            False
         """
+        color = compare_color or left.color == right.color
         return (left.__eq__(right) and
                 left.is_initial == right.is_initial and
                 left.is_final == right.is_final and
                 left.final_word_out == right.final_word_out and
                 left.word_out == right.word_out and
-                left.color == right.color)
+                color)
 
 
     def __nonzero__(self):

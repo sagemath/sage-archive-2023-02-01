@@ -2897,15 +2897,19 @@ class Graphics(SageObject):
             figure = self.matplotlib(**options)
             # You can output in PNG, PS, EPS, PDF, PGF, or SVG format, depending
             # on the file extension.
-            # PGF is handled by a different backhend
+            # PGF is handled by a different backend
             if ext == '.pgf':
                 from sage.misc.sage_ostools import have_program
-                latex_implementations=[ i for i in ["xelatex", "pdflatex", "lualatex"] if have_program(i)]
-                if len(latex_implementations)==0:
-                    raise ValueError("Matplotlib requires either xelatex, lualatex, or pdflatex.")
-                if latex_implementations[0]=="pdflatex":
-                    # use pdflatex and set font encoding as per matplotlib
-                    # documentation: http://matplotlib.org/users/pgf.html#pgf-tutorial
+                latex_implementations = [i for i in ["xelatex", "pdflatex",
+                                                     "lualatex"]
+                                         if have_program(i)]
+                if not latex_implementations:
+                    raise ValueError("Matplotlib requires either xelatex, "
+                                     "lualatex, or pdflatex.")
+                if latex_implementations[0] == "pdflatex":
+                    # use pdflatex and set font encoding as per
+                    # matplotlib documentation:
+                    # http://matplotlib.org/users/pgf.html#pgf-tutorial
                     pgf_options= {
                             "pgf.texsystem": "pdflatex",
                             "pgf.preamble": [
@@ -2961,14 +2965,14 @@ class Graphics(SageObject):
 
         EXAMPLES::
 
-            sage: L=line([(0,0), (1,1)],axes=False)
+            sage: L = line([(0,0), (1,1)], axes=False)
             sage: L._latex_()     # not tested
             '%% Creator: Matplotlib, PGF backend...
         """
-        tmpfilename=tmp_filename(ext='.pgf')
-        self.save(filename=tmpfilename,**kwds)
-        with open (tmpfilename, "r") as tmpfile:
-                latex_list=tmpfile.readlines()
+        tmpfilename = tmp_filename(ext='.pgf')
+        self.save(filename=tmpfilename, **kwds)
+        with open(tmpfilename, "r") as tmpfile:
+                latex_list = tmpfile.readlines()
         return ''.join(latex_list)
 
     def description(self):
@@ -3370,14 +3374,15 @@ class GraphicsArray(SageObject):
 
         EXAMPLES::
 
-            sage: A=graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
+            sage: A = graphics_array([[plot(sin), plot(cos)],
+            ....:   [plot(tan), plot(sec)]])
             sage: A._latex_()     # not tested
             '%% Creator: Matplotlib, PGF backend...
         """
-        tmpfilename=tmp_filename(ext='.pgf')
-        self.save(filename=tmpfilename,**args)
-        with open (tmpfilename, "r") as tmpfile:
-                latex_list=tmpfile.readlines()
+        tmpfilename = tmp_filename(ext='.pgf')
+        self.save(filename=tmpfilename, **args)
+        with open(tmpfilename, "r") as tmpfile:
+                latex_list = tmpfile.readlines()
         return ''.join(latex_list)
 
     def show(self, filename=None, dpi=DEFAULT_DPI, figsize=None,

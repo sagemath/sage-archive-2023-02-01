@@ -1449,11 +1449,11 @@ class FSMState(SageObject):
             True
             sage: A.is_initial = True; A.color = 'green'
             sage: A.fully_equal(B)
-            True
-            sage: A.fully_equal(B, compare_color=False)
             False
+            sage: A.fully_equal(B, compare_color=False)
+            True
         """
-        color = compare_color or left.color == right.color
+        color = not compare_color or left.color == right.color
         return (left.__eq__(right) and
                 left.is_initial == right.is_initial and
                 left.is_final == right.is_final and

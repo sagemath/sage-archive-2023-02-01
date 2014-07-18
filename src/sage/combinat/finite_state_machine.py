@@ -643,7 +643,43 @@ def full_group_by(l, key=lambda x: x):
         elements[s].append(item)
     return [(original_keys[s], values ) for (s, values) in elements.items()]
 
+
+def check_equal(iterator):
+    """
+    Checks whether all elements of ``iterator`` are equal.
+
+    INPUT:
+
+    - ``iterator`` -- an iterator of the elements to check
+
+    OUTPUT:
+
+    ``True`` or ``False``.
+
+    This implements `<http://stackoverflow.com/a/3844832/1052778>`_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.finite_state_machine import check_equal
+        sage: check_equal([0, 0, 0])
+        True
+        sage: check_equal([0, 1, 0])
+        False
+        sage: check_equal([])
+        True
+        sage: check_equal(iter([None, None]))
+        True
+    """
+    try:
+        iterator = iter(iterator)
+        first = next(iterator)
+        return all(first == rest for rest in iterator)
+    except StopIteration:
+        return True
+
+
 #*****************************************************************************
+
 
 FSMEmptyWordSymbol = '-'
 EmptyWordLaTeX = r'\varepsilon'

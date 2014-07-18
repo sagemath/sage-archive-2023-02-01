@@ -638,7 +638,52 @@ def full_group_by(l, key=lambda x: x):
         elements[s].append(item)
     return [(original_keys[s], values ) for (s, values) in elements.items()]
 
+
+def equal(iterator):
+    """
+    Checks whether all elements of ``iterator`` are equal.
+
+    INPUT:
+
+    - ``iterator`` -- an iterator of the elements to check
+
+    OUTPUT:
+
+    ``True`` or ``False``.
+
+    This implements `<http://stackoverflow.com/a/3844832/1052778>`_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.finite_state_machine import equal
+        sage: equal([0, 0, 0])
+        True
+        sage: equal([0, 1, 0])
+        False
+        sage: equal([])
+        True
+        sage: equal(iter([None, None]))
+        True
+
+    We can test other properties of the elements than the elements
+    themselves. In the following example, we check if all tuples have
+    the same lengths::
+
+        sage: equal(len(x) for x in [(1, 2), (2, 3), (3, 1)])
+        True
+        sage: equal(len(x) for x in [(1, 2), (1, 2, 3), (3, 1)])
+        False
+    """
+    try:
+        iterator = iter(iterator)
+        first = next(iterator)
+        return all(first == rest for rest in iterator)
+    except StopIteration:
+        return True
+
+
 #*****************************************************************************
+
 
 FSMEmptyWordSymbol = '-'
 EmptyWordLaTeX = r'\varepsilon'
@@ -5171,29 +5216,30 @@ class FiniteStateMachine(SageObject):
                                    new_input_alphabet=None,
                                    only_accessible_components=True,
                                    final_function=None):
-        """
+        r"""
         Returns a new finite state machine whose states are
-        pairs of states of the original finite state machines.
+        `d`-tuples of states of the original finite state machines.
 
         INPUT:
 
-        - ``other`` -- a finite state machine
+        - ``other`` -- a finite state machine (for `d=2`) or a list
+          (or iterable) of `d-1` finite state machines.
 
-        - ``function`` has to accept two transitions from `A` to `B`
-          and `C` to `D` and returns a pair ``(word_in, word_out)``
-          which is the label of the transition `(A, C)` to `(B,
-          D)`. If there is no transition from `(A, C)` to `(B, D)`,
+        - ``function`` has to accept `d` transitions from `A_j` to `B_j`
+          for `j\in\{1, \ldots, d\}` and returns a pair ``(word_in, word_out)``
+          which is the label of the transition `A=(A_1, \ldots, A_d)` to `B=(B_1,
+          \ldots, B_d)`. If there is no transition from `A` to `B`,
           then ``function`` should raise a ``LookupError``.
 
-        - ``new_input_alphabet`` (optional)-- the new input alphabet
+        - ``new_input_alphabet`` (optional) -- the new input alphabet
           as a list.
 
-        - ``only_accessible_components`` -- If true (default), then
+        - ``only_accessible_components`` -- If ``True`` (default), then
           the result is piped through ``accessible_components``. If no
           ``new_input_alphabet`` is given, it is determined by
           :meth:`.determine_alphabets`.
 
-        - ``final_function`` -- A function mapping two final states of
+        - ``final_function`` -- A function mapping `d` final states of
           the original finite state machines to the final output of
           the corresponding state in the new finite state machine. By
           default, the final output is the empty word if both final
@@ -5202,9 +5248,9 @@ class FiniteStateMachine(SageObject):
 
         OUTPUT:
 
-        A finite state machine whose states are pairs of states of the
+        A finite state machine whose states are `d`-tuples of states of the
         original finite state machines. A state is initial or
-        final if both constituent states are initial or final,
+        final if all constituent states are initial or final,
         respectively.
 
         The labels of the transitions are defined by ``function``.
@@ -5282,6 +5328,39 @@ class FiniteStateMachine(SageObject):
             sage: H.final_states()[0].final_word_out
             [2]
 
+        Products of more than two finite state machines are also possible::
+
+            sage: def plus(s1, s2, s3):
+            ....:     if s1.word_in == s2.word_in == s3.word_in:
+            ....:          return (s1.word_in,
+            ....:                  sum(s.word_out[0] for s in (s1, s2, s3)))
+            ....:     else:
+            ....:         raise LookupError
+            sage: T0 = transducers.CountSubblockOccurrences([0, 0], [0, 1, 2])
+            sage: T1 = transducers.CountSubblockOccurrences([1, 1], [0, 1, 2])
+            sage: T2 = transducers.CountSubblockOccurrences([2, 2], [0, 1, 2])
+            sage: T = T0.product_FiniteStateMachine([T1, T2], plus)
+            sage: T.transitions()
+            [Transition from ((), (), ()) to ((0,), (), ()): 0|0,
+             Transition from ((), (), ()) to ((), (1,), ()): 1|0,
+             Transition from ((), (), ()) to ((), (), (2,)): 2|0,
+             Transition from ((0,), (), ()) to ((0,), (), ()): 0|1,
+             Transition from ((0,), (), ()) to ((), (1,), ()): 1|0,
+             Transition from ((0,), (), ()) to ((), (), (2,)): 2|0,
+             Transition from ((), (1,), ()) to ((0,), (), ()): 0|0,
+             Transition from ((), (1,), ()) to ((), (1,), ()): 1|1,
+             Transition from ((), (1,), ()) to ((), (), (2,)): 2|0,
+             Transition from ((), (), (2,)) to ((0,), (), ()): 0|0,
+             Transition from ((), (), (2,)) to ((), (1,), ()): 1|0,
+             Transition from ((), (), (2,)) to ((), (), (2,)): 2|1]
+            sage: T([0, 0, 1, 1, 2, 2, 0, 1, 2, 2])
+            [0, 1, 0, 1, 0, 1, 0, 0, 0, 1]
+
+        ``other`` can also be an iterable::
+
+            sage: T == T0.product_FiniteStateMachine(iter([T1, T2]), plus)
+            True
+
         TESTS:
 
         Check that colors are correctly dealt with. In particular, the
@@ -5296,9 +5375,21 @@ class FiniteStateMachine(SageObject):
             sage: B.determinisation()
             Automaton with 1 states
 
+        Check handling of the parameter ``other``::
+
+            sage: A.product_FiniteStateMachine(None, plus)
+            Traceback (most recent call last):
+            ...
+            ValueError: other must be a finite state machine or a list
+            of finite state machines.
+            sage: A.product_FiniteStateMachine([None], plus)
+            Traceback (most recent call last):
+            ...
+            ValueError: other must be a finite state machine or a list
+            of finite state machines.
         """
-        def default_final_function(s1, s2):
-            if s1.final_word_out or s2.final_word_out:
+        def default_final_function(*args):
+            if any(s.final_word_out for s in args):
                 raise ValueError("A final function must be given.")
             return []
 
@@ -5311,24 +5402,35 @@ class FiniteStateMachine(SageObject):
         else:
             result.input_alphabet = None
 
-        for transition1 in self.transitions():
-            for transition2 in other.transitions():
-                try:
-                    word = function(transition1, transition2)
-                except LookupError:
-                    continue
-                result.add_transition((transition1.from_state,
-                                       transition2.from_state),
-                                      (transition1.to_state,
-                                       transition2.to_state),
-                                      word[0], word[1])
+        if hasattr(other, '__iter__'):
+            machines = [self]
+            machines.extend(other)
+            if not all(is_FiniteStateMachine(m) for m in machines):
+                raise ValueError("other must be a finite state machine "
+                                 "or a list of finite state machines.")
+        elif is_FiniteStateMachine(other):
+            machines = [self, other]
+        else:
+            raise ValueError("other must be a finite state machine or "
+                             "a list of finite state machines.")
+
+        for transitions in itertools.product(
+            *(m.iter_transitions() for m in machines)):
+            try:
+                word = function(*transitions)
+            except LookupError:
+                continue
+            result.add_transition(tuple(t.from_state for t in transitions),
+                                  tuple(t.to_state for t in transitions),
+                                  word[0], word[1])
+
         for state in result.states():
-            if all(map(lambda s: s.is_initial, state.label())):
+            if all(s.is_initial for s in state.label()):
                 state.is_initial = True
-            if all(map(lambda s: s.is_final, state.label())):
+            if all(s.is_final for s in state.label()):
                 state.is_final = True
                 state.final_word_out = final_function(*state.label())
-            state.color = tuple(map(lambda s: s.color, state.label()))
+            state.color = tuple(s.color for s in state.label())
 
         if only_accessible_components:
             if result.input_alphabet is None:
@@ -7363,6 +7465,32 @@ class FiniteStateMachine(SageObject):
                 'covariance': c*variable + SR(1).Order()}
 
 
+    def is_monochromatic(self):
+        """
+        Checks whether the colors of all states are equal.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        EXAMPLES::
+
+            sage: G = transducers.GrayCode()
+            sage: [s.color for s in G.iter_states()]
+            [None, None, None]
+            sage: G.is_monochromatic()
+            True
+            sage: G.state(1).color = 'blue'
+            sage: G.is_monochromatic()
+            False
+        """
+        return equal(s.color for s in self.iter_states())
+
+
 #*****************************************************************************
 
 
@@ -8172,13 +8300,14 @@ class Transducer(FiniteStateMachine):
             already be achieved by setting
             ``FSMOldCodeTransducerCartesianProduct`` to ``False``.
 
-        Return a new transducer which can simultaneously process an input with
-        ``self`` and ``other`` where the output labels are pairs of the
-        original output labels.
+        Return a new transducer which can simultaneously process an
+        input with the machines ``self`` and ``other`` where the
+        output labels are `d`-tuples of the original output labels.
 
         INPUT:
 
-        - ``other`` - a finite state machine
+        - ``other`` - a finite state machine (if `d=2`) or a list (or
+          other iterable) of `d-1` finite state machines
 
         - ``only_accessible_components`` -- If ``True`` (default), then
           the result is piped through ``accessible_components``. If no
@@ -8188,14 +8317,16 @@ class Transducer(FiniteStateMachine):
         OUTPUT:
 
         A transducer which can simultaneously process an input with ``self``
-        and ``other``.
+        and the machine(s) in ``other``.
 
         The set of states of the new transducer is the cartesian product of
         the set of states of ``self`` and ``other``.
 
-        Let `(A, B, a, b)` be a transition of self and `(C, D, c, d)` be
-        a transition of other. Then there is a transition `((A, C), (B,
-        D), a, (b, d))` in the new transducer if `a = c`.
+        Let `(A_j, B_j, a_j, b_j)` for `j\in\{1, \ldots, d\}` be
+        transitions in the machines ``self`` and in ``other``. Then
+        there is a transition `((A_1, \ldots, A_d), (B_1, \ldots,
+        B_d), a, (b_1, \ldots, b_d))` in the new transducer if `a_1 =
+        \cdots = a_d =: a`.
 
         EXAMPLES:
 
@@ -8318,6 +8449,38 @@ class Transducer(FiniteStateMachine):
             Traceback (most recent call last):
             ...
             TypeError: Only an automaton can be intersected with an automaton.
+
+        The cartesian product of more than two finite state machines can also
+        be computed::
+
+            sage: T0 = transducers.CountSubblockOccurrences([0, 0], [0, 1, 2])
+            sage: T1 = transducers.CountSubblockOccurrences([1, 1], [0, 1, 2])
+            sage: T2 = transducers.CountSubblockOccurrences([2, 2], [0, 1, 2])
+            sage: T = T0.cartesian_product([T1, T2])
+            sage: T.transitions()
+            [Transition from ((), (), ()) to ((0,), (), ()): 0|(0, 0, 0),
+             Transition from ((), (), ()) to ((), (1,), ()): 1|(0, 0, 0),
+             Transition from ((), (), ()) to ((), (), (2,)): 2|(0, 0, 0),
+             Transition from ((0,), (), ()) to ((0,), (), ()): 0|(1, 0, 0),
+             Transition from ((0,), (), ()) to ((), (1,), ()): 1|(0, 0, 0),
+             Transition from ((0,), (), ()) to ((), (), (2,)): 2|(0, 0, 0),
+             Transition from ((), (1,), ()) to ((0,), (), ()): 0|(0, 0, 0),
+             Transition from ((), (1,), ()) to ((), (1,), ()): 1|(0, 1, 0),
+             Transition from ((), (1,), ()) to ((), (), (2,)): 2|(0, 0, 0),
+             Transition from ((), (), (2,)) to ((0,), (), ()): 0|(0, 0, 0),
+             Transition from ((), (), (2,)) to ((), (1,), ()): 1|(0, 0, 0),
+             Transition from ((), (), (2,)) to ((), (), (2,)): 2|(0, 0, 1)]
+            sage: T([0, 0, 1, 1, 2, 2, 0, 1, 2, 2])
+            [(0, 0, 0),
+             (1, 0, 0),
+             (0, 0, 0),
+             (0, 1, 0),
+             (0, 0, 0),
+             (0, 0, 1),
+             (0, 0, 0),
+             (0, 0, 0),
+             (0, 0, 0),
+             (0, 0, 1)]
         """
         if FSMOldCodeTransducerCartesianProduct:
             from sage.misc.superseded import deprecation
@@ -8329,17 +8492,18 @@ class Transducer(FiniteStateMachine):
                 other,
                 only_accessible_components=only_accessible_components)
 
-        def function(transition1, transition2):
-            if transition1.word_in == transition2.word_in:
-                return (transition1.word_in,
-                        list(itertools.izip_longest(transition1.word_out,
-                                                    transition2.word_out)))
+        def function(*transitions):
+            if equal(t.word_in for t in transitions):
+                return (transitions[0].word_in,
+                        list(itertools.izip_longest(
+                            *(t.word_out for t in transitions)
+                             )))
             else:
                 raise LookupError
 
-        def final_function(s1, s2):
-            return list(itertools.izip_longest(s1.final_word_out,
-                                               s2.final_word_out))
+        def final_function(*states):
+            return list(itertools.izip_longest(*(s.final_word_out
+                                                 for s in states)))
 
         return self.product_FiniteStateMachine(
             other,

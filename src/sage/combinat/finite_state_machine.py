@@ -2808,6 +2808,24 @@ class FiniteStateMachine(SageObject):
             sage: F.state('A').is_initial = True
             sage: F == G
             True
+
+        This shows the behavior when the states have colors::
+
+            sage: F.state('A').color = 'red'
+            sage: G.state('A').color = 'red'
+            sage: F == G
+            True
+            sage: G.state('A').color = 'blue'
+            sage: F == G
+            False
+            sage: F.state('B').color = 'red'
+            sage: F.is_monochromatic()
+            True
+            sage: G.state('B').color = 'blue'
+            sage: G.is_monochromatic()
+            True
+            sage: F == G
+            True
         """
         if not is_FiniteStateMachine(right):
             raise TypeError('Only instances of FiniteStateMachine '

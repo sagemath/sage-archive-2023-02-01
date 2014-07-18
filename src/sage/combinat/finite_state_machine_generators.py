@@ -369,9 +369,8 @@ class TransducerGenerators(object):
             sage: T3([(0, 0, 0), (1, 0, 0), (1, 1, 1)])
             [False, False, True]
         """
-        def logical_and(*args):
-            return all(args)
-        return self.operator(logical_and, input_alphabet, number_of_operands)
+        return self.operator(lambda *args: all(args),
+                             input_alphabet, number_of_operands)
 
 
     def any(self, input_alphabet, number_of_operands=2):
@@ -422,9 +421,9 @@ class TransducerGenerators(object):
             sage: T3([(0, 0, 0), (1, 0, 0), (1, 1, 1)])
             [False, True, True]
         """
-        def logical_or(*args):
-            return any(args)
-        return self.operator(logical_or, input_alphabet, number_of_operands)
+        return self.operator(lambda *args: any(args),
+                             input_alphabet, number_of_operands)
+
 
     def add(self, input_alphabet):
         """

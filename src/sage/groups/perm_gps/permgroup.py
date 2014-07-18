@@ -289,7 +289,7 @@ def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, 
     Permutation groups can work on any domain. In the following
     examples, the permutations are specified in list notation,
     according to the order of the elements of the domain::
-*
+
         sage: list(PermutationGroup([['b','c','a']], domain=['a','b','c']))
         [(), ('a','b','c'), ('a','c','b')]
         sage: list(PermutationGroup([['b','c','a']], domain=['b','c','a']))

@@ -252,12 +252,12 @@ class TransducerGenerators(object):
         - ``input_alphabet`` -- a list or other iterable.
 
         - ``threshold`` -- a positive integer specifying how many
-          occurrences of True inputs are waited for.
+          occurrences of ``True`` inputs are waited for.
 
         OUTPUT:
 
         A transducer writing ``False`` until the ``threshold``-th true
-        (Python's standard conversion to booleanis used to convert the
+        (Python's standard conversion to boolean is used to convert the
         actual input to boolean) input is read. Subsequently, the
         transducer writes ``True``.
 
@@ -275,7 +275,7 @@ class TransducerGenerators(object):
                 return (threshold, True)
             if not input:
                 return (state, False)
-            return (state+1, state + 1 == threshold)
+            return (state + 1, state + 1 == threshold)
 
         T = Transducer(transition,
                        input_alphabet=input_alphabet,

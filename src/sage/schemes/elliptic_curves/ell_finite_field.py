@@ -826,7 +826,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         TESTS::
 
-            sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='foobar')
+            sage: EllipticCurve(GF(10009),[1,2,3,4,5]).cardinality(algorithm='foobar')
             Traceback (most recent call last):
             ...
             ValueError: Algorithm is not known

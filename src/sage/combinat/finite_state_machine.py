@@ -2776,8 +2776,8 @@ class FiniteStateMachine(SageObject):
 
     def __eq__(left, right):
         """
-        Returns True if the two finite state machines are equal, i.e.,
-        if they have the same states and the same transitions.
+        Returns ``True`` if the two finite state machines are equal,
+        i.e., if they have the same states and the same transitions.
 
         INPUT:
 
@@ -2787,7 +2787,14 @@ class FiniteStateMachine(SageObject):
 
         OUTPUT:
 
-        True or False.
+        ``True`` or ``False``.
+
+        Note that this function compares all attributes of a state (by
+        using :meth:`FSMState.fully_equal`) except for colors. Colors
+        are handled as follows: If the colors coincide, then the
+        finite state machines are also considered equal. If not, then
+        they are considered as equal if both finite state machines are
+        monochromatic.
 
         EXAMPLES::
 

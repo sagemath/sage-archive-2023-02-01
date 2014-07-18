@@ -545,10 +545,11 @@ The problem can be fixed by running the following command::
 Upgrading Sage went fine, but now the banner still shows the old version. How can I fix this?
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Try doing ``hg_scripts.merge()``, followed by
-``hg_scripts.commit()``. Run both of these commands from the Sage
-command line. As an alternative, you can simply try
-``hg_scripts.pull()``.
+The banner is stored and not computed at every new start of Sage. If
+it has not been updated, this should not prevent Sage to run
+correctly. Type ``banner()`` in a Sage session to check the real
+version. If you want the correct banner, you need to build Sage again
+by typing ``make build`` in a terminal.
 
 
 How do I run sage in daemon mode, i.e. as a service?

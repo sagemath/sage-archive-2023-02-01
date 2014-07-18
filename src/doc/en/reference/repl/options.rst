@@ -106,46 +106,6 @@ Command-line options for Sage
   packages from given url.  If url not given, automatically selects
   a suitable mirror.  If url='ask', it lets you select the mirror.
 
-.. rubric:: The Sage-combinat package manager
-
-Sage-combinat is a collection of experimental patches
-(i.e. extensions) on top of Sage, developed by a community of
-researchers, with a focus, at least to some extent, in
-combinatorics. Many of those patches get eventually integrated into
-Sage as soon as they are mature enough, but you can install the
-still-experimental ones by running ``sage -combinat install``.  This
-creates a new branch, called ``sage-combinat`` by default, containing
-the new patches. More information on sage-combinat is available at the
-`Sage wiki`__.  More details on the ``--combinat`` command-line option
-for Sage:
-
-__ http://wiki.sagemath.org/combinat
-
-- ``--combinat [options] command`` -- run the ``sage-combinat``
-  patch management script.  Commands:
-
-  - ``config`` -- show current configuration (Sage command, path, version, ...)
-  - ``install`` -- install the sage-combinat patches
-  - ``update`` -- update to the latest sage-combinat patches
-  - ``upgrade`` -- upgrade Sage and update to the latest sage-combinat patches
-  - ``status`` -- show changed files in the working directory and in
-    the patch queue
-  - ``qselect`` -- choose appropriate guards for the current version of Sage
-
-  Options:
-
-  - ``-h``, ``--help`` -- print a help message
-  - ``-b BRANCH``, ``--branch=BRANCH`` -- use ``sage-BRANCH``
-    instead of ``sage-combinat``
-  - ``--sage=/opt/bin/sage`` -- specify the path to Sage
-  - ``-f``, ``--force`` -- force proceeding, skipping any relevant queries
-  - ``-v`` -- Be verbose; print status messages
-  - ``-q``, ``--quiet`` -- don't print status messages
-  - ``-s URL``, ``--server=URL`` -- set the URL for the
-    sage-combinat server; the default is
-    ``http://combinat.sagemath.org/patches``
-  - ``-n`` -- after qselect: disable all previous non version guards
-
 .. rubric:: Building and testing the Sage library
 
 - ``--root`` -- print the Sage root directory

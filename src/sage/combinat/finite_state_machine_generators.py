@@ -470,7 +470,8 @@ class TransducerGenerators(object):
                              input_alphabet, number_of_operands)
 
 
-    def add(self, input_alphabet):
+
+    def add(self, input_alphabet, number_of_operands=2):
         """
         Returns a transducer which realizes addition on pairs over the
         given input alphabet.
@@ -479,13 +480,17 @@ class TransducerGenerators(object):
 
         - ``input_alphabet``  -- a list or other iterable.
 
+        - ``number_of_operands`` -- (default: `2`) it specifies the number
+          of input arguments the operator takes.
+
         OUTPUT:
 
-        A transducer mapping an input word `(i_0, i'_0)\ldots (i_k, i'_k)`
-        to the word `(i_0 + i'_0)\ldots (i_k + i'_k)`.
+        A transducer mapping an input word
+        `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
+        `(i_{01} + \cdots + i_{0d})\ldots (i_{k1} + \cdots + i_{kd})`.
 
         The input alphabet of the generated transducer is the cartesian
-        product of two copies of ``input_alphabet``.
+        product of ``number_of_operands`` copies of ``input_alphabet``.
 
         EXAMPLE:
 
@@ -506,9 +511,19 @@ class TransducerGenerators(object):
             [0]
             sage: T([(0, 0), (0, 1), (1, 0), (1, 1)])
             [0, 1, 1, 2]
+
+        More than two operands can also be handled::
+
+            sage: T3 = transducers.add([0, 1], number_of_operands=3)
+            sage: T3.input_alphabet
+            [(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1),
+             (1, 0, 0), (1, 0, 1), (1, 1, 0), (1, 1, 1)]
+            sage: T3([(0, 0, 0), (0, 1, 0), (0, 1, 1), (1, 1, 1)])
+            [0, 1, 2, 3]
         """
-        import operator
-        return self.operator(operator.add, input_alphabet)
+        return self.operator(lambda *args: sum(args),
+                             input_alphabet,
+                             number_of_operands=number_of_operands)
 
 
     def sub(self, input_alphabet):

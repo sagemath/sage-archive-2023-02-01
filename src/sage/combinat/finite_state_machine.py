@@ -644,7 +644,7 @@ def full_group_by(l, key=lambda x: x):
     return [(original_keys[s], values ) for (s, values) in elements.items()]
 
 
-def check_equal(iterator):
+def equal(iterator):
     """
     Checks whether all elements of ``iterator`` are equal.
 
@@ -660,23 +660,23 @@ def check_equal(iterator):
 
     EXAMPLES::
 
-        sage: from sage.combinat.finite_state_machine import check_equal
-        sage: check_equal([0, 0, 0])
+        sage: from sage.combinat.finite_state_machine import equal
+        sage: equal([0, 0, 0])
         True
-        sage: check_equal([0, 1, 0])
+        sage: equal([0, 1, 0])
         False
-        sage: check_equal([])
+        sage: equal([])
         True
-        sage: check_equal(iter([None, None]))
+        sage: equal(iter([None, None]))
         True
 
     We can test other properties of the elements than the elements
     themselves. In the following example, we check if all tuples have
     the same lengths::
 
-        sage: check_equal(len(x) for x in [(1, 2), (2, 3), (3, 1)])
+        sage: equal(len(x) for x in [(1, 2), (2, 3), (3, 1)])
         True
-        sage: check_equal(len(x) for x in [(1, 2), (1, 2, 3), (3, 1)])
+        sage: equal(len(x) for x in [(1, 2), (1, 2, 3), (3, 1)])
         False
     """
     try:

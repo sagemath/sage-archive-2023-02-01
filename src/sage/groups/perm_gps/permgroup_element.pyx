@@ -430,6 +430,13 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             ()
             sage: PermutationGroupElement([()])
             ()
+
+        We check that :trac:`16678` is fixed::
+
+            sage: Permutations.global_options(display='cycle')
+            sage: p = Permutation((1,2))
+            sage: PermutationGroupElement(p)
+            (1,2)
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         from sage.groups.perm_gps.permgroup import PermutationGroup_generic
@@ -445,7 +452,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         degree = max([1] + [max(cycle+(1,)) for cycle in v])
         v = from_cycles(degree, v)
 
-        self.__gap = 'PermList(%s)'%v
+        self.__gap = 'PermList({})'.format(list(v)) # Make sure it is a list
 
         if parent is None:
             parent = SymmetricGroup(len(v))

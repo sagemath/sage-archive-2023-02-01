@@ -10,8 +10,9 @@ Symmetric Group Algebra
 from sage.misc.cachefunc import cached_method
 from combinatorial_algebra import CombinatorialAlgebra
 from free_module import CombinatorialFreeModule
-from sage.categories.all import FiniteDimensionalAlgebrasWithBasis
-from sage.combinat.permutation import Permutation, Permutations, Permutations_nk, PermutationOptions
+from sage.categories.weyl_groups import WeylGroups
+from sage.combinat.permutation import (Permutation, Permutations,
+     Permutations_nk, from_permutation_group_element, PermutationOptions)
 import partition
 from tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
 from sage.interfaces.all import gap
@@ -20,7 +21,7 @@ from sage.rings.arith import factorial
 from sage.matrix.all import matrix
 from sage.modules.all import vector
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-from sage.categories.all import GroupAlgebras
+from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 
 permutation_options = PermutationOptions
 
@@ -119,7 +120,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: TestSuite(QS3).run()
         """
         self.n = n
-        cat = (GroupAlgebras(R), FiniteDimensionalAlgebrasWithBasis(R))
+        cat = WeylGroups().Algebras(R).FiniteDimensional()
         CombinatorialFreeModule.__init__(self, R, Permutations(n), prefix='',
                                          latex_prefix='', category=cat)
 
@@ -193,6 +194,28 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
                 return phi.codomain().canonical_embedding(self) * phi
 
         return super(SymmetricGroupAlgebra_n, self)._coerce_map_from_(S)
+
+    def _element_constructor_(self, x):
+        """
+        Construct an element of ``self``.
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroupAlgebra(QQ, 4)
+            sage: G = SymmetricGroup(3)
+            sage: p = Permutation((1,2))
+            sage: S(p)
+            [2, 1, 3, 4]
+            sage: S(G(p))
+            [2, 1, 3, 4]
+        """
+        if isinstance(x, Permutation):
+            return self.monomial_from_smaller_permutation(x)
+        if isinstance(x, PermutationGroupElement):
+            return self.monomial_from_smaller_permutation(
+                    from_permutation_group_element(x))
+
+        return super(SymmetricGroupAlgebra, self)._element_constructor_(x)
 
     # _repr_ customization: output the basis element indexed by [1,2,3] as [1,2,3]
     _repr_option_bracket = False

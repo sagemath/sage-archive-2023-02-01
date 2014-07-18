@@ -671,8 +671,8 @@ def equal(iterator):
         True
 
     We can test other properties of the elements than the elements
-    themselves. In the following example, we check if all tuples have
-    the same lengths::
+    themselves. In the following example, we check whether all tuples
+    have the same lengths::
 
         sage: equal(len(x) for x in [(1, 2), (2, 3), (3, 1)])
         True

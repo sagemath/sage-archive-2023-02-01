@@ -14,6 +14,7 @@ Contents
 :class:`FiniteStateMachine` and derived classes :class:`Transducer` and :class:`Automaton`
 ------------------------------------------------------------------------------------------
 
+
 Accessing parts of a finite state machine
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -23,20 +24,21 @@ Accessing parts of a finite state machine
     :delim: |
 
 
-    :meth:`~FiniteStateMachine.state`|Get a state by its label
-    :meth:`~FiniteStateMachine.states`| List of states
-    :meth:`~FiniteStateMachine.iter_states`|Iterator over the states
-    :meth:`~FiniteStateMachine.initial_states`|List of initial states
-    :meth:`~FiniteStateMachine.iter_initial_states`|Iterator over initial states
-    :meth:`~FiniteStateMachine.final_states`|List of final states
-    :meth:`~FiniteStateMachine.iter_final_states`|Iterator over final states
-    :meth:`~FiniteStateMachine.transition`|Get a transition by its states and labels
-    :meth:`~FiniteStateMachine.transitions`|List of transitions
-    :meth:`~FiniteStateMachine.iter_transitions`|Iterator over the transitions
-    :meth:`~FiniteStateMachine.predecessors`|List of predecessors of a state
-    :meth:`~FiniteStateMachine.induced_sub_finite_state_machine`|Induced sub-machine
-    :meth:`~FiniteStateMachine.accessible_components`|Accessible components
-    :meth:`~FiniteStateMachine.final_components`|Final components (connected components which cannot be left again)
+    :meth:`~FiniteStateMachine.state` | Get a state by its label
+    :meth:`~FiniteStateMachine.states` | List of states
+    :meth:`~FiniteStateMachine.iter_states` | Iterator over the states
+    :meth:`~FiniteStateMachine.initial_states` | List of initial states
+    :meth:`~FiniteStateMachine.iter_initial_states` | Iterator over initial states
+    :meth:`~FiniteStateMachine.final_states` | List of final states
+    :meth:`~FiniteStateMachine.iter_final_states` | Iterator over final states
+    :meth:`~FiniteStateMachine.transition` | Get a transition by its states and labels
+    :meth:`~FiniteStateMachine.transitions` | List of transitions
+    :meth:`~FiniteStateMachine.iter_transitions` | Iterator over the transitions
+    :meth:`~FiniteStateMachine.predecessors` | List of predecessors of a state
+    :meth:`~FiniteStateMachine.induced_sub_finite_state_machine` | Induced sub-machine
+    :meth:`~FiniteStateMachine.accessible_components` | Accessible components
+    :meth:`~FiniteStateMachine.final_components` | Final components (connected components which cannot be left again)
+
 
 (Modified) Copies
 ^^^^^^^^^^^^^^^^^
@@ -46,9 +48,10 @@ Accessing parts of a finite state machine
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteStateMachine.empty_copy`|Returns an empty deep copy
-    :meth:`~FiniteStateMachine.deepcopy`|Returns a deep copy
-    :meth:`~FiniteStateMachine.relabeled`|Returns a relabeled deep copy
+    :meth:`~FiniteStateMachine.empty_copy` | Returns an empty deep copy
+    :meth:`~FiniteStateMachine.deepcopy` | Returns a deep copy
+    :meth:`~FiniteStateMachine.relabeled` | Returns a relabeled deep copy
+
 
 Manipulation
 ^^^^^^^^^^^^
@@ -58,18 +61,19 @@ Manipulation
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteStateMachine.add_state`|Add a state
-    :meth:`~FiniteStateMachine.add_states`|Add states
-    :meth:`~FiniteStateMachine.delete_state`|Delete a state
-    :meth:`~FiniteStateMachine.add_transition`|Add a transition
-    :meth:`~FiniteStateMachine.add_transitions_from_function`|Add transitions
-    :attr:`~FiniteStateMachine.on_duplicate_transition`|Hook for handling duplicate transitions
-    :meth:`~FiniteStateMachine.add_from_transition_function`|Add transitions by a transition function
-    :meth:`~FiniteStateMachine.delete_transition`|Delete a transition
-    :meth:`~FiniteStateMachine.remove_epsilon_transitions`|Remove epsilon transitions (not implemented)
-    :meth:`~FiniteStateMachine.split_transitions`|Split transitions with input words of length ``> 1``
-    :meth:`~FiniteStateMachine.determine_alphabets`|Determines input and output alphabets
-    :meth:`~FiniteStateMachine.construct_final_word_out`|Construct final output by implicitly reading trailing letters; cf. :meth:`~FiniteStateMachine.with_final_word_out`
+    :meth:`~FiniteStateMachine.add_state` | Add a state
+    :meth:`~FiniteStateMachine.add_states` | Add states
+    :meth:`~FiniteStateMachine.delete_state` | Delete a state
+    :meth:`~FiniteStateMachine.add_transition` | Add a transition
+    :meth:`~FiniteStateMachine.add_transitions_from_function` | Add transitions
+    :attr:`~FiniteStateMachine.on_duplicate_transition` | Hook for handling duplicate transitions
+    :meth:`~FiniteStateMachine.add_from_transition_function` | Add transitions by a transition function
+    :meth:`~FiniteStateMachine.delete_transition` | Delete a transition
+    :meth:`~FiniteStateMachine.remove_epsilon_transitions` | Remove epsilon transitions (not implemented)
+    :meth:`~FiniteStateMachine.split_transitions` | Split transitions with input words of length ``> 1``
+    :meth:`~FiniteStateMachine.determine_alphabets` | Determines input and output alphabets
+    :meth:`~FiniteStateMachine.construct_final_word_out` | Construct final output by implicitly reading trailing letters; cf. :meth:`~FiniteStateMachine.with_final_word_out`
+
 
 Properties
 ^^^^^^^^^^
@@ -79,18 +83,20 @@ Properties
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteStateMachine.has_state`|Checks for a state
-    :meth:`~FiniteStateMachine.has_initial_state`|Checks for an initial state
-    :meth:`~FiniteStateMachine.has_initial_states`|Checks for initial states
-    :meth:`~FiniteStateMachine.has_final_state`|Checks for an final state
-    :meth:`~FiniteStateMachine.has_final_states`|Checks for final states
-    :meth:`~FiniteStateMachine.has_transition`|Checks for a transition
-    :meth:`~FiniteStateMachine.is_deterministic`|Checks for a deterministic machine
-    :meth:`~FiniteStateMachine.is_complete`|Checks for a complete machine
-    :meth:`~FiniteStateMachine.is_connected`|Checks for a connected machine
-    :meth:`~FiniteStateMachine.is_Markov_chain`|Checks for a Markov chain
-    :meth:`~FiniteStateMachine.asymptotic_moments`|Main terms of expectation and variance of sums of labels
-    :meth:`~FiniteStateMachine.expected_waiting_time`|Expected waiting time for first true output
+    :meth:`~FiniteStateMachine.has_state` | Checks for a state
+    :meth:`~FiniteStateMachine.has_initial_state` | Checks for an initial state
+    :meth:`~FiniteStateMachine.has_initial_states` | Checks for initial states
+    :meth:`~FiniteStateMachine.has_final_state` | Checks for an final state
+    :meth:`~FiniteStateMachine.has_final_states` | Checks for final states
+    :meth:`~FiniteStateMachine.has_transition` | Checks for a transition
+    :meth:`~FiniteStateMachine.is_deterministic` | Checks for a deterministic machine
+    :meth:`~FiniteStateMachine.is_complete` | Checks for a complete machine
+    :meth:`~FiniteStateMachine.is_connected` | Checks for a connected machine
+    :meth:`~FiniteStateMachine.is_Markov_chain` | Checks for a Markov chain
+    :meth:`~FiniteStateMachine.is_monochromatic` | Checks whether the colors of all states are equal
+    :meth:`~FiniteStateMachine.asymptotic_moments` | Main terms of expectation and variance of sums of labels
+    :meth:`~FiniteStateMachine.expected_waiting_time` | Expected waiting time for first true output
+
 
 Operations
 ^^^^^^^^^^
@@ -100,52 +106,55 @@ Operations
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteStateMachine.disjoint_union`|Disjoint union (not implemented)
-    :meth:`~FiniteStateMachine.concatenation`|Concatenation (not implemented)
-    :meth:`~FiniteStateMachine.Kleene_closure`|Kleene closure (not implemented)
-    :meth:`Automaton.intersection`|Intersection of automata
-    :meth:`Transducer.intersection`|Intersection of transducer
-    :meth:`Transducer.cartesian_product`|Cartesian product of a transducer with another finite state machine
-    :meth:`~FiniteStateMachine.product_FiniteStateMachine`|Product of finite state machines
-    :meth:`~FiniteStateMachine.composition`|Composition (output of other is input of self)
-    :meth:`~FiniteStateMachine.input_projection`|Input projection (output is deleted)
-    :meth:`~FiniteStateMachine.output_projection`|Output projection (old output is new input)
-    :meth:`~FiniteStateMachine.projection`|Input or output projection
-    :meth:`~FiniteStateMachine.transposition`|Transposition (all transitions are reversed)
-    :meth:`~FiniteStateMachine.with_final_word_out`|Machine with final output constructed by implicitly reading trailing letters, cf. :meth:`~FiniteStateMachine.construct_final_word_out` for inplace version
-    :meth:`Automaton.determinisation`|Determinisation of an automaton
-    :meth:`~FiniteStateMachine.process`|Process input
-    :meth:`Automaton.process`|Process input of an automaton (output differs from general case)
-    :meth:`Transducer.process`|Process input of a transducer (output differs from general case)
-    :meth:`~FiniteStateMachine.iter_process`|Return process iterator
+    :meth:`~FiniteStateMachine.disjoint_union` | Disjoint union (not implemented)
+    :meth:`~FiniteStateMachine.concatenation` | Concatenation (not implemented)
+    :meth:`~FiniteStateMachine.Kleene_closure` | Kleene closure (not implemented)
+    :meth:`Automaton.intersection` | Intersection of automata
+    :meth:`Transducer.intersection` | Intersection of transducer
+    :meth:`Transducer.cartesian_product` | Cartesian product of a transducer with another finite state machine
+    :meth:`~FiniteStateMachine.product_FiniteStateMachine` | Product of finite state machines
+    :meth:`~FiniteStateMachine.composition` | Composition (output of other is input of self)
+    :meth:`~FiniteStateMachine.input_projection` | Input projection (output is deleted)
+    :meth:`~FiniteStateMachine.output_projection` | Output projection (old output is new input)
+    :meth:`~FiniteStateMachine.projection` | Input or output projection
+    :meth:`~FiniteStateMachine.transposition` | Transposition (all transitions are reversed)
+    :meth:`~FiniteStateMachine.with_final_word_out` | Machine with final output constructed by implicitly reading trailing letters, cf. :meth:`~FiniteStateMachine.construct_final_word_out` for inplace version
+    :meth:`Automaton.determinisation` | Determinisation of an automaton
+    :meth:`~FiniteStateMachine.process` | Process input
+    :meth:`Automaton.process` | Process input of an automaton (output differs from general case)
+    :meth:`Transducer.process` | Process input of a transducer (output differs from general case)
+    :meth:`~FiniteStateMachine.iter_process` | Return process iterator
+
 
 Simplification
 ^^^^^^^^^^^^^^
+
 .. csv-table::
     :class: contentstable
     :widths: 30, 70
     :delim: |
 
 
-    :meth:`~FiniteStateMachine.prepone_output`|Prepone output where possible
-    :meth:`~FiniteStateMachine.equivalence_classes`|List of equivalent states
-    :meth:`~FiniteStateMachine.quotient`|Quotient with respect to equivalence classes
-    :meth:`~FiniteStateMachine.merged_transitions`|Merge transitions while adding input
-    :meth:`~FiniteStateMachine.markov_chain_simplification`|Simplification of a Markov chain
-    :meth:`Automaton.minimization`|Minimization of an automaton
-    :meth:`Transducer.simplification`|Simplification of a transducer
+    :meth:`~FiniteStateMachine.prepone_output` | Prepone output where possible
+    :meth:`~FiniteStateMachine.equivalence_classes` | List of equivalent states
+    :meth:`~FiniteStateMachine.quotient` | Quotient with respect to equivalence classes
+    :meth:`~FiniteStateMachine.merged_transitions` | Merge transitions while adding input
+    :meth:`~FiniteStateMachine.markov_chain_simplification` | Simplification of a Markov chain
+    :meth:`Automaton.minimization` | Minimization of an automaton
+    :meth:`Transducer.simplification` | Simplification of a transducer
+
 
 Conversion
 ^^^^^^^^^^
+
 .. csv-table::
     :class: contentstable
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteStateMachine.adjacency_matrix`| (Weighted) adjacency :class:`matrix <Matrix>`
-    :meth:`~FiniteStateMachine.graph`|Underlying :class:`DiGraph`
-    :meth:`~FiniteStateMachine.plot`|Plot
-
+    :meth:`~FiniteStateMachine.adjacency_matrix` | (Weighted) adjacency :class:`matrix <Matrix>`
+    :meth:`~FiniteStateMachine.graph` | Underlying :class:`DiGraph`
+    :meth:`~FiniteStateMachine.plot` | Plot
 
 
 LaTeX output
@@ -156,11 +165,12 @@ LaTeX output
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteStateMachine.latex_options`|Set options
-    :meth:`~FiniteStateMachine.set_coordinates`|Set coordinates of the states
-    :meth:`~FiniteStateMachine.default_format_transition_label`|Default formatting of words in transition labels
-    :meth:`~FiniteStateMachine.format_letter_negative`|Format negative numbers as overlined number
-    :meth:`~FiniteStateMachine.format_transition_label_reversed`|Format words in transition labels in reversed order
+    :meth:`~FiniteStateMachine.latex_options` | Set options
+    :meth:`~FiniteStateMachine.set_coordinates` | Set coordinates of the states
+    :meth:`~FiniteStateMachine.default_format_transition_label` | Default formatting of words in transition labels
+    :meth:`~FiniteStateMachine.format_letter_negative` | Format negative numbers as overlined number
+    :meth:`~FiniteStateMachine.format_transition_label_reversed` | Format words in transition labels in reversed order
+
 
 :class:`FSMState`
 -----------------
@@ -170,11 +180,13 @@ LaTeX output
     :widths: 30, 70
     :delim: |
 
-    :attr:`~FSMState.final_word_out`|Final output of a state
-    :attr:`~FSMState.is_final`|Describes whether a state is final or not
-    :attr:`~FSMState.is_initial`|Describes whether a state is initial or not
-    :meth:`~FSMState.label`|Label of a state
-    :meth:`~FSMState.relabeled`|Returns a relabeled deep copy of a state
+    :attr:`~FSMState.final_word_out` | Final output of a state
+    :attr:`~FSMState.is_final` | Describes whether a state is final or not
+    :attr:`~FSMState.is_initial` | Describes whether a state is initial or not
+    :meth:`~FSMState.label` | Label of a state
+    :meth:`~FSMState.relabeled` | Returns a relabeled deep copy of a state
+    :meth:`~FSMState.fully_equal` | Checks whether two states are fully equal (including all attributes)
+
 
 :class:`FSMTransition`
 ----------------------
@@ -199,7 +211,9 @@ Helper Functions
     :widths: 30, 70
     :delim: |
 
+    :func:`equal` | Checks whether all elements of ``iterator`` are equal
     :func:`full_group_by` | Group iterable by values of some key
+    :func:`startswith` | Determine whether list starts with the given prefix
     :func:`FSMLetterSymbol` | Returns a string associated to the input letter
     :func:`FSMWordSymbol` | Returns a string associated to a word
     :func:`is_FSMState` | Tests whether an object inherits from :class:`FSMState`
@@ -208,7 +222,6 @@ Helper Functions
     :func:`duplicate_transition_ignore` |  Default function for handling duplicate transitions
     :func:`duplicate_transition_raise_error` | Raise error when inserting a duplicate transition
     :func:`duplicate_transition_add_input` | Add input when inserting a duplicate transition
-
 
 
 .. _finite_state_machine_examples:
@@ -582,18 +595,13 @@ There is a :meth:`prepackaged transducer
 <sage.combinat.finite_state_machine_generators.TransducerGenerators.GrayCode>`
 for Gray code, let's see whether they agree. We have to use
 :meth:`~FiniteStateMachine.relabeled` to relabel our states with
-integers. Note that equality of finite state machines does not compare
-initial and final states, so we have to do it on our own here.
+integers.
 
 ::
 
     sage: constructed = Gray_transducer.relabeled()
     sage: packaged = transducers.GrayCode()
     sage: constructed == packaged
-    True
-    sage: constructed.initial_states() == packaged.initial_states()
-    True
-    sage: constructed.final_states() == packaged.final_states()
     True
 
 Finally, we check that this indeed computes the Gray code of the first
@@ -739,14 +747,15 @@ AUTHORS:
     inherited from FiniteStateMachine
 - Daniel Krenn (2013-11-25): documentation improved according to
     comments from trac #15078
-- Clemens Heuberger, Daniel Krenn, Sara Kropf (2014-02-21 -- 2014-05-02):
+- Clemens Heuberger, Daniel Krenn, Sara Kropf (2014-02-21--2014-07-18):
   A huge bunch of improvements. Details see
   #15841, #15847, #15848, #15849, #15850, #15922, #15923, #15924,
-  #15925, #15928, #15960, #15961, #15962, #15963, #15975, #16024,
-  #16061, #16095, #16106, #16128, #16132, #16133, #16138, #16139,
-  #16140, #16141, #16142, #16143, #16144, #16145, #16146, #16186,
-  #16191, #16200, #16205, #16206, #16207, #16229, #16253, #16254,
-  #16255, #16266.
+  #15925, #15928, #15960, #15961, #15962, #15963, #15975, #16016,
+  #16024, #16061, #16128, #16132, #16138, #16139, #16140, #16143,
+  #16144, #16145, #16146, #16191, #16200, #16205, #16206, #16207,
+  #16229, #16253, #16254, #16255, #16266, #16355, #16357, #16387,
+  #16425, #16539, #16555, #16557, #16588, #16589, #16666, #16668,
+  #16674, #16675, #16677.
 
 ACKNOWLEDGEMENT:
 
@@ -856,7 +865,80 @@ def full_group_by(l, key=lambda x: x):
         elements[s].append(item)
     return [(original_keys[s], values ) for (s, values) in elements.items()]
 
+
+def equal(iterator):
+    """
+    Checks whether all elements of ``iterator`` are equal.
+
+    INPUT:
+
+    - ``iterator`` -- an iterator of the elements to check
+
+    OUTPUT:
+
+    ``True`` or ``False``.
+
+    This implements `<http://stackoverflow.com/a/3844832/1052778>`_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.finite_state_machine import equal
+        sage: equal([0, 0, 0])
+        True
+        sage: equal([0, 1, 0])
+        False
+        sage: equal([])
+        True
+        sage: equal(iter([None, None]))
+        True
+
+    We can test other properties of the elements than the elements
+    themselves. In the following example, we check whether all tuples
+    have the same lengths::
+
+        sage: equal(len(x) for x in [(1, 2), (2, 3), (3, 1)])
+        True
+        sage: equal(len(x) for x in [(1, 2), (1, 2, 3), (3, 1)])
+        False
+    """
+    try:
+        iterator = iter(iterator)
+        first = next(iterator)
+        return all(first == rest for rest in iterator)
+    except StopIteration:
+        return True
+
+
+def startswith(list, prefix):
+    """
+    Determine whether list starts with the given prefix.
+
+    INPUT:
+
+    - ``list`` -- list
+    - ``prefix`` -- list representing the prefix
+
+    OUTPUT:
+
+    ``True`` or ``False``.
+
+    Similar to :meth:`str.startswith`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.finite_state_machine import startswith
+        sage: startswith([1, 2, 3], [1, 2])
+        True
+        sage: startswith([1], [1, 2])
+        False
+        sage: startswith([1, 3, 2], [1, 2])
+        False
+    """
+
+    return list[:len(prefix)] == prefix
+
 #*****************************************************************************
+
 
 FSMEmptyWordSymbol = '-'
 EmptyWordLaTeX = r'\varepsilon'
@@ -1575,9 +1657,6 @@ class FSMState(SageObject):
         Returns True if two states are the same, i.e., if they have
         the same labels.
 
-        Note that the hooks and whether the states are initial or
-        final are not checked.
-
         INPUT:
 
         - ``left`` -- a state.
@@ -1587,6 +1666,16 @@ class FSMState(SageObject):
         OUTPUT:
 
         True or False.
+
+        Note that the hooks and whether the states are initial or
+        final are not checked. To fully compare two states (including
+        these attributes), use :meth:`.fully_equal`.
+
+        As only the labels are used when hashing a state, only the
+        labels can actually be compared by the equality relation.
+        Note that the labels are unique within one finite state machine,
+        so this may only lead to ambiguities when comparing states
+        belonging to different finite state machines.
 
         EXAMPLES::
 
@@ -1624,6 +1713,50 @@ class FSMState(SageObject):
             False
         """
         return (not (left == right))
+
+
+    def fully_equal(left, right, compare_color=True):
+        """
+        Checks whether two states are fully equal, i.e., including all
+        attributes except ``hook``.
+
+        INPUT:
+
+        - ``left`` -- a state.
+
+        - ``right`` -- a state.
+
+        - ``compare_color`` -- If ``True`` (default) colors are
+          compared as well, otherwise not.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        Note that usual comparison by ``==`` does only compare the labels.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: A = FSMState('A')
+            sage: B = FSMState('A', is_initial=True)
+            sage: A.fully_equal(B)
+            False
+            sage: A == B
+            True
+            sage: A.is_initial = True; A.color = 'green'
+            sage: A.fully_equal(B)
+            False
+            sage: A.fully_equal(B, compare_color=False)
+            True
+        """
+        color = not compare_color or left.color == right.color
+        return (left.__eq__(right) and
+                left.is_initial == right.is_initial and
+                left.is_final == right.is_final and
+                left.final_word_out == right.final_word_out and
+                left.word_out == right.word_out and
+                color)
 
 
     def __nonzero__(self):
@@ -2459,7 +2592,7 @@ class FiniteStateMachine(SageObject):
 
     on_duplicate_transition = duplicate_transition_ignore
     """
-    Which function to call when a duplicate transition is inserted.  See
+    Which function to call when a duplicate transition is inserted. See
     the documentation of the parameter ``on_duplicate_transition`` of
     the class :class:`FiniteStateMachine` for details.
     """
@@ -2960,8 +3093,8 @@ class FiniteStateMachine(SageObject):
 
     def __eq__(left, right):
         """
-        Returns True if the two finite state machines are equal, i.e.,
-        if they have the same states and the same transitions.
+        Returns ``True`` if the two finite state machines are equal,
+        i.e., if they have the same states and the same transitions.
 
         INPUT:
 
@@ -2971,22 +3104,64 @@ class FiniteStateMachine(SageObject):
 
         OUTPUT:
 
-        True or False.
+        ``True`` or ``False``.
+
+        Note that this function compares all attributes of a state (by
+        using :meth:`FSMState.fully_equal`) except for colors. Colors
+        are handled as follows: If the colors coincide, then the
+        finite state machines are also considered equal. If not, then
+        they are considered as equal if both finite state machines are
+        monochromatic.
 
         EXAMPLES::
 
             sage: F = FiniteStateMachine([('A', 'B', 1)])
             sage: F == FiniteStateMachine()
             False
+            sage: G = FiniteStateMachine([('A', 'B', 1)],
+            ....:                        initial_states=['A'])
+            sage: F == G
+            False
+            sage: F.state('A').is_initial = True
+            sage: F == G
+            True
+
+        This shows the behavior when the states have colors::
+
+            sage: F.state('A').color = 'red'
+            sage: G.state('A').color = 'red'
+            sage: F == G
+            True
+            sage: G.state('A').color = 'blue'
+            sage: F == G
+            False
+            sage: F.state('B').color = 'red'
+            sage: F.is_monochromatic()
+            True
+            sage: G.state('B').color = 'blue'
+            sage: G.is_monochromatic()
+            True
+            sage: F == G
+            True
         """
         if not is_FiniteStateMachine(right):
-            raise TypeError('Only instances of FiniteStateMachine ' \
+            raise TypeError('Only instances of FiniteStateMachine '
                 'can be compared.')
         if len(left._states_) != len(right._states_):
             return False
+        colors_equal = True
         for state in left.iter_states():
-            if state not in right._states_:
+            try:
+                right_state = right.state(state.label())
+            except LookupError:
                 return False
+
+            # we handle colors separately
+            if not state.fully_equal(right_state, compare_color=False):
+                return False
+            if state.color != right_state.color:
+                colors_equal = False
+
             left_transitions = state.transitions
             right_transitions = right.state(state).transitions
             if len(left_transitions) != len(right_transitions):
@@ -2994,7 +3169,13 @@ class FiniteStateMachine(SageObject):
             for t in left_transitions:
                 if t not in right_transitions:
                     return False
-        return True
+
+        # handle colors
+        if colors_equal:
+            return True
+        if left.is_monochromatic() and right.is_monochromatic():
+            return True
+        return False
 
 
     def __ne__(left, right):
@@ -4753,10 +4934,6 @@ class FiniteStateMachine(SageObject):
           processing (in the case the finite state machine runs as
           transducer).
 
-        Note that in the case the finite state machine is not
-        deterministic, one possible path is gone. This means, that in
-        this case the output can be wrong.
-
         EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import FSMState
@@ -4779,6 +4956,32 @@ class FiniteStateMachine(SageObject):
             sage: [NAF.process(w)[0] for w in [[0], [0, 1], [1, 1], [0, 1, 0, 1],
             ....:                           [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [True, True, False, True, False, False]
+
+        Non-deterministic finite state machines cannot be handeled.
+
+        ::
+
+            sage: T = Transducer([(0, 1, 0, 0), (0, 2, 0, 0)],
+            ....:     initial_states=[0])
+            sage: T.process([0])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Non-deterministic path encountered when processing input.
+            sage: T = Transducer([(0, 1, [0, 0], 0), (0, 2, [0, 0, 1], 0),
+            ....:                 (0, 1, 1, 2), (1, 0, [], 1), (1, 1, 1, 3)],
+            ....:     initial_states=[0], final_states=[0, 1])
+            sage: T.process([0])
+            (False, None, None)
+            sage: T.process([0, 0])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Non-deterministic path encountered when processing input.
+            sage: T.process([1])
+            (True, 1, [2])
+            sage: T.process([1, 1])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: process cannot handle epsilon transition leaving state 1.
         """
         it = self.iter_process(*args, **kwargs)
         for _ in it:
@@ -5453,10 +5656,10 @@ class FiniteStateMachine(SageObject):
           \ldots, B_d)`. If there is no transition from `A` to `B`,
           then ``function`` should raise a ``LookupError``.
 
-        - ``new_input_alphabet`` (optional)-- the new input alphabet
+        - ``new_input_alphabet`` (optional) -- the new input alphabet
           as a list.
 
-        - ``only_accessible_components`` -- If true (default), then
+        - ``only_accessible_components`` -- If ``True`` (default), then
           the result is piped through :meth:`.accessible_components`. If no
           ``new_input_alphabet`` is given, it is determined by
           :meth:`.determine_alphabets`.
@@ -7901,6 +8104,32 @@ class FiniteStateMachine(SageObject):
         return entry_vector*system_matrix.solve_right(exit_vector)
 
 
+    def is_monochromatic(self):
+        """
+        Checks whether the colors of all states are equal.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        EXAMPLES::
+
+            sage: G = transducers.GrayCode()
+            sage: [s.color for s in G.iter_states()]
+            [None, None, None]
+            sage: G.is_monochromatic()
+            True
+            sage: G.state(1).color = 'blue'
+            sage: G.is_monochromatic()
+            False
+        """
+        return equal(s.color for s in self.iter_states())
+
+
 #*****************************************************************************
 
 
@@ -8205,7 +8434,10 @@ class Automaton(FiniteStateMachine):
             sage: auto.is_deterministic()
             False
             sage: auto.process(list('aaab'))
-            (False, 'A')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Non-deterministic path encountered
+            when processing input.
             sage: auto.states()
             ['A', 'C', 'B']
             sage: Ddet = auto.determinisation()
@@ -8421,12 +8653,6 @@ class Automaton(FiniteStateMachine):
           input tape (This is a state with label ``None`` if the input
           could not be processed, i.e., when at one point no
           transition to go could be found.).
-
-        Note that in the case the automaton is not
-        deterministic, one possible path is gone. This means that in
-        this case the output can be wrong. Use
-        :meth:`.determinisation` to get a deterministic automaton
-        machine and try again.
 
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
@@ -8903,8 +9129,7 @@ class Transducer(FiniteStateMachine):
                 only_accessible_components=only_accessible_components)
 
         def function(*transitions):
-            if all(t.word_in == transitions[0].word_in
-                   for t in transitions):
+            if equal(t.word_in for t in transitions):
                 return (transitions[0].word_in,
                         list(itertools.izip_longest(
                             *(t.word_out for t in transitions)
@@ -9060,10 +9285,6 @@ class Transducer(FiniteStateMachine):
 
         - the third gives a list of the output labels used during
           processing.
-
-        Note that in the case the transducer is not
-        deterministic, one possible path is gone. This means, that in
-        this case the output can be wrong.
 
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
@@ -9368,12 +9589,27 @@ class FSMProcessIterator(SageObject):
                 try:
                     while not found:
                         next_word.append(self.read_letter())
+                        if len(next_word) == 1 and any(not t.word_in
+                               for t in self.current_state.transitions):
+                            raise NotImplementedError(
+                                "process cannot handle epsilon transition "
+                                "leaving state %s." % self.current_state.label())
                         try:
                             transition = self.get_next_transition(
                                 next_word)
                             found = True
                         except ValueError:
                             pass
+
+                        if found and any(
+                            t is not transition and startswith(t.word_in,
+                                                               next_word)
+                            for t in self.current_state.transitions):
+                            raise NotImplementedError("Non-deterministic "
+                                                      "path encountered "
+                                                      "when processing "
+                                                      "input.")
+
                 except StopIteration:
                     # this means input tape is finished
                     if len(next_word) > 0:

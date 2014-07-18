@@ -3,14 +3,14 @@ Un Tour Por Sage
 ================
 
 Este es un tour por Sage que sigue de cerca al Tour Por Mathematica
-que está al comienzo de el Libro de Mathematica.
+que estÃ¡ al comienzo de el Libro de Mathematica.
 
 
 Sage Como Una Calculadora
 =========================
 
-La línea de comandos de Sage tiene un prompt ``sage:``; no necesitas agregarlo.
-Si utilizas el Notebook de Sage, entonces coloca todo después del 
+La lÃ­nea de comandos de Sage tiene un prompt ``sage:``; no necesitas agregarlo.
+Si utilizas el Notebook de Sage, entonces coloca todo despuÃ©s del 
 prompt ``sage:``  en una celda de entrada de datos, y presiona shift-enter para computar la
 salida correspondiente.
 
@@ -26,7 +26,7 @@ El acento circunflejo ``^`` significa "elevar a la potencia".
     sage: 57.1 ^ 100
     4.60904368661396e175
 
-Computamos el inverso de una matríz de :math:`2 \times 2` en Sage.
+Computamos el inverso de una matrÃ­z de :math:`2 \times 2` en Sage.
 
 ::
 
@@ -34,15 +34,15 @@ Computamos el inverso de una matríz de :math:`2 \times 2` en Sage.
     [  -2    1]
     [ 3/2 -1/2]
 
-Aquí integramos una función simple.
+AquÃ­ integramos una funciÃ³n simple.
 
 ::
 
-    sage: x = var('x')   # crea una variable simbólica
+    sage: x = var('x')   # crea una variable simbÃ³lica
     sage: integrate(sqrt(x)*sqrt(1+x), x)
     1/4*((x + 1)^(3/2)/x^(3/2) + sqrt(x + 1)/sqrt(x))/((x + 1)^2/x^2 - 2*(x + 1)/x + 1) - 1/8*log(sqrt(x + 1)/sqrt(x) + 1) + 1/8*log(sqrt(x + 1)/sqrt(x) - 1)
 
-Esto le pide a Sage que resuelva una ecuación cuadrática. El simbolo ``==``
+Esto le pide a Sage que resuelva una ecuaciÃ³n cuadrÃ¡tica. El simbolo ``==``
 representa igualdad en Sage.
 
 ::
@@ -64,10 +64,10 @@ El resultado es una lista de igualdades.
 .. image:: sin_plot.*
 
 
-Cómputos Poderosos Con Sage
+CÃ³mputos Poderosos Con Sage
 ===========================
 
-Primero creamos una matríz de :math:`500 \times 500` con números
+Primero creamos una matrÃ­z de :math:`500 \times 500` con nÃºmeros
 aleatorios.
 
 ::
@@ -75,7 +75,7 @@ aleatorios.
     sage: m = random_matrix(RDF,500)
 
 Le lleva unos cuantos segundos a Sage para computar los eigenvalores de la
-matríz y trazarlos.
+matrÃ­z y trazarlos.
 
 .. link
 
@@ -88,9 +88,9 @@ matríz y trazarlos.
 .. image:: eigen_plot.*
 
 
-Grácias a la Biblioteca GNU de Multiprecisión (GMP), Sage puede manejar 
-números muy grandes, hasta números con millones o billones de
-dígitos.
+GrÃ¡cias a la Biblioteca GNU de MultiprecisiÃ³n (GMP), Sage puede manejar 
+nÃºmeros muy grandes, hasta nÃºmeros con millones o billones de
+dÃ­gitos.
 
 ::
 
@@ -124,7 +124,7 @@ Esto le pide a Sage que factorice un polinomio en dos variables.
     sage: F.expand()
     x^99 + y^99
 
-A Sage tan solo le lleva ménos de 5 segundos para computar el número de maneras de
+A Sage tan solo le lleva mÃ©nos de 5 segundos para computar el nÃºmero de maneras de
 repartir cien milliones como una suma de enteros positivos.
 
 ::
@@ -136,5 +136,5 @@ repartir cien milliones como una suma de enteros positivos.
 Accesando Algoritmos en Sage
 ============================
 
-Cada vez que usas Sage, estas accesando una de las más grandes
-colecciones de algoritmos computacionales de código abierto de el mundo entero.
+Cada vez que usas Sage, estas accesando una de las mÃ¡s grandes
+colecciones de algoritmos computacionales de cÃ³digo abierto de el mundo entero.

@@ -468,8 +468,7 @@ class TransducerGenerators(object):
             sage: T([(0, 0), (0, 1), (1, 0), (1, 1)])
             [0, 1, 1, 2]
 
-        More than two operators can also be handled,
-        cf. :trac:`16186`::
+        More than two operands can also be handled::
 
             sage: T3 = transducers.add([0, 1], number_of_operands=3)
             sage: T3.input_alphabet

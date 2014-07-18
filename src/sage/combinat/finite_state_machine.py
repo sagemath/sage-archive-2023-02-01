@@ -5386,6 +5386,7 @@ class FiniteStateMachine(SageObject):
             The input alphabet of self has to be specified.
 
             This is a very limited implementation of composition.
+
             WARNING: The output of ``other`` is fed into ``self``.
 
           If algorithm is ``None``, then the algorithm is chosen
@@ -5486,11 +5487,27 @@ class FiniteStateMachine(SageObject):
             implemented for transducers with non-empty final output
             words. Try the direct algorithm instead.
 
+        Similarly, the explorative algorithm cannot handle
+        non-deterministic finite state machines::
+
+            sage: A = Transducer([(0, 0, 0, 0), (0, 1, 0, 0)])
+            sage: B = transducers.Identity([0])
+            sage: A.composition(B, algorithm='explorative')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Explorative composition is currently
+            not implemented for non-deterministic transducers.
+            sage: B.composition(A, algorithm='explorative')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Explorative composition is currently
+            not implemented for non-deterministic transducers.
+
         TESTS:
 
         Due to the limitations of the two algorithms the following
         (examples from above, but different algorithm used) does not
-        give a full answer or does not work
+        give a full answer or does not work.
 
         In the following, ``algorithm='explorative'`` is inadequate,
         as ``F`` has more than one initial state::
@@ -5645,6 +5662,11 @@ class FiniteStateMachine(SageObject):
                                       "implemented for transducers with "
                                       "non-empty final output words. Try "
                                       "the direct algorithm instead.")
+
+        if not self.is_deterministic() or not other.is_deterministic():
+            raise NotImplementedError("Explorative composition is "
+                                      "currently not implemented for "
+                                      "non-deterministic transducers.")
 
         F = other.empty_copy()
         new_initial_states = [(other.initial_states()[0], self.initial_states()[0])]

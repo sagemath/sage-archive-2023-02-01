@@ -1456,6 +1456,8 @@ cdef class MPolynomial(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError
+            sage: p.weighted_degree(2/1,1,1)
+            6
 
         The ``weighted_degree`` coincides with the ``degree`` of a weighted
         polynomial ring, but the later is faster.
@@ -1478,7 +1480,7 @@ cdef class MPolynomial(CommutativeRingElement):
         if isinstance(weights, dict):
             weights = [ weights[g] for g in self.parent().gens() ]
 
-        weigths = map(Integer, weights)
+        weights = map(Integer, weights)
 
         # Go through each monomial, calculating the weight
         cdef int n = self.parent().ngens()

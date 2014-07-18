@@ -8419,8 +8419,7 @@ class Transducer(FiniteStateMachine):
                 only_accessible_components=only_accessible_components)
 
         def function(*transitions):
-            if all(t.word_in == transitions[0].word_in
-                   for t in transitions):
+            if equal(t.word_in for t in transitions):
                 return (transitions[0].word_in,
                         list(itertools.izip_longest(
                             *(t.word_out for t in transitions)

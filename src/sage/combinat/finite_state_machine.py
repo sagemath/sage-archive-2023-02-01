@@ -1404,7 +1404,8 @@ class FSMState(SageObject):
                 left.is_initial == right.is_initial and
                 left.is_final == right.is_final and
                 left.final_word_out == right.final_word_out and
-                left.word_out == right.word_out)
+                left.word_out == right.word_out and
+                left.color == right.color)
 
 
     def __nonzero__(self):

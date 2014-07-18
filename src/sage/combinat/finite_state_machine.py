@@ -669,6 +669,15 @@ def check_equal(iterator):
         True
         sage: check_equal(iter([None, None]))
         True
+
+    We can test other properties of the elements than the elements
+    themselves. In the following example, we check if all tuples have
+    the same lengths::
+
+        sage: check_equal(len(x) for x in [(1, 2), (2, 3), (3, 1)])
+        True
+        sage: check_equal(len(x) for x in [(1, 2), (1, 2, 3), (3, 1)])
+        False
     """
     try:
         iterator = iter(iterator)

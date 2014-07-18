@@ -118,6 +118,11 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
             sage: TestSuite(QS3).run()
+
+            sage: QS3 in GroupAlgebras(QQ)
+            True
+            sage: QS3 in FiniteDimensionalAlgebrasWithBasis(QQ)
+            True
         """
         self.n = n
         cat = WeylGroups().Algebras(R).FiniteDimensional()
@@ -208,6 +213,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             [2, 1, 3, 4]
             sage: S(G(p))
             [2, 1, 3, 4]
+            sage: S(p) == S(G(p))
+            True
         """
         if isinstance(x, Permutation):
             return self.monomial_from_smaller_permutation(x)
@@ -579,7 +586,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         for (p, coeff) in f.monomial_coefficients().iteritems():
             p_ret = p.retract_direct_product(m)
             if not (p_ret is None):
-                if not p_ret in dct.keys():
+                if not p_ret in dct:
                     dct[p_ret] = coeff
                 else:
                     dct[p_ret] += coeff
@@ -630,7 +637,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         dct = {}
         for (p, coeff) in f.monomial_coefficients().iteritems():
             p_ret = p.retract_okounkov_vershik(m)
-            if not p_ret in dct.keys():
+            if not p_ret in dct:
                 dct[p_ret] = coeff
             else:
                 dct[p_ret] += coeff

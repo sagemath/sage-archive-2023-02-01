@@ -760,8 +760,11 @@ class MaximaLib(MaximaAbstract):
         The following integral was computed incorrectly in versions of
         Maxima before 5.27 (see :trac:`12947`)::
 
-            sage: integrate(x*cos(x^3),(x,0,1/2)).n()  # abs tol 1e-16
+            sage: a = integrate(x*cos(x^3),(x,0,1/2)).n()
+            sage: a.real()
             0.124756040961038
+            sage: a.imag().abs() < 3e-17
+            True
 
         """
         try:

@@ -189,4 +189,3 @@ is_Spec = deprecated_function_alias(16158, is_AffineScheme)
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.spec', 'Spec', AffineScheme)
-

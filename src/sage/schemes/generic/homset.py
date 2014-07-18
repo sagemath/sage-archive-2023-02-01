@@ -207,7 +207,7 @@ class SchemeHomsetFactory(UniqueFactory):
         X = extra_args.pop('X')
         Y = extra_args.pop('Y')
         base_ring = extra_args.pop('base_ring')
-        if len(key) >= 4 and key[3]:
+        if len(key) >= 4 and key[3]:  # as_point_homset=True
             return Y._point_homset(X, Y, category=category, base=base_ring, **extra_args)
         try:
             return X._homset(X, Y, category=category, base=base_ring, **extra_args)

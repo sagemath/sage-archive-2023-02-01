@@ -340,10 +340,10 @@ class Scheme(Parent):
 
         INPUT:
 
-        - ``v`` -- anything that defines a point.
+        - ``v`` -- anything that defines a point
 
-        - ``check`` -- boolean (optional, default=``True``). Whether
-          to check the defining data for consistency.
+        - ``check`` -- boolean (optional, default: ``True``); whether
+          to check the defining data for consistency
 
         OUTPUT:
 
@@ -613,14 +613,14 @@ class Scheme(Parent):
 
         INPUT:
 
-        - ``x`` -- anything hat determines a scheme morphism. If ``x``
-          is a scheme, try to determine a natural map to ``x``.
+        - ``x`` -- anything that determines a scheme morphism; if
+          ``x`` is a scheme, try to determine a natural map to ``x``
 
-        - ``Y`` -- the codomain scheme (optional). If ``Y`` is not
-          given, try to determine ``Y`` from context.
+        - ``Y`` -- the codomain scheme (optional); if ``Y`` is not
+          given, try to determine ``Y`` from context
 
-        - ``check`` -- boolean (optional, default=``True``). Whether
-          to check the defining data for consistency.
+        - ``check`` -- boolean (optional, default: ``True``); whether
+          to check the defining data for consistency
 
         OUTPUT:
 
@@ -648,12 +648,12 @@ class Scheme(Parent):
 
         INPUT:
 
-        - ``Y`` -- a scheme. The codomain of the Hom-set.
+        - ``Y`` -- a scheme; the codomain of the Hom-set
 
-        - ``category`` -- a category (optional). The category of the
-          Hom-set.
+        - ``category`` -- a category (optional); the category of the
+          Hom-set
 
-        - ``check`` -- boolean (optional, default=``True``). Whether
+        - ``check`` -- boolean (optional, default: ``True``); whether
           to check the defining data for consistency.
 
         OUTPUT:
@@ -1071,11 +1071,7 @@ class AffineScheme(Scheme):
 
     def is_noetherian(self):
         """
-        Test whether ``self`` is Noetherian.
-
-        OUTPUT:
-
-        Boolean. Return ``True`` if this scheme is Noetherian.
+        Return ``True`` if ``self`` is Noetherian, ``False`` otherwise.
 
         EXAMPLES::
 
@@ -1163,8 +1159,8 @@ class AffineScheme(Scheme):
 
         INPUT:
 
-        - ``x`` -- anything hat determines a scheme morphism. If ``x``
-          is a scheme, try to determine a natural map to ``x``
+        - ``x`` -- anything that determines a scheme morphism; if
+          ``x`` is a scheme, try to determine a natural map to ``x``
 
         - ``Y`` -- the codomain scheme (optional); if ``Y`` is not
           given, try to determine ``Y`` from context
@@ -1210,4 +1206,3 @@ class AffineScheme(Scheme):
         if Y is None and is_RingHomomorphism(x):
             Y = AffineScheme(x.domain())
         return Scheme.hom(self, x, Y)
-

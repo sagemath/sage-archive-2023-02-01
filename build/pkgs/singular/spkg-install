@@ -136,10 +136,10 @@ config()
                 --with-apint=gmp \
                 --with-malloc=system \
                 --with-NTL \
+                --with-flint="$SAGE_LOCAL" \
                 --without-MP \
                 --without-lex \
                 --without-Boost \
-                --without-flint \
                 --enable-Singular \
                 --enable-factory \
                 --enable-libfac \

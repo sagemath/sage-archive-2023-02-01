@@ -1434,7 +1434,7 @@ class FSMState(SageObject):
 
         OUTPUT:
 
-        True or False.
+        ``True`` or ``False``.
 
         Note that usual comparison by ``==`` does only compare the labels.
 

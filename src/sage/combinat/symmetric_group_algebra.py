@@ -24,6 +24,8 @@ from sage.categories.all import GroupAlgebras
 
 permutation_options = PermutationOptions
 
+# TODO: Remove this function and replace it with the class
+# TODO: Create parents for other bases (such as the seminormal basis)
 def SymmetricGroupAlgebra(R, n):
     """
     Return the symmetric group algebra of order ``n`` over the ring ``R``.
@@ -117,12 +119,80 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: TestSuite(QS3).run()
         """
         self.n = n
-        self._name = "Symmetric group algebra of order %s"%self.n
-        CombinatorialFreeModule.__init__(self, R, Permutations(n), prefix='', latex_prefix='', category = (GroupAlgebras(R),FiniteDimensionalAlgebrasWithBasis(R)))
-        # This is questionable, and won't be inherited properly
-        if n > 0:
-            S = SymmetricGroupAlgebra(R, n-1)
-            self.register_coercion(S.canonical_embedding(self))
+        cat = (GroupAlgebras(R), FiniteDimensionalAlgebrasWithBasis(R))
+        CombinatorialFreeModule.__init__(self, R, Permutations(n), prefix='',
+                                         latex_prefix='', category=cat)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: SymmetricGroupAlgebra(QQ, 3)
+            Symmetric group algebra of order 3 over Rational Field
+        """
+        return "Symmetric group algebra of order {} over {}".format(self.n, self.base_ring())
+
+    def _coerce_map_from_(self, S):
+        """
+        Return ``True`` or a morphism if there exists a coercion from ``S``
+        into ``self`` or ``False`` otherwise.
+
+        EXAMPLES:
+
+        Symmetric group algebras::
+
+            sage: SGA4 = SymmetricGroupAlgebra(QQ, 4)
+            sage: SGA2 = SymmetricGroupAlgebra(QQ, 2)
+            sage: SGA4.has_coerce_map_from(SGA2)
+            True
+            sage: SGA2Z = SymmetricGroupAlgebra(ZZ, 2)
+            sage: SGA4.has_coerce_map_from(SGA2Z)
+            True
+            sage: p = Permutation([2,1])
+            sage: SGA4(-3*SGA2Z.monomial(p))
+            -3*[2, 1, 3, 4]
+
+        Descent algebras::
+
+            sage: DA = DescentAlgebra(QQ, 4)
+            sage: SGA4 = SymmetricGroupAlgebra(QQ, 4)
+            sage: SGA4.has_coerce_map_from(DA.D())
+            True
+            sage: SGA4.has_coerce_map_from(DA.B())
+            True
+            sage: SGA4.has_coerce_map_from(DA.I())
+            True
+            sage: x = DA.B()[4]
+            sage: SGA4(x)
+            [1, 2, 3, 4]
+
+            sage: DAB = DescentAlgebra(ZZ,2).B()
+            sage: SGA4.has_coerce_map_from(DAB)
+            True
+            sage: SGA4(DAB[2])
+            [1, 2, 3, 4]
+        """
+        # Symmetric group algebras of smaller rank
+        if (isinstance(S, SymmetricGroupAlgebra_n) and S.n <= self.n
+                and self.base_ring().has_coerce_map_from(S.base_ring())):
+            return S.canonical_embedding(self)
+
+        # Descent algebras
+        from sage.combinat.descent_algebra import DescentAlgebra
+        # TODO: A better way to handle all of the bases
+        if isinstance(S, (DescentAlgebra.D, DescentAlgebra.B, DescentAlgebra.I)):
+            # Same rank and base ring, just the natural morphism
+            if S.realization_of()._n == self.n and self.base_ring() == S.base_ring():
+                return S.to_symmetric_group_algebra
+            # Otherwise compose with the canonical embedding
+            if (S.realization_of()._n <= self.n and
+                    self.base_ring().has_coerce_map_from(S.base_ring())):
+                phi = S.to_symmetric_group_algebra
+                return phi.codomain().canonical_embedding(self) * phi
+
+        return super(SymmetricGroupAlgebra_n, self)._coerce_map_from_(S)
 
     # _repr_ customization: output the basis element indexed by [1,2,3] as [1,2,3]
     _repr_option_bracket = False
@@ -274,12 +344,15 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
     def canonical_embedding(self, other):
         """
-        Return the canonical embedding of ``self`` into ``other``.
+        Return the canonical coercion of ``self`` into a symmetric
+        group algebra ``other``.
 
         INPUT:
 
         - ``other`` -- a symmetric group algebra with order `p`
-          satisfying `p \leq n` where `n` is the order of ``self``.
+          satisfying `p \geq n`, where `n` is the order of ``self``,
+          over a ground ring into which the ground ring of ``self``
+          coerces.
 
         EXAMPLES::
 
@@ -298,6 +371,24 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             Generic morphism:
               From: Symmetric group algebra of order 2 over Rational Field
               To:   Symmetric group algebra of order 4 over Rational Field
+
+            sage: ZS2 = SymmetricGroupAlgebra(ZZ, 2)
+            sage: phi = ZS2.canonical_embedding(QS4); phi
+            Generic morphism:
+              From: Symmetric group algebra of order 2 over Integer Ring
+              To:   Symmetric group algebra of order 4 over Rational Field
+
+            sage: phi = ZS2.canonical_embedding(QS2); phi
+            Generic morphism:
+              From: Symmetric group algebra of order 2 over Integer Ring
+              To:   Symmetric group algebra of order 2 over Rational Field
+
+            sage: QS4.canonical_embedding(QS2)
+            Traceback (most recent call last):
+            ...
+            ValueError: There is no canonical embedding from Symmetric group
+             algebra of order 2 over Rational Field to Symmetric group
+             algebra of order 4 over Rational Field
         """
         if not isinstance(other, SymmetricGroupAlgebra_n) or self.n > other.n:
             raise ValueError("There is no canonical embedding from {0} to {1}".format(other, self))

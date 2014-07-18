@@ -912,15 +912,10 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     ....:                 == w_n * S[I].to_descent_algebra(n) * w_n):
                     ....:             return False
                     ....:         return True
-                    sage: all( descent_test(i) for i in range(4) ) # not tested
+                    sage: all( descent_test(i) for i in range(4) )
                     True
-                    sage: all( descent_test(i) for i in range(6) ) # not tested
+                    sage: all( descent_test(i) for i in range(6) ) # long time
                     True
-
-                .. TODO::
-
-                    Once :trac:`10963` is in, remove the first "not tested" above,
-                    and replace the second one by "long time".
 
                 Testing the `\pi(f^{\ast}) = \pi(f)` relation noticed above::
 

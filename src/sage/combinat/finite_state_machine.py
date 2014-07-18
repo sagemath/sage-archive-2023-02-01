@@ -2788,7 +2788,7 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``is_zero`` -- by default (``is_zero==None``), checking for
+        - ``is_zero`` -- by default (``is_zero=None``), checking for
           zero is simply done by
           :meth:`~sage.structure.element.Element.is_zero`.  This
           parameter can be used to provide a more sophisticated check

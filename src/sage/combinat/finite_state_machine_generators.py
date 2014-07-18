@@ -478,9 +478,8 @@ class TransducerGenerators(object):
             sage: T3([(0, 0, 0), (0, 1, 0), (0, 1, 1), (1, 1, 1)])
             [0, 1, 2, 3]
         """
-        def multioperand_add(*args):
-            return sum(args)
-        return self.operator(multioperand_add, input_alphabet,
+        return self.operator(lambda *args: sum(args),
+                             input_alphabet,
                              number_of_operands=number_of_operands)
 
 

@@ -2807,13 +2807,19 @@ class FiniteStateMachine(SageObject):
                 'can be compared.')
         if len(left._states_) != len(right._states_):
             return False
+        colors_equal = True
         for state in left.iter_states():
             try:
                 right_state = right.state(state.label())
             except LookupError:
                 return False
-            if not state.fully_equal(right_state):
+
+            # we handle colors separately
+            if not state.fully_equal(right_state, compare_color=False):
                 return False
+            if state.color != right_state.color:
+                colors_equal = False
+
             left_transitions = state.transitions
             right_transitions = right.state(state).transitions
             if len(left_transitions) != len(right_transitions):
@@ -2821,7 +2827,13 @@ class FiniteStateMachine(SageObject):
             for t in left_transitions:
                 if t not in right_transitions:
                     return False
-        return True
+
+        # handle colors
+        if colors_equal:
+            return True
+        if left.is_monochromatic() and right.is_monochromatic():
+            return True
+        return False
 
 
     def __ne__(left, right):

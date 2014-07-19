@@ -3560,8 +3560,8 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         if not self.base_ring().is_finite():
             raise RuntimeError("Base ring must be finite.")
         b = self.basis_matrix()
-        from sage.matrix.echelon_matrix import echelon_matrix_iterator
-        for m in echelon_matrix_iterator(self.base_ring(), self.dimension(), dim, self.is_sparse()):
+        from sage.matrix.echelon_matrix import reduced_echelon_matrix_iterator
+        for m in reduced_echelon_matrix_iterator(self.base_ring(), dim, self.dimension(), self.is_sparse(), copy=False):
             yield self.subspace((m*b).rows())
 
     def subspace_with_basis(self, gens, check=True, already_echelonized=False):

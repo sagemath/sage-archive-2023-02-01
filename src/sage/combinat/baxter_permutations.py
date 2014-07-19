@@ -71,12 +71,6 @@ class BaxterPermutations_size(BaxterPermutations):
         from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
         super(BaxterPermutations, self).__init__(category=FiniteEnumeratedSets())
 
-    def _element_constructor_(self, x):
-        """
-        ???
-        """
-        return self.element_class(x)
-
     def _repr_(self):
         """
         Return a string representation of ``self``

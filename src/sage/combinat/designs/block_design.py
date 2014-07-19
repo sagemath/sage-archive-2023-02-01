@@ -203,18 +203,15 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
         (True, (2, 7, 3, 1))
     """
     if algorithm is None:
-        from sage.matrix.echelon_matrix import echelon_matrix_iterator
+        from sage.matrix.echelon_matrix import reduced_echelon_matrix_iterator
         from copy import copy
 
         points = {}
-        for i,p in enumerate(echelon_matrix_iterator(F,n+1,1)):
-            p = copy(p)
-            p.set_immutable()
-            points[p] = i
+        points = {p:i for i,p in enumerate(reduced_echelon_matrix_iterator(F,1,n+1,copy=True,set_immutable=True))}
         blocks = []
-        for m1 in echelon_matrix_iterator(F,n+1,d+1):
+        for m1 in reduced_echelon_matrix_iterator(F,d+1,n+1,copy=False):
             b = []
-            for m2 in echelon_matrix_iterator(F,d+1,1):
+            for m2 in reduced_echelon_matrix_iterator(F,1,d+1,copy=False):
                 m = m2*m1
                 m.echelonize()
                 m.set_immutable()

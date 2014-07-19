@@ -748,27 +748,26 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         INPUT:
 
-
         -  ``algorithm`` - string (default: 'heuristic'), used
            only for point counting over prime fields
 
-            -  ``'heuristic'`` - use a heuristic to choose between
-               ``'pari'`` and ``'bsgs'``.
+           -  ``'heuristic'`` - use a heuristic to choose between
+              ``'pari'`` and ``'bsgs'``
 
-            - ``'pari'`` - use the baby step giant step or SEA methods
-               as implemented in PARI via the C-library function ellap.
+           - ``'pari'`` - use the baby step giant step or SEA methods
+              as implemented in PARI via the C-library function ellap
 
-            -  ``'bsgs'`` - use the baby step giant step method as
-               implemented in Sage, with the Cremona-Sutherland version
-               of Mestre's trick.
+           -  ``'bsgs'`` - use the baby step giant step method as
+              implemented in Sage, with the Cremona-Sutherland version
+              of Mestre's trick
 
-            - ``'all'`` - (over prime fields only) compute cardinality
-              with all of PARI and bsgs; return result if they agree
-              or raise a RuntimeError if they do not.
+           - ``'all'`` - (over prime fields only) compute cardinality
+             with all of PARI and bsgs; return result if they agree
+             or raise a ``RuntimeError`` if they do not
 
         -  ``extension_degree`` - int (default: 1); if the
            base field is `k=GF(p^n)` and extension_degree=d, returns
-           the cardinality of `E(GF(p^{n d}))`.
+           the cardinality of `E(GF(p^{n d}))`
 
 
         OUTPUT: an integer
@@ -777,10 +776,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         Over prime fields, one of the above algorithms is used. Over
         non-prime fields, the serious point counting is done on a standard
-        curve with the same j-invariant over the field GF(p)(j), then
-        lifted to the base_field, and finally account is taken of twists.
+        curve with the same `j`-invariant over the field `\GF{p}(j)`, then
+        lifted to the base field, and finally account is taken of twists.
 
-        For j=0 and j=1728 special formulas are used instead.
+        For `j = 0` and `j = 1728` special formulas are used instead.
 
         EXAMPLES::
 
@@ -830,6 +829,14 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             Traceback (most recent call last):
             ...
             ValueError: Algorithm is not known
+
+        If the cardinality has already been computed, then the ``algorithm``
+        keyword is ignored::
+
+            sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='pari')
+            10076
+            sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='foobar')
+            10076
         """
         if extension_degree>1:
             # A recursive call to cardinality() with
@@ -842,11 +849,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 return (self.frobenius()**extension_degree-1).norm()
 
         # Now extension_degree==1
-        if algorithm != 'all':
-            try:
-                return self._order
-            except AttributeError:
-                pass
+        try:
+            return self._order
+        except AttributeError:
+            pass
 
         k = self.base_ring()
         q = k.cardinality()

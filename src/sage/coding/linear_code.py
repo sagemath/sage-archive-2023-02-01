@@ -796,6 +796,19 @@ class LinearCode(module.Module):
         """
         return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
 
+    def _an_element_(self):
+        r"""
+        Return an element of the linear code. Currently, it simply returns
+        the first row of the generator matrix.
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(3, GF(2))
+            sage: C.an_element()
+            (1, 0, 0, 0, 0, 1, 1)
+        """
+        return self.__gens[0]
+
     def automorphism_group_gens(self, equivalence="semilinear"):
         r"""
         Return generators of the automorphism group of ``self``.

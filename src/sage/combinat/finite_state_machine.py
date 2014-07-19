@@ -7624,6 +7624,32 @@ class FiniteStateMachine(SageObject):
                 'covariance': c*variable + SR(1).Order()}
 
 
+    def is_monochromatic(self):
+        """
+        Checks whether the colors of all states are equal.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        EXAMPLES::
+
+            sage: G = transducers.GrayCode()
+            sage: [s.color for s in G.iter_states()]
+            [None, None, None]
+            sage: G.is_monochromatic()
+            True
+            sage: G.state(1).color = 'blue'
+            sage: G.is_monochromatic()
+            False
+        """
+        return equal(s.color for s in self.iter_states())
+
+
 #*****************************************************************************
 
 

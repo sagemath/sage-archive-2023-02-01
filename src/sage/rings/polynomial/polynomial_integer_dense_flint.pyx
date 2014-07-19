@@ -41,7 +41,8 @@ from sage.structure.factorization import Factorization
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.arith import lcm
 
-from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse
+from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse, fmpz_poly_revert_series
+
 from sage.libs.flint.ntl_interface cimport fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
 from sage.libs.ntl.ntl_ZZX_decl cimport *, vec_pair_ZZX_long_c
 
@@ -1433,4 +1434,27 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         else:
             fmpz_poly_reverse(res.__poly, self.__poly,
                     fmpz_poly_length(self.__poly))
+        return res
+
+    def revert_series(self, n):
+        """
+        Return a polynomial f such that f(self(x)) = f(self(x)) = x mod x^n.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: f = t - t^3 + t^5
+            sage: f.revert_series(5+1)
+            2*t^5 + t^3 + t
+        """
+
+        cdef Polynomial_integer_dense_flint res = self._new()
+        cdef unsigned long m
+        m = n
+        if m != n:
+            raise ValueError, "argument n must be a non-negative integer, got %s"%(n)
+        if not self[0].is_zero() or not self[1].is_unit():
+            raise ValueError, "self must have constant coefficient 0 and +1 or -1 as the coefficient for x^1"
+
+        fmpz_poly_revert_series(res.__poly, self.__poly, m)
         return res

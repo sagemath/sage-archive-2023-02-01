@@ -614,6 +614,30 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
+    def revert_series(self, n):
+        """
+        Return a polynomial f such that f(self(x)) = f(self(x)) = x mod x^n.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: f = t - t^3/6 + t^5/120
+            sage: f.revert_series(5+1)
+            3/40*t^5 + 1/6*t^3 + t
+        """
+
+        cdef Polynomial_rational_flint res = self._new()
+        cdef unsigned long m
+        m = n
+        if m != n:
+            raise ValueError, "argument n must be a non-negative integer, got %s"%(n)
+        if not self[0].is_zero() or not self[1].is_unit():
+            raise ValueError, "self must have constant coefficient 0 and +1 or -1 as the coefficient for x^1"
+
+        fmpq_poly_revert_series(res.__poly, self.__poly, m)
+        return res
+
+
     ###########################################################################
     # Comparisons                                                             #
     ###########################################################################

@@ -12,9 +12,9 @@ Echelon matrices over finite fields.
 
 from sage.matrix.matrix0 cimport Matrix
 
-def echelon_matrix_iterator(K, k, n, bint sparse=False, bint copy=True, bint set_immutable=False):
+def reduced_echelon_matrix_iterator(K, k, n, bint sparse=False, bint copy=True, bint set_immutable=False):
     r"""
-    An iterator over `(k,n)` reduced echelon matrices over `K`.
+    An iterator over `(k,n)` reduced echelon matrices over the finite field `K`.
 
     INPUT:
 
@@ -35,8 +35,8 @@ def echelon_matrix_iterator(K, k, n, bint sparse=False, bint copy=True, bint set
 
     EXAMPLES::
 
-        sage: from sage.matrix.echelon_matrix import echelon_matrix_iterator
-        sage: it = echelon_matrix_iterator(GF(2),2,3)
+        sage: from sage.matrix.echelon_matrix import reduced_echelon_matrix_iterator
+        sage: it = reduced_echelon_matrix_iterator(GF(2),2,3)
         sage: for m in it:
         ....:     print m
         ....:     print m.pivots()
@@ -76,20 +76,20 @@ def echelon_matrix_iterator(K, k, n, bint sparse=False, bint copy=True, bint set
 
         sage: q = 71
         sage: F = GF(q)
-        sage: len(list(echelon_matrix_iterator(F, 1, 3, copy=False))) == q**2+q+1
+        sage: len(list(reduced_echelon_matrix_iterator(F, 1, 3, copy=False))) == q**2+q+1
         True
-        sage: len(list(echelon_matrix_iterator(F, 2, 3, copy=False))) == q**2+q+1
+        sage: len(list(reduced_echelon_matrix_iterator(F, 2, 3, copy=False))) == q**2+q+1
         True
 
     Testing options::
 
-        sage: it = echelon_matrix_iterator(GF(4,'z'), 2, 4, copy=False)
+        sage: it = reduced_echelon_matrix_iterator(GF(4,'z'), 2, 4, copy=False)
         sage: it.next() is it.next()
         True
         sage: for a in it: pass
 
-        sage: it = echelon_matrix_iterator(GF(4,'z'), 2, 4, set_immutable=True)
-        sage: all(a.is_immutable() and a.echelon_form() is a for a in it)
+        sage: it = reduced_echelon_matrix_iterator(GF(4,'z'), 2, 4, set_immutable=True)
+        sage: all(a.is_immutable() and a.echelon_form() == a for a in it)
         True
     """
     cdef Matrix m0,m,mm

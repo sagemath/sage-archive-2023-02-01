@@ -836,7 +836,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
         self.history.append(example)
         timer = Timer().start()
         try:
-            exec compiled in globs
+            exec(compiled, globs)
         finally:
             timer.stop().annotate(example)
             if isinstance(globs, RecordingDict):

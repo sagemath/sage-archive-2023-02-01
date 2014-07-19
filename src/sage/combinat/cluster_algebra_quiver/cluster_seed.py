@@ -2269,7 +2269,7 @@ class ClusterVariable(FractionFieldElement):
             if self._mutation_type.is_finite():
                 from sage.combinat.root_system.root_system import RootSystem
                 # the import above is used in the line below
-                exec "Phi = RootSystem("+self._mutation_type._repr_()+")"
+                exec("Phi = RootSystem("+self._mutation_type._repr_()+")")
                 Phiplus = Phi.root_lattice().simple_roots()
                 if self.denominator() == 1:
                     return -Phiplus[ self.numerator().degrees().index(1) + 1 ]

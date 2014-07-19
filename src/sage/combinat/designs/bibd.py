@@ -145,6 +145,10 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
         sage: [v for v in xrange(150) if designs.balanced_incomplete_block_design(v,6,existence=True) is Unknown]
         [51, 61, 66, 76, 81, 96, 106, 111, 121, 126, 136, 141]
 
+    But we know some inexistence results::
+
+        sage: designs.balanced_incomplete_block_design(21,6,existence=True)
+        False
     """
     lmbd = 1
     if v == 1:

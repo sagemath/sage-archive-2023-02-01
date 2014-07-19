@@ -1092,7 +1092,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
     def random_element(self, degree=2, *args, **kwds):
         r"""
-        Return a random polynomial.
+        Return a random polynomial of given degree or with given degree bounds.
 
         INPUT:
 
@@ -1116,18 +1116,18 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R.random_element(6)
             x^6 - 3*x^5 - x^4 + x^3 - x^2 + x + 1
             sage: R.random_element(6)
-            -2*x^5 + 2*x^4 - 3*x^3 + 1
+            -2*x^6 - 2*x^5 + 2*x^4 - 3*x^3 + 1
             sage: R.random_element(6)
-            x^4 - x^3 + x - 2
+            x^6 + x^3 - x^2 + 1
 
         If a tuple of two integers is given for the degree argument, a random
         integer will be chosen between the first and second element of the
         tuple as the degree::
 
             sage: R.random_element(degree=(0,8))
-            2*x^7 - x^5 + 4*x^4 - 5*x^3 + x^2 + 14*x - 1
+            -x^4 + 4*x^3 - 5*x^2 + x + 14
             sage: R.random_element(degree=(0,8))
-            -2*x^3 + x^2 + x + 4
+            x^4 + x^3 + 4*x^2 + 2*x
 
         TESTS::
 
@@ -1140,6 +1140,13 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             Traceback (most recent call last):
             ...
             ValueError: minimum degree must be less or equal than maximum degree
+
+        Check that :trac:`16682` is fixed::
+
+            sage: R = PolynomialRing(GF(2), 'z')
+            sage: for _ in xrange(100):
+            ....:     d = randint(2,20)
+            ....:     assert R.random_element(degree=d).degree() == d
         """
         if isinstance(degree, (list, tuple)):
             if len(degree) != 2:
@@ -1148,7 +1155,15 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 raise ValueError("minimum degree must be less or equal than maximum degree")
             degree = randint(*degree)
         R = self.base_ring()
-        return self([R.random_element(*args, **kwds) for _ in xrange(degree+1)])
+
+        if degree == 0:
+            return self(R.random_element(*args, **kwds))
+
+        coeffs = [R.random_element(*args,**kwds) for _ in xrange(degree)]
+        dominant_coeff = R.random_element(*args, **kwds)
+        while dominant_coeff.is_zero():
+            dominant_coeff = R.random_element(*args, **kwds)
+        return self(coeffs + [dominant_coeff])
 
     def _monics_degree( self, of_degree ):
         """

@@ -70,11 +70,10 @@ http://www.python.org/community/
  * no_strict_proto-issue_5755.patch: don't add -Wstrict-prototypes compiler
    flag, which isn't valid for C++ (but Python uses the same compiler flags
    for C and C++). See http://bugs.python.org/issue5755.
- * re_unsigned_ptrdiff-issue_17016.patch: Fixes Python issue #17016.
  * hashlibfallbacks-issue_18000.patch: Fixed Python issue #18000.
- * inc_lib_dirs-issue_17990.patch: Only modify include and library search
-   paths when cross-compiling.
  * node-issue_3871.patch: fix _PyNode_Sizeof declaration.
  * tinfo.patch: make sure tinfo is correctly linked in when needed on Cygwin.
+
+Temporarily removed since it does not apply to python-2.7.6:
  * uuid.patch: patch from Python issue 11063; reduce uuid moudle import side
    effects and fix thread related issues.

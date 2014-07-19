@@ -348,7 +348,7 @@ categories and their super categories::
      Category of unique factorization domains, Category of gcd domains,
      Category of integral domains, Category of domains,
      Category of commutative rings, Category of rings, ...
-     Category of magmas and additive magmas,
+     Category of magmas and additive magmas, ...
      Category of monoids, Category of semigroups,
      Category of commutative magmas, Category of unital magmas, Category of magmas,
      Category of commutative additive groups, ..., Category of additive magmas,
@@ -623,7 +623,7 @@ appropriate super classes according to
 
     sage: Groups().element_class.__bases__
     (<class 'sage.categories.monoids.Monoids.element_class'>,
-     <class 'sage.categories.magmas.Unital.Inverse.element_class'>)
+     <class 'sage.categories.magmas.Magmas.Unital.Inverse.element_class'>)
 
 We now see that the hierarchy of classes for parents and elements is
 parallel to the hierarchy of categories::

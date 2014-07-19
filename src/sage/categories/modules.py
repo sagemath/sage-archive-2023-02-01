@@ -447,7 +447,7 @@ class Modules(Category_module):
 
 
     class HomCategory(HomCategory):
-        """
+        r"""
         The category of homomorphism sets `\hom(X,Y)` for `X`, `Y` modules.
         """
 
@@ -465,10 +465,26 @@ class Modules(Category_module):
             @cached_method
             def base_ring(self):
                 """
-                Return the base ring of ``self``
+                Return the base ring of ``self``.
 
                 EXAMPLES::
 
+                    sage: E = CombinatorialFreeModule(ZZ, [1,2,3])
+                    sage: F = CombinatorialFreeModule(ZZ, [2,3,4])
+                    sage: H = Hom(E, F)
+                    sage: H.base_ring()
+                    Integer Ring
+
+                This ``base_ring`` method is actually overridden by
+                :meth:`sage.structure.category_object.CategoryObject.base_ring`::
+
+                    sage: H.base_ring.__module__
+
+                Here we call it directly::
+
+                    sage: method = H.category().parent_class.base_ring
+                    sage: method.__get__(H)()
+                    Integer Ring
                 """
                 return self.domain().base_ring()
 

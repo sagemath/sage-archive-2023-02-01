@@ -204,7 +204,7 @@ Conversion to Maxima::
     sage: x = var('x')
     sage: eq = (x^(3/5) >= pi^2 + e^i)
     sage: eq._maxima_init_()
-    '(x)^(3/5) >= ((%pi)^(2))+(exp(0+%i*1))'
+    '(_SAGE_VAR_x)^(3/5) >= ((%pi)^(2))+(exp(0+%i*1))'
     sage: e1 = x^3 + x == sin(2*x)
     sage: z = e1._maxima_()
     sage: z.parent() is sage.calculus.calculus.maxima
@@ -719,7 +719,15 @@ def solve(f, *args, **kwds):
         sage: solve([x == 1], (1, a))
         Traceback (most recent call last):
         ...
-        TypeError: 1 is not a valid variable.
+        TypeError: (1, a) are not valid variables.
+
+    Test that the original version of a system in the French Sage book
+    now works (:trac:`14306`)::
+
+        sage: var('y,z')
+        (y, z)
+        sage: solve([x^2*y*z==18,x*y^3*z==24,x*y*z^4==6],x,y,z)
+        [[x == 3, y == 2, z == 1], [x == (1.33721506733 - 2.68548987407*I), y == (-1.70043427146 + 1.05286432575*I), z == (0.932472229404 - 0.361241666187*I)], ...]
     """
     from sage.symbolic.expression import is_Expression
     if is_Expression(f): # f is a single expression

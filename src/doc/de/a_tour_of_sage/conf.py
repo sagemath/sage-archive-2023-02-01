@@ -35,4 +35,3 @@ latex_documents = [
   ("index", name + ".tex", u"Ein Rundgang durch Sage",
    u"The Sage Development Team", "manual"),
 ]
-

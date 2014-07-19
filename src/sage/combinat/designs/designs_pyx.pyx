@@ -250,10 +250,9 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
         for x in b:
             try:
                 i = x
-                isok = True
             except TypeError:
-                isok = False
-            if not isok or i < 0 or i >= n:
+                i=-1
+            if i < 0 or i >= n:
                 if verbose:
                     print "{} does not belong to [0,...,{}]".format(x,n-1)
                 return False
@@ -263,10 +262,9 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
         for x in b:
             try:
                 i = x
-                isok = True
             except TypeError:
-                isok = False
-            if not isok or i < 0 or i >= n:
+                i = -1
+            if i < 0 or i >= n:
                 if verbose:
                     print "{} does not belong to [0,...,{}]".format(x,n-1)
                 return False

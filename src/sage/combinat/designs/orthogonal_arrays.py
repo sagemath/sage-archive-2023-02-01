@@ -352,7 +352,7 @@ class TransversalDesign(GroupDivisibleDesign):
             sage: designs.transversal_design(None,5)
             Transversal Design TD(6,5)
         """
-        from sage.functions.other import sqrt
+        from math import sqrt
         if k is None:
             if blocks:
                 k=len(blocks[0])

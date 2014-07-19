@@ -593,10 +593,13 @@ class IncidenceStructure(object):
         """
         assert len(set(perm.values())) == len(perm)
 
-        if self._point_to_index is None:
-            self._point_to_index = {i:i for i in self._points}
 
         self._points = [perm[x] for x in self._points]
+
+        if self._points == range(self.num_points()):
+            self._point_to_index  = None
+        else:
+            self._point_to_index = {v:i for i,v in enumerate(self._points)}
 
     def __hash__(self):
         r"""
@@ -1229,7 +1232,7 @@ class GroupDivisibleDesign(IncidenceStructure):
         sage: TD = designs.transversal_design(4,10)
         sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
         sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
-        Group Divisible Design on 40 points and type 10^4
+        Group Divisible Design on 40 points of type 10^4
     """
     def __init__(self, points, groups, blocks, G=None, K=None, lambd=1, check=True, copy=True,**kwds):
         r"""
@@ -1241,7 +1244,7 @@ class GroupDivisibleDesign(IncidenceStructure):
             sage: TD = designs.transversal_design(4,10)
             sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
             sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
-            Group Divisible Design on 40 points and type 10^4
+            Group Divisible Design on 40 points of type 10^4
         """
         from designs_pyx import is_group_divisible_design
 
@@ -1281,7 +1284,7 @@ class GroupDivisibleDesign(IncidenceStructure):
             sage: TD = designs.transversal_design(4,10)
             sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
             sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
-            Group Divisible Design on 40 points and type 10^4
+            Group Divisible Design on 40 points of type 10^4
             sage: GDD.groups()
             [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
              [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
@@ -1318,7 +1321,7 @@ class GroupDivisibleDesign(IncidenceStructure):
             sage: TD = designs.transversal_design(4,10)
             sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
             sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
-            Group Divisible Design on 40 points and type 10^4
+            Group Divisible Design on 40 points of type 10^4
         """
         from string import join
         group_sizes = map(len, self.groups(copy=False))
@@ -1332,4 +1335,4 @@ class GroupDivisibleDesign(IncidenceStructure):
 
         v = self.num_points()
 
-        return "Group Divisible Design on {} points and type {}".format(v,gdd_type)
+        return "Group Divisible Design on {} points of type {}".format(v,gdd_type)

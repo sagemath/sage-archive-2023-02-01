@@ -215,17 +215,21 @@ TESTS::
 import urllib
 import sage.modules.free_module as fm
 import sage.modules.module as module
+from sage.categories.modules import Modules
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.interfaces.all import gap
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import Matrix
+from sage.modules.free_module import element_class
 from sage.modules.free_module_element import vector
 from sage.rings.arith import GCD, rising_factorial, binomial
 from sage.groups.all import SymmetricGroup
 from sage.misc.misc import prod
 from sage.misc.functional import log, is_even
 from sage.rings.rational_field import QQ
+from sage.structure.parent import Parent
 from sage.structure.parent_gens import ParentWithGens
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field import FractionField
@@ -697,14 +701,14 @@ class LinearCode(module.Module):
 
     INPUT:
 
-    -  ``G`` - a generator matrix over `F`. (``G`` can be defined over a
-       finite ring but the matrices over that ring must have certain
-       attributes, such as ``rank``.)
+    - ``G`` -- a generator matrix over `F` (``G`` can be defined over a
+      finite ring but the matrices over that ring must have certain
+      attributes, such as ``rank``)
 
-    - ``d`` - (Optional, default: ``None``) the minimum distance of the
-      code. This is an optional parameter.
+    - ``d`` -- (optional, default: ``None``) the minimum distance of the code
 
-    .. note::
+    .. NOTE::
+
         The veracity of the minimum distance ``d``, if provided, is not
         checked.
 
@@ -773,9 +777,17 @@ class LinearCode(module.Module):
             sage: C  = LinearCode(G, d=3)
             sage: C.minimum_distance()
             3
+
+        TESTS::
+
+            sage: C = codes.HammingCode(3, GF(2))
+            sage: TestSuite(C).run()
         """
         base_ring = gen_mat[0,0].parent()
-        module.Module.__init__(self, base_ring)
+        cat = Modules(base_ring).FiniteDimensional().WithBasis() & FiniteEnumeratedSets()
+        facade_for = gen_mat.row(0).parent()
+        self.Element = type(gen_mat.row(0)) # for when we make this a non-facade parent
+        Parent.__init__(self, base=base_ring, facade=facade_for, category=cat)
         self.__gens = gen_mat.rows()
         self.__gen_mat = gen_mat
         self.__length = len(gen_mat.row(0))
@@ -1167,18 +1179,6 @@ class LinearCode(module.Module):
         aut_group_can_label = self._canonize(equivalence)
         return aut_group_can_label.get_canonical_form(), \
                aut_group_can_label.get_transporter()
-
-    def cardinality(self):
-        r"""
-        Return the size of this code.
-
-        EXAMPLES::
-
-            sage: C = codes.HammingCode(3, GF(2))
-            sage: C.cardinality()
-            16
-        """
-        return self.__len__()
 
     def __contains__(self,v):
         r"""
@@ -1590,7 +1590,17 @@ class LinearCode(module.Module):
             sage: C3 = C2.punctured([7])
             sage: C1 == C3
             True
+
+        TESTS:
+
+        We check that :trac:`16644` is fixed::
+
+            sage: C = codes.HammingCode(3,GF(2))
+            sage: C == ZZ
+            False
         """
+        if not isinstance(right, LinearCode):
+            return False
         slength = self.length()
         rlength = right.length()
         sdim = self.dimension()
@@ -2994,6 +3004,7 @@ class LinearCode(module.Module):
         we = sum([spec[i]*x**(n-i)*y**i for i in range(n+1)])
         return we
 
+    @cached_method
     def zero(self):
         r"""
         Return the zero vector.
@@ -3011,7 +3022,9 @@ class LinearCode(module.Module):
         # Note that self.sum() calls self.zero_element(), which in turn
         # calls self.zero(). So, only this method needs to be implemented
         # for the other two to work.
-        return 0*self.__gens[0]
+        v = 0*self.__gens[0]
+        v.set_immutable()
+        return v
 
     def zeta_polynomial(self, name="T"):
         r"""

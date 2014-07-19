@@ -75,7 +75,7 @@ Aqui nós demonstramos alguns usos básicos da função ``latex()``. ::
     sage: latex(integrate(z^4, z))
     \frac{1}{5} \, z^{5}
     sage: latex('a string')
-    \verb|a|\phantom{x}\verb|string|
+    \text{\texttt{a{ }string}}
     sage: latex(QQ)
     \Bold{Q}
     sage: latex(matrix(QQ, 2, 3, [[2,4,6],[-1,-1,-1]]))
@@ -90,18 +90,18 @@ classe ``jsMath``. A função ``eval`` dessa classe converte um objeto
 do Sage em sua representação LaTeX e adiciona HTML que por sua vez
 evoca a classe "matemática" do CSS, a qual então emprega o jsMath. ::
 
-    sage: from sage.misc.latex import JSMath
-    sage: js = JSMath()
+    sage: from sage.misc.latex import MathJax
+    sage: js = MathJax()
     sage: var('z')
     z
     sage: js(z^12)
-    <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}z^{12}</div></html>
+    <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}z^{12}</script></html>
     sage: js(QQ)
-    <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Q}</div></html>
+    <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Q}</script></html>
     sage: js(ZZ[x])
-    <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}[x]</div></html>
+    <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}[x]</script></html>
     sage: js(integrate(z^4, z))
-    <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{5} \, z^{5}</div></html>
+    <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{5} \, z^{5}</script></html>
 
 Uso Básico
 ==========
@@ -138,9 +138,9 @@ Sage para HTML que emprega o jsMath no Notebook. ::
 
     sage: from sage.misc.latex import pretty_print
     sage: pretty_print(x^12)
-    <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</span></html>
+    <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
     sage: pretty_print(integrate(sin(x), x))
-    <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</span></html>
+    <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</script></html>
 
 O Notebook tem outros dois recursos para empregar o TeX. O primeiro é
 o botão "Typeset" bem acima da primeira célula da folha de trabalho, à
@@ -209,13 +209,14 @@ obtido redefinindo a macro ``\Bold{}`` que faz parte do Sage. ::
 
     sage: latex(QQ)
     \Bold{Q}
-    sage: from sage.misc.latex import JSMath
-    sage: js=JSMath()
+    sage: from sage.misc.latex import MathJax
+    sage: js = MathJax()
     sage: js(QQ)
-    <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Q}</div></html>
+    <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Q}</script></html>
+
     sage: latex.blackboard_bold(True)
     sage: js(QQ)
-    <html><div class="math">\newcommand{\Bold}[1]{\mathbb{#1}}\Bold{Q}</div></html>
+    <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbb{#1}}\Bold{Q}</script></html>
     sage: latex.blackboard_bold(False)
 
 É possível aproveitar os recursos do TeX adicionando novas funções
@@ -232,10 +233,10 @@ trechos de códigos TeX no Notebook. ::
     (x, y)
     sage: latex(x+y)
     x + y
-    sage: from sage.misc.latex import JSMath
-    sage: js=JSMath()
+    sage: from sage.misc.latex import MathJax
+    sage: js = MathJax()
     sage: js(x+y)
-    <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\newcommand{\foo}{bar}x + y</div></html>
+    <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\newcommand{\foo}{bar}x + y</script></html>
 
 Macros adicionais usadas dessa forma serão também usadas eventualmente
 se a versão do TeX no seu sistema for usada para lidar com algo muito
@@ -329,20 +330,20 @@ trabalho se o código em LaTeX for complicado demais. O dispositivo é
 uma lista de strings, que se forem encontradas em um trecho de código
 LaTeX sinalizam para o Notebook usar o LaTeX (ou qualquer executável
 que for definido pelo comando ``latex.engine()``). Essa lista é
-gerenciada pelos comandos ``latex.add_to_jsmath_avoid_list`` e
-``latex.jsmath_avoid_list``. ::
+gerenciada pelos comandos ``latex.add_to_mathjax_avoid_list`` e
+``latex.mathjax_avoid_list``. ::
 
-    sage: latex.jsmath_avoid_list([])
-    sage: latex.jsmath_avoid_list()
+    sage: latex.mathjax_avoid_list([])
+    sage: latex.mathjax_avoid_list()
     []
-    sage: latex.jsmath_avoid_list(['foo', 'bar'])
-    sage: latex.jsmath_avoid_list()
+    sage: latex.mathjax_avoid_list(['foo', 'bar'])
+    sage: latex.mathjax_avoid_list()
     ['foo', 'bar']
-    sage: latex.add_to_jsmath_avoid_list('tikzpicture')
-    sage: latex.jsmath_avoid_list()
+    sage: latex.add_to_mathjax_avoid_list('tikzpicture')
+    sage: latex.mathjax_avoid_list()
     ['foo', 'bar', 'tikzpicture']
-    sage: latex.jsmath_avoid_list([])
-    sage: latex.jsmath_avoid_list()
+    sage: latex.mathjax_avoid_list([])
+    sage: latex.mathjax_avoid_list()
     []
 
 Suponha que uma expressão em LaTeX é produzida no Notebook com o
@@ -403,7 +404,7 @@ processador, etc. estão configurados corretamente).
     'latex.add_to_preamble("\\usepackage[matrix,arrow,curve,cmtip]{xy}")',
     and try viewing again -- it should work in the command line but not
     from the notebook.  In the notebook, run
-    'latex.add_to_jsmath_avoid_list("xymatrix")' and try again -- you
+    'latex.add_to_mathjax_avoid_list("xymatrix")' and try again -- you
     should get a picture (a part of the diagram arising from a filtered
     chain complex).
 
@@ -450,9 +451,9 @@ pelo LaTeX no Notebook. ::
     sage: latex.extra_preamble() # random - depends on system's TeX installation
     '\\usepackage{tikz}\n\\usepackage{tkz-graph}\n\\usepackage{tkz-berge}\n'
     sage: latex.engine('pdflatex')
-    sage: latex.add_to_jsmath_avoid_list('tikzpicture')
-    sage: latex.jsmath_avoid_list()
-    ['tikzpicture']
+    sage: latex.add_to_mathjax_avoid_list('tikzpicture')
+    sage: latex.mathjax_avoid_list()
+    ['tikz', 'tikzpicture']
 
 Agora, um comando como ``view(graphs.CompleteGraph(4))`` deve produzir
 um gráfico do grafo no Notebook, tendo usado ``pdflatex`` para

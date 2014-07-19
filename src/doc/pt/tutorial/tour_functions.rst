@@ -96,7 +96,7 @@ produzir ``cos``.
 
 ::
 
-       sage: f = sin	
+       sage: f = sin
        sage: f.derivative()
        Traceback (most recent call last):
        ...
@@ -119,10 +119,10 @@ Aqui estão alguns problemas comuns, com explicações:
 ::
 
        sage: def h(x):
-       ...       if x<2:
-       ...	     return 0
-       ...       else:
-       ...	     return x-2
+       ....:     if x<2:
+       ....:         return 0
+       ....:     else:
+       ....:         return x-2
 
 O problema: ``plot(h(x), 0, 4)`` cria o gráfico da reta `y=x-2`, não
 da função definida por ``h``. O motivo? No comando ``plot(h(x), 0,

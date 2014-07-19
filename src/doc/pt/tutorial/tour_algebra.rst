@@ -52,8 +52,8 @@ primeiro, resolvemos o sistemas simbolicamente:
     sage: eq2 = q*y+p*x==-6
     sage: eq3 = q*y^2+p*x^2==24
     sage: solve([eq1,eq2,eq3,p==1],p,q,x,y)
-    [[p == 1, q == 8, x == -4/3*sqrt(10) - 2/3, y == 1/6*sqrt(2)*sqrt(5) - 2/3],
-     [p == 1, q == 8, x == 4/3*sqrt(10) - 2/3, y == -1/6*sqrt(2)*sqrt(5) - 2/3]]
+    [[p == 1, q == 8, x == -4/3*sqrt(10) - 2/3, y == 1/6*sqrt(5)*sqrt(2) - 2/3],
+    [p == 1, q == 8, x == 4/3*sqrt(10) - 2/3, y == -1/6*sqrt(5)*sqrt(2) - 2/3]]
 
 Para obter soluções numéricas aproximadas, podemos usar:
 
@@ -138,7 +138,7 @@ Para calcular a decomposição em frações parciais de
 
     sage: f = 1/((1+x)*(x-1))
     sage: f.partial_fraction(x)
-    1/2/(x - 1) - 1/2/(x + 1)
+    -1/2/(x + 1) + 1/2/(x - 1)
 
 .. _section-systems:
 
@@ -154,7 +154,7 @@ ordinárias. Para resolver a equação :math:`x'+x-1=0`:
     sage: x = function('x',t)   # define x to be a function of that variable
     sage: DE = diff(x, t) + x - 1
     sage: desolve(DE, [x,t])
-    (c + e^t)*e^(-t)
+    (_C + e^t)*e^(-t)
 
 Esse método usa a interface do Sage para o Maxima [Max]_. Logo, o
 formato dos resultados é um pouco diferente de outros cálculos
@@ -170,7 +170,7 @@ Laplace de :math:`t^2e^t -\sin(t)` é calculada da seguinte forma:
     sage: t = var("t")
     sage: f = t^2*exp(t) - sin(t)
     sage: f.laplace(t,s)
-    2/(s - 1)^3 - 1/(s^2 + 1)
+    -1/(s^2 + 1) + 2/(s - 1)^3
 
 A seguir, um exemplo mais complicado. O deslocamento, com respeito à
 posição de equilíbrio, de duas massas presas a uma parede através de
@@ -395,12 +395,12 @@ está documentado nas seções apropriadas ("Orthogonal polynomials" and
     sage: x = polygen(QQ, 'x')
     sage: chebyshev_U(2,x)
     4*x^2 - 1
-    sage: bessel_I(1,1,"pari",250)
+    sage: bessel_I(1,1).n(250)
     0.56515910399248502720769602760986330732889962162109200948029448947925564096
-    sage: bessel_I(1,1)
-    0.565159103992485
-    sage: bessel_I(2,1.1,"maxima")  # last few digits are random
-    0.16708949925104899
+    sage: bessel_I(1,1).n()
+    0.56515910399248...
+    sage: bessel_I(2,1.1).n()  # last few digits are random
+    0.16708949925104...
 
 No momento, essas funções estão disponíveis na interface do Sage
 apenas para uso numérico. Para uso simbólico, use a interface do

@@ -106,8 +106,8 @@ Por fim, ilustramos o teorema do resto Chinês.
     [1, -1, 1, 1, -1, -1, -1, -1, 1, 1, -1, 1]
     sage: n = 10000; sum([moebius(m) for m in range(1,n)])
     -23
-    sage: list(partitions(4))
-    [(1, 1, 1, 1), (1, 1, 2), (2, 2), (1, 3), (4,)]
+    sage: list(Partitions(4))
+    [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
 
 Números :math:`p`-ádicos
 ------------------------
@@ -158,7 +158,7 @@ NumberField.
     Univariate Quotient Polynomial Ring in a over Rational Field with modulus 
     x^3 + x^2 - 2*x + 8
     sage: K.units()
-    [3*a^2 + 13*a + 13]
+    (3*a^2 + 13*a + 13,)
     sage: K.discriminant()
     -503
     sage: K.class_group()

@@ -67,13 +67,14 @@ projetivo:
     in a, b, c, d over Rational Field
     sage: F.reduced_groebner_bases ()
     [[-c^2 + b*d, -b*c + a*d, -b^2 + a*c],
-     [c^2 - b*d, -b*c + a*d, -b^2 + a*c],
-     [c^2 - b*d, b*c - a*d, -b^2 + a*c, -b^3 + a^2*d],
-     [c^2 - b*d, b*c - a*d, b^3 - a^2*d, -b^2 + a*c],
-     [c^2 - b*d, b*c - a*d, b^2 - a*c],
-     [-c^2 + b*d, b^2 - a*c, -b*c + a*d],
-     [-c^2 + b*d, b*c - a*d, b^2 - a*c, -c^3 + a*d^2],
-     [c^3 - a*d^2, -c^2 + b*d, b*c - a*d, b^2 - a*c]]
+    [-c^2 + b*d, b^2 - a*c, -b*c + a*d],
+    [-c^2 + b*d, b*c - a*d, b^2 - a*c, -c^3 + a*d^2],
+    [c^3 - a*d^2, -c^2 + b*d, b*c - a*d, b^2 - a*c],
+    [c^2 - b*d, -b*c + a*d, -b^2 + a*c],
+    [c^2 - b*d, b*c - a*d, -b^2 + a*c, -b^3 + a^2*d],
+    [c^2 - b*d, b*c - a*d, b^3 - a^2*d, -b^2 + a*c],
+    [c^2 - b*d, b*c - a*d, b^2 - a*c]]
+
     sage: F.polyhedralfan()
     Polyhedral fan in 4 dimensions of dimension 4
 
@@ -357,12 +358,12 @@ Agora calculamos diversos invariantes de ``G``:
 
     sage: G.gens()
     (Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1,
-    Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> i)
+    Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -i)
 
     sage: G.unit_gens()
-    [11, 17]
+    (11, 17)
     sage: G.zeta()
-    i
+    -i
     sage: G.zeta_order()
     4
 
@@ -479,7 +480,7 @@ Podemos até mesmo calcular espaços de símbolos modulares com carácter.
     Modular Symbols space of dimension 4 and level 13, weight 2, character 
     [zeta6], sign 0, over Cyclotomic Field of order 6 and degree 2
     sage: M.T(2).charpoly('x').factor()
-    (x - 2*zeta6 - 1) * (x - zeta6 - 2) * (x + zeta6 + 1)^2
+    (x - zeta6 - 2) * (x - 2*zeta6 - 1) * (x + zeta6 + 1)^2
     sage: S = M.cuspidal_submodule(); S
     Modular Symbols subspace of dimension 2 of Modular Symbols space of 
     dimension 4 and level 13, weight 2, character [zeta6], sign 0, over 

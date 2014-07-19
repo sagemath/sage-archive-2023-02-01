@@ -17,10 +17,10 @@ operações estão listadas aqui em ordem crescente de precedência.
 Operadores                  Descrição
 ==========================  =================
 or                          "ou" booleano
-and  	     		        "e" booleano
-not	     		            "não" booleano
-in, not in   		        pertence
-is, is not   		        teste de identidade
+and                         "e" booleano
+not                         "não" booleano
+in, not in                  pertence
+is, is not                  teste de identidade
 >, <=, >, >=, ==, !=, <>    comparação
 +, -                        adição, subtração
 \*, /, %                    multiplicação, divisão, resto

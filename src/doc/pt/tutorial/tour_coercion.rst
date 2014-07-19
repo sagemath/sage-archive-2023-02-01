@@ -156,10 +156,8 @@ instancia de ``RingElement`` embora ele não pertence a um anel:
 
 ::
 
-    sage: M = Matrix(ZZ,2,3); M
-    [0 0 0]
-    [0 0 0]
-    sage: isinstance(M, RingElement)
+    sage: cristovao = ZZ(1492)
+    sage: isinstance(cristovao, RingElement)
     True
 
 Enquanto *famílias* são únicas, elementos iguais de uma família em Sage

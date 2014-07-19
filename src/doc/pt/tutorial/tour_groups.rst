@@ -38,9 +38,9 @@ Sage:
     sage: latex(G.character_table())
     \left(\begin{array}{rrrr}
     1 & 1 & 1 & 1 \\
-    1 & 1 & -\zeta_{3} - 1 & \zeta_{3} \\
-    1 & 1 & \zeta_{3} & -\zeta_{3} - 1 \\
-    3 & -1 & 0 & 0
+    1 & -\zeta_{3} - 1 & \zeta_{3} & 1 \\
+    1 & \zeta_{3} & -\zeta_{3} - 1 & 1 \\
+    3 & 0 & 0 & -1
     \end{array}\right)
 
 O Sage também inclui grupos clássicos matriciais sobre corpos finitos:
@@ -51,20 +51,18 @@ O Sage também inclui grupos clássicos matriciais sobre corpos finitos:
     sage: gens = [MS([[1,0],[-1,1]]),MS([[1,1],[0,1]])]
     sage: G = MatrixGroup(gens)
     sage: G.conjugacy_class_representatives()
-        [
-        [1 0]
-        [0 1],
-        [0 1]
-        [6 1],
-        ...
-        [6 0]
-        [0 6]
-        ]
+    (
+    [1 0]  [0 6]  [0 4]  [6 0]  [0 6]  [0 4]  [0 6]  [0 6]  [0 6]  [4 0]
+    [0 1], [1 5], [5 5], [0 6], [1 2], [5 2], [1 0], [1 4], [1 3], [0 2],
+    <BLANKLINE>
+    [5 0]
+    [0 3]
+    )
     sage: G = Sp(4,GF(7))
     sage: G._gap_init_()
-    'Sp(4, 7)'
+    'Symplectic Group of degree 4 over Finite Field of size 7'
     sage: G
-    Symplectic Group of rank 2 over Finite Field of size 7
+    Symplectic Group of degree 4 over Finite Field of size 7
     sage: G.random_element()             # random output
     [5 5 5 1]
     [0 2 6 3]
@@ -83,10 +81,10 @@ infinitos):
     sage: d * b**2 * c**3 
     b^2*c^3*d
     sage: F = AbelianGroup(3,[2]*3); F
-    Multiplicative Abelian Group isomorphic to C2 x C2 x C2
+    Multiplicative Abelian group isomorphic to C2 x C2 x C2
     sage: H = AbelianGroup([2,3], names="xy"); H
-    Multiplicative Abelian Group isomorphic to C2 x C3
+    Multiplicative Abelian group isomorphic to C2 x C3
     sage: AbelianGroup(5)
-    Multiplicative Abelian Group isomorphic to Z x Z x Z x Z x Z
+    Multiplicative Abelian group isomorphic to Z x Z x Z x Z x Z
     sage: AbelianGroup(5).order()
     +Infinity

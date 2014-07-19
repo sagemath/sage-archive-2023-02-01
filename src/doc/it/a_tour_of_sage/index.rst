@@ -1,17 +1,16 @@
-================
-Un giro nel Sage
-================
+============
+Esplora Sage
+============
 
-Questo e' un breve tour di Sage che ricalca il tour di Mathematica 
-che si trova all'inizio del libro "The Mathematica Book"
+Questa e' una breve introduzione a Sage che ricalca il tour di Mathematica che si trova all'inizio del libro "The Mathematica Book"
 
 
 Sage come Calcolatrice
-====================
+======================
 
 La linea di comando di Sage ha un prompt ``sage:``; non dovete aggiungerlo voi. 
 Se usate il notebook di Sage, allora riportate quello che appare dopo il prompt 
-``sage:`` in una cella vuota, e premi SHIFT+ENTER per ottenere 
+``sage:`` in una cella vuota, e premi MAIUSC+ENTER per ottenere 
 l'output corrispondente 
 
 ::
@@ -19,7 +18,7 @@ l'output corrispondente
     sage: 3 + 5
     8
 
-Il simbolo ^ indica "l'elevamento a potenza".
+L'accento circonflesso indica "l'elevamento a potenza".
 
 ::
 
@@ -34,7 +33,7 @@ Calcoliamo l'inversa di una matrice :math:`2 \times 2` con Sage.
     [  -2    1]
     [ 3/2 -1/2]
 
-Qui integriamo una semplice funzione.
+Qui integriamo una funzione in una variabile.
 
 ::
 
@@ -65,9 +64,9 @@ Il risultato e' una lista di eguaglianze.
 
 
 Power Computing con Sage
-=========================
+========================
 
-Iniziamo col creare una matrice :math:`500 \times 500` di numeri random.
+Iniziamo col creare una matrice random :math:`500 \times 500`.
 
 ::
 
@@ -87,7 +86,7 @@ Sage impiega qualche secondo per calcolare gli autovalori della matrice e farne 
 
 
 Grazie alla GNU Multiprecision Library (GMP), Sage puo' maneggiare numeri molto grandi, 
-persino numeri con milioni o bilioni di cifre.
+persino numeri con milioni o miliardi di cifre.
 
 ::
 
@@ -131,7 +130,7 @@ puo' essere scritto come somma di interi positivi.
     '1760517045946249141360373894679135204009'
 
 Accesso agli Algoritmi in Sage
-============================
+==============================
 
-Ogni volta che usate Sage state accedendo ad una delle piu' grandi raccolte al mondo
+Con Sage avete accesso ad una delle piu' grandi raccolte al mondo
 di algoritmi computazionali open source.

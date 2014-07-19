@@ -16,7 +16,7 @@ sys.path.append(os.environ['SAGE_DOC'])
 from common.conf import *
 
 # General information about the project.
-project = u'Un giro nel Sage'
+project = u'Esplora Sage'
 name = 'a_tour_of_sage'
 language = 'it'
 

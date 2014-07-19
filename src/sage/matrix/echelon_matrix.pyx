@@ -14,7 +14,7 @@ from sage.matrix.matrix0 cimport Matrix
 
 def echelon_matrix_iterator(K, k, n, bint sparse=False, bint copy=True, bint set_immutable=False):
     r"""
-    An iterator over `(k,n)` echelon matrices over `K`.
+    An iterator over `(k,n)` reduced echelon matrices over `K`.
 
     INPUT:
 
@@ -22,7 +22,7 @@ def echelon_matrix_iterator(K, k, n, bint sparse=False, bint copy=True, bint set
 
     - ``k`` -- number of rows (or the size of the subspace)
 
-    - ``n`` -- number of columnes (or the dimension of the ambient space)
+    - ``n`` -- number of columns (or the dimension of the ambient space)
 
     - ``sparse`` -- boolean (default is ``False``)
 
@@ -72,7 +72,16 @@ def echelon_matrix_iterator(K, k, n, bint sparse=False, bint copy=True, bint set
 
     TESTS:
 
-    We test the various options::
+    Testing cardinalities::
+
+        sage: q = 71
+        sage: F = GF(q)
+        sage: len(list(echelon_matrix_iterator(F, 1, 3, copy=False))) == q**2+q+1
+        True
+        sage: len(list(echelon_matrix_iterator(F, 2, 3, copy=False))) == q**2+q+1
+        True
+
+    Testing options::
 
         sage: it = echelon_matrix_iterator(GF(4,'z'), 2, 4, copy=False)
         sage: it.next() is it.next()
@@ -126,7 +135,6 @@ def echelon_matrix_iterator(K, k, n, bint sparse=False, bint copy=True, bint set
                 mm = m.__copy__()
                 mm.cache('pivots',pivots)
                 mm.cache('rank',k)
-                mm.cache('echelon_form',mm)
                 mm.cache('in_echelon_form',True)
                 if set_immutable:
                     mm.set_immutable()

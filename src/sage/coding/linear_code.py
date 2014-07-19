@@ -806,6 +806,9 @@ class LinearCode(module.Module):
             sage: C = codes.HammingCode(3, GF(2))
             sage: C.an_element()
             (1, 0, 0, 0, 0, 1, 1)
+            sage: C2 = C.cartesian_product(C)
+            sage: C2.an_element()
+            ((1, 0, 0, 0, 0, 1, 1), (1, 0, 0, 0, 0, 1, 1))
         """
         return self.__gens[0]
 
@@ -1164,6 +1167,18 @@ class LinearCode(module.Module):
         aut_group_can_label = self._canonize(equivalence)
         return aut_group_can_label.get_canonical_form(), \
                aut_group_can_label.get_transporter()
+
+    def cardinality(self):
+        r"""
+        Return the size of this code.
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(3, GF(2))
+            sage: C.cardinality()
+            16
+        """
+        return self.__len__()
 
     def __contains__(self,v):
         r"""

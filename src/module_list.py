@@ -996,6 +996,9 @@ ext_modules = [
     Extension('sage.matrix.action',
               sources = ['sage/matrix/action.pyx']),
 
+    Extension('sage.matrix.echelon_matrix',
+              sources = ['sage/matrix/echelon_matrix.pyx']),
+
     Extension('sage.matrix.change_ring',
               sources = ['sage/matrix/change_ring.pyx'],
               libraries=[BLAS, BLAS2, 'gmp'],

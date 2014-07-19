@@ -3559,28 +3559,10 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         if not self.base_ring().is_finite():
             raise RuntimeError("Base ring must be finite.")
-        # First, we select which columns will be pivots:
-        from sage.combinat.subset import Subsets
-        BASE = self.basis_matrix()
-        for pivots in Subsets(range(self.dimension()), dim):
-            MAT = sage.matrix.matrix_space.MatrixSpace(self.base_ring(), dim,
-                self.dimension(), sparse = self.is_sparse())()
-            free_positions = []
-            for i in range(dim):
-                MAT[i, pivots[i]] = 1
-                for j in range(pivots[i]+1,self.dimension()):
-                    if j not in pivots:
-                        free_positions.append((i,j))
-            # Next, we fill in those entries that are not
-            # determined by the echelon form alone:
-            num_free_pos = len(free_positions)
-            ENTS = VectorSpace(self.base_ring(), num_free_pos)
-            for v in ENTS:
-                for k in range(num_free_pos):
-                    MAT[free_positions[k]] = v[k]
-                # Finally, we have to multiply by the basis matrix
-                # to take corresponding linear combinations of the basis
-                yield self.subspace((MAT*BASE).rows())
+        b = self.basis_matrix()
+        from sage.matrix.echelon_matrix import reduced_echelon_matrix_iterator
+        for m in reduced_echelon_matrix_iterator(self.base_ring(), dim, self.dimension(), self.is_sparse(), copy=False):
+            yield self.subspace((m*b).rows())
 
     def subspace_with_basis(self, gens, check=True, already_echelonized=False):
         """

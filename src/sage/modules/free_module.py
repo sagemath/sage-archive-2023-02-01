@@ -2232,8 +2232,8 @@ class FreeModule_generic_pid(FreeModule_generic):
         return self.span(self.basis() + other.basis())
 
     def _mul_(self, other, switch_sides=False):
-        """
-        Multiplcation of the basis by ``other``.
+        r"""
+        Multiplication of the basis by ``other``.
 
         EXAMPLES::
 

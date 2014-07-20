@@ -20,11 +20,12 @@ from common.conf import *
 # General information about the project.
 project = u"Ein Rundgang durch Sage"
 name = "a_tour_of_sage"
+language = 'de'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
 html_title = project + " v" + release
-html_short_title = u"Rundgang v" + release
+html_short_title = u"Sage Rundgang v" + release
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = name

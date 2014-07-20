@@ -27,7 +27,7 @@ dem Browser und Sage die Ein- und Ausgabe vermittelt.
 Dies kann einerseits lokal geschehen, das heißt, auf den Webserver kann 
 nur vom gleichen Rechner aus zugegriffen werden. Es ist damit aber auch 
 möglich, mit Sage über das Internet zu arbeiten (sogar mit einem internetfähigen
-Handy) oder einen Server für die Benutzer eines Computer-Labors (etwa im Rahmen
+Handy) oder einen Server für die Benutzer eines Computerlabors (etwa im Rahmen
 einer Computeralgebravorlesung) einzurichten. Natürlich unterstützt Sage einige
 Sicherheitsmaßnahmen, damit nur berechtigte Personen Zugang zum Sage-Notebook
 und damit Zugang zum Rechner bekommen.
@@ -42,7 +42,7 @@ Die Eingabezeile von Sage hat eine Eingabeaufforderung ``sage:``. Sie
 müssen also ``sage:`` nicht selbst eingeben. Wenn Sie Sage in der
 Notebook-Version benutzen, dann geben Sie alle Eingaben in eine Eingabezelle
 ein. Die Berechnung und Ausgabe des Wertes erfolgt nach gleichzeitigem Drücken
-der Tasten shift-return (in deutsch: Umschalt- oder Hochstelltaste + Eingabetaste). 
+der Tasten Shift + Return (in deutsch: Umschalt- oder Hochstelltaste + Eingabetaste). 
 ::
 
     sage: 3 + 5
@@ -68,7 +68,7 @@ Hier integrieren wir eine einfache Funktion. ::
 
 Als nächstes lassen  wir Sage eine quadratische Gleichung lösen.
 Das doppelte Gleichheitszeichen ``==`` ist in Sage das mathematische
-Gleichheitszeichen.(Das Zeichen ``=`` bedeutet eine Wertzuweisung.)
+Gleichheitszeichen. (Das Zeichen ``=`` bedeutet eine Wertzuweisung.)
 ::
 
     sage: a = var('a')

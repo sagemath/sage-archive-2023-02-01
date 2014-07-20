@@ -1437,8 +1437,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         return res
 
     def revert_series(self, n):
-        """
-        Return a polynomial f such that f(self(x)) = f(self(x)) = x mod x^n.
+        r"""
+        Return a polynomial f such that f(self(x)) = self(f(x)) = x mod x^n.
 
         EXAMPLES::
 
@@ -1446,15 +1446,26 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f = t - t^3 + t^5
             sage: f.revert_series(5+1)
             2*t^5 + t^3 + t
-        """
 
+            sage: f.revert_series(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: argument n must be a non-negative integer, got -1
+
+            sage: g = - t^3 + t^5
+            sage: g.revert_series(5+1)
+            Traceback (most recent call last):
+            ...
+            ValueError: self must have constant coefficient 0 and +1 or -1 as the coefficient for x^1
+        """
         cdef Polynomial_integer_dense_flint res = self._new()
         cdef unsigned long m
+        if n < 0:
+            raise ValueError("argument n must be a non-negative integer, got %s" % n)
         m = n
-        if m != n:
-            raise ValueError, "argument n must be a non-negative integer, got %s"%(n)
         if not self[0].is_zero() or not self[1].is_unit():
-            raise ValueError, "self must have constant coefficient 0 and +1 or -1 as the coefficient for x^1"
+            raise ValueError("self must have constant coefficient 0 "
+                             "and +1 or -1 as the coefficient for x^1")
 
         fmpz_poly_revert_series(res.__poly, self.__poly, m)
         return res

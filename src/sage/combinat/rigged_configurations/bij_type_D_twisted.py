@@ -325,9 +325,15 @@ class RCToKRTBijectionTypeDTwisted(RCToKRTBijectionTypeD, RCToKRTBijectionTypeA2
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['D', 4, 2], [[3, 1]])
+            sage: x = RC(partition_list=[[],[1],[1]])
             sage: from sage.combinat.rigged_configurations.bij_type_D_twisted import RCToKRTBijectionTypeDTwisted
-            sage: RCToKRTBijectionTypeDTwisted(RC(partition_list=[[],[1],[1]])).run()
+            sage: RCToKRTBijectionTypeDTwisted(x).run()
             [[1], [3], [-2]]
+            sage: bij = RCToKRTBijectionTypeDTwisted(x)
+            sage: bij.run(build_graph=True)
+            [[1], [3], [-2]]
+            sage: bij._graph
+            Digraph on 6 vertices
         """
         from sage.combinat.crystals.letters import CrystalOfLetters
         letters = CrystalOfLetters(self.rigged_con.parent()._cartan_type.classical())
@@ -354,14 +360,14 @@ class RCToKRTBijectionTypeDTwisted(RCToKRTBijectionTypeD, RCToKRTBijectionTypeA2
                         self._update_vacancy_numbers(a)
 
                     if build_graph:
-                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions])
+                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
                         self._graph.append([self._graph[-1][1], (y, len(self._graph)), 'ls'])
 
                 # Check to see if we are a spinor
                 if dim[0] == self.n:
                     if verbose:
                         print("====================")
-                        print(repr(self.rigged_con.parent()(*self.cur_partitions)))
+                        print(repr(self.rigged_con.parent()(*self.cur_partitions, use_vacancy_numbers=True)))
                         print("--------------------")
                         print(ret_crystal_path)
                         print("--------------------\n")
@@ -369,13 +375,13 @@ class RCToKRTBijectionTypeDTwisted(RCToKRTBijectionTypeD, RCToKRTBijectionTypeA2
                     self.doubling_map()
 
                     if build_graph:
-                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions])
+                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
                         self._graph.append([self._graph[-1][1], (y, len(self._graph)), '2x'])
 
                 while self.cur_dims[0][0] > 0:
                     if verbose:
                         print("====================")
-                        print(repr(self.rigged_con.parent()(*self.cur_partitions)))
+                        print(repr(self.rigged_con.parent()(*self.cur_partitions, use_vacancy_numbers=True)))
                         print("--------------------")
                         print(ret_crystal_path)
                         print("--------------------\n")
@@ -387,7 +393,7 @@ class RCToKRTBijectionTypeDTwisted(RCToKRTBijectionTypeD, RCToKRTBijectionTypeA2
                     ret_crystal_path[-1].append(letters(b)) # Append the rank
 
                     if build_graph:
-                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions])
+                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
                         self._graph.append([self._graph[-1][1], (y, len(self._graph)), letters(b)])
 
                 self.cur_dims.pop(0) # Pop off the leading column
@@ -404,7 +410,7 @@ class RCToKRTBijectionTypeDTwisted(RCToKRTBijectionTypeD, RCToKRTBijectionTypeA2
                     self.halving_map()
 
                     if build_graph:
-                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions])
+                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
                         self._graph.append([self._graph[-1][1], (y, len(self._graph)), '1/2x'])
 
         if build_graph:

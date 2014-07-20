@@ -361,9 +361,15 @@ class RCToKRTBijectionAbstract:
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])
+            sage: x = RC(partition_list=[[1],[1],[1],[1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import RCToKRTBijectionTypeA
-            sage: RCToKRTBijectionTypeA(RC(partition_list=[[1],[1],[1],[1]])).run()
+            sage: RCToKRTBijectionTypeA(x).run()
             [[2], [5]]
+            sage: bij = RCToKRTBijectionTypeA(x)
+            sage: bij.run(build_graph=True)
+            [[2], [5]]
+            sage: bij._graph
+            Digraph on 3 vertices
         """
         from sage.combinat.crystals.letters import CrystalOfLetters
         letters = CrystalOfLetters(self.rigged_con.parent()._cartan_type.classical())
@@ -383,7 +389,7 @@ class RCToKRTBijectionAbstract:
                 if self.cur_dims[0][1] > 1:
                     if verbose:
                         print("====================")
-                        print(repr(self.rigged_con.parent()(*self.cur_partitions)))
+                        print(repr(self.rigged_con.parent()(*self.cur_partitions, use_vacancy_numbers=True)))
                         print("--------------------")
                         print(ret_crystal_path)
                         print("--------------------\n")
@@ -398,13 +404,13 @@ class RCToKRTBijectionAbstract:
                         self._update_vacancy_numbers(a)
 
                     if build_graph:
-                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions])
+                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
                         self._graph.append([self._graph[-1][1], (y, len(self._graph)), 'ls'])
 
                 while self.cur_dims[0][0] > 0:
                     if verbose:
                         print("====================")
-                        print(repr(self.rigged_con.parent()(*self.cur_partitions)))
+                        print(repr(self.rigged_con.parent()(*self.cur_partitions, use_vacancy_numbers=True)))
                         print("--------------------")
                         print(ret_crystal_path)
                         print("--------------------\n")
@@ -416,7 +422,7 @@ class RCToKRTBijectionAbstract:
                     ret_crystal_path[-1].append(letters(b)) # Append the rank
 
                     if build_graph:
-                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions])
+                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
                         self._graph.append([self._graph[-1][1], (y, len(self._graph)), letters(b)])
 
                 self.cur_dims.pop(0) # Pop off the leading column

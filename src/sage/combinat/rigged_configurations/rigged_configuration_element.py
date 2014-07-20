@@ -511,7 +511,10 @@ class RiggedConfigurationElement(ClonableArray):
         - ``display_steps`` -- (default: ``False``) boolean which indicates
           if we want to output each step in the algorithm
         - ``build_graph` -- (default: ``False``) boolean which indicates
-          if we want to construct and return a graph of the bijection
+          if we want to construct and return a graph of the bijection whose
+          vertices are rigged configurations obtained at each step and edges
+          are labeled by either the return value of `\delta` or the
+          doubling/halving map
 
         OUTPUT:
 
@@ -544,6 +547,35 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
             sage: elt == ret
             True
+
+        To view the steps of the bijection in the output, run with
+        the ``display_steps=True`` option::
+
+            sage: elt.to_tensor_product_of_kirillov_reshetikhin_tableaux(True)
+            ====================
+            ...
+            ====================
+            <BLANKLINE>
+            0[ ]0
+            <BLANKLINE>
+            -2[ ][ ]-2
+             0[ ]0
+            <BLANKLINE>
+            0[ ]0
+            <BLANKLINE>
+            0[ ]0
+            <BLANKLINE>
+            --------------------
+            [[3, 2]]
+            --------------------
+            ...
+            [[2, 3], [3, -2]]
+
+        We can also construct and display a graph of the bijection
+        as follows::
+
+            sage: ret, G = elt.to_tensor_product_of_kirillov_reshetikhin_tableaux(build_graph=True)
+            sage: view(G, tightpage=True) # not tested
         """
         from sage.combinat.rigged_configurations.bijection import RCToKRTBijection
         bij = RCToKRTBijection(self)
@@ -624,6 +656,8 @@ class RiggedConfigurationElement(ClonableArray):
         RC = RiggedConfigurations(P._cartan_type, reversed(P.dims))
         return RC(*self, use_vacancy_numbers=True).to_lowest_weight(I)[0].e_string(aut[i] for i in hw)
 
+    # TODO: Move the morphisms to a lazy attribute of RiggedConfigurations
+    #   once #15463 is done
     def left_split(self):
         r"""
         Return the image of ``self`` under the left column splitting
@@ -662,7 +696,7 @@ class RiggedConfigurationElement(ClonableArray):
         Return the image of ``self`` under the right column splitting
         map `\beta^*`.
 
-        Let `\ast` denote the :meth:`Lsztig involution<lusztig_involution>`
+        Let `\ast` denote the :meth:`Lusztig involution<lusztig_involution>`
         and `\beta` denote the :meth:`left splitting map<left_split>`, we
         define the right splitting map by
         `\beta^* := \ast \circ \beta \circ \ast`.
@@ -693,9 +727,9 @@ class RiggedConfigurationElement(ClonableArray):
         """
         return self.lusztig_involution().left_split().lusztig_involution()
 
-    def delta(self, return_b=False):
+    def left_box(self, return_b=False):
         r"""
-        Return the image of ``self`` under the map basic map `\delta`.
+        Return the image of ``self`` under the left box removal map `\delta`.
 
         The map `\delta : RC(B^{r,1} \otimes B) \to RC(B^{r-1,1}
         \otimes B)` (if `r = 1`, then we remove the left-most factor) is the
@@ -730,10 +764,10 @@ class RiggedConfigurationElement(ClonableArray):
             0[ ][ ]0  0[ ][ ]0  0[ ][ ]0  0[ ]0
                       0[ ][ ]0  0[ ][ ]0  0[ ]0
                                 0[ ][ ]0  0[ ]0
-            sage: ascii_art(mg.delta())
+            sage: ascii_art(mg.left_box())
             0[ ]0  0[ ][ ]0  0[ ][ ]0  0[ ]0
                    0[ ]0     0[ ][ ]0  0[ ]0
-            sage: x,b = mg.delta(True)
+            sage: x,b = mg.left_box(True)
             sage: b
             -1
         """
@@ -762,6 +796,52 @@ class RiggedConfigurationElement(ClonableArray):
         if return_b:
             return (rc, b)
         return rc
+
+    delta = left_box
+
+    def complement(self):
+        r"""
+        Apply the complement morphism `\theta` to ``self``.
+
+        Consider a highest weight rigged configuration `(\nu, J)`, the
+        complement morphism `\theta : RC(L) \to RC(L)` is given by sending
+        `(\nu, J) \mapsto (\nu, J')`, where `J'` is obtained by taking the
+        coriggings `x' = p_i^{(a)} - x`, and then extending as a crystal
+        morphism.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['D',4,1], [[1,1],[2,2]])
+            sage: mg = RC.module_generators[-1]
+            sage: ascii_art(mg)
+            1[ ][ ]1  0[ ][ ]0  0[ ][ ]0  0[ ][ ]0
+                      0[ ][ ]0
+            sage: ascii_art(mg.complement())
+            1[ ][ ]0  0[ ][ ]0  0[ ][ ]0  0[ ][ ]0
+                      0[ ][ ]0
+
+            sage: lw = mg.to_lowest_weight([1,2,3,4])[0]
+            sage: ascii_art(lw)
+            -1[ ][ ]-1  0[ ][ ]0  0[ ][ ]0  0[ ][ ]0
+            -1[ ]-1     0[ ][ ]0  0[ ]0     0[ ]0
+            -1[ ]-1     0[ ]0
+                        0[ ]0
+            sage: ascii_art(lw.complement())
+            -1[ ][ ][ ]-1  0[ ][ ][ ]0  0[ ][ ][ ]0  0[ ][ ][ ]0
+            -1[ ]-1        0[ ][ ][ ]0
+            sage: lw.complement() == mg.complement().to_lowest_weight([1,2,3,4])[0]
+            True
+        """
+        P = self.parent()
+        mg, e_str = self.to_highest_weight(P._cartan_type.classical().index_set())
+        nu = []
+        rig = []
+        for a,p in enumerate(mg):
+            nu.append(list(p))
+            vac_nums = mg.get_vacancy_numbers(a+1)
+            rig.append( [vac - p.rigging[i] for i,vac in enumerate(vac_nums)] )
+        rc = P(partition_list=nu, rigging_list=rig)
+        return rc.f_string(reversed(e_str))
 
     def nu(self):
         r"""

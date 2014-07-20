@@ -13,9 +13,9 @@ class.
 
 AUTHORS:
 
-- Nathann Cohen (2010-10): initial implementation
-- Risan (2012-02)        : extension for PPL backend
-- Ingolfur (2014-06)     : extension for CVXOPT backend
+- Nathann Cohen (2010-10)      : initial implementation
+- Risan (2012-02)              : extension for PPL backend
+- Ingolfur Edvardsson (2014-06): extension for CVXOPT backend
 
 """
 
@@ -910,10 +910,17 @@ def default_mip_solver(solver = None):
         sage: default_mip_solver("GLPK")
         sage: default_mip_solver()
         'Glpk'
+        sage: default_mip_solver("PPL")
+        sage: default_mip_solver()
+        'Ppl'
+        sage: default_mip_solver("GUROBI")
+        Traceback (most recent call last):
+        ...
+        ValueError: Gurobi is not available. Please refer to the documentation to install it.
         sage: default_mip_solver("Yeahhhhhhhhhhh")
         Traceback (most recent call last):
         ...
-        ValueError: 'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'CVXOPT', 'Gurobi', 'PPL' or None.
+        ValueError: 'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi', 'CVXOPT', 'PPL' or None.
         sage: default_mip_solver(former_solver)
     """
     global default_solver
@@ -956,7 +963,7 @@ def default_mip_solver(solver = None):
 
     elif solver == "Ppl":
         try:
-            from sage.numerical.backends.cvxopt_backend import CVXOPTBackend
+            from sage.numerical.backends.ppl_backend import PPLBackend
             default_solver = solver
         except ImportError:
             raise ValueError("PPL is not available. Please refer to the documentation to install it.")

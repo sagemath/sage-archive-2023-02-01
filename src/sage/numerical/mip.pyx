@@ -169,7 +169,7 @@ include "sage/ext/cdefs.pxi"
 from sage.structure.sage_object cimport SageObject
 from sage.misc.cachefunc import cached_method
 from sage.numerical.linear_functions import is_LinearFunction, is_LinearConstraint
-from sage.misc.superseded import deprecated_function_alias, deprecation
+from sage.misc.superseded import deprecation
 
 cdef class MixedIntegerLinearProgram(SageObject):
     r"""

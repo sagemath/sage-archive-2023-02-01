@@ -85,7 +85,6 @@ Many other functionalities...::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 import itertools
-from sage.misc.superseded import deprecated_function_alias
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.sets.set import Set
@@ -1698,8 +1697,6 @@ class WordMorphism(SageObject):
             else:
                 next_w = next(w)
                 w = itertools.chain([next_w], w, self.image(next_w))
-
-    letter_iterator = deprecated_function_alias(8595, _fixed_point_iterator)
 
     def fixed_point(self, letter):
         r"""

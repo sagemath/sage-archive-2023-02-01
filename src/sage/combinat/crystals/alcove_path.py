@@ -1127,9 +1127,6 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             return 1
 
 CrystalOfAlcovePaths.Element = CrystalOfAlcovePathsElement
-#deprecate the old name
-from sage.misc.superseded import deprecated_function_alias
-ClassicalCrystalOfAlcovePaths = deprecated_function_alias(14143, CrystalOfAlcovePaths)
 
 class RootsWithHeight(UniqueRepresentation, Parent):
     r"""

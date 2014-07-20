@@ -940,8 +940,6 @@ class DyckWord(CombinatorialObject, Element):
         """
         return len([x for x in self if x == open_symbol])
 
-    size = deprecated_function_alias(13550, number_of_open_symbols)
-
     def number_of_close_symbols(self):
         r"""
         Return the number of close symbols in ``self``.
@@ -1346,8 +1344,6 @@ class DyckWord(CombinatorialObject, Element):
         """
         h = self.heights()
         return [i for i in xrange(2, len(h), 2) if h[i] == 0]
-
-    return_to_zero = deprecated_function_alias(13550, returns_to_zero)
 
     def touch_points(self):
         r"""
@@ -2871,8 +2867,6 @@ class DyckWord_complete(DyckWord):
                 a += above - diagonal
         return a
 
-    a_statistic = deprecated_function_alias(13550, area)
-
     def bounce_path(self):
         r"""
         Return the bounce path of ``self`` formed by starting at `(n,n)` and
@@ -3009,8 +3003,6 @@ class DyckWord_complete(DyckWord):
                         makeup_steps = 0
 
         return b
-
-    b_statistic = deprecated_function_alias(13550, bounce)
 
     def dinv(self, labeling=None):
         r"""

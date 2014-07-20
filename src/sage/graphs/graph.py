@@ -526,8 +526,6 @@ Methods
 #*****************************************************************************
 
 from sage.rings.integer import Integer
-from sage.misc.superseded import deprecated_function_alias
-from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.digraph import DiGraph
@@ -5050,8 +5048,6 @@ class Graph(GenericGraph):
             return sorted(networkx.find_cliques(self.networkx_graph(copy=False)))
         else:
             raise ValueError("Algorithm must be equal to 'native' or to 'NetworkX'.")
-
-    cliques = deprecated_function_alias(5739, cliques_maximal)
 
     def clique_maximum(self,  algorithm="Cliquer"):
         """

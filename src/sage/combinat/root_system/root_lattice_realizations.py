@@ -17,7 +17,6 @@ from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import lazy_import, LazyImport
-from sage.misc.superseded import deprecated_function_alias
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.modules_with_basis import ModulesWithBasis
@@ -3333,8 +3332,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                     if reduced_word:
                         direction.append(i)
                     self = self.simple_reflection(i)
-
-        to_positive_chamber = deprecated_function_alias(12667, to_dominant_chamber)
 
         def reduced_word(self, index_set = None, positive = True):
             r"""

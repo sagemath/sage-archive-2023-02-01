@@ -320,7 +320,7 @@ class RCToKRTBijectionTypeDTwisted(RCToKRTBijectionTypeD, RCToKRTBijectionTypeA2
         - ``verbose`` -- (default: ``False``) display each step in the
           bijection
         - ``build_graph`` -- (default: ``False``) build the graph of each
-          step in the bijection
+          step of the bijection
 
         EXAMPLES::
 

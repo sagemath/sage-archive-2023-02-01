@@ -389,18 +389,13 @@ There is a :meth:`prepackaged transducer
 <sage.combinat.finite_state_machine_generators.TransducerGenerators.GrayCode>`
 for Gray code, let's see whether they agree. We have to use
 :meth:`~FiniteStateMachine.relabeled` to relabel our states with
-integers. Note that equality of finite state machines does not compare
-initial and final states, so we have to do it on our own here.
+integers.
 
 ::
 
     sage: constructed = Gray_transducer.relabeled()
     sage: packaged = transducers.GrayCode()
     sage: constructed == packaged
-    True
-    sage: constructed.initial_states() == packaged.initial_states()
-    True
-    sage: constructed.final_states() == packaged.final_states()
     True
 
 Finally, we check that this indeed computes the Gray code of the first
@@ -1382,9 +1377,6 @@ class FSMState(SageObject):
         Returns True if two states are the same, i.e., if they have
         the same labels.
 
-        Note that the hooks and whether the states are initial or
-        final are not checked.
-
         INPUT:
 
         - ``left`` -- a state.
@@ -1394,6 +1386,16 @@ class FSMState(SageObject):
         OUTPUT:
 
         True or False.
+
+        Note that the hooks and whether the states are initial or
+        final are not checked. To fully compare two states (including
+        these attributes), use :meth:`.fully_equal`.
+
+        As only the labels are used when hashing a state, only the
+        labels can actually be compared by the equality relation.
+        Note that the labels are unique within one finite state machine,
+        so this may only lead to ambiguities when comparing states
+        belonging to different finite state machines.
 
         EXAMPLES::
 
@@ -1431,6 +1433,50 @@ class FSMState(SageObject):
             False
         """
         return (not (left == right))
+
+
+    def fully_equal(left, right, compare_color=True):
+        """
+        Checks whether two states are fully equal, i.e., including all
+        attributes except ``hook``.
+
+        INPUT:
+
+        - ``left`` -- a state.
+
+        - ``right`` -- a state.
+
+        - ``compare_color`` -- If ``True`` (default) colors are
+          compared as well, otherwise not.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        Note that usual comparison by ``==`` does only compare the labels.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: A = FSMState('A')
+            sage: B = FSMState('A', is_initial=True)
+            sage: A.fully_equal(B)
+            False
+            sage: A == B
+            True
+            sage: A.is_initial = True; A.color = 'green'
+            sage: A.fully_equal(B)
+            False
+            sage: A.fully_equal(B, compare_color=False)
+            True
+        """
+        color = not compare_color or left.color == right.color
+        return (left.__eq__(right) and
+                left.is_initial == right.is_initial and
+                left.is_final == right.is_final and
+                left.final_word_out == right.final_word_out and
+                left.word_out == right.word_out and
+                color)
 
 
     def __nonzero__(self):
@@ -2774,8 +2820,8 @@ class FiniteStateMachine(SageObject):
 
     def __eq__(left, right):
         """
-        Returns True if the two finite state machines are equal, i.e.,
-        if they have the same states and the same transitions.
+        Returns ``True`` if the two finite state machines are equal,
+        i.e., if they have the same states and the same transitions.
 
         INPUT:
 
@@ -2785,22 +2831,64 @@ class FiniteStateMachine(SageObject):
 
         OUTPUT:
 
-        True or False.
+        ``True`` or ``False``.
+
+        Note that this function compares all attributes of a state (by
+        using :meth:`FSMState.fully_equal`) except for colors. Colors
+        are handled as follows: If the colors coincide, then the
+        finite state machines are also considered equal. If not, then
+        they are considered as equal if both finite state machines are
+        monochromatic.
 
         EXAMPLES::
 
             sage: F = FiniteStateMachine([('A', 'B', 1)])
             sage: F == FiniteStateMachine()
             False
+            sage: G = FiniteStateMachine([('A', 'B', 1)],
+            ....:                        initial_states=['A'])
+            sage: F == G
+            False
+            sage: F.state('A').is_initial = True
+            sage: F == G
+            True
+
+        This shows the behavior when the states have colors::
+
+            sage: F.state('A').color = 'red'
+            sage: G.state('A').color = 'red'
+            sage: F == G
+            True
+            sage: G.state('A').color = 'blue'
+            sage: F == G
+            False
+            sage: F.state('B').color = 'red'
+            sage: F.is_monochromatic()
+            True
+            sage: G.state('B').color = 'blue'
+            sage: G.is_monochromatic()
+            True
+            sage: F == G
+            True
         """
         if not is_FiniteStateMachine(right):
-            raise TypeError('Only instances of FiniteStateMachine ' \
+            raise TypeError('Only instances of FiniteStateMachine '
                 'can be compared.')
         if len(left._states_) != len(right._states_):
             return False
+        colors_equal = True
         for state in left.iter_states():
-            if state not in right._states_:
+            try:
+                right_state = right.state(state.label())
+            except LookupError:
                 return False
+
+            # we handle colors separately
+            if not state.fully_equal(right_state, compare_color=False):
+                return False
+            if state.color != right_state.color:
+                colors_equal = False
+
             left_transitions = state.transitions
             right_transitions = right.state(state).transitions
             if len(left_transitions) != len(right_transitions):
@@ -2808,7 +2896,13 @@ class FiniteStateMachine(SageObject):
             for t in left_transitions:
                 if t not in right_transitions:
                     return False
-        return True
+
+        # handle colors
+        if colors_equal:
+            return True
+        if left.is_monochromatic() and right.is_monochromatic():
+            return True
+        return False
 
 
     def __ne__(left, right):

@@ -9915,9 +9915,36 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
 
     def result(self, format_output=None):
+        """
+        Returns the already finished branches during process.
+
+        INPUT:
+
+        - ``format_output`` -- a function converting the output from
+          list form to something more readable (default: output the
+          list directly).
+
+        OUTPUT:
+
+        A list of triples ``(accepted, state, output)``.
+
+        See also ``format_output`` of :class:`FSMProcessIterator``.
+
+        EXAMPLES::
+
+            sage: inverter = Transducer({'A': [('A', 0, 'one'), ('A', 1, 'zero')]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: it = inverter.iter_process(input_tape=[0, 1, 1])
+            sage: for _ in it:
+            ....:     pass
+            sage: it.result()
+            [(True, 'A', ['one', 'zero', 'zero'])]
+            sage: it.result(lambda L: ', '.join(L))
+            [(True, 'A', 'one, zero, zero')]
+        """
         if format_output is None:
             return self._finished_
-        return [r[:2] + format_output(r[2]) + r[3:] for r in self._finished_]
+        return [r[:2] + (format_output(r[2]),) + r[3:] for r in self._finished_]
 
 
     @property

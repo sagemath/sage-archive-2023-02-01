@@ -49,8 +49,7 @@ Hypergraphs
    :maxdepth: 1
 
    sage/graphs/hypergraph_generators
-   sage/graphs/hypergraph
-
+   sage/combinat/designs/incidence_structures
 
 
 Libraries of algorithms

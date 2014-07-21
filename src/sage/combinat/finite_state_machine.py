@@ -9400,21 +9400,20 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
     INPUT:
 
-    - ``fsm`` -- The finite state machine on which the input should be
+    - ``fsm`` -- the finite state machine on which the input should be
       processed.
 
-    - ``input_tape`` -- The input tape. It
-      can be anything that is iterable.
+    - ``input_tape`` -- an iterable.
 
-    - ``initial_state`` or ``initial_states`` -- The initial state(s)
+    - ``initial_state`` or ``initial_states`` -- the initial state(s)
       in which the machine starts. Either specify a single one with
       ``initial_state`` or a list of them with ``initial_states``. If
       both are not specified, the initial states of the finite state
       machine are taken.
 
-    - ``check_epsilon_transitions`` -- (default: ``True``) If
-      ``False`` epsilon transitions are not taken into consideration
-      during process.
+    - ``check_epsilon_transitions`` -- (default: ``True``) a
+      boolean. If ``False``, epsilon transitions are not taken into
+      consideration during process.
 
     - ``format_output`` -- a function that translates the written
       output in list form to something more readable. By default

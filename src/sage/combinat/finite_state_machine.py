@@ -9645,6 +9645,47 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
 
     def _add_current_(self, state, tape, output):
+        """
+        This helper function does the actual adding of a ``state`` to
+        ``self._current_``. See :meth:`add_current` for details.
+
+        INPUT:
+
+        - ``state`` -- state which has to be processed.
+
+        - ``tape`` -- an instance of ``FSMTapeCache`` (storing
+          information what to read next).
+
+        - ``output`` -- the output tape on which words were written
+          until reaching ``state``.
+
+        OUTPUT:
+
+        Nothing.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
+            sage: A = Automaton({'a': [('a', 0), ('b', 1), ('c', 1)],
+            ....:                'c': [('b', None)], 'b': [('c', None)]},
+            ....:     initial_states=['a'], final_states=['b', 'c'])
+            sage: it = FSMProcessIterator(A, input_tape=[0, 1, 2])  # indirect doctest
+            sage: it._current_
+            {((0, 0),): {'a': (tape at 0, [[]])}}
+            sage: it._add_current_(
+            ....:     A.state('b'),
+            ....:     deepcopy(it._current_[((0, 0),)][A.state('a')][0]),
+            ....:     [[]])
+            sage: it._current_
+            {((0, 0),): {'a': (tape at 0, [[]]), 'b': (tape at 0, [[]])}}
+            sage: it.add_current(
+            ....:     A.state('c'),
+            ....:     deepcopy(it._current_[((0, 0),)][A.state('a')][0]),
+            ....:     [[]])  # indirect doctest
+            sage: it._current_
+            {((0, 0),): {'a': (tape at 0, [[]]), 'c': (tape at 0, [[]]),
+                         'b': (tape at 0, [[], []])}}
+        """
         if not self._current_.has_key(tape.position):
             self._current_[tape.position] = {}
             bisect.insort(self._current_positions_, tape.position)
@@ -9660,6 +9701,49 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
 
     def add_current(self, state, tape, output):
+        """
+        This function adds a new ``state`` to ``self._current_``
+        together with input-``tape``-information and an
+        ``output``-tape.
+
+        INPUT:
+
+        - ``state`` -- state which has to be processed.
+
+        - ``tape`` -- an instance of ``FSMTapeCache`` (storing
+          information what to read next).
+
+        - ``output`` -- the output tape on which words were written
+          until reaching ``state``.
+
+        OUTPUT:
+
+        Nothing.
+
+        Note that ``self._current_`` contains all states which have to
+        be visited in the next steps during processing.
+
+        This function also handles epsilon transitions. The
+        actual adding of the data is done in the helper function
+        :meth:`_add_current_`.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
+            sage: A = Automaton({'a': [('a', 0), ('b', 1), ('c', None)],
+            ....:                'c': [('b', 2)]},
+            ....:     initial_states=['a'], final_states=['b', 'c'])
+            sage: it = FSMProcessIterator(A, input_tape=[0, 1, 2])  # indirect doctest
+            sage: it._current_
+            {((0, 0),): {'a': (tape at 0, [[]]), 'c': (tape at 0, [[]])}}
+            sage: it.add_current(
+            ....:     A.state('b'),
+            ....:     deepcopy(it._current_[((0, 0),)][A.state('a')][0]),
+            ....:     [[]])
+            sage: it._current_
+            {((0, 0),): {'a': (tape at 0, [[]]), 'c': (tape at 0, [[]]),
+                         'b': (tape at 0, [[]])}}
+        """
         self._add_current_(state, tape, output)
         if not self.check_epsilon_transitions:
             return
@@ -10078,6 +10162,36 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
 
 
     def _add_current_(self, state, tape, output):
+        """
+        This helper function cares about epsilon cycles during the the
+        actual adding of a ``state`` to ``self._current_``. See also
+        :meth:`add_current`.
+
+        INPUT:
+
+        - ``state`` -- state which has to be processed.
+
+        - ``tape`` -- an instance of ``FSMTapeCache`` (storing
+          information what to read next).
+
+        - ``output`` -- the output tape on which words were written
+          until reaching ``state``.
+
+        OUTPUT:
+
+        Nothing.
+
+        TESTS::
+
+            sage: T = Transducer([(0, 1, None, 'a'), (1, 2, None, 'b'),
+            ....:                 (2, 0, None, 'c')])
+            sage: T.state(0)._epsilon_successors_(T)  # indirect doctest
+            {0: [['a', 'b', 'c']], 1: [['a']], 2: [['a', 'b']]}
+            sage: T.state(1)._epsilon_successors_(T)  # indirect doctest
+            {0: [['b', 'c']], 1: [['b', 'c', 'a']], 2: [['b']]}
+            sage: T.state(2)._epsilon_successors_(T)  # indirect doctest
+            {0: [['c']], 1: [['c', 'a']], 2: [['c', 'a', 'b']]}
+        """
         if state not in self.visited_states:
             new = True
             self.visited_states[state] = []

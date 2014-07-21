@@ -1369,7 +1369,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
         Let `\ast` denote the :meth:`Lusztig involution<lusztig_involution>`,
         and `\mathrm{ls}` as the :meth:`left splitting map<left_split>`.
         The right splitting map is defined as
-        \mathrm{rs} := \ast \circ \mathrm{ls} \circ \ast`.
+        `\mathrm{rs} := \ast \circ \mathrm{ls} \circ \ast`.
 
         EXAMPLES::
 

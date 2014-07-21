@@ -584,7 +584,7 @@ class RiggedConfigurationElement(ClonableArray):
             return (ret, bij._graph)
         return ret
 
-    def to_tensor_product_of_kirillov_reshetikhin_crystals(self, display_steps=False):
+    def to_tensor_product_of_kirillov_reshetikhin_crystals(self, display_steps=False, build_graph=False):
         r"""
         Return the corresponding tensor product of Kirillov-Reshetikhin
         crystals.
@@ -596,6 +596,11 @@ class RiggedConfigurationElement(ClonableArray):
 
         - ``display_steps`` -- (default: ``False``) boolean which indicates
           if we want to output each step in the algorithm
+        - ``build_graph` -- (default: ``False``) boolean which indicates
+          if we want to construct and return a graph of the bijection whose
+          vertices are rigged configurations obtained at each step and edges
+          are labeled by either the return value of `\delta` or the
+          doubling/halving map
 
         EXAMPLES::
 
@@ -619,12 +624,21 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
             sage: elt == ret
             True
+
+        We can also construct and display a graph of the bijection
+        as follows::
+
+            sage: ret, G = elt.to_tensor_product_of_kirillov_reshetikhin_crystals(build_graph=True)
+            sage: view(G, tightpage=True) # not tested
         """
+        if build_graph:
+            kr_tab, G = self.to_tensor_product_of_kirillov_reshetikhin_tableaux(display_steps, build_graph)
+            return (kr_tab.to_tensor_product_of_kirillov_reshetikhin_crystals(), G)
         kr_tab = self.to_tensor_product_of_kirillov_reshetikhin_tableaux(display_steps)
         return kr_tab.to_tensor_product_of_kirillov_reshetikhin_crystals()
 
     def lusztig_involution(self):
-        """
+        r"""
         Return the result of the classical Lusztig involution on ``self``.
 
         EXAMPLES::
@@ -642,9 +656,23 @@ class RiggedConfigurationElement(ClonableArray):
         We check that the Lusztig involution commutes with the bijection::
 
             sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[2,2], [1,2]])
-            sage: all(b.to_rigged_configuration().lusztig_involution()
+            sage: all(b.to_rigged_configuration().lusztig_involution() # long time
             ....:     == b.lusztig_involution().to_rigged_configuration() for b in KRT)
             True
+
+        We check that the Lusztig involution (under the modification of also
+        mapping to the highest weight element) intertwines with the
+        complement map `\theta` (also modified to reverse the tensor factors)
+        under the bijection `\Phi`::
+
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2], [2, 1], [1, 2]])
+            sage: RCp = RiggedConfigurations(['D', 4, 1], [[1, 2], [2, 1], [2, 2]])
+            sage: for mg in RC.module_generators: # long time
+            ....:     y = mg.to_tensor_product_of_kirillov_reshetikhin_tableaux()
+            ....:     hw = y.lusztig_involution().to_highest_weight([1,2,3,4])[0]
+            ....:     c = RCp(*mg.complement())
+            ....:     hwc = c.to_tensor_product_of_kirillov_reshetikhin_tableaux()
+            ....:     assert hw == hwc
         """
         P = self.parent()
         Cl = P.cartan_type().classical()

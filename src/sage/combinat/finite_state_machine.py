@@ -9420,6 +9420,9 @@ class FSMProcessIterator(SageObject, collections.Iterator):
       output in list form to something more readable. By default
       (``None``) identity is used here.
 
+    - ``write_final_word_out`` -- a boolean specifying whether the
+      final output words should be written (default) or not.
+
     Moreover, there are the following extensions for multi-tape machines:
 
     - ``use_multitape_input`` -- (default: ``None``, which translates
@@ -9577,6 +9580,16 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         sage: T = Transducer([[0, 1, 0, 0]], initial_states=[0, 1])
         sage: T.process([])
         [(False, 0, []), (False, 1, [])]
+
+    ::
+
+        sage: T = Transducer([[0, 0, 0, 0]],
+        ....:                initial_states=[0], final_states=[0])
+        sage: T.state(0).final_word_out = [42]
+        sage: T.process([0])
+        (True, 0, [0, 42])
+        sage: T.process([0], write_final_word_out=False)
+        (True, 0, [0])
     """
     def __init__(self, fsm,
                  input_tape=None,
@@ -9584,6 +9597,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                  initial_state=None, initial_states=[],
                  use_multitape_input=None,
                  check_epsilon_transitions=True,
+                 write_final_word_out=True,
                  format_output=None,
                  **kwargs):
         """
@@ -9645,6 +9659,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             self.format_output = format_output
 
         self.check_epsilon_transitions = check_epsilon_transitions
+        self.write_final_word_out = write_final_word_out
 
         self._current_ = {}
         self._current_positions_ = []  # a sorted list of the keys of _current_
@@ -9897,7 +9912,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                 if not (input_tape.finished() or state_said_finished):
                     return
                 successful = current_state.is_final
-                if successful:
+                if successful and self.write_final_word_out:
                     write_word(output, current_state.final_word_out)
                 for o in output:
                     self._finished_.append((successful, current_state,

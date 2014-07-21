@@ -9166,22 +9166,125 @@ class _FSMTapeCache_(SageObject):
 
 
     def transition_possible(self, transition):
+        """
+        Tests whether the input word of ``transition`` can be read
+        from the tape.
+
+        INPUT:
+
+        - ``transition`` -- a transition of a finite state machine.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine \
+            ....:     import _FSMTapeCache_, FSMTransition
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC2, TC2.cache
+            (multi-tape at (0, 0), (deque([]), deque([])))
+            sage: TC2.transition_possible(
+            ....:     FSMTransition(0, 0, [(37, 38), (11, 12, 13)]))
+            True
+            sage: TC2.transition_possible(
+            ....:     FSMTransition(0, 0, [(37, 38), (11, 13)]))
+            False
+            sage: TC2.transition_possible(
+            ....:     FSMTransition(0, 0, [(37, 38)]))
+            Traceback (most recent call last):
+            ...
+            TypeError: Transition from 0 to 0: (37, 38)|- has bad
+            input word (1 entries instead of 2)
+        """
         if self.is_multitape:
             word_in = transition.word_in
         else:
             word_in = (transition.word_in,)
         if len(word_in) != len(self.cache):
-            raise TypeError('transition %s has wrong input word (%s entries '
+            raise TypeError('%s has bad input word (%s entries '
                             'instead of %s)' % (transition,
                                                 len(word_in), len(self.cache)))
         return self._transition_possible_test_(word_in)
 
 
     def _transition_possible_epsilon_(self, word_in):
+        """
+        This helper function tests whether ``word_in`` equals ``epsilon``,
+        i.e., whether it is the empty word or consists only of letters ``None``.
+
+        INPUT:
+
+        - ``word_in`` -- an input word of a transition.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine \
+            ....:     import _FSMTapeCache_, FSMTransition
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC2._transition_possible_epsilon_([])
+            True
+            sage: TC2._transition_possible_epsilon_([[], []])
+            True
+            sage: TC2._transition_possible_epsilon_([[None], []])
+            True
+            sage: TC2._transition_possible_epsilon_([[(None,)], []])
+            False
+        """
         return all(all(letter is None for letter in word) for word in word_in)
 
 
     def _transition_possible_test_(self, word_in):
+        """
+        This helper function tests whether ``word_in`` can be read
+        from the tape.
+
+        INPUT:
+
+        - ``word_in`` -- an input word of a transition.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine \
+            ....:     import _FSMTapeCache_, FSMTransition
+            sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC2, TC2.cache
+            (multi-tape at (0, 0), (deque([]), deque([])))
+            sage: TC2._transition_possible_test_([(37, 38), (11, 12, 13)])
+            True
+            sage: TC2._transition_possible_test_([(37, 38), (11, 13)])
+            False
+
+        Note that this function does not perform a check whether the
+        input word is correct or not. This is done by the higher-level
+        method :meth:`transition_possible`::
+
+            sage: TC2._transition_possible_test_([(37, 38)])
+            True
+
+        This function does not accept words of epsilon-transitions::
+
+            sage: TC2._transition_possible_test_([])
+            False
+            sage: TC2._transition_possible_test_([[], []])
+            False
+            sage: TC2._transition_possible_test_([[None], []])
+            False
+            sage: TC2._transition_possible_test_([[(None,)], []])
+            False
+            """
         if self._transition_possible_epsilon_(word_in):
             return False
         return all(self.compare_to_tape(track_number, word)

@@ -10031,6 +10031,9 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
 class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
     """
+    This class is similar to :class:`FSMProcessIterator`, but only
+    accepts epsilon transitions during process. See
+    :class:`FSMProcessIterator` for more information.
 
     TESTS::
 
@@ -10155,6 +10158,16 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         {4: ['']}
     """
     def __init__(self, *args, **kwargs):
+        """
+        See :class:`_FSMProcessIteratorEpsilon_` and
+        :class:`FSMProcessIterator` for more information.
+
+        TESTS::
+
+            sage: T = Transducer([(0, 1, None, 'a'), (1, 2, None, 'b')])
+            sage: T.state(0)._epsilon_successors_(T)  # indirect doctest
+            {1: [['a']], 2: [['a', 'b']]}
+        """
         self.tape_type = _FSMTapeCacheDetectEpsilon_
         self.visited_states = {}
         kwargs['check_epsilon_transitions'] = False

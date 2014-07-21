@@ -2370,7 +2370,7 @@ def inject_variable(name, value):
 
         sage: from warnings import warn
         sage: warn("blah")
-        doctest:1: UserWarning: blah
+        doctest:...: UserWarning: blah
         sage: warn("blah")
 
     Use with care!

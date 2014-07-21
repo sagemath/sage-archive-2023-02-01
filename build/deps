@@ -336,7 +336,7 @@ $(INST)/$(SAGETEX): $(INST)/$(PYTHON) \
 $(INST)/$(SETUPTOOLS): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(SETUPTOOLS) 2>&1" "tee -a $(SAGE_LOGS)/$(SETUPTOOLS).log"
 
-$(INST)/$(SINGULAR): $(INST)/$(MPIR) $(INST)/$(NTL) \
+$(INST)/$(SINGULAR): $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(FLINT) \
 		     $(INST)/$(READLINE) $(INST)/$(MPFR)
 	+$(PIPE) "$(SAGE_SPKG) $(SINGULAR) 2>&1" "tee -a $(SAGE_LOGS)/$(SINGULAR).log"
 

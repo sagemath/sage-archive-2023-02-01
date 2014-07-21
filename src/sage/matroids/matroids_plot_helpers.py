@@ -273,15 +273,17 @@ def addnontripts(tripts_labels, nontripts_labels, ptsdict):
     gridpts = [[float((tripts[0][0]+tripts[1][0]+tripts[2][0])/3),
                float(tripts[0][1]+tripts[1][1]+tripts[2][1])/3]]
     n = 0
-    while n < num:
+    while n < num+1:
         g = trigrid(q[0])
         q.extend([[g[0], q[0][pairs[0][0]], q[0][pairs[0][1]]],
                   [g[0], q[0][pairs[1][0]], q[0][pairs[1][1]]],
                   [g[0], q[0][pairs[2][0]], q[0][pairs[2][1]]]])
         q.remove(q[0])
         gridpts.extend(g[1:])
-        n = n + 4
-    gridpts = gridpts[0:num]
+        if n == 0:
+            n = n + 4
+        else:
+            n = n + 3
     j = 0
     for p in nontripts_labels:
         ptsdict[p] = tuple(gridpts[j])
@@ -797,7 +799,7 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
                   fontsize=13, color='black')
         limits = tracklims(limits, [rectx, rectx+rectw], [recty, recty+recth])
         G.axes(False)
-        G.axes_range(xmin=limits[0]-0.5, xmax=limits[1]+0.5, 
+        G.axes_range(xmin=limits[0]-0.5, xmax=limits[1]+0.5,
                      ymin=limits[2]-0.5, ymax=limits[3]+0.5)
         return G
     elif M.rank() == 1:
@@ -886,12 +888,13 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
                 ptsx, ptsy, x_i, y_i = createline(pts2, ll, lineorders1)
                 lims = tracklims(lims, x_i, y_i)
                 G += line(zip(x_i, y_i), color='black', thickness=3, zorder=1)
-        pels = [p for p in pts2.keys() if any([M1.rank([p, q]) == 1 
+        pels = [p for p in pts2.keys() if any([M1.rank([p, q]) == 1
                 for q in P])]
         allpts = [list(pts2[i]) for i in M.groundset()]
         xpts = [float(k[0]) for k in allpts]
         ypts = [float(k[1]) for k in allpts]
-        G += points(zip(xpts, ypts), color=Color('#BDBDBD'), size=300, zorder=2)
+        G += points(zip(xpts, ypts), color=Color('#BDBDBD'), size=300,
+                    zorder=2)
         for i in pts2:
             if i not in pels:
                 pt = list(pts2[i])

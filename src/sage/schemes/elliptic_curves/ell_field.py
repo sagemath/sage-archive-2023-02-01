@@ -19,12 +19,15 @@ import sage.rings.all as rings
 from sage.rings.complex_field import is_ComplexField
 from sage.rings.real_mpfr import is_RealField
 from constructor import EllipticCurve
+from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
 
 from ell_curve_isogeny import EllipticCurveIsogeny, isogeny_codomain_from_kernel
 
 class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
     base_field = ell_generic.EllipticCurve_generic.base_ring
+
+    _point = EllipticCurvePoint_field
 
     # Twists: rewritten by John Cremona as follows:
     #

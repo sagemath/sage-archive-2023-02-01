@@ -10,29 +10,30 @@ REFERENCES:
    "generating all combinations"
 """
 
-def integer_vector_gray_code_switch(m):
+def product(m):
     r"""
-    Return the switch to perform for the enumeration of tuples of non negative
-    integers up to a specified upper bound.
+    Iterator over the switch for the iteration of the product
+    `[m_0] \times [m_1] \ldots \times [m_k]`.
 
-    The iterator return at each step a pair `(position, increment)` which
-    corresponds to a sequence of switches to perform in position ``position`` by
-    the increment ``increment``. By construction, the increment is either ``+1`` or
-    ``-1``.
+    The iterator return at each step a pair ``(p,i)`` which corresponds to the
+    modification to perform to get the next element. More precisely, one has to
+    apply the increment ``i`` at the position ``p``. By construction, the
+    increment is either ``+1`` or ``-1``.
 
     This is algorithm H in [Knuth-TAOCP2A]_: loopless reflected mixed-radix Gray
     generation.
 
     INPUT:
 
-    - ``m`` -- a list or tuple of upper bound limits.
+    - ``m`` -- a list or tuple of positive integers that correspond to the size
+      of the sets in the product
 
     EXAMPLES::
 
-        sage: from sage.combinat.gray_codes import integer_vector_gray_code_switch
+        sage: from sage.combinat.gray_codes import product
         sage: l = [0,0,0]
-        sage: for i,j in integer_vector_gray_code_switch([3,3,3]):
-        ....:     l[i] += j
+        sage: for p,i in product([3,3,3]):
+        ....:     l[p] += i
         ....:     print l
         [1, 0, 0]
         [2, 0, 0]
@@ -61,7 +62,7 @@ def integer_vector_gray_code_switch(m):
         [1, 2, 2]
         [2, 2, 2]
         sage: l = [0,0]
-        sage: for i,j in integer_vector_gray_code_switch([2,1]):
+        sage: for i,j in product([2,1]):
         ....:     l[i] += j
         ....:     print l
         [1, 0]
@@ -69,14 +70,15 @@ def integer_vector_gray_code_switch(m):
     TESTS::
 
         sage: for t in [[2,2,2],[2,1,2],[3,2,1],[2,1,3]]:
-        ....:     assert sum(1 for _ in integer_vector_gray_code_switch(t)) == prod(t)-1
+        ....:     assert sum(1 for _ in product(t)) == prod(t)-1
     """
-    # n is the length of the vector (where we ignore upper bounds equal to 1)
+    # n is the length of the element (where we ignore upper bounds equal to 1)
     n = k = 0
 
-    new_m = []
-    mm = []
+    new_m = []   # will be the set of upper bounds m_i different from 1
+    mm = []      # will be the offset to jump over the m_i=1
     for i in m:
+        i = int(i)
         if i <= 0:
             raise ValueError("accept only positive integers")
         if i == 1:
@@ -88,7 +90,7 @@ def integer_vector_gray_code_switch(m):
     m = new_m
     f = range(n+1)  # focus pointer
     o = [1] * n     # switch +1 or -1
-    a = [0] * n     # current vector
+    a = [0] * n     # current element
 
     j = f[0]
     while j != n:
@@ -104,30 +106,31 @@ def integer_vector_gray_code_switch(m):
 
         j = f[0]
 
-def combination_gray_code_switch(n,t):
+def combinations(n,t):
     r"""
     Iterator through the switches of the revolving door algorithm.
 
     The revolving door algorithm is a way to generate all combinations of a set
     (i.e. the subset of given cardinality) in such way that two consecutive
     subsets differ by one element. At each step, the iterator output a pair
-    `(i,j)` where the item `i` has to be removed and `j` has to be added.
+    ``(i,j)`` where the item ``i`` has to be removed and ``j`` has to be added.
 
-    The ground set is always `\{0, 1, ..., n-1\}`.
+    The ground set is always `\{0, 1, ..., n-1\}`. Note that ``n`` can be
+    infinity in that algorithm.
 
     See [Knuth-TAOCP3A]_.
 
     INPUT:
 
-    - ``n`` -- size of the set
+    - ``n`` -- (integer or ``Infinity``) -- size of the ground set
 
-    - ``t`` -- size of subsets
+    - ``t`` -- (integer) -- size of the subsets
 
     EXAMPLES::
 
-        sage: from sage.combinat.gray_codes import combination_gray_code_switch
+        sage: from sage.combinat.gray_codes import combinations
         sage: b = [1, 1, 1, 0, 0]
-        sage: for i,j in combination_gray_code_switch(5,3):
+        sage: for i,j in combinations(5,3):
         ....:     b[i] = 0; b[j] = 1
         ....:     print b
         [1, 0, 1, 1, 0]
@@ -140,36 +143,68 @@ def combination_gray_code_switch(n,t):
         [0, 1, 1, 0, 1]
         [1, 1, 0, 0, 1]
 
-        sage: b = [1,0,0,0]
-        sage: for i,j in combination_gray_code_switch(4,1):
-        ....:     b[i] = 0; b[j] = 1
-        ....:     print b
-        [0, 1, 0, 0]
-        [0, 0, 1, 0]
-        [0, 0, 0, 1]
+        sage: s = set([0,1])
+        sage: for i,j in combinations(4,2):
+        ....:     s.remove(i)
+        ....:     s.add(j)
+        ....:     print s
+        set([1, 2])
+        set([0, 2])
+        set([2, 3])
+        set([1, 3])
+        set([0, 3])
+
+    Note that ``n`` can be infinity::
+
+        sage: c = combinations(Infinity,4)
+        sage: s = set([0,1,2,3])
+        sage: for _ in xrange(10):
+        ....:     i,j = c.next()
+        ....:     s.remove(i); s.add(j)
+        ....:     print s
+        set([0, 1, 3, 4])
+        set([1, 2, 3, 4])
+        set([0, 2, 3, 4])
+        set([0, 1, 2, 4])
+        set([0, 1, 4, 5])
+        set([1, 2, 4, 5])
+        set([0, 2, 4, 5])
+        set([2, 3, 4, 5])
+        set([1, 3, 4, 5])
+        set([0, 3, 4, 5])
+        sage: for _ in xrange(1000):
+        ....:     i,j = c.next()
+        ....:     s.remove(i); s.add(j)
+        sage: print s
+        set([0, 4, 13, 14])
     """
+    from sage.rings.infinity import Infinity
     t = int(t)
-    n = int(n)
+    if n != Infinity:
+        n = int(n)
+    else:
+        n = Infinity
     assert 0 <= t and t <= n, "Parameters not admissible"
     if t == 0 or t == n:
         return iter([])
     if t % 2:
-        return _revolving_door_switch_iterator_odd(n,t)
+        return _revolving_door_odd(n,t)
     else:
-        return _revolving_door_switch_iterator_even(n,t)
+        return _revolving_door_even(n,t)
 
-def _revolving_door_switch_iterator_odd(n,t):
+def _revolving_door_odd(n,t):
     r"""
     Revolving door switch for odd `t`.
 
     TESTS::
 
-        sage: from sage.combinat.gray_codes import _revolving_door_switch_iterator_odd
-        sage: sum(1 for _ in _revolving_door_switch_iterator_odd(13,3)) == binomial(13,3) - 1
+        sage: from sage.combinat.gray_codes import _revolving_door_odd
+        sage: sum(1 for _ in _revolving_door_odd(13,3)) == binomial(13,3) - 1
         True
-        sage: sum(1 for _ in _revolving_door_switch_iterator_odd(10,5)) == binomial(10,5) - 1
+        sage: sum(1 for _ in _revolving_door_odd(10,5)) == binomial(10,5) - 1
         True
     """
+    # note: the numerotation of the setps below follows Kunth TAOCP
     c = range(t) + [n]    # the combination (ordered list of numbers of length t+1)
 
     while True:
@@ -202,18 +237,20 @@ def _revolving_door_switch_iterator_odd(n,t):
         else: # j == t
             break
 
-def _revolving_door_switch_iterator_even(n,t):
+def _revolving_door_even(n,t):
     r"""
     Revolving door algorithm for even `t`.
 
     TESTS::
 
-        sage: from sage.combinat.gray_codes import _revolving_door_switch_iterator_even
-        sage: sum(1 for _ in _revolving_door_switch_iterator_even(13,4)) == binomial(13,4) - 1
+        sage: from sage.combinat.gray_codes import _revolving_door_even
+        sage: sum(1 for _ in _revolving_door_even(13,4)) == binomial(13,4) - 1
         True
-        sage: sum(1 for _ in _revolving_door_switch_iterator_even(12,6)) == binomial(12,6) - 1
+        sage: sum(1 for _ in _revolving_door_even(12,6)) == binomial(12,6) - 1
         True
     """
+    # note: the numerotation of the setps below follows Kunth TAOCP
+
     c = range(t) + [n]    # the combination (ordered list of numbers of length t+1)
 
     while True:

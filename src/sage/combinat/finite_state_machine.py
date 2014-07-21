@@ -10097,20 +10097,36 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
     accepts epsilon transitions during process. See
     :class:`FSMProcessIterator` for more information.
 
-    TESTS::
+    EXAMPLES::
 
         sage: T = Transducer([(0, 1, 0, 'a'), (0, 2, None, 'b'),
         ....:                 (2, 1, None, 'c')])
         sage: from sage.combinat.finite_state_machine import _FSMProcessIteratorEpsilon_
         sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(0),
         ....:                                format_output=lambda o: ''.join(o))
+
+    To see what is going on, we let the transducer run::
+
         sage: for current in it:
         ....:     print current
         {((0, 0),): {2: (tape at 0, [['b']])}}
         {((0, 0),): {1: (tape at 0, [['b', 'c']])}}
         {}
+
+    This class has the additional attribute ``visitled_states``::
+
         sage: it.visited_states
         {0: [''], 1: ['bc'], 2: ['b']}
+
+    This means the following (let us skip the state `0` for a moment):
+    State `1` can be reached by a epsilon path which write ``'bc'`` as
+    output. Similarly, state `2` can be reached by writing ``'b'``. We
+    started in state `0`, so this is included in visited states as
+    well (``''`` means that nothing was written, which is clear, since
+    no path had to be taken).
+
+    We continue with the other states as initial states::
+
         sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(1),
         ....:                                  format_output=lambda o: ''.join(o))
         sage: for current in it:
@@ -10127,7 +10143,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         sage: it.visited_states
         {1: ['c'], 2: ['']}
 
-    ::
+    TESTS::
 
         sage: A = Automaton([(0, 1, 0), (1, 2, None), (2, 3, None),
         ....:                (3, 1, None), (3, 4, None), (1, 4, None)])
@@ -10145,6 +10161,13 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         {}
         sage: it.visited_states
         {1: [[], []], 2: [[]], 3: [[]], 4: [[], []]}
+
+    At this point note that in the previous output, state `1` (from
+    which we started) was also reached by a non-trivial
+    path. Moreover, there are two different paths from `1` to `4`.
+
+    Let us continue with the other initial states::
+
         sage: it = _FSMProcessIteratorEpsilon_(A, initial_state=A.state(2))
         sage: for current in it:
         ....:     print current

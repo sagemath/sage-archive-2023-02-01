@@ -9394,49 +9394,69 @@ def is_FSMProcessIterator(PI):
 
 class FSMProcessIterator(SageObject, collections.Iterator):
     """
-    This class is for processing an input string on a finite state
-    machine.
-
-    An instance of this class is generated when
-    :meth:`FiniteStateMachine.process` or
-    :meth:`FiniteStateMachine.iter_process` of the finite state
-    machine is invoked. It behaves like an iterator which, in each
-    step, takes one letter of the input and runs (one step on) the
-    finite state machine with this input. More precisely, in each
-    step, the process iterator takes an outgoing transition of the
-    current state, whose input label equals the input letter of the
-    tape. The output label of the transition, if present, is written
-    on the output tape.
+    This class takes an input, feeds it into a finite state machine
+    (automaton or transducer, in particular), and returns whether this
+    was successful and the written output.
 
     INPUT:
 
     - ``fsm`` -- The finite state machine on which the input should be
       processed.
 
-    - ``input_tape`` -- The input tape. It can be anything that is
-      iterable.
+    - ``input_tape`` -- The input tape. It
+      can be anything that is iterable.
 
-    - ``initial_state`` -- The initial state in which the machine
-      starts. If this is ``None``, the unique inital state of the finite
-      state machine is takes. If there are several, a ``ValueError`` is
-      raised.
+    - ``initial_state`` or ``initial_states`` -- The initial state(s)
+      in which the machine starts. Either specify a single one with
+      ``initial_state`` or a list of them with ``initial_states``. If
+      both are not specified, the initial states of the finite state
+      machine are taken.
 
-    The process (iteration) stops if there are no more input letters
-    on the tape. In this case a StopIteration exception is thrown. As
-    result the following attributes are available:
+    - ``check_epsilon_transitions`` -- (default: ``True``) If
+      ``False`` epsilon transitions are not taken into consideration
+      during process.
 
-    - ``accept_input`` -- Is ``True`` if the reached state is a final state.
+    - ``format_output`` -- a function that translates the written
+      output in list form to something more readable. By default
+      (``None``) identity is used here.
 
-    - ``current_state`` -- The current/reached state in the process.
+    Moreover, there are the following extensions for multi-tape machines:
 
-    - ``output_tape`` -- The written output.
+    - ``use_multitape_input`` -- (default: ``None``, which translates
+      to ``False``) activates the multi-tape mode of the process
+      iterator.
 
-    Current values of those attributes (except ``accept_input``) are
-    (also) available during the iteration.
+    - ``input_single_tape`` and ``input_multi_tape`` -- the input tape
+      for single-tape and multi-tape modes, respectively. For the
+      single-tape mode, ``input_single_tape`` is equivalent to
+      ``input_tape``, but do not use them at the same time.
 
     OUTPUT:
 
     An iterator.
+
+    The process (iteration) stops if all branches are finished, i.e.,
+    for each branch, there is no transition whose input word coincides
+    with the not processed input tape. This can simply happen when the
+    entire tape was read. In this case a ``StopIteration`` exception
+    is thrown.
+
+    An instance of this class is generated when
+    :meth:`FiniteStateMachine.process` or
+    :meth:`FiniteStateMachine.iter_process` of the finite state
+    machine is invoked.
+
+    In its simplest form, it behaves like an iterator which, in each
+    step, goes from one state to another. To decide which way to go,
+    it uses the input words of the outgoing transitions and compares
+    them to the input tape. More precisely, in each step, the process
+    iterator takes an outgoing transition of the current state, whose
+    input label equals the input letter of the tape. The output label
+    of the transition, if present, is written on the output tape.
+
+    If the choice of the outgoing transition is not unique, all
+    possibilites are followed (if necessary the current state is split
+    to several branches)
 
     EXAMPLES:
 
@@ -9777,8 +9797,9 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         OUTPUT:
 
-        It returns the taken transition. A ``StopIteration`` exception is
-        thrown when there is nothing more to read.
+        It returns the current status of the iterator. A
+        ``StopIteration`` exception is thrown when there is nothing
+        more to read.
 
         EXAMPLES::
 

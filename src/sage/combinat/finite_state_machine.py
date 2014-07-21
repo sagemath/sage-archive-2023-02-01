@@ -147,9 +147,9 @@ TikZ is used for typesetting the graphics, see the
     \begin{tikzpicture}[auto, initial text=, >=latex]
     \node[state, accepting, initial] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
     \node[state, accepting] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
-    \path[->] (v1.5.00) edge node[rotate=0.00, anchor=south] {$0$} (v0.175.00);
-    \path[->] (v0.185.00) edge node[rotate=360.00, anchor=north] {$1, -1$} (v1.355.00);
     \path[->] (v0) edge[loop above] node {$0$} ();
+    \path[->] (v0.185.00) edge node[rotate=360.00, anchor=north] {$1, -1$} (v1.355.00);
+    \path[->] (v1.5.00) edge node[rotate=0.00, anchor=south] {$0$} (v0.175.00);
     \end{tikzpicture}
 
 We can turn this into a graphical representation. Before doing this,
@@ -185,9 +185,9 @@ we use :meth:`~FiniteStateMachine.format_letter_negative` to format
     \begin{tikzpicture}[auto, initial text=, >=latex]
     \node[state, accepting, initial, initial where=below] (v0) at (0.000000, 0.000000) {$\mathcal{A}$};
     \node[state, accepting] (v1) at (6.000000, 0.000000) {$\mathcal{B}$};
-    \path[->] (v1.185.00) edge node[rotate=360.00, anchor=north] {$0$} (v0.355.00);
-    \path[->] (v0.5.00) edge node[rotate=0.00, anchor=south] {$1, \overline{1}$} (v1.175.00);
     \path[->] (v0) edge[loop above] node {$0$} ();
+    \path[->] (v0.5.00) edge node[rotate=0.00, anchor=south] {$1, \overline{1}$} (v1.175.00);
+    \path[->] (v1.185.00) edge node[rotate=360.00, anchor=north] {$0$} (v0.355.00);
     \end{tikzpicture}
     sage: view(NAF) # not tested
 
@@ -572,7 +572,7 @@ from copy import deepcopy
 
 import itertools
 from itertools import imap
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 
 def full_group_by(l, key=lambda x: x):
@@ -3227,19 +3227,19 @@ class FiniteStateMachine(SageObject):
             \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {$\$ \mid {\scriptstyle w_{0} w_{0}}$} ++(45.00:10ex);
             \node[state] (v3) at (-2.000000, 3.000000) {$\mathbf{1}$};
             \node[state] (v4) at (2.000000, 3.000000) {$\mathbf{2}$};
-            \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{3}}$} (v2.201.57);
             \path[->] (v1) edge[loop left] node[rotate=90, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
-            \path[->] (v2) edge[loop below] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
-            \path[->] (v0.128.69) edge node[rotate=303.69, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{1}}$} (v3.298.69);
-            \path[->] (v4.-118.69) edge node[rotate=56.31, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-2}}$} (v0.51.31);
-            \path[->] (v0.158.43) edge node[rotate=333.43, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{0}}$} (v1.328.43);
-            \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-3}}$} (v0.21.57);
-            \path[->] (v3.-51.31) edge node[rotate=-56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-1}}$} (v0.118.69);
-            \path[->] (v0) edge[loop below] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
-            \path[->] (v4) edge[loop right] node[rotate=90, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
             \path[->] (v1.-21.57) edge node[rotate=-26.57, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{0}}$} (v0.148.43);
             \path[->] (v3) edge[loop above] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
+            \path[->] (v3.-51.31) edge node[rotate=-56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-1}}$} (v0.118.69);
+            \path[->] (v4) edge[loop right] node[rotate=90, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
+            \path[->] (v4.-118.69) edge node[rotate=56.31, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-2}}$} (v0.51.31);
+            \path[->] (v2) edge[loop below] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
+            \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-3}}$} (v0.21.57);
+            \path[->] (v0.158.43) edge node[rotate=333.43, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{0}}$} (v1.328.43);
+            \path[->] (v0.128.69) edge node[rotate=303.69, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{1}}$} (v3.298.69);
             \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{2}}$} (v4.231.31);
+            \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{3}}$} (v2.201.57);
+            \path[->] (v0) edge[loop below] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
             \end{tikzpicture}
             sage: view(T) # not tested
 
@@ -3262,19 +3262,19 @@ class FiniteStateMachine(SageObject):
             \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {$\$ \mid w_{0} w_{0}$} ++(45.00:10ex);
             \node[state] (v3) at (-2.000000, 3.000000) {$\mathbf{1}$};
             \node[state] (v4) at (2.000000, 3.000000) {$\mathbf{2}$};
-            \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {$w_{0}\mid w_{0} w_{3}$} (v2.201.57);
             \path[->] (v1) edge[loop left] node[rotate=90, anchor=south] {$w_{0}\mid w_{0}$} ();
-            \path[->] (v2) edge[loop below] node {$w_{0}\mid w_{0}$} ();
-            \path[->] (v0.128.69) edge node[rotate=303.69, anchor=north] {$w_{0}\mid w_{0} w_{1}$} (v3.298.69);
-            \path[->] (v4.-118.69) edge node[rotate=56.31, anchor=north] {$w_{0}\mid w_{0} w_{-2}$} (v0.51.31);
-            \path[->] (v0.158.43) edge node[rotate=333.43, anchor=north] {$w_{0}\mid w_{0} w_{0}$} (v1.328.43);
-            \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {$w_{0}\mid w_{0} w_{-3}$} (v0.21.57);
-            \path[->] (v3.-51.31) edge node[rotate=-56.31, anchor=south] {$w_{0}\mid w_{0} w_{-1}$} (v0.118.69);
-            \path[->] (v0) edge[loop below] node {$w_{0}\mid w_{0}$} ();
-            \path[->] (v4) edge[loop right] node[rotate=90, anchor=north] {$w_{0}\mid w_{0}$} ();
             \path[->] (v1.-21.57) edge node[rotate=-26.57, anchor=south] {$w_{0}\mid w_{0} w_{0}$} (v0.148.43);
             \path[->] (v3) edge[loop above] node {$w_{0}\mid w_{0}$} ();
+            \path[->] (v3.-51.31) edge node[rotate=-56.31, anchor=south] {$w_{0}\mid w_{0} w_{-1}$} (v0.118.69);
+            \path[->] (v4) edge[loop right] node[rotate=90, anchor=north] {$w_{0}\mid w_{0}$} ();
+            \path[->] (v4.-118.69) edge node[rotate=56.31, anchor=north] {$w_{0}\mid w_{0} w_{-2}$} (v0.51.31);
+            \path[->] (v2) edge[loop below] node {$w_{0}\mid w_{0}$} ();
+            \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {$w_{0}\mid w_{0} w_{-3}$} (v0.21.57);
+            \path[->] (v0.158.43) edge node[rotate=333.43, anchor=north] {$w_{0}\mid w_{0} w_{0}$} (v1.328.43);
+            \path[->] (v0.128.69) edge node[rotate=303.69, anchor=north] {$w_{0}\mid w_{0} w_{1}$} (v3.298.69);
             \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {$w_{0}\mid w_{0} w_{2}$} (v4.231.31);
+            \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {$w_{0}\mid w_{0} w_{3}$} (v2.201.57);
+            \path[->] (v0) edge[loop below] node {$w_{0}\mid w_{0}$} ();
             \end{tikzpicture}
             sage: view(T) # not tested
 
@@ -3554,7 +3554,13 @@ class FiniteStateMachine(SageObject):
 
         def key_function(s):
             return (s.from_state, s.to_state)
-        adjacent = dict(
+        # We use an OrderedDict instead of a dict in order to have a
+        # defined ordering of the transitions in the output. See
+        # http://trac.sagemath.org/ticket/16580#comment:3 . As the
+        # transitions have to be sorted anyway, the performance
+        # penalty should be bearable; nevertheless, this is only
+        # required for doctests.
+        adjacent = OrderedDict(
             (pair, list(transitions))
             for pair, transitions in
             itertools.groupby(

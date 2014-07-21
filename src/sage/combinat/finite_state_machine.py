@@ -152,15 +152,10 @@ TikZ is used for typesetting the graphics, see the
     \path[->] (v0) edge[loop above] node {$0$} ();
     \end{tikzpicture}
 
-We can turn this into a graphical representation. Before doing this,
-we have to :func:`setup the latex preamble <setup_latex_preamble>` and
-make sure that TikZ pictures are not rendered by mathjax, but by
-actually running LaTeX.
+We can turn this into a graphical representation.
 
 ::
 
-    sage: sage.combinat.finite_state_machine.setup_latex_preamble()
-    sage: latex.mathjax_avoid_list('tikzpicture')
     sage: view(NAF) # not tested
 
 To actually see this, use the live documentation in the Sage notebook
@@ -568,6 +563,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
 from sage.symbolic.ring import SR
 from sage.calculus.var import var
+from sage.misc.cachefunc import cached_function
 from sage.misc.latex import latex
 from sage.misc.misc import verbose
 from sage.functions.trig import cos, sin, atan2
@@ -1181,7 +1177,9 @@ class FSMState(SageObject):
             'A'
         """
         new = FSMState(self.label(), self.word_out,
-                       self.is_initial, self.is_final, self.final_word_out)
+                       self.is_initial, self.is_final,
+                       color=self.color,
+                       final_word_out=self.final_word_out)
         if hasattr(self, 'hook'):
             new.hook = self.hook
         return new
@@ -2828,21 +2826,26 @@ class FiniteStateMachine(SageObject):
         return False
 
 
-    def is_Markov_chain(self):
+    def is_Markov_chain(self, is_zero=None):
         """
         Checks whether ``self`` is a Markov chain where the transition
         probabilities are modeled as input labels.
 
         INPUT:
 
-        Nothing.
+        - ``is_zero`` -- by default (``is_zero=None``), checking for
+          zero is simply done by
+          :meth:`~sage.structure.element.Element.is_zero`.  This
+          parameter can be used to provide a more sophisticated check
+          for zero, e.g. in the case of symbolic probabilities, see
+          the examples below.
 
         OUTPUT:
 
-        True or False.
+        ``True`` or ``False``.
 
-        ``on_duplicate_transition`` must be
-        ``duplicate_transition_add_input`` and the sum of the input
+        :attr:`on_duplicate_transition` must be
+        :func:`duplicate_transition_add_input` and the sum of the input
         weights of the transitions leaving a state must add up to 1.
 
         EXAMPLES::
@@ -2854,7 +2857,8 @@ class FiniteStateMachine(SageObject):
             sage: F.is_Markov_chain()
             True
 
-        ``on_duplicate_transition`` must be ``duplicate_transition_add_input``::
+        :attr:`on_duplicate_transition` must be
+        :func:`duplicate_transition_add_input`::
 
             sage: F = Transducer([[0, 0, 1/4, 0], [0, 1, 3/4, 1],
             ....:                 [1, 0, 1/2, 0], [1, 1, 1/2, 1]])
@@ -2868,12 +2872,46 @@ class FiniteStateMachine(SageObject):
             ....:                on_duplicate_transition=duplicate_transition_add_input)
             sage: F.is_Markov_chain()
             False
+
+        If the probabilities are variables in the symbolic ring,
+        :func:`~sage.symbolic.assumptions.assume` will do the trick::
+
+            sage: var('p q')
+            (p, q)
+            sage: F = Transducer([(0, 0, p, 1), (0, 0, q, 0)],
+            ....:                on_duplicate_transition=duplicate_transition_add_input)
+            sage: assume(p + q == 1)
+            sage: (p + q - 1).is_zero()
+            True
+            sage: F.is_Markov_chain()
+            True
+            sage: forget()
+            sage: del(p, q)
+
+        If the probabilities are variables in some polynomial ring,
+        the parameter ``is_zero`` can be used::
+
+            sage: R.<p, q> = PolynomialRing(QQ)
+            sage: def is_zero_polynomial(polynomial):
+            ....:     return polynomial in (p + q - 1)*R
+            sage: F = Transducer([(0, 0, p, 1), (0, 0, q, 0)],
+            ....:                on_duplicate_transition=duplicate_transition_add_input)
+            sage: F.is_Markov_chain()
+            False
+            sage: F.is_Markov_chain(is_zero_polynomial)
+            True
         """
+        def default_is_zero(expression):
+            return expression.is_zero()
+
+        is_zero_function = default_is_zero
+        if is_zero is not None:
+            is_zero_function = is_zero
 
         if self.on_duplicate_transition != duplicate_transition_add_input:
             return False
 
-        return all((sum(t.word_in[0] for t in state.transitions) - 1).is_zero()
+        return all(is_zero_function(sum(t.word_in[0] for t in state.transitions) - 1)
                    for state in self.states())
 
 
@@ -3175,9 +3213,6 @@ class FiniteStateMachine(SageObject):
         means, it can be combined with directly setting some
         attributes as outlined above.
 
-        See also :func:`setup_latex_preamble` or the example below on
-        how to setup the LaTeX environment.
-
         EXAMPLES:
 
         See also the section on :ref:`finite_state_machine_LaTeX_output`
@@ -3185,9 +3220,6 @@ class FiniteStateMachine(SageObject):
 
         ::
 
-            sage: from sage.combinat.finite_state_machine import setup_latex_preamble
-            sage: setup_latex_preamble()
-            sage: latex.mathjax_avoid_list('tikzpicture')
             sage: T = Transducer(initial_states=['I'],
             ....:     final_states=[0, 3])
             sage: for j in srange(4):
@@ -3480,6 +3512,8 @@ class FiniteStateMachine(SageObject):
                     # left has its label below the transition, otherwise above
                     anchor_label = "north"
             return "rotate=%.2f, anchor=%s" % (angle_label, anchor_label)
+
+        setup_latex_preamble()
 
         options = ["auto", "initial text=", ">=latex"]
 
@@ -5394,6 +5428,7 @@ class FiniteStateMachine(SageObject):
             The input alphabet of self has to be specified.
 
             This is a very limited implementation of composition.
+
             WARNING: The output of ``other`` is fed into ``self``.
 
           If algorithm is ``None``, then the algorithm is chosen
@@ -5494,11 +5529,27 @@ class FiniteStateMachine(SageObject):
             implemented for transducers with non-empty final output
             words. Try the direct algorithm instead.
 
+        Similarly, the explorative algorithm cannot handle
+        non-deterministic finite state machines::
+
+            sage: A = Transducer([(0, 0, 0, 0), (0, 1, 0, 0)])
+            sage: B = transducers.Identity([0])
+            sage: A.composition(B, algorithm='explorative')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Explorative composition is currently
+            not implemented for non-deterministic transducers.
+            sage: B.composition(A, algorithm='explorative')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Explorative composition is currently
+            not implemented for non-deterministic transducers.
+
         TESTS:
 
         Due to the limitations of the two algorithms the following
         (examples from above, but different algorithm used) does not
-        give a full answer or does not work
+        give a full answer or does not work.
 
         In the following, ``algorithm='explorative'`` is inadequate,
         as ``F`` has more than one initial state::
@@ -5653,6 +5704,11 @@ class FiniteStateMachine(SageObject):
                                       "implemented for transducers with "
                                       "non-empty final output words. Try "
                                       "the direct algorithm instead.")
+
+        if not self.is_deterministic() or not other.is_deterministic():
+            raise NotImplementedError("Explorative composition is "
+                                      "currently not implemented for "
+                                      "non-deterministic transducers.")
 
         F = other.empty_copy()
         new_initial_states = [(other.initial_states()[0], self.initial_states()[0])]
@@ -6036,7 +6092,7 @@ class FiniteStateMachine(SageObject):
         obtained::
 
             sage: C = Transducer([(0,1,0,0)])
-            sage: C.prepone_output() # doctest: +ELLIPSIS
+            sage: C.prepone_output()
             verbose 0 (...: finite_state_machine.py, prepone_output)
             All transitions leaving state 0 have an output label with
             prefix 0.  However, there is no inbound transition and it
@@ -7144,7 +7200,7 @@ class FiniteStateMachine(SageObject):
                 sage: T = Transducer([[0, 0, 0, a_1], [0, 1, 1, a_3],
                 ....:                 [1, 0, 0, a_4], [1, 1, 1, a_2]],
                 ....:                initial_states=[0], final_states=[0, 1])
-                sage: moments = T.asymptotic_moments() # doctest: +ELLIPSIS
+                sage: moments = T.asymptotic_moments()
                 verbose 0 (...) Non-integer output weights lead to
                 significant performance degradation.
                 sage: moments['expectation']
@@ -7315,7 +7371,7 @@ class FiniteStateMachine(SageObject):
 
                 sage: T = Transducer([[0, 0, 0, 0], [0, 0, 1, -1/2]],
                 ....:                initial_states=[0], final_states=[0])
-                sage: moments = T.asymptotic_moments() # doctest: +ELLIPSIS
+                sage: moments = T.asymptotic_moments()
                 verbose 0 (...) Non-integer output weights lead to
                 significant performance degradation.
                 sage: moments['expectation']
@@ -7357,7 +7413,7 @@ class FiniteStateMachine(SageObject):
                 sage: s = FSMState(0, word_out=2/3)
                 sage: T = Transducer([(s, s, 0, 1/2)],
                 ....:                initial_states=[s], final_states=[s])
-                sage: T.asymptotic_moments()['expectation'] # doctest: +ELLIPSIS
+                sage: T.asymptotic_moments()['expectation']
                 verbose 0 (...) Non-integer output weights lead to
                 significant performance degradation.
                 7/6*n + Order(1)
@@ -8341,7 +8397,7 @@ class Transducer(FiniteStateMachine):
             ....:                          final_states=[1],
             ....:                          determine_alphabets=True)
             sage: result = transducer1.cartesian_product(transducer2)
-            doctest:1: DeprecationWarning: The output of
+            doctest:...: DeprecationWarning: The output of
             Transducer.cartesian_product will change.
             Please use Transducer.intersection for the original output.
             See http://trac.sagemath.org/16061 for details.
@@ -9078,8 +9134,9 @@ class FSMProcessIterator(SageObject):
 #*****************************************************************************
 
 
+@cached_function
 def setup_latex_preamble():
-    """
+    r"""
     This function adds the package ``tikz`` with support for automata
     to the preamble of Latex so that the finite state machines can be
     drawn nicely.
@@ -9092,9 +9149,6 @@ def setup_latex_preamble():
 
     Nothing.
 
-    In the Sage notebook, you probably want to use
-    ``latex.mathjax_avoid_list('tikzpicture')`` such that
-    :func:`~sage.misc.latex.view` actually shows the result.
     See the section on :ref:`finite_state_machine_LaTeX_output`
     in the introductory examples of this module.
 
@@ -9102,10 +9156,13 @@ def setup_latex_preamble():
 
         sage: from sage.combinat.finite_state_machine import setup_latex_preamble
         sage: setup_latex_preamble()
-        sage: latex.mathjax_avoid_list('tikzpicture')
+        sage: ("\usepackage{tikz}" in latex.extra_preamble()) == latex.has_file("tikz.sty")
+        True
     """
     latex.add_package_to_preamble_if_available('tikz')
-    latex.add_to_preamble('\\usetikzlibrary{automata}')
+    latex.add_to_mathjax_avoid_list("tikz")
+    if latex.has_file("tikz.sty"):
+        latex.add_to_preamble(r'\usetikzlibrary{automata}')
 
 
 #*****************************************************************************

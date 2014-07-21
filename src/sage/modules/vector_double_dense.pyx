@@ -710,7 +710,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             0.953760808...
             sage: w = vector(CDF, [-1,0,1])
             sage: w.norm(p=-1.6)
-            doctest:2097: RuntimeWarning: divide by zero encountered in power
+            doctest:...: RuntimeWarning: divide by zero encountered in power
             0.0
 
         Return values are in ``RDF``, or an integer when ``p = 0``.  ::

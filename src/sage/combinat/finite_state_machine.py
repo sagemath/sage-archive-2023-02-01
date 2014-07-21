@@ -9226,7 +9226,7 @@ class _FSMTapeCache_(SageObject):
         TESTS::
 
             sage: from sage.combinat.finite_state_machine \
-            ....:     import _FSMTapeCache_, FSMTransition
+            ....:     import _FSMTapeCache_
             sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             sage: TC2._transition_possible_epsilon_([])
@@ -9257,7 +9257,7 @@ class _FSMTapeCache_(SageObject):
         TESTS::
 
             sage: from sage.combinat.finite_state_machine \
-            ....:     import _FSMTapeCache_, FSMTransition
+            ....:     import _FSMTapeCache_
             sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             sage: TC2, TC2.cache
@@ -9295,7 +9295,38 @@ class _FSMTapeCache_(SageObject):
 
 
 class _FSMTapeCacheDetectEpsilon_(_FSMTapeCache_):
+    """
+    This is a class is similar to :class:`_FSMTapeCache_` but accepts
+    only epsilon transitions.
+    """
     def _transition_possible_test_(self, word_in):
+        """
+        This helper function tests whether ``word_in`` equals ``epsilon``,
+        i.e., whether it is the empty word or consists only of letters ``None``.
+
+        INPUT:
+
+        - ``word_in`` -- an input word of a transition.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine \
+            ....:     import _FSMTapeCacheDetectEpsilon_
+            sage: TCE = _FSMTapeCacheDetectEpsilon_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TCE._transition_possible_test_([])
+            True
+            sage: TCE._transition_possible_test_([[], []])
+            True
+            sage: TCE._transition_possible_test_([[None], []])
+            True
+            sage: TCE._transition_possible_test_([[(None,)], []])
+            False
+        """
         return self._transition_possible_epsilon_(word_in)
 
 
@@ -9303,7 +9334,42 @@ class _FSMTapeCacheDetectEpsilon_(_FSMTapeCache_):
 
 
 class _FSMTapeCacheDetectAll_(_FSMTapeCache_):
+    """
+    This is a class is similar to :class:`_FSMTapeCache_` but accepts
+    each transition.
+    """
     def _transition_possible_test_(self, word_in):
+        """
+        This helper function returns ``True``, i.e., accepts every
+        ``word_in`` of every transition.
+
+        INPUT:
+
+        - ``word_in`` -- an input word of a transition.
+
+        OUTPUT:
+
+        ``True``.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine \
+            ....:     import _FSMTapeCacheDetectAll_
+            sage: TCA = _FSMTapeCacheDetectAll_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TCA._transition_possible_test_([(37, 38), (11, 12, 13)])
+            True
+            sage: TCA._transition_possible_test_([(37, 38), (11, 13)])
+            True
+            sage: TCA._transition_possible_test_([])
+            True
+            sage: TCA._transition_possible_test_([[], []])
+            True
+            sage: TCA._transition_possible_test_([[None], []])
+            True
+            sage: TCA._transition_possible_test_([[(None,)], []])
+            True
+        """
         return True
 
 

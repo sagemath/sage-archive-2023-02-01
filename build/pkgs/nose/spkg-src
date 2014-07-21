@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+#
+# Script to prepare a nose spkg for Sage.  This script is only for the
+# package maintainer, not for building nose during a Sage install.
+# WARNING: This script will delete files in the src directory and its
+# subdirectories!
+#
+# HOW TO MAKE THE SPKG:
+# 
+# 1) Remove the 'src' directory.
+# 2) Download gzipped tar file and move it to 'src'.
+# 3) ./spkg-make -- this deletes any pyc files in the subdirectories of src.
+
+# If we decide to download from the git repository, we could automate
+# steps 1 and 2, also.
+
+# AUTHOR:
+#
+# - John Palmieri (June 2012): initial version.
+
+# Automatically exit on errors
+set -e
+
+# Sanity check: must be run from current directory
+if ! [ -f spkg-make ]; then
+    echo >&2 "This script must be run from its own source directory!"
+    exit 1
+fi
+
+cd src
+find . -name *.pyc -exec rm {} \;

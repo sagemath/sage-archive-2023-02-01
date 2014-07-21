@@ -509,7 +509,7 @@ class RiggedConfigurationElement(ClonableArray):
         INPUT:
 
         - ``display_steps`` -- (default: ``False``) boolean which indicates
-          if we want to output each step in the algorithm
+          if we want to print each step in the algorithm
         - ``build_graph` -- (default: ``False``) boolean which indicates
           if we want to construct and return a graph of the bijection whose
           vertices are rigged configurations obtained at each step and edges
@@ -595,7 +595,7 @@ class RiggedConfigurationElement(ClonableArray):
         INPUT:
 
         - ``display_steps`` -- (default: ``False``) boolean which indicates
-          if we want to output each step in the algorithm
+          if we want to print each step in the algorithm
         - ``build_graph` -- (default: ``False``) boolean which indicates
           if we want to construct and return a graph of the bijection whose
           vertices are rigged configurations obtained at each step and edges

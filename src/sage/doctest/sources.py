@@ -674,6 +674,7 @@ class FileDocTestSource(DocTestSource):
             ....:             FDS._test_enough_doctests(verbose=False)
             There are 7 tests in sage/combinat/dyck_word.py that are not being run
             There are 4 tests in sage/combinat/finite_state_machine.py that are not being run
+            There are 6 tests in sage/combinat/interval_posets.py that are not being run
             There are 18 tests in sage/combinat/partition.py that are not being run
             There are 15 tests in sage/combinat/permutation.py that are not being run
             There are 14 tests in sage/combinat/skew_partition.py that are not being run

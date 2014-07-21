@@ -51,11 +51,13 @@ class Link:
 
         elif oriented_gauss_code != None:
             self._oriented_gauss_code = oriented_gauss_code
+            self._braid = None
             self._PD_code = None
 
         elif PD_code != None:
             self._PD_code = PD_code
             self._oriented_gauss_code = None
+            self._braid = None
 
         else:
             raise Exception("Invalid input")
@@ -72,6 +74,10 @@ class Link:
 
         if self._braid != None:
             return list(self._braid.Tietze())
+
+        elif self._oriented_gauss_code != None:
+            if self.is_knot == True:
+                return self.seifert_to_braid()
 
         elif self._gauss_code != None:
             return "Not implemented Error"
@@ -90,6 +96,16 @@ class Link:
         """
         if self._braid != None:
             return self._braid
+
+        elif self._oriented_gauss_code != None:
+            return self.seifert_to_braid()
+
+        elif self._PD_code != None:
+            pd = self._PD_code
+            L1 = Link(PD_code = pd)
+            ogc = L1.oriented_gauss_code()
+            L2 = Link(oriented_gauss_code = ogc)
+            return L2.seifert_to_braid()
 
         elif self._gauss_code != None:
             return "Not implemented Error"
@@ -125,6 +141,83 @@ class Link:
         if self._oriented_gauss_code != None:
             return self._oriented_gauss_code
 
+        elif self._PD_code != None:
+            ogc = []
+            ogc_sign = []
+            pd_code = deepcopy(self._PD_code)
+            pairs = [[i,i+1] if i+1 != 2*len(pd_code)+1 else [i,1] for i in range(1,2*len(pd_code)+1)]
+            for i in pairs:
+                for j in pd_code:
+                    if len(list(set(i).intersection(set(j)))) == 2:
+                        ogc.append(pd_code.index(j) + 1)
+            for i in pd_code:
+                if abs(i[1] - i[3]) == 1:
+                    if i[1] > i[3]:
+                        ogc_sign.append('-')
+                    elif i[1] < i[3]:
+                        ogc_sign.append('+')
+                elif abs(i[1] - i[3]) != 1:
+                    if i[1] == 1:
+                        ogc_sign.append('-')
+                    elif i[3] == 1:
+                        ogc_sign.append('+')
+            for i in pd_code:
+                del i[3]
+                del i[1]
+            for i in pairs:
+                for j in pd_code:
+                    if i == j:
+                        ogc[pairs.index(i)] = (-1)*ogc[pairs.index(i)]
+            gauss_code_sign = []
+            gauss_code_sign.append(ogc)
+            gauss_code_sign.append(ogc_sign)
+            return gauss_code_sign
+
+        #the sign part remains
+        elif self._braid != None:
+            L = self._braid
+            B = L.parent()
+            l = self.braidword()
+            L = Link(B(l)).dt_code()
+            gc = Link(dt_code = L).gauss_code()
+            return gc
+            #work in progress.
+            '''pd = self.PD_code()
+            print pd
+            sign = []
+            sign_dic = {}
+            for i in pd:
+                if abs(i[1] - i[3]) == 1:
+                    if i[1] > i[3]:
+                        sign.append('-')
+                    elif i[1] < i[3]:
+                        sign.append('+')
+                elif abs(i[1] - i[3]) != 1:
+                    if i[1] == 1:
+                        sign.append('-')
+                    elif i[3] == 1:
+                        sign.append('+')
+            for i,j in enumerate(sign):
+                sign_dic.update({i+1 : j})
+            print sign_dic
+            gc_sign = []
+            gc_copy = deepcopy(gc)
+            for i,j in enumerate(gc_copy):
+                for k in gc_copy[i+1:]:
+                    if abs(j) == abs(k):
+                        del gc_copy[gc_copy.index(k)]
+            for i in gc_copy:
+                gc_sign.append(sign_dic[abs(i)])
+            print gc_sign
+            print gc_copy
+            ogc = []
+            ogc.append(gc)
+            ogc.append(sign)
+            #bw = self.braidword()
+            #gc = bw.dt_code()
+            #self._gauss_code = gc
+            return ogc'''
+
     def PD_code(self):
         r"""
         Returns the Planar Diagram code of the knot. The Planar Diagram is returned
@@ -140,7 +233,7 @@ class Link:
 
 
         OUTPUT:
-            - Braid representation of the INPUT
+            - Planar Diagram of the knot.
 
         EXAMPLES::
         """
@@ -151,7 +244,7 @@ class Link:
         #the order of the sign is as per the ordering of the crossings as in the gauss code
         #so for example if the gauss code is 1 -3 2 -1 3 -2 then the
         #order of the sign of the crossings is sign of crossing 1 then 3 then at 2
-        #and so on and so forth.
+        #and so on and so forth. #this has to be reviewed !!!
         elif self._oriented_gauss_code != None:
             gc = self._oriented_gauss_code[0]
             gc_sign = self._oriented_gauss_code[1]
@@ -371,7 +464,7 @@ class Link:
         that we are encountering.
 
         OUTPUT:
-            - DT Code representation of the INPUT
+            - DT Code representation of the given knot.
 
         EXAMPLES::
         """
@@ -911,6 +1004,7 @@ class Link:
 
     def knot_diagram(self):
         x = self.PD_code()
+        #p = [i for i in range(len(x))]
         p =[[None for i in range(4)] for i in range(len(x))]
         plt = Graphics()
         for i in range(len(x)):
@@ -1237,12 +1331,12 @@ class Link:
         regions = self.regions()
         q1 = deepcopy(regions)
         q = [[[],[]] for i in range(len(regions))]
-        for i in range(len(regions)):
-            for j in range(len(regions[i])):
-                if regions[i][j] < 0:
-                    q[i][0].append(regions[i][j])
-                elif regions[i][j] > 0:
-                    q[i][1].append(regions[i][j])
+        for i,j in enumerate(regions):
+            for k in j:
+                if k < 0:
+                    q[i][0].append(k)
+                elif k > 0:
+                    q[i][1].append(k)
         r = [[] for i in range(len(q))]
         for i in range(len(q)):
             for j in range(len(q[i])):
@@ -1250,14 +1344,14 @@ class Link:
                 for k in range(len(q[i][j])):
                     if q[i][j][k] < 0:
                         q[i][j][k] = (-1)*q[i][j][k]
-        for i in range(len(q)):
-            for j in range(len(q[i])):
+        for m,i in enumerate(q):
+            for n,j in enumerate(i):
                 for k in sc:
-                    if set(q[i][j]).intersection(set(k)) == set(q[i][j]):
-                        r[i][j] = None
+                    if set(j).intersection(set(k)) == set(j):
+                        r[m][n] = None
                         break
                 else:
-                    r[i][j] = q[i][j]
+                    r[m][n] = j
         for i in reversed(range(len(r))):
             for j in reversed(range(len(r[i]))):
                 if r[i][j] == None:
@@ -1265,7 +1359,7 @@ class Link:
         #we see whether they belong to the same region if it is so we remove the other.
         for i in reversed(range(len(r))):
             if len(r[i]) > 1:
-                del r[i][1]                 #here everything should be deleted
+                del r[i][1]
             if len(r[i]) == 0:
                 del r[i]
         # r has the components together
@@ -1285,7 +1379,7 @@ class Link:
             npd = [[None for i in range(4)] for i in range(len(r1))]
             if max(r1) == r1[0]:
                 npd[1][0] = c[1][0]
-                npd[1][2] = npd[1][0] + 1 #correction here
+                npd[1][2] = npd[1][0] + 1
                 npd[0][0] = npd[1][2]
                 npd[0][2] = npd[0][0] + 1
             elif max(r1) == r1[1]:
@@ -1295,8 +1389,6 @@ class Link:
                 npd[0][2] = npd[0][0] + 1
             #now we need to decide the over crossings, for this we need to find which crossing has
             #the highest component leaving since that has the new lowest component entering
-            #for i in range(len(r)):
-            #for i in [0]:
             if max(r1) == r1[1]:
                 if max(c[1]) == max(npd[0]):
                     npd[0][1] = c[0][1]
@@ -1336,7 +1428,6 @@ class Link:
             #the above PD code has only few elements and not all, as we are updating the
             #previous crossings we can use the sign information from the input.
             for i in range(len(x)):
-                #if gc_sign[i] == '-':
                 if x[i][1] > x[i][3]:
                     if y[i][0] == None:
                         y[i][0] = y[i][2] - 1
@@ -1346,7 +1437,6 @@ class Link:
                         y[i][3] = y[i][1] - 1
                     if y[i][1] == None:
                         y[i][1] = y[i][3] + 1
-                #elif gc_sign[i] == '+':
                 elif x[i][1] < x[i][3]:
                     if y[i][0] == None:
                         y[i][0] = y[i][2] - 1
@@ -1416,7 +1506,7 @@ class Link:
         they belong, thereby developing the braidword
 
         OUTPUT:
-            - Braidword of the INPUT
+            - Braidword of the knot.
 
         EXAMPLES::
         sage: from sage.knots import link
@@ -1503,7 +1593,6 @@ class Link:
             else:
                 e.append(b)
                 break
-        #braid numbering and matching the crossings
         t = []
         flatentering = [a for b in entering for a in b]
         for i in flatentering:
@@ -1554,14 +1643,12 @@ class Link:
         elif crossingtoseifertsign[1][0] == 1:
             tmp.append(crossingtoseifert[1][0][2])
             tmp.append(crossingtoseifert[1][0][3])
-        for i,j in enumerate(leaving):
-            if set(tmp) == set(j):
-                if sign[i] == '-':
-                    reg[0] = j[0]
-                    reg[1] = j[1]
-                elif sign[i] == '+':
-                    reg[0] = j[1]
-                    reg[1] = j[0]
+        if tmp[0] in bn[1]:
+            reg[0] = tmp[0]
+            reg[1] = tmp[1]
+        else:
+            reg[0] = tmp[1]
+            reg[1] = tmp[0]
         crossing = []
         crossing.append(crossingtoseifert[1][0])
         q = 0
@@ -1611,6 +1698,24 @@ class Link:
         return braid
 
     def writhe(self):
+        r"""
+        Returns the writhe of the knot.
+
+        OUTPUT:
+            - Writhe of the knot.
+
+        EXAMPLES::
+        sage: from sage.knots import link
+        sage: L = link.Link(oriented_gauss_code = [[1, -2, 3, -4, 2, -1, 4, -3],['+','+','-','-']])
+        sage: L.writhe()
+        0
+        sage: L = link.Link(oriented_gauss_code = [[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5],['-','-','-','-','+','-','+']])
+        sage: L.writhe()
+        -3
+        sage: L = link.Link(oriented_gauss_code = [[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, -4, -7],['-','-','-','-','+','+','-','+']])
+        sage: L.writhe()
+        -2
+        """
         x = self.oriented_gauss_code()
         pos = x[1].count('+')
         neg = (-1)*x[1].count('-')
@@ -1623,7 +1728,7 @@ class Link:
         changing through the various combinations of smoothing the knot.
 
         OUTPUT:
-            - Jones Polynomial of the INPUT
+            - Jones Polynomial of the knot.
 
         EXAMPLES::
         sage: from sage.knots import link
@@ -1644,20 +1749,20 @@ class Link:
                 if poscross[i] == poscross[j]:
                    z.append(poscross[i:j])
         counts = [[] for i in range(len(z))]
-        for i in range(len(z)):
-            for j in z[i]:
-                counts[i].append(Mod(z[i].count(j),2))
+        for i,j in enumerate(z):
+            for k in j:
+                counts[i].append(Mod(j.count(k),2))
         A = matrix(IntegerModRing(2), max(poscross), max(poscross))
-        for i in range(len(z)):
-            for j in range(len(z[i])):
-                A[z[i][j]-1,i] = counts[i][j]
+        for i,j in enumerate(z):
+            for m,k in enumerate(j):
+                A[k-1,i] = counts[i][m]
         for i in range(len(poscross)):
             for j in reversed(range(i+1,len(poscross))):
                 if poscross[i] == poscross[j]:
                     del poscross[j]
         crosstosign = {}
-        for i in range(len(poscross)):
-            crosstosign.update({poscross[i] : signinfo[i]})
+        for i,j in zip(poscross, signinfo):
+            crosstosign.update({i : j})
         firstarray = []
         for i,j in crosstosign.items():
             if j == '-':

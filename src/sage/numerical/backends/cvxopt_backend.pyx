@@ -465,15 +465,10 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: p.add_constraint(x[0] + 2*x[1] <= 4)
             sage: p.add_constraint(5*x[2] - x[1] <= 8)
             sage: round(p.solve(), 2)
+            ...
                      pcost       dcost       gap    pres   dres   k/t
                  0: -7.3165e+00 -2.3038e+01  6e+00  0e+00  2e+00  1e+00
-                 1: -7.8209e+00 -1.0635e+01  1e+00  1e-16  3e-01  2e-01
-                 2: -8.4714e+00 -1.0546e+01  1e+00  4e-16  2e-01  2e-01
-                 3: -8.7876e+00 -8.8459e+00  3e-02  1e-16  6e-03  4e-03
-                 4: -8.7999e+00 -8.8005e+00  3e-04  2e-16  6e-05  4e-05
-                 5: -8.8000e+00 -8.8000e+00  3e-06  2e-16  6e-07  4e-07
-                 6: -8.8000e+00 -8.8000e+00  3e-08  1e-16  6e-09  4e-09
-                Optimal solution found.
+                 ...
                 8.8
             sage: #CVXOPT gives different  values for variables compared to the other solvers.
             sage: c = MixedIntegerLinearProgram(solver = "cvxopt")

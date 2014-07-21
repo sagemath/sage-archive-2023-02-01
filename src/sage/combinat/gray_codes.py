@@ -1,5 +1,5 @@
 r"""
-Gray codes.
+Gray codes
 
 REFERENCES:
 
@@ -8,6 +8,9 @@ REFERENCES:
 
 .. [Knuth-TAOCP3A] D. Knuth "The art of computer programming", fascicule 3A
    "generating all combinations"
+
+Functions
+---------
 """
 
 def product(m):
@@ -72,37 +75,37 @@ def product(m):
         sage: for t in [[2,2,2],[2,1,2],[3,2,1],[2,1,3]]:
         ....:     assert sum(1 for _ in product(t)) == prod(t)-1
     """
-    # n is the length of the element (where we ignore upper bounds equal to 1)
+    # n is the length of the element (we ignore sets of size 1)
     n = k = 0
 
     new_m = []   # will be the set of upper bounds m_i different from 1
-    mm = []      # will be the offset to jump over the m_i=1
+    mm = []      # index of each set (we skip sets of cardinality 1)
     for i in m:
         i = int(i)
         if i <= 0:
             raise ValueError("accept only positive integers")
-        if i == 1:
-            k += 1
-        else:
+        if i > 1:
             new_m.append(i-1)
             mm.append(k)
             n += 1
+        k += 1
+
     m = new_m
     f = range(n+1)  # focus pointer
     o = [1] * n     # switch +1 or -1
-    a = [0] * n     # current element
+    a = [0] * n     # current element of the product
 
     j = f[0]
     while j != n:
-        f[0] = 0            
-        oo = o[j]            
+        f[0] = 0
+        oo = o[j]
         a[j] += oo
         if a[j] == 0 or a[j] == m[j]:
             f[j] = f[j+1]
             f[j+1] = j+1
             o[j] = -oo
 
-        yield (j+mm[j], oo)
+        yield (mm[j], oo)
 
         j = f[0]
 
@@ -177,6 +180,26 @@ def combinations(n,t):
         ....:     s.remove(i); s.add(j)
         sage: print s
         set([0, 4, 13, 14])
+
+    TESTS::
+
+        sage: def check_sets_from_iter(n,k):
+        ....:     l = []
+        ....:     s = set(range(k))
+        ....:     l.append(frozenset(s))
+        ....:     for i,j in combinations(n,k):
+        ....:         s.remove(i)
+        ....:         s.add(j)
+        ....:         assert len(s) == k
+        ....:         l.append(frozenset(s))
+        ....:     assert len(set(l)) == binomial(n,k)
+        sage: check_sets_from_iter(9,5)
+        sage: check_sets_from_iter(8,5)
+        sage: check_sets_from_iter(5,6)
+        Traceback (most recent call last):
+        ...
+        AssertionError: t(=6) must be >=0 and <=n(=5)
+
     """
     from sage.rings.infinity import Infinity
     t = int(t)
@@ -184,7 +207,7 @@ def combinations(n,t):
         n = int(n)
     else:
         n = Infinity
-    assert 0 <= t and t <= n, "Parameters not admissible"
+    assert 0 <= t and t <= n, "t(={}) must be >=0 and <=n(={})".format(t,n)
     if t == 0 or t == n:
         return iter([])
     if t % 2:
@@ -204,7 +227,7 @@ def _revolving_door_odd(n,t):
         sage: sum(1 for _ in _revolving_door_odd(10,5)) == binomial(10,5) - 1
         True
     """
-    # note: the numerotation of the setps below follows Kunth TAOCP
+    # note: the numerotation of the steps below follows Kunth TAOCP
     c = range(t) + [n]    # the combination (ordered list of numbers of length t+1)
 
     while True:
@@ -291,4 +314,3 @@ def _revolving_door_even(n,t):
 
         else: # j == t
             break
-

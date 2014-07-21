@@ -2231,6 +2231,42 @@ class FreeModule_generic_pid(FreeModule_generic):
             raise TypeError("ambient vector spaces must be equal")
         return self.span(self.basis() + other.basis())
 
+    def _mul_(self, other, switch_sides=False):
+        r"""
+        Multiplication of the basis by ``other``.
+
+        EXAMPLES::
+
+            sage: A = ZZ^3
+            sage: A * 3
+            Free module of degree 3 and rank 3 over Integer Ring
+            Echelon basis matrix:
+            [3 0 0]
+            [0 3 0]
+            [0 0 3]
+
+            sage: V = A.span([A([1,2,2]), A([-1,0,2])])
+            sage: 2 * V
+            Free module of degree 3 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [ 2  0 -4]
+            [ 0  4  8]
+
+            sage: m = matrix(3, range(9))
+            sage: A * m
+            Free module of degree 3 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [1 1 1]
+            [0 3 6]
+            sage: m * A
+            Free module of degree 3 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [ 3  0 -3]
+            [ 0  1  2]
+        """
+        if switch_sides:
+            return self.span([v * other for v in self.basis()])
+        return self.span([other * v for v in self.basis()])
 
     def base_field(self):
         """
@@ -2263,7 +2299,8 @@ class FreeModule_generic_pid(FreeModule_generic):
             [ 1 -1]
             [ 1  0]
 
-        See #3699:
+        See :trac:`3699`::
+
             sage: K = FreeModule(ZZ, 2000)
             sage: I = K.basis_matrix()
         """

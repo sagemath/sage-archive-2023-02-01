@@ -1286,6 +1286,32 @@ def OA_from_Vmt(m,t,V):
     r"""
     Returns an Orthogonal Array from a `V(m,t)`
 
+    INPUT:
+
+    - ``m,t`` (integers)
+
+    - ``V`` -- the vector `V(m,t)`.
+
+    .. SEEALSO::
+
+        - :func:`QDM_from_Vmt`
+
+        - :func:`OA_from_quasi_difference_matrix`
+
+    EXAMPLES::
+
+        sage: _ = designs.orthogonal_array(6,46) # indirect doctest
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    q = m*t+1
+    Fq = FiniteField(q)
+    M = QDM_from_Vmt(m,t,V)
+    return OA_from_quasi_difference_matrix(M,Fq,add_col = False)
+
+def QDM_from_Vmt(m,t,V):
+    r"""
+    Returns an Orthogonal Array from a `V(m,t)`
+
     **Definition**
 
     Let `q` be a prime power and let `q=mt+1` for `m,t` integers. Let `\omega`
@@ -1345,10 +1371,8 @@ def OA_from_Vmt(m,t,V):
             M.append(cyclic_shift(L,ii))
 
     M.append([0]*q)
-    M = zip(*M)
-    M = OA_from_quasi_difference_matrix(M,Fq,add_col = False)
 
-    return M
+    return zip(*M)
 
 def OA_from_PBD(k,n,PBD, check=True):
     r"""

@@ -51,8 +51,8 @@ def is_Morphism(x):
 cdef class Morphism(Map):
 
     def _repr_(self):
-        """
-        Return the string representation of self.
+        r"""
+        Return the string representation of ``self``.
 
         .. NOTE::
 
@@ -157,20 +157,52 @@ cdef class Morphism(Map):
             return ", ".join(d.split("\n"))
 
     def category(self):
-        return self.parent().category() # Shouldn't it be Category of elements of ...?
+        r"""
+        Return the category of the parent of this morphism.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: f = R.hom([t**2])
+            sage: f.category()
+            Join of Category of hom sets in Category of modules over euclidean domains and Category of hom sets in Category of rings
+
+            sage: K = CyclotomicField(12)
+            sage: L = CyclotomicField(132)
+            sage: phi = L._internal_coerce_map_from(K)
+            sage: phi.category()
+            Category of hom sets in Category of rings
+        """
+        return self.parent().category() # Should not it be Category of elements of ...?
 
     def is_endomorphism(self):
+        """
+        Return ``True`` if this morphism is an endomorphism.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: f = R.hom([t])
+            sage: f.is_endomorphism()
+            True
+
+            sage: K = CyclotomicField(12)
+            sage: L = CyclotomicField(132)
+            sage: phi = L._internal_coerce_map_from(K)
+            sage: phi.is_endomorphism()
+            False
+        """
         return self.parent().is_endomorphism_set()
 
     def is_identity(self):
         """
-        Return true if this morphism is the identity morphism.
+        Return ``True`` if this morphism is the identity morphism.
 
         .. NOTE::
 
             Implemented only when the domain has a method gens()
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R.<t> = ZZ[]
             sage: f = R.hom([t])
@@ -180,7 +212,7 @@ cdef class Morphism(Map):
             sage: g.is_identity()
             False
 
-        A morphism between two different spaces can't be the identity::
+        A morphism between two different spaces can not be the identity::
 
             sage: R2.<t2> = QQ[]
             sage: h = R.hom([t2])
@@ -397,9 +429,9 @@ cdef class SetMorphism(Morphism):
         EXAMPLES::
 
             sage: from sage.categories.morphism import SetMorphism
-            sage: f = SetMorphism(Hom(QQ, ZZ, Sets()), numerator) # could use Monoids() once the categories will be in
+            sage: f = SetMorphism(Hom(QQ, ZZ, Monoids()), numerator)
             sage: f.parent()
-            Set of Morphisms from Rational Field to Integer Ring in Category of sets
+            Set of Morphisms from Rational Field to Integer Ring in Category of monoids
             sage: f.domain()
             Rational Field
             sage: f.codomain()
@@ -439,8 +471,8 @@ cdef class SetMorphism(Morphism):
             sage: from sage.categories.morphism import SetMorphism
             sage: R.<x> = QQ[]
             sage: def foo(x,*args,**kwds):
-            ...    print 'foo called with',args,kwds
-            ...    return x
+            ....:  print 'foo called with',args,kwds
+            ....:  return x
             sage: f = SetMorphism(Hom(R,R,Rings()), foo)
             sage: f(2,'hello world',test=1)     # indirect doctest
             foo called with ('hello world',) {'test': 1}
@@ -470,11 +502,12 @@ cdef class SetMorphism(Morphism):
         return Map._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
-        """
+        r"""
         INPUT:
+
         - ``_slots`` -- a dictionary
 
-        Updates the slots of self from the data in the dictionary
+        Updates the slots of ``self`` from the data in the dictionary
 
         EXAMPLES::
 
@@ -482,9 +515,9 @@ cdef class SetMorphism(Morphism):
             sage: f(3)
             3
             sage: f._update_slots_test({'_function' : operator.__neg__,
-            ...                         '_domain' : QQ,
-            ...                         '_codomain' : QQ,
-            ...                         '_repr_type_str' : 'bla'})
+            ....:                       '_domain' : QQ,
+            ....:                       '_codomain' : QQ,
+            ....:                       '_repr_type_str' : 'bla'})
             sage: f(3)
             -3
             sage: f._repr_type()

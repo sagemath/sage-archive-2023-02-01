@@ -3,12 +3,233 @@ r"""
 Finite State Machines, Automata, Transducers
 
 This module adds support for finite state machines, automata and
-transducers. See class :class:`FiniteStateMachine` and the examples
-below for details creating one.
+transducers. See classes :class:`Automaton` and :class:`Transducer`
+(or the more general class :class:`FiniteStateMachine`) and the
+:ref:`examples <finite_state_machine_examples>` below for
+details creating one.
+
+Contents
+========
+
+:class:`FiniteStateMachine` and derived classes :class:`Transducer` and :class:`Automaton`
+------------------------------------------------------------------------------------------
+
+
+Accessing parts of a finite state machine
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+
+    :meth:`~FiniteStateMachine.state` | Get a state by its label
+    :meth:`~FiniteStateMachine.states` | List of states
+    :meth:`~FiniteStateMachine.iter_states` | Iterator over the states
+    :meth:`~FiniteStateMachine.initial_states` | List of initial states
+    :meth:`~FiniteStateMachine.iter_initial_states` | Iterator over initial states
+    :meth:`~FiniteStateMachine.final_states` | List of final states
+    :meth:`~FiniteStateMachine.iter_final_states` | Iterator over final states
+    :meth:`~FiniteStateMachine.transition` | Get a transition by its states and labels
+    :meth:`~FiniteStateMachine.transitions` | List of transitions
+    :meth:`~FiniteStateMachine.iter_transitions` | Iterator over the transitions
+    :meth:`~FiniteStateMachine.predecessors` | List of predecessors of a state
+    :meth:`~FiniteStateMachine.induced_sub_finite_state_machine` | Induced sub-machine
+    :meth:`~FiniteStateMachine.accessible_components` | Accessible components
+    :meth:`~FiniteStateMachine.final_components` | Final components (connected components which cannot be left again)
+
+
+(Modified) Copies
+^^^^^^^^^^^^^^^^^
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteStateMachine.empty_copy` | Returns an empty deep copy
+    :meth:`~FiniteStateMachine.deepcopy` | Returns a deep copy
+    :meth:`~FiniteStateMachine.relabeled` | Returns a relabeled deep copy
+
+
+Manipulation
+^^^^^^^^^^^^
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteStateMachine.add_state` | Add a state
+    :meth:`~FiniteStateMachine.add_states` | Add states
+    :meth:`~FiniteStateMachine.delete_state` | Delete a state
+    :meth:`~FiniteStateMachine.add_transition` | Add a transition
+    :meth:`~FiniteStateMachine.add_transitions_from_function` | Add transitions
+    :attr:`~FiniteStateMachine.on_duplicate_transition` | Hook for handling duplicate transitions
+    :meth:`~FiniteStateMachine.add_from_transition_function` | Add transitions by a transition function
+    :meth:`~FiniteStateMachine.delete_transition` | Delete a transition
+    :meth:`~FiniteStateMachine.remove_epsilon_transitions` | Remove epsilon transitions (not implemented)
+    :meth:`~FiniteStateMachine.split_transitions` | Split transitions with input words of length ``> 1``
+    :meth:`~FiniteStateMachine.determine_alphabets` | Determines input and output alphabets
+    :meth:`~FiniteStateMachine.construct_final_word_out` | Construct final output by implicitly reading trailing letters; cf. :meth:`~FiniteStateMachine.with_final_word_out`
+
+
+Properties
+^^^^^^^^^^
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteStateMachine.has_state` | Checks for a state
+    :meth:`~FiniteStateMachine.has_initial_state` | Checks for an initial state
+    :meth:`~FiniteStateMachine.has_initial_states` | Checks for initial states
+    :meth:`~FiniteStateMachine.has_final_state` | Checks for an final state
+    :meth:`~FiniteStateMachine.has_final_states` | Checks for final states
+    :meth:`~FiniteStateMachine.has_transition` | Checks for a transition
+    :meth:`~FiniteStateMachine.is_deterministic` | Checks for a deterministic machine
+    :meth:`~FiniteStateMachine.is_complete` | Checks for a complete machine
+    :meth:`~FiniteStateMachine.is_connected` | Checks for a connected machine
+    :meth:`~FiniteStateMachine.is_Markov_chain` | Checks for a Markov chain
+    :meth:`~FiniteStateMachine.is_monochromatic` | Checks whether the colors of all states are equal
+    :meth:`~FiniteStateMachine.asymptotic_moments` | Main terms of expectation and variance of sums of labels
+
+
+Operations
+^^^^^^^^^^
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteStateMachine.disjoint_union` | Disjoint union (not implemented)
+    :meth:`~FiniteStateMachine.concatenation` | Concatenation (not implemented)
+    :meth:`~FiniteStateMachine.Kleene_closure` | Kleene closure (not implemented)
+    :meth:`Automaton.intersection` | Intersection of automata
+    :meth:`Transducer.intersection` | Intersection of transducer
+    :meth:`Transducer.cartesian_product` | Cartesian product of a transducer with another finite state machine
+    :meth:`~FiniteStateMachine.product_FiniteStateMachine` | Product of finite state machines
+    :meth:`~FiniteStateMachine.composition` | Composition (output of other is input of self)
+    :meth:`~FiniteStateMachine.input_projection` | Input projection (output is deleted)
+    :meth:`~FiniteStateMachine.output_projection` | Output projection (old output is new input)
+    :meth:`~FiniteStateMachine.projection` | Input or output projection
+    :meth:`~FiniteStateMachine.transposition` | Transposition (all transitions are reversed)
+    :meth:`~FiniteStateMachine.with_final_word_out` | Machine with final output constructed by implicitly reading trailing letters, cf. :meth:`~FiniteStateMachine.construct_final_word_out` for inplace version
+    :meth:`Automaton.determinisation` | Determinisation of an automaton
+    :meth:`~FiniteStateMachine.process` | Process input
+    :meth:`Automaton.process` | Process input of an automaton (output differs from general case)
+    :meth:`Transducer.process` | Process input of a transducer (output differs from general case)
+    :meth:`~FiniteStateMachine.iter_process` | Return process iterator
+
+
+Simplification
+^^^^^^^^^^^^^^
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+
+    :meth:`~FiniteStateMachine.prepone_output` | Prepone output where possible
+    :meth:`~FiniteStateMachine.equivalence_classes` | List of equivalent states
+    :meth:`~FiniteStateMachine.quotient` | Quotient with respect to equivalence classes
+    :meth:`~FiniteStateMachine.merged_transitions` | Merge transitions while adding input
+    :meth:`~FiniteStateMachine.markov_chain_simplification` | Simplification of a Markov chain
+    :meth:`Automaton.minimization` | Minimization of an automaton
+    :meth:`Transducer.simplification` | Simplification of a transducer
+
+
+Conversion
+^^^^^^^^^^
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteStateMachine.adjacency_matrix` | (Weighted) adjacency :class:`matrix <Matrix>`
+    :meth:`~FiniteStateMachine.graph` | Underlying :class:`DiGraph`
+    :meth:`~FiniteStateMachine.plot` | Plot
+
+
+LaTeX output
+++++++++++++
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteStateMachine.latex_options` | Set options
+    :meth:`~FiniteStateMachine.set_coordinates` | Set coordinates of the states
+    :meth:`~FiniteStateMachine.default_format_transition_label` | Default formatting of words in transition labels
+    :meth:`~FiniteStateMachine.format_letter_negative` | Format negative numbers as overlined number
+    :meth:`~FiniteStateMachine.format_transition_label_reversed` | Format words in transition labels in reversed order
+
+
+:class:`FSMState`
+-----------------
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :attr:`~FSMState.final_word_out` | Final output of a state
+    :attr:`~FSMState.is_final` | Describes whether a state is final or not
+    :attr:`~FSMState.is_initial` | Describes whether a state is initial or not
+    :meth:`~FSMState.label` | Label of a state
+    :meth:`~FSMState.relabeled` | Returns a relabeled deep copy of a state
+    :meth:`~FSMState.fully_equal` | Checks whether two states are fully equal (including all attributes)
+
+
+:class:`FSMTransition`
+----------------------
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :attr:`~FSMTransition.from_state` | State in which transition starts
+    :attr:`~FSMTransition.to_state` | State in which transition ends
+    :attr:`~FSMTransition.word_in` | Input word of the transition
+    :attr:`~FSMTransition.word_out` | Output word of the transition
+    :meth:`~FSMTransition.deepcopy` | Returns a deep copy of the transition
+
+
+Helper Functions
+----------------
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :func:`equal` | Checks whether all elements of ``iterator`` are equal
+    :func:`full_group_by` | Group iterable by values of some key
+    :func:`startswith` | Determine whether list starts with the given prefix
+    :func:`FSMLetterSymbol` | Returns a string associated to the input letter
+    :func:`FSMWordSymbol` | Returns a string associated to a word
+    :func:`is_FSMState` | Tests whether an object inherits from :class:`FSMState`
+    :func:`is_FSMTransition` | Tests whether an object inherits from :class:`FSMTransition`
+    :func:`is_FiniteStateMachine` | Tests whether an object inherits from :class:`FiniteStateMachine`
+    :func:`duplicate_transition_ignore` |  Default function for handling duplicate transitions
+    :func:`duplicate_transition_raise_error` | Raise error when inserting a duplicate transition
+    :func:`duplicate_transition_add_input` | Add input when inserting a duplicate transition
+
+
+.. _finite_state_machine_examples:
 
 Examples
 ========
 
+We start with a general :class:`FiniteStateMachine`. Later there will
+be also an :class:`Automaton` and a :class:`Transducer`.
 
 A simple finite state machine
 -----------------------------
@@ -22,30 +243,26 @@ We can easily create a finite state machine by
     Finite state machine with 0 states
 
 By default this is the empty finite state machine, so not very
-interesting. Let's create some states and transitions::
+interesting. Let's create and add some states and transitions::
 
-    sage: from sage.combinat.finite_state_machine import FSMState, FSMTransition
-    sage: day = FSMState('day')
-    sage: night = FSMState('night')
-    sage: sunrise = FSMTransition(night, day)
-    sage: sunset = FSMTransition(day, night)
+    sage: day = fsm.add_state('day')
+    sage: night = fsm.add_state('night')
+    sage: sunrise = fsm.add_transition(night, day)
+    sage: sunset = fsm.add_transition(day, night)
 
-And now let's add those states and transitions to our finite state machine::
+Let us look at ``sunset`` more closely::
 
-    sage: fsm.add_transition(sunrise)
-    Transition from 'night' to 'day': -|-
-    sage: fsm.add_transition(sunset)
+    sage: sunset
     Transition from 'day' to 'night': -|-
 
-Note that the states are added automatically, since they are present
-in the transitions. We could add the states manually by
+Note that could also have created and added the transitions directly
+by::
 
-::
+    sage: fsm.add_transition('day', 'night')
+    Transition from 'day' to 'night': -|-
 
-    sage: fsm.add_state(day)
-    'day'
-    sage: fsm.add_state(night)
-    'night'
+This would have had added the states automatically, since they are
+present in the transitions.
 
 Anyhow, we got the following finite state machine::
 
@@ -72,17 +289,8 @@ simply by
     sage: FiniteStateMachine([('night', 'day'), ('day', 'night')])
     Finite state machine with 2 states
 
-or by
-
-::
-
-    sage: fsm = FiniteStateMachine()
-    sage: day = fsm.add_state('day')
-    sage: night = fsm.add_state('night')
-    sage: sunrise = fsm.add_transition(night, day)
-    sage: sunset = fsm.add_transition(day, night)
-    sage: fsm
-    Finite state machine with 2 states
+See :class:`FiniteStateMachine` for a lot of possibilities to create
+finite state machines.
 
 .. _finite_state_machine_recognizing_NAFs_example:
 
@@ -508,6 +716,13 @@ Let's try some other examples::
     sage: C.counter = 0; C([0, 1, 0, 0])
     (False, 'negative', [-1, 0, -1, -2])
 
+See also methods :meth:`Automaton.process` and
+:meth:`Transducer.process` (or even
+:meth:`FiniteStateMachine.process`), the explanation of the parameter
+``hook`` and the examples in :class:`FSMState` and
+:class:`FSMTransition`, and the description and examples in
+:class:`FSMProcessIterator` for more information on processing and
+hooks.
 
 AUTHORS:
 
@@ -527,23 +742,33 @@ AUTHORS:
 - Daniel Krenn (2013-11-04): next release candidate for Sage patch
 - Sara Kropf (2013-11-08): fix for adjacency matrix
 - Clemens Heuberger (2013-11-11): fix for prepone_output
-- Daniel Krenn (2013-11-11): comments from trac 15078 included:
+- Daniel Krenn (2013-11-11): comments from trac #15078 included:
     docstring of FiniteStateMachine rewritten, Automaton and Transducer
     inherited from FiniteStateMachine
 - Daniel Krenn (2013-11-25): documentation improved according to
-    comments from trac 15078
+    comments from trac #15078
+- Clemens Heuberger, Daniel Krenn, Sara Kropf (2014-02-21--2014-07-18):
+  A huge bunch of improvements. Details see
+  #15841, #15847, #15848, #15849, #15850, #15922, #15923, #15924,
+  #15925, #15928, #15960, #15961, #15962, #15963, #15975, #16016,
+  #16024, #16061, #16128, #16132, #16138, #16139, #16140, #16143,
+  #16144, #16145, #16146, #16191, #16200, #16205, #16206, #16207,
+  #16229, #16253, #16254, #16255, #16266, #16355, #16357, #16387,
+  #16425, #16539, #16555, #16557, #16588, #16589, #16666, #16668,
+  #16674, #16675, #16677.
 
 ACKNOWLEDGEMENT:
 
-- Daniel Krenn, Clemens Heuberger and Sara Kropf are supported by the
+- Clemens Heuberger, Daniel Krenn and Sara Kropf are supported by the
   Austrian Science Fund (FWF): P 24644-N26.
 
+Methods
+=======
 """
-
 #*****************************************************************************
-#  Copyright (C) 2012, 2013 Daniel Krenn <math+sage@danielkrenn.at>
-#                2012, 2013 Clemens Heuberger <clemens.heuberger@aau.at>
-#                2012, 2013 Sara Kropf <sara.kropf@aau.at>
+# Copyright (C) 2012--2014 Clemens Heuberger <clemens.heuberger@aau.at>
+#               2012--2014 Daniel Krenn <dev@danielkrenn.at>
+#               2012--2014 Sara Kropf <sara.kropf@aau.at>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -816,7 +1041,16 @@ class FSMState(SageObject):
       states.
 
     - ``hook`` -- (default: ``None``) A function which is called when
-      the state is reached during processing input.
+      the state is reached during processing input. It takes two input
+      parameters: the first is the current state (to allow using the same
+      hook for several states), the second is the current process
+      iterator object (to have full access to everything; e.g. the
+      next letter from the input tape can be read in). It can output
+      the next transition, i.e. the transition to take next. If it
+      returns ``None`` the process iterator chooses. Moreover, this
+      function can raise a ``StopIteration`` exception to stop
+      processing of a finite state machine the input immediately. See
+      also the example below.
 
     - ``color`` -- (default: ``None``) In order to distinguish states,
       they can be given an arbitrary "color" (an arbitrary object).
@@ -877,8 +1111,9 @@ class FSMState(SageObject):
         ValueError: Only final states can have a final output word,
         but state B is not final.
 
-    Setting the ``final_word_out`` of a final state to ``None`` is the same as
-    setting it to ``[]`` and is also the default for a final state::
+    Setting the ``final_word_out`` of a final state to ``None`` is the
+    same as setting it to ``[]`` and is also the default for a final
+    state::
 
         sage: C = FSMState('C', is_final=True)
         sage: C.final_word_out
@@ -896,7 +1131,8 @@ class FSMState(SageObject):
         sage: FSMState(None)
         Traceback (most recent call last):
         ...
-        ValueError: Label None reserved for a special state, choose another label.
+        ValueError: Label None reserved for a special state,
+        choose another label.
 
     This can be overridden by::
 
@@ -915,7 +1151,38 @@ class FSMState(SageObject):
         sage: A.state(0).color = ()
         sage: A.determinisation()
         Automaton with 1 states
+
+    We can use a hook function of a state to stop processing. This is
+    done by raising a ``StopIteration`` exception. The following code
+    demonstrates this::
+
+        sage: T = Transducer([(0, 1, 9, 'a'), (1, 2, 9, 'b'),
+        ....:                 (2, 3, 9, 'c'), (3, 4, 9, 'd')],
+        ....:                initial_states=[0],
+        ....:                final_states=[4],
+        ....:                input_alphabet=[9])
+        sage: def stop(current_state, process_iterator):
+        ....:     raise StopIteration()
+        sage: T.state(3).hook = stop
+        sage: T.process([9, 9, 9, 9])
+        (False, 3, ['a', 'b', 'c'])
     """
+
+    is_initial = False
+    """
+    Describes whether the state is initial.
+
+    EXAMPLES::
+
+        sage: T = Automaton([(0,0,0)])
+        sage: T.initial_states()
+        []
+        sage: T.state(0).is_initial = True
+        sage: T.initial_states()
+        [0]
+    """
+
+
     def __init__(self, label, word_out=None,
                  is_initial=False, is_final=False, final_word_out=None,
                  hook=None, color=None, allow_label_None=False):
@@ -1550,6 +1817,19 @@ class FSMTransition(SageObject):
         False
 
     """
+
+    from_state = None
+    """State from which the transition starts. Read-only."""
+
+    to_state = None
+    """State in which the transition ends. Read-only."""
+
+    word_in = None
+    """Input word of the transition. Read-only."""
+
+    word_out = None
+    """Output word of the transition. Read-only."""
+
     def __init__(self, from_state, to_state,
                  word_in=None, word_out=None,
                  hook=None):
@@ -2295,6 +2575,13 @@ class FiniteStateMachine(SageObject):
         sage: t4 = FSMTransition(c, d)
         sage: FiniteStateMachine([t1, t2, t3, t4])
         Finite state machine with 4 states
+    """
+
+    on_duplicate_transition = duplicate_transition_ignore
+    """
+    Which function to call when a duplicate transition is inserted. See
+    the documentation of the parameter ``on_duplicate_transition`` of
+    the class :class:`FiniteStateMachine` for details.
     """
 
     #*************************************************************************
@@ -5389,7 +5676,7 @@ class FiniteStateMachine(SageObject):
           as a list.
 
         - ``only_accessible_components`` -- If ``True`` (default), then
-          the result is piped through ``accessible_components``. If no
+          the result is piped through :meth:`.accessible_components`. If no
           ``new_input_alphabet`` is given, it is determined by
           :meth:`.determine_alphabets`.
 
@@ -7867,7 +8154,7 @@ class Automaton(FiniteStateMachine):
         - ``other`` -- an automaton
 
         - ``only_accessible_components`` -- If ``True`` (default), then
-          the result is piped through ``accessible_components``. If no
+          the result is piped through :meth:`.accessible_components`. If no
           ``new_input_alphabet`` is given, it is determined by
           :meth:`.determine_alphabets`.
 
@@ -8452,7 +8739,7 @@ class Transducer(FiniteStateMachine):
         - ``other`` -- a transducer
 
         - ``only_accessible_components`` -- If ``True`` (default), then
-          the result is piped through ``accessible_components``. If no
+          the result is piped through :meth:`.accessible_components`. If no
           ``new_input_alphabet`` is given, it is determined by
           :meth:`.determine_alphabets`.
 
@@ -8583,7 +8870,7 @@ class Transducer(FiniteStateMachine):
           other iterable) of `d-1` finite state machines
 
         - ``only_accessible_components`` -- If ``True`` (default), then
-          the result is piped through ``accessible_components``. If no
+          the result is piped through :meth:`.accessible_components`. If no
           ``new_input_alphabet`` is given, it is determined by
           :meth:`.determine_alphabets`.
 
@@ -8604,8 +8891,8 @@ class Transducer(FiniteStateMachine):
         EXAMPLES:
 
         Originally a different output was constructed by
-        ``Transducer.cartesian_product``. This output is now produced by
-        ``Transducer.intersection``.
+        :meth:`Transducer.cartesian_product`. This output is now produced by
+        :meth:`Transducer.intersection`.
 
         ::
 

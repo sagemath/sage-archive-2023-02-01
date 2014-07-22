@@ -181,9 +181,22 @@ cdef class CVXOPTBackend(GenericBackend):
 
     cpdef set_variable_type(self, int variable, int vtype):
         """
-        The variable type is continuous by default and cannot be changed
+        Set the type of a variable.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "cvxopt")
+            sage: p.add_variables(5)
+            4
+            sage: p.set_variable_type(3, -1)
+            sage: p.set_variable_type(3, -2)
+            Traceback (most recent call last):
+            ...
+            Exception: ...
         """
-        pass
+        if vtype != -1:
+            raise Exception('This backend does not handle integer variables ! Read the doc !')
 
     cpdef set_sense(self, int sense):
         """

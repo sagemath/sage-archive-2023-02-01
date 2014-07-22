@@ -10,8 +10,8 @@ Sage Como Una Calculadora
 =========================
 
 La línea de comandos de Sage tiene un prompt ``sage:``; no necesitas agregarlo.
-Si utilizas el Notebook de Sage, entonces coloca todo después del 
-prompt ``sage:``  en una celda de entrada de datos, y presiona shift-enter para computar la
+Si utilizas el Notebook de Sage, entonces coloca todo lo que haya después del
+prompt ``sage:``  en una celda de entrada de datos, y presiona shift-enter para calcular la
 salida correspondiente.
 
 ::
@@ -26,7 +26,7 @@ El acento circunflejo ``^`` significa "elevar a la potencia".
     sage: 57.1 ^ 100
     4.60904368661396e175
 
-Computamos el inverso de una matríz de :math:`2 \times 2` en Sage.
+Calculamos el inverso de una matríz de :math:`2 \times 2` en Sage.
 
 ::
 
@@ -64,8 +64,8 @@ El resultado es una lista de igualdades.
 .. image:: sin_plot.*
 
 
-Cómputos Poderosos Con Sage
-===========================
+Potencia de Cálculo Con Sage
+============================
 
 Primero creamos una matríz de :math:`500 \times 500` con números
 aleatorios.
@@ -74,8 +74,8 @@ aleatorios.
 
     sage: m = random_matrix(RDF,500)
 
-Le lleva unos cuantos segundos a Sage para computar los eigenvalores de la
-matríz y trazarlos.
+Le lleva unos cuantos segundos a Sage para computar los valores propios de la
+matríz y mostrarlos.
 
 .. link
 
@@ -88,7 +88,7 @@ matríz y trazarlos.
 .. image:: eigen_plot.*
 
 
-Grácias a la Biblioteca GNU de Multiprecisión (GMP), Sage puede manejar 
+Grácias a la Biblioteca GNU de Multiprecisión (GMP), Sage puede manejar
 números muy grandes, hasta números con millones o billones de
 dígitos.
 
@@ -112,19 +112,19 @@ Esto le pide a Sage que factorice un polinomio en dos variables.
     sage: R.<x,y> = QQ[]
     sage: F = factor(x^99 + y^99)
     sage: F
-    (x + y) * (x^2 - x*y + y^2) * (x^6 - x^3*y^3 + y^6) * 
+    (x + y) * (x^2 - x*y + y^2) * (x^6 - x^3*y^3 + y^6) *
     (x^10 - x^9*y + x^8*y^2 - x^7*y^3 + x^6*y^4 - x^5*y^5 +
-     x^4*y^6 - x^3*y^7 + x^2*y^8 - x*y^9 + y^10) * 
+     x^4*y^6 - x^3*y^7 + x^2*y^8 - x*y^9 + y^10) *
     (x^20 + x^19*y - x^17*y^3 - x^16*y^4 + x^14*y^6 + x^13*y^7 -
-     x^11*y^9 - x^10*y^10 - x^9*y^11 + x^7*y^13 + x^6*y^14 - 
+     x^11*y^9 - x^10*y^10 - x^9*y^11 + x^7*y^13 + x^6*y^14 -
      x^4*y^16 - x^3*y^17 + x*y^19 + y^20) * (x^60 + x^57*y^3 -
-     x^51*y^9 - x^48*y^12 + x^42*y^18 + x^39*y^21 - x^33*y^27 - 
+     x^51*y^9 - x^48*y^12 + x^42*y^18 + x^39*y^21 - x^33*y^27 -
      x^30*y^30 - x^27*y^33 + x^21*y^39 + x^18*y^42 - x^12*y^48 -
      x^9*y^51 + x^3*y^57 + y^60)
     sage: F.expand()
     x^99 + y^99
 
-A Sage tan solo le lleva ménos de 5 segundos para computar el número de maneras de
+Sage tarda menos de 5 segundos en calcular el número de maneras de
 repartir cien milliones como una suma de enteros positivos.
 
 ::
@@ -133,8 +133,8 @@ repartir cien milliones como una suma de enteros positivos.
     sage: str(z)[:40]
     '1760517045946249141360373894679135204009'
 
-Accesando Algoritmos en Sage
-============================
+Acceciendo a Distintos Algoritmos en Sage
+=========================================
 
-Cada vez que usas Sage, estas accesando una de las más grandes
-colecciones de algoritmos computacionales de código abierto de el mundo entero.
+Cada vez que usas Sage, estas accediendo a una de las más grandes
+colecciones de algoritmos computacionales de código abierto del mundo entero.

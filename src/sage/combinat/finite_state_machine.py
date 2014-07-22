@@ -1472,10 +1472,8 @@ class FSMState(SageObject):
             sage: A.state(0)._epsilon_cycle_output_empty_(A)
             True
         """
-        for output in self._epsilon_successors_(fsm)[self]:
-            if not output:
-                return True
-        return False
+        return not all(output
+                       for output in self._epsilon_successors_(fsm)[self])
 
 
 #*****************************************************************************

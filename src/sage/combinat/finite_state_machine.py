@@ -4515,6 +4515,10 @@ class FiniteStateMachine(SageObject):
           outputs are given in list form (even when we have only one
           single output).
 
+        - ``only_accepted`` -- (default: ``False``) if set and the
+          output is a list, then only outputs with first argument
+          (accepted) equal to ``True`` are returned.
+
         All the ``kwargs`` will also be passed to
         :class:`FSMProcessIterator`.
 
@@ -4585,11 +4589,23 @@ class FiniteStateMachine(SageObject):
             sage: T.process([1, 1], format_output=lambda o: ''.join(o))
             [(True, 0, 'cdcd'), (True, 0, 'ced'),
              (True, 1, 'cdc'), (True, 1, 'ce')]
+
+        ::
+
+            sage: T.process([0, 0, 1], format_output=lambda o: ''.join(o))
+            [(True, 0, 'adcd'), (True, 0, 'aed'),
+             (True, 1, 'adc'), (True, 1, 'ae'), (False, 2, 'b')]
+            sage: T.process([0, 0, 1], format_output=lambda o: ''.join(o),
+            ....:           only_accepted=True)
+            [(True, 0, 'adcd'), (True, 0, 'aed'),
+             (True, 1, 'adc'), (True, 1, 'ae')]
         """
         if not kwargs.has_key('full_output'):
             kwargs['full_output'] = True
         if not kwargs.has_key('list_of_outputs'):
             kwargs['list_of_outputs'] = None
+        if not kwargs.has_key('only_accepted'):
+            kwargs['only_accepted'] = False
 
         it = self.iter_process(*args, **kwargs)
         for _ in it:
@@ -4605,9 +4621,9 @@ class FiniteStateMachine(SageObject):
             return self._process_format_output_(
                 (False, NoneState, None), **kwargs)
         if len(it_output) > 1 or kwargs['list_of_outputs']:
-            output = [self._process_format_output_(out, **kwargs)
-                      for out in it_output]
-            return output
+            only_accepted = kwargs['only_accepted']
+            return [self._process_format_output_(out, **kwargs)
+                    for out in it_output if not only_accepted or out[0]]
         else:
             return self._process_format_output_(it_output[0], **kwargs)
 
@@ -8016,6 +8032,10 @@ class Automaton(FiniteStateMachine):
           outputs are given in list form (even when we have only one
           single output).
 
+        - ``only_accepted`` -- (default: ``False``) if set and the
+          output is a list, then only outputs with first argument
+          (accepted) equal to ``True`` are returned.
+
         All the ``kwargs`` will also be passed to
         :class:`FSMProcessIterator`.
 
@@ -8644,6 +8664,10 @@ class Transducer(FiniteStateMachine):
         - ``list_of_outputs`` -- (default: ``None``) if set, the
           outputs are given in list form (even when we have only one
           single output).
+
+        - ``only_accepted`` -- (default: ``False``) if set and the
+          output is a list, then only outputs with first argument
+          (accepted) equal to ``True`` are returned.
 
         All the ``kwargs`` will also be passed to
         :class:`FSMProcessIterator`.

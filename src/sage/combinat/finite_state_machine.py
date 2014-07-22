@@ -9720,11 +9720,12 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             {((0, 0),): {'a': (tape at 0, [[]]), 'c': (tape at 0, [[]]),
                          'b': (tape at 0, [[], []])}}
         """
-        if not self._current_.has_key(tape.position):
-            self._current_[tape.position] = {}
+        if self._current_.has_key(tape.position):
+            states = self._current_[tape.position]
+        else:
+            states = self._current_[tape.position] = {}
             heapq.heappush(self._current_positions_, tape.position)
 
-        states = self._current_[tape.position]
         if states.has_key(state):
             existing_tape, existing_output = states[state]
             existing_output.extend(output)

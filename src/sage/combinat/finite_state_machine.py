@@ -4616,17 +4616,17 @@ class FiniteStateMachine(SageObject):
                              'to show one. Change list_of_outputs option.')
         if not it_output:
             NoneState = FSMState(None, allow_label_None=True)
-            return self._process_format_output_(
+            return self._process_convert_output_(
                 (False, NoneState, None), **kwargs)
         if len(it_output) > 1 or kwargs['list_of_outputs']:
             only_accepted = kwargs['only_accepted']
-            return [self._process_format_output_(out, **kwargs)
+            return [self._process_convert_output_(out, **kwargs)
                     for out in it_output if not only_accepted or out[0]]
         else:
-            return self._process_format_output_(it_output[0], **kwargs)
+            return self._process_convert_output_(it_output[0], **kwargs)
 
 
-    def _process_format_output_(self, output, **kwargs):
+    def _process_convert_output_(self, output, **kwargs):
         """
         Helper function which converts the output of
         :meth:`FiniteStateMachine.process`. This is the identity.
@@ -4648,11 +4648,11 @@ class FiniteStateMachine(SageObject):
 
             sage: from sage.combinat.finite_state_machine import FSMState
             sage: F = FiniteStateMachine()
-            sage: F._process_format_output_((True, FSMState('a'), [1, 0, 1]),
-            ....:                           full_output=False)
+            sage: F._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                            full_output=False)
             (True, 'a', [1, 0, 1])
-            sage: F._process_format_output_((True, FSMState('a'), [1, 0, 1]),
-            ....:                           full_output=True)
+            sage: F._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                            full_output=True)
             (True, 'a', [1, 0, 1])
         """
         accept_input, current_state, output_tape = output
@@ -8105,7 +8105,7 @@ class Automaton(FiniteStateMachine):
         return super(Automaton, self).process(*args, **kwargs)
 
 
-    def _process_format_output_(self, output, **kwargs):
+    def _process_convert_output_(self, output, **kwargs):
         """
         Helper function which converts the output of
         :meth:`FiniteStateMachine.process` to one suitable for
@@ -8125,13 +8125,15 @@ class Automaton(FiniteStateMachine):
 
             sage: from sage.combinat.finite_state_machine import FSMState
             sage: A = Automaton()
-            sage: A._process_format_output_((True, FSMState('a'), [1, 0, 1]), full_output=False)
+            sage: A._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                            full_output=False)
             True
-            sage: A._process_format_output_((True, FSMState('a'), [1, 0, 1]), full_output=True)
+            sage: A._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                            full_output=True)
             (True, 'a')
         """
         if FSMOldProcessOutput:
-            return super(Automaton, self)._process_format_output_(
+            return super(Automaton, self)._process_convert_output_(
                 output, **kwargs)
         accept_input, current_state, output_tape = output
         if kwargs['full_output']:
@@ -8751,7 +8753,7 @@ class Transducer(FiniteStateMachine):
         return super(Transducer, self).process(*args, **kwargs)
 
 
-    def _process_format_output_(self, output, **kwargs):
+    def _process_convert_output_(self, output, **kwargs):
         """
         Helper function which converts the output of
         :meth:`FiniteStateMachine.process` to one suitable for
@@ -8771,15 +8773,15 @@ class Transducer(FiniteStateMachine):
 
             sage: from sage.combinat.finite_state_machine import FSMState
             sage: T = Transducer()
-            sage: T._process_format_output_((True, FSMState('a'), [1, 0, 1]),
-            ....:                           full_output=False)
+            sage: T._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                            full_output=False)
             [1, 0, 1]
-            sage: T._process_format_output_((True, FSMState('a'), [1, 0, 1]),
-            ....:                           full_output=True)
+            sage: T._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                            full_output=True)
             (True, 'a', [1, 0, 1])
         """
         if FSMOldProcessOutput:
-            return super(Transducer, self)._process_format_output_(
+            return super(Transducer, self)._process_convert_output_(
                 output, **kwargs)
         accept_input, current_state, output_tape = output
         if kwargs['full_output']:

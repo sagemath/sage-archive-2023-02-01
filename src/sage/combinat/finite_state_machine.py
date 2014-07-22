@@ -575,7 +575,7 @@ import itertools
 from itertools import imap, ifilter, izip
 import collections
 from collections import defaultdict
-import bisect
+import heapq
 
 
 def full_group_by(l, key=lambda x: x):
@@ -9661,7 +9661,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         self.write_final_word_out = write_final_word_out
 
         self._current_ = {}
-        self._current_positions_ = []  # a sorted list of the keys of _current_
+        self._current_positions_ = []  # a heap queue of the keys of _current_
         self._tape_cache_manager_ = []
         position_zero = tuple((0, t) for t, _ in enumerate(self._input_tape_))
         if not hasattr(self, 'tape_type'):
@@ -9722,7 +9722,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         """
         if not self._current_.has_key(tape.position):
             self._current_[tape.position] = {}
-            bisect.insort(self._current_positions_, tape.position)
+            heapq.heappush(self._current_positions_, tape.position)
 
         states = self._current_[tape.position]
         if states.has_key(state):
@@ -9940,7 +9940,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                 self.add_current(state, tape, out)
             return
 
-        states_dict = self._current_.pop(self._current_positions_.pop(0))
+        states_dict = self._current_.pop(heapq.heappop(self._current_positions_))
         for state, (tape, output) in states_dict.iteritems():
             step(state, tape, output)
         return self._current_

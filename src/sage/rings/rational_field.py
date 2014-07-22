@@ -1027,23 +1027,26 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def selmer_group(self, S, m, proof=True):
         r"""
-        Compute the group `K(S,m)`.
+        Compute the group `\QQ(S,m)`.
 
         INPUT:
 
-        - ``S`` - A set of primes.
+        - ``S`` -- a set of primes
 
-        - ``m`` - A positive integer.
+        - ``m`` -- a positive integer
+
+        - ``proof`` -- ignored
 
         OUTPUT:
 
         A list of generators of `\QQ(S,m)`.  This is the subgroup of
-        `\QQ^\times/(\QQ^\times)^m` consisting of elements `a` such that
-        the valuation of `a` is divisible by `m` at all primes not in
-        `S`.  It contains the subgroup of those `a` such that
-        `\QQ(\sqrt[m]{a})/\QQ` is unramified at all primes of `\QQ`
-        outside of `S`, but may contain it properly when not all
-        primes dividing `m` are in `S`.
+        `\QQ^\times/(\QQ^\times)^m` consisting of elements `a` such
+        that the valuation of `a` is divisible by `m` at all primes
+        not in `S`.  It is equal to the group of `S`-units modulo
+        `m`-th powers.  The group `\QQ(S,m)` contains the subgroup of
+        those `a` such that `\QQ(\sqrt[m]{a})/\QQ` is unramified at
+        all primes of `\QQ` outside of `S`, but may contain it
+        properly when not all primes dividing `m` are in `S`.
 
         EXAMPLES::
 
@@ -1060,27 +1063,26 @@ class RationalField(_uniq, number_field_base.NumberField):
 
         """
         gens = list(S)
-        if m%2==0:
+        if m % 2 == 0:
             gens.append(ZZ(-1))
         return gens
 
     def selmer_group_iterator(self, S, m, proof=True):
         r"""
-        Return an iterator through elements of the finite group `K(S,m)`.
+        Return an iterator through elements of the finite group `\QQ(S,m)`.
 
         INPUT:
 
-        - ``S`` - A set of primes of self.
+        - ``S`` -- a set of primes
 
-        - ``m`` - A positive integer.
+        - ``m`` -- a positive integer
 
-        - ``proof`` - If False, assume the GRH in computing the class group.
+        - ``proof`` -- ignored
 
         OUTPUT:
 
-        An iterator yielding the distinct elements of `K(S,m)`.  See
-        the docstring for :meth:`NumberField_generic.selmer_group` for
-        more information.
+        An iterator yielding the distinct elements of `\QQ(S,m)`.  See
+        the docstring for :meth:`selmer_group` for more information.
 
         EXAMPLES::
 
@@ -1099,7 +1101,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         one = self.one_element()
         from sage.misc.all import prod, cartesian_product_iterator
         for ev in cartesian_product_iterator([range(o) for o in orders]):
-            yield prod([p**e for p,e in zip(KSgens,ev)],one)
+            yield prod([p**e for p,e in zip(KSgens, ev)], one)
 
 
     #################################

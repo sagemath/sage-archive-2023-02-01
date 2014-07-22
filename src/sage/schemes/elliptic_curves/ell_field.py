@@ -672,8 +672,10 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if not K.is_field():
             raise TypeError("Input must be a field.")
         L = self.base_field()
-        if L==K:
+        if L is K:
             return self
+        elif L == K:  # number fields can be equal but not identical
+            return self.base_extend(K)
 
         # Construct an embedding f of K in L, and check that the
         # j-invariant is in the image, otherwise return an empty list:
@@ -684,7 +686,6 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             try:
                 jK = QQ(j)
             except (ValueError, TypeError):
-                # print "j-invariant %s not in QQ" % j
                 return []
         elif f is None:
             embeddings = K.embeddings(L)
@@ -698,7 +699,6 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                 except Exception:
                     pass
             if f is None:
-                # print "unable to find a suitable embedding"
                 return []
         else:
             try:
@@ -711,17 +711,15 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             try:
                 jK = f.preimage(j)
             except Exception:
-                # print "unable to find a preimage of %s in %s" %(j,K)
                 return []
 
-        # print "j-invariant %s descends ok to %s" % (j,jK)
         # Now we have the j-invariant in K and must find all twists
         # which work, separating the cases of j=0 and j=1728.
 
-        if  L.characteristic():
+        if L.characteristic():
             raise NotImplementedError("Not implemented in positive characteristic")
 
-        if jK==0:
+        if jK == 0:
             t = -54*self.c6()
             try:
                 dlist = t.descend_mod_power(K,6)
@@ -729,7 +727,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             except AttributeError:
                 raise NotImplementedError("Not implemented over %s" % L)
             Elist = [EllipticCurve([0,0,0,0,d]) for d in dlist]
-        elif jK==1728:
+        elif jK == 1728:
             t = -27*self.c4()
             try:
                 dlist = t.descend_mod_power(K,4)

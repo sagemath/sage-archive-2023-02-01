@@ -624,8 +624,6 @@ def isogenies_sporadic_Q(E, l=None):
         [Isogeny of degree 163 from Elliptic Curve defined by y^2 = x^3 - 34790720*x - 78984748304 over Rational Field to Elliptic Curve defined by y^2 = x^3 - 924354639680*x + 342062961763303088 over Rational Field]
     """
     F = E.base_field()
-#    if F != QQ:
-#        raise ValueError("The elliptic curve must be defined over QQ.")
     j = E.j_invariant()
     j = QQ(j)
     if (j not in sporadic_j

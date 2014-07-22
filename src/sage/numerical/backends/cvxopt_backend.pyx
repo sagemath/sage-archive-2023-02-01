@@ -181,29 +181,7 @@ cdef class CVXOPTBackend(GenericBackend):
 
     cpdef set_variable_type(self, int variable, int vtype):
         """
-        Set the type of a variable
-
-        INPUT:
-
-        - ``variable`` (integer) -- the variable's id
-
-        - ``vtype`` (integer) :
-
-            *  1  Integer
-            *  0  Binary
-            *  -1  Continuous
-
-        EXAMPLE::
-
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "CVXOPT")   # optional - CVXOPT
-            sage: p.ncols()                                        # optional - CVXOPT
-            0
-            sage: p.add_variable()                                  # optional - CVXOPT
-            1
-            sage: p.set_variable_type(0,1)                          # optional - CVXOPT
-            sage: p.is_variable_integer(0)                          # optional - CVXOPT
-            True
+        The variable type is continuous by default and cannot be changed
         """
         pass
 
@@ -288,17 +266,7 @@ cdef class CVXOPTBackend(GenericBackend):
 
     cpdef set_verbosity(self, int level):
         """
-        Set the log (verbosity) level
-
-        INPUT:
-
-        - ``level`` (integer) -- From 0 (no verbosity) to 3.
-
-        EXAMPLE::
-
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "CVXOPT")
-            sage: p.set_verbosity(2)
+        Does not apply for the cvxopt solver
         """
         pass
 

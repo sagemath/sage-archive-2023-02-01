@@ -88,7 +88,7 @@ cdef PyObject* zeroNone = <PyObject*>ZeroNone
 cdef dict EmptyDict = {}
 cdef PyObject* emptyDict = <PyObject*>EmptyDict
 
-from cython.operator import dereference as deref, preincrement as preinc
+from cython.operator import dereference as deref, preincrement as preinc, predecrement as predec
 
 ###################
 #  Boilerplate
@@ -271,11 +271,6 @@ cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start):
         return -1
     cdef __mpz_struct seq
     cdef unsigned int limb_size, limb_size_orig
-    seq = deref(<__mpz_struct*>S2.data)
-    limb_size = seq._mp_size+1
-    limb_size_orig = seq._mp_size  # not "+1", because we only need to do
-                                   # something special if we move strictly
-                                   # less limbs than fitting into S2.
     cdef mpz_t tmp
     # Idea: We shift-copy enough limbs from S1 to tmp and then compare with
     # S2, for each shift.
@@ -305,34 +300,66 @@ cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start):
     # of _mp_size correctly!!!) it has non-zero bits where S1 has (cut-off)
     # trailing zeroes, and can thus be no sub-sequence (also not for higher
     # index).
-    (<__mpz_struct*>tmp)._mp_size = seq._mp_size
+    seq = deref(<__mpz_struct*>S2.data)
+    # The number of limbs required to store data of S2's bitsize (including
+    # trailing zeroes)
+    limb_size = (S2.bitsize>>times_mp_bits_per_limb)+1
+    # Size of S2 without trailing zeroes:
+    limb_size_orig = seq._mp_size
+
     seq = deref(<__mpz_struct*>S1.data)
     cdef unsigned int n, limb_index, bit_index
+    # The maximal number of limbs of S1 that is safe to use after the current
+    # position.
+    cdef unsigned int max_limb_size = seq._mp_size-((start*S1.itembitsize)>>times_mp_bits_per_limb)
+    if ((start*S1.itembitsize)&mod_mp_bits_per_limb)==0:
+        # We increase it, since in the loop it is decreased when the index is
+        # zero modulo bits per limb
+        preinc(max_limb_size)
     n = 0
     cdef int index = 0
+    # tmp may have trailing zeroes, and GMP can NOT cope with that!
+    # Hence, we need to adjust the size later.
+    (<__mpz_struct*>tmp)._mp_size = limb_size
     for index from 0<=index<=S1.length-S2.length:
         limb_index = n>>times_mp_bits_per_limb
         # Adjust the number of limbs we are shifting
-        limb_size = min(limb_size, seq._mp_size-limb_index)
         bit_index  = n&mod_mp_bits_per_limb
         if bit_index:
-            mpn_rshift((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, limb_size, bit_index)
+            if limb_size < max_limb_size:
+                mpn_rshift((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, limb_size+1, bit_index)
+            else:
+                (<__mpz_struct*>tmp)._mp_size = max_limb_size
+                mpn_rshift((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, max_limb_size, bit_index)
         else:
-            mpn_copyi((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, limb_size)
-        # If limb_size is now smaller than limb_size_orig, then we were
+            # The bit_index is zero, and hence one limb less is remaining. We
+            # thus decrement max_limb_size.
+            if limb_size < predec(max_limb_size):
+                mpn_copyi((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, limb_size)
+            else:
+                (<__mpz_struct*>tmp)._mp_size = max_limb_size
+                mpn_copyi((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, max_limb_size)
+        # Now, the first min(limb_size,max_limb_size) limbs of tmp are
+        # guaranteed to be valid. The rest may be junk.
+
+        # If the number of valid limbs of tmp is smaller than limb_size_orig
+        # (this can only happen if max_limb_size became small), then we were
         # running into trailing zeroes of S1. Hence, as explained above, we
         # can decide now whether S2 is a sub-sequence of S1 in the case that
         # the non-cutoff bits match.
-        if limb_size<limb_size_orig:
-            # We have exactly limb_size limbs to compare
-            if mpn_cmp((<__mpz_struct*>tmp)._mp_d, (<__mpz_struct*>(S2.data))._mp_d, limb_size)==0:
+        if max_limb_size<limb_size_orig:
+            # We have exactly max_limb_size limbs to compare
+            if mpn_cmp((<__mpz_struct*>tmp)._mp_d, (<__mpz_struct*>(S2.data))._mp_d, max_limb_size)==0:
                 mpz_clear(tmp)
-                if (<__mpz_struct*>(S2.data))._mp_size > limb_size:
+                if limb_size_orig > max_limb_size:
+                    # S2 has further non-zero entries
                     return -1
+                # Both S2 and S1 have enough trailing zeroes
                 return index
-        elif mpz_congruent_2exp_p(tmp, S2.data, S2.bitsize):
-            mpz_clear(tmp)
-            return index
+        else:
+            if mpz_congruent_2exp_p(S2.data, tmp, S2.bitsize):
+                mpz_clear(tmp)
+                return index
         n += S1.itembitsize
     mpz_clear(tmp)
     return -1
@@ -1141,7 +1168,7 @@ cdef class BoundedIntegerSequence:
 
         TESTS:
 
-        The discussion at :trac:`15820` explains why the following is a good test::
+        The discussion at :trac:`15820` explains why the following are good tests::
 
             sage: X = BoundedIntegerSequence(21, [4,1,6,2,7,2,3])
             sage: S = BoundedIntegerSequence(21, [0,0,0,0,0,0,0])
@@ -1156,6 +1183,13 @@ cdef class BoundedIntegerSequence:
             True
             sage: T = BoundedIntegerSequence(21, [0,4,0,1,0,6,0,2,0,7,0,2,0,3,0,0,0,16,0,0,0,0,0,0,0,0,0,0])
             sage: T[3::2] in (X+S)
+            False
+
+        ::
+
+            sage: S1 = BoundedIntegerSequence(3,[1,3])
+            sage: S2 = BoundedIntegerSequence(3,[0])
+            sage: S2 in S1
             False
 
         """

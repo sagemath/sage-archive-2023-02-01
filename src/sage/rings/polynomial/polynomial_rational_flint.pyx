@@ -633,7 +633,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: g.revert_series(6)
             Traceback (most recent call last):
             ...
-            ValueError: self must have constant coefficient 0 and a unit for coefficient 1
+            ValueError: self must have constant coefficient 0 and a unit for coefficient t^1
         """
 
         cdef Polynomial_rational_flint res = self._new()
@@ -642,7 +642,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             raise ValueError("argument n must be a non-negative integer, got %s" % n)
         m = n
         if not self[0].is_zero() or not self[1].is_unit():
-            raise ValueError("self must have constant coefficient 0 and a unit for coefficient 1")
+            raise ValueError("self must have constant coefficient 0 and a unit for coefficient %s^1" %(self.parent().gen()))
 
         sig_on()
         fmpq_poly_revert_series(res.__poly, self.__poly, m)

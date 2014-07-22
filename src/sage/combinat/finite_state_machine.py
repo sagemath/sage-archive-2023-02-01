@@ -9422,7 +9422,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
     - ``write_final_word_out`` -- a boolean specifying whether the
       final output words should be written (default) or not.
 
-    Moreover, there are the following extensions for multi-tape machines:
+    Moreover, there are the following extensions for multi-tape
+    machines (see also notes below):
 
     - ``use_multitape_input`` -- (default: ``None``, which translates
       to ``False``) activates the multi-tape mode of the process
@@ -9459,6 +9460,12 @@ class FSMProcessIterator(SageObject, collections.Iterator):
     If the choice of the outgoing transition is not unique, all
     possibilites are followed (if necessary the current state is split
     to several branches)
+
+    When working with multi-tape finite state machines, all input
+    words of transitions are `k`-tuples of words (the latter in the
+    sense of single-tape machines, i.e. lists of letters). Moreover,
+    the input tape has to consist of `k` tracks, i.e., be a list or
+    tuple of `k` iterators, one for each track.
 
     EXAMPLES:
 

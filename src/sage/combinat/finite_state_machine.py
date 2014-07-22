@@ -5036,8 +5036,9 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``state`` is either an instance of FSMState or, otherwise, a
-          label of a state.
+        - ``state`` is either an instance of
+          :class:`~sage.combinat.finite_state_machine.FSMState` or,
+          otherwise, a label of a state.
 
         OUTPUT:
 

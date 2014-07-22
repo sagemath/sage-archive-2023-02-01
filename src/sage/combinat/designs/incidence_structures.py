@@ -468,7 +468,7 @@ class IncidenceStructure(object):
         """
         return map(len, self._blocks)
 
-    def degree(self,p=None):
+    def degree(self, p=None):
         r"""
         Returns the degree of a point ``p``
 
@@ -490,8 +490,8 @@ class IncidenceStructure(object):
             d = [0]*self.num_points()
             for b in self._blocks:
                 for x in b:
-                    d[x]+=1
-            return {p:d[i] for i,p in enumerate(self._points)}
+                    d[x] += 1
+            return {p: d[i] for i, p in enumerate(self._points)}
         else:
             p = self._point_to_index[p] if self._point_to_index else p
             return sum(1 for b in self._blocks if p in b)

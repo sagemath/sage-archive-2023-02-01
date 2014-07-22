@@ -2714,9 +2714,8 @@ class FiniteStateMachine(SageObject):
         EXAMPLES::
 
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False  # activate new output behavior
-            sage: from sage.combinat.finite_state_machine import FSMState
-            sage: A = FSMState('A', is_initial=True, is_final=True)
-            sage: binary_inverter = Transducer({A:[(A, 0, 1), (A, 1, 0)]})
+            sage: binary_inverter = Transducer({'A':[('A', 0, 1), ('A', 1, 0)]},
+            ....:                              initial_states=['A'], final_states=['A'])
             sage: binary_inverter([0, 1, 0, 0, 1, 1])
             [1, 0, 1, 1, 0, 0]
 
@@ -4544,9 +4543,8 @@ class FiniteStateMachine(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.finite_state_machine import FSMState
-            sage: A = FSMState('A', is_initial = True, is_final = True)
-            sage: binary_inverter = FiniteStateMachine({A:[(A, 0, 1), (A, 1, 0)]})
+            sage: binary_inverter = FiniteStateMachine({'A':[('A', 0, 1), ('A', 1, 0)]},
+            ....:                                      initial_states=['A'], final_states=['A'])
             sage: binary_inverter.process([0, 1, 0, 0, 1, 1])
             (True, 'A', [1, 0, 1, 1, 0, 0])
 
@@ -4557,10 +4555,9 @@ class FiniteStateMachine(SageObject):
 
         ::
 
-            sage: NAF_ = FSMState('_', is_initial = True, is_final = True)
-            sage: NAF1 = FSMState('1', is_final = True)
             sage: NAF = FiniteStateMachine(
-            ....:     {NAF_: [(NAF_, 0), (NAF1, 1)], NAF1: [(NAF_, 0)]})
+            ....:     {'_': [('_', 0), (1, 1)], 1: [('_', 0)]},
+            ....:     initial_states=['_'], final_states=['_', 1])
             sage: [NAF.process(w)[0] for w in [[0], [0, 1], [1, 1], [0, 1, 0, 1],
             ....:                           [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [True, True, False, True, False, False]

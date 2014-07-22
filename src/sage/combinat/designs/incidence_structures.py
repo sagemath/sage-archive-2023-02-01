@@ -468,6 +468,34 @@ class IncidenceStructure(object):
         """
         return map(len, self._blocks)
 
+    def degree(self, p=None):
+        r"""
+        Returns the degree of a point ``p``
+
+        The degree of a point `p` is the number of blocks that contain it.
+
+        INPUT:
+
+        - ``p`` -- a point. If set to ``None`` (default), a dictionary
+          associating the points with their degrees is returned.
+
+        EXAMPLES::
+
+            sage: designs.steiner_triple_system(9).degree(3)
+            4
+            sage: designs.steiner_triple_system(9).degree()
+            {0: 4, 1: 4, 2: 4, 3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4}
+        """
+        if p is None:
+            d = [0]*self.num_points()
+            for b in self._blocks:
+                for x in b:
+                    d[x] += 1
+            return {p: d[i] for i, p in enumerate(self._points)}
+        else:
+            p = self._point_to_index[p] if self._point_to_index else p
+            return sum(1 for b in self._blocks if p in b)
+
     def is_connected(self):
         r"""
         Test whether the design is connected.

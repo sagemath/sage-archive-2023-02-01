@@ -4502,16 +4502,26 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``input_tape`` -- The input tape can be a list with entries from
-          the input alphabet.
+        - ``input_tape`` -- the input tape can be a list or an
+          iterable with entries from the input alphabet. See also
+          :class:`FSMProcessIterator`.
 
-        - ``initial_state`` -- (default: ``None``) The state in which
-          to start. If this parameter is ``None`` and there is only
-          one initial state in the machine, then this state is taken.
+        - ``initial_state`` -- (default: ``None``) the state in which
+          to start. If this parameter is ``None``, the
+          :class:`FSMProcessIterator` tries to find suitable initial
+          states.
+
+        - ``list_of_outputs`` -- (default: ``None``) if set, the
+          outputs are given in list form (even when we have only one
+          single output).
+
+        All the ``kwargs`` will also be passed to
+        :class:`FSMProcessIterator`.
 
         OUTPUT:
 
-        A triple, where
+        A triple (or a list of triples when ``list_of_outputs`` is
+        set), where
 
         - the first entry is ``True`` if the input string is accepted,
 
@@ -4603,6 +4613,34 @@ class FiniteStateMachine(SageObject):
 
 
     def _process_format_output_(self, output, **kwargs):
+        """
+        Helper function which converts the output of
+        :meth:`FiniteStateMachine.process`. This is the identity.
+
+        INPUT:
+
+        - ``output`` -- a triple.
+
+        - ``full_output`` -- a boolean.
+
+        OUTPUT:
+
+        The converted output.
+
+        This function is overridden in :class:`Automaton` and
+        :class:`Transducer`.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: F = FiniteStateMachine()
+            sage: F._process_format_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                           full_output=False)
+            (True, 'a', [1, 0, 1])
+            sage: F._process_format_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                           full_output=True)
+            (True, 'a', [1, 0, 1])
+        """
         accept_input, current_state, output_tape = output
         return (accept_input, current_state, output_tape)
 
@@ -7974,9 +8012,17 @@ class Automaton(FiniteStateMachine):
           output is given, otherwise only whether the sequence is accepted
           or not (the first entry below only).
 
+        - ``list_of_outputs`` -- (default: ``None``) if set, the
+          outputs are given in list form (even when we have only one
+          single output).
+
+        All the ``kwargs`` will also be passed to
+        :class:`FSMProcessIterator`.
+
         OUTPUT:
 
-        The full output is a pair, where
+        The full output is a pair (or a list of pairs when
+        ``list_of_outputs`` is set), where
 
         - the first entry is ``True`` if the input string is accepted and
 
@@ -8042,6 +8088,30 @@ class Automaton(FiniteStateMachine):
 
 
     def _process_format_output_(self, output, **kwargs):
+        """
+        Helper function which converts the output of
+        :meth:`FiniteStateMachine.process` to one suitable for
+        automata.
+
+        INPUT:
+
+        - ``output`` -- a triple.
+
+        - ``full_output`` -- a boolean.
+
+        OUTPUT:
+
+        The converted output.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: A = Automaton()
+            sage: A._process_format_output_((True, FSMState('a'), [1, 0, 1]), full_output=False)
+            True
+            sage: A._process_format_output_((True, FSMState('a'), [1, 0, 1]), full_output=True)
+            (True, 'a')
+        """
         if FSMOldProcessOutput:
             return super(Automaton, self)._process_format_output_(
                 output, **kwargs)
@@ -8571,9 +8641,17 @@ class Transducer(FiniteStateMachine):
           third entry below only). If the input is not accepted, a
           ``ValueError`` is raised.
 
+        - ``list_of_outputs`` -- (default: ``None``) if set, the
+          outputs are given in list form (even when we have only one
+          single output).
+
+        All the ``kwargs`` will also be passed to
+        :class:`FSMProcessIterator`.
+
         OUTPUT:
 
-        The full output is a triple, where
+        The full output is a triple (or a list of triples when
+        ``list_of_outputs`` is set), where
 
         - the first entry is ``True`` if the input string is accepted,
 
@@ -8652,6 +8730,32 @@ class Transducer(FiniteStateMachine):
 
 
     def _process_format_output_(self, output, **kwargs):
+        """
+        Helper function which converts the output of
+        :meth:`FiniteStateMachine.process` to one suitable for
+        transducers.
+
+        INPUT:
+
+        - ``output`` -- a triple.
+
+        - ``full_output`` -- a boolean.
+
+        OUTPUT:
+
+        The converted output.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: T = Transducer()
+            sage: T._process_format_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                           full_output=False)
+            [1, 0, 1]
+            sage: T._process_format_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                           full_output=True)
+            (True, 'a', [1, 0, 1])
+        """
         if FSMOldProcessOutput:
             return super(Transducer, self)._process_format_output_(
                 output, **kwargs)

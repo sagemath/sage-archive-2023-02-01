@@ -74,7 +74,7 @@ aleatorios.
 
     sage: m = random_matrix(RDF,500)
 
-Le lleva unos cuantos segundos a Sage para computar los valores propios de la
+Sage tarda unos cuantos segundos en calcular los valores propios de la
 matríz y mostrarlos.
 
 .. link

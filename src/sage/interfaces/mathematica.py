@@ -403,7 +403,7 @@ class Mathematica(Expect):
         Expect.__init__(self,
                         name = 'mathematica',
                         prompt = 'In[[0-9]+]:=',
-                        command = "math",
+                        command = "math-readline",
                         maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,

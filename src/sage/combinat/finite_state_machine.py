@@ -217,6 +217,7 @@ Now we apply a word to it and see what the transducer does::
 ``True`` means, that we landed in a final state, that state is labeled
 ``'A'``, and we also got an output.
 
+.. _finite_state_machine_division_by_3_example:
 
 A transducer which performs division by `3` in binary
 -----------------------------------------------------
@@ -424,10 +425,11 @@ This is due to the left shift which delays its output.
 Using the hook-functions
 ------------------------
 
-Let's use the previous example "divison by `3`" to demonstrate the
-optional state and transition parameters ``hook``.
+Let's use the :ref:`previous example "divison by
+3" <finite_state_machine_division_by_3_example>` to demonstrate the optional
+state and transition parameters ``hook``.
 
-First, we define, what those functions should do. In our case, this is
+First, we define what those functions should do. In our case, this is
 just saying in which state we are and which transition we take
 
 ::
@@ -465,9 +467,9 @@ Rerunning the process again now gives the following output::
 
 The example above just explains the basic idea of using
 hook-functions. In the following, we will use those hooks more
-seriously. Note that we used ``check_epsilon_transitions=False`` to
-only get a cleaner output, since processing of finite state machines
-is also used to handle epsilon transition.
+seriously. Note that we only used ``check_epsilon_transitions=False`` to
+get a cleaner output, since processing of finite state machines is also
+used to handle epsilon transitions.
 
 Detecting sequences with same number of `0` and `1`
 ---------------------------------------------------
@@ -4661,7 +4663,7 @@ class FiniteStateMachine(SageObject):
 
     def iter_process(self, input_tape=None, initial_state=None, **kwargs):
         """
-        See :meth:`.process` for more informations.
+        See :meth:`.process` for more information.
 
         EXAMPLES::
 

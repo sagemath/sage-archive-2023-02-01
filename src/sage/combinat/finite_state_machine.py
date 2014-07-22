@@ -9787,7 +9787,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                 raise RuntimeError(
                     'State %s is in an epsilon cycle (no input), '
                     'but output is written.' % (state,))
-        memo = {}
+
         for eps_state, eps_output in \
                 state._epsilon_successors_(self.fsm).iteritems():
             if eps_state == state:
@@ -9799,7 +9799,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                 # skipped.
             for eps_out in eps_output:
                 new_out = [o + list(eps_out) for o in output]
-                self._add_current_(eps_state, deepcopy(tape, memo), new_out)
+                self._add_current_(eps_state, deepcopy(tape), new_out)
 
 
     def __next__(self):

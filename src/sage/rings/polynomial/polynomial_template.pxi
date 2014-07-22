@@ -97,7 +97,7 @@ cdef class Polynomial_template(Polynomial):
             x^2 + 1
         """
         cdef celement *gen
-        cdef celement *monxomial
+        cdef celement *monomial
         cdef Py_ssize_t deg
 
         Polynomial.__init__(self, parent, is_gen=is_gen)

@@ -3,6 +3,7 @@ from sage.structure.sage_object cimport SageObject
 cdef class Matroid(SageObject):
     cdef public __custom_name
     cdef public _custom_name
+    cdef public _cached_info
     cdef int _stored_full_rank
     cdef int _stored_size
 
@@ -147,3 +148,8 @@ cdef class Matroid(SageObject):
     cpdef _external(self, B)
     cpdef tutte_polynomial(self, x=*, y=*)
     cpdef flat_cover(self)
+    
+    # visualization
+    cpdef plot(self,B=*,lineorders=*,pos_method=*,pos_dict=*,save_pos=*)
+    cpdef show(self,B=*,lineorders=*,pos_method=*,pos_dict=*,save_pos=*,lims=*)
+    cpdef _fix_positions(self,pos_dict=*,lineorders=*)

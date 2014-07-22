@@ -2194,7 +2194,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         """
         from sage.sets.family import Family
         if d is None:
-            return Family(self._basis_keys, self.monomial)
+            return Family(self._indices, self.monomial)
         else:
             return Family([self.monomial(tuple(a)) for a in self._basis_fcn(d)])
 

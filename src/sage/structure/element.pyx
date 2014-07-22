@@ -2524,7 +2524,7 @@ cdef class Vector(ModuleElement):
 def is_Vector(x):
     return IS_INSTANCE(x, Vector)
 
-cdef class Matrix(AlgebraElement):
+cdef class Matrix(ModuleElement):
 
     cdef bint is_sparse_c(self):
         raise NotImplementedError
@@ -2538,36 +2538,6 @@ cdef class Matrix(AlgebraElement):
         else:
             global coercion_model
             return coercion_model.bin_op(left, right, imul)
-
-    cpdef RingElement _mul_(left, RingElement right):
-        """
-        TESTS::
-
-            sage: m = matrix
-            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
-            sage: 3*a
-            [[ 3  6]
-            [ 9 12] [15 18]
-            [21 24]]
-            [[27 30]
-            [33 36] [39 42]
-            [45 48]]
-
-            sage: m = matrix
-            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
-            sage: a*3
-            [[ 3  6]
-            [ 9 12] [15 18]
-            [21 24]]
-            [[27 30]
-            [33 36] [39 42]
-            [45 48]]
-        """
-        if have_same_parent(left, right):
-            return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
-        else:
-            global coercion_model
-            return coercion_model.bin_op(left, right, mul)
 
     def __mul__(left, right):
         """
@@ -2730,12 +2700,50 @@ cdef class Matrix(AlgebraElement):
             ...
             TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Rational Field'
 
+        Examples with matrices having matrix coefficients::
+
+            sage: m = matrix
+            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
+            sage: 3*a
+            [[ 3  6]
+            [ 9 12] [15 18]
+            [21 24]]
+            [[27 30]
+            [33 36] [39 42]
+            [45 48]]
+
+            sage: m = matrix
+            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
+            sage: a*3
+            [[ 3  6]
+            [ 9 12] [15 18]
+            [21 24]]
+            [[27 30]
+            [33 36] [39 42]
+            [45 48]]
         """
         if have_same_parent(left, right):
             return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
         else:
             global coercion_model
             return coercion_model.bin_op(left, right, mul)
+
+    def __div__(left, right):
+        """
+        Division of the matrix ``left`` by the matrix or scalar ``right``.
+
+        EXAMPLES::
+
+            sage: a = matrix(ZZ, 2, range(4))
+            sage: a / 5
+            [  0 1/5]
+            [2/5 3/5]
+        """
+        if have_same_parent(left, right):
+            return (<Matrix>left)._matrix_times_matrix_(~<Matrix>right)
+        else:
+            global coercion_model
+            return coercion_model.bin_op(left, right, div)
 
     cdef Vector _vector_times_matrix_(matrix_right, Vector vector_left):
         raise TypeError

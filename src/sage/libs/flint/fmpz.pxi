@@ -76,6 +76,7 @@ cdef extern from "flint/fmpz.h":
     int fmpz_is_zero(fmpz_t f)
 
     int fmpz_is_one(fmpz_t f)
+    int fmpz_sgn(fmpz_t f)
 
     int fmpz_is_pm1(fmpz_t f)
 

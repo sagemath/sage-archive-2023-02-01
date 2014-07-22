@@ -65,6 +65,48 @@ class Monoids(CategoryWithAxiom):
     Finite = LazyImport('sage.categories.finite_monoids', 'FiniteMonoids', at_startup=True)
     Inverse = LazyImport('sage.categories.groups', 'Groups', at_startup=True)
 
+    @staticmethod
+    def free(index_set=None, names=None, **kwds):
+        r"""
+        Return a free monoid on `n` generators or with the generators
+        indexed by a set `I`.
+
+        A free monoid is constructed by specifing either:
+
+        - the number of generators and/or the names of the generators
+        - the indexing set for the generators
+
+        INPUT:
+
+        - ``index_set`` -- (optional) an index set for the generators; if
+          an integer, then this represents `\{0, 1, \ldots, n-1\}`
+
+        - ``names`` -- a string or list/tuple/iterable of strings
+          (default: ``'x'``); the generator names or name prefix
+
+        EXAMPLES::
+
+            sage: Monoids.free(index_set=ZZ)
+            Free monoid indexed by Integer Ring
+            sage: Monoids().free(ZZ)
+            Free monoid indexed by Integer Ring
+            sage: F.<x,y,z> = Monoids().free(); F
+            Free monoid indexed by {'x', 'y', 'z'}
+        """
+        if names is not None:
+            if isinstance(names, str):
+                from sage.rings.all import ZZ
+                if ',' not in names and index_set in ZZ:
+                    names = [names + repr(i) for i in range(index_set)]
+                else:
+                    names = names.split(',')
+            names = tuple(names)
+            if index_set is None:
+                index_set = names
+
+        from sage.monoids.indexed_free_monoid import IndexedFreeMonoid
+        return IndexedFreeMonoid(index_set, names=names, **kwds)
+
     class ParentMethods:
 
         def one_element(self):
@@ -193,6 +235,54 @@ class Monoids(CategoryWithAxiom):
             for i in range(n-1):
                 result *= self
             return result
+
+    class Commutative(CategoryWithAxiom):
+        """
+        Category of commutative (abelian) monoids.
+
+        A monoid `M` is *commutative* if `xy = yx` for all `x,y \in M`.
+        """
+        @staticmethod
+        def free(index_set=None, names=None, **kwds):
+            r"""
+            Return a free abelian monoid on `n` generators or with
+            the generators indexed by a set `I`.
+
+            A free monoid is constructed by specifing either:
+
+            - the number of generators and/or the names of the generators, or
+            - the indexing set for the generators.
+
+            INPUT:
+
+            - ``index_set`` -- (optional) an index set for the generators; if
+              an integer, then this represents `\{0, 1, \ldots, n-1\}`
+
+            - ``names`` -- a string or list/tuple/iterable of strings
+              (default: ``'x'``); the generator names or name prefix
+
+            EXAMPLES::
+
+                sage: Monoids.Commutative.free(index_set=ZZ)
+                Free abelian monoid indexed by Integer Ring
+                sage: Monoids().Commutative().free(ZZ)
+                Free abelian monoid indexed by Integer Ring
+                sage: F.<x,y,z> = Monoids().Commutative().free(); F
+                Free abelian monoid indexed by {'x', 'y', 'z'}
+            """
+            if names is not None:
+                if isinstance(names, str):
+                    from sage.rings.all import ZZ
+                    if ',' not in names and index_set in ZZ:
+                        names = [names + repr(i) for i in range(index_set)]
+                    else:
+                        names = names.split(',')
+                names = tuple(names)
+                if index_set is None:
+                    index_set = names
+
+            from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
+            return IndexedFreeAbelianMonoid(index_set, names=names, **kwds)
 
     class WithRealizations(WithRealizationsCategory):
 

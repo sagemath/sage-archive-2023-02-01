@@ -7,7 +7,8 @@ AUTHOR:
 
 EXAMPLES:
 
-Define a polynomial over an absolute number field and perform basic operations with them::
+Define a polynomial over an absolute number field and perform basic
+operations with them::
 
     sage: N.<a> = NumberField(x^2-2)
     sage: K.<x> = N[]
@@ -60,7 +61,7 @@ We can also construct polynomials over relative number fields::
 """
 
 #*****************************************************************************
-#       Copyright (C) 2013 Luis Felipe Tabera Alonso <taberalf@unican.es>
+#       Copyright (C) 2014 Luis Felipe Tabera Alonso <taberalf@unican.es>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -79,23 +80,25 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         """
-        Create a new polynomial of the polynomial ring ``parent``.
+        Create a new polynomial in the polynomial ring ``parent``.
 
         INPUT:
 
-             - ``parent`` -- the underlying Polynomial ring.
+        - ``parent`` -- the polynomial ring in which to construct the
+          element
 
-             - ``x`` -- (default: None) An object representing the polynomial.
-               e.g. a list of coefficients. See
-               :meth:`sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field.__init__` for more details.
+        - ``x`` -- (default: None) an object representing the
+          polynomial, e.g. a list of coefficients.  See
+          :meth:`sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field.__init__`
+          for more details.
 
-             - ``check`` -- boolean (default: True) if True make sure that the
-               coefficients of the polynomial are the ring of coefficients.
+        - ``check`` -- boolean (default: True) if True, make sure that
+          the coefficients of the polynomial are in the base ring
 
-             - ``is_gen`` -- boolean (defaul: False) A boolean, True if `x` is
-               the disinguished generator of the polynomial ring.
+        - ``is_gen`` -- boolean (default: False) if True, `x` is the
+          distinguished generator of the polynomial ring
 
-             - ``construct`` -- (default: False) A boolean, unused.
+        - ``construct`` -- (default: False) boolean, unused
 
         EXAMPLES::
 
@@ -111,15 +114,15 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
     @coerce_binop
     def gcd(self, other):
         """
-        Compute de monic gcd of two univariate polynomials using pari.
+        Compute the monic gcd of two univariate polynomials using PARI.
 
         INPUT:
 
-        - ``other`` -- a polynomial with the same parent as self.
+        - ``other`` -- a polynomial with the same parent as ``self``
 
         OUTPUT:
 
-        - The monic gcd of ``self`` and ``other``
+        - The monic gcd of ``self`` and ``other``.
 
         EXAMPLES::
 
@@ -140,7 +143,7 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
             sage: f.gcd(g) - h
             0
 
-    TESTS:
+        TESTS:
 
         Test for degree one extensions::
 
@@ -159,8 +162,8 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
             sage: d.parent() is R
             True
 
-        Test for coercion with other rings and force weird variables to test
-        pari behavior::
+        Test for coercion with other rings and force weird variables
+        to test PARI behavior::
 
             sage: r = var('r')
             sage: N = NumberField(r^2 - 2, 'r')
@@ -186,13 +189,10 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
                 return other.monic()
         elif other.is_zero():
             return self.monic()
-        elif self.degree() == 0:
+        elif self.degree() == 0 or other.degree() == 0:
             return self.parent().one_element()
-        elif other.degree() == 0:
-            return other.parent().one_element()
 
-        #If the extension is of degree one, use the gcd from QQ[x]
-
+        # If the extension is of degree one, use the gcd from QQ[x]
         if self.base_ring().degree().is_one():
             R = self.base_ring()
             a = self.change_ring(QQ)
@@ -212,23 +212,25 @@ class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         """
-        Create a new polynomial of the polynomial ring ``parent``.
+        Create a new polynomial in the polynomial ring ``parent``.
 
         INPUT:
 
-             - ``parent`` -- the underlying Polynomial ring.
+        - ``parent`` -- polynomial ring in which to construct the
+          element
 
-             - ``x`` -- (default: None) An object representing the polynomial.
-               e.g. a list of coefficients. See
-               :meth:`sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field.__init__` for more details.
+        - ``x`` -- (default: None) an object representing the
+          polynomial, e.g. a list of coefficients. See
+          :meth:`sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field.__init__`
+          for more details.
 
-             - ``check`` -- boolean (default: True) if True make sure that the
-               coefficients of the polynomial are the ring of coefficients.
+        - ``check`` -- boolean (default: True) if True, make sure that
+          the coefficients of the polynomial are in the base ring
 
-             - ``is_gen`` -- boolean (defaul: False) A boolean, True if ``x`` is
-               the disinguished generator of the polynomial ring.
+        - ``is_gen`` -- boolean (default: False) if True, ``x`` is the
+          distinguished generator of the polynomial ring
 
-             - ``construct`` -- (default: False) A boolean, unused.
+        - ``construct`` -- (default: False) boolean, unused
 
         EXAMPLES::
 
@@ -244,18 +246,19 @@ class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
         Compute the monic gcd of two polynomials.
 
         Currently, the method checks corner cases in which one of the
-        polynomials is zero or a constant. Then, computes an absolute extension
-        and perform there the computations.
+        polynomials is zero or a constant. Then, computes an absolute
+        extension and performs the computations there.
 
         INPUT:
 
-        - ``other`` -- a polynomial with the same parent as self.
+        - ``other`` -- a polynomial with the same parent as ``self``
 
         OUTPUT:
 
-        - The monic gcd of ``self`` and ``other``
+        - The monic gcd of ``self`` and ``other``.
 
-        See :meth:`Polynomial_absolute_number_field_dense.gcd` for more details.
+        See :meth:`Polynomial_absolute_number_field_dense.gcd` for
+        more details.
 
         EXAMPLES::
 
@@ -314,10 +317,8 @@ class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
                 return other.monic()
         elif other.is_zero():
             return self.monic()
-        elif self.degree() == 0:
+        elif self.degree() == 0 or other.degree() == 0:
             return self.parent().one_element()
-        elif other.degree() == 0:
-            return other.parent().one_element()
 
         L = self.parent()
         x = L.variable_name()
@@ -330,5 +331,5 @@ class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
         second = R([N_to_M(foo) for foo in other.list()])
         result = first.gcd(second)
         result = L([M_to_N(foo) for foo in result.list()])
-        #the result is already monic
+        # the result is already monic
         return result

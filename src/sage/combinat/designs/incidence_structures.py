@@ -477,7 +477,7 @@ class IncidenceStructure(object):
         INPUT:
 
         - ``p`` -- a point. If set to ``None`` (default), a dictionary
-          associating a point with its degree is returned.
+          associating the points with their degrees is returned.
 
         EXAMPLES::
 

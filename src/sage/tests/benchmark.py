@@ -98,7 +98,7 @@ class Benchmark:
                 for i in range(trials):
                     alarm(timeout)
                     t = getattr(self, S)()
-                    alarm(0)
+                    cancel_alarm()
                     if isinstance(t, tuple):
                         wall = True
                         t = t[1]
@@ -113,12 +113,12 @@ class Benchmark:
                 else:
                     s += '%15fc'%t
                 print s
-            except KeyboardInterrupt:
+            except AlarmInterrupt:
                 print '%-12sinterrupted (timeout: %s seconds wall time)'%(
                     S, timeout)
             except AttributeError:
                 pass
-            except Exception, msg:
+            except Exception as msg:
                 print msg
 
     bench = run
@@ -1956,6 +1956,17 @@ def mpoly_all(include_maple=False):
        * Singular (i.e., Sage) does shockingly well.
        * mathematica is sometimes amazing.
        * macaulay2 is also quite bad (though not as bad as maple).
+
+    EXAMPLE::
+
+        sage: from sage.tests.benchmark import mpoly_all
+        sage: mpoly_all() # not tested
+        <BLANKLINE>
+        ...
+        ...System      min         avg         max         trials          cpu or wall
+        ...
+        * sage...
+
     """
     systems = ['sage', 'magma', 'mathematica', 'macaulay2']
     if include_maple:

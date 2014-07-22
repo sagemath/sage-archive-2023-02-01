@@ -162,4 +162,4 @@ cdef class FrobeniusEndomorphism_prime(FrobeniusEndomorphism_finite_field):
             sage: [ embed(x) == x for x in kfixed ]
             [True, True, True, True, True]
         """
-        return self._domain, self._domain.hom(self._domain)
+        return self.domain(), self.domain().hom(self.domain())

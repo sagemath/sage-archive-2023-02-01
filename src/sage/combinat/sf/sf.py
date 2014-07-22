@@ -179,6 +179,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: s = Sym.schur()
 
     These can be defined all at once with the single command
+    ::
 
         sage: Sym.inject_shorthands()
         doctest:...: RuntimeWarning: redefining global value `h`
@@ -336,6 +337,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     The *plethysm* of symmetric functions is the operation corresponding to
     composition of representations of the general linear group.  See [STA]_
     Chapter 7, Appendix 2 for details.
+    ::
 
         sage: s[2].plethysm(s[2])
         s[2, 2] + s[4]
@@ -588,9 +590,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: ks(s[2,1,1])
         Traceback (most recent call last):
         ...
-        ValueError: s[2, 1, 1] is not in the image of Generic morphism:
-          From: 3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis also with t=1
-          To:   Symmetric Functions over Rational Field in the Schur basis
+        ValueError: s[2, 1, 1] is not in the image
 
     The `k`-Schur functions are more generally defined with a parameter `t` and they are
     a basis of the subspace spanned by the Hall-Littlewood ``Qp`` symmetric functions
@@ -611,9 +611,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: ks(ks[2,1]*ks[1,1])
         Traceback (most recent call last):
         ...
-        ValueError: s[2, 1, 1, 1] + s[2, 2, 1] + s[3, 1, 1] + s[3, 2] is not in the image of Generic morphism:
-          From: 3-bounded Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis
-          To:   Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Schur basis
+        ValueError: s[2, 1, 1, 1] + s[2, 2, 1] + s[3, 1, 1] + s[3, 2] is not in the image
         sage: ks[2,1]*ks[1,1]
         s[2, 1, 1, 1] + s[2, 2, 1] + s[3, 1, 1] + s[3, 2]
         sage: ks6 = Sym.kBoundedSubspace(6).kschur()
@@ -1143,7 +1141,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             2*d_p[2, 1]
 
         The map is supposed to implement the canonical isomorphism
-        between the two basis. Otherwise, the results will be
+        between the two bases. Otherwise, the results will be
         mathematically wrong, as above. Use with care!
         """
         if only_conversion:
@@ -1204,10 +1202,17 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: Sym = SymmetricFunctions(QQ) # indirect doctest
             sage: s = Sym.s(); p = Sym.p()
-            sage: s.coerce_map_from(p)
+            sage: f = s.coerce_map_from(p); f
             Generic morphism:
               From: Symmetric Functions over Rational Field in the powersum basis
               To:   Symmetric Functions over Rational Field in the Schur basis
+            sage: p.an_element()
+            2*p[] + 2*p[1] + 3*p[2]
+            sage: f(p.an_element())
+            2*s[] + 2*s[1] - 3*s[1, 1] + 3*s[2]
+            sage: f(p.an_element()) == p.an_element()
+            True
+
         """
         #powersum   = self.powersum  ()
         #complete   = self.complete  ()

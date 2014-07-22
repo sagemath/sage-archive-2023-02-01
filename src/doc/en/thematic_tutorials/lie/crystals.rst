@@ -314,7 +314,7 @@ the irreducible character with highest weight `\lambda`, as in
 :ref:`representations`.
 
 The crystal `\mathcal{B}_\lambda` is not uniquely characterized by the
-properties that we have stated so far. For Cartan types A, D, E it may
+properties that we have stated so far. For Cartan types `A, D, E` it may
 be characterized by these properties together with certain other
 *Stembridge axioms*. We will take it for granted that there is a
 unique "correct" crystal `\mathcal{B}_\lambda` and discuss how these
@@ -325,10 +325,11 @@ Installing dot2tex
 ------------------
 
 Before giving examples of crystals, we digress to help you install
-dot2tex, which you will need in order to make latex images of
+``dot2tex``, which you will need in order to make latex images of
 crystals.
 
-dot2tex is an optional package of sage and the latest version can be installed via::
+``dot2tex`` is an optional package of sage and the latest version
+can be installed via::
 
     sage -i dot2tex
 
@@ -336,16 +337,18 @@ dot2tex is an optional package of sage and the latest version can be installed v
 Crystals of tableaux in Sage
 ----------------------------
 
+All crystals that are currently in Sage can be accessed by ``crystals.<tab>``.
+
 For type `A_r`, Kashiwara and Nakashima put a crystal structure on the
-set of tableaux with shape `\lambda` in `1,2,\dots,r+1`, and this is a
-realization of `\mathcal{B}_\lambda`. Moreover, this construction
+set of tableaux with shape `\lambda` in `1, 2, \ldots, r+1`, and this is a
+realization of `\mathcal{B}_{\lambda}`. Moreover, this construction
 extends to other Cartan types, as we will explain. At the moment, we
 will consider how to draw pictures of these crystals.
 
-Once you have dot2tex installed, you may make images pictures of crystals
+Once you have ``dot2tex`` installed, you may make images pictures of crystals
 with a command such as this::
 
-    sage: CrystalOfTableaux("A2", shape=[2,1]).latex_file("/tmp/a2rho.tex") # optional - dot2tex graphviz
+    sage: crystals.Tableaux("A2", shape=[2,1]).latex_file("/tmp/a2rho.tex") # optional - dot2tex graphviz
 
 Here `\lambda = (2,1)=(2,1,0)`. The crystal ``C`` is
 `\mathcal{B}_{\lambda}`. The character `\chi_\lambda` will therefore
@@ -353,7 +356,7 @@ be the eight-dimensional irreducible character with this highest
 weight. Then you may run pdflatex on the file ``a2rho.tex``.
 This can also be achieved without the detour of saving the latex file via::
 
-    sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+    sage: B = crystals.Tableaux(['A',2], shape=[2,1])
     sage: view(B, pdflatex=True, tightpage=True) # optional - dot2tex graphviz
 
 This produces the crystal graph:
@@ -364,7 +367,7 @@ This produces the crystal graph:
 
 You may also wish to color the edges in different colors by specifying further latex options::
 
-    sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+    sage: B = crystals.Tableaux(['A',2], shape=[2,1])
     sage: G = B.digraph()
     sage: G.set_latex_options(color_by_label = {1:"red", 2:"yellow"})
     sage: view(G, pdflatex=True, tightpage=True) # optional - dot2tex graphviz
@@ -389,7 +392,7 @@ weight `(2,1,0)`, which indeed equals `\lambda`.
 Once the crystal is created, you have access to the ambient space and
 its methods through the method ``weight_lattice_realization()``::
 
-    sage: C = CrystalOfTableaux("A2", shape=[2,1])
+    sage: C = crystals.Tableaux("A2", shape=[2,1])
     sage: L = C.weight_lattice_realization(); L
     Ambient space of the Root system of type ['A', 2]
     sage: L.fundamental_weights()
@@ -397,20 +400,20 @@ its methods through the method ``weight_lattice_realization()``::
 
 The highest weight vector is available as follows::
 
-    sage: C = CrystalOfTableaux("A2", shape=[2,1])
+    sage: C = crystals.Tableaux("A2", shape=[2,1])
     sage: v = C.highest_weight_vector(); v
     [[1, 1], [2]]
 
 or more simply::
 
-    sage: C = CrystalOfTableaux("A2", shape=[2,1])
+    sage: C = crystals.Tableaux("A2", shape=[2,1])
     sage: C[0]
     [[1, 1], [2]]
 
 Now we may apply the operators `e_i` and `f_i` to move around in the
 crystal::
 
-    sage: C = CrystalOfTableaux("A2", shape=[2,1])
+    sage: C = crystals.Tableaux("A2", shape=[2,1])
     sage: v = C.highest_weight_vector()
     sage: v.f(1)
     [[1, 2], [2]]
@@ -430,7 +433,7 @@ You can construct the character if you first make a Weyl character
 ring::
 
     sage: A2 = WeylCharacterRing("A2")
-    sage: C = CrystalOfTableaux("A2", shape=[2,1])
+    sage: C = crystals.Tableaux("A2", shape=[2,1])
     sage: C.character(A2)
     A2(2,1,0)
 
@@ -454,7 +457,7 @@ Here is the standard crystal of type `A_r`.
 
 You may create the crystal, and work with it as follows::
 
-    sage: C = CrystalOfLetters("A6")
+    sage: C = crystals.Letters("A6")
     sage: v0 = C.highest_weight_vector(); v0
     1
     sage: v0.f(1)
@@ -479,17 +482,17 @@ we will describe it. Its elements are vectors
 `\epsilon_i=\pm 1`.
 
 If `i<r`, then the effect of the operator
-`f_i` is to annihilate `v=\epsilon_1\otimes\cdots\otimes\epsilon_r`
-unless `\epsilon_i\otimes\epsilon_{i+1}=+\otimes-`. If this is
+`f_i` is to annihilate `v = \epsilon_1 \otimes \cdots \otimes \epsilon_r`
+unless `\epsilon_i \otimes \epsilon_{i+1} = + \otimes -`. If this is
 so, then `f_i(v)` is obtained from `v` by replacing
-`\epsilon_i\otimes\epsilon_{i+1}` by `-\otimes+`. If `i=r`, then
+`\epsilon_i \otimes \epsilon_{i+1}` by `- \otimes +`. If `i=r`, then
 `f_r` annihilates `v` unless `\epsilon_r=+`, in which case it
 replaces `\epsilon_r` by `-`.
 
-Create the Crystal of Spins as follows. The crystal elements are represented
+Create the spin crystal as follows. The crystal elements are represented
 in the signature representation listing the `\epsilon_i`::
 
-    sage: C = CrystalOfSpins("B3")
+    sage: C = crystals.Spins("B3")
     sage: C.list()
     [+++, ++-, +-+, -++, +--, -+-, --+, ---]
 
@@ -506,13 +509,13 @@ Here is the standard crystal of type `D_r`.
    :align: center
 
 There are two spin crystals for type `D_r`. Each consists of
-`\epsilon_1\otimes\cdots\otimes\epsilon_r` with `\epsilon_i=\pm`, and the
-number of spins either always even or always odd. We will not describe the
-effect of the root operators `f_i`, but you are invited to create them
+`\epsilon_1 \otimes \cdots \otimes \epsilon_r` with `\epsilon_i = \pm`, and
+the number of spins either always even or always odd. We will not describe
+the effect of the root operators `f_i`, but you are invited to create them
 and play around with them to guess the rule::
 
-    sage: Cplus = CrystalOfSpinsPlus("D4")
-    sage: Cminus = CrystalOfSpinsMinus("D4")
+    sage: Cplus = crystals.SpinsPlus("D4")
+    sage: Cminus = crystals.SpinsMinus("D4")
 
 It is also possible to construct the standard crystal for type
 `G_2`, `E_6`, and `E_7`. Here is the one for type `G_2` (corresponding
@@ -527,17 +530,17 @@ in the sense that `\mathcal{B}_{\hbox{standard}}` is isomorphic to
 the crystal of tableaux whose highest weight `\lambda` is the highest
 weight vector of the standard representation. Thus compare::
 
-    sage: CrystalOfLetters("A3")
+    sage: crystals.Letters("A3")
     The crystal of letters for type ['A', 3]
-    sage: CrystalOfTableaux("A3", shape=[1])
+    sage: crystals.Tableaux("A3", shape=[1])
     The crystal of tableaux of type ['A', 3] and shape(s) [[1]]
 
 These two crystals are different in implementation, but they are
 isomorphic, and in fact the second crystal is constructed from the
 first. We can test isomorphisms between crystals as follows::
 
-    sage: Cletter = CrystalOfLetters(['A',3])
-    sage: Ctableaux = CrystalOfTableaux(['A',3], shape = [1])
+    sage: Cletter = crystals.Letters(['A',3])
+    sage: Ctableaux = crystals.Tableaux(['A',3], shape = [1])
     sage: Cletter.digraph().is_isomorphic(Ctableaux.digraph())
     True
     sage: Cletter.digraph().is_isomorphic(Ctableaux.digraph(), certify = True)
@@ -561,7 +564,7 @@ if `\lambda` and `\mu` are dominant weights, then
 disconnected) crystal which may contain multiple copies of
 `\mathcal{B}_\nu` (for another dominant weight `\nu`) but the number
 of copies of `\mathcal{B}_\nu` is exactly the multiplicity of
-`\chi_\nu` in `\chi_\lambda\chi_\mu`.
+`\chi_\nu` in `\chi_\lambda \chi_\mu`.
 
 We will describe two conventions for the tensor product of
 crystals. These conventions would have to be modified slightly without
@@ -676,10 +679,10 @@ crystals of tableaux are identical to Kashiwara's.
 Tensor products of crystals in Sage
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 You may construct the tensor product of several crystals in Sage using
-``TensorProductOfCrystals``::
+``crystals.TensorProduct``::
 
-    sage: C = CrystalOfLetters("A2")
-    sage: T = TensorProductOfCrystals(C,C,C); T
+    sage: C = crystals.Letters("A2")
+    sage: T = crystals.TensorProduct(C,C,C); T
     Full tensor product of the crystals [The crystal of letters for type ['A', 2],
     The crystal of letters for type ['A', 2], The crystal of letters for type ['A', 2]]
     sage: T.cardinality()
@@ -691,8 +694,8 @@ This crystal has four highest weight vectors. We may understand this
 as follows::
 
     sage: A2 = WeylCharacterRing("A2")
-    sage: C = CrystalOfLetters("A2")
-    sage: T = TensorProductOfCrystals(C,C,C)
+    sage: C = crystals.Letters("A2")
+    sage: T = crystals.TensorProduct(C,C,C)
     sage: chi_C = C.character(A2)
     sage: chi_T = T.character(A2)
     sage: chi_C
@@ -715,10 +718,10 @@ we can specify a list of highest weight vectors by the option
 irreducible crystal. We can make four such crystals::
 
     sage: A2 = WeylCharacterRing("A2")
-    sage: C = CrystalOfLetters("A2")
-    sage: T = TensorProductOfCrystals(C,C,C)
+    sage: C = crystals.Letters("A2")
+    sage: T = crystals.TensorProduct(C,C,C)
     sage: [T1,T2,T3,T4] = \
-      [TensorProductOfCrystals(C,C,C,generators=[v]) for v in T.highest_weight_vectors()]
+      [crystals.TensorProduct(C,C,C,generators=[v]) for v in T.highest_weight_vectors()]
     sage: [B.cardinality() for B in [T1,T2,T3,T4]]
     [10, 8, 8, 1]
     sage: [B.character(A2) for B in [T1,T2,T3,T4]]
@@ -728,16 +731,16 @@ We see that two of these crystals are isomorphic, with character
 ``A2(2,1,0)``. Try::
 
     sage: A2 = WeylCharacterRing("A2")
-    sage: C = CrystalOfLetters("A2")
-    sage: T = TensorProductOfCrystals(C,C,C)
+    sage: C = crystals.Letters("A2")
+    sage: T = crystals.TensorProduct(C,C,C)
     sage: [T1,T2,T3,T4] = \
-      [TensorProductOfCrystals(C,C,C,generators=[v]) for v in T.highest_weight_vectors()]
+      [crystals.TensorProduct(C,C,C,generators=[v]) for v in T.highest_weight_vectors()]
     sage: T1.plot()
     sage: T2.plot()
     sage: T3.plot()
     sage: T4.plot()
 
-Elements of ``TensorProductOfCrystals(A,B,C, ...)`` are represented by
+Elements of ``crystals.TensorProduct(A,B,C, ...)`` are represented by
 sequences ``[a,b,c, ...]`` with ``a`` in ``A``, ``b`` in ``B``, etc.
 This of course represents `a \otimes b \otimes c \otimes \cdots`.
 
@@ -745,10 +748,13 @@ This of course represents `a \otimes b \otimes c \otimes \cdots`.
 Crystals of tableaux as tensor products of crystals
 ---------------------------------------------------
 
-Sage implements the ``CrystalOfTableaux`` as a subcrystal of a tensor
-product of the CrystalOfLetters. You can see how its done as follows::
+Sage implements the
+:class:`~sage.combinat.crystals.tensor_product.CrystalOfTableaux` as
+a subcrystal of a tensor product of the
+:class:`~sage.combinat.crystals.letters.CrystalOfLetters`. You can see how
+its done as follows::
 
-    sage: T = CrystalOfTableaux("A4",shape=[3,2])
+    sage: T = crystals.Tableaux("A4",shape=[3,2])
     sage: v = T.highest_weight_vector().f(1).f(2).f(3).f(2).f(1).f(4).f(2).f(3); v
     [[1, 2, 5], [3, 4]]
     sage: v._list
@@ -756,7 +762,8 @@ product of the CrystalOfLetters. You can see how its done as follows::
 
 We've looked at the internal representation of `v`, where it is
 represented as an element of the fourth tensor power of the
-``CrystalOfLetters``. We see that the tableau:
+:class:`~sage.combinat.crystals.letters.CrystalOfLetters`. We see
+that the tableau:
 
 .. MATH::
 
@@ -781,16 +788,19 @@ of a tableau.
 Spin crystals
 -------------
 
-For the Cartan types `A_r`, `C_r` or `G_2`, ``CrystalOfTableaux`` are
+For the Cartan types `A_r`, `C_r` or `G_2`,
+:class:`~sage.combinat.crystals.tensor_product.CrystalOfTableaux` are
 capable of making any finite crystal. (For type `A_r` it is necessary
 that the highest weight `\lambda` be a partition.)
 
 For Cartan types `B_r` and `D_r`, there also exist spin representations.
 The corresponding crystals are implemented as *spin crystals*.
-For these types, ``CrystalOfTableaux`` also allows the input shape
-`\lambda` to be half-integral if it is of height `r`. For example::
+For these types,
+:class:`~sage.combinat.crystals.tensor_product.CrystalOfTableaux` also allows
+the input shape `\lambda` to be half-integral if it is of height `r`.
+For example::
 
-    sage: C = CrystalOfTableaux(['B',2], shape = [3/2, 1/2])
+    sage: C = crystals.Tableaux(['B',2], shape = [3/2, 1/2])
     sage: C.list()
     [[++, [[1]]], [++, [[2]]], [++, [[0]]], [++, [[-2]]], [++, [[-1]]], [+-, [[-2]]],
     [+-, [[-1]]], [-+, [[-1]]], [+-, [[1]]], [+-, [[2]]], [-+, [[2]]], [+-, [[0]]],
@@ -800,17 +810,18 @@ Here the first list of `+` and `-` gives a spin column that is discussed in more
 in the next section and the second entry is a crystal of tableau element for
 `\lambda = (\lfloor \lambda_1 \rfloor, \lfloor \lambda_2 \rfloor, \ldots )`.
 For type `D_r`, we have the additional feature that there are two types of spin
-crystals. Hence in ``CrystalOfTableaux`` the `r`-th entry of `\lambda` in this case
-can also take negative values::
+crystals. Hence in
+:class:`~sage.combinat.crystals.tensor_product.CrystalOfTableaux`
+the `r`-th entry of `\lambda` in this case can also take negative values::
 
-    sage: C = CrystalOfTableaux(['D',3], shape = [1/2, 1/2,-1/2])
+    sage: C = crystals.Tableaux(['D',3], shape = [1/2, 1/2,-1/2])
     sage: C.list()
     [[++-, []], [+-+, []], [-++, []], [---, []]]
 
-For rank two Cartan types, we also have ``FastCrystals`` which gives a different fast
-implementation of these crystals::
+For rank two Cartan types, we also have ``crystals.FastRankTwo`` which gives
+a different fast implementation of these crystals::
 
-    sage: B = FastCrystal(['B',2], shape=[3/2,1/2]); B
+    sage: B = crystals.FastRankTwo(['B',2], shape=[3/2,1/2]); B
     The fast crystal for B2 with shape [3/2,1/2]
     sage: v = B.highest_weight_vector(); v.weight()
     (3/2, 1/2)
@@ -823,7 +834,7 @@ last fundamental weight. The irreducible representation with this
 weight is the spin representation of degree `2^r`. Its crystal is
 hand-coded in Sage::
 
-    sage: Cspin = CrystalOfSpins("B3"); Cspin
+    sage: Cspin = crystals.Spins("B3"); Cspin
     The crystal of spins for type ['B', 3]
     sage: Cspin.cardinality()
     8
@@ -850,15 +861,16 @@ produce a reducible crystal with three constitutents, and we want to
 extract the one we want. We do that as follows::
 
     sage: B3 = WeylCharacterRing("B3")
-    sage: C1 = CrystalOfTableaux("B3", shape=[1,1])
-    sage: Cspin = CrystalOfSpins("B3")
-    sage: C = TensorProductOfCrystals(C1, Cspin, generators=[[C1[0],Cspin[0]]])
+    sage: C1 = crystals.Tableaux("B3", shape=[1,1])
+    sage: Cspin = crystals.Spins("B3")
+    sage: C = crystals.TensorProduct(C1, Cspin, generators=[[C1[0],Cspin[0]]])
     sage: C.cardinality()
     112
 
-Alternatively, we can get this directly from ``CrystalOfTableaux``::
+Alternatively, we can get this directly from
+:class:`~sage.combinat.crystals.tensor_product.CrystalOfTableaux`::
 
-    sage: C = CrystalOfTableaux(['B',3], shape = [3/2,3/2,1/2])
+    sage: C = crystals.Tableaux(['B',3], shape = [3/2,3/2,1/2])
     sage: C.cardinality()
     112
 
@@ -870,8 +882,8 @@ Type D spin crystals
 A similar situation pertains for type `D_r`, but now there are two
 spin crystals, both of degree `2^{r-1}`. These are hand-coded in sage::
 
-    sage: SpinPlus = CrystalOfSpinsPlus("D4")
-    sage: SpinMinus = CrystalOfSpinsMinus("D4")
+    sage: SpinPlus = crystals.SpinsPlus("D4")
+    sage: SpinMinus = crystals.SpinsMinus("D4")
     sage: SpinPlus[0].weight()
     (1/2, 1/2, 1/2, 1/2)
     sage: SpinMinus[0].weight()
@@ -893,7 +905,7 @@ of the Weyl group acting on the `i`-th simple root `\alpha_i`. For example, for 
 whereas for type `C_n` we have `i^*=i`. For type `D_n` and `n` even also have `i^*=i`, but for `n` odd this
 map interchanges nodes `n-1` and `n`. Here is how to achieve this in Sage::
 
-    sage: B = CrystalOfTableaux(['A',3],shape=[2,1])
+    sage: B = crystals.Tableaux(['A',3],shape=[2,1])
     sage: b = B(rows=[[1,2],[3]])
     sage: b.lusztig_involution()
     [[2, 4], [3]]
@@ -907,7 +919,7 @@ defined on tableaux)::
 
 For all tableaux in a given crystal, this can be tested via::
 
-    sage: B = CrystalOfTableaux(['A',3],shape=[2])
+    sage: B = crystals.Tableaux(['A',3],shape=[2])
     sage: all(b.lusztig_involution().to_tableau() == b.to_tableau().schuetzenberger_involution(n=4) for b in B)
     True
 
@@ -916,7 +928,7 @@ type::
 
     sage: C = CartanType(['E',6])
     sage: La = C.root_system().weight_lattice().fundamental_weights()
-    sage: T = HighestWeightCrystal(La[1])
+    sage: T = crystals.HighestWeight(La[1])
     sage: t = T[4]; t
     [(-2, 5)]
     sage: t.lusztig_involution()
@@ -938,7 +950,7 @@ erasing the `i`-th node, then if we erase all the edges in the crystal
 
 In Sage this is achieved by specifying the index set used in the digraph method::
 
-    sage: T = CrystalOfTableaux(['D',4],shape=[1])
+    sage: T = crystals.Tableaux(['D',4],shape=[1])
     sage: G = T.digraph(index_set=[1,2,3])
 
 We see that the type `D_4` crystal indeed decomposes into two type `A_3` components.
@@ -955,7 +967,7 @@ Sometimes it might be desirable to work with a subcrystal of a crystal. For exam
 one might want to look at all `\{2,3,\ldots,n\}` highest elements of a crystal
 and look at a particular such component::
 
-    sage: T = CrystalOfTableaux(['D',4],shape=[2,1])
+    sage: T = crystals.Tableaux(['D',4],shape=[2,1])
     sage: hw = [ t for t in T if t.is_highest_weight(index_set = [2,3,4]) ]; hw
     [[[1, 1], [2]],
      [[1, 2], [2]],

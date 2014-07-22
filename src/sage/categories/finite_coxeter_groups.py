@@ -84,7 +84,7 @@ class FiniteCoxeterGroups(Category):
         @lazy_attribute
         def w0(self):
             r"""
-            Return the longest element of self.
+            Return the longest element of ``self``.
 
             This attribute is deprecated.
 
@@ -105,10 +105,10 @@ class FiniteCoxeterGroups(Category):
             INPUT:
 
             - ``index_set`` - a subset (as a list or iterable) of the
-              nodes of the dynkin diagram; (default: all of them)
+              nodes of the Dynkin diagram; (default: all of them)
 
             Returns the longest element of ``self``, or of the
-            parabolic subgroup corresponding to the given index_set.
+            parabolic subgroup corresponding to the given ``index_set``.
 
             Should this method be called maximal_element? longest_element?
 
@@ -142,7 +142,7 @@ class FiniteCoxeterGroups(Category):
         @cached_method
         def bruhat_poset(self, facade = False):
             """
-            Returns the Bruhat poset of ``self``
+            Returns the Bruhat poset of ``self``.
 
             EXAMPLES::
 
@@ -202,7 +202,7 @@ class FiniteCoxeterGroups(Category):
             INPUT:
 
             - ``side`` -- "left", "right", or "twosided" (default: "right")
-            - ``facade`` -- a boolean (default: False)
+            - ``facade`` -- a boolean (default: ``False``)
 
             Returns the left (resp. right) poset for weak order.  In
             this poset, `u` is smaller than `v` if some reduced word
@@ -316,9 +316,9 @@ class FiniteCoxeterGroups(Category):
                 [5, 6, 5, 1]]
 
             Recursive algorithm: write `w` for ``self``. If `i` is a
-            non-descent of `w``, then the covers of `w` are exactly
-            `\{ws_i, u_1s_i, u_2s_i,..., u_js_i\}', where the 'u_k'
-            are those covers of 'ws_i' that have a descent at `i`.
+            non-descent of `w`, then the covers of `w` are exactly
+            `\{ws_i, u_1s_i, u_2s_i,..., u_js_i\}`, where the `u_k`
+            are those covers of `ws_i` that have a descent at `i`.
             """
 
             i = self.first_descent(positive=True)

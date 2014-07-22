@@ -130,7 +130,7 @@ class Schemes_abstract(Category):
             A = Spec(x.codomain())
             return A.hom(x)
         else:
-            raise TypeError, "No way to create an object or morphism in %s from %s"%(self, x)
+            raise TypeError("No way to create an object or morphism in %s from %s"%(self, x))
 
 
     class HomCategory(HomCategory):

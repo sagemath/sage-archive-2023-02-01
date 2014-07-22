@@ -278,7 +278,7 @@ class OperationTable(SageObject):
         *
          +
         sage: T._latex_()
-        '{\\setlength{\\arraycolsep}{2\\ex}\n\\begin{array}{r|*{0}{r}}\n\\multicolumn{1}{c|}{\\ast}\\\\\\hline\n\\end{array}}'
+        '{\\setlength{\\arraycolsep}{2ex}\n\\begin{array}{r|*{0}{r}}\n\\multicolumn{1}{c|}{\\ast}\\\\\\hline\n\\end{array}}'
 
     If the algebraic structure cannot be listed (like when it is infinite)
     then there is no way to create a table. ::
@@ -375,7 +375,7 @@ class OperationTable(SageObject):
                     raise ValueError('%s is infinite' % S)
             try:
                 elems = tuple(S)
-            except StandardError:
+            except Exception:
                 raise ValueError('unable to determine elements of %s' % S)
         else:
             elems = []
@@ -384,7 +384,7 @@ class OperationTable(SageObject):
                     coerced = S(e)
                     if not(coerced in elems):
                         elems.append(coerced)
-            except StandardError:
+            except Exception:
                 raise TypeError('unable to coerce %s into %s' % (e, S))
         self._elts = elems
         self._n = len(self._elts)
@@ -426,7 +426,7 @@ class OperationTable(SageObject):
                     row.append(self._elts.index(result))
                 except ValueError:  # list/index condition
                     raise ValueError('%s%s%s=%s, and so the set is not closed' % (g, self._ascii_symbol, h, result))
-                except StandardError:
+                except Exception:
                     raise TypeError('elements %s and %s of %s are incompatible with operation: %s' % (g,h,S,self._operation))
             self._table.append(row)
 
@@ -476,7 +476,7 @@ class OperationTable(SageObject):
             sage: T._name_maker(['x'])
             Traceback (most recent call last):
             ...
-            ValueError: list of element names must be the same size as the set, 1 <> 3
+            ValueError: list of element names must be the same size as the set, 1 != 3
             sage: T._name_maker(['x', 'y', 4])
             Traceback (most recent call last):
             ...
@@ -516,7 +516,7 @@ class OperationTable(SageObject):
                 name_list.append(estr)
         elif isinstance(names, list):
             if len(names) != self._n:
-                raise ValueError('list of element names must be the same size as the set, %s <> %s'%(len(names), self._n))
+                raise ValueError('list of element names must be the same size as the set, %s != %s'%(len(names), self._n))
             width = 0
             for str in names:
                 if not isinstance(str, basestring):
@@ -673,7 +673,7 @@ class OperationTable(SageObject):
             b| b c a
             c| c a b
             sage: T._latex_()
-            '{\\setlength{\\arraycolsep}{2\\ex}\n\\begin{array}{r|*{3}{r}}\n\\multicolumn{1}{c|}{\\times}&a&b&c\\\\\\hline\n{}a&a&b&c\\\\\n{}b&b&c&a\\\\\n{}c&c&a&b\\\\\n\\end{array}}'
+            '{\\setlength{\\arraycolsep}{2ex}\n\\begin{array}{r|*{3}{r}}\n\\multicolumn{1}{c|}{\\times}&a&b&c\\\\\\hline\n{}a&a&b&c\\\\\n{}b&b&c&a\\\\\n{}c&c&a&b\\\\\n\\end{array}}'
 
         TESTS::
 
@@ -1000,13 +1000,13 @@ class OperationTable(SageObject):
             sage: R=Integers(2)
             sage: T=OperationTable(R, operation=operator.mul)
             sage: T._latex_()
-            '{\\setlength{\\arraycolsep}{2\\ex}\n\\begin{array}{r|*{2}{r}}\n\\multicolumn{1}{c|}{\\ast}&a&b\\\\\\hline\n{}a&a&a\\\\\n{}b&a&b\\\\\n\\end{array}}'
+            '{\\setlength{\\arraycolsep}{2ex}\n\\begin{array}{r|*{2}{r}}\n\\multicolumn{1}{c|}{\\ast}&a&b\\\\\\hline\n{}a&a&a\\\\\n{}b&a&b\\\\\n\\end{array}}'
         """
         n = self._n
         names = self._names
 
         # Headers
-        table = ['{\\setlength{\\arraycolsep}{2\\ex}\n']
+        table = ['{\\setlength{\\arraycolsep}{2ex}\n']
         table.append('\\begin{array}{r|*{'+str(n)+'}{r}}\n')
         table.append('\\multicolumn{1}{c|}{'+self._latex_symbol+'}')
         table += ['&'+names[i] for i in range(n)]

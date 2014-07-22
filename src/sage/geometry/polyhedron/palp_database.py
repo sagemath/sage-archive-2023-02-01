@@ -412,7 +412,7 @@ class Reflexive4dHodge(PALPreader):
     Any additional keyword arguments are passed to
     :class:`PALPreader`.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.geometry.polyhedron.palp_database import Reflexive4dHodge
         sage: ref = Reflexive4dHodge(1,101)             # optional - polytopes_db_4d

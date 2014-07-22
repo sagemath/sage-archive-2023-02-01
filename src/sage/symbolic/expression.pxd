@@ -1,4 +1,4 @@
-from sage.libs.ginac cimport *
+from ginac cimport *
 
 from sage.structure.element cimport CommutativeRingElement
 

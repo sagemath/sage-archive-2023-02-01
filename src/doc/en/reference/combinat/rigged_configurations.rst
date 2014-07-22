@@ -2,7 +2,7 @@ Rigged Configurations
 =====================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    ../sage/combinat/rigged_configurations/rigged_configurations
    ../sage/combinat/rigged_configurations/rigged_configuration_element
@@ -15,8 +15,5 @@ Rigged Configurations
 
    ../sage/combinat/rigged_configurations/rigged_partition
 
-   ../sage/combinat/rigged_configurations/bijection
-   ../sage/combinat/rigged_configurations/bij_abstract_class
-   ../sage/combinat/rigged_configurations/bij_type_A
-   ../sage/combinat/rigged_configurations/bij_type_D
+   rc_bijections
 

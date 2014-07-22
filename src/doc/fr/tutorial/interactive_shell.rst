@@ -51,7 +51,8 @@ Une session est la suite des entrées et sorties qui interviennent entre
 le moment où vous démarrez Sage et celui où vous le quittez. Sage
 enregistre un journal de toutes les entrées via IPython. Si vous
 utilisez le shell interactif (par opposition à l'interface *notebook*),
-vous pouvez taper ``%hist`` à n'importe quel moment pour obtenir la
+vous pouvez taper ``%history`` (ou ``%hist``) à n'importe
+quel moment pour obtenir la
 liste de toutes les lignes de commandes entrées depuis le début de la
 session. Tapez ``?`` à l'invite de commande Sage pour plus
 d'informations sur IPython. Par exemple : « IPython fournit des invites
@@ -375,6 +376,83 @@ Nous voyons que GAP et Maxima sont les plus lents sur ce test (lancé sur
 la machine ``sage.math.washington.edu``). Mais en raison du surcoût de
 l'interface pexpect, la comparaison avec Sage, qui est le plus rapide,
 n'est pas vraiment équitable.
+
+Trucs et astuces IPython
+========================
+
+Comme signalé plus haut, Sage utilise l'interpréteur de commandes IPython, et
+met donc à votre disposition toutes les commandes et fonctionnalités de
+celui-ci. Vous voudrez peut-être consulter la `documentation complète de IPython
+<http://ipython.scipy.org/moin/Documentation>`_. Voici en attendant quelques
+astuces utiles -- qui reposent sur ce que IPython appelle des « commandes
+magiques » :
+
+- La commande magique ``%bg`` lance une commande en arrière-plan. Le résultat
+  sera ensuite accessible à travers l'objet ``jobs``, comme dans l'exemple
+  ci-dessous. (Les commentaires « not tested » sont là parce que ``%bg`` ne
+  fonctionne pas correctement dans l'infrastructure de test automatisé de Sage,
+  mais si vous reproduisez l'exemple, il devrait fonctionner comme indiqué.
+  Naturellement, ``%bg`` est surtout utile pour les commandes dont l'exécution
+  prend beaucoup de temps.)
+
+  ::
+
+    sage: def quick(m): return 2*m
+    sage: %bg quick(20)  # not tested
+    Starting job # 0 in a separate thread.
+    sage: jobs.status()  # not tested
+    Completed jobs:
+    0 : quick(20)
+    sage: jobs[0].result  # the actual answer, not tested
+    40
+
+  Attention, les tâches lancées en arrière-plan ignorent le préprocesseur Sage
+  (voir section :ref:`section-mathannoy`). Une manière (certes pas très
+  commode) de contourner le problème est la suivante ::
+
+    sage: %bg eval(preparse('quick(20)')) # not tested
+
+  Mais il est plus simple et plus sûr de réserver ``%bg`` aux commandes en pur
+  Python, qui ne font pas appel au préprocesseur.
+
+- Lorsque l'on souhaite saisir un morceau de code complexe, on peut utiliser
+  ``%edit`` (ou ``%ed``, ou ``ed``) pour ouvrir un éditeur de texte.
+  Assurez-vous que la variable d'environnement :envvar:`EDITOR` est réglée à
+  votre éditeur favori au démarrage de Sage (en plaçant si nécessaire quelque
+  chose du genre ``export EDITOR=/usr/bin/emacs`` ou encore  ``export
+  EDITOR=/usr/bin/vim`` dans un fichier de configuration convenable, par
+  exemple ``.profile``). La commande ``%edit`` à l'invite de Sage ouvrira
+  l'éditeur sélectionné. Vous pouvez alors par exemple saisir une définition de
+  fonction::
+  
+    def some_function(n):
+        return n**2 + 3*n + 2
+
+  puis enregistrer le fichier et quitter l'éditeur. La fonction
+  ``some_function`` est désormais disponible dans votre session Sage, et vous
+  pouvez la modifier en saisissant ``edit some_function`` à l'invite de
+  commande.
+
+- Si vous souhaitez reprendre une version modifiée du résultat d'un calcul dans
+  une nouvelle commande, tapez ``%rep`` après avoir fait le calcul. Cela
+  récupère le texte du résultat et le place sur la ligne de commande, prêt à
+  être modifié. ::
+
+    sage: f(x) = cos(x)
+    sage: f(x).derivative(x)
+    -sin(x)
+
+  Ainsi, après les commandes ci-dessus, la commande ``%rep`` fournit un nouvel
+  invite de commande pré-rempli avec le texte ``-sin(x)`` et le curseur en fin
+  de ligne.
+
+Pour plus d'information, entrez la commande ``%quickref`` pour un résumé des
+possibilités de IPython. Au moment où cette documentation est écrite
+(avril 2011), Sage emploie IPython 0.9.1. La `documentation des commandes
+magiques
+<http://ipython.org/ipython-doc/dev/interactive/tutorial.html#magic-functions>`_
+est disponible en ligne, et divers aspects un peu plus avancés de leur
+fonctionnement sont décrits `ici  <http://ipython.org/ipython-doc/stable/interactive/reference.html#magic-command-system>`_.
 
 Erreurs et exceptions
 =====================

@@ -127,7 +127,10 @@ cdef class ntl_mat_GF2:
         return r
 
     def __dealloc__(self):
-        mat_GF2_destruct(&self.x)
+        # With NTL 6.0.0, mat_GF2 is a proper C++ class.
+        # Therefore Cython automagically calls the class destructor.
+        #mat_GF2_destruct(&self.x)
+        pass
 
     def __reduce__(self):
         """

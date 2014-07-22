@@ -8,12 +8,12 @@ Miscellaneous
    sage/misc/ascii_art
    sage/misc/bindable_class
    sage/misc/cachefunc
+   sage/misc/weak_dict
    sage/misc/c3
    sage/misc/decorators
    sage/misc/lazy_list
    sage/misc/classgraph
    sage/misc/dev_tools
-   sage/misc/profiler
    sage/misc/function_mangling
    sage/misc/exceptions
    sage/misc/misc
@@ -23,13 +23,9 @@ Miscellaneous
    sage/misc/package
    sage/misc/explain_pickle
    sage/misc/getusage
-   sage/misc/sage_timeit
-   sage/misc/sage_timeit_class
    sage/misc/mrange
    sage/misc/dist
-   sage/misc/hg
    sage/misc/preparser
-   sage/misc/interpreter
    sage/misc/functional
    sage/misc/html
    sage/misc/table
@@ -53,6 +49,19 @@ Miscellaneous
    sage/misc/messaging
    sage/misc/viewer
    sage/misc/session
+
+
+Profiling and Performance Testing
+---------------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/misc/sage_timeit
+   sage/misc/sage_timeit_class
+   sage/misc/profiler
+   sage/misc/gperftools
+
 
 LaTeX
 -----

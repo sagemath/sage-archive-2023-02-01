@@ -580,7 +580,7 @@ class Singular(Expect):
         x = str(x).rstrip().rstrip(';')
         x = x.replace("> ",">\t") #don't send a prompt  (added by Martin Albrecht)
         if not allow_semicolon and x.find(";") != -1:
-            raise TypeError, "singular input must not contain any semicolons:\n%s"%x
+            raise TypeError("singular input must not contain any semicolons:\n%s"%x)
         if len(x) == 0 or x[len(x) - 1] != ';':
             x += ';'
 
@@ -832,7 +832,7 @@ class Singular(Expect):
             return self(gens.name(), 'ideal')
 
         if not isinstance(gens, (list, tuple)):
-            raise TypeError, "gens (=%s) must be a list, tuple, string, or Singular element"%gens
+            raise TypeError("gens (=%s) must be a list, tuple, string, or Singular element"%gens)
 
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
@@ -976,7 +976,7 @@ class Singular(Expect):
             if char != 0:
                 n = sage.rings.integer.Integer(char)
                 if not n.is_prime():
-                    raise ValueError, "the characteristic must be 0 or prime"
+                    raise ValueError("the characteristic must be 0 or prime")
         R = self('%s,%s,%s'%(char, vars, order), 'ring')
         self.eval('short=0')  # make output include *'s for multiplication for *THIS* ring.
         return R
@@ -1016,7 +1016,7 @@ class Singular(Expect):
             //        block   2 : ordering C
         """
         if not isinstance(R, SingularElement):
-            raise TypeError, "R must be a singular ring"
+            raise TypeError("R must be a singular ring")
         self.eval("setring %s; short=0"%R.name(), allow_semicolon=True)
 
     setring = set_ring
@@ -1158,7 +1158,7 @@ class Singular(Expect):
             return self(self.eval("option(get)"),"intvec")
         elif cmd == "set":
             if not isinstance(val,SingularElement):
-                raise TypeError, "singular.option('set') needs SingularElement as second parameter"
+                raise TypeError("singular.option('set') needs SingularElement as second parameter")
             #SingularFunction(self,"option")("\"set\"",val)
             self.eval("option(set,%s)"%val.name())
         else:
@@ -1168,10 +1168,10 @@ class Singular(Expect):
         print "Interrupting %s..."%self
         try:
             self._expect.sendline(chr(4))
-        except pexpect.ExceptionPexpect, msg:
+        except pexpect.ExceptionPexpect as msg:
             raise pexcept.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
         self._start()
-        raise KeyboardInterrupt, "Restarting %s (WARNING: all variables defined in previous session are now invalid)"%self
+        raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)"%self)
 
 class SingularElement(ExpectElement):
     def __init__(self, parent, type, value, is_name=False):
@@ -1189,7 +1189,7 @@ class SingularElement(ExpectElement):
                 self._name = parent._create( value, type)
             # Convert SingularError to TypeError for
             # coercion to work properly.
-            except SingularError, x:
+            except SingularError as x:
                 self._session_number = -1
                 raise TypeError, x, sys.exc_info()[2]
             except BaseException:
@@ -1359,7 +1359,7 @@ class SingularElement(ExpectElement):
             value = P(value)
         if isinstance(n, tuple):
             if len(n) != 2:
-                raise ValueError, "If n (=%s) is a tuple, it must be a 2-tuple"%n
+                raise ValueError("If n (=%s) is a tuple, it must be a 2-tuple"%n)
             x, y = n
             P.eval('%s[%s,%s] = %s'%(self.name(), x, y, value.name()))
         else:
@@ -1682,7 +1682,7 @@ class SingularElement(ExpectElement):
                     sage_repr[ETuple(exp,ngens)]=k(singular_poly_list[coeff_start+i])
                 else:
                     elem = singular_poly_list[coeff_start+i]
-                    if not kcache.has_key(elem):
+                    if elem not in kcache:
                         kcache[elem] = k( elem )
                     sage_repr[ETuple(exp,ngens)]= kcache[elem]
 
@@ -1711,14 +1711,14 @@ class SingularElement(ExpectElement):
                     sage_repr[exp]=k(singular_poly_list[coeff_start+i])
                 else:
                     elem = singular_poly_list[coeff_start+i]
-                    if not kcache.has_key(elem):
+                    if elem not in kcache:
                         kcache[elem] = k( elem )
                     sage_repr[ exp ]= kcache[elem]
 
             return R(sage_repr)
 
         else:
-            raise TypeError, "Cannot coerce %s into %s"%(self,R)
+            raise TypeError("Cannot coerce %s into %s"%(self,R))
 
     def sage_matrix(self, R, sparse=True):
         """
@@ -1863,7 +1863,7 @@ class SingularElement(ExpectElement):
             R = self.sage_global_ring()
             br.set_ring()
             return R
-        raise NotImplementedError, "Coercion of this datatype not implemented yet"
+        raise NotImplementedError("Coercion of this datatype not implemented yet")
 
     def set_ring(self):
         """

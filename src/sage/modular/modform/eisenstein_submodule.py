@@ -657,14 +657,14 @@ def cyclotomic_restriction_tower(L,K):
         x + zeta6
     """
     if not L.has_coerce_map_from(K):
-        raise ValueError, "K must be contained in L"
+        raise ValueError("K must be contained in L")
     f = L.defining_polynomial()
     R = K['x']
     x = R.gen()
     g = R(f)
     h_ls = [ t[0] for t in g.factor() if t[0](L.gen(0)) == 0 ]
     if len(h_ls) == 0:
-        raise ValueError, "K (= Q(\zeta_%s)) is not contained in L (= Q(\zeta_%s))"%(K._n(), L._n())
+        raise ValueError("K (= Q(\zeta_%s)) is not contained in L (= Q(\zeta_%s))"%(K._n(), L._n()))
     h = h_ls[0]
     def z(a):
         """

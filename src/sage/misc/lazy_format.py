@@ -27,7 +27,7 @@ class LazyFormat(str):
 
         sage: class IDontLikeBeingPrinted(object):
         ...    def __repr__(self):
-        ...        raise ValueError, "Don't ever try to print me !"
+        ...        raise ValueError("Don't ever try to print me !")
 
     There is no error when binding a lazy format with the broken object::
 

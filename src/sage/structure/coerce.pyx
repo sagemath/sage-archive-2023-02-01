@@ -176,8 +176,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: A = cm.get_action(ZZ, NumberField(x^2-2, 'a'), operator.mul)
             sage: f, g = cm.coercion_maps(QQ, int)
             sage: f, g = cm.coercion_maps(ZZ, int)
-            sage: cm.get_stats()  # random
-            ((0, 1.0, 4), (0, 0.0, 0))
 
         .. note::
 
@@ -198,11 +196,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         EXAMPLES::
 
             sage: cm = sage.structure.element.get_coercion_model()
-            sage: cm.get_stats()                # random
-            ((0, 0.3307086614173229, 3), (0, 0.1496062992125984, 2))
+            sage: len(cm.get_cache()[0])    # random
+            42
             sage: cm.reset_cache()
-            sage: cm.get_stats()
-            ((0, 0.0, 0), (0, 0.0, 0))
+            sage: cm.get_cache()
+            ({}, {})
         """
         # This MUST be a mapping of tuples, where each
         # tuple contains at least two elements that are either
@@ -229,7 +227,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         an integer and a rational::
 
             sage: left_morphism, right_morphism = maps[ZZ, QQ]
-            sage: print left_morphism
+            sage: print copy(left_morphism)
             Natural morphism:
               From: Integer Ring
               To:   Rational Field
@@ -258,25 +256,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         return dict([((S, R), mors) for (S, R, op), mors in self._coercion_maps.iteritems()]), \
                dict(self._action_maps.iteritems())
-
-    def get_stats(self):
-        """
-        This returns the state of the cache of coercion maps and actions,
-        primarily useful for debugging and introspection.
-        If a class is not part of the coercion system, we should call the
-        __rmul__ method when it makes sense.
-
-        The coercion maps are stored in a specialized TripleDict hashtable,
-        and the stats returned are (min, avg, max) of the number of items
-        per bucket. The lower the better.
-
-        EXAMPLES::
-
-            sage: cm = sage.structure.element.get_coercion_model()
-            sage: cm.get_stats()                # random
-            ((0, 0.16058394160583941, 2), (0, 0.13138686131386862, 3))
-        """
-        return self._coercion_maps.stats(), self._action_maps.stats()
 
     def record_exceptions(self, bint value=True):
         r"""
@@ -439,9 +418,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: cm.explain(ZZ['x'], QQ, operator.add)
             Coercion on left operand via
-                Conversion map:
+                Ring morphism:
                   From: Univariate Polynomial Ring in x over Integer Ring
                   To:   Univariate Polynomial Ring in x over Rational Field
+                  Defn: Induced from base ring by
+                        Natural morphism:
+                          From: Integer Ring
+                          To:   Rational Field
             Coercion on right operand via
                 Polynomial base injection morphism:
                   From: Rational Field
@@ -474,9 +457,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: cm.explain(ZZ['x'], QQ['x'], operator.div)
             Coercion on left operand via
-                Conversion map:
+                Ring morphism:
                   From: Univariate Polynomial Ring in x over Integer Ring
                   To:   Univariate Polynomial Ring in x over Rational Field
+                  Defn: Induced from base ring by
+                        Natural morphism:
+                          From: Integer Ring
+                          To:   Rational Field
             Arithmetic performed after coercions.
             Result lives in Fraction Field of Univariate Polynomial Ring in x over Rational Field
             Fraction Field of Univariate Polynomial Ring in x over Rational Field
@@ -569,10 +556,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         if homs is not None:
             x_mor, y_mor = homs
             if x_mor is not None:
+                x_mor = x_mor.__copy__()
                 all.append("Coercion on left operand via")
                 all.append(x_mor)
                 res = x_mor.codomain()
             if y_mor is not None:
+                y_mor = y_mor.__copy__()
                 all.append("Coercion on right operand via")
                 all.append(y_mor)
                 if res is not None and res is not y_mor.codomain():
@@ -584,8 +573,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             return all, res
 
         if PY_TYPE_CHECK(yp, Parent) and xp in [int, long, float, complex, bool]:
-            mor = yp.coerce_map_from(xp)
+            mor = yp._internal_coerce_map_from(xp)
             if mor is not None:
+                mor = mor.__copy__()
                 all.append("Coercion on numeric left operand via")
                 all.append(mor)
                 if op is div and PY_TYPE_CHECK(yp, Parent):
@@ -596,8 +586,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             all.append("Left operand is not Sage element, will try _sage_.")
 
         if PY_TYPE_CHECK(xp, Parent) and yp in [int, long, float, complex, bool]:
-            mor = xp.coerce_map_from(yp)
+            mor = xp._internal_coerce_map_from(yp)
             if mor is not None:
+                mor = mor.__copy__()
                 all.append("Coercion on numeric right operand via")
                 all.append(mor)
                 if op is div and PY_TYPE_CHECK(xp, Parent):
@@ -700,7 +691,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             pass
         try:
             ret = parent_c(~parent.one_element())
-        except StandardError:
+        except Exception:
             self._record_exception()
             ret = parent_c(~parent.an_element())
         self._division_parents.set(parent, None, None, ret)
@@ -802,7 +793,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         try:
             xy = self.canonical_coercion(x,y)
             return PyObject_CallObject(op, xy)
-        except TypeError, err:
+        except TypeError as err:
             if xy is not None:
                 # The error was in calling, not coercing
                 raise
@@ -986,13 +977,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         if is_Integer(x) and not x and not PY_TYPE_CHECK_EXACT(yp, type):
             try:
                 return yp(0), y
-            except StandardError:
+            except Exception:
                 self._record_exception()
 
         if is_Integer(y) and not y and not PY_TYPE_CHECK_EXACT(xp, type):
             try:
                 return x, xp(0)
-            except StandardError:
+            except Exception:
                 self._record_exception()
 
         raise TypeError, "no common canonical parent for objects with parents: '%s' and '%s'"%(xp, yp)
@@ -1000,7 +991,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
     cpdef coercion_maps(self, R, S):
         r"""
-        Give two parents R and S, return a pair of coercion maps
+        Give two parents `R` and `S`, return a pair of coercion maps
         `f: R \rightarrow Z` and `g: S \rightarrow Z` , if such a `Z`
         can be found.
 
@@ -1008,14 +999,20 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         for `f` or `g` respectively rather than constructing (and subsequently
         calling) the identity morphism.
 
-        If no suitable `f, g` can be found, a single None is returned.
+        If no suitable `f, g` can be found, a single ``None`` is returned.
         This result is cached.
+
+        .. NOTE::
+
+            By :trac:`14711`, coerce maps should be copied when using them
+            outside of the coercion system, because they may become defunct
+            by garbage collection.
 
         EXAMPLES::
 
             sage: cm = sage.structure.element.get_coercion_model()
             sage: f, g = cm.coercion_maps(ZZ, QQ)
-            sage: print f
+            sage: print copy(f)
             Natural morphism:
               From: Integer Ring
               To:   Rational Field
@@ -1024,10 +1021,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: f, g = cm.coercion_maps(ZZ['x'], QQ)
             sage: print f
-            Conversion map:
+            (map internal to coercion system -- copy before use)
+            Ring morphism:
               From: Univariate Polynomial Ring in x over Integer Ring
               To:   Univariate Polynomial Ring in x over Rational Field
             sage: print g
+            (map internal to coercion system -- copy before use)
             Polynomial base injection morphism:
               From: Rational Field
               To:   Univariate Polynomial Ring in x over Rational Field
@@ -1046,13 +1045,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             False
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.coercion_maps(V, W)
-            (None,
-             Call morphism:
+            (None, (map internal to coercion system -- copy before use)
+            Call morphism:
               From: Vector space of dimension 3 over Rational Field
               To:   Vector space of dimension 3 over Rational Field)
             sage: cm.coercion_maps(W, V)
-            (None,
-             Call morphism:
+            (None, (map internal to coercion system -- copy before use)
+            Call morphism:
               From: Vector space of dimension 3 over Rational Field
               To:   Vector space of dimension 3 over Rational Field)
             sage: v = V([1,2,3])
@@ -1083,7 +1082,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             else:
                 R_map, S_map = homs
                 if R_map is None and PY_TYPE_CHECK(S, Parent) and (<Parent>S).has_coerce_map_from(R):
-                    swap = None, (<Parent>S).coerce_map_from(R)
+                    swap = None, (<Parent>S)._internal_coerce_map_from(R)
                 else:
                     swap = S_map, R_map
             self._coercion_maps.set(R, S, None, homs)
@@ -1126,14 +1125,14 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         # Make sure the domains are correct
         if R_map.domain() is not R:
             if fix:
-                connecting = R_map.domain().coerce_map_from(R)
+                connecting = R_map.domain()._internal_coerce_map_from(R)
                 if connecting is not None:
                     R_map = R_map * connecting
             if R_map.domain() is not R:
                 raise RuntimeError, ("BUG in coercion model, left domain must be original parent", R, R_map)
         if S_map is not None and S_map.domain() is not S:
             if fix:
-                connecting = S_map.domain().coerce_map_from(S)
+                connecting = S_map.domain()._internal_coerce_map_from(S)
                 if connecting is not None:
                     S_map = S_map * connecting
             if S_map.domain() is not S:
@@ -1141,11 +1140,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         # Make sure the codomains are correct
         if R_map.codomain() is not S_map.codomain():
             if fix:
-                connecting = R_map.codomain().coerce_map_from(S_map.codomain())
+                connecting = R_map.codomain()._internal_coerce_map_from(S_map.codomain())
                 if connecting is not None:
                     S_map = connecting * S_map
                 else:
-                    connecting = S_map.codomain().coerce_map_from(R_map.codomain())
+                    connecting = S_map.codomain()._internal_coerce_map_from(R_map.codomain())
                     if connecting is not None:
                         R_map = connecting * R_map
             if R_map.codomain() is not S_map.codomain():
@@ -1174,11 +1173,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         If there is a coercion map either direction, use that::
 
             sage: cm.discover_coercion(ZZ, QQ)
-            (Natural morphism:
+            ((map internal to coercion system -- copy before use)
+            Natural morphism:
               From: Integer Ring
               To:   Rational Field, None)
             sage: cm.discover_coercion(RR, QQ)
-            (None,
+            (None, (map internal to coercion system -- copy before use)
              Generic map:
               From: Rational Field
               To:   Real Field with 53 bits of precision)
@@ -1186,7 +1186,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         Otherwise, try and compute an appropriate cover::
 
             sage: cm.discover_coercion(ZZ['x,y'], RDF)
-            (Call morphism:
+            ((map internal to coercion system -- copy before use)
+            Call morphism:
               From: Multivariate Polynomial Ring in x, y over Integer Ring
               To:   Multivariate Polynomial Ring in x, y over Real Double Field,
              Polynomial base injection morphism:
@@ -1206,13 +1207,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         # See if there is a natural coercion from R to S
         if PY_TYPE_CHECK(R, Parent):
-            mor = (<Parent>R).coerce_map_from(S)
+            mor = (<Parent>R)._internal_coerce_map_from(S)
             if mor is not None:
                 return None, mor
 
         # See if there is a natural coercion from S to R
         if PY_TYPE_CHECK(S, Parent):
-            mor = (<Parent>S).coerce_map_from(R)
+            mor = (<Parent>S)._internal_coerce_map_from(R)
             if mor is not None:
                 return mor, None
 
@@ -1221,14 +1222,14 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             from sage.categories.pushout import pushout
             try:
                 Z = pushout(R, S)
-                coerce_R = Z.coerce_map_from(R)
-                coerce_S = Z.coerce_map_from(S)
+                coerce_R = Z._internal_coerce_map_from(R)
+                coerce_S = Z._internal_coerce_map_from(S)
                 if coerce_R is None:
                     raise TypeError, "No coercion from %s to pushout %s" % (R, Z)
                 if coerce_S is None:
                     raise TypeError, "No coercion from %s to pushout %s" % (S, Z)
                 return coerce_R, coerce_S
-            except StandardError:
+            except Exception:
                 self._record_exception()
 
         return None
@@ -1317,9 +1318,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             # Non-unique parents
             if fix and action.left_domain() is not R and action.left_domain() == R:
-                action = PrecomposedAction(action, action.left_domain().coerce_map_from(R), None)
+                action = PrecomposedAction(action, action.left_domain()._internal_coerce_map_from(R), None)
             if fix and action.right_domain() is not S and action.right_domain() == S:
-                action = PrecomposedAction(action, None, action.right_domain().coerce_map_from(S))
+                action = PrecomposedAction(action, None, action.right_domain()._internal_coerce_map_from(S))
 
             if action.left_domain() is not R or action.right_domain() is not S:
                 raise RuntimeError, """There is a BUG in the coercion model:
@@ -1403,7 +1404,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 action = self.discover_action(sageR, S, op, s=s)
                 if action is not None:
                     if not PY_TYPE_CHECK(action, IntegerMulAction):
-                        action = PrecomposedAction(action, sageR.coerce_map_from(R), None)
+                        action = PrecomposedAction(action, sageR._internal_coerce_map_from(R), None)
                     return action
 
         if PY_TYPE(S) == <void *>type:
@@ -1412,7 +1413,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 action = self.discover_action(R, sageS, op, r=r)
                 if action is not None:
                     if not PY_TYPE_CHECK(action, IntegerMulAction):
-                        action = PrecomposedAction(action, None, sageS.coerce_map_from(S))
+                        action = PrecomposedAction(action, None, sageS._internal_coerce_map_from(S))
                     return action
 
         if op.__name__[0] == 'i':
@@ -1452,7 +1453,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                     try:
                         action = ~action
                         if K is not S:
-                            action = PrecomposedAction(action, None, K.coerce_map_from(S))
+                            action = PrecomposedAction(action, None, K._internal_coerce_map_from(S))
                         return action
                     except TypeError: # action may not be invertible
                         self._record_exception()

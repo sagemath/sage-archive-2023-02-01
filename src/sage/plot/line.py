@@ -266,6 +266,11 @@ def line(points, **kwds):
     Returns either a 2-dimensional or 3-dimensional line depending
     on value of points.
 
+    INPUT:
+
+    -  ``points`` - either a single point (as a tuple), a list of
+       points, a single complex number, or a list of complex numbers.
+
     For information regarding additional arguments, see either line2d?
     or line3d?.
 
@@ -290,6 +295,11 @@ def line(points, **kwds):
 def line2d(points, **options):
     r"""
     Create the line through the given list of points.
+
+    INPUT:
+
+    -  ``points`` - either a single point (as a tuple), a list of
+       points, a single complex number, or a list of complex numbers.
 
     Type ``line2d.options`` for a dictionary of the default options for
     lines.  You can change this to change the defaults for all future
@@ -355,7 +365,12 @@ def line2d(points, **options):
     A line with no points or one point::
 
         sage: line([])      #returns an empty plot
+        sage: import numpy; line(numpy.array([]))
         sage: line([(1,1)])
+
+    A line with numpy arrays::
+
+        sage: line(numpy.array([[1,2], [3,4]]))
 
     A line with a legend::
 
@@ -439,7 +454,6 @@ def line2d(points, **options):
 
         sage: E = EllipticCurve('37a')
         sage: vals = E.lseries().values_along_line(1-I, 1+10*I, 100) # critical line
-          ***   Warning:...new stack size = ...
         sage: L = [(z[1].real(), z[1].imag()) for z in vals]
         sage: line(L, rgbcolor=(3/4,1/2,5/8))
 
@@ -460,8 +474,15 @@ def line2d(points, **options):
     """
     from sage.plot.all import Graphics
     from sage.plot.plot import xydata_from_point_list
-    if points == []:
-        return Graphics()
+    from sage.rings.all import CC, CDF
+    if points in CC or points in CDF:
+        pass
+    else:
+        try:
+            if not points:
+                return Graphics()
+        except ValueError: # numpy raises a ValueError if not empty
+            pass
     xdata, ydata = xydata_from_point_list(points)
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))

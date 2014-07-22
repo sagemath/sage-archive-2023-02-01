@@ -103,7 +103,7 @@ class CuspidalSubmodule(submodule.ModularFormsSubmodule):
             ...
             NotImplementedError: q-expansion basis not implemented for "Cuspidal subspace of ..."
         """
-        raise NotImplementedError, 'q-expansion basis not implemented for "%s"' % self
+        raise NotImplementedError('q-expansion basis not implemented for "%s"' % self)
 
     def _repr_(self):
         """

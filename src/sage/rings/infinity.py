@@ -215,7 +215,7 @@ class _uniq(object):
             sage: sage.rings.infinity.UnsignedInfinityRing_class() is sage.rings.infinity.UnsignedInfinityRing_class()
             True
         """
-        if _obj.has_key(cls):
+        if cls in _obj:
             return _obj[cls]
         _obj[cls] = O = cls.__bases__[-1].__new__(cls, *args)
         return O
@@ -274,7 +274,7 @@ class AnInfinity:
             ...
             TypeError: cannot convert infinity to Pari
         """
-        raise TypeError, 'cannot convert infinity to Pari'
+        raise TypeError('cannot convert infinity to Pari')
 
     def _latex_(self):
         r"""
@@ -352,7 +352,7 @@ class AnInfinity:
         """
         if isinstance(other, AnInfinity):
             if self._sign != other._sign:
-                raise SignError, "cannot add infinity to minus infinity"
+                raise SignError("cannot add infinity to minus infinity")
         return self
 
     def _sub_(self, other):
@@ -380,9 +380,9 @@ class AnInfinity:
         """
         if isinstance(other, AnInfinity):
             if self._sign == 0:
-                raise ValueError, "oo - oo not defined"
+                raise ValueError("oo - oo not defined")
             elif self._sign == other._sign:
-                raise SignError, "cannot add infinity to minus infinity"
+                raise SignError("cannot add infinity to minus infinity")
         return self
 
     def _mul_(self, other):
@@ -408,7 +408,7 @@ class AnInfinity:
             return -self
         if other > 0:
             return self
-        raise SignError, "cannot multiply infinity by zero"
+        raise SignError("cannot multiply infinity by zero")
 
     def _div_(self, other):
         """
@@ -517,7 +517,7 @@ class UnsignedInfinityRing_class(_uniq, Ring):
             ...
             TypeError: infinity 'ring' has no fraction field
         """
-        raise TypeError, "infinity 'ring' has no fraction field"
+        raise TypeError("infinity 'ring' has no fraction field")
 
     def gen(self, n=0):
         """
@@ -539,7 +539,7 @@ class UnsignedInfinityRing_class(_uniq, Ring):
                 self._gen = UnsignedInfinity()
                 return self._gen
         else:
-            raise IndexError, "UnsignedInfinityRing only has one generator"
+            raise IndexError("UnsignedInfinityRing only has one generator")
 
     def gens(self):
         """
@@ -715,7 +715,7 @@ class LessThanInfinity(_uniq, RingElement):
             Infinity
         """
         if isinstance(other, UnsignedInfinity):
-            raise ValueError, "oo times number < oo not defined"
+            raise ValueError("oo times number < oo not defined")
         return self
 
     def _div_(self, other):
@@ -733,7 +733,7 @@ class LessThanInfinity(_uniq, RingElement):
         """
         if isinstance(other, UnsignedInfinity):
             return ZZ(0)
-        raise ValueError, "quotient of number < oo by number < oo not defined"
+        raise ValueError("quotient of number < oo by number < oo not defined")
 
     def __cmp__(self, other):
         """
@@ -784,7 +784,7 @@ class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
         """
         if isinstance(other, UnsignedInfinity):
             return self
-        raise ValueError, "unsigned oo times smaller number not defined"
+        raise ValueError("unsigned oo times smaller number not defined")
 
 
 unsigned_infinity = UnsignedInfinityRing.gen(0)
@@ -840,7 +840,7 @@ class InfinityRing_class(_uniq, Ring):
             ...
             TypeError: infinity 'ring' has no fraction field
         """
-        raise TypeError, "infinity 'ring' has no fraction field"
+        raise TypeError("infinity 'ring' has no fraction field")
 
     def ngens(self):
         """
@@ -876,7 +876,7 @@ class InfinityRing_class(_uniq, Ring):
             elif n == 1:
                 return self._gen1
             else:
-                raise IndexError, "n must be 0 or 1"
+                raise IndexError("n must be 0 or 1")
         except AttributeError:
             if n == 0:
                 self._gen0 = PlusInfinity()
@@ -1049,7 +1049,7 @@ class FiniteNumber(RingElement):
         if isinstance(other, InfinityElement):
             return other
         if self.value * other.value < 0:
-            raise SignError, "cannot add positive finite value to negative finite value"
+            raise SignError("cannot add positive finite value to negative finite value")
         return FiniteNumber(self.parent(), self.value)
 
     def _mul_(self, other):
@@ -1076,7 +1076,7 @@ class FiniteNumber(RingElement):
         """
         if other.is_zero():
             if isinstance(self, InfinityElement):
-                raise SignError, "cannot multiply infinity by zero"
+                raise SignError("cannot multiply infinity by zero")
             return ZZ(0)
         if self.value < 0:
             if isinstance(other, InfinityElement):
@@ -1088,7 +1088,7 @@ class FiniteNumber(RingElement):
             return FiniteNumber(self.parent(), self.value * other.value)
         if self.value == 0:
             if isinstance(other, InfinityElement):
-                raise SignError, "cannot multiply infinity by zero"
+                raise SignError("cannot multiply infinity by zero")
             return ZZ(0)
 
     def _div_(self, other):
@@ -1140,7 +1140,7 @@ class FiniteNumber(RingElement):
             ZeroDivisionError: Cannot divide by zero
         """
         if self.value == 0:
-            raise ZeroDivisionError, "Cannot divide by zero"
+            raise ZeroDivisionError("Cannot divide by zero")
         return self
 
     def _neg_(self):
@@ -1221,7 +1221,7 @@ class FiniteNumber(RingElement):
             SignError: cannot take square root of a negative number
         """
         if self.value < 0:
-            raise SignError, "cannot take square root of a negative number"
+            raise SignError("cannot take square root of a negative number")
         return self
 
 class MinusInfinity(_uniq, AnInfinity, MinusInfinityElement):
@@ -1258,7 +1258,7 @@ class MinusInfinity(_uniq, AnInfinity, MinusInfinityElement):
             ...
             SignError: cannot take square root of negative infinity
         """
-        raise SignError, "cannot take square root of negative infinity"
+        raise SignError("cannot take square root of negative infinity")
 
     def _sympy_(self):
         """

@@ -1,0 +1,25 @@
+Index: gap-4r7p3/src/pperm.c
+===================================================================
+--- gap-4r7p3.orig/src/pperm.c	2014-02-24 20:25:12.000000000 +0000
++++ gap-4r7p3/src/pperm.c	2014-02-24 20:26:00.000000000 +0000
+@@ -16,16 +16,16 @@
+ #define MIN(a,b)          (a<b?a:b)
+ 
+ #define NEW_PPERM2(deg)   NewBag(T_PPERM2, (deg+1)*sizeof(UInt2)+2*sizeof(Obj))
+-#define CODEG_PPERM2(f)   (*((UInt2*)(ADDR_OBJ(f))))
+-#define ADDR_PPERM2(f)    ((UInt2*)(ADDR_OBJ(f))+1)
++#define CODEG_PPERM2(f)   (*((UInt2*)(ADDR_OBJ(f))+1))
++#define ADDR_PPERM2(f)    ((UInt2*)(ADDR_OBJ(f)))
+ #define IMG_PPERM2(f)     (*(Obj*)(ADDR_PPERM2(f)+DEG_PPERM2(f)))
+ #define DOM_PPERM2(f)     (*((Obj*)(ADDR_PPERM2(f)+DEG_PPERM2(f))+1))
+ #define DEG_PPERM2(f)     ((UInt)(SIZE_OBJ(f)-sizeof(UInt2)-2*sizeof(Obj))/sizeof(UInt2))
+ #define RANK_PPERM2(f)    (IMG_PPERM2(f)==NULL?INIT_PPERM2(f):LEN_PLIST(IMG_PPERM2(f)))
+ 
+ #define NEW_PPERM4(deg)   NewBag(T_PPERM4, (deg+1)*sizeof(UInt4)+2*sizeof(Obj))
+-#define CODEG_PPERM4(f)   (*((UInt4*)(ADDR_OBJ(f))))
+-#define ADDR_PPERM4(f)    ((UInt4*)(ADDR_OBJ(f))+1)
++#define CODEG_PPERM4(f)   (*((UInt4*)(ADDR_OBJ(f))+1))
++#define ADDR_PPERM4(f)    ((UInt4*)(ADDR_OBJ(f)))
+ #define IMG_PPERM4(f)     (*((Obj*)(ADDR_PPERM4(f)+DEG_PPERM4(f))))
+ #define DOM_PPERM4(f)     (*((Obj*)(ADDR_PPERM4(f)+DEG_PPERM4(f))+1))
+ #define DEG_PPERM4(f)     ((UInt)(SIZE_OBJ(f)-sizeof(UInt4)-2*sizeof(Obj))/sizeof(UInt4))

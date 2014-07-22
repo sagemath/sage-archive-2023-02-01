@@ -18,7 +18,8 @@ Signed Compositions
 
 from composition import Compositions_n, Composition
 import cartesian_product
-from sage.rings.all import binomial, Integer
+from sage.rings.all import Integer
+from sage.rings.arith import binomial
 import __builtin__
 
 class SignedCompositions(Compositions_n):

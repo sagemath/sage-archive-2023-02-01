@@ -451,7 +451,7 @@ class Posets(Category):
             EXAMPLES::
 
                 sage: P = Poset((divisors(12), attrcall("divides")), facade=True, linear_extension=True)
-                sage: P.list()
+                sage: sorted(P.list())
                 [1, 2, 3, 4, 6, 12]
                 sage: P.is_order_ideal([1, 3])
                 True
@@ -477,7 +477,7 @@ class Posets(Category):
             EXAMPLES::
 
                 sage: P = Poset((divisors(12), attrcall("divides")), facade=True, linear_extension=True)
-                sage: P.list()
+                sage: sorted(P.list())
                 [1, 2, 3, 4, 6, 12]
                 sage: P.is_order_filter([4, 12])
                 True
@@ -490,6 +490,195 @@ class Posets(Category):
 
             """
             return all((u in self and all(x in o for x in self.upper_covers(u))) for u in o)
+
+        def is_chain_of_poset(self, o, ordered=False):
+            """
+            Return whether an iterable ``o`` is a chain of ``self``,
+            including a check for ``o`` being ordered from smallest
+            to largest element if the keyword ``ordered`` is set to
+            ``True``.
+
+            INPUT:
+
+            - ``o`` -- an iterable (e. g., list, set, or tuple)
+              containing some elements of ``self``
+
+            - ``ordered`` -- a Boolean (default: ``False``) which
+              decides whether the notion of a chain includes being
+              ordered
+
+            OUTPUT:
+
+            If ``ordered`` is set to ``False``, the truth value of
+            the following assertion is returned: The subset of ``self``
+            formed by the elements of ``o`` is a chain in ``self``.
+
+            If ``ordered`` is set to ``True``, the truth value of
+            the following assertion is returned: Every element of the
+            list ``o`` is (strictly!) smaller than its successor in
+            ``self``. (This makes no sense if ``ordered`` is a set.)
+
+            EXAMPLES::
+
+                sage: P = Poset((divisors(12), attrcall("divides")), facade=True, linear_extension=True)
+                sage: sorted(P.list())
+                [1, 2, 3, 4, 6, 12]
+                sage: P.is_chain_of_poset([1, 3])
+                True
+                sage: P.is_chain_of_poset([3, 1])
+                True
+                sage: P.is_chain_of_poset([1, 3], ordered=True)
+                True
+                sage: P.is_chain_of_poset([3, 1], ordered=True)
+                False
+                sage: P.is_chain_of_poset([])
+                True
+                sage: P.is_chain_of_poset([], ordered=True)
+                True
+                sage: P.is_chain_of_poset((2, 12, 6))
+                True
+                sage: P.is_chain_of_poset((2, 6, 12), ordered=True)
+                True
+                sage: P.is_chain_of_poset((2, 12, 6), ordered=True)
+                False
+                sage: P.is_chain_of_poset((2, 12, 6, 3))
+                False
+                sage: P.is_chain_of_poset((2, 3))
+                False
+
+                sage: Q = Poset({2: [3, 1], 3: [4], 1: [4]})
+                sage: Q.is_chain_of_poset([1, 2], ordered=True)
+                False
+                sage: Q.is_chain_of_poset([1, 2])
+                True
+                sage: Q.is_chain_of_poset([2, 1], ordered=True)
+                True
+                sage: Q.is_chain_of_poset([2, 1, 1], ordered=True)
+                False
+                sage: Q.is_chain_of_poset([3])
+                True
+                sage: Q.is_chain_of_poset([4, 2, 3])
+                True
+                sage: Q.is_chain_of_poset([4, 2, 3], ordered=True)
+                False
+                sage: Q.is_chain_of_poset([2, 3, 4], ordered=True)
+                True
+
+            Examples with infinite posets::
+
+                sage: from sage.categories.examples.posets import FiniteSetsOrderedByInclusion
+                sage: R = FiniteSetsOrderedByInclusion()
+                sage: R.is_chain_of_poset([R(set([3, 1, 2])), R(set([1, 4])), R(set([4, 5]))])
+                False
+                sage: R.is_chain_of_poset([R(set([3, 1, 2])), R(set([1, 2])), R(set([1]))], ordered=True)
+                False
+                sage: R.is_chain_of_poset([R(set([3, 1, 2])), R(set([1, 2])), R(set([1]))])
+                True
+
+                sage: from sage.categories.examples.posets import PositiveIntegersOrderedByDivisibilityFacade
+                sage: T = PositiveIntegersOrderedByDivisibilityFacade()
+                sage: T.is_chain_of_poset((T(3), T(4), T(7)))
+                False
+                sage: T.is_chain_of_poset((T(3), T(6), T(3)))
+                True
+                sage: T.is_chain_of_poset((T(3), T(6), T(3)), ordered=True)
+                False
+                sage: T.is_chain_of_poset((T(3), T(3), T(6)))
+                True
+                sage: T.is_chain_of_poset((T(3), T(3), T(6)), ordered=True)
+                False
+                sage: T.is_chain_of_poset((T(3), T(6)), ordered=True)
+                True
+                sage: T.is_chain_of_poset((), ordered=True)
+                True
+                sage: T.is_chain_of_poset((T(3),), ordered=True)
+                True
+                sage: T.is_chain_of_poset((T(q) for q in divisors(27)))
+                True
+                sage: T.is_chain_of_poset((T(q) for q in divisors(18)))
+                False
+            """
+            list_o = list(o)
+            if ordered:
+                return all(self.lt(a, b) for a, b in zip(list_o, list_o[1:]))
+            else:
+                for (i, x) in enumerate(list_o):
+                    for y in list_o[:i]:
+                        if (not self.le(x, y)) and (not self.gt(x, y)):
+                            return False
+                return True
+
+        def is_antichain_of_poset(self, o):
+            """
+            Return whether an iterable ``o`` is an antichain of
+            ``self``.
+
+            INPUT:
+
+            - ``o`` -- an iterable (e. g., list, set, or tuple)
+              containing some elements of ``self``
+
+            OUTPUT:
+
+            ``True`` if the subset of ``self`` consisting of the entries
+            of ``o`` is an antichain of ``self``, and ``False`` otherwise.
+
+            EXAMPLES::
+
+                sage: P = Poset((divisors(12), attrcall("divides")), facade=True, linear_extension=True)
+                sage: sorted(P.list())
+                [1, 2, 3, 4, 6, 12]
+                sage: P.is_antichain_of_poset([1, 3])
+                False
+                sage: P.is_antichain_of_poset([3, 1])
+                False
+                sage: P.is_antichain_of_poset([1, 1, 3])
+                False
+                sage: P.is_antichain_of_poset([])
+                True
+                sage: P.is_antichain_of_poset([1])
+                True
+                sage: P.is_antichain_of_poset([1, 1])
+                True
+                sage: P.is_antichain_of_poset([3, 4])
+                True
+                sage: P.is_antichain_of_poset([3, 4, 12])
+                False
+                sage: P.is_antichain_of_poset([6, 4])
+                True
+                sage: P.is_antichain_of_poset(i for i in divisors(12) if (2 < i and i < 6))
+                True
+                sage: P.is_antichain_of_poset(i for i in divisors(12) if (2 <= i and i < 6))
+                False
+
+                sage: Q = Poset({2: [3, 1], 3: [4], 1: [4]})
+                sage: Q.is_antichain_of_poset((1, 2))
+                False
+                sage: Q.is_antichain_of_poset((2, 4))
+                False
+                sage: Q.is_antichain_of_poset((4, 2))
+                False
+                sage: Q.is_antichain_of_poset((2, 2))
+                True
+                sage: Q.is_antichain_of_poset((3, 4))
+                False
+                sage: Q.is_antichain_of_poset((3, 1))
+                True
+                sage: Q.is_antichain_of_poset((1, ))
+                True
+                sage: Q.is_antichain_of_poset(())
+                True
+
+            An infinite poset::
+
+                sage: from sage.categories.examples.posets import FiniteSetsOrderedByInclusion
+                sage: R = FiniteSetsOrderedByInclusion()
+                sage: R.is_antichain_of_poset([R(set([3, 1, 2])), R(set([1, 4])), R(set([4, 5]))])
+                True
+                sage: R.is_antichain_of_poset([R(set([3, 1, 2, 4])), R(set([1, 4])), R(set([4, 5]))])
+                False
+            """
+            return all(not self.lt(x,y) for x in o for y in o)
 
     class ElementMethods:
         pass

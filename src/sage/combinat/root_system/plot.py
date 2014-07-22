@@ -480,7 +480,7 @@ The same picture for `A_3` gives a nice 3D permutohedron::
 Similarly, we display a crystal graph by positioning each element
 according to its weight::
 
-    sage: C = CrystalOfTableaux(["A",2], shape=[4,2])
+    sage: C = crystals.Tableaux(["A",2], shape=[4,2])
     sage: L = C.weight_lattice_realization()
     sage: plot_options = L.plot_parse_options()
 
@@ -503,7 +503,7 @@ according to its weight::
 
 Here is an analogue picture in 3D::
 
-    sage: C = CrystalOfTableaux(["A",3], shape=[3,2,1])
+    sage: C = crystals.Tableaux(["A",3], shape=[3,2,1])
     sage: L = C.weight_lattice_realization()
     sage: plot_options = L.plot_parse_options()
     sage: g = C.digraph()

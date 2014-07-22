@@ -229,7 +229,7 @@ class GroupAlgebras(Category_over_base_ring):
                 4*B[[1, 2, 3, 4]] + 3*B[[2, 1, 3, 4]] + 2*B[[2, 1, 4, 3]] + 2*B[[2, 3, 1, 4]] + B[[2, 3, 4, 1]]
                 sage: QG=GroupAlgebras(QQ).example(PermutationGroup([[(1,2,3),(4,5)],[(3,4)]]))
                 sage: sum(i for i in QG.basis()).central_form()
-                B[()] + B[(1,2)] + B[(1,2)(3,4)] + B[(1,2,3)] + B[(1,2,3)(4,5)] + B[(1,2,3,4)] + B[(1,2,3,4,5)]
+                B[()] + B[(4,5)] + B[(3,4,5)] + B[(2,3)(4,5)] + B[(2,3,4,5)] + B[(1,2)(3,4,5)] + B[(1,2,3,4,5)]
 
             .. NOTE::
 
@@ -237,5 +237,4 @@ class GroupAlgebras(Category_over_base_ring):
             """
             Z=self.parent().center()
             return sum(self[i] * Z.basis()[i] for i in Z.basis().keys())
-
 

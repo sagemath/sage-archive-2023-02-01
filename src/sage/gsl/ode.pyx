@@ -84,7 +84,7 @@ cdef int c_jac(double t,double *y,double *dfdy,double *dfdt,void *params):
             dfdt[i]=jac_list[y_n][i]
 
         return GSL_SUCCESS
-    except StandardError:
+    except Exception:
         return -1
 
 cdef int c_f(double t,double* y, double* dydt,void *params):
@@ -106,7 +106,7 @@ cdef int c_f(double t,double* y, double* dydt,void *params):
         for i from 0<=i<y_n:
             dydt[i]=dydt_list[i]
         return GSL_SUCCESS
-    except StandardError:
+    except Exception:
         return -1
 
 

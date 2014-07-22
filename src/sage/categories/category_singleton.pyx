@@ -145,7 +145,7 @@ class Category_singleton(Category):
         10000 loops, best of 3: 2.99 µs per loop
 
     So this is an improvement, but not yet competitive with a pure
-    Cython method:
+    Cython method::
 
         sage: timeit("R.is_ring()", number=10000)                     # not tested
         10000 loops, best of 3: 383 ns per loop

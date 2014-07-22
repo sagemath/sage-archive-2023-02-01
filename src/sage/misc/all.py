@@ -1,7 +1,8 @@
 from lazy_attribute import lazy_attribute, lazy_class_attribute
 from lazy_import import lazy_import
 
-from misc import (alarm, ellipsis_range, ellipsis_iter, srange, xsrange, sxrange, getitem,
+from misc import (alarm, cancel_alarm,
+                  ellipsis_range, ellipsis_iter, srange, xsrange, sxrange, getitem,
                   cputime, verbose, set_verbose, set_verbose_files,
                   get_verbose_files, unset_verbose_files, get_verbose,
                   version, banner, add, union, uniq, powerset, subsets,
@@ -72,8 +73,6 @@ lazy_import('sage.misc.attached_files', [
         'attach', 'detach', 'attached_files', 'load_attach_path',
         'reset_load_attach_path', 'load_attach_mode'])
 
-from interpreter import preparser
-
 from sage_eval import sage_eval, sageobj
 
 from sage_input import sage_input
@@ -82,8 +81,6 @@ from cython import cython_lambda, cython_create_local_so
 from cython_c import cython
 pyrex = cython # synonym -- for now
 sagex = cython # synonym -- for now
-
-from prun import prun
 
 from persist import save, load, dumps, loads, db, db_save
 

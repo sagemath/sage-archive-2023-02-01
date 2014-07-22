@@ -159,7 +159,7 @@ def is_2_adic_genus(genus_symbol_quintuple_list):
 
         ## Check that we have a quintuple (i.e. that p=2 and not p >2)
         if len(s) != 5:
-            raise TypeError, "The genus symbols are not quintuples, so it's not a genus symbol for the prime p=2."
+            raise TypeError("The genus symbols are not quintuples, so it's not a genus symbol for the prime p=2.")
 
         ## Check the Conway-Sloane conditions
         if s[1] == 1:
@@ -517,7 +517,7 @@ def signature_pair_of_matrix(A):
 
     ## Check that the matrix is non-degenerate (i.e. no zero eigenvalues)
     if s_vec[2] != 0:
-        raise TypeError, "A is assumed to be non-degenerate, but it's det = 0."
+        raise TypeError("A is assumed to be non-degenerate, but it's det = 0.")
 
     ## Return the pair (p,n)
     return s_vec[:2]
@@ -702,7 +702,7 @@ def split_odd(A):
     if even:
         print "B:"
         print B
-        raise RuntimeError, "The matrix A does not admit a non-even splitting."
+        raise RuntimeError("The matrix A does not admit a non-even splitting.")
     return u, B
 
 
@@ -1383,7 +1383,7 @@ class Genus_Symbol_p_adic_ring(object):
         """
         ## Check that p = 2
         if self._prime != 2:
-            raise TypeError, "trains() only makes sense when the prime of the p_adic_Genus_Symbol is p=2"
+            raise TypeError("trains() only makes sense when the prime of the p_adic_Genus_Symbol is p=2")
         symbol = self._symbol
         compartments = canonical_2_adic_compartments(symbol)
         return canonical_2_adic_trains(symbol, compartments)
@@ -1415,7 +1415,7 @@ class Genus_Symbol_p_adic_ring(object):
         """
         ## Check that p = 2
         if self._prime != 2:
-            raise TypeError, "compartments() only makes sense when the prime of the p_adic_Genus_Symbol is p=2"
+            raise TypeError("compartments() only makes sense when the prime of the p_adic_Genus_Symbol is p=2")
         symbol = self._symbol
         return canonical_2_adic_compartments(symbol)
 

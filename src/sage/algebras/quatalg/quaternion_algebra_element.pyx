@@ -574,7 +574,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             ...
             ValueError: action must be either 'left' or 'right'
 
-        We test over a more generic base field:
+        We test over a more generic base field::
 
             sage: K.<x> = QQ['x']
             sage: Q.<i,j,k> = QuaternionAlgebra(Frac(K),-5,-2)

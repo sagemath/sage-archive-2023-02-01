@@ -106,7 +106,7 @@ cdef class Point(SageObject):
 
         A :class:`~sage.geometry.triangulation.point_configuration.PointConfiguration`.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: pc = PointConfiguration([ (0,0), (1,0), (0,1) ])
             sage: p = pc.point(0)

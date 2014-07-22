@@ -233,7 +233,7 @@ class Gamma1_class(GammaH_class):
             gen_list = generators_helper(G1list(level), level, Mat2Z)
             return [self(g, check=False) for g in gen_list]
         else:
-            raise ValueError, "Unknown algorithm '%s' (should be either 'farey' or 'todd-coxeter')" % algorithm
+            raise ValueError("Unknown algorithm '%s' (should be either 'farey' or 'todd-coxeter')" % algorithm)
 
     def _contains_sl2(self, a,b,c,d):
         r"""
@@ -443,7 +443,7 @@ class Gamma1_class(GammaH_class):
                 if n == 0:
                     return ZZ(0)
                 else: # never happens at present
-                    raise NotImplementedError, "Computations of dimensions of spaces of weight 1 cusp forms not implemented at present"
+                    raise NotImplementedError("Computations of dimensions of spaces of weight 1 cusp forms not implemented at present")
             except NotImplementedError:
                 raise
 
@@ -464,7 +464,7 @@ class Gamma1_class(GammaH_class):
             return ZZ( K(Gamma0(N).index() * (k-1)/ZZ(12)) + CohenOesterle(eps,k) )
 
         else: #algorithm not in ["CohenOesterle", "Quer"]:
-            raise ValueError, "Unrecognised algorithm in dimension_cusp_forms"
+            raise ValueError("Unrecognised algorithm in dimension_cusp_forms")
 
 
     def dimension_eis(self, k=2, eps=None, algorithm="CohenOesterle"):
@@ -551,7 +551,7 @@ class Gamma1_class(GammaH_class):
                 return alpha - self.dimension_cusp_forms(k, eps)
 
         else: #algorithm not in ["CohenOesterle", "Quer"]:
-            raise ValueError, "Unrecognised algorithm in dimension_eis"
+            raise ValueError("Unrecognised algorithm in dimension_eis")
 
     def dimension_new_cusp_forms(self, k=2, eps=None, p=0, algorithm="CohenOesterle"):
         r"""

@@ -1060,7 +1060,6 @@ end_scene""" % (render_params.antialiasing,
         -  ``axes`` - (default: False) if True, draw coordinate
            axes
 
-
         -  ``**kwds`` - other options, which make sense for particular
            rendering engines
 
@@ -1120,10 +1119,9 @@ end_scene""" % (render_params.antialiasing,
         axes = opts['axes']
 
         import sage.misc.misc
-        if 'filename' in kwds:
-            filename = kwds['filename']
-            del kwds['filename']
-        else:
+        try:
+            filename = kwds.pop('filename')
+        except KeyError:
             filename = tmp_filename()
 
         from sage.plot.plot import EMBEDDED_MODE
@@ -1163,62 +1161,53 @@ end_scene""" % (render_params.antialiasing,
             # (This will be removed once we have dynamic resizing of applets in the browser.)
             base, ext = os.path.splitext(filename)
             fg = figsize[0]
-            #if fg >= 2:
-            #    fg = 2
             filename = '%s-size%s%s'%(base, fg*100, ext)
+
             if EMBEDDED_MODE:
                 ext = "jmol"
-            else:
-                ext = "spt"
-            archive_name = "%s.%s.zip" % (filename, ext)
-            if EMBEDDED_MODE:
                 # jmol doesn't seem to correctly parse the ?params part of a URL
                 archive_name = "%s-%s.%s.zip" % (filename, randint(0, 1 << 30), ext)
+            else:
+                ext = "spt"
+                archive_name = "%s.%s.zip" % (filename, ext)
+                with open(filename + '.' + ext, 'w') as f:
+                    f.write('set defaultdirectory "{0}"\n'.format(archive_name))
+                    f.write('script SCRIPT\n')
 
             T = self._prepare_for_jmol(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
             T.export_jmol(archive_name, force_reload=EMBEDDED_MODE, zoom=zoom*100, **kwds)
-            viewer_app = os.path.join(sage.misc.misc.SAGE_LOCAL, "bin/jmol")
-
-            # We need a script to load the file
-            f = open(filename + '.'+ext, 'w')
-            import sagenb
-            if EMBEDDED_MODE:
-                path = "cells/%s/%s" %(sagenb.notebook.interact.SAGE_CELL_ID, archive_name)
-            else:
-                path = archive_name
-            f.write('set defaultdirectory "%s"\n' %path)
-            f.write('script SCRIPT\n')
-            f.close()
+            viewer_app = os.path.join(sage.misc.misc.SAGE_LOCAL, "bin", "jmol")
 
             # If the server has a Java installation we can make better static images with Jmol
             # Test for Java then make image with Jmol or Tachyon if no JavaVM
             if EMBEDDED_MODE:
-                #name image file
-                head,tail = os.path.split(archive_name)
-                png_path = os.path.join(head,'.jmol_images')
-                if  not os.path.exists(png_path):
-                    os.mkdir(png_path)
-                png_name = os.path.join(png_path,filename)
-                #test for JavaVM
+                # We need a script for the Notebook.
+                # When the notebook sees this file, it will know to
+                # display the static file and the "Make Interactive"
+                # button.
+                import sagenb
+                path = "cells/%s/%s" %(sagenb.notebook.interact.SAGE_CELL_ID, archive_name)
+                with open(filename + '.' + ext, 'w') as f:
+                    f.write('set defaultdirectory "%s"\n' % path)
+                    f.write('script SCRIPT\n')
+
+                # Filename for the static image
+                png_path = '.jmol_images'
+                sage.misc.misc.sage_makedirs(png_path)
+                png_name = os.path.join(png_path, filename + ".jmol.png")
+
                 from sage.interfaces.jmoldata import JmolData
                 jdata = JmolData()
-                if (jdata.is_jvm_available()):
-                    # make the image with Jmol
-                    # hack...need absolute paths since jvm running outside of sage environment
-                    cellhead, celltail =os.path.split(os.path.realpath(os.path.join(os.path.curdir,"data")))
-                    celldir = os.path.join(cellhead,"cells",str(sagenb.notebook.interact.SAGE_CELL_ID))
-                    png_name = png_name+".jmol.png"
-                    png_fullpath = os.path.join(celldir,png_name)
-                    archive_fullpath = os.path.join(celldir,archive_name)
-                    #print png_fullpath
-                    script = 'set defaultdirectory \"'+archive_fullpath+'\"\n script SCRIPT\n'
-                    #print script
-                    jdata.export_image(targetfile = png_fullpath,datafile=script,image_type="PNG", figsize = fg)
+                if jdata.is_jvm_available():
+                    # Java needs absolute paths
+                    archive_name = os.path.abspath(archive_name)
+                    png_name = os.path.abspath(png_name)
+                    script = '''set defaultdirectory "%s"\nscript SCRIPT\n''' % archive_name
+                    jdata.export_image(targetfile=png_name, datafile=script, image_type="PNG", figsize=fg)
                 else:
-                    #make the image with tachyon
+                    # Render the image with tachyon
                     T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
-                    tachyon_rt(T.tachyon(), png_name+".jmol.png", verbosity, True, opts)
-
+                    tachyon_rt(T.tachyon(), png_name, verbosity, True, opts)
 
         if viewer == 'canvas3d':
             T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
@@ -1237,6 +1226,28 @@ end_scene""" % (render_params.antialiasing,
             else:
                 pipes = "2>/dev/null 1>/dev/null &"
             os.system('%s "%s.%s" %s' % (viewer_app, filename, ext, pipes))
+
+    def save_image(self, filename=None, *args, **kwds):
+        r"""
+        Save an image representation of self.  The image type is
+        determined by the extension of the filename.  For example,
+        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
+        ``.svg``.  Currently this is implemented by calling the
+        :meth:`save` method of self, passing along all arguments and
+        keywords.
+
+        .. Note::
+
+            Not all image types are necessarily implemented for all
+            graphics types.  See :meth:`save` for more details.
+
+        EXAMPLES::
+
+            sage: f = tmp_filename() + '.png'
+            sage: G = sphere()
+            sage: G.save_image(f)
+        """
+        self.save(filename, *args, **kwds)
 
     def save(self, filename, **kwds):
         """
@@ -1287,7 +1298,7 @@ end_scene""" % (render_params.antialiasing,
                 opts['aspect_ratio'], opts['zoom']
             )
 
-            if ext == 'png':
+            if ext == '.png':
                 # No conversion is necessary
                 out_filename = filename
             else:
@@ -1295,8 +1306,8 @@ end_scene""" % (render_params.antialiasing,
                 out_filename = sage.misc.temporary_file.tmp_filename(ext=ext)
             tachyon_rt(T.tachyon(), out_filename, opts['verbosity'], True,
                 '-res %s %s' % (opts['figsize'][0]*100, opts['figsize'][1]*100))
-            if ext != 'png':
-                import Image
+            if ext != '.png':
+                import PIL.Image as Image
                 Image.open(out_filename).save(filename)
         else:
             raise ValueError, 'filetype not supported by save()'
@@ -1791,7 +1802,7 @@ cdef class PrimitiveObject(Graphics3d):
     This is the base class for the non-container 3d objects.
     """
     def __init__(self, **kwds):
-        if kwds.has_key('texture'):
+        if 'texture' in kwds:
             self.texture = kwds['texture']
             if not is_Texture(self.texture):
                 self.texture = Texture(self.texture)

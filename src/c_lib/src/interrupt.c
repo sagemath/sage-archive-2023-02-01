@@ -11,6 +11,8 @@ AUTHORS:
 
 - Jeroen Demeyer (2013-01-28): handle SIGQUIT also (#14029)
 
+- Jeroen Demeyer (2013-05-13): handle SIGALRM also (#13311)
+
 */
 
 /*****************************************************************************
@@ -56,6 +58,8 @@ static sigset_t default_sigmask;
 /* default_sigmask with SIGHUP, SIGINT, SIGALRM added. */
 static sigset_t sigmask_with_sigint;
 
+static void do_raise_exception(int sig);
+
 /* Does this processor support the x86 EMMS instruction? */
 #if defined(__i386__) || defined(__x86_64__)
 #define CPU_ARCH_x86
@@ -96,7 +100,7 @@ static inline void reset_CPU()
 }
 
 
-/* Handler for SIGHUP, SIGINT */
+/* Handler for SIGHUP, SIGINT, SIGALRM */
 void sage_interrupt_handler(int sig)
 {
 #if ENABLE_DEBUG_INTERRUPT
@@ -114,8 +118,8 @@ void sage_interrupt_handler(int sig)
     {
         if (!_signals.block_sigint)
         {
-            /* Actually raise an exception so Python can see it */
-            sig_raise_exception(sig);
+            /* Raise an exception so Python can see it */
+            do_raise_exception(sig);
 
             /* Jump back to sig_on() (the first one if there is a stack) */
             reset_CPU();
@@ -155,8 +159,8 @@ void sage_signal_handler(int sig)
         }
 #endif
 
-        /* Actually raise an exception so Python can see it */
-        sig_raise_exception(sig);
+        /* Raise an exception so Python can see it */
+        do_raise_exception(sig);
 
         /* Jump back to sig_on() (the first one if there is a stack) */
         reset_CPU();
@@ -176,6 +180,7 @@ void sage_signal_handler(int sig)
         signal(SIGFPE, SIG_DFL);
         signal(SIGBUS, SIG_DFL);
         signal(SIGSEGV, SIG_DFL);
+        signal(SIGALRM, SIG_DFL);
         signal(SIGTERM, SIG_DFL);
         sigprocmask(SIG_SETMASK, &default_sigmask, NULL);
 
@@ -208,58 +213,31 @@ void sage_signal_handler(int sig)
 }
 
 
-void sig_raise_exception(int sig)
+/* This calls the externally defined function _signals.raise_exception
+ * to actually raise the exception. Since it uses the Python API, the
+ * GIL needs to be acquired first. */
+static void do_raise_exception(int sig)
 {
+    PyGILState_STATE gilstate_save = PyGILState_Ensure();
 #if ENABLE_DEBUG_INTERRUPT
     struct timeval raisetime;
     if (sage_interrupt_debug_level >= 2) {
         gettimeofday(&raisetime, NULL);
         long delta_ms = (raisetime.tv_sec - sigtime.tv_sec)*1000L + ((long)raisetime.tv_usec - (long)sigtime.tv_usec)/1000;
-        fprintf(stderr, "sig_raise_exception(sig=%i)\nPyErr_Occurred() = %p\nRaising Python exception %li ms after signal...\n",
+        fprintf(stderr, "do_raise_exception(sig=%i)\nPyErr_Occurred() = %p\nRaising Python exception %li ms after signal...\n",
             sig, PyErr_Occurred(), delta_ms);
         fflush(stderr);
     }
 #endif
 
-    /* String to be printed in the Python exception */
-    const char* msg = _signals.s;
-
-    switch(sig)
+    /* Do not raise an exception if an exception is already pending */
+    if (!PyErr_Occurred())
     {
-        case SIGHUP:
-        case SIGTERM:
-            /* Redirect stdin from /dev/null to close interactive sessions */
-            freopen("/dev/null", "r", stdin);
-
-            /* This causes Python to exit */
-            PyErr_SetNone(PyExc_SystemExit);
-            break;
-        case SIGINT:
-            PyErr_SetNone(PyExc_KeyboardInterrupt);
-            break;
-        case SIGILL:
-            if (!msg) msg = "Illegal instruction";
-            PyErr_SetString(PyExc_RuntimeError, msg);
-            break;
-        case SIGABRT:
-            if (!msg) msg = "Aborted";
-            PyErr_SetString(PyExc_RuntimeError, msg);
-            break;
-        case SIGFPE:
-            if (!msg) msg = "Floating point exception";
-            PyErr_SetString(PyExc_RuntimeError, msg);
-            break;
-        case SIGBUS:
-            if (!msg) msg = "Bus error";
-            PyErr_SetString(PyExc_RuntimeError, msg);
-            break;
-        case SIGSEGV:
-            if (!msg) msg = "Segmentation fault";
-            PyErr_SetString(PyExc_RuntimeError, msg);
-            break;
-        default:
-            PyErr_SetString(PyExc_SystemError, "Unknown signal");
+        _signals.raise_exception(sig, _signals.s);
+        assert(PyErr_Occurred());
     }
+
+    PyGILState_Release(gilstate_save);
 }
 
 
@@ -270,7 +248,7 @@ void _sig_on_interrupt_received()
     sigset_t oldset;
     sigprocmask(SIG_BLOCK, &sigmask_with_sigint, &oldset);
 
-    sig_raise_exception(_signals.interrupt_received);
+    do_raise_exception(_signals.interrupt_received);
     _signals.interrupt_received = 0;
     _signals.sig_on_count = 0;
 
@@ -293,7 +271,12 @@ void _sig_off_warning(const char* file, int line)
 {
     char buf[320];
     snprintf(buf, sizeof(buf), "sig_off() without sig_on() at %s:%i", file, line);
+
+    /* Raise a warning with the Python GIL acquired */
+    PyGILState_STATE gilstate_save = PyGILState_Ensure();
     PyErr_WarnEx(PyExc_RuntimeWarning, buf, 2);
+    PyGILState_Release(gilstate_save);
+
     print_backtrace();
 }
 
@@ -330,6 +313,7 @@ void setup_sage_signal_handler()
     sa.sa_handler = sage_interrupt_handler;
     if (sigaction(SIGHUP, &sa, NULL)) {perror("sigaction"); exit(1);}
     if (sigaction(SIGINT, &sa, NULL)) {perror("sigaction"); exit(1);}
+    if (sigaction(SIGALRM, &sa, NULL)) {perror("sigaction"); exit(1);}
     sa.sa_handler = sage_signal_handler;
     /* Allow signals during signal handling, we have code to deal with
      * this case. */

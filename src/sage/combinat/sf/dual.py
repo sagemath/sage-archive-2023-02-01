@@ -138,7 +138,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         self._inverse_transition_matrices = {}
 
         scalar_target = scalar(sage.combinat.partition.Partition([1])).parent()
-        scalar_target = (scalar_target(1)*dual_basis.base_ring()(1)).parent()
+        scalar_target = (scalar_target.one()*dual_basis.base_ring().one()).parent()
 
         self._sym = sage.combinat.sf.sf.SymmetricFunctions(scalar_target)
         self._p = self._sym.power()
@@ -312,13 +312,13 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             [-1  1]
         """
         base_ring = self.base_ring()
-        zero = base_ring(0)
+        zero = base_ring.zero()
 
         # Handle the n == 0 and n == 1 cases separately
         if n == 0 or n == 1:
             part = sage.combinat.partition.Partition([1]*n)
-            self._to_self_cache[ part ] = { part: base_ring(1) }
-            self._from_self_cache[ part ] = { part: base_ring(1) }
+            self._to_self_cache[ part ] = { part: base_ring.one() }
+            self._from_self_cache[ part ] = { part: base_ring.one() }
             self._transition_matrices[n] = matrix(base_ring, [[1]])
             self._inverse_transition_matrices[n] = matrix(base_ring, [[1]])
             return
@@ -566,7 +566,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
             parent = A
             base_ring = parent.base_ring()
-            zero = base_ring(0)
+            zero = base_ring.zero()
 
             if dual is None:
                 # We need to compute the dual
@@ -640,14 +640,37 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             r"""
             Return the image of ``self`` under the omega automorphism.
 
-            The omega automorphism is defined to be the unique algebra
+            The *omega automorphism* is defined to be the unique algebra
             endomorphism `\omega` of the ring of symmetric functions that
             satisfies `\omega(e_k) = h_k` for all positive integers `k`
             (where `e_k` stands for the `k`-th elementary symmetric
             function, and `h_k` stands for the `k`-th complete homogeneous
             symmetric function). It furthermore is a Hopf algebra
-            endomorphism, and sends the power-sum symmetric function `p_k`
-            to `(-1)^{k-1} p_k` for every positive integer `k`.
+            endomorphism and an involution, and it is also known as the
+            *omega involution*. It sends the power-sum symmetric function
+            `p_k` to `(-1)^{k-1} p_k` for every positive integer `k`.
+
+            The images of some bases under the omega automorphism are given by
+
+            .. MATH::
+
+                \omega(e_{\lambda}) = h_{\lambda}, \qquad
+                \omega(h_{\lambda}) = e_{\lambda}, \qquad
+                \omega(p_{\lambda}) = (-1)^{|\lambda| - \ell(\lambda)}
+                p_{\lambda}, \qquad
+                \omega(s_{\lambda}) = s_{\lambda^{\prime}},
+
+            where `\lambda` is any partition, where `\ell(\lambda)` denotes
+            the length (:meth:`~sage.combinat.partition.Partition.length`)
+            of the partition `\lambda`, where `\lambda^{\prime}` denotes the
+            conjugate partition
+            (:meth:`~sage.combinat.partition.Partition.conjugate`) of
+            `\lambda`, and where the usual notations for bases are used
+            (`e` = elementary, `h` = complete homogeneous, `p` = powersum,
+            `s` = Schur).
+
+            :meth:`omega_involution()` is a synonym for the :meth`omega()`
+            method.
 
             OUTPUT:
 
@@ -666,6 +689,8 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             """
             eclass = self.__class__
             return eclass(self.parent(), dual=self._dual.omega() )
+
+        omega_involution = omega
 
         def scalar(self, x):
             """

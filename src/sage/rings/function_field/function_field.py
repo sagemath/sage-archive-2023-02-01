@@ -396,14 +396,14 @@ class FunctionField_polymod(FunctionField):
         """
         from sage.rings.polynomial.all import is_Polynomial
         if polynomial.parent().ngens()>1 or not is_Polynomial(polynomial):
-            raise TypeError, "polynomial must be univariate a polynomial"
+            raise TypeError("polynomial must be univariate a polynomial")
         if names is None:
             names = (polynomial.variable_name(), )
         if polynomial.degree() <= 0:
-            raise ValueError, "polynomial must have positive degree"
+            raise ValueError("polynomial must have positive degree")
         base_field = polynomial.base_ring()
         if not isinstance(base_field, FunctionField):
-            raise TypeError, "polynomial must be over a FunctionField"
+            raise TypeError("polynomial must be over a FunctionField")
         self._element_class = element_class
         self._element_init_pass_parent = False
         self._base_field = base_field
@@ -785,7 +785,7 @@ class FunctionField_polymod(FunctionField):
             ...
             IndexError: Only one generator.
         """
-        if n != 0: raise IndexError, "Only one generator."
+        if n != 0: raise IndexError("Only one generator.")
         return self._gen
 
     def ngens(self):
@@ -918,12 +918,12 @@ class FunctionField_polymod(FunctionField):
             Morphism of function fields defined by xx |--> x, yy |--> y
         """
         if base_morphism is not None:
-            raise NotImplementedError, "Function field homorphisms with optional argument base_morphism are not implemented yet. Please specify the images of the generators of the base fields manually."
+            raise NotImplementedError("Function field homorphisms with optional argument base_morphism are not implemented yet. Please specify the images of the generators of the base fields manually.")
 
         if not isinstance(im_gens, (list,tuple)):
             im_gens = [im_gens]
         if len(im_gens) == 0:
-            raise ValueError, "no images specified"
+            raise ValueError("no images specified")
 
         if len(im_gens) > 1:
             base_morphism = self.base_field().hom(im_gens[1:], base_morphism)
@@ -965,7 +965,7 @@ class FunctionField_polymod(FunctionField):
             return int(curveIdeal._singular_().genus())
 
         else:
-            raise NotImplementedError, "Computation of genus over this rational function field not implemented yet"
+            raise NotImplementedError("Computation of genus over this rational function field not implemented yet")
 
 def is_RationalFunctionField(x):
     """
@@ -1049,11 +1049,11 @@ class RationalFunctionField(FunctionField):
             TypeError: constant_field must be a field
         """
         if names is None:
-            raise ValueError, "variable name must be specified"
+            raise ValueError("variable name must be specified")
         elif not isinstance(names, tuple):
             names = (names, )
         if not constant_field.is_field():
-            raise TypeError, "constant_field must be a field"
+            raise TypeError("constant_field must be a field")
         self._element_class = element_class
         self._element_init_pass_parent = False
         Field.__init__(self, self, names=names, category = category)
@@ -1307,7 +1307,7 @@ class RationalFunctionField(FunctionField):
             IndexError: Only one generator.
         """
         if n != 0:
-            raise IndexError, "Only one generator."
+            raise IndexError("Only one generator.")
         return self._gen
 
     def ngens(self):
@@ -1374,7 +1374,7 @@ class RationalFunctionField(FunctionField):
         if not isinstance(im_gens, (list,tuple)):
             im_gens = [im_gens]
         if len(im_gens) != 1:
-            raise ValueError, "there must be exactly one generator"
+            raise ValueError("there must be exactly one generator")
         x = im_gens[0]
         from maps import FunctionFieldMorphism_rational
         return FunctionFieldMorphism_rational(self.Hom(x.parent()), x)

@@ -83,7 +83,7 @@ def Subwords(w, k=None):
         return Subwords_w(w)
     else:
         if k not in range(0, len(w)+1):
-            raise ValueError, "k must be between 0 and %s"%len(w)
+            raise ValueError("k must be between 0 and %s"%len(w))
         else:
             return Subwords_wk(w,k)
 

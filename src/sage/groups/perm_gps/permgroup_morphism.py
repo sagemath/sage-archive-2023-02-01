@@ -183,7 +183,7 @@ class PermutationGroupMorphism_from_gap(PermutationGroupMorphism):
               Defn: Identity
         """
         if not all(isinstance(X, PermutationGroup_generic) for X in [G, H]):
-            raise TypeError, "Sorry, the groups must be permutation groups."
+            raise TypeError("Sorry, the groups must be permutation groups.")
         PermutationGroupMorphism.__init__(self, G, H)
         self._gap_hom = gap_hom
 
@@ -268,7 +268,7 @@ class PermutationGroupMorphism_im_gens(PermutationGroupMorphism):
         - David Joyner (2006-02)
         """
         if not all([isinstance(X, PermutationGroup_generic) for X in [G, H]]):
-            raise TypeError, "Sorry, the groups must be permutation groups."
+            raise TypeError("Sorry, the groups must be permutation groups.")
         if images is not None:
             deprecation(10334, 'only the images need to be specified')
         else:

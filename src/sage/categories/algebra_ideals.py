@@ -48,7 +48,7 @@ class AlgebraIdeals(Category_ideal):
         """
         from sage.algebras.algebra import is_Algebra
         if not is_Algebra(A): # A not in Algebras() ?
-            raise TypeError, "A (=%s) must be an algebra"%A
+            raise TypeError("A (=%s) must be an algebra"%A)
         Category_ideal.__init__(self, A)
 
     def algebra(self):

@@ -14,7 +14,7 @@ Miscellaneous arithmetic functions
 import math
 import sys
 import sage.misc.misc as misc
-from sage.libs.pari.gen import pari, vecsmall_to_intlist
+from sage.libs.pari.all import pari
 import sage.libs.flint.arith as flint_arith
 
 from sage.rings.rational_field import QQ
@@ -163,7 +163,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         x^2 - 2*x + 5
     """
     if proof and not height_bound:
-        raise ValueError, "height_bound must be given for proof=True"
+        raise ValueError("height_bound must be given for proof=True")
 
     x = ZZ['x'].gen()
 
@@ -226,16 +226,16 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
                     # Given an LLL reduced basis $b_1, ..., b_n$, we only
                     # know that $|b_1| <= 2^((n-1)/2) |x|$ for non-zero $x \in L$.
                     if norm(LLL[0]) <= 2**((n-1)/2) * n.sqrt() * height_bound:
-                        raise ValueError, "insufficient precision for non-existence proof"
+                        raise ValueError("insufficient precision for non-existence proof")
                 return None
             elif proof and norm(LLL[1]) < 2**((n-1)/2) * max(norm(LLL[0]), n.sqrt()*height_bound):
-                raise ValueError, "insufficient precision for uniqueness proof"
+                raise ValueError("insufficient precision for uniqueness proof")
         if coeffs[degree] < 0:
             coeffs = -coeffs
         f = list(coeffs)
 
     elif proof or height_bound:
-        raise NotImplementedError, "proof and height bound only implemented for real and complex numbers"
+        raise NotImplementedError("proof and height bound only implemented for real and complex numbers")
 
     else:
         y = pari(z)
@@ -331,7 +331,7 @@ def bernoulli(n, algorithm='default', num_threads=1):
         import sage.rings.bernmm
         return sage.rings.bernmm.bernmm_bern_rat(n, num_threads)
     else:
-        raise ValueError, "invalid choice of algorithm"
+        raise ValueError("invalid choice of algorithm")
 
 
 def factorial(n, algorithm='gmp'):
@@ -396,13 +396,13 @@ def factorial(n, algorithm='gmp'):
        calculations.)
     """
     if n < 0:
-        raise ValueError, "factorial -- must be nonnegative"
+        raise ValueError("factorial -- must be nonnegative")
     if algorithm == 'gmp':
         return ZZ(n).factorial()
     elif algorithm == 'pari':
         return pari.factorial(n)
     else:
-        raise ValueError, 'unknown algorithm'
+        raise ValueError('unknown algorithm')
 
 def is_prime(n):
     r"""
@@ -465,7 +465,7 @@ def is_prime(n):
         else:
             return n.is_pseudoprime()
     except AttributeError:
-        raise TypeError, "is_prime() is not written for this type"
+        raise TypeError("is_prime() is not written for this type")
 
 def is_pseudoprime(n, flag=0):
     r"""
@@ -841,7 +841,7 @@ def primes_first_n(n, leave_pari=False):
         []
     """
     if n < 0:
-        raise ValueError, "n must be nonnegative"
+        raise ValueError("n must be nonnegative")
     if n < 1:
         return []
     return fast_arith.prime_range(pari.nth_prime(n) + 1)
@@ -1138,7 +1138,7 @@ def previous_prime(n):
     """
     n = ZZ(n)-1
     if n <= 1:
-        raise ValueError, "no previous prime"
+        raise ValueError("no previous prime")
     if n <= 3:
         return ZZ(n)
     if n%2 == 0:
@@ -1186,7 +1186,7 @@ def previous_prime_power(n):
     """
     n = ZZ(n)-1
     if n <= 0:
-        raise ValueError, "no previous prime power"
+        raise ValueError("no previous prime power")
     while not is_prime_power(n):
         n -= 1
     return n
@@ -1256,9 +1256,9 @@ def random_prime(n, proof=None, lbound=2):
     proof = get_flag(proof, "arithmetic")
     n = ZZ(n)
     if n < 2:
-        raise ValueError, "n must be greater than or equal to 2"
+        raise ValueError("n must be greater than or equal to 2")
     if n < lbound:
-        raise ValueError, "n must be at least lbound: %s"%(lbound)
+        raise ValueError("n must be at least lbound: %s"%(lbound))
     elif n == 2:
         return n
     lbound = max(2, lbound)
@@ -1274,8 +1274,7 @@ def random_prime(n, proof=None, lbound=2):
                     else:
                         smallest_prime = ZZ(lbound-1).next_probable_prime()
                     if smallest_prime > n:
-                        raise ValueError, \
-                              "There are no primes between %s and %s (inclusive)" % (lbound, n)
+                        raise ValueError("There are no primes between %s and %s (inclusive)" % (lbound, n))
 
     if proof:
         prime_test = is_prime
@@ -1342,7 +1341,7 @@ def divisors(n):
         [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 25, 30, 50, 60, 75, 100, 150, 300]
     """
     if not n:
-        raise ValueError, "n must be nonzero"
+        raise ValueError("n must be nonzero")
 
     R = parent(n)
     if R in [int, long]:
@@ -1884,7 +1883,7 @@ def xgcd(a, b):
         sage: 4*56 + (-5)*44
         4
         sage: g, a, b = xgcd(5/1, 7/1); g, a, b
-        (1, 3, -2)
+        (1, 1/5, 0)
         sage: a*(5/1) + b*(7/1) == g
         True
         sage: x = polygen(QQ)
@@ -2054,7 +2053,7 @@ def power_mod(a,n,m):
         ZeroDivisionError: modulus must be nonzero.
     """
     if m==0:
-        raise ZeroDivisionError, "modulus must be nonzero."
+        raise ZeroDivisionError("modulus must be nonzero.")
     if m==1:
         return 0
     if n < 0:
@@ -2062,7 +2061,7 @@ def power_mod(a,n,m):
         return power_mod(ainv, -n, m)
     if n==0:
         if a == 0:
-            raise ArithmeticError, "0^0 is undefined."
+            raise ArithmeticError("0^0 is undefined.")
         return 1
 
     apow = a % m
@@ -2229,7 +2228,7 @@ def _rational_reconstruction_python(a,m):
         y *= -1
     if x <= bnd and GCD(x,y) == 1:
         return ZZ(y) / ZZ(x)
-    raise ValueError, "Rational reconstruction of %s (mod %s) does not exist."%(a,m)
+    raise ValueError("Rational reconstruction of %s (mod %s) does not exist."%(a,m))
 
 def mqrr_rational_reconstruction(u, m, T):
     r"""
@@ -2471,13 +2470,13 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         try:
             return n.factor(proof=proof, **kwds)
         except AttributeError:
-            raise TypeError, "unable to factor n"
+            raise TypeError("unable to factor n")
         except TypeError:
             # Just in case factor method doesn't have a proof option.
             try:
                 return n.factor(**kwds)
             except AttributeError:
-                raise TypeError, "unable to factor n"
+                raise TypeError("unable to factor n")
 
 def radical(n, *args, **kwds):
     """
@@ -2512,9 +2511,16 @@ def radical(n, *args, **kwds):
 
 def prime_divisors(n):
     """
-    The prime divisors of the integer n, sorted in increasing order. If
-    n is negative, we do *not* include -1 among the prime divisors,
-    since -1 is not a prime number.
+    The prime divisors of ``n``.
+
+    INPUT:
+
+    - ``n`` -- any object which can be factored
+
+    OUTPUT:
+
+    A list of prime factors of ``n``. For integers, this list is sorted
+    in increasing order.
 
     EXAMPLES::
 
@@ -2522,12 +2528,22 @@ def prime_divisors(n):
         []
         sage: prime_divisors(100)
         [2, 5]
-        sage: prime_divisors(-100)
-        [2, 5]
         sage: prime_divisors(2004)
         [2, 3, 167]
+
+    If ``n`` is negative, we do *not* include -1 among the prime
+    divisors, since -1 is not a prime number::
+
+        sage: prime_divisors(-100)
+        [2, 5]
+
+    For polynomials we get all irreducible factors::
+
+        sage: R.<x> = PolynomialRing(QQ)
+        sage: prime_divisors(x^12 - 1)
+        [x - 1, x + 1, x^2 - x + 1, x^2 + 1, x^2 + x + 1, x^4 - x^2 + 1]
     """
-    return [p for p,_ in factor(n) if p != -1]
+    return [p for p,_ in factor(n)]
 
 prime_factors = prime_divisors
 
@@ -2571,7 +2587,7 @@ def prime_to_m_part(n,m):
         21717
     """
     if n == 0:
-        raise ValueError, "n must be nonzero."
+        raise ValueError("n must be nonzero.")
     if m == 0:
         return ZZ(1)
     n = ZZ(n)
@@ -2981,9 +2997,9 @@ def CRT_list(v, moduli):
 
     """
     if not isinstance(v,list) or not isinstance(moduli,list):
-        raise ValueError, "Arguments to CRT_list should be lists"
+        raise ValueError("Arguments to CRT_list should be lists")
     if len(v) != len(moduli):
-        raise ValueError, "Arguments to CRT_list should be lists of the same length"
+        raise ValueError("Arguments to CRT_list should be lists of the same length")
     if len(v) == 0:
         return ZZ(0)
     if len(v) == 1:
@@ -3068,7 +3084,7 @@ def CRT_vectors(X, moduli):
         return []
     n = len(X)
     if n != len(moduli):
-        raise ValueError, "number of moduli must equal length of X"
+        raise ValueError("number of moduli must equal length of X")
     a = CRT_basis(moduli)
     modulus = misc.prod(moduli)
     return [sum([a[i]*X[i][j] for i in range(n)]) % modulus for j in range(len(X[0]))]
@@ -3101,6 +3117,7 @@ def binomial(x, m, **kwds):
 
     EXAMPLES::
 
+        sage: from sage.rings.arith import binomial
         sage: binomial(5,2)
         10
         sage: binomial(2,0)
@@ -3238,7 +3255,7 @@ def binomial(x, m, **kwds):
         if m < 0 or (x >= 0 and m > x):
             return ZZ.zero()
 
-        s = sys.maxint
+        s = sys.maxsize
         if m > s:
             m = x - m
             if m > s:
@@ -3294,7 +3311,7 @@ def multinomial(*ks):
     """
     if isinstance(ks[0],list):
         if len(ks) >1:
-            raise ValueError, "multinomial takes only one list argument"
+            raise ValueError("multinomial takes only one list argument")
         ks=ks[0]
 
     s, c = 0, 1
@@ -3533,9 +3550,9 @@ def legendre_symbol(x,p):
     x = QQ(x).numerator() * QQ(x).denominator()
     p = ZZ(p)
     if not p.is_prime():
-        raise ValueError, "p must be a prime"
+        raise ValueError("p must be a prime")
     if p == 2:
-        raise ValueError, "p must be odd"
+        raise ValueError("p must be odd")
     return x.kronecker(p)
 
 def jacobi_symbol(a,b):
@@ -3578,7 +3595,7 @@ def jacobi_symbol(a,b):
     """
 
     if b%2==0:
-        raise ValueError, "second input must be odd, %s is not odd"%b
+        raise ValueError("second input must be odd, %s is not odd"%b)
 
     return kronecker_symbol(a,b)
 
@@ -3684,7 +3701,7 @@ def primitive_root(n, check=True):
         m = n // 2
         if m%2 and m.is_prime_power():
             return ZZ(pari(n).znprimroot())
-    raise ValueError, "no primitive root"
+    raise ValueError("no primitive root")
 
 def nth_prime(n):
     """
@@ -3742,8 +3759,7 @@ def quadratic_residues(n):
         159
     """
     n = abs(int(n))
-    X = list(set([ZZ((a*a)%n) for a in range(n/2+1)]))
-    X.sort()
+    X = sorted(set([ZZ((a*a)%n) for a in range(n/2+1)]))
     return X
 
 ## This much slower than above, for obvious reasons.
@@ -3914,8 +3930,7 @@ class Moebius:
             n = len(range(start, stop, step)) # stupid
             v = pari('vector(%s, i, moebius(%s*(i-1) + %s))'%(
                 n, step, start))
-        w = vecsmall_to_intlist(v.Vecsmall())
-        return [Z(x) for x in w]
+        return [Z(x) for x in v]
 
 moebius = Moebius()
 
@@ -4079,7 +4094,19 @@ def continued_fraction_list(x, partial_convergents=False, bits=None, nterms=None
         [1, 100000000000000000000, 2688, 8, 1]
         sage: continued_fraction_list(1 + 10^-20 - e^-100, bits=1000, nterms=5)
         [1, 100000000000000000000, 2688, 8, 1]
+
+    Check that :trac:`14858` is fixed::
+
+        sage: continued_fraction_list(3/4) == continued_fraction_list(SR(3/4))
+        True
+
     """
+    if isinstance(x, sage.symbolic.expression.Expression):
+        try:
+            x = x.pyobject()
+        except TypeError:
+            pass
+
     if isinstance(x, (integer.Integer, int, long)):
         if partial_convergents:
             return [x], [(x,1)]
@@ -4439,7 +4466,7 @@ def number_of_divisors(n):
     """
     m = ZZ(n)
     if m.is_zero():
-        raise ValueError, "input must be nonzero"
+        raise ValueError("input must be nonzero")
     return ZZ(pari(m).numdiv())
 
 
@@ -4498,7 +4525,7 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
     """
     p = ZZ(p)
     if p != -1 and not p.is_prime():
-        raise ValueError, "p must be prime or -1"
+        raise ValueError("p must be prime or -1")
     a = QQ(a).numerator() * QQ(a).denominator()
     b = QQ(b).numerator() * QQ(b).denominator()
 
@@ -4540,10 +4567,10 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
         ans_pari = hilbert_symbol(a,b,p,algorithm='pari')
         ans_direct = hilbert_symbol(a,b,p,algorithm='direct')
         if ans_pari != ans_direct:
-            raise RuntimeError, "There is a bug in hilbert_symbol; two ways of computing the Hilbert symbol (%s,%s)_%s disagree"%(a,b,p)
+            raise RuntimeError("There is a bug in hilbert_symbol; two ways of computing the Hilbert symbol (%s,%s)_%s disagree"%(a,b,p))
         return ans_pari
     else:
-        raise ValueError, "Algorithm %s not defined"%algorithm
+        raise ValueError("Algorithm %s not defined"%algorithm)
 
 
 def hilbert_conductor(a, b):
@@ -4627,7 +4654,7 @@ def hilbert_conductor_inverse(d):
     Z = ZZ
     d = Z(d)
     if d <= 0:
-        raise ValueError, "d needs to be positive"
+        raise ValueError("d needs to be positive")
     if d == 1:
         return (Z(-1), Z(1))
     if d == 2:
@@ -4644,7 +4671,7 @@ def hilbert_conductor_inverse(d):
     else:
         mo = moebius(d)
         if mo == 0:
-            raise ValueError, "d needs to be squarefree"
+            raise ValueError("d needs to be squarefree")
         if d % 2 == 0 and mo*d % 16 != 2:
             dd = mo * d / 2
         else:
@@ -4730,11 +4757,18 @@ def falling_factorial(x, a):
         sage: falling_factorial(x, 4)
         x^4 - 6*x^3 + 11*x^2 - 6*x
 
+    Check that :trac:`14858` is fixed::
+
+        sage: falling_factorial(-4, SR(2))
+        20
+
     AUTHORS:
 
     - Jaap Spies (2006-03-05)
     """
-    if isinstance(a, (integer.Integer, int, long)) and a >= 0:
+    if (isinstance(a, (integer.Integer, int, long)) or
+        (isinstance(a, sage.symbolic.expression.Expression) and
+         a.is_integer())) and a >= 0:
         return misc.prod([(x - i) for i in range(a)])
     from sage.functions.all import gamma
     return gamma(x+1) / gamma(x-a+1)
@@ -4801,11 +4835,20 @@ def rising_factorial(x, a):
         sage: rising_factorial(x, 4)
         x^4 + 6*x^3 + 11*x^2 + 6*x
 
+    Check that :trac:`14858` is fixed::
+
+        sage: bool(rising_factorial(-4, 2) ==
+        ....:      rising_factorial(-4, SR(2)) ==
+        ....:      rising_factorial(SR(-4), SR(2)))
+        True
+
     AUTHORS:
 
     - Jaap Spies (2006-03-05)
     """
-    if isinstance(a, (integer.Integer, int, long)) and a >= 0:
+    if (isinstance(a, (integer.Integer, int, long)) or
+        (isinstance(a, sage.symbolic.expression.Expression) and
+         a.is_integer())) and a >= 0:
         return misc.prod([(x + i) for i in range(a)])
     from sage.functions.all import gamma
     return gamma(x+a) / gamma(x)
@@ -4827,7 +4870,7 @@ def integer_ceil(x):
             return sage.rings.all.Integer(int(math.ceil(float(x))))
         except TypeError:
             pass
-    raise NotImplementedError, "computation of floor of %s not implemented"%repr(x)
+    raise NotImplementedError("computation of floor of %s not implemented"%repr(x))
 
 def integer_floor(x):
     r"""
@@ -4860,7 +4903,7 @@ def integer_floor(x):
             return ZZ(int(math.floor(float(x))))
         except TypeError:
             pass
-    raise NotImplementedError, "computation of floor of %s not implemented"%x
+    raise NotImplementedError("computation of floor of %s not implemented"%x)
 
 
 
@@ -4892,11 +4935,11 @@ def two_squares(n, algorithm='gap'):
         import sage.interfaces.gap as gap
         a = gap.gap.eval('TwoSquares(%s)'%n)
         if a == 'fail':
-            raise ValueError, "%s is not a sum of two squares"%n
+            raise ValueError("%s is not a sum of two squares"%n)
         x, y = eval(a)
         return Integer(x), Integer(y)
     else:
-        raise RuntimeError, "unknown algorithm '%s'"%algorithm
+        raise RuntimeError("unknown algorithm '%s'"%algorithm)
 
 def _brute_force_four_squares(n):
     """
@@ -5109,7 +5152,7 @@ def differences(lis, n=1):
     """
     n = ZZ(n)
     if n < 1:
-        raise ValueError, 'n must be greater than 0'
+        raise ValueError('n must be greater than 0')
     lis = [lis[i + 1] - num for i, num in enumerate(lis[:-1])]
     if n == 1:
         return lis

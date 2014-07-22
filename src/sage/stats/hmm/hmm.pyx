@@ -36,7 +36,8 @@ cdef extern from "math.h":
     double log(double)
 
 from sage.finance.time_series cimport TimeSeries
-from sage.matrix.all import is_Matrix, matrix
+from sage.matrix.matrix import is_Matrix
+from sage.matrix.all import matrix
 from sage.misc.randstate cimport current_randstate, randstate
 
 from util cimport HMM_Util
@@ -790,7 +791,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
             - a nonnegative int
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: m = hmm.DiscreteHiddenMarkovModel([[0.4,0.6],[0.1,0.9]], [[0.1,0.9],[0.9,0.1]], [.2,.8])
             sage: set_random_seed(0)

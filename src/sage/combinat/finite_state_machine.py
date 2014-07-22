@@ -451,7 +451,7 @@ Now, let's add these hook-functions to the existing transducer::
 
 Rerunning the process again now gives the following output::
 
-    sage: D.process([1, 1, 0, 1])
+    sage: D.process([1, 1, 0, 1], check_epsilon_transitions=False)
     We are now in State 0.
     Currently we go from 0 to 1, reading 1 and writing 0.
     We are now in State 1.
@@ -464,8 +464,10 @@ Rerunning the process again now gives the following output::
     (False, 1, [0, 1, 0, 0])
 
 The example above just explains the basic idea of using
-hook-functions. In the following, we will use those hooks more seriously.
-
+hook-functions. In the following, we will use those hooks more
+seriously. Note that we used ``check_epsilon_transitions=False`` to
+only get a cleaner output, since processing of finite state machines
+is also used to handle epsilon transition.
 
 Detecting sequences with same number of `0` and `1`
 ---------------------------------------------------
@@ -1416,8 +1418,6 @@ class FSMState(SageObject):
             sage: T.state(0)._epsilon_successors_()
             {1: [['a']], 2: [['a', 'b']]}
         """
-        if hasattr(self, '_epsilon_successors_dict_'):
-            return self._epsilon_successors_dict_
         if not hasattr(self, 'transitions'):
             raise ValueError('State %s does not belong to a '
                              'finite state machine.' % (self,))
@@ -1428,12 +1428,12 @@ class FSMState(SageObject):
         # epsilon successors)
         for _ in it:
             pass
-        self._epsilon_successors_dict_ = it.visited_states
-        self._epsilon_successors_dict_[self].remove([])  # delete starting state
-        if not self._epsilon_successors_dict_[self]:
-            del self._epsilon_successors_dict_[self]
+        _epsilon_successors_dict_ = it.visited_states
+        _epsilon_successors_dict_[self].remove([])  # delete starting state
+        if not _epsilon_successors_dict_[self]:
+            del _epsilon_successors_dict_[self]
         # TODO: apply "unique" on outputs
-        return self._epsilon_successors_dict_
+        return _epsilon_successors_dict_
 
 
     def _in_epsilon_cycle_(self, fsm=None):
@@ -9858,7 +9858,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: def h_new(process, state, input, output):
             ....:     print state, input, output
             sage: N.state(0).hook = h_new
-            sage: N.process([0, 0])
+            sage: N.process([0, 0], check_epsilon_transitions=False)
             0 tape at 0 [[]]
             0 tape at 1 [[1]]
             0 tape at 2 [[1, 1]]

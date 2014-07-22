@@ -51,7 +51,7 @@ def is_Morphism(x):
 cdef class Morphism(Map):
 
     def _repr_(self):
-        r"""
+        """
         Return the string representation of ``self``.
 
         .. NOTE::
@@ -107,6 +107,16 @@ cdef class Morphism(Map):
         return s
 
     def _default_repr_(self):
+        """
+        Return a string representation of this morphism.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: f = R.hom([t+1])
+            sage: f._default_repr_()
+            'Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring\n  Defn: t |--> t + 1'
+        """
         D = self.domain()
         if D is None:
             return "Defunct morphism"
@@ -157,7 +167,7 @@ cdef class Morphism(Map):
             return ", ".join(d.split("\n"))
 
     def category(self):
-        r"""
+        """
         Return the category of the parent of this morphism.
 
         EXAMPLES::
@@ -173,7 +183,8 @@ cdef class Morphism(Map):
             sage: phi.category()
             Category of hom sets in Category of rings
         """
-        return self.parent().category() # Should not it be Category of elements of ...?
+        # Should it be Category of elements of ...?
+        return self.parent().category()
 
     def is_endomorphism(self):
         """
@@ -212,7 +223,7 @@ cdef class Morphism(Map):
             sage: g.is_identity()
             False
 
-        A morphism between two different spaces can not be the identity::
+        A morphism between two different spaces cannot be the identity::
 
             sage: R2.<t2> = QQ[]
             sage: h = R.hom([t2])
@@ -285,7 +296,7 @@ cdef class Morphism(Map):
         self._codomain.register_coercion(self)
 
     def register_as_conversion(self):
-        """
+        r"""
         Register this morphism as a conversion to Sage's coercion model
 
         (see :mod:`sage.structure.coerce`).
@@ -401,11 +412,11 @@ cdef class IdentityMorphism(Morphism):
 
     def __mul__(left, right):
         if not isinstance(right, Map):
-            raise TypeError, "right (=%s) must be a map to multiply it by %s"%(right, left)
+            raise TypeError("right (=%s) must be a map to multiply it by %s"%(right, left))
         if not isinstance(left, Map):
-            raise TypeError, "left (=%s) must be a map to multiply it by %s"%(left, right)
+            raise TypeError("left (=%s) must be a map to multiply it by %s"%(left, right))
         if right.codomain() != left.domain():
-            raise TypeError, "self (=%s) domain must equal right (=%s) codomain"%(left, right)
+            raise TypeError("self (=%s) domain must equal right (=%s) codomain"%(left, right))
         if isinstance(left, IdentityMorphism):
             return right
         else:
@@ -429,9 +440,9 @@ cdef class SetMorphism(Morphism):
         EXAMPLES::
 
             sage: from sage.categories.morphism import SetMorphism
-            sage: f = SetMorphism(Hom(QQ, ZZ, Monoids()), numerator)
+            sage: f = SetMorphism(Hom(QQ, ZZ, Sets()), numerator)
             sage: f.parent()
-            Set of Morphisms from Rational Field to Integer Ring in Category of monoids
+            Set of Morphisms from Rational Field to Integer Ring in Category of sets
             sage: f.domain()
             Rational Field
             sage: f.codomain()
@@ -482,7 +493,7 @@ cdef class SetMorphism(Morphism):
         try:
             return self._function(x, *args, **kwds)
         except Exception:
-            raise TypeError, "Underlying map %s does not accept additional arguments"%type(self._function)
+            raise TypeError("Underlying map %s does not accept additional arguments"%type(self._function))
 
     cdef dict _extra_slots(self, dict _slots):
         """
@@ -502,7 +513,7 @@ cdef class SetMorphism(Morphism):
         return Map._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
-        r"""
+        """
         INPUT:
 
         - ``_slots`` -- a dictionary

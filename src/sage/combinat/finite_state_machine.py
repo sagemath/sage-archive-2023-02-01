@@ -152,15 +152,10 @@ TikZ is used for typesetting the graphics, see the
     \path[->] (v1.5.00) edge node[rotate=0.00, anchor=south] {$0$} (v0.175.00);
     \end{tikzpicture}
 
-We can turn this into a graphical representation. Before doing this,
-we have to :func:`setup the latex preamble <setup_latex_preamble>` and
-make sure that TikZ pictures are not rendered by mathjax, but by
-actually running LaTeX.
+We can turn this into a graphical representation.
 
 ::
 
-    sage: sage.combinat.finite_state_machine.setup_latex_preamble()
-    sage: latex.mathjax_avoid_list('tikzpicture')
     sage: view(NAF) # not tested
 
 To actually see this, use the live documentation in the Sage notebook
@@ -562,6 +557,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
 from sage.symbolic.ring import SR
 from sage.calculus.var import var
+from sage.misc.cachefunc import cached_function
 from sage.misc.latex import latex
 from sage.misc.misc import verbose
 from sage.functions.trig import cos, sin, atan2
@@ -3167,9 +3163,6 @@ class FiniteStateMachine(SageObject):
         means, it can be combined with directly setting some
         attributes as outlined above.
 
-        See also :func:`setup_latex_preamble` or the example below on
-        how to setup the LaTeX environment.
-
         EXAMPLES:
 
         See also the section on :ref:`finite_state_machine_LaTeX_output`
@@ -3177,9 +3170,6 @@ class FiniteStateMachine(SageObject):
 
         ::
 
-            sage: from sage.combinat.finite_state_machine import setup_latex_preamble
-            sage: setup_latex_preamble()
-            sage: latex.mathjax_avoid_list('tikzpicture')
             sage: T = Transducer(initial_states=[4],
             ....:     final_states=[0, 3])
             sage: for j in srange(4):
@@ -3472,6 +3462,8 @@ class FiniteStateMachine(SageObject):
                     # left has its label below the transition, otherwise above
                     anchor_label = "north"
             return "rotate=%.2f, anchor=%s" % (angle_label, anchor_label)
+
+        setup_latex_preamble()
 
         options = ["auto", "initial text=", ">=latex"]
 
@@ -8950,8 +8942,9 @@ class FSMProcessIterator(SageObject):
 #*****************************************************************************
 
 
+@cached_function
 def setup_latex_preamble():
-    """
+    r"""
     This function adds the package ``tikz`` with support for automata
     to the preamble of Latex so that the finite state machines can be
     drawn nicely.
@@ -8964,9 +8957,6 @@ def setup_latex_preamble():
 
     Nothing.
 
-    In the Sage notebook, you probably want to use
-    ``latex.mathjax_avoid_list('tikzpicture')`` such that
-    :func:`~sage.misc.latex.view` actually shows the result.
     See the section on :ref:`finite_state_machine_LaTeX_output`
     in the introductory examples of this module.
 
@@ -8974,10 +8964,13 @@ def setup_latex_preamble():
 
         sage: from sage.combinat.finite_state_machine import setup_latex_preamble
         sage: setup_latex_preamble()
-        sage: latex.mathjax_avoid_list('tikzpicture')
+        sage: ("\usepackage{tikz}" in latex.extra_preamble()) == latex.has_file("tikz.sty")
+        True
     """
     latex.add_package_to_preamble_if_available('tikz')
-    latex.add_to_preamble('\\usetikzlibrary{automata}')
+    latex.add_to_mathjax_avoid_list("tikz")
+    if latex.has_file("tikz.sty"):
+        latex.add_to_preamble(r'\usetikzlibrary{automata}')
 
 
 #*****************************************************************************

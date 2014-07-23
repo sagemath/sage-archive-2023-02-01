@@ -221,7 +221,6 @@ from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import Matrix
-from sage.modules.free_module import element_class
 from sage.modules.free_module_element import vector
 from sage.rings.arith import GCD, rising_factorial, binomial
 from sage.groups.all import SymmetricGroup
@@ -229,7 +228,6 @@ from sage.misc.misc import prod
 from sage.misc.functional import log, is_even
 from sage.rings.rational_field import QQ
 from sage.structure.parent import Parent
-from sage.structure.parent_gens import ParentWithGens
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import IntegerRing

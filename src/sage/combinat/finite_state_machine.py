@@ -833,11 +833,11 @@ def full_group_by(l, key=lambda x: x):
 
         sage: from sage.combinat.finite_state_machine import full_group_by
         sage: t = [2/x, 1/x, 2/x]
-        sage: r = full_group_by([0,1,2], key=lambda i:t[i])
+        sage: r = full_group_by([0, 1, 2], key=lambda i:t[i])
         sage: sorted(r, key=lambda p:p[1])
         [(2/x, [0, 2]), (1/x, [1])]
         sage: from itertools import groupby
-        sage: for k, elements in groupby(sorted([0,1,2],
+        sage: for k, elements in groupby(sorted([0, 1, 2],
         ....:                            key=lambda i:t[i]),
         ....:                            key=lambda i:t[i]):
         ....:     print k, list(elements)

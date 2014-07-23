@@ -146,17 +146,17 @@ est construit, il est conservé en cache et réutilisé par la suite :
 Types et parents
 ----------------
 
-Il ne faut pas confondre le type ``RingElement`` avec la notion mathématique
-d'élément d'anneau : il peut arriver que pour des raisons pratiques, un objet
-soit de type ``RingElement`` alors qu'il n'appartient pas à un anneau :
+Le type ``RingElement`` ne correspond pas parfaitement à la notion
+mathématique d'élément d'anneau. Par exemple, bien que les matrices carrées
+appartiennent à un anneau, elles ne sont pas de type ``RingElement`` :
 
 ::
 
-    sage: M = Matrix(ZZ,2,3); M
-    [0 0 0]
-    [0 0 0]
+    sage: M = Matrix(ZZ,2,2); M
+    [0 0]
+    [0 0]
     sage: isinstance(M, RingElement)
-    True
+    False
 
 Si les *parents* sont censés être uniques, des *éléments* égaux d'un parent ne
 sont pas nécessairement identiques. Le comportement de Sage diffère ici de

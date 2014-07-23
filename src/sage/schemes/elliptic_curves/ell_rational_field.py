@@ -1397,7 +1397,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         else:
             raise ValueError("algorithm %s not defined"%algorithm)
 
-    def analytic_rank_bound(self,Delta=1,N=None):
+    def analytic_rank_upper_bound(self,Delta=1,N=None,root_number=True):
         """
         Return an upper bound for the analytic rank of self conditional on
         GRH, via a L-function zero sum method that is insensitive to
@@ -1414,9 +1414,18 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
           the conductor of self. This is passable so that rank estimation
           can be done for curves whose (large) conductor has been precomputed.
 
+        - ``root_number`` -- (default: True) One of True, False, 1 or -1:
+          - If True, the root number of self is computed and used to (possibly)
+            lower ther analytic rank estimate by 1.
+          - If False, the above step is omitted.
+          - If 1 or -1, this value is assumed to be the root number of self.
+            This is passable so that rank estimation can be done for curves
+            whose root number has been precomputed.
+
         .. NOTE::
 
-            Output will be incorrect if the incorrect conductor is specified.
+            Output will be incorrect if the incorrect conductor or root number
+            is specified.
 
         .. WARNING::
 
@@ -1428,29 +1437,33 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         OUTPUT:
 
-        A positive real double field element strictly greater than the
-        analytic rank of self
+        A non-negative integer greater than or equal to the analytic rank of
+        self.
 
         .. SEEALSO::
 
             :func:`LFunctionZeroSum`
+            :meth:`.root_number`
 
         EXAMPLES:
 
-        For most elliptic curves the central zero(s) of 'L_E(s)' are fairly
-        isolated, so small values of '\Delta' will yield tight rank estimates:
+        For most elliptic curves with small conductor the central zero(s)
+        of 'L_E(s)' are fairly isolated, so small values of '\Delta'
+        will yield tight rank estimates:
 
         ::
 
             sage: E = EllipticCurve('11a')
-            sage: E.analytic_rank_bound(Delta=1)
-            0.0145146387076
+            sage: E.rank()
+            0
+            sage: E.analytic_rank_upper_bound(Delta=1)
+            0
 
             sage: E = EllipticCurve([-39,123])
             sage: E.rank()
             1
-            sage: E.analytic_rank_bound(Delta=1)
-            1.35695265433
+            sage: E.analytic_rank_upper_bound(Delta=1)
+            1
 
         This is especially true for elliptic curves with large rank:
 
@@ -1458,21 +1471,29 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = elliptic_curves.rank(8)[0]; E
             Elliptic Curve defined by y^2 + y = x^3 - 23737*x + 960366 over Rational Field
-            sage: E.analytic_rank_bound(Delta=1)
-            8.51446122452
+            sage: E.analytic_rank_upper_bound(Delta=1)
+            8
 
         However, some curves have 'L'-functions with low-lying zeroes, and for these
         larger values of '\Delta' must be used to get tight estimates:
 
         ::
 
-        sage: E = EllipticCurve('974b1')
-        sage: r = E.rank(); r
-        0
-        sage: E.analytic_rank_bound(Delta=1)
-        1.18433868164
-        sage: E.analytic_rank_bound(Delta=1.3)
-        0.764493718013
+            sage: E = EllipticCurve('974b1')
+            sage: r = E.rank(); r
+            0
+            sage: E.analytic_rank_upper_bound(Delta=1,root_number=False)
+            1
+            sage: E.analytic_rank_upper_bound(Delta=1.3,root_number=False)
+            0
+
+        Knowing the root number of E allows us to use smaller Delta values
+        to get tight bounds, thus speeding up runtime considerably:
+
+        ::
+
+            sage: E.analytic_rank_upper_bound(Delta=0.6,root_number=True)
+            0
 
         REFERENCES:
 
@@ -1480,8 +1501,23 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ANTS 10. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
 
         """
+
         Z = LFunctionZeroSum_EllipticCurve(self,N)
-        return Z.zerosum(Delta,function='sincsquared_fast')
+        bound = (Z.zerosum(Delta,function='sincsquared_fast')).floor()
+
+        if root_number==False:
+            return bound
+
+        if root_number==True:
+            w = (1-self.root_number())//2
+        else:
+            w = (1-root_number)//2
+        # w is 0 if E has even parity, and 1 if odd parity. The returned
+        # value must have the same parity as w.
+        if bound%2!=w:
+            return bound-1
+        else:
+            return bound
 
     def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=3,
                           maxprob=20, limbigprime=30, known_points=None):

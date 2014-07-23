@@ -141,9 +141,9 @@ class Bimodules(CategoryWithParameters):
             {\mathbf{Bimodules}}_{\Bold{Q}, \Bold{Z}}
         """
         from sage.misc.latex import latex
-        return "{%s}_{%s, %s}" % (Category._latex_(self),
-                                  latex(self._left_base_ring),
-                                  latex(self._right_base_ring))
+        return "{{{0}}}_{{{1}, {2}}}".format(Category._latex_(self),
+                                             latex(self._left_base_ring),
+                                             latex(self._right_base_ring))
 
     def super_categories(self):
         """

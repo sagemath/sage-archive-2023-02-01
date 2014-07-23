@@ -1372,7 +1372,7 @@ class FunctionField_polymod(FunctionField):
         ``f`` is an isomorphism from ``F`` to this function field and ``t`` is
         the inverse of ``f``.
 
-        EXAMPLES::
+        EXAMPLES:
 
         A tower of four function fields::
 

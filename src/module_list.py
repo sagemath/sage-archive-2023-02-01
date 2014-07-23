@@ -1804,6 +1804,9 @@ ext_modules = [
     Extension('sage.rings.polynomial.multi_polynomial_ring_generic',
               sources = ['sage/rings/polynomial/multi_polynomial_ring_generic.pyx']),
 
+    Extension('sage.rings.polynomial.polynomial_number_field',
+              sources = ['sage/rings/polynomial/polynomial_number_field.pyx']),
+
     Extension('sage.rings.polynomial.polydict',
               sources = ['sage/rings/polynomial/polydict.pyx']),
 

@@ -33,6 +33,7 @@
 
     // Find sageBinary etc.
     [self setupPaths];
+    [self ensureReadWrite];
 
     // Initialize the StatusItem if desired.
     // If we are on Tiger, then showing in the dock doesn't work
@@ -341,6 +342,33 @@ You can change it later in Preferences."];
 
         NSLog(@"WARNING: Could not find a good sage executable, falling back to sage and hoping it's in PATH.");
         sageBinary = @"sage";
+    }
+}
+
+-(void)ensureReadWrite {
+    NSFileManager *filemgr = [NSFileManager defaultManager];
+    NSLog(@"Checking if sageBinary (%@) is writeable.",sageBinary);
+    if ( ! [filemgr isWritableFileAtPath:sageBinary] ) {
+        NSAlert *alert = [NSAlert alertWithMessageText:@"Read-only Sage"
+                                         defaultButton:@"Quit"
+                                       alternateButton:@"Preferences"
+                                           otherButton:@"Continue"
+                             informativeTextWithFormat:@"You are attempting to run Sage.app with a read-only copy of Sage "
+                          "(most likely due to running it from the disk image).  "
+                          "Unfortunately, this is not supported for technical reasons.  \n"
+                          "Please drag Sage.app to your hard-drive and run it from there, "
+                          "or choose a different executable in Preferences."];
+        [alert setAlertStyle:NSWarningAlertStyle];
+        NSModalResponse resp = [alert runModal];
+        if (resp == NSModalResponseOK) {// Quit
+            NSLog(@"Quitting after a read-only Sage warning.");
+            [NSApp terminate:self];
+        } else if ( resp == NSModalResponseCancel ) { // Continue
+            NSLog(@"Preferences after a read-only Sage warning.");
+            [self showPreferences:self];
+        } else {
+            NSLog(@"Continuing from read-only Sage warning.");
+        }
     }
 }
 

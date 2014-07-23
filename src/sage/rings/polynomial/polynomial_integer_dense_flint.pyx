@@ -330,7 +330,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
     cpdef Integer content(self):
         r"""
         Return the greatest common divisor of the coefficients of this
-        polynomial.
+        polynomial. The sign is the sign of the leading coefficient.  The
+        content of the zero polynomial is zero.
 
         EXAMPLES::
 
@@ -351,14 +352,27 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             1
             sage: (123456789123456789123456789123456789123456789*t).content()
             123456789123456789123456789123456789123456789
+
+        Verify that :trac:`13053` has been resolved::
+
+            sage: R(-1).content()
+            -1
+
         """
+        if self.is_zero():
+            return ZZ.zero()
+
         cdef fmpz_t c
         fmpz_init(c)
+        fmpz_poly_get_coeff_fmpz(c, self.__poly, fmpz_poly_degree(self.__poly))
+        cdef int sign = fmpz_sgn(c)
+
         fmpz_poly_content(c, self.__poly)
+
         cdef Integer z = PY_NEW(Integer)
         fmpz_get_mpz(z.value, c)
         fmpz_clear(c)
-        return z
+        return z if sign == 1 else -z
 
     def __reduce__(self):
         r"""
@@ -1091,6 +1105,16 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: p = 37 * (x-1)^2 * (x-2)^2 * (x-3)^3 * (x-4)
             sage: p.squarefree_decomposition()
             (37) * (x - 4) * (x^2 - 3*x + 2)^2 * (x - 3)^3
+
+        TESTS:
+
+        Verify that :trac:`13053` has been resolved::
+
+            sage: R.<x> = PolynomialRing(ZZ, implementation='FLINT')
+            sage: f=-x^2
+            sage: f.squarefree_decomposition()
+            (-1) * x^2
+
         """
         cdef ZZX_c** v
         cdef long* e
@@ -1100,10 +1124,13 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         cdef Integer z
         cdef Polynomial_integer_dense_flint fac
 
+        # the sign of the content is the sign of the leading coefficient
         z = self.content()
         if not z.is_one():
             fmpz_poly_init(ppart)
 
+            # the primitive part returned by FLINT has positive leading
+            # coefficient
             fmpz_poly_primitive_part(ppart, self.__poly)
 
             fmpz_poly_get_ZZX(ntl_poly, ppart)
@@ -1111,6 +1138,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         else:
             fmpz_poly_get_ZZX(ntl_poly, self.__poly)
 
+        # input is primitive, with positive leading coefficient
         ZZX_squarefree_decomposition(&v, &e, &n, &ntl_poly)
 
         F = []

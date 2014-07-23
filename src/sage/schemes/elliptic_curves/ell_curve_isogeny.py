@@ -59,7 +59,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from copy import deepcopy, copy
+from copy import copy
 
 from sage.categories import homset
 
@@ -736,6 +736,22 @@ class EllipticCurveIsogeny(Morphism):
         sage: phi.rational_maps()
         (((4/25*i + 3/25)*x^5 + (4/5*i - 2/5)*x^3 - x)/(x^4 + (-4/5*i + 2/5)*x^2 + (-4/25*i - 3/25)),
          ((11/125*i + 2/125)*x^6*y + (-23/125*i + 64/125)*x^4*y + (141/125*i + 162/125)*x^2*y + (3/25*i - 4/25)*y)/(x^6 + (-6/5*i + 3/5)*x^4 + (-12/25*i - 9/25)*x^2 + (2/125*i - 11/125)))
+
+    Domain and codomain tests (see :trac:`12880`)::
+
+        sage: E = EllipticCurve(QQ, [0,0,0,1,0])
+        sage: phi = EllipticCurveIsogeny(E,  E(0,0))
+        sage: phi.domain() == E
+        True
+        sage: phi.codomain()
+        Elliptic Curve defined by y^2 = x^3 - 4*x over Rational Field
+
+        sage: E = EllipticCurve(GF(31), [1,0,0,1,2])
+        sage: phi = EllipticCurveIsogeny(E, [17, 1])
+        sage: phi.domain()
+        Elliptic Curve defined by y^2 + x*y = x^3 + x + 2 over Finite Field of size 31
+        sage: phi.codomain()
+        Elliptic Curve defined by y^2 + x*y = x^3 + 24*x + 6 over Finite Field of size 31
     """
 
     ####################
@@ -1174,7 +1190,7 @@ class EllipticCurveIsogeny(Morphism):
         kernel_list = self.__kernel_list
         self.__kernel_list = None
 
-        output = deepcopy(self)
+        output = copy(self)
 
         # reset the kernel lists
         output.__kernel_list = copy(kernel_list)
@@ -1322,7 +1338,7 @@ class EllipticCurveIsogeny(Morphism):
         self._codomain = self.__E2
 
         # sets up the parent
-        parent = homset.Hom(self.__E1(0).parent(), self.__E2(0).parent())
+        parent = homset.Hom(self.__E1, self.__E2)
         Morphism.__init__(self, parent)
 
         return
@@ -2574,46 +2590,6 @@ class EllipticCurveIsogeny(Morphism):
     # public isogeny methods
     #
 
-    def domain(self):
-        r"""
-        Returns the domain curve of this isogeny.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve(QQ, [0,0,0,1,0])
-            sage: phi = EllipticCurveIsogeny(E,  E(0,0))
-            sage: phi.domain() == E
-            True
-
-            sage: E = EllipticCurve(GF(31), [1,0,0,1,2])
-            sage: phi = EllipticCurveIsogeny(E, [17, 1])
-            sage: phi.domain()
-            Elliptic Curve defined by y^2 + x*y = x^3 + x + 2 over Finite Field of size 31
-
-        """
-        return self.__E1
-
-
-    def codomain(self):
-        r"""
-        Returns the codomain (range) curve of this isogeny.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve(QQ, [0,0,0,1,0])
-            sage: phi = EllipticCurveIsogeny(E,  E((0,0)))
-            sage: phi.codomain()
-            Elliptic Curve defined by y^2 = x^3 - 4*x over Rational Field
-
-            sage: E = EllipticCurve(GF(31), [1,0,0,1,2])
-            sage: phi = EllipticCurveIsogeny(E, [17, 1])
-            sage: phi.codomain()
-            Elliptic Curve defined by y^2 + x*y = x^3 + 24*x + 6 over Finite Field of size 31
-
-        """
-        return self.__E2
-
-
     def degree(self):
         r"""
         Returns the degree of this isogeny.
@@ -3343,24 +3319,15 @@ class EllipticCurveIsogeny(Morphism):
             NotImplementedError
 
         The following should test that :meth:`_composition_` is called
-        upon a product. However phi is currently improperly
-        constructed (see :trac:`12880`), which triggers an assertion
-        failure before the actual call ::
+        upon a product (modified for :trac:`12880` ; see :trac:`16245` where we
+        fix the _composition_ issue).
 
             sage: phi*phi
-            Traceback (most recent call last):
-            ...
-            ValueError: Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7 is not in Category of hom sets in Category of schemes
-
-        Here would be the desired output::
-
-            sage: phi*phi            # not tested
             Traceback (most recent call last):
             ...
             NotImplementedError
         """
         raise NotImplementedError
-
 
     def is_injective(self):
         r"""
@@ -3771,13 +3738,9 @@ def compute_intermediate_curves(E1, E2):
         sage: compute_intermediate_curves(E, E2)
         (Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1,
          Elliptic Curve defined by y^2 = x^3 + 16*x over Number Field in i with defining polynomial x^2 + 1,
-         Generic morphism:
-          From: Abelian group of points on Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1
-          To:   Abelian group of points on Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1
+         Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1
           Via:  (u,r,s,t) = (1, 0, 0, 0),
-         Generic morphism:
-          From: Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 16*x over Number Field in i with defining polynomial x^2 + 1
-          To:   Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 16*x over Number Field in i with defining polynomial x^2 + 1
+         Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 16*x over Number Field in i with defining polynomial x^2 + 1
           Via:  (u,r,s,t) = (1, 0, 0, 0))
 
     """
@@ -3847,13 +3810,9 @@ def compute_sequence_of_maps(E1, E2, ell):
         sage: E = EllipticCurve(K, [0,0,0,1,0])
         sage: E2 = EllipticCurve(K, [0,0,0,16,0])
         sage: compute_sequence_of_maps(E, E2, 4)
-        (Generic morphism:
-          From: Abelian group of points on Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1
-          To:   Abelian group of points on Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1
+        (Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1
           Via:  (u,r,s,t) = (1, 0, 0, 0),
-         Generic morphism:
-          From: Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 16*x over Number Field in i with defining polynomial x^2 + 1
-          To:   Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 16*x over Number Field in i with defining polynomial x^2 + 1
+         Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 16*x over Number Field in i with defining polynomial x^2 + 1
           Via:  (u,r,s,t) = (1, 0, 0, 0),
          Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1,
          Elliptic Curve defined by y^2 = x^3 + 16*x over Number Field in i with defining polynomial x^2 + 1,

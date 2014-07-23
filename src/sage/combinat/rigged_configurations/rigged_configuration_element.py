@@ -670,7 +670,7 @@ class RiggedConfigurationElement(ClonableArray):
             sage: for mg in RC.module_generators: # long time
             ....:     y = mg.to_tensor_product_of_kirillov_reshetikhin_tableaux()
             ....:     hw = y.lusztig_involution().to_highest_weight([1,2,3,4])[0]
-            ....:     c = RCp(*mg.complement())
+            ....:     c = RCp(*mg.complement_rigging())
             ....:     hwc = c.to_tensor_product_of_kirillov_reshetikhin_tableaux()
             ....:     assert hw == hwc
         """
@@ -724,10 +724,11 @@ class RiggedConfigurationElement(ClonableArray):
         Return the image of ``self`` under the right column splitting
         map `\beta^*`.
 
-        Let `\ast` denote the :meth:`Lusztig involution<lusztig_involution>`
+        Let `\theta` denote the
+        :meth:`complement rigging map<complement_rigging>`
         and `\beta` denote the :meth:`left splitting map<left_split>`, we
         define the right splitting map by
-        `\beta^* := \ast \circ \beta \circ \ast`.
+        `\beta^* := \theta \circ \beta \circ \theta`.
 
         EXAMPLES::
 
@@ -738,9 +739,9 @@ class RiggedConfigurationElement(ClonableArray):
                       0[ ][ ]0  0[ ][ ]0  0[ ]0
                                 0[ ][ ]0  0[ ]0
             sage: ascii_art(mg.right_split())
-            0[ ][ ]0  0[ ][ ]0  1[ ][ ]0  0[ ]0
-                      0[ ][ ]0  1[ ][ ]0  0[ ]0
-                                1[ ][ ]0  0[ ]0
+            0[ ][ ]0  0[ ][ ]0  1[ ][ ]1  0[ ]0
+                      0[ ][ ]0  1[ ][ ]1  0[ ]0
+                                1[ ][ ]1  0[ ]0
 
             sage: RC = RiggedConfigurations(['D',4,1], [[2,2],[1,2]])
             sage: elt = RC(partition_list=[[3,1], [2,2,1], [2,1], [2]])
@@ -752,8 +753,15 @@ class RiggedConfigurationElement(ClonableArray):
             -1[ ][ ][ ]-1  0[ ][ ]0  -1[ ][ ]-1  1[ ][ ]1
              1[ ]0         0[ ][ ]0  -1[ ]-1
                            0[ ]0
+
+        We check that this commutes with the right spliting map::
+
+            sage: RC = RiggedConfigurations(['A', 3, 1], [[1,1], [2,2]])
+            sage: all(rc.right_split().to_tensor_product_of_kirillov_reshetikhin_tableaux()
+            ....:     == rc.to_tensor_product_of_kirillov_reshetikhin_tableaux().right_split() for rc in RC)
+            True
         """
-        return self.lusztig_involution().left_split().lusztig_involution()
+        return self.complement_rigging(True).left_split().complement_rigging(True)
 
     def left_box(self, return_b=False):
         r"""
@@ -827,15 +835,22 @@ class RiggedConfigurationElement(ClonableArray):
 
     delta = left_box
 
-    def complement(self):
+    def complement_rigging(self, reverse_factors=False):
         r"""
-        Apply the complement morphism `\theta` to ``self``.
+        Apply the complement rigging morphism `\theta` to ``self``.
 
         Consider a highest weight rigged configuration `(\nu, J)`, the
-        complement morphism `\theta : RC(L) \to RC(L)` is given by sending
-        `(\nu, J) \mapsto (\nu, J')`, where `J'` is obtained by taking the
-        coriggings `x' = p_i^{(a)} - x`, and then extending as a crystal
-        morphism.
+        complement rigging morphism `\theta : RC(L) \to RC(L)` is given by
+        sending `(\nu, J) \mapsto (\nu, J')`, where `J'` is obtained by
+        taking the coriggings `x' = p_i^{(a)} - x`, and then extending as
+        a crystal morphism. (The name comes from taking the complement
+        partition for the riggings in a `m_i^{(a)} \times p_i^{(a)}` box.)
+
+        INPUT:
+
+        - ``reverse_factors`` -- (default: ``False``) if ``True``, then this
+          returns an element in `RC(B')` where `B'` is the tensor factors
+          of ``self`` in reverse order
 
         EXAMPLES::
 
@@ -844,7 +859,7 @@ class RiggedConfigurationElement(ClonableArray):
             sage: ascii_art(mg)
             1[ ][ ]1  0[ ][ ]0  0[ ][ ]0  0[ ][ ]0
                       0[ ][ ]0
-            sage: ascii_art(mg.complement())
+            sage: ascii_art(mg.complement_rigging())
             1[ ][ ]0  0[ ][ ]0  0[ ][ ]0  0[ ][ ]0
                       0[ ][ ]0
 
@@ -854,13 +869,20 @@ class RiggedConfigurationElement(ClonableArray):
             -1[ ]-1     0[ ][ ]0  0[ ]0     0[ ]0
             -1[ ]-1     0[ ]0
                         0[ ]0
-            sage: ascii_art(lw.complement())
+            sage: ascii_art(lw.complement_rigging())
             -1[ ][ ][ ]-1  0[ ][ ][ ]0  0[ ][ ][ ]0  0[ ][ ][ ]0
             -1[ ]-1        0[ ][ ][ ]0
-            sage: lw.complement() == mg.complement().to_lowest_weight([1,2,3,4])[0]
+            sage: lw.complement_rigging() == mg.complement_rigging().to_lowest_weight([1,2,3,4])[0]
             True
+
+            sage: mg.complement_rigging(True).parent()
+            Rigged configurations of type ['D', 4, 1] and factor(s) ((2, 2), (1, 1))
         """
         P = self.parent()
+        if reverse_factors:
+            from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+            P = RiggedConfigurations(P._cartan_type, reversed(P.dims))
+
         mg, e_str = self.to_highest_weight(P._cartan_type.classical().index_set())
         nu = []
         rig = []

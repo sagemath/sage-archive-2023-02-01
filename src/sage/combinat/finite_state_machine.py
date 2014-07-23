@@ -3180,29 +3180,29 @@ class FiniteStateMachine(SageObject):
             sage: from sage.combinat.finite_state_machine import setup_latex_preamble
             sage: setup_latex_preamble()
             sage: latex.mathjax_avoid_list('tikzpicture')
-            sage: T = Transducer(initial_states=['I'],
+            sage: T = Transducer(initial_states=[4],
             ....:     final_states=[0, 3])
             sage: for j in srange(4):
-            ....:     T.add_transition('I', j, 0, [0, j])
-            ....:     T.add_transition(j, 'I', 0, [0, -j])
+            ....:     T.add_transition(4, j, 0, [0, j])
+            ....:     T.add_transition(j, 4, 0, [0, -j])
             ....:     T.add_transition(j, j, 0, 0)
-            Transition from 'I' to 0: 0|0,0
-            Transition from 0 to 'I': 0|0,0
+            Transition from 4 to 0: 0|0,0
+            Transition from 0 to 4: 0|0,0
             Transition from 0 to 0: 0|0
-            Transition from 'I' to 1: 0|0,1
-            Transition from 1 to 'I': 0|0,-1
+            Transition from 4 to 1: 0|0,1
+            Transition from 1 to 4: 0|0,-1
             Transition from 1 to 1: 0|0
-            Transition from 'I' to 2: 0|0,2
-            Transition from 2 to 'I': 0|0,-2
+            Transition from 4 to 2: 0|0,2
+            Transition from 2 to 4: 0|0,-2
             Transition from 2 to 2: 0|0
-            Transition from 'I' to 3: 0|0,3
-            Transition from 3 to 'I': 0|0,-3
+            Transition from 4 to 3: 0|0,3
+            Transition from 3 to 4: 0|0,-3
             Transition from 3 to 3: 0|0
-            sage: T.add_transition('I', 'I', 0, 0)
-            Transition from 'I' to 'I': 0|0
+            sage: T.add_transition(4, 4, 0, 0)
+            Transition from 4 to 4: 0|0
             sage: T.state(3).final_word_out = [0, 0]
             sage: T.latex_options(
-            ....:     coordinates={'I': (0, 0),
+            ....:     coordinates={4: (0, 0),
             ....:                  0: (-6, 3),
             ....:                  1: (-2, 3),
             ....:                  2: (2, 3),
@@ -3211,14 +3211,14 @@ class FiniteStateMachine(SageObject):
             ....:     format_letter=lambda x: r'w_{%s}' % x,
             ....:     format_transition_label=lambda x:
             ....:         r"{\scriptstyle %s}" % T.default_format_transition_label(x),
-            ....:     loop_where={'I': 'below', 0: 'left', 1: 'above',
+            ....:     loop_where={4: 'below', 0: 'left', 1: 'above',
             ....:                 2: 'right', 3:'below'},
             ....:     initial_where=lambda x: 'above',
             ....:     accepting_style='accepting by double',
             ....:     accepting_distance='10ex',
             ....:     accepting_where={0: 'left', 3: 45}
             ....:     )
-            sage: T.state('I').format_label=lambda: r'\mathcal{I}'
+            sage: T.state(4).format_label=lambda: r'\mathcal{I}'
             sage: latex(T)
             \begin{tikzpicture}[auto, initial text=, >=latex]
             \node[state, initial, initial where=above] (v0) at (0.000000, 0.000000) {$\mathcal{I}$};
@@ -3300,7 +3300,7 @@ class FiniteStateMachine(SageObject):
             sage: T.latex_options(loop_where=lambda x: 'top')
             Traceback (most recent call last):
             ...
-            ValueError: loop_where for I must be in ['below',
+            ValueError: loop_where for 4 must be in ['below',
             'right', 'above', 'left'].
             sage: T.latex_options(initial_where=90)
             Traceback (most recent call last):
@@ -3310,7 +3310,7 @@ class FiniteStateMachine(SageObject):
             sage: T.latex_options(initial_where=lambda x: 'top')
             Traceback (most recent call last):
             ...
-            ValueError: initial_where for I must be in ['below',
+            ValueError: initial_where for 4 must be in ['below',
             'right', 'above', 'left'].
             sage: T.latex_options(accepting_style='fancy')
             Traceback (most recent call last):

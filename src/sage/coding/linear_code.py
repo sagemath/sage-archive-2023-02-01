@@ -216,7 +216,6 @@ import urllib
 import sage.modules.free_module as fm
 import sage.modules.module as module
 from sage.categories.modules import Modules
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.interfaces.all import gap
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -784,7 +783,7 @@ class LinearCode(module.Module):
             sage: TestSuite(C).run()
         """
         base_ring = gen_mat[0,0].parent()
-        cat = Modules(base_ring).FiniteDimensional().WithBasis() & FiniteEnumeratedSets()
+        cat = Modules(base_ring).FiniteDimensional().WithBasis().Finite()
         facade_for = gen_mat.row(0).parent()
         self.Element = type(gen_mat.row(0)) # for when we make this a non-facade parent
         Parent.__init__(self, base=base_ring, facade=facade_for, category=cat)
@@ -2066,17 +2065,21 @@ class LinearCode(module.Module):
                 return False
         return True
 
-    def __len__(self):
+    def cardinality(self):
         r"""
         Return the size of this code.
 
         EXAMPLES::
 
             sage: C = codes.HammingCode(3, GF(2))
+            sage: C.cardinality()
+            16
             sage: len(C)
             16
         """
         return self.base_ring().order()**self.dimension()
+
+    __len__ = cardinality
 
     def length(self):
         r"""

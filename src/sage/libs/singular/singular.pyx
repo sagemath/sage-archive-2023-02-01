@@ -585,7 +585,7 @@ cdef object si2sa(number *n, ring *_ring, object base):
         raise ValueError, "cannot convert from SINGULAR number"
 
 cdef number *sa2si(Element elem, ring * _ring):
-    cdef int i
+    cdef int i = 0
     if PY_TYPE_CHECK(elem._parent, FiniteField_prime_modn):
         return n_Init(int(elem),_ring)
 
@@ -637,12 +637,9 @@ cdef extern from "dlfcn.h":
     cdef long RTLD_LAZY
     cdef long RTLD_GLOBAL
 
-# Our attempt at avoiding exponent overflows.
-cdef unsigned int max_exponent_size
-
 cdef int overflow_check(long e, ring *_ring) except -1:
     """
-    Raises an ``OverflowError`` if e is > ``max_exponent_size``,
+    Raises an ``OverflowError`` if e is > max degree per variable,
     or if it is not acceptable for Singular as exponent of the
     given ring.
 
@@ -676,7 +673,8 @@ cdef int overflow_check(long e, ring *_ring) except -1:
         OverflowError: Exponent overflow (1073741824). # 32-bit
 
     """
-    if unlikely(e > min(max_exponent_size,max(_ring.N,_ring.bitmask))):
+    # 2^31 (pPower takes ints)
+    if unlikely(e >= _ring.bitmask or e >= 2**31):
         raise OverflowError("Exponent overflow (%d)."%(e))
     return 0
 
@@ -693,7 +691,6 @@ cdef init_libsingular():
     """
     global singular_options
     global singular_verbose_options
-    global max_exponent_size
     global WerrorS_callback
     global error_messages
 
@@ -727,18 +724,9 @@ cdef init_libsingular():
     On(SW_USE_EZGCD)
     Off(SW_USE_NTL_SORT)
 
-    if is_64_bit:
-        max_exponent_size = 1<<31-1;
-    else:
-        max_exponent_size = 1<<16-1;
-
     WerrorS_callback = libsingular_error_callback
 
     error_messages = []
-
-cdef inline unsigned long get_max_exponent_size():
-    global max_exponent_size
-    return max_exponent_size
 
 # call the init routine
 init_libsingular()

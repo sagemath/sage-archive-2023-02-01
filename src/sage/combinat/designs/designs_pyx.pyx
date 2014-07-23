@@ -245,20 +245,9 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
                 print "The following block has repeated elements: {}".format(b)
             return False
 
-    # Check that the groups belong to [0,...,n-1]
-    for b in groups:
-        for x in b:
-            try:
-                i = x
-            except TypeError:
-                i=-1
-            if i < 0 or i >= n:
-                if verbose:
-                    print "{} does not belong to [0,...,{}]".format(x,n-1)
-                return False
-
-    # Same for blocks
-    for b in blocks:
+    # Check that the groups/blocks belong to [0,...,n-1]
+    from itertools import chain
+    for b in chain(groups,blocks):
         for x in b:
             try:
                 i = x

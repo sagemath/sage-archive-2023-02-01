@@ -159,7 +159,7 @@ def bdd_height_iq(K, height_bound):
         sage: from sage.rings.number_field.bdd_height import bdd_height_iq
         sage: K.<a> = NumberField(x^2 + x + 1)
         sage: list(bdd_height_iq(K,1))
-        [0, -a, -a - 1, -1, a, a + 1, 1]
+        [0, a + 1, a, -1, -a - 1, -a, 1]
 
     A number field has no elements of multiplicative height less than 1::
 

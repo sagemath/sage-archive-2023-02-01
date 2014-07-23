@@ -857,23 +857,6 @@ class Tableau(CombinatorialObject, Element):
         """
         return self.to_word_by_row()
 
-
-    def to_permutation(self):
-        """
-        Deprecated in :trac:`14724`. Use :meth:`reading_word_permutation()`
-        instead.
-
-        EXAMPLES::
-
-            sage: Tableau([[1,2],[3,4]]).to_permutation()
-            doctest:...: DeprecationWarning: to_permutation() is deprecated. Use instead reading_word_permutation()
-            See http://trac.sagemath.org/14724 for details.
-            [3, 4, 1, 2]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14724, 'to_permutation() is deprecated. Use instead reading_word_permutation()')
-        return self.reading_word_permutation()
-
     def attacking_pairs(self):
         """
         Deprecated in :trac:`15327`. Use ``T.shape().attacking_pairs()``

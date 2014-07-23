@@ -6,7 +6,7 @@ AUTHORS:
 - William Stein (2010): initial version
 
 - Julian Rueth (2011-09-14, 2014-06-23): refactored class hierarchy; added
-derivation classes
+  derivation classes
 
 EXAMPLES::
 
@@ -14,7 +14,7 @@ EXAMPLES::
     sage: K.hom(1/x)
     Function Field endomorphism of Rational function field in x over Rational Field
       Defn: x |--> 1/x
-    sage: L.<y> = K.extension(y^2-x)
+    sage: L.<y> = K.extension(y^2 - x)
     sage: K.hom(y)
     Function Field morphism:
       From: Rational function field in x over Rational Field

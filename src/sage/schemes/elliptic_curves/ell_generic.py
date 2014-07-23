@@ -63,6 +63,7 @@ import sage.rings.all as rings
 from sage.rings.number_field.number_field_base import is_NumberField
 import sage.misc.misc as misc
 from sage.misc.cachefunc import cached_method, cached_function
+from sage.misc.fast_methods import WithEqualityById
 
 # Schemes
 import sage.schemes.projective.projective_space as projective_space
@@ -101,7 +102,7 @@ def is_EllipticCurve(x):
     """
     return isinstance(x, EllipticCurve_generic)
 
-class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
+class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generic):
     r"""
     Elliptic curve over a generic base ring.
 
@@ -116,18 +117,22 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         sage: -5*P
         (179051/80089 : -91814227/22665187 : 1)
     """
-    def __init__(self, ainvs, extra=None):
+    def __init__(self, K, ainvs):
         r"""
-        Constructor from `a`-invariants (long or short Weierstrass coefficients).
+        Construct an elliptic curve from Weierstrass `a`-coefficients.
 
         INPUT:
 
-        - ``ainvs`` (list) -- either `[a_1,a_2,a_3,a_4,a_6]` or
-          `[a_4,a_6]` (with `a_1=a_2=a_3=0` in the second case).
+        - ``K`` -- a ring
 
-        .. note::
+        - ``ainvs`` -- a list or tuple `[a_1, a_2, a_3, a_4, a_6]` of
+          Weierstrass coefficients.
 
-           See constructor.py for more variants.
+        .. NOTE::
+
+            This class should not be called directly; use
+            :class:`sage.constructor.EllipticCurve` to construct
+            elliptic curves.
 
         EXAMPLES::
 
@@ -146,41 +151,26 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: EllipticCurve(IntegerModRing(91),[1,2,3,4,5])
             Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Ring of integers modulo 91
         """
-        if extra is not None:   # possibility of two arguments
-            K, ainvs = ainvs, extra
-        else:
-            K = ainvs[0].parent()
-        assert len(ainvs) == 2 or len(ainvs) == 5
         self.__base_ring = K
-        ainvs = [K(x) for x in ainvs]
-        if len(ainvs) == 2:
-            ainvs = [K(0),K(0),K(0)] + ainvs
-        self.__ainvs = tuple(ainvs)
+        self.__ainvs = tuple(K(a) for a in ainvs)
         if self.discriminant() == 0:
-            raise ArithmeticError("Invariants %s define a singular curve."%ainvs)
+            raise ArithmeticError("invariants " + str(ainvs) + " define a singular curve")
         PP = projective_space.ProjectiveSpace(2, K, names='xyz');
         x, y, z = PP.coordinate_ring().gens()
         a1, a2, a3, a4, a6 = ainvs
         f = y**2*z + (a1*x + a3*z)*y*z \
             - (x**3 + a2*x**2*z + a4*x*z**2 + a6*z**3)
         plane_curve.ProjectiveCurve_generic.__init__(self, PP, f)
-        # TODO: cleanup, are these two point classes redundant?
 
         # See #1975: we deliberately set the class to
         # EllipticCurvePoint_finite_field for finite rings, so that we
         # can do some arithmetic on points over Z/NZ, for teaching
         # purposes.
-        from sage.rings.finite_rings.constructor import is_FiniteField
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
-        if is_FiniteField(K) or is_IntegerModRing(K):
-            self._morphism = self._point = ell_point.EllipticCurvePoint_finite_field
-        elif K.is_field():
-            if is_NumberField(K):
-                self._morphism = self._point = ell_point.EllipticCurvePoint_number_field
-            else:
-                self._morphism = self._point = ell_point.EllipticCurvePoint_field
-        else:
-            self._morphism = self._point = ell_point.EllipticCurvePoint
+        if is_IntegerModRing(K):
+            self._point = ell_point.EllipticCurvePoint_finite_field
+
+    _point = ell_point.EllipticCurvePoint
 
     def _defining_params_(self):
         r"""
@@ -197,19 +187,6 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             True
         """
         return (self.__base_ring, list(self.__ainvs))
-
-    def __hash__(self):
-        """
-        TESTS::
-
-            sage: E = EllipticCurve('37a')
-            sage: hash(E)
-            -1437250549             # 32-bit
-            -2189969105152029685    # 64-bit
-            sage: hash(E) != hash(E.change_ring(GF(7)))
-            True
-        """
-        return hash((self.__base_ring, self.__ainvs))
 
     def _repr_(self):
         """
@@ -426,25 +403,6 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         a = [SR(x) for x in self.a_invariants()]
         x, y = SR.var('x, y')
         return y**2 + a[0]*x*y + a[2]*y == x**3 + a[1]*x**2 + a[3]*x + a[4]
-
-    def __cmp__(self, other):
-        """
-        Standard comparison function for elliptic curves, to allow sorting
-        and equality testing.
-
-        EXAMPLES::
-
-            sage: E=EllipticCurve(QQ,[1,1])
-            sage: F=EllipticCurve(QQ,[0,0,0,1,1])
-            sage: E==F
-            True
-        """
-        if not isinstance(other, EllipticCurve_generic):
-            return -1
-        t = cmp(self.base_ring(), other.base_ring())
-        if t:
-            return t
-        return cmp(self.ainvs(), other.ainvs())
 
     def __contains__(self, P):
         """
@@ -2301,18 +2259,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E = EllipticCurve_from_j(QQ(0)) # a curve with j=0 over QQ
             sage: F = EllipticCurve('27a3') # should be the same one
             sage: E.isomorphisms(F);
-            [Generic morphism:
-              From: Abelian group of points on Elliptic Curve defined
-                    by y^2 + y = x^3 over Rational Field
-              To:   Abelian group of points on Elliptic Curve defined
-                    by y^2 + y = x^3 over Rational Field
-              Via:  (u,r,s,t) = (-1, 0, 0, -1), Generic morphism:
-              From: Abelian group of points on Elliptic Curve defined
-                    by y^2 + y = x^3 over Rational Field
-              To:   Abelian group of points on Elliptic Curve defined
-                    by y^2 + y = x^3 over Rational Field
+            [Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
+              Via:  (u,r,s,t) = (-1, 0, 0, -1),
+             Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 over Rational Field
               Via:  (u,r,s,t) = (1, 0, 0, 0)]
-
 
         We can also find isomorphisms defined over extension fields::
 

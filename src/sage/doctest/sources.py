@@ -52,6 +52,9 @@ find_prompt = re.compile(r"^(\s*)(>>>|sage:)(.*)")
 sagestart = re.compile(r"^\s*(>>> |sage: )\s*[^#\s]")
 untested = re.compile("(not implemented|not tested)")
 
+# Source line number in warning output
+doctest_line_number = re.compile(r"^\s*doctest:[0-9]")
+
 
 def get_basename(path):
     """
@@ -230,6 +233,8 @@ class DocTestSource(object):
             40
             sage: extras['tab']
             False
+            sage: extras['line_number']
+            False
         """
         if tab_okay is None:
             tab_okay = isinstance(self,TexSource)
@@ -244,7 +249,10 @@ class DocTestSource(object):
         doc = []
         start = None
         tab_locations = []
+        contains_line_number = False
         for lineno, line in self:
+            if doctest_line_number.search(line) is not None:
+                contains_line_number = True
             if "\t" in line:
                 tab_locations.append(str(lineno+1))
             if "SAGE_DOCTEST_ALLOW_TABS" in line:
@@ -293,8 +301,9 @@ class DocTestSource(object):
         if unparsed_doc:
             self._process_doc(doctests, doc, namespace, start)
 
-        extras = dict(tab = not tab_okay and tab_locations,
-                      optionals = self.parser.optionals)
+        extras = dict(tab=not tab_okay and tab_locations,
+                      line_number=contains_line_number,
+                      optionals=self.parser.optionals)
         if self.options.randorder is not None and self.options.randorder is not False:
             # we want to randomize even when self.randorder = 0
             random.seed(self.options.randorder)
@@ -340,6 +349,20 @@ class StringDocTestSource(DocTestSource):
         1
         sage: extras['tab']
         []
+        sage: extras['line_number']
+        False
+
+        sage: s = "'''\n\tsage: 2 + 2\n\t4\n'''"
+        sage: PSS = PythonStringSource('<runtime>', s, DocTestDefaults(), 'runtime')
+        sage: dt, extras = PSS.create_doctests({})
+        sage: extras['tab']
+        ['2', '3']
+
+        sage: s = "'''\n    sage: import warnings; warnings.warn('foo')\n    doctest:1: UserWarning: foo \n'''"
+        sage: PSS = PythonStringSource('<runtime>', s, DocTestDefaults(), 'runtime')
+        sage: dt, extras = PSS.create_doctests({})
+        sage: extras['line_number']
+        True
     """
     def __init__(self, basename, source, options, printpath, lineno_shift=0):
         r"""

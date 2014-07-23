@@ -120,7 +120,9 @@ def tmp_filename(name="tmp_", ext=""):
 
     - ``name`` -- (default: ``"tmp_"``) A prefix for the file name.
 
-    - ``ext`` -- (default: ``""``) A suffix for the file name.
+    - ``ext`` -- (default: ``""``) A suffix for the file name. If you
+      want a filename extension in the usual sense, this should start
+      with a dot.
 
     OUTPUT:
 
@@ -147,14 +149,51 @@ def tmp_filename(name="tmp_", ext=""):
 
 def graphics_filename(ext='png'):
     """
-    Return the next available canonical filename for a plot/graphics
-    file.
+    When run from the Sage notebook, return the next available canonical
+    filename for a plot/graphics file in the current working directory.
+    Otherwise, return a temporary file inside ``SAGE_TMP``.
+
+    INPUT:
+
+    - ``ext`` -- (default: ``"png"``) A file extension (without the dot)
+      for the filename.
+
+    OUTPUT:
+
+    The path of the temporary file created. In the notebook, this is
+    a filename without path in the current directory. Otherwise, this
+    an absolute path.
+
+    EXAMPLES::
+
+        sage: from sage.misc.temporary_file import graphics_filename
+        sage: print graphics_filename()  # random, typical filename for sagenb
+        sage0.png
+
+    TESTS:
+
+    When doctesting, this returns instead a random temporary file.
+    We check that it's a file inside ``SAGE_TMP`` and that the extension
+    is correct::
+
+        sage: fn = graphics_filename(ext="jpeg")
+        sage: fn.startswith(str(SAGE_TMP))
+        True
+        sage: fn.endswith('.jpeg')
+        True
     """
-    i = 0
-    while os.path.exists('sage%d.%s'%(i,ext)):
-        i += 1
-    filename = 'sage%d.%s'%(i,ext)
-    return filename
+    ext = '.' + ext
+    # Don't use this unsafe function except in the notebook, #15515
+    import sage.plot.plot
+    if sage.plot.plot.EMBEDDED_MODE:
+        i = 0
+        while os.path.exists('sage%d%s'%(i,ext)):
+            i += 1
+        filename = 'sage%d%s'%(i,ext)
+        return filename
+    else:
+        return tmp_filename(ext=ext)
+
 
 #################################################################
 # write to a temporary file and move it in place

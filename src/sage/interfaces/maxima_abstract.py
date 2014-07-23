@@ -496,7 +496,7 @@ class MaximaAbstract(Interface):
              sage: var('x y')
              (x, y)
              sage: maxima(x == y)
-             x=y
+             _SAGE_VAR_x=_SAGE_VAR_y
         """
         return '='
 
@@ -513,7 +513,7 @@ class MaximaAbstract(Interface):
              sage: maxima._inequality_symbol()
              '#'
              sage: maxima((x != 1))
-             x#1
+             _SAGE_VAR_x#1
         """
         return '#'
 
@@ -1753,11 +1753,11 @@ class MaximaAbstractElement(InterfaceElement):
             sage: y,d = var('y,d')
             sage: f = function('f')
             sage: latex(maxima(derivative(f(x*y), x)))
-            \left(\left.{{{\it \partial}}\over{{\it \partial}\,{\it t_0}}}\,f  \left({\it t_0}\right)\right|_{\left[ {\it t_0}=x\,y \right] }  \right)\,y
+            \left(\left.{{{\it \partial}}\over{{\it \partial}\,{\it t_0}}}\,f  \left({\it t_0}\right)\right|_{\left[ {\it t_0}=x\,y \right] }  \right)\,{\it y}
             sage: latex(maxima(derivative(f(x,y,d), d,x,x,y)))
-            {{{\it \partial}^4}\over{{\it \partial}\,d\,{\it \partial}\,x^2\,  {\it \partial}\,y}}\,f\left(x , y , d\right)
+            {{{\it \partial}^4}\over{{\it \partial}\,{\it d}\,  {\it \partial}\,{\it x}^2\,{\it \partial}\,  {\it y}}}\,f\left({\it x} ,  {\it y} , {\it d}\right)
             sage: latex(maxima(d/(d-2)))
-            {{d}\over{d-2}}
+            {{{\it d}}\over{{\it d}-2}}
         """
         self._check_valid()
         P = self.parent()
@@ -1771,7 +1771,8 @@ class MaximaAbstractElement(InterfaceElement):
                               '\\%':'',
                               '\\arcsin ':'\\sin^{-1} ',
                               '\\arccos ':'\\cos^{-1} ',
-                              '\\arctan ':'\\tan^{-1} '}, s)
+                              '\\arctan ':'\\tan^{-1} ',
+                              '\\_SAGE\\_VAR\\_':''}, s)
 
         # Fix a maxima bug, which gives a latex representation of multiplying
         # two numbers as a single space. This was really bad when 2*17^(1/3)
@@ -1898,7 +1899,7 @@ class MaximaAbstractElement(InterfaceElement):
 
             sage: f = maxima.cos(x)
             sage: f._operation("+", f)
-            2*cos(x)
+            2*cos(_SAGE_VAR_x)
         """
         P = self._check_valid()
 
@@ -2183,25 +2184,20 @@ class MaximaAbstractElementFunction(MaximaAbstractElement):
             sage: f+3
             sin(x)+3
 
-        ::
+        The Maxima variable ``x`` is different from the Sage symbolic variable::
 
+            sage: (f+maxima.cos(x))
+            cos(_SAGE_VAR_x)+sin(x)
+            sage: (f+maxima.cos(y))
+            cos(_SAGE_VAR_y)+sin(x)
+            
+        Note that you may get unexpected results when calling symbolic expressions
+        and not explicitly giving the variables::
+            
             sage: (f+maxima.cos(x))(2)
-            sin(2)+cos(2)
-            sage: (f+maxima.cos(y)) # This is a function with only ONE argument!
-            cos(y)+sin(x)
+            cos(_SAGE_VAR_x)+sin(2)
             sage: (f+maxima.cos(y))(2)
-            cos(y)+sin(2)
-
-        ::
-
-            sage: f = maxima.function('x','sin(x)')
-            sage: g = -maxima.cos(x)
-            sage: g+f
-            sin(x)-cos(x)
-            sage: (g+f)(2) # The sum IS a function
-            sin(2)-cos(2)
-            sage: 2+f
-            sin(x)+2
+            cos(_SAGE_VAR_y)+sin(2)
         """
         return self._operation("+", f)
 
@@ -2213,20 +2209,21 @@ class MaximaAbstractElementFunction(MaximaAbstractElement):
 
             sage: x,y = var('x,y')
             sage: f = maxima.function('x','sin(x)')
-            sage: g = -maxima.cos(x) # not a function
-            sage: f-g
-            sin(x)+cos(x)
-            sage: (f-g)(2)
-            sin(2)+cos(2)
-            sage: (f-maxima.cos(y)) # This function only has the argument x!
-            sin(x)-cos(y)
-            sage: _(2)
-            sin(2)-cos(y)
+            
+        The Maxima variable ``x`` is different from the Sage symbolic variable::
 
-        ::
-
-            sage: g-f
-            -sin(x)-cos(x)
+            sage: (f-maxima.cos(x))
+            sin(x)-cos(_SAGE_VAR_x)
+            sage: (f-maxima.cos(y))
+            sin(x)-cos(_SAGE_VAR_y)
+            
+        Note that you may get unexpected results when calling symbolic expressions
+        and not explicitly giving the variables::
+            
+            sage: (f-maxima.cos(x))(2)
+            sin(2)-cos(_SAGE_VAR_x)
+            sage: (f-maxima.cos(y))(2)
+            sin(2)-cos(_SAGE_VAR_y)
         """
         return self._operation("-", f)
 

@@ -735,7 +735,7 @@ def cartan_matrix(t):
     EXAMPLES::
 
         sage: cartan_matrix(['A', 4])
-        doctest:1: DeprecationWarning: cartan_matrix() is deprecated. Use CartanMatrix() instead
+        doctest:...: DeprecationWarning: cartan_matrix() is deprecated. Use CartanMatrix() instead
         See http://trac.sagemath.org/14137 for details.
         [ 2 -1  0  0]
         [-1  2 -1  0]

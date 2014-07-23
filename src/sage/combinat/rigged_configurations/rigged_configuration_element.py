@@ -773,7 +773,7 @@ class RiggedConfigurationElement(ClonableArray):
         tensor products of Kirillov-Reshetikhin tableaux. For more
         information, see
         :meth:`to_tensor_product_of_kirillov_reshetikhin_tableaux()`.
-        We can extend `\delta` when tthe left-most factor is not a single
+        We can extend `\delta` when the left-most factor is not a single
         column by precomposing with a :meth:`left_split()`.
 
         .. NOTE::
@@ -806,6 +806,8 @@ class RiggedConfigurationElement(ClonableArray):
             sage: x,b = mg.left_box(True)
             sage: b
             -1
+            sage: b.parent()
+            The crystal of letters for type ['C', 4]
         """
         # Don't do spinor cases
         P = self.parent()
@@ -830,10 +832,61 @@ class RiggedConfigurationElement(ClonableArray):
         RC = RiggedConfigurations(ct, bij.cur_dims)
         rc = RC(*bij.cur_partitions)
         if return_b:
-            return (rc, b)
+            from sage.combinat.crystals.letters import CrystalOfLetters
+            L = CrystalOfLetters(self.parent()._cartan_type.classical())
+            return (rc, L(b))
         return rc
 
     delta = left_box
+
+    def right_box(self, return_b=False):
+        r"""
+        Return the image of ``self`` under the right box removal map
+        `\delta^*`.
+
+        Let `\theta` denote the
+        :meth:`complement rigging map<complement_rigging>`
+        and `\delta` denote the :meth:`left box removal map<left_box>`, we
+        define the right box removal map by
+        `\delta^* := \theta \circ \delta \circ \theta`.
+
+        .. NOTE::
+
+            Due to the special nature of the bijection for the spinor cases in
+            types `D_n^{(1)}`, `B_n^{(1)}`, and `A_{2n-1}^{(2)}`, this map is
+            not defined in these cases.
+
+        INPUT:
+
+        - ``return_b`` -- (default: ``False``) whether to return the
+          resulting letter from `\delta^*`
+
+        OUTPUT:
+
+        The resulting rigged configuration or if ``return_b`` is ``True``,
+        then a tuple of the resulting rigged configuration and the letter.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['C',4,1], [[3,2]])
+            sage: mg = RC.module_generators[-1]
+            sage: ascii_art(mg)
+            0[ ][ ]0  0[ ][ ]0  0[ ][ ]0  0[ ]0
+                      0[ ][ ]0  0[ ][ ]0  0[ ]0
+                                0[ ][ ]0  0[ ]0
+            sage: ascii_art(mg.right_box())
+            0[ ]0  0[ ][ ]0  0[ ][ ]0  0[ ]0
+                   0[ ]0     0[ ][ ]0  0[ ]0
+            sage: x,b = mg.right_box(True)
+            sage: b
+            -1
+            sage: b.parent()
+            The crystal of letters for type ['C', 4]
+        """
+        y = self.complement_rigging(True).left_box(return_b)
+        if return_b:
+            return (y[0].complement_rigging(True), y[1])
+        return y.complement_rigging(True)
 
     def complement_rigging(self, reverse_factors=False):
         r"""

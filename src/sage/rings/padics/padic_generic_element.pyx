@@ -39,8 +39,6 @@ from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.rational cimport Rational
 from sage.rings.integer cimport Integer
 from sage.rings.infinity import infinity
-from sage.libs.pari.gen import PariError
-import sage.rings.rational_field
 from sage.structure.element import coerce_binop
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1

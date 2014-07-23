@@ -3871,6 +3871,15 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.<a> = NumberField(x^3 - 381 * x + 127)
             sage: K.selmer_group(K.primes_above(13), 2)
             [-7/13*a^2 - 140/13*a + 36/13, 14/13*a^2 + 267/13*a - 85/13, 7/13*a^2 + 127/13*a - 49/13, -1, 1/13*a^2 + 20/13*a - 7/13, 1/13*a^2 - 19/13*a + 6/13, -2/13*a^2 - 53/13*a + 92/13, 10/13*a^2 + 44/13*a - 4555/13]
+
+        Verify that :trac:`16708` is fixed::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: p = K.primes_above(2)[0]
+            sage: S = K.selmer_group((), 4)
+            sage: all(4.divides(x.valuation(p)) for x in S)
+            True
+
         """
         units, clgp_gens = self._S_class_group_and_units(tuple(S), proof=proof)
         gens = []
@@ -3889,13 +3898,14 @@ class NumberField_generic(number_field_base.NumberField):
             MS = Matrix(ZZ, [H(s).exponents() for s in S]).transpose()
             pari_MS = pari(MS)
         for gen, order in clgp_gens:
-            if order.gcd(m) != 1:
-                # The ideal I = gen^(order/gcd) is of order gcd in
-                # Cl_S[m].  After multiplying by primes in S, the
-                # ideal I^gcd = gen^order becomes principal.  We take
+            d = order.gcd(m)
+            if d != 1:
+                # The ideal I = gen^(order/d) has order d in Cl_S[m].
+                # After multiplying by primes in S, the ideal
+                # I^m = gen^(order*m/d) becomes principal.  We take
                 # a generator of this ideal to get the corresponding
                 # generator of the m-Selmer group.
-                J = gen ** order
+                J = gen ** (order * m // d)
                 if card_S != 0 and not J.is_principal():
                     B = H(J).exponents()
                     pari_B = (-pari(B)).Col()

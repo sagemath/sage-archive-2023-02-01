@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 The Steenrod algebra
 
@@ -705,6 +706,10 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             True
             sage: SteenrodAlgebra(profile=([1], [2, 2]), p=3)._has_nontrivial_profile()
             True
+            sage: SteenrodAlgebra(generic=True)._has_nontrivial_profile()
+            False
+            sage: SteenrodAlgebra(generic=True, profile=[[3,2,1], []])._has_nontrivial_profile()
+            True
 
         Check that a bug in #11832 has been fixed::
 
@@ -848,6 +853,8 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             P^1_3
             sage: SteenrodAlgebra(2, 'comm_revz')(a)
             c_0,1 c_1,1 c_0,3 c_2,1 + c_0,2 c_0,3 c_2,1 + c_1,3
+            sage: SteenrodAlgebra(2, generic=True, basis='pst').P(0,0,2)
+            P^1_3
         """
         from steenrod_algebra_misc import milnor_mono_to_string, \
             serre_cartan_mono_to_string, wood_mono_to_string, \
@@ -917,13 +924,16 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             '\\beta'
             sage: latex(Sq(2).change_basis('adem').coproduct())
             1 \otimes \text{Sq}^{2} + \text{Sq}^{1} \otimes \text{Sq}^{1} + \text{Sq}^{2} \otimes 1
+            sage: latex(SteenrodAlgebra(basis='pst').P(0,0,2))
+            P^{1}_{3}
         """
         import re
         s = self._repr_term(t)
         s = re.sub(r"\^([0-9]*)", r"^{\1}", s)
         s = re.sub("_([0-9,]*)", r"_{\1}", s)
         s = s.replace("Sq", "\\text{Sq}")
-        s = s.replace("P", "\\mathcal{P}")
+        if not self.basis_name().find('pst') >= 0:
+            s = s.replace("P", "\\mathcal{P}")
         s = s.replace("beta", "\\beta")
         return s
 
@@ -1012,6 +1022,12 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: B.profile(3)
             3
             sage: B.profile(3, component=1)
+            1
+
+            sage: EA = SteenrodAlgebra(generic=True, profile=(lambda n: n, lambda n: 1))
+            sage: EA.profile(4)
+            4
+            sage: EA.profile(2, component=1)
             1
         """
         # determine the tuple t to use
@@ -1186,6 +1202,14 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: M3 = SteenrodAlgebra(p=3, basis='milnor')
             sage: all([A3(M3.P(n) * M3.Q(0) * M3.P(n))._repr_() == (A3.P(n) * A3.Q(0) * A3.P(n))._repr_() for n in range(5)])
             True
+
+            sage: EA = SteenrodAlgebra(generic=True)
+            sage: EA.product_on_basis(((1, 3), (2, 1)), ((2, ), (0, 0, 1)))
+            Q_1 Q_2 Q_3 P(2,1,1)
+
+            sage: EA2 = SteenrodAlgebra(basis='serre-cartan', generic=True)
+            sage: EA2.product_on_basis((1, 2, 0, 1, 0), (1, 2, 0, 1, 0))
+            beta P^4 P^2 beta + beta P^5 beta P^1
         """
         p = self.prime()
         basis = self.basis_name()
@@ -2015,6 +2039,14 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: A._coerce_map_from_(A[12])
             True
 
+            sage: EA = SteenrodAlgebra(generic=True)
+            sage: A._coerce_map_from_(EA)
+            False
+            sage: EA._coerce_map_from_(A)
+            False
+            sage: EA._coerce_map_from_(EA)
+            True
+
             sage: A3 = SteenrodAlgebra(p=3)
             sage: A31 = SteenrodAlgebra(p=3, profile=([1], [2, 2]))
             sage: B3 = SteenrodAlgebra(p=3, profile=([1, 2, 1], [1]))
@@ -2127,6 +2159,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: Sq(0,2) in A1
             False
 
+            sage: Sq(3) in SteenrodAlgebra(generic=True)
+            False
+
             sage: A_3 = SteenrodAlgebra(p=3)
             sage: B_3 = SteenrodAlgebra(p=3, profile=([1], [2,2,1,1]))
             sage: A_3.P(2) in B_3
@@ -2144,6 +2179,11 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             return True
         if (isinstance(x, self.Element)
             and x.prime() == p):
+            try:
+                if x.parent()._generic != self._generic:
+                    return False
+            except AttributeError:
+                pass
             A = SteenrodAlgebra(p=p, basis=self.basis_name(), generic=self._generic)
             if self._has_nontrivial_profile():
                 return all([self._check_profile_on_basis(mono)

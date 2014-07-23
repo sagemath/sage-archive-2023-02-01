@@ -119,15 +119,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         sage: EllipticCurve([i, i - 1, i + 1, 24*i + 15, 14*i + 35])
         Elliptic Curve defined by y^2 + i*x*y + (i+1)*y = x^3 + (i-1)*x^2 + (24*i+15)*x + (14*i+35) over Number Field in i with defining polynomial x^2 + 1
     """
-    def __init__(self, x, y=None):
+    def __init__(self, K, ainvs):
         r"""
-        Allow some ways to create an elliptic curve over a number
-        field in addition to the generic ones.
-
-        INPUT:
-
-        - ``x``, ``y`` -- see examples.
-
         EXAMPLES:
 
         A curve from the database of curves over `\QQ`, but over a larger field:
@@ -142,25 +135,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in i with defining polynomial x^2 + 1
 
         """
-        if y is None:
-            if isinstance(x, list):
-                ainvs = x
-                field = ainvs[0].parent()
-        else:
-            if isinstance(y, str):
-                from sage.databases.cremona import CremonaDatabase
-                field = x
-                X = CremonaDatabase()[y]
-                ainvs = list(X.a_invariants())
-            else:
-                field = x
-                ainvs = y
-        if not (isinstance(field, Ring) and isinstance(ainvs,list)):
-            raise TypeError
-
-        EllipticCurve_field.__init__(self, [field(x) for x in ainvs])
-        self._point = ell_point.EllipticCurvePoint_number_field
         self._known_points = []
+        EllipticCurve_field.__init__(self, K, ainvs)
+
+    _point = ell_point.EllipticCurvePoint_number_field
 
     def base_extend(self, R):
         """

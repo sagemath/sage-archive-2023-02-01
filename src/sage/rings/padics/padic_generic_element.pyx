@@ -11,7 +11,7 @@ AUTHORS:
 
 - David Harvey: doctests
 
-- Julian Rueth: fixes for exp() and log(), implement gcd
+- Julian Rueth: fixes for exp() and log(), implemented gcd
 
 """
 
@@ -708,19 +708,19 @@ cdef class pAdicGenericElement(LocalGenericElement):
     @coerce_binop
     def gcd(self, other):
         """
-        Return a greatest common divisor of ``self`` and ``other``.
+        Return a greatest common divisor of this element and ``other``.
 
         INPUT:
 
-            - ``other`` -- an element in the same ring as ``self``
+        - ``other`` -- an element in the same ring
 
         AUTHORS:
 
-            - Julian Rueth (2012-10-19): initial version
+        - Julian Rueth (2012-10-19): initial version
 
         .. NOTE::
 
-            Since ``self`` and ``other`` are only given with finite precision,
+            Since the elements are only given with finite precision,
             their greatest common divisor is in general not unique (not even up
             to units). For example `O(3)` is a representative for the elements
             0 and 3 in the 3-adic ring `\mathbb{Z}_3`. The greatest common
@@ -752,8 +752,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: a.gcd(0)
             3 + O(3^21)
 
-        If both ``self`` and ``other`` are zero, then the result is zero with
-        the precision set to the smallest of their precisions::
+        If both elements are zero, then the result is zero with the precision
+        set to the smallest of their precisions::
 
             sage: a = R.zero(); a
             0

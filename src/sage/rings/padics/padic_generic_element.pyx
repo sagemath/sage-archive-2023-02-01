@@ -775,6 +775,16 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: alternative_gcd.is_zero()
             False
 
+        If exactly one element is zero, then the result depends on the
+        valuation of the other element::
+
+            sage: R(0,3).gcd(3^4)
+            O(3^3)
+            sage: R(0,4).gcd(3^4)
+            O(3^4)
+            sage: R(0,5).gcd(3^4)
+            3^4 + O(3^24)
+
         Over a field, the greatest common divisor is either zero (possibly with
         finite precision) or one::
 
@@ -837,6 +847,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         if self.parent().is_field():
             return self.parent().one()
+
+        if min(self.valuation(),other.valuation()) >= min(self.precision_absolute(),other.precision_absolute()):
+            return self.parent().zero().add_bigoh(min(self.precision_absolute(),other.precision_absolute()))
 
         return self.parent().uniformiser_pow( min(self.valuation(),other.valuation()) )
 

@@ -385,6 +385,108 @@ cdef class FiniteField(Field):
         else:
             return RingHomset(self, codomain, category)
 
+    def _squarefree_decomposition_univariate_polynomial(self, f):
+        """
+        Return the square-free decomposition of this polynomial.  This is a
+        partial factorization into square-free, coprime polynomials.
+
+        This is a helper method for
+        :meth:`sage.rings.polynomial.squarefree_decomposition`.
+
+        INPUT:
+
+        - ``f`` -- a univariate non-zero polynomial over this field
+
+        ALGORITHM; [Coh]_, algorithm 3.4.2 which is basically the algorithm in
+        [Yun]_ with special treatment for powers divisible by `p`.
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(3^2)
+            sage: R.<x> = K[]
+            sage: f = x^243+2*x^81+x^9+1
+            sage: f.squarefree_decomposition()
+            (x^27 + 2*x^9 + x + 1)^9
+            sage: f = x^243+a*x^27+1
+            sage: f.squarefree_decomposition()
+            (x^9 + (2*a + 1)*x + 1)^27
+
+        TESTS::
+
+            sage: for K in [GF(2^18,'a'), GF(3^2,'a'), GF(47^3,'a')]:
+            ....:     R.<x> = K[]
+            ....:     if K.characteristic() < 5: m = 4
+            ....:     else: m = 1
+            ....:     for _ in range(m):
+            ....:         f = (R.random_element(4)^3*R.random_element(m)^(m+1))(x^6)
+            ....:         F = f.squarefree_decomposition()
+            ....:         assert F.prod() == f
+            ....:         for i in range(len(F)):
+            ....:             assert gcd(F[i][0], F[i][0].derivative()) == 1
+            ....:             for j in range(len(F)):
+            ....:                 if i == j: continue
+            ....:                 assert gcd(F[i][0], F[j][0]) == 1
+            ....:
+
+        REFERENCES:
+
+        .. [Coh] H. Cohen, A Course in Computational Algebraic Number
+           Theory.  Springer-Verlag, 1993.
+
+        .. [Yun] Yun, David YY. On square-free decomposition algorithms.
+           In Proceedings of the third ACM symposium on Symbolic and algebraic
+           computation, pp. 26-35. ACM, 1976.
+
+        """
+        from sage.structure.factorization import Factorization
+        if f.degree() == 0:
+            return Factorization([], unit=f[0])
+
+        factors = []
+        p = self.characteristic()
+        unit = f.leading_coefficient()
+        T0 = f.monic()
+        e = 1
+        if T0.degree() > 0:
+            der = T0.derivative()
+            while der.is_zero():
+                T0 = T0.parent()([T0[p*i].pth_root() for i in range(T0.degree()//p + 1)])
+                if T0 == 1:
+                    raise RuntimeError
+                der = T0.derivative()
+                e = e*p
+            T = T0.gcd(der)
+            V = T0 // T
+            k = 0
+            while T0.degree() > 0:
+                k += 1
+                if p.divides(k):
+                    T = T // V
+                    k += 1
+                W = V.gcd(T)
+                if W.degree() < V.degree():
+                    factors.append((V // W, e*k))
+                    V = W
+                    T = T // V
+                    if V.degree() == 0:
+                        if T.degree() == 0:
+                            break
+                        # T is of the form sum_{i=0}^n t_i X^{pi}
+                        T0 = T0.parent()([T[p*i].pth_root() for i in range(T.degree()//p + 1)])
+                        der = T0.derivative()
+                        e = p*e
+                        while der.is_zero():
+                            T0 = T0.parent()([T0[p*i].pth_root() for i in range(T0.degree()//p + 1)])
+                            der = T0.derivative()
+                            e = p*e
+                        T = T0.gcd(der)
+                        V = T0 // T
+                        k = 0
+                else:
+                    T = T//V
+
+        return Factorization(factors, unit=unit, sort=False)
+
     def gen(self):
         r"""
         Return a generator of this field (over its prime field). As this is an

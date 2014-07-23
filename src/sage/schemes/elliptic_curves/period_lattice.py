@@ -1044,7 +1044,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: E = EllipticCurve([0,1,0,a,a])
             sage: L = E.period_lattice(K.embeddings(RealField())[0])
             sage: L.ei()
-            [0.?e-19 - 1.122462048309373?*I, 0.?e-19 + 1.122462048309373?*I, -1]
+            [0.?e-17 - 1.122462048309373?*I, 0.?e-17 + 1.122462048309373?*I, -1]
 
         sage: L = E.period_lattice(K.embeddings(ComplexField())[0])
         sage: L.ei()

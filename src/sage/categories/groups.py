@@ -45,6 +45,45 @@ class Groups(CategoryWithAxiom):
         from sage.groups.matrix_gps.linear import GL
         return GL(4,QQ)
 
+    @staticmethod
+    def free(index_set=None, names=None, **kwds):
+        r"""
+        Return the free group.
+
+        INPUT:
+
+        - ``index_set`` -- (optional) an index set for the generators; if
+          an integer, then this represents `\{0, 1, \ldots, n-1\}`
+
+        - ``names`` -- a string or list/tuple/iterable of strings
+          (default: ``'x'``); the generator names or name prefix
+
+        When the index set is an integer or only variable names are given,
+        this returns :class:`~sage.groups.free_group.FreeGroup_class`, which
+        currently has more features due to the interface with GAP than
+        :class:`~sage.groups.indexed_free_group.IndexedFreeGroup`.
+
+        EXAMPLES::
+
+            sage: Groups.free(index_set=ZZ)
+            Free group indexed by Integer Ring
+            sage: Groups().free(ZZ)
+            Free group indexed by Integer Ring
+            sage: Groups().free(5)
+            Free Group on generators {x0, x1, x2, x3, x4}
+            sage: F.<x,y,z> = Groups().free(); F
+            Free Group on generators {x, y, z}
+        """
+        from sage.rings.all import ZZ
+        if index_set in ZZ or (index_set is None and names is not None):
+            from sage.groups.free_group import FreeGroup
+            if names is None:
+                return FreeGroup(index_set, **kwds)
+            return FreeGroup(index_set, names, **kwds)
+
+        from sage.groups.indexed_free_group import IndexedFreeGroup
+        return IndexedFreeGroup(index_set, **kwds)
+
     class ParentMethods:
 
         def group_generators(self):
@@ -363,6 +402,57 @@ class Groups(CategoryWithAxiom):
 
     Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups')
     #Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras')
+
+    class Commutative(CategoryWithAxiom):
+        """
+        Category of commutative (abelian) groups.
+
+        A group `G` is *commutative* if `xy = yx` for all `x,y \in G`.
+        """
+        @staticmethod
+        def free(index_set=None, names=None, **kwds):
+            r"""
+            Return the free commutative group.
+
+            INPUT:
+
+            - ``index_set`` -- (optional) an index set for the generators; if
+              an integer, then this represents `\{0, 1, \ldots, n-1\}`
+
+            - ``names`` -- a string or list/tuple/iterable of strings
+              (default: ``'x'``); the generator names or name prefix
+
+            EXAMPLES::
+
+                sage: Groups.Commutative.free(index_set=ZZ)
+                Free abelian group indexed by Integer Ring
+                sage: Groups().Commutative().free(ZZ)
+                Free abelian group indexed by Integer Ring
+                sage: Groups().Commutative().free(5)
+                Multiplicative Abelian group isomorphic to Z x Z x Z x Z x Z
+                sage: F.<x,y,z> = Groups().Commutative().free(); F
+                Multiplicative Abelian group isomorphic to Z x Z x Z
+            """
+            from sage.rings.all import ZZ
+            if names is not None:
+                if isinstance(names, str):
+                    if ',' not in names and index_set in ZZ:
+                        names = [names + repr(i) for i in range(index_set)]
+                    else:
+                        names = names.split(',')
+                names = tuple(names)
+                if index_set is None:
+                    index_set = ZZ(len(names))
+                if index_set in ZZ:
+                    from sage.groups.abelian_gps.abelian_group import AbelianGroup
+                    return AbelianGroup(index_set, names=names, **kwds)
+
+            if index_set in ZZ:
+                from sage.groups.abelian_gps.abelian_group import AbelianGroup
+                return AbelianGroup(index_set, **kwds)
+
+            from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
+            return IndexedFreeAbelianGroup(index_set, names=names, **kwds)
 
     class Algebras(AlgebrasCategory):
         r"""

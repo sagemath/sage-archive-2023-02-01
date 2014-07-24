@@ -705,16 +705,20 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     @coerce_binop
     def gcd(self, other):
-        """
+        r"""
         Return a greatest common divisor of this element and ``other``.
 
         INPUT:
 
-        - ``other`` -- an element in the same ring
+        - ``other`` -- an element in the same ring.
+
+        OUTPUT:
+
+        The gcd of ``self`` and ``other``.
 
         AUTHORS:
 
-        - Julian Rueth (2012-10-19): initial version
+        - Julian Rueth (2012-10-19): initial version.
 
         .. NOTE::
 
@@ -730,7 +734,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         EXAMPLES:
 
         The greatest common divisor is either zero or a power of the
-        uniformizing paramter::
+        uniformizing parameter::
 
             sage: R = Zp(3)
             sage: R.zero().gcd(R.zero())

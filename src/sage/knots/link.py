@@ -67,7 +67,7 @@ class Link:
         Returns the braidword of the input.
 
         OUTPUT:
-            - Braidword representation of the knot.
+            - Braidword representation of the link
 
         EXAMPLES::
         """
@@ -90,7 +90,7 @@ class Link:
         Returns the braid
 
         OUTPUT:
-            - Braid representation of the link.
+            - Braid representation of the link
 
         EXAMPLES::
         """
@@ -137,7 +137,7 @@ class Link:
         gauss code.
 
         OUTPUT:
-            - Oriented gauss code of the link.
+            - Oriented gauss code of the link
 
         EXAMPLES::
         """
@@ -235,7 +235,7 @@ class Link:
 
 
         OUTPUT:
-            - Planar Diagram code of the link.
+            - Braid representation of the link
 
         EXAMPLES::
         """
@@ -248,63 +248,45 @@ class Link:
         #order of the sign of the crossings is sign of crossing 1 then 3 then at 2
         #and so on and so forth.
         elif self._oriented_gauss_code != None:
-            #self._oriented_gauss_code = oriented_gauss_code
             gc = self._oriented_gauss_code[0]
             gc_sign = self._oriented_gauss_code[1]
             l = [0 for i in range(len(gc))]
-            for i in range(len(gc)):
-            #for i,j in enumerate(gc):
-                k = abs(gc[i])
-                #k = abs(j)
+            for i,j in enumerate(gc):
+                k = abs(j)
                 if l[2*(k-1)] == 0:
-                    l[2*(k-1)] = (i + 1)*(cmp(gc[i],0))
-                    #l[2*(k-1)] = (i + 1)*(cmp(j,0))
+                    l[2*(k-1)] = (i + 1)*(cmp(j,0))
                 else:
-                    l[2*k-1] = (i + 1)*(cmp(gc[i],0))
-                    #l[2*k-1] = (i + 1)*(cmp(j,0))
-            #print l
+                    l[2*k-1] = (i + 1)*(cmp(j,0))
             y = [None for i in range(2*len(gc_sign))]
             for i in range(0,2*len(gc_sign),2):
                 if l[i] < 0:
-                    y[i] = 'under'
-                    y[i+1] = 'over'
-                    #y[i] = -1
-                    #y[i+1] = 1
+                    y[i] = -1
+                    y[i+1] = 1
                 elif l[i] > 0:
-                    y[i] = 'over'
-                    y[i+1] = 'under'
-                    #y[i] = 1
-                    #y[i+1] = -1
-            #print y
+                    y[i] = 1
+                    y[i+1] = -1
             l1 = [abs(x) for x in l]
             r = []
             p = [[None for i in range(4)] for i in range(len(gc_sign))]
-            for i in range(len(gc_sign)):
-            #for i,j in enumerate(gc_sign):
-                if gc_sign[i] == '-':
-                #if j == '-':
-                    if y[2*i] == 'under':
-                    #if y[2*i] == -1:
+            for i,j in enumerate(gc_sign):
+                if j == '-':
+                    if y[2*i] == -1:
                         p[i][0] = l1[2*i]
                         p[i][2] = p[i][0] + 1
                         p[i][3] = l1[2*i+1]
                         p[i][1] = p[i][3] + 1
-                    elif y[2*i+1] == 'under':
-                    #elif y[2*i+1] == -1:
+                    elif y[2*i+1] == -1:
                         p[i][0] = l1[2*i+1]
                         p[i][3] = l1[2*i]
                         p[i][2] = p[i][0] + 1
                         p[i][1] = p[i][3] + 1
-                elif gc_sign[i] == '+':
-                #elif j == '+':
-                    if y[2*i] == 'under':
-                    #if y[2*i] == -1:
+                elif j == '+':
+                    if y[2*i] == -1:
                         p[i][0] = l1[2*i]
                         p[i][2] = p[i][0] + 1
                         p[i][1] = l1[2*i+1]
                         p[i][3] = p[i][1] + 1
-                    elif y[2*i+1] == 'under':
-                    #elif y[2*i+1] == -1:
+                    elif y[2*i+1] == -1:
                         p[i][0] = l1[2*i+1]
                         p[i][1] = l1[2*i]
                         p[i][2] = p[i][0] + 1
@@ -362,23 +344,16 @@ class Link:
                 s = [None for i in range(len(label))]
                 for i in range(N):
                     if cmp(label[2*i],0) == -1:
-                        #s[2*i] = 'over'
-                        #s[2*i+1] = 'under'
                         s[2*i] = 1
                         s[2*i+1] = -1
                     if (label[2*i]%2 == 0 and cmp(label[2*i],0) == 1):
-                        #s[2*i] = 'under'
-                        #s[2*i+1] = 'over'
                         s[2*i] = -1
                         s[2*i+1] = 1
                     if (label[2*i+1]%2 == 0 and cmp(label[2*i+1],0) == 1):
-                        #s[2*i+1] = 'under'
-                        #s[2*i] = 'over'
                         s[2*i+1] = -1
                         s[2*i] = 1
                 pd = [[None for i in range(4)] for i in range(N)]
                 for j in range(N):
-                    #if s[2*j] == 'under':
                     if s[2*j] == -1:
                         if cmp(b[j],0) == -1:
                             pd[j][0] = abs(label[2*j])
@@ -390,7 +365,6 @@ class Link:
                             pd[j][1] = abs(label[2*j+1])
                             pd[j][2] = pd[j][0] + 1
                             pd[j][3] = pd[j][1] + 1
-                    #elif s[2*j] == 'over':
                     elif s[2*j] == 1:
                         if cmp(b[j],0) == -1:
                             pd[j][0] = abs(label[2*j+1])
@@ -408,20 +382,14 @@ class Link:
                 reg = [i for i in range(1, max([abs(i) for i in b]) + 2)]
                 regcp = deepcopy(reg)
                 pd = [[None for i in range(4)] for i in range(len(b))]
-                #print reg
-                #print pd
                 for i,j in enumerate(b):
                     if cmp(j,0) == -1:
                         pd[i][0] = reg[abs(j)-1]
                         pd[i][1] = max(reg) + 1
                         pd[i][2] = max(reg) + 2
                         pd[i][3] = reg[abs(j)]
-                        #print pd
-                        #print regcp.index(abs(j))
                         reg[regcp.index(abs(j))] = max(reg) + 1
                         reg[regcp.index(abs(j)) + 1] = max(reg) + 1
-                        #print reg
-                        #print regcp
                     elif cmp(j,0) == 1:
                         pd[i][0] = reg[abs(j)]
                         pd[i][1] = reg[abs(j)-1]
@@ -443,7 +411,7 @@ class Link:
            overcrossing.
 
         OUTPUT:
-            - Gauss code representation of the link.
+            - Gauss code representation of the link
 
         EXAMPLES::
         """
@@ -458,8 +426,6 @@ class Link:
             gc = Link(dt_code = L).gauss_code()
             self._gauss_code = gc
             return gc
-            #L = self._braid
-            #L1 = L.dt_code()
 
         elif self._PD_code != None:
             return "Not implemented error"
@@ -477,22 +443,16 @@ class Link:
                 x[2*i + 1] = dt[i]
             for i in range(len(dt)):
                 if x[2*i+1] > 0:
-                    #y[2*i+1] = 'under'
-                    #y[2*i] = 'over'
                     y[2*i+1] = -1
                     y[2*i] = 1
                 elif x[2*i+1] < 0:
-                    #y[2*i+1] = 'over'
-                    #y[2*i] = 'under'
                     y[2*i+1] = 1
                     y[2*i] = -1
             for i in range(1,len(x)+1):
                 for j in range(0,len(x)):
                     if abs(x[j]) == i:
-                        #if y[j] == 'under':
                         if y[j] == -1:
                             gauss.append(-(j//2 + 1))
-                        #elif y[j] == 'over':
                         elif y[j] == 1:
                             gauss.append(j//2 + 1)
             self._gauss_code = gauss
@@ -511,7 +471,7 @@ class Link:
         that we are encountering.
 
         OUTPUT:
-            - DT Code representation of the knot.
+            - DT Code representation of the link
 
         EXAMPLES::
         """
@@ -521,8 +481,6 @@ class Link:
         elif self._braid != None:
             b = list(self._braid.Tietze())
             N = len(b)
-            #b1 = [abs(x) for x in b]
-            #b1 = max(b1)
             label = [0 for i in range(2*N)]
             string = 1
             next_label = 1
@@ -561,7 +519,6 @@ class Link:
                 else:
                     string = string - 1
                 crossing = crossing + 1
-            #print label
             code = [0 for i in range(N)]
             for i in range(N):
                 for j in range(N):
@@ -579,19 +536,13 @@ class Link:
         elif self._gauss_code != None:
             gc = self._gauss_code
             l = [0 for i in range(len(gc))]
-            #for i in range(len(gc)):
             for i,j in enumerate(gc):
-                #k = abs(gc[i])
                 k  = abs(j)
                 if l[2*(k-1)] == 0:
-                    #l[2*(k-1)] = (i + 1)*(cmp(gc[i],0))
                     l[2*(k-1)] = (i + 1)*(cmp(j,0))
                 else:
-                    #l[2*k-1] = (i + 1)*(cmp(gc[i],0))
                     l[2*k-1] = (i + 1)*(cmp(j,0))
-            print l
             y = [l[i] for i in range(len(l)) if abs(l[i])%2 == 0]
-            #x = [(-1)*y[i] if y[i] > 0 else (-1)*y[i] for i in range(len(y))]
             x = [(-1)*y[i] for i in range(len(y))]
             return x
 
@@ -866,9 +817,7 @@ class Link:
             for i,j in enumerate(s):
                 if j == []:
                     s[i].append(-2)
-            #for i in range(len(s)):
             for i in s:
-                #q1 = (abs(k)+1 for k in s[i])
                 q1 = (abs(k)+1 for k in i)
                 q2 = max(q1)
                 q.append(q2)
@@ -1058,7 +1007,6 @@ class Link:
         """
         if self.is_knot() == True:
             x = self.gauss_code()
-            #s = [cmp(x[i],0) for i in range(len(x))]
             s = [cmp(i,0) for i in x]
             if s == [(-1)**i+1 for i in range(len(x))] or s == [(-1)**i for i in range(len(x))]:
                 return True
@@ -1335,7 +1283,6 @@ class Link:
         pd_copy = deepcopy(pd)
         sc = self.seifert_circles()
         regions = self.regions()
-        q1 = deepcopy(regions)
         #separating the components into positive and negative
         q = [[[],[]] for i in range(len(regions))]
         for i,j in enumerate(regions):
@@ -1352,7 +1299,6 @@ class Link:
                 for k in range(len(q[i][j])):
                     if q[i][j][k] < 0:
                         q[i][j][k] = (-1)*q[i][j][k]
-        print q
         #to find the intersection of regions with seifert circles
         #first clean q that is by removing empty and single length arrays
         clean_q = []
@@ -1360,7 +1306,6 @@ class Link:
             for j in i:
                 if len(j) >= 2:
                     clean_q.append(j)
-        print clean_q
         #detecting the bad region
         bad_region = []
         for i in clean_q:
@@ -1369,7 +1314,6 @@ class Link:
                     break
             else:
                 bad_region.append(i)
-        print bad_region
         if bad_region == []:
             return "No Vogel Move"
         else:
@@ -1378,33 +1322,17 @@ class Link:
             bad_region = bad_region[0]
             print bad_region
             #now we perform the move and reconstruct the pd_code
+            #adding new elements to the bad regions
+            k = []
+            for i in pd_copy:
+                k.append(max(i))
+            new_component_1 = [min(bad_region), max(k) + 1, max(k) + 2]
+            new_component_2 = [max(bad_region), max(k) + 3, max(k) + 4]
+            print new_component_1
+            print new_component_2
             #we always pull the higher component onto the lower ones
             #always two crossings are added to the present diagram
-            first_crossing = [None, None, None, None]
-            second_crossing = [None, None, None, None]
-            first_crossing[0] = max(bad_region)
-            first_crossing[1] = min(bad_region) + 2
-            first_crossing[2] = max(bad_region) + 1
-            first_crossing[3] = min(bad_region) + 1
-            second_crossing[0] = max(bad_region) + 1
-            second_crossing[1] = min(bad_region)
-            second_crossing[2] = max(bad_region) + 2
-            second_crossing[3] = min(bad_region) + 1
-            print first_crossing
-            print second_crossing
-            #then we need to rename the other crossings
-            pd_copy.append(first_crossing)
-            pd_copy.append(second_crossing)
-            for i in range(len(pd_copy)):
-               for j in range(len(pd_copy[i])):
-                   #if min(bad_region) < pd_copy[i][j] <= max(bad_region):
-                   if min(bad_region) < pd_copy[i][j]:
-                      pd_copy[i][j] = pd_copy[i][j] + 2
-                   elif pd_copy[i][j] > max(bad_region):
-                      pd_copy[i][j] = pd_copy[i][j] + 2
-            print pd_copy
-            #work in progress
-
+        #work in progress need to figure out a way to orient the crossings
         #previous version
         '''for m,i in enumerate(q):
             for n,j in enumerate(i):
@@ -1567,14 +1495,15 @@ class Link:
             link = Link(PD_code = x)
             PD_code_old =  x
             x = link.vogel_move()
-            if x == "No move required":
+            if x == "No Vogel Move":
                 x = PD_code_old
                 break
         L = Link(PD_code = x)
         sc = L.seifert_circles()
         regions = L.regions()
+        orientation = L.orientation()
         pd_code = x
-        final = [sc, regions, pd_code]
+        final = [sc, regions, pd_code, orientation]
         return final
 
     #**************************** PART - 2 ***************************************
@@ -1585,7 +1514,7 @@ class Link:
         they belong, thereby developing the braidword
 
         OUTPUT:
-            - Braidword of the INPUT
+            - Braidword of the link
 
         EXAMPLES::
         sage: from sage.knots import link
@@ -1599,54 +1528,26 @@ class Link:
         sage: L.seifert_to_braid()
         [-1, 2, -1, -2, -2, 1, 1, -2]
         """
+        #all the data from the previous method
         sc = self.final()[0]
         regions = self.final()[1]
         pd_code = self.final()[2]
-        sign = []
-        #assigning the signs to the crossings
-        for i in pd_code:
-            if abs(i[1] - i[3]) == 1:
-                if i[1] > i[3]:
-                    sign.append('-')
-                elif i[1] < i[3]:
-                    sign.append('+')
-            elif abs(i[1] - i[3]) != 1:
-                if i[1] == 1:
-                   sign.append('-')
-                elif i[3] == 1:
-                    sign.append('+')
-        entering = []
-        leaving = []
-        for i in range(len(pd_code)):
-            t = []
-            q = []
-            if sign[i] == '-':
-                t.append(pd_code[i][0])
-                t.append(pd_code[i][3])
-                q.append(pd_code[i][1])
-                q.append(pd_code[i][2])
-            elif sign[i] == '+':
-                t.append(pd_code[i][0])
-                t.append(pd_code[i][1])
-                q.append(pd_code[i][2])
-                q.append(pd_code[i][3])
-            entering.append(t)
-            leaving.append(q)
-        #making regions positive
-        for i in regions:
-            for j in range(len(i)):
-                if i[j] < 0:
-                    i[j] = (-1)*i[j]
+        orient = self.final()[3]
+        #making the regions positive
+        regions_pos = deepcopy(regions)
+        for i in range(len(regions_pos)):
+            for j in range(len(regions_pos[i])):
+                if regions_pos[i][j] < 0:
+                    regions_pos[i][j] = (-1)*regions_pos[i][j]
         #finding which sc are same as regions
         #r[0] is the first seifert cirlce and r[1] is the last one
         #which coincides with a region and there are exactly two seifert
         #circles here.
         r = []
         for i in sc:
-            for j in regions:
+            for j in regions_pos:
                 if set(i) == set(j):
                     r.append(i)
-                    break
         #here t stores the crossing information required to check which one
         #is the next
         t = [[None for i in range(2*len(sc[j]))] for j in range(len(sc))]
@@ -1655,7 +1556,7 @@ class Link:
                 t[i][2*j] = sc[i][j] - 1
                 t[i][2*j+1] = sc[i][j] + 1
         #here we find the order of the seifert circles
-        e = []
+        seifert_order = []
         t1 = deepcopy(t)
         a = r[0]
         b = r[1]
@@ -1665,151 +1566,91 @@ class Link:
             for i in range(len(t)):
                 if len(list(set(a).intersection(set(t[i])))) != 0:
                     r = t1.index(t[i])
-                    e.append(a)
+                    seifert_order.append(a)
                     del t[i]
                     a = sc[r]
                     break
             else:
-                e.append(b)
+                seifert_order.append(b)
                 break
-        #braid numbering and matching the crossings
-        #print e
-        t = []
-        flatentering = [a for b in entering for a in b]
-        for i in flatentering:
-            for k in e:
-                if i in k:
-                    t.append(e.index(k))
-        #print t
-        for i in range(len(entering)):
-            #if t[2*i] > t[2*i+1]:
-            if sign[i] == '-':
-                if t[2*i] > t[2*i+1]:
-                    a = entering[i][0]
-                    entering[i][0] = entering[i][1]
-                    entering[i][1] = a
-                    b = leaving[i][0]
-                    leaving[i][0] = leaving[i][1]
-                    leaving[i][1] = b
-            #elif sign[i] == '+':
-                    #a = entering[i][0]
-                    #entering[i][0] = entering[i][1]
-                    #entering[i][1] = a
-                #elif sign[i] == '+':
-                    #a = entering[i][
-        #print entering
-        #print leaving
-        bn = {}
-        for i in range(len(e)):
-            bn.update({i + 1 : e[i]})
-        #print bn
-        crossingtoseifert = {}
-        for i in bn.iterkeys():
-            crossingtoseifert.update({i:[]})
-        for i in bn.iterkeys():
-            for k in pd_code:
-                if len(list(set(bn[i]).intersection(set(k)))) == 2:
-                    crossingtoseifert[i].append(k)
-        #print crossingtoseifert
-        crossingtoseifertcp = deepcopy(crossingtoseifert)
-        crossingtoseifertsign = {}
-        for i in crossingtoseifert.iterkeys():
-            crossingtoseifertsign.update({i:[]})
-        for i in crossingtoseifert.iterkeys():
-            for j in crossingtoseifert[i]:
-                if abs(j[1] - j[3]) == 1:
-                    if j[1] > j[3]:
-                        crossingtoseifertsign[i].append(-1)
-                    if j[1] < j[3]:
-                        crossingtoseifertsign[i].append(1)
-                elif abs(j[1] - j[3]) != 1:
-                    if j[1] == 1:
-                        crossingtoseifertsign[i].append(-1)
-                    elif j[3] == 1:
-                        crossingtoseifertsign[i].append(1)
-        #print crossingtoseifertsign
-        crossingtoseifertsigncp = deepcopy(crossingtoseifertsign)
+        entering = []
+        leaving = []
+        for i in range(len(pd_code)):
+            t = []
+            q = []
+            if orient[i] == '-':
+                t.append(pd_code[i][0])
+                t.append(pd_code[i][3])
+                q.append(pd_code[i][1])
+                q.append(pd_code[i][2])
+            elif orient[i] == '+':
+                t.append(pd_code[i][0])
+                t.append(pd_code[i][1])
+                q.append(pd_code[i][2])
+                q.append(pd_code[i][3])
+            entering.append(t)
+            leaving.append(q)
+        print "entering"
+        print entering
+        print "leaving"
+        print leaving
+        #here we correct the leaving and entering components so as to they belong to the
+        #correct seifert circles
+        for val in zip(seifert_order, seifert_order[1:]):
+            for i in entering:
+                if i[1] in val[0] and i[0] in val[1]:
+                    a = i[0]
+                    i[0] = i[1]
+                    i[1] = a
+        for val in zip(seifert_order, seifert_order[1:]):
+            for i in leaving:
+                if i[1] in val[0] and i[0] in val[1]:
+                    a = i[0]
+                    i[0] = i[1]
+                    i[1] = a
+        first_seifert = sc[0]
+        first_crossing = None
+        for i in pd_code:
+            if len(list(set(i).intersection(set(first_seifert)))) == 2:
+                first_crossing = i
+                break
         tmp = []
+        if orient[pd_code.index(first_crossing)] == '-':
+            tmp.append(first_crossing[1])
+            tmp.append(first_crossing[2])
+        elif orient[pd_code.index(first_crossing)] == '+':
+            tmp.append(first_crossing[2])
+            tmp.append(first_crossing[3])
         reg = [0 for i in range(len(sc))]
-        if crossingtoseifertsign[1][0] == -1:
-            tmp.append(crossingtoseifert[1][0][1])
-            tmp.append(crossingtoseifert[1][0][2])
-        elif crossingtoseifertsign[1][0] == 1:
-            tmp.append(crossingtoseifert[1][0][2])
-            tmp.append(crossingtoseifert[1][0][3])
-        if tmp[0] in bn[1]:
+        if tmp[0] in first_seifert:
             reg[0] = tmp[0]
             reg[1] = tmp[1]
-        else:
+        elif tmp[1] in first_seifert:
             reg[0] = tmp[1]
             reg[1] = tmp[0]
         crossing = []
-        crossing.append(crossingtoseifert[1][0])
+        crossing.append(first_crossing)
         q = 0
         while q < len(pd_code):
             for val in zip(reg, reg[1:]):
                 for i in range(len(entering)):
                     if set(val) == set(entering[i]):
                         crossing.append(pd_code[i])
-                        if sign[i] == '-':
-                            reg[reg.index(val[0])] = leaving[i][0]
-                            reg[reg.index(val[1])] = leaving[i][1]
-                            q = q + 1
-                            break
-                        elif sign[i] == '+':
-                            if list(val) == entering[i]:
-                                reg[reg.index(val[0])] = leaving[i][1]
-                                reg[reg.index(val[1])] = leaving[i][0]
-                            elif set(val) == set(entering[i]):
-                                reg[reg.index(val[0])] = leaving[i][0]
-                                reg[reg.index(val[1])] = leaving[i][1]
-                            q = q + 1
-                            break
+                        reg[reg.index(val[0])] = leaving[i][0]
+                        reg[reg.index(val[1])] = leaving[i][1]
+                        q = q + 1
+                        break
                     if len(list(set(val).intersection(set(entering[i])))) == 1 and 0 in set(val):
                         crossing.append(pd_code[i])
-                        if sign[i] == '-':
-                            reg[reg.index(val[0])+1] = leaving[i][1]
-                            reg[reg.index(val[0])] = leaving[i][0]
-                            q = q + 1
-                            break
-                        elif sign[i] == '+':
-                            reg[reg.index(val[0])+1] = pd_code[i][2]
-                            reg[reg.index(val[0])] = pd_code[i][3]
-                            q = q + 1
-                            break
-        del crossing[len(pd_code)]
-        for i in range(1,len(sc)):
-            for j in crossingtoseifertcp[i]:
-                x = crossingtoseifertcp[i+1].index(j)
-                del crossingtoseifertcp[i+1][x]
-                del crossingtoseifertsigncp[i+1][x]
-        braid = []
-        for i in crossing:
-            for j,k in crossingtoseifertcp.items():
-                for l in k:
-                    if i == l:
-                        braid.append(j*crossingtoseifertsigncp[j][k.index(l)])
-        return braid
+                        reg[reg.index(val[0])+1] = leaving[i][1]
+                        reg[reg.index(val[0])] = leaving[i][0]
+                        q = q + 1
+                        break
+        #work in progress need to generate the braid from the crossings
+        #the crossings have been ordered
+        return crossing
 
     def writhe(self):
-        r"""
-        Returns the writhe of the knot.
-
-        OUTPUT:
-            - Writhe of the knot.
-
-        EXAMPLES::
-        sage: from sage.knots import link
-        sage: L = link.Link(oriented_gauss_code = [[1, -2, 3, -4, 2, -1, 4, -3],['+','+','-','-']])
-        sage: L.writhe()
-        0
-        sage: L = link.Link(oriented_gauss_code = [[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5],['-','-','-','-','+','-','+']])
-        sage: L.writhe()
-        -3
-        sage: L = link.Link(oriented_gauss_code = [[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, -4, -7],['-','-','-','-','+','+','-','+']])
-        sage: L.writhe()
-        -2
-        """
         x = self.oriented_gauss_code()
         pos = x[1].count('+')
         neg = (-1)*x[1].count('-')
@@ -1822,7 +1663,7 @@ class Link:
         changing through the various combinations of smoothing the knot.
 
         OUTPUT:
-            - Jones Polynomial of the INPUT
+            - Jones Polynomial of the link
 
         EXAMPLES::
         sage: from sage.knots import link

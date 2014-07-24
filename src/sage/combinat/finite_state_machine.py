@@ -9068,7 +9068,7 @@ class _FSMTapeCache_(SageObject):
 
 
     def finished(self, track_number=None):
-        """
+        r"""
         Returns whether the tape (or a particular track) has reached an
         end, i.e., there are no more letters in the cache and nothing
         more to read on the original tape.

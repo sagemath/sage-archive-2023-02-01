@@ -3,7 +3,40 @@ from sage.rings.all import ZZ, QQ, RR, CC
 from sage.symbolic.ring import is_SymbolicVariable
 _assumptions = []
 
+
 class GenericDeclaration(SageObject):
+    """
+    This class represents generic assumptions, such as a variable being
+    an integer or a function being increasing. It passes such
+    information to maxima's declare (wrapped in a context so it is able
+    to forget).
+
+    INPUT:
+
+    -  ``var`` -- the variable about which assumptions are
+       being made
+
+    -  ``assumption`` -- a Maxima feature, either user
+       defined or in the list given by maxima('features')
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.assumptions import GenericDeclaration
+        sage: decl = GenericDeclaration(x, 'integer')
+        sage: decl.assume()
+        sage: sin(x*pi)
+        sin(pi*x)
+        sage: sin(x*pi).simplify()
+        0
+        sage: decl.forget()
+        sage: sin(x*pi)
+        sin(pi*x)
+
+    Here is the list of acceptable features::
+
+        sage: maxima('features')
+        [integer,noninteger,even,odd,rational,irrational,real,imaginary,complex,analytic,increasing,decreasing,oddfun,evenfun,posfun,constant,commutative,lassociative,rassociative,symmetric,antisymmetric,integervalued]
+    """
 
     def __init__(self, var, assumption):
         """
@@ -14,13 +47,11 @@ class GenericDeclaration(SageObject):
 
         INPUT:
 
-
-        -  ``var`` - the variable about which assumptions are
+        -  ``var`` -- the variable about which assumptions are
            being made
 
-        -  ``assumption`` - a Maxima feature, either user
+        -  ``assumption`` -- a Maxima feature, either user
            defined or in the list given by maxima('features')
-
 
         EXAMPLES::
 
@@ -35,9 +66,7 @@ class GenericDeclaration(SageObject):
             sage: sin(x*pi)
             sin(pi*x)
 
-        Here is the list of acceptable features.
-
-        ::
+        Here is the list of acceptable features::
 
             sage: maxima('features')
             [integer,noninteger,even,odd,rational,irrational,real,imaginary,complex,analytic,increasing,decreasing,oddfun,evenfun,posfun,constant,commutative,lassociative,rassociative,symmetric,antisymmetric,integervalued]
@@ -71,8 +100,8 @@ class GenericDeclaration(SageObject):
             False
         """
         if isinstance(self, GenericDeclaration) and isinstance(other, GenericDeclaration):
-            return cmp( (self._var, self._assumption),
-                        (other._var, other._assumption) )
+            return cmp((self._var, self._assumption),
+                       (other._var, other._assumption))
         else:
             return cmp(type(self), type(other))
 
@@ -135,6 +164,8 @@ class GenericDeclaration(SageObject):
 
     def forget(self):
         """
+        Forget this assumption.
+
         TEST::
 
             sage: from sage.symbolic.assumptions import GenericDeclaration
@@ -164,12 +195,12 @@ class GenericDeclaration(SageObject):
 
     def contradicts(self, soln):
         """
-        Returns ``True`` if this assumption is violated by the given
+        Return ``True`` if this assumption is violated by the given
         variable assignment(s).
 
         INPUT:
 
-        - ``soln`` - Either a dictionary with variables as keys or a symbolic
+        - ``soln`` -- Either a dictionary with variables as keys or a symbolic
             relation with a variable on the left hand side.
 
         EXAMPLES::
@@ -243,9 +274,10 @@ class GenericDeclaration(SageObject):
         elif self._assumption == 'complex':
             return value not in CC
 
+
 def preprocess_assumptions(args):
     """
-    Turns a list of the form (var1, var2, ..., 'property') into a
+    Turn a list of the form (var1, var2, ..., 'property') into a
     sequence of declarations (var1 is property), (var2 is property),
     ...
 
@@ -272,13 +304,14 @@ def preprocess_assumptions(args):
             last = None
     return args
 
+
 def assume(*args):
     """
     Make the given assumptions.
 
     INPUT:
 
-    -  ``*args`` - assumptions
+    -  ``*args`` -- assumptions
 
     EXAMPLES:
 
@@ -296,7 +329,6 @@ def assume(*args):
         sage: forget()
         sage: bool(sqrt(x^2) == x)
         False
-
 
     Another major use case is in taking certain integrals and limits
     where the answers may depend on some sign condition::
@@ -389,7 +421,7 @@ def assume(*args):
     TESTS:
 
     Test that you can do two non-relational
-    declarations at once (fixing Trac ticket 7084)::
+    declarations at once (fixing :trac:`7084`)::
 
         sage: var('m,n')
         (m, n)
@@ -413,6 +445,7 @@ def assume(*args):
             except KeyError:
                 raise TypeError("assume not defined for objects of type '%s'"%type(x))
 
+
 def forget(*args):
     """
     Forget the given assumption, or call with no arguments to forget
@@ -422,10 +455,8 @@ def forget(*args):
 
     INPUT:
 
-
-    -  ``*args`` - assumptions (default: forget all
+    -  ``*args`` -- assumptions (default: forget all
        assumptions)
-
 
     EXAMPLES: We define and forget multiple assumptions::
 
@@ -463,18 +494,19 @@ def forget(*args):
             except KeyError:
                 raise TypeError("forget not defined for objects of type '%s'"%type(x))
 
+
 def assumptions(*args):
     """
     List all current symbolic assumptions.
 
     INPUT:
 
-        - ``args`` - list of variables which can be empty.
+    - ``args`` - list of variables which can be empty.
 
     OUTPUT:
 
-        - list of assumptions on variables. If args is empty it returns all
-          assumptions
+    - list of assumptions on variables. If args is empty it returns
+        all assumptions
 
     EXAMPLES:
 
@@ -524,6 +556,7 @@ def assumptions(*args):
                             if str(v) in str(statement) ]
     return result
 
+
 def _forget_all():
     """
     Forget all symbolic assumptions.
@@ -548,7 +581,7 @@ def _forget_all():
 
     TESTS:
 
-    Check that Trac ticket 7315 is fixed::
+    Check that :trac:`7315` is fixed::
 
         sage: var('m,n')
         (m, n)

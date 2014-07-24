@@ -1640,7 +1640,6 @@ def _sage_getsourcelines_name_with_dot(object):
         ....:     def __init__(self):
         ....:         "some init doc"
         ....:         pass
-        ....: from sage.misc.nested_class import NestedClassMetaclass
         ....: class B:
         ....:     "some class doc"
         ....:     class A(A):

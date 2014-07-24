@@ -10027,7 +10027,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: Z.process([])
             (True, 0, [1, 2])
 
-        TESTS::
+        ::
 
             sage: N = Transducer([(0, 0, 0, 1)], initial_states=[0])
             sage: def h_old(state, process):

@@ -1709,7 +1709,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             (1, 2)
 
         We make sure that this function constructs cones with ordered ambient
-        ray indices (see Trac 9812)::
+        ray indices (see :trac:`9812`)::
 
             sage: C = Cone([(1,0,0), (0,1,0), (1,0,1), (0,1,1)])
             sage: F = Fan([C]).make_simplicial()

@@ -2800,7 +2800,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: lp = quadrant.lattice_polytope()
-            doctest:1: DeprecationWarning: lattice_polytope(...) is deprecated!
+            doctest:...: DeprecationWarning: lattice_polytope(...) is deprecated!
             See http://trac.sagemath.org/16180 for details.            
             sage: lp
             2-d lattice polytope in 2-d lattice N

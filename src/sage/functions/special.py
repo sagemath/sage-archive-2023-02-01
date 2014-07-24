@@ -12,6 +12,8 @@ AUTHORS:
 
 - David Joyner (2008-04-23): addition of elliptic integrals
 
+- Eviatar Bach (2013): making elliptic integrals symbolic
+
 This module provides easy access to many of Maxima and PARI's
 special functions.
 
@@ -207,10 +209,17 @@ from sage.plot.plot import plot
 from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
 from sage.misc.sage_eval import sage_eval
-from sage.rings.all import ZZ, RR, RDF
-from sage.functions.other import real, imag, log_gamma
-from sage.symbolic.function import BuiltinFunction
+from sage.misc.latex import latex
+from sage.rings.all import ZZ, RR, RDF, Integer
+from sage.functions.other import real, imag, log_gamma, sqrt
+from sage.functions.trig import sin
+from sage.symbolic.function import BuiltinFunction, is_inexact
+from sage.symbolic.constants import pi
+from sage.symbolic.expression import Expression
+from sage.structure.coerce import parent
+from sage.structure.element import get_coercion_model
 from sage.calculus.calculus import maxima
+from sage.libs.mpmath import utils as mpmath_utils
 
 _done = False
 def _init():
@@ -682,10 +691,10 @@ def elliptic_j(z):
 
 #### elliptic integrals
 
-class EllipticE(MaximaFunction):
+class EllipticE(BuiltinFunction):
     r"""
     This returns the value of the "incomplete elliptic integral of the
-    second kind,"
+    second kind",
 
     .. math::
 
@@ -698,7 +707,7 @@ class EllipticE(MaximaFunction):
 
         sage: z = var("z")
         sage: # this is still wrong: must be abs(sin(z)) + 2*round(z/pi)
-        sage: elliptic_e(z, 1)
+        sage: elliptic_e(z, 1).simplify()
         2*round(z/pi) + sin(z)
         sage: elliptic_e(z, 0)
         z
@@ -712,11 +721,43 @@ class EllipticE(MaximaFunction):
             sage: loads(dumps(elliptic_e))
             elliptic_e
         """
-        MaximaFunction.__init__(self, "elliptic_e")
+        BuiltinFunction.__init__(self, 'elliptic_e', nargs=2,
+                                 # Maple conversion left out since it uses
+                                 # k instead of m as the second argument
+                                 conversions=dict(mathematica='EllipticE',
+                                                  maxima='elliptic_e',
+                                                  sympy='elliptic_e'))
 
+    def _eval_(self, z, m):
+        coercion_model = get_coercion_model()
+        co = coercion_model.canonical_coercion(z, m)[0]
+        if is_inexact(co) and not isinstance(co, Expression):
+            return self._evalf_(z, m, parent(co))
+        elif z == 0:
+            return Integer(0)
+        elif z == pi / 2:
+            return elliptic_ec(m)
+        elif m == 0:
+            return z
+        else:
+            return None
+
+    def _evalf_(self, z, m, parent):
+        from mpmath import ellipe
+        return mpmath_utils.call(ellipe, z, m, parent=parent)
+
+    def _derivative_(self, z, m, diff_param):
+        if diff_param == 0:
+            return sqrt(Integer(1) - m * sin(z) ** Integer(2))
+        elif diff_param == 1:
+            return (elliptic_e(z, m) - elliptic_f(z, m)) / (Integer(2) * m)
+
+    def _print_latex_(self, z, m):
+        return r"E\left({}\middle|{}\right)".format(latex(z), latex(m))
+ 
 elliptic_e = EllipticE()
 
-class EllipticEC(MaximaFunction):
+class EllipticEC(BuiltinFunction):
     """
     This returns the value of the "complete elliptic integral of the
     second kind,"
@@ -736,29 +777,41 @@ class EllipticEC(MaximaFunction):
         elliptic_ec
     """
     def __init__(self):
+
+        BuiltinFunction.__init__(self, 'elliptic_ec', nargs=1, latex_name='E',
+                                 conversions=dict(mathematica='EllipticE',
+                                                  maxima='elliptic_ec',
+                                                  sympy='elliptic_e'))
+ 
+    def _eval_(self, x):
+        if is_inexact(x) and not isinstance(x, Expression):
+            return self._evalf_(x, parent(x))
+        elif x == 0:
+            return pi / Integer(2)
+        elif x == 1:
+            return Integer(1)
+        else:
+            return None
+ 
+    def _evalf_(self, x, parent):
+        from mpmath import ellipe
+        return mpmath_utils.call(ellipe, x, parent=parent)
+
+    def _derivative_(self, x, diff_param):
         """
         EXAMPLES::
-
-            sage: elliptic_ec(0.1)
-            1.53075763689776
-        """
-        MaximaFunction.__init__(self, "elliptic_ec", nargs=1)
-
-    def _derivative_(self, *args, **kwds):
-        """
-        EXAMPLES::
-
+ 
             sage: elliptic_ec(x).diff()
             1/2*(elliptic_ec(x) - elliptic_kc(x))/x
         """
         diff_param = kwds['diff_param']
         assert diff_param == 0
         x = args[diff_param]
-        return (elliptic_ec(x) - elliptic_kc(x))/(2*x)
+        return (elliptic_ec(x) - elliptic_kc(x)) / (Integer(2) * x)
 
 elliptic_ec = EllipticEC()
 
-class EllipticEU(MaximaFunction):
+class EllipticEU(BuiltinFunction):
     r"""
     This returns the value of the "incomplete elliptic integral of the
     second kind,"
@@ -782,11 +835,67 @@ class EllipticEU(MaximaFunction):
             sage: elliptic_eu (0.5, 0.1)
             0.496054551286597
         """
-        MaximaFunction.__init__(self, "elliptic_eu")
+        BuiltinFunction.__init__(self, 'elliptic_eu', nargs=2,
+                                 conversions=dict(maxima='elliptic_eu'))
+ 
+    def _eval_(self, u, m):
+        coercion_model = get_coercion_model()
+        co = coercion_model.canonical_coercion(u, m)[0]
+        if is_inexact(co) and not isinstance(co, Expression):
+            return self._evalf_(u, m, parent(co))
+        else:
+            return None
+
+    def _evalf_(self, u, m, parent):
+       return mpmath_utils.call(elliptic_eu_f, u, m, parent=parent)
+
+    def _derivative_(self, u, m, diff_param):
+        from sage.functions.jacobi import jacobi, jacobi_am
+        if diff_param == 0:
+            return (sqrt(-m * jacobi('sn', u, m) ** Integer(2) +
+                         Integer(1)) * jacobi('dn', u, m))
+        elif diff_param == 1:
+            return (Integer(1) / Integer(2) *
+                    (elliptic_eu(u, m) - elliptic_f(jacobi_am(u, m), m)) / m -
+                    Integer(1) / Integer(2) * sqrt(-m * jacobi('sn', u, m) **
+                    Integer(2) + Integer(1)) * (m * jacobi('sn', u, m) *
+                    jacobi('cn', u, m) - (m - Integer(1)) * u -
+                    elliptic_eu(u, m) * jacobi('dn', u, m)) /
+                    ((m - Integer(1)) * m))
+
+    def _print_latex_(self, u, m):
+        return (r"E\left(\operatorname{{am}}\left({}\right)\middle|{}\right)"
+                .format(latex(u), latex(m)))
+
+def elliptic_eu_f(u, m):
+    r"""
+    Internal function for numeric evaluation of ``elliptic_eu``, defined as
+    `E\left(\operatorname{am}(u, m)|m\right)`, where `E` is the incomplete
+    elliptic integral of the second kind and `\operatorname{am}` is the Jacobi
+    amplitude function.
+
+    EXAMPLES::
+
+        sage: from sage.functions.special import elliptic_eu_f
+        sage: elliptic_eu_f(0.5, 0.1)
+        mpf('0.49605455128659691')
+    """
+    from mpmath import mp
+    from sage.functions.jacobi import jacobi_am_f
+
+    ctx = mp
+    prec = ctx.prec
+    try:
+        u = ctx.convert(u)
+        m = ctx.convert(m)
+        ctx.prec += 10
+        return ctx.ellipe(jacobi_am_f(u, m), m)
+    finally:
+        ctx.prec = prec
 
 elliptic_eu = EllipticEU()
 
-class EllipticF(MaximaFunction):
+class EllipticF(BuiltinFunction):
     r"""
     This returns the value of the "incomplete elliptic integral of the
     first kind,"
@@ -803,7 +912,7 @@ class EllipticF(MaximaFunction):
         sage: z = var("z")
         sage: elliptic_f (z, 0)
         z
-        sage: elliptic_f (z, 1)
+        sage: elliptic_f (z, 1).simplify()
         log(tan(1/4*pi + 1/2*z))
         sage: elliptic_f (0.2, 0.1)
         0.200132506747543
@@ -815,11 +924,43 @@ class EllipticF(MaximaFunction):
             sage: elliptic_f (0.2, 0.1)
             0.200132506747543
         """
-        MaximaFunction.__init__(self, "elliptic_f")
+        BuiltinFunction.__init__(self, 'elliptic_f', nargs=2,
+                                 conversions=dict(mathematica='EllipticF',
+                                                  maxima='elliptic_f',
+                                                  sympy='elliptic_f'))
+ 
+    def _eval_(self, z, m):
+        coercion_model = get_coercion_model()
+        co = coercion_model.canonical_coercion(z, m)[0]
+        if is_inexact(co) and not isinstance(co, Expression):
+            return self._evalf_(z, m, parent(co))
+        elif m == 0:
+            return z
+        elif z == 0:
+            return Integer(0)
+        elif z == pi / 2:
+            return elliptic_kc(m)
 
+    def _evalf_(self, z, m, parent):
+        from mpmath import ellipf
+        return mpmath_utils.call(ellipf, z, m, parent=parent)
+
+    def _derivative_(self, z, m, diff_param):
+        if diff_param == 0:
+            return Integer(1) / sqrt(Integer(1) - m * sin(z) ** Integer(2))
+        elif diff_param == 1:
+            return (elliptic_e(z, m) / (Integer(2) * (Integer(1) - m) * m) -
+                    elliptic_f(z, m) / (Integer(2) * m) -
+                    (sin(Integer(2) * z) /
+                     (Integer(4) * (Integer(1) - m) *
+                      sqrt(Integer(1) - m * sin(z) ** Integer(2)))))
+
+    def _print_latex_(self, z, m):
+        return r"F\left({}\middle|{}\right)".format(latex(z), latex(m))
+ 
 elliptic_f = EllipticF()
 
-class EllipticKC(MaximaFunction):
+class EllipticKC(BuiltinFunction):
     r"""
     This returns the value of the "complete elliptic integral of the
     first kind,"
@@ -832,23 +973,32 @@ class EllipticKC(MaximaFunction):
 
         sage: elliptic_kc(0.5)
         1.85407467730137
-        sage: elliptic_f(RR(pi/2), 0.5)
-        1.85407467730137
     """
     def __init__(self):
-        r"""
-        EXAMPLES::
-
-            sage: elliptic_kc(0.5)
-            1.85407467730137
-            sage: elliptic_f(RR(pi/2), 0.5)
-            1.85407467730137
-        """
-        MaximaFunction.__init__(self, "elliptic_kc", nargs=1)
+        BuiltinFunction.__init__(self, 'elliptic_kc', nargs=1, latex_name='K',
+                                 conversions=dict(mathematica='EllipticK',
+                                                  maxima='elliptic_kc',
+                                                  sympy='elliptic_k'))
+ 
+    def _eval_(self, z):
+        if is_inexact(z) and not isinstance(z, Expression):
+            return self._evalf_(z, parent(z))
+        elif z == 0:
+            return pi / 2
+        else:
+            return
+ 
+    def _evalf_(self, z, parent):
+        from mpmath import ellipk
+        return mpmath_utils.call(ellipk, z, parent=parent)
+ 
+    def _derivative_(self, z, diff_param):
+        return ((elliptic_ec(z) - (Integer(1) - z) * elliptic_kc(z)) /
+                (Integer(2) * (Integer(1) - z) * z))
 
 elliptic_kc = EllipticKC()
 
-class EllipticPi(MaximaFunction):
+class EllipticPi(BuiltinFunction):
     r"""
     This returns the value of the "incomplete elliptic integral of the
     third kind,"
@@ -898,8 +1048,48 @@ class EllipticPi(MaximaFunction):
             sage: elliptic_pi(0.1, 0.2, 0.3)
             0.200665068220979
         """
-        MaximaFunction.__init__(self, "elliptic_pi", nargs=3)
+        BuiltinFunction.__init__(self, 'elliptic_pi', nargs=3,
+                                 conversions=dict(mathematica='EllipticPi',
+                                                  maxima='EllipticPi',
+                                                  sympy='elliptic_pi'))
+ 
+    def _eval_(self, n, z, m):
+        cm = get_coercion_model()
+        co = cm.canonical_coercion(n, cm.canonical_coercion(z, m)[0])[0]
+        if is_inexact(co) and not isinstance(co, Expression):
+            return self._evalf_(n, z, m, parent(co))
+        elif n == 0:
+            return elliptic_f(z, m)
+        else:
+            return
 
+    def _evalf_(self, n, z, m, parent):
+        from mpmath import ellippi
+        return mpmath_utils.call(ellippi, n, z, m, parent=parent)
+
+    def _derivative_(self, n, z, m, diff_param):
+        if diff_param == 0:
+            return ((Integer(1) / (Integer(2) * (m - n) * (n - Integer(1)))) *
+                    (elliptic_e(z, m) + ((m - n) / n) * elliptic_f(z, m) +
+                    ((n ** Integer(2) - m) / n) * elliptic_pi(n, z, m) -
+                    (n * sqrt(Integer(1) - m * sin(z) ** Integer(2)) *
+                     sin(Integer(2) * z)) /
+                    (Integer(2) * (Integer(1) - n * sin(z) ** Integer(2)))))
+        elif diff_param == 1:
+            return (Integer(1) /
+                    (sqrt(Integer(1) - m * sin(z) ** Integer(Integer(2))) *
+                     (Integer(1) - n * sin(z) ** Integer(2))))
+        elif diff_param == 2:
+            return ((Integer(1) / (Integer(2) * (n - m))) *
+                    (elliptic_e(z, m) / (m - Integer(1)) +
+                     elliptic_pi(n, z, m) - (m * sin(Integer(2) * z)) /
+                     (Integer(2) * (m - Integer(1)) *
+                     sqrt(Integer(1) - m * sin(z) ** Integer(2)))))
+
+    def _print_latex_(self, n, z, m):
+        return r"\Pi\left({};{}\middle|{}\right)".format(latex(n), latex(z),
+                                                         latex(m))
+ 
 elliptic_pi = EllipticPi()
 
 

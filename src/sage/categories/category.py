@@ -2297,7 +2297,7 @@ def category_graph(categories = None):
     - ``categories`` -- a list (or iterable) of categories
 
     If ``categories`` is specified, then the graph contains the
-    mentionned categories together with all their super
+    mentioned categories together with all their super
     categories. Otherwise the graph contains (an instance of) each
     category in :mod:`sage.categories.all` (e.g. ``Algebras(QQ)`` for
     algebras).

@@ -73,19 +73,16 @@ class FunctionAiryAiGeneral(BuiltinFunction):
 
         EXAMPLES::
 
+            sage: from sage.functions.airy import airy_ai_general
             sage: x, n = var('x n')
-            sage: airy_ai(-2, x)
+            sage: airy_ai_general(-2, x)
             airy_ai(-2, x)
-            sage: derivative(airy_ai(-2, x), x)
+            sage: derivative(airy_ai_general(-2, x), x)
             airy_ai(-1, x)
-            sage: airy_ai(n, x)
+            sage: airy_ai_general(n, x)
             airy_ai(n, x)
-            sage: derivative(airy_ai(n, x), x)
+            sage: derivative(airy_ai_general(n, x), x)
             airy_ai(n + 1, x)
-            sage: airy_ai(2, x, hold_derivative=True)
-            airy_ai(2, x)
-            sage: derivative(airy_ai(2, x, hold_derivative=True), x)
-            airy_ai(3, x)
         """
         BuiltinFunction.__init__(self, "airy_ai", nargs=2,
                                  latex_name=r"\operatorname{Ai}")
@@ -94,10 +91,11 @@ class FunctionAiryAiGeneral(BuiltinFunction):
         """
         EXAMPLES::
 
+            sage: from sage.functions.airy import airy_ai_general
             sage: x, n = var('x n')
-            sage: derivative(airy_ai(n, x), x)  # indirect doctest
+            sage: derivative(airy_ai_general(n, x), x)
             airy_ai(n + 1, x)
-            sage: derivative(airy_ai(n, x), n)  # indirect doctest
+            sage: derivative(airy_ai_general(n, x), n)
             Traceback (most recent call last):
             ...
             ValueError: cannot differentiate airy_ai in the first parameter
@@ -110,10 +108,11 @@ class FunctionAiryAiGeneral(BuiltinFunction):
         """
         EXAMPLES::
 
+            sage: from sage.functions.airy import airy_ai_general
             sage: x, n = var('x n')
-            sage: airy_ai(-2, 1.0)  # indirect doctest
+            sage: airy_ai_general(-2, 1.0)
             0.136645379421096
-            sage: airy_ai(n, 1.0)  # indirect doctest
+            sage: airy_ai_general(n, 1.0)
             airy_ai(n, 1.00000000000000)
         """
         if not isinstance(x, Expression) and \
@@ -133,7 +132,8 @@ class FunctionAiryAiGeneral(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: airy_ai(-2, 1.0)  # indirect doctest
+            sage: from sage.functions.airy import airy_ai_general
+            sage: airy_ai_general(-2, 1.0)
             0.136645379421096
         """
         import mpmath
@@ -149,8 +149,7 @@ class FunctionAiryAiSimple(BuiltinFunction):
 
         EXAMPLES::
 
-            sage: from sage.functions.airy import FunctionAiryAiSimple
-            sage: airy_ai_simple = FunctionAiryAiSimple()
+            sage: from sage.functions.airy import airy_ai_simple
             sage: f = airy_ai_simple(x); f
             airy_ai(x)
         """
@@ -163,7 +162,8 @@ class FunctionAiryAiSimple(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: derivative(airy_ai(x), x)  # indirect doctest
+            sage: from sage.functions.airy import airy_ai_simple
+            sage: derivative(airy_ai_simple(x), x)
             airy_ai_prime(x)
         """
         return airy_ai_prime(x)
@@ -172,13 +172,14 @@ class FunctionAiryAiSimple(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: airy_ai(0)  # indirect doctest
+            sage: from sage.functions.airy import airy_ai_simple
+            sage: airy_ai_simple(0)
             1/3*3^(1/3)/gamma(2/3)
-            sage: airy_ai(0.0)  # indirect doctest
+            sage: airy_ai_simple(0.0)
             0.355028053887817
-            sage: airy_ai(I)  # indirect doctest
+            sage: airy_ai_simple(I)
             airy_ai(I)
-            sage: airy_ai(1.0 * I)  # indirect doctest
+            sage: airy_ai_simple(1.0 * I)
             0.331493305432141 - 0.317449858968444*I
         """
         if not isinstance(x, Expression):
@@ -194,20 +195,21 @@ class FunctionAiryAiSimple(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: airy_ai(0.0)  # indirect doctest
+            sage: from sage.functions.airy import airy_ai_simple
+            sage: airy_ai_simple(0.0)
             0.355028053887817
-            sage: airy_ai(1.0 * I)  # indirect doctest
+            sage: airy_ai_simple(1.0 * I)
             0.331493305432141 - 0.317449858968444*I
 
         We can use several methods for numerical evaluation::
 
-            sage: airy_ai(3).n(algorithm='mpmath')
+            sage: airy_ai_simple(3).n(algorithm='mpmath')
             0.00659113935746072
-            sage: airy_ai(3).n(algorithm='mpmath', prec=100)
+            sage: airy_ai_simple(3).n(algorithm='mpmath', prec=100)
             0.0065911393574607191442574484080
-            sage: airy_ai(3).n(algorithm='scipy')
+            sage: airy_ai_simple(3).n(algorithm='scipy')
             0.00659113935746
-            sage: airy_ai(I).n(algorithm='scipy')
+            sage: airy_ai_simple(I).n(algorithm='scipy')
             0.331493305432 - 0.317449858968*I
         """
         if algorithm == 'scipy':
@@ -245,7 +247,7 @@ class FunctionAiryAiPrime(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: derivative(airy_ai_prime(x), x)  # indirect doctest
+           sage: derivative(airy_ai_prime(x), x)
             x*airy_ai(x)
         """
         return x * airy_ai_simple(x)
@@ -254,9 +256,9 @@ class FunctionAiryAiPrime(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: airy_ai(1, 0)  # indirect doctest
+            sage: airy_ai_prime(0)
             -1/3*3^(2/3)/gamma(1/3)
-            sage: airy_ai(1, 0.0)  # indirect doctest
+            sage: airy_ai_prime(0.0)
             -0.258819403792807
         """
         if not isinstance(x, Expression):
@@ -272,18 +274,18 @@ class FunctionAiryAiPrime(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: airy_ai(1, 0.0)  # indirect doctest
+            sage: airy_ai_prime(0.0)
             -0.258819403792807
 
         We can use several methods for numerical evaluation::
 
-            sage: airy_ai(1, 4).n(algorithm='mpmath')
+            sage: airy_ai_prime(4).n(algorithm='mpmath')
             -0.00195864095020418
-            sage: airy_ai(1, 4).n(algorithm='mpmath', prec=100)
+            sage: airy_ai_prime(4).n(algorithm='mpmath', prec=100)
             -0.0019586409502041789001381409184
-            sage: airy_ai(1,4).n(algorithm='scipy')
+            sage: airy_ai_prime(4).n(algorithm='scipy')
             -0.0019586409502
-            sage: airy_ai(1,I).n(algorithm='scipy')
+            sage: airy_ai_prime(I).n(algorithm='scipy')
             -0.432492659842 + 0.0980478562292*I
         """
         if algorithm == 'scipy':
@@ -390,8 +392,7 @@ def airy_ai(alpha, x=None, hold_derivative=False, *args, **kwds):
 
     Plots::
 
-        sage: (plot(airy_ai(x), (x, -10, 5)) +\
-               plot(airy_ai_prime(x), (x, -10, 5), color='red'))
+        sage: plot(airy_ai(x), (x, -10, 5)) + plot(airy_ai_prime(x), (x, -10, 5), color='red')
 
     **References**
 
@@ -460,19 +461,16 @@ class FunctionAiryBiGeneral(BuiltinFunction):
 
         EXAMPLES::
 
+            sage: from sage.functions.airy import airy_bi_general
             sage: x, n = var('x n')
-            sage: airy_bi(-2, x)
+            sage: airy_bi_general(-2, x)
             airy_bi(-2, x)
-            sage: derivative(airy_bi(-2, x), x)
+            sage: derivative(airy_bi_general(-2, x), x)
             airy_bi(-1, x)
-            sage: airy_bi(n, x)
+            sage: airy_bi_general(n, x)
             airy_bi(n, x)
-            sage: derivative(airy_bi(n, x), x)
+            sage: derivative(airy_bi_general(n, x), x)
             airy_bi(n + 1, x)
-            sage: airy_bi(2, x, hold_derivative=True)
-            airy_bi(2, x)
-            sage: derivative(airy_bi(2, x, hold_derivative=True), x)
-            airy_bi(3, x)
         """
         BuiltinFunction.__init__(self, "airy_bi", nargs=2,
                                  latex_name=r"\operatorname{Bi}")
@@ -481,10 +479,11 @@ class FunctionAiryBiGeneral(BuiltinFunction):
         """
         EXAMPLES::
 
+            sage: from sage.functions.airy import airy_bi_general
             sage: x, n = var('x n')
-            sage: derivative(airy_bi(n, x), x)  # indirect doctest
+            sage: derivative(airy_bi_general(n, x), x)
             airy_bi(n + 1, x)
-            sage: derivative(airy_bi(n, x), n)  # indirect doctest
+            sage: derivative(airy_bi_general(n, x), n)
             Traceback (most recent call last):
             ...
             ValueError: cannot differentiate airy_bi in the first parameter
@@ -497,10 +496,11 @@ class FunctionAiryBiGeneral(BuiltinFunction):
         """
         EXAMPLES::
 
+            sage: from sage.functions.airy import airy_bi_general
             sage: x, n = var('x n')
-            sage: airy_bi(-2, 1.0)  # indirect doctest
+            sage: airy_bi_general(-2, 1.0)
             0.388621540699059
-            sage: airy_bi(n, 1.0)  # indirect doctest
+            sage: airy_bi_general(n, 1.0)
             airy_bi(n, 1.00000000000000)
         """
         if not isinstance(x, Expression) and \
@@ -520,7 +520,8 @@ class FunctionAiryBiGeneral(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: airy_bi(-2, 1.0)  # indirect doctest
+            sage: from sage.functions.airy import airy_bi_general
+            sage: airy_bi_general(-2, 1.0)
             0.388621540699059
 
         """
@@ -538,8 +539,7 @@ class FunctionAiryBiSimple(BuiltinFunction):
 
         EXAMPLES::
 
-            sage: from sage.functions.airy import FunctionAiryBiSimple
-            sage: airy_bi_simple= FunctionAiryBiSimple()
+            sage: from sage.functions.airy import airy_bi_simple
             sage: f = airy_bi_simple(x); f
             airy_bi(x)
         """
@@ -552,7 +552,8 @@ class FunctionAiryBiSimple(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: derivative(airy_bi(x), x)  # indirect doctest
+            sage: from sage.functions.airy import airy_bi_simple
+            sage: derivative(airy_bi_simple(x), x)
             airy_bi_prime(x)
         """
         return airy_bi_prime(x)
@@ -561,15 +562,16 @@ class FunctionAiryBiSimple(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: airy_bi(0)  # indirect doctest
+            sage: from sage.functions.airy import airy_bi_simple
+            sage: airy_bi_simple(0)
             1/3*3^(5/6)/gamma(2/3)
-            sage: airy_bi(0.0)  # indirect doctest
+            sage: airy_bi_simple(0.0)
             0.614926627446001
-            sage: airy_bi(0).n() == airy_bi(0.0)  # indirect doctest
+            sage: airy_bi_simple(0).n() == airy_bi(0.0)
             True
-            sage: airy_bi(I)  # indirect doctest
+            sage: airy_bi_simple(I)
             airy_bi(I)
-            sage: airy_bi(1.0 * I)  # indirect doctest
+            sage: airy_bi_simple(1.0 * I)
             0.648858208330395 + 0.344958634768048*I
         """
         if not isinstance(x, Expression):
@@ -585,20 +587,21 @@ class FunctionAiryBiSimple(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: airy_bi(0.0)  # indirect doctest
+            sage: from sage.functions.airy import airy_bi_simple
+            sage: airy_bi_simple(0.0)
             0.614926627446001
-            sage: airy_bi(1.0 * I)  # indirect doctest
+            sage: airy_bi_simple(1.0 * I)
             0.648858208330395 + 0.344958634768048*I
 
         We can use several methods for numerical evaluation::
 
-            sage: airy_bi(3).n(algorithm='mpmath')
+            sage: airy_bi_simple(3).n(algorithm='mpmath')
             14.0373289637302
-            sage: airy_bi(3).n(algorithm='mpmath', prec=100)
+            sage: airy_bi_simple(3).n(algorithm='mpmath', prec=100)
             14.037328963730232031740267314
-            sage: airy_bi(3).n(algorithm='scipy')
+            sage: airy_bi_simple(3).n(algorithm='scipy')
             14.0373289637
-            sage: airy_bi(I).n(algorithm='scipy')
+            sage: airy_bi_simple(I).n(algorithm='scipy')
             0.64885820833 + 0.344958634768*I
         """
         algorithm = kwargs.get('algorithm', None) or 'mpmath'
@@ -624,9 +627,9 @@ class FunctionAiryBiPrime(BuiltinFunction):
         EXAMPLES::
 
             sage: x, n = var('x n')
-            sage: airy_bi_prime(x)  # indirect doctest
+            sage: airy_bi_prime(x)
             airy_bi_prime(x)
-            sage: airy_bi_prime(0)  # indirect doctest
+            sage: airy_bi_prime(0)
             3^(1/6)/gamma(1/3)
         """
         BuiltinFunction.__init__(self, "airy_bi_prime",
@@ -638,7 +641,7 @@ class FunctionAiryBiPrime(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: derivative(airy_bi_prime(x), x)  # indirect doctest
+            sage: derivative(airy_bi_prime(x), x)
             x*airy_bi(x)
         """
         return x * airy_bi_simple(x)
@@ -647,9 +650,9 @@ class FunctionAiryBiPrime(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: airy_bi(1, 0)  # indirect doctest
+            sage: airy_bi_prime(0)
             3^(1/6)/gamma(1/3)
-            sage: airy_bi(1, 0.0)  # indirect doctest
+            sage: airy_bi_prime(0.0)
             0.448288357353826
         """
         if not isinstance(x, Expression):
@@ -665,18 +668,18 @@ class FunctionAiryBiPrime(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: airy_bi(1, 0.0)  # indirect doctest
+            sage: airy_bi_prime(0.0)
             0.448288357353826
 
         We can use several methods for numerical evaluation::
 
-            sage: airy_bi(1, 4).n(algorithm='mpmath')
+            sage: airy_bi_prime(4).n(algorithm='mpmath')
             161.926683504613
-            sage: airy_bi(1, 4).n(algorithm='mpmath', prec=100)
+            sage: airy_bi_prime(4).n(algorithm='mpmath', prec=100)
             161.92668350461340184309492429
-            sage: airy_bi(1,4).n(algorithm='scipy')
+            sage: airy_bi_prime(4).n(algorithm='scipy')
             161.926683505
-            sage: airy_bi(1,I).n(algorithm='scipy')
+            sage: airy_bi_prime(I).n(algorithm='scipy')
             0.135026646711 - 0.128837386781*I
         """
         algorithm = kwargs.get('algorithm', None) or 'mpmath'
@@ -786,8 +789,7 @@ def airy_bi(alpha, x=None, hold_derivative=False, *args, **kwds):
 
     Plots::
 
-        sage: (plot(airy_bi(x), (x, -10, 5)) +\
-               plot(airy_bi_prime(x), (x, -10, 5), color='red'))
+        sage: plot(airy_bi(x), (x, -10, 5)) + plot(airy_bi_prime(x), (x, -10, 5), color='red')
 
     **References**
 

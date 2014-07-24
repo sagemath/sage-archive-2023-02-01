@@ -8847,8 +8847,8 @@ class _FSMTapeCache_(SageObject):
     - ``tape`` -- a tuple or list of the input tracks (iterables).
 
     - ``tape_ended`` -- a list of booleans (one for each track of the
-      tape), which indicate if the track iterator has already received
-      a ``StopIteration``-exception.
+      tape), which indicate whether the track iterator has already raised
+      a ``StopIteration`` exception.
 
     - ``position`` -- a tuple of pairs `(p, t)` marking the current
       positions of each of the input tracks. There `p` is the number
@@ -8899,20 +8899,20 @@ class _FSMTapeCache_(SageObject):
             ....:                      [False], ((0, 0),), False)
             Traceback (most recent call last):
             ...
-            TypeError: The length of the inputs do not match
+            TypeError: The lengths of the inputs do not match
             sage: TC4 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0),), False)
             Traceback (most recent call last):
             ...
-            TypeError: The length of the inputs do not match
+            TypeError: The lengths of the inputs do not match
             sage: TC5 = _FSMTapeCache_([], (xsrange(37, 42),),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             Traceback (most recent call last):
             ...
-            TypeError: The length of the inputs do not match
+            TypeError: The lengths of the inputs do not match
         """
         if not len(tape) == len(position) == len(tape_ended):
-            raise TypeError('The length of the inputs do not match')
+            raise TypeError('The lengths of the inputs do not match')
         self.position = position
         self.tape = tape
         self.tape_ended = tape_ended
@@ -9072,9 +9072,9 @@ class _FSMTapeCache_(SageObject):
 
     def finished(self, track_number=None):
         """
-        Returns whether the tape (or particular tracks) are have
-        reached an end, i.e., there are no more letters in the cache
-        and nothing more to read on the original tape.
+        Returns whether the tape (or a particular track) has reached an
+        end, i.e., there are no more letters in the cache and nothing
+        more to read on the original tape.
 
         INPUT:
 
@@ -9149,8 +9149,8 @@ class _FSMTapeCache_(SageObject):
 
         A letter or a tuple of letters.
 
-        An exception ``StopIteration`` is thrown if tape (at least one
-        track) has reached its end.
+        An exception ``StopIteration`` is thrown if the tape (at least
+        one track) has reached its end.
 
         Typically, this method is called from a hook-function of a
         state.
@@ -9226,8 +9226,8 @@ class _FSMTapeCache_(SageObject):
 
     def compare_to_tape(self, track_number, word):
         """
-        Returns whether it is possible to read ``word`` at given track
-        successfully.
+        Returns whether it is possible to read ``word`` from the given
+        track successfully.
 
         INPUT:
 
@@ -9281,7 +9281,7 @@ class _FSMTapeCache_(SageObject):
         ``transition.word_in``. Otherwise (if ``self.is_multitape`` is
         ``True``), this function forwards each track of ``self`` by
         the length of each entry of ``transition.word_in``. Note that
-        the actual values of in the input word do not play a role
+        the actual values in the input word do not play a role
         (just the length).
 
         This function changes the attribute ``position``.
@@ -9636,7 +9636,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
     If the choice of the outgoing transition is not unique, all
     possibilites are followed (if necessary the current state is split
-    to several branches)
+    to several branches).
 
     When working with multi-tape finite state machines, all input
     words of transitions are `k`-tuples of words (the latter in the
@@ -9924,8 +9924,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
     def add_current(self, state, tape, output):
         """
         This function adds a new ``state`` to ``self._current_``
-        together with input-``tape``-information and an
-        ``output``-tape.
+        together with input ``tape`` information and an
+        ``output`` tape.
 
         INPUT:
 
@@ -10150,7 +10150,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         A list of triples ``(accepted, state, output)``.
 
-        See also ``format_output`` of :class:`FSMProcessIterator``.
+        See also the parameter ``format_output`` of
+        :class:`FSMProcessIterator`.
 
         EXAMPLES::
 
@@ -10256,7 +10257,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
     @property
     def accept_input(self):
         """
-        Is ``True`` if teh reached state is accepted. This is only available
+        Is ``True`` if the reached state is accepted. This is only available
         at the end of the iteration process.
 
         This attribute is deprecated and should not be used any longer
@@ -10314,7 +10315,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         {((0, 0),): {1: (tape at 0, [['b', 'c']])}}
         {}
 
-    This class has the additional attribute ``visitled_states``::
+    This class has the additional attribute ``visited_states``::
 
         sage: it.visited_states
         {0: [''], 1: ['bc'], 2: ['b']}

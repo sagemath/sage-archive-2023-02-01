@@ -47,3 +47,4 @@ much code written for S runs unaltered under R.
  * large_address_aware.patch: don't pass --large-address-aware to ld on
    Cygwin64.
  * 3.1 : Upstream now handles some of these issues. Some examples changed.
+ * 3.1.1 : mostly bugfixes. No changes

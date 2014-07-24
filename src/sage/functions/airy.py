@@ -7,6 +7,16 @@ mpmath and scipy.
 
 Airy functions are solutions to the differential equation `f''(z) +f(z)x=0`.
 
+Four global function symbols are immediately available, please see
+
+- :func:`airy_ai`: for the Airy Ai function
+
+- :func:`airy_ai_prime()<FunctionAiryAiPrime>`: for the first differential of the Airy Ai function
+
+- :func:`airy_bi`: for the Airy Bi function
+
+- :func:`airy_bi_prime()<FunctionAiryBiPrime>`: for the first differential of the Airy Bi function
+
 AUTHORS:
 
 - Oscar Gerardo Lazo Arjona (2010): initial version

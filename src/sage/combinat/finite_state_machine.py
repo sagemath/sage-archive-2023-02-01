@@ -8977,9 +8977,9 @@ class _FSMTapeCache_(SageObject):
             sage: TC2.tape_cache_manager is TC3.tape_cache_manager
             True
         """
-        new = _FSMTapeCache_(self.tape_cache_manager,
-                             self.tape, self.tape_ended,
-                             self.position, self.is_multitape)
+        new = type(self)(self.tape_cache_manager,
+                         self.tape, self.tape_ended,
+                         self.position, self.is_multitape)
         new.cache = deepcopy(self.cache, memo)
         return new
 
@@ -9471,6 +9471,40 @@ class _FSMTapeCacheDetectEpsilon_(_FSMTapeCache_):
     This is a class is similar to :class:`_FSMTapeCache_` but accepts
     only epsilon transitions.
     """
+    def __init__(self, *args, **kwargs):
+        """
+        See :class:`_FSMTapeCache_` for more details.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCacheDetectEpsilon_
+            sage: _FSMTapeCacheDetectEpsilon_([], (xsrange(37, 42),),
+            ....:                             [False], ((0, 0),), False)
+            tape at 0
+        """
+        super(_FSMTapeCacheDetectEpsilon_, self).__init__(*args, **kwargs)
+        self._visited_states_ = set()
+
+
+    def __deepcopy__(self, memo):
+        """
+        See :meth:`_FSMTapeCache_.deepcopy` for details.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCacheDetectEpsilon_
+            sage: TC2 = _FSMTapeCacheDetectEpsilon_([], (xsrange(37, 42),),
+            ....:                                   [False], ((0, 0),), True)
+            sage: TC2._visited_states_.add(1)
+            sage: TC3 = deepcopy(TC2)  # indirect doctest
+            sage: TC3._visited_states_
+            set([1])
+        """
+        new = super(_FSMTapeCacheDetectEpsilon_, self).__deepcopy__(memo)
+        new._visited_states_ = copy(self._visited_states_)
+        return new
+
+
     def _transition_possible_test_(self, word_in):
         """
         This helper function tests whether ``word_in`` equals ``epsilon``,
@@ -10107,9 +10141,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
             new_currents = [(input_tape, output)]
             if len(next_transitions) > 1:
-                memo = {}
                 new_currents.extend(
-                    [deepcopy(new_currents[0], memo)
+                    [deepcopy(new_currents[0])
                      for _ in srange(len(next_transitions) - 1)])
 
             # process transitions
@@ -10357,6 +10390,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         ....:     print current
         {((0, 0),): {2: (tape at 0, [[]]), 4: (tape at 0, [[]])}}
         {((0, 0),): {3: (tape at 0, [[]])}}
+        {((0, 0),): {4: (tape at 0, [[]])}}
         {}
         sage: it.visited_states
         {1: [[], []], 2: [[]], 3: [[]], 4: [[], []]}
@@ -10372,6 +10406,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         ....:     print current
         {((0, 0),): {3: (tape at 0, [[]])}}
         {((0, 0),): {1: (tape at 0, [[]]), 4: (tape at 0, [[]])}}
+        {((0, 0),): {4: (tape at 0, [[]])}}
         {}
         sage: it.visited_states
         {1: [[]], 2: [[], []], 3: [[]], 4: [[], []]}
@@ -10379,7 +10414,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         sage: for current in it:
         ....:     print current
         {((0, 0),): {1: (tape at 0, [[]]), 4: (tape at 0, [[]])}}
-        {((0, 0),): {2: (tape at 0, [[]])}}
+        {((0, 0),): {2: (tape at 0, [[]]), 4: (tape at 0, [[]])}}
         {}
         sage: it.visited_states
         {1: [[]], 2: [[]], 3: [[], []], 4: [[], []]}
@@ -10408,6 +10443,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         ....:     print current
         {((0, 0),): {2: (tape at 0, [['b']]), 4: (tape at 0, [['f']])}}
         {((0, 0),): {3: (tape at 0, [['b', 'c']])}}
+        {((0, 0),): {4: (tape at 0, [['b', 'c', 'e']])}}
         {}
         sage: it.visited_states
         {1: ['', 'bcd'], 2: ['b'],
@@ -10419,6 +10455,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         {((0, 0),): {3: (tape at 0, [['c']])}}
         {((0, 0),): {1: (tape at 0, [['c', 'd']]),
                      4: (tape at 0, [['c', 'e']])}}
+        {((0, 0),): {4: (tape at 0, [['c', 'd', 'f']])}}
         {}
         sage: it.visited_states
         {1: ['cd'], 2: ['', 'cdb'],
@@ -10428,7 +10465,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         sage: for current in it:
         ....:     print current
         {((0, 0),): {1: (tape at 0, [['d']]), 4: (tape at 0, [['e']])}}
-        {((0, 0),): {2: (tape at 0, [['d', 'b']])}}
+        {((0, 0),): {2: (tape at 0, [['d', 'b']]), 4: (tape at 0, [['d', 'f']])}}
         {}
         sage: it.visited_states
         {1: ['d'], 2: ['db'],
@@ -10451,7 +10488,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         sage: for current in it:
         ....:     print current
         {((0, 0),): {1: (tape at 0, [['a']]), 2: (tape at 0, [['b']])}}
-        {((0, 0),): {3: (tape at 0, [['a', 'c']])}}
+        {((0, 0),): {3: (tape at 0, [['a', 'c'], ['b', 'd']])}}
         {}
         sage: it.visited_states
         {0: ['', 'ace', 'bde'], 1: ['a'], 2: ['b'], 3: ['ac', 'bd']}
@@ -10466,12 +10503,43 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         sage: for current in it:
         ....:     print current
         {((0, 0),): {1: (tape at 0, [[]]), 2: (tape at 0, [['b']])}}
-        {((0, 0),): {3: (tape at 0, [[]])}}
+        {((0, 0),): {3: (tape at 0, [[], ['b', 'd']])}}
         {}
         sage: it.visited_states
-        {0: ['', '', 'bde'], 1: [''], 2: ['b'], 3: ['', 'bd']}
+        {0: ['', '', 'bd'], 1: [''], 2: ['b'], 3: ['', 'bd']}
         sage: T.state(0)._epsilon_cycle_output_empty_(T)
         False
+
+    ::
+
+        sage: T = Transducer([(0, 1, None, 'a'), (1, 2, None, 'b'),
+        ....:                 (0, 2, None, 'c'), (2, 3, None, 'd'),
+        ....:                 (3, 0, None, 'e')])
+        sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(0),
+        ....:                                  format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        {((0, 0),): {1: (tape at 0, [['a']]), 2: (tape at 0, [['c']])}}
+        {((0, 0),): {2: (tape at 0, [['a', 'b']]), 3: (tape at 0, [['c', 'd']])}}
+        {((0, 0),): {3: (tape at 0, [['a', 'b', 'd']])}}
+        {}
+        sage: it.visited_states
+        {0: ['', 'cde', 'abde'], 1: ['a'], 2: ['c', 'ab'], 3: ['cd', 'abd']}
+
+    ::
+
+        sage: T = Transducer([(0, 1, None, 'a'), (0, 2, None, 'b'),
+        ....:                 (0, 2, None, 'c'), (2, 3, None, 'd'),
+        ....:                 (3, 0, None, 'e')])
+        sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(0),
+        ....:                                  format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        {((0, 0),): {1: (tape at 0, [['a']]), 2: (tape at 0, [['b'], ['c']])}}
+        {((0, 0),): {3: (tape at 0, [['b', 'd'], ['c', 'd']])}}
+        {}
+        sage: it.visited_states
+        {0: ['', 'bde', 'cde'], 1: ['a'], 2: ['b', 'c'], 3: ['bd', 'cd']}
     """
     def __init__(self, *args, **kwargs):
         """
@@ -10522,17 +10590,20 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
             {0: [['c']], 1: [['c', 'a']], 2: [['c', 'a', 'b']]}
         """
         if state not in self.visited_states:
-            new = True
             self.visited_states[state] = []
-        else:
-            new = False
         self.visited_states[state].extend(
-            deepcopy(map(self.format_output, output)))
-        if not new:
+            self.format_output(o) for o in output)
+
+        found = state in tape._visited_states_
+        tape._visited_states_.add(state)
+        if found:
             return
-        return super(_FSMProcessIteratorEpsilon_, self)._add_current_(
+
+        super(_FSMProcessIteratorEpsilon_, self)._add_current_(
             state, tape, output)
 
+        self._current_[tape.position][state][0]._visited_states_.update(
+            tape._visited_states_)
 
 #*****************************************************************************
 

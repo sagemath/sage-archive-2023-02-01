@@ -28,7 +28,3 @@ import vector_callable_symbolic_dense
 from vector_space_morphism import linear_transformation
 
 import vector_symbolic_dense
-
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.modules.tensor_module', 'TensorModule')
-

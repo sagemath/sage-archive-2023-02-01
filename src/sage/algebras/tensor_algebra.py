@@ -13,12 +13,18 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.modules.tensor_module import TensorModule
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
+from sage.categories.graded_modules_with_basis import GradedModulesWithBasis
+from sage.categories.modules_with_basis import ModulesWithBasis
+from sage.categories.tensor import tensor
+from sage.categories.morphism import Morphism
+from sage.categories.homset import Hom
+from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModule_Tensor
+from sage.monoids.indexed_monoid import IndexedFreeMonoid
 from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
 
-class TensorAlgebra(TensorModule):
+class TensorAlgebra(CombinatorialFreeModule):
     r"""
     The tensor algebra `T(M)` of a module `M`.
 
@@ -54,15 +60,15 @@ class TensorAlgebra(TensorModule):
 
     .. SEEALSO::
 
-        :class:`TensorModule`
+        :class:`TensorAlgebra`
 
     EXAMPLES::
 
         sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
-        sage: TC = TensorAlgebra(C)
-        sage: TC.dimension()
+        sage: TA = TensorAlgebra(C)
+        sage: TA.dimension()
         +Infinity
-        sage: TC.algebra_generators()
+        sage: TA.algebra_generators()
         Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
     """
     def __init__(self, M, prefix='T', category=None, **options):
@@ -72,15 +78,21 @@ class TensorAlgebra(TensorModule):
         EXAMPLES::
 
             sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
-            sage: TC = TensorAlgebra(C)
-            sage: TestSuite(TC).run()
+            sage: TA = TensorAlgebra(C)
+            sage: TestSuite(TA).run()
             sage: m = SymmetricFunctions(QQ).m()
             sage: Tm = TensorAlgebra(m)
             sage: TestSuite(Tm).run()
         """
+        self._base_module = M
         R = M.base_ring()
         category = GradedHopfAlgebrasWithBasis(R).or_subcategory(category)
-        TensorModule.__init__(self, M, prefix, category, **options)
+
+        CombinatorialFreeModule.__init__(self, R, IndexedFreeMonoid(M.indices()),
+                                         prefix=prefix, category=category, **options)
+
+        # the following is not the best option, but it's better than nothing.
+        self._print_options['tensor_symbol'] = options.get('tensor_symbol', tensor.symbol)
 
     def _repr_(self):
         r"""
@@ -94,6 +106,263 @@ class TensorAlgebra(TensorModule):
         """
         return "Tensor Algebra of {}".format(self._base_module)
 
+    def _repr_term(self, m):
+        """
+        Return a string of representation of the term indexed by ``m``.
+
+        TESTS::
+
+            sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: TA = TensorAlgebra(C)
+            sage: s = TA.an_element().leading_support()
+            sage: TA._repr_term(s)
+            "B['a'] # B['b'] # B['c']"
+            sage: s = TA(['a']*3 + ['b']*2 + ['a','c','b']).leading_support()
+            sage: TA._repr_term(s)
+            "B['a'] # B['a'] # B['a'] # B['b'] # B['b'] # B['a'] # B['c'] # B['b']"
+
+            sage: I = TA.indices()
+            sage: TA._repr_term(I.one())
+            '1'
+        """
+        if not m:
+            return '1'
+        symb = self._print_options['tensor_symbol']
+        if symb is None:
+            symb = tensor.symbol
+        return symb.join(self._base_module._repr_term(k) for k,e in m._monomial for i in range(e))
+
+    def _latex_term(self, m):
+        r"""
+        Return a latex of representation of the term indexed by ``m``.
+
+        TESTS::
+
+            sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: TA = TensorAlgebra(C)
+            sage: s = TA.an_element().leading_support()
+            sage: TA._latex_term(s)
+            'B_{a} \\otimes B_{b} \\otimes B_{c}'
+
+            sage: I = TA.indices()
+            sage: TA._latex_term(I.one())
+            '1'
+        """
+        if not m:
+            return '1'
+        symb = " \\otimes "
+        return symb.join(self._base_module._latex_term(k) for k,e in m._monomial for i in range(e))
+
+    def _ascii_art_term(self, m):
+        """
+        Return an ascii art of representation of the term indexed by ``m``.
+
+        TESTS::
+
+            sage: C = CombinatorialFreeModule(QQ, Partitions())
+            sage: TA = TensorAlgebra(C)
+            sage: s = TA([Partition([3,2,2,1]), Partition([3])]).leading_support()
+            sage: TA._ascii_art_term(s)
+            B    # B
+             ***    ***
+             **
+             **
+             *
+            sage: s = TA([Partition([3,2,2,1])]*2 + [Partition([3])]*3).leading_support()
+            sage: TA._ascii_art_term(s)
+            B    # B    # B    # B    # B
+             ***    ***    ***    ***    ***
+             **     **
+             **     **
+             *      *
+
+            sage: I = TA.indices()
+            sage: TA._ascii_art_term(I.one())
+            '1'
+        """
+        if not m:
+            return '1'
+        from sage.misc.ascii_art import AsciiArt
+        symb = self._print_options['tensor_symbol']
+        if symb is None:
+            symb = tensor.symbol
+        M = self._base_module
+
+        it = iter(m._monomial)
+        k,e = it.next()
+        rpr = M._ascii_art_term(k)
+        for i in range(e-1):
+            rpr += AsciiArt([symb], [len(symb)])
+            rpr += M._ascii_art_term(k)
+        for k,e in it:
+            for i in range(e):
+                rpr += AsciiArt([symb], [len(symb)])
+                rpr += M._ascii_art_term(k)
+        return rpr
+
+    def _element_constructor_(self, x):
+        """
+        Construct an element of ``self``.
+
+        EXAMPLES::
+
+            sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: TA = TensorAlgebra(C)
+            sage: TA.an_element()
+            B['a'] # B['b'] # B['c']
+            sage: TA.an_element() + TA(['a'])
+            B['a'] # B['b'] # B['c'] + B['a']
+            sage: TA.an_element() + TA(['a','b','a'])
+            B['a'] # B['b'] # B['c'] + B['a'] # B['b'] # B['a']
+            sage: TA.an_element() + TA(['a','b','c'])
+            2*B['a'] # B['b'] # B['c']
+            sage: TA(C.an_element())
+            2*B['a'] + 2*B['b'] + 3*B['c']
+        """
+        FM = self._indices
+        if isinstance(x, (list, tuple)):
+            x = FM.prod(FM.gen(elt) for elt in x)
+            return self.monomial(x)
+        if x in FM._indices:
+            return self.monomial(FM.gen(x))
+        if x in self._base_module:
+            return self.sum_of_terms((FM.gen(k), v) for k,v in x)
+        return CombinatorialFreeModule._element_constructor_(self, x)
+
+    def _tensor_constructor_(self, elts):
+        """
+        Construct an element of ``self`` from the list of base module
+        elements ``elts``.
+
+        TESTS::
+
+            sage: C = CombinatorialFreeModule(ZZ, ['a','b'])
+            sage: TA = TensorAlgebra(C)
+            sage: x = C.an_element(); x
+            2*B['a'] + 2*B['b']
+            sage: TA._tensor_constructor_([x, x])
+            4*B['a'] # B['a'] + 4*B['b'] # B['b'] + 4*B['b'] # B['a'] + 4*B['a'] # B['b']
+        """
+        if not elts:
+            return self.zero()
+
+        I = self._indices
+        cur = {I.gen(k):v for k,v in elts[0]}
+        for x in elts[1:]:
+            next = {}
+            for k,v in cur.items():
+                for m,c in x:
+                    i = k * I.gen(m)
+                    next[i] = cur.get(i, 0) + v * c
+            cur = next
+        return self._from_dict(cur)
+
+    def _coerce_map_from_(self, R):
+        """
+        Return ``True`` if there is a coercion from ``R`` into ``self`` and
+        ``False`` otherwise.  The things that coerce into ``self`` are:
+
+        - Anything with a coercion into ``self.base_ring()``.
+
+        - Anything with a coercion into the base module of ``self``.
+
+        - A tensor algebra whose factors have a coercion into the
+          the base module of ``self``.
+
+        TESTS::
+
+            sage: C = CombinatorialFreeModule(ZZ, Set([1,2]))
+            sage: TMC = TensorAlgebra(C)
+            sage: TMC.has_coerce_map_from(ZZ)
+            True
+            sage: TMC.has_coerce_map_from(C)
+            True
+
+            sage: TAC = tensor((C,C))
+            sage: TMC.has_coerce_map_from(TAC)
+            True
+
+        ::
+
+            sage: D = CombinatorialFreeModule(ZZ, Set([2,4]))
+            sage: TMD = TensorAlgebra(D)
+            sage: f = C.module_morphism(on_basis=lambda x: D.monomial(2*x), codomain=D)
+            sage: f.register_as_coercion()
+
+            sage: TAD = tensor((C,D))
+            sage: TMD.has_coerce_map_from(TAC)
+            True
+            sage: TMD.has_coerce_map_from(TAD)
+            True
+            sage: TMC.has_coerce_map_from(TAD)
+            False
+            sage: TMD.has_coerce_map_from(TMC)
+            True
+        """
+        # Base ring coercions
+        if self.base_ring() == R:
+            return BaseRingLift(Hom(self.base_ring(), self))
+        if self.base_ring().has_coerce_map_from(R):
+            return BaseRingLift(Hom(self.base_ring(), self)) * self.base_ring().coerce_map_from(R)
+
+        M = self._base_module
+        # Base module coercions
+        if R == M:
+            return True
+        if M.has_coerce_map_from(R):
+            phi = M.coerce_map_from(R)
+            return self.coerce_map_from(M) * phi
+
+        # Tensor algebra coercions
+        if isinstance(R, TensorAlgebra) and M.has_coerce_map_from(R._base_module):
+            RM = R._base_module
+            phi = M.coerce_map_from(RM)
+            return R.module_morphism(lambda m: self._tensor_constructor_(
+                                               [phi(RM.monomial(k)) for k in m.to_word_list()]),
+                                     codomain=self)
+
+        # Coercions from tensor products
+        if R in ModulesWithBasis(self.base_ring()).TensorProducts() \
+                and isinstance(R, CombinatorialFreeModule_Tensor) \
+                and all(M.has_coerce_map_from(RM) for RM in R._sets):
+            modules = R._sets
+            vector_map = [M.coerce_map_from(RM) for RM in R._sets]
+            return R.module_morphism(lambda x: self._tensor_constructor_(
+                                               [vector_map[i](M.monomial(x[i]))
+                                                for i,M in enumerate(modules)]),
+                                     codomain=self)
+
+        return super(TensorAlgebra, self)._coerce_map_from_(R)
+
+    def degree_on_basis(self, m):
+        """
+        Return the degree of the simple tensor ``m``, which is it's length
+        (thought of as an element in the free monoid).
+
+        EXAMPLES::
+
+            sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: TA = TensorAlgebra(C)
+            sage: s = TA.an_element().leading_support(); s
+            F['a']*F['b']*F['c']
+            sage: TA.degree_on_basis(s)
+            3
+        """
+        return m.length()
+
+    def base_module(self):
+        """
+        Return the base module of ``self``.
+
+        EXAMPLES::
+
+            sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: TA = TensorAlgebra(C)
+            sage: TA.base_module() is C
+            True
+        """
+        return self._base_module
+
     @cached_method
     def one_basis(self):
         r"""
@@ -102,10 +371,10 @@ class TensorAlgebra(TensorModule):
         EXAMPLES::
 
             sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
-            sage: TC = TensorAlgebra(C)
-            sage: TC.one_basis()
+            sage: TA = TensorAlgebra(C)
+            sage: TA.one_basis()
             1
-            sage: TC.one_basis().parent()
+            sage: TA.one_basis().parent()
             Free monoid indexed by {'a', 'b', 'c'}
             sage: m = SymmetricFunctions(QQ).m()
             sage: Tm = TensorAlgebra(m)
@@ -124,8 +393,8 @@ class TensorAlgebra(TensorModule):
         EXAMPLES::
 
             sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
-            sage: TC = TensorAlgebra(C)
-            sage: TC.algebra_generators()
+            sage: TA = TensorAlgebra(C)
+            sage: TA.algebra_generators()
             Finite family {'a': B['a'], 'c': B['c'], 'b': B['b']}
             sage: m = SymmetricFunctions(QQ).m()
             sage: Tm = TensorAlgebra(m)
@@ -150,10 +419,10 @@ class TensorAlgebra(TensorModule):
         EXAMPLES::
 
             sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
-            sage: TC = TensorAlgebra(C)
-            sage: I = TC.indices()
+            sage: TA = TensorAlgebra(C)
+            sage: I = TA.indices()
             sage: g = I.gens()
-            sage: TC.product_on_basis(g['a']*g['b'], g['a']*g['c'])
+            sage: TA.product_on_basis(g['a']*g['b'], g['a']*g['c'])
             B['a'] # B['b'] # B['a'] # B['c']
         """
         return self.monomial(a * b)
@@ -169,10 +438,10 @@ class TensorAlgebra(TensorModule):
         EXAMPLES::
 
             sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
-            sage: TC = TensorAlgebra(C)
-            sage: TC.counit(TC.an_element())
+            sage: TA = TensorAlgebra(C)
+            sage: TA.counit(TA.an_element())
             0
-            sage: TC.counit(TC.an_element() + 3)
+            sage: TA.counit(TA.an_element() + 3)
             3
         """
         return x[self.one_basis()]
@@ -184,9 +453,9 @@ class TensorAlgebra(TensorModule):
         EXAMPLES::
 
             sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
-            sage: TC = TensorAlgebra(C)
-            sage: s = TC.an_element().leading_support()
-            sage: TC.antipode_on_basis(s)
+            sage: TA = TensorAlgebra(C)
+            sage: s = TA.an_element().leading_support()
+            sage: TA.antipode_on_basis(s)
             -B['c'] # B['b'] # B['a']
         """
         m = self._indices(reversed(m._monomial))
@@ -200,14 +469,14 @@ class TensorAlgebra(TensorModule):
         EXAMPLES::
 
             sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
-            sage: TC = TensorAlgebra(C, tensor_symbol="(X)")
-            sage: TC.coproduct_on_basis(TC.one_basis())
+            sage: TA = TensorAlgebra(C, tensor_symbol="(X)")
+            sage: TA.coproduct_on_basis(TA.one_basis())
             1 # 1
-            sage: I = TC.indices()
-            sage: ca = TC.coproduct_on_basis(I.gen('a')); ca
+            sage: I = TA.indices()
+            sage: ca = TA.coproduct_on_basis(I.gen('a')); ca
             1 # B['a'] + B['a'] # 1
-            sage: s = TC.an_element().leading_support()
-            sage: cp = TC.coproduct_on_basis(s); cp
+            sage: s = TA.an_element().leading_support()
+            sage: cp = TA.coproduct_on_basis(s); cp
             1 # B['a'](X)B['b'](X)B['c'] + B['a'] # B['b'](X)B['c']
              + B['a'](X)B['b'] # B['c'] + B['a'](X)B['b'](X)B['c'] # 1
              + B['a'](X)B['c'] # B['b'] + B['b'] # B['a'](X)B['c']
@@ -216,8 +485,8 @@ class TensorAlgebra(TensorModule):
         We check that `\Delta(a \otimes b \otimes c) =
         \Delta(a) \Delta(b) \Delta(c)`::
 
-            sage: cb = TC.coproduct_on_basis(I.gen('b'))
-            sage: cc = TC.coproduct_on_basis(I.gen('c'))
+            sage: cb = TA.coproduct_on_basis(I.gen('b'))
+            sage: cc = TA.coproduct_on_basis(I.gen('c'))
             sage: cp == ca * cb * cc
             True
 
@@ -225,7 +494,7 @@ class TensorAlgebra(TensorModule):
         circ (1 tensor S) circ Delta = unit circ counit
         """
         S = self.tensor_square()
-        if len(m) == 0:
+        if not m:
             return S.one()
 
         if len(m) == 1:
@@ -245,4 +514,28 @@ class TensorAlgebra(TensorModule):
         #                            I.prod(I.gen(m_word[i]) for i in w[p:]))
         #                          for p in range(k+1)
         #                          for w in Word(range(p)).shuffle(range(p, k)) )
+
+
+#####################################################################
+## Lift map from the base ring
+
+class BaseRingLift(Morphism):
+    """
+    Morphism which lifts the base ring of a tensor algebra `T(M)` into `T(M)`
+    to the `0`-th graded part.
+    """
+    def _call_(self, x):
+        """
+        Construct the element from ``x``.
+
+        TESTS::
+
+            sage: C = CombinatorialFreeModule(QQ, Set([1,2]))
+            sage: TA = TensorAlgebra(C)
+            sage: TA(ZZ(2))
+            2
+        """
+        T = self.codomain()
+        R = T.base_ring()
+        return T.term(T.indices().one(), R(x))
 

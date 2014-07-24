@@ -1400,8 +1400,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def analytic_rank_upper_bound(self,Delta=1,N=None,root_number=True):
         """
         Return an upper bound for the analytic rank of self conditional on
-        GRH, via a L-function zero sum method that is insensitive to
-        conductor, i.e. this can be run on curves with very large conductor.
+        the Generalized Riemann Hypothesis, via an L-function zero sum method
+        whose runtime does *not* scale directly with conductor. This method
+        can be run on curves with very large conductor (so long as the
+        conductor is known or quickly computable).
         Uses Bober's rank bounding method as described in [Bob13].
 
         INPUT:

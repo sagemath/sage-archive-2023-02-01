@@ -3,7 +3,7 @@ Airy Functions
 
 This module implements Airy functions and their generalized derivatives. It
 supports symbolic functionality through Maxima and numeric evaluation through
-mpmath.
+mpmath and scipy.
 
 Airy functions are solutions to the differential equation `f''(z) +f(z)x=0`.
 
@@ -205,7 +205,18 @@ class FunctionAiryAiSimple(BuiltinFunction):
             0.00659113935746072
             sage: airy_ai(3).n(algorithm='mpmath', prec=100)
             0.0065911393574607191442574484080
+            sage: airy_ai(3).n(algorithm='scipy')
+            0.00659113935746
+            sage: airy_ai(I).n(algorithm='scipy')
+            0.331493305432 - 0.317449858968*I
         """
+        if algorithm == 'scipy':
+            from sage.rings.all import RR
+            from sage.functions.other import real,imag
+            from scipy.special import airy as airy
+            y = airy(complex(real(x),imag(x)))[0]
+            return real(y) if x in RR else y
+
         import mpmath
         from sage.libs.mpmath import utils as mpmath_utils
         return mpmath_utils.call(mpmath.airyai, x, parent=parent)
@@ -270,7 +281,18 @@ class FunctionAiryAiPrime(BuiltinFunction):
             -0.00195864095020418
             sage: airy_ai(1, 4).n(algorithm='mpmath', prec=100)
             -0.0019586409502041789001381409184
+            sage: airy_ai(1,4).n(algorithm='scipy')
+            -0.0019586409502
+            sage: airy_ai(1,I).n(algorithm='scipy')
+            -0.432492659842 + 0.0980478562292*I
         """
+        if algorithm == 'scipy':
+            from sage.rings.all import RR
+            from sage.functions.other import real,imag
+            from scipy.special import airy as airy
+            y = airy(complex(real(x),imag(x)))[1]
+            return real(y) if x in RR else y
+
         import mpmath
         from sage.libs.mpmath import utils as mpmath_utils
         return mpmath_utils.call(mpmath.airyai, x, derivative=1,
@@ -349,13 +371,15 @@ def airy_ai(alpha, x=None, hold_derivative=False, *args, **kwds):
         sage: airy_ai(1.0*I)
         0.331493305432141 - 0.317449858968444*I
 
-    The functions can be evaluated numerically using mpmath which
-    can compute the values to arbitrary precision::
+    The functions can be evaluated numerically either using mpmath. which
+    can compute the values to arbitrary precision, and scipy::
 
         sage: airy_ai(2).n(prec=100)
         0.034924130423274379135322080792
         sage: airy_ai(2).n(algorithm='mpmath', prec=100)
         0.034924130423274379135322080792
+        sage: airy_ai(2).n(algorithm='scipy')
+        0.0349241304233
 
     And the derivatives can be evaluated::
 
@@ -572,9 +596,20 @@ class FunctionAiryBiSimple(BuiltinFunction):
             14.0373289637302
             sage: airy_bi(3).n(algorithm='mpmath', prec=100)
             14.037328963730232031740267314
+            sage: airy_bi(3).n(algorithm='scipy')
+            14.0373289637
+            sage: airy_bi(I).n(algorithm='scipy')
+            0.64885820833 + 0.344958634768*I
         """
         algorithm = kwargs.get('algorithm', None) or 'mpmath'
         parent = kwargs.get('parent')
+        if algorithm == 'scipy':
+            from sage.rings.all import RR
+            from sage.functions.other import real,imag
+            from scipy.special import airy as airy
+            y = airy(complex(real(x),imag(x)))[2]
+            return real(y) if x in RR else y
+
         import mpmath
         from sage.libs.mpmath import utils as mpmath_utils
         return mpmath_utils.call(mpmath.airybi, x, parent=parent)
@@ -639,9 +674,19 @@ class FunctionAiryBiPrime(BuiltinFunction):
             161.926683504613
             sage: airy_bi(1, 4).n(algorithm='mpmath', prec=100)
             161.92668350461340184309492429
+            sage: airy_bi(1,4).n(algorithm='scipy')
+            161.926683505
+            sage: airy_bi(1,I).n(algorithm='scipy')
+            0.135026646711 - 0.128837386781*I
         """
         algorithm = kwargs.get('algorithm', None) or 'mpmath'
         parent = sage_structure_coerce_parent(x)
+        if algorithm == 'scipy':
+            from sage.rings.all import RR
+            from sage.functions.other import real,imag
+            from scipy.special import airy as airy
+            y = airy(complex(real(x),imag(x)))[3]
+            return real(y) if x in RR else y
 
         import mpmath
         from sage.libs.mpmath import utils as mpmath_utils
@@ -722,13 +767,15 @@ def airy_bi(alpha, x=None, hold_derivative=False, *args, **kwds):
         sage: airy_bi(1.0*I)
         0.648858208330395 + 0.344958634768048*I
 
-    The functions can be evaluated numerically using mpmath
-    which can compute the values to arbitrary precision::
+    The functions can be evaluated numerically using mpmath,
+    which can compute the values to arbitrary precision, and scipy::
 
         sage: airy_bi(2).n(prec=100)
         3.2980949999782147102806044252
         sage: airy_bi(2).n(algorithm='mpmath', prec=100)
         3.2980949999782147102806044252
+        sage: airy_bi(2).n(algorithm='scipy')
+        3.29809499998
 
     And the derivatives can be evaluated::
 

@@ -690,6 +690,10 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: q2 = p.homogenize()
             sage: q1.parent() is q2.parent()
             True
+
+            sage: S.<t> = GF(2)[]
+            sage: (1+t).homogenize('t')
+            0
         """
         P = self.parent()
 

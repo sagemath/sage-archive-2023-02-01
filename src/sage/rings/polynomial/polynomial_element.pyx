@@ -6645,6 +6645,103 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # otherwise not cyclotomic
         return False
 
+    def homogenize(self, var='h'):
+        r"""
+
+        Homogenize this polynomial with respect to ``var``.
+
+        If the polynomial is homogeneous, return the same polynomial in the same
+        ring. If not, if this polynomial is in the polynomial ring
+        ``self.parent()==R[x]``, return an homogeneous polynomial in ``R[x,var]``
+        such that setting ``var=1`` yields ``self``. The new variable ``var``
+        will be the second variable in the new polynomial ring ``R[x,var]``.
+
+        Due to compatibility reasons with the multivariate case:
+        :meth:`sage.rings.polynomial.multi_polynomial.MPolynomial.homogenize`,
+        if the variable given is the variable ``x`` in ``R[x]``, or ``var=0``,
+        the variable in ``R[x]`` is used to homogenize the polynomial. So, we
+        end up with a monomial of the same degree as ``self`` whose coefficient
+        is the sum of the coefficients of ``self``.
+
+        INPUT:
+
+        - ``var`` -- either a variable name, variable index (0), or a variable
+          (default: 'h').
+
+        OUTPUT:
+
+        An homogenization of self with respect to ``var``.
+
+        EXAMPLES::
+
+            sage: P.<x> = PolynomialRing(QQ)
+            sage: f = x^2 + 5*x + 1
+            sage: g = f.homogenize(); g
+            x^2 + 5*x*h + h^2
+            sage: g.parent()
+            Multivariate Polynomial Ring in x, h over Rational Field
+
+            sage: f.homogenize(x)
+            7*x^2
+            sage: f.homogenize(x).parent() is f.parent()
+            True
+
+            sage: f.homogenize(0)
+            7*x^2
+
+            sage: x = Zmod(3)['x'].gens()[0]
+            sage: (1 + x + x^2).homogenize(x)
+            0
+            sage: (x + x^2).homogenize('y').parent()
+            Multivariate Polynomial Ring in x, y over Ring of integers modulo 3
+            sage: (x + x^2).homogenize()
+            x^2 + x*h
+
+        TESTS::
+
+            sage: R = PolynomialRing(QQ, 'x')
+            sage: p = R.random_element()
+            sage: q1 = p.homogenize()
+            sage: q2 = p.homogenize()
+            sage: q1.parent() is q2.parent()
+            True
+        """
+        if self.is_homogeneous():
+            return self
+
+        x, = self.variables()
+
+        if PY_TYPE_CHECK(var, int) or PY_TYPE_CHECK(var, Integer):
+            if var:
+                raise TypeError, "Variable index %d must be < 1."%var
+            else:
+                return sum(self.coefficients())*x**self.degree()
+
+        x_name = self.variable_name()
+        var = str(var)
+
+        if var == x_name:
+            return sum(self.coefficients())*x**self.degree()
+
+        P = PolynomialRing(self.base_ring(), [x_name, var])
+        return P(self)._homogenize(1)
+
+    def is_homogeneous(self):
+        r"""
+        Return True if this polynomial is homogeneous.
+
+        TESTS::
+
+            sage: P.<x> = PolynomialRing(QQ)
+            sage: x.is_homogeneous()
+            True
+            sage: P(0).is_homogeneous()
+            True
+            sage: (x+1).is_homogeneous()
+            False
+        """
+        return len(self.exponents()) < 2
+
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function
 

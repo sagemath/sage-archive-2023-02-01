@@ -3968,7 +3968,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: list(K.selmer_group_iterator((), 2))
             [1, 2, -1, -2]
             sage: list(K.selmer_group_iterator((), 4))
-            [1, 2, 4, 8, -1, -2, -4, -8]
+            [1, 4, 16, 64, -1, -4, -16, -64]
             sage: list(K.selmer_group_iterator([K.ideal(2, -a+1)], 2))
             [1, -1, 2, -2]
             sage: list(K.selmer_group_iterator([K.ideal(2, -a+1), K.ideal(3, a+1)], 2))

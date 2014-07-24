@@ -539,7 +539,7 @@ class SageInputBuilder:
             self._locals[loc_name] = x
             return SIE_literal_stringrep(self, loc_name)
         else:
-            raise ValueError("Can't convert %r to sage_input form"%x)
+            raise ValueError("Can't convert {} to sage_input form".format(x))
 
     def preparse(self):
         r"""
@@ -1009,12 +1009,12 @@ class SageInputBuilder:
         if not parent in self._parent_gens:
             self(parent)
             if not parent in self._parent_gens:
-                raise ValueError("%s did not register generators for sage_input" % parent)
+                raise ValueError("{} did not register generators for sage_input".format(parent))
 
         gens = self._parent_gens[parent]
 
         if n > len(gens):
-            raise ValueError("%s registered only %d generators for sage_input" % (parent, len(gens)))
+            raise ValueError("{} registered only {} generators for sage_input".format(parent, len(gens)))
 
         return gens[n]
 
@@ -2372,7 +2372,7 @@ class SIE_binary(SageInputExpression):
             fop = ' - '
             prec = _prec_addsub
         else:
-            raise ValueError('Unhandled op %s in SIE_binary' % op)
+            raise ValueError('Unhandled op {} in SIE_binary'.format(op))
 
         lhs = sif.format(self._sie_operands[0], prec)
         rhs = sif.format(self._sie_operands[1], prec+1)
@@ -2494,7 +2494,7 @@ class SIE_unary(SageInputExpression):
         elif op == '~':
             prec = _prec_bitnot
         else:
-            raise ValueError('Unhandled op %s in SIE_unary' % op)
+            raise ValueError('Unhandled op {} in SIE_unary'.format(op))
 
         if rprec is None: rprec = prec
 

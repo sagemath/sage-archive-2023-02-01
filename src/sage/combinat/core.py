@@ -696,8 +696,7 @@ class Cores_size(UniqueRepresentation, Parent):
             sage: C.list()
             [[3, 1], [2, 1, 1]]
         """
-        k_cores = filter(lambda x: x.is_core(self.k), Partitions(self.n))
-        return [ Core(x, self.k) for x in k_cores ]
+        return [ Core(x, self.k) for x in Partitions(self.n) if x.is_core(self.k) ]
 
     def from_partition(self, part):
         r"""

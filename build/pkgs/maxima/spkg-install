@@ -82,36 +82,12 @@ if [[ -f "$DOT_SAGE/maxima_commandlist_cache.sobj" ]]; then
 fi
 
 
-# Build Maxima as a Lisp library
-# and install it into ECL's library directory:
-echo
-echo "Now building Maxima as an ECL library..."
-cd "$CUR"/src/src &&
-mkdir -p ./lisp-cache &&
-ecl \
-  -eval '(require `asdf)' \
-  -eval '(setf asdf::*user-cache* (truename "./lisp-cache"))' \
-  -eval '(load "maxima-build.lisp")' \
-  -eval '(asdf:make-build :maxima :type :fasl :move-here ".")' \
-  -eval '(quit)'
-check_error "Failed to build Maxima as an ECL library."
-
+# Install Maxima into ECL's library directory:
 ECLLIB=`ecl -eval "(princ (SI:GET-LIBRARY-PATHNAME))" -eval "(quit)"`
 echo
 echo "Now installing the Maxima library as '$ECLLIB/maxima.fas'..."
-PWD=`pwd`
-if [[ -f "maxima.system.fasb" ]]; then
-    echo "New ASDF encountered"
-    cp -f maxima.system.fasb "$ECLLIB/maxima.fas"
-    check_error "Failed to install '$PWD/maxima.system.fasb' as '$ECLLIB/maxima.fas'."
-elif [[ -f "maxima.fasb" ]]; then
-    echo "Old ASDF encountered"
-    cp -f maxima.fasb "$ECLLIB/maxima.fas"
-    check_error "Failed to install '$PWD/maxima.fasb' as '$ECLLIB/maxima.fas'."
-else
-    echo >&2 "Error: cannot find an .fasb file to install - exiting..."
-    exit 1
-fi
+cp -f "$CUR/src/src/binary-ecl/maxima.fas" "$ECLLIB/maxima.fas"
+check_error "Failed to install '$CUR/src/src/binary-ecl/maxima.fas' as '$ECLLIB/maxima.fas'."
 
 
 if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]] ; then

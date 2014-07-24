@@ -144,7 +144,7 @@ def HighestWeightCrystal(dominant_weight, model=None):
         The crystal of LS paths of type ['F', 4] and weight Lambda[1] + Lambda[4]
         sage: crystals.HighestWeight(wt, model='NakajimaMonomials')
         Highest weight crystal of modified Nakajima monomials of
-         Cartan type ['F', 4] and highest weight Lambda[1] + Lambda[4].
+         Cartan type ['F', 4] and highest weight Lambda[1] + Lambda[4]
         sage: crystals.HighestWeight(wt, model='AlcovePaths')
         Highest weight crystal of alcove paths of type ['F', 4] and weight Lambda[1] + Lambda[4]
     """

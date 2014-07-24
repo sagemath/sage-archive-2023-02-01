@@ -154,7 +154,7 @@ solve the equation :math:`x'+x-1=0`:
     sage: x = function('x',t)   # define x to be a function of that variable
     sage: DE = diff(x, t) + x - 1
     sage: desolve(DE, [x,t])
-    (c + e^t)*e^(-t)
+    (_C + e^t)*e^(-t)
 
 This uses Sage's interface to Maxima [Max]_, and so its output may be
 a bit different from other Sage output. In this case, this says

@@ -88,7 +88,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
         CombinatorialObject.__init__(self, data)
         Element.__init__(self, parent)
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         EXAMPLES::
 
@@ -777,7 +777,7 @@ class InfinityCrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
             sage: Y
             Crystal of generalized Young walls of type ['A', 4, 1]
         """
-        return "Crystal of generalized Young walls of type %s" % self._cartan_type
+        return "Crystal of generalized Young walls of type {}".format(self._cartan_type)
 
     def subset(self, max_depth=4):
         r"""
@@ -948,16 +948,16 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
 
     Element = CrystalOfGeneralizedYoungWallsElement
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         EXAMPLES::
 
             sage: La = RootSystem(['A',5,1]).weight_lattice().fundamental_weights()[2]
             sage: Y = crystals.GeneralizedYoungWalls(5,La)
             sage: Y
-            Highest weight crystal of generalized Young walls of Cartan type ['A', 5, 1] and highest weight Lambda[2].
+            Highest weight crystal of generalized Young walls of Cartan type ['A', 5, 1] and highest weight Lambda[2]
         """
-        return "Highest weight crystal of generalized Young walls of Cartan type {1!s} and highest weight {0!s}.".format(self.hw, self._cartan_type)
+        return "Highest weight crystal of generalized Young walls of Cartan type {1!s} and highest weight {0!s}".format(self.hw, self._cartan_type)
 
     def __iter__(self):
         r"""

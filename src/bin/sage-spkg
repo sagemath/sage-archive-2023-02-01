@@ -109,7 +109,7 @@ verify_checksum()
         actual=`md5 $file | sed 's/.*= *//'`
     else
         # POSIX; Note that Solaris is not compliant and its sed
-	# does not understand [[:space:]]
+        # does not understand [[:space:]]
         expected=`lookup_param cksum $checksums`
         actual=`cksum $file | sed 's/[^0-9].*//'`
     fi
@@ -501,7 +501,7 @@ fi
 # Uncompresses a spkg to stdout.
 uncompress_spkg()
 {
-    bzip2 -d -c "$1" 2>/dev/null || gzip -d -c "$1" 2>/dev/null || cat "$1"
+    lbzip2 -d -c "$1" 2>/dev/null || bzip2 -d -c "$1" 2>/dev/null || gzip -d -c "$1" 2>/dev/null || cat "$1"
 }
 
 if [ $INFO -ne 0 -a -z "$USE_LOCAL_SCRIPTS" ]; then
@@ -586,7 +586,9 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
-    mv 2>/dev/null "${PKG_NAME_UPSTREAM%.tar*}" src
+    shopt -s nocaseglob      # see trac:16415
+    mv "${PKG_NAME_UPSTREAM%.tar*}"* src
+    shopt -u nocaseglob
     echo "Finished set up"
 else
     echo "Finished extraction"

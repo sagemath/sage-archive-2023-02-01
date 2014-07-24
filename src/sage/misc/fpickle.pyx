@@ -26,7 +26,7 @@ def reduce_code(co):
         (<built-in function code_ctor>, ...)
     """
     if co.co_freevars or co.co_cellvars:
-        raise ValueError, "Cannot pickle code objects from closures"
+        raise ValueError("Cannot pickle code objects from closures")
     return code_ctor, (co.co_argcount, co.co_nlocals, co.co_stacksize,
                        co.co_flags, co.co_code, co.co_consts, co.co_names,
                        co.co_varnames, co.co_filename, co.co_name,

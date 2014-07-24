@@ -67,7 +67,7 @@ class Link:
         Returns the braidword of the input.
 
         OUTPUT:
-            - Braidword representation of the link
+            - Braidword representation of the link.
 
         EXAMPLES::
         """
@@ -90,7 +90,7 @@ class Link:
         Returns the braid
 
         OUTPUT:
-            - Braid representation of the link
+            - Braid representation of the link.
 
         EXAMPLES::
         """
@@ -137,7 +137,7 @@ class Link:
         gauss code.
 
         OUTPUT:
-            - Oriented gauss code of the link
+            - Oriented gauss code of the link.
 
         EXAMPLES::
         """
@@ -235,7 +235,7 @@ class Link:
 
 
         OUTPUT:
-            - Braid representation of the link
+            - Braid representation of the link.
 
         EXAMPLES::
         """
@@ -411,7 +411,7 @@ class Link:
            overcrossing.
 
         OUTPUT:
-            - Gauss code representation of the link
+            - Gauss code representation of the link.
 
         EXAMPLES::
         """
@@ -471,7 +471,7 @@ class Link:
         that we are encountering.
 
         OUTPUT:
-            - DT Code representation of the link
+            - DT Code representation of the link.
 
         EXAMPLES::
         """
@@ -1332,7 +1332,7 @@ class Link:
             print new_component_2
             #we always pull the higher component onto the lower ones
             #always two crossings are added to the present diagram
-        #work in progress need to figure out a way to orient the crossings
+        #work in progress
         #previous version
         '''for m,i in enumerate(q):
             for n,j in enumerate(i):
@@ -1514,7 +1514,7 @@ class Link:
         they belong, thereby developing the braidword
 
         OUTPUT:
-            - Braidword of the link
+            - Braidword of the link.
 
         EXAMPLES::
         sage: from sage.knots import link
@@ -1564,7 +1564,7 @@ class Link:
         i = 0
         while True:
             for i in range(len(t)):
-                if len(list(set(a).intersection(set(t[i])))) != 0:
+                if len(list(set(a).intersection(set(t[i])))) >= 2:
                     r = t1.index(t[i])
                     seifert_order.append(a)
                     del t[i]
@@ -1573,6 +1573,7 @@ class Link:
             else:
                 seifert_order.append(b)
                 break
+        #we compute the entering and leaving components for each of the crossing
         entering = []
         leaving = []
         for i in range(len(pd_code)):
@@ -1590,11 +1591,7 @@ class Link:
                 q.append(pd_code[i][3])
             entering.append(t)
             leaving.append(q)
-        print "entering"
-        print entering
-        print "leaving"
-        print leaving
-        #here we correct the leaving and entering components so as to they belong to the
+        #here we correct the leaving and entering components so they belong to the
         #correct seifert circles
         for val in zip(seifert_order, seifert_order[1:]):
             for i in entering:
@@ -1608,12 +1605,15 @@ class Link:
                     a = i[0]
                     i[0] = i[1]
                     i[1] = a
+        #here we take the first seifert circle and first crossing having common components
+        #with seifert_circle we have selected
         first_seifert = sc[0]
         first_crossing = None
         for i in pd_code:
             if len(list(set(i).intersection(set(first_seifert)))) == 2:
                 first_crossing = i
                 break
+        #tmp has the leaving components of the crossing we have chosen
         tmp = []
         if orient[pd_code.index(first_crossing)] == '-':
             tmp.append(first_crossing[1])
@@ -1621,13 +1621,17 @@ class Link:
         elif orient[pd_code.index(first_crossing)] == '+':
             tmp.append(first_crossing[2])
             tmp.append(first_crossing[3])
+        #reg is the register which updates with leaving components as we glue the crossings
+        #together to get the order of the braid
         reg = [0 for i in range(len(sc))]
+        #again sort the leaving components according to the seifert_circle
         if tmp[0] in first_seifert:
             reg[0] = tmp[0]
             reg[1] = tmp[1]
         elif tmp[1] in first_seifert:
             reg[0] = tmp[1]
             reg[1] = tmp[0]
+        #crossing has the information of the ordering of the crossings
         crossing = []
         crossing.append(first_crossing)
         q = 0
@@ -1646,11 +1650,45 @@ class Link:
                         reg[reg.index(val[0])] = leaving[i][0]
                         q = q + 1
                         break
-        #work in progress need to generate the braid from the crossings
-        #the crossings have been ordered
-        return crossing
+        #we remove the last element as it a repetition.
+        del crossing[-1]
+        #before we read the braid words, we make '-' in orient to -1 and similarly
+        # '+' to +1
+        sign = [None for i in range(len(orient))]
+        for i,j in enumerate(orient):
+            if j == '-':
+                sign[i] = -1
+            elif j == '+':
+                sign[i] = 1
+        #each crossing belongs to two seifert circles, we find the first and construct the
+        #braidword.
+        braid = []
+        for i in crossing:
+            for j in seifert_order:
+                if len(list(set(i).intersection(set(j)))) == 2:
+                    braid.append(sign[pd_code.index(i)]*(seifert_order.index(j) + 1))
+                    break
+        return braid
 
     def writhe(self):
+        r"""
+        Returns the writhe of the knot.
+
+        OUTPUT:
+            - Writhe of the knot.
+
+        EXAMPLES::
+        sage: from sage.knots import link
+        sage: L = link.Link(oriented_gauss_code = [[1, -2, 3, -4, 2, -1, 4, -3],['+','+','-','-']])
+        sage: L.writhe()
+        0
+        sage: L = link.Link(oriented_gauss_code = [[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5],['-','-','-','-','+','-','+']])
+        sage: L.writhe()
+        -3
+        sage: L = link.Link(oriented_gauss_code = [[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, -4, -7],['-','-','-','-','+','+','-','+']])
+        sage: L.writhe()
+        -2
+        """
         x = self.oriented_gauss_code()
         pos = x[1].count('+')
         neg = (-1)*x[1].count('-')
@@ -1663,7 +1701,7 @@ class Link:
         changing through the various combinations of smoothing the knot.
 
         OUTPUT:
-            - Jones Polynomial of the link
+            - Jones Polynomial of the link.
 
         EXAMPLES::
         sage: from sage.knots import link

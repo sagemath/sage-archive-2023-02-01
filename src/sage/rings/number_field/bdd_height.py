@@ -32,7 +32,7 @@ from sage.modules.free_module_element import vector
 from sage.matrix.constructor import column_matrix
 from sage.rings.rational_field import QQ
 from sage.functions.other import ceil
-from sage.geometry.polyhedron.constructor import *
+from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.structure.proof.all import number_field
 
 def bdd_norm_pr_gens_iq(K, norm_list):

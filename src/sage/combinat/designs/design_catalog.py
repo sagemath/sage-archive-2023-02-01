@@ -39,16 +39,18 @@ Currently, this module gathers the following designs :
     :delim: |
 
     :meth:`~sage.combinat.designs.block_design.ProjectiveGeometryDesign`
-    :meth:`~sage.combinat.designs.block_design.ProjectivePlaneDesign`
+    :meth:`~sage.combinat.designs.block_design.DesarguesianProjectivePlaneDesign`
     :meth:`~sage.combinat.designs.bibd.BalancedIncompleteBlockDesign`
     :meth:`~sage.combinat.designs.block_design.AffineGeometryDesign`
     :meth:`~sage.combinat.designs.block_design.WittDesign`
     :meth:`~sage.combinat.designs.block_design.HadamardDesign`
+    :meth:`~sage.combinat.designs.block_design.Hadamard3Design`
     :meth:`~sage.combinat.designs.latin_squares.mutually_orthogonal_latin_squares`
     :meth:`~sage.combinat.designs.orthogonal_arrays.transversal_design`
     :meth:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`
     :meth:`~sage.combinat.designs.bibd.steiner_triple_system`
     :meth:`~sage.combinat.designs.steiner_quadruple_systems.steiner_quadruple_system`
+    :meth:`~sage.combinat.designs.block_design.projective_plane`
 
 And the :meth:`designs.best_known_covering_design_from_LJCR
 <sage.combinat.designs.covering_design.best_known_covering_design_www>` function
@@ -56,18 +58,21 @@ which queries the LJCR.
 
 .. TODO::
 
-    Implement DerivedDesign, ComplementaryDesign, and Hadamard3Design
+    Implement DerivedDesign and ComplementaryDesign.
 
 REFERENCES:
 
 .. [1] La Jolla Covering Repository,
   http://www.ccrwest.org/cover.html
 """
-from sage.combinat.designs.block_design import (ProjectiveGeometryDesign,
-                                                ProjectivePlaneDesign,
+from sage.combinat.designs.block_design import (BlockDesign,
+                                                ProjectiveGeometryDesign,
+                                                DesarguesianProjectivePlaneDesign,
+                                                projective_plane,
                                                 AffineGeometryDesign,
                                                 WittDesign,
-                                                HadamardDesign)
+                                                HadamardDesign,
+                                                Hadamard3Design)
 
 from sage.combinat.designs.steiner_quadruple_systems import steiner_quadruple_system
 
@@ -75,6 +80,16 @@ from sage.combinat.designs.covering_design import best_known_covering_design_www
 
 from sage.combinat.designs.latin_squares import mutually_orthogonal_latin_squares
 
-from sage.combinat.designs.orthogonal_arrays import transversal_design, orthogonal_array
+from sage.combinat.designs.orthogonal_arrays import transversal_design, orthogonal_array, incomplete_orthogonal_array
 
-from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign, steiner_triple_system
+
+from sage.combinat.designs.difference_family import difference_family
+
+from sage.combinat.designs.incidence_structures import IncidenceStructure
+BlockDesign = IncidenceStructure    # just an alias
+from sage.combinat.designs.bibd import balanced_incomplete_block_design, steiner_triple_system
+
+# deprecated in june 2014 (#16446)
+from sage.misc.superseded import deprecated_function_alias
+BalancedIncompleteBlockDesign = deprecated_function_alias(16446,
+        balanced_incomplete_block_design)

@@ -1432,11 +1432,11 @@ def load_cython(name):
     try:
         mod, dir  = cython.cython(name, compile_message=True, use_cache=True)
     except (IOError, OSError, RuntimeError) as msg:
-        print "Error compiling cython file:\n%s"%msg
+        print("Error compiling cython file:\n{}".format(msg))
         return ''
     import sys
     sys.path.append(dir)
-    return 'from %s import *'%mod
+    return 'from {} import *'.format(mod)
 
 def handle_encoding_declaration(contents, out):
     r"""Find a PEP 263-style Python encoding declaration in the first or
@@ -1780,7 +1780,7 @@ def load(filename, globals, attach=False):
         # further.
         s = globals['magma'].load(fpath)
         i = s.find('\n'); s = s[i+1:]
-        print s
+        print(s)
 
 
 def load_wrap(filename, attach=False):
@@ -1808,6 +1808,6 @@ def load_wrap(filename, attach=False):
         sage: sage.misc.preparser.base64.b64decode("Zm9vLnNhZ2U=")
         'foo.sage'
     """
-    return 'sage.misc.preparser.load(sage.misc.preparser.base64.b64decode("{0}"),globals(),{1})'.format(
+    return 'sage.misc.preparser.load(sage.misc.preparser.base64.b64decode("{}"),globals(),{})'.format(
         base64.b64encode(filename), attach)
 

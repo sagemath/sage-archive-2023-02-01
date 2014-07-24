@@ -330,7 +330,7 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
         adjacency matrix is binary, and it is used to create some
         "random-looking" sequences which correspond to an existing matrix. The
         ``gale_ryser_theorem`` is then called on these sequences, and the output
-        checked for correction.::
+        checked for correctness.::
 
             sage: def test_algorithm(algorithm, low = 10, high = 50):
             ...      n,m = randint(low,high), randint(low,high)
@@ -340,16 +340,14 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
             ...      m = gale_ryser_theorem(s1, s2, algorithm = algorithm)
             ...      ss1 = sorted(map(lambda x : sum(x) , m.rows()), reverse = True)
             ...      ss2 = sorted(map(lambda x : sum(x) , m.columns()), reverse = True)
-            ...      if ((ss1 == s1) and (ss2 == s2)):
-            ...          return True
-            ...      return False
+            ...      if ((ss1 != s1) or (ss2 != s2)):
+            ...          print "Algorithm %s failed with this input:" % algorithm
+            ...          print s1, s2
 
             sage: for algorithm in ["gale", "ryser"]:                            # long time
             ...      for i in range(50):                                         # long time
-            ...         if not test_algorithm(algorithm, 3, 10):                 # long time
-            ...             print "Something wrong with algorithm ", algorithm   # long time
-            ...             break                                                # long time
-
+            ...         test_algorithm(algorithm, 3, 10)                         # long time
+            
         Null matrix::
 
             sage: gale_ryser_theorem([0,0,0],[0,0,0,0], algorithm="gale")
@@ -360,6 +358,7 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
             [0 0 0 0]
             [0 0 0 0]
             [0 0 0 0]
+            
 
         REFERENCES:
 

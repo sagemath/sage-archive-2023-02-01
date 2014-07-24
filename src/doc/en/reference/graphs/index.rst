@@ -49,8 +49,7 @@ Hypergraphs
    :maxdepth: 1
 
    sage/graphs/hypergraph_generators
-   sage/graphs/hypergraph
-
+   sage/combinat/designs/incidence_structures
 
 
 Libraries of algorithms
@@ -71,6 +70,7 @@ Libraries of algorithms
    sage/graphs/linearextensions
    sage/graphs/schnyder
    sage/graphs/graph_plot
+   sage/graphs/graph_plot_js
    sage/graphs/graph_decompositions/vertex_separation
    sage/graphs/graph_decompositions/rankwidth
    sage/graphs/graph_decompositions/graph_products

@@ -318,7 +318,7 @@ overview:
 * **Work issues:** Issues that need to be resolved before the ticket
   can leave the "needs work" status.
 
-* **Branch:** See :ref:`section-git-branch`
+* **Branch:** See :ref:`section-walkthrough-branch`
 
 * **Dependencies:** Does the ticket depend on another ticket?
   Sometimes, a ticket requires that another ticket be applied
@@ -363,7 +363,7 @@ Working on Tickets
 ==================
 
 If you manage to fix a bug or enhance Sage you are our hero. See
-:ref:`chapter-walk-through` for making changes to the Sage source
+:ref:`chapter-walkthrough` for making changes to the Sage source
 code, uploading them to the Sage trac server, and finally putting your
 new branch on the trac ticket. The following are some other relevant
 issues:
@@ -406,7 +406,7 @@ supposed to.
 If someone (other than you) has posted a git branch for a ticket on
 the trac server, you can review it! Look at the branch diff (by
 clicking on the ) to see if it makes sense.  Download it (see
-:ref:`section-walkthrough-review`) and build Sage with the new
+:ref:`section-git_trac-review`) and build Sage with the new
 code. Now ask yourself questions such as the following:
 
 - Does the new source code make sense?
@@ -483,7 +483,7 @@ For more advice on reviewing, please see [WSblog].
 
 .. SEEALSO::
 
-    :ref:`Review Walkthrough <section-walkthrough-review>`
+    :ref:`Review Walkthrough <section-git_trac-review>`
 
 REFERENCES:
 

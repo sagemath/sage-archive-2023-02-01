@@ -322,7 +322,7 @@ class NakajimaYMonomial(Element):
                         continue
                     else:
                         d[(i,a)] = 0
-                S = sorted(filter(lambda x: x[0][0]==i, d.iteritems()), key=lambda x: x[0][1])
+                S = sorted((x for x in d.iteritems() if x[0][0]==i), key=lambda x: x[0][1])
                 return max(sum(S[k][1] for k in range(s)) for s in range(1,len(S)+1))
 
     def _ke(self,i):
@@ -354,7 +354,7 @@ class NakajimaYMonomial(Element):
                     continue
                 else:
                     d[(i,a)] = 0
-            S = sorted(filter(lambda x: x[0][0]==i, d.iteritems()), key=lambda x: x[0][1])
+            S = sorted((x for x in d.iteritems() if x[0][0]==i), key=lambda x: x[0][1])
             for var,exp in S:
                 sum += exp
                 if sum == phi:
@@ -390,7 +390,7 @@ class NakajimaYMonomial(Element):
                     continue
                 else:
                     d[(i,a)] = 0
-            S = sorted(filter(lambda x: x[0][0]==i, d.iteritems()), key=lambda x: x[0][1])
+            S = sorted((x for x in d.iteritems() if x[0][0]==i), key=lambda x: x[0][1])
             sum = 0
             phi = self.phi(i)
             for var,exp in S:
@@ -896,7 +896,7 @@ class InfinityCrystalOfNakajimaMonomials(Parent,UniqueRepresentation):
             sage: m
             Y(1,0)^-1 Y(1,1)^-1 Y(2,0)
         """
-        return "Infinity Crystal of modified Nakajima monomials of type %s" % self._cartan_type
+        return "Infinity Crystal of modified Nakajima monomials of type {}".format(self._cartan_type)
 
     def cardinality(self):
         r"""
@@ -1066,9 +1066,9 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
             sage: La = RootSystem(['C',3,1]).weight_lattice().fundamental_weights()
             sage: M = crystals.NakajimaMonomials(['C',3,1],La[0]+5*La[3])
             sage: M
-            Highest weight crystal of modified Nakajima monomials of Cartan type ['C', 3, 1] and highest weight Lambda[0] + 5*Lambda[3].
+            Highest weight crystal of modified Nakajima monomials of Cartan type ['C', 3, 1] and highest weight Lambda[0] + 5*Lambda[3]
         """
-        return "Highest weight crystal of modified Nakajima monomials of Cartan type {1!s} and highest weight {0!s}.".format(self.hw, self._cartan_type)
+        return "Highest weight crystal of modified Nakajima monomials of Cartan type {1!s} and highest weight {0!s}".format(self.hw, self._cartan_type)
 
     def cardinality(self):
         r"""

@@ -242,7 +242,7 @@ class Superincreasing(SageObject):
         But if no solution exists, return ``None``::
 
             sage: L = [2, 3, 7, 25, 67, 179, 356, 819]
-            sage: Superincreasing(L).largest_less_than(-1) == None
+            sage: Superincreasing(L).largest_less_than(-1) is None
             True
 
         TESTS:

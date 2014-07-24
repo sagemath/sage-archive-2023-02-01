@@ -298,6 +298,7 @@ from sage.rings.all import RDF, CDF
 from sage.libs.mpfr cimport mpfr_t, mpfr_ptr, mpfr_init2, mpfr_set, GMP_RNDN
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+from sage.structure.element import parent
 
 include "stdsage.pxi"
 
@@ -385,6 +386,32 @@ def fast_callable(x, domain=None, vars=None,
         sage: fc = fast_callable(expr, domain=float)
         sage: fc(5, 7)
         0.5514266812416906
+         
+    Check that fast_callable also works for symbolic functions with evaluation
+    functions:
+
+        sage: def evalf_func(self, x, y, parent): return parent(x*y) if parent != None else x*y
+        sage: x,y = var('x,y')
+        sage: f = function('f', evalf_func=evalf_func)
+        sage: fc = fast_callable(f(x, y), vars=[x, y])
+        sage: fc(3, 4)
+        f(3, 4)
+
+    And also when there are complex values involved:
+
+        sage: def evalf_func(self, x, y, parent): return parent(I*x*y) if parent != None else I*x*y
+        sage: g = function('g', evalf_func=evalf_func)
+        sage: fc = fast_callable(g(x, y), vars=[x, y])
+        sage: fc(3, 4)
+        g(3, 4)
+        sage: fc2 = fast_callable(g(x, y), domain=complex, vars=[x, y])
+        sage: fc2(3, 4)
+        12j
+        sage: fc3 = fast_callable(g(x, y), domain=float, vars=[x, y])
+        sage: fc3(3, 4)
+        Traceback (most recent call last):
+            ...
+        TypeError: unable to simplify to float approximation
     """
     cdef Expression et
     if isinstance(x, Expression):
@@ -419,8 +446,10 @@ def fast_callable(x, domain=None, vars=None,
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
             if is_PolynomialRing(x.parent()) or is_MPolynomialRing(x.parent()):
                 vars = x.parent().variable_names()
+
         etb = ExpressionTreeBuilder(vars=vars, domain=domain)
         et = x._fast_callable_(etb)
+
     if isinstance(domain, RealField_class):
         import sage.ext.interpreters.wrapper_rr
         builder = sage.ext.interpreters.wrapper_rr.Wrapper_rr
@@ -480,6 +509,9 @@ def function_name(fn):
         sage: function_name(factorial)
         '{factorial}'
     """
+    from sage.structure.dynamic_class import DynamicMetaclass
+    if isinstance(type(fn), DynamicMetaclass):
+        return "{%r}" % fn
     builtins = get_builtin_functions()
     if fn in builtins:
         return builtins[fn]
@@ -2014,12 +2046,12 @@ cdef class InstructionStream:
                 # XXX bad for strict-mode floating-point constants
                 # (doesn't handle signed 0, NaN)
                 arg = args[i]
-                if arg in self._constant_locs:
-                    self._bytecode.append(self._constant_locs[arg])
+                if (arg,parent(arg)) in self._constant_locs:
+                    self._bytecode.append(self._constant_locs[(arg,parent(arg))])
                 else:
                     loc = len(self._constants)
                     self._constants.append(arg)
-                    self._constant_locs[arg] = loc
+                    self._constant_locs[(arg,parent(arg))] = loc
                     self._bytecode.append(loc)
             elif spec.parameters[i] == 'args':
                 self._bytecode.append(args[i])

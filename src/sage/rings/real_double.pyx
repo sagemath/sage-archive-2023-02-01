@@ -53,6 +53,7 @@ import sage.rings.integer
 import sage.rings.rational
 
 from sage.rings.integer cimport Integer
+from sage.rings.integer_ring import ZZ
 
 from sage.categories.morphism cimport Morphism
 
@@ -1771,6 +1772,20 @@ cdef class RealDoubleElement(FieldElement):
             False
         """
         return self._value >= 0
+
+    def is_integer(self):
+        """
+        Return True if this number is a integer
+
+        EXAMPLES::
+
+            sage: RDF(3.5).is_integer()
+            False
+            sage: RDF(3).is_integer()
+            True
+        """
+        return self._value in ZZ
+
 
     def cube_root(self):
         """

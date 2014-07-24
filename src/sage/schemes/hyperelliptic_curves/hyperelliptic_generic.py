@@ -58,7 +58,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             F = y**2*z**(deg-2) + F0*y*z**(deg-dh-1) - F1*z**(deg-df)
         plane_curve.ProjectiveCurve_generic.__init__(self,PP,F)
         R = PP.base_ring()
-        if names == None:
+        if names is None:
             names = ["x","y"]
         elif isinstance(names,str):
             names = names.split(",")
@@ -342,7 +342,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
 
     def monsky_washnitzer_gens(self):
-        import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer
+        import sage.schemes.hyperelliptic_curves.monsky_washnitzer as monsky_washnitzer
         S = monsky_washnitzer.SpecialHyperellipticQuotientRing(self)
         return S.gens()
 
@@ -359,7 +359,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             1 dx/2y
 
         """
-        import sage.schemes.elliptic_curves.monsky_washnitzer as m_w
+        import sage.schemes.hyperelliptic_curves.monsky_washnitzer as m_w
         S = m_w.SpecialHyperellipticQuotientRing(self)
         MW = m_w.MonskyWashnitzerDifferentialRing(S)
         return MW.invariant_differential()

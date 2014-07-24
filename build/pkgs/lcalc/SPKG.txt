@@ -71,6 +71,7 @@ http://code.google.com/p/l-calc/
      used as far as I can see.)
    - $(INSTALL_DIR) can now be overridden by simply setting the environment
      variable of the same name.
+
  * Lcommon.h.patch:
    Uncomment the definition of lcalc_to_double(const long double& x).
    (Necessary for GCC >= 4.6.0, cf. #10892.)
@@ -80,14 +81,20 @@ http://code.google.com/p/l-calc/
      But somebody who is familiar with the codebase should really rewrite lcalc
      to not redefine the double() cast, thats just fragile and will sooner or
      later again fail inside some system headers.
+
  * pari-2.4.4.patch:
    Replace obsolete lgeti() by (long)cgeti().
+
  * init_stack.patch:
    Replace obsolete allocatemoremem() by a direct call to the private
    function pari_init_stack(). The public function allocatemem() prints
    useless warnings and is by definition treated as an error.
+
  * time.h.patch:
    (Patches src/include/Lcommandline_numbertheory.h)
    Include also <time.h> in Lcommandline_numbertheory.h (at least required
    on Cygwin, cf. #9845).
    This should get reported upstream.
+
+ * lcalc-1.23_default_parameters_1.patch: Make Lcalc (1.23) build with
+   GCC 4.9

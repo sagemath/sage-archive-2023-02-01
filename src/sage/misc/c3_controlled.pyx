@@ -60,11 +60,11 @@ Thus, in our example, the implementation in ``A4`` is chosen::
     4
 
 Specifically, the MRO is calculated using the so-called ``C3``
-algorithm which guarantees that the MRO respects non only inheritance,
+algorithm which guarantees that the MRO respects not only inheritance,
 but also the order in which the bases (direct super classes) are given
 for each class.
 
-However, for large hierarchy of classes with lots of multiple
+However, for large hierarchies of classes with lots of multiple
 inheritance, like those derived from categories in Sage, this
 algorithm easily fails if the order of the bases is not chosen
 consistently (here for ``A2`` w.r.t. ``A1``)::
@@ -77,7 +77,7 @@ consistently (here for ``A2`` w.r.t. ``A1``)::
         Cannot create a consistent method resolution
     order (MRO) for bases ...
 
-There actually exist hierarchy of classes for which ``C3`` fails
+There actually exist hierarchies of classes for which ``C3`` fails
 whatever the order of the bases is chosen; the smallest such example,
 admittedly artificial, has ten classes (see below). Still, this
 highlights that this problem has to be tackled in a systematic way.
@@ -104,7 +104,9 @@ A strategy to solve the problem
 We should recall at this point a design decision that we took for the
 hierarchy of classes derived from categories: *the semantic shall only
 depend on the inheritance order*, not on the specific MRO, and in
-particular not on the order of the bases (see :mod:`sage.combinat.primer`).
+particular not on the order of the bases (see the section
+``On the order of super categories`` in the
+:mod:`category primer <sage.categories.primer>`).
 If a choice needs to be made (for example for efficiency reasons),
 then this should be done explicitly, on a method-by-method basis. In
 practice this design goal is not yet met.
@@ -114,7 +116,7 @@ practice this design goal is not yet met.
     When managing large hierarchies of classes in other contexts this
     may be too strong a design decision.
 
-The strategy we use for hierarchy of classes derived from categories
+The strategy we use for hierarchies of classes derived from categories
 is then:
 
 1. To choose a global total order on the whole hierarchy of classes.
@@ -137,9 +139,9 @@ This module is about point 2.
 The natural approach would be to change the algorithm used by Python
 to compute the MRO. However, changing Python's default algorithm just
 for our needs is obviously not an option, and there is currently no
-hook to customize specific classes to use a different
-algorithm. Pushing the addition of such a hook into stock Python would
-take too much time and effort.
+hook to customize specific classes to use a different algorithm.
+Pushing the addition of such a hook into stock Python would take too
+much time and effort.
 
 Another approach would be to use the "adding bases" trick
 straightforwardly, putting the list of *all* the super classes of a
@@ -147,7 +149,7 @@ class as its bases. However, this would have several drawbacks:
 
 - It is not so elegant, in particular because it duplicates
   information: we already know through ``A5`` that ``A7`` is a
-  subclass of ``A1``. This duplication coud be acceptable in our
+  subclass of ``A1``. This duplication could be acceptable in our
   context because the hierarchy of classes is generated automatically
   from a conceptual hierarchy (the categories) which serves as single
   point of truth for calculating the bases of each class.
@@ -173,7 +175,7 @@ class as its bases. However, this would have several drawbacks:
   stock Python.
 
 This module refines this approach to make it acceptable, if not
-seemless. Given a hierarchy and a total order on this hierarchy, it
+seamless. Given a hierarchy and a total order on this hierarchy, it
 calculates for each element of the hierarchy the smallest list of
 additional bases that forces ``C3`` to return the desired MRO. This is
 achieved by implementing an instrumented variant of the ``C3``
@@ -260,7 +262,7 @@ Altogether, four bases were added for control::
     sage: sum(len(HierarchyElement(q, Q)._bases_controlled) for q in Q)
     19
 
-This information can also be recoved with::
+This information can also be recovered with::
 
     sage: x.all_bases_len()
     15
@@ -296,9 +298,13 @@ We now consider a hierarchy of categories::
     sage: from operator import attrgetter
     sage: x = HierarchyElement(Groups(), attrcall("super_categories"), attrgetter("_cmp_key"))
     sage: x.mro
-    [Category of groups, Category of monoids, Category of semigroups, Category of magmas, Category of sets, Category of sets with partial maps, Category of objects]
+    [Category of groups, Category of monoids, Category of semigroups,
+     Category of inverse unital magmas, Category of unital magmas, Category of magmas,
+     Category of sets, Category of sets with partial maps, Category of objects]
     sage: x.mro_standard
-    [Category of groups, Category of monoids, Category of semigroups, Category of magmas, Category of sets, Category of sets with partial maps, Category of objects]
+    [Category of groups, Category of monoids, Category of semigroups,
+     Category of inverse unital magmas, Category of unital magmas, Category of magmas,
+     Category of sets, Category of sets with partial maps, Category of objects]
 
 For a typical category, few bases, if any, need to be added to force
 ``C3`` to give the desired order::
@@ -306,28 +312,35 @@ For a typical category, few bases, if any, need to be added to force
     sage: C = FiniteFields()
     sage: x = HierarchyElement(C, attrcall("super_categories"), attrgetter("_cmp_key"))
     sage: x.mro == x.mro_standard
-    True
+    False
     sage: x.all_bases_len()
-    31
+    66
     sage: x.all_bases_controlled_len()
-    31
+    69
 
     sage: C = GradedHopfAlgebrasWithBasis(QQ)
     sage: x = HierarchyElement(C, attrcall("super_categories"), attrgetter("_cmp_key"))
     sage: x._test_mro()
     sage: x.mro == x.mro_standard
-    True
+    False
     sage: x.all_bases_len()
-    61
+    82
     sage: x.all_bases_controlled_len()
-    61
+    89
 
 The following can be used to search through the Sage named categories
-for any that requires the addition of some bases; currently none!::
+for any that requires the addition of some bases::
 
     sage: from sage.categories.category import category_sample
-    sage: [C for C in category_sample() if len(C._super_categories_for_classes) != len(C.super_categories())]
-    []
+    sage: sorted([C for C in category_sample()
+    ....:         if len(C._super_categories_for_classes) != len(C.super_categories())],
+    ....:        key=str)
+    [Category of affine weyl groups,
+     Category of fields,
+     Category of finite dimensional algebras with basis over Rational Field,
+     Category of finite dimensional hopf algebras with basis over Rational Field,
+     Category of graded hopf algebras with basis over Rational Field,
+     Category of hopf algebras with basis over Rational Field]
 
 AUTHOR:
 
@@ -349,15 +362,15 @@ from sage.structure.dynamic_class import dynamic_class
 # Implementation of the total order between categories
 ##############################################################################
 
-cdef tuple atoms = ("FacadeSets", "Finite", "Infinite", "EnumeratedSets",
-                    "FiniteDimensionalModulesWithBasis", "GradedModules", "ModulesWithBasis",
-                    "AdditiveMagmas",
-                    "Magmas", "Semigroups", "Monoids", "FinitePermutationGroups",
-                    "Rngs", "Domains")
+cdef tuple atoms = ("FacadeSets",
+                    "FiniteSets", "Sets.Infinite", "EnumeratedSets", "SetsWithGrading",
+                    "Posets", "LatticePosets", "Crystals", "AdditiveMagmas",
+                    "FiniteDimensionalModules", "GradedModules", "ModulesWithBasis",
+                    "Magmas", "Semigroups", "Monoids", "PermutationGroups",
+                    "MagmasAndAdditiveMagmas", "Rngs", "Domains", "HopfAlgebras")
+
 
 cdef dict flags = { atom: 1 << i for i,atom in enumerate(atoms) }
-flags["FiniteEnumeratedSets"]   = flags["Finite"]
-flags["InfiniteEnumeratedSets"] = flags["Infinite"]
 
 cpdef inline tuple category_sort_key(object category):
     """
@@ -366,7 +379,7 @@ cpdef inline tuple category_sort_key(object category):
     This helper function is used for sorting lists of categories.
 
     It is semantically equivalent to
-    :func:`operator.attrgetter```("_cmp_key")``, but currently faster.
+    :func:`operator.attrgetter` ``("_cmp_key")``, but currently faster.
 
     EXAMPLES::
 
@@ -378,7 +391,7 @@ cpdef inline tuple category_sort_key(object category):
 
 cdef class CmpKey:
     r"""
-    This class implements the lazy attribute :meth:`sage.categories.category.Category._cmp_key`.
+    This class implements the lazy attribute ``Category._cmp_key``.
 
     The comparison key ``A._cmp_key`` of a category is used to define
     an (almost) total order on non-join categories by setting, for two
@@ -389,8 +402,9 @@ cdef class CmpKey:
 
     The comparison key should satisfy the following properties:
 
-    - If A is a subcategory of B, then A < B. In particular,
-      `Objects()` is the largest category.
+    - If `A` is a subcategory of `B`, then `A < B` (so that
+      ``A._cmp_key > B._cmp_key``). In particular,
+      :class:`Objects() <Objects>` is the largest category.
 
     - If `A != B` and taking the join of `A` and `B` makes sense
       (e.g. taking the join of Algebras(GF(5)) and Algebras(QQ)
@@ -410,8 +424,7 @@ cdef class CmpKey:
     And so on. The choice of the flags is adhoc and was primarily
     crafted so that the order between categories would not change
     too much upon integration of :trac:`13589` and would be
-    reasonably session independent, in waiting for a better logic
-    to be implemented in :trac:`10963`. The number ``i`` is there
+    reasonably session independent. The number ``i`` is there
     to resolve ambiguities; it is session dependent, and is
     assigned increasingly when new categories are created.
 
@@ -424,7 +437,7 @@ cdef class CmpKey:
 
     .. TODO::
 
-        - Handle nicely (covariant) functorial constructions?
+        - Handle nicely (covariant) functorial constructions and axioms
 
     EXAMPLES::
 
@@ -434,33 +447,49 @@ cdef class CmpKey:
         (0, 1)
         sage: Sets()._cmp_key
         (0, 2)
-        sage: Magmas()._cmp_key
-        (256, ...)
+        sage: Sets().Facade()._cmp_key
+        (1, ...)
+        sage: Sets().Finite()._cmp_key
+        (2, ...)
+        sage: Sets().Infinite()._cmp_key
+        (4, ...)
         sage: EnumeratedSets()._cmp_key
         (8, ...)
         sage: FiniteEnumeratedSets()._cmp_key
         (10, ...)
+        sage: SetsWithGrading()._cmp_key
+        (16, ...)
+        sage: Posets()._cmp_key
+        (32, ...)
+        sage: LatticePosets()._cmp_key
+        (96, ...)
+        sage: Crystals()._cmp_key
+        (136, ...)
+        sage: AdditiveMagmas()._cmp_key
+        (256, ...)
+        sage: Magmas()._cmp_key
+        (4096, ...)
         sage: CommutativeAdditiveSemigroups()._cmp_key
-        (128, ...)
-        sage: GradedCoalgebrasWithBasis(QQ)._cmp_key
-        (224, ...)
+        (256, ...)
         sage: Rings()._cmp_key
-        (6016, ...)
+        (225536, ...)
         sage: Algebras(QQ)._cmp_key
-        (6016, ...)
+        (225536, ...)
         sage: AlgebrasWithBasis(QQ)._cmp_key
-        (6080, ...)
+        (227584, ...)
         sage: GradedAlgebras(QQ)._cmp_key
-        (6048, ...)
+        (226560, ...)
         sage: GradedAlgebrasWithBasis(QQ)._cmp_key
-        (6112, ...)
+        (228608, ...)
 
-    For backward compatibility we want ``Sets().Facades()`` to
-    come after ``EnumeratedSets()``::
+    For backward compatibility we currently want the following comparisons::
 
-        sage: EnumeratedSets()._cmp_key > Sets().Facades()._cmp_key
+        sage: EnumeratedSets()._cmp_key > Sets().Facade()._cmp_key
         True
-        sage: Category.join([EnumeratedSets(), Sets().Facades()]).parent_class._an_element_.__module__
+        sage: AdditiveMagmas()._cmp_key > EnumeratedSets()._cmp_key
+        True
+
+        sage: Category.join([EnumeratedSets(), Sets().Facade()]).parent_class._an_element_.__module__
         'sage.categories.enumerated_sets'
 
         sage: CommutativeAdditiveSemigroups()._cmp_key < Magmas()._cmp_key
@@ -481,6 +510,7 @@ cdef class CmpKey:
             (0, 0)
         """
         self.count = -1
+
     def __get__(self, object inst, object cls):
         """
         Bind the comparison key to the given instance
@@ -489,10 +519,11 @@ cdef class CmpKey:
 
             sage: C = Algebras(FractionField(QQ['x']))
             sage: C._cmp_key
-            (6016, ...)
+            (225536, ...)
             sage: '_cmp_key' in C.__dict__    # indirect doctest
             True
         """
+        # assert not isinstance(inst, JoinCategory)
         # Note that cls is a DynamicClassMetaclass, hence not a type
         cdef str classname = cls.__base__.__name__
         cdef int flag = flags.get(classname, 0)
@@ -508,7 +539,7 @@ _cmp_key = CmpKey()
 
 cdef class CmpKeyNamed:
     """
-    This class implements the lazy attribute :meth:`sage.categories.category.CategoryWithParameters._cmp_key`.
+    This class implements the lazy attribute ``CategoryWithParameters._cmp_key``.
 
     .. SEEALSO::
 
@@ -652,19 +683,22 @@ def C3_sorted_merge(list lists, key=identity):
 
     INPUT:
 
-    - ``lists`` -- a non empty list (or iterable) of lists (or iterables), each sorted decreasingly according to ``key``
+    - ``lists`` -- a non empty list (or iterable) of lists (or
+      iterables), each sorted strictly decreasingly according
+      to ``key``
     - ``key`` -- a function
 
     OUTPUT: a pair ``(result, suggestion)``
 
     ``result`` is the sorted list obtained by merging the lists in
-    ``lists`` while removing duplicate, and ``suggestion`` is a list
+    ``lists`` while removing duplicates, and ``suggestion`` is a list
     such that applying ``C3`` on ``lists`` with its last list replaced
     by ``suggestion`` would return ``result``.
 
     EXAMPLES:
 
-    With the following input, :func:`C3_merge` returns right away a sorted list::
+    With the following input, :func:`C3_merge` returns right away a
+    sorted list::
 
         sage: from sage.misc.c3_controlled import C3_merge
         sage: C3_merge([[2],[1]])
@@ -921,7 +955,7 @@ class HierarchyElement(object):
     the linear extension of all elements above `x` its *MRO*.
 
     By convention, the bases are given as lists of
-    ``HierarchyElement`s, and MROs are given a list of the
+    ``HierarchyElement`` s, and MROs are given a list of the
     corresponding values.
 
     INPUT:
@@ -935,7 +969,7 @@ class HierarchyElement(object):
 
     .. NOTE::
 
-        Constructing a HierarchyElement immediately constructs the
+        Constructing a ``HierarchyElement`` immediately constructs the
         whole hierarchy above it.
 
     EXAMPLES:
@@ -943,7 +977,7 @@ class HierarchyElement(object):
     See the introduction of this module :mod:`sage.misc.c3_controlled`
     for many examples. Here we consider a large example, originaly
     taken from the hierarchy of categories above
-    :class:`Hopf_algebras_with_bases`::
+    :class:`HopfAlgebrasWithBasis`::
 
         sage: from sage.misc.c3_controlled import HierarchyElement
         sage: G = DiGraph({

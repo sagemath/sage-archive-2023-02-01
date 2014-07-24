@@ -9378,7 +9378,8 @@ class _FSMTapeCache_(SageObject):
         if len(word_in) != len(self.cache):
             raise TypeError('%s has bad input word (%s entries '
                             'instead of %s)' % (transition,
-                                                len(word_in), len(self.cache)))
+                                                len(word_in),
+                                                len(self.cache)))
         return self._transition_possible_test_(word_in)
 
 
@@ -10198,9 +10199,9 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: for current in it:
             ....:     s = it.current_state
             ....:     print current, s
-            doctest:...: DeprecationWarning: This attribute will be removed
-            in future releases. Use result() at the end of our iteration
-            or the output of next().
+            doctest:...: DeprecationWarning: This attribute will be
+            removed in future releases. Use result() at the end of our
+            iteration or the output of next().
             See http://trac.sagemath.org/16538 for details.
             {((1, 0),): {'A': (tape at 1, [[1]])}} 'A'
             {((2, 0),): {'A': (tape at 2, [[1, 0]])}} 'A'
@@ -10209,8 +10210,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         """
         from sage.misc.superseded import deprecation
         deprecation(16538, 'This attribute will be removed in future '
-                    'releases. Use result() at the end of our iteration '
-                    'or the output of next().')
+                    'releases. Use result() at the end of our '
+                    'iteration or the output of next().')
         if not self._current_:
             return None
         return next(next(self._current_.itervalues()).iterkeys())

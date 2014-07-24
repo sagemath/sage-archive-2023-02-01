@@ -9331,9 +9331,8 @@ class _FSMTapeCache_(SageObject):
                     if not self.read(track_number):
                         raise ValueError('forwarding tape is not possible')
                 track_cache.popleft()
-        position = []
-        for p, t in self.position:
-            position.append((p + increments[t], t))
+        position = [(p + increments[t], t)
+                    for p, t in self.position]
         self.position = tuple(sorted(position))
 
 
@@ -9837,7 +9836,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                              'be True' % (len(self._input_tape_),))
 
         if format_output is None:
-            self.format_output = lambda o: list(o)
+            self.format_output = list
         else:
             self.format_output = format_output
 
@@ -10061,7 +10060,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             state_said_finished = False
             if hasattr(current_state, 'hook'):
                 import inspect
-                if len(inspect.getargspec(current_state.hook)[0]) == 2:
+                if len(inspect.getargspec(current_state.hook).args) == 2:
                     from sage.misc.superseded import deprecation
                     deprecation(16538, 'The hook of state %s cannot be '
                                 'processed: It seem that you are using an '

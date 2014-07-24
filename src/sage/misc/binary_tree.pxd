@@ -3,7 +3,8 @@ include 'sage/ext/python.pxi'
 
 cdef struct binary_tree_node:
     int key
-    binary_tree_node *left, *right
+    binary_tree_node *left
+    binary_tree_node *right
     void *value
 
 #cdef binary_tree_node *BinaryTreeNode(int, object)

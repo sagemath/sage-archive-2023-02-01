@@ -8043,8 +8043,8 @@ class Automaton(FiniteStateMachine):
 
         INPUT:
 
-        - ``input_tape`` -- The input tape can be a list with entries from
-          the input alphabet.
+        - ``input_tape`` -- The input tape can be a list or an iterable
+          with entries from the input alphabet.
 
         - ``initial_state`` -- (default: ``None``) The state in which
           to start. If this parameter is ``None`` and there is only
@@ -8675,8 +8675,8 @@ class Transducer(FiniteStateMachine):
 
         INPUT:
 
-        - ``input_tape`` -- The input tape can be a list with entries from
-          the input alphabet.
+        - ``input_tape`` -- The input tape can be a list or an iterable
+          with entries from the input alphabet.
 
         - ``initial_state`` -- (default: ``None``) The state in which
           to start. If this parameter is ``None`` and there is only

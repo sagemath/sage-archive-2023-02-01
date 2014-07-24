@@ -10440,6 +10440,38 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         {}
         sage: it.visited_states
         {4: ['']}
+
+    ::
+
+        sage: T = Transducer([(0, 1, None, 'a'), (0, 2, None, 'b'),
+        ....:                 (1, 3, None, 'c'), (2, 3, None, 'd'),
+        ....:                 (3, 0, None, 'e')])
+        sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(0),
+        ....:                                  format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        {((0, 0),): {1: (tape at 0, [['a']]), 2: (tape at 0, [['b']])}}
+        {((0, 0),): {3: (tape at 0, [['a', 'c']])}}
+        {}
+        sage: it.visited_states
+        {0: ['', 'ace', 'bde'], 1: ['a'], 2: ['b'], 3: ['ac', 'bd']}
+
+    ::
+
+        sage: T = Transducer([(0, 1, None, None), (0, 2, None, 'b'),
+        ....:                 (1, 3, None, None), (2, 3, None, 'd'),
+        ....:                 (3, 0, None, None)])
+        sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(0),
+        ....:                                  format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        {((0, 0),): {1: (tape at 0, [[]]), 2: (tape at 0, [['b']])}}
+        {((0, 0),): {3: (tape at 0, [[]])}}
+        {}
+        sage: it.visited_states
+        {0: ['', '', 'bde'], 1: [''], 2: ['b'], 3: ['', 'bd']}
+        sage: T.state(0)._epsilon_cycle_output_empty_(T)
+        False
     """
     def __init__(self, *args, **kwargs):
         """

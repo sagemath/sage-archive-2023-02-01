@@ -2242,7 +2242,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         TESTS:
 
         Now we check that "general" cones whose dimension is smaller than the
-        dimension of the ambient space work as expected (see Trac #9188)::
+        dimension of the ambient space work as expected (see :trac:`9188`)::
 
             sage: c = Cone([(1,1,1,3),(1,-1,1,3),(-1,-1,1,3)])
             sage: c.faces()
@@ -2975,7 +2975,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             A 1-dimensional polyhedron in ZZ^2 defined as the convex hull
             of 1 vertex and 1 line
 
-        Here is an example of a trivial cone (see Trac #10237)::
+        Here is an example of a trivial cone (see :trac:`10237`)::
 
             sage: origin = Cone([], lattice=ZZ^2)
             sage: origin.polyhedron()

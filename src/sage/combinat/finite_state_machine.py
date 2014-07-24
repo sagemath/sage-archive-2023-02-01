@@ -1419,6 +1419,13 @@ class FSMState(SageObject):
 
             sage: T.state(0)._epsilon_successors_()
             {1: [['a']], 2: [['a', 'b']]}
+
+        ::
+
+            sage: T.add_transition(2, 0, None, 'c')
+            Transition from 2 to 0: -|'c'
+            sage: T.state(0)._epsilon_successors_()
+            {0: [['a', 'b', 'c']], 1: [['a']], 2: [['a', 'b']]}
         """
         if not hasattr(self, 'transitions'):
             raise ValueError('State %s does not belong to a '
@@ -1467,6 +1474,10 @@ class FSMState(SageObject):
             {0: [['a']], 1: [['a']], 2: [['a']]}
             sage: A.state(0)._epsilon_cycle_output_empty_(A)
             False
+            sage: A.state(4)._epsilon_cycle_output_empty_(A)
+            Traceback (most recent call last):
+            ...
+            KeyError: 4
             sage: A = Automaton([(0, 1, None, None), (1, 2, None, None),
             ....:                (2, 0, None, None), (4, 1, None, None)])
             sage: A.state(0)._epsilon_successors_(A)
@@ -4572,6 +4583,13 @@ class FiniteStateMachine(SageObject):
             sage: [NAF.process(w)[0] for w in [[0], [0, 1], [1, 1], [0, 1, 0, 1],
             ....:                           [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [True, True, False, True, False, False]
+
+        ::
+
+            sage: F = FiniteStateMachine([(0, 0, 0, 0)],
+            ....:                        initial_states=[0])
+            sage: F.process([0], only_accepted=True)
+            (False, 0, [0])
 
         Non-deterministic finite state machines can be handeled as well.
 
@@ -8738,6 +8756,10 @@ class Transducer(FiniteStateMachine):
             sage: [T.process(w, full_output=False)
             ....:      for w in [[1], [0, 1], [0, 0, 1]]]
             [[2], [1, 2], [1, 1, 2]]
+            sage: T.process([0], full_output=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
             sage: T.process([0, 1, 2], full_output=False)
             Traceback (most recent call last):
             ...
@@ -8747,6 +8769,10 @@ class Transducer(FiniteStateMachine):
 
             sage: [T(w) for w in [[1], [0, 1], [0, 0, 1]]]
             [[2], [1, 2], [1, 1, 2]]
+            sage: T([0])
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
             sage: T([0, 1, 2])
             Traceback (most recent call last):
             ...
@@ -9139,6 +9165,10 @@ class _FSMTapeCache_(SageObject):
             ....:                      [False], ((0, 0),), False)
             sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
+            sage: TC2.read_letter()
+            (37, 11)
+            sage: TC2.read_letter()
+            (37, 11)
             sage: while True:
             ....:     try:
             ....:         letter = TC2.read_letter()
@@ -9171,6 +9201,13 @@ class _FSMTapeCache_(SageObject):
             StopIteration
             sage: print 'cache:', TC2.cache, TC2
             cache: (deque([41]), deque([])) multi-tape at (4, 4)
+            sage: TC2.read_letter(0)
+            41
+            sage: print 'cache:', TC2.cache, TC2
+            cache: (deque([41]), deque([])) multi-tape at (4, 4)
+            sage: TC2.forward(FSMTransition(0, 0, [[41], []]))
+            sage: print 'cache:', TC2.cache, TC2
+            cache: (deque([]), deque([])) multi-tape at (5, 4)
         """
         if track_number is None:
             if self.is_multitape:
@@ -9464,6 +9501,8 @@ class _FSMTapeCacheDetectEpsilon_(_FSMTapeCache_):
             True
             sage: TCE._transition_possible_test_([[(None,)], []])
             False
+            sage: TCE._transition_possible_test_([(37, 38), (11, 12, 13)])
+            False
         """
         return self._transition_possible_epsilon_(word_in)
 
@@ -9702,6 +9741,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         sage: _ = T.add_transition(-1, 0, 0, 'r')
         sage: T.state(-1).is_initial = True
         sage: T.state(0).is_initial = False
+        sage: T.process([])
+        (False, -1, [])
         sage: for o in T.process([0],
         ....:                    format_output=lambda o: ''.join(o),
         ....:                    list_of_outputs=True):
@@ -10122,6 +10163,20 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             [(True, 'A', ['one', 'zero', 'zero'])]
             sage: it.result(lambda L: ', '.join(L))
             [(True, 'A', 'one, zero, zero')]
+
+        Using both the parameter ``format_output`` of
+        :class:`FSMProcessIterator` and the parameter ``format_output``
+        of :meth:`.result()` leads to concatenation of the two
+        functions::
+
+            sage: it = inverter.iter_process(input_tape=[0, 1, 1],
+            ....:                            format_output=lambda L: ', '.join(L))
+            sage: for _ in it:
+            ....:     pass
+            sage: it.result()
+            [(True, 'A', 'one, zero, zero')]
+            sage: it.result(lambda L: ', '.join(L))
+            [(True, 'A', 'o, n, e, ,,  , z, e, r, o, ,,  , z, e, r, o')]
         """
         if format_output is None:
             return self._finished_

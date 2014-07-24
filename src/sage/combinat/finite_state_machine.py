@@ -9084,8 +9084,8 @@ class _FSMTapeCache_(SageObject):
 
         TESTS::
 
-            sage: from sage.combinat.finite_state_machine \
-            ....:     import _FSMTapeCache_, FSMTransition
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     _FSMTapeCache_, FSMTransition)
             sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             sage: while True:
@@ -9156,8 +9156,8 @@ class _FSMTapeCache_(SageObject):
 
         TESTS::
 
-            sage: from sage.combinat.finite_state_machine \
-            ....:     import _FSMTapeCache_, FSMTransition
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     _FSMTapeCache_, FSMTransition)
             sage: TC1 = _FSMTapeCache_([], (xsrange(37, 42),),
             ....:                      [False], ((0, 0),), False)
             sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
@@ -9285,8 +9285,8 @@ class _FSMTapeCache_(SageObject):
 
         TESTS::
 
-            sage: from sage.combinat.finite_state_machine \
-            ....:     import _FSMTapeCache_, FSMTransition
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     _FSMTapeCache_, FSMTransition)
             sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             sage: TC2, TC2.cache
@@ -9351,8 +9351,8 @@ class _FSMTapeCache_(SageObject):
 
         TESTS::
 
-            sage: from sage.combinat.finite_state_machine \
-            ....:     import _FSMTapeCache_, FSMTransition
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     _FSMTapeCache_, FSMTransition)
             sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             sage: TC2, TC2.cache
@@ -9397,8 +9397,8 @@ class _FSMTapeCache_(SageObject):
 
         TESTS::
 
-            sage: from sage.combinat.finite_state_machine \
-            ....:     import _FSMTapeCache_
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     _FSMTapeCache_)
             sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             sage: TC2._transition_possible_epsilon_([])
@@ -9428,8 +9428,8 @@ class _FSMTapeCache_(SageObject):
 
         TESTS::
 
-            sage: from sage.combinat.finite_state_machine \
-            ....:     import _FSMTapeCache_
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     _FSMTapeCache_)
             sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             sage: TC2, TC2.cache
@@ -9486,8 +9486,8 @@ class _FSMTapeCacheDetectEpsilon_(_FSMTapeCache_):
 
         TESTS::
 
-            sage: from sage.combinat.finite_state_machine \
-            ....:     import _FSMTapeCacheDetectEpsilon_
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     _FSMTapeCacheDetectEpsilon_)
             sage: TCE = _FSMTapeCacheDetectEpsilon_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             sage: TCE._transition_possible_test_([])
@@ -9527,8 +9527,8 @@ class _FSMTapeCacheDetectAll_(_FSMTapeCache_):
 
         TESTS::
 
-            sage: from sage.combinat.finite_state_machine \
-            ....:     import _FSMTapeCacheDetectAll_
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     _FSMTapeCacheDetectAll_)
             sage: TCA = _FSMTapeCacheDetectAll_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             sage: TCA._transition_possible_test_([(37, 38), (11, 12, 13)])

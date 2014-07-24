@@ -3,7 +3,7 @@ Airy Functions
 
 This module implements Airy functions and their generalized derivatives. It
 supports symbolic functionality through Maxima and numeric evaluation through
-mpmath and Maxima.
+mpmath.
 
 Airy functions are solutions to the differential equation `f''(z) +f(z)x=0`.
 
@@ -201,30 +201,11 @@ class FunctionAiryAiSimple(BuiltinFunction):
 
         We can use several methods for numerical evaluation::
 
-            sage: airy_ai(3).n(algorithm='maxima')
-            0.00659113935746
             sage: airy_ai(3).n(algorithm='mpmath')
             0.00659113935746072
             sage: airy_ai(3).n(algorithm='mpmath', prec=100)
             0.0065911393574607191442574484080
-
-        TESTS::
-
-            sage: airy_ai(3).n(algorithm='maxima', prec=70)
-            Traceback (most recent call last):
-            ...
-            ValueError: precision must be 53 for algorithm=maxima
         """
-        if algorithm == 'maxima':
-            try:
-                prec = parent.prec()
-            except AttributeError:
-                prec = 53
-            if prec != 53:
-                raise ValueError("precision must be 53 "
-                                 "for algorithm=maxima")
-            return RDF(meval("airy_ai({})".format(RDF(x))))
-
         import mpmath
         from sage.libs.mpmath import utils as mpmath_utils
         return mpmath_utils.call(mpmath.airyai, x, parent=parent)
@@ -285,30 +266,11 @@ class FunctionAiryAiPrime(BuiltinFunction):
 
         We can use several methods for numerical evaluation::
 
-            sage: airy_ai(1, 4).n(algorithm='maxima')
-            -0.0019586409502
             sage: airy_ai(1, 4).n(algorithm='mpmath')
             -0.00195864095020418
             sage: airy_ai(1, 4).n(algorithm='mpmath', prec=100)
             -0.0019586409502041789001381409184
-
-        TESTS::
-
-            sage: airy_ai(1, 4).n(algorithm='maxima', prec=70)
-            Traceback (most recent call last):
-            ...
-            ValueError: precision must be 53 for algorithm=maxima
         """
-        if algorithm == 'maxima':
-            try:
-                prec = parent.prec()
-            except AttributeError:
-                prec = 53
-            if prec != 53:
-                raise ValueError("precision must be 53 "
-                                 "for algorithm=maxima")
-            return RDF(meval("airy_dai({})".format(RDF(x))))
-
         import mpmath
         from sage.libs.mpmath import utils as mpmath_utils
         return mpmath_utils.call(mpmath.airyai, x, derivative=1,
@@ -387,16 +349,13 @@ def airy_ai(alpha, x=None, hold_derivative=False, *args, **kwds):
         sage: airy_ai(1.0*I)
         0.331493305432141 - 0.317449858968444*I
 
-    The functions can be evaluated numerically using either mpmath (the
-    default) or Maxima, where mpmath can compute the values to arbitrary
-    precision::
+    The functions can be evaluated numerically using mpmath which
+    can compute the values to arbitrary precision::
 
         sage: airy_ai(2).n(prec=100)
         0.034924130423274379135322080792
         sage: airy_ai(2).n(algorithm='mpmath', prec=100)
         0.034924130423274379135322080792
-        sage: airy_ai(2).n(algorithm='maxima')
-        0.0349241304233
 
     And the derivatives can be evaluated::
 
@@ -609,32 +568,13 @@ class FunctionAiryBiSimple(BuiltinFunction):
 
         We can use several methods for numerical evaluation::
 
-            sage: airy_bi(3).n(algorithm='maxima')
-            14.0373289637
             sage: airy_bi(3).n(algorithm='mpmath')
             14.0373289637302
             sage: airy_bi(3).n(algorithm='mpmath', prec=100)
             14.037328963730232031740267314
-
-        TESTS::
-
-            sage: airy_bi(3).n(algorithm='maxima', prec=100)
-            Traceback (most recent call last):
-            ...
-            ValueError: precision must be 53 for algorithm=maxima
         """
         algorithm = kwargs.get('algorithm', None) or 'mpmath'
         parent = kwargs.get('parent')
-        if algorithm == 'maxima':
-            try:
-                prec = parent.prec()
-            except AttributeError:
-                prec = 53
-            if prec != 53:
-                raise ValueError("precision must be 53 "
-                                 "for algorithm=maxima")
-            return RDF(meval("airy_bi({})".format(RDF(x))))
-
         import mpmath
         from sage.libs.mpmath import utils as mpmath_utils
         return mpmath_utils.call(mpmath.airybi, x, parent=parent)
@@ -695,31 +635,13 @@ class FunctionAiryBiPrime(BuiltinFunction):
 
         We can use several methods for numerical evaluation::
 
-            sage: airy_bi(1, 4).n(algorithm='maxima')
-            161.926683505
             sage: airy_bi(1, 4).n(algorithm='mpmath')
             161.926683504613
             sage: airy_bi(1, 4).n(algorithm='mpmath', prec=100)
             161.92668350461340184309492429
-
-        TESTS::
-
-            sage: airy_bi(1, 4).n(algorithm='maxima', prec=70)
-            Traceback (most recent call last):
-            ...
-            ValueError: precision must be 53 for algorithm=maxima
         """
         algorithm = kwargs.get('algorithm', None) or 'mpmath'
         parent = sage_structure_coerce_parent(x)
-        if algorithm == 'maxima':
-            try:
-                prec = parent.prec()
-            except AttributeError:
-                prec = 53
-            if prec != 53:
-                raise ValueError("precision must be 53 "
-                                 "for algorithm=maxima")
-            return RDF(meval("airy_dbi({})".format(RDF(x))))
 
         import mpmath
         from sage.libs.mpmath import utils as mpmath_utils
@@ -800,16 +722,13 @@ def airy_bi(alpha, x=None, hold_derivative=False, *args, **kwds):
         sage: airy_bi(1.0*I)
         0.648858208330395 + 0.344958634768048*I
 
-    The functions can be evaluated numerically using either mpmath (the
-    default) or Maxima, where mpmath can compute the values to arbitrary
-    precision::
+    The functions can be evaluated numerically using mpmath
+    which can compute the values to arbitrary precision::
 
         sage: airy_bi(2).n(prec=100)
         3.2980949999782147102806044252
         sage: airy_bi(2).n(algorithm='mpmath', prec=100)
         3.2980949999782147102806044252
-        sage: airy_bi(2).n(algorithm='maxima')
-        3.29809499998
 
     And the derivatives can be evaluated::
 

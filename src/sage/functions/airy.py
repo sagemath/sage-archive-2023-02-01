@@ -67,10 +67,6 @@ class FunctionAiryAiGeneral(BuiltinFunction):
 
         - ``x`` -- The argument of the function
 
-        - ``hold_derivative`` -- Whether or not to stop from returning higher
-          derivatives in terms of `\operatorname{Ai}(x)` and
-          `\operatorname{Ai}'(x)`
-
         EXAMPLES::
 
             sage: from sage.functions.airy import airy_ai_general
@@ -454,10 +450,6 @@ class FunctionAiryBiGeneral(BuiltinFunction):
             f_n(z) = \int_0^z f_{n-1}(t) dt
 
         - ``x`` -- The argument of the function
-
-        - ``hold_derivative`` -- Whether or not to stop from returning higher
-          derivatives in terms of `\operatorname{Bi}(x)` and
-          `\operatorname{Bi}'(x)`
 
         EXAMPLES::
 

@@ -1473,9 +1473,20 @@ class FSMState(SageObject):
             {0: [[]], 1: [[]], 2: [[]]}
             sage: A.state(0)._epsilon_cycle_output_empty_(A)
             True
+            sage: A.process(initial_state=A.state(0))
+            [(False, 0), (False, 1), (False, 2)]
+            sage: A.add_transition(0, 0, None, 'x')
+            Transition from 0 to 0: -|'x'
+            sage: A.state(0)._epsilon_successors_(A)
+            {0: [['x'], []], 1: [[]], 2: [[]]}
+            sage: A.state(0)._epsilon_cycle_output_empty_(A)
+            False
+            sage: A.process(initial_state=A.state(0))
+            Traceback (most recent call last):
+            ...
+            RuntimeError: State 0 is in an epsilon cycle (no input), but output is written.
         """
-        return not all(output
-                       for output in self._epsilon_successors_(fsm)[self])
+        return not any(self._epsilon_successors_(fsm)[self])
 
 
 #*****************************************************************************

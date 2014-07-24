@@ -7836,7 +7836,7 @@ class Automaton(FiniteStateMachine):
 
         TESTS:
 
-        This is from #15078, comment 13.
+        This is from `track ticket #15078, comment 13 <http://trac.sagemath.org/ticket/15078#comment:13>`_.
 
         ::
 
@@ -8842,7 +8842,7 @@ class _FSMTapeCache_(SageObject):
     INPUT:
 
     - ``tape_cache_manager`` -- a list of the existing instances of
-      ``_FSMTapeCache_``. ``self`` will be appended to this list.
+      :class:`_FSMTapeCache_`. ``self`` will be appended to this list.
 
     - ``tape`` -- a tuple or list of the input tracks (iterables).
 
@@ -9873,7 +9873,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         - ``state`` -- state which has to be processed.
 
-        - ``tape`` -- an instance of ``FSMTapeCache`` (storing
+        - ``tape`` -- an instance of :class:`_FSMTapeCache_` (storing
           information what to read next).
 
         - ``output`` -- the output tape on which words were written
@@ -9931,7 +9931,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         - ``state`` -- state which has to be processed.
 
-        - ``tape`` -- an instance of ``FSMTapeCache`` (storing
+        - ``tape`` -- an instance of :class:`_FSMTapeCache_` (storing
           information what to read next).
 
         - ``output`` -- the output tape on which words were written
@@ -10464,13 +10464,13 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         """
         This helper function cares about epsilon cycles during the the
         actual adding of a ``state`` to ``self._current_``. See also
-        :meth:`add_current`.
+        :meth:`.add_current`.
 
         INPUT:
 
         - ``state`` -- state which has to be processed.
 
-        - ``tape`` -- an instance of ``FSMTapeCache`` (storing
+        - ``tape`` -- an instance of :class:`_FSMTapeCache_` (storing
           information what to read next).
 
         - ``output`` -- the output tape on which words were written

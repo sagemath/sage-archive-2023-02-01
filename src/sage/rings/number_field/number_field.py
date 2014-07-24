@@ -3820,7 +3820,7 @@ class NumberField_generic(number_field_base.NumberField):
         assert A[:c] == 1 and A[c:] == 0
         return Q[:c, :a]
 
-    def selmer_group(self, S, m, proof=True):
+    def selmer_group(self, S, m, proof=True, orders=False):
         r"""
         Compute the group `K(S,m)`.
 
@@ -3832,13 +3832,18 @@ class NumberField_generic(number_field_base.NumberField):
 
         - ``proof`` -- if False, assume the GRH in computing the class group
 
+        - ``orders`` (default False) -- if True, output two lists, the
+          generators and their orders
+
         OUTPUT:
 
-        A list of generators of `K(S,m)`.  This is the subgroup of
-        `K^\times/(K^\times)^m` consisting of elements `a` such that
-        the valuation of `a` is divisible by `m` at all primes not in
-        `S`.  It fits in an exact sequence between the units modulo
-        `m`-th powers and the `m`-torsion in the `S`-class group:
+        A list of generators of `K(S,m)`, and (optionally) their
+        orders as elements of `K^\times/(K^\times)^m`.  This is the
+        subgroup of `K^\times/(K^\times)^m` consisting of elements `a`
+        such that the valuation of `a` is divisible by `m` at all
+        primes not in `S`.  It fits in an exact sequence between the
+        units modulo `m`-th powers and the `m`-torsion in the
+        `S`-class group:
 
         .. math::
 
@@ -3868,17 +3873,27 @@ class NumberField_generic(number_field_base.NumberField):
             2
             sage: K.hilbert_class_field('b')
             Number Field in b with defining polynomial x^2 + 1 over its base field
-            sage: K.selmer_group([K.ideal(2, -a+1)], 2)
+
+        When `m` is prime all the orders are equal to `m`, but in general they are only divisors of `m`::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: P2 = K.ideal(2, -a+1)
+            sage: P3 = K.ideal(3, a+1)
+            sage: K.selmer_group((), 2, orders=True)
+            ([-1, 2], [2, 2])
+            sage: K.selmer_group((), 4, orders=True)
+            ([-1, 4], [2, 2])
+            sage: K.selmer_group([P2], 2)
             [2, -1]
-            sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1)], 2)
+            sage: K.selmer_group((P2,P3), 4)
             [2, a + 1, -1]
-            sage: K.selmer_group((K.ideal(2, -a+1),K.ideal(3, a+1)), 4)
-            [2, a + 1, -1]
-            sage: K.selmer_group([K.ideal(2, -a+1)], 3)
+            sage: K.selmer_group((P2,P3), 4, orders=True)
+            ([2, a + 1, -1], [4, 4, 2])
+            sage: K.selmer_group([P2], 3)
             [2]
-            sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1)], 3)
+            sage: K.selmer_group([P2, P3], 3)
             [2, a + 1]
-            sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)  # random signs
+            sage: K.selmer_group([P2, P3, K.ideal(a)], 3)  # random signs
             [2, a + 1, a]
 
         Example over `\QQ` (as a number field)::
@@ -3888,11 +3903,16 @@ class NumberField_generic(number_field_base.NumberField):
             []
             sage: K.selmer_group([K.prime_above(p) for p in [2,3,5]],2)
             [2, 3, 5, -1]
+            sage: K.selmer_group([K.prime_above(p) for p in [2,3,5]],6, orders=True)
+            ([2, 3, 5, -1], [6, 6, 6, 2])
 
         TESTS::
 
             sage: K.<a> = QuadraticField(-5)
-            sage: S = K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)
+            sage: P2 = K.ideal(2, -a+1)
+            sage: P3 = K.ideal(3, a+1)
+            sage: P5 = K.ideal(a)
+            sage: S = K.selmer_group([P2, P3, P5], 3)
             sage: S == [2, a + 1, a] or S == [2, a + 1, -a]
             True
 
@@ -3909,20 +3929,26 @@ class NumberField_generic(number_field_base.NumberField):
             sage: S = K.selmer_group((), 4)
             sage: all(4.divides(x.valuation(p)) for x in S)
             True
-
         """
         units, clgp_gens = self._S_class_group_and_units(tuple(S), proof=proof)
         gens = []
+        ords = []
         for unit in units:
             order = unit.multiplicative_order()
-            if order == Infinity or order.gcd(m) != 1:
+            if order == Infinity:
                 gens.append(unit)
+                ords.append(m)
+            else:
+                m1 = order.gcd(m)
+                if m1!= 1:
+                    gens.append(unit)
+                    ords.append(m1)
         card_S = len(S)
         if card_S != 0:
             from sage.matrix.constructor import Matrix
             H = self.class_group()
-            ords = [g.order() for g in H.gens()]
-            pari_ords = pari(ords).Col()
+            gen_ords = [g.order() for g in H.gens()]
+            pari_ords = pari(gen_ords).Col()
             Sords = [H(s).order() for s in S]
             MS = Matrix(ZZ, [H(s).exponents() for s in S]).transpose()
             pari_MS = pari(MS)
@@ -3942,7 +3968,11 @@ class NumberField_generic(number_field_base.NumberField):
                     Spart = prod([S[i] ** (exps[i] % Sords[i]) for i in range(card_S)])
                     J *= Spart
                 gens.append(self(J.gens_reduced()[0]))
-        return gens
+                ords.append(d)
+        if orders:
+            return gens, ords
+        else:
+            return gens
 
     def selmer_group_iterator(self, S, m, proof=True):
         r"""
@@ -3968,7 +3998,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: list(K.selmer_group_iterator((), 2))
             [1, 2, -1, -2]
             sage: list(K.selmer_group_iterator((), 4))
-            [1, 4, 16, 64, -1, -4, -16, -64]
+            [1, 4, -1, -4]
             sage: list(K.selmer_group_iterator([K.ideal(2, -a+1)], 2))
             [1, -1, 2, -2]
             sage: list(K.selmer_group_iterator([K.ideal(2, -a+1), K.ideal(3, a+1)], 2))
@@ -3984,12 +4014,10 @@ class NumberField_generic(number_field_base.NumberField):
             sage: list(K.selmer_group_iterator([K.prime_above(p) for p in [11,13]],2))
             [1, -1, 13, -13, 11, -11, 143, -143]
         """
-        KSgens = self.selmer_group(S=S, m=m, proof=proof)
-        f = lambda o: m if o is Infinity else o.gcd(m)
-        orders = [f(a.multiplicative_order()) for a in KSgens]
+        KSgens, ords = self.selmer_group(S=S, m=m, proof=proof, orders=True)
         one = self.one_element()
         from sage.misc.all import cartesian_product_iterator
-        for ev in cartesian_product_iterator([range(o) for o in orders]):
+        for ev in cartesian_product_iterator([range(o) for o in ords]):
             yield prod([p**e for p,e in zip(KSgens, ev)], one)
 
     def composite_fields(self, other, names=None, both_maps=False, preserve_embedding=True):

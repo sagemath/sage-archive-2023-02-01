@@ -3561,10 +3561,10 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: K.<zeta> = CyclotomicField(8)
             sage: K(1).descend_mod_power(QQ,2)
-            [1, -1, 2, -2]
+            [1, 2, -1, -2]
             sage: a = 17*K.random_element()^2
             sage: a.descend_mod_power(QQ,2)
-            [17, -17, 34, -34]
+            [17, 34, -17, -34]
         """
         if not self:
             raise ValueError("element must be nonzero")

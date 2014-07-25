@@ -9326,7 +9326,7 @@ class _FSMTapeCache_(SageObject):
         while len(track_cache) < len(word):
             if not self.read(track_number):
                 return False
-        return all(a == b for a, b in izip(word, iter(track_cache)))
+        return all(a == b for a, b in izip(word, track_cache))
 
 
     def forward(self, transition):

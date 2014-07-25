@@ -10278,9 +10278,11 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         """
         The current/reached state in the process.
 
-        This attribute is deprecated and should not be used any longer
-        (it may return a wrong result for non-deterministic finite
-        state machines).
+        .. WARNING::
+
+            This attribute is deprecated and should not be used any
+            longer (it may return a wrong result for non-deterministic
+            finite state machines).
 
         TESTS::
 
@@ -10313,9 +10315,11 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         """
         The written output.
 
-        This attribute is deprecated and should not be used any longer
-        (it may return a wrong result for non-deterministic finite
-        state machines).
+        .. WARNING::
+
+            This attribute is deprecated and should not be used any
+            longer (it may return a wrong result for non-deterministic
+            finite state machines).
 
         TESTS::
 
@@ -10349,9 +10353,11 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         Is ``True`` if the reached state is accepted. This is only available
         at the end of the iteration process.
 
-        This attribute is deprecated and should not be used any longer
-        (it may return a wrong result for non-deterministic finite
-        state machines).
+        .. WARNING::
+
+            This attribute is deprecated and should not be used any
+            longer (it may return a wrong result for non-deterministic
+            finite state machines).
 
         TESTS::
 

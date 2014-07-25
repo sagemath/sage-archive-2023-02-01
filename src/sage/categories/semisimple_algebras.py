@@ -77,10 +77,21 @@ class SemisimpleAlgebras(Category_over_base_ring):
                 1/6*B[(1,3,2)] + 1/6*B[(1,3)], 1/6*B[()] - 1/6*B[(2,3)] -
                 1/6*B[(1,2)] + 1/6*B[(1,2,3)] + 1/6*B[(1,3,2)] - 1/6*B[(1,3)],
                 2/3*B[()] - 1/3*B[(1,2,3)] - 1/3*B[(1,3,2)]]
+
+            ::
+
+                sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
+                An example of a finite dimensional algebra with basis: the path
+                algebra of the Kronecker quiver (containing the arrows a:x->y
+                and b:x->y) over Rational Field 
+                sage: Aquo = A.semisimple_quotient()
+                sage: orth = Aquo.orthogonal_idempotents()
+                sage: sorted(orth, key=str)
+                [B['x'], B['y']]
             """
             Z = self.center()
             orth = Z.orthogonal_idempotents()
-            return [x._lift_idempotent() for x in orth]
+            return [x.lift() for x in orth]
 
 
     class Commutative(CategoryWithAxiom_over_base_ring):

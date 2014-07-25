@@ -303,6 +303,10 @@ def function(s, *args, **kwds):
 
     Make sure that trac:`15860` is fixed and whitespaces are removed::
 
+        sage: function('A, B')
+        (A, B)
+        sage: B
+        B
         sage: C, D, E = function(' C  D E')
         sage: C(D(x))
         C(D(x))

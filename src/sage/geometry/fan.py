@@ -1714,7 +1714,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: C = Cone([(1,0,0), (0,1,0), (1,0,1), (0,1,1)])
             sage: F = Fan([C]).make_simplicial()
             sage: [cone.ambient_ray_indices() for cone in F]
-            [(0, 1, 3), (0, 2, 3)]
+            [(0, 2, 3), (0, 1, 3)]
         """
         cones = self.generating_cones()
         for n, ray in enumerate(new_rays):

@@ -138,29 +138,30 @@ class SemisimpleAlgebras(Category_over_base_ring):
                     return map( lambda x: x.lift(), res)
 
             @cached_method
-            r"""
-            Return the minimal orthogonal idempotents of ``self``.
-
-            EXAMPLES::
-
-                sage: A5 = G5.algebra(QQ)
-                sage: Z5 = A5.center()
-                sage: Z5.an_element() ** 2
-                179*B[0] + 44*B[1] + 38*B[2] + 39*B[3] + 36*B[4] + 24*B[5] +
-                45*B[6]
-                sage: Z5._refine_category_(SemisimpleAlgebras(QQ))
-                sage: orth = Z5.orthogonal_idempotents()
-                sage: orth
-                [3/10*B[0] - 1/10*B[2] + 1/20*B[6], 1/120*B[0] + 1/120*B[1] +
-                1/120*B[2] + 1/120*B[3] + 1/120*B[4] + 1/120*B[5] + 1/120*B[6],
-                1/120*B[0] - 1/120*B[1] + 1/120*B[2] + 1/120*B[3] - 1/120*B[4]
-                - 1/120*B[5] + 1/120*B[6], 5/24*B[0] + 1/24*B[1] + 1/24*B[2] -
-                1/24*B[3] + 1/24*B[4] - 1/24*B[5], 5/24*B[0] - 1/24*B[1] +
-                1/24*B[2] - 1/24*B[3] - 1/24*B[4] + 1/24*B[5], 2/15*B[0] +
-                1/15*B[1] + 1/30*B[3] - 1/30*B[4] - 1/30*B[6], 2/15*B[0] -
-                1/15*B[1] + 1/30*B[3] + 1/30*B[4] - 1/30*B[6]]
-              """
             def orthogonal_idempotents(self):
+                r"""
+                Return the minimal orthogonal idempotents of ``self``.
+
+                EXAMPLES::
+
+                    sage: G5 = SymmetricGroup(5)
+                    sage: A5 = G5.algebra(QQ)
+                    sage: Z5 = A5.center()
+                    sage: Z5.an_element() ** 2
+                    179*B[0] + 44*B[1] + 38*B[2] + 39*B[3] + 36*B[4] + 24*B[5] +
+                    45*B[6]
+                    sage: Z5._refine_category_(SemisimpleAlgebras(QQ))
+                    sage: orth = Z5.orthogonal_idempotents()
+                    sage: orth
+                    [3/10*B[0] - 1/10*B[2] + 1/20*B[6], 1/120*B[0] + 1/120*B[1] +
+                    1/120*B[2] + 1/120*B[3] + 1/120*B[4] + 1/120*B[5] + 1/120*B[6],
+                    1/120*B[0] - 1/120*B[1] + 1/120*B[2] + 1/120*B[3] - 1/120*B[4]
+                    - 1/120*B[5] + 1/120*B[6], 5/24*B[0] + 1/24*B[1] + 1/24*B[2] -
+                    1/24*B[3] + 1/24*B[4] - 1/24*B[5], 5/24*B[0] - 1/24*B[1] +
+                    1/24*B[2] - 1/24*B[3] - 1/24*B[4] + 1/24*B[5], 2/15*B[0] +
+                    1/15*B[1] + 1/30*B[3] - 1/30*B[4] - 1/30*B[6], 2/15*B[0] -
+                    1/15*B[1] + 1/30*B[3] + 1/30*B[4] - 1/30*B[6]]
+                """
                 return [(e.leading_coefficient()/(e*e).leading_coefficient())*e
                         for e in
                         self._semi_simple_commutative_decomposition_generators()]

@@ -9936,11 +9936,11 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         self._current_positions_ = []  # a heap queue of the keys of _current_
         self._tape_cache_manager_ = []
         position_zero = tuple((0, t) for t, _ in enumerate(self._input_tape_))
-        if not hasattr(self, 'tape_type'):
-            self.tape_type = _FSMTapeCache_
+        if not hasattr(self, 'TapeCache'):
+            self.TapeCache = _FSMTapeCache_
 
         for state in initial_states:
-            self.tape_type(self._tape_cache_manager_,
+            self.TapeCache(self._tape_cache_manager_,
                            self._input_tape_,
                            self._input_tape_ended_,
                            position_zero,
@@ -10607,7 +10607,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
             sage: T.state(0)._epsilon_successors_(T)  # indirect doctest
             {1: [['a']], 2: [['a', 'b']]}
         """
-        self.tape_type = _FSMTapeCacheDetectEpsilon_
+        self.TapeCache = _FSMTapeCacheDetectEpsilon_
         self.visited_states = {}
         kwargs['check_epsilon_transitions'] = False
         return super(_FSMProcessIteratorEpsilon_, self).__init__(*args, **kwargs)

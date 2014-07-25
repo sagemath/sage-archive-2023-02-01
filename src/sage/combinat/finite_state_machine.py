@@ -1405,6 +1405,20 @@ class FSMState(SageObject):
         without reading anything from an input tape as keys. The
         values are lists of outputs.
 
+        INPUT:
+
+        - ``fsm`` -- the finite state machine to which ``self``
+          belongs.
+
+        OUTPUT:
+
+        A dictionary mapping states to a list of output words.
+
+        The states in the output are the epsilon successors of
+        ``self``. Each word of the list of words is an output word
+        written when taking a path from ``self`` to the corresponding
+        state.
+
         TESTS::
 
             sage: T = Transducer([(0, 1, None, 'a'), (1, 2, None, 'b')])
@@ -1447,6 +1461,17 @@ class FSMState(SageObject):
 
     def _in_epsilon_cycle_(self, fsm=None):
         """
+        Returns whether ``self`` is in an epsilon-cycle or not.
+
+        INPUT:
+
+        - ``fsm`` -- the finite state machine to which ``self``
+          belongs.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
         TESTS::
 
             sage: A = Automaton([(0, 1, None, 'a'), (1, 2, None, 'b'),
@@ -1466,6 +1491,21 @@ class FSMState(SageObject):
 
     def _epsilon_cycle_output_empty_(self, fsm=None):
         """
+        Returns whether ``self`` is in an epsilon-cycle, where no
+        output word is written.
+
+        INPUT:
+
+        - ``fsm`` -- the finite state machine to which ``self``
+          belongs.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        A ``ValueError`` is raised when ``self`` is not in an epsilon
+        cycle.
+
         TESTS::
 
             sage: A = Automaton([(0, 1, None, 'a'), (1, 2, None, None),
@@ -1477,7 +1517,7 @@ class FSMState(SageObject):
             sage: A.state(4)._epsilon_cycle_output_empty_(A)
             Traceback (most recent call last):
             ...
-            KeyError: 4
+            ValueError: State 4 is not in an epsilon cycle.
             sage: A = Automaton([(0, 1, None, None), (1, 2, None, None),
             ....:                (2, 0, None, None), (4, 1, None, None)])
             sage: A.state(0)._epsilon_successors_(A)
@@ -1495,9 +1535,13 @@ class FSMState(SageObject):
             sage: A.process(initial_state=A.state(0))
             Traceback (most recent call last):
             ...
-            RuntimeError: State 0 is in an epsilon cycle (no input), but output is written.
+            RuntimeError: State 0 is in an epsilon cycle (no input),
+            but output is written.
         """
-        return not any(self._epsilon_successors_(fsm)[self])
+        try:
+            return not any(self._epsilon_successors_(fsm)[self])
+        except KeyError:
+            raise ValueError("State %s is not in an epsilon cycle." % (self,))
 
 
 #*****************************************************************************

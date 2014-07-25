@@ -1063,7 +1063,9 @@ class SingleFileBuilder(DocBuilder):
     """
     This is the class used to build the documentation for a single
     user-specified file. If the file is called 'foo.py', then the
-    documentation is built in ``DOT_SAGE/docbuild/foo/``
+    documentation is built in ``DIR/foo/`` if the user passes the
+    command line option "-o DIR", or in ``DOT_SAGE/docbuild/foo/``
+    otherwise.
     """
     def __init__(self, path):
         """
@@ -1072,24 +1074,31 @@ class SingleFileBuilder(DocBuilder):
         - ``path`` - the path to the file for which documentation
           should be built
         """
+        global options
+
         self.lang = 'en'
         self.name = 'single_file'
-
         path = os.path.abspath(path)
 
-        # Create ~/.sage/docbuild/ and relevant subdirectories, e.g.,
-        # the static and templates directories.
+        # Create docbuild and relevant subdirectories, e.g.,
+        # the static and templates directories in the output directory.
+        # By default, this is DOT_SAGE/docbuild/MODULE_NAME, but can
+        # also be specified at the command line.
         orig_dir = os.path.join(SAGE_DOC, self.lang, self.name)
-        DOT_SAGE = os.environ['DOT_SAGE']
-
         module_name = os.path.splitext(os.path.basename(path))[0]
         latex_name = module_name.replace('_', r'\_')
 
-        base_dir = os.path.join(DOT_SAGE, 'docbuild', module_name)
-        try:
-            shutil.rmtree(base_dir)
-        except OSError:
-            pass
+        if options.output_dir:
+            base_dir = os.path.join(options.output_dir, module_name)
+            if os.path.exists(base_dir):
+                logger.warning('Warning: Directory %s exists. It is safer to build in a new directory.' % base_dir)
+        else:
+            DOT_SAGE = os.environ['DOT_SAGE']
+            base_dir = os.path.join(DOT_SAGE, 'docbuild', module_name)
+            try:
+                shutil.rmtree(base_dir)
+            except OSError:
+                pass
         self.dir = os.path.join(base_dir, 'source')
 
         mkdir(self.dir)
@@ -1139,7 +1148,10 @@ latex_documents = [
         # Create link from original file to self.dir. Note that we
         # append self.dir to sys.path in conf.py. This is reasonably
         # safe (but not perfect), since we just created self.dir.
-        os.symlink(path, os.path.join(self.dir, os.path.basename(path)))
+        try:
+            os.symlink(path, os.path.join(self.dir, os.path.basename(path)))
+        except OSError:
+            pass
 
     def _output_dir(self, type):
         """
@@ -1227,10 +1239,12 @@ def help_description(s=u"", compact=False):
     builder.  If 'compact' is False, the function adds a final newline
     character.
     """
-    s += "Build or return information about Sage documentation.\n"
+    s += "Build or return information about Sage documentation.\n\n"
     s += "    DOCUMENT    name of the document to build\n"
     s += "    FORMAT      document output format\n"
-    s += "    COMMAND     document-specific command\n"
+    s += "    COMMAND     document-specific command\n\n"
+    s += "Note that DOCUMENT may have the form 'file=/path/to/FILE',\n"
+    s += "which builds the documentation for the specified file.\n\n"
     s += "A DOCUMENT and either a FORMAT or a COMMAND are required,\n"
     s += "unless a list of one or more of these is requested."
     if not compact:
@@ -1448,6 +1462,9 @@ def setup_parser():
                         type="int", default=1, metavar="LEVEL",
                         action="store",
                         help="report progress at LEVEL=0 (quiet), 1 (normal), 2 (info), or 3 (debug); does not affect children")
+    standard.add_option("-o", "--output", dest="output_dir", default=None,
+                        metavar="DIR", action="store",
+                        help="if DOCUMENT is a single file ('file=...'), write output to this directory")
     parser.add_option_group(standard)
 
     # Advanced options.

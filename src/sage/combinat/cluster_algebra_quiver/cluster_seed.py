@@ -2271,7 +2271,7 @@ class ClusterVariable(FractionFieldElement):
                 from sage.combinat.root_system.root_system import RootSystem
                 # the import above is used in the line below
                 mt = self._mutation_type._repr_()
-                # mt is a string of the shape '['A', 15]'
+                # mt is a string of the shape "['A', 15]"
                 # where A is a single letter and 15 is an integer
                 Phi = RootSystem([mt[2: 3], ZZ(mt[6: -1])])
                 Phiplus = Phi.root_lattice().simple_roots()

@@ -848,7 +848,7 @@ class HighestWeightRepresentationBases(Category_realization_of_parent):
             sage: B = F.highest_weight_representation()
             sage: bases = HighestWeightRepresentationBases(B)
             sage: bases.super_categories()
-            [Category of modules with basis over Fraction Field of Univariate Polynomial Ring in q over Rational Field,
+            [Category of vector spaces with basis over Fraction Field of Univariate Polynomial Ring in q over Rational Field,
              Category of realizations of Highest weight representation of ['A', 1, 1] of weight Lambda[0]]
         """
         return [ModulesWithBasis(self.base().base_ring()), Realizations(self.base())]

@@ -693,19 +693,20 @@ def elliptic_j(z):
 
 class EllipticE(BuiltinFunction):
     r"""
-    This returns the value of the "incomplete elliptic integral of the
-    second kind",
+    Return the incomplete elliptic integral of the
+    second kind:
 
     .. math::
 
-        \int_0^\phi \sqrt{1 - m\sin(x)^2}\, dx,
+        E(\varphi\,|\,m)=\int_0^\varphi \sqrt{1 - m\sin(x)^2}\, dx.
 
-    i.e., ``integrate(sqrt(1 - m*sin(x)^2), x, 0, phi)``.  Taking `\phi
-    = \pi/2` gives ``elliptic_ec``.
+    Taking `\varphi = \pi/2` gives :func:`elliptic_ec()<sage.functions.special.EllipticEC>`.
 
     EXAMPLES::
 
         sage: z = var("z")
+        sage: elliptic_e(z, 1)
+        elliptic_e(z, 1)
         sage: # this is still wrong: must be abs(sin(z)) + 2*round(z/pi)
         sage: elliptic_e(z, 1).simplify()
         2*round(z/pi) + sin(z)
@@ -713,6 +714,8 @@ class EllipticE(BuiltinFunction):
         z
         sage: elliptic_e(0.5, 0.1)  # abs tol 2e-15
         0.498011394498832
+        sage: elliptic_e(0.5, 0.1).n(200)
+        0.4980113944988315277662138669...
     """
     def __init__(self):
         """
@@ -729,6 +732,19 @@ class EllipticE(BuiltinFunction):
                                                   sympy='elliptic_e'))
 
     def _eval_(self, z, m):
+        """
+        EXAMPLES::
+
+            sage: z = var("z")
+            sage: elliptic_e(0, x)
+            0
+            sage: elliptic_e(pi/2, x)
+            elliptic_ec(x)
+            sage: elliptic_e(z, 0)
+            z
+            sage: elliptic_e(z, 1)
+            elliptic_e(z, 1)
+        """
         coercion_model = get_coercion_model()
         co = coercion_model.canonical_coercion(z, m)[0]
         if is_inexact(co) and not isinstance(co, Expression):
@@ -743,29 +759,53 @@ class EllipticE(BuiltinFunction):
             return None
 
     def _evalf_(self, z, m, parent=None, algorithm=None):
+        """
+        EXAMPLES::
+
+            sage: elliptic_e(0.5, 0.1)
+            0.498011394498832
+            sage: elliptic_e(0.5, 0.1).n(200)
+            0.4980113944988315277662...
+            sage: elliptic_e(I, I).n()
+            -0.189847437084712 + 1.03209769372160*I
+        """
         R = parent or parent(z)
         from mpmath import ellipe
         return mpmath_utils.call(ellipe, z, m, parent=R)
 
     def _derivative_(self, z, m, diff_param):
+        """
+        EXAMPLES::
+
+            sage: x,z = var('x,z')
+            sage: elliptic_e(z, x).diff(z, 1)
+            sqrt(-x*sin(z)^2 + 1)
+            sage: elliptic_e(z, x).diff(x, 1)
+            1/2*(elliptic_e(z, x) - elliptic_f(z, x))/x
+        """
         if diff_param == 0:
             return sqrt(Integer(1) - m * sin(z) ** Integer(2))
         elif diff_param == 1:
             return (elliptic_e(z, m) - elliptic_f(z, m)) / (Integer(2) * m)
 
     def _print_latex_(self, z, m):
-        return r"E\left({}\middle|{}\right)".format(latex(z), latex(m))
- 
+        """
+        EXAMPLES::
+
+            sage: latex(elliptic_e(pi, x))
+            E(\pi\,|\,x)
+        """
+        return r"E(%s\,|\,%s)" % (latex(z), latex(m))
+
 elliptic_e = EllipticE()
 
 class EllipticEC(BuiltinFunction):
     """
-    This returns the value of the "complete elliptic integral of the
-    second kind,"
+    Return the complete elliptic integral of the second kind:
 
     .. math::
 
-        \int_0^{\pi/2} \sqrt{1 - m\sin(x)^2}\, dx.
+        E(m)=\int_0^{\pi/2} \sqrt{1 - m\sin(x)^2}\, dx.
 
     EXAMPLES::
 
@@ -773,18 +813,30 @@ class EllipticEC(BuiltinFunction):
         1.53075763689776
         sage: elliptic_ec(x).diff()
         1/2*(elliptic_ec(x) - elliptic_kc(x))/x
-
-        sage: loads(dumps(elliptic_ec))
-        elliptic_ec
     """
     def __init__(self):
+        """
+        EXAMPLES::
 
+            sage: loads(dumps(elliptic_ec))
+            elliptic_ec
+        """
         BuiltinFunction.__init__(self, 'elliptic_ec', nargs=1, latex_name='E',
                                  conversions=dict(mathematica='EllipticE',
                                                   maxima='elliptic_ec',
                                                   sympy='elliptic_e'))
  
     def _eval_(self, x):
+        """
+        EXAMPLES::
+
+            sage: elliptic_ec(0)
+            1/2*pi
+            sage: elliptic_ec(1)
+            1
+            sage: elliptic_ec(x)
+            elliptic_ec(x)
+        """
         if is_inexact(x) and not isinstance(x, Expression):
             return self._evalf_(x, parent(x))
         elif x == 0:
@@ -795,6 +847,16 @@ class EllipticEC(BuiltinFunction):
             return None
  
     def _evalf_(self, x, parent=None, algorithm=None):
+        """
+        EXAMPLES::
+
+            sage: elliptic_ec(sqrt(2)/2).n()
+            1.23742252487318
+            sage: elliptic_ec(sqrt(2)/2).n(200)
+            1.237422524873181672854746084083...
+            sage: elliptic_ec(I).n()
+            1.63241178144043 - 0.369219492375499*I
+        """
         R = parent or parent(z)
         from mpmath import ellipe
         return mpmath_utils.call(ellipe, x, parent=R)
@@ -812,11 +874,11 @@ elliptic_ec = EllipticEC()
 
 class EllipticEU(BuiltinFunction):
     r"""
-    This returns the value of the "incomplete elliptic integral of the
-    second kind,"
+    Return Jacobi's form of the incomplete elliptic integral of the second kind:
 
     .. math::
 
+        E(u,m)=
         \int_0^u \mathrm{dn}(x,m)^2\, dx = \int_0^\tau
         {\sqrt{1-m x^2}\over\sqrt{1-x^2}}\, dx.
 
@@ -831,13 +893,19 @@ class EllipticEU(BuiltinFunction):
         r"""
         EXAMPLES::
 
-            sage: elliptic_eu (0.5, 0.1)
-            0.496054551286597
+            sage: loads(dumps(elliptic_eu))
+            elliptic_eu
         """
         BuiltinFunction.__init__(self, 'elliptic_eu', nargs=2,
                                  conversions=dict(maxima='elliptic_eu'))
  
     def _eval_(self, u, m):
+        """
+        EXAMPLES::
+
+            sage: elliptic_eu(1,1)
+            elliptic_eu(1, 1)
+        """
         coercion_model = get_coercion_model()
         co = coercion_model.canonical_coercion(u, m)[0]
         if is_inexact(co) and not isinstance(co, Expression):
@@ -846,10 +914,27 @@ class EllipticEU(BuiltinFunction):
             return None
 
     def _evalf_(self, u, m, parent=None, algorithm=None):
+        """
+        EXAMPLES::
+
+            sage: elliptic_eu(1,1).n()
+            0.761594155955765
+            sage: elliptic_eu(1,1).n(200)
+            0.7615941559557648881194582...
+        """
         R = parent or parent(z)
         return mpmath_utils.call(elliptic_eu_f, u, m, parent=R)
 
     def _derivative_(self, u, m, diff_param):
+        """
+        EXAMPLES::
+
+            sage: x,m = var('x,m')
+            sage: elliptic_eu(x,m).diff(x)
+            sqrt(-m*jacobi_sn(x, m)^2 + 1)*jacobi_dn(x, m)
+            sage: elliptic_eu(x,m).diff(m)
+            1/2*(elliptic_eu(x, m) - elliptic_f(jacobi_am(x, m), m))/m - 1/2*(m*jacobi_cn(x, m)*jacobi_sn(x, m) - (m - 1)*x - elliptic_eu(x, m)*jacobi_dn(x, m))*sqrt(-m*jacobi_sn(x, m)^2 + 1)/((m - 1)*m)
+        """
         from sage.functions.jacobi import jacobi, jacobi_am
         if diff_param == 0:
             return (sqrt(-m * jacobi('sn', u, m) ** Integer(2) +
@@ -864,8 +949,13 @@ class EllipticEU(BuiltinFunction):
                     ((m - Integer(1)) * m))
 
     def _print_latex_(self, u, m):
-        return (r"E\left(\operatorname{{am}}\left({}\right)\middle|{}\right)"
-                .format(latex(u), latex(m)))
+        """
+        EXAMPLES::
+
+            sage: latex(elliptic_eu(1,x))
+            E(1;x)
+        """
+        return r"E(%s;%s)" % (latex(u), latex(m))
 
 def elliptic_eu_f(u, m):
     r"""
@@ -897,15 +987,13 @@ elliptic_eu = EllipticEU()
 
 class EllipticF(BuiltinFunction):
     r"""
-    This returns the value of the "incomplete elliptic integral of the
-    first kind,"
+    Return the incomplete elliptic integral of the first kind,
 
     .. math::
 
-        \int_0^\phi \frac{dx}{\sqrt{1 - m\sin(x)^2}},
+        F(\varphi\,|\,m)=\int_0^\varphi \frac{dx}{\sqrt{1 - m\sin(x)^2}},
 
-    i.e., ``integrate(1/sqrt(1 - m*sin(x)^2), x, 0, phi)``.  Taking
-    `\phi = \pi/2` gives ``elliptic_kc``.
+    Taking `\varphi = \pi/2` gives :func:`elliptic_kc()<sage.functions.special.EllipticKC>`.
 
     EXAMPLES::
 
@@ -918,11 +1006,11 @@ class EllipticF(BuiltinFunction):
         0.200132506747543
     """
     def __init__(self):
-        r"""
+        """
         EXAMPLES::
 
-            sage: elliptic_f (0.2, 0.1)
-            0.200132506747543
+            sage: loads(dumps(elliptic_f))
+            elliptic_f
         """
         BuiltinFunction.__init__(self, 'elliptic_f', nargs=2,
                                  conversions=dict(mathematica='EllipticF',
@@ -930,6 +1018,18 @@ class EllipticF(BuiltinFunction):
                                                   sympy='elliptic_f'))
  
     def _eval_(self, z, m):
+        """
+        EXAMPLES::
+
+            sage: elliptic_f(x,1)
+            elliptic_f(x, 1)
+            sage: elliptic_f(x,0)
+            x
+            sage: elliptic_f(0,1)
+            0
+            sage: elliptic_f(pi/2,x)
+            elliptic_kc(x)
+        """
         coercion_model = get_coercion_model()
         co = coercion_model.canonical_coercion(z, m)[0]
         if is_inexact(co) and not isinstance(co, Expression):
@@ -942,11 +1042,30 @@ class EllipticF(BuiltinFunction):
             return elliptic_kc(m)
 
     def _evalf_(self, z, m, parent=None, algorithm=None):
+        """
+        EXAMPLES::
+
+            sage: elliptic_f(1,1).n()
+            1.22619117088352
+            sage: elliptic_f(1,1).n(200)
+            1.22619117088351707081306096...
+            sage: elliptic_f(I,I).n()
+            0.149965060031782 + 0.925097284105771*I
+        """
         R = parent or parent(z)
         from mpmath import ellipf
         return mpmath_utils.call(ellipf, z, m, parent=R)
 
     def _derivative_(self, z, m, diff_param):
+        """
+        EXAMPLES::
+
+            sage: x,m = var('x,m')
+            sage: elliptic_f(x,m).diff(x)
+            1/sqrt(-m*sin(x)^2 + 1)
+            sage: elliptic_f(x,m).diff(m)
+            -1/2*elliptic_f(x, m)/m + 1/4*sin(2*x)/(sqrt(-m*sin(x)^2 + 1)*(m - 1)) - 1/2*elliptic_e(x, m)/((m - 1)*m)
+        """
         if diff_param == 0:
             return Integer(1) / sqrt(Integer(1) - m * sin(z) ** Integer(2))
         elif diff_param == 1:
@@ -957,18 +1076,23 @@ class EllipticF(BuiltinFunction):
                       sqrt(Integer(1) - m * sin(z) ** Integer(2)))))
 
     def _print_latex_(self, z, m):
-        return r"F\left({}\middle|{}\right)".format(latex(z), latex(m))
+        """
+        EXAMPLES::
+
+            sage: latex(elliptic_f(x,pi))
+            F(x\,|\,\pi)
+        """
+        return r"F(%s\,|\,%s)" % (latex(z), latex(m))
  
 elliptic_f = EllipticF()
 
 class EllipticKC(BuiltinFunction):
     r"""
-    This returns the value of the "complete elliptic integral of the
-    first kind,"
+    Return the complete elliptic integral of the first kind:
 
     .. math::
 
-        \int_0^{\pi/2} \frac{dx}{\sqrt{1 - m\sin(x)^2}}.
+        K(m)=\int_0^{\pi/2} \frac{dx}{\sqrt{1 - m\sin(x)^2}}.
 
     EXAMPLES::
 
@@ -976,25 +1100,55 @@ class EllipticKC(BuiltinFunction):
         1.85407467730137
     """
     def __init__(self):
+        """
+        EXAMPLES::
+    
+            sage: loads(dumps(elliptic_kc))
+            elliptic_kc
+        """
         BuiltinFunction.__init__(self, 'elliptic_kc', nargs=1, latex_name='K',
                                  conversions=dict(mathematica='EllipticK',
                                                   maxima='elliptic_kc',
                                                   sympy='elliptic_k'))
  
     def _eval_(self, z):
+        """
+        EXAMPLES::
+
+            sage: elliptic_kc(0)
+            1/2*pi
+            sage: elliptic_kc(1/2)
+            elliptic_kc(1/2)
+        """
         if is_inexact(z) and not isinstance(z, Expression):
             return self._evalf_(z, parent(z))
         elif z == 0:
             return pi / 2
         else:
-            return
+            return None
  
     def _evalf_(self, z, parent=None, algorithm=None):
+        """
+        EXAMPLES::
+
+            sage: elliptic_kc(1/2).n()
+            1.85407467730137
+            sage: elliptic_kc(1/2).n(200)
+            1.85407467730137191843385034...
+            sage: elliptic_kc(I).n()
+            1.42127228104504 + 0.295380284214777*I
+        """
         R = parent or parent(z)
         from mpmath import ellipk
         return mpmath_utils.call(ellipk, z, parent=R)
  
     def _derivative_(self, z, diff_param):
+        """
+        EXAMPLES::
+
+            sage: elliptic_kc(x).diff(x)
+            -1/2*((x - 1)*elliptic_kc(x) + elliptic_ec(x))/((x - 1)*x)
+        """
         return ((elliptic_ec(z) - (Integer(1) - z) * elliptic_kc(z)) /
                 (Integer(2) * (Integer(1) - z) * z))
 
@@ -1002,13 +1156,11 @@ elliptic_kc = EllipticKC()
 
 class EllipticPi(BuiltinFunction):
     r"""
-    This returns the value of the "incomplete elliptic integral of the
-    third kind,"
+    Return the incomplete elliptic integral of the third kind:
 
     .. math::
 
-        \text{elliptic\_pi}(n, t, m) = \int_0^t \frac{dx}{(1 - n \sin(x)^2)
-        \sqrt{1 - m \sin(x)^2}}.
+        \Pi(n, t, m) = \int_0^t \frac{dx}{(1 - n \sin(x)^2)\sqrt{1 - m \sin(x)^2}}.
 
     INPUT:
 
@@ -1044,11 +1196,11 @@ class EllipticPi(BuiltinFunction):
     .. _`Maxima`: http://maxima.sourceforge.net/docs/manual/en/maxima_16.html#SEC91
     """
     def __init__(self):
-        r"""
+        """
         EXAMPLES::
-
-            sage: elliptic_pi(0.1, 0.2, 0.3)
-            0.200665068220979
+    
+            sage: loads(dumps(elliptic_pi))
+            elliptic_pi
         """
         BuiltinFunction.__init__(self, 'elliptic_pi', nargs=3,
                                  conversions=dict(mathematica='EllipticPi',
@@ -1056,6 +1208,14 @@ class EllipticPi(BuiltinFunction):
                                                   sympy='elliptic_pi'))
  
     def _eval_(self, n, z, m):
+        """
+        EXAMPLES::
+    
+            sage: elliptic_pi(x,x,pi)
+            elliptic_pi(x, x, pi)
+            sage: elliptic_pi(0,x,pi)
+            elliptic_f(x, pi)
+        """
         cm = get_coercion_model()
         co = cm.canonical_coercion(n, cm.canonical_coercion(z, m)[0])[0]
         if is_inexact(co) and not isinstance(co, Expression):
@@ -1066,11 +1226,34 @@ class EllipticPi(BuiltinFunction):
             return None
 
     def _evalf_(self, n, z, m, parent=None, algorithm=None):
+        """
+        EXAMPLES::
+    
+            sage: elliptic_pi(pi,1/2,1).n()
+            0.795062820631931
+            sage: elliptic_pi(pi,1/2,1).n(200)
+            0.79506282063193125292514098445...
+            sage: elliptic_pi(pi,1,1).n()
+            0.0991592574231369 - 1.30004368185937*I
+            sage: elliptic_pi(pi,I,I).n()
+            0.0542471560940594 + 0.552096453413081*I
+        """
         R = parent or parent(z)
         from mpmath import ellippi
         return mpmath_utils.call(ellippi, n, z, m, parent=R)
 
     def _derivative_(self, n, z, m, diff_param):
+        """
+        EXAMPLES::
+
+            sage: n,z,m = var('n,z,m')
+            sage: elliptic_pi(n,z,m).diff(n)
+            1/4*(sqrt(-m*sin(z)^2 + 1)*n*sin(2*z)/(n*sin(z)^2 - 1) + 2*(m - n)*elliptic_f(z, m)/n + 2*(n^2 - m)*elliptic_pi(n, z, m)/n + 2*elliptic_e(z, m))/((m - n)*(n - 1))
+            sage: elliptic_pi(n,z,m).diff(z)
+            -1/(sqrt(-m*sin(z)^2 + 1)*(n*sin(z)^2 - 1))
+            sage: elliptic_pi(n,z,m).diff(m)
+            1/4*(m*sin(2*z)/(sqrt(-m*sin(z)^2 + 1)*(m - 1)) - 2*elliptic_e(z, m)/(m - 1) - 2*elliptic_pi(n, z, m))/(m - n)
+        """
         if diff_param == 0:
             return ((Integer(1) / (Integer(2) * (m - n) * (n - Integer(1)))) *
                     (elliptic_e(z, m) + ((m - n) / n) * elliptic_f(z, m) +
@@ -1090,8 +1273,13 @@ class EllipticPi(BuiltinFunction):
                      sqrt(Integer(1) - m * sin(z) ** Integer(2)))))
 
     def _print_latex_(self, n, z, m):
-        return r"\Pi\left({};{}\middle|{}\right)".format(latex(n), latex(z),
-                                                         latex(m))
+        """
+        EXAMPLES::
+
+            sage: latex(elliptic_pi(x,pi,0))
+            \Pi(x,\pi,0)
+        """
+        return r"\Pi(%s,%s,%s)" % (latex(n), latex(z), latex(m))
  
 elliptic_pi = EllipticPi()
 

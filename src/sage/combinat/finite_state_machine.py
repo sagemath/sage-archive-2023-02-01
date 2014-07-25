@@ -9479,7 +9479,7 @@ class _FSMTapeCache_(SageObject):
             sage: TC2._transition_possible_epsilon_([[(None,)], []])
             False
         """
-        return all(all(letter is None for letter in word) for word in word_in)
+        return all(letter is None for word in word_in for letter in word)
 
 
     def _transition_possible_test_(self, word_in):

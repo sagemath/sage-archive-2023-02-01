@@ -88,13 +88,14 @@ class SemisimpleAlgebras(Category_over_base_ring):
                     179*B[0] + 44*B[1] + 38*B[2] + 39*B[3] + 36*B[4] + 24*B[5]
                     + 45*B[6]
                     sage: Z5._refine_category_(SemisimpleAlgebras(QQ))
-                    sage: Z5._semi_simple_commutative_decomposition_generators()
-                    [B[0] - 1/3*B[2] + 1/6*B[6], B[0] + B[1] + B[2] + B[3] +
-                    B[4] + B[5] + B[6], B[0] - B[1] + B[2] + B[3] - B[4] - B[5]
-                    + B[6], B[0] + 1/5*B[1] + 1/5*B[2] - 1/5*B[3] + 1/5*B[4] -
-                    1/5*B[5], B[0] - 1/5*B[1] + 1/5*B[2] - 1/5*B[3] - 1/5*B[4]
-                    + 1/5*B[5], B[0] + 1/2*B[1] + 1/4*B[3] - 1/4*B[4] -
-                    1/4*B[6], B[0] - 1/2*B[1] + 1/4*B[3] + 1/4*B[4] - 1/4*B[6]] 
+                    sage: gens = Z5._semi_simple_commutative_decomposition_generators()
+                    sage: sorted(gens, key=str)
+                    [B[0] + 1/2*B[1] + 1/4*B[3] - 1/4*B[4] - 1/4*B[6], B[0] +
+                    1/5*B[1] + 1/5*B[2] - 1/5*B[3] + 1/5*B[4] - 1/5*B[5], B[0]
+                    + B[1] + B[2] + B[3] + B[4] + B[5] + B[6], B[0] - 1/2*B[1]
+                    + 1/4*B[3] + 1/4*B[4] - 1/4*B[6], B[0] - 1/3*B[2] +
+                    1/6*B[6], B[0] - 1/5*B[1] + 1/5*B[2] - 1/5*B[3] - 1/5*B[4]
+                    + 1/5*B[5], B[0] - B[1] + B[2] + B[3] - B[4] - B[5] + B[6]]
                 """
                 #Terminal case and stuffs
                 if listGen==None:
@@ -152,15 +153,17 @@ class SemisimpleAlgebras(Category_over_base_ring):
                     45*B[6]
                     sage: Z5._refine_category_(SemisimpleAlgebras(QQ))
                     sage: orth = Z5.orthogonal_idempotents()
-                    sage: orth
-                    [3/10*B[0] - 1/10*B[2] + 1/20*B[6], 1/120*B[0] + 1/120*B[1] +
-                    1/120*B[2] + 1/120*B[3] + 1/120*B[4] + 1/120*B[5] + 1/120*B[6],
-                    1/120*B[0] - 1/120*B[1] + 1/120*B[2] + 1/120*B[3] - 1/120*B[4]
-                    - 1/120*B[5] + 1/120*B[6], 5/24*B[0] + 1/24*B[1] + 1/24*B[2] -
-                    1/24*B[3] + 1/24*B[4] - 1/24*B[5], 5/24*B[0] - 1/24*B[1] +
-                    1/24*B[2] - 1/24*B[3] - 1/24*B[4] + 1/24*B[5], 2/15*B[0] +
-                    1/15*B[1] + 1/30*B[3] - 1/30*B[4] - 1/30*B[6], 2/15*B[0] -
-                    1/15*B[1] + 1/30*B[3] + 1/30*B[4] - 1/30*B[6]]
+                    sage: orth = Z5.orthogonal_idempotents()
+                    sage: sorted(orth, key=str)
+                    [1/120*B[0] + 1/120*B[1] + 1/120*B[2] + 1/120*B[3] +
+                    1/120*B[4] + 1/120*B[5] + 1/120*B[6], 1/120*B[0] -
+                    1/120*B[1] + 1/120*B[2] + 1/120*B[3] - 1/120*B[4] -
+                    1/120*B[5] + 1/120*B[6], 2/15*B[0] + 1/15*B[1] + 1/30*B[3]
+                    - 1/30*B[4] - 1/30*B[6], 2/15*B[0] - 1/15*B[1] + 1/30*B[3]
+                    + 1/30*B[4] - 1/30*B[6], 3/10*B[0] - 1/10*B[2] + 1/20*B[6],
+                    5/24*B[0] + 1/24*B[1] + 1/24*B[2] - 1/24*B[3] + 1/24*B[4] -
+                    1/24*B[5], 5/24*B[0] - 1/24*B[1] + 1/24*B[2] - 1/24*B[3] -
+                    1/24*B[4] + 1/24*B[5]]
                 """
                 return [(e.leading_coefficient()/(e*e).leading_coefficient())*e
                         for e in

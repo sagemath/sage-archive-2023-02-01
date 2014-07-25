@@ -931,6 +931,10 @@ class IntegerListsLex(Parent):
             sage: C.cardinality().parent() is ZZ
             True
             sage: TestSuite(C).run()
+            sage: C = IntegerListsLex(2, global_options=Partitions.global_options)
+            doctest:...: DeprecationWarning: the global_options argument is deprecated
+             since, in general, pickling is broken; create your own class instead
+            See http://trac.sagemath.org/15525 for details.
         """
         # Convert to float infinity
         from sage.rings.infinity import infinity
@@ -942,6 +946,11 @@ class IntegerListsLex(Parent):
             max_length = float('inf')
         if max_part == infinity:
             max_part = float('+inf')
+
+        if global_options is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(15525, 'the global_options argument is deprecated since, in general,'
+                               ' pickling is broken; create your own class instead')
 
         if floor is None:
             self.floor_list = []

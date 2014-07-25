@@ -347,6 +347,10 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             center.rename("Center of {}".format(self))
             return center
 
+        # def orthogonal_idempotents(self):
+        #     pass
+
+
     class ElementMethods:
         def to_matrix(self, base_ring=None, action=operator.mul, side='left'):
             """

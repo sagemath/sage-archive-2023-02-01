@@ -9342,8 +9342,9 @@ class _FSMTapeCache_(SageObject):
         Nothing.
 
         If ``self.is_multitape`` is ``False``, then this function
-        forwards ``self`` (track `0`) by the length of
-        ``transition.word_in``. Otherwise (if ``self.is_multitape`` is
+        forwards ``self`` (track `0`) by the number of entries of
+        ``transition.word_in`` different from ``None``.
+        Otherwise (if ``self.is_multitape`` is
         ``True``), this function forwards each track of ``self`` by
         the length of each entry of ``transition.word_in``. Note that
         the actual values in the input word do not play a role

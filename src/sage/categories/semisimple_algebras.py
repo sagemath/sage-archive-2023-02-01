@@ -84,9 +84,6 @@ class SemisimpleAlgebras(Category_over_base_ring):
                     sage: G5 = SymmetricGroup(5)
                     sage: A5 = G5.algebra(QQ)
                     sage: Z5 = A5.center()
-                    sage: Z5.an_element() ** 2
-                    179*B[0] + 44*B[1] + 38*B[2] + 39*B[3] + 36*B[4] + 24*B[5]
-                    + 45*B[6]
                     sage: Z5._refine_category_(SemisimpleAlgebras(QQ))
                     sage: gens = Z5._semi_simple_commutative_decomposition_generators()
                     sage: sorted(gens, key=str)
@@ -143,14 +140,19 @@ class SemisimpleAlgebras(Category_over_base_ring):
                 r"""
                 Return the minimal orthogonal idempotents of ``self``.
 
+                INPUT::
+
+                    - ``self`` a commutative semisimple algebra
+
+                OUTPUT::
+
+                    - list of idempotents of ``self``
+
                 EXAMPLES::
 
                     sage: G5 = SymmetricGroup(5)
                     sage: A5 = G5.algebra(QQ)
                     sage: Z5 = A5.center()
-                    sage: Z5.an_element() ** 2
-                    179*B[0] + 44*B[1] + 38*B[2] + 39*B[3] + 36*B[4] + 24*B[5] +
-                    45*B[6]
                     sage: Z5._refine_category_(SemisimpleAlgebras(QQ))
                     sage: orth = Z5.orthogonal_idempotents()
                     sage: orth = Z5.orthogonal_idempotents()
@@ -164,6 +166,10 @@ class SemisimpleAlgebras(Category_over_base_ring):
                     5/24*B[0] + 1/24*B[1] + 1/24*B[2] - 1/24*B[3] + 1/24*B[4] -
                     1/24*B[5], 5/24*B[0] - 1/24*B[1] + 1/24*B[2] - 1/24*B[3] -
                     1/24*B[4] + 1/24*B[5]]
+                    sage: orth[2] * orth[4]
+                    0
+                    sage: orth[1] ** 2 == orth[1]
+                    True
                 """
                 return [(e.leading_coefficient()/(e*e).leading_coefficient())*e
                         for e in

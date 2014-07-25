@@ -804,9 +804,6 @@ class EllipticEC(BuiltinFunction):
             sage: elliptic_ec(x).diff()
             1/2*(elliptic_ec(x) - elliptic_kc(x))/x
         """
-        diff_param = kwds['diff_param']
-        assert diff_param == 0
-        x = args[diff_param]
         return (elliptic_ec(x) - elliptic_kc(x)) / (Integer(2) * x)
 
 elliptic_ec = EllipticEC()
@@ -1061,11 +1058,12 @@ class EllipticPi(BuiltinFunction):
         elif n == 0:
             return elliptic_f(z, m)
         else:
-            return
+            return None
 
-    def _evalf_(self, n, z, m, parent):
+    def _evalf_(self, n, z, m, parent=None, algorithm=None):
+        R = parent or parent(z)
         from mpmath import ellippi
-        return mpmath_utils.call(ellippi, n, z, m, parent=parent)
+        return mpmath_utils.call(ellippi, n, z, m, parent=R)
 
     def _derivative_(self, n, z, m, diff_param):
         if diff_param == 0:

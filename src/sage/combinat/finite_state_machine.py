@@ -9163,14 +9163,14 @@ class _FSMTapeCache_(SageObject):
             sage: while True:
             ....:     try:
             ....:         letter = TC2.read_letter()
-            ....:         print 'cache:', TC2.cache, TC2
-            ....:         print 'finished:', TC2.finished(), \
-            ....:             TC2.finished(0), TC2.finished(1)
-            ....:         TC2.forward(
-            ....:             FSMTransition(0, 0, [[l] for l in letter]))
             ....:     except StopIteration:
             ....:         print 'stop'
             ....:         break
+            ....:     print 'cache:', TC2.cache, TC2
+            ....:     print 'finished:', TC2.finished(), \
+            ....:         TC2.finished(0), TC2.finished(1)
+            ....:     TC2.forward(
+            ....:         FSMTransition(0, 0, [[l] for l in letter]))
             cache: (deque([37]), deque([11])) multi-tape at (0, 0)
             finished: False False False
             cache: (deque([38]), deque([12])) multi-tape at (1, 1)
@@ -9230,8 +9230,6 @@ class _FSMTapeCache_(SageObject):
 
             sage: from sage.combinat.finite_state_machine import (
             ....:     _FSMTapeCache_, FSMTransition)
-            sage: TC1 = _FSMTapeCache_([], (xsrange(37, 42),),
-            ....:                      [False], ((0, 0),), False)
             sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             sage: TC2.read_letter(), TC2.read_letter()
@@ -9239,14 +9237,14 @@ class _FSMTapeCache_(SageObject):
             sage: while True:
             ....:     try:
             ....:         letter = TC2.read_letter()
-            ....:         print 'read:', letter
-            ....:         print 'cache:', TC2.cache, TC2
-            ....:         TC2.forward(
-            ....:             FSMTransition(0, 0, [[l] for l in letter]))
-            ....:         print 'cache:', TC2.cache, TC2
             ....:     except StopIteration:
             ....:         print 'stop'
             ....:         break
+            ....:     print 'read:', letter
+            ....:     print 'cache:', TC2.cache, TC2
+            ....:     TC2.forward(
+            ....:         FSMTransition(0, 0, [[l] for l in letter]))
+            ....:     print 'cache:', TC2.cache, TC2
             read: (37, 11)
             cache: (deque([37]), deque([11])) multi-tape at (0, 0)
             cache: (deque([]), deque([])) multi-tape at (1, 1)

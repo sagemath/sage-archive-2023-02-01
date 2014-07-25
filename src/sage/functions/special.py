@@ -742,9 +742,10 @@ class EllipticE(BuiltinFunction):
         else:
             return None
 
-    def _evalf_(self, z, m, parent):
+    def _evalf_(self, z, m, parent=None, algorithm=None):
+        R = parent or parent(z)
         from mpmath import ellipe
-        return mpmath_utils.call(ellipe, z, m, parent=parent)
+        return mpmath_utils.call(ellipe, z, m, parent=R)
 
     def _derivative_(self, z, m, diff_param):
         if diff_param == 0:
@@ -793,9 +794,10 @@ class EllipticEC(BuiltinFunction):
         else:
             return None
  
-    def _evalf_(self, x, parent):
+    def _evalf_(self, x, parent=None, algorithm=None):
+        R = parent or parent(z)
         from mpmath import ellipe
-        return mpmath_utils.call(ellipe, x, parent=parent)
+        return mpmath_utils.call(ellipe, x, parent=R)
 
     def _derivative_(self, x, diff_param):
         """
@@ -843,8 +845,9 @@ class EllipticEU(BuiltinFunction):
         else:
             return None
 
-    def _evalf_(self, u, m, parent):
-       return mpmath_utils.call(elliptic_eu_f, u, m, parent=parent)
+    def _evalf_(self, u, m, parent=None, algorithm=None):
+        R = parent or parent(z)
+        return mpmath_utils.call(elliptic_eu_f, u, m, parent=R)
 
     def _derivative_(self, u, m, diff_param):
         from sage.functions.jacobi import jacobi, jacobi_am
@@ -938,9 +941,10 @@ class EllipticF(BuiltinFunction):
         elif z == pi / 2:
             return elliptic_kc(m)
 
-    def _evalf_(self, z, m, parent):
+    def _evalf_(self, z, m, parent=None, algorithm=None):
+        R = parent or parent(z)
         from mpmath import ellipf
-        return mpmath_utils.call(ellipf, z, m, parent=parent)
+        return mpmath_utils.call(ellipf, z, m, parent=R)
 
     def _derivative_(self, z, m, diff_param):
         if diff_param == 0:
@@ -985,9 +989,10 @@ class EllipticKC(BuiltinFunction):
         else:
             return
  
-    def _evalf_(self, z, parent):
+    def _evalf_(self, z, parent=None, algorithm=None):
+        R = parent or parent(z)
         from mpmath import ellipk
-        return mpmath_utils.call(ellipk, z, parent=parent)
+        return mpmath_utils.call(ellipk, z, parent=R)
  
     def _derivative_(self, z, diff_param):
         return ((elliptic_ec(z) - (Integer(1) - z) * elliptic_kc(z)) /

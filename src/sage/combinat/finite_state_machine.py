@@ -4573,24 +4573,27 @@ class FiniteStateMachine(SageObject):
 
         - ``initial_state`` -- (default: ``None``) the state in which
           to start. If this parameter is ``None``, the
-          :class:`FSMProcessIterator` tries to find suitable initial
-          states.
+          :class:`FSMProcessIterator` takes the initial states of the
+          finite state machine.
 
-        - ``list_of_outputs`` -- (default: ``None``) if set, the
+        - ``list_of_outputs`` -- (default: ``None``) If set, the
           outputs are given in list form (even when we have only one
-          single output).
+          single output). If this is ``None`` and a non-deterministic
+          machine returns more than one path, then the output is in
+          list form as well.
 
-        - ``only_accepted`` -- (default: ``False``) if set and the
+        - ``only_accepted`` -- (default: ``False``) If set and the
           output is a list, then only outputs with first argument
           (accepted) equal to ``True`` are returned.
 
         All the ``kwargs`` will also be passed to
-        :class:`FSMProcessIterator`.
+        :class:`FSMProcessIterator`. You can find more input
+        parameters there.
 
         OUTPUT:
 
-        A triple (or a list of triples when ``list_of_outputs`` is
-        set), where
+        A triple (or a list of triples,
+        cf. parameter ``list_of_outputs``), where
 
         - the first entry is ``True`` if the input string is accepted,
 
@@ -4599,13 +4602,13 @@ class FiniteStateMachine(SageObject):
           could not be processed, i.e., when at one point no
           transition to go could be found.), and
 
-        - the third gives a list of the output labels used during
+        - the third gives a list of the output labels written during
           processing (in the case the finite state machine runs as
           transducer).
 
         Note that in the case the finite state machine is not
-        deterministic, one possible path is gone. This means, that in
-        this case the output can be wrong.
+        deterministic, all possible paths are taken into account and
+        the output will be in list form.
 
         EXAMPLES::
 
@@ -4644,6 +4647,11 @@ class FiniteStateMachine(SageObject):
             sage: T.process([0])
             [(False, 1, [0]), (False, 2, [0])]
 
+        Here is another non-deterministic finite state machine. Note
+        that we use ``format_output`` (see
+        :class:`FSMProcessIterator`) to convert the written outputs
+        (all characters) to strings.
+
         ::
 
             sage: T = Transducer([(0, 1, [0, 0], 'a'), (0, 2, [0, 0, 1], 'b'),
@@ -4659,9 +4667,6 @@ class FiniteStateMachine(SageObject):
             sage: T.process([1, 1], format_output=lambda o: ''.join(o))
             [(True, 0, 'cdcd'), (True, 0, 'ced'),
              (True, 1, 'cdc'), (True, 1, 'ce')]
-
-        ::
-
             sage: T.process([0, 0, 1], format_output=lambda o: ''.join(o))
             [(True, 0, 'adcd'), (True, 0, 'aed'),
              (True, 1, 'adc'), (True, 1, 'ae'), (False, 2, 'b')]
@@ -8087,32 +8092,37 @@ class Automaton(FiniteStateMachine):
 
         INPUT:
 
-        - ``input_tape`` -- The input tape can be a list or an iterable
-          with entries from the input alphabet.
+        - ``input_tape`` -- the input tape can be a list or an
+          iterable with entries from the input alphabet. See also
+          :class:`FSMProcessIterator`.
 
-        - ``initial_state`` -- (default: ``None``) The state in which
-          to start. If this parameter is ``None`` and there is only
-          one initial state in the machine, then this state is taken.
+        - ``initial_state`` -- (default: ``None``) the state in which
+          to start. If this parameter is ``None``, the
+          :class:`FSMProcessIterator` takes the initial states of the
+          finite state machine.
 
         - ``full_output`` -- (default: ``True``) If set, then the full
           output is given, otherwise only whether the sequence is accepted
           or not (the first entry below only).
 
-        - ``list_of_outputs`` -- (default: ``None``) if set, the
+        - ``list_of_outputs`` -- (default: ``None``) If set, the
           outputs are given in list form (even when we have only one
-          single output).
+          single output). If this is ``None`` and a non-deterministic
+          machine returns more than one path, then the output is in
+          list form as well.
 
-        - ``only_accepted`` -- (default: ``False``) if set and the
+        - ``only_accepted`` -- (default: ``False``) If set and the
           output is a list, then only outputs with first argument
           (accepted) equal to ``True`` are returned.
 
         All the ``kwargs`` will also be passed to
-        :class:`FSMProcessIterator`.
+        :class:`FSMProcessIterator`. You can find more input
+        parameters there.
 
         OUTPUT:
 
-        The full output is a pair (or a list of pairs when
-        ``list_of_outputs`` is set), where
+        The full output is a pair (or a list of pairs,
+        cf. parameter ``list_of_outputs``), where
 
         - the first entry is ``True`` if the input string is accepted and
 
@@ -8122,15 +8132,23 @@ class Automaton(FiniteStateMachine):
           transition to go could be found.).
 
         Note that in the case the automaton is not
-        deterministic, one possible path is gone. This means that in
-        this case the output can be wrong. Use
-        :meth:`.determinisation` to get a deterministic automaton
-        machine and try again.
+        deterministic, all possible paths are taken into account and
+        the output will be in list form.
+        You can use :meth:`.determinisation` to get a deterministic
+        automaton machine.
 
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
 
         EXAMPLES::
+
+        In the following examples, we construct an automaton which
+        accepts non-adjacent forms (see also the example on
+        :ref:`non-adjacent forms <finite_state_machine_recognizing_NAFs_example>`
+        in the documentation of the module
+        :mod:`~sage.combinat.finite_state_machine`)
+        and then test it by feeding it with several binary digit
+        expansions::
 
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False  # activate new output behavior
             sage: NAF = Automaton(
@@ -8719,33 +8737,38 @@ class Transducer(FiniteStateMachine):
 
         INPUT:
 
-        - ``input_tape`` -- The input tape can be a list or an iterable
-          with entries from the input alphabet.
+        - ``input_tape`` -- the input tape can be a list or an
+          iterable with entries from the input alphabet. See also
+          :class:`FSMProcessIterator`.
 
-        - ``initial_state`` -- (default: ``None``) The state in which
-          to start. If this parameter is ``None`` and there is only
-          one initial state in the machine, then this state is taken.
+        - ``initial_state`` -- (default: ``None``) the state in which
+          to start. If this parameter is ``None``, the
+          :class:`FSMProcessIterator` takes the initial states of the
+          finite state machine.
 
         - ``full_output`` -- (default: ``True``) If set, then the full
           output is given, otherwise only the generated output (the
           third entry below only). If the input is not accepted, a
           ``ValueError`` is raised.
 
-        - ``list_of_outputs`` -- (default: ``None``) if set, the
+        - ``list_of_outputs`` -- (default: ``None``) If set, the
           outputs are given in list form (even when we have only one
-          single output).
+          single output). If this is ``None`` and a non-deterministic
+          machine returns more than one path, then the output is in
+          list form as well.
 
-        - ``only_accepted`` -- (default: ``False``) if set and the
+        - ``only_accepted`` -- (default: ``False``) If set and the
           output is a list, then only outputs with first argument
           (accepted) equal to ``True`` are returned.
 
         All the ``kwargs`` will also be passed to
-        :class:`FSMProcessIterator`.
+        :class:`FSMProcessIterator`. You can find more input
+        parameters there.
 
         OUTPUT:
 
-        The full output is a triple (or a list of triples when
-        ``list_of_outputs`` is set), where
+        The full output is a triple (or a list of triples,
+        cf. parameter ``list_of_outputs``), where
 
         - the first entry is ``True`` if the input string is accepted,
 
@@ -8754,12 +8777,12 @@ class Transducer(FiniteStateMachine):
           could not be processed, i.e., when at one point no
           transition to go could be found.), and
 
-        - the third gives a list of the output labels used during
+        - the third gives a list of the output labels written during
           processing.
 
         Note that in the case the transducer is not
-        deterministic, one possible path is gone. This means, that in
-        this case the output can be wrong.
+        deterministic, all possible paths are taken into account and
+        the output will be in list form.
 
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.

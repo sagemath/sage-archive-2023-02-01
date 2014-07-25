@@ -10,11 +10,11 @@ Semisimple Algebras
 
 from category_types import Category_over_base_ring
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
-from algebras import Algebras
 from sage.misc.cachefunc import cached_method
-import operator
-
+from algebras import Algebras
+from sage.categories.associative_algebras import AssociativeAlgebras
 from sage.rings.integer_ring import ZZ
+
 
 class SemisimpleAlgebras(Category_over_base_ring):
     """
@@ -59,29 +59,42 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
     class Commutative(CategoryWithAxiom_over_base_ring):
 
-        from sage.rings.integer_ring import ZZ
-        from sage.categories.associative_algebras import AssociativeAlgebras
-
         class ParentMethods:
 
-            def semi_simple_commutative_decomposition(self, listGen=None, topLevel=True):
+            @cached_method
+            def _semi_simple_commutative_decomposition_generators(self, listGen=None, topLevel=True):
                 r"""
-                Decompose a commutative semi-simple algebra ``A`` into a direct sum of simple A-modules.
+                Decompose a commutative finite dimensional semi-simple algebra
+                ``A`` into a direct sum of simple A-modules.
+
+                INPUT::
+
+                - ``self`` a finite dimensional semisimple commutative algebra.
+
+                OUTPUT::
+
+                - list of elements of ``self`` each generating a simple
+                  submodule of ``self`` in direct sum with the others. The list
+                  is maximal.
 
                 Return a list of generators of simple A-modules.
 
                 EXAMPLES:
 
-                    sage: A5 = SymmetricGroupAlgebra(QQ,5)
-                    sage: Z5 = A5.center()                          
-                    sage: semi_simple_commutative_decomposition(Z5)
-                    [B[0] - 1/3*B[3] + 1/6*B[6],
-                    B[0] + B[1] + B[2] + B[3] + B[4] + B[5] + B[6],
-                    B[0] - B[1] + B[2] + B[3] - B[4] - B[5] + B[6],
-                    B[0] + 1/2*B[1] + 1/4*B[2] - 1/4*B[5] - 1/4*B[6],
-                    B[0] - 1/2*B[1] + 1/4*B[2] + 1/4*B[5] - 1/4*B[6],
-                    B[0] + 1/5*B[1] - 1/5*B[2] + 1/5*B[3] - 1/5*B[4] + 1/5*B[5],
-                    B[0] - 1/5*B[1] - 1/5*B[2] + 1/5*B[3] + 1/5*B[4] - 1/5*B[5]]
+                    sage: G5 = SymmetricGroup(5)
+                    sage: A5 = G5.algebra(QQ)
+                    sage: Z5 = A5.center()
+                    sage: Z5.an_element() ** 2
+                    179*B[0] + 44*B[1] + 38*B[2] + 39*B[3] + 36*B[4] + 24*B[5]
+                    + 45*B[6]
+                    sage: Z5._refine_category_(SemisimpleAlgebras(QQ))
+                    sage: Z5._semi_simple_commutative_decomposition_generators()
+                    [B[0] - 1/3*B[2] + 1/6*B[6], B[0] + B[1] + B[2] + B[3] +
+                    B[4] + B[5] + B[6], B[0] - B[1] + B[2] + B[3] - B[4] - B[5]
+                    + B[6], B[0] + 1/5*B[1] + 1/5*B[2] - 1/5*B[3] + 1/5*B[4] -
+                    1/5*B[5], B[0] - 1/5*B[1] + 1/5*B[2] - 1/5*B[3] - 1/5*B[4]
+                    + 1/5*B[5], B[0] + 1/2*B[1] + 1/4*B[3] - 1/4*B[4] -
+                    1/4*B[6], B[0] - 1/2*B[1] + 1/4*B[3] + 1/4*B[4] - 1/4*B[6]] 
                 """
                 #Terminal case and stuffs
                 if listGen==None:
@@ -104,11 +117,6 @@ class SemisimpleAlgebras(Category_over_base_ring):
                             curGen*B[i],
                             codomain=self,
                             triangular=True)
-                    # phi = self.module_morphism(on_basis=lambda i:
-                    #         curGen*self.monomial(i),
-                    #         codomain=self,
-                    #         triangular=True)
-                    return phi
                     aMat = phi.matrix(self.base_ring())
                     res = aMat.eigenspaces_right()
 
@@ -118,11 +126,41 @@ class SemisimpleAlgebras(Category_over_base_ring):
                 res = [[self.from_vector(vector) for vector in eigenspace.basis()]
                         for eigenspace in res]
                 
-                decomp = [self.submodule(v, category=AssociativeAlgebras(self.base_ring()).WithBasis().FiniteDimensional().Subobjects()) for v in res]
+                decomp = [self.submodule(v,
+                    category=SemisimpleAlgebras(self.base_ring()).WithBasis().FiniteDimensional().Commutative().Subobjects()) for v in res]
 
                 #Recursive on decomp
-                res = [x for space in decomp for x in space.semi_simple_commutative_decomposition(topLevel=False)]
+                res = [x for space in decomp for x in
+                        space._semi_simple_commutative_decomposition_generators(topLevel=False)]
                 if topLevel:
                     return res
                 else:
                     return map( lambda x: x.lift(), res)
+
+            @cached_method
+            r"""
+            Return the minimal orthogonal idempotents of ``self``.
+
+            EXAMPLES::
+
+                sage: A5 = G5.algebra(QQ)
+                sage: Z5 = A5.center()
+                sage: Z5.an_element() ** 2
+                179*B[0] + 44*B[1] + 38*B[2] + 39*B[3] + 36*B[4] + 24*B[5] +
+                45*B[6]
+                sage: Z5._refine_category_(SemisimpleAlgebras(QQ))
+                sage: orth = Z5.orthogonal_idempotents()
+                sage: orth
+                [3/10*B[0] - 1/10*B[2] + 1/20*B[6], 1/120*B[0] + 1/120*B[1] +
+                1/120*B[2] + 1/120*B[3] + 1/120*B[4] + 1/120*B[5] + 1/120*B[6],
+                1/120*B[0] - 1/120*B[1] + 1/120*B[2] + 1/120*B[3] - 1/120*B[4]
+                - 1/120*B[5] + 1/120*B[6], 5/24*B[0] + 1/24*B[1] + 1/24*B[2] -
+                1/24*B[3] + 1/24*B[4] - 1/24*B[5], 5/24*B[0] - 1/24*B[1] +
+                1/24*B[2] - 1/24*B[3] - 1/24*B[4] + 1/24*B[5], 2/15*B[0] +
+                1/15*B[1] + 1/30*B[3] - 1/30*B[4] - 1/30*B[6], 2/15*B[0] -
+                1/15*B[1] + 1/30*B[3] + 1/30*B[4] - 1/30*B[6]]
+              """
+            def orthogonal_idempotents(self):
+                return [(e.leading_coefficient()/(e*e).leading_coefficient())*e
+                        for e in
+                        self._semi_simple_commutative_decomposition_generators()]

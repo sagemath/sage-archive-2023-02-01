@@ -9940,12 +9940,12 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             self.TapeCache = _FSMTapeCache_
 
         for state in initial_states:
-            self.TapeCache(self._tape_cache_manager_,
-                           self._input_tape_,
-                           self._input_tape_ended_,
-                           position_zero,
-                           self.is_multitape)
-            self.add_current(state, self._tape_cache_manager_[-1], [[]])
+            tape_cache = self.TapeCache(self._tape_cache_manager_,
+                                        self._input_tape_,
+                                        self._input_tape_ended_,
+                                        position_zero,
+                                        self.is_multitape)
+            self.add_current(state, tape_cache, [[]])
 
         self._finished_ = []  # contains (accept, state, output)
 

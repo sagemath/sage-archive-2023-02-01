@@ -324,7 +324,7 @@ class FourTi2(object):
         return [self.read_matrix(project+'.'+ext) for ext in
                 ['zinhom', 'zhom', 'zfree']]
 
-    def qsolve(self, mat=None, rel=None, sign=None, lat=None, project=None):
+    def qsolve(self, mat=None, rel=None, sign=None, project=None):
         r"""
         Runs the 4ti2 program ``qsolve`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
@@ -335,18 +335,13 @@ class FourTi2(object):
             sage: A = [[1,1,1],[1,2,3]]
             sage: four_ti_2.qsolve(A) # optional - 4ti2
             [[], [ 1 -2  1]]
-            sage: four_ti_2.qsolve(lat=[[1,2,3],[1,1,1]]) # optional - 4ti2
-            [
-                [0 1 2]
-            [], [1 2 3]
-            ]
         """
         project = self._process_input(locals())
         self.call('qsolve -q -parbitrary', project)
         return [self.read_matrix(project+'.'+ext) for ext in
                 ['qhom', 'qfree']]
 
-    def rays(self, mat=None, lat=None, project=None):
+    def rays(self, mat=None, project=None):
         r"""
         Runs the 4ti2 program ``rays`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
@@ -359,9 +354,6 @@ class FourTi2(object):
             [1 0 2 2 1 0 0 2 1]
             [1 2 0 0 1 2 2 0 1]
             [2 0 1 0 1 2 1 2 0]
-            sage: four_ti_2.rays(lat=[[1,2,3],[1,1,1]]) # optional - 4ti2
-            [0 1 2]
-            [2 1 0]
         """
         project = self._process_input(locals())
         self.call('rays -q -parbitrary', project)
@@ -433,7 +425,7 @@ class FourTi2(object):
         self.call('ppi 2> /dev/null', n)
         return self.read_matrix('ppi%s.gra'%n)
 
-    def circuits(self, mat=None, lat=None, project=None):
+    def circuits(self, mat=None, project=None):
         r"""
         Runs the 4ti2 program ``circuits`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
@@ -445,10 +437,6 @@ class FourTi2(object):
             [ 0  3 -2]
             [ 2 -1  0]
             [ 3  0 -1]
-            sage: four_ti_2.circuits(lat=[[1,2,3],[1,1,1]])
-            [ 0  1  2]
-            [ 1  0 -1]
-            [ 2  1  0]
         """
         project = self._process_input(locals())
         self.call('circuits -q -parbitrary', project)

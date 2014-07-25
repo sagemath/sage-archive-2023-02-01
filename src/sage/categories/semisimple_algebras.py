@@ -57,6 +57,32 @@ class SemisimpleAlgebras(Category_over_base_ring):
         R = self.base_ring()
         return [Algebras(R)]
 
+    class ParentMethods:
+
+        @cached_method
+        def orthogonal_idempotents(self):
+            r"""
+            Return a maximal list of orthogonal idempotents of ``self``.
+
+            INPUT:
+
+            - ``self`` -- semisimple algebra
+
+            EXAMPLES::
+
+                sage: A3 = SymmetricGroup(3).algebra(QQ)
+                sage: orth3 = A3.orthogonal_idempotents()
+                sage: sorted(orth3, key=str)
+                [1/6*B[()] + 1/6*B[(2,3)] + 1/6*B[(1,2)] + 1/6*B[(1,2,3)] +
+                1/6*B[(1,3,2)] + 1/6*B[(1,3)], 1/6*B[()] - 1/6*B[(2,3)] -
+                1/6*B[(1,2)] + 1/6*B[(1,2,3)] + 1/6*B[(1,3,2)] - 1/6*B[(1,3)],
+                2/3*B[()] - 1/3*B[(1,2,3)] - 1/3*B[(1,3,2)]]
+            """
+            Z = self.center()
+            orth = Z.orthogonal_idempotents()
+            return [x._lift_idempotent() for x in orth]
+
+
     class Commutative(CategoryWithAxiom_over_base_ring):
 
         class ParentMethods:
@@ -67,11 +93,11 @@ class SemisimpleAlgebras(Category_over_base_ring):
                 Decompose a commutative finite dimensional semi-simple algebra
                 ``A`` into a direct sum of simple A-modules.
 
-                INPUT::
+                INPUT:
 
                 - ``self`` a finite dimensional semisimple commutative algebra.
 
-                OUTPUT::
+                OUTPUT:
 
                 - list of elements of ``self`` each generating a simple
                   submodule of ``self`` in direct sum with the others. The list
@@ -84,7 +110,6 @@ class SemisimpleAlgebras(Category_over_base_ring):
                     sage: G5 = SymmetricGroup(5)
                     sage: A5 = G5.algebra(QQ)
                     sage: Z5 = A5.center()
-                    sage: Z5._refine_category_(SemisimpleAlgebras(QQ))
                     sage: gens = Z5._semi_simple_commutative_decomposition_generators()
                     sage: sorted(gens, key=str)
                     [B[0] + 1/2*B[1] + 1/4*B[3] - 1/4*B[4] - 1/4*B[6], B[0] +
@@ -153,7 +178,6 @@ class SemisimpleAlgebras(Category_over_base_ring):
                     sage: G5 = SymmetricGroup(5)
                     sage: A5 = G5.algebra(QQ)
                     sage: Z5 = A5.center()
-                    sage: Z5._refine_category_(SemisimpleAlgebras(QQ))
                     sage: orth = Z5.orthogonal_idempotents()
                     sage: orth = Z5.orthogonal_idempotents()
                     sage: sorted(orth, key=str)

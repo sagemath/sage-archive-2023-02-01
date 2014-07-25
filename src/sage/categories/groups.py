@@ -685,7 +685,6 @@ class Groups(CategoryWithAxiom):
                 """
                 return self.group().conjugacy_classes_representatives()
 
-            @cached_method
             def center_basis(self):
                 r"""
                 Return a basis of the center of the group algebra.

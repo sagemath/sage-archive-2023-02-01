@@ -338,20 +338,18 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: TestSuite(center).run()
             """
-            category = Algebras(self.base_ring()).FiniteDimensional().Subobjects().Commutative().WithBasis()
-            if self in SemisimpleAlgebras:
-                category = category & SemisimpleAlgebras(self.base_ring())
+            if self in SemisimpleAlgebras(self.base_ring()):
+                category = SemisimpleAlgebras(self.base_ring()).FiniteDimensional().WithBasis().Subobjects().Commutative()
+            else:
+                category = Algebras(self.base_ring()).FiniteDimensional().WithBasis().Subobjects().Commutative()
             center = self.submodule(self.center_basis(),
                                     category = category,
                                     already_echelonized = True)
             center.rename("Center of {}".format(self))
             return center
 
-        # def orthogonal_idempotents(self):
-        #     pass
-
-
     class ElementMethods:
+
         def to_matrix(self, base_ring=None, action=operator.mul, side='left'):
             """
             Return the matrix of the action of ``self`` on the algebra.

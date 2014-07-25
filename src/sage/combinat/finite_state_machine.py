@@ -9953,7 +9953,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
     def _add_current_(self, state, tape_cache, output):
         """
         This helper function does the actual adding of a ``state`` to
-        ``self._current_``. See :meth:`add_current` for details.
+        ``self._current_`` (during the creation of a new branch). See
+        also :meth:`_create_branch_`.
 
         INPUT:
 
@@ -9962,8 +9963,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         - ``tape_cache`` -- an instance of :class:`_FSMTapeCache_` (storing
           information what to read next).
 
-        - ``output`` -- the output tape on which words were written
-          until reaching ``state``.
+        - ``output`` -- a list of output tapes on each of which words
+          were written until reaching ``state``.
 
         OUTPUT:
 
@@ -9992,14 +9993,14 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             {((0, 0),): {'a': (tape at 0, [[]]), 'c': (tape at 0, [[]]),
                          'b': (tape at 0, [[], []])}}
         """
-        if self._current_.has_key(tape.position):
-            states = self._current_[tape.position]
+        if self._current_.has_key(tape_cache.position):
+            states = self._current_[tape_cache.position]
         else:
             states = self._current_[tape_cache.position] = {}
             heapq.heappush(self._current_positions_, tape_cache.position)
 
         if states.has_key(state):
-            existing_tape, existing_output = states[state]
+            existing_tape_cache, existing_output = states[state]
             existing_output.extend(output)
             # TODO: discard equal outputs... (instead of just .extend() them)
             states[state] = (existing_tape_cache, existing_output)
@@ -10009,29 +10010,32 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
     def _create_branch_(self, state, tape_cache, output):
         """
-        This function adds a new ``state`` to ``self._current_``
-        together with input ``tape`` information and an
-        ``output`` tape.
+        This function creates a new branch.
 
         INPUT:
 
-        - ``state`` -- state which has to be processed.
+        - ``state`` -- state which has to be processed (i.e., the
+          current state, this new branch is in).
 
         - ``tape_cache`` -- an instance of :class:`_FSMTapeCache_` (storing
           information what to read next).
 
-        - ``output`` -- the output tape on which words were written
-          until reaching ``state``.
+        - ``output`` -- a list of output tapes on each of which words
+          were written until reaching ``state``.
 
         OUTPUT:
 
         Nothing.
 
-        Note that ``self._current_`` contains all states which have to
-        be visited in the next steps during processing.
+        When this function is called, a new branch is created. If the
+        state has epsilon successors, then a new branch for each
+        epsilon successor (including the state itself) is created. All
+        branches start on the same position on the tape and get the
+        same (more precisely, a deepcopy of the) list of output tapes.
 
-        This function also handles epsilon transitions. The
-        actual adding of the data is done in the helper function
+        Note that ``self._current_`` contains all states which have to
+        be visited in the next steps during processing. The actual
+        adding of the data is done in the helper function
         :meth:`_add_current_`.
 
         TESTS::
@@ -10615,9 +10619,9 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
 
     def _add_current_(self, state, tape_cache, output):
         """
-        This helper function cares about epsilon cycles during the the
-        actual adding of a ``state`` to ``self._current_``. See also
-        :meth:`.add_current`.
+        This helper function cares about epsilon cycles during the
+        actual adding of a ``state`` to ``self._current_`` (during the
+        creation of a new branch). See also :meth:`_create_branch_`.
 
         INPUT:
 
@@ -10626,8 +10630,8 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         - ``tape_cache`` -- an instance of :class:`_FSMTapeCache_` (storing
           information what to read next).
 
-        - ``output`` -- the output tape on which words were written
-          until reaching ``state``.
+        - ``output`` -- a list of output tapes on each of which words
+          were written until reaching ``state``.
 
         OUTPUT:
 

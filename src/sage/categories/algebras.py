@@ -23,6 +23,7 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.quotients import QuotientsCategory
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.tensor import TensorProductsCategory
+from sage.categories.subobjects import SubobjectsCategory
 from sage.categories.associative_algebras import AssociativeAlgebras
 
 class Algebras(CategoryWithAxiom_over_base_ring):
@@ -217,3 +218,26 @@ class Algebras(CategoryWithAxiom_over_base_ring):
             """
             from sage.categories.coalgebras import Coalgebras
             return [Coalgebras(self.base_category().base_ring())]
+    class Subobjects(SubobjectsCategory):
+        
+        class ElementMethods:
+
+            def _mul_(self, right):
+                r"""
+                Product of two elements.
+                INPUT::
+
+                    - ``self``, ``right`` -- two elements
+
+                If B is a SubModuleWithBasis of A, then the multiplication law of B is
+                inherited from the multiplication of A.
+
+                EXAMPLES::
+
+                    sage: Z = SymmetricGroup(5).algebra(QQ).center()
+                    sage: B = Z.basis()
+                    sage: B[3] * B[2]
+                    4*B[2] + 6*B[3] + 5*B[6]
+                """
+                p = self.parent()
+                return p.retract( self.lift() * right.lift())

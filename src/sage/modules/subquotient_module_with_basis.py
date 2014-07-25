@@ -150,7 +150,8 @@ class SubModuleWithBasis(CombinatorialFreeModule):
         """
         import operator
         ring = ambient.base_ring()
-        CombinatorialFreeModule.__init__(self, ring, basis.keys(), category = category)
+        CombinatorialFreeModule.__init__(self, ring, basis.keys(), category =
+                category.Subobjects())
         self._ambient = ambient
         self._basis = basis
         self.lift_on_basis = self._basis.__getitem__
@@ -208,22 +209,3 @@ class SubModuleWithBasis(CombinatorialFreeModule):
             True
         """
         return self.lift.section()
-    def _mul_(self, left):
-        r"""
-        Product of two elements.
-        INPUT::
-
-            - ``self``, ``left`` -- two elements
-
-        If B is a SubModuleWithBasis of A, then the multiplication law of B is
-        inherited from the multiplication of A.
-
-        EXAMPLES::
-
-            sage: Z = SymmetricGroup(5).algebra(QQ).center()
-            sage: B = Z.basis()
-            sage: B[3] * B[2]
-            4*B[2] + 6*B[3] + 5*B[6]
-        """
-        p = self.parent()
-        return p.retract(p.lift(self) * p.lift(left))

@@ -8974,9 +8974,16 @@ class _FSMTapeCache_(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: The lengths of the inputs do not match
+            sage: _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
+            ....:                [False, False], ((0, 2), (0, 1)), True)
+            Traceback (most recent call last):
+            ...
+            TypeError: Tape position ((0, 2), (0, 1)) wrong.
         """
         if not len(tape) == len(position) == len(tape_ended):
             raise TypeError('The lengths of the inputs do not match')
+        if sorted(p[1] for p in position) != range(len(tape)):
+            raise TypeError('Tape position %s wrong.' % (position,))
         self.position = position
         self.tape = tape
         self.tape_ended = tape_ended

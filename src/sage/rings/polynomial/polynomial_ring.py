@@ -1090,23 +1090,18 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         return 1
 
-    def random_element(self, degree=2, *args, **kwds):
+    def random_element(self, degree=(-1,2), *args, **kwds):
         r"""
         Return a random polynomial of given degree or with given degree bounds.
 
         INPUT:
 
-        -  ``degree`` - Integer with degree (default: 2)
-           or a tuple of integers with minimum and maximum degrees
+        -  ``degree`` - optional integer for fixing the degree or
+           or a tuple of minimum and maximum degrees. By default set to
+           ``(-1,2)``.
 
         -  ``*args, **kwds`` - Passed on to the ``random_element`` method for
            the base ring
-
-        OUTPUT:
-
-        -  Polynomial such that the coefficients of `x^i`, for `i` up to
-           ``degree``, are random elements from the base ring, randomized
-           subject to the arguments ``*args`` and ``**kwds``
 
         EXAMPLES::
 
@@ -1129,6 +1124,12 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R.random_element(degree=(0,8))
             x^4 + x^3 + 4*x^2 + 2*x
 
+        Note that the zero polynomial has degree ``-1``, so if you want to
+        consider it set the minimum degree to ``-1``::
+
+            sage: any(R.random_element(degree=(-1,3)) == R.zero() for _ in xrange(100))
+            True
+
         TESTS::
 
             sage: R.random_element(degree=[5])
@@ -1145,8 +1146,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
             sage: R = PolynomialRing(GF(2), 'z')
             sage: for _ in xrange(100):
-            ....:     d = randint(2,20)
-            ....:     assert R.random_element(degree=d).degree() == d
+            ....:     d = randint(-1,20)
+            ....:     P = R.random_element(degree=d)
+            ....:     assert P.degree() == d, "problem with {} which has not degree {}".format(P,d)
         """
         if isinstance(degree, (list, tuple)):
             if len(degree) != 2:
@@ -1154,10 +1156,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             if degree[0] > degree[1]:
                 raise ValueError("minimum degree must be less or equal than maximum degree")
             degree = randint(*degree)
+
         R = self.base_ring()
 
-        if degree == 0:
-            return self(R.random_element(*args, **kwds))
+        if degree == -1:
+            return self.zero()
 
         coeffs = [R.random_element(*args,**kwds) for _ in xrange(degree)]
         dominant_coeff = R.random_element(*args, **kwds)

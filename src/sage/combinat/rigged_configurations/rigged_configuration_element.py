@@ -637,53 +637,6 @@ class RiggedConfigurationElement(ClonableArray):
         kr_tab = self.to_tensor_product_of_kirillov_reshetikhin_tableaux(display_steps)
         return kr_tab.to_tensor_product_of_kirillov_reshetikhin_crystals()
 
-    def lusztig_involution(self):
-        r"""
-        Return the result of the classical Lusztig involution on ``self``.
-
-        EXAMPLES::
-
-            sage: RC = RiggedConfigurations(['D',4,1], [[2,2]])
-            sage: mg = RC.module_generators[1]
-            sage: ascii_art(mg.lusztig_involution())
-            0[ ][ ][ ]0  -1[ ][ ][ ]-1  0[ ][ ][ ]0  0[ ][ ][ ]0
-                         -1[ ][ ][ ]-1
-            sage: elt = mg.f_string([2,1,3,2])
-            sage: ascii_art(elt.lusztig_involution())
-            0[ ][ ]0  0[ ][ ]0  0[ ][ ]0  -2[ ][ ][ ]-2
-                      0[ ][ ]0
-
-        We check that the Lusztig involution commutes with the bijection::
-
-            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[2,2], [1,2]])
-            sage: all(b.to_rigged_configuration().lusztig_involution() # long time
-            ....:     == b.lusztig_involution().to_rigged_configuration() for b in KRT)
-            True
-
-        We check that the Lusztig involution (under the modification of also
-        mapping to the highest weight element) intertwines with the
-        complement map `\theta` (also modified to reverse the tensor factors)
-        under the bijection `\Phi`::
-
-            sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2], [2, 1], [1, 2]])
-            sage: RCp = RiggedConfigurations(['D', 4, 1], [[1, 2], [2, 1], [2, 2]])
-            sage: for mg in RC.module_generators: # long time
-            ....:     y = mg.to_tensor_product_of_kirillov_reshetikhin_tableaux()
-            ....:     hw = y.lusztig_involution().to_highest_weight([1,2,3,4])[0]
-            ....:     c = RCp(*mg.complement_rigging())
-            ....:     hwc = c.to_tensor_product_of_kirillov_reshetikhin_tableaux()
-            ....:     assert hw == hwc
-        """
-        P = self.parent()
-        Cl = P.cartan_type().classical()
-        I = Cl.index_set()
-        aut = Cl.opposition_automorphism()
-        hw = self.to_highest_weight(I)[1]
-        hw.reverse()
-        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
-        RC = RiggedConfigurations(P._cartan_type, reversed(P.dims))
-        return RC(*self, use_vacancy_numbers=True).to_lowest_weight(I)[0].e_string(aut[i] for i in hw)
-
     # TODO: Move the morphisms to a lazy attribute of RiggedConfigurations
     #   once #15463 is done
     def left_split(self):
@@ -839,55 +792,6 @@ class RiggedConfigurationElement(ClonableArray):
 
     delta = left_box
 
-    def right_box(self, return_b=False):
-        r"""
-        Return the image of ``self`` under the right box removal map
-        `\delta^*`.
-
-        Let `\theta` denote the
-        :meth:`complement rigging map<complement_rigging>`
-        and `\delta` denote the :meth:`left box removal map<left_box>`, we
-        define the right box removal map by
-        `\delta^* := \theta \circ \delta \circ \theta`.
-
-        .. NOTE::
-
-            Due to the special nature of the bijection for the spinor cases in
-            types `D_n^{(1)}`, `B_n^{(1)}`, and `A_{2n-1}^{(2)}`, this map is
-            not defined in these cases.
-
-        INPUT:
-
-        - ``return_b`` -- (default: ``False``) whether to return the
-          resulting letter from `\delta^*`
-
-        OUTPUT:
-
-        The resulting rigged configuration or if ``return_b`` is ``True``,
-        then a tuple of the resulting rigged configuration and the letter.
-
-        EXAMPLES::
-
-            sage: RC = RiggedConfigurations(['C',4,1], [[3,2]])
-            sage: mg = RC.module_generators[-1]
-            sage: ascii_art(mg)
-            0[ ][ ]0  0[ ][ ]0  0[ ][ ]0  0[ ]0
-                      0[ ][ ]0  0[ ][ ]0  0[ ]0
-                                0[ ][ ]0  0[ ]0
-            sage: ascii_art(mg.right_box())
-            0[ ]0  0[ ][ ]0  0[ ][ ]0  0[ ]0
-                   0[ ]0     0[ ][ ]0  0[ ]0
-            sage: x,b = mg.right_box(True)
-            sage: b
-            -1
-            sage: b.parent()
-            The crystal of letters for type ['C', 4]
-        """
-        y = self.complement_rigging(True).left_box(return_b)
-        if return_b:
-            return (y[0].complement_rigging(True), y[1])
-        return y.complement_rigging(True)
-
     def complement_rigging(self, reverse_factors=False):
         r"""
         Apply the complement rigging morphism `\theta` to ``self``.
@@ -930,6 +834,19 @@ class RiggedConfigurationElement(ClonableArray):
 
             sage: mg.complement_rigging(True).parent()
             Rigged configurations of type ['D', 4, 1] and factor(s) ((2, 2), (1, 1))
+
+        We check that the Lusztig involution (under the modification of also
+        mapping to the highest weight element) intertwines with the
+        complement map `\theta` (that reverses the tensor factors)
+        under the bijection `\Phi`::
+
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2], [2, 1], [1, 2]])
+            sage: for mg in RC.module_generators: # long time
+            ....:     y = mg.to_tensor_product_of_kirillov_reshetikhin_tableaux()
+            ....:     hw = y.lusztig_involution().to_highest_weight([1,2,3,4])[0]
+            ....:     c = mg.complement_rigging(True)
+            ....:     hwc = c.to_tensor_product_of_kirillov_reshetikhin_tableaux()
+            ....:     assert hw == hwc
         """
         P = self.parent()
         if reverse_factors:

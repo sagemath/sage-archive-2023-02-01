@@ -348,6 +348,18 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             center.rename("Center of {}".format(self))
             return center
 
+        def orthogonal_idempotent(self):
+            r"""
+            Return a maximal family of orthogonal idempotents of ``self``.
+
+            INPUT:
+
+            - ``self`` -- a finite dimensional algebra
+            """
+            Aquo = self.semisimple_quotient()
+            orth_quo = Aquo.orthogonal_idempotents()
+            return [x._lift_idempotent() for x in orth_quo]
+
     class ElementMethods:
 
         def to_matrix(self, base_ring=None, action=operator.mul, side='left'):

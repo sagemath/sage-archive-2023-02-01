@@ -119,6 +119,34 @@ class Algebras(CategoryWithAxiom_over_base_ring):
 
     class Quotients(QuotientsCategory):
 
+        class ElementMethods:
+
+            def _lift_idempotent(self):
+                r"""
+                Lift an idempotent of parent of ``self`` into an indempotent of
+                parent of ``self.lift()``
+
+                EXAMPLES::
+
+                    sage: A3 = SymmetricGroup(3).algebra(QQ)
+                    sage: Z3 = A3.center()
+                    sage: Z3._refine_category_(SemisimpleAlgebras(QQ))
+                    sage: orth = Z3.orthogonal_idempotents()
+                    sage: x = orth[2]._lift_idempotent()
+                    sage: x not in Z3 and x in A3
+                    True
+
+                TODO: better documentation.
+                """
+                idempOld = None
+                idemp = self.lift()
+                p = idemp.parent()
+                while idemp <> idempOld:
+                    tmp = idemp
+                    idemp = (p.one() - (p.one() - idemp**2)**2)
+                    idempOld = tmp
+                return idemp
+
         class ParentMethods:
 
             def algebra_generators(self):
@@ -243,29 +271,3 @@ class Algebras(CategoryWithAxiom_over_base_ring):
                 """
                 p = self.parent()
                 return p.retract( self.lift() * right.lift())
-
-            def _lift_idempotent(self):
-                r"""
-                Lift an idempotent of parent of ``self`` into an indempotent of
-                parent of ``self.lift()``
-
-                EXAMPLES::
-
-                    sage: A3 = SymmetricGroup(3).algebra(QQ)
-                    sage: Z3 = A3.center()
-                    sage: Z3._refine_category_(SemisimpleAlgebras(QQ))
-                    sage: orth = Z3.orthogonal_idempotents()
-                    sage: x = orth[2]._lift_idempotent()
-                    sage: x not in Z3 and x in A3
-                    True
-
-                TODO: better documentation.
-                """
-                idempOld = None
-                idemp = self.lift()
-                p = idemp.parent()
-                while idemp <> idempOld:
-                    tmp = idemp
-                    idemp = (p.one() - (p.one() - idemp**2)**2)
-                    idempOld = tmp
-                return idemp

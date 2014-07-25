@@ -292,7 +292,7 @@ class FourTi2(object):
             cmd += " > /dev/null 2> /dev/null"
         subprocess.call(cmd, shell=True, cwd=self.directory())
 
-    def zsolve(self, mat=None, rel=None, rhs=None, sign=None, project=None):
+    def zsolve(self, mat=None, rel=None, rhs=None, sign=None, lat=None, project=None):
         r"""
         Runs the 4ti2 program ``zsolve`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
@@ -312,13 +312,19 @@ class FourTi2(object):
             [1 1 0]  [ 1 -2  1]
             [0 1 0], [ 0 -2  1], []
             ]
+            sage: four_ti_2.zsolve(lat=[[1,2,3],[1,1,1]]) # optional - 4ti2
+            [
+                         [1 2 3]
+            [0 0 0], [], [1 1 1]
+            ]
+
         """
         project = self._process_input(locals())
         self.call('zsolve -q', project)
         return [self.read_matrix(project+'.'+ext) for ext in
                 ['zinhom', 'zhom', 'zfree']]
 
-    def qsolve(self, mat=None, rel=None, sign=None, project=None):
+    def qsolve(self, mat=None, rel=None, sign=None, lat=None, project=None):
         r"""
         Runs the 4ti2 program ``qsolve`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
@@ -329,13 +335,18 @@ class FourTi2(object):
             sage: A = [[1,1,1],[1,2,3]]
             sage: four_ti_2.qsolve(A) # optional - 4ti2
             [[], [ 1 -2  1]]
+            sage: four_ti_2.qsolve(lat=[[1,2,3],[1,1,1]]) # optional - 4ti2
+            [
+                [0 1 2]
+            [], [1 2 3]
+            ]
         """
         project = self._process_input(locals())
         self.call('qsolve -q -parbitrary', project)
         return [self.read_matrix(project+'.'+ext) for ext in
                 ['qhom', 'qfree']]
 
-    def rays(self, mat=None, project=None):
+    def rays(self, mat=None, lat=None, project=None):
         r"""
         Runs the 4ti2 program ``rays`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
@@ -348,12 +359,15 @@ class FourTi2(object):
             [1 0 2 2 1 0 0 2 1]
             [1 2 0 0 1 2 2 0 1]
             [2 0 1 0 1 2 1 2 0]
+            sage: four_ti_2.rays(lat=[[1,2,3],[1,1,1]]) # optional - 4ti2
+            [0 1 2]
+            [2 1 0]
         """
         project = self._process_input(locals())
         self.call('rays -q -parbitrary', project)
         return self.read_matrix(project+'.ray')
 
-    def hilbert(self, mat=None, project=None):
+    def hilbert(self, mat=None, lat=None, project=None):
         r"""
         Runs the 4ti2 program ``hilbert`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
@@ -367,12 +381,16 @@ class FourTi2(object):
             [0 2 1 2 1 0 1 0 2]
             [1 2 0 0 1 2 2 0 1]
             [1 1 1 1 1 1 1 1 1]
+            sage: four_ti_2.hilbert(lat=[[1,2,3],[1,1,1]])
+            [2 1 0]
+            [0 1 2]
+            [1 1 1]
         """
         project = self._process_input(locals())
         self.call('hilbert -q', project)
         return self.read_matrix(project+'.hil')
 
-    def graver(self, mat=None, project=None):
+    def graver(self, mat=None, lat=None, project=None):
         r"""
         Runs the 4ti2 program ``graver`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
@@ -386,7 +404,11 @@ class FourTi2(object):
             [ 1  1 -1]
             [ 1 -2  1]
             [ 0  3 -2]
-
+            sage: four_ti_2.graver(lat=[[1,2,3],[1,1,1]])
+            [ 1  0 -1]
+            [ 0  1  2]
+            [ 1  1  1]
+            [ 2  1  0]
         """
         project = self._process_input(locals())
         self.call('graver -q', project)
@@ -411,7 +433,7 @@ class FourTi2(object):
         self.call('ppi 2> /dev/null', n)
         return self.read_matrix('ppi%s.gra'%n)
 
-    def circuits(self, mat=None, project=None):
+    def circuits(self, mat=None, lat=None, project=None):
         r"""
         Runs the 4ti2 program ``circuits`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
@@ -423,12 +445,16 @@ class FourTi2(object):
             [ 0  3 -2]
             [ 2 -1  0]
             [ 3  0 -1]
+            sage: four_ti_2.circuits(lat=[[1,2,3],[1,1,1]])
+            [ 0  1  2]
+            [ 1  0 -1]
+            [ 2  1  0]
         """
         project = self._process_input(locals())
         self.call('circuits -q -parbitrary', project)
         return self.read_matrix(project+'.cir')
 
-    def minimize(self, mat=None):
+    def minimize(self, mat=None, lat=None):
         r"""
         Runs the 4ti2 program ``minimize`` on the parameters. See
         ``http://www.4ti2.de/`` for details.
@@ -444,7 +470,7 @@ class FourTi2(object):
         raise NotImplementedError("4ti2 command 'minimize' not implemented "
                                    "in Sage.")
 
-    def groebner(self, mat=None, project=None):
+    def groebner(self, mat=None, lat=None, project=None):
         r"""
         Runs the 4ti2 program ``groebner`` on the parameters. This
         computes a Toric Groebner basis of a matrix. See
@@ -457,6 +483,9 @@ class FourTi2(object):
             sage: four_ti_2.groebner(A) # optional - 4ti2
             [-5  0  2]
             [-5  3  0]
+            sage: four_ti_2.groebner(lat=[[1,2,3],[1,1,1]])
+            [-1  0  1]
+            [ 2  1  0]
         """
         project = self._process_input(locals())
         self.call('groebner -q -parbitrary', project)

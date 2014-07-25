@@ -8140,7 +8140,7 @@ class Automaton(FiniteStateMachine):
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
 
-        EXAMPLES::
+        EXAMPLES:
 
         In the following examples, we construct an automaton which
         accepts non-adjacent forms (see also the example on
@@ -8148,7 +8148,9 @@ class Automaton(FiniteStateMachine):
         in the documentation of the module
         :mod:`~sage.combinat.finite_state_machine`)
         and then test it by feeding it with several binary digit
-        expansions::
+        expansions.
+
+        ::
 
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False  # activate new output behavior
             sage: NAF = Automaton(
@@ -9672,8 +9674,8 @@ def is_FSMProcessIterator(PI):
 class FSMProcessIterator(SageObject, collections.Iterator):
     """
     This class takes an input, feeds it into a finite state machine
-    (automaton or transducer, in particular), and returns whether this
-    was successful and the written output.
+    (automaton or transducer, in particular), and tests whether this
+    was successful and calculates the written output.
 
     INPUT:
 
@@ -9703,8 +9705,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
     machines (see also notes below):
 
     - ``use_multitape_input`` -- (default: ``None``, which translates
-      to ``False``) activates the multi-tape mode of the process
-      iterator.
+      to ``False``) if ``True``, then the multi-tape mode of the process
+      iterator is activated.
 
     - ``input_single_tape`` and ``input_multi_tape`` -- the input tape
       for single-tape and multi-tape modes, respectively. For the
@@ -9715,18 +9717,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
     An iterator.
 
-    The process (iteration) stops if all branches are finished, i.e.,
-    for each branch, there is no transition whose input word coincides
-    with the not processed input tape. This can simply happen when the
-    entire tape was read. In this case a ``StopIteration`` exception
-    is thrown.
-
-    An instance of this class is generated when
-    :meth:`FiniteStateMachine.process` or
-    :meth:`FiniteStateMachine.iter_process` of the finite state
-    machine is invoked.
-
-    In its simplest form, it behaves like an iterator which, in each
+    In its simplest form, the it behaves like an iterator which, in each
     step, goes from one state to another. To decide which way to go,
     it uses the input words of the outgoing transitions and compares
     them to the input tape. More precisely, in each step, the process
@@ -9734,9 +9725,21 @@ class FSMProcessIterator(SageObject, collections.Iterator):
     input label equals the input letter of the tape. The output label
     of the transition, if present, is written on the output tape.
 
-    If the choice of the outgoing transition is not unique, all
-    possibilites are followed (if necessary the current state is split
-    to several branches).
+    If the choice of the outgoing transition is not unique (i.e., we
+    have a non-deterministic finite state machine), all possibilites
+    are followed. This is done by splitting the process into several
+    branches, one for each of the possible outgoing transitions.
+
+    The process (iteration) stops if all branches are finished, i.e.,
+    for no branch, there is any transition whose input word coincides
+    with the processed input tape. This can simply happen when the
+    entire tape was read. When the process stops, a ``StopIteration``
+    exception is thrown.
+
+    An instance of this class is generated when
+    :meth:`FiniteStateMachine.process` or
+    :meth:`FiniteStateMachine.iter_process` of a finite state machine,
+    an automaton, or a transducer is invoked.
 
     When working with multi-tape finite state machines, all input
     words of transitions are `k`-tuples of words (the latter in the
@@ -9759,7 +9762,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         sage: T.process(input)
         (True, 'A', [1, 0, 0, 1, 0, 1, 0])
 
-    The function :meth:`FiniteStateMachine.process` creates a new
+    The function :meth:`FiniteStateMachine.process` creates (internally) a new
     ``FSMProcessIterator``. We can do that manually, too, and get full
     access to the iteration process::
 

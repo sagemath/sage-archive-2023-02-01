@@ -273,7 +273,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             if base_ring is None:
                 base_ring = self.codomain().base_ring()
 
-            on_basis = self.on_basis()
+            on_basis = self.on_basis
             basis_keys = self.domain().basis().keys()
             m = matrix(base_ring,
                        [on_basis(x).to_vector() for x in basis_keys])

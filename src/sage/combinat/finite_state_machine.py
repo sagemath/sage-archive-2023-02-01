@@ -9945,7 +9945,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                                         self._input_tape_ended_,
                                         position_zero,
                                         self.is_multitape)
-            self.add_current(state, tape_cache, [[]])
+            self._create_branch_(state, tape_cache, [[]])
 
         self._finished_ = []  # contains (accept, state, output)
 
@@ -9984,7 +9984,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             ....:     [[]])
             sage: it._current_
             {((0, 0),): {'a': (tape at 0, [[]]), 'b': (tape at 0, [[]])}}
-            sage: it.add_current(
+            sage: it._create_branch_(
             ....:     A.state('c'),
             ....:     deepcopy(it._current_[((0, 0),)][A.state('a')][0]),
             ....:     [[]])  # indirect doctest
@@ -10007,7 +10007,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             states[state] = (tape, output)
 
 
-    def add_current(self, state, tape, output):
+    def _create_branch_(self, state, tape_cache, output):
         """
         This function adds a new ``state`` to ``self._current_``
         together with input ``tape`` information and an
@@ -10043,7 +10043,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: it = FSMProcessIterator(A, input_tape=[0, 1, 2])  # indirect doctest
             sage: it._current_
             {((0, 0),): {'a': (tape at 0, [[]]), 'c': (tape at 0, [[]])}}
-            sage: it.add_current(
+            sage: it._create_branch_(
             ....:     A.state('b'),
             ....:     deepcopy(it._current_[((0, 0),)][A.state('a')][0]),
             ....:     [[]])
@@ -10209,7 +10209,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                 # go to next state
                 state = transition.to_state
                 tape.forward(transition)
-                self.add_current(state, tape, out)
+                self._create_branch_(state, tape, out)
             return
 
         states_dict = self._current_.pop(heapq.heappop(self._current_positions_))

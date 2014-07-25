@@ -23,7 +23,7 @@ from sage.rings.infinity import infinity
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.family import Family
 from sage.sets.positive_integers import PositiveIntegers
-from sage.monoids.indexed_monoid import IndexedFreeAbelianMonoid
+from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.free_module import CombinatorialFreeModule
 

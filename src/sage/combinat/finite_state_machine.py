@@ -9026,10 +9026,8 @@ class _FSMTapeCache_(SageObject):
             'multi-tape at (0, 0)'
         """
         if self.is_multitape:
-            pos = len(self.position) * [None]
-            for p, t in self.position:
-                pos[t] = p
-            return 'multi-tape at %s' % (tuple(pos),)
+            pos = tuple(p for p, t in sorted(self.position, key=lambda x: x[1]))
+            return 'multi-tape at %s' % (pos,)
         else:
             return 'tape at %s' % (self.position[0][0],)
 

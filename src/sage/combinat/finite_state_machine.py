@@ -2736,7 +2736,7 @@ class FiniteStateMachine(SageObject):
         EXAMPLES::
 
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False  # activate new output behavior
-            sage: binary_inverter = Transducer({'A':[('A', 0, 1), ('A', 1, 0)]},
+            sage: binary_inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
             ....:                              initial_states=['A'], final_states=['A'])
             sage: binary_inverter([0, 1, 0, 0, 1, 1])
             [1, 0, 1, 1, 0, 0]
@@ -4565,7 +4565,7 @@ class FiniteStateMachine(SageObject):
 
         EXAMPLES::
 
-            sage: binary_inverter = FiniteStateMachine({'A':[('A', 0, 1), ('A', 1, 0)]},
+            sage: binary_inverter = FiniteStateMachine({'A': [('A', 0, 1), ('A', 1, 0)]},
             ....:                                      initial_states=['A'], final_states=['A'])
             sage: binary_inverter.process([0, 1, 0, 0, 1, 1])
             (True, 'A', [1, 0, 1, 1, 0, 0])
@@ -8723,7 +8723,7 @@ class Transducer(FiniteStateMachine):
         EXAMPLES::
 
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False  # activate new output behavior
-            sage: binary_inverter = Transducer({'A':[('A', 0, 1), ('A', 1, 0)]},
+            sage: binary_inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
             ....:                              initial_states=['A'], final_states=['A'])
             sage: binary_inverter.process([0, 1, 0, 0, 1, 1])
             (True, 'A', [1, 0, 1, 1, 0, 0])
@@ -9162,10 +9162,8 @@ class _FSMTapeCache_(SageObject):
             ....:                      [False], ((0, 0),), False)
             sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
-            sage: TC2.read_letter()
-            (37, 11)
-            sage: TC2.read_letter()
-            (37, 11)
+            sage: TC2.read_letter(), TC2.read_letter()
+            ((37, 11), (37, 11))
             sage: while True:
             ....:     try:
             ....:         letter = TC2.read_letter()

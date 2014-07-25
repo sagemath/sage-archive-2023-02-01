@@ -9762,8 +9762,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         sage: T.process(input)
         (True, 'A', [1, 0, 0, 1, 0, 1, 0])
 
-    The function :meth:`FiniteStateMachine.process` creates (internally) a new
-    ``FSMProcessIterator``. We can do that manually, too, and get full
+    The function :meth:`FiniteStateMachine.process` uses (internally) a
+    :class:`FSMProcessIterator`. We can do that manually, too, and get full
     access to the iteration process::
 
         sage: from sage.combinat.finite_state_machine import FSMProcessIterator
@@ -9790,11 +9790,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         ....:                 (1, 2, 1, 'c'), (2, 0, 0, 'd'),
         ....:                 (2, 1, None, 'd')],
         ....:                initial_states=[0], final_states=[2])
-        sage: for o in T.process([0, 0, 1],
-        ....:                    format_output=lambda o: ''.join(o)):
-        ....:     print o
-        (False, 1, 'abcd')
-        (True, 2, 'abc')
+        sage: T.process([0, 0, 1], format_output=lambda o: ''.join(o))
+        [(False, 1, 'abcd'), (True, 2, 'abc')]
         sage: it = FSMProcessIterator(T, input_tape=[0, 0, 1],
         ....:                         format_output=lambda o: ''.join(o))
         sage: for current in it:
@@ -9813,30 +9810,19 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         sage: T = Transducer([(0, 1, None, None), (1, 0, None, None)],
         ....:                initial_states=[0], final_states=[1])
-        sage: for o in T.process([],
-        ....:                    format_output=lambda o: ''.join(o),
-        ....:                    list_of_outputs=True):
-        ....:     print o
-        (False, 0, '')
-        (True, 1, '')
+        sage: T.process([])  # indirect doctest
+        [(False, 0, []), (True, 1, [])]
         sage: _ = T.add_transition(-1, 0, 0, 'r')
         sage: T.state(-1).is_initial = True
         sage: T.state(0).is_initial = False
-        sage: for o in T.process([0],
-        ....:                    format_output=lambda o: ''.join(o),
-        ....:                    list_of_outputs=True):
-        ....:     print o
-        (False, 0, 'r')
-        (True, 1, 'r')
+        sage: T.process([0])  # indirect doctest
+        [(False, 0, ['r']), (True, 1, ['r'])]
 
     ::
 
         sage: T = Transducer([(0, 1, None, 'z'), (1, 0, None, None)],
         ....:                initial_states=[0], final_states=[1])
-        sage: for o in T.process([],
-        ....:                    format_output=lambda o: ''.join(o),
-        ....:                    list_of_outputs=True):
-        ....:     print o
+        sage: T.process([])  # indirect doctest
         Traceback (most recent call last):
         ...
         RuntimeError: State 0 is in an epsilon cycle (no input),
@@ -9846,10 +9832,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         sage: T.state(0).is_initial = False
         sage: T.process([])
         (False, -1, [])
-        sage: for o in T.process([0],
-        ....:                    format_output=lambda o: ''.join(o),
-        ....:                    list_of_outputs=True):
-        ....:     print o
+        sage: T.process([0])  # indirect doctest
         Traceback (most recent call last):
         ...
         RuntimeError: State 0 is in an epsilon cycle (no input),

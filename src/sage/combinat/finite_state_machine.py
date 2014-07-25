@@ -9950,7 +9950,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         self._finished_ = []  # contains (accept, state, output)
 
 
-    def _add_current_(self, state, tape, output):
+    def _add_current_(self, state, tape_cache, output):
         """
         This helper function does the actual adding of a ``state`` to
         ``self._current_``. See :meth:`add_current` for details.
@@ -9959,7 +9959,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         - ``state`` -- state which has to be processed.
 
-        - ``tape`` -- an instance of :class:`_FSMTapeCache_` (storing
+        - ``tape_cache`` -- an instance of :class:`_FSMTapeCache_` (storing
           information what to read next).
 
         - ``output`` -- the output tape on which words were written
@@ -9995,16 +9995,16 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         if self._current_.has_key(tape.position):
             states = self._current_[tape.position]
         else:
-            states = self._current_[tape.position] = {}
-            heapq.heappush(self._current_positions_, tape.position)
+            states = self._current_[tape_cache.position] = {}
+            heapq.heappush(self._current_positions_, tape_cache.position)
 
         if states.has_key(state):
             existing_tape, existing_output = states[state]
             existing_output.extend(output)
             # TODO: discard equal outputs... (instead of just .extend() them)
-            states[state] = (existing_tape, existing_output)
+            states[state] = (existing_tape_cache, existing_output)
         else:
-            states[state] = (tape, output)
+            states[state] = (tape_cache, output)
 
 
     def _create_branch_(self, state, tape_cache, output):
@@ -10017,7 +10017,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         - ``state`` -- state which has to be processed.
 
-        - ``tape`` -- an instance of :class:`_FSMTapeCache_` (storing
+        - ``tape_cache`` -- an instance of :class:`_FSMTapeCache_` (storing
           information what to read next).
 
         - ``output`` -- the output tape on which words were written
@@ -10051,7 +10051,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             {((0, 0),): {'a': (tape at 0, [[]]), 'c': (tape at 0, [[]]),
                          'b': (tape at 0, [[]])}}
         """
-        self._add_current_(state, tape, output)
+        self._add_current_(state, tape_cache, output)
         if not self.check_epsilon_transitions:
             return
         if state._in_epsilon_cycle_(self.fsm):
@@ -10071,7 +10071,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                 # skipped.
             for eps_out in eps_output:
                 new_out = [o + list(eps_out) for o in output]
-                self._add_current_(eps_state, deepcopy(tape), new_out)
+                self._add_current_(eps_state, deepcopy(tape_cache), new_out)
 
 
     def __next__(self):
@@ -10613,7 +10613,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         return super(_FSMProcessIteratorEpsilon_, self).__init__(*args, **kwargs)
 
 
-    def _add_current_(self, state, tape, output):
+    def _add_current_(self, state, tape_cache, output):
         """
         This helper function cares about epsilon cycles during the the
         actual adding of a ``state`` to ``self._current_``. See also
@@ -10623,7 +10623,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
 
         - ``state`` -- state which has to be processed.
 
-        - ``tape`` -- an instance of :class:`_FSMTapeCache_` (storing
+        - ``tape_cache`` -- an instance of :class:`_FSMTapeCache_` (storing
           information what to read next).
 
         - ``output`` -- the output tape on which words were written
@@ -10649,16 +10649,16 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         self.visited_states[state].extend(
             self.format_output(o) for o in output)
 
-        found = state in tape._visited_states_
-        tape._visited_states_.add(state)
+        found = state in tape_cache._visited_states_
+        tape_cache._visited_states_.add(state)
         if found:
             return
 
         super(_FSMProcessIteratorEpsilon_, self)._add_current_(
-            state, tape, output)
+            state, tape_cache, output)
 
-        self._current_[tape.position][state][0]._visited_states_.update(
-            tape._visited_states_)
+        self._current_[tape_cache.position][state][0]._visited_states_.update(
+            tape_cache._visited_states_)
 
 #*****************************************************************************
 

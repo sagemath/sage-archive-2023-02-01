@@ -9727,8 +9727,9 @@ class FSMProcessIterator(SageObject, collections.Iterator):
     - ``initial_state`` or ``initial_states`` -- the initial state(s)
       in which the machine starts. Either specify a single one with
       ``initial_state`` or a list of them with ``initial_states``. If
-      both are not specified, the initial states of the finite state
-      machine are taken.
+      both are given, ``initial_state`` will be appended to
+      ``initial_states``. If neither is specified, the initial
+      states of the finite state machine are taken.
 
     - ``check_epsilon_transitions`` -- (default: ``True``) a
       boolean. If ``False``, epsilon transitions are not taken into

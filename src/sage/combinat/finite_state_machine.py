@@ -10088,9 +10088,17 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         OUTPUT:
 
-        It returns the current status of the iterator. A
-        ``StopIteration`` exception is thrown when there is nothing
-        more to read.
+        It returns the current status of the iterator (see below). A
+        ``StopIteration`` exception is thrown when there is/was
+        nothing to do (i.e. all branches ended with previous calling
+        of :meth:`.__next__`.
+
+        The current status is a dictionary. The keys are positions on
+        the tape. The value corresponding to such a position is again
+        a dictionary, where each entry represents a branch of the
+        process. This dictionary maps the current state of a branch to
+        a pair consisting of a tape cache and a list of output words,
+        which were written during reaching this current state.
 
         EXAMPLES::
 

@@ -9036,7 +9036,7 @@ class _FSMTapeCache_(SageObject):
 
     def __deepcopy__(self, memo):
         """
-        See :meth:`deepcopy` for details.
+        See :meth:`.deepcopy` for details.
 
         TESTS::
 
@@ -9512,7 +9512,7 @@ class _FSMTapeCache_(SageObject):
 
         Note that this function does not perform a check whether the
         input word is correct or not. This is done by the higher-level
-        method :meth:`transition_possible`::
+        method :meth:`.transition_possible`::
 
             sage: TC2._transition_possible_test_([(37, 38)])
             True
@@ -9954,7 +9954,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         """
         This helper function does the actual adding of a ``state`` to
         ``self._current_`` (during the update of a branch). See
-        also :meth:`_update_branch_`.
+        also :meth:`._update_branch_`.
 
         INPUT:
 
@@ -10037,7 +10037,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         Note that ``self._current_`` contains all states which have to
         be visited in the next steps during processing. The actual
         adding of the data is done in the helper function
-        :meth:`_add_current_`.
+        :meth:`._add_current_`.
 
         TESTS::
 
@@ -10265,7 +10265,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         Using both the parameter ``format_output`` of
         :class:`FSMProcessIterator` and the parameter ``format_output``
-        of :meth:`.result()` leads to concatenation of the two
+        of :meth:`.result` leads to concatenation of the two
         functions::
 
             sage: it = inverter.iter_process(input_tape=[0, 1, 1],

@@ -6,8 +6,7 @@ AUTHORS:
 - Travis Scrimshaw (2010-09-26): Initial version
 
 We only consider the highest weight crystal structure, not the
-Kirillov-Reshetikhin structure, and we extend this to most
-symmetrizable types.
+Kirillov-Reshetikhin structure, and we extend this to symmetrizable types.
 """
 
 #*****************************************************************************
@@ -85,11 +84,11 @@ class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
     REFERENCES:
 
     .. [SchScr] Anne Schilling and Travis Scrimshaw.
-       *Virtual rigged configurations and the filling map for
+       *Crystal structure and filling map for rigged configurations of
        non-exceptional affine types*. In preparation.
 
     .. [SalScr] Ben Salisbury and Travis Scrimshaw.
-       *A rigged configuration model for* `B(\infty)`. In preparation.
+       *A rigged configuration model for* `B(\infty)`. :arxiv:`1404.6539`
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type, wt=None):

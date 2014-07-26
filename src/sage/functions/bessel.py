@@ -260,18 +260,14 @@ class Function_Bessel_J(BuiltinFunction):
         sage: bessel_J(1.0, 1.0) - A[0] < 1e-15
         True
 
-    Currently, integration is not supported (directly) since we cannot
-    yet convert hypergeometric functions to and from Maxima::
+    Integration is supported directly and through Maxima::
 
         sage: f = bessel_J(2, x)
         sage: f.integrate(x)
-        Traceback (most recent call last):
-        ...
-        TypeError: cannot coerce arguments: no canonical coercion from <type 'list'> to Symbolic Ring
-
+        1/24*x^3*hypergeometric((3/2,), (5/2, 3), -1/4*x^2)
         sage: m = maxima(bessel_J(2, x))
         sage: m.integrate(x)
-        hypergeometric([3/2],[5/2,3],-x^2/4)*x^3/24
+        hypergeometric([3/2],[5/2,3],-_SAGE_VAR_x^2/4)*_SAGE_VAR_x^3/24
 
     Visualization::
 
@@ -307,9 +303,9 @@ class Function_Bessel_J(BuiltinFunction):
         EXAMPLES::
 
             sage: bessel_J(0, 1.0, "maxima", 53)
-            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
+            doctest:...: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
             See http://trac.sagemath.org/4102 for details.
-            .7651976865579666
+            0.7651976865579666
         """
         if len(args) > 2 or len(kwds) > 0:
             from sage.misc.superseded import deprecation
@@ -339,7 +335,7 @@ class Function_Bessel_J(BuiltinFunction):
 
         return None
 
-    def _evalf_(self, n, x, parent=None):
+    def _evalf_(self, n, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -477,7 +473,7 @@ class Function_Bessel_Y(BuiltinFunction):
         EXAMPLES::
 
             sage: bessel_Y(0, 1, "maxima", 53)
-            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
+            doctest:...: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
             See http://trac.sagemath.org/4102 for details.
             0.0882569642156769
         """
@@ -508,7 +504,7 @@ class Function_Bessel_Y(BuiltinFunction):
 
         return None  # leaves the expression unevaluated
 
-    def _evalf_(self, n, x, parent=None):
+    def _evalf_(self, n, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -649,7 +645,7 @@ class Function_Bessel_I(BuiltinFunction):
         EXAMPLES::
 
             sage: bessel_I(0, 1, "maxima", 53)
-            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
+            doctest:...: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
             See http://trac.sagemath.org/4102 for details.
             1.266065877752009
         """
@@ -690,7 +686,7 @@ class Function_Bessel_I(BuiltinFunction):
 
         return None  # leaves the expression unevaluated
 
-    def _evalf_(self, n, x, parent=None):
+    def _evalf_(self, n, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -846,7 +842,7 @@ class Function_Bessel_K(BuiltinFunction):
         EXAMPLES::
 
             sage: bessel_K(0, 1, "maxima", 53)
-            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
+            doctest:...: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
             See http://trac.sagemath.org/4102 for details.
             0.0882569642156769
         """
@@ -882,7 +878,7 @@ class Function_Bessel_K(BuiltinFunction):
 
         return None  # leaves the expression unevaluated
 
-    def _evalf_(self, n, x, parent=None):
+    def _evalf_(self, n, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -1004,10 +1000,10 @@ def Bessel(*args, **kwds):
 
         sage: x,y = var('x,y')
         sage: f = maxima(Bessel(typ='K')(x,y))
-        sage: f.derivative('x')
-        %pi*csc(%pi*x)*('diff(bessel_i(-x,y),x,1)-'diff(bessel_i(x,y),x,1))/2-%pi*bessel_k(x,y)*cot(%pi*x)
-        sage: f.derivative('y')
-        -(bessel_k(x+1,y)+bessel_k(x-1,y))/2
+        sage: f.derivative('_SAGE_VAR_x')
+        %pi*csc(%pi*_SAGE_VAR_x)*('diff(bessel_i(-_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)-'diff(bessel_i(_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1))/2-%pi*bessel_k(_SAGE_VAR_x,_SAGE_VAR_y)*cot(%pi*_SAGE_VAR_x)
+        sage: f.derivative('_SAGE_VAR_y')
+        -(bessel_k(_SAGE_VAR_x+1,_SAGE_VAR_y)+bessel_k(_SAGE_VAR_x-1,_SAGE_VAR_y))/2
 
     Compute the particular solution to Bessel's Differential Equation that
     satisfies `y(1) = 1` and `y'(1) = 1`, then verify the initial conditions
@@ -1187,7 +1183,7 @@ def _bessel_I(nu,z,algorithm = "pari",prec=53):
         return K(pari(nu).besseli(z, precision=prec))
     elif algorithm=="scipy":
         if prec != 53:
-            raise ValueError, "for the scipy algorithm the precision must be 53"
+            raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
         ans = str(scipy.special.iv(float(nu),complex(real(z),imag(z))))
         ans = ans.replace("(","")
@@ -1197,10 +1193,10 @@ def _bessel_I(nu,z,algorithm = "pari",prec=53):
         return real(ans) if z in RR else ans # Return real value when arg is real
     elif algorithm == "maxima":
         if prec != 53:
-            raise ValueError, "for the maxima algorithm the precision must be 53"
+            raise ValueError("for the maxima algorithm the precision must be 53")
         return sage_eval(maxima.eval("bessel_i(%s,%s)"%(float(nu),float(z))))
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 def _bessel_J(nu,z,algorithm="pari",prec=53):
     r"""
@@ -1281,7 +1277,7 @@ def _bessel_J(nu,z,algorithm="pari",prec=53):
         return K(pari(nu).besselj(z, precision=prec))
     elif algorithm=="scipy":
         if prec != 53:
-            raise ValueError, "for the scipy algorithm the precision must be 53"
+            raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
         ans = str(scipy.special.jv(float(nu),complex(real(z),imag(z))))
         ans = ans.replace("(","")
@@ -1291,11 +1287,11 @@ def _bessel_J(nu,z,algorithm="pari",prec=53):
         return real(ans) if z in RR else ans
     elif algorithm == "maxima":
         if prec != 53:
-            raise ValueError, "for the maxima algorithm the precision must be 53"
+            raise ValueError("for the maxima algorithm the precision must be 53")
         f = maxima.function('n,z', 'bessel_j(n, z)')
         return f(nu, z)
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 def _bessel_K(nu,z,algorithm="pari",prec=53):
     r"""
@@ -1341,7 +1337,7 @@ def _bessel_K(nu,z,algorithm="pari",prec=53):
     """
     if algorithm=="scipy":
         if prec != 53:
-            raise ValueError, "for the scipy algorithm the precision must be 53"
+            raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
         ans = str(scipy.special.kv(float(nu),float(z)))
         ans = ans.replace("(","")
@@ -1363,9 +1359,9 @@ def _bessel_K(nu,z,algorithm="pari",prec=53):
         K = z.parent()
         return K(pari(nu).besselk(z, precision=prec))
     elif algorithm == 'maxima':
-        raise NotImplementedError, "The K-Bessel function is only implemented for the pari and scipy algorithms"
+        raise NotImplementedError("The K-Bessel function is only implemented for the pari and scipy algorithms")
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 
 def _bessel_Y(nu,z,algorithm="maxima", prec=53):
@@ -1408,7 +1404,7 @@ def _bessel_Y(nu,z,algorithm="maxima", prec=53):
     """
     if algorithm=="scipy":
         if prec != 53:
-            raise ValueError, "for the scipy algorithm the precision must be 53"
+            raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
         ans = str(scipy.special.yv(float(nu),complex(real(z),imag(z))))
         ans = ans.replace("(","")
@@ -1418,12 +1414,12 @@ def _bessel_Y(nu,z,algorithm="maxima", prec=53):
         return real(ans) if z in RR else ans
     elif algorithm == "maxima":
         if prec != 53:
-            raise ValueError, "for the maxima algorithm the precision must be 53"
+            raise ValueError("for the maxima algorithm the precision must be 53")
         return RR(maxima.eval("bessel_y(%s,%s)"%(float(nu),float(z))))
     elif algorithm == "pari":
-        raise NotImplementedError, "The Y-Bessel function is only implemented for the maxima and scipy algorithms"
+        raise NotImplementedError("The Y-Bessel function is only implemented for the maxima and scipy algorithms")
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 class _Bessel():
     """
@@ -1485,8 +1481,8 @@ class _Bessel():
             bessel_j(6,pi)
             sage: b.n(53)
             0.0145459669825056
-            sage: _Bessel(6, typ='I', algorithm="maxima")(pi)
-            0.0294619840059568
+            sage: _Bessel(6, typ='I', algorithm="maxima")(pi)  # rel tol 5e-13
+            0.02946198400594384
             sage: _Bessel(6, typ='Y', algorithm="maxima")(pi)
             -4.33932818939038
 
@@ -1503,7 +1499,7 @@ class _Bessel():
             ValueError: typ must be one of I, J, K, Y
         """
         if not (typ in ['I', 'J', 'K', 'Y']):
-            raise ValueError, "typ must be one of I, J, K, Y"
+            raise ValueError("typ must be one of I, J, K, Y")
 
         # Did the user ask for the default algorithm?
         if algorithm is None:
@@ -1517,7 +1513,7 @@ class _Bessel():
         self._type = typ
         prec = int(prec)
         if prec < 0:
-            raise ValueError, "prec must be a positive integer"
+            raise ValueError("prec must be a positive integer")
         self._prec = int(prec)
 
     def __str__(self):
@@ -1615,8 +1611,8 @@ class _Bessel():
             sage: from sage.functions.bessel import _Bessel
             sage: _Bessel(3,'K')(5.0)
             0.00829176841523093
-            sage: _Bessel(20,algorithm='maxima')(5.0)
-            27.703300521289436e-12
+            sage: _Bessel(20,algorithm='maxima')(5.0)  # rel tol 1e-15
+            2.770330052128942e-11
             sage: _Bessel(20,prec=100)(5.0101010101010101)
             2.8809188227195382093062257967e-11
             sage: B = _Bessel(2,'Y',algorithm='scipy',prec=50)

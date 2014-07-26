@@ -129,8 +129,8 @@ haven't mentioned before.  The string ``\n`` represents a new line.
 
     sage: for a in S:
     ...       print a, "\n"
+    [1 0]
     [0 1]
-    [2 0]
     ...
     [2 2]
     [2 1]

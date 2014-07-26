@@ -204,7 +204,7 @@ Conversion to Maxima::
     sage: x = var('x')
     sage: eq = (x^(3/5) >= pi^2 + e^i)
     sage: eq._maxima_init_()
-    '(x)^(3/5) >= ((%pi)^(2))+(exp(0+%i*1))'
+    '(_SAGE_VAR_x)^(3/5) >= ((%pi)^(2))+(exp(0+%i*1))'
     sage: e1 = x^3 + x == sin(2*x)
     sage: z = e1._maxima_()
     sage: z.parent() is sage.calculus.calculus.maxima
@@ -382,8 +382,6 @@ def test_relation_maxima(relation):
         True
         sage: test_relation_maxima(x!=1)
         False
-        sage: test_relation_maxima(x<>1) # alternate syntax for not equal
-        False
         sage: forget()
         sage: assume(x>0)
         sage: test_relation_maxima(x==0)
@@ -407,20 +405,20 @@ def test_relation_maxima(relation):
     if relation.operator() == operator.eq: # operator is equality
         try:
             s = m.parent()._eval_line('is (equal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
-        except TypeError, msg:
-            raise ValueError, "unable to evaluate the predicate '%s'"%repr(relation)
+        except TypeError as msg:
+            raise ValueError("unable to evaluate the predicate '%s'"%repr(relation))
 
     elif relation.operator() == operator.ne: # operator is not equal
         try:
             s = m.parent()._eval_line('is (notequal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
-        except TypeError, msg:
-            raise ValueError, "unable to evaluate the predicate '%s'"%repr(relation)
+        except TypeError as msg:
+            raise ValueError("unable to evaluate the predicate '%s'"%repr(relation))
 
     else: # operator is < or > or <= or >=, which Maxima handles fine
         try:
             s = m.parent()._eval_line('is (%s)'%repr(m))
-        except TypeError, msg:
-            raise ValueError, "unable to evaluate the predicate '%s'"%repr(relation)
+        except TypeError as msg:
+            raise ValueError("unable to evaluate the predicate '%s'"%repr(relation))
 
     if s == 'true':
         return True
@@ -441,7 +439,7 @@ def test_relation_maxima(relation):
             if repr( f() ).strip() == "0":
                 return True
                 break
-        except StandardError:
+        except Exception:
             pass
     return False
 
@@ -617,7 +615,7 @@ def solve(f, *args, **kwds):
     be implicitly an integer (hence the ``z``)::
 
         sage: solve([cos(x)*sin(x) == 1/2, x+y == 0],x,y)
-        [[x == 1/4*pi + pi*z78, y == -1/4*pi - pi*z78]]
+        [[x == 1/4*pi + pi*z80, y == -1/4*pi - pi*z80]]
 
     Expressions which are not equations are assumed to be set equal
     to zero, as with `x` in the following example::
@@ -721,7 +719,15 @@ def solve(f, *args, **kwds):
         sage: solve([x == 1], (1, a))
         Traceback (most recent call last):
         ...
-        TypeError: 1 is not a valid variable.
+        TypeError: (1, a) are not valid variables.
+
+    Test that the original version of a system in the French Sage book
+    now works (:trac:`14306`)::
+
+        sage: var('y,z')
+        (y, z)
+        sage: solve([x^2*y*z==18,x*y^3*z==24,x*y*z^4==6],x,y,z)
+        [[x == 3, y == 2, z == 1], [x == (1.33721506733 - 2.68548987407*I), y == (-1.70043427146 + 1.05286432575*I), z == (0.932472229404 - 0.361241666187*I)], ...]
     """
     from sage.symbolic.expression import is_Expression
     if is_Expression(f): # f is a single expression
@@ -758,7 +764,7 @@ def solve(f, *args, **kwds):
     try:
         f = [s for s in f if s is not True]
     except TypeError:
-        raise ValueError, "Unable to solve %s for %s"%(f, args)
+        raise ValueError("Unable to solve %s for %s"%(f, args))
 
     if any(s is False for s in f):
         return []
@@ -768,25 +774,25 @@ def solve(f, *args, **kwds):
 
     try:
         s = m.solve(variables)
-    except StandardError: # if Maxima gave an error, try its to_poly_solve
+    except Exception: # if Maxima gave an error, try its to_poly_solve
         try:
             s = m.to_poly_solve(variables)
-        except TypeError, mess: # if that gives an error, raise an error.
+        except TypeError as mess: # if that gives an error, raise an error.
             if "Error executing code in Maxima" in str(mess):
-                raise ValueError, "Sage is unable to determine whether the system %s can be solved for %s"%(f,args)
+                raise ValueError("Sage is unable to determine whether the system %s can be solved for %s"%(f,args))
             else:
                 raise
 
     if len(s)==0: # if Maxima's solve gave no solutions, try its to_poly_solve
         try:
             s = m.to_poly_solve(variables)
-        except StandardError: # if that gives an error, stick with no solutions
+        except Exception: # if that gives an error, stick with no solutions
             s = []
 
     if len(s)==0: # if to_poly_solve gave no solutions, try use_grobner
         try:
             s = m.to_poly_solve(variables,'use_grobner=true')
-        except StandardError: # if that gives an error, stick with no solutions
+        except Exception: # if that gives an error, stick with no solutions
             s = []
 
     sol_list = string_to_list_of_solutions(repr(s))
@@ -919,7 +925,7 @@ def solve_mod(eqns, modulus, solution_dict = False):
     eqns = [eq if is_Expression(eq) else (eq.lhs()-eq.rhs()) for eq in eqns]
     modulus = Integer(modulus)
     if modulus < 1:
-        raise ValueError, "the modulus must be a positive integer"
+        raise ValueError("the modulus must be a positive integer")
     vars = list(set(sum([list(e.variables()) for e in eqns], [])))
     vars.sort(key=repr)
 

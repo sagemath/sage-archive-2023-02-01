@@ -136,7 +136,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         [[6, 0, 0], [5, 1, 0], [5, 0, 1], [4, 2, 0], [4, 1, 1],
          [4, 0, 2], [3, 3, 0], [3, 2, 1], [3, 1, 2], [2, 2, 2]]
         sage: I.category()
-        Join of Category of finite enumerated sets and Category of quotients of sets
+        Join of Category of finite enumerated sets and Category of subquotients of finite sets and Category of quotients of sets
 
     To get the orbit of any integer vector `v` under the action of the group,
     use the method :meth:`~sage.combinat.integer_vectors_mod_permgroup.IntegerVectorsModPermutationGroup_All.orbit`;
@@ -455,7 +455,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         """
         try:
             return self.is_canonical(self.element_class(self, list(v), check=False), check=False)
-        except StandardError:
+        except Exception:
             return False
 
     def __call__(self, v, check=True):
@@ -473,8 +473,8 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             if v.parent() is self:
                 return v
             else:
-                raise ValueError, '%s shoud be a Python list of integer'%(v)
-        except StandardError:
+                raise ValueError('%s shoud be a Python list of integer'%(v))
+        except Exception:
             return self.element_class(self, list(v), check=check)
 
     def orbit(self, v):
@@ -505,7 +505,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             if v.parent() is self:
                 return orbit(self._sgs, v)
             raise TypeError
-        except StandardError:
+        except Exception:
             return orbit(self._sgs, self.element_class(self, v, check=False))
 
     def subset(self, sum=None, max_part=None):
@@ -698,7 +698,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         """
         try:
             return (self(v)).parent() is self
-        except StandardError:
+        except Exception:
             return False
 
     def __call__(self, v, check=True):
@@ -719,8 +719,8 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             if v.parent() is self:
                 return v
             else:
-                raise ValueError, '%s shoud be a Python list of integer'%(v)
-        except StandardError:
+                raise ValueError('%s shoud be a Python list of integer'%(v))
+        except Exception:
             return self.element_class(self, list(v), check=check)
 
     def __iter__(self):
@@ -936,7 +936,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         try:
             if v.parent() is self:
                 return orbit(self._sgs, v)
-        except StandardError:
+        except Exception:
             return orbit(self._sgs, self.element_class(self, v, check=False))
 
     class Element(ClonableIntArray):

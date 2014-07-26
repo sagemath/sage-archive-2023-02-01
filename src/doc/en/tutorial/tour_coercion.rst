@@ -13,7 +13,7 @@ in Sage effectively and efficiently.
 
 Note that we try to explain notions, but we do not show here how to
 implement them. An implementation-oriented tutorial is available as a
-`Sage worksheet <http://flask.sagenb.org/home/pub/82/>`_.
+`Sage thematic tutorial <http://sagemath.org/doc/thematic_tutorials/coercion_and_categories.html>`_.
 
 Elements
 --------
@@ -145,18 +145,17 @@ cached:
 Types versus parents
 --------------------
 
-The type ``RingElement`` should not be confused with the mathematical
-notion of a ring element; for practical reasons, sometimes an object
-is an instance of ``RingElement`` although it does not belong to a
-ring:
+The type ``RingElement`` does not correspond perfectly to the
+mathematical notion of a ring element.  For example, although square
+matrices belong to a ring, they are not instances of ``RingElement``:
 
 ::
 
-    sage: M = Matrix(ZZ,2,3); M
-    [0 0 0]
-    [0 0 0]
+    sage: M = Matrix(ZZ,2,2); M
+    [0 0]
+    [0 0]
     sage: isinstance(M, RingElement)
-    True
+    False
 
 While *parents* are unique, equal *elements* of a parent in Sage are not
 necessarily identical. This is in contrast to the behaviour of Python
@@ -204,8 +203,8 @@ type conversion in C with conversion in Sage!
 
 We give here a rather brief account. For a detailed description and
 for information on the implementation, we refer to the section on
-coercion in the reference manual and to the `tutorial worksheet
-<http://flask.sagenb.org/home/pub/82/>`_.
+coercion in the reference manual and to the
+`thematic tutorial <http://sagemath.org/doc/thematic_tutorials/coercion_and_categories.html>`_.
 
 There are two extremal positions concerning the possibility
 of doing arithmetic with elements of *different* rings:
@@ -378,7 +377,8 @@ fraction field of ``ZZ['x']``. However, Sage tries to choose a
 in our example). If several potential common parents seem equally
 natural, Sage will *not* pick one of them at random, in order to have
 a reliable result. The mechanisms which that choice is based upon is
-explained in the `tutorial worksheet <http://flask.sagenb.org/home/pub/82/>`_
+explained in the
+`thematic tutorial <http://sagemath.org/doc/thematic_tutorials/coercion_and_categories.html>`_.
 
 No coercion into a common parent will take place in the following
 example:

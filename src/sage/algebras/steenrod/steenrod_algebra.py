@@ -2194,7 +2194,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         """
         from sage.sets.family import Family
         if d is None:
-            return Family(self._basis_keys, self.monomial)
+            return Family(self._indices, self.monomial)
         else:
             return Family([self.monomial(tuple(a)) for a in self._basis_fcn(d)])
 
@@ -2895,7 +2895,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             True
         """
         if not self.is_finite():
-            raise ValueError, "the algebra is not finite dimensional"
+            raise ValueError("the algebra is not finite dimensional")
         p = self.prime()
         # we create the top class in the Milnor basis version
         AM = SteenrodAlgebra(basis='milnor', p=p)

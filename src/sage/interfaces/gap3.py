@@ -679,7 +679,7 @@ class GAP3Element(GapElement_generic):
         # Warning: One should not redefine E, X or Z in gap3, because
         # things will break, but gap3 raises no errors if one does this!
         if name in ["E","X","Z"]:
-            raise ValueError, "you are attempting to redefine %s; but you should never redefine E, X or Z in gap3 (because things will break!)" % name
+            raise ValueError("you are attempting to redefine %s; but you should never redefine E, X or Z in gap3 (because things will break!)" % name)
 
         # initialize the superclass
         super(GAP3Element, self).__init__(parent, value, is_name, name)

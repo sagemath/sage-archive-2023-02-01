@@ -155,7 +155,7 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
             sage: ct.affine()
             Traceback (most recent call last):
             ...
-            ValueError: ['D', 2, 1] is not a valid cartan type
+            ValueError: ['D', 2, 1] is not a valid Cartan type
 
 
         TESTS::
@@ -194,6 +194,28 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
             False
         """
         return True
+
+    def coxeter_number(self):
+        """
+        Return the Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['D',4]).coxeter_number()
+            6
+        """
+        return 2*self.n - 2
+
+    def dual_coxeter_number(self):
+        """
+        Return the dual Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['D',4]).dual_coxeter_number()
+            6
+        """
+        return 2*self.n - 2
 
     @cached_method
     def dynkin_diagram(self):

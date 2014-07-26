@@ -547,7 +547,7 @@ def _matrix_constructor(*args, **kwds):
     if len(args) >= 1 and is_Ring(args[0]):
         # A ring is specified
         if kwds.get('ring', args[0]) != args[0]:
-            raise ValueError, "Specified rings are not the same"
+            raise ValueError("Specified rings are not the same")
         else:
             ring = args[0]
             args.pop(0)
@@ -563,7 +563,7 @@ def _matrix_constructor(*args, **kwds):
             nrows = int(args[0])
             args.pop(0)
             if kwds.get('nrows', nrows) != nrows:
-                raise ValueError, "Number of rows specified in two places and they are not the same"
+                raise ValueError("Number of rows specified in two places and they are not the same")
         except TypeError:
             nrows = kwds.get('nrows', None)
     else:
@@ -578,7 +578,7 @@ def _matrix_constructor(*args, **kwds):
             ncols = int(args[0])
             args.pop(0)
             if kwds.get('ncols', ncols) != ncols:
-                raise ValueError, "Number of columns specified in two places and they are not the same"
+                raise ValueError("Number of columns specified in two places and they are not the same")
         except TypeError:
             ncols = kwds.get('ncols', None)
     else:
@@ -597,7 +597,7 @@ def _matrix_constructor(*args, **kwds):
     elif len(args) == 1:
         if isinstance(args[0], (types.FunctionType, types.LambdaType, types.MethodType)):
             if ncols is None and nrows is None:
-                raise ValueError, "When passing in a callable, the dimensions of the matrix must be specified"
+                raise ValueError("When passing in a callable, the dimensions of the matrix must be specified")
             if ncols is None:
                 ncols = nrows
             elif nrows is None:
@@ -615,16 +615,16 @@ def _matrix_constructor(*args, **kwds):
                 # Ensure we have a list of lists, each inner list having the same number of elements
                 first_len = len(args[0][0])
                 if not all( (isinstance(v, (list, tuple)) or is_Vector(v)) and len(v) == first_len for v in args[0]):
-                    raise ValueError, "List of rows is not valid (rows are wrong types or lengths)"
+                    raise ValueError("List of rows is not valid (rows are wrong types or lengths)")
                 # We have a list of rows or vectors
                 if nrows is None:
                     nrows = len(args[0])
                 elif nrows != len(args[0]):
-                    raise ValueError, "Number of rows does not match up with specified number."
+                    raise ValueError("Number of rows does not match up with specified number.")
                 if ncols is None:
                     ncols = len(args[0][0])
                 elif ncols != len(args[0][0]):
-                    raise ValueError, "Number of columns does not match up with specified number."
+                    raise ValueError("Number of columns does not match up with specified number.")
 
                 entries = []
                 for v in args[0]:
@@ -639,9 +639,9 @@ def _matrix_constructor(*args, **kwds):
                     if ncols is None:
                         ncols = len(args[0]) // nrows
                     elif ncols != len(args[0]) // nrows:
-                        raise ValueError, "entries has the wrong length"
+                        raise ValueError("entries has the wrong length")
                 elif len(args[0]) > 0:
-                    raise ValueError, "entries has the wrong length"
+                    raise ValueError("entries has the wrong length")
 
                 entries = args[0]
 
@@ -710,9 +710,9 @@ def _matrix_constructor(*args, **kwds):
                     entry_ring = args[0].parent()
                 entries = args[0]
             else:
-                raise ValueError, "Invalid matrix constructor.  Type matrix? for help"
+                raise ValueError("Invalid matrix constructor.  Type matrix? for help")
     else:
-        raise ValueError, "Invalid matrix constructor.  Type matrix? for help"
+        raise ValueError("Invalid matrix constructor.  Type matrix? for help")
 
     if nrows is None:
         nrows = 0
@@ -804,7 +804,7 @@ def prepare(w):
     elif ring is complex:
         ring = rings.CDF
     elif not is_Ring(ring):
-        raise TypeError, "unable to find a common ring for all elements"
+        raise TypeError("unable to find a common ring for all elements")
     return entries, ring
 
 def prepare_dict(w):
@@ -1125,7 +1125,7 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
     say 10,000 entries, each limited to 16 bits.  ::
 
         sage: A = random_matrix(ZZ, 100, 100, x=2^16); A
-        100 x 100 dense matrix over Integer Ring (type 'print A.str()' to see all of the entries)
+        100 x 100 dense matrix over Integer Ring (use the '.str()' method to see the entries)
 
     Random rational matrices.  Now ``num_bound`` and ``den_bound`` control the
     generation of random elements, by specifying limits on the absolute value of
@@ -2122,7 +2122,7 @@ def elementary_matrix(arg0, arg1=None, **kwds):
     if not scale is None:
         try:
             scale = R(scale)
-        except StandardError:
+        except Exception:
             raise TypeError('scale parameter of elementary matrix must an element of {0}, not {1}'.format(R, scale))
 
     # determine type of matrix and adjust an identity matrix
@@ -3340,7 +3340,7 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
     # entry of the resultant matrix after addition of scalar multiple of a row.
     if ring==QQ or ring==ZZ:
         # If upper_bound is not set, don't control entry size.
-        if upper_bound==None:
+        if upper_bound is None:
         # If size control is not desired, the routine will run slightly faster, particularly with large matrices.
             for pivots in range(rank-1,-1,-1):
                 row_index=0
@@ -3707,12 +3707,12 @@ def random_unimodular_matrix(parent, upper_bound=None, max_tries=100):
     size=parent.nrows()
     if parent.nrows()!=parent.ncols():
         raise TypeError("a unimodular matrix must be square.")
-    if upper_bound!=None and (ring!=ZZ and ring!=QQ):
+    if upper_bound is not None and (ring!=ZZ and ring!=QQ):
         raise TypeError("only matrices over ZZ or QQ can have size control.")
-    if upper_bound==None:
+    if upper_bound is None:
         # random_echelonizable_matrix() always returns a determinant one matrix if given full rank.
         return random_matrix(ring, size, algorithm='echelonizable', rank=size)
-    elif upper_bound!=None and (ring==ZZ or ring==QQ):
+    elif upper_bound is not None and (ring==ZZ or ring==QQ):
         return random_matrix(ring, size,algorithm='echelonizable',rank=size, upper_bound=upper_bound, max_tries=max_tries)
 
 
@@ -3880,11 +3880,11 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
     size=parent.nrows()
     if parent.nrows()!=parent.ncols():
         raise TypeError("a diagonalizable matrix must be square.")
-    if eigenvalues!=None and dimensions==None:
+    if eigenvalues is not None and dimensions is None:
         raise ValueError("the list of eigenvalues must have a list of dimensions corresponding to each eigenvalue.")
-    if eigenvalues==None and dimensions!=None:
+    if eigenvalues is None and dimensions is not None:
         raise ValueError("the list of dimensions must have a list of corresponding eigenvalues.")
-    if eigenvalues==None and dimensions==None:
+    if eigenvalues is None and dimensions is None:
         values=[]
         #create a list with "size" number of entries
         for eigen_index in range(size):
@@ -3912,8 +3912,7 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
     if len(eigenvalues)!=len(dimensions):
         raise ValueError("each eigenvalue must have a corresponding dimension and each dimension a corresponding eigenvalue.")
     #sort the dimensions in order of increasing size, and sort the eigenvalues list in an identical fashion, to maintain corresponding values.
-    dimensions_sort=zip(dimensions,eigenvalues)
-    dimensions_sort.sort()
+    dimensions_sort=sorted(zip(dimensions,eigenvalues))
     dimensions=[x[0] for x in dimensions_sort]
     eigenvalues=[x[1] for x in dimensions_sort]
     #Create the matrix of eigenvalues on the diagonal.  Use a lower limit and upper limit determined by the eigenvalue dimensions.

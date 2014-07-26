@@ -133,12 +133,12 @@ ordinaires. Pour résoudre l'équation :math:`x'+x-1=0` :
     x(t)
     sage: DE = lambda y: diff(y,t) + y - 1
     sage: desolve(DE(x(t)), [x(t),t])
-    (c + e^t)*e^(-t)
+    (_C + e^t)*e^(-t)
 
 Ceci utilise l'interface de Sage vers Maxima [Max]_, aussi il se peut
 que la sortie diffère un peu des sorties habituelles de Sage. Dans notre
 cas, le résultat indique que la solution générale à l'équation
-différentielle est :math:`x(t) = e^{-t}(e^{t}+c)`.
+différentielle est :math:`x(t) = e^{-t}(e^{t}+C)`.
 
 Il est aussi possible de calculer des transformées de Laplace. La
 transformée de Laplace de :math:`t^2e^t -\sin(t)` s'obtient comme suit :
@@ -333,7 +333,7 @@ Il nous faut réduire l'équation différentielle d'ordre 2 à un système de de
         3/4             0.82                 -0.16            -0.66          -0.081
           1             0.65                 -0.18            -0.74           0.022
 
-On en déduit :math:`z(1)\approx 0.75`.
+On en déduit :math:`z(1)\approx 0.65`.
 
 On peut également tracer le graphe des points :math:`(x,y)` pour obtenir
 une image approchée de la courbe. La fonction ``eulers_method_2x2_plot``

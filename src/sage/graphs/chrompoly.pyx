@@ -81,7 +81,6 @@ def chromatic_polynomial(G, return_tree_basis = False):
         sage: min((i for i in xrange(11) if P(i) > 0)) == G.chromatic_number()
         True
     """
-
     if not G.is_connected():
         return prod([chromatic_polynomial(g) for g in G.connected_components_subgraphs()])
     R = ZZ['x']

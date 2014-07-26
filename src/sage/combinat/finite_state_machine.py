@@ -9945,7 +9945,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                                         self._input_tape_ended_,
                                         position_zero,
                                         self.is_multitape)
-            self._create_branch_(state, tape_cache, [[]])
+            self._update_branch_(state, tape_cache, [[]])
 
         self._finished_ = []  # contains (accept, state, output)
 
@@ -9953,8 +9953,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
     def _add_current_(self, state, tape_cache, output):
         """
         This helper function does the actual adding of a ``state`` to
-        ``self._current_`` (during the creation of a new branch). See
-        also :meth:`_create_branch_`.
+        ``self._current_`` (during the update of a branch). See
+        also :meth:`_update_branch_`.
 
         INPUT:
 
@@ -9985,7 +9985,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             ....:     [[]])
             sage: it._current_
             {((0, 0),): {'a': (tape at 0, [[]]), 'b': (tape at 0, [[]])}}
-            sage: it._create_branch_(
+            sage: it._update_branch_(
             ....:     A.state('c'),
             ....:     deepcopy(it._current_[((0, 0),)][A.state('a')][0]),
             ....:     [[]])  # indirect doctest
@@ -10008,14 +10008,14 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             states[state] = (tape_cache, output)
 
 
-    def _create_branch_(self, state, tape_cache, output):
+    def _update_branch_(self, state, tape_cache, output):
         """
-        This function creates a new branch.
+        This function updates a branch.
 
         INPUT:
 
         - ``state`` -- state which has to be processed (i.e., the
-          current state, this new branch is in).
+          current state, this branch is in).
 
         - ``tape_cache`` -- an instance of :class:`_FSMTapeCache_` (storing
           information what to read next).
@@ -10027,11 +10027,12 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         Nothing.
 
-        When this function is called, a new branch is created. If the
-        state has epsilon successors, then a new branch for each
-        epsilon successor (including the state itself) is created. All
-        branches start on the same position on the tape and get the
-        same (more precisely, a deepcopy of the) list of output tapes.
+        When this function is called, a branch is updated, which
+        means, stored for further processing. If the state has epsilon
+        successors, then a new branch for each epsilon successor is
+        created. All these branches start on the same position on the
+        tape and get the same (more precisely, a deepcopy of the) list
+        of output tapes.
 
         Note that ``self._current_`` contains all states which have to
         be visited in the next steps during processing. The actual
@@ -10047,7 +10048,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: it = FSMProcessIterator(A, input_tape=[0, 1, 2])  # indirect doctest
             sage: it._current_
             {((0, 0),): {'a': (tape at 0, [[]]), 'c': (tape at 0, [[]])}}
-            sage: it._create_branch_(
+            sage: it._update_branch_(
             ....:     A.state('b'),
             ....:     deepcopy(it._current_[((0, 0),)][A.state('a')][0]),
             ....:     [[]])
@@ -10221,7 +10222,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                 # go to next state
                 state = transition.to_state
                 tape.forward(transition)
-                self._create_branch_(state, tape, out)
+                self._update_branch_(state, tape, out)
             return
 
         states_dict = self._current_.pop(heapq.heappop(self._current_positions_))
@@ -10633,9 +10634,11 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
 
     def _add_current_(self, state, tape_cache, output):
         """
-        This helper function cares about epsilon cycles during the
-        actual adding of a ``state`` to ``self._current_`` (during the
-        creation of a new branch). See also :meth:`_create_branch_`.
+        This helper function does the actual adding of a ``state`` to
+        ``self._current_`` (during the update of a branch), but,
+        in contrast to :meth:`FSMProcessIterator._add_current_`, it
+        skips adding when the state was already visited in this branch
+        (i.e. detects whether ``state`` is in an epsilon cycle).
 
         INPUT:
 

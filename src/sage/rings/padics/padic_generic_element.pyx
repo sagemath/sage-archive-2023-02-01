@@ -901,6 +901,17 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: a.xgcd(b)
             (O(3^2), 0, 1 + O(3^20))
 
+        If only one element is zero, then the result depends on its precision::
+
+            sage: R(9).xgcd(R(0,1))
+            (O(3), 0, 1 + O(3^20))
+            sage: R(9).xgcd(R(0,2))
+            (O(3^2), 0, 1 + O(3^20))
+            sage: R(9).xgcd(R(0,3))
+            (3^2 + O(3^22), 1 + O(3^20), 0)
+            sage: R(9).xgcd(R(0,4))
+            (3^2 + O(3^22), 1 + O(3^20), 0)
+
         Over a field, the greatest common divisor is either zero (possibly with
         finite precision) or one::
 
@@ -967,9 +978,15 @@ cdef class pAdicGenericElement(LocalGenericElement):
             else:
                 t = ~other
         elif self.valuation() < other.valuation():
-            s = self.unit_part().inverse_of_unit()
+            if self.is_zero():
+                s = self.parent().one()
+            else:
+                s = self.unit_part().inverse_of_unit()
         else:
-            t = other.unit_part().inverse_of_unit()
+            if other.is_zero():
+                t = self.parent().one()
+            else:
+                t = other.unit_part().inverse_of_unit()
 
         return s*self+t*other,s,t
 

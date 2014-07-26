@@ -5283,7 +5283,36 @@ class FiniteStateMachine(SageObject):
 
 
     def epsilon_successors(self, state):
-        return state._epsilon_successors_(self)
+        """
+        Returns the dictionary with states reachable from ``state``
+        without reading anything from an input tape as keys. The
+        values are lists of outputs.
+
+        INPUT:
+
+        - ``state`` -- the state whose epsilon successors should be
+          determined.
+
+        OUTPUT:
+
+        A dictionary mapping states to a list of output words.
+
+        The states in the output are the epsilon successors of
+        ``state``. Each word of the list of output words is a word
+        written when taking a path from ``state`` to the corresponding
+        state.
+
+        EXAMPLES::
+
+            sage: T = Transducer([(0, 1, None, 'a'), (1, 2, None, 'b')])
+            sage: T.epsilon_successors(0)
+            {1: [['a']], 2: [['a', 'b']]}
+            sage: T.epsilon_successors(1)
+            {2: [['b']]}
+            sage: T.epsilon_successors(2)
+            {}
+        """
+        return self.state(state)._epsilon_successors_(self)
 
 
     def accessible_components(self):

@@ -9356,6 +9356,15 @@ class _FSMTapeCache_(SageObject):
             True
         """
         track_cache = self.cache[track_number]
+        for i, letter in enumerate(word):
+            while len(track_cache) <= i:
+                if not self.read(track_number):
+                    return False
+            if letter != track_cache[i]:
+                return False
+        return True
+
+        track_cache = self.cache[track_number]
         while len(track_cache) < len(word):
             if not self.read(track_number):
                 return False

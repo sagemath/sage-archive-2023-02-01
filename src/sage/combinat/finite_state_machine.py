@@ -4738,7 +4738,9 @@ class FiniteStateMachine(SageObject):
 
     def iter_process(self, input_tape=None, initial_state=None, **kwargs):
         """
-        See :meth:`.process` for more information.
+        This function returns an instance of
+        :class:`FSMProcessIterator`.  See :meth:`.process` (which runs
+        this iterator until the end) for more information.
 
         EXAMPLES::
 

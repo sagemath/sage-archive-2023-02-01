@@ -10098,13 +10098,13 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
             ....:     initial_states=['A'], final_states=['A'])
             sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
-            sage: it.next()
+            sage: next(it)
             {((1, 0),): {'A': (tape at 1, [[1]])}}
-            sage: it.next()
+            sage: next(it)
             {((2, 0),): {'A': (tape at 2, [[1, 0]])}}
-            sage: it.next()
+            sage: next(it)
             {}
-            sage: it.next()
+            sage: next(it)
             Traceback (most recent call last):
             ...
             StopIteration

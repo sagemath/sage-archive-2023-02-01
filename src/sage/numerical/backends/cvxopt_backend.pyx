@@ -448,7 +448,6 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: round(p.solve(), 2)
             ...
                      pcost       dcost       gap    pres   dres   k/t
-                 0: -7.3165e+00 -2.3038e+01  6e+00  0e+00  2e+00  1e+00
                  ...
                 8.8
             sage: #CVXOPT gives different  values for variables compared to the other solvers.

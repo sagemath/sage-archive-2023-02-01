@@ -11,14 +11,14 @@ AUTHORS:
 
 - David Harvey: doctests
 
-- Julian Rueth: fixes for exp() and log(), implement gcd, xgcd
+- Julian Rueth: fixes for exp() and log(), implemented gcd, xgcd
 
 """
 
 #*****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed@math.harvard.edu>
 #                     2007      William Stein <wstein@gmail.com>
-#                     2013      Julian Rueth <julian.rueth@gmail.com>
+#                     2013-2014 Julian Rueth <julian.rueth@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -841,31 +841,30 @@ cdef class pAdicGenericElement(LocalGenericElement):
     @coerce_binop
     def xgcd(self, other):
         r"""
-        Compute the extended gcd of ``self`` and ``other``.
+        Compute the extended gcd of this element and ``other``.
 
         INPUT:
 
-         - ``other`` -- an element which coerces to the an element in the
-           parent of ``self``
+         - ``other`` -- an element in the same ring.
 
         OUTPUT:
 
         A tuple ``r``, ``s``, ``t`` such that ``r`` is a greatest common
-        divisor of ``self`` and ``other`` and ``r = s*self + t*other``.
+        divisor of this element and ``other`` and ``r = s*self + t*other``.
 
         AUTHORS:
 
-            - Julian Rueth (2012-10-19): initial version
+        - Julian Rueth (2012-10-19): initial version
 
         .. NOTE::
 
-            Since ``self`` and ``other`` are only given with finite precision,
-            their greatest common divisor is in general not unique (not even up
-            to units). For example `O(3)` is a representative for the elements
-            0 and 3 in the 3-adic ring `\mathbb{Z}_3`. The greatest common
+            Since the elements are only given with finite precision, their
+            greatest common divisor is in general not unique (not even up to
+            units). For example `O(3)` is a representative for the elements 0
+            and 3 in the 3-adic ring `\mathbb{Z}_3`. The greatest common
             divisior of `O(3)` and `O(3)` could be (among others) 3 or 0 which
             have different valuation. The algorithm implemented here, will
-            return an element of minimal valuation among the possible greatest
+            return an element of minimal valuation among the possible greatest
             common divisors.
 
         EXAMPLES:
@@ -892,7 +891,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: a.xgcd(0)
             (3 + O(3^2), 1 + O(3), 0)
 
-        If both ``self`` and ``other`` are zero, then the result is zero with
+        If both elements are zero, then the result is zero with
         the precision set to the smallest of their precisions::
 
             sage: a = R.zero(); a

@@ -10278,7 +10278,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         """
         if format_output is None:
             return self._finished_
-        return [r[:2] + (format_output(r[2]),) + r[3:] for r in self._finished_]
+        return [r[:2] + (format_output(r[2]),) for r in self._finished_]
 
 
     @property

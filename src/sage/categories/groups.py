@@ -11,10 +11,12 @@ Groups
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.monoids import Monoids
 from sage.categories.algebra_functor import AlgebrasCategory
+from sage.categories.cartesian_product import CartesianProductsCategory
 
 class Groups(CategoryWithAxiom):
     """
@@ -793,4 +795,62 @@ class Groups(CategoryWithAxiom):
                 Z = self.parent().center()
                 return sum(self[i] * Z.basis()[i] for i in Z.basis().keys())
 
+    class CartesianProducts(CartesianProductsCategory):
+        """
+        The category of groups constructed as cartesian products of groups.
+
+        This construction gives the direct product of groups. See
+        :wikipedia:`Direct_product` and :wikipedia:`Direct_product_of_groups`
+        for more information.
+        """
+        def extra_super_categories(self):
+            """
+            A cartesian product of groups is endowed with a natural
+            group structure.
+
+            EXAMPLES::
+
+                sage: C = Groups().CartesianProducts()
+                sage: C.extra_super_categories()
+                [Category of groups]
+                sage: sorted(C.super_categories(), key=str)
+                [Category of Cartesian products of inverse unital magmas,
+                 Category of Cartesian products of semigroups,
+                 Category of groups]
+            """
+            return [self.base_category()]
+
+        class ParentMethods:
+            @cached_method
+            def group_generators(self):
+                """
+                Return the group generators of ``self``.
+
+                EXAMPLES::
+
+                    sage: C5 = CyclicPermutationGroup(5)
+                    sage: C4 = CyclicPermutationGroup(4)
+                    sage: S4 = SymmetricGroup(3)
+                    sage: C = cartesian_product([C5, C4, S4])
+                    sage: C.group_generators()
+                    Family (((1,2,3,4,5), (), ()),
+                            ((), (1,2,3,4), ()),
+                            ((), (), (1,2)),
+                            ((), (), (2,3)))
+
+                We check the other portion of :trac:`16718` is fixed::
+
+                    sage: len(AG.j_classes())
+                    1
+                """
+                ret = []
+                F = self.cartesian_factors()
+                ids = tuple(G.one() for G in F)
+                for i,G in enumerate(F):
+                    for gen in G.group_generators():
+                        cur = list(ids) # Make a copy that we modify
+                        cur[i] = gen
+                        ret.append(self._cartesian_product_of_elements(cur))
+                from sage.sets.family import Family
+                return Family(ret)
 

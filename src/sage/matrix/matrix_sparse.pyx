@@ -905,8 +905,17 @@ cdef class Matrix_sparse(matrix.Matrix):
         if self._ncols != other._ncols:
             raise TypeError, "number of columns must be the same"
 
-        if not (self._base_ring is other.base_ring()):
-            other = other.change_ring(self._base_ring)
+        top_ring = self._base_ring
+        bottom_ring = other.base_ring()
+        if not (top_ring is bottom_ring):
+            if top_ring_has_coerce_map_from(bottom_ring):
+                other = other.change_ring(top_ring)
+            elif bottom_ring_has_coerce_map_from(top_ring): 
+                self = self.change_ring(bottom_ring)   # allowed ?
+            else:
+                # what to do ?
+                # how to find a common parent ?
+                raise TypeError('damn')
 
         cdef Matrix_sparse Z
         Z = self.new_matrix(nrows = self._nrows + other.nrows())

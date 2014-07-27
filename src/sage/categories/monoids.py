@@ -386,4 +386,61 @@ class Monoids(CategoryWithAxiom):
                 """
                 return all([i*self == self*i for i in self.parent().algebra_generators()])
 
+    class CartesianProducts(CartesianProductsCategory):
+        """
+        The category of monoids constructed as cartesian products of monoids.
+
+        This construction gives the direct product of monoids. See
+        :wikipedia:`Direct_product` for more information.
+        """
+        def extra_super_categories(self):
+            """
+            A cartesian product of monoids is endowed with a natural
+            group structure.
+
+            EXAMPLES::
+
+                sage: C = Monoids().CartesianProducts()
+                sage: C.extra_super_categories()
+                [Category of monoids]
+                sage: sorted(C.super_categories(), key=str)
+                [Category of Cartesian products of semigroups,
+                 Category of Cartesian products of unital magmas,
+                 Category of monoids]
+            """
+            return [self.base_category()]
+
+        class ParentMethods:
+            @cached_method
+            def monoid_generators(self):
+                """
+                Return the generators of ``self``.
+
+                EXAMPLES::
+
+                    sage: M = Monoids.free([1,2,3])
+                    sage: N = Monoids.free(['a','b'])
+                    sage: C = cartesian_product([M, N])
+                    sage: C.monoid_generators()
+                    Family ((F[1], 1), (F[2], 1), (F[3], 1), (1, F['a']), (1, F['b']))
+                """
+                F = self.cartesian_factors()
+                ids = tuple(M.one() for M in F)
+                def lift(i, gen):
+                    cur = list(ids)
+                    cur[i] = gen
+                    return self._cartesian_product_of_elements(cur)
+                from sage.sets.family import Family
+
+                # Finitely generated
+                if all(M.monoid_generators().cardinality() != float('inf') for M in F):
+                    ret = [lift(i, gen) for i,M in enumerate(F) for gen in M.monoid_generators()]
+                    return Family(ret)
+
+                # Infinitely generated
+                # This does not return a good output, but it is "correct"
+                gens_prod = cartesian_product([Family(M.monoid_generators(),
+                                                      lambda g: (i, g))
+                                               for i,M in enumerate(F)])
+                return Family(gens_prod, lift, name="gen")
 

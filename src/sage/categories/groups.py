@@ -16,7 +16,7 @@ from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.monoids import Monoids
 from sage.categories.algebra_functor import AlgebrasCategory
-from sage.categories.cartesian_product import CartesianProductsCategory
+from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
 
 class Groups(CategoryWithAxiom):
     """
@@ -843,14 +843,23 @@ class Groups(CategoryWithAxiom):
                     sage: len(AG.j_classes())
                     1
                 """
-                ret = []
                 F = self.cartesian_factors()
                 ids = tuple(G.one() for G in F)
-                for i,G in enumerate(F):
-                    for gen in G.group_generators():
-                        cur = list(ids) # Make a copy that we modify
-                        cur[i] = gen
-                        ret.append(self._cartesian_product_of_elements(cur))
+                def lift(i, gen):
+                    cur = list(ids)
+                    cur[i] = gen
+                    return self._cartesian_product_of_elements(cur)
                 from sage.sets.family import Family
-                return Family(ret)
+
+                # Finitely generated
+                if all(G.group_generators().cardinality() != float('inf') for G in F):
+                    ret = [lift(i, gen) for i,G in enumerate(F) for gen in G.group_generators()]
+                    return Family(ret)
+
+                # Infinitely generated
+                # This does not return a good output, but it is "correct"
+                gens_prod = cartesian_product([Family(G.group_generators(),
+                                                      lambda g: (i, g))
+                                               for i,G in enumerate(F)])
+                return Family(gens_prod, lift, name="gen")
 

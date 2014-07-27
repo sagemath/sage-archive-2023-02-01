@@ -4388,12 +4388,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return res
 
 
-    #####################################################################################
+    #################################################################
     # operations with matrices
-    #####################################################################################
+    #################################################################
     def stack(self, bottom, subdivide=False):
         r"""
-        Return the matrix self on top of bottom: [ self ] [ bottom ]
+        Return the matrix ``self`` on top of ``bottom``:
+
+            [  self  ]
+            [ bottom ]
 
         EXAMPLES::
 
@@ -4451,8 +4454,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             bottom = bottom.row()
         if self._ncols != bottom.ncols():
             raise TypeError("number of columns must be the same")
-        if not (self._base_ring is bottom.base_ring()):
-            bottom = bottom.change_ring(self._base_ring)
+        top_ring = self._base_ring
+        bottom_ring = bottom.base_ring()
+        if not (top_ring is bottom_ring):
+            if top_ring_has_coerce_map_from(bottom_ring):
+                bottom = bottom.change_ring(top_ring)
+            elif bottom_ring_has_coerce_map_from(top_ring): 
+                new_top = self.change_ring(bottom_ring)
+                return new_top.stack(bottom, subdivide=subdivide):
+            else:
+                # what to do ?
+                # how to find a common parent ?
+                raise TypeError('damn')
         cdef Matrix_integer_dense other = bottom.dense_matrix()
         cdef Matrix_integer_dense M
         M = self.new_matrix(nrows = self._nrows + other._nrows, ncols = self.ncols())

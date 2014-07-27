@@ -1407,6 +1407,11 @@ ext_modules = [
               include_dirs = [SAGE_INC, "sage/c_lib/include/"],
               libraries=["stdc++"]),
 
+    Extension("sage.numerical.backends.cvxopt_backend",
+              ["sage/numerical/backends/cvxopt_backend.pyx"],
+              include_dirs = [SAGE_INC, "sage/c_lib/include/"],
+              libraries=["stdc++"]),
+
     Extension("sage.numerical.backends.glpk_graph_backend",
               ["sage/numerical/backends/glpk_graph_backend.pyx"],
               include_dirs = [SAGE_INC, "sage/c_lib/include/"],

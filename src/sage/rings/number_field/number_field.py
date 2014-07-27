@@ -7916,17 +7916,24 @@ class NumberField_absolute(NumberField_generic):
 
         ::
 
-            sage: K.<a> = NumberField(x^6 + 2)
-            sage: L = K.elements_of_bounded_height(100)
-            sage: len(list(L)) # long time (9 s)
-            5171
-
-        ::
-
             sage: K.<a> = CyclotomicField(13)
             sage: L = K.elements_of_bounded_height(10)
             sage: len(list(L)) # long time (6 s)
             27
+
+        ::
+
+            sage: K.<a> = NumberField(x^6 + 2)
+            sage: L = K.elements_of_bounded_height(60, precision=100)
+            sage: len(list(L)) # long time (5 s)
+            1899
+
+        ::
+
+            sage: K.<a> = NumberField(x^4 - x^3 - 3*x^2 + x + 1)
+            sage: L = K.elements_of_bounded_height(40, LLL=true)
+            sage: len(list(L)) # long time (15 s)
+            1807
 
         AUTHORS:
 

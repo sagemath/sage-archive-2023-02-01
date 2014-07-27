@@ -34,6 +34,7 @@ from sage.rings.rational_field import QQ
 from sage.functions.other import ceil
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.structure.proof.all import number_field
+from sage.libs.pari.all import pari
 
 def bdd_norm_pr_gens_iq(K, norm_list):
     r"""
@@ -376,17 +377,17 @@ def bdd_height(K, height_bound, precision=53, LLL=False):
 
     .. WARNING::
 
-    In the current implementation, the output of the algorithm cannot be
-    guaranteed to be correct due to the necessity of floating point
-    computations. In some cases, the default 53-bit precision is
-    considerably lower than would be required for the algorithm to
-    generate correct output.
+        In the current implementation, the output of the algorithm cannot be
+        guaranteed to be correct due to the necessity of floating point
+        computations. In some cases, the default 53-bit precision is
+        considerably lower than would be required for the algorithm to
+        generate correct output.
 
     .. TODO::
 
-    Should implement a version of the algorithm that guarantees correct
-    output. See Algorithm 4 in [Doyle-Krumm] for details of an
-    implementation that takes precision issues into account.
+        Should implement a version of the algorithm that guarantees correct
+        output. See Algorithm 4 in [Doyle-Krumm] for details of an
+        implementation that takes precision issues into account.
 
     EXAMPLES:
 
@@ -414,16 +415,23 @@ def bdd_height(K, height_bound, precision=53, LLL=False):
     ::
 
         sage: from sage.rings.number_field.bdd_height import bdd_height
-        sage: K.<g> = NumberField(x^6 + 2)
-        sage: len(list(bdd_height(K,100))) # long time (9 s)
-        5171
+        sage: K.<g> = NumberField(x^3 - 197*x + 39)
+        sage: len(list(bdd_height(K, 200))) # long time (5 s)
+        451
 
     ::
 
         sage: from sage.rings.number_field.bdd_height import bdd_height
-        sage: K.<g> = NumberField(x^3 - 197*x + 39)
-        sage: len(list(bdd_height(K, 200))) # long time (5 s)
-        451
+        sage: K.<g> = NumberField(x^6 + 2)
+        sage: len(list(bdd_height(K,60,precision=100))) # long time (5 s)
+        1899
+        
+    ::
+
+        sage: from sage.rings.number_field.bdd_height import bdd_height
+        sage: K.<g> = NumberField(x^4 - x^3 - 3*x^2 + x + 1)
+        sage: len(list(bdd_height(K,40,LLL=true))) # long time (15 s)
+        1807
 
     """
 

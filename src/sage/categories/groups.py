@@ -815,7 +815,7 @@ class Groups(CategoryWithAxiom):
                 [Category of groups]
                 sage: sorted(C.super_categories(), key=str)
                 [Category of Cartesian products of inverse unital magmas,
-                 Category of Cartesian products of semigroups,
+                 Category of Cartesian products of monoids,
                  Category of groups]
             """
             return [self.base_category()]
@@ -840,7 +840,7 @@ class Groups(CategoryWithAxiom):
 
                 We check the other portion of :trac:`16718` is fixed::
 
-                    sage: len(AG.j_classes())
+                    sage: len(C.j_classes())
                     1
                 """
                 F = self.cartesian_factors()

@@ -152,7 +152,7 @@ class DocTestSource(object):
         This function is called when a docstring block is completed
         (either by ending a triple quoted string in a Python file,
         unindenting from a comment block in a ReST file, or ending a
-        verbatim or lstlisting environment in a LaTeX file.
+        verbatim or lstlisting environment in a LaTeX file).
 
         INPUT:
 
@@ -1216,7 +1216,7 @@ class TexSource(SourceLanguage):
         lstlisting environments, and can be linked together by adding
         %link immediately after the \end{verbatim} or \end{lstlisting}.
 
-        Within a verbatim block or lstlisting, you can tell Sage not to
+        Within a verbatim (or lstlisting) block, you can tell Sage not to
         process the rest of the block by including a %skip line.
 
         INPUT:

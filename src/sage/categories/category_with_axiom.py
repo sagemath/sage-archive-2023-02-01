@@ -1668,6 +1668,12 @@ all_axioms += ("Flying", "Blue",
               "Distributive")
 
 def get_all_axioms():
+    r"""
+    EXAMPLES::
+
+        sage: sorted(sage.categories.category_with_axiom.get_all_axioms().keys())
+        [..., 'FiniteDimensional', ...]
+    """
     return all_axioms
 
 def uncamelcase(s,separator=" "):

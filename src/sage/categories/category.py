@@ -1896,8 +1896,8 @@ class Category(UniqueRepresentation, SageObject):
             [Category of groups, Category of commutative additive monoids]
             sage: J.all_super_categories(proper=True)
             [Category of groups, ..., Category of magmas,
-            Category of commutative additive monoids, ..., Category of additive magmas,
-            Category of sets, ...]
+             Category of commutative additive monoids, ..., Category of additive magmas,
+             Category of sets, ...]
 
         As a short hand, one can use::
 
@@ -2022,7 +2022,7 @@ class Category(UniqueRepresentation, SageObject):
             <class 'sage.categories.category.JoinCategory_with_category'>
             sage: TFFC.super_categories()
             [Category of facade commutative test objects,
-            Category of finite dimensional commutative test objects]
+             Category of finite dimensional commutative test objects]
         """
         # Get the list of categories and deal with some trivial cases
         categories = list(categories)

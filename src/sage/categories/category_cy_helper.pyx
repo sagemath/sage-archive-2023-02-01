@@ -91,7 +91,8 @@ cpdef tuple _flatten_categories(categories, ClasscallMetaclass JoinCategory):
     EXAMPLES::
 
         sage: Category._flatten_categories([Algebras(QQ), Category.join([Monoids(), Coalgebras(QQ)]), Sets()], sage.categories.category.JoinCategory)
-        (Category of algebras over Rational Field, Category of monoids, Category of coalgebras over Rational Field, Category of sets)
+        (Category of algebras over Rational Field, Category of monoids,
+         Category of coalgebras over Rational Field, Category of sets)
     """
     # Invariant: the super categories of a JoinCategory are not JoinCategories themselves
     cdef list out = []
@@ -145,7 +146,6 @@ cpdef tuple join_as_tuple(tuple categories, tuple axioms, tuple ignore_axioms):
          Category of coalgebras over Rational Field,
          Category of finite sets,
          Category of simplicial complexes)
-
     """
     cdef set axiomsS = set(axioms)
     for category in categories:
@@ -212,7 +212,7 @@ cpdef tuple join_as_tuple(tuple categories, tuple axioms, tuple ignore_axioms):
 
 cdef class AxiomContainer(dict):
     """
-    A fast container for axioms
+    A fast container for axioms.
 
     This is derived from :class:`dict`. A key is the name of an axiom. The
     corresponding value is the "rank" of this axiom, that is used to order the
@@ -223,7 +223,6 @@ cdef class AxiomContainer(dict):
         sage: all_axioms = sage.categories.category_with_axiom.get_all_axioms()
         sage: isinstance(all_axioms, sage.categories.category_with_axiom.AxiomContainer)
         True
-
     """
     def add(self, axiom):
         """
@@ -241,9 +240,9 @@ cdef class AxiomContainer(dict):
         To avoid side effects, we remove the added axiom::
 
             sage: del all_axioms['Awesome']
-
         """
         self[axiom] = len(self)
+
     def __iadd__(self, L):
         """
         Inline addition, which means to add a list of axioms to the container.
@@ -260,7 +259,6 @@ cdef class AxiomContainer(dict):
         To avoid side effects, we delete the axioms that we just added::
 
             sage: del all_axioms['Awesome'], all_axioms['Fancy']
-
         """
         for axiom in L:
             self.add(axiom)
@@ -282,7 +280,6 @@ cpdef inline get_axiom_index(AxiomContainer all_axioms, str axiom):
         sage: from sage.categories.category_cy_helper import get_axiom_index
         sage: get_axiom_index(all_axioms, 'AdditiveCommutative') == all_axioms['AdditiveCommutative']
         True
-
     """
     cdef PyObject* out = PyDict_GetItemString(all_axioms, PyString_AsString(axiom))
     if out==NULL:
@@ -323,4 +320,4 @@ cpdef tuple canonicalize_axioms(AxiomContainer all_axioms, axioms):
     cdef list L = list(set(axioms))
     L.sort(key = (all_axioms).__getitem__)
     return tuple(L)
-    
+

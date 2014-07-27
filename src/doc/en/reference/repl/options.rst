@@ -61,8 +61,8 @@ Command-line options for Sage
 - ``--ecl [...]``, ``--lisp [...]`` -- run Sage's copy of ECL
   (Embeddable Common Lisp) with the given arguments
 - ``--gap [...]`` -- run Sage's Gap with the given arguments
+- ``--git [...]`` -- run Sage's Git with the given arguments
 - ``--gp [...]`` -- run Sage's PARI/GP calculator with the given arguments
-- ``--hg [...]`` -- run Sage's Mercurial with the given arguments
 - ``--ipython [...]`` -- run Sage's IPython using the default
   environment (not Sage), passing additional options to IPython
 - ``--kash [...]`` -- run Sage's Kash with the given arguments

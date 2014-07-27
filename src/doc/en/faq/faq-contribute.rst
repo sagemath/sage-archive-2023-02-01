@@ -39,13 +39,11 @@ by Mark Pilgrim, which may be pretty helpful on some specific topics
 like test-driven development. The book
 `Building Skills in Python <http://homepage.mac.com/s_lott/books/python.html>`_
 by Steven F. Lott is suitable for anyone who is already comfortable
-with programming. In the meantime, you can grab your copy of the Sage
+with programming.
+
+In the meantime, you can grab your copy of the Sage
 source and familiarize yourself with the
-`Mercurial <http://mercurial.selenic.com>`_
-source control management system. The book
-`Mercurial: The Definitive Guide <http://hgbook.red-bean.com>`_
-by Bryan O'Sullivan is recommended for those who want to start using
-Mercurial. Once you are comfortable with Python itself, which is
+`git <http://git-scm.com>`_ version control system. Once you are comfortable with Python itself, which is
 pretty fast for basics, you can start using Sage. If you want, you can
 try to learn Python by using Sage, but that is not recommended because
 it is helpful to know what is pure Python and when Sage is doing its

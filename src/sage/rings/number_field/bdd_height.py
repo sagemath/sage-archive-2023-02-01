@@ -425,7 +425,7 @@ def bdd_height(K, height_bound, precision=53, LLL=False):
         sage: K.<g> = NumberField(x^6 + 2)
         sage: len(list(bdd_height(K,60,precision=100))) # long time (5 s)
         1899
-        
+
     ::
 
         sage: from sage.rings.number_field.bdd_height import bdd_height

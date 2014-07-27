@@ -339,7 +339,7 @@ out the largest category where the axiom makes sense. For example
 With the current implementation, the name of the axiom must also be
 added to a global container::
 
-    sage: all_axioms = sage.categories.category_with_axiom.get_all_axioms()
+    sage: all_axioms = sage.categories.category_with_axiom.all_axioms
     sage: all_axioms += ("Green",)
 
 We can now use the axiom as usual::
@@ -943,7 +943,7 @@ real axioms; they deserve a full documentation!)::
     sage: from sage.categories.category_singleton import Category_singleton
     sage: from sage.categories.category_with_axiom import axiom
     sage: import sage.categories.category_with_axiom
-    sage: all_axioms = sage.categories.category_with_axiom.get_all_axioms()
+    sage: all_axioms = sage.categories.category_with_axiom.all_axioms
     sage: all_axioms += ("B","C","D","E","F")
 
     sage: class As(Category_singleton):

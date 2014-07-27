@@ -220,7 +220,7 @@ cdef class AxiomContainer(dict):
 
     EXAMPLES::
 
-        sage: all_axioms = sage.categories.category_with_axiom.get_all_axioms()
+        sage: all_axioms = sage.categories.category_with_axiom.all_axioms
         sage: isinstance(all_axioms, sage.categories.category_with_axiom.AxiomContainer)
         True
     """
@@ -230,7 +230,7 @@ cdef class AxiomContainer(dict):
 
         EXAMPLES::
 
-            sage: all_axioms = sage.categories.category_with_axiom.get_all_axioms()
+            sage: all_axioms = sage.categories.category_with_axiom.all_axioms
             sage: max(all_axioms.values())
             19
             sage: all_axioms.add('Awesome')
@@ -249,7 +249,7 @@ cdef class AxiomContainer(dict):
 
         EXAMPLES::
 
-            sage: all_axioms = sage.categories.category_with_axiom.get_all_axioms()
+            sage: all_axioms = sage.categories.category_with_axiom.all_axioms
             sage: max(all_axioms.values())
             19
             sage: all_axioms += ('Fancy', 'Awesome')
@@ -276,7 +276,7 @@ cpdef inline get_axiom_index(AxiomContainer all_axioms, str axiom):
 
     EXAMPLES::
 
-        sage: all_axioms = sage.categories.category_with_axiom.get_all_axioms()
+        sage: all_axioms = sage.categories.category_with_axiom.all_axioms
         sage: from sage.categories.category_cy_helper import get_axiom_index
         sage: get_axiom_index(all_axioms, 'AdditiveCommutative') == all_axioms['AdditiveCommutative']
         True

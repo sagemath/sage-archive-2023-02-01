@@ -158,6 +158,9 @@ ext_modules = [
     Extension('sage.categories.action',
               sources = ['sage/categories/action.pyx']),
 
+    Extension('sage.categories.category_cy_helper',
+              sources = ['sage/categories/category_cy_helper.pyx']),
+
     Extension('sage.categories.category_singleton',
               sources = ['sage/categories/category_singleton.pyx']),
 

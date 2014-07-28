@@ -151,7 +151,8 @@ from arith import algdep, bernoulli, is_prime, is_prime_power, \
     farey, continued_fraction_list, convergent, convergents, \
     continuant, number_of_divisors, hilbert_symbol, hilbert_conductor, \
     hilbert_conductor_inverse, falling_factorial, rising_factorial, \
-    integer_ceil, integer_floor, two_squares, four_squares, \
+    integer_ceil, integer_floor, \
+    two_squares, three_squares, four_squares, sum_of_k_squares, \
     subfactorial, is_power_of_two, differences, \
     sort_complex_numbers_for_display, \
     fundamental_discriminant, squarefree_divisors, \

@@ -50,59 +50,43 @@ pari = sage.libs.pari.all.pari
 class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_field):
     """
     Elliptic curve over a finite field.
+
+    EXAMPLES::
+
+        sage: EllipticCurve(GF(101),[2,3])
+        Elliptic Curve defined by y^2  = x^3 + 2*x + 3 over Finite Field of size 101
+
+        sage: F=GF(101^2, 'a')
+        sage: EllipticCurve([F(2),F(3)])
+        Elliptic Curve defined by y^2  = x^3 + 2*x + 3 over Finite Field in a of size 101^2
+
+    Elliptic curves over `\ZZ/N\ZZ` with `N` prime are of type
+    "elliptic curve over a finite field"::
+
+        sage: F = Zmod(101)
+        sage: EllipticCurve(F, [2, 3])
+        Elliptic Curve defined by y^2 = x^3 + 2*x + 3 over Ring of integers modulo 101
+        sage: E = EllipticCurve([F(2), F(3)])
+        sage: type(E)
+        <class 'sage.schemes.elliptic_curves.ell_finite_field.EllipticCurve_finite_field_with_category'>
+        sage: E.category()
+        Category of schemes over Ring of integers modulo 101
+
+    Elliptic curves over `\ZZ/N\ZZ` with `N` composite are of type
+    "generic elliptic curve"::
+
+        sage: F = Zmod(95)
+        sage: EllipticCurve(F, [2, 3])
+        Elliptic Curve defined by y^2 = x^3 + 2*x + 3 over Ring of integers modulo 95
+        sage: E = EllipticCurve([F(2), F(3)])
+        sage: type(E)
+        <class 'sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic_with_category'>
+        sage: E.category()
+        Category of schemes over Ring of integers modulo 95
+        sage: TestSuite(E).run(skip=["_test_elements"])
     """
-    def __init__(self, x, y=None):
-        """
-        Special constructor for elliptic curves over a finite field
 
-        EXAMPLES::
-
-            sage: EllipticCurve(GF(101),[2,3])
-            Elliptic Curve defined by y^2  = x^3 + 2*x + 3 over Finite Field of size 101
-
-        ::
-
-            sage: F=GF(101^2, 'a')
-            sage: EllipticCurve([F(2),F(3)])
-            Elliptic Curve defined by y^2  = x^3 + 2*x + 3 over Finite Field in a of size 101^2
-
-        Elliptic curves over `\ZZ/N\ZZ` with `N` prime are of type
-        "elliptic curve over a finite field"::
-
-            sage: F = Zmod(101)
-            sage: EllipticCurve(F, [2, 3])
-            Elliptic Curve defined by y^2 = x^3 + 2*x + 3 over Ring of integers modulo 101
-            sage: E = EllipticCurve([F(2), F(3)])
-            sage: type(E)
-            <class 'sage.schemes.elliptic_curves.ell_finite_field.EllipticCurve_finite_field_with_category'>
-            sage: E.category()
-            Category of schemes over Ring of integers modulo 101
-
-        Elliptic curves over `\ZZ/N\ZZ` with `N` composite are of type
-        "generic elliptic curve"::
-
-            sage: F = Zmod(95)
-            sage: EllipticCurve(F, [2, 3])
-            Elliptic Curve defined by y^2 = x^3 + 2*x + 3 over Ring of integers modulo 95
-            sage: E = EllipticCurve([F(2), F(3)])
-            sage: type(E)
-            <class 'sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic_with_category'>
-            sage: E.category()
-            Category of schemes over Ring of integers modulo 95
-            sage: TestSuite(E).run(skip=["_test_elements"])
-        """
-        if isinstance(x, list):
-            seq = Sequence(x)
-        else:
-            seq = Sequence(y, universe=x)
-        ainvs = list(seq)
-        field = seq.universe()
-        if not isinstance(field, ring.Ring):
-            raise TypeError
-
-        EllipticCurve_field.__init__(self, ainvs)
-
-        self._point = ell_point.EllipticCurvePoint_finite_field
+    _point = ell_point.EllipticCurvePoint_finite_field
 
     def plot(self, *args, **kwds):
         """

@@ -1,5 +1,9 @@
 r"""
 Shuffle product of words
+
+.. SEEALSO::
+    The module :mod:`sage.combinat.shuffle` contains a more general
+    implementation of shuffle product.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,

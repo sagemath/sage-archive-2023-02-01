@@ -198,7 +198,7 @@ in einer zukünftigen Sitzung (indem Sie einfach die Log-Datei laden).
     | Type notebook() for the GUI, and license() for information.        |
     ----------------------------------------------------------------------
 
-    sage: load "setup"
+    sage: load("setup")
     Loading log file <setup> one line at a time...
     Finished replaying log file <setup>
     sage: E

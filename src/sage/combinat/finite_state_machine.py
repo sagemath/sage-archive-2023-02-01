@@ -9249,8 +9249,10 @@ class _FSMTapeCache_(SageObject):
             multi-tape at (0, 0)
             sage: TC3
             multi-tape at (0, 0)
-            sage: TC2.read(0), TC2.read(1), TC2.read(1), TC2.preview_letter()
-            (True, True, True, (37, 11))
+            sage: TC2.read(0), TC2.read(1), TC2.read(1)
+            ((True, 37), (True, 11), (True, 12))
+            sage: TC2.preview_letter()
+            (37, 11)
             sage: TC2.cache is TC3.cache
             False
         """
@@ -9268,7 +9270,8 @@ class _FSMTapeCache_(SageObject):
 
         OUTPUT:
 
-        ``True`` if reading was successful, otherwise ``False``.
+        ``(True, letter)`` if reading was successful (``letter`` was
+        read), otherwise ``(False, None)``.
 
         Note that this updates the cache of all tapes in
         ``self.tape_cache_manager``.
@@ -9278,36 +9281,38 @@ class _FSMTapeCache_(SageObject):
             sage: from sage.combinat.finite_state_machine import _FSMTapeCache_
             sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
-            sage: TC2.read(0), TC2.read(1), TC2.read(1), TC2.preview_letter()
-            (True, True, True, (37, 11))
+            sage: TC2.read(0), TC2.read(1), TC2.read(1)
+            ((True, 37), (True, 11), (True, 12))
+            sage: TC2.preview_letter()
+            (37, 11)
             sage: TC3 = deepcopy(TC2)
             sage: TC2.cache, TC3.cache
             ((deque([37]), deque([11, 12])), (deque([37]), deque([11, 12])))
             sage: TC3.read(1)
-            True
+            (True, 13)
             sage: TC2.cache, TC3.cache
             ((deque([37]), deque([11, 12, 13])),
              (deque([37]), deque([11, 12, 13])))
             sage: TC2.read(1), TC2.read(1)
-            (True, False)
+            ((True, 14), (False, None))
             sage: TC2.cache
             (deque([37]), deque([11, 12, 13, 14]))
             sage: TC2.tape_ended
             [False, True]
             sage: TC2.read(1)
-            False
+            (False, None)
         """
         try:
             newval = next(self.tape[track_number])
         except StopIteration:
             self.tape_ended[track_number] = True
-            return False
+            return (False, None)
 
         # update all tapes
         for tape in self.tape_cache_manager:
             tape.cache[track_number].append(newval)
 
-        return True
+        return (True, newval)
 
 
     def finished(self, track_number=None):
@@ -9363,7 +9368,7 @@ class _FSMTapeCache_(SageObject):
             sage: print 'cache:', TC2.cache, TC2
             cache: (deque([41]), deque([])) multi-tape at (4, 4)
             sage: TC2.read(0)
-            False
+            (False, None)
             sage: TC2.forward(FSMTransition(0, 0, [[0], []]))
             sage: print 'finished:', TC2.finished(), \
             ....:     TC2.finished(0), TC2.finished(1)
@@ -9455,7 +9460,7 @@ class _FSMTapeCache_(SageObject):
             else:
                 return self.preview_letter(0)
         track_cache = self.cache[track_number]
-        if not track_cache and not self.read(track_number):
+        if not track_cache and not self.read(track_number)[0]:
             raise StopIteration
         return track_cache[0]
 
@@ -9496,7 +9501,7 @@ class _FSMTapeCache_(SageObject):
         track_cache = self.cache[track_number]
         for i, letter in enumerate(word):
             while len(track_cache) <= i:
-                if not self.read(track_number):
+                if not self.read(track_number)[0]:
                     return False
             if letter != track_cache[i]:
                 return False
@@ -9577,7 +9582,7 @@ class _FSMTapeCache_(SageObject):
                 enumerate(izip(self.cache, increments)):
             for _ in range(inc):
                 if not track_cache:
-                    if not self.read(track_number):
+                    if not self.read(track_number)[0]:
                         raise ValueError('forwarding tape is not possible')
                 track_cache.popleft()
         position = [(p + increments[t], t)

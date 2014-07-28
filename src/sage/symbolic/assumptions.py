@@ -19,7 +19,7 @@ class GenericDeclaration(SageObject):
     -  ``var`` -- the variable about which assumptions are
        being made
 
-    -  ``assumption`` -- a Maxima feature, either user
+    -  ``assumption`` -- a string containing a Maxima feature, either user
        defined or in the list given by ``maxima('features')``
 
     EXAMPLES::
@@ -325,7 +325,7 @@ def assume(*args):
     Assumptions are typically used to ensure certain relations are
     evaluated as true that are not true in general.
 
-    Here, we verify that for `x>0`, `\sqrt(x^2)=x`::
+    Here, we verify that for `x>0`, `\sqrt{x^2}=x`::
 
         sage: assume(x > 0)
         sage: bool(sqrt(x^2) == x)

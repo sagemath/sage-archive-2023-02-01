@@ -4870,8 +4870,8 @@ class FiniteStateMachine(SageObject):
             ....:                            full_output=True)
             (True, 'a', [1, 0, 1])
         """
-        accept_input, current_state, output_tape = output
-        return (accept_input, current_state, output_tape)
+        accept_input, current_state, outputs = output
+        return (accept_input, current_state, outputs)
 
 
     def iter_process(self, input_tape=None, initial_state=None, **kwargs):
@@ -8394,7 +8394,7 @@ class Automaton(FiniteStateMachine):
         if FSMOldProcessOutput:
             return super(Automaton, self)._process_convert_output_(
                 output, **kwargs)
-        accept_input, current_state, output_tape = output
+        accept_input, current_state, outputs = output
         if kwargs['full_output']:
             return (accept_input, current_state)
         else:
@@ -9054,16 +9054,16 @@ class Transducer(FiniteStateMachine):
         if FSMOldProcessOutput:
             return super(Transducer, self)._process_convert_output_(
                 output, **kwargs)
-        accept_input, current_state, output_tape = output
+        accept_input, current_state, outputs = output
         if kwargs['full_output']:
             if current_state.label() is None:
                 return (accept_input, current_state, None)
             else:
-                return (accept_input, current_state, output_tape)
+                return (accept_input, current_state, outputs)
         else:
             if not accept_input:
                 raise ValueError("Invalid input sequence.")
-            return output_tape
+            return outputs
 
 
 #*****************************************************************************

@@ -8054,7 +8054,7 @@ class Automaton(FiniteStateMachine):
 
         TESTS:
 
-        This is from `track ticket #15078, comment 13 <http://trac.sagemath.org/ticket/15078#comment:13>`_.
+        This is from `trac ticket #15078, comment 13 <http://trac.sagemath.org/ticket/15078#comment:13>`_.
 
         ::
 

@@ -4630,32 +4630,55 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
+        - ``list_of_outputs`` -- (default: ``None``) a boolean or
+          ``None``. If ``True``, then the outputs are given in list
+          form (even when we have no or only one single output). If
+          ``False``, then the result is never a list (an exception is
+          raised when the result cannot be returned). If
+          ``list_of_outputs=None`` determines automatically what to do
+          (e.g. when a non-deterministic machine returns more than one
+          path, then the output is returned in list form).
+
+        - ``only_accepted`` -- (default: ``False``) a boolean. If set,
+          then the first argument in the output is guaranteed to be
+          ``True`` (when the output is a list, then the first argument
+          of each element will be ``True``).
+
+        All other ``kwargs`` will be passed directly to
+        :class:`FSMProcessIterator` (which is used internally during
+        processing). Those are the following:
+
         - ``input_tape`` -- the input tape can be a list or an
-          iterable with entries from the input alphabet. See also
-          :class:`FSMProcessIterator`.
+          iterable with entries from the input alphabet. If we are
+          working with a multi-tape machine (see parameter
+          ``use_multitape_input`` and notes below), then the tape is a
+          list or tuple of tracks, each of which can be a list or an
+          iterable with entries from the input alphabet.
 
-        - ``initial_state`` -- (default: ``None``) the state in which
-          to start. If this parameter is ``None``, the
-          :class:`FSMProcessIterator` takes the initial states of the
-          finite state machine.
+        - ``initial_state`` or ``initial_states`` -- the initial
+          state(s) in which the machine starts. Either specify a
+          single one with ``initial_state`` or a list of them with
+          ``initial_states``. If both are given, ``initial_state``
+          will be appended to ``initial_states``. If neither is
+          specified, the initial states of the finite state machine
+          are taken.
 
-        - ``list_of_outputs`` -- (default: ``None``) If ``True``, then
-          the outputs are given in list form (even when we have no or
-          only one single output). If ``False``, then the result is
-          never a list (an exception is raised when the result cannot
-          be returned). If ``list_of_outputs=None`` determines
-          automatically what to do (e.g. when a non-deterministic
-          machine returns more than one path, then the output is
-          returned in list form).
+        - ``format_output`` -- a function that translates the written
+          output (which is in form of a list) to something more
+          readable. By default (``None``) identity is used here.
 
-        - ``only_accepted`` -- (default: ``False``) If set, then the
-          first argument in the output is guaranteed to be ``True``
-          (when the output is a list, then the first argument of each
-          element will be ``True``).
+        - ``check_epsilon_transitions`` -- (default: ``True``) a
+          boolean. If ``False``, then epsilon transitions are not
+          taken into consideration during process.
 
-        All the ``kwargs`` will also be passed to
-        :class:`FSMProcessIterator`. You can find more input
-        parameters there.
+        - ``write_final_word_out`` -- (default: ``True``) a boolean
+          specifying whether the final output words should be written
+          or not.
+
+        - ``use_multitape_input`` -- (default: ``False``) a
+          boolean. If ``True``, then the multi-tape mode of the
+          process iterator is activated. See also the notes below for
+          multi-tape machines.
 
         OUTPUT:
 
@@ -4676,6 +4699,40 @@ class FiniteStateMachine(SageObject):
         Note that in the case the finite state machine is not
         deterministic, all possible paths are taken into account and
         the output will be in list form.
+
+        Internally this function works with an instance of
+        :class:`FSMProcessIterator`.
+        In its simplest form, it behaves like an iterator which, in
+        each step, goes from one state to another. To decide which way
+        to go, it uses the input words of the outgoing transitions and
+        compares them to the input tape. More precisely, in each step,
+        the process iterator takes an outgoing transition of the
+        current state, whose input label equals the input letter of
+        the tape. The output label of the transition, if present, is
+        written on the output tape.
+
+        If the choice of the outgoing transition is not unique (i.e.,
+        we have a non-deterministic finite state machine), all
+        possibilites are followed. This is done by splitting the
+        process into several branches, one for each of the possible
+        outgoing transitions.
+
+        The process (iteration) stops if all branches are finished,
+        i.e., for no branch, there is any transition whose input word
+        coincides with the processed input tape. This can simply
+        happen when the entire tape was read.
+
+        When working with multi-tape finite state machines, all input
+        words of transitions are `k`-tuples of words (the latter in
+        the sense of single-tape machines, i.e. lists of
+        letters). Moreover, the input tape has to consist of `k`
+        tracks, i.e., be a list or tuple of `k` iterators, one for
+        each track.
+
+        .. WARNING::
+
+            Working with multi-tape finite state machines is still
+            experimental and can lead to wrong output.
 
         EXAMPLES::
 
@@ -8261,32 +8318,59 @@ class Automaton(FiniteStateMachine):
 
         INPUT:
 
+        - ``list_of_outputs`` -- (default: ``None``) a boolean or
+          ``None``. If ``True``, then the outputs are given in list
+          form (even when we have no or only one single output). If
+          ``False``, then the result is never a list (an exception is
+          raised when the result cannot be returned). If
+          ``list_of_outputs=None`` determines automatically what to do
+          (e.g. when a non-deterministic machine returns more than one
+          path, then the output is returned in list form).
+
+        - ``only_accepted`` -- (default: ``False``) a boolean. If set,
+          then the first argument in the output is guaranteed to be
+          ``True`` (when the output is a list, then the first argument
+          of each element will be ``True``).
+
+        - ``full_output`` -- (default: ``True``) a boolean. If set,
+          then the full output is given, otherwise only whether the
+          sequence is accepted or not (the first entry below only).
+
+        All other ``kwargs`` will be passed directly to
+        :class:`FSMProcessIterator` (which is used internally during
+        processing). Those are the following:
+
         - ``input_tape`` -- the input tape can be a list or an
-          iterable with entries from the input alphabet. See also
-          :class:`FSMProcessIterator`.
+          iterable with entries from the input alphabet. If we are
+          working with a multi-tape machine (see parameter
+          ``use_multitape_input`` and notes below), then the tape is a
+          list or tuple of tracks, each of which can be a list or an
+          iterable with entries from the input alphabet.
 
-        - ``initial_state`` -- (default: ``None``) the state in which
-          to start. If this parameter is ``None``, the
-          :class:`FSMProcessIterator` takes the initial states of the
-          finite state machine.
+        - ``initial_state`` or ``initial_states`` -- the initial
+          state(s) in which the machine starts. Either specify a
+          single one with ``initial_state`` or a list of them with
+          ``initial_states``. If both are given, ``initial_state``
+          will be appended to ``initial_states``. If neither is
+          specified, the initial states of the finite state machine
+          are taken.
 
-        - ``full_output`` -- (default: ``True``) If set, then the full
-          output is given, otherwise only whether the sequence is accepted
-          or not (the first entry below only).
+        - ``format_output`` -- a function that translates the written
+          output (which is in form of a list) to something more
+          readable. By default (``None``) identity is used here.
 
-        - ``list_of_outputs`` -- (default: ``None``) If set, the
-          outputs are given in list form (even when we have only one
-          single output). If this is ``None`` and a non-deterministic
-          machine returns more than one path, then the output is in
-          list form as well.
+        - ``check_epsilon_transitions`` -- (default: ``True``) a
+          boolean. If ``False``, then epsilon transitions are not
+          taken into consideration during process.
 
-        - ``only_accepted`` -- (default: ``False``) If set and the
-          output is a list, then only outputs with first argument
-          (accepted) equal to ``True`` are returned.
+        - ``write_final_word_out`` -- (default: ``True``) a boolean
+          specifying whether the final output words should be written
+          or not.
 
-        All the ``kwargs`` will also be passed to
-        :class:`FSMProcessIterator`. You can find more input
-        parameters there.
+        - ``use_multitape_input`` -- (default: ``False``) a
+          boolean. If ``True``, then the multi-tape mode of the
+          process iterator is activated. See also the notes below for
+          multi-tape machines.
 
         OUTPUT:
 
@@ -8300,6 +8384,9 @@ class Automaton(FiniteStateMachine):
           could not be processed, i.e., when at one point no
           transition to go could be found.).
 
+        When ``full_output`` is ``False``, then only the first entry
+        is returned.
+
         Note that in the case the automaton is not
         deterministic, all possible paths are taken into account and
         the output will be in list form.
@@ -8308,6 +8395,40 @@ class Automaton(FiniteStateMachine):
 
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
+
+        Internally this function works with an instance of
+        :class:`FSMProcessIterator`.
+        In its simplest form, it behaves like an iterator which, in
+        each step, goes from one state to another. To decide which way
+        to go, it uses the input words of the outgoing transitions and
+        compares them to the input tape. More precisely, in each step,
+        the process iterator takes an outgoing transition of the
+        current state, whose input label equals the input letter of
+        the tape. The output label of the transition, if present, is
+        written on the output tape.
+
+        If the choice of the outgoing transition is not unique (i.e.,
+        we have a non-deterministic finite state machine), all
+        possibilites are followed. This is done by splitting the
+        process into several branches, one for each of the possible
+        outgoing transitions.
+
+        The process (iteration) stops if all branches are finished,
+        i.e., for no branch, there is any transition whose input word
+        coincides with the processed input tape. This can simply
+        happen when the entire tape was read.
+
+        When working with multi-tape finite state machines, all input
+        words of transitions are `k`-tuples of words (the latter in
+        the sense of single-tape machines, i.e. lists of
+        letters). Moreover, the input tape has to consist of `k`
+        tracks, i.e., be a list or tuple of `k` iterators, one for
+        each track.
+
+        .. WARNING::
+
+            Working with multi-tape finite state machines is still
+            experimental and can lead to wrong output.
 
         EXAMPLES:
 
@@ -8908,33 +9029,60 @@ class Transducer(FiniteStateMachine):
 
         INPUT:
 
+        - ``list_of_outputs`` -- (default: ``None``) a boolean or
+          ``None``. If ``True``, then the outputs are given in list
+          form (even when we have no or only one single output). If
+          ``False``, then the result is never a list (an exception is
+          raised when the result cannot be returned). If
+          ``list_of_outputs=None`` determines automatically what to do
+          (e.g. when a non-deterministic machine returns more than one
+          path, then the output is returned in list form).
+
+        - ``only_accepted`` -- (default: ``False``) a boolean. If set,
+          then the first argument in the output is guaranteed to be
+          ``True`` (when the output is a list, then the first argument
+          of each element will be ``True``).
+
+        - ``full_output`` -- (default: ``True``) a boolean. If set,
+          then the full output is given, otherwise only the generated
+          output (the third entry below only). If the input is not
+          accepted, a ``RuntimeError`` is raised.
+
+        All other ``kwargs`` will be passed directly to
+        :class:`FSMProcessIterator` (which is used internally during
+        processing). Those are the following:
+
         - ``input_tape`` -- the input tape can be a list or an
-          iterable with entries from the input alphabet. See also
-          :class:`FSMProcessIterator`.
+          iterable with entries from the input alphabet. If we are
+          working with a multi-tape machine (see parameter
+          ``use_multitape_input`` and notes below), then the tape is a
+          list or tuple of tracks, each of which can be a list or an
+          iterable with entries from the input alphabet.
 
-        - ``initial_state`` -- (default: ``None``) the state in which
-          to start. If this parameter is ``None``, the
-          :class:`FSMProcessIterator` takes the initial states of the
-          finite state machine.
+        - ``initial_state`` or ``initial_states`` -- the initial
+          state(s) in which the machine starts. Either specify a
+          single one with ``initial_state`` or a list of them with
+          ``initial_states``. If both are given, ``initial_state``
+          will be appended to ``initial_states``. If neither is
+          specified, the initial states of the finite state machine
+          are taken.
 
-        - ``full_output`` -- (default: ``True``) If set, then the full
-          output is given, otherwise only the generated output (the
-          third entry below only). If the input is not accepted, a
-          ``ValueError`` is raised.
+        - ``format_output`` -- a function that translates the written
+          output (which is in form of a list) to something more
+          readable. By default (``None``) identity is used here.
 
-        - ``list_of_outputs`` -- (default: ``None``) If set, the
-          outputs are given in list form (even when we have only one
-          single output). If this is ``None`` and a non-deterministic
-          machine returns more than one path, then the output is in
-          list form as well.
+        - ``check_epsilon_transitions`` -- (default: ``True``) a
+          boolean. If ``False``, then epsilon transitions are not
+          taken into consideration during process.
 
-        - ``only_accepted`` -- (default: ``False``) If set and the
-          output is a list, then only outputs with first argument
-          (accepted) equal to ``True`` are returned.
+        - ``write_final_word_out`` -- (default: ``True``) a boolean
+          specifying whether the final output words should be written
+          or not.
 
-        All the ``kwargs`` will also be passed to
-        :class:`FSMProcessIterator`. You can find more input
-        parameters there.
+        - ``use_multitape_input`` -- (default: ``False``) a
+          boolean. If ``True``, then the multi-tape mode of the
+          process iterator is activated. See also the notes below for
+          multi-tape machines.
 
         OUTPUT:
 
@@ -8951,12 +9099,49 @@ class Transducer(FiniteStateMachine):
         - the third gives a list of the output labels written during
           processing.
 
+        When ``full_output`` is ``False``, then only the third entry
+        is returned.
+
         Note that in the case the transducer is not
         deterministic, all possible paths are taken into account and
         the output will be in list form.
 
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
+
+        Internally this function works with an instance of
+        :class:`FSMProcessIterator`.
+        In its simplest form, it behaves like an iterator which, in
+        each step, goes from one state to another. To decide which way
+        to go, it uses the input words of the outgoing transitions and
+        compares them to the input tape. More precisely, in each step,
+        the process iterator takes an outgoing transition of the
+        current state, whose input label equals the input letter of
+        the tape. The output label of the transition, if present, is
+        written on the output tape.
+
+        If the choice of the outgoing transition is not unique (i.e.,
+        we have a non-deterministic finite state machine), all
+        possibilites are followed. This is done by splitting the
+        process into several branches, one for each of the possible
+        outgoing transitions.
+
+        The process (iteration) stops if all branches are finished,
+        i.e., for no branch, there is any transition whose input word
+        coincides with the processed input tape. This can simply
+        happen when the entire tape was read.
+
+        When working with multi-tape finite state machines, all input
+        words of transitions are `k`-tuples of words (the latter in
+        the sense of single-tape machines, i.e. lists of
+        letters). Moreover, the input tape has to consist of `k`
+        tracks, i.e., be a list or tuple of `k` iterators, one for
+        each track.
+
+        .. WARNING::
+
+            Working with multi-tape finite state machines is still
+            experimental and can lead to wrong output.
 
         EXAMPLES::
 
@@ -9874,55 +10059,62 @@ class FSMProcessIterator(SageObject, collections.Iterator):
     - ``fsm`` -- the finite state machine on which the input should be
       processed.
 
-    - ``input_tape`` -- an iterable.
+    - ``input_tape`` -- the input tape can be a list or an
+      iterable with entries from the input alphabet. If we are
+      working with a multi-tape machine (see parameter
+      ``use_multitape_input`` and notes below), then the tape is a
+      list or tuple of tracks, each of which can be a list or an
+      iterable with entries from the input alphabet.
 
-    - ``initial_state`` or ``initial_states`` -- the initial state(s)
-      in which the machine starts. Either specify a single one with
-      ``initial_state`` or a list of them with ``initial_states``. If
-      both are given, ``initial_state`` will be appended to
-      ``initial_states``. If neither is specified, the initial
-      states of the finite state machine are taken.
-
-    - ``check_epsilon_transitions`` -- (default: ``True``) a
-      boolean. If ``False``, epsilon transitions are not taken into
-      consideration during process.
+    - ``initial_state`` or ``initial_states`` -- the initial
+      state(s) in which the machine starts. Either specify a
+      single one with ``initial_state`` or a list of them with
+      ``initial_states``. If both are given, ``initial_state``
+      will be appended to ``initial_states``. If neither is
+      specified, the initial states of the finite state machine
+      are taken.
 
     - ``format_output`` -- a function that translates the written
-      output in list form to something more readable. By default
-      (``None``) identity is used here.
+      output (which is in form of a list) to something more
+      readable. By default (``None``) identity is used here.
 
-    - ``write_final_word_out`` -- a boolean specifying whether the
-      final output words should be written (default) or not.
+    - ``check_epsilon_transitions`` -- (default: ``True``) a
+      boolean. If ``False``, then epsilon transitions are not
+      taken into consideration during process.
 
-    Moreover, there are the following extensions for multi-tape
-    machines (see also notes below):
+    - ``write_final_word_out`` -- (default: ``True``) a boolean
+      specifying whether the final output words should be written
+      or not.
 
-    - ``use_multitape_input`` -- (default: ``None``, which translates
-      to ``False``) if ``True``, then the multi-tape mode of the process
-      iterator is activated.
+    - ``use_multitape_input`` -- (default: ``False``) a
+      boolean. If ``True``, then the multi-tape mode of the
+      process iterator is activated. See also the notes below for
+      multi-tape machines.
 
     OUTPUT:
 
     An iterator.
 
-    In its simplest form, the it behaves like an iterator which, in each
-    step, goes from one state to another. To decide which way to go,
-    it uses the input words of the outgoing transitions and compares
-    them to the input tape. More precisely, in each step, the process
-    iterator takes an outgoing transition of the current state, whose
-    input label equals the input letter of the tape. The output label
-    of the transition, if present, is written on the output tape.
+    In its simplest form, it behaves like an iterator which, in
+    each step, goes from one state to another. To decide which way
+    to go, it uses the input words of the outgoing transitions and
+    compares them to the input tape. More precisely, in each step,
+    the process iterator takes an outgoing transition of the
+    current state, whose input label equals the input letter of
+    the tape. The output label of the transition, if present, is
+    written on the output tape.
 
-    If the choice of the outgoing transition is not unique (i.e., we
-    have a non-deterministic finite state machine), all possibilites
-    are followed. This is done by splitting the process into several
-    branches, one for each of the possible outgoing transitions.
+    If the choice of the outgoing transition is not unique (i.e.,
+    we have a non-deterministic finite state machine), all
+    possibilites are followed. This is done by splitting the
+    process into several branches, one for each of the possible
+    outgoing transitions.
 
-    The process (iteration) stops if all branches are finished, i.e.,
-    for no branch, there is any transition whose input word coincides
-    with the processed input tape. This can simply happen when the
-    entire tape was read. When the process stops, a ``StopIteration``
-    exception is thrown.
+    The process (iteration) stops if all branches are finished,
+    i.e., for no branch, there is any transition whose input word
+    coincides with the processed input tape. This can simply
+    happen when the entire tape was read.
+    When the process stops, a ``StopIteration`` exception is thrown.
 
     An instance of this class is generated when
     :meth:`FiniteStateMachine.process` or
@@ -9930,10 +10122,16 @@ class FSMProcessIterator(SageObject, collections.Iterator):
     an automaton, or a transducer is invoked.
 
     When working with multi-tape finite state machines, all input
-    words of transitions are `k`-tuples of words (the latter in the
-    sense of single-tape machines, i.e. lists of letters). Moreover,
-    the input tape has to consist of `k` tracks, i.e., be a list or
-    tuple of `k` iterators, one for each track.
+    words of transitions are `k`-tuples of words (the latter in
+    the sense of single-tape machines, i.e. lists of
+    letters). Moreover, the input tape has to consist of `k`
+    tracks, i.e., be a list or tuple of `k` iterators, one for
+    each track.
+
+    .. WARNING::
+
+        Working with multi-tape finite state machines is still
+        experimental and can lead to wrong output.
 
     EXAMPLES:
 

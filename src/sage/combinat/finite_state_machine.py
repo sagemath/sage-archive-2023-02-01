@@ -2413,7 +2413,7 @@ class FiniteStateMachine(SageObject):
         for state in self.iter_states():
             if relabel:
                 if self._deepcopy_labels_ is None:
-                    state._deepcopy_relabel_ = relabel_iter.next()
+                    state._deepcopy_relabel_ = next(relabel_iter)
                 elif hasattr(self._deepcopy_labels_, '__call__'):
                     state._deepcopy_relabel_ = self._deepcopy_labels_(state.label())
                 elif hasattr(self._deepcopy_labels_, '__getitem__'):
@@ -4735,7 +4735,7 @@ class FiniteStateMachine(SageObject):
                 if is_FSMTransition(d):
                     return self._add_fsm_transition_(d)
             else:
-                d = kwargs.itervalues().next()
+                d = next(kwargs.itervalues())
             if hasattr(d, 'iteritems'):
                 args = []
                 kwargs = d
@@ -6839,7 +6839,7 @@ class FiniteStateMachine(SageObject):
             # If no final state can be reached, then None is returned.
             # For final states, the final word out is returned.
             # For final states with empty final output, that is [].
-            position, letter = trailing_letters.next()
+            position, letter = next(trailing_letters)
             if state.is_final:
                 return state.final_word_out
 

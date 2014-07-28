@@ -930,41 +930,10 @@ class Link:
                         i[1] = "leaving"
                     elif j[1] == "leaving":
                         i[1] = "entering"
-        for i in range(0,len(over),2):
-            if over[i][1] == None:
-                if over[i+1][1] == "entering":
-                    over[i][1] = "leaving"
-                elif over[i+1][1] == "leaving":
-                    over[i][1] = "entering"
-            elif over[i+1][1] == None:
-                if over[i][1] == "entering":
-                    over[i+1][1] = "leaving"
-                elif over[i][1] == "leaving":
-                    over[i+1][1] = "entering"
-        unfilled = []
         for i in over:
             if i[1] == None:
-                unfilled.append(i)
-        for i in unfilled:
-            for j in over:
-                if i[0] == j[0]:
-                    if j[1] == "entering":
-                        over[over.index(i)][1] = "leaving"
-                        break
-                    elif j[1] == "leaving":
-                        over[over.index(i)][1] = "entering"
-                        break
-        for i in range(0, len(over), 2):
-            if over[i][1] == None:
-                if over[i+1][1] == "leaving":
-                    over[i][1] = "entering"
-                elif over[i+1][1] == "entering":
-                    over[i][1] = "leaving"
-            elif over[i+1][1] == None:
-                if over[i][1] == "leaving":
-                    over[i+1] = "entering"
-                elif over[i][1] == "entering":
-                    over[i+1][1] = "leaving"
+                over = rule_1(over)
+                over = rule_2(over)
         orientation = []
         for i in range(0, len(over), 2):
             if over[i][1] == "leaving":
@@ -972,6 +941,7 @@ class Link:
             elif over[i][1] == "entering":
                 orientation.append('+')
         return orientation
+
 
     def seifert_circles(self):
         r"""
@@ -1550,3 +1520,29 @@ class Link:
         wri = self.writhe()
         s = s*(((-1)*(x**(-3)))**wri)
         return s
+
+def rule_1(over):
+    for i in range(0,len(over),2):
+        if over[i][1] == None:
+            if over[i+1][1] == "entering":
+                over[i][1] = "leaving"
+            elif over[i+1][1] == "leaving":
+                over[i][1] = "entering"
+        elif over[i+1][1] == None:
+            if over[i][1] == "entering":
+                over[i+1][1] = "leaving"
+            elif over[i][1] == "leaving":
+                over[i+1][1] = "entering"
+    return over
+
+def rule_2(over):
+    for i in over:
+        for j in over:
+            if i[0] == j[0] and j[1] == None:
+                if i[1] == "entering":
+                    j[1] = "leaving"
+                    break
+                elif i[1] == "leaving":
+                    j[1] = "entering"
+                    break
+    return over

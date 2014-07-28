@@ -255,7 +255,7 @@ Now we want to divide `13` by `3`::
     sage: D([1, 1, 0, 1])
     Traceback (most recent call last):
     ...
-    ValueError: Invalid input sequence.
+    RuntimeError: Invalid input sequence.
 
 The raised ``ValueError``
 means `13` is not divisible by `3`.
@@ -321,7 +321,7 @@ input letter in order to flush the last digit::
     sage: shift_right_transducer([0, 1, 0, 1])
     Traceback (most recent call last):
     ...
-    ValueError: Invalid input sequence.
+    RuntimeError: Invalid input sequence.
 
 Next, we construct the transducer performing the xor operation. We also
 have to take ``None`` into account as our ``shift_right_transducer``
@@ -353,7 +353,7 @@ with our intention to forget the first letter.
     sage: xor_transducer([(0, None)])
     Traceback (most recent call last):
     ...
-    ValueError: Invalid input sequence.
+    RuntimeError: Invalid input sequence.
 
 The transducer computing the Gray code is then constructed as a
 :meth:`cartesian product <Transducer.cartesian_product>` between the
@@ -2848,7 +2848,7 @@ class FiniteStateMachine(SageObject):
             sage: T([2])
             Traceback (most recent call last):
             ...
-            ValueError: Invalid input sequence.
+            RuntimeError: Invalid input sequence.
             sage: F([3])
             (False, None, None)
             sage: A([3])
@@ -2856,7 +2856,7 @@ class FiniteStateMachine(SageObject):
             sage: T([3])
             Traceback (most recent call last):
             ...
-            ValueError: Invalid input sequence.
+            RuntimeError: Invalid input sequence.
         """
         if len(args) == 0:
             raise TypeError("Called with too few arguments.")
@@ -8994,11 +8994,11 @@ class Transducer(FiniteStateMachine):
             sage: T.process([0], full_output=False)
             Traceback (most recent call last):
             ...
-            ValueError: Invalid input sequence.
+            RuntimeError: Invalid input sequence.
             sage: T.process([0, 1, 2], full_output=False)
             Traceback (most recent call last):
             ...
-            ValueError: Invalid input sequence.
+            RuntimeError: Invalid input sequence.
 
         It is equivalent to::
 
@@ -9007,11 +9007,11 @@ class Transducer(FiniteStateMachine):
             sage: T([0])
             Traceback (most recent call last):
             ...
-            ValueError: Invalid input sequence.
+            RuntimeError: Invalid input sequence.
             sage: T([0, 1, 2])
             Traceback (most recent call last):
             ...
-            ValueError: Invalid input sequence.
+            RuntimeError: Invalid input sequence.
         """
         if FSMOldProcessOutput:
             from sage.misc.superseded import deprecation
@@ -9062,7 +9062,7 @@ class Transducer(FiniteStateMachine):
                 return (accept_input, current_state, outputs)
         else:
             if not accept_input:
-                raise ValueError("Invalid input sequence.")
+                raise RuntimeError("Invalid input sequence.")
             return outputs
 
 

@@ -296,7 +296,7 @@ class TransducerGenerators(object):
             sage: T([-1, 1, 0])
             Traceback (most recent call last):
             ...
-            ValueError: Invalid input sequence.
+            RuntimeError: Invalid input sequence.
             sage: T([(-1,), (1,), (0,)])
             [1, 1, 0]
 

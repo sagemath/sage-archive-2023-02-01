@@ -34,7 +34,7 @@ good place to start is the
 and other documents in the
 `Python standard documentation <http://docs.python.org>`_.
 Another good place to take a look at is
-`Dive Into Python <http://www.diveintopython.org>`_
+`Dive Into Python <http://www.diveintopython.net>`_
 by Mark Pilgrim, which may be pretty helpful on some specific topics
 like test-driven development. The book
 `Building Skills in Python <http://homepage.mac.com/s_lott/books/python.html>`_
@@ -131,8 +131,8 @@ resources can be found by a web search.
   by Steven F. Lott
 * `Cython Tutorial <http://conference.scipy.org/proceedings/SciPy2009/paper_1/>`_
   by Stefan Behnel, Robert W. Bradshaw, and Dag Sverre Seljebotn
-* `Dive into Python <http://www.diveintopython.org>`_ by Mark Pilgrim
-* `Dive Into Python 3 <http://www.diveintopython3.org>`_ by Mark Pilgrim
+* `Dive into Python <http://www.diveintopython.net>`_ by Mark Pilgrim
+* `Dive Into Python 3 <http://www.diveintopython3.net>`_ by Mark Pilgrim
 * `Fast Numerical Computations with Cython <http://conference.scipy.org/proceedings/SciPy2009/paper_2/>`_
   by Dag Sverre Seljebotn
 * `How to Think Like a Computer Scientist <http://www.openbookproject.net/thinkCSpy>`_

@@ -232,7 +232,7 @@ by a web search.
 
 * `Building Skills in Python <http://homepage.mac.com/s_lott/books/python.html>`_
   by Steven F. Lott
-* `Dive into Python <http://www.diveintopython.org>`_ by Mark Pilgrim
+* `Dive into Python <http://www.diveintopython.net>`_ by Mark Pilgrim
 * `How to Think Like a Computer Scientist <http://www.openbookproject.net/thinkCSpy>`_
   by Jeffrey Elkner, Allen B. Downey, and Chris Meyers
 * `Official Python Tutorial <http://docs.python.org/tutorial>`_

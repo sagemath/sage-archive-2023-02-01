@@ -1434,8 +1434,10 @@ class FSMState(SageObject):
         TESTS::
 
             sage: T = Transducer([(0, 1, None, 'a'), (1, 2, None, 'b')])
-            sage: T.state(0)._epsilon_successors_(T)
+            sage: T.state(0)._epsilon_successors_()  # random
             {1: [['a']], 2: [['a', 'b']]}
+            sage: sorted(T.state(0)._epsilon_successors_().iteritems())
+            [(1, [['a']]), (2, [['a', 'b']])]
             sage: T.state(1)._epsilon_successors_(T)
             {2: [['b']]}
             sage: T.state(2)._epsilon_successors_(T)
@@ -1443,15 +1445,19 @@ class FSMState(SageObject):
 
         ::
 
-            sage: T.state(0)._epsilon_successors_()
+            sage: T.state(0)._epsilon_successors_()  # random
             {1: [['a']], 2: [['a', 'b']]}
+            sage: sorted(T.state(0)._epsilon_successors_().iteritems())  # random
+            [(1, [['a']]), (2, [['a', 'b']])]
 
         ::
 
             sage: T.add_transition(2, 0, None, 'c')
             Transition from 2 to 0: -|'c'
-            sage: T.state(0)._epsilon_successors_()
+            sage: T.state(0)._epsilon_successors_()  # random
             {0: [['a', 'b', 'c']], 1: [['a']], 2: [['a', 'b']]}
+            sage: sorted(T.state(0)._epsilon_successors_().iteritems())
+            [(0, [['a', 'b', 'c']]), (1, [['a']]), (2, [['a', 'b']])]
         """
         if not hasattr(self, 'transitions'):
             raise ValueError('State %s does not belong to a '
@@ -1488,13 +1494,18 @@ class FSMState(SageObject):
 
             sage: A = Automaton([(0, 1, None, 'a'), (1, 2, None, 'b'),
             ....:                (2, 0, None, 'c'), (4, 1, None, 'd')])
-            sage: A.state(0)._epsilon_successors_(A)
+            sage: A.state(0)._epsilon_successors_(A)  # random
             {0: [['a', 'b', 'c']], 1: [['a']], 2: [['a', 'b']]}
+            sage: sorted(A.state(0)._epsilon_successors_(A).iteritems())
+            [(0, [['a', 'b', 'c']]), (1, [['a']]), (2, [['a', 'b']])]
             sage: A.state(0)._in_epsilon_cycle_(A)
             True
-            sage: A.state(4)._epsilon_successors_(A)
+            sage: A.state(4)._epsilon_successors_(A)  # random
             {0: [['d', 'b', 'c']], 1: [['d'], ['d', 'b', 'c', 'a']],
              2: [['d', 'b']]}
+            sage: sorted(A.state(4)._epsilon_successors_(A).iteritems())
+            [(0, [['d', 'b', 'c']]), (1, [['d'], ['d', 'b', 'c', 'a']]),
+             (2, [['d', 'b']])]
             sage: A.state(4)._in_epsilon_cycle_(A)
             False
         """
@@ -1534,6 +1545,8 @@ class FSMState(SageObject):
             ....:                (2, 0, None, None), (4, 1, None, None)])
             sage: A.state(0)._epsilon_successors_(A)
             {0: [[]], 1: [[]], 2: [[]]}
+            sage: sorted(A.state(0)._epsilon_successors_(A).iteritems())
+            [(0, [[]]), (1, [[]]), (2, [[]])]
             sage: A.state(0)._epsilon_cycle_output_empty_(A)
             True
             sage: A.process(initial_state=A.state(0))
@@ -1542,6 +1555,8 @@ class FSMState(SageObject):
             Transition from 0 to 0: -|'x'
             sage: A.state(0)._epsilon_successors_(A)
             {0: [['x'], []], 1: [[]], 2: [[]]}
+            sage: sorted(A.state(0)._epsilon_successors_(A).iteritems())
+            [(0, [['x'], []]), (1, [[]]), (2, [[]])]
             sage: A.state(0)._epsilon_cycle_output_empty_(A)
             False
             sage: A.process(initial_state=A.state(0))

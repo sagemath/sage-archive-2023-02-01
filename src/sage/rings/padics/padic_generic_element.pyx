@@ -705,23 +705,23 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     @coerce_binop
     def gcd(self, other):
-        """
+        r"""
         Return a greatest common divisor of ``self`` and ``other``.
 
         INPUT:
 
-            - ``other`` -- an element in the same ring as ``self``
+        - ``other`` -- an element in the same ring as ``self``
 
         AUTHORS:
 
-            - Julian Rueth (2012-10-19): initial version
+        - Julian Rueth (2012-10-19): initial version
 
         .. NOTE::
 
             Since ``self`` and ``other`` are only given with finite precision,
             their greatest common divisor is in general not unique (not even up
             to units). For example `O(3)` is a representative for the elements
-            0 and 3 in the 3-adic ring `\mathbb{Z}_3`. The greatest common
+            0 and 3 in the 3-adic ring `\ZZ_3`. The greatest common
             divisior of `O(3)` and `O(3)` could be (among others) 3 or 0 which
             have different valuation. The algorithm implemented here, will
             return an element of minimal valuation among the possible greatest
@@ -760,8 +760,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: a.gcd(b)
             O(3^2)
 
-        One could argue that it is mathematically correct to return ``9 +
-        O(3^22)`` instead. However, this would lead to some confusing
+        One could argue that it is mathematically correct to return `9 +
+        O(3^22)` instead. However, this would lead to some confusing
         behaviour::
 
             sage: alternative_gcd = R(9,22); alternative_gcd
@@ -845,7 +845,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         INPUT:
 
-         - ``other`` -- an element in the same ring.
+        - ``other`` -- an element in the same ring
 
         OUTPUT:
 
@@ -861,7 +861,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             Since the elements are only given with finite precision, their
             greatest common divisor is in general not unique (not even up to
             units). For example `O(3)` is a representative for the elements 0
-            and 3 in the 3-adic ring `\mathbb{Z}_3`. The greatest common
+            and 3 in the 3-adic ring `\ZZ_3`. The greatest common
             divisior of `O(3)` and `O(3)` could be (among others) 3 or 0 which
             have different valuation. The algorithm implemented here, will
             return an element of minimal valuation among the possible greatest
@@ -933,25 +933,47 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R.<a> = K[]
             sage: L.<a> = K.extension(a^3-3)
             sage: (a+3).xgcd(3)
-            (1 + O(a^60), a^-1 + 2*a + a^3 + 2*a^4 + 2*a^5 + 2*a^8 + 2*a^9 + 2*a^12 + 2*a^13 + 2*a^16 + 2*a^17 + 2*a^20 + 2*a^21 + 2*a^24 + 2*a^25 + 2*a^28 + 2*a^29 + 2*a^32 + 2*a^33 + 2*a^36 + 2*a^37 + 2*a^40 + 2*a^41 + 2*a^44 + 2*a^45 + 2*a^48 + 2*a^49 + 2*a^52 + 2*a^53 + 2*a^56 + 2*a^57 + O(a^59), 0)
+            (1 + O(a^60),
+             a^-1 + 2*a + a^3 + 2*a^4 + 2*a^5 + 2*a^8 + 2*a^9
+              + 2*a^12 + 2*a^13 + 2*a^16 + 2*a^17 + 2*a^20 + 2*a^21 + 2*a^24
+              + 2*a^25 + 2*a^28 + 2*a^29 + 2*a^32 + 2*a^33 + 2*a^36 + 2*a^37
+              + 2*a^40 + 2*a^41 + 2*a^44 + 2*a^45 + 2*a^48 + 2*a^49 + 2*a^52
+              + 2*a^53 + 2*a^56 + 2*a^57 + O(a^59),
+             0)
 
             sage: R = Zp(3)
             sage: S.<a> = R[]
             sage: S.<a> = R.extension(a^3-3)
             sage: (a+3).xgcd(3)
-            (a + O(a^61), 1 + 2*a^2 + a^4 + 2*a^5 + 2*a^6 + 2*a^9 + 2*a^10 + 2*a^13 + 2*a^14 + 2*a^17 + 2*a^18 + 2*a^21 + 2*a^22 + 2*a^25 + 2*a^26 + 2*a^29 + 2*a^30 + 2*a^33 + 2*a^34 + 2*a^37 + 2*a^38 + 2*a^41 + 2*a^42 + 2*a^45 + 2*a^46 + 2*a^49 + 2*a^50 + 2*a^53 + 2*a^54 + 2*a^57 + 2*a^58 + O(a^60), 0)
+            (a + O(a^61),
+             1 + 2*a^2 + a^4 + 2*a^5 + 2*a^6 + 2*a^9 + 2*a^10
+              + 2*a^13 + 2*a^14 + 2*a^17 + 2*a^18 + 2*a^21 + 2*a^22 + 2*a^25
+              + 2*a^26 + 2*a^29 + 2*a^30 + 2*a^33 + 2*a^34 + 2*a^37 + 2*a^38
+              + 2*a^41 + 2*a^42 + 2*a^45 + 2*a^46 + 2*a^49 + 2*a^50 + 2*a^53
+              + 2*a^54 + 2*a^57 + 2*a^58 + O(a^60),
+             0)
 
             sage: K = Qp(3)
             sage: R.<a> = K[]
             sage: L.<a> = K.extension(a^2-2)
             sage: (a+3).xgcd(3)
-            (1 + O(3^20), 2*a + (a + 1)*3 + (2*a + 1)*3^2 + (a + 2)*3^4 + 3^5 + (2*a + 2)*3^6 + a*3^7 + (2*a + 1)*3^8 + (a + 2)*3^10 + 3^11 + (2*a + 2)*3^12 + a*3^13 + (2*a + 1)*3^14 + (a + 2)*3^16 + 3^17 + (2*a + 2)*3^18 + a*3^19 + O(3^20), 0)
+            (1 + O(3^20),
+             2*a + (a + 1)*3 + (2*a + 1)*3^2 + (a + 2)*3^4 + 3^5
+              + (2*a + 2)*3^6 + a*3^7 + (2*a + 1)*3^8 + (a + 2)*3^10 + 3^11
+              + (2*a + 2)*3^12 + a*3^13 + (2*a + 1)*3^14 + (a + 2)*3^16
+              + 3^17 + (2*a + 2)*3^18 + a*3^19 + O(3^20),
+             0)
 
             sage: R = Zp(3)
             sage: S.<a> = R[]
             sage: S.<a> = R.extension(a^2-2)
             sage: (a+3).xgcd(3)
-            (1 + O(3^20), 2*a + (a + 1)*3 + (2*a + 1)*3^2 + (a + 2)*3^4 + 3^5 + (2*a + 2)*3^6 + a*3^7 + (2*a + 1)*3^8 + (a + 2)*3^10 + 3^11 + (2*a + 2)*3^12 + a*3^13 + (2*a + 1)*3^14 + (a + 2)*3^16 + 3^17 + (2*a + 2)*3^18 + a*3^19 + O(3^20), 0)
+            (1 + O(3^20),
+             2*a + (a + 1)*3 + (2*a + 1)*3^2 + (a + 2)*3^4 + 3^5
+              + (2*a + 2)*3^6 + a*3^7 + (2*a + 1)*3^8 + (a + 2)*3^10 + 3^11
+              + (2*a + 2)*3^12 + a*3^13 + (2*a + 1)*3^14 + (a + 2)*3^16 + 3^17
+              + (2*a + 2)*3^18 + a*3^19 + O(3^20),
+             0)
 
         For elements with a fixed modulus::
 

@@ -761,7 +761,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             O(3^2)
 
         One could argue that it is mathematically correct to return `9 +
-        O(3^22)` instead. However, this would lead to some confusing
+        O(3^{22})` instead. However, this would lead to some confusing
         behaviour::
 
             sage: alternative_gcd = R(9,22); alternative_gcd

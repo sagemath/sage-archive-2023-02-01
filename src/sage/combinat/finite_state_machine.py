@@ -10053,7 +10053,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
     def __init__(self, fsm,
                  input_tape=None,
                  initial_state=None, initial_states=[],
-                 use_multitape_input=None,
+                 use_multitape_input=False,
                  check_epsilon_transitions=True,
                  write_final_word_out=True,
                  format_output=None,
@@ -10079,10 +10079,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         self.fsm = fsm
 
         # multi-tape flag
-        if use_multitape_input is None:
-            self.is_multitape = False
-        else:
-            self.is_multitape = use_multitape_input
+        self.is_multitape = use_multitape_input
 
         # initial states
         initial_states = list(initial_states)

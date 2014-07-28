@@ -2823,6 +2823,40 @@ class FiniteStateMachine(SageObject):
             sage: H = G(F)
             sage: H.states()
             [('A', 1), ('B', 1), ('B', 2)]
+
+        TESTS::
+
+            sage: F = FiniteStateMachine([(0, 1, 1, 'a'), (0, 2, 2, 'b')],
+            ....:                        initial_states=[0],
+            ....:                        final_states=[1])
+            sage: A = Automaton([(0, 1, 1), (0, 2, 2)],
+            ....:               initial_states=[0],
+            ....:               final_states=[1])
+            sage: T = Transducer([(0, 1, 1, 'a'), (0, 2, 2, 'b')],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: F([1])
+            (True, 1, ['a'])
+            sage: A([1])
+            True
+            sage: T([1])
+            ['a']
+            sage: F([2])
+            (False, 2, ['b'])
+            sage: A([2])
+            False
+            sage: T([2])
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
+            sage: F([3])
+            (False, None, None)
+            sage: A([3])
+            False
+            sage: T([3])
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
         """
         if len(args) == 0:
             raise TypeError("Called with too few arguments.")
@@ -2831,6 +2865,8 @@ class FiniteStateMachine(SageObject):
         if hasattr(args[0], '__iter__'):
             if not kwargs.has_key('full_output'):
                 kwargs['full_output'] = False
+            if not kwargs.has_key('list_of_outputs'):
+                kwargs['list_of_outputs'] = False
             return self.process(*args, **kwargs)
         raise TypeError("Do not know what to do with that arguments.")
 
@@ -4603,15 +4639,19 @@ class FiniteStateMachine(SageObject):
           :class:`FSMProcessIterator` takes the initial states of the
           finite state machine.
 
-        - ``list_of_outputs`` -- (default: ``None``) If set, the
-          outputs are given in list form (even when we have only one
-          single output). If this is ``None`` and a non-deterministic
-          machine returns more than one path, then the output is in
-          list form as well.
+        - ``list_of_outputs`` -- (default: ``None``) If ``True``, then
+          the outputs are given in list form (even when we have no or
+          only one single output). If ``False``, then the result is
+          never a list (an exception is raised when the result cannot
+          be returned). If ``list_of_outputs=None`` determines
+          automatically what to do (e.g. when a non-deterministic
+          machine returns more than one path, then the output is
+          returned in list form).
 
-        - ``only_accepted`` -- (default: ``False``) If set and the
-          output is a list, then only outputs with first argument
-          (accepted) equal to ``True`` are returned.
+        - ``only_accepted`` -- (default: ``False``) If set, then the
+          first argument in the output is guaranteed to be ``True``
+          (when the output is a list, then the first argument of each
+          element will be ``True``).
 
         All the ``kwargs`` will also be passed to
         :class:`FSMProcessIterator`. You can find more input
@@ -4658,13 +4698,6 @@ class FiniteStateMachine(SageObject):
             ....:                           [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [True, True, False, True, False, False]
 
-        ::
-
-            sage: F = FiniteStateMachine([(0, 0, 0, 0)],
-            ....:                        initial_states=[0])
-            sage: F.process([0], only_accepted=True)
-            (False, 0, [0])
-
         Non-deterministic finite state machines can be handeled as well.
 
         ::
@@ -4701,6 +4734,73 @@ class FiniteStateMachine(SageObject):
             ....:           only_accepted=True)
             [(True, 0, 'adcd'), (True, 0, 'aed'),
              (True, 1, 'adc'), (True, 1, 'ae')]
+
+        TESTS::
+
+            sage: F = FiniteStateMachine([(0, 0, 0, 0)],
+            ....:                        initial_states=[0])
+            sage: F.process([0], only_accepted=True)
+            []
+            sage: F.process([0], only_accepted=True, list_of_outputs=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: No accepting output was found but according to the
+            given options, an accepting output should be returned. Change
+            only_accepted and/or list_of_outputs options.
+            sage: F.process([0], only_accepted=True, list_of_outputs=True)
+            []
+            sage: F.process([0], only_accepted=False)
+            (False, 0, [0])
+            sage: F.process([0], only_accepted=False, list_of_outputs=False)
+            (False, 0, [0])
+            sage: F.process([0], only_accepted=False, list_of_outputs=True)
+            [(False, 0, [0])]
+            sage: F.process([1], only_accepted=True)
+            []
+            sage: F.process([1], only_accepted=True, list_of_outputs=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: No accepting output was found but according to the
+            given options, an accepting output should be returned. Change
+            only_accepted and/or list_of_outputs options.
+            sage: F.process([1], only_accepted=True, list_of_outputs=True)
+            []
+            sage: F.process([1], only_accepted=False)
+            (False, None, None)
+            sage: F.process([1], only_accepted=False, list_of_outputs=False)
+            (False, None, None)
+            sage: F.process([1], only_accepted=False, list_of_outputs=True)
+            [(False, None, None)]
+
+        ::
+
+            sage: F = FiniteStateMachine([(0, 1, 1, 'a'), (0, 2, 2, 'b')],
+            ....:                        initial_states=[0],
+            ....:                        final_states=[1])
+            sage: A = Automaton([(0, 1, 1), (0, 2, 2)],
+            ....:               initial_states=[0],
+            ....:               final_states=[1])
+            sage: T = Transducer([(0, 1, 1, 'a'), (0, 2, 2, 'b')],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: F.process([1])
+            (True, 1, ['a'])
+            sage: A.process([1])
+            (True, 1)
+            sage: T.process([1])
+            (True, 1, ['a'])
+            sage: F.process([2])
+            (False, 2, ['b'])
+            sage: A.process([2])
+            (False, 2)
+            sage: T.process([2])
+            (False, 2, ['b'])
+            sage: F.process([3])
+            (False, None, None)
+            sage: A.process([3])
+            (False, None)
+            sage: T.process([3])
+            (False, None, None)
         """
         if not kwargs.has_key('full_output'):
             kwargs['full_output'] = True
@@ -4714,19 +4814,30 @@ class FiniteStateMachine(SageObject):
             pass
 
         # process output
-        it_output = it.result()
-        if len(it_output) > 1 and kwargs['list_of_outputs'] == False:
-            raise ValueError('Got more than one output, but only allowed '
-                             'to show one. Change list_of_outputs option.')
-        if not it_output:
+        only_accepted = kwargs['only_accepted']
+        it_output = [result for result in it.result()
+                     if not only_accepted or result[0]]
+
+        if kwargs['list_of_outputs'] == False:
+            if not it_output and only_accepted:
+                raise ValueError('No accepting output was found but according '
+                                 'to the given options, an accepting output '
+                                 'should be returned. Change only_accepted '
+                                 'and/or list_of_outputs options.')
+            elif len(it_output) > 1:
+                raise ValueError('Got more than one output, but only allowed '
+                                 'to show one. Change list_of_outputs option.')
+
+        if not it_output and not only_accepted:
             NoneState = FSMState(None, allow_label_None=True)
-            return self._process_convert_output_(
-                (False, NoneState, None), **kwargs)
+            it_output = [(False, NoneState, None)]
+
         if len(it_output) > 1 or kwargs['list_of_outputs']:
-            only_accepted = kwargs['only_accepted']
             return [self._process_convert_output_(out, **kwargs)
-                    for out in it_output if not only_accepted or out[0]]
+                    for out in it_output]
         else:
+            if not it_output:
+                return []
             return self._process_convert_output_(it_output[0], **kwargs)
 
 

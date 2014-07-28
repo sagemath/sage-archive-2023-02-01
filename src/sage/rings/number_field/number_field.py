@@ -7903,22 +7903,22 @@ class NumberField_absolute(NumberField_generic):
         ::
 
             sage: K.<a> = NumberField(x^2 + 17)
-            sage: L = K.elements_of_bounded_height(500)
-            sage: len(list(L)) # long time (7 s)
-            159747
+            sage: L = K.elements_of_bounded_height(120)
+            sage: len(list(L))
+            9047
 
         ::
 
             sage: K.<a> = NumberField(x^4 - 5)
-            sage: L = K.elements_of_bounded_height(100)
-            sage: len(list(L)) # long time (7 s)
-            7939
+            sage: L = K.elements_of_bounded_height(50)
+            sage: len(list(L)) # long time (2 s)
+            2163
 
         ::
 
             sage: K.<a> = CyclotomicField(13)
-            sage: L = K.elements_of_bounded_height(10)
-            sage: len(list(L)) # long time (6 s)
+            sage: L = K.elements_of_bounded_height(2)
+            sage: len(list(L)) # long time (3 s)
             27
 
         ::
@@ -7931,9 +7931,9 @@ class NumberField_absolute(NumberField_generic):
         ::
 
             sage: K.<a> = NumberField(x^4 - x^3 - 3*x^2 + x + 1)
-            sage: L = K.elements_of_bounded_height(40, LLL=true)
-            sage: len(list(L)) # long time (15 s)
-            1807
+            sage: L = K.elements_of_bounded_height(10, LLL=true)
+            sage: len(list(L))
+            99
 
         AUTHORS:
 
@@ -7943,8 +7943,8 @@ class NumberField_absolute(NumberField_generic):
 
         REFERENCES:
 
-        ..  [Doyle-Krumm] Computing algebraic numbers of bounded height,
-            :arxiv:`1111.4963` (2013).
+        ..  [Doyle-Krumm] John R. Doyle and David Krumm, Computing algebraic
+            numbers of bounded height, :arxiv:`1111.4963` (2013).
 
         """
         from sage.rings.number_field.bdd_height import bdd_height, bdd_height_iq

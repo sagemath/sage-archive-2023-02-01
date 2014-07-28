@@ -12,8 +12,8 @@ AUTHORS:
 
 REFERENCES:
 
-..  [Doyle-Krumm] Computing algebraic numbers of bounded height,
-    :arxiv:`1111.4963` (2013).
+..  [Doyle-Krumm] John R. Doyle and David Krumm, Computing algebraic numbers
+    of bounded height, :arxiv:`1111.4963` (2013).
 """
 #*****************************************************************************
 #       Copyright (C) 2013 John Doyle and David Krumm
@@ -252,13 +252,10 @@ def bdd_norm_pr_ideal_gens(K, norm_list):
 
         sage: from sage.rings.number_field.bdd_height import bdd_norm_pr_ideal_gens
         sage: K.<g> = NumberField(x^5 - x + 19)
-        sage: b = bdd_norm_pr_ideal_gens(K, range(100))
-        sage: key = ZZ(91)
+        sage: b = bdd_norm_pr_ideal_gens(K, range(30))
+        sage: key = ZZ(28)
         sage: b[key]
-        [-g^4 - 6*g^3 - 14*g^2 - 22*g - 18,
-         -2*g^4 - 6*g^3 + 13*g^2 + 6*g - 47,
-         -g^3 + g^2 - g + 7,
-         -g^4 - 3*g^3 - 5*g^2 - 6*g + 1]
+        [157*g^4 - 139*g^3 - 369*g^2 + 848*g + 158, g^4 + g^3 - g - 7]
 
     """
 
@@ -409,8 +406,8 @@ def bdd_height(K, height_bound, precision=53, LLL=False):
 
         sage: from sage.rings.number_field.bdd_height import bdd_height
         sage: K.<g> = QuadraticField(36865)
-        sage: len(list(bdd_height(K,500))) # long time (18 s)
-        13191
+        sage: len(list(bdd_height(K,101))) # long time (4 s)
+        131
 
     ::
 
@@ -430,8 +427,8 @@ def bdd_height(K, height_bound, precision=53, LLL=False):
 
         sage: from sage.rings.number_field.bdd_height import bdd_height
         sage: K.<g> = NumberField(x^4 - x^3 - 3*x^2 + x + 1)
-        sage: len(list(bdd_height(K,40,LLL=true))) # long time (15 s)
-        1807
+        sage: len(list(bdd_height(K,10,LLL=true)))
+        99
 
     """
 

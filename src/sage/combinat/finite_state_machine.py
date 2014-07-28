@@ -9685,6 +9685,10 @@ class _FSMTapeCache_(SageObject):
 
         ``True`` or ``False``.
 
+        This method is usually overridden in inherited class,
+        cf. :class:`_FSMTapeCacheDetectEpsilon_` and
+        :class:`_FSMTapeCacheDetectAll_`.
+
         TESTS::
 
             sage: from sage.combinat.finite_state_machine import (

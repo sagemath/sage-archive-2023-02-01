@@ -476,6 +476,13 @@ seriously.
    used ``check_epsilon_transitions=False`` to avoid this (and also
    therefore got a cleaner output).
 
+.. WARNING::
+
+   The arguments used when calling a hook have changed in
+   :trac:`16538` from ``hook(state, process)`` to ``hook(process,
+   state, input, output)``. If you are using an old-style hook, a
+   deprecation warning is displayed.
+
 Detecting sequences with same number of `0` and `1`
 ---------------------------------------------------
 

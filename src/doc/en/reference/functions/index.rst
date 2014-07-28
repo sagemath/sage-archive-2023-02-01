@@ -13,6 +13,7 @@ Functions
    sage/functions/orthogonal_polys
    sage/functions/other
    sage/functions/special
+   sage/functions/hypergeometric
    sage/functions/jacobi
    sage/functions/bessel
    sage/functions/exp_integral

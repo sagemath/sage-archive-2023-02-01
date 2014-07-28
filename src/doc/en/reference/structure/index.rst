@@ -21,6 +21,7 @@ Basic Structures
    sage/structure/mutability
    sage/structure/sequence
    sage/structure/element_wrapper
+   sage/structure/indexed_generators
    sage/structure/global_options
 
    sage/sets/cartesian_product

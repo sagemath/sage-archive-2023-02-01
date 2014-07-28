@@ -32,4 +32,6 @@ cdef class MIPVariable(SageObject):
     cdef int _vtype
     cdef char * _name
     cdef bint _hasname
+    cdef object _lower_bound
+    cdef object _upper_bound
 

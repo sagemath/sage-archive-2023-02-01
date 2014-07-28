@@ -1051,6 +1051,103 @@ class RootLatticeRealizations(Category_over_base_ring):
                         rels.append((root,root_cover))
             return Poset((pos_roots,rels),cover_relations=True,facade=facade)
 
+        def nonnesting_partition_lattice(self, facade=False):
+            r"""
+            Return the lattice of nonnesting partitions
+
+            This is the lattice of order ideals of the root poset.
+
+            This has been defined by Postnikov, see Remark 2 in [Reiner97]_.
+
+            .. SEEALSO::
+
+                :meth:`generalized_nonnesting_partition_lattice`, :meth:`root_poset`
+
+            EXAMPLES::
+
+                sage: R = RootSystem(['A', 3])
+                sage: RS = R.root_lattice()
+                sage: P = RS.nonnesting_partition_lattice(); P
+                Finite lattice containing 14 elements
+                sage: P.coxeter_transformation()**10 == 1
+                True
+
+                sage: R = RootSystem(['B', 3])
+                sage: RS = R.root_lattice()
+                sage: P = RS.nonnesting_partition_lattice(); P
+                Finite lattice containing 20 elements
+                sage: P.coxeter_transformation()**7 == 1
+                True
+
+            REFERENCES:
+
+            .. [Reiner97] Victor Reiner. *Non-crossing partitions for
+               classical reflection groups*. Discrete Mathematics 177 (1997) 
+            .. [Arm06] Drew Armstrong. *Generalized Noncrossing Partitions and
+               Combinatorics of Coxeter Groups*. :arxiv:`math/0611106`
+            """
+            return self.root_poset(facade=facade).order_ideals_lattice(facade=facade)
+
+        def generalized_nonnesting_partition_lattice(self, m, facade=False):
+            r"""
+            Return the lattice of `m`-nonnesting partitions
+
+            This has been defined by Athanasiadis, see chapter 5 of [Arm06]_.
+
+            INPUT:
+
+            - `m` -- integer
+
+            .. SEEALSO::
+
+                :meth:`nonnesting_partition_lattice`
+
+            EXAMPLES::
+
+                sage: R = RootSystem(['A', 2])
+                sage: RS = R.root_lattice()
+                sage: P = RS.generalized_nonnesting_partition_lattice(2); P
+                Finite lattice containing 12 elements
+                sage: P.coxeter_transformation()**20 == 1
+                True
+            """
+            from sage.combinat.multichoose_nk import MultichooseNK
+            Phi_plus = self.positive_roots()
+            L = self.nonnesting_partition_lattice(facade=True)
+            chains = [chain for chain in L.chains().list() if len(chain) <= m]
+            multichains = []
+            for chain in chains:
+                for multilist in MultichooseNK(len(chain), m):
+                    if len(set(multilist)) == len(chain):
+                        multichains.append(tuple([chain[i] for i in multilist]))
+            def is_saturated_chain(chain):
+                for i in range(1, m + 1):
+                    for j in range(1, m - i + 1):
+                        for alpha in chain[i - 1]:
+                            for beta in chain[j - 1]:
+                                gamma = alpha + beta
+                                if gamma in Phi_plus and gamma not in chain[i+j-1]:
+                                    return False
+                cochain = [[beta for beta in Phi_plus if beta not in ideal]
+                           for ideal in chain]
+                for i in range(1, m + 1):
+                    for j in range(1, m + 1):
+                        for alpha in cochain[i - 1]:
+                            for beta in cochain[j - 1]:
+                                gamma = alpha + beta
+                                if gamma in Phi_plus and gamma not in cochain[min(m - 1, i + j - 1)]:
+                                    return False
+                return True
+
+            def is_componentwise_subset(chain1, chain2):
+                return all(chain1[i].issubset(chain2[i])
+                           for i in range(len(chain1)))
+            from sage.combinat.posets.lattices import LatticePoset
+            saturated_chains = [multichain for multichain in multichains
+                                if is_saturated_chain(multichain)]
+            return LatticePoset((saturated_chains, is_componentwise_subset),
+                                facade=facade)
+
         def almost_positive_roots(self):
             r"""
             Returns the almost positive roots of ``self``

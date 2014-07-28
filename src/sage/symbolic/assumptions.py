@@ -34,6 +34,8 @@ class GenericDeclaration(SageObject):
         sage: decl.forget()
         sage: sin(x*pi)
         sin(pi*x)
+        sage: sin(x*pi).simplify()
+        sin(pi*x)
 
     Here is the list of acceptable features::
 

@@ -123,7 +123,7 @@ class SmoothTriangle(Triangle):
         """
         Returns a string representation of the SmoothTriangle of the form
 
-            a b c da db dc color
+            a b c color da db dc
             
         where a, b, and c are the triangle corner coordinates,
         da, db, dc are normals at each corner, and color is the color.

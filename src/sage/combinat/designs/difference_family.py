@@ -167,10 +167,10 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
 
 def singer_difference_set(q,d):
     r"""
-    Return a difference set associated to the projective space of dimension `d`
-    over `GF(q)`.
+    Return a difference set associated to the set of hyperplanes in a projective
+    space of dimension `d` over `GF(q)`.
 
-    The result is a cyclic difference family with parameters
+    A Singer difference set has parameters:
 
     .. MATH::
 
@@ -178,13 +178,14 @@ def singer_difference_set(q,d):
         k = \frac{q^d-1}{q-1}, \quad
         \lambda = \frac{q^{d-1}-1}{q-1}.
 
-    The idea of the construction is as follows. One consider the finite field `V
-    = GF(q^{d+1})` as a vector space of dimension `d+1` over `GF(q)`. The set of
-    lines  in `V` is a projective plane and its set of hyperplanes form a
-    balanced incomplete block design with parameters `(v,k,\lambda)`. Now,
-    considering a multiplicative generator of `GF(q^{d+1})`, we get a transitive
-    action of a cyclic group on our projective plane from which it is possible
-    to build a difference set.
+    The idea of the construction is as follows. One consider the finite field
+    `GF(q^{d+1})` as a vector space of dimension `d+1` over `GF(q)`. The set of
+    `GF(q)`-lines in `GF(q^{d+1})` is a projective plane and its set of
+    hyperplanes form a balanced incomplete block design.
+
+    Now, considering a multiplicative generator `z` of `GF(q^{d+1})`, we get a
+    transitive action of a cyclic group on our projective plane from which it is
+    possible to build a difference set.
 
     The construction is given in details in [Stinson2004]_, section 3.3.
 
@@ -231,9 +232,10 @@ def singer_difference_set(q,d):
         K = GF(q)
     z = c.parent().gen()
 
-    # now compute the set of i such that z^i belongs to the subspace spanned by
-    # (1,z,z^2,...,z^(d-1)) over GF(q) (up to the action of scalar
-    # multiplication)
+    # Now we consider the GF(q)-subspace V spanned by (1,z,z^2,...,z^(d-1)) inside
+    # GF(q^(d+1)). The multiplication by z is an automorphism of the
+    # GF(q)-projective space built from GF(q^(d+1)). The difference family is
+    # obtained by taking the integers i such that z^i belong to V.
     powers = [0]
     i = 1
     x = z

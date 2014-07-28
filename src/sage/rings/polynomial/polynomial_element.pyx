@@ -6647,64 +6647,73 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def homogenize(self, var='h'):
         r"""
+        Return the homogenization of this polynomial.
 
-        Homogenize this polynomial with respect to ``var``.
-
-        If the polynomial is homogeneous, return the same polynomial in the same
-        ring. If not, if this polynomial is in the polynomial ring
-        ``self.parent()==R[x]``, return an homogeneous polynomial in ``R[x,var]``
-        such that setting ``var=1`` yields ``self``. The new variable ``var``
-        will be the second variable in the new polynomial ring ``R[x,var]``.
-
-        Due to compatibility reasons with the multivariate case:
-        :meth:`sage.rings.polynomial.multi_polynomial.MPolynomial.homogenize`,
-        if the variable given is the variable ``x`` in ``R[x]``, or ``var=0``,
-        the variable in ``R[x]`` is used to homogenize the polynomial. So, we
-        end up with a monomial of the same degree as ``self`` whose coefficient
-        is the sum of the coefficients of ``self``.
+        The polynomial itself is returned if it homogeneous already. Otherwise,
+        its monomials are multiplied with the smallest powers of ``var`` such
+        that they all have the same total degree.
 
         INPUT:
 
-        - ``var`` -- either a variable name, variable index (0), or a variable
-          (default: 'h').
+        - ``var`` -- a variable in the polynomial ring (as a string, an element
+          of the ring, or ``0``) or a name for a new variable (default:
+          ``'h'``)
 
         OUTPUT:
 
-        An homogenization of self with respect to ``var``.
+        If ``var`` specifies the variable in the polynomial ring, then a
+        homogeneous element in that ring is returned. Otherwise, a homogeneous
+        element is returned in a polynomial ring with an extra last variable
+        ``var``.
 
         EXAMPLES::
 
-            sage: P.<x> = PolynomialRing(QQ)
-            sage: f = x^2 + 5*x + 1
-            sage: g = f.homogenize(); g
-            x^2 + 5*x*h + h^2
+            sage: R.<x> = QQ[]
+            sage: f = x^2 + 1
+            sage: f.homogenize()
+            x^2 + h^2
+
+        The parameter ``var`` can be used to specify the name of the variable::
+
+            sage: g = f.homogenize('z'); g
+            x^2 + z^2
             sage: g.parent()
-            Multivariate Polynomial Ring in x, h over Rational Field
+            Multivariate Polynomial Ring in x, z over Rational Field
 
+        However, if the polynomial is homogeneous already, then that parameter
+        is ignored and no extra variable is added to the polynomial ring::
+
+            sage: f = x^2
+            sage: g = f.homogenize('z'); g
+            x^2
+            sage: g.parent()
+            Univariate Polynomial Ring in x over Rational Field
+
+        For compatibility with the multivariate case, if ``var`` specifies the
+        variable of the polynomial ring, then the monomials are multiplied with
+        the smallest powers of ``var`` such that the result is homogeneous; in
+        other words, we end up with a monomial whose leading coefficient is the
+        sum of the coefficients of the polynomial::
+
+            sage: f = x^2 + x + 1
+            sage: f.homogenize('x')
+            3*x^2
+
+        In positive characterstic, the degree can drop in this case::
+
+            sage: R.<x> = GF(2)[]
+            sage: f = x + 1
             sage: f.homogenize(x)
-            7*x^2
-            sage: f.homogenize(x).parent() is f.parent()
-            True
-
-            sage: f.homogenize(0)
-            7*x^2
-
-            sage: x = Zmod(3)['x'].gens()[0]
-            sage: (1 + x + x^2).homogenize(x)
             0
-            sage: (x + x^2).homogenize('y').parent()
-            Multivariate Polynomial Ring in x, y over Ring of integers modulo 3
-            sage: (x + x^2).homogenize()
-            x^2 + x*h
 
-        TESTS::
+        For compatibility with the multivariate case, the parameter ``var`` can
+        also be 0 to specify the variable in the polynomial ring::
 
-            sage: R = PolynomialRing(QQ, 'x')
-            sage: p = R.random_element()
-            sage: q1 = p.homogenize()
-            sage: q2 = p.homogenize()
-            sage: q1.parent() is q2.parent()
-            True
+            sage: R.<x> = QQ[]
+            sage: f = x^2 + x + 1
+            sage: f.homogenize(0)
+            3*x^2
+
         """
         if self.is_homogeneous():
             return self
@@ -6728,9 +6737,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def is_homogeneous(self):
         r"""
-        Return True if this polynomial is homogeneous.
+        Return ``True`` if this polynomial is homogeneous.
 
-        TESTS::
+        EXAMPLES::
 
             sage: P.<x> = PolynomialRing(QQ)
             sage: x.is_homogeneous()

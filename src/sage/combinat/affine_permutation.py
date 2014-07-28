@@ -2102,7 +2102,7 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
         r"""
         Return a random affine permutation of length ``n``.
 
-        If ``n`` is not specified, then ``n`` is choosen as a random
+        If ``n`` is not specified, then ``n`` is chosen as a random
         non-negative integer in `[0, 1000]`.
 
         Starts at the identity, then chooses an upper cover at random.

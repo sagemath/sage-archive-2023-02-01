@@ -54,7 +54,6 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 from sage.schemes.generic.homset import SchemeHomset_points
 from sage.schemes.generic.morphism import is_SchemeMorphism
-from sage.schemes.generic.spec import Spec, is_Spec
 from jacobian_morphism import JacobianMorphism_divisor_class_field
 
 class JacobianHomset_divisor_classes(SchemeHomset_points):
@@ -170,8 +169,9 @@ class JacobianHomset_divisor_classes(SchemeHomset_points):
         """
         Returns S for a homset X(T) where T = Spec(S).
         """
+        from sage.schemes.generic.scheme import is_AffineScheme
         T = self.domain()
-        if is_Spec(T):
+        if is_AffineScheme(T):
             return T.coordinate_ring()
         else:
             raise TypeError("Domain of argument must be of the form Spec(S).")

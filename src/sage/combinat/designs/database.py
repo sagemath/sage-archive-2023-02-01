@@ -177,7 +177,7 @@ def _MOLS_from_string(s,k):
 
     EXAMPLES::
 
-        sage: _ = designs.mutually_orthogonal_latin_squares(10,2) # indirect doctest
+        sage: _ = designs.mutually_orthogonal_latin_squares(2,10) # indirect doctest
     """
     from sage.matrix.constructor import Matrix
     matrices = [[] for _ in range(k)]
@@ -203,7 +203,7 @@ def MOLS_10_2():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(10,2,existence=True)
+        sage: designs.mutually_orthogonal_latin_squares(2,10,existence=True)
         True
     """
     from sage.matrix.constructor import Matrix
@@ -276,7 +276,7 @@ def MOLS_14_4():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(14,4,existence=True)
+        sage: designs.mutually_orthogonal_latin_squares(4,14,existence=True)
         True
     """
     M = """
@@ -314,7 +314,7 @@ def MOLS_15_4():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(15,4,existence=True)
+        sage: designs.mutually_orthogonal_latin_squares(4,15,existence=True)
         True
     """
     M = """
@@ -353,7 +353,7 @@ def MOLS_18_3():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(18,3,existence=True)
+        sage: designs.mutually_orthogonal_latin_squares(3,18,existence=True)
         True
     """
     M = """
@@ -383,7 +383,7 @@ def MOLS_18_3():
 #
 # Associates to n the pair (k,f) where f() is a function that returns k MOLS of order n
 #
-# This dictionary is used by designs.mutually_orthogonal_latin_squares(n,k).
+# This dictionary is used by designs.mutually_orthogonal_latin_squares(k,n).
 
 MOLS_constructions = {
     10 : (2, MOLS_10_2),
@@ -2409,31 +2409,31 @@ def OA_9_135():
         Ring of integers modulo 273
     """
     from bibd import BIBD_from_difference_family
-    G,B = CDF_273_17_1()
+    from difference_family import singer_difference_set
+    G,B = singer_difference_set(16,2)
     PG16 = BIBD_from_difference_family(G,B)
 
     n = 273
 
-    # PG2 is a (7,3,1)-design (fano plane) contained in PG16. It is a set of 7
-    # points that any block of PG16 intersect on 0,1, or 3 points.
+    # We consider a PG(2,2) (or a (7,3,1)-design, or a Fano plane) contained in
+    # PG16: it is a set of 7 points such that any block of PG16 intersect on
+    # 0,1, or 3 points. The set of points congruent to 0 mod 39 does the job!
     #
-    # We build it, then check that it works
-    PG2 = set([x*39 for x in range(7)])
-    traces = [[x for x in B if x%39 == 0] for B in PG16]
-    assert set(map(len,traces)) == set([0,1,3])
+    # ... check that it works
+    assert all(sum((x%39 == 0) for x in B) in [0,1,3] for B in PG16)
 
     # We now build an OA(17,16) from our PG16, in such a way that all points of
-    # PG2 are in different columns. For this, we need to find a point p that is
-    # not located on any of the lines defined by the points of PG2
+    # our PG(2,2) are in different columns. For this, we need to find a point p
+    # that is not located on any of the lines defined by the points of the
+    # PG(2,2).
 
-    lines = [B for B in PG16 if len([x for x in B if x%39 == 0]) == 3]
-    union_of_the_lines = set(sum(lines,[]))
-    p = (set(range(237))-union_of_the_lines).pop()
+    lines = [B for B in PG16 if sum((x%39 == 0) for x in B) == 3]
+    p = set(range(237)).difference(*lines).pop()
 
     # We can now build a TD from our PG16 by removing p.
     for B in PG16:
-        B.sort(key=lambda x:int(x not in PG2))
-    PG16.sort(key=lambda B:sum(x for x in B if x in PG2))
+        B.sort(key=lambda x:int(x%39 != 0))
+    PG16.sort(key=lambda B:sum((x%39 == 0) for x in B))
 
     r = {}
     for B in PG16:
@@ -2444,9 +2444,9 @@ def OA_9_135():
     r[p] = n-1
 
     # The columns containing points from PG2 will be the last 7
-    assert all(r[x] >= (n-1)-16*7 for x in PG2)
+    assert all(r[x*39] >= (n-1)-16*7 for x in range(7))
     # Those points are the first of each column
-    assert all(r[x]%16 == 0 for x in PG2)
+    assert all(r[x*39]%16 == 0 for x in range(7))
 
     PG = [sorted([r[x] for x in B]) for B in PG16]
     OA = [[x%16 for x in B] for B in PG if n-1 not in B]
@@ -2999,26 +2999,6 @@ def CDF_221_5_1():
     from sage.rings.finite_rings.integer_mod_ring import Zmod
     return Zmod(221), D
 
-def CDF_273_17_1():
-    r"""
-    A cyclic `(273,17,1)`-difference set.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.database import CDF_273_17_1
-        sage: from sage.combinat.designs.difference_family import is_difference_family
-        sage: G,D = CDF_273_17_1()
-        sage: is_difference_family(G,D,273,17,1)
-        True
-
-    The difference family is available from the constructor::
-
-        sage: _ = designs.difference_family(273,17,1)
-    """
-    from sage.rings.finite_rings.integer_mod_ring import Zmod
-    D = [(1,2,4,8,16,32,64,91,117,128,137,182,195,205,234,239,256)]
-    return Zmod(273), D
-
 # Index of the (right now cyclic or Abelian) difference families constructions
 #
 # Associates to triple (v,k,lambda) a function that return a
@@ -3037,7 +3017,6 @@ DF_constructions = {
     (161,5,1): CDF_161_5_1,
     (201,5,1): CDF_201_5_1,
     (221,5,1): CDF_221_5_1,
-    (273,17,1): CDF_273_17_1,
 }
 
 def RBIBD_120_8_1():

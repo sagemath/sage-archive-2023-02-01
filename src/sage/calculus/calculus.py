@@ -1083,8 +1083,9 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         Traceback (most recent call last):
         ...
         ValueError: Computation failed since Maxima requested additional
-        constraints; using the 'assume' command before limit evaluation
-        *may* help (see `assume?` for more details)
+        constraints; using the 'assume' command before evaluation
+        *may* help (example of legal syntax is 'assume(a>0)', see
+        `assume?` for more details)
         Is a positive, negative or zero?
 
     With this example, Maxima is looking for a LOT of information::
@@ -1094,16 +1095,18 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         Traceback (most recent call last):
         ...
         ValueError: Computation failed since Maxima requested additional
-        constraints; using the 'assume' command before limit evaluation
-        *may* help (see `assume?` for more details)
+        constraints; using the 'assume' command before evaluation *may* help
+        (example of legal syntax is 'assume(a>0)', see `assume?` for
+         more details)
         Is a an integer?
         sage: assume(a,'integer')
         sage: limit(x^a,x=0)
         Traceback (most recent call last):
         ...
         ValueError: Computation failed since Maxima requested additional
-        constraints; using the 'assume' command before limit evaluation
-        *may* help (see `assume?` for more details)
+        constraints; using the 'assume' command before evaluation *may* help
+        (example of legal syntax is 'assume(a>0)', see `assume?` for
+         more details)
         Is a an even number?
         sage: assume(a,'even')
         sage: limit(x^a,x=0)
@@ -1727,22 +1730,27 @@ _inverse_laplace = function_factory('ilt',
 
 #######################################################
 
-symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma'}
+# Conversion dict for special maxima objects
+# c,k1,k2 are from ode2()
+symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',\
+            '%c' : '_C', '%k1' : '_K1', '%k2' : '_K2', 
+            'e':'_e', 'i':'_i', 'I':'_I'}
 
-from sage.misc.multireplace import multiple_replace
 import re
 
 maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")
 
 maxima_qp = re.compile("\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
 
-maxima_var = re.compile("\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
+maxima_var = re.compile("[a-z|A-Z|0-9|_\%]*")  # e.g., %jacobi_cd
 
 sci_not = re.compile("(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
 
 polylog_ex = re.compile('li\[([0-9]+?)\]\(')
 
 maxima_polygamma = re.compile("psi\[(\d*)\]\(")  # matches psi[n]( where n is a number
+
+maxima_hyper = re.compile("\%f\[\d+,\d+\]")  # matches %f[m,n]
 
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     """
@@ -1796,11 +1804,39 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: sefms("x # 3") == SR(x != 3)
         True
         sage: solve([x != 5], x)
-        #0: solve_rat_ineq(ineq=x # 5)
+        #0: solve_rat_ineq(ineq=_SAGE_VAR_x # 5)
         [[x - 5 != 0]]
         sage: solve([2*x==3, x != 5], x)
         [[x == (3/2), (-7/2) != 0]]
 
+    Make sure that we don't accidentally pick up variables in the maxima namespace (trac #8734)::
+
+        sage: sage.calculus.calculus.maxima('my_new_var : 2')
+        2
+        sage: var('my_new_var').full_simplify()
+        my_new_var
+        
+    ODE solution constants are treated differently (:trac:`16007`)::
+    
+        sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
+        sage: sefms('%k1*x + %k2*y + %c')
+        _K1*x + _K2*y + _C
+
+    Check that some hypothetical variables don't end up as special constants (:trac:`6882`)::
+    
+        sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
+        sage: sefms('%i')^2
+        -1
+        sage: ln(sefms('%e'))
+        1
+        sage: sefms('i')^2
+        _i^2
+        sage: sefms('I')^2
+        _I^2
+        sage: sefms('ln(e)')
+        ln(_e)
+        sage: sefms('%inf')
+        +Infinity
     """
     syms = sage.symbolic.pynac.symbol_table.get('maxima', {}).copy()
 
@@ -1812,6 +1848,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     #r = maxima._eval_line('listofvars(_tmp_);')[1:-1]
 
     s = maxima._eval_line('_tmp_;')
+    s = s.replace("_SAGE_VAR_","")
 
     formal_functions = maxima_tick.findall(s)
     if len(formal_functions) > 0:
@@ -1829,15 +1866,28 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
                 pass
             else:
                 syms[X[2:]] = function_factory(X[2:])
-        s = s.replace("?%","")
+        s = s.replace("?%", "")
 
-    s = polylog_ex.sub('polylog(\\1,',s)
-    s = multiple_replace(symtable, s)
+    s = maxima_hyper.sub('hypergeometric', s)
+
+    # Look up every variable in the symtable keys and fill a replacement list.
+    cursor = 0
+    l = []
+    for m in maxima_var.finditer(s):
+        if symtable.has_key(m.group(0)):
+            l.append(s[cursor:m.start()])
+            l.append(symtable.get(m.group(0)))
+            cursor = m.end()
+    if cursor > 0:
+        l.append(s[cursor:])
+        s = "".join(l)
+
     s = s.replace("%","")
 
     s = s.replace("#","!=") # a lot of this code should be refactored somewhere...
 
-    s = maxima_polygamma.sub('psi(\g<1>,',s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
+    s = polylog_ex.sub('polylog(\\1,', s)
+    s = maxima_polygamma.sub('psi(\g<1>,', s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
 
     if equals_sub:
         s = s.replace('=','==')

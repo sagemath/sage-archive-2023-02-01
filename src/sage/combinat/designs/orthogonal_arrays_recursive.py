@@ -695,7 +695,7 @@ def OA_and_oval(q):
     from sage.numerical.mip import MixedIntegerLinearProgram
     p = MixedIntegerLinearProgram()
     b = p.new_variable(binary=True)
-    V = B.points()
+    V = B.ground_set()
     p.add_constraint(p.sum([b[i] for i in V]) == q+1)
     for bl in B:
         p.add_constraint(p.sum([b[i] for i in bl]) <= 2)

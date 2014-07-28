@@ -260,18 +260,14 @@ class Function_Bessel_J(BuiltinFunction):
         sage: bessel_J(1.0, 1.0) - A[0] < 1e-15
         True
 
-    Currently, integration is not supported (directly) since we cannot
-    yet convert hypergeometric functions to and from Maxima::
+    Integration is supported directly and through Maxima::
 
         sage: f = bessel_J(2, x)
         sage: f.integrate(x)
-        Traceback (most recent call last):
-        ...
-        TypeError: cannot coerce arguments: no canonical coercion from <type 'list'> to Symbolic Ring
-
+        1/24*x^3*hypergeometric((3/2,), (5/2, 3), -1/4*x^2)
         sage: m = maxima(bessel_J(2, x))
         sage: m.integrate(x)
-        hypergeometric([3/2],[5/2,3],-x^2/4)*x^3/24
+        hypergeometric([3/2],[5/2,3],-_SAGE_VAR_x^2/4)*_SAGE_VAR_x^3/24
 
     Visualization::
 
@@ -307,7 +303,7 @@ class Function_Bessel_J(BuiltinFunction):
         EXAMPLES::
 
             sage: bessel_J(0, 1.0, "maxima", 53)
-            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
+            doctest:...: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
             See http://trac.sagemath.org/4102 for details.
             0.7651976865579666
         """
@@ -477,7 +473,7 @@ class Function_Bessel_Y(BuiltinFunction):
         EXAMPLES::
 
             sage: bessel_Y(0, 1, "maxima", 53)
-            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
+            doctest:...: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
             See http://trac.sagemath.org/4102 for details.
             0.0882569642156769
         """
@@ -649,7 +645,7 @@ class Function_Bessel_I(BuiltinFunction):
         EXAMPLES::
 
             sage: bessel_I(0, 1, "maxima", 53)
-            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
+            doctest:...: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
             See http://trac.sagemath.org/4102 for details.
             1.266065877752009
         """
@@ -846,7 +842,7 @@ class Function_Bessel_K(BuiltinFunction):
         EXAMPLES::
 
             sage: bessel_K(0, 1, "maxima", 53)
-            doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
+            doctest:...: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
             See http://trac.sagemath.org/4102 for details.
             0.0882569642156769
         """
@@ -1004,10 +1000,10 @@ def Bessel(*args, **kwds):
 
         sage: x,y = var('x,y')
         sage: f = maxima(Bessel(typ='K')(x,y))
-        sage: f.derivative('x')
-        %pi*csc(%pi*x)*('diff(bessel_i(-x,y),x,1)-'diff(bessel_i(x,y),x,1))/2-%pi*bessel_k(x,y)*cot(%pi*x)
-        sage: f.derivative('y')
-        -(bessel_k(x+1,y)+bessel_k(x-1,y))/2
+        sage: f.derivative('_SAGE_VAR_x')
+        %pi*csc(%pi*_SAGE_VAR_x)*('diff(bessel_i(-_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)-'diff(bessel_i(_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1))/2-%pi*bessel_k(_SAGE_VAR_x,_SAGE_VAR_y)*cot(%pi*_SAGE_VAR_x)
+        sage: f.derivative('_SAGE_VAR_y')
+        -(bessel_k(_SAGE_VAR_x+1,_SAGE_VAR_y)+bessel_k(_SAGE_VAR_x-1,_SAGE_VAR_y))/2
 
     Compute the particular solution to Bessel's Differential Equation that
     satisfies `y(1) = 1` and `y'(1) = 1`, then verify the initial conditions

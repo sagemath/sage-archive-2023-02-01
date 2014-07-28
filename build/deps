@@ -31,6 +31,7 @@ all-sage: \
      $(INST)/$(CDDLIB) \
      $(INST)/$(CEPHES) \
      $(INST)/$(CLIQUER) \
+     $(INST)/$(COMBINATORIAL_DESIGNS) \
      $(INST)/$(CONWAY) \
      $(INST)/$(CVXOPT) \
      $(INST)/$(CYTHON) \
@@ -185,6 +186,9 @@ $(INST)/$(BOOST_CROPPED):
 $(INST)/$(CLIQUER):
 	+$(PIPE) "$(SAGE_SPKG) $(CLIQUER) 2>&1" "tee -a $(SAGE_LOGS)/$(CLIQUER).log"
 
+$(INST)/$(COMBINATORIAL_DESIGNS):
+	+$(PIPE) "$(SAGE_SPKG) $(COMBINATORIAL_DESIGNS) 2>&1" "tee -a $(SAGE_LOGS)/$(COMBINATORIAL_DESIGNS).log"
+
 $(INST)/$(NCURSES): $(INST)/$(PKGCONF)
 	+$(PIPE) "$(SAGE_SPKG) $(NCURSES) 2>&1" "tee -a $(SAGE_LOGS)/$(NCURSES).log"
 
@@ -336,7 +340,7 @@ $(INST)/$(SAGETEX): $(INST)/$(PYTHON) \
 $(INST)/$(SETUPTOOLS): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(SETUPTOOLS) 2>&1" "tee -a $(SAGE_LOGS)/$(SETUPTOOLS).log"
 
-$(INST)/$(SINGULAR): $(INST)/$(MPIR) $(INST)/$(NTL) \
+$(INST)/$(SINGULAR): $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(FLINT) \
 		     $(INST)/$(READLINE) $(INST)/$(MPFR)
 	+$(PIPE) "$(SAGE_SPKG) $(SINGULAR) 2>&1" "tee -a $(SAGE_LOGS)/$(SINGULAR).log"
 

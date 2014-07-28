@@ -1016,8 +1016,10 @@ def designs_from_XML(fname):
         sage: d = BlockDesign(v, blocks)
         sage: d.blocks()
         [[0, 1], [0, 1]]
-        sage: d.parameters(t=2)
-        (2, 2, 2, 2)
+        sage: d.is_t_design(t=2)
+        True
+        sage: d.is_t_design(return_parameters=True)
+        (True, (2, 2, 2, 2))
     """
 
     proc = XTreeProcessor()

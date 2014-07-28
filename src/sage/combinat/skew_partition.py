@@ -1142,7 +1142,7 @@ def from_row_and_column_length(rowL, colL):
     EXAMPLES::
 
         sage: sage.combinat.skew_partition.from_row_and_column_length([3,1,2,2],[2,3,1,1,1])
-        doctest:1: DeprecationWarning: from_row_and_column_length is deprecated. Use SkewPartitions().from_row_and_column_length instead.
+        doctest:...: DeprecationWarning: from_row_and_column_length is deprecated. Use SkewPartitions().from_row_and_column_length instead.
         See http://trac.sagemath.org/14101 for details.
         [5, 2, 2, 2] / [2, 1]
     """

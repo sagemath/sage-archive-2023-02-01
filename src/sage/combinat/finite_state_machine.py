@@ -9499,19 +9499,21 @@ class _FSMTapeCache_(SageObject):
             True
         """
         track_cache = self.cache[track_number]
-        for i, letter in enumerate(word):
-            while len(track_cache) <= i:
-                if not self.read(track_number)[0]:
-                    return False
-            if letter != track_cache[i]:
+        it_word = iter(word)
+
+        # check letters in cache
+        if any(letter_on_track != next(it_word)
+               for letter_on_track in track_cache):
+            return False
+  
+        # check letters not already cached
+        for letter_in_word in it_word:
+            successful, letter_on_track = self.read(track_number)
+            if not successful:
+                return False
+            if letter_in_word != letter_on_track:
                 return False
         return True
-
-        track_cache = self.cache[track_number]
-        while len(track_cache) < len(word):
-            if not self.read(track_number):
-                return False
-        return all(a == b for a, b in izip(word, track_cache))
 
 
     def forward(self, transition):

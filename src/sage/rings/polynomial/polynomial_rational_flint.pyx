@@ -639,10 +639,10 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint res = self._new()
         cdef unsigned long m
         if n < 0:
-            raise ValueError("argument n must be a non-negative integer, got %s" % n)
+            raise ValueError("argument n must be a non-negative integer, got {}".format(n))
         m = n
         if not self[0].is_zero() or not self[1].is_unit():
-            raise ValueError("self must have constant coefficient 0 and a unit for coefficient %s^1" %(self.parent().gen()))
+            raise ValueError("self must have constant coefficient 0 and a unit for coefficient {}^1".format(self.parent().gen()))
 
         sig_on()
         fmpq_poly_revert_series(res.__poly, self.__poly, m)

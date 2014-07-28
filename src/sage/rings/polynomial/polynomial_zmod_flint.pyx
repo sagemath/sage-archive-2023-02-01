@@ -799,12 +799,12 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         cdef Polynomial_zmod_flint res = self._new()
         cdef unsigned long m
         if n < 0:
-            raise ValueError("argument n must be a non-negative integer, got %s" % n)
+            raise ValueError("argument n must be a non-negative integer, got {}".format(n))
         m = n
         if not self[0].is_zero() or not self[1].is_unit():
-            raise ValueError("self must have constant coefficient 0 and a unit for coefficient %s^1" %(self.parent().gen()))
+            raise ValueError("self must have constant coefficient 0 and a unit for coefficient {}^1".format(self.parent().gen()))
         if not all((self.base_ring())(i) != 0 for i in range(1,n)):
-            raise ValueError("the integers 1 up to n=%s are required to be invertible over the base field" %(n-1))
+            raise ValueError("the integers 1 up to n={} are required to be invertible over the base field".format(n-1))
 
         sig_on()
         nmod_poly_revert_series(&res.x, &self.x, m)

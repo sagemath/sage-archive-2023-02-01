@@ -10137,9 +10137,9 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
     def _push_branch_(self, state, tape_cache, outputs):
         """
-        This helper function does the actual adding of a ``state`` to
-        ``self._current_`` (during the update of a branch). See
-        also :meth:`._push_branches_`.
+        This helper function pushes a ``state`` together with
+        ``tape_cache`` and ``outputs`` (i.e. a branch) to the queue
+        ``self._current_``. See also :meth:`._push_branches_`.
 
         INPUT:
 
@@ -10195,7 +10195,10 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
     def _push_branches_(self, state, tape_cache, outputs):
         """
-        This function updates a branch.
+        This function pushes a branch (consisting of a ``state``, an
+        input ``tape_cache`` and ``outputs``) and one other branch for
+        each epsilon successor of ``state`` to the queue (containing
+        branches to process).
 
         INPUT:
 

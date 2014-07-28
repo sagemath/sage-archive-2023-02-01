@@ -2098,24 +2098,32 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
         """
         return self.k + 1
 
-    def random_element(self, n):
+    def random_element(self, n=None):
         r"""
-        Returns a random affine permutation of length `n`.
+        Return a random affine permutation of length ``n``.
+
+        If ``n`` is not specified, then ``n`` is choosen as a random
+        non-negative integer in `[0, 1000]`.
 
         Starts at the identity, then chooses an upper cover at random.
         Not very uniform: actually constructs a uniformly random reduced word
         of length `n`.  Thus we most likely get elements with lots of reduced
         words!
 
-        For the actual code, see :meth:`sage.categories.coxeter_group.random_element_of_length`
+        For the actual code, see
+        :meth:`sage.categories.coxeter_group.random_element_of_length`.
 
         EXAMPLES::
 
             sage: A = AffinePermutationGroup(['A',7,1])
+            sage: A.random_element() # random
+            Type A affine permutation with window [-12, 16, 19, -1, -2, 10, -3, 9]
             sage: p = A.random_element(10)
             sage: p.length() == 10
             True
         """
+        if n is None:
+            n = randint(0, 1000)
         return self.random_element_of_length(n)
 
     def from_word(self, w):

@@ -630,7 +630,7 @@ class CoxeterGroups(Category_singleton):
 
         def elements_of_length(self, n):
             r"""
-            Returns all elements of length `n`.
+            Return all elements of length `n`.
 
             EXAMPLES::
 
@@ -651,7 +651,7 @@ class CoxeterGroups(Category_singleton):
 
         def random_element_of_length(self, n):
             r"""
-            Returns a random element of length `n` in ``self``.
+            Return a random element of length ``n`` in ``self``.
 
             Starts at the identity, then chooses an upper cover at random.
 

@@ -467,9 +467,14 @@ Rerunning the process again now gives the following output::
 
 The example above just explains the basic idea of using
 hook-functions. In the following, we will use those hooks more
-seriously. Note that we only used ``check_epsilon_transitions=False`` to
-get a cleaner output, since processing of finite state machines is also
-used to handle epsilon transitions.
+seriously.
+
+.. WARNING::
+
+   The hooks of the states are also called while exploring the epsilon
+   successors of a state (during processing). In the example above, we
+   used ``check_epsilon_transitions=False`` to avoid this (and also
+   therefore got a cleaner output).
 
 Detecting sequences with same number of `0` and `1`
 ---------------------------------------------------

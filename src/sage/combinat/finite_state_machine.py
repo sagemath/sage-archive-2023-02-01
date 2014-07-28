@@ -9666,6 +9666,9 @@ class _FSMTapeCache_(SageObject):
             sage: TC2._transition_possible_epsilon_([[(None,)], []])
             False
         """
+        # Note that this function does not need self, but it is given
+        # to be consistent with the other _transition_possible_*_
+        # functions.
         return all(letter is None for word in word_in for letter in word)
 
 

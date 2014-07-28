@@ -1,5 +1,5 @@
 """
-Incidence structures.
+Incidence structures (i.e. hypergraphs, i.e. set systems)
 
 An incidence structure is specified by a list of points, blocks, and
 an incidence matrix ([1]_, [2]_).
@@ -20,6 +20,9 @@ AUTHORS:
   (version 0.6) written by Peter Dobcsanyi peter@designtheory.org.
 
 - Vincent Delecroix (2014): major rewrite
+
+Methods
+-------
 """
 #***************************************************************************
 #                              Copyright (C) 2007                          #
@@ -40,6 +43,8 @@ from sage.misc.cachefunc import cached_method
 
 from sage.rings.all import ZZ
 from sage.rings.integer import Integer
+from sage.misc.latex import latex
+from sage.sets.set import Set
 
 def IncidenceStructureFromMatrix(M, name=None):
     """
@@ -69,17 +74,33 @@ def IncidenceStructureFromMatrix(M, name=None):
 
 class IncidenceStructure(object):
     r"""
-    A base class for incidence structure (or block design) with explicit ground
-    set and blocks.
+    A base class for incidence structures (i.e. hypergraphs, i.e. set systems)
+
+    An incidence structure (i.e. hypergraph, i.e. set system) can be defined
+    from a collection of blocks (i.e. sets, i.e. edges), optionally with an
+    explicit ground set (i.e. point set, i.e. vertex set). Alternatively they
+    can be defined from a binary incidence matrix.
 
     INPUT:
 
-    - ``points`` -- the underlying set. If ``points`` is an integer `v`, then
-      the set is considered to be `\{0, ..., v-1\}`.
+    - ``points`` -- (i.e. ground set, i.e. vertex set) the underlying set. If
+      ``points`` is an integer `v`, then the set is considered to be `\{0, ...,
+      v-1\}`.
 
-    - ``blocks`` -- the blocks (might be any iterable)
+      .. NOTE::
 
-    - ``incidence_matrix`` -- the incidence matrix
+          The following syntax, where ``points`` is ommitted, automatically
+          defines the ground set as the union of the blocks::
+
+              sage: H = IncidenceStructure([['a','b','c'],['c','d','e']])
+              sage: H.ground_set()
+              ['a', 'b', 'c', 'd', 'e']
+
+    - ``blocks`` -- (i.e. edges, i.e. sets) the blocks defining the incidence
+      structure. Can be any iterable.
+
+    - ``incidence_matrix`` -- a binary incidence matrix. Each column represents
+      a set.
 
     - ``name`` (a string, such as "Fano plane").
 
@@ -98,6 +119,12 @@ class IncidenceStructure(object):
 
         sage: designs.IncidenceStructure(7, [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
         Incidence structure with 7 points and 7 blocks
+
+    Only providing the set of blocks is sufficient. In this case, the ground set
+    is defined as the union of the blocks::
+
+        sage: IncidenceStructure([[1,2,3],[2,3,4]])
+        Incidence structure with 4 points and 2 blocks
 
     Or by its adjacency matrix (a `\{0,1\}`-matrix in which rows are indexed by
     points and columns by blocks)::
@@ -179,13 +206,19 @@ class IncidenceStructure(object):
         from sage.matrix.constructor import matrix
         from sage.structure.element import Matrix
 
+        # Reformatting input
         if isinstance(points, Matrix):
+            assert incidence_matrix is None, "'incidence_matrix' cannot be defined when 'points' is a matrix"
+            assert blocks is None, "'blocks' cannot be defined when 'points' is a matrix"
             incidence_matrix = points
-            points = None
+            points = blocks = None
+        elif points and blocks is None:
+            blocks = points
+            points = set().union(*blocks)
+        if points:
+            assert incidence_matrix is None, "'incidence_matrix' cannot be defined when 'points' is defined"
 
-        if points is None:
-            assert incidence_matrix is not None
-
+        if incidence_matrix:
             M = matrix(incidence_matrix)
             v = M.nrows()
             self._points = range(v)
@@ -193,8 +226,6 @@ class IncidenceStructure(object):
             self._blocks = sorted(M.nonzero_positions_in_column(i) for i in range(M.ncols()))
 
         else:
-            assert incidence_matrix is None
-
             if isinstance(points, (int,Integer)):
                 self._points = range(points)
                 self._point_to_index = None
@@ -875,7 +906,7 @@ class IncidenceStructure(object):
     def block_design_checker(self, t, v, k, lmbda, type=None):
         """
         This method is deprecated and will soon be removed (see :trac:`16553`).
-        You could use :meth:`is_t_design` or :meth:`t_design_parameters` instead.
+        You could use :meth:`is_t_design` instead.
 
         This is *not* a wrapper for GAP Design's IsBlockDesign. The GAP
         Design function IsBlockDesign
@@ -919,19 +950,19 @@ class IncidenceStructure(object):
             True
 
             sage: BD.block_design_checker(2, 7, 3, 1,"binary")
-            doctest:1: DeprecationWarning: .block_design_checker(type='binary') is
+            doctest:...: DeprecationWarning: .block_design_checker(type='binary') is
             deprecated; use .is_binary() instead
             See http://trac.sagemath.org/16553 for details.
             True
 
             sage: BD.block_design_checker(2, 7, 3, 1,"connected")
-            doctest:1: DeprecationWarning: block_design_checker(type='connected') is
+            doctest:...: DeprecationWarning: block_design_checker(type='connected') is
             deprecated, please use .is_connected() instead
             See http://trac.sagemath.org/16553 for details.
             True
 
             sage: BD.block_design_checker(2, 7, 3, 1,"simple")
-            doctest:1: DeprecationWarning: .block_design_checker(type='simple')
+            doctest:...: DeprecationWarning: .block_design_checker(type='simple')
             is deprecated; all designs here are simple!
             See http://trac.sagemath.org/16553 for details.
             True
@@ -953,3 +984,157 @@ class IncidenceStructure(object):
         if type == "connected":
             deprecation(16553, "block_design_checker(type='connected') is deprecated, please use .is_connected() instead")
             return self.incidence_graph().is_connected()
+
+    def edge_coloring(self):
+        r"""
+        Compute a proper edge-coloring.
+
+        A proper edge-coloring is an assignment of colors to the sets of the
+        incidence structure such that two sets with non-empty intersection
+        receive different colors. The coloring returned minimizes the number of
+        colors.
+
+        OUTPUT:
+
+        A partition of the sets into color classes.
+
+        EXAMPLES::
+
+            sage: H = Hypergraph([{1,2,3},{2,3,4},{3,4,5},{4,5,6}]); H
+            Incidence structure with 6 points and 4 blocks
+            sage: C = H.edge_coloring()
+            sage: C # random
+            [[[3, 4, 5]], [[2, 3, 4]], [[4, 5, 6], [1, 2, 3]]]
+            sage: Set(map(Set,sum(C,[]))) == Set(map(Set,H.blocks()))
+            True
+        """
+        from sage.graphs.graph import Graph
+        blocks = self.blocks()
+        blocks_sets = map(frozenset,blocks)
+        g = Graph([range(self.num_blocks()),lambda x,y : len(blocks_sets[x]&blocks_sets[y])],loops = False)
+        return [[blocks[i] for i in C] for C in g.coloring(algorithm="MILP")]
+
+    def _spring_layout(self):
+        r"""
+        Return a spring layout for the points.
+
+        The layout is computed by creating a graph `G` on the points *and* sets
+        of the incidence structure. Each set is then made adjacent in `G` with
+        all points it contains before a spring layout is computed for this
+        graph. The position of the points in the graph gives the position of the
+        points in the final drawing.
+
+        .. NOTE::
+
+            This method also returns the position of the "fake" points,
+            i.e. those representing the sets.
+
+        EXAMPLES::
+
+            sage: H = Hypergraph([{1,2,3},{2,3,4},{3,4,5},{4,5,6}]); H
+            Incidence structure with 6 points and 4 blocks
+            sage: L = H._spring_layout()
+            sage: L # random
+            {1: (0.238, -0.926),
+             2: (0.672, -0.518),
+             3: (0.449, -0.225),
+             4: (0.782, 0.225),
+             5: (0.558, 0.518),
+             6: (0.992, 0.926),
+             {3, 4, 5}: (0.504, 0.173),
+             {2, 3, 4}: (0.727, -0.173),
+             {4, 5, 6}: (0.838, 0.617),
+             {1, 2, 3}: (0.393, -0.617)}
+            sage: all(v in L for v in H.ground_set())
+            True
+            sage: all(v in L for v in map(Set,H.blocks()))
+            True
+        """
+        from sage.graphs.graph import Graph
+
+        g = Graph()
+        for s in map(Set,self.blocks()):
+            for x in s:
+                g.add_edge(s,x)
+
+        _ = g.plot(iterations = 50000,save_pos=True)
+
+        # The values are rounded as TikZ does not like accuracy.
+        return {k:(round(x,3),round(y,3)) for k,(x,y) in g.get_pos().items()}
+
+    def _latex_(self):
+        r"""
+        Return a TikZ representation of the incidence structure
+
+        EXAMPLES::
+
+            sage: H = Hypergraph([{1,2,3},{2,3,4},{3,4,5},{4,5,6}]); H
+            Incidence structure with 6 points and 4 blocks
+            sage: view(H) # not tested
+
+        With sets of size 4::
+
+            sage: g = graphs.Grid2dGraph(5,5)
+            sage: C4 = graphs.CycleGraph(4)
+            sage: sets = Set(map(Set,list(g.subgraph_search_iterator(C4))))
+            sage: H = Hypergraph(sets)
+            sage: view(H) # not tested
+        """
+        from sage.rings.integer import Integer
+        from sage.functions.trig import arctan2
+
+        from sage.misc.misc import warn
+        warn("\nThe hypergraph is drawn as a set of closed curves. The curve "
+             "representing a set S go **THROUGH** the points contained "
+             "in S.\n A point which is encircled by a curve but is not located "
+             "on its boundary is **NOT** included in the corresponding set.\n"
+             "\n"
+             "The colors are picked for readability and have no other meaning.")
+
+        latex.add_package_to_preamble_if_available("tikz")
+        latex.add_to_mathjax_avoid_list("tikz")
+
+        if not latex.has_file("tikz.sty"):
+            raise RuntimeError("You must have TikZ installed in order "
+                               "to draw a hypergraph.")
+
+        domain = self.ground_set()
+        pos = self._spring_layout()
+        tex = "\\begin{tikzpicture}[scale=3]\n"
+
+        colors = ["black", "red", "green", "blue", "cyan", "magenta", "yellow","pink","brown"]
+        colored_sets = [(s,i) for i,S in enumerate(self.edge_coloring()) for s in S]
+
+        # Prints each set with its color
+        for s,i in colored_sets:
+            current_color = colors[i%len(colors)]
+
+            if len(s) == 2:
+                s = list(s)
+                tex += ("\\draw[color="+str(current_color)+","+
+                        "line width=.1cm,opacity = .6] "+
+                        str(pos[s[0]])+" -- "+str(pos[s[1]])+";\n")
+                continue
+
+            tex += ("\\draw[color="+str(current_color)+","
+                    "line width=.1cm,opacity = .6,"
+                    "line cap=round,"
+                    "line join=round]"
+                    "plot [smooth cycle,tension=1] coordinates {")
+
+            # Reorders the vertices of s according to their angle with the
+            # "center", i.e. the vertex representing the set s
+            cx, cy = pos[Set(s)]
+            s = map(lambda x: pos[x], s)
+            s = sorted(s, key = lambda x_y: arctan2(x_y[0] - cx, x_y[1] - cy))
+
+            for x in s:
+                tex += str(x)+" "
+            tex += "};\n"
+
+        # Prints each vertex
+        for v in domain:
+            tex += "\\draw node[fill,circle,scale=.5,label={90:$"+latex(v)+"$}] at "+str(pos[v])+" {};\n"
+
+        tex += "\\end{tikzpicture}"
+        return tex

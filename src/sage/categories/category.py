@@ -2872,9 +2872,9 @@ class JoinCategory(CategoryWithParameters):
             Traceback (most recent call last):
             ...
             ValueError: This join category isn't built by adding axioms to a single category
-            sage: C = Monoids().Commutative()
+            sage: C = Monoids().Infinite()
             sage: C._repr_(as_join=True)
-            'Join of Category of monoids and Category of commutative magmas'
+            'Join of Category of monoids and Category of infinite sets'
             sage: C._without_axioms()
             Category of magmas
             sage: C._without_axioms(named=True)
@@ -2922,7 +2922,7 @@ class JoinCategory(CategoryWithParameters):
         EXAMPLES::
 
             sage: Groups().Finite().Commutative()._repr_(as_join=True)
-            'Join of Category of finite groups and Category of commutative magmas'
+            'Join of Category of finite groups and Category of commutative groups'
             sage: Groups().Finite().Commutative()._repr_object_names()
             'finite commutative groups'
 

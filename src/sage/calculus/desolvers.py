@@ -3,8 +3,14 @@ Solving ordinary differential equations
 
 This file contains functions useful for solving differential equations
 which occur commonly in a 1st semester differential equations
-course. For another numerical solver see :meth:`ode_solver` function
-and optional package Octave.
+course. For another numerical solver see the :meth:`ode_solver` function
+and the optional package Octave.
+
+Solutions from the Maxima package can contain the three constants
+``_C``, ``_K1``, and ``_K2`` where the underscore is used to distinguish
+them from symbolic variables that the user might have used. You can
+substitute values for them, and make them into accessible usable
+symbolic variables, for example with ``var("_C")``.
 
 Commands:
 
@@ -123,7 +129,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: x = var('x')
         sage: y = function('y', x)
         sage: desolve(diff(y,x) + y - 1, y)
-        (c + e^x)*e^(-x)
+        (_C + e^x)*e^(-x)
 
     ::
 
@@ -140,7 +146,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: y = function('y', x)
         sage: de = diff(y,x,2) - y == x
         sage: desolve(de, y)
-        k2*e^(-x) + k1*e^x - x
+        _K2*e^(-x) + _K1*e^x - x
 
 
     ::
@@ -162,7 +168,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 
         sage: de = diff(y,x,2) + y == 0
         sage: desolve(de, y)
-        k2*cos(x) + k1*sin(x)
+        _K2*cos(x) + _K1*sin(x)
 
     ::
 
@@ -172,12 +178,12 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     ::
 
         sage: desolve(y*diff(y,x)+sin(x)==0,y)
-        -1/2*y(x)^2 == c - cos(x)
+        -1/2*y(x)^2 == _C - cos(x)
 
     Clairaut equation: general and singular solutions::
 
         sage: desolve(diff(y,x)^2+x*diff(y,x)-y==0,y,contrib_ode=True,show_method=True)
-        [[y(x) == c^2 + c*x, y(x) == -1/4*x^2], 'clairault']
+        [[y(x) == _C^2 + _C*x, y(x) == -1/4*x^2], 'clairault']
 
     For equations involving more variables we specify an independent variable::
 
@@ -194,7 +200,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     Higher order equations, not involving independent variable::
 
         sage: desolve(diff(y,x,2)+y*(diff(y,x,1))^3==0,y).expand()
-        1/6*y(x)^3 + k1*y(x) == k2 + x
+        1/6*y(x)^3 + _K1*y(x) == _K2 + x
 
     ::
 
@@ -209,12 +215,12 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     Separable equations - Sage returns solution in implicit form::
 
         sage: desolve(diff(y,x)*sin(y) == cos(x),y)
-        -cos(y(x)) == c + sin(x)
+        -cos(y(x)) == _C + sin(x)
 
     ::
 
         sage: desolve(diff(y,x)*sin(y) == cos(x),y,show_method=True)
-        [-cos(y(x)) == c + sin(x), 'separable']
+        [-cos(y(x)) == _C + sin(x), 'separable']
 
     ::
 
@@ -224,12 +230,12 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     Linear equation - Sage returns the expression on the right hand side only::
 
         sage: desolve(diff(y,x)+(y) == cos(x),y)
-        1/2*((cos(x) + sin(x))*e^x + 2*c)*e^(-x)
+        1/2*((cos(x) + sin(x))*e^x + 2*_C)*e^(-x)
 
     ::
 
         sage: desolve(diff(y,x)+(y) == cos(x),y,show_method=True)
-        [1/2*((cos(x) + sin(x))*e^x + 2*c)*e^(-x), 'linear']
+        [1/2*((cos(x) + sin(x))*e^x + 2*_C)*e^(-x), 'linear']
 
     ::
 
@@ -241,16 +247,16 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     into `e^{x}e^{y}`::
 
         sage: desolve(diff(y,x)==exp(x-y),y,show_method=True)
-        [-e^x + e^y(x) == c, 'exact']
+        [-e^x + e^y(x) == _C, 'exact']
 
     You can solve Bessel equations, also using initial
     conditions, but you cannot put (sometimes desired) the initial
     condition at x=0, since this point is a singular point of the
     equation. Anyway, if the solution should be bounded at x=0, then
-    k2=0.::
+    _K2=0.::
 
         sage: desolve(x^2*diff(y,x,x)+x*diff(y,x)+(x^2-4)*y==0,y)
-        k1*bessel_J(2, x) + k2*bessel_Y(2, x)
+        _K1*bessel_J(2, x) + _K2*bessel_Y(2, x)
 
     Example of difficult ODE producing an error::
 
@@ -266,12 +272,12 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     Some more types of ODE's::
 
         sage: desolve(x*diff(y,x)^2-(1+x*y)*diff(y,x)+y==0,y,contrib_ode=True,show_method=True)
-        [[y(x) == c + log(x), y(x) == c*e^x], 'factor']
+        [[y(x) == _C*e^x, y(x) == _C + log(x)], 'factor']
 
     ::
 
         sage: desolve(diff(y,x)==(x+y)^2,y,contrib_ode=True,show_method=True)
-        [[[x == c - arctan(sqrt(t)), y(x) == -x - sqrt(t)], [x == c + arctan(sqrt(t)), y(x) == -x + sqrt(t)]], 'lagrange']
+        [[[x == _C - arctan(sqrt(t)), y(x) == -x - sqrt(t)], [x == _C + arctan(sqrt(t)), y(x) == -x + sqrt(t)]], 'lagrange']
 
     These two examples produce an error (as expected, Maxima 5.18 cannot
     solve equations from initial conditions). Maxima 5.18
@@ -292,12 +298,12 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     Second order linear ODE::
 
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == cos(x),y)
-        (k2*x + k1)*e^(-x) + 1/2*sin(x)
+        (_K2*x + _K1)*e^(-x) + 1/2*sin(x)
 
     ::
 
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == cos(x),y,show_method=True)
-        [(k2*x + k1)*e^(-x) + 1/2*sin(x), 'variationofparameters']
+        [(_K2*x + _K1)*e^(-x) + 1/2*sin(x), 'variationofparameters']
 
     ::
 
@@ -322,12 +328,12 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     ::
 
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == 0,y)
-        (k2*x + k1)*e^(-x)
+        (_K2*x + _K1)*e^(-x)
 
     ::
 
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == 0,y,show_method=True)
-        [(k2*x + k1)*e^(-x), 'constcoeff']
+        [(_K2*x + _K1)*e^(-x), 'constcoeff']
 
     ::
 
@@ -357,7 +363,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: sage.calculus.calculus.maxima('domain:real')  # needed since Maxima 5.26.0 to get the answer as below
         real
         sage: desolve(x*diff(y,x)-x*sqrt(y^2+x^2)-y == 0, y, contrib_ode=True)
-        [x - arcsinh(y(x)/x) == c]
+        [x - arcsinh(y(x)/x) == _C]
 
     Trac #10682 updated Maxima to 5.26, and it started to show a different
     solution in the complex domain for the ODE above::
@@ -368,7 +374,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         [1/2*(2*x^2*sqrt(x^(-2)) - 2*x*sqrt(x^(-2))*arcsinh(y(x)/sqrt(x^2)) -
             2*x*sqrt(x^(-2))*arcsinh(y(x)^2/(x*sqrt(y(x)^2))) +
             log(4*(2*x^2*sqrt((x^2*y(x)^2 + y(x)^4)/x^2)*sqrt(x^(-2)) + x^2 +
-            2*y(x)^2)/x^2))/(x*sqrt(x^(-2))) == c]
+            2*y(x)^2)/x^2))/(x*sqrt(x^(-2))) == _C]
 
     Trac #6479 fixed::
 
@@ -395,7 +401,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 
         sage: x=var('x'); f=function('f',x); k=var('k'); assume(k>0)
         sage: desolve(diff(f,x,2)/f==k,f,ivar=x)
-        k1*e^(sqrt(k)*x) + k2*e^(-sqrt(k)*x)
+        _K1*e^(sqrt(k)*x) + _K2*e^(-sqrt(k)*x)
 
 
     AUTHORS:
@@ -420,13 +426,13 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         if len(ivars) != 1:
             raise ValueError("Unable to determine independent variable, please specify.")
         ivar = ivars[0]
-    def sanitize_var(exprs):
-        return exprs.replace("'"+dvar_str+"("+ivar_str+")",dvar_str)
     de00 = de._maxima_()
     P = de00.parent()
     dvar_str=P(dvar.operator()).str()
     ivar_str=P(ivar).str()
     de00 = de00.str()
+    def sanitize_var(exprs):
+        return exprs.replace("'"+dvar_str+"("+ivar_str+")",dvar_str)
     de0 = sanitize_var(de00)
     ode_solver="ode2"
     cmd="(TEMP:%s(%s,%s,%s), if TEMP=false then TEMP else substitute(%s=%s(%s),TEMP))"%(ode_solver,de0,dvar_str,ivar_str,dvar_str,dvar_str,ivar_str)
@@ -660,11 +666,14 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
         ivar = ivars[0]
     ## verbatim copy from desolve - end
 
+    dvar_str = str(dvar)
     def sanitize_var(exprs):  # 'y(x) -> y(x)
-        return exprs.replace("'"+str(dvar),str(dvar))
+        return exprs.replace("'"+dvar_str,dvar_str)
     de0=de._maxima_()
     P = de0.parent()
-    cmd = sanitize_var("desolve("+de0.str()+","+str(dvar)+")")
+    i = dvar_str.find('(')
+    dvar_str = dvar_str[:i+1] + '_SAGE_VAR_' + dvar_str[i+1:]
+    cmd = sanitize_var("desolve("+de0.str()+","+dvar_str+")")
     soln=P(cmd).rhs()
     if str(soln).strip() == 'false':
         raise NotImplementedError("Maxima was unable to solve this ODE.")
@@ -836,16 +845,17 @@ def desolve_system_strings(des,vars,ics=None):
         maxima.eval(cmd)
     desstr = "[" + ",".join(dess) + "]"
     d = len(vars)
-    varss = list("'" + vars[i] + "(" + vars[0] + ")" for i in range(1,d))
+    varss = list("'" + vars[i] + "(_SAGE_VAR_" + vars[0] + ")" for i in range(1,d))
     varstr = "[" + ",".join(varss) + "]"
     if ics is not None:
         #d = len(ics) ## must be same as len(des)
         for i in range(1,d):
-            ic = "atvalue('" + vars[i] + "("+vars[0] + ")," + str(vars[0]) + "=" + str(ics[0]) + "," + str(ics[i]) + ")"
+            ic = "atvalue('" + vars[i] + "(_SAGE_VAR_"+vars[0] + ")," + "_SAGE_VAR_"\
+             + str(vars[0]) + "=" + str(ics[0]) + "," + str(ics[i]) + ")"
             maxima.eval(ic)
     cmd = "desolve(" + desstr + "," + varstr + ");"
     soln = maxima(cmd)
-    return [f.rhs()._maxima_init_() for f in soln]
+    return [f.rhs()._maxima_init_().replace("_SAGE_VAR_"+vars[0],vars[0]) for f in soln]
 
 @rename_keyword(deprecation=6094, method="algorithm")
 def eulers_method(f,x0,y0,h,x1,algorithm="table"):
@@ -1223,13 +1233,13 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
     sol_1, sol_2 = [],[]
     if lower_bound<ics[0]:
         cmd="rk(%s,%s,%s,[%s,%s,%s,%s])\
-        "%(de0.str(),str(dummy_dvar),str(ics[1]),str(ivar),str(ics[0]),lower_bound,-step)
+        "%(de0.str(),'_SAGE_VAR_'+str(dummy_dvar),str(ics[1]),'_SAGE_VAR_'+str(ivar),str(ics[0]),lower_bound,-step)
         sol_1=maxima(cmd).sage()
         sol_1.pop(0)
         sol_1.reverse()
     if upper_bound>ics[0]:
         cmd="rk(%s,%s,%s,[%s,%s,%s,%s])\
-        "%(de0.str(),str(dummy_dvar),str(ics[1]),str(ivar),str(ics[0]),upper_bound,step)
+        "%(de0.str(),'_SAGE_VAR_'+str(dummy_dvar),str(ics[1]),'_SAGE_VAR_'+str(ivar),str(ics[0]),upper_bound,step)
         sol_2=maxima(cmd).sage()
         sol_2.pop(0)
     sol=sol_1
@@ -1343,13 +1353,13 @@ def desolve_system_rk4(des, vars, ics=None, ivar=None, end_points=None, step=0.1
     sol_1, sol_2 = [],[]
     if lower_bound<ics[0]:
         cmd="rk(%s,%s,%s,[%s,%s,%s,%s])\
-        "%(desstr,varstr,icstr,str(ivar),str(x0),lower_bound,-step)
+        "%(desstr,varstr,icstr,'_SAGE_VAR_'+str(ivar),str(x0),lower_bound,-step)
         sol_1=maxima(cmd).sage()
         sol_1.pop(0)
         sol_1.reverse()
     if upper_bound>ics[0]:
         cmd="rk(%s,%s,%s,[%s,%s,%s,%s])\
-        "%(desstr,varstr,icstr,str(ivar),str(x0),upper_bound,step)
+        "%(desstr,varstr,icstr,'_SAGE_VAR_'+str(ivar),str(x0),upper_bound,step)
         sol_2=maxima(cmd).sage()
         sol_2.pop(0)
     sol=sol_1

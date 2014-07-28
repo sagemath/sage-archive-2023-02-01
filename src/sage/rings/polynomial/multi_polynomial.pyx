@@ -1212,6 +1212,134 @@ cdef class MPolynomial(CommutativeRingElement):
 
         return M
 
+    def macaulay_resultant(self, *args):
+        r"""
+        This is an implementation of the Macaulay Resultant. It computes
+        the resultant of universal polynomials as well as polynomials
+        with constant coefficients. This is a project done in
+        sage days 55. It's based on the implementation in Maple by
+        Manfred Minimair, which in turn is based on the references [CLO], [Can], [Mac].
+        It calculates the Macaulay resultant for a list of Polynomials,
+        up to sign!
+
+        AUTHORS:
+
+        - Hao Chen, Solomon Vishkautsan (7-2014)
+
+        INPUT:
+
+        - ``args`` -- a list of `n-1` homogeneous polynomials in `n` variables.
+                  works when ``args[0]`` is the list of polynomials,
+                  or ``args`` is itself the list of polynomials
+
+        OUTPUT:
+
+        - the macaulay resultant
+
+        EXAMPLES:
+
+        The number of polynomials has to match the number of variables::
+
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: y.macaulay_resultant(x+z)
+            Traceback (most recent call last):
+            ...
+            TypeError: number of polynomials(= 2) must equal number of variables (= 3)
+
+        The polynomials need to be all homogeneous::
+
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: y.macaulay_resultant([x+z, z+x^3])
+            Traceback (most recent call last):
+            ...
+            TypeError: resultant for non-homogeneous polynomials is not supported
+
+        All polynomials must be in the same ring::
+
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: S.<x,y> = PolynomialRing(QQ, 2)
+            sage: y.macaulay_resultant(z+x,z)
+            Traceback (most recent call last):
+            ...
+            TypeError: not all inputs are polynomials in the calling ring
+
+        The following example recreates Proposition 2.10 in Ch.3 of Using Algebraic Geometry::
+
+            sage: K.<x,y> = PolynomialRing(ZZ, 2)
+            sage: flist,R = K._macaulay_resultant_universal_polynomials([1,1,2])
+            sage: flist[0].macaulay_resultant(flist[1:])
+            u2^2*u4^2*u6 - 2*u1*u2*u4*u5*u6 + u1^2*u5^2*u6 - u2^2*u3*u4*u7 + u1*u2*u3*u5*u7 + u0*u2*u4*u5*u7 - u0*u1*u5^2*u7 + u1*u2*u3*u4*u8 - u0*u2*u4^2*u8 - u1^2*u3*u5*u8 + u0*u1*u4*u5*u8 + u2^2*u3^2*u9 - 2*u0*u2*u3*u5*u9 + u0^2*u5^2*u9 - u1*u2*u3^2*u10 + u0*u2*u3*u4*u10 + u0*u1*u3*u5*u10 - u0^2*u4*u5*u10 + u1^2*u3^2*u11 - 2*u0*u1*u3*u4*u11 + u0^2*u4^2*u11
+
+        The following example degenerates into the determinant of a `3*3` matrix::
+
+            sage: K.<x,y> = PolynomialRing(ZZ, 2)
+            sage: flist,R = K._macaulay_resultant_universal_polynomials([1,1,1])
+            sage: flist[0].macaulay_resultant(flist[1:])
+            -u2*u4*u6 + u1*u5*u6 + u2*u3*u7 - u0*u5*u7 - u1*u3*u8 + u0*u4*u8
+
+        The following example is by Patrick Ingram(arxiv:1310.4114)::
+
+            sage: U = PolynomialRing(ZZ,'y',2); y0,y1 = U.gens()
+            sage: R = PolynomialRing(U,'x',3); x0,x1,x2 = R.gens()
+            sage: f0 = y0*x2^2 - x0^2 + 2*x1*x2
+            sage: f1 = y1*x2^2 - x1^2 + 2*x0*x2
+            sage: f2 = x0*x1 - x2^2
+            sage: f0.macaulay_resultant(f1,f2)
+            y0^2*y1^2 - 4*y0^3 - 4*y1^3 + 18*y0*y1 - 27
+
+        a simple example with constant rational coefficients::
+
+            sage: R.<x,y,z,w> = PolynomialRing(QQ,4)
+            sage: w.macaulay_resultant([z,y,x])
+            1
+
+        an example where the resultant vanishes::
+
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: (x+y).macaulay_resultant([y^2,x])
+            0
+
+        an example of bad reduction at a prime ``p = 5``::
+
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: y.macaulay_resultant([x^3+25*y^2*x,5*z])
+            125
+
+        The input can given as an unpacked list of polynomials::
+
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: y.macaulay_resultant(x^3+25*y^2*x,5*z)
+            125
+
+        an example when the coefficients live in a finite field::
+
+            sage: F = FiniteField(11)
+            sage: R.<x,y,z,w> = PolynomialRing(F,4)
+            sage: z.macaulay_resultant([x^3,5*y,w])
+            4
+
+        example when the denominator in the algorithm vanishes(in this case
+        the resultant is the constant term of the quotient of
+        char polynomials of numerator/denominator)::
+
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: y.macaulay_resultant([x+z, z^2])
+            -1
+
+        when there are only 2 polynomials, macaulay resultant degenerates to the traditional resultant::
+
+            sage: R.<x> = PolynomialRing(QQ,1)
+            sage: f =  x^2+1; g = x^5+1
+            sage: fh = f.homogenize()
+            sage: gh = g.homogenize()
+            sage: RH = fh.parent()
+            sage: f.resultant(g) == fh.macaulay_resultant(gh)
+            True
+
+        """
+        if len(args) == 1 and isinstance(args[0],list):
+            return self.parent().macaulay_resultant(self, *args[0])
+        return self.parent().macaulay_resultant(self, *args)
 
     def denominator(self):
         """

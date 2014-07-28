@@ -20,7 +20,7 @@ class GenericDeclaration(SageObject):
        being made
 
     -  ``assumption`` -- a Maxima feature, either user
-       defined or in the list given by maxima('features')
+       defined or in the list given by ``maxima('features')``
 
     EXAMPLES::
 
@@ -56,7 +56,7 @@ class GenericDeclaration(SageObject):
            being made
 
         -  ``assumption`` -- a Maxima feature, either user
-           defined or in the list given by maxima('features')
+           defined or in the list given by ``maxima('features')``
 
         EXAMPLES::
 
@@ -129,6 +129,8 @@ class GenericDeclaration(SageObject):
 
     def assume(self):
         """
+        Make this assumption.
+
         TEST::
 
             sage: from sage.symbolic.assumptions import GenericDeclaration
@@ -206,7 +208,7 @@ class GenericDeclaration(SageObject):
         INPUT:
 
         - ``soln`` -- Either a dictionary with variables as keys or a symbolic
-            relation with a variable on the left hand side.
+          relation with a variable on the left hand side.
 
         EXAMPLES::
 
@@ -282,16 +284,16 @@ class GenericDeclaration(SageObject):
 
 def preprocess_assumptions(args):
     """
-    Turn a list of the form (var1, var2, ..., 'property') into a
-    sequence of declarations (var1 is property), (var2 is property),
-    ...
+    Turn a list of the form ``(var1, var2, ..., 'property')`` into a
+    sequence of declarations ``(var1 is property), (var2 is property),
+    ...``
 
     EXAMPLES::
 
         sage: from sage.symbolic.assumptions import preprocess_assumptions
         sage: preprocess_assumptions([x, 'integer', x > 4])
         [x is integer, x > 4]
-        sage: var('x,y')
+        sage: var('x, y')
         (x, y)
         sage: preprocess_assumptions([x, y, 'integer', x > 4, y, 'even'])
         [x is integer, y is integer, x > 4, y is even]
@@ -463,7 +465,9 @@ def forget(*args):
     -  ``*args`` -- assumptions (default: forget all
        assumptions)
 
-    EXAMPLES: We define and forget multiple assumptions::
+    EXAMPLES:
+
+    We define and forget multiple assumptions::
 
         sage: var('x,y,z')
         (x, y, z)
@@ -506,16 +510,16 @@ def assumptions(*args):
 
     INPUT:
 
-    - ``args`` - list of variables which can be empty.
+    - ``args`` -- list of variables which can be empty.
 
     OUTPUT:
 
-    - list of assumptions on variables. If args is empty it returns
-        all assumptions
+    - list of assumptions on variables. If args is empty it returns all
+      assumptions
 
-    EXAMPLES:
+    EXAMPLES::
 
-        sage: var('x,y,z,w')
+        sage: var('x, y, z, w')
         (x, y, z, w)
         sage: forget()
         sage: assume(x^2+y^2 > 0)

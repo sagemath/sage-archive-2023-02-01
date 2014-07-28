@@ -9901,11 +9901,6 @@ class FSMProcessIterator(SageObject, collections.Iterator):
       to ``False``) if ``True``, then the multi-tape mode of the process
       iterator is activated.
 
-    - ``input_single_tape`` and ``input_multi_tape`` -- the input tape
-      for single-tape and multi-tape modes, respectively. For the
-      single-tape mode, ``input_single_tape`` is equivalent to
-      ``input_tape``, but do not use them at the same time.
-
     OUTPUT:
 
     An iterator.
@@ -10057,7 +10052,6 @@ class FSMProcessIterator(SageObject, collections.Iterator):
     """
     def __init__(self, fsm,
                  input_tape=None,
-                 input_single_tape=None, input_multi_tape=None,
                  initial_state=None, initial_states=[],
                  use_multitape_input=None,
                  check_epsilon_transitions=True,
@@ -10084,6 +10078,12 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         # FSM
         self.fsm = fsm
 
+        # multi-tape flag
+        if use_multitape_input is None:
+            self.is_multitape = False
+        else:
+            self.is_multitape = use_multitape_input
+
         # initial states
         initial_states = list(initial_states)
         if initial_state is not None:
@@ -10096,27 +10096,18 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         # input tapes
         tape = []
         if input_tape is not None:
-            tape.append(input_tape)
-        if input_single_tape is not None:
-            tape.append(input_single_tape)
-        if input_multi_tape is not None:
-            tape.extend(list(input_multi_tape))
-        if not tape:
-            tape.append(iter([]))
+            if self.is_multitape:
+                tape.extend(input_tape)
+            else:
+                tape.append(input_tape)
         if not all(hasattr(track, '__iter__') for track in tape):
             raise ValueError('Given input tape is not iterable.')
+        if not tape and not self.is_multitape:
+            tape.append(iter([]))
         self._input_tape_ = tuple(iter(track) for track in tape)
         self._input_tape_ended_ = [False for _ in tape]
 
-        if use_multitape_input is None:
-            self.is_multitape = len(self._input_tape_) >= 2
-        else:
-            self.is_multitape = use_multitape_input
-        if len(self._input_tape_) >= 2 and not self.is_multitape:
-            raise ValueError('tape with %s tracks given, so '
-                             'use_multitape_input should '
-                             'be True' % (len(self._input_tape_),))
-
+        # other options
         if format_output is None:
             self.format_output = list
         else:
@@ -10125,6 +10116,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         self.check_epsilon_transitions = check_epsilon_transitions
         self.write_final_word_out = write_final_word_out
 
+        # init branches
         self._current_ = {}
         self._current_positions_ = []  # a heap queue of the keys of _current_
         self._tape_cache_manager_ = []

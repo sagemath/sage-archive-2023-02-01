@@ -1,3 +1,6 @@
+"""
+Assumptions
+"""
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ, QQ, RR, CC
 from sage.symbolic.ring import is_SymbolicVariable

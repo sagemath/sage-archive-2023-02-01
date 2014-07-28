@@ -74,6 +74,7 @@ Implemented constructions :
   :func:`OA(12,474) <OA_12_474>`,
   :func:`OA(9,514) <OA_9_514>`,
   :func:`OA(20,544) <OA_20_544>`,
+  :func:`OA(17,560) <OA_17_560>`,
   :func:`OA(11,640) <OA_11_640>`,
   :func:`OA(10,796) <OA_10_796>`,
   :func:`OA(15,896) <OA_15_896>`,
@@ -128,6 +129,7 @@ from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_ma
                                                      OA_from_PBD,
                                                      OA_n_times_2_pow_c_from_matrix,
                                                      orthogonal_array)
+from orthogonal_arrays import wilson_construction
 
 # Cyclic shift of a list
 cyclic_shift = lambda l,i : l[-i:]+l[:-i]
@@ -2459,7 +2461,6 @@ def OA_9_135():
     truncated_OA = [B[1:-7]+[x if x==0 else None for x in B[-7:]] for B in OA]
 
     # And call Wilson's construction
-    from orthogonal_arrays import wilson_construction
     return wilson_construction(truncated_OA, 9, 16, 8,7,(1,)*7,check=False)
 
 def OA_12_144():
@@ -3134,6 +3135,65 @@ def OA_20_544():
 
     return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(17),zip(*A),Y,check=False)
 
+def OA_17_560():
+    r"""
+    Returns an OA(17,560)
+
+    This OA is built in Corollary 2.2 of [Thwarts]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_17_560
+        sage: OA = OA_17_560()
+        sage: print is_orthogonal_array(OA,17,560,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(17,560,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField as GF
+    alpha = 5
+    beta  = 4
+    p     = 2
+    k     = 17
+    m     = 16
+    n     = p**alpha
+
+    G = GF(p**alpha,prefix='x',conway=True)
+    G_set = sorted(G) # sorted by lexicographic order, G[1] = 1
+    G_to_int = {v:i for i,v in enumerate(G_set)}
+    # Builds an OA(n+1,n) whose last n-1 colums are
+    #
+    # \forall x \in G and x!=0, C_x(i,j) = i+x*j
+    #
+    # (only the necessary columns are built)
+    OA = [[G_to_int[i+x*j] for i in G_set for j in G_set] for x in G_set[k+1:0:-1]]
+    OA.append([j for i in range(n) for j in range(n)])
+    OA.append([i for i in range(n) for j in range(n)])
+
+    # The additive group F_{p^beta} appears in F_{p^alpha} as all polynomials
+    # with degree < beta
+    #
+    # We remove all elements except those from F_{p^alpha} in the last three
+    # columns
+
+    elements_of_subgroup = set([x for x in G_set if x.polynomial().degree() < beta])
+    relabel = {G_to_int[v]:i for i,v in enumerate(elements_of_subgroup)}
+    for x in range(p**alpha):
+        if x not in relabel:
+            relabel[x] = None
+
+    for C in OA[-3:]:
+        for i,x in enumerate(C):
+            C[i] = relabel[x]
+
+    OA=zip(*OA)
+
+    return wilson_construction(OA,k,n,m,3,[p**beta]*3,check=False)
+
 def OA_11_640():
     r"""
     Returns an OA(11,640)
@@ -3418,6 +3478,7 @@ OA_constructions = {
     474 : (12 , OA_12_474),
     514 : (9  , OA_9_514),
     544 : (20 , OA_20_544),
+    560 : (17 , OA_17_560),
     640 : (11 , OA_11_640),
     796 : (10 , OA_10_796),
     896 : (15 , OA_15_896),

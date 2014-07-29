@@ -938,11 +938,12 @@ class Link:
         for i in over:
             if i[1] == None:
                 unfilled.append(i)
-        over[over.index(unfilled[0])][1] = "entering"
-        for i in over:
-            if i[1] == None:
-                over = rule_1(over)
-                over = rule_2(over)
+        if len(unfilled) != 0:
+            over[over.index(unfilled[0])][1] = "entering"
+            for i in over:
+                if i[1] == None:
+                    over = rule_1(over)
+                    over = rule_2(over)
         orientation = []
         for i in range(0, len(over), 2):
             if over[i][1] == "leaving":

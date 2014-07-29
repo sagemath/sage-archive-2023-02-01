@@ -961,6 +961,11 @@ def preparse_generators(code):
 
         sage: preparse_generators(";  R.<x>=ZZ[];")
         ";  R = ZZ['x']; (x,) = R._first_ngens(1);"
+
+    See :trac:`16731` ::
+
+        sage: preparse_generators('R.<x> = ')
+        'R.<x> = '
     """
     new_code = []
     last_end = 0
@@ -969,7 +974,9 @@ def preparse_generators(code):
         ident, obj, gens, other_objs, constructor = m.groups()
         gens = [v.strip() for v in gens.split(',')]
         constructor = constructor.rstrip()
-        if constructor[-1] == ')':
+        if len(constructor) == 0:
+            pass   # SyntaxError will be raised by Python later
+        elif constructor[-1] == ')':
             if '(' not in constructor:
                 raise SyntaxError("Mismatched ')'")
             opening = constructor.rindex('(')

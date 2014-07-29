@@ -392,6 +392,18 @@ class IncidenceStructure(object):
             False
             sage: [1,2,"3",4] in IncidenceStructure([[1,2,"3",4]])
             True
+
+        A more complicated example::
+
+            sage: str="I had a dream of a time when a 3-lines patch does not kill one hour"
+            sage: sets = Subsets(str.split(),4)
+            sage: IS = IncidenceStructure(sets)
+            sage: ["I", "dream", "of", "one"] in IS
+            True
+            sage: ["does", "patch", "kill", "dream"] in IS
+            True
+            sage: ["Am", "I", "finally", "done ?"] in IS
+            False
         """
         try:
             iter(block)

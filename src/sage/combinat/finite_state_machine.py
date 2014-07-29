@@ -10119,6 +10119,13 @@ class FSMProcessIterator(SageObject, collections.Iterator):
     happen when the entire tape was read.
     When the process stops, a ``StopIteration`` exception is thrown.
 
+    .. WARNING::
+
+        Processing an input tape of length `n` can take `n+1`
+        iterations, since there will be `n+1` states visited (in the
+        case the taken transitions have input words consisting of single
+        letters).
+
     An instance of this class is generated when
     :meth:`FiniteStateMachine.process` or
     :meth:`FiniteStateMachine.iter_process` of a finite state machine,

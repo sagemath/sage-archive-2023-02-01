@@ -810,7 +810,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
 
             sage: ex1 = doctests[0].examples[1]
             sage: compiler = lambda ex:compile(ex.source, '<doctest sage.doctest.forker[1]>', 'single', 32768, 1)
-            sage: DTR.execute(ex1, compiled, globs)
+            sage: DTR.compile_and_execute(ex1, compiler, globs)
             sage: sorted(list(globs.set))
             ['R', 'a']
             sage: globs.got
@@ -821,8 +821,8 @@ class SageDocTestRunner(doctest.DocTestRunner):
         ::
 
             sage: ex2 = doctests[0].examples[2]
-            sage: compiled = compile(ex2.source, '<doctest sage.doctest.forker[2]>', 'single', 32768, 1)
-            sage: DTR.execute(ex2, compiled, globs)
+            sage: compiler = lambda ex:compile(ex.source, '<doctest sage.doctest.forker[2]>', 'single', 32768, 1)
+            sage: DTR.compile_and_execute(ex2, compiler, globs)
             a + 42
             sage: list(globs.set)
             []

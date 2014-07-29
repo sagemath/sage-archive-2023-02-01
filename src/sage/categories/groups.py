@@ -17,6 +17,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.monoids import Monoids
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 class Groups(CategoryWithAxiom):
     """
@@ -864,8 +865,7 @@ class Groups(CategoryWithAxiom):
                 from sage.sets.family import Family
 
                 # Finitely generated
-                # TODO: Replace with is_finite() instead of checking cardinality?
-                if all(G.group_generators().cardinality() != float('inf') for G in F):
+                if all(G.group_generators() in FiniteEnumeratedSets() for G in F):
                     ret = [lift(i, gen) for i,G in enumerate(F) for gen in G.group_generators()]
                     return Family(ret)
 

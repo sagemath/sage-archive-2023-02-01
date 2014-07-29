@@ -21,6 +21,7 @@ from sage.categories.subquotients import SubquotientsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.with_realizations import WithRealizationsCategory
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.element import generic_power
 
 class Monoids(CategoryWithAxiom):
@@ -442,8 +443,7 @@ class Monoids(CategoryWithAxiom):
                 from sage.sets.family import Family
 
                 # Finitely generated
-                # TODO: Replace with is_finite() instead of checking cardinality?
-                if all(M.monoid_generators().cardinality() != float('inf') for M in F):
+                if all(M.monoid_generators() in FiniteEnumeratedSets() for M in F):
                     ret = [lift(i, gen) for i,M in enumerate(F) for gen in M.monoid_generators()]
                     return Family(ret)
 

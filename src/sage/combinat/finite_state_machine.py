@@ -9231,6 +9231,38 @@ class Transducer(FiniteStateMachine):
             Traceback (most recent call last):
             ...
             RuntimeError: Invalid input sequence.
+
+        ::
+
+            sage: T = Transducer([(0, 1, None, None), (1, 0, None, None)],
+            ....:                initial_states=[0], final_states=[1])
+            sage: T.process([])
+            [(False, 0, []), (True, 1, [])]
+            sage: _ = T.add_transition(-1, 0, 0, 'r')
+            sage: T.state(-1).is_initial = True
+            sage: T.state(0).is_initial = False
+            sage: T.process([0])
+            [(False, 0, ['r']), (True, 1, ['r'])]
+
+        ::
+
+            sage: T = Transducer([(0, 1, None, 'z'), (1, 0, None, None)],
+            ....:                initial_states=[0], final_states=[1])
+            sage: T.process([])
+            Traceback (most recent call last):
+            ...
+            RuntimeError: State 0 is in an epsilon cycle (no input),
+            but output is written.
+            sage: _ = T.add_transition(-1, 0, 0, 'r')
+            sage: T.state(-1).is_initial = True
+            sage: T.state(0).is_initial = False
+            sage: T.process([])
+            (False, -1, [])
+            sage: T.process([0])
+            Traceback (most recent call last):
+            ...
+            RuntimeError: State 0 is in an epsilon cycle (no input),
+            but output is written.
         """
         if FSMOldProcessOutput:
             from sage.misc.superseded import deprecation
@@ -10342,38 +10374,6 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         process (0 branches)
         sage: it.result()
         [(False, 1, 'abcd'), (True, 2, 'abc')]
-
-    ::
-
-        sage: T = Transducer([(0, 1, None, None), (1, 0, None, None)],
-        ....:                initial_states=[0], final_states=[1])
-        sage: T.process([])  # indirect doctest
-        [(False, 0, []), (True, 1, [])]
-        sage: _ = T.add_transition(-1, 0, 0, 'r')
-        sage: T.state(-1).is_initial = True
-        sage: T.state(0).is_initial = False
-        sage: T.process([0])  # indirect doctest
-        [(False, 0, ['r']), (True, 1, ['r'])]
-
-    ::
-
-        sage: T = Transducer([(0, 1, None, 'z'), (1, 0, None, None)],
-        ....:                initial_states=[0], final_states=[1])
-        sage: T.process([])  # indirect doctest
-        Traceback (most recent call last):
-        ...
-        RuntimeError: State 0 is in an epsilon cycle (no input),
-        but output is written.
-        sage: _ = T.add_transition(-1, 0, 0, 'r')
-        sage: T.state(-1).is_initial = True
-        sage: T.state(0).is_initial = False
-        sage: T.process([])
-        (False, -1, [])
-        sage: T.process([0])  # indirect doctest
-        Traceback (most recent call last):
-        ...
-        RuntimeError: State 0 is in an epsilon cycle (no input),
-        but output is written.
 
     TESTS::
 

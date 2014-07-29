@@ -528,8 +528,8 @@ class Groups(CategoryWithAxiom):
 
             An other group can be specified as optional argument::
 
-                sage: GroupAlgebras(QQ).example(SymmetricGroup(4))
-                Group algebra of Symmetric group of order 4! as a permutation group over Rational Field
+                sage: GroupAlgebras(QQ).example(AlternatingGroup(4))
+                Group algebra of Alternating group of order 4!/2 as a permutation group over Rational Field
             """
             from sage.groups.perm_gps.permgroup_named import DihedralGroup
             if G is None:
@@ -575,14 +575,17 @@ class Groups(CategoryWithAxiom):
 
                 EXAMPLES::
 
-                    sage: GroupAlgebras(QQ).example(SymmetricGroup(10)).algebra_generators()
-                    Finite family {(1,2): B[(1,2)], (1,2,3,4,5,6,7,8,9,10): B[(1,2,3,4,5,6,7,8,9,10)]}
+                    sage: GroupAlgebras(QQ).example(AlternatingGroup(10)).algebra_generators()
+                    Finite family {(1,2,3,4,5,6,7,8,9): B[(1,2,3,4,5,6,7,8,9)], (8,9,10): B[(8,9,10)]}
 
                 .. NOTE::
 
                     This function is overloaded for SymmetricGroupAlgebras
                     to return Permutations and not Elements of the
-                    symmetric group.
+                    symmetric group::
+
+                        sage: GroupAlgebras(QQ).example(SymmetricGroup(10)).algebra_generators()
+                        [[2, 1, 3, 4, 5, 6, 7, 8, 9, 10], [2, 3, 4, 5, 6, 7, 8, 9, 10, 1]]
                 """
                 from sage.sets.family import Family
                 return Family(self.group().gens(), self.term)

@@ -741,50 +741,47 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         self._order = Integer(N)
         return self._order
 
-    def cardinality(self, algorithm='heuristic', extension_degree=1):
+    def cardinality(self, algorithm='pari', extension_degree=1):
         r"""
-        Return the number of points on this elliptic curve over an
-        extension field (default: the base field).
+        Return the number of points on this elliptic curve.
 
         INPUT:
 
+        - ``algorithm`` -- string (default: ``'pari'``), used only for
+          point counting over prime fields:
 
-        -  ``algorithm`` - string (default: 'heuristic'), used
-           only for point counting over prime fields
+          - ``'pari'`` -- use the baby-step giant-step or
+            Schoof-Elkies-Atkin methods as implemented in the PARI
+            C-library function ``ellap``
 
-            -  ``'heuristic'`` - use a heuristic to choose between
-               ``'pari'`` and ``'bsgs'``.
+          - ``'bsgs'`` -- use the baby-step giant-step method as
+            implemented in Sage, with the Cremona-Sutherland version
+            of Mestre's trick
 
-            - ``'pari'`` - use the baby step giant step or SEA methods
-               as implemented in PARI via the C-library function ellap.
+          - ``'all'`` -- compute cardinality with both ``'pari'`` and
+            ``'bsgs'``; return result if they agree or raise a
+            ``RuntimeError`` if they do not
 
-            -  ``'bsgs'`` - use the baby step giant step method as
-               implemented in Sage, with the Cremona-Sutherland version
-               of Mestre's trick.
+        - ``extension_degree`` -- an integer `d` (default: 1): if the
+          base field is `\GF{q}`, return the cardinality of ``self``
+          over the extension `\GF{q^d}` of degree `d`.
 
-            - ``'all'`` - (over prime fields only) compute cardinality
-              with all of PARI and bsgs; return result if they agree
-              or raise a RuntimeError if they do not.
+        OUTPUT:
 
-        -  ``extension_degree`` - int (default: 1); if the
-           base field is `k=GF(p^n)` and extension_degree=d, returns
-           the cardinality of `E(GF(p^{n d}))`.
-
-
-        OUTPUT: an integer
-
-        The cardinality is cached.
+        The order of the group of rational points of ``self`` over its
+        base field, or over an extension field of degree `d` as above.
+        The result is cached.
 
         Over prime fields, one of the above algorithms is used. Over
         non-prime fields, the serious point counting is done on a standard
-        curve with the same j-invariant over the field GF(p)(j), then
-        lifted to the base_field, and finally account is taken of twists.
+        curve with the same `j`-invariant over the field `\GF{p}(j)`, then
+        lifted to the base field, and finally account is taken of twists.
 
-        For j=0 and j=1728 special formulas are used instead.
+        For `j = 0` and `j = 1728` special formulas are used instead.
 
         EXAMPLES::
 
-            sage: EllipticCurve(GF(4,'a'),[1,2,3,4,5]).cardinality()
+            sage: EllipticCurve(GF(4, 'a'), [1,2,3,4,5]).cardinality()
             8
             sage: k.<a> = GF(3^3)
             sage: l = [a^2 + 1, 2*a^2 + 2*a + 1, a^2 + a + 1, 2, 2*a]
@@ -794,42 +791,51 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         ::
 
             sage: l = [1, 1, 0, 2, 0]
-            sage: EllipticCurve(k,l).cardinality()
+            sage: EllipticCurve(k, l).cardinality()
             38
 
         An even bigger extension (which we check against Magma)::
 
-            sage: EllipticCurve(GF(3^100,'a'),[1,2,3,4,5]).cardinality()
+            sage: EllipticCurve(GF(3^100, 'a'), [1,2,3,4,5]).cardinality()
             515377520732011331036459693969645888996929981504
             sage: magma.eval("Order(EllipticCurve([GF(3^100)|1,2,3,4,5]))")    # optional - magma
             '515377520732011331036459693969645888996929981504'
 
         ::
 
-            sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality()
+            sage: EllipticCurve(GF(10007), [1,2,3,4,5]).cardinality()
             10076
-            sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='pari')
+            sage: EllipticCurve(GF(10007), [1,2,3,4,5]).cardinality(algorithm='pari')
             10076
-            sage: EllipticCurve(GF(next_prime(10**20)),[1,2,3,4,5]).cardinality()
+            sage: EllipticCurve(GF(next_prime(10**20)), [1,2,3,4,5]).cardinality()
             100000000011093199520
 
         The cardinality is cached::
 
-            sage: E = EllipticCurve(GF(3^100,'a'),[1,2,3,4,5])
+            sage: E = EllipticCurve(GF(3^100, 'a'), [1,2,3,4,5])
             sage: E.cardinality() is E.cardinality()
             True
-            sage: E=EllipticCurve(GF(11^2,'a'),[3,3])
+            sage: E = EllipticCurve(GF(11^2, 'a'), [3,3])
             sage: E.cardinality()
             128
-            sage: EllipticCurve(GF(11^100,'a'),[3,3]).cardinality()
+            sage: EllipticCurve(GF(11^100, 'a'), [3,3]).cardinality()
             137806123398222701841183371720896367762643312000384671846835266941791510341065565176497846502742959856128
 
         TESTS::
 
-            sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='foobar')
+            sage: EllipticCurve(GF(10009), [1,2,3,4,5]).cardinality(algorithm='foobar')
             Traceback (most recent call last):
             ...
             ValueError: Algorithm is not known
+
+        If the cardinality has already been computed, then the ``algorithm``
+        keyword is ignored::
+
+            sage: E = EllipticCurve(GF(10007), [1,2,3,4,5])
+            sage: E.cardinality(algorithm='pari')
+            10076
+            sage: E.cardinality(algorithm='foobar')
+            10076
         """
         if extension_degree>1:
             # A recursive call to cardinality() with
@@ -842,11 +848,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 return (self.frobenius()**extension_degree-1).norm()
 
         # Now extension_degree==1
-        if algorithm != 'all':
-            try:
-                return self._order
-            except AttributeError:
-                pass
+        try:
+            return self._order
+        except AttributeError:
+            pass
 
         k = self.base_ring()
         q = k.cardinality()
@@ -868,12 +873,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         # Over prime fields, we have a variety of algorithms to choose from:
 
         if d == 1:
-            if algorithm == 'heuristic':
+            if algorithm in ('heuristic', 'sea'):  # for backwards compatibility
                 algorithm = 'pari'
             if algorithm == 'pari':
                 N = self.cardinality_pari()
-            elif algorithm == 'sea':
-                N = self.cardinality_pari()  # purely for backwards compatibility
             elif algorithm == 'bsgs':
                 N = self.cardinality_bsgs()
             elif algorithm == 'all':

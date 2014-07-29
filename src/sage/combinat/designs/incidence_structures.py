@@ -374,6 +374,39 @@ class IncidenceStructure(object):
         """
         return not self.__eq__(other)
 
+    def __contains__(self, block):
+        r"""
+        Tests if a block belongs to the incidence structure
+
+        INPUT:
+
+        - ``block`` -- a block.
+
+        EXAMPLES::
+
+            sage: [1,2,3,4] in IncidenceStructure([[1,2,3,4]])
+            True
+            sage: [1,2,4,3] in IncidenceStructure([[1,2,3,4]])
+            True
+            sage: [1,2,"3",4] in IncidenceStructure([[1,2,3,4]])
+            False
+            sage: [1,2,"3",4] in IncidenceStructure([[1,2,"3",4]])
+            True
+        """
+        try:
+            iter(block)
+        except TypeError:
+            return False
+
+        # Relabel to 0,...,n-1 if necessary
+        if self._point_to_index is not None:
+            try:
+                block = [self._point_to_index[x] for x in block]
+            except KeyError:
+                return False
+
+        return sorted(block) in self._blocks
+
     def ground_set(self, copy=True):
         r"""
         Return the ground set (i.e the list of points).

@@ -95,7 +95,7 @@ Properties
     :meth:`~FiniteStateMachine.is_Markov_chain` | Checks for a Markov chain
     :meth:`~FiniteStateMachine.is_monochromatic` | Checks whether the colors of all states are equal
     :meth:`~FiniteStateMachine.asymptotic_moments` | Main terms of expectation and variance of sums of labels
-    :meth:`~FiniteStateMachine.expected_waiting_time` | Expected waiting time for first true output
+    :meth:`~FiniteStateMachine.moments_waiting_time` | Moments of the waiting time for first true output
     :meth:`~FiniteStateMachine.epsilon_successors` | Epsilon successors of a state
 
 
@@ -8687,10 +8687,10 @@ class FiniteStateMachine(SageObject):
                 'covariance': c*variable + SR(1).Order()}
 
 
-    def expected_waiting_time(self, is_zero=None):
+    def moments_waiting_time(self, is_zero=None, expectation_only=False):
         r"""
-        If ``self`` is a Markov chain, return the expected number of
-        steps until first writing ``True``.
+        If ``self`` is a Markov chain, return the expectation and variance
+        of the number of steps until first writing ``True``.
 
         INPUT:
 
@@ -8702,16 +8702,27 @@ class FiniteStateMachine(SageObject):
           the examples below. This parameter is passed on to
           :meth:`is_Markov_chain`.
 
+        - ``expectation_only`` -- (default: ``False``) if set, the
+          variance is not computed (in order to save time). By default,
+          the variance is computed.
+
         OUTPUT:
 
-        Expected number of steps until first writing ``True`` (or
-        anything else evaluating to ``True`` when converted to a
-        boolean).
+        A dictionary consisting of
+
+        - ``expectation``,
+        - ``variance``
+
+        Expectation and variance of the number of steps until first
+        writing ``True`` (or anything else evaluating to ``True``
+        when converted to a boolean).
 
         ALGORITHM:
 
         Relies on a (classical and easy) probabilistic argument,
         cf. [FGT1992]_, Eqns. (6) and (7).
+
+        For the variance, see [FHP2014]_, Section 2.
 
         EXAMPLES:
 
@@ -8720,14 +8731,17 @@ class FiniteStateMachine(SageObject):
             `1/2`. In fact, the waiting time equals `k` if and only if
             the string starts with `0^{k-1}1`. This event occurs with
             probability `2^{-k}`. Therefore, the expected waiting time
-            is `\sum_{k\ge 0} k2^{-k}=2`::
+            and the variance are `\sum_{k\ge 0} k2^{-k}=2` and
+            `\sum_{k\ge 0} (k-2)^2 2^{-k}=2`::
 
                 sage: var('k')
                 k
-                sage: sum(k*2^(-k), k, 0, infinity)
+                sage: sum(k * 2^(-k), k, 0, infinity)
+                2
+                sage: sum((k-2)^2 * 2^(-k), k, 1, infinity)
                 2
 
-            We now compute the same expectated value by using a Markov
+            We now compute the same expected value by using a Markov
             chain::
 
                 sage: from sage.combinat.finite_state_machine import duplicate_transition_add_input
@@ -8735,8 +8749,11 @@ class FiniteStateMachine(SageObject):
                 ....:                on_duplicate_transition=duplicate_transition_add_input,
                 ....:                initial_states=[0],
                 ....:                final_states=[0])
-                sage: T.expected_waiting_time()
+                sage: T.moments_waiting_time()
+                {'expectation': 2, 'variance': 2}
+                sage: T.moments_waiting_time(expectation_only=True)
                 2
+
 
         #.  Make sure that the transducer is actually a Markov
             chain. Although this is checked by the code, unexpected
@@ -8752,17 +8769,18 @@ class FiniteStateMachine(SageObject):
                 ....:                on_duplicate_transition=duplicate_transition_add_input,
                 ....:                initial_states=[0],
                 ....:                final_states=[0])
-                sage: T.expected_waiting_time()
-                1
+                sage: T.moments_waiting_time()
+                {'expectation': 1, 'variance': 0}
 
-        #.  If ``True`` is never written, the expectation is ``+Infinity``::
+        #.  If ``True`` is never written, the moments are
+        ``+Infinity``::
 
                 sage: T = Transducer([(0, 0, 1, 0)],
                 ....:                on_duplicate_transition=duplicate_transition_add_input,
                 ....:                initial_states=[0],
                 ....:                final_states=[0])
-                sage: T.expected_waiting_time()
-                +Infinity
+                sage: T.moments_waiting_time()
+                {'expectation': +Infinity, 'variance': +Infinity}
 
         #.  Let `h` and `k` be positive integers. We consider random
             strings of letters `1`, `\ldots`, `k` where the letter `j`
@@ -8774,8 +8792,8 @@ class FiniteStateMachine(SageObject):
 
                 \mathbb{E}(B)=\frac1{\sum_{j=1}^k \frac1{p_j^{-1}+\cdots+p_j^{-h}}},
 
-            cf. [S1986]_, p. 62. We now verify this with a transducer
-            approach. We need to set
+            cf. [S1986]_, p. 62, or [FHP2014]_, Theorem 1. We now
+            verify this with a transducer approach. We need to set
             ``FSMOldCodeTransducerCartesianProduct``,
             cf. :meth:`Transducer.cartesian_product`.
 
@@ -8788,20 +8806,32 @@ class FiniteStateMachine(SageObject):
                 ....:     p = R.gens()
                 ....:     def is_zero(polynomial):
                 ....:         return polynomial in (sum(p)-1)*R
-                ....:     theory = 1/(sum(1/sum(p[j]^(-i) for i in range(1, h+1))
+                ....:     theory_expectation = 1/(sum(1/sum(p[j]^(-i)
+                ....:                     for i in range(1, h+1))
                 ....:                     for j in range(k)))
+                ....:     theory_variance = sum((p[i] + p[i]^h)/
+                ....:                           (1 - p[i]^h)
+                ....:                           - 2*h*p[i]^h * (1 - p[i])/
+                ....:                                  (1 - p[i]^h)^2
+                ....:                           for i in range(k)
+                ....:                           ) * theory_expectation^2
                 ....:     alphabet = range(k)
                 ....:     counters = [transducers.CountSubblockOccurrences([j]*h, alphabet)
                 ....:                 for j in alphabet]
                 ....:     all_counter = counters[0].cartesian_product(counters[1:])
-                ....:     adder = transducers.add([0, 1], number_of_operands=k)
+                ....:     adder = transducers.add(input_alphabet=[0, 1],
+                ....:         number_of_operands=k)
                 ....:     probabilities = Transducer([(0, 0, p[j], j) for j in alphabet],
                 ....:                                initial_states=[0],
                 ....:                                final_states=[0],
                 ....:                                on_duplicate_transition=duplicate_transition_add_input)
                 ....:     chain = adder(all_counter(probabilities))
-                ....:     result = chain.expected_waiting_time(is_zero=is_zero)
-                ....:     return  is_zero((result-theory).numerator())
+                ....:     result = chain.moments_waiting_time(is_zero=is_zero)
+                ....:     return is_zero((result['expectation'] -
+                ....:                theory_expectation).numerator()) \
+                ....:            and \
+                ....:            is_zero((result['variance'] -
+                ....:                 theory_variance).numerator())
                 sage: test(2, 2)
                 True
                 sage: test(2, 3)
@@ -8815,25 +8845,25 @@ class FiniteStateMachine(SageObject):
         Only Markov chains are acceptable::
 
             sage: T = transducers.Identity([0, 1, 2])
-            sage: T.expected_waiting_time()
+            sage: T.moments_waiting_time()
             Traceback (most recent call last):
             ...
             ValueError: Only Markov chains can compute
-            expected_waiting_time.
+            moments_waiting_time.
 
         There must be a unique initial state::
 
             sage: T = Transducer([(0, 1, 1, 1), (1, 0, 1, 0)],
             ....:                on_duplicate_transition=duplicate_transition_add_input)
-            sage: T.expected_waiting_time()
+            sage: T.moments_waiting_time()
             Traceback (most recent call last):
             ...
             ValueError: Unique initial state is required.
             sage: T.state(0).is_initial = True
-            sage: T.expected_waiting_time()
-            1
+            sage: T.moments_waiting_time()
+            {'expectation': 1, 'variance': }
             sage: T.state(1).is_initial = True
-            sage: T.expected_waiting_time()
+            sage: T.moments_waiting_time()
             Traceback (most recent call last):
             ...
             ValueError: Unique initial state is required.
@@ -8844,8 +8874,8 @@ class FiniteStateMachine(SageObject):
             sage: T = Transducer([(0, 0, p, 0), (0, 0, q, 0)],
             ....:                initial_states=[0],
             ....:                on_duplicate_transition=duplicate_transition_add_input)
-            sage: T.expected_waiting_time(lambda e: e in (p + q -1)*R)
-            +Infinity
+            sage: T.moments_waiting_time(lambda e: e in (p + q - 1)*R)
+            {'expectation': +Infinity, 'variance': +Infinity}
 
         REFERENCES:
 
@@ -8854,11 +8884,16 @@ class FiniteStateMachine(SageObject):
            self-organizing search*, Discrete Appl. Math. 39 (1992),
            207--229, :doi:`10.1016/0166-218X(92)90177-C`.
 
+        .. [FHP2014] Uta Freiberg, Clemens Heuberger, Helmut Prodinger,
+           *In preparation*, in preparation.
+
         .. [S1986] Gábor J. Székely, *Paradoxes in Probability Theory
            and Mathematical Statistics*, D. Reidel Publishing Company.
         """
         from sage.modules.free_module_element import vector
         from sage.matrix.constructor import identity_matrix
+        from sage.rings.polynomial.polynomial_ring_constructor import\
+            PolynomialRing
 
         def default_is_zero(expression):
             return expression.is_zero()
@@ -8869,14 +8904,14 @@ class FiniteStateMachine(SageObject):
 
         if not self.is_Markov_chain(is_zero):
             raise ValueError("Only Markov chains can compute "
-                             "expected_waiting_time.")
+                             "moments_waiting_time.")
 
         if len(self.initial_states()) != 1:
             raise ValueError("Unique initial state is required.")
 
         def entry(transition):
             word_out = transition.word_out
-            if len(word_out)==0 or (
+            if len(word_out) == 0 or (
                 len(word_out) == 1 and not word_out[0]):
                 return transition.word_in[0]
             else:
@@ -8885,20 +8920,58 @@ class FiniteStateMachine(SageObject):
         relabeled = self.relabeled()
         n = len(relabeled.states())
         assert [s.label() for s in relabeled.states()] == range(n)
-        entry_vector = vector(ZZ(s.is_initial) for s in relabeled.states())
+        entry_vector = vector(ZZ(s.is_initial)
+                              for s in relabeled.states())
         exit_vector = vector([1] * n)
         transition_matrix = relabeled.adjacency_matrix(entry=entry)
-        # we cannot use the input parameter of adjacency_matrix
+        # transition_matrix is the probability transition matrix
+        # of the part of the transducer before the occurrence of true
+        # output.
+        # We cannot use the input parameter of adjacency_matrix
         # because we want to check for "true" input in the sense
         # of python's boolean conversion. So we cannot give
         # input=[False] as this might lead to strange phenomena.
-        if all(map(is_zero_function, transition_matrix * exit_vector - exit_vector)):
+        if all(map(is_zero_function,
+                   transition_matrix * exit_vector - exit_vector)):
             import sage.rings.infinity
-            return sage.rings.infinity.PlusInfinity()
+            expectation = sage.rings.infinity.PlusInfinity()
+            variance = sage.rings.infinity.PlusInfinity()
+        else:
+            if expectation_only:
+                system_matrix = identity_matrix(n) - transition_matrix
+                expectation = entry_vector * \
+                    system_matrix.solve_right(exit_vector)
+            else:
+                base_ring = transition_matrix.parent().base_ring()
+                from sage.rings.polynomial.multi_polynomial_ring \
+                    import is_MPolynomialRing
+                if is_MPolynomialRing(base_ring):
+                    # if base_ring is already a multivariate polynomial
+                    # ring, extend it instead of creating a univariate
+                    # polynomial ring over a polynomial ring.  This
+                    # should improve performance.
+                    R = PolynomialRing(
+                        base_ring.base_ring(),
+                        base_ring.variable_names()
+                            + ('Z_waiting_time',))
+                else:
+                    R = PolynomialRing(base_ring, 'Z_waiting_time')
+                Z = R.gens()[-1]
+                system_matrix = identity_matrix(n) - Z * \
+                    transition_matrix
+                G = entry_vector *  system_matrix.solve_right(
+                    exit_vector)
+                expectation = G.subs({Z: 1})
+                variance = 2 * G.derivative(Z).subs({Z: 1}) \
+                    + expectation \
+                    - expectation**2
 
-        system_matrix = identity_matrix(n) - transition_matrix
+        if expectation_only:
+            return expectation
+        else:
+            return {'expectation': expectation,
+                    'variance': variance}
 
-        return entry_vector*system_matrix.solve_right(exit_vector)
 
 
     def is_monochromatic(self):

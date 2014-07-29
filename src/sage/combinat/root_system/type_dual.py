@@ -171,17 +171,17 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
         """
         dual_str = self.global_options('dual_str')
         if self.is_affine() and self.global_options('notation') == "Kac":
-            if self.dual().type() == 'B':
+            if self._type.type() == 'B':
                 if compact:
                     return 'A%s^2'%(self.classical().rank()*2-1)
                 return "['A', %s, 2]"%(self.classical().rank()*2-1)
-            elif self.dual().type() == 'BC':
+            elif self._type.type() == 'BC':
                 dual_str = '+'
-            elif self.dual().type() == 'C':
+            elif self._type.type() == 'C':
                 if compact:
                     return 'D%s^2'%(self.rank())
                 return "['D', %s, 2]"%(self.rank())
-            elif self.dual().type() == 'F':
+            elif self._type.type() == 'F':
                 if compact:
                     return 'E6^2'
                 return "['E', 6, 2]"
@@ -568,17 +568,17 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         """
         dual_str = self.global_options('dual_str')
         if self.global_options('notation') == "Kac":
-            if self.dual().type() == 'B':
+            if self._type.type() == 'B':
                 if compact:
                     return 'A%s^2'%(self.classical().rank()*2-1)
                 return "['A', %s, 2]"%(self.classical().rank()*2-1)
-            elif self.dual().type() == 'BC':
+            elif self._type.type() == 'BC':
                 dual_str = '+'
-            elif self.dual().type() == 'C':
+            elif self._type.type() == 'C':
                 if compact:
                     return 'D%s^2'%(self.rank())
                 return "['D', %s, 2]"%(self.rank())
-            elif self.dual().type() == 'F':
+            elif self._type.type() == 'F':
                 if compact:
                     return 'E6^2'
                 return "['E', 6, 2]"

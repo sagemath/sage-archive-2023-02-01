@@ -9,6 +9,10 @@ Root system data for Cartan types with marked nodes
 #*****************************************************************************
 
 from sage.combinat.root_system import cartan_type
+from sage.combinat.root_system import ambient_space
+from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.cachefunc import cached_method
 
 class CartanType(cartan_type.CartanType_decorator):
     r"""
@@ -358,11 +362,11 @@ class CartanType(cartan_type.CartanType_decorator):
             sage: T = CartanType(["BC",3, 2])
             sage: T.marked_nodes([1,3]).relabel(lambda x: x+2).dynkin_diagram()
             O=<=X---O=<=X
-            2   3   4   5   
+            2   3   4   5
             BC3~ relabelled by {0: 2, 1: 3, 2: 4, 3: 5} with nodes (3, 5) marked
             sage: T.relabel(lambda x: x+2).marked_nodes([3,5]).dynkin_diagram()
             O=<=X---O=<=X
-            2   3   4   5   
+            2   3   4   5
             BC3~ relabelled by {0: 2, 1: 3, 2: 4, 3: 5} with nodes (3, 5) marked
         """
         rct = self._type.relabel(relabelling)
@@ -415,25 +419,133 @@ class CartanType(cartan_type.CartanType_decorator):
 
 ###########################################################################
 
+class AmbientSpace(ambient_space.AmbientSpace):
+    """
+    Ambient space for a marked finite Cartan type.
+
+    It is constructed in the canonical way from the ambient space of
+    the original Cartan type.
+
+    EXAMPLES::
+
+        sage: L = CartanType(["F",4]).marked_nodes([1,3]).root_system().ambient_space(); L
+        Ambient space of the Root system of type ['F', 4] with nodes (1, 3) marked
+        sage: TestSuite(L).run()
+    """
+    @lazy_attribute
+    def _space(self):
+        """
+        The ambient space this is a marking of.
+
+        EXAMPLES::
+
+            sage: L = CartanType(["F",4]).marked_nodes([1,3]).root_system().ambient_space()
+            sage: L._space
+            Ambient space of the Root system of type ['F', 4]
+        """
+        K = self.base_ring()
+        return self.cartan_type()._type.root_system().ambient_space(K)
+
+    def dimension(self):
+        """
+        Return the dimension of this ambient space.
+
+        .. SEEALSO:: :meth:`sage.combinat.root_system.ambient_space.AmbientSpace.dimension`
+
+        EXAMPLES::
+
+            sage: L = CartanType(["F",4]).marked_nodes([1,3]).root_system().ambient_space()
+            sage: L.dimension()
+            4
+        """
+        # Can't yet use _dual_space for the base ring (and cartan_type?) is not yet initialized
+        return self.root_system.cartan_type()._type.root_system().ambient_space().dimension()
+
+    @cached_method
+    def simple_root(self, i):
+        """
+        Return the ``i``-th simple root.
+
+        It is constructed by looking up the corresponding simple
+        coroot in the ambient space for the original Cartan type.
+
+        EXAMPLES::
+
+            sage: L = CartanType(["F",4]).marked_nodes([1,3]).root_system().ambient_space()
+            sage: L.simple_root(1)
+            (0, 1, -1, 0)
+            sage: L.simple_roots()
+            Finite family {1: (0, 1, -1, 0), 2: (0, 0, 1, -1),
+                           3: (0, 0, 0, 1), 4: (1/2, -1/2, -1/2, -1/2)}
+            sage: L.simple_coroots()
+            Finite family {1: (0, 1, -1, 0), 2: (0, 0, 1, -1),
+                           3: (0, 0, 0, 2), 4: (1, -1, -1, -1)}
+        """
+        return self.sum_of_terms(self._space.simple_root(i))
+
+    @cached_method
+    def fundamental_weight(self, i):
+        """
+        Return the ``i``-th fundamental weight.
+
+        It is constructed by looking up the corresponding simple
+        coroot in the ambient space for the original Cartan type.
+
+        EXAMPLES::
+
+            sage: L = CartanType(["F",4]).marked_nodes([1,3]).root_system().ambient_space()
+            sage: L.fundamental_weight(1)
+            (1, 1, 0, 0)
+            sage: L.fundamental_weights()
+            Finite family {1: (1, 1, 0, 0), 2: (2, 1, 1, 0),
+                           3: (3/2, 1/2, 1/2, 1/2), 4: (1, 0, 0, 0)}
+        """
+        return self.sum_of_terms(self._space.fundamental_weight(i))
+
+    @lazy_attribute
+    def _plot_projection(self):
+        """
+        A hack so that if an ambient space uses barycentric projection,
+        then so does its dual.
+
+        EXAMPLES::
+
+            sage: L = CartanType(["G",2]).marked_nodes([1]).root_system().ambient_space()
+            sage: L._plot_projection == L._plot_projection_barycentric
+            True
+
+            sage: L = CartanType(["F",4]).marked_nodes([1,3]).root_system().ambient_space()
+            sage: L._plot_projection == L._plot_projection_barycentric
+            False
+        """
+        if self._space._plot_projection == self._space._plot_projection_barycentric:
+            return self._plot_projection_barycentric
+        else:
+            RootLatticeRealizations.ParentMethods.__dict__["_plot_projection"]
+
+###########################################################################
+
 class CartanType_finite(CartanType, cartan_type.CartanType_finite):
+    AmbientSpace = AmbientSpace
+
     def affine(self):
         """
         Return the affine Cartan type associated with ``self``.
 
         EXAMPLES::
 
-            sage: B4 = CartanType(['B',4])
+            sage: B4 = CartanType(['B',4]).marked_nodes([1,3])
             sage: B4.dynkin_diagram()
-            O---O---O=>=O
+            X---O---X=>=O
             1   2   3   4
-            B4
+            B4 with nodes (1, 3) marked
             sage: B4.affine().dynkin_diagram()
                 O 0
                 |
                 |
-            O---O---O=>=O
+            X---O---X=>=O
             1   2   3   4
-            B4~
+            B4~ with nodes (1, 3) marked
 
         TESTS:
 
@@ -453,13 +565,14 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
     """
     TESTS::
 
-        sage: ct = CartanType(['D',4,3]); ct
-        ['G', 2, 1]^* relabelled by {0: 0, 1: 2, 2: 1}
+        sage: ct = CartanType(['B',3,1]).marked_nodes([1,3])
+        sage: ct
+        ['B', 3, 1] with nodes (1, 3) marked
 
         sage: L = ct.root_system().ambient_space(); L
-        Ambient space of the Root system of type ['G', 2, 1]^* relabelled by {0: 0, 1: 2, 2: 1}
+        Ambient space of the Root system of type ['B', 3, 1] with nodes (1, 3) marked
         sage: L.classical()
-        Ambient space of the Root system of type ['G', 2]
+        Ambient space of the Root system of type ['B', 3] with nodes (1, 3) marked
         sage: TestSuite(L).run()
     """
     def _latex_draw_node(self, x, y, label, position="below=4pt"):
@@ -521,41 +634,51 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
 
         EXAMPLES::
 
-            sage: A41 = CartanType(['A',4,1])
-            sage: A41.dynkin_diagram()
-            0
-            O-----------+
-            |           |
-            |           |
-            O---O---O---O
-            1   2   3   4
-            A4~
-
-            sage: T = A41.relabel({0:1, 1:2, 2:3, 3:4, 4:0})
-            sage: T
-            ['A', 4, 1] relabelled by {0: 1, 1: 2, 2: 3, 3: 4, 4: 0}
+            sage: T = CartanType(['A',4,1]).marked_nodes([0,2,4])
             sage: T.dynkin_diagram()
-            1
-            O-----------+
+            0
+            X-----------+
             |           |
             |           |
-            O---O---O---O
-            2   3   4   0
-            A4~ relabelled by {0: 1, 1: 2, 2: 3, 3: 4, 4: 0}
+            O---X---O---X
+            1   2   3   4
+            A4~ with nodes (0, 2, 4) marked
 
             sage: T0 = T.classical()
             sage: T0
-            ['A', 4] relabelled by {1: 2, 2: 3, 3: 4, 4: 0}
+            ['A', 4] with nodes (2, 4) marked
             sage: T0.dynkin_diagram()
-            O---O---O---O
-            2   3   4   0
-            A4 relabelled by {1: 2, 2: 3, 3: 4, 4: 0}
+            O---X---O---X
+            1   2   3   4
+            A4 with nodes (2, 4) marked
         """
         if self._type.special_node() in self._marked_nodes:
             marked_nodes = list(self._marked_nodes)
             marked_nodes.remove(self._type.special_node())
             return self._type.classical().marked_nodes(marked_nodes)
         return self._type.classical().marked_nodes(self._marked_nodes)
+
+    def basic_untwisted(self):
+        r"""
+        Return the basic untwisted Cartan type associated with this affine
+        Cartan type.
+
+        Given an affine type `X_n^{(r)}`, the basic untwisted type is `X_n`.
+        In other words, it is the classical Cartan type that is twisted to
+        obtain ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', 7, 2]).marked_nodes([1,3]).basic_untwisted()
+            ['A', 7] with nodes (1, 3) marked
+            sage: CartanType(['D', 4, 3]).marked_nodes([0,2]).basic_untwisted()
+            ['D', 4] with node 2 marked
+        """
+        if self._type.special_node() in self._marked_nodes:
+            marked_nodes = list(self._marked_nodes)
+            marked_nodes.remove(self._type.special_node())
+            return self._type.basic_untwisted().marked_nodes(marked_nodes)
+        return self._type.basic_untwisted().marked_nodes(self._marked_nodes)
 
     def special_node(self):
         r"""
@@ -567,10 +690,8 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
 
         EXAMPLES::
 
-            sage: CartanType(['B', 3, 1]).special_node()
+            sage: CartanType(['B', 3, 1]).marked_nodes([1,3]).special_node()
             0
-            sage: CartanType(['B', 3, 1]).relabel({1:2, 2:3, 3:0, 0:1}).special_node()
-            1
         """
         return self._type.special_node()
 
@@ -582,7 +703,7 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
 
         EXAMPLES::
 
-            sage: CartanType(['B', 3, 1]).relabel({1:2, 2:3, 3:0, 0:1}).is_untwisted_affine()
+            sage: CartanType(['B', 3, 1]).marked_nodes([1,3]).is_untwisted_affine()
             True
         """
         return self._type.is_untwisted_affine()

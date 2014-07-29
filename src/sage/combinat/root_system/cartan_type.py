@@ -1102,7 +1102,7 @@ class CartanType_abstract(object):
 
             sage: CartanType(['F',4]).marked_nodes([1, 3]).dynkin_diagram()
             X---O=>=X---O
-            1   2   3   4   
+            1   2   3   4
             F4 with nodes (1, 3) marked
         """
         if not marked_nodes:

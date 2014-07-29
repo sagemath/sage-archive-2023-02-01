@@ -865,7 +865,8 @@ class Groups(CategoryWithAxiom):
                 from sage.sets.family import Family
 
                 # Finitely generated
-                if all(G.group_generators() in FiniteEnumeratedSets() for G in F):
+                if all(G.group_generators() in FiniteEnumeratedSets()
+                       or isinstance(G.group_generators(), (tuple, list)) for G in F):
                     ret = [lift(i, gen) for i,G in enumerate(F) for gen in G.group_generators()]
                     return Family(ret)
 

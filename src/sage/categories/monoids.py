@@ -443,7 +443,8 @@ class Monoids(CategoryWithAxiom):
                 from sage.sets.family import Family
 
                 # Finitely generated
-                if all(M.monoid_generators() in FiniteEnumeratedSets() for M in F):
+                if all(M.monoid_generators() in FiniteEnumeratedSets()
+                       or isinstance(M.monoid_generators(), (tuple, list)) for M in F):
                     ret = [lift(i, gen) for i,M in enumerate(F) for gen in M.monoid_generators()]
                     return Family(ret)
 

@@ -23,8 +23,8 @@ faciles et naturelles :
     Echelon basis matrix:
     [ 1  1 -4]
 
-Notez bien qu'avec Sage, le noyau d'une matrice  :math:`A` est le « noyau
-à gauche », c'est-à-dire l'espace des vecteurs :math:`w` tels que
+Notez bien qu'avec Sage, le noyau d'une matrice  :math:`A` est le « noyau
+à gauche », c'est-à-dire l'espace des vecteurs :math:`w` tels que
 :math:`wA=0`.
 
 La résolution d'équations matricielles est facile et se fait avec la

@@ -187,6 +187,7 @@ Combinatorics
    sage/combinat/subset
    sage/combinat/subsets_pairwise
    sage/combinat/tuple
+   sage/combinat/gray_codes
 
    root_systems
    crystals

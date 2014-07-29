@@ -101,7 +101,6 @@ class Scheme(Parent):
             sage: TestSuite(X).run(skip = ["_test_an_element", "_test_elements",
             ...                            "_test_some_elements", "_test_category"]) # See #7946
         """
-        from sage.schemes.generic.spec import is_Spec
         from sage.schemes.generic.morphism import is_SchemeMorphism
 
         if X is None:
@@ -331,10 +330,9 @@ class Scheme(Parent):
         """
         if S is None:
             S = self.base_ring()
-        from sage.schemes.generic.spec import Spec
-        SpecS = Spec(S, self.base_ring())
+        SpecS = AffineScheme(S, self.base_ring())
         from sage.schemes.generic.homset import SchemeHomset
-        return SchemeHomset(SpecS, self)
+        return SchemeHomset(SpecS, self, as_point_homset=True)
 
     def point(self, v, check=True):
         """
@@ -342,10 +340,10 @@ class Scheme(Parent):
 
         INPUT:
 
-        - ``v`` -- anything that defines a point.
+        - ``v`` -- anything that defines a point
 
-        - ``check`` -- boolean (optional, default=``True``). Whether
-          to check the defining data for consistency.
+        - ``check`` -- boolean (optional, default: ``True``); whether
+          to check the defining data for consistency
 
         OUTPUT:
 
@@ -476,8 +474,7 @@ class Scheme(Parent):
             if hasattr(self, '_base_morphism'):
                 self._base_scheme = self._base_morphism.codomain()
             elif hasattr(self, '_base_ring'):
-                from sage.schemes.generic.spec import Spec
-                self._base_scheme = Spec(self._base_ring)
+                self._base_scheme = AffineScheme(self._base_ring)
             else:
                 from sage.schemes.generic.spec import SpecZ
                 self._base_scheme = SpecZ
@@ -512,12 +509,12 @@ class Scheme(Parent):
             return self._base_morphism
         except AttributeError:
             from sage.categories.schemes import Schemes
-            from sage.schemes.generic.spec import Spec, SpecZ
+            from sage.schemes.generic.spec import SpecZ
             SCH = Schemes()
             if hasattr(self, '_base_scheme'):
                 self._base_morphism = self.Hom(self._base_scheme, category=SCH).natural_map()
             elif hasattr(self, '_base_ring'):
-                self._base_morphism = self.Hom(Spec(self._base_ring), category=SCH).natural_map()
+                self._base_morphism = self.Hom(AffineScheme(self._base_ring), category=SCH).natural_map()
             else:
                 self._base_morphism = self.Hom(SpecZ, category=SCH).natural_map()
             return self._base_morphism
@@ -616,14 +613,14 @@ class Scheme(Parent):
 
         INPUT:
 
-        - ``x`` -- anything hat determines a scheme morphism. If ``x``
-          is a scheme, try to determine a natural map to ``x``.
+        - ``x`` -- anything that determines a scheme morphism; if
+          ``x`` is a scheme, try to determine a natural map to ``x``
 
-        - ``Y`` -- the codomain scheme (optional). If ``Y`` is not
-          given, try to determine ``Y`` from context.
+        - ``Y`` -- the codomain scheme (optional); if ``Y`` is not
+          given, try to determine ``Y`` from context
 
-        - ``check`` -- boolean (optional, default=``True``). Whether
-          to check the defining data for consistency.
+        - ``check`` -- boolean (optional, default: ``True``); whether
+          to check the defining data for consistency
 
         OUTPUT:
 
@@ -643,7 +640,7 @@ class Scheme(Parent):
                 return self.Hom(x).natural_map()
             else:
                 raise TypeError("unable to determine codomain")
-        return self.Hom(Y)(x, check)
+        return self.Hom(Y)(x, check=check)
 
     def _Hom_(self, Y, category=None, check=True):
         """
@@ -651,12 +648,12 @@ class Scheme(Parent):
 
         INPUT:
 
-        - ``Y`` -- a scheme. The codomain of the Hom-set.
+        - ``Y`` -- a scheme; the codomain of the Hom-set
 
-        - ``category`` -- a category (optional). The category of the
-          Hom-set.
+        - ``category`` -- a category (optional); the category of the
+          Hom-set
 
-        - ``check`` -- boolean (optional, default=``True``). Whether
+        - ``check`` -- boolean (optional, default: ``True``); whether
           to check the defining data for consistency.
 
         OUTPUT:
@@ -668,19 +665,21 @@ class Scheme(Parent):
             sage: P = ProjectiveSpace(ZZ, 3)
             sage: S = Spec(ZZ)
             sage: S._Hom_(P)
-            Set of rational points of Projective Space of dimension 3 over Integer Ring
+            Set of morphisms
+              From: Spectrum of Integer Ring
+              To:   Projective Space of dimension 3 over Integer Ring
 
         TESTS::
 
             sage: S._Hom_(P).__class__
-            <class 'sage.schemes.projective.projective_homset.SchemeHomset_points_projective_ring_with_category'>
+            <class 'sage.schemes.generic.homset.SchemeHomset_generic_with_category'>
 
             sage: E = EllipticCurve('37a1')
             sage: Hom(E, E).__class__
             <class 'sage.schemes.generic.homset.SchemeHomset_generic_with_category'>
 
             sage: Hom(Spec(ZZ), Spec(ZZ)).__class__
-            <class 'sage.schemes.affine.affine_homset.SchemeHomset_points_spec_with_category'>
+            <class 'sage.schemes.generic.homset.SchemeHomset_generic_with_category'>
         """
         from sage.schemes.generic.homset import SchemeHomset
         return SchemeHomset(self, Y, category=category, check=check)
@@ -796,22 +795,378 @@ def is_AffineScheme(x):
 
 class AffineScheme(Scheme):
     """
-    An abstract affine scheme.
+    Class for general affine schemes.
+
+    TESTS::
+
+        sage: from sage.schemes.generic.scheme import AffineScheme
+        sage: A = QQ['t']
+        sage: X_abs = AffineScheme(A); X_abs
+        Spectrum of Univariate Polynomial Ring in t over Rational Field
+        sage: X_rel = AffineScheme(A, QQ); X_rel
+        Spectrum of Univariate Polynomial Ring in t over Rational Field
+
+        sage: X_abs == X_rel
+        True
+        sage: X_abs.base_ring()
+        Integer Ring
+        sage: X_rel.base_ring()
+        Rational Field
+
+    .. SEEALSO::
+
+        For affine spaces over a base ring and subschemes thereof, see
+        :class:`sage.schemes.generic.algebraic_scheme.AffineSpace`.
+
     """
+    def __init__(self, R, S=None, category=None):
+        """
+        Construct the affine scheme with coordinate ring `R`.
+
+        INPUT:
+
+        - ``R`` -- commutative ring
+
+        - ``S`` -- (optional) commutative ring admitting a natural map
+          to ``R``
+
+        OUTPUT:
+
+        The spectrum of `R`, i.e. the unique affine scheme with
+        coordinate ring `R` as a scheme over the base ring `S`.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.generic.scheme import AffineScheme
+            sage: A.<x, y> = PolynomialRing(QQ)
+            sage: X = AffineScheme(A, QQ)
+            sage: X
+            Spectrum of Multivariate Polynomial Ring in x, y over Rational Field
+            sage: X.category()
+            Category of schemes over Rational Field
+
+        The standard way to construct an affine scheme is to use the
+        :func:`~sage.schemes.generic.spec.Spec` functor::
+
+            sage: S = Spec(ZZ)
+            sage: S
+            Spectrum of Integer Ring
+            sage: S.category()
+            Category of schemes
+            sage: type(S)
+            <class 'sage.schemes.generic.scheme.AffineScheme_with_category'>
+        """
+        from sage.categories.commutative_rings import CommutativeRings
+        if not R in CommutativeRings():
+            raise TypeError("R (={}) must be a commutative ring".format(R))
+        self.__R = R
+        if not S is None:
+            if not S in CommutativeRings():
+                raise TypeError("S (={}) must be a commutative ring".format(S))
+            if not R.has_coerce_map_from(S):
+                raise ValueError("There must be a natural map S --> R, but S = {} and R = {}".format(S, R))
+        Scheme.__init__(self, S, category=category)
+
+    def __setstate__(self, state):
+        """
+        Needed to unpickle old Spec objects.
+
+        The name-mangled attribute ``__R`` used to be in a class
+        called ``Spec``; we have to translate this mangled name.
+
+        TESTS::
+
+            sage: S = Spec(QQ)
+            sage: loads(dumps(S))
+            Spectrum of Rational Field
+        """
+        if '_Spec__R' in state:
+            state['_AffineScheme__R'] = state.pop('_Spec__R')
+        super(AffineScheme, self).__setstate__(state)
+
+    def _cmp_(self, X):
+        """
+        Compare ``self`` and ``X``.
+
+        Affine schemes are compared using comparison of the
+        underlying rings.
+
+        INPUT:
+
+        - ``X`` -- anything
+
+        OUTPUT:
+
+        ``+1``, ``0``, or ``-1``.
+
+        EXAMPLES::
+
+            sage: Spec(QQ) == Spec(QQ)
+            True
+            sage: Spec(QQ) == Spec(ZZ)
+            False
+            sage: Spec(QQ) == 5
+            False
+            sage: Spec(GF(5)) < Spec(GF(7))
+            True
+            sage: Spec(GF(7)) < Spec(GF(5))
+            False
+
+        TESTS::
+
+            sage: Spec(QQ).__cmp__(Spec(ZZ))
+            1
+        """
+        return cmp(self.__R, X.coordinate_ring())
+
+    def __hash__(self):
+        """
+        Return the hash value.
+
+        OUTPUT:
+
+        A 32/64-bit hash value, depending on architecture.
+
+        TESTS::
+
+            sage: hash(Spec(ZZ))
+            -1667718069                 # 32-bit
+            -5659298568736299957        # 64-bit
+
+            sage: hash(Spec(QQ['x','y','z']))
+            -804171295                  # 32-bit
+            -4893002889606114847        # 64-bit
+        """
+        # R is the only defining data, but we'd like to avoid collisions with it.
+        return hash("Spec") ^ hash(self.__R)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: Spec(PolynomialRing(QQ, 3, 'x'))
+            Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
+
+        TESTS::
+
+            sage: Spec(PolynomialRing(QQ, 3, 'x'))._repr_()
+            'Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field'
+        """
+        return "Spectrum of {}".format(self.__R)
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of ``self``.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: S = Spec(PolynomialRing(ZZ, 2, 'x'))
+            sage: S
+            Spectrum of Multivariate Polynomial Ring in x0, x1 over Integer Ring
+            sage: S._latex_()
+            '\\mathrm{Spec}(\\Bold{Z}[x_{0}, x_{1}])'
+        """
+        return "\\mathrm{{Spec}}({})".format(self.__R._latex_())
+
+    def __call__(self, *args):
+        """
+        Construct a scheme-valued or topological point of ``self``.
+
+        INPUT/OUTPUT:
+
+        The argument ``x`` must be one of the following:
+
+        - a prime ideal of the coordinate ring; the output will
+          be the corresponding point of `X`
+
+        - a ring or a scheme `S`; the output will be the set `X(S)` of
+          `S`-valued points on `X`
+
+        EXAMPLES::
+
+            sage: S = Spec(ZZ)
+            sage: P = S(ZZ.ideal(3)); P
+            Point on Spectrum of Integer Ring defined by the Principal ideal (3) of Integer Ring
+            sage: type(P)
+            <class 'sage.schemes.generic.point.SchemeTopologicalPoint_prime_ideal'>
+            sage: S(ZZ.ideal(next_prime(1000000)))
+            Point on Spectrum of Integer Ring defined by the Principal ideal (1000003) of Integer Ring
+
+            sage: R.<x, y, z> = QQ[]
+            sage: S = Spec(R)
+            sage: P = S(R.ideal(x, y, z)); P
+            Point on Spectrum of Multivariate Polynomial Ring
+            in x, y, z over Rational Field defined by the Ideal (x, y, z)
+            of Multivariate Polynomial Ring in x, y, z over Rational Field
+
+        This indicates the fix of :trac:`12734`::
+
+            sage: S = Spec(ZZ)
+            sage: S(ZZ)
+            Set of rational points of Spectrum of Integer Ring
+
+        Note the difference between the previous example and the
+        following one::
+
+            sage: S(S)
+            Set of morphisms
+              From: Spectrum of Integer Ring
+              To:   Spectrum of Integer Ring
+        """
+        if len(args) == 1:
+            from sage.rings.ideal import is_Ideal
+            x = args[0]
+            if is_Ideal(x) and x.ring() is self.coordinate_ring():
+                from sage.schemes.generic.point import SchemeTopologicalPoint_prime_ideal
+                return SchemeTopologicalPoint_prime_ideal(self, x)
+
+        return super(AffineScheme, self).__call__(*args)
+
+    def _an_element_(self):
+        r"""
+        Return an element of the spectrum of the ring.
+
+        OUTPUT:
+
+        A point of the affine scheme ``self``.
+
+        EXAMPLES::
+
+            sage: Spec(QQ).an_element()
+            Point on Spectrum of Rational Field defined by the Principal ideal (0) of Rational Field
+            sage: Spec(ZZ).an_element()    # random output
+            Point on Spectrum of Integer Ring defined by the Principal ideal (811) of Integer Ring
+        """
+        if self.coordinate_ring() is ZZ:
+            from sage.rings.arith import random_prime
+            return self(ZZ.ideal(random_prime(1000)))
+        return self(self.coordinate_ring().zero_ideal())
+
+    def coordinate_ring(self):
+        """
+        Return the underlying ring of this scheme.
+
+        OUTPUT:
+
+        A commutative ring.
+
+        EXAMPLES::
+
+            sage: Spec(QQ).coordinate_ring()
+            Rational Field
+            sage: Spec(PolynomialRing(QQ, 3, 'x')).coordinate_ring()
+            Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
+        """
+        return self.__R
+
+    def is_noetherian(self):
+        """
+        Return ``True`` if ``self`` is Noetherian, ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: Spec(ZZ).is_noetherian()
+            True
+        """
+        return self.__R.is_noetherian()
+
+    def dimension_absolute(self):
+        """
+        Return the absolute dimension of this scheme.
+
+        OUTPUT:
+
+        Integer.
+
+        EXAMPLES::
+
+            sage: S = Spec(ZZ)
+            sage: S.dimension_absolute()
+            1
+            sage: S.dimension()
+            1
+        """
+        return self.__R.krull_dimension()
+
+    dimension = dimension_absolute
+
+    def dimension_relative(self):
+        """
+        Return the relative dimension of this scheme over its base.
+
+        OUTPUT:
+
+        Integer.
+
+        EXAMPLES::
+
+            sage: S = Spec(ZZ)
+            sage: S.dimension_relative()
+            0
+        """
+        return self.__R.krull_dimension() - self.base_ring().krull_dimension()
+
+    def base_extend(self, R):
+        """
+        Extend the base ring/scheme.
+
+        INPUT:
+
+        - ``R`` -- an affine scheme or a commutative ring
+
+        EXAMPLES::
+
+            sage: Spec_ZZ = Spec(ZZ);  Spec_ZZ
+            Spectrum of Integer Ring
+            sage: Spec_ZZ.base_extend(QQ)
+            Spectrum of Rational Field
+        """
+        from sage.categories.commutative_rings import CommutativeRings
+        if R in CommutativeRings():
+            return AffineScheme(self.coordinate_ring().base_extend(R), self.base_ring())
+        if not self.base_scheme() == R.base_scheme():
+            raise ValueError('the new base scheme must be a scheme over the old base scheme')
+        return AffineScheme(self.coordinate_ring().base_extend(new_base.coordinate_ring()),
+                            self.base_ring())
+
+    def _point_homset(self, *args, **kwds):
+        """
+        Construct a point Hom-set.
+
+        For internal use only. See :mod:`morphism` for more details.
+
+        EXAMPLES::
+
+            sage: Spec(QQ)._point_homset(Spec(QQ), Spec(ZZ))
+            Set of rational points of Spectrum of Integer Ring
+        """
+        from sage.schemes.affine.affine_homset import SchemeHomset_points_spec
+        return SchemeHomset_points_spec(*args, **kwds)
+
     def hom(self, x, Y=None):
         r"""
         Return the scheme morphism from ``self`` to ``Y`` defined by ``x``.
 
         INPUT:
 
-        - ``x`` -- anything hat determines a scheme morphism. If ``x``
-          is a scheme, try to determine a natural map to ``x``.
+        - ``x`` -- anything that determines a scheme morphism; if
+          ``x`` is a scheme, try to determine a natural map to ``x``
 
-        - ``Y`` -- the codomain scheme (optional). If ``Y`` is not
-          given, try to determine ``Y`` from context.
+        - ``Y`` -- the codomain scheme (optional); if ``Y`` is not
+          given, try to determine ``Y`` from context
 
-        - ``check`` -- boolean (optional, default=``True``). Whether
-          to check the defining data for consistency.
+        - ``check`` -- boolean (optional, default: ``True``); whether
+          to check the defining data for consistency
 
         OUTPUT:
 
@@ -834,7 +1189,7 @@ class AffineScheme(Scheme):
 
         TESTS:
 
-        We can construct a morphism to an affine curve (trac #7956)::
+        We can construct a morphism to an affine curve (:trac:`7956`)::
 
             sage: S.<p,q> = QQ[]
             sage: A1.<r> = AffineSpace(QQ,1)
@@ -845,13 +1200,9 @@ class AffineScheme(Scheme):
               To:   Affine Curve over Rational Field defined by p - 2
               Defn: Defined on coordinates by sending (r) to
                     (2, r)
-
         """
         if is_Scheme(x):
             return self.Hom(x).natural_map()
-        if Y is None:
-            if is_RingHomomorphism(x):
-                import spec
-                Y = spec.Spec(x.domain())
+        if Y is None and is_RingHomomorphism(x):
+            Y = AffineScheme(x.domain())
         return Scheme.hom(self, x, Y)
-

@@ -4884,6 +4884,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: P = x^2 - F
             sage: P.resultant(P.derivative())
             -4 - 4*T + O(T^2)
+
+        Check that :trac:`16360` is fixed::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: y.resultant(y+x)
+            x
+
+            sage: K.<a> = FunctionField(QQ)
+            sage: R.<b> = K[]
+            sage: L.<b> = K.extension(b^2-a)
+            sage: R.<x> = L[]
+            sage: f=x^2-a
+            sage: g=x-b
+            sage: f.resultant(g)
+            0
+
         """
         variable = self.variable_name()
         if variable != 'x' and self.parent()._mpoly_base_ring() != self.parent().base_ring():
@@ -4896,7 +4913,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         try:
             res = self._pari_with_name().polresultant(other._pari_with_name())
             return self.parent().base_ring()(res)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, PariError, NotImplementedError):
             return self.sylvester_matrix(other).det()
 
     def discriminant(self):

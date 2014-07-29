@@ -298,6 +298,20 @@ def function(s, *args, **kwds):
         args: (x, x)
         kwds: {'diff_param': 1}
         2*x
+
+    TESTS:
+
+    Make sure that trac:`15860` is fixed and whitespaces are removed::
+
+        sage: function('A, B')
+        (A, B)
+        sage: B
+        B
+        sage: C, D, E = function(' C  D E')
+        sage: C(D(x))
+        C(D(x))
+        sage: E
+        E
     """
     if not isinstance(s, (str, unicode)):
         raise TypeError("expect string as first argument")
@@ -309,6 +323,7 @@ def function(s, *args, **kwds):
         names = s.split(' ')
     else:
         names = [s]
+    names = [s.strip() for s in names if s.strip()]
 
     funcs = [function_factory(name, **kwds) for name in names]
 

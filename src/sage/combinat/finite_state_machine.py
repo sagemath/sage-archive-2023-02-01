@@ -434,7 +434,7 @@ just saying in which state we are and which transition we take
 
 ::
 
-    sage: def state_hook(process, state, input, output):
+    sage: def state_hook(process, state, output):
     ....:     print "We are now in State %s." % (state.label(),)
     sage: from sage.combinat.finite_state_machine import FSMWordSymbol
     sage: def transition_hook(transition, process):
@@ -479,9 +479,10 @@ seriously.
 .. WARNING::
 
    The arguments used when calling a hook have changed in
-   :trac:`16538` from ``hook(state, process)`` to ``hook(process,
-   state, input, output)``. If you are using an old-style hook, a
-   deprecation warning is displayed.
+   :trac:`16538` from ``hook(state, process)`` to
+   ``hook(process, state, output)``. If you are using
+   an old-style hook, a deprecation warning is displayed.
+
 
 Detecting sequences with same number of `0` and `1`
 ---------------------------------------------------
@@ -493,8 +494,8 @@ our finite automaton by a counter::
 
     sage: from sage.combinat.finite_state_machine import FSMState, FSMTransition
     sage: C = FiniteStateMachine()
-    sage: def update_counter(process, state, input, output):
-    ....:     l = input.preview_word()
+    sage: def update_counter(process, state, output):
+    ....:     l = process.preview_word()
     ....:     process.fsm.counter += 1 if l == 1 else -1
     ....:     if process.fsm.counter > 0:
     ....:         next_state = 'positive'
@@ -10525,13 +10526,13 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             which is deprecated.
             See http://trac.sagemath.org/16538 for details.
             (False, 0, [1, 1])
-            sage: def h_new(process, state, input, outputs):
-            ....:     print state, input, outputs
+            sage: def h_new(process, state, outputs):
+            ....:     print state, outputs
             sage: N.state(0).hook = h_new
             sage: N.process([0, 0], check_epsilon_transitions=False)
-            0 tape at 0 [[]]
-            0 tape at 1 [[1]]
-            0 tape at 2 [[1, 1]]
+            0 [[]]
+            0 [[1]]
+            0 [[1, 1]]
             (False, 0, [1, 1])
         """
         if not self._current_:
@@ -10555,8 +10556,9 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                                 % (current_state,))
                 else:
                     try:
+                        self._current_branch_input_tape_ = input_tape  # for preview_word
                         next_transitions = current_state.hook(
-                            self, current_state, input_tape, outputs)
+                            self, current_state, outputs)
                     except StopIteration:
                         next_transitions = []
                         state_said_finished = True
@@ -10665,6 +10667,36 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         if format_output is None:
             return self._finished_
         return [r[:2] + (format_output(r[2]),) for r in self._finished_]
+
+
+    def preview_word(self, track_number=None, length=1, return_word=False):
+        """
+        Reads a word from the input tape.
+
+        INPUT:
+
+        - ``track_number`` -- an integer or ``None``. If ``None``,
+          then a tuple of words (one from each track) is returned.
+
+        - ``length`` -- (default: ``1``) the length of the word(s).
+
+        - ``return_word`` -- (default: ``False``) a boolean. If set,
+          then a word is returned, otherwise a single letter (in which
+          case ``length`` has to be ``1``).
+
+        OUTPUT:
+
+        A word or a tuple of words.
+
+        An exception ``StopIteration`` is thrown if the tape (at least
+        one track) has reached its end.
+
+        Typically, this method is called from a hook-function of a
+        state.
+        """
+        return self._current_branch_input_tape_.preview_word(
+            track_number, length, return_word)
+
 
     @property
     def current_state(self):

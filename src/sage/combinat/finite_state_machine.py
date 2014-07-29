@@ -4757,11 +4757,9 @@ class FiniteStateMachine(SageObject):
         happen when the entire tape was read.
 
         When working with multi-tape finite state machines, all input
-        words of transitions are `k`-tuples of words (the latter in
-        the sense of single-tape machines, i.e. lists of
-        letters). Moreover, the input tape has to consist of `k`
-        tracks, i.e., be a list or tuple of `k` iterators, one for
-        each track.
+        words of transitions are words of `k`-tuples of letters.
+        Moreover, the input tape has to consist of `k` tracks, i.e.,
+        be a list or tuple of `k` iterators, one for each track.
 
         .. WARNING::
 
@@ -8453,11 +8451,9 @@ class Automaton(FiniteStateMachine):
         happen when the entire tape was read.
 
         When working with multi-tape finite state machines, all input
-        words of transitions are `k`-tuples of words (the latter in
-        the sense of single-tape machines, i.e. lists of
-        letters). Moreover, the input tape has to consist of `k`
-        tracks, i.e., be a list or tuple of `k` iterators, one for
-        each track.
+        words of transitions are words of `k`-tuples of letters.
+        Moreover, the input tape has to consist of `k` tracks, i.e.,
+        be a list or tuple of `k` iterators, one for each track.
 
         .. WARNING::
 
@@ -9166,11 +9162,9 @@ class Transducer(FiniteStateMachine):
         happen when the entire tape was read.
 
         When working with multi-tape finite state machines, all input
-        words of transitions are `k`-tuples of words (the latter in
-        the sense of single-tape machines, i.e. lists of
-        letters). Moreover, the input tape has to consist of `k`
-        tracks, i.e., be a list or tuple of `k` iterators, one for
-        each track.
+        words of transitions are words of `k`-tuples of letters.
+        Moreover, the input tape has to consist of `k` tracks, i.e.,
+        be a list or tuple of `k` iterators, one for each track.
 
         .. WARNING::
 
@@ -9588,7 +9582,7 @@ class _FSMTapeCache_(SageObject):
             cache: (deque([41]), deque([])) multi-tape at (4, 4)
             sage: TC2.read(0)
             (False, None)
-            sage: TC2.forward(FSMTransition(0, 0, [[0], []]))
+            sage: TC2.forward(FSMTransition(0, 0, [(0, None)]))
             sage: print 'finished:', TC2.finished(), \
             ....:     TC2.finished(0), TC2.finished(1)
             finished: True True True
@@ -9646,16 +9640,16 @@ class _FSMTapeCache_(SageObject):
             ....:     TC2.forward(
             ....:         FSMTransition(0, 0, [w for w in word]))
             ....:     print 'cache:', TC2.cache, TC2
-            read: ([37], [11])
+            read: [(37, 11)]
             cache: (deque([37]), deque([11])) multi-tape at (0, 0)
             cache: (deque([]), deque([])) multi-tape at (1, 1)
-            read: ([38], [12])
+            read: [(38, 12)]
             cache: (deque([38]), deque([12])) multi-tape at (1, 1)
             cache: (deque([]), deque([])) multi-tape at (2, 2)
-            read: ([39], [13])
+            read: [(39, 13)]
             cache: (deque([39]), deque([13])) multi-tape at (2, 2)
             cache: (deque([]), deque([])) multi-tape at (3, 3)
-            read: ([40], [14])
+            read: [(40, 14)]
             cache: (deque([40]), deque([14])) multi-tape at (3, 3)
             cache: (deque([]), deque([])) multi-tape at (4, 4)
             stop
@@ -9671,7 +9665,7 @@ class _FSMTapeCache_(SageObject):
             41
             sage: print 'cache:', TC2.cache, TC2
             cache: (deque([41]), deque([])) multi-tape at (4, 4)
-            sage: TC2.forward(FSMTransition(0, 0, [[41], []]))
+            sage: TC2.forward(FSMTransition(0, 0, [(41, None)]))
             sage: print 'cache:', TC2.cache, TC2
             cache: (deque([]), deque([])) multi-tape at (5, 4)
         """
@@ -9684,7 +9678,10 @@ class _FSMTapeCache_(SageObject):
                                for n, _ in enumerate(self.cache))
                 if len(result) != len(self.cache):
                     raise StopIteration
-                return result
+                if return_word:
+                    return tupleofwords_to_wordoftuples(result)
+                else:
+                    return result
             else:
                 return self.preview_word(0, length)
         track_cache = self.cache[track_number]
@@ -9774,7 +9771,8 @@ class _FSMTapeCache_(SageObject):
         TESTS::
 
             sage: from sage.combinat.finite_state_machine import (
-            ....:     _FSMTapeCache_, FSMTransition)
+            ....:     _FSMTapeCache_, FSMTransition,
+            ....:     tupleofwords_to_wordoftuples)
             sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             sage: TC2, TC2.cache
@@ -9783,23 +9781,24 @@ class _FSMTapeCache_(SageObject):
             (37, 11)
             sage: TC2, TC2.cache
             (multi-tape at (0, 0), (deque([37]), deque([11])))
-            sage: TC2.forward(FSMTransition(0, 0, [[l] for l in letter]))
+            sage: TC2.forward(FSMTransition(0, 0, [letter]))
             sage: TC2, TC2.cache
             (multi-tape at (1, 1), (deque([]), deque([])))
-            sage: TC2.forward(FSMTransition(0, 0, [[0], [0, 0]]))
+            sage: TC2.forward(FSMTransition(0, 0, [(0, 0), (None, 0)]))
             sage: TC2, TC2.cache
             (multi-tape at (2, 3), (deque([]), deque([])))
             sage: letter = TC2.preview_word(); letter
             (39, 14)
             sage: TC2, TC2.cache
             (multi-tape at (2, 3), (deque([39]), deque([14])))
-            sage: TC2.forward(FSMTransition(0, 0, [[None], [None, None]]))
+            sage: word_in = tupleofwords_to_wordoftuples([[None], [None, None]])
+            sage: TC2.forward(FSMTransition(0, 0, word_in))
             sage: TC2, TC2.cache
             (multi-tape at (2, 3), (deque([39]), deque([14])))
             sage: TC2.forward(FSMTransition(0, 0, [[0, None], [None, 0]]))
             sage: TC2, TC2.cache
             (multi-tape at (3, 4), (deque([]), deque([])))
-            sage: TC2.forward(FSMTransition(0, 0, [[0], [0]]))
+            sage: TC2.forward(FSMTransition(0, 0, [(0, 0)]))
             Traceback (most recent call last):
             ...
             ValueError: forwarding tape is not possible
@@ -9808,7 +9807,8 @@ class _FSMTapeCache_(SageObject):
             return len(tuple(letter for letter in word if letter is not None))
 
         if self.is_multitape:
-            increments = tuple(length(word) for word in transition.word_in)
+            increments = tuple(length(word) for word in
+                               itertools.izip(*transition.word_in))
         else:
             increments = (length(transition.word_in),)
 
@@ -9846,27 +9846,26 @@ class _FSMTapeCache_(SageObject):
             sage: TC2, TC2.cache
             (multi-tape at (0, 0), (deque([]), deque([])))
             sage: TC2.transition_possible(
-            ....:     FSMTransition(0, 0, [(37, 38), (11, 12, 13)]))
+            ....:     FSMTransition(0, 0, [(37, 11), (38, 12), (None, 13)]))
             True
             sage: TC2.transition_possible(
-            ....:     FSMTransition(0, 0, [(37, 38), (11, 13)]))
+            ....:     FSMTransition(0, 0, [(37, 11), (38, 13)]))
             False
             sage: TC2.transition_possible(
-            ....:     FSMTransition(0, 0, [(37, 38)]))
+            ....:     FSMTransition(0, 0, [(37,), (38,)]))
             Traceback (most recent call last):
             ...
-            TypeError: Transition from 0 to 0: (37, 38)|- has bad
-            input word (1 entries instead of 2)
+            TypeError: Transition from 0 to 0: (37,),(38,)|- has bad
+            input word (entries should be tuples of size 2).
         """
         if self.is_multitape:
             word_in = transition.word_in
         else:
-            word_in = (transition.word_in,)
-        if len(word_in) != len(self.cache):
-            raise TypeError('%s has bad input word (%s entries '
-                            'instead of %s)' % (transition,
-                                                len(word_in),
-                                                len(self.cache)))
+            word_in = tupleofwords_to_wordoftuples((transition.word_in,))
+        if any(len(t) != len(self.cache) for t in word_in):
+            raise TypeError('%s has bad input word (entries should be '
+                            'tuples of size %s).' % (transition,
+                                                     len(self.cache)))
         return self._transition_possible_test_(word_in)
 
 
@@ -9901,7 +9900,7 @@ class _FSMTapeCache_(SageObject):
         # Note that this function does not need self, but it is given
         # to be consistent with the other _transition_possible_*_
         # functions.
-        return all(letter is None for word in word_in for letter in word)
+        return all(letter is None for t in word_in for letter in t)
 
 
     def _transition_possible_test_(self, word_in):
@@ -9924,38 +9923,43 @@ class _FSMTapeCache_(SageObject):
         TESTS::
 
             sage: from sage.combinat.finite_state_machine import (
-            ....:     _FSMTapeCache_)
+            ....:     _FSMTapeCache_, tupleofwords_to_wordoftuples)
             sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             sage: TC2, TC2.cache
             (multi-tape at (0, 0), (deque([]), deque([])))
-            sage: TC2._transition_possible_test_([(37, 38), (11, 12, 13)])
+            sage: word_in = tupleofwords_to_wordoftuples(
+            ....:     [(37, 38), (11, 12, 13)])
+            sage: TC2._transition_possible_test_(word_in)
             True
-            sage: TC2._transition_possible_test_([(37, 38), (11, 13)])
+            sage: word_in = tupleofwords_to_wordoftuples(
+            ....:     [(37, 38), (11, 13)])
+            sage: TC2._transition_possible_test_(word_in)
             False
 
         Note that this function does not perform a check whether the
         input word is correct or not. This is done by the higher-level
         method :meth:`.transition_possible`::
 
-            sage: TC2._transition_possible_test_([(37, 38)])
+            sage: TC2._transition_possible_test_([(37,), (38,)])
             True
 
         This function does not accept words of epsilon-transitions::
 
             sage: TC2._transition_possible_test_([])
             False
-            sage: TC2._transition_possible_test_([[], []])
+            sage: TC2._transition_possible_test_([tuple(), tuple()])
             False
-            sage: TC2._transition_possible_test_([[None], []])
+            sage: TC2._transition_possible_test_([(None, None)])
             False
-            sage: TC2._transition_possible_test_([[(None,)], []])
+            sage: TC2._transition_possible_test_([((None,), None)])
             False
             """
         if self._transition_possible_epsilon_(word_in):
             return False
+        word_in_transposed = wordoftuples_to_tupleofwords(word_in)
         return all(self.compare_to_tape(track_number, word)
-                   for track_number, word in enumerate(word_in))
+                   for track_number, word in enumerate(word_in_transposed))
 
 
 #*****************************************************************************
@@ -10124,14 +10128,15 @@ def wordoftuples_to_tupleofwords(wordoftuples):
         sage: from sage.combinat.finite_state_machine import (
         ....:     wordoftuples_to_tupleofwords)
         sage: wordoftuples_to_tupleofwords(
-        ....:     [(1, 2), (1, 2), (1, None), (1, 2), (None, 2)])
-        ([1, 1, 1, 1], [2, 2, 2, 2])
+        ....:     [(1, 2), (1, None), (1, None), (1, 2), (None, 2)])
+        ([1, 1, 1, 1], [2, 2, 2])
     """
     if not equal(len(t) for t in wordoftuples):
         raise ValueError("Not all entries of input have the same length.")
     def remove_empty_letters(word):
         return [letter for letter in word if letter is not None]
-    return tuple(remove_empty_letters(t) for t in itertools.izip(*wordoftuples))
+    return tuple(remove_empty_letters(word)
+                 for word in itertools.izip(*wordoftuples))
 
 
 #*****************************************************************************
@@ -10234,11 +10239,9 @@ class FSMProcessIterator(SageObject, collections.Iterator):
     an automaton, or a transducer is invoked.
 
     When working with multi-tape finite state machines, all input
-    words of transitions are `k`-tuples of words (the latter in
-    the sense of single-tape machines, i.e. lists of
-    letters). Moreover, the input tape has to consist of `k`
-    tracks, i.e., be a list or tuple of `k` iterators, one for
-    each track.
+    words of transitions are words of `k`-tuples of letters.
+    Moreover, the input tape has to consist of `k` tracks, i.e.,
+    be a list or tuple of `k` iterators, one for each track.
 
     .. WARNING::
 

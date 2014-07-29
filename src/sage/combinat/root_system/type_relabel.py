@@ -363,6 +363,18 @@ class CartanType(cartan_type.CartanType_decorator):
         return CartanTypeFolded(self, vct._folding,
             {self._relabelling[i]: sigma[i] for i in self._type.index_set()})
 
+    def type(self):
+        """
+        Return the type of ``self`` or ``None`` if unknown.
+
+        EXAMPLES::
+
+            sage: ct = CartanType(['G', 2]).relabel({1:2,2:1})
+            sage: ct.type()
+            'G'
+        """
+        return self._type.type()
+
 ###########################################################################
 
 class AmbientSpace(ambient_space.AmbientSpace):

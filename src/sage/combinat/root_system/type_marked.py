@@ -417,6 +417,18 @@ class CartanType(cartan_type.CartanType_decorator):
         folding = vct._folding.marked_nodes(marked_nodes)
         return CartanTypeFolded(self, folding, sigma)
 
+    def type(self):
+        """
+        Return the type of ``self`` or ``None`` if unknown.
+
+        EXAMPLES::
+
+            sage: ct = CartanType(['F', 4]).marked_nodes([1,3])
+            sage: ct.type()
+            'F'
+        """
+        return self._type.type()
+
 ###########################################################################
 
 class AmbientSpace(ambient_space.AmbientSpace):

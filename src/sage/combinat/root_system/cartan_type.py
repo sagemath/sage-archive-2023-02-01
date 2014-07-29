@@ -2809,18 +2809,6 @@ class CartanType_decorator(UniqueRepresentation, SageObject, CartanType_abstract
         """
         return self._type.index_set()
 
-    def type(self):
-        """
-        Return the type of ``self`` or ``None`` if unknown.
-
-        EXAMPLES::
-
-            sage: ct = CartanType(['G', 2]).relabel({1:2,2:1})
-            sage: ct.type()
-            'G'
-        """
-        return self._type.type()
-
 ##############################################################################
 # For backward compatibility
 class CartanType_simple_finite(object):

@@ -313,7 +313,6 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
         """
         return self._type.dynkin_diagram().dual()
 
-
 ###########################################################################
 
 class AmbientSpace(ambient_space.AmbientSpace):

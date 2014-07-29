@@ -109,14 +109,14 @@ class Yangian(CombinatorialFreeModule):
 
             sage: Y = Yangian(QQ, 4)
             sage: I = Y._indices
-            sage: Y._repr_term(I.gen((3,1,2)) * I.gen((4,3,1)))
-            't(3)[1,2]*t(4)[3,1]'
+            sage: Y._repr_term(I.gen((3,1,2))^2 * I.gen((4,3,1)))
+            't(3)[1,2]^2*t(4)[3,1]'
         """
         if len(m) == 0:
             return '1'
         prefix = self.prefix()
-        return '*'.join('*'.join(prefix + '({})[{},{}]'.format(r,i,j)
-                                 for x in range(exp))
+        return '*'.join(prefix + '({})[{},{}]'.format(r,i,j)
+                        + ('^{}'.format(exp) if exp > 1 else '')
                         for (r,i,j), exp in m._sorted_items())
 
     def _latex_term(self, m):
@@ -128,14 +128,19 @@ class Yangian(CombinatorialFreeModule):
 
             sage: Y = Yangian(QQ, 4)
             sage: I = Y._indices
-            sage: Y._latex_term(I.gen((3,1,2)) * I.gen((4,3,1)))
-            't^{(3)}_{1,2} t^{(4)}_{3,1}'
+            sage: Y._latex_term(I.gen((3,1,2))^2 * I.gen((4,3,1)))
+            '\\left(t^{(3)}_{1,2}\\right)^{2} t^{(4)}_{3,1}'
         """
         if len(m) == 0:
             return '1'
+
         prefix = self.prefix()
-        return ' '.join(' '.join(prefix + '^{{({})}}_{{{},{}}}'.format(r,i,j) for x in range(exp))
-                        for (r,i,j), exp in m._sorted_items())
+        def term(r, i, j, exp):
+            s = prefix + '^{{({})}}_{{{},{}}}'.format(r,i,j)
+            if exp == 1:
+                return s
+            return '\\left({}\\right)^{{{}}}'.format(s, exp)
+        return ' '.join(term(r, i, j, exp) for (r,i,j), exp in m._sorted_items())
 
     def gen(self, r, i, j):
         """

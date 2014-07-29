@@ -10364,6 +10364,70 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         (True, 0, [0])
     """
     def __init__(self, fsm,
+
+    class Current(dict):
+        """
+        This class stores the branches which have to be processed
+        during iteration and provides a nicer formatting of them.
+
+        This class is inherited from ``dict``. It is returned by the
+        ``next``-function during iteration.
+
+        EXAMPLES:
+
+        In the following example you can see the dict directly and
+        then the nicer output provided by this class::
+
+            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
+            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
+            sage: for current in it:
+            ....:     print dict(current)
+            ....:     print current
+            {((1, 0),): {'A': (tape at 1, [[1]])}}
+            process (1 branch)
+            at state 'A'
+            tape at 1, [[1]]
+            {((2, 0),): {'A': (tape at 2, [[1, 0]])}}
+            process (1 branch)
+            at state 'A'
+            tape at 2, [[1, 0]]
+        """
+        def __repr__(self):
+            """
+            Returns a nice representation of ``self``.
+
+            INPUT:
+
+            Nothing.
+
+            OUTPUT:
+
+            A string.
+
+            TEST::
+
+                sage: from sage.combinat.finite_state_machine import FSMProcessIterator
+                sage: T = Transducer([(0, 0, 0, 0)],
+                ....:     initial_states=[0], final_states=[0])
+                sage: it = FSMProcessIterator(T, input_tape=[0, 0])
+                sage: for current in it:
+                ....:     print current  # indirect doctest
+            """
+            data = sorted(
+                (state, pos, tape_cache, outputs)
+                for pos, states in self.iteritems()
+                for state, (tape_cache, outputs) in states.iteritems())
+            branch = "branch" if len(data) == 1 else "branches"
+            result = "process (%s %s)" % (len(data), branch)
+            for s, sdata in itertools.groupby(data, lambda x: x[0]):
+                result += "\n  at state %s" % (s,)
+                for state, pos, tape_cache, outputs in sdata:
+                    result += "\n    %s, %s" % (tape_cache, outputs)
+            return result
+
+
                  input_tape=None,
                  initial_state=None, initial_states=[],
                  use_multitape_input=False,

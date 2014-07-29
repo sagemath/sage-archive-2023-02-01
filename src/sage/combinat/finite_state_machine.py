@@ -4976,10 +4976,16 @@ class FiniteStateMachine(SageObject):
             sage: it = inverter.iter_process(input_tape=[0, 1, 1])
             sage: for current in it:
             ....:     print current
-            {((1, 0),): {'A': (tape at 1, [[1]])}}
-            {((2, 0),): {'A': (tape at 2, [[1, 0]])}}
-            {((3, 0),): {'A': (tape at 3, [[1, 0, 0]])}}
-            {}
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 1, [[1]]
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 2, [[1, 0]]
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 3, [[1, 0, 0]]
+            process (0 branches)
             sage: it.result()
             [(True, 'A', [1, 0, 0])]
         """
@@ -9684,6 +9690,7 @@ class _FSMTapeCache_(SageObject):
                     return result
             else:
                 return self.preview_word(0, length)
+
         track_cache = self.cache[track_number]
         while len(track_cache) < length:
             if not self.read(track_number)[0]:
@@ -10271,17 +10278,37 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         sage: it = FSMProcessIterator(T, input_tape=input)
         sage: for current in it:
         ....:     print current
-        {((1, 0),): {'B': (tape at 1, [[]])}}
-        {((2, 0),): {'B': (tape at 2, [[]])}}
-        {((3, 0),): {'A': (tape at 3, [[1, 0]])}}
-        {((4, 0),): {'A': (tape at 4, [[1, 0, 0]])}}
-        {((5, 0),): {'B': (tape at 5, [[1, 0, 0]])}}
-        {((6, 0),): {'A': (tape at 6, [[1, 0, 0, 1, 0]])}}
-        {((7, 0),): {'B': (tape at 7, [[1, 0, 0, 1, 0]])}}
-        {((8, 0),): {'B': (tape at 8, [[1, 0, 0, 1, 0]])}}
-        {((9, 0),): {'B': (tape at 9, [[1, 0, 0, 1, 0]])}}
-        {((10, 0),): {'A': (tape at 10, [[1, 0, 0, 1, 0, 1, 0]])}}
-        {}
+        process (1 branch)
+        + at state 'B'
+        +-- tape at 1, [[]]
+        process (1 branch)
+        + at state 'B'
+        +-- tape at 2, [[]]
+        process (1 branch)
+        + at state 'A'
+        +-- tape at 3, [[1, 0]]
+        process (1 branch)
+        + at state 'A'
+        +-- tape at 4, [[1, 0, 0]]
+        process (1 branch)
+        + at state 'B'
+        +-- tape at 5, [[1, 0, 0]]
+        process (1 branch)
+        + at state 'A'
+        +-- tape at 6, [[1, 0, 0, 1, 0]]
+        process (1 branch)
+        + at state 'B'
+        +-- tape at 7, [[1, 0, 0, 1, 0]]
+        process (1 branch)
+        + at state 'B'
+        +-- tape at 8, [[1, 0, 0, 1, 0]]
+        process (1 branch)
+        + at state 'B'
+        +-- tape at 9, [[1, 0, 0, 1, 0]]
+        process (1 branch)
+        + at state 'A'
+        +-- tape at 10, [[1, 0, 0, 1, 0, 1, 0]]
+        process (0 branches)
         sage: it.result()
         [(True, 'A', [1, 0, 0, 1, 0, 1, 0])]
 
@@ -10297,13 +10324,22 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         ....:                         format_output=lambda o: ''.join(o))
         sage: for current in it:
         ....:     print current
-        {((1, 0),): {0: (tape at 1, [['a']]),
-                     1: (tape at 1, [['b']])}}
-        {((2, 0),): {0: (tape at 2, [['a', 'a']]),
-                     1: (tape at 2, [['a', 'b']])}}
-        {((3, 0),): {1: (tape at 3, [['a', 'b', 'c', 'd']]),
-                     2: (tape at 3, [['a', 'b', 'c']])}}
-        {}
+        process (2 branches)
+        + at state 0
+        +-- tape at 1, [['a']]
+        + at state 1
+        +-- tape at 1, [['b']]
+        process (2 branches)
+        + at state 0
+        +-- tape at 2, [['a', 'a']]
+        + at state 1
+        +-- tape at 2, [['a', 'b']]
+        process (2 branches)
+        + at state 1
+        +-- tape at 3, [['a', 'b', 'c', 'd']]
+        + at state 2
+        +-- tape at 3, [['a', 'b', 'c']]
+        process (0 branches)
         sage: it.result()
         [(False, 1, 'abcd'), (True, 2, 'abc')]
 
@@ -10363,7 +10399,6 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         sage: T.process([0], write_final_word_out=False)
         (True, 0, [0])
     """
-    def __init__(self, fsm,
 
     class Current(dict):
         """
@@ -10387,12 +10422,14 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             ....:     print current
             {((1, 0),): {'A': (tape at 1, [[1]])}}
             process (1 branch)
-            at state 'A'
-            tape at 1, [[1]]
+            + at state 'A'
+            +-- tape at 1, [[1]]
             {((2, 0),): {'A': (tape at 2, [[1, 0]])}}
             process (1 branch)
-            at state 'A'
-            tape at 2, [[1, 0]]
+            + at state 'A'
+            +-- tape at 2, [[1, 0]]
+            {}
+            process (0 branches)
         """
         def __repr__(self):
             """
@@ -10414,6 +10451,13 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                 sage: it = FSMProcessIterator(T, input_tape=[0, 0])
                 sage: for current in it:
                 ....:     print current  # indirect doctest
+                process (1 branch)
+                + at state 0
+                +-- tape at 1, [[0]]
+                process (1 branch)
+                + at state 0
+                +-- tape at 2, [[0, 0]]
+                process (0 branches)
             """
             data = sorted(
                 (state, pos, tape_cache, outputs)
@@ -10422,12 +10466,13 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             branch = "branch" if len(data) == 1 else "branches"
             result = "process (%s %s)" % (len(data), branch)
             for s, sdata in itertools.groupby(data, lambda x: x[0]):
-                result += "\n  at state %s" % (s,)
+                result += "\n+ at state %s" % (s,)
                 for state, pos, tape_cache, outputs in sdata:
-                    result += "\n    %s, %s" % (tape_cache, outputs)
+                    result += "\n+-- %s, %s" % (tape_cache, outputs)
             return result
 
 
+    def __init__(self, fsm,
                  input_tape=None,
                  initial_state=None, initial_states=[],
                  use_multitape_input=False,
@@ -10446,9 +10491,13 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
             sage: for current in it:
             ....:     print current
-            {((1, 0),): {'A': (tape at 1, [[1]])}}
-            {((2, 0),): {'A': (tape at 2, [[1, 0]])}}
-            {}
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 1, [[1]]
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 2, [[1, 0]]
+            process (0 branches)
             sage: it.result()
             [(True, 'A', [1, 0])]
         """
@@ -10491,7 +10540,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         self.write_final_word_out = write_final_word_out
 
         # init branches
-        self._current_ = {}
+        self._current_ = self.Current()
         self._current_positions_ = []  # a heap queue of the keys of _current_
         self._tape_cache_manager_ = []
         position_zero = tuple((0, t) for t, _ in enumerate(self._input_tape_))
@@ -10537,20 +10586,31 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             ....:     initial_states=['a'], final_states=['b', 'c'])
             sage: it = FSMProcessIterator(A, input_tape=[0, 1, 2])  # indirect doctest
             sage: it._current_
-            {((0, 0),): {'a': (tape at 0, [[]])}}
+            process (1 branch)
+            + at state 'a'
+            +-- tape at 0, [[]]
             sage: it._push_branch_(
             ....:     A.state('b'),
             ....:     deepcopy(it._current_[((0, 0),)][A.state('a')][0]),
             ....:     [[]])
             sage: it._current_
-            {((0, 0),): {'a': (tape at 0, [[]]), 'b': (tape at 0, [[]])}}
+            process (2 branches)
+            + at state 'a'
+            +-- tape at 0, [[]]
+            + at state 'b'
+            +-- tape at 0, [[]]
             sage: it._push_branches_(
             ....:     A.state('c'),
             ....:     deepcopy(it._current_[((0, 0),)][A.state('a')][0]),
             ....:     [[]])  # indirect doctest
             sage: it._current_
-            {((0, 0),): {'a': (tape at 0, [[]]), 'c': (tape at 0, [[]]),
-                         'b': (tape at 0, [[], []])}}
+            process (3 branches)
+            + at state 'a'
+            +-- tape at 0, [[]]
+            + at state 'b'
+            +-- tape at 0, [[], []]
+            + at state 'c'
+            +-- tape at 0, [[]]
         """
         if self._current_.has_key(tape_cache.position):
             states = self._current_[tape_cache.position]
@@ -10609,15 +10669,24 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             ....:     initial_states=['a'], final_states=['b', 'c'])
             sage: it = FSMProcessIterator(A, input_tape=[0, 1, 2])  # indirect doctest
             sage: it._current_
-            {((0, 0),): {'a': (tape at 0, [[]]), 'c': (tape at 0, [[]])}}
+            process (2 branches)
+            + at state 'a'
+            +-- tape at 0, [[]]
+            + at state 'c'
+            +-- tape at 0, [[]]
             sage: it._push_branches_(
             ....:     A.state('b'),
             ....:     deepcopy(it._current_[((0, 0),)][A.state('a')][0]),
             ....:     [[]])
             sage: it._current_
-            {((0, 0),): {'a': (tape at 0, [[]]), 'c': (tape at 0, [[]]),
-                         'b': (tape at 0, [[]])}}
-        """
+            process (3 branches)
+            + at state 'a'
+            +-- tape at 0, [[]]
+            + at state 'b'
+            +-- tape at 0, [[]]
+            + at state 'c'
+            +-- tape at 0, [[]]
+         """
         self._push_branch_(state, tape_cache, outputs)
         if not self.check_epsilon_transitions:
             return
@@ -10670,11 +10739,15 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             ....:     initial_states=['A'], final_states=['A'])
             sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
             sage: next(it)
-            {((1, 0),): {'A': (tape at 1, [[1]])}}
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 1, [[1]]
             sage: next(it)
-            {((2, 0),): {'A': (tape at 2, [[1, 0]])}}
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 2, [[1, 0]]
             sage: next(it)
-            {}
+            process (0 branches)
             sage: next(it)
             Traceback (most recent call last):
             ...
@@ -10689,6 +10762,13 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: s.final_word_out = [1, 2]
             sage: Z.process([])
             (True, 0, [1, 2])
+            sage: it = FSMProcessIterator(Z, input_tape=[])
+            sage: next(it)
+            process (0 branches)
+            sage: next(it)
+            Traceback (most recent call last):
+            ...
+            StopIteration
 
         ::
 
@@ -10791,6 +10871,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         states_dict = self._current_.pop(heapq.heappop(self._current_positions_))
         for state, (tape, outputs) in states_dict.iteritems():
             step(state, tape, outputs)
+
         return self._current_
 
 
@@ -10892,15 +10973,26 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: it = inverter.iter_process(input_tape=[0, 1, 1])
             sage: for current in it:
             ....:     s = it.current_state
-            ....:     print current, s
+            ....:     print current
+            ....:     print 'current state:', s
             doctest:...: DeprecationWarning: This attribute will be
             removed in future releases. Use result() at the end of our
             iteration or the output of next().
             See http://trac.sagemath.org/16538 for details.
-            {((1, 0),): {'A': (tape at 1, [[1]])}} 'A'
-            {((2, 0),): {'A': (tape at 2, [[1, 0]])}} 'A'
-            {((3, 0),): {'A': (tape at 3, [[1, 0, 0]])}} 'A'
-            {} None
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 1, [[1]]
+            current state: 'A'
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 2, [[1, 0]]
+            current state: 'A'
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 3, [[1, 0, 0]]
+            current state: 'A'
+            process (0 branches)
+            current state: None
         """
         from sage.misc.superseded import deprecation
         deprecation(16538, 'This attribute will be removed in future '
@@ -10929,15 +11021,26 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: it = inverter.iter_process(input_tape=[0, 1, 1])
             sage: for current in it:
             ....:     t = it.output_tape
-            ....:     print current, t
+            ....:     print current
+            ....:     print 'output:', t
             doctest:...: DeprecationWarning: This attribute will be removed
             in future releases. Use result() at the end of our iteration
             or the output of next().
             See http://trac.sagemath.org/16538 for details.
-            {((1, 0),): {'A': (tape at 1, [[1]])}} [1]
-            {((2, 0),): {'A': (tape at 2, [[1, 0]])}} [1, 0]
-            {((3, 0),): {'A': (tape at 3, [[1, 0, 0]])}} [1, 0, 0]
-            {} None
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 1, [[1]]
+            output: [1]
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 2, [[1, 0]]
+            output: [1, 0]
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 3, [[1, 0, 0]]
+            output: [1, 0, 0]
+            process (0 branches)
+            output: None
         """
         from sage.misc.superseded import deprecation
         deprecation(16538, 'This attribute will be removed in future '
@@ -11007,9 +11110,13 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
 
         sage: for current in it:
         ....:     print current
-        {((0, 0),): {2: (tape at 0, [['b']])}}
-        {((0, 0),): {1: (tape at 0, [['b', 'c']])}}
-        {}
+        process (1 branch)
+        + at state 2
+        +-- tape at 0, [['b']]
+        process (1 branch)
+        + at state 1
+        +-- tape at 0, [['b', 'c']]
+        process (0 branches)
 
     This class has the additional attribute ``visited_states``::
 
@@ -11029,15 +11136,17 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         ....:                                  format_output=lambda o: ''.join(o))
         sage: for current in it:
         ....:     print current
-        {}
+        process (0 branches)
         sage: it.visited_states
         {1: ['']}
         sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(2),
         ....:                                  format_output=lambda o: ''.join(o))
         sage: for current in it:
         ....:     print current
-        {((0, 0),): {1: (tape at 0, [['c']])}}
-        {}
+        process (1 branch)
+        + at state 1
+        +-- tape at 0, [['c']]
+        process (0 branches)
         sage: it.visited_states
         {1: ['c'], 2: ['']}
 
@@ -11048,16 +11157,24 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         sage: it = _FSMProcessIteratorEpsilon_(A, initial_state=A.state(0))
         sage: for current in it:
         ....:     print current
-        {}
+        process (0 branches)
         sage: it.visited_states
         {0: [[]]}
         sage: it = _FSMProcessIteratorEpsilon_(A, initial_state=A.state(1))
         sage: for current in it:
         ....:     print current
-        {((0, 0),): {2: (tape at 0, [[]]), 4: (tape at 0, [[]])}}
-        {((0, 0),): {3: (tape at 0, [[]])}}
-        {((0, 0),): {4: (tape at 0, [[]])}}
-        {}
+        process (2 branches)
+        + at state 2
+        +-- tape at 0, [[]]
+        + at state 4
+        +-- tape at 0, [[]]
+        process (1 branch)
+        + at state 3
+        +-- tape at 0, [[]]
+        process (1 branch)
+        + at state 4
+        +-- tape at 0, [[]]
+        process (0 branches)
         sage: it.visited_states
         {1: [[], []], 2: [[]], 3: [[]], 4: [[], []]}
 
@@ -11070,24 +11187,40 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         sage: it = _FSMProcessIteratorEpsilon_(A, initial_state=A.state(2))
         sage: for current in it:
         ....:     print current
-        {((0, 0),): {3: (tape at 0, [[]])}}
-        {((0, 0),): {1: (tape at 0, [[]]), 4: (tape at 0, [[]])}}
-        {((0, 0),): {4: (tape at 0, [[]])}}
-        {}
+        process (1 branch)
+        + at state 3
+        +-- tape at 0, [[]]
+        process (2 branches)
+        + at state 1
+        +-- tape at 0, [[]]
+        + at state 4
+        +-- tape at 0, [[]]
+        process (1 branch)
+        + at state 4
+        +-- tape at 0, [[]]
+        process (0 branches)
         sage: it.visited_states
         {1: [[]], 2: [[], []], 3: [[]], 4: [[], []]}
         sage: it = _FSMProcessIteratorEpsilon_(A, initial_state=A.state(3))
         sage: for current in it:
         ....:     print current
-        {((0, 0),): {1: (tape at 0, [[]]), 4: (tape at 0, [[]])}}
-        {((0, 0),): {2: (tape at 0, [[]]), 4: (tape at 0, [[]])}}
-        {}
+        process (2 branches)
+        + at state 1
+        +-- tape at 0, [[]]
+        + at state 4
+        +-- tape at 0, [[]]
+        process (2 branches)
+        + at state 2
+        +-- tape at 0, [[]]
+        + at state 4
+        +-- tape at 0, [[]]
+        process (0 branches)
         sage: it.visited_states
         {1: [[]], 2: [[]], 3: [[], []], 4: [[], []]}
         sage: it = _FSMProcessIteratorEpsilon_(A, initial_state=A.state(4))
         sage: for current in it:
         ....:     print current
-        {}
+        process (0 branches)
         sage: it.visited_states
         {4: [[]]}
 
@@ -11100,17 +11233,25 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         ....:                                  format_output=lambda o: ''.join(o))
         sage: for current in it:
         ....:     print current
-        {}
+        process (0 branches)
         sage: it.visited_states
         {0: ['']}
         sage: it = _FSMProcessIteratorEpsilon_(T, initial_state=T.state(1),
         ....:                                  format_output=lambda o: ''.join(o))
         sage: for current in it:
         ....:     print current
-        {((0, 0),): {2: (tape at 0, [['b']]), 4: (tape at 0, [['f']])}}
-        {((0, 0),): {3: (tape at 0, [['b', 'c']])}}
-        {((0, 0),): {4: (tape at 0, [['b', 'c', 'e']])}}
-        {}
+        process (2 branches)
+        + at state 2
+        +-- tape at 0, [['b']]
+        + at state 4
+        +-- tape at 0, [['f']]
+        process (1 branch)
+        + at state 3
+        +-- tape at 0, [['b', 'c']]
+        process (1 branch)
+        + at state 4
+        +-- tape at 0, [['b', 'c', 'e']]
+        process (0 branches)
         sage: it.visited_states
         {1: ['', 'bcd'], 2: ['b'],
          3: ['bc'], 4: ['f', 'bce']}
@@ -11118,11 +11259,18 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         ....:                                  format_output=lambda o: ''.join(o))
         sage: for current in it:
         ....:     print current
-        {((0, 0),): {3: (tape at 0, [['c']])}}
-        {((0, 0),): {1: (tape at 0, [['c', 'd']]),
-                     4: (tape at 0, [['c', 'e']])}}
-        {((0, 0),): {4: (tape at 0, [['c', 'd', 'f']])}}
-        {}
+        process (1 branch)
+        + at state 3
+        +-- tape at 0, [['c']]
+        process (2 branches)
+        + at state 1
+        +-- tape at 0, [['c', 'd']]
+        + at state 4
+        +-- tape at 0, [['c', 'e']]
+        process (1 branch)
+        + at state 4
+        +-- tape at 0, [['c', 'd', 'f']]
+        process (0 branches)
         sage: it.visited_states
         {1: ['cd'], 2: ['', 'cdb'],
          3: ['c'], 4: ['ce', 'cdf']}
@@ -11130,9 +11278,17 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         ....:                                  format_output=lambda o: ''.join(o))
         sage: for current in it:
         ....:     print current
-        {((0, 0),): {1: (tape at 0, [['d']]), 4: (tape at 0, [['e']])}}
-        {((0, 0),): {2: (tape at 0, [['d', 'b']]), 4: (tape at 0, [['d', 'f']])}}
-        {}
+        process (2 branches)
+        + at state 1
+        +-- tape at 0, [['d']]
+        + at state 4
+        +-- tape at 0, [['e']]
+        process (2 branches)
+        + at state 2
+        +-- tape at 0, [['d', 'b']]
+        + at state 4
+        +-- tape at 0, [['d', 'f']]
+        process (0 branches)
         sage: it.visited_states
         {1: ['d'], 2: ['db'],
          3: ['', 'dbc'], 4: ['e', 'df']}
@@ -11140,7 +11296,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         ....:                                  format_output=lambda o: ''.join(o))
         sage: for current in it:
         ....:     print current
-        {}
+        process (0 branches)
         sage: it.visited_states
         {4: ['']}
 
@@ -11153,9 +11309,15 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         ....:                                  format_output=lambda o: ''.join(o))
         sage: for current in it:
         ....:     print current
-        {((0, 0),): {1: (tape at 0, [['a']]), 2: (tape at 0, [['b']])}}
-        {((0, 0),): {3: (tape at 0, [['a', 'c'], ['b', 'd']])}}
-        {}
+        process (2 branches)
+        + at state 1
+        +-- tape at 0, [['a']]
+        + at state 2
+        +-- tape at 0, [['b']]
+        process (1 branch)
+        + at state 3
+        +-- tape at 0, [['a', 'c'], ['b', 'd']]
+        process (0 branches)
         sage: it.visited_states
         {0: ['', 'ace', 'bde'], 1: ['a'], 2: ['b'], 3: ['ac', 'bd']}
 
@@ -11168,9 +11330,15 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         ....:                                  format_output=lambda o: ''.join(o))
         sage: for current in it:
         ....:     print current
-        {((0, 0),): {1: (tape at 0, [[]]), 2: (tape at 0, [['b']])}}
-        {((0, 0),): {3: (tape at 0, [[], ['b', 'd']])}}
-        {}
+        process (2 branches)
+        + at state 1
+        +-- tape at 0, [[]]
+        + at state 2
+        +-- tape at 0, [['b']]
+        process (1 branch)
+        + at state 3
+        +-- tape at 0, [[], ['b', 'd']]
+        process (0 branches)
         sage: it.visited_states
         {0: ['', '', 'bd'], 1: [''], 2: ['b'], 3: ['', 'bd']}
         sage: T.state(0)._epsilon_cycle_output_empty_(T)
@@ -11185,10 +11353,20 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         ....:                                  format_output=lambda o: ''.join(o))
         sage: for current in it:
         ....:     print current
-        {((0, 0),): {1: (tape at 0, [['a']]), 2: (tape at 0, [['c']])}}
-        {((0, 0),): {2: (tape at 0, [['a', 'b']]), 3: (tape at 0, [['c', 'd']])}}
-        {((0, 0),): {3: (tape at 0, [['a', 'b', 'd']])}}
-        {}
+        process (2 branches)
+        + at state 1
+        +-- tape at 0, [['a']]
+        + at state 2
+        +-- tape at 0, [['c']]
+        process (2 branches)
+        + at state 2
+        +-- tape at 0, [['a', 'b']]
+        + at state 3
+        +-- tape at 0, [['c', 'd']]
+        process (1 branch)
+        + at state 3
+        +-- tape at 0, [['a', 'b', 'd']]
+        process (0 branches)
         sage: it.visited_states
         {0: ['', 'cde', 'abde'], 1: ['a'], 2: ['c', 'ab'], 3: ['cd', 'abd']}
 
@@ -11201,9 +11379,15 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         ....:                                  format_output=lambda o: ''.join(o))
         sage: for current in it:
         ....:     print current
-        {((0, 0),): {1: (tape at 0, [['a']]), 2: (tape at 0, [['b'], ['c']])}}
-        {((0, 0),): {3: (tape at 0, [['b', 'd'], ['c', 'd']])}}
-        {}
+        process (2 branches)
+        + at state 1
+        +-- tape at 0, [['a']]
+        + at state 2
+        +-- tape at 0, [['b'], ['c']]
+        process (1 branch)
+        + at state 3
+        +-- tape at 0, [['b', 'd'], ['c', 'd']]
+        process (0 branches)
         sage: it.visited_states
         {0: ['', 'bde', 'cde'], 1: ['a'], 2: ['b', 'c'], 3: ['bd', 'cd']}
     """

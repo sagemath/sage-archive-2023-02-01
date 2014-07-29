@@ -587,3 +587,5 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         """
         return self._type.is_untwisted_affine()
 
+    def basic_untwisted(self):
+        return self._type.basic_untwisted()

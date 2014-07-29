@@ -845,6 +845,15 @@ class Groups(CategoryWithAxiom):
 
                     sage: len(C.j_classes())
                     1
+
+                An example with an infinitely generated group (a better output
+                is needed)::
+
+                    sage: G = Groups.free([1,2])
+                    sage: H = Groups.free(ZZ)
+                    sage: C = cartesian_product([G, H])
+                    sage: C.monoid_generators()
+                    Lazy family (gen(i))_{i in The cartesian product of (...)}
                 """
                 F = self.cartesian_factors()
                 ids = tuple(G.one() for G in F)
@@ -855,6 +864,7 @@ class Groups(CategoryWithAxiom):
                 from sage.sets.family import Family
 
                 # Finitely generated
+                # TODO: Replace with is_finite() instead of checking cardinality?
                 if all(G.group_generators().cardinality() != float('inf') for G in F):
                     ret = [lift(i, gen) for i,G in enumerate(F) for gen in G.group_generators()]
                     return Family(ret)

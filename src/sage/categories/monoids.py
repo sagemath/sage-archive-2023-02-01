@@ -422,7 +422,16 @@ class Monoids(CategoryWithAxiom):
                     sage: N = Monoids.free(['a','b'])
                     sage: C = cartesian_product([M, N])
                     sage: C.monoid_generators()
-                    Family ((F[1], 1), (F[2], 1), (F[3], 1), (1, F['a']), (1, F['b']))
+                    Family ((F[1], 1), (F[2], 1), (F[3], 1),
+                            (1, F['a']), (1, F['b']))
+
+                An example with an infinitely generated group (a better output
+                is needed)::
+
+                    sage: N = Monoids.free(ZZ)
+                    sage: C = cartesian_product([M, N])
+                    sage: C.monoid_generators()
+                    Lazy family (gen(i))_{i in The cartesian product of (...)}
                 """
                 F = self.cartesian_factors()
                 ids = tuple(M.one() for M in F)
@@ -433,6 +442,7 @@ class Monoids(CategoryWithAxiom):
                 from sage.sets.family import Family
 
                 # Finitely generated
+                # TODO: Replace with is_finite() instead of checking cardinality?
                 if all(M.monoid_generators().cardinality() != float('inf') for M in F):
                     ret = [lift(i, gen) for i,M in enumerate(F) for gen in M.monoid_generators()]
                     return Family(ret)

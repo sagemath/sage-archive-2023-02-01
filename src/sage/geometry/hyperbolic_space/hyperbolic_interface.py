@@ -90,7 +90,7 @@ class HyperbolicUserInterface(UniqueRepresentation):
             sage: UHP.model_name()
             'Upper Half Plane Model'
             sage: PD.model_name()
-            'Poincaré Disk Model'
+            'Poincare Disk Model'
             sage: KM.model_name()
             'Klein Disk Model'
             sage: HM.model_name()

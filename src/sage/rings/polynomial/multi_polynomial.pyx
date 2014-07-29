@@ -1468,6 +1468,16 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: p = K.random_element(10)
             sage: p.degree() == p.weighted_degree(2,3)
             True
+
+        TESTS::
+
+            sage: R = PolynomialRing(QQ, 'a', 5)
+            sage: f = R.random_element(terms=20)
+            sage: w = random_vector(ZZ,5)
+            sage: d1 = f.weighted_degree(w)
+            sage: d2 = (f*1.0).weighted_degree(w)
+            sage: d1 == d2
+            True
         """
         if self.is_zero():
             #Corner case, note that the degree of zero is an Integer
@@ -1478,24 +1488,26 @@ cdef class MPolynomial(CommutativeRingElement):
             weights = weights[0]
 
         if isinstance(weights, dict):
-            weights = [ weights[g] for g in self.parent().gens() ]
+            weights = [weights[g] for g in self.parent().gens()]
 
-        weights = map(Integer, weights)
+        weights = [Integer(w) for w in weights]
 
         # Go through each monomial, calculating the weight
         cdef int n = self.parent().ngens()
-        cdef int i
+        cdef int i, j
         cdef Integer deg
         cdef Integer l
+        cdef tuple m
         A = self.exponents(as_ETuples=False)
         l = Integer(0)
-        m = A[0]
-        for 0 <= i <= n-1:
+        m = <tuple>(A[0])
+        for i in range(n):
             l += weights[i]*m[i]
         deg = l
-        for m in self.exponents(as_ETuples=False)[1:]:
+        for j in range(1,len(A)):
             l = Integer(0)
-            for 0 <= i <= n-1:
+            m = <tuple>A[j]
+            for i in range(n):
                 l += weights[i]*m[i]
             if deg < l:
                 deg = l

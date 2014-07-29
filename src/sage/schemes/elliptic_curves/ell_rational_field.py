@@ -1397,7 +1397,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         else:
             raise ValueError("algorithm %s not defined"%algorithm)
 
-    def analytic_rank_upper_bound(self,Delta=1,N=None,root_number=True):
+    def analytic_rank_upper_bound(self,Delta=1,N=None,
+                                  bad_primes=None,root_number=True):
         """
         Return an upper bound for the analytic rank of self conditional on
         the Generalized Riemann Hypothesis, via an L-function zero sum method
@@ -1415,6 +1416,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         - ``N`` -- (default: None) If not None, a positive integer equal to
           the conductor of self. This is passable so that rank estimation
           can be done for curves whose (large) conductor has been precomputed.
+
+        - ``bad_primes`` -- (default: None) If not None, a list of the primes
+          of bad reduction for the curve attached to self. This is passable
+          so that rank estimation can be done for curves of large conductor
+          whose bad primes have been precomputed.
 
         - ``root_number`` -- (default: True) One of True, False, 1 or -1:
           - If True, the root number of self is computed and used to (possibly)
@@ -1505,21 +1511,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
 
         Z = LFunctionZeroSum_EllipticCurve(self,N)
-        bound = (Z.zerosum(Delta,function='sincsquared_fast')).floor()
-
-        if root_number==False:
-            return bound
-
-        if root_number==True:
-            w = (1-self.root_number())//2
-        else:
-            w = (1-root_number)//2
-        # w is 0 if E has even parity, and 1 if odd parity. The returned
-        # value must have the same parity as w.
-        if bound%2!=w:
-            return bound-1
-        else:
-            return bound
+        bound = Z.analytic_rank_upper_bound(Delta=Delta,
+                                            bad_primes=bad_primes,
+                                            root_number=root_number)
+        return bound
 
     def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=3,
                           maxprob=20, limbigprime=30, known_points=None):

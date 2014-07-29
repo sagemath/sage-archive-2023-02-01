@@ -1,4 +1,4 @@
-"""
+r"""
 Class file for computing sums over zeros of motivic L-functions.
 All computations are done to double precision.
 
@@ -23,7 +23,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-from sage.structure.sage_object import SageObject
+from sage.structure.sage_object cimport SageObject
 from scipy.special import erfcx, spence, psi
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_double import RDF
@@ -35,11 +35,24 @@ from sage.functions.other import real, imag
 from sage.symbolic.constants import pi, euler_gamma
 from sage.libs.pari.all import pari
 
-class LFunctionZeroSum_abstract(SageObject):
+cdef extern from "<math.h>":
+    double c_exp "exp"(double)
+    double c_log "log"(double)
+    double c_cos "cos"(double)
+    double c_acos "acos"(double)
+    double c_sqrt "sqrt"(double)
+
+cdef class LFunctionZeroSum_abstract(SageObject):
     """
     Abstract class for computing certain sums over zeros of a motivic L-function
     without having to determine the zeros themselves
     """
+    cdef _N
+    cdef _k
+    cdef _C0
+    cdef _C1
+    cdef _pi
+    cdef _euler_gamma
 
     def level(self):
         """
@@ -71,7 +84,7 @@ class LFunctionZeroSum_abstract(SageObject):
         """
         return self._k
 
-    def C0(self):
+    def C0(self, include_euler_gamma=True):
         r"""
         Return the constant term of the logarithmic derivative of the
         completed 'L'-function attached to self. This is equal to
@@ -79,16 +92,27 @@ class LFunctionZeroSum_abstract(SageObject):
         where '\eta' is the Euler-Mascheroni constant '= 0.5772\ldots'
         and 'N' is the level of the form attached to self.
 
+        INPUT:
+
+        - ``include_euler_gamma`` -- bool (default: True); if set to
+          False, return the constant '\log(N)/2 - \log(2\pi)', i.e. do
+          not subtract off the Euler-Mascheroni constant.
+
         EXAMPLES::
 
             sage: E = EllipticCurve('389a')
             sage: Z = LFunctionZeroSum(E)
             sage: Z.C0()
             0.566696940498
+            sage: Z.C0(include_euler_gamma=False)
+            1.1439126054
 
         """
-        # Defined at initialization
-        return self._C0
+        # Computed at initialization
+        if include_euler_gamma==False:
+            return self._C1
+        else:
+            return self._C0
 
     def cnlist(self,n,python_floats=False):
         r"""
@@ -381,34 +405,41 @@ class LFunctionZeroSum_abstract(SageObject):
             Ls = self.logarithmic_derivative(2-s,num_terms)
             return (-self._C1 - self.digamma(2-s) - Ls[0], Ls[1])
 
-    def zerosum(self,Delta=1,function="sincsquared_fast"):
+    def zerosum(self,Delta=1,tau=0,function="sincsquared_fast"):
         r"""
         Bound from above the analytic rank of the form attached to self
         by computing
-            '\sum_{\gamma} f(\Delta*\gamma),'
+            '\sum_{\gamma} f(\Delta*(\gamma-\tau),'
         where '\gamma' ranges over the imaginary parts of the zeros of 'L_E(s)'
-        along the critical strip, and 'f(x)' is an appropriate continuous
+        along the critical strip, and 'f(x)' is an appropriate even continuous
         'L_2' function such that 'f(0)=1'.
 
-        As '\Delta' increases this sum limits from above to the analytic rank
-        of the form, as 'f(0) = 1' is counted with multiplicity 'r', and the
-        other terms all go to 0 uniformly.
+        If '\tau=0', then as '\Delta' increases this sum limits from above to
+        the analytic rank of the 'L'-function, as 'f(0) = 1' is counted with
+        multiplicity 'r', and the other terms all go to 0 uniformly.
 
         INPUT:
 
-        - ``Delta`` -- positive real number (default: 1) parameter defining the
-          tightness of the zero sum, and thus the closeness of the returned
-          estimate to the actual analytic rank of the form attached to self.
+        - ``Delta`` -- positive real number (default: 1) parameter denoting the
+          tightness of the zero sum.
+
+        - ``tau`` -- real parameter (default: 0) denoting the offset of the sum
+          to be computed. When 'tau=0' the sum will limit to the analytic rank
+          of the 'L'-function as '\Delta' is increased. If 'tau' is the value
+          of the imaginary part of a noncentral zero, the limit will be 1
+          (assuming the zero is simple); otherwise the the limit will be 0.
+          Currently only implemented for the sincsquared and cauchy functions;
+          otherwise ignored.
 
         - ``function`` -- string (default: "sincsquared_fast") - the function
           'f(x)' as described above. Currently implemented options for 'f' are:
 
           - ``sincquared`` -- 'f(x) = \left(\frac{\sin(\pi*x)}{(\pi*x)}\right)^2'
           - ``gaussian``   -- 'f(x) = \exp(-x^2)'
-          - ``sincquared_fast`` -- Same as "sincsquared", but faster
-            implementation; however self must be attached to an elliptic curve
-            over QQ given by its global minimal model, otherwise the returned
-            result will be incorrect.
+          - ``sincquared_fast`` -- Same as "sincsquared", but implementation
+            optimized for elliptic curve 'L'-functions with tau=0. self must
+            be attached to an elliptic curve over QQ given by its global minimal
+            model, otherwise the returned result will be incorrect.
           - ``cauchy`` -- f(x) = \frac{1}{1+x^2}; this is only computable to
             low precision, and only when Delta < 2.
 
@@ -422,8 +453,9 @@ class LFunctionZeroSum_abstract(SageObject):
 
         OUTPUT:
 
-        A positive real number that bounds the analytic rank of the modular form
-        attached to self from above.
+        A positive real number that bounds from above the number of zeros with
+        imaginary part equal to tau. When tau=0 this is an upper bound for the
+        'L'-function's analytic rank.
 
         .. SEEALSO::
 
@@ -436,10 +468,16 @@ class LFunctionZeroSum_abstract(SageObject):
             sage: E = EllipticCurve('389a'); E.rank()
             2
             sage: Z = LFunctionZeroSum(E)
+            sage: E.lseries().zeros(3)
+            [0.000000000, 0.000000000, 2.87609907]
             sage: Z.zerosum(Delta=1,function="sincsquared_fast")
             2.0375000846
             sage: Z.zerosum(Delta=1,function="sincsquared")
             2.0375000846
+            sage: Z.zerosum(Delta=1,tau=2.876,function='sincsquared')
+            1.07555129565
+            sage: Z.zerosum(Delta=1,tau=1.2,function='sincsquared')
+            0.108315553775
             sage: Z.zerosum(Delta=1,function="gaussian")
             2.05689042503
 
@@ -453,31 +491,36 @@ class LFunctionZeroSum_abstract(SageObject):
         if function=="sincsquared_fast":
             return self._zerosum_sincsquared_fast(Delta=Delta)
         elif function=="sincsquared":
-            return self._zerosum_sincsquared(Delta=Delta)
+            return self._zerosum_sincsquared(Delta=Delta,tau=tau)
         elif function=="gaussian":
             return self._zerosum_gaussian(Delta=Delta)
         elif function=="cauchy":
-            return self._zerosum_cauchy(Delta=Delta)
+            return self._zerosum_cauchy(Delta=Delta,tau=tau)
         else:
             raise ValueError("Input function not recognized.")
 
-    def _zerosum_sincsquared(self,Delta=1):
+    def _zerosum_sincsquared(self,Delta=1,tau=0):
         r"""
         Bound from above the analytic rank of the form attached to self
         by computing
-            '\sum_{\gamma} f(\Delta*\gamma),'
+            '\sum_{\gamma} f(\Delta*(\gamma-\tau)),'
         where '\gamma' ranges over the imaginary parts of the zeros of 'L_E(s)'
         along the critical strip, and 'f(x) = \sin(\pi*x)/(\pi*x)'
 
-        As '\Delta' increases this sum limits from above to the analytic rank
-        of the form, as 'f(0) = 1' is counted with multiplicity 'r', and the
-        other terms all go to 0 uniformly.
+        If '\tau=0', then as '\Delta' increases this sum limits from above to
+        the analytic rank of the 'L'-function, as 'f(0) = 1' is counted with
+        multiplicity 'r', and the other terms all go to 0 uniformly.
 
         INPUT:
 
-        - ``Delta`` -- positive real number (default: 1) parameter defining the
-          tightness of the zero sum, and thus the closeness of the returned
-          estimate to the actual analytic rank of the form attached to self.
+        - ``Delta`` -- positive real number (default: 1) parameter denoting the
+          tightness of the zero sum.
+
+        - ``tau`` -- real parameter (default: 0) denoting the offset of the sum
+          to be computed. When 'tau=0' the sum will limit to the analytic rank
+          of the 'L'-function as '\Delta' is increased. If 'tau' is the value
+          of the imaginary part of a noncentral zero, the limit will be 1
+          (assuming the zero is simple); otherwise the the limit will be 0.
 
         .. WARNING::
 
@@ -489,8 +532,9 @@ class LFunctionZeroSum_abstract(SageObject):
 
         OUTPUT:
 
-        A positive real number that bounds the analytic rank of the modular form
-        attached to self from above.
+        A positive real number that bounds from above the number of zeros with
+        imaginary part equal to tau. When tau=0 this is an upper bound for the
+        'L'-function's analytic rank.
 
         .. SEEALSO::
 
@@ -502,8 +546,32 @@ class LFunctionZeroSum_abstract(SageObject):
             sage: E = EllipticCurve('37a'); E.rank()
             1
             sage: Z = LFunctionZeroSum(E)
-            sage: Z._zerosum_sincsquared(Delta=1)
+            sage: E.lseries().zeros(2)
+            [0.000000000, 5.00317001]
+
+        E is a rank 1 curve; the lowest noncentral zero has imaginary part
+        ~5.003. The zero sum with tau=0 indicates the probable existence of
+        a zero at or very close to the the central point:
+
+        ::
+
+            sage: Z._zerosum_sincsquared(Delta=1,tau=0)
             1.01038406984
+
+        The zero sum also detects a zero at or near 5.003, as expected:
+
+        ::
+
+            sage: Z._zerosum_sincsquared(Delta=1,tau=5.003)
+            1.01681245469
+
+        However, there is definitely no zero with imaginary part near 2.5,
+        as the sum would have to be at least 1:
+
+        ::
+
+            sage: Z._zerosum_sincsquared(Delta=1,tau=2.5)
+            0.0580582108065
 
         """
 
@@ -514,19 +582,51 @@ class LFunctionZeroSum_abstract(SageObject):
         t = RDF(Delta*twopi)
         expt = RDF(exp(t))
 
-        u = t*(-eg + log(RDF(self._N))/2 - log(twopi))
-        w = RDF(npi**2/6-spence(1-RDF(1)/expt))
+        u = t*self.C0()
 
-        y = RDF(0)
-        n = int(0)
-        while n < expt:
-            n += 1
-            cn  = self.cn(n)
-            if cn!=0:
-                logn = log(RDF(n))
-                y += cn*(t-logn)
+        # No offset: formulae are simpler
+        if tau==0:
+            w = RDF(npi**2/6-spence(1-RDF(1)/expt))
 
-        return 2*(u+w+y)/(t**2)
+            y = RDF(0)
+            n = int(1)
+            while n < expt:
+                cn  = self.cn(n)
+                if cn!=0:
+                    logn = log(RDF(n))
+                    y += cn*(t-logn)
+                    #print(n,cn*(t-logn))
+                n += 1
+        # When offset is nonzero, the digamma transform (w) must
+        # be computed as an infinite sum
+        else:
+            tau = RDF(tau)
+            cos_tau_t = (tau*t).cos()
+            sin_tau_t = (tau*t).sin()
+            w = RDF(0)
+            for k in range(1,1001):
+                a1 = tau**2/(k*(k**2+tau**2))
+                a2 = (k**2-tau**2)/(k**2+tau**2)**2
+                a3 = (2*k*tau)/(k**2+tau**2)**2
+
+                w0 = a1*t + a2
+                w0 -= (a2*cos_tau_t-a3*sin_tau_t)*exp(-k*t)
+                w += w0
+
+            y = RDF(0)
+            n = int(1)
+            while n < expt:
+                cn  = self.cn(n)
+                if cn!=0:
+                    logn = log(RDF(n))
+                    y += cn*(t-logn)*(tau*logn).cos()
+                    #print(n,cn*(t-logn))
+                n += 1
+
+        #print(expt,t,u,w,y)
+        #print
+
+        return (u+w+y)*2/(t**2)
 
     def _zerosum_gaussian(self,Delta=1):
         r"""
@@ -578,46 +678,55 @@ class LFunctionZeroSum_abstract(SageObject):
         eg = self._euler_gamma
         Deltasqrtpi = Delta*npi.sqrt()
 
-        u = -eg + log(RDF(self._N))/2 - log(npi*2)
+        t = RDF(Delta*npi*2)
+        expt = RDF(exp(t))
+
+        u = self.C0()
 
         w = RDF(0)
         for k in range(1,1001):
             w += RDF(1)/k-erfcx(Delta*k)*Deltasqrtpi
 
         y = RDF(0)
-        n = int(0)
-        exp2piDelta = exp(2*npi*Delta)
+        n = int(1)
 
         # TO DO: Error analysis to make sure this bound is good enough to
         # avoid non-negligible trucation error
-        while n < exp2piDelta:
-            n += 1
+        while n < expt:
             cn  = self.cn(n)
             if cn != 0:
                 logn = log(RDF(n))
                 y += cn*exp(-(logn/(2*Delta))**2)
+            n += 1
 
         # y is the truncation of an infinite sum, so we must add a value which
         # exceeds the max amount we could have left out.
+        # WARNING: The value of 0.1 has been thumbsucked
         return RDF(u+w+y+0.1)/Deltasqrtpi
 
-    def _zerosum_cauchy(self,Delta=1,num_terms=None):
+    def _zerosum_cauchy(self,Delta=1,tau=0,num_terms=None):
         r"""
         Bound from above the analytic rank of the form attached to self
         by computing
-            '\sum_{\gamma} f(\Delta*\gamma),'
+            '\sum_{\gamma} f(\Delta*(\gamma-\tau)),'
         where '\gamma' ranges over the imaginary parts of the zeros of 'L_E(s)'
         along the critical strip, and 'f(x) = \frac{1}{1+x^2}'.
 
-        As '\Delta' increases this sum limits from above to the analytic rank
-        of the form, as 'f(0) = 1' is counted with multiplicity 'r', and the
-        other terms all go to 0 uniformly.
+        If '\tau=0', then as '\Delta' increases this sum limits from above to
+        the analytic rank of the 'L'-function, as 'f(0) = 1' is counted with
+        multiplicity 'r', and the other terms all go to 0 uniformly.
 
         INPUT:
 
-        - ``Delta`` -- positive real number (default: 1) parameter defining the
-          tightness of the zero sum, and thus the closeness of the returned
-          estimate to the actual analytic rank of the form attached to self.
+        - ``Delta`` -- positive real number (default: 1) parameter denoting the
+          tightness of the zero sum.
+
+        - ``tau`` -- real parameter (default: 0) denoting the offset of the sum
+          to be computed. When 'tau=0' the sum will limit to the analytic rank
+          of the 'L'-function as '\Delta' is increased. If 'tau' is the value
+          of the imaginary part of a noncentral zero, the limit will be 1
+          (assuming the zero is simple); otherwise the the limit will be 0.
+
         - ``num_terms`` -- positive integer (default: None): the number of
           terms computed in the truncated Dirichlet series for the L-function
           attached to self. If left at None, this is set to
@@ -627,17 +736,18 @@ class LFunctionZeroSum_abstract(SageObject):
 
         .. WARNING::
 
-            This value can only be computed when Delta < 2. An error will be
-            thrown if a Delta value larger than 2 is supplied. Furthermore,
-            beware that computation time is exponential in '\Delta', roughly
-            doubling for every increase of 0.1 thereof. Using '\Delta=1' will
-            yield a computation time of a few milliseconds, while '\Delta=2'
-            takes a few seconds.
+            This value can only be provably computed when Delta < 2; an error
+            will be thrown if a Delta value larger than 2 is supplied.
+            Furthermore, beware that computation time is exponential in
+            '\Delta', roughly doubling for every increase of 0.1 thereof.
+            Using '\Delta=1' will yield a computation time of a few
+            milliseconds, while '\Delta=2' takes a few seconds.
 
         OUTPUT:
 
-        A positive real number that bounds the analytic rank of the modular form
-        attached to self from above.
+        A positive real number that bounds from above the number of zeros with
+        imaginary part equal to tau. When tau=0 this is an upper bound for the
+        'L'-function's analytic rank.
 
         .. SEEALSO::
 
@@ -647,10 +757,33 @@ class LFunctionZeroSum_abstract(SageObject):
         EXAMPLES::
 
             sage: E = EllipticCurve('11a')
+            sage: E.lseries().zeros(2)
+            [6.36261389, 8.60353962]
+
+        E is a rank zero curve; the lowest zero has imaginary part ~6.36. The
+        zero sum with tau=0 indicates that there are no zeros at the central
+        point (otherwise the returned value would be at least 1):
+
+        ::
+
             sage: Z = LFunctionZeroSum(E)
-            sage: E = EllipticCurve('11a')
-            sage: Z._zerosum_cauchy(Delta=1)
+            sage: Z._zerosum_cauchy(Delta=1,tau=0)
             0.970107398446
+
+        The zero sum with tau=6.36 indicates there might be a zero in the
+        vicinity:
+
+        ::
+
+            sage: Z._zerosum_cauchy(Delta=1,tau=6.36261389)
+            2.18090462633
+
+        However, there are no zeros with imaginary part close to 1.5:
+
+        ::
+
+            sage: Z._zerosum_cauchy(Delta=1,tau=1.5)
+            0.982707203755
 
         Because of the weak convergence of the Dirichlet series close to the
         critical line, the bound will in general get *worse* for larger Delta.
@@ -675,22 +808,31 @@ class LFunctionZeroSum_abstract(SageObject):
         if Delta >= 2:
             raise ValueError("Bound not provably computable for Delta >= 2")
         Del = RDF(Delta)
-
-        R1 = RDF(1)
-        s = R1/Del+R1
         if num_terms is None:
             num_terms = int(exp(2*self._pi*Del))
-        u,err = self.completed_logarithmic_derivative(s,num_terms)
+
+        if tau==0:
+            one = RDF(1)
+            s = one/Del+one
+            u,err = self.completed_logarithmic_derivative(s,num_terms)
+        else:
+            one = CDF(1)
+            s = CDF(one/Del+one, tau)
+            u,err = self.completed_logarithmic_derivative(s,num_terms)
+            u = u.real()
+
         return (u+err)/Del
 
-
-class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
+cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
     """
     Subclass for computing certain sums over zeros of an elliptic curve L-function
-    without having to determine the zeros themselves
+    without having to determine the zeros themselves.
     """
+    cdef _E
+    cdef _e
+
     def __init__(self,E,N=None):
-        """
+        r"""
         Initializes self.
 
         INPUT:
@@ -717,7 +859,7 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         if N is not None:
             self._N = N
         else:
-            self._N = self._E.conductor()
+            self._N = E.conductor()
         # PARI minicurve for computing a_p coefficients
         self._e = E.pari_mincurve()
 
@@ -729,7 +871,7 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         self._C0 = self._C1 - self._euler_gamma
 
     def __repr__(self):
-        """
+        r"""
         Representation of self.
 
         EXAMPLES::
@@ -825,7 +967,63 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             aq = (2*(c**e).real()).round()
             return -aq*logp/n_float
 
-    def _zerosum_sincsquared_fast(self,Delta=1):
+    cdef double _sincsquared_summand_1(self,
+                                       long long n,
+                                       double t,
+                                       int ap,
+                                       double p,
+                                       double logp,
+                                       double thetap,
+                                       double sqrtp,
+                                       double logq,
+                                       double thetaq,
+                                       double sqrtq,
+                                       double z):
+        r"""
+        Private cdef method to compute the logarithmic derivative
+        summand for the sinc^2 sum at prime values for when
+        n <= sqrt(bound), bound = exp(t)
+        Called in self._zerosum_sincsquared_fast() method
+        """
+        ap = self._e.ellap(n)
+        p = n
+        sqrtp = c_sqrt(p)
+        thetap = c_acos(ap/(2*sqrtp))
+        logp = c_log(p)
+
+        sqrtq = 1
+        thetaq = 0
+        logq = logp
+
+        z = 0
+        while logq < t:
+            sqrtq *= sqrtp
+            thetaq += thetap
+            z += 2*c_cos(thetaq)*(t-logq)/sqrtq
+            #print(c_exp(logq),-2*c_cos(thetaq)*(t-logq)/sqrtq*logp)
+            logq += logp
+        #print(n,-z*logp)
+        return -z*logp
+
+    cdef double _sincsquared_summand_2(self,
+                                       long long n,
+                                       double t,
+                                       int ap,
+                                       double p,
+                                       double logp):
+        r"""
+        Private cdef method to compute the logarithmic derivative
+        summand for the sinc^2 sum at prime values for when
+        sqrt(bound) < n < bound, bound = exp(t)
+        Called in self._zerosum_sincsquared_fast() method
+        """
+        ap = self._e.ellap(n)
+        p = n
+        logp = c_log(p)
+        #print(n,-(t-logp)*(logp/p)*ap)
+        return -(t-logp)*(logp/p)*ap
+
+    cpdef _zerosum_sincsquared_fast(self,Delta=1,bad_primes=None):
         """
         A faster, more intelligent implementation of self._zerosum_sincsquared().
 
@@ -836,9 +1034,13 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         INPUT:
 
-        - ``Delta`` -- positive real number (default: 1) parameter defining the
+        - ``Delta`` -- positive real parameter defining the
           tightness of the zero sum, and thus the closeness of the returned
           estimate to the actual analytic rank of the form attached to self.
+        - ``bad_primes`` -- (default: None) If not None, a list of primes dividing
+          the level of the form attached to self. This is passable so that this
+          method can be run on curves whose conductor is large enough to warrant
+          precomputing bad primes.
 
         OUTPUT:
 
@@ -855,68 +1057,267 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('37a'); E.rank()
+            sage: E = EllipticCurve('37a')
+            sage: Z = LFunctionZeroSum(E)
+            sage: print(E.rank(),Z._zerosum_sincsquared_fast(Delta=1))
+            (1, 1.01038406984)
+            sage: E = EllipticCurve('121a')
+            sage: Z = LFunctionZeroSum(E);
+            sage: print(E.rank(),Z._zerosum_sincsquared_fast(Delta=1.5))
+            (0, 0.0104712060087)
+        """
+        # If Delta>6.619, then we will most likely get overflow: some ap values
+        # will be too large to fit into a c int
+        if Delta > 6.619:
+            raise ValueError("Delta value too large; will result in overflow")
+
+        cdef double npi = self._pi
+        cdef double twopi = npi*2
+        cdef double eg = self._euler_gamma
+
+        cdef double t,u,w,y,z,expt,bound1,logp,logq
+        cdef double thetap,thetaq,sqrtp,sqrtq,p,q
+        cdef int ap,aq
+
+        cdef long long n
+        cdef double N_double = self._N
+
+        t = twopi*Delta
+        expt = c_exp(t)
+
+        u = t*(-eg + c_log(N_double)/2 - c_log(twopi))
+        w = npi**2/6-spence(-expt**(-1)+1)
+
+        y = 0
+        # Do bad primes first. Add correct contributions and subtract
+        # incorrect contribution, since we'll add them back later on.
+        if bad_primes is None:
+            bad_primes = self._N.prime_divisors()
+        bad_primes = [prime for prime in bad_primes if prime<expt]
+        #print(expt,bad_primes)
+        for prime in bad_primes:
+            n = prime
+            ap = self._e.ellap(n)
+            p = n
+            sqrtp = c_sqrt(p)
+            thetap = c_acos(ap/(2*sqrtp))
+            logp = c_log(p)
+
+            q = 1
+            sqrtq = 1
+            aq = 1
+            thetaq = 0
+            logq = logp
+
+            z = 0
+            while logq < t:
+                q *= p
+                sqrtq *= sqrtp
+                aq *= ap
+                thetaq += thetap
+                # Actual value of this term
+                z += (aq/q)*(t-logq)
+                # Incorrect value of this term to be removed below
+                z -= 2*c_cos(thetaq)*(t-logq)/sqrtq
+                logq += logp
+            y -= z*logp
+
+        # Good prime case. Bad primes are treated as good primes, but their
+        # contribution here is cancelled out above; this way we don't
+        # have to check if each prime divides the level or not.
+
+        # Must deal with n=2,3,5 separately
+        for m in [2,3,5]:
+            n = m
+            if t>n:
+                y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
+                                                     logq,thetaq,sqrtq,z)
+        # Now iteratonly only over those n that are 1 or 5 mod 6
+        n = 11
+        # First: those n that are <= sqrt(bound)
+        bound1 = c_exp(t/2)
+        while n <= bound1:
+            if pari(n-4).isprime():
+                y += self._sincsquared_summand_1(n-4,t,ap,p,logp,thetap,sqrtp,
+                                                 logq,thetaq,sqrtq,z)
+            if pari(n).isprime():
+                y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
+                                                 logq,thetaq,sqrtq,z)
+            n += 6
+        # Unlucky split case where n-4 <= sqrt(bound) but n isn't
+        if n-4 <= bound1 and n > bound1:
+            if pari(n-4).isprime():
+                y += self._sincsquared_summand_1(n-4,t,ap,p,logp,thetap,sqrtp,
+                                                 logq,thetaq,sqrtq,z)
+            if n <= expt and pari(n).isprime():
+                y += self._sincsquared_summand_2(n,t,ap,p,logp)
+            n += 6
+        # Now sqrt(bound)< n < bound, so we don't need to consider higher
+        # prime power logarithmic derivative coefficients
+        while n <= expt:
+            if pari(n-4).isprime():
+                y += self._sincsquared_summand_2(n-4,t,ap,p,logp)
+            if pari(n).isprime():
+                y += self._sincsquared_summand_2(n,t,ap,p,logp)
+            n += 6
+        # Case where n-4 <= t but n isn't
+        n = n-4
+        if n <= expt and pari(n).isprime():
+            y += self._sincsquared_summand_2(n,t,ap,p,logp)
+
+        #print(expt,t,u,w,y)
+        #print
+        return RDF(2*(u+w+y)/(t**2))
+
+    def analytic_rank_upper_bound(self,Delta=1,bad_primes=None,
+                                  root_number=True,
+                                  function="sincsquared_fast"):
+        """
+        Return an upper bound for the analytic rank of the L-function
+        'L_E(s)' attached to self, conditional on the Generalized Riemann
+        Hypothesis, via computing
+            '\sum_{\gamma} f(\Delta*(\gamma-\tau)),'
+        where '\gamma' ranges over the imaginary parts of the zeros of 'L_E(s)'
+        along the critical strip, and 'f(x)' is specified by the function
+        parameter. This method can be run on curves with very large
+        conductor (so long as the conductor is known or quickly computable).
+        Uses Bober's rank bounding method as described in [Bob13].
+
+        INPUT:
+
+        - ``Delta`` -- (default: 1) positive real value parameterizing the
+          tightness of the zero sum. Larger values of Delta yield better
+          bounds.
+
+        - ``bad_primes`` -- (default: None) If not None, a list of the primes
+          of bad reduction for the curve attached to self. This is passable
+          so that rank estimation can be done for curves of large conductor
+          whose bad primes have been precomputed.
+          Used only if function=="sincsquared_fast"; ignored otherwise.
+
+        - ``root_number`` -- (default: True) One of True, False, 1 or -1:
+          - If True, the root number of self is computed and used to (possibly)
+            lower ther analytic rank estimate by 1.
+          - If False, the above step is omitted.
+          - If 1 or -1, this value is assumed to be the root number of self.
+            This is passable so that rank estimation can be done for curves
+            whose root number has been precomputed.
+
+        - ``function`` -- string (default: "sincsquared_fast") - the function
+          'f(x)' as described above. Currently implemented options for 'f' are:
+
+          - ``sincquared`` -- 'f(x) = \left(\frac{\sin(\pi*x)}{(\pi*x)}\right)^2'
+          - ``gaussian``   -- 'f(x) = \exp(-x^2)'
+          - ``sincquared_fast`` -- Same as "sincsquared", but implementation
+            optimized for elliptic curve 'L'-functions. self must
+            be attached to an elliptic curve over QQ given by its global minimal
+            model, otherwise the returned result will be incorrect.
+          - ``cauchy`` -- f(x) = \frac{1}{1+x^2}; this is only computable to
+            low precision, and only when Delta < 2.
+
+        .. NOTE::
+
+            Output will be incorrect if the incorrect conductor or root number
+            is specified.
+
+        .. WARNING::
+
+            Computation time is exponential in '\Delta', roughly doubling for
+            every increase of 0.1 thereof. Using '\Delta=1' will yield a
+            computation time of a few milliseconds; '\Delta=2' takes a few
+            seconds, and '\Delta=3' may take upwards of an hour. Increase at
+            your own risk beyond this!
+
+        OUTPUT:
+
+        A non-negative integer greater than or equal to the analytic rank of
+        self.
+
+        .. SEEALSO::
+
+            :func:`LFunctionZeroSum`
+            :meth:`EllipticCurve.root_number`
+
+        EXAMPLES:
+
+        For most elliptic curves with small conductor the central zero(s)
+        of 'L_E(s)' are fairly isolated, so small values of '\Delta'
+        will yield tight rank estimates:
+
+        ::
+
+            sage: E = EllipticCurve('11a')
+            sage: E.rank()
+            0
+            sage: Z = LFunctionZeroSum(E)
+            sage: Z.analytic_rank_upper_bound(Delta=1)
+            0
+
+            sage: E = EllipticCurve([-39,123])
+            sage: E.rank()
             1
             sage: Z = LFunctionZeroSum(E)
-            sage: Z._zerosum_sincsquared_fast(Delta=1)
-            1.01038406984
+            sage: Z.analytic_rank_upper_bound(Delta=1)
+            1
+
+        This is especially true for elliptic curves with large rank:
+
+        ::
+
+            sage: E = elliptic_curves.rank(8)[0]; E
+            Elliptic Curve defined by y^2 + y = x^3 - 23737*x + 960366 over Rational Field
+            sage: Z = LFunctionZeroSum(E)
+            sage: Z.analytic_rank_upper_bound(Delta=1)
+            8
+
+        However, some curves have 'L'-functions with low-lying zeroes, and for these
+        larger values of '\Delta' must be used to get tight estimates:
+
+        ::
+
+            sage: E = EllipticCurve('974b1')
+            sage: r = E.rank(); r
+            0
+            sage: Z = LFunctionZeroSum(E)
+            sage: Z.analytic_rank_upper_bound(Delta=1,root_number=False)
+            1
+            sage: Z.analytic_rank_upper_bound(Delta=1.3,root_number=False)
+            0
+
+        Knowing the root number of E allows us to use smaller Delta values
+        to get tight bounds, thus speeding up runtime considerably:
+
+        ::
+
+            sage: Z.analytic_rank_upper_bound(Delta=0.6,root_number=True)
+            0
+
+        REFERENCES:
+
+        [Bob13] J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
+        ANTS 10. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
+
         """
 
-        npi = self._pi
-        twopi = 2*npi
-        eg = self._euler_gamma
+        if function=="sincsquared_fast":
+            bound = self._zerosum_sincsquared_fast(Delta=Delta,
+                                                   bad_primes=bad_primes).floor()
+        else:
+            bound = self.zerosum(Delta=Delta,function=function).floor()
 
-        t = RDF(Delta*twopi)
-        expt = exp(t)
+        if root_number==False:
+            return bound
 
-        u = t*(-eg + log(RDF(self._N))/2 - log(twopi))
-        w = RDF(npi**2/RDF(6)-spence(RDF(1)-RDF(1)/expt))
-
-        y = RDF(0)
-        bound1 = int(exp(t/2))
-        bound2 = int(expt)
-        n = int(2)
-        while n <= bound1:
-            if pari(n).isprime():
-                logp = log(RDF(n))
-                ap = RDF(self._e.ellap(n))
-                p = RDF(n)
-
-                z = (ap/p)*(t-logp)
-
-                # The p^n coefficients are calculated differently
-                # depending on whether p divides the level or not
-                if self._N%n==0:
-                    aq = ap**2
-                    q = p**2
-                    logq = logp*2
-                    while logq < t:
-                        z += (aq/q)*(t-logq)
-                        logq += logp
-                        q = q*p
-                        aq = aq*ap
-                else:
-                    alpha_p = CDF(ap,(4*p-ap**2).sqrt())/2
-                    alpha = alpha_p**2
-                    q = p**2
-                    logq = logp*2
-                    while logq < t:
-                        aq = RDF(round(2*alpha.real()))
-                        z += (aq/q)*(t-logq)
-                        logq += logp
-                        q = q*p
-                        alpha = alpha*alpha_p
-                y -= z*logp
-            n += 1
-        while n <= bound2:
-            if pari(n).isprime():
-                logp = log(RDF(n))
-                ap = RDF(self._e.ellap(n))
-                y -= ap*logp/RDF(n)*(t-logp)
-            n += 1
-
-        return 2*(u+w+y)/(t**2)
-
+        if root_number==True:
+            w = (1-self._e.ellrootno())//2
+        else:
+            w = (1-root_number)//2
+        # w is 0 if E has even parity, and 1 if odd parity. The returned
+        # value must have the same parity as w.
+        if bound%2!=w:
+            return bound-1
+        else:
+            return bound
 
 def LFunctionZeroSum(X,*args,**kwds):
     """

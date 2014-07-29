@@ -197,7 +197,6 @@ usage_advanced() {
     ####  |.....................--.|...................................................|
     echo "Making Sage packages or distributions:"
     echo "  -bdist VER          -- build a binary distribution of Sage"
-    echo "  -combinat [...]     -- run sage-combinat patch management script"
     echo "  -crap sage-ver.tar  -- detect suspicious garbage in sage source tarball"
     echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
     echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
@@ -371,11 +370,6 @@ fi
 if [ "$1" = '-axiom' -o "$1" = '--axiom' ]; then
     shift
     exec axiom "$@"
-fi
-
-if [ "$1" = '-combinat' -o "$1" = '--combinat' ]; then
-    shift
-    exec sage-combinat "$@"
 fi
 
 if [ "$1" = '-gap' -o "$1" = '--gap' ]; then

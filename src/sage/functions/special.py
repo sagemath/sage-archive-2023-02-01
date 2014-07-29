@@ -207,10 +207,16 @@ from sage.plot.plot import plot
 from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
 from sage.misc.sage_eval import sage_eval
+from sage.misc.latex import latex
 from sage.rings.all import ZZ, RR, RDF
 from sage.functions.other import real, imag, log_gamma
-from sage.symbolic.function import BuiltinFunction
+from sage.symbolic.function import BuiltinFunction, is_inexact
+from sage.symbolic.expression import Expression
 from sage.calculus.calculus import maxima
+from sage.structure.element import get_coercion_model
+from sage.libs.mpmath import utils as mpmath_utils
+from sage.functions.all import sqrt, cot, exp
+from sage.symbolic.all import I
 
 _done = False
 def _init():
@@ -611,22 +617,129 @@ def spherical_hankel2(n,x):
     """
     return maxima_function("spherical_hankel2")(ZZ(n), x)
 
-def spherical_harmonic(m,n,x,y):
+
+class SphericalHarmonic(BuiltinFunction):
     r"""
-    Returns the spherical Harmonic function of the second kind for
-    integers `n > -1`, `|m|\leq n`. Reference:
-    Merzbacher 9.64.
+    Returns the spherical harmonic function `Y_n^m(\theta, \varphi)`.
+
+    For integers `n > -1`, `|m| \leq n`, simplification is done automatically.
+    Numeric evaluation is supported for complex `n` and `m`.
+
+    Reference: Merzbacher 9.64
 
     EXAMPLES::
 
-        sage: x,y = var('x,y')
-        sage: spherical_harmonic(3,2,x,y)
+        sage: x, y = var('x, y')
+        sage: spherical_harmonic(3, 2, x, y)
         15/4*sqrt(7/30)*cos(x)*e^(2*I*y)*sin(x)^2/sqrt(pi)
-        sage: spherical_harmonic(3,2,1,2)
+        sage: spherical_harmonic(3, 2, 1, 2)
         15/4*sqrt(7/30)*cos(1)*e^(4*I)*sin(1)^2/sqrt(pi)
+        sage: spherical_harmonic(3 + I, 2., 1, 2)
+        -0.351154337307488 - 0.415562233975369*I
+        sage: latex(spherical_harmonic(3, 2, x, y, hold=True))
+        Y_{3}^{2}\left(x, y\right)
+        sage: spherical_harmonic(1, 2, x, y)
+        0
     """
-    _init()
-    return meval("spherical_harmonic(%s,%s,%s,%s)"%(ZZ(m),ZZ(n),x,y))
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: n, m, theta, phi = var('n m theta phi')
+            sage: spherical_harmonic(n, m, theta, phi)._sympy_()
+            Ynm(n, m, theta, phi)
+        """
+        BuiltinFunction.__init__(self, 'spherical_harmonic', nargs=4,
+                                 conversions=dict(
+                                    maple='SphericalY',
+                                    mathematica= 'SphericalHarmonicY',
+                                    maxima='spherical_harmonic',
+                                    sympy='Ynm'))
+
+    def _eval_(self, n, m, theta, phi, **kwargs):
+        r"""
+        TESTS::
+
+            sage: x, y = var('x y')
+            sage: spherical_harmonic(1, 2, x, y)
+            0
+            sage: spherical_harmonic(1, -2, x, y)
+            0
+            sage: spherical_harmonic(1/2, 2, x, y)
+            spherical_harmonic(1/2, 2, x, y)
+            sage: spherical_harmonic(3, 2, x, y)
+            15/4*sqrt(7/30)*cos(x)*e^(2*I*y)*sin(x)^2/sqrt(pi)
+            sage: spherical_harmonic(3, 2, 1, 2)
+            15/4*sqrt(7/30)*cos(1)*e^(4*I)*sin(1)^2/sqrt(pi)
+            sage: spherical_harmonic(3 + I, 2., 1, 2)
+            -0.351154337307488 - 0.415562233975369*I
+        """
+        from sage.structure.coerce import parent
+        cc = get_coercion_model().canonical_coercion
+        coerced = cc(phi, cc(theta, cc(n, m)[0])[0])[0]
+        if is_inexact(coerced) and not isinstance(coerced, Expression):
+            return self._evalf_(n, m, theta, phi, parent=parent(coerced))
+        elif n in ZZ and m in ZZ and n > -1:
+            if abs(m) > n:
+                return ZZ(0)
+            return meval("spherical_harmonic({},{},{},{})".format(
+                ZZ(n), ZZ(m), maxima(theta), maxima(phi)))
+        return
+
+    def _evalf_(self, n, m, theta, phi, parent, **kwds):
+        r"""
+        TESTS::
+
+            sage: spherical_harmonic(3 + I, 2, 1, 2).n(100)
+            -0.35115433730748836508201061672 - 0.41556223397536866209990358597*I
+            sage: spherical_harmonic(I, I, I, I).n()
+            7.66678546069894 - 0.265754432549751*I
+        """
+        from mpmath import spherharm
+        return mpmath_utils.call(spherharm, n, m, theta, phi, parent=parent)
+
+    def _derivative_(self, n, m, theta, phi, diff_param):
+        r"""
+        TESTS::
+
+            sage: n, m, theta, phi = var('n m theta phi')
+            sage: spherical_harmonic(n, m, theta, phi).diff(theta)
+            m*cot(theta)*spherical_harmonic(n, m, theta, phi)
+             + sqrt(-(m + n + 1)*(m - n))*e^(-I*phi)*spherical_harmonic(n, m + 1, theta, phi)
+            sage: spherical_harmonic(n, m, theta, phi).diff(phi)
+            I*m*spherical_harmonic(n, m, theta, phi)
+        """
+        if diff_param == 2:
+            return (m * cot(theta) * spherical_harmonic(n, m, theta, phi) +
+                    sqrt((n - m) * (n + m + 1)) * exp(-I * phi) *
+                    spherical_harmonic(n, m + 1, theta, phi))
+        if diff_param == 3:
+            return I * m * spherical_harmonic(n, m, theta, phi)
+
+        raise ValueError('only derivative with respect to theta or phi'
+                         ' supported')
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: latex(spherical_harmonic)
+            Y_n^m
+        """
+        return r"Y_n^m"
+
+    def _print_latex_(self, n, m, theta, phi):
+        r"""
+        TESTS::
+
+            sage: y = var('y')
+            sage: latex(spherical_harmonic(3, 2, x, y, hold=True))
+            Y_{3}^{2}\left(x, y\right)
+        """
+        return r"Y_{{{}}}^{{{}}}\left({}, {}\right)".format(
+                 latex(n), latex(m), latex(theta), latex(phi))
+
+spherical_harmonic = SphericalHarmonic()
 
 ####### elliptic functions and integrals
 

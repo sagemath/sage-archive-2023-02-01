@@ -26,6 +26,7 @@ import time
 from sage.structure.sage_object import SageObject
 from copy import copy
 from sage.rings.all import QQ, infinity
+from sage.rings.integer_ring import ZZ
 from sage.rings.all import FractionField, PolynomialRing
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.sets.all import Set
@@ -2269,7 +2270,10 @@ class ClusterVariable(FractionFieldElement):
             if self._mutation_type.is_finite():
                 from sage.combinat.root_system.root_system import RootSystem
                 # the import above is used in the line below
-                exec "Phi = RootSystem("+self._mutation_type._repr_()+")"
+                mt = self._mutation_type._repr_()
+                # mt is a string of the shape "['A', 15]"
+                # where A is a single letter and 15 is an integer
+                Phi = RootSystem([mt[2: 3], ZZ(mt[6: -1])])
                 Phiplus = Phi.root_lattice().simple_roots()
                 if self.denominator() == 1:
                     return -Phiplus[ self.numerator().degrees().index(1) + 1 ]

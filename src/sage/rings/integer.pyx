@@ -146,6 +146,7 @@ include "sage/ext/stdsage.pxi"
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
+from libc.stdint cimport uint64_t
 include "sage/ext/python_debug.pxi"
 include "../structure/coerce.pxi"   # for parent_c
 include "sage/libs/pari/decl.pxi"
@@ -203,8 +204,52 @@ cdef int set_mpz(Integer self, mpz_t value):
 cdef set_from_Integer(Integer self, Integer other):
     mpz_set(self.value, other.value)
 
-cdef set_from_int(Integer self, int other):
-    mpz_set_si(self.value, other)
+cdef set_from_pari_gen(Integer self, pari_gen x):
+    r"""
+    EXAMPLES::
+
+        sage: [Integer(pari(x)) for x in [1, 2^60, 2., GF(3)(1)]]
+        [1, 1152921504606846976, 2, 1]
+        sage: Integer(pari(2.1)) # indirect doctest
+        Traceback (most recent call last):
+        ...
+        TypeError: Attempt to coerce non-integral real number to an Integer
+    """
+    # Simplify and lift until we get an integer
+    while typ((<pari_gen>x).g) != t_INT:
+        x = x.simplify()
+        paritype = typ((<pari_gen>x).g)
+        if paritype == t_INT:
+            break
+        elif paritype == t_REAL:
+            # Check that the fractional part is zero
+            if not x.frac().gequal0():
+                raise TypeError, "Attempt to coerce non-integral real number to an Integer"
+            # floor yields an integer
+            x = x.floor()
+            break
+        elif paritype == t_PADIC:
+            if x._valp() < 0:
+                raise TypeError("Cannot convert p-adic with negative valuation to an integer")
+            # Lifting a PADIC yields an integer
+            x = x.lift()
+            break
+        elif paritype == t_INTMOD:
+            # Lifting an INTMOD yields an integer
+            x = x.lift()
+            break
+        elif paritype == t_POLMOD:
+            x = x.lift()
+        elif paritype == t_FFELT:
+            # x = (f modulo defining polynomial of finite field);
+            # we extract f.
+            sig_on()
+            x = pari.new_gen(FF_to_FpXQ_i((<pari_gen>x).g))
+        else:
+            raise TypeError, "Unable to coerce PARI %s to an Integer"%x
+
+    # Now we have a true PARI integer, convert it to Sage
+    t_INT_to_ZZ(self.value, (<pari_gen>x).g)
 
 cdef mpz_t* get_value(Integer self):
     return &self.value
@@ -627,13 +672,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_set_si(self.value, 0)
 
         else:
-            # First do all the type-check versions; these are fast.
+            # First do all the type-check versions (these are fast to test),
+            # except those for which the conversion itself will be slow.
 
             if PY_TYPE_CHECK(x, Integer):
                 set_from_Integer(self, <Integer>x)
-
-            elif PY_TYPE_CHECK(x, bool):
-                mpz_set_si(self.value, PyInt_AS_LONG(x))
 
             elif PyInt_Check(x):
                 mpz_set_si(self.value, PyInt_AS_LONG(x))
@@ -649,98 +692,60 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     raise TypeError, "Cannot convert non-integral float to integer"
 
             elif PY_TYPE_CHECK(x, pari_gen):
-                # Simplify and lift until we get an integer
-                while typ((<pari_gen>x).g) != t_INT:
-                    x = x.simplify()
-                    paritype = typ((<pari_gen>x).g)
-                    if paritype == t_INT:
-                        break
-                    elif paritype == t_REAL:
-                        # Check that the fractional part is zero
-                        if not x.frac().gequal0():
-                            raise TypeError, "Attempt to coerce non-integral real number to an Integer"
-                        # floor yields an integer
-                        x = x.floor()
-                        break
-                    elif paritype == t_PADIC:
-                        if x._valp() < 0:
-                            raise TypeError("Cannot convert p-adic with negative valuation to an integer")
-                        # Lifting a PADIC yields an integer
-                        x = x.lift()
-                        break
-                    elif paritype == t_INTMOD:
-                        # Lifting an INTMOD yields an integer
-                        x = x.lift()
-                        break
-                    elif paritype == t_POLMOD:
-                        x = x.lift()
-                    elif paritype == t_FFELT:
-                        # x = (f modulo defining polynomial of finite field);
-                        # we extract f.
-                        sig_on()
-                        x = pari.new_gen(FF_to_FpXQ_i((<pari_gen>x).g))
-                    else:
-                        raise TypeError, "Unable to coerce PARI %s to an Integer"%x
-
-                # Now we have a true PARI integer, convert it to Sage
-                t_INT_to_ZZ(self.value, (<pari_gen>x).g)
-
-            elif PyString_Check(x) or PY_TYPE_CHECK(x,unicode):
-                if base < 0 or base > 36:
-                    raise ValueError, "`base` (=%s) must be between 2 and 36."%base
-                ibase = base
-                xs = x
-                if xs[0] == c'+':
-                    xs += 1
-                if mpz_set_str(self.value, xs, ibase) != 0:
-                    raise TypeError, "unable to convert x (=%s) to an integer"%x
-
-            elif PyObject_HasAttrString(x, "_integer_"):
-                # TODO: Note that PyObject_GetAttrString returns NULL if
-                # the attribute was not found. If we could test for this,
-                # we could skip the double lookup. Unfortunately Cython doesn't
-                # seem to let us do this; it flags an error if the function
-                # returns NULL, because it can't construct an "object" object
-                # out of the NULL pointer. This really sucks. Perhaps we could
-                # make the function prototype have return type void*, but
-                # then how do we make Cython handle the reference counting?
-                set_from_Integer(self, (<object> PyObject_GetAttrString(x, "_integer_"))(the_integer_ring))
-
-            elif (PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple)) and base > 1:
-                b = the_integer_ring(base)
-                if b == 2: # we use a faster method
-                    for j from 0 <= j < len(x):
-                        otmp = x[j]
-                        if not PY_TYPE_CHECK(otmp, Integer):
-                            # should probably also have fast code for Python ints...
-                            otmp = Integer(otmp)
-                        if mpz_cmp_si((<Integer>otmp).value, 1) == 0:
-                            mpz_setbit(self.value, j)
-                        elif mpz_sgn((<Integer>otmp).value) != 0:
-                            # one of the entries was something other than 0 or 1.
-                            break
-                    else:
-                        return
-                tmp = the_integer_ring(0)
-                for i in range(len(x)):
-                    tmp += the_integer_ring(x[i])*b**i
-                mpz_set(self.value, tmp.value)
+                set_from_pari_gen(self, x)
 
             else:
+
+                otmp = getattr(x, "_integer_", None)
+                if otmp is not None:
+                    set_from_Integer(self, otmp(the_integer_ring))
+                    return
+
+                if PY_TYPE_CHECK(x, Element):
+                    try:
+                        lift = x.lift()
+                        if lift._parent is the_integer_ring:
+                            set_from_Integer(self, lift)
+                            return
+                    except AttributeError:
+                        pass
+
+                elif PyString_Check(x) or PY_TYPE_CHECK(x,unicode):
+                    if base < 0 or base > 36:
+                        raise ValueError, "`base` (=%s) must be between 2 and 36."%base
+                    ibase = base
+                    xs = x
+                    if xs[0] == c'+':
+                        xs += 1
+                    if mpz_set_str(self.value, xs, ibase) != 0:
+                        raise TypeError, "unable to convert x (=%s) to an integer"%x
+                    return
+
+                elif (PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple)) and base > 1:
+                    b = the_integer_ring(base)
+                    if b == 2: # we use a faster method
+                        for j from 0 <= j < len(x):
+                            otmp = x[j]
+                            if not PY_TYPE_CHECK(otmp, Integer):
+                                # should probably also have fast code for Python ints...
+                                otmp = Integer(otmp)
+                            if mpz_cmp_si((<Integer>otmp).value, 1) == 0:
+                                mpz_setbit(self.value, j)
+                            elif mpz_sgn((<Integer>otmp).value) != 0:
+                                # one of the entries was something other than 0 or 1.
+                                break
+                        else:
+                            return
+                    tmp = the_integer_ring(0)
+                    for i in range(len(x)):
+                        tmp += the_integer_ring(x[i])*b**i
+                    mpz_set(self.value, tmp.value)
+                    return
+
                 import numpy
                 if isinstance(x, numpy.integer):
                     mpz_set_pylong(self.value, x.__long__())
                     return
-
-                elif PY_TYPE_CHECK(x, Element):
-                    try:
-                        lift = x.lift()
-                        if lift._parent != (<Element>x)._parent:
-                            tmp = the_integer_ring(lift)
-                            mpz_swap(tmp.value, self.value)
-                            return
-                    except AttributeError:
-                        pass
 
                 raise TypeError, "unable to coerce %s to an integer" % type(x)
 
@@ -2506,7 +2511,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_sgn(self.value) <= 0:
             from sage.symbolic.all import SR
             return SR(self).log()
-        if m <= 0 and m != None:
+        if m <= 0 and m is not None:
             raise ValueError, "m must be positive"
         if prec:
             from sage.rings.real_mpfr import RealField
@@ -3179,7 +3184,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n = Integer(17); float(n)
             17.0
             sage: n = Integer(902834098234908209348209834092834098); float(n)
-            9.028340982349081e+35
+            9.028340982349083e+35
             sage: n = Integer(-57); float(n)
             -57.0
             sage: n.__float__()
@@ -3187,7 +3192,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: type(n.__float__())
             <type 'float'>
         """
-        return mpz_get_d(self.value)
+        return mpz_get_d_nearest(self.value)
 
     def _rpy_(self):
         """
@@ -6464,3 +6469,111 @@ cdef inline Integer smallInteger(long value):
         z = PY_NEW(Integer)
         mpz_set_si(z.value, value)
         return z
+
+
+# The except value is just some random double, it doesn't matter what it is.
+cdef double mpz_get_d_nearest(mpz_t x) except? -648555075988944.5:
+    """
+    Convert a ``mpz_t`` to a ``double``, with round-to-nearest-even.
+    This differs from ``mpz_get_d()`` which does round-to-zero.
+
+    TESTS::
+
+        sage: x = ZZ(); float(x)
+        0.0
+        sage: x = 2^54 - 1
+        sage: float(x)
+        1.8014398509481984e+16
+        sage: float(-x)
+        -1.8014398509481984e+16
+        sage: x = 2^10000; float(x)
+        inf
+        sage: float(-x)
+        -inf
+
+    ::
+
+        sage: x = (2^53 - 1) * 2^971; float(x)  # Largest double
+        1.7976931348623157e+308
+        sage: float(-x)
+        -1.7976931348623157e+308
+        sage: x = (2^53) * 2^971; float(x)
+        inf
+        sage: float(-x)
+        -inf
+        sage: x = ZZ((2^53 - 1/2) * 2^971); float(x)
+        inf
+        sage: float(-x)
+        -inf
+        sage: x = ZZ((2^53 - 3/4) * 2^971); float(x)
+        1.7976931348623157e+308
+        sage: float(-x)
+        -1.7976931348623157e+308
+
+    AUTHORS:
+
+    - Jeroen Demeyer (:trac:`16385`, based on :trac:`14416`)
+    """
+    cdef mp_bitcnt_t sx = mpz_sizeinbase(x, 2)
+
+    # Easy case: x is exactly representable as double.
+    if sx <= 53:
+        return mpz_get_d(x)
+
+    cdef int resultsign = mpz_sgn(x)
+
+    # Check for overflow
+    if sx > 1024:
+        if resultsign < 0:
+            return -1.0/0.0
+        else:
+            return 1.0/0.0
+
+    # General case
+
+    # We should shift x right by this amount in order
+    # to have 54 bits remaining.
+    cdef mp_bitcnt_t shift = sx - 54
+
+    # Compute q = trunc(x / 2^shift) and let remainder_is_zero be True
+    # if and only if no truncation occurred.
+    cdef int remainder_is_zero
+    remainder_is_zero = mpz_divisible_2exp_p(x, shift)
+
+    sig_on()
+
+    cdef mpz_t q
+    mpz_init(q)
+    mpz_tdiv_q_2exp(q, x, shift)
+
+    # Convert abs(q) to a 64-bit integer.
+    cdef mp_limb_t* q_limbs = (<__mpz_struct*>q)._mp_d
+    cdef uint64_t q64
+    if sizeof(mp_limb_t) >= 8:
+        q64 = q_limbs[0]
+    else:
+        assert sizeof(mp_limb_t) == 4
+        q64 = q_limbs[1]
+        q64 = (q64 << 32) + q_limbs[0]
+
+    mpz_clear(q)
+    sig_off()
+
+    # Round q from 54 to 53 bits of precision.
+    if ((q64 & 1) == 0):
+        # Round towards zero
+        pass
+    else:
+        if not remainder_is_zero:
+            # Remainder is non-zero: round away from zero
+            q64 += 1
+        else:
+            # Halfway case: round to even
+            q64 += (q64 & 2) - 1
+
+    # The conversion of q64 to double is *exact*.
+    # This is because q64 is even and satisfies 2^53 <= q64 <= 2^54.
+    cdef double d = <double>q64
+    if resultsign < 0:
+        d = -d
+    return ldexp(d, shift)

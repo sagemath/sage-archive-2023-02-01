@@ -46,6 +46,7 @@ from sage.combinat.partition import Partition, Partitions
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
+from functools import reduce
 
 class SetPartition(ClonableArray):
     """
@@ -444,7 +445,7 @@ class SetPartition(ClonableArray):
         """
         res = Set(list(self))
         for p in t:
-            inters = Set(filter(lambda x: x.intersection(p) != Set([]), list(res)))
+            inters = Set([x for x in list(res) if x.intersection(p) != Set([])])
             res = res.difference(inters).union(_set_union(inters))
         return SetPartition(res)
 
@@ -1131,8 +1132,7 @@ class SetPartitions(Parent, UniqueRepresentation):
             return False
 
         for p in s:
-            f = lambda z: z.intersection(p) != Set([])
-            if len(filter(f, list(t)) ) != 1:
+            if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
                 return False
         return True
 
@@ -1182,7 +1182,7 @@ class SetPartitions(Parent, UniqueRepresentation):
             return False
 
         for p in t:
-            L = filter(lambda x: x.issubset(p), list(s))
+            L = [x for x in list(s) if x.issubset(p)]
             if sum(len(x) for x in L) != len(p) \
                     or any(max(L[i]) > min(L[i+1]) for i in range(len(L)-1)):
                 return False
@@ -1592,14 +1592,14 @@ def inf(s,t):
         sage: sp2 = Set([Set([1,3]), Set([2,4])])
         sage: s = Set([ Set([2,4]), Set([3]), Set([1])]) #{{2, 4}, {3}, {1}}
         sage: sage.combinat.set_partition.inf(sp1, sp2) == s
-        doctest:1: DeprecationWarning: inf(s, t) is deprecated. Use s.inf(t) instead.
+        doctest:...: DeprecationWarning: inf(s, t) is deprecated. Use s.inf(t) instead.
         See http://trac.sagemath.org/14140 for details.
         True
     """
     from sage.misc.superseded import deprecation
     deprecation(14140, 'inf(s, t) is deprecated. Use s.inf(t) instead.')
     temp = [ss.intersection(ts) for ss in s for ts in t]
-    temp = filter(lambda x: x != Set([]), temp)
+    temp = [x for x in temp if x != Set([])]
     return Set(temp)
 
 def sup(s,t):
@@ -1612,7 +1612,7 @@ def sup(s,t):
         sage: sp2 = Set([Set([1,3]), Set([2,4])])
         sage: s = Set([ Set([1,2,3,4]) ])
         sage: sage.combinat.set_partition.sup(sp1, sp2) == s
-        doctest:1: DeprecationWarning: sup(s, t) is deprecated. Use s.sup(t) instead.
+        doctest:...: DeprecationWarning: sup(s, t) is deprecated. Use s.sup(t) instead.
         See http://trac.sagemath.org/14140 for details.
         True
     """
@@ -1620,7 +1620,7 @@ def sup(s,t):
     deprecation(14140, 'sup(s, t) is deprecated. Use s.sup(t) instead.')
     res = s
     for p in t:
-        inters = Set(filter(lambda x: x.intersection(p) != Set([]), list(res)))
+        inters = Set([x for x in list(res) if x.intersection(p) != Set([])])
         res = res.difference(inters).union(_set_union(inters))
     return res
 
@@ -1632,7 +1632,7 @@ def standard_form(sp):
     EXAMPLES::
 
         sage: map(sage.combinat.set_partition.standard_form, SetPartitions(4, [2,2]))
-        doctest:1: DeprecationWarning: standard_form(sp) is deprecated. Use sp.standard_form() instead.
+        doctest:...: DeprecationWarning: standard_form(sp) is deprecated. Use sp.standard_form() instead.
         See http://trac.sagemath.org/14140 for details.
         [[[1, 2], [3, 4]], [[1, 3], [2, 4]], [[1, 4], [2, 3]]]
     """
@@ -1649,7 +1649,7 @@ def less(s, t):
 
         sage: z = SetPartitions(3).list()
         sage: sage.combinat.set_partition.less(z[0], z[1])
-        doctest:1: DeprecationWarning: less(s, t) is deprecated. Use SetPartitions.is_less_tan(s, t) instead.
+        doctest:...: DeprecationWarning: less(s, t) is deprecated. Use SetPartitions.is_less_tan(s, t) instead.
         See http://trac.sagemath.org/14140 for details.
         False
     """
@@ -1660,8 +1660,7 @@ def less(s, t):
     if s == t:
         return False
     for p in s:
-        f = lambda z: z.intersection(p) != Set([])
-        if len(filter(f, list(t)) ) != 1:
+        if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
             return False
     return True
 

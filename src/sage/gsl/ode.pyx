@@ -392,7 +392,7 @@ class ode_solver(object):
         type = isinstance(self.function,ode_system)
         if type == 0:
             wrapper = PyFunctionWrapper()
-            if self.function!=None:
+            if self.function is not None:
                 wrapper.the_function = self.function
             else:
                 raise ValueError, "ODE system not yet defined"
@@ -441,7 +441,7 @@ class ode_solver(object):
             T= gsl_odeiv_step_rk4imp
         elif self.algorithm == "bsimp":
             T = gsl_odeiv_step_bsimp
-            if not type and self.jacobian==None:
+            if not type and self.jacobian is None:
                 raise TypeError,"The jacobian must be provided for the implicit Burlisch-Stoer method"
         elif self.algorithm == "gear1":
             T = gsl_odeiv_step_gear1

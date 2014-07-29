@@ -743,9 +743,9 @@ class CuspFamily(SageObject):
         self._width = width
         if (N % width):
             raise ValueError("Bad width")
-        if num_cusps_of_width(N, width) > 1 and label == None:
+        if num_cusps_of_width(N, width) > 1 and label is None:
             raise ValueError("There are %s > 1 cusps of width %s on X_0(%s): specify a label" % (num_cusps_of_width(N,width), width, N))
-        if num_cusps_of_width(N, width) == 1 and label != None:
+        if num_cusps_of_width(N, width) == 1 and label is not None:
             raise ValueError("There is only one cusp of width %s on X_0(%s): no need to specify a label" % (width, N))
         self.label = label
 
@@ -845,8 +845,8 @@ def qexp_eta(ps_ring, prec):
         n = 1
         while True:
             pm = -pm
-            v[n*(3*n-1)/2] = pm
-            v[n*(3*n+1)/2] = pm
+            v[n*(3*n-1)//2] = pm
+            v[n*(3*n+1)//2] = pm
             n += 1
     except IndexError:
         pass

@@ -634,53 +634,89 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def homogenize(self, var='h'):
         r"""
-        Return self if self is homogeneous.  Otherwise return a homogenized
-        polynomial for self. If a string is given, return a polynomial in one
-        more variable named after the string such that setting that variable
-        equal to 1 yields self. This variable is added to the end of the
-        variables. If a variable in ``self.parent()`` is given, this variable
-        is used to homogenize the polynomial. If an integer is given, the
-        variable with this index is used for homogenization.
+        Return the homogenization of this polynomial.
+
+        The polynomial itself is returned if it is homogeneous already.
+        Otherwise, the monomials are multiplied with the smallest powers of
+        ``var`` such that they all have the same total degree.
 
         INPUT:
 
-        - ``var`` -- either a variable name, variable index or a variable
-          (default: 'h').
+        - ``var`` -- a variable in the polynomial ring (as a string, an element of
+          the ring, or a zero-based index in the list of variables) or a name
+          for a new variable (default: ``'h'``)
 
         OUTPUT:
 
-        a multivariate polynomial
+        If ``var`` specifies a variable in the polynomial ring, then a
+        homogeneous element in that ring is returned. Otherwise, a homogeneous
+        element is returned in a polynomial ring with an extra last variable
+        ``var``.
 
         EXAMPLES::
 
-            sage: P.<x,y> = PolynomialRing(QQ,2)
+            sage: R.<x,y> = QQ[]
             sage: f = x^2 + y + 1 + 5*x*y^10
+            sage: f.homogenize()
+            5*x*y^10 + x^2*h^9 + y*h^10 + h^11
+
+        The parameter ``var`` can be used to specify the name of the variable::
+
             sage: g = f.homogenize('z'); g
             5*x*y^10 + x^2*z^9 + y*z^10 + z^11
             sage: g.parent()
             Multivariate Polynomial Ring in x, y, z over Rational Field
 
+        However, if the polynomial is homogeneous already, then that parameter
+        is ignored and no extra variable is added to the polynomial ring::
+
+            sage: f = x^2 + y^2
+            sage: g = f.homogenize('z'); g
+            x^2 + y^2
+            sage: g.parent()
+            Multivariate Polynomial Ring in x, y over Rational Field
+
+        If you want the ring of the result to be independent of whether the
+        polynomial is homogenized, you can use ``var`` to use an existing
+        variable to homogenize::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: f = x^2 + y^2
+            sage: g = f.homogenize(z); g
+            x^2 + y^2
+            sage: g.parent()
+            Multivariate Polynomial Ring in x, y, z over Rational Field
+            sage: f = x^2 - y
+            sage: g = f.homogenize(z); g
+            x^2 - y*z
+            sage: g.parent()
+            Multivariate Polynomial Ring in x, y, z over Rational Field
+
+        The parameter ``var`` can also be given as a zero-based index in the
+        list of variables::
+
+            sage: g = f.homogenize(2); g
+            x^2 - y*z
+
+        If the variable specified by ``var`` is not present in the polynomial,
+        then setting it to 1 yields the original polynomial::
+
+            sage: g(x,y,1)
+            x^2 - y
+
+        If it is present already, this might not be the case::
+
+            sage: g = f.homogenize(x); g
+            x^2 - x*y
+            sage: g(1,y,z)
+            -y + 1
+
+        In particular, this can be surprising in positive characteristic::
+
+            sage: R.<x,y> = GF(2)[]
+            sage: f = x + 1
             sage: f.homogenize(x)
-            2*x^11 + x^10*y + 5*x*y^10
-
-            sage: f.homogenize(0)
-            2*x^11 + x^10*y + 5*x*y^10
-
-            sage: x, y = Zmod(3)['x', 'y'].gens()
-            sage: (x + x^2).homogenize(y)
-            x^2 + x*y
-
-            sage: x, y = Zmod(3)['x', 'y'].gens()
-            sage: (x + x^2).homogenize(y).parent()
-            Multivariate Polynomial Ring in x, y over Ring of integers modulo 3
-
-            sage: x, y = GF(3)['x', 'y'].gens()
-            sage: (x + x^2).homogenize(y)
-            x^2 + x*y
-
-            sage: x, y = GF(3)['x', 'y'].gens()
-            sage: (x + x^2).homogenize(y).parent()
-            Multivariate Polynomial Ring in x, y over Finite Field of size 3
+            0
 
         TESTS::
 
@@ -690,6 +726,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: q2 = p.homogenize()
             sage: q1.parent() is q2.parent()
             True
+
         """
         P = self.parent()
 

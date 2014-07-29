@@ -10079,6 +10079,64 @@ class _FSMTapeCacheDetectAll_(_FSMTapeCache_):
 #*****************************************************************************
 
 
+def tupleofwords_to_wordoftuples(tupleofwords):
+    """
+    Transposes a tuple of words over the alphabet to a word of tuples.
+
+    INPUT:
+
+    - ``tupleofwords`` -- a tuple of a list of letters.
+
+    OUTPUT:
+
+    A list of tuples.
+
+    Missing letters in the words are padded with the letter ``None``
+    (from the empty word).
+
+    EXAMPLES::
+
+        sage: from sage.combinat.finite_state_machine import (
+        ....:     tupleofwords_to_wordoftuples)
+        sage: tupleofwords_to_wordoftuples(
+        ....:     ([1, 2], [3, 4, 5, 6], [7]))
+        [(1, 3, 7), (2, 4, None), (None, 5, None), (None, 6, None)]
+    """
+    return [t for t in itertools.izip_longest(*tupleofwords, fillvalue=None)]
+
+
+def wordoftuples_to_tupleofwords(wordoftuples):
+    """
+    Transposes a word of tuples to a tuple of words over the alphabet.
+
+    INPUT:
+
+    - ``wordoftuples`` -- a list of tuples of letters.
+
+    OUTPUT:
+
+    A tuple of lists.
+
+    Letters ``None`` (empty word) are removed from each word in the output.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.finite_state_machine import (
+        ....:     wordoftuples_to_tupleofwords)
+        sage: wordoftuples_to_tupleofwords(
+        ....:     [(1, 2), (1, 2), (1, None), (1, 2), (None, 2)])
+        ([1, 1, 1, 1], [2, 2, 2, 2])
+    """
+    if not equal(len(t) for t in wordoftuples):
+        raise ValueError("Not all entries of input have the same length.")
+    def remove_empty_letters(word):
+        return [letter for letter in word if letter is not None]
+    return tuple(remove_empty_letters(t) for t in itertools.izip(*wordoftuples))
+
+
+#*****************************************************************************
+
+
 def is_FSMProcessIterator(PI):
     """
     Tests whether or not ``PI`` inherits from :class:`FSMProcessIterator`.

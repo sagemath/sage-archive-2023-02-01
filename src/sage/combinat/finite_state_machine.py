@@ -494,7 +494,7 @@ our finite automaton by a counter::
     sage: from sage.combinat.finite_state_machine import FSMState, FSMTransition
     sage: C = FiniteStateMachine()
     sage: def update_counter(process, state, input, output):
-    ....:     l = input.preview_letter()
+    ....:     l = input.preview_word()
     ....:     process.fsm.counter += 1 if l == 1 else -1
     ....:     if process.fsm.counter > 0:
     ....:         next_state = 'positive'
@@ -9425,7 +9425,7 @@ class _FSMTapeCache_(SageObject):
             multi-tape at (0, 0)
             sage: TC2.read(0), TC2.read(1), TC2.read(1)
             ((True, 37), (True, 11), (True, 12))
-            sage: TC2.preview_letter()
+            sage: TC2.preview_word()
             (37, 11)
             sage: TC2.cache is TC3.cache
             False
@@ -9457,7 +9457,7 @@ class _FSMTapeCache_(SageObject):
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             sage: TC2.read(0), TC2.read(1), TC2.read(1)
             ((True, 37), (True, 11), (True, 12))
-            sage: TC2.preview_letter()
+            sage: TC2.preview_word()
             (37, 11)
             sage: TC3 = deepcopy(TC2)
             sage: TC2.cache, TC3.cache
@@ -9512,7 +9512,7 @@ class _FSMTapeCache_(SageObject):
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             sage: while True:
             ....:     try:
-            ....:         letter = TC2.preview_letter()
+            ....:         word = TC2.preview_word(return_word=True)
             ....:     except StopIteration:
             ....:         print 'stop'
             ....:         break
@@ -9520,7 +9520,7 @@ class _FSMTapeCache_(SageObject):
             ....:     print 'finished:', TC2.finished(), \
             ....:         TC2.finished(0), TC2.finished(1)
             ....:     TC2.forward(
-            ....:         FSMTransition(0, 0, [[l] for l in letter]))
+            ....:         FSMTransition(0, 0, [w for w in word]))
             cache: (deque([37]), deque([11])) multi-tape at (0, 0)
             finished: False False False
             cache: (deque([38]), deque([12])) multi-tape at (1, 1)
@@ -9535,7 +9535,7 @@ class _FSMTapeCache_(SageObject):
             sage: print 'finished:', TC2.finished(), \
             ....:     TC2.finished(0), TC2.finished(1)
             finished: False False True
-            sage: TC2.preview_letter()
+            sage: TC2.preview_word()
             Traceback (most recent call last):
             ...
             StopIteration
@@ -9555,18 +9555,24 @@ class _FSMTapeCache_(SageObject):
         return self.tape_ended[track_number] and not self.cache[track_number]
 
 
-    def preview_letter(self, track_number=None):
+    def preview_word(self, track_number=None, length=1, return_word=False):
         """
-        Reads a letter from the input tape.
+        Reads a word from the input tape.
 
         INPUT:
 
         - ``track_number`` -- an integer or ``None``. If ``None``,
-          then a tuple of letters (one from each track) is returned.
+          then a tuple of words (one from each track) is returned.
+
+        - ``length`` -- (default: ``1``) the length of the word(s).
+
+        - ``return_word`` -- (default: ``False``) a boolean. If set,
+          then a word is returned, otherwise a single letter (in which
+          case ``length`` has to be ``1``).
 
         OUTPUT:
 
-        A letter or a tuple of letters.
+        A word or a tuple of words.
 
         An exception ``StopIteration`` is thrown if the tape (at least
         one track) has reached its end.
@@ -9582,41 +9588,41 @@ class _FSMTapeCache_(SageObject):
             ....:     _FSMTapeCache_, FSMTransition)
             sage: TC2 = _FSMTapeCache_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
-            sage: TC2.preview_letter(), TC2.preview_letter()
+            sage: TC2.preview_word(), TC2.preview_word()
             ((37, 11), (37, 11))
             sage: while True:
             ....:     try:
-            ....:         letter = TC2.preview_letter()
+            ....:         word = TC2.preview_word(return_word=True)
             ....:     except StopIteration:
             ....:         print 'stop'
             ....:         break
-            ....:     print 'read:', letter
+            ....:     print 'read:', word
             ....:     print 'cache:', TC2.cache, TC2
             ....:     TC2.forward(
-            ....:         FSMTransition(0, 0, [[l] for l in letter]))
+            ....:         FSMTransition(0, 0, [w for w in word]))
             ....:     print 'cache:', TC2.cache, TC2
-            read: (37, 11)
+            read: ([37], [11])
             cache: (deque([37]), deque([11])) multi-tape at (0, 0)
             cache: (deque([]), deque([])) multi-tape at (1, 1)
-            read: (38, 12)
+            read: ([38], [12])
             cache: (deque([38]), deque([12])) multi-tape at (1, 1)
             cache: (deque([]), deque([])) multi-tape at (2, 2)
-            read: (39, 13)
+            read: ([39], [13])
             cache: (deque([39]), deque([13])) multi-tape at (2, 2)
             cache: (deque([]), deque([])) multi-tape at (3, 3)
-            read: (40, 14)
+            read: ([40], [14])
             cache: (deque([40]), deque([14])) multi-tape at (3, 3)
             cache: (deque([]), deque([])) multi-tape at (4, 4)
             stop
             sage: print 'cache:', TC2.cache, TC2
             cache: (deque([41]), deque([])) multi-tape at (4, 4)
-            sage: TC2.preview_letter()
+            sage: TC2.preview_word()
             Traceback (most recent call last):
             ...
             StopIteration
             sage: print 'cache:', TC2.cache, TC2
             cache: (deque([41]), deque([])) multi-tape at (4, 4)
-            sage: TC2.preview_letter(0)
+            sage: TC2.preview_word(0)
             41
             sage: print 'cache:', TC2.cache, TC2
             cache: (deque([41]), deque([])) multi-tape at (4, 4)
@@ -9624,19 +9630,26 @@ class _FSMTapeCache_(SageObject):
             sage: print 'cache:', TC2.cache, TC2
             cache: (deque([]), deque([])) multi-tape at (5, 4)
         """
+        if not return_word and length != 1:
+            raise ValueError("Should return a letter, but parameter "
+                             "length is not 1.")
         if track_number is None:
             if self.is_multitape:
-                result = tuple(self.preview_letter(n)
+                result = tuple(self.preview_word(n, length, return_word)
                                for n, _ in enumerate(self.cache))
                 if len(result) != len(self.cache):
                     raise StopIteration
                 return result
             else:
-                return self.preview_letter(0)
+                return self.preview_word(0, length)
         track_cache = self.cache[track_number]
-        if not track_cache and not self.read(track_number)[0]:
-            raise StopIteration
-        return track_cache[0]
+        while len(track_cache) < length:
+            if not self.read(track_number)[0]:
+                raise StopIteration
+        if return_word:
+            return [letter for _, letter in izip(xrange(length), track_cache)]
+        else:
+            return track_cache[0]
 
 
     def compare_to_tape(self, track_number, word):
@@ -9721,7 +9734,7 @@ class _FSMTapeCache_(SageObject):
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             sage: TC2, TC2.cache
             (multi-tape at (0, 0), (deque([]), deque([])))
-            sage: letter = TC2.preview_letter(); letter
+            sage: letter = TC2.preview_word(); letter
             (37, 11)
             sage: TC2, TC2.cache
             (multi-tape at (0, 0), (deque([37]), deque([11])))
@@ -9731,7 +9744,7 @@ class _FSMTapeCache_(SageObject):
             sage: TC2.forward(FSMTransition(0, 0, [[0], [0, 0]]))
             sage: TC2, TC2.cache
             (multi-tape at (2, 3), (deque([]), deque([])))
-            sage: letter = TC2.preview_letter(); letter
+            sage: letter = TC2.preview_word(); letter
             (39, 14)
             sage: TC2, TC2.cache
             (multi-tape at (2, 3), (deque([39]), deque([14])))
@@ -10652,7 +10665,6 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         if format_output is None:
             return self._finished_
         return [r[:2] + (format_output(r[2]),) for r in self._finished_]
-
 
     @property
     def current_state(self):

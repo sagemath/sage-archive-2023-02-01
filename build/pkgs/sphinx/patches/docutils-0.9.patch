@@ -1,0 +1,48 @@
+# HG changeset patch
+# User Georg Brandl <georg@python.org>
+# Date 1327832412 -3600
+# Branch stable
+# Node ID bab0b83c9e020feb7de9dee07c35d703179135f3
+# Parent  796d955ce01e016017944ef2f64f33039cfbca17
+Closes #853: Restore compatibility with docutils trunk.
+
+diff --git a/CHANGES b/CHANGES
+--- a/CHANGES
++++ b/CHANGES
+@@ -27,6 +27,8 @@
+ * #851: Recognize and warn about circular toctrees, instead of running
+   into recursion errors.
+ 
++* #853: Restore compatibility with docutils trunk.
++
+ 
+ Release 1.1.2 (Nov 1, 2011) -- 1.1.1 is a silly version number anyway!
+ ======================================================================
+diff --git a/sphinx/util/nodes.py b/sphinx/util/nodes.py
+--- a/sphinx/util/nodes.py
++++ b/sphinx/util/nodes.py
+@@ -179,8 +179,12 @@
+         directive.state_machine.get_source_and_line(directive.lineno)
+ 
+ def set_role_source_info(inliner, lineno, node):
++    try:
+         node.source, node.line = \
+             inliner.reporter.locator(lineno)
++    except AttributeError:
++        # docutils 0.9+
++        node.source, node.line = inliner.reporter.get_source_and_line(lineno)
+ 
+ # monkey-patch Node.__contains__ to get consistent "in" operator behavior
+ # across docutils versions
+diff --git a/sphinx/writers/html.py b/sphinx/writers/html.py
+--- a/sphinx/writers/html.py
++++ b/sphinx/writers/html.py
+@@ -65,6 +65,8 @@
+             self.permalink_text = self.permalink_text and u'\u00B6' or ''
+         self.permalink_text = self.encode(self.permalink_text)
+         self.secnumber_suffix = builder.config.html_secnumber_suffix
++        self.param_separator = ''
++        self._table_row_index = 0
+ 
+     def visit_start_of_file(self, node):
+         # only occurs in the single-file builder

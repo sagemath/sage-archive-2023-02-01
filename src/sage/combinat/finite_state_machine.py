@@ -1579,8 +1579,6 @@ class FSMState(SageObject):
             ....:                (2, 0, None, None), (4, 1, None, None)])
             sage: A.state(0)._epsilon_successors_(A)
             {0: [[]], 1: [[]], 2: [[]]}
-            sage: sorted(A.state(0)._epsilon_successors_(A).iteritems())
-            [(0, [[]]), (1, [[]]), (2, [[]])]
             sage: A.state(0)._epsilon_cycle_output_empty_(A)
             True
             sage: A.process(initial_state=A.state(0))
@@ -1589,8 +1587,6 @@ class FSMState(SageObject):
             Transition from 0 to 0: -|'x'
             sage: A.state(0)._epsilon_successors_(A)
             {0: [['x'], []], 1: [[]], 2: [[]]}
-            sage: sorted(A.state(0)._epsilon_successors_(A).iteritems())
-            [(0, [['x'], []]), (1, [[]]), (2, [[]])]
             sage: A.state(0)._epsilon_cycle_output_empty_(A)
             False
             sage: A.process(initial_state=A.state(0))

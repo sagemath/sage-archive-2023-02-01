@@ -374,6 +374,56 @@ class IncidenceStructure(object):
         """
         return not self.__eq__(other)
 
+    def __contains__(self, block):
+        r"""
+        Tests if a block belongs to the incidence structure
+
+        INPUT:
+
+        - ``block`` -- a block.
+
+        EXAMPLES::
+
+            sage: [1,2,3,4] in IncidenceStructure([[1,2,3,4]])
+            True
+            sage: [1,2,4,3] in IncidenceStructure([[1,2,3,4]])
+            True
+            sage: [1,2,"3",4] in IncidenceStructure([[1,2,3,4]])
+            False
+            sage: [1,2,"3",4] in IncidenceStructure([[1,2,"3",4]])
+            True
+
+        More complicated examples::
+
+            sage: str="I had a dream of a time when a 3-lines patch does not kill one hour"
+            sage: sets = Subsets(str.split(), 4)
+            sage: IS = IncidenceStructure(sets) # a complete 4-uniform hypergraph
+            sage: ["I", "dream", "of", "one"] in IS
+            True
+            sage: ["does", "patch", "kill", "dream"] in IS
+            True
+            sage: ["Am", "I", "finally", "done ?"] in IS
+            False
+            sage: IS = designs.ProjectiveGeometryDesign(3, 1, GF(2))
+            sage: [3,8,7] in IS
+            True
+            sage: [3,8,9] in IS
+            False
+        """
+        try:
+            iter(block)
+        except TypeError:
+            return False
+
+        # Relabel to 0,...,n-1 if necessary
+        if self._point_to_index is not None:
+            try:
+                block = [self._point_to_index[x] for x in block]
+            except KeyError:
+                return False
+
+        return sorted(block) in self._blocks
+
     def ground_set(self, copy=True):
         r"""
         Return the ground set (i.e the list of points).

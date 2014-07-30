@@ -114,7 +114,7 @@ EXAMPLES:
 
     Visualize the Bessel Y function on the complex plane::
 
-        sage: complex_plot(bessel_Y(0, x), (-5, 5), (-5, 5))
+        sage: complex_plot(bessel_Y(0, x), (-5, 5), (-5, 5), plot_points=10) # long time
 
     Evaluate a combination of Bessel functions::
 
@@ -272,7 +272,7 @@ class Function_Bessel_J(BuiltinFunction):
     Visualization::
 
         sage: plot(bessel_J(1,x), (x,0,5), color='blue')
-        sage: complex_plot(bessel_J(1, x), (-5, 5), (-5, 5)) # long time
+        sage: complex_plot(bessel_J(1, x), (-5, 5), (-5, 5), plot_points=10) # long time
 
     ALGORITHM:
 
@@ -424,7 +424,7 @@ class Function_Bessel_Y(BuiltinFunction):
     Visualization::
 
         sage: plot(bessel_Y(1,x), (x,0,5), color='blue')
-        sage: complex_plot(bessel_Y(1, x), (-5, 5), (-5, 5)) # long time
+        sage: complex_plot(bessel_Y(1, x), (-5, 5), (-5, 5), plot_points=10) # long time
 
     ALGORITHM:
 
@@ -578,7 +578,7 @@ class Function_Bessel_I(BuiltinFunction):
     Visualization::
 
         sage: plot(bessel_I(1,x), (x,0,5), color='blue')
-        sage: complex_plot(bessel_I(1, x), (-5, 5), (-5, 5)) # long time
+        sage: complex_plot(bessel_I(1, x), (-5, 5), (-5, 5), plot_points=10) # long time
 
     ALGORITHM:
 
@@ -743,7 +743,7 @@ class Function_Bessel_K(BuiltinFunction):
     Visualization::
 
         sage: plot(bessel_K(1,x), (x,0,5), color='blue')
-        sage: complex_plot(bessel_K(1, x), (-5, 5), (-5, 5)) # long time
+        sage: complex_plot(bessel_K(1, x), (-5, 5), (-5, 5), plot_points=10) # long time
 
     ALGORITHM:
 

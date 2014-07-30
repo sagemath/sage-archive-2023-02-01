@@ -4,7 +4,7 @@ Base class for sparse matrices
 
 cimport matrix
 cimport matrix0
-from sage.structure.element cimport Element, RingElement, ModuleElement, Vector
+from sage.structure.element cimport (Element, RingElement, ModuleElement, Vector, CoercionModel)
 from sage.rings.ring import is_Ring
 from sage.misc.misc import verbose
 
@@ -894,16 +894,33 @@ cdef class Matrix_sparse(matrix.Matrix):
             [-----------]
             [ 0  1  2  3]
             [ 4  5  6  7]
+
+        TESTS::
+
+        One can stack matrices over different rings (:trac:`16399`). ::
+
+            sage: M = Matrix(ZZ, 2, 3, range(6), sparse=True)
+            sage: N = Matrix(QQ, 1, 3, [10,11,12], sparse=True)
+            sage: M.stack(N)
+            [0 1 2 3 4]
+            [5 6 7 8 9]
+            [0 1 2 3 4]
+            sage: N.stack(M)
+            ?
+            sage: M2 = Matrix(ZZ['x'], 2, 3, range(6), sparse=True)
+            sage: N.stack(M2)
+            ?
         """
         if hasattr(bottom, '_vector_'):
             bottom = bottom.row()
         if not isinstance(bottom, matrix.Matrix):
-            raise TypeError, "other must be a matrix"
+            raise TypeError("other must be a matrix")
 
         cdef Matrix_sparse other = bottom.sparse_matrix()
+        cdef CoercionModel coercion_model
 
         if self._ncols != other._ncols:
-            raise TypeError, "number of columns must be the same"
+            raise TypeError("number of columns must be the same")
 
         top_ring = self._base_ring
         bottom_ring = other.base_ring()
@@ -913,9 +930,12 @@ cdef class Matrix_sparse(matrix.Matrix):
             elif bottom_ring_has_coerce_map_from(top_ring): 
                 self = self.change_ring(bottom_ring)   # allowed ?
             else:
-                # what to do ?
-                # how to find a common parent ?
-                raise TypeError('damn')
+                from sage.structure.element import get_coercion_model
+                coercion_model = get_coercion_model()
+                com_ring = coercion_model.common_parent(top_ring, bottom_ring)
+                self = self.change_ring(com_ring)   # allowed ?
+                other = other.change_ring(com_ring)
+                
 
         cdef Matrix_sparse Z
         Z = self.new_matrix(nrows = self._nrows + other.nrows())

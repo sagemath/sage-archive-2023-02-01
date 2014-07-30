@@ -21,6 +21,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.all import ZZ, QQ, infinity, rising_factorial, PolynomialRing, LaurentSeries, PowerSeriesRing, FractionField
+from sage.rings.big_oh import O
 from sage.functions.all import exp
 
 from sage.structure.sage_object import SageObject
@@ -440,7 +441,14 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         b        = self._group.beta()
         Phi      = F1(a,b) / F(a,b,ZZ(1))
         q        = self._ZZseries_ring.gen()
-        J_inv_ZZ = ZZ(1) / ((q*Phi.exp()).reversion())
+
+        # the current implementation of power series reversion is slow
+        # J_inv_ZZ = ZZ(1) / ((q*Phi.exp()).reversion())
+
+        temp_f   = (q*Phi.exp()).polynomial()
+        new_f    = temp_f.revert_series(temp_f.degree()+1)
+        J_inv_ZZ = ZZ(1) / (new_f + O(q**(temp_f.degree()+1)))
+
         return J_inv_ZZ
 
     @cached_method

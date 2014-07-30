@@ -197,7 +197,7 @@ class EuclideanDomains(Category_singleton):
             Return the quotient and remainder of the division of this element
             by the non-zero element ``other``.
 
-            INPUT::
+            INPUT:
 
             - ``other`` -- an element in the same euclidean domain
 
@@ -209,4 +209,3 @@ class EuclideanDomains(Category_singleton):
                 sage: x.quo_rem(x)
                 (1, 0)
             """
-

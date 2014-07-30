@@ -725,7 +725,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
         Return the quotient with remainder of the division of this element by
         ``other``.
 
-        INPUT::
+        INPUT:
 
         - ``other`` -- an element in the same ring
 
@@ -749,7 +749,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
         from sage.categories.fields import Fields
         if self.parent() in Fields():
-            return (self/other, self.parent().zero())
+            return (self / other, self.parent().zero())
         else:
             if self.valuation() < other.valuation():
                 return (self.parent().zero(), self)

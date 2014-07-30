@@ -355,9 +355,9 @@ TikZ is used for typesetting the graphics, see the
     \begin{tikzpicture}[auto, initial text=, >=latex]
     \node[state, accepting, initial] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
     \node[state, accepting] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
-    \path[->] (v1.5.00) edge node[rotate=0.00, anchor=south] {$0$} (v0.175.00);
-    \path[->] (v0.185.00) edge node[rotate=360.00, anchor=north] {$1, -1$} (v1.355.00);
     \path[->] (v0) edge[loop above] node {$0$} ();
+    \path[->] (v0.185.00) edge node[rotate=360.00, anchor=north] {$1, -1$} (v1.355.00);
+    \path[->] (v1.5.00) edge node[rotate=0.00, anchor=south] {$0$} (v0.175.00);
     \end{tikzpicture}
 
 We can turn this into a graphical representation.
@@ -388,9 +388,9 @@ we use :meth:`~FiniteStateMachine.format_letter_negative` to format
     \begin{tikzpicture}[auto, initial text=, >=latex]
     \node[state, accepting, initial, initial where=below] (v0) at (0.000000, 0.000000) {$\mathcal{A}$};
     \node[state, accepting] (v1) at (6.000000, 0.000000) {$\mathcal{B}$};
-    \path[->] (v1.185.00) edge node[rotate=360.00, anchor=north] {$0$} (v0.355.00);
-    \path[->] (v0.5.00) edge node[rotate=0.00, anchor=south] {$1, \overline{1}$} (v1.175.00);
     \path[->] (v0) edge[loop above] node {$0$} ();
+    \path[->] (v0.5.00) edge node[rotate=0.00, anchor=south] {$1, \overline{1}$} (v1.175.00);
+    \path[->] (v1.185.00) edge node[rotate=360.00, anchor=north] {$0$} (v0.355.00);
     \end{tikzpicture}
     sage: view(NAF) # not tested
 
@@ -793,8 +793,8 @@ from copy import copy
 from copy import deepcopy
 
 import itertools
-from itertools import imap, ifilter
-from collections import defaultdict
+from itertools import imap
+from collections import defaultdict, OrderedDict
 
 
 def full_group_by(l, key=lambda x: x):
@@ -2635,7 +2635,7 @@ class FiniteStateMachine(SageObject):
         if hasattr(on_duplicate_transition, '__call__'):
             self.on_duplicate_transition=on_duplicate_transition
         else:
-            raise TypeError, 'on_duplicate_transition must be callable'
+            raise TypeError('on_duplicate_transition must be callable')
 
         if data is None:
             pass
@@ -2825,6 +2825,18 @@ class FiniteStateMachine(SageObject):
             sage: F = FiniteStateMachine([('A', 'A', 0, 1), ('A', 'A', 1, 0)])
             sage: deepcopy(F)
             Finite state machine with 1 states
+
+        TESTS:
+
+        Make sure that the links between transitions and states
+        are still intact::
+
+            sage: C = deepcopy(F)
+            sage: C.transitions()[0].from_state is C.state('A')
+            True
+            sage: C.transitions()[0].to_state is C.state('A')
+            True
+
         """
         return deepcopy(self, memo)
 
@@ -3645,29 +3657,29 @@ class FiniteStateMachine(SageObject):
 
         ::
 
-            sage: T = Transducer(initial_states=['I'],
+            sage: T = Transducer(initial_states=[4],
             ....:     final_states=[0, 3])
             sage: for j in srange(4):
-            ....:     T.add_transition('I', j, 0, [0, j])
-            ....:     T.add_transition(j, 'I', 0, [0, -j])
+            ....:     T.add_transition(4, j, 0, [0, j])
+            ....:     T.add_transition(j, 4, 0, [0, -j])
             ....:     T.add_transition(j, j, 0, 0)
-            Transition from 'I' to 0: 0|0,0
-            Transition from 0 to 'I': 0|0,0
+            Transition from 4 to 0: 0|0,0
+            Transition from 0 to 4: 0|0,0
             Transition from 0 to 0: 0|0
-            Transition from 'I' to 1: 0|0,1
-            Transition from 1 to 'I': 0|0,-1
+            Transition from 4 to 1: 0|0,1
+            Transition from 1 to 4: 0|0,-1
             Transition from 1 to 1: 0|0
-            Transition from 'I' to 2: 0|0,2
-            Transition from 2 to 'I': 0|0,-2
+            Transition from 4 to 2: 0|0,2
+            Transition from 2 to 4: 0|0,-2
             Transition from 2 to 2: 0|0
-            Transition from 'I' to 3: 0|0,3
-            Transition from 3 to 'I': 0|0,-3
+            Transition from 4 to 3: 0|0,3
+            Transition from 3 to 4: 0|0,-3
             Transition from 3 to 3: 0|0
-            sage: T.add_transition('I', 'I', 0, 0)
-            Transition from 'I' to 'I': 0|0
+            sage: T.add_transition(4, 4, 0, 0)
+            Transition from 4 to 4: 0|0
             sage: T.state(3).final_word_out = [0, 0]
             sage: T.latex_options(
-            ....:     coordinates={'I': (0, 0),
+            ....:     coordinates={4: (0, 0),
             ....:                  0: (-6, 3),
             ....:                  1: (-2, 3),
             ....:                  2: (2, 3),
@@ -3676,14 +3688,14 @@ class FiniteStateMachine(SageObject):
             ....:     format_letter=lambda x: r'w_{%s}' % x,
             ....:     format_transition_label=lambda x:
             ....:         r"{\scriptstyle %s}" % T.default_format_transition_label(x),
-            ....:     loop_where={'I': 'below', 0: 'left', 1: 'above',
+            ....:     loop_where={4: 'below', 0: 'left', 1: 'above',
             ....:                 2: 'right', 3:'below'},
             ....:     initial_where=lambda x: 'above',
             ....:     accepting_style='accepting by double',
             ....:     accepting_distance='10ex',
             ....:     accepting_where={0: 'left', 3: 45}
             ....:     )
-            sage: T.state('I').format_label=lambda: r'\mathcal{I}'
+            sage: T.state(4).format_label=lambda: r'\mathcal{I}'
             sage: latex(T)
             \begin{tikzpicture}[auto, initial text=, >=latex]
             \node[state, initial, initial where=above] (v0) at (0.000000, 0.000000) {$\mathcal{I}$};
@@ -3692,18 +3704,18 @@ class FiniteStateMachine(SageObject):
             \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {$\$ \mid {\scriptstyle w_{0} w_{0}}$} ++(45.00:10ex);
             \node[state] (v3) at (-2.000000, 3.000000) {$\mathbf{1}$};
             \node[state] (v4) at (2.000000, 3.000000) {$\mathbf{2}$};
-            \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{2}}$} (v4.231.31);
+            \path[->] (v1) edge[loop left] node[rotate=90, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
             \path[->] (v1.-21.57) edge node[rotate=-26.57, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{0}}$} (v0.148.43);
-            \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{3}}$} (v2.201.57);
-            \path[->] (v2) edge[loop below] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
-            \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-3}}$} (v0.21.57);
+            \path[->] (v3) edge[loop above] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
             \path[->] (v3.-51.31) edge node[rotate=-56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-1}}$} (v0.118.69);
             \path[->] (v4) edge[loop right] node[rotate=90, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
-            \path[->] (v3) edge[loop above] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
-            \path[->] (v1) edge[loop left] node[rotate=90, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
             \path[->] (v4.-118.69) edge node[rotate=56.31, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-2}}$} (v0.51.31);
+            \path[->] (v2) edge[loop below] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
+            \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-3}}$} (v0.21.57);
             \path[->] (v0.158.43) edge node[rotate=333.43, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{0}}$} (v1.328.43);
             \path[->] (v0.128.69) edge node[rotate=303.69, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{1}}$} (v3.298.69);
+            \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{2}}$} (v4.231.31);
+            \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{3}}$} (v2.201.57);
             \path[->] (v0) edge[loop below] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
             \end{tikzpicture}
             sage: view(T) # not tested
@@ -3727,18 +3739,18 @@ class FiniteStateMachine(SageObject):
             \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {$\$ \mid w_{0} w_{0}$} ++(45.00:10ex);
             \node[state] (v3) at (-2.000000, 3.000000) {$\mathbf{1}$};
             \node[state] (v4) at (2.000000, 3.000000) {$\mathbf{2}$};
-            \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {$w_{0}\mid w_{0} w_{2}$} (v4.231.31);
+            \path[->] (v1) edge[loop left] node[rotate=90, anchor=south] {$w_{0}\mid w_{0}$} ();
             \path[->] (v1.-21.57) edge node[rotate=-26.57, anchor=south] {$w_{0}\mid w_{0} w_{0}$} (v0.148.43);
-            \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {$w_{0}\mid w_{0} w_{3}$} (v2.201.57);
-            \path[->] (v2) edge[loop below] node {$w_{0}\mid w_{0}$} ();
-            \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {$w_{0}\mid w_{0} w_{-3}$} (v0.21.57);
+            \path[->] (v3) edge[loop above] node {$w_{0}\mid w_{0}$} ();
             \path[->] (v3.-51.31) edge node[rotate=-56.31, anchor=south] {$w_{0}\mid w_{0} w_{-1}$} (v0.118.69);
             \path[->] (v4) edge[loop right] node[rotate=90, anchor=north] {$w_{0}\mid w_{0}$} ();
-            \path[->] (v3) edge[loop above] node {$w_{0}\mid w_{0}$} ();
-            \path[->] (v1) edge[loop left] node[rotate=90, anchor=south] {$w_{0}\mid w_{0}$} ();
             \path[->] (v4.-118.69) edge node[rotate=56.31, anchor=north] {$w_{0}\mid w_{0} w_{-2}$} (v0.51.31);
+            \path[->] (v2) edge[loop below] node {$w_{0}\mid w_{0}$} ();
+            \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {$w_{0}\mid w_{0} w_{-3}$} (v0.21.57);
             \path[->] (v0.158.43) edge node[rotate=333.43, anchor=north] {$w_{0}\mid w_{0} w_{0}$} (v1.328.43);
             \path[->] (v0.128.69) edge node[rotate=303.69, anchor=north] {$w_{0}\mid w_{0} w_{1}$} (v3.298.69);
+            \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {$w_{0}\mid w_{0} w_{2}$} (v4.231.31);
+            \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {$w_{0}\mid w_{0} w_{3}$} (v2.201.57);
             \path[->] (v0) edge[loop below] node {$w_{0}\mid w_{0}$} ();
             \end{tikzpicture}
             sage: view(T) # not tested
@@ -3765,7 +3777,7 @@ class FiniteStateMachine(SageObject):
             sage: T.latex_options(loop_where=lambda x: 'top')
             Traceback (most recent call last):
             ...
-            ValueError: loop_where for I must be in ['below',
+            ValueError: loop_where for 4 must be in ['below',
             'right', 'above', 'left'].
             sage: T.latex_options(initial_where=90)
             Traceback (most recent call last):
@@ -3775,7 +3787,7 @@ class FiniteStateMachine(SageObject):
             sage: T.latex_options(initial_where=lambda x: 'top')
             Traceback (most recent call last):
             ...
-            ValueError: initial_where for I must be in ['below',
+            ValueError: initial_where for 4 must be in ['below',
             'right', 'above', 'left'].
             sage: T.latex_options(accepting_style='fancy')
             Traceback (most recent call last):
@@ -4018,11 +4030,23 @@ class FiniteStateMachine(SageObject):
                     angle, accepting_distance)
 
             j += 1
-        adjacent = {}
-        for source in self.iter_states():
-            for target in self.iter_states():
-                transitions = [transition for transition in source.transitions if transition.to_state == target]
-                adjacent[source, target] = transitions
+
+        def key_function(s):
+            return (s.from_state, s.to_state)
+        # We use an OrderedDict instead of a dict in order to have a
+        # defined ordering of the transitions in the output. See
+        # http://trac.sagemath.org/ticket/16580#comment:3 . As the
+        # transitions have to be sorted anyway, the performance
+        # penalty should be bearable; nevertheless, this is only
+        # required for doctests.
+        adjacent = OrderedDict(
+            (pair, list(transitions))
+            for pair, transitions in
+            itertools.groupby(
+                sorted(self.iter_transitions(),
+                       key=key_function),
+                key=key_function
+                ))
 
         for ((source, target), transitions) in adjacent.iteritems():
             if len(transitions) > 0:
@@ -4038,7 +4062,7 @@ class FiniteStateMachine(SageObject):
                     angle = atan2(
                         target.coordinates[1] - source.coordinates[1],
                         target.coordinates[0] - source.coordinates[0]) * 180/pi
-                    both_directions = len(adjacent[target, source]) > 0
+                    both_directions = (target, source) in adjacent
                     if both_directions:
                         angle_source = ".%.2f" % ((angle + 5).n(),)
                         angle_target = ".%.2f" % ((angle + 175).n(),)
@@ -5574,15 +5598,24 @@ class FiniteStateMachine(SageObject):
             ....:               initial_states=[0])
             sage: F.accessible_components()
             Automaton with 1 states
+
+        TESTS:
+
+        Check whether input of length > 1 works::
+
+            sage: F = Automaton([(0, 1, [0, 1]), (0, 2, 0)],
+            ....:               initial_states=[0])
+            sage: F.accessible_components()
+            Automaton with 3 states
         """
         if len(self.initial_states()) == 0:
             return deepcopy(self)
 
         memo = {}
-        def accessible(sf, read):
-            trans = [x for x in self.transitions(sf) if x.word_in[0] == read]
-            return map(lambda x: (deepcopy(x.to_state, memo), x.word_out),
-                       trans)
+        def accessible(from_state, read):
+            return [(deepcopy(x.to_state, memo), x.word_out)
+                    for x in self.iter_transitions(from_state)
+                    if x.word_in[0] == read]
 
         new_initial_states=map(lambda x: deepcopy(x, memo),
                                self.initial_states())
@@ -6509,9 +6542,9 @@ class FiniteStateMachine(SageObject):
         """
         DG = self.digraph()
         condensation = DG.strongly_connected_components_digraph()
-        final_labels = [v for v in condensation.vertices() if condensation.out_degree(v) == 0]
         return [self.induced_sub_finite_state_machine(map(self.state, component))
-                for component in final_labels]
+                for component in condensation.vertices()
+                if condensation.out_degree(component) == 0]
 
 
     # *************************************************************************

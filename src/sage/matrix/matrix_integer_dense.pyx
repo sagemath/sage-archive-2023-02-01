@@ -93,7 +93,7 @@ from sage.rings.integer_ring import ZZ, IntegerRing_class
 from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
+from sage.structure.element cimport (ModuleElement, RingElement, Element, Vector, CoercionModel)
 from sage.structure.element import is_Vector
 from sage.structure.sequence import Sequence
 
@@ -4449,23 +4449,42 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 0  0 12]
             sage: P.is_sparse()
             False
+
+        One can stack matrices over different rings (:trac:`16399`). ::
+
+            sage: M = Matrix(ZZ, 2, 3, range(6))
+            sage: N = Matrix(QQ, 1, 3, [10,11,12])
+            sage: M.stack(N)
+            [0 1 2 3 4]
+            [5 6 7 8 9]
+            [0 1 2 3 4]
+            sage: N.stack(M)
+            ?
+            sage: M2 = Matrix(ZZ['x'], 2, 3, range(6))
+            sage: N.stack(M2)
+            ?
         """
         if hasattr(bottom, '_vector_'):
             bottom = bottom.row()
         if self._ncols != bottom.ncols():
             raise TypeError("number of columns must be the same")
+        cdef CoercionModel coercion_model
+
         top_ring = self._base_ring
         bottom_ring = bottom.base_ring()
         if not (top_ring is bottom_ring):
-            if top_ring_has_coerce_map_from(bottom_ring):
+            if top_ring.has_coerce_map_from(bottom_ring):
                 bottom = bottom.change_ring(top_ring)
-            elif bottom_ring_has_coerce_map_from(top_ring): 
+            elif bottom_ring.has_coerce_map_from(top_ring): 
                 new_top = self.change_ring(bottom_ring)
                 return new_top.stack(bottom, subdivide=subdivide):
             else:
-                # what to do ?
-                # how to find a common parent ?
-                raise TypeError('damn')
+                from sage.structure.element import get_coercion_model
+                coercion_model = get_coercion_model()
+                com_ring = coercion_model.common_parent(top_ring, bottom_ring)
+                self = self.change_ring(com_ring)   # allowed ?
+                bottom = other.change_ring(com_ring)
+
         cdef Matrix_integer_dense other = bottom.dense_matrix()
         cdef Matrix_integer_dense M
         M = self.new_matrix(nrows = self._nrows + other._nrows, ncols = self.ncols())

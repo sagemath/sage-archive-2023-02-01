@@ -925,9 +925,9 @@ cdef class Matrix_sparse(matrix.Matrix):
         top_ring = self._base_ring
         bottom_ring = other.base_ring()
         if not (top_ring is bottom_ring):
-            if top_ring_has_coerce_map_from(bottom_ring):
+            if top_ring.has_coerce_map_from(bottom_ring):
                 other = other.change_ring(top_ring)
-            elif bottom_ring_has_coerce_map_from(top_ring): 
+            elif bottom_ring.has_coerce_map_from(top_ring): 
                 self = self.change_ring(bottom_ring)   # allowed ?
             else:
                 from sage.structure.element import get_coercion_model

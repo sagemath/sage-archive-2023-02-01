@@ -393,16 +393,21 @@ class IncidenceStructure(object):
             sage: [1,2,"3",4] in IncidenceStructure([[1,2,"3",4]])
             True
 
-        A more complicated example::
+        More complicated examples::
 
             sage: str="I had a dream of a time when a 3-lines patch does not kill one hour"
-            sage: sets = Subsets(str.split(),4)
-            sage: IS = IncidenceStructure(sets)
+            sage: sets = Subsets(str.split(), 4)
+            sage: IS = IncidenceStructure(sets) # a complete 4-uniform hypergraph
             sage: ["I", "dream", "of", "one"] in IS
             True
             sage: ["does", "patch", "kill", "dream"] in IS
             True
             sage: ["Am", "I", "finally", "done ?"] in IS
+            False
+            sage: IS = designs.ProjectiveGeometryDesign(3, 1, GF(2))
+            sage: [3,8,7] in IS
+            True
+            sage: [3,8,9] in IS
             False
         """
         try:

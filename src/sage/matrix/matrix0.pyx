@@ -4035,6 +4035,60 @@ cdef class Matrix(sage.structure.element.Matrix):
         else:
             raise ValueError("self must be a square matrix")
 
+    def is_weak_popov(self):
+        r"""
+        Returns ``True`` if the matrix is in weak popov form.
+
+        INPUT:
+
+        OUTPUT:
+
+        ``True`` if the leading positions of the matrix are all different and
+        the matrix is therefore in weak popov form.
+        
+        A leading position is the position in a row with the highest order
+        (for polynomials: degree), for positions with equal order the highest
+        position in the row is taken (the furthest to the right).
+
+        .. WARNING::
+        
+        This implementation only works for objects implementing a degree function,
+        it is designed to work for polynomialsl.
+        
+        EXAMPLES:: 
+        
+        A matrix with the same leading position in two rows. ::
+        
+            sage: PF = PolynomialRing(GF(2^12,'a'),'x')
+            sage: A = matrix(PF,3,[x,x^2,x^3,x^2,x^2,x^2,x^3,x^2,x])
+            sage: A.is_weak_popov()
+            False
+            
+        A matrix that has different leading positions. ::
+        
+            sage: B = matrix(PF,3,[1,1,x^3,x^2,1,1,1,x^2,1])
+            sage: B.is_weak_popov()
+            True
+
+        TESTS: 
+        
+            sage: C = matrix(ZZ,4,[-1, 1, 0, 0, 7, -2, 1, 0, 1, 0, 2, -5, -1, 1, 0, 2])
+            sage: C.is_weak_popov()
+            ---------------------------------------------------------------------------
+            ...
+            NotImplementedError: is_weak_popov only implements support for matrices ordered by a function self[x,y].degree().
+            
+        
+        AUTHOR:
+
+        - David Moedinger (2014-07-30)
+        """
+        try:
+            t = [[i for i,j in enumerate(v) if j==max(v)][-1] for v in self.apply_map(lambda x: x.degree()) if max(v)!=-1]
+        except (NotImplementedError,AttributeError):
+            raise NotImplementedError("is_weak_popov only implements support for matrices ordered by a function self[x,y].degree().")
+        return len(t)==len(set(t))
+
     ###################################################
     # Invariants of a matrix
     ###################################################

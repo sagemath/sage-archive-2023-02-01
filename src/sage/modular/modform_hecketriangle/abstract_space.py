@@ -708,7 +708,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         return new_space(rat)
 
-    def Faber_pol(self, m, fix_d=False, set_d=None, d_num_prec=None):
+    def Faber_pol(self, m, fix_d=False, d=None, d_num_prec=None):
         r"""
         Return the ``m``'th Faber polynomial of ``self``.
 
@@ -727,18 +727,18 @@ class FormsSpace_abstract(FormsRing_abstract):
                              (numerically) substituted for the coefficients
                              of the polynomial (default: ``False``).
 
-        - ``set_d``       -- The value which should be substituted for ``d`` (default: ``None``).
+        - ``d``           -- The value which should be substituted for ``d`` (default: ``None``).
                              The value is ignored if ``fix_d=True``.                             
 
         - ``d_num_prec``  -- The numerical precision to be used for ``d``
-                             in case ``fix_d=True`` or ``set_d`` is set,
+                             in case ``fix_d=True`` or ``d`` is set,
                              Default: ``None``, in which case the default
                              numerical precision ``self.num_prec()`` is used.
 
         OUTPUT:
 
         The corresponding Faber polynomial `P(q)` with coefficients in ``self.coeff_ring()``
-        resp. a numerical ring in case ``fix_d=True`` or ``set_d`` is set
+        resp. a numerical ring in case ``fix_d=True`` or ``d`` is set
         (and the group of ``self`` is not arithmetic).
 
         EXAMPLES::
@@ -765,15 +765,15 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: (MF.Faber_pol(2)(MF.J_inv())*MF.F_simple()).q_expansion(prec=MF._l1+1)
             q^-2 + O(q^3)
 
-            sage: MF.Faber_pol(-2, set_d=1)
+            sage: MF.Faber_pol(-2, d=1)
             1
-            sage: MF.Faber_pol(-1, set_d=1)
+            sage: MF.Faber_pol(-1, d=1)
             q - 19/100
-            sage: MF.Faber_pol(2, set_d=1)
+            sage: MF.Faber_pol(2, d=1)
             q^4 - 11/8*q^3 + 41013/80000*q^2 - 2251291/48000000*q + 1974089431/4915200000000
-            sage: (MF.Faber_pol(-2, set_d=1)(MF.J_inv())*MF.F_simple()).q_expansion(prec=MF._l1+2, set_d=1)
+            sage: (MF.Faber_pol(-2, d=1)(MF.J_inv())*MF.F_simple()).q_expansion(prec=MF._l1+2, d=1)
             q^2 - 41/200*q^3 + O(q^4)
-            sage: (MF.Faber_pol(2)(MF.J_inv())*MF.F_simple()).q_expansion(prec=MF._l1+1, set_d=1)
+            sage: (MF.Faber_pol(2)(MF.J_inv())*MF.F_simple()).q_expansion(prec=MF._l1+1, d=1)
             q^-2 + O(q^3)
 
             sage: MF = WeakModularForms(n=4, k=-2)
@@ -801,13 +801,11 @@ class FormsSpace_abstract(FormsRing_abstract):
             d_num_prec = self._num_prec
 
         prec          = 2*self._l1+m+1
-        SC            = MFSeriesConstructor(self._group, self.base_ring(), prec, fix_d, set_d, d_num_prec)
-        q             = SC.q()
-        d             = SC.d()
-        qseries_ring  = SC.qseries_ring()
+        (base_ring, coeff_ring, qseries_ring, d) = MFSeriesConstructor(self._group, prec).series_data(self.base_ring(), fix_d, d, d_num_prec)
+        q             = qseries_ring.gen()
 
-        simple_qexp   = self.F_simple().q_expansion(prec=prec, fix_d=fix_d, set_d=set_d, d_num_prec=d_num_prec)
-        J_qexp        = self.J_inv().q_expansion(prec=m + self._l1, fix_d=fix_d, set_d=set_d, d_num_prec=d_num_prec)
+        simple_qexp   = self.F_simple().q_expansion(prec=prec, fix_d=fix_d, d=d, d_num_prec=d_num_prec)
+        J_qexp        = self.J_inv().q_expansion(prec=m + self._l1, fix_d=fix_d, d=d, d_num_prec=d_num_prec)
 
         # The precision could be infinity, otherwise we could do this:
         #assert(temp_reminder.prec() == 1)
@@ -822,13 +820,13 @@ class FormsSpace_abstract(FormsRing_abstract):
             temp_reminder -= temp_coeff*(J_qexp/d)**temp_exp
             # The first term is zero only up to numerical errors,
             # so we manually have to remove it
-            if (not SC.is_exact()):
+            if (not base_ring.is_exact()):
                 temp_reminder=temp_reminder.truncate_neg(-temp_exp+1)
 
         return fab_pol.polynomial()
 
     # very similar to Faber_pol: faber_pol(q)=Faber_pol(d*q)
-    def faber_pol(self, m, fix_d=False, set_d=None, d_num_prec=None):
+    def faber_pol(self, m, fix_d=False, d=None, d_num_prec=None):
         r"""
         Return the `m`'th Faber polynomial of ``self``
         with a different normalization based on ``j_inv``
@@ -848,18 +846,18 @@ class FormsSpace_abstract(FormsRing_abstract):
                              (numerically) substituted for the coefficients
                              of the polynomial (default: ``False``).
 
-        - ``set_d``       -- The value which should be substituted for ``d`` (default: ``None``).
+        - ``d``           -- The value which should be substituted for ``d`` (default: ``None``).
                              The value is ignored if ``fix_d=True``.                             
 
         - ``d_num_prec``  -- The numerical precision to be used for ``d``
-                             in case ``fix_d=True`` or ``set_d`` is set,
+                             in case ``fix_d=True`` or ``d`` is set,
                              Default: ``None``, in which case the default
                              numerical precision ``self.num_prec()`` is used.
 
         OUTPUT:
 
         The corresponding Faber polynomial p(q) with coefficients in ``self.coeff_ring()``
-        resp. a numerical ring in case ``fix_d=True`` or ``set_d`` is set
+        resp. a numerical ring in case ``fix_d=True`` or ``d`` is set
         (and the group of ``self`` is not arithmetic).
 
         EXAMPLES::
@@ -911,13 +909,11 @@ class FormsSpace_abstract(FormsRing_abstract):
             d_num_prec = self._num_prec
 
         prec          = 2*self._l1+m+1
-        SC            = MFSeriesConstructor(self._group, self.base_ring(), prec, fix_d, set_d, d_num_prec)
-        q             = SC.q()
-        d             = SC.d()
-        qseries_ring  = SC.qseries_ring()
+        (base_ring, coeff_ring, qseries_ring, d) = MFSeriesConstructor(self._group, prec).series_data(self.base_ring(), fix_d, d, d_num_prec)
+        q             = qseries_ring.gen()
 
-        simple_qexp   = self.F_simple().q_expansion(prec=prec, fix_d=fix_d, set_d=set_d, d_num_prec=d_num_prec)
-        j_qexp        = self.j_inv().q_expansion(prec=m + self._l1, fix_d=fix_d, set_d=set_d, d_num_prec=d_num_prec)
+        simple_qexp   = self.F_simple().q_expansion(prec=prec, fix_d=fix_d, d=d, d_num_prec=d_num_prec)
+        j_qexp        = self.j_inv().q_expansion(prec=m + self._l1, fix_d=fix_d, d=d, d_num_prec=d_num_prec)
 
         # The precision could be infinity, otherwise we could do this:
         #assert(temp_reminder.prec() == 1)
@@ -932,7 +928,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             temp_reminder -= temp_coeff*j_qexp**temp_exp
             # The first term is zero only up to numerical errors,
             # so we manually have to remove it
-            if (not SC.is_exact()):
+            if (not base_ring.is_exact()):
                 temp_reminder=temp_reminder.truncate_neg(-temp_exp+1)
 
         return fab_pol.polynomial()

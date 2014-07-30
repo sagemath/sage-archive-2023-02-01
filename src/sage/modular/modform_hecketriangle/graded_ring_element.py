@@ -1163,7 +1163,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
     #precision is actually acuracy, maybe add "real precision" meaning number of rel. coef
     @cached_method
-    def _q_expansion_cached(self, prec, fix_d, set_d, d_num_prec, fix_prec = False):
+    def _q_expansion_cached(self, prec, fix_d, d, d_num_prec, fix_prec = False):
         """
         Returns the Fourier expansion of self (cached).
         Don't call this function, instead use ``q_expansion``.
@@ -1178,7 +1178,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                             The base_ring will be changed accordingly (if possible).
                             Also see ``MFSeriesConstructor``.
 
-        - ``set_d``      -- ``None`` or a value to substitute for d.
+        - ``d``         -- ``None`` or a value to substitute for d.
                             The base_ring will be changed accordingly (if possible).
                             Also see ``MFSeriesConstructor``.
 
@@ -1207,7 +1207,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         if (fix_prec == False):
             #if (prec <1):
             #    print "Warning: non-positiv precision!"
-            if not (fix_d or (set_d is not None) or self.base_ring().is_exact()):
+            if not (fix_d or (d is not None) or self.base_ring().is_exact()):
                 from warnings import warn
                 warn("For non-exact base rings it is strongly recommended to fix/set d!")
             if ((not self.is_zero()) and prec <= self.order_inf()):
@@ -1222,20 +1222,20 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             # would instead give "prec" many significant coefficients:
             # prec += self.order_inf()
 
-        #dhom  = self.rat_field().hom([SC.f_rho_ZZ(), SC.f_i_ZZ(), SC.E2_ZZ(), SC.d()],SC.coeff_ring())
-        SC    = MFSeriesConstructor(self.group(), self.base_ring(), prec, fix_d, set_d, d_num_prec)
-        X     = SC.f_rho()
-        Y     = SC.f_i()
-        D     = SC.d()
-        q     = SC._qseries_ring.gen()
+        SC = MFSeriesConstructor(self.group(), prec)
+        (base_ring, coeff_ring, qseries_ring, D) = SC.series_data(self.base_ring(), fix_d, d, d_num_prec)
+        X  = SC.f_rho(self.base_ring(), fix_d, d, d_num_prec)
+        Y  = SC.f_i(self.base_ring(), fix_d, d, d_num_prec)
+
         if (self.parent().is_modular()):
             qexp = self._rat.subs(x=X,y=Y,d=D)
         else:
-            Z = SC.E2()
+            Z = SC.E2(self.base_ring(), fix_d, d, d_num_prec)
             qexp = self._rat.subs(x=X,y=Y,z=Z,d=D)
-        return (qexp + O(q**prec)).parent()(qexp)
+ 
+        return (qexp + O(qseries_ring.gen()**prec)).parent()(qexp)
 
-    def q_expansion(self, prec = None, fix_d = False, set_d=None, d_num_prec = None, fix_prec = False):
+    def q_expansion(self, prec = None, fix_d = False, d=None, d_num_prec = None, fix_prec = False):
         """
         Returns the Fourier expansion of self.
 
@@ -1249,10 +1249,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                             will be used (default: ``False``).
                             If n = 3, 4, 6 the used value is exact.
                             The base_ring will be changed accordingly (if possible).
-                            Alternatively also a value as in ``set_d`` can be specified.
+                            Alternatively also a value as in ``d`` can be specified.
                             Also see ``MFSeriesConstructor``.
 
-        - ``set_d``      -- ``None`` (default) or a value to substitute for d.
+        - ``d``      -- ``None`` (default) or a value to substitute for d.
                             The base_ring will be changed accordingly (if possible).
                             Also see ``MFSeriesConstructor``.
 
@@ -1309,14 +1309,14 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             d_num_prec = self.parent()._num_prec
         
         if isinstance(fix_d,bool) and (fix_d == True):
-            set_d = None
-        elif set_d is None:
-            set_d = fix_d
+            d = None
+        elif d is None:
+            d = fix_d
             fix_d = False
         else:
             fix_d = False
 
-        return self._q_expansion_cached(prec, fix_d, set_d, d_num_prec, fix_prec)
+        return self._q_expansion_cached(prec, fix_d, d, d_num_prec, fix_prec)
 
     def q_expansion_fixed_d(self, prec = None, d_num_prec = None, fix_prec = False):
         """

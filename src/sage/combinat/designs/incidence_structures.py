@@ -888,21 +888,27 @@ class IncidenceStructure(object):
             sage: IS.dual().automorphism_group().cardinality()
             1
 
-        An example with points other than integers::
+        Examples with non-integer points::
 
             sage: I = designs.IncidenceStructure('abc', ('ab','ac','bc'))
             sage: I.automorphism_group()
             Permutation Group with generators [('b','c'), ('a','b')]
+            sage: designs.IncidenceStructure([[(1,2),(3,4)]]).automorphism_group()
+            Permutation Group with generators [((1,2),(3,4))]
         """
         from sage.groups.perm_gps.partn_ref.refinement_matrices import MatrixStruct
         from sage.groups.perm_gps.permgroup import PermutationGroup
+        from sage.groups.perm_gps.permgroup_element import standardize_generator
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         M1 = self.incidence_matrix().transpose()
         M2 = MatrixStruct(M1)
         M2.run()
         gens = M2.automorphism_group()[0]
+        gens = [standardize_generator([x+1 for x in g]) for g in gens]
         if self._point_to_index:
-            gens = [[self._points[i] for i in p] for p in gens]
+            gens = [[tuple([self._points[i-1] for i in cycle]) for cycle in g] for g in gens]
+        else:
+            gens = [[tuple([i-1 for i in cycle]) for cycle in g] for g in gens]
         return PermutationGroup(gens, domain=self._points)
 
     ###############

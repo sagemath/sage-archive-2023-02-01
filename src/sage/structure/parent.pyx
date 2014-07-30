@@ -801,10 +801,12 @@ cdef class Parent(category_object.CategoryObject):
             running ._test_elements_eq_transitive() . . . pass
             running ._test_elements_neq() . . . pass
             running ._test_eq() . . . pass
+            running ._test_euclidean_degree() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
             running ._test_pickling() . . . pass
             running ._test_prod() . . . pass
+            running ._test_quo_rem() . . . pass
             running ._test_some_elements() . . . pass
             running ._test_zero() . . . pass
 
@@ -863,10 +865,12 @@ cdef class Parent(category_object.CategoryObject):
             _test_elements_eq_transitive
             _test_elements_neq
             _test_eq
+            _test_euclidean_degree
             _test_not_implemented_methods
             _test_one
             _test_pickling
             _test_prod
+            _test_quo_rem
             _test_some_elements
             _test_zero
             sage: F = GF(9,'a')

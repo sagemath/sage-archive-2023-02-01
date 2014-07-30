@@ -147,6 +147,9 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             from sage.matrix.constructor import matrix
             from sage.modules.free_module_element import vector
 
+            if self in SemisimpleAlgebras(self.base_ring()):
+                return self.from_vector(vector(self.zero()))
+
             if cache_products is True:
                 product_on_basis = cached_function(self.product_on_basis)
             else:

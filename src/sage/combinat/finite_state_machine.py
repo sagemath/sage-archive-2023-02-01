@@ -4661,13 +4661,13 @@ class FiniteStateMachine(SageObject):
         INPUT:
 
         - ``list_of_outputs`` -- (default: ``None``) a boolean or
-          ``None``. If ``True``, then the outputs are given in list
-          form (even when we have no or only one single output). If
+          ``None``. If ``True``, then the outputs are given in list form
+          (even when we have no or only one single output). If
           ``False``, then the result is never a list (an exception is
           raised when the result cannot be returned). If
-          ``list_of_outputs=None`` determines automatically what to do
-          (e.g. when a non-deterministic machine returns more than one
-          path, then the output is returned in list form).
+          ``list_of_outputs=None``, the method determines automatically
+          what to do (e.g. when a non-deterministic machine returns more
+          than one path, then the output is returned in list form).
 
         - ``only_accepted`` -- (default: ``False``) a boolean. If set,
           then the first argument in the output is guaranteed to be
@@ -8353,13 +8353,13 @@ class Automaton(FiniteStateMachine):
         INPUT:
 
         - ``list_of_outputs`` -- (default: ``None``) a boolean or
-          ``None``. If ``True``, then the outputs are given in list
-          form (even when we have no or only one single output). If
+          ``None``. If ``True``, then the outputs are given in list form
+          (even when we have no or only one single output). If
           ``False``, then the result is never a list (an exception is
           raised when the result cannot be returned). If
-          ``list_of_outputs=None`` determines automatically what to do
-          (e.g. when a non-deterministic machine returns more than one
-          path, then the output is returned in list form).
+          ``list_of_outputs=None`` the method determines automatically
+          what to do (e.g. when a non-deterministic machine returns more
+          than one path, then the output is returned in list form).
 
         - ``only_accepted`` -- (default: ``False``) a boolean. If set,
           then the first argument in the output is guaranteed to be
@@ -9062,13 +9062,13 @@ class Transducer(FiniteStateMachine):
         INPUT:
 
         - ``list_of_outputs`` -- (default: ``None``) a boolean or
-          ``None``. If ``True``, then the outputs are given in list
-          form (even when we have no or only one single output). If
+          ``None``. If ``True``, then the outputs are given in list form
+          (even when we have no or only one single output). If
           ``False``, then the result is never a list (an exception is
           raised when the result cannot be returned). If
-          ``list_of_outputs=None`` determines automatically what to do
-          (e.g. when a non-deterministic machine returns more than one
-          path, then the output is returned in list form).
+          ``list_of_outputs=None`` the method determines automatically
+          what to do (e.g. when a non-deterministic machine returns more
+          than one path, then the output is returned in list form).
 
         - ``only_accepted`` -- (default: ``False``) a boolean. If set,
           then the first argument in the output is guaranteed to be
@@ -9951,7 +9951,7 @@ class _FSMTapeCache_(SageObject):
 
         ``True`` or ``False``.
 
-        This method is usually overridden in inherited class,
+        This method is usually overridden in inherited classes,
         cf. :class:`_FSMTapeCacheDetectEpsilon_` and
         :class:`_FSMTapeCacheDetectAll_`.
 
@@ -10196,8 +10196,8 @@ def is_FSMProcessIterator(PI):
 class FSMProcessIterator(SageObject, collections.Iterator):
     """
     This class takes an input, feeds it into a finite state machine
-    (automaton or transducer, in particular), and tests whether this
-    was successful and calculates the written output.
+    (automaton or transducer, in particular), tests whether this was
+    successful and calculates the written output.
 
     INPUT:
 
@@ -10718,8 +10718,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         It returns the current status of the iterator (see below). A
         ``StopIteration`` exception is thrown when there is/was
-        nothing to do (i.e. all branches ended with previous calling
-        of :meth:`.__next__`.
+        nothing to do (i.e. all branches ended with previous call
+        of :meth:`.__next__`).
 
         The current status is a dictionary. The keys are positions on
         the tape. The value corresponding to such a position is again

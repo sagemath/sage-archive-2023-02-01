@@ -2854,6 +2854,18 @@ class FiniteStateMachine(SageObject):
             sage: H.states()
             [('A', 1), ('B', 1), ('B', 2)]
 
+        When only one successful path is found in a non-deterministic
+        transducer, the result of that path is returned.
+
+        ::
+
+            sage: T = Transducer([(0, 1, 0, 1), (0, 2, 0, 2)],
+            ....:                initial_states=[0], final_states=[1])
+            sage: T.process([0])
+            [(True, 1, [1]), (False, 2, [2])]
+            sage: T([0])
+            [1]
+
         TESTS::
 
             sage: F = FiniteStateMachine([(0, 1, 1, 'a'), (0, 2, 2, 'b')],

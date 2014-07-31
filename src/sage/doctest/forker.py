@@ -88,6 +88,12 @@ def init_sage():
         <BLANKLINE>
         2
           + x
+
+    The displayhook sorts dictionary keys to simplify doctesting of
+    dictionary output::
+
+        sage: {'a':23, 'b':34, 'au':56, 'bbf':234, 'aaa':234}
+        {'a': 23, 'aaa': 234, 'au': 56, 'b': 34, 'bbf': 234}
     """
     # Do this once before forking.
     import sage.doctest
@@ -95,7 +101,7 @@ def init_sage():
     import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()
     import sage.misc.displayhook
-    sys.displayhook = sage.misc.displayhook.DisplayHook(sys.displayhook)
+    sys.displayhook = sage.misc.displayhook.DisplayHook()
 
     # Switch on extra debugging
     from sage.structure.debug_options import debug
@@ -2011,7 +2017,7 @@ class DocTestTask(object):
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
             sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: DocTestTask(FDS)
-            <sage.doctest.forker.DocTestTask object at ...>
+            <sage.doctest.forker.DocTestTask at ...>
         """
         self.source = source
 

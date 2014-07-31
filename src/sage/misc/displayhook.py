@@ -418,54 +418,6 @@ class DisplayHookBase(object):
         return False
 
 
-class DisplayHook(DisplayHookBase):
-    """
-    Display hook for Sage.
-
-    This is not used directly in interactive Sage (where we use the
-    IPython system for display hooks).  This class provides a way to
-    use the Sage display formatting when not using interactive Sage.
-    """
-    def __init__(self, oldhook=sys.__displayhook__):
-        """
-        Set the old display hook (default to repr)
-
-        EXAMPLES::
-
-            sage: from sage.misc.displayhook import DisplayHook
-            sage: def f(o): print repr(o)[:5], "..."
-            sage: d = DisplayHook(f)
-            sage: d(range(10))
-            [0, 1 ...
-        """
-        self.oldhook = oldhook
-
-    def __call__(self, obj):
-        """
-        Format the object using Sage's formatting, or format it using the old
-        display hook if Sage does not want to handle the object.
-
-        EXAMPLES::
-
-            sage: from sage.misc.displayhook import DisplayHook
-            sage: d = DisplayHook()
-            sage: d((identity_matrix(3), identity_matrix(3)))
-            (
-            [1 0 0]  [1 0 0]
-            [0 1 0]  [0 1 0]
-            [0 0 1], [0 0 1]
-            )
-        """
-        if self.try_format_graphics(obj):
-            return
-        s = self.try_format_obj(obj)
-        if s is not None:
-            print(s)
-            __builtin__._ = obj
-        else:
-            self.oldhook(obj)
-
-
 from IPython.core.formatters import PlainTextFormatter
 class SagePlainTextFormatter(DisplayHookBase, PlainTextFormatter):
     r"""
@@ -481,7 +433,7 @@ class SagePlainTextFormatter(DisplayHookBase, PlainTextFormatter):
         sage: from sage.repl.interpreter import get_test_shell
         sage: shell = get_test_shell()
         sage: shell.display_formatter.formatters['text/plain']
-        <...displayhook.SagePlainTextFormatter object at 0x...>
+        <...displayhook.SagePlainTextFormatter at 0x...>
         sage: shell.run_cell('a = identity_matrix(ZZ, 2); [a,a]')
         [
         [1 0]  [1 0]
@@ -500,7 +452,7 @@ class SagePlainTextFormatter(DisplayHookBase, PlainTextFormatter):
             sage: shell = get_test_shell()
             sage: fmt = shell.display_formatter.formatters['text/plain']
             sage: fmt
-            <...displayhook.SagePlainTextFormatter object at 0x...>
+            <...displayhook.SagePlainTextFormatter at 0x...>
             sage: shell.displayhook.compute_format_data(2)
             ({u'text/plain': '2'}, {})
             sage: a = identity_matrix(ZZ, 2)
@@ -526,3 +478,49 @@ class SagePlainTextFormatter(DisplayHookBase, PlainTextFormatter):
 
 
 SPTextFormatter = None
+
+
+class DisplayHook(DisplayHookBase):
+    """
+    Sage Display Hook
+
+    This is not used directly in interactive Sage (where we use the
+    IPython system for display hooks).  This class provides a way to
+    use the Sage "plain text" display formatting when not using
+    interactive Sage, for example when running doctests.
+    """
+    def __init__(self):
+        """
+        Python constructor
+
+        EXAMPLES::
+
+            sage: from sage.misc.displayhook import DisplayHook
+            sage: d = DisplayHook()
+            sage: d(set([1, 2, 3]))       # Sage commandline output
+            {1, 2, 3}
+            sage: print(set([1, 2, 3]))   # Plain Python output
+            set([1, 2, 3])
+        """
+        self.formatter = SagePlainTextFormatter()
+
+    def __call__(self, obj):
+        """
+        Format the object using Sage's formatting, or format it using the old
+        display hook if Sage does not want to handle the object.
+
+        EXAMPLES::
+
+            sage: from sage.misc.displayhook import DisplayHook
+            sage: d = DisplayHook()
+            sage: d((identity_matrix(3), identity_matrix(3)))
+            (
+            [1 0 0]  [1 0 0]
+            [0 1 0]  [0 1 0]
+            [0 0 1], [0 0 1]
+            )
+        """
+        if obj is None:
+            return
+        print(self.formatter(obj))
+        __builtin__._ = obj

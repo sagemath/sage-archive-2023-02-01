@@ -2906,6 +2906,113 @@ class FiniteStateMachine(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: Invalid input sequence.
+
+        ::
+
+            sage: F = FiniteStateMachine([(11, 11, 1, 'a'), (11, 12, 2, 'b'),
+            ....:                         (11, 13, 3, 'c'), (11, 14, 4, 'd'),
+            ....:                         (12, 13, 3, 'e'), (12, 13, 3, 'f'),
+            ....:                         (12, 14, 4, 'g'), (12, 14, 4, 'h'),
+            ....:                         (12, 13, 2, 'i'), (12, 14, 2, 'j')],
+            ....:                        initial_states=[11],
+            ....:                        final_states=[13])
+            sage: def f(o):
+            ....:     return ''.join(o)
+            sage: F([0], format_output=f)
+            (False, None, None)
+            sage: F([3], format_output=f)
+            (True, 13, 'c')
+            sage: F([4], format_output=f)
+            (False, 14, 'd')
+            sage: F([2, 2], format_output=f)
+            Traceback (most recent call last):
+            ...
+            ValueError: Got more than one output, but only allowed to show
+            one. Change list_of_outputs option.
+            sage: F([2, 2], format_output=f, list_of_outputs=True)
+            [(True, 13, 'bi'), (False, 14, 'bj')]
+            sage: F([2, 3], format_output=f)
+            Traceback (most recent call last):
+            ...
+            ValueError: Got more than one output, but only allowed to show
+            one. Change list_of_outputs option.
+            sage: F([2, 3], format_output=f, list_of_outputs=True)
+            [(True, 13, 'be'), (True, 13, 'bf')]
+            sage: F([2, 4], format_output=f)
+            Traceback (most recent call last):
+            ...
+            ValueError: Got more than one output, but only allowed to show
+            one. Change list_of_outputs option.
+            sage: F([2, 4], format_output=f, list_of_outputs=True)
+            [(False, 14, 'bg'), (False, 14, 'bh')]
+
+        ::
+
+            sage: A = Automaton([(11, 11, 1, 'a'), (11, 12, 2, 'b'),
+            ....:                (11, 13, 3, 'c'), (11, 14, 4, 'd'),
+            ....:                (12, 13, 3, 'e'), (12, 13, 3, 'f'),
+            ....:                (12, 14, 4, 'g'), (12, 14, 4, 'h'),
+            ....:                (12, 13, 2, 'i'), (12, 14, 2, 'j')],
+            ....:               initial_states=[11],
+            ....:               final_states=[13])
+            sage: def f(o):
+            ....:     return ''.join(o)
+            sage: A([0], format_output=f)
+            False
+            sage: A([3], format_output=f)
+            True
+            sage: A([4], format_output=f)
+            False
+            sage: A([2, 2], format_output=f)
+            True
+            sage: A([2, 2], format_output=f, list_of_outputs=True)
+            [True, False]
+            sage: A([2, 3], format_output=f)
+            True
+            sage: A([2, 3], format_output=f, list_of_outputs=True)
+            [True, True]
+            sage: A([2, 4], format_output=f)
+            False
+            sage: A([2, 4], format_output=f, list_of_outputs=True)
+            [False, False]
+
+        ::
+
+            sage: T = Transducer([(11, 11, 1, 'a'), (11, 12, 2, 'b'),
+            ....:                 (11, 13, 3, 'c'), (11, 14, 4, 'd'),
+            ....:                 (12, 13, 3, 'e'), (12, 13, 3, 'f'),
+            ....:                 (12, 14, 4, 'g'), (12, 14, 4, 'h'),
+            ....:                 (12, 13, 2, 'i'), (12, 14, 2, 'j')],
+            ....:                initial_states=[11],
+            ....:                final_states=[13])
+            sage: def f(o):
+            ....:     return ''.join(o)
+            sage: T([0], format_output=f)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
+            sage: T([3], format_output=f)
+            'c'
+            sage: T([4], format_output=f)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
+            sage: T([2, 2], format_output=f)
+            'bi'
+            sage: T([2, 2], format_output=f, list_of_outputs=True)
+            ['bi', None]
+            sage: T([2, 3], format_output=f)
+            Traceback (most recent call last):
+            ...
+            ValueError: Found more than one accepting path.
+            sage: T([2, 3], format_output=f, list_of_outputs=True)
+            ['be', 'bf']
+            sage: T([2, 4], format_output=f)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
+            sage: T([2, 4], format_output=f, list_of_outputs=True)
+            [None, None]
         """
         if len(args) == 0:
             raise TypeError("Called with too few arguments.")

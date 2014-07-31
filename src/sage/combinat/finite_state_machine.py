@@ -9791,7 +9791,7 @@ class _FSMTapeCache_(SageObject):
             if not self.read(track_number)[0]:
                 raise StopIteration
         if return_word:
-            return [letter for _, letter in izip(xrange(length), track_cache)]
+            return list(itertools.islice(track_cache, 0, length))
         else:
             return track_cache[0]
 

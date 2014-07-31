@@ -11492,9 +11492,23 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             + at state 'a'
             +-- tape at 0, [[]]
             + at state 'b'
-            +-- tape at 0, [[], []]
+            +-- tape at 0, [[]]
             + at state 'c'
             +-- tape at 0, [[]]
+
+        ::
+
+            sage: T = Transducer([(0, 1, 0, 'd'), (0, 1, 0, 'a'),
+            ....:                 (0, 1, 0, 'a'), (0, 1, 0, 'a'),
+            ....:                 (0, 1, 0, 'n'), (0, 1, 0, 'i'),
+            ....:                 (0, 1, 0, 'e'), (0, 1, 0, 'l'),
+            ....:                 (0, 1, 0, 'l'), (0, 1, 0, 'l'),
+            ....:                 (1, 2, 0, ':'), (2, 3, 0, ')')],
+            ....:                initial_states=[0], final_states=[3])
+            sage: T.process([0, 0, 0], format_output=lambda o: ''.join(o))
+            [(True, 3, 'a:)'), (True, 3, 'd:)'), (True, 3, 'e:)'),
+             (True, 3, 'i:)'), (True, 3, 'l:)'), (True, 3, 'n:)')]
+
         """
         if self._current_.has_key(tape_cache.position):
             states = self._current_[tape_cache.position]
@@ -11505,7 +11519,10 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         if states.has_key(state):
             existing_tape_cache, existing_outputs = states[state]
             existing_outputs.extend(outputs)
-            # TODO: discard equal outputs... (instead of just .extend() them)
+            # In the next code line we uniquify and sort. This can for
+            # sure be done better (faster), but it works ;)
+            existing_outputs = [list(t) for t in sorted(
+                    set(tuple(o) for o in existing_outputs))]
             states[state] = (existing_tape_cache, existing_outputs)
         else:
             states[state] = (tape_cache, outputs)

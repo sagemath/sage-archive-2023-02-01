@@ -1445,24 +1445,24 @@ def _random_tests(mt, k, mut_class=None, nr_mut=5):
 
 def _random_multi_tests( n, k, nr_mut=5 ):
     """
-    Provides multiple random tests to find bugs in the mutation type methods
+    Provide multiple random tests to find bugs in the mutation type methods.
 
     INPUT:
 
-    - ``n`` (integer) the rank of the mutation types to test
-    - ``k`` (integer) the number of tests performed for each quiver of rank ``n``
-    - ``nr_mut`` (integer, default:5) the number of mutations performed before testing
+    - ``n`` (integer) -- the rank of the mutation types to test
+    - ``k`` (integer) -- the number of tests performed for each quiver of rank ``n``
+    - ``nr_mut`` (integer, default:5) -- the number of mutations performed before testing
 
     TESTS::
 
         sage: from sage.combinat.cluster_algebra_quiver.mutation_type import _random_multi_tests
-        sage: _random_multi_tests(2,1) # long time
+        sage: _random_multi_tests(2,1)  # not tested
         testing ('A', (1, 1), 1)
         testing ('A', 2)
         testing ('B', 2)
         testing ('BC', 1, 1)
 
-        sage: _random_multi_tests(3,1) # long time
+        sage: _random_multi_tests(3,1)  # not tested
         testing ('A', (2, 1), 1)
         testing ('A', 3)
         testing ('B', 3)
@@ -1471,7 +1471,7 @@ def _random_multi_tests( n, k, nr_mut=5 ):
         testing ('C', 3)
         testing ('CC', 2, 1)
 
-        sage: _random_multi_tests(4,1) # long time
+        sage: _random_multi_tests(4,1)  # not tested
         testing ('A', (2, 2), 1)
         testing ('A', (3, 1), 1)
         testing ('A', 4)
@@ -1485,6 +1485,7 @@ def _random_multi_tests( n, k, nr_mut=5 ):
         testing ('D', 4)
     """
     from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _construct_classical_mutation_classes
-    mutation_classes = _construct_classical_mutation_classes( n )
+    mutation_classes = _construct_classical_mutation_classes(n)
     for mutation_type in sorted(mutation_classes, key=str):
-        _random_tests( mutation_type, k, mut_class=mutation_classes[mutation_type], nr_mut=nr_mut )
+        _random_tests(mutation_type, k,
+                      mut_class=mutation_classes[mutation_type], nr_mut=nr_mut)

@@ -255,7 +255,7 @@ Now we want to divide `13` by `3`::
     sage: D([1, 1, 0, 1])
     Traceback (most recent call last):
     ...
-    RuntimeError: Invalid input sequence.
+    ValueError: Invalid input sequence.
 
 The raised ``ValueError``
 means `13` is not divisible by `3`.
@@ -321,7 +321,7 @@ input letter in order to flush the last digit::
     sage: shift_right_transducer([0, 1, 0, 1])
     Traceback (most recent call last):
     ...
-    RuntimeError: Invalid input sequence.
+    ValueError: Invalid input sequence.
 
 Next, we construct the transducer performing the xor operation. We also
 have to take ``None`` into account as our ``shift_right_transducer``
@@ -353,7 +353,7 @@ with our intention to forget the first letter.
     sage: xor_transducer([(0, None)])
     Traceback (most recent call last):
     ...
-    RuntimeError: Invalid input sequence.
+    ValueError: Invalid input sequence.
 
 The transducer computing the Gray code is then constructed as a
 :meth:`cartesian product <Transducer.cartesian_product>` between the
@@ -2890,7 +2890,7 @@ class FiniteStateMachine(SageObject):
             sage: T([2])
             Traceback (most recent call last):
             ...
-            RuntimeError: Invalid input sequence.
+            ValueError: Invalid input sequence.
             sage: F([3])
             (False, None, None)
             sage: A([3])
@@ -2898,7 +2898,7 @@ class FiniteStateMachine(SageObject):
             sage: T([3])
             Traceback (most recent call last):
             ...
-            RuntimeError: Invalid input sequence.
+            ValueError: Invalid input sequence.
         """
         if len(args) == 0:
             raise TypeError("Called with too few arguments.")
@@ -9111,7 +9111,7 @@ class Transducer(FiniteStateMachine):
         - ``full_output`` -- (default: ``True``) a boolean. If set,
           then the full output is given, otherwise only the generated
           output (the third entry below only). If the input is not
-          accepted, a ``RuntimeError`` is raised.
+          accepted, a ``ValueError`` is raised.
 
         All other ``kwargs`` will be passed directly to
         :class:`FSMProcessIterator` (which is used internally during
@@ -9242,11 +9242,11 @@ class Transducer(FiniteStateMachine):
             sage: T.process([0], full_output=False)
             Traceback (most recent call last):
             ...
-            RuntimeError: Invalid input sequence.
+            ValueError: Invalid input sequence.
             sage: T.process([0, 1, 2], full_output=False)
             Traceback (most recent call last):
             ...
-            RuntimeError: Invalid input sequence.
+            ValueError: Invalid input sequence.
 
         It is equivalent to::
 
@@ -9255,11 +9255,11 @@ class Transducer(FiniteStateMachine):
             sage: T([0])
             Traceback (most recent call last):
             ...
-            RuntimeError: Invalid input sequence.
+            ValueError: Invalid input sequence.
             sage: T([0, 1, 2])
             Traceback (most recent call last):
             ...
-            RuntimeError: Invalid input sequence.
+            ValueError: Invalid input sequence.
 
         ::
 
@@ -9316,9 +9316,9 @@ class Transducer(FiniteStateMachine):
 
         if (condensed_output and not result or
             not options['full_output'] and result is None):
-                raise RuntimeError("Invalid input sequence.")
+                raise ValueError("Invalid input sequence.")
         if condensed_output and len(result) >= 2:
-                raise RuntimeError("Found more than one accepting path.")
+                raise ValueError("Found more than one accepting path.")
 
         if condensed_output:
             return result[0]

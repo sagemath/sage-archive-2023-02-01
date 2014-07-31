@@ -4664,6 +4664,9 @@ class FiniteStateMachine(SageObject):
     # let the finite state machine work
     #*************************************************************************
 
+    _process_default_options_ = {'full_output': True,
+                                 'list_of_outputs': None,
+                                 'only_accepted': False}
 
     def process(self, *args, **kwargs):
         """
@@ -4867,7 +4870,7 @@ class FiniteStateMachine(SageObject):
             sage: F.process([1], only_accepted=False, list_of_outputs=False)
             (False, None, None)
             sage: F.process([1], only_accepted=False, list_of_outputs=True)
-            [(False, None, None)]
+            []
 
         ::
 
@@ -4899,23 +4902,28 @@ class FiniteStateMachine(SageObject):
             sage: T.process([3])
             (False, None, None)
         """
-        if not kwargs.has_key('full_output'):
-            kwargs['full_output'] = True
-        if not kwargs.has_key('list_of_outputs'):
-            kwargs['list_of_outputs'] = None
-        if not kwargs.has_key('only_accepted'):
-            kwargs['only_accepted'] = False
+        # set default values
+        options = copy(self._process_default_options_)
+        options.update(kwargs)
 
-        it = self.iter_process(*args, **kwargs)
+        # perform iteration
+        it = self.iter_process(*args, **options)
         for _ in it:
             pass
 
-        # process output
-        only_accepted = kwargs['only_accepted']
+        # process output: filtering accepting results
+        only_accepted = options['only_accepted']
         it_output = [result for result in it.result()
                      if not only_accepted or result[0]]
 
-        if kwargs['list_of_outputs'] == False:
+        # process output: returning a list output
+        if (len(it_output) > 1 and options['list_of_outputs'] is None or
+                options['list_of_outputs']):
+            return [self._process_convert_output_(out, **options)
+                    for out in it_output]
+
+        # process output: cannot return output to due input parameters
+        if options['list_of_outputs'] == False:
             if not it_output and only_accepted:
                 raise ValueError('No accepting output was found but according '
                                  'to the given options, an accepting output '
@@ -4924,28 +4932,26 @@ class FiniteStateMachine(SageObject):
             elif len(it_output) > 1:
                 raise ValueError('Got more than one output, but only allowed '
                                  'to show one. Change list_of_outputs option.')
+        # At this point it_output has length 0 or 1.
 
-        if not it_output and not only_accepted:
+        # process output: create not-accepting output if needed
+        if not it_output:
+            if only_accepted:
+                return []
             NoneState = FSMState(None, allow_label_None=True)
             it_output = [(False, NoneState, None)]
 
-        if len(it_output) > 1 or kwargs['list_of_outputs']:
-            return [self._process_convert_output_(out, **kwargs)
-                    for out in it_output]
-        else:
-            if not it_output:
-                return []
-            return self._process_convert_output_(it_output[0], **kwargs)
+        return self._process_convert_output_(it_output[0], **options)
 
 
-    def _process_convert_output_(self, output, **kwargs):
+    def _process_convert_output_(self, output_data, **kwargs):
         """
         Helper function which converts the output of
         :meth:`FiniteStateMachine.process`. This is the identity.
 
         INPUT:
 
-        - ``output`` -- a triple.
+        - ``output_data`` -- a triple.
 
         - ``full_output`` -- a boolean.
 
@@ -4967,8 +4973,8 @@ class FiniteStateMachine(SageObject):
             ....:                            full_output=True)
             (True, 'a', [1, 0, 1])
         """
-        accept_input, current_state, outputs = output
-        return (accept_input, current_state, outputs)
+        accept_input, current_state, output = output_data
+        return (accept_input, current_state, output)
 
 
     def iter_process(self, input_tape=None, initial_state=None, **kwargs):
@@ -8526,10 +8532,25 @@ class Automaton(FiniteStateMachine):
                                "functions from FiniteStateMachine "
                                "for the original output.")
 
-        return super(Automaton, self).process(*args, **kwargs)
+        # set default values
+        options = copy(self._process_default_options_)
+        options.update(kwargs)
+
+        condensed_output = (options['list_of_outputs'] == False and
+                            options['full_output'] == False)
+
+        if condensed_output:
+            options['list_of_outputs'] = True
+            options['only_accepted'] = True
+
+        result = super(Automaton, self).process(*args, **options)
+
+        if condensed_output:
+            return any(result)
+        return result
 
 
-    def _process_convert_output_(self, output, **kwargs):
+    def _process_convert_output_(self, output_data, **kwargs):
         """
         Helper function which converts the output of
         :meth:`FiniteStateMachine.process` to one suitable for
@@ -8537,7 +8558,7 @@ class Automaton(FiniteStateMachine):
 
         INPUT:
 
-        - ``output`` -- a triple.
+        - ``output_data`` -- a triple.
 
         - ``full_output`` -- a boolean.
 
@@ -8559,7 +8580,7 @@ class Automaton(FiniteStateMachine):
         if FSMOldProcessOutput:
             return super(Automaton, self)._process_convert_output_(
                 output, **kwargs)
-        accept_input, current_state, outputs = output
+        accept_input, current_state, output = output_data
         if kwargs['full_output']:
             return (accept_input, current_state)
         else:
@@ -9280,10 +9301,31 @@ class Transducer(FiniteStateMachine):
                                "functions from FiniteStateMachine "
                                "for the original output.")
 
-        return super(Transducer, self).process(*args, **kwargs)
+        # set default values
+        options = copy(self._process_default_options_)
+        options.update(kwargs)
+
+        condensed_output = (options['list_of_outputs'] == False and
+                            options['full_output'] == False)
+
+        if condensed_output:
+            options['list_of_outputs'] = True
+            options['only_accepted'] = True
+
+        result = super(Transducer, self).process(*args, **options)
+
+        if (condensed_output and not result or
+            not options['full_output'] and result is None):
+                raise RuntimeError("Invalid input sequence.")
+        if condensed_output and len(result) >= 2:
+                raise RuntimeError("Found more than one accepting path.")
+
+        if condensed_output:
+            return result[0]
+        return result
 
 
-    def _process_convert_output_(self, output, **kwargs):
+    def _process_convert_output_(self, output_data, **kwargs):
         """
         Helper function which converts the output of
         :meth:`FiniteStateMachine.process` to one suitable for
@@ -9291,7 +9333,7 @@ class Transducer(FiniteStateMachine):
 
         INPUT:
 
-        - ``output`` -- a triple.
+        - ``output_data`` -- a triple.
 
         - ``full_output`` -- a boolean.
 
@@ -9313,16 +9355,16 @@ class Transducer(FiniteStateMachine):
         if FSMOldProcessOutput:
             return super(Transducer, self)._process_convert_output_(
                 output, **kwargs)
-        accept_input, current_state, outputs = output
+        accept_input, current_state, output = output_data
         if kwargs['full_output']:
             if current_state.label() is None:
                 return (accept_input, current_state, None)
             else:
-                return (accept_input, current_state, outputs)
+                return (accept_input, current_state, output)
         else:
             if not accept_input:
-                raise RuntimeError("Invalid input sequence.")
-            return outputs
+                return None
+            return output
 
 
 #*****************************************************************************
@@ -10898,7 +10940,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         OUTPUT:
 
-        A list of triples ``(accepted, state, outputs)``.
+        A list of triples ``(accepted, state, output)``.
 
         See also the parameter ``format_output`` of
         :class:`FSMProcessIterator`.

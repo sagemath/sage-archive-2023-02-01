@@ -9660,7 +9660,7 @@ class _FSMTapeCache_(SageObject):
             ....:     print 'finished:', TC2.finished(), \
             ....:         TC2.finished(0), TC2.finished(1)
             ....:     TC2.forward(
-            ....:         FSMTransition(0, 0, [w for w in word]))
+            ....:         FSMTransition(0, 0, word))
             cache: (deque([37]), deque([11])) multi-tape at (0, 0)
             finished: False False False
             cache: (deque([38]), deque([12])) multi-tape at (1, 1)
@@ -9739,7 +9739,7 @@ class _FSMTapeCache_(SageObject):
             ....:     print 'read:', word
             ....:     print 'cache:', TC2.cache, TC2
             ....:     TC2.forward(
-            ....:         FSMTransition(0, 0, [w for w in word]))
+            ....:         FSMTransition(0, 0, word))
             ....:     print 'cache:', TC2.cache, TC2
             read: [(37, 11)]
             cache: (deque([37]), deque([11])) multi-tape at (0, 0)

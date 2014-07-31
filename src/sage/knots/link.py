@@ -259,7 +259,7 @@ class Link:
                             pd_reversed[b_reversed.index(j)][3] = i + 1
                             break
                         elif j == -i:
-                            pd_reversed[b_reversed.index(j)][2] = i
+                            pd_reversed[b_reversed.index(j)][2] = i + 1
                             break
             if b_reversed[0] < 0:
                 pd_reversed[0][2] = abs(b_reversed[0]) + 1

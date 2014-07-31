@@ -1181,7 +1181,7 @@ class FSMState(SageObject):
         ....:                initial_states=[0],
         ....:                final_states=[4],
         ....:                input_alphabet=[9])
-        sage: def stop(current_state, process_iterator):
+        sage: def stop(process, state, output):
         ....:     raise StopIteration()
         sage: T.state(3).hook = stop
         sage: T.process([9, 9, 9, 9])
@@ -5434,15 +5434,12 @@ class FiniteStateMachine(SageObject):
             sage: T.process([0])
             (False, None, None)
             sage: T.process([0, 0])
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Non-deterministic path encountered when processing input.
+            [(True, 0, [0, 1]), (True, 1, [0])]
             sage: T.process([1])
-            (True, 1, [2])
+            [(True, 0, [2, 1]), (True, 1, [2])]
             sage: T.process([1, 1])
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: process cannot handle epsilon transition leaving state 1.
+            [(True, 0, [2, 1, 2, 1]), (True, 0, [2, 3, 1]),
+             (True, 1, [2, 1, 2]), (True, 1, [2, 3])]
 
         ::
 

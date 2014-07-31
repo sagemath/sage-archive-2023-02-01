@@ -4749,8 +4749,7 @@ class FiniteStateMachine(SageObject):
           transducer).
 
         Note that in the case the finite state machine is not
-        deterministic, all possible paths are taken into account and
-        the output will be in list form.
+        deterministic, all possible paths are taken into account.
 
         Internally this function works with an instance of
         :class:`FSMProcessIterator`.
@@ -4796,7 +4795,12 @@ class FiniteStateMachine(SageObject):
             sage: binary_inverter([0, 1, 0, 0, 1, 1])
             (True, 'A', [1, 0, 1, 1, 0, 0])
 
-        ::
+        Below we construct a finite state machine which tests if an input
+        is a non-adjacent form, i.e., no two neigboring letters are
+        both nonzero (see also the example on
+        :ref:`non-adjacent forms <finite_state_machine_recognizing_NAFs_example>`
+        in the documentation of the module
+        :mod:`~sage.combinat.finite_state_machine`)::
 
             sage: NAF = FiniteStateMachine(
             ....:     {'_': [('_', 0), (1, 1)], 1: [('_', 0)]},
@@ -4804,6 +4808,10 @@ class FiniteStateMachine(SageObject):
             sage: [NAF.process(w)[0] for w in [[0], [0, 1], [1, 1], [0, 1, 0, 1],
             ....:                           [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [True, True, False, True, False, False]
+
+        Working only with the first component (i.e., returning if
+        accepted or not) usually does the more specialized
+        :class:`Automaton`.
 
         Non-deterministic finite state machines can be handeled as well.
 
@@ -8447,8 +8455,7 @@ class Automaton(FiniteStateMachine):
         is returned.
 
         Note that in the case the automaton is not
-        deterministic, all possible paths are taken into account and
-        the output will be in list form.
+        deterministic, all possible paths are taken into account.
         You can use :meth:`.determinisation` to get a deterministic
         automaton machine.
 
@@ -9175,8 +9182,7 @@ class Transducer(FiniteStateMachine):
         is returned.
 
         Note that in the case the transducer is not
-        deterministic, all possible paths are taken into account and
-        the output will be in list form.
+        deterministic, all possible paths are taken into account.
 
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.

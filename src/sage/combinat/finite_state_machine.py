@@ -10330,7 +10330,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
     .. WARNING::
 
-        Processing an input tape of length `n` can take `n+1`
+        Processing an input tape of length `n` usually takes at least `n+1`
         iterations, since there will be `n+1` states visited (in the
         case the taken transitions have input words consisting of single
         letters).
@@ -10365,7 +10365,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         sage: T.process(input)
         (True, 'A', [1, 0, 0, 1, 0, 1, 0])
 
-    The function :meth:`FiniteStateMachine.process` uses (internally) a
+    The function :meth:`FiniteStateMachine.process` (internally) uses a
     :class:`FSMProcessIterator`. We can do that manually, too, and get full
     access to the iteration process::
 

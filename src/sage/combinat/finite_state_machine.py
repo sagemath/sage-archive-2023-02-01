@@ -9712,7 +9712,7 @@ class _FSMTapeCache_(SageObject):
 
         OUTPUT:
 
-        A word or a tuple of words.
+        A single letter or a word.
 
         An exception ``StopIteration`` is thrown if the tape (at least
         one track) has reached its end.
@@ -10996,13 +10996,38 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         OUTPUT:
 
-        A word or a tuple of words.
+        A single letter or a word.
 
         An exception ``StopIteration`` is thrown if the tape (at least
         one track) has reached its end.
 
         Typically, this method is called from a hook-function of a
         state.
+
+        EXAMPLES::
+
+            sage: inverter = Transducer({'A': [('A', 0, 'one'),
+            ....:                              ('A', 1, 'zero')]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: def state_hook(process, state, output):
+            ....:     print "We are now in state %s." % (state.label(),)
+            ....:     print "Next on the tape is a %s." % (
+            ....:         process.preview_word(),)
+            sage: inverter.state('A').hook = state_hook
+            sage: it = inverter.iter_process(
+            ....:     input_tape=[0, 1, 1],
+            ....:     check_epsilon_transitions=False)
+            sage: for _ in it:
+            ....:     pass
+            We are now in state A.
+            Next on the tape is a 0.
+            We are now in state A.
+            Next on the tape is a 1.
+            We are now in state A.
+            Next on the tape is a 1.
+            We are now in state A.
+            sage: it.result()
+            [(True, 'A', ['one', 'zero', 'zero'])]
         """
         return self._current_branch_input_tape_.preview_word(
             track_number, length, return_word)

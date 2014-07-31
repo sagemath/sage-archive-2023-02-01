@@ -9784,7 +9784,7 @@ class _FSMTapeCache_(SageObject):
                 else:
                     return result
             else:
-                return self.preview_word(0, length)
+                return self.preview_word(0, length, return_word)
 
         track_cache = self.cache[track_number]
         while len(track_cache) < length:

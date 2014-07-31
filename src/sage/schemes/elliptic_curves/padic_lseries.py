@@ -663,6 +663,7 @@ class pAdicLseries(SageObject):
 
             sage: E = EllipticCurve('11a1')
             sage: Lp = E.padic_lseries(5)
+            sage: Lp._pAdicLseries__series = {}  # clear cached series
             sage: Lp._get_series_from_cache(3,5,1,0)
             sage: Lp.series(3,prec=5)
             5 + 4*5^2 + 4*5^3 + O(5^4) + O(5)*T + O(5)*T^2 + O(5)*T^3 + O(5)*T^4 + O(T^5)

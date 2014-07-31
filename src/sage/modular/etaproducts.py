@@ -845,8 +845,8 @@ def qexp_eta(ps_ring, prec):
         n = 1
         while True:
             pm = -pm
-            v[n*(3*n-1)/2] = pm
-            v[n*(3*n+1)/2] = pm
+            v[n*(3*n-1)//2] = pm
+            v[n*(3*n+1)//2] = pm
             n += 1
     except IndexError:
         pass

@@ -144,8 +144,10 @@ Other methods
        sage: # Here you have all the points :
        sage: print L
        [1]:
-          _[1]=y^2+y+1
-          _[2]=x+1
+          _[1]=y+1  # 32-bit
+          _[2]=x+1  # 32-bit
+          _[1]=y    # 64-bit
+          _[2]=x    # 64-bit
        ...
 
 -  Another way to compute rational points is to use Singular's

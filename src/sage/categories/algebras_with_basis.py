@@ -253,13 +253,13 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             return [self.base_category()]
 
         class ParentMethods:
-            @cached_method   # todo: reinstate once #5843 is fixed
+            @cached_method
             def one_from_cartesian_product_of_one_basis(self):
                 """
                 Returns the one of this cartesian product of algebras, as per ``Monoids.ParentMethods.one``
 
                 It is constructed as the cartesian product of the ones of the
-                summands, using their :meth:`.one_basis` methods.
+                summands, using their :meth:`~AlgebrasWithBasis.ParentMethods.one_basis` methods.
 
                 This implementation does not require multiplication by
                 scalars nor calling cartesian_product. This might help keeping

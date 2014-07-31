@@ -551,8 +551,8 @@ class KBoundedQuotientBases(Category_realization_of_parent):
                 else:
                     raise TypeError("do not know how to make x (= %s) an element of %s"%(x, self))
             #x is an element of the basis enumerated set;
-            elif x in self._basis_keys:
-                return self.monomial(self._basis_keys(x))
+            elif x in self._indices:
+                return self.monomial(self._indices(x))
             raise TypeError("do not know how to make x (= %s) an element of self (=%s)"%(x,self))
 
         def ambient(self):

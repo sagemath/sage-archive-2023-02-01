@@ -1554,7 +1554,12 @@ class PermutationGroup_generic(group.Group):
             sage: G.group_id()    # optional - database_gap
             [12, 4]
         """
-        return [Integer(n) for n in self._gap_().IdGroup()]
+        try:
+            return [Integer(n) for n in self._gap_().IdGroup()]
+        except RuntimeError:
+            if not is_package_installed('database_gap'):
+                raise RuntimeError("You must install the optional database_gap package first.")
+            raise
 
     def id(self):
         """
@@ -1601,7 +1606,13 @@ class PermutationGroup_generic(group.Group):
         """
         if not self.is_primitive():
             raise ValueError('Group is not primitive')
-        return Integer(self._gap_().PrimitiveIdentification())
+
+        try:
+            return Integer(self._gap_().PrimitiveIdentification())
+        except RuntimeError:
+            if not is_package_installed('database_gap'):
+                raise RuntimeError("You must install the optional database_gap package first.")
+            raise
 
     @cached_method
     def structure_description(self, latex=False):
@@ -1662,7 +1673,13 @@ class PermutationGroup_generic(group.Group):
         def correct_dihedral_degree(match):
             return "%sD%d" % (match.group(1), int(match.group(2))/2)
 
-        description = self._gap_().StructureDescription().str()
+        try:
+            description = self._gap_().StructureDescription().str()
+        except RuntimeError:
+            if not is_package_installed('database_gap'):
+                raise RuntimeError("You must install the optional database_gap package first.")
+            raise
+
         description = re.sub(r"(\A|\W)D(\d+)", correct_dihedral_degree, description)
         if not latex:
             return description

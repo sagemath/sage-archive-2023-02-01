@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 r"""
 Dyck Words
 
 A class of an object enumerated by the
 :func:`Catalan numbers<sage.combinat.combinat.catalan_number>`,
-see [Sta1999]_, [Sta]_ for details.
+see [Sta-EC2]_, [StaCat98]_ for details.
 
 AUTHORS:
 
@@ -27,14 +28,18 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Sta1999] R. Stanley, Enumerative Combinatorics, Volume 2.
+.. [Sta-EC2] Richard P. Stanley.
+   *Enumerative Combinatorics*, Volume 2.
    Cambridge University Press, 2001.
 
-.. [Sta] R. Stanley, electronic document containing the list
-   of Catalan objects at http://www-math.mit.edu/~rstan/ec/catalan.pdf
+.. [StaCat98] Richard Stanley. *Exercises on Catalan and Related Numbers
+   excerpted from Enumerative Combinatorics, vol. 2 (CUP 1999)*,
+   version of 23 June 1998.
+   http://www-math.mit.edu/~rstan/ec/catalan.pdf
 
-.. [Hag2008] The `q,t` -- Catalan Numbers and the Space of Diagonal Harmonics:
-   With an Appendix on the Combinatorics of Macdonald Polynomials, James Haglund,
+.. [Hag2008] James Haglund. *The* `q,t` -- *Catalan Numbers and the
+   Space of Diagonal Harmonics:
+   With an Appendix on the Combinatorics of Macdonald Polynomials*.
    University of Pennsylvania, Philadelphia -- AMS, 2008, 167 pp.
 """
 
@@ -658,9 +663,10 @@ class DyckWord(CombinatorialObject, Element):
         Display a DyckWord as a lattice path in the `\ZZ^2` grid.
 
         If the ``type`` is "N-E", then the a cell below the diagonal is
-        indicated by a period, a cell below the path, but above the
-        diagonal are indicated by an x. If a list of labels is included,
-        they are displayed along the vertical edges of the Dyck path.
+        indicated by a period, whereas a cell below the path but above
+        the diagonal is indicated by an x. If a list of labels is
+        included, they are displayed along the vertical edges of the
+        Dyck path.
 
         If the ``type`` is "NE-SE", then the path is simply printed
         as up steps and down steps.
@@ -678,7 +684,7 @@ class DyckWord(CombinatorialObject, Element):
           the up steps in ``self``.
 
         - ``underpath`` -- (if type is "N-E", default:``True``) If ``True``,
-          the labelling is shown under the path otherwise, it is shown to
+          the labelling is shown under the path; otherwise, it is shown to
           the right of the path.
 
         EXAMPLES::
@@ -932,7 +938,7 @@ class DyckWord(CombinatorialObject, Element):
             sage: DyckWord([]).number_of_open_symbols()
             0
         """
-        return len(filter(lambda x: x == open_symbol, self))
+        return len([x for x in self if x == open_symbol])
 
     size = deprecated_function_alias(13550, number_of_open_symbols)
 
@@ -952,7 +958,7 @@ class DyckWord(CombinatorialObject, Element):
             sage: DyckWord([]).number_of_close_symbols()
             0
         """
-        return len(filter(lambda x: x == close_symbol, self))
+        return len([x for x in self if x == close_symbol])
 
     def is_complete(self):
         r"""
@@ -1095,7 +1101,9 @@ class DyckWord(CombinatorialObject, Element):
     def associated_parenthesis(self, pos):
         r"""
         Report the position for the parenthesis in ``self`` that matches the
-        one at position ``pos`` .
+        one at position ``pos``.
+
+        The positions in ``self`` are counted from `0`.
 
         INPUT:
 
@@ -1138,7 +1146,7 @@ class DyckWord(CombinatorialObject, Element):
             d -= 1
             height -= 1
         else:
-            raise ValueError("unknown symbol %s" % self[pos - 1])
+            raise ValueError("unknown symbol %s" % self[pos])
 
         while height != 0:
             pos += d
@@ -1488,14 +1496,14 @@ class DyckWord(CombinatorialObject, Element):
             else:
                 close_positions.append(i + 1)
         from sage.combinat.tableau import StandardTableau
-        return StandardTableau(filter(lambda x: x != [], [open_positions,
-                                                          close_positions]))
+        return StandardTableau([x for x in [open_positions, close_positions] if x != []])
 
     @combinatorial_map(name="to binary trees: up step, left tree, down step, right tree")
     def to_binary_tree(self, usemap="1L0R"):
         r"""
         Return a binary tree recursively constructed from the Dyck path
-        by the sent ``usemap``. The default usemap is ``1L0R`` which means:
+        ``self`` by the map ``usemap``. The default ``usemap`` is ``'1L0R'``
+        which means:
 
         - an empty Dyck word is a leaf,
 
@@ -1504,11 +1512,13 @@ class DyckWord(CombinatorialObject, Element):
 
         INPUT:
 
-        - ``usemap`` -- a string, either ``1L0R``, ``1R0L``, ``L1R0``,
-          ``R1L0``.
+        - ``usemap`` -- a string, either ``'1L0R'``, ``'1R0L'``, ``'L1R0'``,
+          ``'R1L0'``
 
-        Other valid ``usemap`` are ``1R0L``, ``L1R0``, and ``R1L0`` and all
-        corresponding to different recursive definitions of Dyck paths.
+        Other valid ``usemap`` are ``'1R0L'``, ``'L1R0'``, and ``'R1L0'``.
+        These correspond to different maps from Dyck paths to binary
+        trees, whose recursive definitions are hopefully clear from the
+        names.
 
         EXAMPLES::
 
@@ -1564,8 +1574,11 @@ class DyckWord(CombinatorialObject, Element):
     @combinatorial_map(name="to the Tamari corresponding Binary tree")
     def to_binary_tree_tamari(self):
         r"""
-        Return the binary tree with consistency with the Tamari order
-        of ``self``.
+        Return the binary tree corresponding to ``self`` in a way which
+        is consistent with the Tamari orders on the set of Dyck paths and
+        on the set of binary trees.
+
+        This is the ``'L1R0'`` map documented in :meth:`to_binary_tree`.
 
         EXAMPLES::
 
@@ -1577,6 +1590,51 @@ class DyckWord(CombinatorialObject, Element):
             [[[., .], .], .]
         """
         return self.to_binary_tree("L1R0")
+
+    def tamari_interval(self, other):
+        r"""
+        Return the Tamari interval between ``self`` and ``other`` as a
+        :class:`~sage.combinat.interval_posets.TamariIntervalPoset`.
+
+        A "Tamari interval" means an interval in the Tamari order. The
+        Tamari order on the set of Dyck words of size `n` is the
+        partial order obtained from the Tamari order on the set of
+        binary trees of size `n` (see
+        :meth:`~sage.combinat.binary_tree.BinaryTree.tamari_lequal`)
+        by means of the Tamari bijection between Dyck words and binary
+        trees
+        (:meth:`~sage.combinat.binary_tree.BinaryTree.to_dyck_word_tamari`).
+
+        INPUT:
+
+        - ``other`` -- a Dyck word greater or equal to ``self`` in the
+          Tamari order
+
+        EXAMPLES::
+
+            sage: dw = DyckWord([1, 1, 0, 1, 0, 0, 1, 0])
+            sage: ip = dw.tamari_interval(DyckWord([1, 1, 1, 0, 0, 1, 0, 0])); ip
+            The tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
+            sage: ip.lower_dyck_word()
+            [1, 1, 0, 1, 0, 0, 1, 0]
+            sage: ip.upper_dyck_word()
+            [1, 1, 1, 0, 0, 1, 0, 0]
+            sage: ip.interval_cardinality()
+            4
+            sage: ip.number_of_tamari_inversions()
+            2
+            sage: list(ip.dyck_words())
+            [[1, 1, 1, 0, 0, 1, 0, 0],
+             [1, 1, 1, 0, 0, 0, 1, 0],
+             [1, 1, 0, 1, 0, 1, 0, 0],
+             [1, 1, 0, 1, 0, 0, 1, 0]]
+            sage: dw.tamari_interval(DyckWord([1,1,0,0,1,1,0,0]))
+            Traceback (most recent call last):
+            ...
+            ValueError: The two Dyck words are not comparable on the Tamari lattice.
+        """
+        from sage.combinat.interval_posets import TamariIntervalPosets
+        return TamariIntervalPosets.from_dyck_words(self, other)
 
     def to_area_sequence(self):
         r"""
@@ -2188,15 +2246,24 @@ class DyckWord_complete(DyckWord):
 
     def to_Catalan_code(self):
         r"""
-        Return the Catalan code associated to ``self`` .  The Catalan code is a
-        sequence of non--negative integers `a_i` such that if `i < j` and
-        `a_i > 0` and `a_j > 0` and `a_{i+1} = a_{i+2} = \cdots = a_{j-1} = 0`
-        then `a_i - a_j < j-i`.
+        Return the Catalan code associated to ``self``.
+
+        A Catalan code of length `n` is a sequence
+        `(a_1, a_2, \ldots, a_n)` of `n` integers `a_i` such that:
+
+        - `0 \leq a_i \leq n-i` for every `i`;
+
+        - if `i < j` and `a_i > 0` and `a_j > 0` and
+          `a_{i+1} = a_{i+2} = \cdots = a_{j-1} = 0`,
+          then `a_i - a_j < j-i`.
+
+        It turns out that the Catalan codes of length `n` are in
+        bijection with Dyck words.
 
         The Catalan code of a Dyck word is example (x) in Richard Stanley's
         exercises on combinatorial interpretations for Catalan objects.
         The code in this example is the reverse of the description provided
-        there. See [Sta1999]_ and [Sta]_.
+        there. See [Sta-EC2]_ and [StaCat98]_.
 
         EXAMPLES::
 
@@ -2304,18 +2371,91 @@ class DyckWord_complete(DyckWord):
         r"""
         Map ``self`` to a triangulation.
 
-        .. TODO::
+        The map from complete Dyck words of length `2n` to
+        triangulations of `n+2`-gon given by this function is a
+        bijection that can be described as follows.
 
-            Implement :meth:`DyckWord_complete.to_triangulation`.
+        Consider the Dyck word as a path from `(0, 0)` to `(n, n)`
+        staying above the diagonal, where `1` is an up step and `0` is
+        a right step. Then each horizontal step has a co-height (`0`
+        at the top and `n-1` at most at the bottom). One reads the
+        Dyck word from left to right. At the begining, all vertices
+        from `0` to `n+1` are available. For each horizontal step,
+        one creates an edge from the vertex indexed by the co-height
+        to the next available vertex. This chops out a triangle from
+        the polygon and one removes the middle vertex of this triangle
+        from the list of available vertices.
 
-        TESTS::
+        This bijection has the property that the set of smallest
+        vertices of the edges in a triangulation is an encoding of the
+        co-heights, from which the Dyck word can be easily recovered.
+
+        OUTPUT:
+
+        a list of pairs `(i, j)` that are the edges of the
+        triangulations.
+
+        EXAMPLES::
 
             sage: DyckWord([1, 1, 0, 0]).to_triangulation()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: TODO
+            [(0, 2)]
+
+            sage: [t.to_triangulation() for t in DyckWords(3)]
+            [[(2, 4), (1, 4)],
+            [(2, 4), (0, 2)],
+            [(1, 3), (1, 4)],
+            [(1, 3), (0, 3)],
+            [(0, 2), (0, 3)]]
+
+        REFERENCES:
+
+        .. [Cha2005] F. Chapoton, Une Base Symétrique de l'algèbre des
+           Coinvariants Quasi-Symétriques, Electronic Journal of
+           Combinatorics Vol 12(1) (2005) N16.
         """
-        raise NotImplementedError("TODO")
+        n = self.number_of_open_symbols()
+        l = range(n + 2)  # from 0 to n + 1
+        edges = []
+        coheight = n - 1
+        for letter in self[1:-1]:
+            if letter == 1:
+                coheight -= 1
+            else:
+                edges.append((coheight, l[coheight + 2]))
+                l.pop(coheight + 1)
+
+        return edges
+
+    def to_triangulation_as_graph(self):
+        r"""
+        Map ``self`` to a triangulation and return the result as a graph.
+
+        See :meth:`to_triangulation` for the bijection used to map
+        complete Dyck words to triangulations.
+
+        OUTPUT:
+
+        - a graph containing both the perimeter edges and the inner
+          edges of a triangulation of a regular polygon.
+
+        EXAMPLES::
+
+            sage: g = DyckWord([1, 1, 0, 0, 1, 0]).to_triangulation_as_graph()
+            sage: g
+            Graph on 5 vertices
+            sage: g.edges(labels=False)
+            [(0, 1), (0, 4), (1, 2), (1, 3), (1, 4), (2, 3), (3, 4)]
+            sage: g.show()        # not tested
+        """
+        n = self.number_of_open_symbols()
+        edges = self.to_triangulation()
+        from sage.graphs.graph import Graph
+        peri = [(i, i + 1) for i in range(n + 1)] + [(n + 1, 0)]
+        g = Graph(n + 2)
+        g.add_edges(peri)
+        g.add_edges(edges)
+        g.set_pos(g.layout_circular())
+        return g
 
     def to_non_decreasing_parking_function(self):
         r"""
@@ -3483,14 +3623,22 @@ class CompleteDyckWords(DyckWords):
         Return the Dyck word associated to the given Catalan code
         ``code``.
 
-        A Catalan code is a sequence of non--negative integers `a_i` such
-        that if `i < j` and `a_i > 0` and `a_j > 0` and `a_{i+1} = a_{i+2}
-        = \cdots = a_{j-1} = 0` then `a_i - a_j < j-i`.
+        A Catalan code of length `n` is a sequence
+        `(a_1, a_2, \ldots, a_n)` of `n` integers `a_i` such that:
+
+        - `0 \leq a_i \leq n-i` for every `i`;
+
+        - if `i < j` and `a_i > 0` and `a_j > 0` and
+          `a_{i+1} = a_{i+2} = \cdots = a_{j-1} = 0`,
+          then `a_i - a_j < j-i`.
+
+        It turns out that the Catalan codes of length `n` are in
+        bijection with Dyck words.
 
         The Catalan code of a Dyck word is example (x) in Richard Stanley's
         exercises on combinatorial interpretations for Catalan objects.
         The code in this example is the reverse of the description provided
-        there. See [Sta1999]_ and [Sta]_.
+        there. See [Sta-EC2]_ and [StaCat98]_.
 
         EXAMPLES::
 
@@ -3765,6 +3913,50 @@ class CompleteDyckWords_size(CompleteDyckWords, DyckWords_size):
             True
         """
         return catalan_number(self.k1)
+
+    def random_element(self):
+        """
+        Return a random complete Dyck word of semilength `n`
+
+        The algorithm is based on a classical combinatorial fact. One
+        chooses at random a word with `n` 0's and `n+1` 1's. One then
+        considers every 1 as an ascending step and every 0 as a
+        descending step, and one finds the lowest point of the path
+        (with respect to a slightly tilted slope). One then cuts the
+        path at this point and builds a Dyck word by exchanging the
+        two parts of the word and removing the initial step.
+
+        .. TODO::
+
+            extend this to m-Dyck words
+
+        EXAMPLES::
+
+            sage: dw = DyckWords(8)
+            sage: dw.random_element()  # random
+            [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0]
+
+            sage: D = DyckWords(8)
+            sage: D.random_element() in D
+            True
+        """
+        from sage.misc.prandom import shuffle
+        n = self.k1
+        w = [0] * n + [1] * (n + 1)
+        shuffle(w)
+        idx = 0
+        height = 0
+        height_min = 0
+        for i in range(2 * n):
+            if w[i] == 1:
+                height += n
+            else:
+                height -= n + 1
+                if height < height_min:
+                    height_min = height
+                    idx = i + 1
+        w = w[idx:] + w[:idx]
+        return self.element_class(self, w[1:])
 
     def _iter_by_recursion(self):
         """

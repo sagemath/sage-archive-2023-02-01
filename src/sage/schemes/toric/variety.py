@@ -1515,8 +1515,8 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             sage: P4_11169.Mori_cone()
             2-d cone in 7-d lattice
             sage: P4_11169.Mori_cone().rays()
-            (0, 0, 1, 1, 1, -3,  0),
-            (3, 2, 0, 0, 0,  1, -6)
+            (3, 2, 0, 0, 0,  1, -6),
+            (0, 0, 1, 1, 1, -3,  0)
             in Ambient free module of rank 7
             over the principal ideal domain Integer Ring
         """
@@ -3514,7 +3514,7 @@ class CohomologyClass(QuotientRingElement):
         """
         Q = self.parent()
         # We iterate over monomials of self.lift()
-        p = filter( lambda x: x[1].total_degree() == d, self.lift() )
+        p = [x for x in self.lift() if x[1].total_degree() == d]
         if len(p)==0:
             return Q.zero()
         else:

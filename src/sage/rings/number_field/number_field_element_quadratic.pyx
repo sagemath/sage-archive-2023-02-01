@@ -697,36 +697,36 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: K1 = NumberField(x^2 - 2, 'a', embedding=RR(1.4))
             sage: K2 = NumberField(x^2 - 2, 'a', embedding=RR(-1.4))
             sage: for _ in xrange(500):
-            ...       for K in K1, K2:
-            ...           a = K.random_element()
-            ...           b = K.random_element()
-            ...           assert (a < b) == (RR(a) < RR(b))
-            ...           assert (a > b) == (RR(a) > RR(b))
-            ...           assert (a == b) == (RR(a) == RR(b))
-            ...           assert (a != b) == (RR(a) != RR(b))
-            ...           assert (a >= b) == (RR(a) >= RR(b))
-            ...           assert (a <= b) == (RR(a) <= RR(b))
+            ....:     for K in K1, K2:
+            ....:         a = K.random_element()
+            ....:         b = K.random_element()
+            ....:         assert (a < b) == (RR(a) < RR(b))
+            ....:         assert (a > b) == (RR(a) > RR(b))
+            ....:         assert (a == b) == (RR(a) == RR(b))
+            ....:         assert (a != b) == (RR(a) != RR(b))
+            ....:         assert (a >= b) == (RR(a) >= RR(b))
+            ....:         assert (a <= b) == (RR(a) <= RR(b))
 
         ::
 
             sage: K1 = NumberField(x^2 + 2, 'a', embedding=CC(0,1))
             sage: K2 = NumberField(x^2 + 2, 'a', embedding=CC(0,-1))
             sage: for _ in xrange(500):
-            ...       for K in K1, K2:
-            ...           a = K.random_element()
-            ...           b = K.random_element()
-            ...           assert (a < b) == (CC(a) < CC(b))
-            ...           assert (a > b) == (CC(a) > CC(b))
-            ...           assert (a == b) == (CC(a) == CC(b))
-            ...           assert (a != b) == (CC(a) != CC(b))
-            ...           assert (a >= b) == (CC(a) >= CC(b))
-            ...           assert (a <= b) == (CC(a) <= CC(b))
+            ....:     for K in K1, K2:
+            ....:         a = K.random_element()
+            ....:         b = K.random_element()
+            ....:         assert (a < b) == (CC(a) < CC(b))
+            ....:         assert (a > b) == (CC(a) > CC(b))
+            ....:         assert (a == b) == (CC(a) == CC(b))
+            ....:         assert (a != b) == (CC(a) != CC(b))
+            ....:         assert (a >= b) == (CC(a) >= CC(b))
+            ....:         assert (a <= b) == (CC(a) <= CC(b))
 
         The following is tested because of the implementation of
         func:`Q_to_quadratic_field_element` which was the cause of some problems
         with :trac:`13213`::
 
-            sage: K.<sqrt2> = QuadraticField(2,name='sqrt2')
+            sage: K.<sqrt2> = QuadraticField(2)
             sage: 1/2 + sqrt2 > 0
             True
         """

@@ -1479,7 +1479,7 @@ class FSMState(SageObject):
         TESTS::
 
             sage: T = Transducer([(0, 1, None, 'a'), (1, 2, None, 'b')])
-            sage: T.state(0)._epsilon_successors_()
+            sage: T.state(0)._epsilon_successors_(T)
             {1: [['a']], 2: [['a', 'b']]}
             sage: T.state(1)._epsilon_successors_(T)
             {2: [['b']]}

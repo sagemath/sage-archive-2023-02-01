@@ -1295,7 +1295,7 @@ def _mutation_type_test(n):
         True ('BC', 1, 1)
         True ('G', 2)
 
-        sage: _mutation_type_test(3) # not tested
+        sage: _mutation_type_test(3) # long time
         True ('A', (2, 1), 1)
         True ('A', 3)
         True ('B', 3)
@@ -1456,13 +1456,13 @@ def _random_multi_tests( n, k, nr_mut=5 ):
     TESTS::
 
         sage: from sage.combinat.cluster_algebra_quiver.mutation_type import _random_multi_tests
-        sage: _random_multi_tests(2,100) # long time
+        sage: _random_multi_tests(2,1) # long time
         testing ('A', (1, 1), 1)
         testing ('A', 2)
         testing ('B', 2)
         testing ('BC', 1, 1)
 
-        sage: _random_multi_tests(3,100) # not tested
+        sage: _random_multi_tests(3,1) # long time
         testing ('A', (2, 1), 1)
         testing ('A', 3)
         testing ('B', 3)
@@ -1471,7 +1471,7 @@ def _random_multi_tests( n, k, nr_mut=5 ):
         testing ('C', 3)
         testing ('CC', 2, 1)
 
-        sage: _random_multi_tests(4,100) # not tested
+        sage: _random_multi_tests(4,1) # long time
         testing ('A', (2, 2), 1)
         testing ('A', (3, 1), 1)
         testing ('A', 4)

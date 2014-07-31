@@ -1548,8 +1548,9 @@ class FSMState(SageObject):
 
     def _epsilon_cycle_output_empty_(self, fsm=None):
         """
-        Returns whether ``self`` is in an epsilon-cycle, where no
-        output word is written.
+        Returns whether all epsilon-cycles in which ``self`` is
+        contained have an empty output (i.e., do not write any output
+        word).
 
         INPUT:
 
@@ -1594,6 +1595,12 @@ class FSMState(SageObject):
             ...
             RuntimeError: State 0 is in an epsilon cycle (no input),
             but output is written.
+            sage: T = Transducer([(0, 1, None, None), (1, 2, None, None),
+            ....:                 (2, 0, None, None), (0, 0, None, None)])
+            sage: T.state(0)._epsilon_successors_(T)
+            {0: [[], []], 1: [[]], 2: [[]]}
+            sage: T.state(0)._epsilon_cycle_output_empty_(T)
+            True
         """
         try:
             return not any(self._epsilon_successors_(fsm)[self])

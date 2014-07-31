@@ -1828,6 +1828,13 @@ class FSMState(SageObject):
             Transition from 2 to 0: -|'c'
             sage: T.state(0)._epsilon_successors_()
             {0: [['a', 'b', 'c']], 1: [['a']], 2: [['a', 'b']]}
+
+        ::
+
+            sage: T.add_transition(0, 2, None, ['a', 'b'])
+            Transition from 0 to 2: -|'a','b'
+            sage: T.state(0)._epsilon_successors_()
+            {0: [['a', 'b', 'c']], 1: [['a']], 2: [['a', 'b']]}
         """
         if not hasattr(self, 'transitions'):
             raise ValueError('State %s does not belong to a '
@@ -1843,7 +1850,11 @@ class FSMState(SageObject):
         _epsilon_successors_dict_[self].remove([])  # delete starting state
         if not _epsilon_successors_dict_[self]:
             del _epsilon_successors_dict_[self]
-        # TODO: apply "unique" on outputs
+        for s, outputs in _epsilon_successors_dict_.iteritems():
+            # In the next code line we uniquify and sort. This can for
+            # sure be done better (faster), but it works ;)
+            _epsilon_successors_dict_[s] = [list(t) for t in sorted(
+                    set(tuple(o) for o in outputs))]
         return _epsilon_successors_dict_
 
 
@@ -1918,7 +1929,7 @@ class FSMState(SageObject):
             sage: A.add_transition(0, 0, None, 'x')
             Transition from 0 to 0: -|'x'
             sage: A.state(0)._epsilon_successors_(A)
-            {0: [['x'], []], 1: [[]], 2: [[]]}
+            {0: [[], ['x']], 1: [[]], 2: [[]]}
             sage: A.state(0)._epsilon_cycle_output_empty_(A)
             False
             sage: A.process([], initial_state=A.state(0))
@@ -1929,7 +1940,7 @@ class FSMState(SageObject):
             sage: T = Transducer([(0, 1, None, None), (1, 2, None, None),
             ....:                 (2, 0, None, None), (0, 0, None, None)])
             sage: T.state(0)._epsilon_successors_(T)
-            {0: [[], []], 1: [[]], 2: [[]]}
+            {0: [[]], 1: [[]], 2: [[]]}
             sage: T.state(0)._epsilon_cycle_output_empty_(T)
             True
         """

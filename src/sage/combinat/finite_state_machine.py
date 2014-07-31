@@ -1582,7 +1582,7 @@ class FSMState(SageObject):
             {0: [[]], 1: [[]], 2: [[]]}
             sage: A.state(0)._epsilon_cycle_output_empty_(A)
             True
-            sage: A.process(initial_state=A.state(0))
+            sage: A.process([], initial_state=A.state(0))
             [(False, 0), (False, 1), (False, 2)]
             sage: A.add_transition(0, 0, None, 'x')
             Transition from 0 to 0: -|'x'
@@ -1590,7 +1590,7 @@ class FSMState(SageObject):
             {0: [['x'], []], 1: [[]], 2: [[]]}
             sage: A.state(0)._epsilon_cycle_output_empty_(A)
             False
-            sage: A.process(initial_state=A.state(0))
+            sage: A.process([], initial_state=A.state(0))
             Traceback (most recent call last):
             ...
             RuntimeError: State 0 is in an epsilon cycle (no input),
@@ -10241,7 +10241,7 @@ def is_FSMProcessIterator(PI):
     TESTS::
 
         sage: from sage.combinat.finite_state_machine import is_FSMProcessIterator, FSMProcessIterator
-        sage: is_FSMProcessIterator(FSMProcessIterator(FiniteStateMachine([[0, 0, 0, 0]], initial_states=[0])))
+        sage: is_FSMProcessIterator(FSMProcessIterator(FiniteStateMachine([[0, 0, 0, 0]], initial_states=[0]), []))
         True
     """
     return isinstance(PI, FSMProcessIterator)
@@ -10576,10 +10576,10 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                 tape.extend(input_tape)
             else:
                 tape.append(input_tape)
+        if not tape:
+            raise TypeError('No input tape given.')
         if not all(hasattr(track, '__iter__') for track in tape):
-            raise ValueError('Given input tape is not iterable.')
-        if not tape and not self.is_multitape:
-            tape.append(iter([]))
+            raise TypeError('Given input tape is not iterable.')
         self._input_tape_ = tuple(iter(track) for track in tape)
         self._input_tape_ended_ = [False for _ in tape]
 
@@ -11455,6 +11455,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
             sage: T.state(0)._epsilon_successors_(T)  # indirect doctest
             {1: [['a']], 2: [['a', 'b']]}
         """
+        kwargs['input_tape'] = iter([])
         self.TapeCache = _FSMTapeCacheDetectEpsilon_
         self.visited_states = {}
         kwargs['check_epsilon_transitions'] = False

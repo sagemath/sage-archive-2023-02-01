@@ -694,7 +694,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: K.zero().euclidean_degree()
             Traceback (most recent call last):
             ...
-            NotImplementedError: euclidean degree not defined for the zero element
+            ValueError: euclidean degree not defined for the zero element
 
         For a ring which is not a field, this is the valuation of the element::
 
@@ -706,18 +706,16 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: R.zero().euclidean_degree()
             Traceback (most recent call last):
             ...
-            NotImplementedError: euclidean degree not defined for the zero element
-
+            ValueError: euclidean degree not defined for the zero element
         """
         if self.is_zero():
-            raise NotImplementedError("euclidean degree not defined for the zero element")
+            raise ValueError("euclidean degree not defined for the zero element")
 
         from sage.categories.fields import Fields
-        if self.parent() in Fields:
+        if self.parent() in Fields():
             from sage.rings.all import Integer
             return Integer(0)
-        else:
-            return self.valuation()
+        return self.valuation()
 
     @coerce_binop
     def quo_rem(self, other):
@@ -742,7 +740,6 @@ cdef class LocalGenericElement(CommutativeRingElement):
             (2*3 + O(3^6), 0)
             sage: K(2).quo_rem(K(12))
             (2*3^-1 + 1 + 3 + 3^2 + 3^3 + O(3^4), 0)
-
         """
         if other.is_zero():
             raise ZeroDivisionError
@@ -750,8 +747,8 @@ cdef class LocalGenericElement(CommutativeRingElement):
         from sage.categories.fields import Fields
         if self.parent() in Fields():
             return (self / other, self.parent().zero())
-        else:
-            if self.valuation() < other.valuation():
-                return (self.parent().zero(), self)
-            else:
-                return ((self>>other.valuation())*other.unit_part().inverse_of_unit(), self.parent().zero())
+        if self.valuation() < other.valuation():
+            return (self.parent().zero(), self)
+        return ( (self>>other.valuation())*other.unit_part().inverse_of_unit(),
+                 self.parent().zero() )
+

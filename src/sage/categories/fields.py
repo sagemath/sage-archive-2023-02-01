@@ -346,7 +346,8 @@ class Fields(CategoryWithAxiom):
             Return the degree of this element as an element of a euclidean
             domain.
 
-            In a field, this returns 0 for all but the zero element.
+            In a field, this returns 0 for all but the zero element (for
+            which it is undefined).
 
             EXAMPLES::
 
@@ -354,7 +355,7 @@ class Fields(CategoryWithAxiom):
                 0
             """
             if self.is_zero():
-                raise NotImplementedError()
+                raise ValueError("euclidean degree not defined for the zero element")
             from sage.rings.all import ZZ
             return ZZ.zero()
 

@@ -100,7 +100,10 @@ class Groups(CategoryWithAxiom):
                 Family ((2,3,4), (1,2,3))
             """
             from sage.sets.family import Family
-            return Family(self.gens())
+            try:
+                return Family(self.gens())
+            except AttributeError:
+                return self.monoid_generators()
 
         def monoid_generators(self):
             r"""

@@ -128,7 +128,7 @@ class Groups(CategoryWithAxiom):
             G = self.group_generators()
             from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
             if G not in FiniteEnumeratedSets():
-                raise NotImplementedError
+                raise NotImplementedError("currently only implemented for finitely generated groups")
             from sage.sets.family import Family
             return Family(tuple(G) + tuple(~x for x in G))
 

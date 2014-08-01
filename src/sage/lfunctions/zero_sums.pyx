@@ -1002,7 +1002,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             z += 2*c_cos(thetaq)*(t-logq)/sqrtq
             #print(c_exp(logq),-2*c_cos(thetaq)*(t-logq)/sqrtq*logp)
             logq += logp
-        #print(n,-z*logp)
+        #print('a',n,t,-z*logp)
         return -z*logp
 
     cdef double _sincsquared_summand_2(self,
@@ -1020,7 +1020,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         ap = self._e.ellap(n)
         p = n
         logp = c_log(p)
-        #print(n,-(t-logp)*(logp/p)*ap)
+        #print('b',n,t,-(t-logp)*(logp/p)*ap)
         return -(t-logp)*(logp/p)*ap
 
     cpdef _zerosum_sincsquared_fast(self,Delta=1,bad_primes=None):
@@ -1129,7 +1129,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         # Must deal with n=2,3,5 separately
         for m in [2,3,5]:
             n = m
-            if t>n:
+            if n<expt:
                 y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
                                                      logq,thetaq,sqrtq,z)
         # Now iteratonly only over those n that are 1 or 5 mod 6

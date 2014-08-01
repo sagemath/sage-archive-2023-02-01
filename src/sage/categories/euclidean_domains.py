@@ -130,7 +130,7 @@ class EuclideanDomains(Category_singleton):
     class ElementMethods:
         @abstract_method
         def euclidean_degree(self):
-            r"""f
+            r"""
             Return the degree of this element as an element of a euclidean
             domain, i.e., for elements `a`, `b` the euclidean degree `f`
             satisfies the usual properties:

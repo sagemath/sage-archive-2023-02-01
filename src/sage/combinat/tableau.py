@@ -4709,6 +4709,7 @@ class SemistandardTableaux_size_inf(SemistandardTableaux):
                 if i != 1:
                     for k in range(1, self.size+1):
                         for c in IntegerVectors(self.size - k, i-1):
+                            c = list(c)
                             c.append(k)
                             for sst in SemistandardTableaux_shape_weight(part, Composition(c)):
                                 yield self.element_class(self, sst)
@@ -4811,6 +4812,7 @@ class SemistandardTableaux_shape_inf(SemistandardTableaux):
             if i != 1:
                 for k in range(1, n+1):
                     for c in IntegerVectors(n - k, i-1):
+                        c = list(c)
                         c.append(k)
                         for sst in SemistandardTableaux_shape_weight(self.shape, Composition(c)):
                             yield self.element_class(self, sst)

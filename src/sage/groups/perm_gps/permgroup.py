@@ -2964,10 +2964,10 @@ class PermutationGroup_generic(group.Group):
 
            * block systems, each of them being defined as
 
-               * If ``representative = True`` : a list of representatives of
+               * If ``representatives = True`` : a list of representatives of
                  each set of the block system
 
-               * If ``representative = False`` : a partition of the elements
+               * If ``representatives = False`` : a partition of the elements
                  defining an imprimitivity block.
 
         .. SEEALSO::

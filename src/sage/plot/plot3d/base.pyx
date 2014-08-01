@@ -1228,36 +1228,13 @@ end_scene""" % (render_params.antialiasing,
                 pipes = "2>/dev/null 1>/dev/null &"
             os.system('%s "%s.%s" %s' % (viewer_app, filename, ext, pipes))
 
-    def save_image(self, filename=None, *args, **kwds):
-        r"""
-        Save an image representation of self.  The image type is
-        determined by the extension of the filename.  For example,
-        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
-        ``.svg``.  Currently this is implemented by calling the
-        :meth:`save` method of self, passing along all arguments and
-        keywords.
-
-        .. Note::
-
-            Not all image types are necessarily implemented for all
-            graphics types.  See :meth:`save` for more details.
-
-        EXAMPLES::
-
-            sage: f = tmp_filename() + '.png'
-            sage: G = sphere()
-            sage: G.save_image(f)
-        """
-        self.save(filename, *args, **kwds)
-
-    def stl_ascii_string(self, name=None):
+    def stl_ascii_string(self, name="surface"):
         """
         Return an STL (STereoLithography) representation of the surface.
 
         INPUT:
 
-        - name (string, default:``None``) -- name of the surface. If
-          no name is given, the defaut name is ``"surface"``.
+        - name (string, default:"surface") -- name of the surface.
 
         OUTPUT:
 
@@ -1296,8 +1273,8 @@ end_scene""" % (render_params.antialiasing,
             '    endloop']
 
             sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
-            sage: print p.stl_ascii_string()
-            solid surface
+            sage: print p.stl_ascii_string(name='triangle')
+            solid triangle
             facet normal 0.0 0.832050294338 -0.554700196225
                 outer loop
                     vertex 0.0 0.0 0.0
@@ -1305,7 +1282,7 @@ end_scene""" % (render_params.antialiasing,
                     vertex 3.0 0.0 0.0
                 endloop
             endfacet
-            endsolid surface
+            endsolid triangle
         """
         from sage.modules.free_module import FreeModule
         RR3 = FreeModule(RDF, 3)
@@ -1332,12 +1309,102 @@ end_scene""" % (render_params.antialiasing,
             ik = RR3(k) - RR3(i)
             n = ij.cross_product(ik)
             n = n / n.norm()
-            string_list += code.format(n[0], n[1], n[2],
-                                       i[0], i[1], i[2],
-                                       j[0], j[1], j[2],
-                                       k[0], k[1], k[2])
+            string_list += [code.format(n[0], n[1], n[2],
+                                        i[0], i[1], i[2],
+                                        j[0], j[1], j[2],
+                                        k[0], k[1], k[2])]
         string_list += ["endsolid {}".format(name)]
         return "".join(string_list)
+
+    def amf_ascii_string(self, name="surface"):
+        """
+        Return an AMF (Additive Manufacturing File Format) representation of
+        the surface.
+
+        INPUT:
+
+        - name (string, default:"surface") -- name of the surface.
+
+        OUTPUT:
+
+        A string that represents the surface in the AMF format.
+
+        See :wikipedia:`Additive_Manufacturing_File_Format`
+
+        This should be saved as a ZIP archive to save space.
+
+        COMMENTS:
+
+            (1) In order to do 3d printing with this, you will need to
+                convert it into gcode. Skeinforge is an open-source
+                program that can do this.
+
+            (2) The size of the surface is not normalized in export.
+                Sage's units will become the units of the STL
+                description. These seem to be ~0.05 cm (at least when
+                printed using skeinforge -> replicatorg -> hacklab.to's
+                cupcake).
+
+            (3) Be aware of the overhang limits of your 3d printer;
+                most printers can only handle an overhang of Pi/2 (45*)
+                before your model will start drooping.
+
+        EXAMPLES::
+
+            sage: x,y,z = var('x,y,z')
+            sage: a = implicit_plot3d(x^2+y^2+z^2-9,[x,-5,5],[y,-5,5],[z,-5,5])
+            sage: a_amf = a.amf_ascii_string()
+            sage: a_amf[:160]
+            '<?xml version="1.0" encoding="utf-8"?><amf><object id="surface"><mesh><vertices><vertex><coordinates><x>2.94871794872</x><y>-0.384615384615</y><z>-0.39358974359'
+
+            sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
+            sage: print p.amf_ascii_string(name='triangle')
+            <?xml version="1.0" encoding="utf-8"?><amf><object id="triangle"><mesh><vertices><vertex><coordinates><x>0.0</x><y>0.0</y><z>0.0</z></coordinates></vertex><vertex><coordinates><x>1.0</x><y>2.0</y><z>3.0</z></coordinates></vertex><vertex><coordinates><x>3.0</x><y>0.0</y><z>0.0</z></coordinates></vertex></vertices><volume><triangle><v1>0</v1><v2>1</v2><v3>2</v3></triangle></volume></mesh></object></amf>
+        """
+        if name is None:
+            name = "surface"
+
+        faces = self.index_faces()
+        if not faces:
+            self.triangulate()
+            faces = self.index_faces()
+
+        string_list = ['<?xml version="1.0" encoding="utf-8"?><amf><object id="{}"><mesh>'.format(name)]
+
+        string_list += ['<vertices>']
+        vertex_template = '<vertex><coordinates><x>{}</x><y>{}</y><z>{}</z></coordinates></vertex>'
+        for v in self.vertices():
+            string_list += vertex_template.format(*v)
+        string_list += ['</vertices><volume>']
+
+        face_template = '<triangle><v1>{}</v1><v2>{}</v2><v3>{}</v3></triangle>'
+        for i, j, k in faces:
+            string_list += face_template.format(i, j, k)
+
+        string_list += ['</volume></mesh></object></amf>']
+        return "".join(string_list)
+
+    def save_image(self, filename=None, *args, **kwds):
+        r"""
+        Save an image representation of self.  The image type is
+        determined by the extension of the filename.  For example,
+        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
+        ``.svg``.  Currently this is implemented by calling the
+        :meth:`save` method of self, passing along all arguments and
+        keywords.
+
+        .. Note::
+
+            Not all image types are necessarily implemented for all
+            graphics types.  See :meth:`save` for more details.
+
+        EXAMPLES::
+
+            sage: f = tmp_filename() + '.png'
+            sage: G = sphere()
+            sage: G.save_image(f)
+        """
+        self.save(filename, *args, **kwds)
 
     def save(self, filename, **kwds):
         """

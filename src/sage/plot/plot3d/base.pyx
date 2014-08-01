@@ -1250,6 +1250,95 @@ end_scene""" % (render_params.antialiasing,
         """
         self.save(filename, *args, **kwds)
 
+    def stl_ascii_string(self, name=None):
+        """
+        Return an STL (STereoLithography) representation of the surface.
+
+        INPUT:
+
+        - name (string, default:``None``) -- name of the surface. If
+          no name is given, the defaut name is ``"surface"``.
+
+        OUTPUT:
+
+        A string that represents the surface in the STL format.
+
+        See :wikipedia:`STL_(file_format)`
+
+        COMMENTS:
+
+            (1) In order to do 3d printing with this, you will need to
+                convert it into gcode. Skeinforge is an open-source
+                program that can do this.
+
+            (2) The size of the surface is not normalized in export.
+                Sage's units will become the units of the STL
+                description. These seem to be ~0.05 cm (at least when
+                printed using skeinforge -> replicatorg -> hacklab.to's
+                cupcake).
+
+            (3) Be aware of the overhang limits of your 3d printer;
+                most printers can only handle an overhang of Pi/2 (45*)
+                before your model will start drooping.
+
+        EXAMPLES::
+
+            sage: x,y,z = var('x,y,z')
+            sage: a = implicit_plot3d(x^2+y^2+z^2-9,[x,-5,5],[y,-5,5],[z,-5,5])
+            sage: astl = a.stl_ascii_string()
+            sage: astl.splitlines()[:7]
+            ['solid surface',
+            'facet normal 0.973328526785 -0.162221421131 -0.162221421131',
+            '    outer loop',
+            '        vertex 2.94871794872 -0.384615384615 -0.39358974359',
+            '        vertex 2.95021367521 -0.384615384615 -0.384615384615',
+            '        vertex 2.94871794872 -0.39358974359 -0.384615384615',
+            '    endloop']
+
+            sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
+            sage: print p.stl_ascii_string()
+            solid surface
+            facet normal 0.0 0.832050294338 -0.554700196225
+                outer loop
+                    vertex 0.0 0.0 0.0
+                    vertex 1.0 2.0 3.0
+                    vertex 3.0 0.0 0.0
+                endloop
+            endfacet
+            endsolid surface
+        """
+        from sage.modules.free_module import FreeModule
+        RR3 = FreeModule(RDF, 3)
+
+        if name is None:
+            name = "surface"
+
+        faces = self.face_list()
+        if not faces:
+            self.triangulate()
+            faces = self.face_list()
+
+        code = ("facet normal {} {} {}\n"
+                "    outer loop\n"
+                "        vertex {} {} {}\n"
+                "        vertex {} {} {}\n"
+                "        vertex {} {} {}\n"
+                "    endloop\n"
+                "endfacet\n")
+
+        string_list = ["solid {}\n".format(name)]
+        for i, j, k in faces:
+            ij = RR3(j) - RR3(i)
+            ik = RR3(k) - RR3(i)
+            n = ij.cross_product(ik)
+            n = n / n.norm()
+            string_list += code.format(n[0], n[1], n[2],
+                                       i[0], i[1], i[2],
+                                       j[0], j[1], j[2],
+                                       k[0], k[1], k[2])
+        string_list += ["endsolid {}".format(name)]
+        return "".join(string_list)
+
     def save(self, filename, **kwds):
         """
         Save the graphic to an image file (of type: PNG, BMP, GIF, PPM, or TIFF)
@@ -1311,8 +1400,7 @@ end_scene""" % (render_params.antialiasing,
                 import PIL.Image as Image
                 Image.open(out_filename).save(filename)
         else:
-            raise ValueError, 'filetype not supported by save()'
-
+            raise ValueError('filetype not supported by save()')
 
 
 # if you add any default parameters you must update some code below
@@ -1324,8 +1412,6 @@ SHOW_DEFAULTS = {'viewer':'jmol',
                  'zoom':1,
                  'frame':True,
                  'axes':False}
-
-
 
 
 class Graphics3dGroup(Graphics3d):

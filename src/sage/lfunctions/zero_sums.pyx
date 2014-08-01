@@ -1169,31 +1169,42 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         #print
         return RDF(2*(u+w+y)/(t**2))
 
-    def analytic_rank_upper_bound(self,Delta=1,bad_primes=None,
-                                  root_number=True,
-                                  function="sincsquared_fast"):
+    def analytic_rank_upper_bound(self, max_Delta=None, adaptive=True,
+                                  root_number=True, bad_primes=None):
         """
         Return an upper bound for the analytic rank of the L-function
         'L_E(s)' attached to self, conditional on the Generalized Riemann
-        Hypothesis, via computing
-            '\sum_{\gamma} f(\Delta*(\gamma-\tau)),'
-        where '\gamma' ranges over the imaginary parts of the zeros of 'L_E(s)'
-        along the critical strip, and 'f(x)' is specified by the function
-        parameter. This method can be run on curves with very large
-        conductor (so long as the conductor is known or quickly computable).
+        Hypothesis, via computing the zero sum
+            '\sum_{\gamma} f(\Delta*\gamma),'
+        where '\gamma' ranges over the imaginary parts of the zeros of 'L(E,s)'
+        along the critical strip, 'f(x) = (\sin(\pi x)/(\pi x))^2', and Delta
+        is the tightness parameter whose maximum value is specified by
+        max_Delta. This computation can be run on curves with very large
+        conductor (so long as the conductor is known or quickly
+        computable) when Delta is not too large (see below).
         Uses Bober's rank bounding method as described in [Bob13].
 
         INPUT:
 
-        - ``Delta`` -- (default: 1) positive real value parameterizing the
-          tightness of the zero sum. Larger values of Delta yield better
-          bounds.
+        - ``max_Delta`` -- (default: None) If not None, a positive real value
+          specifying the maximum Delta value used in the zero sum; larger
+          values of Delta yield better bounds - but runtime is exponential in
+          Delta. If left as None, Delta is set to
+              '\min\{(\log(N+1000)/2-\log(2\pi)-\eta)/\pi\, 2.5}'
+          where 'N' is the conductor of the curve attached to self, and '\eta'
+          is the Euler-Mascheroni constant '= 0.5772\ldots'; the crossover
+          point is at conductor ~8.3*10^8. For the former value, empirical
+          results show that for about 99.7% of all curves the returned value
+          is the actual analytic rank.
 
-        - ``bad_primes`` -- (default: None) If not None, a list of the primes
-          of bad reduction for the curve attached to self. This is passable
-          so that rank estimation can be done for curves of large conductor
-          whose bad primes have been precomputed.
-          Used only if function=="sincsquared_fast"; ignored otherwise.
+        - ``adaptive`` -- (default: True) Either True or False.
+          - If True, the computation is first run with small and then
+            successively larger Delta values up to max_Delta. If at any
+            point the computed bound is 0 (or 1 when when root_number is -1
+            or True), the computation halts and that value is returned;
+            otherwise the minimum of the computed bounds is returned.
+          - If False, the computation is run a single time with
+            Delta=max_Delta, and the resulting bound returned.
 
         - ``root_number`` -- (default: True) One of True, False, 1 or -1:
           - If True, the root number of self is computed and used to (possibly)
@@ -1203,22 +1214,14 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             This is passable so that rank estimation can be done for curves
             whose root number has been precomputed.
 
-        - ``function`` -- string (default: "sincsquared_fast") - the function
-          'f(x)' as described above. Currently implemented options for 'f' are:
-
-          - ``sincquared`` -- 'f(x) = \left(\frac{\sin(\pi*x)}{(\pi*x)}\right)^2'
-          - ``gaussian``   -- 'f(x) = \exp(-x^2)'
-          - ``sincquared_fast`` -- Same as "sincsquared", but implementation
-            optimized for elliptic curve 'L'-functions. self must
-            be attached to an elliptic curve over QQ given by its global minimal
-            model, otherwise the returned result will be incorrect.
-          - ``cauchy`` -- f(x) = \frac{1}{1+x^2}; this is only computable to
-            low precision, and only when Delta < 2.
+        - ``bad_primes`` -- (default: None) If not None, a list of the primes
+          of bad reduction for the curve attached to self. This is passable
+          so that rank estimation can be done for curves of large conductor
+          whose bad primes have been precomputed.
 
         .. NOTE::
 
-            Output will be incorrect if the incorrect conductor or root number
-            is specified.
+            Output may be incorrect if the incorrect root number is specified.
 
         .. WARNING::
 
@@ -1250,14 +1253,14 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: E.rank()
             0
             sage: Z = LFunctionZeroSum(E)
-            sage: Z.analytic_rank_upper_bound(Delta=1)
+            sage: Z.analytic_rank_upper_bound(max_Delta=1)
             0
 
             sage: E = EllipticCurve([-39,123])
             sage: E.rank()
             1
             sage: Z = LFunctionZeroSum(E)
-            sage: Z.analytic_rank_upper_bound(Delta=1)
+            sage: Z.analytic_rank_upper_bound(max_Delta=1)
             1
 
         This is especially true for elliptic curves with large rank:
@@ -1267,7 +1270,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: E = elliptic_curves.rank(8)[0]; E
             Elliptic Curve defined by y^2 + y = x^3 - 23737*x + 960366 over Rational Field
             sage: Z = LFunctionZeroSum(E)
-            sage: Z.analytic_rank_upper_bound(Delta=1)
+            sage: Z.analytic_rank_upper_bound(max_Delta=1)
             8
 
         However, some curves have 'L'-functions with low-lying zeroes, and for these
@@ -1279,9 +1282,9 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: r = E.rank(); r
             0
             sage: Z = LFunctionZeroSum(E)
-            sage: Z.analytic_rank_upper_bound(Delta=1,root_number=False)
+            sage: Z.analytic_rank_upper_bound(max_Delta=1,root_number=False)
             1
-            sage: Z.analytic_rank_upper_bound(Delta=1.3,root_number=False)
+            sage: Z.analytic_rank_upper_bound(max_Delta=1.3,root_number=False)
             0
 
         Knowing the root number of E allows us to use smaller Delta values
@@ -1289,7 +1292,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         ::
 
-            sage: Z.analytic_rank_upper_bound(Delta=0.6,root_number=True)
+            sage: Z.analytic_rank_upper_bound(max_Delta=0.6,root_number=True)
             0
 
         REFERENCES:
@@ -1298,26 +1301,67 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         ANTS 10. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
 
         """
-
-        if function=="sincsquared_fast":
+        #Helper function: compute zero sum and apply parity if not False
+        def run_computation(Delta,parity,bad_primes):
             bound = self._zerosum_sincsquared_fast(Delta=Delta,
                                                    bad_primes=bad_primes).floor()
-        else:
-            bound = self.zerosum(Delta=Delta,function=function).floor()
+            # parity is set to -1 when we're not taking root number into
+            # account
+            if parity==-1:
+                return bound
+            # parity is 0 if E has even analytic rank, and 1 if odd
+            # analytic rank. The returned value must have the same parity
+            # as the parity parameter.
+            if bound%2!=parity:
+                return bound-1
+            else:
+                return bound
 
+        # Get/compute parity
         if root_number==False:
-            return bound
+            parity = -1
+        elif root_number==True:
+            parity = (1-self._e.ellrootno())//2
+        else:
+            parity = (1-root_number)//2
+        if parity==1:
+            halt_bound = 1
+        else:
+            halt_bound = 0
 
-        if root_number==True:
-            w = (1-self._e.ellrootno())//2
+        # Compute max_Delta if necessary
+        if max_Delta is None:
+            pi, eg = self._pi, self._euler_gamma
+            #1000 is arbitrary - increases Delta for small N
+            max_Delta = (log(RDF(self._N+1000))/2-log(2*pi)-eg)/pi
+            if max_Delta > 2.5:
+                max_Delta = 2.5
+
+        # When max_Delta <= 1 it's not worth running the computation
+        # multiple times, as it's so quick anyway
+        if adaptive==False or max_Delta<=1:
+            return run_computation(max_Delta,parity,bad_primes)
         else:
-            w = (1-root_number)//2
-        # w is 0 if E has even parity, and 1 if odd parity. The returned
-        # value must have the same parity as w.
-        if bound%2!=w:
-            return bound-1
-        else:
-            return bound
+            bound_list = []
+            # Find starting value. This loop won't ever take long,
+            # since max_Delta is never > 7.
+            Delta = max_Delta
+            while Delta > 1:
+                Delta -= 0.2
+            # Now go back up the sequence of Deltas
+            while Delta <= max_Delta:
+                bound = run_computation(Delta,parity,bad_primes)
+                if bound <= halt_bound:
+                    return bound
+                else:
+                    bound_list.append(bound)
+                # Incrementing Delta by 0.2 each step means runtime
+                # will increase by a factor of ~3.7
+                Delta += 0.2
+
+            # Since the zero sum is not strictly decreasing in Delta,
+            # the last value is not necessarily the smallest
+            return min(bound_list)
 
 def LFunctionZeroSum(X,*args,**kwds):
     """

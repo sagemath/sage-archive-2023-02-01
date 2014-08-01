@@ -79,10 +79,9 @@ class Yangian(CombinatorialFreeModule):
             sage: TestSuite(Y).run(skip="_test_antipode")
         """
         self._n = n
-        category = HopfAlgebrasWithBasis(base_ring).Graded()
+        category = HopfAlgebrasWithBasis(base_ring)#.Filtered() # TODO - once implemented
         self._index_set = tuple(range(1,n+1))
         # The keys for the basis are tuples of these indices
-        # TODO: A parent for all sequences of a given base set for the bases
         indices = CartesianProduct(PositiveIntegers(), self._index_set, self._index_set)
         # We note that the generators are non-commutative, but we always sort
         #   them, so they are, in effect, indexed by the free abelian monoid
@@ -142,7 +141,7 @@ class Yangian(CombinatorialFreeModule):
             return '\\left({}\\right)^{{{}}}'.format(s, exp)
         return ' '.join(term(r, i, j, exp) for (r,i,j), exp in m._sorted_items())
 
-    def gen(self, r, i, j):
+    def gen(self, r, i=None, j=None):
         """
         Return the generator `t^{(r)}_{ij}` of ``self``.
 
@@ -158,6 +157,8 @@ class Yangian(CombinatorialFreeModule):
             sage: Y.gen(0, 1, 3)
             0
         """
+        if i is None and j is None:
+            r,i,j = r
         if r == 0:
             if i == j:
                 return self.one()
@@ -165,17 +166,19 @@ class Yangian(CombinatorialFreeModule):
         m = self._indices.gen((r,i,j))
         return self._from_dict({m: self.base_ring().one()}, remove_zeros=False)
 
-    def ngens(self):
+    @cached_method
+    def algebra_generators(self):
         """
-        Return the number of generators of ``self``.
+        Return the algebra generators of ``self``.
 
         EXAMPLES::
 
             sage: Y = Yangian(QQ, 4)
-            sage: Y.ngens()
-            +Infinity
+            sage: Y.algebra_generators()
+            Lazy family (generator(i))_{i in Cartesian product of
+             Positive integers, (1, 2, 3, 4), (1, 2, 3, 4)}
         """
-        return infinity
+        return Family(self._indices._indices, self.gen, name="generator")
 
     @cached_method
     def one_basis(self):
@@ -190,18 +193,6 @@ class Yangian(CombinatorialFreeModule):
         """
         return self._indices.one()
 
-    def is_commutative(self):
-        """
-        Check if ``self`` is a commutative algebra.
-
-        EXAMPLES::
-
-            sage: Y = Yangian(QQ, 4)
-            sage: Y.is_commutative()
-            True
-        """
-        return True
-
     def degree_on_basis(self, m):
         """
         Return the degree of the monomial index by ``m``.
@@ -209,23 +200,23 @@ class Yangian(CombinatorialFreeModule):
         The degree of `t_{ij}^{(r)}` is equal to `r - 1`.
 
         EXAMPLES::
-
+    
             sage: Y = Yangian(QQ, 4)
-            sage: Y.gen(2,1,1).degree()
+            sage: Y.degree_on_basis(Y.gen(2,1,1).leading_support())
             1
             sage: x = Y.gen(5,2,3)^4
-            sage: x.degree()
+            sage: Y.degree_on_basis(x.leading_support())
             16
             sage: elt = Y.gen(10,3,1) * Y.gen(2,1,1) * Y.gen(1,2,4); elt
-            -t(1)[3,1]*t(10)[1,1]*t(10)[1,1] + t(1)[2,4]*t(11)[3,1]
+            t(1)[2,4]*t(11)[3,1] - t(1)[2,4]*t(1)[3,1]*t(10)[1,1]
              + t(1)[1,1]*t(1)[2,4]*t(10)[3,1] + t(1)[2,4]*t(10)[3,1]
-             + t(2)[1,1]*t(10)[3,1]*t(10)[3,1]
+             + t(1)[2,4]*t(2)[1,1]*t(10)[3,1]
             sage: for s in elt.support(): s, Y.degree_on_basis(s)
             (t[1, 1, 1]*t[1, 2, 4]*t[10, 3, 1], 9)
+            (t[1, 2, 4]*t[1, 3, 1]*t[10, 1, 1], 9)
+            (t[1, 2, 4]*t[2, 1, 1]*t[10, 3, 1], 10)
             (t[1, 2, 4]*t[10, 3, 1], 9)
             (t[1, 2, 4]*t[11, 3, 1], 10)
-            (t[1, 3, 1]*t[10, 1, 1]^2, 18)
-            (t[2, 1, 1]*t[10, 3, 1]^2, 19)
         """
         return sum(max(0, r[0][0] - 1) * r[1] for r in m._sorted_items())
 
@@ -253,7 +244,7 @@ class Yangian(CombinatorialFreeModule):
             -t(1)[2,1]*t(12)[1,1] + t(13)[2,1] + t(2)[1,1]*t(12)[2,1]
              + t(1)[1,1]*t(12)[2,1] + t(12)[2,1]
         """
-        # If x or y indexed by (), it is 1, so return the other
+        # If x or y indexed by the identity element, it is 1, so return the other
         if len(x) == 0:
             return self.monomial(y)
         if len(y) == 0:
@@ -265,10 +256,11 @@ class Yangian(CombinatorialFreeModule):
         # The computation is done on generators, so apply generators one at
         #   a time until all have been applied
         if len(x) != 1:
+            I = self._indices
             cur = self.monomial(y)
-            for gen,exp in reversed(list(x)):
+            for gen,exp in reversed(x._sorted_items()):
                 for i in range(exp):
-                    cur = self.monomial(gen) * cur
+                    cur = self.monomial(I.gen(gen)) * cur
             return cur
 
         # If we are both generators, then apply the basic computation
@@ -276,13 +268,12 @@ class Yangian(CombinatorialFreeModule):
             return self.product_on_gens(tuple(x.support()[0]), tuple(y.support()[0]))
 
         # Otherwise we need to commute it along
-        rhs = y._sorted_items()
-        if rhs[0][1] == 1:
-            rhs.pop(0)
-        else:
-            rhs[0] = (rhs[0][0], rhs[0][1]-1)
-        rem_y = self._indices.element_class(self._indices, dict(rhs))
-        return self.product_on_gens(tuple(x.support()[0]), tuple(rhs[0][0])) * self.monomial(rem_y)
+        I = self._indices
+        cur = self.monomial(x)
+        for gen,exp in y._sorted_items():
+            for i in range(exp):
+                cur = cur * self.monomial(I.gen(gen))
+        return cur
 
     @cached_method
     def product_on_gens(self, a, b):
@@ -310,7 +301,7 @@ class Yangian(CombinatorialFreeModule):
         .. MATH::
 
             t_{ij}^{(r)} t_{kl}^{(s)} = t_{kl}^{(s)} t_{ij}^{(r)} +
-            \sum t_{ab}^{(m)} t_{cd}^{(l)}
+            \sum C_{abcd}^{ml} t_{ab}^{(m)} t_{cd}^{(l)}
 
         where `m + l < r + s` and `t_{ab}^{(m)} < t_{cd}^{(l)}`.
 
@@ -331,12 +322,15 @@ class Yangian(CombinatorialFreeModule):
         I = self._indices
         if a <= b:
             return self.monomial(I.gen(a) * I.gen(b))
-        mid = self.zero() # This is the special term for x = 1
+
+        # This is the special term of x = 1
+        x1 = self.zero()
         if b[1] == a[2]:
-            mid += self.monomial( I.gen([a[0]+b[0]-1, a[1], b[2]]) )
+            x1 += self.monomial( I.gen([a[0]+b[0]-1, a[1], b[2]]) )
         if a[1] == b[2]:
-            mid -= self.monomial( I.gen([a[0]+b[0]-1, b[1], a[2]]) )
-        return self.monomial(I.gen(b) * I.gen(a)) + mid + self.sum(
+            x1 -= self.monomial( I.gen([a[0]+b[0]-1, b[1], a[2]]) )
+
+        return self.monomial(I.gen(b) * I.gen(a)) + x1 + self.sum(
                 self.monomial( I.gen([x-1, b[1], a[2]]) * I.gen([a[0]+b[0]-x, a[1], b[2]]) )
                 - self.product_on_gens((a[0]+b[0]-x, b[1], a[2]), (x-1, a[1], b[2]))
                 for x in range(2, b[0]+1))
@@ -386,6 +380,14 @@ class Yangian(CombinatorialFreeModule):
 class YangianLevel(Yangian):
     r"""
     The Yangian `Y_{\ell}(\mathfrak{gl_n})` of level `\ell`.
+
+    EXAMPLES::
+
+        sage: Y = Yangian(QQ, 4, 3)
+        sage: elt = Y.gen(3,2,1) * Y.gen(1,1,3)
+        sage: elt * Y.gen(1, 1, 2)
+        -t(3)[1,3] + t(1)[1,3]*t(3)[2,2] + t(1)[1,2]*t(1)[1,3]*t(3)[2,1]
+         + t(1)[1,2]*t(3)[2,3] - t(1)[1,3]*t(3)[1,1]
     """
     def __init__(self, base_ring, n, level, variable_name):
         """
@@ -397,7 +399,16 @@ class YangianLevel(Yangian):
             sage: TestSuite(Y).run(skip="_test_antipode")
         """
         self._level = level
-        Yangian.__init__(self, base_ring, n, variable_name)
+        self._n = n
+        category = HopfAlgebrasWithBasis(base_ring)#.Filtered() # TODO - once implemented
+        self._index_set = tuple(range(1,n+1))
+        # The keys for the basis are tuples of these indices
+        indices = CartesianProduct(tuple(range(1,level+1)), self._index_set, self._index_set)
+        # We note that the generators are non-commutative, but we always sort
+        #   them, so they are, in effect, indexed by the free abelian monoid
+        basis_keys = IndexedFreeAbelianMonoid(indices, bracket=False, prefix=variable_name)
+        CombinatorialFreeModule.__init__(self, base_ring, basis_keys,
+                                         prefix=variable_name, category=category)
 
     def _repr_(self):
         r"""
@@ -464,11 +475,11 @@ class YangianLevel(Yangian):
             u^4 + (-2 + t(1)[1,1] + t(1)[2,2])*u^3
              + (t(2)[1,1] + 1 - t(1)[1,1] + t(2)[2,2] + t(1)[1,1]*t(1)[2,2]
                 - t(1)[1,2]*t(1)[2,1] - 2*t(1)[2,2])*u^2
-             + (-t(1)[1,2]*t(2)[2,1] + t(1)[1,1]*t(2)[2,2]
-                + t(1)[1,2]*t(1)[2,1] - t(2)[1,1] + t(1)[2,2]*t(2)[1,1] - t(2)[2,2]
+             + (-t(1)[1,2]*t(2)[2,1] + t(1)[1,1]*t(2)[2,2] + t(1)[1,2]*t(1)[2,1]
+                - t(2)[1,1] + t(1)[2,2]*t(2)[1,1] - t(2)[2,2]
                 - t(1)[1,1]*t(1)[2,2] - t(1)[2,1]*t(2)[1,2] + t(1)[2,2])*u
-             + t(1)[1,2]*t(2)[2,1] - t(2)[1,2]*t(2)[2,1] - t(3)[2,2]
-                - t(1)[1,1]*t(2)[2,2] + t(3)[1,1] + t(2)[1,1]*t(2)[2,2] + t(2)[2,2]
+             + t(1)[1,2]*t(2)[2,1] - t(2)[1,2]*t(2)[2,1] - t(1)[1,1]*t(2)[2,2]
+                + t(2)[1,1]*t(2)[2,2] + t(2)[2,2]
         """
         if u is None:
             u = PolynomialRing(self.base_ring(), 'u').gen(0)
@@ -478,7 +489,7 @@ class YangianLevel(Yangian):
                                    for k in range(n))
                    for p in Permutations(n))
 
-    def gen(self, r, i, j):
+    def gen(self, r, i=None, j=None):
         """
         Return the generator `t^{(r)}_{ij}` of ``self``.
 
@@ -494,6 +505,8 @@ class YangianLevel(Yangian):
             sage: Y.gen(0, 1, 3)
             0
         """
+        if i is None and j is None:
+            r,i,j = r
         if r > self._level:
             return self.zero()
         return Yangian.gen(self, r, i, j)
@@ -515,39 +528,6 @@ class YangianLevel(Yangian):
                      for j in range(1, self._n+1)
                      for r in range(1, self._level+1))
 
-    def ngens(self):
-        """
-        Return the number of generators of ``self``.
-
-        EXAMPLES::
-
-            sage: Y = Yangian(QQ, 4, 3)
-            sage: Y.ngens()
-            48
-        """
-        return self._level * self._n**2
-
-    @cached_method
-    def product_on_basis(self, x, y):
-        """
-        Return the product of two monomials given by ``x`` and ``y``.
-
-        .. SEEALSO::
-
-            :meth:`Yangian.product_on_gens()`
-
-        EXAMPLES::
-
-            sage: Y = Yangian(QQ, 4, 3)
-            sage: elt = Y.gen(3,2,1) * Y.gen(1,1,3)
-            sage: elt * Y.gen(1, 1, 2) # indirect doctest
-            t(1)[1,3]*t(3)[2,1]*t(3)[2,1] - t(3)[1,3] + t(1)[1,3]*t(3)[2,2]
-             + t(1)[1,2]*t(3)[2,3] - t(1)[1,3]*t(3)[1,1]
-        """
-        ret = super(YangianLevel, self).product_on_basis(x, y)
-        return self._from_dict({m:c for m,c in ret
-                               if len(m) == 0 or m.trailing_support()[0] <= self._level})
-
     @cached_method
     def product_on_gens(self, a, b):
         r"""
@@ -567,7 +547,20 @@ class YangianLevel(Yangian):
             sage: Y.gen(3,2,1) * Y.gen(1,1,3) # indirect doctest
             t(3)[2,3] + t(1)[1,3]*t(3)[2,1]
         """
-        ret = super(YangianLevel, self).product_on_gens(a, b)
-        return self._from_dict({m:c for m,c in ret
-                               if len(m) == 0 or m.trailing_support()[0] <= self._level})
+        I = self._indices
+        if a <= b:
+            return self.monomial(I.gen(a) * I.gen(b))
+
+        # This is the special term of x = 1
+        x1 = self.zero()
+        if a[0]+b[0]-1 <= self._level:
+            if b[1] == a[2]:
+                x1 += self.monomial( I.gen([a[0]+b[0]-1, a[1], b[2]]) )
+            if a[1] == b[2]:
+                x1 -= self.monomial( I.gen([a[0]+b[0]-1, b[1], a[2]]) )
+
+        return self.monomial(I.gen(b) * I.gen(a)) + x1 + self.sum(
+                self.monomial( I.gen([x-1, b[1], a[2]]) * I.gen([a[0]+b[0]-x, a[1], b[2]]) )
+                - self.product_on_gens((a[0]+b[0]-x, b[1], a[2]), (x-1, a[1], b[2]))
+                for x in range(2, b[0]+1) if a[0]+b[0]-x <= self._level)
 

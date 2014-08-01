@@ -50,4 +50,6 @@ Algebras
 
    sage/algebras/weyl_algebra
 
+   sage/algebras/yangian
+
 .. include:: ../footer.txt

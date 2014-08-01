@@ -1244,22 +1244,6 @@ end_scene""" % (render_params.antialiasing,
 
         See :wikipedia:`STL_(file_format)`
 
-        COMMENTS:
-
-            (1) In order to do 3d printing with this, you will need to
-                convert it into gcode. Skeinforge is an open-source
-                program that can do this.
-
-            (2) The size of the surface is not normalized in export.
-                Sage's units will become the units of the STL
-                description. These seem to be ~0.05 cm (at least when
-                printed using skeinforge -> replicatorg -> hacklab.to's
-                cupcake).
-
-            (3) Be aware of the overhang limits of your 3d printer;
-                most printers can only handle an overhang of Pi/2 (45*)
-                before your model will start drooping.
-
         EXAMPLES::
 
             sage: x,y,z = var('x,y,z')
@@ -1321,6 +1305,75 @@ end_scene""" % (render_params.antialiasing,
         string_list += ["endsolid {}".format(name)]
         return "".join(string_list)
 
+    def ply_ascii_string(self, name="surface"):
+        """
+        Return an PLY (Polygon File Format) representation of the surface.
+
+        INPUT:
+
+        - name (string, default:"surface") -- name of the surface.
+
+        OUTPUT:
+
+        A string that represents the surface in the PLY format.
+
+        See :wikipedia:`PLY_(file_format)`
+
+        EXAMPLES::
+
+            sage: x,y,z = var('x,y,z')
+            sage: a = implicit_plot3d(x^2+y^2+z^2-9,[x,-5,5],[y,-5,5],[z,-5,5])
+            sage: astl = a.ply_ascii_string()
+            sage: astl.splitlines()[:7]
+            ['ply',
+            'format ascii 1.0',
+            'comment surface',
+            'element vertex 15540',
+            'property float x',
+            'property float y',
+            'property float z',
+            'element face 5180',
+            'property list uchar int vertex_indices',
+            'end_header',
+            '2.94871794872 -0.384615384615 -0.39358974359']
+
+            sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
+            sage: print p.ply_ascii_string(name='triangle')
+            ply
+            format ascii 1.0
+            comment triangle
+            element vertex 3
+            property float x
+            property float y
+            property float z
+            element face 1
+            property list uchar int vertex_indices
+            end_header
+            0.0 0.0 0.0
+            1.0 2.0 3.0
+            3.0 0.0 0.0
+            3 0 1 2
+        """
+        if name is None:
+            name = "surface"
+
+        faces = self.index_faces()
+        if not faces:
+            self.triangulate()
+            faces = self.index_faces()
+
+        string_list = ["ply\nformat ascii 1.0\ncomment {}\nelement vertex {}\nproperty float x\nproperty float y\nproperty float z\nelement face {}\nproperty list uchar int vertex_indices\nend_header\n".format(name, len(self.vertex_list()), len(faces))]
+
+        vertex_template = '{} {} {}\n'
+        for v in self.vertices():
+            string_list += [vertex_template.format(*v)]
+
+        for f in faces:
+            string_list += [str(len(f))
+                            + ''.join(' {}'.format(k) for k in f) + '\n']
+
+        return "".join(string_list)
+
     def amf_ascii_string(self, name="surface"):
         """
         Return an AMF (Additive Manufacturing File Format) representation of
@@ -1339,22 +1392,6 @@ end_scene""" % (render_params.antialiasing,
         See :wikipedia:`Additive_Manufacturing_File_Format`
 
         This should be saved as a ZIP archive to save space.
-
-        COMMENTS:
-
-            (1) In order to do 3d printing with this, you will need to
-                convert it into gcode. Skeinforge is an open-source
-                program that can do this.
-
-            (2) The size of the surface is not normalized in export.
-                Sage's units will become the units of the STL
-                description. These seem to be ~0.05 cm (at least when
-                printed using skeinforge -> replicatorg -> hacklab.to's
-                cupcake).
-
-            (3) Be aware of the overhang limits of your 3d printer;
-                most printers can only handle an overhang of Pi/2 (45*)
-                before your model will start drooping.
 
         EXAMPLES::
 
@@ -1384,7 +1421,7 @@ end_scene""" % (render_params.antialiasing,
         string_list += ['<vertices>']
         vertex_template = '<vertex><coordinates><x>{}</x><y>{}</y><z>{}</z></coordinates></vertex>'
         for v in self.vertices():
-            string_list += vertex_template.format(*v)
+            string_list += [vertex_template.format(*v)]
         string_list += ['</vertices><volume>']
 
         face_template = '<triangle><v1>{}</v1><v2>{}</v2><v3>{}</v3></triangle>'
@@ -1426,9 +1463,9 @@ end_scene""" % (render_params.antialiasing,
 
         - an image file (of type: PNG, BMP, GIF, PPM, or TIFF) rendered using Tachyon
 
-        - a Sage object file (of type ``.sobj``) that can load back later.
+        - a Sage object file (of type ``.sobj``) that you can load back later.
 
-        - a data file (of type: X3D, STL, AMF) for use in other software
+        - a data file (of type: X3D, STL, AMF, PLY) for use in other software
 
         INPUT:
 
@@ -1497,8 +1534,12 @@ end_scene""" % (render_params.antialiasing,
                 outfile = file(filename, 'w')
                 outfile.write(self.amf_ascii_string())
                 outfile.close()
+        elif ext == '.ply':
+                outfile = file(filename, 'w')
+                outfile.write(self.ply_ascii_string())
+                outfile.close()
         else:
-            raise ValueError('filetype not supported by save()')
+            raise ValueError('filetype {} not supported by save()'.format(ext))
 
 
 # if you add any default parameters you must update some code below

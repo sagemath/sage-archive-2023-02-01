@@ -1219,7 +1219,7 @@ end_scene""" % (render_params.antialiasing,
             ext = 'canvas3d'
 
         if ext is None:
-            raise ValueError, "Unknown 3d plot type: %s" % viewer
+            raise ValueError("Unknown 3d plot type: %s" % viewer)
 
         if not DOCTEST_MODE and not EMBEDDED_MODE:
             if verbosity:
@@ -1231,6 +1231,8 @@ end_scene""" % (render_params.antialiasing,
     def stl_ascii_string(self, name="surface"):
         """
         Return an STL (STereoLithography) representation of the surface.
+
+        This only works for triangulated surfaces !
 
         INPUT:
 
@@ -1295,6 +1297,9 @@ end_scene""" % (render_params.antialiasing,
             self.triangulate()
             faces = self.face_list()
 
+        if len(faces[0]) > 3:
+            raise ValueError('not made of triangles')
+
         code = ("facet normal {} {} {}\n"
                 "    outer loop\n"
                 "        vertex {} {} {}\n"
@@ -1320,6 +1325,8 @@ end_scene""" % (render_params.antialiasing,
         """
         Return an AMF (Additive Manufacturing File Format) representation of
         the surface.
+
+        This only works for triangulated surfaces !
 
         INPUT:
 
@@ -1369,6 +1376,9 @@ end_scene""" % (render_params.antialiasing,
             self.triangulate()
             faces = self.index_faces()
 
+        if len(faces[0]) > 3:
+            raise ValueError('not made of triangles')
+
         string_list = ['<?xml version="1.0" encoding="utf-8"?><amf><object id="{}"><mesh>'.format(name)]
 
         string_list += ['<vertices>']
@@ -1386,12 +1396,13 @@ end_scene""" % (render_params.antialiasing,
 
     def save_image(self, filename=None, *args, **kwds):
         r"""
-        Save an image representation of self.  The image type is
-        determined by the extension of the filename.  For example,
-        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
-        ``.svg``.  Currently this is implemented by calling the
-        :meth:`save` method of self, passing along all arguments and
-        keywords.
+        Save an image representation of ``self``.
+
+        The image type is determined by the extension of the filename.
+        For example, this could be ``.png``, ``.jpg``, ``.gif``,
+        ``.pdf``, ``.svg``.  Currently this is implemented by calling
+        the :meth:`save` method of ``self``, passing along all arguments
+        and keywords.
 
         .. Note::
 
@@ -1408,9 +1419,16 @@ end_scene""" % (render_params.antialiasing,
 
     def save(self, filename, **kwds):
         """
-        Save the graphic to an image file (of type: PNG, BMP, GIF, PPM, or TIFF)
-        rendered using Tachyon, or pickle it (stored as an SOBJ so you can load it
-        later) depending on the file extension you give the filename.
+        Save the graphic in a file.
+
+        The file type is depending on the file extension you give the
+        filename. This can be either:
+
+        - an image file (of type: PNG, BMP, GIF, PPM, or TIFF) rendered using Tachyon
+
+        - a Sage object file (of type ``.sobj``) that can load back later.
+
+        - a data file (of type: X3D, STL, AMF) for use in other software
 
         INPUT:
 
@@ -1448,7 +1466,8 @@ end_scene""" % (render_params.antialiasing,
         if ext == '' or ext == '.sobj':
             SageObject.save(self, filename)
             return
-        elif ext in ['.bmp', '.png', '.gif', '.ppm', '.tiff', '.tif', '.jpg', '.jpeg']:
+        elif ext in ['.bmp', '.png', '.gif', '.ppm', '.tiff', '.tif',
+                     '.jpg', '.jpeg']:
             opts = self._process_viewing_options(kwds)
             T = self._prepare_for_tachyon(
                 opts['frame'], opts['axes'], opts['frame_aspect_ratio'],
@@ -1466,6 +1485,18 @@ end_scene""" % (render_params.antialiasing,
             if ext != '.png':
                 import PIL.Image as Image
                 Image.open(out_filename).save(filename)
+        elif ext == '.x3d':
+                outfile = file(filename, 'w')
+                outfile.write(self.x3d())
+                outfile.close()
+        elif ext == '.stl':
+                outfile = file(filename, 'w')
+                outfile.write(self.stl_ascii_string())
+                outfile.close()
+        elif ext == '.amf':
+                outfile = file(filename, 'w')
+                outfile.write(self.amf_ascii_string())
+                outfile.close()
         else:
             raise ValueError('filetype not supported by save()')
 

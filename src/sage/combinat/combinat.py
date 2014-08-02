@@ -147,7 +147,7 @@ Functions and classes
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.interfaces.all import gap, maxima
+from sage.interfaces.all import maxima
 from sage.rings.all import QQ, ZZ, Integer
 from sage.rings.arith import bernoulli, binomial
 from sage.rings.polynomial.polynomial_element import Polynomial
@@ -347,7 +347,8 @@ def bell_number(n, algorithm='dobinski', **options):
             return ret
         return ZZ(int(ret_mp))
     if n < 200 or algorithm == 'gap':
-        return ZZ(gap.eval("Bell(%s)"%ZZ(n)))
+        from sage.libs.gap.libgap import libgap
+        return ZZ(libgap.eval("Bell(%s)"%ZZ(n)).sage())
     from sage.functions.log import log
     from sage.misc.functional import ceil, N, isqrt, exp as exp2
     b, fact, k, n2, si = Integer(0), Integer(1), Integer(1), \
@@ -503,7 +504,8 @@ def fibonacci(n, algorithm="pari"):
     if algorithm == 'pari':
         return ZZ(pari(n).fibonacci())
     elif algorithm == 'gap':
-        return ZZ(gap.eval("Fibonacci(%s)"%n))
+        from sage.libs.gap.libgap import libgap
+        return ZZ(libgap.eval("Fibonacci(%s)"%n).sage())
     else:
         raise ValueError("no algorithm %s"%algorithm)
 
@@ -576,8 +578,9 @@ def lucas_number1(n,P,Q):
 
     Can you use Sage to find a counterexample to the conjecture?
     """
-    ans=gap.eval("Lucas(%s,%s,%s)[1]"%(QQ._coerce_(P),QQ._coerce_(Q),ZZ(n)))
-    return sage_eval(ans)
+    from sage.libs.gap.libgap import libgap
+    ans=libgap.eval("Lucas(%s,%s,%s)[1]"%(QQ._coerce_(P),QQ._coerce_(Q),ZZ(n))).sage()
+    return ans
 
 def lucas_number2(n,P,Q):
     r"""
@@ -623,8 +626,9 @@ def lucas_number2(n,P,Q):
         sage: [lucas_number2(n,1,-1) for n in range(10)]
         [2, 1, 3, 4, 7, 11, 18, 29, 47, 76]
     """
-    ans=gap.eval("Lucas(%s,%s,%s)[2]"%(QQ._coerce_(P),QQ._coerce_(Q),ZZ(n)))
-    return sage_eval(ans)
+    from sage.libs.gap.libgap import libgap
+    ans=libgap.eval("Lucas(%s,%s,%s)[2]"%(QQ._coerce_(P),QQ._coerce_(Q),ZZ(n))).sage()
+    return ans
 
 
 def stirling_number1(n, k):
@@ -648,8 +652,9 @@ def stirling_number1(n, k):
 
     Indeed, `S_1(n,k) = S_1(n-1,k-1) + (n-1)S_1(n-1,k)`.
     """
-    return Integer(gap.eval("Stirling1({0},{1})".format(Integer(n),
-                                                        Integer(k))))
+    from sage.libs.gap.libgap import libgap
+    return Integer(libgap.eval("Stirling1({0},{1})".format(Integer(n),
+                                                        Integer(k))).sage())
 
 
 def stirling_number2(n, k, algorithm=None):
@@ -774,7 +779,8 @@ def stirling_number2(n, k, algorithm=None):
     if algorithm is None:
         return _stirling_number2(n, k)
     elif algorithm == 'gap':
-        return ZZ(gap.eval("Stirling2(%s,%s)"%(ZZ(n),ZZ(k))))
+        from sage.libs.gap.libgap import libgap
+        return ZZ(libgap.eval("Stirling2(%s,%s)"%(ZZ(n),ZZ(k))).sage())
     elif algorithm == 'maxima':
         return ZZ(maxima.eval("stirling2(%s,%s)"%(ZZ(n),ZZ(k))))
     else:
@@ -2217,7 +2223,8 @@ def number_of_tuples(S,k):
         sage: number_of_tuples(S,2)
         25
     """
-    ans=gap.eval("NrTuples(%s,%s)"%(S,ZZ(k)))
+    from sage.libs.gap.libgap import libgap
+    ans=libgap.eval("NrTuples(%s,%s)"%(S,ZZ(k))).sage()
     return ZZ(ans)
 
 def unordered_tuples(S,k):
@@ -2245,8 +2252,9 @@ def unordered_tuples(S,k):
         sage: unordered_tuples(["a","b","c"],2)
         ['aa', 'ab', 'ac', 'bb', 'bc', 'cc']
     """
-    ans=gap.eval("UnorderedTuples(%s,%s)"%(S,ZZ(k)))
-    return eval(ans)
+    from sage.libs.gap.libgap import libgap
+    ans=libgap.eval("UnorderedTuples(%s,%s)"%(S,ZZ(k)))
+    return ans.sage()
 
 def number_of_unordered_tuples(S,k):
     """
@@ -2259,7 +2267,8 @@ def number_of_unordered_tuples(S,k):
         sage: number_of_unordered_tuples(S,2)
         15
     """
-    ans=gap.eval("NrUnorderedTuples(%s,%s)"%(S,ZZ(k)))
+    from sage.libs.gap.libgap import libgap
+    ans=libgap.eval("NrUnorderedTuples(%s,%s)"%(S,ZZ(k))).sage()
     return ZZ(ans)
 
 def permutations(mset):

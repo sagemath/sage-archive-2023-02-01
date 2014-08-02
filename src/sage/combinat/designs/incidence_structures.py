@@ -607,6 +607,59 @@ class IncidenceStructure(object):
     # real computations #
     #####################
 
+    def packing(self, solver=None, verbose=0):
+        r"""
+        Returns a maximum packing
+
+        A maximum packing in a hypergraph is collection of disjoint sets/blocks
+        of maximal cardinality. This problem is NP-complete in general, and in
+        particular on 3-uniform hypergraphs. It is solved here with an Integer
+        Linear Program.
+
+        For more information, see the ;wikipedia:`Packing_in_a_hypergraph`.
+
+        INPUT:
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+          Only useful when ``algorithm == "LP"``.
+
+        EXAMPLE::
+
+            sage; IncidenceStructure([[1,2],[3,"A"],[2,3]]).packing()
+            [[1, 2], [3, 'A']]
+            sage: len(designs.steiner_triple_system(9).packing())
+            3
+        """
+        from sage.numerical.mip import MixedIntegerLinearProgram
+
+        # List of blocks containing a given point x
+        d = [[] for x in self._points]
+        for i,B in enumerate(self._blocks):
+            for x in B:
+                d[x].append(i)
+
+        p = MixedIntegerLinearProgram(solver=solver)
+        b = p.new_variable(binary=True)
+        for x,L in enumerate(d): # Set of disjoint blocks
+            p.add_constraint(p.sum([b[i] for i in L]) <= 1)
+
+        # Maximum number of blocks
+        p.set_objective(p.sum([b[i] for i in range(self.num_blocks())]))
+
+        p.solve(log=verbose)
+
+        return [[self._points[x] for x in self._blocks[i]]
+                for i,v in p.get_values(b).iteritems() if v]
+
     def is_t_design(self, t=None, v=None, k=None, l=None, return_parameters=False):
         r"""
         Test whether ``self`` is a `t-(v,k,l)` design.

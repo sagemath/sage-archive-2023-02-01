@@ -112,9 +112,10 @@ EXAMPLES:
         x |--> bessel_J(0, x)
         sage: plot(f, (x, 1, 10))
 
-    Visualize the Bessel Y function on the complex plane::
+    Visualize the Bessel Y function on the complex plane
+    (set plot_points to a higher value to get more detail)::
 
-        sage: complex_plot(bessel_Y(0, x), (-5, 5), (-5, 5), plot_points=10) # long time
+        sage: complex_plot(bessel_Y(0, x), (-5, 5), (-5, 5), plot_points=20)
 
     Evaluate a combination of Bessel functions::
 
@@ -269,17 +270,17 @@ class Function_Bessel_J(BuiltinFunction):
         sage: m.integrate(x)
         hypergeometric([3/2],[5/2,3],-_SAGE_VAR_x^2/4)*_SAGE_VAR_x^3/24
 
-    Visualization::
+    Visualization (set plot_points to a higher value to get more detail)::
 
         sage: plot(bessel_J(1,x), (x,0,5), color='blue')
-        sage: complex_plot(bessel_J(1, x), (-5, 5), (-5, 5), plot_points=10) # long time
+        sage: complex_plot(bessel_J(1, x), (-5, 5), (-5, 5), plot_points=20)
 
     ALGORITHM:
 
         Numerical evaluation is handled by the mpmath library. Symbolics are
         handled by a combination of Maxima and Sage (Ginac/Pynac).
         
-    Check whether the return value is real whenever the argument is real (#10251)::
+    Check whether the return value is real whenever the argument is real (:trac:`10251`)::
 
         sage: bessel_J(5, 1.5) in RR
         True
@@ -421,17 +422,17 @@ class Function_Bessel_Y(BuiltinFunction):
         sage: bessel_Y(0, ComplexField(200)(0.5+I))
         0.077763160184438051408593468823822434235010300228009867784073 + 1.0142336049916069152644677682828326441579314239591288411739*I
 
-    Visualization::
+    Visualization (set plot_points to a higher value to get more detail)::
 
         sage: plot(bessel_Y(1,x), (x,0,5), color='blue')
-        sage: complex_plot(bessel_Y(1, x), (-5, 5), (-5, 5), plot_points=10) # long time
+        sage: complex_plot(bessel_Y(1, x), (-5, 5), (-5, 5), plot_points=20)
 
     ALGORITHM:
 
         Numerical evaluation is handled by the mpmath library. Symbolics are
         handled by a combination of Maxima and Sage (Ginac/Pynac).
 
-    Check whether the return value is real whenever the argument is real (#10251)::
+    Check whether the return value is real whenever the argument is real (:trac:`10251`)::
 
         sage: bessel_Y(5, 1.5) in RR
         True
@@ -575,10 +576,10 @@ class Function_Bessel_I(BuiltinFunction):
         sage: bessel_I(0, ComplexField(200)(0.5+I))
         0.80644357583493619472428518415019222845373366024179916785502 + 0.22686958987911161141397453401487525043310874687430711021434*I
 
-    Visualization::
+    Visualization (set plot_points to a higher value to get more detail)::
 
         sage: plot(bessel_I(1,x), (x,0,5), color='blue')
-        sage: complex_plot(bessel_I(1, x), (-5, 5), (-5, 5), plot_points=10) # long time
+        sage: complex_plot(bessel_I(1, x), (-5, 5), (-5, 5), plot_points=20)
 
     ALGORITHM:
 
@@ -590,7 +591,7 @@ class Function_Bessel_I(BuiltinFunction):
         sage: N(bessel_I(1,1),500)
         0.565159103992485027207696027609863307328899621621092009480294489479255640964371134092664997766814410064677886055526302676857637684917179812041131208121
 
-    Check whether the return value is real whenever the argument is real (#10251)::
+    Check whether the return value is real whenever the argument is real (:trac:`10251`)::
 
         sage: bessel_I(5, 1.5) in RR
         True
@@ -740,10 +741,10 @@ class Function_Bessel_K(BuiltinFunction):
         sage: bessel_K(0, ComplexField(200)(0.5+I))
         0.058365979093103864080375311643360048144715516692187818271179 - 0.67645499731334483535184142196073004335768129348518210260256*I
 
-    Visualization::
+    Visualization (set plot_points to a higher value to get more detail)::
 
         sage: plot(bessel_K(1,x), (x,0,5), color='blue')
-        sage: complex_plot(bessel_K(1, x), (-5, 5), (-5, 5), plot_points=10) # long time
+        sage: complex_plot(bessel_K(1, x), (-5, 5), (-5, 5), plot_points=20)
 
     ALGORITHM:
 
@@ -769,7 +770,7 @@ class Function_Bessel_K(BuiltinFunction):
         4.11189776828337e-45 - 1.01494840019482e-80*I
         1.15159692553603e-88 - 6.75787862113718e-125*I
 
-    Check whether the return value is real whenever the argument is real (#10251)::
+    Check whether the return value is real whenever the argument is real (:trac:`10251`)::
 
         sage: bessel_K(5, 1.5) in RR
         True

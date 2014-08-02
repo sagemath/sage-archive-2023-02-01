@@ -3,11 +3,13 @@ Graphics3D object that consists of a list of polygons, also used for
 triangulations of other objects.
 
 AUTHORS:
-    -- Robert Bradshaw (2007-08-26): initial version
-    -- Robert Bradshaw (2007-08-28): significant optimizations
 
-TODO:
-    -- Smooth triangles
+- Robert Bradshaw (2007-08-26): initial version
+- Robert Bradshaw (2007-08-28): significant optimizations
+
+.. TODO::
+
+    Smooth triangles
 """
 
 
@@ -64,10 +66,17 @@ from sage.plot.plot3d.base import Graphics3dGroup
 from transform cimport Transformation
 
 
-
 # --------------------------------------------------------------------
 # Fast routines for generating string representations of the polygons.
 # --------------------------------------------------------------------
+
+cdef inline format_tachyon_texture(color_c rgb):
+    cdef char rs[200]
+    cdef Py_ssize_t cr = sprintf_3d(rs,
+                                   "TEXTURE\n AMBIENT 0.3 DIFFUSE 0.7 SPECULAR 0 OPACITY 1.0\n COLOR %g %g %g \n TEXFUNC 0",
+                                   rgb.r, rgb.g, rgb.b)
+    return PyString_FromStringAndSize(rs, cr)
+
 
 cdef inline format_tachyon_triangle(point_c P, point_c Q, point_c R):
     cdef char ss[250]
@@ -78,6 +87,7 @@ cdef inline format_tachyon_triangle(point_c P, point_c Q, point_c R):
                                    Q.x, Q.y, Q.z,
                                    R.x, R.y, R.z )
     return PyString_FromStringAndSize(ss, r)
+
 
 cdef inline format_json_vertex(point_c P):
     cdef char ss[100]
@@ -169,7 +179,8 @@ cdef class IndexFaceSet(PrimitiveObject):
 
     Usually these objects are not created directly by users.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
         sage: S = IndexFaceSet([[(1,0,0),(0,1,0),(0,0,1)],[(1,0,0),(0,1,0),(0,0,0)]])
         sage: S.face_list()
@@ -187,16 +198,26 @@ cdef class IndexFaceSet(PrimitiveObject):
         sage: S.face_list()
         [[(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 0.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 2.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 3.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 4.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 5.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 6.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 7.0)]]
         sage: S.show()
-    """
 
+    Example of colored IndexFaceSet (:trac:`12212`)::
+
+        sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
+        sage: from sage.plot.plot3d.texture import Texture
+        sage: point_list = [(2,0,0),(0,2,0),(0,0,2),(0,1,1),(1,0,1),(1,1,0)]
+        sage: face_list = [[0,4,5],[3,4,5],[2,3,4],[1,3,5]]
+        sage: col = rainbow(10, 'rgbtuple')
+        sage: t_list=[Texture(col[i]) for i in range(10)]
+        sage: S = IndexFaceSet(face_list, point_list, t_list)
+    """
     def __cinit__(self):
         self.vs = <point_c *>NULL
         self.face_indices = <int *>NULL
         self._faces = <face_c *>NULL
-
-
-    def __init__(self, faces, point_list=None, enclosed=False, **kwds):
+    def __init__(self, faces, point_list=None, texture_list=None,
+                 enclosed=False, **kwds):
         PrimitiveObject.__init__(self, **kwds)
+
+        self.global_texture = (texture_list is None)
 
         self.enclosed = enclosed
 
@@ -235,6 +256,10 @@ cdef class IndexFaceSet(PrimitiveObject):
         for i from 0 <= i < self.fcount:
             self._faces[i].n = len(faces[i])
             self._faces[i].vertices = &self.face_indices[cur_pt]
+            if self.global_texture:
+                self._faces[i].color.r, self._faces[i].color.g, self._faces[i].color.b = self.texture.color
+            else:
+                self._faces[i].color.r, self._faces[i].color.g, self._faces[i].color.b = texture_list[i].color
             for ix in faces[i]:
                 self.face_indices[cur_pt] = ix
                 cur_pt += 1
@@ -274,14 +299,15 @@ cdef class IndexFaceSet(PrimitiveObject):
         else:
             self.face_indices = <int *> sage_realloc(self.face_indices, sizeof(int) * icount)
         if (self.vs == NULL and vcount > 0) or (self.face_indices == NULL and icount > 0) or (self._faces == NULL and fcount > 0):
-            raise MemoryError, "Out of memory allocating triangulation for %s" % type(self)
+            raise MemoryError("Out of memory allocating triangulation for %s" % type(self))
 
     def _clean_point_list(self):
-        # TODO: There is still wasted space where quadrilaterals were converted to triangles...
-        #       but it's so little it's probably not worth bothering with
+        # TODO: There is still wasted space where quadrilaterals were
+        # converted to triangles...  but it's so little it's probably
+        # not worth bothering with
         cdef int* point_map = <int *>sage_malloc(sizeof(int) * self.vcount)
         if point_map == NULL:
-            raise MemoryError, "Out of memory cleaning up for %s" % type(self)
+            raise MemoryError("Out of memory cleaning up for %s" % type(self))
         memset(point_map, 0, sizeof(int) * self.vcount)  # TODO: sage_calloc
         cdef Py_ssize_t i, j
         cdef face_c *face
@@ -310,9 +336,10 @@ cdef class IndexFaceSet(PrimitiveObject):
         surfaces but looks bad if one actually has a polyhedron.
 
         INPUT:
-            threshold -- the minimum cosine of the angle between adjacent faces
-                         a higher threshold separates more, all faces if >= 1,
-                         no faces if <= -1
+
+        threshold -- the minimum cosine of the angle between adjacent
+        faces a higher threshold separates more, all faces if >= 1, no
+        faces if <= -1
         """
         cdef Py_ssize_t i, j, k
         cdef face_c *face
@@ -320,7 +347,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         cdef int* point_counts = <int *>sage_malloc(sizeof(int) * (self.vcount * 2 + 1))
         # For each vertex, get number of faces
         if point_counts == NULL:
-            raise MemoryError, "Out of memory in _seperate_creases for %s" % type(self)
+            raise MemoryError("Out of memory in _seperate_creases for %s" % type(self))
         cdef int* running_point_counts = &point_counts[self.vcount]
         memset(point_counts, 0, sizeof(int) * self.vcount)
         for i from 0 <= i < self.fcount:
@@ -341,7 +368,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         cdef face_c** point_faces = <face_c **>sage_malloc(sizeof(face_c*) * total)
         if point_faces == NULL:
             sage_free(point_counts)
-            raise MemoryError, "Out of memory in _seperate_creases for %s" % type(self)
+            raise MemoryError("Out of memory in _seperate_creases for %s" % type(self))
         sig_on()
         memset(point_counts, 0, sizeof(int) * self.vcount)
         for i from 0 <= i < self.fcount:
@@ -382,7 +409,7 @@ cdef class IndexFaceSet(PrimitiveObject):
                     sage_free(point_faces)
                     self.vcount = self.fcount = self.icount = 0 # so we don't get segfaults on bad points
                     sig_off()
-                    raise MemoryError, "Out of memory in _seperate_creases for %s, CORRUPTED" % type(self)
+                    raise MemoryError("Out of memory in _seperate_creases for %s, CORRUPTED" % type(self))
                 ix = self.vcount
                 running = 0
                 for i from 0 <= i < self.vcount - start:
@@ -410,8 +437,6 @@ cdef class IndexFaceSet(PrimitiveObject):
         sage_free(point_faces)
         sig_off()
 
-
-
     def _mem_stats(self):
         return self.vcount, self.fcount, self.icount
 
@@ -432,7 +457,8 @@ cdef class IndexFaceSet(PrimitiveObject):
         in ParametricSurface by verifying the opposite edges of the rendered
         domain either line up or are pinched together.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
             sage: IndexFaceSet([[(0,0,1),(0,1,0),(1,0,0)]]).is_enclosed()
             False
@@ -440,14 +466,19 @@ cdef class IndexFaceSet(PrimitiveObject):
         return self.enclosed
 
     def index_faces(self):
+        """
+        """
         cdef Py_ssize_t i, j
-        return [[self._faces[i].vertices[j] for j from 0 <= j < self._faces[i].n] for i from 0 <= i < self.fcount]
+        return [[self._faces[i].vertices[j]
+                 for j from 0 <= j < self._faces[i].n]
+                for i from 0 <= i < self.fcount]
 
     def faces(self):
         """
         An iterator over the faces.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.plot3d.shapes import *
             sage: S = Box(1,2,3)
             sage: list(S.faces()) == S.face_list()
@@ -456,22 +487,33 @@ cdef class IndexFaceSet(PrimitiveObject):
         return FaceIter(self)
 
     def face_list(self):
+        """
+        Return the list of faces as triple of vertices.
+        """
         points = self.vertex_list()
         cdef Py_ssize_t i, j
-        return [[points[self._faces[i].vertices[j]] for j from 0 <= j < self._faces[i].n] for i from 0 <= i < self.fcount]
+        return [[points[self._faces[i].vertices[j]]
+                 for j from 0 <= j < self._faces[i].n]
+                for i from 0 <= i < self.fcount]
 
     def edges(self):
+        """
+        An iterator over the edges.
+        """
         return EdgeIter(self)
 
     def edge_list(self):
-        # For consistancy
+        """
+        Return the list of edges.
+        """
         return list(self.edges())
 
     def vertices(self):
         """
         An iterator over the vertices.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.plot.plot3d.shapes import *
             sage: S = Cone(1,1)
             sage: list(S.vertices()) == S.vertex_list()
@@ -480,10 +522,16 @@ cdef class IndexFaceSet(PrimitiveObject):
         return VertexIter(self)
 
     def vertex_list(self):
+        """
+        Return the list of vertices.
+        """
         cdef Py_ssize_t i
         return [(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount]
 
     def x3d_geometry(self):
+        """
+        Return the x3d data.
+        """
         cdef Py_ssize_t i
         points = ",".join(["%s %s %s"%(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount])
         coordIndex = ",-1,".join([",".join([str(self._faces[i].vertices[j])
@@ -493,7 +541,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 <IndexedFaceSet coordIndex='%s,-1'>
   <Coordinate point='%s'/>
 </IndexedFaceSet>
-"""%(coordIndex, points)
+""" % (coordIndex, points)
 
     def bounding_box(self):
         r"""
@@ -529,14 +577,23 @@ cdef class IndexFaceSet(PrimitiveObject):
         return ((low.x, low.y, low.z), (high.x, high.y, high.z))
 
     def partition(self, f):
-        """
-        Partition the faces of self based on a map $f: \RR^3 \leftarrow \ZZ$
-        applied to the center of each face.
+        r"""
+        Partition the faces of ``self``.
+
+        The partition is done according to the value of a map 
+        `f: \RR^3 \leftarrow \ZZ` applied to the center of each face.
+
+        INPUT:
+
+        - f -- a function from `\RR^3` to `\ZZ`
+
+        EXAMPLES::
         """
         cdef Py_ssize_t i, j, ix, face_ix
         cdef int part
         cdef point_c P
-        cdef face_c *face, *new_face
+        cdef face_c *face
+        cdef face_c *new_face
         cdef IndexFaceSet face_set
 
         cdef int *partition = <int *>sage_malloc(sizeof(int) * self.fcount)
@@ -584,7 +641,10 @@ cdef class IndexFaceSet(PrimitiveObject):
 
     def tachyon_repr(self, render_params):
         """
-        TESTS:
+        Return a tachyon object for ``self``.
+
+        TESTS::
+
             sage: from sage.plot.plot3d.shapes import *
             sage: S = Cone(1,1)
             sage: s = S.tachyon_repr(S.default_render_params())
@@ -606,7 +666,10 @@ cdef class IndexFaceSet(PrimitiveObject):
                 Q = self.vs[face.vertices[1]]
                 R = self.vs[face.vertices[2]]
             PyList_Append(lines, format_tachyon_triangle(P, Q, R))
-            PyList_Append(lines, self.texture.id)
+            if self.global_texture:
+                PyList_Append(lines, self.texture.id)
+            else:
+                PyList_Append(lines, format_tachyon_texture(face.color))
             if face.n > 3:
                 for k from 3 <= k < face.n:
                     Q = R
@@ -615,13 +678,18 @@ cdef class IndexFaceSet(PrimitiveObject):
                     else:
                         R = self.vs[face.vertices[k]]
                     PyList_Append(lines, format_tachyon_triangle(P, Q, R))
-                    PyList_Append(lines, self.texture.id)
+                    if self.global_texture:
+                        PyList_Append(lines, self.texture.id)
+                    else:
+                        PyList_Append(lines, format_tachyon_texture(face.color))
         sig_off()
 
         return lines
 
     def json_repr(self, render_params):
         """
+        Return a json representation for ``self``.
+
         TESTS::
 
             sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
@@ -651,7 +719,10 @@ cdef class IndexFaceSet(PrimitiveObject):
 
     def obj_repr(self, render_params):
         """
-        TESTS:
+        Return an obj representation for ``self``.
+
+        TESTS::
+
             sage: from sage.plot.plot3d.shapes import *
             sage: S = Cylinder(1,1)
             sage: s = S.obj_repr(S.default_render_params())
@@ -687,7 +758,10 @@ cdef class IndexFaceSet(PrimitiveObject):
 
     def jmol_repr(self, render_params):
         """
-        TESTS:
+        Return a  jmol representation for ``self``.
+
+        TESTS::
+
           sage: from sage.plot.plot3d.shapes import *
           sage: S = Cylinder(1,1)
           sage: S.show()
@@ -700,16 +774,19 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         sig_on()
         if transform is None:
-            points = [format_pmesh_vertex(self.vs[i]) for i from 0 <= i < self.vcount]
+            points = [format_pmesh_vertex(self.vs[i])
+                      for i from 0 <= i < self.vcount]
         else:
             points = []
             for i from 0 <= i < self.vcount:
                 transform.transform_point_c(&res, self.vs[i])
                 PyList_Append(points, format_pmesh_vertex(res))
 
-        faces = [format_pmesh_face(self._faces[i]) for i from 0 <= i < self.fcount]
+        faces = [format_pmesh_face(self._faces[i])
+                 for i from 0 <= i < self.fcount]
 
-        # If a face has more than 4 vertices, it gets chopped up in format_pmesh_face
+        # If a face has more than 4 vertices, it gets chopped up in
+        # format_pmesh_face
         cdef Py_ssize_t extra_faces = 0
         for i from 0 <= i < self.fcount:
             if self._faces[i].n >= 5:
@@ -740,13 +817,17 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         # Turn on display of the mesh lines or dots?
         if render_params.mesh:
-             s += '\npmesh %s mesh\n'%name
+             s += '\npmesh %s mesh\n' % name
         if render_params.dots:
-             s += '\npmesh %s dots\n'%name
+             s += '\npmesh %s dots\n' % name
         return [s]
 
     def dual(self, **kwds):
+        """
+        Return the dual.
 
+        EXAMPLES::
+        """
         cdef point_c P
         cdef face_c *face
         cdef Py_ssize_t i, j, ix, ff
@@ -803,12 +884,12 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         return dual
 
-
     def stickers(self, colors, width, hover):
         """
-        Returns a group of IndexFaceSets
+        Return a group of IndexFaceSets.
 
         INPUT:
+
             colors  - list of colors/textures to use (in cyclic order)
             width   - offset perpendicular into the edge (to create a border)
                       may also be negative
@@ -817,9 +898,11 @@ cdef class IndexFaceSet(PrimitiveObject):
                       is very small compared to the actual object
 
         OUTPUT:
-            Graphics3dGroup of stickers
 
-        EXAMPLE:
+        Graphics3dGroup of stickers
+
+        EXAMPLE::
+
             sage: from sage.plot.plot3d.shapes import Box
             sage: B = Box(.5,.4,.3, color='black')
             sage: S = B.stickers(['red','yellow','blue'], 0.1, 0.05)
@@ -834,6 +917,9 @@ cdef class IndexFaceSet(PrimitiveObject):
         return Graphics3dGroup(all)
 
     def sticker(self, face_list, width, hover, **kwds):
+        """
+        Return a sticker on the chosen faces.
+        """
         if not isinstance(face_list, (list, tuple)):
             face_list = (face_list,)
         faces = self.face_list()
@@ -844,6 +930,9 @@ cdef class IndexFaceSet(PrimitiveObject):
 
 
 cdef class FaceIter:
+    """
+    A class for iteration over faces
+    """
     def __init__(self, face_set):
         self.set = face_set
         self.i = 0
@@ -861,11 +950,15 @@ cdef class FaceIter:
             self.i += 1
             return face
 
+
 cdef class EdgeIter:
+    """
+    A class for iteration over edges
+    """
     def __init__(self, face_set):
         self.set = face_set
         if not self.set.enclosed:
-            raise TypeError, "Must be closed to use the simple iterator."
+            raise TypeError("Must be closed to use the simple iterator.")
         self.i = 0
         self.j = 0
         self.seen = {}
@@ -901,6 +994,9 @@ cdef class EdgeIter:
 
 
 cdef class VertexIter:
+    """
+    A class for iteration over vertices
+    """
     def __init__(self, face_set):
         self.set = face_set
         self.i = 0
@@ -913,10 +1009,18 @@ cdef class VertexIter:
             self.i += 1
             return (self.set.vs[self.i-1].x, self.set.vs[self.i-1].y, self.set.vs[self.i-1].z)
 
+
 def len3d(v):
+    """
+    Return the norm of a vector in three dimensions.
+    """
     return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])
 
+
 def sticker(face, width, hover):
+    """
+    Return a sticker over the given face.
+    """
     n = len(face)
     edges = []
     for i from 0 <= i < n:
@@ -926,11 +1030,11 @@ def sticker(face, width, hover):
     sticker = []
     for i in range(n):
         v = -edges[i]
-        w = edges[i-1]
+        w = edges[i - 1]
         N = v.cross_product(w)
-        lenN = len3d(N)
-        dv = v*(width*len3d(w)/lenN)
-        dw = w*(width*len3d(v)/lenN)
+        lenN = N.norm()
+        dv = v * (width * w.norm() / lenN)
+        dw = w * (width * v.norm() / lenN)
         sticker.append(tuple(vector(RDF, face[i-1]) + dv + dw + N*(hover/lenN)))
     return sticker
 

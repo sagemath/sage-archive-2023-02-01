@@ -2614,13 +2614,14 @@ class Graph(GenericGraph):
           ``k`` is ``None`` (default), the method computes the optimal
           tree-width.
 
-        - ``certificate`` -- whether to return the tree-decompostion itself.
+        - ``certificate`` -- whether to return the tree-decomposition itself.
 
         OUTPUT:
 
-            This method returns ``False`` when no tree-decomposition of width
-            `\leq k` exists. It returns ``True`` otherwise, but returns a graph
-            detailing the tree-decomposition when ``certificate`` is ``True``.
+            ``g.treewidth()`` returns the treewidth of ``g``. When ``k`` is
+             specified, it returns ``False`` when no tree-decomposition of width
+             `\leq k` exists or ``True`` otherwise. When ``certificate=True``,
+             the tree-decomposition is also returned.
 
         ALGORITHM:
 
@@ -2656,6 +2657,13 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().treewidth(certificate=True)
             Graph on 7 vertices
 
+        The treewidth of a 2d grid is its smallest side::
+
+            sage: graphs.Grid2dGraph(2,5).treewidth()
+            2
+            sage: graphs.Grid2dGraph(3,5).treewidth()
+            3
+
         TESTS::
 
             sage: g = graphs.PathGraph(3)
@@ -2674,6 +2682,16 @@ class Graph(GenericGraph):
             1
             sage: Graph(0).treewidth()
             0
+            sage: graphs.PetersenGraph().treewidth(k=2)
+            False
+            sage: graphs.PetersenGraph().treewidth(k=6)
+            True
+            sage: graphs.PetersenGraph().treewidth(certificate=True).is_tree()
+            True
+            sage: graphs.PetersenGraph().treewidth(k=3,certificate=True)
+            False
+            sage: graphs.PetersenGraph().treewidth(k=4,certificate=True)
+            Graph on 7 vertices
         """
         from sage.misc.cachefunc import cached_function
         from sage.sets.set import Set

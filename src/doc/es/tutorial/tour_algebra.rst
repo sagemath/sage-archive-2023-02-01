@@ -266,8 +266,6 @@ Los componentes individuales pueden graficarse usando
     sage: p2 = plot(4*cos(t) - cos(2*t), 0, 2*pi, rgbcolor=hue(0.6))
     sage: show(p1 + p2)
 
-(Para más sobre graficado, véa :ref:`section-plot`.)
-
 REFERENCIAS: Nagle, Saff, Snider, Fundamentos De Ecuaciones
 Diferenciales, 6a ed, Addison-Wesley, 2004. (véase § 5.5).
 
@@ -279,9 +277,9 @@ de primer y segundo órden. Primero, recordemos la idea básica para
 ecuaciones de primer órden. Dado un problema con valor inicial de la forma
 
 .. math::
+
     y'=f(x,y)
     y(a)=c 
-
 
 queremos encontrar el valor aproximado de la solución en :math:`x=b` con :math:`b>a`.
 
@@ -322,7 +320,7 @@ Si descomponemos el intervalo desde *a* a *b* en *n* pasos, de modo que
 
 La meta es llenar todos los espacios de la tabla, una fila a
 la véz, hasta que lleguemos a la casilla ???, que és la
- aproximación del método de Euler para :math:`y(b)`.
+aproximación del método de Euler para :math:`y(b)`.
 
 La idea para los sistemas de EDOs es similar.
 
@@ -367,7 +365,6 @@ vs. *t*, y ``P[1]``, el gráfico de *y* vs. *t*. Podemos graficar ámbas como si
 
     sage: show(P[0] + P[1])
 
-(Para más sobre graficado, véa :ref:`section-plot`.)
 
 Funciones Especiales
 --------------------

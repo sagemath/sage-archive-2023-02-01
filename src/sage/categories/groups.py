@@ -103,7 +103,7 @@ class Groups(CategoryWithAxiom):
             try:
                 return Family(self.gens())
             except AttributeError:
-                return self.monoid_generators()
+                raise NotImplementedError("no generators are implemented for this group")
 
         def monoid_generators(self):
             r"""

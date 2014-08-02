@@ -325,6 +325,10 @@ def path_decomposition(G, algorithm = "exponential", verbose = False):
         works on graphs on less than 32 vertices. This can be changed to 54 if
         necessary, but 32 vertices already require 4GB of memory.
 
+    .. SEEALSO::
+
+        * :meth:`Graph.treewidth` -- computes the treewidth of a graph
+
     EXAMPLE:
 
     The vertex separation of a cycle is equal to 2::

@@ -10738,6 +10738,11 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         Nothing.
 
+        .. NOTE::
+
+            ``tape_cache`` is discarded if ``self.__current__`` already
+            contains a branch with the same position and state.
+
         TESTS::
 
             sage: from sage.combinat.finite_state_machine import FSMProcessIterator
@@ -11640,6 +11645,9 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         super(_FSMProcessIteratorEpsilon_, self)._push_branch_(
             state, tape_cache, outputs)
 
+        # As tape_cache may have been discarded because current already
+        # contains a branch at the same state, _visited_states_ is
+        # updated manually.
         self._current_[tape_cache.position][state][0]._visited_states_.update(
             tape_cache._visited_states_)
 

@@ -159,6 +159,12 @@ cdef GapElement make_any_gap_element(parent, libGAP_Obj obj):
     automatically. Use this function to wrap GAP objects unless you
     know exactly which type it is (then you can use the specialized
     ``make_GapElement_...``)
+
+    TESTS::
+
+        sage: T_CHAR = libgap.eval("'c'")
+        sage: type(T_CHAR)
+        <type 'sage.libs.gap.element.GapElement_String'>
     """
     if obj is NULL:
         return make_GapElement(parent, obj)
@@ -184,6 +190,8 @@ cdef GapElement make_any_gap_element(parent, libGAP_Obj obj):
         return make_GapElement_String(parent, obj)
     elif num >= libGAP_FIRST_LIST_TNUM and num <= libGAP_LAST_LIST_TNUM:
         return make_GapElement_List(parent, obj)
+    elif num == libGAP_T_CHAR:
+        return make_GapElement(parent, obj).String()
     result = make_GapElement(parent, obj)
     if num == libGAP_T_POSOBJ:
         if result.IsZmodnZObj():

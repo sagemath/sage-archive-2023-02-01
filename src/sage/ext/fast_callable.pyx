@@ -511,14 +511,14 @@ def function_name(fn):
     """
     from sage.structure.dynamic_class import DynamicMetaclass
     if isinstance(type(fn), DynamicMetaclass):
-        return "{%r}" % fn
+        return "{{{!r}}}".format(fn)
     builtins = get_builtin_functions()
     if fn in builtins:
         return builtins[fn]
     try:
-        return "{%s}" % fn.__name__
+        return "{{{}}}".format(fn.__name__)
     except AttributeError:
-        return "{%r}" % fn
+        return "{{{!r}}}".format(fn)
 
 cdef class ExpressionTreeBuilder:
     r"""

@@ -616,7 +616,7 @@ class IncidenceStructure(object):
         particular on 3-uniform hypergraphs. It is solved here with an Integer
         Linear Program.
 
-        For more information, see the ;wikipedia:`Packing_in_a_hypergraph`.
+        For more information, see the :wikipedia:`Packing_in_a_hypergraph`.
 
         INPUT:
 

@@ -192,9 +192,9 @@ class Hypergeometric(BuiltinFunction):
 
     .. MATH::
 
-        \,{}_pF_q(a_1, \ldots, a_p; b_1, \ldots, b_q; z)
+        \,_pF_q(a_1, \ldots, a_p; b_1, \ldots, b_q; z)
         = \sum_{n=0}^{\infty} \frac{(a_1)_n \cdots (a_p)_n}{(b_1)_n
-        \cdots(b_q)_n} \, \frac{z^n}{n!},`
+        \cdots(b_q)_n} \, \frac{z^n}{n!},
 
     where `(x)_n` is the rising factorial.
     """

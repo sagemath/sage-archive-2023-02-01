@@ -533,10 +533,24 @@ cdef class IndexFaceSet(PrimitiveObject):
         Return the x3d data.
         """
         cdef Py_ssize_t i
-        points = ",".join(["%s %s %s"%(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount])
+        points = ",".join(["%s %s %s" % (self.vs[i].x,
+                                         self.vs[i].y,
+                                         self.vs[i].z)
+                           for i from 0 <= i < self.vcount])
         coordIndex = ",-1,".join([",".join([str(self._faces[i].vertices[j])
                                             for j from 0 <= j < self._faces[i].n])
                                   for i from 0 <= i < self.fcount])
+        if not self.global_texture:
+            colorIndex = ",".join([str(self._faces[i].color.r) + " "
+                                   + str(self._faces[i].color.g) + " "
+                                   + str(self._faces[i].color.b)
+                                   for i from 0 <= i < self.fcount])
+            return """
+<IndexedFaceSet solid='False' colorPerVertex='False' coordIndex='%s,-1'>
+  <Coordinate point='%s'/>
+  <Color color='%s' />
+</IndexedFaceSet>
+""" % (coordIndex, points, colorIndex)
         return """
 <IndexedFaceSet coordIndex='%s,-1'>
   <Coordinate point='%s'/>

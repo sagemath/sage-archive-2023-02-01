@@ -467,6 +467,19 @@ cdef class IndexFaceSet(PrimitiveObject):
 
     def index_faces(self):
         """
+        Return the list over all faces of the indices of the vertices.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = Box(1,2,3)
+            sage: S.index_faces()
+            [[0, 1, 2, 3],
+             [0, 4, 5, 1],
+             [0, 3, 6, 4],
+             [5, 4, 6, 7],
+             [6, 3, 2, 7],
+             [2, 1, 5, 7]]
         """
         cdef Py_ssize_t i, j
         return [[self._faces[i].vertices[j]
@@ -489,6 +502,13 @@ cdef class IndexFaceSet(PrimitiveObject):
     def face_list(self):
         """
         Return the list of faces as triple of vertices.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = Box(1,2,3)
+            sage: S.face_list()[0]
+            [(1.0, 2.0, 3.0), (-1.0, 2.0, 3.0), (-1.0, -2.0, 3.0), (1.0, -2.0, 3.0)]
         """
         points = self.vertex_list()
         cdef Py_ssize_t i, j
@@ -499,12 +519,26 @@ cdef class IndexFaceSet(PrimitiveObject):
     def edges(self):
         """
         An iterator over the edges.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = Box(1,2,3)
+            sage: list(S.edges())[0]
+            ((1.0, -2.0, 3.0), (1.0, 2.0, 3.0))
         """
         return EdgeIter(self)
 
     def edge_list(self):
         """
         Return the list of edges.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = Box(1,2,3)
+            sage: S.edge_list()[0]
+            ((1.0, -2.0, 3.0), (1.0, 2.0, 3.0))
         """
         return list(self.edges())
 
@@ -524,6 +558,13 @@ cdef class IndexFaceSet(PrimitiveObject):
     def vertex_list(self):
         """
         Return the list of vertices.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = polygon([(0,0,1), (1,1,1), (2,0,1)])
+            sage: list(S.vertices())[0]
+            (0.0, 0.0, 1.0)
         """
         cdef Py_ssize_t i
         return [(self.vs[i].x, self.vs[i].y, self.vs[i].z) for i from 0 <= i < self.vcount]
@@ -531,6 +572,13 @@ cdef class IndexFaceSet(PrimitiveObject):
     def x3d_geometry(self):
         """
         Return the x3d data.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = Box(1,2,3)
+            sage: s = S.x3d_geometry(); s
+            "<Box size='1 2 3'/>"
         """
         cdef Py_ssize_t i
         points = ",".join(["%s %s %s" % (self.vs[i].x,
@@ -570,8 +618,8 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         EXAMPLE::
 
-            sage: x,y=var('x,y')
-            sage: p=plot3d(sqrt(sin(x)*sin(y)), (x,0,2*pi),(y,0,2*pi))
+            sage: x,y = var('x,y')
+            sage: p = plot3d(sqrt(sin(x)*sin(y)), (x,0,2*pi),(y,0,2*pi))
             sage: p.bounding_box()
             ((0.0, 0.0, -0.0), (6.283185307179586, 6.283185307179586, 0.9991889981715697))
         """
@@ -602,6 +650,11 @@ cdef class IndexFaceSet(PrimitiveObject):
         - f -- a function from `\RR^3` to `\ZZ`
 
         EXAMPLES::
+
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = Box(1,2,3)
+            sage: len(S.partition(lambda x,y,z : floor(x+y+z)))
+            6
         """
         cdef Py_ssize_t i, j, ix, face_ix
         cdef int part
@@ -657,11 +710,11 @@ cdef class IndexFaceSet(PrimitiveObject):
         """
         Return a tachyon object for ``self``.
 
-        TESTS::
+        EXAMPLES::
 
-            sage: from sage.plot.plot3d.shapes import *
-            sage: S = Cone(1,1)
-            sage: s = S.tachyon_repr(S.default_render_params())
+            sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
+            sage: s = G.tachyon_repr(G.default_render_params()); s
+            ['TRI V0 0 0 1 V1 1 1 1 V2 2 0 1', ...]
         """
         cdef Transformation transform = render_params.transform
         lines = []
@@ -841,7 +894,14 @@ cdef class IndexFaceSet(PrimitiveObject):
         Return the dual.
 
         EXAMPLES::
+
+            sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
+            sage: point_list = [(2,0,0),(0,2,0),(0,0,2),(0,1,1),(1,0,1),(1,1,0)]
+            sage: face_list = [[0,4,5],[3,4,5],[2,3,4],[1,3,5]]
+            sage: S = IndexFaceSet(face_list, point_list)
+            sage: T = S.dual()     # not tested
         """
+        # seems to be broken ? 2014-08
         cdef point_c P
         cdef face_c *face
         cdef Py_ssize_t i, j, ix, ff
@@ -933,6 +993,8 @@ cdef class IndexFaceSet(PrimitiveObject):
     def sticker(self, face_list, width, hover, **kwds):
         """
         Return a sticker on the chosen faces.
+
+        EXAMPLES::
         """
         if not isinstance(face_list, (list, tuple)):
             face_list = (face_list,)
@@ -1051,4 +1113,3 @@ def sticker(face, width, hover):
         dw = w * (width * v.norm() / lenN)
         sticker.append(tuple(vector(RDF, face[i-1]) + dv + dw + N*(hover/lenN)))
     return sticker
-

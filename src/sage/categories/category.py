@@ -1274,7 +1274,7 @@ class Category(UniqueRepresentation, SageObject):
         semigroup morphism::
 
             sage: Semigroups().Finite().full_super_categories()
-            [Category of Semigroups]
+            [Category of semigroups]
 
         On the other hand a semigroup morphism between two monoids is
         not necessarily a monoid morphism (which must map the unit to
@@ -1283,7 +1283,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: Monoids().super_categories()
             [Category of semigroups, Category of unital magmas]
             sage: Monoids().full_super_categories()
-            []
+            [Category of unital magmas]
         """
         return [C for C in self.super_categories()
                 if self.is_full_subcategory(C)]

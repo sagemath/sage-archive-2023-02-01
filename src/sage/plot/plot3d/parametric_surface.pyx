@@ -25,13 +25,28 @@ EXAMPLES::
     False
     sage: S.show()
 
+One can provide also a coloring function and a color map::
+
+    sage: def f(x,y): return x+y, sin(x)*sin(y), x*y
+    sage: def c(x,y): return sin(x+y)**2
+    sage: cm = colormaps.Purples
+    sage: P = ParametricSurface(f, (srange(0,10,0.1), srange(-5,5.0,0.1)),(c,cm))
+
+Another example::
+
+    sage: cm = colormaps.autumn
+    sage: def g(x,y): return x, y, x**2 + y**2
+    sage: P = ParametricSurface(g, (srange(-10,10,0.1), srange(-5,5.0,0.1)),(c,cm))
+
 .. NOTE::
 
     One may override ``eval()`` or ``eval_c()`` in a subclass
     rather than passing in a function for greater speed.
     One also would want to override get_grid.
 
-TODO: actually remove unused points, fix the below code::
+.. TODO::
+
+    actually remove unused points, fix the below code
 
     S = ParametricSurface(f=(lambda (x,y):(x,y,0)), domain=(range(10),range(10)))
 
@@ -76,6 +91,7 @@ cdef inline bint smash_edge(point_c* vs, face_c* f, int a, int b):
     else:
         return 0
 
+
 cdef class ParametricSurface(IndexFaceSet):
     """
     Base class that initializes the ParametricSurface
@@ -90,7 +106,7 @@ cdef class ParametricSurface(IndexFaceSet):
       eval_c or eval instead.
 
     - ``domain`` - (default: None) A tuple of two lists, defining the
-      grid of `u,v` values. If None, this will be calculate automatically.
+      grid of `u,v` values. If None, this will be calculated automatically.
 
     EXAMPLES::
 
@@ -107,21 +123,21 @@ cdef class ParametricSurface(IndexFaceSet):
     ::
 
         sage: def f(u,v):
-        ...       a = 1
-        ...       from math import cos, sin, sinh, cosh
-        ...       x = cos(a)*(cos(u)*sinh(v)-cos(3*u)*sinh(3*v)/3) + sin(a)*(
-        ...           sin(u)*cosh(v)-sin(3*u)*cosh(3*v)/3)
-        ...       y = cos(a)*(sin(u)*sinh(v)+sin(3*u)*sinh(3*v)/3) + sin(a)*(
-        ...           -cos(u)*cosh(v)-cos(3*u)*cosh(3*v)/3)
-        ...       z = cos(a)*cos(2*u)*cosh(2*v)+sin(a)*sin(2*u)*sinh(2*v)
-        ...       return (x,y,z)
+        ....:     a = 1
+        ....:     from math import cos, sin, sinh, cosh
+        ....:     x = cos(a)*(cos(u)*sinh(v)-cos(3*u)*sinh(3*v)/3) + sin(a)*(
+        ....:         sin(u)*cosh(v)-sin(3*u)*cosh(3*v)/3)
+        ....:     y = cos(a)*(sin(u)*sinh(v)+sin(3*u)*sinh(3*v)/3) + sin(a)*(
+        ....:         -cos(u)*cosh(v)-cos(3*u)*cosh(3*v)/3)
+        ....:     z = cos(a)*cos(2*u)*cosh(2*v)+sin(a)*sin(2*u)*sinh(2*v)
+        ....:     return (x,y,z)
         sage: v = srange(float(0),float((3/2)*pi),float(0.1))
         sage: S = ParametricSurface(f, (srange(float(0),float(pi),float(0.1)),
-        ...                  srange(float(-1),float(1),float(0.1))), color="blue")
+        ....:                srange(float(-1),float(1),float(0.1))), color="blue")
         sage: show(S)
     """
 
-    def __init__(self, f=None, domain=None, **kwds):
+    def __init__(self, f=None, domain=None, colordata=None, **kwds):
         """
         Create the graphics primitive :class:`ParametricSurface`.  See the
         docstring of this class for full documentation.
@@ -136,7 +152,15 @@ cdef class ParametricSurface(IndexFaceSet):
             f = tuple(f)
         self.f = f
         self.render_grid = domain
-        IndexFaceSet.__init__(self, [], [], **kwds)
+        if colordata is not None:
+            # case of a color depending on parameters
+            self.color_function = colordata[0]
+            self.colormap = colordata[1]
+            IndexFaceSet.__init__(self, [], [], [], **kwds)
+        else:
+            # case of a global color
+            self.color_function = None
+            IndexFaceSet.__init__(self, [], [], **kwds)
 
     def default_render_params(self):
         """
@@ -285,13 +309,12 @@ cdef class ParametricSurface(IndexFaceSet):
             Traceback (most recent call last):
             ...
             NotImplementedError: This is only implemented for enclosed surfaces
-
         """
         # This doesn't completely make sense...
         if self.fcount == 0:
             self.triangulate()
         if not self.is_enclosed():
-            raise NotImplementedError, "This is only implemented for enclosed surfaces"
+            raise NotImplementedError("This is only implemented for enclosed surfaces")
         return IndexFaceSet.dual(self)
 
     def bounding_box(self):
@@ -380,6 +403,8 @@ cdef class ParametricSurface(IndexFaceSet):
                 face = &self._faces[ix]
                 face.n = 4
                 face.vertices = &self.face_indices[4*ix]
+                if self.color_function is not None:
+                    face.color.r, face.color.g, face.color.b, _ = self.colormap(self.color_function(urange[i], vrange[j]))
 
                 # Connect to the i-1 row
                 if i == 0:
@@ -470,7 +495,7 @@ cdef class ParametricSurface(IndexFaceSet):
             NotImplementedError: You must override the get_grid method.
         """
         if self.render_grid is None:
-            raise NotImplementedError, "You must override the get_grid method."
+            raise NotImplementedError("You must override the get_grid method.")
         return self.render_grid
 
     cdef int eval_grid(self, urange, vrange) except -1:

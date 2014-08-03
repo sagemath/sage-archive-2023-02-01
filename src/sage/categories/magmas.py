@@ -279,6 +279,22 @@ class Magmas(Category_singleton):
 
     class Unital(CategoryWithAxiom):
 
+        def is_structure_category(self):
+            r"""
+            Return whether ``self`` is a structure category.
+
+            .. SEEALSO:: :meth:`Category.is_structure_category`
+
+            The category of unital magmas defines the unit as new
+            structure, and this unit shall be preserved by morphisms.
+
+            EXAMPLES::
+
+                sage: Magmas().Unital().is_structure_category()
+                True
+            """
+            return True
+
         class ParentMethods:
             @cached_method
             def one(self):
@@ -337,7 +353,6 @@ class Magmas(Category_singleton):
                 # Check that one is immutable by asking its hash;
                 tester.assertEqual(type(one.__hash__()), int)
                 tester.assertEqual(one.__hash__(), one.__hash__())
-
 
         class SubcategoryMethods:
 

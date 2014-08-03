@@ -124,6 +124,25 @@ class VectorSpaces(Category_module):
         R = self.base_field()
         return [Modules(R, dispatch = False)]
 
+    def is_structure_category(self):
+        r"""
+        Return whether ``self`` is a structure category.
+
+        .. SEEALSO:: :meth:`Category.is_structure_category`
+
+        The category of vector spaces defines no new structure: a
+        bimodule morphism between two vector spaces is a vector space
+        morphism.
+
+        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+
+        EXAMPLES::
+
+            sage: VectorSpaces(QQ).is_structure_category()
+            False
+        """
+        return False
+
     class ParentMethods:
         pass
 

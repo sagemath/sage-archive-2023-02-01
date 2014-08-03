@@ -38,6 +38,25 @@ class Bialgebras(Category_over_base_ring):
         R = self.base_ring()
         return [Algebras(R), Coalgebras(R)]
 
+    def is_structure_category(self):
+        r"""
+        Return whether ``self`` is a structure category.
+
+        .. SEEALSO:: :meth:`Category.is_structure_category`
+
+        The category of bialgebras defines no new structure: a
+        morphism of coalgebras and of algebras between two bialgebras
+        is a bialgebra morphism.
+
+        .. TODO:: This category should be a :class:`CategoryWithAxiom`
+
+        EXAMPLES::
+
+            sage: Bialgebras(QQ).is_structure_category()
+            False
+        """
+        return False
+
     class ParentMethods:
         pass
 

@@ -1032,6 +1032,8 @@ desirable to model complicated mathematics, and that scaling to
 support such a large hierarchy is the driving motivation for the
 design of the category infrastructure.
 
+.. _category-primer-functorial-constructions:
+
 Functorial constructions
 ------------------------
 

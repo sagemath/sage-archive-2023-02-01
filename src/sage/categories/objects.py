@@ -36,6 +36,22 @@ class Objects(Category_singleton):
         sage: TestSuite(Objects()).run()
     """
 
+    def is_structure_category(self):
+        """
+        Return whether ``self`` is a structure category.
+
+        .. SEEALSO:: :meth:`Category.is_structure_category`
+
+        By convention, the category of objects does not define new
+        structrure.
+
+        EXAMPLES::
+
+            sage: Objects().is_structure_category()
+            False
+        """
+        return False
+
     def super_categories(self):
         """
         EXAMPLES::

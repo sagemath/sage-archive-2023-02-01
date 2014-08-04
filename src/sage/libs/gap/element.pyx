@@ -191,7 +191,7 @@ cdef GapElement make_any_gap_element(parent, libGAP_Obj obj):
     elif num >= libGAP_FIRST_LIST_TNUM and num <= libGAP_LAST_LIST_TNUM:
         return make_GapElement_List(parent, obj)
     elif num == libGAP_T_CHAR:
-        return make_GapElement(parent, obj).String()
+        return make_GapElement_String(parent, obj).String()
     result = make_GapElement(parent, obj)
     if num == libGAP_T_POSOBJ:
         if result.IsZmodnZObj():

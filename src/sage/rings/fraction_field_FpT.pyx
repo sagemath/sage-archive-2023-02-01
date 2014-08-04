@@ -1117,7 +1117,11 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             ...
             ZeroDivisionError: fraction has denominator 0
         """
-        cdef Polynomial_zmod_flint x = <Polynomial_zmod_flint?> _x
+        cdef Polynomial_zmod_flint x
+        try:
+            x = <Polynomial_zmod_flint?> _x
+        except TypeError:
+            raise NotImplementedError('Fraction fields not implemented for this type.')
         cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
         ans._parent = self.codomain()
         ans.p = self.p

@@ -26,6 +26,7 @@ Combinatorics
    sage/combinat/alternating_sign_matrix
    sage/combinat/composition
    sage/combinat/core
+   designs
    sage/combinat/knutson_tao_puzzles
    sage/combinat/gelfand_tsetlin_patterns
    sage/combinat/necklace
@@ -186,11 +187,11 @@ Combinatorics
    sage/combinat/subset
    sage/combinat/subsets_pairwise
    sage/combinat/tuple
+   sage/combinat/gray_codes
 
    root_systems
    crystals
    rigged_configurations
-   designs
    species
 
 **Developer Tools**

@@ -29,14 +29,14 @@ Il est également possible de produire un disque plein :
 
     sage: circle((0,0), 1, rgbcolor=(1,1,0), fill=True)
 
-Il est aussi possible de créer un cercle en l'affectant à une variable ;
+Il est aussi possible de créer un cercle en l'affectant à une variable ;
 ceci ne provoque pas son affichage.
 
 ::
 
     sage: c = circle((0,0), 1, rgbcolor=(1,1,0))
 
-Pour l'afficher, on utilise ``c.show()``  ou  ``show(c)``, comme suit :
+Pour l'afficher, on utilise ``c.show()``  ou  ``show(c)``, comme suit :
 
 .. link
 
@@ -47,7 +47,7 @@ Pour l'afficher, on utilise ``c.show()``  ou  ``show(c)``, comme suit :
 Alternativement, l'évaluation de ``c.save('filename.png')`` enregistre
 le graphique dans le fichier spécifié.
 
-Toutefois, ces « cercles » ressemblent plus à des ellipses qu'à des
+Toutefois, ces « cercles » ressemblent plus à des ellipses qu'à des
 cercles, puisque les axes possèdent des échelles différentes. On peut
 arranger ceci :
 
@@ -88,7 +88,7 @@ Différents graphiques peuvent se combiner sur une même image :
 Une manière commode de tracer des formes pleines est de préparer une
 liste de points  (``L`` dans l'exemple ci-dessous) puis d'utiliser la
 commande ``polygon`` pour tracer la forme pleine dont le bord est formé
-par ces points. Par example, voici un deltoïde vert :
+par ces points. Par example, voici un deltoïde vert :
 
 ::
 
@@ -99,7 +99,7 @@ par ces points. Par example, voici un deltoïde vert :
 Pour visualiser le graphique en masquant les axes, tapez ``show(p,
 axes=false)``.
 
-On peut ajouter un texte à un graphique :
+On peut ajouter un texte à un graphique :
 
 ::
 
@@ -110,7 +110,7 @@ On peut ajouter un texte à un graphique :
     sage: show(p+t)
 
 En cours d'analyse, les professeurs font souvent le dessin suivant
-au tableau : non pas une mais plusieurs branches de la fonction arcsin, autrement dit, le graphe d'équation :math:`y=\sin(x)`
+au tableau : non pas une mais plusieurs branches de la fonction arcsin, autrement dit, le graphe d'équation :math:`y=\sin(x)`
 pour  :math:`x` entre :math:`-2\pi` et :math:`2\pi`, renversé par
 symétrie par rapport à la première bissectrice des axes. La commande
 Sage suivante réalise cela :
@@ -131,7 +131,7 @@ il faut préciser les bornes de la coordonnée *x* :
 
 Sage sait aussi tracer des graphiques en coordonnées polaires, des
 lignes de niveau et (pour certains types de fonctions) des champs de
-vecteurs.  Voici un exemple de lignes de niveau :
+vecteurs.  Voici un exemple de lignes de niveau :
 
 ::
 

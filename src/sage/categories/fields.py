@@ -6,7 +6,7 @@ Fields
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
-#                2012      Julian Rueth <julian.rueth@fsfe.org>
+#                2012-2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -182,7 +182,6 @@ class Fields(CategoryWithAxiom):
 
         def is_integrally_closed(self):
             r"""
-
             Return ``True``, as per :meth:`IntegralDomain.is_integrally_closed`:
             for every field `F`, `F` is its own field of fractions,
             hence every element of `F` is integral over `F`.
@@ -199,6 +198,25 @@ class Fields(CategoryWithAxiom):
                 True
             """
             return True
+
+        def is_perfect(self):
+            r"""
+            Return whether this field is perfect, i.e., its characteristic is
+            `p=0` or every element has a `p`-th root.
+
+            EXAMPLES::
+
+                sage: QQ.is_perfect()
+                True
+                sage: GF(2).is_perfect()
+                True
+                sage: FunctionField(GF(2), 'x').is_perfect()
+                False
+
+            """
+            if self.characteristic() == 0:
+                return True
+            else: raise NotImplementedError
 
         def _test_characteristic_fields(self, **options):
             """
@@ -240,6 +258,75 @@ class Fields(CategoryWithAxiom):
                 True
             """
             return self
+
+        def _squarefree_decomposition_univariate_polynomial(self, f):
+            r"""
+            Return the square-free decomposition of ``f`` over this field.
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.squarefree_decomposition`.
+
+            INPUT:
+
+            - ``f`` -- a univariate non-zero polynomial over this field
+
+            ALGORITHM: For rings of characteristic zero, we use the algorithm
+            descriped in [Yun]_. Other fields may provide their own
+            implementation by overriding this method.
+
+            EXAMPLES::
+
+                sage: x = polygen(QQ)
+                sage: p = 37 * (x-1)^3 * (x-2)^3 * (x-1/3)^7 * (x-3/7)
+                sage: p.squarefree_decomposition()
+                (37*x - 111/7) * (x^2 - 3*x + 2)^3 * (x - 1/3)^7
+                sage: p = 37 * (x-2/3)^2
+                sage: p.squarefree_decomposition()
+                (37) * (x - 2/3)^2
+                sage: x = polygen(GF(3))
+                sage: x.squarefree_decomposition()
+                x
+                sage: f = QQbar['x'](1)
+                sage: f.squarefree_decomposition()
+                1
+
+            REFERENCES:
+
+            .. [Yun] Yun, David YY. On square-free decomposition algorithms.
+               In Proceedings of the third ACM symposium on Symbolic and algebraic
+               computation, pp. 26-35. ACM, 1976.
+
+            """
+            from sage.structure.factorization import Factorization
+            if f.degree() == 0:
+                return Factorization([], unit=f[0])
+            if self.characteristic() != 0:
+                raise NotImplementedError("square-free decomposition not implemented for this polynomial.")
+
+            factors = []
+            cur = f
+            f = [f]
+            while cur.degree() > 0:
+                cur = cur.gcd(cur.derivative())
+                f.append(cur)
+
+            g = []
+            for i in range(len(f) - 1):
+                g.append(f[i] // f[i+1])
+
+            a = []
+            for i in range(len(g) - 1):
+                a.append(g[i] // g[i+1])
+            a.append(g[-1])
+
+            unit = f[-1]
+            for i in range(len(a)):
+                if a[i].degree() > 0:
+                    factors.append((a[i], i+1))
+                else:
+                    unit = unit * a[i].constant_coefficient() ** (i + 1)
+
+            return Factorization(factors, unit=unit, sort=False)
 
         def __pow__(self, n):
             r"""

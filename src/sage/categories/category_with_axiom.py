@@ -337,9 +337,10 @@ out the largest category where the axiom makes sense. For example
     ....:                 print "I am a method on green C's"
 
 With the current implementation, the name of the axiom must also be
-added to a global tuple::
+added to a global container::
 
-    sage: sage.categories.category_with_axiom.all_axioms += ("Green",)
+    sage: all_axioms = sage.categories.category_with_axiom.all_axioms
+    sage: all_axioms += ("Green",)
 
 We can now use the axiom as usual::
 
@@ -942,7 +943,8 @@ real axioms; they deserve a full documentation!)::
     sage: from sage.categories.category_singleton import Category_singleton
     sage: from sage.categories.category_with_axiom import axiom
     sage: import sage.categories.category_with_axiom
-    sage: sage.categories.category_with_axiom.all_axioms += ("B","C","D","E","F")
+    sage: all_axioms = sage.categories.category_with_axiom.all_axioms
+    sage: all_axioms += ("B","C","D","E","F")
 
     sage: class As(Category_singleton):
     ....:     def super_categories(self):
@@ -1650,62 +1652,20 @@ from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.category_types import Category_over_base_ring
 from sage.structure.dynamic_class import DynamicMetaclass
+from sage.categories.category_cy_helper import AxiomContainer, canonicalize_axioms, _sort_uniq
 
 # The order of the axioms in this lists implies that
 # Magmas().Commutative().Unital() is printed as
 # ``Category of commutative unital magmas''
 
-all_axioms = ("Flying", "Blue",
+all_axioms = AxiomContainer()
+all_axioms += ("Flying", "Blue",
               "Facade", "Finite", "Infinite",
               "FiniteDimensional", "Connected", "WithBasis",
               "Irreducible",
               "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",
               "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
-              "Distributive",
-              )
-
-# TODO: Find a faster way to deal with the list of axioms, for instance by
-# creating a cythoned container derived from dict.
-@cached_function
-def axioms_rank(axiom):
-    """
-    Internal function to get the index of an axiom.
-
-    EXAMPLES::
-
-        sage: from sage.categories.category_with_axiom import axioms_rank
-        sage: axioms_rank("Finite")
-        3
-        sage: axioms_rank("FiniteDimensional")
-        5
-
-    This is mostly used by :meth:`canonicalize_axioms`
-
-    """
-    return all_axioms.index(axiom)
-
-def canonicalize_axioms(axioms):
-    r"""
-    Canonicalize a set of axioms.
-
-    INPUT:
-
-     - ``axioms`` -- a set (or iterable) of axioms
-
-    OUTPUT:
-
-    A set of axioms as a tuple sorted according to the order of the
-    tuple ``all_axioms`` in :mod:`sage.categories.category_with_axiom`.
-
-    EXAMPLES::
-
-        sage: from sage.categories.category_with_axiom import canonicalize_axioms
-        sage: canonicalize_axioms(["Commutative", "Connected", "WithBasis", "Finite"])
-        ('Finite', 'Connected', 'WithBasis', 'Commutative')
-        sage: canonicalize_axioms(["Commutative", "Connected", "Commutative", "WithBasis", "Finite"])
-        ('Finite', 'Connected', 'WithBasis', 'Commutative')
-    """
-    return tuple(sorted(set(axioms), key = axioms_rank))
+              "Distributive")
 
 def uncamelcase(s,separator=" "):
     """
@@ -2227,7 +2187,7 @@ class CategoryWithAxiom(Category):
             The logic here is shared between :meth:`_repr_object_names`
             and :meth:`.category.JoinCategory._repr_object_names`
         """
-        axioms = canonicalize_axioms(axioms)
+        axioms = canonicalize_axioms(all_axioms,axioms)
         base_category = category._without_axioms(named=True)
         if isinstance(base_category, CategoryWithAxiom): # Smelly runtime type checking
             result = super(CategoryWithAxiom, base_category)._repr_object_names()

@@ -117,13 +117,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     INPUT:
 
-    - ``ainvs`` (list or string) -- either `[a_1,a_2,a_3,a_4,a_6]` or
-      `[a_4,a_6]` (with `a_1=a_2=a_3=0`) or a valid label from the
-      database.
+    - ``ainvs`` -- a list or tuple `[a_1, a_2, a_3, a_4, a_6]` of
+      Weierstrass coefficients.
 
     .. note::
 
-       See constructor.py for more variants.
+        This class should not be called directly; use
+        :class:`sage.constructor.EllipticCurve` to construct
+        elliptic curves.
 
     EXAMPLES:
 
@@ -133,50 +134,25 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field
 
     Construction from Weierstrass coefficients (`a`-invariants),
-    short form (sets `a_1=a_2=a_3=0`)::
+    short form (sets `a_1 = a_2 = a_3 = 0`)::
 
         sage: EllipticCurve([4,5]).ainvs()
         (0, 0, 0, 4, 5)
 
-    Construction from a database label::
+    Constructor from a Cremona label::
 
         sage: EllipticCurve('389a1')
         Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
 
+    Constructor from an LMFDB label::
+
+        sage: EllipticCurve('462.f3')
+        Elliptic Curve defined by y^2 + x*y = x^3 - 363*x + 1305 over Rational Field
+
     """
-    def __init__(self, ainvs, extra=None):
+    def __init__(self, ainvs, **kwds):
         r"""
         Constructor for the EllipticCurve_rational_field class.
-
-        INPUT:
-
-        - ``ainvs`` (list or string) -- either `[a_1,a_2,a_3,a_4,a_6]`
-          or `[a_4,a_6]` (with `a_1=a_2=a_3=0`) or a valid label from
-          the database.
-
-        .. note::
-
-           See constructor.py for more variants.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve([1,2,3,4,5]); E
-            Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field
-
-        Constructor from `[a_4,a_6]` sets `a_1=a_2=a_3=0`::
-
-            sage: EllipticCurve([4,5]).ainvs()
-            (0, 0, 0, 4, 5)
-
-        Constructor from a Cremona label::
-
-            sage: EllipticCurve('389a1')
-            Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
-
-        Constructor from an LMFDB label::
-
-            sage: EllipticCurve('462.f3')
-            Elliptic Curve defined by y^2 + x*y = x^3 - 363*x + 1305 over Rational Field
 
         TESTS:
 
@@ -190,8 +166,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [True, True]
 
         """
-        if extra is not None:   # possibility of two arguments (the first would be the field)
-            ainvs = extra
         self.__np = {}
         self.__gens = {}
         self.__rank = {}
@@ -199,27 +173,24 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         self.__generalized_modular_degree = {}
         self.__generalized_congruence_number = {}
         self._isoclass = {}
-        if isinstance(ainvs, str):
-            label = ainvs
-            X = sage.databases.cremona.CremonaDatabase()[label]
-            EllipticCurve_number_field.__init__(self, Q, list(X.a_invariants()))
-            for attr in ['rank', 'torsion_order', 'cremona_label', 'conductor',
-                         'modular_degree', 'gens', 'regulator']:
-                s = "_EllipticCurve_rational_field__"+attr
-                if hasattr(X,s):
-                    if attr == 'gens': # see #10999
-                        gens_dict = getattr(X, s)
-                        for boo in gens_dict.keys():
-                            gens_dict[boo] = [self(P) for P in gens_dict[boo]]
-                            setattr(self, s, gens_dict)
-                    else:
-                        setattr(self, s, getattr(X, s))
-            if hasattr(X,'_lmfdb_label'):
-                self._lmfdb_label = X._lmfdb_label
-            return
         EllipticCurve_number_field.__init__(self, Q, ainvs)
-        if self.base_ring() != Q:
-            raise TypeError("Base field (=%s) must be the Rational Field."%self.base_ring())
+
+        if 'conductor' in kwds:
+            self._set_conductor(kwds['conductor'])
+        if 'cremona_label' in kwds:
+            self._set_cremona_label(kwds['cremona_label'])
+        if 'gens' in kwds:
+            self._set_gens(kwds['gens'])
+        if 'lmfdb_label' in kwds:
+            self._lmfdb_label = kwds['lmfdb_label']
+        if 'modular_degree' in kwds:
+            self._set_modular_degree(kwds['modular_degree'])
+        if 'rank' in kwds:
+            self._set_rank(kwds['rank'])
+        if 'regulator' in kwds:
+            self.__regulator[True] = kwds['regulator']
+        if 'torsion_order' in kwds:
+            self._set_torsion_order(kwds['torsion_order'])
 
     def _set_rank(self, r):
         """
@@ -279,11 +250,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E._set_cremona_label('bogus')
             sage: E.label()
             'bogus'
-            sage: E.database_curve().label()
+            sage: label = E.database_attributes()['cremona_label']; label
             '37a1'
             sage: E.label() # no change
             'bogus'
-            sage: E._set_cremona_label(E.database_curve().label())
+            sage: E._set_cremona_label(label)
             sage: E.label() # now it is correct
             '37a1'
         """
@@ -306,6 +277,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E._set_conductor(99)      # bogus value -- not checked
             sage: E.conductor()             # returns bogus cached value
             99
+            sage: E._set_conductor(37)
         """
         self.__conductor_pari = Integer(N)
 
@@ -326,9 +298,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E._set_modular_degree(123456789)
             sage: E.modular_degree()
             123456789
-            sage: E._set_modular_degree(E.database_curve().modular_degree())
-            sage: E.modular_degree()
-            1984
+            sage: E._set_modular_degree(1984)
         """
         self.__modular_degree = Integer(deg)
 
@@ -634,6 +604,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ::
 
             sage: E = EllipticCurve('37a1')
+            sage: _ = E.__dict__.pop('_pari_curve')  # clear cached data
             sage: Epari = E.pari_curve()
             sage: Epari[14].python().prec()
             64
@@ -748,10 +719,50 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # self.__min_transform = change
         return mc
 
+    @cached_method
+    def database_attributes(self):
+        """
+        Return a dictionary containing information about ``self`` in
+        the elliptic curve database.
+
+        If there is no elliptic curve isomorphic to ``self`` in the
+        database, a ``RuntimeError`` is raised.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve((0, 0, 1, -1, 0))
+            sage: data = E.database_attributes()
+            sage: data['conductor']
+            37
+            sage: data['cremona_label']
+            '37a1'
+            sage: data['rank']
+            1
+            sage: data['torsion_order']
+            1
+
+            sage: E = EllipticCurve((8, 13, 21, 34, 55))
+            sage: E.database_attributes()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: no database entry for Elliptic Curve defined by y^2 + 8*x*y + 21*y = x^3 + 13*x^2 + 34*x + 55 over Rational Field
+
+        """
+        from sage.databases.cremona import CremonaDatabase
+        ainvs = self.minimal_model().ainvs()
+        try:
+            return CremonaDatabase().data_from_coefficients(ainvs)
+        except RuntimeError:
+            raise RuntimeError("no database entry for %s" % self)
+
     def database_curve(self):
         """
         Return the curve in the elliptic curve database isomorphic to this
         curve, if possible. Otherwise raise a RuntimeError exception.
+
+        Since :trac:`11474`, this returns exactly the same curve as
+        :meth:`minimal_model`; the only difference is the additional
+        work of checking whether the curve is in the database.
 
         EXAMPLES::
 
@@ -776,7 +787,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             except RuntimeError:
                 raise RuntimeError("Elliptic curve %s not in the database."%self)
             return self.__database_curve
-
 
     def Np(self, p):
         r"""
@@ -1459,6 +1469,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.simon_two_descent()
             (1, 1, [(0 : 0 : 1)])
             sage: E = EllipticCurve('389a1')
+            sage: E._known_points = []  # clear cached points
             sage: E.simon_two_descent()
             (2, 2, [(5/4 : 5/8 : 1), (-3/4 : 7/8 : 1)])
             sage: E = EllipticCurve('5077a1')
@@ -1691,9 +1702,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 return self.__rank[True]
         if use_database:
             try:
-                self.__rank[True] = self.database_curve().rank()
+                self.__rank[True] = self.database_attributes()['rank']
                 return self.__rank[True]
-            except (AttributeError, RuntimeError):
+            except (KeyError, RuntimeError):
+                # curve not in database, or rank not known
                 pass
         if not only_use_mwrank:
             N = self.conductor()
@@ -1894,13 +1906,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         if use_database:
             try:
-                E = self.database_curve()
+                E = self.minimal_model()
+                data = self.database_attributes()
                 iso = E.isomorphism_to(self)
-                try:
-                    return [iso(P) for P in E.__gens[True]], True
-                except (KeyError,AttributeError): # database curve does not have the gens
-                    pass
-            except (RuntimeError, KeyError):  # curve or gens not in database
+                return [iso(E(P)) for P in data['gens']], True
+            except (KeyError, RuntimeError):
+                # curve not in database, or generators not known
                 pass
 
         if self.conductor() > 10**7:
@@ -2609,7 +2620,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return self.__minimal_model
         except AttributeError:
             F = self.pari_mincurve()
-            self.__minimal_model = EllipticCurve_rational_field([Q(F[i]) for i in range(5)])
+            self.__minimal_model = constructor.EllipticCurve([Q(F[i]) for i in range(5)])
             return self.__minimal_model
 
     def is_minimal(self):
@@ -3156,7 +3167,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve('17a1')
             sage: E.integral_weierstrass_model() #random
-            doctest:1: DeprecationWarning: integral_weierstrass_model is deprecated, use integral_short_weierstrass_model instead!
+            doctest:...: DeprecationWarning: integral_weierstrass_model is deprecated, use integral_short_weierstrass_model instead!
             Elliptic Curve defined by y^2  = x^3 - 11*x - 890 over Rational Field
         """
         from sage.misc.superseded import deprecation
@@ -3543,16 +3554,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             RuntimeError: Cremona label not known for Elliptic Curve defined by y^2 + y = x^3 - 79*x + 342 over Rational Field.
         """
         try:
-            if not space:
-                return self.__cremona_label.replace(' ','')
-            return self.__cremona_label
+            label = self.__cremona_label
         except AttributeError:
             try:
-                X = self.database_curve()
+                label = self.database_attributes()['cremona_label']
             except RuntimeError:
                 raise RuntimeError("Cremona label not known for %s."%self)
-            self.__cremona_label = X.__cremona_label
-            return self.cremona_label(space)
+            self.__cremona_label = label
+        if not space:
+            return label.replace(' ', '')
+        return label
 
     label = cremona_label
 
@@ -4746,7 +4757,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: EllipticCurve('20a1').is_reducible(3) #random
-            doctest:1: DeprecationWarning: is_reducible is deprecated, use galois_representation().is_reducible(p) instead!
+            doctest:...: DeprecationWarning: is_reducible is deprecated, use galois_representation().is_reducible(p) instead!
             True
 
         """
@@ -4766,7 +4777,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: EllipticCurve('20a1').is_irreducible(7) #random
-            doctest:1: DeprecationWarning: is_irreducible is deprecated, use galois_representation().is_irreducible(p) instead!
+            doctest:...: DeprecationWarning: is_irreducible is deprecated, use galois_representation().is_irreducible(p) instead!
             True
 
         """
@@ -4786,7 +4797,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: EllipticCurve('20a1').is_surjective(7) #random
-            doctest:1: DeprecationWarning: is_surjective is deprecated, use galois_representation().is_surjective(p) instead!
+            doctest:...: DeprecationWarning: is_surjective is deprecated, use galois_representation().is_surjective(p) instead!
             True
 
         """
@@ -4806,7 +4817,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: EllipticCurve('20a1').reducible_primes() #random
-            doctest:1: DeprecationWarning: reducible_primes is deprecated, use galois_representation().reducible_primes() instead!
+            doctest:...: DeprecationWarning: reducible_primes is deprecated, use galois_representation().reducible_primes() instead!
             [2,3]
 
        """
@@ -4826,7 +4837,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: EllipticCurve('20a1').non_surjective() #random
-            doctest:1: DeprecationWarning: non_surjective is deprecated, use galois_representation().non_surjective() instead!
+            doctest:...: DeprecationWarning: non_surjective is deprecated, use galois_representation().non_surjective() instead!
             [2,3]
 
         """

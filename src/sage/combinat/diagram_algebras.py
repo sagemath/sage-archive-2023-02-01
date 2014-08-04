@@ -1224,14 +1224,13 @@ def is_planar(sp):
     to_consider = map(list, sp)
 
     #Singletons don't affect planarity
-    to_consider = filter(lambda x: len(x) > 1, to_consider)
+    to_consider = [x for x in to_consider if len(x) > 1]
     n = len(to_consider)
 
     for i in range(n):
         #Get the positive and negative entries of this part
-        ap = filter(lambda x: x>0, to_consider[i])
-        an = filter(lambda x: x<0, to_consider[i])
-        an = map(abs, an)
+        ap = [x for x in to_consider[i] if x>0]
+        an = [abs(x) for x in to_consider[i] if x<0]
 
         #Check if a includes numbers in both the top and bottom rows
         if len(ap) > 0 and len(an) > 0:
@@ -1239,9 +1238,8 @@ def is_planar(sp):
                 if i == j:
                     continue
                 #Get the positive and negative entries of this part
-                bp = filter(lambda x: x>0, to_consider[j])
-                bn = filter(lambda x: x<0, to_consider[j])
-                bn = map(abs, bn)
+                bp = [x for x in to_consider[j] if x>0]
+                bn = [abs(x) for x in to_consider[j] if x<0]
 
                 #Skip the ones that don't involve numbers in both
                 #the bottom and top rows
@@ -1517,7 +1515,7 @@ def set_partition_composition(sp1, sp2):
     total_removed = 0
     for cc in connected_components:
         #Remove the vertices that live in the middle two rows
-        new_cc = filter(lambda x: not ( (x[0]<0 and x[1] == 1) or (x[0]>0 and x[1]==2)), cc)
+        new_cc = [x for x in cc if not ( (x[0]<0 and x[1] == 1) or (x[0]>0 and x[1]==2))]
 
         if new_cc == []:
             if len(cc) > 1:

@@ -29,6 +29,7 @@ for more details and a lot of examples.
     :meth:`~TransducerGenerators.add` | Returns a transducer realizing addition.
     :meth:`~TransducerGenerators.sub` | Returns a transducer realizing subtraction.
     :meth:`~TransducerGenerators.CountSubblockOccurrences` | Returns a transducer counting the occurrences of a subblock.
+    :meth:`~TransducerGenerators.Wait` | Returns a transducer writing ``False`` until first (or k-th) true input is read.
     :meth:`~TransducerGenerators.weight` | Returns a transducer realizing the Hamming weight
     :meth:`~TransducerGenerators.GrayCode` | Returns a transducer realizing binary Gray code.
 
@@ -58,11 +59,10 @@ Functions and methods
 #                     2014 Daniel Krenn <dev@danielkrenn.at>
 #                     2014 Sara Kropf <sara.kropf@aau.at>
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.combinat.finite_state_machine import Transducer
@@ -86,6 +86,7 @@ class TransducerGenerators(object):
     - :meth:`~add`
     - :meth:`~sub`
     - :meth:`~CountSubblockOccurrences`
+    - :meth:`~Wait`
     - :meth:`~GrayCode`
 
     """
@@ -249,6 +250,49 @@ class TransducerGenerators(object):
             s.is_final = True
         return T
 
+    def Wait(self, input_alphabet, threshold=1):
+        r"""
+        Writes ``False`` until reading the ``threshold``-th occurrence
+        of a true input letter; then writes ``True``.
+
+        INPUT:
+
+        - ``input_alphabet`` -- a list or other iterable.
+
+        - ``threshold`` -- a positive integer specifying how many
+          occurrences of ``True`` inputs are waited for.
+
+        OUTPUT:
+
+        A transducer writing ``False`` until the ``threshold``-th true
+        (Python's standard conversion to boolean is used to convert the
+        actual input to boolean) input is read. Subsequently, the
+        transducer writes ``True``.
+
+        EXAMPLES::
+
+            sage: T = transducers.Wait([0, 1])
+            sage: T([0, 0, 1, 0, 1, 0])
+            [False, False, True, True, True, True]
+            sage: T2 = transducers.Wait([0, 1], threshold=2)
+            sage: T2([0, 0, 1, 0, 1, 0])
+            [False, False, False, False, True, True]
+        """
+        def transition(state, input):
+            if state == threshold:
+                return (threshold, True)
+            if not input:
+                return (state, False)
+            return (state + 1, state + 1 == threshold)
+
+        T = Transducer(transition,
+                       input_alphabet=input_alphabet,
+                       initial_states=[0])
+        for s in T.iter_states():
+            s.is_final = True
+
+        return T
+
 
     def operator(self, operator, input_alphabet, number_of_operands=2):
         r"""
@@ -374,9 +418,8 @@ class TransducerGenerators(object):
             sage: T3([(0, 0, 0), (1, 0, 0), (1, 1, 1)])
             [False, False, True]
         """
-        def logical_and(*args):
-            return all(args)
-        return self.operator(logical_and, input_alphabet, number_of_operands)
+        return self.operator(lambda *args: all(args),
+                             input_alphabet, number_of_operands)
 
 
     def any(self, input_alphabet, number_of_operands=2):
@@ -427,9 +470,9 @@ class TransducerGenerators(object):
             sage: T3([(0, 0, 0), (1, 0, 0), (1, 1, 1)])
             [False, True, True]
         """
-        def logical_or(*args):
-            return any(args)
-        return self.operator(logical_or, input_alphabet, number_of_operands)
+        return self.operator(lambda *args: any(args),
+                             input_alphabet, number_of_operands)
+
 
 
     def add(self, input_alphabet, number_of_operands=2):
@@ -473,8 +516,7 @@ class TransducerGenerators(object):
             sage: T([(0, 0), (0, 1), (1, 0), (1, 1)])
             [0, 1, 1, 2]
 
-        More than two operators can also be handled,
-        cf. :trac:`16186`::
+        More than two operands can also be handled::
 
             sage: T3 = transducers.add([0, 1], number_of_operands=3)
             sage: T3.input_alphabet
@@ -483,9 +525,8 @@ class TransducerGenerators(object):
             sage: T3([(0, 0, 0), (0, 1, 0), (0, 1, 1), (1, 1, 1)])
             [0, 1, 2, 3]
         """
-        def multioperand_add(*args):
-            return sum(args)
-        return self.operator(multioperand_add, input_alphabet,
+        return self.operator(lambda *args: sum(args),
+                             input_alphabet,
                              number_of_operands=number_of_operands)
 
 
@@ -656,7 +697,7 @@ class TransducerGenerators(object):
             Transducer with 3 states
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: for v in srange(0, 10):
-            ....:     print v, G(v.digits(base=2) + [0])
+            ....:     print v, G(v.digits(base=2))
             0 []
             1 [1]
             2 [1, 1]
@@ -684,7 +725,8 @@ class TransducerGenerators(object):
                            [2, 1, z, o],
                            [2, 2, o, z]],
                           initial_states=[0],
-                          final_states=[1])
+                          final_states=[1],
+                          with_final_word_out=[0])
 
 
 # Easy access to the transducer generators from the command line:

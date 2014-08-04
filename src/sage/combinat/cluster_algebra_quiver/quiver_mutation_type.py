@@ -1614,7 +1614,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 n = self._rank
                 a = binomial( 2*(n+1), n+1 ) / (n+2)
                 if n % 2 == 1:
-                    a += binomial( n+1, (n+1)/2 )
+                    a += binomial( n+1, (n+1)//2 )
                 if n % 3 == 0:
                     a += 2 * binomial( 2*n/3, n/3 )
                 return a / (n+3)
@@ -1626,9 +1626,9 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 n = i+j
                 f = Euler_Phi()
                 if i == j:
-                    return ( binomial( 2*i,i ) + sum( f(k) * binomial(2*i/k,i/k)**2 for k in filter( lambda k: k in j.divisors(), i.divisors() ) ) / n ) / 4
+                    return ( binomial( 2*i,i ) + sum( f(k) * binomial(2*i/k,i/k)**2 for k in [k for k in i.divisors() if k in j.divisors()] ) / n ) / 4
                 else:
-                    return sum( f(k) * binomial(2*i/k,i/k) * binomial(2*j/k,j/k) for k in filter( lambda k: k in j.divisors(), i.divisors() ) ) / ( 2 * n )
+                    return sum( f(k) * binomial(2*i/k,i/k) * binomial(2*j/k,j/k) for k in [k for k in i.divisors() if k in j.divisors()] ) / ( 2 * n )
 
         # types B and C (finite and affine)
         elif self._letter in ['B','C']:
@@ -1966,7 +1966,7 @@ def _construct_classical_mutation_classes(n):
     # finite A
     data[ ('A',n) ] = ClusterQuiver(['A',n]).mutation_class(data_type='dig6')
     # affine A
-    for j in range(1, n/2+1):
+    for j in range(1, n//2+1):
         data[ ('A',(n-j,j),1) ] = ClusterQuiver(['A',[n-j,j],1]).mutation_class(data_type='dig6')
     # finite B
     if n > 1:

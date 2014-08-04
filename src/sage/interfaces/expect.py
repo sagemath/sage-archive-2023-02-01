@@ -437,8 +437,6 @@ If this all works, you can then make calls like:
 
         os.chdir(current_path)
         self._expect.timeout = self.__max_startup_time
-        if not self._terminal_echo:
-            self._expect.setecho(0)
 
         #self._expect.setmaxread(self.__maxread)
         self._expect.maxread = self.__maxread
@@ -451,6 +449,14 @@ If this all works, you can then make calls like:
             failed_to_start.append(self.name())
             raise RuntimeError("Unable to start %s"%self.name())
         self._expect.timeout = None
+
+        # Calling tcsetattr earlier exposes bugs in various pty
+        # implementations, see :trac:`16474`. Since we haven't
+        # **written** anything so far it is safe to wait with
+        # switching echo off until now.
+        if not self._terminal_echo:
+            self._expect.setecho(0)
+
         with gc_disabled():
             if block_during_init:
                 for X in self.__init_code:

@@ -262,10 +262,10 @@ def get_gap_memory_pool_size():
         return gap_memory_pool_size
     from sage.misc.memory_info import MemoryInfo
     mem = MemoryInfo()
-    suggested_size = max(int(mem.available_swap() / 10),
-                         int(mem.available_ram()  / 50))
+    suggested_size = max(mem.available_swap() // 10,
+                         mem.available_ram()  // 50)
     # Don't eat all address space if the user set ulimit -v
-    suggested_size = min(suggested_size, int(mem.virtual_memory_limit()/10))
+    suggested_size = min(suggested_size, mem.virtual_memory_limit()//10)
     # ~220MB is the minimum for long doctests
     suggested_size = max(suggested_size, 250 * 1024**2)
     return suggested_size

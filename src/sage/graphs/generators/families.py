@@ -113,15 +113,16 @@ def KneserGraph(n,k):
     if not (k>0 and k<=n):
         raise ValueError("Parameter k should be a strictly positive integer inferior to n")
 
-    g = Graph(name="Kneser graph with parameters "+str(n)+","+str(k))
+    g = Graph(name="Kneser graph with parameters {},{}".format(n,k))
+
     from sage.combinat.subset import Subsets
-
-    if k>n/2:
-        g.add_vertices(Subsets(n,k).list())
-
     S = Subsets(n,k)
+    if k>n/2:
+        g.add_vertices(S)
+
+    s0 = S.underlying_set()    # {1,2,...,n}
     for s in S:
-        for t in Subsets(S.s.difference(s),k):
+        for t in Subsets(s0.difference(s), k):
             g.add_edge(s,t)
 
     return g
@@ -1033,16 +1034,16 @@ def HararyGraph( k, n ):
         raise ValueError("Number of vertices n should be greater than k.")
 
     if k%2 == 0:
-        G = CirculantGraph( n, range(1,k/2+1) )
+        G = CirculantGraph( n, range(1,k//2+1) )
     else:
         if n%2 == 0:
-            G = CirculantGraph( n, range(1,(k-1)/2+1) )
+            G = CirculantGraph( n, range(1,(k-1)//2+1) )
             for i in range(n):
-                G.add_edge( i, (i+n/2)%n )
+                G.add_edge( i, (i + n//2)%n )
         else:
             G = HararyGraph( k-1, n )
-            for i in range((n-1)/2+1):
-                G.add_edge( i, (i+(n-1)/2)%n )
+            for i in range((n-1)//2 + 1):
+                G.add_edge( i, (i + (n-1)//2)%n )
     G.name('Harary graph {0}, {1}'.format(k,n))
     return G
 

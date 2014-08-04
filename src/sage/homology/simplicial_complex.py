@@ -168,6 +168,7 @@ from sage.misc.latex import latex
 from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
+from functools import reduce
 lazy_import('sage.categories.category_types', 'SimplicialComplexes')
 
 def lattice_paths(t1, t2, length=None):
@@ -2620,7 +2621,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         """
         if self._graph is None:
             edges = self.n_faces(1)
-            vertices = map(min, filter(lambda f: f.dimension() == 0, self._facets))
+            vertices = [min(f) for f in self._facets if f.dimension() == 0]
             used_vertices = []  # vertices which are in an edge
             d = {}
             for e in edges:
@@ -2748,7 +2749,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (1, 2, 3), (0, 1)}
         """
         # make sure it's a list (it will be a tuple if immutable)
-        facets = list(filter(lambda f: f.dimension()<n, self._facets))
+        facets = [f for f in self._facets if f.dimension() < n]
         facets.extend(self.n_faces(n))
         return SimplicialComplex(facets, is_mutable=self._is_mutable)
 
@@ -2841,7 +2842,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
 
         if subcomplex in self.__enlarged:
             return self.__enlarged[subcomplex]
-        faces = filter(lambda x: x not in subcomplex._facets, list(self._facets))
+        faces = [x for x in list(self._facets) if x not in subcomplex._facets]
         done = False
         new_facets = list(subcomplex._facets)
         while not done:

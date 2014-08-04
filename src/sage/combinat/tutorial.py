@@ -90,7 +90,7 @@ would cause us a problem later. We will therefore redefine our
 Cartesian product so that its elements are represented by tuples::
 
     sage: Cards = CartesianProduct(Values, Suits).map(tuple)
-    sage: Cards.an_element()               # todo: not implemented (see #10963)
+    sage: Cards.an_element()
     ('King', 'Hearts')
 
 Now we can define a set of cards::
@@ -661,8 +661,9 @@ model the set `\mathcal P(\mathcal P(\mathcal P(E)))` and
 calculate its cardinality (`2^{2^{2^4}}`)::
 
     sage: E = Set([1,2,3,4])
-    sage: S = Subsets(Subsets(Subsets(E)))
-    sage: n = S.cardinality(); n              # long time (10s on sage.math, 2012)
+    sage: S = Subsets(Subsets(Subsets(E))); S
+    Subsets of Subsets of Subsets of {1, 2, 3, 4}
+    sage: n = S.cardinality(); n
     2003529930406846464979072351560255750447825475569751419265016973...
 
 which is roughly `2\cdot 10^{19728}`::
@@ -672,11 +673,9 @@ which is roughly `2\cdot 10^{19728}`::
 
 or ask for its `237102124`-th element::
 
-    sage: S.unrank(237102123)                 # not tested (20s, 2012)
-    {{{2}, {3}, {1, 2, 3, 4}, {1, 2}, {1, 4}, {}, {2, 3, 4},
-    {1, 2, 4}, {3, 4}, {4}, {2, 3}, {1, 2, 3}}, {{2}, {3},
-    {1, 2, 3, 4}, {1, 2}, {1, 4}, {2, 3, 4}, {3, 4},
-    {1, 3, 4}, {1}, {1, 3}, {1, 2, 3}}}
+    sage: S.unrank(237102123)
+    {{{2, 4}, {1, 4}, {}, {1, 3, 4}, {1, 2, 4}, {4}, {2, 3}, {1, 3}, {2}},
+      {{1, 3}, {2, 4}, {1, 2, 4}, {}, {3, 4}}}
 
 It would be physically impossible to construct explicitly all the
 elements of `S`, as there are many more of them than there are
@@ -691,8 +690,7 @@ sets::
     sage: len(S)
     Traceback (most recent call last):
     ...
-    AttributeError: __len__ has been removed; use .cardinality()
-    instead
+    OverflowError: Python int too large to convert to C long
 
 Partitions of integers
 ~~~~~~~~~~~~~~~~~~~~~~

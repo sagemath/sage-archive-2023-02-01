@@ -475,6 +475,7 @@ $(INST)/sage: \
 		 $(INST)/$(IML) \
 		 $(INST)/$(JINJA2) \
 		 $(INST)/$(LCALC) \
+		 $(INST)/$(LRCALC) \
 		 $(INST)/$(LIBGAP) \
 		 $(INST)/$(LIBPNG) \
 		 $(INST)/$(LINBOX) \

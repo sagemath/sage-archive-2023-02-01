@@ -2698,6 +2698,8 @@ class FiniteStateMachine(SageObject):
         if with_final_word_out is not None:
             self.construct_final_word_out(with_final_word_out)
 
+        self._allow_composition_ = True
+
 
     #*************************************************************************
     # copy and hash
@@ -6094,6 +6096,10 @@ class FiniteStateMachine(SageObject):
             sage: is_Automaton(A.composition(T, algorithm='explorative'))
             True
         """
+        if not other._allow_composition_:
+            raise TypeError("Composition with automaton is not "
+                            "possible.")
+
         if algorithm is None:
             algorithm = 'direct'
         if algorithm == 'direct':
@@ -6176,8 +6182,9 @@ class FiniteStateMachine(SageObject):
         new colors have to be hashable such that
         :meth:`Automaton.determinisation` does not fail::
 
-            sage: A = Automaton([[0, 0, 0]], initial_states=[0])
-            sage: B = A.composition(A, algorithm='explorative')
+            sage: T = Transducer([[0, 0, 0, 0]], initial_states=[0])
+            sage: A = T.input_projection()
+            sage: B = A.composition(T, algorithm='explorative')
             sage: B.states()[0].color
             (None, None)
             sage: B.determinisation()
@@ -8121,6 +8128,23 @@ class Automaton(FiniteStateMachine):
         sage: Automaton()
         Automaton with 0 states
     """
+
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize an automaton. See :class:`Automaton` and its parent
+        :class:`FiniteStateMachine` for more information.
+
+        TESTS::
+
+            sage: Transducer()._allow_composition_
+            True
+            sage: Automaton()._allow_composition_
+            False
+
+        """
+        super(Automaton, self).__init__(*args, **kwargs)
+        self._allow_composition_ = False
+
 
     def _repr_(self):
         """

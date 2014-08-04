@@ -34,9 +34,7 @@ Implemented constructions :
   :func:`OA(7,42) <OA_7_42>`,
   :func:`OA(7,44) <OA_7_44>`,
   :func:`OA(8,45) <OA_8_45>`,
-  :func:`OA(6,46) <OA_6_46>`,
   :func:`OA(10,48) <OA_10_48>`,
-  :func:`OA(8,50) <OA_8_50>`,
   :func:`OA(7,51) <OA_7_51>`,
   :func:`OA(7,52) <OA_7_52>`,
   :func:`OA(7,54) <OA_7_54>`,
@@ -52,34 +50,37 @@ Implemented constructions :
   :func:`OA(9,75) <OA_9_75>`,
   :func:`OA(8,76) <OA_8_76>`,
   :func:`OA(11,80) <OA_11_80>`,
-  :func:`OA(10,82) <OA_10_82>`,
-  :func:`OA(10,100) <OA_10_100>`,
   :func:`OA(15,112) <OA_15_112>`,
   :func:`OA(9,120) <OA_9_120>`,
   :func:`OA(9,135) <OA_9_135>`,
-  :func:`OA(12,144) <OA_12_144>`,
-  :func:`OA(10,154) <OA_10_154>`,
   :func:`OA(11,160) <OA_11_160>`,
   :func:`OA(16,176) <OA_16_176>`,
   :func:`OA(16,208) <OA_16_208>`,
-  :func:`OA(12,210) <OA_12_210>`,
   :func:`OA(15,224) <OA_15_224>`,
-  :func:`OA(10,262) <OA_10_262>`,
   :func:`OA(18,273) <OA_18_273>`,
-  :func:`OA(12,276) <OA_12_276>`,
-  :func:`OA(12,298) <OA_12_298>`,
-  :func:`OA(12,342) <OA_12_342>`,
   :func:`OA(20,352) <OA_20_352>`,
   :func:`OA(20,416) <OA_20_416>`,
-  :func:`OA(12,474) <OA_12_474>`,
   :func:`OA(9,514) <OA_9_514>`,
   :func:`OA(20,544) <OA_20_544>`,
   :func:`OA(17,560) <OA_17_560>`,
   :func:`OA(11,640) <OA_11_640>`,
   :func:`OA(10,796) <OA_10_796>`,
   :func:`OA(15,896) <OA_15_896>`,
-  :func:`OA(14,950) <OA_14_950>`,
   :func:`OA(33,993) <OA_33_993>`,
+
+- V(4,9),
+  V(6,7),
+  V(8,9),
+  V(8,11),
+  V(10,13),
+  V(8,17),
+  V(10,19),
+  V(8,29),
+  V(10,25),
+  V(10,27),
+  V(10,31),
+  V(10,43),
+  V(12,73)
 
 - :func:`two MOLS of order 10 <MOLS_10_2>`,
   :func:`five MOLS of order 12 <MOLS_12_5>`,
@@ -1321,32 +1322,6 @@ def OA_8_45():
     M = OA_from_quasi_difference_matrix(Mb,G533,add_col = True)
     return M
 
-def OA_6_46():
-    r"""
-    Return an OA(6,46)
-
-    As explained in the Handbook III.3.66 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_6_46
-        sage: OA = OA_6_46()
-        sage: print is_orthogonal_array(OA,6,46,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(6,46,existence=True)
-        True
-    """
-    M = OA_from_Vmt(4,9,[0, 1, 3, 2, 8])
-    return M
-
 def OA_10_48():
     r"""
     Return an OA(10,48)
@@ -1402,32 +1377,6 @@ def OA_10_48():
                 Mb[i].append(e+F3F16((F3(0),w**(x+u))))
 
     M = OA_from_quasi_difference_matrix(Mb,F3F16,add_col = True)
-    return M
-
-def OA_8_50():
-    r"""
-    Return an OA(8,50)
-
-    As explained in the Handbook III.3.68 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_8_50
-        sage: OA = OA_8_50()
-        sage: print is_orthogonal_array(OA,8,50,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(8,50,existence=True)
-        True
-    """
-    M = OA_from_Vmt(6,7,[0, 1, 3, 16, 35, 26, 36])
     return M
 
 def OA_7_51():
@@ -2230,60 +2179,6 @@ def OA_11_80():
 
     return OA_n_times_2_pow_c_from_matrix(11,4,FiniteField(5),A,Y,check=False)
 
-def OA_10_82():
-    r"""
-    Return an OA(10,82)
-
-    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
-    [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_10_82
-        sage: OA = OA_10_82()
-        sage: print is_orthogonal_array(OA,10,82,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(10,82,existence=True)
-        True
-    """
-    M = OA_from_Vmt(8,9,[0,1,20,70,23,59,3,8,19])
-    return M
-
-def OA_10_100():
-    r"""
-    Return an OA(10,100)
-
-    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
-    [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_10_100
-        sage: OA = OA_10_100()
-        sage: print is_orthogonal_array(OA,10,100,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(10,100,existence=True)
-        True
-    """
-    M = OA_from_Vmt(8,11,[0,1,6,56,22,35,47,23,60])
-    return M
-
 def OA_15_112():
     r"""
     Returns an OA(15,112)
@@ -2463,60 +2358,6 @@ def OA_9_135():
     # And call Wilson's construction
     return wilson_construction(truncated_OA, 9, 16, 8,7,(1,)*7,check=False)
 
-def OA_12_144():
-    r"""
-    Return an OA(12,144)
-
-    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
-    [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_12_144
-        sage: OA = OA_12_144()
-        sage: print is_orthogonal_array(OA,12,144,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(12,144,existence=True)
-        True
-    """
-    M = OA_from_Vmt(10,13,[0, 1, 5, 10, 22, 6, 14, 9, 53, 129, 84])
-    return M
-
-def OA_10_154():
-    r"""
-    Return an OA(10,154)
-
-    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
-    [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_10_154
-        sage: OA = OA_10_154()
-        sage: print is_orthogonal_array(OA,10,154,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(10,154,existence=True)
-        True
-    """
-    M = OA_from_Vmt(8,17,[0,1,3,2,133,126,47,109,74])
-    return M
-
 def OA_11_160():
     r"""
     Returns an OA(11,160)
@@ -2673,33 +2514,6 @@ def OA_16_208():
 
     return OA_n_times_2_pow_c_from_matrix(16,4,FiniteField(13),zip(*A),Y,check=False)
 
-def OA_12_210():
-    r"""
-    Return an OA(12,210)
-
-    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
-    [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_12_210
-        sage: OA = OA_12_210()
-        sage: print is_orthogonal_array(OA,12,210,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(12,210,existence=True)
-        True
-    """
-    M = OA_from_Vmt(10,19,[0, 1, 3, 96, 143, 156, 182, 142, 4, 189, 25])
-    return M
-
 def OA_15_224():
     r"""
     Returns an OA(15,224)
@@ -2747,31 +2561,6 @@ def OA_15_224():
 
     return OA_n_times_2_pow_c_from_matrix(15,5,FiniteField(7),zip(*A),Y,check=False)
 
-def OA_10_262():
-    r"""
-    Returns an OA(10,262)
-
-    Given by Julian R. Abel.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_10_262
-        sage: OA = OA_10_262()
-        sage: print is_orthogonal_array(OA,10,262,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(10,262,existence=True)
-        True
-    """
-    return OA_from_Vmt(8,29,[0,1,4,11,94,60,85,16,198])
-
 def OA_18_273():
     r"""
     Return an OA(18,273)
@@ -2801,87 +2590,6 @@ def OA_18_273():
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(273)
     M = OA_from_quasi_difference_matrix(Mb,G,add_col=True)
-    return M
-
-def OA_12_276():
-    r"""
-    Return an OA(12,276)
-
-    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
-    [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_12_276
-        sage: OA = OA_12_276()
-        sage: print is_orthogonal_array(OA,12,276,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(12,276,existence=True)
-        True
-    """
-    M = OA_from_Vmt(10,25,[0,1,3,85,140,178,195,22,48,179,188])
-    return M
-
-def OA_12_298():
-    r"""
-    Return an OA(12,298)
-
-    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
-    [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_12_298
-        sage: OA = OA_12_298()
-        sage: print is_orthogonal_array(OA,12,298,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(12,298,existence=True)
-        True
-    """
-    M = OA_from_Vmt(10,27,[0,1,3,82,109,241,36,112,141,263,126])
-    return M
-
-def OA_12_342():
-    r"""
-    Return an OA(12,342)
-
-    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
-    [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_12_342
-        sage: OA = OA_12_342()
-        sage: print is_orthogonal_array(OA,12,342,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(12,342,existence=True)
-        True
-    """
-    M = OA_from_Vmt(10,31,[0,1,3,57,128,247,289,239,70,271,96])
     return M
 
 def OA_20_352():
@@ -3002,33 +2710,6 @@ def OA_20_416():
     Y = [None, 0, 1, 2, 18, 5, 11, 4, 13, 26, 25, 29, 24, 7, 20, 19, 9, 12, 15]
 
     return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(13),zip(*A),Y,check=False)
-
-def OA_12_474():
-    r"""
-    Return an OA(12,474)
-
-    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
-    [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_12_474
-        sage: OA = OA_12_474()
-        sage: print is_orthogonal_array(OA,12,474,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(12,474,existence=True)
-        True
-    """
-    M = OA_from_Vmt(10,43,[0,1,6,29,170,207,385,290,375,32,336])
-    return M
 
 def OA_9_514():
     r"""
@@ -3354,31 +3035,6 @@ def OA_15_896():
 
     return OA_n_times_2_pow_c_from_matrix(15,7,FiniteField(7),zip(*A),Y,check=False)
 
-def OA_14_950():
-    r"""
-    Returns an OA(14,950)
-
-    Given by Julian R. Abel.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_14_950
-        sage: OA = OA_14_950()                        # not tested -- around 10s
-        sage: print is_orthogonal_array(OA,14,950,2)  # not tested
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(14,950,existence=True)
-        True
-    """
-    return OA_from_Vmt(12,73,[0, 1, 607, 719, 837, 496, 240, 645, 184, 829, 451, 830, 770])
-
 def OA_33_993():
     r"""
     Return an OA(33,993)
@@ -3437,9 +3093,7 @@ OA_constructions = {
     42  : (7  , OA_7_42),
     44  : (7  , OA_7_44),
     45  : (8  , OA_8_45),
-    46  : (6  , OA_6_46),
     48  : (10 , OA_10_48),
-    50  : (8  , OA_8_50),
     51  : (7  , OA_7_51),
     52  : (7  , OA_7_52),
     54  : (7  , OA_7_54),
@@ -3456,35 +3110,100 @@ OA_constructions = {
     75  : (9  , OA_9_75),
     76  : (8  , OA_8_76),
     80  : (11 , OA_11_80),
-    82  : (10 , OA_10_82),
-    100 : (10 , OA_10_100),
     112 : (15 , OA_15_112),
     120 : (9  , OA_9_120),
     135 : (9  , OA_9_135),
-    144 : (12 , OA_12_144),
-    154 : (10 , OA_10_154),
     160 : (11 , OA_11_160),
     176 : (16 , OA_16_176),
     208 : (16 , OA_16_208),
-    210 : (12 , OA_12_210),
     224 : (15 , OA_15_224),
-    262 : (10 , OA_10_262),
     273 : (18 , OA_18_273),
-    276 : (12 , OA_12_276),
-    298 : (12 , OA_12_298),
-    342 : (12 , OA_12_342),
     352 : (20 , OA_20_352),
     416 : (20 , OA_20_416),
-    474 : (12 , OA_12_474),
     514 : (9  , OA_9_514),
     544 : (20 , OA_20_544),
     560 : (17 , OA_17_560),
     640 : (11 , OA_11_640),
     796 : (10 , OA_10_796),
     896 : (15 , OA_15_896),
-    950 : (14 , OA_14_950),
     993 : (33 , OA_33_993),
 }
+
+Vmt_vectors = {
+    (4,9) : ((0, 1, 3, 2, 8),
+             "As explained in the Handbook III.3.66 [DesignHandbook]_."),
+
+    (6,7) : ((0, 1, 3, 16, 35, 26, 36),
+            "As explained in the Handbook III.3.68 [DesignHandbook]_."),
+
+    (8,9) : ((0,1,20,70,23,59,3,8,19),
+             "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
+
+    (8,11) : ((0,1,6,56,22,35,47,23,60),
+              "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
+
+    (10,13) : ((0, 1, 5, 10, 22, 6, 14, 9, 53, 129, 84),
+               "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
+
+    (8,17) : ((0,1,3,2,133,126,47,109,74),
+              "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
+
+    (10,19) : ((0, 1, 3, 96, 143, 156, 182, 142, 4, 189, 25),
+               "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
+
+    (8,29) : ((0,1,4,11,94,60,85,16,198),
+              "Given by Julian R. Abel."),
+
+    (10,25) : ((0,1,3,85,140,178,195,22,48,179,188),
+               "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
+
+    (10,27) : ((0,1,3,82,109,241,36,112,141,263,126),
+               "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
+
+    (10,31) : ((0,1,3,57,128,247,289,239,70,271,96),
+               "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
+
+    (10,43) : ((0,1,6,29,170,207,385,290,375,32,336),
+               "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
+
+    (12,73) : ((0, 1, 607, 719, 837, 496, 240, 645, 184, 829, 451, 830, 770),
+               "Given by Julian R. Abel."),
+}
+
+# Translate all V(m,t) into OA constructors
+for (m,t),(vec,source) in Vmt_vectors.iteritems():
+    OA_constructions[(m+1)*t+1] = (m+2, lambda m=m,t=t,vec=vec:OA_from_Vmt(m,t,vec))
+
+def _test_Vmt_constructions():
+    r""""
+    This function does nothing, and is just here for its doctest.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.orthogonal_arrays import OA_from_Vmt
+        sage: from sage.combinat.designs.database import _test_Vmt_constructions
+        sage: from sage.combinat.designs.database import Vmt_vectors
+        sage: _test_Vmt_constructions()
+        sage: for (m,t),(vec,source) in sorted(Vmt_vectors.items()):
+        ....:     k,n = m+2,(m+1)*t+1
+        ....:     assert is_orthogonal_array(OA_from_Vmt(m,t,vec),k,n)
+        ....:     print "{:11}{}".format("V({},{}):".format(m,t),source)
+        V(4,9):    As explained in the Handbook III.3.66 [DesignHandbook]_.
+        V(6,7):    As explained in the Handbook III.3.68 [DesignHandbook]_.
+        V(8,9):    Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+        V(8,11):   Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+        V(8,17):   Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+        V(8,29):   Given by Julian R. Abel.
+        V(10,13):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+        V(10,19):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+        V(10,25):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+        V(10,27):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+        V(10,31):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+        V(10,43):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+        V(12,73):  Given by Julian R. Abel.
+    """
+    pass
 
 def CDF_21_5_1():
     r"""

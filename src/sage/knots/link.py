@@ -1464,71 +1464,98 @@ class Link:
         OUTPUT:
             - Jones Polynomial of the link.
 
+        Reference:
+            - http://katlas.math.toronto.edu/wiki/The_Jones_Polynomial#How_is_the_Jones_polynomial_computed.3F
+
         EXAMPLES::
         sage: from sage.knots import link
-        sage: L = link.Link(oriented_gauss_code = [[1, -2, 3, -4, 2, -1, 4, -3],['+','+','-','-']])
+        sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],['+','+','-','-']])
         sage: L.jones_polynomial()
-        t^8 - t^4 + 1 - t^-4 + t^-8
-        sage: L = link.Link(oriented_gauss_code = [[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5],['-','-','-','-','+','-','+']])
+        (-t^10 - t^6 - t^2 + t^-6)/(-t^2 - t^-2)
+        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],['-','-','-','-','+','-','+']])
         sage: L.jones_polynomial()
-        -t^16 + t^12 + t^4
+        (-t^6 - 2*t^-2 + t^-18 - t^-22 + t^-26)/(-t^2 - t^-2)
         """
-        x = self.oriented_gauss_code()
-        crossinfo = deepcopy(x[0])
-        signinfo = x[1]
-        poscross = [abs(i) for i in x[0]]
-        z = []
-        for i in range(len(poscross)):
-            for j in range(i+1, len(poscross)):
-                if poscross[i] == poscross[j]:
-                   z.append(poscross[i:j])
-        counts = [[] for i in range(len(z))]
-        for i,j in enumerate(z):
-            for k in j:
-                counts[i].append(Mod(j.count(k),2))
-        A = matrix(IntegerModRing(2), max(poscross), max(poscross))
-        for i,j in enumerate(z):
-            for m,k in enumerate(j):
-                A[k-1,i] = counts[i][m]
-        for i in range(len(poscross)):
-            for j in reversed(range(i+1,len(poscross))):
-                if poscross[i] == poscross[j]:
-                    del poscross[j]
-        crosstosign = {}
-        for i,j in zip(poscross, signinfo):
-            crosstosign.update({i : j})
-        firstarray = []
-        for i,j in crosstosign.items():
-            if j == '-':
-                A[i-1,i-1] = 1
-                firstarray.append(1)
-            elif j == '+':
-                A[i-1,i-1] = 0
-                firstarray.append(0)
+        pd = self.PD_code()
+        orient = self.orientation()
+        #here we look at the smoothings, either 0 or 1
+        label_1 = [0 for i in range(len(pd))]
+        label_2 = [1 for i in range(len(pd))]
+        label_1.extend(label_2)
+        #all the crossings have to be either smoothened by 0 or 1
+        P = Permutations(label_1, len(pd))
         R = LaurentPolynomialRing(ZZ, var)
         x = R.gen()
-        labels1 = [x for i in range(2*len(poscross))]
-        labels2 = [x**(-1) for i in range(2*len(poscross))]
-        labels1.extend(labels2)
-        P = Permutations(labels1, len(poscross))
-        perlist = P.list()
+        crossing_to_label = []
+        #we record how each crossing is smoothened and also the sign of the crossing
+        for i in P.list():
+            tmp = {}
+            for j,k in enumerate(i):
+                tmp.update({tuple(pd[j]) : (k,orient[j])})
+            crossing_to_label.append(tmp)
+        #we calculate the coefficients
         coeff = []
-        s = 0
-        for i,j in enumerate(perlist):
-            Acp = deepcopy(A)
-            for k,l in enumerate(j):
-                if l == x**(-1):
-                    if Acp[k,k] == 0:
-                        Acp[k,k] = 1
-                    elif Acp[k,k] == 1:
-                        Acp[k,k] = 0
-            coeff.append((x**j.count(x)) * (x**((-1)*j.count(x**(-1)))) * \
-            ((-1)*(x**2 + x**(-2)))**Acp.nullity())
+        for i in crossing_to_label:
+            tmp_coeff = []
+            for j in pd:
+                if i[tuple(j)][0] == 0:
+                    tmp_coeff.append(x)
+                    #tmp_coeff.append(x**(1/4))
+                elif i[tuple(j)][0] == 1:
+                    tmp_coeff.append(x**-1)
+                    #tmp_coeff.append(x**(-1/4))
+            coeff.append(tmp_coeff)
+        #the product of the coefficients is calcaluated
+        product = []
         for i in coeff:
-            s = s + i
+            p = 1
+            for j in i:
+                p = p*j
+            product.append(p)
+        #here we calculate the number of circles after the smoothing has been performed at
+        #every crossing.
+        pd_edit = []
+        for i in crossing_to_label:
+            pd_copy = deepcopy(pd)
+            tmp = []
+            for j in pd_copy:
+                if i[tuple(j)][0] == 0:
+                    if i[tuple(j)][1] == '-':
+                        tmp.append([pd_copy[pd_copy.index(j)][0],pd_copy[pd_copy.index(j)][1]])
+                        tmp.append([pd_copy[pd_copy.index(j)][3],pd_copy[pd_copy.index(j)][2]])
+                    elif i[tuple(j)][1] == '+':
+                        tmp.append([pd_copy[pd_copy.index(j)][1],pd_copy[pd_copy.index(j)][2]])
+                        tmp.append([pd_copy[pd_copy.index(j)][0],pd_copy[pd_copy.index(j)][3]])
+                elif i[tuple(j)][0] == 1:
+                    if i[tuple(j)][1] == '-':
+                        tmp.append([pd_copy[pd_copy.index(j)][1],pd_copy[pd_copy.index(j)][2]])
+                        tmp.append([pd_copy[pd_copy.index(j)][0],pd_copy[pd_copy.index(j)][3]])
+                    elif i[tuple(j)][1] == '+':
+                        tmp.append([pd_copy[pd_copy.index(j)][2],pd_copy[pd_copy.index(j)][3]])
+                        tmp.append([pd_copy[pd_copy.index(j)][1],pd_copy[pd_copy.index(j)][0]])
+            pd_edit.append(tmp)
+        #replacing the old edges with the new ones to get the circles and also the number of circles.
+        pd_edit = rule_3(pd_edit)
+        pd_edit = rule_3(pd_edit)
+        for i in pd_edit:
+            for j in range(len(i)):
+                for k in reversed(range(j+1,len(i))):
+                    if i[j] == i[k]:
+                        del i[k]
+        #the number of circles.
+        circle_count = []
+        for i in pd_edit:
+            circle_count.append(len(i))
+        #we calculate the terms of the polynomial
+        terms = []
+        for i,j in zip(product, circle_count):
+            terms.append(i*(((-x**2-(x**(-1))**2))**j))
+        #add the terms to generate the polynomial
+        poly = 0
+        for i in terms:
+            poly = i + poly
         wri = self.writhe()
-        s = s*(((-1)*(x**(-3)))**wri)
-        return s
+        return ((-x**(3))**wri)*poly / (-x**2-((x**(-1))**2))
 
 def rule_1(over):
     for i in range(0,len(over),2):
@@ -1555,3 +1582,13 @@ def rule_2(over):
                     j[1] = "entering"
                     break
     return over
+
+def rule_3(pd):
+    for i in pd:
+        for j,k in enumerate(i):
+            a = min(k)
+            b = max(k)
+            for l in i[0:]:
+                if b in l:
+                    i[i.index(l)][l.index(b)] = min(k)
+    return pd

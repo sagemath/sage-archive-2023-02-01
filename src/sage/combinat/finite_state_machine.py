@@ -6061,6 +6061,38 @@ class FiniteStateMachine(SageObject):
             ....:                 (2, 2, 0, 1), (2, 1, 1, 1)],
             ....:                initial_states=[1], final_states=[1])
             sage: Hd = G.composition(F, algorithm='direct')
+
+        In the following examples, we compose transducers and automata
+        and check whether the types are correct. ::
+
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     is_Automaton, is_Transducer)
+            sage: T = Transducer([(0, 0, 0, 0)], initial_states=[0])
+            sage: A = Automaton([(0, 0, 0)], initial_states=[0])
+            sage: is_Transducer(T.composition(T, algorithm='direct'))
+            True
+            sage: is_Transducer(T.composition(T, algorithm='explorative'))
+            True
+            sage: T.composition(A, algorithm='direct')
+            Traceback (most recent call last):
+            ...
+            TypeError: Composition with automaton is not possible.
+            sage: T.composition(A, algorithm='explorative')
+            Traceback (most recent call last):
+            ...
+            TypeError: Composition with automaton is not possible.
+            sage: A.composition(A, algorithm='direct')
+            Traceback (most recent call last):
+            ...
+            TypeError: Composition with automaton is not possible.
+            sage: A.composition(A, algorithm='explorative')
+            Traceback (most recent call last):
+            ...
+            TypeError: Composition with automaton is not possible.
+            sage: is_Automaton(A.composition(T, algorithm='direct'))
+            True
+            sage: is_Automaton(A.composition(T, algorithm='explorative'))
+            True
         """
         if algorithm is None:
             algorithm = 'direct'

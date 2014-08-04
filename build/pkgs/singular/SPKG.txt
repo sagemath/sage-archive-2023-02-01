@@ -62,6 +62,8 @@ See spkg-src.
  * singular-3.1.6-no_return_type.patch:
    State return type of main functions so that Singular builds
    with clang.
+ * no_usr_local.patch: Do not add /usr/local/{lib,include} "just in
+   case" to the LDFLAGS/CPPFLAGS. Especially not at the end ...
 
 Other notes
  * The option '--without-dynamic-kernel' is used on *all*

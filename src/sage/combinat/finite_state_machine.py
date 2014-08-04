@@ -1865,10 +1865,8 @@ class FSMState(SageObject):
         if not _epsilon_successors_dict_[self]:
             del _epsilon_successors_dict_[self]
         for s, outputs in _epsilon_successors_dict_.iteritems():
-            # In the next code line we uniquify and sort. This can for
-            # sure be done better (faster), but it works ;)
-            _epsilon_successors_dict_[s] = [list(t) for t in sorted(
-                    set(tuple(o) for o in outputs))]
+            _epsilon_successors_dict_[s] = [t for t, _ in
+                                            itertools.groupby(sorted(outputs))]
         return _epsilon_successors_dict_
 
 
@@ -11549,10 +11547,8 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         if states.has_key(state):
             existing_tape_cache, existing_outputs = states[state]
             existing_outputs.extend(outputs)
-            # In the next code line we uniquify and sort. This can for
-            # sure be done better (faster), but it works ;)
-            existing_outputs = [list(t) for t in sorted(
-                    set(tuple(o) for o in existing_outputs))]
+            existing_outputs = [t for t, _ in
+                                itertools.groupby(sorted(existing_outputs))]
             states[state] = (existing_tape_cache, existing_outputs)
         else:
             states[state] = (tape_cache, outputs)

@@ -980,7 +980,7 @@ def HammingCode(r,F):
     ``HammingCode`` is still available in the global namespace::
 
         sage: HammingCode(3,GF(2))
-        doctest:1: DeprecationWarning: This method soon will not be available in that way anymore. To use it, you can now call it by typing codes.HammingCode
+        doctest:...: DeprecationWarning: This method soon will not be available in that way anymore. To use it, you can now call it by typing codes.HammingCode
         See http://trac.sagemath.org/15445 for details.
         Linear code of length 7, dimension 4 over Finite Field of size 2
 
@@ -1296,7 +1296,7 @@ def ReedSolomonCode(n,k,F,pts = None):
     ``ReedSolomonCode`` is still available in the global namespace::
 
         sage: ReedSolomonCode(6,4,GF(7))
-        doctest:1: DeprecationWarning: This method soon will not be available in that way anymore. To use it, you can now call it by typing codes.ReedSolomonCode
+        doctest:...: DeprecationWarning: This method soon will not be available in that way anymore. To use it, you can now call it by typing codes.ReedSolomonCode
         See http://trac.sagemath.org/15445 for details.
         Linear code of length 6, dimension 4 over Finite Field of size 7
 

@@ -165,9 +165,92 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
     return True
 
 
+def singer_difference_set(q,d):
+    r"""
+    Return a difference set associated to the set of hyperplanes in a projective
+    space of dimension `d` over `GF(q)`.
+
+    A Singer difference set has parameters:
+
+    .. MATH::
+
+        v = \frac{q^{d+1}-1}{q-1}, \quad
+        k = \frac{q^d-1}{q-1}, \quad
+        \lambda = \frac{q^{d-1}-1}{q-1}.
+
+    The idea of the construction is as follows. One consider the finite field
+    `GF(q^{d+1})` as a vector space of dimension `d+1` over `GF(q)`. The set of
+    `GF(q)`-lines in `GF(q^{d+1})` is a projective plane and its set of
+    hyperplanes form a balanced incomplete block design.
+
+    Now, considering a multiplicative generator `z` of `GF(q^{d+1})`, we get a
+    transitive action of a cyclic group on our projective plane from which it is
+    possible to build a difference set.
+
+    The construction is given in details in [Stinson2004]_, section 3.3.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import singer_difference_set, is_difference_family
+        sage: G,D = singer_difference_set(3,2)
+        sage: is_difference_family(G,D,verbose=True)
+        It is a (13,4,1)-difference family
+        True
+
+        sage: G,D = singer_difference_set(4,2)
+        sage: is_difference_family(G,D,verbose=True)
+        It is a (21,5,1)-difference family
+        True
+
+        sage: G,D = singer_difference_set(3,3)
+        sage: is_difference_family(G,D,verbose=True)
+        It is a (40,13,4)-difference family
+        True
+
+        sage: G,D = singer_difference_set(9,3)
+        sage: is_difference_family(G,D,verbose=True)
+        It is a (820,91,10)-difference family
+        True
+    """
+    q = Integer(q)
+    assert q.is_prime_power()
+    assert d >= 2
+
+    from sage.rings.finite_rings.constructor import GF
+    from sage.rings.finite_rings.conway_polynomials import conway_polynomial
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+
+    # build a polynomial c over GF(q) such that GF(q)[x] / (c(x)) is a
+    # GF(q**(d+1)) and such that x is a multiplicative generator.
+    p,e = q.factor()[0]
+    c = conway_polynomial(p,e*(d+1))
+    if e != 1:  # i.e. q is not a prime, so we factorize c over GF(q) and pick
+                # one of its factor
+        K = GF(q,'z')
+        c = c.change_ring(K).factor()[0][0]
+    else:
+        K = GF(q)
+    z = c.parent().gen()
+
+    # Now we consider the GF(q)-subspace V spanned by (1,z,z^2,...,z^(d-1)) inside
+    # GF(q^(d+1)). The multiplication by z is an automorphism of the
+    # GF(q)-projective space built from GF(q^(d+1)). The difference family is
+    # obtained by taking the integers i such that z^i belong to V.
+    powers = [0]
+    i = 1
+    x = z
+    k = (q**d-1)//(q-1)
+    while len(powers) < k:
+        if x.degree() <= (d-1):
+            powers.append(i)
+        x = (x*z).mod(c)
+        i += 1
+
+    return Zmod((q**(d+1)-1)//(q-1)), [powers]
+
 def difference_family(v, k, l=1, existence=False, check=True):
     r"""
-    Return a (``k``, ``l``)-difference family on a group of size ``v``.
+    Return a (``k``, ``l``)-difference family on an Abelian group of size ``v``.
 
     Let `G` be a finite Abelian group. For a given subset `D` of `G`, we define
     `\Delta D` to be the multi-set of differences `\Delta D = \{x - y; x \in D,
@@ -255,6 +338,7 @@ def difference_family(v, k, l=1, existence=False, check=True):
          9: (4,3), (8,7)
         11: (5,2), (5,4)
         13: (3,2), (4,3), (6,5)
+        15: (7,3)
         16: (3,2), (5,4)
         17: (4,3), (8,7)
         19: (3,2), (6,5), (9,4), (9,8)
@@ -287,8 +371,19 @@ def difference_family(v, k, l=1, existence=False, check=True):
         sage: Q8 = [1009, 3137, 3697]
         sage: for Q,k in [(Q4,4),(Q5,5),(Q8,8),(Q9,9),(Q15,15)]:
         ....:     for q in Q:
-        ....:         assert designs.difference_family(q,k,1,existence=True)
+        ....:         assert designs.difference_family(q,k,1,existence=True) is True
         ....:         _ = designs.difference_family(q,k,1)
+
+    Check Singer difference sets::
+
+        sage: sgp = lambda q,d: ((q**(d+1)-1)//(q-1), (q**d-1)//(q-1), (q**(d-1)-1)//(q-1))
+
+        sage: for q in range(2,10):
+        ....:     if is_prime_power(q):
+        ....:         for d in [2,3,4]:
+        ....:           v,k,l = sgp(q,d)
+        ....:           assert designs.difference_family(v,k,l,existence=True) is True
+        ....:           _ = designs.difference_family(v,k,l)
 
     .. TODO::
 
@@ -308,8 +403,11 @@ def difference_family(v, k, l=1, existence=False, check=True):
             return False
         raise EmptySetError("A (v,%d,%d)-difference family may exist only if %d*(v-1) = mod %d"%(k,l,l,k*(k-1)))
 
+    from block_design import are_hyperplanes_in_projective_geometry_parameters
     from database import DF_constructions
     if (v,k,l) in DF_constructions:
+        if existence:
+            return True
         return DF_constructions[(v,k,l)]()
 
     e = k*(k-1)
@@ -319,7 +417,7 @@ def difference_family(v, k, l=1, existence=False, check=True):
 
     if arith.is_prime_power(v):
         from sage.rings.finite_rings.constructor import GF
-        K = GF(v,'z')
+        G = K = GF(v,'z')
         x = K.multiplicative_generator()
 
         if l == (k-1):
@@ -396,14 +494,19 @@ def difference_family(v, k, l=1, existence=False, check=True):
                         D = [[x**(i*5) * b for b in B] for i in xrange(t)]
                         break
 
+    if D is None and are_hyperplanes_in_projective_geometry_parameters(v,k,l):
+        _, (q,d) = are_hyperplanes_in_projective_geometry_parameters(v,k,l,True)
+        if existence:
+            return True
+        else:
+            G,D = singer_difference_set(q,d)
+
     if D is None:
         if existence:
             return Unknown
         raise NotImplementedError("No constructions for these parameters")
 
-    if check and not is_difference_family(K,D,verbose=False):
+    if check and not is_difference_family(G,D,verbose=False):
         raise RuntimeError
 
-    return K, D
-
-
+    return G, D

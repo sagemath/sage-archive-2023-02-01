@@ -891,12 +891,16 @@ cdef class NumberFieldElement(FieldElement):
             sage: a.abs(prec=128)
             1.2599210498948731647672106072782283506
         """
-        return self.abs(prec=53, i=0)
+        return self.abs(prec=53, i=None)
 
-    def abs(self, prec=53, i=0):
+    def abs(self, prec=53, i=None):
         r"""
-        Return the absolute value of this element with respect to the
-        `i`-th complex embedding of parent, to the given precision.
+        Return the absolute value of this element.
+
+        If ``i`` is provided, then the absolute of the `i`-th embedding is
+        given. Otherwise, if the number field as a defined embedding into `\CC`
+        then the corresponding absolute value is returned and if there is none,
+        it corresponds to the choice ``i=0``.
 
         If prec is 53 (the default), then the complex double field is
         used; otherwise the arbitrary precision (but slow) complex
@@ -938,9 +942,24 @@ cdef class NumberFieldElement(FieldElement):
             0.414213562373095
             sage: a.abs(i=1)
             2.41421356237309
+
+        Check that :trac:`16147` is fixed::
+
+            sage: x = polygen(ZZ)
+            sage: f = x^3 - x - 1
+            sage: beta = f.complex_roots()[0]; beta
+            1.32471795724475
+            sage: K.<b> = NumberField(f, embedding=beta)
+            sage: b.abs()
+            1.32471795724475
         """
-        P = self.number_field().complex_embeddings(prec)[i]
-        return abs(P(self))
+        CCprec = ComplexField(prec)
+        if i is None and CCprec.has_coerce_map_from(self.parent()):
+            return CCprec(self).abs()
+        else:
+            i = 0 if i is None else i
+            P = self.number_field().complex_embeddings(prec)[i]
+            return P(self).abs()
 
     def abs_non_arch(self, P, prec=None):
         r"""
@@ -1609,7 +1628,7 @@ cdef class NumberFieldElement(FieldElement):
 
     def nth_root(self, n, all=False):
         r"""
-        Return an nth root of self in the given number field.
+        Return an `n`'th root of ``self`` in its parent `K`.
 
         EXAMPLES::
 
@@ -1632,6 +1651,26 @@ cdef class NumberFieldElement(FieldElement):
             return roots[0][0]
         else:
             raise ValueError, "%s not a %s-th root in %s"%(self, n, self._parent)
+
+    def is_nth_power(self, n):
+        r"""
+        Return True if ``self`` is an `n`'th power in its parent `K`.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^4-7)
+            sage: K(7).is_nth_power(2)
+            True
+            sage: K(7).is_nth_power(4)
+            True
+            sage: K(7).is_nth_power(8)
+            False
+            sage: K((a-3)^5).is_nth_power(5)
+            True
+
+        ALGORITHM: Use PARI to factor `x^n` - ``self`` in `K`.
+        """
+        return len(self.nth_root(n, all=True)) > 0
 
     def __pow__(base, exp, dummy):
         """
@@ -3479,7 +3518,93 @@ cdef class NumberFieldElement(FieldElement):
         """
         return P.residue_symbol(self,m,check)
 
+    def descend_mod_power(self, K=QQ, d=2):
+        r"""
+        Return a list of elements of the subfield `K` equal to
+        ``self`` modulo `d`'th powers.
 
+        INPUT:
+
+        - ``K`` (number field, default \QQ) -- a subfield of the
+          parent number field `L` of ``self``
+
+        - ``d`` (positive integer, default 2) -- an integer at least 2
+
+        OUTPUT:
+
+        A list, possibly empty, of elements of ``K`` equal to ``self``
+        modulo `d`'th powers, i.e. the preimages of ``self`` under the
+        map `K^*/(K^*)^d \rightarrow L^*/(L^*)^d` where `L` is the
+        parent of ``self``.  A ``ValueError`` is raised if `K` does
+        not embed into `L`.
+
+        ALGORITHM:
+
+        All preimages must lie in the Selmer group `K(S,d)` for a
+        suitable finite set of primes `S`, which reduces the question
+        to a finite set of possibilities.  We may take `S` to be the
+        set of primes which ramify in `L` together with those for
+        which the valuation of ``self`` is not divisible by `d`.
+
+        EXAMPLES:
+
+        A relative example::
+
+            sage: Qi.<i> = QuadraticField(-1)
+            sage: K.<zeta> = CyclotomicField(8)
+            sage: f = Qi.embeddings(K)[0]
+            sage: a = f(2+3*i) * (2-zeta)^2
+            sage: a.descend_mod_power(Qi,2)
+            [-3*i - 2, 2*i - 3]
+
+        An absolute example::
+
+            sage: K.<zeta> = CyclotomicField(8)
+            sage: K(1).descend_mod_power(QQ,2)
+            [1, 2, -1, -2]
+            sage: a = 17*K.random_element()^2
+            sage: a.descend_mod_power(QQ,2)
+            [17, 34, -17, -34]
+        """
+        if not self:
+            raise ValueError("element must be nonzero")
+        L = self.parent()
+        if K is L:
+            return [self]
+
+        from sage.sets.set import Set
+
+        if K is QQ: # simpler special case avoids relativizing
+            # First set of primes: those which ramify in L/K:
+            S1 = L.absolute_discriminant().prime_factors()
+            # Second set of primes: those where self has nonzero valuation mod d:
+            S2 = Set([p.norm().support()[0]
+                      for p in self.support()
+                      if self.valuation(p)%d !=0])
+            S = S1 + [p for p in S2 if not p in S1]
+            return [a for a in K.selmer_group_iterator(S,d)
+                    if (self/a).is_nth_power(d)]
+
+        embs = K.embeddings(L)
+        if len(embs) == 0:
+            raise ValueError("K = %s does not embed into %s" % (K,L))
+        f = embs[0]
+        LK = L.relativize(f, names='b')
+        # Unfortunately the base field of LK is not K but an
+        # isomorphic field, and we must make sure to use the correct
+        # isomorphism!
+        KK = LK.base_field()
+        h = [h for h in KK.embeddings(K) if f(h(KK.gen())) == L(LK(KK.gen()))][0]
+
+        # First set of primes: those which ramify in L/K:
+        S1 = LK.relative_discriminant().prime_factors()
+        # Second set of primes: those where self has nonzero valuation mod d:
+        S2 = Set([p.relative_norm().prime_factors()[0]
+                  for p in LK(self).support()
+                  if LK(self).valuation(p) % d != 0])
+        S = S1 + [p for p in S2 if p not in S1]
+        candidates = [h(a) for a in K.selmer_group_iterator(S,d)]
+        return [a for a in candidates if (self/f(a)).is_nth_power(d)]
 
 cdef class NumberFieldElement_absolute(NumberFieldElement):
 

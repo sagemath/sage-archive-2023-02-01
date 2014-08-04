@@ -52,10 +52,14 @@ class RiggedConfigurationElement(ClonableArray):
     - ``rigged_partitions`` -- a list of rigged partitions
 
     There are two optional arguments to explicitly construct a rigged
-    configuration. The first is **partition_list** which gives a list of
-    partitions, and the second is **rigging_list** which is a list of
+    configuration. The first is ``partition_list`` which gives a list of
+    partitions, and the second is ``rigging_list`` which is a list of
     corresponding lists of riggings. If only partition_list is specified,
     then it sets the rigging equal to the calculated vacancy numbers.
+
+    If we are constructing a rigged configuration from a rigged configuration
+    (say of another type) and we don't want to recompute the vacancy numbers,
+    we can use the ``use_vacancy_numbers`` to avoid the recomputation.
 
     EXAMPLES:
 
@@ -101,7 +105,7 @@ class RiggedConfigurationElement(ClonableArray):
         -1[ ][ ][ ]-1
         <BLANKLINE>
 
-        sage: RC = RiggedConfigurations(['D', 4, 1], [[1,1], [2, 1]])
+        sage: RC = RiggedConfigurations(['D', 4, 1], [[1, 1], [2, 1]])
         sage: RC(partition_list=[[1], [1,1], [1], [1]])
         <BLANKLINE>
         1[ ]1
@@ -113,7 +117,7 @@ class RiggedConfigurationElement(ClonableArray):
         <BLANKLINE>
         0[ ]0
         <BLANKLINE>
-        sage: RC(partition_list=[[1], [1,1], [1], [1]], rigging_list=[[0], [0,0], [0], [0]])
+        sage: elt = RC(partition_list=[[1], [1,1], [1], [1]], rigging_list=[[0], [0,0], [0], [0]]); elt
         <BLANKLINE>
         1[ ]0
         <BLANKLINE>
@@ -124,6 +128,16 @@ class RiggedConfigurationElement(ClonableArray):
         <BLANKLINE>
         0[ ]0
         <BLANKLINE>
+
+        sage: from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
+        sage: RC2 = RiggedConfigurations(['D', 5, 1], [[2, 1], [3, 1]])
+        sage: l = [RiggedPartition()] + list(elt)
+        sage: ascii_art(RC2(*l))
+        (/)  1[ ]0  0[ ]0  0[ ]0  0[ ]0
+                    0[ ]0
+        sage: ascii_art(RC2(*l, use_vacancy_numbers=True))
+        (/)  1[ ]0  0[ ]0  0[ ]0  0[ ]0
+                    0[ ]0
 
     We can go between
     :class:`tensor products of KR tableaux
@@ -228,15 +242,18 @@ class RiggedConfigurationElement(ClonableArray):
                     for partition_data in data:
                         nu.append(RiggedPartition(tuple(partition_data)))
         elif parent._cartan_type.classical().rank() == len(rigged_partitions) and \
-            isinstance(rigged_partitions[0], RiggedPartition):
-            # The isinstance check is to make sure we are not in the n == 1 special case because
-            #   Parent's __call__ always passes at least 1 argument to the element constructor
+                isinstance(rigged_partitions[0], RiggedPartition):
+                # The isinstance check is to make sure we are not in the n == 1 special case because
+                #   Parent's __call__ always passes at least 1 argument to the element constructor
 
-            # Special display case
-            if parent.cartan_type().type() == 'B':
-                rigged_partitions[-1] = RiggedPartitionTypeB(rigged_partitions[-1])
-            ClonableArray.__init__(self, parent, rigged_partitions)
-            return
+            if options.get('use_vacancy_numbers', False):
+                # Special display case
+                if parent.cartan_type().type() == 'B':
+                    rigged_partitions[-1] = RiggedPartitionTypeB(rigged_partitions[-1])
+                ClonableArray.__init__(self, parent, rigged_partitions)
+                return
+            # Make a (deep)copy in case we change the vacancy numbers
+            nu = [nu._clone() for nu in rigged_partitions]
         else:
             # Otherwise we did not receive any info, create a size n array of
             #   empty rigged partitions
@@ -476,7 +493,7 @@ class RiggedConfigurationElement(ClonableArray):
                 if vac_num < partition.rigging[i]:
                     raise ValueError("rigging can be at most the vacancy number")
 
-    def to_tensor_product_of_kirillov_reshetikhin_tableaux(self, display_steps=False):
+    def to_tensor_product_of_kirillov_reshetikhin_tableaux(self, display_steps=False, build_graph=False):
         r"""
         Perform the bijection from this rigged configuration to a tensor
         product of Kirillov-Reshetikhin tableaux given in [RigConBijection]_
@@ -492,7 +509,12 @@ class RiggedConfigurationElement(ClonableArray):
         INPUT:
 
         - ``display_steps`` -- (default: ``False``) boolean which indicates
-          if we want to output each step in the algorithm
+          if we want to print each step in the algorithm
+        - ``build_graph` -- (default: ``False``) boolean which indicates
+          if we want to construct and return a graph of the bijection whose
+          vertices are rigged configurations obtained at each step and edges
+          are labeled by either the return value of `\delta` or the
+          doubling/halving map
 
         OUTPUT:
 
@@ -525,11 +547,44 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
             sage: elt == ret
             True
+
+        To view the steps of the bijection in the output, run with
+        the ``display_steps=True`` option::
+
+            sage: elt.to_tensor_product_of_kirillov_reshetikhin_tableaux(True)
+            ====================
+            ...
+            ====================
+            <BLANKLINE>
+            0[ ]0
+            <BLANKLINE>
+            -2[ ][ ]-2
+             0[ ]0
+            <BLANKLINE>
+            0[ ]0
+            <BLANKLINE>
+            0[ ]0
+            <BLANKLINE>
+            --------------------
+            [[3, 2]]
+            --------------------
+            ...
+            [[2, 3], [3, -2]]
+
+        We can also construct and display a graph of the bijection
+        as follows::
+
+            sage: ret, G = elt.to_tensor_product_of_kirillov_reshetikhin_tableaux(build_graph=True)
+            sage: view(G, tightpage=True) # not tested
         """
         from sage.combinat.rigged_configurations.bijection import RCToKRTBijection
-        return RCToKRTBijection(self).run(display_steps)
+        bij = RCToKRTBijection(self)
+        ret = bij.run(display_steps, build_graph)
+        if build_graph:
+            return (ret, bij._graph)
+        return ret
 
-    def to_tensor_product_of_kirillov_reshetikhin_crystals(self, display_steps=False):
+    def to_tensor_product_of_kirillov_reshetikhin_crystals(self, display_steps=False, build_graph=False):
         r"""
         Return the corresponding tensor product of Kirillov-Reshetikhin
         crystals.
@@ -540,7 +595,12 @@ class RiggedConfigurationElement(ClonableArray):
         INPUT:
 
         - ``display_steps`` -- (default: ``False``) boolean which indicates
-          if we want to output each step in the algorithm
+          if we want to print each step in the algorithm
+        - ``build_graph` -- (default: ``False``) boolean which indicates
+          if we want to construct and return a graph of the bijection whose
+          vertices are rigged configurations obtained at each step and edges
+          are labeled by either the return value of `\delta` or the
+          doubling/halving map
 
         EXAMPLES::
 
@@ -564,9 +624,244 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
             sage: elt == ret
             True
+
+        We can also construct and display a graph of the bijection
+        as follows::
+
+            sage: ret, G = elt.to_tensor_product_of_kirillov_reshetikhin_crystals(build_graph=True)
+            sage: view(G, tightpage=True) # not tested
         """
+        if build_graph:
+            kr_tab, G = self.to_tensor_product_of_kirillov_reshetikhin_tableaux(display_steps, build_graph)
+            return (kr_tab.to_tensor_product_of_kirillov_reshetikhin_crystals(), G)
         kr_tab = self.to_tensor_product_of_kirillov_reshetikhin_tableaux(display_steps)
         return kr_tab.to_tensor_product_of_kirillov_reshetikhin_crystals()
+
+    # TODO: Move the morphisms to a lazy attribute of RiggedConfigurations
+    #   once #15463 is done
+    def left_split(self):
+        r"""
+        Return the image of ``self`` under the left column splitting
+        map `\beta`.
+
+        Consider the map `\beta : RC(B^{r,s} \otimes B) \to RC(B^{r,1}
+        \otimes B^{r,s-1} \otimes B)` for `s > 1` which is a natural classical
+        crystal injection. On rigged configurations, the map `\beta` does
+        nothing (except possibly changing the vacancy numbers).
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['C',4,1], [[3,3]])
+            sage: mg = RC.module_generators[-1]
+            sage: ascii_art(mg)
+            0[ ][ ]0  0[ ][ ]0  0[ ][ ]0  0[ ]0
+                      0[ ][ ]0  0[ ][ ]0  0[ ]0
+                                0[ ][ ]0  0[ ]0
+            sage: ascii_art(mg.left_split())
+            0[ ][ ]0  0[ ][ ]0  1[ ][ ]0  0[ ]0
+                      0[ ][ ]0  1[ ][ ]0  0[ ]0
+                                1[ ][ ]0  0[ ]0
+        """
+        P = self.parent()
+        if P.dims[0][1] == 1:
+            raise ValueError("cannot split a single column")
+        r,s = P.dims[0]
+        B = [[r,1], [r,s-1]]
+        B.extend(P.dims[1:])
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+        RC = RiggedConfigurations(P._cartan_type, B)
+        return RC(*self)
+
+    def right_split(self):
+        r"""
+        Return the image of ``self`` under the right column splitting
+        map `\beta^*`.
+
+        Let `\theta` denote the
+        :meth:`complement rigging map<complement_rigging>`
+        and `\beta` denote the :meth:`left splitting map<left_split>`, we
+        define the right splitting map by
+        `\beta^* := \theta \circ \beta \circ \theta`.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['C',4,1], [[3,3]])
+            sage: mg = RC.module_generators[-1]
+            sage: ascii_art(mg)
+            0[ ][ ]0  0[ ][ ]0  0[ ][ ]0  0[ ]0
+                      0[ ][ ]0  0[ ][ ]0  0[ ]0
+                                0[ ][ ]0  0[ ]0
+            sage: ascii_art(mg.right_split())
+            0[ ][ ]0  0[ ][ ]0  1[ ][ ]1  0[ ]0
+                      0[ ][ ]0  1[ ][ ]1  0[ ]0
+                                1[ ][ ]1  0[ ]0
+
+            sage: RC = RiggedConfigurations(['D',4,1], [[2,2],[1,2]])
+            sage: elt = RC(partition_list=[[3,1], [2,2,1], [2,1], [2]])
+            sage: ascii_art(elt)
+            -1[ ][ ][ ]-1  0[ ][ ]0  -1[ ][ ]-1  1[ ][ ]1
+             0[ ]0         0[ ][ ]0  -1[ ]-1
+                           0[ ]0
+            sage: ascii_art(elt.right_split())
+            -1[ ][ ][ ]-1  0[ ][ ]0  -1[ ][ ]-1  1[ ][ ]1
+             1[ ]0         0[ ][ ]0  -1[ ]-1
+                           0[ ]0
+
+        We check that this commutes with the right spliting map::
+
+            sage: RC = RiggedConfigurations(['A', 3, 1], [[1,1], [2,2]])
+            sage: all(rc.right_split().to_tensor_product_of_kirillov_reshetikhin_tableaux()
+            ....:     == rc.to_tensor_product_of_kirillov_reshetikhin_tableaux().right_split() for rc in RC)
+            True
+        """
+        return self.complement_rigging(True).left_split().complement_rigging(True)
+
+    def left_box(self, return_b=False):
+        r"""
+        Return the image of ``self`` under the left box removal map `\delta`.
+
+        The map `\delta : RC(B^{r,1} \otimes B) \to RC(B^{r-1,1}
+        \otimes B)` (if `r = 1`, then we remove the left-most factor) is the
+        basic map in the bijection `\Phi` between rigged configurations and
+        tensor products of Kirillov-Reshetikhin tableaux. For more
+        information, see
+        :meth:`to_tensor_product_of_kirillov_reshetikhin_tableaux()`.
+        We can extend `\delta` when the left-most factor is not a single
+        column by precomposing with a :meth:`left_split()`.
+
+        .. NOTE::
+
+            Due to the special nature of the bijection for the spinor cases in
+            types `D_n^{(1)}`, `B_n^{(1)}`, and `A_{2n-1}^{(2)}`, this map is
+            not defined in these cases.
+
+        INPUT:
+
+        - ``return_b`` -- (default: ``False``) whether to return the
+          resulting letter from `\delta`
+
+        OUTPUT:
+
+        The resulting rigged configuration or if ``return_b`` is ``True``,
+        then a tuple of the resulting rigged configuration and the letter.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['C',4,1], [[3,2]])
+            sage: mg = RC.module_generators[-1]
+            sage: ascii_art(mg)
+            0[ ][ ]0  0[ ][ ]0  0[ ][ ]0  0[ ]0
+                      0[ ][ ]0  0[ ][ ]0  0[ ]0
+                                0[ ][ ]0  0[ ]0
+            sage: ascii_art(mg.left_box())
+            0[ ]0  0[ ][ ]0  0[ ][ ]0  0[ ]0
+                   0[ ]0     0[ ][ ]0  0[ ]0
+            sage: x,b = mg.left_box(True)
+            sage: b
+            -1
+            sage: b.parent()
+            The crystal of letters for type ['C', 4]
+        """
+        # Don't do spinor cases
+        P = self.parent()
+        ct = P.cartan_type()
+        if ct.type() == 'D':
+            if P.dims[0][0] >= ct.rank() - 2:
+                raise ValueError("only for non-spinor cases")
+        elif ct.type() == 'B' or ct.dual().type() == 'B':
+            if P.dims[0][0] == ct.rank() - 1:
+                raise ValueError("only for non-spinor cases")
+
+        from sage.combinat.rigged_configurations.bijection import RCToKRTBijection
+        rc = self
+        if P.dims[0][1] != 1:
+            rc = self.left_split()
+        bij = RCToKRTBijection(rc)
+        bij.cur_dims[0][0] -= 1 # This takes care of the indexing
+        b = bij.next_state(bij.cur_dims[0][0])
+        if bij.cur_dims[0][0] == 0:
+            bij.cur_dims.pop(0)
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+        RC = RiggedConfigurations(ct, bij.cur_dims)
+        rc = RC(*bij.cur_partitions)
+        if return_b:
+            from sage.combinat.crystals.letters import CrystalOfLetters
+            L = CrystalOfLetters(self.parent()._cartan_type.classical())
+            return (rc, L(b))
+        return rc
+
+    delta = left_box
+
+    def complement_rigging(self, reverse_factors=False):
+        r"""
+        Apply the complement rigging morphism `\theta` to ``self``.
+
+        Consider a highest weight rigged configuration `(\nu, J)`, the
+        complement rigging morphism `\theta : RC(L) \to RC(L)` is given by
+        sending `(\nu, J) \mapsto (\nu, J')`, where `J'` is obtained by
+        taking the coriggings `x' = p_i^{(a)} - x`, and then extending as
+        a crystal morphism. (The name comes from taking the complement
+        partition for the riggings in a `m_i^{(a)} \times p_i^{(a)}` box.)
+
+        INPUT:
+
+        - ``reverse_factors`` -- (default: ``False``) if ``True``, then this
+          returns an element in `RC(B')` where `B'` is the tensor factors
+          of ``self`` in reverse order
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['D',4,1], [[1,1],[2,2]])
+            sage: mg = RC.module_generators[-1]
+            sage: ascii_art(mg)
+            1[ ][ ]1  0[ ][ ]0  0[ ][ ]0  0[ ][ ]0
+                      0[ ][ ]0
+            sage: ascii_art(mg.complement_rigging())
+            1[ ][ ]0  0[ ][ ]0  0[ ][ ]0  0[ ][ ]0
+                      0[ ][ ]0
+
+            sage: lw = mg.to_lowest_weight([1,2,3,4])[0]
+            sage: ascii_art(lw)
+            -1[ ][ ]-1  0[ ][ ]0  0[ ][ ]0  0[ ][ ]0
+            -1[ ]-1     0[ ][ ]0  0[ ]0     0[ ]0
+            -1[ ]-1     0[ ]0
+                        0[ ]0
+            sage: ascii_art(lw.complement_rigging())
+            -1[ ][ ][ ]-1  0[ ][ ][ ]0  0[ ][ ][ ]0  0[ ][ ][ ]0
+            -1[ ]-1        0[ ][ ][ ]0
+            sage: lw.complement_rigging() == mg.complement_rigging().to_lowest_weight([1,2,3,4])[0]
+            True
+
+            sage: mg.complement_rigging(True).parent()
+            Rigged configurations of type ['D', 4, 1] and factor(s) ((2, 2), (1, 1))
+
+        We check that the Lusztig involution (under the modification of also
+        mapping to the highest weight element) intertwines with the
+        complement map `\theta` (that reverses the tensor factors)
+        under the bijection `\Phi`::
+
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2], [2, 1], [1, 2]])
+            sage: for mg in RC.module_generators: # long time
+            ....:     y = mg.to_tensor_product_of_kirillov_reshetikhin_tableaux()
+            ....:     hw = y.lusztig_involution().to_highest_weight([1,2,3,4])[0]
+            ....:     c = mg.complement_rigging(True)
+            ....:     hwc = c.to_tensor_product_of_kirillov_reshetikhin_tableaux()
+            ....:     assert hw == hwc
+        """
+        P = self.parent()
+        if reverse_factors:
+            from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+            P = RiggedConfigurations(P._cartan_type, reversed(P.dims))
+
+        mg, e_str = self.to_highest_weight(P._cartan_type.classical().index_set())
+        nu = []
+        rig = []
+        for a,p in enumerate(mg):
+            nu.append(list(p))
+            vac_nums = mg.get_vacancy_numbers(a+1)
+            rig.append( [vac - p.rigging[i] for i,vac in enumerate(vac_nums)] )
+        rc = P(partition_list=nu, rigging_list=rig)
+        return rc.f_string(reversed(e_str))
 
     def nu(self):
         r"""

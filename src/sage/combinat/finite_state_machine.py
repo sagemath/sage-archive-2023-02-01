@@ -11344,7 +11344,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         This class stores the branches which have to be processed
         during iteration and provides a nicer formatting of them.
 
-        This class is inherited from ``dict``. It is returned by the
+        This class is derived from ``dict``. It is returned by the
         ``next``-function during iteration.
 
         EXAMPLES:

@@ -52,19 +52,32 @@ class Domains(CategoryWithAxiom):
             """
             Check to see that there are no zero divisors.
 
+            .. NOTE::
+
+                In rings whose elements can not be represented exactly, there
+                may be zero divisors in practice, even though these rings do
+                not have them in theory. For such inexact rings, these tests
+                are not performed:
+
+                sage: R = ZpFM(5); R
+                5-adic Ring of fixed modulus 5^20
+                sage: R.is_exact()
+                False
+                sage: a = R(5^19)
+                sage: a.is_zero()
+                False
+                sage: (a*a).is_zero()
+                True
+                sage: R._test_zero_divisors()
+
             EXAMPLES::
 
                 sage: ZZ._test_zero_divisors()
-                sage: Zp(5)._test_zero_divisors()
+                sage: ZpFM(5)._test_zero_divisors()
+
             """
-            # This try-except is probably not needed as is_exact()
-            #   should be a method for every commutative ring
-            try:
-                if not self.is_exact():
-                    return # Can't check on inexact rings
-            except AttributeError:
-                # Assume a ring is exact if it doesn't have the method
-                pass
+            if not self.is_exact():
+                return # Can't check on inexact rings
 
             tester = self._tester(**options)
 

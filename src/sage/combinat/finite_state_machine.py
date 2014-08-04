@@ -10879,9 +10879,10 @@ class _FSMTapeCache_(SageObject):
             ....:                      [False, False], ((0, 0), (0, 1)), True)
             sage: TC2._transition_possible_epsilon_([])
             True
-            sage: TC2._transition_possible_epsilon_([[], []])
+            sage: TC2._transition_possible_epsilon_([[None, None]])
             True
-            sage: TC2._transition_possible_epsilon_([[None], []])
+            sage: TC2._transition_possible_epsilon_(
+            ....:     [[None, None], [None, None]])
             True
         """
         # Note that this function does not need self, but it is given
@@ -10936,8 +10937,6 @@ class _FSMTapeCache_(SageObject):
             sage: TC2._transition_possible_test_([])
             False
             sage: TC2._transition_possible_test_([(None, None)])
-            False
-            sage: TC2._transition_possible_test_([((None,), None)])
             False
             """
         if self._transition_possible_epsilon_(word_in):
@@ -11053,7 +11052,7 @@ class _FSMTapeCacheDetectAll_(_FSMTapeCache_):
             True
             sage: TCA._transition_possible_test_([])
             True
-            sage: TCA._transition_possible_test_([[], []])
+            sage: TCA._transition_possible_test_([[None, None]])
             True
         """
         return True

@@ -53,7 +53,7 @@ def _mk_full_functions():
             for (name, f) in items
             if hasattr(f, 'number_of_arguments') and
                f.number_of_arguments() > 0 and
-               f <> hypergeometric]
+               f != hypergeometric]
 
 # For creating simple expressions
 

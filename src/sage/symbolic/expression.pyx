@@ -8068,11 +8068,9 @@ cdef class Expression(CommutativeRingElement):
 
     def simplify_hypergeometric(self, algorithm='maxima'):
         """
-        Simplify an expression containing hypergeometric functions
+        Simplify an expression containing hypergeometric functions.
 
         INPUT:
-
-        - ``self`` -- symbolic expression
  
         - ``algorithm`` -- (default: ``'maxima'``) the algorithm to use for
           for simplification. Implemented are ``'maxima'``, which uses Maxima's
@@ -8121,7 +8119,7 @@ cdef class Expression(CommutativeRingElement):
                                             ops[1].operands()),
                                         ops[2].simplify_hypergeometric(algorithm))))
             else:
-                return NotImplementedError('unknown algorithm')
+                raise NotImplementedError('unknown algorithm')
         if not op:
             return self
         return op(*map(lambda o: o.simplify_hypergeometric(algorithm), ops))

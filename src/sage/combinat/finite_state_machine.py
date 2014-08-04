@@ -2731,7 +2731,7 @@ class FiniteStateMachine(SageObject):
     copy = __copy__
 
 
-    def empty_copy(self, memo=None):
+    def empty_copy(self, memo=None, new_class=None):
         """
         Returns an empty deep copy of the finite state machine, i.e.,
         ``input_alphabet``, ``output_alphabet``, ``on_duplicate_transition``
@@ -2740,6 +2740,9 @@ class FiniteStateMachine(SageObject):
         INPUT:
 
         - ``memo`` -- a dictionary storing already processed elements.
+
+        - ``new_class`` -- a class for the copy. By default
+          (``None``), the class of ``self`` is used.
 
         OUTPUT:
 
@@ -2760,8 +2763,19 @@ class FiniteStateMachine(SageObject):
             [2, 3]
             sage: FE.on_duplicate_transition == duplicate_transition_raise_error
             True
+
+        TESTS::
+
+            sage: T = Transducer()
+            sage: type(T.empty_copy())
+            <class 'sage.combinat.finite_state_machine.Transducer'>
+            sage: type(T.empty_copy(new_class=Automaton))
+            <class 'sage.combinat.finite_state_machine.Automaton'>
         """
-        new = self.__class__()
+        if new_class is None:
+            new = self.__class__()
+        else:
+            new = new_class()
         new.input_alphabet = deepcopy(self.input_alphabet, memo)
         new.output_alphabet = deepcopy(self.output_alphabet, memo)
         new.on_duplicate_transition = self.on_duplicate_transition
@@ -5658,7 +5672,8 @@ class FiniteStateMachine(SageObject):
     def product_FiniteStateMachine(self, other, function,
                                    new_input_alphabet=None,
                                    only_accessible_components=True,
-                                   final_function=None):
+                                   final_function=None,
+                                   new_class=None):
         r"""
         Returns a new finite state machine whose states are
         `d`-tuples of states of the original finite state machines.
@@ -5688,6 +5703,9 @@ class FiniteStateMachine(SageObject):
           default, the final output is the empty word if both final
           outputs of the constituent states are empty; otherwise, a
           ``ValueError`` is raised.
+
+        - ``new_class`` -- Class of the new finite state machine. By
+          default (``None``), the class of ``self`` is used.
 
         OUTPUT:
 
@@ -5830,6 +5848,15 @@ class FiniteStateMachine(SageObject):
             ...
             ValueError: other must be a finite state machine or a list
             of finite state machines.
+
+        Test whether ``new_class`` works::
+
+            sage: T = Transducer()
+            sage: type(T.product_FiniteStateMachine(T, None))
+            <class 'sage.combinat.finite_state_machine.Transducer'>
+            sage: type(T.product_FiniteStateMachine(T, None,
+            ....:      new_class=Automaton))
+            <class 'sage.combinat.finite_state_machine.Automaton'>
         """
         def default_final_function(*args):
             if any(s.final_word_out for s in args):
@@ -5839,7 +5866,7 @@ class FiniteStateMachine(SageObject):
         if final_function is None:
             final_function = default_final_function
 
-        result = self.empty_copy()
+        result = self.empty_copy(new_class=new_class)
         if new_input_alphabet is not None:
             result.input_alphabet = new_input_alphabet
         else:
@@ -6141,7 +6168,8 @@ class FiniteStateMachine(SageObject):
         result = other.product_FiniteStateMachine(
             self, function,
             only_accessible_components=only_accessible_components,
-            final_function=lambda s1, s2: [])
+            final_function=lambda s1, s2: [],
+            new_class=self.__class__)
 
         for state_result in result.iter_states():
             state = state_result.label()[0]
@@ -6231,7 +6259,7 @@ class FiniteStateMachine(SageObject):
                                       "currently not implemented for "
                                       "non-deterministic transducers.")
 
-        F = other.empty_copy()
+        F = other.empty_copy(new_class=self.__class__)
         new_initial_states = [(other.initial_states()[0], self.initial_states()[0])]
         F.add_from_transition_function(composition_transition,
                                        initial_states=new_initial_states)

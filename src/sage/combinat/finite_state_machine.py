@@ -6675,19 +6675,14 @@ class FiniteStateMachine(SageObject):
 
           - ``explorative`` -- An explorative algorithm is used.
 
-            At least the following restrictions apply, but are not
-            checked:
-            - both self and other have exactly one initial state
-            - all input labels of transitions have length exactly 1
-
             The input alphabet of self has to be specified.
-
-            This is a very limited implementation of composition.
 
             WARNING: The output of ``other`` is fed into ``self``.
 
           If algorithm is ``None``, then the algorithm is chosen
-          automatically (at the moment always ``direct``).
+          automatically (at the moment always ``direct``, except when
+          there are output words of ``other`` or input words of ``self``
+          of length greater than 1).
 
         OUTPUT:
 
@@ -6715,6 +6710,16 @@ class FiniteStateMachine(SageObject):
              Transition from (1, 'A') to (2, 'B'): 0|0,
              Transition from (2, 'B') to (2, 'A'): 0|1,
              Transition from (2, 'A') to (2, 'B'): 1|0]
+            sage: He = F.composition(G, algorithm='explorative')
+            sage: He.initial_states()
+            [(1, 'A'), (1, 'B')]
+            sage: He.transitions()
+            [Transition from (1, 'A') to (2, 'B'): 0|0,
+             Transition from (1, 'B') to (1, 'A'): 1|1,
+             Transition from (2, 'B') to (2, 'A'): 0|1,
+             Transition from (2, 'A') to (2, 'B'): 1|0]
+            sage: Hd == He
+            True
 
         ::
 
@@ -6731,9 +6736,11 @@ class FiniteStateMachine(SageObject):
              Transition from ('B', 2) to ('B', 1): 1|1,
              Transition from ('B', 1) to ('B', 1): 0|0,
              Transition from ('B', 1) to ('B', 2): 1|0]
+            sage: Ha = G.composition(F)
+            sage: Ha == He
+            True
 
-        Also final output words are considered if ``algorithm='direct'`` or
-        ``None``::
+        Also final output words are considered::
 
             sage: F = Transducer([('A', 'B', 1, 0), ('B', 'A', 0, 1)],
             ....:                initial_states=['A', 'B'],
@@ -6747,6 +6754,9 @@ class FiniteStateMachine(SageObject):
             sage: Hd = F.composition(G, algorithm='direct')
             sage: Hd.final_states()
             [(2, 'B')]
+            sage: He = F.composition(G, algorithm='explorative')
+            sage: He.final_states()
+            [(2, 'B')]
 
         Note that ``(2, 'A')`` is not final, as the final output `0`
         of state `2` of `G` cannot be processed in state ``'A'`` of
@@ -6755,6 +6765,8 @@ class FiniteStateMachine(SageObject):
         ::
 
             sage: [s.final_word_out for s in Hd.final_states()]
+            [[1, 0]]
+            sage: [s.final_word_out for s in He.final_states()]
             [[1, 0]]
 
         Be aware that after composition, different transitions may
@@ -6772,43 +6784,33 @@ class FiniteStateMachine(SageObject):
             sage: H.transitions()[0].word_out is H.transitions()[1].word_out
             True
 
+        TESTS:
+
         In the explorative algorithm, transducers with non-empty final
-        output words are currently not implemented::
+        output words are implemented in :trac:`16548`::
 
             sage: A = transducers.GrayCode()
             sage: B = transducers.abs([0, 1])
-            sage: A.composition(B, algorithm='explorative')
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Explorative composition is not
-            implemented for transducers with non-empty final output
-            words. Try the direct algorithm instead.
+            sage: A.composition(B, algorithm='explorative').transitions()
+            [Transition from (0, 0) to (0, 1): 0|-,
+             Transition from (0, 0) to (0, 2): 1|-,
+             Transition from (0, 1) to (0, 1): 0|0,
+             Transition from (0, 1) to (0, 2): 1|1,
+             Transition from (0, 2) to (0, 1): 0|1,
+             Transition from (0, 2) to (0, 2): 1|0]
 
-        Similarly, the explorative algorithm cannot handle
-        non-deterministic finite state machines::
+        Similarly, the explorative algorithm can handle
+        non-deterministic finite state machines as of :trac:`16548`::
 
-            sage: A = Transducer([(0, 0, 0, 0), (0, 1, 0, 0)])
+            sage: A = Transducer([(0, 0, 0, 0), (0, 1, 0, 0)],
+            ....:                initial_states=[0])
             sage: B = transducers.Identity([0])
-            sage: A.composition(B, algorithm='explorative')
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Explorative composition is currently
-            not implemented for non-deterministic transducers.
-            sage: B.composition(A, algorithm='explorative')
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Explorative composition is currently
-            not implemented for non-deterministic transducers.
-
-        TESTS:
-
-        Due to the limitations of the two algorithms the following
-        (examples from above, but different algorithm used) does not
-        give a full answer or does not work.
-
-        In the following, ``algorithm='explorative'`` is inadequate,
-        as ``F`` has more than one initial state::
-
+            sage: A.composition(B, algorithm='explorative').transitions()
+            [Transition from (0, 0) to (0, 0): 0|0,
+             Transition from (0, 0) to (0, 1): 0|0]
+            sage: B.composition(A, algorithm='explorative').transitions()
+            [Transition from (0, 0) to (0, 0): 0|0,
+             Transition from (0, 0) to (1, 0): 0|0]
             sage: F = Transducer([('A', 'B', 1, 0), ('B', 'A', 0, 1)],
             ....:                initial_states=['A', 'B'], final_states=['B'],
             ....:                determine_alphabets=True)
@@ -6816,13 +6818,10 @@ class FiniteStateMachine(SageObject):
             ....:                 (2, 2, 1, 1), (2, 2, 0, 0)],
             ....:                initial_states=[1], final_states=[2],
             ....:                determine_alphabets=True)
-            sage: He = F.composition(G, algorithm='explorative')
-            sage: He.initial_states()
-            [(1, 'A')]
-            sage: He.transitions()
-            [Transition from (1, 'A') to (2, 'B'): 0|0,
-             Transition from (2, 'B') to (2, 'A'): 0|1,
-             Transition from (2, 'A') to (2, 'B'): 1|0]
+
+        Due to the limitations of the two algorithms the following
+        (example from above, but different algorithm used) does not
+        not work.
 
         In the following example, ``algorithm='direct'`` is inappropriate
         as there are edges with output labels of length greater than 1::
@@ -6834,6 +6833,11 @@ class FiniteStateMachine(SageObject):
             ....:                 (2, 2, 0, 1), (2, 1, 1, 1)],
             ....:                initial_states=[1], final_states=[1])
             sage: Hd = G.composition(F, algorithm='direct')
+            sage: Hd.transitions()
+            [Transition from ('B', 1) to ('B', 2): 1|0,
+             Transition from ('B', 1) to ('B', 1): 0|0,
+             Transition from ('B', 2) to ('B', 1): 1|1,
+             Transition from ('B', 2) to ('B', 2): 0|1]
 
         In the following examples, we compose transducers and automata
         and check whether the types are correct. ::
@@ -6872,7 +6876,17 @@ class FiniteStateMachine(SageObject):
                             "possible.")
 
         if algorithm is None:
-            algorithm = 'direct'
+            if (any(len(t.word_out) > 1
+                    for t in other.iter_transitions())
+                or
+                any(len(t.word_in) != 1
+                    for t in self.iter_transitions())
+                or
+                any(isinstance(t.word_in[0], tuple) and None in t.word_in[0]
+                    for t in self.iter_transitions())):
+                algorithm = 'explorative'
+            else:
+                algorithm = 'direct'
         if algorithm == 'direct':
             return self._composition_direct_(other, only_accessible_components)
         elif algorithm == 'explorative':
@@ -6961,57 +6975,58 @@ class FiniteStateMachine(SageObject):
             (None, None)
             sage: B.determinisation()
             Automaton with 1 states
-
-        .. TODO::
-
-            The explorative algorithm should be re-implemented using the
-            process iterators of both finite state machines.
         """
-        def composition_transition(state, input):
-            (state1, state2) = state
-            transition1 = None
-            for transition in other.iter_transitions(state1):
-                if transition.word_in == [input]:
-                    transition1 = transition
-                    break
-            if transition1 is None:
-                raise LookupError
-            new_state1 = transition1.to_state
-            new_state2 = state2
-            output = []
-            for o in transition1.word_out:
-                transition2 = None
-                for transition in self.iter_transitions(new_state2):
-                    if transition.word_in == [o]:
-                        transition2 = transition
-                        break
-                if transition2 is None:
-                    raise LookupError
-                new_state2 = transition2.to_state
-                output += transition2.word_out
-            return ((new_state1, new_state2), output)
+        def composition_transition((state1, state2), input):
+            return [((new_state1, new_state2), output_second)
+                    for _, new_state1, output_first in
+                    first.process([input],
+                                  list_of_outputs=True,
+                                  initial_state=state1,
+                                  write_final_word_out=False)
+                    for _, new_state2, output_second in
+                    second.process(output_first,
+                                   list_of_outputs=True,
+                                   initial_state=state2,
+                                   write_final_word_out=False,
+                                   always_include_output=True)]
 
-        if any(s.final_word_out for s in self.iter_final_states()) or \
-                any(s.final_word_out for s in other.iter_final_states()):
-            raise NotImplementedError("Explorative composition is not "
-                                      "implemented for transducers with "
-                                      "non-empty final output words. Try "
-                                      "the direct algorithm instead.")
 
-        if not self.is_deterministic() or not other.is_deterministic():
-            raise NotImplementedError("Explorative composition is "
-                                      "currently not implemented for "
-                                      "non-deterministic transducers.")
+        first = other
+        if any(len(t.word_in) > 1
+               for t in first.iter_transitions()):
+            first = first.split_transitions()
 
-        F = other.empty_copy(new_class=self.__class__)
-        new_initial_states = [(other.initial_states()[0], self.initial_states()[0])]
+        second = self
+        if any(len(t.word_in) > 1
+               for t in second.iter_transitions()):
+            second = second.split_transitions()
+
+        F = first.empty_copy(new_class=self.__class__)
+        new_initial_states = itertools.product(
+            first.iter_initial_states(),
+            second.iter_initial_states())
         F.add_from_transition_function(composition_transition,
                                        initial_states=new_initial_states)
 
-        for state in F.states():
-            if all(map(lambda s: s.is_final, state.label())):
-                state.is_final = True
-            state.color = tuple(map(lambda s: s.color, state.label()))
+        for state in F.iter_states():
+            (state1, state2) = state.label()
+            if state1.is_final:
+                final_output_second = second.process(
+                    state1.final_word_out,
+                    list_of_outputs=True,
+                    initial_state=state2,
+                    only_accepted=True,
+                    always_include_output=True)
+                if len(final_output_second) > 1:
+                    raise NotImplementedError("Stopping in state %s "
+                                              "leads to "
+                                              "non-deterministic final "
+                                              "output.")
+                if len(final_output_second) == 1:
+                    state.is_final = True
+                    state.final_word_out = final_output_second[0][2]
+
+            state.color = tuple(s.color for s in state.label())
 
         return F
 
@@ -8437,37 +8452,15 @@ class FiniteStateMachine(SageObject):
                 ....:                                input_alphabet=[-1, 0, 1],
                 ....:                                initial_states=[0],
                 ....:                                final_states=[0])
-
-            At the moment, we can not use composition with ``NAF``,
-            because it has non-empty final output words::
-
-                sage: NAFweight = weight_transducer.composition(
-                ....:     NAF,
-                ....:     algorithm='explorative')
-                Traceback (most recent call last):
-                ...
-                NotImplementedError: Explorative composition is not
-                implemented for transducers with non-empty final output
-                words. Try the direct algorithm instead.
-
-
-            Thus, we change ``NAF``, then compose and again construct
-            the final output words::
-
-                sage: for s in NAF.final_states():
-                ....:     s.final_word_out = []
-                sage: NAFweight = weight_transducer.composition(
-                ....:     NAF,
-                ....:     algorithm='explorative').relabeled()
-                sage: NAFweight.construct_final_word_out(0)
-                sage: sorted(NAFweight.transitions())
-                [Transition from 0 to 0: 0|0,
-                 Transition from 0 to 1: 1|-,
-                 Transition from 1 to 0: 0|1,0,
-                 Transition from 1 to 2: 1|1,0,
-                 Transition from 2 to 1: 0|-,
-                 Transition from 2 to 2: 1|0]
-                sage: NAFweight(binary_27 + [0, 0])
+                sage: NAFweight = weight_transducer.composition(NAF)
+                sage: NAFweight.transitions()
+                [Transition from (0, 0) to (0, 0): 0|0,
+                 Transition from (0, 0) to ('.1', 0): 1|-,
+                 Transition from ('.1', 0) to (0, 0): 0|1,0,
+                 Transition from ('.1', 0) to (1, 0): 1|1,0,
+                 Transition from (1, 0) to ('.1', 0): 0|-,
+                 Transition from (1, 0) to (1, 0): 1|0]
+                sage: NAFweight(binary_27)
                 [1, 0, 1, 0, 0, 1, 0]
 
             Now, we actually compute the asymptotic moments::

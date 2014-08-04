@@ -109,7 +109,7 @@ Operations
     :meth:`~FiniteStateMachine.concatenation` | Concatenation (not implemented)
     :meth:`~FiniteStateMachine.Kleene_closure` | Kleene closure (not implemented)
     :meth:`Automaton.intersection` | Intersection of automata
-    :meth:`Transducer.intersection` | Intersection of transducer
+    :meth:`Transducer.intersection` | Intersection of transducers
     :meth:`Transducer.cartesian_product` | Cartesian product of a transducer with another finite state machine
     :meth:`~FiniteStateMachine.product_FiniteStateMachine` | Product of finite state machines
     :meth:`~FiniteStateMachine.composition` | Composition (output of other is input of self)

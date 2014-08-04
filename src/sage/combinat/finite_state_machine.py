@@ -10979,7 +10979,9 @@ class _FSMTapeCacheDetectEpsilon_(_FSMTapeCache_):
             True
             sage: TCE._transition_possible_test_([[], []])
             True
-            sage: TCE._transition_possible_test_([(37, 38), (11, 12, 13)])
+            sage: TCE._transition_possible_test_([(37, 11), (38, 12)])
+            False
+            sage: TCE._transition_possible_test_([(37, 11), (38, 13)])
             False
         """
         return self._transition_possible_epsilon_(word_in)
@@ -11012,15 +11014,13 @@ class _FSMTapeCacheDetectAll_(_FSMTapeCache_):
             ....:     _FSMTapeCacheDetectAll_)
             sage: TCA = _FSMTapeCacheDetectAll_([], (xsrange(37, 42), xsrange(11,15)),
             ....:                      [False, False], ((0, 0), (0, 1)), True)
-            sage: TCA._transition_possible_test_([(37, 38), (11, 12, 13)])
+            sage: TCA._transition_possible_test_([(37, 11), (38, 12)])
             True
-            sage: TCA._transition_possible_test_([(37, 38), (11, 13)])
+            sage: TCA._transition_possible_test_([(37, 11), (38, 13)])
             True
             sage: TCA._transition_possible_test_([])
             True
             sage: TCA._transition_possible_test_([[], []])
-            True
-            sage: TCA._transition_possible_test_([[None], []])
             True
         """
         return True

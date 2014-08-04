@@ -9267,6 +9267,10 @@ class Automaton(FiniteStateMachine):
           process iterator is activated. See also the notes below for
           multi-tape machines.
 
+        - ``always_include_output`` -- if set (not by default), always
+          return a triple containing the (non-existing) output. This
+          is for compatibility with transducers.
+
         OUTPUT:
 
         The full output is a pair (or a list of pairs,
@@ -9404,6 +9408,10 @@ class Automaton(FiniteStateMachine):
 
         - ``full_output`` -- a boolean.
 
+        - ``always_include_output`` -- if set (not by default), always
+          return a triple containing the (non-existing) output. This
+          is for compatibility with transducers.
+
         OUTPUT:
 
         The converted output.
@@ -9419,7 +9427,7 @@ class Automaton(FiniteStateMachine):
             ....:                            full_output=True)
             (True, 'a')
         """
-        if FSMOldProcessOutput:
+        if FSMOldProcessOutput or kwargs.get('always_include_output'):
             return super(Automaton, self)._process_convert_output_(
                 output_data, **kwargs)
         accept_input, current_state, output = output_data

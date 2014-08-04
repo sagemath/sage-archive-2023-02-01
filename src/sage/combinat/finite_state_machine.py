@@ -95,6 +95,7 @@ Properties
     :meth:`~FiniteStateMachine.is_Markov_chain` | Checks for a Markov chain
     :meth:`~FiniteStateMachine.is_monochromatic` | Checks whether the colors of all states are equal
     :meth:`~FiniteStateMachine.asymptotic_moments` | Main terms of expectation and variance of sums of labels
+    :meth:`~FiniteStateMachine.epsilon_successors` | Epsilon successors of a state
 
 
 Operations
@@ -200,6 +201,19 @@ LaTeX output
     :attr:`~FSMTransition.word_in` | Input word of the transition
     :attr:`~FSMTransition.word_out` | Output word of the transition
     :meth:`~FSMTransition.deepcopy` | Returns a deep copy of the transition
+
+
+:class:`FSMProcessIterator`
+---------------------------
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FSMProcessIterator.next` | Makes one step in processing the input tape
+    :meth:`~FSMProcessIterator.preview_word` | Reads a word from the input tape
+    :meth:`~FSMProcessIterator.result` | Returns the finished branches during process
 
 
 Helper Functions
@@ -11642,7 +11656,9 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         nothing to do (i.e. all branches ended with previous call
         of :meth:`.__next__`).
 
-        The current status is a dictionary. The keys are positions on
+        The current status is a dictionary (encapsulated into an instance of
+        :class:`~FSMProcessIterator.Current`).
+        The keys are positions on
         the tape. The value corresponding to such a position is again
         a dictionary, where each entry represents a branch of the
         process. This dictionary maps the current state of a branch to

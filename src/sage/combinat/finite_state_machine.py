@@ -5396,9 +5396,9 @@ class FiniteStateMachine(SageObject):
             ....:                           [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [True, True, False, True, False, False]
 
-        Working only with the first component (i.e., returning if
-        accepted or not) usually does the more specialized
-        :class:`Automaton`.
+        Working only with the first component (i.e., returning whether
+        accepted or not) usually corresponds to using the more
+        specialized class :class:`Automaton`.
 
         Non-deterministic finite state machines can be handeled as well.
 
@@ -5551,7 +5551,7 @@ class FiniteStateMachine(SageObject):
                                  'to show one. Change list_of_outputs option.')
         # At this point it_output has length 0 or 1.
 
-        # process output: create not-accepting output if needed
+        # process output: create non-accepting output if needed
         if not it_output:
             if only_accepted:
                 return []
@@ -11473,6 +11473,11 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         Nothing.
 
+        .. NOTE::
+
+            ``tape_cache`` is discarded if ``self.__current__`` already
+            contains a branch with the same position and state.
+
         TESTS::
 
             sage: from sage.combinat.finite_state_machine import FSMProcessIterator
@@ -12392,6 +12397,9 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         super(_FSMProcessIteratorEpsilon_, self)._push_branch_(
             state, tape_cache, outputs)
 
+        # As tape_cache may have been discarded because current already
+        # contains a branch at the same state, _visited_states_ is
+        # updated manually.
         self._current_[tape_cache.position][state][0]._visited_states_.update(
             tape_cache._visited_states_)
 

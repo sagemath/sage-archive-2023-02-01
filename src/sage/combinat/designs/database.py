@@ -55,6 +55,7 @@ Implemented constructions :
   :func:`OA(9,135) <OA_9_135>`,
   :func:`OA(11,160) <OA_11_160>`,
   :func:`OA(16,176) <OA_16_176>`,
+  :func:`OA(11,185) <OA_11_185>`,
   :func:`OA(16,208) <OA_16_208>`,
   :func:`OA(15,224) <OA_15_224>`,
   :func:`OA(18,273) <OA_18_273>`,
@@ -2455,6 +2456,74 @@ def OA_16_176():
     Y = [None, 0, 1, 2, 8, 6, 9, 4, 10, 3, 5, 11, 13, 14, 12]
     return OA_n_times_2_pow_c_from_matrix(16,4,FiniteField(11),zip(*A),Y,check=False)
 
+def OA_11_185():
+    r"""
+    Returns an OA(11,185)
+
+    The construction is given in [Greig99]_. In Julian R. Abel's words:
+
+        Start with a `PG(2,16)` with a `7` points Fano subplane; outside this
+        plane there are `7(17-3) = 98` points on a line of the subplane and
+        `273-98-7 = 168` other points.  Greig notes that the subdesign
+        consisting of these `168` points is a `(168, \{10,12\})-PBD`. Now add
+        the `17` points of a line disjoint from this subdesign (e.g. a line of
+        the Fano subplane).  This line will intersect every line of the `168`
+        point subdesign in `1` point. Thus the new line sizes are `11` and
+        `13`, plus a unique line of size `17`, giving a `(185,\{11,13,17\}`-PBD
+        and an `OA(11,185)`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_11_185
+        sage: OA = OA_11_185()
+        sage: print is_orthogonal_array(OA,11,185,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(11,185,existence=True)
+        True
+
+    REFERENCE:
+
+    .. [Greig99] Designs from projective planes and PBD bases,
+      Malcolm Greig,
+      Journal of Combinatorial Designs,
+      Volume 7, Issue 5, pages 341–374, 1999
+
+    """
+    from sage.combinat.designs.difference_family import difference_family
+    G,(B,) = difference_family(273,17) # a cyclic PG(2,16)
+    BIBD = [[int(x+i) for x in B] for i in G]
+
+    # All points congruent to 0 mod[39] are a Fano subplane
+    assert set([sum([x%39==0 for x in B]) for B in BIBD]) == set([0,1,3])
+
+    # Lines of the Fano subplane
+    fano_lines = [B for B in BIBD if sum([x%39==0 for x in B])>1]
+
+    # Points on a line of the Fano sublane
+    on_a_fano_line = set(sum(fano_lines,[]))
+
+    # Not on a line of the Fano plane
+    not_on_a_fano_line = set(range(273)).difference(on_a_fano_line)
+
+    # The PBD
+    ground_set = not_on_a_fano_line.union(fano_lines[0])
+    PBD = [ground_set.intersection(B) for B in BIBD]
+    relabel = {v:i for i,v in enumerate(ground_set)}
+    PBD = [[relabel[x] for x in B] for B in PBD if len(B)>1]
+    special_set = [relabel[x] for x in fano_lines[0]]
+
+    # Check that everything is fine
+    assert all([len(B) in (11,13) or set(B) == set(special_set) for B in PBD])
+
+    OA = OA_from_PBD(11,185,[B for B in PBD if len(B)<17],check=False)[:-185]
+    OA.extend([[i]*11 for i in range(185) if i not in special_set])
+    OA.extend([[special_set[x] for x in B] for B in orthogonal_array(11,17)])
+    return OA
+
 def OA_16_208():
     r"""
     Returns an OA(16,208)
@@ -3115,6 +3184,7 @@ OA_constructions = {
     135 : (9  , OA_9_135),
     160 : (11 , OA_11_160),
     176 : (16 , OA_16_176),
+    185 : (11 , OA_11_185),
     208 : (16 , OA_16_208),
     224 : (15 , OA_15_224),
     273 : (18 , OA_18_273),
@@ -3130,10 +3200,10 @@ OA_constructions = {
 }
 
 Vmt_vectors = {
-    (4,9) : ((0, 1, 3, 2, 8),
+    (4,9) : ((0,1,3,2,8),
              "As explained in the Handbook III.3.66 [DesignHandbook]_."),
 
-    (6,7) : ((0, 1, 3, 16, 35, 26, 36),
+    (6,7) : ((0,1,3,16,35,26,36),
             "As explained in the Handbook III.3.68 [DesignHandbook]_."),
 
     (8,9) : ((0,1,20,70,23,59,3,8,19),
@@ -3142,13 +3212,13 @@ Vmt_vectors = {
     (8,11) : ((0,1,6,56,22,35,47,23,60),
               "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
 
-    (10,13) : ((0, 1, 5, 10, 22, 6, 14, 9, 53, 129, 84),
+    (10,13) : ((0,1,5,10,22,6,14,9,53,129,84),
                "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
 
     (8,17) : ((0,1,3,2,133,126,47,109,74),
               "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
 
-    (10,19) : ((0, 1, 3, 96, 143, 156, 182, 142, 4, 189, 25),
+    (10,19) : ((0,1,3,96,143,156,182,142,4,189,25),
                "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
 
     (8,29) : ((0,1,4,11,94,60,85,16,198),
@@ -3166,10 +3236,77 @@ Vmt_vectors = {
     (10,43) : ((0,1,6,29,170,207,385,290,375,32,336),
                "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
 
-    (12,73) : ((0, 1, 607, 719, 837, 496, 240, 645, 184, 829, 451, 830, 770),
+    (12,73) : ((0,1,607,719,837,496,240,645,184,829,451,830,770),
                "Given by Julian R. Abel."),
-}
 
+    (12, 83) : ((0,1,627,898,836,939,742,42,847,531,173,607,361),
+                 "Given by Julian R. Abel."),
+
+    (12, 89) : ((0,1,602,894,827,661,350,647,304,47,430,533,550),
+                 "Given by Julian R. Abel."),
+
+    (12,101) : ((0,1,787,1049,818,1064,288,346,464,958,1188,340,1192),
+                "Given by Julian R. Abel."),
+
+    (12,103) : ((0,1,770,1027,806,1082,515,436,1096,1060,57,1135,1144),
+                "Given by Julian R. Abel."),
+
+    (12,121) : ((0,1,713,1265,848,421,998,69,874,1126,693,467,1164),
+                "Given by Julian R. Abel."),
+
+    (12,169) : ((0,1,425,326,951,1211,1881,1063,1631,1363,1554,665,1600),
+                "Given by Julian R. Abel."),
+
+    (12,191) : ((0,1,491,527,939,377,1685,1735,1967,1176,391,2192,681),
+                "Given by Julian R. Abel."),
+
+    (12,199) : ((0,1,377,524,946,560,316,1591,2036,273,1841,2091,713),
+                "Given by Julian R. Abel."),
+
+    (12,229) : ((0,1,338,312,933,380,401,2398,612,1279,1514,268,528),
+                "Given by Julian R. Abel."),
+
+    (10, 81) : ((0,1,3,2,27,438,615,708,168,410,656),
+               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (10, 97) : ((0,1,3,6,11,274,772,340,707,157,556),
+               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (10,103) : ((0,1,3,2,7,744,342,797,468,46,561),
+               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (10,181) : ((0,1,3,8,5,68,514,16,1168,225,929),
+               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (10,187) : ((0,1,3,7,2,325,1138,730,1013,534,366),
+               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (10,259) : ((0,1,3,7,2,15,324,1956,1353,2041,1616),
+               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (10,273) : ((0,1,3,6,11,28,2573,38,1215,1299,2468),
+               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (10,319) : ((0,1,3,7,2,43,239,1335,1586,2724,63),
+               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (10,391) : ((0,1,3,2,5,32,555,3450,1242,1823,3833),
+               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (10,409) : ((0,1,3,2,5,11,505,3202,1502,2521,3023),
+               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104""")
+
+}
 # Translate all V(m,t) into OA constructors
 for (m,t),(vec,source) in Vmt_vectors.iteritems():
     OA_constructions[(m+1)*t+1] = (m+2, lambda m=m,t=t,vec=vec:OA_from_Vmt(m,t,vec))
@@ -3184,7 +3321,8 @@ EXAMPLES::
     sage: from sage.combinat.designs.database import Vmt_vectors
     sage: for (m,t),(vec,source) in sorted(Vmt_vectors.items()):
     ....:     k,n = m+2,(m+1)*t+1
-    ....:     assert is_orthogonal_array(OA_from_Vmt(m,t,vec),k,n)
+    ....:     if n < 1000:
+    ....:         assert is_orthogonal_array(OA_from_Vmt(m,t,vec),k,n)
     ....:     print "{:11}{}".format("V({},{}):".format(m,t),source)
     V(4,9):    As explained in the Handbook III.3.66 [DesignHandbook]_.
     V(6,7):    As explained in the Handbook III.3.68 [DesignHandbook]_.
@@ -3198,7 +3336,36 @@ EXAMPLES::
     V(10,27):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
     V(10,31):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
     V(10,43):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+    V(10,81):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(10,97):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(10,103): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(10,181): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(10,187): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(10,259): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(10,273): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(10,319): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(10,391): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(10,409): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
     V(12,73):  Given by Julian R. Abel.
+    V(12,83):  Given by Julian R. Abel.
+    V(12,89):  Given by Julian R. Abel.
+    V(12,101): Given by Julian R. Abel.
+    V(12,103): Given by Julian R. Abel.
+    V(12,121): Given by Julian R. Abel.
+    V(12,169): Given by Julian R. Abel.
+    V(12,191): Given by Julian R. Abel.
+    V(12,199): Given by Julian R. Abel.
+    V(12,229): Given by Julian R. Abel.
 """
 
 def CDF_21_5_1():

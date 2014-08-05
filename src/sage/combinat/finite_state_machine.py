@@ -5383,14 +5383,14 @@ class FiniteStateMachine(SageObject):
         Note that in the case the finite state machine is not
         deterministic, all possible paths are taken into account.
 
-        In its simplest form, this function behaves like an iterator
-        which, in each step, goes from one state to another. To decide
-        which way to go, it uses the input words of the outgoing
-        transitions and compares them to the input tape. More
-        precisely, in each step, the process iterator takes an
-        outgoing transition of the current state, whose input label
-        equals the input letter of the tape. The output label of the
-        transition, if present, is written on the output tape.
+        This function uses an iterator which, in its simplest form, goes
+        from one state to another in each step. To decide which way to
+        go, it uses the input words of the outgoing transitions and
+        compares them to the input tape. More precisely, in each step,
+        the iterator takes an outgoing transition of the current state,
+        whose input label equals the input letter of the tape. The
+        output label of the transition, if present, is written on the
+        output tape.
 
         If the choice of the outgoing transition is not unique (i.e.,
         we have a non-deterministic finite state machine), all
@@ -5403,10 +5403,12 @@ class FiniteStateMachine(SageObject):
         coincides with the processed input tape. This can simply
         happen when the entire tape was read.
 
-        Also see :meth:`FiniteStateMachine.__call__` for a more restricted version
-        of :meth:`.process`. Internally these functions and
-        :meth:`FiniteStateMachine.__call__` work with an instance of
-        :class:`FSMProcessIterator`.
+        Also see :meth:`~FiniteStateMachine.__call__` for a version of
+        :meth:`.process` with shortened output.
+
+        Internally this function creates and works with an instance of
+        :class:`FSMProcessIterator`. This iterator can also be obtained
+        with :meth:`iter_process`.
 
         If working with multi-tape finite state machines, all input
         words of transitions are words of `k`-tuples of letters.
@@ -5486,8 +5488,9 @@ class FiniteStateMachine(SageObject):
              (True, 1, 'adc'), (True, 1, 'ae')]
 
         A simple example of a multi-tape finite state machine is the
-        following: It writes the length of the first tape many letters ``a``
-        and then the length of the second tape many letters ``b``::
+        following: It writes the length of the first tape many letters
+        ``a`` and then the length of the second tape many letters
+        ``b``::
 
             sage: M = FiniteStateMachine([(0, 0, (1, None), 'a'),
             ....:                         (0, 1, (None, 1), 'b'),
@@ -9328,13 +9331,12 @@ class Automaton(FiniteStateMachine):
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
 
-        In its simplest form, this function behaves like an iterator
-        which, in each step, goes from one state to another. To decide
-        which way to go, it uses the input words of the outgoing
-        transitions and compares them to the input tape. More
-        precisely, in each step, the process iterator takes an
-        outgoing transition of the current state, whose input label
-        equals the input letter of the tape.
+        This function uses an iterator which, in its simplest form, goes
+        from one state to another in each step. To decide which way to
+        go, it uses the input words of the outgoing transitions and
+        compares them to the input tape. More precisely, in each step,
+        the iterator takes an outgoing transition of the current state,
+        whose input label equals the input letter of the tape.
 
         If the choice of the outgoing transition is not unique (i.e.,
         we have a non-deterministic finite state machine), all
@@ -9347,10 +9349,12 @@ class Automaton(FiniteStateMachine):
         coincides with the processed input tape. This can simply
         happen when the entire tape was read.
 
-        Also see :meth:`FiniteStateMachine.__call__` for a more restricted version
-        of :meth:`.process`. Internally this functions and
-        :meth:`FiniteStateMachine.__call__` work with an instance of
-        :class:`FSMProcessIterator`.
+        Also see :meth:`~FiniteStateMachine.__call__` for a
+        version of :meth:`.process` with shortened output.
+
+        Internally this function creates and works with an instance of
+        :class:`FSMProcessIterator`. This iterator can also be obtained
+        with :meth:`iter_process`.
 
         If working with multi-tape finite state machines, all input
         words of transitions are words of `k`-tuples of letters.
@@ -10088,7 +10092,7 @@ class Transducer(FiniteStateMachine):
           ``False``, then the result is never a list (an exception is
           raised if the result cannot be returned). If
           ``list_of_outputs=None`` the method determines automatically
-          what to do (e.g. if  a non-deterministic machine returns more
+          what to do (e.g. if a non-deterministic machine returns more
           than one path, then the output is returned in list form).
 
         - ``only_accepted`` -- (default: ``False``) a boolean. If set,
@@ -10148,14 +10152,14 @@ class Transducer(FiniteStateMachine):
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
 
-        In its simplest form, this function behaves like an iterator
-        which, in each step, goes from one state to another. To decide
-        which way to go, it uses the input words of the outgoing
-        transitions and compares them to the input tape. More
-        precisely, in each step, the process iterator takes an
-        outgoing transition of the current state, whose input label
-        equals the input letter of the tape. The output label of the
-        transition, if present, is written on the output tape.
+        This function uses an iterator which, in its simplest form, goes
+        from one state to another in each step. To decide which way to
+        go, it uses the input words of the outgoing transitions and
+        compares them to the input tape. More precisely, in each step,
+        the iterator takes an outgoing transition of the current state,
+        whose input label equals the input letter of the tape. The
+        output label of the transition, if present, is written on the
+        output tape.
 
         If the choice of the outgoing transition is not unique (i.e.,
         we have a non-deterministic finite state machine), all
@@ -10168,10 +10172,12 @@ class Transducer(FiniteStateMachine):
         coincides with the processed input tape. This can simply
         happen when the entire tape was read.
 
-        Also see :meth:`FiniteStateMachine.__call__` for a more restricted version
-        of :meth:`.process`. Internally this functions and
-        :meth:`FiniteStateMachine.__call__` work with an instance of
-        :class:`FSMProcessIterator`.
+        Also see :meth:`~FiniteStateMachine.__call__` for a version of
+        :meth:`.process` with shortened output.
+
+        Internally this function creates and works with an instance of
+        :class:`FSMProcessIterator`. This iterator can also be obtained
+        with :meth:`iter_process`.
 
         If working with multi-tape finite state machines, all input
         words of transitions are words of `k`-tuples of letters.
@@ -10289,8 +10295,8 @@ class Transducer(FiniteStateMachine):
             sage: M = Transducer([(0, 0, (1, None), 'a'),
             ....:                 (0, 1, (None, 1), 'b'),
             ....:                 (1, 1, (None, 1), 'b')],
-            ....:                        initial_states=[0],
-            ....:                        final_states=[1])
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
             sage: M.process(([1, 1], [1]), use_multitape_input=True)
             (True, 1, ['a', 'a', 'b'])
 

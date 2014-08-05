@@ -6926,9 +6926,11 @@ class FiniteStateMachine(SageObject):
                 or
                 any(len(t.word_in) != 1
                     for t in self.iter_transitions())
-                or
-                any(isinstance(t.word_in[0], tuple) and None in t.word_in[0]
-                    for t in self.iter_transitions())):
+                #this might be used for multi-tape mode.
+                #or
+                #any(isinstance(t.word_in[0], tuple) and None in t.word_in[0]
+                #    for t in self.iter_transitions())
+                ):
                 algorithm = 'explorative'
             else:
                 algorithm = 'direct'

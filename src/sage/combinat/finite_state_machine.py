@@ -5474,6 +5474,18 @@ class FiniteStateMachine(SageObject):
             [(True, 0, 'adcd'), (True, 0, 'aed'),
              (True, 1, 'adc'), (True, 1, 'ae')]
 
+        A simple example of a multi-tape finite state machine is the
+        following: It writes the length of the first tape many letters ``a``
+        and then the length of the second tape many letters ``b``::
+
+            sage: M = FiniteStateMachine([(0, 0, (1, None), 'a'),
+            ....:                         (0, 1, (None, 1), 'b'),
+            ....:                         (1, 1, (None, 1), 'b')],
+            ....:                        initial_states=[0],
+            ....:                        final_states=[1])
+            sage: M.process(([1, 1], [1]), use_multitape_input=True)
+            (True, 1, ['a', 'a', 'b'])
+
         TESTS::
 
             sage: T = Transducer([(0, 1, [0, 0], 0), (0, 2, [0, 0, 1], 0),
@@ -10211,6 +10223,18 @@ class Transducer(FiniteStateMachine):
 
             sage: T.process([0], check_epsilon_transitions=False)
             (False, 0, ['r'])
+
+        A simple example of a multi-tape transducer is the
+        following: It writes the length of the first tape many letters ``a``
+        and then the length of the second tape many letters ``b``::
+
+            sage: M = Transducer([(0, 0, (1, None), 'a'),
+            ....:                 (0, 1, (None, 1), 'b'),
+            ....:                 (1, 1, (None, 1), 'b')],
+            ....:                        initial_states=[0],
+            ....:                        final_states=[1])
+            sage: M.process(([1, 1], [1]), use_multitape_input=True)
+            (True, 1, ['a', 'a', 'b'])
 
         TESTS::
 

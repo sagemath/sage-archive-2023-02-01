@@ -9429,7 +9429,7 @@ class Automaton(FiniteStateMachine):
         """
         if FSMOldProcessOutput:
             return super(Automaton, self)._process_convert_output_(
-                output, **kwargs)
+                output_data, **kwargs)
         accept_input, current_state, output = output_data
         if kwargs['full_output']:
             return (accept_input, current_state)
@@ -10291,7 +10291,7 @@ class Transducer(FiniteStateMachine):
         """
         if FSMOldProcessOutput:
             return super(Transducer, self)._process_convert_output_(
-                output, **kwargs)
+                output_data, **kwargs)
         accept_input, current_state, output = output_data
         if kwargs['full_output']:
             if current_state.label() is None:

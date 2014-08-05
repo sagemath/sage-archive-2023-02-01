@@ -6770,6 +6770,25 @@ class FiniteStateMachine(SageObject):
             [[1, 0]]
             sage: [s.final_word_out for s in He.final_states()]
             [[1, 0]]
+            sage: Hd == He
+            True
+
+        Here is a non-deterministic example with intermediate output length `>1`. ::
+
+            sage: F = Transducer([(1, 1, 1, ['a', 'a']), (1, 2, 1, 'b'),
+            ....:                 (2, 1, 2, 'a'), (2, 2, 2, 'b')],
+            ....:                initial_states=[1, 2])
+            sage: G = Transducer([('A', 'A', 'a', 'i'),
+            ....:                 ('A', 'B', 'a', 'l'),
+            ....:                 ('B', 'B', 'b', 'e')],
+            ....:                initial_states=['A', 'B'])
+            sage: G(F).transitions()
+            [Transition from (1, 'A') to (1, 'A'): 1|'i','i',
+             Transition from (1, 'A') to (1, 'B'): 1|'i','l',
+             Transition from (1, 'B') to (2, 'B'): 1|'e',
+             Transition from (2, 'A') to (1, 'A'): 2|'i',
+             Transition from (2, 'A') to (1, 'B'): 2|'l',
+             Transition from (2, 'B') to (2, 'B'): 2|'e']
 
         Be aware that after composition, different transitions may
         share the same output label (same python object)::

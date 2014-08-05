@@ -9414,8 +9414,9 @@ class Automaton(FiniteStateMachine):
             sage: NAF.process([2])
             (False, 's')
 
-        A simple example of a multi-tape automaton is the following: It checks
-        whether the two input tapes have the same number of ones::
+        A simple example of a (non-deterministic) multi-tape automaton is the
+        following: It checks whether the two input tapes have the same number
+        of ones::
 
             sage: M = Automaton([('=', '=', (1, 1)),
             ....:                ('=', '=', (None, 0)),
@@ -10306,7 +10307,7 @@ class Transducer(FiniteStateMachine):
             but output is written.
 
         If we set ``check_epsilon_transitions=False``, then all
-        transitions with empty input or output are not considered
+        transitions with empty input are not considered
         anymore. Thus cycles with empty input are no problem anymore::
 
             sage: T.process([0], check_epsilon_transitions=False)
@@ -10337,7 +10338,10 @@ class Transducer(FiniteStateMachine):
             (True, 1, ['b', 'a', 'c'])
             sage: T.process([1, 1], T.state(1), write_final_word_out=False)
             (True, 1, ['b', 'a'])
-            sage: T.process(full_output=False)
+
+        The parameter ``input_tape`` is required::
+
+            sage: T.process()
             Traceback (most recent call last):
             ...
             TypeError: No input tape given.

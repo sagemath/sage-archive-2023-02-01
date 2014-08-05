@@ -2628,65 +2628,77 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         return gal_reps_number_field.GaloisRepresentation(self)
 
-    def has_potential_cm(self):
+    def cm_discriminant(self):
+        """
+        Returns the CM discriminant of the `j`-invariant of this curve.
+
+        OUTPUT:
+
+        An integer `D` which is either `0` if this curve `E` does not
+        have Complex Multiplication) (CM), or an imaginary quadratic
+        discriminant if `j(E)` is the `j`-invariant of the order with
+        discriminant `D`.
+
+        .. note::
+
+           If `E` has CM but the discriminant `D` is not a square in
+           the base field `K` then the extra endomorphisms will not be
+           defined over `K`.  See also :meth:`has_rational_cm`.
+
+        EXAMPLES::
+
+            sage: EllipticCurve(j=0).cm_discriminant()
+            -3
+            sage: EllipticCurve(j=1).cm_discriminant()
+            Traceback (most recent call last):
+            ...
+            ValueError: Elliptic Curve defined by y^2 + x*y = x^3 + 36*x + 3455 over Rational Field does not have CM
+            sage: EllipticCurve(j=1728).cm_discriminant()
+            -4
+            sage: EllipticCurve(j=8000).cm_discriminant()
+            -8
+            sage: K.<a> = QuadraticField(5)
+            sage: EllipticCurve(j=282880*a + 632000).cm_discriminant()
+            -20
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: EllipticCurve(j=31710790944000*a^2 + 39953093016000*a + 50337742902000).cm_discriminant()
+            -108
+        """
+        try:
+            D = self._CMD
+            if D:
+                return D
+            else:
+                raise ValueError("%s does not have CM"%self)
+        except:
+            pass
+
+        from sage.schemes.elliptic_curves.cm import is_cm_j_invariant
+        flag, df =  is_cm_j_invariant(self.j_invariant())
+        if flag:
+            d, f = df
+            self._CMD = d*f**2
+            return self._CMD
+        self._CMD = 0 # special cached value to indicate no CM
+        raise ValueError("%s does not have CM"%self)
+
+    def has_cm(self):
         """
         Returns whether or not this curve has a CM `j`-invariant.
 
         OUTPUT:
 
-        A pair (bool, (d,f)) which is either (False, None) if `j` is
-        not a CM j-invariant or (True, (d,f)) if `j` is the
-        `j`-invariant of the immaginary quadratic order of
-        discriminant `D=df^2` where `d` is the associated fundamental
-        discriminant and `f` the index.
+        ``True`` if the `j`-invariant of this curve is the
+        `j`-invariant of an immaginary quadratic order, otherwise
+        ``False``.  See also :meth:`cm_discriminant()` and
+        :meth:`has_rational_cm`.
 
         .. note::
 
-           If `E` has potential CM but the discriminant `D` is not a
-           square in the base field `K` then the extra endomorphisms
-           will not be defined over `K`.  See also :meth:`has_cm`.
-
-        EXAMPLES::
-
-            sage: EllipticCurve(j=0).has_potential_cm()
-            (True, (-3, 1))
-            sage: EllipticCurve(j=1).has_potential_cm()
-            (False, None)
-            sage: EllipticCurve(j=1728).has_potential_cm()
-            (True, (-4, 1))
-            sage: EllipticCurve(j=8000).has_potential_cm()
-            (True, (-8, 1))
-            sage: K.<a> = QuadraticField(5)
-            sage: EllipticCurve(j=282880*a + 632000).has_potential_cm()
-            (True, (-20, 1))
-            sage: K.<a> = NumberField(x^3 - 2)
-            sage: EllipticCurve(j=31710790944000*a^2 + 39953093016000*a + 50337742902000).has_potential_cm()
-            (True, (-3, 6))
-        """
-        from sage.schemes.elliptic_curves.cm import is_cm_j_invariant
-        return is_cm_j_invariant(self.j_invariant())
-
-    def has_cm(self):
-        """
-        Returns whether or not this curve has CM.
-
-        OUTPUT:
-
-        A pair (bool, (d,f)) which is of the form either (False, None)
-        or (True, (d,f)).  If the base field of this curve `E` is `K`
-        then we say that `E` has CM if and only if `End_K(E)` is
-        strictly larger than `\ZZ`.  In this case the output
-        (True,(d,f)) means that `End_K(E)` is the imaginary quadratic
-        order of discriminant `D=df^2`, where `d` is the associated
-        fundamental discriminant and `f` the index.  Otherwise the
-        output is (False, None).
-
-        .. note::
-
-           If `E` has potential CM but the discriminant `D` is not a
-           square in the base field `K` then the extra endomorphisms
-           will not be defined over `K`, and this function will return
-           (False, None).  See also :meth:`has_potential_cm`.
+           If `E` has CM but the discriminant `D` is not a square in
+           the base field `K` then the extra endomorphisms will not be
+           defined over `K`, but this function will still return
+           ``True``.  See also :meth:`has_rational_cm`.
 
         EXAMPLES::
 
@@ -2698,35 +2710,100 @@ class EllipticCurve_number_field(EllipticCurve_field):
             True
             sage: EllipticCurve(j=8000).has_cm()
             True
+            sage: K.<a> = QuadraticField(5)
+            sage: EllipticCurve(j=282880*a + 632000).has_cm()
+            True
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: EllipticCurve(j=31710790944000*a^2 + 39953093016000*a + 50337742902000).has_cm()
+            True
+        """
+        try:
+            D = self.cm_discriminant()
+        except ValueError:
+            return False
+        return True
 
-        A curve with potential CM but not actual CM::
+    def has_rational_cm(self):
+        """
+        Returns whether or not this curve has CM defined over its base field.
+
+        OUTPUT:
+
+        ``True`` if the `j`-invariant of this curve `E` is the
+        `j`-invariant of an imaginary quadratic order and the
+        discriminant of the order is a square in the base field of
+        `E`; otherwise ``False``.  See also :meth:`cm_discriminant()`
+        and :meth:`has_cm`.
+
+        .. note::
+
+           If `E` has CM but the discriminant `D` is not a square in
+           the base field `K` then the extra endomorphisms will not be
+           defined over `K`, and this function will return ``False``.
+           See also :meth:`has_cm`.  To obtain the CM discriminant,
+           use :meth:`cm_discriminant()`.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve(j=0)
+            sage: E.has_cm()
+            True
+            sage: E.has_rational_cm()
+            False
+            sage: D = E.cm_discriminant(); D
+            -3
+            sage: E.change_ring(QuadraticField(D)).has_rational_cm()
+            True
+
+            sage: E = EllipticCurve(j=1728)
+            sage: E.has_cm()
+            True
+            sage: E.has_rational_cm()
+            False
+            sage: D = E.cm_discriminant(); D
+            -4
+            sage: E.change_ring(QuadraticField(D)).has_rational_cm()
+            True
+
+            sage: E = EllipticCurve(j=8000)
+            sage: E.has_cm()
+            True
+            sage: E.has_rational_cm()
+            False
+            sage: D = E.cm_discriminant(); D
+            -8
+            sage: E.change_ring(QuadraticField(D)).has_rational_cm()
+            True
+
+        Higher degree examples::
 
             sage: K.<a> = QuadraticField(5)
-            sage: EllipticCurve(j=282880*a + 632000).has_potential_cm()
-            (True, (-20, 1))
-            sage: EllipticCurve(j=282880*a + 632000).has_cm()
-            (False, None)
-
-        A curve with potential CM but not actual CM until we adjoin
-        the appropriate square root::
+            sage: E = EllipticCurve(j=282880*a + 632000)
+            sage: E.has_cm()
+            True
+            sage: E.has_rational_cm()
+            False
+            sage: E.cm_discriminant()
+            -20
 
             sage: K.<a> = NumberField(x^3 - 2)
             sage: E = EllipticCurve(j=31710790944000*a^2 + 39953093016000*a + 50337742902000)
-            sage: E.has_potential_cm()
-            (True, (-3, 6))
             sage: E.has_cm()
-            (False, None)
+            True
+            sage: E.has_rational_cm()
+            False
+            sage: D = E.cm_discriminant()
+            sage: D, D.squarefree_part()
+            (-108, -3)
             sage: L.<b> = K.extension(x^2+3)
             sage: EL = E.change_ring(L)
-            sage: EL.has_potential_cm()
-            (True, (-3, 6))
             sage: EL.has_cm()
-            (True, -108)
+            True
+            sage: EL.has_rational_cm()
+            True
         """
-        flag, df = self.has_potential_cm()
-        if not flag:
-                return False, None
-        d, f = df
-        if self.base_field()(d).is_square():
-                return True, d*f**2
-        return False, None
+        try:
+            D = self.cm_discriminant()
+        except ValueError:
+            return False
+        return self.base_field()(D).is_square()

@@ -3881,10 +3881,58 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
 
         try:
-            return CMJ[self.j_invariant()]
+            return ZZ(CMJ[self.j_invariant()])
         except KeyError:
             raise ValueError("%s does not have CM"%self)
 
+    def has_rational_cm(self):
+        """
+        Returns whether or not this curve has CM defined over `\QQ`.
+
+        OUTPUT:
+
+        ``False``.  See also :meth:`cm_discriminant()` and
+        :meth:`has_cm`.
+
+        .. note::
+
+           Even if `E` has CM, the associated discriminant `D` is not
+           a square in `\QQ`, so then the extra endomorphisms will not
+           be defined over `\QQ`.  Hence this function will always
+           return ``False``.  To obtain the CM discriminant, use
+           :meth:`cm_discriminant()`.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve(j=0)
+            sage: E.has_cm()
+            True
+            sage: E.has_rational_cm()
+            False
+            sage: D = E.cm_discriminant(); D
+            -3
+
+        If we extend scalars to a field in which the discriminant is a
+        square, the CM becomes rational::
+
+            sage: E.change_ring(QuadraticField(-3)).has_rational_cm()
+            True
+
+            sage: E = EllipticCurve(j=8000)
+            sage: E.has_cm()
+            True
+            sage: E.has_rational_cm()
+            False
+            sage: D = E.cm_discriminant(); D
+            -8
+
+        Again, we may extend scalars to a field in which the
+        discriminant is a square, where the CM becomes rational::
+
+            sage: E.change_ring(QuadraticField(-8)).has_rational_cm()
+            True
+        """
+        return False
 
     def quadratic_twist(self, D):
         """

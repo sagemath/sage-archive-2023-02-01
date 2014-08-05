@@ -5493,7 +5493,7 @@ class FiniteStateMachine(SageObject):
         ``b``::
 
             sage: M = FiniteStateMachine([(0, 0, (1, None), 'a'),
-            ....:                         (0, 1, (None, 1), 'b'),
+            ....:                         (0, 1, [], []),
             ....:                         (1, 1, (None, 1), 'b')],
             ....:                        initial_states=[0],
             ....:                        final_states=[1])
@@ -10293,7 +10293,7 @@ class Transducer(FiniteStateMachine):
         and then the length of the second tape many letters ``b``::
 
             sage: M = Transducer([(0, 0, (1, None), 'a'),
-            ....:                 (0, 1, (None, 1), 'b'),
+            ....:                 (0, 1, [], []),
             ....:                 (1, 1, (None, 1), 'b')],
             ....:                initial_states=[0],
             ....:                final_states=[1])

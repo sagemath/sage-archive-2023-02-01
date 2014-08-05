@@ -1,27 +1,34 @@
 r"""
 Balanced Incomplete Block Designs (BIBD)
 
-This module implements two constructions of Balanced Incomplete Block Designs:
-
-* Steiner Triple Systems, i.e. `(v,3,1)`-BIBD.
-* `K_4`-decompositions of `K_v`, i.e. `(v,4,1)`-BIBD.
-
-These BIBD can be obtained through the :func:`balanced_incomplete_block_design`
-method, available in Sage as ``designs.balanced_incomplete_block_design``.
-
-EXAMPLES::
+This module gathers everything related to Balanced Incomplete Block Designs. One can build a
+BIBD (or check that it can be built) with :func:`balanced_incomplete_block_design`::
 
     sage: designs.balanced_incomplete_block_design(7,3)
-    Incidence structure with 7 points and 7 blocks
-    sage: designs.balanced_incomplete_block_design(7,3).blocks()
-    [[0, 1, 3], [0, 2, 4], [0, 5, 6], [1, 2, 6], [1, 4, 5], [2, 3, 5], [3, 4, 6]]
-    sage: designs.balanced_incomplete_block_design(13,4).blocks()
-    [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 10], [0, 5, 7, 11], [1, 3, 8, 11],
-     [1, 4, 7, 9], [1, 5, 6, 10], [2, 3, 7, 10], [2, 4, 6, 11], [2, 5, 8, 9],
-     [3, 4, 5, 12], [6, 7, 8, 12], [9, 10, 11, 12]]
 
-`K_4`-decompositions of `K_v`
------------------------------
+In particular, Sage can build a `(v,k,1)`-BIBD when one exists for all `k\leq
+5`. The following functions are available:
+
+It defines the following functions:
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :func:`balanced_incomplete_block_design` | Returns a BIBD of parameters `v,k`.
+    :func:`BIBD_from_TD` | Returns a BIBD through TD-based constructions.
+    :func:`BIBD_from_difference_family` | Return the BIBD associated to the difference family ``D`` on the group ``G``.
+    :func:`BIBD_from_PBD` | Returns a `(v,k,1)`-BIBD from a `(r,K)`-PBD where `r=(v-1)/(k-1)`.
+    :func:`PBD_from_TD` | Returns a `(kt,\{k,t\})`-PBD if `u=0` and a `(kt+u,\{k,k+1,t,u\})`-PBD otherwise.
+    :func:`steiner_triple_system` | Returns a Steiner Triple System.
+    :func:`v_5_1_BIBD` | Returns a `(v,5,1)`-BIBD.
+    :func:`v_4_1_BIBD` | Returns a `(v,4,1)`-BIBD.
+    :func:`PBD_4_5_8_9_12` | Returns a `(v,\{4,5,8,9,12\})`-PBD on `v` elements.
+    :func:`BIBD_5q_5_for_q_prime_power` | Returns a `(5q,5,1)`-BIBD with `q\equiv 1\pmod 4` a prime power.
+
+
+**Construction of BIBD when** `k=4`
 
 Decompositions of `K_v` into `K_4` (i.e. `(v,4,1)`-BIBD) are built following
 Douglas Stinson's construction as presented in [Stinson2004]_ page 167. It is
@@ -30,8 +37,7 @@ based upon the construction of `(v\{4,5,8,9,12\})`-PBD (see the doc of
 can always be transformed into a `((k-1)v+1,4,1)`-BIBD, which covers all
 possible cases of `(v,4,1)`-BIBD.
 
-`K_5`-decompositions of `K_v`
------------------------------
+**Construction of BIBD when** `k=5`
 
 Decompositions of `K_v` into `K_4` (i.e. `(v,4,1)`-BIBD) are built following
 Clayton Smith's construction [ClaytonSmith]_.
@@ -796,7 +802,7 @@ def _relabel_bibd(B,n,p=None):
 
 def PBD_4_5_8_9_12(v, check=True):
     """
-    Returns a `(v,\{4,5,8,9,12\})-`PBD on `v` elements.
+    Returns a `(v,\{4,5,8,9,12\})`-PBD on `v` elements.
 
     A `(v,\{4,5,8,9,12\})`-PBD exists if and only if `v\equiv 0,1 \pmod 4`. The
     construction implemented here appears page 168 in [Stinson2004]_.

@@ -1,4 +1,4 @@
-"""
+r"""
 External Representations of Block Designs
 
 The "ext_rep" module is an API to the abstract tree represented by
@@ -14,10 +14,16 @@ REFERENCES:
 .. [D2009] P. Dobcsanyi et al. DesignTheory.org
    http://designtheory.org/database/
 
-TODO: The XML data from the designtheory.org database contains a wealth
-of information about things like automorphism groups, transitivity,
-cycle type representatives, etc, but none of this data is made
-available through the current implementation.
+.. TODO::
+
+    The XML data from the designtheory.org database contains a wealth of
+    information about things like automorphism groups, transitivity, cycle type
+    representatives, etc, but none of this data is made available through the
+    current implementation.
+
+Functions
+---------
+
 """
 
 ###########################################################################

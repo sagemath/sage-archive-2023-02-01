@@ -1,8 +1,39 @@
-"""
+r"""
 Orthogonal arrays
 
-This module gathers anything related to orthogonal arrays, and, incidentally,
-to transversal designs.
+This module gathers everything related to orthogonal arrays (or transversal
+designs). One can build an `OA(k,n)` (or check that it can be built) with
+:func:`orthogonal_array`::
+
+    sage: OA = designs.orthogonal_array(4,8)
+
+It defines the following functions:
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`orthogonal_array` | Return an orthogonal array of parameters `k,n,t`.
+    :meth:`transversal_design` | Return a transversal design of parameters `k,n`.
+    :meth:`incomplete_orthogonal_array` | Returns an `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)`.
+
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`is_transversal_design` | Check that a given set of blocks ``B`` is a transversal design.
+    :meth:`~sage.combinat.designs.designs_pyx.is_orthogonal_array` | Check that the integer matrix `OA` is an `OA(k,n,t)`.
+    :meth:`wilson_construction` | Returns a `OA(k,rm+u)` from a truncated `OA(k+s,r)` by Wilson's construction.
+    :meth:`TD_product` | Returns the product of two transversal designs.
+    :meth:`OA_find_disjoint_blocks` | Returns `x` disjoint blocks contained in a given `OA(k,n)`.
+    :meth:`OA_relabel` | Returns a relabelled version of the OA.
+    :meth:`OA_from_quasi_difference_matrix` | Returns an Orthogonal Array from a Quasi-Difference matrix
+    :meth:`OA_from_Vmt` | Returns an Orthogonal Array from a `V(m,t)`
+    :meth:`OA_from_PBD` | Returns an `OA(k,n)` from a PBD
+    :meth:`OA_from_wider_OA` | Returns the first `k` columns of `OA`.
 
 .. TODO::
 
@@ -20,6 +51,7 @@ REFERENCES:
 
 Functions
 ---------
+
 """
 from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
@@ -162,7 +194,7 @@ def transversal_design(k,n,check=True,existence=False):
 
     Those two errors correspond respectively to the cases where Sage answer
     ``Unknown`` or ``False`` when the parameter ``existence`` is set to
-    ``True``:
+    ``True``::
 
         sage: designs.transversal_design(47, 100, existence=True)
         Unknown
@@ -170,8 +202,8 @@ def transversal_design(k,n,check=True,existence=False):
         False
 
     If for a given `n` you want to know the largest `k` for which Sage is able
-    to build a `TD(k,n)` just call the function with `k` set to `None` and
-    `existence` set to `True` as follows::
+    to build a `TD(k,n)` just call the function with `k` set to ``None`` and
+    ``existence`` set to ``True`` as follows::
 
         sage: designs.transversal_design(None, 6, existence=True)
         3
@@ -705,8 +737,8 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
         6
 
     If you ask for an orthogonal array that does not exist, then the function
-    either raise an `EmptySetError` (if it knows that such an orthogonal array
-    does not exist) or a `NotImplementedError`::
+    either raise an ``EmptySetError`` (if it knows that such an orthogonal array
+    does not exist) or a ``NotImplementedError``::
 
         sage: designs.orthogonal_array(4,2)
         Traceback (most recent call last):
@@ -1148,7 +1180,7 @@ def OA_relabel(OA,k,n,blocks=tuple(),matrix=None):
         True
 
     Making sure that ``[2,2,2,2]`` is a block of `OA(4,3)`. We do this
-    by relabelling block ``[0,0,0,0]`` which belongs to the design.
+    by relabelling block ``[0,0,0,0]`` which belongs to the design::
 
         sage: designs.orthogonal_array(4,3)
         [[0, 0, 0, 0], [0, 1, 2, 1], [0, 2, 1, 2], [1, 0, 2, 2], [1, 1, 1, 0], [1, 2, 0, 1], [2, 0, 1, 1], [2, 1, 0, 2], [2, 2, 2, 0]]
@@ -1356,12 +1388,12 @@ def OA_from_PBD(k,n,PBD, check=True):
 
     **Construction**
 
-    Let `\\mathcal B` be a `(n,K,1)`-PBD. If there exists for every `i\in K` a
+    Let `\mathcal B` be a `(n,K,1)`-PBD. If there exists for every `i\in K` a
     `TD(k,i)-i\times TD(k,1)` (i.e. if there exist `k` idempotent MOLS), then
     one can obtain a `OA(k,n)` by concatenating:
 
     - A `TD(k,i)-i\times TD(k,1)` defined over the elements of `B` for every `B
-      \in \\mathcal B`.
+      \in \mathcal B`.
 
     - The rows `(i,...,i)` of length `k` for every `i\in [n]`.
 

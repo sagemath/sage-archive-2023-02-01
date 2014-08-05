@@ -2,9 +2,7 @@ r"""
 Orthogonal arrays (Recursive constructions)
 
 This module implements several functions to find recursive constructions of
-:mod:`Orthogonal Arrays <sage.combinat.designs.orthogonal_arrays>` using
-Wilson's construction. To this end, they compute and truncate OA in specific
-ways.
+:mod:`Orthogonal Arrays <sage.combinat.designs.orthogonal_arrays>`.
 
 The main function of this module, i.e. :func:`find_recursive_construction`,
 queries all implemented recursive constructions of designs. It is used by
@@ -131,7 +129,7 @@ def find_wilson_decomposition_with_one_truncated_group(k,n):
 
     OUTPUT:
 
-    A pair `f,args` such that `f(*args)` is an `OA(k,n)` or ``False`` if no
+    A pair ``f,args`` such that ``f(*args)`` is an `OA(k,n)` or ``False`` if no
     decomposition with one truncated block was found.
 
     EXAMPLES::
@@ -227,7 +225,7 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
 
 def simple_wilson_construction(k,r,m,u):
     r"""
-    Return an `OA(k,r*m + \sum u_i)` from Wilson construction.
+    Return an `OA(k,rm + \sum u_i)` from Wilson construction.
 
     INPUT:
 

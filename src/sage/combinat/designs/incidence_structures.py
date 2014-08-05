@@ -1,8 +1,29 @@
-"""
+r"""
 Incidence structures (i.e. hypergraphs, i.e. set systems)
 
-An incidence structure is specified by a list of points, blocks, and
-an incidence matrix ([1]_, [2]_).
+An incidence structure is specified by a list of points, blocks, or an incidence
+matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following methods:
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~IncidenceStructure.ground_set` | Return the ground set (i.e the list of points).
+    :meth:`~IncidenceStructure.num_points` | Returns the size of the ground set.
+    :meth:`~IncidenceStructure.num_blocks` | Returns the number of blocks.
+    :meth:`~IncidenceStructure.blocks` | Return the list of blocks.
+    :meth:`~IncidenceStructure.block_sizes` | Return the set of block sizes.
+    :meth:`~IncidenceStructure.degree` | Returns the degree of a point ``p``
+    :meth:`~IncidenceStructure.is_connected` | Test whether the design is connected.
+    :meth:`~IncidenceStructure.is_simple` | Test whether this design is simple (i.e. no repeated block).
+    :meth:`~IncidenceStructure.incidence_matrix` | Return the incidence matrix `A` of the design
+    :meth:`~IncidenceStructure.incidence_graph` | Returns the incidence graph of the design
+    :meth:`~IncidenceStructure.packing` | Returns a maximum packing
+    :meth:`~IncidenceStructure.is_t_design` | Test whether ``self`` is a `t-(v,k,l)` design.
+    :meth:`~IncidenceStructure.dual` | Returns the dual design.
+    :meth:`~IncidenceStructure.automorphism_group` | Returns the automorphism group
+    :meth:`~IncidenceStructure.edge_coloring` | Returns an optimal edge coloring`
 
 REFERENCES:
 
@@ -445,7 +466,7 @@ class IncidenceStructure(object):
 
     def num_points(self):
         r"""
-        The number of points in that design.
+        Returns the size of the ground set.
 
         EXAMPLES::
 
@@ -459,7 +480,7 @@ class IncidenceStructure(object):
 
     def num_blocks(self):
         r"""
-        The number of blocks.
+        Returns the number of blocks.
 
         EXAMPLES::
 
@@ -472,7 +493,8 @@ class IncidenceStructure(object):
         return len(self._blocks)
 
     def blocks(self, copy=True):
-        """Return the list of blocks.
+        """
+        Return the list of blocks.
 
         INPUT:
 

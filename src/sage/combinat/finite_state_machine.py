@@ -5515,8 +5515,8 @@ class FiniteStateMachine(SageObject):
 
             :meth:`Automaton.process`,
             :meth:`Transducer.process`,
-            :meth:`FiniteStateMachine.iter_process`,
-            :meth:`FiniteStateMachine.__call__`,
+            :meth:`~FiniteStateMachine.iter_process`,
+            :meth:`~FiniteStateMachine.__call__`,
             :class:`FSMProcessIterator`.
 
         TESTS::
@@ -5707,7 +5707,7 @@ class FiniteStateMachine(SageObject):
             :meth:`FiniteStateMachine.process`,
             :meth:`Automaton.process`,
             :meth:`Transducer.process`,
-            :meth:`FiniteStateMachine.__call__`,
+            :meth:`~FiniteStateMachine.__call__`,
             :class:`FSMProcessIterator`.
         """
         return FSMProcessIterator(self,
@@ -9484,8 +9484,8 @@ class Automaton(FiniteStateMachine):
 
             :meth:`FiniteStateMachine.process`,
             :meth:`Transducer.process`,
-            :meth:`FiniteStateMachine.iter_process`,
-            :meth:`FiniteStateMachine.__call__`,
+            :meth:`~FiniteStateMachine.iter_process`,
+            :meth:`~FiniteStateMachine.__call__`,
             :class:`FSMProcessIterator`.
         """
         if FSMOldProcessOutput:
@@ -10360,8 +10360,8 @@ class Transducer(FiniteStateMachine):
 
             :meth:`FiniteStateMachine.process`,
             :meth:`Automaton.process`,
-            :meth:`FiniteStateMachine.iter_process`,
-            :meth:`FiniteStateMachine.__call__`,
+            :meth:`~FiniteStateMachine.iter_process`,
+            :meth:`~FiniteStateMachine.__call__`,
             :class:`FSMProcessIterator`.
 
         TESTS::

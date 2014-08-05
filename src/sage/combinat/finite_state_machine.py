@@ -5319,6 +5319,12 @@ class FiniteStateMachine(SageObject):
           ``True`` (when the output is a list, then the first argument
           of each element will be ``True``).
 
+        - ``always_include_output`` -- if set (not by default), always
+          include the output. This is inconsequential for a
+          :class:`FiniteStateMachine`, but can be used in derived
+          classes where the output is suppressed by default,
+          cf. :meth:`Automaton.process`.
+
         All other ``kwargs`` will be passed directly to
         :class:`FSMProcessIterator` (which is used internally during
         processing). Those are the following:
@@ -9231,6 +9237,11 @@ class Automaton(FiniteStateMachine):
           then the full output is given, otherwise only whether the
           sequence is accepted or not (the first entry below only).
 
+        - ``always_include_output`` -- if set (not by default), always
+          return a triple containing the (non-existing) output. This
+          is in order to obtain output compatible with that of
+          :meth:`FiniteStateMachine.process`.
+
         All other ``kwargs`` will be passed directly to
         :class:`FSMProcessIterator` (which is used internally during
         processing). Those are the following:
@@ -9267,10 +9278,6 @@ class Automaton(FiniteStateMachine):
           process iterator is activated. See also the notes below for
           multi-tape machines.
 
-        - ``always_include_output`` -- if set (not by default), always
-          return a triple containing the (non-existing) output. This
-          is for compatibility with transducers.
-
         OUTPUT:
 
         The full output is a pair (or a list of pairs,
@@ -9285,6 +9292,9 @@ class Automaton(FiniteStateMachine):
 
         When ``full_output`` is ``False``, then only the first entry
         is returned.
+
+        If ``always_include_output`` is set, an additional third entry
+        ``[]`` is included.
 
         Note that in the case the automaton is not
         deterministic, all possible paths are taken into account.
@@ -10021,6 +10031,12 @@ class Transducer(FiniteStateMachine):
           then the full output is given, otherwise only the generated
           output (the third entry below only). If the input is not
           accepted, a ``ValueError`` is raised.
+
+        - ``always_include_output`` -- if set (not by default), always
+          include the output. This is inconsequential for a
+          :class:`Transducer`, but can be used in other classes
+          derived from :class:`FiniteStateMachine` where the output is
+          suppressed by default, cf. :meth:`Automaton.process`.
 
         All other ``kwargs`` will be passed directly to
         :class:`FSMProcessIterator` (which is used internally during

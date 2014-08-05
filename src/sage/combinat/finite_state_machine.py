@@ -114,6 +114,7 @@ Operations
     :meth:`Transducer.cartesian_product` | Cartesian product of a transducer with another finite state machine
     :meth:`~FiniteStateMachine.product_FiniteStateMachine` | Product of finite state machines
     :meth:`~FiniteStateMachine.composition` | Composition (output of other is input of self)
+    :meth:`~FiniteStateMachine.__call__` | Composition with other finite state machine
     :meth:`~FiniteStateMachine.input_projection` | Input projection (output is deleted)
     :meth:`~FiniteStateMachine.output_projection` | Output projection (old output is new input)
     :meth:`~FiniteStateMachine.projection` | Input or output projection
@@ -121,6 +122,7 @@ Operations
     :meth:`~FiniteStateMachine.with_final_word_out` | Machine with final output constructed by implicitly reading trailing letters, cf. :meth:`~FiniteStateMachine.construct_final_word_out` for inplace version
     :meth:`Automaton.determinisation` | Determinisation of an automaton
     :meth:`~FiniteStateMachine.process` | Process input
+    :meth:`~FiniteStateMachine.__call__` | Process input with shortened output
     :meth:`Automaton.process` | Process input of an automaton (output differs from general case)
     :meth:`Transducer.process` | Process input of a transducer (output differs from general case)
     :meth:`~FiniteStateMachine.iter_process` | Return process iterator
@@ -2770,6 +2772,8 @@ class FiniteStateMachine(SageObject):
         sage: t4 = FSMTransition(c, d)
         sage: FiniteStateMachine([t1, t2, t3, t4])
         Finite state machine with 4 states
+
+    .. automethod:: __call__
     """
 
     on_duplicate_transition = duplicate_transition_ignore

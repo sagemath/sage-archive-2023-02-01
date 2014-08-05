@@ -5298,7 +5298,8 @@ class FiniteStateMachine(SageObject):
 
     _process_default_options_ = {'full_output': True,
                                  'list_of_outputs': None,
-                                 'only_accepted': False}
+                                 'only_accepted': False,
+                                 'always_include_output': False}
 
     def process(self, *args, **kwargs):
         """
@@ -5335,6 +5336,12 @@ class FiniteStateMachine(SageObject):
           then the first argument in the output is guaranteed to be
           ``True`` (if the output is a list, then the first argument
           of each element will be ``True``).
+
+        - ``always_include_output`` -- if set (not by default), always
+          include the output. This is inconsequential for a
+          :class:`FiniteStateMachine`, but can be used in derived
+          classes where the output is suppressed by default,
+          cf. :meth:`Automaton.process`.
 
         - ``format_output`` -- a function that translates the written
           output (which is in form of a list) to something more
@@ -9268,6 +9275,12 @@ class Automaton(FiniteStateMachine):
           then the full output is given, otherwise only whether the
           sequence is accepted or not (the first entry below only).
 
+        - ``always_include_output`` -- if set (not by default), always
+          return a triple containing the (non-existing) output. This
+          is in order to obtain output compatible with that of
+          :meth:`FiniteStateMachine.process`. If this parameter is set,
+          ``full_output`` has no effect.
+
         - ``format_output`` -- a function that translates the written
           output (which is in form of a list) to something more
           readable. By default (``None``) identity is used here.
@@ -9299,6 +9312,9 @@ class Automaton(FiniteStateMachine):
 
         If ``full_output`` is ``False``, then only the first entry
         is returned.
+
+        If ``always_include_output`` is set, an additional third entry
+        ``[]`` is included.
 
         Note that in the case the automaton is not
         deterministic, all possible paths are taken into account.
@@ -9424,6 +9440,10 @@ class Automaton(FiniteStateMachine):
 
         - ``full_output`` -- a boolean.
 
+        - ``always_include_output`` -- if set (not by default), always
+          return a triple containing the (non-existing) output. This
+          is for compatibility with transducers.
+
         OUTPUT:
 
         The converted output.
@@ -9433,13 +9453,19 @@ class Automaton(FiniteStateMachine):
             sage: from sage.combinat.finite_state_machine import FSMState
             sage: A = Automaton()
             sage: A._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
-            ....:                            full_output=False)
+            ....:                            full_output=False,
+            ....:                            always_include_output=False)
             True
             sage: A._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
-            ....:                            full_output=True)
+            ....:                            full_output=True,
+            ....:                            always_include_output=False)
             (True, 'a')
+            sage: A._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                            full_output=False,
+            ....:                            always_include_output=True)
+            (True, 'a', [1, 0, 1])
         """
-        if FSMOldProcessOutput:
+        if FSMOldProcessOutput or kwargs['always_include_output']:
             return super(Automaton, self)._process_convert_output_(
                 output_data, **kwargs)
         accept_input, current_state, output = output_data
@@ -10048,6 +10074,12 @@ class Transducer(FiniteStateMachine):
           then the full output is given, otherwise only the generated
           output (the third entry below only). If the input is not
           accepted, a ``ValueError`` is raised.
+
+        - ``always_include_output`` -- if set (not by default), always
+          include the output. This is inconsequential for a
+          :class:`Transducer`, but can be used in other classes
+          derived from :class:`FiniteStateMachine` where the output is
+          suppressed by default, cf. :meth:`Automaton.process`.
 
         - ``format_output`` -- a function that translates the written
           output (which is in form of a list) to something more

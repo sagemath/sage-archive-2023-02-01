@@ -6880,6 +6880,27 @@ class FiniteStateMachine(SageObject):
             True
             sage: is_Automaton(A.composition(T, algorithm='explorative'))
             True
+
+        Non-deterministic final output cannot be handeled::
+
+            sage: F = Transducer([('I', 'A', 0, 42), ('I', 'B', 0, 42)],
+            ....:                initial_states=['I'],
+            ....:                final_states=['A', 'B'])
+            sage: G = Transducer(initial_states=[0],
+            ....:                final_states=[0],
+            ....:                input_alphabet=[0])
+            sage: G.state(0).final_word_out = 0
+            sage: H = F.composition(G, algorithm='explorative')
+            sage: for s in H.final_states():
+            ....:     print s, s.final_word_out
+            (0, 'I') [42]
+            sage: F.state('A').final_word_out = 'a'
+            sage: F.state('B').final_word_out = 'b'
+            sage: F.composition(G, algorithm='explorative')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Stopping in state (0, 'I') leads to
+            non-deterministic final output.
         """
         if not other._allow_composition_:
             raise TypeError("Composition with automaton is not "
@@ -7027,12 +7048,13 @@ class FiniteStateMachine(SageObject):
                     initial_state=state2,
                     only_accepted=True,
                     always_include_output=True)
-                if len(final_output_second) > 1:
+                if (len(final_output_second) > 1 and
+                    not equal(r[2] for r in final_output_second)):
                     raise NotImplementedError("Stopping in state %s "
                                               "leads to "
                                               "non-deterministic final "
-                                              "output.")
-                if len(final_output_second) == 1:
+                                              "output." % state)
+                if len(final_output_second) >= 1:
                     state.is_final = True
                     state.final_word_out = final_output_second[0][2]
 

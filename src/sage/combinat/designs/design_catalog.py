@@ -93,3 +93,6 @@ from sage.combinat.designs.bibd import balanced_incomplete_block_design, steiner
 from sage.misc.superseded import deprecated_function_alias
 BalancedIncompleteBlockDesign = deprecated_function_alias(16446,
         balanced_incomplete_block_design)
+
+# We don't want this to appear in designs.<tab>
+del deprecated_function_alias

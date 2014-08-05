@@ -6843,11 +6843,6 @@ class FiniteStateMachine(SageObject):
             ....:                 (2, 2, 0, 1), (2, 1, 1, 1)],
             ....:                initial_states=[1], final_states=[1])
             sage: Hd = G.composition(F, algorithm='direct')
-            sage: Hd.transitions()
-            [Transition from ('B', 1) to ('B', 2): 1|0,
-             Transition from ('B', 1) to ('B', 1): 0|0,
-             Transition from ('B', 2) to ('B', 1): 1|1,
-             Transition from ('B', 2) to ('B', 2): 0|1]
 
         In the following examples, we compose transducers and automata
         and check whether the types are correct. ::

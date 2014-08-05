@@ -9460,7 +9460,7 @@ class Automaton(FiniteStateMachine):
             ....:           use_multitape_input=True)
             (True, '=')
 
-        Alternatively, we can use the following (nondeterministic)
+        Alternatively, we can use the following (non-deterministic)
         multi-tape automaton for the same check::
 
             sage: N = Automaton([('=', '=', (0, 0)),
@@ -10337,8 +10337,8 @@ class Transducer(FiniteStateMachine):
             RuntimeError: State 0 is in an epsilon cycle (no input),
             but output is written.
 
-        If we set ``check_epsilon_transitions=False``, then all
-        transitions with empty input are not considered
+        If we set ``check_epsilon_transitions=False``, then no
+        transitions with empty input are considered
         anymore. Thus cycles with empty input are no problem anymore::
 
             sage: T.process([0], check_epsilon_transitions=False)

@@ -9435,6 +9435,26 @@ class Automaton(FiniteStateMachine):
             sage: M.process(([1, 1, 0, 1], [0, 0, 1, 0, 1, 1]),
             ....:           use_multitape_input=True)
             (True, '=')
+
+        Alternatively, we can use the following (nondeterministic)
+        multi-tape automaton for the same check::
+
+            sage: N = Automaton([('=', '=', (0, 0)),
+            ....:                ('=', '<', (None, 1)),
+            ....:                ('<', '<', (0, None)),
+            ....:                ('<', '=', (1, None)),
+            ....:                ('=', '>', (1, None)),
+            ....:                ('>', '>', (None, 0)),
+            ....:                ('>', '=', (None, 1))],
+            ....:               initial_states=['='],
+            ....:               final_states=['='])
+            sage: N.process(([1, 0, 1], [1, 0]), use_multitape_input=True)
+            (False, '>')
+            sage: N.process(([0, 1, 0], [0, 1, 1]), use_multitape_input=True)
+            (False, '<')
+            sage: N.process(([1, 1, 0, 1], [0, 0, 1, 0, 1, 1]),
+            ....:           use_multitape_input=True)
+            (True, '=')
         """
         if FSMOldProcessOutput:
             from sage.misc.superseded import deprecation

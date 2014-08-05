@@ -5404,7 +5404,7 @@ class FiniteStateMachine(SageObject):
         happen when the entire tape was read.
 
         Also see :meth:`FiniteStateMachine.__call__` for a more restricted version
-        of :meth:`.process`. Internally this functions and
+        of :meth:`.process`. Internally these functions and
         :meth:`FiniteStateMachine.__call__` work with an instance of
         :class:`FSMProcessIterator`.
 
@@ -10275,7 +10275,7 @@ class Transducer(FiniteStateMachine):
             RuntimeError: State 0 is in an epsilon cycle (no input),
             but output is written.
 
-        If we set ``check_epsilon_transitions = False``, then all
+        If we set ``check_epsilon_transitions=False``, then all
         transitions with empty input or output are not considered
         anymore. Thus cycles with empty input are no problem anymore::
 

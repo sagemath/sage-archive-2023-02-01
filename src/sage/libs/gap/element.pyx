@@ -195,8 +195,11 @@ cdef GapElement make_any_gap_element(parent, libGAP_Obj obj):
         return make_GapElement_Permutation(parent, obj)
     elif num >= libGAP_FIRST_RECORD_TNUM and num <= libGAP_LAST_RECORD_TNUM:
         return make_GapElement_Record(parent, obj)
+    elif num >= libGAP_FIRST_LIST_TNUM and num <= libGAP_LAST_LIST_TNUM and libGAP_LEN_PLIST(obj) == 0:
+        # Empty lists are lists and not strings in Python
+        return make_GapElement_List(parent, obj)
     elif libGAP_IsStringConv(obj):
-        # GAP strings are lists, too. Make sure this comes before make_GapElement_List
+        # GAP strings are lists, too. Make sure this comes before non-empty make_GapElement_List
         return make_GapElement_String(parent, obj)
     elif num >= libGAP_FIRST_LIST_TNUM and num <= libGAP_LAST_LIST_TNUM:
         return make_GapElement_List(parent, obj)
@@ -1985,8 +1988,8 @@ cdef class GapElement_Function(GapElement):
 
         We illustrate appending to a list which returns None::
 
-            sage: a = libgap([]); a    # Empty list is the same as the empty string in GAP
-            ""
+            sage: a = libgap([]); a
+            [  ]
             sage: a.Add(5); a
             [ 5 ]
             sage: a.Add(10); a

@@ -225,6 +225,7 @@ cdef extern from "gap/string.h":
     int libGAP_GET_LEN_STRING(libGAP_Obj list)
     bint libGAP_IS_STRING(libGAP_Obj obj)
     bint libGAP_IsStringConv(libGAP_Obj obj)
+    bint libGAP_ConvString(libGAP_Obj obj)
     void libGAP_C_NEW_STRING(libGAP_Obj new_gap_string, int length, char* c_string)
 
 cdef extern from "gap/gasman.h":

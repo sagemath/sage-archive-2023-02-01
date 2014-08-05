@@ -9241,7 +9241,8 @@ class Automaton(FiniteStateMachine):
         - ``always_include_output`` -- if set (not by default), always
           return a triple containing the (non-existing) output. This
           is in order to obtain output compatible with that of
-          :meth:`FiniteStateMachine.process`.
+          :meth:`FiniteStateMachine.process`. If this parameter is set
+          ``full_output`` has no effect.
 
         All other ``kwargs`` will be passed directly to
         :class:`FSMProcessIterator` (which is used internally during

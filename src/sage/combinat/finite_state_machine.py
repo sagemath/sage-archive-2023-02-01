@@ -6897,24 +6897,47 @@ class FiniteStateMachine(SageObject):
             NotImplementedError: Stopping in state (0, 'I') leads to
             non-deterministic final output.
 
-        Check that the output and input alphabets are set correctly ::
+        Check that the output and input alphabets are set correctly::
 
             sage: F = Transducer([(0, 0, 1, 'A')],
-            ....:                initial_states=[0])
+            ....:                initial_states=[0],
+            ....:                determine_alphabets=False)
             sage: G = Transducer([(2, 2, 'A', 'a')],
-            ....:                initial_states=[2])
+            ....:                initial_states=[2],
+            ....:                determine_alphabets=False)
             sage: Hd = G(F, algorithm='direct')
-            sage: Hd.input_alphabet
-            [1]
-            sage: Hd.output_alphabet
-            ['a']
+            sage: Hd.input_alphabet, Hd.output_alphabet
+            ([1], ['a'])
             sage: He = G(F, algorithm='explorative')
-            sage: He.input_alphabet
-            [1]
-            sage: He.output_alphabet
-            ['a']
+            Traceback (most recent call last):
+            ...
+            ValueError: No input alphabet is given. Try calling
+            determine_alphabets().
+            sage: F.input_alphabet = [1]
+            sage: Hd = G(F, algorithm='direct')
+            sage: Hd.input_alphabet, Hd.output_alphabet
+            ([1], ['a'])
+            sage: He = G(F, algorithm='explorative')
+            sage: He.input_alphabet, He.output_alphabet
+            ([1], None)
+            sage: G.output_alphabet = ['a']
+            sage: Hd = G(F, algorithm='direct')
+            sage: Hd.input_alphabet, Hd.output_alphabet
+            ([1], ['a'])
+            sage: He = G(F, algorithm='explorative')
+            sage: He.input_alphabet, He.output_alphabet
+            ([1], ['a'])
             sage: Hd == He
             True
+            sage: F.input_alphabet = None
+            sage: Hd = G(F, algorithm='direct')
+            sage: Hd.input_alphabet, Hd.output_alphabet
+            ([1], ['a'])
+            sage: He = G(F, algorithm='explorative')
+            Traceback (most recent call last):
+            ...
+            ValueError: No input alphabet is given. Try calling
+            determine_alphabets().
         """
         if not other._allow_composition_:
             raise TypeError("Composition with automaton is not "

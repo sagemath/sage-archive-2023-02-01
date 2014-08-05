@@ -5307,20 +5307,6 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``list_of_outputs`` -- (default: ``None``) a boolean or
-          ``None``. If ``True``, then the outputs are given in list form
-          (even if we have no or only one single output). If
-          ``False``, then the result is never a list (an exception is
-          raised if the result cannot be returned). If
-          ``list_of_outputs=None``, the method determines automatically
-          what to do (e.g. if a non-deterministic machine returns more
-          than one path, then the output is returned in list form).
-
-        - ``only_accepted`` -- (default: ``False``) a boolean. If set,
-          then the first argument in the output is guaranteed to be
-          ``True`` (if the output is a list, then the first argument
-          of each element will be ``True``).
-
         - ``input_tape`` -- the input tape can be a list or an
           iterable with entries from the input alphabet. If we are
           working with a multi-tape machine (see parameter
@@ -5335,6 +5321,20 @@ class FiniteStateMachine(SageObject):
           will be appended to ``initial_states``. If neither is
           specified, the initial states of the finite state machine
           are taken.
+
+        - ``list_of_outputs`` -- (default: ``None``) a boolean or
+          ``None``. If ``True``, then the outputs are given in list form
+          (even if we have no or only one single output). If
+          ``False``, then the result is never a list (an exception is
+          raised if the result cannot be returned). If
+          ``list_of_outputs=None``, the method determines automatically
+          what to do (e.g. if a non-deterministic machine returns more
+          than one path, then the output is returned in list form).
+
+        - ``only_accepted`` -- (default: ``False``) a boolean. If set,
+          then the first argument in the output is guaranteed to be
+          ``True`` (if the output is a list, then the first argument
+          of each element will be ``True``).
 
         - ``format_output`` -- a function that translates the written
           output (which is in form of a list) to something more
@@ -9223,6 +9223,21 @@ class Automaton(FiniteStateMachine):
 
         INPUT:
 
+        - ``input_tape`` -- the input tape can be a list or an
+          iterable with entries from the input alphabet. If we are
+          working with a multi-tape machine (see parameter
+          ``use_multitape_input`` and notes below), then the tape is a
+          list or tuple of tracks, each of which can be a list or an
+          iterable with entries from the input alphabet.
+
+        - ``initial_state`` or ``initial_states`` -- the initial
+          state(s) in which the machine starts. Either specify a
+          single one with ``initial_state`` or a list of them with
+          ``initial_states``. If both are given, ``initial_state``
+          will be appended to ``initial_states``. If neither is
+          specified, the initial states of the finite state machine
+          are taken.
+
         - ``list_of_outputs`` -- (default: ``None``) a boolean or
           ``None``. If ``True``, then the outputs are given in list form
           (even if we have no or only one single output). If
@@ -9240,21 +9255,6 @@ class Automaton(FiniteStateMachine):
         - ``full_output`` -- (default: ``True``) a boolean. If set,
           then the full output is given, otherwise only whether the
           sequence is accepted or not (the first entry below only).
-
-        - ``input_tape`` -- the input tape can be a list or an
-          iterable with entries from the input alphabet. If we are
-          working with a multi-tape machine (see parameter
-          ``use_multitape_input`` and notes below), then the tape is a
-          list or tuple of tracks, each of which can be a list or an
-          iterable with entries from the input alphabet.
-
-        - ``initial_state`` or ``initial_states`` -- the initial
-          state(s) in which the machine starts. Either specify a
-          single one with ``initial_state`` or a list of them with
-          ``initial_states``. If both are given, ``initial_state``
-          will be appended to ``initial_states``. If neither is
-          specified, the initial states of the finite state machine
-          are taken.
 
         - ``format_output`` -- a function that translates the written
           output (which is in form of a list) to something more
@@ -10003,6 +10003,21 @@ class Transducer(FiniteStateMachine):
 
         INPUT:
 
+        - ``input_tape`` -- the input tape can be a list or an
+          iterable with entries from the input alphabet. If we are
+          working with a multi-tape machine (see parameter
+          ``use_multitape_input`` and notes below), then the tape is a
+          list or tuple of tracks, each of which can be a list or an
+          iterable with entries from the input alphabet.
+
+        - ``initial_state`` or ``initial_states`` -- the initial
+          state(s) in which the machine starts. Either specify a
+          single one with ``initial_state`` or a list of them with
+          ``initial_states``. If both are given, ``initial_state``
+          will be appended to ``initial_states``. If neither is
+          specified, the initial states of the finite state machine
+          are taken.
+
         - ``list_of_outputs`` -- (default: ``None``) a boolean or
           ``None``. If ``True``, then the outputs are given in list form
           (even if we have no or only one single output). If
@@ -10021,21 +10036,6 @@ class Transducer(FiniteStateMachine):
           then the full output is given, otherwise only the generated
           output (the third entry below only). If the input is not
           accepted, a ``ValueError`` is raised.
-
-        - ``input_tape`` -- the input tape can be a list or an
-          iterable with entries from the input alphabet. If we are
-          working with a multi-tape machine (see parameter
-          ``use_multitape_input`` and notes below), then the tape is a
-          list or tuple of tracks, each of which can be a list or an
-          iterable with entries from the input alphabet.
-
-        - ``initial_state`` or ``initial_states`` -- the initial
-          state(s) in which the machine starts. Either specify a
-          single one with ``initial_state`` or a list of them with
-          ``initial_states``. If both are given, ``initial_state``
-          will be appended to ``initial_states``. If neither is
-          specified, the initial states of the finite state machine
-          are taken.
 
         - ``format_output`` -- a function that translates the written
           output (which is in form of a list) to something more

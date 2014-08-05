@@ -132,14 +132,14 @@ You can work with subcones that form faces of other cones::
     sage: face
     2-d face of 3-d cone in 3-d lattice N
     sage: face.rays()
-    N(1,  1, 1),
-    N(1, -1, 1)
+    N(-1, -1, 1),
+    N(-1,  1, 1)
     in 3-d lattice N
     sage: face.ambient_ray_indices()
-    (0, 1)
+    (2, 3)
     sage: four_rays.rays(face.ambient_ray_indices())
-    N(1,  1, 1),
-    N(1, -1, 1)
+    N(-1, -1, 1),
+    N(-1,  1, 1)
     in 3-d lattice N
 
 If you need to know inclusion relations between faces, you can use ::
@@ -165,11 +165,8 @@ If you need to know inclusion relations between faces, you can use ::
     the same order as generating rays.
 
 When all the functionality provided by cones is not enough, you may want to
-check if you can do necessary things using lattice polytopes and polyhedra
-corresponding to cones::
+check if you can do necessary things using polyhedra corresponding to cones::
 
-    sage: four_rays.lattice_polytope()
-    3-d lattice polytope in 3-d lattice N
     sage: four_rays.polyhedron()
     A 3-dimensional polyhedron in ZZ^3 defined as
     the convex hull of 1 vertex and 4 rays
@@ -210,8 +207,8 @@ from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice, \
     is_ToricLatticeQuotient
 from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.graphs.digraph import DiGraph
-from sage.matrix.all import matrix, identity_matrix
-from sage.misc.all import cached_method, flatten, latex, prod
+from sage.matrix.all import matrix
+from sage.misc.all import cached_method, flatten, latex
 from sage.misc.superseded import deprecation
 from sage.modules.all import span, vector
 from sage.rings.all import QQ, RR, ZZ, gcd
@@ -1307,8 +1304,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             False
         """
         state = copy.copy(self.__dict__)
-        state.pop("_polyhedron", None) # Polyhedron is not picklable.
-        state.pop("_lattice_polytope", None) # Just to save time and space.
         state.pop("_PPL_C_Polyhedron", None) # PPL is not picklable.
 
         # TODO: do we want to keep the face lattice in the pickle?
@@ -1582,7 +1577,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         Return sorted (if necessary) ``faces`` as a tuple.
 
         This function ensures that one-dimensional faces are listed in
-        agreement with the order of corresponding rays.
+        agreement with the order of corresponding rays and facets with
+        facet normals.
 
         INPUT:
 
@@ -1606,6 +1602,18 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             if faces[0].nrays() == 1:
                 faces = tuple(sorted(faces,
                                      key=lambda f: f._ambient_ray_indices))
+            elif faces[0].dim() == self.dim() - 1 and \
+                    self.facet_normals.is_in_cache():
+                # If we already have facet normals, sort according to them
+                faces = set(faces)
+                sorted_faces = [None] * len(faces)
+                for i, n in enumerate(self.facet_normals()):
+                    for f in faces:
+                        if n*f.rays() == 0:
+                            sorted_faces[i] = f
+                            faces.remove(f)
+                            break
+                faces = tuple(sorted_faces)
         return faces
 
     @cached_method
@@ -1794,8 +1802,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: cone = Cone([(1,0), (-1,3)])
             sage: cone.dual().rays()
-            M(3, 1),
-            M(0, 1)
+            M(0, 1),
+            M(3, 1)
             in 2-d lattice M
 
         Now let's look at a more complicated case::
@@ -1831,8 +1839,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             M(0, -1)
             in 2-d lattice M
             sage: Cone([(1,0),(0,1)], lattice=N).dual().rays()  # strictly convex cone
-            M(1, 0),
-            M(0, 1)
+            M(0, 1),
+            M(1, 0)
             in 2-d lattice M
             sage: Cone([(1,0),(-1,0),(0,1)], lattice=N).dual().rays()  # half space
             M(0, 1)
@@ -2247,7 +2255,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         TESTS:
 
         Now we check that "general" cones whose dimension is smaller than the
-        dimension of the ambient space work as expected (see Trac #9188)::
+        dimension of the ambient space work as expected (see :trac:`9188`)::
 
             sage: c = Cone([(1,1,1,3),(1,-1,1,3),(-1,-1,1,3)])
             sage: c.faces()
@@ -2286,15 +2294,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         if "_faces" not in self.__dict__:
             self._faces = tuple(map(self._sort_faces,
                                     self.face_lattice().level_sets()))
-            # To avoid duplication and ensure order consistency
-            if len(self._faces) > 1:
-                self._facets = self._faces[-2]
         if dim is None:
             return self._faces
         else:
             lsd = self.linear_subspace().dimension()
             return self._faces[dim - lsd] if lsd <= dim <= self.dim() else ()
 
+    @cached_method
     def facet_normals(self):
         r"""
         Return inward normals to facets of ``self``.
@@ -2309,8 +2315,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                to the linear subspace of ``self``, i.e. they always will be
                elements of the dual cone of ``self``.
 
-            #. The order of normals is random and may be different from the
-               one in :meth:`facets`.
+            #. The order of normals is random, but consistent with
+               :meth:`facets`.
 
         OUTPUT:
 
@@ -2327,8 +2333,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: cone = Cone([(1,0), (-1,3)])
             sage: cone.facet_normals()
-            M(3, 1),
-            M(0, 1)
+            M(0, 1),
+            M(3, 1)
             in 2-d lattice M
 
         Now let's look at a more complicated case::
@@ -2352,8 +2358,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         A lattice that does not have a ``dual()`` method::
 
             sage: Cone([(1,1),(0,1)], lattice=ZZ^2).facet_normals()
-            ( 1, 0),
-            (-1, 1)
+            (-1, 1),
+            ( 1, 0)
             in Ambient free module of rank 2
             over the principal ideal domain Integer Ring
 
@@ -2370,8 +2376,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             Empty collection
             in 2-d lattice M
             sage: Cone([(1,0),(0,1)], lattice=N).facet_normals()  # strictly convex cone
-            M(1, 0),
-            M(0, 1)
+            M(0, 1),
+            M(1, 0)
             in 2-d lattice M
             sage: Cone([(1,0),(-1,0),(0,1)], lattice=N).facet_normals()  # half space
             M(0, 1)
@@ -2380,19 +2386,35 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             Empty collection
             in 2-d lattice M
         """
-        if "_facet_normals" not in self.__dict__:
-            cone = self._PPL_cone()
-            normals = []
-            for c in cone.minimized_constraints():
-                assert c.inhomogeneous_term() == 0
-                if c.is_inequality():
-                    normals.append(c.coefficients())
-            M = self.dual_lattice()
-            normals = tuple(map(M, normals))
-            for n in normals:
-                n.set_immutable()
-            self._facet_normals = PointCollection(normals, M)
-        return self._facet_normals
+        cone = self._PPL_cone()
+        normals = []
+        for c in cone.minimized_constraints():
+            assert c.inhomogeneous_term() == 0
+            if c.is_inequality():
+                normals.append(c.coefficients())
+        M = self.dual_lattice()
+        normals = tuple(map(M, normals))
+        for n in normals:
+            n.set_immutable()
+        if len(normals) > 1:
+            # Sort normals if they are rays
+            if self.dim() == 2 and normals[0]*self.ray(0) != 0:
+                normals = (normals[1], normals[0])
+            else:
+                try:    # or if we have combinatorial faces already
+                    facets = self._faces[-2]
+                    normals = set(normals)
+                    sorted_normals = [None] * len(normals)
+                    for i, f in enumerate(facets):
+                        for n in normals:
+                            if n*f.rays() == 0:
+                                sorted_normals[i] = n
+                                normals.remove(n)
+                                break
+                    normals = tuple(sorted_normals)
+                except AttributeError:
+                    pass
+        return PointCollection(normals, M)
 
     def facet_of(self):
         r"""
@@ -2448,11 +2470,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (1-d face of 2-d cone in 2-d lattice N,
              1-d face of 2-d cone in 2-d lattice N)
         """
-        if "_facets" not in self.__dict__:
-            L = self._ambient._face_lattice_function()
-            H = L.hasse_diagram()
-            self._facets = self._sort_faces(H.neighbors_in(L(self)))
-        return self._facets
+        return self.faces(codim=1)
 
     def intersection(self, other):
         r"""
@@ -2785,7 +2803,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             self._is_strictly_convex = convex
         return self._is_strictly_convex
 
-    @cached_method
     def lattice_polytope(self):
         r"""
         Return the lattice polytope associated to ``self``.
@@ -2806,6 +2823,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: lp = quadrant.lattice_polytope()
+            doctest:...: DeprecationWarning: lattice_polytope(...) is deprecated!
+            See http://trac.sagemath.org/16180 for details.            
             sage: lp
             2-d lattice polytope in 2-d lattice N
             sage: lp.vertices_pc()
@@ -2823,6 +2842,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             N(-1, 0)
             in 2-d lattice N
         """
+        deprecation(16180, "lattice_polytope(...) is deprecated!")
         return LatticePolytope(tuple(self.rays()) + (self.lattice().zero(),),
                                compute_vertices=not self.is_strictly_convex())
 
@@ -2963,8 +2983,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         Mathematically this polyhedron is the same as ``self``.
 
-        See also :meth:`lattice_polytope`.
-
         OUTPUT:
 
         - :class:`~sage.geometry.polyhedron.base.Polyhedron_base`.
@@ -2980,17 +2998,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             A 1-dimensional polyhedron in ZZ^2 defined as the convex hull
             of 1 vertex and 1 line
 
-        Here is an example of a trivial cone (see Trac #10237)::
+        Here is an example of a trivial cone (see :trac:`10237`)::
 
             sage: origin = Cone([], lattice=ZZ^2)
             sage: origin.polyhedron()
             A 0-dimensional polyhedron in ZZ^2 defined as the convex hull
             of 1 vertex
         """
-        if "_polyhedron" not in self.__dict__:
-            self._polyhedron = Polyhedron(rays=self.rays(),
-                                          vertices=[self.lattice()(0)])
-        return self._polyhedron
+        return Polyhedron(rays=self.rays(), vertices=[self.lattice()(0)])
 
     def strict_quotient(self):
         r"""
@@ -3451,7 +3466,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: rho = Cone([(1,1,1,3),(1,-1,1,3),(-1,-1,1,3),(-1,1,1,3)])
             sage: rho.orthogonal_sublattice()
             Sublattice <M(0, 0, 3, -1)>
-            sage: sigma = rho.facets()[2]
+            sage: sigma = rho.facets()[1]
             sage: sigma.orthogonal_sublattice()
             Sublattice <M(0, 1, 1, 0), M(0, 0, 3, -1)>
             sage: sigma.is_face_of(rho)

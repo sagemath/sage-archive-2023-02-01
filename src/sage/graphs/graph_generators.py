@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Common Graphs (Graph Generators)
+Common Graphs
 
 All graphs in Sage can be built through the ``graphs`` object. In order to
 build a complete graph on 15 elements, one can do::

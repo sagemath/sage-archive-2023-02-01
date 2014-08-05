@@ -215,6 +215,7 @@ TESTS::
 import urllib
 import sage.modules.free_module as fm
 import sage.modules.module as module
+from sage.categories.modules import Modules
 from sage.interfaces.all import gap
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -226,7 +227,7 @@ from sage.groups.all import SymmetricGroup
 from sage.misc.misc import prod
 from sage.misc.functional import log, is_even
 from sage.rings.rational_field import QQ
-from sage.structure.parent_gens import ParentWithGens
+from sage.structure.parent import Parent
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import IntegerRing
@@ -689,7 +690,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
 
 ############################ linear codes python class ########################
 
-class LinearCode(module.Module_old):
+class LinearCode(module.Module):
     r"""
     A class for linear codes over a finite field or finite ring. Each instance
     is a linear code determined by a generator matrix `G` (i.e., a
@@ -697,14 +698,14 @@ class LinearCode(module.Module_old):
 
     INPUT:
 
-    -  ``G`` - a generator matrix over `F`. (``G`` can be defined over a
-       finite ring but the matrices over that ring must have certain
-       attributes, such as ``rank``.)
+    - ``G`` -- a generator matrix over `F` (``G`` can be defined over a
+      finite ring but the matrices over that ring must have certain
+      attributes, such as ``rank``)
 
-    - ``d`` - (Optional, default: ``None``) the minimum distance of the
-      code. This is an optional parameter.
+    - ``d`` -- (optional, default: ``None``) the minimum distance of the code
 
-    .. note::
+    .. NOTE::
+
         The veracity of the minimum distance ``d``, if provided, is not
         checked.
 
@@ -773,9 +774,17 @@ class LinearCode(module.Module_old):
             sage: C  = LinearCode(G, d=3)
             sage: C.minimum_distance()
             3
+
+        TESTS::
+
+            sage: C = codes.HammingCode(3, GF(2))
+            sage: TestSuite(C).run()
         """
         base_ring = gen_mat[0,0].parent()
-        ParentWithGens.__init__(self, base_ring)
+        cat = Modules(base_ring).FiniteDimensional().WithBasis().Finite()
+        facade_for = gen_mat.row(0).parent()
+        self.Element = type(gen_mat.row(0)) # for when we make this a non-facade parent
+        Parent.__init__(self, base=base_ring, facade=facade_for, category=cat)
         self.__gens = gen_mat.rows()
         self.__gen_mat = gen_mat
         self.__length = len(gen_mat.row(0))
@@ -795,6 +804,22 @@ class LinearCode(module.Module_old):
             Linear code of length 7, dimension 4 over Finite Field of size 2
         """
         return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
+
+    def _an_element_(self):
+        r"""
+        Return an element of the linear code. Currently, it simply returns
+        the first row of the generator matrix.
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(3, GF(2))
+            sage: C.an_element()
+            (1, 0, 0, 0, 0, 1, 1)
+            sage: C2 = C.cartesian_product(C)
+            sage: C2.an_element()
+            ((1, 0, 0, 0, 0, 1, 1), (1, 0, 0, 0, 0, 1, 1))
+        """
+        return self.__gens[0]
 
     def automorphism_group_gens(self, equivalence="semilinear"):
         r"""
@@ -1562,7 +1587,17 @@ class LinearCode(module.Module_old):
             sage: C3 = C2.punctured([7])
             sage: C1 == C3
             True
+
+        TESTS:
+
+        We check that :trac:`16644` is fixed::
+
+            sage: C = codes.HammingCode(3,GF(2))
+            sage: C == ZZ
+            False
         """
+        if not isinstance(right, LinearCode):
+            return False
         slength = self.length()
         rlength = right.length()
         sdim = self.dimension()
@@ -2028,17 +2063,21 @@ class LinearCode(module.Module_old):
                 return False
         return True
 
-    def __len__(self):
+    def cardinality(self):
         r"""
         Return the size of this code.
 
         EXAMPLES::
 
             sage: C = codes.HammingCode(3, GF(2))
+            sage: C.cardinality()
+            16
             sage: len(C)
             16
         """
         return self.base_ring().order()**self.dimension()
+
+    __len__ = cardinality
 
     def length(self):
         r"""
@@ -2965,6 +3004,28 @@ class LinearCode(module.Module_old):
         x,y = R.gens()
         we = sum([spec[i]*x**(n-i)*y**i for i in range(n+1)])
         return we
+
+    @cached_method
+    def zero(self):
+        r"""
+        Return the zero vector.
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(3, GF(2))
+            sage: C.zero_element()
+            (0, 0, 0, 0, 0, 0, 0)
+            sage: C.sum(()) # indirect doctest
+            (0, 0, 0, 0, 0, 0, 0)
+            sage: C.sum((C.gens())) # indirect doctest
+            (1, 1, 1, 1, 1, 1, 1)
+        """
+        # Note that self.sum() calls self.zero_element(), which in turn
+        # calls self.zero(). So, only this method needs to be implemented
+        # for the other two to work.
+        v = 0*self.__gens[0]
+        v.set_immutable()
+        return v
 
     def zeta_polynomial(self, name="T"):
         r"""

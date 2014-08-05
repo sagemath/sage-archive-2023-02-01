@@ -158,6 +158,9 @@ ext_modules = [
     Extension('sage.categories.action',
               sources = ['sage/categories/action.pyx']),
 
+    Extension('sage.categories.category_cy_helper',
+              sources = ['sage/categories/category_cy_helper.pyx']),
+
     Extension('sage.categories.category_singleton',
               sources = ['sage/categories/category_singleton.pyx']),
 
@@ -996,6 +999,9 @@ ext_modules = [
     Extension('sage.matrix.action',
               sources = ['sage/matrix/action.pyx']),
 
+    Extension('sage.matrix.echelon_matrix',
+              sources = ['sage/matrix/echelon_matrix.pyx']),
+
     Extension('sage.matrix.change_ring',
               sources = ['sage/matrix/change_ring.pyx'],
               libraries=[BLAS, BLAS2, 'gmp'],
@@ -1404,6 +1410,11 @@ ext_modules = [
               include_dirs = [SAGE_INC, "sage/c_lib/include/"],
               libraries=["stdc++"]),
 
+    Extension("sage.numerical.backends.cvxopt_backend",
+              ["sage/numerical/backends/cvxopt_backend.pyx"],
+              include_dirs = [SAGE_INC, "sage/c_lib/include/"],
+              libraries=["stdc++"]),
+
     Extension("sage.numerical.backends.glpk_graph_backend",
               ["sage/numerical/backends/glpk_graph_backend.pyx"],
               include_dirs = [SAGE_INC, "sage/c_lib/include/"],
@@ -1800,6 +1811,9 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.multi_polynomial_ring_generic',
               sources = ['sage/rings/polynomial/multi_polynomial_ring_generic.pyx']),
+
+    Extension('sage.rings.polynomial.polynomial_number_field',
+              sources = ['sage/rings/polynomial/polynomial_number_field.pyx']),
 
     Extension('sage.rings.polynomial.polydict',
               sources = ['sage/rings/polynomial/polydict.pyx']),

@@ -1731,7 +1731,7 @@ def load(filename, globals, attach=False):
         if attach:
             # But see http://en.wikipedia.org/wiki/HTTP_ETag for how
             # we will do this.
-            # http://www.diveintopython.org/http_web_services/etags.html
+            # http://www.diveintopython.net/http_web_services/etags.html
             raise NotImplementedError("you can't attach a URL")
         from remote_file import get_remote_file
         filename = get_remote_file(filename, verbose=False)

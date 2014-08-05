@@ -92,6 +92,7 @@ cdef extern from "flint/fmpq_poly.h":
     void fmpq_poly_get_slice(fmpq_poly_t, fmpq_poly_t, long, long)
     void fmpq_poly_truncate(fmpq_poly_t, unsigned long)
     void fmpq_poly_reverse(fmpq_poly_t, fmpq_poly_t, unsigned long)
+    void fmpq_poly_revert_series(fmpq_poly_t, fmpq_poly_t, unsigned long)
 
     void fmpq_poly_set_array_mpq(fmpq_poly_t, mpq_t *, unsigned long)
     void fmpq_poly_from_string(fmpq_poly_t, char *)

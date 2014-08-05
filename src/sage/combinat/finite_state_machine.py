@@ -3414,6 +3414,8 @@ class FiniteStateMachine(SageObject):
             'bi'
             sage: T([2, 2], format_output=f, list_of_outputs=True)
             ['bi', None]
+            sage: T.process([2, 2], format_output=f, list_of_outputs=True)
+            [(True, 13, 'bi'), (False, 14, 'bj')]
             sage: T([2, 3], format_output=f)
             Traceback (most recent call last):
             ...
@@ -5307,21 +5309,17 @@ class FiniteStateMachine(SageObject):
 
         - ``list_of_outputs`` -- (default: ``None``) a boolean or
           ``None``. If ``True``, then the outputs are given in list form
-          (even when we have no or only one single output). If
+          (even if we have no or only one single output). If
           ``False``, then the result is never a list (an exception is
-          raised when the result cannot be returned). If
+          raised if the result cannot be returned). If
           ``list_of_outputs=None``, the method determines automatically
-          what to do (e.g. when a non-deterministic machine returns more
+          what to do (e.g. if a non-deterministic machine returns more
           than one path, then the output is returned in list form).
 
         - ``only_accepted`` -- (default: ``False``) a boolean. If set,
           then the first argument in the output is guaranteed to be
-          ``True`` (when the output is a list, then the first argument
+          ``True`` (if the output is a list, then the first argument
           of each element will be ``True``).
-
-        All other ``kwargs`` will be passed directly to
-        :class:`FSMProcessIterator` (which is used internally during
-        processing). Those are the following:
 
         - ``input_tape`` -- the input tape can be a list or an
           iterable with entries from the input alphabet. If we are
@@ -5364,8 +5362,8 @@ class FiniteStateMachine(SageObject):
 
         - the second gives the reached state after processing the
           input tape (This is a state with label ``None`` if the input
-          could not be processed, i.e., when at one point no
-          transition to go could be found.), and
+          could not be processed, i.e., if at one point no
+          transition to go on could be found.), and
 
         - the third gives a list of the output labels written during
           processing (in the case the finite state machine runs as
@@ -5374,16 +5372,14 @@ class FiniteStateMachine(SageObject):
         Note that in the case the finite state machine is not
         deterministic, all possible paths are taken into account.
 
-        Internally this function works with an instance of
-        :class:`FSMProcessIterator`.
-        In its simplest form, it behaves like an iterator which, in
-        each step, goes from one state to another. To decide which way
-        to go, it uses the input words of the outgoing transitions and
-        compares them to the input tape. More precisely, in each step,
-        the process iterator takes an outgoing transition of the
-        current state, whose input label equals the input letter of
-        the tape. The output label of the transition, if present, is
-        written on the output tape.
+        In its simplest form, this function behaves like an iterator
+        which, in each step, goes from one state to another. To decide
+        which way to go, it uses the input words of the outgoing
+        transitions and compares them to the input tape. More
+        precisely, in each step, the process iterator takes an
+        outgoing transition of the current state, whose input label
+        equals the input letter of the tape. The output label of the
+        transition, if present, is written on the output tape.
 
         If the choice of the outgoing transition is not unique (i.e.,
         we have a non-deterministic finite state machine), all
@@ -5396,7 +5392,12 @@ class FiniteStateMachine(SageObject):
         coincides with the processed input tape. This can simply
         happen when the entire tape was read.
 
-        When working with multi-tape finite state machines, all input
+        Also see :meth:`FiniteStateMachine.__call__` for a more restricted version
+        of :meth:`.process`. Internally this functions and
+        :meth:`FiniteStateMachine.__call__` work with an instance of
+        :class:`FSMProcessIterator`.
+
+        If working with multi-tape finite state machines, all input
         words of transitions are words of `k`-tuples of letters.
         Moreover, the input tape has to consist of `k` tracks, i.e.,
         be a list or tuple of `k` iterators, one for each track.
@@ -5404,7 +5405,7 @@ class FiniteStateMachine(SageObject):
         .. WARNING::
 
             Working with multi-tape finite state machines is still
-            experimental and can lead to wrong output.
+            experimental and can lead to wrong outputs.
 
         EXAMPLES::
 
@@ -5419,7 +5420,7 @@ class FiniteStateMachine(SageObject):
             (True, 'A', [1, 0, 1, 1, 0, 0])
 
         Below we construct a finite state machine which tests if an input
-        is a non-adjacent form, i.e., no two neigboring letters are
+        is a non-adjacent form, i.e., no two neighboring letters are
         both nonzero (see also the example on
         :ref:`non-adjacent forms <finite_state_machine_recognizing_NAFs_example>`
         in the documentation of the module
@@ -6211,6 +6212,15 @@ class FiniteStateMachine(SageObject):
             {2: [['b']]}
             sage: T.epsilon_successors(2)
             {}
+
+        If there is a cycle with only epsilon transitions, then this
+        cycle is only processed once and there is no infinite loop::
+
+            sage: S = Transducer([(0, 1, None, 'a'), (1, 0, None, 'b')])
+            sage: S.epsilon_successors(0)
+            {0: [['a', 'b']], 1: [['a']]}
+            sage: S.epsilon_successors(1)
+            {0: [['b']], 1: [['b', 'a']]}
         """
         return self.state(state)._epsilon_successors_(self)
 
@@ -9215,25 +9225,21 @@ class Automaton(FiniteStateMachine):
 
         - ``list_of_outputs`` -- (default: ``None``) a boolean or
           ``None``. If ``True``, then the outputs are given in list form
-          (even when we have no or only one single output). If
+          (even if we have no or only one single output). If
           ``False``, then the result is never a list (an exception is
-          raised when the result cannot be returned). If
+          raised if the result cannot be returned). If
           ``list_of_outputs=None`` the method determines automatically
-          what to do (e.g. when a non-deterministic machine returns more
+          what to do (e.g. if a non-deterministic machine returns more
           than one path, then the output is returned in list form).
 
         - ``only_accepted`` -- (default: ``False``) a boolean. If set,
           then the first argument in the output is guaranteed to be
-          ``True`` (when the output is a list, then the first argument
+          ``True`` (if the output is a list, then the first argument
           of each element will be ``True``).
 
         - ``full_output`` -- (default: ``True``) a boolean. If set,
           then the full output is given, otherwise only whether the
           sequence is accepted or not (the first entry below only).
-
-        All other ``kwargs`` will be passed directly to
-        :class:`FSMProcessIterator` (which is used internally during
-        processing). Those are the following:
 
         - ``input_tape`` -- the input tape can be a list or an
           iterable with entries from the input alphabet. If we are
@@ -9276,10 +9282,10 @@ class Automaton(FiniteStateMachine):
 
         - the second gives the state reached after processing the
           input tape (This is a state with label ``None`` if the input
-          could not be processed, i.e., when at one point no
-          transition to go could be found.).
+          could not be processed, i.e., if at one point no
+          transition to go on could be found.).
 
-        When ``full_output`` is ``False``, then only the first entry
+        If ``full_output`` is ``False``, then only the first entry
         is returned.
 
         Note that in the case the automaton is not
@@ -9290,16 +9296,13 @@ class Automaton(FiniteStateMachine):
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
 
-        Internally this function works with an instance of
-        :class:`FSMProcessIterator`.
-        In its simplest form, it behaves like an iterator which, in
-        each step, goes from one state to another. To decide which way
-        to go, it uses the input words of the outgoing transitions and
-        compares them to the input tape. More precisely, in each step,
-        the process iterator takes an outgoing transition of the
-        current state, whose input label equals the input letter of
-        the tape. The output label of the transition, if present, is
-        written on the output tape.
+        In its simplest form, this function behaves like an iterator
+        which, in each step, goes from one state to another. To decide
+        which way to go, it uses the input words of the outgoing
+        transitions and compares them to the input tape. More
+        precisely, in each step, the process iterator takes an
+        outgoing transition of the current state, whose input label
+        equals the input letter of the tape.
 
         If the choice of the outgoing transition is not unique (i.e.,
         we have a non-deterministic finite state machine), all
@@ -9312,7 +9315,12 @@ class Automaton(FiniteStateMachine):
         coincides with the processed input tape. This can simply
         happen when the entire tape was read.
 
-        When working with multi-tape finite state machines, all input
+        Also see :meth:`FiniteStateMachine.__call__` for a more restricted version
+        of :meth:`.process`. Internally this functions and
+        :meth:`FiniteStateMachine.__call__` work with an instance of
+        :class:`FSMProcessIterator`.
+
+        If working with multi-tape finite state machines, all input
         words of transitions are words of `k`-tuples of letters.
         Moreover, the input tape has to consist of `k` tracks, i.e.,
         be a list or tuple of `k` iterators, one for each track.
@@ -9320,7 +9328,7 @@ class Automaton(FiniteStateMachine):
         .. WARNING::
 
             Working with multi-tape finite state machines is still
-            experimental and can lead to wrong output.
+            experimental and can lead to wrong outputs.
 
         EXAMPLES:
 
@@ -9997,26 +10005,22 @@ class Transducer(FiniteStateMachine):
 
         - ``list_of_outputs`` -- (default: ``None``) a boolean or
           ``None``. If ``True``, then the outputs are given in list form
-          (even when we have no or only one single output). If
+          (even if we have no or only one single output). If
           ``False``, then the result is never a list (an exception is
-          raised when the result cannot be returned). If
+          raised if the result cannot be returned). If
           ``list_of_outputs=None`` the method determines automatically
-          what to do (e.g. when a non-deterministic machine returns more
+          what to do (e.g. if  a non-deterministic machine returns more
           than one path, then the output is returned in list form).
 
         - ``only_accepted`` -- (default: ``False``) a boolean. If set,
           then the first argument in the output is guaranteed to be
-          ``True`` (when the output is a list, then the first argument
+          ``True`` (if the output is a list, then the first argument
           of each element will be ``True``).
 
         - ``full_output`` -- (default: ``True``) a boolean. If set,
           then the full output is given, otherwise only the generated
           output (the third entry below only). If the input is not
           accepted, a ``ValueError`` is raised.
-
-        All other ``kwargs`` will be passed directly to
-        :class:`FSMProcessIterator` (which is used internally during
-        processing). Those are the following:
 
         - ``input_tape`` -- the input tape can be a list or an
           iterable with entries from the input alphabet. If we are
@@ -10059,13 +10063,13 @@ class Transducer(FiniteStateMachine):
 
         - the second gives the reached state after processing the
           input tape (This is a state with label ``None`` if the input
-          could not be processed, i.e., when at one point no
-          transition to go could be found.), and
+          could not be processed, i.e., if at one point no
+          transition to go on could be found.), and
 
         - the third gives a list of the output labels written during
           processing.
 
-        When ``full_output`` is ``False``, then only the third entry
+        If ``full_output`` is ``False``, then only the third entry
         is returned.
 
         Note that in the case the transducer is not
@@ -10074,16 +10078,14 @@ class Transducer(FiniteStateMachine):
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
 
-        Internally this function works with an instance of
-        :class:`FSMProcessIterator`.
-        In its simplest form, it behaves like an iterator which, in
-        each step, goes from one state to another. To decide which way
-        to go, it uses the input words of the outgoing transitions and
-        compares them to the input tape. More precisely, in each step,
-        the process iterator takes an outgoing transition of the
-        current state, whose input label equals the input letter of
-        the tape. The output label of the transition, if present, is
-        written on the output tape.
+        In its simplest form, this function behaves like an iterator
+        which, in each step, goes from one state to another. To decide
+        which way to go, it uses the input words of the outgoing
+        transitions and compares them to the input tape. More
+        precisely, in each step, the process iterator takes an
+        outgoing transition of the current state, whose input label
+        equals the input letter of the tape. The output label of the
+        transition, if present, is written on the output tape.
 
         If the choice of the outgoing transition is not unique (i.e.,
         we have a non-deterministic finite state machine), all
@@ -10096,7 +10098,12 @@ class Transducer(FiniteStateMachine):
         coincides with the processed input tape. This can simply
         happen when the entire tape was read.
 
-        When working with multi-tape finite state machines, all input
+        Also see :meth:`FiniteStateMachine.__call__` for a more restricted version
+        of :meth:`.process`. Internally this functions and
+        :meth:`FiniteStateMachine.__call__` work with an instance of
+        :class:`FSMProcessIterator`.
+
+        If working with multi-tape finite state machines, all input
         words of transitions are words of `k`-tuples of letters.
         Moreover, the input tape has to consist of `k` tracks, i.e.,
         be a list or tuple of `k` iterators, one for each track.
@@ -10104,7 +10111,7 @@ class Transducer(FiniteStateMachine):
         .. WARNING::
 
             Working with multi-tape finite state machines is still
-            experimental and can lead to wrong output.
+            experimental and can lead to wrong outputs.
 
         EXAMPLES::
 
@@ -10161,7 +10168,7 @@ class Transducer(FiniteStateMachine):
             ...
             ValueError: Invalid input sequence.
 
-        ::
+        A cycle with empty input and empty output is correctly processed::
 
             sage: T = Transducer([(0, 1, None, None), (1, 0, None, None)],
             ....:                initial_states=[0], final_states=[1])
@@ -10173,7 +10180,8 @@ class Transducer(FiniteStateMachine):
             sage: T.process([0])
             [(False, 0, ['r']), (True, 1, ['r'])]
 
-        ::
+        If there is a cycle with empty input but non-empty output, the
+        possible outputs would be an infinite set::
 
             sage: T = Transducer([(0, 1, None, 'z'), (1, 0, None, None)],
             ....:                initial_states=[0], final_states=[1])
@@ -10182,6 +10190,10 @@ class Transducer(FiniteStateMachine):
             ...
             RuntimeError: State 0 is in an epsilon cycle (no input),
             but output is written.
+
+        But if this cycle with empty input and non-empty output is not
+        reached, the correct output is produced::
+
             sage: _ = T.add_transition(-1, 0, 0, 'r')
             sage: T.state(-1).is_initial = True
             sage: T.state(0).is_initial = False
@@ -10192,6 +10204,31 @@ class Transducer(FiniteStateMachine):
             ...
             RuntimeError: State 0 is in an epsilon cycle (no input),
             but output is written.
+
+        If we set ``check_epsilon_transitions = False``, then all
+        transitions with empty input or output are not considered
+        anymore. Thus cycles with empty input are no problem anymore::
+
+            sage: T.process([0], check_epsilon_transitions=False)
+            (False, 0, ['r'])
+
+        TESTS::
+
+            sage: T = Transducer([(0, 1, 1, 'a'), (1, 0, 1, 'b')],
+            ....:                initial_states=[0, 1], final_states=[1])
+            sage: T.process([1, 1])
+            [(False, 0, ['a', 'b']), (True, 1, ['b', 'a'])]
+            sage: T.process([1, 1], T.state(0))
+            (False, 0, ['a', 'b'])
+            sage: T.state(1).final_word_out = 'c'
+            sage: T.process([1, 1], T.state(1))
+            (True, 1, ['b', 'a', 'c'])
+            sage: T.process([1, 1], T.state(1), write_final_word_out=False)
+            (True, 1, ['b', 'a'])
+            sage: T.process(full_output=False)
+            Traceback (most recent call last):
+            ...
+            TypeError: No input tape given.
         """
         if FSMOldProcessOutput:
             from sage.misc.superseded import deprecation
@@ -10723,7 +10760,7 @@ class _FSMTapeCache_(SageObject):
         if any(letter_on_track != next(it_word)
                for letter_on_track in track_cache):
             return False
-  
+
         # check letters not already cached
         for letter_in_word in it_word:
             successful, letter_on_track = self.read(track_number)
@@ -11224,7 +11261,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
     .. WARNING::
 
         Working with multi-tape finite state machines is still
-        experimental and can lead to wrong output.
+        experimental and can lead to wrong outputs.
 
     EXAMPLES:
 

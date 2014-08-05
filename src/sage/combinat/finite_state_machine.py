@@ -109,7 +109,7 @@ Operations
     :meth:`~FiniteStateMachine.concatenation` | Concatenation (not implemented)
     :meth:`~FiniteStateMachine.Kleene_closure` | Kleene closure (not implemented)
     :meth:`Automaton.intersection` | Intersection of automata
-    :meth:`Transducer.intersection` | Intersection of transducer
+    :meth:`Transducer.intersection` | Intersection of transducers
     :meth:`Transducer.cartesian_product` | Cartesian product of a transducer with another finite state machine
     :meth:`~FiniteStateMachine.product_FiniteStateMachine` | Product of finite state machines
     :meth:`~FiniteStateMachine.composition` | Composition (output of other is input of self)
@@ -833,11 +833,11 @@ def full_group_by(l, key=lambda x: x):
 
         sage: from sage.combinat.finite_state_machine import full_group_by
         sage: t = [2/x, 1/x, 2/x]
-        sage: r = full_group_by([0,1,2], key=lambda i:t[i])
+        sage: r = full_group_by([0, 1, 2], key=lambda i:t[i])
         sage: sorted(r, key=lambda p:p[1])
         [(2/x, [0, 2]), (1/x, [1])]
         sage: from itertools import groupby
-        sage: for k, elements in groupby(sorted([0,1,2],
+        sage: for k, elements in groupby(sorted([0, 1, 2],
         ....:                            key=lambda i:t[i]),
         ....:                            key=lambda i:t[i]):
         ....:     print k, list(elements)
@@ -2314,8 +2314,8 @@ class FiniteStateMachine(SageObject):
 
       This function is assumed to take two arguments, the first being
       the already existing transition, the second being the new
-      transition (as an ``FSMTransition``). The function must return the
-      (possibly modified) original transition.
+      transition (as an :class:`FSMTransition`). The function must
+      return the (possibly modified) original transition.
 
       By default, we have ``on_duplicate_transition=None``, which is
       interpreted as
@@ -2366,15 +2366,15 @@ class FiniteStateMachine(SageObject):
         Instead of the tuple anything iterable (e.g. a list) can be
         used as well.
 
-        If you want to use the arguments of ``FSMTransition``
+        If you want to use the arguments of :class:`FSMTransition`
         directly, you can use a dictionary::
 
             sage: FiniteStateMachine({'a':{'b':{'word_in':0, 'word_out':1},
             ....:                          'c':{'word_in':1, 'word_out':1}}})
             Finite state machine with 3 states
 
-        In the case you already have instances of ``FSMTransition``, it is
-        possible to use them directly::
+        In the case you already have instances of
+        :class:`FSMTransition`, it is possible to use them directly::
 
             sage: FiniteStateMachine({'a':{'b':FSMTransition('a', 'b', 0, 1),
             ....:                          'c':FSMTransition('a', 'c', 1, 1)}})
@@ -5060,8 +5060,9 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``state`` is either an instance of FSMState or, otherwise, a
-          label of a state.
+        - ``state`` is either an instance of
+          :class:`FSMState` or,
+          otherwise, a label of a state.
 
         OUTPUT:
 
@@ -5169,8 +5170,9 @@ class FiniteStateMachine(SageObject):
             sage: FSM.add_transition([A, B, 0, 1])
             Transition from 'A' to 'B': 0|1
 
-        If the states ``A`` and ``B`` are not instances of FSMState, then
-        it is assumed that they are labels of states.
+        If the states ``A`` and ``B`` are not instances of
+        :class:`FSMState`, then it is assumed that they are labels of
+        states.
 
         OUTPUT:
 
@@ -5211,7 +5213,7 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``t`` -- an instance of ``FSMTransition``.
+        - ``t`` -- an instance of :class:`FSMTransition`.
 
         OUTPUT:
 

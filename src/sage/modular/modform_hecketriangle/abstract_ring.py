@@ -320,7 +320,7 @@ class FormsRing_abstract(Parent):
             sage: f_rho = MF.f_rho()
             sage: f_rho.q_expansion(prec=2)[1]
             7/(100*d)
-            sage: MF.default_num_prec(10)
+            sage: MF.default_num_prec(15)
             sage: f_rho.q_expansion_fixed_d(prec=2)[1]
             9.9...
             sage: MF.default_num_prec(100)

@@ -207,7 +207,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             except ArithmeticError, TypeError:
                 pass
         if hasattr(x, 'parent') and self.ambient_module() and self.ambient_module().has_coerce_map_from(x.parent()):
-            return self.element_from_ambient_coordinates(self.ambient_module(x))
+            return self.element_from_ambient_coordinates(self.ambient_module()(x))
         if (isinstance(x,list) or isinstance(x, tuple)) and len(x) == self.degree():
             try:
                 return self.element_from_ambient_coordinates(x)

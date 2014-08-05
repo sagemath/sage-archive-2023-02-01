@@ -240,7 +240,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         return self._ambient_space.degree()
 
     @cached_method
-    def rank (self):
+    def rank(self):
         r"""
         Return the rank of ``self``.
 

@@ -241,7 +241,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def json_repr(self, render_params):
         """
-        Returns representation of the object in JSON format as
+        Return representation of the object in JSON format as
         a list with one element, which is a string of a dictionary
         listing vertices and faces.
 

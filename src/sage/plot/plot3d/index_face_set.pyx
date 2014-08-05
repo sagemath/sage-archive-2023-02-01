@@ -61,6 +61,7 @@ from sage.rings.real_double import RDF
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 
+from sage.plot.colors import Color
 from sage.plot.plot3d.base import Graphics3dGroup
 
 from transform cimport Transformation
@@ -757,11 +758,25 @@ cdef class IndexFaceSet(PrimitiveObject):
         """
         Return a json representation for ``self``.
 
-        TESTS::
+        TESTS:
+
+        A basic test with a triangle::
 
             sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
             sage: G.json_repr(G.default_render_params())
-            ["{vertices:[{x:0,y:0,z:1},{x:1,y:1,z:1},{x:2,y:0,z:1}],faces:[[0,1,2]],color:'0000ff'}"]
+            ["{vertices:[{x:0,y:0,z:1},{x:1,y:1,z:1},{x:2,y:0,z:1}],faces:[[0,1,2]],edge_color:'#0000ff'}"]
+
+        A simple colored one::
+
+            sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: point_list = [(2,0,0),(0,2,0),(0,0,2),(0,1,1),(1,0,1),(1,1,0)]
+            sage: face_list = [[0,4,5],[3,4,5],[2,3,4],[1,3,5]]
+            sage: col = rainbow(10, 'rgbtuple')
+            sage: t_list=[Texture(col[i]) for i in range(10)]
+            sage: S = IndexFaceSet(face_list, point_list, t_list)
+            sage: S.json_repr(S.default_render_params())
+            ["{vertices:[{x:2,y:0,z:0},{x:0,y:2,z:0},{x:0,y:0,z:2},{x:0,y:1,z:1},{x:1,y:0,z:1},{x:1,y:1,z:0}],faces:[[0,4,5],[3,4,5],[2,3,4],[1,3,5]],face_colors:['#ff0000','#ff9900','#cbff00','#33ff00']}"]
         """
 
         cdef Transformation transform = render_params.transform
@@ -778,11 +793,23 @@ cdef class IndexFaceSet(PrimitiveObject):
                     vertices_str += ","
                 vertices_str += format_json_vertex(res)
             vertices_str += "]"
-        faces_str = "[%s]" % ",".join([format_json_face(self._faces[i])
-                                       for i from 0 <= i < self.fcount])
-        color_str = "'%s'" % self.texture.hex_rgb()
-        return ["{vertices:%s,faces:%s,color:%s}" %
-                  (vertices_str, faces_str, color_str)]
+
+        if self.global_texture:
+            faces_str = "[%s]" % ",".join([format_json_face(self._faces[i])
+                                           for i from 0 <= i < self.fcount])
+            color_str = "'#%s'" % self.texture.hex_rgb()
+            return ["{vertices:%s,faces:%s,edge_color:%s}" %
+                    (vertices_str, faces_str, color_str)]
+        else:
+            faces_str = "[%s]" % ",".join([format_json_face(self._faces[i])
+                                           for i from 0 <= i < self.fcount])
+            color_str = "[%s]" % ",".join(["'#%s'"
+                                           % Color(self._faces[i].color.r,
+                                                   self._faces[i].color.g,
+                                                   self._faces[i].color.b).__hex__()
+                                           for i from 0 <= i < self.fcount])
+            return ["{vertices:%s,faces:%s,face_colors:%s}" %
+                    (vertices_str, faces_str, color_str)]
 
     def obj_repr(self, render_params):
         """

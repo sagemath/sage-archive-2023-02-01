@@ -5828,6 +5828,18 @@ class FiniteStateMachine(SageObject):
             ...
             ValueError: other must be a finite state machine or a list
             of finite state machines.
+
+        Check that isolated vertices are kept (:trac:`16762`)::
+
+            sage: F = Transducer(initial_states=[0])
+            sage: F.add_state(1)
+            1
+            sage: G = Transducer(initial_states=['A'])
+            sage: F.product_FiniteStateMachine(G, None).states()
+            [(0, 'A')]
+            sage: F.product_FiniteStateMachine(
+            ....:     G, None, only_accessible_components=False).states()
+            [(0, 'A'), (1, 'A')]
         """
         def default_final_function(*args):
             if any(s.final_word_out for s in args):

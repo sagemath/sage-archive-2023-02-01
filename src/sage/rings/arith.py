@@ -1993,7 +1993,7 @@ def xkcd(n=""):
         img = data['img']
         alt = data['alt']
         title = data['safe_title']
-        link = "http://xkcd.com/{}".format(n)
+        link = "http://xkcd.com/{}".format(data['num'])
         html('<h1>{}</h1><img src="{}" title="{}">'.format(title, img, alt)
             + '<div>Source: <a href="{0}" target="_blank">{0}</a></div>'.format(link))
         return

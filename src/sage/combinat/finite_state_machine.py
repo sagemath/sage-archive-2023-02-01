@@ -5877,6 +5877,16 @@ class FiniteStateMachine(SageObject):
                                   tuple(t.to_state for t in transitions),
                                   word[0], word[1])
 
+        if only_accessible_components:
+            state_iterator = itertools.product(
+                *(m.iter_initial_states() for m in machines))
+        else:
+            state_iterator = itertools.product(
+                *(m.iter_states() for m in machines))
+
+        for state in state_iterator:
+            result.add_state(state)
+
         for state in result.states():
             if all(s.is_initial for s in state.label()):
                 state.is_initial = True
@@ -8925,7 +8935,7 @@ class Transducer(FiniteStateMachine):
             Please use Transducer.intersection for the original output.
             See http://trac.sagemath.org/16061 for details.
             sage: result
-            Transducer with 0 states
+            Transducer with 1 states
 
         By setting ``FSMOldCodeTransducerCartesianProduct`` to ``False``
         the new desired output is produced.

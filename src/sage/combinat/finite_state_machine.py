@@ -5296,7 +5296,8 @@ class FiniteStateMachine(SageObject):
 
     _process_default_options_ = {'full_output': True,
                                  'list_of_outputs': None,
-                                 'only_accepted': False}
+                                 'only_accepted': False,
+                                 'always_include_output': False}
 
     def process(self, *args, **kwargs):
         """
@@ -9431,13 +9432,19 @@ class Automaton(FiniteStateMachine):
             sage: from sage.combinat.finite_state_machine import FSMState
             sage: A = Automaton()
             sage: A._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
-            ....:                            full_output=False)
+            ....:                            full_output=False,
+            ....:                            always_include_output=False)
             True
             sage: A._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
-            ....:                            full_output=True)
+            ....:                            full_output=True,
+            ....:                            always_include_output=False)
             (True, 'a')
+            sage: A._process_convert_output_((True, FSMState('a'), [1, 0, 1]),
+            ....:                            full_output=False,
+            ....:                            always_include_output=True)
+            (True, 'a', [1, 0, 1])
         """
-        if FSMOldProcessOutput or kwargs.get('always_include_output'):
+        if FSMOldProcessOutput or kwargs['always_include_output']:
             return super(Automaton, self)._process_convert_output_(
                 output_data, **kwargs)
         accept_input, current_state, output = output_data

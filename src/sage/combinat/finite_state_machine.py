@@ -2698,6 +2698,8 @@ class FiniteStateMachine(SageObject):
         if with_final_word_out is not None:
             self.construct_final_word_out(with_final_word_out)
 
+        self._allow_composition_ = True
+
 
     #*************************************************************************
     # copy and hash
@@ -2729,7 +2731,7 @@ class FiniteStateMachine(SageObject):
     copy = __copy__
 
 
-    def empty_copy(self, memo=None):
+    def empty_copy(self, memo=None, new_class=None):
         """
         Returns an empty deep copy of the finite state machine, i.e.,
         ``input_alphabet``, ``output_alphabet``, ``on_duplicate_transition``
@@ -2738,6 +2740,9 @@ class FiniteStateMachine(SageObject):
         INPUT:
 
         - ``memo`` -- a dictionary storing already processed elements.
+
+        - ``new_class`` -- a class for the copy. By default
+          (``None``), the class of ``self`` is used.
 
         OUTPUT:
 
@@ -2758,8 +2763,19 @@ class FiniteStateMachine(SageObject):
             [2, 3]
             sage: FE.on_duplicate_transition == duplicate_transition_raise_error
             True
+
+        TESTS::
+
+            sage: T = Transducer()
+            sage: type(T.empty_copy())
+            <class 'sage.combinat.finite_state_machine.Transducer'>
+            sage: type(T.empty_copy(new_class=Automaton))
+            <class 'sage.combinat.finite_state_machine.Automaton'>
         """
-        new = self.__class__()
+        if new_class is None:
+            new = self.__class__()
+        else:
+            new = new_class()
         new.input_alphabet = deepcopy(self.input_alphabet, memo)
         new.output_alphabet = deepcopy(self.output_alphabet, memo)
         new.on_duplicate_transition = self.on_duplicate_transition
@@ -5691,7 +5707,8 @@ class FiniteStateMachine(SageObject):
     def product_FiniteStateMachine(self, other, function,
                                    new_input_alphabet=None,
                                    only_accessible_components=True,
-                                   final_function=None):
+                                   final_function=None,
+                                   new_class=None):
         r"""
         Returns a new finite state machine whose states are
         `d`-tuples of states of the original finite state machines.
@@ -5721,6 +5738,9 @@ class FiniteStateMachine(SageObject):
           default, the final output is the empty word if both final
           outputs of the constituent states are empty; otherwise, a
           ``ValueError`` is raised.
+
+        - ``new_class`` -- Class of the new finite state machine. By
+          default (``None``), the class of ``self`` is used.
 
         OUTPUT:
 
@@ -5863,6 +5883,15 @@ class FiniteStateMachine(SageObject):
             ...
             ValueError: other must be a finite state machine or a list
             of finite state machines.
+
+        Test whether ``new_class`` works::
+
+            sage: T = Transducer()
+            sage: type(T.product_FiniteStateMachine(T, None))
+            <class 'sage.combinat.finite_state_machine.Transducer'>
+            sage: type(T.product_FiniteStateMachine(T, None,
+            ....:      new_class=Automaton))
+            <class 'sage.combinat.finite_state_machine.Automaton'>
         """
         def default_final_function(*args):
             if any(s.final_word_out for s in args):
@@ -5872,7 +5901,7 @@ class FiniteStateMachine(SageObject):
         if final_function is None:
             final_function = default_final_function
 
-        result = self.empty_copy()
+        result = self.empty_copy(new_class=new_class)
         if new_input_alphabet is not None:
             result.input_alphabet = new_input_alphabet
         else:
@@ -6096,7 +6125,43 @@ class FiniteStateMachine(SageObject):
             ....:                 (2, 2, 0, 1), (2, 1, 1, 1)],
             ....:                initial_states=[1], final_states=[1])
             sage: Hd = G.composition(F, algorithm='direct')
+
+        In the following examples, we compose transducers and automata
+        and check whether the types are correct. ::
+
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     is_Automaton, is_Transducer)
+            sage: T = Transducer([(0, 0, 0, 0)], initial_states=[0])
+            sage: A = Automaton([(0, 0, 0)], initial_states=[0])
+            sage: is_Transducer(T.composition(T, algorithm='direct'))
+            True
+            sage: is_Transducer(T.composition(T, algorithm='explorative'))
+            True
+            sage: T.composition(A, algorithm='direct')
+            Traceback (most recent call last):
+            ...
+            TypeError: Composition with automaton is not possible.
+            sage: T.composition(A, algorithm='explorative')
+            Traceback (most recent call last):
+            ...
+            TypeError: Composition with automaton is not possible.
+            sage: A.composition(A, algorithm='direct')
+            Traceback (most recent call last):
+            ...
+            TypeError: Composition with automaton is not possible.
+            sage: A.composition(A, algorithm='explorative')
+            Traceback (most recent call last):
+            ...
+            TypeError: Composition with automaton is not possible.
+            sage: is_Automaton(A.composition(T, algorithm='direct'))
+            True
+            sage: is_Automaton(A.composition(T, algorithm='explorative'))
+            True
         """
+        if not other._allow_composition_:
+            raise TypeError("Composition with automaton is not "
+                            "possible.")
+
         if algorithm is None:
             algorithm = 'direct'
         if algorithm == 'direct':
@@ -6138,7 +6203,8 @@ class FiniteStateMachine(SageObject):
         result = other.product_FiniteStateMachine(
             self, function,
             only_accessible_components=only_accessible_components,
-            final_function=lambda s1, s2: [])
+            final_function=lambda s1, s2: [],
+            new_class=self.__class__)
 
         for state_result in result.iter_states():
             state = state_result.label()[0]
@@ -6179,8 +6245,9 @@ class FiniteStateMachine(SageObject):
         new colors have to be hashable such that
         :meth:`Automaton.determinisation` does not fail::
 
-            sage: A = Automaton([[0, 0, 0]], initial_states=[0])
-            sage: B = A.composition(A, algorithm='explorative')
+            sage: T = Transducer([[0, 0, 0, 0]], initial_states=[0])
+            sage: A = T.input_projection()
+            sage: B = A.composition(T, algorithm='explorative')
             sage: B.states()[0].color
             (None, None)
             sage: B.determinisation()
@@ -6227,7 +6294,7 @@ class FiniteStateMachine(SageObject):
                                       "currently not implemented for "
                                       "non-deterministic transducers.")
 
-        F = other.empty_copy()
+        F = other.empty_copy(new_class=self.__class__)
         new_initial_states = [(other.initial_states()[0], self.initial_states()[0])]
         F.add_from_transition_function(composition_transition,
                                        initial_states=new_initial_states)
@@ -8124,6 +8191,23 @@ class Automaton(FiniteStateMachine):
         sage: Automaton()
         Automaton with 0 states
     """
+
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize an automaton. See :class:`Automaton` and its parent
+        :class:`FiniteStateMachine` for more information.
+
+        TESTS::
+
+            sage: Transducer()._allow_composition_
+            True
+            sage: Automaton()._allow_composition_
+            False
+
+        """
+        super(Automaton, self).__init__(*args, **kwargs)
+        self._allow_composition_ = False
+
 
     def _repr_(self):
         """

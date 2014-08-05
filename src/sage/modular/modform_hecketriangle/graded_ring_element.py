@@ -631,7 +631,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: gen3 = subspace2.gen(1)
 
             sage: (gen0 - gen2).parent()
-            ModularForms(n=7, k=12, ep=1) over Integer Ring
+            Subspace of dimension 2 of ModularForms(n=7, k=12, ep=1) over Integer Ring
             sage: (gen2 - ring_el).parent()
             MeromorphicModularFormsRing(n=7) over Integer Ring
             sage: (gen0 - 1.1).parent()

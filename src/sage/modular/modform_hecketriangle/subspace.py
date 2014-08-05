@@ -20,7 +20,6 @@ from sage.rings.all import ZZ, QQ, infinity
 
 from sage.modules.module import Module
 from sage.categories.all import Modules
-from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import vector
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
@@ -32,20 +31,30 @@ from abstract_space import FormsSpace_abstract
 def canonical_parameters(ambient_space, basis):
     r"""
     Return a canonical version of the parameters.
+    In particular the list/tuple ``basis`` is replaced by a
+    tuple of linearly independent elements in the ambient space.
 
     EXAMPLES::
 
         sage: from sage.modular.modform_hecketriangle.subspace import canonical_parameters
         sage: from sage.modular.modform_hecketriangle.space import ModularForms
         sage: MF = ModularForms(n=6, k=12, ep=1)
-        sage: canonical_parameters(MF, [MF.Delta().as_ring_element(), MF.gen(0)])
+        sage: canonical_parameters(MF, [MF.Delta().as_ring_element(), MF.gen(0), 2*MF.gen(0)])
         (ModularForms(n=6, k=12, ep=1) over Integer Ring,
          (q + 30*q^2 + 333*q^3 + 1444*q^4 + O(q^5),
           1 + 26208*q^3 + 530712*q^4 + O(q^5)))
     """
 
-    basis = tuple([ambient_space(v) for v in basis])
-    # TODO: Check the base ring, reduce vectors to basis, etc
+    new_coord_basis = []
+    new_basis = []
+
+    for v in basis:
+        v_coord = ambient_space(v).ambient_coordinate_vector()
+        if (not ambient_space.ambient_module().are_linearly_dependent(new_coord_basis + [v_coord])):
+            new_coord_basis += [v_coord]
+            new_basis += [ambient_space(v)]
+
+    basis = tuple(new_basis)
 
     return (ambient_space, basis)
 
@@ -81,7 +90,8 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         - ``ambient_space``  -- An ambient forms space.
 
-        - ``basis```         -- A tuple of linearly independent elements of ``ambient_space``.
+        - ``basis``          -- A tuple of (not necessarily linearly independent)
+                                elements of ``ambient_space``.
 
         OUTPUT:
 
@@ -95,7 +105,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             ModularForms(n=6, k=20, ep=1) over Integer Ring
             sage: MF.dimension()
             4
-            sage: subspace = MF.subspace([MF.Delta()*MF.E4()^2, MF.gen(0)])
+            sage: subspace = MF.subspace([MF.Delta()*MF.E4()^2, MF.gen(0), 2*MF.gen(0)])
             sage: subspace
             Subspace of dimension 2 of ModularForms(n=6, k=20, ep=1) over Integer Ring
             sage: subspace.analytic_type()

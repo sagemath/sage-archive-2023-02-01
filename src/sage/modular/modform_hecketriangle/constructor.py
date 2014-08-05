@@ -44,7 +44,7 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
                             to the ``HeckeTriangleGroup`` with that parameter
                             (default: `3`).
 
-    - ``base_ring```     -- The base ring of the corresponding forms ring, resp.
+    - ``base_ring``      -- The base ring of the corresponding forms ring, resp.
                             polynomial ring (default: ``ZZ``).
 
     OUTPUT:

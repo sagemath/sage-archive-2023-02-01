@@ -247,23 +247,33 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         from space import ZeroForm
+        from subspace import SubSpaceForms
         if   (  isinstance(S, ZeroForm)):
             return True
-        elif ( not self.is_ambient()):
-            if (self == S):
-                return True
-            else:
-                return False
+        elif (  isinstance(S, SubSpaceForms)):
+            for v in S.gens():
+                try:
+                    self(v)
+                except:
+                    return False
+            return True
         elif (  isinstance(S, FormsSpace_abstract)\
             and self.graded_ring().has_coerce_map_from(S.graded_ring())\
             and S.weight()    == self._weight\
-            and S.ep()        == self._ep ):
+            and S.ep()        == self._ep\
+            and not isinstance(self, SubSpaceForms)):
                 return True
         elif (self.AT("holo") <= self._analytic_type\
             and self._weight  == 0\
             and self._ep      == 1\
             and self.coeff_ring().has_coerce_map_from(S) ):
-                return True
+                if (isinstance(self, SubSpaceForms)):
+                    try:
+                        self(1)
+                    except:
+                        return False
+                else:
+                    return True
         else:
             return False
 
@@ -410,7 +420,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF=ModularForms(k=12)
             sage: MF.subspace([MF.gen(1)]).construction()
-            (FormsSubSpaceFunctor with 1 basis element for the ModularFormsFunctor(n=3, k=12, ep=1), BaseFacade(Integer Ring))
+            (FormsSubSpaceFunctor with 1 generator for the ModularFormsFunctor(n=3, k=12, ep=1), BaseFacade(Integer Ring))
         """
 
         from functors import FormsSubSpaceFunctor, FormsSpaceFunctor, BaseFacade

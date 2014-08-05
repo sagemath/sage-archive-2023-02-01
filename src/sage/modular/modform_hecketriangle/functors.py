@@ -119,13 +119,13 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
     rank = 10
 
-    def __init__(self, ambient_space_functor, basis):
+    def __init__(self, ambient_space_functor, generators):
         r"""
         Construction functor for the forms sub space
-        for the given ``basis`` inside the ambient space
+        for the given ``generators`` inside the ambient space
         which is constructed by the ``ambient_space_functor``.
 
-        The functor can only be applied to rings for which the basis
+        The functor can only be applied to rings for which the generators
         can be converted into the corresponding forms space
         given by the ``ambient_space_functor`` applied to the ring.
 
@@ -135,7 +135,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
         - ``ambient_space_functor`` -- A FormsSpaceFunctor
 
-        - ``basis``                 -- A list of elements of some ambient space
+        - ``generators``            -- A list of elements of some ambient space
                                        over some base ring.
 
         OUTPUT:
@@ -152,24 +152,24 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
             ModularFormsFunctor(n=4, k=12, ep=1)
             sage: el = ambient_space.gen(0).full_reduce()
             sage: FormsSubSpaceFunctor(ambient_space_functor, [el])
-            FormsSubSpaceFunctor with 1 basis element for the ModularFormsFunctor(n=4, k=12, ep=1)
+            FormsSubSpaceFunctor with 1 generator for the ModularFormsFunctor(n=4, k=12, ep=1)
         """
 
         Functor.__init__(self, Rings(), CommutativeAdditiveGroups())
         if not isinstance(ambient_space_functor, FormsSpaceFunctor):
             raise ValueError("{} is not a FormsSpaceFunctor!".format(ambient_space_functor))
         # TODO: canonical parameters? Some checks?
-        # The basis should have an associated base ring
-        # self._basis_ring = ...
-        # on call check if there is a coercion from self._basis_ring to R
+        # The generators should have an associated base ring
+        # self._generators_ring = ...
+        # on call check if there is a coercion from self._generators_ring to R
 
         self._ambient_space_functor = ambient_space_functor
-        self._basis = basis
+        self._generators = generators
 
     def __call__(self, R):
         r"""
         Return the corresponding subspace of the ambient space
-        constructed by ``self._ambient_space`` with the basis ``self._basis``.
+        constructed by ``self._ambient_space`` with the generators ``self._generators``.
         If the ambient space is not a forms space the ambient space is returned.
 
         EXAMPLES::
@@ -181,7 +181,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
             sage: el = ambient_space.gen(0)
             sage: F = FormsSubSpaceFunctor(ambient_space_functor, [el])
             sage: F
-            FormsSubSpaceFunctor with 1 basis element for the CuspFormsFunctor(n=4, k=12, ep=1)
+            FormsSubSpaceFunctor with 1 generator for the CuspFormsFunctor(n=4, k=12, ep=1)
 
             sage: F(BaseFacade(ZZ))
             Subspace of dimension 1 of CuspForms(n=4, k=12, ep=1) over Integer Ring
@@ -193,7 +193,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
             sage: ambient_space_functor = FormsSpaceFunctor("holo", group=4, k=0, ep=1)
             sage: F = FormsSubSpaceFunctor(ambient_space_functor, [1])
             sage: F
-            FormsSubSpaceFunctor with 1 basis element for the ModularFormsFunctor(n=4, k=0, ep=1)
+            FormsSubSpaceFunctor with 1 generator for the ModularFormsFunctor(n=4, k=0, ep=1)
             sage: F(BaseFacade(ZZ))
             Subspace of dimension 1 of ModularForms(n=4, k=0, ep=1) over Integer Ring
             sage: F(CC)
@@ -202,7 +202,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
         ambient_space = self._ambient_space_functor(R)
         if isinstance(ambient_space, FormsSpace_abstract):
-            return SubSpaceForms(ambient_space, self._basis)
+            return SubSpaceForms(ambient_space, self._generators)
         else:
             return ambient_space
 
@@ -217,12 +217,12 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
             sage: ambient_space = ModularForms(n=4, k=12, ep=1)
             sage: ambient_space_functor = FormsSpaceFunctor("holo", group=4, k=12, ep=1)
             sage: FormsSubSpaceFunctor(ambient_space_functor, ambient_space.gens())
-            FormsSubSpaceFunctor with 2 basis elements for the ModularFormsFunctor(n=4, k=12, ep=1)
+            FormsSubSpaceFunctor with 2 generators for the ModularFormsFunctor(n=4, k=12, ep=1)
             sage: FormsSubSpaceFunctor(ambient_space_functor, [ambient_space.gen(0)])
-            FormsSubSpaceFunctor with 1 basis element for the ModularFormsFunctor(n=4, k=12, ep=1)
+            FormsSubSpaceFunctor with 1 generator for the ModularFormsFunctor(n=4, k=12, ep=1)
         """
 
-        return "FormsSubSpaceFunctor with {} basis {} for the {}".format(len(self._basis), 'elements' if len(self._basis) != 1 else 'element', self._ambient_space_functor)
+        return "FormsSubSpaceFunctor with {} generator{} for the {}".format(len(self._generators), 's' if len(self._generators) != 1 else '', self._ambient_space_functor)
 
     def merge(self, other):
         r"""
@@ -233,7 +233,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
         merging the two corresponding functors.
 
         If that ambient space functor is a FormsSpaceFunctor
-        and the basis agree the corresponding ``FormsSubSpaceFunctor``
+        and the generators agree the corresponding ``FormsSubSpaceFunctor``
         is returned.
 
         If ``other`` is not a ``FormsSubSpaceFunctor`` then ``self``
@@ -258,10 +258,10 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
             sage: ss_functor1.merge(ss_functor1) is ss_functor1
             True
             sage: ss_functor1.merge(ss_functor2)
-            FormsSubSpaceFunctor with 1 basis element for the ModularFormsFunctor(n=4, k=12, ep=1)
-            sage: ss_functor1.merge(ss_functor2) == FormsSubSpaceFunctor(merged_ambient, [ambient_space.gen(0)])
+            FormsSubSpaceFunctor with 2 generators for the ModularFormsFunctor(n=4, k=12, ep=1)
+            sage: ss_functor1.merge(ss_functor2) == FormsSubSpaceFunctor(merged_ambient, [ambient_space.gen(0), ambient_space.gen(0)])
             True
-            sage: ss_functor1.merge(ss_functor3) == merged_ambient
+            sage: ss_functor1.merge(ss_functor3) == FormsSubSpaceFunctor(merged_ambient, [ambient_space.gen(0), 2*ambient_space.gen(0)])
             True
             sage: ss_functor1.merge(ambient_space_functor2) == merged_ambient
             True
@@ -274,14 +274,8 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
         elif isinstance(other, FormsSubSpaceFunctor):
             merged_ambient_space_functor = self._ambient_space_functor.merge(other._ambient_space_functor)
             if isinstance(merged_ambient_space_functor, FormsSpaceFunctor):
-                if (self._basis == other._basis):
-                    basis = self._basis
-                    return FormsSubSpaceFunctor(merged_ambient_space_functor, basis)
-                else:
-                    ## FIXME: Either construct a basis of the span or raise NotImplementedError.
-                    #TODO: Or combine the basis to a new basis (which one?)
-                    #basis = self._basis + other._basis
-                    return merged_ambient_space_functor
+                generators = self._generators + other._generators
+                return FormsSubSpaceFunctor(merged_ambient_space_functor, generators)
             # This includes the case when None is returned
             else:
                 return merged_ambient_space_functor
@@ -306,7 +300,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
         if    ( type(self)                  == type(other)\
             and self._ambient_space_functor == other._ambient_space_functor\
-            and self._basis                 == other._basis ):
+            and self._generators            == other._generators ):
                 return True
         else:
             return False

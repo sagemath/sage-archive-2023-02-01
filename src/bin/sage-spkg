@@ -743,6 +743,4 @@ fi
 touch "$SAGE_LOCAL/lib/sage-force-relocate.txt"
 
 
-echo "Finished installing $PKG_NAME.spkg."
-echo ""
-echo "It is a good idea to update the Sage library now: please run 'make' from \$SAGE_ROOT."
+echo "Finished installing $PKG_NAME.spkg"

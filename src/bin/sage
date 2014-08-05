@@ -761,6 +761,8 @@ install() {
         if [ $? -ne 0 ]; then
             exit 1
         fi
+        echo ""
+        echo "It is a good idea to update the Sage library now: please run 'make' from \$SAGE_ROOT."
     done
     exit 0
 }

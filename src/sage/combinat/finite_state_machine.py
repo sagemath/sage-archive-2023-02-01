@@ -3291,6 +3291,13 @@ class FiniteStateMachine(SageObject):
             sage: T([0])
             [1]
 
+        .. SEEALSO::
+
+            :meth:`.composition`,
+            :meth:`~FiniteStateMachine.process`,
+            :meth:`Automaton.process`,
+            :meth:`Transducer.process`.
+
         TESTS::
 
             sage: F = FiniteStateMachine([(0, 1, 1, 'a'), (0, 2, 2, 'b')],
@@ -5504,6 +5511,14 @@ class FiniteStateMachine(SageObject):
             sage: M.process(([1, 1], [1]), use_multitape_input=True)
             (True, 1, ['a', 'a', 'b'])
 
+        .. SEEALSO::
+
+            :meth:`Automaton.process`,
+            :meth:`Transducer.process`,
+            :meth:`FiniteStateMachine.iter_process`,
+            :meth:`FiniteStateMachine.__call__`,
+            :class:`FSMProcessIterator`.
+
         TESTS::
 
             sage: T = Transducer([(0, 1, [0, 0], 0), (0, 2, [0, 0, 1], 0),
@@ -5686,6 +5701,14 @@ class FiniteStateMachine(SageObject):
             process (0 branches)
             sage: it.result()
             [(True, 'A', [1, 0, 0])]
+
+        .. SEEALSO::
+
+            :meth:`FiniteStateMachine.process`,
+            :meth:`Automaton.process`,
+            :meth:`Transducer.process`,
+            :meth:`FiniteStateMachine.__call__`,
+            :class:`FSMProcessIterator`.
         """
         return FSMProcessIterator(self,
                                   input_tape=input_tape,
@@ -9456,6 +9479,14 @@ class Automaton(FiniteStateMachine):
             sage: N.process(([1, 1, 0, 1], [0, 0, 1, 0, 1, 1]),
             ....:           use_multitape_input=True)
             (True, '=')
+
+        .. SEEALSO::
+
+            :meth:`FiniteStateMachine.process`,
+            :meth:`Transducer.process`,
+            :meth:`FiniteStateMachine.iter_process`,
+            :meth:`FiniteStateMachine.__call__`,
+            :class:`FSMProcessIterator`.
         """
         if FSMOldProcessOutput:
             from sage.misc.superseded import deprecation
@@ -10324,6 +10355,14 @@ class Transducer(FiniteStateMachine):
             ....:                final_states=[1])
             sage: M.process(([1, 1], [1]), use_multitape_input=True)
             (True, 1, ['a', 'a', 'b'])
+
+        .. SEEALSO::
+
+            :meth:`FiniteStateMachine.process`,
+            :meth:`Automaton.process`,
+            :meth:`FiniteStateMachine.iter_process`,
+            :meth:`FiniteStateMachine.__call__`,
+            :class:`FSMProcessIterator`.
 
         TESTS::
 
@@ -11467,6 +11506,15 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         sage: it.result()
         [(False, 1, 'abcd'), (True, 2, 'abc')]
 
+    .. SEEALSO::
+
+        :meth:`FiniteStateMachine.process`,
+        :meth:`Automaton.process`,
+        :meth:`Transducer.process`,
+        :meth:`FiniteStateMachine.iter_process`,
+        :meth:`FiniteStateMachine.__call__`,
+        :meth:`next`.
+
     TESTS::
 
         sage: T = Transducer([[0, 0, 0, 0]])
@@ -11866,6 +11914,15 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             Traceback (most recent call last):
             ...
             StopIteration
+
+        .. SEEALSO::
+
+            :meth:`FiniteStateMachine.process`,
+            :meth:`Automaton.process`,
+            :meth:`Transducer.process`,
+            :meth:`FiniteStateMachine.iter_process`,
+            :meth:`FiniteStateMachine.__call__`,
+            :class:`FSMProcessIterator`.
 
         TESTS::
 

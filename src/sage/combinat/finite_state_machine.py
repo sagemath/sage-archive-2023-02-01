@@ -6721,7 +6721,9 @@ class FiniteStateMachine(SageObject):
             sage: Hd == He
             True
 
-        ::
+        The following example has output of length `> 1`, so the
+        explorative algorithm has to be used (and is selected
+        automatically). ::
 
             sage: F = Transducer([('A', 'B', 1, [1, 0]), ('B', 'B', 1, 1),
             ....:                 ('B', 'B', 0, 0)],
@@ -6740,7 +6742,7 @@ class FiniteStateMachine(SageObject):
             sage: Ha == He
             True
 
-        Also final output words are considered::
+        Final output words are also considered::
 
             sage: F = Transducer([('A', 'B', 1, 0), ('B', 'A', 0, 1)],
             ....:                initial_states=['A', 'B'],
@@ -6811,17 +6813,6 @@ class FiniteStateMachine(SageObject):
             sage: B.composition(A, algorithm='explorative').transitions()
             [Transition from (0, 0) to (0, 0): 0|0,
              Transition from (0, 0) to (1, 0): 0|0]
-            sage: F = Transducer([('A', 'B', 1, 0), ('B', 'A', 0, 1)],
-            ....:                initial_states=['A', 'B'], final_states=['B'],
-            ....:                determine_alphabets=True)
-            sage: G = Transducer([(1, 1, 1, 0), (1, 2, 0, 1),
-            ....:                 (2, 2, 1, 1), (2, 2, 0, 0)],
-            ....:                initial_states=[1], final_states=[2],
-            ....:                determine_alphabets=True)
-
-        Due to the limitations of the two algorithms the following
-        (example from above, but different algorithm used) does not
-        not work.
 
         In the following example, ``algorithm='direct'`` is inappropriate
         as there are edges with output labels of length greater than 1::

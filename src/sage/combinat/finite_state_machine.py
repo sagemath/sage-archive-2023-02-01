@@ -3248,8 +3248,9 @@ class FiniteStateMachine(SageObject):
             already be achieved by setting
             ``FSMOldProcessOutput`` to ``False``.
 
-        Calls either method :meth:`.composition` or :meth:`.process`
-        (with ``full_output=False``).
+        Calls either method :meth:`.composition` or :meth:`.process` (with
+        ``full_output=False``). See the documentation of these functions for
+        possible parameters.
 
         By setting ``FSMOldProcessOutput`` to ``False``
         the new desired output is produced.
@@ -3414,6 +3415,9 @@ class FiniteStateMachine(SageObject):
             'bi'
             sage: T([2, 2], format_output=f, list_of_outputs=True)
             ['bi', None]
+            sage: T([2, 2], format_output=f,
+            ....:   list_of_outputs=True, only_accepted=True)
+            ['bi']
             sage: T.process([2, 2], format_output=f, list_of_outputs=True)
             [(True, 13, 'bi'), (False, 14, 'bj')]
             sage: T([2, 3], format_output=f)
@@ -9401,6 +9405,28 @@ class Automaton(FiniteStateMachine):
             Transition from '_' to 's': 2|-
             sage: NAF.process([2])
             (False, 's')
+
+        A simple example of a multi-tape automaton is the following: It checks
+        whether the two input tapes have the same number of ones::
+
+            sage: M = Automaton([('=', '=', (1, 1)),
+            ....:                ('=', '=', (None, 0)),
+            ....:                ('=', '=', (0, None)),
+            ....:                ('=', '<', (None, 1)),
+            ....:                ('<', '<', (None, 1)),
+            ....:                ('<', '<', (None, 0)),
+            ....:                ('=', '>', (1, None)),
+            ....:                ('>', '>', (1, None)),
+            ....:                ('>', '>', (0, None))],
+            ....:               initial_states=['='],
+            ....:               final_states=['='])
+            sage: M.process(([1, 0, 1], [1, 0]), use_multitape_input=True)
+            (False, '>')
+            sage: M.process(([0, 1, 0], [0, 1, 1]), use_multitape_input=True)
+            (False, '<')
+            sage: M.process(([1, 1, 0, 1], [0, 0, 1, 0, 1, 1]),
+            ....:           use_multitape_input=True)
+            (True, '=')
         """
         if FSMOldProcessOutput:
             from sage.misc.superseded import deprecation
@@ -11832,7 +11858,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: N.state(0).hook = h_old
             sage: N.process([0, 0])
             doctest:...: DeprecationWarning: The hook of state 0 cannot
-            be processed: It seem that you are using an old-style hook,
+            be processed: It seems that you are using an old-style hook,
             which is deprecated.
             See http://trac.sagemath.org/16538 for details.
             (False, 0, [1, 1])
@@ -11861,7 +11887,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                 if len(inspect.getargspec(current_state.hook).args) == 2:
                     from sage.misc.superseded import deprecation
                     deprecation(16538, 'The hook of state %s cannot be '
-                                'processed: It seem that you are using an '
+                                'processed: It seems that you are using an '
                                 'old-style hook, which is deprecated. '
                                 % (current_state,))
                 else:

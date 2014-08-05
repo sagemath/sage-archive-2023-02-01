@@ -1303,6 +1303,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
           - 'magma' - use MAGMA
 
+          - 'zero_sum' - Use the rank bounding zero sum method implemented
+            in self.analytic_rank_upper_bound()
+
           - 'all' - compute with all other free algorithms, check that
             the answers agree, and return the common answer.
 
@@ -1311,8 +1314,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            If the curve is loaded from the large Cremona database,
            then the modular degree is taken from the database.
 
-        Of the three above, probably Rubinstein's is the most
-        efficient (in some limited testing I've done).
+        Of the first three algorithms above, probably Rubinstein's is the
+        most efficient (in some limited testing done).
+
+        The zero sum method is often *much* faster, but can return a
+        value which is strictly larger than the analytic rank. For curves
+        with conductor <=10^9 using default parameters, testing indicates
+        that for 99.75% of curves the returned rank bound is the true
+        rank.
 
         .. note::
 
@@ -1330,12 +1339,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             2
             sage: E.analytic_rank(algorithm='magma')    # optional - magma
             2
+            sage: E.analytic_rank(algorithm='zero_sum')
+            2
             sage: E.analytic_rank(algorithm='all')
             2
 
         With the optional parameter leading_coefficient set to ``True``, a
         tuple of both the analytic rank and the leading term of the
-        L-series at `s = 1` is returned::
+        L-series at `s = 1` is returned. This only works for algorithm=='pari'::
 
             sage: EllipticCurve([0,-1,1,-10,-20]).analytic_rank(leading_coefficient=True)
             (0, 0.25384186085591068...)
@@ -1385,6 +1396,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 raise NotImplementedError("Cannot compute leading coefficient using magma")
             from sage.interfaces.all import magma
             return rings.Integer(magma(self).AnalyticRank())
+        elif algorithm == 'zero_sum':
+            if leading_coefficient:
+                s = "Cannot compute leading coefficient using the zero sum method"
+                raise NotImplementedError(s)
+            return self.analytic_rank_upper_bound()
         elif algorithm == 'all':
             if leading_coefficient:
                 S = set([self.analytic_rank('pari', True)])
@@ -1837,6 +1853,15 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             except (AttributeError, RuntimeError):
                 pass
         if not only_use_mwrank:
+            # Try zero sum rank bound first; if this is 0 or 1 it's the
+            # true rank
+            rank_bound = self.analytic_rank_upper_bound()
+            if rank_bound <= 1:
+                misc.verbose("rank %s due to zero sum bound and parity"%rank_bound)
+                self.__rank[proof] = rank_bound
+                return self.__rank[proof]
+            # Next try evaluate the L-function or its derivative at the
+            # central point
             N = self.conductor()
             prec = int(4*float(sqrt(N))) + 10
             if self.root_number() == 1:

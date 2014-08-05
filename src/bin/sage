@@ -761,9 +761,15 @@ install() {
         if [ $? -ne 0 ]; then
             exit 1
         fi
-        echo ""
-        echo "It is a good idea to update the Sage library now: please run 'make' from \$SAGE_ROOT."
     done
+    # Display a message if we actually installed something (using this
+    # file, generated bij sage-spkg, is a bit of a hack though)
+    if [ -f "$SAGE_LOCAL/lib/sage-force-relocate.txt" ]; then
+        echo
+        echo "Warning: it might be needed to update the Sage library before"
+        echo "installed packages work: you should run 'make' from \$SAGE_ROOT"
+        echo "before running Sage."
+    fi
     exit 0
 }
 

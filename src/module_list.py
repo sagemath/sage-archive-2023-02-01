@@ -1060,6 +1060,14 @@ ext_modules = [
               # order matters for cygwin!!
               libraries = ['iml', 'pari', 'gmp', 'm', BLAS, BLAS2]),
 
+    Extension('sage.matrix.matrix_integer_dense_flint',
+              sources = ['sage/matrix/matrix_integer_dense_flint.pyx'],
+              language="c++",
+              extra_compile_args = ["-std=c99",  "-D_XPG6"]+ m4ri_extra_compile_args,
+              # order matters for cygwin!!
+              libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'stdc++','flint'],
+              depends = [SAGE_INC + '/m4ri/m4ri.h']+ flint_depends),
+              
     Extension('sage.matrix.matrix_integer_sparse',
               sources = ['sage/matrix/matrix_integer_sparse.pyx'],
               libraries = ['gmp']),

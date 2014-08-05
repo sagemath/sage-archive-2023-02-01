@@ -4,7 +4,7 @@ Difference families
 This module gathers everything related to difference families. One can build a
 difference family (or check that it can be built) with :func:`difference_family`::
 
-    sage: OA = designs.difference_family(7,4,1)
+    sage: G,F = designs.difference_family(13,4,1)
 
 It defines the following functions:
 

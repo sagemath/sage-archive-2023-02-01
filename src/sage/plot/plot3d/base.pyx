@@ -1307,7 +1307,7 @@ end_scene""" % (render_params.antialiasing,
 
     def ply_ascii_string(self, name="surface"):
         """
-        Return an PLY (Polygon File Format) representation of the surface.
+        Return a PLY (Polygon File Format) representation of the surface.
 
         INPUT:
 
@@ -1467,6 +1467,9 @@ end_scene""" % (render_params.antialiasing,
 
         - a data file (of type: X3D, STL, AMF, PLY) for use in other software
 
+        For data files, the support is only partial. For instance STL and
+        AMF only works for triangulated surfaces. The prefered format is X3D.
+
         INPUT:
 
         - ``filename`` - Specify where to save the image or object.
@@ -1523,21 +1526,22 @@ end_scene""" % (render_params.antialiasing,
                 import PIL.Image as Image
                 Image.open(out_filename).save(filename)
         elif ext == '.x3d':
-                outfile = file(filename, 'w')
-                outfile.write(self.x3d())
-                outfile.close()
+            outfile = file(filename, 'w')
+            outfile.write(self.x3d())
+            outfile.close()
         elif ext == '.stl':
-                outfile = file(filename, 'w')
-                outfile.write(self.stl_ascii_string())
-                outfile.close()
+            outfile = file(filename, 'w')
+            outfile.write(self.stl_ascii_string())
+            outfile.close()
         elif ext == '.amf':
-                outfile = file(filename, 'w')
-                outfile.write(self.amf_ascii_string())
-                outfile.close()
+            # todo : zip the output file ?
+            outfile = file(filename, 'w')
+            outfile.write(self.amf_ascii_string())
+            outfile.close()
         elif ext == '.ply':
-                outfile = file(filename, 'w')
-                outfile.write(self.ply_ascii_string())
-                outfile.close()
+            outfile = file(filename, 'w')
+            outfile.write(self.ply_ascii_string())
+            outfile.close()
         else:
             raise ValueError('filetype {} not supported by save()'.format(ext))
 

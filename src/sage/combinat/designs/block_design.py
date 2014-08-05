@@ -220,7 +220,7 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
     if algorithm == "gap":   # Requires GAP's Design
         from sage.interfaces.gap import gap
         gap.load_package("design")
-        gap.eval("D := PGPointFlatBlockDesign( %s, %s, %d )"%(n,q,d))
+        gap.eval("D := PGPointFlatBlockDesign( %s, %s, %d )"%(n,F.order(),d))
         v = eval(gap.eval("D.v"))
         gblcks = eval(gap.eval("D.blocks"))
         gB = []

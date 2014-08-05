@@ -6901,6 +6901,25 @@ class FiniteStateMachine(SageObject):
             ...
             NotImplementedError: Stopping in state (0, 'I') leads to
             non-deterministic final output.
+
+        Check that the output and input alphabets are set correctly ::
+
+            sage: F = Transducer([(0, 0, 1, 'A')],
+            ....:                initial_states=[0])
+            sage: G = Transducer([(2, 2, 'A', 'a')],
+            ....:                initial_states=[2])
+            sage: Hd = G(F, algorithm='direct')
+            sage: Hd.input_alphabet
+            [1]
+            sage: Hd.output_alphabet
+            ['a']
+            sage: He = G(F, algorithm='explorative')
+            sage: He.input_alphabet
+            [1]
+            sage: He.output_alphabet
+            ['a']
+            sage: Hd == He
+            True
         """
         if not other._allow_composition_:
             raise TypeError("Composition with automaton is not "
@@ -7060,6 +7079,7 @@ class FiniteStateMachine(SageObject):
 
             state.color = tuple(s.color for s in state.label())
 
+        F.output_alphabet = second.output_alphabet
         return F
 
 

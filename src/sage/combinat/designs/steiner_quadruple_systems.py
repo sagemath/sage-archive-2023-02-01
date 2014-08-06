@@ -823,7 +823,7 @@ def _SQS14():
     r"""
     Return a Steiner Quadruple System on 14 points.
 
-    Obtained form the La Jolla Covering Repository.
+    Obtained from the La Jolla Covering Repository.
 
     EXAMPLE::
 
@@ -855,7 +855,7 @@ def _SQS38():
     r"""
     Return a Steiner Quadruple System on 14 points.
 
-    Obtained form the La Jolla Covering Repository.
+    Obtained from the La Jolla Covering Repository.
 
     EXAMPLE::
 

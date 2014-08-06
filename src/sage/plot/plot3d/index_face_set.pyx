@@ -96,7 +96,8 @@ cdef inline format_json_vertex(point_c P):
     return PyString_FromStringAndSize(ss, r)
 
 cdef inline format_json_face(face_c face):
-    return "[%s]" % ",".join([str(face.vertices[i]) for i from 0 <= i < face.n])
+    return "[{}]".format(",".join([str(face.vertices[i])
+                                   for i from 0 <= i < face.n]))
 
 cdef inline format_obj_vertex(point_c P):
     cdef char ss[100]
@@ -126,7 +127,6 @@ cdef inline format_obj_face_back(face_c face, int off):
     else:
         return "f " + " ".join([str(face.vertices[i] + off) for i from face.n > i >= 0])
     return PyString_FromStringAndSize(ss, r)
-
 
 cdef inline format_pmesh_vertex(point_c P):
     cdef char ss[100]
@@ -164,8 +164,6 @@ cdef inline format_pmesh_face(face_c face):
     return PyString_FromStringAndSize(ss, r)
 
 
-
-
 cdef class IndexFaceSet(PrimitiveObject):
 
     """
@@ -177,6 +175,11 @@ cdef class IndexFaceSet(PrimitiveObject):
     the points directly for each polygon, each face consists a list
     of pointers into a common list of points which are basically triples
     of doubles in a \code{point_c}.
+
+    Moreover, each face has an attribute ``color`` which is used to
+    store color information when faces are colored. The red/green/blue
+    components are then available as floats between 0 and 1 using
+    ``color.r,color.g,color.g``.
 
     Usually these objects are not created directly by users.
 
@@ -200,14 +203,14 @@ cdef class IndexFaceSet(PrimitiveObject):
         [[(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 0.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 2.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 3.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 4.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 5.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 6.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 7.0)]]
         sage: S.show()
 
-    Example of colored IndexFaceSet (:trac:`12212`)::
+    A simple example of colored IndexFaceSet (:trac:`12212`)::
 
         sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
         sage: from sage.plot.plot3d.texture import Texture
         sage: point_list = [(2,0,0),(0,2,0),(0,0,2),(0,1,1),(1,0,1),(1,1,0)]
         sage: face_list = [[0,4,5],[3,4,5],[2,3,4],[1,3,5]]
         sage: col = rainbow(10, 'rgbtuple')
-        sage: t_list=[Texture(col[i]) for i in range(10)]
+        sage: t_list = [Texture(col[i]) for i in range(10)]
         sage: S = IndexFaceSet(face_list, point_list, t_list)
     """
     def __cinit__(self):
@@ -778,13 +781,13 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: S.json_repr(S.default_render_params())
             ["{vertices:[{x:2,y:0,z:0},{x:0,y:2,z:0},{x:0,y:0,z:2},{x:0,y:1,z:1},{x:1,y:0,z:1},{x:1,y:1,z:0}],faces:[[0,4,5],[3,4,5],[2,3,4],[1,3,5]],face_colors:['#ff0000','#ff9900','#cbff00','#33ff00']}"]
         """
-
         cdef Transformation transform = render_params.transform
         cdef point_c res
 
         if transform is None:
-            vertices_str = "[%s]" % ",".join([format_json_vertex(self.vs[i])
-                                              for i from 0 <= i < self.vcount])
+            vertices_str = "[{}]".format(
+                ",".join([format_json_vertex(self.vs[i])
+                          for i from 0 <= i < self.vcount]))
         else:
             vertices_str = "["
             for i from 0 <= i < self.vcount:
@@ -794,20 +797,18 @@ cdef class IndexFaceSet(PrimitiveObject):
                 vertices_str += format_json_vertex(res)
             vertices_str += "]"
 
+        faces_str = "[{}]".format(",".join([format_json_face(self._faces[i])
+                                            for i from 0 <= i < self.fcount]))
         if self.global_texture:
-            faces_str = "[%s]" % ",".join([format_json_face(self._faces[i])
-                                           for i from 0 <= i < self.fcount])
-            color_str = "'#%s'" % self.texture.hex_rgb()
+            color_str = "'#{}'".format(self.texture.hex_rgb())
             return ["{vertices:%s,faces:%s,edge_color:%s}" %
                     (vertices_str, faces_str, color_str)]
         else:
-            faces_str = "[%s]" % ",".join([format_json_face(self._faces[i])
-                                           for i from 0 <= i < self.fcount])
-            color_str = "[%s]" % ",".join(["'#%s'"
-                                           % Color(self._faces[i].color.r,
-                                                   self._faces[i].color.g,
-                                                   self._faces[i].color.b).__hex__()
-                                           for i from 0 <= i < self.fcount])
+            color_str = "[{}]".format(",".join(["'#{}'".format(
+                    Color(self._faces[i].color.r,
+                          self._faces[i].color.g,
+                          self._faces[i].color.b).__hex__())
+                                            for i from 0 <= i < self.fcount]))
             return ["{vertices:%s,faces:%s,face_colors:%s}" %
                     (vertices_str, faces_str, color_str)]
 

@@ -31,6 +31,8 @@ AUTHORS:
 - Simon Spicer (2013-03): Added code for modular degrees and congruence
   numbers of higher level
 
+- Simon Spicer (2014-08): Added new analytic rank computatation functionality
+
 """
 
 ##############################################################################
@@ -65,6 +67,8 @@ import padic_lseries
 import padics
 
 from sage.modular.modsym.modsym import ModularSymbols
+
+from sage.lfunctions.zero_sums import LFunctionZeroSum_EllipticCurve
 
 import sage.modular.modform.constructor
 import sage.modular.modform.element
@@ -1294,33 +1298,47 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def analytic_rank(self, algorithm="pari", leading_coefficient=False):
         r"""
         Return an integer that is *probably* the analytic rank of this
-        elliptic curve.  If leading_coefficient is ``True`` (only implemented
-        for PARI), return a tuple `(rank, lead)` where `lead` is the value of
-        the first non-zero derivative of the L-function of the elliptic
-        curve.
+        elliptic curve.
 
         INPUT:
 
-        - algorithm -
+        - ``algorithm`` - (default: 'pari'), One of:
 
-          - 'pari' (default) - use the PARI library function.
+          - ``'pari'`` - use the PARI library function.
 
-          - 'sympow' -use Watkins's program sympow
+          - ``'sympow'`` - use Watkins's program sympow
 
-          - 'rubinstein' - use Rubinstein's L-function C++ program lcalc.
+          - ``'rubinstein'`` - use Rubinstein's L-function C++ program lcalc.
 
-          - 'magma' - use MAGMA
+          - ``'magma'`` - use MAGMA
 
-          - 'all' - compute with all other free algorithms, check that
+          - ``'zero_sum'`` - Use the rank bounding zero sum method implemented
+            in self.analytic_rank_upper_bound()
+
+          - ``'all'`` - compute with PARI, sympow and lcalc, check that
             the answers agree, and return the common answer.
+
+        - ``leading_coefficient`` - (default: False) Boolean; if set to
+          True, return a tuple `(rank, lead)` where `lead` is the value of
+          the first non-zero derivative of the L-function of the elliptic
+          curve. Only implemented for algorithm='pari'.
 
         .. note::
 
            If the curve is loaded from the large Cremona database,
            then the modular degree is taken from the database.
 
-        Of the three above, probably Rubinstein's is the most
-        efficient (in some limited testing I've done).
+        Of the first three algorithms above, probably Rubinstein's is the
+        most efficient (in some limited testing done). The zero sum method
+        is often *much* faster, but can return a value which is strictly
+        larger than the analytic rank. For curves with conductor <=10^9
+        using default parameters, testing indicates that for 99.75% of
+        curves the returned rank bound is the true rank.
+
+        .. note::
+
+            If you use set_verbose(1), extra information about the computation
+            will be printed when algorithm='zero_sum'.
 
         .. note::
 
@@ -1338,12 +1356,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             2
             sage: E.analytic_rank(algorithm='magma')    # optional - magma
             2
+            sage: E.analytic_rank(algorithm='zero_sum')
+            2
             sage: E.analytic_rank(algorithm='all')
             2
 
         With the optional parameter leading_coefficient set to ``True``, a
         tuple of both the analytic rank and the leading term of the
-        L-series at `s = 1` is returned::
+        L-series at `s = 1` is returned. This only works for algorithm=='pari'::
 
             sage: EllipticCurve([0,-1,1,-10,-20]).analytic_rank(leading_coefficient=True)
             (0, 0.25384186085591068...)
@@ -1393,6 +1413,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 raise NotImplementedError("Cannot compute leading coefficient using magma")
             from sage.interfaces.all import magma
             return rings.Integer(magma(self).AnalyticRank())
+        elif algorithm == 'zero_sum':
+            if leading_coefficient:
+                s = "Cannot compute leading coefficient using the zero sum method"
+                raise NotImplementedError(s)
+            return self.analytic_rank_upper_bound()
         elif algorithm == 'all':
             if leading_coefficient:
                 S = set([self.analytic_rank('pari', True)])
@@ -1405,6 +1430,155 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         else:
             raise ValueError("algorithm %s not defined"%algorithm)
 
+    def analytic_rank_upper_bound(self,
+                                  max_Delta=None,
+                                  adaptive=True,
+                                  N=None,
+                                  root_number=True,
+                                  bad_primes=None):
+        """
+        Return an upper bound for the analytic rank of self, conditional on
+        the Generalized Riemann Hypothesis, via computing the zero sum
+            '\sum_{\gamma} f(\Delta*\gamma),'
+        where '\gamma' ranges over the imaginary parts of the zeros of 'L(E,s)'
+        along the critical strip, 'f(x) = (\sin(\pi x)/(\pi x))^2', and Delta
+        is the tightness parameter whose maximum value is specified by
+        max_Delta. This computation can be run on curves with very large
+        conductor (so long as the conductor is known or quickly
+        computable) when Delta is not too large (see below).
+        Uses Bober's rank bounding method as described in [Bob13].
+
+        INPUT:
+
+        - ``max_Delta`` -- (default: None) If not None, a positive real value
+          specifying the maximum Delta value used in the zero sum; larger
+          values of Delta yield better bounds - but runtime is exponential in
+          Delta. If left as None, Delta is set to
+              '\min\{(\log(N+1000)/2-\log(2\pi)-\eta)/\pi\, 2.5}'
+          where 'N' is the conductor of the curve attached to self, and '\eta'
+          is the Euler-Mascheroni constant '= 0.5772\ldots'; the crossover
+          point is at conductor ~8.3*10^8. For the former value, empirical
+          results show that for about 99.7% of all curves the returned value
+          is the actual analytic rank.
+
+        - ``adaptive`` -- (default: True) Either True or False.
+          - If True, the computation is first run with small and then
+            successively larger Delta values up to max_Delta. If at any
+            point the computed bound is 0 (or 1 when when root_number is -1
+            or True), the computation halts and that value is returned;
+            otherwise the minimum of the computed bounds is returned.
+          - If False, the computation is run a single time with
+            Delta=max_Delta, and the resulting bound returned.
+
+        - ``N`` -- (default: None) If not None, a positive integer equal to
+          the conductor of self. This is passable so that rank estimation
+          can be done for curves whose (large) conductor has been precomputed.
+
+        - ``root_number`` -- (default: True) One of True, False, 1 or -1:
+          - If True, the root number of self is computed and used to (possibly)
+            lower ther analytic rank estimate by 1.
+          - If False, the above step is omitted.
+          - If 1 or -1, this value is assumed to be the root number of self.
+            This is passable so that rank estimation can be done for curves
+            whose root number has been precomputed.
+
+        - ``bad_primes`` -- (default: None) If not None, a list of the primes
+          of bad reduction for the curve attached to self. This is passable
+          so that rank estimation can be done for curves of large conductor
+          whose bad primes have been precomputed.
+
+        .. NOTE::
+
+            Output will be incorrect if the incorrect conductor or root number
+            is specified.
+
+        .. WARNING::
+
+            Zero sum computation time is exponential in the tightness parameter
+            '\Delta', roughly doubling for every increase of 0.1 thereof.
+            Using '\Delta=1' (and adaptive=False) will yield a runtime of a few
+            milliseconds; '\Delta=2' takes a few seconds, and '\Delta=3' may
+            take upwards of an hour. Increase beyond this at your own risk!
+
+        OUTPUT:
+
+        A non-negative integer greater than or equal to the analytic rank of
+        self.
+
+        .. NOTE::
+
+            If you use set_verbose(1), extra information about the computation
+            will be printed.
+
+        .. SEEALSO::
+
+            :func:`LFunctionZeroSum`
+            :meth:`.root_number`
+            :func:`set_verbose`
+
+        EXAMPLES:
+
+        For most elliptic curves with small conductor the central zero(s)
+        of 'L_E(s)' are fairly isolated, so small values of '\Delta'
+        will yield tight rank estimates:
+
+        ::
+
+            sage: E = EllipticCurve('11a')
+            sage: E.rank()
+            0
+            sage: E.analytic_rank_upper_bound(max_Delta=1,adaptive=False)
+            0
+
+            sage: E = EllipticCurve([-39,123])
+            sage: E.rank()
+            1
+            sage: E.analytic_rank_upper_bound(max_Delta=1,adaptive=True)
+            1
+
+        This is especially true for elliptic curves with large rank:
+
+        ::
+
+            sage: E = elliptic_curves.rank(8)[0]; E
+            Elliptic Curve defined by y^2 + y = x^3 - 23737*x + 960366 over Rational Field
+            sage: E.analytic_rank_upper_bound(max_Delta=1)
+            8
+
+        However, some curves have 'L'-functions with low-lying zeroes, and for these
+        larger values of '\Delta' must be used to get tight estimates:
+
+        ::
+
+            sage: E = EllipticCurve('974b1')
+            sage: r = E.rank(); r
+            0
+            sage: E.analytic_rank_upper_bound(max_Delta=1,root_number=False)
+            1
+            sage: E.analytic_rank_upper_bound(max_Delta=1.3,root_number=False)
+            0
+
+        Knowing the root number of E allows us to use smaller Delta values
+        to get tight bounds, thus speeding up runtime considerably:
+
+        ::
+
+            sage: E.analytic_rank_upper_bound(max_Delta=0.6,root_number=True)
+            0
+
+        REFERENCES:
+
+        [Bob13] J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
+        ANTS 10. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
+
+        """
+
+        Z = LFunctionZeroSum_EllipticCurve(self,N)
+        bound = Z.analytic_rank_upper_bound(max_Delta=max_Delta,
+                                            adaptive=adaptive,
+                                            root_number=root_number,
+                                            bad_primes=bad_primes)
+        return bound
 
     def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=3,
                           maxprob=20, limbigprime=30, known_points=None):
@@ -1630,12 +1804,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         -  ``use_database (bool)`` - (default: False), if
            True, try to look up the regulator in the Cremona database.
 
-        -  ``verbose`` - (default: None), if specified changes
-           the verbosity of mwrank computations. algorithm -
+        -  ``verbose`` - (default: False), if specified changes
+           the verbosity of mwrank computations.
 
-        -  ``- 'mwrank_shell'`` - call mwrank shell command
+        -  ``algorithm`` - (default: 'mwrank_lib'), one of:
 
-        -  ``- 'mwrank_lib'`` - call mwrank c library
+            -  ``'mwrank_shell'`` - call mwrank shell command
+
+            -  ``'mwrank_lib'`` - call mwrank c library
 
         -  ``only_use_mwrank`` - (default: True) if False try
            using analytic rank methods first.
@@ -1708,6 +1884,15 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 # curve not in database, or rank not known
                 pass
         if not only_use_mwrank:
+            # Try zero sum rank bound first; if this is 0 or 1 it's the
+            # true rank
+            rank_bound = self.analytic_rank_upper_bound()
+            if rank_bound <= 1:
+                misc.verbose("rank %s due to zero sum bound and parity"%rank_bound)
+                self.__rank[proof] = rank_bound
+                return self.__rank[proof]
+            # Next try evaluate the L-function or its derivative at the
+            # central point
             N = self.conductor()
             prec = int(4*float(sqrt(N))) + 10
             if self.root_number() == 1:
@@ -2650,7 +2835,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         Tests if curve is p-minimal at a given prime p.
 
-        INPUT: p - a primeOUTPUT: True - if curve is p-minimal
+        INPUT: p - a prime
+
+        OUTPUT: True - if curve is p-minimal
 
 
         -  ``False`` - if curve isn't p-minimal

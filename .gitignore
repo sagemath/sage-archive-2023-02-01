@@ -1,4 +1,6 @@
 *.pyc
+*.sage-chat
+*.sage-backup
 /.BUILDSTART
 /dist
 /local

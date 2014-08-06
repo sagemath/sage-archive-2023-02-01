@@ -16,7 +16,7 @@ It defines the following functions:
 
     :meth:`orthogonal_array` | Return an orthogonal array of parameters `k,n,t`.
     :meth:`transversal_design` | Return a transversal design of parameters `k,n`.
-    :meth:`incomplete_orthogonal_array` | Returns an `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)`.
+    :meth:`incomplete_orthogonal_array` | Return an `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)`.
 
 
 .. csv-table::
@@ -26,14 +26,14 @@ It defines the following functions:
 
     :meth:`is_transversal_design` | Check that a given set of blocks ``B`` is a transversal design.
     :meth:`~sage.combinat.designs.designs_pyx.is_orthogonal_array` | Check that the integer matrix `OA` is an `OA(k,n,t)`.
-    :meth:`wilson_construction` | Returns a `OA(k,rm+u)` from a truncated `OA(k+s,r)` by Wilson's construction.
-    :meth:`TD_product` | Returns the product of two transversal designs.
-    :meth:`OA_find_disjoint_blocks` | Returns `x` disjoint blocks contained in a given `OA(k,n)`.
-    :meth:`OA_relabel` | Returns a relabelled version of the OA.
-    :meth:`OA_from_quasi_difference_matrix` | Returns an Orthogonal Array from a Quasi-Difference matrix
-    :meth:`OA_from_Vmt` | Returns an Orthogonal Array from a `V(m,t)`
-    :meth:`OA_from_PBD` | Returns an `OA(k,n)` from a PBD
-    :meth:`OA_from_wider_OA` | Returns the first `k` columns of `OA`.
+    :meth:`wilson_construction` | Return a `OA(k,rm+u)` from a truncated `OA(k+s,r)` by Wilson's construction.
+    :meth:`TD_product` | Return the product of two transversal designs.
+    :meth:`OA_find_disjoint_blocks` | Return `x` disjoint blocks contained in a given `OA(k,n)`.
+    :meth:`OA_relabel` | Return a relabelled version of the OA.
+    :meth:`OA_from_quasi_difference_matrix` | Return an Orthogonal Array from a Quasi-Difference matrix
+    :meth:`OA_from_Vmt` | Return an Orthogonal Array from a `V(m,t)`
+    :meth:`OA_from_PBD` | Return an `OA(k,n)` from a PBD
+    :meth:`OA_from_wider_OA` | Return the first `k` columns of `OA`.
 
 .. TODO::
 
@@ -90,7 +90,7 @@ def transversal_design(k,n,check=True,existence=False):
       guys), you may want to disable it whenever you want speed. Set to
       ``True`` by default.
 
-    - ``existence`` (boolean) -- instead of building the design, returns:
+    - ``existence`` (boolean) -- instead of building the design, return:
 
         - ``True`` -- meaning that Sage knows how to build the design
 
@@ -386,7 +386,7 @@ def is_transversal_design(B,k,n, verbose=False):
 
 def wilson_construction(OA,k,r,m,n_trunc,u,check=True):
     r"""
-    Returns a `OA(k,rm+u)` from a truncated `OA(k+s,r)` by Wilson's construction.
+    Return a `OA(k,rm+u)` from a truncated `OA(k+s,r)` by Wilson's construction.
 
     Let `OA` be a truncated `OA(k+s,r)` with `s` truncated columns of sizes
     `u_1,...,u_s`, whose blocks have sizes in `\{k+b_1,...,k+b_t\}`. If there
@@ -482,7 +482,7 @@ def wilson_construction(OA,k,r,m,n_trunc,u,check=True):
 
 def TD_product(k,TD1,n1,TD2,n2, check=True):
     r"""
-    Returns the product of two transversal designs.
+    Return the product of two transversal designs.
 
     From a transversal design `TD_1` of parameters `k,n_1` and a transversal
     design `TD_2` of parameters `k,n_2`, this function returns a transversal
@@ -675,7 +675,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
       guys), you may want to disable it whenever you want speed. Set to
       ``True`` by default.
 
-    - ``existence`` (boolean) -- instead of building the design, returns:
+    - ``existence`` (boolean) -- instead of building the design, return:
 
         - ``True`` -- meaning that Sage knows how to build the design
 
@@ -921,7 +921,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
 
 def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
     r"""
-    Returns an `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)`.
+    Return an `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)`.
 
     An `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)` is an orthogonal array from
     which have been removed disjoint `OA(k,s_1),...,OA(k,s_x)`. So it can
@@ -946,7 +946,7 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
           Right now the feature is only available when all holes have size 1,
           i.e. `s_i=1`.
 
-    - ``existence`` (boolean) -- instead of building the design, returns:
+    - ``existence`` (boolean) -- instead of building the design, return:
 
         - ``True`` -- meaning that Sage knows how to build the design
 
@@ -1077,7 +1077,7 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
 
 def OA_find_disjoint_blocks(OA,k,n,x):
     r"""
-    Returns `x` disjoint blocks contained in a given `OA(k,n)`.
+    Return `x` disjoint blocks contained in a given `OA(k,n)`.
 
     `x` blocks of an `OA` are said to be disjoint if they all have
     different values for a every given index, i.e. if they correspond to
@@ -1134,7 +1134,7 @@ def OA_find_disjoint_blocks(OA,k,n,x):
 
 def OA_relabel(OA,k,n,blocks=tuple(),matrix=None):
     r"""
-    Returns a relabelled version of the OA.
+    Return a relabelled version of the OA.
 
     INPUT:
 
@@ -1212,7 +1212,7 @@ def OA_relabel(OA,k,n,blocks=tuple(),matrix=None):
 
 def OA_from_quasi_difference_matrix(M,G,add_col=True):
     r"""
-    Returns an Orthogonal Array from a Quasi-Difference matrix
+    Return an Orthogonal Array from a Quasi-Difference matrix
 
     **Difference Matrices**
 
@@ -1316,7 +1316,7 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
 
 def OA_from_Vmt(m,t,V):
     r"""
-    Returns an Orthogonal Array from a `V(m,t)`
+    Return an Orthogonal Array from a `V(m,t)`
 
     **Definition**
 
@@ -1384,7 +1384,7 @@ def OA_from_Vmt(m,t,V):
 
 def OA_from_PBD(k,n,PBD, check=True):
     r"""
-    Returns an `OA(k,n)` from a PBD
+    Return an `OA(k,n)` from a PBD
 
     **Construction**
 
@@ -1462,7 +1462,7 @@ def OA_from_PBD(k,n,PBD, check=True):
 
 def OA_from_wider_OA(OA,k):
     r"""
-    Returns the first `k` columns of `OA`.
+    Return the first `k` columns of `OA`.
 
     If `OA` has `k` columns, this function returns `OA` immediately.
 

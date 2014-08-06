@@ -159,7 +159,7 @@ def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parame
 
 def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
     """
-    Returns a projective geometry design.
+    Return a projective geometry design.
 
     A projective geometry design of parameters `n,d,F` has for points the lines
     of `F^{n+1}`, and for blocks the `d+1`-dimensional subspaces of `F^{n+1}`,
@@ -373,7 +373,7 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
 
 def projective_plane(n, check=True, existence=False):
     r"""
-    Returns a projective plane of order ``n`` as a 2-design.
+    Return a projective plane of order ``n`` as a 2-design.
 
     A finite projective plane is a 2-design with `n^2+n+1` lines (or blocks) and
     `n^2+n+1` points. For more information on finite projective planes, see the
@@ -459,7 +459,7 @@ def projective_plane(n, check=True, existence=False):
 
 def AffineGeometryDesign(n, d, F):
     r"""
-    Returns an Affine Geometry Design.
+    Return an Affine Geometry Design.
 
     INPUT:
 

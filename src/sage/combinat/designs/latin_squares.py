@@ -18,9 +18,9 @@ The functions defined here are
     :widths: 30, 70
     :delim: |
 
-    :meth:`mutually_orthogonal_latin_squares` | Returns `k` Mutually Orthogonal `n\times n` Latin Squares.
+    :meth:`mutually_orthogonal_latin_squares` | Return `k` Mutually Orthogonal `n\times n` Latin Squares.
     :meth:`are_mutually_orthogonal_latin_squares` | Check that the list ``l`` of matrices in are MOLS.
-    :meth:`latin_square_product` | Returns the product of two (or more) latin squares.
+    :meth:`latin_square_product` | Return the product of two (or more) latin squares.
     :meth:`MOLS_table` | Prints the MOLS table.
 
 **Table of MOLS**
@@ -201,7 +201,7 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
 
 def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, existence=False):
     r"""
-    Returns `k` Mutually Orthogonal `n\times n` Latin Squares (MOLS).
+    Return `k` Mutually Orthogonal `n\times n` Latin Squares (MOLS).
 
     For more information on Mutually Orthogonal Latin Squares, see
     :mod:`~sage.combinat.designs.latin_squares`.
@@ -228,7 +228,7 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
       partitions satisfying this intersection property instead of the `k+2` MOLS
       (though the data is exactly the same in both cases).
 
-    - ``existence`` (boolean) -- instead of building the design, returns:
+    - ``existence`` (boolean) -- instead of building the design, return:
 
         - ``True`` -- meaning that Sage knows how to build the design
 
@@ -434,7 +434,7 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
 
 def latin_square_product(M,N,*others):
     r"""
-    Returns the product of two (or more) latin squares.
+    Return the product of two (or more) latin squares.
 
     Given two Latin Squares `M,N` of respective sizes `m,n`, the direct product
     `M\times N` of size `mn` is defined by `(M\times

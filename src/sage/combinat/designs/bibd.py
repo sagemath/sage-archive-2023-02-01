@@ -16,16 +16,16 @@ It defines the following functions:
     :widths: 30, 70
     :delim: |
 
-    :func:`balanced_incomplete_block_design` | Returns a BIBD of parameters `v,k`.
-    :func:`BIBD_from_TD` | Returns a BIBD through TD-based constructions.
+    :func:`balanced_incomplete_block_design` | Return a BIBD of parameters `v,k`.
+    :func:`BIBD_from_TD` | Return a BIBD through TD-based constructions.
     :func:`BIBD_from_difference_family` | Return the BIBD associated to the difference family ``D`` on the group ``G``.
-    :func:`BIBD_from_PBD` | Returns a `(v,k,1)`-BIBD from a `(r,K)`-PBD where `r=(v-1)/(k-1)`.
-    :func:`PBD_from_TD` | Returns a `(kt,\{k,t\})`-PBD if `u=0` and a `(kt+u,\{k,k+1,t,u\})`-PBD otherwise.
-    :func:`steiner_triple_system` | Returns a Steiner Triple System.
-    :func:`v_5_1_BIBD` | Returns a `(v,5,1)`-BIBD.
-    :func:`v_4_1_BIBD` | Returns a `(v,4,1)`-BIBD.
-    :func:`PBD_4_5_8_9_12` | Returns a `(v,\{4,5,8,9,12\})`-PBD on `v` elements.
-    :func:`BIBD_5q_5_for_q_prime_power` | Returns a `(5q,5,1)`-BIBD with `q\equiv 1\pmod 4` a prime power.
+    :func:`BIBD_from_PBD` | Return a `(v,k,1)`-BIBD from a `(r,K)`-PBD where `r=(v-1)/(k-1)`.
+    :func:`PBD_from_TD` | Return a `(kt,\{k,t\})`-PBD if `u=0` and a `(kt+u,\{k,k+1,t,u\})`-PBD otherwise.
+    :func:`steiner_triple_system` | Return a Steiner Triple System.
+    :func:`v_5_1_BIBD` | Return a `(v,5,1)`-BIBD.
+    :func:`v_4_1_BIBD` | Return a `(v,4,1)`-BIBD.
+    :func:`PBD_4_5_8_9_12` | Return a `(v,\{4,5,8,9,12\})`-PBD on `v` elements.
+    :func:`BIBD_5q_5_for_q_prime_power` | Return a `(5q,5,1)`-BIBD with `q\equiv 1\pmod 4` a prime power.
 
 
 **Construction of BIBD when** `k=4`
@@ -60,7 +60,7 @@ from sage.rings.arith import is_prime_power
 
 def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     r"""
-    Returns a BIBD of parameters `v,k`.
+    Return a BIBD of parameters `v,k`.
 
     A Balanced Incomplete Block Design of parameters `v,k` is a collection
     `\mathcal C` of `k`-subsets of `V=\{0,\dots,v-1\}` such that for any two
@@ -77,7 +77,7 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
 
     - ``v,k`` (integers)
 
-    - ``existence`` (boolean) -- instead of building the design, returns:
+    - ``existence`` (boolean) -- instead of building the design, return:
 
         - ``True`` -- meaning that Sage knows how to build the design
 
@@ -244,7 +244,7 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
 
 def steiner_triple_system(n):
     r"""
-    Returns a Steiner Triple System
+    Return a Steiner Triple System
 
     A Steiner Triple System (STS) of a set `\{0,...,n-1\}`
     is a family `S` of 3-sets such that for any `i \not = j`
@@ -261,7 +261,7 @@ def steiner_triple_system(n):
 
     INPUT:
 
-    - ``n`` returns a Steiner Triple System of `\{0,...,n-1\}`
+    - ``n`` return a Steiner Triple System of `\{0,...,n-1\}`
 
     EXAMPLE:
 
@@ -329,13 +329,13 @@ def steiner_triple_system(n):
 
 def BIBD_from_TD(v,k,existence=False):
     r"""
-    Returns a BIBD through TD-based constructions.
+    Return a BIBD through TD-based constructions.
 
     INPUT:
 
     - ``v,k`` (integers) -- computes a `(v,k,1)`-BIBD.
 
-    - ``existence`` (boolean) -- instead of building the design, returns:
+    - ``existence`` (boolean) -- instead of building the design, return:
 
         - ``True`` -- meaning that Sage knows how to build the design
 
@@ -539,7 +539,7 @@ def BIBD_from_difference_family(G, D, check=True):
 
 def v_4_1_BIBD(v, check=True):
     r"""
-    Returns a `(v,4,1)`-BIBD.
+    Return a `(v,4,1)`-BIBD.
 
     A `(v,4,1)`-BIBD is an edge-decomposition of the complete graph `K_v` into
     copies of `K_4`. For more information, see
@@ -627,7 +627,7 @@ def v_4_1_BIBD(v, check=True):
 
 def BIBD_from_PBD(PBD,v,k,check=True,base_cases={}):
     r"""
-    Returns a `(v,k,1)`-BIBD from a `(r,K)`-PBD where `r=(v-1)/(k-1)`.
+    Return a `(v,k,1)`-BIBD from a `(r,K)`-PBD where `r=(v-1)/(k-1)`.
 
     This is Theorem 7.20 from [Stinson2004]_.
 
@@ -802,7 +802,7 @@ def _relabel_bibd(B,n,p=None):
 
 def PBD_4_5_8_9_12(v, check=True):
     """
-    Returns a `(v,\{4,5,8,9,12\})`-PBD on `v` elements.
+    Return a `(v,\{4,5,8,9,12\})`-PBD on `v` elements.
 
     A `(v,\{4,5,8,9,12\})`-PBD exists if and only if `v\equiv 0,1 \pmod 4`. The
     construction implemented here appears page 168 in [Stinson2004]_.
@@ -943,7 +943,7 @@ table_7_1 = {
 
 def _get_t_u(v):
     r"""
-    Returns the parameters of table 7.1 from [Stinson2004]_.
+    Return the parameters of table 7.1 from [Stinson2004]_.
 
     INPUT:
 
@@ -973,7 +973,7 @@ def _get_t_u(v):
 
 def v_5_1_BIBD(v, check=True):
     r"""
-    Returns a `(v,5,1)`-BIBD.
+    Return a `(v,5,1)`-BIBD.
 
     This method follows the constuction from [ClaytonSmith]_.
 
@@ -1049,7 +1049,7 @@ def _get_r_s_t_u(v):
     r"""
     Implements the table from [ClaytonSmith]_
 
-    Returns the parameters ``r,s,t,u`` associated with an integer ``v``.
+    Return the parameters ``r,s,t,u`` associated with an integer ``v``.
 
     INPUT:
 
@@ -1081,7 +1081,7 @@ def _get_r_s_t_u(v):
 
 def PBD_from_TD(k,t,u):
     r"""
-    Returns a `(kt,\{k,t\})`-PBD if `u=0` and a `(kt+u,\{k,k+1,t,u\})`-PBD otherwise.
+    Return a `(kt,\{k,t\})`-PBD if `u=0` and a `(kt+u,\{k,k+1,t,u\})`-PBD otherwise.
 
     This is theorem 23 from [ClaytonSmith]_. The PBD is obtained from the blocks
     a truncated `TD(k+1,t)`, to which are added the blocks corresponding to the
@@ -1112,7 +1112,7 @@ def PBD_from_TD(k,t,u):
 
 def BIBD_5q_5_for_q_prime_power(q):
     r"""
-    Returns a `(5q,5,1)`-BIBD with `q\equiv 1\pmod 4` a prime power.
+    Return a `(5q,5,1)`-BIBD with `q\equiv 1\pmod 4` a prime power.
 
     See Theorem 24 [ClaytonSmith]_.
 

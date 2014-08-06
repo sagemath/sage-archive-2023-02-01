@@ -690,7 +690,7 @@ class XTree(object):
 
     def __getattr__(self, attr):
         """
-        Returns the data for the first attribute with name attr.
+        Return the data for the first attribute with name attr.
 
         EXAMPLES::
 
@@ -767,7 +767,7 @@ class XTree(object):
 
     def __len__(self):
         """
-        Returns the length of the current node.
+        Return the length of the current node.
 
         EXAMPLES::
 
@@ -1003,7 +1003,7 @@ class XTreeProcessor(object):
 
 def designs_from_XML(fname):
     """
-    Returns a list of designs contained in an XML file fname. The list
+    Return a list of designs contained in an XML file fname. The list
     contains tuples of the form (v, bs) where v is the number of points of
     the design and bs is the list of blocks.
 
@@ -1038,7 +1038,7 @@ def designs_from_XML(fname):
 
 def designs_from_XML_url(url):
     """
-    Returns a list of designs contained in an XML file named by a URL.
+    Return a list of designs contained in an XML file named by a URL.
     The list contains tuples of the form (v, bs) where v is the number
     of points of the design and bs is the list of blocks.
 

@@ -263,17 +263,8 @@ class FormsSpace_abstract(FormsRing_abstract):
             and S.ep()        == self._ep\
             and not isinstance(self, SubSpaceForms)):
                 return True
-        elif (self.AT("holo") <= self._analytic_type\
-            and self._weight  == 0\
-            and self._ep      == 1\
-            and self.coeff_ring().has_coerce_map_from(S) ):
-                if (isinstance(self, SubSpaceForms)):
-                    try:
-                        self(1)
-                    except:
-                        return False
-                else:
-                    return True
+        elif (self.contains_coeff_ring() and self.coeff_ring().has_coerce_map_from(S) ):
+            return True
         else:
             return False
 
@@ -458,6 +449,22 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         return self._ep
+
+    @cached_method
+    def contains_coeff_ring(self):
+        r"""
+        Return whether ``self`` contains its coefficient ring.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
+            sage: QuasiModularForms(k=0, ep=1, n=8).contains_coeff_ring()
+            True
+            sage: QuasiModularForms(k=0, ep=-1, n=8).contains_coeff_ring()
+            False
+        """
+
+        return ((self.AT("holo") <= self._analytic_type) and (self.weight()==QQ(0)) and (self.ep()==ZZ(1)))
 
     def element_from_coordinates(self, vec):
         r"""

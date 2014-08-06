@@ -469,6 +469,22 @@ class FormsRing_abstract(Parent):
                 analytic_type = self._analytic_type.reduce_to([])
             return FormsSpace(analytic_type, group=self.group(), base_ring=self.base_ring(), k=weight, ep=ep)
 
+    @cached_method
+    def contains_coeff_ring(self):
+        r"""
+        Return whether ``self`` contains its coefficient ring.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import CuspFormsRing, ModularFormsRing
+            sage: CuspFormsRing(n=4).contains_coeff_ring()
+            False
+            sage: ModularFormsRing(n=5).contains_coeff_ring()
+            True
+        """
+
+        return (self.AT("holo") <= self._analytic_type)
+
     def construction(self):
         r"""
         Return a functor that constructs ``self`` (used by the coercion machinery).

@@ -180,6 +180,29 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         return self.__class__.__base__(self._ambient_space.change_ring(new_base_ring), self._basis)
  
     @cached_method
+    def contains_coeff_ring(self):
+        r"""
+        Return whether ``self`` contains its coefficient ring.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
+            sage: MF = ModularForms(k=0, ep=1, n=8)
+            sage: subspace = MF.subspace([1])
+            sage: subspace.contains_coeff_ring()
+            True
+            sage: subspace = MF.subspace([])
+            sage: subspace.contains_coeff_ring()
+            False
+            sage: MF = ModularForms(k=0, ep=-1, n=8)
+            sage: subspace = MF.subspace([])
+            sage: subspace.contains_coeff_ring()
+            False
+        """
+
+        return (super(SubSpaceForms, self).contains_coeff_ring() and self.dimension()==ZZ(1))
+
+    @cached_method
     def basis(self):
         r"""
         Return the basis of ``self`` in the ambient space.

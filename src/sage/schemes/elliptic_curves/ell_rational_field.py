@@ -1436,7 +1436,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                                   N=None,
                                   root_number=True,
                                   bad_primes=None):
-        """
+        r"""
         Return an upper bound for the analytic rank of self, conditional on
         the Generalized Riemann Hypothesis, via computing the zero sum
             '\sum_{\gamma} f(\Delta*\gamma),'

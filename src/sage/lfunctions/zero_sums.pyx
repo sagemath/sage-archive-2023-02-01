@@ -1133,7 +1133,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             if n<expt:
                 y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
                                                      logq,thetaq,sqrtq,z)
-        # Now iteratonly only over those n that are 1 or 5 mod 6
+        # Now iterate only only over those n that are 1 or 5 mod 6
         n = 11
         # First: those n that are <= sqrt(bound)
         bound1 = c_exp(t/2)
@@ -1175,7 +1175,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
                                   adaptive=True,
                                   root_number=True,
                                   bad_primes=None):
-        """
+        r"""
         Return an upper bound for the analytic rank of the L-function
         'L_E(s)' attached to self, conditional on the Generalized Riemann
         Hypothesis, via computing the zero sum

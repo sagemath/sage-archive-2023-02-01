@@ -1,6 +1,10 @@
 """
+Indexed Face Sets
+
 Graphics3D object that consists of a list of polygons, also used for
 triangulations of other objects.
+
+Usually these objects are not created directly by users.
 
 AUTHORS:
 
@@ -10,9 +14,8 @@ AUTHORS:
 .. TODO::
 
     Smooth triangles
+
 """
-
-
 #*****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
@@ -27,8 +30,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
@@ -171,15 +172,15 @@ cdef class IndexFaceSet(PrimitiveObject):
     triangulations of other objects.
 
     Polygons (mostly triangles and quadrilaterals) are stored in the
-    c struct \code{face_c} (see transform.pyx). Rather than storing
+    c struct ``face_c`` (see transform.pyx). Rather than storing
     the points directly for each polygon, each face consists a list
     of pointers into a common list of points which are basically triples
-    of doubles in a \code{point_c}.
+    of doubles in a ``point_c``.
 
     Moreover, each face has an attribute ``color`` which is used to
     store color information when faces are colored. The red/green/blue
     components are then available as floats between 0 and 1 using
-    ``color.r,color.g,color.g``.
+    ``color.r,color.g,color.b``.
 
     Usually these objects are not created directly by users.
 
@@ -200,7 +201,14 @@ cdef class IndexFaceSet(PrimitiveObject):
         sage: face_list = [[0,1,n] for n in range(2,10)]
         sage: S = IndexFaceSet(face_list, point_list, color='red')
         sage: S.face_list()
-        [[(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 0.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 2.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 3.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 4.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 5.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 6.0)], [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 7.0)]]
+        [[(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 0.0)],
+        [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)],
+        [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 2.0)],
+        [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 3.0)],
+        [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 4.0)],
+        [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 5.0)],
+        [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 6.0)],
+        [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 7.0)]]
         sage: S.show()
 
     A simple example of colored IndexFaceSet (:trac:`12212`)::
@@ -454,8 +462,9 @@ cdef class IndexFaceSet(PrimitiveObject):
 
     def is_enclosed(self):
         """
-        Whether or not it is necessary to render the back sides of the polygons
-        (assuming, of course, that they have the correct orientation).
+        Whether or not it is necessary to render the back sides of the polygons.
+
+        One is assuming, of course, that they have the correct orientation.
 
         This is may be passed in on construction. It is also calculated
         in ParametricSurface by verifying the opposite edges of the rendered
@@ -505,7 +514,9 @@ cdef class IndexFaceSet(PrimitiveObject):
 
     def face_list(self):
         """
-        Return the list of faces as triple of vertices.
+        Return the list of faces.
+
+        Every face is given as a tuple of vertices.
 
         EXAMPLES::
 
@@ -647,7 +658,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         Partition the faces of ``self``.
 
         The partition is done according to the value of a map 
-        `f: \RR^3 \leftarrow \ZZ` applied to the center of each face.
+        `f: \RR^3 \rightarrow \ZZ` applied to the center of each face.
 
         INPUT:
 
@@ -779,7 +790,10 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: t_list=[Texture(col[i]) for i in range(10)]
             sage: S = IndexFaceSet(face_list, point_list, t_list)
             sage: S.json_repr(S.default_render_params())
-            ["{vertices:[{x:2,y:0,z:0},{x:0,y:2,z:0},{x:0,y:0,z:2},{x:0,y:1,z:1},{x:1,y:0,z:1},{x:1,y:1,z:0}],faces:[[0,4,5],[3,4,5],[2,3,4],[1,3,5]],face_colors:['#ff0000','#ff9900','#cbff00','#33ff00']}"]
+            ["{vertices:[{x:2,y:0,z:0},{x:0,y:2,z:0},{x:0,y:0,z:2},
+            {x:0,y:1,z:1},{x:1,y:0,z:1},{x:1,y:1,z:0}],
+            faces:[[0,4,5],[3,4,5],[2,3,4],[1,3,5]],
+            face_colors:['#ff0000','#ff9900','#cbff00','#33ff00']}"]
         """
         cdef Transformation transform = render_params.transform
         cdef point_c res
@@ -992,12 +1006,14 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         INPUT:
 
-            colors  - list of colors/textures to use (in cyclic order)
-            width   - offset perpendicular into the edge (to create a border)
-                      may also be negative
-            hover   - offset normal to the face (usually have to float above
-                      the original surface so it shows, typically this value
-                      is very small compared to the actual object
+        - colors -- list of colors/textures to use (in cyclic order)
+
+        - width -- offset perpendicular into the edge (to create a border)
+          may also be negative
+
+        - hover -- offset normal to the face (usually have to float above
+          the original surface so it shows, typically this value is very
+          small compared to the actual object
 
         OUTPUT:
 
@@ -1021,8 +1037,6 @@ cdef class IndexFaceSet(PrimitiveObject):
     def sticker(self, face_list, width, hover, **kwds):
         """
         Return a sticker on the chosen faces.
-
-        EXAMPLES::
         """
         if not isinstance(face_list, (list, tuple)):
             face_list = (face_list,)
@@ -1117,6 +1131,12 @@ cdef class VertexIter:
 def len3d(v):
     """
     Return the norm of a vector in three dimensions.
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.index_face_set import len3d
+        sage: len3d((1,2,3))
+        3.7416573867739413    
     """
     return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])
 

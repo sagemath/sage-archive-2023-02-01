@@ -1,9 +1,6 @@
 Crystals
 ========
 
-Catalogs
---------
-
 .. toctree::
    :maxdepth: 2
 
@@ -30,9 +27,12 @@ Crystal Modules
    sage/combinat/crystals/elementary_crystals
    sage/combinat/crystals/fast_crystals
    sage/combinat/crystals/highest_weight_crystals
+   sage/combinat/crystals/infinity_crystals
    sage/combinat/crystals/kirillov_reshetikhin
+   ../sage/combinat/crystals/kleshchev
    sage/combinat/crystals/kyoto_path_model
    sage/combinat/crystals/littelmann_path
+   sage/combinat/crystals/multisegments
    sage/combinat/crystals/spins
    sage/combinat/crystals/tensor_product
 

@@ -31,6 +31,8 @@ AUTHORS:
 - Simon Spicer (2013-03): Added code for modular degrees and congruence
   numbers of higher level
 
+- Simon Spicer (2014-08): Added new analytic rank computatation functionality
+
 """
 
 ##############################################################################
@@ -1286,28 +1288,30 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def analytic_rank(self, algorithm="pari", leading_coefficient=False):
         r"""
         Return an integer that is *probably* the analytic rank of this
-        elliptic curve.  If leading_coefficient is ``True`` (only implemented
-        for PARI), return a tuple `(rank, lead)` where `lead` is the value of
-        the first non-zero derivative of the L-function of the elliptic
-        curve.
+        elliptic curve.
 
         INPUT:
 
-        - algorithm -
+        - ``algorithm`` - (default: 'pari'), One of:
 
-          - 'pari' (default) - use the PARI library function.
+          - ``'pari'`` - use the PARI library function.
 
-          - 'sympow' -use Watkins's program sympow
+          - ``'sympow'`` - use Watkins's program sympow
 
-          - 'rubinstein' - use Rubinstein's L-function C++ program lcalc.
+          - ``'rubinstein'`` - use Rubinstein's L-function C++ program lcalc.
 
-          - 'magma' - use MAGMA
+          - ``'magma'`` - use MAGMA
 
-          - 'zero_sum' - Use the rank bounding zero sum method implemented
+          - ``'zero_sum'`` - Use the rank bounding zero sum method implemented
             in self.analytic_rank_upper_bound()
 
-          - 'all' - compute with all other free algorithms, check that
+          - ``'all'`` - compute with PARI, sympow and lcalc, check that
             the answers agree, and return the common answer.
+
+        - ``leading_coefficient`` - (default: False) Boolean; if set to
+          True, return a tuple `(rank, lead)` where `lead` is the value of
+          the first non-zero derivative of the L-function of the elliptic
+          curve. Only implemented for algorithm='pari'.
 
         .. note::
 
@@ -1315,13 +1319,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            then the modular degree is taken from the database.
 
         Of the first three algorithms above, probably Rubinstein's is the
-        most efficient (in some limited testing done).
+        most efficient (in some limited testing done). The zero sum method
+        is often *much* faster, but can return a value which is strictly
+        larger than the analytic rank. For curves with conductor <=10^9
+        using default parameters, testing indicates that for 99.75% of
+        curves the returned rank bound is the true rank.
 
-        The zero sum method is often *much* faster, but can return a
-        value which is strictly larger than the analytic rank. For curves
-        with conductor <=10^9 using default parameters, testing indicates
-        that for 99.75% of curves the returned rank bound is the true
-        rank.
+        .. note::
+
+            If you use set_verbose(1), extra information about the computation
+            will be printed when algorithm='zero_sum'.
 
         .. note::
 
@@ -1413,8 +1420,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         else:
             raise ValueError("algorithm %s not defined"%algorithm)
 
-    def analytic_rank_upper_bound(self, max_Delta=None, adaptive=True,
-                                  N=None, root_number=True, bad_primes=None):
+    def analytic_rank_upper_bound(self,
+                                  max_Delta=None,
+                                  adaptive=True,
+                                  N=None,
+                                  root_number=True,
+                                  bad_primes=None):
         """
         Return an upper bound for the analytic rank of self, conditional on
         the Generalized Riemann Hypothesis, via computing the zero sum
@@ -1473,21 +1484,27 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         .. WARNING::
 
-            Computation time is exponential in '\Delta', roughly doubling for
-            every increase of 0.1 thereof. Using '\Delta=1' will yield a
-            computation time of a few milliseconds; '\Delta=2' takes a few
-            seconds, and '\Delta=3' takes upwards of an hour. Increase at your
-            own risk beyond this!
+            Zero sum computation time is exponential in the tightness parameter
+            '\Delta', roughly doubling for every increase of 0.1 thereof.
+            Using '\Delta=1' (and adaptive=False) will yield a runtime of a few
+            milliseconds; '\Delta=2' takes a few seconds, and '\Delta=3' may
+            take upwards of an hour. Increase beyond this at your own risk!
 
         OUTPUT:
 
         A non-negative integer greater than or equal to the analytic rank of
         self.
 
+        .. NOTE::
+
+            If you use set_verbose(1), extra information about the computation
+            will be printed.
+
         .. SEEALSO::
 
             :func:`LFunctionZeroSum`
             :meth:`.root_number`
+            :func:`set_verbose`
 
         EXAMPLES:
 
@@ -1776,12 +1793,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         -  ``use_database (bool)`` - (default: False), if
            True, try to look up the regulator in the Cremona database.
 
-        -  ``verbose`` - (default: None), if specified changes
-           the verbosity of mwrank computations. algorithm -
+        -  ``verbose`` - (default: False), if specified changes
+           the verbosity of mwrank computations.
 
-        -  ``- 'mwrank_shell'`` - call mwrank shell command
+        -  ``algorithm`` - (default: 'mwrank_lib'), one of:
 
-        -  ``- 'mwrank_lib'`` - call mwrank c library
+            -  ``'mwrank_shell'`` - call mwrank shell command
+
+            -  ``'mwrank_lib'`` - call mwrank c library
 
         -  ``only_use_mwrank`` - (default: True) if False try
            using analytic rank methods first.

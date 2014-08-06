@@ -4,7 +4,7 @@ All computations are done to double precision.
 
 AUTHORS:
 
-- Simon Spicer (2014-06): first version
+- Simon Spicer (2014-08): first version
 
 """
 
@@ -34,6 +34,7 @@ from sage.functions.log import log, exp
 from sage.functions.other import real, imag
 from sage.symbolic.constants import pi, euler_gamma
 from sage.libs.pari.all import pari
+from sage.misc.all import verbose
 
 cdef extern from "<math.h>":
     double c_exp "exp"(double)
@@ -55,9 +56,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
     cdef _euler_gamma
 
     def level(self):
-        """
+        r"""
         Return the level of the form attached to self. If self was constructed
-        from an elliptic curve, then this is equal to the conductor of E.
+        from an elliptic curve, then this is equal to the conductor of 'E'.
 
         EXAMPLES::
 
@@ -70,7 +71,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         return self._N
 
     def weight(self):
-        """
+        r"""
         Return the weight of the form attached to self. If self was constructed
         from an elliptic curve, then this is 2.
 
@@ -1169,8 +1170,11 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         #print
         return RDF(2*(u+w+y)/(t**2))
 
-    def analytic_rank_upper_bound(self, max_Delta=None, adaptive=True,
-                                  root_number=True, bad_primes=None):
+    def analytic_rank_upper_bound(self,
+                                  max_Delta=None,
+                                  adaptive=True,
+                                  root_number=True,
+                                  bad_primes=None):
         """
         Return an upper bound for the analytic rank of the L-function
         'L_E(s)' attached to self, conditional on the Generalized Riemann
@@ -1221,25 +1225,31 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         .. NOTE::
 
-            Output may be incorrect if the incorrect root number is specified.
+            Output will be incorrect if the incorrect root number is specified.
 
         .. WARNING::
 
-            Computation time is exponential in '\Delta', roughly doubling for
-            every increase of 0.1 thereof. Using '\Delta=1' will yield a
-            computation time of a few milliseconds; '\Delta=2' takes a few
-            seconds, and '\Delta=3' may take upwards of an hour. Increase at
-            your own risk beyond this!
+            Zero sum computation time is exponential in the tightness parameter
+            '\Delta', roughly doubling for every increase of 0.1 thereof.
+            Using '\Delta=1' (and adaptive=False) will yield a runtime of a few
+            milliseconds; '\Delta=2' takes a few seconds, and '\Delta=3' may
+            take upwards of an hour. Increase beyond this at your own risk!
 
         OUTPUT:
 
         A non-negative integer greater than or equal to the analytic rank of
         self.
 
+        .. NOTE::
+
+            If you use set_verbose(1), extra information about the computation
+            will be printed.
+
         .. SEEALSO::
 
             :func:`LFunctionZeroSum`
             :meth:`EllipticCurve.root_number`
+            :func:`set_verbose`
 
         EXAMPLES:
 
@@ -1303,39 +1313,55 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         """
         #Helper function: compute zero sum and apply parity if not False
         def run_computation(Delta,parity,bad_primes):
+            verbose("Computing zero sum with Delta = %s"%Delta)
             bound = self._zerosum_sincsquared_fast(Delta=Delta,
-                                                   bad_primes=bad_primes).floor()
+                                                   bad_primes=bad_primes)
+            verbose("Sum value is %s"%bound)
+            bound = bound.floor()
             # parity is set to -1 when we're not taking root number into
             # account
             if parity==-1:
+                verbose("Without invoking parity, rank bound is %s"%bound)
                 return bound
             # parity is 0 if E has even analytic rank, and 1 if odd
             # analytic rank. The returned value must have the same parity
             # as the parity parameter.
             if bound%2!=parity:
-                return bound-1
-            else:
-                return bound
+                bound -= 1
+            verbose("Invoking parity, rank bound is %s"%bound)
+            return bound
 
         # Get/compute parity
         if root_number==False:
+            verbose("Curve parity ignored.")
             parity = -1
         elif root_number==True:
+            verbose("Computing curve parity...")
             parity = (1-self._e.ellrootno())//2
+            verbose("Curve has parity %s."%parity)
         else:
             parity = (1-root_number)//2
+            verbose("Parity set to %s."%parity)
         if parity==1:
             halt_bound = 1
+            verbose("Computation will halt if at any point bound is <= 1.")
         else:
             halt_bound = 0
+            verbose("Computation will halt if at any point bound is 0.")
 
         # Compute max_Delta if necessary
         if max_Delta is None:
+            verbose("Computing maximum Delta value")
             pi, eg = self._pi, self._euler_gamma
             #1000 is arbitrary - increases Delta for small N
             max_Delta = (log(RDF(self._N+1000))/2-log(2*pi)-eg)/pi
             if max_Delta > 2.5:
                 max_Delta = 2.5
+                verbose("Computed max Delta value too big; setting to 2.5")
+            else:
+                verbose("Maximum Delta value to be used set at %s"%max_Delta)
+        else:
+            verbose("Maximum Delta value to be used set at %s"%max_Delta)
 
         # When max_Delta <= 1 it's not worth running the computation
         # multiple times, as it's so quick anyway
@@ -1352,6 +1378,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             while Delta <= max_Delta:
                 bound = run_computation(Delta,parity,bad_primes)
                 if bound <= halt_bound:
+                    verbose("computed bound <= halt_bound, so halting")
                     return bound
                 else:
                     bound_list.append(bound)
@@ -1361,7 +1388,9 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
             # Since the zero sum is not strictly decreasing in Delta,
             # the last value is not necessarily the smallest
-            return min(bound_list)
+            smallest_bound = min(bound_list)
+            verbose("Smallest bound computed is %s"%smallest_bound)
+            return smallest_bound
 
 def LFunctionZeroSum(X,*args,**kwds):
     """

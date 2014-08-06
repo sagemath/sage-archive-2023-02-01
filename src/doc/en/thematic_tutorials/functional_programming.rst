@@ -394,9 +394,9 @@ by A. M. Kuchling. Steven F. Lott's book
 has a chapter on
 `Functional Programming using Collections <http://homepage.mac.com/s_lott/books/python/html/p02/p02c10_adv_seq.html>`_.
 See also the chapter
-`Functional Programming <http://www.diveintopython.org/functional_programming/index.html>`_
+`Functional Programming <http://www.diveintopython.net/functional_programming/index.html>`_
 from Mark Pilgrim's book
-`Dive Into Python <http://www.diveintopython.org/>`_.
+`Dive Into Python <http://www.diveintopython.net/>`_.
 
 You might also want to consider experimenting with
 `Haskell <http://www.haskell.org>`_

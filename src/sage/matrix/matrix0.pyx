@@ -4666,13 +4666,12 @@ cdef class Matrix(sage.structure.element.Matrix):
         if PY_TYPE_CHECK(self._base_ring, CommutativeRing):
             return self._lmul_(left)
         cdef Py_ssize_t r,c
-        cpdef RingElement x
         x = self._base_ring(left)
         cdef Matrix ans
         ans = self._parent.zero_matrix().__copy__()
         for r from 0 <= r < self._nrows:
             for c from 0 <= c < self._ncols:
-                ans.set_unsafe(r, c, x._mul_(<RingElement>self.get_unsafe(r, c)))
+                ans.set_unsafe(r, c, x * self.get_unsafe(r, c))
         return ans
 
     cpdef ModuleElement _lmul_(self, RingElement right):
@@ -4709,13 +4708,12 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         # derived classes over a commutative base *just* overload this and not _rmul_
         cdef Py_ssize_t r,c
-        cpdef RingElement x
         x = self._base_ring(right)
         cdef Matrix ans
         ans = self._parent.zero_matrix().__copy__()
         for r from 0 <= r < self._nrows:
             for c from 0 <= c < self._ncols:
-                ans.set_unsafe(r, c, (<RingElement>self.get_unsafe(r, c))._mul_(x))
+                ans.set_unsafe(r, c, self.get_unsafe(r, c) * x)
         return ans
 
     cdef sage.structure.element.Matrix _matrix_times_matrix_(self, sage.structure.element.Matrix right):
@@ -5121,8 +5119,9 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")
-
-        return RingElement.__pow__(self, n, ignored)
+        if ignored is not None:
+            raise RuntimeError("__pow__ third argument not used")
+        return sage.structure.element.generic_power_c(self, n, None)
 
     ###################################################
     # Comparison

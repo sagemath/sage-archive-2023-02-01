@@ -1,5 +1,5 @@
 r"""
-Generic graphs
+Generic graphs (common to directed/undirected)
 
 This module implements the base class for graphs and digraphs, and methods that
 can be applied on both. Here is what it can do:
@@ -6961,8 +6961,8 @@ class GenericGraph(GenericGraph_pyx):
 
             p = MixedIntegerLinearProgram(maximization = False, solver = solver)
 
-            b = p.new_variable(binary = True)
-            d = p.new_variable(integer = True)
+            b = p.new_variable(binary=True)
+            d = p.new_variable(integer=True, nonnegative=True)
             n = self.order()
 
             # The removed vertices cover all the back arcs ( third condition )
@@ -17950,9 +17950,16 @@ class GenericGraph(GenericGraph_pyx):
             Graph on 5 vertices
             sage: G.canonical_label(edge_labels=True,certify=True)
             (Graph on 5 vertices, {0: 4, 1: 3, 2: 0, 3: 1, 4: 2})
+
+        Check for immutable graphs (:trac:`16602`)::
+
+            sage: G = Graph([[1, 2], [2, 3]], immutable=True)
+            sage: C = G.canonical_label(); C
+            Graph on 3 vertices
+            sage: C.vertices()
+            [0, 1, 2]
         """
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
-        from copy import copy
 
         dig = (self.has_loops() or self._directed)
         if partition is None:
@@ -17974,7 +17981,7 @@ class GenericGraph(GenericGraph_pyx):
             partition = [[G_to[v] for v in cell] for cell in partition]
             a,b,c = search_tree(GC, partition, certify=True, dig=dig, verbosity=verbosity)
             # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
-            H = copy(self)
+            H = self.copy(immutable=False)
             c_new = {}
             for v in self.vertices():
                 c_new[v] = c[G_to[relabeling[v]]]
@@ -17997,7 +18004,7 @@ class GenericGraph(GenericGraph_pyx):
         GC = HB._cg
         partition = [[G_to[v] for v in cell] for cell in partition]
         a,b,c = search_tree(GC, partition, certify=True, dig=dig, verbosity=verbosity)
-        H = copy(self)
+        H = self.copy(immutable=False)
         c_new = {}
         for v in G_to:
             c_new[v] = c[G_to[v]]

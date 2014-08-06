@@ -419,7 +419,7 @@ def from_frobenius_coordinates(coords):
     EXAMPLES::
 
         sage: sage.combinat.partition.from_frobenius_coordinates(([],[]))
-        doctest:1: DeprecationWarning: from_frobenius_coordinates is deprecated. Use Partitions().from_frobenius_coordinates instead.
+        doctest:...: DeprecationWarning: from_frobenius_coordinates is deprecated. Use Partitions().from_frobenius_coordinates instead.
         See http://trac.sagemath.org/13605 for details.
         []
     """
@@ -435,7 +435,7 @@ def from_beta_numbers(beta):
     EXAMPLES::
 
         sage: sage.combinat.partition.from_beta_numbers([0,1,2,4,5,8])
-        doctest:1: DeprecationWarning: from_beta_numbers is deprecated. Use Partitions().from_beta_numbers instead.
+        doctest:...: DeprecationWarning: from_beta_numbers is deprecated. Use Partitions().from_beta_numbers instead.
         See http://trac.sagemath.org/13605 for details.
         [3, 1, 1]
     """
@@ -451,7 +451,7 @@ def from_exp(exp):
     EXAMPLES::
 
         sage: sage.combinat.partition.from_exp([2,2,1])
-        doctest:1: DeprecationWarning: from_exp is deprecated. Use Partitions().from_exp instead.
+        doctest:...: DeprecationWarning: from_exp is deprecated. Use Partitions().from_exp instead.
         See http://trac.sagemath.org/13605 for details.
         [3, 2, 2, 1, 1]
     """
@@ -467,7 +467,7 @@ def from_core_and_quotient(core, quotient):
     EXAMPLES::
 
         sage: sage.combinat.partition.from_core_and_quotient([2,1], [[2,1],[3],[1,1,1]])
-        doctest:1: DeprecationWarning: from_core_and_quotient is deprecated. Use Partitions().from_core_and_quotient instead.
+        doctest:...: DeprecationWarning: from_core_and_quotient is deprecated. Use Partitions().from_core_and_quotient instead.
         See http://trac.sagemath.org/13605 for details.
         [11, 5, 5, 3, 2, 2, 2]
     """
@@ -2746,7 +2746,7 @@ class Partition(CombinatorialObject, Element):
         EXAMPLES::
 
             sage: Partition([3,2,1]).dominate()
-            doctest:1: DeprecationWarning: dominate is deprecated. Use dominated_partitions instead.
+            doctest:...: DeprecationWarning: dominate is deprecated. Use dominated_partitions instead.
             See http://trac.sagemath.org/13605 for details.
             [[3, 2, 1], [3, 1, 1, 1], [2, 2, 2], [2, 2, 1, 1], [2, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1]]
         """
@@ -6466,7 +6466,7 @@ def PartitionsInBox_hw(h, w):
     EXAMPLES::
 
         sage: sage.combinat.partition.PartitionsInBox_hw(3, 2)
-        doctest:1: DeprecationWarning: this class is deprecated. Use PartitionsInBox instead
+        doctest:...: DeprecationWarning: this class is deprecated. Use PartitionsInBox instead
         See http://trac.sagemath.org/13605 for details.
         Integer partitions which fit in a 3 x 2 box
     """
@@ -6652,7 +6652,7 @@ def OrderedPartitions_nk(n, k):
     EXAMPLES::
 
         sage: sage.combinat.partition.OrderedPartitions_nk(3, 2)
-        doctest:1: DeprecationWarning: this class is deprecated. Use OrderedPartitions instead
+        doctest:...: DeprecationWarning: this class is deprecated. Use OrderedPartitions instead
         See http://trac.sagemath.org/13605 for details.
         Ordered partitions of 3 of length 2
     """
@@ -6726,7 +6726,7 @@ def PartitionsGreatestLE_nk(n, k):
     EXAMPLES::
 
         sage: sage.combinat.partition.PartitionsGreatestLE_nk(10, 2)
-        doctest:1: DeprecationWarning: this class is deprecated. Use PartitionsGreatestLE instead
+        doctest:...: DeprecationWarning: this class is deprecated. Use PartitionsGreatestLE instead
         See http://trac.sagemath.org/13605 for details.
         Partitions of 10 having parts less than or equal to 2
     """
@@ -6798,7 +6798,7 @@ def PartitionsGreatestEQ_nk(n, k):
     EXAMPLES::
 
         sage: sage.combinat.partition.PartitionsGreatestEQ_nk(10, 2)
-        doctest:1: DeprecationWarning: this class is deprecated. Use PartitionsGreatestEQ instead
+        doctest:...: DeprecationWarning: this class is deprecated. Use PartitionsGreatestEQ instead
         See http://trac.sagemath.org/13605 for details.
         Partitions of 10 having greatest part equal to 2
     """
@@ -6839,7 +6839,7 @@ def RestrictedPartitions(n, S, k=None):
     EXAMPLES::
 
         sage: RestrictedPartitions(5,[3,2,1])
-        doctest:1: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
+        doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
         See http://trac.sagemath.org/13072 for details.
         doctest:...: DeprecationWarning: RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.
         See http://trac.sagemath.org/13072 for details.
@@ -6867,7 +6867,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
         TESTS::
 
             sage: r = RestrictedPartitions(5,[3,2,1])
-            doctest:1: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
+            doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.
             sage: r == loads(dumps(r))
             True
@@ -6909,7 +6909,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
         EXAMPLES::
 
             sage: RestrictedPartitions(5,[3,2,1]).__repr__()
-            doctest:1: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
+            doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.
             'Partitions of 5 restricted to the values [1, 2, 3]'
         """

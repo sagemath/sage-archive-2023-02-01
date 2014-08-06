@@ -12,6 +12,7 @@ Groups
    sage/groups/finitely_presented
    sage/groups/finitely_presented_named
    sage/groups/braid
+   sage/groups/indexed_free_group
    sage/groups/raag
    sage/groups/abelian_gps/abelian_group
    sage/groups/abelian_gps/values

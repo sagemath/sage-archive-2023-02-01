@@ -1,5 +1,5 @@
 r"""
-Multivariate Power Series Rings.
+Multivariate Power Series Rings
 
 Construct a multivariate power series ring (in finitely many variables)
 over a given (commutative) base ring.
@@ -203,7 +203,11 @@ AUTHORS:
 
 
 from sage.rings.commutative_ring import is_CommutativeRing, CommutativeRing
-from sage.rings.polynomial.all import PolynomialRing, is_MPolynomialRing, is_PolynomialRing
+from sage.rings.polynomial.all import PolynomialRing
+from sage.rings.polynomial.polynomial_element import is_Polynomial
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+from sage.rings.polynomial.multi_polynomial import is_MPolynomial
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.power_series_ring import PowerSeriesRing, PowerSeriesRing_generic, is_PowerSeriesRing
 

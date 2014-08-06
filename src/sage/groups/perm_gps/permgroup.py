@@ -129,7 +129,7 @@ from sage.misc.randstate import current_randstate
 import sage.groups.old as group
 
 from sage.rings.all import QQ, Integer
-from sage.interfaces.all import is_ExpectElement
+from sage.interfaces.expect import is_ExpectElement
 from sage.interfaces.gap import gap, GapElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement, standardize_generator
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
@@ -1554,7 +1554,12 @@ class PermutationGroup_generic(group.Group):
             sage: G.group_id()    # optional - database_gap
             [12, 4]
         """
-        return [Integer(n) for n in self._gap_().IdGroup()]
+        try:
+            return [Integer(n) for n in self._gap_().IdGroup()]
+        except RuntimeError:
+            if not is_package_installed('database_gap'):
+                raise RuntimeError("You must install the optional database_gap package first.")
+            raise
 
     def id(self):
         """
@@ -1601,7 +1606,13 @@ class PermutationGroup_generic(group.Group):
         """
         if not self.is_primitive():
             raise ValueError('Group is not primitive')
-        return Integer(self._gap_().PrimitiveIdentification())
+
+        try:
+            return Integer(self._gap_().PrimitiveIdentification())
+        except RuntimeError:
+            if not is_package_installed('database_gap'):
+                raise RuntimeError("You must install the optional database_gap package first.")
+            raise
 
     @cached_method
     def structure_description(self, latex=False):
@@ -1662,7 +1673,13 @@ class PermutationGroup_generic(group.Group):
         def correct_dihedral_degree(match):
             return "%sD%d" % (match.group(1), int(match.group(2))/2)
 
-        description = self._gap_().StructureDescription().str()
+        try:
+            description = self._gap_().StructureDescription().str()
+        except RuntimeError:
+            if not is_package_installed('database_gap'):
+                raise RuntimeError("You must install the optional database_gap package first.")
+            raise
+
         description = re.sub(r"(\A|\W)D(\d+)", correct_dihedral_degree, description)
         if not latex:
             return description
@@ -2411,31 +2428,6 @@ class PermutationGroup_generic(group.Group):
         phi = Q.RegularActionHomomorphism()
         return PermutationGroup(gap_group=phi.Image())
 
-    def quotient_group(self, N):
-        """
-        This function has been deprecated and will be removed in a
-        future version of Sage; use ``quotient`` instead.
-
-        Original docstring follows.
-
-        Returns the quotient of this permutation group by the normal
-        subgroup `N`.
-
-        Wraps the GAP operator "/".
-
-        TESTS::
-
-            sage: G = PermutationGroup([(1,2,3), (2,3)])
-            sage: N = PermutationGroup([(1,2,3)])
-            sage: G.quotient_group(N)
-            doctest:...: DeprecationWarning: quotient_group() is deprecated; use quotient() instead.
-            See http://trac.sagemath.org/7371 for details.
-            Permutation Group with generators [(1,2)]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(7371, 'quotient_group() is deprecated; use quotient() instead.')
-        return self.quotient(N)
-
     def commutator(self, other=None):
         r"""
         Returns the commutator subgroup of a group, or of a pair of groups.
@@ -2972,10 +2964,10 @@ class PermutationGroup_generic(group.Group):
 
            * block systems, each of them being defined as
 
-               * If ``representative = True`` : a list of representatives of
+               * If ``representatives = True`` : a list of representatives of
                  each set of the block system
 
-               * If ``representative = False`` : a partition of the elements
+               * If ``representatives = False`` : a partition of the elements
                  defining an imprimitivity block.
 
         .. SEEALSO::
@@ -2996,19 +2988,28 @@ class PermutationGroup_generic(group.Group):
         Computing its blocks representatives::
 
             sage: ag.blocks_all()
-            [[1, 16]]
+            [[0, 15]]
 
         Now the full blocks::
 
             sage: ag.blocks_all(representatives = False)
-            [[[1, 16], [2, 17], [15, 20], [9, 18], [6, 11], [3, 13], [8, 19], [4, 14], [5, 10], [7, 12]]]
+            [[[0, 15], [1, 16], [14, 19], [8, 17], [5, 10], [2, 12], [7, 18], [3, 13], [4, 9], [6, 11]]]
 
+        TESTS::
+
+            sage: g = PermutationGroup([("a","b","c","d")])
+            sage: g.blocks_all()
+            [['a', 'c']]
+            sage: g.blocks_all(False)
+            [[['a', 'c'], ['b', 'd']]]
         """
         ag = self._gap_()
         if representatives:
-            return ag.AllBlocks().sage()
+            return [[self._domain_from_gap[x] for x in rep]
+                    for rep in ag.AllBlocks().sage()]
         else:
-            return [ag.Orbit(rep,"OnSets").sage() for rep in ag.AllBlocks()]
+            return [[[self._domain_from_gap[x] for x in cl] for cl in ag.Orbit(rep,"OnSets").sage()]
+                    for rep in ag.AllBlocks()]
 
     def cosets(self, S, side='right'):
         r"""

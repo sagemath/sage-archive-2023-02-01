@@ -451,7 +451,7 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
         mesg = "Finished."
 
     # see recipe 14.7 in Python Cookbook
-    if caller_name == None:
+    if caller_name is None:
         caller_name = frame.co_name
         if caller_name == "?: ":
             caller_name = ""
@@ -2224,6 +2224,21 @@ def attrcall(name, *args, **kwds):
     """
     return AttrCallObject(name, args, kwds)
 
+def call_method(obj, name, *args, **kwds):
+    """
+    Call the method ``name`` on ``obj``.
+
+    This has to exist somewhere in Python!!!
+
+    .. SEEALSO:: :func:`operator.methodcaller` :func:`attrcal`
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import call_method
+        sage: call_method(1, "__add__", 2)
+        3
+    """
+    return getattr(obj, name)(*args, **kwds)
 
 def is_in_string(line, pos):
     r"""
@@ -2355,7 +2370,7 @@ def inject_variable(name, value):
 
         sage: from warnings import warn
         sage: warn("blah")
-        doctest:1: UserWarning: blah
+        doctest:...: UserWarning: blah
         sage: warn("blah")
 
     Use with care!

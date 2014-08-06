@@ -243,7 +243,7 @@ class Function_erf(BuiltinFunction):
             sage: derivative(erf(c*x),x)
             2*c*e^(-c^2*x^2)/sqrt(pi)
             sage: erf(c*x).diff(x)._maxima_init_()
-            '((%pi)^(-1/2))*(c)*(exp(((c)^(2))*((x)^(2))*(-1)))*(2)'
+            '((%pi)^(-1/2))*(_SAGE_VAR_c)*(exp(((_SAGE_VAR_c)^(2))*((_SAGE_VAR_x)^(2))*(-1)))*(2)'
         """
         return 2*exp(-x**2)/sqrt(pi)
 
@@ -660,7 +660,7 @@ class Function_gamma(GinacFunction):
             sage: gamma1(x/2)(x=5)
             3/4*sqrt(pi)
 
-            sage: gamma1(float(6))
+            sage: gamma1(float(6))  # For ARM: rel tol 3e-16
             120.0
             sage: gamma1(x)
             gamma(x)
@@ -1150,7 +1150,7 @@ class Function_psi2(GinacFunction):
         GinacFunction.__init__(self, "psi", nargs=2, latex_name='\psi',
                 conversions=dict(mathematica='PolyGamma'))
 
-    def _maxima_init_evaled_(self, n, x):
+    def _maxima_init_evaled_(self, *args):
         """
         EXAMPLES:
 
@@ -1158,10 +1158,19 @@ class Function_psi2(GinacFunction):
 
             sage: from sage.functions.other import psi2
             sage: psi2(2, x)._maxima_()
-            psi[2](x)
+            psi[2](_SAGE_VAR_x)
             sage: psi2(4, x)._maxima_()
-            psi[4](x)
+            psi[4](_SAGE_VAR_x)
         """
+        args_maxima = []
+        for a in args:
+            if isinstance(a, str):
+                args_maxima.append(a)
+            elif hasattr(a, '_maxima_init_'):
+                args_maxima.append(a._maxima_init_())
+            else:
+                args_maxima.append(str(a))
+        n, x = args_maxima
         return "psi[%s](%s)"%(n, x)
 
 psi1 = Function_psi1()
@@ -1286,7 +1295,7 @@ class Function_factorial(GinacFunction):
             sage: factorial._maxima_init_()
             'factorial'
             sage: maxima(factorial(z))
-            factorial(z)
+            factorial(_SAGE_VAR_z)
             sage: _.sage()
             factorial(z)
             sage: k = var('k')
@@ -1438,7 +1447,7 @@ class Function_binomial(GinacFunction):
 
             sage: n,k = var('n,k')
             sage: maxima(binomial(n,k))
-            binomial(n,k)
+            binomial(_SAGE_VAR_n,_SAGE_VAR_k)
             sage: _.sage()
             binomial(n, k)
             sage: binomial._maxima_init_()
@@ -1806,7 +1815,7 @@ class Function_arg(BuiltinFunction):
             sage: latex(arg(x))
             {\rm arg}\left(x\right)
             sage: maxima(arg(x))
-            atan2(0,x)
+            atan2(0,_SAGE_VAR_x)
             sage: maxima(arg(2+i))
             atan(1/2)
             sage: maxima(arg(sqrt(2)+i))

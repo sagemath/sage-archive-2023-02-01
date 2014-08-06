@@ -135,7 +135,7 @@ have a preference::
 
 You can even have custom tick labels along with custom positioning. ::
 
-    sage: plot(x**2, (x,0,3), ticks=[[1,2.5],pi/2], tick_formatter=[["$x_1$","$x_2$"],pi])
+    sage: plot(x**2, (x,0,3), ticks=[[1,2.5],pi/2], tick_formatter=[["$x_1$","$x_2$"],pi]) # long time
 
 We construct a plot involving several graphics objects::
 
@@ -196,7 +196,7 @@ the first few zeros::
 
 Many concentric circles shrinking toward the origin::
 
-    sage: show(sum(circle((i,0), i, hue=sin(i/10)) for i in [10,9.9,..,0]))
+    sage: show(sum(circle((i,0), i, hue=sin(i/10)) for i in [10,9.9,..,0])) # long time
 
 Here is a pretty graph::
 
@@ -237,7 +237,7 @@ Pi Axis::
 
     sage: g1 = plot(sin(x), 0, 2*pi)
     sage: g2 = plot(cos(x), 0, 2*pi, linestyle = "--")
-    sage: (g1+g2).show(ticks=pi/6, tick_formatter=pi)  # show their sum, nicely formatted
+    sage: (g1+g2).show(ticks=pi/6, tick_formatter=pi)  # long time # show their sum, nicely formatted
 
 An illustration of integration::
 
@@ -297,7 +297,7 @@ TESTS: We test dumping and loading a plot.
 
 Verify that a clean sage startup does *not* import matplotlib::
 
-    sage: os.system("sage -c \"if 'matplotlib' in sys.modules: sys.exit(1)\"")
+    sage: os.system("sage -c \"if 'matplotlib' in sys.modules: sys.exit(1)\"") # long time
     0
 
 AUTHORS:
@@ -349,6 +349,7 @@ AUTHORS:
 
 
 import os
+from functools import reduce
 
 ## IMPORTANT: Do *not* import matplotlib at module scope.  It takes a
 ## surprisingly long time to initialize itself.  It's better if it is
@@ -752,13 +753,22 @@ def plot(funcs, *args, **kwds):
     - ``fillalpha`` - (default: 0.5) How transparent the fill is.
       A number between 0 and 1.
 
-    Note that this function does NOT simply sample equally spaced
-    points between ``xmin`` and ``xmax``. Instead it computes equally spaced
-    points and add small perturbations to them. This reduces the
-    possibility of, e.g., sampling sin only at multiples of
-    `2\pi`, which would yield a very misleading graph.
+    .. note::
 
-    EXAMPLES: We plot the sin function::
+        - this function does NOT simply sample equally spaced points
+          between xmin and xmax. Instead it computes equally spaced points
+          and adds small perturbations to them. This reduces the possibility
+          of, e.g., sampling `\sin` only at multiples of `2\pi`, which would
+          yield a very misleading graph.
+
+        - if there is a range of consecutive points where the function has
+          no value, then those points will be excluded from the plot. See
+          the example below on automatic exclusion of points.
+
+
+    EXAMPLES:
+
+    We plot the `\sin` function::
 
         sage: P = plot(sin, (0,10)); print P
         Graphics object consisting of 1 graphics primitive
@@ -862,13 +872,13 @@ def plot(funcs, *args, **kwds):
 
     ::
 
-        sage: plot(exp, (1, 10), scale='loglog', base=2) # base of log is 2
+        sage: plot(exp, (1, 10), scale='loglog', base=2) # long time # base of log is 2
 
     We can also change the scale of the axes in the graphics just before
     displaying::
 
-        sage: G = plot(exp, 1, 10)
-        sage: G.show(scale=('semilogy', 2))
+        sage: G = plot(exp, 1, 10) # long time
+        sage: G.show(scale=('semilogy', 2)) # long time
 
     The algorithm used to insert extra points is actually pretty
     simple. On the picture drawn by the lines below::
@@ -962,7 +972,7 @@ def plot(funcs, *args, **kwds):
         sage: p2 = plot(sin(x), -pi, pi, fill = 'min')
         sage: p3 = plot(sin(x), -pi, pi, fill = 'max')
         sage: p4 = plot(sin(x), -pi, pi, fill = 0.5)
-        sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False)
+        sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False) # long time
 
         sage: plot([sin(x), cos(2*x)*sin(4*x)], -pi, pi, fill = {0: 1}, fillcolor = 'red', fillalpha = 1)
 
@@ -986,7 +996,7 @@ def plot(funcs, *args, **kwds):
 
         sage: def b(n): return lambda x: bessel_J(n, x) + 0.5*(n-1)
         sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, [i+1]) for i in [0..3]]))
-        sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]]))
+        sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]])) # long time
 
     Extra options will get passed on to :meth:`~sage.plot.graphics.Graphics.show`,
     as long as they are valid::
@@ -1036,12 +1046,29 @@ def plot(funcs, *args, **kwds):
     Excluded points can also be given by an equation::
 
         sage: g(x) = x^2-2*x-2
-        sage: plot(1/g(x), (x, -3, 4), exclude = g(x) == 0, ymin = -5, ymax = 5)
+        sage: plot(1/g(x), (x, -3, 4), exclude = g(x) == 0, ymin = -5, ymax = 5) # long time 
 
     ``exclude`` and ``detect_poles`` can be used together::
 
         sage: f(x) = (floor(x)+0.5) / (1-(x-0.5)^2)
         sage: plot(f, (x, -3.5, 3.5), detect_poles = 'show', exclude = [-3..3], ymin = -5, ymax = 5)
+
+    Regions in which the plot has no values are automatically excluded. The
+    regions thus excluded are in addition to the exclusion points present
+    in the ``exclude`` keyword argument.::
+
+        sage: set_verbose(-1)
+        sage: plot(arcsec, (x, -2, 2))  # [-1, 1] is excluded automatically
+
+        sage: plot(arcsec, (x, -2, 2), exclude=[1.5])  # x=1.5 is also excluded
+
+        sage: plot(arcsec(x/2), -2, 2)  # plot should be empty; no valid points
+
+        sage: plot(sqrt(x^2-1), -2, 2)  # [-1, 1] is excluded automatically
+
+        sage: plot(arccsc, -2, 2)       # [-1, 1] is excluded automatically
+
+        sage: set_verbose(0)
 
     TESTS:
 
@@ -1110,6 +1137,17 @@ def plot(funcs, *args, **kwds):
     Check that :trac:`15030` is fixed::
 
         sage: plot(abs(log(x)), x)
+
+    Check that if excluded points are less than xmin then the exclusion
+    still works for polar and parametric plots. The following should
+    show two excluded points::
+
+        sage: set_verbose(-1)
+        sage: polar_plot(sin(sqrt(x^2-1)), (x,0,2*pi), exclude=[1/2,2,3])
+
+        sage: parametric_plot((sqrt(x^2-1),sqrt(x^2-1/2)), (x,0,5), exclude=[1,2,3])
+
+        sage: set_verbose(0)
     """
     G_kwds = Graphics._extract_kwds_for_show(kwds, ignore=['xmin', 'xmax'])
 
@@ -1232,11 +1270,17 @@ def _plot(funcs, xrange, parametric=False,
         1
         sage: p1.show(ymin=-10,ymax=10) # should be one legend
 
+    Parametric plots that get evaluated at invalid points should still
+    plot properly (:trac:`13246`)::
+
+        sage: parametric_plot((x, arcsec(x)), (x, -2, 2))
+
     """
 
     from sage.plot.misc import setup_for_eval_on_grid
     if funcs == []:
         return Graphics()
+    excluded_points = []
     funcs, ranges = setup_for_eval_on_grid(funcs, [xrange], options['plot_points'])
     xmin, xmax, delta = ranges[0]
     xrange=ranges[0][:2]
@@ -1295,32 +1339,54 @@ def _plot(funcs, xrange, parametric=False,
             v = exclude.variables()[0]
             points = [e.right() for e in exclude.solve(v) if e.left() == v and (v not in e.right().variables())]
             # We are only interested in real solutions
-            exclude = []
             for x in points:
                 try:
-                    exclude.append(float(x))
+                    excluded_points.append(float(x))
                 except TypeError:
                     pass
+            excluded_points.sort()
 
-        if isinstance(exclude, (list, tuple)):
-            exclude = sorted(exclude)
-            # We make sure that points plot points close to the excluded points are computed
-            epsilon = 0.001*(xmax - xmin)
-            initial_points = reduce(lambda a,b: a+b, [[x - epsilon, x + epsilon] for x in exclude], [])
-            data = generate_plot_points(f, xrange, plot_points, adaptive_tolerance, adaptive_recursion, randomize, initial_points)
+        # We should either have a list in excluded points or exclude
+        # itself must be a list
+        elif isinstance(exclude, (list, tuple)):
+            excluded_points = sorted(exclude)
         else:
             raise ValueError('exclude needs to be a list of numbers or an equation')
 
-        if exclude == []:
-            exclude = None
+        # We make sure that points plot points close to the excluded points are computed
+        epsilon = 0.001*(xmax - xmin)
+        initial_points = reduce(lambda a,b: a+b,
+                                [[x - epsilon, x + epsilon]
+                                 for x in excluded_points], [])
+        data = generate_plot_points(f, xrange, plot_points,
+                                    adaptive_tolerance, adaptive_recursion,
+                                    randomize, initial_points)
     else:
-        data = generate_plot_points(f, xrange, plot_points, adaptive_tolerance, adaptive_recursion, randomize)
+        data = generate_plot_points(f, xrange, plot_points,
+                                    adaptive_tolerance, adaptive_recursion,
+                                    randomize)
+
+
+    for i in range(len(data)-1):
+        # If the difference between consecutive x-values is more than
+        # 2 times the difference between two consecutive plot points, then
+        # add an exclusion point.
+        if abs(data[i+1][0] - data[i][0]) > 2*abs(xmax - xmin)/plot_points:
+            excluded_points.append((data[i][0] + data[i+1][0])/2)
 
     if parametric:
         # We need the original x-values to be able to exclude points in parametric plots
         exclude_data = data
-        data = [(fdata, g(x)) for x, fdata in data]
+        newdata = []
+        for x,fdata in data:
+            try:
+                newdata.append((fdata, g(x)))
+            except (ValueError, TypeError):
+                newdata.append((fdata, 0)) # append a dummy value 0
+                excluded_points.append(x)
+        data = newdata
 
+    excluded_points.sort(reverse=True)
     G = Graphics()
 
     fillcolor = options.pop('fillcolor', 'automatic')
@@ -1388,7 +1454,7 @@ def _plot(funcs, xrange, parametric=False,
 
     detect_poles = options.pop('detect_poles', False)
     legend_label = options.pop('legend_label', None)
-    if exclude is not None or detect_poles != False:
+    if excluded_points or detect_poles != False:
         start_index = 0
         # setup for pole detection
         from sage.rings.all import RDF
@@ -1400,13 +1466,14 @@ def _plot(funcs, xrange, parametric=False,
 
         # setup for exclusion points
         exclusion_point = 0
-        if exclude is not None:
-            exclude.reverse()
-            exclusion_point = exclude.pop()
+        if excluded_points:
+            exclusion_point = excluded_points.pop()
 
+        flag = True
         for i in range(len(data)-1):
             x0, y0 = exclude_data[i]
             x1, y1 = exclude_data[i+1]
+
             # detect poles
             if (not (polar or parametric)) and detect_poles != False \
                and ((y1 > 0 and y0 < 0) or (y1 < 0 and y0 > 0)):
@@ -1422,14 +1489,25 @@ def _plot(funcs, xrange, parametric=False,
                     start_index = i+2
 
             # exclude points
-            if exclude is not None and (x0 <= exclusion_point <= x1):
+            if x0 > exclusion_point:
+                while exclusion_point <= x1:
+                    try:
+                        exclusion_point = excluded_points.pop()
+                    except IndexError:
+                        # all excluded points were considered
+                        flag = False
+                        break
+
+            elif flag and (x0 <= exclusion_point <= x1):
                 G += line(data[start_index:i], **options)
                 start_index = i + 2
-                try:
-                    exclusion_point = exclude.pop()
-                except IndexError:
-                    # all excluded points were considered
-                    exclude = None
+                while exclusion_point <= x1:
+                    try:
+                        exclusion_point = excluded_points.pop()
+                    except IndexError:
+                        # all excluded points were considered
+                        flag = False
+                        break
 
         G += line(data[start_index:], legend_label=legend_label, **options)
     else:
@@ -1498,14 +1576,14 @@ def parametric_plot(funcs, *args, **kwargs):
 
         sage: parametric_plot([cos(x) + 2 * cos(x/4), sin(x) - 2 * sin(x/4)], (x,0, 8*pi), fill = True)
 
-        sage: parametric_plot( (5*cos(x), 5*sin(x), x), (x,-12, 12), plot_points=150, color="red")
+        sage: parametric_plot( (5*cos(x), 5*sin(x), x), (x,-12, 12), plot_points=150, color="red") # long time
 
         sage: y=var('y')
-        sage: parametric_plot( (5*cos(x), x*y, cos(x*y)), (x, -4,4), (y,-4,4))
+        sage: parametric_plot( (5*cos(x), x*y, cos(x*y)), (x, -4,4), (y,-4,4)) # long time`
 
         sage: t=var('t')
-        sage: parametric_plot( vector((sin(t), sin(2*t))), (t, 0, 2*pi), color='green')
-        sage: parametric_plot( vector([t, t+1, t^2]), (t, 0, 1))
+        sage: parametric_plot( vector((sin(t), sin(2*t))), (t, 0, 2*pi), color='green') # long time
+        sage: parametric_plot( vector([t, t+1, t^2]), (t, 0, 1)) # long time
 
     Plotting in logarithmic scale is possible with 2D plots. The keyword
     ``aspect_ratio`` will be ignored if the scale is not ``'loglog'`` or
@@ -1669,7 +1747,7 @@ def list_plot(data, plotjoined=False, **kwargs):
 
     EXAMPLES::
 
-        sage: list_plot([i^2 for i in range(5)])
+        sage: list_plot([i^2 for i in range(5)]) # long time
 
     Here are a bunch of random red points::
 
@@ -1728,7 +1806,7 @@ def list_plot(data, plotjoined=False, **kwargs):
     There are two different syntaxes available::
 
         sage: yl = [2**k for k in range(20)]
-        sage: list_plot(yl, scale='semilogy')       # log axis on vertical
+        sage: list_plot(yl, scale='semilogy')  # long time  # log axis on vertical
 
     ::
 
@@ -1747,17 +1825,17 @@ def list_plot(data, plotjoined=False, **kwargs):
 
         Instead this will work. We drop the point `(0,1)`.::
 
-            sage: list_plot(zip(range(1,len(yl)), yl[1:]), scale='loglog')
+            sage: list_plot(zip(range(1,len(yl)), yl[1:]), scale='loglog') # long time 
 
     We use :func:`list_plot_loglog` and plot in a different base.::
 
-        sage: list_plot_loglog(zip(range(1,len(yl)), yl[1:]), base=2)
+        sage: list_plot_loglog(zip(range(1,len(yl)), yl[1:]), base=2) # long time
 
     We can also change the scale of the axes in the graphics just before
     displaying::
 
-        sage: G = list_plot(yl)
-        sage: G.show(scale=('semilogy', 2))
+        sage: G = list_plot(yl) # long time
+        sage: G.show(scale=('semilogy', 2)) # long time
 
     TESTS:
 
@@ -1837,7 +1915,7 @@ def plot_loglog(funcs, *args, **kwds):
 
     ::
 
-        sage: plot_loglog(exp, (1,10), base=2.1) # with base 2.1 on both axes
+        sage: plot_loglog(exp, (1,10), base=2.1) # long time # with base 2.1 on both axes
 
     ::
 
@@ -1863,7 +1941,7 @@ def plot_semilogx(funcs, *args, **kwds):
 
     EXAMPLES::
 
-        sage: plot_semilogx(exp, (1,10)) # plot in semilogx scale, base 10
+        sage: plot_semilogx(exp, (1,10)) # long time # plot in semilogx scale, base 10
 
     ::
 
@@ -1889,11 +1967,11 @@ def plot_semilogy(funcs, *args, **kwds):
 
     EXAMPLES::
 
-        sage: plot_semilogy(exp, (1,10)) # plot in semilogy scale, base 10
+        sage: plot_semilogy(exp, (1,10)) # long time # plot in semilogy scale, base 10
 
     ::
 
-        sage: plot_semilogy(exp, (1,10), base=2) # with base 2
+        sage: plot_semilogy(exp, (1,10), base=2) # long time # with base 2
 
     """
     return plot(funcs, *args, scale='semilogy', **kwds)
@@ -1917,15 +1995,15 @@ def list_plot_loglog(data, plotjoined=False, **kwds):
     EXAMPLES::
 
         sage: yl = [5**k for k in range(10)]; xl = [2**k for k in range(10)]
-        sage: list_plot_loglog(zip(xl, yl)) # plot in loglog scale with base 10
+        sage: list_plot_loglog(zip(xl, yl)) # long time # plot in loglog scale with base 10
 
     ::
 
-        sage: list_plot_loglog(zip(xl, yl), base=2.1) # with base 2.1 on both axes
+        sage: list_plot_loglog(zip(xl, yl), base=2.1) # long time # with base 2.1 on both axes
 
     ::
 
-        sage: list_plot_loglog(zip(xl, yl), base=(2,5))
+        sage: list_plot_loglog(zip(xl, yl), base=(2,5)) # long time
 
     .. warning::
 
@@ -2124,20 +2202,20 @@ def graphics_array(array, n=None, m=None):
         sage: f(x) = sin(x)
         sage: g(x) = sin(2*x)
         sage: h(x) = sin(4*x)
-        sage: p1 = plot(f,(-2*pi,2*pi),color=hue(0.5))
-        sage: p2 = plot(g,(-2*pi,2*pi),color=hue(0.9))
-        sage: p3 = parametric_plot((f,g),(0,2*pi),color=hue(0.6))
-        sage: p4 = parametric_plot((f,h),(0,2*pi),color=hue(1.0))
+        sage: p1 = plot(f,(-2*pi,2*pi),color=hue(0.5)) # long time
+        sage: p2 = plot(g,(-2*pi,2*pi),color=hue(0.9)) # long time
+        sage: p3 = parametric_plot((f,g),(0,2*pi),color=hue(0.6)) # long time
+        sage: p4 = parametric_plot((f,h),(0,2*pi),color=hue(1.0)) # long time
 
     Now make a graphics array out of the plots::
 
-        sage: graphics_array(((p1,p2),(p3,p4)))
+        sage: graphics_array(((p1,p2),(p3,p4))) # long time
 
     One can also name the array, and then use :meth:`~sage.plot.graphics.GraphicsArray.show`
     or :meth:`~sage.plot.graphics.GraphicsArray.save`::
 
-        sage: ga = graphics_array(((p1,p2),(p3,p4)))
-        sage: ga.show()
+        sage: ga = graphics_array(((p1,p2),(p3,p4))) # long time
+        sage: ga.show() # long time
 
     Here we give only one row::
 

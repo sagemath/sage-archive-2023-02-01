@@ -617,7 +617,7 @@ class DeltaComplex(GenericCellComplex):
             empty_simplex = 0
         vertices = self.n_cells(0, subcomplex=subcomplex)
         old = vertices
-        old_real = filter(lambda x: x is not None, old) # get rid of faces not in subcomplex
+        old_real = [x for x in old if x is not None] # get rid of faces not in subcomplex
         n = len(old_real)
         differentials[0] = matrix(base_ring, empty_simplex, n, n*empty_simplex*[1])
         # current is list of simplices in dimension dim
@@ -626,7 +626,7 @@ class DeltaComplex(GenericCellComplex):
         # old_real is list of simplices in dimension dim-1, with None filtered out
         for dim in range(1,self.dimension()+1):
             current = list(self.n_cells(dim, subcomplex=subcomplex))
-            current_real = filter(lambda x: x is not None, current)
+            current_real = [x for x in current if x is not None]
             i = 0
             i_real = 0
             translate = {}

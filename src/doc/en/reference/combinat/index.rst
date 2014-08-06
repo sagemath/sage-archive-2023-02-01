@@ -26,6 +26,7 @@ Combinatorics
    sage/combinat/alternating_sign_matrix
    sage/combinat/composition
    sage/combinat/core
+   designs
    sage/combinat/knutson_tao_puzzles
    sage/combinat/gelfand_tsetlin_patterns
    sage/combinat/necklace
@@ -34,6 +35,7 @@ Combinatorics
    sage/combinat/perfect_matching
    sage/combinat/six_vertex_model
    sage/combinat/tamari_lattices
+   sage/combinat/interval_posets
    sage/combinat/yang_baxter_graph
 
 **Compositions**
@@ -185,11 +187,11 @@ Combinatorics
    sage/combinat/subset
    sage/combinat/subsets_pairwise
    sage/combinat/tuple
+   sage/combinat/gray_codes
 
    root_systems
    crystals
    rigged_configurations
-   designs
    species
 
 **Developer Tools**
@@ -198,6 +200,7 @@ Combinatorics
 .. toctree::
    :maxdepth: 1
 
+   sage/combinat/shuffle
    sage/combinat/dict_addition
    sage/combinat/misc
    sage/combinat/combinatorial_map

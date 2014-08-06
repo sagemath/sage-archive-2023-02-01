@@ -261,8 +261,8 @@ class FiniteFieldFactory(UniqueFactory):
         sage: K.<a> = GF(5**5, name='a', modulus=x^3 + 3*x + 3)
         Traceback (most recent call last):
         ...
-        ValueError: The degree of the modulus does not correspond to the
-        cardinality of the field.
+        ValueError: the degree of the modulus does not equal the
+        degree of the field.
 
     If you wish to live dangerously, you can tell the constructor not
     to test irreducibility using ``check_irreducible=False``, but this
@@ -492,7 +492,7 @@ class FiniteFieldFactory(UniqueFactory):
                     if not modulus.is_irreducible():
                         raise ValueError("finite field modulus must be irreducible but it is not.")
                     if modulus.degree() != n:
-                        raise ValueError("The degree of the modulus does not correspond to the cardinality of the field.")
+                        raise ValueError("the degree of the modulus does not equal the degree of the field.")
                 if name is None:
                     raise TypeError("you must specify the generator name.")
                 if impl is None:

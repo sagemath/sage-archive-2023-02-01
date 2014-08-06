@@ -163,6 +163,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         names = normalize_names(n, names)
         AmbientSpace.__init__(self, n, R)
         self._assign_names(names)
+        AffineScheme.__init__(self, self.coordinate_ring(), R)
 
     def __iter__(self):
         """
@@ -246,7 +247,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             ...
             TypeError: Second argument (= Integer Ring) must be a finite field.
         """
-        if F == None:
+        if F is None:
             if not is_FiniteField(self.base_ring()):
                 raise TypeError("Base ring (= %s) must be a finite field."%self.base_ring())
             return [ P for P in self ]

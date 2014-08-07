@@ -24,4 +24,4 @@ from space       import ( QuasiMeromorphicModularForms, QuasiWeakModularForms, Q
                           MeromorphicModularForms, WeakModularForms, ModularForms, CuspForms,\
                           ZeroForm ) 
 
-#from subspace    import SubSpaceForms
+from subspace    import ModularFormsSubSpace

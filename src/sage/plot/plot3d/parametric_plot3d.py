@@ -124,6 +124,12 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
 
            sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi), color='green', opacity=0.1, plot_points=[30,30])
 
+       One can use the keyword ``colordata`` to color the surface using a
+       coloring function and a colormap::
+
+           sage: var('u,v')
+           sage: def cf(u,v): return sin(u*v)**2
+           sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi), colordata=(cf, colormaps.PiYG), plot_points=[30,30])
 
     We call the space curve function but with polynomials instead of
     symbolic variables.

@@ -109,14 +109,16 @@ cdef class ParametricSurface(IndexFaceSet):
 
     - ``f`` - (default: ``None``) The defining function. Either a tuple of
       three functions, or a single function which returns a tuple, taking
-      two python floats as input. To subclass, pass None for f and override
-      eval_c or eval instead.
+      two python floats as input. To subclass, pass ``None`` for ``f`` and
+      override ``eval_c`` or ``eval`` instead.
 
     - ``domain`` - (default: ``None``) A tuple of two lists, defining the
-      grid of `u,v` values. If None, this will be calculated automatically.
+      grid of `u,v` values. If ``None``, this will be calculated automatically.
 
-    - ``colordata`` - (default: ``None``) A pair (h,c) where h is a function
-      with values in [0,1] and c is a colormap.
+    - ``colordata`` - (default: ``None``) A pair `(h,c)` where `h` is
+      a function with values in `[0,1]` and `c` is a colormap. The
+      color of a point `p` is then defined as the composition
+      `c(h(p))`
 
     EXAMPLES::
 
@@ -182,7 +184,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def default_render_params(self):
         """
-        Returns an instance of RenderParams suitable for plotting this object.
+        Return an instance of RenderParams suitable for plotting this object.
 
         TEST::
 
@@ -194,7 +196,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def x3d_geometry(self):
         r"""
-        Returns XML-like representation of the coordinates of all points
+        Return XML-like representation of the coordinates of all points
         in a triangulation of the object along with an indexing of those
         points.
 
@@ -211,7 +213,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def tachyon_repr(self, render_params):
         """
-        Returns representation of the object suitable for plotting
+        Return representation of the object suitable for plotting
         using Tachyon ray tracer.
 
         TESTS::
@@ -524,10 +526,10 @@ cdef class ParametricSurface(IndexFaceSet):
 
         We branch outside the loops for efficiency. The options for self.f are:
 
-            None     -- call self.eval_c() or self.eval()
+        - ``None`` -- call self.eval_c() or self.eval()
                         (One of these is presumably overridden.)
-            tuple    -- split into fx, fy, fz and call each separately
-            callable -- call f(u,v)
+        - tuple -- split into fx, fy, fz and call each separately
+        - callable -- call f(u,v)
 
         In addition, branches are taken for efficient calling of FastDoubleFunc
         (including whether to iterate over python or c doubles).

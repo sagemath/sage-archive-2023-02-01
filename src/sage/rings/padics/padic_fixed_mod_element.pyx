@@ -177,9 +177,27 @@ cdef class pAdicFixedModElement(FMElement):
             O(5^10)
             sage: pari(R(0,5))
             O(5^10)
+            sage: pari(R(0)).debug()
+            [&=...] PADIC(lg=5):... (precp=0,valp=10):... ... ... ...
+                p : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
+              p^l : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
+                I : [&=...] INT(lg=2):... (0,lgefint=2):... 
+
+        This checks that :trac:`15653` is fixed::
+
+            sage: x = polygen(ZpFM(3,10))
+            sage: (x^3 + x + 1)._pari_().poldisc()
+            2 + 3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10)
         """
-        # holder is defined in the linkage file
-        cdef long val = mpz_remove(holder.value, self.value, self.prime_pow.prime.value)
+        cdef long val
+        # Let val be the valuation of self, holder (defined in the
+        # linkage file) be the unit part.
+        if mpz_sgn(self.value) == 0:
+            # Special case for zero: maximal valuation and 0 unit part
+            val = self.prime_pow.prec_cap
+            mpz_set_ui(holder.value, 0)
+        else:
+            val = mpz_remove(holder.value, self.value, self.prime_pow.prime.value)
         return P.new_gen_from_padic(val, self.prime_pow.prec_cap - val,
                                     self.prime_pow.prime.value,
                                     self.prime_pow.pow_mpz_t_tmp(self.prime_pow.prec_cap - val)[0],

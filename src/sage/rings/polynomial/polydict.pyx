@@ -47,6 +47,7 @@ include 'sage/ext/cdefs.pxi'
 from cpython.dict cimport *
 
 import copy
+from functools import reduce
 from sage.structure.element import generic_power
 from sage.misc.misc import cputime
 from sage.misc.latex import latex
@@ -305,7 +306,7 @@ cdef class PolyDict:
             4
         """
         K = mon.keys()[0]
-        if not self.__repn.has_key(K):
+        if K not in self.__repn:
             return 0
         return self.__repn[K]
 

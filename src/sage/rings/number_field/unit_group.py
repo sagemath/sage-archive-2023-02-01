@@ -260,9 +260,9 @@ class UnitGroup(AbelianGroupWithValues_class):
         if not S:
             S = self.__S = ()
         else:
-            if type(S)==list:
+            if isinstance(S, list):
                 S = tuple(S)
-            if not type(S)==tuple:
+            if not isinstance(S, tuple):
                 try:
                     S = tuple(K.ideal(S).prime_factors())
                 except (NameError, TypeError, ValueError):
@@ -346,14 +346,14 @@ class UnitGroup(AbelianGroupWithValues_class):
         try:
             u = K(u)
         except TypeError:
-            raise ValueError, "%s is not an element of %s"%(u,K)
+            raise ValueError("%s is not an element of %s"%(u,K))
         if self.__S:
             m = pK.bnfissunit(self.__S_unit_data, pari(u)).mattranspose()
             if m.ncols()==0:
-                raise ValueError, "%s is not an S-unit"%u
+                raise ValueError("%s is not an S-unit"%u)
         else:
             if not u.is_integral() or u.norm().abs() != 1:
-                raise ValueError, "%s is not a unit"%u
+                raise ValueError("%s is not a unit"%u)
             m = pK.bnfisunit(pari(u)).mattranspose()
 
         # convert column matrix to a list:
@@ -508,7 +508,7 @@ class UnitGroup(AbelianGroupWithValues_class):
         K = self.number_field()
         n = ZZ(n)
         if n <= 0:
-            raise ValueError, "n (=%s) must be positive"%n
+            raise ValueError("n (=%s) must be positive"%n)
         if n == 1:
             if all:
                 return [K(1)]
@@ -529,7 +529,7 @@ class UnitGroup(AbelianGroupWithValues_class):
             if all:
                 return []
             else:
-                raise ValueError, "n (=%s) does not divide order of generator"%n
+                raise ValueError("n (=%s) does not divide order of generator"%n)
 
     def number_field(self):
         """

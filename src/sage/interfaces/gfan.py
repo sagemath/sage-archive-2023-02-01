@@ -63,7 +63,7 @@ class Gfan:
         # since version 0.4, gfan indicates which LP algorithm it is using.
         # we avoid interpreting this as an error
         if (len(err) > 0) and not (err.startswith('LP algorithm being used:')):
-            raise RuntimeError, err
+            raise RuntimeError(err)
 
         return ans
 

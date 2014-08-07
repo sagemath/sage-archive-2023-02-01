@@ -121,10 +121,10 @@ class Macdonald(UniqueRepresentation):
         self._sym = Sym
         self._s = Sym.s()
         if not (q in Sym.base_ring() or var(q) in Sym.base_ring()):
-            raise ValueError, "parameter q must be in the base ring"
+            raise ValueError("parameter q must be in the base ring")
         self.q = Sym.base_ring()(q)
         if not (t in Sym.base_ring() or var(t) in Sym.base_ring()):
-            raise ValueError, "parameter t must be in the base ring"
+            raise ValueError("parameter t must be in the base ring")
         self.t = Sym.base_ring()(t)
         self._name_suffix = ""
         if str(q) !='q':
@@ -1476,7 +1476,7 @@ class MacdonaldPolynomials_s(MacdonaldPolynomials_generic):
             part += [0]*(k-len(part))
 
             if len(part) > k:
-                raise ValueError, "the column to add is too small"
+                raise ValueError("the column to add is too small")
 
             #Create the matrix over the homogeneous symmetric
             #functions and take its determinant

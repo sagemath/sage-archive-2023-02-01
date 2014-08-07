@@ -171,7 +171,7 @@ def is_long_hole_free(g, certificate=False):
                     else:
                         return False, None
 
-                elif not VisitedP3.has_key((b,c,d)):
+                elif (b,c,d) not in VisitedP3:
                     # search for another P_4
                     res, hole_vertices = process(b,c,d,i+1)
                     if not res:
@@ -187,7 +187,7 @@ def is_long_hole_free(g, certificate=False):
         InPath[u] = 0   # u is the first vertex at position 0
         for vv,ww in g.edge_iterator(labels = False):
             for v,w in [(vv,ww),(ww,vv)]:
-                if has_edge(dense_graph,u,v,n) and u!=w and not has_edge(dense_graph,u,w,n) and not VisitedP3.has_key((u,v,w)):
+                if has_edge(dense_graph,u,v,n) and u!=w and not has_edge(dense_graph,u,w,n) and (u,v,w) not in VisitedP3:
                     InPath[v] = 1   # v is the second vertex at position 1
                     res,hole = process(u, v, w, 2)
                     if not res:
@@ -302,7 +302,7 @@ def is_long_antihole_free(g, certificate = False):
         VisitedP3[c,a,b] = True
         for d in g.neighbor_iterator(b):
             if has_edge(dense_graph,d,a,n) and not has_edge(dense_graph,d,c,n):
-                if InPath.has_key(d):
+                if d in InPath:
                     if certificate:  #calculation of induced cycle in complement
                         j = InPath[d]
 
@@ -337,7 +337,7 @@ def is_long_antihole_free(g, certificate = False):
                     else:
                         return False, []
 
-                elif not VisitedP3.has_key((b,d,c)):
+                elif (b,d,c) not in VisitedP3:
                     r,antihole = process(b,c,d,k+1)
                     if not r:
                         return False, antihole
@@ -351,7 +351,7 @@ def is_long_antihole_free(g, certificate = False):
     for u in g:
         InPath[u] = 1
         for v,w in g.edge_iterator(labels = False):
-            if not has_edge(dense_graph,u,v,n) and not has_edge(dense_graph,u,w,n) and not VisitedP3.has_key((v,w,u)):
+            if not has_edge(dense_graph,u,v,n) and not has_edge(dense_graph,u,w,n) and (v,w,u) not in VisitedP3:
                 InPath[v] = 0
                 r,antihole = process(v, u, w, 2)
                 if not r:

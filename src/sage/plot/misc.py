@@ -100,13 +100,13 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
         (<sage.ext...>, [(1.0, -1.0, 2.0), (-1.0, 1.0, 2.0)], [y, x])
     """
     if max(map(len, ranges)) != min(map(len, ranges)):
-        raise ValueError, "Some variable ranges specify variables while others do not"
+        raise ValueError("Some variable ranges specify variables while others do not")
 
     if len(ranges[0])==3:
         vars = [r[0] for r in ranges]
         ranges = [r[1:] for r in ranges]
         if len(set(vars))<len(vars):
-            raise ValueError, "range variables should be distinct, but there are duplicates"
+            raise ValueError("range variables should be distinct, but there are duplicates")
     else:
         vars, free_vars = unify_arguments(funcs)
         if len(free_vars)>1:
@@ -126,12 +126,12 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
     if not isinstance(plot_points, (list, tuple)):
         plot_points = [plot_points]*len(ranges)
     elif len(plot_points)!=nargs:
-        raise ValueError, "plot_points must be either an integer or a list of integers, one for each range"
+        raise ValueError("plot_points must be either an integer or a list of integers, one for each range")
 
     plot_points = [int(p) if p>=2 else 2 for p in plot_points]
     range_steps = [abs(range[1] - range[0])/(p-1) for range, p in zip(ranges, plot_points)]
     if min(range_steps) == float(0):
-        raise ValueError, "plot start point and end point must be different"
+        raise ValueError("plot start point and end point must be different")
 
     options={}
     if nargs==1:

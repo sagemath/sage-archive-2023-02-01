@@ -193,7 +193,7 @@ def Phi_polys(L, x, j):
     - Iftikhar Burhanuddin -- burhanud@usc.edu
     """
     if not(L in [2,3,5,7,11]):
-        raise ValueError, "L should be either 2,3,5,7 or 11. For other values use ClassicalModularPolynomialDatabase()."
+        raise ValueError("L should be either 2,3,5,7 or 11. For other values use ClassicalModularPolynomialDatabase().")
 
     j_tmp = 1
     j_pow = [j_tmp]
@@ -486,7 +486,7 @@ def dimension_supersingular_module(prime, level=1):
     - Iftikhar Burhanuddin - burhanud@usc.edu
     """
     if not(rings.Integer(prime).is_prime()):
-        raise ValueError, "%s is not a prime"%prime
+        raise ValueError("%s is not a prime"%prime)
 
     if level == 1:
         return Gamma0(prime).dimension_modular_forms(2)
@@ -534,7 +534,7 @@ def supersingular_D(prime):
     - Iftikhar Burhanuddin - burhanud@usc.edu
     """
     if not(rings.Integer(prime).is_prime()):
-        raise ValueError, "%s is not a prime"%prime
+        raise ValueError("%s is not a prime"%prime)
 
     #Making picking D more intelligent
     D = -1
@@ -581,12 +581,12 @@ def supersingular_j(FF):
     - Iftikhar Burhanuddin -- burhanud@usc.edu
     """
     if not(FF.is_field()) or not(FF.is_finite()):
-        raise ValueError, "%s is not a finite field"%FF
+        raise ValueError("%s is not a finite field"%FF)
     prime = FF.characteristic()
     if not(rings.Integer(prime).is_prime()):
-        raise ValueError, "%s is not a prime"%prime
+        raise ValueError("%s is not a prime"%prime)
     if not(rings.Integer(FF.cardinality())) == rings.Integer(prime**2):
-        raise ValueError, "%s is not a quadratic extension"%FF
+        raise ValueError("%s is not a quadratic extension"%FF)
     if rings.kronecker(-1, prime) != 1:
         j_invss = 1728                 #(2^2 * 3)^3
     elif rings.kronecker(-2, prime) != 1:
@@ -652,11 +652,11 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         """
 
         if not prime.is_prime():
-            raise ValueError, "the argument prime must be a prime number"
+            raise ValueError("the argument prime must be a prime number")
         if prime.divides(level):
-            raise ValueError, "the argument level must be coprime to the argument prime"
+            raise ValueError("the argument level must be coprime to the argument prime")
         if level != 1:
-            raise NotImplementedError, "supersingular modules of level > 1 not yet implemented"
+            raise NotImplementedError("supersingular modules of level > 1 not yet implemented")
         self.__prime = prime
         from sage.rings.all import FiniteField
         self.__finite_field = FiniteField(prime**2,'a')
@@ -911,7 +911,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
                 neighbors = Phi2_quad(X, ss_points[j_prev], ss_points[pos]).roots()
 
             for (xj,ej) in neighbors:
-                if not ss_points_dic.has_key(xj):
+                if xj not in ss_points_dic:
                     j = len(ss_points)
                     ss_points += [xj]
                     ss_points_pre += [pos]
@@ -1037,7 +1037,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
 
         - Iftikhar Burhanuddin -- burhanud@usc.edu
         """
-        if self.__hecke_matrices.has_key(L):
+        if L in self.__hecke_matrices:
             return self.__hecke_matrices[L]
         SS, II = self.supersingular_points()
         if L == 2:

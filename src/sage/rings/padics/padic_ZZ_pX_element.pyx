@@ -523,6 +523,30 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         """
         return self.prime_pow
 
+    cdef int _pshift_self(self, long shift) except -1:
+        """
+        Multiplies this element by ``p^shift``.
+
+        TESTS:
+
+        Check that :trac:`13647` has been fixed::
+
+            sage: K = ZpCA(3)
+            sage: R.<u> = K[]
+            sage: L.<u> = K.extension(u^2 + 1)
+            sage: L(R.gen())
+            u + O(3^20)
+
+            sage: K = ZpFM(3)
+            sage: R.<u> = K[]
+            sage: L.<u> = K.extension(u^2 + 1)
+            sage: L(R.gen())
+            u + O(3^20)
+
+        """
+        if shift != 0:
+            raise NotImplementedError
+
 def _test_preprocess_list(R, L):
     """
     Given a list of elements convertible to ``ntl_ZZ_p``s, finds the

@@ -383,7 +383,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
             2
         """
         if not self.is_galois():
-            raise TypeError, "Decomposition groups only defined for Galois extensions"
+            raise TypeError("Decomposition groups only defined for Galois extensions")
 
         if isinstance(P, NumberFieldHomomorphism_im_gens):
             if self.number_field().is_totally_real():
@@ -393,7 +393,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         else:
             P = self.number_field().ideal_monoid()(P)
             if not P.is_prime():
-                raise ValueError, "%s is not prime" % P
+                raise ValueError("%s is not prime" % P)
             return self.subgroup([s for s in self if s(P) == P])
 
     def complex_conjugation(self, P=None):
@@ -420,20 +420,20 @@ class GaloisGroup_v2(PermutationGroup_generic):
         if P is None:
             Q = self.number_field().specified_complex_embedding()
             if Q is None:
-                raise ValueError, "No default complex embedding specified"
+                raise ValueError("No default complex embedding specified")
             P = Q
 
         P = refine_embedding(P, infinity)
 
         if not self.number_field().is_galois():
-            raise TypeError, "Extension is not Galois"
+            raise TypeError("Extension is not Galois")
         if self.number_field().is_totally_real():
-            raise TypeError, "No complex conjugation (field is real)"
+            raise TypeError("No complex conjugation (field is real)")
 
         g = self.number_field().gen()
         gconj = P(g).conjugate()
         elts = [s for s in self if P(s(g)) == gconj]
-        if len(elts) != 1: raise ArithmeticError, "Something has gone very wrong here"
+        if len(elts) != 1: raise ArithmeticError("Something has gone very wrong here")
         return elts[0]
 
     def ramification_group(self, P, v):
@@ -453,10 +453,10 @@ class GaloisGroup_v2(PermutationGroup_generic):
             Subgroup [()] of Galois group of Number Field in b with defining polynomial x^6 + 243
         """
         if not self.is_galois():
-            raise TypeError, "Ramification groups only defined for Galois extensions"
+            raise TypeError("Ramification groups only defined for Galois extensions")
         P = self.number_field().ideal_monoid()(P)
         if not P.is_prime():
-            raise ValueError, "%s is not prime"
+            raise ValueError("%s is not prime")
         return self.subgroup([g for g in self if g(P) == P and g.ramification_degree(P) >= v + 1])
 
     def inertia_group(self, P):
@@ -474,7 +474,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
             Subgroup [()] of Galois group of Number Field in b with defining polynomial x^2 - 3
         """
         if not self.is_galois():
-            raise TypeError, "Inertia groups only defined for Galois extensions"
+            raise TypeError("Inertia groups only defined for Galois extensions")
         return self.ramification_group(P, 0)
 
     def ramification_breaks(self, P):
@@ -494,7 +494,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
             2
         """
         if not self.is_galois():
-            raise TypeError, "Ramification breaks only defined for Galois extensions"
+            raise TypeError("Ramification breaks only defined for Galois extensions")
         from sage.rings.infinity import infinity
         from sage.sets.set import Set
         i = [g.ramification_degree(P) - 1 for g in self.decomposition_group(P)]
@@ -527,11 +527,11 @@ class GaloisGroup_v2(PermutationGroup_generic):
             ValueError: Fractional ideal (...) is ramified
         """
         if not self.is_galois():
-            raise TypeError, "Artin symbols only defined for Galois extensions"
+            raise TypeError("Artin symbols only defined for Galois extensions")
 
         P = self.number_field().ideal_monoid()(P)
         if not P.is_prime():
-            raise ValueError, "%s is not prime" % P
+            raise ValueError("%s is not prime" % P)
         p = P.smallest_integer()
         t = []
         gens = self.number_field().ring_of_integers().ring_generators()
@@ -539,7 +539,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
             w = [ (s(g) - g**p).valuation(P) for g in gens]
             if min(w) >= 1:
                 t.append(s)
-        if len(t) > 1: raise ValueError, "%s is ramified" % P
+        if len(t) > 1: raise ValueError("%s is ramified" % P)
         return t[0]
 
 class GaloisGroup_subgroup(GaloisGroup_v2):
@@ -681,7 +681,7 @@ class GaloisGroupElement(PermutationGroupElement):
             4
         """
         if not self.parent().is_galois():
-            raise TypeError, "Ramification degree only defined for Galois extensions"
+            raise TypeError("Ramification degree only defined for Galois extensions")
         gens = self.parent().number_field().ring_of_integers().ring_generators()
         w = [ (self(g) - g).valuation(P) for g in gens]
         return min(w)

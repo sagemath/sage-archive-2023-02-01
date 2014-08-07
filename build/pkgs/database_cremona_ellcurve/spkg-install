@@ -1,7 +1,4 @@
-#!/usr/bin/env bash
-###########################################
-## database_cremona_ellcurve
-###########################################
+#!/bin/sh
 
 if [ -z "$SAGE_SHARE" ]; then
     echo >&2 "SAGE_SHARE undefined ... exiting"
@@ -14,10 +11,4 @@ if [ ! -d "${TARGET}" ]; then
    mkdir "${TARGET}"
 fi
 
-cd src
-
-cp * "${TARGET}/"
-if [ $? -ne 0 ]; then
-   echo "Error installing cremona database"
-   exit 1
-fi
+exec cp -R src/* "${TARGET}/"

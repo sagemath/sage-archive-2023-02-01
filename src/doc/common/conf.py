@@ -1,5 +1,6 @@
 import sys, os, sphinx
 from sage.env import SAGE_DOC
+from datetime import date
 
 def get_doc_abspath(path):
     """
@@ -37,7 +38,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u""
-copyright = u'2005--2011, The Sage Development Team'
+copyright = u"2005--{}, The Sage Development Team".format(date.today().year)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -292,6 +293,19 @@ latex_elements['preamble'] = r"""
 \usepackage{mathrsfs}
 \DeclareUnicodeCharacter{01CE}{\capitalcaron a}
 \DeclareUnicodeCharacter{0428}{cyrillic Sha}
+\DeclareUnicodeCharacter{250C}{+}
+\DeclareUnicodeCharacter{2510}{+}
+\DeclareUnicodeCharacter{2514}{+}
+\DeclareUnicodeCharacter{2518}{+}
+\DeclareUnicodeCharacter{03BC}{\mu}
+\DeclareUnicodeCharacter{03B4}{\delta}
+\DeclareUnicodeCharacter{03B7}{\eta}
+\DeclareUnicodeCharacter{03BB}{\lambda}
+\DeclareUnicodeCharacter{2266}{\le}
+\DeclareUnicodeCharacter{221A}{\sqrt}
+
+\let\textLaTeX\LaTeX
+\renewcommand*{\LaTeX}{\hbox{\textLaTeX}}
 """
 
 # Documents to append as an appendix to all manuals.

@@ -443,7 +443,7 @@ mittels LaTeX in einem Notebook darzustellen. ::
     sage: latex.engine('pdflatex')
     sage: latex.add_to_mathjax_avoid_list('tikzpicture')
     sage: latex.mathjax_avoid_list()
-    ['tikzpicture']
+    ['tikz', 'tikzpicture']
 
 Beachten Sie, dass es eine Vielzahl von Optionen gibt, die die
 Darstellung des Graphen in LaTeX mit ``tkz-graph`` beeinflussen. Auch

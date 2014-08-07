@@ -124,7 +124,7 @@ cdef class CompiledPolynomialFunction:
             temp = self._dag.value               #for an explanation
             pd_clean(self._dag)                  #of these 3 lines
             return temp
-        except TypeError,msg:
+        except TypeError as msg:
             self._dag.reset()
             raise TypeError, msg
 

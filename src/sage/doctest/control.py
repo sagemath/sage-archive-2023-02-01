@@ -309,7 +309,7 @@ class DocTestController(SageObject):
         try:
             with open(filename) as stats_file:
                 self.stats.update(json.load(stats_file))
-        except StandardError:
+        except Exception:
             self.log("Error loading stats from %s"%filename)
 
     def save_stats(self, filename):
@@ -461,6 +461,7 @@ class DocTestController(SageObject):
         def all_files():
             from glob import glob
             self.files.append(opj(SAGE_SRC, 'sage'))
+            self.files.append(opj(SAGE_SRC, 'sage_setup'))
             self.files.append(opj(SAGE_SRC, 'doc', 'common'))
             self.files.extend(glob(opj(SAGE_SRC, 'doc', '[a-z][a-z]')))
             self.options.sagenb = True
@@ -486,7 +487,7 @@ class DocTestController(SageObject):
                 if (set(status).issubset("MARCU")
                     and filename.startswith("src/sage")
                     and (filename.endswith(".py") or filename.endswith(".pyx"))):
-                    self.files.append(filename)
+                    self.files.append(os.path.relpath(opj(SAGE_ROOT,filename)))
         if self.options.sagenb:
             if not self.options.all:
                 self.log("Doctesting the Sage notebook.")
@@ -584,7 +585,7 @@ class DocTestController(SageObject):
             def is_failure(source):
                 basename = source.basename
                 return basename not in self.stats or self.stats[basename].get('failed')
-            self.sources = filter(is_failure, self.sources)
+            self.sources = [x for x in self.sources if is_failure(x)]
 
     def sort_sources(self):
         r"""

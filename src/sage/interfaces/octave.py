@@ -299,7 +299,7 @@ class Octave(Expect):
         cmd = '%s=%s;'%(var,value)
         out = self.eval(cmd)
         if out.find("error") != -1:
-            raise TypeError, "Error executing code in Octave\nCODE:\n\t%s\nOctave ERROR:\n\t%s"%(cmd, out)
+            raise TypeError("Error executing code in Octave\nCODE:\n\t%s\nOctave ERROR:\n\t%s"%(cmd, out))
 
     def get(self, var):
         """
@@ -394,7 +394,7 @@ class Octave(Expect):
         m = A.nrows()
         n = A.ncols()
         if m != len(b):
-            raise ValueError, "dimensions of A and b must be compatible"
+            raise ValueError("dimensions of A and b must be compatible")
         from sage.matrix.all import MatrixSpace
         from sage.rings.all import QQ
         MS = MatrixSpace(QQ,m,1)

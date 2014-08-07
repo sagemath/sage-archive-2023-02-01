@@ -78,7 +78,7 @@ EXAMPLES:
 
 A difficult conversion::
 
-    sage: RR(sys.maxint)
+    sage: RR(sys.maxsize)
     9.22337203685478e18      # 64-bit
     2.14748364700000e9       # 32-bit
 
@@ -86,6 +86,8 @@ TESTS::
 
     sage: -1e30
     -1.00000000000000e30
+    sage: hex(-1. + 2^-52)
+    '-0xf.ffffffffffffp-4'
 
 Make sure we don't have a new field for every new literal::
 
@@ -590,6 +592,12 @@ cdef class RealField_class(sage.rings.ring.Field):
             1.5625
             sage: a.str(2)
             '1.1001000000000000000'
+            sage: R(oo)
+            +infinity
+            sage: R(unsigned_infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: can only convert signed infinity to RR
         """
         if hasattr(x, '_mpfr_'):
             return x._mpfr_(self)
@@ -644,12 +652,10 @@ cdef class RealField_class(sage.rings.ring.Field):
             3.40000000000000
             sage: RR.coerce(2^4000)
             1.31820409343094e1204
-
             sage: RR.coerce_map_from(float)
             Generic map:
               From: Set of Python objects of type 'float'
               To:   Real Field with 53 bits of precision
-
 
         TESTS::
 
@@ -669,7 +675,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         elif isinstance(S, RealField_class) and S.prec() >= self.__prec:
             return RRtoRR(S, self)
         elif QQ.has_coerce_map_from(S):
-            return QQtoRR(QQ, self) * QQ.coerce_map_from(S)
+            return QQtoRR(QQ, self) * QQ._internal_coerce_map_from(S)
         from sage.rings.qqbar import AA
         from sage.rings.real_lazy import RLF
         if S == AA or S is RLF:
@@ -1207,6 +1213,52 @@ cdef class RealField_class(sage.rings.ring.Field):
             return self(-1)
         raise ValueError, "No %sth root of unity in self"%n
 
+    def _factor_univariate_polynomial(self, f):
+        """
+        Factor the univariate polynomial ``f``.
+
+        INPUT:
+
+        - ``f`` -- a univariate polynomial defined over the real numbers
+
+        OUTPUT:
+
+        - A factorization of ``f`` over the real numbers into a unit and monic
+          irreducible factors
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.factor`.
+
+            This method calls PARI to compute the factorization.
+
+        TESTS::
+
+            sage: k = RealField(100)
+            sage: R.<x> = k[]
+            sage: k._factor_univariate_polynomial( x )
+            x
+            sage: k._factor_univariate_polynomial( 2*x )
+            (2.0000000000000000000000000000) * x
+            sage: k._factor_univariate_polynomial( x^2 )
+            x^2
+            sage: k._factor_univariate_polynomial( x^2 + 1 )
+            x^2 + 1.0000000000000000000000000000
+            sage: k._factor_univariate_polynomial( x^2 - 1 )
+            (x - 1.0000000000000000000000000000) * (x + 1.0000000000000000000000000000)
+            sage: k._factor_univariate_polynomial( (x - 1)^3 )
+            (x - 1.0000000000000000000000000000)^3
+            sage: k._factor_univariate_polynomial( x^2 - 3 )
+            (x - 1.7320508075688772935274463415) * (x + 1.7320508075688772935274463415)
+
+        """
+        R = f.parent()
+        F = list(f._pari_with_name().factor())
+
+        from sage.structure.factorization import Factorization
+        return Factorization([(R(g).monic(),e) for g,e in zip(*F)], f.leading_coefficient())
+
 #*****************************************************************************
 #
 #     RealNumber -- element of Real Field
@@ -1368,15 +1420,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpfr_set_d(self.value, (<RealDoubleElement>x)._value, parent.rnd)
         else:
             s = str(x).replace(' ','')
-            if mpfr_set_str(self.value, s, base, parent.rnd):
-                if s == 'NaN' or s == '@NaN@':
-                    mpfr_set_nan(self.value)
-                elif s == '+infinity':
-                    mpfr_set_inf(self.value, 1)
-                elif s == '-infinity':
-                    mpfr_set_inf(self.value, -1)
-                else:
-                    raise TypeError, "Unable to convert x (='%s') to real number."%s
+            s_lower = s.lower()
+            if s_lower == 'infinity':
+                raise ValueError('can only convert signed infinity to RR')
+            elif mpfr_set_str(self.value, s, base, parent.rnd) == 0:
+                pass
+            elif s == 'NaN' or s == '@NaN@':
+                mpfr_set_nan(self.value)
+            elif s_lower == '+infinity':
+                mpfr_set_inf(self.value, 1)
+            elif s_lower == '-infinity':
+                mpfr_set_inf(self.value, -1)
+            else:
+                raise TypeError("Unable to convert x (='%s') to real number."%s)
 
     cdef _set_from_GEN_REAL(self, GEN g):
         """
@@ -1902,6 +1958,46 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         return z
 
+    def __hex__(self):
+        """
+        Return a hexadecimal floating-point representation of ``self``, in the
+        style of C99 hexadecimal floating-point constants.
+
+        EXAMPLES::
+
+            sage: RR(-1/3).hex()
+            '-0x5.5555555555554p-4'
+            sage: Reals(100)(123.456e789).hex()
+            '0xf.721008e90630c8da88f44dd2p+2624'
+            sage: (-0.).hex()
+            '-0x0p+0'
+
+        ::
+
+            sage: [(a.hex(), float(a).hex()) for a in [.5, 1., 2., 16.]]
+            [('0x8p-4', '0x1.0000000000000p-1'),
+            ('0x1p+0', '0x1.0000000000000p+0'),
+            ('0x2p+0', '0x1.0000000000000p+1'),
+            ('0x1p+4', '0x1.0000000000000p+4')]
+
+        Special values::
+
+            sage: [RR(s).hex() for s in ['+inf', '-inf', 'nan']]
+            ['inf', '-inf', 'nan']
+        """
+        cdef char *s
+        cdef int r
+        sig_on()
+        r = mpfr_asprintf(&s, "%Ra", self.value)
+        sig_off()
+        if r < 0:  # MPFR free()s its buffer itself in this case
+            raise RuntimeError("Unable to convert an mpfr number to a string.")
+        t = str(s)
+        mpfr_free_str(s)
+        return t
+
+    hex = __hex__
+
     def __copy__(self):
         """
         Return copy of ``self`` - since ``self`` is immutable, we just return
@@ -2274,8 +2370,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             6.00000000000000
         """
         cdef RealNumber x
-        if n > sys.maxint:
-            raise OverflowError("n (=%s) must be <= %s"%(n, sys.maxint))
+        if n > sys.maxsize:
+            raise OverflowError("n (=%s) must be <= %s"%(n, sys.maxsize))
         x = self._new()
         mpfr_mul_2ui(x.value, self.value, n, (<RealField_class>self._parent).rnd)
         return x
@@ -2311,8 +2407,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR(1.5)._rshift_(2)
             0.375000000000000
         """
-        if n > sys.maxint:
-            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxint)
+        if n > sys.maxsize:
+            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxsize)
         cdef RealNumber x = self._new()
         mpfr_div_2exp(x.value, self.value, n, (<RealField_class>self._parent).rnd)
         return x
@@ -2995,11 +3091,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
         Check that the largest and smallest exponents representable by
         PARI convert correctly::
 
-            sage: a = pari(0.5) << (sys.maxint+1)/4
-            sage: RR(a) >> (sys.maxint+1)/4
+            sage: a = pari(0.5) << (sys.maxsize+1)/4
+            sage: RR(a) >> (sys.maxsize+1)/4
             0.500000000000000
-            sage: a = pari(0.5) >> (sys.maxint-3)/4
-            sage: RR(a) << (sys.maxint-3)/4
+            sage: a = pari(0.5) >> (sys.maxsize-3)/4
+            sage: RR(a) << (sys.maxsize-3)/4
             0.500000000000000
         """
         # This uses interfaces of MPFR and PARI which are documented
@@ -3408,11 +3504,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
             Traceback (most recent call last):
             ...
             ValueError: Cannot convert NaN or infinity to rational number
-            sage: RR('infinity').nearby_rational(max_denominator=1000)
+            sage: RR(oo).nearby_rational(max_denominator=1000)
             Traceback (most recent call last):
             ...
             ValueError: Cannot convert NaN or infinity to rational number
-            sage: RR('infinity').nearby_rational(max_error=0.01)
+            sage: RR(oo).nearby_rational(max_error=0.01)
             Traceback (most recent call last):
             ...
             ValueError: Cannot convert NaN or infinity to rational number
@@ -3670,6 +3766,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
             True
         """
         return True
+
+    def is_integer(self):
+        """
+        Return ``True`` if this number is a integer
+
+        EXAMPLES::
+        
+            sage: RR(1).is_integer()
+            True
+            sage: RR(0.1).is_integer()
+            False
+        """
+        return self in ZZ
 
     def __nonzero__(self):
         """
@@ -5000,7 +5109,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         -  ``n`` -- A positive number, rounded down to the
            nearest integer. Note that `n` should be less than
-           ```sys.maxint```.
+           ```sys.maxsize```.
 
         -  ``algorithm`` -- Set this to 1 to call mpfr directly,
            set this to 2 to use interval arithmetic and logarithms, or leave
@@ -5619,7 +5728,7 @@ cdef class RRtoRR(Map):
               From: Real Field with 10 bits of precision
               To:   Real Field with 100 bits of precision
         """
-        return RRtoRR(self._codomain, self._domain)
+        return RRtoRR(self._codomain, self.domain())
 
 cdef class ZZtoRR(Map):
     cpdef Element _call_(self, x):

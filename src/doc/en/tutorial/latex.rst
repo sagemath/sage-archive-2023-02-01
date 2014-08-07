@@ -441,7 +441,7 @@ graphs processed by LaTeX in the notebook. ::
     sage: latex.engine('pdflatex')
     sage: latex.add_to_mathjax_avoid_list('tikzpicture')
     sage: latex.mathjax_avoid_list()
-    ['tikzpicture']
+    ['tikz', 'tikzpicture']
 
 At this point, a command like ``view(graphs.CompleteGraph(4))``
 should produce a graphic version of the graph pasted into the

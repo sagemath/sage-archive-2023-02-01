@@ -423,10 +423,10 @@ class Tableau(CombinatorialObject, Element):
             [   1  2  3,   2   ,   3   ,   3 ]
             sage: Tableaux.global_options(ascii_art="compact")
             sage: ascii_art(list(StandardTableaux(3)))
-            [                        |3| ]
-            [          |2|    |3|    |2| ]
-            [ |1|2|3|, |1|3|, |1|2|, |1| ]
-            sage: Tableaux.global_options(ascii_art="table")
+            [                        |1| ]
+            [          |1|3|  |1|2|  |2| ]
+            [ |1|2|3|, |2|  , |3|  , |3| ]
+            sage: Tableaux.global_options(convention="french", ascii_art="table")
             sage: ascii_art(list(StandardTableaux(3)))
             [                                      +---+ ]
             [                                      | 3 | ]
@@ -435,7 +435,6 @@ class Tableau(CombinatorialObject, Element):
             [ +---+---+---+  +---+---+  +---+---+  +---+ ]
             [ | 1 | 2 | 3 |  | 1 | 3 |  | 1 | 2 |  | 1 | ]
             [ +---+---+---+, +---+---+, +---+---+, +---+ ]
-            sage: Tableaux.global_options(convention="french")
             sage: Tableaux.global_options(ascii_art="repr")
             sage: ascii_art(list(StandardTableaux(3)))
             [                              3 ]
@@ -451,9 +450,19 @@ class Tableau(CombinatorialObject, Element):
 
     def _ascii_art_table(self):
         """
-        TESTS::
+        TESTS:
 
-            sage: t = Tableau([[1,2,3],[4,5]]); print t._ascii_art_table()
+        We check that :trac:`16487` is fixed::
+
+            sage: t = Tableau([[1,2,3],[4,5]])
+            sage: print t._ascii_art_table()
+            +---+---+---+
+            | 1 | 2 | 3 |
+            +---+---+---+
+            | 4 | 5 |
+            +---+---+
+            sage: Tableaux.global_options(convention="french")
+            sage: print t._ascii_art_table()
             +---+---+
             | 4 | 5 |
             +---+---+---+
@@ -462,37 +471,109 @@ class Tableau(CombinatorialObject, Element):
             sage: t = Tableau([]); print t._ascii_art_table()
             ++
             ++
+            sage: Tableaux.global_options.reset()
+
+            sage: t = Tableau([[1,2,3,10,15],[12,15,17]])
+            sage: print t._ascii_art_table()
+            +----+----+----+----+----+
+            |  1 |  2 |  3 | 10 | 15 |
+            +----+----+----+----+----+
+            | 12 | 15 | 17 |
+            +----+----+----+
+
+            sage: t = Tableau([[1,2,15,7],[12,5,6],[8,10],[9]])
+            sage: Tableaux.global_options(ascii_art='table')
+            sage: ascii_art(t)
+            +----+----+----+---+
+            |  1 |  2 | 15 | 7 |
+            +----+----+----+---+
+            | 12 |  5 |  6 |
+            +----+----+----+
+            |  8 | 10 |
+            +----+----+
+            |  9 |
+            +----+
+            sage: Tableaux.global_options(convention='french')
+            sage: ascii_art(t)
+            +----+
+            |  9 |
+            +----+----+
+            |  8 | 10 |
+            +----+----+----+
+            | 12 |  5 |  6 |
+            +----+----+----+---+
+            |  1 |  2 | 15 | 7 |
+            +----+----+----+---+
+            sage: Tableaux.global_options.reset()
         """
-        if len(self) == 0: return "++\n++"
-        matr = ""
-        for row in self:
-            l1 = ""; l2 =  ""
-            for e in row:
-                l1 += "+---"
-                l2 += "| " + str(e) + " "
+        if len(self) == 0:
+            return "++\n++"
+
+        # Get the widths of the columns
+        str_tab = map(lambda row: map(str, row), self)
+        col_widths = [1]*len(str_tab[0])
+        for row in str_tab:
+            for i,e in enumerate(row):
+                col_widths[i] = max(col_widths[i], len(e))
+
+        matr = []  # just the list of lines
+        l1 = ""
+        for w in col_widths:
+            l1 += "+--" + '-'*w
+        matr.append(l1 + "+")
+        for row in str_tab:
+            l1 = ""; l2 = ""
+            for i,e in enumerate(row):
+                l1 += "+--" + '-'*col_widths[i]
+                l2 += "| {:^{width}} ".format(e, width=col_widths[i])
             l1 += "+"; l2 += "|"
-            matr = l1 + "\n" + l2 + "\n" + matr
-        matr += "+---"** Integer(len(self[0])) + "+"
-        return matr
+            matr.append(l2)
+            matr.append(l1)
+
+        if self.parent().global_options('convention') == "English":
+            return "\n".join(matr)
+        else:
+            return "\n".join(reversed(matr))
 
     def _ascii_art_compact(self):
         """
-        TESTS::
+        TESTS:
 
-            sage: t = Tableau([[1,2,3],[4,5]]); print t._ascii_art_compact()
+        We check that :trac:`16487` is fixed::
+
+            sage: t = Tableau([[1,2,3],[4,5]])
+            sage: print t._ascii_art_compact()
+            |1|2|3|
+            |4|5|
+            sage: Tableaux.global_options(convention="french")
+            sage: print t._ascii_art_compact()
             |4|5|
             |1|2|3|
+            sage: Tableaux.global_options.reset()
+
+            sage: t = Tableau([[1,2,3,10,15],[12,15,17]])
+            sage: print t._ascii_art_compact()
+            |1 |2 |3 |10|15|
+            |12|15|17|
         """
         if len(self) == 0:
             return "."
-        matr = ''
-        for row in self:
-            l1 = ""
-            for e in row:
-                l1 += "|" + str(e)
-            l1 += "|"
-            matr = l1 + "\n" + matr
-        return matr
+
+        if self.parent().global_options('convention') == "English":
+            T = self
+        else:
+            T = reversed(self)
+
+        # Get the widths of the columns
+        str_tab = map(lambda row: map(str, row), T)
+        col_widths = [1]*len(self[0])
+        for row in str_tab:
+            for i,e in enumerate(row):
+                col_widths[i] = max(col_widths[i], len(e))
+
+        return "\n".join("|"
+                       + "|".join("{:^{width}}".format(e,width=col_widths[i]) for i,e in enumerate(row))
+                       + "|" for row in str_tab)
 
     def _latex_(self):
         r"""
@@ -611,7 +692,7 @@ class Tableau(CombinatorialObject, Element):
         try:
             return self[i][j]
         except IndexError:
-            raise IndexError, "The cell (%d,%d) is not contained in %s"%(i,j,self)
+            raise IndexError("The cell (%d,%d) is not contained in %s"%(i,j,self))
 
     def level(self):
         """
@@ -775,23 +856,6 @@ class Tableau(CombinatorialObject, Element):
             word: 325146
         """
         return self.to_word_by_row()
-
-
-    def to_permutation(self):
-        """
-        Deprecated in :trac:`14724`. Use :meth:`reading_word_permutation()`
-        instead.
-
-        EXAMPLES::
-
-            sage: Tableau([[1,2],[3,4]]).to_permutation()
-            doctest:...: DeprecationWarning: to_permutation() is deprecated. Use instead reading_word_permutation()
-            See http://trac.sagemath.org/14724 for details.
-            [3, 4, 1, 2]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14724, 'to_permutation() is deprecated. Use instead reading_word_permutation()')
-        return self.reading_word_permutation()
 
     def attacking_pairs(self):
         """
@@ -1042,7 +1106,7 @@ class Tableau(CombinatorialObject, Element):
         the reading word::
 
             sage: T = SemistandardTableaux(shape=[6,3,3,1], max_entry=5)
-            sage: all(t.to_word().standard_permutation() == t.standardization().reading_word_permutation() for t in T)
+            sage: all(t.to_word().standard_permutation() == t.standardization().reading_word_permutation() for t in T) # long time
             True
         """
         if check and self not in SemistandardTableaux():
@@ -1314,8 +1378,7 @@ class Tableau(CombinatorialObject, Element):
             sage: Tableau([[5, 3], [2, 4]]).is_standard()
             False
         """
-        entries=self.entries()
-        entries.sort()
+        entries=sorted(self.entries())
         return entries==range(1,self.size()+1) and self.is_row_strict() and self.is_column_strict()
 
     def is_increasing(self):
@@ -1557,10 +1620,10 @@ class Tableau(CombinatorialObject, Element):
         # attempt to return a tableau of the same type
         try:
             return self.parent()( res )
-        except StandardError:
+        except Exception:
             try:
                 return self.parent().Element( res )
-            except StandardError:
+            except Exception:
                 return Tableau(res)
 
     def restriction_shape(self, n):
@@ -1967,7 +2030,7 @@ class Tableau(CombinatorialObject, Element):
             [[1, 1, 2, 2, 3], [2, 2, 3, 5], [3, 4, 5], [4, 6, 6], [5]]
         """
         if not isinstance(right, Tableau):
-            raise TypeError, "right must be a Tableau"
+            raise TypeError("right must be a Tableau")
 
         row = len(right)
         product = copy.deepcopy(left)
@@ -2423,7 +2486,7 @@ class Tableau(CombinatorialObject, Element):
         if not isinstance(tab2, Tableau):
             try:
                 tab2 = Tableau(tab2)
-            except StandardError:
+            except Exception:
                 raise TypeError("tab2 must be a standard tableau")
 
         if tab2.size() != n:
@@ -2543,7 +2606,7 @@ class Tableau(CombinatorialObject, Element):
                 tab[r].append(m)
 
             else:
-                raise IndexError, '%s is not an addable cell of the tableau' % ((r,c),)
+                raise IndexError('%s is not an addable cell of the tableau' % ((r,c),))
 
         # attempt to return a tableau of the same type as self
         if tab in self.parent():
@@ -2551,7 +2614,7 @@ class Tableau(CombinatorialObject, Element):
         else:
             try:
                 return self.parent().Element(tab)
-            except StandardError:
+            except Exception:
                 return Tableau(tab)
 
 
@@ -2885,7 +2948,7 @@ class Tableau(CombinatorialObject, Element):
         w = w + [i+1 for i in range(len(w), self.size())]   #need to ensure that it belongs to Sym_size
         try:
             return self.parent()([[w[entry-1] for entry in row] for row in self])
-        except StandardError:
+        except Exception:
             return Tableau([[w[entry-1] for entry in row] for row in self])
 
     def is_key_tableau(self):
@@ -3047,6 +3110,111 @@ class Tableau(CombinatorialObject, Element):
                 key[i].insert(0,key_val)
         return Tableau(key).conjugate()
 
+    #################
+    # seg and flush #
+    #################
+
+    def _segments(self):
+        r"""
+        Internal function returning the set of segments of a tableau as
+        a dictionary.
+
+        OUTPUT:
+
+        - A dictionary with items of the form ``{(r,k):c}``, where ``r`` is the
+          row the ``k``-segment appears and ``c`` is the column the left-most
+          box of the ``k``-segment appears.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1,2,3,5],[2,3,5,5],[3,4]])
+            sage: sorted(t._segments().items())
+            [((0, 2), 2), ((0, 3), 3), ((0, 5), 4), ((1, 3), 1), ((1, 5), 2), ((2, 4), 1)]
+
+            sage: B = crystals.Tableaux("A4", shape=[4,3,2,1])
+            sage: t = B[31].to_tableau()
+            sage: sorted(t._segments().items())
+            [((0, 5), 3), ((1, 4), 2), ((2, 4), 1)]
+        """
+        segments = {}
+        for r,row in enumerate(self):
+            for c in range(len(row)):
+                for j in range(c+1):
+                    if row[j] != r+1 and (r,row[j]) not in segments.keys():
+                        segments[(r,row[j])] = j
+        return segments
+
+    def seg(self):
+        r"""
+        Return the total number of segments in ``self``, as in [S14]_.
+
+        Let `T` be a tableaux.  We define a `k`-*segment* of `T` (in the `i`-th
+        row) to be a maximal consecutive sequence of `k`-boxes in the `i`-th
+        row for any `i+1 \le k \le r+1`.  Denote the total number of
+        `k`-segments in `T` by `\mathrm{seg}(T)`.
+
+        REFERENCES:
+
+        .. [S14] B. Salisbury.
+           The flush statistic on semistandard Young tableaux.
+           :arXiv:`1401.1185`
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1,2,3,5],[2,3,5,5],[3,4]])
+            sage: t.seg()
+            6
+
+            sage: B = crystals.Tableaux("A4",shape=[4,3,2,1])
+            sage: t = B[31].to_tableau()
+            sage: t.seg()
+            3
+        """
+        return len(self._segments())
+
+    def flush(self):
+        r"""
+        Return the number of flush segments in ``self``, as in [S14]_.
+
+        Let `1 \le i < k \le r+1` and suppose `\ell` is the smallest integer
+        greater than `k` such that there exists an `\ell`-segment in the
+        `(i+1)`-st row of `T`.  A `k`-segment in the `i`-th row of `T` is
+        called *flush* if the leftmost box in the `k`-segment and the leftmost
+        box of the `\ell`-segment are in the same column of `T`.  If, however,
+        no such `\ell` exists, then this `k`-segment is said to be *flush* if
+        the number of boxes in the `k`-segment is equal to `\theta_i`, where
+        `\theta_i = \lambda_i - \lambda_{i+1}` and the shape of `T` is
+        `\lambda = (\lambda_1 > \lambda_2 > \cdots > \lambda_r)`.  Denote the
+        number of flush `k`-segments in `T` by `\mathrm{flush}(T)`.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1,2,3,5],[2,3,5,5],[3,4]])
+            sage: t.flush()
+            3
+
+            sage: B = crystals.Tableaux("A4",shape=[4,3,2,1])
+            sage: t = B[32].to_tableau()
+            sage: t.flush()
+            4
+        """
+        for i in range(len(self)-1):
+            if len(self[i]) <= len(self[i+1]):
+                raise ValueError('only defined for tableaux with stricly decreasing parts')
+        f = 0
+        S = self._segments().items()
+        for s in S:
+            if (s[0][0] != len(self)-1 and s[1] == len(self[s[0][0]+1])
+                and self[s[0][0]+1][-1] <= s[0][1]) \
+              or (s[0][0] == len(self)-1 and s[1] == 0):
+                f += 1
+            else:
+                for t in S:
+                    if s[0][0]+1 == t[0][0] and s[1] == t[1] and (
+                            (s[1] >= 1 and self[s[0][0]+1][s[1]-1] <= self[s[0][0]][s[1]])
+                            or (s[1] < 1 and self[s[0][0]+1][s[1]] != s[0][0]+2) ):
+                        f += 1
+        return f
 
 
 class SemistandardTableau(Tableau):
@@ -3760,7 +3928,7 @@ class Tableaux(UniqueRepresentation, Parent):
         else:
             n = None
 
-        if n == None:
+        if n is None:
             return Tableaux_all()
         else:
             if not isinstance(n,(int, Integer)) or n < 0:
@@ -3979,7 +4147,8 @@ class SemistandardTableaux(Tableaux):
 
     - ``size`` -- The size of the tableaux
     - ``shape`` -- The shape of the tableaux
-    - ``eval`` -- The weight (also called content or weight) of the tableaux
+    - ``eval`` -- The weight (also called content or evaluation) of
+      the tableaux
     - ``max_entry`` -- A maximum entry for the tableaux.  This can be a
       positive integer or infinity (``oo``). If ``size`` or ``shape`` are
       specified, ``max_entry`` defaults to be ``size`` or the size of
@@ -3988,7 +4157,7 @@ class SemistandardTableaux(Tableaux):
     Positional arguments:
 
     - The first argument is interpreted as either ``size`` or ``shape``
-      according to  whether it is an integer or a partition
+      according to whether it is an integer or a partition
     - The second keyword argument will always be interpreted as ``eval``
 
     OUTPUT:
@@ -4261,7 +4430,7 @@ class SemistandardTableaux(Tableaux):
             sage: S = SemistandardTableaux()
             sage: TestSuite(S).run()
         """
-        if kwds.has_key('max_entry'):
+        if 'max_entry' in kwds:
             self.max_entry = kwds['max_entry']
             kwds.pop('max_entry')
         else:
@@ -4419,7 +4588,7 @@ class SemistandardTableaux_all(SemistandardTableaux, DisjointUnionEnumeratedSets
             sage: TestSuite(T).run()
 
             sage: T=sage.combinat.tableau.SemistandardTableaux_all(max_entry=3)
-            sage: TestSuite(T).run()
+            sage: TestSuite(T).run() # long time
         """
         if max_entry is not PlusInfinity():
             self.max_entry = max_entry
@@ -5600,20 +5769,19 @@ class StandardTableaux_shape(StandardTableaux):
 
         yield self.element_class(self, tableau)
 
-        if self.cardinality() == 1:
-            last_tableau = True
-        else:
-            last_tableau = False
+        # iterate until we reach the last tableau which is
+        # filled with the row indices.
+        last_tableau=flatten([ [row]*l for (row,l) in enumerate(pi)])
 
-        while not last_tableau:
-            #Convert the tableau to "vector format"
-            #tableau_vector[i] is the row that number i
-            #is in
-            tableau_vector = [None]*size
-            for row in range(len(pi)):
-                for col in range(pi[row]):
-                    tableau_vector[tableau[row][col]-1] = row
+        #Convert the tableau to "vector format"
+        #tableau_vector[i] is the row that number i
+        #is in
+        tableau_vector = [None]*size
+        for row in range(len(pi)):
+            for col in range(pi[row]):
+                tableau_vector[tableau[row][col]-1] = row
 
+        while tableau_vector!=last_tableau:
             #Locate the smallest integer j such that j is not
             #in the lowest corner of the subtableau T_j formed by
             #1,...,j.  This happens to be first j such that
@@ -5664,20 +5832,6 @@ class StandardTableaux_shape(StandardTableaux):
                 row_count[tableau_vector[i]] += 1
 
             yield self.element_class(self, tableau)
-
-            #Check to see if we are at the last tableau
-            #The last tableau if given by filling in the
-            #partition along the rows.  For example, the
-            #last tableau corresponding to [3,2] is
-            #[[1,2,3],
-            # [4,5]]
-            last_tableau = True
-            i = 1
-            for row in range(len(pi)):
-                for col in range(pi[row]):
-                    if tableau[row][col] != i:
-                        last_tableau = False
-                    i += 1
 
         return
 
@@ -5848,112 +6002,6 @@ def symmetric_group_action_on_values(word, perm):
             for i in range(nbr-dif,ma):
                 w[places_r[i]] = l
     return w
-
-
-# August 2012: Deprecation of internal classes seems to be unnecessarily painful...
-def Tableau_class(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.tableau.Tableau_class([[3,2]])
-        doctest:1: DeprecationWarning: this class is deprecated. Use Tableau_class instead
-        See http://trac.sagemath.org/9265 for details.
-        [[3, 2]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use Tableau_class instead')
-    return Tableau(*args, **kargs)
-
-def Tableaux_n(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.tableau.Tableaux_n(3)
-        doctest:1: DeprecationWarning: this class is deprecated. Use Tableaux_size instead
-        See http://trac.sagemath.org/9265 for details.
-        Tableaux of size 3
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use Tableaux_size instead')
-    return Tableaux(*args, **kargs)
-
-def SemistandardTableaux_n(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.tableau.SemistandardTableaux_n(3)
-        doctest:1: DeprecationWarning: this class is deprecated. Use SemistandardTableaux_size instead
-        See http://trac.sagemath.org/9265 for details.
-        Semistandard tableaux of size 3 and maximum entry 3
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use SemistandardTableaux_size instead')
-    return SemistandardTableaux(*args, **kargs)
-
-def SemistandardTableaux_nmu(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.tableau.SemistandardTableaux_nmu(3,[2,1])
-        doctest:1: DeprecationWarning: this class is deprecated. Use SemistandardTableaux_size_weight instead
-        See http://trac.sagemath.org/9265 for details.
-        Semistandard tableaux of size 3 and weight [2, 1]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use SemistandardTableaux_size_weight instead')
-    return SemistandardTableaux(*args, **kargs)
-
-def SemistandardTableaux_p(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.tableau.SemistandardTableaux_p([2,1])
-        doctest:1: DeprecationWarning: this class is deprecated. Use SemistandardTableaux_shape instead
-        See http://trac.sagemath.org/9265 for details.
-        Semistandard tableaux of shape [2, 1] and maximum entry 3
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use SemistandardTableaux_shape instead')
-    return SemistandardTableaux(*args, **kargs)
-
-def SemistandardTableaux_pmu(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.tableau.SemistandardTableaux_pmu([2,1],[2,1])
-        doctest:1: DeprecationWarning: this class is deprecated. Use SemistandardTableaux_shape_weight instead
-        See http://trac.sagemath.org/9265 for details.
-        Semistandard tableaux of shape [2, 1] and weight [2, 1]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use SemistandardTableaux_shape_weight instead')
-    return SemistandardTableaux(*args, **kargs)
-
-def StandardTableaux_n(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.tableau.StandardTableaux_n(2)
-        doctest:1: DeprecationWarning: this class is deprecated. Use StandardTableaux_size instead
-        See http://trac.sagemath.org/9265 for details.
-        Standard tableaux of size 2
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use StandardTableaux_size instead')
-    return StandardTableaux(*args, **kargs)
-
-def StandardTableaux_partition(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.tableau.StandardTableaux_partition([2,1])
-        doctest:1: DeprecationWarning: this class is deprecated. Use StandardTableaux_shape instead
-        See http://trac.sagemath.org/9265 for details.
-        Standard tableaux of shape [2, 1]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use StandardTableaux_shape instead')
-    return StandardTableaux(*args, **kargs)
 
 # October 2012: fixing outdated pickles which use classed being deprecated
 from sage.structure.sage_object import register_unpickle_override

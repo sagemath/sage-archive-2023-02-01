@@ -208,7 +208,7 @@ class ModularParameterization:
             raise NotImplementedError
         z = CC(z)
         if z.imag() <= 0:
-            raise ValueError, "Point must be in the upper half plane"
+            raise ValueError("Point must be in the upper half plane")
         # TODO: for very small imaginary part, maybe try to transform under
         # \Gamma_0(N) to a better representative?
         q = (2*CC.gen()*CC.pi()*z).exp()
@@ -274,7 +274,7 @@ class ModularParameterization:
         """
         R = LaurentSeriesRing(RationalField(),'q')
         if not self._E.is_minimal():
-            raise NotImplementedError, "Only implemented for minimal curves."
+            raise NotImplementedError("Only implemented for minimal curves.")
         from sage.libs.all import pari
         old_prec = pari.get_series_precision()
         pari.set_series_precision(prec-1)

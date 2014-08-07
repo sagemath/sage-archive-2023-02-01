@@ -104,19 +104,19 @@ class FiniteField_givaro(FiniteField):
         self._kwargs = {}
 
         if repr not in ['int', 'log', 'poly']:
-            raise ValueError, "Unknown representation %s"%repr
+            raise ValueError("Unknown representation %s"%repr)
 
         q = Integer(q)
         if q < 2:
-            raise ValueError, "q  must be a prime power"
+            raise ValueError("q  must be a prime power")
         F = q.factor()
         if len(F) > 1:
-            raise ValueError, "q must be a prime power"
+            raise ValueError("q must be a prime power")
         p = F[0][0]
         k = F[0][1]
 
         if q >= 1<<16:
-            raise ValueError, "q must be < 2^16"
+            raise ValueError("q must be < 2^16")
 
         import constructor
         FiniteField.__init__(self, constructor.FiniteField(p), name, normalize=False)
@@ -133,9 +133,9 @@ class FiniteField_givaro(FiniteField):
             elif modulus is None:
                 modulus = 'random'
             else:
-                raise ValueError, "Conway polynomial not found"
+                raise ValueError("Conway polynomial not found")
 
-        from sage.rings.polynomial.all import is_Polynomial
+        from sage.rings.polynomial.polynomial_element import is_Polynomial
         if is_Polynomial(modulus):
             modulus = modulus.list()
 
@@ -385,7 +385,7 @@ class FiniteField_givaro(FiniteField):
             1
         """
         if n > 0:
-            raise IndexError, "only one generator"
+            raise IndexError("only one generator")
         return self._cache.gen()
 
     def prime_subfield(self):
@@ -508,7 +508,7 @@ class FiniteField_givaro(FiniteField):
         ret = []
         for i in range(self.degree()):
             ret.append(quo%b)
-            quo = quo/b
+            quo = quo // b
         ret = ret + [1]
         R = self.polynomial_ring(name)
         if name is None:

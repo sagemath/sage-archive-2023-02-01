@@ -190,7 +190,7 @@ cdef class SageObject:
         Alternatively, you can use the ``%display ascii_art/simple`` magic to
         switch all output to ASCII art and back::
 
-            sage: from sage.misc.interpreter import get_test_shell
+            sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.run_cell('tab = StandardTableaux(3)[2]; tab')
             [[1, 2], [3]]
@@ -221,6 +221,71 @@ cdef class SageObject:
     def __hash__(self):
         return hash(self.__repr__())
 
+    def _cache_key(self):
+        r"""
+        Return a hashable key which identifies this objects for caching. The
+        output must be hashable itself, or a tuple of objects which are
+        hashable or define a ``_cache_key``.
+
+        This method will only be called if the object itself is not hashable.
+
+        Some immutable objects (such as `p`-adic numbers) cannot implement a
+        reasonable hash function because their ``==`` operator has been
+        modified to return ``True`` for objects which might behave differently
+        in some computations::
+
+            sage: K.<a> = Qq(9)
+            sage: b = a + O(3)
+            sage: c = a + 3
+            sage: b
+            a + O(3)
+            sage: c
+            a + 3 + O(3^20)
+            sage: b == c
+            True
+            sage: b == a
+            True
+            sage: c == a
+            False
+
+        If such objects defined a non-trivial hash function, this would break
+        caching in many places. However, such objects should still be usable in
+        caches. This can be achieved by defining an appropriate
+        ``_cache_key``::
+
+            sage: hash(b)
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+            sage: @cached_method
+            ....: def f(x): return x==a
+            sage: f(b)
+            True
+            sage: f(c) # if b and c were hashable, this would return True
+            False
+
+            sage: b._cache_key()
+            (..., ((0, 1),), 0, 1)
+            sage: c._cache_key()
+            (..., ((0, 1), (1,)), 0, 20)
+
+        An implementation must make sure that for elements ``a`` and ``b``,
+        if ``a != b``, then also ``a._cache_key() != b._cache_key()``.
+        In practice this means that the ``_cache_key`` should always include
+        the parent as its first argument::
+
+            sage: S.<a> = Qq(4)
+            sage: d = a + O(2)
+            sage: b._cache_key() == d._cache_key() # this would be True if the parents were not included
+            False
+
+        """
+        try:
+            hash(self)
+        except TypeError:
+            raise TypeError("{} is not hashable and does not implement _cache_key()".format(type(self)))
+        else:
+            assert False, "_cache_key() must not be called for hashable elements"
 
     #############################################################################
     # DATABASE Related code
@@ -443,7 +508,7 @@ cdef class SageObject:
             except NotImplementedError:
                 # It would be best to make sure that this NotImplementedError was triggered by AbstractMethod
                 tester.fail("Not implemented method: %s"%name)
-            except StandardError:
+            except Exception:
                 pass
 
     def _test_pickling(self, **options):
@@ -509,7 +574,7 @@ cdef class SageObject:
         else:
             try:
                 s = self._interface_init_(I)
-            except StandardError:
+            except Exception:
                 raise NotImplementedError, "coercion of object %s to %s not implemented:\n%s\n%s"%\
                   (repr(self), I)
         X = I(s)
@@ -1223,10 +1288,10 @@ def loads(s, compress=True):
     if compress:
         try:
             s = comp.decompress(s)
-        except Exception, msg1:
+        except Exception as msg1:
             try:
                 s = comp_other.decompress(s)
-            except Exception, msg2:
+            except Exception as msg2:
                 # Maybe data is uncompressed?
                 pass
 
@@ -1236,7 +1301,7 @@ def loads(s, compress=True):
     return unpickler.load()
 
 
-cdef bint make_pickle_jar = os.environ.has_key('SAGE_PICKLE_JAR')
+cdef bint make_pickle_jar = 'SAGE_PICKLE_JAR' in os.environ
 
 def picklejar(obj, dir=None):
     """
@@ -1433,7 +1498,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
                 if run_test_suite:
                     TestSuite(object).run(catch = False)
                 i += 1
-            except Exception, msg:
+            except Exception as msg:
                 j += 1
                 if run_test_suite:
                     print " * unpickle failure: TestSuite(load('%s')).run()"%os.path.join(dir,A)

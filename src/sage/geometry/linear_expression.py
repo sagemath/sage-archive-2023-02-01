@@ -378,7 +378,7 @@ class LinearExpression(ModuleElement):
             sage: x == 'test'
             False
         """
-        assert (type(self) is type(other)) and (self.parent() is other.parent()) # guaranteed by framework
+        assert (isinstance(self, type(other))) and (self.parent() is other.parent()) # guaranteed by framework
         c = cmp(self._coeffs, other._coeffs)
         if c != 0: return c
         c = cmp(self._const, other._const)

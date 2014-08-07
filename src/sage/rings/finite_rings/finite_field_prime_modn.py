@@ -35,9 +35,8 @@ from sage.categories.finite_fields import FiniteFields
 _FiniteFields = FiniteFields()
 
 import sage.rings.finite_rings.integer_mod_ring as integer_mod_ring
-import sage.rings.integer as integer
+from sage.rings.integer import Integer
 import sage.rings.finite_rings.integer_mod as integer_mod
-import sage.rings.arith as arith
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
@@ -56,15 +55,13 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         sage: FiniteField(next_prime(1000))
         Finite Field of size 1009
     """
-    def __init__(self, p, name=None, check=True):
+    def __init__(self, p, check=True):
         """
         Return a new finite field of order `p` where `p` is prime.
 
         INPUT:
 
         - ``p`` -- an integer at least 2
-
-        - ``name`` -- ignored
 
         - ``check`` -- bool (default: ``True``); if ``False``, do not
           check ``p`` for primality
@@ -74,9 +71,9 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             sage: F = FiniteField(3); F
             Finite Field of size 3
         """
-        p = integer.Integer(p)
-        if check and not arith.is_prime(p):
-            raise ArithmeticError, "p must be prime"
+        p = Integer(p)
+        if check and not p.is_prime():
+            raise ArithmeticError("p must be prime")
         self.__char = p
         self._kwargs = {}
         # FiniteField_generic does nothing more than IntegerModRing_generic, and
@@ -100,8 +97,8 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         r"""
         Compare ``self`` with ``other``.
 
-        Two finite prime fields are considered equal if their characteristic
-        is equal.
+        Two finite prime fields are considered equal if and only if
+        their characteristics are equal.
 
         EXAMPLES::
 
@@ -111,8 +108,6 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         """
         if not isinstance(other, FiniteField_prime_modn):
             return cmp(type(self), type(other))
-#        elif other.__class__ != FiniteField_prime_modn:
-#            return -cmp(other, self)
         return cmp(self.__char, other.__char)
 
     def __richcmp__(left, right, op):
@@ -144,10 +139,8 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             Ring endomorphism of Finite Field in a of size 73^2
               Defn: a |--> 72*a + 3
         """
-        try:
-            return im_gens[0] == codomain._coerce_(self.gen(0))
-        except TypeError:
-            return False
+        return (codomain.characteristic().divides(self.characteristic()) and
+                len(im_gens) == 1 and im_gens[0] == codomain.one_element())
 
     def _coerce_map_from_(self, S):
         """
@@ -184,7 +177,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
                     return integer_mod.IntegerMod_to_IntegerMod(S, self)
                 except TypeError:
                     pass
-        to_ZZ = ZZ.coerce_map_from(S)
+        to_ZZ = ZZ._internal_coerce_map_from(S)
         if to_ZZ is not None:
             return integer_mod.Integer_to_IntegerMod(self) * to_ZZ
 
@@ -213,7 +206,9 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
 
     def modulus(self):
         """
-        Return the minimal polynomial of ``self``, which is always `x - 1`.
+        Return the defining polynomial of ``self``.
+
+        This always returns `x - 1`.
 
         EXAMPLES::
 
@@ -283,8 +278,9 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
 
     def gen(self, n=0):
         """
-        Return generator of this finite field as an extension of its
-        prime field.
+        Return a generator of ``self`` over its prime field.
+
+        This always returns 1.
 
         .. NOTE::
 
@@ -302,8 +298,8 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             IndexError: only one generator
         """
         if n != 0:
-            raise IndexError, "only one generator"
-        return self(1)
+            raise IndexError("only one generator")
+        return self.one_element()
 
     def __iter__(self):
         """
@@ -334,12 +330,13 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
 
     def degree(self):
         """
-        Returns the degree of the finite field, which is a positive
-        integer.
+        Return the degree of ``self`` over its prime field.
+
+        This always returns 1.
 
         EXAMPLES::
 
             sage: FiniteField(3).degree()
             1
         """
-        return integer.Integer(1)
+        return Integer(1)

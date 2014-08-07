@@ -352,14 +352,14 @@ cdef class Element(sage_object.SageObject):
         EXAMPLES::
 
             sage: dir(1/2)
-            ['N', ..., 'is_idempotent', 'is_integral', ...]
+            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
 
         Caveat: dir on Integer's and some other extension types seem to ignore __dir__::
 
             sage: 1.__dir__()
-            ['N', ..., 'is_idempotent', 'is_integral', ...]
+            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
             sage: dir(1)         # todo: not implemented
-            ['N', ..., 'is_idempotent', 'is_integral', ...]
+            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
         """
         from sage.structure.parent import dir_with_other_class
         return dir_with_other_class(self, self.parent().category().element_class)
@@ -434,12 +434,17 @@ cdef class Element(sage_object.SageObject):
             False
         """
         cls = self.__class__
-        res = cls.__new__(cls)
-        res._set_parent(self._parent)
+        cdef Element res = cls.__new__(cls)
+        res._parent = self._parent
         try:
-            res.__dict__ = self.__dict__.copy()
+            D = self.__dict__
         except AttributeError:
-            pass
+            return res
+        for k,v in D.iteritems():
+            try:
+                setattr(res, k, v)
+            except AttributeError:
+                pass
         return res
 
     def __hash__(self):
@@ -620,15 +625,15 @@ cdef class Element(sage_object.SageObject):
         # required to have the latter
         for i in xrange(0,ngens):
             gen=parent.gen(i)
-            if kwds.has_key(str(gen)):
+            if str(gen) in kwds:
                 variables.append(kwds[str(gen)])
-            elif in_dict and in_dict.has_key(gen):
+            elif in_dict and gen in in_dict:
                 variables.append(in_dict[gen])
             else:
                 variables.append(gen)
         return self(*variables)
 
-    def numerical_approx (self, prec=None, digits=None):
+    def numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
         Return a numerical approximation of x with at least prec bits of
         precision.
@@ -641,11 +646,20 @@ cdef class Element(sage_object.SageObject):
             3.141592654
             sage: pi.n(prec=20)   # 20 bits
             3.1416
+
+        TESTS:
+
+        Check that :trac:`14778` is fixed::
+
+            sage: (0).n(algorithm='foo')
+            0.000000000000000
         """
         import sage.misc.functional
-        return sage.misc.functional.numerical_approx(self, prec=prec, digits=digits)
-    n=numerical_approx
-    N=n
+        return sage.misc.functional.numerical_approx(self, prec=prec,
+                                                     digits=digits,
+                                                     algorithm=algorithm)
+    n = numerical_approx
+    N = n
 
     def _mpmath_(self, prec=53, rounding=None):
         """
@@ -1394,7 +1408,7 @@ cdef class MonoidElement(Element):
             return (<MonoidElement>left)._mul_(<MonoidElement>right)
         try:
             return coercion_model.bin_op(left, right, mul)
-        except TypeError, msg:
+        except TypeError as msg:
             if isinstance(left, (int, long)) and left==1:
                 return right
             elif isinstance(right, (int, long)) and right==1:
@@ -1846,26 +1860,6 @@ cdef class RingElement(ModuleElement):
             return self
         return 1/self
 
-
-    def order(self):
-        """
-        Return the additive order of self.
-
-        This is deprecated; use ``additive_order`` instead.
-
-        EXAMPLES::
-
-            sage: a = Integers(12)(5)
-            sage: a.order()
-            doctest... DeprecationWarning: The function order is deprecated for ring elements; use additive_order or multiplicative_order instead.
-            See http://trac.sagemath.org/5716 for details.
-            12
-        """
-        # deprecation added 2009-05
-        from sage.misc.superseded import deprecation
-        deprecation(5716, "The function order is deprecated for ring elements; use additive_order or multiplicative_order instead.")
-        return self.additive_order()
-
     def additive_order(self):
         """
         Return the additive order of self.
@@ -1921,11 +1915,9 @@ def is_CommutativeRingElement(x):
     return IS_INSTANCE(x, CommutativeRingElement)
 
 cdef class CommutativeRingElement(RingElement):
-    def _im_gens_(self, codomain, im_gens):
-        if len(im_gens) == 1 and self._parent.gen(0) == 1:
-            return codomain(self)
-        raise NotImplementedError
-
+    """
+    Base class for elements of commutative rings.
+    """
     def inverse_mod(self, I):
         r"""
         Return an inverse of self modulo the ideal `I`, if defined,
@@ -2076,7 +2068,7 @@ cdef class CommutativeRingElement(RingElement):
             sage: R.<x> = PolynomialRing(ZZ)
             sage: f = x^3 + x + 1
             sage: f.mod(x + 1)
-            x^3 + x + 1
+            -1
 
 
         EXAMPLE: Multivariate polynomials
@@ -2532,7 +2524,7 @@ cdef class Vector(ModuleElement):
 def is_Vector(x):
     return IS_INSTANCE(x, Vector)
 
-cdef class Matrix(AlgebraElement):
+cdef class Matrix(ModuleElement):
 
     cdef bint is_sparse_c(self):
         raise NotImplementedError
@@ -2546,36 +2538,6 @@ cdef class Matrix(AlgebraElement):
         else:
             global coercion_model
             return coercion_model.bin_op(left, right, imul)
-
-    cpdef RingElement _mul_(left, RingElement right):
-        """
-        TESTS::
-
-            sage: m = matrix
-            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
-            sage: 3*a
-            [[ 3  6]
-            [ 9 12] [15 18]
-            [21 24]]
-            [[27 30]
-            [33 36] [39 42]
-            [45 48]]
-
-            sage: m = matrix
-            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
-            sage: a*3
-            [[ 3  6]
-            [ 9 12] [15 18]
-            [21 24]]
-            [[27 30]
-            [33 36] [39 42]
-            [45 48]]
-        """
-        if have_same_parent(left, right):
-            return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
-        else:
-            global coercion_model
-            return coercion_model.bin_op(left, right, mul)
 
     def __mul__(left, right):
         """
@@ -2738,12 +2700,50 @@ cdef class Matrix(AlgebraElement):
             ...
             TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Rational Field'
 
+        Examples with matrices having matrix coefficients::
+
+            sage: m = matrix
+            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
+            sage: 3*a
+            [[ 3  6]
+            [ 9 12] [15 18]
+            [21 24]]
+            [[27 30]
+            [33 36] [39 42]
+            [45 48]]
+
+            sage: m = matrix
+            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
+            sage: a*3
+            [[ 3  6]
+            [ 9 12] [15 18]
+            [21 24]]
+            [[27 30]
+            [33 36] [39 42]
+            [45 48]]
         """
         if have_same_parent(left, right):
             return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
         else:
             global coercion_model
             return coercion_model.bin_op(left, right, mul)
+
+    def __div__(left, right):
+        """
+        Division of the matrix ``left`` by the matrix or scalar ``right``.
+
+        EXAMPLES::
+
+            sage: a = matrix(ZZ, 2, range(4))
+            sage: a / 5
+            [  0 1/5]
+            [2/5 3/5]
+        """
+        if have_same_parent(left, right):
+            return (<Matrix>left)._matrix_times_matrix_(~<Matrix>right)
+        else:
+            global coercion_model
+            return coercion_model.bin_op(left, right, div)
 
     cdef Vector _vector_times_matrix_(matrix_right, Vector vector_left):
         raise TypeError
@@ -2794,32 +2794,6 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
             return coercion_model.bin_op(self, right, lcm)
         return self._lcm(right)
 
-    def gcd(self, right):
-        """
-        Returns the gcd of self and right, or 0 if both are 0.
-        """
-        if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
-            return coercion_model.bin_op(self, right, gcd)
-        return self._gcd(right)
-
-    def xgcd(self, right):
-        r"""
-        Return the extended gcd of self and other, i.e., elements `r, s, t` such that
-        .. math::
-
-           r = s \cdot self + t \cdot other.
-
-        .. note::
-
-           There is no guarantee on minimality of the cofactors.  In
-           the integer case, see documentation for Integer._xgcd() to
-           obtain minimal cofactors.
-        """
-        if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
-            return coercion_model.bin_op(self, right, xgcd)
-        return self._xgcd(right)
-
-
 # This is pretty nasty low level stuff. The idea is to speed up construction
 # of EuclideanDomainElements (in particular Integers) by skipping some tp_new
 # calls up the inheritance tree.
@@ -2835,20 +2809,6 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
 
     def degree(self):
         raise NotImplementedError
-
-    def _gcd(self, other):
-        """
-        Return the greatest common divisor of self and other.
-
-        Algorithm 3.2.1 in Cohen, GTM 138.
-        """
-        A = self
-        B = other
-        while not B.is_zero():
-            Q, R = A.quo_rem(B)
-            A = B
-            B = R
-        return A
 
     def leading_coefficient(self):
         raise NotImplementedError
@@ -2934,15 +2894,6 @@ cdef class FieldElement(CommutativeRingElement):
         """
         return not not self
 
-    def _gcd(self, FieldElement other):
-        """
-        Return the greatest common divisor of self and other.
-        """
-        if self.is_zero() and other.is_zero():
-            return self
-        else:
-            return self._parent(1)
-
     def _lcm(self, FieldElement other):
         """
         Return the least common multiple of self and other.
@@ -2951,16 +2902,6 @@ cdef class FieldElement(CommutativeRingElement):
             return self
         else:
             return self._parent(1)
-
-    def _xgcd(self, FieldElement other):
-        R = self._parent
-        if not self.is_zero():
-            return R(1), ~self, R(0)
-        elif not other.is_zero():
-            return R(1), R(0), ~self
-        else: # both are 0
-            return self, self, self
-
 
     def quo_rem(self, right):
         r"""
@@ -3186,9 +3127,9 @@ cdef class NamedBinopMethod:
         self._func = func
         if name is None:
             if isinstance(func, types.FunctionType):
-                name = func.func_name
+                name = func.__name__
             if isinstance(func, types.UnboundMethodType):
-                name = func.im_func.func_name
+                name = func.__func__.__name__
             else:
                 name = func.__name__
         self._name = name
@@ -3401,7 +3342,7 @@ cdef generic_power_c(a, nn, one):
                     return a.parent().one()
                 except AttributeError:
                     return type(a)(1)
-            except StandardError:
+            except Exception:
                 return 1 #oops, the one sucks
         else:
             return one

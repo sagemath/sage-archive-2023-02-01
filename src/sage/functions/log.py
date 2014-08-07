@@ -419,11 +419,20 @@ class Function_polylog(GinacFunction):
         These are indirect doctests for this function.::
 
             sage: polylog(2, x)._maxima_()
-            li[2](x)
+            li[2](_SAGE_VAR_x)
             sage: polylog(4, x)._maxima_()
-            polylog(4,x)
+            polylog(4,_SAGE_VAR_x)
         """
-        n, x = args
+        args_maxima = []
+        for a in args:
+            if isinstance(a, str):
+                args_maxima.append(a)
+            elif hasattr(a, '_maxima_init_'):
+                args_maxima.append(a._maxima_init_())
+            else:
+                args_maxima.append(str(a))
+
+        n, x = args_maxima
         if int(n) in [1,2,3]:
             return 'li[%s](%s)'%(n, x)
         else:
@@ -717,14 +726,20 @@ class Function_lambert_w(BuiltinFunction):
         These are indirect doctests for this function.::
 
             sage: lambert_w(0, x)._maxima_()
-            lambert_w(x)
+            lambert_w(_SAGE_VAR_x)
             sage: lambert_w(1, x)._maxima_()
             Traceback (most recent call last):
             ...
             NotImplementedError: Non-principal branch lambert_w[1](x) is not implemented in Maxima
         """
         if n == 0:
-            return "lambert_w(%s)" % z
+            if isinstance(z,str):
+                maxima_z=z
+            elif hasattr(z,'_maxima_init_'):
+                maxima_z=z._maxima_init_()
+            else:
+                maxima_z=str(z)
+            return "lambert_w(%s)" % maxima_z
         else:
             raise NotImplementedError("Non-principal branch lambert_w[%s](%s) is not implemented in Maxima" % (n, z))
 

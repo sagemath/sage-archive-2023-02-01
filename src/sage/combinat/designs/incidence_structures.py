@@ -374,6 +374,56 @@ class IncidenceStructure(object):
         """
         return not self.__eq__(other)
 
+    def __contains__(self, block):
+        r"""
+        Tests if a block belongs to the incidence structure
+
+        INPUT:
+
+        - ``block`` -- a block.
+
+        EXAMPLES::
+
+            sage: [1,2,3,4] in IncidenceStructure([[1,2,3,4]])
+            True
+            sage: [1,2,4,3] in IncidenceStructure([[1,2,3,4]])
+            True
+            sage: [1,2,"3",4] in IncidenceStructure([[1,2,3,4]])
+            False
+            sage: [1,2,"3",4] in IncidenceStructure([[1,2,"3",4]])
+            True
+
+        More complicated examples::
+
+            sage: str="I had a dream of a time when a 3-lines patch does not kill one hour"
+            sage: sets = Subsets(str.split(), 4)
+            sage: IS = IncidenceStructure(sets) # a complete 4-uniform hypergraph
+            sage: ["I", "dream", "of", "one"] in IS
+            True
+            sage: ["does", "patch", "kill", "dream"] in IS
+            True
+            sage: ["Am", "I", "finally", "done ?"] in IS
+            False
+            sage: IS = designs.ProjectiveGeometryDesign(3, 1, GF(2))
+            sage: [3,8,7] in IS
+            True
+            sage: [3,8,9] in IS
+            False
+        """
+        try:
+            iter(block)
+        except TypeError:
+            return False
+
+        # Relabel to 0,...,n-1 if necessary
+        if self._point_to_index is not None:
+            try:
+                block = [self._point_to_index[x] for x in block]
+            except KeyError:
+                return False
+
+        return sorted(block) in self._blocks
+
     def ground_set(self, copy=True):
         r"""
         Return the ground set (i.e the list of points).
@@ -467,6 +517,34 @@ class IncidenceStructure(object):
             [3, 3, 3, 3, 3, 3, 3]
         """
         return map(len, self._blocks)
+
+    def degree(self, p=None):
+        r"""
+        Returns the degree of a point ``p``
+
+        The degree of a point `p` is the number of blocks that contain it.
+
+        INPUT:
+
+        - ``p`` -- a point. If set to ``None`` (default), a dictionary
+          associating the points with their degrees is returned.
+
+        EXAMPLES::
+
+            sage: designs.steiner_triple_system(9).degree(3)
+            4
+            sage: designs.steiner_triple_system(9).degree()
+            {0: 4, 1: 4, 2: 4, 3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4}
+        """
+        if p is None:
+            d = [0]*self.num_points()
+            for b in self._blocks:
+                for x in b:
+                    d[x] += 1
+            return {p: d[i] for i, p in enumerate(self._points)}
+        else:
+            p = self._point_to_index[p] if self._point_to_index else p
+            return sum(1 for b in self._blocks if p in b)
 
     def is_connected(self):
         r"""
@@ -578,6 +656,59 @@ class IncidenceStructure(object):
     #####################
     # real computations #
     #####################
+
+    def packing(self, solver=None, verbose=0):
+        r"""
+        Returns a maximum packing
+
+        A maximum packing in a hypergraph is collection of disjoint sets/blocks
+        of maximal cardinality. This problem is NP-complete in general, and in
+        particular on 3-uniform hypergraphs. It is solved here with an Integer
+        Linear Program.
+
+        For more information, see the :wikipedia:`Packing_in_a_hypergraph`.
+
+        INPUT:
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+          Only useful when ``algorithm == "LP"``.
+
+        EXAMPLE::
+
+            sage; IncidenceStructure([[1,2],[3,"A"],[2,3]]).packing()
+            [[1, 2], [3, 'A']]
+            sage: len(designs.steiner_triple_system(9).packing())
+            3
+        """
+        from sage.numerical.mip import MixedIntegerLinearProgram
+
+        # List of blocks containing a given point x
+        d = [[] for x in self._points]
+        for i,B in enumerate(self._blocks):
+            for x in B:
+                d[x].append(i)
+
+        p = MixedIntegerLinearProgram(solver=solver)
+        b = p.new_variable(binary=True)
+        for x,L in enumerate(d): # Set of disjoint blocks
+            p.add_constraint(p.sum([b[i] for i in L]) <= 1)
+
+        # Maximum number of blocks
+        p.set_objective(p.sum([b[i] for i in range(self.num_blocks())]))
+
+        p.solve(log=verbose)
+
+        return [[self._points[x] for x in self._blocks[i]]
+                for i,v in p.get_values(b).iteritems() if v]
 
     def is_t_design(self, t=None, v=None, k=None, l=None, return_parameters=False):
         r"""
@@ -860,21 +991,27 @@ class IncidenceStructure(object):
             sage: IS.dual().automorphism_group().cardinality()
             1
 
-        An example with points other than integers::
+        Examples with non-integer points::
 
             sage: I = designs.IncidenceStructure('abc', ('ab','ac','bc'))
             sage: I.automorphism_group()
             Permutation Group with generators [('b','c'), ('a','b')]
+            sage: designs.IncidenceStructure([[(1,2),(3,4)]]).automorphism_group()
+            Permutation Group with generators [((1,2),(3,4))]
         """
         from sage.groups.perm_gps.partn_ref.refinement_matrices import MatrixStruct
         from sage.groups.perm_gps.permgroup import PermutationGroup
+        from sage.groups.perm_gps.permgroup_element import standardize_generator
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         M1 = self.incidence_matrix().transpose()
         M2 = MatrixStruct(M1)
         M2.run()
         gens = M2.automorphism_group()[0]
+        gens = [standardize_generator([x+1 for x in g]) for g in gens]
         if self._point_to_index:
-            gens = [[self._points[i] for i in p] for p in gens]
+            gens = [[tuple([self._points[i-1] for i in cycle]) for cycle in g] for g in gens]
+        else:
+            gens = [[tuple([i-1 for i in cycle]) for cycle in g] for g in gens]
         return PermutationGroup(gens, domain=self._points)
 
     ###############

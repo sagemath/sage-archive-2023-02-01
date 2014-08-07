@@ -287,6 +287,30 @@ cdef class LinearFunctionsParent_class(Parent):
         """
         return self._multiplication_symbol
 
+    def tensor(self, free_module):
+        """
+        Return the tensor product with ``free_module``.
+
+        INPUT:
+
+        - ``free_module`` -- vector space or matrix space over the
+          same base ring.
+        
+        OUTPUT:
+
+        Instance of
+        :class:`sage.numerical.linear_tensor.LinearTensorParent_class`.
+        
+        EXAMPLES::
+
+            sage: LF = MixedIntegerLinearProgram().linear_functions_parent()
+            sage: LF.tensor(RDF^3)
+            Tensor product of Vector space of dimension 3 over Real Double Field
+            and Linear functions over Real Double Field
+        """
+        from sage.numerical.linear_tensor import LinearTensorParent
+        return LinearTensorParent(free_module, self)
+
     def _repr_(self):
         """
         Return as string representation
@@ -589,12 +613,32 @@ cdef class LinearFunction(ModuleElement):
            sage: x = p.new_variable()
            sage: x[0] * 0.6
            3/5*x_0
+
+           sage: vf = (2 + x[0]) * vector(ZZ, [3,4]);  vf
+           (3, 4)*x_0 + (6, 8)
+           sage: vf.parent()
+           Tensor product of Vector space of dimension 2 over Rational Field
+           and Linear functions over Rational Field
+
+           sage: tf = x[0] * identity_matrix(2);  tf
+           [x_0 0  ]
+           [0   x_0]
+           sage: tf.parent()
+           Tensor product of Full MatrixSpace of 2 by 2 dense matrices over 
+           Rational Field and Linear functions over Rational Field
        """
        R = self.base_ring()
        try:
            x_R = R(x)
        except TypeError:
-           return None
+           M = x.parent().base_extend(R)
+           x_M = M(x)
+           from sage.numerical.linear_tensor import LinearTensorParent
+           P = LinearTensorParent(M, self.parent())
+           tensor = dict()
+           for k, v in self._f.items():
+               tensor[k] = x_M * v
+           return P(tensor)
        return self._rmul_(x_R)
 
     def _coeff_formatter(self, coeff, constant_term=False):

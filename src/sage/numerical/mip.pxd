@@ -34,4 +34,5 @@ cdef class MIPVariable(SageObject):
     cdef bint _hasname
     cdef object _lower_bound
     cdef object _upper_bound
+    cdef _mul_impl(self, m)
 

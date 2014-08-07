@@ -2533,6 +2533,36 @@ cdef class MIPVariable(SageObject):
         """
         return self._dict.values()
 
+    def __mul__(self, m):
+        """
+        Define right multiplication by a matrix.
+
+        EXAMPLE::
+
+            sage: m = matrix([[1,2],[3,4]]);  m
+            [1 2]
+            [3 4]
+            sage: p = MixedIntegerLinearProgram()
+            sage: v = p.new_variable(nonnegative=True)
+            sage: v * m
+            (3.0, 4.0)*x_1 + (1.0, 2.0)*x_0
+        """
+        return (<MIPVariable>self)._mul_impl(m)
+
+    cdef _mul_impl(self, m):
+        result = dict()
+        for i, row in enumerate(m.rows()):
+            x = self[i]
+            assert len(x.dict()) == 1
+            x_index = x.dict().keys()[0]
+            result[x_index] = row
+        from sage.modules.free_module import FreeModule
+        V = FreeModule(self._p.base_ring(), m.ncols())
+        T = self._p.linear_functions_parent().tensor(V)
+        return T(result)
+        
+
+
 def Sum(x):
     """
     Only for legacy support, use :meth:`MixedIntegerLinearProgram.sum` instead.

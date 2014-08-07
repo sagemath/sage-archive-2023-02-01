@@ -41,6 +41,7 @@ def find_recursive_construction(k,n):
     - :func:`thwart_lemma_3_5`
     - :func:`thwart_lemma_4_1`
     - :func:`three_factor_product`
+    - :func:`brouwer_separable_design`
 
     INPUT:
 
@@ -64,7 +65,7 @@ def find_recursive_construction(k,n):
         ....:         OA = f(*args)
         ....:         assert is_orthogonal_array(OA,k,n,2,verbose=True)
         sage: print count
-        53
+        56
     """
     assert k > 3
 
@@ -78,7 +79,8 @@ def find_recursive_construction(k,n):
                    find_q_x,
                    find_thwart_lemma_3_5,
                    find_thwart_lemma_4_1,
-                   find_three_factor_product]:
+                   find_three_factor_product,
+                   find_brouwer_separable_design]:
         res = find_c(k,n)
         if res:
             return res
@@ -1647,4 +1649,757 @@ def three_factor_product(k,n1,n2,n3,check=False):
     if check:
         assert is_orthogonal_array(OA,k+1,n1*n2*n3,2,1)
 
+    return OA
+
+def find_brouwer_separable_design(k,n):
+    r"""
+    Find integers `t,q,x` such that :func:`brouwer_separable_design` gives a `OA(k,t(q^2+q+1)+x)`.
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    The assumptions made on the parameters `t,q,x` are explained in the
+    documentation of :func:`brouwer_separable_design`.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_brouwer_separable_design
+        sage: find_brouwer_separable_design(5,13)[1]
+        (5, 1, 3, 0)
+        sage: find_brouwer_separable_design(5,14)
+        False
+    """
+    from sage.rings.arith import prime_powers
+    for q in prime_powers(2,n):
+        baer_subplane_size = q**2+q+1
+        if baer_subplane_size > n:
+            break
+        #                       x <= q^2+1
+        # <=>        n-t(q^2+q+1) <= q^2+1
+        # <=>             n-q^2-1 <= t(q^2+q+1)
+        # <=> (n-q^2-1)/(q^2+q+1) <= t
+
+        min_t = (n-q**2-1)//baer_subplane_size
+        max_t = min(n//baer_subplane_size,q**2-q+1)
+
+        for t in range(min_t,max_t+1):
+            x = n - t*baer_subplane_size
+            e1 = int(x != q**2-q-t)
+            e2 = int(x != 1)
+            e3 = int(x != q**2)
+            e4 = int(x != t+q+1)
+
+            # i)
+            if (x == 0 and
+                orthogonal_array(k, t,existence=True)  and
+                orthogonal_array(k,t+q,existence=True)):
+                return brouwer_separable_design, (k,t,q,x)
+
+            # ii)
+            elif (x == t+q and
+                  orthogonal_array(k+e3,  t  ,existence=True) and
+                  orthogonal_array(  k , t+q ,existence=True) and
+                  orthogonal_array(k+1 ,t+q+1,existence=True)):
+                return brouwer_separable_design, (k,t,q,x)
+
+            # iii)
+            elif (x == q**2-q+1-t and
+                  orthogonal_array(  k  ,  x  ,existence=True) and
+                  orthogonal_array( k+e2, t+1 ,existence=True) and
+                  orthogonal_array( k+1 , t+q ,existence=True)):
+                return brouwer_separable_design, (k,t,q,x)
+
+            # iv)
+            elif (x == q**2+1 and
+                  orthogonal_array(  k  ,  x  ,existence=True) and
+                  orthogonal_array( k+e4, t+1 ,existence=True) and
+                  orthogonal_array( k+1 ,t+q+1,existence=True)):
+                return brouwer_separable_design, (k,t,q,x)
+
+            # v)
+            elif (0<x and x<q**2-q+1-t and (e1 or e2) and
+                  orthogonal_array(  k  ,  x  ,existence=True) and
+                  orthogonal_array( k+e1,  t  ,existence=True) and
+                  orthogonal_array( k+e2, t+1 ,existence=True) and
+                  orthogonal_array( k+1 , t+q ,existence=True)):
+                return brouwer_separable_design, (k,t,q,x)
+
+            # vi)
+            elif (t+q<x and x<q**2+1 and (e3 or e4) and
+                  orthogonal_array(  k  ,  x  ,existence=True) and
+                  orthogonal_array( k+e3,  t  ,existence=True) and
+                  orthogonal_array( k+e4, t+1 ,existence=True) and
+                  orthogonal_array( k+1 ,t+q+1,existence=True)):
+                return brouwer_separable_design, (k,t,q,x)
+
+    return False
+
+def _reorder_matrix(matrix,N):
+    r"""
+
+    Reorders the elements of each row such that the elements appear once per
+    column.
+
+    This is equivalent to an edge coloring of a bipartite graph. This function
+    is used by :func:`brouwer_separable_design`.
+
+    INPUT:
+
+    - ``matrix`` -- a `k\times N`` matrix of integers in which every `0\leq i<N`
+    appears exactly `k` times
+
+    - ``N`` -- integer
+
+    OUTPUT:
+
+    A matrix obtained by permuting the elements of each row of the first matrix,
+    such that each element appears exactly once per column.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import _reorder_matrix
+        sage: n=10;M=[range(n)]*n; M
+        [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
+        sage: _reorder_matrix(M,10) # random
+        [(0, 1, 5, 4, 9, 3, 7, 2, 6, 8),
+         (1, 0, 6, 8, 4, 2, 9, 3, 5, 7),
+         (2, 3, 1, 9, 7, 8, 6, 0, 4, 5),
+         (3, 2, 9, 6, 8, 7, 0, 5, 1, 4),
+         (4, 5, 8, 3, 2, 6, 1, 9, 7, 0),
+         (5, 4, 3, 2, 6, 9, 8, 7, 0, 1),
+         (6, 7, 2, 0, 3, 1, 5, 4, 8, 9),
+         (7, 6, 0, 5, 1, 4, 2, 8, 9, 3),
+         (8, 9, 4, 7, 5, 0, 3, 1, 2, 6),
+         (9, 8, 7, 1, 0, 5, 4, 6, 3, 2)]
+    """
+    from sage.graphs.graph import Graph
+    from sage.graphs.graph_coloring import edge_coloring
+    g = Graph()
+    matrix = map(frozenset,matrix)
+    k = len(matrix[0])
+    g.add_edges([(x,N+i) for i,S in enumerate(matrix) for x in S])
+    matrix = []
+    for _ in range(k):
+        matching = g.matching(algorithm="LP")
+        col = [0]*(N)
+        for x,i,_ in matching:
+            if i<N:
+                x,i=i,x
+            col[i-N]=x
+        matrix.append(col)
+        g.delete_edges(matching)
+
+    matrix = zip(*matrix)
+    return matrix
+
+def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
+    r"""
+    Returns a `OA(k,t(q^2+q+1)+x)` using Brouwer's result on separable designs.
+
+    This method is an implementation of Brouwer's construction presented in
+    [Brouwer80]_. It consists in a systematic application of the usual
+    transformation from PBD to OA, applied to a specific PBD.
+
+    **Baer subplanes**
+
+    When `q` is a prime power, the projective plane `PG(2,q^2)` can be
+    partitionned into subplanes `PG(2,q)` (called Baer subplanes), giving
+    `PG(2,q^2)=B_1\cup \dots\cup B_{q^2-q+1}`. As a result, every line of the
+    `PG(2,q^2)` intersects one of the subplane on `q+1` points and all others on
+    `1` point.
+
+    The `OA` are built by considering `B_1\cup\dots\cup B_t`, for a total of
+    `t(q^2+q+1)` points, to which `x` new points are added. The blocks of this
+    subdesign belong to two categories:
+
+    * The blocks of size `t`
+
+      They come from the lines which intersected a `B_i` on `q+1` points for
+      some `i>t`. The blocks of size `t` can be partitionned into `q^2-q+t-1`
+      parallel classes according to their associated subplane `B_i` with `i>t`.
+
+    * The blocks of size `q+t`
+
+      Those blocks form a separable design, as every point is incident with
+      `q+t` of them.
+
+    **Constructions**
+
+    In the following, we write `N=t(q^2+q+1)+x`. The code is also heavily
+    commented, and will clear any doubt.
+
+    * i) `x=0`
+
+        * *Sets of size* `t`)
+
+          Each parallel class is multiplied with the parallel classes of a
+          resolvable `OA(k-1,t)-t.OA(k-1,t)`, yielding parallel classes of a
+          resolvable `OA(k-1,N)`.
+
+        * *Sets of size* `q+t`)
+
+          A `(q+t)\times N` matrix is built whose `N` rows are the sets of size
+          `q+t` such that every value appears once per column. For each block of
+          a `OA(k-1,q+t)-(q+t).OA(k-1,t)`, the product with the rows of the
+          matrix yields a parallel class of a resolvable `OA(k-1,N)`.
+
+    * ii) `x=q+t`
+
+        * *Sets of size* `t`)
+
+          Each set of size `t` gives a `OA(k,t)-t.OA(k,1)`, except if there is
+          only one parallel class in which case a `OA(k,t)` is sufficient.
+
+        * *Sets of size* `q+t`)
+
+          A `(q+t)\times (N-x)` matrix `M` is built whose `N-x` rows are the
+          sets of size `q+t` such that every value appears once per column. For
+          each of the new `x=q+t` points `p_1,\dots,p_{q+t}` we build a matrix
+          `M_i` obtained from `M` by adding a column equal to `(p_i,p_i,p_i\dots
+          )`. We add to the OA the product of all rows of the `M_i` with the
+          block of the `x=q+t` parallel classes of a resolvable
+          `OA(k,t+q+1)-(t+q+1).OA(k,1)`.
+
+        * *Set of size* `x`) An `OA(k,x)`
+
+    * iii) `x = q^2-q+1-t`
+
+        * *Sets of size* `t`)
+
+          All blocks of the `i`-th parallel class are extended with the `i`-th
+          new point. The blocks are then replaced by a `OA(k,t+1)-(t+1).OA(k,1)`
+          or, if there is only one parallel class (i.e. `x=1`) by a
+          `OA(k,t+1)-OA(k,1)`.
+
+        * *Set of size* `q+t`)
+
+          They are replaced by `OA(k,q+t)-(q+t).OA(k,1)`.
+
+        * *Set of size* `x`) An `OA(k,x)`
+
+    * iv) `x = q^2+1`
+
+        * *Sets of size* `t`)
+
+          All blocks of the `i`-th parallel class are extended with the `i`-th
+          new point (the other `x-q-t` new points are not touched at this
+          step). The blocks are then replaced by a `OA(k,t+1)-(t+1).OA(k,1)` or,
+          if there is only one parallel class (i.e. `x=1`) by a
+          `OA(k,t+1)-OA(k,1)`.
+
+        * *Sets of size* `q+t`) Same as for ii)
+
+        * *Set of size* `x`) An `OA(k,x)`
+
+    * v) `0<x<q^2-q+1-t`
+
+        * *Sets of size* `t`)
+
+          The blocks of the first `x` parallel class are extended with the `x`
+          new points, and replaced with `OA(k.t+1)-(t+1).OA(k,1)` or, if `x=1`,
+          by `OA(k.t+1)-.OA(k,1)`
+
+          The blocks of the other parallel classes are replaced by
+          `OA(k,t)-t.OA(k,t)` or, if there is only one class left, by
+          `OA(k,t)-OA(k,t)`
+
+        * *Sets of size* `q+t`)
+
+          They are replaced with `OA(k,q+t)-(q+t).OA(k,1)`.
+
+        * *Set of size* `x`) An `OA(k,x)`
+
+    * vi) `t+q<x<q^2+1`
+
+        * *Sets of size* `t`) Same as in v) with an `x` equal to `x-q+t`.
+
+        * *Sets of size* `t`) Same as in vii)
+
+        * *Set of size* `x`) An `OA(k,x)`
+
+    INPUT:
+
+    - ``k,t,q,x`` (integers)
+
+    - ``check`` -- (boolean) Whether to check that output is correct before
+      returning it. Set to ``False`` by default.
+
+    - ``verbose`` (boolean) -- whether to print some information on the
+      construction and parameters being used.
+
+    REFERENCES:
+
+    .. [Brouwer80] A Series of Separable Designs with Application to Pairwise Orthogonal Latin Squares,
+      A.E. Brouwer,
+      http://www.sciencedirect.com/science/article/pii/S0195669880800199
+
+    EXAMPLES:
+
+    Test all possible cases::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import brouwer_separable_design
+        sage: k,q,t=4,4,3; _=brouwer_separable_design(k,q,t,0,verbose=True)
+        Case i) with k=4,q=3,t=4,x=0
+        sage: k,q,t=3,3,3; _=brouwer_separable_design(k,t,q,t+q,verbose=True,check=True)
+        Case ii) with k=3,q=3,t=3,x=6,e3=1
+        sage: k,q,t=3,3,6; _=brouwer_separable_design(k,t,q,t+q,verbose=True,check=True)
+        Case ii) with k=3,q=3,t=6,x=9,e3=0
+        sage: k,q,t=3,3,6; _=brouwer_separable_design(k,t,q,q**2-q+1-t,verbose=True,check=True)
+        Case iii) with k=3,q=3,t=6,x=1,e2=0
+        sage: k,q,t=3,4,6; _=brouwer_separable_design(k,t,q,q**2-q+1-t,verbose=True,check=True)
+        Case iii) with k=3,q=4,t=6,x=7,e2=1
+        sage: k,q,t=3,4,6; _=brouwer_separable_design(k,t,q,q**2+1,verbose=True,check=True)
+        Case iv) with k=3,q=4,t=6,x=17,e4=1
+        sage: k,q,t=3,2,2; _=brouwer_separable_design(k,t,q,q**2+1,verbose=True,check=True)
+        Case iv) with k=3,q=2,t=2,x=5,e4=0
+        sage: k,q,t=3,4,7; _=brouwer_separable_design(k,t,q,3,verbose=True,check=True)
+        Case v) with k=3,q=4,t=7,x=3,e1=1,e2=1
+        sage: k,q,t=3,4,7; _=brouwer_separable_design(k,t,q,1,verbose=True,check=True)
+        Case v) with k=3,q=4,t=7,x=1,e1=1,e2=0
+        sage: k,q,t=3,4,7; _=brouwer_separable_design(k,t,q,q**2-q-t,verbose=True,check=True)
+        Case v) with k=3,q=4,t=7,x=5,e1=0,e2=1
+        sage: k,q,t=5,4,7; _=brouwer_separable_design(k,t,q,t+q+3,verbose=True,check=True)
+        Case vi) with k=5,q=4,t=7,x=14,e3=1,e4=1
+        sage: k,q,t=5,4,8; _=brouwer_separable_design(k,t,q,t+q+1,verbose=True,check=True)
+        Case vi) with k=5,q=4,t=8,x=13,e3=1,e4=0
+        sage: k,q,t=5,4,8; _=brouwer_separable_design(k,t,q,q**2,verbose=True,check=True)
+        Case vi) with k=5,q=4,t=8,x=16,e3=0,e4=1
+    """
+    from sage.combinat.designs.orthogonal_arrays import OA_from_PBD
+    from difference_family import difference_family
+    from orthogonal_arrays import incomplete_orthogonal_array
+    from sage.rings.arith import is_prime_power
+
+    ###########################################################
+    # Part 1: compute the separable PBD on t(q^2+q+1) points. #
+    ###########################################################
+
+    assert t<q**2-q+1
+    assert x>=0
+    assert is_prime_power(q)
+    N2 = q**4+q**2+1
+    N1 = q**2+  q +1
+
+    # A projective plane on (q^2-q+1)*(q^2+q+1)=q^4+q^2+1 points
+    B = difference_family(N2,q**2+1,1)[1][0]
+    BIBD = [[(xx+i)%N2 for xx in B] for i in range(N2)]
+
+    # Each congruence class mod q^2-q+1 yields a Baer subplane. Let's check that:
+    m = q**2-q+1
+    for i in range(m):
+        for B in BIBD:
+            assert sum([(xx%m)==i for xx in B]) in [1,q+1], sum([(xx%m)==i for xx in B])
+
+    # We are only interested by the points of the first t Baer subplanes (each
+    # has size q**2+q+1). Note that each block of the projective plane:
+    #
+    # - Intersects one Baer plane on q+1 points.
+    # - Intersects all other Baer planes on 1 point.
+    #
+    # When the design its truncated to its first t Baer subplanes, all blocks
+    # now have size t or t+q, and cover t(q^2+q+1) points.
+    #
+    # 1) The blocks of size t can be partitionned into q**2-q+1-t parallel
+    #    classes, according to the Baer plane in which they contain q+1
+    #    elements.
+    #
+    # 2) The blocks of size q+t are a symmetric design
+
+    blocks_of_size_q_plus_t = []
+    partition_of_blocks_of_size_t = [[] for i in range(m-t)]
+
+    relabel = {i+j*m:(q**2+q+1)*i+j for i in range(t) for j in range(q**2+q+1)}
+
+    for B in BIBD:
+        # Find the Baer subplane which B intersects on more than 1 point
+        B_mod = sorted([xx%m for xx in B])
+        while B_mod.pop(0) != B_mod[0]:
+            pass
+        plane = B_mod[0]
+        if plane < t:
+            blocks_of_size_q_plus_t.append([relabel[xx] for xx in B if xx%m<t])
+        else:
+            partition_of_blocks_of_size_t[plane-t].append([relabel[xx] for xx in B if xx%m<t])
+
+    ###############################################################################
+    # Separable design built !
+    #-------------------------
+    #
+    # At this point we have a PBD on t*(q**2+q+1) points. Its blocks are
+    # split into:
+    #
+    # - partition_of_blocks_of_size_t : contains all blocks of size t split into
+    #                                   q^2-q+t-1 parallel classes.
+    #
+    # - blocks_of_size_q_plus_t : contains all t*(q**2+q+1)blocks of size q+t,
+    #                             covering the same number of points: it is a
+    #                             symmetric design.
+    ###############################################################################
+
+    ##############################################
+    # Part 2: Build an OA on t(q^2+q+1)+x points #
+    ##############################################
+
+    e1 = int(x != q**2-q-t)
+    e2 = int(x != 1)
+    e3 = int(x != q**2)
+    e4 = int(x != t+q+1)
+    N  = t*N1+x
+
+    # i)
+    if x == 0:
+
+        if verbose:
+            print "Case i) with k={},q={},t={},x={}".format(k,q,t,x)
+
+        # 1) We build a resolvable OA(k-1,t)-t.OA(k-1,1).
+        #    With it, from every parallel class with blocks of size t we build a
+        #    parallel class of a resolvable OA(k-1,N)
+
+
+        # <SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
+        rOA_N_classes = []
+
+        # A resolvable OA(k-1,t)-t.OA(k-1,1)
+        OA = orthogonal_array(k,t)
+        OA.sort()
+        relabel = [[0]*t for _ in range(k)]
+        for i,B in enumerate(OA[-t:]):
+            for ii,xx in enumerate(B):
+                relabel[ii][xx] = i
+        for i in range(t):
+            relabel[0][i] = i
+        OA = [[relabel[i][xx] for i,xx in enumerate(B)] for B in OA]
+        OA_t_classes = [[B[1:] for B in OA[i*t:(i+1)*t]] for i in range(t-1)]
+        # </SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
+
+        # We can now build (t-1)(q^2-q+1-t) parallel classes of the resolvable
+        # OA(k-1,N)
+        for PBD_parallel_class in partition_of_blocks_of_size_t:
+            for OA_class in OA_t_classes:
+                 rOA_N_classes.append([[B[x] for x in BB]
+                                            for BB in OA_class
+                                            for B in PBD_parallel_class])
+
+        # 2) We build a (q+t)xN matrix such that:
+        #
+        #    a) Each row is a set of size q+t of the PBD
+        #    b) an element appears exactly once per column.
+        #
+        # (This is equivalent to an edge coloring of the (bipartite) incidence
+        # graph of points and sets)
+
+        matrix = _reorder_matrix(blocks_of_size_q_plus_t,N)
+
+        # 3) We now create blocks of an OA(k-1,N) as the product of
+        #    a) A set of size q+t (i.e. a row of the matrix)
+        #    b) An OA(k-1,q+t)-(q+t).OA(k-1,1)
+        #
+        # Thanks to the ordering of the points in each set of size q+t, the
+        # product of a block B of the incomplete OA with all blocks of size q+t
+        # yields a parallel class of an OA(k-1,N)
+        OA = incomplete_orthogonal_array(k-1,q+t,[1]*(q+t))
+        for B in OA:
+            rOA_N_classes.append([[R[x] for x in B] for R in matrix])
+
+        # 4) A last parallel class with blocks [0,0,...], [1,1,...],...
+        rOA_N_classes.append([[i]*(k-1) for i in range(N)])
+
+        # 5) We now build the OA(k,N) from the N parallel classes of our resolvable OA(k-1,N)
+        OA = [B for classs in rOA_N_classes for B in classs]
+        for i,B in enumerate(OA):
+            B.append(i//N)
+
+    # ii)
+    elif (x == t+q and
+          orthogonal_array(k+e3,  t  ,existence=True) and
+          orthogonal_array( k  , t+q ,existence=True) and
+          orthogonal_array( k+1,t+q+1,existence=True)):
+
+        if verbose:
+            print "Case ii) with k={},q={},t={},x={},e3={}".format(k,q,t,x,e3)
+
+        # The sets of size t:
+        #
+        # This is the usual OA_from_PBD replacement. If there is only one class
+        # an OA(k,t) can be used instead of an OA(k+1,t)
+
+        if x == q**2:
+            assert e3==0, "equivalent to x==q^2"
+            assert len(partition_of_blocks_of_size_t)==1, "also equivalent to exactly one partition into sets of size t"
+            OA = [[B[xx] for xx in R] for R in orthogonal_array(k,t) for B in partition_of_blocks_of_size_t[0]]
+        else:
+            OA = OA_from_PBD(k,N,sum(partition_of_blocks_of_size_t,[]),check=False)[:-N]
+            OA.extend([[i]*k for i in range(N-x)])
+
+        # The sets of size q+t:
+        #
+        # We build an OA(k,t+q+1)-(t+q+1).OA(k,t+q+1) and the reordered
+        # matrix. We then compute the product of every parallel class of the OA
+        # (x classes in total) with the rows of the ordered matrix (extended
+        # with one of the new x points).
+
+        # <SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
+        #
+        # Resolvable OA(k,t+q+1)-(t+q+1).OA(k,t+q+1)
+        OA_tq1 = orthogonal_array(k+1,t+q+1)
+        OA_tq1.sort()
+        relabel = [[0]*(t+q+1) for _ in range(k+1)]
+        for i,B in enumerate(OA_tq1[-(t+q+1):]):
+            for ii,xx in enumerate(B):
+                relabel[ii][xx] = i
+        for i in range(t+q+1):
+            relabel[0][i] = i
+
+        OA_tq1 = [[relabel[i][xx] for i,xx in enumerate(B)] for B in OA_tq1]
+        OA_tq1_classes = [[B[1:] for B in OA_tq1[i*(t+q+1):(i+1)*(t+q+1)]] for i in range(t+q)]
+        # <SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
+
+        matrix = _reorder_matrix(blocks_of_size_q_plus_t,N-x)
+
+        for i,classs in enumerate(OA_tq1_classes):
+            OA.extend([[R[xx] if xx<t+q else N-i-1 for xx in B] for R in matrix for B in classs])
+
+        # The set of size x
+        OA.extend([[N-1-xx for xx in R] for R in orthogonal_array(k,x)])
+
+    # iii)
+    elif (x == q**2-q+1-t and
+          orthogonal_array( k  ,  x  ,existence=True) and # d0
+          orthogonal_array(k+e2, t+1 ,existence=True) and # d2-e2
+          orthogonal_array(k+1 , t+q ,existence=True)):   # d3-e1
+        if verbose:
+            print "Case iii) with k={},q={},t={},x={},e2={}".format(k,q,t,x,e2)
+
+        OA = []
+
+        # Each of the x partition into blocks of size t is extended with one of
+        # the new x points.
+
+        if x == 1:
+            assert e2 == 0, "equivalent to x=1"
+            # There is one partition into blocks of size t, which we extend with
+            # the new vertex. The OA on t+1 points does not have to be resolvable.
+
+            OA.extend([[B[xx] if xx<t else N-1 for xx in R]
+                       for R in incomplete_orthogonal_array(k,t+1,[1])
+                       for B in partition_of_blocks_of_size_t[0]])
+
+        else:
+            assert e2 == 1, "equivalent to x!=1"
+            # Extending the x partitions into bocks of size t with each of the
+            # new x points.
+
+            for i,partition in enumerate(partition_of_blocks_of_size_t):
+                for B in partition:
+                    B.append(N-i-1)
+            OA = OA_from_PBD(k,N,sum(partition_of_blocks_of_size_t,[]),check=False)[:-x]
+
+        # The blocks of size q+t are covered with a resolvable OA(k,q+t)
+        OA.extend(OA_from_PBD(k,N,blocks_of_size_q_plus_t,check=False)[:-N])
+
+        # The set of size x
+        OA.extend([[N-xx-1 for xx in B] for B in  orthogonal_array(k,x)])
+
+
+    # iv)
+    elif (x == q**2+1 and
+          orthogonal_array( k  ,  x  ,existence=True) and # d0
+          orthogonal_array(k+e4, t+1 ,existence=True) and # d2-e4
+          orthogonal_array(k+ 1,t+q+1,existence=True)):   # d4-1
+
+        if verbose:
+            print "Case iv) with k={},q={},t={},x={},e4={}".format(k,q,t,x,e4)
+
+        # Sets of size t:
+        #
+        # All partitions of t-sets are extended with as many new points
+
+        if e4 == 0:
+            # Only one partition into t-sets. The OA(k,t+1) needs not be resolvable
+            OA = [[B[xx] if xx<t else N-x for xx in R]
+                  for R in incomplete_orthogonal_array(k,t+1,[1])
+                  for B in partition_of_blocks_of_size_t[0]]
+        else:
+            for i,classs in enumerate(partition_of_blocks_of_size_t):
+                for B in classs:
+                    B.append(N-x+i)
+            OA = OA_from_PBD(k,N,sum(partition_of_blocks_of_size_t,[]),check=False)[:-x]
+
+        # The sets of size q+t:
+        #
+        # We build an OA(k,t+q+1)-(t+q+1).OA(k,t+q+1) and the reordered
+        # matrix. We then compute the product of every parallel class of the OA
+        # (q+t classes in total) with the rows of the ordered matrix (extended
+        # with the last q+t new points).
+
+        # <SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
+        #
+        # Resolvable OA(k,t+q+1)-(t+q+1).OA(k,t+q+1)
+        OA_tq1 = orthogonal_array(k+1,t+q+1)
+        OA_tq1.sort()
+        relabel = [[0]*(t+q+1) for _ in range(k+1)]
+        for i,B in enumerate(OA_tq1[-(t+q+1):]):
+            for ii,xx in enumerate(B):
+                relabel[ii][xx] = i
+        for i in range(t+q+1):
+            relabel[0][i] = i
+
+        OA_tq1 = [[relabel[i][xx] for i,xx in enumerate(B)] for B in OA_tq1]
+        OA_tq1_classes = [[B[1:] for B in OA_tq1[i*(t+q+1):(i+1)*(t+q+1)]] for i in range(t+q)]
+        # </SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
+
+        matrix = _reorder_matrix(blocks_of_size_q_plus_t,N-x)
+
+        for i,classs in enumerate(OA_tq1_classes):
+            OA.extend([[R[xx] if xx<t+q else N-i-1 for xx in B] for R in matrix for B in classs])
+
+        # Set of size x
+        OA_k_x = orthogonal_array(k,x)
+        OA.extend([[N-i-1 for i in R] for R in OA_k_x])
+
+    # v)
+    elif (0<x and x<q**2-q+1-t and (e1 or e2) and # The result is wrong when e1=e2=0
+          orthogonal_array(k   ,x  ,existence=True) and # d0
+          orthogonal_array(k+e1,t  ,existence=True) and # d1-e1
+          orthogonal_array(k+e2,t+1,existence=True) and # d2-e2
+          orthogonal_array(k+1,t+q,existence=True)):   # d3-1
+        if verbose:
+            print "Case v) with k={},q={},t={},x={},e1={},e2={}".format(k,q,t,x,e1,e2)
+
+        OA = []
+
+        # Sets of size t+1
+        #
+        # We extend x partitions into blocks of size t with the new x elements
+        if e2:
+            assert x!=1, "equivalent to e2==1"
+            for i,classs in enumerate(partition_of_blocks_of_size_t[:x]):
+                for B in classs:
+                    B.append(N-1-i)
+            OA.extend(OA_from_PBD(k,N,sum(partition_of_blocks_of_size_t[:x],[]),check=False)[:-N])
+
+        else:
+            assert x==1, "equivalent to e2==0"
+            # Only one class, the OA(k,t+1) need not be resolvable.
+            OA.extend([[B[xx] if xx < t else N-1 for xx in R]
+                       for R in incomplete_orthogonal_array(k,t+1,[1])
+                       for B in partition_of_blocks_of_size_t[0]])
+
+        # Sets of size t
+        if e1:
+            assert x!=q**2-q-t, "equivalent to e1=1"
+            OA.extend(OA_from_PBD(k,N,sum(partition_of_blocks_of_size_t[x:],[]),check=False)[:-N])
+        else:
+            assert x==q**2-q-t, "equivalent to e1=0"
+            # Only one class. The OA(k,t) needs not be resolvable
+            OA.extend([[B[xx] for xx in R] for R in orthogonal_array(k,t) for B in partition_of_blocks_of_size_t[-1]])
+
+        if e1 and e2:
+            OA.extend([[i]*k for i in range(N-x)])
+
+        if e1 == 0 and e2 == 0:
+            raise Exception("Brouwer's result is wrong for v) with e2=e1=0")
+
+        # Sets of size q+t
+        OA.extend(OA_from_PBD(k,N,blocks_of_size_q_plus_t,check=False)[:-N])
+
+        # Set of size x
+        OA.extend([[N-i-1 for i in R]
+                   for R in orthogonal_array(k,x)])
+
+    # vi)
+    elif (t+q<x and x<q**2+1 and (e3 or e4) and # The result is wrong when e3=e4=0
+          orthogonal_array(k   ,x    ,existence=True) and # d0
+          orthogonal_array(k+e3,t    ,existence=True) and # d1-e3
+          orthogonal_array(k+e4,t+1  ,existence=True) and # d2-e4
+          orthogonal_array(k+1,t+q+1,existence=True)):    # d4-1
+        if verbose:
+            print "Case vi) with k={},q={},t={},x={},e3={},e4={}".format(k,q,t,x,e3,e4)
+
+        OA = []
+
+        # Sets of size t+1
+        #
+        # All x-(q+t) parallel classes with blocks of size t are extended with
+        # x-(q+t) of the new points.
+        if e4:
+            assert x != q+t+1, "equivalent to e4=1"
+            for i,classs in enumerate(partition_of_blocks_of_size_t[:x-(q+t)]):
+                for B in classs:
+                    B.append(N-x+i)
+            OA.extend(OA_from_PBD(k,N,sum(partition_of_blocks_of_size_t[:x-(q+t)],[]),check=False)[:-N])
+        else:
+            assert x == q+t+1, "equivalent to e4=0"
+            # Only one class. The OA(k,t+1) needs not be resolvable.
+            OA.extend([[B[xx] if xx<t else N-x for xx in R]
+                       for R in incomplete_orthogonal_array(k,t+1,[1])
+                       for B in partition_of_blocks_of_size_t[0]])
+
+        # Sets of size t
+        if e3:
+            assert x != q**2, "equivalent to e3=1"
+            OA.extend(OA_from_PBD(k,N,sum(partition_of_blocks_of_size_t[x-(q+t):],[]),check=False)[:-N])
+        else:
+            assert x == q**2, "equivalent to e3=0"
+            # Only one class. The OA(k,t) needs not be resolvable.
+            OA.extend([[B[xx] for xx in R]
+                       for R in orthogonal_array(k,t)
+                       for B in partition_of_blocks_of_size_t[-1]])
+
+        if e3 and e4:
+            OA.extend([[i]*k for i in range(N-x)])
+
+        if e3 == 0 and e4 == 0:
+            raise Exception("Brouwer's result is wrong for v) with e3=e4=0")
+
+        # The sets of size q+t:
+        #
+        # We build an OA(k,t+q+1)-(t+q+1).OA(k,t+q+1) and the reordered
+        # matrix. We then compute the product of every parallel class of the OA
+        # (q+t classes in total) with the rows of the ordered matrix (extended
+        # with the last q+t new points).
+
+
+        # <SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
+        #
+        # Resolvable OA(k,t+q+1)-(t+q+1).OA(k,t+q+1)
+        OA_tq1 = orthogonal_array(k+1,t+q+1)
+        OA_tq1.sort()
+        relabel = [[0]*(t+q+1) for _ in range(k+1)]
+        for i,B in enumerate(OA_tq1[-(t+q+1):]):
+            for ii,xx in enumerate(B):
+                relabel[ii][xx] = i
+        for i in range(t+q+1):
+            relabel[0][i] = i
+
+        OA_tq1 = [[relabel[i][xx] for i,xx in enumerate(B)] for B in OA_tq1]
+        OA_tq1_classes = [[B[1:] for B in OA_tq1[i*(t+q+1):(i+1)*(t+q+1)]] for i in range(t+q)]
+        # </SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
+
+        matrix = _reorder_matrix(blocks_of_size_q_plus_t,N-x)
+
+        for i,classs in enumerate(OA_tq1_classes):
+            OA.extend([[R[xx] if xx<t+q else N-i-1 for xx in B]
+                       for R in matrix
+                       for B in classs])
+
+        # Set of size x
+        OA.extend([[N-xx-1 for xx in B] for B in orthogonal_array(k,x)])
+
+    else:
+        raise ValueError("This input is not handled by Brouwer's result.")
+
+    if check:
+        assert is_orthogonal_array(OA,k,N,2,1)
     return OA

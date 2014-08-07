@@ -2474,13 +2474,6 @@ def OA_11_185():
         sage: designs.orthogonal_array(11,185,existence=True)
         True
 
-    REFERENCE:
-
-    .. [Greig99] Designs from projective planes and PBD bases,
-      Malcolm Greig,
-      Journal of Combinatorial Designs,
-      Volume 7, Issue 5, pages 341–374, 1999
-
     """
     from sage.combinat.designs.difference_family import difference_family
 

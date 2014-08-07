@@ -987,7 +987,7 @@ class RCNonSimplyLacedElement(RiggedConfigurationElement):
                            -2[ ]-1
             sage: ascii_art(elt.f(1))
             -1[ ][ ]0  -2[ ][ ]-2  -1[ ][ ]0
-                       -2[ ]-1   
+                       -2[ ]-1
             sage: ascii_art(elt.f(2))
             -2[ ][ ]-1  -2[ ]-1  -4[ ][ ][ ]-2
                         -2[ ]-1
@@ -1412,7 +1412,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
             sage: map(lambda x: x.weight(), RC.module_generators)
             [-4*Lambda[0] + 2*Lambda[2], -2*Lambda[0] + Lambda[2], 0]
             sage: KR = crystals.KirillovReshetikhin(['E',6,1], 2,2)
-            sage: map(lambda x: x.weight(), KR.module_generators)
+            sage: map(lambda x: x.weight(), KR.module_generators) # long time
             [0, -2*Lambda[0] + Lambda[2], -4*Lambda[0] + 2*Lambda[2]]
 
             sage: RC = RiggedConfigurations(['D', 6, 1], [[4,2]])
@@ -1462,16 +1462,11 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         TESTS:
 
         We check the classical weights agree in an entire crystal::
-        
+
             sage: RC = RiggedConfigurations(['A',2,1], [[2,1], [1,1]])
-            sage: passed_test = True
             sage: for x in RC:
             ....:     y = x.to_tensor_product_of_kirillov_reshetikhin_tableaux()
-            ....:     if x.classical_weight() != y.classical_weight():
-            ....:         passed_test = False
-            ....:         break
-            sage: passed_test
-            True
+            ....:     assert x.classical_weight() == y.classical_weight()
         """
         F = self.cartan_type().classical().root_system()
         if F.ambient_space() is None:

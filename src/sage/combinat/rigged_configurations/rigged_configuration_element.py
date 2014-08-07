@@ -1981,20 +1981,19 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
             <BLANKLINE>
         """
         if a == self.parent()._cartan_type.special_node():
-            return KRRiggedConfigurationElement.e(self, a)
+            try:
+                ret = self.to_tensor_product_of_kirillov_reshetikhin_tableaux().e(a)
+                if ret is None:
+                    return None
+                return ret.to_rigged_configuration()
+            except (NotImplementedError, TypeError):
+                # We haven't implemented the bijection yet, so try by lifting
+                #   to the simply-laced case
+                return RCNonSimplyLacedElement.e(self, a)
 
         if not self.epsilon(a):
             return None
-
-        vct = self.parent()._folded_ct
-        L = []
-        gamma = vct.scaling_factors()
-        for i in vct.folding_orbit()[a]:
-            L.extend([i]*gamma[a])
-        virtual_rc = self.parent().to_virtual(self).e_string(L)
-        if virtual_rc is None:
-            return None
-        return self.parent().from_virtual(virtual_rc)
+        return RCNonSimplyLacedElement.e(self, a)
 
     def f(self, a):
         """
@@ -2029,20 +2028,19 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
             <BLANKLINE>
         """
         if a == self.parent()._cartan_type.special_node():
-            return KRRiggedConfigurationElement.f(self, a)
+            try:
+                ret = self.to_tensor_product_of_kirillov_reshetikhin_tableaux().f(a)
+                if ret is None:
+                    return None
+                return ret.to_rigged_configuration()
+            except (NotImplementedError, TypeError):
+                # We haven't implemented the bijection yet, so try by lifting
+                #   to the simply-laced case
+                return RCNonSimplyLacedElement.f(self, a)
 
         if not self.phi(a):
             return None
-
-        vct = self.parent()._folded_ct
-        L = []
-        gamma = vct.scaling_factors()
-        for i in vct.folding_orbit()[a]:
-            L.extend([i]*gamma[a])
-        virtual_rc = self.parent().to_virtual(self).f_string(L)
-        if virtual_rc is None:
-            return None
-        return self.parent().from_virtual(virtual_rc)
+        return RCNonSimplyLacedElement.f(self, a)
 
     @cached_method
     def cocharge(self):

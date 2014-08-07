@@ -224,11 +224,13 @@ class FormsSpace_abstract(FormsRing_abstract):
 
             sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms, ModularForms, CuspForms, ZeroForm
             sage: MF1 = QuasiWeakModularForms(n=4, base_ring=CC, k=0, ep=1)
-            sage: MF2 = ModularForms(n=4, k=4, ep=1)
-            sage: MF3 = ModularForms(n=4, k=4, ep=-1)
+            sage: MF2 = ModularForms(n=4, k=24, ep=1)
+            sage: MF3 = ModularForms(n=4, k=24, ep=-1)
             sage: MF4 = CuspForms(n=4, k=0, ep=1)
             sage: MF5 = ZeroForm(n=4, k=10, ep=-1)
-            sage: subspace = MF3.subspace([MF3.gen(0)])
+            sage: subspace1 = MF3.subspace([MF3.gen(0), MF3.gen(1)])
+            sage: subspace2 = MF3.subspace([MF3.gen(2)])
+            sage: subspace3 = MF3.subspace([MF3.gen(0), MF3.gen(0)+MF3.gen(2)])
 
             sage: MF2.has_coerce_map_from(MF3)
             False
@@ -240,23 +242,27 @@ class FormsSpace_abstract(FormsRing_abstract):
             False
             sage: MF1.has_coerce_map_from(ZZ)
             True
-            sage: MF3.has_coerce_map_from(subspace)
+            sage: MF3.has_coerce_map_from(subspace1)
             True
-            sage: subspace.has_coerce_map_from(MF3)
+            sage: subspace1.has_coerce_map_from(MF3)
             False
+            sage: subspace3.has_coerce_map_from(subspace1)
+            False
+            sage: subspace3.has_coerce_map_from(subspace2)
+            True
         """
 
         from space import ZeroForm
         from subspace import SubSpaceForms
         if   (  isinstance(S, ZeroForm)):
             return True
-        elif (  isinstance(S, SubSpaceForms)):
-            for v in S.gens():
-                try:
-                    self(v)
-                except:
-                    return False
-            return True
+        elif (  isinstance(S, SubSpaceForms)\
+            and isinstance(self, SubSpaceForms) ):
+                if (self.ambient_space().has_coerce_map_from(S.ambient_space())\
+                    and self.module().has_coerce_map_from(S.module()) ):
+                        return True
+                else:
+                        return False
         elif (  isinstance(S, FormsSpace_abstract)\
             and self.graded_ring().has_coerce_map_from(S.graded_ring())\
             and S.weight()    == self._weight\

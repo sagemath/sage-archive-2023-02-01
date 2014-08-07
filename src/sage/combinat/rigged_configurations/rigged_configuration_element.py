@@ -1949,14 +1949,14 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
         sage: TestSuite(elt).run()
     """
     def e(self, a):
-        """
+        r"""
         Return the action of `e_a` on ``self``.
 
         This works by lifting into the virtual configuration, then applying
 
         .. MATH::
 
-            \hat{e}_a = \prod_{j \in \iota(a)} e_j^{\gamma_j}
+            e^v_a = \prod_{j \in \iota(a)} \hat{e}_j^{\gamma_j}
 
         and pulling back.
 
@@ -1996,14 +1996,14 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
         return RCNonSimplyLacedElement.e(self, a)
 
     def f(self, a):
-        """
+        r"""
         Return the action of `f_a` on ``self``.
 
         This works by lifting into the virtual configuration, then applying
 
         .. MATH::
 
-            \hat{f}_a = \prod_{j \in \iota(a)} f_j^{\gamma_j}
+            f^v_a = \prod_{j \in \iota(a)} \hat{f}_j^{\gamma_j}
 
         and pulling back.
 
@@ -2107,11 +2107,11 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
         if a == self.parent()._cartan_type.special_node():
             return self.to_tensor_product_of_kirillov_reshetikhin_tableaux().epsilon(a)
 
-        epsilon = Integer(KRRCNonSimplyLacedElement.epsilon(self, a))
+        epsilon = KRRCNonSimplyLacedElement.epsilon(self, a)
         n = self.parent().cartan_type().classical().rank()
         if self.parent()._rc_index.index(a) == n-1: # -1 for indexing
-            return 2 * epsilon
-        return epsilon
+            epsilon *= 2
+        return Integer(epsilon)
 
     def phi(self, a):
         r"""
@@ -2136,9 +2136,9 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
         if a == self.parent()._cartan_type.special_node():
             return self.to_tensor_product_of_kirillov_reshetikhin_tableaux().phi(a)
 
-        phi = Integer(KRRCNonSimplyLacedElement.phi(self, a))
+        phi = KRRCNonSimplyLacedElement.phi(self, a)
         n = self.parent().cartan_type().classical().rank()
         if self.parent()._rc_index.index(a) == n-1: # -1 for indexing
-            return 2 * phi
-        return phi
+            phi *= 2
+        return Integer(phi)
 

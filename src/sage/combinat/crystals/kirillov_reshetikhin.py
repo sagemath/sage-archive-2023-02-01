@@ -2569,7 +2569,6 @@ class KR_type_Dn_twisted(KirillovReshetikhinGenericCrystal):
             raise ValueError("no matching highest weight element found")
         return KirillovReshetikhinGenericCrystal._element_constructor_(self, *args, **options)
 
-
     def classical_decomposition(self):
         r"""
         Specifies the classical crystal underlying the Kirillov-Reshetikhin crystal `B^{n,s}`

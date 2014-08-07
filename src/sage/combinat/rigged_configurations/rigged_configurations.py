@@ -35,7 +35,8 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.rigged_configurations.kleber_tree import KleberTree, VirtualKleberTree
 from sage.combinat.rigged_configurations.rigged_configuration_element import (
-     RiggedConfigurationElement, KRRCSimplyLacedElement, KRRCNonSimplyLacedElement)
+     RiggedConfigurationElement, KRRCSimplyLacedElement, KRRCNonSimplyLacedElement,
+     KRRCTypeA2DualElement)
 
 RiggedConfigurationOptions=GlobalOptions(name='rigged configurations',
     doc=r"""
@@ -1870,6 +1871,8 @@ class RCTypeA2Dual(RCTypeA2Even):
             vac_nums[a] = [vac_val for vac_val in vrc[index].vacancy_numbers]
         return self.element_class(self, partition_list=partitions,
                                   rigging_list=riggings, vacancy_numbers_list=vac_nums)
+
+    Element = KRRCTypeA2DualElement
 
 def HighestWeightRiggedConfigurations(cartan_type, B):
     """

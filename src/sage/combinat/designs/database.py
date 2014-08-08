@@ -3201,70 +3201,52 @@ OA_constructions = {
 
 Vmt_vectors = {
     (4,9) : ((0,1,3,2,8),
-             "As explained in the Handbook III.3.66 [DesignHandbook]_."),
+             """A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
+             Discrete Mathematics 1982, vol 39, num 3, pp 263-281"""),
 
     (6,7) : ((0,1,3,16,35,26,36),
-            "As explained in the Handbook III.3.68 [DesignHandbook]_."),
+             """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+             Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
 
     (8,9) : ((0,1,20,70,23,59,3,8,19),
-             "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
+             """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+             Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
 
     (8,11) : ((0,1,6,56,22,35,47,23,60),
-              "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
-
-    (10,13) : ((0,1,5,10,22,6,14,9,53,129,84),
-               "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
+              """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+              Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
 
     (8,17) : ((0,1,3,2,133,126,47,109,74),
-              "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
-
-    (10,19) : ((0,1,3,96,143,156,182,142,4,189,25),
-               "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
+              """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+              Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
 
     (8,29) : ((0,1,4,11,94,60,85,16,198),
-              "Given by Julian R. Abel."),
+              """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+              Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (10,13) : ((0,1,5,10,22,6,14,9,53,129,84),
+               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (10,19) : ((0,1,3,96,143,156,182,142,4,189,25),
+               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
 
     (10,25) : ((0,1,3,85,140,178,195,22,48,179,188),
-               "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
+               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
 
     (10,27) : ((0,1,3,82,109,241,36,112,141,263,126),
-               "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
+               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
 
     (10,31) : ((0,1,3,57,128,247,289,239,70,271,96),
-               "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
+               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
 
     (10,43) : ((0,1,6,29,170,207,385,290,375,32,336),
-               "Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_."),
-
-    (12,73) : ((0,1,607,719,837,496,240,645,184,829,451,830,770),
-               "Given by Julian R. Abel."),
-
-    (12, 83) : ((0,1,627,898,836,939,742,42,847,531,173,607,361),
-                 "Given by Julian R. Abel."),
-
-    (12, 89) : ((0,1,602,894,827,661,350,647,304,47,430,533,550),
-                 "Given by Julian R. Abel."),
-
-    (12,101) : ((0,1,787,1049,818,1064,288,346,464,958,1188,340,1192),
-                "Given by Julian R. Abel."),
-
-    (12,103) : ((0,1,770,1027,806,1082,515,436,1096,1060,57,1135,1144),
-                "Given by Julian R. Abel."),
-
-    (12,121) : ((0,1,713,1265,848,421,998,69,874,1126,693,467,1164),
-                "Given by Julian R. Abel."),
-
-    (12,169) : ((0,1,425,326,951,1211,1881,1063,1631,1363,1554,665,1600),
-                "Given by Julian R. Abel."),
-
-    (12,191) : ((0,1,491,527,939,377,1685,1735,1967,1176,391,2192,681),
-                "Given by Julian R. Abel."),
-
-    (12,199) : ((0,1,377,524,946,560,316,1591,2036,273,1841,2091,713),
-                "Given by Julian R. Abel."),
-
-    (12,229) : ((0,1,338,312,933,380,401,2398,612,1279,1514,268,528),
-                "Given by Julian R. Abel."),
+               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
 
     (10, 81) : ((0,1,3,2,27,438,615,708,168,410,656),
                """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
@@ -3304,7 +3286,47 @@ Vmt_vectors = {
 
     (10,409) : ((0,1,3,2,5,11,505,3202,1502,2521,3023),
                """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104""")
+               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (12,73) : ((0,1,607,719,837,496,240,645,184,829,451,830,770),
+               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+               Australasian Journal of Combinatorics 2008, vol 40 pp 69-85"""),
+
+    (12, 83) : ((0,1,627,898,836,939,742,42,847,531,173,607,361),
+               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
+
+    (12, 89) : ((0,1,602,894,827,661,350,647,304,47,430,533,550),
+               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
+
+    (12,101) : ((0,1,787,1049,818,1064,288,346,464,958,1188,340,1192),
+               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
+
+    (12,103) : ((0,1,770,1027,806,1082,515,436,1096,1060,57,1135,1144),
+               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
+
+    (12,121) : ((0,1,713,1265,848,421,998,69,874,1126,693,467,1164),
+               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
+
+    (12,169) : ((0,1,425,326,951,1211,1881,1063,1631,1363,1554,665,1600),
+               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
+
+    (12,191) : ((0,1,491,527,939,377,1685,1735,1967,1176,391,2192,681),
+               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
+
+    (12,199) : ((0,1,377,524,946,560,316,1591,2036,273,1841,2091,713),
+               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
+
+    (12,229) : ((0,1,338,312,933,380,401,2398,612,1279,1514,268,528),
+               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
 
 }
 # Translate all V(m,t) into OA constructors
@@ -3324,18 +3346,30 @@ EXAMPLES::
     ....:     if n < 1000:
     ....:         assert is_orthogonal_array(OA_from_Vmt(m,t,vec),k,n)
     ....:     print "{:11}{}".format("V({},{}):".format(m,t),source)
-    V(4,9):    As explained in the Handbook III.3.66 [DesignHandbook]_.
-    V(6,7):    As explained in the Handbook III.3.68 [DesignHandbook]_.
-    V(8,9):    Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-    V(8,11):   Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-    V(8,17):   Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-    V(8,29):   Given by Julian R. Abel.
-    V(10,13):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-    V(10,19):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-    V(10,25):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-    V(10,27):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-    V(10,31):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-    V(10,43):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+    V(4,9):    A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
+                 Discrete Mathematics 1982, vol 39, num 3, pp 263-281
+    V(6,7):    Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                 Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(8,9):    Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                 Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(8,11):   Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                  Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(8,17):   Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                  Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(8,29):   Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                  Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(10,13):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(10,19):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(10,25):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(10,27):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(10,31):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(10,43):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
     V(10,81):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
                    Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
     V(10,97):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
@@ -3356,16 +3390,26 @@ EXAMPLES::
                    Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
     V(10,409): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
                    Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(12,73):  Given by Julian R. Abel.
-    V(12,83):  Given by Julian R. Abel.
-    V(12,89):  Given by Julian R. Abel.
-    V(12,101): Given by Julian R. Abel.
-    V(12,103): Given by Julian R. Abel.
-    V(12,121): Given by Julian R. Abel.
-    V(12,169): Given by Julian R. Abel.
-    V(12,191): Given by Julian R. Abel.
-    V(12,199): Given by Julian R. Abel.
-    V(12,229): Given by Julian R. Abel.
+    V(12,73):  J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+                   Australasian Journal of Combinatorics 2008, vol 40 pp 69-85
+    V(12,83):  J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
+    V(12,89):  J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
+    V(12,101): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
+    V(12,103): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
+    V(12,121): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
+    V(12,169): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
+    V(12,191): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
+    V(12,199): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
+    V(12,229): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
 """
 
 def CDF_21_5_1():

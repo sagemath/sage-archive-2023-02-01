@@ -324,7 +324,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             return self.f_i_ZZ()*(self.f_rho_ZZ()**(ZZ(n/ZZ(2))))/self.f_inf_ZZ()
         else:
             #return self._qseries_ring([])
-            raise Exception("G_inv doesn't exist for n={}.".format(self.hecke_n()))
+            raise ValueError("G_inv doesn't exist for n={}.".format(self.hecke_n()))
 
     @cached_method
     def E4_ZZ(self):

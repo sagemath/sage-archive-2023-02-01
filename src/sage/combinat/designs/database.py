@@ -1106,7 +1106,8 @@ def OA_9_40():
     r"""
     Returns an OA(9,40)
 
-    As explained in the Handbook III.3.62 [DesignHandbook]_.
+    As explained in the Handbook III.3.62 [DesignHandbook]_. Uses the fact that
+    `40 = 2^3 \times 5` and that `5` is prime.
 
     .. SEEALSO::
 
@@ -2182,7 +2183,8 @@ def OA_11_80():
     r"""
     Returns an OA(11,80)
 
-    As explained in the Handbook III.3.76 [DesignHandbook]_.
+    As explained in the Handbook III.3.76 [DesignHandbook]_. Uses the fact that
+    `80 = 2^4 \times 5` and that `5` is prime.
 
     .. SEEALSO::
 
@@ -2274,7 +2276,8 @@ def OA_15_112():
     r"""
     Returns an OA(15,112)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_. Uses the fact that 112 = `2^4
+    \times 7` and that `7` is prime.
 
     .. SEEALSO::
 
@@ -2505,7 +2508,8 @@ def OA_11_160():
     r"""
     Returns an OA(11,160)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_. Uses the fact that `160 = 2^5
+    \times 5` is a product of a power of `2` and a prime number.
 
     .. SEEALSO::
 
@@ -2552,7 +2556,8 @@ def OA_16_176():
     r"""
     Returns an OA(16,176)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_. Uses the fact that `176 = 2^4
+    \times 11` is a product of a power of `2` and a prime number.
 
     .. SEEALSO::
 
@@ -2603,7 +2608,8 @@ def OA_16_208():
     r"""
     Returns an OA(16,208)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_. Uses the fact that `208 = 2^4
+    \times 13` is a product of `2` and a prime number.
 
     .. SEEALSO::
 
@@ -2686,7 +2692,8 @@ def OA_15_224():
     r"""
     Returns an OA(15,224)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that `224=2^5
+    \times 7` is a product of a power of `2` and a prime number).
 
     .. SEEALSO::
 
@@ -2842,7 +2849,8 @@ def OA_20_352():
     r"""
     Returns an OA(20,352)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that `352=2^5
+    \times 11` is the product of a power of `2` and a prime number).
 
     .. SEEALSO::
 
@@ -2898,7 +2906,8 @@ def OA_20_416():
     r"""
     Returns an OA(20,416)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that `416=2^5
+    \times 13` is the product of a power of `2` and a prime number).
 
     .. SEEALSO::
 
@@ -3018,7 +3027,8 @@ def OA_20_544():
     r"""
     Returns an OA(20,544)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that
+    `544=2^5 \times 17` is the product of a power of `2` and a prime number).
 
     .. SEEALSO::
 
@@ -3083,7 +3093,8 @@ def OA_11_640():
     r"""
     Returns an OA(11,640)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that `640=2^7
+    \times 5` is the product of a power of `2` and a prime number).
 
     .. SEEALSO::
 
@@ -3192,6 +3203,9 @@ def OA_15_896():
     r"""
     Returns an OA(15,896)
 
+    Uses the fact that `896 = 2^7 \times 7` is the product of a power of `2` and
+    a prime number.
+
     .. SEEALSO::
 
         :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
@@ -3267,8 +3281,8 @@ def _helper_function_when_n_is_prime_times_power_of_2(k,n,A,Y):
     r"""
     This is an helper function to build `OA(k,p2^c)`
 
-    The same construction appears many times in Julian R. Abel's papers to build
-    `OA(k,p2^c)`. Having this function avoids a lot of copy/paste.
+    This construction appears in Julian R. Abel's papers to build
+    `OA(k,p2^c)`.
 
     For more information on what the parameters should be, see the documentation
     of the functions which calls this one, and their associated bibliographical
@@ -3292,32 +3306,29 @@ def _helper_function_when_n_is_prime_times_power_of_2(k,n,A,Y):
     """
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.rings.integer import Integer
-    from itertools import combinations
+    from itertools import izip,combinations
 
     c = Integer(n).valuation(2)
-    F = FiniteField(n//2**c)
-    Fq = FiniteField(2**c,prefix='w',conway=True)
+    F = FiniteField(n>>c)
+    Fq = FiniteField(1<<c,prefix='w',conway=True)
     G = F.cartesian_product(Fq)
-    w = Fq.gens()[0]
+    w = Fq.gen()
 
-    r = lambda x : Fq(0) if x is None else w**x
-    A = [[G((a,r(b))) for a,b in L] for L in A]
+    # convert the integer matrix A and the vector Y to a matrix and a vector
+    # over Fq
+    r = {i:w**i for i in xrange(2**c-1)}
+    r[None] = Fq.zero()
+    A = [[G((a,r[b])) for a,b in R] for R in A]
+    Y = [r[b] for b in Y]
 
-    Y = map(r,Y)
-
-    t = lambda i,x : G((0,Y[x]*w**i))
-
-    Mb = [[] for _ in A]
-    Subsets = [S for s in range(c) for S in combinations(range(c-1),s)]
-    assert len(Subsets) == 2**(c-1)
-
-    for x,R in enumerate(A):
-        tt = [t(i,x) for i in range(c-1)]
-        for y,e in enumerate(R):
-            Mb[x].extend([e+sum([tt[ii] for ii in S],G.zero()) for S in Subsets])
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = int(k-len(A)))
-    return M
+    # make the list of the elements of Fq that are sum of w^i with powers i < c-1
+    # (this can be considered as a GF(2)-hyperplane)
+    S = [sum((r[i] for i in S), Fq.zero()) for s in range(c) for S in combinations(range(c-1),s)]
+    assert len(S) == 2**(c-1)
+    
+    # build the quasi difference matrix and return the associated OA
+    Mb = [[e+G((F.zero(), x*s)) for s in S for e in R] for x,R in izip(Y,A)]
+    return OA_from_quasi_difference_matrix(Mb,G,add_col=int(k-len(A)))
 
 # Index of the OA constructions
 #

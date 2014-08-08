@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+###########################################
+## Giacpy 
+###########################################
+
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src
+
+
+sage setup.py build_ext
+
+
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
+sage setup.py install
+
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+

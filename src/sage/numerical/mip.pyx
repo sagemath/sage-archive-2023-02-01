@@ -166,10 +166,12 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 
-from sage.structure.sage_object cimport SageObject
+from sage.structure.parent cimport Parent
+from sage.structure.element cimport Element
 from sage.misc.cachefunc import cached_method
 from sage.numerical.linear_functions import is_LinearFunction, is_LinearConstraint
 from sage.misc.superseded import deprecated_function_alias, deprecation
+
 
 cdef class MixedIntegerLinearProgram(SageObject):
     r"""
@@ -376,7 +378,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         self.__BINARY = 0
         self.__REAL = -1
         self.__INTEGER = 1
-
+        self._mip_variables_parent = None
         from sage.numerical.backends.generic_backend import get_solver
         self._backend = get_solver(solver=solver,
                                    constraint_generation=constraint_generation)
@@ -672,8 +674,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
         else:
             vtype = self.__REAL
 
-        return MIPVariable(self,
-                      vtype,
+        parent = self._mip_variables_parent
+        if parent is None:
+            parent = self._mip_variables_parent = MIPVariableParent(self)
+        return parent(vtype,
                       dim=dim,
                       name=name,
                       lower_bound=0 if (nonnegative or binary) else None,
@@ -2211,6 +2215,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         return self._backend
 
+
 class MIPSolverException(RuntimeError):
     r"""
     Exception raised when the solver fails.
@@ -2276,20 +2281,26 @@ class MIPSolverException(RuntimeError):
         """
         return repr(self.value)
 
-cdef class MIPVariable(SageObject):
+
+cdef class MIPVariable(Element):
     r"""
     ``MIPVariable`` is a variable used by the class
     ``MixedIntegerLinearProgram``.
+
+    .. warn::
+
+        You should not instantiate this class directly. Instead, use
+        :meth:`MixedIntegerLinearProgram.new_variable`.
     """
 
-    def __cinit__(self, p, vtype, dim=1, name="", lower_bound=0, upper_bound=None):
+    def __init__(self, parent, vtype, dim, name, lower_bound, upper_bound):
         r"""
         Constructor for ``MIPVariable``.
 
         INPUT:
 
-        - ``p`` -- the instance of ``MixedIntegerLinearProgram`` to which the
-          variable is to be linked.
+        - ``parent`` -- :class:`MIPVariableParent`. The parent of the
+          MIP variable.
 
         - ``vtype`` (integer) -- Defines the type of the variables
           (default is ``REAL``).
@@ -2307,16 +2318,18 @@ cdef class MIPVariable(SageObject):
 
         EXAMPLE::
 
-            sage: p=MixedIntegerLinearProgram()
-            sage: v=p.new_variable(nonnegative=True)
+            sage: p = MixedIntegerLinearProgram()
+            sage: p.new_variable(nonnegative=True)
+            MIPVariable of dimension 1.
         """
+        super(MIPVariable, self).__init__(parent)
         self._dim = dim
         self._dict = {}
-        self._p = p
+        self._p = (<MIPVariableParent>parent)._mip
         self._vtype = vtype
         self._lower_bound = lower_bound
         self._upper_bound = upper_bound
-
+        self._name = name
         self._hasname = (len(name) >0)
 
         if dim > 1:
@@ -2324,16 +2337,6 @@ cdef class MIPVariable(SageObject):
             deprecation(15489, "The 'dim' argument will soon disappear. "+
                         "Fortunately variable[1,2] is easier to use than "+
                         "variable[1][2]")
-
-        # create a temporary char *
-        cdef char *name_c = name
-        # and copy it over
-        self._name = <char*>sage_malloc(len(name)+1)
-        strcpy(self._name, name_c)
-
-    def __dealloc__(self):
-        if self._name:
-            sage_free(self._name)
 
     def __getitem__(self, i):
         r"""
@@ -2357,10 +2360,7 @@ cdef class MIPVariable(SageObject):
             sage: p = MixedIntegerLinearProgram()
             sage: b = p.new_variable(binary=True, dim=2)
         """
-        cdef MIPVariable s = self
-
         cdef int j
-
         if i in self._dict:
             return self._dict[i]
         elif self._dim == 1:
@@ -2371,26 +2371,22 @@ cdef class MIPVariable(SageObject):
                                               continuous  = True,
                                               integer     = False,
                                               obj         = zero,
-                                              name = ((str(self._name) + "[" + str(i) + "]")
+                                              name = ((self._name + "[" + str(i) + "]")
                                                       if self._hasname else None))
-
             v = self._p.linear_function({j : 1})
             self._p._variables[v] = j
-            self._p._backend.set_variable_type(j,self._vtype)
+            self._p._backend.set_variable_type(j, self._vtype)
             self._dict[i] = v
-
             return v
-
         else:
-            self._dict[i] = MIPVariable(
-                self._p,
+            self._dict[i] = self.parent().element_class(
+                self.parent(),
                 self._vtype,
                 dim         = self._dim-1,
                 name        = ("" if not self._hasname
-                               else (str(self._name) + "[" + str(i) + "]")),
+                               else (self._name + "[" + str(i) + "]")),
                 lower_bound = self._lower_bound,
                 upper_bound = self._upper_bound)
-
             return self._dict[i]
 
     def set_min(self, min):
@@ -2533,23 +2529,10 @@ cdef class MIPVariable(SageObject):
         """
         return self._dict.values()
 
-    def __mul__(self, m):
+    cdef _matrix_rmul_impl(self, m):
         """
-        Define right multiplication by a matrix.
-
-        EXAMPLE::
-
-            sage: m = matrix([[1,2],[3,4]]);  m
-            [1 2]
-            [3 4]
-            sage: p = MixedIntegerLinearProgram()
-            sage: v = p.new_variable(nonnegative=True)
-            sage: v * m
-            (3.0, 4.0)*x_1 + (1.0, 2.0)*x_0
+        Implement the action of a matrix multiplying from the right.
         """
-        return (<MIPVariable>self)._mul_impl(m)
-
-    cdef _mul_impl(self, m):
         result = dict()
         for i, row in enumerate(m.rows()):
             x = self[i]
@@ -2560,7 +2543,103 @@ cdef class MIPVariable(SageObject):
         V = FreeModule(self._p.base_ring(), m.ncols())
         T = self._p.linear_functions_parent().tensor(V)
         return T(result)
+
+    cdef _matrix_lmul_impl(self, m):
+        """
+        Implement the action of a matrix multiplying from the left.
+        """
+        result = dict()
+        for i, col in enumerate(m.columns()):
+            x = self[i]
+            assert len(x.dict()) == 1
+            x_index = x.dict().keys()[0]
+            result[x_index] = col
+        from sage.modules.free_module import FreeModule
+        V = FreeModule(self._p.base_ring(), m.nrows())
+        T = self._p.linear_functions_parent().tensor(V)
+        return T(result)
         
+    cpdef _acted_upon_(self, mat, bint self_on_left):
+        """
+        Act with matrices on MIPVariables.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: v = p.new_variable()
+            sage: m = matrix([[1,2], [3,4]])
+            sage: v * m
+            (3.0, 4.0)*x_1 + (1.0, 2.0)*x_0
+            sage: m * v
+            (2.0, 4.0)*x_1 + (1.0, 3.0)*x_0
+        """
+        from sage.matrix.matrix import is_Matrix
+        if is_Matrix(mat):
+            return self._matrix_rmul_impl(mat) if self_on_left else self._matrix_lmul_impl(mat)
+
+
+cdef class MIPVariableParent(Parent):
+    """
+    Parent for :class:`MIPVariable`.
+
+    .. warn::
+
+        This class is for internal use. You should not instantiate it
+        yourself. Use :meth:`MixedIntegerLinearProgram.new_variable`
+        to generate mip variables.
+    """
+
+    Element = MIPVariable
+    
+    def __init__(self, mip):
+        """
+        The Python constructor.
+
+        INPUT:
+
+        - ``mip`` -- the underlying mixed integer linear problem.
+
+        TESTS::
+
+            sage: from sage.numerical.mip import MIPVariableParent
+            sage: MIPVariableParent(MixedIntegerLinearProgram())
+            Parent of MIPVariables
+        """
+        super(MIPVariableParent, self).__init__()
+        self._mip = mip
+
+    def _repr_(self):
+        r"""
+        Return representation of self.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: v = p.new_variable()
+            sage: v.parent()
+            Parent of MIPVariables
+        """
+        return 'Parent of MIPVariables'
+
+    def _element_constructor_(self, vtype, dim=1, name="", lower_bound=0, upper_bound=None):
+        """
+        The Element constructor
+
+        INPUT/OUTPUT:
+
+        See :meth:`MIPVariable.__init__`.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: p.new_variable()    # indirect doctest
+            MIPVariable of dimension 1.
+        """
+        return self.element_class(self, vtype, dim, name, lower_bound, upper_bound)
 
 
 def Sum(x):

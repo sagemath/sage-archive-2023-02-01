@@ -1,0 +1,11 @@
+--- a/src/index.h	2014-07-28 15:55:50.000000000 +0200
++++ b/src/index.h	2014-07-28 15:56:15.000000000 +0200
+@@ -35,7 +35,7 @@
+ #include <unordered_map>
+ #endif
+ 
+-#if defined UNORDERED_MAP && !defined(__APPLE__) && !defined(__clang__) && !defined(VISUALC)
++#if defined UNORDERED_MAP  && !defined(__clang__) && !defined(VISUALC) // && !defined(__APPLE__)
+ #include <tr1/unordered_map>
+ #define HASH_MAP_NAMESPACE std::tr1
+ #define hash_map unordered_map

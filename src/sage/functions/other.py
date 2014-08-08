@@ -1150,7 +1150,7 @@ class Function_psi2(GinacFunction):
         GinacFunction.__init__(self, "psi", nargs=2, latex_name='\psi',
                 conversions=dict(mathematica='PolyGamma'))
 
-    def _maxima_init_evaled_(self, n, x):
+    def _maxima_init_evaled_(self, *args):
         """
         EXAMPLES:
 
@@ -1158,10 +1158,19 @@ class Function_psi2(GinacFunction):
 
             sage: from sage.functions.other import psi2
             sage: psi2(2, x)._maxima_()
-            psi[2](x)
+            psi[2](_SAGE_VAR_x)
             sage: psi2(4, x)._maxima_()
-            psi[4](x)
+            psi[4](_SAGE_VAR_x)
         """
+        args_maxima = []
+        for a in args:
+            if isinstance(a, str):
+                args_maxima.append(a)
+            elif hasattr(a, '_maxima_init_'):
+                args_maxima.append(a._maxima_init_())
+            else:
+                args_maxima.append(str(a))
+        n, x = args_maxima
         return "psi[%s](%s)"%(n, x)
 
 psi1 = Function_psi1()

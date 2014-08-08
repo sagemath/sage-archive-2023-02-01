@@ -1,5 +1,5 @@
 r"""
-Mixed integer linear programming
+Mixed Integer Linear Programming
 
 A linear program (`LP <http://en.wikipedia.org/wiki/Linear_programming>`_)
 is an `optimization problem <http://en.wikipedia.org/wiki/Optimization_%28mathematics%29>`_
@@ -200,6 +200,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
       - Gurobi (``solver="Gurobi"``). See the `Gurobi <http://www.gurobi.com/>`_
           web site.
 
+      - CVXOPT (``solver="CVXOPT"``). See the `CVXOPT <http://www.cvxopt.org/>`_
+          web site.
+
       - PPL (``solver="PPL"``). See the `PPL <http://bugseng.com/products/ppl>`_
           web site.
 
@@ -289,6 +292,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
           - Gurobi (``solver="Gurobi"``). See the `Gurobi
             <http://www.gurobi.com/>`_ web site.
+
+          - CVXOPT (``solver="CVXOPT"``). See the `CVXOPT <http://www.cvxopt.org/>`_
+              web site.
 
           - PPL (``solver="PPL"``). See the `PPL
             <http://bugseng.com/products/ppl>`_ web site.

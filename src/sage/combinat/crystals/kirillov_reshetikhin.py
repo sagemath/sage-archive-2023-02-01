@@ -749,6 +749,21 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
         """
         return self.parent().kirillov_reshetikhin_tableaux()(self)
 
+    def lusztig_involution(self):
+        """
+        Return the classical Lusztig involution on ``self``.
+
+        EXAMPLES::
+
+            sage: KRC = crystals.KirillovReshetikhin(['D',4,1], 2,2)
+            sage: elt = KRC(-1,2); elt
+            [[2], [-1]]
+            sage: elt.lusztig_involution()
+            [[1], [-2]]
+        """
+        li = self.lift().lusztig_involution()
+        return self.parent().retract(li)
+
 KirillovReshetikhinGenericCrystal.Element = KirillovReshetikhinGenericCrystalElement
 
 class KirillovReshetikhinCrystalFromPromotion(KirillovReshetikhinGenericCrystal,

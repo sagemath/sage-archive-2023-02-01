@@ -456,6 +456,11 @@ following libraries are currently supported:
 
   Proprietary, but free for researchers and students.
 
+* `CVXOPT <http://cvxopt.org/>`_: an LP solver from Python Software for
+  Convex Optimization, uses an interior-point method.
+
+  Licensed under the GPL.
+
 * `GLPK <http://www.gnu.org/software/glpk/>`_: A solver from `GNU
   <http://www.gnu.org/>`_
 

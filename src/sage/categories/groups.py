@@ -11,10 +11,13 @@ Groups
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.monoids import Monoids
 from sage.categories.algebra_functor import AlgebrasCategory
+from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 class Groups(CategoryWithAxiom):
     """
@@ -528,8 +531,8 @@ class Groups(CategoryWithAxiom):
 
             An other group can be specified as optional argument::
 
-                sage: GroupAlgebras(QQ).example(SymmetricGroup(4))
-                Group algebra of Symmetric group of order 4! as a permutation group over Rational Field
+                sage: GroupAlgebras(QQ).example(AlternatingGroup(4))
+                Group algebra of Alternating group of order 4!/2 as a permutation group over Rational Field
             """
             from sage.groups.perm_gps.permgroup_named import DihedralGroup
             if G is None:
@@ -575,14 +578,17 @@ class Groups(CategoryWithAxiom):
 
                 EXAMPLES::
 
-                    sage: GroupAlgebras(QQ).example(SymmetricGroup(10)).algebra_generators()
-                    Finite family {(1,2): B[(1,2)], (1,2,3,4,5,6,7,8,9,10): B[(1,2,3,4,5,6,7,8,9,10)]}
+                    sage: GroupAlgebras(QQ).example(AlternatingGroup(10)).algebra_generators()
+                    Finite family {(1,2,3,4,5,6,7,8,9): B[(1,2,3,4,5,6,7,8,9)], (8,9,10): B[(8,9,10)]}
 
                 .. NOTE::
 
                     This function is overloaded for SymmetricGroupAlgebras
                     to return Permutations and not Elements of the
-                    symmetric group.
+                    symmetric group::
+
+                        sage: GroupAlgebras(QQ).example(SymmetricGroup(10)).algebra_generators()
+                        [[2, 1, 3, 4, 5, 6, 7, 8, 9, 10], [2, 3, 4, 5, 6, 7, 8, 9, 10, 1]]
                 """
                 from sage.sets.family import Family
                 return Family(self.group().gens(), self.term)
@@ -793,4 +799,83 @@ class Groups(CategoryWithAxiom):
                 Z = self.parent().center()
                 return sum(self[i] * Z.basis()[i] for i in Z.basis().keys())
 
+    class CartesianProducts(CartesianProductsCategory):
+        """
+        The category of groups constructed as cartesian products of groups.
+
+        This construction gives the direct product of groups. See
+        :wikipedia:`Direct_product` and :wikipedia:`Direct_product_of_groups`
+        for more information.
+        """
+        def extra_super_categories(self):
+            """
+            A cartesian product of groups is endowed with a natural
+            group structure.
+
+            EXAMPLES::
+
+                sage: C = Groups().CartesianProducts()
+                sage: C.extra_super_categories()
+                [Category of groups]
+                sage: sorted(C.super_categories(), key=str)
+                [Category of Cartesian products of inverse unital magmas,
+                 Category of Cartesian products of monoids,
+                 Category of groups]
+            """
+            return [self.base_category()]
+
+        class ParentMethods:
+            @cached_method
+            def group_generators(self):
+                """
+                Return the group generators of ``self``.
+
+                EXAMPLES::
+
+                    sage: C5 = CyclicPermutationGroup(5)
+                    sage: C4 = CyclicPermutationGroup(4)
+                    sage: S4 = SymmetricGroup(3)
+                    sage: C = cartesian_product([C5, C4, S4])
+                    sage: C.group_generators()
+                    Family (((1,2,3,4,5), (), ()),
+                            ((), (1,2,3,4), ()),
+                            ((), (), (1,2)),
+                            ((), (), (2,3)))
+
+                We check the other portion of :trac:`16718` is fixed::
+
+                    sage: len(C.j_classes())
+                    1
+
+                An example with an infinitely generated group (a better output
+                is needed)::
+
+                    sage: G = Groups.free([1,2])
+                    sage: H = Groups.free(ZZ)
+                    sage: C = cartesian_product([G, H])
+                    sage: C.monoid_generators()
+                    Lazy family (gen(i))_{i in The cartesian product of (...)}
+                """
+                F = self.cartesian_factors()
+                ids = tuple(G.one() for G in F)
+                def lift(i, gen):
+                    cur = list(ids)
+                    cur[i] = gen
+                    return self._cartesian_product_of_elements(cur)
+                from sage.sets.family import Family
+
+                # Finitely generated
+                cat = FiniteEnumeratedSets()
+                if all(G.group_generators() in cat
+                       or isinstance(G.group_generators(), (tuple, list)) for G in F):
+                    ret = [lift(i, gen) for i,G in enumerate(F) for gen in G.group_generators()]
+                    return Family(ret)
+
+                # Infinitely generated
+                # This does not return a good output, but it is "correct"
+                # TODO: Figure out a better way to do things
+                gens_prod = cartesian_product([Family(G.group_generators(),
+                                                      lambda g: (i, g))
+                                               for i,G in enumerate(F)])
+                return Family(gens_prod, lift, name="gen")
 

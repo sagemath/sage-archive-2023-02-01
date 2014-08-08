@@ -180,6 +180,9 @@ class QuotientRingElement(ring_element.RingElement):
         """
         if self.__rep.is_unit():
             return True
+        from sage.categories.fields import Fields
+        if self.parent() in Fields:
+            return not self.is_zero()
         raise NotImplementedError
 
     def _repr_(self):

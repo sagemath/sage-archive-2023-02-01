@@ -206,8 +206,8 @@ class Schemes_over_base(Category_over_base):
             Category of schemes over Integer Ring
         """
         # To work around the name of the class (schemes_over_base)
-        from sage.schemes.generic.spec import is_Spec
-        if is_Spec(self.base_scheme()):
+        from sage.schemes.generic.scheme import is_AffineScheme
+        if is_AffineScheme(self.base_scheme()):
             return "schemes over %s" % self.base_scheme().coordinate_ring()
         else:
             return "schemes over %s" % self.base_scheme()

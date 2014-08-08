@@ -63,9 +63,9 @@ Another colored example::
 
 .. TODO::
 
-    actually remove unused points, fix the below code
+    actually remove unused points, fix the below code::
 
-    S = ParametricSurface(f=(lambda (x,y):(x,y,0)), domain=(range(10),range(10)))
+        S = ParametricSurface(f=(lambda (x,y):(x,y,0)), domain=(range(10),range(10)))
 
 """
 

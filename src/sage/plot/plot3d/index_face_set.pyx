@@ -13,7 +13,7 @@ AUTHORS:
 
 .. TODO::
 
-    Smooth triangles
+    Smooth triangles using vertex normals
 
 """
 #*****************************************************************************
@@ -35,18 +35,18 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
 cdef extern from *:
-     void memset(void *, int, Py_ssize_t)
-     void memcpy(void * dest, void * src, Py_ssize_t n)
-     int sprintf_3d "sprintf" (char*, char*, double, double, double)
-     int sprintf_3i "sprintf" (char*, char*, int, int, int)
-     int sprintf_4i "sprintf" (char*, char*, int, int, int, int)
-     int sprintf_5i "sprintf" (char*, char*, int, int, int, int, int)
-     int sprintf_6i "sprintf" (char*, char*, int, int, int, int, int, int)
-     int sprintf_9d "sprintf" (char*, char*, double, double, double, double, double, double, double, double, double)
+    void memset(void *, int, Py_ssize_t)
+    void memcpy(void * dest, void * src, Py_ssize_t n)
+    int sprintf_3d "sprintf" (char*, char*, double, double, double)
+    int sprintf_3i "sprintf" (char*, char*, int, int, int)
+    int sprintf_4i "sprintf" (char*, char*, int, int, int, int)
+    int sprintf_5i "sprintf" (char*, char*, int, int, int, int, int)
+    int sprintf_6i "sprintf" (char*, char*, int, int, int, int, int, int)
+    int sprintf_9d "sprintf" (char*, char*, double, double, double, double, double, double, double, double, double)
 
 # import the double infinity constant
 cdef extern from "math.h":
-     enum: INFINITY
+    enum: INFINITY
 
 from cpython.list cimport *
 from cpython.string cimport *
@@ -375,7 +375,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             running_point_counts[i] = running
             running += point_counts[i]
             if point_counts[i] > max:
-               max = point_counts[i]
+                max = point_counts[i]
         running_point_counts[self.vcount] = running
         # Create an array, indexed by running_point_counts[v], to the list of faces containing that vertex.
         cdef face_c** point_faces = <face_c **>sage_malloc(sizeof(face_c*) * total)
@@ -688,7 +688,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         INPUT:
 
-        - f -- a function from `\RR^3` to `\ZZ`
+        - `f` -- a function from `\RR^3` to `\ZZ`
 
         EXAMPLES::
 
@@ -966,9 +966,9 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         # Turn on display of the mesh lines or dots?
         if render_params.mesh:
-             s += '\npmesh %s mesh\n' % name
+            s += '\npmesh %s mesh\n' % name
         if render_params.dots:
-             s += '\npmesh %s dots\n' % name
+            s += '\npmesh %s dots\n' % name
         return [s]
 
     def dual(self, **kwds):
@@ -1069,10 +1069,12 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         """
         all = []
-        n = self.fcount; ct = len(colors)
+        n = self.fcount
+        ct = len(colors)
         for k in range(len(colors)):
             if colors[k]:
-                all.append(self.sticker(range(k,n,ct), width, hover, texture=colors[k]))
+                all.append(self.sticker(range(k, n, ct), width, hover,
+                                        texture=colors[k]))
         return Graphics3dGroup(all)
 
     def sticker(self, face_list, width, hover, **kwds):
@@ -1095,8 +1097,10 @@ cdef class FaceIter:
     def __init__(self, face_set):
         self.set = face_set
         self.i = 0
+
     def __iter__(self):
         return self
+
     def __next__(self):
         cdef point_c P
         if self.i >= self.set.fcount:

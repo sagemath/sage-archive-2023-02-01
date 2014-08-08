@@ -12,8 +12,8 @@ instance, to visualize Gaussian curvature).
 Let us first load the methods and define some colormaps::
 
     sage: from sage.plot.plot3d.texture_map import ColormapTransform,OpacityTransform
-    sage: cmsel1 = [colormaps['autumn'](i) for i in sxrange(0,1,0.05)]
-    sage: cmsel2 = [colormaps['spectral'](i) for i in sxrange(0,1,0.02)]
+    sage: cmsel1 = colormaps.autumn
+    sage: cmsel2 = colormaps.spectral
 
 Now for a first example, a wavy surface and a sphere::
 
@@ -32,7 +32,8 @@ An example of an implicit surface with a color map::
     sage: p2 = c.apply(p1)
     sage: p2.show()
 
-By default, the color values are selected according to the z-values of the points on the surface.  Other functions are possible, too.
+By default, the color values are selected according to the z-values of
+the points on the surface. Other functions are possible, too.
 
 One can for instance use a uniform gradient along the x-axis::
 
@@ -102,29 +103,29 @@ Our second example is a saddle surface (negative curvature at the origin)::
     sage: f = z+x^2-y^2
     sage: p = implicit_plot3d(f, (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=60, contour=0)
     sage: K = gaussian_curvature_implicit_surface(f)
-    sage: c = ColormapTransform(cmsel1, fun=K, bounds=(-4, 0))
+    sage: c = ColormapTransform(colormaps.gist_rainbow, fun=K, bounds=(-4, 0))
     sage: c.apply(p)
 
 Now a more complicated example::
 
     sage: T = RDF(golden_ratio)
-    sage: f = 2 - (cos(x + T*y) + cos(x - T*y) + cos(y + T*z) + cos(y - T*z) + cos(z - T*x) + cos(z + T*x))
+    sage: f = 2 - (cos(x + T*y) + cos(x - T*y) + cos(y + T*z)
+    ....:   + cos(y - T*z) + cos(z - T*x) + cos(z + T*x))
     sage: r = 4.77
     sage: p = implicit_plot3d(f, (x, -r, r), (y, -r, r), (z, -r, r),
-    ....:  plot_points=40); p
+    ....:  plot_points=60); p
     sage: K = gaussian_curvature_implicit_surface(f) # long time
-    sage: c = ColormapTransform(cmsel1, fun=K)
-    sage: c.apply(p)
+    sage: c = ColormapTransform(cmsel1, fun=K)  # long time
+    sage: c.apply(p)   # long time
 
 AUTHOR:
 
 - Joris Vankerschaver
-
 """
-
-
 from sage.plot.plot3d.base import Graphics3dGroup
 from sage.structure.sage_object import SageObject
+from matplotlib.colors import LinearSegmentedColormap
+from sage.misc.misc import sxrange
 
 
 class GradualTextureTransform(SageObject):
@@ -140,7 +141,7 @@ class GradualTextureTransform(SageObject):
             ``diffuse``, ``specular`` or ``shininess``, the
             transformation has no effect.
 
-        - ``value_range`` -- range of values over which the attribute
+        - ``values`` -- range of values over which the attribute
             should range.  In the case where the color attribute is
             transformed, this can be a colormap.
 
@@ -158,7 +159,7 @@ class GradualTextureTransform(SageObject):
         EXAMPLES::
 
             sage: from sage.plot.plot3d.texture_map import ColormapTransform
-            sage: cmsel1 = [colormaps['autumn'](i) for i in sxrange(0,1,0.05)]
+            sage: cmsel1 = colormaps.autumn
             sage: c = ColormapTransform(cmsel1, 'height_x')
             sage: x,y,z = var('x,y,z')
             sage: p1 = implicit_plot3d(x^2+y^2+z^2==4, (x, -3, 3), (y, -3,3), (z, -3,3))
@@ -167,7 +168,10 @@ class GradualTextureTransform(SageObject):
         self.attribute = attribute
         self.fun = fun
         self.bounds = bounds
-        self.values = list(values)
+        if isinstance(values, LinearSegmentedColormap):
+            self.values = [values(i) for i in sxrange(0, 1, 0.05)]
+        else:
+            self.values = list(values)
 
         self.projection_axis = 2
 
@@ -203,7 +207,7 @@ class GradualTextureTransform(SageObject):
         EXAMPLES::
 
             sage: from sage.plot.plot3d.texture_map import ColormapTransform
-            sage: cmsel1 = [colormaps['autumn'](i) for i in sxrange(0,1,0.05)]
+            sage: cmsel1 = colormaps.autumn
             sage: c = ColormapTransform(cmsel1)
             sage: x, y, z = var('x,y,z')
             sage: p1 = implicit_plot3d(x^2+y^2+z^2==4, (x, -3, 3), (y, -3,3), (z, -3,3))
@@ -262,7 +266,7 @@ class ColormapTransform(GradualTextureTransform):
     EXAMPLES::
 
         sage: from sage.plot.plot3d.texture_map import ColormapTransform
-        sage: cmsel1 = [colormaps['autumn'](i) for i in sxrange(0,1,0.05)]
+        sage: cmsel1 = colormaps.autumn
         sage: c = ColormapTransform(cmsel1)
         sage: x, y, z = var('x,y,z')
         sage: p1 = implicit_plot3d(x^2+y^2+z^2==4, (x, -3, 3), (y, -3,3), (z, -3,3))
@@ -278,7 +282,7 @@ class OpacityTransform(GradualTextureTransform):
     Transformation to change the opacity of given surface in a non-uniform way.
 
     See :class:`GradualTextureTransform` for more details.
-    
+
     EXAMPLES::
 
         sage: from sage.plot.plot3d.texture_map import OpacityTransform

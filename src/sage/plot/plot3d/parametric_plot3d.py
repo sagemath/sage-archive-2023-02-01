@@ -125,17 +125,18 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
            sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi),
            ....: color='green', opacity=0.1, plot_points=[30,30])
 
-       One can use the keyword ``colordata`` to color the surface using a
+       One can use the keyword ``color_data`` to color the surface using a
        coloring function and a colormap::
 
            sage: u,v = var('u,v')
-           sage: def cf(u,v): return sin(u*v)**2
-           sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi),
-           ....: colordata=(cf, colormaps.PiYG), plot_points=[30,30])
+           sage: def cf(u,v): return sin(u+v/2)**2
+           sage: P = parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi),
+           ....: color_data=(cf, colormaps.PiYG), plot_points=[60,60])
+           sage: P.show(viewer='tachyon')
 
        Warning: this kind of coloring cannot currently be visualized using
        Jmol. It works with the options ``viewer='tachyon'`` and
-       ``viewer='canvas3d'``, and can be saved as an x3d file.
+       ``viewer='canvas3d'`` (in the notebook), and can be saved as an x3d file.
 
     We call the space curve function but with polynomials instead of
     symbolic variables.

@@ -27,27 +27,33 @@ EXAMPLES::
 
 By default, the surface is colored with one single color. ::
 
-    sage: P = ParametricSurface(f, (srange(0,10,0.1), srange(-5,5.0,0.1)), color="red")
+    sage: P = ParametricSurface(f, (srange(0,10,0.1), srange(-5,5.0,0.1)),
+    ....:  color="red")
+    sage: P.show()
 
 One can instead provide a coloring function and a color map::
 
-    sage: def f(x,y): return x+y, sin(x)*sin(y), x*y
-    sage: def c(x,y): return sin(x+y)**2
-    sage: cm = colormaps.Purples
-    sage: P = ParametricSurface(f, (srange(0,10,0.1), srange(-5,5.0,0.1)),(c,cm))
+    sage: def f(x,y): return x+y, x-y, x*y
+    sage: def c(x,y): return sin((x+y)/2)**2
+    sage: cm = colormaps.RdYlGn
+    sage: P = ParametricSurface(f, (srange(-5,5,0.1), srange(-5,5.0,0.1)),
+    ....:  (c,cm))
+    sage: P.show(viewer='tachyon')
 
 Note that the coloring function should have values between 0 and
 1. This value is passed to the chosen colormap.
 
 Warning: this kind of coloring cannot currently be visualized using
 Jmol. It works with the options ``viewer='tachyon'`` and
-``viewer='canvas3d'``, and can be saved as an x3d file.
+``viewer='canvas3d'`` (in the notebook), and can be saved as an x3d file.
 
 Another colored example::
 
     sage: cm = colormaps.autumn
     sage: def g(x,y): return x, y, x**2 + y**2
-    sage: P = ParametricSurface(g, (srange(-10,10,0.1), srange(-5,5.0,0.1)),(c,cm))
+    sage: P = ParametricSurface(g, (srange(-10,10,0.1), srange(-5,5.0,0.1)),
+    ....:  (c,cm))
+    sage: P.show(viewer='tachyon')
 
 .. NOTE::
 
@@ -119,7 +125,7 @@ cdef class ParametricSurface(IndexFaceSet):
     - ``domain`` - (default: ``None``) A tuple of two lists, defining the
       grid of `u,v` values. If ``None``, this will be calculated automatically.
 
-    - ``colordata`` - (default: ``None``) A pair `(h,c)` where `h` is
+    - ``color_data`` - (default: ``None``) A pair `(h,c)` where `h` is
       a function with values in `[0,1]` and `c` is a colormap. The
       color of a point `p` is then defined as the composition
       `c(h(p))`
@@ -152,16 +158,17 @@ cdef class ParametricSurface(IndexFaceSet):
         ....:                srange(float(-1),float(1),float(0.1))), color="blue")
         sage: show(S)
 
-    A colored example using the ``colordata`` keyword::
+    A colored example using the ``color_data`` keyword::
 
-        sage: def g(x,y): return x, y, x**2 + y**2
-        sage: def c(x,y): return sin(x*y)**2
-        sage: cm = colormaps.Spectral
+        sage: def g(x,y): return x, y, - x**2 + y**2
+        sage: def c(x,y): return sin((x-y/2)*y/4)**2
+        sage: cm = colormaps.gist_rainbow
         sage: P = ParametricSurface(g, (srange(-10,10,0.1),
-        ....:   srange(-5,5.0,0.1)),colordata=(c,cm))
+        ....:   srange(-5,5.0,0.1)),color_data=(c,cm))
+        sage: P.show(viewer='tachyon')
     """
 
-    def __init__(self, f=None, domain=None, colordata=None, **kwds):
+    def __init__(self, f=None, domain=None, color_data=None, **kwds):
         """
         Create the graphics primitive :class:`ParametricSurface`.  See the
         docstring of this class for full documentation.
@@ -176,11 +183,11 @@ cdef class ParametricSurface(IndexFaceSet):
             f = tuple(f)
         self.f = f
         self.render_grid = domain
-        if colordata is not None:
+        if color_data is not None:
             # case of a color depending on parameters
-            self.color_function = colordata[0]
-            self.colormap = colordata[1]
-            IndexFaceSet.__init__(self, [], [], [], **kwds)
+            self.color_function = color_data[0]
+            self.colormap = color_data[1]
+            IndexFaceSet.__init__(self, [], [], texture_list=[], **kwds)
         else:
             # case of a global color
             self.color_function = None
@@ -682,7 +689,7 @@ class MobiusStrip(ParametricSurface):
 
         sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
         sage: M = MobiusStrip(3,3)
-        sage: M.show()
+        sage: M.show() 
     """
 
     def __init__(self, r, width, twists=1, **kwds):

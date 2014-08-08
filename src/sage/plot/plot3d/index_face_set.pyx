@@ -166,7 +166,6 @@ cdef inline format_pmesh_face(face_c face):
 
 
 cdef class IndexFaceSet(PrimitiveObject):
-
     """
     Graphics3D object that consists of a list of polygons, also used for
     triangulations of other objects.
@@ -219,14 +218,16 @@ cdef class IndexFaceSet(PrimitiveObject):
         sage: face_list = [[0,4,5],[3,4,5],[2,3,4],[1,3,5]]
         sage: col = rainbow(10, 'rgbtuple')
         sage: t_list = [Texture(col[i]) for i in range(10)]
-        sage: S = IndexFaceSet(face_list, point_list, t_list)
+        sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
+        sage: S.show(viewer='tachyon')
+
     """
     def __cinit__(self):
         self.vs = <point_c *>NULL
         self.face_indices = <int *>NULL
         self._faces = <face_c *>NULL
-    def __init__(self, faces, point_list=None, texture_list=None,
-                 enclosed=False, **kwds):
+    def __init__(self, faces, point_list=None,
+                 enclosed=False, texture_list=None, **kwds):
         PrimitiveObject.__init__(self, **kwds)
 
         self.global_texture = (texture_list is None)
@@ -590,12 +591,35 @@ cdef class IndexFaceSet(PrimitiveObject):
         """
         Return the x3d data.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: from sage.plot.plot3d.shapes import *
-            sage: S = Box(1,2,3)
-            sage: s = S.x3d_geometry(); s
-            "<Box size='1 2 3'/>"
+        A basic test with a triangle::
+
+            sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
+            sage: print G.x3d_geometry()
+            <BLANKLINE>
+            <IndexedFaceSet coordIndex='0,1,2,-1'>
+              <Coordinate point='0.0 0.0 1.0,1.0 1.0 1.0,2.0 0.0 1.0'/>
+            </IndexedFaceSet>
+            <BLANKLINE>
+
+        A simple colored one::
+
+            sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: point_list = [(2,0,0),(0,2,0),(0,0,2),(0,1,1),(1,0,1),(1,1,0)]
+            sage: face_list = [[0,4,5],[3,4,5],[2,3,4],[1,3,5]]
+            sage: col = rainbow(10, 'rgbtuple')
+            sage: t_list=[Texture(col[i]) for i in range(10)]
+            sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
+            sage: print S.x3d_geometry()
+            <BLANKLINE>
+            <IndexedFaceSet solid='False' colorPerVertex='False' coordIndex='0,4,5,-1,3,4,5,-1,2,3,4,-1,1,3,5,-1'>
+              <Coordinate point='2.0 0.0 0.0,0.0 2.0 0.0,0.0 0.0 2.0,0.0 1.0 1.0,1.0 0.0 1.0,1.0 1.0 0.0'/>
+              <Color color='1.0 0.0 0.0,1.0 0.6 0.0,0.8 1.0 0.0,0.2 1.0 0.0' />
+            </IndexedFaceSet>
+            <BLANKLINE>
+
         """
         cdef Py_ssize_t i
         points = ",".join(["%s %s %s" % (self.vs[i].x,
@@ -659,7 +683,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         r"""
         Partition the faces of ``self``.
 
-        The partition is done according to the value of a map 
+        The partition is done according to the value of a map
         `f: \RR^3 \rightarrow \ZZ` applied to the center of each face.
 
         INPUT:
@@ -727,11 +751,27 @@ cdef class IndexFaceSet(PrimitiveObject):
         """
         Return a tachyon object for ``self``.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        A basic test with a triangle::
 
             sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
             sage: s = G.tachyon_repr(G.default_render_params()); s
             ['TRI V0 0 0 1 V1 1 1 1 V2 2 0 1', ...]
+
+        A simple colored one::
+
+            sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: point_list = [(2,0,0),(0,2,0),(0,0,2),(0,1,1),(1,0,1),(1,1,0)]
+            sage: face_list = [[0,4,5],[3,4,5],[2,3,4],[1,3,5]]
+            sage: col = rainbow(10, 'rgbtuple')
+            sage: t_list=[Texture(col[i]) for i in range(10)]
+            sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
+            sage: S.tachyon_repr(S.default_render_params())
+            ['TRI V0 2 0 0 V1 1 0 1 V2 1 1 0',
+            'TEXTURE... AMBIENT 0.3 DIFFUSE 0.7 SPECULAR 0 OPACITY 1.0... COLOR 1 0 0 ... TEXFUNC 0',...]
+
         """
         cdef Transformation transform = render_params.transform
         lines = []
@@ -790,9 +830,10 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: face_list = [[0,4,5],[3,4,5],[2,3,4],[1,3,5]]
             sage: col = rainbow(10, 'rgbtuple')
             sage: t_list=[Texture(col[i]) for i in range(10)]
-            sage: S = IndexFaceSet(face_list, point_list, t_list)
+            sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
             sage: S.json_repr(S.default_render_params())
             ["{vertices:[{x:2,y:0,z:0},{x:0,y:2,z:0},{x:0,y:0,z:2},{x:0,y:1,z:1},{x:1,y:0,z:1},{x:1,y:1,z:0}],faces:[[0,4,5],[3,4,5],[2,3,4],[1,3,5]],face_colors:['#ff0000','#ff9900','#cbff00','#33ff00']}"]
+
         """
         cdef Transformation transform = render_params.transform
         cdef point_c res
@@ -866,13 +907,13 @@ cdef class IndexFaceSet(PrimitiveObject):
 
     def jmol_repr(self, render_params):
         """
-        Return a  jmol representation for ``self``.
+        Return a jmol representation for ``self``.
 
         TESTS::
 
-          sage: from sage.plot.plot3d.shapes import *
-          sage: S = Cylinder(1,1)
-          sage: S.show()
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = Cylinder(1,1)
+            sage: S.show()
         """
         cdef Transformation transform = render_params.transform
         cdef Py_ssize_t i
@@ -936,11 +977,11 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         EXAMPLES::
 
-            sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
-            sage: point_list = [(2,0,0),(0,2,0),(0,0,2),(0,1,1),(1,0,1),(1,1,0)]
-            sage: face_list = [[0,4,5],[3,4,5],[2,3,4],[1,3,5]]
-            sage: S = IndexFaceSet(face_list, point_list)
-            sage: T = S.dual()     # not tested
+            sage: S = cube()
+            sage: T = S.dual()
+            sage: len(T.vertex_list())
+            6
+
         """
         # seems to be broken ? 2014-08
         cdef point_c P
@@ -1025,6 +1066,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: S = B.stickers(['red','yellow','blue'], 0.1, 0.05)
             sage: S.show()
             sage: (S+B).show()
+
         """
         all = []
         n = self.fcount; ct = len(colors)
@@ -1079,8 +1121,10 @@ cdef class EdgeIter:
         self.i = 0
         self.j = 0
         self.seen = {}
+
     def __iter__(self):
         return self
+
     def __next__(self):
         cdef point_c P, Q
         cdef face_c face = self.set._faces[self.i]
@@ -1097,7 +1141,7 @@ cdef class EdgeIter:
                     P = self.set.vs[face.vertices[self.j-1]]
                 Q = self.set.vs[face.vertices[self.j]]
                 self.j += 1
-                if self.set.enclosed: # Every edge appears exactly twice, once in each orientation.
+                if self.set.enclosed:  # Every edge appears exactly twice, once in each orientation.
                     if point_c_cmp(P, Q) < 0:
                         return ((P.x, P.y, P.z), (Q.x, Q.y, Q.z))
                 else:
@@ -1117,8 +1161,10 @@ cdef class VertexIter:
     def __init__(self, face_set):
         self.set = face_set
         self.i = 0
+
     def __iter__(self):
         return self
+
     def __next__(self):
         if self.i >= self.set.vcount:
             raise StopIteration
@@ -1135,7 +1181,7 @@ def len3d(v):
 
         sage: from sage.plot.plot3d.index_face_set import len3d
         sage: len3d((1,2,3))
-        3.7416573867739413    
+        3.7416573867739413
     """
     return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
 

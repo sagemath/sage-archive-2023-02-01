@@ -1,6 +1,7 @@
 """
-The class below is based on some code from sage.plot.plot3d.plot3d
-and allows for a texture attribute of a surface to be varied
+Color and texture mapping on surfaces
+
+The class below allows for a texture attribute of a surface to be varied
 gradually. The precise way in which the attribute varies can be
 specified by means of a scalar function, the most straightforward ones
 being projection onto the x, y, or z-axis.  In this way, it is
@@ -10,7 +11,7 @@ instance, to visualize Gaussian curvature).
 
 Let us first load the methods and define some colormaps::
 
-    sage: from sage.plot.texture_map import ColormapTransform,OpacityTransform
+    sage: from sage.plot.plot3d.texture_map import ColormapTransform,OpacityTransform
     sage: cmsel1 = [colormaps['autumn'](i) for i in sxrange(0,1,0.05)]
     sage: cmsel2 = [colormaps['spectral'](i) for i in sxrange(0,1,0.02)]
 
@@ -23,7 +24,7 @@ Now for a first example, a wavy surface and a sphere::
     sage: p3 = c.apply(p1)
     sage: (p2+p3).show(aspect_ratio=(1,1,1))
 
-An example of an implicit surface with a color map (this is the non-functioning example from the ticket)::
+An example of an implicit surface with a color map::
 
     sage: c = ColormapTransform(cmsel1)
     sage: x, y, z = var('x,y,z')
@@ -54,7 +55,7 @@ Another non-uniform coloring, this time with a nonlinear function::
     sage: c = ColormapTransform(cmsel1, fun=lambda x, y, z: cos(2*pi*z/3-pi/3), bounds=(-1, 1))
     sage: c.apply(p).show(aspect_ratio=(1,1,1))
 
-A more complicated surface (adapted from the implicit_plot docs)::
+A more complicated surface::
 
     sage: u, v = var('u,v')
     sage: fx = u -u^3/3  + u*v^2
@@ -64,7 +65,7 @@ A more complicated surface (adapted from the implicit_plot docs)::
     sage: c = ColormapTransform(cmsel2)
     sage: c.apply(p)
 
-We can also gradually vary other texture attributes, such as opacity:
+We can also gradually vary other texture attributes, such as opacity::
 
     sage: p1 = sphere((0,0,0), .5, color='red')
     sage: p2 = sphere((0,0,0),  1)
@@ -104,7 +105,7 @@ Our second example is a saddle surface (negative curvature at the origin)::
     sage: c = ColormapTransform(cmsel1, fun=K, bounds=(-4, 0))
     sage: c.apply(p)
 
-Now a more complicated example, taken from the implicit_plot3d docs::
+Now a more complicated example::
 
     sage: T = RDF(golden_ratio)
     sage: f = 2 - (cos(x + T*y) + cos(x - T*y) + cos(y + T*z) + cos(y - T*z) + cos(z - T*x) + cos(z + T*x))
@@ -156,7 +157,7 @@ class GradualTextureTransform(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.plot.texture_map import ColormapTransform
+            sage: from sage.plot.plot3d.texture_map import ColormapTransform
             sage: cmsel1 = [colormaps['autumn'](i) for i in sxrange(0,1,0.05)]
             sage: c = ColormapTransform(cmsel1, 'height_x')
             sage: x,y,z = var('x,y,z')
@@ -193,7 +194,7 @@ class GradualTextureTransform(SageObject):
         INPUT:
 
         - ``group`` -- a graphical object (``Graphics3d``) or group of
-            objects (``Graphics3dGroup``).
+          objects (``Graphics3dGroup``).
 
         OUTPUT:
 
@@ -201,7 +202,7 @@ class GradualTextureTransform(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.plot.texture_map import ColormapTransform
+            sage: from sage.plot.plot3d.texture_map import ColormapTransform
             sage: cmsel1 = [colormaps['autumn'](i) for i in sxrange(0,1,0.05)]
             sage: c = ColormapTransform(cmsel1)
             sage: x, y, z = var('x,y,z')
@@ -260,7 +261,7 @@ class ColormapTransform(GradualTextureTransform):
 
     EXAMPLES::
 
-        sage: from sage.plot.texture_map import ColormapTransform
+        sage: from sage.plot.plot3d.texture_map import ColormapTransform
         sage: cmsel1 = [colormaps['autumn'](i) for i in sxrange(0,1,0.05)]
         sage: c = ColormapTransform(cmsel1)
         sage: x, y, z = var('x,y,z')
@@ -280,7 +281,7 @@ class OpacityTransform(GradualTextureTransform):
     
     EXAMPLES::
 
-        sage: from sage.plot.texture_map import OpacityTransform
+        sage: from sage.plot.plot3d.texture_map import OpacityTransform
         sage: p1 = sphere((0,0,0), .5, color='red')
         sage: p2 = sphere((0,0,0),  1)
         sage: opacity_values = sxrange(0, 1, .05)

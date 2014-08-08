@@ -466,9 +466,11 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         One is assuming, of course, that they have the correct orientation.
 
-        This is may be passed in on construction. It is also calculated
-        in ParametricSurface by verifying the opposite edges of the rendered
-        domain either line up or are pinched together.
+        This is may be passed in on construction. It is also
+        calculated in
+        :class:`sage.plot.plot3d.parametric_surface.ParametricSurface`
+        by verifying the opposite edges of the rendered domain either
+        line up or are pinched together.
 
         EXAMPLES::
 
@@ -1135,7 +1137,7 @@ def len3d(v):
         sage: len3d((1,2,3))
         3.7416573867739413    
     """
-    return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])
+    return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
 
 
 def sticker(face, width, hover):

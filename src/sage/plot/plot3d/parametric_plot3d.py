@@ -122,14 +122,20 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
 
        ::
 
-           sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi), color='green', opacity=0.1, plot_points=[30,30])
+           sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi),
+           ....: color='green', opacity=0.1, plot_points=[30,30])
 
        One can use the keyword ``colordata`` to color the surface using a
        coloring function and a colormap::
 
-           sage: var('u,v')
+           sage: u,v = var('u,v')
            sage: def cf(u,v): return sin(u*v)**2
-           sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi), colordata=(cf, colormaps.PiYG), plot_points=[30,30])
+           sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi),
+           ....: colordata=(cf, colormaps.PiYG), plot_points=[30,30])
+
+       Warning: this kind of coloring cannot currently be visualized using
+       Jmol. It works with the options ``viewer='tachyon'`` and
+       ``viewer='canvas3d'``, and can be saved as an x3d file.
 
     We call the space curve function but with polynomials instead of
     symbolic variables.
@@ -155,20 +161,20 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
 
         sage: u, v = var('u,v')
         sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, pi), (v, 0, pi), \
-        ...                     boundary_style={"color": "black", "thickness": 2})
+        ....:              boundary_style={"color": "black", "thickness": 2})
 
     We can plot vectors::
 
-        sage: x,y=var('x,y')
+        sage: x,y = var('x,y')
         sage: parametric_plot3d(vector([x-y,x*y,x*cos(y)]), (x,0,2), (y,0,2))
-        sage: t=var('t')
-        sage: p=vector([1,2,3])
-        sage: q=vector([2,-1,2])
+        sage: t = var('t')
+        sage: p = vector([1,2,3])
+        sage: q = vector([2,-1,2])
         sage: parametric_plot3d(p*t+q, (t, 0, 2))
 
 
     Any options you would normally use to specify the appearance of a curve are
-    valid as entries in the boundary_style dict.
+    valid as entries in the ``boundary_style`` dict.
 
     MANY MORE EXAMPLES:
 
@@ -223,7 +229,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
         sage: fz = sqrt(2)* cos(u)* cos(u) / (sqrt(2) - sin(2*u)* sin(3*v))
         sage: parametric_plot3d([fx, fy, fz], (u, -2*pi, 2*pi), (v, 0, pi), plot_points = [90,90], frame=False, color="orange") # long time -- about 30 seconds
 
-    Maeder's_Owl (pretty but can't find an internet reference)::
+    Maeder's Owl (pretty but can't find an internet reference)::
 
         sage: u, v = var('u,v')
         sage: fx = v *cos(u) - 0.5* v^2 * cos(2* u)
@@ -472,12 +478,12 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
         ValueError: range variables should be distinct, but there are duplicates
 
 
-    From Trac #2858::
+    From :trac:`2858`::
 
         sage: parametric_plot3d((u,-u,v), (u,-10,10),(v,-10,10))
         sage: f(u)=u; g(v)=v^2; parametric_plot3d((g,f,f), (-10,10),(-10,10))
 
-    From Trac #5368::
+    From :trac:`5368`::
 
         sage: x, y = var('x,y')
         sage: plot3d(x*y^2 - sin(x), (x,-1,1), (y,-1,1))

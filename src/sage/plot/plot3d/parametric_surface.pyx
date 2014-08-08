@@ -25,7 +25,7 @@ EXAMPLES::
     False
     sage: S.show()
 
-By default, the surface is colored with one single color.
+By default, the surface is colored with one single color. ::
 
     sage: P = ParametricSurface(f, (srange(0,10,0.1), srange(-5,5.0,0.1)), color="red")
 
@@ -38,6 +38,10 @@ One can instead provide a coloring function and a color map::
 
 Note that the coloring function should have values between 0 and
 1. This value is passed to the chosen colormap.
+
+Warning: this kind of coloring cannot currently be visualized using
+Jmol. It works with the options ``viewer='tachyon'`` and
+``viewer='canvas3d'``, and can be saved as an x3d file.
 
 Another colored example::
 
@@ -339,13 +343,14 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def bounding_box(self):
         """
-        Return the lower and upper corners of a 3D bounding box for self.
-        This is used for rendering and self should fit entirely within this
+        Return the lower and upper corners of a 3D bounding box for ``self``.
+
+        This is used for rendering and ``self`` should fit entirely within this
         box.
 
         Specifically, the first point returned should have x, y, and z
-        coordinates should be the respective infimum over all points in self,
-        and the second point is the supremum.
+        coordinates should be the respective infimum over all points in
+        ``self``, and the second point is the supremum.
 
         EXAMPLES::
 
@@ -716,8 +721,7 @@ class MobiusStrip(ParametricSurface):
             sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
             sage: N = MobiusStrip(7,3,2) # two twists
             sage: N.get_grid(N.default_render_params().ds)
-            ([-1, 1], [0.0, 0.125663706144, 0.251327412287, 0.376991118431, ... 0])
-
+            ([-1, 1], [0.0, 0.125663706144, 0.251327412287, 0.376991118431, ...])
         """
         twoPi = RDF.pi() * 2
         # Previous code, which doesn't seem to use any of the parameters

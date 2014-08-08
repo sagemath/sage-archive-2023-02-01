@@ -2,7 +2,7 @@
 
 cd src
 
-./configure --prefix="$SAGE_LOCAL" #--libdir="$SAGE_LOCAL/lib"
+./configure --prefix="$SAGE_LOCAL" --with-flint="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" --with-mpfr="$SAGE_LOCAL" #--libdir="$SAGE_LOCAL/lib"
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring arb."
     exit 1

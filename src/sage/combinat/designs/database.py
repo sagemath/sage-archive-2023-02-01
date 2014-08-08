@@ -3309,8 +3309,8 @@ def _helper_function_when_n_is_prime_times_power_of_2(k,n,A,Y):
     from itertools import izip,combinations
 
     c = Integer(n).valuation(2)
-    F = FiniteField(n>>c)
-    Fq = FiniteField(1<<c,prefix='w',conway=True)
+    F = FiniteField(n//2**c)
+    Fq = FiniteField(2**c,prefix='w',conway=True)
     G = F.cartesian_product(Fq)
     w = Fq.gen()
 
@@ -3321,11 +3321,11 @@ def _helper_function_when_n_is_prime_times_power_of_2(k,n,A,Y):
     A = [[G((a,r[b])) for a,b in R] for R in A]
     Y = [r[b] for b in Y]
 
-    # make the list of the elements of Fq that are sum of w^i with powers i < c-1
-    # (this can be considered as a GF(2)-hyperplane)
+    # make the list of the elements of Fq which belong to the vector space
+    # <w^0,...,w^(c-2)> (this can be considered as a GF(2)-hyperplane)
     S = [sum((r[i] for i in S), Fq.zero()) for s in range(c) for S in combinations(range(c-1),s)]
     assert len(S) == 2**(c-1)
-    
+
     # build the quasi difference matrix and return the associated OA
     Mb = [[e+G((F.zero(), x*s)) for s in S for e in R] for x,R in izip(Y,A)]
     return OA_from_quasi_difference_matrix(Mb,G,add_col=int(k-len(A)))

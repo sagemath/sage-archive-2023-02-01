@@ -1178,6 +1178,118 @@ def OA_relabel(OA,k,n,blocks=tuple(),matrix=None):
 
     return OA
 
+def OA_2_pow_c(k,c,G1,A,Y):
+    r"""
+    Return an `OA(k, n \cdot 2^c)` where ``n`` is the cardinality of the additive
+    Abelian group ``G1``.
+
+    This construction appears in [AbelCheng1994]_ and [AbelThesis]_.
+    
+    Let `G_1` be an additive Abelian group. The idea of the construction is to
+    use a difference matrix over `G_1` with `\lambda = 2` to construct a
+    difference matrix over `G_1 \times GF(2^c)` (with `\lambda=1`).
+
+    Let `w` be a multiplicative generator of `GF(2^c)^*`. We denote by `H` the
+    `GF(2)`-hyperplane in `GF(2^c)` spanned by `w^0, w^1, \ldots, w^{c-2}`.
+
+    Let `A` be a `(k-1) \times 2n` array with entries in `G_1 \times GF(2^c)`
+    and `Y` be a vector with `k-1` entries in `GF(2^c)`. Let `B` and `C` be
+    respectively the part of the array that belong t `G_1` and `GF(2^c)`.
+    
+    The input `A` and `Y` must satisfy the following condition. For any pair `i`
+    and `j` of distinct integers in `{1,...,k-1}` and `g` an element of `G_1`
+
+    - there are exactly two values of `k` in {1,...,2p} such that `B_{i,k} -
+      B_{j,k} = g` (i.e. `B` is a `(G_1,k,2)`-difference matrix),
+
+    - let `k_1` and `k_2` denote the two values of `k` given above, then exactly
+      one of `C_{i,k_1} - C_{i,k_1}` and `C_{i,k_2} - C_{j,k_2}` belongs to the
+      `GF(2)`-hyperplane `(Y_i - Y_j) \cdot H` (we implicitely assumed that `Y_i
+      \not= Y_j`).
+
+    Under these conditions, it is easy to check that the array whose row are
+    given for `i=1,\ldots,n` by `A_{i,k} + (0, Y_i \cdot v)` where `k` ranges
+    from `1` to `k-1` and `v` belongs to `H` is a difference matrix over `G_1
+    \times GF(2^c)`.
+
+    By convention, the `GF(2^c)` part of the input matrix `A` and vector `Y` are
+    given in the following form: the integer `i` corresponds to the element
+    `w^i` and ``None`` corresponds to `0`.
+    
+    INPUT:
+
+    - ``k,c`` (integers) -- integers
+
+    - ``G_1`` -- an additive Abelian group
+
+    - ``A`` -- a matrix with entries in `G_1 \times GF(2^c)`
+
+    - ``Y`` -- a vector with entries in `GF(2^c)`
+
+    .. SEEALSO::
+
+        Several examples use this construction:
+
+        - :func:`~sage.combinat.designs.database.OA_9_40`
+        - :func:`~sage.combinat.designs.database.OA_11_80`
+        - :func:`~sage.combinat.designs.database.OA_15_112`
+        - :func:`~sage.combinat.designs.database.OA_11_160`
+        - :func:`~sage.combinat.designs.database.OA_16_176`
+        - :func:`~sage.combinat.designs.database.OA_16_208`
+        - :func:`~sage.combinat.designs.database.OA_15_224`
+        - :func:`~sage.combinat.designs.database.OA_20_352`
+        - :func:`~sage.combinat.designs.database.OA_20_416`
+        - :func:`~sage.combinat.designs.database.OA_20_544`
+        - :func:`~sage.combinat.designs.database.OA_11_640`
+        - :func:`~sage.combinat.designs.database.OA_15_896`
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_40
+        sage: OA = OA_9_40()                       # indirect doctest
+        sage: print is_orthogonal_array(OA,9,40,2) # indirect doctest
+        True
+
+    REFERENCES:
+
+    .. [AbelThesis] On the Existence of Balanced Incomplete Block Designs and Transversal Designs,
+       Julian R. Abel,
+       PhD Thesis,
+       University of New South Wales,
+       1995
+
+    .. [AbelCheng1994] R.J.R. Abel and Y.W. Cheng "Some new MOLS of order 2np
+       for p a prime power", The Austral. J. of Combinatorics, vol 10 (1994)
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.integer import Integer
+    from itertools import izip,combinations
+
+    F = FiniteField(2**c,'w')
+    G = G1.cartesian_product(F)
+    w = F.multiplicative_generator()
+
+    # dictionnary from integers to elments of GF(2^c): i -> w^i, None -> 0
+    r = {i:w**i for i in xrange(2**c-1)}
+    r[None] = F.zero()
+
+    # convert:
+    #  the matrix A to a matrix over GF(p) \times GF(2^c)
+    #  the vector Y to a vector over GF(2^c)
+    A = [[G((G1(a),r[b])) for a,b in R] for R in A]
+    Y = [r[b] for b in Y]
+
+    # make the list of the elements of GF(2^c) which belong to the
+    # GF(2)-subspace <w^0,...,w^(c-2)> (that is the GF(2)-hyperplane orthogonal
+    # to w^(c-1))
+    H = [sum((r[i] for i in S), F.zero()) for s in range(c) for S in combinations(range(c-1),s)]
+    assert len(H) == 2**(c-1)
+
+    # build the quasi difference matrix and return the associated OA
+    Mb = [[e+G((G1.zero(),x*v)) for v in H for e in R] for x,R in izip(Y,A)]
+    return OA_from_quasi_difference_matrix(Mb,G,add_col=True)
+
 def OA_from_quasi_difference_matrix(M,G,add_col=True):
     r"""
     Returns an Orthogonal Array from a Quasi-Difference matrix

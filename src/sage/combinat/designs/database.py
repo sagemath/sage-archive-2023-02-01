@@ -124,6 +124,7 @@ from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_ma
                                                      QDM_from_Vmt,
                                                      OA_from_wider_OA,
                                                      OA_from_PBD,
+                                                     OA_2_pow_c,
                                                      orthogonal_array)
 
 # Cyclic shift of a list
@@ -1111,7 +1112,7 @@ def OA_9_40():
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_2_pow_c`
 
     EXAMPLES::
 
@@ -1126,6 +1127,7 @@ def OA_9_40():
         sage: designs.orthogonal_array(9,40,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
 
     A = [
         [(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None)],
@@ -1139,7 +1141,7 @@ def OA_9_40():
         ]
     Y = [None, 0, 1, 6, 5, 4, 3, 2]
 
-    return _helper_function_when_n_is_prime_times_power_of_2(9,40,A,Y)
+    return OA_2_pow_c(9,3,FiniteField(5),A,Y)
 
 def OA_7_42():
     r"""
@@ -2188,7 +2190,7 @@ def OA_11_80():
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_2_pow_c`
 
     EXAMPLES::
 
@@ -2203,6 +2205,8 @@ def OA_11_80():
         sage: designs.orthogonal_array(11,80,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None)],
         [(0,None), (1,None),    (2,3), (3,None),    (4,3), (2,None),    (3,3), (4,None),    (0,3),    (1,3)],
@@ -2216,7 +2220,8 @@ def OA_11_80():
         [(1,None),    (4,9),    (4,1),    (1,0),    (0,4),    (2,5), (3,None),    (3,5), (2,None), (0,None)]
         ]
     Y = [None, 0, 1, 14, 12, 7, 2, 11, 3, 6]
-    return _helper_function_when_n_is_prime_times_power_of_2(11,80,A,Y)
+
+    return OA_2_pow_c(11,4,FiniteField(5),A,Y)
 
 def OA_10_82():
     r"""
@@ -2281,7 +2286,7 @@ def OA_15_112():
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_2_pow_c`
 
     EXAMPLES::
 
@@ -2296,6 +2301,8 @@ def OA_15_112():
         sage: designs.orthogonal_array(15,112,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
         [(0,None), (1,None), (2,None), (3,   5), (4,   9), (5,  11), (6,  12), (1,  10), (0,  10), (1,  11), (4,  13), (2,   6), (2,   2), (4,   1)],
@@ -2314,7 +2321,7 @@ def OA_15_112():
     ]
     Y = [None, 0, 1, 14, 12, 7, 2, 11, 3, 4, 5, 10, 8, 6]
 
-    return _helper_function_when_n_is_prime_times_power_of_2(15,112,zip(*A),Y)
+    return OA_2_pow_c(15,4,FiniteField(7),zip(*A),Y)
 
 def OA_9_120():
     r"""
@@ -2513,7 +2520,7 @@ def OA_11_160():
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_2_pow_c`
 
     EXAMPLES::
 
@@ -2527,15 +2534,9 @@ def OA_11_160():
 
         sage: designs.orthogonal_array(11,160,existence=True)
         True
-
-    REFERENCES:
-
-    .. [AbelThesis] On the Existence of Balanced Incomplete Block Designs and Transversal Designs,
-      Julian R. Abel,
-      PhD Thesis,
-      University of New South Wales,
-      1995
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     A = [
          [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (4,None), (1,None)],
          [(0,None), (1,None), (2,   5), (3,   9), (4,   9), (1,  16), (0,  20), (1,  23), (4,  24), (4,  19)],
@@ -2550,7 +2551,8 @@ def OA_11_160():
         ]
 
     Y = [None, 0, 1, 2, 15, 27, 22, 12, 3, 28]
-    return _helper_function_when_n_is_prime_times_power_of_2(11,160,zip(*A),Y)
+
+    return OA_2_pow_c(11,5,FiniteField(5),zip(*A),Y)
 
 def OA_16_176():
     r"""
@@ -2561,7 +2563,7 @@ def OA_16_176():
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_2_pow_c`
 
     EXAMPLES::
 
@@ -2576,6 +2578,8 @@ def OA_16_176():
         sage: designs.orthogonal_array(16,176,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     A = [
         [(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(1 ,None),(4 ,None),(9 ,None)],
         [(0 ,None),(1 ,None),(2 ,None),(3 ,   0),(4 ,   2),(5 ,  12),(6 ,   5),(7 ,   6),(8 ,  13),(9 ,   9),(10,  11),(1 ,   3),(0 ,   6),(1 ,  14),(4 ,  12)],
@@ -2602,7 +2606,7 @@ def OA_16_176():
     ]
 
     Y = [None, 0, 1, 2, 8, 6, 9, 4, 10, 3, 5, 11, 13, 14, 12]
-    return _helper_function_when_n_is_prime_times_power_of_2(16,176,zip(*A),Y)
+    return OA_2_pow_c(16,4,FiniteField(11),zip(*A),Y)
 
 def OA_16_208():
     r"""
@@ -2613,7 +2617,7 @@ def OA_16_208():
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_2_pow_c`
 
     EXAMPLES::
 
@@ -2628,6 +2632,8 @@ def OA_16_208():
         sage: designs.orthogonal_array(16,208,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     A = [
         [(0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (1 ,None)],
         [(0 ,None), (1 ,None), (2 ,   0), (3 ,   7), (4 ,   1), (5 ,  11), (6 ,   2), (7 ,  10), (8 ,None), (9 ,  10), (10,None), (11,   3), (12,   3), (1 ,   4), (0 ,   8)],
@@ -2659,7 +2665,7 @@ def OA_16_208():
 
     Y = [None, 0, 1, 2, 12, 9, 13, 11, 7, 4, 8, 5, 14, 6, 3]
 
-    return _helper_function_when_n_is_prime_times_power_of_2(16,208,zip(*A),Y)
+    return OA_2_pow_c(16,4,FiniteField(13),zip(*A),Y)
 
 def OA_12_210():
     r"""
@@ -2697,7 +2703,7 @@ def OA_15_224():
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_2_pow_c`
 
     EXAMPLES::
 
@@ -2712,6 +2718,8 @@ def OA_15_224():
         sage: designs.orthogonal_array(15,224,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
         [(0,None), (1,None), (2,   9), (3,  23), (4,  29), (5,   4), (6,  30), (1,  26), (0,None), (1,  11), (4,   2), (2,  28), (2,None), (4,  13)],
@@ -2731,7 +2739,7 @@ def OA_15_224():
 
     Y = [None, 0, 1, 2, 27, 22, 11, 4, 26, 25, 29, 24, 7, 20]
 
-    return _helper_function_when_n_is_prime_times_power_of_2(15,224,zip(*A),Y)
+    return OA_2_pow_c(15,5,FiniteField(7),zip(*A),Y)
 
 def OA_18_273():
     r"""
@@ -2854,7 +2862,7 @@ def OA_20_352():
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_2_pow_c`
 
     EXAMPLES::
 
@@ -2869,6 +2877,8 @@ def OA_20_352():
         sage: designs.orthogonal_array(20,352,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     # Column 8, line 6 : 4,25 became 4,27
     #           line 17: 3,0  became 3,None
     # Column 14,line 1 : 4,1  became 4,0
@@ -2900,7 +2910,7 @@ def OA_20_352():
 
     Y = [None, 0, 1, 2, 18, 5, 11, 4, 13, 26, 25, 29, 24, 7, 20, 19, 9, 12, 15]
 
-    return _helper_function_when_n_is_prime_times_power_of_2(20,352,zip(*A),Y)
+    return OA_2_pow_c(20,5,FiniteField(11),zip(*A),Y)
 
 def OA_20_416():
     r"""
@@ -2911,7 +2921,7 @@ def OA_20_416():
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_2_pow_c`
 
     EXAMPLES::
 
@@ -2926,6 +2936,8 @@ def OA_20_416():
         sage: designs.orthogonal_array(20,416,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     Z = None
     A=[
         [(0,Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (1 , Z), (4 , Z), (9 , Z), (3 , Z), (12, Z)],
@@ -2958,7 +2970,7 @@ def OA_20_416():
 
     Y = [None, 0, 1, 2, 18, 5, 11, 4, 13, 26, 25, 29, 24, 7, 20, 19, 9, 12, 15]
 
-    return _helper_function_when_n_is_prime_times_power_of_2(20,416,zip(*A),Y)
+    return OA_2_pow_c(20,5,FiniteField(13),zip(*A),Y)
 
 def OA_12_474():
     r"""
@@ -3032,7 +3044,7 @@ def OA_20_544():
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_2_pow_c`
 
     EXAMPLES::
 
@@ -3047,6 +3059,8 @@ def OA_20_544():
         sage: designs.orthogonal_array(20,544,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     Z = None
 
     A=[
@@ -3087,7 +3101,8 @@ def OA_20_544():
     ]
 
     Y = [None, 0, 1, 2, 18, 5, 11, 4, 13, 26, 25, 29, 24, 7, 20, 19, 9, 12, 15]
-    return _helper_function_when_n_is_prime_times_power_of_2(20,544,zip(*A),Y)
+
+    return OA_2_pow_c(20,5,FiniteField(17),zip(*A),Y)
 
 def OA_11_640():
     r"""
@@ -3098,7 +3113,7 @@ def OA_11_640():
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_2_pow_c`
 
     EXAMPLES::
 
@@ -3113,6 +3128,8 @@ def OA_11_640():
         sage: designs.orthogonal_array(11,640,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (4,None), (1,None)],
         [(0,None), (1,None), (2,   7), (3,  55), (4,  54), (1,  87), (0, 124), (1, 123), (4,  83), (4,  61)], # 0,25 became 0,124
@@ -3126,7 +3143,8 @@ def OA_11_640():
         [(0,None), (1,   6), (1,  14), (0,  14), (3,   4), (2,   0), (3,None), (3,   4), (2,   0), (0,None)]
     ]
     Y = [None, 0, 1, 2, 121, 66, 77, 78, 41, 100]
-    return _helper_function_when_n_is_prime_times_power_of_2(11,640,zip(*A),Y)
+
+    return OA_2_pow_c(11,7,FiniteField(5),zip(*A),Y)
 
 def OA_10_796():
     r"""
@@ -3208,7 +3226,7 @@ def OA_15_896():
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_2_pow_c`
 
     EXAMPLES::
 
@@ -3223,6 +3241,8 @@ def OA_15_896():
         sage: designs.orthogonal_array(15,896,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
         [(0,None), (1,None), (2,  17), (3,  20), (4,  49), (5,   4), (6,  59), (1,  15), (0, 114), (1,  76), (4, 106), (2,  87), (2, 118), (4,  49)], # 4,120 became the leftmost 4,49
@@ -3242,7 +3262,7 @@ def OA_15_896():
 
     Y = [None, 0,1,2,121,66,77,78,41,100,74,118,108,43]
 
-    return _helper_function_when_n_is_prime_times_power_of_2(15,896,zip(*A),Y)
+    return OA_2_pow_c(15,7,FiniteField(7),zip(*A),Y)
 
 def OA_33_993():
     r"""
@@ -3276,59 +3296,6 @@ def OA_33_993():
     G = AdditiveCyclic(993)
     M = OA_from_quasi_difference_matrix(Mb,G,add_col=True)
     return M
-
-def _helper_function_when_n_is_prime_times_power_of_2(k,n,A,Y):
-    r"""
-    This is an helper function to build `OA(k,p2^c)`
-
-    This construction appears in Julian R. Abel's papers to build
-    `OA(k,p2^c)`.
-
-    For more information on what the parameters should be, see the documentation
-    of the functions which calls this one, and their associated bibliographical
-    references.
-
-    INPUT:
-
-    - ``k,n`` (integers) -- parameters of the desired `OA`
-
-    - ``A`` -- a matrix
-
-    - ``Y`` -- a vector
-
-    EXAMPLE::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_9_40
-        sage: OA = OA_9_40()                       # indirect doctest
-        sage: print is_orthogonal_array(OA,9,40,2) # indirect doctest
-        True
-    """
-    from sage.rings.finite_rings.constructor import FiniteField
-    from sage.rings.integer import Integer
-    from itertools import izip,combinations
-
-    c = Integer(n).valuation(2)
-    F = FiniteField(n//2**c)
-    Fq = FiniteField(2**c,prefix='w',conway=True)
-    G = F.cartesian_product(Fq)
-    w = Fq.gen()
-
-    # convert the integer matrix A and the vector Y to a matrix and a vector
-    # over Fq
-    r = {i:w**i for i in xrange(2**c-1)}
-    r[None] = Fq.zero()
-    A = [[G((a,r[b])) for a,b in R] for R in A]
-    Y = [r[b] for b in Y]
-
-    # make the list of the elements of Fq which belong to the vector space
-    # <w^0,...,w^(c-2)> (this can be considered as a GF(2)-hyperplane)
-    S = [sum((r[i] for i in S), Fq.zero()) for s in range(c) for S in combinations(range(c-1),s)]
-    assert len(S) == 2**(c-1)
-
-    # build the quasi difference matrix and return the associated OA
-    Mb = [[e+G((F.zero(), x*s)) for s in S for e in R] for x,R in izip(Y,A)]
-    return OA_from_quasi_difference_matrix(Mb,G,add_col=int(k-len(A)))
 
 # Index of the OA constructions
 #

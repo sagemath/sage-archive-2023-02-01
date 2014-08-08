@@ -23,12 +23,9 @@ GNU General Public License v2+
 
 == Dependencies ==
 
-Put a bulleted list of dependencies here:
-
 * FLINT
 * MPIR or GMP
 * MPFR
 
 == Special Update/Build Instructions ==
 
-The arb-master.zip needs to rename its top-level internal folder to "src" and then arb-master.zip needs to be saved as arb-2.2.tar.bz2 before using.

@@ -1161,10 +1161,9 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
 
     EXAMPLES:
 
-    We can go between
-    :class:`tensor products of KR tableaux<TensorProductOfKirillovReshetikhinTableaux>`
-    and tensor products of
-    :mod:`KR tableaux <sage.combinat.crystals.kirillov_reshetikhin>`::
+    We can go between :class:`rigged configurations <RiggedConfigurations>`
+    and tensor products of :class:`tensor products of KR tableaux
+    <sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux>`::
 
         sage: RC = RiggedConfigurations(['D', 4, 1], [[1,1], [2,1]])
         sage: rc_elt = RC(partition_list=[[1], [1,1], [1], [1]])

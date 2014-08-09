@@ -62,19 +62,8 @@ class Link:
 
         EXAMPLES::
         """
+        return self.braid().Tietze()
 
-        if self._braid != None:
-            return list(self._braid.Tietze())
-
-        elif self._oriented_gauss_code != None:
-            if self.is_knot == True:
-                return self.seifert_to_braid()
-
-        elif self._gauss_code != None:
-            return "Not implemented Error"
-
-        elif self._dt_code != None:
-            return "Not Implemented Error"
 
     def braid(self):
         r"""
@@ -88,17 +77,11 @@ class Link:
         if self._braid != None:
             return self._braid
 
-        elif self._oriented_gauss_code != None:
+        elif self._oriented_gauss_code != None or self._PD_code != None:
             gen = max([abs(i) for i in self.seifert_to_braid()])
             B = BraidGroup(gen + 1)
+            self._braid = B(self.seifert_to_braid())
             return B(self.seifert_to_braid())
-
-        elif self._PD_code != None:
-            pd = self._PD_code
-            L1 = Link(PD_code = pd)
-            ogc = L1.oriented_gauss_code()
-            L2 = Link(oriented_gauss_code = ogc)
-            return L2.braid()
 
     def oriented_gauss_code(self):
         r"""
@@ -121,7 +104,7 @@ class Link:
         gauss code.
 
         OUTPUT:
-            - Oriented gauss code of the link.
+            - Oriented gauss code of the link
 
         EXAMPLES::
         """
@@ -133,19 +116,19 @@ class Link:
             orient = self.orientation()
             crossing_info = {}
             for i,j in enumerate(pd):
-                if orient[i] == '-':
-                    crossing_info.update({(j[0],'under',i+1) : j[2]})
-                    crossing_info.update({(j[3],'over',i+1) : j[1]})
-                elif orient[i] == '+':
-                    crossing_info.update({(j[0],'under',i+1) : j[2]})
-                    crossing_info.update({(j[1],'over',i+1) : j[3]})
+                if orient[i] == -1:
+                    crossing_info.update({(j[0],-1,i+1) : j[2]})
+                    crossing_info.update({(j[3],1,i+1) : j[1]})
+                elif orient[i] == 1:
+                    crossing_info.update({(j[0],-1,i+1) : j[2]})
+                    crossing_info.update({(j[1],1,i+1) : j[3]})
             edges = {}
             cross_number = {}
             for i,j in crossing_info.items():
                 edges.update({ i[0] : [j]})
-                if i[1] == 'over':
+                if i[1] == 1:
                     cross_number.update({ i[0] : i[2]})
-                elif i[1] == 'under':
+                elif i[1] == -1:
                     cross_number.update({ i[0] : -i[2]})
             edges_graph = DiGraph(edges)
             d = edges_graph.all_simple_cycles()
@@ -159,6 +142,7 @@ class Link:
             oriented_code = [code, orient]
             return oriented_code
 
+        #this has to be worked
         elif self._braid != None:
             braid = self._braid
             pd = Link(braid).PD_code()
@@ -203,9 +187,9 @@ class Link:
                     d_dic[i][1] = d_dic[j][0]
                 crossing_dic = {}
                 for i in range(len(oriented_gauss_code[1])):
-                    if oriented_gauss_code[1][i] == '-':
+                    if oriented_gauss_code[1][i] == -1:
                         crossing_dic.update({ i + 1 : [d_dic[-(i+1)][0], d_dic[i+1][1], d_dic[-(i+1)][1], d_dic[i+1][0]]})
-                    elif oriented_gauss_code[1][i] == '+':
+                    elif oriented_gauss_code[1][i] == 1:
                         crossing_dic.update({ i + 1 : [d_dic[-(i+1)][0], d_dic[i+1][0], d_dic[-(i+1)][1], d_dic[i+1][1]]})
             elif len(oriented_gauss_code[0]) == 1:
                 for i,j in enumerate(oriented_gauss_code[0][0]):
@@ -213,9 +197,9 @@ class Link:
                 d_dic[oriented_gauss_code[0][0][-1]][1] = 1
                 crossing_dic = {}
                 for i in range(len(oriented_gauss_code[1])):
-                    if oriented_gauss_code[1][i] == '-':
+                    if oriented_gauss_code[1][i] == -1:
                         crossing_dic.update({ i + 1 : [d_dic[-(i+1)][0], d_dic[i+1][1], d_dic[-(i+1)][1], d_dic[i+1][0]]})
-                    elif oriented_gauss_code[1][i] == '+':
+                    elif oriented_gauss_code[1][i] == 1:
                         crossing_dic.update({ i + 1 : [d_dic[-(i+1)][0], d_dic[i+1][0], d_dic[-(i+1)][1], d_dic[i+1][1]]})
             pd = [crossing_dic[i] for i in crossing_dic.keys()]
             return pd
@@ -315,8 +299,7 @@ class Link:
 
         EXAMPLES::
         """
-        if self._braid != None:
-            b = list(self._braid.Tietze())
+        def _dt_internal_(b):
             N = len(b)
             label = [0 for i in range(2*N)]
             string = 1
@@ -364,19 +347,12 @@ class Link:
                         break
             return code
 
-        elif self._oriented_gauss_code != None:
-            ogc = self._oriented_gauss_code
-            L = Link(oriented_gauss_code = ogc)
-            b = L.braid()
-            L1 = Link(b)
-            return L1.dt_code()
+        if self._braid != None:
+            return _dt_internal_(self._braid.Tietze())
 
-        elif self._PD_code != None:
-            pdc = self._PD_code
-            L = Link(PD_code = pdc)
-            b = L.braid()
-            L1 = Link(b)
-            return L1.dt_code()
+        #here simply the braid before passing.
+        elif self._oriented_gauss_code != None or self._PD_code != None:
+            return _dt_internal_(self.seifert_to_braid())
 
     def _braidwordcomponents(self):
         r"""
@@ -388,7 +364,7 @@ class Link:
         independent components in the braid).
 
         OUTPUT:
-            - List containing the components is returned.
+            - List containing the components is returned
 
         EXAMPLES::
 
@@ -433,7 +409,7 @@ class Link:
         The list from the braidwordcomponents is flattened to give out the vector form.
 
         OUTPUT:
-            - Vector containing braidwordcomponents.
+            - Vector containing braidwordcomponents
 
         EXAMPLES::
 
@@ -619,7 +595,7 @@ class Link:
         Returns the genus of the link
 
         OUTPUT:
-            - Genus of the Link.
+            - Genus of the Link
 
         EXAMPLES::
 
@@ -636,7 +612,8 @@ class Link:
             sage: L.genus()
             1
         """
-        b = self.braidword()
+        #b = self.braidword()
+        b = self.braid().Tietze()
         if b == []:
             return 0
         else:
@@ -746,6 +723,7 @@ class Link:
         m2 = self.Seifert_Matrix() - t* (self.Seifert_Matrix().transpose())
         return m2.determinant()
 
+
     def knot_determinant(self):
         r"""
         Returns the determinant of the knot
@@ -772,7 +750,7 @@ class Link:
             a = self.alexander_polynomial()
             return abs(a(-1))
         else:
-            return "is defined for a knot"
+            raise Exception("Determinant implmented only for knots")
 
     def arf_invariant(self):
         r"""
@@ -912,44 +890,45 @@ class Link:
         sage: from sage.knots import link
         sage: L = link.Link(PD_code = [[1, 4, 5, 2], [3, 5, 6, 7], [4, 8, 9, 6], [7, 9, 10, 11], [8, 1, 13, 10], [11, 13, 2, 3]])
         sage: L.orientation()
-        ['-', '+', '-', '+', '-', '+']
+        [-1, 1, -1, 1, -1, 1]
         sage: L = link.Link(PD_code=[[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
         sage: L.orientation()
-        ['-', '-', '-', '-', '+', '-', '+']
+        [-1, -1, -1, -1, 1, -1, 1]
         """
         y = self.PD_code()
         x = deepcopy(y)
-        under = [ [[i[0],"entering"],[i[2],"leaving"]] for i in x]
+        #we take entering with +1 and leaving with -1
+        under = [ [[i[0],1],[i[2],-1]] for i in x]
         under = [a for b in under for a in b]
         over = [ [[i[1],None], [i[3],None]] for i in x]
         over = [a for b in over for a in b]
         for i in over:
             for j in under:
-                if i[0] == j[0]:
-                    if j[1] == "entering":
-                        i[1] = "leaving"
-                    elif j[1] == "leaving":
-                        i[1] = "entering"
+               if i[0] == j[0]:
+                    if j[1] == 1:
+                        i[1] = -1
+                    elif j[1] == -1:
+                        i[1] = 1
         for i in over:
             if i[1] == None:
-                over = rule_1(over)
-                over = rule_2(over)
+                over = _rule_1_(over)
+                over = _rule_2_(over)
         unfilled = []
         for i in over:
             if i[1] == None:
                 unfilled.append(i)
         if len(unfilled) != 0:
-            over[over.index(unfilled[0])][1] = "entering"
+            over[over.index(unfilled[0])][1] = 1
             for i in over:
                 if i[1] == None:
-                    over = rule_1(over)
-                    over = rule_2(over)
+                    over = _rule_1_(over)
+                    over = _rule_2_(over)
         orientation = []
         for i in range(0, len(over), 2):
-            if over[i][1] == "leaving":
-                orientation.append('-')
-            elif over[i][1] == "entering":
-                orientation.append('+')
+            if over[i][1] == -1:
+                orientation.append(-1)
+            elif over[i][1] == 1:
+                orientation.append(1)
         return orientation
 
     def seifert_circles(self):
@@ -965,14 +944,14 @@ class Link:
         the above rule until we return to the starting component.
 
         OUTPUT:
-            - Seifert circles of the given link.
+            - Seifert circles of the given knot.
 
         EXAMPLES::
         sage: from sage.knots import link
         sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],['+','+','-','-']])
         sage: L.seifert_circles()
         [[6, 2], [8, 4], [7, 5, 3, 1]]
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, -4, -7]],['-','-','-','-','+','+','-','+']])
+        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],['-','-','-','-','+','+','-','+']])
         sage: L.seifert_circles()
         [[10, 6, 12, 2], [16, 8, 14, 4], [13, 9, 3, 15, 5, 11, 7, 1]]
         sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],['-','-','-','-','+','-','+']])
@@ -981,24 +960,19 @@ class Link:
         sage: L = link.Link(PD_code=[[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
         sage: L.seifert_circles()
         [[13, 9], [12, 10, 4], [8, 14, 6, 2], [7, 3, 11, 5, 1]]
-        sage: L = link.Link(PD_code = [[1,4,2,3],[4,1,3,2]])
-        sage: L.seifert_circles()
-        [[4, 1], [3, 2]]
-        sage: L = link.Link(PD_code=[[1,11,2,10],[6,2,7,3],[3,12,4,9],[9,5,10,6],[8,1,5,4],[11,8,12,7]])
-        sage: L.seifert_circles()
-        [[11, 8, 1], [9, 6, 3], [7, 12, 4, 5, 10, 2]]
         """
         pd = self.PD_code()
         orient = self.orientation()
         seifert_pairs = []
         for i,j in enumerate(pd):
             x = [[],[]]
-            if orient[i] == '-':
+            #we denote '-' orientation with -1 and '+' orientation with +1
+            if orient[i] == -1:
                 x[0].append(j[0])
                 x[0].append(j[1])
                 x[1].append(j[3])
                 x[1].append(j[2])
-            elif orient[i] == '+':
+            elif orient[i] == 1:
                 x[0].append(j[0])
                 x[0].append(j[3])
                 x[1].append(j[1])
@@ -1039,7 +1013,7 @@ class Link:
         sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],['+','+','-','-']])
         sage: L.regions()
         [[-2, -6], [8, 4], [5, 3, -8], [2, -5, -7], [1, 7, -4], [6, -1, -3]]
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, -4, -7]],['-','-','-','-','+','+','-','+']])
+        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],['-','-','-','-','+','+','-','+']])
         sage: L.regions()
         [[6, -11], [15, -4], [9, 3, -14], [2, -9, -13], [1, 13, -8], [12, -1, -7], [5, 11, 7, -16], [-3, 10, -5, -15], [-6, -10, -2, -12], [16, 8, 14, 4]]
         """
@@ -1048,12 +1022,12 @@ class Link:
         regions = []
         for i,j in enumerate(pd):
             x = [[],[]]
-            if orient[i] == '-':
+            if orient[i] == -1:
                 x[0].append(j[0])
                 x[0].append(j[1])
                 x[1].append(j[3])
                 x[1].append(-j[0])
-            elif orient[i] == '+':
+            elif orient[i] == 1:
                 x[0].append(j[0])
                 x[0].append(-j[1])
                 x[1].append(j[1])
@@ -1068,12 +1042,12 @@ class Link:
         regions_op = []
         for i,j in enumerate(pd_opposite):
             x_op = [[],[]]
-            if orient[i] == '-':
+            if orient[i] == -1:
                 x_op[0].append(j[0])
                 x_op[0].append(j[1])
                 x_op[1].append(j[3])
                 x_op[1].append(-j[0])
-            elif orient[i] == '+':
+            elif orient[i] == 1:
                 x_op[0].append(j[0])
                 x_op[0].append(-j[1])
                 x_op[1].append(j[1])
@@ -1114,7 +1088,7 @@ class Link:
         sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],['+','+','-','-']])
         sage: L.vogel_move()
         'No move required'
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, -4, -7]],['-','-','-','-','+','+','-','+']])
+        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],['-','-','-','-','+','+','-','+']])
         sage: L.vogel_move()
         'No move required'
         sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],['-','-','-','-','+','-','+']])
@@ -1179,18 +1153,20 @@ class Link:
             min_cross = [[j,orient[i]] for i,j in enumerate(pd_copy) if min(bad_region) in j]
             y = [[] for i in range(len(min_cross))]
             for i,j in enumerate(min_cross):
-                if j[1] == '-':
-                    y[i].append((j[0][0],"entering"))
-                    y[i].append((j[0][1],"leaving"))
-                    y[i].append((j[0][2],"leaving"))
-                    y[i].append((j[0][3],"entering"))
-                if j[1] == '+':
-                    y[i].append((j[0][0],"entering"))
-                    y[i].append((j[0][1],"entering"))
-                    y[i].append((j[0][2],"leaving"))
-                    y[i].append((j[0][3],"leaving"))
+                #here the orientation '-' is taken with -1 and '+' with +1
+                #entering is denoted by +1 and leaving by -1
+                if j[1] == -1:
+                    y[i].append((j[0][0],1))
+                    y[i].append((j[0][1],-1))
+                    y[i].append((j[0][2],-1))
+                    y[i].append((j[0][3],1))
+                if j[1] == 1:
+                    y[i].append((j[0][0],1))
+                    y[i].append((j[0][1],1))
+                    y[i].append((j[0][2],-1))
+                    y[i].append((j[0][3],-1))
             for i in y:
-                if (min(bad_region),"entering") in i:
+                if (min(bad_region),1) in i:
                     pd_copy[pd_copy.index(min_cross[y.index(i)][0])][(pd_copy[pd_copy.index(min_cross[y.index(i)][0])]).index(min(bad_region))] = pd_max + 2
             #sorting the regions in positive and negative ones.
             pos_neg = [[[],[]] for i in range(len(regions_copy))]
@@ -1289,13 +1265,13 @@ class Link:
 
         EXAMPLES::
         sage: from sage.knots import link
-        sage: L = link.Link(oriented_gauss_code = [[1, -2, 3, -4, 2, -1, 4, -3],['+','+','-','-']])
+        sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],['+','+','-','-']])
         sage: L.seifert_to_braid()
         [1, -2, 1, -2]
-        sage: L = link.Link(oriented_gauss_code = [[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5],['-','-','-','-','+','-','+']])
+        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],['-','-','-','-','+','-','+']])
         sage: L.seifert_to_braid()
         [-1, -2, -3, 2, 1, -2, -2, 3, 2, -2, -2]
-        sage: L = link.Link(oriented_gauss_code = [[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, -4, -7],['-','-','-','-','+','+','-','+']])
+        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],['-','-','-','-','+','+','-','+']])
         sage: L.seifert_to_braid()
         [-1, 2, -1, -2, -2, 1, 1, -2]
         """
@@ -1349,12 +1325,12 @@ class Link:
         for i in range(len(pd_code)):
             t = []
             q = []
-            if orient[i] == '-':
+            if orient[i] == -1:
                 t.append(pd_code[i][0])
                 t.append(pd_code[i][3])
                 q.append(pd_code[i][1])
                 q.append(pd_code[i][2])
-            elif orient[i] == '+':
+            elif orient[i] == 1:
                 t.append(pd_code[i][0])
                 t.append(pd_code[i][1])
                 q.append(pd_code[i][2])
@@ -1375,17 +1351,17 @@ class Link:
                     a = i[0]
                     i[0] = i[1]
                     i[1] = a
-        first_seifert = sc[0]
+        first_seifert = seifert_order[0]
         first_crossing = None
         for i in pd_code:
             if len(list(set(i).intersection(set(first_seifert)))) == 2:
                 first_crossing = i
                 break
         tmp = []
-        if orient[pd_code.index(first_crossing)] == '-':
+        if orient[pd_code.index(first_crossing)] == -1:
             tmp.append(first_crossing[1])
             tmp.append(first_crossing[2])
-        elif orient[pd_code.index(first_crossing)] == '+':
+        elif orient[pd_code.index(first_crossing)] == 1:
             tmp.append(first_crossing[2])
             tmp.append(first_crossing[3])
         reg = [0 for i in range(len(sc))]
@@ -1418,9 +1394,9 @@ class Link:
         # '+' to +1
         sign = [None for i in range(len(orient))]
         for i,j in enumerate(orient):
-            if j == '-':
+            if j == -1:
                 sign[i] = -1
-            elif j == '+':
+            elif j == 1:
                 sign[i] = 1
         #each crossing belongs to two seifert circles, we find the first and break
         braid = []
@@ -1440,19 +1416,19 @@ class Link:
 
         EXAMPLES::
         sage: from sage.knots import link
-        sage: L = link.Link(oriented_gauss_code = [[1, -2, 3, -4, 2, -1, 4, -3],['+','+','-','-']])
+        sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],['+','+','-','-']])
         sage: L.writhe()
         0
-        sage: L = link.Link(oriented_gauss_code = [[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5],['-','-','-','-','+','-','+']])
+        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],['-','-','-','-','+','-','+']])
         sage: L.writhe()
         -3
-        sage: L = link.Link(oriented_gauss_code = [[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, -4, -7],['-','-','-','-','+','+','-','+']])
+        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],['-','-','-','-','+','+','-','+']])
         sage: L.writhe()
         -2
         """
         x = self.oriented_gauss_code()
-        pos = x[1].count('+')
-        neg = (-1)*x[1].count('-')
+        pos = x[1].count(1)
+        neg = (-1)*x[1].count(-1)
         return pos + neg
 
     def jones_polynomial(self, var = 't'):
@@ -1464,17 +1440,14 @@ class Link:
         OUTPUT:
             - Jones Polynomial of the link.
 
-        Reference:
-            - http://katlas.math.toronto.edu/wiki/The_Jones_Polynomial#How_is_the_Jones_polynomial_computed.3F
-
         EXAMPLES::
         sage: from sage.knots import link
         sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],['+','+','-','-']])
         sage: L.jones_polynomial()
-        (-t^10 - t^6 - t^2 + t^-6)/(-t^2 - t^-2)
+        t^8 - t^4 + 1 - t^-4 + t^-8
         sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],['-','-','-','-','+','-','+']])
         sage: L.jones_polynomial()
-        (-t^6 - 2*t^-2 + t^-18 - t^-22 + t^-26)/(-t^2 - t^-2)
+        -t^16 + t^12 + t^4
         """
         pd = self.PD_code()
         orient = self.orientation()
@@ -1500,10 +1473,8 @@ class Link:
             for j in pd:
                 if i[tuple(j)][0] == 0:
                     tmp_coeff.append(x)
-                    #tmp_coeff.append(x**(1/4))
                 elif i[tuple(j)][0] == 1:
                     tmp_coeff.append(x**-1)
-                    #tmp_coeff.append(x**(-1/4))
             coeff.append(tmp_coeff)
         #the product of the coefficients is calcaluated
         product = []
@@ -1520,23 +1491,23 @@ class Link:
             tmp = []
             for j in pd_copy:
                 if i[tuple(j)][0] == 0:
-                    if i[tuple(j)][1] == '-':
+                    if i[tuple(j)][1] == -1:
                         tmp.append([pd_copy[pd_copy.index(j)][0],pd_copy[pd_copy.index(j)][1]])
                         tmp.append([pd_copy[pd_copy.index(j)][3],pd_copy[pd_copy.index(j)][2]])
-                    elif i[tuple(j)][1] == '+':
+                    elif i[tuple(j)][1] == 1:
                         tmp.append([pd_copy[pd_copy.index(j)][1],pd_copy[pd_copy.index(j)][2]])
                         tmp.append([pd_copy[pd_copy.index(j)][0],pd_copy[pd_copy.index(j)][3]])
                 elif i[tuple(j)][0] == 1:
-                    if i[tuple(j)][1] == '-':
+                    if i[tuple(j)][1] == -1:
                         tmp.append([pd_copy[pd_copy.index(j)][1],pd_copy[pd_copy.index(j)][2]])
                         tmp.append([pd_copy[pd_copy.index(j)][0],pd_copy[pd_copy.index(j)][3]])
-                    elif i[tuple(j)][1] == '+':
+                    elif i[tuple(j)][1] == 1:
                         tmp.append([pd_copy[pd_copy.index(j)][2],pd_copy[pd_copy.index(j)][3]])
                         tmp.append([pd_copy[pd_copy.index(j)][1],pd_copy[pd_copy.index(j)][0]])
             pd_edit.append(tmp)
         #replacing the old edges with the new ones to get the circles and also the number of circles.
-        pd_edit = rule_3(pd_edit)
-        pd_edit = rule_3(pd_edit)
+        pd_edit = _rule_3_(pd_edit)
+        pd_edit = _rule_3_(pd_edit)
         for i in pd_edit:
             for j in range(len(i)):
                 for k in reversed(range(j+1,len(i))):
@@ -1554,36 +1525,37 @@ class Link:
         poly = 0
         for i in terms:
             poly = i + poly
+        print poly
         wri = self.writhe()
-        return ((-x**(3))**wri)*poly / (-x**2-((x**(-1))**2))
+        return ((-x**(3))**wri)*poly
 
-def rule_1(over):
+def _rule_1_(over):
     for i in range(0,len(over),2):
         if over[i][1] == None:
-            if over[i+1][1] == "entering":
-                over[i][1] = "leaving"
-            elif over[i+1][1] == "leaving":
-                over[i][1] = "entering"
+            if over[i+1][1] == 1:
+                over[i][1] = -1
+            elif over[i+1][1] == -1:
+                over[i][1] = 1
         elif over[i+1][1] == None:
-            if over[i][1] == "entering":
-                over[i+1][1] = "leaving"
-            elif over[i][1] == "leaving":
-                over[i+1][1] = "entering"
+            if over[i][1] == 1:
+                over[i+1][1] = -1
+            elif over[i][1] == -1:
+                over[i+1][1] = 1
     return over
 
-def rule_2(over):
+def _rule_2_(over):
     for i in over:
         for j in over:
             if i[0] == j[0] and j[1] == None:
-                if i[1] == "entering":
-                    j[1] = "leaving"
+                if i[1] == 1:
+                    j[1] = -1
                     break
-                elif i[1] == "leaving":
-                    j[1] = "entering"
+                elif i[1] == -1:
+                    j[1] = 1
                     break
     return over
 
-def rule_3(pd):
+def _rule_3_(pd):
     for i in pd:
         for j,k in enumerate(i):
             a = min(k)

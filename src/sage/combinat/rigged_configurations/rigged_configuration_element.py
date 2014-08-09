@@ -45,9 +45,9 @@ class RiggedConfigurationElement(ClonableArray):
     non-simply-laced types, use :class:`RCNonSimplyLacedElement`.
 
     Typically to create a specific rigged configuration, the user will pass in
-    the optional argument **partition_list** and if the user wants to specify
-    the rigging values, give the optional argument **rigging_list** as well.
-    If **rigging_list** is not passed, the rigging values are set to the
+    the optional argument ``partition_list`` and if the user wants to specify
+    the rigging values, give the optional argument ``rigging_list`` as well.
+    If ``rigging_list`` is not passed, the rigging values are set to the
     corresponding vacancy numbers.
 
     INPUT:

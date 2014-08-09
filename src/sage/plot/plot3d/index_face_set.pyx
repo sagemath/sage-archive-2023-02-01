@@ -983,7 +983,6 @@ cdef class IndexFaceSet(PrimitiveObject):
             6
 
         """
-        # seems to be broken ? 2014-08
         cdef point_c P
         cdef face_c *face
         cdef Py_ssize_t i, j, ix, ff

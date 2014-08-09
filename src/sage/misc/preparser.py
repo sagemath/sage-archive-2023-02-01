@@ -253,8 +253,8 @@ def implicit_multiplication(level=None):
 
 def isalphadigit_(s):
     """
-    Return ``True`` if s is a non-empty string of alphabetic characters
-    or a nonempty string of digits or just a single `_`
+    Return ``True`` if ``s`` is a non-empty string of alphabetic characters
+    or a non-empty string of digits or just a single `_`
 
     EXAMPLES::
 
@@ -1208,11 +1208,6 @@ def preparse_file(contents, globals=None, numeric_literals=True):
     if globals is None:
         globals = {}
 
-    # We keep track of which files have been loaded so far
-    # in order to avoid a recursive load that would result
-    # in creating a massive file and crashing.
-    # loaded_files = []
-
     # This is a hack, since when we use @parallel to parallelize code,
     # the numeric literals that are factored out do not get copied
     # to the subprocesses properly.  See trac #4545.
@@ -1454,7 +1449,6 @@ def load_cython(name):
     """
     """
     import cython
-    # cur = os.path.abspath(os.curdir)
     try:
         mod, dir  = cython.cython(name, compile_message=True, use_cache=True)
     except (IOError, OSError, RuntimeError) as msg:

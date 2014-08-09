@@ -182,7 +182,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
     rows respectively) [RigConBijection]_, [BijectionLRT]_, [BijectionDn]_.
 
     KR crystals are implemented in Sage, see
-    :func:`~sage.combinat.crystals.kirillov_reshetkihin.KirillovReshetikhinCrystal`,
+    :func:`~sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal`,
     however, in the bijection with rigged configurations a different
     realization of the elements in the crystal are obtained, which are
     coined KR tableaux, see

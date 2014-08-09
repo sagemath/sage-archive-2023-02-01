@@ -799,7 +799,7 @@ class RiggedConfigurationElement(ClonableArray):
 
         Let `x_{\ell}` be the smallest string of `\nu^{(a)}` or `0` if
         `\nu^{(a)} = \emptyset`, then we have
-        `\varepsilon_a = p_{\infty}^{(a)} - min(0, x_{\ell})`.
+        `\varepsilon_a = p_{\infty}^{(a)} - \min(0, x_{\ell})`.
 
         EXAMPLES::
 

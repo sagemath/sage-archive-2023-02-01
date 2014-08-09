@@ -13,6 +13,7 @@ cdef class MIPVariable
 
 cdef class MixedIntegerLinearProgram(SageObject):
     cdef GenericBackend _backend
+    cdef list _first_variable_names
     cdef list _mipvariables
     cdef MIPVariable _default_mipvariable
     cdef dict _variables

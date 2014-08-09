@@ -311,6 +311,26 @@ cdef class LinearFunctionsParent_class(Parent):
         from sage.numerical.linear_tensor import LinearTensorParent
         return LinearTensorParent(free_module, self)
 
+    def gen(self, i):
+        """
+        Return the linear variable `x_i`.
+
+        INPUT:
+
+        - ``i`` -- non-negative integer.
+
+        OUTPUT:
+
+        The linear function `x_i`.
+
+        EXAMPLES::
+
+            sage: LF = MixedIntegerLinearProgram().linear_functions_parent()
+            sage: LF.gen(23)
+            x_23
+        """
+        return LinearFunction(self, {i:1})
+
     def _repr_(self):
         """
         Return as string representation

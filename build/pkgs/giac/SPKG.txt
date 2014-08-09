@@ -2,38 +2,43 @@
 
 == Description ==
 
-  * Giac is a general purpose Computer algebra system by Bernard Parisse. It consists of:	 
-    - a C++ library (libgiac).  
-    - a command line interpreter (icas or giac). 
-    - the built of the FLTK-based GUI (xcas) has been disabled in the spkg-install file. 
-  
-  * The english and french documentation will be installed in: 
+  * Giac is a general purpose Computer algebra system by Bernard Parisse. It consists of:
+    - a C++ library (libgiac).
+    - a command line interpreter (icas or giac).
+    - the built of the FLTK-based GUI (xcas) has been disabled in the spkg-install file.
+
+  * The english and french documentation will be installed in:
        $SAGE_LOCAL/share/giac/doc/en/cascmd_en/index.html
-       $SAGE_LOCAL/share/giac/doc/fr/cascmd_fr/index.html	
-  
-  * -Author's website with debian, ubuntu, macosx, windows package:	
+       $SAGE_LOCAL/share/giac/doc/fr/cascmd_fr/index.html
+
+  * -Author's website with debian, ubuntu, macosx, windows package:
     	http://www-fourier.ujf-grenoble.fr/~parisse/giac.html
     -The Freebsd port is math/giacxcas
 
 == Licence ==
 
-GPLv3
+GPLv3+ except the french html documentation which is freely redistributable
+       for non commercial only purposes)
 
 == SPKG Maintener ==
 
   * Han Frederic: frederic.han@imj-prg.fr
 
 == Upstream Contact ==
-   
+
   * Bernard Parisse: http://www-fourier.ujf-grenoble.fr/~parisse/giac.html
   * Source file (giac-x.y.z.tar.gz) in: http://www-fourier.ujf-grenoble.fr/~parisse/giac/
 
 == Dependencies ==
- 
-  * gettext, readline, gmp 
-  * giac will benefits of ntl, pari, mpfr, gsl, lapack but they should be already installed by sage.
+
+  * gettext, readline
+  * giac will benefit of ntl, pari, mpfr, gsl, lapack but they should be already installed by sage.
+  * giac can also benefit of mpfi for arithmetic on intervals.
   * The Documentation is  pre-built, hevea or latex or ... are not needed to install the package.
 
 == Special Update/Build Instructions ==
 
-  * Add a mkdir for the script_subdirectory of the pexpect giac interface. 
+  * The script_subdirectory of the pexpect giac interface is create in spkg-install.
+  * Some gcc 4.7.2 gives a seg fault when compiling giac, but earlier or later version
+    should be fine.
+    http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54986

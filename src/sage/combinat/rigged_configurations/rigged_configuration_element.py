@@ -1500,7 +1500,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
 
         - ``display_steps`` -- (default: ``False``) boolean which indicates
           if we want to print each step in the algorithm
-        - ``build_graph` -- (default: ``False``) boolean which indicates
+        - ``build_graph`` -- (default: ``False``) boolean which indicates
           if we want to construct and return a graph of the bijection whose
           vertices are rigged configurations obtained at each step and edges
           are labeled by either the return value of `\delta` or the

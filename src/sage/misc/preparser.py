@@ -254,7 +254,7 @@ def implicit_multiplication(level=None):
 def isalphadigit_(s):
     """
     Return ``True`` if ``s`` is a non-empty string of alphabetic characters
-    or a non-empty string of digits or just a single `_`
+    or a non-empty string of digits or just a single ``_``
 
     EXAMPLES::
 

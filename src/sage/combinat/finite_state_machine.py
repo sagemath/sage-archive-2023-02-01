@@ -66,6 +66,8 @@ Manipulation
     :meth:`~FiniteStateMachine.delete_state` | Delete a state
     :meth:`~FiniteStateMachine.add_transition` | Add a transition
     :meth:`~FiniteStateMachine.add_transitions_from_function` | Add transitions
+    :attr:`~FiniteStateMachine.input_alphabet` | Input alphabet
+    :attr:`~FiniteStateMachine.output_alphabet` | Output alphabet
     :attr:`~FiniteStateMachine.on_duplicate_transition` | Hook for handling duplicate transitions
     :meth:`~FiniteStateMachine.add_from_transition_function` | Add transitions by a transition function
     :meth:`~FiniteStateMachine.delete_transition` | Delete a transition
@@ -2579,9 +2581,46 @@ class FiniteStateMachine(SageObject):
 
     on_duplicate_transition = duplicate_transition_ignore
     """
-    Which function to call when a duplicate transition is inserted. See
-    the documentation of the parameter ``on_duplicate_transition`` of
-    the class :class:`FiniteStateMachine` for details.
+    Which function to call when a duplicate transition is inserted.
+
+    It can be set by the parameter ``on_duplicate_transition`` when
+    initializing a finite state machine, see
+    :class:`FiniteStateMachine`.
+
+    .. SEEALSO::
+
+        :class:`FiniteStateMachine`, :meth:`is_Markov_chain`,
+        :meth:`markov_chain_simplification`
+    """
+
+    input_alphabet = None
+    """
+    A list of letters representing the input alphabet of the finite
+    state machine.
+
+    It can be set by the parameter ``input_alphabet`` when initializing
+    a finite state machine, see :class:`FiniteStateMachine`.
+
+    It can also be set by the method :meth:`determine_alphabets`.
+
+    .. SEEALSO::
+
+        :class:`FiniteStateMachine`, :meth:`determine_alphabets`
+    """
+
+    output_alphabet = None
+    """
+    A list of letters representing the output alphabet of the finite
+    state machine.
+
+    It can be set by the parameter ``output_alphabet`` when initializing
+    a finite state machine, see :class:`FiniteStateMachine`.
+
+    It can also be set by the method :meth:`determine_alphabets`.
+
+    .. SEEALSO::
+
+        :class:`FiniteStateMachine`, :meth:`determine_alphabets`
     """
 
     #*************************************************************************

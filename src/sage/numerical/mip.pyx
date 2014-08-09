@@ -378,7 +378,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
         self.__BINARY = 0
         self.__REAL = -1
         self.__INTEGER = 1
-        self._mip_variables_parent = None
         from sage.numerical.backends.generic_backend import get_solver
         self._backend = get_solver(solver=solver,
                                    constraint_generation=constraint_generation)
@@ -674,10 +673,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
         else:
             vtype = self.__REAL
 
-        parent = self._mip_variables_parent
-        if parent is None:
-            parent = self._mip_variables_parent = MIPVariableParent(self)
-        return parent(vtype,
+        return mip_variable_parent(self, 
+                      vtype,
                       dim=dim,
                       name=name,
                       lower_bound=0 if (nonnegative or binary) else None,
@@ -2287,13 +2284,13 @@ cdef class MIPVariable(Element):
     ``MIPVariable`` is a variable used by the class
     ``MixedIntegerLinearProgram``.
 
-    .. warn::
+    .. warning::
 
         You should not instantiate this class directly. Instead, use
         :meth:`MixedIntegerLinearProgram.new_variable`.
     """
 
-    def __init__(self, parent, vtype, dim, name, lower_bound, upper_bound):
+    def __init__(self, parent, mip, vtype, dim, name, lower_bound, upper_bound):
         r"""
         Constructor for ``MIPVariable``.
 
@@ -2325,7 +2322,7 @@ cdef class MIPVariable(Element):
         super(MIPVariable, self).__init__(parent)
         self._dim = dim
         self._dict = {}
-        self._p = (<MIPVariableParent>parent)._mip
+        self._p = mip
         self._vtype = vtype
         self._lower_bound = lower_bound
         self._upper_bound = upper_bound
@@ -2381,6 +2378,7 @@ cdef class MIPVariable(Element):
         else:
             self._dict[i] = self.parent().element_class(
                 self.parent(),
+                self._p,
                 self._vtype,
                 dim         = self._dim-1,
                 name        = ("" if not self._hasname
@@ -2582,7 +2580,7 @@ cdef class MIPVariableParent(Parent):
     """
     Parent for :class:`MIPVariable`.
 
-    .. warn::
+    .. warning::
 
         This class is for internal use. You should not instantiate it
         yourself. Use :meth:`MixedIntegerLinearProgram.new_variable`
@@ -2591,23 +2589,6 @@ cdef class MIPVariableParent(Parent):
 
     Element = MIPVariable
     
-    def __init__(self, mip):
-        """
-        The Python constructor.
-
-        INPUT:
-
-        - ``mip`` -- the underlying mixed integer linear problem.
-
-        TESTS::
-
-            sage: from sage.numerical.mip import MIPVariableParent
-            sage: MIPVariableParent(MixedIntegerLinearProgram())
-            Parent of MIPVariables
-        """
-        super(MIPVariableParent, self).__init__()
-        self._mip = mip
-
     def _repr_(self):
         r"""
         Return representation of self.
@@ -2618,14 +2599,37 @@ cdef class MIPVariableParent(Parent):
 
         EXAMPLES::
 
-            sage: p = MixedIntegerLinearProgram()
-            sage: v = p.new_variable()
+            sage: mip = MixedIntegerLinearProgram()
+            sage: v = mip.new_variable()
             sage: v.parent()
             Parent of MIPVariables
         """
         return 'Parent of MIPVariables'
 
-    def _element_constructor_(self, vtype, dim=1, name="", lower_bound=0, upper_bound=None):
+    def _an_element_(self):
+        """
+        Construct a MIP variable.
+
+        OUTPUT:
+
+        This is required for the coercion framework. We raise a
+        ``TypeError`` to abort search for any coercion to another
+        parent for binary operations. The only interesting operations
+        involving :class:`MIPVariable` elements are actions by
+        matrices.
+
+        EXAMPLES::
+
+            sage: mip = MixedIntegerLinearProgram()
+            sage: parent = mip.new_variable().parent()
+            sage: parent.an_element()    # indirect doctest
+            Traceback (most recent call last):
+            ...
+            TypeError: disallow coercion
+        """
+        raise TypeError('disallow coercion')
+
+    def _element_constructor_(self, mip, vtype, dim=1, name="", lower_bound=0, upper_bound=None):
         """
         The Element constructor
 
@@ -2635,11 +2639,14 @@ cdef class MIPVariableParent(Parent):
 
         EXAMPLES::
 
-            sage: p = MixedIntegerLinearProgram()
-            sage: p.new_variable()    # indirect doctest
+            sage: mip = MixedIntegerLinearProgram()
+            sage: mip.new_variable()    # indirect doctest
             MIPVariable of dimension 1.
         """
-        return self.element_class(self, vtype, dim, name, lower_bound, upper_bound)
+        return self.element_class(self, mip, vtype, dim, name, lower_bound, upper_bound)
+
+
+mip_variable_parent = MIPVariableParent()
 
 
 def Sum(x):

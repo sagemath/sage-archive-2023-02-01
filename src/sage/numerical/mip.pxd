@@ -19,7 +19,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
     cdef int __BINARY
     cdef int __REAL
     cdef int __INTEGER
-    cdef object _mip_variables_parent
     cdef object _linear_functions_parent
     cdef object _linear_constraints_parent
     cpdef int number_of_constraints(self)
@@ -44,8 +43,8 @@ cdef class MIPVariable(Element):
 
 
 cdef class MIPVariableParent(Parent):
-    cdef MixedIntegerLinearProgram _mip
-    
+    pass
 
+    
 cdef MIPVariableParent mip_variable_parent
 

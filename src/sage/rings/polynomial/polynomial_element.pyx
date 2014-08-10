@@ -2520,6 +2520,29 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         raise NotImplementedError
 
+    def euclidean_degree(self):
+        r"""
+        Return the degree of this element as an element of a euclidean domain.
+
+        If this polynomial is defined over a field, this is simply its :meth:`degree`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: x.euclidean_degree()
+            1
+            sage: R.<x> = ZZ[]
+            sage: x.euclidean_degree()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        """
+        from sage.categories.fields import Fields
+        if self.base_ring() in Fields():
+            return self.degree()
+        raise NotImplementedError
+
     def denominator(self):
         """
         Return a denominator of self.
@@ -6661,6 +6684,112 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         # otherwise not cyclotomic
         return False
+
+    def homogenize(self, var='h'):
+        r"""
+        Return the homogenization of this polynomial.
+
+        The polynomial itself is returned if it homogeneous already. Otherwise,
+        its monomials are multiplied with the smallest powers of ``var`` such
+        that they all have the same total degree.
+
+        INPUT:
+
+        - ``var`` -- a variable in the polynomial ring (as a string, an element
+          of the ring, or ``0``) or a name for a new variable (default:
+          ``'h'``)
+
+        OUTPUT:
+
+        If ``var`` specifies the variable in the polynomial ring, then a
+        homogeneous element in that ring is returned. Otherwise, a homogeneous
+        element is returned in a polynomial ring with an extra last variable
+        ``var``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^2 + 1
+            sage: f.homogenize()
+            x^2 + h^2
+
+        The parameter ``var`` can be used to specify the name of the variable::
+
+            sage: g = f.homogenize('z'); g
+            x^2 + z^2
+            sage: g.parent()
+            Multivariate Polynomial Ring in x, z over Rational Field
+
+        However, if the polynomial is homogeneous already, then that parameter
+        is ignored and no extra variable is added to the polynomial ring::
+
+            sage: f = x^2
+            sage: g = f.homogenize('z'); g
+            x^2
+            sage: g.parent()
+            Univariate Polynomial Ring in x over Rational Field
+
+        For compatibility with the multivariate case, if ``var`` specifies the
+        variable of the polynomial ring, then the monomials are multiplied with
+        the smallest powers of ``var`` such that the result is homogeneous; in
+        other words, we end up with a monomial whose leading coefficient is the
+        sum of the coefficients of the polynomial::
+
+            sage: f = x^2 + x + 1
+            sage: f.homogenize('x')
+            3*x^2
+
+        In positive characterstic, the degree can drop in this case::
+
+            sage: R.<x> = GF(2)[]
+            sage: f = x + 1
+            sage: f.homogenize(x)
+            0
+
+        For compatibility with the multivariate case, the parameter ``var`` can
+        also be 0 to specify the variable in the polynomial ring::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^2 + x + 1
+            sage: f.homogenize(0)
+            3*x^2
+
+        """
+        if self.is_homogeneous():
+            return self
+
+        x, = self.variables()
+
+        if PY_TYPE_CHECK(var, int) or PY_TYPE_CHECK(var, Integer):
+            if var:
+                raise TypeError, "Variable index %d must be < 1."%var
+            else:
+                return sum(self.coefficients())*x**self.degree()
+
+        x_name = self.variable_name()
+        var = str(var)
+
+        if var == x_name:
+            return sum(self.coefficients())*x**self.degree()
+
+        P = PolynomialRing(self.base_ring(), [x_name, var])
+        return P(self)._homogenize(1)
+
+    def is_homogeneous(self):
+        r"""
+        Return ``True`` if this polynomial is homogeneous.
+
+        EXAMPLES::
+
+            sage: P.<x> = PolynomialRing(QQ)
+            sage: x.is_homogeneous()
+            True
+            sage: P(0).is_homogeneous()
+            True
+            sage: (x+1).is_homogeneous()
+            False
+        """
+        return len(self.exponents()) < 2
 
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function

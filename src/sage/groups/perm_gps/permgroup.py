@@ -2964,10 +2964,10 @@ class PermutationGroup_generic(group.Group):
 
            * block systems, each of them being defined as
 
-               * If ``representative = True`` : a list of representatives of
+               * If ``representatives = True`` : a list of representatives of
                  each set of the block system
 
-               * If ``representative = False`` : a partition of the elements
+               * If ``representatives = False`` : a partition of the elements
                  defining an imprimitivity block.
 
         .. SEEALSO::
@@ -2988,19 +2988,28 @@ class PermutationGroup_generic(group.Group):
         Computing its blocks representatives::
 
             sage: ag.blocks_all()
-            [[1, 16]]
+            [[0, 15]]
 
         Now the full blocks::
 
             sage: ag.blocks_all(representatives = False)
-            [[[1, 16], [2, 17], [15, 20], [9, 18], [6, 11], [3, 13], [8, 19], [4, 14], [5, 10], [7, 12]]]
+            [[[0, 15], [1, 16], [14, 19], [8, 17], [5, 10], [2, 12], [7, 18], [3, 13], [4, 9], [6, 11]]]
 
+        TESTS::
+
+            sage: g = PermutationGroup([("a","b","c","d")])
+            sage: g.blocks_all()
+            [['a', 'c']]
+            sage: g.blocks_all(False)
+            [[['a', 'c'], ['b', 'd']]]
         """
         ag = self._gap_()
         if representatives:
-            return ag.AllBlocks().sage()
+            return [[self._domain_from_gap[x] for x in rep]
+                    for rep in ag.AllBlocks().sage()]
         else:
-            return [ag.Orbit(rep,"OnSets").sage() for rep in ag.AllBlocks()]
+            return [[[self._domain_from_gap[x] for x in cl] for cl in ag.Orbit(rep,"OnSets").sage()]
+                    for rep in ag.AllBlocks()]
 
     def cosets(self, S, side='right'):
         r"""

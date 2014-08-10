@@ -159,6 +159,22 @@ cdef GapElement make_any_gap_element(parent, libGAP_Obj obj):
     automatically. Use this function to wrap GAP objects unless you
     know exactly which type it is (then you can use the specialized
     ``make_GapElement_...``)
+
+    TESTS::
+
+        sage: T_CHAR = libgap.eval("'c'");  T_CHAR
+        "c"
+        sage: type(T_CHAR)
+        <type 'sage.libs.gap.element.GapElement_String'>
+
+        sage: t = libgap.eval("UnorderedTuples(['a', 'b', 'c'], 2)"); t
+        [ "aa", "ab", "ac", "bb", "bc", "cc" ]
+        sage: t[1]
+        "ab"
+        sage: t[1].sage()
+        'ab'
+        sage: t.sage()
+        ['aa', 'ab', 'ac', 'bb', 'bc', 'cc']
     """
     if obj is NULL:
         return make_GapElement(parent, obj)
@@ -179,11 +195,17 @@ cdef GapElement make_any_gap_element(parent, libGAP_Obj obj):
         return make_GapElement_Permutation(parent, obj)
     elif num >= libGAP_FIRST_RECORD_TNUM and num <= libGAP_LAST_RECORD_TNUM:
         return make_GapElement_Record(parent, obj)
-    elif num >= libGAP_T_STRING and num <= libGAP_T_STRING_SSORT + libGAP_IMMUTABLE:
-        # GAP strings are lists, too. Make sure this comes before make_GapElement_List
+    elif num >= libGAP_FIRST_LIST_TNUM and num <= libGAP_LAST_LIST_TNUM and libGAP_LEN_PLIST(obj) == 0:
+        # Empty lists are lists and not strings in Python
+        return make_GapElement_List(parent, obj)
+    elif libGAP_IsStringConv(obj):
+        # GAP strings are lists, too. Make sure this comes before non-empty make_GapElement_List
         return make_GapElement_String(parent, obj)
     elif num >= libGAP_FIRST_LIST_TNUM and num <= libGAP_LAST_LIST_TNUM:
         return make_GapElement_List(parent, obj)
+    elif num == libGAP_T_CHAR:
+        ch = make_GapElement(parent, obj).IntChar().sage()
+        return make_GapElement_String(parent, make_gap_string(chr(ch)))
     result = make_GapElement(parent, obj)
     if num == libGAP_T_POSOBJ:
         if result.IsZmodnZObj():

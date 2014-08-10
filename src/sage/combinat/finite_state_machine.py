@@ -109,7 +109,7 @@ Operations
     :meth:`~FiniteStateMachine.concatenation` | Concatenation (not implemented)
     :meth:`~FiniteStateMachine.Kleene_closure` | Kleene closure (not implemented)
     :meth:`Automaton.intersection` | Intersection of automata
-    :meth:`Transducer.intersection` | Intersection of transducer
+    :meth:`Transducer.intersection` | Intersection of transducers
     :meth:`Transducer.cartesian_product` | Cartesian product of a transducer with another finite state machine
     :meth:`~FiniteStateMachine.product_FiniteStateMachine` | Product of finite state machines
     :meth:`~FiniteStateMachine.composition` | Composition (output of other is input of self)
@@ -355,9 +355,9 @@ TikZ is used for typesetting the graphics, see the
     \begin{tikzpicture}[auto, initial text=, >=latex]
     \node[state, accepting, initial] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
     \node[state, accepting] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
-    \path[->] (v1.5.00) edge node[rotate=0.00, anchor=south] {$0$} (v0.175.00);
-    \path[->] (v0.185.00) edge node[rotate=360.00, anchor=north] {$1, -1$} (v1.355.00);
     \path[->] (v0) edge[loop above] node {$0$} ();
+    \path[->] (v0.185.00) edge node[rotate=360.00, anchor=north] {$1, -1$} (v1.355.00);
+    \path[->] (v1.5.00) edge node[rotate=0.00, anchor=south] {$0$} (v0.175.00);
     \end{tikzpicture}
 
 We can turn this into a graphical representation.
@@ -388,9 +388,9 @@ we use :meth:`~FiniteStateMachine.format_letter_negative` to format
     \begin{tikzpicture}[auto, initial text=, >=latex]
     \node[state, accepting, initial, initial where=below] (v0) at (0.000000, 0.000000) {$\mathcal{A}$};
     \node[state, accepting] (v1) at (6.000000, 0.000000) {$\mathcal{B}$};
-    \path[->] (v1.185.00) edge node[rotate=360.00, anchor=north] {$0$} (v0.355.00);
-    \path[->] (v0.5.00) edge node[rotate=0.00, anchor=south] {$1, \overline{1}$} (v1.175.00);
     \path[->] (v0) edge[loop above] node {$0$} ();
+    \path[->] (v0.5.00) edge node[rotate=0.00, anchor=south] {$1, \overline{1}$} (v1.175.00);
+    \path[->] (v1.185.00) edge node[rotate=360.00, anchor=north] {$0$} (v0.355.00);
     \end{tikzpicture}
     sage: view(NAF) # not tested
 
@@ -793,8 +793,8 @@ from copy import copy
 from copy import deepcopy
 
 import itertools
-from itertools import imap, ifilter
-from collections import defaultdict
+from itertools import imap
+from collections import defaultdict, OrderedDict
 
 
 def full_group_by(l, key=lambda x: x):
@@ -833,11 +833,11 @@ def full_group_by(l, key=lambda x: x):
 
         sage: from sage.combinat.finite_state_machine import full_group_by
         sage: t = [2/x, 1/x, 2/x]
-        sage: r = full_group_by([0,1,2], key=lambda i:t[i])
+        sage: r = full_group_by([0, 1, 2], key=lambda i:t[i])
         sage: sorted(r, key=lambda p:p[1])
         [(2/x, [0, 2]), (1/x, [1])]
         sage: from itertools import groupby
-        sage: for k, elements in groupby(sorted([0,1,2],
+        sage: for k, elements in groupby(sorted([0, 1, 2],
         ....:                            key=lambda i:t[i]),
         ....:                            key=lambda i:t[i]):
         ....:     print k, list(elements)
@@ -2314,8 +2314,8 @@ class FiniteStateMachine(SageObject):
 
       This function is assumed to take two arguments, the first being
       the already existing transition, the second being the new
-      transition (as an ``FSMTransition``). The function must return the
-      (possibly modified) original transition.
+      transition (as an :class:`FSMTransition`). The function must
+      return the (possibly modified) original transition.
 
       By default, we have ``on_duplicate_transition=None``, which is
       interpreted as
@@ -2366,15 +2366,15 @@ class FiniteStateMachine(SageObject):
         Instead of the tuple anything iterable (e.g. a list) can be
         used as well.
 
-        If you want to use the arguments of ``FSMTransition``
+        If you want to use the arguments of :class:`FSMTransition`
         directly, you can use a dictionary::
 
             sage: FiniteStateMachine({'a':{'b':{'word_in':0, 'word_out':1},
             ....:                          'c':{'word_in':1, 'word_out':1}}})
             Finite state machine with 3 states
 
-        In the case you already have instances of ``FSMTransition``, it is
-        possible to use them directly::
+        In the case you already have instances of
+        :class:`FSMTransition`, it is possible to use them directly::
 
             sage: FiniteStateMachine({'a':{'b':FSMTransition('a', 'b', 0, 1),
             ....:                          'c':FSMTransition('a', 'c', 1, 1)}})
@@ -2635,7 +2635,7 @@ class FiniteStateMachine(SageObject):
         if hasattr(on_duplicate_transition, '__call__'):
             self.on_duplicate_transition=on_duplicate_transition
         else:
-            raise TypeError, 'on_duplicate_transition must be callable'
+            raise TypeError('on_duplicate_transition must be callable')
 
         if data is None:
             pass
@@ -2698,6 +2698,8 @@ class FiniteStateMachine(SageObject):
         if with_final_word_out is not None:
             self.construct_final_word_out(with_final_word_out)
 
+        self._allow_composition_ = True
+
 
     #*************************************************************************
     # copy and hash
@@ -2729,7 +2731,7 @@ class FiniteStateMachine(SageObject):
     copy = __copy__
 
 
-    def empty_copy(self, memo=None):
+    def empty_copy(self, memo=None, new_class=None):
         """
         Returns an empty deep copy of the finite state machine, i.e.,
         ``input_alphabet``, ``output_alphabet``, ``on_duplicate_transition``
@@ -2738,6 +2740,9 @@ class FiniteStateMachine(SageObject):
         INPUT:
 
         - ``memo`` -- a dictionary storing already processed elements.
+
+        - ``new_class`` -- a class for the copy. By default
+          (``None``), the class of ``self`` is used.
 
         OUTPUT:
 
@@ -2758,8 +2763,19 @@ class FiniteStateMachine(SageObject):
             [2, 3]
             sage: FE.on_duplicate_transition == duplicate_transition_raise_error
             True
+
+        TESTS::
+
+            sage: T = Transducer()
+            sage: type(T.empty_copy())
+            <class 'sage.combinat.finite_state_machine.Transducer'>
+            sage: type(T.empty_copy(new_class=Automaton))
+            <class 'sage.combinat.finite_state_machine.Automaton'>
         """
-        new = self.__class__()
+        if new_class is None:
+            new = self.__class__()
+        else:
+            new = new_class()
         new.input_alphabet = deepcopy(self.input_alphabet, memo)
         new.output_alphabet = deepcopy(self.output_alphabet, memo)
         new.on_duplicate_transition = self.on_duplicate_transition
@@ -2825,6 +2841,18 @@ class FiniteStateMachine(SageObject):
             sage: F = FiniteStateMachine([('A', 'A', 0, 1), ('A', 'A', 1, 0)])
             sage: deepcopy(F)
             Finite state machine with 1 states
+
+        TESTS:
+
+        Make sure that the links between transitions and states
+        are still intact::
+
+            sage: C = deepcopy(F)
+            sage: C.transitions()[0].from_state is C.state('A')
+            True
+            sage: C.transitions()[0].to_state is C.state('A')
+            True
+
         """
         return deepcopy(self, memo)
 
@@ -3645,29 +3673,29 @@ class FiniteStateMachine(SageObject):
 
         ::
 
-            sage: T = Transducer(initial_states=['I'],
+            sage: T = Transducer(initial_states=[4],
             ....:     final_states=[0, 3])
             sage: for j in srange(4):
-            ....:     T.add_transition('I', j, 0, [0, j])
-            ....:     T.add_transition(j, 'I', 0, [0, -j])
+            ....:     T.add_transition(4, j, 0, [0, j])
+            ....:     T.add_transition(j, 4, 0, [0, -j])
             ....:     T.add_transition(j, j, 0, 0)
-            Transition from 'I' to 0: 0|0,0
-            Transition from 0 to 'I': 0|0,0
+            Transition from 4 to 0: 0|0,0
+            Transition from 0 to 4: 0|0,0
             Transition from 0 to 0: 0|0
-            Transition from 'I' to 1: 0|0,1
-            Transition from 1 to 'I': 0|0,-1
+            Transition from 4 to 1: 0|0,1
+            Transition from 1 to 4: 0|0,-1
             Transition from 1 to 1: 0|0
-            Transition from 'I' to 2: 0|0,2
-            Transition from 2 to 'I': 0|0,-2
+            Transition from 4 to 2: 0|0,2
+            Transition from 2 to 4: 0|0,-2
             Transition from 2 to 2: 0|0
-            Transition from 'I' to 3: 0|0,3
-            Transition from 3 to 'I': 0|0,-3
+            Transition from 4 to 3: 0|0,3
+            Transition from 3 to 4: 0|0,-3
             Transition from 3 to 3: 0|0
-            sage: T.add_transition('I', 'I', 0, 0)
-            Transition from 'I' to 'I': 0|0
+            sage: T.add_transition(4, 4, 0, 0)
+            Transition from 4 to 4: 0|0
             sage: T.state(3).final_word_out = [0, 0]
             sage: T.latex_options(
-            ....:     coordinates={'I': (0, 0),
+            ....:     coordinates={4: (0, 0),
             ....:                  0: (-6, 3),
             ....:                  1: (-2, 3),
             ....:                  2: (2, 3),
@@ -3676,14 +3704,14 @@ class FiniteStateMachine(SageObject):
             ....:     format_letter=lambda x: r'w_{%s}' % x,
             ....:     format_transition_label=lambda x:
             ....:         r"{\scriptstyle %s}" % T.default_format_transition_label(x),
-            ....:     loop_where={'I': 'below', 0: 'left', 1: 'above',
+            ....:     loop_where={4: 'below', 0: 'left', 1: 'above',
             ....:                 2: 'right', 3:'below'},
             ....:     initial_where=lambda x: 'above',
             ....:     accepting_style='accepting by double',
             ....:     accepting_distance='10ex',
             ....:     accepting_where={0: 'left', 3: 45}
             ....:     )
-            sage: T.state('I').format_label=lambda: r'\mathcal{I}'
+            sage: T.state(4).format_label=lambda: r'\mathcal{I}'
             sage: latex(T)
             \begin{tikzpicture}[auto, initial text=, >=latex]
             \node[state, initial, initial where=above] (v0) at (0.000000, 0.000000) {$\mathcal{I}$};
@@ -3692,18 +3720,18 @@ class FiniteStateMachine(SageObject):
             \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {$\$ \mid {\scriptstyle w_{0} w_{0}}$} ++(45.00:10ex);
             \node[state] (v3) at (-2.000000, 3.000000) {$\mathbf{1}$};
             \node[state] (v4) at (2.000000, 3.000000) {$\mathbf{2}$};
-            \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{2}}$} (v4.231.31);
+            \path[->] (v1) edge[loop left] node[rotate=90, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
             \path[->] (v1.-21.57) edge node[rotate=-26.57, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{0}}$} (v0.148.43);
-            \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{3}}$} (v2.201.57);
-            \path[->] (v2) edge[loop below] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
-            \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-3}}$} (v0.21.57);
+            \path[->] (v3) edge[loop above] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
             \path[->] (v3.-51.31) edge node[rotate=-56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-1}}$} (v0.118.69);
             \path[->] (v4) edge[loop right] node[rotate=90, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
-            \path[->] (v3) edge[loop above] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
-            \path[->] (v1) edge[loop left] node[rotate=90, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
             \path[->] (v4.-118.69) edge node[rotate=56.31, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-2}}$} (v0.51.31);
+            \path[->] (v2) edge[loop below] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
+            \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-3}}$} (v0.21.57);
             \path[->] (v0.158.43) edge node[rotate=333.43, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{0}}$} (v1.328.43);
             \path[->] (v0.128.69) edge node[rotate=303.69, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{1}}$} (v3.298.69);
+            \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{2}}$} (v4.231.31);
+            \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{3}}$} (v2.201.57);
             \path[->] (v0) edge[loop below] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
             \end{tikzpicture}
             sage: view(T) # not tested
@@ -3727,18 +3755,18 @@ class FiniteStateMachine(SageObject):
             \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {$\$ \mid w_{0} w_{0}$} ++(45.00:10ex);
             \node[state] (v3) at (-2.000000, 3.000000) {$\mathbf{1}$};
             \node[state] (v4) at (2.000000, 3.000000) {$\mathbf{2}$};
-            \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {$w_{0}\mid w_{0} w_{2}$} (v4.231.31);
+            \path[->] (v1) edge[loop left] node[rotate=90, anchor=south] {$w_{0}\mid w_{0}$} ();
             \path[->] (v1.-21.57) edge node[rotate=-26.57, anchor=south] {$w_{0}\mid w_{0} w_{0}$} (v0.148.43);
-            \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {$w_{0}\mid w_{0} w_{3}$} (v2.201.57);
-            \path[->] (v2) edge[loop below] node {$w_{0}\mid w_{0}$} ();
-            \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {$w_{0}\mid w_{0} w_{-3}$} (v0.21.57);
+            \path[->] (v3) edge[loop above] node {$w_{0}\mid w_{0}$} ();
             \path[->] (v3.-51.31) edge node[rotate=-56.31, anchor=south] {$w_{0}\mid w_{0} w_{-1}$} (v0.118.69);
             \path[->] (v4) edge[loop right] node[rotate=90, anchor=north] {$w_{0}\mid w_{0}$} ();
-            \path[->] (v3) edge[loop above] node {$w_{0}\mid w_{0}$} ();
-            \path[->] (v1) edge[loop left] node[rotate=90, anchor=south] {$w_{0}\mid w_{0}$} ();
             \path[->] (v4.-118.69) edge node[rotate=56.31, anchor=north] {$w_{0}\mid w_{0} w_{-2}$} (v0.51.31);
+            \path[->] (v2) edge[loop below] node {$w_{0}\mid w_{0}$} ();
+            \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {$w_{0}\mid w_{0} w_{-3}$} (v0.21.57);
             \path[->] (v0.158.43) edge node[rotate=333.43, anchor=north] {$w_{0}\mid w_{0} w_{0}$} (v1.328.43);
             \path[->] (v0.128.69) edge node[rotate=303.69, anchor=north] {$w_{0}\mid w_{0} w_{1}$} (v3.298.69);
+            \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {$w_{0}\mid w_{0} w_{2}$} (v4.231.31);
+            \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {$w_{0}\mid w_{0} w_{3}$} (v2.201.57);
             \path[->] (v0) edge[loop below] node {$w_{0}\mid w_{0}$} ();
             \end{tikzpicture}
             sage: view(T) # not tested
@@ -3765,7 +3793,7 @@ class FiniteStateMachine(SageObject):
             sage: T.latex_options(loop_where=lambda x: 'top')
             Traceback (most recent call last):
             ...
-            ValueError: loop_where for I must be in ['below',
+            ValueError: loop_where for 4 must be in ['below',
             'right', 'above', 'left'].
             sage: T.latex_options(initial_where=90)
             Traceback (most recent call last):
@@ -3775,7 +3803,7 @@ class FiniteStateMachine(SageObject):
             sage: T.latex_options(initial_where=lambda x: 'top')
             Traceback (most recent call last):
             ...
-            ValueError: initial_where for I must be in ['below',
+            ValueError: initial_where for 4 must be in ['below',
             'right', 'above', 'left'].
             sage: T.latex_options(accepting_style='fancy')
             Traceback (most recent call last):
@@ -4018,11 +4046,23 @@ class FiniteStateMachine(SageObject):
                     angle, accepting_distance)
 
             j += 1
-        adjacent = {}
-        for source in self.iter_states():
-            for target in self.iter_states():
-                transitions = [transition for transition in source.transitions if transition.to_state == target]
-                adjacent[source, target] = transitions
+
+        def key_function(s):
+            return (s.from_state, s.to_state)
+        # We use an OrderedDict instead of a dict in order to have a
+        # defined ordering of the transitions in the output. See
+        # http://trac.sagemath.org/ticket/16580#comment:3 . As the
+        # transitions have to be sorted anyway, the performance
+        # penalty should be bearable; nevertheless, this is only
+        # required for doctests.
+        adjacent = OrderedDict(
+            (pair, list(transitions))
+            for pair, transitions in
+            itertools.groupby(
+                sorted(self.iter_transitions(),
+                       key=key_function),
+                key=key_function
+                ))
 
         for ((source, target), transitions) in adjacent.iteritems():
             if len(transitions) > 0:
@@ -4038,7 +4078,7 @@ class FiniteStateMachine(SageObject):
                     angle = atan2(
                         target.coordinates[1] - source.coordinates[1],
                         target.coordinates[0] - source.coordinates[0]) * 180/pi
-                    both_directions = len(adjacent[target, source]) > 0
+                    both_directions = (target, source) in adjacent
                     if both_directions:
                         angle_source = ".%.2f" % ((angle + 5).n(),)
                         angle_target = ".%.2f" % ((angle + 175).n(),)
@@ -5036,8 +5076,9 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``state`` is either an instance of FSMState or, otherwise, a
-          label of a state.
+        - ``state`` is either an instance of
+          :class:`FSMState` or,
+          otherwise, a label of a state.
 
         OUTPUT:
 
@@ -5145,8 +5186,9 @@ class FiniteStateMachine(SageObject):
             sage: FSM.add_transition([A, B, 0, 1])
             Transition from 'A' to 'B': 0|1
 
-        If the states ``A`` and ``B`` are not instances of FSMState, then
-        it is assumed that they are labels of states.
+        If the states ``A`` and ``B`` are not instances of
+        :class:`FSMState`, then it is assumed that they are labels of
+        states.
 
         OUTPUT:
 
@@ -5187,7 +5229,7 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``t`` -- an instance of ``FSMTransition``.
+        - ``t`` -- an instance of :class:`FSMTransition`.
 
         OUTPUT:
 
@@ -5574,15 +5616,24 @@ class FiniteStateMachine(SageObject):
             ....:               initial_states=[0])
             sage: F.accessible_components()
             Automaton with 1 states
+
+        TESTS:
+
+        Check whether input of length > 1 works::
+
+            sage: F = Automaton([(0, 1, [0, 1]), (0, 2, 0)],
+            ....:               initial_states=[0])
+            sage: F.accessible_components()
+            Automaton with 3 states
         """
         if len(self.initial_states()) == 0:
             return deepcopy(self)
 
         memo = {}
-        def accessible(sf, read):
-            trans = [x for x in self.transitions(sf) if x.word_in[0] == read]
-            return map(lambda x: (deepcopy(x.to_state, memo), x.word_out),
-                       trans)
+        def accessible(from_state, read):
+            return [(deepcopy(x.to_state, memo), x.word_out)
+                    for x in self.iter_transitions(from_state)
+                    if x.word_in[0] == read]
 
         new_initial_states=map(lambda x: deepcopy(x, memo),
                                self.initial_states())
@@ -5656,7 +5707,8 @@ class FiniteStateMachine(SageObject):
     def product_FiniteStateMachine(self, other, function,
                                    new_input_alphabet=None,
                                    only_accessible_components=True,
-                                   final_function=None):
+                                   final_function=None,
+                                   new_class=None):
         r"""
         Returns a new finite state machine whose states are
         `d`-tuples of states of the original finite state machines.
@@ -5686,6 +5738,9 @@ class FiniteStateMachine(SageObject):
           default, the final output is the empty word if both final
           outputs of the constituent states are empty; otherwise, a
           ``ValueError`` is raised.
+
+        - ``new_class`` -- Class of the new finite state machine. By
+          default (``None``), the class of ``self`` is used.
 
         OUTPUT:
 
@@ -5828,6 +5883,15 @@ class FiniteStateMachine(SageObject):
             ...
             ValueError: other must be a finite state machine or a list
             of finite state machines.
+
+        Test whether ``new_class`` works::
+
+            sage: T = Transducer()
+            sage: type(T.product_FiniteStateMachine(T, None))
+            <class 'sage.combinat.finite_state_machine.Transducer'>
+            sage: type(T.product_FiniteStateMachine(T, None,
+            ....:      new_class=Automaton))
+            <class 'sage.combinat.finite_state_machine.Automaton'>
         """
         def default_final_function(*args):
             if any(s.final_word_out for s in args):
@@ -5837,7 +5901,7 @@ class FiniteStateMachine(SageObject):
         if final_function is None:
             final_function = default_final_function
 
-        result = self.empty_copy()
+        result = self.empty_copy(new_class=new_class)
         if new_input_alphabet is not None:
             result.input_alphabet = new_input_alphabet
         else:
@@ -6061,7 +6125,43 @@ class FiniteStateMachine(SageObject):
             ....:                 (2, 2, 0, 1), (2, 1, 1, 1)],
             ....:                initial_states=[1], final_states=[1])
             sage: Hd = G.composition(F, algorithm='direct')
+
+        In the following examples, we compose transducers and automata
+        and check whether the types are correct. ::
+
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     is_Automaton, is_Transducer)
+            sage: T = Transducer([(0, 0, 0, 0)], initial_states=[0])
+            sage: A = Automaton([(0, 0, 0)], initial_states=[0])
+            sage: is_Transducer(T.composition(T, algorithm='direct'))
+            True
+            sage: is_Transducer(T.composition(T, algorithm='explorative'))
+            True
+            sage: T.composition(A, algorithm='direct')
+            Traceback (most recent call last):
+            ...
+            TypeError: Composition with automaton is not possible.
+            sage: T.composition(A, algorithm='explorative')
+            Traceback (most recent call last):
+            ...
+            TypeError: Composition with automaton is not possible.
+            sage: A.composition(A, algorithm='direct')
+            Traceback (most recent call last):
+            ...
+            TypeError: Composition with automaton is not possible.
+            sage: A.composition(A, algorithm='explorative')
+            Traceback (most recent call last):
+            ...
+            TypeError: Composition with automaton is not possible.
+            sage: is_Automaton(A.composition(T, algorithm='direct'))
+            True
+            sage: is_Automaton(A.composition(T, algorithm='explorative'))
+            True
         """
+        if not other._allow_composition_:
+            raise TypeError("Composition with automaton is not "
+                            "possible.")
+
         if algorithm is None:
             algorithm = 'direct'
         if algorithm == 'direct':
@@ -6103,7 +6203,8 @@ class FiniteStateMachine(SageObject):
         result = other.product_FiniteStateMachine(
             self, function,
             only_accessible_components=only_accessible_components,
-            final_function=lambda s1, s2: [])
+            final_function=lambda s1, s2: [],
+            new_class=self.__class__)
 
         for state_result in result.iter_states():
             state = state_result.label()[0]
@@ -6144,8 +6245,9 @@ class FiniteStateMachine(SageObject):
         new colors have to be hashable such that
         :meth:`Automaton.determinisation` does not fail::
 
-            sage: A = Automaton([[0, 0, 0]], initial_states=[0])
-            sage: B = A.composition(A, algorithm='explorative')
+            sage: T = Transducer([[0, 0, 0, 0]], initial_states=[0])
+            sage: A = T.input_projection()
+            sage: B = A.composition(T, algorithm='explorative')
             sage: B.states()[0].color
             (None, None)
             sage: B.determinisation()
@@ -6192,7 +6294,7 @@ class FiniteStateMachine(SageObject):
                                       "currently not implemented for "
                                       "non-deterministic transducers.")
 
-        F = other.empty_copy()
+        F = other.empty_copy(new_class=self.__class__)
         new_initial_states = [(other.initial_states()[0], self.initial_states()[0])]
         F.add_from_transition_function(composition_transition,
                                        initial_states=new_initial_states)
@@ -6509,9 +6611,9 @@ class FiniteStateMachine(SageObject):
         """
         DG = self.digraph()
         condensation = DG.strongly_connected_components_digraph()
-        final_labels = [v for v in condensation.vertices() if condensation.out_degree(v) == 0]
         return [self.induced_sub_finite_state_machine(map(self.state, component))
-                for component in final_labels]
+                for component in condensation.vertices()
+                if condensation.out_degree(component) == 0]
 
 
     # *************************************************************************
@@ -8089,6 +8191,23 @@ class Automaton(FiniteStateMachine):
         sage: Automaton()
         Automaton with 0 states
     """
+
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize an automaton. See :class:`Automaton` and its parent
+        :class:`FiniteStateMachine` for more information.
+
+        TESTS::
+
+            sage: Transducer()._allow_composition_
+            True
+            sage: Automaton()._allow_composition_
+            False
+
+        """
+        super(Automaton, self).__init__(*args, **kwargs)
+        self._allow_composition_ = False
+
 
     def _repr_(self):
         """

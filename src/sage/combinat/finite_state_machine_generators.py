@@ -32,6 +32,7 @@ for more details and a lot of examples.
     :meth:`~TransducerGenerators.Wait` | Returns a transducer writing ``False`` until first (or k-th) true input is read.
     :meth:`~TransducerGenerators.weight` | Returns a transducer realizing the Hamming weight
     :meth:`~TransducerGenerators.GrayCode` | Returns a transducer realizing binary Gray code.
+    :meth:`~TransducerGenerators.Recursion` | Returns a transducer defined by recursions
 
 AUTHORS:
 
@@ -44,6 +45,7 @@ AUTHORS:
 - Sara Kropf (2014-04-29): weight transducer
 - Clemens Heuberger, Daniel Krenn (2014-07-18): transducers Wait, all,
   any
+- Clemens Heuberger (2014-08-10): transducer Recursion
 
 ACKNOWLEDGEMENT:
 
@@ -64,6 +66,9 @@ Functions and methods
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
+
+import collections
+import operator
 
 from sage.combinat.finite_state_machine import Transducer
 from sage.rings.integer_ring import ZZ
@@ -567,7 +572,6 @@ class TransducerGenerators(object):
             sage: T([(0, 0), (0, 1), (1, 0), (1, 1)])
             [0, -1, 1, 0]
         """
-        import operator
         return self.operator(operator.sub, input_alphabet)
 
     def weight(self, input_alphabet, zero=0):
@@ -727,6 +731,472 @@ class TransducerGenerators(object):
                           initial_states=[0],
                           final_states=[1],
                           with_final_word_out=[0])
+
+    def Recursion(self, recursions, function, var, base,
+                  input_alphabet=None):
+        """
+        Return a transducer realizing the given recursion when reading
+        the digit expansion with base ``base``.
+
+        INPUT:
+
+        - ``recursions`` -- list or iterable of equations. Each
+          equation has the form ``f(base^K * n + r) == f(base^k * n +
+          s) + t`` for some integers ``0 <= k < K``, ``r`` and some
+          ``t`` or of the form ``f(r) == t`` for some integer ``r``
+          and some ``t``.
+
+        - ``function`` -- symbolic function ``f`` occuring in the
+          recursions.
+
+        - ``var`` -- symbolic variable.
+
+        - ``base`` -- base of the digit expansion.
+
+        - ``input_alphabet`` -- (default: ``None``) a list of digits
+          to be used as the input alphabet. If ``None`` and the base
+          is an integer, ``input_alphabet`` is chosen to be
+          ``range(base.abs())``.
+
+        OUTPUT:
+
+        A transducer ``T``.
+
+        The transducer is constructed such that ``T(expansion) ==
+        f(n)`` if ``expansion`` is the digit expansion of ``n`` to the
+        base ``base`` with the given input alphabet as set of digits.
+
+        The formal equations and initial conditions in the recursion
+        have to be selected such that ``f`` is uniquely defined.
+
+        EXAMPLES:
+
+        -   The following example computes the binary sum of digits. ::
+
+                sage: function('f')
+                f
+                sage: var('n')
+                n
+                sage: T = transducers.Recursion([
+                ....:     f(2*n + 1) == f(n) + 1,
+                ....:     f(2*n) == f(n),
+                ....:     f(0) == 0],
+                ....:     f, n, 2)
+                sage: T.transitions()
+                [Transition from (0, 0) to (0, 0): 0|0,
+                 Transition from (0, 0) to (0, 0): 1|1]
+
+        -   The following example computes the Hamming weight of the
+            non-adjacent form, cf. the :wikipedia:`Non-adjacent_form`. ::
+
+                sage: function('f')
+                f
+                sage: var('n')
+                n
+                sage: T = transducers.Recursion([
+                ....:     f(4*n + 1) == f(n) + 1,
+                ....:     f(4*n + 3) == f(n + 1) + 1,
+                ....:     f(2*n) == f(n),
+                ....:     f(0) == 0],
+                ....:     f, n, 2)
+                sage: T.transitions()
+                [Transition from (0, 0) to (0, 0): 0|0,
+                 Transition from (0, 0) to (1, 1): 1|-,
+                 Transition from (1, 1) to (0, 0): 0|1,
+                 Transition from (1, 1) to (1, 0): 1|1,
+                 Transition from (1, 0) to (1, 1): 0|-,
+                 Transition from (1, 0) to (1, 0): 1|0]
+                sage: [(s.label(), s.final_word_out)
+                ....:  for s in T.iter_final_states()]
+                [((0, 0), [0]),
+                 ((1, 1), [1, 0]),
+                 ((1, 0), [1, 0])]
+
+        .. TODO::
+
+            Extend the method to non-integral bases and higher dimensions.
+
+        TESTS:
+
+            The following tests check that the equations are well-formed::
+
+                sage: transducers.Recursion([f(4*n + 1)], f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: f(4*n + 1) is not an equation with ==.
+
+            ::
+
+                sage: transducers.Recursion([f(n) + 1 == f(2*n)],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: f(n) + 1 is not an evaluation of f.
+
+            ::
+
+                sage: transducers.Recursion([f(2*n, 5) == 3],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: f(2*n, 5) does not have one argument.
+
+            ::
+
+                sage: transducers.Recursion([f(1/n) == f(n) + 3],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ....:
+                ValueError: Could not convert 1/n to a polynomial in n.
+
+            ::
+
+                sage: transducers.Recursion([f(n^2 + 5) == 3],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: n^2 + 5 is not a polynomial of degree 1.
+
+            ::
+
+                sage: transducers.Recursion([f(3*n + 5) == f(n) + 7],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: 3 is not a power of 2.
+
+            ::
+
+                sage: transducers.Recursion([f(n + 5) == f(n) + 7],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: 1 is less than 2.
+
+            ::
+
+                sage: transducers.Recursion([f(2*n + 5) == f(n) + 7],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: 0 <= 5 < 2 does not hold.
+
+            ::
+
+                sage: transducers.Recursion(
+                ....:     [f(2*n + 1) == f(n + 1) + f(n) + 2],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: f(n + 1) + f(n) + 2 does not contain
+                exactly one summand which is an evaluation of f.
+
+            ::
+
+                sage: transducers.Recursion([f(2*n + 1) == sin(n) + 2],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: sin(n) + 2 does not contain exactly one
+                summand which is an evaluation of f.
+
+            ::
+
+                sage: transducers.Recursion([f(2*n + 1) == f(n) + n + 2],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: n + 2 contains n.
+
+            ::
+
+                sage: transducers.Recursion([f(2*n + 1) == sin(n)],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: sin(n) is not an evaluation of f.
+
+            ::
+
+                sage: transducers.Recursion([f(2*n + 1) == f(n, 2)],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: f(n, 2) does not have exactly one argument.
+
+            ::
+
+                sage: transducers.Recursion([f(2*n + 1) == f(1/n)],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: 1/n is not a polynomial in n.
+
+            ::
+
+                sage: transducers.Recursion([f(2*n + 1) == f(n^2 + 5)],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: n^2 + 5 is not a polynomial of degree 1.
+
+            ::
+
+                sage: transducers.Recursion([f(2*n + 1) == f(n^2 + 5)],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: n^2 + 5 is not a polynomial of degree 1.
+
+            ::
+
+                sage: transducers.Recursion([f(2*n + 1) == f(3*n + 5)],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: 3 is not a power of 2.
+
+            ::
+
+                sage: transducers.Recursion([f(2*n + 1) == f((1/2)*n + 5)],
+                ....:     f, n, QQ(2))
+                Traceback (most recent call last):
+                ...
+                ValueError: 1/2 is less than 1.
+
+            ::
+
+                sage: transducers.Recursion([f(2*n + 1) == f(2*n + 5)],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: 2 is greater or equal than 2.
+
+            The following tests fail due to missing or superfluous recursions
+            or initial conditions. ::
+
+                sage: transducers.Recursion([f(2*n) == f(n)],
+                ....:     f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: Missing recursions for input congruent to
+                [1] modulo 2.
+
+            ::
+
+                sage: transducers.Recursion([f(2*n + 1) == f(n),
+                ....:                        f(4*n) == f(2*n) + 1,
+                ....:                        f(2*n) == f(n) +1],
+                ....:                       f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: Conflicting rules congruent to 0 modulo 4.
+
+            ::
+
+                sage: transducers.Recursion([f(2*n + 1) == f(n) + 1,
+                ....:                        f(2*n) == f(n),
+                ....:                        f(0) == 0,
+                ....:                        f(42) == 42], f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: Superfluous initial condition for 42.
+
+            The following is an indication of a missing initial
+            condition::
+
+                sage: transducers.Recursion([f(2*n + 1) == f(n) + 1,
+                ....:                        f(2*n) == f(n - 2) + 4,
+                ....:                        f(0) == 0], f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: The finite state machine contains a cycle
+                starting at state (-2, 0) with input label 0 and no
+                final state.
+        """
+        from sage.functions.log import log
+
+        Rule = collections.namedtuple('Rule', ['K', 'r', 'k', 's', 't'])
+        RuleRight = collections.namedtuple('Rule', ['k', 's', 't'])
+        initial_values = {}
+        rules = []
+        base_ring = base.parent()
+        if input_alphabet is None and base in ZZ:
+            input_alphabet = list(range(base.abs()))
+
+        def is_scalar(expression):
+            return var not in expression.variables()
+
+        def parse_equation(equation):
+            if equation.operator() != operator.eq:
+                raise ValueError("%s is not an equation with ==."
+                                 % equation)
+            assert len(equation.operands()) == 2, \
+                "%s is not an equation with two operands." % equation
+            (left_side, right_side) = equation.operands()
+
+            if left_side.operator() != function:
+                raise ValueError("%s is not an evaluation of %s."
+                                 % (left_side, function))
+            if len(left_side.operands()) !=1:
+                raise ValueError("%s does not have one argument." %
+                                 (left_side, ))
+
+            try:
+                polynomial_left=base_ring[var](left_side.operands()[0])
+            except:
+                raise ValueError("Could not convert %s to a polynomial "
+                                 "in %s." % (left_side.operands()[0],
+                                            var))
+            if polynomial_left in base_ring and is_scalar(right_side):
+                initial_values[polynomial_left] = right_side
+                return
+
+            if polynomial_left.degree() != 1:
+                raise ValueError("%s is not a polynomial of degree 1."
+                                 % (polynomial_left,))
+
+            [r, base_power_K] = list(polynomial_left)
+            K = log(base_power_K, base=base)
+            try:
+                K = K.simplify()
+            except AttributeError:
+                pass
+            if K not in ZZ:
+                raise ValueError("%s is not a power of %s."
+                                 % (base_power_K, base))
+            if K < 1:
+                raise ValueError("%d is less than %d."
+                                 % (base_power_K, base))
+            if not 0 <= r < base_power_K:
+                raise ValueError("0 <= %d < %d does not hold."
+                                 % (r, base_power_K))
+
+            if right_side.operator() == operator.add:
+                function_calls = [o for o in right_side.operands()
+                                  if o.operator() == function]
+                other_terms = [o for o in right_side.operands()
+                               if o.operator() != function]
+                if len(function_calls) != 1:
+                    raise ValueError(
+                        "%s does not contain exactly one summand which "
+                        "is an evaluation of %s."
+                        % (right_side, function))
+                next_function = function_calls[0]
+                t = sum(other_terms)
+                if not is_scalar(t):
+                    raise ValueError("%s contains %s."
+                                     % (t, var))
+            else:
+                next_function = right_side
+                t = 0
+
+            if next_function.operator() != function:
+                raise ValueError("%s is not an evaluation of %s."
+                                 % (next_function, function))
+            if len(next_function.operands()) !=1:
+                raise ValueError("%s does not have exactly one argument."
+                                 % (next_function, ))
+
+            try:
+                polynomial_right = base_ring[var](next_function.operands()[0])
+            except:
+                raise ValueError("%s is not a polynomial in %s."
+                                 % (next_function.operands()[0], var))
+            if polynomial_right.degree() != 1:
+                raise ValueError("%s is not a polynomial of degree 1."
+                                 % (polynomial_right,))
+            [s, base_power_k] = list(polynomial_right)
+            k = log(base_power_k, base=base)
+            try:
+                k = k.simplify()
+            except AttributeError:
+                pass
+            if k not in ZZ:
+                raise ValueError("%s is not a power of %s."
+                                 % (base_power_k, base))
+            if k < 0:
+                raise ValueError("%s is less than 1."
+                                 % (base_power_k, ))
+            if k >= K:
+                raise ValueError("%d is greater or equal than %d."
+                                 % (base_power_k, base_power_K))
+
+            parsed_equation = function(base**K * var + r) == \
+                function(base**k * var + s) + t
+            assert equation == parsed_equation, \
+                "Parsing of %s failed for unknown reasons." % (equation,)
+
+            rule = Rule(K, r, k, s, t)
+            rules.append(rule)
+
+
+        for equation in recursions:
+            parse_equation(equation)
+
+        max_K = max(rule.K for rule in rules)
+
+        residues = [[None for r in range(base**k)]
+                    for k in range(max_K + 1)]
+        for rule in rules:
+            for m in range(max_K - rule.K + 1):
+                for ell in range(base**m):
+                    R = rule.r + 2**rule.K * ell
+                    if residues[rule.K + m][R] is not None:
+                        raise ValueError(
+                            "Conflicting rules congruent to %d modulo %d."
+                            % (R, base**(rule.K + m)))
+                    residues[rule.K + m][R] = RuleRight(rule.k + m,
+                                                        rule.s * base**m,
+                                                        rule.t)
+
+        missing_residues = [R
+                            for R, rule in enumerate(residues[max_K])
+                            if rule is None]
+        if missing_residues:
+            raise ValueError("Missing recursions for input congruent "
+                             "to %s modulo %s." % (missing_residues,
+                                                   base**max_K))
+
+        def transition_function((carry, look_ahead), input):
+            current = carry + input * base**look_ahead
+            K = look_ahead + 1
+            R = current % 2**K
+            rule = residues[K][R]
+            if rule is not None:
+                n = (current - R) / base**K
+                new_carry = n * base**rule.k + rule.s
+                return ((new_carry, rule.k), rule.t)
+            return ((current, K), [])
+
+        T = Transducer(transition_function,
+                       initial_states=[(0, 0)],
+                       input_alphabet=input_alphabet)
+
+        for key, value in initial_values.iteritems():
+            found = False
+            for state in T.iter_states():
+                if state.label()[0] == key:
+                    state.is_final = True
+                    state.final_word_out = value
+                    found = True
+            if not found:
+                raise ValueError("Superfluous initial condition for %s."
+                                 % key)
+
+        T.construct_final_word_out(0)
+
+        missing_initial_conditions = [
+            state.label()
+            for state in T.iter_states()
+            if not state.is_final]
+        if missing_initial_conditions:
+            # this does not currently deal with cycles which
+            # will be more frequent.
+            raise ValueError("Missing initial conditions for %s."
+                             % (missing_initial_conditions,))
+
+        return T
 
 
 # Easy access to the transducer generators from the command line:

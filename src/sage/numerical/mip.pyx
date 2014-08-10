@@ -2630,9 +2630,9 @@ cdef class MIPVariable(Element):
             sage: v = p.new_variable()
             sage: m = matrix([[1,2], [3,4]])
             sage: v * m
-            (3.0, 4.0)*x_1 + (1.0, 2.0)*x_0
+            (1.0, 2.0)*x_0 + (3.0, 4.0)*x_1
             sage: m * v
-            (2.0, 4.0)*x_1 + (1.0, 3.0)*x_0
+            (1.0, 3.0)*x_0 + (2.0, 4.0)*x_1
         """
         from sage.matrix.matrix import is_Matrix
         if is_Matrix(mat):

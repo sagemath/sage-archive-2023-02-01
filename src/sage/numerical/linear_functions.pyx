@@ -635,7 +635,7 @@ cdef class LinearFunction(ModuleElement):
            3/5*x_0
 
            sage: vf = (2 + x[0]) * vector(ZZ, [3,4]);  vf
-           (3, 4)*x_0 + (6, 8)
+           (6, 8) + (3, 4)*x_0
            sage: vf.parent()
            Tensor product of Vector space of dimension 2 over Rational Field
            and Linear functions over Rational Field

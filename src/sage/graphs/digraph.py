@@ -82,6 +82,7 @@ graphs. Here is what they can do
     :meth:`~DiGraph.is_directed_acyclic` | Returns whether the digraph is acyclic or not.
     :meth:`~DiGraph.is_transitive` | Returns whether the digraph is transitive or not.
     :meth:`~DiGraph.is_aperiodic` | Returns whether the digraph is aperiodic or not.
+    :meth:`~DiGraph.period` | Returns the period of the digraph.
     :meth:`~DiGraph.level_sets` | Returns the level set decomposition of the digraph.
     :meth:`~DiGraph.topological_sort_generator` | Returns a list of all topological sorts of the digraph if it is acyclic
     :meth:`~DiGraph.topological_sort` | Returns a topological sort of the digraph if it is acyclic
@@ -3417,6 +3418,67 @@ class DiGraph(GenericGraph):
         """
         import networkx
         return networkx.is_aperiodic(self.networkx_graph(copy=False))
+
+    def period(self):
+        r"""
+        Return the period of the current ``DiGraph``.
+
+        The period of a strongly connected directed graph is the
+        largest integer that divides the length of every cycle in the
+        graph, cf.  :wikipedia:`Aperiodic_graph`.
+
+        EXAMPLES:
+
+        The following graph has period ``2``::
+
+            sage: g = DiGraph({0: [1], 1: [0]})
+            sage: g.period()
+            2
+
+        The following graph has a cycle of length 2 and a cycle of length 3,
+        so it has period ``1``::
+
+            sage: g = DiGraph({0: [1, 4], 1: [2], 2: [0], 4: [0]})
+            sage: g.period()
+            1
+
+        This is not implemented for not strongly connected digraphs::
+
+            sage: g = DiGraph({0: [0], 1: [1]})
+            sage: g.period()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: graph is not strongly connected.
+
+        ALGORITHM:
+
+        See the networkX implementation of ``is_aperiodic``, that is based
+        on breadth first search.
+
+        .. SEEALSO:: :meth:`is_aperiodic`
+        """
+        from sage.rings.arith import gcd
+
+        if not self.is_strongly_connected():
+            raise NotImplementedError(
+                "graph is not strongly connected.")
+        s = next(self.vertex_iterator())
+        levels = {s: 0}
+        this_level = [s]
+        g = 0
+        l = 1
+        while this_level:
+            next_level = []
+            for u in this_level:
+                for v in self.neighbor_out_iterator(u):
+                    if v in levels: # Non-Tree Edge
+                        g = gcd(g, levels[u] - levels[v] + 1)
+                    else: # Tree Edge
+                        next_level.append(v)
+                        levels[v] = l
+            this_level = next_level
+            l += 1
+        return g
 
 import types
 

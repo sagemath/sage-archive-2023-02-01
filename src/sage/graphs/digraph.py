@@ -3455,7 +3455,9 @@ class DiGraph(GenericGraph):
         See the networkX implementation of ``is_aperiodic``, that is based
         on breadth first search.
 
-        .. SEEALSO:: :meth:`is_aperiodic`
+        .. SEEALSO::
+
+            :meth:`is_aperiodic`
         """
         from sage.rings.arith import gcd
 

@@ -2695,10 +2695,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         .. note::
 
-           If `E` has CM but the discriminant `D` is not a square in
-           the base field `K` then the extra endomorphisms will not be
-           defined over `K`, but this function will still return
-           ``True``.  See also :meth:`has_rational_cm`.
+           Even if `E` has CM in this sense (that its `j`-invariant is
+           a CM `j`-invariant), since the associated negative
+           discriminant `D` is not a square in the base field `K`, the
+           extra endomorphisms will not be defined over `K`.  See also
+           the method :meth:`has_rational_cm` which tests whether `E`
+           has extra endomorphisms defined over `K` or a given
+           extension of `K`.
 
         EXAMPLES::
 
@@ -2723,25 +2726,33 @@ class EllipticCurve_number_field(EllipticCurve_field):
             return False
         return True
 
-    def has_rational_cm(self):
+    def has_rational_cm(self, field=None):
         """
-        Returns whether or not this curve has CM defined over its base field.
+        Returns whether or not this curve has CM defined over its base field or a given extension.
+
+        INPUT:
+
+        - ``field`` -- a field, which should be an extension of the
+          base field of the curve.  If ``field`` is ``None`` (the
+          default), it is taken to be the base field of the curve.
 
         OUTPUT:
 
         ``True`` if the `j`-invariant of this curve `E` is the
         `j`-invariant of an imaginary quadratic order and the
-        discriminant of the order is a square in the base field of
-        `E`; otherwise ``False``.  See also :meth:`cm_discriminant()`
-        and :meth:`has_cm`.
+        discriminant of the order is a square in the given field (by
+        default the base field of `E`), so that the ring of
+        endomorphisms of `E` defined over the given field is larger
+        than `\ZZ`; otherwise ``False``.  See also
+        :meth:`cm_discriminant()` and :meth:`has_cm`.
 
         .. note::
 
            If `E` has CM but the discriminant `D` is not a square in
-           the base field `K` then the extra endomorphisms will not be
-           defined over `K`, and this function will return ``False``.
-           See also :meth:`has_cm`.  To obtain the CM discriminant,
-           use :meth:`cm_discriminant()`.
+           the given field `K` then the extra endomorphisms will not
+           be defined over `K`, and this function will return
+           ``False``.  See also :meth:`has_cm`.  To obtain the CM
+           discriminant, use :meth:`cm_discriminant()`.
 
         EXAMPLES::
 
@@ -2752,7 +2763,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             False
             sage: D = E.cm_discriminant(); D
             -3
-            sage: E.change_ring(QuadraticField(D)).has_rational_cm()
+            sage: E.has_rational_cm(QuadraticField(D))
             True
 
             sage: E = EllipticCurve(j=1728)
@@ -2762,17 +2773,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             False
             sage: D = E.cm_discriminant(); D
             -4
-            sage: E.change_ring(QuadraticField(D)).has_rational_cm()
-            True
-
-            sage: E = EllipticCurve(j=8000)
-            sage: E.has_cm()
-            True
-            sage: E.has_rational_cm()
-            False
-            sage: D = E.cm_discriminant(); D
-            -8
-            sage: E.change_ring(QuadraticField(D)).has_rational_cm()
+            sage: E.has_rational_cm(QuadraticField(D))
             True
 
         Higher degree examples::
@@ -2785,6 +2786,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
             False
             sage: E.cm_discriminant()
             -20
+            sage: E.has_rational_cm(K.extension(x^2+5,'b'))
+            True
+
+        An error is raised if a field is given which is not an extension of the base field::
+
+            sage: E.has_rational_cm(QuadraticField(-20))
+            Traceback (most recent call last):
+            ...
+            ValueError: Error in has_rational_cm: Number Field in a with defining polynomial x^2 + 20 is not an extension field of Number Field in a with defining polynomial x^2 - 5
 
             sage: K.<a> = NumberField(x^3 - 2)
             sage: E = EllipticCurve(j=31710790944000*a^2 + 39953093016000*a + 50337742902000)
@@ -2792,18 +2802,19 @@ class EllipticCurve_number_field(EllipticCurve_field):
             True
             sage: E.has_rational_cm()
             False
-            sage: D = E.cm_discriminant()
-            sage: D, D.squarefree_part()
-            (-108, -3)
-            sage: L.<b> = K.extension(x^2+3)
-            sage: EL = E.change_ring(L)
-            sage: EL.has_cm()
-            True
-            sage: EL.has_rational_cm()
+            sage: D = E.cm_discriminant(); D
+            -108
+            sage: E.has_rational_cm(K.extension(x^2+108,'b'))
             True
         """
         try:
             D = self.cm_discriminant()
         except ValueError:
             return False
-        return self.base_field()(D).is_square()
+        if field is None:
+            return self.base_field()(D).is_square()
+        if self.base_field().embeddings(field):
+            D = field(D)
+            return D.is_square()
+        raise ValueError("Error in has_rational_cm: %s is not an extension field of %s"
+                         % (field,self.base_field()))

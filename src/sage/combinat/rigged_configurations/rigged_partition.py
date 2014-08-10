@@ -268,7 +268,8 @@ class RiggedPartition(CombinatorialObject):
             i -= 1
 
         # Add the remaining cells
-        sum_cells += end_column * (i + 1)
+        if i > -1:
+            sum_cells += end_column * (i + 1)
 
         return sum_cells
 

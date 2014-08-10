@@ -63,7 +63,7 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
 
     - ``arrow_head`` -- (default: False)
 
-    - ``color`` -- a string (``"red"``, ``"green"``etc)
+    - ``color`` -- a string (``"red"``, ``"green"`` etc)
       or a tuple (r, g, b) with r, g, b numbers between 0 and 1
 
     -  ``opacity`` -- (default: 1) if less than 1 then is
@@ -168,7 +168,7 @@ def bezier3d(path, **options):
 
     -  ``thickness`` -- (default: 2)
 
-    - ``color`` -- a string (``"red"``, ``"green"``etc)
+    - ``color`` -- a string (``"red"``, ``"green"`` etc)
       or a tuple (r, g, b) with r, g, b numbers between 0 and 1
 
     -  ``opacity`` -- (default: 1) if less than 1 then is
@@ -1006,7 +1006,7 @@ def point3d(v, size=5, **kwds):
     -  ``size`` -- (default: 5) size of the point (or
        points)
 
-    - ``color`` -- a string (``"red"``, ``"green"``etc)
+    - ``color`` -- a string (``"red"``, ``"green"`` etc)
       or a tuple (r, g, b) with r, g, b numbers between 0 and 1
 
     -  ``opacity`` -- (default: 1) if less than 1 then is

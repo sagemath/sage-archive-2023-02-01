@@ -1604,7 +1604,7 @@ class TransformGroup(Graphics3dGroup):
 
     def bounding_box(self):
         """
-        Return the bounding box of ``self``, i.e. the box containing the
+        Return the bounding box of ``self``, i.e., the box containing the
         contents of ``self`` after applying the transformation.
 
         EXAMPLES::
@@ -2232,8 +2232,6 @@ def optimal_extra_kwds(v):
     """
     Given a list v of dictionaries, this function merges them such that
     later dictionaries have precedence.
-
-    EXAMPLES::
     """
     if len(v) == 0:
         return {}

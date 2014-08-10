@@ -1324,7 +1324,7 @@ end_scene""" % (render_params.antialiasing,
             sage: x,y,z = var('x,y,z')
             sage: a = implicit_plot3d(x^2+y^2+z^2-9,[x,-5,5],[y,-5,5],[z,-5,5])
             sage: astl = a.ply_ascii_string()
-            sage: astl.splitlines()[:7]
+            sage: astl.splitlines()[:10]
             ['ply',
             'format ascii 1.0',
             'comment surface',
@@ -1334,8 +1334,7 @@ end_scene""" % (render_params.antialiasing,
             'property float z',
             'element face 5180',
             'property list uchar int vertex_indices',
-            'end_header',
-            '2.94871794872 -0.384615384615 -0.39358974359']
+            'end_header']
 
             sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
             sage: print p.ply_ascii_string(name='triangle')

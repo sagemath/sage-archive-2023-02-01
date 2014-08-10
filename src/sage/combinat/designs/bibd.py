@@ -58,7 +58,7 @@ from block_design import BlockDesign
 from sage.rings.arith import binomial
 from sage.rings.arith import is_prime_power
 
-def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
+def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
     r"""
     Return a BIBD of parameters `v,k`.
 
@@ -104,16 +104,16 @@ def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
 
     EXAMPLES::
 
-        sage: designs.balanced_incomplete_block_design(7,3).blocks()
+        sage: designs.balanced_incomplete_block_design(7, 3).blocks()
         [[0, 1, 3], [0, 2, 4], [0, 5, 6], [1, 2, 6], [1, 4, 5], [2, 3, 5], [3, 4, 6]]
-        sage: B = designs.balanced_incomplete_block_design(66,6, use_LJCR=True) # optional - internet
+        sage: B = designs.balanced_incomplete_block_design(66, 6, use_LJCR=True) # optional - internet
         sage: B                                                              # optional - internet
         Incidence structure with 66 points and 143 blocks
         sage: B.blocks()                                                     # optional - internet
         [[0, 1, 2, 3, 4, 65], [0, 5, 24, 25, 39, 57], [0, 6, 27, 38, 44, 55], ...
-        sage: designs.balanced_incomplete_block_design(66,6, use_LJCR=True)
+        sage: designs.balanced_incomplete_block_design(66, 6, use_LJCR=True)  # optional - internet
         Incidence structure with 66 points and 143 blocks
-        sage: designs.balanced_incomplete_block_design(141,6)
+        sage: designs.balanced_incomplete_block_design(141, 6)
         Traceback (most recent call last):
         ...
         NotImplementedError: I don't know how to build a (141,6,1)-BIBD!

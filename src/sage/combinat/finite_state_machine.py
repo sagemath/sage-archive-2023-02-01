@@ -271,7 +271,7 @@ Anyhow, we got the following finite state machine::
     sage: fsm
     Finite state machine with 2 states
 
-We can also obtain the underlying directed graph by
+We can also obtain the underlying :class:`directed graph <DiGraph>` by
 
 ::
 
@@ -7536,7 +7536,7 @@ class FiniteStateMachine(SageObject):
 
         OUTPUT:
 
-        A graph.
+        A :class:`directed graph <DiGraph>`.
 
         EXAMPLES::
 
@@ -7553,6 +7553,8 @@ class FiniteStateMachine(SageObject):
             Transition from 'A' to 'A': 0|1
             sage: T.graph()
             Looped digraph on 1 vertex
+
+        .. SEEALSO:: :class:`DiGraph`
         """
         if edge_labels == 'words_in_out':
             label_fct = lambda t:t._in_out_label_()

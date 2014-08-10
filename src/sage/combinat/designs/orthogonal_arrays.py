@@ -1178,37 +1178,34 @@ def OA_relabel(OA,k,n,blocks=tuple(),matrix=None):
 
     return OA
 
-def OA_2_pow_c(k,c,G1,A,Y):
+def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y):
     r"""
-    Return an `OA(k, n \cdot 2^c)` where ``n`` is the cardinality of the additive
-    Abelian group ``G1``.
+    Return an `OA(k, |G| \cdot 2^c)` from a constrained `(G,k-1,2)`-difference
+    matrix.
 
     This construction appears in [AbelCheng1994]_ and [AbelThesis]_.
     
-    Let `G_1` be an additive Abelian group. The idea of the construction is to
-    use a difference matrix over `G_1` with `\lambda = 2` to construct a
-    difference matrix over `G_1 \times GF(2^c)` (with `\lambda=1`).
+    Let `G` be an additive Abelian group. Let `w` be a multiplicative generator
+    of `GF(2^c)^*`. We denote by `H` the `GF(2)`-hyperplane in `GF(2^c)` spanned
+    by `w^0, w^1, \ldots, w^{c-2}`.
 
-    Let `w` be a multiplicative generator of `GF(2^c)^*`. We denote by `H` the
-    `GF(2)`-hyperplane in `GF(2^c)` spanned by `w^0, w^1, \ldots, w^{c-2}`.
-
-    Let `A` be a `(k-1) \times 2n` array with entries in `G_1 \times GF(2^c)`
+    Let `A` be a `(k-1) \times 2|G|` array with entries in `G \times GF(2^c)`
     and `Y` be a vector with `k-1` entries in `GF(2^c)`. Let `B` and `C` be
-    respectively the part of the array that belong t `G_1` and `GF(2^c)`.
+    respectively the part of the array that belong to `G` and `GF(2^c)`.
     
-    The input `A` and `Y` must satisfy the following condition. For any pair `i`
-    and `j` of distinct integers in `{1,...,k-1}` and `g` an element of `G_1`
+    The input `A` and `Y` must satisfy the following condition. For any  `i \neq
+    j` and `g \in G`
 
     - there are exactly two values of `k` in {1,...,2p} such that `B_{i,k} -
-      B_{j,k} = g` (i.e. `B` is a `(G_1,k,2)`-difference matrix),
+      B_{j,k} = g` (i.e. `B` is a `(G,k,2)`-difference matrix),
 
     - let `k_1` and `k_2` denote the two values of `k` given above, then exactly
-      one of `C_{i,k_1} - C_{i,k_1}` and `C_{i,k_2} - C_{j,k_2}` belongs to the
+      one of `C_{i,k_1} - C_{j,k_1}` and `C_{i,k_2} - C_{j,k_2}` belongs to the
       `GF(2)`-hyperplane `(Y_i - Y_j) \cdot H` (we implicitely assumed that `Y_i
       \not= Y_j`).
 
-    Under these conditions, it is easy to check that the array whose row are
-    given for `i=1,\ldots,n` by `A_{i,k} + (0, Y_i \cdot v)` where `k` ranges
+    Under these conditions, it is easy to check that the array whose rows are
+    given for `i=1,\ldots,|G|` by `A_{i,k} + (0, Y_i \cdot v)` where `k` ranges
     from `1` to `k-1` and `v` belongs to `H` is a difference matrix over `G_1
     \times GF(2^c)`.
 
@@ -1220,9 +1217,9 @@ def OA_2_pow_c(k,c,G1,A,Y):
 
     - ``k,c`` (integers) -- integers
 
-    - ``G_1`` -- an additive Abelian group
+    - ``G`` -- an additive Abelian group
 
-    - ``A`` -- a matrix with entries in `G_1 \times GF(2^c)`
+    - ``A`` -- a matrix with entries in `G \times GF(2^c)`
 
     - ``Y`` -- a vector with entries in `GF(2^c)`
 
@@ -1267,17 +1264,17 @@ def OA_2_pow_c(k,c,G1,A,Y):
     from itertools import izip,combinations
 
     F = FiniteField(2**c,'w')
-    G = G1.cartesian_product(F)
-    w = F.multiplicative_generator()
+    GG = G.cartesian_product(F)
 
     # dictionnary from integers to elments of GF(2^c): i -> w^i, None -> 0
+    w = F.multiplicative_generator()
     r = {i:w**i for i in xrange(2**c-1)}
     r[None] = F.zero()
 
     # convert:
-    #  the matrix A to a matrix over GF(p) \times GF(2^c)
+    #  the matrix A to a matrix over G \times GF(2^c)
     #  the vector Y to a vector over GF(2^c)
-    A = [[G((G1(a),r[b])) for a,b in R] for R in A]
+    A = [[GG((G(a),r[b])) for a,b in R] for R in A]
     Y = [r[b] for b in Y]
 
     # make the list of the elements of GF(2^c) which belong to the
@@ -1287,8 +1284,8 @@ def OA_2_pow_c(k,c,G1,A,Y):
     assert len(H) == 2**(c-1)
 
     # build the quasi difference matrix and return the associated OA
-    Mb = [[e+G((G1.zero(),x*v)) for v in H for e in R] for x,R in izip(Y,A)]
-    return OA_from_quasi_difference_matrix(Mb,G,add_col=True)
+    Mb = [[e+GG((G.zero(),x*v)) for v in H for e in R] for x,R in izip(Y,A)]
+    return OA_from_quasi_difference_matrix(Mb,GG,add_col=True)
 
 def OA_from_quasi_difference_matrix(M,G,add_col=True):
     r"""

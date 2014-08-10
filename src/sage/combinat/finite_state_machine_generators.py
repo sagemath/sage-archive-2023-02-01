@@ -1127,7 +1127,7 @@ class TransducerGenerators(object):
             assert equation == parsed_equation, \
                 "Parsing of %s failed for unknown reasons." % (equation,)
 
-            rule = Rule(K, r, k, s, t)
+            rule = Rule(K=K,r=r, k=k, s=s, t=t)
             rules.append(rule)
 
 
@@ -1146,9 +1146,9 @@ class TransducerGenerators(object):
                         raise ValueError(
                             "Conflicting rules congruent to %d modulo %d."
                             % (R, base**(rule.K + m)))
-                    residues[rule.K + m][R] = RuleRight(rule.k + m,
-                                                        rule.s * base**m,
-                                                        rule.t)
+                    residues[rule.K + m][R] = RuleRight(k=rule.k + m,
+                                                        s=rule.s * base**m,
+                                                        t=rule.t)
 
         missing_residues = [R
                             for R, rule in enumerate(residues[max_K])

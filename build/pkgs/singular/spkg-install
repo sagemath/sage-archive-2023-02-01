@@ -234,7 +234,7 @@ build_factory()
                 --with-gmp="$SAGE_LOCAL" \
                 --enable-NTL \
                 --with-NTL="$SAGE_LOCAL" \
-                --without-flint \
+                --with-flint="$SAGE_LOCAL" \
                 --with-gmp="$SAGE_LOCAL" \
                 $ENABLE_DEBUGOUTPUT
 

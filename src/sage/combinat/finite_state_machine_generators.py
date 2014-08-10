@@ -814,7 +814,16 @@ class TransducerGenerators(object):
 
         .. TODO::
 
-            Extend the method to non-integral bases and higher dimensions.
+            Extend the method to
+
+            - non-integral bases,
+
+            - non-positive residues, e.g. allow ``f(4*n - 1) == f(n) - 1``,
+
+            - higher dimensions,
+
+            - output words of length `> 1`---currently, some
+              work-around with a symbolic function would somehow work.
 
         TESTS:
 

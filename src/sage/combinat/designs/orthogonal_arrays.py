@@ -1283,26 +1283,36 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
 
         sage: _ = designs.orthogonal_array(6,20,2) # indirect doctest
     """
-    Gn = G.cardinality()
+    Gn = int(G.cardinality())
     k = len(M)+bool(add_col)
-    G_to_int = {v:i for i,v in enumerate(G)}
 
+    G_to_int = {x:i for i,x in enumerate(G)}
+
+    # A cache for addition in G
+    G_sum = [[0]*Gn for _ in range(Gn)]
+    for x,i in G_to_int.iteritems():
+        for xx,ii in G_to_int.iteritems():
+            G_sum[i][ii] = G_to_int[x+xx]
+
+    # Convert M to integers
+    M = [[None if x is None else G_to_int[G(x)] for x in line] for line in M]
+
+    # Each line is expanded by [g+x for x in line for g in G] then relabeled
+    # with integers. Missing values are also handled.
     new_M = []
     for line in M:
+        inf = Gn
         new_line = []
-        # Concatenating the line+x, for all x \in G
-        for g in G:
-            inf = Gn
-            for x in line:
-                if x is None:
-                    new_line.append(inf)
-                    inf = inf + 1
-                else:
-                    new_line.append(G_to_int[g+G(x)])
+        for x in line:
+            if x is None:
+                new_line.extend([inf]*Gn)
+                inf = inf + 1
+            else:
+                new_line.extend(G_sum[x])
         new_M.append(new_line)
 
     if add_col:
-        new_M.append([i%(Gn) for i in range(len(new_line))])
+        new_M.append([i//Gn for i in range(len(new_line))])
 
     # new_M = transpose(new_M)
     new_M = zip(*new_M)
@@ -1476,7 +1486,7 @@ def OA_from_wider_OA(OA,k):
 
         sage: from sage.combinat.designs.orthogonal_arrays import OA_from_wider_OA
         sage: OA_from_wider_OA(designs.orthogonal_array(6,20,2),1)[:5]
-        [(19,), (0,), (0,), (7,), (1,)]
+        [(19,), (19,), (19,), (19,), (19,)]
         sage: _ = designs.orthogonal_array(5,46) # indirect doctest
 
     """

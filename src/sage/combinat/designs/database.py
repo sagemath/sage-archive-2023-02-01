@@ -444,7 +444,7 @@ def OA_7_18():
             Mb[6].append(g + G((0,  0  ,2*y)))
 
     M = OA_from_quasi_difference_matrix(Mb,G,add_col=False)
-    M = M[:len(M)/2] # only develop w.r.t the last two coordinates
+    M = [M[i] for i in range(len(M)) if i%18<9] # only develop w.r.t the last two coordinates
     return M
 
 def OA_6_20():

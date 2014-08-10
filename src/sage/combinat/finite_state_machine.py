@@ -5892,6 +5892,18 @@ class FiniteStateMachine(SageObject):
             sage: type(T.product_FiniteStateMachine(T, None,
             ....:      new_class=Automaton))
             <class 'sage.combinat.finite_state_machine.Automaton'>
+
+        Check that isolated vertices are kept (:trac:`16762`)::
+
+            sage: F = Transducer(initial_states=[0])
+            sage: F.add_state(1)
+            1
+            sage: G = Transducer(initial_states=['A'])
+            sage: F.product_FiniteStateMachine(G, None).states()
+            [(0, 'A')]
+            sage: F.product_FiniteStateMachine(
+            ....:     G, None, only_accessible_components=False).states()
+            [(0, 'A'), (1, 'A')]
         """
         def default_final_function(*args):
             if any(s.final_word_out for s in args):
@@ -5928,6 +5940,16 @@ class FiniteStateMachine(SageObject):
             result.add_transition(tuple(t.from_state for t in transitions),
                                   tuple(t.to_state for t in transitions),
                                   word[0], word[1])
+
+        if only_accessible_components:
+            state_iterator = itertools.product(
+                *(m.iter_initial_states() for m in machines))
+        else:
+            state_iterator = itertools.product(
+                *(m.iter_states() for m in machines))
+
+        for state in state_iterator:
+            result.add_state(state)
 
         for state in result.states():
             if all(s.is_initial for s in state.label()):
@@ -9032,7 +9054,7 @@ class Transducer(FiniteStateMachine):
             Please use Transducer.intersection for the original output.
             See http://trac.sagemath.org/16061 for details.
             sage: result
-            Transducer with 0 states
+            Transducer with 1 states
 
         By setting ``FSMOldCodeTransducerCartesianProduct`` to ``False``
         the new desired output is produced.

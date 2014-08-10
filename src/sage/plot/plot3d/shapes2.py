@@ -55,18 +55,16 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
 
     INPUT:
 
-    -  ``points`` -- a list of at least 2 points
+    - ``points`` -- a list of at least 2 points
 
-    -  ``thickness`` -- (default: 1)
+    - ``thickness`` -- (default: 1)
 
-    -  ``radius`` -- (default: None)
+    - ``radius`` -- (default: None)
 
-    -  ``arrow_head`` -- (default: False)
+    - ``arrow_head`` -- (default: False)
 
-    -  ``color`` -- a word that describes a color
-
-    -  ``rgbcolor`` -- (r,g,b) with r, g, b between 0 and 1
-       that describes a color
+    - ``color`` -- a string (``"red"``, ``"green"``etc)
+      or a tuple (r, g, b) with r, g, b numbers between 0 and 1
 
     -  ``opacity`` -- (default: 1) if less than 1 then is
        transparent
@@ -170,7 +168,8 @@ def bezier3d(path, **options):
 
     -  ``thickness`` -- (default: 2)
 
-    -  ``color`` -- a word that describes a color
+    - ``color`` -- a string (``"red"``, ``"green"``etc)
+      or a tuple (r, g, b) with r, g, b numbers between 0 and 1
 
     -  ``opacity`` -- (default: 1) if less than 1 then is
        transparent
@@ -644,7 +643,7 @@ def text3d(txt, x_y_z, **kwds):
 
     And in 3d in two places::
 
-        sage: text3d("Sage is...",(2,12,1), rgbcolor=(1,0,0)) + text3d("quite powerful!!",(4,10,0), rgbcolor=(0,0,1))
+        sage: text3d("Sage is...",(2,12,1), color=(1,0,0)) + text3d("quite powerful!!",(4,10,0), color=(0,0,1))
     """
     (x, y, z) = x_y_z 
     if 'color' not in kwds and 'rgbcolor' not in kwds:
@@ -1007,10 +1006,8 @@ def point3d(v, size=5, **kwds):
     -  ``size`` -- (default: 5) size of the point (or
        points)
 
-    -  ``color`` -- a word that describes a color
-
-    -  ``rgbcolor`` -- (r,g,b) with r, g, b between 0 and 1
-       that describes a color
+    - ``color`` -- a string (``"red"``, ``"green"``etc)
+      or a tuple (r, g, b) with r, g, b numbers between 0 and 1
 
     -  ``opacity`` -- (default: 1) if less than 1 then is
        transparent

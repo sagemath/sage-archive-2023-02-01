@@ -215,7 +215,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
             sage: _ = var('x,y')
             sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
-            sage: s = P.x3d_str()
+            sage: s = P.x3d_str()    # indirect doctest
             sage: s[:100]
             "<Shape>\n<IndexedFaceSet coordIndex='0,1,..."
         """

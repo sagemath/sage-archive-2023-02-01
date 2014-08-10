@@ -1110,7 +1110,7 @@ cdef class ImplicitSurface(IndexFaceSet):
             sage: var('x,y,z')
             (x, y, z)
             sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
-            sage: show(G, viewer='jmol')
+            sage: show(G, viewer='jmol')   # indirect doctest
         """
         self.triangulate()
         return IndexFaceSet.jmol_repr(self, render_params)

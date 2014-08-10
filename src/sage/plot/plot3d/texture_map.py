@@ -279,6 +279,17 @@ class ColormapTransform(GradualTextureTransform):
         sage: p2.show()
     """
     def __init__(self, cmap, fun=None, bounds=None):
+        """
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.texture_map import ColormapTransform
+            sage: cms = colormaps.summer
+            sage: c = ColormapTransform(cms)  # indirect doctest
+            sage: x, y, z = var('x,y,z')
+            sage: p1 = implicit_plot3d(x^2+2*y^2+z^2==4, (x, -3, 3), (y, -3,3), (z, -3,3))
+            sage: p2 = c.apply(p1)
+            sage: p2.show()
+        """
         GradualTextureTransform.__init__(self, 'color', cmap, fun, bounds)
 
 
@@ -299,4 +310,15 @@ class OpacityTransform(GradualTextureTransform):
         sage: (p1 + p3).show()
     """
     def __init__(self, values, fun=None, bounds=None):
+        """
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.texture_map import OpacityTransform
+            sage: p1 = sphere((0,0.6,0), .5, color='yellow')
+            sage: p2 = sphere((0,0,0),  1)
+            sage: opacity_values = sxrange(0.1, 0.9, .05)
+            sage: c = OpacityTransform(opacity_values)  # indirect doctest
+            sage: p3 = c.apply(p2)
+            sage: (p1 + p3).show()
+        """
         GradualTextureTransform.__init__(self, 'opacity', values, fun, bounds)

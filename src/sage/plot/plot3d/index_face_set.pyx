@@ -615,7 +615,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
             sage: from sage.plot.plot3d.shapes import *
             sage: S = polygon([(0,0,1), (1,1,1), (2,0,1)])
-            sage: list(S.vertices())[0]
+            sage: S.vertex_list()[0]
             (0.0, 0.0, 1.0)
         """
         cdef Py_ssize_t i
@@ -947,7 +947,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
             sage: from sage.plot.plot3d.shapes import *
             sage: S = Cylinder(1,1)
-            sage: S.show()
+            sage: S.show(viewer='jmol')   # indirect doctest
         """
         cdef Transformation transform = render_params.transform
         cdef Py_ssize_t i
@@ -1131,8 +1131,17 @@ cdef class IndexFaceSet(PrimitiveObject):
 cdef class FaceIter:
     """
     A class for iteration over faces
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.shapes import *
+        sage: S = Box(1,2,3)
+        sage: len(list(S.faces())) == 6   # indirect doctest
+        True
     """
     def __init__(self, face_set):
+        """
+        """
         self.set = face_set
         self.i = 0
 
@@ -1155,6 +1164,13 @@ cdef class FaceIter:
 cdef class EdgeIter:
     """
     A class for iteration over edges
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.shapes import *
+        sage: S = Box(1,2,3)
+        sage: len(list(S.edges())) == 12   # indirect doctest
+        True
     """
     def __init__(self, face_set):
         self.set = face_set
@@ -1199,6 +1215,13 @@ cdef class EdgeIter:
 cdef class VertexIter:
     """
     A class for iteration over vertices
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.shapes import *
+        sage: S = Box(1,2,3)
+        sage: len(list(S.vertices())) == 8   # indirect doctest
+        True
     """
     def __init__(self, face_set):
         self.set = face_set

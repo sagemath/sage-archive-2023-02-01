@@ -56,7 +56,7 @@ graphs. Here is what they can do
     :widths: 30, 70
     :delim: |
 
-    :meth:`~Digraph.path_semigroup` | Returns the (partial) semigroup formed by the paths of the digraph.
+    :meth:`~DiGraph.path_semigroup` | Returns the (partial) semigroup formed by the paths of the digraph.
 
 **Connectivity:**
 

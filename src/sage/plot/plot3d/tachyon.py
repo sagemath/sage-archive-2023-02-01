@@ -42,13 +42,12 @@ AUTHOR:
 
 - Marshall Hampton: improved doctests, rings, axis-aligned boxes.
 
-TODO:
+.. TODO:
 
-- clean up trianglefactory stuff
+    - clean up trianglefactory stuff
 """
 
 from tri_plot import Triangle, SmoothTriangle, TriangleFactory, TrianglePlot
-
 
 from sage.interfaces.tachyon import tachyon_rt
 
@@ -62,6 +61,7 @@ from sage.misc.temporary_file import tmp_filename, graphics_filename
 import os
 
 from math import sqrt
+
 
 class Tachyon(SageObject):
     r"""
@@ -78,7 +78,7 @@ class Tachyon(SageObject):
     - ``camera_center`` - (default (-3, 0, 0))
     - ``updir`` - (default (0, 0, 1))
     - ``look_at`` - (default (0,0,0))
-    - ``viewdir`` - (default None)
+    - ``viewdir`` - (default ``None``)
     - ``projection`` - (default 'PERSPECTIVE')
 
     OUTPUT: A Tachyon 3d scene.
@@ -192,20 +192,29 @@ class Tachyon(SageObject):
         sage: t.texture('white', color=(1,1,1), opacity=1, specular=1, diffuse=1)
         sage: t.plane((0,0,-100), (0,0,-100), 'white')
         sage: t.show()
+
+    If the optional parameter ``viewdir`` is not set, the camera
+    center should not coincide with the point which
+    is looked at (see :trac:`7232`)::
+
+        sage: t = Tachyon(xres=80,yres=80, camera_center=(2,5,2), look_at=(2,5,2))
+        Traceback (most recent call last):
+        ...
+        ValueError: camera_center and look_at coincide
     """
     def __init__(self,
                  xres=350, yres=350,
-                 zoom = 1.0,
-                 antialiasing = False,
-                 aspectratio = 1.0,
-                 raydepth = 8,
-                 camera_center = (-3, 0, 0),
-                 updir = (0, 0, 1),
-                 look_at = (0,0,0),
-                 viewdir = None,
-                 projection = 'PERSPECTIVE'):
+                 zoom=1.0,
+                 antialiasing=False,
+                 aspectratio=1.0,
+                 raydepth=8,
+                 camera_center=(-3, 0, 0),
+                 updir=(0, 0, 1),
+                 look_at=(0, 0, 0),
+                 viewdir=None,
+                 projection='PERSPECTIVE'):
         r"""
-        Creates an instance of the Tachyon class.
+        Create an instance of the Tachyon class.
 
         EXAMPLES::
 
@@ -224,15 +233,36 @@ class Tachyon(SageObject):
         self._projection = projection
         self._objects = []
         if viewdir is None:
-            self._viewdir = [look_at[i] - camera_center[i] for i in range(3)]
+            if look_at != camera_center:
+                self._viewdir = [look_at[i] - camera_center[i]
+                                 for i in range(3)]
+            else:
+                raise ValueError('camera_center and look_at coincide')
         else:
             self._viewdir = viewdir
 
+    def __repr__(self):
+        r"""
+        Return the string representation of the Tachyon object.
 
+        This is just the scene string input to tachyon.
+
+        EXAMPLES::
+
+            sage: q = Tachyon()
+            sage: q.light((1,1,1), 1,(1,1,1))
+            sage: q.texture('s')
+            sage: q.sphere((0,0,0),1,'s')
+            sage: q.__repr__()[-20:]
+            '  \n        end_scene'
+        """
+        return self.str()
 
     def save_image(self, filename=None, *args, **kwds):
         r"""
-        Save an image representation of self.  The image type is
+        Save an image representation of ``self``.
+
+        The image type is
         determined by the extension of the filename.  For example,
         this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
         ``.svg``.  Currently this is implemented by calling the
@@ -275,7 +305,6 @@ class Tachyon(SageObject):
     def save(self, filename='sage.png', verbose=0, block=True, extra_opts=''):
         r"""
         INPUT:
-
 
         -  ``filename`` - (default: 'sage.png') output
            filename; the extension of the filename determines the type.
@@ -320,7 +349,7 @@ class Tachyon(SageObject):
 
     def show(self, verbose=0, extra_opts=''):
         r"""
-        Creates a PNG file of the scene.
+        Create a PNG file of the scene.
 
         EXAMPLES::
 
@@ -381,7 +410,7 @@ class Tachyon(SageObject):
 
     def str(self):
         r"""
-        Returns the complete tachyon scene file as a string.
+        Return the complete tachyon scene file as a string.
 
         EXAMPLES::
 
@@ -409,7 +438,7 @@ class Tachyon(SageObject):
 
     def light(self, center, radius, color):
         r"""
-        Creates a light source of the given center, radius, and color.
+        Create a light source of the given center, radius, and color.
 
         EXAMPLES::
 
@@ -512,7 +541,7 @@ class Tachyon(SageObject):
 
     def texture_recolor(self, name, colors):
         r"""
-        Recolors default textures.
+        Recolor default textures.
 
         EXAMPLES::
 
@@ -542,7 +571,7 @@ class Tachyon(SageObject):
 
     def sphere(self, center, radius, texture):
         r"""
-        Creates the scene information for a sphere with the given
+        Create the scene information for a sphere with the given
         center, radius, and texture.
 
         EXAMPLES::
@@ -1207,13 +1236,14 @@ class TachyonTriangle(Triangle):
             %s
         """%(tostr(self._a), tostr(self._b),tostr(self._c), self._color)
 
+
 class TachyonSmoothTriangle(SmoothTriangle):
     r"""
     A triangle along with a normal vector, which is used for smoothing.
     """
     def str(self):
         r"""
-        Returns the scene string for a smoothed triangle.
+        Return the scene string for a smoothed triangle.
 
         EXAMPLES::
 
@@ -1228,7 +1258,6 @@ class TachyonSmoothTriangle(SmoothTriangle):
              %s
         """%(tostr(self._a),  tostr(self._b),  tostr(self._c),
              tostr(self._da), tostr(self._db), tostr(self._dc), self._color)
-
 
 
 class TachyonTriangleFactory(TriangleFactory):

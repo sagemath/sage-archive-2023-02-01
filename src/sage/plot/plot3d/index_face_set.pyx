@@ -42,6 +42,7 @@ cdef extern from *:
     int sprintf_4i "sprintf" (char*, char*, int, int, int, int)
     int sprintf_5i "sprintf" (char*, char*, int, int, int, int, int)
     int sprintf_6i "sprintf" (char*, char*, int, int, int, int, int, int)
+    int sprintf_7i "sprintf" (char*, char*, int, int, int, int, int, int, int)
     int sprintf_9d "sprintf" (char*, char*, double, double, double, double, double, double, double, double, double)
 
 # import the double infinity constant
@@ -62,7 +63,7 @@ from sage.rings.real_double import RDF
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 
-from sage.plot.colors import Color
+from sage.plot.colors import Color, float_to_integer
 from sage.plot.plot3d.base import Graphics3dGroup
 
 from transform cimport Transformation
@@ -138,29 +139,61 @@ cdef inline format_pmesh_vertex(point_c P):
 cdef inline format_pmesh_face(face_c face, int has_color):
     cdef char ss[100]
     cdef Py_ssize_t r, i
+    cdef int color
+    # if the face has an individual color, has_color is -1
+    # otherwise it is 1
+    if has_color == -1:
+        color = float_to_integer(face.color.r,
+                                 face.color.g,
+                                 face.color.b)
+    
     if face.n == 3:
-        r = sprintf_5i(ss, "%d\n%d\n%d\n%d\n%d", has_color * 4,
-                       face.vertices[0],
-                       face.vertices[1],
-                       face.vertices[2],
-                       face.vertices[0])
+        if has_color == 1:
+            r = sprintf_5i(ss, "%d\n%d\n%d\n%d\n%d", has_color * 4,
+                           face.vertices[0],
+                           face.vertices[1],
+                           face.vertices[2],
+                           face.vertices[0])
+        else:
+            r = sprintf_6i(ss, "%d\n%d\n%d\n%d\n%d\n%d", has_color * 4,
+                           face.vertices[0],
+                           face.vertices[1],
+                           face.vertices[2],
+                           face.vertices[0], color)
     elif face.n == 4:
-        r = sprintf_6i(ss, "%d\n%d\n%d\n%d\n%d\n%d", has_color * 5,
-                       face.vertices[0],
-                       face.vertices[1],
-                       face.vertices[2],
-                       face.vertices[3],
-                       face.vertices[0])
+        if has_color == 1:
+            r = sprintf_6i(ss, "%d\n%d\n%d\n%d\n%d\n%d", has_color * 5,
+                           face.vertices[0],
+                           face.vertices[1],
+                           face.vertices[2],
+                           face.vertices[3],
+                           face.vertices[0])
+        else:
+            r = sprintf_7i(ss, "%d\n%d\n%d\n%d\n%d\n%d\n%d", has_color * 5,
+                           face.vertices[0],
+                           face.vertices[1],
+                           face.vertices[2],
+                           face.vertices[3],
+                           face.vertices[0], color)
     else:
         # Naive triangulation
         all = []
-        for i from 1 <= i < face.n - 1:
-            r = sprintf_5i(ss, "%d\n%d\n%d\n%d\n%d", has_color * 4,
-                           face.vertices[0],
-                           face.vertices[i],
-                           face.vertices[i + 1],
-                           face.vertices[0])
-            PyList_Append(all, PyString_FromStringAndSize(ss, r))
+        if has_color == 1:
+            for i from 1 <= i < face.n - 1:
+                r = sprintf_5i(ss, "%d\n%d\n%d\n%d\n%d", has_color * 4,
+                               face.vertices[0],
+                               face.vertices[i],
+                               face.vertices[i + 1],
+                               face.vertices[0])
+                PyList_Append(all, PyString_FromStringAndSize(ss, r))
+        else:
+            for i from 1 <= i < face.n - 1:
+                r = sprintf_6i(ss, "%d\n%d\n%d\n%d\n%d\n%d", has_color * 4,
+                               face.vertices[0],
+                               face.vertices[i],
+                               face.vertices[i + 1],
+                               face.vertices[0], color)
+                PyList_Append(all, PyString_FromStringAndSize(ss, r))
         return "\n".join(all)
     # PyString_FromFormat is almost twice as slow
     return PyString_FromStringAndSize(ss, r)
@@ -933,14 +966,11 @@ cdef class IndexFaceSet(PrimitiveObject):
                 PyList_Append(points, format_pmesh_vertex(res))
 
         # put this into play when jmol will accept the colored pmesh
-        if True:    # self.global_texture:
+        if True:   # self.global_texture:
             faces = [format_pmesh_face(self._faces[i], 1)
                      for i from 0 <= i < self.fcount]
         else:
-            faces = [format_pmesh_face(self._faces[i], -1) + "\n#{}".format(
-                      Color(self._faces[i].color.r,
-                            self._faces[i].color.g,
-                            self._faces[i].color.b).__hex__())
+            faces = [format_pmesh_face(self._faces[i], -1)
                      for i from 0 <= i < self.fcount]
 
         # If a face has more than 4 vertices, it gets chopped up in

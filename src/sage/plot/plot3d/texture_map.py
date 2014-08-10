@@ -9,6 +9,11 @@ possible to apply a colormap to a surface, to create partially
 translucent objects, or to color in surfaces in a variety of ways (for
 instance, to visualize Gaussian curvature).
 
+Please note that similar colorings of surfaces can also be obtained
+using the keyword ``color_data`` of the functions
+:func:`sage.plot.plot3d.parametric_plot3d.parametric_plot3d` and
+:func:`sage.plot.plot3d.implicit_plot3d.implicit_plot3d`.
+
 Let us first load the methods and define some colormaps::
 
     sage: from sage.plot.plot3d.texture_map import ColormapTransform,OpacityTransform

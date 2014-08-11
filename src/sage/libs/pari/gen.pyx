@@ -4612,23 +4612,6 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return P.new_gen(glog(x.g, prec_bits_to_words(precision)))
 
-    def lngamma(gen x, unsigned long precision=0):
-        r"""
-        This method is deprecated, please use :meth:`.log_gamma` instead.
-
-        See the :meth:`.log_gamma` method for documentation and examples.
-
-        EXAMPLES::
-
-            sage: pari(100).lngamma()
-            doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
-            See http://trac.sagemath.org/6992 for details.
-            359.134205369575
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(6992, "The method lngamma() is deprecated. Use log_gamma() instead.")
-        return x.log_gamma(precision)
-
     def log_gamma(gen x, unsigned long precision=0):
         r"""
         Logarithm of the gamma function of x.

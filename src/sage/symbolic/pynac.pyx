@@ -1717,9 +1717,11 @@ cdef public object py_atanh(object x) except +:
 
 cdef public object py_lgamma(object x) except +:
     """
-    Return the value of the log gamma function at the given value.
+    Return the value of the principal branch of the log gamma function at the
+    given value.
 
-    The value is expected to be a numerical object, in RR, CC, RDF or CDF.
+    The value is expected to be a numerical object, in RR, CC, RDF or CDF, or
+    of the Python ``float`` or ``complex`` type.
 
     EXAMPLES::
 
@@ -1735,16 +1737,17 @@ cdef public object py_lgamma(object x) except +:
         sage: py_lgamma(ComplexField(100).0)
         -0.65092319930185633888521683150 - 1.8724366472624298171188533494*I
     """
+    from mpmath import loggamma
+
     cdef gsl_sf_result lnr, arg
     cdef gsl_complex res
     if PY_TYPE_CHECK_EXACT(x, int) or PY_TYPE_CHECK_EXACT(x, long):
         x = float(x)
     if PY_TYPE_CHECK_EXACT(x, float):
-         return sage_lgammal(x)
-    elif PY_TYPE_CHECK_EXACT(x, complex):
-        gsl_sf_lngamma_complex_e(PyComplex_RealAsDouble(x),PyComplex_ImagAsDouble(x), &lnr, &arg)
-        res = gsl_complex_polar(lnr.val, arg.val)
-        return PyComplex_FromDoubles(res.dat[0], res.dat[1])
+        if x >= 0:
+            return sage_lgammal(x)
+        else:
+            return complex(loggamma(x))
     elif isinstance(x, Integer):
         return x.gamma().log().n()
 
@@ -1755,12 +1758,7 @@ cdef public object py_lgamma(object x) except +:
     except AttributeError:
         pass
 
-    try:
-        return x.gamma().log()
-    except AttributeError:
-        pass
-
-    return CC(x).gamma().log()
+    return mpmath_utils.call(loggamma, x, parent=parent_c(x))
 
 def py_lgamma_for_doctests(x):
     """

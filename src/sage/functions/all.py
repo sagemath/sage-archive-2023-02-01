@@ -61,7 +61,7 @@ from orthogonal_polys import (chebyshev_T,
 
 from spike_function import spike_function
 
-from prime_pi import prime_pi
+from prime_pi import legendre_phi, partial_sieve_function, prime_pi
 
 from wigner import (wigner_3j, clebsch_gordan, racah, wigner_6j,
                     wigner_9j, gaunt)
@@ -76,3 +76,5 @@ from exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li,
                           sin_integral, cos_integral, Si, Ci,
                           sinh_integral, cosh_integral, Shi, Chi,
                           exponential_integral_1, Ei)
+
+from hypergeometric import hypergeometric

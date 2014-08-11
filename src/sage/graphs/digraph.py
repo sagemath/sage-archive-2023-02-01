@@ -943,7 +943,7 @@ class DiGraph(GenericGraph):
             for i in xrange(n):
                 for j in xrange(n):
                     if m[k] == '1':
-                        self.add_edge(i, j)
+                        self._backend.add_edge(i, j, None, True)
                     k += 1
         elif format == 'adjacency_matrix':
             e = []
@@ -967,26 +967,28 @@ class DiGraph(GenericGraph):
                 for v in xrange(num_verts):
                     uu,vv = verts[u], verts[v]
                     if f(uu,vv):
-                        self.add_edge(uu,vv)
+                        self._backend.add_edge(uu,vv,None,True)
         elif format == 'dict_of_dicts':
             if convert_empty_dict_labels_to_None:
                 for u in data:
                     for v in data[u]:
                         if multiedges:
-                            self.add_edges([(u,v,l) for l in data[u][v]])
+                            for l in data[u][v]:
+                                self._backend.add_edge(u,v,l,True)
                         else:
-                            self.add_edge((u,v,data[u][v] if data[u][v] != {} else None))
+                            self._backend.add_edge(u,v,data[u][v] if data[u][v] != {} else None,True)
             else:
                 for u in data:
                     for v in data[u]:
                         if multiedges:
-                            self.add_edges([(u,v,l) for l in data[u][v]])
+                            for l in data[u][v]:
+                                self._backend.add_edge(u,v,l,True)
                         else:
-                            self.add_edge((u,v,data[u][v]))
+                            self._backend.add_edge(u,v,data[u][v],True)
         elif format == 'dict_of_lists':
             for u in data:
                 for v in data[u]:
-                    self.add_edge(u,v)
+                    self._backend.add_edge(u,v,None,True)
         else:
             assert format == 'int'
         self._pos = pos
@@ -1166,7 +1168,7 @@ class DiGraph(GenericGraph):
             sage: G.edges(labels=False)
             [(0, 1), (0, 2)]
         """
-        if sparse != None:
+        if sparse is not None:
             deprecation(14806,"The 'sparse' keyword has been deprecated, and "
                         "is now replaced by 'data_structure' which has a different "
                         "meaning. Please consult the documentation.")
@@ -1781,8 +1783,8 @@ class DiGraph(GenericGraph):
         else:
             p=MixedIntegerLinearProgram(maximization=False, solver=solver)
 
-            b=p.new_variable(binary = True)
-            d=p.new_variable(integer = True)
+            b=p.new_variable(binary=True)
+            d=p.new_variable(integer=True, nonnegative=True)
 
             n=self.order()
 
@@ -2007,7 +2009,7 @@ class DiGraph(GenericGraph):
 
         tempG = self if inplace else self.copy()
 
-        if label == None:
+        if label is None:
             if not tempG.allows_multiple_edges():
                 label = tempG.edge_label(u,v)
             else:

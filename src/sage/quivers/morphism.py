@@ -179,12 +179,12 @@ class QuiverRepHom(CallMorphism):
         self._domain = domain
         self._codomain = codomain
         self._quiver = domain._quiver
-        self._base_ring = domain._base_ring
+        self._base_ring = domain.base_ring()
 
         # Check that the quiver and base ring match
         if codomain._quiver != self._quiver:
             raise ValueError("the quivers of the domain and codomain must be equal")
-        if codomain._base_ring != self._base_ring:
+        if codomain.base_ring() != self._base_ring:
             raise ValueError("the base ring of the domain and codomain must be equal")
 
         # Get the dimensions of the spaces

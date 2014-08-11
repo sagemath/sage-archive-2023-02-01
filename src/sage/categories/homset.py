@@ -248,7 +248,7 @@ def Hom(X, Y, category=None, check=True):
     join category, as in the following example::
 
         sage: PA = Parent(category=Algebras(QQ))
-        sage: PJ = Parent(category=Category.join([Fields(), ModulesWithBasis(QQ)]))
+        sage: PJ = Parent(category=Rings() & Modules(QQ))
         sage: Hom(PA,PJ)
         Set of Homomorphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'>
         sage: Hom(PA,PJ).category()
@@ -552,6 +552,22 @@ class Homset(Set_generic):
             Univariate Polynomial Ring in t over Integer Ring
             sage: f.domain() is f.parent().domain()
             True
+
+        Test that ``base_ring`` is initialized properly::
+
+            sage: R = QQ['x']
+            sage: Hom(R, R).base_ring()
+            Rational Field
+            sage: Hom(R, R, category=Sets()).base_ring()
+            sage: Hom(R, R, category=Modules(QQ)).base_ring()
+            Rational Field
+            sage: Hom(QQ^3, QQ^3, category=Modules(QQ)).base_ring()
+            Rational Field
+
+        For whatever it's worth, the ``base`` arguments takes precedence::
+
+            sage: MyHomset(ZZ^3, ZZ^3, base = QQ).base_ring()
+            Rational Field
         """
         self._domain = X
         self._codomain = Y
@@ -565,6 +581,14 @@ class Homset(Set_generic):
             #    raise TypeError, "X (=%s) must be in category (=%s)"%(X, category)
             #if not Y in category:
             #    raise TypeError, "Y (=%s) must be in category (=%s)"%(Y, category)
+
+        if base is None and hasattr(category, "WithBasis"):
+            # The above is a lame but fast check that category is a
+            # subcategory of Modules(...). That will do until
+            # CategoryObject.base_ring will be gone and not prevent
+            # anymore from putting one in Modules.HomCategory.ParentMethods.
+            # See also #15801.
+            base = X.base_ring()
 
         Parent.__init__(self, base = base, category = category.hom_category())
 
@@ -644,7 +668,7 @@ class Homset(Set_generic):
             sage: E = EllipticCurve('37a')
             sage: H = E(0).parent(); H
             Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
-            sage: hash(H)
+            sage: hash(H)           # random output
             -1145411691             # 32-bit
             -8446824869798451307    # 64-bit
         """
@@ -687,16 +711,13 @@ class Homset(Set_generic):
             Composite map:
               From: Integer Ring
               To:   Univariate Polynomial Ring in t over Rational Field
-              Defn:   Composite map:
+              Defn:   (map internal to coercion system -- copy before use)
+                    Polynomial base injection morphism:
                       From: Integer Ring
                       To:   Univariate Polynomial Ring in t over Integer Ring
-                      Defn:   (map internal to coercion system -- copy before use)
-                            Polynomial base injection morphism:
-                              From: Integer Ring
-                              To:   Univariate Polynomial Ring in t over Integer Ring
-                            then
-                              Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
-                              Defn: t |--> 2*t
+                    then
+                      Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+                      Defn: t |--> 2*t
                     then
                       (map internal to coercion system -- copy before use)
                     Ring morphism:
@@ -706,15 +727,12 @@ class Homset(Set_generic):
             Composite map:
               From: Integer Ring
               To:   Univariate Polynomial Ring in t over Rational Field
-              Defn:   Composite map:
+              Defn:   Polynomial base injection morphism:
                       From: Integer Ring
                       To:   Univariate Polynomial Ring in t over Integer Ring
-                      Defn:   Polynomial base injection morphism:
-                              From: Integer Ring
-                              To:   Univariate Polynomial Ring in t over Integer Ring
-                            then
-                              Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
-                              Defn: t |--> 2*t
+                    then
+                      Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+                      Defn: t |--> 2*t
                     then
                       Ring morphism:
                       From: Univariate Polynomial Ring in t over Integer Ring
@@ -768,17 +786,14 @@ class Homset(Set_generic):
             Composite map:
               From: Symmetric group of order 4! as a permutation group
               To:   Symmetric group of order 7! as a permutation group
-              Defn:   Composite map:
+              Defn:   (map internal to coercion system -- copy before use)
+                    Call morphism:
                       From: Symmetric group of order 4! as a permutation group
+                      To:   Symmetric group of order 5! as a permutation group
+                    then
+                      Coercion morphism:
+                      From: Symmetric group of order 5! as a permutation group
                       To:   Symmetric group of order 6! as a permutation group
-                      Defn:   (map internal to coercion system -- copy before use)
-                            Call morphism:
-                              From: Symmetric group of order 4! as a permutation group
-                              To:   Symmetric group of order 5! as a permutation group
-                            then
-                              Coercion morphism:
-                              From: Symmetric group of order 5! as a permutation group
-                              To:   Symmetric group of order 6! as a permutation group
                     then
                       (map internal to coercion system -- copy before use)
                     Call morphism:
@@ -792,21 +807,17 @@ class Homset(Set_generic):
             Composite map:
               From: Symmetric group of order 4! as a permutation group
               To:   Symmetric group of order 7! as a permutation group
-              Defn:   Composite map:
+              Defn:   Call morphism:
                       From: Symmetric group of order 4! as a permutation group
+                      To:   Symmetric group of order 5! as a permutation group
+                    then
+                      Coercion morphism:
+                      From: Symmetric group of order 5! as a permutation group
                       To:   Symmetric group of order 6! as a permutation group
-                      Defn:   Call morphism:
-                              From: Symmetric group of order 4! as a permutation group
-                              To:   Symmetric group of order 5! as a permutation group
-                            then
-                              Coercion morphism:
-                              From: Symmetric group of order 5! as a permutation group
-                              To:   Symmetric group of order 6! as a permutation group
                     then
                       Call morphism:
                       From: Symmetric group of order 6! as a permutation group
                       To:   Symmetric group of order 7! as a permutation group
-
             sage: H = Hom(ZZ, ZZ, Sets())
             sage: f = H( lambda x: x + 1 )
             sage: f.parent()

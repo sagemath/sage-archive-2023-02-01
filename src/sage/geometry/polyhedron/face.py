@@ -299,7 +299,7 @@ class PolyhedronFace(SageObject):
             (An inequality (0, -1) x + 1 >= 0,)
             ()
         """
-        if index==None:
+        if index is None:
             return self._ambient_Hrepresentation
         else:
             return self._ambient_Hrepresentation[index]
@@ -341,7 +341,7 @@ class PolyhedronFace(SageObject):
             (A vertex at (-1, -1), A vertex at (-1, 1),
              A vertex at (1, -1), A vertex at (1, 1))
         """
-        if index==None:
+        if index is None:
             return self._ambient_Vrepresentation
         else:
             return self._ambient_Vrepresentation[index]

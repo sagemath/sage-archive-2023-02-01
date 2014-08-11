@@ -60,6 +60,7 @@ from sage.misc.misc import prod
 from sage.misc.functional import exp
 from sage.rings.complex_field import is_ComplexField
 from sage.groups.abelian_gps.element_base import AbelianGroupElementBase
+from functools import reduce
 
 def add_strings(x, z=0):
     """

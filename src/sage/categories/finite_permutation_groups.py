@@ -9,11 +9,9 @@ Finite Permutation Groups
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.cachefunc import cached_method
-from sage.categories.category import Category
-from sage.categories.finite_groups import FiniteGroups
+from sage.categories.category_with_axiom import CategoryWithAxiom
 
-class FinitePermutationGroups(Category):
+class FinitePermutationGroups(CategoryWithAxiom):
     r"""
     The category of finite permutation groups, i.e. groups concretely
     represented as groups of permutations acting on a finite set.
@@ -23,7 +21,7 @@ class FinitePermutationGroups(Category):
         sage: FinitePermutationGroups()
         Category of finite permutation groups
         sage: FinitePermutationGroups().super_categories()
-        [Category of finite groups]
+        [Category of permutation groups, Category of finite groups]
 
         sage: FinitePermutationGroups().example()
         Dihedral group of order 6 as a permutation group
@@ -31,11 +29,7 @@ class FinitePermutationGroups(Category):
     TESTS::
 
         sage: C = FinitePermutationGroups()
-        sage: TestSuite(C).run(verbose = True)
-        running ._test_category() . . . pass
-        running ._test_category_graph() . . . pass
-        running ._test_not_implemented_methods() . . . pass
-        running ._test_pickling() . . . pass
+        sage: TestSuite(C).run()
 
         sage: G = FinitePermutationGroups().example()
         sage: TestSuite(G).run(verbose = True)
@@ -64,17 +58,6 @@ class FinitePermutationGroups(Category):
         running ._test_prod() . . . pass
         running ._test_some_elements() . . . pass
     """
-    @cached_method
-    def super_categories(self):
-        r"""
-        Returns a list of the (immediate) super categories of ``self``.
-
-        EXAMPLES::
-
-            sage: FinitePermutationGroups().super_categories()
-            [Category of finite groups]
-        """
-        return [FiniteGroups()]
 
     def example(self):
         """

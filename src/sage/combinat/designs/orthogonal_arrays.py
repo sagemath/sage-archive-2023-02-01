@@ -1299,6 +1299,11 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y):
     from sage.rings.integer import Integer
     from itertools import izip,combinations
 
+    if len(A) != k-1 or any(len(a) != 2*G.cardinality() for a in A):
+        raise ValueError("A must be a (k-1) x (2|G|) array")
+    if len(Y) != k-1:
+        raise ValueError("Y must be a (k-1)-vector")
+
     F = FiniteField(2**c,'w')
     GG = G.cartesian_product(F)
 

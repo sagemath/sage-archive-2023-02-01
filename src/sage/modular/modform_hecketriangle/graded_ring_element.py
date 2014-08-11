@@ -800,11 +800,18 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         In particular this is the case if ``self``
         is a (homogeneous) element of a forms space.
 
-        TODO::
+        .. TODO::
+
+            Make square root in the underlying rational field work.
+
+        EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
             sage: E2=QuasiModularForms(k=2, ep=-1).E2()
-            sage: sqrt(E2^2)                          # todo: not implemented
+            sage: sqrt(E2^2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_square() not implemented for elements of Multivariate Polynomial Ring in x, y, z, d over Integer Ring
         """
 
         res = self.parent().rat_field()(self._rat.sqrt())

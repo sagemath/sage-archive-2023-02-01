@@ -955,7 +955,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
         else:
             from database import TD_6_12
             TD = TD_6_12()
-            OA = [[x%n for x in R] for R in TD]
+            OA = [[x%n for x in R[:k]] for R in TD]
 
     # Constructions from the database III
     # Section 6.5.1 from [Stinson2004]

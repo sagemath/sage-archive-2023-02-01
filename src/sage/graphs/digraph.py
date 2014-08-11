@@ -3415,6 +3415,9 @@ class DiGraph(GenericGraph):
             sage: g.is_aperiodic()
             True
 
+        .. SEEALSO::
+
+            :meth:`period`
         """
         import networkx
         return networkx.is_aperiodic(self.networkx_graph(copy=False))

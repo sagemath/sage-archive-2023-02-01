@@ -1,8 +1,29 @@
-"""
+r"""
 Incidence structures (i.e. hypergraphs, i.e. set systems)
 
-An incidence structure is specified by a list of points, blocks, and
-an incidence matrix ([1]_, [2]_).
+An incidence structure is specified by a list of points, blocks, or an incidence
+matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following methods:
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~IncidenceStructure.ground_set` | Return the ground set (i.e the list of points).
+    :meth:`~IncidenceStructure.num_points` | Return the size of the ground set.
+    :meth:`~IncidenceStructure.num_blocks` | Return the number of blocks.
+    :meth:`~IncidenceStructure.blocks` | Return the list of blocks.
+    :meth:`~IncidenceStructure.block_sizes` | Return the set of block sizes.
+    :meth:`~IncidenceStructure.degree` | Return the degree of a point ``p``
+    :meth:`~IncidenceStructure.is_connected` | Test whether the design is connected.
+    :meth:`~IncidenceStructure.is_simple` | Test whether this design is simple (i.e. no repeated block).
+    :meth:`~IncidenceStructure.incidence_matrix` | Return the incidence matrix `A` of the design
+    :meth:`~IncidenceStructure.incidence_graph` | Return the incidence graph of the design
+    :meth:`~IncidenceStructure.packing` | Return a maximum packing
+    :meth:`~IncidenceStructure.is_t_design` | Test whether ``self`` is a `t-(v,k,l)` design.
+    :meth:`~IncidenceStructure.dual` | Return the dual design.
+    :meth:`~IncidenceStructure.automorphism_group` | Return the automorphism group
+    :meth:`~IncidenceStructure.edge_coloring` | Return an optimal edge coloring`
 
 REFERENCES:
 
@@ -445,7 +466,7 @@ class IncidenceStructure(object):
 
     def num_points(self):
         r"""
-        The number of points in that design.
+        Return the size of the ground set.
 
         EXAMPLES::
 
@@ -459,7 +480,7 @@ class IncidenceStructure(object):
 
     def num_blocks(self):
         r"""
-        The number of blocks.
+        Return the number of blocks.
 
         EXAMPLES::
 
@@ -472,7 +493,8 @@ class IncidenceStructure(object):
         return len(self._blocks)
 
     def blocks(self, copy=True):
-        """Return the list of blocks.
+        """
+        Return the list of blocks.
 
         INPUT:
 
@@ -520,7 +542,7 @@ class IncidenceStructure(object):
 
     def degree(self, p=None):
         r"""
-        Returns the degree of a point ``p``
+        Return the degree of a point ``p``
 
         The degree of a point `p` is the number of blocks that contain it.
 
@@ -633,7 +655,7 @@ class IncidenceStructure(object):
 
     def incidence_graph(self):
         """
-        Returns the incidence graph of the design, where the incidence
+        Return the incidence graph of the design, where the incidence
         matrix of the design is the adjacency matrix of the graph.
 
         EXAMPLE::
@@ -659,7 +681,7 @@ class IncidenceStructure(object):
 
     def packing(self, solver=None, verbose=0):
         r"""
-        Returns a maximum packing
+        Return a maximum packing
 
         A maximum packing in a hypergraph is collection of disjoint sets/blocks
         of maximal cardinality. This problem is NP-complete in general, and in
@@ -908,7 +930,7 @@ class IncidenceStructure(object):
 
     def dual(self, algorithm=None):
         """
-        Returns the dual of the incidence structure.
+        Return the dual of the incidence structure.
 
         INPUT:
 
@@ -969,7 +991,7 @@ class IncidenceStructure(object):
 
     def automorphism_group(self):
         r"""
-        Returns the subgroup of the automorphism group of the incidence graph
+        Return the subgroup of the automorphism group of the incidence graph
         which respects the P B partition. It is (isomorphic to) the automorphism
         group of the block design, although the degrees differ.
 

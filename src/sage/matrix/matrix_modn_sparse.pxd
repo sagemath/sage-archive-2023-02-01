@@ -8,3 +8,5 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
     cdef swap_rows_c(self, Py_ssize_t n1, Py_ssize_t n2)
 
     cdef _init_linbox(self)
+
+    

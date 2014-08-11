@@ -2902,14 +2902,17 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
                                          self.parent().change_ring(ZZ),
                                          0, 0, 0)
         cdef mpz_t* L_row
+        cdef mpz_t tmp
         cdef celement* A_row
+        mpz_init(tmp)
         for i from 0 <= i < self._nrows:
-            L_row = L._matrix[i]
             A_row = self._matrix[i]
             for j from 0 <= j < self._ncols:
-                mpz_init_set_d(L_row[j], A_row[j])
+                mpz_set_si(tmp,<int>(A_row[j]))
+                L.set_unsafe_mpz(i,j,tmp)
         L._initialized = 1
         L.subdivide(self.subdivisions())
+        mpz_clear(tmp)
         return L
 
 

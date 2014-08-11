@@ -734,7 +734,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 raise ZeroDivisionError("input matrix must be nonsingular")
         elif algorithm == "iml":
             AZ, denom = self._clear_denom()
-            B, d = AZ._invert_iml(check_invertible=check_invertible)
+            B, d = AZ._invert_flint(check_invertible=check_invertible)
             return (denom/d)*B
         else:
             raise ValueError("unknown algorithm '%s'"%algorithm)
@@ -860,25 +860,31 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i, j
         cdef Matrix_integer_dense A
         cdef mpq_t *self_row
-        cdef mpz_t *A_row
+        cdef mpz_t tmp
+        cdef fmpz_t aij
+        fmpz_init(aij)
+        mpz_init(tmp)
         D = <Integer>PY_NEW(Integer)
         self.mpz_denom(D.value)
         from sage.matrix.matrix_space import MatrixSpace
         MZ = MatrixSpace(ZZ, self._nrows, self._ncols, sparse=self.is_sparse())
-        A = Matrix_integer_dense.__new__(Matrix_integer_dense, MZ, 0, 0, 0)
+        A =  Matrix_integer_dense.__new__(Matrix_integer_dense, MZ, None, None, None)
+        fmpz_mat_init(A._matrix,self._nrows,self._ncols)
         sig_on()
         for i from 0 <= i < self._nrows:
-            A_row = A._matrix[i]
             self_row = self._matrix[i]
             for j from 0 <= j < self._ncols:
-                mpz_init(A_row[0])
-                mpz_divexact(A_row[0], D.value, mpq_denref(self_row[0]))
-                mpz_mul(A_row[0], A_row[0], mpq_numref(self_row[0]))
-                A_row += 1
+                fmpz_init(fmpz_mat_entry(A._matrix,i,j))
+                mpz_divexact(tmp, D.value, mpq_denref(self_row[0]))
+                mpz_mul(tmp, tmp, mpq_numref(self_row[0]))
+                fmpz_set_mpz(fmpz_mat_entry(A._matrix,i,j),tmp)
                 self_row += 1
         sig_off()
         A._initialized = 1
         self.cache('clear_denom', (A,D))
+        fmpz_clear(aij)
+        mpz_clear(tmp)
+
         return A, D
 
     def charpoly(self, var='x', algorithm='linbox'):
@@ -1064,7 +1070,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Matrix_integer_dense A, B, AB
         cdef Matrix_rational_dense res
         cdef Integer D
-        cdef mpz_t* AB_row,
         cdef mpq_t* res_row
         sig_on()
         A, A_denom = self._clear_denom()
@@ -1086,13 +1091,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         else:
             res = Matrix_rational_dense.__new__(Matrix_rational_dense, self.matrix_space(AB._nrows, AB._ncols), 0, 0, 0)
         for i from 0 <= i < res._nrows:
-            AB_row = AB._matrix[i]
             res_row = res._matrix[i]
             for j from 0 <= j < res._ncols:
-                mpz_set(mpq_numref(res_row[0]), AB_row[0])
+                fmpz_get_mpz(mpq_numref(res_row[0]), fmpz_mat_entry(AB._matrix,i,j))
                 mpz_set(mpq_denref(res_row[0]), D.value)
                 mpq_canonicalize(res_row[0])
-                AB_row = AB_row + 1
                 res_row = res_row + 1
         sig_off()
         return res
@@ -1533,7 +1536,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Matrix_rational_dense E
         cdef Integer d
         cdef mpq_t* E_row
-        cdef mpz_t* X_row
 
         t = verbose('Computing echelon form of %s x %s matrix over QQ using p-adic nullspace algorithm.'%(
             self.nrows(), self.ncols()))
@@ -1554,9 +1556,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         # Fill in the non-pivot part of the matrix
         for i from 0 <= i < X.nrows():
             E_row = E._matrix[i]
-            X_row = X._matrix[i]
             for j from 0 <= j < X.ncols():
-                mpz_set(mpq_numref(E_row[nonpivots[j]]), X_row[j])
+                fmpz_get_mpz(mpq_numref(E_row[nonpivots[j]]), fmpz_mat_entry(X._matrix,i,j))
                 mpz_set(mpq_denref(E_row[nonpivots[j]]), d.value)
                 mpq_canonicalize(E_row[nonpivots[j]])
 
@@ -1595,9 +1596,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         # Fill in the non-pivot part of self.
         for i from 0 <= i < X.nrows():
             E_row = self._matrix[i]
-            X_row = X._matrix[i]
             for j from 0 <= j < X.ncols():
-                mpz_set(mpq_numref(E_row[nonpivots[j]]), X_row[j])
+                fmpz_get_mpz(mpq_numref(E_row[nonpivots[j]]), fmpz_mat_entry(X._matrix,i,j))
                 mpz_set(mpq_denref(E_row[nonpivots[j]]), d.value)
                 mpq_canonicalize(E_row[nonpivots[j]])
 
@@ -2088,17 +2088,20 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i, j, nr, nc
         cdef mpz_t* Z_row
         cdef mpq_t* Q_row
-
+        cdef mpz_t tmp
+        mpz_init(tmp)
         ZA = _lift_crt(res, mm)
         nr = ZA._nrows
         nc = ZA._ncols
         QA = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent(), None, None, None)
         m = mm.prod()
         for i from 0 <= i < nr:
-            Z_row = ZA._matrix[i]
+            #Z_row = ZA._matrix[i]
             Q_row = QA._matrix[i]
             for j from 0 <= j < nc:
-                mpq_rational_reconstruction(Q_row[j], Z_row[j], m.value)
+                fmpz_get_mpz(tmp,fmpz_mat_entry(ZA._matrix,i,j))
+                mpq_rational_reconstruction(Q_row[j], tmp, m.value)
+        mpz_clear(tmp)
         return QA
 
     def _lift_crt_rr_with_lcm(self, res, mm):
@@ -2118,9 +2121,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i, j, nr, nc
         cdef mpz_t* Z_row
         cdef mpq_t* Q_row
-        cdef mpz_t lcm_denom, sqrt_m, neg_sqrt_m, z
-
+        cdef mpz_t lcm_denom, sqrt_m, neg_sqrt_m, z,tmp
         mpz_init(z)
+        mpz_init(tmp)
         mpz_init(sqrt_m)
         mpz_init(neg_sqrt_m)
         mpz_init_set_ui(lcm_denom, 1)
@@ -2143,17 +2146,18 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         t = verbose("Starting rational reconstruction", level=2)
         for i from 0 <= i < nr:
-            Z_row = ZA._matrix[i]
+            # Z_row = ZA._matrix[i]
             Q_row = QA._matrix[i]
             for j from 0 <= j < nc:
-                if mpz_cmp(Z_row[j], sqrt_m) < 0:
-                    mpz_set(mpq_numref(Q_row[j]), Z_row[j])
+                if fmpz_cmp(fmpz_mat_entry(ZA._matrix,i,j), sqrt_m) < 0:
+                    fmpz_get_mpz(mpq_numref(Q_row[j]), fmpz_mat_entry(ZA._matrix,i,j))
                     is_integral += 1
-                elif mpz_cmp(Z_row[j], neg_sqrt_m) > 0:
-                    mpz_sub(mpq_numref(Q_row[j]), Z_row[j], m.value)
+                elif fmpz_cmp(fmpz_mat_entry(ZA._matrix,i,j), neg_sqrt_m) > 0:
+                    fmpz_get_mpz(tmp,fmpz_mat_entry(ZA._matrix,i,j))
+                    fmpz_sub(mpq_numref(Q_row[j]), tmp, m.value)
                     is_integral += 1
                 else:
-                    mpz_mul(z, Z_row[j], lcm_denom)
+                    fmpz_mul(z, fmpz_mat_entry(ZA._matrix,i,j), lcm_denom)
                     mpz_fdiv_r(z, z, m.value)
                     if mpz_cmp(z, sqrt_m) < 0:
                         mpz_set(mpq_numref(Q_row[j]), z)
@@ -2166,9 +2170,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                         mpq_canonicalize(Q_row[j])
                         lcm_trick += 1
                     else:
-                        mpq_rational_reconstruction(Q_row[j], Z_row[j], m.value)
+                        mpq_rational_reconstruction(Q_row[j], fmpz_mat_entry(ZA._matrix,i,j), m.value)
                         mpz_lcm(lcm_denom, lcm_denom, mpq_denref(Q_row[j]))
         mpz_clear(z)
+        mpz_clear(tmp)
         mpz_clear(sqrt_m)
         mpz_clear(neg_sqrt_m)
         mpz_clear(lcm_denom)

@@ -1,6 +1,11 @@
-from sage.ext.mod_int cimport *
+include "sage/ext/cdefs.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 cimport matrix_dense
+cimport matrix_integer_dense
+cimport sage.rings.integer
+from sage.rings.integer cimport Integer
+from sage.ext.mod_int cimport mod_int, MOD_INT_OVERFLOW
 
 cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     cdef mod_int **_matrix
@@ -21,5 +26,14 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     cpdef _export_as_string(self)
 
+cdef extern from "flint/fmpz.h":
+    ctypedef void* fmpz_t
 
+    void fmpz_set_si ( fmpz_t f , long val )
+
+
+cdef extern from "flint/fmpz_mat.h":
+    ctypedef void* fmpz_mat_t
+    fmpz_t fmpz_mat_entry(fmpz_mat_t mat ,long i ,long j)
+        
 cpdef is_Matrix_modn_dense(self)

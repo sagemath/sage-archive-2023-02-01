@@ -40,7 +40,6 @@ import matrix_mod2_dense
 import matrix_mod2e_dense
 
 import matrix_integer_dense
-import matrix_integer_dense_flint
 import matrix_integer_sparse
 
 import matrix_rational_dense
@@ -935,11 +934,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         R = self.base_ring()
         if self.is_dense():
             if sage.rings.integer_ring.is_IntegerRing(R):
-                if self._implementation == 'sage':
-                    return matrix_integer_dense.Matrix_integer_dense
-                else:
-                    assert self._implementation == 'flint'
-                    return matrix_integer_dense_flint.Matrix_integer_dense_flint
+                assert self._implementation == 'flint'
+                return matrix_integer_dense.Matrix_integer_dense
             elif sage.rings.rational_field.is_RationalField(R):
                 return matrix_rational_dense.Matrix_rational_dense
             elif sage.rings.number_field.number_field.is_CyclotomicField(R):

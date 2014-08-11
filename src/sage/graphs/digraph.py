@@ -3423,9 +3423,9 @@ class DiGraph(GenericGraph):
         r"""
         Return the period of the current ``DiGraph``.
 
-        The period of a strongly connected directed graph is the
-        largest integer that divides the length of every cycle in the
-        graph, cf.  :wikipedia:`Aperiodic_graph`.
+        The period of a directed graph is the largest integer that
+        divides the length of every cycle in the graph, cf.
+        :wikipedia:`Aperiodic_graph`.
 
         EXAMPLES:
 
@@ -3442,13 +3442,17 @@ class DiGraph(GenericGraph):
             sage: g.period()
             1
 
-        This is not implemented for not strongly connected digraphs::
+        Here is an example of computing the period of a digraph which is
+        not strongly connected. By definition, it is the :func:`gcd` of
+        the periods of its strongly connected components::
 
-            sage: g = DiGraph({0: [0], 1: [1]})
+            sage: g = DiGraph({-1: [-2], -2: [-3], -3: [-1],
+            ....:     1: [2], 2: [1]})
             sage: g.period()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: graph is not strongly connected.
+            1
+            sage: sorted([s.period() for s
+            ....:         in g.strongly_connected_components_subgraphs()])
+            [2, 3]
 
         ALGORITHM:
 
@@ -3461,25 +3465,25 @@ class DiGraph(GenericGraph):
         """
         from sage.rings.arith import gcd
 
-        if not self.is_strongly_connected():
-            raise NotImplementedError(
-                "graph is not strongly connected.")
-        s = next(self.vertex_iterator())
-        levels = {s: 0}
-        this_level = [s]
         g = 0
-        l = 1
-        while this_level:
-            next_level = []
-            for u in this_level:
-                for v in self.neighbor_out_iterator(u):
-                    if v in levels: # Non-Tree Edge
-                        g = gcd(g, levels[u] - levels[v] + 1)
-                    else: # Tree Edge
-                        next_level.append(v)
-                        levels[v] = l
-            this_level = next_level
-            l += 1
+
+        for component in self.strongly_connected_components_subgraphs():
+            s = next(component.vertex_iterator())
+            levels = {s: 0}
+            this_level = [s]
+            l = 1
+            while this_level:
+                next_level = []
+                for u in this_level:
+                    for v in component.neighbor_out_iterator(u):
+                        if v in levels: # Non-Tree Edge
+                            g = gcd(g, levels[u] - levels[v] + 1)
+                        else: # Tree Edge
+                            next_level.append(v)
+                            levels[v] = l
+                this_level = next_level
+                l += 1
+
         return g
 
 import types

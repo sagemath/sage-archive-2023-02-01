@@ -220,6 +220,7 @@ def standardize_generator(g, convert_dict=None):
         [(1, 2)]
         sage: standardize_generator([('a','b')], convert_dict=d)
         [(1, 2)]
+
     """
     from sage.interfaces.gap import GapElement
     from sage.combinat.permutation import Permutation
@@ -242,17 +243,9 @@ def standardize_generator(g, convert_dict=None):
         g = [g]
 
     #Get the permutation in list notation
-    if PyList_CheckExact(g) and (len(g) == 0 or not PY_TYPE_CHECK(g[0], tuple)):
+    if isinstance(g, list) and (len(g) == 0 or not isinstance(g[0], tuple)):
         if convert_dict is not None and needs_conversion:
             g = [convert_dict[x] for x in g]
-
-
-        #FIXME: Currently, we need to verify that g defines an actual
-        #permutation since the constructor Permutation does not
-        #perform this check.  When it does, we should remove this code.
-        #See #8392
-        if set(g) != set(range(1, len(g)+1)):
-            raise ValueError, "Invalid permutation vector: %s"%g
         return Permutation(g).cycle_tuples()
     else:
         if convert_dict is not None and needs_conversion:
@@ -447,7 +440,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             v = standardize_generator(g, convert_dict)
         except KeyError:
             raise ValueError, "Invalid permutation vector: %s" % g
-
 
         degree = max([1] + [max(cycle+(1,)) for cycle in v])
         v = from_cycles(degree, v)
@@ -1478,7 +1470,7 @@ cdef bint is_valid_permutation(int* perm, int n):
         sage: PermutationGroupElement([1,1],S,check=False)
         Traceback (most recent call last):
         ...
-        ValueError: Invalid permutation vector: [1, 1]
+        ValueError: The permutation has length 2 but its maximal element is 1. Some element may be repeated, or an element is missing, but there is something wrong with its length.
         sage: PermutationGroupElement([1,-1],S,check=False)
         Traceback (most recent call last):
         ...
@@ -1486,7 +1478,7 @@ cdef bint is_valid_permutation(int* perm, int n):
         sage: PermutationGroupElement([1,2,3,10],S,check=False)
         Traceback (most recent call last):
         ...
-        ValueError: Invalid permutation vector: [1, 2, 3, 10]
+        ValueError: The permutation has length 4 but its maximal element is 10. Some element may be repeated, or an element is missing, but there is something wrong with its length.
     """
     cdef int i, ix
     # make everything is in bounds

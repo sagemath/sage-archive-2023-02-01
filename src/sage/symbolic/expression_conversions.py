@@ -480,7 +480,7 @@ class InterfaceInit(Converter):
         """
         x = map(self, ex.operands())
         X = ','.join(x)
-        return '%s%s%s'%(self.interface._left_list_delim(), X, self.interface._right_list_delim())
+        return str(self.interface._left_list_delim()) + X + str(self.interface._right_list_delim())
 
     def derivative(self, ex, operator):
         """
@@ -1445,7 +1445,7 @@ class FastCallableConverter(Converter):
 
     def tuple(self, ex):
         r"""
-        Given a symbolic tuple, return its elements as a Python list
+        Given a symbolic tuple, return its elements as a Python list.
 
         EXAMPLES::
 

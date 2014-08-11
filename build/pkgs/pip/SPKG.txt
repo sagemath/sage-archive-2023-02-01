@@ -8,7 +8,7 @@ easy_install.
 
 == License ==
 
-Custom license that is compatible with GPLv3+.
+MIT
 
 == SPKG Maintainers ==
 

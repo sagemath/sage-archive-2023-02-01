@@ -801,7 +801,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         INPUT:
 
-        - ``E`` -- an elliptic curve.
+        - ``E`` -- an elliptic curve
         - ``m`` -- an integer
 
         OUTPUT: an endomorphism of ``self``.
@@ -809,7 +809,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         Examples::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: E=EllipticCurve(QQ,[-1, 0])
+            sage: E = EllipticCurve(QQ,[-1, 0])
             sage: P.Lattes_map(E,2)
             Scheme endomorphism of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to

@@ -1036,6 +1036,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
     assert is_prime_power(n), "n(={}) must be a prime power".format(n)
     assert a<=n and b<=n and c<=n and d<=n, "a,b,c,d (={},{},{},{}) must be <=n(={})".format(a,b,c,d,n)
     assert a+b+c<=n+1, "{}={}+{}+{}=a+b+c>n+1={}+1 violates the assumptions".format(a+b+c,a,b,c,n)
+    assert k+3+bool(d) <= n+1, "There exists no OA({},{}).".format(k+3+bool(d),n)
     G = GF(n,prefix='x',conway=True)
     G_set = sorted(G) # sorted by lexicographic order, G[1] = 1
     assert G_set[0] == G.zero() and G_set[1] == G.one(), "problem with the ordering of {}".format(G)

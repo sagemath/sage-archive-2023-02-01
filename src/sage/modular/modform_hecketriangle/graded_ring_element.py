@@ -1458,6 +1458,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         EXAMPLES::
 
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
             sage: MR = QuasiMeromorphicModularFormsRing(n=5, red_hom=True)
             sage: f_rho = MR.f_rho().full_reduce()
@@ -1489,13 +1490,81 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             125111.2655383... + 200759.8039479...*I
             sage: (E2^2-E4)(z, prec=30, num_prec=100)    # long time
             125111.265538336196262200469... + 200759.803948009905410385699...*I
-            
+
             sage: (E2^2-E4)(infinity)
             0
             sage: (1/(E2^2-E4))(infinity)
             +Infinity
             sage: ((E2^2-E4)/f_inf)(infinity)
             -3/(10*d)
+
+            sage: G = HeckeTriangleGroup(n=8)
+            sage: MR = QuasiMeromorphicModularFormsRing(group=G, red_hom=True)
+            sage: f_rho = MR.f_rho().full_reduce()
+            sage: f_i   = MR.f_i().full_reduce()
+            sage: E2    = MR.E2().full_reduce()
+
+            sage: z = AlgebraicField()(1/10+13/10*I)
+            sage: A = G.V(4)
+            sage: S = G.S()
+            sage: T = G.T()
+            sage: A == (T*S)**3*T
+            True
+            sage: az = G.act(A, z)
+            sage: az == (A[0,0]*z + A[0,1]) / (A[1,0]*z + A[1,1])
+            True
+
+            sage: f_rho(z)
+            1.03740476727... + 0.0131941034523...*I
+            sage: f_rho(az)
+            -2.29216470688... - 1.46235057536...*I
+            sage: k = f_rho.weight()
+            sage: aut_fact = f_rho.ep() * (i/G.act((S*T)**3, z))**k * (i/G.act((S*T)**2, z))**k * (i/G.act((S*T), z))**k
+            sage: aut_fact * f_rho(z)
+            -2.29216470688... - 1.46235057536...*I
+
+            sage: f_rho.parent().default_num_prec(1000)
+            sage: f_rho.parent().default_prec(300)
+            sage: (f_rho.q_expansion_fixed_d().polynomial())(exp(2*pi*i*(z/G.lam()).n(1000))).n(100)    # long time
+            1.0374047672719462149821251... + 0.013194103452368974597290332...*I
+            sage: (f_rho.q_expansion_fixed_d().polynomial())(exp(2*pi*i*(az/G.lam()).n(1000))).n(100)    # long time
+            -2.2921647068881834598616367... - 1.4623505753697635207183406...*I
+
+            sage: f_i(z)
+            0.667489320423... - 0.118902824870...*I
+            sage: f_i(az)
+            14.5845388476... - 28.4604652892...*I
+            sage: k = f_i.weight()
+            sage: aut_fact = f_i.ep() * (i/G.act((S*T)**3, z))**k * (i/G.act((S*T)**2, z))**k * (i/G.act((S*T), z))**k
+            sage: aut_fact * f_i(z)
+            14.5845388476... - 28.4604652892...*I
+
+            sage: f_i.parent().default_num_prec(1000)
+            sage: f_i.parent().default_prec(300)
+            sage: (f_i.q_expansion_fixed_d().polynomial())(exp(2*pi*i*(z/G.lam()).n(1000))).n(100)    # long time
+            0.66748932042300250077433252... - 0.11890282487028677063054267...*I
+            sage: (f_i.q_expansion_fixed_d().polynomial())(exp(2*pi*i*(az/G.lam()).n(1000))).n(100)    # long time
+            14.584538847698600875918891... - 28.460465289220303834894855...*I
+
+            sage: f = f_rho*E2
+            sage: f(z)
+            0.966024386418... - 0.0138894699429...*I
+            sage: f(az)
+            -15.9978074989... - 29.2775758341...*I
+            sage: k = f.weight()
+            sage: aut_fact = f.ep() * (i/G.act((S*T)**3, z))**k * (i/G.act((S*T)**2, z))**k * (i/G.act((S*T), z))**k
+            sage: k2 = f_rho.weight()
+            sage: aut_fact2 = f_rho.ep() * (i/G.act((S*T)**3, z))**k2 * (i/G.act((S*T)**2, z))**k2 * (i/G.act((S*T), z))**k2
+            sage: cor_term = (4 * G.n() / (G.n()-2) * A[1][0] * (A[1][0]*z+A[1][1])) / (2*pi*i).n(1000) * G.lam()
+            sage: aut_fact*f(z) + cor_term*aut_fact2*f_rho(z)
+            -15.9978074989... - 29.2775758341...*I
+
+            sage: f.parent().default_num_prec(1000)
+            sage: f.parent().default_prec(300)
+            sage: (f.q_expansion_fixed_d().polynomial())(exp(2*pi*i*(z/G.lam()).n(1000))).n(100)    # long time
+            0.96602438641867296777809436... - 0.013889469942995530807311503...*I
+            sage: (f.q_expansion_fixed_d().polynomial())(exp(2*pi*i*(az/G.lam()).n(1000))).n(100)    # long time
+            -15.997807498958825352887040... - 29.277575834123246063432206...*I
         """
 
         if (prec == None):

@@ -2238,7 +2238,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: C, i = MPComplexField(30).objgen()
-            sage: (1+i).gamma_inc(2 + 3*i)
+            sage: (1+i).gamma_inc(2 + 3*i)  # abs tol 2e-10
             0.0020969149 - 0.059981914*I
             sage: (1+i).gamma_inc(5)
             -0.0013781309 + 0.0065198200*I

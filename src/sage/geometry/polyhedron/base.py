@@ -1919,7 +1919,7 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        Either ``QQ`` (exact arithmetic using gmp, default) or ``RDF``
+        Either ``ZZ`` (the ring of integers), ``QQ`` (exact arithmetic using gmp) or ``RDF``
         (double precision floating-point arithmetic)
 
         EXAMPLES::

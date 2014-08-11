@@ -3472,6 +3472,7 @@ class DiGraph(GenericGraph):
 
         for component in self.strongly_connected_components():
             levels = dict((s, None) for s in component)
+            vertices_in_scc = levels # considers level as a set
             s = component[0]
             levels[s] = 0
             this_level = [s]
@@ -3481,14 +3482,17 @@ class DiGraph(GenericGraph):
                 for u in this_level:
                     # we have levels[u] == l-1
                     for v in self.neighbor_out_iterator(u):
-                        if v in levels:
-                            # ignore edges leaving the component
-                            level_v = levels[v]
-                            if level_v is not None: # Non-Tree Edge
-                                g = gcd(g, l - level_v)
-                            else: # Tree Edge
-                                next_level.append(v)
-                                levels[v] = l
+                        # ignore edges leaving the component
+                        if v not in vertices_in_scc:
+                            continue
+                        level_v = levels[v]
+                        if level_v is not None: # Non-Tree Edge
+                            g = gcd(g, l - level_v)
+                            if g == 1:
+                                return 1
+                        else: # Tree Edge
+                            next_level.append(v)
+                            levels[v] = l
                 this_level = next_level
                 l += 1
 

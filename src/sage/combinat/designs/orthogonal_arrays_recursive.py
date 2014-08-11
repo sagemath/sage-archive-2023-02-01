@@ -936,7 +936,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
     (in order to build a `OA(k,nm+a+b+c)` the following designs must also exist:
     `OA(k,a),OA(k,b),OA(k,c),OA(k,m+0),OA(k,m+1),OA(k,m+2)`)
 
-    Conversely, by considering the complement of each truncated column, one can
+    Considering the complement of each truncated column, it is also possible to
     build an `OA(k+3,n)` with three truncated columns of sizes `a,b,c` in such a
     way that all blocks have size `>k` whenever `(n-a)+(n-b)+(n-c)\leq n+1`.
 
@@ -970,7 +970,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
 
     (in order to build a `OA(k,nm+a+b+c+d)` the following designs must also
     exist:
-    `OA(k,a),OA(k,b),OA(k,c),OA(k,c),OA(k,m+0),OA(k,m+1),OA(k,m+2),OA(k,m+3)`)
+    `OA(k,a),OA(k,b),OA(k,c),OA(k,d),OA(k,m+0),OA(k,m+1),OA(k,m+2),OA(k,m+3)`)
 
     As before, this also shows that one can build an `OA(k+4,n)` with four
     truncated columns of sizes `a,b,c,d` in such a way that all blocks have size
@@ -1000,7 +1000,13 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
         :func:`OA(12,3992) <sage.combinat.designs.database.OA_12_3992>`,
         :func:`OA(12,3994) <sage.combinat.designs.database.OA_12_3994>`.
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_array_recursive import thwart_lemma_3_5
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: OA = thwart_lemma_3_5(6,23,7,5,7,8)
+        sage: is_orthogonal_array(OA,6,23*7+7+7+8)
+        True
 
     With sets of parameters from [Thwarts]_::
 
@@ -1032,6 +1038,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
     assert a+b+c<=n+1, "{}={}+{}+{}=a+b+c>n+1={}+1 violates the assumptions".format(a+b+c,a,b,c,n)
     G = GF(n,prefix='x',conway=True)
     G_set = sorted(G) # sorted by lexicographic order, G[1] = 1
+    assert G_set[0] == G.zero() and G_set[1] == G.one(), "problem with the ordering of {}".format(G)
     G_to_int = {v:i for i,v in enumerate(G_set)}
 
     # Builds an OA(n+1,n) whose last n-1 colums are

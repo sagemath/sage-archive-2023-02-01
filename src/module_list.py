@@ -1394,6 +1394,11 @@ ext_modules = [
               include_dirs=[SAGE_INC],
               libraries=["stdc++"]),
 
+    Extension("sage.numerical.linear_tensor_element",
+              ["sage/numerical/linear_tensor_element.pyx"],
+              include_dirs=[SAGE_INC],
+              libraries=["stdc++"]),
+
     Extension("sage.numerical.backends.generic_backend",
               ["sage/numerical/backends/generic_backend.pyx"],
               include_dirs = [SAGE_INC, "sage/c_lib/include/"],

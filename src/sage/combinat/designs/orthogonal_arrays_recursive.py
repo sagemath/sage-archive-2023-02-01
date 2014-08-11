@@ -2,9 +2,7 @@ r"""
 Orthogonal arrays (Recursive constructions)
 
 This module implements several functions to find recursive constructions of
-:mod:`Orthogonal Arrays <sage.combinat.designs.orthogonal_arrays>` using
-Wilson's construction. To this end, they compute and truncate OA in specific
-ways.
+:mod:`Orthogonal Arrays <sage.combinat.designs.orthogonal_arrays>`.
 
 The main function of this module, i.e. :func:`find_recursive_construction`,
 queries all implemented recursive constructions of designs. It is used by
@@ -47,7 +45,7 @@ def find_recursive_construction(k,n):
 
     OUTPUT:
 
-    Returns a pair ``f,args`` such that ``f(*args)`` returns the requested `OA`
+    Return a pair ``f,args`` such that ``f(*args)`` returns the requested `OA`
     if possible, and ``False`` otherwise.
 
     EXAMPLES::
@@ -131,7 +129,7 @@ def find_wilson_decomposition_with_one_truncated_group(k,n):
 
     OUTPUT:
 
-    A pair `f,args` such that `f(*args)` is an `OA(k,n)` or ``False`` if no
+    A pair ``f,args`` such that ``f(*args)`` is an `OA(k,n)` or ``False`` if no
     decomposition with one truncated block was found.
 
     EXAMPLES::
@@ -227,7 +225,7 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
 
 def simple_wilson_construction(k,r,m,u):
     r"""
-    Return an `OA(k,r*m + \sum u_i)` from Wilson construction.
+    Return an `OA(k,rm + \sum u_i)` from Wilson construction.
 
     INPUT:
 
@@ -308,7 +306,7 @@ def find_construction_3_3(k,n):
 
 def construction_3_3(k,n,m,i):
     r"""
-    Returns an `OA(k,nm+i)`.
+    Return an `OA(k,nm+i)`.
 
     This is Wilson's construction with `i` truncated columns of size 1 and such
     that a block `B_0` of the incomplete OA intersects all truncated columns. As
@@ -393,7 +391,7 @@ def find_construction_3_4(k,n):
 
 def construction_3_4(k,n,m,r,s):
     r"""
-    Returns a `OA(k,nm+rs)`.
+    Return a `OA(k,nm+rs)`.
 
     This is Wilson's construction applied to a truncated `OA(k+r+1,n)` with `r`
     columns of size `1` and one column of size `s`.
@@ -505,7 +503,7 @@ def find_construction_3_5(k,n):
 
 def construction_3_5(k,n,m,r,s,t):
     r"""
-    Returns an `OA(k,nm+r+s+t)`.
+    Return an `OA(k,nm+r+s+t)`.
 
     This is exactly Wilson's construction with three truncated groups
     except we make sure that all blocks have size `>k`, so we don't
@@ -621,7 +619,7 @@ def find_construction_3_6(k,n):
 
 def construction_3_6(k,n,m,i):
     r"""
-    Returns a `OA(k,nm+i)`
+    Return a `OA(k,nm+i)`
 
     This is Wilson's construction with `r` columns of order `1`, in which each
     block intersects at most two truncated columns. Such a design exists when
@@ -658,7 +656,7 @@ def construction_3_6(k,n,m,i):
 
 def OA_and_oval(q):
     r"""
-    Returns a `OA(q+1,q)` whose blocks contains `\leq 2` zeroes in the last `q`
+    Return a `OA(q+1,q)` whose blocks contains `\leq 2` zeroes in the last `q`
     columns.
 
     This `OA` is build from a projective plane of order `q`, in which there
@@ -752,7 +750,7 @@ def OA_and_oval(q):
 
 def construction_q_x(k,q,x,check=True):
     r"""
-    Returns an `OA(k,(q-1)*(q-x)+x+2)` using the `q-x` construction.
+    Return an `OA(k,(q-1)*(q-x)+x+2)` using the `q-x` construction.
 
     Let `v=(q-1)*(q-x)+x+2`. If there exists a projective plane of order `q`
     (e.g. when `q` is a prime power) and `0<x<q` then there exists a

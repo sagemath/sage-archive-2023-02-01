@@ -100,13 +100,17 @@ from warnings import warn
 from sage.misc.abstract_method import abstract_method, abstract_methods_of_class
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method, cached_function
-from sage.misc.c3_controlled import C3_sorted_merge, category_sort_key, _cmp_key, _cmp_key_named
+from sage.misc.c3_controlled import _cmp_key, _cmp_key_named, C3_sorted_merge
 from sage.misc.unknown import Unknown
 from sage.misc.weak_dict import WeakValueDictionary
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.dynamic_class import DynamicMetaclass, dynamic_class
+
+from sage.categories.category_cy_helper import category_sort_key, _sort_uniq, _flatten_categories, join_as_tuple
+
+_join_cache = WeakValueDictionary()
 
 class Category(UniqueRepresentation, SageObject):
     r"""
@@ -985,7 +989,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: Rings()._super_categories
             [Category of rngs, Category of semirings]
         """
-        return sorted(Category._flatten_categories(self.super_categories()), key = category_sort_key, reverse=True)
+        return sorted(_flatten_categories(self.super_categories(),JoinCategory), key = category_sort_key, reverse=True)
 
     @lazy_attribute
     def _super_categories_for_classes(self):
@@ -1542,7 +1546,7 @@ class Category(UniqueRepresentation, SageObject):
             ValueError: The meet of an empty list of categories is not implemented
         """
         categories = tuple(categories)
-        if len(categories) == 0:
+        if not categories:
             raise ValueError("The meet of an empty list of categories is not implemented")
         result = categories[0]
         for category in categories[1:]:
@@ -1625,7 +1629,7 @@ class Category(UniqueRepresentation, SageObject):
         if hook is not None:
             assert inspect.ismethod(hook)
             result += tuple(hook())
-        return Category._sort_uniq(result)
+        return _sort_uniq(result)
 
     @cached_method
     def _with_axiom(self, axiom):
@@ -1783,26 +1787,7 @@ class Category(UniqueRepresentation, SageObject):
         """
         return self
 
-    @staticmethod
-    def _flatten_categories(categories):
-        """
-        Return the tuple of categories in ``categories``, while
-        flattening join categories.
-
-        INPUT:
-
-        - ``categories`` -- a list (or iterable) of categories
-
-        EXAMPLES::
-
-            sage: Category._flatten_categories([Algebras(QQ), Category.join([Monoids(), Coalgebras(QQ)]), Sets()])
-            (Category of algebras over Rational Field, Category of monoids, Category of coalgebras over Rational Field, Category of sets)
-        """
-        # Invariant: the super categories of a JoinCategory are not JoinCategories themselves
-        return tuple(cat
-                     for category in categories
-                     for cat in (category.super_categories() if isinstance(category, JoinCategory) else (category,)))
-
+    _flatten_categories = _flatten_categories
 
     @staticmethod
     def _sort(categories):
@@ -1820,6 +1805,13 @@ class Category(UniqueRepresentation, SageObject):
 
         A sorted tuple of categories, possibly with repeats.
 
+        .. NOTE::
+
+            The auxiliary function `_flatten_categories` used in the test
+            below expects a second argument, which is a type such that
+            instances of that type will be replaced by its super
+            categories. Usually, this type is :class:`JoinCategory`.
+
         EXAMPLES::
 
             sage: Category._sort([Sets(), Objects(), Coalgebras(QQ), Monoids(), Sets().Finite()])
@@ -1833,7 +1825,7 @@ class Category(UniqueRepresentation, SageObject):
              Category of commutative magmas,
              Category of finite sets,
              Category of facade sets)
-            sage: Category._sort(Category._flatten_categories([Sets().Finite(), Algebras(QQ).WithBasis(), Semigroups().Finite(), Sets().Facade(),Algebras(QQ).Commutative(), Algebras(QQ).Graded().WithBasis()]))
+            sage: Category._sort(Category._flatten_categories([Sets().Finite(), Algebras(QQ).WithBasis(), Semigroups().Finite(), Sets().Facade(),Algebras(QQ).Commutative(), Algebras(QQ).Graded().WithBasis()], sage.categories.category.JoinCategory))
             (Category of algebras with basis over Rational Field,
              Category of algebras with basis over Rational Field,
              Category of graded algebras over Rational Field,
@@ -1844,34 +1836,7 @@ class Category(UniqueRepresentation, SageObject):
         """
         return tuple(sorted(categories, key=category_sort_key, reverse=True))
 
-    @staticmethod
-    def _sort_uniq(categories):
-        """
-        Return the categories after sorting them and removing redundant categories.
-
-        Redundant categories include duplicates and categories which
-        are super categories of other categories in the input.
-
-        INPUT:
-
-        - ``categories`` -- a list (or iterable) of categories
-
-        OUTPUT: a sorted tuple of mutually incomparable categories
-
-        EXAMPLES::
-
-            sage: Category._sort_uniq([Rings(), Monoids(), Coalgebras(QQ)])
-            (Category of rings, Category of coalgebras over Rational Field)
-
-        Note that, in the above example, ``Monoids()`` does not appear
-        in the result because it is a super category of ``Rings()``.
-        """
-        categories = Category._sort(categories)
-        result = []
-        for category in categories:
-            if not any(cat.is_subcategory(category) for cat in result):
-                result.append(category)
-        return tuple(result)
+    _sort_uniq = _sort_uniq   # a cythonised helper
 
     def __and__(self, other):
         """
@@ -1901,10 +1866,10 @@ class Category(UniqueRepresentation, SageObject):
         """
         return Category.meet([self, other])
 
-    _join_cache = WeakValueDictionary()
+    _join_cache = _join_cache
 
     @staticmethod
-    def join(categories, as_list = False, ignore_axioms=(), axioms=()):
+    def join(categories, as_list=False, ignore_axioms=(), axioms=()):
         """
         Return the join of the input categories in the lattice of categories.
 
@@ -1917,7 +1882,7 @@ class Category(UniqueRepresentation, SageObject):
 
         - ``categories`` -- a list (or iterable) of categories
         - ``as_list`` -- a boolean (default: ``False``);
-            whether the result should be returned as a list
+          whether the result should be returned as a list
         - ``axioms`` -- a tuple of strings; the names of some
           supplementary axioms
 
@@ -2059,6 +2024,7 @@ class Category(UniqueRepresentation, SageObject):
             [Category of facade commutative test objects,
              Category of finite dimensional commutative test objects]
         """
+        # Get the list of categories and deal with some trivial cases
         categories = list(categories)
         if not categories:
             if as_list:
@@ -2077,69 +2043,26 @@ class Category(UniqueRepresentation, SageObject):
             else:
                 return category
 
+        # Get the cache key, and look into the cache
+        # Ensure associativity and commutativity by flattening
         # TODO:
         # - Do we want to store the cache after or before the mangling of the categories?
         # - Caching with ignore_axioms?
-
-        # Ensure associativity and commutativity by flattening
         # JoinCategory's sorting, and removing duplicates
-        categories = Category._flatten_categories(categories)
-        categories = Category._sort_uniq(categories)
-
-        if not as_list and not ignore_axioms:
+        cache_key = _sort_uniq(_flatten_categories(categories, JoinCategory))
+        if not ignore_axioms:
             try:
-                return Category._join_cache[categories]
+                out = _join_cache[cache_key]
+                if as_list:
+                    if isinstance(out, JoinCategory):
+                        return out._super_categories
+                    return [out]
+                return out
             except KeyError:
                 pass
 
         # Handle axioms
-        axioms = {axiom
-                  for category in categories
-                  for axiom in category.axioms()}.union(axioms)
-        # Invariants:
-        # - the current list of categories is stored in the keys of ``done``
-        # - todo contains the ``complement`` of done; i.e.
-        #   for category in the keys of done,
-        #   (category, axiom) is in todo iff axiom is not in done[category]
-        done = dict()
-        todo = set()
-        def add_category(category):
-            axs = category.axioms()
-            for (cat, axiom) in ignore_axioms:
-                if category.is_subcategory(cat):
-                    axs = axs | {axiom}
-            done[category] = axs
-            todo.update( (category, axiom)
-                         for axiom in axioms.difference(axs) )
-        for category in categories:
-            add_category(category)
-        while todo:
-            (category, axiom) = todo.pop()
-            # It's easier to remove categories from done than from todo
-            # So we check that ``category`` had not been removed
-            if category not in done:
-                continue
-            new_cats = category._with_axiom_as_tuple(axiom)
-
-            # Removes redundant categories
-            new_cats = [new_cat for new_cat in new_cats
-                        if not any(cat.is_subcategory(new_cat) for cat in done.keys())]
-            for cat in done.keys():
-                if any(new_cat.is_subcategory(cat) for new_cat in new_cats):
-                    del done[cat]
-
-            new_axioms = set(axiom
-                             for new_cat in new_cats
-                             for axiom in new_cat.axioms()
-                             if axiom not in axioms)
-            # Mark old categories with new axioms as todo
-            todo.update( (category, axiom)
-                         for axiom in new_axioms
-                         for category in done.keys()
-                         )
-            for cat in new_cats:
-                add_category(cat)
-        result = Category._sort_uniq(done.keys())
+        result = join_as_tuple(cache_key, axioms, ignore_axioms)
         if as_list:
             return list(result)
         if len(result) == 1:
@@ -2147,7 +2070,7 @@ class Category(UniqueRepresentation, SageObject):
         else:
             result = JoinCategory(result)
         if not ignore_axioms:
-            Category._join_cache[categories] = result
+            _join_cache[cache_key] = result
         return result
 
     def category(self):
@@ -2297,7 +2220,7 @@ def category_graph(categories = None):
     - ``categories`` -- a list (or iterable) of categories
 
     If ``categories`` is specified, then the graph contains the
-    mentionned categories together with all their super
+    mentioned categories together with all their super
     categories. Otherwise the graph contains (an instance of) each
     category in :mod:`sage.categories.all` (e.g. ``Algebras(QQ)`` for
     algebras).
@@ -2984,3 +2907,6 @@ class JoinCategory(CategoryWithParameters):
             except ValueError:
                 pass
         return "Join of " + " and ".join(str(cat) for cat in self._super_categories)
+
+
+

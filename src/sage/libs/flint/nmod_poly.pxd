@@ -68,6 +68,8 @@ cdef extern from "flint/nmod_poly.h":
     cdef void nmod_poly_one(nmod_poly_t res)
     cdef void nmod_poly_truncate(nmod_poly_t poly, long len)
     cdef void nmod_poly_reverse(nmod_poly_t output, nmod_poly_t input, long m)
+    cdef void nmod_poly_revert_series(nmod_poly_t output, nmod_poly_t intput, long m)
+
     cdef int nmod_poly_equal(nmod_poly_t a, nmod_poly_t b)
 
     # Powering

@@ -1,10 +1,9 @@
 """
-Block designs.
+Block designs
 
 A *block design* is a set together with a family of subsets (repeated subsets
 are allowed) whose members are chosen to satisfy some set of properties that are
-deemed useful for a particular application. See :wikipedia:`Block_design`. It is
-an object equivalent to an incidence structure.
+deemed useful for a particular application. See :wikipedia:`Block_design`.
 
 REFERENCES:
 
@@ -84,9 +83,83 @@ def tdesign_params(t, v, k, L):
     r = integer_floor(L * x/y)
     return (t, v, b, r, k, L)
 
+def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parameters=False):
+    r"""
+    Return ``True`` if the parameters ``(v,k,lmbda)`` are the one of hyperplanes in
+    a (finite Desarguesian) projective space.
+    
+    In other words, test whether there exists a prime power ``q`` and an integer
+    ``d`` greater than two such that:
+
+    - `v = (q^{d+1}-1)/(q-1) = q^d + q^{d-1} + ... + 1`
+    - `k = (q^d - 1)/(q-1) = q^{d-1} + q^{d-2} + ... + 1`
+    - `lmbda = (q^{d-1}-1)/(q-1) = q^{d-2} + q^{d-3} + ... + 1`
+
+    If it exists, such a pair ``(q,d)`` is unique.
+
+    INPUT:
+
+    - ``v,k,lmbda`` (integers)
+
+    OUTPUT:
+
+    - a boolean or, if ``return_parameters`` is set to ``True`` a pair
+      ``(True, (q,d))`` or ``(False, (None,None))``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.block_design import are_hyperplanes_in_projective_geometry_parameters
+        sage: are_hyperplanes_in_projective_geometry_parameters(40,13,4)
+        True
+        sage: are_hyperplanes_in_projective_geometry_parameters(40,13,4,return_parameters=True)
+        (True, (3, 3))
+        sage: PG = designs.ProjectiveGeometryDesign(3,2,GF(3))
+        sage: PG.is_t_design(return_parameters=True)
+        (True, (2, 40, 13, 4))
+
+        sage: are_hyperplanes_in_projective_geometry_parameters(15,3,1)
+        False
+        sage: are_hyperplanes_in_projective_geometry_parameters(15,3,1,return_parameters=True)
+        (False, (None, None))
+
+    TESTS::
+
+        sage: sgp = lambda q,d: ((q**(d+1)-1)//(q-1), (q**d-1)//(q-1), (q**(d-1)-1)//(q-1))
+        sage: for q in [3,4,5,7,8,9,11]:
+        ....:     for d in [2,3,4,5]:
+        ....:         v,k,l = sgp(q,d)
+        ....:         assert are_hyperplanes_in_projective_geometry_parameters(v,k,l,True) == (True, (q,d))
+        ....:         assert are_hyperplanes_in_projective_geometry_parameters(v+1,k,l) is False
+        ....:         assert are_hyperplanes_in_projective_geometry_parameters(v-1,k,l) is False
+        ....:         assert are_hyperplanes_in_projective_geometry_parameters(v,k+1,l) is False
+        ....:         assert are_hyperplanes_in_projective_geometry_parameters(v,k-1,l) is False
+        ....:         assert are_hyperplanes_in_projective_geometry_parameters(v,k,l+1) is False
+        ....:         assert are_hyperplanes_in_projective_geometry_parameters(v,k,l-1) is False
+    """
+    import sage.rings.arith as arith
+
+    q1 = Integer(v - k)
+    q2 = Integer(k - lmbda)
+
+    if (lmbda <= 0 or q1 < 4 or q2 < 2 or
+        not q1.is_prime_power() or
+        not q2.is_prime_power()):
+        return (False,(None,None)) if return_parameters else False
+
+    p1,e1 = q1.factor()[0]
+    p2,e2 = q2.factor()[0]
+
+    k = arith.gcd(e1,e2)
+    d = e1//k
+    q = p1**k
+    if e2//k != d-1 or lmbda != (q**(d-1)-1)//(q-1):
+        return (False,(None,None)) if return_parameters else False
+
+    return (True, (q,d)) if return_parameters else True
+
 def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
     """
-    Returns a projective geometry design.
+    Return a projective geometry design.
 
     A projective geometry design of parameters `n,d,F` has for points the lines
     of `F^{n+1}`, and for blocks the `d+1`-dimensional subspaces of `F^{n+1}`,
@@ -109,31 +182,45 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
 
     EXAMPLES:
 
-    The points of the following design are the `\\frac {2^{2+1}-1} {2-1}=7`
-    lines of `\mathbb{Z}_2^{2+1}`. It has `7` blocks, corresponding to each
-    2-dimensional subspace of `\mathbb{Z}_2^{2+1}`::
+    The set of `d`-dimensional subspaces in a `n`-dimensional projective space
+    forms `2`-designs (or balanced incomplete block designs)::
 
-        sage: designs.ProjectiveGeometryDesign(2, 1, GF(2))
-        Incidence structure with 7 points and 7 blocks
+        sage: PG = designs.ProjectiveGeometryDesign(4,2,GF(2))
+        sage: PG
+        Incidence structure with 31 points and 155 blocks
+        sage: PG.is_t_design(return_parameters=True)
+        (True, (2, 31, 7, 7))
+
+        sage: PG = designs.ProjectiveGeometryDesign(3,1,GF(4,'z'))
+        sage: PG.is_t_design(return_parameters=True)
+        (True, (2, 85, 5, 1))
+
+    Check that the constructor using gap also works::
+
         sage: BD = designs.ProjectiveGeometryDesign(2, 1, GF(2), algorithm="gap") # optional - gap_packages (design package)
         sage: BD.is_t_design(return_parameters=True)                              # optional - gap_packages (design package)
         (True, (2, 7, 3, 1))
     """
-    q = F.order()
     if algorithm is None:
-        V = VectorSpace(F, n+1)
-        points = {p:i for i,p in enumerate(V.subspaces(1))}
+        from sage.matrix.echelon_matrix import reduced_echelon_matrix_iterator
+        from copy import copy
+
+        points = {}
+        points = {p:i for i,p in enumerate(reduced_echelon_matrix_iterator(F,1,n+1,copy=True,set_immutable=True))}
         blocks = []
-        for s in V.subspaces(d+1):
+        for m1 in reduced_echelon_matrix_iterator(F,d+1,n+1,copy=False):
             b = []
-            for bb in s.subspaces(1):
-                b.append(points[bb])
+            for m2 in reduced_echelon_matrix_iterator(F,1,d+1,copy=False):
+                m = m2*m1
+                m.echelonize()
+                m.set_immutable()
+                b.append(points[m])
             blocks.append(b)
         return BlockDesign(len(points), blocks, name="ProjectiveGeometryDesign", check=check)
     if algorithm == "gap":   # Requires GAP's Design
         from sage.interfaces.gap import gap
         gap.load_package("design")
-        gap.eval("D := PGPointFlatBlockDesign( %s, %s, %d )"%(n,q,d))
+        gap.eval("D := PGPointFlatBlockDesign( %s, %s, %d )"%(n,F.order(),d))
         v = eval(gap.eval("D.v"))
         gblcks = eval(gap.eval("D.blocks"))
         gB = []
@@ -286,7 +373,7 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
 
 def projective_plane(n, check=True, existence=False):
     r"""
-    Returns a projective plane of order ``n`` as a 2-design.
+    Return a projective plane of order ``n`` as a 2-design.
 
     A finite projective plane is a 2-design with `n^2+n+1` lines (or blocks) and
     `n^2+n+1` points. For more information on finite projective planes, see the
@@ -372,7 +459,7 @@ def projective_plane(n, check=True, existence=False):
 
 def AffineGeometryDesign(n, d, F):
     r"""
-    Returns an Affine Geometry Design.
+    Return an Affine Geometry Design.
 
     INPUT:
 

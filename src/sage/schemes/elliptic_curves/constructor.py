@@ -361,12 +361,12 @@ class EllipticCurveFactory(UniqueFactory):
         A consequence of this is that passing keyword arguments only
         works when constructing an elliptic curve the first time:
 
-            sage: E = EllipticCurve('5077a1', gens=[[1, -1], [-2, 3], [4, -7]])
+            sage: E = EllipticCurve('433a1', gens=[[-1, 1], [3, 4]])
             sage: E.gens()
-            [(-2 : 3 : 1), (1 : -1 : 1), (4 : -7 : 1)]
-            sage: E = EllipticCurve('5077a1', gens=[[-2, 3], [-1, 3], [0, 2]])
+            [(-1 : 1 : 1), (3 : 4 : 1)]
+            sage: E = EllipticCurve('433a1', gens=[[-1, 0], [0, 1]])
             sage: E.gens()
-            [(-2 : 3 : 1), (1 : -1 : 1), (4 : -7 : 1)]
+            [(-1 : 1 : 1), (3 : 4 : 1)]
 
         .. WARNING::
 

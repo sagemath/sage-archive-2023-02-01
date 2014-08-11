@@ -5,7 +5,7 @@ Obtenir de l'aide
 
 Sage est doté d'une importante documentation intégrée, accessible en
 tapant (par exemple) le nom d'une fonction ou d'une constante suivi d'un
-point d'interrogation :
+point d'interrogation :
 
 .. skip
 
@@ -109,7 +109,7 @@ Fonctions, indentation et itération
 
 Les définitions de fonctions en Sage sont introduites par la commande
 ``def``, et la liste des noms des paramètres est suivie de deux points,
-comme dans :
+comme dans :
 
 ::
 
@@ -120,7 +120,7 @@ comme dans :
     sage: is_even(3)
     False
 
-Remarque : suivant la version du *notebook* que vous utilisez, il est
+Remarque : suivant la version du *notebook* que vous utilisez, il est
 possible que vous voyez trois points ``...`` au début de la deuxième
 ligne de l'exemple. Ne les entrez pas, ils servent uniquement à signaler
 que le code est indenté.
@@ -143,8 +143,8 @@ la valeur par défaut ``divisor=2`` est utilisée.
     False
 
 Il est possible de spécifier un ou plusieurs des paramètres par leur nom
-lors de l'appel de la fonction ; dans ce cas, les paramètres nommés
-peuvent apparaître dans n'importe quel ordre :
+lors de l'appel de la fonction ; dans ce cas, les paramètres nommés
+peuvent apparaître dans n'importe quel ordre :
 
 .. link
 
@@ -176,7 +176,7 @@ précédentes.
     Syntax Error:
            return v
 
-Une fois l'indentation corrigée, l'exemple fonctionne :
+Une fois l'indentation corrigée, l'exemple fonctionne :
 
 ::
 
@@ -189,10 +189,10 @@ Une fois l'indentation corrigée, l'exemple fonctionne :
     sage: even(10)
     [4, 6, 8]
 
-Il n'y a pas besoin de placer des points-virgules en fin de ligne ; une
+Il n'y a pas besoin de placer des points-virgules en fin de ligne ; une
 instruction est en général terminée par un passage à la ligne. En
 revanche, il est possible de placer plusieurs instructions sur la même
-ligne en les séparant par des points-virgules :
+ligne en les séparant par des points-virgules :
 
 ::
 
@@ -200,7 +200,7 @@ ligne en les séparant par des points-virgules :
     64
 
 Pour continuer une instruction sur la ligne suivante, placez une barre
-oblique inverse en fin de ligne :
+oblique inverse en fin de ligne :
 
 ::
 
@@ -211,7 +211,7 @@ oblique inverse en fin de ligne :
 Pour compter en Sage, utilisez une boucle dont la variable d'itération
 parcourt une séquence d'entiers. Par exemple, la première ligne
 ci-dessous a exactement le même effet que ``for(i=0; i<3; i++)`` en C++
-ou en Java :
+ou en Java :
 
 ::
 
@@ -260,14 +260,14 @@ et des cubes en trois colonnes, chacune d'une largeur de six caractères.
 La structure de données de base de Sage est la liste, qui est — comme
 son nom l'indique — une liste d'objets arbitraires. Par exemple, la
 commande ``range`` que nous avons utilisée plus haut crée en fait une
-liste :
+liste :
 
 ::
 
     sage: range(2,10)
     [2, 3, 4, 5, 6, 7, 8, 9]
 
-Voici un exemple plus compliqué de liste :
+Voici un exemple plus compliqué de liste :
 
 ::
 
@@ -334,10 +334,10 @@ qui représente la liste des entiers impairs strictement positifs jusqu'à
     ...           return "Even positive numbers up to n."
 
 La méthode ``__init__`` est appelée à la création de l'objet pour
-l'initialiser ; la méthode ``__repr__`` affiche l'objet. À la seconde
+l'initialiser ; la méthode ``__repr__`` affiche l'objet. À la seconde
 ligne de la méthode ``__init__``, nous appelons le constructeur de la
 classe ``list``. Pour créer un objet de classe ``Evens``, nous procédons
-ensuite comme suit :
+ensuite comme suit :
 
 .. link
 

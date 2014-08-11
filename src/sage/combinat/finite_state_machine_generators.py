@@ -38,11 +38,16 @@ AUTHORS:
 - Clemens Heuberger (2014-04-07): initial version
 - Sara Kropf (2014-04-10): some changes in TransducerGenerator
 - Daniel Krenn (2014-04-15): improved common docstring during review
+- Clemens Heuberger, Daniel Krenn, Sara Kropf (2014-04-16--2014-05-02):
+  A couple of improvements. Details see
+  #16141, #16142, #16143, #16186.
 - Sara Kropf (2014-04-29): weight transducer
+- Clemens Heuberger, Daniel Krenn (2014-07-18): transducers Wait, all,
+  any
 
 ACKNOWLEDGEMENT:
 
-- Daniel Krenn, Clemens Heuberger and Sara Kropf are supported by the
+- Clemens Heuberger, Daniel Krenn and Sara Kropf are supported by the
   Austrian Science Fund (FWF): P 24644-N26.
 
 Functions and methods
@@ -51,14 +56,13 @@ Functions and methods
 """
 #*****************************************************************************
 #       Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
+#                     2014 Daniel Krenn <dev@danielkrenn.at>
 #                     2014 Sara Kropf <sara.kropf@aau.at>
-#                     2014 Daniel Krenn <devel@danielkrenn.at>
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.combinat.finite_state_machine import Transducer

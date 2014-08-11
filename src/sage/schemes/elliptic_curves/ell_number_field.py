@@ -2235,6 +2235,209 @@ class EllipticCurve_number_field(EllipticCurve_field):
             self._height_function = EllipticCurveCanonicalHeight(self)
         return self._height_function
 
+    ##########################################################
+    # Isogeny class
+    ##########################################################
+    def isogeny_class(self):
+        r"""
+        Returns the isogeny class of this elliptic curve.
+
+        OUTPUT:
+
+        An instance of the class
+        :class:`sage.schemes.elliptic_curves.isogeny_class.IsogenyClass_EC_NumberField`.
+        This object has a list of curve models.  It also has methods
+        for computing the isogeny matrix and the list of isogenies
+        between curves in this class.
+
+        .. note::
+
+            The curves in the isogeny class will all be minimal
+            models when the class number is `1`.
+
+        EXAMPLES::
+
+            sage: isocls = EllipticCurve('37b').isogeny_class(order="lmfdb")
+            sage: isocls
+            Elliptic curve isogeny class 37b
+            sage: isocls.curves
+            (Elliptic Curve defined by y^2 + y = x^3 + x^2 - 1873*x - 31833 over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 3*x + 1 over Rational Field)
+            sage: isocls.matrix()
+            [1 3 9]
+            [3 1 3]
+            [9 3 1]
+
+        ::
+
+            sage: isocls = EllipticCurve('37b').isogeny_class('database', order="lmfdb"); isocls.curves
+            (Elliptic Curve defined by y^2 + y = x^3 + x^2 - 1873*x - 31833 over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 3*x + 1 over Rational Field)
+
+        This is an example of a curve with a `37`-isogeny::
+
+            sage: E = EllipticCurve([1,1,1,-8,6])
+            sage: isocls = E.isogeny_class(); isocls
+            Isogeny class of Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 8*x + 6 over Rational Field
+            sage: isocls.matrix()
+            [ 1 37]
+            [37  1]
+            sage: print "\n".join([repr(E) for E in isocls.curves])
+            Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 8*x + 6 over Rational Field
+            Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 208083*x - 36621194 over Rational Field
+
+        This curve had numerous `2`-isogenies::
+
+            sage: e=EllipticCurve([1,0,0,-39,90])
+            sage: isocls = e.isogeny_class(); isocls.matrix()
+            [1 2 4 4 8 8]
+            [2 1 2 2 4 4]
+            [4 2 1 4 8 8]
+            [4 2 4 1 2 2]
+            [8 4 8 2 1 4]
+            [8 4 8 2 4 1]
+
+        See http://math.harvard.edu/~elkies/nature.html for more
+        interesting examples of isogeny structures.
+
+        ::
+
+            sage: E = EllipticCurve(j = -262537412640768000)
+            sage: isocls = E.isogeny_class(); isocls.matrix()
+            [  1 163]
+            [163   1]
+            sage: print "\n".join([repr(C) for C in isocls.curves])
+            Elliptic Curve defined by y^2 + y = x^3 - 2174420*x + 1234136692 over Rational Field
+            Elliptic Curve defined by y^2 + y = x^3 - 57772164980*x - 5344733777551611 over Rational Field
+
+
+        The degrees of isogenies are invariant under twists::
+
+            sage: E = EllipticCurve(j = -262537412640768000)
+            sage: E1 = E.quadratic_twist(6584935282)
+            sage: isocls = E1.isogeny_class(); isocls.matrix()
+            [  1 163]
+            [163   1]
+            sage: E1.conductor()
+            18433092966712063653330496
+
+        ::
+
+            sage: E = EllipticCurve('14a1')
+            sage: isocls = E.isogeny_class(); isocls.matrix()
+            [ 1  2  3  3  6  6]
+            [ 2  1  6  6  3  3]
+            [ 3  6  1  9  2 18]
+            [ 3  6  9  1 18  2]
+            [ 6  3  2 18  1  9]
+            [ 6  3 18  2  9  1]
+            sage: print "\n".join([repr(C) for C in isocls.curves])
+            Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - 36*x - 70 over Rational Field
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - x over Rational Field
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - 171*x - 874 over Rational Field
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - 11*x + 12 over Rational Field
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - 2731*x - 55146 over Rational Field
+            sage: isocls2 = isocls.reorder('lmfdb'); isocls2.matrix()
+            [ 1  2  3  9 18  6]
+            [ 2  1  6 18  9  3]
+            [ 3  6  1  3  6  2]
+            [ 9 18  3  1  2  6]
+            [18  9  6  2  1  3]
+            [ 6  3  2  6  3  1]
+            sage: print "\n".join([repr(C) for C in isocls2.curves])
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - 2731*x - 55146 over Rational Field
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - 171*x - 874 over Rational Field
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - 36*x - 70 over Rational Field
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - 11*x + 12 over Rational Field
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - x over Rational Field
+            Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x - 6 over Rational Field
+
+        ::
+
+            sage: E = EllipticCurve('11a1')
+            sage: isocls = E.isogeny_class(); isocls.matrix()
+            [ 1  5  5]
+            [ 5  1 25]
+            [ 5 25  1]
+            sage: f = isocls.isogenies()[0][1]; f.kernel_polynomial()
+            x^2 + x - 29/5
+        """
+        try:
+            return self._isoclass
+        except AttributeError:
+            from sage.schemes.elliptic_curves.isogeny_class import IsogenyClass_EC_NumberField
+            self._isoclass = IsogenyClass_EC_NumberField(self)
+            return self._isoclass
+
+    def isogenies_prime_degree(self, l=None):
+        r"""
+        Returns a list of `\ell`-isogenies from self, where `\ell` is a
+        prime.
+
+        INPUT:
+
+        - ``l`` -- either None or a prime or a list of primes.
+
+        OUTPUT:
+
+        (list) `\ell`-isogenies for the given `\ell` or if `\ell` is None, all
+        isogenies of prime degree (see below for the CM case).
+
+        .. note::
+
+           Over `\QQ`, the codomains of the isogenies returned are standard
+           minimal models.
+
+        .. note::
+
+           For curves with rational CM, isogenies of primes degree
+           exist for infinitely many primes `\ell`, though there are
+           only finitely many isogenous curves up to isomoprhism.  The
+           list returned only includes one isogeny of prime degree for
+           each codomain.
+
+        EXAMPLES::
+
+            sage: E.isogenies_prime_degree(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: 4 is not prime.
+
+        """
+        from isogeny_small_degree import isogenies_prime_degree
+
+        if l is not None and not isinstance(l, list):
+            try:
+                l = ZZ(l)
+            except TypeError:
+                raise ValueError("%s is not a prime integer" % l)
+            try:
+                if l.is_prime(proof=False):
+                    return isogenies_prime_degree(self, l)
+                else:
+                    raise ValueError("%s is not prime." % l)
+            except AttributeError:
+                raise ValueError("%s is not prime." % l)
+
+        if l is None:
+            from isogeny_class import possible_isogeny_degrees
+            L = possible_isogeny_degrees(self)
+            return self.isogenies_prime_degree(L)
+
+        isogs = sum([self.isogenies_prime_degree(p) for p in l],[])
+
+        if self.has_rational_cm():
+            # eliminate any endomorphisms and repeated codomains
+            isogs = [phi for phi in isogs if not self.is_isomorphic(phi.codomain())]
+            codoms = [phi.codomain() for phi in isogs]
+            isogs = [phi for i, phi in enumerate(isogs)
+                     if not any([E.is_isomorphic(codoms[i])
+                                 for E in codoms[:i]])]
+        return isogs
+
     def is_isogenous(self, other, proof=True, maxnorm=100):
         """
         Returns whether or not self is isogenous to other.

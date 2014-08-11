@@ -592,6 +592,3 @@ def is_cm_j_invariant(j):
         if pol(j)==0:
             return True, (d,f)
     return False, None
-
-
-

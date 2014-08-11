@@ -3470,20 +3470,25 @@ class DiGraph(GenericGraph):
 
         g = 0
 
-        for component in self.strongly_connected_components_subgraphs():
-            s = next(component.vertex_iterator())
-            levels = {s: 0}
+        for component in self.strongly_connected_components():
+            levels = dict((s, None) for s in component)
+            s = component[0]
+            levels[s] = 0
             this_level = [s]
             l = 1
             while this_level:
                 next_level = []
                 for u in this_level:
-                    for v in component.neighbor_out_iterator(u):
-                        if v in levels: # Non-Tree Edge
-                            g = gcd(g, levels[u] - levels[v] + 1)
-                        else: # Tree Edge
-                            next_level.append(v)
-                            levels[v] = l
+                    # we have levels[u] == l-1
+                    for v in self.neighbor_out_iterator(u):
+                        if v in levels:
+                            # ignore edges leaving the component
+                            level_v = levels[v]
+                            if level_v is not None: # Non-Tree Edge
+                                g = gcd(g, l - level_v)
+                            else: # Tree Edge
+                                next_level.append(v)
+                                levels[v] = l
                 this_level = next_level
                 l += 1
 

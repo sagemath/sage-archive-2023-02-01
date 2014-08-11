@@ -50,7 +50,7 @@ def canonical_parameters(ambient_space, basis):
 
     for v in basis:
         v_coord = ambient_space(v).ambient_coordinate_vector()
-        if (not ambient_space.ambient_module().are_linearly_dependent(new_coord_basis + [v_coord])):
+        if not ambient_space.ambient_module().are_linearly_dependent(new_coord_basis + [v_coord]):
             new_coord_basis += [v_coord]
             new_basis += [ambient_space(v)]
 
@@ -85,19 +85,19 @@ def ModularFormsSubSpace(*args, **kwargs):
 
     generators = []
     for arg in args:
-        if (isinstance(arg, list) or isinstance(arg, tuple)):
+        if isinstance(arg, list) or isinstance(arg, tuple):
             generators += arg
         else:
             generators.append(arg)
-    if (("reduce" in kwargs) and kwargs["reduce"]):
+    if ("reduce" in kwargs) and kwargs["reduce"]:
         generators = [gen.full_reduce() for gen in generators]
 
-    if (len(generators) == 0):
-        raise Exception("No arguments specified!")
+    if len(generators) == 0:
+        raise ValueError("No generators specified")
 
     el = False
     for gen in generators:
-        if (el):
+        if el:
             el += gen
         else:
             el = gen
@@ -105,12 +105,12 @@ def ModularFormsSubSpace(*args, **kwargs):
     ambient_space = el.parent()
 
     try:
-        # This works iff ambient_space supports subspaces
+        # This works if and only if ambient_space supports subspaces
         ambient_space.coordinate_vector(el)
 
         generators = [ambient_space(gen) for gen in generators]
         return SubSpaceForms(ambient_space, generators)
-    except:
+    except NotImplementedError:
         return ambient_space
 
 

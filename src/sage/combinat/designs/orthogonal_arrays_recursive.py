@@ -39,6 +39,7 @@ def find_recursive_construction(k,n):
     - :func:`construction_3_6`
     - :func:`construction_q_x`
     - :func:`thwart_lemma_3_5`
+    - :func:`thwart_lemma_4_1`
 
     INPUT:
 
@@ -1231,8 +1232,8 @@ def find_thwart_lemma_4_1(k,n):
     #      n  = nn*mm+4(nn-2)
     # <=> n+8 = nn(mm+4)
     #
-    # nn is a primepower which divides n+8
-    for nn in [p**i for p,imax in factor(n+8) for i in range(1,imax+1)]:
+    # nn is a prime power dividing n+8
+    for nn in (p**i for p,imax in factor(n+8) for i in range(1,imax+1)):
         mm = (n+8)//nn-4
         if (k+4 > nn+1 or
             mm <= 1 or
@@ -1253,7 +1254,7 @@ def thwart_lemma_4_1(k,n,m):
 
     Implements Lemma 4.1 from [Thwarts]_.
 
-        If `n\equiv 0,1\pmod{3}` be a prime power, then there exists a truncated
+        If `n\equiv 0,1\pmod{3}` is a prime power, then there exists a truncated
         `OA(n+1,n)` whose last four columns have size `n-2` and intersect every
         block on `1,3` or `4` values. Consequently, if there exists an
         `OA(k,m+1),OA(k,m+3),OA(k,m+4)` and a `OA(k,n-2)` then there
@@ -1265,7 +1266,7 @@ def thwart_lemma_4_1(k,n,m):
 
     The affine geometry on 9 points contained in the projective geometry
     `PG(2,n)` is given explicitly in [OS64]_ (Thanks to Julian R. Abel for
-    finding the reference !).
+    finding the reference!).
 
     REFERENCES:
 
@@ -1277,6 +1278,7 @@ def thwart_lemma_4_1(k,n,m):
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.rings.arith import is_prime_power
     from block_design import DesarguesianProjectivePlaneDesign
+    from itertools import chain
 
     assert is_prime_power(n), "n(={}) must be a prime power"
     assert k+4 <= n+1
@@ -1284,14 +1286,14 @@ def thwart_lemma_4_1(k,n,m):
     q = n
     K = FiniteField(q, 'x')
     relabel = {x:i for i,x in enumerate(K)}
-    PG = DesarguesianProjectivePlaneDesign(q,check=False).blocks()
+    PG = DesarguesianProjectivePlaneDesign(q,check=False).blocks(copy=False)
 
     if q % 3 == 0:
-        t = K(1)
+        t = K.one()
     elif q%3 == 1:
-        t = K.primitive_element()**((q-1)//3)
+        t = K.multiplicative_generator()**((q-1)//3)
     else:
-        assert False, "q(={}) must be congruent to 0 or 1 mod 3"
+        raise ValueError("q(={}) must be congruent to 0 or 1 mod 3".format(q))
 
     # The projective plane is labelled with integer coordinates. This code
     # relabels to integers the following points (given by homogeneous
@@ -1315,8 +1317,7 @@ def thwart_lemma_4_1(k,n,m):
     AG_2_3 = set(AG_2_3)
 
     # All blocks of PG should intersect 'AG_2_3' on !=2 AG_2_3.
-    #return [len(AG_2_3.intersection(B)) for B in PG]
-    assert all(len(AG_2_3.intersection(B))!=2 for B in PG)
+    assert all(len(AG_2_3.intersection(B)) != 2 for B in PG)
 
     p = list(AG_2_3)[0]
     # We now build a TD from the PG by removing p, in such a way that the last
@@ -1334,13 +1335,11 @@ def thwart_lemma_4_1(k,n,m):
     # elements should be the last two
     columns.sort(key=lambda x:len(AG_2_3.intersection(x)))
     for i in range(4):
-        columns[-i-1].sort(key=lambda x:int(x in AG_2_3))
+        columns[-i-1].sort(key=lambda x: int(x in AG_2_3))
 
-    relabel = {v:i for i,v in enumerate(sum(columns,[]))}
+    relabel = {v:i for i,v in enumerate(chain(columns))}
 
-    TD = [[relabel[x] for x in B] for B in blocks]
-    for B in TD:
-        B.sort()
+    TD = [sorted(relabel[x] for x in B) for B in blocks]
 
     # We build the OA, removing unnecessary columns
     OA = [[x%q for x in B[-k-4:]] for B in TD]

@@ -1519,7 +1519,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f_rho(az)
             -2.29216470688... - 1.46235057536...*I
             sage: k = f_rho.weight()
-            sage: aut_fact = f_rho.ep() * (i/G.act((S*T)**3, z))**k * (i/G.act((S*T)**2, z))**k * (i/G.act((S*T), z))**k
+            sage: aut_fact = f_rho.ep()^3 * (G.act((T*S)**2*T, z)/i)**k * (G.act((T*S)*T, z)/i)**k * (G.act(T, z)/i)**k
             sage: aut_fact * f_rho(z)
             -2.29216470688... - 1.46235057536...*I
 
@@ -1535,7 +1535,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f_i(az)
             14.5845388476... - 28.4604652892...*I
             sage: k = f_i.weight()
-            sage: aut_fact = f_i.ep() * (i/G.act((S*T)**3, z))**k * (i/G.act((S*T)**2, z))**k * (i/G.act((S*T), z))**k
+            sage: aut_fact = f_i.ep()^3 * (G.act((T*S)**2*T, z)/i)**k * (G.act((T*S)*T, z)/i)**k * (G.act(T, z)/i)**k
             sage: aut_fact * f_i(z)
             14.5845388476... - 28.4604652892...*I
 
@@ -1552,9 +1552,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f(az)
             -15.9978074989... - 29.2775758341...*I
             sage: k = f.weight()
-            sage: aut_fact = f.ep() * (i/G.act((S*T)**3, z))**k * (i/G.act((S*T)**2, z))**k * (i/G.act((S*T), z))**k
+            sage: aut_fact = f.ep()^3 * (G.act((T*S)**2*T, z)/i)**k * (G.act((T*S)*T, z)/i)**k * (G.act(T, z)/i)**k
             sage: k2 = f_rho.weight()
-            sage: aut_fact2 = f_rho.ep() * (i/G.act((S*T)**3, z))**k2 * (i/G.act((S*T)**2, z))**k2 * (i/G.act((S*T), z))**k2
+            sage: aut_fact2 = f_rho.ep() * (G.act((T*S)**2*T, z)/i)**k2 * (G.act((T*S)*T, z)/i)**k2 * (G.act(T, z)/i)**k2
             sage: cor_term = (4 * G.n() / (G.n()-2) * A[1][0] * (A[1][0]*z+A[1][1])) / (2*pi*i).n(1000) * G.lam()
             sage: aut_fact*f(z) + cor_term*aut_fact2*f_rho(z)
             -15.9978074989... - 29.2775758341...*I

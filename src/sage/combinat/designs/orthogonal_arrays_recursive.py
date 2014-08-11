@@ -38,6 +38,7 @@ def find_recursive_construction(k,n):
     - :func:`construction_3_5`
     - :func:`construction_3_6`
     - :func:`construction_q_x`
+    - :func:`thwart_lemma_3_5`
 
     INPUT:
 
@@ -72,7 +73,8 @@ def find_recursive_construction(k,n):
                    find_construction_3_4,
                    find_construction_3_5,
                    find_construction_3_6,
-                   find_q_x]:
+                   find_q_x,
+                   find_thwart_lemma_3_5]:
         res = find_c(k,n)
         if res:
             return res
@@ -923,6 +925,130 @@ def find_q_x(k,n):
             return construction_q_x, (k,q,x)
     return False
 
+def find_thwart_lemma_3_5(k,N):
+    r"""
+    A function to find the values for which one can apply the
+    Lemma 3.5 from [Thwarts]_.
+
+    OUTPUT:
+
+    A pair ``(f,args)`` such that ``f(*args)`` returns an `OA(k,n)` or ``False``
+    if the construction is not available.
+
+    .. SEEALSO::
+
+        :func:`thwart_lemma_3_5`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_thwart_lemma_3_5
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+
+        sage: f,args = find_thwart_lemma_3_5(7,66)
+        sage: args
+        (7, 9, 7, 1, 1, 1, 0, False)
+        sage: OA = f(*args)
+        sage: is_orthogonal_array(OA,7,66,2)
+        True
+
+        sage: f,args = find_thwart_lemma_3_5(6,100)
+        sage: args
+        (6, 8, 10, 8, 7, 5, 0, True)
+        sage: OA = f(*args)
+        sage: is_orthogonal_array(OA,6,100,2)
+        True
+
+    Some values from [Thwarts]_::
+
+        sage: kn = ((10,1046), (10,1048), (10,1059), (11,1524),
+        ....:       (11,2164), (12,3362), (12,3992),  (12,3994))
+        sage: for k,n in kn:
+        ....:     print k,n,find_thwart_lemma_3_5(k,n)[1]
+        10 1046 (10, 13, 79, 9, 1, 0, 9, False)
+        10 1048 (10, 13, 79, 9, 1, 0, 11, False)
+        10 1059 (10, 13, 80, 9, 1, 0, 9, False)
+        11 1524 (11, 19, 78, 16, 13, 13, 0, True)
+        11 2164 (11, 27, 78, 23, 19, 16, 0, True)
+        12 3362 (12, 16, 207, 13, 13, 11, 13, True)
+        12 3992 (12, 19, 207, 16, 13, 11, 19, True)
+        12 3994 (12, 19, 207, 16, 13, 13, 19, True)
+
+        sage: for k,n in kn:                                                     # not tested -- too long
+        ....:     assert designs.orthogonal_array(k,n,existence=True) is True    # not tested -- too long
+    """
+    from sage.rings.arith import is_prime_power
+
+    k = int(k)
+    N = int(N)
+
+    for n in xrange(k+2, N):
+        if not is_prime_power(n):
+            continue
+
+        # we look for (m,n,a,b,c,d) with N = mn + a + b + c (+d) and 
+        # 0 <= a,b,c,d <= n
+        # hence we have N/n-4 <= m <= N/n
+
+        # 1. look for m,a,b,c,d with complement=False
+        # (we restrict to a <= b <= c)
+        for m in xrange(max(k-1,(N+n-1)//n-4), N//n+1):
+            if not (orthogonal_array(k,m+0,existence=True) and
+                    orthogonal_array(k,m+1,existence=True) and 
+                    orthogonal_array(k,m+2,existence=True)):
+                continue
+
+            NN = N - n*m
+            # as a >= b >= c and d <= n we can restrict the start of the loops
+            for a in range(max(0, (NN-n+2)//3), min(n, NN)+1):
+                if not orthogonal_array(k,a,existence=True):
+                    continue
+                for b in range(max(0, (NN-n-a+1)//2), min(a, n+1-a, NN-a)+1):
+                    if not orthogonal_array(k,b,existence=True):
+                        continue
+                    for c in range(max(0, NN-n-a-b), min(b, n+1-a-b, NN-a-b)+1):
+                        if not orthogonal_array(k,c,existence=True):
+                            continue
+
+                        d = NN - (a + b + c)  # necessarily 0 <= d <= n
+                        if d == 0:
+                            return thwart_lemma_3_5, (k,n,m,a,b,c,0,False)
+                        elif (k+4 <= n+1 and
+                            orthogonal_array(k,d,existence=True) and
+                            orthogonal_array(k,m+3,existence=True)):
+                            return thwart_lemma_3_5, (k,n,m,a,b,c,d,False)
+
+        # 2. look for m,a,b,c,d with complement=True
+        # (we restrict to a <= b <= c)
+        for m in xrange(max(k-2,N//n-4), (N+n-1)//n):
+            if not (orthogonal_array(k,m+1,existence=True) and
+                    orthogonal_array(k,m+2,existence=True) and
+                    orthogonal_array(k,m+3,existence=True)):
+                continue
+
+            NN = N - n*m
+            for a in range(max(0, (NN-n+2)//3), min(n, NN)+1):
+                if not orthogonal_array(k,a,existence=True):
+                    continue
+                na = n-a
+                for b in range(max(0, (NN-n-a+1)//2), min(a, NN-a)+1):
+                    nb = n-b
+                    if na+nb > n+1 or not orthogonal_array(k,b,existence=True):
+                        continue
+                    for c in range(max(0, NN-n-a-b), min(b, NN-a-b)+1):
+                        nc = n-c
+                        if na+nb+nc > n+1 or not orthogonal_array(k,c,existence=True):
+                            continue
+
+                        d = NN - (a + b + c)  # necessarily d <= n
+                        if d == 0:
+                            return thwart_lemma_3_5, (k,n,m,a,b,c,0,True)
+                        elif (k+4 <= n+1 and
+                            orthogonal_array(k,d,existence=True) and
+                            orthogonal_array(k,m+4,existence=True)):
+                            return thwart_lemma_3_5, (k,n,m,a,b,c,d,True)
+
+    return False
+
 def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
     r"""
     Returns an `OA(k,nm+a+b+c+d)`
@@ -988,24 +1114,12 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
     - ``complement`` (boolean) -- whether to complement the sets, i.e. follow
       the `n-a,n-b,n-c` variant described above.
 
-    .. WARNING::
-
-        There is no "find" function associated with this recursive construction
-        as I was not able to write one which would not be unnecessarily ugly and
-        tricky (given that only 5 OA are built with it in the original
-        paper). Those designs appear in :mod:`sage.combinat.designs.database`
-        as: :func:`OA(10,1046) <sage.combinat.designs.database.OA_10_1046>`,
-        :func:`OA(10,1059) <sage.combinat.designs.database.OA_10_1059>`,
-        :func:`OA(11,2164) <sage.combinat.designs.database.OA_11_2164>`,
-        :func:`OA(12,3992) <sage.combinat.designs.database.OA_12_3992>`,
-        :func:`OA(12,3994) <sage.combinat.designs.database.OA_12_3994>`.
-
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_array_recursive import thwart_lemma_3_5
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import thwart_lemma_3_5
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: OA = thwart_lemma_3_5(6,23,7,5,7,8)
-        sage: is_orthogonal_array(OA,6,23*7+7+7+8)
+        sage: is_orthogonal_array(OA,6,23*7+5+7+8,2)
         True
 
     With sets of parameters from [Thwarts]_::

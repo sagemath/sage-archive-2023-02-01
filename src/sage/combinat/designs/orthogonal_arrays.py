@@ -1218,9 +1218,8 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y):
 
     This construction appears in [AbelCheng1994]_ and [AbelThesis]_.
 
-    Let `G` be an additive Abelian group. Let `w` be a multiplicative generator
-    of `GF(2^c)^*`. We denote by `H` the `GF(2)`-hyperplane in `GF(2^c)` spanned
-    by `w^0, w^1, \ldots, w^{c-2}`.
+    Let `G` be an additive Abelian group. We denote by `H` a `GF(2)`-hyperplane
+    in `GF(2^c)`. 
 
     Let `A` be a `(k-1) \times 2|G|` array with entries in `G \times GF(2^c)`
     and `Y` be a vector with `k-1` entries in `GF(2^c)`. Let `B` and `C` be
@@ -1229,18 +1228,18 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y):
     The input `A` and `Y` must satisfy the following conditions. For any `i \neq
     j` and `g \in G`:
 
-    - there are exactly two values of `k` such that `B_{i,k} - B_{j,k} = g`
+    - there are exactly two values of `s` such that `B_{i,s} - B_{j,s} = g`
       (i.e. `B` is a `(G,k,2)`-difference matrix),
 
-    - let `k_1` and `k_2` denote the two values of `k` given above, then exactly
-      one of `C_{i,k_1} - C_{j,k_1}` and `C_{i,k_2} - C_{j,k_2}` belongs to the
+    - let `s_1` and `s_2` denote the two values of `s` given above, then exactly
+      one of `C_{i,s_1} - C_{j,s_1}` and `C_{i,s_2} - C_{j,s_2}` belongs to the
       `GF(2)`-hyperplane `(Y_i - Y_j) \cdot H` (we implicitely assumed that `Y_i
       \not= Y_j`).
 
-    Under these conditions, it is easy to check that the array whose `|G|\cdot
-    2^c` rows of length `k-1` are given for all `1\leq i\leq 2|G|,v\in H` by
-    `A_{i,k} + (0, Y_i \cdot v)` is a `(G \times GF(2^c),k-1,1)`-difference
-    matrix.
+    Under these conditions, it is easy to check that the array whose `k-1` rows
+    of length `|G|\cdot 2^c` indexed by `1 \leq i \leq k-1` given by `A_{i,s} +
+    (0, Y_i \cdot v)` where `1\leq s \leq 2|G|,v\in H` is a `(G \times
+    GF(2^c),k-1,1)`-difference matrix.
 
     INPUT:
 
@@ -1254,11 +1253,11 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y):
 
     .. NOTE::
 
-        By convention, the `GF(2^c)` part of the input matrix `A` and vector `Y`
-        are given in the following form: the integer `i` corresponds to the
-        element `w^i` and ``None`` corresponds to `0`.
-
-
+        By convention, a multiplicative generator `w` of `GF(2^c)^*` is fixed
+        (inside the function). The hyperplane `H` is the one spanned by `w^0,
+        w^1, \ldots, w^{c-1}`. The `GF(2^c)` part of the input matrix `A` and
+        vector `Y` are given in the following form: the integer `i` corresponds
+        to the element `w^i` and ``None`` corresponds to `0`.
 
     .. SEEALSO::
 

@@ -147,7 +147,7 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
     bitset_free(seen)
     return True
 
-def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
+def is_difference_matrix(M,G,k,lmbda=1,verbose=False):
     r"""
     Test if `M` is a `(G,k,\lambda)`-difference matrix.
 
@@ -157,11 +157,11 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
 
     INPUT:
 
+    - ``M`` -- a matrix with entries from ``G``
+
     - ``G`` -- a group
 
     - ``k`` -- integer
-
-    - ``M`` -- a matrix with entries from ``G``
 
     - ``lmbda`` (integer) -- set to `1` by default.
 
@@ -174,23 +174,23 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
         sage: q = 3**3
         sage: F = GF(q,'x')
         sage: M = [[x*y for y in F] for x in F]
-        sage: is_difference_matrix(F,q,M,verbose=1)
+        sage: is_difference_matrix(M,F,q,verbose=1)
         True
 
     Bad input::
 
         sage: M.append([None]*3**3)
-        sage: is_difference_matrix(F,q,M,verbose=1)
+        sage: is_difference_matrix(M,F,q,verbose=1)
         The matrix has 28 columns and lambda.|G|=1.27=27
         False
         sage: _=M.pop()
         sage: M[0].append(1)
-        sage: is_difference_matrix(F,q,M,verbose=1)
+        sage: is_difference_matrix(M,F,q,verbose=1)
         Rows 0 and 1 do not have the same length
         False
         sage: _= M[0].pop(-1)
         sage: M[-1] = [0]*3**3
-        sage: is_difference_matrix(F,q,M,verbose=1)
+        sage: is_difference_matrix(M,F,q,verbose=1)
         Rows 0 and 26 do not generate all elements of G exactly lambda(=1)
         times. The element 0 appeared 27 times as a difference.
         False

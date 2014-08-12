@@ -195,6 +195,7 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
         times. The element 0 appeared 27 times as a difference.
         False
     """
+    from difference_family import group_law
 
     assert k>=2
     assert lmbda >=1
@@ -240,17 +241,22 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
     cdef list int_to_group = list(G)
     cdef dict group_to_int = {v:i for i,v in enumerate(int_to_group)}
 
+    # Allocations
+    cdef int ** x_minus_y     = <int **> sage_malloc(G_card*sizeof(int *))
+    cdef int * x_minus_y_data = <int *>  sage_malloc(G_card*G_card*sizeof(int))
+    cdef int * M_c            = <int *>  sage_malloc(k*M_nrows*sizeof(int))
+    cdef int * G_seen         = <int *>  sage_malloc(G_card*sizeof(int))
+    if (x_minus_y == NULL or x_minus_y_data == NULL or M_c == NULL or G_seen == NULL):
+        sage_free(x_minus_y)
+        sage_free(x_minus_y_data)
+        sage_free(G_seen)
+        sage_free(M_c)
+        raise MemoryError
+
     # The "x-y" table. If g_i, g_j \in G, then x_minus_y[i][j] is equal to
     # group_to_int[g_i-g_j]
-    from difference_family import group_law
     zero, op, inv = group_law(G)
-    cdef int ** x_minus_y = <int **> sage_malloc(G_card*sizeof(int *))
-    if x_minus_y == NULL:
-        raise MemoryError
-    x_minus_y[0] = <int *> sage_malloc(G_card*G_card*sizeof(int))
-    if x_minus_y[0] == NULL:
-        sage_free(x_minus_y)
-        raise MemoryError
+    x_minus_y[0] = x_minus_y_data
     for i in range(1,G_card):
         x_minus_y[i] = x_minus_y[i-1] + G_card
 
@@ -261,13 +267,6 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
             x_minus_y[i][j] = group_to_int[op(Gi,minus_Gj)]
 
     # A copy of the matrix
-    cdef int * M_c = <int *> sage_malloc(k*M_nrows*sizeof(int))
-    cdef int * G_seen = <int *> sage_malloc(G_card*sizeof(int))
-    if M_c == NULL:
-        raise MemoryError
-    if G_seen == NULL:
-        sage_free(M_c)
-        raise MemoryError
     for i,R in enumerate(M):
         for j,x in enumerate(R):
             M_c[i*K+j] = group_to_int[x]
@@ -285,13 +284,13 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
                         print ("Rows {} and {} do not generate all elements of G "
                          "exactly lambda(={}) times. The element {} appeared {} "
                          "times as a difference.".format(i,j,L,int_to_group[ii],G_seen[ii]))
-                    sage_free(x_minus_y[0])
+                    sage_free(x_minus_y_data)
                     sage_free(x_minus_y)
                     sage_free(G_seen)
                     sage_free(M_c)
                     return False
 
-    sage_free(x_minus_y[0])
+    sage_free(x_minus_y_data)
     sage_free(x_minus_y)
     sage_free(G_seen)
     sage_free(M_c)

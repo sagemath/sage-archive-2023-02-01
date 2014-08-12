@@ -8,6 +8,8 @@ Functions
 """
 include "sage/misc/bitset.pxi"
 
+from libc.string cimport memset
+
 def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="OA"):
     r"""
     Check that the integer matrix `OA` is an `OA(k,n,t)`.
@@ -197,7 +199,7 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
     assert lmbda >=1
 
     cdef int G_card = G.cardinality()
-    cdef int i,j,ii,jj
+    cdef int i,j,ii
     cdef int K = k
     cdef int L = lmbda
     cdef int M_nrows = len(M)
@@ -241,37 +243,53 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
     # group_to_int[g_i-g_j]
     from difference_family import group_law
     zero, op, inv = group_law(G)
-    cdef list x_minus_y = [[None]*G_card for _ in range(G_card)]
+    cdef int ** x_minus_y = <int **> sage_malloc(G_card*sizeof(int))
+    if x_minus_y == NULL:
+        raise MemoryError
+    for i in range(G_card):
+        x_minus_y[i] = <int *> sage_malloc(G_card*sizeof(int))
+        if x_minus_y[i] == NULL:
+            raise MemoryError
 
     for j,Gj in enumerate(int_to_group):
-        assert  op(Gj,inv(Gj)) == zero
         minus_Gj = inv(Gj)
+        assert op(Gj, minus_Gj) == zero
         for i,Gi in enumerate(int_to_group):
             x_minus_y[i][j] = group_to_int[op(Gi,minus_Gj)]
 
     # A copy of the matrix
     cdef int * M_c = <int *> sage_malloc(k*M_nrows*sizeof(int))
+    cdef int * G_seen = <int *> sage_malloc(G_card*sizeof(int))
     if M_c == NULL:
+        raise MemoryError
+    if G_seen == NULL:
+        sage_free(M_c)
         raise MemoryError
     for i,R in enumerate(M):
         for j,x in enumerate(R):
             M_c[i*K+j] = group_to_int[x]
 
     # We are now ready to test every pair of columns
-    cdef list seen_values
     for i in range(K):
         for j in range(i+1,K):
-            seen_values = [x_minus_y[M_c[ii*K+i]][M_c[ii*K+j]] for ii in range(M_nrows)]
+            memset(G_seen, 0, G_card*sizeof(int))
+            for ii in range(M_nrows):
+                G_seen[x_minus_y[M_c[ii*K+i]][M_c[ii*K+j]]] += 1
 
-            # Each value should be seen lambda times
-            seen_values.sort()
             for ii in range(G_card):
-                for jj in range(L):
-                    if seen_values[ii*L+jj] != ii:
-                        if verbose:
-                            print "Rows {} and {} do not generate all elements of G exactly lambda(={}) times".format(i,j,L)
-                        sage_free(M_c)
-                        return False
+                if G_seen[ii] != L:
+                    if verbose:
+                        print "Rows {} and {} do not generate all elements of G exactly lambda(={}) times".format(i,j,L)
+                    for i in range(G_card):
+                        sage_free(x_minus_y[i])
+                    sage_free(x_minus_y)
+                    sage_free(G_seen)
+                    sage_free(M_c)
+                    return False
 
+    for i in range(G_card):
+        sage_free(x_minus_y[i])
+    sage_free(x_minus_y)
+    sage_free(G_seen)
     sage_free(M_c)
     return True

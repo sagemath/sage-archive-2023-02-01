@@ -191,7 +191,8 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
         sage: _= M[0].pop(-1)
         sage: M[-1] = [0]*3**3
         sage: is_difference_matrix(F,q,M,verbose=1)
-        Rows 0 and 26 do not generate all elements of G exactly lambda(=1) times
+        Rows 0 and 26 do not generate all elements of G exactly lambda(=1)
+        times. The element 0 appeared 27 times as a difference.
         False
     """
 
@@ -246,10 +247,12 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
     cdef int ** x_minus_y = <int **> sage_malloc(G_card*sizeof(int *))
     if x_minus_y == NULL:
         raise MemoryError
-    for i in range(G_card):
-        x_minus_y[i] = <int *> sage_malloc(G_card*sizeof(int))
-        if x_minus_y[i] == NULL:
-            raise MemoryError
+    x_minus_y[0] = <int *> sage_malloc(G_card*G_card*sizeof(int))
+    if x_minus_y[0] == NULL:
+        sage_free(x_minus_y)
+        raise MemoryError
+    for i in range(1,G_card):
+        x_minus_y[i] = x_minus_y[i-1] + G_card
 
     for j,Gj in enumerate(int_to_group):
         minus_Gj = inv(Gj)
@@ -279,16 +282,16 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
             for ii in range(G_card):
                 if G_seen[ii] != L:
                     if verbose:
-                        print "Rows {} and {} do not generate all elements of G exactly lambda(={}) times".format(i,j,L)
-                    for i in range(G_card):
-                        sage_free(x_minus_y[i])
+                        print ("Rows {} and {} do not generate all elements of G "
+                         "exactly lambda(={}) times. The element {} appeared {} "
+                         "times as a difference.".format(i,j,L,int_to_group[ii],G_seen[ii]))
+                    sage_free(x_minus_y[0])
                     sage_free(x_minus_y)
                     sage_free(G_seen)
                     sage_free(M_c)
                     return False
 
-    for i in range(G_card):
-        sage_free(x_minus_y[i])
+    sage_free(x_minus_y[0])
     sage_free(x_minus_y)
     sage_free(G_seen)
     sage_free(M_c)

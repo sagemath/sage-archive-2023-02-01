@@ -152,10 +152,14 @@ class Function_erf(BuiltinFunction):
 
         EXAMPLES::
 
-            sage: erf(2)
+            sage: maxima(erf(2))
+            erf(2)
+            sage: erf(2)._sympy()
             erf(2)
         """
-        BuiltinFunction.__init__(self, "erf", latex_name=r"\text{erf}")
+        BuiltinFunction.__init__(self, "erf", latex_name=r"\text{erf}",
+                                 conversions=dict(maxima='erf',
+                                                  sympy='erf'))
 
     def _eval_(self, x):
         """
@@ -276,13 +280,16 @@ class Function_abs(GinacFunction):
             \mathrm{abs}
             sage: latex(abs(x))
             {\left| x \right|}
+            sage: abs(x)._sympy_()
+            Abs(x)
 
         Test pickling::
 
             sage: loads(dumps(abs(x)))
             abs(x)
         """
-        GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}")
+        GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}",
+                               conversions=dict(sympy='Abs'))
 
 abs = abs_symbolic = Function_abs()
 
@@ -354,6 +361,8 @@ class Function_ceil(BuiltinFunction):
 
             sage: latex(ceil(x))
             \left \lceil x \right \rceil
+            sage: ceil(x)._sympy_()
+            ceiling(x)
 
         ::
 
@@ -368,7 +377,8 @@ class Function_ceil(BuiltinFunction):
             ceil
         """
         BuiltinFunction.__init__(self, "ceil",
-                                   conversions=dict(maxima='ceiling'))
+                                   conversions=dict(maxima='ceiling',
+                                                    sympy='ceiling'))
 
     def _print_latex_(self, x):
         r"""
@@ -528,7 +538,8 @@ class Function_floor(BuiltinFunction):
             sage: loads(dumps(floor))
             floor
         """
-        BuiltinFunction.__init__(self, "floor")
+        BuiltinFunction.__init__(self, "floor",
+                                 conversions=dict(sympy='floor'))
 
     def _print_latex_(self, x):
         r"""
@@ -740,7 +751,9 @@ class Function_gamma(GinacFunction):
         """
         GinacFunction.__init__(self, "gamma", latex_name=r'\Gamma',
                 ginac_name='tgamma',
-                conversions={'mathematica':'Gamma','maple':'GAMMA'})
+                conversions={'mathematica':'Gamma',
+                             'maple':'GAMMA',
+                             'sympy':'gamma'})
 
     def __call__(self, x, prec=None, coerce=True, hold=False):
         """
@@ -867,6 +880,8 @@ class Function_log_gamma(GinacFunction):
             4.78749174278205
             sage: log_gamma(CC(-2.5))
             -0.0562437164976740 + 3.14159265358979*I
+            sage: log_gamma(x)._sympy_()
+            loggamma(x)
 
         ``conjugate(log_gamma(x))==log_gamma(conjugate(x))`` unless on the branch
         cut, which runs along the negative real axis.::
@@ -885,7 +900,9 @@ class Function_log_gamma(GinacFunction):
             +Infinity
         """
         GinacFunction.__init__(self, "log_gamma", latex_name=r'\log\Gamma',
-                conversions={'mathematica':'LogGamma','maxima':'log_gamma'})
+                               conversions=dict(mathematica='LogGamma',
+                                                maxima='log_gamma',
+                                                sympy='loggamma'))
 
 log_gamma = Function_log_gamma()
 
@@ -1099,9 +1116,13 @@ class Function_psi1(GinacFunction):
             psi(x)
             sage: t.subs(x=.2)
             -5.28903989659219
+            sage: psi(x)._sympy_()
+            polygamma(0, x)
         """
         GinacFunction.__init__(self, "psi", nargs=1, latex_name='\psi',
-                conversions=dict(maxima='psi[0]', mathematica='PolyGamma'))
+                               conversions=dict(mathematica='PolyGamma',
+                                                maxima='psi[0]',
+                                                sympy='digamma'))
 
 class Function_psi2(GinacFunction):
     def __init__(self):
@@ -1135,7 +1156,7 @@ class Function_psi2(GinacFunction):
             sage: psi2(2, .5).n(100)
             -16.828796644234319995596334261
 
-        Tests::
+        TESTS::
 
             sage: psi2(n, x).derivative(n)
             Traceback (most recent call last):
@@ -1146,9 +1167,12 @@ class Function_psi2(GinacFunction):
             \psi\left(2, x\right)
             sage: loads(dumps(psi2(2,x)+1))
             psi(2, x) + 1
+            sage: psi(2, x)._sympy_()
+            polygamma(2, x)
         """
         GinacFunction.__init__(self, "psi", nargs=2, latex_name='\psi',
-                conversions=dict(mathematica='PolyGamma'))
+                               conversions=dict(mathematica='PolyGamma',
+                                                sympy='polygamma'))
 
     def _maxima_init_evaled_(self, *args):
         """
@@ -1339,7 +1363,9 @@ class Function_factorial(GinacFunction):
             factorial
         """
         GinacFunction.__init__(self, "factorial", latex_name='{\\rm factorial}',
-                conversions=dict(maxima='factorial', mathematica='Factorial'))
+                conversions=dict(maxima='factorial',
+                                 mathematica='Factorial',
+                                 sympy='factorial'))
 
     def _eval_(self, x):
         """
@@ -1459,7 +1485,9 @@ class Function_binomial(GinacFunction):
             binomial(n, k)
         """
         GinacFunction.__init__(self, "binomial", nargs=2,
-                conversions=dict(maxima='binomial', mathematica='Binomial'))
+                conversions=dict(maxima='binomial',
+                                 mathematica='Binomial',
+                                 sympy='binomial'))
 
     def _binomial_sym(self, n, k):
         """
@@ -1640,7 +1668,9 @@ class Function_beta(GinacFunction):
             beta
         """
         GinacFunction.__init__(self, "beta", nargs=2,
-                conversions=dict(maxima='beta', mathematica='Beta'))
+                conversions=dict(maxima='beta',
+                                 mathematica='Beta',
+                                 sympy='beta'))
 
 beta = Function_beta()
 
@@ -1839,7 +1869,9 @@ class Function_arg(BuiltinFunction):
             0.982793723247329
         """
         BuiltinFunction.__init__(self, "arg",
-                conversions=dict(maxima='carg', mathematica='Arg'))
+                conversions=dict(maxima='carg',
+                                 mathematica='Arg',
+                                 sympy='arg'))
 
     def _eval_(self, x):
         """
@@ -1975,6 +2007,8 @@ class Function_real_part(GinacFunction):
 
             sage: loads(dumps(real_part))
             real_part
+            sage: real_part(x)._sympy_()
+            re(x)
 
         Check if #6401 is fixed::
 
@@ -1986,7 +2020,8 @@ class Function_real_part(GinacFunction):
             \Re \left( f\left(x\right) \right)
         """
         GinacFunction.__init__(self, "real_part",
-                                   conversions=dict(maxima='realpart'))
+                               conversions=dict(maxima='realpart',
+                                                sympy='re'))
 
     def __call__(self, x, **kwargs):
         r"""
@@ -2042,6 +2077,8 @@ class Function_imag_part(GinacFunction):
             4.0
             sage: loads(dumps(imag_part))
             imag_part
+            sage: imag_part(x)._sympy_()
+            im(x)
 
         Check if #6401 is fixed::
 
@@ -2053,7 +2090,8 @@ class Function_imag_part(GinacFunction):
             \Im \left( f\left(x\right) \right)
         """
         GinacFunction.__init__(self, "imag_part",
-                                   conversions=dict(maxima='imagpart'))
+                               conversions=dict(maxima='imagpart',
+                                                sympy='im'))
 
     def __call__(self, x, **kwargs):
         r"""
@@ -2153,6 +2191,7 @@ class Function_conjugate(GinacFunction):
             sage: loads(dumps(conjugate))
             conjugate
         """
-        GinacFunction.__init__(self, "conjugate")
+        GinacFunction.__init__(self, "conjugate",
+                               conversions=dict(sympy='conjugate'))
 
 conjugate = Function_conjugate()

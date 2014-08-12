@@ -162,13 +162,16 @@ class Function_exp_integral_e(BuiltinFunction):
 
         EXAMPLES::
 
-            sage: exp_integral_e(1,0)
+            sage: exp_integral_e(1, 0)
             exp_integral_e(1, 0)
+            sage: exp_integral_e(1, x)._sympy_()
+            expint(1, x)
 
         """
         BuiltinFunction.__init__(self, "exp_integral_e", nargs=2,
                                  latex_name=r'exp_integral_e',
-                                 conversions=dict(maxima='expintegral_e'))
+                                 conversions=dict(maxima='expintegral_e',
+                                                  sympy='expint'))
 
     def _eval_(self, n, z):
         """
@@ -307,11 +310,14 @@ class Function_exp_integral_e1(BuiltinFunction):
 
             sage: exp_integral_e1(1)
             exp_integral_e1(1)
+            sage: exp_integral_e1(x)._sympy_()
+            expint(1, x)
 
         """
         BuiltinFunction.__init__(self, "exp_integral_e1", nargs=1,
                                  latex_name=r'exp_integral_e1',
-                                 conversions=dict(maxima='expintegral_e1'))
+                                 conversions=dict(maxima='expintegral_e1',
+                                                  sympy='E1'))
 
     def _eval_(self, z):
         """
@@ -424,11 +430,14 @@ class Function_log_integral(BuiltinFunction):
 
             sage: log_integral(3)
             log_integral(3)
+            sage: log_integral(x)._sympy_()
+            li(x)
 
         """
         BuiltinFunction.__init__(self, "log_integral", nargs=1,
                                  latex_name=r'log_integral',
-                                 conversions=dict(maxima='expintegral_li'))
+                                 conversions=dict(maxima='expintegral_li',
+                                                  sympy='li'))
 
     def _eval_(self, z):
         """
@@ -611,10 +620,13 @@ class Function_log_integral_offset(BuiltinFunction):
 
             sage: log_integral_offset(3)
             log_integral(3) - log_integral(2)
+            sage: log_integral_offset(x, hold=True)._sympy_()
+            Li(x)
 
         """
         BuiltinFunction.__init__(self, "log_integral_offset", nargs=1,
-                                 latex_name=r'log_integral_offset')
+                                 latex_name=r'log_integral_offset',
+                                 conversions=dict(sympy='Li'))
 
     def _eval_(self,z):
         """
@@ -781,11 +793,14 @@ class Function_sin_integral(BuiltinFunction):
 
             sage: sin_integral(1)
             sin_integral(1)
+            sage: sin_integral(x)._sympy_()
+            Si(x)
 
         """
         BuiltinFunction.__init__(self, "sin_integral", nargs=1,
                                  latex_name=r'\operatorname{Si}',
-                                 conversions=dict(maxima='expintegral_si'))
+                                 conversions=dict(maxima='expintegral_si',
+                                                  sympy='Si'))
 
     def _eval_(self, z):
         """
@@ -947,11 +962,14 @@ class Function_cos_integral(BuiltinFunction):
 
             sage: cos_integral(1)
             cos_integral(1)
+            sage: cos_integral(x)._sympy_()
+            Ci(x)
 
         """
         BuiltinFunction.__init__(self, "cos_integral", nargs=1,
                                  latex_name=r'\operatorname{Ci}',
-                                 conversions=dict(maxima='expintegral_ci'))
+                                 conversions=dict(maxima='expintegral_ci',
+                                                  sympy='Ci'))
 
     def _eval_(self, z):
         """
@@ -1096,11 +1114,14 @@ class Function_sinh_integral(BuiltinFunction):
 
             sage: sinh_integral(1)
             sinh_integral(1)
+            sage: sinh_integral(x)._sympy_()
+            Shi(x)
 
         """
         BuiltinFunction.__init__(self, "sinh_integral", nargs=1,
                                  latex_name=r'\operatorname{Shi}',
-                                 conversions=dict(maxima='expintegral_shi'))
+                                 conversions=dict(maxima='expintegral_shi',
+                                                  sympy='Shi'))
 
     def _eval_(self, z):
         """
@@ -1240,11 +1261,14 @@ class Function_cosh_integral(BuiltinFunction):
 
             sage: cosh_integral(1)
             cosh_integral(1)
+            sage: cosh_integral(x)._sympy_()
+            Chi(x)
 
         """
         BuiltinFunction.__init__(self, "cosh_integral", nargs=1,
                                  latex_name=r'\operatorname{Chi}',
-                                 conversions=dict(maxima='expintegral_chi'))
+                                 conversions=dict(maxima='expintegral_chi',
+                                                  sympy='Chi'))
 
     def _eval_(self, z):
         """
@@ -1352,31 +1376,16 @@ class Function_exp_integral(BuiltinFunction):
     """
     def __init__(self):
         """
-        Return the value of the complex exponential integral Ei(z) at a
-        complex number z.
-
-        EXAMPLES::
+        TESTS::
 
             sage: Ei(10)
             Ei(10)
-            sage: Ei(I)
-            Ei(I)
-            sage: Ei(3+I)
-            Ei(I + 3)
-            sage: Ei(1.3)
-            2.72139888023202
-
-        The branch cut for this function is along the negative real axis::
-
-            sage: Ei(-3 + 0.1*I)
-            -0.0129379427181693 + 3.13993830250942*I
-            sage: Ei(-3 - 0.1*I)
-            -0.0129379427181693 - 3.13993830250942*I
-
-        ALGORITHM: Uses mpmath.
+            sage: Ei(x)._sympy_()
+            Ei(x)
         """
         BuiltinFunction.__init__(self, "Ei",
-                                 conversions=dict(maxima='expintegral_ei'))
+                                 conversions=dict(maxima='expintegral_ei',
+                                                  sympy='Ei'))
 
     def _eval_(self, x ):
         """

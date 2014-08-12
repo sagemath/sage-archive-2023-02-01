@@ -353,7 +353,7 @@ def solve_system_with_difficult_last_row(B, a):
     # 3. We next delete the last row of B and find a basis vector k
     #    for the 1-dimensional kernel.
     D = B.matrix_from_rows(range(C.nrows()-1))
-    N = D._rational_kernel_iml()
+    N = D._rational_kernel_flint()
     if N.ncols() != 1:
         verbose("Try difficult solve again with different random vector")
         return solve_system_with_difficult_last_row(B, a)

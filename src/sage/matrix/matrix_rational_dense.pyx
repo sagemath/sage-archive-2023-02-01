@@ -1074,10 +1074,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         sig_on()
         A, A_denom = self._clear_denom()
         B, B_denom = right._clear_denom()
-        if algorithm == 'default':
+        if algorithm == 'default' or algorithm == 'multimodular':
             AB = A*B
-        elif algorithm == 'multimodular':
-            AB = A._multiply_multi_modular(B)
         else:
             sig_off()
             raise ValueError("unknown algorithm '%s'"%algorithm)
@@ -1272,13 +1270,13 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [0 0 1]
        """
         tm = verbose("computing right kernel matrix over the rationals for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
-        # _rational_kernel_iml() gets the zero-row case wrong, fix it there
+        # _rational_kernel_flint() gets the zero-row case wrong, fix it there
         if self.nrows()==0:
             import constructor
             K = constructor.identity_matrix(QQ, self.ncols())
         else:
             A, _ = self._clear_denom()
-            K = A._rational_kernel_iml().transpose().change_ring(QQ)
+            K = A._rational_kernel_flint().transpose().change_ring(QQ)
         verbose("done computing right kernel matrix over the rationals for %sx%s matrix" % (self.nrows(), self.ncols()),level=1, t=tm)
         return 'computed-iml-rational', K
 

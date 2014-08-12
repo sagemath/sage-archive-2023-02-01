@@ -21,6 +21,8 @@ cdef extern from "flint/fmpz.h":
     void fmpz_set_mpz(fmpz_t f, const mpz_t val)
     void fmpz_set(fmpz_t f, const fmpz_t val)
     void fmpz_add ( fmpz_t f , const fmpz_t g , const fmpz_t h)
+    void fmpz_sub ( fmpz_t f , const fmpz_t g , const fmpz_t h)
+    
     void fmpz_addmul ( fmpz_t f , const fmpz_t g , const fmpz_t h )
     void fmpz_mul ( fmpz_t f , const fmpz_t g , const fmpz_t h)
     int fmpz_sgn ( const fmpz_t f )
@@ -31,7 +33,7 @@ cdef extern from "flint/fmpz.h":
     unsigned long fmpz_fdiv_ui ( const fmpz_t g , unsigned long x)    
     void fmpz_divexact ( fmpz_t f , const fmpz_t g , const fmpz_t h)
     void fmpz_gcd ( fmpz_t f , const fmpz_t g , const fmpz_t h)
-    
+    void fmpz_fdiv_q ( fmpz_t f , const fmpz_t g , const fmpz_t h )
     int fmpz_print(fmpz_t x)
     size_t fmpz_sizeinbase (const fmpz_t f , int b)
     char * fmpz_get_str ( char * str , int b , const fmpz_t f)
@@ -40,7 +42,7 @@ cdef extern from "flint/fmpz.h":
     int fmpz_cmp_si ( const fmpz_t f , int g)
     int fmpz_cmp_ui ( const fmpz_t f , unsigned int g)
 
-    
+    void fmpz_mod ( fmpz_t f , const fmpz_t g , const fmpz_t h)
     void fmpz_set_si ( fmpz_t f , long val )
     void fmpz_addmul ( fmpz_t f , const fmpz_t g , const fmpz_t h )
     void fmpz_clear ( fmpz_t f)
@@ -60,6 +62,8 @@ cdef extern from "flint/fmpz_mat.h":
     fmpz_t fmpz_mat_entry(fmpz_mat_t mat ,long i ,long j)
     void fmpz_mat_zero( fmpz_mat_t mat )
     void fmpz_mat_one( fmpz_mat_t mat )
+    void fmpz_mat_neg( fmpz_mat_t f, fmpz_mat_t g )
+    
     void fmpz_mat_scalar_mul_si( fmpz_mat_t B , const fmpz_mat_t A , long c )
     void fmpz_mat_scalar_mul_fmpz( fmpz_mat_t B , const fmpz_mat_t A , const fmpz_t c )
     void fmpz_mat_mul( fmpz_mat_t C , const fmpz_mat_t A , const  fmpz_mat_t B )
@@ -77,6 +81,7 @@ cdef extern from "flint/fmpz_mat.h":
     void fmpz_mat_transpose ( fmpz_mat_t B , const fmpz_mat_t A)
     long fmpz_mat_rank ( const fmpz_mat_t A)
     int fmpz_mat_solve ( fmpz_mat_t X , fmpz_t den , const fmpz_mat_t A , const fmpz_mat_t B )
+    long fmpz_mat_nullspace( fmpz_mat_t B , const fmpz_mat_t A)
     
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef char _initialized
@@ -94,20 +99,21 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef _unpickle_version0(self, data)
     cpdef _export_as_string(self, int base=?)
     cdef set_unsafe_mpz(self, Py_ssize_t i, Py_ssize_t j, const mpz_t value)
+    cdef set_unsafe_si(self, Py_ssize_t i, Py_ssize_t j, const long long value)    
     cdef get_unsafe_mpz(self, Py_ssize_t i, Py_ssize_t j, mpz_t value)
     cdef double get_unsafe_double(self, Py_ssize_t i, Py_ssize_t j)
     
 
-#     cdef void reduce_entry_unsafe(self, Py_ssize_t i, Py_ssize_t j, Integer modulus)
+    cdef void reduce_entry_unsafe(self, Py_ssize_t i, Py_ssize_t j, Integer modulus)
 
 #    cdef _new_uninitialized_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols)
 
 
     # HNF Modn
-    # cdef int _hnf_modn(Matrix_integer_dense self, Matrix_integer_dense res,
-    #         mod_int det) except -1
-    # cdef long long* _hnf_modn_impl(Matrix_integer_dense self, mod_int det,
-    #                                Py_ssize_t nrows, Py_ssize_t ncols) except NULL
+    cdef int _hnf_modn(Matrix_integer_dense self, Matrix_integer_dense res,
+            mod_int det) except -1
+    cdef long long* _hnf_modn_impl(Matrix_integer_dense self, mod_int det,
+                                   Py_ssize_t nrows, Py_ssize_t ncols) except NULL
     cdef _new_uninitialized_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols)
 
     cdef extract_hnf_from_pari_matrix(self, GEN H, int flag, bint include_zero_rows)

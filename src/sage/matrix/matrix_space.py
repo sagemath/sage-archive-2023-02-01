@@ -375,7 +375,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         else:
             return True
 
-    def __call__(self, entries=None, coerce=True, copy=True):
+    def __call__(self, entries=None, coerce=True, copy=True, sparse = False):
         """
         EXAMPLES::
 

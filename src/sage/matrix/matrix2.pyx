@@ -2739,20 +2739,14 @@ cdef class Matrix(matrix1.Matrix):
             sage: B = copy(A).sparse_matrix()
             sage: set_verbose(1)
             sage: D = A.right_kernel(); D
-            verbose ...
-            verbose 1 (<module>) computing right kernel matrix over the rationals for 4x5 matrix
-            ...
-            verbose 1 (<module>) done computing right kernel matrix over the rationals for 4x5 matrix
+            verbose 1 (<module>) computing a right kernel for 4x5 matrix over Rational Field
             ...
             Vector space of degree 5 and dimension 2 over Rational Field
             Basis matrix:
             [   1    0    1  1/2 -1/2]
             [   0    1 -1/2 -1/4 -1/4]
             sage: S = B.right_kernel(); S
-            verbose ...
-            verbose 1 (<module>) computing right kernel matrix over the rationals for 4x5 matrix
-            ...
-            verbose 1 (<module>) done computing right kernel matrix over the rationals for 4x5 matrix
+            verbose 1 (<module>) computing a right kernel for 4x5 matrix over Rational Field
             ...
             Vector space of degree 5 and dimension 2 over Rational Field
             Basis matrix:
@@ -3455,8 +3449,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: E.right_kernel(algorithm='padic', basis='LLL')
             Free module of degree 7 and rank 2 over Integer Ring
             User basis matrix:
-            [-2  1 -3 -1  0 -1 -1]
-            [ 5  3 -2  5 -1  1  1]
+            [ 2 -1  3  1  0  1  1]
+            [-5 -3  2 -5  1 -1 -1]         
 
         Besides the integers, rings may be as general as principal ideal
         domains.  Results are then free modules.  ::

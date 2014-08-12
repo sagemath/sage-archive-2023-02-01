@@ -87,6 +87,7 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
     try:
         mpz_init_set_si(denom, 1)
         mpz_init(a)
+        mpz_init(tmp)
         mpz_init_set_si(one, 1)
         mpz_init(other_bnd)
 

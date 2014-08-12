@@ -21,12 +21,8 @@ become symbolic inequalities::
 """
 
 from sage.structure.parent import Parent
-from sage.structure.element import ModuleElement, Element
+from sage.structure.element import Element
 from sage.misc.cachefunc import cached_function
-from sage.matrix.matrix_space import is_MatrixSpace
-from sage.modules.free_module import is_FreeModule
-from sage.numerical.linear_functions import is_LinearFunction, LinearFunctionsParent_class
-from sage.numerical.linear_tensor import is_LinearTensor, LinearTensorParent_class
 
 
 #*****************************************************************************
@@ -198,9 +194,39 @@ class LinearTensorConstraint(Element):
         return not self._equality
 
     def lhs(self):
+        """
+        Return the left side of the (in)equality.
+
+        OUTPUT:
+
+        Instance of
+        :class:`sage.numerical.linear_tensor_element.LinearTensor`. A
+        linear function valued in a free module.
+
+        EXAMPLES::
+
+            sage: mip.<x> = MixedIntegerLinearProgram()
+            sage: (x[0] * vector([1,2]) == 0).lhs()
+            (1.0, 2.0)*x_0            
+        """
         return self._lhs
 
     def rhs(self):
+        """
+        Return the right side of the (in)equality.
+
+        OUTPUT:
+
+        Instance of
+        :class:`sage.numerical.linear_tensor_element.LinearTensor`. A
+        linear function valued in a free module.
+
+        EXAMPLES::
+
+            sage: mip.<x> = MixedIntegerLinearProgram()
+            sage: (x[0] * vector([1,2]) == 0).rhs()
+            (0.0, 0.0)
+        """
         return self._rhs
 
     def _ascii_art_(self):
@@ -247,8 +273,7 @@ class LinearTensorConstraint(Element):
             [0   x_2 0  ] == [0 0 0]
             [0   0   x_2]    [0 0 0]
         """
-        M = self.parent().linear_tensors().free_module()
-        if is_MatrixSpace(M):
+        if self.parent().linear_tensors().is_matrix_space():
             return str(self._ascii_art_())
         comparator = (' == ' if self.is_equation() else ' <= ')
         return str(self.lhs()) + comparator + str(self.rhs())
@@ -416,6 +441,4 @@ class LinearTensorConstraintsParent_class(Parent):
         """
         LT = self.linear_tensors()
         return LT.an_element() >= 0
-
-
 

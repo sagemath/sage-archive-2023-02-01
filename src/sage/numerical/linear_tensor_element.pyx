@@ -8,8 +8,6 @@ cdef extern from "limits.h":
     long LONG_MAX
 
 from sage.structure.element cimport ModuleElement, RingElement
-from sage.matrix.matrix_space import is_MatrixSpace
-from sage.modules.free_module import is_FreeModule
 
 
 #*****************************************************************************
@@ -130,7 +128,7 @@ cdef class LinearTensor(ModuleElement):
             sage: LT.an_element()  # indirect doctest
             (1.0, 0.0) + (5.0, 0.0)*x_2 + (7.0, 0.0)*x_5
         """
-        if is_MatrixSpace(self.parent().free_module()):
+        if self.parent().is_matrix_space():
             return self._repr_matrix()
         terms = []
         for key in sorted(self._f.keys()):
@@ -165,7 +163,7 @@ cdef class LinearTensor(ModuleElement):
             [0                 0]
         """
         MS = self.parent().free_module()
-        assert is_MatrixSpace(MS)
+        assert self.parent().is_matrix_space()
         col_lengths = []
         columns = []
         for c in range(MS.ncols()):

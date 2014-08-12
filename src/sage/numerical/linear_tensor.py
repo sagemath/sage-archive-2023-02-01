@@ -37,8 +37,6 @@ from copy import copy
 
 from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_function
-from sage.matrix.matrix_space import is_MatrixSpace
-from sage.modules.free_module import is_FreeModule
 from sage.numerical.linear_functions import is_LinearFunction, LinearFunctionsParent_class
 from sage.numerical.linear_tensor_element import LinearTensor
 
@@ -170,9 +168,89 @@ class LinearTensorParent_class(Parent):
         Parent.__init__(self, base=base_ring, category=ModulesWithBasis(base_ring))
 
     def free_module(self):
+        """
+        Return the linear functions.
+
+        See also :meth:`free_module`.
+
+        OUTPUT:
+
+        Parent of the linear functions, one of the factors in the
+        tensor product construction.
+
+        EXAMPLES::
+
+            sage: mip.<x> = MixedIntegerLinearProgram()
+            sage: lt = x[0] * vector(RDF, [1,2])
+            sage: lt.parent().free_module()
+            Vector space of dimension 2 over Real Double Field
+            sage: lt.parent().free_module() is vector(RDF, [1,2]).parent()
+            True
+        """
         return self._free_module
-        
+
+    def is_vector_space(self):
+        """
+        Return whether the free module is a vector space.
+
+        OUTPUT:
+
+        Boolean. Whether the :meth:`free_module` factor in the tensor
+        product is a vector space.
+
+        EXAMPLES::
+
+            sage: mip = MixedIntegerLinearProgram()
+            sage: LF = mip.linear_functions_parent()
+            sage: LF.tensor(RDF^2).is_vector_space()
+            True
+            sage: LF.tensor(RDF^(2,2)).is_vector_space()       
+            False
+        """
+        from sage.modules.free_module import is_FreeModule
+        return is_FreeModule(self.free_module())
+
+    def is_matrix_space(self):
+        """
+        Return whether the free module is a matrix space.
+
+        OUTPUT:
+
+        Boolean. Whether the :meth:`free_module` factor in the tensor
+        product is a matrix space.
+
+        EXAMPLES::
+
+            sage: mip = MixedIntegerLinearProgram()
+            sage: LF = mip.linear_functions_parent()
+            sage: LF.tensor(RDF^2).is_matrix_space()
+            False
+            sage: LF.tensor(RDF^(2,2)).is_matrix_space()
+            True
+        """
+        from sage.matrix.matrix_space import is_MatrixSpace
+        return is_MatrixSpace(self.free_module())
+
     def linear_functions(self):
+        """
+        Return the linear functions.
+
+        See also :meth:`free_module`.
+
+        OUTPUT:
+
+        Parent of the linear functions, one of the factors in the
+        tensor product construction.
+
+        EXAMPLES::
+
+            sage: mip.<x> = MixedIntegerLinearProgram()
+            sage: lt = x[0] * vector([1,2])
+            sage: lt.parent().linear_functions()
+            Linear functions over Real Double Field
+            sage: lt.parent().linear_functions() is mip.linear_functions_parent()
+            True
+        """
         return self._linear_functions
 
     def _repr_(self):
@@ -210,14 +288,14 @@ class LinearTensorParent_class(Parent):
         """
         M = self.free_module()
         m = M.base_ring()(m)
-        if is_MatrixSpace(M):
+        if self.is_matrix_space():
             # Turn constants into diagonal matrices
             m_matrix = copy(M.zero_matrix())
             for i in range(min(M.ncols(), M.nrows())):
                 m_matrix[i, i] = m
             m_matrix.set_immutable()
             return m_matrix
-        elif is_FreeModule(M):
+        elif self.is_vector_space():
             # Turn constants into vectors with all entries equal
             m_vector = M([m] * M.degree())
             return m_vector

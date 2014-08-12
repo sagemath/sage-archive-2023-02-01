@@ -1393,12 +1393,15 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         INPUT:
 
-        - ``linear_function`` -- Two different types of arguments are possible:
+        - ``linear_function`` -- Thee different types of arguments are possible:
+
             - A linear function. In this case, arguments ``min`` or ``max``
               have to be specified.
+
             - A linear constraint of the form ``A <= B``, ``A >= B``,
               ``A <= B <= C``, ``A >= B >= C`` or ``A == B``. In this
               case, arguments ``min`` and ``max`` will be ignored.
+
         - ``max`` -- An upper bound on the constraint (set to ``None``
           by default). This must be a numerical value.
         - ``min`` -- A lower bound on the constraint.  This must be a

@@ -554,7 +554,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: (A,w,fact) = G.get_FD(z)
             sage: A
             [-1.8477590650225...?                   1]
-            [-1.0000000000000...?                   0]
+            [                  -1                   0]
             sage: G.act(A,w) == z
             True
             sage: full_factor = lambda mat, t: (mat[1][0]*t+mat[1][1])**4
@@ -568,14 +568,33 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: (A,w,fact) = G.get_FD(z,aut_factor)
             sage: fact == full_factor(A,w)
             True
+
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
+            sage: z = (134.12 + 0.22*i).n()
+            sage: (A,w,fact) = G.get_FD(z, ModularForms(group=G, k=ZZ(2)/ZZ(3), ep=-1).aut_factor)
+            sage: A
+            [-323.7968455535...?  248.2375900532...?]
+            [-2.414213562373...?  1.847759065022...?]
+            sage: w
+            0.769070776942... + 0.779859114103...*I
+            sage: z
+            134.120000000... + 0.220000000000...*I
+            sage: G.act(A,w)
+            134.1200000... + 0.2200000000...*I
+            sage: fact
+            0.766550718635... + 1.31804923936...*I
+
+            sage: (A,w,fact) = G.get_FD(z, ModularForms(group=G, k=ZZ(2)/ZZ(3), ep=1).aut_factor)
+            sage: fact
+            -0.766550718635... - 1.31804923936...*I
         """
 
-        I  = self.I()
+        ID = self.I()
         T  = self._T
         S  = self._S
         TI = self._T.inverse()
 
-        A = I
+        A = ID
         L = []
         w = z
         while (abs(w) < ZZ(1) or abs(w.real()) > self.lam()/ZZ(2)):
@@ -583,11 +602,11 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                 w = self.act(self._S, w)
                 A = S*A
                 L.append(-S)
-            if (w.real() >= self.lam()/ZZ(2)):
+            while (w.real() >= self.lam()/ZZ(2)):
                 w = self.act(TI, w)
                 A = TI*A
                 L.append(T)
-            elif (w.real() < self.lam()/ZZ(2)):
+            while (w.real() < -self.lam()/ZZ(2)):
                 w = self.act(T, w)
                 A = T*A
                 L.append(TI)
@@ -603,7 +622,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         if (aut_factor == None):
             new_factor = ZZ(1)
         else:
-            B = I
+            B = ID
             temp_w = self.act(A, z)
             new_factor = ZZ(1)
             for gamma in reversed(L):
@@ -611,7 +630,10 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                 new_factor *= aut_factor(gamma, temp_w)
                 temp_w = self.act(gamma, temp_w)
 
-        return (A.inverse(), self.act(A,z), new_factor)
+        # Somehow A.inverse() causes problems with large numbers
+        AI = matrix(AA, [[A[1,1],-A[0,1]], [-A[1,0],A[0,0]]])
+
+        return (AI, self.act(A,z), new_factor)
 
     def in_FD(self,z):
         r"""

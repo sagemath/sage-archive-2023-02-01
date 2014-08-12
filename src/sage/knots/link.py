@@ -53,6 +53,32 @@ class Link:
         else:
             raise Exception("Invalid input")
 
+    def __repr__(self):
+        r"""
+        Return a string representation.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: from sage.knots import link
+            sage: B = BraidGroup(8)
+            sage: L = link.Link(B([1, 2, 1, 2]))
+            sage: L
+            Knot represented by 4 crossings
+            sage: L = link.Link(PD_code=[[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
+            sage: L
+            Knot represented by 7 crossings
+            sage: L = link.Link(oriented_gauss_code = [[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
+            sage: L
+            Link with 3 components represented by 4 crossing
+        """
+        ncomponents = str(self.ncomponents())
+        pd_len = str(len(self.PD_code()))
+        return 'Knot represented by %s crossings' % (pd_len) if self.is_knot() else 'Link with %s components represented by %s crossing' % (ncomponents, pd_len)
+
     def braidword(self):
         r"""
         Returns the braidword of the link.
@@ -61,16 +87,17 @@ class Link:
             - Braidword representation of the link.
 
         EXAMPLES::
-        sage: from sage.knots import link
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1,-1,-1,-1,+1,+1,-1,+1]])
-        sage: L.braidword()
-        (-1, 2, -1, -2, -2, 1, 1, -2)
-        sage: L = link.Link(PD_code = [[1,4,2,3],[4,1,3,2]])
-        sage: L.braidword()
-        (-1, -1)
-        sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4], [-1, 5, -3, 2, -5, 4]], [-1, 1, 1, -1, -1]])
-        sage: L.braidword()
-        (1, -2, 1, -2, -2)
+
+            sage: from sage.knots import link
+            sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1,-1,-1,-1,+1,+1,-1,+1]])
+            sage: L.braidword()
+            (-1, 2, -1, -2, -2, 1, 1, -2)
+            sage: L = link.Link(PD_code = [[1,4,2,3],[4,1,3,2]])
+            sage: L.braidword()
+            (-1, -1)
+            sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4], [-1, 5, -3, 2, -5, 4]], [-1, 1, 1, -1, -1]])
+            sage: L.braidword()
+            (1, -2, 1, -2, -2)
         """
         return self.braid().Tietze()
 
@@ -83,16 +110,17 @@ class Link:
             - Braid representation of the link.
 
         EXAMPLES::
-        sage: from sage.knots import link
-        sage: L = link.Link(PD_code = [[2,3,1,4],[4,1,3,2]])
-        sage: L.braid()
-        s^2
-        sage: L = link.Link(oriented_gauss_code = [[[-1, 2, -3, 1, -2, 3]], [-1, -1, -1]])
-        sage: L.braid()
-        s^-3
-        sage: L = link.Link(PD_code = [[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]])
-        sage: L.braid()
-        (s0*s1^-1)^2*s1^-1
+
+            sage: from sage.knots import link
+            sage: L = link.Link(PD_code = [[2,3,1,4],[4,1,3,2]])
+            sage: L.braid()
+            s^2
+            sage: L = link.Link(oriented_gauss_code = [[[-1, 2, -3, 1, -2, 3]], [-1, -1, -1]])
+            sage: L.braid()
+            s^-3
+            sage: L = link.Link(PD_code = [[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]])
+            sage: L.braid()
+            (s0*s1^-1)^2*s1^-1
         """
         if self._braid != None:
             return self._braid
@@ -129,18 +157,19 @@ class Link:
             - Oriented gauss code of the link
 
         EXAMPLES::
-        sage: from sage.knots import link
-        sage: L = link.Link(PD_code = [[1,11,2,10],[6,2,7,3],[3,12,4,9],[9,5,10,6],[8,1,5,4],[11,8,12,7]])
-        sage: L.oriented_gauss_code()
-        [[[-1, 2, -3, 5], [4, -2, 6, -5], [-4, 1, -6, 3]], [-1, 1, 1, 1, -1, -1]]
-        sage: L = link.Link(PD_code = [[1,4,2,3],[6,1,3,2],[7,4,8,5],[5,8,6,7]])
-        sage: L.oriented_gauss_code()
-        [[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]]
-        sage: B = BraidGroup(8)
-        sage: b=B([1,1,1,1,1])
-        sage: L = link.Link(b)
-        sage: L.oriented_gauss_code()
-        [[[1, -2, 3, -4, 5, -1, 2, -3, 4, -5]], [1, 1, 1, 1, 1]]
+
+            sage: from sage.knots import link
+            sage: L = link.Link(PD_code = [[1,11,2,10],[6,2,7,3],[3,12,4,9],[9,5,10,6],[8,1,5,4],[11,8,12,7]])
+            sage: L.oriented_gauss_code()
+            [[[-1, 2, -3, 5], [4, -2, 6, -5], [-4, 1, -6, 3]], [-1, 1, 1, 1, -1, -1]]
+            sage: L = link.Link(PD_code = [[1,4,2,3],[6,1,3,2],[7,4,8,5],[5,8,6,7]])
+            sage: L.oriented_gauss_code()
+            [[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]]
+            sage: B = BraidGroup(8)
+            sage: b=B([1,1,1,1,1])
+            sage: L = link.Link(b)
+            sage: L.oriented_gauss_code()
+            [[[1, -2, 3, -4, 5, -1, 2, -3, 4, -5]], [1, 1, 1, 1, 1]]
         """
         if self._oriented_gauss_code != None:
             return self._oriented_gauss_code
@@ -174,6 +203,7 @@ class Link:
                 del l[-1]
                 code.append(l)
             oriented_code = [code, orient]
+            self._oriented_gauss_code = oriented_code
             return oriented_code
 
         #this has to be worked upon.
@@ -205,18 +235,19 @@ class Link:
             - Planar Diagram representation of the link.
 
         EXAMPLES::
-        sage: from sage.knots import link
-        sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1,1,-1,-1]])
-        sage: L.PD_code()
-        [[6, 1, 7, 2], [2, 5, 3, 6], [8, 4, 1, 3], [4, 8, 5, 7]]
-        sage: B = BraidGroup(2)
-        sage: b=B([1,1,1,1,1])
-        sage: L = link.Link(b)
-        sage: L.PD_code()
-        [[2, 1, 3, 4], [4, 3, 5, 6], [6, 5, 7, 8], [8, 7, 9, 10], [10, 9, 1, 2]]
-        sage: L = link.Link(oriented_gauss_code = [[[2, -1], [1, -2]], [1, 1]])
-        sage: L.PD_code()
-        [[2, 3, 1, 4], [4, 1, 3, 2]]
+
+            sage: from sage.knots import link
+            sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1,1,-1,-1]])
+            sage: L.PD_code()
+            [[6, 1, 7, 2], [2, 5, 3, 6], [8, 4, 1, 3], [4, 8, 5, 7]]
+            sage: B = BraidGroup(2)
+            sage: b=B([1,1,1,1,1])
+            sage: L = link.Link(b)
+            sage: L.PD_code()
+            [[2, 1, 3, 4], [4, 3, 5, 6], [6, 5, 7, 8], [8, 7, 9, 10], [10, 9, 1, 2]]
+            sage: L = link.Link(oriented_gauss_code = [[[2, -1], [1, -2]], [1, 1]])
+            sage: L.PD_code()
+            [[2, 3, 1, 4], [4, 1, 3, 2]]
         """
         if self._PD_code != None:
             return self._PD_code
@@ -251,6 +282,7 @@ class Link:
                     elif oriented_gauss_code[1][i] == 1:
                         crossing_dic.update({ i + 1 : [d_dic[-(i+1)][0], d_dic[i+1][0], d_dic[-(i+1)][1], d_dic[i+1][1]]})
             pd = [crossing_dic[i] for i in crossing_dic.keys()]
+            self._PD_code = pd
             return pd
 
         elif self._braid != None:
@@ -299,6 +331,7 @@ class Link:
             elif b_reversed[0] > 0:
                 pd_reversed[0][3] = abs(b_reversed[0]) + 1
             pd_original = pd_reversed[::-1]
+            self._PD_code = pd_original
             return pd_original
 
     def gauss_code(self):
@@ -477,9 +510,9 @@ class Link:
         bc = self._braidwordcomponents_()
         return [x for y in bc for x in y]
 
-    def homology_generators(self):
+    def _homology_generators_(self):
         r"""
-        Returns the homology generators of the braidword.
+        The set of generators for the first homology group of the connected Seifert surface of the given link.
         This method uses the braidwordcomponentsvector to generate the homology generators.
         The position of the repeated element w.r.t the braidwordcomponentvector list is
         compiled into a list.
@@ -492,14 +525,14 @@ class Link:
             sage: from sage.knots import link
             sage: B = BraidGroup(4)
             sage: L = link.Link(B([-1, 3, 1, 3]))
-            sage: L.homology_generators()
+            sage: L._homology_generators_()
             [1, 0, 3]
             sage: B = BraidGroup(8)
             sage: L = link.Link(B([-1, 3, 1, 5, 1, 7, 1, 6]))
-            sage: L.homology_generators()
+            sage: L._homology_generators_()
             [1, 2, 3, 0, 0, 0, 0]
             sage: L = link.Link(B([-2, 4, 1, 6, 1, 4]))
-            sage: L.homology_generators()
+            sage: L._homology_generators_()
             [0, 2, 0, 4, 0]
         """
         x4 = self._braidwordcomponentsvector_()
@@ -542,7 +575,7 @@ class Link:
             [ 0 -1]
         """
         x5 = self._braidwordcomponentsvector_()
-        h = self.homology_generators()
+        h = self._homology_generators_()
         hl = len(h)
         A = matrix(ZZ, hl, hl)
         for i in range(hl):
@@ -587,27 +620,26 @@ class Link:
                 A = A.delete_columns([i])
         return A
 
-
-    def link_number(self):
+    def ncomponents(self):
         r"""
-        Returns the link number
+        Returns the number of connected components of the link.
 
         OUTPUT:
-            - Link number of the link
+            - Connected components of the link
 
         EXAMPLES::
 
             sage: from sage.knots import link
             sage: B = BraidGroup(4)
             sage: L = link.Link(B([-1, 3, 1, 3]))
-            sage: L.link_number()
+            sage: L.ncomponents()
             4
             sage: B = BraidGroup(8)
             sage: L = link.Link(B([-2, 4, 1, 6, 1, 4]))
-            sage: L.link_number()
+            sage: L.ncomponents()
             5
             sage: L = link.Link(B([1, 2, 1, 2]))
-            sage: L.link_number()
+            sage: L.ncomponents()
             1
         """
         p = self.braid().permutation()
@@ -633,7 +665,7 @@ class Link:
             sage: L.is_knot()
             True
         """
-        if self.link_number() == 1:
+        if self.ncomponents() == 1:
             return True
         else:
             return False
@@ -668,8 +700,22 @@ class Link:
             x = self._braidwordcomponents_()
             q = []
             genus = 0
-            s = [Link(B(x[i])).smallest_equivalent() for i in range(len(x))]
-            t = [Link(B(s[i])).link_number() for i in range(len(s))]
+            s_tmp = []
+            for i in range(len(x)):
+                tmp = []
+                b1 = min([abs(k) for k in x[i]])
+                for j in range(len(x[i])):
+                    if x[i][j] > 0:
+                        x[i][j] = x[i][j] - b1 + 1
+                    else:
+                        x[i][j] = x[i][j] + b1 - 1
+                    tmp.append(x[i][j])
+                s_tmp.append(B(tmp))
+            s = []
+            for i in s_tmp:
+                b = i.Tietze()
+                s.append(list(b))
+            t = [Link(B(s[i])).ncomponents() for i in range(len(s))]
             for i,j in enumerate(s):
                 if j == []:
                     s[i].append(-2)
@@ -681,36 +727,6 @@ class Link:
             for i in range(len(g)):
                 genus = genus + g[i]
             return genus
-
-    def smallest_equivalent(self):
-        r"""
-        Returns the braidword
-
-        OUTPUT:
-            - Smallest equivalent of the given braid word representation.
-
-        EXAMPLES::
-
-            sage: from sage.knots import link
-            sage: B = BraidGroup(5)
-            sage: L = link.Link(B([-2, 4, 2, 4]))
-            sage: L.smallest_equivalent()
-            [-1, 3, 1, 3]
-            sage: L = link.Link(B([-1, 1]))
-            sage: L.smallest_equivalent()
-            []
-        """
-        b = list(self.braid().Tietze())
-        if not b:
-            return list(b)
-        else:
-            b1 = min([abs(k) for k in b])
-            for i in range(len(b)):
-                if b[i] > 0:
-                    b[i] = b[i] - b1 + 1
-                else:
-                    b[i] = b[i] + b1 - 1
-            return b
 
     def signature(self):
         r"""
@@ -1438,11 +1454,9 @@ class Link:
                 first_crossing = i
                 break
         tmp = []
-        #if orient[pd_code.index(first_crossing)] == '-':
         if orient[pd_code.index(first_crossing)] == -1:
             tmp.append(first_crossing[1])
             tmp.append(first_crossing[2])
-        #elif orient[pd_code.index(first_crossing)] == '+':
         elif orient[pd_code.index(first_crossing)] == 1:
             tmp.append(first_crossing[2])
             tmp.append(first_crossing[3])
@@ -1607,7 +1621,6 @@ class Link:
         poly = 0
         for i in terms:
             poly = i + poly
-        print poly
         wri = self.writhe()
         return ((-x**(3))**wri)*poly
 

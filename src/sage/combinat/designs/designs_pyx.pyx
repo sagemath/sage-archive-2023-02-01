@@ -243,7 +243,7 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
     # group_to_int[g_i-g_j]
     from difference_family import group_law
     zero, op, inv = group_law(G)
-    cdef int ** x_minus_y = <int **> sage_malloc(G_card*sizeof(int))
+    cdef int ** x_minus_y = <int **> sage_malloc(G_card*sizeof(int *))
     if x_minus_y == NULL:
         raise MemoryError
     for i in range(G_card):

@@ -1444,9 +1444,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p = MixedIntegerLinearProgram(maximization=True)
             sage: x = p.new_variable(nonnegative=True)
-            sage: p.set_objective(x[1] + 5*x[2])
-            sage: p.add_constraint(x[1] + 0.2*x[2], max=4)
-            sage: p.add_constraint(1.5*x[1] + 3*x[2], max=4)
+            sage: p.set_objective(x[0] + 5*x[1])
+            sage: p.add_constraint(x[0] + 0.2*x[1], max=4)
+            sage: p.add_constraint(1.5*x[0] + 3*x[1], max=4)
             sage: p.solve()     # rel tol 1e-15
             6.666666666666666
 
@@ -1474,9 +1474,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p = MixedIntegerLinearProgram(maximization=True)
             sage: x = p.new_variable(nonnegative=True)
-            sage: p.set_objective(x[1] + 5*x[2])
-            sage: p.add_constraint(x[1] + 0.2*x[2] <= 4)
-            sage: p.add_constraint(1.5*x[1] + 3*x[2] <= 4)
+            sage: p.set_objective(x[0] + 5*x[1])
+            sage: p.add_constraint(x[0] + 0.2*x[1] <= 4)
+            sage: p.add_constraint(1.5*x[0] + 3*x[1] <= 4)
             sage: p.solve()     # rel tol 1e-15
             6.666666666666666
 
@@ -1485,22 +1485,36 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p = MixedIntegerLinearProgram(maximization=True)
             sage: x = p.new_variable(nonnegative=True)
-            sage: p.set_objective(x[1] + 5*x[2])
-            sage: f_vec = vector([1, 1.5]) * x[1] + vector([0.2, 3]) * x[2];  f_vec
+            sage: p.set_objective(x[0] + 5*x[1])
+            sage: f_vec = vector([1, 1.5]) * x[0] + vector([0.2, 3]) * x[1];  f_vec
             (1.0, 1.5)*x_0 + (0.2, 3.0)*x_1
             sage: p.add_constraint(f_vec, max=vector([4, 4]))
             sage: p.solve()     # rel tol 1e-15
             6.666666666666666
 
-        Finally, we can also use (in)equality notation for
+        Instead of specifying the maximum in the optional ``max``
+        argument, we can also use (in)equality notation for
         vector-valued linear functions::
 
             sage: f_vec <= 4    # constant rhs becomes vector
             (1.0, 1.5)*x_0 + (0.2, 3.0)*x_1 <= (4.0, 4.0)
             sage: p = MixedIntegerLinearProgram(maximization=True)
             sage: x = p.new_variable(nonnegative=True)
-            sage: p.set_objective(x[1] + 5*x[2])
+            sage: p.set_objective(x[0] + 5*x[1])
             sage: p.add_constraint(f_vec <= 4)
+            sage: p.solve()     # rel tol 1e-15
+            6.666666666666666
+
+        Finally, one can use the matrix * :class:`MIPVariable`
+        notation to write vector-valued linear functions::
+
+            sage: m = matrix([[1.0, 0.2], [1.5, 3.0]]);  m
+            [ 1.00000000000000 0.200000000000000]
+            [ 1.50000000000000  3.00000000000000]
+            sage: p = MixedIntegerLinearProgram(maximization=True)
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.set_objective(x[0] + 5*x[1])
+            sage: p.add_constraint(m * x <= 4)
             sage: p.solve()     # rel tol 1e-15
             6.666666666666666
 

@@ -1446,7 +1446,9 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
     
         sage: import os
         sage: std = os.environ['SAGE_SHARE'] + '/sage/ext/pickle_jar/pickle_jar.tar.bz2'
-        sage: sage.structure.sage_object.unpickle_all(std) # not tested
+        sage: sage.structure.sage_object.unpickle_all(std)
+        Successfully unpickled ...
+        Failed to unpickle 0 objects.
         sage: sage.structure.sage_object.unpickle_all(std)
         Successfully unpickled ...
         Failed to unpickle 0 objects.

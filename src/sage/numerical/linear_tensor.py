@@ -1,5 +1,5 @@
 """
-Tensor Products of R-Linear Functions and Free R-Modules
+Matrix/Vector-Valued Linear Functions: Parents
 
 In Sage, matrices assume that the base is a ring. Hence, we cannot
 construct matrices whose entries are linear functions in Sage. Really,
@@ -33,6 +33,17 @@ become symbolic inequalities. See
     understood that this refers to the above tensor product
     construction.
 """
+
+#*****************************************************************************
+#       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
 from copy import copy
 
 from sage.structure.parent import Parent

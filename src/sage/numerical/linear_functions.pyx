@@ -307,6 +307,10 @@ cdef class LinearFunctionsParent_class(Parent):
             sage: LF.tensor(RDF^3)
             Tensor product of Vector space of dimension 3 over Real Double Field
             and Linear functions over Real Double Field
+            sage: LF.tensor(QQ^2)
+            Traceback (most recent call last):
+            ...
+            ValueError: base rings must match
         """
         from sage.numerical.linear_tensor import LinearTensorParent
         return LinearTensorParent(free_module, self)

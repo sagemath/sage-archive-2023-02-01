@@ -7,6 +7,9 @@ Numerical Optimization
    sage/numerical/knapsack
    sage/numerical/mip
    sage/numerical/linear_functions
+   sage/numerical/linear_tensor
+   sage/numerical/linear_tensor_element
+   sage/numerical/linear_tensor_constraints
    sage/numerical/optimize
    sage/numerical/interactive_simplex_method
 

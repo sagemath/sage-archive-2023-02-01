@@ -1414,6 +1414,12 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
         Successfully unpickled ... objects.
         Failed to unpickle 0 objects.
 
+    Check that unpickling a second time works (see :trac:`5838`)::
+
+        sage: sage.structure.sage_object.unpickle_all()
+        Successfully unpickled ... objects.
+        Failed to unpickle 0 objects.
+
     When it is not possible to unpickle a pickle in the pickle_jar then
     :meth:`unpickle_all` prints the following error message which warns against removing
     pickles from the pickle_jar and directs the user towards
@@ -1442,21 +1448,10 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
         Failed to unpickle 4 objects.
         sage: register_unpickle_override('sage.combinat.tableau','Tableau_class',tableau_unpickler) # restore to default
 
-    Check that te bug in :trac:`5838` does not happen anymore::
-    
-        sage: import os
-        sage: std = os.environ['SAGE_SHARE'] + '/sage/ext/pickle_jar/pickle_jar.tar.bz2'
-        sage: sage.structure.sage_object.unpickle_all(std)
-        Successfully unpickled ...
-        Failed to unpickle 0 objects.
-        sage: sage.structure.sage_object.unpickle_all(std)
-        Successfully unpickled ...
-        Failed to unpickle 0 objects.
-
     .. TODO::
 
         Create a custom-made ``SourPickle`` for the last example.
-    
+
     If you want to find *lots* of little issues in Sage then try the following::
 
         sage: print "x"; sage.structure.sage_object.unpickle_all(run_test_suite = True) # todo: not tested

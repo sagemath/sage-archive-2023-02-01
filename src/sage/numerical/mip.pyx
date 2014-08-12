@@ -1391,14 +1391,18 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         INPUT:
 
-        - ``linear_function`` -- Thee different types of arguments are possible:
+        - ``linear_function`` -- Four different types of arguments are
+          admissible:
 
-            - A linear function. In this case, arguments ``min`` or ``max``
-              have to be specified.
+            - A linear function. In this case, one of the arguments
+              ``min`` or ``max`` has to be specified.
 
             - A linear constraint of the form ``A <= B``, ``A >= B``,
-              ``A <= B <= C``, ``A >= B >= C`` or ``A == B``. In this
-              case, arguments ``min`` and ``max`` will be ignored.
+              ``A <= B <= C``, ``A >= B >= C`` or ``A == B``.
+
+            - A vector-valued linear function, see
+              :mod:`~sage.numerical.linear_tensor`. In this case, one
+              of the arguments ``min`` or ``max`` has to be specified.
 
             - An (in)equality of vector-valued linear functions, that
               is, elements of the space of linear functions tensored
@@ -1406,11 +1410,17 @@ cdef class MixedIntegerLinearProgram(SageObject):
               :mod:`~sage.numerical.linear_tensor_constraints` for
               details.
 
-        - ``max`` -- An upper bound on the constraint (set to ``None``
-          by default). This must be a numerical value.
+        - ``max`` -- constant or ``None`` (default). An upper bound on
+          the linear function. This must be a numerical value for
+          scalar linear functions, or a vector for vector-valued
+          linear functions. Not allowed if the ``linear_function``
+          argument is a symbolic (in)-equality.
 
-        - ``min`` -- A lower bound on the constraint.  This must be a
-          numerical value.
+        - ``min`` -- constant or ``None`` (default). A lower bound on
+          the linear function. This must be a numerical value for
+          scalar linear functions, or a vector for vector-valued
+          linear functions. Not allowed if the ``linear_function``
+          argument is a symbolic (in)-equality.
 
         - ``name`` -- A name for the constraint.
 
@@ -1437,8 +1447,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.set_objective(x[1] + 5*x[2])
             sage: p.add_constraint(x[1] + 0.2*x[2], max=4)
             sage: p.add_constraint(1.5*x[1] + 3*x[2], max=4)
-            sage: round(p.solve(),6)
-            6.666667
+            sage: p.solve()     # rel tol 1e-15
+            6.666666666666666
 
         There are two different ways to add the constraint
         ``x[5] + 3*x[7] <= x[6] + 3`` to a ``MixedIntegerLinearProgram``.
@@ -1446,29 +1456,53 @@ cdef class MixedIntegerLinearProgram(SageObject):
         The first one consists in giving ``add_constraint`` this
         very expression::
 
-            sage: p.add_constraint( x[5] + 3*x[7] <= x[6] + 3 )
+            sage: p.add_constraint(x[5] + 3*x[7] <= x[6] + 3)
 
         The second (slightly more efficient) one is to use the
         arguments ``min`` or ``max``, which can only be numerical
         values::
 
-            sage: p.add_constraint( x[5] + 3*x[7] - x[6], max = 3 )
+            sage: p.add_constraint(x[5] + 3*x[7] - x[6], max=3)
 
         One can also define double-bounds or equality using symbols
         ``<=``, ``>=`` and ``==``::
 
-            sage: p.add_constraint( x[5] + 3*x[7] == x[6] + 3 )
-            sage: p.add_constraint( x[5] + 3*x[7] <= x[6] + 3 <= x[8] + 27 )
-
-        The previous program can be rewritten::
+            sage: p.add_constraint(x[5] + 3*x[7] == x[6] + 3)
+            sage: p.add_constraint(x[5] + 3*x[7] <= x[6] + 3 <= x[8] + 27)
+        
+        Using this notation, the previous program can be written as::
 
             sage: p = MixedIntegerLinearProgram(maximization=True)
             sage: x = p.new_variable(nonnegative=True)
             sage: p.set_objective(x[1] + 5*x[2])
             sage: p.add_constraint(x[1] + 0.2*x[2] <= 4)
             sage: p.add_constraint(1.5*x[1] + 3*x[2] <= 4)
-            sage: round(p.solve(), 5)
-            6.66667
+            sage: p.solve()     # rel tol 1e-15
+            6.666666666666666
+
+        The two constraints can alse be combined into a single
+        vector-valued constraint::
+
+            sage: p = MixedIntegerLinearProgram(maximization=True)
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.set_objective(x[1] + 5*x[2])
+            sage: f_vec = vector([1, 1.5]) * x[1] + vector([0.2, 3]) * x[2];  f_vec
+            (1.0, 1.5)*x_0 + (0.2, 3.0)*x_1
+            sage: p.add_constraint(f_vec, max=vector([4, 4]))
+            sage: p.solve()     # rel tol 1e-15
+            6.666666666666666
+
+        Finally, we can also use (in)equality notation for
+        vector-valued linear functions::
+
+            sage: f_vec <= 4    # constant rhs becomes vector
+            (1.0, 1.5)*x_0 + (0.2, 3.0)*x_1 <= (4.0, 4.0)
+            sage: p = MixedIntegerLinearProgram(maximization=True)
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.set_objective(x[1] + 5*x[2])
+            sage: p.add_constraint(f_vec <= 4)
+            sage: p.solve()     # rel tol 1e-15
+            6.666666666666666
 
         TESTS:
 
@@ -1488,7 +1522,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         Empty constraint::
 
-            sage: p=MixedIntegerLinearProgram()
+            sage: p = MixedIntegerLinearProgram()
             sage: p.add_constraint(sum([]),min=2)
 
         Min/Max are numerical ::
@@ -1497,11 +1531,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(v[3] + v[5], min = v[6])
             Traceback (most recent call last):
             ...
-            ValueError: min and max arguments are required to be numerical
+            ValueError: min and max arguments are required to be constants
             sage: p.add_constraint(v[3] + v[5], max = v[6])
             Traceback (most recent call last):
             ...
-            ValueError: min and max arguments are required to be numerical
+            ValueError: min and max arguments are required to be constants
 
         Do not add redundant elements (notice only one copy of each constraint is added)::
 
@@ -1555,19 +1589,28 @@ cdef class MixedIntegerLinearProgram(SageObject):
         if linear_function is 0:
             return
 
-        from sage.rings.infinity import is_Infinite
-        try:
-            if min is not None and not is_Infinite(min):  min = self.base_ring()(min)
-            if max is not None and not is_Infinite(max):  max = self.base_ring()(max)
-        except (ValueError, TypeError):
-            raise ValueError("min and max arguments are required to be numerical")
-
         from sage.numerical.linear_functions import is_LinearFunction, is_LinearConstraint
         from sage.numerical.linear_tensor import is_LinearTensor
         from sage.numerical.linear_tensor_constraints import  is_LinearTensorConstraint
         if is_LinearFunction(linear_function) or is_LinearTensor(linear_function):
+            # Find the parent for the coefficients
+            if is_LinearFunction(linear_function):
+                M = linear_function.parent().base_ring()
+            elif is_LinearTensor(linear_function):
+                if not linear_function.parent().is_vector_space():
+                    raise ValueError('the linear function must be vector-valued')
+                M = linear_function.parent().free_module()
+            else:
+                assert False, 'unreachable'
+            # Normalize min/max
+            try:
+                min = None if min is None else M(min)
+                max = None if max is None else M(max)
+            except (ValueError, TypeError):
+                raise ValueError("min and max arguments are required to be constants")
             if min is None and max is None:
                 raise ValueError('at least one of "max" or "min" must be set')
+            # Shift constant away
             constraint = copy(linear_function.dict())
             try:
                 constant_coefficient = constraint.pop(-1)
@@ -1575,24 +1618,31 @@ cdef class MixedIntegerLinearProgram(SageObject):
                 min = (min - constant_coefficient) if min is not None else None
             except KeyError:
                 pass
-            if is_LinearFunction(linear_function) and \
-               self._check_redundant and \
-               self._is_redundant_constraint(constraint, min, max):
-                return
+            # Send to backend
             if is_LinearFunction(linear_function):
+                if self._check_redundant and self._is_redundant_constraint(constraint, min, max):
+                    return
                 self._backend.add_linear_constraint(constraint.items(), min, max, name)
             elif is_LinearTensor(linear_function):
-                if not linear_function.parent().is_vector_space():
-                    raise ValueError('the linear function must be vector-valued')
-                self._backend.add_linear_constraint_vector(constraint.items(), min, max, name)
+                self._backend.add_linear_constraint_vector(M.degree(), constraint.items(), min, max, name)
             else:
                 assert False, 'unreachable'
         elif is_LinearConstraint(linear_function):
-            constraint = linear_function
-            for lhs, rhs in constraint.equations():
+            if not(min is None and max is None):
+                raise ValueError('min and max must not be specified for (in)equalities')
+            relation = linear_function
+            for lhs, rhs in relation.equations():
                 self.add_constraint(lhs-rhs, min=0, max=0, name=name)
-            for lhs, rhs in constraint.inequalities():
+            for lhs, rhs in relation.inequalities():
                 self.add_constraint(lhs-rhs, max=0, name=name)
+        elif is_LinearTensorConstraint(linear_function):
+            if not(min is None and max is None):
+                raise ValueError('min and max must not be specified for (in)equalities')
+            relation = linear_function
+            M = relation.parent().linear_tensors().free_module()
+            self.add_constraint(relation.lhs() - relation.rhs(), 
+                                min=M(0) if relation.is_equation() else None, 
+                                max=M(0), name=name)
         else:
             raise ValueError('argument must be a linear function or constraint, got '+str(linear_function))
 

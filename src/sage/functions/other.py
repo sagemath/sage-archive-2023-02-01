@@ -154,7 +154,7 @@ class Function_erf(BuiltinFunction):
 
             sage: maxima(erf(2))
             erf(2)
-            sage: erf(2)._sympy()
+            sage: erf(2)._sympy_()
             erf(2)
         """
         BuiltinFunction.__init__(self, "erf", latex_name=r"\text{erf}",

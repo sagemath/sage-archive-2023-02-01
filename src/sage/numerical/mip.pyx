@@ -208,10 +208,10 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 
+from copy import copy
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
 from sage.misc.cachefunc import cached_method
-from sage.numerical.linear_functions import is_LinearFunction, is_LinearConstraint
 from sage.misc.superseded import deprecated_function_alias, deprecation
 
 
@@ -534,7 +534,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         cdef MixedIntegerLinearProgram p = \
             MixedIntegerLinearProgram(solver="GLPK")
-        from copy import copy
         try:
             p._variables = copy(self._variables)
         except AttributeError:
@@ -999,7 +998,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
-        from copy import copy
         cdef GenericBackend b = self._backend
         cdef int i
 
@@ -1402,10 +1400,18 @@ cdef class MixedIntegerLinearProgram(SageObject):
               ``A <= B <= C``, ``A >= B >= C`` or ``A == B``. In this
               case, arguments ``min`` and ``max`` will be ignored.
 
+            - An (in)equality of vector-valued linear functions, that
+              is, elements of the space of linear functions tensored
+              with a vector space. See
+              :mod:`~sage.numerical.linear_tensor_constraints` for
+              details.
+
         - ``max`` -- An upper bound on the constraint (set to ``None``
           by default). This must be a numerical value.
+
         - ``min`` -- A lower bound on the constraint.  This must be a
           numerical value.
+
         - ``name`` -- A name for the constraint.
 
         To set a lower and/or upper bound on the variables use the methods
@@ -1499,7 +1505,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         Do not add redundant elements (notice only one copy of each constraint is added)::
 
-            sage: lp = MixedIntegerLinearProgram(solver = "GLPK", check_redundant=True)
+            sage: lp = MixedIntegerLinearProgram(solver="GLPK", check_redundant=True)
             sage: for each in xrange(10): lp.add_constraint(lp[0]-lp[1],min=1)
             sage: lp.show()
             Maximization:
@@ -1530,7 +1536,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
               <BLANKLINE>
               Constraints:
                 1.0 <= x_0 - x_1
-                x_0 - x_1 <= 1.0
+                -2.0 <= -2.0 x_0 + 2.0 x_1 
               Variables:
                 x_0 is a continuous variable (min=0.0, max=+oo)
                 x_1 is a continuous variable (min=0.0, max=+oo)
@@ -1549,48 +1555,38 @@ cdef class MixedIntegerLinearProgram(SageObject):
         if linear_function is 0:
             return
 
-        # Raising an exception when min/max are not as expected
-        from sage.rings.all import RR
-        if ((min is not None and min not in RR)
-            or (max is not None and max not in RR)):
+        from sage.rings.infinity import is_Infinite
+        try:
+            if min is not None and not is_Infinite(min):  min = self.base_ring()(min)
+            if max is not None and not is_Infinite(max):  max = self.base_ring()(max)
+        except (ValueError, TypeError):
             raise ValueError("min and max arguments are required to be numerical")
 
-        if is_LinearFunction(linear_function):
-            f = linear_function.dict()
-            constant_coefficient = f.get(-1,0)
-
-            # We do not want to ignore the constant coefficient
-            max = (max - constant_coefficient) if max is not None else None
-            min = (min - constant_coefficient) if min is not None else None
-
-            indices = []
-            values = []
-
-            if self._check_redundant:
-              b = self._backend
-              from __builtin__ import min as min_function
-              i = min_function([v for (v,coeff) in f.iteritems() if coeff != 0])
-              c = f[i]
-              C = [(v,coeff/c) for (v,coeff) in f.iteritems() if v != -1]
-              if c > 0:
-                min = min/c if min is not None else None
-                max = max/c if max is not None else None
-              else:
-                tempmin = max/c if max is not None else None
-                tempmax = min/c if min is not None else None
-                min, max = tempmin, tempmax
-              if (tuple(C),min,max) in self._constraints:
-                return None
-              else:
-                self._constraints.append((tuple(C),min,max))
-            else:
-              C = [(v,coeff) for (v,coeff) in f.iteritems() if v != -1]
-
+        from sage.numerical.linear_functions import is_LinearFunction, is_LinearConstraint
+        from sage.numerical.linear_tensor import is_LinearTensor
+        from sage.numerical.linear_tensor_constraints import  is_LinearTensorConstraint
+        if is_LinearFunction(linear_function) or is_LinearTensor(linear_function):
             if min is None and max is None:
-                raise ValueError("Both max and min are set to None ? Weird!")
-
-            self._backend.add_linear_constraint(C, min, max, name)
-
+                raise ValueError('at least one of "max" or "min" must be set')
+            constraint = copy(linear_function.dict())
+            try:
+                constant_coefficient = constraint.pop(-1)
+                max = (max - constant_coefficient) if max is not None else None
+                min = (min - constant_coefficient) if min is not None else None
+            except KeyError:
+                pass
+            if is_LinearFunction(linear_function) and \
+               self._check_redundant and \
+               self._is_redundant_constraint(constraint, min, max):
+                return
+            if is_LinearFunction(linear_function):
+                self._backend.add_linear_constraint(constraint.items(), min, max, name)
+            elif is_LinearTensor(linear_function):
+                if not linear_function.parent().is_vector_space():
+                    raise ValueError('the linear function must be vector-valued')
+                self._backend.add_linear_constraint_vector(constraint.items(), min, max, name)
+            else:
+                assert False, 'unreachable'
         elif is_LinearConstraint(linear_function):
             constraint = linear_function
             for lhs, rhs in constraint.equations():
@@ -1599,6 +1595,51 @@ cdef class MixedIntegerLinearProgram(SageObject):
                 self.add_constraint(lhs-rhs, max=0, name=name)
         else:
             raise ValueError('argument must be a linear function or constraint, got '+str(linear_function))
+
+    def _is_redundant_constraint(self, constraint, min_bound, max_bound):
+        """
+        Check whether the (scalar) constraint is redundant.
+
+        INPUT:
+
+        - ``constraint`` -- dictionary of a non-zero linear function
+          without constant term.
+
+        - ``min_bound``, ``max_bound`` -- base ring elements or
+          ``None``. The lower and upper bound.
+
+        OUTPUT:
+
+        Boolean. Whether the (normalized) constraint has already been added.
+
+        EXAMPLES::
+
+            sage: mip.<x> = MixedIntegerLinearProgram(check_redundant=True)
+            sage: mip.add_constraint(x[0], min=1)
+            sage: mip._is_redundant_constraint((x[0]).dict(), 1, None)
+            True
+            sage: mip._is_redundant_constraint((-2*x[0]).dict(), None, -2)
+            True
+            sage: mip._is_redundant_constraint((x[1]).dict(), 1, None)
+            False
+        """
+        assert self._constraints is not None, 'must be initialized with check_redundant=True'
+        assert -1 not in constraint, 'no constant term allowed'
+        i0 = min([i for i, c in constraint.items() if c != 0])
+        rescale = constraint[i0]
+        constraint = tuple((i, c/rescale) for i, c in constraint.items())
+        if rescale > 0:
+            min_scaled = min_bound/rescale if min_bound is not None else None
+            max_scaled = max_bound/rescale if max_bound is not None else None
+        else:
+            min_scaled = max_bound/rescale if max_bound is not None else None
+            max_scaled = min_bound/rescale if min_bound is not None else None
+        key = (constraint, min_scaled, max_scaled)
+        if key in self._constraints:
+            return True
+        else:
+            self._constraints.append(key)
+            return False
 
     def remove_constraint(self, int i):
         r"""

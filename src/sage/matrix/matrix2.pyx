@@ -3450,7 +3450,7 @@ cdef class Matrix(matrix1.Matrix):
             Free module of degree 7 and rank 2 over Integer Ring
             User basis matrix:
             [ 2 -1  3  1  0  1  1]
-            [-5 -3  2 -5  1 -1 -1]         
+            [-5 -3  2 -5  1 -1 -1]
 
         Besides the integers, rings may be as general as principal ideal
         domains.  Results are then free modules.  ::
@@ -6634,7 +6634,7 @@ cdef class Matrix(matrix1.Matrix):
         going along each row.
 
         INPUT:
-        
+
         - ``check`` -- (default: ``False``) If ``True`` return a tuple of
             the maximal matrix and the permutations taking taking ``self``
             to the maximal matrix.
@@ -6665,8 +6665,8 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: M.permutation_normal_form(check=True)
             (
-            [ 5 -1]                  
-            [ 4  2]                  
+            [ 5 -1]
+            [ 4  2]
             [ 3 -1],
             ((1,2,3), (1,2))
             )

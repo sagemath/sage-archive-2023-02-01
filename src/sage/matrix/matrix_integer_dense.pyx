@@ -3,7 +3,11 @@ Dense matrices over the integer ring
 
 AUTHORS:
 
-- Marc Masdeu
+- William Stein
+
+- Robert Bradshaw
+
+- Marc Masdeu (August 2014) -- implemented using FLINT.
 
 EXAMPLES::
 
@@ -479,7 +483,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 3  4  5]
         """
         fmpz_set_si(fmpz_mat_entry(self._matrix,i,j),value)
-                
+
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """
         Returns (j, i) entry of self as a new Integer.
@@ -561,8 +565,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             6
         """
         return fmpz_get_d(fmpz_mat_entry(self._matrix, i, j))
-    
-            
+
     def _pickle(self):
         """
         EXAMPLES::
@@ -610,7 +613,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef char *t
         cdef char *tmp
         # cdef fmpz_t mat_entry
-        
+
         if self._nrows == 0 or self._ncols == 0:
             data = ''
         else:
@@ -756,7 +759,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._ncols != right._nrows:
             raise IndexError("Number of columns of self must equal number of rows of right.")
 
-        
         nr = self._nrows
         nc = right._ncols
         snc = self._ncols
@@ -911,7 +913,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Py_ssize_t i, j
         cdef fmpz_t x
         cdef fmpz_t z
-        
+
         M = self._row_ambient_module()
         w = <Vector_integer_dense> v
         ans = M.zero_vector()
@@ -1089,11 +1091,16 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     cdef void reduce_entry_unsafe(self, Py_ssize_t i, Py_ssize_t j, Integer modulus):
         # Used for p-adic matrices.
         cdef fmpz_t z
+        cdef fmpz_t mod
+        fmpz_init(mod)
+        fmpz_set_mpz(mod,modulus.value)
         fmpz_init(z)
-        if fmpz_cmp(fmpz_mat_entry(self._matrix,i,j), modulus.value) >= 0 or fmpz_cmp_ui(fmpz_mat_entry(self._matrix,i,j), 0) < 0:
-            fmpz_mod(z, fmpz_mat_entry(self._matrix,i,j), modulus.value)
+        if fmpz_cmp(fmpz_mat_entry(self._matrix,i,j), mod) >= 0 or fmpz_cmp_ui(fmpz_mat_entry(self._matrix,i,j), 0) < 0:
+            fmpz_mod(z, fmpz_mat_entry(self._matrix,i,j), mod)
             fmpz_set_mpz(fmpz_mat_entry(self._matrix,i,j),z)
         fmpz_clear(z)
+        fmpz_clear(mod)
+
 
     def _mod_int(self, modulus):
         """
@@ -1508,7 +1515,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         if ans is not None: return ans
 
-        cdef Matrix_integer_dense H_m,w      
+        cdef Matrix_integer_dense H_m,w
         cdef fmpz_t den
         cdef Py_ssize_t nr, nc, n, i, j
         nr = self._nrows
@@ -1569,7 +1576,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 H_m = self._hnf_pari(4, include_zero_rows=include_zero_rows)
 
         elif algorithm == 'ntl':
-            import sage.libs.ntl.ntl_mat_ZZ        
+            import sage.libs.ntl.ntl_mat_ZZ
             if transformation:
                 raise ValueError("transformation matrix only available with p-adic algorithm")
 
@@ -1604,7 +1611,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         elif algorithm == 'flint':
             if transformation:
                 raise ValueError("transformation matrix only available with p-adic algorithm")
-            
+
             H_m = Matrix_integer_dense.__new__(Matrix_integer_dense, self._parent, None, None, None)
             w = Matrix_integer_dense.__new__(Matrix_integer_dense, self._parent, None, None, None)
             sig_on()
@@ -1625,10 +1632,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for i from 0 <= i < H_m.nrows():
                 for j from 0 <= j < H_m.ncols():
                     H_m[i,j] = w[i,j]
-            
+
         else:
             raise TypeError("algorithm '%s' not understood"%(algorithm))
-        
 
         H_m._initialized = True
         H_m.set_immutable()
@@ -2082,7 +2088,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
           - 'flint' - (default ) use the algorithm from the FLINT library
 
         - ``proof`` - gets passed to saturation sub-algorithm
-        
+
         OUTPUT:
 
         Returns a pair.  First item is the string is either
@@ -2113,7 +2119,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             'computed-flint-int'
             sage: X = result[1]; X
             [ 469 -214   30 -119   37    0]
-            [-370  165  -18   91  -30    2]            
+            [-370  165  -18   91  -30    2]
             sage: A*X.transpose() == zero_matrix(ZZ, 4, 2)
             True
 
@@ -2131,7 +2137,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [-26  31 -30  21   2 -10]
             [-47 -13  48 -14 -11  18]
 
- 
         TESTS:
 
         We test three trivial cases.  ::
@@ -2156,7 +2161,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             algorithm = 'default'
         elif algorithm == 'padic':
             algorithm = 'flint'
-            
+
         if algorithm == 'default':
             # The heuristic here could be auto-tuned, stored for
             # different architecture, etc.  What I've done below here
@@ -2181,7 +2186,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 algorithm = 'flint'
             else:
                 algorithm = 'pari'
-          
+
         if algorithm == 'pari':
             K = self._pari_().matkerint().mattranspose().python()
             format = 'computed-pari-int'
@@ -2192,7 +2197,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             format = 'computed-flint-int'
         tm = verbose("done computing right kernel matrix over the integers for %sx%s matrix" % (self.nrows(), self.ncols()),level=1, t=tm)
         return (format, K)
-        
 
     # TODO: implement using flint function
     def _adjoint(self):
@@ -3014,7 +3018,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             2
         """
         r = self.fetch('rank')
-        if not r is None: return r        
+        if not r is None: return r
         return fmpz_mat_rank(self._matrix)
 
 
@@ -3033,7 +3037,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         - ``algorithm``
 
           - ``'flint'`` -- let flint do the determinant
-          
+
           - ``'default_noflint'`` -- automatically determine which algorithm
                              to use depending on the matrix.
 
@@ -3114,7 +3118,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Py_ssize_t n = self.nrows()
         cdef Integer det = Integer()
         cdef fmpz_t e
-        
+
         if n <= 3:
             # Use generic special cased code.
             return matrix_dense.Matrix_dense.determinant(self)
@@ -3127,7 +3131,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             fmpz_mat_det(e, self._matrix)
             fmpz_get_mpz(det.value,e)
             return det
-        
+
         elif algorithm == 'default_noflint':
             # These heuristics are by Jeroen Demeyer (#14007).  There
             # is no mathematics behind this, it was experimentally
@@ -3191,7 +3195,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         d = self._ntl_().determinant()
         sig_off()
         return Integer(d)
-    
 
     #### Rational kernel, via flint
     def _rational_kernel_flint(self):
@@ -3224,7 +3227,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 fmpz_set(fmpz_mat_entry(M._matrix,i,j),fmpz_mat_entry(M0,i,j))
         M._initialized = True
         return M
-    
+
     def _invert_flint(self, check_invertible=True):
         """
         Invert this matrix using FLINT. The output matrix is an integer
@@ -3277,7 +3280,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if check_invertible and self.rank() != self._nrows:
             raise ZeroDivisionError("input matrix must be nonsingular")
         return self._solve_flint(P.identity_matrix(), right=True)
-    
+
     def _solve_right_nonsingular_square(self, B, check_rank=True):
         r"""
         If self is a matrix `A` of full rank, then this function
@@ -3531,7 +3534,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sig_off()
             M._initialized = True
             return M,den
-            
+
         else: # left
             if self._nrows != B._ncols:
                 raise ArithmeticError("B's number of columns must match self's number of rows")
@@ -3541,7 +3544,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             if m == 0 or n == 0:
                 return self.new_matrix(nrows = n, ncols = m), Integer(1)
-            
+
             M,d = self.transpose()._solve_flint(B.transpose(), right=True)
             return M.transpose(),d
 
@@ -3932,7 +3935,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if A.row(A.nrows() - 1) == 0:
             A = A.matrix_from_rows(range(A.nrows()-1))
         return A, new_pivots
-        
 
     #####################################################################################
     # Hermite form modulo D
@@ -4177,7 +4179,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for i from 0 <= i < self._nrows:
                 fmpz_set(fmpz_mat_entry(M._matrix,i,j),fmpz_mat_entry(self._matrix,i,j))
             for i from 0 <= i < other._nrows:
-                fmpz_set(fmpz_mat_entry(M._matrix,self._nrows + i,j),fmpz_mat_entry(other._matrix,i,j))            
+                fmpz_set(fmpz_mat_entry(M._matrix,self._nrows + i,j),fmpz_mat_entry(other._matrix,i,j))
         if subdivide:
             M._subdivide_on_stack(self, other)
         return M
@@ -4319,7 +4321,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             for i from index <= i < self._nrows:
                 fmpz_init_set(fmpz_mat_entry(res._matrix,i+1,j), fmpz_mat_entry(self._matrix,i,j))
-            
+
         res._initialized = True
         fmpz_clear(zflint)
         return res
@@ -4414,7 +4416,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         fmpz_init(g)
         fmpz_init(tmp)
         cdef long i, j
-    
+
         for i from 0 <= i < self._nrows:
             fmpz_set_ui(g, 0)
             for j from 0 <= j < self._ncols:
@@ -4626,7 +4628,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: type(pari(a))
             <type 'sage.libs.pari.gen.gen'>
         """
-        return pari.integer_matrix_from_flint(self._matrix, self._nrows, self._ncols, 0)
+        return pari.integer_matrix(self._matrix, self._nrows, self._ncols, 0)
 
     def _hnf_pari(self, int flag=0, bint include_zero_rows=True):
         """
@@ -4751,7 +4753,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [1 2 3]
             [0 3 6]
         """
-        cdef gen H = pari.integer_matrix_from_flint(self._matrix, self._nrows, self._ncols, 1)
+        cdef gen H = pari.integer_matrix(self._matrix, self._nrows, self._ncols, 1)
         H = H.mathnf(flag)
         pari_catch_sig_on()
         B = self.extract_hnf_from_pari_matrix(H.g, flag, include_zero_rows)
@@ -4811,7 +4813,7 @@ cdef _clear_columns(Matrix_integer_dense A, pivots, Py_ssize_t n):
                     for l from 0 <= l < m:
                         fmpz_mul(t, c, fmpz_mat_entry(A._matrix,i,l))
                         fmpz_sub(fmpz_mat_entry(A._matrix,k,l), fmpz_mat_entry(A._matrix,k,l), t)
-                        
+
     fmpz_clear(c)
     fmpz_clear(t)
     sig_off()
@@ -4915,11 +4917,11 @@ cdef _clear_columns(Matrix_integer_dense A, pivots, Py_ssize_t n):
 #             M.set_unsafe_mpz(i,j,tmp[j])
 
 #     for k in range(n):
-#         sage_free(row_list[k]) 
+#         sage_free(row_list[k])
 #     sage_free(row_list)
 #     for j in range(nc):
 #         mpz_clear(tmp[j])
-        
+
 #     sig_off()
 #     return M
 
@@ -5028,3 +5030,4 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
 
     sig_off()
     return M
+

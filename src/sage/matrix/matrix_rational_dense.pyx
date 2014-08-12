@@ -2119,17 +2119,23 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i, j, nr, nc
         cdef mpz_t* Z_row
         cdef mpq_t* Q_row
-        cdef mpz_t lcm_denom, sqrt_m, neg_sqrt_m, z,tmp
-        mpz_init(z)
+        cdef mpz_t  sqrt_m, neg_sqrt_m,tmp
+        cdef fmpz_t fsqrt_m,fneg_sqrt_m,z,lcm_denom,z0,fmval
+        fmpz_init(z)
         mpz_init(tmp)
         mpz_init(sqrt_m)
         mpz_init(neg_sqrt_m)
-        mpz_init_set_ui(lcm_denom, 1)
-
+        fmpz_init_set_ui(lcm_denom, 1)
+        fmpz_init(fsqrt_m)
+        fmpz_init(fneg_sqrt_m)
+        fmpz_init(z0)
+        fmpz_init(fmval)
         m = mm.prod()
         mpz_fdiv_q_2exp(sqrt_m, m.value, 1)
         mpz_sqrt(sqrt_m, sqrt_m)
         mpz_sub(neg_sqrt_m, m.value, sqrt_m)
+        fmpz_set_mpz(fsqrt_m,sqrt_m)
+        fmpz_set_mpz(fneg_sqrt_m,neg_sqrt_m)
 
         t = verbose("Starting crt", level=2)
         ZA = _lift_crt(res, mm)
@@ -2143,38 +2149,46 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         lcm_trick = 0
 
         t = verbose("Starting rational reconstruction", level=2)
+        fmpz_set_mpz(fmval,m.value)
         for i from 0 <= i < nr:
             # Z_row = ZA._matrix[i]
             Q_row = QA._matrix[i]
             for j from 0 <= j < nc:
-                if fmpz_cmp(fmpz_mat_entry(ZA._matrix,i,j), sqrt_m) < 0:
+                if fmpz_cmp(fmpz_mat_entry(ZA._matrix,i,j), fsqrt_m) < 0:
                     fmpz_get_mpz(mpq_numref(Q_row[j]), fmpz_mat_entry(ZA._matrix,i,j))
                     is_integral += 1
-                elif fmpz_cmp(fmpz_mat_entry(ZA._matrix,i,j), neg_sqrt_m) > 0:
+                elif fmpz_cmp(fmpz_mat_entry(ZA._matrix,i,j), fneg_sqrt_m) > 0:
                     fmpz_get_mpz(tmp,fmpz_mat_entry(ZA._matrix,i,j))
-                    fmpz_sub(mpq_numref(Q_row[j]), tmp, m.value)
+                    mpz_sub(mpq_numref(Q_row[j]),tmp,fmval)
                     is_integral += 1
                 else:
-                    fmpz_mul(z, fmpz_mat_entry(ZA._matrix,i,j), lcm_denom)
-                    mpz_fdiv_r(z, z, m.value)
-                    if mpz_cmp(z, sqrt_m) < 0:
-                        mpz_set(mpq_numref(Q_row[j]), z)
-                        mpz_set(mpq_denref(Q_row[j]), lcm_denom)
+                    fmpz_mul(z, fmpz_mat_entry(ZA._matrix,i,j),lcm_denom)
+                    fmpz_fdiv_r(z, z, fmval)
+                    if fmpz_cmp(z, fsqrt_m) < 0:
+                        fmpz_get_mpz(mpq_numref(Q_row[j]), z)
+                        fmpz_get_mpz(mpq_denref(Q_row[j]), lcm_denom)
                         mpq_canonicalize(Q_row[j])
                         lcm_trick += 1
-                    elif mpz_cmp(z, neg_sqrt_m) > 0:
-                        mpz_sub(mpq_numref(Q_row[j]), z, m.value)
-                        mpz_set(mpq_denref(Q_row[j]), lcm_denom)
+                    elif fmpz_cmp(z, fneg_sqrt_m) > 0:
+                        fmpz_sub(z0, z, fmval)
+                        fmpz_get_mpz(mpq_numref(Q_row[j]),z0)
+                        fmpz_get_mpz(mpq_denref(Q_row[j]), lcm_denom)
                         mpq_canonicalize(Q_row[j])
                         lcm_trick += 1
                     else:
                         mpq_rational_reconstruction(Q_row[j], fmpz_mat_entry(ZA._matrix,i,j), m.value)
-                        mpz_lcm(lcm_denom, lcm_denom, mpq_denref(Q_row[j]))
+                        fmpz_set_mpz(z0,mpq_denref(Q_row[j]))
+                        fmpz_lcm(lcm_denom, lcm_denom, z0)
         mpz_clear(z)
         mpz_clear(tmp)
         mpz_clear(sqrt_m)
         mpz_clear(neg_sqrt_m)
-        mpz_clear(lcm_denom)
+        fmpz_clear(fsqrt_m)
+        fmpz_clear(fneg_sqrt_m)
+        fmpz_clear(lcm_denom)
+        fmpz_clear(z0)
+        fmpz_clear(fmval)
+
         t = verbose("rr finished. integral entries: %s, lcm trick: %s, other: %s"%(is_integral, lcm_trick, nr*nc - is_integral - lcm_trick), t, level=2)
         return QA
 

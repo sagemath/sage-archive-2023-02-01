@@ -296,7 +296,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             category = Algebras(base_ring.category())
         else:
             category = Modules(base_ring.category())
-            
+
         sage.structure.parent.Parent.__init__(self, category=category)
         #sage.structure.category_object.CategoryObject._init_category_(self, category)
 

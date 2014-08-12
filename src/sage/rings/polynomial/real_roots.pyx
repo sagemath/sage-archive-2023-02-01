@@ -4521,7 +4521,7 @@ def dprod_imatrow_vec(Matrix_integer_dense m, Vector_integer_dense v, int k):
     cdef int vsize = len(v)
     cdef int ra
     cdef int a
-    
+
     for a from 0 <= a < msize:
         ra = subsample_vec(a, msize, vsize)
         m.get_unsafe_mpz(k,a,tmp)
@@ -4623,4 +4623,3 @@ def min_max_diff_doublevec(Vector_real_double_dense c):
             max_diff = diff
 
     return (min_diff, max_diff)
-

@@ -703,14 +703,6 @@ ext_modules = [
               libraries = ['stdc++', 'pari', 'mpfr', 'fplll', 'gmp', 'm', 'flint'],
               depends = [SAGE_INC + '/m4ri/m4ri.h', SAGE_INC + "/fplll/fplll.h"]+ flint_depends,
               include_dirs = [SAGE_INC + '/fplll']),
-                  
-    # Extension('sage.libs.fplll.fplll',
-    #           sources = ['sage/libs/fplll/fplll.pyx'],
-    #           libraries = ['gmp', 'mpfr', 'stdc++', 'fplll'],
-    #           language="c++",
-    #           include_dirs = [SAGE_INC + '/fplll'],
-    #           extra_compile_args=["-DFPLLL_V3_COMPAT"],
-    #           depends = [SAGE_INC + "/fplll/fplll.h"]),
 
     Extension('sage.libs.linbox.linbox',
               sources = ['sage/libs/linbox/linbox.pyx'],
@@ -1073,7 +1065,7 @@ ext_modules = [
               # order matters for cygwin!!
               libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2],
               depends = [SAGE_INC + '/m4ri/m4ri.h']+ flint_depends),
-              
+
     Extension('sage.matrix.matrix_integer_sparse',
               sources = ['sage/matrix/matrix_integer_sparse.pyx'],
               libraries = ['gmp']),
@@ -1123,16 +1115,13 @@ ext_modules = [
               include_dirs = singular_incs,
               depends = singular_depends),
 
-
-              
-    Extension('sage.matrix.matrix_rational_dense',    
+    Extension('sage.matrix.matrix_rational_dense',
               sources = ['sage/matrix/matrix_rational_dense.pyx'],
               language="c",
               extra_compile_args = ["-std=c99",  "-D_XPG6"]+ m4ri_extra_compile_args,
               # order matters for cygwin!!
               libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2],
               depends = [SAGE_INC + '/m4ri/m4ri.h']+ flint_depends),
-              
 
     Extension('sage.matrix.matrix_rational_sparse',
               sources = ['sage/matrix/matrix_rational_sparse.pyx'],
@@ -2121,13 +2110,13 @@ ext_modules = [
 
     Extension('sage.sat.solvers.satsolver',
               sources = ['sage/sat/solvers/satsolver.pyx']),
-              
+
     ################################
-    ## 
+    ##
     ## sage.schemes
     ##
     ################################
-              
+
     Extension('sage.schemes.projective.projective_morphism_helper',
               sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
     ]

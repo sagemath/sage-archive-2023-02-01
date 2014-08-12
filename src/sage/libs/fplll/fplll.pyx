@@ -121,7 +121,7 @@ cdef class FP_LLL:
         - ``A`` -- a matrix over the integers
 
         EXAMPLE::
- 
+
             sage: from sage.libs.fplll.fplll import FP_LLL
             sage: A = random_matrix(ZZ,10,10)
             sage: FP_LLL(A)

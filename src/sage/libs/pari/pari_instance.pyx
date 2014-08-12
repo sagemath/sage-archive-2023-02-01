@@ -672,30 +672,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pari_catch_sig_on()
         return self.new_gen(self._new_GEN_from_mpz_t(value))
 
-    # cdef gen new_gen_from_fmpz_t(self, fmpz_t value):
-    #     """
-    #     Create a new gen from a given MPIR-integer ``value``.
-
-    #     EXAMPLES::
-
-    #         sage: pari(42)       # indirect doctest
-    #         42
-
-    #     TESTS:
-
-    #     Check that the hash of an integer does not depend on existing
-    #     garbage on the stack (#11611)::
-
-    #         sage: foo = pari(2^(32*1024));  # Create large integer to put PARI stack in known state
-    #         sage: a5 = pari(5);
-    #         sage: foo = pari(0xDEADBEEF * (2^(32*1024)-1)//(2^32 - 1));  # Dirty PARI stack
-    #         sage: b5 = pari(5);
-    #         sage: a5.__hash__() == b5.__hash__()
-    #         True
-    #     """
-    #     pari_catch_sig_on()
-    #     return self.new_gen(self._new_GEN_from_fmpz_t(value))
-    
     cdef inline GEN _new_GEN_from_mpz_t(self, mpz_t value):
         r"""
         Create a new PARI ``t_INT`` from a ``mpz_t``.
@@ -712,22 +688,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         return z
 
-    # cdef inline GEN _new_GEN_from_fmpz_t(self, fmpz_t value):
-    #     r"""
-    #     Create a new PARI ``t_INT`` from a ``fmpz_t``.
-
-    #     For internal use only; this directly uses the PARI stack.
-    #     One should call ``pari_catch_sig_on()`` before and ``pari_catch_sig_off()`` after.
-    #     """
-    #     cdef unsigned long limbs = fmpz_size(value)
-    #     cdef mpz_t value_mpz
-    #     cdef GEN z = cgeti(limbs + 2)
-    #     # Set sign and "effective length"
-    #     z[1] = evalsigne(fmpz_sgn(value)) + evallgefint(limbs + 2)
-    #     fmpz_get_mpz(value_mpz,value)
-    #     mpz_export(int_LSW(z), NULL, -1, sizeof(long), 0, 0, value_mpz)
-    #     return z
-    
     cdef gen new_gen_from_int(self, int value):
         pari_catch_sig_on()
         return self.new_gen(stoi(value))
@@ -949,23 +909,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
                 set_gcoeff(A, i+1, j+1, x)  # A[i+1, j+1] = x (using 1-based indexing)
         return A
 
-    cdef GEN _new_GEN_from_mpz_t_matrix(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc):
-        r"""
-        Create a new PARI ``t_MAT`` with ``nr`` rows and ``nc`` columns
-        from a ``mpz_t**``.
-
-        For internal use only; this directly uses the PARI stack.
-        One should call ``pari_catch_sig_on()`` before and ``pari_catch_sig_off()`` after.
-        """
-        cdef GEN x
-        cdef GEN A = zeromatcopy(nr, nc)
-        cdef Py_ssize_t i, j
-        for i in range(nr):
-            for j in range(nc):
-                x = self._new_GEN_from_mpz_t(B[i][j])
-                set_gcoeff(A, i+1, j+1, x)  # A[i+1, j+1] = x (using 1-based indexing)
-        return A
-
     cdef GEN _new_GEN_from_fmpz_mat_t_rotate90(self, fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc):
         r"""
         Create a new PARI ``t_MAT`` with ``nr`` rows and ``nc`` columns
@@ -989,27 +932,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
                 set_gcoeff(A, j+1, i+1, x)  # A[j+1, i+1] = x (using 1-based indexing)
         return A
 
-    cdef GEN _new_GEN_from_mpz_t_matrix_rotate90(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc):
-        r"""
-        Create a new PARI ``t_MAT`` with ``nr`` rows and ``nc`` columns
-        from a ``mpz_t**`` and rotate the matrix 90 degrees
-        counterclockwise.  So the resulting matrix will have ``nc`` rows
-        and ``nr`` columns.  This is useful for computing the Hermite
-        Normal Form because Sage and PARI use different definitions.
-
-        For internal use only; this directly uses the PARI stack.
-        One should call ``pari_catch_sig_on()`` before and ``pari_catch_sig_off()`` after.
-        """
-        cdef GEN x
-        cdef GEN A = zeromatcopy(nc, nr)
-        cdef Py_ssize_t i, j
-        for i in range(nr):
-            for j in range(nc):
-                x = self._new_GEN_from_mpz_t(B[i][nc-j-1])
-                set_gcoeff(A, j+1, i+1, x)  # A[j+1, i+1] = x (using 1-based indexing)
-        return A
-    
-    cdef gen integer_matrix_from_flint(self, fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf):
+    cdef gen integer_matrix(self, fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf):
         """
         EXAMPLES::
 
@@ -1024,21 +947,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             g = self._new_GEN_from_fmpz_mat_t(B, nr, nc)
         return self.new_gen(g)
 
-    cdef gen integer_matrix(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf):
-        """
-        EXAMPLES::
-
-            sage: matrix(ZZ,2,[1..6])._pari_()   # indirect doctest
-            [1, 2, 3; 4, 5, 6]
-        """
-        pari_catch_sig_on()
-        cdef GEN g
-        if permute_for_hnf:
-            g = self._new_GEN_from_mpz_t_matrix_rotate90(B, nr, nc)
-        else:
-            g = self._new_GEN_from_mpz_t_matrix(B, nr, nc)
-        return self.new_gen(g)
-    
     cdef GEN _new_GEN_from_mpq_t_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc):
         cdef GEN x
         # Allocate zero matrix

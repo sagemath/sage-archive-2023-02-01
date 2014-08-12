@@ -1346,6 +1346,7 @@ class Link:
         return final
 
     #**************************** PART - 2 ***************************************
+    #**************************** PART - 2 ***************************************
     def seifert_to_braid(self):
         r"""
         Returns the braidword of the input. We match the outgoing components to the
@@ -1369,6 +1370,12 @@ class Link:
         sage: L = link.Link(oriented_gauss_code = [[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
         sage: L.seifert_to_braid()
         [-1, -2, -2, 1, 2, 2]
+        sage: L = link.Link(B([1,1]))
+        sage: L.seifert_to_braid()
+        [1, 1]
+        sage: L = link.Link(B([1, 2, 1, -2, -1]))
+        sage: L.seifert_to_braid()
+        [1, 2, -1, -2, 2]
         """
         #all the data from the previous method
         sc = self._info_all_moves_()[0]
@@ -1390,31 +1397,26 @@ class Link:
             for j in regions_pos:
                 if set(i) == set(j):
                     r.append(i)
-        #here t stores the crossing information required to check which one
-        #is the next
-        t = [[None for i in range(2*len(sc[j]))] for j in range(len(sc))]
-        for i in range(len(sc)):
-            for j in range(len(sc[i])):
-                t[i][2*j] = sc[i][j] - 1
-                t[i][2*j+1] = sc[i][j] + 1
-        #here we find the order of the seifert circles
+        #here we find the ordering of the seifert circles
+        pd_copy = deepcopy(pd_code)
         seifert_order = []
-        t1 = deepcopy(t)
-        a = r[0]
-        b = r[1]
-        del t[0]
-        i = 0
+        seifert_order.append(r[0])
+        a = seifert_order[0]
         while True:
-            for i in range(len(t)):
-                if len(list(set(a).intersection(set(t[i])))) >= 2:
-                    r = t1.index(t[i])
-                    seifert_order.append(a)
-                    del t[i]
-                    a = sc[r]
-                    break
-            else:
-                seifert_order.append(b)
+            tmp = []
+            if a == r[1]:
                 break
+            for j in pd_copy:
+                if len(list(set(a).intersection(set(j)))) != 0:
+                    tmp.append(j)
+            b = list(set(tmp[0]) - set(a))
+            pd_copy = [x for x in pd_copy if x not in tmp]
+            for k in sc:
+                if len(list(set(b).intersection(set(k)))) != 0:
+                    a = sc[sc.index(k)]
+                    break
+            seifert_order.append(k)
+        #here we calculate the entering and leaving of each of the crossing
         entering = []
         leaving = []
         for i in range(len(pd_code)):
@@ -1446,7 +1448,6 @@ class Link:
                     a = i[0]
                     i[0] = i[1]
                     i[1] = a
-        #first_seifert = sc[0]
         first_seifert = seifert_order[0]
         first_crossing = None
         for i in pd_code:

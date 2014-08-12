@@ -34,3 +34,7 @@ latex_documents = [
   ('index', name+'.tex', u'A Tour Of Sage',
    u'The Sage Development Team', 'manual'),
 ]
+
+# Our Sphinx expects the older behavior of babel-italian where double
+# quotes are active
+latex_elements['preamble'] += '\\setactivedoublequote\n'

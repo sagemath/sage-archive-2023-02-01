@@ -1346,7 +1346,6 @@ class Link:
         return final
 
     #**************************** PART - 2 ***************************************
-    #**************************** PART - 2 ***************************************
     def seifert_to_braid(self):
         r"""
         Returns the braidword of the input. We match the outgoing components to the
@@ -1370,6 +1369,7 @@ class Link:
         sage: L = link.Link(oriented_gauss_code = [[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
         sage: L.seifert_to_braid()
         [-1, -2, -2, 1, 2, 2]
+        sage: B = BraidGroup(8)
         sage: L = link.Link(B([1,1]))
         sage: L.seifert_to_braid()
         [1, 1]
@@ -1530,54 +1530,57 @@ class Link:
 
     def jones_polynomial(self, var = 't'):
         r"""
-        Returns the jones polynomial of the input. The following procedure is used to
-        determine the jones polynomial. We track the trip matrix of the knot and keep
-        changing through the various combinations of smoothing the knot.
+        Returns the jones polynomial of the link.
+        The following procedure is used to determine the jones polynomial.
+        There are two constructions :
+        1. Smoothing of crossings in two ways, corresponding coefficients being
+           A^-1 and A. The various permutations of the smoothing of the crossings
+           is constructed by taking the permutation of the crossings.
+        2. After this, the number of circles are calculated after smoothing and the
+           polynomial is constructed by summing up in the following way
+                polynomial = sigma[(no. of A^-1)*(no. of A)*d**((no. of circles) - 1)]
 
         OUTPUT:
             - Jones Polynomial of the link.
 
         EXAMPLES::
-        sage: from sage.knots import link
-        sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
-        sage: L.jones_polynomial()
-        t^8 - t^4 + 1 - t^-4 + t^-8
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
-        sage: L.jones_polynomial()
-        -t^16 + t^12 + t^4
+
+            sage: from sage.knots import link
+            sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
+            sage: L.jones_polynomial()
+            t^8 - t^4 + 1 - t^-4 + t^-8
+            sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+            sage: L.jones_polynomial()
+            -t^16 + t^12 + t^4
+            sage: l1 = [[1,4,2,3],[4,1,3,2]]
+            sage: L = link.Link(PD_code = l1)
+            sage: L.jones_polynomial()
+            -t^10 - t^2
+            sage: l5 = [[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]]
+            sage: L = link.Link(PD_code = l5)
+            sage: L.jones_polynomial()
+            t^14 - 2*t^10 + t^6 - 2*t^2 + t^-2 - t^-6
         """
         pd = self.PD_code()
-        orient = self.orientation()
-        #here we look at the smoothings, either 0 or 1
-        label_1 = [0 for i in range(len(pd))]
-        label_2 = [1 for i in range(len(pd))]
-        label_1.extend(label_2)
-        #all the crossings have to be either smoothened by 0 or 1
-        P = Permutations(label_1, len(pd))
         R = LaurentPolynomialRing(ZZ, var)
         x = R.gen()
+        #here we look at the smoothings, either x or x**-1
+        label_1 = [x for i in range(len(pd))]
+        label_2 = [x**-1 for i in range(len(pd))]
+        label_1.extend(label_2)
+        P = Permutations(label_1, len(pd))
         crossing_to_label = []
-        #we record how each crossing is smoothened and also the sign of the crossing
+        #we record how each crossing is smoothened
         for i in P.list():
             tmp = {}
             for j,k in enumerate(i):
-                tmp.update({tuple(pd[j]) : (k,orient[j])})
+                tmp.update({tuple(pd[j]) : k})
             crossing_to_label.append(tmp)
-        #we calculate the coefficients
-        coeff = []
-        for i in crossing_to_label:
-            tmp_coeff = []
-            for j in pd:
-                if i[tuple(j)][0] == 0:
-                    tmp_coeff.append(x)
-                elif i[tuple(j)][0] == 1:
-                    tmp_coeff.append(x**-1)
-            coeff.append(tmp_coeff)
         #the product of the coefficients is calcaluated
         product = []
-        for i in coeff:
+        for i in crossing_to_label:
             p = 1
-            for j in i:
+            for j in i.itervalues():
                 p = p*j
             product.append(p)
         #here we calculate the number of circles after the smoothing has been performed at
@@ -1587,20 +1590,12 @@ class Link:
             pd_copy = deepcopy(pd)
             tmp = []
             for j in pd_copy:
-                if i[tuple(j)][0] == 0:
-                    if i[tuple(j)][1] == -1:
-                        tmp.append([pd_copy[pd_copy.index(j)][0],pd_copy[pd_copy.index(j)][1]])
-                        tmp.append([pd_copy[pd_copy.index(j)][3],pd_copy[pd_copy.index(j)][2]])
-                    elif i[tuple(j)][1] == 1:
-                        tmp.append([pd_copy[pd_copy.index(j)][1],pd_copy[pd_copy.index(j)][2]])
-                        tmp.append([pd_copy[pd_copy.index(j)][0],pd_copy[pd_copy.index(j)][3]])
-                elif i[tuple(j)][0] == 1:
-                    if i[tuple(j)][1] == -1:
-                        tmp.append([pd_copy[pd_copy.index(j)][1],pd_copy[pd_copy.index(j)][2]])
-                        tmp.append([pd_copy[pd_copy.index(j)][0],pd_copy[pd_copy.index(j)][3]])
-                    elif i[tuple(j)][1] == 1:
-                        tmp.append([pd_copy[pd_copy.index(j)][2],pd_copy[pd_copy.index(j)][3]])
-                        tmp.append([pd_copy[pd_copy.index(j)][1],pd_copy[pd_copy.index(j)][0]])
+                if i[tuple(j)] == x**-1:
+                    tmp.append([pd_copy[pd_copy.index(j)][0],pd_copy[pd_copy.index(j)][1]])
+                    tmp.append([pd_copy[pd_copy.index(j)][3],pd_copy[pd_copy.index(j)][2]])
+                elif i[tuple(j)] == x:
+                    tmp.append([pd_copy[pd_copy.index(j)][1],pd_copy[pd_copy.index(j)][2]])
+                    tmp.append([pd_copy[pd_copy.index(j)][0],pd_copy[pd_copy.index(j)][3]])
             pd_edit.append(tmp)
         #replacing the old edges with the new ones to get the circles and also the number of circles.
         pd_edit = _rule_3_(pd_edit)
@@ -1617,13 +1612,13 @@ class Link:
         #we calculate the terms of the polynomial
         terms = []
         for i,j in zip(product, circle_count):
-            terms.append(i*(((-x**2-(x**(-1))**2))**j))
+            terms.append(i*((-x**2-(x**(-1))**2)**(j-1)))
         #add the terms to generate the polynomial
         poly = 0
         for i in terms:
             poly = i + poly
         wri = self.writhe()
-        return ((-x**(3))**wri)*poly
+        return ((-x**(3))**(-wri))*poly
 
 def _rule_1_(over):
     for i in range(0,len(over),2):

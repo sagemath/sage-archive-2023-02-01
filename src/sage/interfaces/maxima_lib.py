@@ -504,6 +504,7 @@ class MaximaLib(MaximaAbstract):
         """
         try:
             self.eval('kill(%s)$'%var)
+            ecl_eval("(unintern '$%s)"%var)
         except (TypeError, AttributeError):
             pass
 

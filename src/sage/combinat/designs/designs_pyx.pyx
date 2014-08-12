@@ -150,8 +150,8 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
     Test if `M` is a `(G,k,\lambda)`-difference matrix.
 
     A matrix `M` is a `(G,k,\lambda)`-difference matrix if its entries are
-    element of `G`, and if for any two columns `C,C'` of `M` and `x\in G` there
-    are exactly `\lambda` values `i` such that `C_i-C'_i=x`.
+    element of `G`, and if for any two rows `R,R'` of `M` and `x\in G` there
+    are exactly `\lambda` values `i` such that `R_i-R'_i=x`.
 
     INPUT:
 
@@ -179,19 +179,20 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
 
         sage: M.append([None]*3**3)
         sage: is_difference_matrix(F,q,M,verbose=1)
-        The matrix has 28 rows and lambda.|G|=1.27=27
+        The matrix has 28 columns and lambda.|G|=1.27=27
         False
         sage: _=M.pop()
         sage: M[0].append(1)
         sage: is_difference_matrix(F,q,M,verbose=1)
-        A row of the matrix has length 28!=k(=27)
+        Rows 0 and 1 do not have the same length
         False
         sage: _= M[0].pop(-1)
         sage: M[-1] = [0]*3**3
         sage: is_difference_matrix(F,q,M,verbose=1)
-        Columns 0 and 1 do not generate all elements of G exactly lambda(=1) times
+        Rows 0 and 26 do not generate all elements of G exactly lambda(=1) times
         False
     """
+
     assert k>=2
     assert lmbda >=1
 
@@ -200,19 +201,32 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
     cdef int K = k
     cdef int L = lmbda
     cdef int M_nrows = len(M)
-    cdef list R
+    cdef tuple R
+
+    # The comments and variables of this code have been written for a different
+    # definition of a Difference Matrix, i.e. with cols/rows reversed. This will
+    # be corrected soon.
+    #
+    # We transpose the matrix as a first step.
+    if M:
+        for i,row in enumerate(M):
+            if len(row) != len(M[0]):
+                if verbose:
+                    print "Rows 0 and {} do not have the same length".format(i)
+                return False
+    M = zip(*M)
 
     # Height of the matrix
     if G_card*lmbda != M_nrows:
         if verbose:
-            print "The matrix has {} rows and lambda.|G|={}.{}={}".format(M_nrows,lmbda,G_card,lmbda*G_card)
+            print "The matrix has {} columns and lambda.|G|={}.{}={}".format(M_nrows,lmbda,G_card,lmbda*G_card)
         return False
 
     # Width of the matrix
     for R in M:
         if len(R)!=K:
             if verbose:
-                print "A row of the matrix has length {}!=k(={})".format(len(R),K)
+                print "A column of the matrix has length {}!=k(={})".format(len(R),K)
             return False
 
     # When |G|=0
@@ -255,7 +269,7 @@ def is_difference_matrix(G,k,M,lmbda=1,verbose=False):
                 for jj in range(L):
                     if seen_values[ii*L+jj] != ii:
                         if verbose:
-                            print "Columns {} and {} do not generate all elements of G exactly lambda(={}) times".format(i,j,L)
+                            print "Rows {} and {} do not generate all elements of G exactly lambda(={}) times".format(i,j,L)
                         sage_free(M_c)
                         return False
 

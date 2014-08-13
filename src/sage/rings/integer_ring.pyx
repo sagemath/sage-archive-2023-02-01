@@ -1267,6 +1267,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         Returns the root of the univariate polynomial ``p''.
 
+        For sparse polynomial, the algorithm uses [CKS1999]_.
+
         AUTHORS:
 
         - Bruno Grenet (2014-07-04)
@@ -1285,6 +1287,12 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
             This is a helper method for
             :meth:`sage.rings.polynomial.polynomial_element.Polynomial.roots`.
+
+        REFERENCES:
+
+        ..  [CKS1999] F. Cucker, P. Koiran and S. Smale
+            "A polynomial-time algorithm for diophantine equations in one variable"
+            JSC 27, p21-29, 1999.
 
         TESTS::
 
@@ -1315,8 +1323,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-        #remove content
-        #see <https://groups.google.com/forum/#!topic/sage-devel/DP_R3rl0vH0>
+        #TODO: the content sometimes return an ideal sometimes a number... this
+        # should be corrected. See
+        # <https://groups.google.com/forum/#!topic/sage-devel/DP_R3rl0vH0>
         if p.parent().is_sparse():
             p = p.parent()(p/(p.content().gen()))
         else:
@@ -1326,36 +1335,35 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         # Automatic choice for sparse/dense to be defined
         # Now: dense for densely represented polynomial, and sparse otherwise
-        if algorithm is "dense" or not p.parent().is_sparse(): 
+        if algorithm == "dense" or not p.parent().is_sparse():
         # or algorithm is not "sparse" and 2*(p.degree() - v) < 3*p.number_of_terms():
             return p._roots_from_factorization(p.factor(),multiplicities)
 
         p = p.shift(-v)
 
-        # The sparse algorithm is described in: 
-        # Cucker, Koiran, Smale, JSC 27, p21-29, 1999.
-
         # Root 0
-        roots=[]
+        cdef list roots = []
         if v>0:
-            if multiplicities: roots=[(self.zero(),v)]
-            else: roots=[self.zero()]
+            if multiplicities: roots = [(self.zero(),v)]
+            else: roots = [self.zero()]
+        else:
+            roots = []
 
         if p.is_constant(): return roots
 
-        c = p.coefficients()
-        e = p.exponents()
-        cdef int i, j, k = len(c)
+        cdef list c = p.coefficients()
+        cdef list e = p.exponents()
+        cdef int i_min, i, j, k = len(c)
 
-        K=p.base_ring()
-        x=p.variable_name()
+        K = p.base_ring()
+        x = p.variable_name()
         R = PolynomialRing(K,x,sparse=False)
 
         cst_coeff = c[0]
         c_max_nbits = cst_coeff.nbits()
 
         # Computation of roots of modulus > 1
-        i_min=0
+        i_min = 0
         g = R.zero_element()
 
         # Looking for "large" gaps in the exponents
@@ -1366,27 +1374,27 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 g = g.gcd(R(p[e[i_min]:e[i]].shift(-e[i_min])))
                 # no need to continue as soon as there is no common root
                 if g.is_one(): break
-                i_min=i
+                i_min = i
                 c_max_nbits = c[i].nbits()
             else:
                 c_max_nbits = max(c[i].nbits(), c_max_nbits)
 
             # if no gap, directly return the roots of p
-            if g.is_zero(): # could also use the slightly faster 
-                            # "g is R.zero_element()" since it is cached
+            if g.is_zero():
                 roots.extend(p._roots_from_factorization(p.factor(),multiplicities))
                 return roots
 
             g = g.gcd(R(p[e[i_min]:1+e[k-1]].shift(-e[i_min])))
 
-        cc = c; ee = e
-        m1 = m2 = 0
-        b1 = b2 = True
+        cdef list cc = c
+        cdef list ee = e
+        cdef int m1 = 0, m2 = 0
+        cdef bint b1 = True, b2 = True
 
         # Computation of the roots of modulus 1, without multiplicities
         # 1 is root iff p(1) == 0 ; -1 iff p(-1) == 0
         if not multiplicities:
-            s1=s2=0
+            s1 = s2 = 0
             for j in range(k):
                 s1 += cc[j]
                 s2 += cc[j] * (-1)**(ee[j]%2)
@@ -1395,30 +1403,29 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             if s2 == 0:
                 roots.append(-1)
 
-
         # Computation of the roots of modulus 1, with multiplicities
         # For the multiplicities, take the derivatives
         else:
             for i in xrange(k):
-                s1=s2=0
+                s1 = s2 = 0
                 for j in xrange(k-i):
-                        if b1:
-                            s1+= cc[j]
-                        if b2:
-                            s2 += cc[j]*(-1)**(ee[j]%2)
+                    if b1:
+                        s1 += cc[j]
+                    if b2:
+                        s2 += cc[j]*(-1)**(ee[j]%2)
                 if b1 and s1 <> 0:
-                    m1=i
-                    b1=False
+                    m1 = i
+                    b1 = False
                 if b2 and s2 <> 0:
-                    m2=i
-                    b2=False
+                    m2 = i
+                    b2 = False
                 # Stop asap
                 if not (b1 or b2):
                     break
 
                 # Sparse derivative, that is (p/x^v)' where v = p.val():
-                ee=[ee[j]-ee[0]-1 for j in xrange(1,k-i)]
-                cc=[(ee[j]+1)*cc[j+1] for j in xrange(k-i-1)]
+                ee = [ee[j]-ee[0]-1 for j in xrange(1,k-i)]
+                cc = [(ee[j]+1)*cc[j+1] for j in xrange(k-i-1)]
 
             if m1 > 0:
                 roots.append((1,m1))

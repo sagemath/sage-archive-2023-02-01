@@ -45,7 +45,6 @@ cdef extern from "<math.h>":
     double c_acos "acos"(double)
     double c_sqrt "sqrt"(double)
 
-
 cdef class LFunctionZeroSum_abstract(SageObject):
     """
     Abstract class for computing certain sums over zeros of a motivic L-function
@@ -599,7 +598,6 @@ cdef class LFunctionZeroSum_abstract(SageObject):
                 if cn!=0:
                     logn = log(RDF(n))
                     y += cn*(t-logn)
-                    #print(n,cn*(t-logn))
                 n += 1
         # When offset is nonzero, the digamma transform (w) must
         # be computed as an infinite sum
@@ -624,11 +622,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
                 if cn!=0:
                     logn = log(RDF(n))
                     y += cn*(t-logn)*(tau*logn).cos()
-                    #print(n,cn*(t-logn))
                 n += 1
-
-        #print(expt,t,u,w,y)
-        #print
 
         return (u+w+y)*2/(t**2)
 
@@ -834,7 +828,6 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
     """
     cdef _E
     cdef _e
-    cdef _ncpus
 
     def __init__(self,E,N=None):
         r"""
@@ -874,9 +867,6 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         # These constants feature in most (all?) sums over the L-function's zeros
         self._C1 = log(RDF(self._N))/2 - log(self._pi*2)
         self._C0 = self._C1 - self._euler_gamma
-
-        # Used for parallel computations
-        self._ncpus = num_cpus()
 
     def __repr__(self):
         r"""
@@ -1008,9 +998,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sqrtq *= sqrtp
             thetaq += thetap
             z += 2*c_cos(thetaq)*(t-logq)/sqrtq
-            #print(c_exp(logq),-2*c_cos(thetaq)*(t-logq)/sqrtq*logp)
             logq += logp
-        #print('a',n,t,-z*logp)
         return -z*logp
 
     cdef double _sincsquared_summand_2(self,
@@ -1028,41 +1016,72 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         ap = self._e.ellap(n)
         p = n
         logp = c_log(p)
-        #print('b',n,t,-(t-logp)*(logp/p)*ap)
         return -(t-logp)*(logp/p)*ap
 
-#    @parallel#(ncpus=self._ncpus)
-#    def _sum_over_residue_class(self,m,jump,t,expt,bound1):
-#        """
-#        Return the p-power sum over one particular residue class
-#        """
-#        cdef double y = 0
-#        cdef long long n = m
-#
-#        cdef double z = 0
-#        cdef double logp = 0
-#        cdef double logq = 0
-#        cdef double thetap = 0
-#        cdef double thetaq = 0
-#        cdef double sqrtp = 0
-#        cdef double sqrtq = 0
-#        cdef double p = 0
-#        cdef int ap = 0
-#
-#        while n<bound1:
-#            if pari(n).isprime():
-#                y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
-#                                                 logq,thetaq,sqrtq,z)
-#            n += jump
-#        while n<expt:
-#            if pari(n).isprime():
-#                y += self._sincsquared_summand_2(n,t,ap,p,logp)
-#            n += jump
-#        return y
+    def _get_residue_data(self,ncpus):
+        r"""
+        Private method called by self._zerosum_sincsquared_parallel() to
+        determine the optimal residue class breakdown when sieving for primes.
+        Returns a list of small primes, the product thereof, and a list of
+        residues coprime to the product.
+
+        INPUT:
+
+        - ``ncpus`` -- Positive integer denoting the number of available CPUs.
+
+        OUTPUT:
+
+        A triple small_primes, jump, residue_chunks.
+          - small_primes is a list of small primes
+          - jump is the product thereof
+          - residue_chunks is a list of lists comprised of all integers < jump
+             that are coprime to jump, broken into [ncpus] sublists of
+             approximately equal size.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a'); Z = LFunctionZeroSum(E)
+            sage: Z._get_residue_data(8)
+            ([2, 3, 5, 7],
+             210,
+             [[1, 37, 71, 107, 143, 179],
+              [11, 41, 73, 109, 149, 181],
+              [13, 43, 79, 113, 151, 187],
+              [17, 47, 83, 121, 157, 191],
+              [19, 53, 89, 127, 163, 193],
+              [23, 59, 97, 131, 167, 197],
+              [29, 61, 101, 137, 169, 199],
+              [31, 67, 103, 139, 173, 209]])
+        """
+        # If ncpus <=48, primes are sieved for modulo 210
+        if ncpus <= 48:
+            small_primes = [2,3,5,7]
+            jump = 210
+            residue_list = [1, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47,
+                            53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103,
+                            107, 109, 113, 121, 127, 131, 137, 139, 143, 149,
+                            151, 157, 163, 167, 169, 173, 179, 181, 187, 191,
+                            193, 197, 199, 209]
+        # Otherwise sieve modulo 2310
+        elif ncpus <= 480:
+            from sage.rings.arith import gcd
+            small_primes = [2,3,5,7,11]
+            jump = 2310
+            residue_list = [int(n) for n in range(jump) if gcd(n,jump)==1]
+        # Not implemented: parallelization for > 480 cores
+        else:
+            raise ValueError("ncpus must be <= 480")
+
+        # Break residue_list into chunks according to number of CPUs
+        residue_chunks = [[residue_list[i] for i in range(len(residue_list))
+                               if i%ncpus==k] for k in range(ncpus)]
+
+        return small_primes, jump, residue_chunks
+
 
     cpdef _zerosum_sincsquared_fast(self,Delta=1,bad_primes=None):
-        """
-        A faster, more intelligent implementation of self._zerosum_sincsquared().
+        r"""
+        A faster cythonized implementation of self._zerosum_sincsquared().
 
         .. NOTE::
 
@@ -1131,7 +1150,6 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         if bad_primes is None:
             bad_primes = self._N.prime_divisors()
         bad_primes = [prime for prime in bad_primes if prime<expt]
-        #print(expt,bad_primes)
         for prime in bad_primes:
             n = prime
             ap = self._e.ellap(n)
@@ -1202,13 +1220,54 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         if n <= expt and pari(n).isprime():
             y += self._sincsquared_summand_2(n,t,ap,p,logp)
 
-        #print(expt,t,u,w,y)
-        #print
         return RDF(2*(u+w+y)/(t**2))
 
-    def _zerosum_parallel_2(self,Delta=1,bad_primes=None,ncpus=None):
+    def _zerosum_sincsquared_parallel(self,Delta=1,bad_primes=None,ncpus=None):
         r"""
-        Second cythonized attempt to parallelize zero sum code.
+        Parallelized implementation of self._zerosum_sincsquared_fast().
+        Faster than self._zerosum_sincsquared_fast() when Delta >= ~1.75.
+
+        .. NOTE::
+
+            This will only produce correct output if self._E is given by its
+            global minimal model, i.e. if self._E.is_minimal()==True.
+
+        INPUT:
+
+        - ``Delta`` -- positive real parameter defining the
+          tightness of the zero sum, and thus the closeness of the returned
+          estimate to the actual analytic rank of the form attached to self.
+        - ``bad_primes`` -- (default: None) If not None, a list of primes dividing
+          the level of the form attached to self. This is passable so that this
+          method can be run on curves whose conductor is large enough to warrant
+          precomputing bad primes.
+        - ``ncpus`` - (default: None) If not None, a positive integer
+          defining the number of CPUs to be used for the computation. If left as
+          None, the maximum available number of CPUs will be used.
+
+        OUTPUT:
+
+        A positive real number that bounds the analytic rank of the modular form
+        attached to self from above.
+
+        .. SEEALSO::
+
+            :meth:`~sage.lfunctions.zero_sums.LFunctionZeroSum_abstract.zerosum_sincsquared`
+            for the more general but slower version of this method.
+
+            :meth:`~sage.lfunctions.zero_sums.LFunctionZeroSum_abstract.zerosum`
+            for the public method that calls this private method.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a')
+            sage: Z = LFunctionZeroSum(E)
+            sage: print(E.rank(),Z._zerosum_sincsquared_parallel(Delta=1))
+            (1, 1.01038406984)
+            sage: E = EllipticCurve('121a')
+            sage: Z = LFunctionZeroSum(E);
+            sage: print(E.rank(),Z._zerosum_sincsquared_parallel(Delta=1.5,ncpus=8))
+            (0, 0.0104712060087)
         """
         # If Delta>6.619, then we will most likely get overflow: some ap values
         # will be too large to fit into a c int
@@ -1237,7 +1296,6 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         if bad_primes is None:
             bad_primes = self._N.prime_divisors()
         bad_primes = [prime for prime in bad_primes if prime<expt]
-        #print(expt,bad_primes)
         for prime in bad_primes:
             n = prime
             ap = self._e.ellap(n)
@@ -1265,23 +1323,13 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
                 logq += logp
             y -= z*logp
 
-        if ncpus is None:
-            ncpus = num_cpus()
-        if ncpus<=2:
-            small_primes, residue_list, jump = [2,3],[1,5],6
-        elif ncpus <=8:
-            small_primes, residue_list, jump = [2,3,5],[1,7,11,13,17,19,23,29],30
-        else:
-            small_primes = [2,3,5,7]
-            residue_list = [1, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59,
-                            61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113,
-                            121, 127, 131, 137, 139, 143, 149, 151, 157, 163, 167,
-                            169, 173, 179, 181, 187, 191, 193, 197, 199, 209]
-            jump = 210
-
         # Good prime case. Bad primes are treated as good primes, but their
         # contribution here is cancelled out above; this way we don't
         # have to check if each prime divides the level or not.
+
+        if ncpus is None:
+            ncpus = num_cpus()
+        small_primes, jump, residue_chunks = self._get_residue_data(ncpus)
 
         # Must deal with small primes separately
         for m in small_primes:
@@ -1291,96 +1339,59 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
                                                      logq,thetaq,sqrtq,z)
 
         @parallel(ncpus=ncpus)
-        def _sum_over_residue_class(m):
+        def _sum_over_residues(residues):
             """
-            Return the p-power sum over one particular residue class
+            Return the p-power sum over residues in a residue chunk
             """
             cdef double y = 0
-            cdef long long n = m
+            cdef long long n = 0
+            cdef long long k
 
-            while n<bound1:
-                if pari(n).isprime():
-                    y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
-                                                     logq,thetaq,sqrtq,z)
+            # Case: n+jump<sqrt(expt)
+            while n+jump<bound1:
+                for m in residues:
+                    k = n+m
+                    if pari(k).isprime():
+                        y += self._sincsquared_summand_1(k,t,ap,p,logp,thetap,sqrtp,
+                                                         logq,thetaq,sqrtq,z)
                 n += jump
-            while n<expt:
-                if pari(n).isprime():
-                    y += self._sincsquared_summand_2(n,t,ap,p,logp)
+            # Case: n<sqrt(expt) but maybe n+jump>sqrt(expt)
+            for m in residues:
+                k = n+m
+                if pari(k).isprime():
+                    if k<bound1:
+                        y += self._sincsquared_summand_1(k,t,ap,p,logp,thetap,sqrtp,
+                                                         logq,thetaq,sqrtq,z)
+                    elif k<expt:
+                        y += self._sincsquared_summand_2(k,t,ap,p,logp)
+            n += jump
+            # Case: sqrt(expt)<=n<expt-jump
+            while n+jump<expt:
+                for m in residues:
+                    k = n+m
+                    if pari(k).isprime():
+                        y += self._sincsquared_summand_2(k,t,ap,p,logp)
                 n += jump
-            return y
+            # Case: n<expt but n+jump>expt
+            for m in residues:
+                k = n+m
+                if k>=expt:
+                    return y
+                elif pari(k).isprime():
+                    y += self._sincsquared_summand_2(k,t,ap,p,logp)
 
         # _sum_over_residue_class() function is parallized
-        #parameter_list = [(m,jump,t,expt,bound1) for m in residue_list]
-        for summand in _sum_over_residue_class(residue_list):
+        for summand in _sum_over_residues(residue_chunks):
             y += summand[1]
 
         return RDF(2*(u+w+y)/(t**2))
-
-    def _zerosum_parallel(self,Delta=1,bad_primes=None,ncpus=None):
-        r"""
-        First attempt to parallelize zero sum code.
-        """
-        if ncpus is None:
-            ncpus = num_cpus()
-
-        if ncpus<=2:
-            small_primes, residue_list, jump = [2,3],[1,5],6
-        elif ncpus <=8:
-            small_primes, residue_list, jump = [2,3,5],[1,7,11,13,17,19,23,29],30
-        else:
-            small_primes = [2,3,5,7]
-            residue_list = [1, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59,
-                            61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113,
-                            121, 127, 131, 137, 139, 143, 149, 151, 157, 163, 167,
-                            169, 173, 179, 181, 187, 191, 193, 197, 199, 209]
-            jump = 210
-
-        npi = self._pi
-        twopi = 2*npi
-        eg = self._euler_gamma
-        t = RDF(Delta*twopi)
-        expt = RDF(exp(t))
-
-        u = t*(-eg + log(RDF(self._N))/2 - log(twopi))
-        w = RDF(npi**2/6-spence(1-RDF(1)/expt))
-
-        y = RDF(0)
-
-        for p in small_primes:
-            n = p
-            z = RDF(0)
-            while n<expt:
-                cn  = self.cn(n)
-                logn = log(RDF(n))
-                z += cn*(t-logn)
-                n = n*p
-            y += z
-
-        @parallel(ncpus=ncpus)
-        def _sum_over_residue_class(int m):
-            y = RDF(0)
-            p = m
-            while p<expt:
-                if pari(p).isprime():
-                    n = p
-                    while n<expt:
-                        cn  = self.cn(n)
-                        logn = log(RDF(n))
-                        y += cn*(t-logn)
-                        n = n*p
-                p += jump
-            return y
-
-        for summand in _sum_over_residue_class(residue_list):
-            y += summand[1]
-
-        return 2*(u+w+y)/(t**2)
 
     def analytic_rank_upper_bound(self,
                                   max_Delta=None,
                                   adaptive=True,
                                   root_number=True,
-                                  bad_primes=None):
+                                  bad_primes=None,
+                                  ncpus=None):
         r"""
         Return an upper bound for the analytic rank of the L-function
         'L_E(s)' attached to self, conditional on the Generalized Riemann
@@ -1429,6 +1440,11 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
           so that rank estimation can be done for curves of large conductor
           whose bad primes have been precomputed.
 
+        - ``ncpus`` - (default: None) If not None, a positive integer
+          defining the maximum number of CPUs to be used for the computation.
+          If left as None, the maximum available number of CPUs will be used.
+          Note: Multiple processors will only be used for Delta values >= 1.75.
+
         .. NOTE::
 
             Output will be incorrect if the incorrect root number is specified.
@@ -1444,7 +1460,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         OUTPUT:
 
         A non-negative integer greater than or equal to the analytic rank of
-        self.
+        self. If the returned value is 0 or 1 (the latter if parity is not
+        False), then this is the true analytic rank of self.
 
         .. NOTE::
 
@@ -1469,7 +1486,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: E.rank()
             0
             sage: Z = LFunctionZeroSum(E)
-            sage: Z.analytic_rank_upper_bound(max_Delta=1)
+            sage: Z.analytic_rank_upper_bound(max_Delta=1,ncpus=1)
             0
 
             sage: E = EllipticCurve([-39,123])
@@ -1486,7 +1503,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: E = elliptic_curves.rank(8)[0]; E
             Elliptic Curve defined by y^2 + y = x^3 - 23737*x + 960366 over Rational Field
             sage: Z = LFunctionZeroSum(E)
-            sage: Z.analytic_rank_upper_bound(max_Delta=1)
+            sage: Z.analytic_rank_upper_bound(max_Delta=1,ncpus=4)
             8
 
         However, some curves have 'L'-functions with low-lying zeroes, and for these
@@ -1511,6 +1528,14 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: Z.analytic_rank_upper_bound(max_Delta=0.6,root_number=True)
             0
 
+        This method is often fast enough to be called on curves with large conductor:
+
+        ::
+            sage: E = EllipticCurve([-2934,19238])
+            sage: Z = LFunctionZeroSum(E)
+            sage: Z.analytic_rank_upper_bound()
+            1
+
         REFERENCES:
 
         [Bob13] J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
@@ -1518,10 +1543,17 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         """
         #Helper function: compute zero sum and apply parity if not False
-        def run_computation(Delta,parity,bad_primes):
+        def run_computation(Delta):
             verbose("Computing zero sum with Delta = %s"%Delta)
-            bound = self._zerosum_sincsquared_fast(Delta=Delta,
-                                                   bad_primes=bad_primes)
+            # Empirically, the non-parallelized zero sum method runs faster
+            # for Delta <= 1.75, regardless of the number of available CPUs.
+            if Delta <= 1.75:
+                bound = self._zerosum_sincsquared_fast(Delta=Delta,
+                                                       bad_primes=bad_primes)
+            else:
+                bound = self._zerosum_sincsquared_parallel(Delta=Delta,
+                                                           bad_primes=bad_primes,
+                                                           ncpus=ncpus)
             verbose("Sum value is %s"%bound)
             bound = bound.floor()
             # parity is set to -1 when we're not taking root number into
@@ -1572,7 +1604,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         # When max_Delta <= 1 it's not worth running the computation
         # multiple times, as it's so quick anyway
         if adaptive==False or max_Delta<=1:
-            return run_computation(max_Delta,parity,bad_primes)
+            return run_computation(max_Delta)
         else:
             bound_list = []
             # Find starting value. This loop won't ever take long,
@@ -1582,7 +1614,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
                 Delta -= 0.2
             # Now go back up the sequence of Deltas
             while Delta <= max_Delta:
-                bound = run_computation(Delta,parity,bad_primes)
+                bound = run_computation(Delta)
                 if bound <= halt_bound:
                     verbose("computed bound <= halt_bound, so halting")
                     return bound

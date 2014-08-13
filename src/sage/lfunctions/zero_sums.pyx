@@ -37,6 +37,7 @@ from sage.libs.pari.all import pari
 from sage.misc.all import verbose
 from sage.parallel.decorate import parallel
 from sage.parallel.ncpus import ncpus as num_cpus
+from sage.libs.flint.ulong_extras cimport n_is_prime
 
 cdef extern from "<math.h>":
     double c_exp "exp"(double)
@@ -408,7 +409,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             Ls = self.logarithmic_derivative(2-s,num_terms)
             return (-self._C1 - self.digamma(2-s) - Ls[0], Ls[1])
 
-    def zerosum(self,Delta=1,tau=0,function="sincsquared_fast"):
+    def zerosum(self,Delta=1,tau=0,function="sincsquared_fast",ncpus=None):
         r"""
         Bound from above the analytic rank of the form attached to self
         by computing
@@ -443,8 +444,18 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             optimized for elliptic curve 'L'-functions with tau=0. self must
             be attached to an elliptic curve over QQ given by its global minimal
             model, otherwise the returned result will be incorrect.
+          - ``sincquared_parallel`` -- Same as "sincsquared_fast", but optimized
+            for parallel computation with large (>2.0) Delta values. self must
+            be attached to an elliptic curve over QQ given by its global minimal
+            model, otherwise the returned result will be incorrect.
           - ``cauchy`` -- f(x) = \frac{1}{1+x^2}; this is only computable to
             low precision, and only when Delta < 2.
+
+        - ``ncpus`` - (default: None) If not None, a positive integer
+          defining the number of CPUs to be used for the computation. If left as
+          None, the maximum available number of CPUs will be used.
+          Only implemented for algorithm="sincsquared_parallel"; ignored
+          otherwise.
 
         .. WARNING::
 
@@ -475,6 +486,8 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             [0.000000000, 0.000000000, 2.87609907]
             sage: Z.zerosum(Delta=1,function="sincsquared_fast")
             2.0375000846
+            sage: Z.zerosum(Delta=1,function="sincsquared_parallel")
+            2.0375000846
             sage: Z.zerosum(Delta=1,function="sincsquared")
             2.0375000846
             sage: Z.zerosum(Delta=1,tau=2.876,function='sincsquared')
@@ -491,7 +504,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         if Delta > 6.95:
             raise ValueError("Delta value too large; will result in overflow")
 
-        if function=="sincsquared_fast":
+        if function=="sincsquared_parallel":
+            return self._zerosum_sincsquared_parallel(Delta=Delta,ncpus=ncpus)
+        elif function=="sincsquared_fast":
             return self._zerosum_sincsquared_fast(Delta=Delta)
         elif function=="sincsquared":
             return self._zerosum_sincsquared(Delta=Delta,tau=tau)
@@ -966,7 +981,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             return -aq*logp/n_float
 
     cdef double _sincsquared_summand_1(self,
-                                       long long n,
+                                       unsigned long n,
                                        double t,
                                        int ap,
                                        double p,
@@ -1002,7 +1017,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         return -z*logp
 
     cdef double _sincsquared_summand_2(self,
-                                       long long n,
+                                       unsigned long n,
                                        double t,
                                        int ap,
                                        double p,
@@ -1078,7 +1093,6 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         return small_primes, jump, residue_chunks
 
-
     cpdef _zerosum_sincsquared_fast(self,Delta=1,bad_primes=None):
         r"""
         A faster cythonized implementation of self._zerosum_sincsquared().
@@ -1135,7 +1149,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         cdef double thetap,thetaq,sqrtp,sqrtq,p,q
         cdef int ap,aq
 
-        cdef long long n
+        cdef unsigned long n
         cdef double N_double = self._N
 
         t = twopi*Delta
@@ -1192,32 +1206,32 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         # First: those n that are <= sqrt(bound)
         bound1 = c_exp(t/2)
         while n <= bound1:
-            if pari(n-4).isprime():
+            if n_is_prime(n-4):
                 y += self._sincsquared_summand_1(n-4,t,ap,p,logp,thetap,sqrtp,
                                                  logq,thetaq,sqrtq,z)
-            if pari(n).isprime():
+            if n_is_prime(n):
                 y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
                                                  logq,thetaq,sqrtq,z)
             n += 6
         # Unlucky split case where n-4 <= sqrt(bound) but n isn't
         if n-4 <= bound1 and n > bound1:
-            if pari(n-4).isprime():
+            if n_is_prime(n-4):
                 y += self._sincsquared_summand_1(n-4,t,ap,p,logp,thetap,sqrtp,
                                                  logq,thetaq,sqrtq,z)
-            if n <= expt and pari(n).isprime():
+            if n <= expt and n_is_prime(n):
                 y += self._sincsquared_summand_2(n,t,ap,p,logp)
             n += 6
         # Now sqrt(bound)< n < bound, so we don't need to consider higher
         # prime power logarithmic derivative coefficients
         while n <= expt:
-            if pari(n-4).isprime():
+            if n_is_prime(n-4):
                 y += self._sincsquared_summand_2(n-4,t,ap,p,logp)
-            if pari(n).isprime():
+            if n_is_prime(n):
                 y += self._sincsquared_summand_2(n,t,ap,p,logp)
             n += 6
         # Case where n-4 <= t but n isn't
         n = n-4
-        if n <= expt and pari(n).isprime():
+        if n <= expt and n_is_prime(n):
             y += self._sincsquared_summand_2(n,t,ap,p,logp)
 
         return RDF(2*(u+w+y)/(t**2))
@@ -1282,7 +1296,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         cdef double t,u,w,y,z,expt,bound1,logp,logq
         cdef double thetap,thetaq,sqrtp,sqrtq,p,q
         cdef int ap,aq
-        cdef long long n
+        cdef unsigned long n
 
         t = twopi*Delta
         expt = c_exp(t)
@@ -1344,21 +1358,21 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             Return the p-power sum over residues in a residue chunk
             """
             cdef double y = 0
-            cdef long long n = 0
-            cdef long long k
+            cdef unsigned long n,k
 
+            n = 0
             # Case: n+jump<sqrt(expt)
             while n+jump<bound1:
                 for m in residues:
                     k = n+m
-                    if pari(k).isprime():
+                    if n_is_prime(k):
                         y += self._sincsquared_summand_1(k,t,ap,p,logp,thetap,sqrtp,
                                                          logq,thetaq,sqrtq,z)
                 n += jump
             # Case: n<sqrt(expt) but maybe n+jump>sqrt(expt)
             for m in residues:
                 k = n+m
-                if pari(k).isprime():
+                if n_is_prime(k):
                     if k<bound1:
                         y += self._sincsquared_summand_1(k,t,ap,p,logp,thetap,sqrtp,
                                                          logq,thetaq,sqrtq,z)
@@ -1369,7 +1383,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             while n+jump<expt:
                 for m in residues:
                     k = n+m
-                    if pari(k).isprime():
+                    if n_is_prime(k):
                         y += self._sincsquared_summand_2(k,t,ap,p,logp)
                 n += jump
             # Case: n<expt but n+jump>expt
@@ -1377,7 +1391,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
                 k = n+m
                 if k>=expt:
                     return y
-                elif pari(k).isprime():
+                elif n_is_prime(k):
                     y += self._sincsquared_summand_2(k,t,ap,p,logp)
 
         # _sum_over_residue_class() function is parallized

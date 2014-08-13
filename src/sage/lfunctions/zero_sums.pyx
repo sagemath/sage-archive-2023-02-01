@@ -35,6 +35,8 @@ from sage.functions.other import real, imag
 from sage.symbolic.constants import pi, euler_gamma
 from sage.libs.pari.all import pari
 from sage.misc.all import verbose
+from sage.parallel.decorate import parallel
+from sage.parallel.ncpus import ncpus as num_cpus
 
 cdef extern from "<math.h>":
     double c_exp "exp"(double)
@@ -42,6 +44,7 @@ cdef extern from "<math.h>":
     double c_cos "cos"(double)
     double c_acos "acos"(double)
     double c_sqrt "sqrt"(double)
+
 
 cdef class LFunctionZeroSum_abstract(SageObject):
     """
@@ -831,6 +834,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
     """
     cdef _E
     cdef _e
+    cdef _ncpus
 
     def __init__(self,E,N=None):
         r"""
@@ -870,6 +874,9 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         # These constants feature in most (all?) sums over the L-function's zeros
         self._C1 = log(RDF(self._N))/2 - log(self._pi*2)
         self._C0 = self._C1 - self._euler_gamma
+
+        # Used for parallel computations
+        self._ncpus = num_cpus()
 
     def __repr__(self):
         r"""
@@ -1024,6 +1031,35 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         #print('b',n,t,-(t-logp)*(logp/p)*ap)
         return -(t-logp)*(logp/p)*ap
 
+#    @parallel#(ncpus=self._ncpus)
+#    def _sum_over_residue_class(self,m,jump,t,expt,bound1):
+#        """
+#        Return the p-power sum over one particular residue class
+#        """
+#        cdef double y = 0
+#        cdef long long n = m
+#
+#        cdef double z = 0
+#        cdef double logp = 0
+#        cdef double logq = 0
+#        cdef double thetap = 0
+#        cdef double thetaq = 0
+#        cdef double sqrtp = 0
+#        cdef double sqrtq = 0
+#        cdef double p = 0
+#        cdef int ap = 0
+#
+#        while n<bound1:
+#            if pari(n).isprime():
+#                y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
+#                                                 logq,thetaq,sqrtq,z)
+#            n += jump
+#        while n<expt:
+#            if pari(n).isprime():
+#                y += self._sincsquared_summand_2(n,t,ap,p,logp)
+#            n += jump
+#        return y
+
     cpdef _zerosum_sincsquared_fast(self,Delta=1,bad_primes=None):
         """
         A faster, more intelligent implementation of self._zerosum_sincsquared().
@@ -1169,6 +1205,176 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         #print(expt,t,u,w,y)
         #print
         return RDF(2*(u+w+y)/(t**2))
+
+    def _zerosum_parallel_2(self,Delta=1,bad_primes=None,ncpus=None):
+        r"""
+        Second cythonized attempt to parallelize zero sum code.
+        """
+        # If Delta>6.619, then we will most likely get overflow: some ap values
+        # will be too large to fit into a c int
+        if Delta > 6.619:
+            raise ValueError("Delta value too large; will result in overflow")
+
+        cdef double npi = self._pi
+        cdef double twopi = npi*2
+        cdef double eg = self._euler_gamma
+        cdef double N_double = self._N
+
+        cdef double t,u,w,y,z,expt,bound1,logp,logq
+        cdef double thetap,thetaq,sqrtp,sqrtq,p,q
+        cdef int ap,aq
+        cdef long long n
+
+        t = twopi*Delta
+        expt = c_exp(t)
+        bound1 = c_exp(t/2)
+        u = t*(-eg + c_log(N_double)/2 - c_log(twopi))
+        w = npi**2/6-spence(-expt**(-1)+1)
+
+        y = 0
+        # Do bad primes first. Add correct contributions and subtract
+        # incorrect contribution; the latter are added back later on.
+        if bad_primes is None:
+            bad_primes = self._N.prime_divisors()
+        bad_primes = [prime for prime in bad_primes if prime<expt]
+        #print(expt,bad_primes)
+        for prime in bad_primes:
+            n = prime
+            ap = self._e.ellap(n)
+            p = n
+            sqrtp = c_sqrt(p)
+            thetap = c_acos(ap/(2*sqrtp))
+            logp = c_log(p)
+
+            q = 1
+            sqrtq = 1
+            aq = 1
+            thetaq = 0
+            logq = logp
+
+            z = 0
+            while logq < t:
+                q *= p
+                sqrtq *= sqrtp
+                aq *= ap
+                thetaq += thetap
+                # Actual value of this term
+                z += (aq/q)*(t-logq)
+                # Incorrect value of this term to be removed below
+                z -= 2*c_cos(thetaq)*(t-logq)/sqrtq
+                logq += logp
+            y -= z*logp
+
+        if ncpus is None:
+            ncpus = num_cpus()
+        if ncpus<=2:
+            small_primes, residue_list, jump = [2,3],[1,5],6
+        elif ncpus <=8:
+            small_primes, residue_list, jump = [2,3,5],[1,7,11,13,17,19,23,29],30
+        else:
+            small_primes = [2,3,5,7]
+            residue_list = [1, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59,
+                            61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113,
+                            121, 127, 131, 137, 139, 143, 149, 151, 157, 163, 167,
+                            169, 173, 179, 181, 187, 191, 193, 197, 199, 209]
+            jump = 210
+
+        # Good prime case. Bad primes are treated as good primes, but their
+        # contribution here is cancelled out above; this way we don't
+        # have to check if each prime divides the level or not.
+
+        # Must deal with small primes separately
+        for m in small_primes:
+            n = m
+            if n<expt:
+                y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
+                                                     logq,thetaq,sqrtq,z)
+
+        @parallel(ncpus=ncpus)
+        def _sum_over_residue_class(m):
+            """
+            Return the p-power sum over one particular residue class
+            """
+            cdef double y = 0
+            cdef long long n = m
+
+            while n<bound1:
+                if pari(n).isprime():
+                    y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
+                                                     logq,thetaq,sqrtq,z)
+                n += jump
+            while n<expt:
+                if pari(n).isprime():
+                    y += self._sincsquared_summand_2(n,t,ap,p,logp)
+                n += jump
+            return y
+
+        # _sum_over_residue_class() function is parallized
+        #parameter_list = [(m,jump,t,expt,bound1) for m in residue_list]
+        for summand in _sum_over_residue_class(residue_list):
+            y += summand[1]
+
+        return RDF(2*(u+w+y)/(t**2))
+
+    def _zerosum_parallel(self,Delta=1,bad_primes=None,ncpus=None):
+        r"""
+        First attempt to parallelize zero sum code.
+        """
+        if ncpus is None:
+            ncpus = num_cpus()
+
+        if ncpus<=2:
+            small_primes, residue_list, jump = [2,3],[1,5],6
+        elif ncpus <=8:
+            small_primes, residue_list, jump = [2,3,5],[1,7,11,13,17,19,23,29],30
+        else:
+            small_primes = [2,3,5,7]
+            residue_list = [1, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59,
+                            61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113,
+                            121, 127, 131, 137, 139, 143, 149, 151, 157, 163, 167,
+                            169, 173, 179, 181, 187, 191, 193, 197, 199, 209]
+            jump = 210
+
+        npi = self._pi
+        twopi = 2*npi
+        eg = self._euler_gamma
+        t = RDF(Delta*twopi)
+        expt = RDF(exp(t))
+
+        u = t*(-eg + log(RDF(self._N))/2 - log(twopi))
+        w = RDF(npi**2/6-spence(1-RDF(1)/expt))
+
+        y = RDF(0)
+
+        for p in small_primes:
+            n = p
+            z = RDF(0)
+            while n<expt:
+                cn  = self.cn(n)
+                logn = log(RDF(n))
+                z += cn*(t-logn)
+                n = n*p
+            y += z
+
+        @parallel(ncpus=ncpus)
+        def _sum_over_residue_class(int m):
+            y = RDF(0)
+            p = m
+            while p<expt:
+                if pari(p).isprime():
+                    n = p
+                    while n<expt:
+                        cn  = self.cn(n)
+                        logn = log(RDF(n))
+                        y += cn*(t-logn)
+                        n = n*p
+                p += jump
+            return y
+
+        for summand in _sum_over_residue_class(residue_list):
+            y += summand[1]
+
+        return 2*(u+w+y)/(t**2)
 
     def analytic_rank_upper_bound(self,
                                   max_Delta=None,

@@ -1187,6 +1187,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             ....:     d = randint(-1,20)
             ....:     P = R.random_element(degree=d)
             ....:     assert P.degree() == d, "problem with {} which has not degree {}".format(P,d)
+
+            sage: R.random_element(degree=-2)
+            Traceback (most recent call last):
+            ...
+            AssertionError: degree should be an integer greater or equal than -1
         """
         if isinstance(degree, (list, tuple)):
             if len(degree) != 2:
@@ -1196,6 +1201,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             degree = randint(*degree)
 
         R = self.base_ring()
+
+        assert degree > -2, "degree should be an integer greater or equal than -1"
 
         if degree == -1:
             return self.zero()

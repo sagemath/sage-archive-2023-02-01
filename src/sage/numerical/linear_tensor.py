@@ -23,6 +23,57 @@ linear functions. For example::
     [1 + 3*x_0 x_0]
     [4*x_0     1  ]
 
+Internally, all linear functions are stored as a dictionary whose
+
+* keys are the index of the linear variable (and -1 for the constant
+  term)
+
+* values are the coefficient of that variable. That is, a number for
+  linear functions, a vector for vector-valued functions, etc.
+
+The entire dictionary can be accessed with the
+:meth:`~sage.numerical.linear_tensor_element.LinearTensor.dict`
+method. For convenience, you can also retrieve a single coefficient
+with
+:meth:`~sage.numerical.linear_tensor_element.LinearTensor.coefficient`. For
+example::
+
+    sage: mip.<b> = MixedIntegerLinearProgram()
+    sage: f_scalar = (3 + b[7] + 2*b[9]);  f_scalar
+    3 + x_0 + 2*x_1
+    sage: f_scalar.dict()
+    {0: 1.0, 1: 2.0, -1: 3.0}
+    sage: f_scalar.dict()[1]
+    2.0
+    sage: f_scalar.coefficient(b[9])
+    2.0
+    sage: f_scalar.coefficient(1)
+    2.0
+
+    sage: f_vector = b[7] * vector([3,4]) + 1;  f_vector
+    (1.0, 1.0) + (3.0, 4.0)*x_0
+    sage: f_vector.coefficient(-1)
+    (1.0, 1.0)
+    sage: f_vector.coefficient(b[7])
+    (3.0, 4.0)
+    sage: f_vector.coefficient(0)
+    (3.0, 4.0)
+    sage: f_vector.coefficient(1)
+    (0.0, 0.0)
+
+    sage: f_matrix = b[7] * matrix([[0,1], [2,0]]) + b[9] - 3;  f_matrix
+    [-3 + x_1 x_0     ]
+    [2*x_0    -3 + x_1]
+    sage: f_matrix.coefficient(-1)
+    [-3.0  0.0]
+    [ 0.0 -3.0]
+    sage: f_matrix.coefficient(0)
+    [0.0 1.0]
+    [2.0 0.0]
+    sage: f_matrix.coefficient(1)
+    [1.0 0.0]
+    [0.0 1.0]
+
 Just like :mod:`sage.numerical.linear_functions`, (in)equalities
 become symbolic inequalities. See
 :mod:`~sage.numerical.linear_tensor_constraints` for detais.
@@ -50,6 +101,7 @@ from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_function
 from sage.numerical.linear_functions import is_LinearFunction, LinearFunctionsParent_class
 from sage.numerical.linear_tensor_element import LinearTensor
+
 
 #*****************************************************************************
 #

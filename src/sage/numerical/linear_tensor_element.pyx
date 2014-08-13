@@ -25,6 +25,7 @@ cdef extern from "limits.h":
     long LONG_MAX
 
 from sage.structure.element cimport ModuleElement, RingElement
+from sage.numerical.linear_functions cimport LinearFunction, is_LinearFunction
 
 
 #*****************************************************************************
@@ -124,6 +125,66 @@ cdef class LinearTensor(ModuleElement):
             {0: (1.0, 2.0), 3: (4.0, 5.0)}
         """
         return dict(self._f)
+
+    def coefficient(self, x):
+        r"""
+        Return one of the the coefficients.
+
+        INPUT:
+
+        - ``x`` -- a linear variable or an integer. If an integer `i`
+          is passed, then `x_i` is used as linear variable. Pass
+          ``-1`` for the constant term.
+
+        OUTPUT:
+
+        A constant, that is, an element of the free module factor. The
+        coefficient of ``x`` in the linear function.
+
+        EXAMPLE::
+
+            sage: mip.<b> = MixedIntegerLinearProgram()
+            sage: lt = vector([1,2]) * b[3] + vector([4,5]) * b[0] - 5;  lt
+            (-5.0, -5.0) + (1.0, 2.0)*x_0 + (4.0, 5.0)*x_1
+            sage: lt.coefficient(b[3])
+            (1.0, 2.0)
+            sage: lt.coefficient(0)      # x_0 is b[3]
+            (1.0, 2.0)
+            sage: lt.coefficient(4)
+            (0.0, 0.0)
+            sage: lt.coefficient(-1)
+            (-5.0, -5.0)
+
+        TESTS::
+
+            sage: lt.coefficient(b[3] + b[4])
+            Traceback (most recent call last):
+            ...
+            ValueError: x is a sum, must be a single variable
+            sage: lt.coefficient(2*b[3])
+            Traceback (most recent call last):
+            ...
+            ValueError: x must have a unit coefficient
+            sage: mip.<q> = MixedIntegerLinearProgram(solver='ppl')
+            sage: lt.coefficient(q[0])
+            Traceback (most recent call last):
+            ...
+            ValueError: x is from a different linear functions module
+        """
+        if is_LinearFunction(x):
+            if self.parent().linear_functions() != x.parent():
+                raise ValueError('x is from a different linear functions module')
+            if len((<LinearFunction>x)._f) != 1:
+                raise ValueError('x is a sum, must be a single variable')
+            i = (<LinearFunction>x)._f.keys()[0]
+            if (<LinearFunction>x)._f[i] != 1:
+                raise ValueError('x must have a unit coefficient')
+        else:
+            i = int(x)
+        try:
+            return self._f[i]
+        except KeyError:
+            return self.parent().free_module().zero()
 
     def _repr_(self):
         """

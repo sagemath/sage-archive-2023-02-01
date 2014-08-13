@@ -93,7 +93,7 @@ from sage.misc.cachefunc import cached_function
 #
 #*****************************************************************************
 
-def is_LinearFunction(x):
+cpdef is_LinearFunction(x):
     """
     Test whether ``x`` is a linear function
 
@@ -520,7 +520,7 @@ cdef class LinearFunction(ModuleElement):
 
     def dict(self):
         r"""
-        Returns the dictionary corresponding to the Linear Function.
+        Return the dictionary corresponding to the Linear Function.
 
         OUTPUT:
 
@@ -537,6 +537,65 @@ cdef class LinearFunction(ModuleElement):
             {0: 1.0, 3: -8.0}
         """
         return dict(self._f)
+
+    def coefficient(self, x):
+        r"""
+        Return one of the the coefficients.
+
+        INPUT:
+
+        - ``x`` -- a linear variable or an integer. If an integer `i`
+          is passed, then `x_i` is used as linear variable.
+
+        OUTPUT:
+
+        A base ring element. The coefficient of ``x`` in the linear
+        function. Pass ``-1`` for the constant term.
+
+        EXAMPLE::
+
+            sage: mip.<b> = MixedIntegerLinearProgram()
+            sage: lf = -8 * b[3] + b[0] - 5;  lf
+            -5 - 8*x_0 + x_1
+            sage: lf.coefficient(b[3])
+            -8.0
+            sage: lf.coefficient(0)      # x_0 is b[3]
+            -8.0
+            sage: lf.coefficient(4)
+            0.0
+            sage: lf.coefficient(-1)
+            -5.0
+
+        TESTS::
+
+            sage: lf.coefficient(b[3] + b[4])
+            Traceback (most recent call last):
+            ...
+            ValueError: x is a sum, must be a single variable
+            sage: lf.coefficient(2*b[3])
+            Traceback (most recent call last):
+            ...
+            ValueError: x must have a unit coefficient
+            sage: mip.<q> = MixedIntegerLinearProgram(solver='ppl')
+            sage: lf.coefficient(q[0])
+            Traceback (most recent call last):
+            ...
+            ValueError: x is from a different linear functions module
+        """
+        if is_LinearFunction(x):
+            if self.parent() != x.parent():
+                raise ValueError('x is from a different linear functions module')
+            if len((<LinearFunction>x)._f) != 1:
+                raise ValueError('x is a sum, must be a single variable')
+            i = (<LinearFunction>x)._f.keys()[0]
+            if (<LinearFunction>x)._f[i] != 1:
+                raise ValueError('x must have a unit coefficient')
+        else:
+            i = int(x)
+        try:
+            return self._f[i]
+        except KeyError:
+            return self.parent().base_ring().zero()
 
     cpdef ModuleElement _add_(self, ModuleElement b):
         r"""

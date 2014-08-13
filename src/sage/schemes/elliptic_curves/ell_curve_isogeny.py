@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Isogenies
 
@@ -568,7 +569,6 @@ class EllipticCurveIsogeny(Morphism):
       the rationals, then the codomain is set to be the unique global
       minimum model.
 
-#
     - ``check`` (default: ``True``) checks if the input is valid to
       define an isogeny
 

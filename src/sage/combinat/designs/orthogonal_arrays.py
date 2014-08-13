@@ -1211,7 +1211,7 @@ def OA_relabel(OA,k,n,blocks=tuple(),matrix=None):
 
     return OA
 
-def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y):
+def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
     r"""
     Return an `OA(k, |G| \cdot 2^c)` from a constrained `(G,k-1,2)`-difference
     matrix.
@@ -1219,7 +1219,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y):
     This construction appears in [AbelCheng1994]_ and [AbelThesis]_.
 
     Let `G` be an additive Abelian group. We denote by `H` a `GF(2)`-hyperplane
-    in `GF(2^c)`. 
+    in `GF(2^c)`.
 
     Let `A` be a `(k-1) \times 2|G|` array with entries in `G \times GF(2^c)`
     and `Y` be a vector with `k-1` entries in `GF(2^c)`. Let `B` and `C` be
@@ -1250,6 +1250,11 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y):
     - ``A`` -- a matrix with entries in `G \times GF(2^c)`
 
     - ``Y`` -- a vector with entries in `GF(2^c)`
+
+    - ``check`` -- (boolean) Whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to
+      ``True`` by default.
 
     .. NOTE::
 
@@ -1313,8 +1318,9 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y):
        University of New South Wales,
        1995
 
-    .. [AbelCheng1994] R.J.R. Abel and Y.W. Cheng "Some new MOLS of order 2np
-       for p a prime power", The Austral. J. of Combinatorics, vol 10 (1994)
+    .. [AbelCheng1994] R.J.R. Abel and Y.W. Cheng,
+       Some new MOLS of order 2np for p a prime power,
+       The Australasian Journal of Combinatorics, vol 10 (1994)
     """
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.rings.integer import Integer
@@ -1338,7 +1344,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y):
 
     # check that the first part of the matrix A is a (G,k-1,2)-difference matrix
     B = [[G(a) for a,b in R] for R in A]
-    if not is_difference_matrix(B,G,k-1,2):
+    if check and not is_difference_matrix(B,G,k-1,2):
         raise ValueError("the first part of the matrix A must be a "
                          "(G,k-1,2)-difference matrix")
 
@@ -1355,21 +1361,22 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y):
     assert len(H) == 2**(c-1)
 
     # check that the second part of the matrix A satisfy the conditions
-    G_card = G.cardinality()
-    for i in range(len(B)):
-        for j in range(i):
-            where = {g: [] for g in G}
-            Hij = [(Y[i] - Y[j]) * v for v in H]
-            for s in range(2 * G_card):
-                where[B[i][s] - B[j][s]].append(s)
-            for s1,s2 in where.itervalues():
-                v1 = A[i][s1][1] - A[j][s1][1]
-                v2 = A[i][s2][1] - A[j][s2][1]
+    if check:
+        G_card = G.cardinality()
+        for i in range(len(B)):
+            for j in range(i):
+                where = {g: [] for g in G}
+                Hij = [(Y[i] - Y[j]) * v for v in H]
+                for s in range(2 * G_card):
+                    where[B[i][s] - B[j][s]].append(s)
+                for s1,s2 in where.itervalues():
+                    v1 = A[i][s1][1] - A[j][s1][1]
+                    v2 = A[i][s2][1] - A[j][s2][1]
 
-                if (v1 in Hij) == (v2 in Hij):
-                    raise ValueError("B_{},{} - B_{},{} = B_{},{} - B_{},{} but"
-                          " the associated part of the matrix C does not satisfies"
-                          " the required condition".format(i,s1,j,s1,i,s2,j,s2))
+                    if (v1 in Hij) == (v2 in Hij):
+                        raise ValueError("B_{},{} - B_{},{} = B_{},{} - B_{},{} but"
+                              " the associated part of the matrix C does not satisfies"
+                              " the required condition".format(i,s1,j,s1,i,s2,j,s2))
 
     # build the quasi difference matrix and return the associated OA
     Mb = [[e+GG((G.zero(),x*v)) for v in H for e in R] for x,R in izip(Y,A)]

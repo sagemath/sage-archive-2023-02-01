@@ -1141,7 +1141,7 @@ def OA_9_40():
         ]
     Y = [None, 0, 1, 6, 5, 4, 3, 2]
 
-    return OA_n_times_2_pow_c_from_matrix(9,3,FiniteField(5),A,Y)
+    return OA_n_times_2_pow_c_from_matrix(9,3,FiniteField(5),A,Y,check=False)
 
 def OA_7_42():
     r"""
@@ -2221,7 +2221,7 @@ def OA_11_80():
         ]
     Y = [None, 0, 1, 14, 12, 7, 2, 11, 3, 6]
 
-    return OA_n_times_2_pow_c_from_matrix(11,4,FiniteField(5),A,Y)
+    return OA_n_times_2_pow_c_from_matrix(11,4,FiniteField(5),A,Y,check=False)
 
 def OA_10_82():
     r"""
@@ -2321,7 +2321,7 @@ def OA_15_112():
     ]
     Y = [None, 0, 1, 14, 12, 7, 2, 11, 3, 4, 5, 10, 8, 6]
 
-    return OA_n_times_2_pow_c_from_matrix(15,4,FiniteField(7),zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(15,4,FiniteField(7),zip(*A),Y,check=False)
 
 def OA_9_120():
     r"""
@@ -2552,7 +2552,7 @@ def OA_11_160():
 
     Y = [None, 0, 1, 2, 15, 27, 22, 12, 3, 28]
 
-    return OA_n_times_2_pow_c_from_matrix(11,5,FiniteField(5),zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(11,5,FiniteField(5),zip(*A),Y,check=False)
 
 def OA_16_176():
     r"""
@@ -2606,7 +2606,7 @@ def OA_16_176():
     ]
 
     Y = [None, 0, 1, 2, 8, 6, 9, 4, 10, 3, 5, 11, 13, 14, 12]
-    return OA_n_times_2_pow_c_from_matrix(16,4,FiniteField(11),zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(16,4,FiniteField(11),zip(*A),Y,check=False)
 
 def OA_16_208():
     r"""
@@ -2665,7 +2665,7 @@ def OA_16_208():
 
     Y = [None, 0, 1, 2, 12, 9, 13, 11, 7, 4, 8, 5, 14, 6, 3]
 
-    return OA_n_times_2_pow_c_from_matrix(16,4,FiniteField(13),zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(16,4,FiniteField(13),zip(*A),Y,check=False)
 
 def OA_12_210():
     r"""
@@ -2739,7 +2739,7 @@ def OA_15_224():
 
     Y = [None, 0, 1, 2, 27, 22, 11, 4, 26, 25, 29, 24, 7, 20]
 
-    return OA_n_times_2_pow_c_from_matrix(15,5,FiniteField(7),zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(15,5,FiniteField(7),zip(*A),Y,check=False)
 
 def OA_18_273():
     r"""
@@ -2910,7 +2910,7 @@ def OA_20_352():
 
     Y = [None, 0, 1, 2, 18, 5, 11, 4, 13, 26, 25, 29, 24, 7, 20, 19, 9, 12, 15]
 
-    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(11),zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(11),zip(*A),Y,check=False)
 
 def OA_20_416():
     r"""
@@ -2970,7 +2970,7 @@ def OA_20_416():
 
     Y = [None, 0, 1, 2, 18, 5, 11, 4, 13, 26, 25, 29, 24, 7, 20, 19, 9, 12, 15]
 
-    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(13),zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(13),zip(*A),Y,check=False)
 
 def OA_12_474():
     r"""
@@ -3102,7 +3102,7 @@ def OA_20_544():
 
     Y = [None, 0, 1, 2, 18, 5, 11, 4, 13, 26, 25, 29, 24, 7, 20, 19, 9, 12, 15]
 
-    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(17),zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(17),zip(*A),Y,check=False)
 
 def OA_11_640():
     r"""
@@ -3144,7 +3144,7 @@ def OA_11_640():
     ]
     Y = [None, 0, 1, 2, 121, 66, 77, 78, 41, 100]
 
-    return OA_n_times_2_pow_c_from_matrix(11,7,FiniteField(5),zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(11,7,FiniteField(5),zip(*A),Y,check=False)
 
 def OA_10_796():
     r"""
@@ -3262,7 +3262,7 @@ def OA_15_896():
 
     Y = [None, 0,1,2,121,66,77,78,41,100,74,118,108,43]
 
-    return OA_n_times_2_pow_c_from_matrix(15,7,FiniteField(7),zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(15,7,FiniteField(7),zip(*A),Y,check=False)
 
 def OA_33_993():
     r"""

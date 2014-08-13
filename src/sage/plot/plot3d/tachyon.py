@@ -42,6 +42,8 @@ AUTHOR:
 
 - Marshall Hampton: improved doctests, rings, axis-aligned boxes.
 
+- Paul Graham: Respect global verbosity settings (trac #16228)
+
 TODO:
 
 - clean up trianglefactory stuff
@@ -55,6 +57,7 @@ from sage.interfaces.tachyon import tachyon_rt
 from sage.structure.sage_object import SageObject
 
 from sage.misc.misc import SAGE_TMP
+from sage.misc.misc import get_verbose
 from sage.misc.temporary_file import tmp_filename, graphics_filename
 
 #from sage.ext import fast_tachyon_routines
@@ -272,7 +275,7 @@ class Tachyon(SageObject):
         """
         self.save(filename, *args, **kwds)
 
-    def save(self, filename='sage.png', verbose=0, block=True, extra_opts=''):
+    def save(self, filename='sage.png', verbose=None, block=True, extra_opts=''):
         r"""
         INPUT:
 
@@ -291,7 +294,9 @@ class Tachyon(SageObject):
 
         -  ``png`` - 24-bit PNG (compressed, lossless)
 
-        -  ``verbose`` - integer; (default: 0)
+        -  ``verbose`` - integer (default: None); if no verbosity setting 
+           is supplied, the verbosity level set by 
+           sage.misc.misc.set_verbose is used.
 
         -  ``0`` - silent
 
@@ -316,9 +321,12 @@ class Tachyon(SageObject):
             sage: os.system('rm ' + tempname)
             0
         """
+        if verbose is None:
+            verbose = get_verbose()
+
         tachyon_rt(self.str(), filename, verbose, block, extra_opts)
 
-    def show(self, verbose=0, extra_opts=''):
+    def show(self, verbose=None, extra_opts=''):
         r"""
         Creates a PNG file of the scene.
 
@@ -328,7 +336,7 @@ class Tachyon(SageObject):
             sage: q.light((-1,-1,10), 1,(1,1,1))
             sage: q.texture('s')
             sage: q.sphere((0,0,0),1,'s')
-            sage: q.show(verbose=False)
+            sage: q.show(verbose=2)
         """
         filename = graphics_filename()
         self.save(filename, verbose=verbose, extra_opts=extra_opts)

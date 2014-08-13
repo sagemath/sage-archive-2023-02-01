@@ -153,8 +153,7 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
 
         - ``precision`` - either ``"mp"`` for multi-precision where the actual
           precision used is taken from sigma or ``"dp"`` for double precision. In
-          the latter case results are not reproducible across
-          plattforms. (default: ``"mp"``)
+          the latter case results are not reproducible. (default: ``"mp"``)
 
         ALGORITHMS:
 
@@ -248,7 +247,7 @@ cdef class DiscreteGaussianIntegerSampler(SageObject):
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
             sage: D = DiscreteGaussianIntegerSampler(1.0, c=0, tau=2, precision="dp")
             sage: l = [D() for _ in xrange(2^16)]
-            sage: min(l) == 0-2*1.0, max(l) == 0+2*1.0, abs(mean(l)) < 0.01
+            sage: min(l) == 0-2*1.0, max(l) == 0+2*1.0, abs(mean(l)) < 0.05
             (True, True, True)
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler

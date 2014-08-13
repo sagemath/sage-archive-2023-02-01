@@ -77,8 +77,8 @@ The following example shows all these steps::
       x_3 is an integer variable (min=-oo, max=+oo)
     sage: print 'Objective Value:', p.solve()
     Objective Value: 2.0
-    sage: for i, v in p.get_values(w).iteritems():\
-              print 'w_%s = %s' % (i, int(round(v)))
+    sage: for i, v in p.get_values(w).iteritems():
+    ....:     print 'w_%s = %s' % (i, int(round(v)))
     w_0 = 15
     w_1 = 10
     w_2 = 3
@@ -878,9 +878,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
         printed. The output would look the same without this function applied::
 
             sage: def reorder_constraint((lb,(ind,coef),ub)):
-            ...     d = dict(zip(ind, coef))
-            ...     ind.sort()
-            ...     return (lb, (ind, [d[i] for i in ind]), ub)
+            ....:    d = dict(zip(ind, coef))
+            ....:    ind.sort()
+            ....:    return (lb, (ind, [d[i] for i in ind]), ub)
 
         Running the examples from above, reordering applied::
 

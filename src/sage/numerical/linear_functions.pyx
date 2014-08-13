@@ -39,7 +39,7 @@ chained::
     x_0 <= x_1 <= x_2 <= x_3 <= x_4
 
 If necessary, the direction of inequality is flipped to always write
-inqualities as less or equal::
+inequalities as less or equal::
 
     sage: x[5] >= ieq_01234
     x_0 <= x_1 <= x_2 <= x_3 <= x_4 <= x_5
@@ -159,7 +159,7 @@ def LinearFunctionsParent(base_ring):
     INPUT:
 
     - ``base_ring`` -- a ring. The coefficient ring for the linear
-      funcitons.
+      functions.
 
     OUTPUT:
 

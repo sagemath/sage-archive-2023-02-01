@@ -137,7 +137,7 @@ class LinearTensorConstraint(Element):
       left and right hand side of the constraint (in)equality.
 
     - ``equality`` -- boolean (default: ``False``). Whether the
-      constaint is an equality.  If ``False``, it is a ``<=``
+      constraint is an equality.  If ``False``, it is a ``<=``
       inequality.
 
     EXAMPLE::
@@ -300,7 +300,7 @@ class LinearTensorConstraintsParent_class(Parent):
 
     .. warning::
 
-        This class has no reason to be instanciated by the user, and
+        This class has no reason to be instantiated by the user, and
         is meant to be used by instances of
         :class:`MixedIntegerLinearProgram`. Also, use the
         :func:`LinearTensorConstraintsParent` factory function.
@@ -407,7 +407,7 @@ class LinearTensorConstraintsParent_class(Parent):
 
     def _element_constructor_(self, left, right, equality):
         """
-        Construt a :class:`LinearConstraint`.
+        Construct a :class:`LinearConstraint`.
 
         INPUT:
 

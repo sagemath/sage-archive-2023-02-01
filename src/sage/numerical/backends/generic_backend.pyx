@@ -6,7 +6,7 @@ interface with a LP Solver. All these methods immediately raise
 ``NotImplementedError`` exceptions when called, and are obviously
 meant to be replaced by the solver-specific method. This file can also
 be used as a template to create a new interface : one would only need
-to replace the occurences of ``"Nonexistent_LP_solver"`` by the
+to replace the occurrences of ``"Nonexistent_LP_solver"`` by the
 solver's name, and replace ``GenericBackend`` by
 ``SolverName(GenericBackend)`` so that the new solver extends this
 class.
@@ -214,8 +214,8 @@ cdef class GenericBackend:
 
         INPUT:
 
-        - ``coeff`` -- a list of real values, whose ith element is the
-          coefficient of the ith variable in the objective function.
+        - ``coeff`` -- a list of real values, whose i-th element is the
+          coefficient of the i-th variable in the objective function.
 
         - ``d`` (double) -- the constant term in the linear function (set to `0` by default)
 
@@ -383,15 +383,15 @@ cdef class GenericBackend:
 
         INPUT:
 
-        - ``indices`` (list of integers) -- this list constains the
+        - ``indices`` (list of integers) -- this list contains the
           indices of the constraints in which the variable's
           coefficient is nonzero
 
         - ``coeffs`` (list of real values) -- associates a coefficient
           to the variable in each of the constraints in which it
-          appears. Namely, the ith entry of ``coeffs`` corresponds to
+          appears. Namely, the i-th entry of ``coeffs`` corresponds to
           the coefficient of the variable in the constraint
-          represented by the ith entry in ``indices``.
+          represented by the i-th entry in ``indices``.
 
         .. NOTE::
 
@@ -473,7 +473,7 @@ cdef class GenericBackend:
 
         .. NOTE::
 
-           Behaviour is undefined unless ``solve`` has been called before.
+           Behavior is undefined unless ``solve`` has been called before.
 
         EXAMPLE::
 
@@ -501,7 +501,7 @@ cdef class GenericBackend:
 
         .. NOTE::
 
-           Behaviour is undefined unless ``solve`` has been called before.
+           Behavior is undefined unless ``solve`` has been called before.
 
         EXAMPLE::
 
@@ -596,7 +596,7 @@ cdef class GenericBackend:
 
     cpdef write_lp(self, char * name):
         """
-        Write the problem to a .lp file
+        Write the problem to a ``.lp`` file
 
         INPUT:
 
@@ -616,7 +616,7 @@ cdef class GenericBackend:
 
     cpdef write_mps(self, char * name, int modern):
         """
-        Write the problem to a .mps file
+        Write the problem to a ``.mps`` file
 
         INPUT:
 
@@ -810,11 +810,11 @@ cdef class GenericBackend:
 
     cpdef col_name(self, int index):
         """
-        Return the ``index`` th col name
+        Return the ``index``-th column name
 
         INPUT:
 
-        - ``index`` (integer) -- the col's id
+        - ``index`` (integer) -- the column id
 
         - ``name`` (``char *``) -- its name. When set to ``NULL``
           (default), the method returns the current name.

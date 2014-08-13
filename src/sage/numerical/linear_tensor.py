@@ -10,8 +10,8 @@ linear functions and the R-module of vector/matrix spaces (`R` is
 You should not construct any tensor products by calling the parent
 directly. This is also why none of the classes are imported in the
 global namespace. The come into play whenever you have vector or
-matrix MIP linear expressions/constraints. The intented way to
-construct them is implinicly by acting with vectors or matrices on
+matrix MIP linear expressions/constraints. The intended way to
+construct them is implicitly by acting with vectors or matrices on
 linear functions. For example::
 
     sage: mip.<x> = MixedIntegerLinearProgram('ppl')   # base ring is QQ
@@ -29,7 +29,7 @@ become symbolic inequalities. See
 
 .. NOTE::
 
-    For breverity, we just use ``LinearTensor`` in class names. It is
+    For brevity, we just use ``LinearTensor`` in class names. It is
     understood that this refers to the above tensor product
     construction.
 """
@@ -315,7 +315,7 @@ class LinearTensorParent_class(Parent):
         
     def _element_constructor_(self, x):
         """
-        Construt a :class:`LinearTensor` from ``x``.
+        Construct a :class:`LinearTensor` from ``x``.
 
         INPUT:
 

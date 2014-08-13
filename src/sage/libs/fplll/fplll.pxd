@@ -4,10 +4,6 @@ include "fplll.pxi"
 cdef class FP_LLL:
     cdef object fp_map
     cdef ZZ_mat[mpz_t] *_lattice
-    cdef int _check_precision(self, int precision) except -1
-    cdef int _check_eta(self, float eta) except -1
-    cdef int _check_delta(self, float delta) except -1
-
 
 cdef extern from "flint/fmpz.h":
     ctypedef void* fmpz_t
@@ -17,4 +13,3 @@ cdef extern from "flint/fmpz.h":
 cdef extern from "flint/fmpz_mat.h":
     ctypedef void* fmpz_mat_t
     fmpz_t fmpz_mat_entry(fmpz_mat_t mat ,long i ,long j)
-

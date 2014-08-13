@@ -434,10 +434,11 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
             sage: result = A._right_kernel_matrix(algorithm='padic')
             sage: result[0]
-            'computed-flint-int'
+            'computed-iml-int'
             sage: X = result[1]; X
-            [ 469 -214   30 -119   37    0]
-            [-370  165  -18   91  -30    2]
+            [-469  214  -30  119  -37    0]
+            [ 370 -165   18  -91   30   -2]
+
             sage: A*X.transpose() == zero_matrix(ZZ, 4, 2)
             True
 
@@ -466,10 +467,10 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             'computed-pari-int'
             sage: A = random_matrix(ZZ, 18, 11, x = 10^200, sparse=True)
             sage: A._right_kernel_matrix(algorithm='default')[0]
-            'computed-flint-int'
+            'computed-iml-int'
             sage: A = random_matrix(ZZ, 60, 60, sparse=True)
             sage: A._right_kernel_matrix(algorithm='default')[0]
-            'computed-flint-int'
+            'computed-iml-int'
             sage: A = random_matrix(ZZ, 60, 55, sparse=True)
             sage: A._right_kernel_matrix(algorithm='default')[0]
             'computed-pari-int'

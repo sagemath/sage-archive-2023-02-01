@@ -694,15 +694,14 @@ ext_modules = [
               extra_compile_args = ["-std=c99", "-D_XPG6"],
               depends = flint_depends),
 
-    Extension('sage.libs.fplll.fplll',
-              sources = ['sage/libs/fplll/fplll.pyx'],
-
-              language="c++",
-              extra_compile_args = ["-DFPLLL_V3_COMPAT"],
-              # order matters for cygwin!!
-              libraries = ['stdc++', 'pari', 'mpfr', 'fplll', 'gmp', 'm', 'flint'],
-              depends = [SAGE_INC + '/m4ri/m4ri.h', SAGE_INC + "/fplll/fplll.h"]+ flint_depends,
-              include_dirs = [SAGE_INC + '/fplll']),
+     Extension('sage.libs.fplll.fplll',
+               sources = ['sage/libs/fplll/fplll.pyx'],
+               language="c++",
+               extra_compile_args = ["-DFPLLL_V3_COMPAT"],
+               # order matters for cygwin!!
+               libraries = ['stdc++', 'pari', 'mpfr', 'fplll', 'gmp', 'm', 'flint'],
+               depends = [SAGE_INC + '/m4ri/m4ri.h', SAGE_INC + "/fplll/fplll.h"]+ flint_depends,
+               include_dirs = [SAGE_INC + '/fplll']),
 
     Extension('sage.libs.linbox.linbox',
               sources = ['sage/libs/linbox/linbox.pyx'],

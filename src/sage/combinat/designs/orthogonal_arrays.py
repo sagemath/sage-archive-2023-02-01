@@ -1229,7 +1229,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y):
     j` and `g \in G`:
 
     - there are exactly two values of `s` such that `B_{i,s} - B_{j,s} = g`
-      (i.e. `B` is a `(G,k,2)`-difference matrix),
+      (i.e. `B` is a `(G,k-1,2)`-difference matrix),
 
     - let `s_1` and `s_2` denote the two values of `s` given above, then exactly
       one of `C_{i,s_1} - C_{j,s_1}` and `C_{i,s_2} - C_{j,s_2}` belongs to the
@@ -1278,11 +1278,32 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y):
 
     EXAMPLE::
 
+        sage: from sage.combinat.designs.orthogonal_arrays import OA_n_times_2_pow_c_from_matrix
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_9_40
-        sage: OA = OA_9_40()                       # indirect doctest
-        sage: print is_orthogonal_array(OA,9,40,2) # indirect doctest
+        sage: A = [
+        ....: [(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None)],
+        ....: [(0,None),(1,None),   (2,2),   (3,2),   (4,2),(2,None),(3,None),(4,None),   (0,2),   (1,2)],
+        ....: [(0,None),   (2,5),   (4,5),   (1,2),   (3,6),   (3,4),   (0,0),   (2,1),   (4,1),   (1,6)],
+        ....: [(0,None),   (3,4),   (1,4),   (4,0),   (2,5),(3,None),   (1,0),   (4,1),   (2,2),   (0,3)],
+        ....: ]
+        sage: Y = [None, 0, 1, 6]
+        sage: OA = OA_n_times_2_pow_c_from_matrix(5,3,GF(5),A,Y)
+        sage: is_orthogonal_array(OA,5,40,2)
         True
+
+        sage: A[0][0] = (1,None)
+        sage: OA_n_times_2_pow_c_from_matrix(5,3,GF(5),A,Y)
+        Traceback (most recent call last):
+        ...
+        ValueError: the first part of the matrix A must be a
+        (G,k-1,2)-difference matrix
+
+        sage: A[0][0] = (0,0)
+        sage: OA_n_times_2_pow_c_from_matrix(5,3,GF(5),A,Y)
+        Traceback (most recent call last):
+        ...
+        ValueError: B_2,0 - B_0,0 = B_2,6 - B_0,6 but the associated part of the
+        matrix C does not satisfies the required condition
 
     REFERENCES:
 
@@ -1298,8 +1319,11 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y):
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.rings.integer import Integer
     from itertools import izip,combinations
+    from designs_pyx import is_difference_matrix
 
-    if len(A) != k-1 or any(len(a) != 2*G.cardinality() for a in A):
+    G_card = G.cardinality()
+
+    if len(A) != k-1 or any(len(a) != 2*G_card for a in A):
         raise ValueError("A must be a (k-1) x (2|G|) array")
     if len(Y) != k-1:
         raise ValueError("Y must be a (k-1)-vector")
@@ -1312,6 +1336,12 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y):
     r = {i:w**i for i in xrange(2**c-1)}
     r[None] = F.zero()
 
+    # check that the first part of the matrix A is a (G,k-1,2)-difference matrix
+    B = [[G(a) for a,b in R] for R in A]
+    if not is_difference_matrix(B,G,k-1,2):
+        raise ValueError("the first part of the matrix A must be a "
+                         "(G,k-1,2)-difference matrix")
+
     # convert:
     #  the matrix A to a matrix over G \times GF(2^c)
     #  the vector Y to a vector over GF(2^c)
@@ -1323,6 +1353,23 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y):
     # to w^(c-1))
     H = [sum((r[i] for i in S), F.zero()) for s in range(c) for S in combinations(range(c-1),s)]
     assert len(H) == 2**(c-1)
+
+    # check that the second part of the matrix A satisfy the conditions
+    G_card = G.cardinality()
+    for i in range(len(B)):
+        for j in range(i):
+            where = {g: [] for g in G}
+            Hij = [(Y[i] - Y[j]) * v for v in H]
+            for s in range(2 * G_card):
+                where[B[i][s] - B[j][s]].append(s)
+            for s1,s2 in where.itervalues():
+                v1 = A[i][s1][1] - A[j][s1][1]
+                v2 = A[i][s2][1] - A[j][s2][1]
+
+                if (v1 in Hij) == (v2 in Hij):
+                    raise ValueError("B_{},{} - B_{},{} = B_{},{} - B_{},{} but"
+                          " the associated part of the matrix C does not satisfies"
+                          " the required condition".format(i,s1,j,s1,i,s2,j,s2))
 
     # build the quasi difference matrix and return the associated OA
     Mb = [[e+GG((G.zero(),x*v)) for v in H for e in R] for x,R in izip(Y,A)]

@@ -1365,11 +1365,11 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
         G_card = G.cardinality()
         for i in range(len(B)):
             for j in range(i):
-                where = {g: [] for g in G}
-                Hij = [(Y[i] - Y[j]) * v for v in H]
+                g_to_col_indices = {g: [] for g in G}
+                Hij = set([(Y[i] - Y[j]) * v for v in H])
                 for s in range(2 * G_card):
-                    where[B[i][s] - B[j][s]].append(s)
-                for s1,s2 in where.itervalues():
+                    g_to_col_indices[B[i][s] - B[j][s]].append(s)
+                for s1,s2 in g_to_col_indices.itervalues():
                     v1 = A[i][s1][1] - A[j][s1][1]
                     v2 = A[i][s2][1] - A[j][s2][1]
 

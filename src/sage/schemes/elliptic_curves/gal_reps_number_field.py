@@ -317,6 +317,9 @@ def _non_surjective(E, patience=100):
         ValueError: The curve E should not have CM.
         """
 
+    E = _over_numberfield(E)
+    K = E.base_field()
+
     exceptional_primes = Set([2, 3, 5, 7, 11, 13, 17, 19])
     # The possible primes l unramified in K/QQ for which the image of the mod l
     # Galois representation could be contained in an exceptional subgroup.

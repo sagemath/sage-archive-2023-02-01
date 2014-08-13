@@ -1151,21 +1151,20 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R.random_element(6)
             -2*x^6 - 2*x^5 + 2*x^4 - 3*x^3 + 1
             sage: R.random_element(6)
-            x^6 + x^3 - x^2 + 1
+            -x^6 + x^5 - x^4 + 4*x^3 - x^2 + x
 
-        If a tuple of two integers is given for the degree argument, a random
-        integer will be chosen between the first and second element of the
-        tuple as the degree::
-
+        If a tuple of two integers is given for the degree argument, a
+        polynomial of degree in between the bound is given::
+        
             sage: R.random_element(degree=(0,8))
-            -x^4 + 4*x^3 - 5*x^2 + x + 14
+            x^8 + 4*x^7 + 2*x^6 - x^4 + 4*x^3 - 5*x^2 + x + 14
             sage: R.random_element(degree=(0,8))
-            x^4 + x^3 + 4*x^2 + 2*x
+            -5*x^7 + x^6 - 3*x^5 + 4*x^4 - x^2 - 2*x + 1
 
         Note that the zero polynomial has degree ``-1``, so if you want to
         consider it set the minimum degree to ``-1``::
 
-            sage: any(R.random_element(degree=(-1,3)) == R.zero() for _ in xrange(100))
+            sage: any(R.random_element(degree=(-1,2),x=-1,y=1) == R.zero() for _ in xrange(100))
             True
 
         TESTS::
@@ -1193,25 +1192,24 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             ...
             AssertionError: degree should be an integer greater or equal than -1
         """
+        R = self.base_ring()
+
         if isinstance(degree, (list, tuple)):
             if len(degree) != 2:
                 raise ValueError("degree argument must be an integer or a tuple of 2 integers (min_degree, max_degree)")
             if degree[0] > degree[1]:
                 raise ValueError("minimum degree must be less or equal than maximum degree")
-            degree = randint(*degree)
+        else:
+            degree = (degree,degree)
 
-        R = self.base_ring()
+        assert degree[0] > -2, "degree should be an integer greater or equal than -1"
 
-        assert degree > -2, "degree should be an integer greater or equal than -1"
+        p = self([R.random_element(*args,**kwds) for _ in xrange(degree[1]+1)])
 
-        if degree == -1:
-            return self.zero()
+        if p.degree() < degree[0]:
+            p += R._random_nonzero_element() * self.gen()**randint(degree[0],degree[1])
 
-        coeffs = [R.random_element(*args,**kwds) for _ in xrange(degree)]
-        dominant_coeff = R.random_element(*args, **kwds)
-        while dominant_coeff.is_zero():
-            dominant_coeff = R.random_element(*args, **kwds)
-        return self(coeffs + [dominant_coeff])
+        return p
 
     def _monics_degree( self, of_degree ):
         """

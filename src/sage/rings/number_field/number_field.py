@@ -9781,11 +9781,7 @@ class NumberField_quadratic(NumberField_absolute):
         try:
             return self.__class_number
         except AttributeError:
-            D = self.discriminant()
-            if D < 0 and proof:
-                self.__class_number = ZZ(pari("qfbclassno(%s,1)"%D))
-            else:
-                self.__class_number = ZZ(pari("qfbclassno(%s)"%D))
+            self.__class_number = self.discriminant().class_number(proof)
             return self.__class_number
 
     def hilbert_class_field_defining_polynomial(self, name='x'):

@@ -27,7 +27,8 @@ John Cremona (2014-08) -- extend to number fields.
 from sage.structure.sage_object import SageObject
 import constructor
 import sage.databases.cremona
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, QQ
+from sage.rings.number_field.all import QuadraticField
 from sage.misc.all import flatten, abstract_method, cached_method, lazy_attribute
 from sage.schemes.elliptic_curves.ell_field import EllipticCurve_field
 from sage.schemes.elliptic_curves.ell_rational_field import EllipticCurve_rational_field
@@ -256,7 +257,8 @@ class IsogenyClass_EC(SageObject):
         """
         if not isinstance(x, EllipticCurve_field):
             return False
-        return x.minimal_model() in self.curves
+        #return x.minimal_model() in self.curves
+        return any([x.is_isomorphic(y) for y in self.curves])
 
     @cached_method
     def matrix(self, fill=True):
@@ -302,6 +304,37 @@ class IsogenyClass_EC(SageObject):
             from sage.schemes.elliptic_curves.ell_curve_isogeny import unfill_isogeny_matrix
             mat = unfill_isogeny_matrix(mat)
         return mat
+
+    @cached_method
+    def qf_matrix(self):
+        """
+        Returns the array whose entries are quadratic forms
+        representing the degrees of isogenies between curves in this
+        class (CM case only).
+
+        OUTPUT:
+
+        a `2x2` array (list of lists) of list, each of the form [2] or
+        [2,1,3] representing the coefficients of an integral quadratic
+        form in 1 or 2 variables whose values are the possible isogeny
+        degrees between the i'th and j'th curve in the class.
+
+        EXAMPLES::
+
+            sage: pol = PolynomialRing(QQ,'x')([1,0,3,0,1])
+            sage: K.<c> = NumberField(pol)
+            sage: j = 1480640+565760*c^2
+            sage: E = EllipticCurve(j=j)
+            sage: C = E.isogeny_class()
+            sage: C.qf_matrix()
+            [[[1], [2, 2, 3]], [[2, 2, 3], [1]]]
+
+
+        """
+        if self._qfmat is None:
+            raise ValueError("qf_matrix only defined for isogeny classes with rational CM")
+        else:
+            return self._qfmat
 
     @cached_method
     def isogenies(self, fill=False):
@@ -376,6 +409,22 @@ class IsogenyClass_EC(SageObject):
           *Inventiones mathematicae* 44,129-162 (1978).
         """
         from sage.graphs.graph import Graph
+
+        if not self.E.base_field() is QQ:
+            M = self.matrix(fill = False)
+            n = len(self)
+            G = Graph(M, format='weighted_adjacency_matrix')
+            D = dict([(v,self.curves[v]) for v in G.vertices()])
+            G.set_vertices(D)
+            if self._qfmat: # i.e. self.E.has_rational_cm():
+                for i in range(n):
+                    for j in range(n):
+                        if M[i,j]:
+                            G.set_edge_label(i,j,str(self._qfmat[i][j]))
+            G.relabel(range(1,n+1))
+            return G
+
+
         M = self.matrix(fill = False)
         n = M.nrows() # = M.ncols()
         G = Graph(M, format='weighted_adjacency_matrix')
@@ -385,6 +434,7 @@ class IsogenyClass_EC(SageObject):
         # graph, though the number of vertices is often enough.
         # This only holds over Q, so this code will need to change
         # once other isogeny classes are implemented.
+
         if n == 1:
             # one vertex
             pass
@@ -531,47 +581,6 @@ class IsogenyClass_EC(SageObject):
             cpy._maps = None
         return cpy
 
-    @abstract_method
-    def _compute(self):
-        """
-        This function is called during initialization and should fill
-        in ``self.curves``, and possibly ``self._mat`` and
-        ``self._maps`` as well, depending on the algorithm.
-
-        .. note:
-
-            This is currently redundant; it used to be required when
-            ``mwrank`` was used.
-        """
-        pass
-
-    @abstract_method
-    def _compute_matrix(self):
-        """
-        For algorithms that don't compute the isogeny matrix at first,
-        this function should fill in ``self._mat``.
-
-        EXAMPLES::
-
-            sage: EllipticCurve('11a1').isogeny_class('database').matrix() # indirect doctest
-            [ 1  5  5]
-            [ 5  1 25]
-            [ 5 25  1]
-        """
-        pass
-
-    @abstract_method
-    def _compute_isogenies(self):
-        """
-        For algorithms that don't compute the isogenies at first, this
-        function should fill in ``self._maps``.
-
-        .. note:
-
-            This is currently redundant; it used to be required when mwrank was used.
-        """
-        pass
-
 class IsogenyClass_EC_NumberField(IsogenyClass_EC):
     """
     Isogeny classes for elliptic curves over number fields.
@@ -590,6 +599,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             Isogeny class of Elliptic Curve defined by y^2 = x^3 + 1 over Number Field in i with defining polynomial x^2 + 1
 
         The curves in the class (sorted)::
+
             sage: [E1.ainvs() for E1 in C]
             [(0, 0, 0, -135, -594), (0, 0, 0, -15, 22), (0, 0, 0, 0, -27), (0, 0, 0, 0, 1)]
 
@@ -670,16 +680,6 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             sage: C.isogenies()[1][0]
             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-1688345640960*c^2-4420220682240)*x + (-2589731225505628160*c^2-6780004123216445440) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (-34278864322560*c^2-89743290531840)*x + (-115434018685080043520*c^2-302210184021048033280) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1
 
-            sage: pol26 = hilbert_class_polynomial(-4*26)
-            sage: K.<a> = NumberField(pol26)
-            sage: L.<b> = K.extension(x^2+26)
-            sage: j1 = pol26.roots(K)[0][0]
-            sage: E = EllipticCurve(j=j1)
-            sage: E.has_cm()
-            True
-            sage: E.has_rational_cm()
-            False
-
         TESTS::
 
             sage: TestSuite(C).run()
@@ -731,7 +731,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             [6 2 3 1]
 
             sage: C2._compute(verbose=True)
-            possible isogeny degrees: [2, 3, 5] -actual isogeny degrees: {2, 3} -added curve #1 (degree 2)... -added tuple [0, 1, 2]... -added tuple [1, 0, 2]... -added curve #2 (degree 3)... -added tuple [0, 2, 3]... -added tuple [2, 0, 3]...... relevant degrees: [2, 3]... -now completing the isogeny class... -processing curve #1... -added tuple [1, 0, 2]... -added tuple [0, 1, 2]... -added curve #3... -added tuple [1, 3, 3]... -added tuple [3, 1, 3]... -processing curve #2... -added tuple [2, 3, 2]... -added tuple [3, 2, 2]... -added tuple [2, 0, 3]... -added tuple [0, 2, 3]... -processing curve #3... -added tuple [3, 2, 2]... -added tuple [2, 3, 2]... -added tuple [3, 1, 3]... -added tuple [1, 3, 3]...... isogeny class has size 4
+            possible isogeny degrees: [2, 3] -actual isogeny degrees: {2, 3} -added curve #1 (degree 2)... -added tuple [0, 1, 2]... -added tuple [1, 0, 2]... -added curve #2 (degree 3)... -added tuple [0, 2, 3]... -added tuple [2, 0, 3]...... relevant degrees: [2, 3]... -now completing the isogeny class... -processing curve #1... -added tuple [1, 0, 2]... -added tuple [0, 1, 2]... -added curve #3... -added tuple [1, 3, 3]... -added tuple [3, 1, 3]... -processing curve #2... -added tuple [2, 3, 2]... -added tuple [3, 2, 2]... -added tuple [2, 0, 3]... -added tuple [0, 2, 3]... -processing curve #3... -added tuple [3, 2, 2]... -added tuple [2, 3, 2]... -added tuple [3, 1, 3]... -added tuple [1, 3, 3]...... isogeny class has size 4
             Sorting permutation = {0: 3, 1: 1, 2: 2, 3: 0}
             Matrix = [1 3 2 6]
             [3 1 6 2]
@@ -818,7 +818,8 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         if verbose:
             print("... isogeny class has size %s" % ncurves)
 
-        self.curves = sorted(curves,cmp=curve_cmp)
+        self.curves = sorted(curves,cmp=curve_cmp_cm if E.has_rational_cm()
+                             else curve_cmp)
         perm = dict([(i,self.curves.index(E)) for i,E in enumerate(curves)])
         if verbose:
             print "Sorting permutation = %s" % perm
@@ -832,6 +833,72 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         if verbose:
             print "Matrix = %s" % self._mat
 
+        if not E.has_rational_cm():
+            self._qfmat = None
+            return
+
+        # In the CM case, we will have found some "horizontal"
+        # isogenies of composite degree and would like to replace them
+        # by isogenies of prime degree, mainly to make the isogeny
+        # graph look better.  We also construct a matrix whose entries
+        # are not degrees of cyclic isogenies, but rather quadratic
+        # forms (in 1 or 2 variables) representing the isogeny
+        # degrees.  For this we take a short cut: properly speaking,
+        # when `\text{End}(E_1)=\text{End}(E_2)=O`, the set
+        # `\text{Hom}(E_1,E_2)` is a rank `1` projective `O`-module,
+        # hence has a well-defined ideal class associated to it, and
+        # hence (using an identification between the ideal class group
+        # and the group of classes of primitive quadratic forms of the
+        # same discriminant) an equivalence class of quadratic forms.
+        # But we currently only care about the numbers represented by
+        # the form, i.e. which genus it is in rather than the exact
+        # class.  So it suffices to find one form of the correct
+        # discriminant which represents one isogeny degree from `E_1`
+        # to `E_2` in order to obtain a form which represents all such
+        # degrees.
+
+        if verbose:
+            print("Creating degree matrix (CM case)")
+
+        allQs = {} # keys: discriminants d
+                   # values: lists of equivalence classes of
+                   # primitive forms of discriminant d
+        def find_quadratic_form(d,n):
+            if not d in allQs:
+                from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
+
+                allQs[d] = BinaryQF_reduced_representatives(d, primitive_only=True)
+            # now test which of the Qs represents n
+            for Q in allQs[d]:
+                if BinaryQF_solver(Q,n):
+                    return Q
+            raise ValueError("No form of discriminant %d represents %s" %(d,n))
+
+        mat = self._mat
+        qfmat = [[0 for i in range(ncurves)] for j in range(ncurves)]
+        for i, E1 in enumerate(self.curves):
+            for j, E2 in enumerate(self.curves):
+                if j<i:
+                    qfmat[i][j] = qfmat[j][i]
+                    mat[i,j] = mat[j,i]
+                elif i==j:
+                    qfmat[i][j] = [1]
+                    # mat[i,j] already 1
+                else:
+                    d = E1.cm_discriminant()
+                    if d != E2.cm_discriminant():
+                        qfmat[i][j] = [mat[i,j]]
+                        # mat[i,j] already unique
+                    else: # horizontal isogeny
+                        q = find_quadratic_form(d,mat[i,j])
+                        qfmat[i][j] = list(q)
+                        mat[i,j] = small_prime_value(q)
+
+        self._mat = mat
+        self._qfmat = qfmat
+        if verbose:
+            print("new matrix = %s" % mat)
+            print("matrix of forms = %s" % qfmat)
 
     def _compute_matrix(self):
         """
@@ -1012,10 +1079,25 @@ def hnf_cmp(I, J):
 
        Ideals are first sorted by norm.  Ideals of the same norm are
        sorted using their HNF matrix.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.isogeny_class import hnf_cmp
+        sage: K.<i> = QuadraticField(-1)
+        sage: I1, I2 = K.primes_above(5)
+        sage: J = K.prime_above(3)
+        sage: hnf_cmp(I1,I2)
+        -1
+        sage: hnf_cmp(I1,J)
+        -1
+        sage: hnf_cmp(J,J)
+        0
+        sage: hnf_cmp(J,I2)
+        1
     """
     t = int(I.norm() - J.norm())
     if t:
-        return t
+        return sign(t)
 
     return cmp(I.pari_hnf(), J.pari_hnf())
 
@@ -1075,10 +1157,71 @@ def curve_cmp(E1,E2):
        sort a more general list of elliptic curves we would first sort
        by conductor.
 
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.isogeny_class import curve_cmp
+        sage: K.<i> = QuadraticField(-1)
+        sage: E1 = EllipticCurve([1+i, -i, i, 1, 0])
+        sage: E2 = EllipticCurve([1+2*i, -i, i, 1, 0])
+        sage: curve_cmp(E1,E2)
+        -1
+        sage: curve_cmp(E1,E1)
+        0
+        sage: curve_cmp(E2,E1)
+        1
     """
     ai1 = flatten([list(ai) for ai in E1.ainvs()])
     ai2 = flatten([list(ai) for ai in E2.ainvs()])
     return cmp(ai1,ai2)
+
+def curve_cmp_cm(E1,E2):
+    r"""
+    Comparison function for CM elliptic curves over number fields.
+
+    INPUT:
+
+    - ``E1``, ``E2`` -- elliptic curves over a number field with CM by
+      orders in the same imaginary quadratic field.
+
+    OUTPUT:
+
+    0, +1 or -1 according as ``E1==E2``, ``E1>E2``, ``E1<E2``.
+
+    .. note::
+
+       Curves are first sorted by the conductor of the endomorphism
+       ring in the associated maximal order, then by lexicographical
+       order of the list of `5d` coefficients of the `a`-invariants,
+       where `d` is the degree if the number field.
+
+    .. note::
+
+       This function was designed for the purpose of sorting elliptic
+       curves in an isogeny class, which have the same conductor.  To
+       sort a more general list of elliptic curves we would first sort
+       by conductor.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.isogeny_class import curve_cmp_cm
+        sage: K.<i> = QuadraticField(-1)
+        sage: E1 = EllipticCurve(j=K(1728))
+        sage: E1.cm_discriminant()
+        -4
+        sage: E2 = E1.isogenies_prime_degree(2)[0].codomain()
+        sage: E2.cm_discriminant()
+        -16
+        sage: curve_cmp_cm(E1,E2)
+        -1
+
+    """
+    d1 = E1.cm_discriminant()
+    d2 = E2.cm_discriminant()
+    t = cmp(d2,d1) # NB the discriminants are negative!  We want -4 before -16
+    if t:
+        return t
+    else:
+        return curve_cmp(E1,E2)
 
 def small_prime_value(Q, Bmax = 1000):
     r"""
@@ -1120,7 +1263,55 @@ def small_prime_value(Q, Bmax = 1000):
         B += 10
     raise ValueError("Unable to find a prime value of Q")
 
-def possible_isogeny_degrees(E):
+def BinaryQF_solver(Q,n):
+    r"""
+    Solves Q(x,y)=n where Q is a quadratic form
+
+    INPUT:
+
+    - ``Q`` (BinaryQF) -- a positive definite primitive integral
+      binary quadratic form
+
+    - ``n`` (int) -- a positive integer
+
+    OUTPUT:
+
+    (tuple) (x,y) integers satisfying Q(x,y)=n, or 0 is no such x,y exist.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.isogeny_class import BinaryQF_solver
+        sage: Qs = BinaryQF_reduced_representatives(-23,primitive_only=True)
+        sage: Qs
+        [x^2 + x*y + 6*y^2, 2*x^2 - x*y + 3*y^2, 2*x^2 + x*y + 3*y^2]
+        sage: [BinaryQF_solver(Q,3) for Q in Qs]
+        [0, (0, 1), (0, 1)]
+        sage: [BinaryQF_solver(Q,5) for Q in Qs]
+        [0, 0, 0]
+        sage: [BinaryQF_solver(Q,6) for Q in Qs]
+        [(0, 1), (-1, 1), (1, 1)]
+    """
+    a, b, c  = Q
+    if not a>0:
+        raise ValueError("%s is not positive definite (a=%s)" % (Q,a))
+    d = Q.discriminant()
+    if not d<0:
+        raise ValueError("%s is not positive definite (disc=%s)" % (Q,d))
+    ad = -d
+    an4 = 4*a*n
+    a2 = 2*a
+    from sage.misc.all import srange
+    for y in srange(0,1+an4//ad):
+        z2 = an4+d*y**2
+        if z2.is_square():
+            for z in z2.sqrt(all=True):
+                if a2.divides(z-b*y):
+                    x = (z-b*y)//a2
+                    return (x,y)
+    return 0
+
+
+def possible_isogeny_degrees(E, verbose=False):
     r""" Return a list of primes `\ell` sufficient to generate the
     isogeny class of `E`.
 
@@ -1172,37 +1363,168 @@ def possible_isogeny_degrees(E):
     For curves with only potential CM we proceed as in the CM case,
     using `2[K:\QQ]` instead of `[K:\QQ]`.
 
+    EXAMPLES:
+
+    For curves without CM we determine the primes at which the mod `p`
+    Galois representation is not surjective, which is a finite set
+    containing the desired primes (and possibly more)::
+
+        sage: from sage.schemes.elliptic_curves.isogeny_class import possible_isogeny_degrees
+        sage: E = EllipticCurve('11a1')
+        sage: possible_isogeny_degrees(E)
+        [5]
+
+    In this case `E` really does have rational `5`-isogenies::
+
+        sage: [phi.degree() for phi in E.isogenies_prime_degree()]
+        [5, 5]
+
+    Over an extension field there may be more non-surjective primes::
+
+        sage: E3 = E.change_ring(CyclotomicField(3))
+        sage: possible_isogeny_degrees(E3)
+        [3, 5]
+
+    But not necesarily any more isogeny primes::
+
+        sage: [phi.degree() for phi in E3.isogenies_prime_degree()]
+        [5, 5]
+
+    For curves with CM by a quadratic order of class number greater
+    than `1`, we use the structure of the class group to only give one
+    prime in each ideal class.
+
+            sage: pol = PolynomialRing(QQ,'x')([1,-3,5,-5,5,-3,1])
+            sage: L.<a> = NumberField(pol)
+            sage: j = hilbert_class_polynomial(-23).roots(L,multiplicities=False)[0]
+            sage: E = EllipticCurve(j=j)
+            sage: from sage.schemes.elliptic_curves.isogeny_class import possible_isogeny_degrees
+            sage: possible_isogeny_degrees(E, verbose=True)
+            CM case, discriminant = -23
+            initial primes: {2}
+            upward primes: {}
+            downward ramified primes: {}
+            downward split primes: {2, 3}
+            downward inert primes: {5}
+            primes generating the class group: [2]
+            Complete set of primes: {2, 3, 5}
+            [2, 3, 5]
     """
     if E.has_cm():
         d = E.cm_discriminant()
 
+        if verbose:
+            print("CM case, discriminant = %s" % d)
+
+        from sage.libs.pari.all import pari
         from sage.sets.all import Set
-        from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
-        # First put in 2 and all primes dividing the discriminant
-
-        L = Set((2*d).prime_factors())
-
-        # Include l such that l-1 or l+1 divides n=[K:Q]
+        from sage.rings.arith import kronecker_symbol
 
         n = E.base_field().absolute_degree()
         if not E.has_rational_cm():
             n *= 2
         divs = n.divisors()
-        L += Set([lp1-1 for lp1 in divs if (lp1-1).is_prime()])
-        L += Set([lm1+1 for lm1 in divs if (lm1+1).is_prime()])
 
-        # Now find primes represented by each form of discriminant d,
-        # discarding the principal form (with q[0]=1) and one from
-        # each inverse pair (with q[1]<0):
+        data = pari(d).quadclassunit()
+        # This has 4 components: the class number, class group
+        # structure (ignored), class group generators (as quadratic
+        # forms) and regulator (=1 since d<0, ignored).
 
-        Qs = BinaryQF_reduced_representatives(d, primitive_only=True)
-        Qs = [q for q in Qs if q[0]>1 and q[1]>=0]
-        L += Set([small_prime_value(Q) for Q in Qs])
+        h = data[0].sage()
+
+        # We must have 2*h dividing n, and will need the quotient so
+        # see if the j-invariants of any proper sub-orders could lie
+        # in the same field
+
+        n_over_2h = n//(2*h)
+
+        # Collect possible primes.  First put in 2, and also 3 for
+        # discriminant -3 (special case because of units):
+
+        L = Set([ZZ(2), ZZ(3)]) if d==-3 else  Set([ZZ(2)])
+        if verbose:
+            print ("initial primes: %s" % L)
+
+        # Step 1: "vertical" primes l such that the isogenous curve
+        # has CM by an order whose index is l or 1/l times the index
+        # of the order O of discriminant d.  The latter case can only
+        # happen when l^2 divides d.
+
+        # Compute the ramified primes
+
+        ram_l = d.odd_part().prime_factors()
+
+        # if the CM is not rational we include all ramified primes,
+        # which is simpler than using the class group later:
+
+        if not E.has_rational_cm():
+            L1 = Set(ram_l)
+            L += L1
+            if verbose:
+                print ("ramified primes: %s" % L1)
+
+        else:
+
+            # Find the "upward" primes (index divided by l):
+
+            L1 = Set([l for l in ram_l if d.valuation(l)>1])
+            L += L1
+            if verbose:
+                print ("upward primes: %s" % L1)
+
+            # Find the "downward" primes (index multiplied by l, class
+            # number multiplied by l-kronecker_symbol(d,l)):
+
+            # (a) ramified primes; the suborder has class number l*h, so l
+            # must divide n/2h:
+
+            L1 = Set([l for l in ram_l if l.divides(n_over_2h)])
+            L += L1
+            if verbose:
+                print ("downward ramified primes: %s" % L1)
+
+        # (b) split primes; the suborder has class number (l-1)*h, so
+        # l-1 must divide n/2h:
+
+        L1 = Set([lm1+1 for lm1 in divs
+                  if (lm1+1).is_prime() and kronecker_symbol(d,lm1+1)==+1])
+        L += L1
+        if verbose:
+            print ("downward split primes: %s" % L1)
+
+        # (c) inert primes; the suborder has class number (l+1)*h, so
+        # l+1 must divide n/2h:
+
+        L1 = Set([lp1-1 for lp1 in divs
+                  if (lp1-1).is_prime() and kronecker_symbol(d,lp1-1)==-1])
+        L += L1
+        if verbose:
+            print ("downward inert primes: %s" % L1)
+
+        # Now find primes represented by each form of discriminant d.
+        # In the rational CM case, we use all forms associated to
+        # generators of the class group, otherwise only forms of order
+        # 2:
+
+        if E.has_rational_cm():
+            from sage.quadratic_forms.binary_qf import BinaryQF, BinaryQF_reduced_representatives
+            Qs = [BinaryQF(list(q)) for q in data[2]]
+
+            L1 = [small_prime_value(Q) for Q in Qs]
+            if verbose:
+                print("primes generating the class group: %s" % L1)
+            L += Set(L1)
 
         # Return sorted list
+
+        if verbose:
+            print("Complete set of primes: %s" % L)
 
         return sorted(list(L))
 
     #  Non-CM case
+
+    if verbose:
+        print("Non-CM case, using Galois representation")
 
     return E.galois_representation().non_surjective()

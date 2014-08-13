@@ -96,7 +96,7 @@ cdef extern from "flint/fmpz.h":
     void fmpz_mul(fmpz_t f, const fmpz_t g, const fmpz_t h)
     int fmpz_sgn(const fmpz_t f)
     double fmpz_get_d(const fmpz_t f)
-
+    double fmpz_get_d_2exp(long *exp, const fmpz_t f)
     void fmpz_fdiv_r(fmpz_t f, const fmpz_t g, const fmpz_t h)
     unsigned long fmpz_fdiv_ui(const fmpz_t g, unsigned long x)
     void fmpz_divexact(fmpz_t f, const fmpz_t g, const fmpz_t h)

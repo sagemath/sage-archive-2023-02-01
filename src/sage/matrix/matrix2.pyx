@@ -2996,8 +2996,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: B = copy(A).sparse_matrix()
             sage: set_verbose(1)
             sage: D = A.right_kernel(); D
-            verbose ...
+            verbose 1 (<module>) computing a right kernel for 4x7 matrix over Integer Ring
             verbose 1 (<module>) computing right kernel matrix over the integers for 4x7 matrix
+            ...
             verbose 1 (<module>) done computing right kernel matrix over the integers for 4x7 matrix
             ...
             Free module of degree 7 and rank 3 over Integer Ring
@@ -3006,8 +3007,9 @@ cdef class Matrix(matrix1.Matrix):
             [  0  35   0  25  -1 -31  17]
             [  0   0   7  12  -3  -1  -8]
             sage: S = B.right_kernel(); S
-            verbose ...
+            verbose 1 (<module>) computing a right kernel for 4x7 matrix over Integer Ring
             verbose 1 (<module>) computing right kernel matrix over the integers for 4x7 matrix
+            ...
             verbose 1 (<module>) done computing right kernel matrix over the integers for 4x7 matrix
             ...
             Free module of degree 7 and rank 3 over Integer Ring
@@ -3449,8 +3451,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: E.right_kernel(algorithm='padic', basis='LLL')
             Free module of degree 7 and rank 2 over Integer Ring
             User basis matrix:
-            [ 2 -1  3  1  0  1  1]
-            [-5 -3  2 -5  1 -1 -1]
+            [-2  1 -3 -1  0 -1 -1]
+            [ 5  3 -2  5 -1  1  1]
 
         Besides the integers, rings may be as general as principal ideal
         domains.  Results are then free modules.  ::

@@ -353,7 +353,7 @@ def solve_system_with_difficult_last_row(B, a):
     # 3. We next delete the last row of B and find a basis vector k
     #    for the 1-dimensional kernel.
     D = B.matrix_from_rows(range(C.nrows()-1))
-    N = D._rational_kernel_flint()
+    N = D._rational_kernel_iml()
     if N.ncols() != 1:
         verbose("Try difficult solve again with different random vector")
         return solve_system_with_difficult_last_row(B, a)
@@ -851,7 +851,7 @@ def probable_hnf(A, include_zero_rows, proof):
         H = hnf_square(C, proof=proof)
     except NotImplementedError:
         # raise
-        # this signals that we must fallback to pari
+        # this signals that we must fallback to PARI
         verbose("generic random modular HNF algorithm failed -- we fall back to PARI")
         H = A.hermite_form(algorithm='pari', include_zero_rows=include_zero_rows, proof=proof)
         return H, H.pivots()
@@ -1180,7 +1180,7 @@ def sanity_checks(times=50, n=8, m=5, proof=True, stabilize=2, check_using_magma
                     print 'a = matrix(ZZ, %s, %s, %s)'%(a.nrows(), a.ncols(), a.list())
                     return
             else:
-                if hnf(a)[0] != a.echelon_form('pari'):
+                if hnf(a)[0] != a.echelon_form(algorithm = 'pari'):
                     print "bug computing hnf of a matrix"
                     print 'a = matrix(ZZ, %s, %s, %s)'%(a.nrows(), a.ncols(), a.list())
                     return

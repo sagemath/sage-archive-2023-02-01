@@ -694,14 +694,13 @@ ext_modules = [
               extra_compile_args = ["-std=c99", "-D_XPG6"],
               depends = flint_depends),
 
-     Extension('sage.libs.fplll.fplll',
-               sources = ['sage/libs/fplll/fplll.pyx'],
-               language="c++",
-               extra_compile_args = ["-DFPLLL_V3_COMPAT"],
-               # order matters for cygwin!!
-               libraries = ['stdc++', 'pari', 'mpfr', 'fplll', 'gmp', 'm', 'flint'],
-               depends = [SAGE_INC + '/m4ri/m4ri.h', SAGE_INC + "/fplll/fplll.h"]+ flint_depends,
-               include_dirs = [SAGE_INC + '/fplll']),
+    Extension('sage.libs.fplll.fplll',
+              sources = ['sage/libs/fplll/fplll.pyx'],
+              libraries = ['gmp', 'mpfr', 'stdc++', 'fplll'],
+              language="c++",
+              include_dirs = [SAGE_INC + '/fplll'],
+              extra_compile_args=["-DFPLLL_V3_COMPAT"],
+              depends = [SAGE_INC + "/fplll/fplll.h"] + flint_depends),
 
     Extension('sage.libs.linbox.linbox',
               sources = ['sage/libs/linbox/linbox.pyx'],
@@ -1931,7 +1930,6 @@ ext_modules = [
                          flint_depends,
               libraries = ['flint', 'gmp', 'ratpoints']),
 
-
     Extension('sage.schemes.elliptic_curves.period_lattice_region',
               sources = ['sage/schemes/elliptic_curves/period_lattice_region.pyx'],
               include_dirs = numpy_include_dirs),
@@ -2115,7 +2113,7 @@ ext_modules = [
     ## sage.schemes
     ##
     ################################
-
+    
     Extension('sage.schemes.projective.projective_morphism_helper',
               sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
     ]

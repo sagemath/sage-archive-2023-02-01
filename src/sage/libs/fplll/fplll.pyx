@@ -146,10 +146,12 @@ cdef class FP_LLL:
 
         self._lattice = new ZZ_mat[mpz_t](A._nrows,A._ncols)
         cdef mpz_t tmp
+        mpz_init(tmp)
         for i from 0 <= i < A._nrows:
             for j from 0 <= j < A._ncols:
                 A.get_unsafe_mpz(i,j,tmp)
-                mpz_set(&self._lattice[i,j],tmp)
+                # mpz_set(self._lattice[0][i][j],tmp)
+                self._lattice[0][i][j].set(tmp)
         mpz_clear(tmp)
 
     def __dealloc__(self):
@@ -1460,5 +1462,5 @@ cdef to_sage(ZZ_mat[mpz_t] *A):
 
     for i from 0 <= i < A.getRows():
         for j from 0 <= j < A.getCols():
-            fmpz_set_mpz(fmpz_mat_entry(B._matrix,i,j),(&A[i,j]))
+            fmpz_set_mpz(fmpz_mat_entry(B._matrix,i,j),A[0][i][j].getData())
     return B

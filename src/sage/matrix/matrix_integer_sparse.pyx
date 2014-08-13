@@ -409,7 +409,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         OUTPUT:
 
         Returns a pair.  First item is the string is either
-        'computed-pari-int' or 'computed-flint-int', which identifies
+        'computed-pari-int', 'computed-iml-int' or 'computed-flint-int', which identifies
         the nature of the basis vectors.
 
         Second item is a matrix whose rows are a basis for the right kernel,
@@ -444,17 +444,17 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
             sage: result = A._right_kernel_matrix(algorithm='default')
             sage: result[0]
-            'computed-pari-int'
+            'computed-flint-int'
             sage: result[1]
-            [-26  31 -30  21   2 -10]
-            [-47 -13  48 -14 -11  18]
+            [ 469 -214   30 -119   37    0]
+            [-370  165  -18   91  -30    2]
 
             sage: result = A._right_kernel_matrix()
             sage: result[0]
-            'computed-pari-int'
+            'computed-flint-int'
             sage: result[1]
-            [-26  31 -30  21   2 -10]
-            [-47 -13  48 -14 -11  18]
+            [ 469 -214   30 -119   37    0]
+            [-370  165  -18   91  -30    2]
 
         With the 'default' given as the algorithm, several heuristics are
         used to determine if PARI or IML ('padic') is used.  The code has
@@ -464,7 +464,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
             sage: A = random_matrix(ZZ, 18, 11, sparse=True)
             sage: A._right_kernel_matrix(algorithm='default')[0]
-            'computed-pari-int'
+            'computed-flint-int'
             sage: A = random_matrix(ZZ, 18, 11, x = 10^200, sparse=True)
             sage: A._right_kernel_matrix(algorithm='default')[0]
             'computed-iml-int'
@@ -473,7 +473,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             'computed-iml-int'
             sage: A = random_matrix(ZZ, 60, 55, sparse=True)
             sage: A._right_kernel_matrix(algorithm='default')[0]
-            'computed-pari-int'
+            'computed-flint-int'
 
         TESTS:
 

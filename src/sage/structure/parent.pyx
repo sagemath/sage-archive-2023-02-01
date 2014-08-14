@@ -809,6 +809,7 @@ cdef class Parent(category_object.CategoryObject):
             running ._test_quo_rem() . . . pass
             running ._test_some_elements() . . . pass
             running ._test_zero() . . . pass
+            running ._test_zero_divisors() . . . pass
 
             sage: Sets().example().sadfasdf
             Traceback (most recent call last):
@@ -873,6 +874,7 @@ cdef class Parent(category_object.CategoryObject):
             _test_quo_rem
             _test_some_elements
             _test_zero
+            _test_zero_divisors
             sage: F = GF(9,'a')
             sage: dir(F)
             [..., '__class__', ..., '_test_pickling', ..., 'extension', ...]

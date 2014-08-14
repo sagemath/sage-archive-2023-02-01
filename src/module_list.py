@@ -666,7 +666,8 @@ ext_modules = [
 
     Extension('sage.lfunctions.zero_sums',
               sources = ['sage/lfunctions/zero_sums.pyx'],
-              libraries = ["m"]),
+              libraries = ["m","flint"],
+              depends = flint_depends),
 
     ################################
     ##
@@ -2098,13 +2099,13 @@ ext_modules = [
 
     Extension('sage.sat.solvers.satsolver',
               sources = ['sage/sat/solvers/satsolver.pyx']),
-              
+
     ################################
-    ## 
+    ##
     ## sage.schemes
     ##
     ################################
-              
+
     Extension('sage.schemes.projective.projective_morphism_helper',
               sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
     ]

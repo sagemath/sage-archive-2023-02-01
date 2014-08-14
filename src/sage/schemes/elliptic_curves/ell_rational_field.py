@@ -1435,8 +1435,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                                   adaptive=True,
                                   N=None,
                                   root_number=True,
-                                  bad_primes=None):
-        """
+                                  bad_primes=None,
+                                  ncpus=None):
+        r"""
         Return an upper bound for the analytic rank of self, conditional on
         the Generalized Riemann Hypothesis, via computing the zero sum
             '\sum_{\gamma} f(\Delta*\gamma),'
@@ -1486,6 +1487,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
           of bad reduction for the curve attached to self. This is passable
           so that rank estimation can be done for curves of large conductor
           whose bad primes have been precomputed.
+
+        - ``ncpus`` - (default: None) If not None, a positive integer
+          defining the maximum number of CPUs to be used for the computation.
+          If left as None, the maximum available number of CPUs will be used.
+          Note: Multiple processors will only be used for Delta values >= 1.75.
 
         .. NOTE::
 
@@ -1577,7 +1583,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         bound = Z.analytic_rank_upper_bound(max_Delta=max_Delta,
                                             adaptive=adaptive,
                                             root_number=root_number,
-                                            bad_primes=bad_primes)
+                                            bad_primes=bad_primes,
+                                            ncpus=ncpus)
         return bound
 
     def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=3,

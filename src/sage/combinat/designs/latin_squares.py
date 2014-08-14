@@ -2,9 +2,8 @@
 r"""
 Mutually Orthogonal Latin Squares (MOLS)
 
-This module gathers Sage's functions related to Mutually Orthogonal Latin
-Squares. Its main function is :func:`mutually_orthogonal_latin_squares` which
-can be used to generate MOLS::
+The main function of this module is :func:`mutually_orthogonal_latin_squares`
+and can be can be used to generate MOLS (or check that they exist)::
 
     sage: MOLS = designs.mutually_orthogonal_latin_squares(4,8)
 
@@ -12,10 +11,23 @@ For more information on MOLS, see the :wikipedia:`Wikipedia entry on MOLS
 <Graeco-Latin_square#Mutually_orthogonal_Latin_squares>`. If you are only
 interested by latin squares, see :mod:`~sage.combinat.matrices.latin`.
 
-The following table prints the maximum number of MOLS that Sage can build for
-every order `n<600`, similarly to the `table of MOLS
-<http://books.google.fr/books?id=S9FA9rq1BgoC&dq=handbook%20combinatorial%20designs%20MOLS%2010000&pg=PA176>`_
-from the Handbook of Combinatorial Designs 2ed [DesignHandbook]_.
+The functions defined here are
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`mutually_orthogonal_latin_squares` | Return `k` Mutually Orthogonal `n\times n` Latin Squares.
+    :meth:`are_mutually_orthogonal_latin_squares` | Check that the list ``l`` of matrices in are MOLS.
+    :meth:`latin_square_product` | Return the product of two (or more) latin squares.
+    :meth:`MOLS_table` | Prints the MOLS table.
+
+**Table of MOLS**
+
+Sage can produce a table of MOLS similar to the one from the Handbook of
+Combinatorial Designs [DesignHandbook]_ (`available here
+<http://books.google.fr/books?id=S9FA9rq1BgoC&dq=handbook%20combinatorial%20designs%20MOLS%2010000&pg=PA176>`_).
 
 ::
 
@@ -189,7 +201,7 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
 
 def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, existence=False):
     r"""
-    Returns `k` Mutually Orthogonal `n\times n` Latin Squares (MOLS).
+    Return `k` Mutually Orthogonal `n\times n` Latin Squares (MOLS).
 
     For more information on Mutually Orthogonal Latin Squares, see
     :mod:`~sage.combinat.designs.latin_squares`.
@@ -216,7 +228,7 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
       partitions satisfying this intersection property instead of the `k+2` MOLS
       (though the data is exactly the same in both cases).
 
-    - ``existence`` (boolean) -- instead of building the design, returns:
+    - ``existence`` (boolean) -- instead of building the design, return:
 
         - ``True`` -- meaning that Sage knows how to build the design
 
@@ -422,7 +434,7 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
 
 def latin_square_product(M,N,*others):
     r"""
-    Returns the product of two (or more) latin squares.
+    Return the product of two (or more) latin squares.
 
     Given two Latin Squares `M,N` of respective sizes `m,n`, the direct product
     `M\times N` of size `mn` is defined by `(M\times

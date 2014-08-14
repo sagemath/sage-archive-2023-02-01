@@ -1033,25 +1033,25 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         logp = c_log(p)
         return -(t-logp)*(logp/p)*ap
 
-    def _get_residue_data(self,ncpus):
+    def _get_residue_data(self,n):
         r"""
-        Private method called by self._zerosum_sincsquared_parallel() to
-        determine the optimal residue class breakdown when sieving for primes.
+        Method called by self._zerosum_sincsquared_parallel() to determine
+        the optimal residue class breakdown when sieving for primes.
         Returns a list of small primes, the product thereof, and a list of
         residues coprime to the product.
 
         INPUT:
 
-        - ``ncpus`` -- Positive integer denoting the number of available CPUs.
+        - ``n`` -- Positive integer denoting the number of required chunks.
 
         OUTPUT:
 
-        A triple small_primes, jump, residue_chunks.
-          - small_primes is a list of small primes
-          - jump is the product thereof
-          - residue_chunks is a list of lists comprised of all integers < jump
-             that are coprime to jump, broken into [ncpus] sublists of
-             approximately equal size.
+        A triple ``(small_primes, M, residue_chunks)``, where
+          - ``small_primes`` is a list of small primes
+          - ``M`` is the product thereof
+          - ``residue_chunks`` is a list of lists comprised of all integers
+             less than jump that are coprime to jump, broken into n
+             sublists of approximately equal size.
 
         EXAMPLES::
 
@@ -1068,30 +1068,40 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
               [29, 61, 101, 137, 169, 199],
               [31, 67, 103, 139, 173, 209]])
         """
-        # If ncpus <=48, primes are sieved for modulo 210
-        if ncpus <= 48:
+        # If n <=48, primes are sieved for modulo 210
+        if n <= 48:
             small_primes = [2,3,5,7]
-            jump = 210
+            M = 210
             residue_list = [1, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47,
                             53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103,
                             107, 109, 113, 121, 127, 131, 137, 139, 143, 149,
                             151, 157, 163, 167, 169, 173, 179, 181, 187, 191,
                             193, 197, 199, 209]
-        # Otherwise sieve modulo 2310
-        elif ncpus <= 480:
-            from sage.rings.arith import gcd
-            small_primes = [2,3,5,7,11]
-            jump = 2310
-            residue_list = [int(n) for n in range(jump) if gcd(n,jump)==1]
-        # Not implemented: parallelization for > 480 cores
+        # General case for n > 480
         else:
-            raise ValueError("ncpus must be <= 480")
+            from sage.rings.finite_rings.integer_mod import mod
+            from sage.rings.arith import next_prime
 
-        # Break residue_list into chunks according to number of CPUs
+            M,p = 2,2
+            small_primes,residue_list = [2],[1]
+            num_residues = 1
+            # Enlarge residue_list by repeatedly applying Chinese Remainder
+            # Theorem
+            while num_residues<n:
+                p = next_prime(p)
+                small_primes.append(p)
+                g,h = (mod(p,M)**(-1)).lift(),(mod(M,p)**(-1)).lift()
+                residue_list = [(a*p*g + b*M*h)%(M*p) for a in residue_list
+                                for b in range(1,p)]
+                num_residues = num_residues*(p-1)
+                M *= p
+            residue_list.sort()
+
+        # Break residue_list into n chunks
         residue_chunks = [[residue_list[i] for i in range(len(residue_list))
-                               if i%ncpus==k] for k in range(ncpus)]
+                               if i%n==k] for k in range(n)]
 
-        return small_primes, jump, residue_chunks
+        return small_primes, M, residue_chunks
 
     cpdef _zerosum_sincsquared_fast(self,Delta=1,bad_primes=None):
         r"""

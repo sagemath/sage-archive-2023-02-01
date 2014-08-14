@@ -1404,7 +1404,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
                 elif n_is_prime(k):
                     y += self._sincsquared_summand_2(k,t,ap,p,logp)
 
-        # _sum_over_residue_class() function is parallized
+        # _sum_over_residues() function is parallized
         for summand in _sum_over_residues(residue_chunks):
             y += summand[1]
 

@@ -617,8 +617,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
     def new_variable(self, real=False, binary=False, integer=False, nonnegative=None, dim=1, name=""):
         r"""
-        Returns an instance of ``MIPVariable`` associated
-        to the current instance of ``MixedIntegerLinearProgram``.
+        Return a new MIPVariable
 
         A new variable ``x`` is defined by::
 
@@ -628,6 +627,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
         It behaves exactly as an usual dictionary would. It can use any key
         argument you may like, as ``x[5]`` or ``x["b"]``, and has methods
         ``items()`` and ``keys()``.
+
+        .. SEEALSO::
+
+            - :meth:`set_min`,:meth:`get_min` -- set/get the lower bound of a
+              variable. Note that by default, all variables are non-negative.
+
+            - :meth:`set_max`,:meth:`get_max` -- set/get the upper bound of a
+              variable.
 
         INPUT:
 
@@ -647,13 +654,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
           using ``write_mps`` or ``write_lp``, and has no other
           effect.
 
-        .. SEEALSO::
-
-            - :meth:`set_min`,:meth:`get_min` -- set/get the lower bound of a
-              variable. Note that by default, all variables are non-negative.
-
-            - :meth:`set_max`,:meth:`get_max` -- set/get the upper bound of a
-              variable.
+        OUTPUT:
+        
+        A new instance of :class:`MIPVariable` associated to the
+        current :class:`MixedIntegerLinearProgram`.
 
         EXAMPLE::
 
@@ -695,6 +699,22 @@ cdef class MixedIntegerLinearProgram(SageObject):
               x_1 is a continuous variable (min=-oo, max=+oo)
               x_2 is an integer variable (min=-oo, max=+oo)
               x_3 is an integer variable (min=-oo, max=+oo)
+
+        On the Sage command line, generator syntax is accepted as a
+        shorthand for generating new variables with default
+        (``nonnegative=False``) settings::
+
+            sage: mip.<x, y, z> = MixedIntegerLinearProgram()
+            sage: mip.add_constraint(x[0] + y[1] + z[2] <= 10) 
+            sage: mip.show()
+            Maximization:
+            <BLANKLINE>
+            Constraints:
+              x[0] + y[1] + z[2] <= 10.0
+            Variables:
+              x[0] = x_0 is a continuous variable (min=-oo, max=+oo)
+              y[1] = x_1 is a continuous variable (min=-oo, max=+oo)
+              z[2] = x_2 is a continuous variable (min=-oo, max=+oo)
 
         TESTS:
 

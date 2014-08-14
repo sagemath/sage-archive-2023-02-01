@@ -514,9 +514,17 @@ def run_cythonize():
     # enclosing Python scope (e.g. to perform variable injection).
     Cython.Compiler.Options.old_style_globals = True
 
+    debug = False
     if os.environ.get('SAGE_DEBUG', None) != 'no':
+        print('Enabling Cython debugging support')
+        debug = True
         Cython.Compiler.Main.default_options['gdb_debug'] = True
         Cython.Compiler.Main.default_options['output_dir'] = 'build'
+
+    profile = False
+    if os.environ.get('SAGE_PROFILE', None) == 'yes':
+        print('Enabling Cython profiling support')
+        profile = True
 
     # Enable Cython caching (the cache is stored in ~/.cycache which is
     # Cython's default).
@@ -524,17 +532,25 @@ def run_cythonize():
 
     force = True
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')
-    if os.path.exists(version_file) and open(version_file).read() == Cython.__version__:
+    version_stamp = '\n'.join([
+        'cython version: ' + str(Cython.__version__),
+        'debug: ' + str(debug),
+        'profile: ' + str(profile),
+    ])
+    if os.path.exists(version_file) and open(version_file).read() == version_stamp:
         force = False
 
     global ext_modules
     ext_modules = cythonize(
         ext_modules,
-        nthreads = int(os.environ.get('SAGE_NUM_THREADS', 0)),
-        build_dir = 'build/cythonized',
-        force=force)
+        nthreads=int(os.environ.get('SAGE_NUM_THREADS', 0)),
+        build_dir='build/cythonized',
+        force=force,
+        compiler_directives={
+            'profile': profile,
+        })
 
-    open(version_file, 'w').write(Cython.__version__)
+    open(version_file, 'w').write(version_stamp)
 
 
 print "Updating Cython code...."

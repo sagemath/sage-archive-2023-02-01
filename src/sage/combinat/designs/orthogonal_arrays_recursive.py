@@ -191,7 +191,7 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
         (5, 7, 7, (4, 5))
         sage: _ = f(*args)
     """
-    for r in [1] + range(k+1,n-2): # as r*1+1+1 <= n and because we need 
+    for r in [1] + range(k+1,n-2): # as r*1+1+1 <= n and because we need
                                    # an OA(k+2,r), necessarily r=1 or r >= k+1
         if not orthogonal_array(k+2,r,existence=True):
             continue
@@ -976,30 +976,28 @@ def find_thwart_lemma_3_5(k,N):
         sage: for k,n in kn:                                                     # not tested -- too long
         ....:     assert designs.orthogonal_array(k,n,existence=True) is True    # not tested -- too long
     """
-    from sage.rings.arith import is_prime_power
+    from sage.rings.arith import prime_powers
 
     k = int(k)
     N = int(N)
 
-    for n in xrange(k+2, N):
-        if not is_prime_power(n):
-            continue
+    for n in prime_powers(k+2,N-2): # There must exist a OA(k+3,n)
 
-        # we look for (m,n,a,b,c,d) with N = mn + a + b + c (+d) and 
+        # we look for (m,n,a,b,c,d) with N = mn + a + b + c (+d) and
         # 0 <= a,b,c,d <= n
         # hence we have N/n-4 <= m <= N/n
 
         # 1. look for m,a,b,c,d with complement=False
-        # (we restrict to a <= b <= c)
+        # (we restrict to a >= b >= c)
         for m in xrange(max(k-1,(N+n-1)//n-4), N//n+1):
             if not (orthogonal_array(k,m+0,existence=True) and
-                    orthogonal_array(k,m+1,existence=True) and 
+                    orthogonal_array(k,m+1,existence=True) and
                     orthogonal_array(k,m+2,existence=True)):
                 continue
 
             NN = N - n*m
             # as a >= b >= c and d <= n we can restrict the start of the loops
-            for a in range(max(0, (NN-n+2)//3), min(n, NN)+1):
+            for a in range(max(0, (NN-n+2)//3), min(n, NN)+1): # (NN-n+2)//3 <==> ceil((NN-n)/3)x
                 if not orthogonal_array(k,a,existence=True):
                     continue
                 for b in range(max(0, (NN-n-a+1)//2), min(a, n+1-a, NN-a)+1):
@@ -1018,7 +1016,7 @@ def find_thwart_lemma_3_5(k,N):
                             return thwart_lemma_3_5, (k,n,m,a,b,c,d,False)
 
         # 2. look for m,a,b,c,d with complement=True
-        # (we restrict to a <= b <= c)
+        # (we restrict to a >= b >= c)
         for m in xrange(max(k-2,N//n-4), (N+n-1)//n):
             if not (orthogonal_array(k,m+1,existence=True) and
                     orthogonal_array(k,m+2,existence=True) and
@@ -1026,7 +1024,7 @@ def find_thwart_lemma_3_5(k,N):
                 continue
 
             NN = N - n*m
-            for a in range(max(0, (NN-n+2)//3), min(n, NN)+1):
+            for a in range(max(0, (NN-n+2)//3), min(n, NN)+1): # (NN-n+2)//3 <==> ceil((NN-n)/3)
                 if not orthogonal_array(k,a,existence=True):
                     continue
                 na = n-a

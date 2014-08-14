@@ -1,0 +1,14 @@
+--- a/check/TP12-sol.cas.out1	2014-06-25 09:15:40.000000000 +0200
++++ b/check/TP12-sol.cas.out1	2014-08-14 08:57:05.000000000 +0200
+@@ -126,10 +126,5 @@
+  
+ end;,
+ 2,
+-"All PARI functions are now defined with the pari_ prefix.
+-PARI functions are also defined without prefix except:
+-% abs acos acosh apply arg asin asinh atan atanh binomial bitand bitor bitxor break ceil charpoly concat conj content cos cosh default divisors erfc eval exp factor factorial floor frac gcd global hilbert imag isprime kill lcm length local matrix max min next nextprime norm print real round select shift sign simplify sin sinh solve sqrt subst sum tan tanh taylor trace truncate type until valuation vector version write 
+-When working with p-adic numbers use them in a pari() call
+-Type ?pari for short help
+-Inside xcas, try Help->Manuals->PARI for HTML help",
++"Not implemented, please recompile giac with PARI",
+ 0

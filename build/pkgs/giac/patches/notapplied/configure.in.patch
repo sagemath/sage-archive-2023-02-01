@@ -1,0 +1,11 @@
+--- a/configure.in	2012-06-21 11:23:23.000000000 +0200
++++ b/configure.in	2012-07-08 18:23:52.000000000 +0200
+@@ -143,6 +143,8 @@
+ #	AC_CHECK_LIB(tmglib, main, [], [CONFIG_LAPACK="no"])
+ 	AC_CHECK_LIB(gfortran, main)
+ 	AC_CHECK_LIB(blas, main)
++	AC_CHECK_LIB(cblas, main)
++	AC_CHECK_LIB(atlas, main)
+ 	AC_CHECK_LIB(lapack, main, [], [CONFIG_LAPACK="no"])
+   fi
+   

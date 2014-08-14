@@ -64,10 +64,12 @@ echo "Configuring giac..."
 
 # If you experience problems after loading the cython interface: giacpy
 # (Ex: next_prime(11**25) before and after loading giacpy) try the --disable-pari
-# option.
-#./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-pari --disable-gmpxx
-# solved? trying to enable pari again in libgiac.
-./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-gmpxx
+# option. (can't reproduce this with sage >= 6)
+#
+# Pb2 with pari enabled in giac and cython: control-c after loading giacpy quits sage.
+#
+./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-pari --disable-gmpxx
+#./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-gmpxx
 
 if [ $? -ne 0 ]; then
     exit 1

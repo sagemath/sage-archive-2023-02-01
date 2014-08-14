@@ -1,0 +1,11 @@
+--- a/check/TP04-sol.cas	2012-11-06 14:17:49.000000000 +0100
++++ b/check/TP04-sol.cas	2014-08-13 23:24:48.000000000 +0200
+@@ -62,7 +62,7 @@
+  B:=A-x*identity(4);
+  for i from 1 to 3 do B:=normal(pivot(B,5-i,i)); od;
+  simplify(B[1,4]/P);#le dernier terme diagonal est un multiple du poly carateristique
+-pari():; // pour charger pari; sinon faire pari_matdet
++ matdet:=det:;// pour giac compile sans pari
+  k:=100;A:=matrix(k,k,(i,j)->rand(21)-10):
+  time(d1:=matdet(A,0)):#par gauss-bareiss via pari
+  time(d2:=det(A,bareiss)):# par bareiss via xcas

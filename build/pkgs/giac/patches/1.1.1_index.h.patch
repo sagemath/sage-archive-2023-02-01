@@ -1,8 +1,8 @@
---- a/src/index.h	2014-07-28 15:55:50.000000000 +0200
-+++ b/src/index.h	2014-07-28 15:56:15.000000000 +0200
+--- a/src/index.h	2014-04-30 17:59:34.000000000 +0200
++++ b/src/index.h	2014-08-14 14:02:30.000000000 +0200
 @@ -35,7 +35,7 @@
- #include <unordered_map>
  #endif
+ ///////////////////////////////////////////
  
 -#if defined UNORDERED_MAP && !defined(__APPLE__) && !defined(__clang__) && !defined(VISUALC)
 +#if defined UNORDERED_MAP  && !defined(__clang__) && !defined(VISUALC) // && !defined(__APPLE__)

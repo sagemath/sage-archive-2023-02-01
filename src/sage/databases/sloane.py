@@ -186,10 +186,10 @@ class SloaneEncyclopediaClass:
 
         INPUT:
 
-        - ``oeis_url`` - string (default: "http://www.research.att.com...")
+        - ``oeis_url`` - string (default: "http://oeis.org...")
           The URL of the stripped.gz encyclopedia file.
 
-        - ``names_url`` - string (default: "http://www.research.att.com...")
+        - ``names_url`` - string (default: "http://oeis.org...")
           The URL of the names.gz encyclopedia file.  If you do not want to
           download this file, set names_url=None.
 

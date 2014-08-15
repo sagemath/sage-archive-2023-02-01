@@ -120,12 +120,15 @@ cdef class Ring(ParentWithGens):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_euclidean_degree() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
         running ._test_prod() . . . pass
+        running ._test_quo_rem() . . . pass
         running ._test_some_elements() . . . pass
         running ._test_zero() . . . pass
+        running ._test_zero_divisors() . . . pass
         sage: TestSuite(QQ['x','y']).run()
         sage: TestSuite(ZZ['x','y']).run()
         sage: TestSuite(ZZ['x','y']['t']).run()

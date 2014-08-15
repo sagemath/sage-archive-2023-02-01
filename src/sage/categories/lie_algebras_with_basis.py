@@ -31,12 +31,15 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         EXAMPLES::
 
             sage: LieAlgebras(QQ).WithBasis().example()
-            An example of a Lie algebra: the abelian Lie algebra on the generators ('a', 'b', 'c') over Rational Field
+            An example of a Lie algebra: the abelian Lie algebra on the
+             generators indexed by Partitions over Rational Field
 
         Another set of generators can be specified as an optional argument::
 
             sage: LieAlgebras(QQ).WithBasis().example(Compositions())
-            An example of a Lie algebra: the abelian Lie algebra on the generators ('a', 'b', 'c') over Rational Field
+            An example of a Lie algebra: the abelian Lie algebra on the
+             generators indexed by Compositions of non-negative integers
+             over Rational Field
         """
         if gens is None:
             from sage.combinat.partition import Partitions

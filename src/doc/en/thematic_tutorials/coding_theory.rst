@@ -857,11 +857,11 @@ Regarding bounds on coding theory parameters, this module implements:
 
    .. math::
 
-      \begin{align*}
+      \begin{aligned}
       R(C)+\delta(C) \geq 
       &1- \delta(C)\log_q({\frac{q-1}{q}})-\delta(C)\log_q(\delta(C))\\
-      &-(1-\delta(C))\log_q(1-\delta(C))-\epsilon.
-      \end{align*}
+      &-(1-\delta(C))\log_q(1-\delta(C))-\epsilon.\\
+      \end{aligned}
       
    The curve
    :math:`(\delta, 1- \delta\log_q({\frac{q-1}{q}})-\delta\log_q(\delta)-
@@ -876,7 +876,7 @@ Regarding bounds on coding theory parameters, this module implements:
        Sage : f = lambda x: gv_bound_asymp(x,2)
        Sage : plot(f,0,1/2)
 
-.. figure:: media/gv-bound-asymp.eps.png
+.. figure:: media/gv-bound-asymp.png
     :align: center
     :scale: 50 %
     
@@ -887,7 +887,7 @@ Regarding bounds on coding theory parameters, this module implements:
 -  ``plotkin_bound_asymp(delta,q)``, asymptotic analog of the Plotkin
    upper bound.
 
-.. figure:: media/plotkin-bound-asymp.eps.png
+.. figure:: media/plotkin-bound-asymp.png
     :align: center
     :scale: 50 %
     
@@ -900,7 +900,7 @@ Regarding bounds on coding theory parameters, this module implements:
 -  ``elias_bound_asymp(delta,q)``, asymptotic analog of the Elias upper
    bound.
 
-.. figure:: media/elias-bound-asymp.eps.png
+.. figure:: media/elias-bound-asymp.png
     :align: center
     :scale: 50 %
     
@@ -911,7 +911,7 @@ Regarding bounds on coding theory parameters, this module implements:
 -  ``hamming_bound_asymp(delta,q)``, asymptotic analog of the Hamming
    upper bound.
 
-.. figure:: media/hamming-bound-asymp.eps.png
+.. figure:: media/hamming-bound-asymp.png
     :align: center
     :scale: 50 %
     
@@ -922,7 +922,7 @@ Regarding bounds on coding theory parameters, this module implements:
 -  ``singleton_bound_asymp(delta,q)``, asymptotic analog of the
    Singleton upper bound.
 
-.. figure:: media/singleton-bound-asymp.eps.png
+.. figure:: media/singleton-bound-asymp.png
     :align: center
     :scale: 50 %
     
@@ -931,7 +931,7 @@ Regarding bounds on coding theory parameters, this module implements:
 -  ``mrrw1_bound_asymp(delta,q)``, "first" asymptotic
    McEliese-Rumsey-Rodemich-Welsh upper bound for the information rate .
 
-.. figure:: media/mrrw1-bound-asymp.eps.png
+.. figure:: media/mrrw1-bound-asymp.png
     :align: center
     :scale: 50 %
     
@@ -956,7 +956,7 @@ Here are all the bounds together:
     Sage : P6 = plot(f6,0,1/2,rgbcolor=(0,1,0))
     Sage : show(P1+P2+P3+P4+P5+P6)
 
-.. figure:: media/all-bounds-asymp.eps.png
+.. figure:: media/all-bounds-asymp.png
     :align: center
     :scale: 100 %
     

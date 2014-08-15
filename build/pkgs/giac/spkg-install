@@ -38,15 +38,6 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-#    #    #    #    #
-#   If we patch the configure.in the run the following
-#      and add libtool to the dependencies in SPKG.txt
-#
-#aclocal
-#autoconf
-#automake --add-missing
-#libtoolize
-#     #     #     #
 
 #############################################################
 #   configure

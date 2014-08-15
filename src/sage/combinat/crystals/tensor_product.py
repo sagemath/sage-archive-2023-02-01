@@ -665,8 +665,12 @@ class TensorProductOfCrystals(CrystalOfWords):
 
             sage: C = crystals.Letters(['A',2])
             sage: T = crystals.TensorProduct(C, C)
-            sage: T2 = crystals.TensorProduct(C, C)
+            sage: T2 = crystals.TensorProduct(C, C, cartan_type=['A',2])
             sage: T is T2
+            True
+            sage: T3 = crystals.TensorProduct(C, C, C)
+            sage: T3p = crystals.TensorProduct(T, C)
+            sage: T3 is T3p
             True
             sage: B = crystals.infinity.Tableaux(['A',2])
             sage: T = crystals.TensorProduct(B, B)
@@ -681,13 +685,33 @@ class TensorProductOfCrystals(CrystalOfWords):
                 cartan_type = crystals[0].cartan_type()
 
         if "generators" in options:
+            if any(c.cartan_type() != cartan_type for c in crystals):
+                raise ValueError("mismatched Cartan types")
             generators = tuple(tuple(x) if isinstance(x, list) else x for x in options["generators"])
 
             if all(c in RegularCrystals() for c in crystals):
                 return TensorProductOfRegularCrystalsWithGenerators(crystals, generators, cartan_type)
             return TensorProductOfCrystalsWithGenerators(crystals, generators, cartan_type)
 
-        if all(c in RegularCrystals() for c in crystals):
+        # Flatten out the full tensor product of crystals
+        is_regular = True
+        crystal_list = []
+        for c in crystals:
+            if c.cartan_type() != cartan_type:
+                raise ValueError("mismatched Cartan types")
+
+            if isinstance(c, FullTensorProductOfRegularCrystals):
+                crystal_list += list(c.crystals)
+            elif isinstance(c, FullTensorProductOfCrystals):
+                is_regular = False
+                crystal_list += list(c.crystals)
+            else:
+                if c not in RegularCrystals():
+                    is_regular = False
+                crystal_list.append(c)
+
+        crystals = tuple(crystal_list)
+        if is_regular:
             return FullTensorProductOfRegularCrystals(crystals, cartan_type=cartan_type)
         return FullTensorProductOfCrystals(crystals, cartan_type=cartan_type)
 
@@ -1740,7 +1764,7 @@ class CrystalOfTableaux(CrystalOfWords):
 
     def _element_constructor_(self, *args, **options):
         """
-        Returns a CrystalOfTableauxElement
+        Return a :class:`CrystalOfTableauxElement`.
 
         EXAMPLES::
 

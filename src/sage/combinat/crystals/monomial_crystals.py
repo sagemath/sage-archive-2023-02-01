@@ -100,11 +100,13 @@ from copy import copy
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
+from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
 
 class NakajimaYMonomial(Element):
@@ -898,18 +900,6 @@ class InfinityCrystalOfNakajimaMonomials(Parent,UniqueRepresentation):
         """
         return "Infinity Crystal of modified Nakajima monomials of type {}".format(self._cartan_type)
 
-    def cardinality(self):
-        r"""
-        Return the cardinality of ``self``, which is always `\infty`.
-
-        EXAMPLES::
-
-            sage: M = crystals.infinity.NakajimaMonomials(['A',5,2])
-            sage: M.cardinality()
-            +Infinity
-        """
-        return Infinity
-
 class CrystalOfNakajimaMonomialsElement(NakajimaYMonomial):
     r"""
     Element class for
@@ -1045,11 +1035,19 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
         EXAMPLES::
 
             sage: La = RootSystem(['A',2]).weight_lattice().fundamental_weights()
-            sage: M = crystals.NakajimaMonomials(['A',2],La[1]+La[2])
+            sage: M = crystals.NakajimaMonomials(['A',2], La[1]+La[2])
             sage: TestSuite(M).run()
+
+            sage: La = RootSystem(['C',2,1]).weight_lattice().fundamental_weights()
+            sage: M = crystals.NakajimaMonomials(['C',2,1], La[0])
+            sage: TestSuite(M).run(max_runs=100)
         """
-        InfinityCrystalOfNakajimaMonomials.__init__( self, ct,
-                (RegularCrystals(), HighestWeightCrystals()), CrystalOfNakajimaMonomialsElement )
+        if ct.is_finite():
+            cat = ClassicalCrystals()
+        else:
+            cat = (RegularCrystals(), HighestWeightCrystals(), InfiniteEnumeratedSets())
+        InfinityCrystalOfNakajimaMonomials.__init__( self, ct, cat,
+                CrystalOfNakajimaMonomialsElement )
         self._cartan_type = ct
         self.hw = La
         gen = {}
@@ -1077,16 +1075,16 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
         EXAMPLES::
 
             sage: La = RootSystem(['A',2]).weight_lattice().fundamental_weights()
-            sage: M = crystals.NakajimaMonomials(['A',2],La[1])
+            sage: M = crystals.NakajimaMonomials(['A',2], La[1])
             sage: M.cardinality()
             3
 
             sage: La = RootSystem(['D',4,2]).weight_lattice().fundamental_weights()
-            sage: M = crystals.NakajimaMonomials(['D',4,2],La[1])
+            sage: M = crystals.NakajimaMonomials(['D',4,2], La[1])
             sage: M.cardinality()
             +Infinity
         """
         if not self.cartan_type().is_finite():
             return Infinity
-        return len(list(self.subcrystal(generators=[self.module_generators[0]])))
+        return super(CrystalOfNakajimaMonomials, self).cardinality()
 

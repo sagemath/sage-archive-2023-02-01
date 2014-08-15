@@ -169,6 +169,42 @@ def gap_root():
     return gapdir
 
 
+def libgap_workspace():
+    """
+    Return the filename of the gap workspace and whether it is up to date.
+
+    OUTPUT:
+
+    Pair consisting of a string and a boolean. The string is the
+    filename of the saved libgap workspace (or that it should have if
+    it doesn't exist). The boolean is whether the workspace is
+    up-to-date. You may use the workspace file only if the boolean is
+    ``True``.
+
+    EXAMPLES::
+
+        sage: from sage.libs.gap.util import libgap_workspace
+        sage: ws, up_to_date = libgap_workspace()
+        sage: ws
+        '/.../gap/libgap-workspace-...'
+        sage: isinstance(up_to_date, bool)
+        True
+    """
+    import os
+    import glob
+    from sage.env import SAGE_LOCAL, DOT_SAGE
+    workspace = os.path.join(DOT_SAGE, 'gap', 'libgap-workspace-{0}'
+                             .format(abs(hash(SAGE_LOCAL))))
+    try:
+        workspace_mtime = os.path.getmtime(workspace)
+    except OSError:
+        # workspace does not exist
+        return (workspace, False)
+    libgap_shlibs = os.path.join(SAGE_LOCAL, 'lib', 'libgap*')
+    newest_shlib = max(map(os.path.getmtime, glob.glob(libgap_shlibs)))
+    return (workspace, workspace_mtime > newest_shlib)
+
+
 cdef initialize():
     """
     Initialize the GAP library, if it hasn't already been
@@ -185,7 +221,7 @@ cdef initialize():
     # Define argv and environ variables, which we will pass in to
     # initialize GAP. Note that we must pass define the memory pool
     # size!
-    cdef char* argv[12]
+    cdef char* argv[14]
     argv[0] = "sage"
     argv[1] = "-l"
     s = gap_root()
@@ -205,6 +241,13 @@ cdef initialize():
     argv[10] = "-T"    # no debug loop
     argv[11] = NULL
     cdef int argc = 11   # argv[argc] must be NULL
+
+    workspace, workspace_is_up_to_date = libgap_workspace()
+    if workspace_is_up_to_date:
+        argv[11] = "-L"
+        argv[12] = workspace
+        argv[13] = NULL
+        argc = 13
 
     # Initialize GAP and capture any error messages
     # The initialization just prints error and does not use the error handler
@@ -227,6 +270,9 @@ cdef initialize():
     # Finished!
     _gap_is_initialized = True
 
+    # Save a new workspace if necessary
+    if not workspace_is_up_to_date:
+        gap_eval('SaveWorkspace("{0}")'.format(workspace))
 
 
 ############################################################################

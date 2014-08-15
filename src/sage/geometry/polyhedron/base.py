@@ -441,6 +441,7 @@ class Polyhedron_base(Element):
     def plot(self,
              point=None, line=None, polygon=None, # None means unspecified by the user
              wireframe='blue', fill='green',
+             projection_direction=None,
              **kwds):
         """
         Return a graphical representation.
@@ -465,7 +466,13 @@ class Polyhedron_base(Element):
           objects in the dimension of the polytope (or of dimension 2
           for higher dimensional polytopes) and ``wireframe`` is used
           for all lower-dimensional graphics objects
-          (default: 'green' for fill and 'blue' for wireframe)
+          (default: 'green' for ``fill`` and 'blue' for ``wireframe``)
+
+        - ``projection_direction`` -- coordinate list/tuple/iterable
+          or ``None`` (default). The direction to use for the
+          :meth:`schlegel_projection`` of the polytope. If not
+          specified, no projection is used in dimensions `< 4` and
+          parallel projection is used in dimension `4`.
 
         - ``**kwds`` -- optional keyword parameters that are passed to
           all graphics objects.
@@ -572,6 +579,46 @@ class Polyhedron_base(Element):
             sage: for p in point.plot(wireframe=False, fill="red"):
             ...       print p.options()['rgbcolor'], p
             red Point set defined by 1 point(s)
+
+        The ``projection_direction`` option::
+
+            sage: line3d = Polyhedron([(-1,-1,-1), (1,1,1)])
+            sage: print(line3d.plot(projection_direction=[2,3,4]).description())
+            Line defined by 2 points:           [(-0.00..., 0.126...), (0.131..., -1.93...)]
+            Point set defined by 2 point(s):    [(-0.00..., 0.126...), (0.131..., -1.93...)]
+
+        We try to draw the polytope in 2 or 3 dimensions::
+
+            sage: type(Polyhedron(ieqs=[(1,)]).plot())
+            <class 'sage.plot.graphics.Graphics'>
+            sage: type(polytopes.n_cube(1).plot())
+            <class 'sage.plot.graphics.Graphics'>
+            sage: type(polytopes.n_cube(2).plot())
+            <class 'sage.plot.graphics.Graphics'>
+            sage: type(polytopes.n_cube(3).plot())
+            <class 'sage.plot.plot3d.base.Graphics3dGroup'>
+
+        In 4d a projection to 3d is used::
+
+            sage: type(polytopes.n_cube(4).plot())
+            <class 'sage.plot.plot3d.base.Graphics3dGroup'>
+            sage: type(polytopes.n_cube(5).plot())
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: plotting of 5-dimensional polyhedra not implemented
+
+        If the polyhedron is not full-dimensional, the :meth:`affine_hull` is used if necessary::
+
+            sage: type(Polyhedron([(0,), (1,)]).plot())
+            <class 'sage.plot.graphics.Graphics'>
+            sage: type(Polyhedron([(0,0), (1,1)]).plot())
+            <class 'sage.plot.graphics.Graphics'>
+            sage: type(Polyhedron([(0,0,0), (1,1,1)]).plot())
+            <class 'sage.plot.plot3d.base.Graphics3dGroup'>
+            sage: type(Polyhedron([(0,0,0,0), (1,1,1,1)]).plot())
+            <class 'sage.plot.plot3d.base.Graphics3dGroup'>
+            sage: type(Polyhedron([(0,0,0,0,0), (1,1,1,1,1)]).plot())
+            <class 'sage.plot.graphics.Graphics'>
         """
         def merge_options(*opts):
             merged = dict()
@@ -593,14 +640,26 @@ class Polyhedron_base(Element):
         opts = [merge_options(opt1, opt2, kwds)
                 for opt1, opt2 in zip(opts, [point, line, polygon])]
 
-        from plot import render_2d, render_3d, render_4d
-        render_method = [ None, None, render_2d, render_3d, render_4d ]
-        if self.ambient_dim() < len(render_method):
-            render = render_method[self.ambient_dim()]
-            if render is not None:
-                return render(self, *opts)
-        raise NotImplementedError('Plotting of '+str(self.ambient_dim())+
-                                  '-dimensional polyhedra not implemented')
+        def project(polyhedron):
+            if projection_direction is not None:
+                return polyhedron.schlegel_projection(projection_direction)
+            elif polyhedron.ambient_dim() == 4:
+                # There is no 4-d screen, we must project down to 3d
+                return polyhedron.schlegel_projection()
+            else:
+                return polyhedron.projection()
+
+        projection = project(self)
+        try:
+            plot_method = projection.plot
+        except AttributeError:
+            projection = project(self.affine_hull())
+            try:
+                plot_method = projection.plot
+            except AttributeError:
+                raise NotImplementedError('plotting of {0}-dimensional polyhedra not implemented'
+                                          .format(self.ambient_dim()))
+        return plot_method(*opts)
 
     show = plot
 
@@ -1618,6 +1677,8 @@ class Polyhedron_base(Element):
             return -1   # the empty set
         else:
             return self.ambient_dim() - self.n_equations()
+
+    dimension = dim
 
     def is_empty(self):
         """
@@ -3308,6 +3369,15 @@ class Polyhedron_base(Element):
         """
         Return a projection object.
 
+        See also
+        :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.schlegel_projection`
+        for a more interesting projection.
+
+        OUTPUT:
+
+        The identity projection. This is useful for plotting
+        polyhedra.
+
         EXAMPLES::
 
             sage: p = polytopes.n_cube(3)
@@ -3356,10 +3426,33 @@ class Polyhedron_base(Element):
             return proj.render_outline_2d(**kwds)
         raise ValueError("render_wireframe is only defined for 2 and 3 dimensional polyhedra.")
 
-    def schlegel_projection(self, projection_dir = None, height = 1.1):
+    def schlegel_projection(self, projection_dir=None, height=1.1):
         """
-        Returns a projection object whose transformed coordinates are
-        a Schlegel projection of the polyhedron.
+        Return the Schlegel projection.
+
+        * The polyhedron is translated such that its
+          :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.center`
+          is at the origin.
+
+        * The vertices are then normalized to the unit sphere
+
+        * The normalized points are stereographically projected from a
+          point slightly outside of the sphere.
+
+        INPUT:
+
+        - ``projection_direction`` -- coordinate list/tuple/iterable
+          or ``None`` (default). The direction of the Schlegel
+          projection. For a full-dimensional polyhedron, the default
+          is the first facet normal; Otherwise, the vector consisting
+          of the first n primes is chosen.
+
+        - ``height`` -- float (default: `1.1`). How far outside of the
+          unit sphere the focal point is.
+
+        OUTPUT:
+
+        A :class:`~sage.geometry.polyhedron.plot.Projection` object.
 
         EXAMPLES::
 
@@ -3377,7 +3470,7 @@ class Polyhedron_base(Element):
             f0 = [ v.index() for v in facet.incident() ]
             projection_dir = [sum([vertices[f0[i]][j]/len(f0) for i in range(len(f0))])
                               for j in range(self.ambient_dim())]
-        return proj.schlegel(projection_direction = projection_dir, height = height)
+        return proj.schlegel(projection_direction=projection_dir, height=height)
 
     def _volume_lrs(self, verbose=False):
         """
@@ -4302,6 +4395,69 @@ class Polyhedron_base(Element):
         self._restricted_automorphism_group = group
         return group
 
+    def is_full_dimensional(self):
+        """
+        Return whether the polyhedron is full dimensional.
 
+        OUTPUT:
 
+        Boolean. Whether the polyhedron is not contained in any strict
+        affine subspace.
 
+        EXAMPLES::
+
+            sage: polytopes.n_cube(3).is_full_dimensional()
+            True
+            sage: Polyhedron(vertices=[(1,2,3)], rays=[(1,0,0)]).is_full_dimensional()
+            False
+        """
+        return self.dim() == self.ambient_dim()
+
+    def affine_hull(self):
+        """
+        Return the affine hull.
+
+        Each polyhedron is contained in some smallest affine subspace
+        (possibly the entire ambient space). The affine hull is the
+        same polyhedron but thought of as a full-dimensional
+        polyhedron in this subspace.
+
+        OUTPUT:
+
+        A full-dimensional polyhedron.
+
+        EXAMPLES::
+
+            sage: triangle = Polyhedron([(1,0,0), (0,1,0), (0,0,1)]);  triangle
+            A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 3 vertices
+            sage: triangle.affine_hull()
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
+
+            sage: half3d = Polyhedron(vertices=[(3,2,1)], rays=[(1,0,0)])
+            sage: half3d.affine_hull().Vrepresentation()
+            (A ray in the direction (1), A vertex at (3))
+
+        TESTS::
+
+            sage: Polyhedron([(2,3,4)]).affine_hull()
+            A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
+        """
+        # translate one vertex to the origin
+        v0 = self.vertices()[0].vector()
+        gens = []
+        for v in self.vertices()[1:]:
+            gens.append(v.vector() - v0)
+        for r in self.rays():
+            gens.append(r.vector())
+        for l in self.lines():
+            gens.append(l.vector())
+
+        # Pick subset of coordinates to coordinatize the affine span
+        pivots = matrix(gens, base_ring=self.base_ring()).pivots()
+        def pivot(indexed):
+            return [indexed[i] for i in pivots]
+
+        vertices = map(pivot, self.vertices())
+        rays = map(pivot, self.rays())
+        lines = map(pivot, self.lines())
+        return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring())

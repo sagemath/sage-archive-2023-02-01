@@ -13,8 +13,9 @@ class.
 
 AUTHORS:
 
-- Nathann Cohen (2010-10): initial implementation
-- Risan (2012-02)        : extension for PPL backend
+- Nathann Cohen (2010-10)      : initial implementation
+- Risan (2012-02)              : extension for PPL backend
+- Ingolfur Edvardsson (2014-06): extension for CVXOPT backend
 
 """
 
@@ -881,11 +882,17 @@ def default_mip_solver(solver = None):
         - CPLEX (``solver="CPLEX"``). See the
           `CPLEX <http://www.ilog.com/products/cplex/>`_ web site.
 
+        - CVXOPT (``solver="CVXOPT"``). See the `CVXOPT
+          <http://cvxopt.org/>`_ web site.
+
+        - PPL (``solver="PPL"``). See the `PPL
+          <http://bugseng.com/products/ppl/>`_ web site.
+
         - Gurobi (``solver="Gurobi"``). See the `Gurobi
           <http://www.gurobi.com/>`_ web site.
 
         ``solver`` should then be equal to one of ``"GLPK"``,
-        ``"Coin"``, ``"CPLEX"``, or ``"Gurobi"``.
+        ``"Coin"``, ``"CPLEX"``,  ``"CVXOPT"``, ``"Gurobi"`` or ``"PPL"`` .
 
         - If ``solver=None`` (default), the current default solver's name is
           returned.
@@ -903,10 +910,17 @@ def default_mip_solver(solver = None):
         sage: default_mip_solver("GLPK")
         sage: default_mip_solver()
         'Glpk'
+        sage: default_mip_solver("PPL")
+        sage: default_mip_solver()
+        'Ppl'
+        sage: default_mip_solver("GUROBI")
+        Traceback (most recent call last):
+        ...
+        ValueError: Gurobi is not available. Please refer to the documentation to install it.
         sage: default_mip_solver("Yeahhhhhhhhhhh")
         Traceback (most recent call last):
         ...
-        ValueError: 'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi' or None.
+        ValueError: 'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi', 'CVXOPT', 'PPL' or None.
         sage: default_mip_solver(former_solver)
     """
     global default_solver
@@ -940,6 +954,20 @@ def default_mip_solver(solver = None):
         except ImportError:
             raise ValueError("COIN is not available. Please refer to the documentation to install it.")
 
+    elif solver == "Cvxopt":
+        try:
+            from sage.numerical.backends.cvxopt_backend import CVXOPTBackend
+            default_solver = solver
+        except ImportError:
+            raise ValueError("CVXOPT is not available. Please refer to the documentation to install it.")
+
+    elif solver == "Ppl":
+        try:
+            from sage.numerical.backends.ppl_backend import PPLBackend
+            default_solver = solver
+        except ImportError:
+            raise ValueError("PPL is not available. Please refer to the documentation to install it.")
+
     elif solver == "Gurobi":
         try:
             from sage.numerical.backends.gurobi_backend import GurobiBackend
@@ -951,7 +979,7 @@ def default_mip_solver(solver = None):
         default_solver = solver
 
     else:
-        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi' or None.")
+        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi', 'CVXOPT', 'PPL' or None.")
 
 cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
     """
@@ -959,7 +987,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
 
     INPUT:
 
-    - ``solver`` -- 4 solvers should be available through this class:
+    - ``solver`` -- 6 solvers should be available through this class:
 
         - GLPK (``solver="GLPK"``). See the `GLPK
           <http://www.gnu.org/software/glpk/>`_ web site.
@@ -970,14 +998,17 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
         - CPLEX (``solver="CPLEX"``). See the
           `CPLEX <http://www.ilog.com/products/cplex/>`_ web site.
 
+        - CVXOPT (``solver="CVXOPT"``). See the `CVXOPT
+          <http://cvxopt.org/>`_ web site.
+
         - Gurobi (``solver="Gurobi"``). See the `Gurobi
           <http://www.gurobi.com/>`_ web site.
 
         - PPL (``solver="PPL"``). See the `PPL
-          <http://bugseng.com/products/ppl>`_ web site.
+          <http://bugseng.com/products/ppl/>`_ web site.
 
         ``solver`` should then be equal to one of ``"GLPK"``, ``"Coin"``,
-        ``"CPLEX"``, ``"Gurobi"``, ``"PPL"``, or ``None``. If ``solver=None`` (default),
+        ``"CPLEX"``, ``"CVXOPT"``,``"Gurobi"``, ``"PPL"``, or ``None``. If ``solver=None`` (default),
         the default solver is used (see ``default_mip_solver`` method.
 
     - ``constraint_generation`` -- Only used when ``solver=None``.
@@ -1021,6 +1052,10 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
         from sage.numerical.backends.cplex_backend import CPLEXBackend
         return CPLEXBackend()
 
+    elif solver == "Cvxopt":
+        from sage.numerical.backends.cvxopt_backend import CVXOPTBackend
+        return CVXOPTBackend()
+
     elif solver == "Gurobi":
         from sage.numerical.backends.gurobi_backend import GurobiBackend
         return GurobiBackend()
@@ -1030,4 +1065,4 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
         return PPLBackend()
 
     else:
-        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'Gurobi', 'PPL' or None (in which case the default one is used).")
+        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'CVXOPT', 'Gurobi', 'PPL' or None (in which case the default one is used).")

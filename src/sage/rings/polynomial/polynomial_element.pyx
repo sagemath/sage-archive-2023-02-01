@@ -13,8 +13,9 @@ AUTHORS:
 
 -  Simon King: Use a faster way of conversion from the base ring.
 
--  Julian Rueth (2012-05-25): Fixed is_squarefree() for imperfect fields.
-                              Fixed division without remainder over QQbar.
+-  Julian Rueth (2012-05-25,2014-05-09): Fixed is_squarefree() for imperfect
+   fields, fixed division without remainder over QQbar; added ``_cache_key``
+   for polynomials with unhashable coefficients
 
 -  Simon King (2013-10): Implement copying of :class:`PolynomialBaseringInjection`.
 
@@ -828,6 +829,31 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def __iter__(self):
         return iter(self.list())
+
+    def _cache_key(self):
+        """
+        Return a hashable key which identifies this element.
+
+        EXAMPLES::
+
+            sage: K.<u> = Qq(4)
+            sage: R.<x> = K[]
+            sage: f = x
+            sage: hash(f)
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+            sage: f._cache_key()
+            (..., (0, 1 + O(2^20)))
+
+            sage: @cached_function
+            ....: def foo(t): return t
+            ....:
+            sage: foo(x)
+            (1 + O(2^20))*x
+
+        """
+        return (self.parent(), tuple(self))
 
     # you may have to replicate this boilerplate code in derived classes if you override
     # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
@@ -3352,19 +3378,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             # adds back the unit of the factorization.
             return self._factor_pari_helper(G)
 
-        elif is_RealField(R):
-            n = pari.set_real_precision(int(3.5*R.prec()) + 1)
-            G = list(self._pari_with_name().factor())
-
-        elif sage.rings.complex_field.is_ComplexField(R):
-            # This is a hack to make the polynomial have complex coefficients, since
-            # otherwise PARI will factor over RR.
-            n = pari.set_real_precision(int(3.5*R.prec()) + 1)
-            if self.leading_coefficient() != R.gen():
-                G = list((pari(R.gen())*self._pari_with_name()).factor())
-            else:
-                G = self._pari_with_name().factor()
-
         if G is None:
             # See if we can do this as a singular polynomial as a fallback
             # This was copied from the general multivariate implementation
@@ -4871,6 +4884,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: P = x^2 - F
             sage: P.resultant(P.derivative())
             -4 - 4*T + O(T^2)
+
+        Check that :trac:`16360` is fixed::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: y.resultant(y+x)
+            x
+
+            sage: K.<a> = FunctionField(QQ)
+            sage: R.<b> = K[]
+            sage: L.<b> = K.extension(b^2-a)
+            sage: R.<x> = L[]
+            sage: f=x^2-a
+            sage: g=x-b
+            sage: f.resultant(g)
+            0
+
         """
         variable = self.variable_name()
         if variable != 'x' and self.parent()._mpoly_base_ring() != self.parent().base_ring():
@@ -4883,7 +4913,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         try:
             res = self._pari_with_name().polresultant(other._pari_with_name())
             return self.parent().base_ring()(res)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, PariError, NotImplementedError):
             return self.sylvester_matrix(other).det()
 
     def discriminant(self):

@@ -101,7 +101,6 @@ class Link:
         """
         return self.braid().Tietze()
 
-
     def braid(self):
         r"""
         Returns the braid representation of the link.
@@ -126,10 +125,10 @@ class Link:
             return self._braid
 
         elif self._oriented_gauss_code != None or self._PD_code != None:
-            gen = max([abs(i) for i in self.seifert_to_braid()])
+            gen = max([abs(i) for i in self._braidword_detection_()])
             B = BraidGroup(gen + 1)
-            self._braid = B(self.seifert_to_braid())
-            return B(self.seifert_to_braid())
+            self._braid = B(self._braidword_detection_())
+            return B(self._braidword_detection_())
 
     def oriented_gauss_code(self):
         r"""
@@ -433,7 +432,7 @@ class Link:
             return _dt_internal_(self._braid.Tietze())
 
         elif self._oriented_gauss_code != None or self._PD_code != None:
-            return _dt_internal_(self.seifert_to_braid())
+            return _dt_internal_(self._braidword_detection_())
 
     def _braidwordcomponents_(self):
         r"""
@@ -759,6 +758,9 @@ class Link:
             sum = sum + s[i]
         return sum
 
+    #for version 6.1.1 the exponents results in list of tuples
+    #for the later versions the edit is as follows:
+    # return t**((-max(f.exponents())-min(f.exponents()))/2)*f
     def alexander_polynomial(self, var ='t'):
         r"""
         Returns the alexander polynomial of the link
@@ -776,15 +778,16 @@ class Link:
             sage: B = BraidGroup(8)
             sage: L = link.Link(B([-2, 4, 1, 6, 1, 4]))
             sage: L.alexander_polynomial()
-            t^2 - 2*t + 1
+            t - 2 + t^-1
             sage: L = link.Link(B([1, 2, 1, 2]))
             sage: L.alexander_polynomial()
-            t^2 - t + 1
+            t - 1 + t^-1
         """
-        R = PolynomialRing(ZZ, var)
+        R = LaurentPolynomialRing(ZZ, var)
         t = R.gen()
-        m2 = self.Seifert_Matrix() - t* (self.Seifert_Matrix().transpose())
-        return m2.determinant()
+        f = (self.Seifert_Matrix() - t* (self.Seifert_Matrix().transpose())).determinant()
+        x = [i[0] for i in f.exponents()]
+        return t**((-max(x) -min(x))/2)*f if x != [] else f
 
 
     def knot_determinant(self):
@@ -811,7 +814,7 @@ class Link:
         """
         if self.is_knot() == True:
             a = self.alexander_polynomial()
-            return abs(a(-1))
+            return int(abs(a(-1)))
         else:
             raise Exception("Determinant implmented only for knots")
 
@@ -954,13 +957,14 @@ class Link:
         Leaving component is denoted by -1
 
         EXAMPLES::
-        sage: from sage.knots import link
-        sage: L = link.Link(PD_code = [[1, 4, 5, 2], [3, 5, 6, 7], [4, 8, 9, 6], [7, 9, 10, 11], [8, 1, 13, 10], [11, 13, 2, 3]])
-        sage: L.orientation()
-        [-1, 1, -1, 1, -1, 1]
-        sage: L = link.Link(PD_code=[[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
-        sage: L.orientation()
-        [-1, -1, -1, -1, 1, -1, 1]
+
+            sage: from sage.knots import link
+            sage: L = link.Link(PD_code = [[1, 4, 5, 2], [3, 5, 6, 7], [4, 8, 9, 6], [7, 9, 10, 11], [8, 1, 13, 10], [11, 13, 2, 3]])
+            sage: L.orientation()
+            [-1, 1, -1, 1, -1, 1]
+            sage: L = link.Link(PD_code=[[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
+            sage: L.orientation()
+            [-1, -1, -1, -1, 1, -1, 1]
         """
         y = self.PD_code()
         x = deepcopy(y)
@@ -1013,26 +1017,27 @@ class Link:
             - Seifert circles of the given knot.
 
         EXAMPLES::
-        sage: from sage.knots import link
-        sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
-        sage: L.seifert_circles()
-        [[6, 2], [8, 4], [7, 5, 3, 1]]
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
-        sage: L.seifert_circles()
-        [[10, 6, 12, 2], [16, 8, 14, 4], [13, 9, 3, 15, 5, 11, 7, 1]]
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1,-1,-1,-1,1,-1,1]])
-        sage: L.seifert_circles()
-        [[13, 9], [12, 10, 4], [8, 14, 6, 2], [7, 3, 11, 5, 1]]
-        sage: L = link.Link(PD_code=[[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
-        sage: L.seifert_circles()
-        [[13, 9], [12, 10, 4], [8, 14, 6, 2], [7, 3, 11, 5, 1]]
-        sage: L = link.Link(oriented_gauss_code = [[[-1, 2, -3, 5], [4, -2, 6, -5], [-4, 1, -6, 3]], [-1, 1, 1, 1, -1, -1]])
-        sage: L.seifert_circles()
-        [[11, 8, 1], [9, 6, 3], [7, 12, 4, 5, 10, 2]]
-        sage: B = BraidGroup(2)
-        sage: L = link.Link(B([1, 1, 1]))
-        sage: L.seifert_circles()
-        [[3, 5, 1], [4, 6, 2]]
+
+            sage: from sage.knots import link
+            sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
+            sage: L.seifert_circles()
+            [[6, 2], [8, 4], [7, 5, 3, 1]]
+            sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
+            sage: L.seifert_circles()
+            [[10, 6, 12, 2], [16, 8, 14, 4], [13, 9, 3, 15, 5, 11, 7, 1]]
+            sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1,-1,-1,-1,1,-1,1]])
+            sage: L.seifert_circles()
+            [[13, 9], [12, 10, 4], [8, 14, 6, 2], [7, 3, 11, 5, 1]]
+            sage: L = link.Link(PD_code=[[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
+            sage: L.seifert_circles()
+            [[13, 9], [12, 10, 4], [8, 14, 6, 2], [7, 3, 11, 5, 1]]
+            sage: L = link.Link(oriented_gauss_code = [[[-1, 2, -3, 5], [4, -2, 6, -5], [-4, 1, -6, 3]], [-1, 1, 1, 1, -1, -1]])
+            sage: L.seifert_circles()
+            [[11, 8, 1], [9, 6, 3], [7, 12, 4, 5, 10, 2]]
+            sage: B = BraidGroup(2)
+            sage: L = link.Link(B([1, 1, 1]))
+            sage: L.seifert_circles()
+            [[3, 5, 1], [4, 6, 2]]
         """
         pd = self.PD_code()
         orient = self.orientation()
@@ -1078,23 +1083,24 @@ class Link:
             - Regions of the knot.
 
         EXAMPLES::
-        sage: from sage.knots import link
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
-        sage: L.regions()
-        [[4, -11], [2, -7], [6, -1], [13, 9], [-4, -10, -12], [-8, -2, -6, -14], [10, -3, 8, -13], [14, -5, 12, -9], [7, 3, 11, 5, 1]]
-        sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
-        sage: L.regions()
-        [[-2, -6], [8, 4], [5, 3, -8], [2, -5, -7], [1, 7, -4], [6, -1, -3]]
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
-        sage: L.regions()
-        [[6, -11], [15, -4], [9, 3, -14], [2, -9, -13], [1, 13, -8], [12, -1, -7], [5, 11, 7, -16], [-3, 10, -5, -15], [-6, -10, -2, -12], [16, 8, 14, 4]]
-        sage: B = BraidGroup(2)
-        sage: L = link.Link(B([-1, -1, -1]))
-        sage: L.regions()
-        [[6, -5], [4, -3], [2, -1], [-4, -2, -6], [3, 5, 1]]
-        sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4], [-1, 5, -3, 2, -5, 4]], [-1, 1, 1, -1, -1]])
-        sage: L.regions()
-        [[1, -5], [8, 3], [-6, -1, -10], [-2, 6, -9], [10, -4, -7], [9, 7, -3], [4, 5, 2, -8]]
+
+            sage: from sage.knots import link
+            sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+            sage: L.regions()
+            [[4, -11], [2, -7], [6, -1], [13, 9], [-4, -10, -12], [-8, -2, -6, -14], [10, -3, 8, -13], [14, -5, 12, -9], [7, 3, 11, 5, 1]]
+            sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
+            sage: L.regions()
+            [[-2, -6], [8, 4], [5, 3, -8], [2, -5, -7], [1, 7, -4], [6, -1, -3]]
+            sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
+            sage: L.regions()
+            [[6, -11], [15, -4], [9, 3, -14], [2, -9, -13], [1, 13, -8], [12, -1, -7], [5, 11, 7, -16], [-3, 10, -5, -15], [-6, -10, -2, -12], [16, 8, 14, 4]]
+            sage: B = BraidGroup(2)
+            sage: L = link.Link(B([-1, -1, -1]))
+            sage: L.regions()
+            [[6, -5], [4, -3], [2, -1], [-4, -2, -6], [3, 5, 1]]
+            sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4], [-1, 5, -3, 2, -5, 4]], [-1, 1, 1, -1, -1]])
+            sage: L.regions()
+            [[1, -5], [8, 3], [-6, -1, -10], [-2, 6, -9], [10, -4, -7], [9, 7, -3], [4, 5, 2, -8]]
         """
         pd = self.PD_code()
         orient = self.orientation()
@@ -1163,25 +1169,26 @@ class Link:
             - Planar diagram after the move is performed.
 
         EXAMPLES::
-        sage: from sage.knots import link
-        sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
-        sage: L._vogel_move_()
-        'No Vogel Move'
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
-        sage: L._vogel_move_()
-        'No Vogel Move'
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
-        sage: L._vogel_move_()
-        [[1, 7, 2, 6], [7, 3, 8, 2], [16, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [18, 9, 14, 8], [12, 9, 13, 10], [13, 15, 17, 16], [17, 15, 18, 3]]
-        sage: L = link.Link(PD_code=[[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
-        sage: L._vogel_move_()
-        [[1, 7, 2, 6], [7, 3, 8, 2], [16, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [18, 9, 14, 8], [12, 9, 13, 10], [13, 15, 17, 16], [17, 15, 18, 3]]
-        sage: L = link.Link(PD_code = [[1,4,2,3],[6,1,3,2],[7,4,8,5],[5,8,6,7]])
-        sage: L._vogel_move_()
-        [[1, 4, 2, 3], [6, 1, 3, 10], [12, 4, 8, 5], [5, 8, 6, 7], [7, 10, 11, 9], [11, 2, 12, 9]]
-        sage: L = link.Link(oriented_gauss_code = [[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
-        sage: L._vogel_move_()
-        [[1, 6, 2, 5], [8, 1, 5, 10], [12, 6, 4, 7], [7, 4, 8, 3], [3, 10, 11, 9], [11, 2, 12, 9]]
+
+            sage: from sage.knots import link
+            sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
+            sage: L._vogel_move_()
+            'No Vogel Move'
+            sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
+            sage: L._vogel_move_()
+            'No Vogel Move'
+            sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+            sage: L._vogel_move_()
+            [[1, 7, 2, 6], [7, 3, 8, 2], [16, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [18, 9, 14, 8], [12, 9, 13, 10], [13, 15, 17, 16], [17, 15, 18, 3]]
+            sage: L = link.Link(PD_code=[[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
+            sage: L._vogel_move_()
+            [[1, 7, 2, 6], [7, 3, 8, 2], [16, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [18, 9, 14, 8], [12, 9, 13, 10], [13, 15, 17, 16], [17, 15, 18, 3]]
+            sage: L = link.Link(PD_code = [[1,4,2,3],[6,1,3,2],[7,4,8,5],[5,8,6,7]])
+            sage: L._vogel_move_()
+            [[1, 4, 2, 3], [6, 1, 3, 10], [12, 4, 8, 5], [5, 8, 6, 7], [7, 10, 11, 9], [11, 2, 12, 9]]
+            sage: L = link.Link(oriented_gauss_code = [[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
+            sage: L._vogel_move_()
+            [[1, 6, 2, 5], [8, 1, 5, 10], [12, 6, 4, 7], [7, 4, 8, 3], [3, 10, 11, 9], [11, 2, 12, 9]]
         """
         pd = self.PD_code()
         pd_copy = deepcopy(pd)
@@ -1303,31 +1310,32 @@ class Link:
               removed
 
         EXAMPLES::
-        sage: from sage.knots import link
-        sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
-        sage: L._info_all_moves_()
-        [[[6, 2], [8, 4], [7, 5, 3, 1]],
-        [[-2, -6], [8, 4], [5, 3, -8], [2, -5, -7], [1, 7, -4], [6, -1, -3]],
-        [[6, 1, 7, 2], [2, 5, 3, 6], [8, 4, 1, 3], [4, 8, 5, 7]],
-        [1, 1, -1, -1]]
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
-        sage: L._info_all_moves_()
-        [[[10, 6, 12, 2], [16, 8, 14, 4], [13, 9, 3, 15, 5, 11, 7, 1]],
-        [[6, -11], [15, -4], [9, 3, -14], [2, -9, -13], [1, 13, -8], [12, -1, -7], [5, 11, 7, -16], [-3, 10, -5, -15], [-6, -10, -2, -12], [16, 8, 14, 4]],
-        [[1, 13, 2, 12], [9, 3, 10, 2], [14, 4, 15, 3], [4, 16, 5, 15], [10, 5, 11, 6], [6, 11, 7, 12], [16, 8, 1, 7], [13, 8, 14, 9]],
-        [-1, -1, -1, -1, 1, 1, -1, 1]]
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
-        sage: L._info_all_moves_()
-        [[[17, 15], [21, 19], [7, 3, 18, 9, 13, 16, 11, 5, 1], [8, 14, 20, 10, 4, 12, 22, 6, 2]],
-        [[-19, -21], [4, -11], [2, -7], [6, -1], [17, 15], [-3, 8, -18], [-13, 10, -16], [14, 20, -9], [12, 22, -5], [18, 9, 13, -15], [21, -12, -4, -10, -20], [19, -14, -8, -2, -6, -22], [16, 11, 5, 1, 7, 3, -17]],
-        [[1, 7, 2, 6], [7, 3, 8, 2], [16, 11, 4, 10], [11, 5, 12, 4], [22, 5, 1, 6], [18, 9, 14, 8], [20, 9, 13, 10], [13, 15, 17, 16], [17, 15, 18, 3], [14, 20, 21, 19], [21, 12, 22, 19]],
-        [-1, -1, -1, -1, 1, -1, 1, 1, -1, -1, 1]]
-        sage: L = link.Link(oriented_gauss_code = [[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
-        sage: L._info_all_moves_()
-        [[[11, 9], [6, 4, 8, 1], [12, 7, 3, 10, 5, 2]],
-        [[-9, -11], [7, -4], [5, -1], [3, 10, -8], [2, 12, -6], [9, -3, -7, -12], [11, -2, -5, -10], [6, 4, 8, 1]],
-        [[1, 6, 2, 5], [8, 1, 5, 10], [12, 6, 4, 7], [7, 4, 8, 3], [3, 10, 11, 9], [11, 2, 12, 9]],
-        [-1, -1, 1, 1, -1, 1]]
+
+            sage: from sage.knots import link
+            sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
+            sage: L._info_all_moves_()
+            [[[6, 2], [8, 4], [7, 5, 3, 1]],
+            [[-2, -6], [8, 4], [5, 3, -8], [2, -5, -7], [1, 7, -4], [6, -1, -3]],
+            [[6, 1, 7, 2], [2, 5, 3, 6], [8, 4, 1, 3], [4, 8, 5, 7]],
+            [1, 1, -1, -1]]
+            sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
+            sage: L._info_all_moves_()
+            [[[10, 6, 12, 2], [16, 8, 14, 4], [13, 9, 3, 15, 5, 11, 7, 1]],
+            [[6, -11], [15, -4], [9, 3, -14], [2, -9, -13], [1, 13, -8], [12, -1, -7], [5, 11, 7, -16], [-3, 10, -5, -15], [-6, -10, -2, -12], [16, 8, 14, 4]],
+            [[1, 13, 2, 12], [9, 3, 10, 2], [14, 4, 15, 3], [4, 16, 5, 15], [10, 5, 11, 6], [6, 11, 7, 12], [16, 8, 1, 7], [13, 8, 14, 9]],
+            [-1, -1, -1, -1, 1, 1, -1, 1]]
+            sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+            sage: L._info_all_moves_()
+            [[[17, 15], [21, 19], [7, 3, 18, 9, 13, 16, 11, 5, 1], [8, 14, 20, 10, 4, 12, 22, 6, 2]],
+            [[-19, -21], [4, -11], [2, -7], [6, -1], [17, 15], [-3, 8, -18], [-13, 10, -16], [14, 20, -9], [12, 22, -5], [18, 9, 13, -15], [21, -12, -4, -10, -20], [19, -14, -8, -2, -6, -22], [16, 11, 5, 1, 7, 3, -17]],
+            [[1, 7, 2, 6], [7, 3, 8, 2], [16, 11, 4, 10], [11, 5, 12, 4], [22, 5, 1, 6], [18, 9, 14, 8], [20, 9, 13, 10], [13, 15, 17, 16], [17, 15, 18, 3], [14, 20, 21, 19], [21, 12, 22, 19]],
+            [-1, -1, -1, -1, 1, -1, 1, 1, -1, -1, 1]]
+            sage: L = link.Link(oriented_gauss_code = [[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
+            sage: L._info_all_moves_()
+            [[[11, 9], [6, 4, 8, 1], [12, 7, 3, 10, 5, 2]],
+            [[-9, -11], [7, -4], [5, -1], [3, 10, -8], [2, 12, -6], [9, -3, -7, -12], [11, -2, -5, -10], [6, 4, 8, 1]],
+            [[1, 6, 2, 5], [8, 1, 5, 10], [12, 6, 4, 7], [7, 4, 8, 3], [3, 10, 11, 9], [11, 2, 12, 9]],
+            [-1, -1, 1, 1, -1, 1]]
         """
         x = self.PD_code()
         while True:
@@ -1346,7 +1354,8 @@ class Link:
         return final
 
     #**************************** PART - 2 ***************************************
-    def seifert_to_braid(self):
+    #def seifert_to_braid(self):
+    def _braidword_detection_(self):
         r"""
         Returns the braidword of the input. We match the outgoing components to the
         incoming components, in doing so we order the crossings and see to which strand
@@ -1356,26 +1365,27 @@ class Link:
             - Braidword representation of the link.
 
         EXAMPLES::
-        sage: from sage.knots import link
-        sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
-        sage: L.seifert_to_braid()
-        [1, -2, 1, -2]
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
-        sage: L.seifert_to_braid()
-        [1, -2, -2, 3, 2, -2, -2, -1, -2, -3, 2]
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
-        sage: L.seifert_to_braid()
-        [-1, 2, -1, -2, -2, 1, 1, -2]
-        sage: L = link.Link(oriented_gauss_code = [[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
-        sage: L.seifert_to_braid()
-        [-1, -2, -2, 1, 2, 2]
-        sage: B = BraidGroup(8)
-        sage: L = link.Link(B([1,1]))
-        sage: L.seifert_to_braid()
-        [1, 1]
-        sage: L = link.Link(B([1, 2, 1, -2, -1]))
-        sage: L.seifert_to_braid()
-        [1, 2, -1, -2, 2]
+
+            sage: from sage.knots import link
+            sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
+            sage: L._braidword_detection_()
+            [1, -2, 1, -2]
+            sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+            sage: L._braidword_detection_()
+            [1, -2, -2, 3, 2, -2, -2, -1, -2, -3, 2]
+            sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
+            sage: L._braidword_detection_()
+            [-1, 2, -1, -2, -2, 1, 1, -2]
+            sage: L = link.Link(oriented_gauss_code = [[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
+            sage: L._braidword_detection_()
+            [-1, -2, -2, 1, 2, 2]
+            sage: B = BraidGroup(8)
+            sage: L = link.Link(B([1,1]))
+            sage: L._braidword_detection_()
+            [1, 1]
+            sage: L = link.Link(B([1, 2, 1, -2, -1]))
+            sage: L._braidword_detection_()
+            [1, 2, -1, -2, 2]
         """
         #all the data from the previous method
         sc = self._info_all_moves_()[0]
@@ -1512,23 +1522,28 @@ class Link:
             - Writhe of the knot.
 
         EXAMPLES::
-        sage: from sage.knots import link
-        sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
-        sage: L.writhe()
-        0
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
-        sage: L.writhe()
-        -3
-        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
-        sage: L.writhe()
-        -2
+
+            sage: from sage.knots import link
+            sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
+            sage: L.writhe()
+            0
+            sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+            sage: L.writhe()
+            -3
+            sage: L = link.Link(oriented_gauss_code = [[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
+            sage: L.writhe()
+            -2
         """
         x = self.oriented_gauss_code()
         pos = x[1].count(1)
         neg = (-1)*x[1].count(-1)
         return pos + neg
 
-    def jones_polynomial(self, var = 't'):
+    # for version 6.1.1 the exponents results in list of tuples
+    # for the later versions the edit is as follows:
+    # f = x**((-max(f.exponents())-min(f.exponents()))/2)*f
+    # return sum(ZZ(c)*x**((e[0]//4)) for c,e in zip(f.coefficients(), f.exponents()))
+    def jones_polynomial(self, var = 'q'):
         r"""
         Returns the jones polynomial of the link.
         The following procedure is used to determine the jones polynomial.
@@ -1548,18 +1563,18 @@ class Link:
             sage: from sage.knots import link
             sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
             sage: L.jones_polynomial()
-            t^8 - t^4 + 1 - t^-4 + t^-8
+            q^2 - q + 1 - q^-1 + q^-2
             sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
             sage: L.jones_polynomial()
-            -t^16 + t^12 + t^4
+            q + q^-1 - q^-2
             sage: l1 = [[1,4,2,3],[4,1,3,2]]
             sage: L = link.Link(PD_code = l1)
             sage: L.jones_polynomial()
-            -t^10 - t^2
+            -q - q^-1
             sage: l5 = [[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]]
             sage: L = link.Link(PD_code = l5)
             sage: L.jones_polynomial()
-            t^14 - 2*t^10 + t^6 - 2*t^2 + t^-2 - t^-6
+            -q^2 + q - 2 + q^-1 - 2*q^-2 + q^-3
         """
         pd = self.PD_code()
         R = LaurentPolynomialRing(ZZ, var)
@@ -1606,20 +1621,22 @@ class Link:
                     if i[j] == i[k]:
                         del i[k]
         #the number of circles.
-        circle_count = []
-        for i in pd_edit:
-            circle_count.append(len(i))
+        circle_count = [len(i) for i in pd_edit]
         #we calculate the terms of the polynomial
-        terms = []
-        for i,j in zip(product, circle_count):
-            terms.append(i*((-x**2-(x**(-1))**2)**(j-1)))
+        terms = [i*((-x**2-(x**(-1))**2)**(j-1)) for i, j in zip(product, circle_count)]
         #add the terms to generate the polynomial
-        poly = 0
-        for i in terms:
-            poly = i + poly
+        poly = sum(terms)
         wri = self.writhe()
-        return ((-x**(3))**(-wri))*poly
+        f = ((-x**(3))**(-wri))*poly
+        t = [i[0] for i in f.exponents()]
+        f = x**((-max(t) -min(t))/2)*f
+        return sum(ZZ(c)*x**((e[0]/(-4))) for c,e in zip(f.coefficients(), f.exponents()))
 
+#********************** Auxillary methods used ********************************
+#rule_1 and rule_2 are used in the orientation method looks for entering,
+#leaving pairs and fill the gaps where ever necessary.
+#rule_3 is used in the jones_polynomial and replace the higer numbered
+#components with the lower numbered ones in order to get the number of circles.
 def _rule_1_(over):
     for i in range(0,len(over),2):
         if over[i][1] == None:

@@ -1643,8 +1643,8 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
     genfiles_mintides(intfile, drfile, f, map(N, ics), N(initial), N(final), N(delta), N(tolrel),
                      N(tolabs), fileoutput)
     subprocess.check_call('gcc -o ' + runmefile + ' ' + os.path.join(tempdir, '*.c ') +
-                          os.path.join('$SAGE_ROOT','local','lib','libTIDES.a') + ' -lm  -O2' +
-                          os.path.join('I$SAGE_ROOT','local','include') + os.path.join('-L$SAGE_ROOT','local','lib'),
+                          os.path.join('$SAGE_ROOT','local','lib','libTIDES.a') + ' -lm  -O2 ' +
+                          os.path.join('-I$SAGE_ROOT','local','include ') + os.path.join('-L$SAGE_ROOT','local','lib '),
                           shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     subprocess.check_call(os.path.join(tempdir, 'runme'), shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     outfile = open(fileoutput)
@@ -1743,15 +1743,19 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     from sage.interfaces.tides import genfiles_mpfr
     from sage.functions.other import ceil
     from sage.functions.log import log
-    tempdir = mkdtemp()
-    intfile = tempdir + '/integrator.c'
-    drfile = tempdir + '/driver.c'
-    fileoutput = tempdir + '/output'
-    runmefile = tempdir + '/runme'
+    from sage.misc.temporary_file import tmp_dir
+    tempdir = tmp_dir()
+    intfile = os.path.join(tempdir, 'integrator.c')
+    drfile = os.path.join(tempdir, 'driver.c')
+    fileoutput = os.path.join(tempdir, 'output')
+    runmefile = os.path.join(tempdir, 'runme')
     genfiles_mpfr(intfile, drfile, f, ics, initial, final, delta, [], [],
                       digits, tolrel, tolabs, fileoutput)
-    os.system('gcc -o ' + runmefile + ' ' + tempdir + '/*.c  $SAGE_ROOT/local/lib/libTIDES.a -lmpfr -lgmp -lm  -O2 -w')
-    os.system(tempdir+'/runme ')
+    subprocess.check_call('gcc -o ' + runmefile + ' ' + os.path.join(tempdir, '*.c ') +
+                          os.path.join('$SAGE_ROOT','local','lib','libTIDES.a') + ' -lmpfr -lgmp -lm  -O2 -w ' +
+                          os.path.join('-I$SAGE_ROOT','local','include ') + os.path.join('-L$SAGE_ROOT','local','lib '),
+                          shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.check_call(os.path.join(tempdir, 'runme'), shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     outfile = open(fileoutput)
     res = outfile.readlines()
     outfile.close()

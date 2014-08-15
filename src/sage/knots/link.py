@@ -1354,7 +1354,6 @@ class Link:
         return final
 
     #**************************** PART - 2 ***************************************
-    #def seifert_to_braid(self):
     def _braidword_detection_(self):
         r"""
         Returns the braidword of the input. We match the outgoing components to the
@@ -1542,7 +1541,7 @@ class Link:
     # for version 6.1.1 the exponents results in list of tuples
     # for the later versions the edit is as follows:
     # f = x**((-max(f.exponents())-min(f.exponents()))/2)*f
-    # return sum(ZZ(c)*x**((e[0]//4)) for c,e in zip(f.coefficients(), f.exponents()))
+    # return sum(ZZ(c)*x**((e/-4)) for c,e in zip(f.coefficients(), f.exponents()))
     def jones_polynomial(self, var = 'q'):
         r"""
         Returns the jones polynomial of the link.

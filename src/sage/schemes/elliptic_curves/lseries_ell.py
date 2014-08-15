@@ -3,7 +3,9 @@ Complex Elliptic Curve L-series
 
 AUTHORS:
 
-- Jeroen Demeyer (2013-10-17): compute L series with arbitrary precision
+- Simon Spicer (2014-08-15) - Added LFunctionZeroSum class interface method
+
+- Jeroen Demeyer (2013-10-17) - Compute L series with arbitrary precision
   instead of floats.
 
 - William Stein et al. (2005 and later)
@@ -94,7 +96,7 @@ class Lseries_ell(SageObject):
                    algorithm='gp'):
         r"""
         Return interface to Tim Dokchitser's program for computing
-        with the L-series of this elliptic curve; this provides a way
+        with the $L$-series of this elliptic curve; this provides a way
         to compute Taylor expansions and higher derivatives of
         $L$-series.
 
@@ -833,3 +835,30 @@ class Lseries_ell(SageObject):
                 return self.__lratio
             k += sqrtN
             misc.verbose("Increasing precision to %s terms."%k)
+
+    def zero_sums(self, N=None):
+        r"""
+        Return an LFunctionZeroSum class object for efficient computation
+        of sums over the zeros of self. This can be used to bound analytic
+        rank from above without having to compute with the $L$-series
+        directly.
+
+        INPUT:
+
+        - ``N`` -- (default: None) If not None, the conductor of the
+          elliptic curve attached to self. This is passable so that zero
+          sum computations can be done on curves for which the conductor
+          has been precomputed.
+
+        OUTPUT:
+
+        A LFunctionZeroSum_EllipticCurve instance.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve("5077a")
+            sage: E.lseries().zero_sums()
+            Zero sum estimator for L-function attached to Elliptic Curve defined by y^2 + y = x^3 - 7*x + 6 over Rational Field
+        """
+        from sage.lfunctions.zero_sums import LFunctionZeroSum
+        return LFunctionZeroSum(self.__E, N=N)

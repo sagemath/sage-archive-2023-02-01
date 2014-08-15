@@ -49,23 +49,23 @@ cdef extern from "<math.h>":
 cdef class LFunctionZeroSum_abstract(SageObject):
     """
     Abstract class for computing certain sums over zeros of a motivic L-function
-    without having to determine the zeros themselves
+    without having to determine the zeros themselves.
     """
-    cdef _N
-    cdef _k
-    cdef _C0
-    cdef _C1
-    cdef _pi
-    cdef _euler_gamma
+    cdef _pi            # Pi to 64 bits
+    cdef _euler_gamma   # Euler-Mascheroni constant = 0.5772...
+    cdef _N             # The level of the form attached to self
+    cdef _k             # The weight of the the form attached to self
+    cdef _C1            # = log(N)/2 - log(2*pi)
+    cdef _C0            # = C1 - euler_gamma
 
     def level(self):
         r"""
         Return the level of the form attached to self. If self was constructed
-        from an elliptic curve, then this is equal to the conductor of 'E'.
+        from an elliptic curve, then this is equal to the conductor of $E$.
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('389a')
+            sage: E = EllipticCurve("389a")
             sage: Z = LFunctionZeroSum(E)
             sage: Z.level()
             389
@@ -80,7 +80,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('389a')
+            sage: E = EllipticCurve("389a")
             sage: Z = LFunctionZeroSum(E)
             sage: Z.weight()
             2
@@ -91,20 +91,20 @@ cdef class LFunctionZeroSum_abstract(SageObject):
     def C0(self, include_euler_gamma=True):
         r"""
         Return the constant term of the logarithmic derivative of the
-        completed 'L'-function attached to self. This is equal to
-            '-\eta + \log(N)/2 - \log(2\pi)'
-        where '\eta' is the Euler-Mascheroni constant '= 0.5772\ldots'
-        and 'N' is the level of the form attached to self.
+        completed $L$-function attached to self. This is equal to
+            $-\eta + \log(N)/2 - \log(2\pi)$
+        where $\eta$ is the Euler-Mascheroni constant $= 0.5772\ldots$
+        and $N$ is the level of the form attached to self.
 
         INPUT:
 
         - ``include_euler_gamma`` -- bool (default: True); if set to
-          False, return the constant '\log(N)/2 - \log(2\pi)', i.e. do
+          False, return the constant $\log(N)/2 - \log(2\pi)$, i.e., do
           not subtract off the Euler-Mascheroni constant.
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('389a')
+            sage: E = EllipticCurve("389a")
             sage: Z = LFunctionZeroSum(E)
             sage: Z.C0()
             0.566696940498
@@ -118,10 +118,10 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         else:
             return self._C0
 
-    def cnlist(self,n,python_floats=False):
+    def cnlist(self, n, python_floats=False):
         r"""
         Return a list of Dirichlet coefficient of the logarithmic
-        derivative of the L-function attached to self, shifted so that
+        derivative of the $L$-function attached to self, shifted so that
         the critical line lies on the imaginary axis, up to and
         including n. The i-th element of the return list is a[i].
 
@@ -146,7 +146,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         EXAMPLES:
 
-            sage: E = EllipticCurve('11a')
+            sage: E = EllipticCurve("11a")
             sage: Z = LFunctionZeroSum(E)
             sage: cnlist = Z.cnlist(11)
             sage: for n in range(12): print(n,cnlist[n])
@@ -170,19 +170,19 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
     def digamma(self,s,include_constant_term=True):
         r"""
-        Return the digamma function on the complex input 's', given by
-            '\digamma(s) = -\eta + \sum_{k=1)^{\infty} frac{s-1}{k(k+s-1)}'
-        where '\eta' is the Euler-Mascheroni constant '=0.5772156649\ldots'.
+        Return the digamma function on the complex input s, given by
+            $\digamma(s) = -\eta + \sum_{k=1)^{\infty} frac{s-1}{k(k+s-1)}$
+        where $\eta$ is the Euler-Mascheroni constant $=0.5772156649\ldots$.
         This function is needed in the computing the logarithmic derivative
-        of the 'L'-function attached to self.
+        of the $L$-function attached to self.
 
         INPUT:
 
         - ``s`` -- A complex number
         - ``include_constant_term`` -- (default: True) boolean; if set False,
-          only the value of the sum over 'k' is returned without subtracting
+          only the value of the sum over $k$ is returned without subtracting
           off the Euler-Mascheroni constant, i.e. the returned value is
-          equal to '\sum_{k=1)^{\infty} frac{s-1}{k(k+s-1)}'.
+          equal to $\sum_{k=1)^{\infty} frac{s-1}{k(k+s-1)}$.
 
         OUTPUT:
 
@@ -192,7 +192,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         EXAMPLES::
 
-            sage: Z = LFunctionZeroSum(EllipticCurve('37a'))
+            sage: Z = LFunctionZeroSum(EllipticCurve("37a"))
             sage: Z.digamma(3.2)
             0.998838891287
             sage: Z.digamma(3.2,include_constant_term=False)
@@ -230,17 +230,17 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         else:
             return z + self._euler_gamma
 
-    def logarithmic_derivative(self,s,num_terms=10000,as_interval=False):
+    def logarithmic_derivative(self, s, num_terms=10000, as_interval=False):
         r"""
-        Compute the value of the logarithmic derivative '\frac{L^{\prime}}{L}'
-        at the point s to *low* precision, where 'L' is the L-function
-        attached to self.
+        Compute the value of the logarithmic derivative
+        $\frac{L^{\prime}}{L}$ at the point s to *low* precision, where $L$
+        is the $L$-function attached to self.
 
         .. WARNING::
 
             The value is computed naively by evaluating the Dirichlet series
-            for '\frac{L^{\prime}}{L}'; convergence is controlled by the
-            distance of s from the critical strip '0.5<=\Re(s)<=1.5'.
+            for $\frac{L^{\prime}}{L}$; convergence is controlled by the
+            distance of s from the critical strip $0.5<=\Re(s)<=1.5$.
             You may use this method to attempt to compute values inside the
             critical strip; however, results are then *not* guaranteed
             to be correct to any number of digits.
@@ -261,7 +261,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         For the default term cap of 10000, a value accurate to all 53
         bits of a double precision floating point number is only
-        guaranteed when '|Re(s-1)|>4.58', although in practice inputs
+        guaranteed when $|\Re(s-1)|>4.58$, although in practice inputs
         closer to the critical strip will still yield computed values
         close to the true value.
 
@@ -340,20 +340,20 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         return (y,err)
 
-    def completed_logarithmic_derivative(self,s,num_terms=10000):
+    def completed_logarithmic_derivative(self, s, num_terms=10000):
         r"""
         Compute the value of the completed logarithmic derivative
-            '\frac{\Lambda^{\prime}}{\Lambda}'
+            $\frac{\Lambda^{\prime}}{\Lambda}$
         at the point s to *low* precision, where
-            '\Lambda = N^{s/2}(2\pi)^s \Gamma(s) L(s)'
-        and 'L is the' L-function attached to self.
+            $\Lambda = N^{s/2}(2\pi)^s \Gamma(s) L(s)$
+        and $L$ is the $L$-function attached to self.
 
         .. WARNING::
 
             This is computed naively by evaluating the Dirichlet series
-            for '\frac{L^{\prime}}{L}'; the convergence thereof is
+            for $\frac{L^{\prime}}{L}$; the convergence thereof is
             controlled by the distance of s from the critical strip
-            '0.5<=\Re(s)<=1.5'.
+            $0.5<=\Re(s)<=1.5$.
             You may use this method to attempt to compute values inside the
             critical strip; however, results are then *not* guaranteed
             to be correct to any number of digits.
@@ -374,7 +374,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         For the default term cap of 10000, a value accurate to all 53
         bits of a double precision floating point number is only
-        guaranteed when '|Re(s-1)|>4.58', although in practice inputs
+        guaranteed when $|\Re(s-1)|>4.58$, although in practice inputs
         closer to the critical strip will still yield computed values
         close to the true value.
 
@@ -397,11 +397,6 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: Z.completed_logarithmic_derivative(complex(4.2,-1))
             (6.89808063313 - 0.225570153942*I, 5.62385304981e-11)
         """
-        if imag(s)==0:
-            F = RDF
-        else:
-            F = CDF
-
         if real(s-1)>=0:
             Ls = self.logarithmic_derivative(s,num_terms)
             return (self._C1 + self.digamma(s) + Ls[0], Ls[1])
@@ -409,18 +404,18 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             Ls = self.logarithmic_derivative(2-s,num_terms)
             return (-self._C1 - self.digamma(2-s) - Ls[0], Ls[1])
 
-    def zerosum(self,Delta=1,tau=0,function="sincsquared_fast",ncpus=None):
+    def zerosum(self, Delta=1, tau=0, function="sincsquared_fast", ncpus=None):
         r"""
         Bound from above the analytic rank of the form attached to self
         by computing
-            '\sum_{\gamma} f(\Delta*(\gamma-\tau),'
-        where '\gamma' ranges over the imaginary parts of the zeros of 'L_E(s)'
-        along the critical strip, and 'f(x)' is an appropriate even continuous
-        'L_2' function such that 'f(0)=1'.
+            $\sum_{\gamma} f(\Delta*(\gamma-\tau)),$
+        where $\gamma$ ranges over the imaginary parts of the zeros of $L_E(s)$
+        along the critical strip, and $f(x)$ is an appropriate even continuous
+        $L_2$ function such that $f(0)=1$.
 
-        If '\tau=0', then as '\Delta' increases this sum limits from above to
-        the analytic rank of the 'L'-function, as 'f(0) = 1' is counted with
-        multiplicity 'r', and the other terms all go to 0 uniformly.
+        If $\tau=0$, then as $\Delta$ increases this sum converges from above to
+        the analytic rank of the $L$-function, as $f(0) = 1$ is counted with
+        multiplicity $r$, and the other terms all go to 0 uniformly.
 
         INPUT:
 
@@ -428,28 +423,28 @@ cdef class LFunctionZeroSum_abstract(SageObject):
           tightness of the zero sum.
 
         - ``tau`` -- real parameter (default: 0) denoting the offset of the sum
-          to be computed. When 'tau=0' the sum will limit to the analytic rank
-          of the 'L'-function as '\Delta' is increased. If 'tau' is the value
+          to be computed. When $tau=0$ the sum will converge to the analytic rank
+          of the $L$-function as $\Delta$ is increased. If $tau$ is the value
           of the imaginary part of a noncentral zero, the limit will be 1
-          (assuming the zero is simple); otherwise the the limit will be 0.
+          (assuming the zero is simple); otherwise, the the limit will be 0.
           Currently only implemented for the sincsquared and cauchy functions;
           otherwise ignored.
 
         - ``function`` -- string (default: "sincsquared_fast") - the function
-          'f(x)' as described above. Currently implemented options for 'f' are:
+          $f(x)$ as described above. Currently implemented options for $f$ are:
 
-          - ``sincquared`` -- 'f(x) = \left(\frac{\sin(\pi*x)}{(\pi*x)}\right)^2'
-          - ``gaussian``   -- 'f(x) = \exp(-x^2)'
+          - ``sincquared`` -- $f(x) = \left(\frac{\sin(\pi*x)}{(\pi*x)}\right)^2$
+          - ``gaussian``   -- $f(x) = \exp{-x^2}$
           - ``sincquared_fast`` -- Same as "sincsquared", but implementation
-            optimized for elliptic curve 'L'-functions with tau=0. self must
-            be attached to an elliptic curve over QQ given by its global minimal
-            model, otherwise the returned result will be incorrect.
+            optimized for elliptic curve $L$-functions, and tau must be 0. self
+            must be attached to an elliptic curve over QQ given by its global
+            minimal model, otherwise the returned result will be incorrect.
           - ``sincquared_parallel`` -- Same as "sincsquared_fast", but optimized
-            for parallel computation with large (>2.0) Delta values. self must
+            for parallel computation with large (>2.0) $\Delta$ values. self must
             be attached to an elliptic curve over QQ given by its global minimal
             model, otherwise the returned result will be incorrect.
-          - ``cauchy`` -- f(x) = \frac{1}{1+x^2}; this is only computable to
-            low precision, and only when Delta < 2.
+          - ``cauchy`` -- $f(x) = \frac{1}{1+x^2}$; this is only computable to
+            low precision, and only when $\Delta < 2$.
 
         - ``ncpus`` - (default: None) If not None, a positive integer
           defining the number of CPUs to be used for the computation. If left as
@@ -459,27 +454,27 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         .. WARNING::
 
-            Computation time is exponential in '\Delta', roughly doubling for
-            every increase of 0.1 thereof. Using '\Delta=1' will yield a
-            computation time of a few milliseconds; '\Delta=2' takes a few
-            seconds, and '\Delta=3' takes upwards of an hour. Increase at your
+            Computation time is exponential in $\Delta$, roughly doubling for
+            every increase of 0.1 thereof. Using $\Delta=1$ will yield a
+            computation time of a few milliseconds; $\Delta=2$ takes a few
+            seconds, and $\Delta=3$ takes upwards of an hour. Increase at your
             own risk beyond this!
 
         OUTPUT:
 
         A positive real number that bounds from above the number of zeros with
         imaginary part equal to tau. When tau=0 this is an upper bound for the
-        'L'-function's analytic rank.
+        $L$-function's analytic rank.
 
         .. SEEALSO::
 
             :meth:`~sage.schemes.elliptic_curves.ell_rational_field.EllipticCurve_rational_field.analytic_rank_bound`
             for more documentation and examples on calling this method on elliptic curve
-            'L'-functions.
+            $L$-functions.
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('389a'); E.rank()
+            sage: E = EllipticCurve("389a"); E.rank()
             2
             sage: Z = LFunctionZeroSum(E)
             sage: E.lseries().zeros(3)
@@ -490,9 +485,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             2.0375000846
             sage: Z.zerosum(Delta=1,function="sincsquared")
             2.0375000846
-            sage: Z.zerosum(Delta=1,tau=2.876,function='sincsquared')
+            sage: Z.zerosum(Delta=1,tau=2.876,function="sincsquared")
             1.07555129565
-            sage: Z.zerosum(Delta=1,tau=1.2,function='sincsquared')
+            sage: Z.zerosum(Delta=1,tau=1.2,function="sincsquared")
             0.108315553775
             sage: Z.zerosum(Delta=1,function="gaussian")
             2.05689042503
@@ -517,17 +512,17 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         else:
             raise ValueError("Input function not recognized.")
 
-    def _zerosum_sincsquared(self,Delta=1,tau=0):
+    def _zerosum_sincsquared(self, Delta=1, tau=0):
         r"""
         Bound from above the analytic rank of the form attached to self
         by computing
-            '\sum_{\gamma} f(\Delta*(\gamma-\tau)),'
-        where '\gamma' ranges over the imaginary parts of the zeros of 'L_E(s)'
-        along the critical strip, and 'f(x) = \sin(\pi*x)/(\pi*x)'
+            $\sum_{\gamma} f(\Delta*(\gamma-\tau)),$
+        where $\gamma$ ranges over the imaginary parts of the zeros of $L_E(s)$
+        along the critical strip, and $f(x) = \sin(\pi*x)/(\pi*x)$
 
-        If '\tau=0', then as '\Delta' increases this sum limits from above to
-        the analytic rank of the 'L'-function, as 'f(0) = 1' is counted with
-        multiplicity 'r', and the other terms all go to 0 uniformly.
+        If $\tau=0$, then as $\Delta$ increases this sum limits from above to
+        the analytic rank of the $L$-function, as $f(0) = 1$ is counted with
+        multiplicity $r$, and the other terms all go to 0 uniformly.
 
         INPUT:
 
@@ -535,24 +530,32 @@ cdef class LFunctionZeroSum_abstract(SageObject):
           tightness of the zero sum.
 
         - ``tau`` -- real parameter (default: 0) denoting the offset of the sum
-          to be computed. When 'tau=0' the sum will limit to the analytic rank
-          of the 'L'-function as '\Delta' is increased. If 'tau' is the value
-          of the imaginary part of a noncentral zero, the limit will be 1
-          (assuming the zero is simple); otherwise the the limit will be 0.
+          to be computed. When tau=0 the sum will converge from above to the
+          analytic rank of the $L$-function as $\Delta$ is increased. If tau
+          is the value of the imaginary part of a noncentral zero, the limit
+          will be 1 (assuming GRH, the zero is simple); otherwise the the limit
+          will be 0.
 
         .. WARNING::
 
-            Computation time is exponential in '\Delta', roughly doubling for
-            every increase of 0.1 thereof. Using '\Delta=1' will yield a
-            computation time of a few milliseconds; '\Delta=2' takes a few
-            seconds, and '\Delta=3' takes upwards of an hour. Increase at your
+            Computation time is exponential in $\Delta$, roughly doubling for
+            every increase of 0.1 thereof. Using $\Delta=1$ will yield a
+            computation time of a few milliseconds; $\Delta=2$ takes a few
+            seconds, and $\Delta=3$ takes upwards of an hour. Increase at your
             own risk beyond this!
+
+        .. WARNING::
+
+            This method has *not* been optimized with Cython; as such
+            computing with this method is slower than the central sum
+            (i.e $\tau=0$) versions of self._zerosum_sincsquared_fast() and
+            self._zerosum_sincsquared_parallel().
 
         OUTPUT:
 
         A positive real number that bounds from above the number of zeros with
         imaginary part equal to tau. When tau=0 this is an upper bound for the
-        'L'-function's analytic rank.
+        $L$-function's analytic rank.
 
         .. SEEALSO::
 
@@ -561,7 +564,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('37a'); E.rank()
+            sage: E = EllipticCurve("37a"); E.rank()
             1
             sage: Z = LFunctionZeroSum(E)
             sage: E.lseries().zeros(2)
@@ -641,16 +644,16 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         return (u+w+y)*2/(t**2)
 
-    def _zerosum_gaussian(self,Delta=1):
+    def _zerosum_gaussian(self, Delta=1):
         r"""
-        Bound from above the analytic rank of the form attached to self
-        by computing
-            '\sum_{\gamma} f(\Delta*\gamma),'
-        where '\gamma' ranges over the imaginary parts of the zeros of 'L_E(s)'
-        along the critical strip, and 'f(x) = \exp(-x^2)'
+        Return an upper bound on the analytic rank of the L-series attached
+        to self by computing
+            $\sum_{\gamma} f(\Delta*\gamma),$
+        where $\gamma$ ranges over the imaginary parts of the zeros of $L_E(s)$
+        along the critical strip, and $f(x) = \exp(-x^2)$.
 
-        As '\Delta' increases this sum limits from above to the analytic rank
-        of the form, as 'f(0) = 1' is counted with multiplicity 'r', and the
+        As $\Delta$ increases this sum limits from above to the analytic rank
+        of the form, as $f(0) = 1$ is counted with multiplicity $r$, and the
         other terms all go to 0 uniformly.
 
         INPUT:
@@ -661,10 +664,10 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         .. WARNING::
 
-            Computation time is exponential in '\Delta', roughly doubling for
-            every increase of 0.1 thereof. Using '\Delta=1' will yield a
-            computation time of a few milliseconds; '\Delta=2' takes a few
-            seconds, and '\Delta=3' takes upwards of an hour. Increase at your
+            Computation time is exponential in $\Delta$, roughly doubling for
+            every increase of 0.1 thereof. Using $\Delta=1$ will yield a
+            computation time of a few milliseconds; $\Delta=2$ takes a few
+            seconds, and $\Delta=3$ takes upwards of an hour. Increase at your
             own risk beyond this!
 
         OUTPUT:
@@ -679,7 +682,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('37a'); E.rank()
+            sage: E = EllipticCurve("37a"); E.rank()
             1
             sage: Z = LFunctionZeroSum(E)
             sage: Z._zerosum_gaussian(Delta=1)
@@ -711,23 +714,23 @@ cdef class LFunctionZeroSum_abstract(SageObject):
                 logn = log(RDF(n))
                 y += cn*exp(-(logn/(2*Delta))**2)
             n += 1
-
         # y is the truncation of an infinite sum, so we must add a value which
         # exceeds the max amount we could have left out.
-        # WARNING: The value of 0.1 has been thumbsucked
+        # WARNING: Truncation error analysis has *not* been done; the value of
+        # 0.1 is empirical.
         return RDF(u+w+y+0.1)/Deltasqrtpi
 
-    def _zerosum_cauchy(self,Delta=1,tau=0,num_terms=None):
+    def _zerosum_cauchy(self, Delta=1, tau=0, num_terms=None):
         r"""
         Bound from above the analytic rank of the form attached to self
         by computing
-            '\sum_{\gamma} f(\Delta*(\gamma-\tau)),'
-        where '\gamma' ranges over the imaginary parts of the zeros of 'L_E(s)'
-        along the critical strip, and 'f(x) = \frac{1}{1+x^2}'.
+            $\sum_{\gamma} f(\Delta*(\gamma-\tau)),$
+        where $\gamma$ ranges over the imaginary parts of the zeros of $L_E(s)$
+        along the critical strip, and $f(x) = \frac{1}{1+x^2}$.
 
-        If '\tau=0', then as '\Delta' increases this sum limits from above to
-        the analytic rank of the 'L'-function, as 'f(0) = 1' is counted with
-        multiplicity 'r', and the other terms all go to 0 uniformly.
+        If $\tau=0$, then as $\Delta$ increases this sum converges from above
+        to the analytic rank of the $L$-function, as $f(0) = 1$ is counted
+        with multiplicity $r$, and the other terms all go to 0 uniformly.
 
         INPUT:
 
@@ -735,10 +738,11 @@ cdef class LFunctionZeroSum_abstract(SageObject):
           tightness of the zero sum.
 
         - ``tau`` -- real parameter (default: 0) denoting the offset of the sum
-          to be computed. When 'tau=0' the sum will limit to the analytic rank
-          of the 'L'-function as '\Delta' is increased. If 'tau' is the value
-          of the imaginary part of a noncentral zero, the limit will be 1
-          (assuming the zero is simple); otherwise the the limit will be 0.
+          to be computed. When tau=0 the sum will converge from above to the
+          analytic rank of the $L$-function as $\Delta$ is increased. If tau is
+          the value of the imaginary part of a noncentral zero, the limit will
+          be 1 (assuming GRH, the zero is simple); otherwise the the limit will
+          be 0.
 
         - ``num_terms`` -- positive integer (default: None): the number of
           terms computed in the truncated Dirichlet series for the L-function
@@ -752,15 +756,15 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             This value can only be provably computed when Delta < 2; an error
             will be thrown if a Delta value larger than 2 is supplied.
             Furthermore, beware that computation time is exponential in
-            '\Delta', roughly doubling for every increase of 0.1 thereof.
-            Using '\Delta=1' will yield a computation time of a few
-            milliseconds, while '\Delta=2' takes a few seconds.
+            $\Delta$, roughly doubling for every increase of 0.1 thereof.
+            Using $\Delta=1$ will yield a computation time of a few
+            milliseconds, while $\Delta=2$ takes a few seconds.
 
         OUTPUT:
 
         A positive real number that bounds from above the number of zeros with
         imaginary part equal to tau. When tau=0 this is an upper bound for the
-        'L'-function's analytic rank.
+        $L$-function's analytic rank.
 
         .. SEEALSO::
 
@@ -769,7 +773,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('11a')
+            sage: E = EllipticCurve("11a")
             sage: E.lseries().zeros(2)
             [6.36261389, 8.60353962]
 
@@ -841,10 +845,10 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
     Subclass for computing certain sums over zeros of an elliptic curve L-function
     without having to determine the zeros themselves.
     """
-    cdef _E
-    cdef _e
+    cdef _E    # The Elliptic curve attached to self
+    cdef _e    # PARI ellcurve object used to compute a_p values
 
-    def __init__(self,E,N=None):
+    def __init__(self, E, N=None):
         r"""
         Initializes self.
 
@@ -862,7 +866,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: E = EllipticCurve([1,0,0,3,-4])
             sage: Z = LFunctionZeroSum_EllipticCurve(E); Z
             Zero sum estimator for L-function attached to Elliptic Curve defined by y^2 + x*y = x^3 + 3*x - 4 over Rational Field
-            sage: E = EllipticCurve('5077a')
+            sage: E = EllipticCurve("5077a")
             sage: Z = LFunctionZeroSum_EllipticCurve(E); Z
             Zero sum estimator for L-function attached to Elliptic Curve defined by y^2 + y = x^3 - 7*x + 6 over Rational Field
         """
@@ -889,7 +893,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         EXAMPLES::
 
-            sage: Z = LFunctionZeroSum(EllipticCurve('37a')); Z
+            sage: Z = LFunctionZeroSum(EllipticCurve("37a")); Z
             Zero sum estimator for L-function attached to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
         """
         s = "Zero sum estimator for L-function attached to "
@@ -911,7 +915,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
     def lseries(self):
         """
-        Return the 'L'-series associated with self.
+        Return the $L$-series associated with self.
 
         EXAMPLES::
 
@@ -923,14 +927,14 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         """
         return self._E.lseries()
 
-    def cn(self,n):
+    def cn(self, n):
         r"""
-        Return the 'n'th Dirichlet coefficient of the logarithmic
+        Return the $n$th Dirichlet coefficient of the logarithmic
         derivative of the L-function attached to self, shifted so that
         the critical line lies on the imaginary axis. This is zero if
-        'n' is not a perfect prime power; and when 'n=p^e' it is
-        '-a_p^e*log(p)/p^e', where 'a_p = p+1-\#{E(FF_p)}' is the
-        trace of Frobenius at 'p'.
+        $n$ is not a perfect prime power; and when $n=p^e$ it is
+        $-a_p^e*log(p)/p^e$, where $a_p = p+1-\#{E(\mathbb{F}_p)}$ is
+        the trace of Frobenius at $p$.
 
         INPUT:
 
@@ -938,11 +942,12 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         OUTPUT:
 
-        A real number at most '\frac{log(n)}{\sqrt{n}}' in magnitude
+        A real number which (by Hasse's Theorem) is at most
+        $2\frac{log(n)}{\sqrt{n}}$ in magnitude.
 
         EXAMPLES::
 
-        sage: E = EllipticCurve('11a')
+        sage: E = EllipticCurve("11a")
         sage: Z = LFunctionZeroSum(E)
         sage: for n in range(12): print(n,Z.cn(n))
         (0, 0.0)
@@ -1033,7 +1038,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         logp = c_log(p)
         return -(t-logp)*(logp/p)*ap
 
-    def _get_residue_data(self,n):
+    def _get_residue_data(self, n):
         r"""
         Method called by self._zerosum_sincsquared_parallel() to determine
         the optimal residue class breakdown when sieving for primes.
@@ -1055,7 +1060,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('37a'); Z = LFunctionZeroSum(E)
+            sage: E = EllipticCurve("37a"); Z = LFunctionZeroSum(E)
             sage: Z._get_residue_data(8)
             ([2, 3, 5, 7],
              210,
@@ -1103,14 +1108,14 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         return small_primes, M, residue_chunks
 
-    cpdef _zerosum_sincsquared_fast(self,Delta=1,bad_primes=None):
+    cpdef _zerosum_sincsquared_fast(self, Delta=1, bad_primes=None):
         r"""
         A faster cythonized implementation of self._zerosum_sincsquared().
 
         .. NOTE::
 
             This will only produce correct output if self._E is given by its
-            global minimal model, i.e. if self._E.is_minimal()==True.
+            global minimal model, i.e., if self._E.is_minimal()==True.
 
         INPUT:
 
@@ -1137,11 +1142,11 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('37a')
+            sage: E = EllipticCurve("37a")
             sage: Z = LFunctionZeroSum(E)
             sage: print(E.rank(),Z._zerosum_sincsquared_fast(Delta=1))
             (1, 1.01038406984)
-            sage: E = EllipticCurve('121a')
+            sage: E = EllipticCurve("121a")
             sage: Z = LFunctionZeroSum(E);
             sage: print(E.rank(),Z._zerosum_sincsquared_fast(Delta=1.5))
             (0, 0.0104712060087)
@@ -1246,7 +1251,10 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         return RDF(2*(u+w+y)/(t**2))
 
-    def _zerosum_sincsquared_parallel(self,Delta=1,bad_primes=None,ncpus=None):
+    def _zerosum_sincsquared_parallel(self,
+                                      Delta=1,
+                                      bad_primes=None,
+                                      ncpus=None):
         r"""
         Parallelized implementation of self._zerosum_sincsquared_fast().
         Faster than self._zerosum_sincsquared_fast() when Delta >= ~1.75.
@@ -1284,11 +1292,11 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve('37a')
+            sage: E = EllipticCurve("37a")
             sage: Z = LFunctionZeroSum(E)
             sage: print(E.rank(),Z._zerosum_sincsquared_parallel(Delta=1))
             (1, 1.01038406984)
-            sage: E = EllipticCurve('121a')
+            sage: E = EllipticCurve("121a")
             sage: Z = LFunctionZeroSum(E);
             sage: print(E.rank(),Z._zerosum_sincsquared_parallel(Delta=1.5,ncpus=8))
             (0, 0.0104712060087)
@@ -1404,7 +1412,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
                 elif n_is_prime(k):
                     y += self._sincsquared_summand_2(k,t,ap,p,logp)
 
-        # _sum_over_residues() function is parallized
+        # _sum_over_residues() function is parallelized
         for summand in _sum_over_residues(residue_chunks):
             y += summand[1]
 
@@ -1413,19 +1421,19 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
     def analytic_rank_upper_bound(self,
                                   max_Delta=None,
                                   adaptive=True,
-                                  root_number=True,
+                                  root_number="compute",
                                   bad_primes=None,
                                   ncpus=None):
         r"""
         Return an upper bound for the analytic rank of the L-function
-        'L_E(s)' attached to self, conditional on the Generalized Riemann
+        $L_E(s)$ attached to self, conditional on the Generalized Riemann
         Hypothesis, via computing the zero sum
-            '\sum_{\gamma} f(\Delta*\gamma),'
-        where '\gamma' ranges over the imaginary parts of the zeros of 'L(E,s)'
-        along the critical strip, 'f(x) = (\sin(\pi x)/(\pi x))^2', and Delta
-        is the tightness parameter whose maximum value is specified by
-        max_Delta. This computation can be run on curves with very large
-        conductor (so long as the conductor is known or quickly
+            $\sum_{\gamma} f(\Delta*\gamma),$
+        where $\gamma$ ranges over the imaginary parts of the zeros of
+        $L(E,s)$ along the critical strip, $f(x) = (\sin(\pi x)/(\pi x))^2$,
+        and $\Delta$ is the tightness parameter whose maximum value is
+        specified by max_Delta. This computation can be run on curves with
+        very large conductor (so long as the conductor is known or quickly
         computable) when Delta is not too large (see below).
         Uses Bober's rank bounding method as described in [Bob13].
 
@@ -1435,9 +1443,9 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
           specifying the maximum Delta value used in the zero sum; larger
           values of Delta yield better bounds - but runtime is exponential in
           Delta. If left as None, Delta is set to
-              '\min\{(\log(N+1000)/2-\log(2\pi)-\eta)/\pi\, 2.5}'
-          where 'N' is the conductor of the curve attached to self, and '\eta'
-          is the Euler-Mascheroni constant '= 0.5772\ldots'; the crossover
+              $\min\{(\log(N+1000)/2-\log(2\pi)-\eta)/\pi\, 2.5}$
+          where $N$ is the conductor of the curve attached to self, and $\eta$
+          is the Euler-Mascheroni constant $= 0.5772\ldots$; the crossover
           point is at conductor ~8.3*10^8. For the former value, empirical
           results show that for about 99.7% of all curves the returned value
           is the actual analytic rank.
@@ -1451,13 +1459,13 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
           - If False, the computation is run a single time with
             Delta=max_Delta, and the resulting bound returned.
 
-        - ``root_number`` -- (default: True) One of True, False, 1 or -1:
-          - If True, the root number of self is computed and used to (possibly)
-            lower ther analytic rank estimate by 1.
-          - If False, the above step is omitted.
-          - If 1 or -1, this value is assumed to be the root number of self.
-            This is passable so that rank estimation can be done for curves
-            whose root number has been precomputed.
+        - ``root_number`` -- (default: "compute") One of the following:
+          - ``"compute"`` - the root number of self is computed and used to
+            (possibly) lower ther analytic rank estimate by 1.
+          - ``"ignore"`` - the above step is omitted
+          - ``1`` or ``-1`` - this value is assumed to be the root number of
+            self. This is passable so that rank estimation can be done for
+            curves whose root number has been precomputed.
 
         - ``bad_primes`` -- (default: None) If not None, a list of the primes
           of bad reduction for the curve attached to self. This is passable
@@ -1476,9 +1484,9 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         .. WARNING::
 
             Zero sum computation time is exponential in the tightness parameter
-            '\Delta', roughly doubling for every increase of 0.1 thereof.
-            Using '\Delta=1' (and adaptive=False) will yield a runtime of a few
-            milliseconds; '\Delta=2' takes a few seconds, and '\Delta=3' may
+            $\Delta$, roughly doubling for every increase of 0.1 thereof.
+            Using $\Delta=1$ (and adaptive=False) will yield a runtime of a few
+            milliseconds; $\Delta=2$ takes a few seconds, and $\Delta=3$ may
             take upwards of an hour. Increase beyond this at your own risk!
 
         OUTPUT:
@@ -1501,12 +1509,12 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         EXAMPLES:
 
         For most elliptic curves with small conductor the central zero(s)
-        of 'L_E(s)' are fairly isolated, so small values of '\Delta'
+        of $L_E(s)$ are fairly isolated, so small values of $\Delta$
         will yield tight rank estimates:
 
         ::
 
-            sage: E = EllipticCurve('11a')
+            sage: E = EllipticCurve("11a")
             sage: E.rank()
             0
             sage: Z = LFunctionZeroSum(E)
@@ -1524,24 +1532,33 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         ::
 
-            sage: E = elliptic_curves.rank(8)[0]; E
-            Elliptic Curve defined by y^2 + y = x^3 - 23737*x + 960366 over Rational Field
-            sage: Z = LFunctionZeroSum(E)
-            sage: Z.analytic_rank_upper_bound(max_Delta=1,ncpus=4)
-            8
+            sage: for r in range(9):
+            ....:     E = elliptic_curves.rank(r)[0]
+            ....:     print(r,E.analytic_rank_upper_bound(max_Delta=1,
+            ....:     adaptive=False,root_number="ignore"))
+            ....:
+            (0, 0)
+            (1, 1)
+            (2, 2)
+            (3, 3)
+            (4, 4)
+            (5, 5)
+            (6, 6)
+            (7, 7)
+            (8, 8)
 
-        However, some curves have 'L'-functions with low-lying zeroes, and for these
-        larger values of '\Delta' must be used to get tight estimates:
+        However, some curves have $L$-functions with low-lying zeroes, and for these
+        larger values of $\Delta$ must be used to get tight estimates:
 
         ::
 
-            sage: E = EllipticCurve('974b1')
+            sage: E = EllipticCurve("974b1")
             sage: r = E.rank(); r
             0
             sage: Z = LFunctionZeroSum(E)
-            sage: Z.analytic_rank_upper_bound(max_Delta=1,root_number=False)
+            sage: Z.analytic_rank_upper_bound(max_Delta=1,root_number="ignore")
             1
-            sage: Z.analytic_rank_upper_bound(max_Delta=1.3,root_number=False)
+            sage: Z.analytic_rank_upper_bound(max_Delta=1.3,root_number="ignore")
             0
 
         Knowing the root number of E allows us to use smaller Delta values
@@ -1549,16 +1566,53 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         ::
 
-            sage: Z.analytic_rank_upper_bound(max_Delta=0.6,root_number=True)
+            sage: Z.analytic_rank_upper_bound(max_Delta=0.6,root_number="compute")
             0
 
-        This method is often fast enough to be called on curves with large conductor:
+        The are a small number of curves which have pathalogically low-lying
+        zeroes. For these curves, this method will produce a bound that is
+        strictly larger than the analytic rank, unless very large values of
+        Delta are used. The following curve ("256944c1" in the Cremona tables)
+        is a rank 0 curve with a zero at 0.0256...; the smallest Delta value
+        for which the zero sum is strictly less than 2 is ~2.815:
+
+        ::
+
+            sage: E = EllipticCurve([0, -1, 0, -7460362000712, -7842981500851012704])
+            sage: N,r = E.conductor(),E.analytic_rank(); N, r
+            (256944, 0)
+            sage: E.analytic_rank_upper_bound(max_Delta=1,adaptive=False)
+            2
+            sage: E.analytic_rank_upper_bound(max_Delta=2,adaptive=False)
+            2
+            sage: E.analytic_rank_upper_bound(max_Delta=2.815,adaptive=False) # long time
+            0
+
+        This method is can be called on curves with large conductor:
 
         ::
             sage: E = EllipticCurve([-2934,19238])
             sage: Z = LFunctionZeroSum(E)
             sage: Z.analytic_rank_upper_bound()
             1
+
+        And it can bound rank on curves with *very* large conductor, so long as
+        you know beforehand/can easily compute the conductor and primes of bad
+        reduction less than $e^{2\pi\Delta}$. The example below is of the rank
+        28 curve discovered by Elkies that is the elliptic curve of (currently)
+        largest known rank.
+
+        ::
+
+            sage: a4 = -20067762415575526585033208209338542750930230312178956502
+            sage: a6 = 34481611795030556467032985690390720374855944359319180361266008296291939448732243429
+            sage: E = EllipticCurve([1,-1,1,a4,a6])
+            sage: bad_primes = [2,3,5,7,11,13,17,19,48463]
+            sage: N = 3455601108357547341532253864901605231198511505793733138900595189472144724781456635380154149870961231592352897621963802238155192936274322687070
+            sage: Z = LFunctionZeroSum(E,N)
+            sage: Z.analytic_rank_upper_bound(max_Delta=2.8,adaptive=False, # long time
+            ....: root_number="ignore",bad_primes=bad_primes)               # long time
+            32
 
         REFERENCES:
 
@@ -1594,16 +1648,18 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             return bound
 
         # Get/compute parity
-        if root_number==False:
-            verbose("Curve parity ignored.")
-            parity = -1
-        elif root_number==True:
+        if  root_number==1 or root_number==-1:
+            parity = (1-root_number)//2
+            verbose("Parity set to %s."%parity)
+        elif root_number=="compute":
             verbose("Computing curve parity...")
             parity = (1-self._e.ellrootno())//2
             verbose("Curve has parity %s."%parity)
+        elif root_number=="ignore":
+            verbose("Curve parity ignored.")
+            parity = -1
         else:
-            parity = (1-root_number)//2
-            verbose("Parity set to %s."%parity)
+            raise ValueError("root_number parameter not recognized")
         if parity==1:
             halt_bound = 1
             verbose("Computation will halt if at any point bound is <= 1.")
@@ -1627,7 +1683,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         # When max_Delta <= 1 it's not worth running the computation
         # multiple times, as it's so quick anyway
-        if adaptive==False or max_Delta<=1:
+        if not adaptive or max_Delta<=1:
             return run_computation(max_Delta)
         else:
             bound_list = []
@@ -1654,13 +1710,13 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             verbose("Smallest bound computed is %s"%smallest_bound)
             return smallest_bound
 
-def LFunctionZeroSum(X,*args,**kwds):
+def LFunctionZeroSum(X, *args, **kwds):
     """
     Constructor for the LFunctionZeroSum class.
 
     INPUT:
 
-    - ''X'' - A motivic object. Currently only implemented for X = an elliptic curve
+    - ``X`` - A motivic object. Currently only implemented for X = an elliptic curve
       over the rational numbers.
 
     OUTPUT:
@@ -1669,7 +1725,7 @@ def LFunctionZeroSum(X,*args,**kwds):
 
     EXAMPLES::
 
-        sage: E = EllipticCurve('389a')
+        sage: E = EllipticCurve("389a")
         sage: Z = LFunctionZeroSum(E); Z
         Zero sum estimator for L-function attached to Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
 

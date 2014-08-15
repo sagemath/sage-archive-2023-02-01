@@ -1434,19 +1434,19 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                                   max_Delta=None,
                                   adaptive=True,
                                   N=None,
-                                  root_number=True,
+                                  root_number="compute",
                                   bad_primes=None,
                                   ncpus=None):
         r"""
         Return an upper bound for the analytic rank of self, conditional on
         the Generalized Riemann Hypothesis, via computing the zero sum
-            '\sum_{\gamma} f(\Delta*\gamma),'
-        where '\gamma' ranges over the imaginary parts of the zeros of 'L(E,s)'
-        along the critical strip, 'f(x) = (\sin(\pi x)/(\pi x))^2', and Delta
-        is the tightness parameter whose maximum value is specified by
+            $\sum_{\gamma} f(\Delta*\gamma),$
+        where $\gamma$ ranges over the imaginary parts of the zeros of $L(E,s)$
+        along the critical strip, $f(x) = (\sin(\pi x)/(\pi x))^2$, and
+        $\Delta$ is the tightness parameter whose maximum value is specified by
         max_Delta. This computation can be run on curves with very large
-        conductor (so long as the conductor is known or quickly
-        computable) when Delta is not too large (see below).
+        conductor (so long as the conductor is known or quickly computable)
+        when $\Delta$ is not too large (see below).
         Uses Bober's rank bounding method as described in [Bob13].
 
         INPUT:
@@ -1455,10 +1455,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
           specifying the maximum Delta value used in the zero sum; larger
           values of Delta yield better bounds - but runtime is exponential in
           Delta. If left as None, Delta is set to
-              '\min\{(\log(N+1000)/2-\log(2\pi)-\eta)/\pi\, 2.5}'
-          where 'N' is the conductor of the curve attached to self, and '\eta'
-          is the Euler-Mascheroni constant '= 0.5772\ldots'; the crossover
-          point is at conductor ~8.3*10^8. For the former value, empirical
+              $\min\{(\log(N+1000)/2-\log(2\pi)-\eta)/\pi\, 2.5}$
+          where $N$ is the conductor of the curve attached to self, and $\eta$
+          is the Euler-Mascheroni constant $= 0.5772\ldots$; the crossover
+          point is at conductor ~$8.3*10^8$. For the former value, empirical
           results show that for about 99.7% of all curves the returned value
           is the actual analytic rank.
 
@@ -1475,13 +1475,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
           the conductor of self. This is passable so that rank estimation
           can be done for curves whose (large) conductor has been precomputed.
 
-        - ``root_number`` -- (default: True) One of True, False, 1 or -1:
-          - If True, the root number of self is computed and used to (possibly)
-            lower ther analytic rank estimate by 1.
-          - If False, the above step is omitted.
-          - If 1 or -1, this value is assumed to be the root number of self.
-            This is passable so that rank estimation can be done for curves
-            whose root number has been precomputed.
+        - ``root_number`` -- (default: "compute") One of the following:
+          - ``"compute"`` - the root number of self is computed and used to
+            (possibly) lower ther analytic rank estimate by 1.
+          - ``"ignore"`` - the above step is omitted
+          - ``1`` or ``-1`` - this value is assumed to be the root number of
+            self. This is passable so that rank estimation can be done for
+            curves whose root number has been precomputed.
 
         - ``bad_primes`` -- (default: None) If not None, a list of the primes
           of bad reduction for the curve attached to self. This is passable
@@ -1491,7 +1491,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         - ``ncpus`` - (default: None) If not None, a positive integer
           defining the maximum number of CPUs to be used for the computation.
           If left as None, the maximum available number of CPUs will be used.
-          Note: Multiple processors will only be used for Delta values >= 1.75.
+          Note: Due to parallelization overhead, multiple processors will
+          only be used for Delta values >= 1.75.
 
         .. NOTE::
 
@@ -1501,9 +1502,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         .. WARNING::
 
             Zero sum computation time is exponential in the tightness parameter
-            '\Delta', roughly doubling for every increase of 0.1 thereof.
-            Using '\Delta=1' (and adaptive=False) will yield a runtime of a few
-            milliseconds; '\Delta=2' takes a few seconds, and '\Delta=3' may
+            $\Delta$, roughly doubling for every increase of 0.1 thereof.
+            Using $\Delta=1$ (and adaptive=False) will yield a runtime of a few
+            milliseconds; $\Delta=2$ takes a few seconds, and $\Delta=3$ may
             take upwards of an hour. Increase beyond this at your own risk!
 
         OUTPUT:
@@ -1525,12 +1526,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES:
 
         For most elliptic curves with small conductor the central zero(s)
-        of 'L_E(s)' are fairly isolated, so small values of '\Delta'
+        of $L_E(s)$ are fairly isolated, so small values of $\Delta$
         will yield tight rank estimates:
 
         ::
 
-            sage: E = EllipticCurve('11a')
+            sage: E = EllipticCurve("11a")
             sage: E.rank()
             0
             sage: E.analytic_rank_upper_bound(max_Delta=1,adaptive=False)
@@ -1546,22 +1547,32 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         ::
 
-            sage: E = elliptic_curves.rank(8)[0]; E
-            Elliptic Curve defined by y^2 + y = x^3 - 23737*x + 960366 over Rational Field
-            sage: E.analytic_rank_upper_bound(max_Delta=1)
-            8
+            sage: for r in range(9):
+            ....:     E = elliptic_curves.rank(r)[0]
+            ....:     print(r,E.analytic_rank_upper_bound(max_Delta=1,
+            ....:     adaptive=False,root_number="ignore"))
+            ....:
+            (0, 0)
+            (1, 1)
+            (2, 2)
+            (3, 3)
+            (4, 4)
+            (5, 5)
+            (6, 6)
+            (7, 7)
+            (8, 8)
 
-        However, some curves have 'L'-functions with low-lying zeroes, and for these
-        larger values of '\Delta' must be used to get tight estimates:
+        However, some curves have $L$-functions with low-lying zeroes, and for these
+        larger values of $\Delta$ must be used to get tight estimates:
 
         ::
 
-            sage: E = EllipticCurve('974b1')
+            sage: E = EllipticCurve("974b1")
             sage: r = E.rank(); r
             0
-            sage: E.analytic_rank_upper_bound(max_Delta=1,root_number=False)
+            sage: E.analytic_rank_upper_bound(max_Delta=1,root_number="ignore")
             1
-            sage: E.analytic_rank_upper_bound(max_Delta=1.3,root_number=False)
+            sage: E.analytic_rank_upper_bound(max_Delta=1.3,root_number="ignore")
             0
 
         Knowing the root number of E allows us to use smaller Delta values
@@ -1569,8 +1580,53 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         ::
 
-            sage: E.analytic_rank_upper_bound(max_Delta=0.6,root_number=True)
+            sage: E.analytic_rank_upper_bound(max_Delta=0.6,root_number="compute")
             0
+
+        The are a small number of curves which have pathalogically low-lying
+        zeroes. For these curves, this method will produce a bound that is
+        strictly larger than the analytic rank, unless very large values of
+        Delta are used. The following curve ("256944c1" in the Cremona tables)
+        is a rank 0 curve with a zero at 0.0256...; the smallest Delta value
+        for which the zero sum is strictly less than 2 is ~2.815:
+
+        ::
+
+            sage: E = EllipticCurve([0, -1, 0, -7460362000712, -7842981500851012704])
+            sage: N,r = E.conductor(),E.analytic_rank(); N, r
+            (256944, 0)
+            sage: E.analytic_rank_upper_bound(max_Delta=1,adaptive=False)
+            2
+            sage: E.analytic_rank_upper_bound(max_Delta=2,adaptive=False)
+            2
+            sage: E.analytic_rank_upper_bound(max_Delta=2.815,adaptive=False) # long time
+            0
+
+        This method is can be called on curves with large conductor:
+
+        ::
+            sage: E = EllipticCurve([-2934,19238])
+            sage: Z = LFunctionZeroSum(E)
+            sage: Z.analytic_rank_upper_bound()
+            1
+
+        And it can bound rank on curves with *very* large conductor, so long as
+        you know beforehand/can easily compute the conductor and primes of bad
+        reduction less than $e^{2\pi\Delta}$. The example below is of the rank
+        28 curve discovered by Elkies that is the elliptic curve of (currently)
+        largest known rank.
+
+        ::
+
+            sage: a4 = -20067762415575526585033208209338542750930230312178956502
+            sage: a6 = 34481611795030556467032985690390720374855944359319180361266008296291939448732243429
+            sage: E = EllipticCurve([1,-1,1,a4,a6])
+            sage: bad_primes = [2,3,5,7,11,13,17,19,48463]
+            sage: N = 3455601108357547341532253864901605231198511505793733138900595189472144724781456635380154149870961231592352897621963802238155192936274322687070
+            sage: Z = LFunctionZeroSum(E,N)
+            sage: Z.analytic_rank_upper_bound(max_Delta=2.8,adaptive=False, # long time
+            ....: root_number="ignore",bad_primes=bad_primes)               # long time
+            32
 
         REFERENCES:
 
@@ -1579,7 +1635,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         """
 
-        Z = LFunctionZeroSum_EllipticCurve(self,N)
+        Z = LFunctionZeroSum_EllipticCurve(self, N)
         bound = Z.analytic_rank_upper_bound(max_Delta=max_Delta,
                                             adaptive=adaptive,
                                             root_number=root_number,

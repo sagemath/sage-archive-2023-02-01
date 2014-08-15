@@ -16,13 +16,33 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.lie_algebras import LieAlgebras
-from sage.algebras.lie_algebras.lie_algebra_element import LieBracket
 
 class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
     Category of Lie algebras with a basis.
     """
     _base_category_class_and_axiom = [LieAlgebras, "WithBasis"]
+
+    def example(self, gens=None):
+        """
+        Return an example of a Lie algebra as per
+        :meth:`Category.example <sage.categories.category.Category.example>`.
+
+        EXAMPLES::
+
+            sage: LieAlgebras(QQ).WithBasis().example()
+            An example of a Lie algebra: the abelian Lie algebra on the generators ('a', 'b', 'c') over Rational Field
+
+        Another set of generators can be specified as an optional argument::
+
+            sage: LieAlgebras(QQ).WithBasis().example(Compositions())
+            An example of a Lie algebra: the abelian Lie algebra on the generators ('a', 'b', 'c') over Rational Field
+        """
+        if gens is None:
+            from sage.combinat.partition import Partitions
+            gens = Partitions()
+        from sage.categories.examples.lie_algebras_with_basis import Example
+        return Example(self.base_ring(), gens)
 
     class ParentMethods:
         def _basis_cmp(self, x, y):

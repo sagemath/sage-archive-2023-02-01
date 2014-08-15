@@ -37,9 +37,9 @@ from sage.structure.list_clone import ClonableArray
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.combinat import stirling_number2
 from sage.combinat.composition import Composition, Compositions
-from sage.combinat.words.word import Word
 import sage.combinat.permutation as permutation
 from functools import reduce
+
 
 class OrderedSetPartition(ClonableArray):
     """
@@ -561,6 +561,14 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
 
             sage: [ p for p in OrderedSetPartitions([1], [1]) ]
             [[{1}]]
+
+        Let us check that it works for large size (:trac:`16646`)::
+
+            sage: OrderedSetPartitions(42).first()
+            [{1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12},
+            {13}, {14}, {15}, {16}, {17}, {18}, {19}, {20}, {21}, {22}, {23},
+            {24}, {25}, {26}, {27}, {28}, {29}, {30}, {31}, {32}, {33}, {34},
+            {35}, {36}, {37}, {38}, {39}, {40}, {41}, {42}]
         """
         comp = self.c
         lset = [x for x in self._set]
@@ -569,15 +577,17 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
 
         p = []
         for j in range(l):
-            p += [j+1]*comp[j]
+            p += [j + 1] * comp[j]
 
         for x in permutation.Permutations(p):
-            res = Word(x).standard_permutation().inverse()
-            res = [lset[x-1] for x in res]
-            yield self.element_class( self, [ Set( res[dcomp[i]+1:dcomp[i+1]+1] ) for i in range(l)] )
+            res = permutation.to_standard(x).inverse()
+            res = [lset[x - 1] for x in res]
+            yield self.element_class(self, [Set(res[dcomp[i]+1:dcomp[i+1]+1])
+                                            for i in range(l)])
 
 ##########################################################
 # Deprecations
+
 
 class SplitNK(OrderedSetPartitions_scomp):
     def __setstate__(self, state):

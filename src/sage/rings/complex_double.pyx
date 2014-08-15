@@ -2290,7 +2290,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(2,0).gamma_inc(CDF(1,1))
             0.707092096346 - 0.42035364096*I
         """
-        return self._new_from_gen(self._pari_().incgam(t))
+        return self._new_from_gen(self._pari_().incgam(t, precision=53))
 
     def zeta(self):
         """

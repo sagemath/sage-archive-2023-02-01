@@ -348,7 +348,7 @@ categories and their super categories::
      Category of unique factorization domains, Category of gcd domains,
      Category of integral domains, Category of domains,
      Category of commutative rings, Category of rings, ...
-     Category of magmas and additive magmas,
+     Category of magmas and additive magmas, ...
      Category of monoids, Category of semigroups,
      Category of commutative magmas, Category of unital magmas, Category of magmas,
      Category of commutative additive groups, ..., Category of additive magmas,

@@ -1238,8 +1238,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         EXAMPLES::
 
-            sage: magma(ZZ)           # optional - magma
-            Integer Ring              # indirect doctest
+            sage: magma(ZZ)           # indirect doctest, optional - magma
+            Integer Ring
         """
         return 'IntegerRing()'
 

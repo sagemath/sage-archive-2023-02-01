@@ -540,6 +540,25 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             return CartanMatrix(self._cartan_type.dual())
         return CartanMatrix(self.transpose())
 
+    def is_simply_laced(self):
+        """
+        Implements :meth:`CartanType_abstract.is_simply_laced()`.
+
+        A Cartan matrix is simply-laced if all non diagonal entries are `0`
+        or `-1`.
+
+        EXAMPLES::
+
+            sage: cm = CartanMatrix([[2, -1, -1, -1], [-1, 2, -1, -1], [-1, -1, 2, -1], [-1, -1, -1, 2]])
+            sage: cm.is_simply_laced()
+            True
+        """
+        for i in range(self.nrows()):
+            for j in range(i+1, self.ncols()):
+                if self[i, j] < -1 or self[j, i] < -1:
+                    return False
+        return True
+
     def is_crystallographic(self):
         """
         Implements :meth:`CartanType_abstract.is_crystallographic`.
@@ -735,7 +754,7 @@ def cartan_matrix(t):
     EXAMPLES::
 
         sage: cartan_matrix(['A', 4])
-        doctest:1: DeprecationWarning: cartan_matrix() is deprecated. Use CartanMatrix() instead
+        doctest:...: DeprecationWarning: cartan_matrix() is deprecated. Use CartanMatrix() instead
         See http://trac.sagemath.org/14137 for details.
         [ 2 -1  0  0]
         [-1  2 -1  0]

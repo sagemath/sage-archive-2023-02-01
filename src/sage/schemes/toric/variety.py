@@ -1515,8 +1515,8 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             sage: P4_11169.Mori_cone()
             2-d cone in 7-d lattice
             sage: P4_11169.Mori_cone().rays()
-            (0, 0, 1, 1, 1, -3,  0),
-            (3, 2, 0, 0, 0,  1, -6)
+            (3, 2, 0, 0, 0,  1, -6),
+            (0, 0, 1, 1, 1, -3,  0)
             in Ambient free module of rank 7
             over the principal ideal domain Integer Ring
         """

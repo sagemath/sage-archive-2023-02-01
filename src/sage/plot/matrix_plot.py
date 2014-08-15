@@ -453,7 +453,7 @@ def matrix_plot(mat, **options):
 
         sage: matrix_plot(sparse, subdivisions=True, subdivision_boundaries=[[2,4],[6,8]])
 
-    Test that matrix plots have aspect ratio one (see :trac:`15315`)
+    Test that matrix plots have aspect ratio one (see :trac:`15315`)::
 
         sage: P = matrix_plot(random_matrix(RDF, 5))
         sage: P.aspect_ratio()

@@ -3319,8 +3319,8 @@ class EllipticCurveIsogeny(Morphism):
             NotImplementedError
 
         The following should test that :meth:`_composition_` is called
-        upon a product (modified for :trac:`12880`; see :trac:`16245`
-        where we fix the _composition_ issue)::
+        upon a product (modified for :trac:`12880` ; see :trac:`16245` where we
+        fix the _composition_ issue).
 
             sage: phi*phi
             Traceback (most recent call last):

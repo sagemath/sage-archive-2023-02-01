@@ -12,14 +12,31 @@ from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
 from sage.categories.all import LieAlgebras
 from sage.structure.parent import Parent
-from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElementWrapper
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.element_wrapper import ElementWrapper
 
 class LieAlgebraFromAssociative(Parent, UniqueRepresentation):
     r"""
     An example of a Lie algebra: a Lie algebra from an associative algebra.
 
     This class illustrates a minimal implementation of a Lie algebra.
+
+    EXAMPLES:
+
+    We create an example of `\mathfrak{sl}_2` using matrices::
+
+
+        sage: gens = [matrix([[0,1],[0,0]]), matrix([[0,0],[1,0]]), matrix([[1,0],[0,-1]])]
+        sage: for g in gens:
+        ....:     g.set_immutable()
+        sage: L = LieAlgebras(QQ).example(gens)
+        sage: e,f,h = L.lie_algebra_generators()
+        sage: e.bracket(f) == h
+        True
+        sage: h.bracket(e) == 2*e
+        True
+        sage: h.bracket(f) == -2*f
+        True
     """
     @staticmethod
     def __classcall_private__(cls, gens):
@@ -102,7 +119,154 @@ class LieAlgebraFromAssociative(Parent, UniqueRepresentation):
         """
         return Family([self.element_class(self, g) for g in self._gens])
 
-    class Element(LieAlgebraElementWrapper):
+    # TODO: refactor to use LieAlgebraElementWrapper once more of #14901 is added in
+    class Element(ElementWrapper):
+        """
+        Wrap an element as a Lie algebra element.
+        """
+        def __eq__(self, rhs):
+            """
+            Check equality.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).example()
+                sage: x,y = L.lie_algebra_generators()
+                sage: x == x
+                True
+                sage: x.bracket(y) == -y.bracket(x)
+                True
+                sage: x == y
+                False
+                sage: x.bracket(x) == L.zero()
+                True
+                sage: x.bracket(x) == 0
+                True
+            """
+            if not isinstance(rhs, LieAlgebraFromAssociative.Element):
+                return self.value == 0 and rhs == 0
+            return self.parent() == rhs.parent() and self.value == rhs.value
+
+        def __ne__(self, rhs):
+            """
+            Check not-equals.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).example()
+                sage: x,y = L.lie_algebra_generators()
+                sage: x != y
+                True
+                sage: x != 0
+                True
+                sage: x != x
+                False
+                sage: x.bracket(y) != -y.bracket(x)
+                False
+            """
+            return not self.__eq__(rhs)
+
+        def __nonzero__(self):
+            """
+            Check non-zero.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).example()
+                sage: bool(sum(L.lie_algebra_generators()))
+                True
+                sage: bool(L.zero())
+                False
+            """
+            return bool(self.value)
+
+        def _add_(self, rhs):
+            """
+            Add ``self`` and ``rhs``.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).example()
+                sage: x,y = L.lie_algebra_generators()
+                sage: x + y
+                [2, 1, 3] + [2, 3, 1]
+            """
+            return self.__class__(self.parent(), self.value + rhs.value)
+
+        def _sub_(self, rhs):
+            """
+            Subtract ``self`` and ``rhs``.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).example()
+                sage: x,y = L.lie_algebra_generators()
+                sage: x - y
+                [2, 1, 3] - [2, 3, 1]
+            """
+            return self.__class__(self.parent(), self.value - rhs.value)
+
+        def _acted_upon_(self, scalar, self_on_left=False):
+            """
+            Return the action of a scalar on ``self``.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).example()
+                sage: x,y = L.lie_algebra_generators()
+                sage: 3 * x
+                3*[2, 1, 3]
+                sage: y / 4
+                1/4*[2, 3, 1]
+            """
+            # This was copied, but IDK if it still applies:
+            # With the current design, the coercion model does not have
+            # enough information to detect apriori that this method only
+            # accepts scalars; so it tries on some elements(), and we need
+            # to make sure to report an error.
+            if hasattr( scalar, 'parent' ) and scalar.parent() != self.base_ring():
+                # Temporary needed by coercion (see Polynomial/FractionField tests).
+                if self.base_ring().has_coerce_map_from(scalar.parent()):
+                    scalar = self.base_ring()( scalar )
+                else:
+                    return None
+            if self_on_left:
+                return self.__class__(self.parent(), self.value * scalar)
+            return self.__class__(self.parent(), scalar * self.value)
+
+        def __neg__(self):
+            """
+            Return the negation of ``self``.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).example()
+                sage: x,y = L.lie_algebra_generators()
+                sage: -x
+                -[2, 1, 3]
+            """
+            return self.__class__(self.parent(), -self.value)
+
+        def __getitem__(self, i):
+            """
+            Redirect the ``__getitem__()`` to the wrapped element.
+
+            EXAMPLES::
+
+                sage: gens = [matrix([[0,1],[0,0]]), matrix([[0,0],[1,0]]), matrix([[1,0],[0,-1]])]
+                sage: for g in gens:
+                ....:     g.set_immutable()
+                sage: L = LieAlgebras(QQ).example(gens)
+                sage: e,f,h = L.lie_algebra_generators()
+                sage: h[0,0]
+                1
+                sage: h[1,1]
+                -1
+                sage: h[0,1]
+                0
+            """
+            return self.value.__getitem__(i)
+
         def _bracket_(self, rhs):
             """
             Return the Lie bracket ``[self, rhs]``.

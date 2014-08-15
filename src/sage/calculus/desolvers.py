@@ -1628,27 +1628,25 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
     - (http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
       A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
       TIDES tutorial: Integrating ODEs by using the Taylor Series Method.
-
-
     """
-
     import subprocess
-    if subprocess.call(['which','gcc'], stdout=subprocess.PIPE, stderr=subprocess.PIPE):
+    if subprocess.call('command -v gcc', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         raise RuntimeError('Unable to run because gcc cannot be found')
     from sage.misc.misc import SAGE_ROOT
     from sage.interfaces.tides import genfiles_mintides
-    tempdir = mkdtemp()
-    intfile = tempdir + '/integrator.c'
-    drfile = tempdir + '/driver.c'
-    fileoutput = tempdir + '/output'
-    runmefile = tempdir + '/runme'
-
-
+    from sage.misc.temporary_file import tmp_dir
+    tempdir = tmp_dir()
+    intfile = os.path.join(tempdir, 'integrator.c')
+    drfile = os.path.join(tempdir ,'driver.c')
+    fileoutput = os.path.join(tempdir, 'output')
+    runmefile = os.path.join(tempdir, 'runme')
     genfiles_mintides(intfile, drfile, f, map(N, ics), N(initial), N(final), N(delta), N(tolrel),
                      N(tolabs), fileoutput)
-
-    os.system('gcc -o ' + runmefile + ' ' + tempdir + '/*.c $SAGE_ROOT/local/lib/libTIDES.a -lm  -O2')
-    os.system(tempdir+'/runme ')
+    subprocess.check_call('gcc -o ' + runmefile + ' ' + os.path.join(tempdir, '*.c ') +
+                          os.path.join('$SAGE_ROOT','local','lib','libTIDES.a') + ' -lm  -O2' +
+                          os.path.join('I$SAGE_ROOT','local','include') + os.path.join('-L$SAGE_ROOT','local','lib'),
+                          shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.check_call(os.path.join(tempdir, 'runme'), shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     outfile = open(fileoutput)
     res = outfile.readlines()
     outfile.close()
@@ -1658,7 +1656,6 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
         l = filter(lambda a: len(a) > 2, l)
         res[i] = map(RealField(),l)
     shutil.rmtree(tempdir)
-
     return res
 
 
@@ -1738,10 +1735,9 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
        A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
        TIDES tutorial: Integrating ODEs by using the Taylor Series Method.
 
-
     """
     import subprocess
-    if subprocess.call(['which','gcc'], stdout=subprocess.PIPE, stderr=subprocess.PIPE):
+    if subprocess.call('command -v gcc', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         raise RuntimeError('Unable to run because gcc cannot be found')
     from sage.misc.misc import SAGE_ROOT
     from sage.interfaces.tides import genfiles_mpfr
@@ -1752,12 +1748,8 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     drfile = tempdir + '/driver.c'
     fileoutput = tempdir + '/output'
     runmefile = tempdir + '/runme'
-
-
-
     genfiles_mpfr(intfile, drfile, f, ics, initial, final, delta, [], [],
                       digits, tolrel, tolabs, fileoutput)
-
     os.system('gcc -o ' + runmefile + ' ' + tempdir + '/*.c  $SAGE_ROOT/local/lib/libTIDES.a -lmpfr -lgmp -lm  -O2 -w')
     os.system(tempdir+'/runme ')
     outfile = open(fileoutput)
@@ -1769,7 +1761,6 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
         l = filter(lambda a: len(a) > 2, l)
         res[i] = map(RealField(ceil(digits*log(10,2))),l)
     shutil.rmtree(tempdir)
-
     return res
 
 

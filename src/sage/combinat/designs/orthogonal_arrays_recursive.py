@@ -981,7 +981,8 @@ def find_thwart_lemma_3_5(k,N):
     k = int(k)
     N = int(N)
 
-    for n in prime_powers(k+2,N-2): # There must exist a OA(k+3,n)
+    for n in prime_powers(k+2,N-2): # There must exist a OA(k+3,n) thus n>=k+2
+                                    # At least 3 columns are nonempty thus n<N-2
 
         # we look for (m,n,a,b,c,d) with N = mn + a + b + c (+d) and
         # 0 <= a,b,c,d <= n

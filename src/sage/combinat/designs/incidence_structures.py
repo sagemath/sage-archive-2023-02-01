@@ -518,8 +518,7 @@ class IncidenceStructure(object):
         """
         if copy:
             if self._point_to_index is None:
-                from copy import deepcopy
-                return deepcopy(self._blocks)
+                return [b[:] for b in self._blocks]
             else:
                 return [[self._points[i] for i in b] for b in self._blocks]
         else:
@@ -674,6 +673,48 @@ class IncidenceStructure(object):
         from sage.graphs.bipartite_graph import BipartiteGraph
         A = self.incidence_matrix()
         return BipartiteGraph(A)
+
+    def relabel(self, perm):
+        r"""
+        Relabels the ground set
+
+        - ``label`` (dictionary) -- associated every point of the ground set
+          with its image. All images must be distinct.
+
+        EXAMPLES::
+
+            sage: TD=designs.transversal_design(5,5)
+            sage: TD.relabel({i:chr(97+i) for i in range(25)})
+            sage: print TD.ground_set()
+            ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
+            sage: print TD.blocks()[:3]
+            [['a', 'f', 'k', 'p', 'u'], ['a', 'g', 'm', 's', 'y'], ['a', 'h', 'o', 'q', 'x']]
+        """
+        assert len(set(perm.values())) == len(perm)
+
+
+        self._points = [perm[x] for x in self._points]
+
+        if self._points == range(self.num_points()):
+            self._point_to_index  = None
+        else:
+            self._point_to_index = {v:i for i,v in enumerate(self._points)}
+
+    def __hash__(self):
+        r"""
+        Not Implemented
+
+        This object is mutable because of .relabel()
+
+        EXAMPLE::
+
+            sage: TD=designs.transversal_design(5,5)
+            sage: hash(TD)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: This object is mutable !
+        """
+        raise RuntimeError("This object is mutable !")
 
     #####################
     # real computations #
@@ -1297,3 +1338,159 @@ class IncidenceStructure(object):
 
         tex += "\\end{tikzpicture}"
         return tex
+
+class GroupDivisibleDesign(IncidenceStructure):
+    r"""
+    Group Divisible Design (GDD)
+
+    Let `K` and `G` be sets of positive integers and let `\lambda` be a positive
+    integer. A Group Divisible Design of index `\lambda` and order `v` is a
+    triple `(V,\mathcal G,\mathcal B)` where:
+
+    - `V` is a set of cardinality `v`
+
+    - `\mathcal G` is a partition of `V` into groups whose size belongs to `G`
+
+    - `\mathcal B` is a family of subsets of `V` whose size belongs to `K` such
+      that any two points `p_1,p_2\in V` from different groups appear
+      simultaneously in exactly `\lambda` elements of `mathcal B`. Besides, a
+      group and a block intersect on at most one point.
+
+    If `K=\{k_1,...,k_k\}` and `G` has exactly `m_i` groups of cardinality `k_i`
+    then `G` is said to have type `k_1^{m_1}...k_k^{m_k}`.
+
+    INPUT:
+
+    - ``points`` -- the underlying set. If ``points`` is an integer `v`, then
+      the set is considered to be `\{0, ..., v-1\}`.
+
+    - ``groups`` -- the groups of the design
+
+    - ``blocks`` -- collection of blocks
+
+    - ``G`` -- list of integers of which the sizes of the groups must be
+      elements. Set to ``None`` (automatic guess) by default.
+
+    - ``K`` -- list of integers of which the sizes of the blocks must be
+      elements. Set to ``None`` (automatic guess) by default.
+
+    - ``lambd`` (integer) -- value of `\lambda`, set to `1` by default.
+
+    - ``check`` (boolean) -- whether to check that the design is indeed a `GDD`
+      with the right parameters. Set to ``True`` by default.
+
+    - ``copy`` -- (use with caution) if set to ``False`` then ``blocks`` must be
+      a list of lists of integers. The list will not be copied but will be
+      modified in place (each block is sorted, and the whole list is
+      sorted). Your ``blocks`` object will become the instance's internal data.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.incidence_structures import GroupDivisibleDesign
+        sage: TD = designs.transversal_design(4,10)
+        sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
+        sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
+        Group Divisible Design on 40 points of type 10^4
+    """
+    def __init__(self, points, groups, blocks, G=None, K=None, lambd=1, check=True, copy=True,**kwds):
+        r"""
+        Constructor function
+
+        EXAMPLE::
+
+            sage: from sage.combinat.designs.incidence_structures import GroupDivisibleDesign
+            sage: TD = designs.transversal_design(4,10)
+            sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
+            sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
+            Group Divisible Design on 40 points of type 10^4
+        """
+        from designs_pyx import is_group_divisible_design
+
+        self._lambd = lambd
+
+        IncidenceStructure.__init__(self,
+                                    points,
+                                    blocks,
+                                    copy=copy,
+                                    check=False,
+                                    **kwds)
+
+        if copy is False and self._point_to_index is None:
+            self._groups = groups
+        elif self._point_to_index is None:
+            self._groups = [g[:] for g in groups]
+        else:
+            self._groups = [[self._point_to_index[x] for x in g] for g in groups]
+
+        if check:
+            assert is_group_divisible_design(self._groups,self._blocks,self.num_points(),G,K,lambd)
+
+
+    def groups(self, copy=True):
+        r"""
+        Return the groups of the Group-Divisible Design.
+
+        INPUT:
+
+        - ``copy`` (boolean) -- ``True`` by default. When set to ``False``, a
+          pointer toward the object's internal data is given. Set it to
+          ``False`` only if you know what you are doing.
+
+        EXAMPLE::
+
+            sage: from sage.combinat.designs.incidence_structures import GroupDivisibleDesign
+            sage: TD = designs.transversal_design(4,10)
+            sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
+            sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
+            Group Divisible Design on 40 points of type 10^4
+            sage: GDD.groups()
+            [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+             [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+             [20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+             [30, 31, 32, 33, 34, 35, 36, 37, 38, 39]]
+
+        TESTS:
+
+        Non-integer ground set::
+
+            sage: TD=designs.transversal_design(5,5)
+            sage: TD.relabel({i:chr(97+i) for i in range(25)})
+            sage: TD.groups()
+            [['a', 'b', 'c', 'd', 'e'],
+             ['f', 'g', 'h', 'i', 'j'],
+             ['k', 'l', 'm', 'n', 'o'],
+             ['p', 'q', 'r', 's', 't'],
+             ['u', 'v', 'w', 'x', 'y']]
+        """
+        if copy is False:
+            return self._groups
+        elif self._point_to_index is None:
+            return [list(g) for g in self._groups]
+        else:
+            return [[self._points[i] for i in g] for g in self._groups]
+
+    def __repr__(self):
+        r"""
+        Returns a string that describes self
+
+        EXAMPLE::
+
+            sage: from sage.combinat.designs.incidence_structures import GroupDivisibleDesign
+            sage: TD = designs.transversal_design(4,10)
+            sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
+            sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
+            Group Divisible Design on 40 points of type 10^4
+        """
+        from string import join
+        group_sizes = map(len, self.groups(copy=False))
+
+        gdd_type = ["{}^{}".format(s,group_sizes.count(s))
+                    for s in sorted(set(group_sizes))]
+        gdd_type = join(gdd_type,".")
+
+        if not gdd_type:
+            gdd_type = "1^0"
+
+        v = self.num_points()
+
+        return "Group Divisible Design on {} points of type {}".format(v,gdd_type)

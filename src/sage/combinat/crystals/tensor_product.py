@@ -1858,6 +1858,29 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
         """
         return self.to_tableau().pp()
 
+    def _ascii_art_(self):
+        """
+        Return an ascii art version of ``self``.
+
+        EXAMPLES:
+
+        We check that :trac:`16486` is fixed::
+
+            sage: T = crystals.Tableaux(['B',6], shape=[1]*5)
+            sage: ascii_art(T.module_generators[0])
+              1
+              2
+              3
+              4
+              5
+            sage: T = crystals.Tableaux(['D',4], shape=[2,1])
+            sage: t = T.module_generators[0].f_string([1,2,3,4,2,2,3,4])
+            sage: ascii_art(t)
+              1 -2
+             -3
+        """
+        return self.to_tableau()._ascii_art_()
+
     def _latex_(self):
         r"""
         EXAMPLES::

@@ -2535,6 +2535,40 @@ class KR_type_Dn_twisted(KirillovReshetikhinGenericCrystal):
         [[---, []], [+--, []]]]
     """
 
+    def _element_constructor_(self, *args, **options):
+        """
+        Construct an element of ``self``.
+
+        TESTS::
+
+            sage: KRC = crystals.KirillovReshetikhin(['D',4,1], 3, 3)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 3, 3, model='KR')
+            sage: elt = KRC.module_generators[0].f_string([3,2,3,1,2,3]); elt
+            [++-+, [[2], [3], [4], [-2]]]
+            sage: ret = KRT(elt); ret
+            [[1, 1, 2], [2, 3, 3], [4, 4, 4], [-3, -2, -1]]
+            sage: test = KRC(ret); test
+            [++-+, [[2], [3], [4], [-2]]]
+            sage: test == elt
+            True
+        """
+        from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableauxElement
+        if isinstance(args[0], KirillovReshetikhinTableauxElement):
+            elt = args[0]
+            # Check to make sure it can be converted
+            if elt.cartan_type() != self.cartan_type() \
+              or elt.parent().r() != self._r or elt.parent().s() != self._s:
+                raise ValueError("the Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
+
+            to_hw = elt.to_classical_highest_weight()
+            wt = to_hw[0].classical_weight() / 2
+            f_str = reversed(to_hw[1])
+            for x in self.module_generators:
+                if x.classical_weight() == wt:
+                    return x.f_string(f_str)
+            raise ValueError("no matching highest weight element found")
+        return KirillovReshetikhinGenericCrystal._element_constructor_(self, *args, **options)
+
     def classical_decomposition(self):
         r"""
         Specifies the classical crystal underlying the Kirillov-Reshetikhin crystal `B^{n,s}`

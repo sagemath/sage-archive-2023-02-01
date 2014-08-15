@@ -1556,7 +1556,7 @@ class SchemeMorphism_point(SchemeMorphism):
         Q=[]
         for i in range(len(self._coords)):
             Q.append(R(self._coords[i]))
-        return(S.point(Q,check))
+        return(S.point(Q, check=check))
 
     def __copy__(self):
         r"""
@@ -1575,4 +1575,4 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: copy(Q) == Q
             True
         """
-        return(self._codomain.point(self._coords,False))
+        return(self._codomain.point(self._coords, check=False))

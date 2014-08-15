@@ -5483,7 +5483,7 @@ cdef class Expression(CommutativeRingElement):
 
         -  ``base_ring`` - (optional) the base ring for the polynomial
 
-        -  ``ring - (optional) the parent for the polynomial
+        -  ``ring`` - (optional) the parent for the polynomial
 
         .. warning::
 

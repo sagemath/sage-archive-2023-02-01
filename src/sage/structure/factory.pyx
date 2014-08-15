@@ -37,13 +37,15 @@ easier to use than a factory.
 
 AUTHORS:
 
-- Robert Bradshaw (2008), initial version.
-- Simon King (2013), extended documentation.
+- Robert Bradshaw (2008): initial version.
+- Simon King (2013): extended documentation.
+- Julian Rueth (2014-05-09): use ``_cache_key`` if parameters are unhashable
 
 """
 
 #*****************************************************************************
 #  Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
+#                2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -383,23 +385,37 @@ cdef class UniqueFactory(SageObject):
             sage: test_factory.get_object(3.0, 'a', {}) is test_factory.get_object(3.0, 'b', {})
             Making object b
             False
+
+        TESTS:
+
+        Check that :trac:`16317` has been fixed, i.e., caching works for
+        unhashable objects::
+
+            sage: K.<u> = Qq(4)
+            sage: test_factory.get_object(3.0, (K(1), 'c'), {})  is test_factory.get_object(3.0, (K(1), 'c'), {})
+            Making object (1 + O(2^20), 'c')
+            True
+
         """
+        cache_key = key
         try:
-            return self._cache[version, key]
+            try:
+                return self._cache[version, cache_key]
+            except TypeError: # key is unhashable
+                from sage.misc.cachefunc import _cache_key
+                cache_key = _cache_key(cache_key)
+                return self._cache[version, cache_key]
         except KeyError:
             pass
         obj = self.create_object(version, key, **extra_args)
-        self._cache[version, key] = obj
+        self._cache[version, cache_key] = obj
         try:
-            other_keys = self.other_keys(key, obj)
-            for key in other_keys:
+            for key in self.other_keys(key, obj):
                 try:
-                    obj = self._cache[version, key]
-                    break
-                except KeyError:
-                    pass
-            for key in other_keys:
-                self._cache[version, key] = obj
+                    self._cache[version, key] = obj
+                except TypeError: # key is unhashable
+                    from sage.misc.cachefunc import _cache_key
+                    self._cache[version, _cache_key(key)] = obj
             obj._factory_data = self, version, key, extra_args
             if obj.__class__.__reduce__.__objclass__ is object:
                 # replace the generic object __reduce__ to use this one

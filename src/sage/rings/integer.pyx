@@ -2851,6 +2851,24 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_abs(x.value, self.value)
         return x
 
+    def euclidean_degree(self):
+        r"""
+        Return the degree of this element as an element of a euclidean domain.
+
+        If this is an element in the ring of integers, this is simply its
+        absolute value.
+
+        EXAMPLES::
+
+            sage: ZZ(1).euclidean_degree()
+            1
+
+        """
+        from sage.rings.all import ZZ
+        if self.parent() is ZZ:
+            return abs(self)
+        raise NotImplementedError
+
     def sign(self):
         """
         Returns the sign of this integer, which is -1, 0, or 1

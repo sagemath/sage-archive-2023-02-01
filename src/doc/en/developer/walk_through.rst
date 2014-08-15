@@ -15,6 +15,10 @@ We also have a handy `one-page "cheat sheet"
 <http://github.com/sagemath/git-trac-command/raw/master/doc/git-cheat-sheet.pdf>`_
 of commonly used git commands that you can print out and leave on your
 desk.
+You can alternatively fork and create a pull request at
+`github <http://github.com/sagemath/sage>`_ which will automatically fetch
+your code and open a ticket on our trac server.
+
 
 .. _section-walkthrough-setup-git:
 

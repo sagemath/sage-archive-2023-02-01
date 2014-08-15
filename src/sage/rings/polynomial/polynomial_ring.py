@@ -131,6 +131,7 @@ Check that :trac:`5562` has been fixed::
 
 These may change over time::
 
+    sage: x = var('x')
     sage: type(ZZ['x'].0)
     <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
     sage: type(QQ['x'].0)
@@ -145,6 +146,14 @@ These may change over time::
     <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
     sage: type(CC['t']['x'].0)
     <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
+    sage: type(NumberField(x^2+1,'I')['x'].0)
+    <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_absolute_number_field_dense'>
+    sage: type(NumberField(x^2+1,'I')['x'])
+    <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category'>
+    sage: type(NumberField([x^2-2,x^2-3],'a')['x'].0)
+    <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_relative_number_field_dense'>
+    sage: type(NumberField([x^2-2,x^2-3],'a')[x])
+    <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category'>
 """
 
 
@@ -170,6 +179,7 @@ import sage.rings.polynomial.polynomial_element_generic as polynomial_element_ge
 import sage.rings.rational_field as rational_field
 from sage.rings.integer_ring import is_IntegerRing, IntegerRing
 from sage.rings.integer import Integer
+from sage.rings.number_field.number_field_base import is_NumberField
 from sage.libs.pari.all import pari_gen
 from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default_category
 
@@ -460,6 +470,34 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
     def is_noetherian(self):
         return self.base_ring().is_noetherian()
+
+    def some_elements(self):
+        r"""
+        Return a list of polynomials.
+
+        This is typically used for running generic tests.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R.some_elements()
+            [x, 0, 1, 1/2, x^2 + 2*x + 1, x^3, x^2 - 1, x^2 + 1, 2*x^2 + 2]
+        """
+        # the comments in the following lines describe the motivation for
+        # adding these elements, they are not accurate over all rings and in
+        # all contexts
+        R = self.base_ring()
+        # Doing things this way is a little robust against rings where
+        #    2 might not convert in
+        one = R.one()
+        return [self.gen(),
+            self.zero(), self(one), self(R.an_element()), # elements of the base ring
+            self([one,2*one,one]), # a square
+            self([0,0,0,one]), # a power but not a square
+            self([-one,0,one]), # a reducible element
+            self([one,0,one]), # an irreducible element
+            self([2*one,0,2*one]), # an element with non-trivial content
+        ]
 
     def construction(self):
         from sage.categories.pushout import PolynomialFunctor
@@ -1501,6 +1539,13 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             elif isinstance(base_ring, rational_field.RationalField):
                 from sage.rings.polynomial.polynomial_rational_flint import Polynomial_rational_flint
                 element_class = Polynomial_rational_flint
+            elif is_NumberField(base_ring):
+                if base_ring.is_absolute():
+                    from sage.rings.polynomial.polynomial_number_field import Polynomial_absolute_number_field_dense
+                    element_class = Polynomial_absolute_number_field_dense
+                else:
+                    from sage.rings.polynomial.polynomial_number_field import Polynomial_relative_number_field_dense
+                    element_class = Polynomial_relative_number_field_dense
             elif is_RealField(base_ring):
                 element_class = PolynomialRealDense
             else:

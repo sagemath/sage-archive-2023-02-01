@@ -135,7 +135,7 @@ def warning_function(file):
         sage: wrn("bad stuff", UserWarning, "myfile.py", 0)
         sage: F.seek(0)
         sage: F.read()
-        'doctest:0: UserWarning: bad stuff\n'
+        'doctest:...: UserWarning: bad stuff\n'
     """
     def doctest_showwarning(message, category, filename, lineno, file=file, line=None):
         try:
@@ -474,10 +474,10 @@ class SageDocTestRunner(doctest.DocTestRunner):
             # simply propagate the exception.
             exception = None
             try:
+                compiler = lambda example:compile(
+                    example.source, filename, "single", compileflags, 1)
                 # Don't blink!  This is where the user's code gets run.
-                compiled = compile(example.source, filename, "single",
-                             compileflags, 1)
-                self.execute(example, compiled, test.globs)
+                self.compile_and_execute(example, compiler, test.globs)
             except SystemExit:
                 raise
             except BaseException:
@@ -485,7 +485,6 @@ class SageDocTestRunner(doctest.DocTestRunner):
             finally:
                 if self.debugger is not None:
                     self.debugger.set_continue() # ==== Example Finished ====
-
             got = self._fakeout.getvalue()  # the actual output
             outcome = FAILURE   # guilty until proved innocent or insane
 
@@ -523,7 +522,6 @@ class SageDocTestRunner(doctest.DocTestRunner):
             if outcome is SUCCESS:
                 if self.options.warn_long and example.walltime > self.options.warn_long:
                     self.report_overtime(out, test, example, got)
-                    failures += 1
                 elif not quiet:
                     self.report_success(out, test, example, got)
             elif outcome is FAILURE:
@@ -748,7 +746,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             digest.update(reduce_hex(e.running_state for e in example.predecessors))
             example.running_state = digest.hexdigest()
 
-    def execute(self, example, compiled, globs):
+    def compile_and_execute(self, example, compiler, globs):
         """
         Runs the given example, recording dependencies.
 
@@ -770,8 +768,11 @@ class SageDocTestRunner(doctest.DocTestRunner):
         INPUT:
 
         - ``example`` -- a :class:`doctest.Example` instance.
-        - ``compiled`` -- a code object produced by compiling ``example.source``
-        - ``globs`` -- a dictionary in which to execute ``compiled``.
+
+        - ``compiler`` -- a callable that, applied to example,
+          produces a code object
+
+        - ``globs`` -- a dictionary in which to execute the code.
 
         OUTPUT:
 
@@ -795,8 +796,8 @@ class SageDocTestRunner(doctest.DocTestRunner):
             False
             sage: doctests, extras = FDS.create_doctests(globs)
             sage: ex0 = doctests[0].examples[0]
-            sage: compiled = compile(ex0.source, '<doctest sage.doctest.forker[0]>', 'single', 32768, 1)
-            sage: DTR.execute(ex0, compiled, globs)
+            sage: compiler = lambda ex: compile(ex.source, '<doctest sage.doctest.forker[0]>', 'single', 32768, 1)
+            sage: DTR.compile_and_execute(ex0, compiler, globs)
             1764
             sage: globs['doctest_var']
             42
@@ -808,8 +809,8 @@ class SageDocTestRunner(doctest.DocTestRunner):
         Now we can execute some more doctests to see the dependencies. ::
 
             sage: ex1 = doctests[0].examples[1]
-            sage: compiled = compile(ex1.source, '<doctest sage.doctest.forker[1]>', 'single', 32768, 1)
-            sage: DTR.execute(ex1, compiled, globs)
+            sage: compiler = lambda ex:compile(ex.source, '<doctest sage.doctest.forker[1]>', 'single', 32768, 1)
+            sage: DTR.compile_and_execute(ex1, compiler, globs)
             sage: sorted(list(globs.set))
             ['R', 'a']
             sage: globs.got
@@ -820,8 +821,8 @@ class SageDocTestRunner(doctest.DocTestRunner):
         ::
 
             sage: ex2 = doctests[0].examples[2]
-            sage: compiled = compile(ex2.source, '<doctest sage.doctest.forker[2]>', 'single', 32768, 1)
-            sage: DTR.execute(ex2, compiled, globs)
+            sage: compiler = lambda ex:compile(ex.source, '<doctest sage.doctest.forker[2]>', 'single', 32768, 1)
+            sage: DTR.compile_and_execute(ex2, compiler, globs)
             a + 42
             sage: list(globs.set)
             []
@@ -834,8 +835,11 @@ class SageDocTestRunner(doctest.DocTestRunner):
             globs.start()
         example.sequence_number = len(self.history)
         self.history.append(example)
-        timer = Timer().start()
+        timer = Timer()
         try:
+            timer.start()
+            compiled = compiler(example)
+            timer.start()    # reset timer
             exec compiled in globs
         finally:
             timer.stop().annotate(example)
@@ -853,7 +857,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             example.total_state = self.running_global_digest.hexdigest()
             example.doctest_state = self.running_doctest_digest.hexdigest()
 
-    def _failure_header(self, test, example):
+    def _failure_header(self, test, example, message='Failed example:'):
         """
         We strip out ``sage:`` prompts, so we override
         :meth:`doctest.DocTestRunner._failure_header` for better
@@ -898,9 +902,31 @@ class SageDocTestRunner(doctest.DocTestRunner):
             Failed example:
                 doctest_var = Integer(42); doctest_var**Integer(2)
             <BLANKLINE>
+
+        The ``'Failed example:'`` message can be customized::
+
+            sage: print DTR._failure_header(doctests[0], ex, message='Hello there!')
+            **********************************************************************
+            File ".../sage/doctest/forker.py", line 11, in sage.doctest.forker
+            Hello there!
+                doctest_var = 42; doctest_var^2
+            <BLANKLINE>
         """
+        out = [self.DIVIDER]
         with OriginalSource(example):
-            return doctest.DocTestRunner._failure_header(self, test, example)
+            if test.filename:
+                if test.lineno is not None and example.lineno is not None:
+                    lineno = test.lineno + example.lineno + 1
+                else:
+                    lineno = '?'
+                out.append('File "%s", line %s, in %s' %
+                           (test.filename, lineno, test.name))
+            else:
+                out.append('Line %s, in %s' % (example.lineno+1, test.name))
+            out.append(message)
+            source = example.source
+            out.append(doctest._indent(source))
+            return '\n'.join(out)
 
     def report_start(self, out, test, example):
         """
@@ -1161,12 +1187,12 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR.report_overtime(sys.stdout.write, doctests[0], ex, 'BAD ANSWER\n')
             **********************************************************************
             File ".../sage/doctest/forker.py", line 11, in sage.doctest.forker
-            Failed example:
+            Warning, slow doctest:
                 doctest_var = 42; doctest_var^2
             Test ran for 1.23 s
         """
-        out(self._failure_header(test, example) +
-            "Test ran for %.2f s\n"%example.walltime)
+        out(self._failure_header(test, example, 'Warning, slow doctest:') +
+            'Test ran for %.2f s\n' % example.walltime)
 
     def report_unexpected_exception(self, out, test, example, exc_info):
         r"""
@@ -1205,13 +1231,13 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: _ = sage0.eval("DTR = sdf.SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)")
             sage: sage0._prompt = r"\(Pdb\) "
             sage: sage0.eval("DTR.run(DT, clear_globs=False)") # indirect doctest
-            '... ArithmeticError("Invariants %s define a singular curve."%ainvs)'
+            '... ArithmeticError("invariants " + str(ainvs) + " define a singular curve")'
             sage: sage0.eval("l")
             '...if self.discriminant() == 0:...raise ArithmeticError...'
             sage: sage0.eval("u")
-            '...EllipticCurve_field.__init__(self, [field(x) for x in ainvs])'
+            '...EllipticCurve_field.__init__(self, K, ainvs)'
             sage: sage0.eval("p ainvs")
-            '[0, 0]'
+            '(0, 0, 0, 0, 0)'
             sage: sage0._prompt = "sage: "
             sage: sage0.eval("quit")
             'TestResults(failed=1, attempted=1)'
@@ -2105,6 +2131,8 @@ class DocTestTask(object):
             if extras['tab']:
                 results.err = 'tab'
                 results.tab_linenos = extras['tab']
+            if extras['line_number']:
+                results.err = 'line_number'
             results.optionals = extras['optionals']
             # We subtract 1 to remove the sig_on_count() tests
             result = (sum([max(0,len(test.examples) - 1) for test in doctests]), results)

@@ -87,7 +87,7 @@ class Bimodules(CategoryWithParameters):
     @classmethod
     def an_instance(cls):
         """
-        Returns an instance of this class
+        Return an instance of this class.
 
         EXAMPLES::
 
@@ -109,7 +109,7 @@ class Bimodules(CategoryWithParameters):
 
     def left_base_ring(self):
         """
-        Returns the left base ring over which elements of this category are
+        Return the left base ring over which elements of this category are
         defined.
 
         EXAMPLES::
@@ -121,7 +121,7 @@ class Bimodules(CategoryWithParameters):
 
     def right_base_ring(self):
         """
-        Returns the right base ring over which elements of this category are
+        Return the right base ring over which elements of this category are
         defined.
 
         EXAMPLES::
@@ -133,13 +133,17 @@ class Bimodules(CategoryWithParameters):
 
     def _latex_(self):
         """
+        Return a latex representation of ``self``.
+
         EXAMPLES::
 
             sage: print Bimodules(QQ, ZZ)._latex_()
-            {\mathbf{Bimodules}}_{\Bold{Q}}_{\Bold{Z}}
+            {\mathbf{Bimodules}}_{\Bold{Q}, \Bold{Z}}
         """
         from sage.misc.latex import latex
-        return "{%s}_{%s}_{%s}"%(Category._latex_(self), latex(self._left_base_ring), latex(self._right_base_ring))
+        return "{{{0}}}_{{{1}, {2}}}".format(Category._latex_(self),
+                                             latex(self._left_base_ring),
+                                             latex(self._right_base_ring))
 
     def super_categories(self):
         """

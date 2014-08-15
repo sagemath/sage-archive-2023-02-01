@@ -555,6 +555,88 @@ class Polynomial_generic_sparse(Polynomial):
                     output[index + n] = coeff
             return self.parent()(output, check=False)
 
+    @coerce_binop
+    def quo_rem(self, other):
+        """
+        Returns the quotient and remainder of the Euclidean division of
+        ``self`` and ``other``.
+
+        Raises ZerodivisionError if ``other`` is zero. Raises ArithmeticError
+        if ``other`` has a nonunit leading coefficient.
+
+        EXAMPLES::
+
+            sage: P.<x> = PolynomialRing(ZZ,sparse=True)
+            sage: R.<y> = PolynomialRing(P,sparse=True)
+            sage: f = R.random_element(10)
+            sage: g = y^5+R.random_element(4)
+            sage: q,r = f.quo_rem(g)
+            sage: f == q*g + r and r.degree() < g.degree()
+            True
+            sage: g = x*y^5
+            sage: f.quo_rem(g)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Nonunit leading coefficient
+            sage: g = 0
+            sage: f.quo_rem(g)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Division by zero polynomial
+
+        TESTS::
+
+            sage: P.<x> = PolynomialRing(ZZ,sparse=True)
+            sage: f = x^10-4*x^6-5
+            sage: g = 17*x^22+x^15-3*x^5+1
+            sage: q,r = g.quo_rem(f)
+            sage: g == f*q + r and r.degree() < f.degree()
+            True
+            sage: zero = P(0)
+            sage: zero.quo_rem(f)
+            (0, 0)
+            sage: Q.<y> = IntegerModRing(14)[]
+            sage: f = y^10-4*y^6-5
+            sage: g = 17*y^22+y^15-3*y^5+1
+            sage: q,r = g.quo_rem(f)
+            sage: g == f*q + r and r.degree() < f.degree()
+            True
+            sage: f += 2*y^10 # 3 is invertible mod 14
+            sage: q,r = g.quo_rem(f)
+            sage: g == f*q + r and r.degree() < f.degree()
+            True
+
+        AUTHORS:
+
+        - Bruno Grenet (2014-07-09)
+        """
+        if other.is_zero():
+            raise ZeroDivisionError("Division by zero polynomial")
+        if not other.leading_coefficient().is_unit():
+            raise ArithmeticError("Nonunit leading coefficient")
+        if self.is_zero():
+            return self, self
+
+        R = self.parent()
+
+        d = other.degree()
+        if self.degree() < d:
+            return R.zero_element(), self
+
+        quo = R.zero_element()
+        rem = self
+        inv_lc = R.base_ring().one_element()/other.leading_coefficient()
+
+        while rem.degree() >= d:
+
+            c = rem.leading_coefficient()*inv_lc
+            e = rem.degree() - d
+            quo += c*R.one_element().shift(e)
+            # we know that the leading coefficient of rem vanishes
+            # thus we avoid doing a useless computation
+            rem = rem[:rem.degree()] - c*other[:d].shift(e)
+        return (quo,rem)
+
 
 class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
     def __init__(self, parent, is_gen=False, construct=False):

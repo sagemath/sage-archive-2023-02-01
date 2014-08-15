@@ -49,8 +49,7 @@ Hypergraphs
    :maxdepth: 1
 
    sage/graphs/hypergraph_generators
-   sage/graphs/hypergraph
-
+   sage/combinat/designs/incidence_structures
 
 
 Libraries of algorithms
@@ -68,6 +67,7 @@ Libraries of algorithms
    sage/graphs/pq_trees
    sage/graphs/trees
    sage/graphs/matchpoly
+   sage/graphs/genus
    sage/graphs/linearextensions
    sage/graphs/schnyder
    sage/graphs/graph_plot
@@ -80,6 +80,7 @@ Libraries of algorithms
    sage/graphs/weakly_chordal
    sage/graphs/distances_all_pairs
    sage/graphs/graph_latex
+   sage/graphs/graph_editor
    sage/graphs/graph_list
    sage/graphs/hyperbolicity
    sage/graphs/tutte_polynomial

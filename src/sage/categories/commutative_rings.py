@@ -25,7 +25,7 @@ class CommutativeRings(CategoryWithAxiom):
          sage: C = CommutativeRings(); C
          Category of commutative rings
          sage: C.super_categories()
-         [Category of rings, Category of commutative magmas]
+         [Category of rings, Category of commutative monoids]
 
     TESTS::
 

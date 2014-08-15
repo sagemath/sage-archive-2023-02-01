@@ -869,7 +869,7 @@ class Sets(Category_singleton):
             implementation of ``_element_constructor`` for those::
 
                 sage: from sage.algebras.group_algebra import GroupAlgebra
-                doctest:1: DeprecationWarning: The module group_algebra is deprecated and will be removed in a future version of Sage. Use group_algebra_new instead.
+                doctest:...: DeprecationWarning: The module group_algebra is deprecated and will be removed in a future version of Sage. Use group_algebra_new instead.
                 See http://trac.sagemath.org/6670 for details.
                 sage: B = GroupAlgebra(SymmetricGroup(3), ZZ)
                 sage: B.element_class

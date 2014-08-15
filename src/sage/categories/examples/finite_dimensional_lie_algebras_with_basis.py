@@ -76,10 +76,9 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
             sage: L.basis()
         """
-        d = {}
         names = self.variable_names()
-        for i,b in enumerate(self._M.basis()):
-            d[names[i]] = self.element_class(self, b)
+        d = {names[i]: self.element_class(self, b)
+             for i,b in enumerate(self._M.basis())}
         return Family(d)
 
     def lie_algebra_generators(self):

@@ -502,7 +502,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         (2, 4, 12, 24, 120)
 
         sage: F.category()
-        Category of groups
+        Category of finite commutative groups
 
     TESTS::
 

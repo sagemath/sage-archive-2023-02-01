@@ -13,7 +13,9 @@ Vector Spaces
 from sage.categories.category import Category
 from sage.categories.category_types import Category_module
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.dual import DualObjectsCategory
+from sage.categories.tensor import TensorProductsCategory
 from sage.categories.fields import Fields
 from sage.categories.modules import Modules
 from sage.categories.modules_with_basis import ModulesWithBasis
@@ -146,6 +148,32 @@ class VectorSpaces(Category_module):
                 True
             """
             return True
+
+        class CartesianProducts(CartesianProductsCategory):
+            def extra_super_categories(self):
+                r"""
+                The category of vector spaces with basis is closed under cartesian products::
+
+                    sage: VectorSpaces(QQ).WithBasis().CartesianProducts()
+                    Category of Cartesian products of vector spaces with basis over Rational Field
+                    sage: VectorSpaces(QQ).WithBasis().CartesianProducts().super_categories()
+                    [Category of vector spaces with basis over Rational Field, 
+                    Category of Cartesian products of modules with basis over Rational Field]
+                """
+                return [self.base_category()]
+
+        class TensorProducts(TensorProductsCategory):
+            def extra_super_categories(self):
+                r"""
+                The category of vector spaces with basis is closed under tensor products::
+
+                    sage: VectorSpaces(QQ).WithBasis().TensorProducts()
+                    Category of tensor products of vector spaces with basis over Rational Field
+                    sage: VectorSpaces(QQ).WithBasis().TensorProducts().super_categories()
+                    [Category of tensor products of modules with basis over Rational Field,
+                    Category of vector spaces with basis over Rational Field]
+                """
+                return [self.base_category()]
 
     class DualObjects(DualObjectsCategory):
 

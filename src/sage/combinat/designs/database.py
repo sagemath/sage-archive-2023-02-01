@@ -76,7 +76,7 @@ Implemented constructions :
   :func:`OA(11,640) <OA_11_640>`,
   :func:`OA(10,796) <OA_10_796>`,
   :func:`OA(15,896) <OA_15_896>`,
-  :func:`OA(33,993) <OA_33_993>`
+  :func:`OA(33,993) <OA_33_993>`,
 
 - :func:`two MOLS of order 10 <MOLS_10_2>`,
   :func:`five MOLS of order 12 <MOLS_12_5>`,
@@ -3365,7 +3365,7 @@ OA_constructions = {
     640 : (11 , OA_11_640),
     796 : (10 , OA_10_796),
     896 : (15 , OA_15_896),
-    993 : (33 , OA_33_993)
+    993 : (33 , OA_33_993),
 }
 
 def CDF_21_5_1():

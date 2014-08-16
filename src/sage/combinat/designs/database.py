@@ -124,6 +124,7 @@ from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_ma
                                                      QDM_from_Vmt,
                                                      OA_from_wider_OA,
                                                      OA_from_PBD,
+                                                     OA_n_times_2_pow_c_from_matrix,
                                                      orthogonal_array)
 
 # Cyclic shift of a list
@@ -1106,11 +1107,12 @@ def OA_9_40():
     r"""
     Return an OA(9,40)
 
-    As explained in the Handbook III.3.62 [DesignHandbook]_.
+    As explained in the Handbook III.3.62 [DesignHandbook]_. Uses the fact that
+    `40 = 2^3 \times 5` and that `5` is prime.
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
 
     EXAMPLES::
 
@@ -1125,6 +1127,7 @@ def OA_9_40():
         sage: designs.orthogonal_array(9,40,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
 
     A = [
         [(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None)],
@@ -1138,7 +1141,7 @@ def OA_9_40():
         ]
     Y = [None, 0, 1, 6, 5, 4, 3, 2]
 
-    return _helper_function_when_n_is_prime_times_power_of_2(9,40,A,Y)
+    return OA_n_times_2_pow_c_from_matrix(9,3,FiniteField(5),A,Y,check=False)
 
 def OA_7_42():
     r"""
@@ -2182,11 +2185,12 @@ def OA_11_80():
     r"""
     Return an OA(11,80)
 
-    As explained in the Handbook III.3.76 [DesignHandbook]_.
+    As explained in the Handbook III.3.76 [DesignHandbook]_. Uses the fact that
+    `80 = 2^4 \times 5` and that `5` is prime.
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
 
     EXAMPLES::
 
@@ -2201,6 +2205,8 @@ def OA_11_80():
         sage: designs.orthogonal_array(11,80,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None)],
         [(0,None), (1,None),    (2,3), (3,None),    (4,3), (2,None),    (3,3), (4,None),    (0,3),    (1,3)],
@@ -2214,7 +2220,8 @@ def OA_11_80():
         [(1,None),    (4,9),    (4,1),    (1,0),    (0,4),    (2,5), (3,None),    (3,5), (2,None), (0,None)]
         ]
     Y = [None, 0, 1, 14, 12, 7, 2, 11, 3, 6]
-    return _helper_function_when_n_is_prime_times_power_of_2(11,80,A,Y)
+
+    return OA_n_times_2_pow_c_from_matrix(11,4,FiniteField(5),A,Y,check=False)
 
 def OA_10_82():
     r"""
@@ -2274,11 +2281,12 @@ def OA_15_112():
     r"""
     Returns an OA(15,112)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_. Uses the fact that 112 = `2^4
+    \times 7` and that `7` is prime.
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
 
     EXAMPLES::
 
@@ -2293,6 +2301,8 @@ def OA_15_112():
         sage: designs.orthogonal_array(15,112,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
         [(0,None), (1,None), (2,None), (3,   5), (4,   9), (5,  11), (6,  12), (1,  10), (0,  10), (1,  11), (4,  13), (2,   6), (2,   2), (4,   1)],
@@ -2311,7 +2321,7 @@ def OA_15_112():
     ]
     Y = [None, 0, 1, 14, 12, 7, 2, 11, 3, 4, 5, 10, 8, 6]
 
-    return _helper_function_when_n_is_prime_times_power_of_2(15,112,zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(15,4,FiniteField(7),zip(*A),Y,check=False)
 
 def OA_9_120():
     r"""
@@ -2505,11 +2515,12 @@ def OA_11_160():
     r"""
     Returns an OA(11,160)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_. Uses the fact that `160 = 2^5
+    \times 5` is a product of a power of `2` and a prime number.
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
 
     EXAMPLES::
 
@@ -2523,15 +2534,9 @@ def OA_11_160():
 
         sage: designs.orthogonal_array(11,160,existence=True)
         True
-
-    REFERENCES:
-
-    .. [AbelThesis] On the Existence of Balanced Incomplete Block Designs and Transversal Designs,
-      Julian R. Abel,
-      PhD Thesis,
-      University of New South Wales,
-      1995
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     A = [
          [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (4,None), (1,None)],
          [(0,None), (1,None), (2,   5), (3,   9), (4,   9), (1,  16), (0,  20), (1,  23), (4,  24), (4,  19)],
@@ -2546,17 +2551,19 @@ def OA_11_160():
         ]
 
     Y = [None, 0, 1, 2, 15, 27, 22, 12, 3, 28]
-    return _helper_function_when_n_is_prime_times_power_of_2(11,160,zip(*A),Y)
+
+    return OA_n_times_2_pow_c_from_matrix(11,5,FiniteField(5),zip(*A),Y,check=False)
 
 def OA_16_176():
     r"""
     Returns an OA(16,176)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_. Uses the fact that `176 = 2^4
+    \times 11` is a product of a power of `2` and a prime number.
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
 
     EXAMPLES::
 
@@ -2571,6 +2578,8 @@ def OA_16_176():
         sage: designs.orthogonal_array(16,176,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     A = [
         [(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(1 ,None),(4 ,None),(9 ,None)],
         [(0 ,None),(1 ,None),(2 ,None),(3 ,   0),(4 ,   2),(5 ,  12),(6 ,   5),(7 ,   6),(8 ,  13),(9 ,   9),(10,  11),(1 ,   3),(0 ,   6),(1 ,  14),(4 ,  12)],
@@ -2597,17 +2606,18 @@ def OA_16_176():
     ]
 
     Y = [None, 0, 1, 2, 8, 6, 9, 4, 10, 3, 5, 11, 13, 14, 12]
-    return _helper_function_when_n_is_prime_times_power_of_2(16,176,zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(16,4,FiniteField(11),zip(*A),Y,check=False)
 
 def OA_16_208():
     r"""
     Returns an OA(16,208)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_. Uses the fact that `208 = 2^4
+    \times 13` is a product of `2` and a prime number.
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
 
     EXAMPLES::
 
@@ -2622,6 +2632,8 @@ def OA_16_208():
         sage: designs.orthogonal_array(16,208,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     A = [
         [(0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (1 ,None)],
         [(0 ,None), (1 ,None), (2 ,   0), (3 ,   7), (4 ,   1), (5 ,  11), (6 ,   2), (7 ,  10), (8 ,None), (9 ,  10), (10,None), (11,   3), (12,   3), (1 ,   4), (0 ,   8)],
@@ -2653,7 +2665,7 @@ def OA_16_208():
 
     Y = [None, 0, 1, 2, 12, 9, 13, 11, 7, 4, 8, 5, 14, 6, 3]
 
-    return _helper_function_when_n_is_prime_times_power_of_2(16,208,zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(16,4,FiniteField(13),zip(*A),Y,check=False)
 
 def OA_12_210():
     r"""
@@ -2686,11 +2698,12 @@ def OA_15_224():
     r"""
     Returns an OA(15,224)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that `224=2^5
+    \times 7` is a product of a power of `2` and a prime number).
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
 
     EXAMPLES::
 
@@ -2705,6 +2718,8 @@ def OA_15_224():
         sage: designs.orthogonal_array(15,224,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
         [(0,None), (1,None), (2,   9), (3,  23), (4,  29), (5,   4), (6,  30), (1,  26), (0,None), (1,  11), (4,   2), (2,  28), (2,None), (4,  13)],
@@ -2724,7 +2739,7 @@ def OA_15_224():
 
     Y = [None, 0, 1, 2, 27, 22, 11, 4, 26, 25, 29, 24, 7, 20]
 
-    return _helper_function_when_n_is_prime_times_power_of_2(15,224,zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(15,5,FiniteField(7),zip(*A),Y,check=False)
 
 def OA_18_273():
     r"""
@@ -2842,11 +2857,12 @@ def OA_20_352():
     r"""
     Returns an OA(20,352)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that `352=2^5
+    \times 11` is the product of a power of `2` and a prime number).
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
 
     EXAMPLES::
 
@@ -2861,6 +2877,8 @@ def OA_20_352():
         sage: designs.orthogonal_array(20,352,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     # Column 8, line 6 : 4,25 became 4,27
     #           line 17: 3,0  became 3,None
     # Column 14,line 1 : 4,1  became 4,0
@@ -2892,17 +2910,18 @@ def OA_20_352():
 
     Y = [None, 0, 1, 2, 18, 5, 11, 4, 13, 26, 25, 29, 24, 7, 20, 19, 9, 12, 15]
 
-    return _helper_function_when_n_is_prime_times_power_of_2(20,352,zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(11),zip(*A),Y,check=False)
 
 def OA_20_416():
     r"""
     Returns an OA(20,416)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that `416=2^5
+    \times 13` is the product of a power of `2` and a prime number).
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
 
     EXAMPLES::
 
@@ -2917,6 +2936,8 @@ def OA_20_416():
         sage: designs.orthogonal_array(20,416,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     Z = None
     A=[
         [(0,Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (1 , Z), (4 , Z), (9 , Z), (3 , Z), (12, Z)],
@@ -2949,7 +2970,7 @@ def OA_20_416():
 
     Y = [None, 0, 1, 2, 18, 5, 11, 4, 13, 26, 25, 29, 24, 7, 20, 19, 9, 12, 15]
 
-    return _helper_function_when_n_is_prime_times_power_of_2(20,416,zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(13),zip(*A),Y,check=False)
 
 def OA_12_474():
     r"""
@@ -3018,11 +3039,12 @@ def OA_20_544():
     r"""
     Returns an OA(20,544)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that
+    `544=2^5 \times 17` is the product of a power of `2` and a prime number).
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
 
     EXAMPLES::
 
@@ -3037,6 +3059,8 @@ def OA_20_544():
         sage: designs.orthogonal_array(20,544,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     Z = None
 
     A=[
@@ -3077,17 +3101,19 @@ def OA_20_544():
     ]
 
     Y = [None, 0, 1, 2, 18, 5, 11, 4, 13, 26, 25, 29, 24, 7, 20, 19, 9, 12, 15]
-    return _helper_function_when_n_is_prime_times_power_of_2(20,544,zip(*A),Y)
+
+    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(17),zip(*A),Y,check=False)
 
 def OA_11_640():
     r"""
     Returns an OA(11,640)
 
-    Published by Julian R. Abel in [AbelThesis]_.
+    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that `640=2^7
+    \times 5` is the product of a power of `2` and a prime number).
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
 
     EXAMPLES::
 
@@ -3102,6 +3128,8 @@ def OA_11_640():
         sage: designs.orthogonal_array(11,640,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (4,None), (1,None)],
         [(0,None), (1,None), (2,   7), (3,  55), (4,  54), (1,  87), (0, 124), (1, 123), (4,  83), (4,  61)], # 0,25 became 0,124
@@ -3115,7 +3143,8 @@ def OA_11_640():
         [(0,None), (1,   6), (1,  14), (0,  14), (3,   4), (2,   0), (3,None), (3,   4), (2,   0), (0,None)]
     ]
     Y = [None, 0, 1, 2, 121, 66, 77, 78, 41, 100]
-    return _helper_function_when_n_is_prime_times_power_of_2(11,640,zip(*A),Y)
+
+    return OA_n_times_2_pow_c_from_matrix(11,7,FiniteField(5),zip(*A),Y,check=False)
 
 def OA_10_796():
     r"""
@@ -3192,9 +3221,12 @@ def OA_15_896():
     r"""
     Returns an OA(15,896)
 
+    Uses the fact that `896 = 2^7 \times 7` is the product of a power of `2` and
+    a prime number.
+
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
 
     EXAMPLES::
 
@@ -3209,6 +3241,8 @@ def OA_15_896():
         sage: designs.orthogonal_array(15,896,existence=True)
         True
     """
+    from sage.rings.finite_rings.constructor import FiniteField
+
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
         [(0,None), (1,None), (2,  17), (3,  20), (4,  49), (5,   4), (6,  59), (1,  15), (0, 114), (1,  76), (4, 106), (2,  87), (2, 118), (4,  49)], # 4,120 became the leftmost 4,49
@@ -3228,7 +3262,7 @@ def OA_15_896():
 
     Y = [None, 0,1,2,121,66,77,78,41,100,74,118,108,43]
 
-    return _helper_function_when_n_is_prime_times_power_of_2(15,896,zip(*A),Y)
+    return OA_n_times_2_pow_c_from_matrix(15,7,FiniteField(7),zip(*A),Y,check=False)
 
 def OA_33_993():
     r"""
@@ -3261,62 +3295,6 @@ def OA_33_993():
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(993)
     M = OA_from_quasi_difference_matrix(Mb,G,add_col=True)
-    return M
-
-def _helper_function_when_n_is_prime_times_power_of_2(k,n,A,Y):
-    r"""
-    This is an helper function to build `OA(k,p2^c)`
-
-    The same construction appears many times in Julian R. Abel's papers to build
-    `OA(k,p2^c)`. Having this function avoids a lot of copy/paste.
-
-    For more information on what the parameters should be, see the documentation
-    of the functions which calls this one, and their associated bibliographical
-    references.
-
-    INPUT:
-
-    - ``k,n`` (integers) -- parameters of the desired `OA`
-
-    - ``A`` -- a matrix
-
-    - ``Y`` -- a vector
-
-    EXAMPLE::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_9_40
-        sage: OA = OA_9_40()                       # indirect doctest
-        sage: print is_orthogonal_array(OA,9,40,2) # indirect doctest
-        True
-    """
-    from sage.rings.finite_rings.constructor import FiniteField
-    from sage.rings.integer import Integer
-    from itertools import combinations
-
-    c = Integer(n).valuation(2)
-    F = FiniteField(n//2**c)
-    Fq = FiniteField(2**c,prefix='w',conway=True)
-    G = F.cartesian_product(Fq)
-    w = Fq.gens()[0]
-
-    r = lambda x : Fq(0) if x is None else w**x
-    A = [[G((a,r(b))) for a,b in L] for L in A]
-
-    Y = map(r,Y)
-
-    t = lambda i,x : G((0,Y[x]*w**i))
-
-    Mb = [[] for _ in A]
-    Subsets = [S for s in range(c) for S in combinations(range(c-1),s)]
-    assert len(Subsets) == 2**(c-1)
-
-    for x,R in enumerate(A):
-        tt = [t(i,x) for i in range(c-1)]
-        for y,e in enumerate(R):
-            Mb[x].extend([e+sum([tt[ii] for ii in S],G.zero()) for S in Subsets])
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = int(k-len(A)))
     return M
 
 # Index of the OA constructions

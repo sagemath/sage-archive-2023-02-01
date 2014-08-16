@@ -36,7 +36,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             sage: C = LieAlgebras(QQ).FiniteDimensional().WithBasis()
             sage: C.example()
-            An example of a Lie algebra: the abelian Lie algebra on the generators ('a', 'b', 'c') over Rational Field
+            An example of a finite dimensional Lie algebra with basis:
+             the abelian Lie algebra with generators ('a', 'b', 'c')
+             over Rational Field
 
         Other names of generators can be specified as an optional argument::
 
@@ -128,16 +130,26 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             d = {}
             B = self.basis()
             K = self.basis().keys()
+            zero = self.zero()
             one = self.base_ring().one()
             for i,x in enumerate(K):
                 for y in K[i+1:]:
                     bx = B[x]
                     by = B[x]
+                    val = self.bracket(bx, by)
+                    if val == zero:
+                        continue
                     if self._basis_cmp(x, y) > 0:
-                        d[(y, x)] = self.bracket(by, bx)
+                        d[(y, x)] = -val
                     else:
-                        d[(x, y)] = self.bracket(bx, by)
+                        d[(x, y)] = val
             return Family(d)
+
+        @abstract_method
+        def basis_matrix(self):
+            """
+            Return the basis matrix of ``self``.
+            """
 
         def centralizer(self, S):
             """

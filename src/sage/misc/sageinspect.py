@@ -982,12 +982,12 @@ def _sage_getargspec_cython(source):
     Some input that is malformed in Python but wellformed in Cython
     is correctly parsed::
 
-        sage: def dummy(self,*args,x=1): pass
+        sage: def dummy_python(self,*args,x=1): pass
         Traceback (most recent call last):
         ...
         SyntaxError: invalid syntax
-        sage: cython("def dummy(self,*args,x=1): pass")
-        sage: sgc("def dummy(self,*args,x=1): pass")
+        sage: cython("def dummy_cython(self,*args,x=1): pass")
+        sage: sgc("def dummy_cython(self,*args,x=1): pass")
         ArgSpec(args=['self', 'x'], varargs='args', keywords=None, defaults=(1,))
 
     In some examples above, a syntax error was raised when a type

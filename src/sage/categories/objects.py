@@ -43,7 +43,7 @@ class Objects(Category_singleton):
         .. SEEALSO:: :meth:`Category.is_structure_category`
 
         By convention, the category of objects does not define new
-        structrure.
+        structure.
 
         EXAMPLES::
 

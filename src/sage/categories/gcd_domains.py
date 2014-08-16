@@ -44,8 +44,7 @@ class GcdDomains(Category_singleton):
 
         .. SEEALSO:: :meth:`Category.is_structure_category`
 
-
-        The category of gcd domains does not define new structrure: a
+        The category of gcd domains does not define new structure: a
         ring-morphism between gcd domains is a gcd domain-morphism.
 
         EXAMPLES::

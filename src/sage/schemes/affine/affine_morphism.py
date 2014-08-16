@@ -152,15 +152,13 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
                 polys = [f.lift() for f in polys]
         SchemeMorphism_polynomial.__init__(self, parent,polys, False)
 
-    def homogenize(self,n,newvar='h'):
+    def homogenize(self,n):
         r"""
         Return the homogenization of ``self``. If ``self.domain()`` is a subscheme, the domain of
         the homogenized map is the projective embedding of ``self.domain()``. The domain and codomain
         can be homogenized at different coordinates: ``n[0]`` for the domain and ``n[1]`` for the codomain.
 
         INPUT:
-
-        - ``newvar`` -- the name of the homogenization variable (only used when ``self.domain()`` is affine space)
 
         - ``n`` -- a tuple of nonnegative integers. If ``n`` is an integer, then the two values of
             the tuple are assumed to be the same.
@@ -174,21 +172,22 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: A.<x,y>=AffineSpace(ZZ,2)
             sage: H=Hom(A,A)
             sage: f=H([(x^2-2)/x^5,y^2])
-            sage: f.homogenize(2,'z')
+            sage: f.homogenize(2)
             Scheme endomorphism of Projective Space of dimension 2 over Integer Ring
-              Defn: Defined on coordinates by sending (x : y : z) to
-                    (x^2*z^5 - 2*z^7 : x^5*y^2 : x^5*z^2)
+              Defn: Defined on coordinates by sending (x0 : x1 : x2) to
+                    (x0^2*x2^5 - 2*x2^7 : x0^5*x1^2 : x0^5*x2^2)
 
         ::
 
             sage: A.<x,y>=AffineSpace(CC,2)
             sage: H=Hom(A,A)
             sage: f=H([(x^2-2)/(x*y),y^2-x])
-            sage: f.homogenize((2,0),'z')
-            Scheme endomorphism of Projective Space of dimension 2 over Complex
-            Field with 53 bits of precision
-              Defn: Defined on coordinates by sending (x : y : z) to
-                    (x*y*z^2 : x^2*z^2 + (-2.00000000000000)*z^4 : x*y^3 - x^2*y*z)
+            sage: f.homogenize((2,0))
+            Scheme morphism:
+              From: Projective Space of dimension 2 over Complex Field with 53 bits of precision
+              To:   Projective Space of dimension 2 over Complex Field with 53 bits of precision
+              Defn: Defined on coordinates by sending (x0 : x1 : x2) to
+                    (x0*x1*x2^2 : x0^2*x2^2 + (-2.00000000000000)*x2^4 : x0*x1^3 - x0^2*x1*x2)
 
         ::
 
@@ -208,67 +207,67 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: A.<x,y>=AffineSpace(R,2)
             sage: H=Hom(A,A)
             sage: f=H([(x^2-2)/y,y^2-x])
-            sage: f.homogenize((2,0),'z')
-            Scheme endomorphism of Projective Space of dimension 2 over Univariate
-            Polynomial Ring in t over Integer Ring
-              Defn: Defined on coordinates by sending (x : y : z) to
-                    (y*z^2 : x^2*z + (-2)*z^3 : y^3 - x*y*z)
+            sage: f.homogenize((2,0))
+            Scheme morphism:
+              From: Projective Space of dimension 2 over Univariate Polynomial Ring in t over Integer Ring
+              To:   Projective Space of dimension 2 over Univariate Polynomial Ring in t over Integer Ring
+              Defn: Defined on coordinates by sending (x0 : x1 : x2) to
+                    (x1*x2^2 : x0^2*x2 + (-2)*x2^3 : x1^3 - x0*x1*x2)
 
         ::
 
             sage: A.<x>=AffineSpace(QQ,1)
             sage: H=End(A)
             sage: f=H([x^2-1])
-            sage: f.homogenize((1,0),'y')
-            Scheme endomorphism of Projective Space of dimension 1 over Rational
-            Field
-              Defn: Defined on coordinates by sending (x : y) to
-                    (y^2 : x^2 - y^2)
+            sage: f.homogenize((1,0))
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Rational Field
+              To:   Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x0 : x1) to
+                    (x1^2 : x0^2 - x1^2)
         """
-        A=self.domain()
-        B=self.codomain()
-        N=A.ambient_space().dimension_relative()
-        NB=B.ambient_space().dimension_relative()
-
-        #it is possible to homogenize the domain and codomain at different coordinates
+#it is possible to homogenize the domain and codomain at different coordinates
         if isinstance(n,(tuple,list)):
-            ind=tuple(n)
+            ind = tuple(n)
         else:
-            ind=(n,n)
+            ind = (n,n)
 
-        #homogenize the domain
-        Vars=list(A.ambient_space().variable_names())
-        Vars.insert(ind[0],newvar)
-        S=PolynomialRing(A.base_ring(),Vars)
+        #homogenize the domain and codomain
+        A = self.domain().projective_embedding(ind[0]).codomain()
+        B = self.codomain().projective_embedding(ind[1]).codomain()
+        H = Hom(A,B)
+        newvar = A.ambient_space().coordinate_ring().gen(ind[0])
+
+        N = A.ambient_space().dimension_relative()  
+        M = B.ambient_space().dimension_relative()  
+        
+        #create dictionary for mapping of coordinate rings
+        R = self.domain().ambient_space().coordinate_ring()
+        S = A.ambient_space().coordinate_ring()
+        Rvars = R.gens()
+        vars = list(S.gens())
+        vars.remove(S.gen(ind[0]))
+        D = dict([[Rvars[i],vars[i]] for i in range(N)])
 
         #find the denominators if a rational function
         try:
-            l=lcm([self[i].denominator() for i in range(N)])
+            l = lcm([self[i].denominator() for i in range(M)])
         except Exception:  #no lcm
-            l=prod([self[i].denominator() for i in range(N)])
+            l = prod([self[i].denominator() for i in range(M)])
 
         from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
         from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
-        if self.domain().base_ring()==RealField() or self.domain().base_ring()==ComplexField():
-            F=[S(((self[i]*l).numerator())._maxima_().divide(self[i].denominator())[0].sage()) for i in range(N)]
-        elif isinstance(self.domain().base_ring(),(PolynomialRing_general,MPolynomialRing_generic)):
-            F=[S(((self[i]*l).numerator())._maxima_().divide(self[i].denominator())[0].sage()) for i in range(N)]
+        #clear denominators and coerce in case l is a constant
+        if R.base_ring() == RealField() or R.base_ring() == ComplexField() \
+        or isinstance(R.base_ring(), (PolynomialRing_general, MPolynomialRing_generic)):
+            F = [S(R(((self[i].numerator()*l))._maxima_().divide(self[i].denominator())[0].sage()).subs(D)) for i in range(M)]
         else:
-            F=[S(self[i]*l) for i in range(N)]
+            F = [S(R(self[i]*l).subs(D)) for i in range(M)]
 
-        #homogenize the codomain
-        F.insert(ind[1],S(l))
-        d=max([F[i].degree() for i in range(N+1)])
-        F=[F[i].homogenize(newvar)*S.gen(N)**(d-F[i].degree()) for i in range(N+1)]
-        from sage.schemes.affine.affine_space import is_AffineSpace
-        if is_AffineSpace(A)==True:
-            from sage.schemes.projective.projective_space import ProjectiveSpace
-            X=ProjectiveSpace(A.base_ring(),NB,Vars)
-        else:
-            X=A.projective_embedding(ind[1]).codomain()
-            phi=S.hom(X.ambient_space().gens(),X.ambient_space().coordinate_ring())
-            F=[phi(f) for f in F]
-        H=Hom(X,X)
+        #homogenize
+        F.insert(ind[1], S(l.subs(D))) #coerce in case l is a constant
+        d = max([F[i].degree() for i in range(M+1)])
+        F = [F[i].homogenize(str(newvar))*newvar**(d-F[i].degree()) for i in range(M+1)]
         return(H(F))
 
     def dynatomic_polynomial(self,period):
@@ -336,16 +335,12 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         F=self.homogenize(1).dynatomic_polynomial(period)
         if F.denominator()==1:
             R=F.parent()
-            Vars=list(R.variable_names())
-            Vars.pop()
-            S=PolynomialRing(R.base_ring(),Vars)
+            S=self.coordinate_ring()
             phi=R.hom([S.gen(0),1],S)
             return(phi(F))
         else:
             R=F.numerator().parent()
-            Vars=list(R.variable_names())
-            Vars.pop()
-            S=PolynomialRing(R.base_ring(),Vars)
+            S=self.coordinate_ring()
             phi=R.hom([S.gen(0),1],S)
             return(phi(F.numerator())/phi(F.denominator()))
 

@@ -1624,8 +1624,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
            embedding is that which has a 1 in the i-th coordinate, numbered
            from 0.
 
-
-        -  ``X`` -- (default: None) projective scheme, i.e., codomain of
+        -  ``X`` -- (default: None) ambient projective scheme, i.e., codomain of
            morphism; this is constructed if it is not given.
 
         EXAMPLES::
@@ -1640,6 +1639,21 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
               x0*x1 - x2*x3
               Defn: Defined on coordinates by sending (x, y, z) to
                     (x : y : z : 1)
+
+        ::
+
+            sage: A.<x,y,z>=AffineSpace(QQ,3)
+            sage: X=A.subscheme([x-y])
+            sage: X.projective_embedding(1)
+            Scheme morphism:
+              From: Closed subscheme of Affine Space of dimension 3 over Rational
+            Field defined by:
+              x - y
+              To:   Closed subscheme of Projective Space of dimension 3 over
+            Rational Field defined by:
+              x0 - x2
+              Defn: Defined on coordinates by sending (x, y, z) to
+                    (x : 1 : y : z)
         """
         AA = self.ambient_space()
         n = AA.dimension_relative()
@@ -1659,12 +1673,13 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         except KeyError:
             pass
         if X is None:
-            PP = sage.schemes.projective.projective_space.ProjectiveSpace(n, AA.base_ring())
+            PP = AA.projective_embedding(i).codomain()
+            PR = PP.coordinate_ring()
             v = list(PP.gens())
             z = v.pop(i)
             v.append(z)
             polys = self.defining_polynomials()
-            X = PP.subscheme([ f.homogenize()(v) for f in polys ])
+            X = PP.subscheme([ PR(f.homogenize())(v) for f in polys ])
         R = AA.coordinate_ring()
         v = list(R.gens())
         v.insert(i, R(1))
@@ -1839,7 +1854,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             self.__dimension = self.defining_ideal().dimension() - 1
             return self.__dimension
 
-    def affine_patch(self, i):
+    def affine_patch(self, i, X=None):
         r"""
         Return the `i^{th}` affine patch of this projective scheme.
         This is the intersection with this `i^{th}` affine patch of
@@ -1848,6 +1863,9 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         INPUT:
 
         - ``i`` -- integer between 0 and dimension of self, inclusive.
+
+        - ``X`` -- (default: None) ambient affine scheme, this is constructed
+            if it is not given.
 
         OUTPUT:
 
@@ -1874,6 +1892,14 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
                     (1 : x0 : x1)
             sage: U.projective_embedding() is U.embedding_morphism()
             True
+
+        ::
+
+            sage: A.<x,y,z>=AffineSpace(QQ,3)
+            sage: X=A.subscheme([x-y*z])
+            sage: Y=X.projective_embedding(1).codomain()
+            sage: Y.affine_patch(1,X).ambient_space()==A
+            True
         """
         i = int(i)   # implicit type checking
         PP = self.ambient_space()
@@ -1886,7 +1912,10 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             self.__affine_patches = {}
         except KeyError:
             pass
-        AA = PP.affine_patch(i)
+        if X is None:
+            AA = PP.affine_patch(i)
+        else:
+            AA = PP.affine_patch(i,X.ambient_space())
         phi = AA.projective_embedding()
         polys = self.defining_polynomials()
         xi = phi.defining_polynomials()

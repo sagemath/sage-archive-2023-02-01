@@ -721,7 +721,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
         return AlgebraicScheme_subscheme_projective(self, X)
 
-    def affine_patch(self, i):
+    def affine_patch(self, i, AA=None):
         r"""
         Return the `i^{th}` affine patch of this projective space.
         This is an ambient affine space `\mathbb{A}^n_R,` where
@@ -731,6 +731,9 @@ class ProjectiveSpace_ring(AmbientSpace):
         INPUT:
 
         - ``i`` -- integer between 0 and dimension of self, inclusive.
+
+        - ``AA`` -- (default: None) ambient affine space, this is constructed
+                if it is not given.
 
         OUTPUT:
 
@@ -754,6 +757,12 @@ class ProjectiveSpace_ring(AmbientSpace):
               To:   Projective Space of dimension 5 over Rational Field
               Defn: Defined on coordinates by sending (x0, x1, x2, x3, x4) to
                     (1 : x0 : x1 : x2 : x3 : x4)
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.affine_patch(0).projective_embedding(0).codomain() == P
+            True
         """
         i = int(i)   # implicit type checking
         n = self.dimension_relative()
@@ -765,8 +774,12 @@ class ProjectiveSpace_ring(AmbientSpace):
             self.__affine_patches = {}
         except KeyError:
             pass
-        from sage.schemes.affine.affine_space import AffineSpace
-        AA = AffineSpace(n, self.base_ring(), names='x')
+        if AA == None:
+            from sage.schemes.affine.affine_space import AffineSpace
+            AA = AffineSpace(n, self.base_ring(), names='x')
+        else:
+            if AA.dimension_relative()!=n:
+                raise ValueError("Affine Space must be of the correct dimension")
         AA._default_embedding_index = i
         phi = AA.projective_embedding(i, self)
         self.__affine_patches[i] = AA

@@ -389,11 +389,19 @@ def is_difference_matrix(M,G,k,lmbda=1,verbose=False):
         sage: is_difference_matrix(M,F,q,verbose=1)
         True
 
+        sage: B = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ....:      [0, 1, 2, 3, 4, 2, 3, 4, 0, 1],
+        ....:      [0, 2, 4, 1, 3, 3, 0, 2, 4, 1]]
+        sage: G = GF(5)
+        sage: B = [[G(b) for b in R] for R in B]
+        sage: is_difference_matrix(B,G,3,2)
+        True
+
     Bad input::
 
         sage: M.append([None]*3**3)
         sage: is_difference_matrix(M,F,q,verbose=1)
-        The matrix has 28 columns and lambda.|G|=1.27=27
+        The matrix has 28 rows but k=27
         False
         sage: _=M.pop()
         sage: M[0].append(1)
@@ -416,7 +424,6 @@ def is_difference_matrix(M,G,k,lmbda=1,verbose=False):
     cdef int i,j,ii
     cdef int K = k
     cdef int L = lmbda
-    cdef int M_nrows = len(M)
     cdef tuple R
 
     # The comments and variables of this code have been written for a different
@@ -431,18 +438,19 @@ def is_difference_matrix(M,G,k,lmbda=1,verbose=False):
                     print "Rows 0 and {} do not have the same length".format(i)
                 return False
     M = zip(*M)
+    cdef int M_nrows = len(M)
 
     # Height of the matrix
     if G_card*lmbda != M_nrows:
         if verbose:
-            print "The matrix has {} columns and lambda.|G|={}.{}={}".format(M_nrows,lmbda,G_card,lmbda*G_card)
+            print "The matrix has {} columns but lambda.|G|={}.{}={}".format(M_nrows,lmbda,G_card,lmbda*G_card)
         return False
 
     # Width of the matrix
     for R in M:
         if len(R)!=K:
             if verbose:
-                print "A column of the matrix has length {}!=k(={})".format(len(R),K)
+                print "The matrix has {} rows but k={}".format(len(R),K)
             return False
 
     # When |G|=0

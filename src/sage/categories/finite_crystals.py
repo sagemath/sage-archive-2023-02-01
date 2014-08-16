@@ -11,6 +11,7 @@ Finite Crystals
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.category import HomCategory
 
 class FiniteCrystals(CategoryWithAxiom):
     """
@@ -78,4 +79,61 @@ class FiniteCrystals(CategoryWithAxiom):
         """
         from sage.categories.crystals import Crystals
         return Crystals().example(n)
+
+    class HomCategory(HomCategory):
+        """
+        The category of homomorphisms sets `Hom(X,Y)` for
+        finite crystals `X, Y`.
+        """
+        class ElementMethods:
+            def is_isomorphism(self):
+                """
+                Check if ``self`` is a crystal isomorphism.
+
+                EXAMPLES::
+
+                    sage: B = crystals.Tableaux(['C',2], shape=[1,1])
+                    sage: C = crystals.Tableaux(['C',2], ([2,1], [1,1]))
+                    sage: psi = B.crystal_morphism(C.module_generators[1:], codomain=C)
+                    sage: psi.is_isomorphism()
+                    False
+                """
+                G = self.domain().digraph(index_set=self._index_set)
+                H = self.codomain().digraph(index_set=self._index_set)
+                return G.is_isomorphic(H, edge_labels=True)
+
+            # TODO: This could be moved to finite sets
+            def is_embedding(self):
+                """
+                Check if ``self`` is an injective crystal morphism.
+
+                EXAMPLES::
+
+                    sage: B = crystals.Tableaux(['C',2], shape=[1,1])
+                    sage: C = crystals.Tableaux(['C',2], ([2,1], [1,1]))
+                    sage: psi = B.crystal_morphism(C.module_generators[1:], codomain=C)
+                    sage: psi.is_embedding()
+                    True
+                """
+                S = set(self(x) for x in self.domain())
+                return len(S) == self.domain().cardinality()
+
+            def is_strict(self):
+                """
+                Check if ``self`` is a strict crystal morphism.
+
+                EXAMPLES::
+
+                    sage: B = crystals.Tableaux(['C',2], shape=[1,1])
+                    sage: C = crystals.Tableaux(['C',2], ([2,1], [1,1]))
+                    sage: psi = B.crystal_morphism(C.module_generators[1:], codomain=C)
+                    sage: psi.is_strict()
+                    True
+                """
+                for x in self.domain():
+                    y = self(x)
+                    for i in self._index_set:
+                        if self(x.f(i)) != y.f(i) or self(x.e(i)) != y.e(i):
+                            return False
+                return True
 

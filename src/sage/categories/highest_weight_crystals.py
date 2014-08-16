@@ -101,16 +101,16 @@ class HighestWeightCrystals(Category_singleton):
 
                 sage: C = crystals.Letters(['A',5])
                 sage: C.highest_weight_vectors()
-                [1]
+                (1,)
 
             ::
 
                 sage: C = crystals.Letters(['A',2])
                 sage: T = crystals.TensorProduct(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
                 sage: T.highest_weight_vectors()
-                [[2, 1, 1], [1, 2, 1]]
+                ([2, 1, 1], [1, 2, 1])
             """
-            return [g for g in self.module_generators if g.is_highest_weight()]
+            return tuple(g for g in self.module_generators if g.is_highest_weight())
 
         def highest_weight_vector(self):
             r"""
@@ -147,16 +147,16 @@ class HighestWeightCrystals(Category_singleton):
 
                 sage: C = crystals.Letters(['A',5])
                 sage: C.lowest_weight_vectors()
-                [6]
+                (6,)
 
             ::
 
                 sage: C = crystals.Letters(['A',2])
                 sage: T = crystals.TensorProduct(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
                 sage: T.lowest_weight_vectors()
-                [[3, 2, 3], [3, 3, 2]]
+                ([3, 2, 3], [3, 3, 2])
             """
-            return [g for g in self if g.is_lowest_weight()]
+            return tuple(g for g in self if g.is_lowest_weight())
 
         def __iter__(self, index_set=None, max_depth = float("inf")):
             """

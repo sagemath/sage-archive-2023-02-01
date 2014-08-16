@@ -234,6 +234,22 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
                             
         return self.__class__.__base__(self._ambient_space.change_ring(new_base_ring), self._basis)
  
+    def change_ambient_space(self, new_ambient_space):
+        r"""
+        Return a new subspace with the same basis but inside a different ambient space
+        (if possible).
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, QuasiModularForms
+            sage: MF = ModularForms(n=6, k=20, ep=1)
+            sage: subspace = MF.subspace([MF.Delta()*MF.E4()^2, MF.gen(0)])
+            sage: new_ambient_space = QuasiModularForms(n=6, k=20, ep=1)
+            sage: subspace.change_ambient_space(new_ambient_space)
+            Subspace of dimension 2 of QuasiModularForms(n=6, k=20, ep=1) over Integer Ring
+        """
+        return self.__class__.__base__(new_ambient_space, self._basis)
+
     @cached_method
     def contains_coeff_ring(self):
         r"""

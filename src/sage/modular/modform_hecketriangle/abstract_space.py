@@ -258,9 +258,12 @@ class FormsSpace_abstract(FormsRing_abstract):
             return True
         elif (  isinstance(S, SubSpaceForms)\
             and isinstance(self, SubSpaceForms) ):
-                if (self.ambient_space().has_coerce_map_from(S.ambient_space())\
-                    and self.module().has_coerce_map_from(S.module()) ):
+                if (self.ambient_space().has_coerce_map_from(S.ambient_space())):
+                    S2 = S.change_ambient_space(self.ambient_space())
+                    if (self.module().has_coerce_map_from(S2.module())):
                         return True
+                    else:
+                        return False
                 else:
                         return False
         elif (  isinstance(S, FormsSpace_abstract)\

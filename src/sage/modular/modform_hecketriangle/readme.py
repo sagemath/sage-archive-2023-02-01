@@ -76,7 +76,7 @@ All classes and functions are also individually documented (with doctest example
   for the given group, weight ``k`` and multiplier ``epsilon``:
 
   - ``f(z+lambda) = f(lambda)``
-  - ``f(-1/z) = epsilon * z^k * f(z)``
+  - ``f(-1/z) = epsilon * (z/i)^k * f(z)``
 
   The multiplier is either ``1`` or ``-1``.
   The weight is a rational number of the form ``4*(n*l+l')/(n-2) + (1-epsilon)*n/(n-2)``.
@@ -195,10 +195,10 @@ All classes and functions are also individually documented (with doctest example
 
 - **Eisenstein series and Delta:**
   There is no general support for Eisenstein series, however the Eisenstein
-  series of weight ``2``, ``4`` and ``6``are implemented. Note that they
+  series of weight ``2``, ``4`` and ``6`` are implemented. Note that they
   exist for all ``n`` and (except for ``n=3``) ``E4`` and ``E6`` do not coincide
-  with ``f_rho`` and ``f_i``. Similarly there always exists a (generalization)
-  of ``Delta`` that also does not coincide with ``f_inf`` (except for ``n=3``).
+  with ``f_rho`` and ``f_i``. Similarly there always exists a (generalization of)
+  ``Delta`` that also does not coincide with ``f_inf`` (except for ``n=3``).
 
   EXAMPLES::
 
@@ -265,10 +265,10 @@ All classes and functions are also individually documented (with doctest example
   Elements of the ring are represented by the rational function in the generators.
 
   If the parameter ``red_hom`` is set to ``True`` (default: ``False``) then
-  operations with elements of homogeneous spaces try to return homogeneous most operations try to return an element of the corresponding modular forms
-  space (in case the element is homogeneous). Often it is easier to use the forms
-  ring with ``red_hom`` to construct known forms (since then it is not required
-  to specify the weight and multiplier).
+  operations with homogeneous elements try to return an element of the corresponding
+  vector space (if the element is homogeneous) instead of the forms ring.
+  It is also easier to use the forms ring with ``red_hom=True`` to construct known
+  forms (since then it is not required to specify the weight and multiplier).
 
   EXAMPLES::
 
@@ -389,9 +389,9 @@ All classes and functions are also individually documented (with doctest example
        1 - 27/(200*d)*q + O(q^2)]
 
 
-- **Coordinate vectors for holomorphic modular forms and cusp forms**
-  For holomorphic modular forms and cusp forms it is possible to de termine
-  the coordinate vectors of elements with respect to the basis.
+- **Coordinate vectors for (quasi) holomorphic modular forms and (quasi) cusp forms**
+  For (quasi) holomorphic modular forms and (quasi) cusp forms it is possible
+  to determine the coordinate vectors of elements with respect to the basis.
 
   EXAMPLES::
 
@@ -401,10 +401,18 @@ All classes and functions are also individually documented (with doctest example
       sage: ModularForms(n=7, k=12, ep=1).Delta().coordinate_vector()
       (0, 1, 17/(56*d))
 
+      sage: from sage.modular.modform_hecketriangle.space import QuasiCuspForms
+      sage: MF = QuasiCuspForms(n=7, k=20, ep=1)
+      sage: MF.dimension()
+      13
+      sage: el = MF(MF.Delta()*MF.E2()^4 + MF.Delta()*MF.E2()*MF.E6())
+      sage: el.coordinate_vector()
+      (0, 0, 0, 1, 29/(196*d), 0, 0, 0, 0, 1, 17/(56*d), 0, 0)
+
 
 - **Subspaces**
-  It is possible to construct subspaces of holomorphic modular forms
-  or cusp forms spaces with respect to a specified basis of the
+  It is possible to construct subspaces of (quasi) holomorphic modular forms
+  or (quasi) cusp forms spaces with respect to a specified basis of the
   corresponding ambient space. The subspaces also support coordinate
   vectors with respect to its basis.
 
@@ -420,6 +428,17 @@ All classes and functions are also individually documented (with doctest example
       (1, -61/(196*d))
       sage: el.ambient_coordinate_vector()
       (1, -61/(196*d), -51187/(614656*d^2))
+
+      sage: from sage.modular.modform_hecketriangle.space import QuasiCuspForms
+      sage: MF = QuasiCuspForms(n=7, k=20, ep=1)
+      sage: subspace = MF.subspace([MF.Delta()*MF.E2()^2*MF.E4(), MF.Delta()*MF.E2()^4])
+      sage: subspace
+      Subspace of dimension 2 of QuasiCuspForms(n=7, k=20, ep=1) over Integer Ring
+      sage: el = subspace(MF.Delta()*MF.E2()^4)
+      sage: el.coordinate_vector()
+      (0, 1)
+      sage: el.ambient_coordinate_vector()
+      (0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 17/(56*d), 0, 0)
 
 
 

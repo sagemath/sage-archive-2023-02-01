@@ -592,6 +592,19 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             (f_rho^16*d - f_rho^9*f_i^2*d + f_rho + 1)/f_rho
             sage: (gen0 + int(1)).parent()
             ModularFormsRing(n=7) over Integer Ring
+
+            sage: from sage.modular.modform_hecketriangle.space import QuasiCuspForms, ModularForms
+            sage: MF = ModularForms(k=20, ep=1)
+            sage: QCF = QuasiCuspForms(k=20, ep=1)
+            sage: el1 = QCF((MF.Delta()*MF.E2()^4))
+            sage: el1 = QCF.subspace([el1])(el1)
+            sage: el2 = MF(MF.E4()^2*MF.E6()^2)
+            sage: el2 = MF.subspace([el2])(el2)
+            sage: el3 = el1 + el2
+            sage: el3
+            1 - 527*q - 201288*q^2 + 61120668*q^3 + 20946799216*q^4 + O(q^5)
+            sage: el3.parent()
+            Subspace of dimension 2 of QuasiModularForms(n=3, k=20, ep=1) over Integer Ring
         """
         
         return self.parent()(self._rat+other._rat)

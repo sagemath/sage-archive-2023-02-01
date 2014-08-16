@@ -41,6 +41,6 @@ cdef class GenericBackend:
     cpdef zero(self)
     cpdef base_ring(self)
 
-    cpdef obj_constant_term
+    cdef object obj_constant_term
 
 cpdef GenericBackend get_solver(constraint_generation = ?, solver = ?)

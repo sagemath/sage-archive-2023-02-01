@@ -49,7 +49,19 @@ cdef GEN _INT_to_FFELT(GEN g, GEN x) except NULL:
     Convert the t_INT `x` to an element of the field of definition of
     the t_FFELT `g`.
 
-    This function must be called within pari_catch_sig_on() ... pari_catch_sig_off().
+    This function must be called within ``pari_catch_sig_on()``
+    ... ``pari_catch_sig_off()``.
+
+    TESTS:
+
+    Converting large integers to finite field elements does not lead
+    to overflow errors (see :trac:`16807`)::
+
+        sage: p = previous_prime(2^64)
+        sage: F.<x> = GF(p^2)
+        sage: x * 2^63
+        9223372036854775808*x
+
     """
     cdef GEN f, p = gel(g, 4), result
     cdef long t
@@ -71,7 +83,7 @@ cdef GEN _INT_to_FFELT(GEN g, GEN x) except NULL:
         elif t == t_FF_Flxq:
             f = cgetg(3, t_VECSMALL)
             set_gel(f, 1, gmael(g, 2, 1))
-            f[2] = itos(x)
+            f[2] = itou(x)
         else:
             pari_catch_sig_off()
             raise TypeError("unknown PARI finite field type")

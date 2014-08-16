@@ -10,7 +10,7 @@ This module gathers all designs that can be reached through
 Or a Steiner Triple System on 19 points::
 
     sage: designs.steiner_triple_system(19)
-    Incidence structure with 19 points and 57 blocks
+    (19,3,1)-Balanced Incomplete Block Design
 
 **La Jolla Covering Repository**
 

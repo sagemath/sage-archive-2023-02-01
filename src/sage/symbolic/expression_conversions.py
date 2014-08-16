@@ -506,7 +506,7 @@ class InterfaceInit(Converter):
             sage: t
             D[0](f)(x*y)
             sage: m.derivative(t, t.operator())
-            "at(diff('f(t0), t0, 1), [t0 = x*y])"
+            "at(diff('f(_SAGE_VAR_t0), _SAGE_VAR_t0, 1), [_SAGE_VAR_t0 = (_SAGE_VAR_x)*(_SAGE_VAR_y)])"
         """
         #This code should probably be moved into the interface
         #object in a nice way.
@@ -522,22 +522,18 @@ class InterfaceInit(Converter):
             # variable e.g. `t0` and then evaluate the derivative
             # f'(t0) symbolically at t0=1. See trac #12796.
             temp_args=[var("t%s"%i) for i in range(len(args))]
-            f = operator.function()
+            f = operator.function()(*temp_args)
             params = operator.parameter_set()
-            params = ["%s, %s"%(temp_args[i], params.count(i)) for i in set(params)]
-            subs = ["%s = %s"%(t,a) for t,a in zip(temp_args,args)]
-            outstr = "at(diff('%s(%s), %s), [%s])"%(f.name(),
-                ", ".join(map(repr,temp_args)),
+            params = ["%s, %s"%(temp_args[i]._maxima_init_(), params.count(i)) for i in set(params)]
+            subs = ["%s = %s"%(t._maxima_init_(),a._maxima_init_()) for t,a in zip(temp_args,args)]
+            outstr = "at(diff(%s, %s), [%s])"%(f._maxima_init_(),
                 ", ".join(params),
                 ", ".join(subs))            
         else:
-            f = operator.function()
+            f = operator.function()(*args)
             params = operator.parameter_set()
-            def prep_sage(arg):
-                return '_SAGE_VAR_' + repr(arg)
-            params = ["%s, %s"%(prep_sage(args[i]), params.count(i)) for i in set(params)]
-            outstr = "diff('%s(%s), %s)"%(f.name(),
-                                        ", ".join(map(prep_sage, args)),
+            params = ["%s, %s"%(args[i]._maxima_init_(), params.count(i)) for i in set(params)]
+            outstr = "diff(%s, %s)"%(f._maxima_init_(),
                                         ", ".join(params))
         return outstr
     

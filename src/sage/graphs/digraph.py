@@ -56,7 +56,7 @@ graphs. Here is what they can do
     :widths: 30, 70
     :delim: |
 
-    :meth:`~Digraph.path_semigroup` | Returns the (partial) semigroup formed by the paths of the digraph.
+    :meth:`~DiGraph.path_semigroup` | Returns the (partial) semigroup formed by the paths of the digraph.
 
 **Connectivity:**
 
@@ -82,6 +82,7 @@ graphs. Here is what they can do
     :meth:`~DiGraph.is_directed_acyclic` | Returns whether the digraph is acyclic or not.
     :meth:`~DiGraph.is_transitive` | Returns whether the digraph is transitive or not.
     :meth:`~DiGraph.is_aperiodic` | Returns whether the digraph is aperiodic or not.
+    :meth:`~DiGraph.period` | Returns the period of the digraph.
     :meth:`~DiGraph.level_sets` | Returns the level set decomposition of the digraph.
     :meth:`~DiGraph.topological_sort_generator` | Returns a list of all topological sorts of the digraph if it is acyclic
     :meth:`~DiGraph.topological_sort` | Returns a topological sort of the digraph if it is acyclic
@@ -3414,9 +3415,88 @@ class DiGraph(GenericGraph):
             sage: g.is_aperiodic()
             True
 
+        .. SEEALSO::
+
+            :meth:`period`
         """
         import networkx
         return networkx.is_aperiodic(self.networkx_graph(copy=False))
+
+    def period(self):
+        r"""
+        Return the period of the current ``DiGraph``.
+
+        The period of a directed graph is the largest integer that
+        divides the length of every cycle in the graph, cf.
+        :wikipedia:`Aperiodic_graph`.
+
+        EXAMPLES:
+
+        The following graph has period ``2``::
+
+            sage: g = DiGraph({0: [1], 1: [0]})
+            sage: g.period()
+            2
+
+        The following graph has a cycle of length 2 and a cycle of length 3,
+        so it has period ``1``::
+
+            sage: g = DiGraph({0: [1, 4], 1: [2], 2: [0], 4: [0]})
+            sage: g.period()
+            1
+
+        Here is an example of computing the period of a digraph which is
+        not strongly connected. By definition, it is the :func:`gcd` of
+        the periods of its strongly connected components::
+
+            sage: g = DiGraph({-1: [-2], -2: [-3], -3: [-1],
+            ....:     1: [2], 2: [1]})
+            sage: g.period()
+            1
+            sage: sorted([s.period() for s
+            ....:         in g.strongly_connected_components_subgraphs()])
+            [2, 3]
+
+        ALGORITHM:
+
+        See the networkX implementation of ``is_aperiodic``, that is based
+        on breadth first search.
+
+        .. SEEALSO::
+
+            :meth:`is_aperiodic`
+        """
+        from sage.rings.arith import gcd
+
+        g = 0
+
+        for component in self.strongly_connected_components():
+            levels = dict((s, None) for s in component)
+            vertices_in_scc = levels # considers level as a set
+            s = component[0]
+            levels[s] = 0
+            this_level = [s]
+            l = 1
+            while this_level:
+                next_level = []
+                for u in this_level:
+                    # we have levels[u] == l-1
+                    for v in self.neighbor_out_iterator(u):
+                        # ignore edges leaving the component
+                        if v not in vertices_in_scc:
+                            continue
+                        level_v = levels[v]
+                        if level_v is not None: # Non-Tree Edge
+                            g = gcd(g, l - level_v)
+                            if g == 1:
+                                return 1
+                        else: # Tree Edge
+                            next_level.append(v)
+                            levels[v] = l
+                this_level = next_level
+                l += 1
+
+        return g
 
 import types
 

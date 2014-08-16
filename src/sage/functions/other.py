@@ -963,17 +963,23 @@ class Function_gamma_inc(BuiltinFunction):
             0.0489005107080611
             sage: gamma_inc(3,2).n()
             1.35335283236613
+
+        TESTS:
+
+        Check that :trac:`7099` is fixed::
+
+            sage: R = RealField(1024)
+            sage: gamma(R(9), R(10^-3))  # rel tol 1e-308
+            40319.99999999999999999999999999988898884344822911869926361916294165058203634104838326009191542490601781777105678829520585311300510347676330951251563007679436243294653538925717144381702105700908686088851362675381239820118402497959018315224423868693918493033078310647199219674433536605771315869983788442389633
+            sage: numerical_approx(gamma(9, 10^(-3)) - gamma(9), digits=40)  # abs tol 1e-36
+            -1.110111564516556704267183273042450876294e-28
+
         """
-        try:
-            return x.gamma_inc(y)
-        except AttributeError:
-            if not (is_ComplexNumber(x)):
-                if is_ComplexNumber(y):
-                    C = y.parent()
-                else:
-                    C = ComplexField()
-                    x = C(x)
-            return x.gamma_inc(y)
+        if parent is None:
+            parent = ComplexField()
+        else:
+            parent = ComplexField(parent.precision())
+        return parent(x).gamma_inc(y)
 
 # synonym.
 incomplete_gamma = gamma_inc=Function_gamma_inc()
@@ -1685,7 +1691,6 @@ def _do_sqrt(x, prec=None, extend=True, all=False):
             sage: _do_sqrt(3,extend=False)
             sqrt(3)
         """
-        from sage.rings.all import RealField, ComplexField
         if prec:
             if x >= 0:
                  return RealField(prec)(x).sqrt(all=all)
@@ -1923,7 +1928,6 @@ class Function_arg(BuiltinFunction):
         try:
             parent = parent.complex_field()
         except AttributeError:
-            from sage.rings.complex_field import ComplexField
             try:
                 parent = ComplexField(x.prec())
             except AttributeError:

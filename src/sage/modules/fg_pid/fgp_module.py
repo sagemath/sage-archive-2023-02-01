@@ -613,7 +613,9 @@ class FGP_Module_class(Module):
         if isinstance(x, FGP_Element):
             x = x.lift()
         elif isinstance(x,(list,tuple)):
-            deprecation(16261,"The default behaviour changed ! If you *really* want a linear combination of smith generators, use .linear_combination_of_smith_form_gens.")
+            deprecation(16261, "The default behaviour changed! If you"
+                               " *really* want a linear combination of smith"
+                               " generators, use .linear_combination_of_smith_form_gens.")
         return self.element_class(self, self._V(x))
 
     def linear_combination_of_smith_form_gens(self, x):

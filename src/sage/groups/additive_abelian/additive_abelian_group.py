@@ -280,14 +280,9 @@ class AdditiveAbelianGroup_class(FGP_Module_class, AbelianGroup):
         """
         from sage.rings.infinity import Infinity as oo
         invs = [j.additive_order() for j in self.gens()]
-        if not invs: return "Trivial group"
-        s = ""
-        for j in invs:
-            if j == +oo:
-                s += "Z + "
-            else:
-                s += "Z/%s + " % j
-        return s[:-3] # drop the final " + "
+        if not invs:
+            return "Trivial group"
+        return " + ".join("Z" if j == +oo else "Z/%s"%j for j in invs)
 
     def _module_constructor(self, cover, relations):
         r"""

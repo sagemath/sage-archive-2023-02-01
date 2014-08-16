@@ -197,7 +197,7 @@ class VectorSpaces(Category_module):
     class CartesianProducts(CartesianProductsCategory):
         def extra_super_categories(self):
             r"""
-            The category of vector spaces with basis is closed under cartesian products::
+            The category of vector spaces is closed under cartesian products::
 
                 sage: C = VectorSpaces(QQ)
                 sage: C.CartesianProducts()
@@ -210,7 +210,7 @@ class VectorSpaces(Category_module):
     class TensorProducts(TensorProductsCategory):
         def extra_super_categories(self):
             r"""
-            The category of vector spaces with basis is closed under tensor products::
+            The category of vector spaces is closed under tensor products::
 
                 sage: C = VectorSpaces(QQ)
                 sage: C.TensorProducts()

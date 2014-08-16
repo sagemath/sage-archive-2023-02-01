@@ -12,9 +12,10 @@ from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
 from sage.categories.all import LieAlgebras
 from sage.modules.free_module import FreeModule
-from sage.structure.parent import parent
+from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
+from sage.categories.examples.lie_algebras import LieAlgebraFromAssociative as BaseExample
 
 class AbelianLieAlgebra(Parent, UniqueRepresentation):
     r"""
@@ -25,13 +26,21 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
     Lie algebra with basis.
     """
     @staticmethod
-    def __classcall_private__(cls, R, names):
+    def __classcall_private__(cls, R, names, M=None):
         """
         Normalize input to ensure a unique representation.
         """
-        return super(AbelianLieAlgebra, cls).__classcall__(cls, R, tuple(names))
+        if isinstance(names, str):
+            names = names.split(',')
+        if M is None:
+            M = FreeModule(R, len(names))
+        elif len(names) != M.dimension():
+            raise ValueError("number of generators is not correct")
+        else:
+            M = M.change_ring(R)
+        return super(AbelianLieAlgebra, cls).__classcall__(cls, R, tuple(names), M)
 
-    def __init__(self, R, names):
+    def __init__(self, R, names, M):
         """
         EXAMPLES::
 
@@ -39,9 +48,9 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             An example of a Lie algebra: the abelian Lie algebra on the generators (B['a'], B['b'], B['c']) over Rational Field
             sage: TestSuite(L).run()
         """
-        self._M = FreeModule(R, len(names))
+        self._M = M
         cat = LieAlgebras(R).FiniteDimensional().WithBasis()
-        Parent.__init__(self, names=names, category=cat)
+        Parent.__init__(self, base=R, names=names, category=cat)
 
     def _construct_UEA(self):
         """
@@ -63,9 +72,24 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
             An example of a Lie algebra: the abelian Lie algebra on the generators (B['a'], B['b'], B['c']) over Rational Field
         """
-        return "An example of a finite dimensional Lie algebra with basis:"\
-               " the abelian Lie algebra on the generators "\
-               " {} over {}".format(self.lie_algebra_generators(), self.base_ring())
+        ret = "An example of a finite dimensional Lie algebra with basis:" \
+              " the abelian Lie algebra with generators {!r} over {}".format(
+                         self.variable_names(), self.base_ring())
+        B = self._M.basis_matrix()
+        if not B.is_one():
+            ret += " with basis matrix:\n{!r}".format(B)
+        return ret
+
+    def subalgebra(self, gens, names='x'):
+        """
+        Return a subalgebra of ``self``.
+        """
+        if isinstance(names, str):
+            names = names.split(',')
+        if len(names) == 1 and len(gens) != 1:
+            names = tuple( names[0] + str(i) for i in range(len(gens)) )
+        N = self._M.subspace([g.value for g in gens])
+        return AbelianLieAlgebra(self.base_ring(), names, N)
 
     def basis(self):
         """
@@ -92,19 +116,26 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
         """
         return self.basis()
 
-    def bracket_on_basis(self, x, y):
+    def gens(self):
         """
-        Return the Lie bracket on basis elements indexed by ``x`` and ``y``.
-
-        EXAMPLES::
-
-            sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-            sage: L.bracket_on_basis('a', 'c')
-            0
+        Return the generators of ``self``.
         """
-        return self.zero()
+        G = self.lie_algebra_generators()
+        return tuple(G[i] for i in self.variable_names())
 
-    class Element(ElementWrapper):
+    def free_module(self):
+        """
+        Return ``self`` as a free module.
+        """
+        return self._M
+
+    class Element(BaseExample.Element):
+        def _bracket_(self, y):
+            """
+            Return the Lie bracket ``[self, y]``.
+            """
+            return self.parent().zero()
+
         def lift(self):
             """
             Return the lift of ``self`` to the universal enveloping algebra.
@@ -117,8 +148,14 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
                 2*a + 2*b + 3*c
             """
             UEA = self.parent().universal_enveloping_algebra()
-            gens_dict = UEA.gens_dict()
-            return UEA.sum(c * gens_dict[t] for t, c in self)
+            gens = UEA.gens()
+            return UEA.sum(c * gens[i] for i, c in self.value.iteritems())
+
+        def to_vector(self):
+            """
+            Return ``self`` as a vector.
+            """
+            return self.value
 
 Example = AbelianLieAlgebra
 

@@ -417,6 +417,25 @@ class HighestWeightCrystals(Category_singleton):
                     sage: L = filter(lambda x: x.is_highest_weight(), T)
                     sage: tuple(L) == T.highest_weight_vectors()
                     True
+
+                TESTS:
+
+                We check this works with Kashiwara's convetion for
+                tensor products::
+
+                    sage: C = crystals.Tableaux(['B',3], shape=[2,2])
+                    sage: D = crystals.Tableaux(['B',3], shape=[1])
+                    sage: T = crystals.TensorProduct(D, C)
+                    sage: T.global_options(convention='Kashiwara')
+                    sage: T.highest_weight_vectors()
+                    ([[[1, 1], [2, 2]], [[1]]],
+                     [[[1, 1], [2, 2]], [[3]]],
+                     [[[1, 1], [2, 2]], [[-2]]])
+                    sage: T.global_options.reset()
+                    sage: T.highest_weight_vectors()
+                    ([[[1]], [[1, 1], [2, 2]]],
+                     [[[3]], [[1, 1], [2, 2]]],
+                     [[[-2]], [[1, 1], [2, 2]]])
                 """
                 n = len(self.crystals)
                 it = [ iter(self.crystals[-1].highest_weight_vectors()) ]
@@ -431,7 +450,7 @@ class HighestWeightCrystals(Category_singleton):
                             path.pop(0)
                         continue
 
-                    b = self(x, *path)
+                    b = self.element_class(self, [x] + path)
                     if not b.is_highest_weight():
                         continue
                     path.insert(0, x)

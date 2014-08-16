@@ -1237,17 +1237,5 @@ class Crystals(Category_singleton):
             """
             return [self.base_category()]
 
-        class ParentMethods:
-            """
-            Implements operations on tensor products of crystals.
-            """
-            pass
-
-        class ElementMethods:
-            """
-            Implements operations on elements of tensor products of crystals.
-            """
-            pass
-
     Finite = LazyImport('sage.categories.finite_crystals', 'FiniteCrystals')
 

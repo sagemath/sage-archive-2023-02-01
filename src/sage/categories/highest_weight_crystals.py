@@ -442,9 +442,3 @@ class HighestWeightCrystals(Category_singleton):
                         it.append( iter(self.crystals[-len(path)-1]) )
                 return tuple(ret)
 
-        class ElementMethods:
-            """
-            Implements operations on elements of tensor products of crystals.
-            """
-            pass
-

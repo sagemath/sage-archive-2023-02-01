@@ -39,6 +39,7 @@ def find_recursive_construction(k,n):
     - :func:`construction_3_6`
     - :func:`construction_q_x`
     - :func:`thwart_lemma_3_5`
+    - :func:`thwart_lemma_4_1`
 
     INPUT:
 
@@ -74,7 +75,8 @@ def find_recursive_construction(k,n):
                    find_construction_3_5,
                    find_construction_3_6,
                    find_q_x,
-                   find_thwart_lemma_3_5]:
+                   find_thwart_lemma_3_5,
+                   find_thwart_lemma_4_1]:
         res = find_c(k,n)
         if res:
             return res
@@ -1201,3 +1203,149 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
         sizes.insert(0,d)
 
     return wilson_construction(OA,k,n,m,len(sizes),sizes, check=False)
+
+def find_thwart_lemma_4_1(k,n):
+    r"""
+    Finds a decomposition for Lemma 4.1 from [Thwarts]_.
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    .. SEEALSO::
+
+        :func:`thwart_lemma_4_1`
+
+    OUTPUT:
+
+    A pair ``f,args`` such that ``f(*args)`` returns the requested OA.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_thwart_lemma_4_1
+        sage: find_thwart_lemma_4_1(10,408)[1]
+        (10, 13, 28)
+        sage: find_thwart_lemma_4_1(10,50)
+        False
+    """
+    from sage.rings.arith import factor
+    #      n  = nn*mm+4(nn-2)
+    # <=> n+8 = nn(mm+4)
+    #
+    # nn is a prime power dividing n+8
+    for nn in (p**i for p,imax in factor(n+8) for i in range(1,imax+1)):
+        mm = (n+8)//nn-4
+        if (k+4 > nn+1 or
+            mm <= 1 or
+            nn % 3 == 2 or
+            not orthogonal_array(k,nn-2,existence=True) or
+            not orthogonal_array(k,mm+1,existence=True) or
+            not orthogonal_array(k,mm+3,existence=True) or
+            not orthogonal_array(k,mm+4,existence=True)):
+            continue
+
+        return thwart_lemma_4_1,(k,nn,mm)
+
+    return False
+
+def thwart_lemma_4_1(k,n,m):
+    r"""
+    Returns an `OA(k,nm+4(n-2))`.
+
+    Implements Lemma 4.1 from [Thwarts]_.
+
+        If `n\equiv 0,1\pmod{3}` is a prime power, then there exists a truncated
+        `OA(n+1,n)` whose last four columns have size `n-2` and intersect every
+        block on `1,3` or `4` values. Consequently, if there exists an
+        `OA(k,m+1),OA(k,m+3),OA(k,m+4)` and a `OA(k,n-2)` then there
+        exists an `OA(k,nm+4(n-2)`
+
+        Proof: form the transversal design by removing one point of the
+        `AG(2,3)` (Affine Geometry) contained in the Desarguesian Projective
+        Plane `PG(2,n)`.
+
+    The affine geometry on 9 points contained in the projective geometry
+    `PG(2,n)` is given explicitly in [OS64]_ (Thanks to Julian R. Abel for
+    finding the reference!).
+
+    REFERENCES:
+
+    .. [OS64] Finite projective planes with affine subplanes,
+      T. G. Ostrom and F. A. Sherk.
+      Canad. Math. Bull vol7 num.4 (1964)
+    """
+    from sage.combinat.designs.designs_pyx import is_orthogonal_array
+    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.arith import is_prime_power
+    from block_design import DesarguesianProjectivePlaneDesign
+    from itertools import chain
+
+    assert is_prime_power(n), "n(={}) must be a prime power"
+    assert k+4 <= n+1
+
+    q = n
+    K = FiniteField(q, 'x')
+    relabel = {x:i for i,x in enumerate(K)}
+    PG = DesarguesianProjectivePlaneDesign(q,check=False).blocks(copy=False)
+
+    if q % 3 == 0:
+        t = K.one()
+    elif q%3 == 1:
+        t = K.multiplicative_generator()**((q-1)//3)
+    else:
+        raise ValueError("q(={}) must be congruent to 0 or 1 mod 3".format(q))
+
+    # The projective plane is labelled with integer coordinates. This code
+    # relabels to integers the following points (given by homogeneous
+    # coordinates in the projective space):
+    #
+    # - (1+t,t,1+t), (1,1,1), (1+t,t,t), (1,1,2), (0,0,1), (1,0,1), (0,1,1+t),
+    #   (0,1,1), (1,0,-t)
+    points = [(1+t,t,1+t), (1,1,1), (1+t,t,t), (1,1,2), (0,0,1), (1,0,1), (0,1,1+t), (0,1,1), (1,0,-t)]
+    points = [map(K,t) for t in points] # triples of K^3
+    AG_2_3 = []
+    for x,y,z in points:
+        if z!=0:
+            x,y,z = x/z,y/z,z/z
+            AG_2_3.append(relabel[x]+n*relabel[y])
+        elif y!=0:
+            x,y,z=x/y,y/y,z
+            AG_2_3.append(q**2+relabel[x])
+        else:
+            AG_2_3.append(q**2+q)
+
+    AG_2_3 = set(AG_2_3)
+
+    # All blocks of PG should intersect 'AG_2_3' on !=2 AG_2_3.
+    assert all(len(AG_2_3.intersection(B)) != 2 for B in PG)
+
+    p = list(AG_2_3)[0]
+    # We now build a TD from the PG by removing p, in such a way that the last
+    # two elements of the last 4 columns are elements of AG_2_3
+    blocks = []
+    columns = []
+    for B in PG:
+        if p not in B:
+            blocks.append(B)
+        else:
+            B.remove(p)
+            columns.append(B)
+
+    # The columns containing elements from the AG are the last ones, and those
+    # elements should be the last two
+    columns.sort(key=lambda x:len(AG_2_3.intersection(x)))
+    for i in range(4):
+        columns[-i-1].sort(key=lambda x: int(x in AG_2_3))
+
+    relabel = {v:i for i,v in enumerate(chain(columns))}
+
+    TD = [sorted(relabel[x] for x in B) for B in blocks]
+
+    # We build the OA, removing unnecessary columns
+    OA = [[x%q for x in B[-k-4:]] for B in TD]
+    for B in OA:
+        for i in range(4):
+            if B[k+i] >= n-2:
+                B[k+i] = None
+
+    return wilson_construction(OA,k,n,m,4,[n-2,]*4,check=False)

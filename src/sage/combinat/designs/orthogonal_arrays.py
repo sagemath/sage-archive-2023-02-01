@@ -1588,7 +1588,7 @@ def OA_from_Vmt(m,t,V):
     """
     from sage.rings.finite_rings.constructor import FiniteField
     q = m*t+1
-    Fq = FiniteField(q)
+    Fq = FiniteField(q, 'x')
     M = QDM_from_Vmt(m,t,V)
     return OA_from_quasi_difference_matrix(M,Fq,add_col = False)
 
@@ -1639,8 +1639,8 @@ def QDM_from_Vmt(m,t,V):
     """
     from sage.rings.finite_rings.constructor import FiniteField
     q = m*t+1
-    Fq = FiniteField(q)
-    w = Fq.primitive_element()
+    Fq = FiniteField(q, 'x')
+    w = Fq.multiplicative_generator()
 
     # Cyclic shift of a list
     cyclic_shift = lambda l,i : l[-i:]+l[:-i]

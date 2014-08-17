@@ -1329,7 +1329,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
             sage: E=EllipticCurve(GF(41),[2,5])
             sage: E.abelian_group()
-            Additive abelian group isomorphic to Z/2 + Z/22 ...
+            Additive abelian group isomorphic to Z/22 + Z/2 ...
 
         ::
 

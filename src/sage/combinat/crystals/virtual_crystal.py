@@ -43,7 +43,7 @@ class VirtualCrystal(Subcrystal):
     .. MATH::
 
         e_i = \prod_{j \in \sigma_i} \widehat{e}_j^{\gamma_i}, \quad
-        f_i = \prod_{j \in \sigma_i} \widehat{f{_j^{\gamma_i},
+        f_i = \prod_{j \in \sigma_i} \widehat{f}_j^{\gamma_i},
 
     .. MATH::
 
@@ -51,8 +51,8 @@ class VirtualCrystal(Subcrystal):
         \varphi_i = \frac{\widehat{\varphi}_j}{\gamma_j}, \quad
         \operatorname{wt} = \Psi^{-1} \circ \widehat{\operatorname{wt}}
 
-    where `\sigma_i` is a set of indices in `B`, `\gamma_i \in \ZZ` are
-    the *scaling factors*, and `\Psi : P \to \widehat{P}` is an embedding
+    where `\sigma_i` is a subset of the index set of `B`, `\gamma_i \in \ZZ`
+    are the *scaling factors*, and `\Psi : P \to \widehat{P}` is an embedding
     of the weight lattices. We note that for the crystal to be well-defined,
     we must have
 
@@ -82,6 +82,51 @@ class VirtualCrystal(Subcrystal):
       default is the index set for the Cartan type
     - ``category`` -- (optional) the category for the virtual crystal; the
       default is the :class:`~sage.categories.crystals.Crystals` category
+
+    EXAMPLES:
+
+    We construct an example from a natural virtualization map of type `C_n`
+    in type `A_{2n-1}`::
+
+        sage: C = crystals.Tableaux(['C',2], shape=[1])
+        sage: A = crystals.Tableaux(['A',3], shape=[2,1,1])
+        sage: psi = C.crystal_morphism(A.module_generators)
+        sage: V = psi.image()
+        sage: list(V)
+        [[[1, 1], [2], [3]],
+         [[1, 2], [2], [4]],
+         [[1, 3], [3], [4]],
+         [[2, 4], [3], [4]]]
+        sage: V.digraph().is_isomorphic(C.digraph(), edge_labels=True)
+        True
+
+    We construct the virtualization of a `U_q'(\mathfrak{g})`-crystal
+    `B^{r,s}` of type `C_n^{(1)}` in type `A_{2n+1}^{(2)}`. Here it is not
+    a default folding known to Sage, so we have to explicitly state the
+    folding (since the scaling factors are not specified, they are all
+    assumed to be 1)::
+
+        sage: K = crystals.KirillovReshetikhin(['C',2,1], 1,1)
+        sage: VK = crystals.KirillovReshetikhin(['A',5,2], 1,1)
+        sage: target = VK.module_generator().f(1); target
+        [[2]]
+        sage: psi = K.crystal_morphism({K.module_generator(): target},
+        ....:                          virtualization={0:[0,1], 1:[2], 2:[3]})
+        sage: V = psi.image()
+        sage: list(V)
+        [[[2]], [[3]], [[-2]], [[-3]]]
+        sage: V.digraph().is_isomorphic(K.digraph(), edge_labels=True)
+        True
+
+    We create an example of `B(\Lambda_n)` of type `B_n` inside
+    of `B(2\Lambda_n)` using the doubling map through the (virtual)
+    subcrystal method::
+
+        sage: BB = crystals.Tableaux(['B',3], shape=[1,1,1])
+        sage: S = BB.subcrystal(scaling_factors={1:2, 2:2, 3:2})
+        sage: B = crystals.Tableaux(['B',3], shape=[1/2,1/2,1/2])
+        sage: S.digraph().is_isomorphic(B.digraph(), edge_labels=True)
+        True
 
     REFERENCES:
 

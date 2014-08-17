@@ -382,8 +382,9 @@ class Crystals(Category_singleton):
 
             if max_depth == float('inf'):
                 if self not in FiniteCrystals():
-                    if contained is None and index_set == self.index_set() \
-                            and generators == self.module_generators:
+                    if (contained is None and index_set == self.index_set()
+                            and generators == self.module_generators
+                            and scaling_factors is None and virtualization is None):
                         return self
                     return Subcrystal(self, contained, generators,
                                       virtualization, scaling_factors,

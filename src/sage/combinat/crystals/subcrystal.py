@@ -58,6 +58,39 @@ class Subcrystal(Parent, UniqueRepresentation):
       default is the index set for the Cartan type
     - ``category`` -- (optional) the category for the subcrystal; the
       default is the :class:`~sage.categories.crystals.Crystals` category
+
+    EXAMPLES:
+
+    We build out a subcrystal starting from an element and only going
+    to the lowest weight::
+
+        sage: B = crystals.Tableaux(['A',3], shape=[2,1])
+        sage: S = B.subcrystal(generators=[B(3,1,2)], direction='lower')
+        sage: S.cardinality()
+        11
+
+    Here we build out in both directions starting from an element, but we
+    also have restricted ourselves to type `A_2`::
+
+        sage: T = B.subcrystal(index_set=[1,2], generators=[B(3,1,1)])
+        sage: T.cardinality()
+        8
+        sage: list(T)
+        [[[1, 1], [3]],
+         [[1, 2], [3]],
+         [[2, 2], [3]],
+         [[1, 1], [2]],
+         [[2, 3], [3]],
+         [[1, 2], [2]],
+         [[1, 3], [2]],
+         [[1, 3], [3]]]
+
+    Now we take the crystal corresponding to the intersection of
+    the previous two subcrystals::
+
+        sage: U = B.subcrystal(contained=lambda x: x in S and x in T)
+        sage: list(U)
+        [[[1, 1], [2]]]
     """
     @staticmethod
     def __classcall_private__(cls, ambient, contained=None, generators=None,
@@ -99,6 +132,8 @@ class Subcrystal(Parent, UniqueRepresentation):
             # virtualization must be None
             virtualization = {i:(i,) for i in index_set}
             from sage.combinat.crystals.virtual_crystal import VirtualCrystal
+            return VirtualCrystal(ambient, virtualization, scaling_factors, contained,
+                                  generators, cartan_type, index_set, category)
 
         # We need to give these as optional arguments so it unpickles correctly
         return super(Subcrystal, cls).__classcall__(cls, ambient, contained, tuple(generators),

@@ -4,6 +4,8 @@ Catalog Of Crystals
 Definition of a Crystal
 -----------------------
 
+.. TODO:: This documentation duplicates that of sage.combinat.crystals.crystals
+
 Let `C` be a CartanType with index set `I`, and `P` be
 the corresponding weight lattice of the type `C`. Let `\alpha_i`
 and `\alpha^{\vee}_i` denote the corresponding simple roots

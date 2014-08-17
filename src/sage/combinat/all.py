@@ -1,3 +1,6 @@
+"""
+Combinatorics features that are imported by default in the interpreter namespace
+"""
 from combinat import bell_number, catalan_number, euler_number, fibonacci, \
         lucas_number1, lucas_number2, stirling_number1, stirling_number2, \
         CombinatorialObject, CombinatorialClass, FilteredCombinatorialClass, \

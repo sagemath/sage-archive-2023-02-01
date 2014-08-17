@@ -1,5 +1,6 @@
-"""
+r"""
 Root systems
+============
 
 Quickref
 --------
@@ -24,7 +25,7 @@ See also
 --------
 
 - :class:`CoxeterGroups`, :class:`WeylGroups`, ...-- The categories of Coxeter and Weyl groups
-- :ref:`sage.combinat.crystals.crystals`          -- An introduction to crystals
+- :ref:`sage.combinat.crystals`                   -- Crystals
 - :mod:`.type_A`, :mod:`.type_B_affine`, ...      -- Type specific root system data
 
 """

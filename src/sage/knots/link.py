@@ -25,6 +25,7 @@ from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.integer_ring import IntegerRing
 from sage.combinat.permutation import Permutations
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+from sage.symbolic.ring import SR, var
 
 class Link:
     r"""
@@ -1538,11 +1539,10 @@ class Link:
         neg = (-1)*x[1].count(-1)
         return pos + neg
 
-    # for version 6.1.1 the exponents results in list of tuples
-    # for the later versions the edit is as follows:
-    # f = x**((-max(f.exponents())-min(f.exponents()))/2)*f
-    # return sum(ZZ(c)*x**((e/-4)) for c,e in zip(f.coefficients(), f.exponents()))
-    def jones_polynomial(self, var = 'q'):
+    # here we have used the symbolic ring rather than the Laurent Polynomial Ring.
+    # The answer has been returned in the symbolic ring. Once the rational powers is
+    # functional we can use it and revert back to Laurent Polynomial Ring.
+    def jones_polynomial(self):
         r"""
         Returns the jones polynomial of the link.
         The following procedure is used to determine the jones polynomial.
@@ -1562,22 +1562,21 @@ class Link:
             sage: from sage.knots import link
             sage: L = link.Link(oriented_gauss_code = [[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
             sage: L.jones_polynomial()
-            q^2 - q + 1 - q^-1 + q^-2
+            q^2 - q - 1/q + 1/q^2 + 1
             sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
             sage: L.jones_polynomial()
-            q + q^-1 - q^-2
+            1/q + 1/q^3 - 1/q^4
             sage: l1 = [[1,4,2,3],[4,1,3,2]]
             sage: L = link.Link(PD_code = l1)
             sage: L.jones_polynomial()
-            -q - q^-1
+            -1/sqrt(q) - 1/q^(5/2)
             sage: l5 = [[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]]
             sage: L = link.Link(PD_code = l5)
             sage: L.jones_polynomial()
-            -q^2 + q - 2 + q^-1 - 2*q^-2 + q^-3
+            -q^(3/2) + sqrt(q) - 2/sqrt(q) + 1/q^(3/2) - 2/q^(5/2) + 1/q^(7/2)
         """
         pd = self.PD_code()
-        R = LaurentPolynomialRing(ZZ, var)
-        x = R.gen()
+        x = SR.symbol('q')
         #here we look at the smoothings, either x or x**-1
         label_1 = [x for i in range(len(pd))]
         label_2 = [x**-1 for i in range(len(pd))]
@@ -1624,12 +1623,10 @@ class Link:
         #we calculate the terms of the polynomial
         terms = [i*((-x**2-(x**(-1))**2)**(j-1)) for i, j in zip(product, circle_count)]
         #add the terms to generate the polynomial
-        poly = sum(terms)
+        poly = sum(terms).expand()
         wri = self.writhe()
-        f = ((-x**(3))**(-wri))*poly
-        t = [i[0] for i in f.exponents()]
-        f = x**((-max(t) -min(t))/2)*f
-        return sum(ZZ(c)*x**((e[0]/(-4))) for c,e in zip(f.coefficients(), f.exponents()))
+        f = (((-x**(3))**(-wri))*poly).expand()
+        return f.subs({x : x**(ZZ(-1)/ZZ(4))})
 
 #********************** Auxillary methods used ********************************
 #rule_1 and rule_2 are used in the orientation method looks for entering,

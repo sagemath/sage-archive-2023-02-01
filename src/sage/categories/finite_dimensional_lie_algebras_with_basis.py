@@ -121,11 +121,29 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             return m
 
         @cached_method
-        def structure_coefficients(self):
+        def structure_coefficients(self, include_zeros=False):
             """
-            Return the non-trivial structure coefficients of ``self``.
-            In particular, if `[x, y] = 0`, then we don't include it in the
-            output.
+            Return the structure coefficients of ``self``.
+
+            INPUT:
+
+            - ``include_zeros`` -- (default: ``False``) if ``True``, then
+              include the `[x, y] = 0` pairs in the output
+
+            OUTPUT:
+
+            A dictionary whose keys are pairs of basis indices `(i, j)` and
+            whose values are the corresponding *element* of `[b_i, b_j]`
+            in the Lie algebra.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                Lsage: L.structure_coefficients()
+                Finite family {}
+                sage: L.structure_coefficients(True)
+                Finite family {('b', 'c'): (0, 0, 0), ('a', 'b'): (0, 0, 0),
+                               ('a', 'c'): (0, 0, 0)}
             """
             d = {}
             B = self.basis()
@@ -137,7 +155,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     bx = B[x]
                     by = B[x]
                     val = self.bracket(bx, by)
-                    if val == zero:
+                    if not include_zeros and val == zero:
                         continue
                     if self._basis_cmp(x, y) > 0:
                         d[(y, x)] = -val
@@ -149,6 +167,14 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         def basis_matrix(self):
             """
             Return the basis matrix of ``self``.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: L.basis_matrix()
+                [1 0 0]
+                [0 1 0]
+                [0 0 1]
             """
 
         def centralizer(self, S):
@@ -164,17 +190,31 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             m = K.basis_matrix()
             S = self.structure_coefficients()
-            sc = {k: S[k].to_vector() for k in S}
-            X = self.basis()
+            sc = {k: S[k].to_vector() for k in S.keys()}
+            X = self.basis().keys()
             d = self.dimension()
-            c_mat = matrix([[sum(r[j]*sc[x,X[j]][k] for j in range(d)) for x in X]
+            K = sc.keys()
+            c_mat = matrix([[sum(r[j]*sc[x,X[j]][k] for j in range(d) if (x, X[j]) in K)
+                             for x in X]
                             for r in m for k in range(d)])
-            C = c_mat.right_kernel()
-            return self.subalgebra(C) # TODO: convert C back to elements of ``self``
+            C = c_mat.right_kernel().basis_matrix()
+            return self.subalgebra(map(self, C))
 
         def center(self):
             """
             Return the center of ``self``.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: Z = L.center(); Z
+                An example of a finite dimensional Lie algebra with basis:
+                 the abelian Lie algebra with generators ('x0', 'x1', 'x2')
+                 over Rational Field
+                sage: Z.basis_matrix()
+                [1 0 0]
+                [0 1 0]
+                [0 0 1]
             """
             return self.centralizer(self)
 
@@ -198,6 +238,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                             for l,r in enumerate(m.rows()) for k in range(d)])
             N = n_mat.right_kernel()
             # TODO: convert N back to elements of ``self`` by taking the first ``n`` coefficients
+            return N
             return self.subalgebra(N)
 
         def product_space(self, L):
@@ -373,6 +414,12 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             A Lie algebra is nilpotent if the lower central series eventually
             becomes `0`.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: L.is_nilpotent()
+                True
             """
             return not self.lower_central_series()[-1].dimension()
 
@@ -380,9 +427,15 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             Return if ``self`` if a semisimple Lie algebra.
 
-            A Lie algebra is semisimple if the solvable radical is zero. This
-            is equivalent to saying the Killing form is non-degenerate
-            (in characteristic 0).
+            A Lie algebra is semisimple if the solvable radical is zero. In
+            characteristic 0, this is equivalent to saying the Killing form
+            is non-degenerate.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: L.is_semisimple()
+                True
             """
             return not self.killing_form_matrix().is_singular()
 
@@ -396,7 +449,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: L.dimension()
                 2
             """
-            return ZZ(len(self.basis()))
+            return self.basis().cardinality()
 
     class ElementMethods:
         def to_vector(self):

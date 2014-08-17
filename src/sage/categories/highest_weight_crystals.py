@@ -420,7 +420,7 @@ class HighestWeightCrystals(Category_singleton):
 
                 TESTS:
 
-                We check this works with Kashiwara's convetion for
+                We check this works with Kashiwara's convention for
                 tensor products::
 
                     sage: C = crystals.Tableaux(['B',3], shape=[2,2])

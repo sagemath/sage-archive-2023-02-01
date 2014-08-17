@@ -29,13 +29,37 @@ from sage.symbolic.ring import SR, var
 
 class Link:
     r"""
-    The base class for Link, can be initialized by giving in three formats namely
-    1. Briadword
-    2. Oriented Gauss Code
-    3. Planar Diagram Code
-    Refer to oriented gauss code, planar diagram for the convention of the code.
+    The base class for Link.
+
+    INPUT:
+
+    - The different ways in which the input can be provided :
+
+      1. Briadword
+      2. Oriented Gauss Code
+      3. Planar Diagram Code
+
+      Refer to oriented_gauss_code, PD_code methods for the conventions.
+
+      EXAMPLES::
+        sage: from sage.knots import link
+        sage: B = BraidGroup(8)
+        sage: L = link.Link(B([1, 2,1, -2,-1]))
+        sage: L
+        Link with 2 components represented by 5 crossings
+        sage: L = link.Link(oriented_gauss_code = [[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+        sage: L
+        Knot represented by 7 crossings
+        sage: L = link.Link(PD_code = [[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]])
+        sage: L
+        Link with 2 components represented by 5 crossings
     """
     def __init__(self, input = None, oriented_gauss_code = None, PD_code = None):
+        r"""
+        The Python constructor.
+
+        See :class:`Link` for details.
+        """
         if isinstance(input, Braid):
             self._braid = input
             self._PD_code = None
@@ -74,11 +98,14 @@ class Link:
             Knot represented by 7 crossings
             sage: L = link.Link(oriented_gauss_code = [[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
             sage: L
-            Link with 3 components represented by 4 crossing
+            Link with 3 components represented by 4 crossings
         """
         ncomponents = str(self.ncomponents())
         pd_len = str(len(self.PD_code()))
-        return 'Knot represented by %s crossings' % (pd_len) if self.is_knot() else 'Link with %s components represented by %s crossing' % (ncomponents, pd_len)
+        if self.is_knot():
+            return 'Knot represented by {} crossings'.format(pd_len)
+        else:
+            return 'Link with {} components represented by {} crossings'.format(ncomponents, pd_len)
 
     def braidword(self):
         r"""
@@ -129,7 +156,7 @@ class Link:
             gen = max([abs(i) for i in self._braidword_detection_()])
             B = BraidGroup(gen + 1)
             self._braid = B(self._braidword_detection_())
-            return B(self._braidword_detection_())
+            return self._braid
 
     def oriented_gauss_code(self):
         r"""
@@ -141,11 +168,11 @@ class Link:
         of knots:
 
         From the outgoing of the overcrossing if we move in the clockwise direction
-        to reach the outgoing of the undercrossing then we label that crossing as '-'.
+        to reach the outgoing of the undercrossing then we label that crossing as '-1'.
 
         From the outgoing of the overcrossing if we move in the anticlockwise
         direction to reach the outgoingo the undercrossing then we label that crossing
-        as '+'.
+        as '+1'.
 
         One more consideration we take in while constructing the orientation is:
         The order of the orientation is same as the ordering of the crossings in the
@@ -204,14 +231,11 @@ class Link:
                 code.append(l)
             oriented_code = [code, orient]
             self._oriented_gauss_code = oriented_code
-            return oriented_code
+            return self._oriented_gauss_code
 
-        #this has to be worked upon.
         elif self._braid != None:
-            braid = self._braid
-            pd = Link(braid).PD_code()
-            L = Link(PD_code = pd)
-            gc = L.oriented_gauss_code()
+            self.PD_code()
+            gc = self.oriented_gauss_code()
             return gc
 
     def PD_code(self):
@@ -283,7 +307,7 @@ class Link:
                         crossing_dic.update({ i + 1 : [d_dic[-(i+1)][0], d_dic[i+1][0], d_dic[-(i+1)][1], d_dic[i+1][1]]})
             pd = [crossing_dic[i] for i in crossing_dic.keys()]
             self._PD_code = pd
-            return pd
+            return self._PD_code
 
         elif self._braid != None:
             b = list(self._braid.Tietze())
@@ -332,7 +356,7 @@ class Link:
                 pd_reversed[0][3] = abs(b_reversed[0]) + 1
             pd_original = pd_reversed[::-1]
             self._PD_code = pd_original
-            return pd_original
+            return self._PD_code
 
     def gauss_code(self):
         r"""
@@ -434,6 +458,12 @@ class Link:
 
         elif self._oriented_gauss_code != None or self._PD_code != None:
             return _dt_internal_(self._braidword_detection_())
+
+    def _dowker_notation_(self):
+        pd = self.PD_code()
+        orient = self.orientation()
+        dn = [(i[0], i[3]) if orient[j] == -1 else (i[0],i[1]) for j,i in enumerate(pd)]
+        return dn
 
     def _braidwordcomponents_(self):
         r"""

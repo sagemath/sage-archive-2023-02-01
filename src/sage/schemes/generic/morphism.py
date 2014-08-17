@@ -1330,13 +1330,21 @@ class SchemeMorphism_polynomial(SchemeMorphism):
               -x^2 - y^2
               Defn: Defined on coordinates by sending (x : y) to
                     (x : y)
+         
+            Check that :trac:'16834' is fixed::
+            
+                sage: A.<x> = AffineSpace(QQ,1)
+                sage: h = Hom(A,A)
+                sage: f = h([1])
+                sage: f.change_ring(ZZ)
+                Scheme endomorphism of Affine Space of dimension 1 over Integer Ring
+                Defn: Defined on coordinates by sending (x) to (1)
+                
             """
         F=self._polys
         S=self._codomain.change_ring(R)
         H=Hom(S,S)
-        G=[]
-        for i in range(self._codomain.ambient_space().dimension_relative()+1):
-            G.append(F[i].change_ring(R))
+        G=[F[i].change_ring(R) for i in range(len(F))]
         return(H(G,check))
 
 

@@ -123,6 +123,26 @@ class Monoids(CategoryWithAxiom):
             """
             return self.one()
 
+        def semigroup_generators(self):
+            """
+            Return the generators of ``self`` as a semigroup.
+
+            The generators of a monoid `M` as a semigroup are the generators
+            of `M` as a monoid and the unit.
+
+            EXAMPLES::
+
+                sage: M = Monoids().free([1,2,3])
+                sage: M.semigroup_generators()
+                Family (1, F[1], F[2], F[3])
+            """
+            G = self.monoid_generators()
+            from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+            if G not in FiniteEnumeratedSets():
+                raise NotImplementedError("currently only implemented for finitely generated monoids")
+            from sage.sets.family import Family
+            return Family((self.one(),) + tuple(G))
+
         def prod(self, args):
             r"""
             n-ary product of elements of ``self``.

@@ -55,7 +55,6 @@ from sage.rings.infinity import Infinity
 from designs_pyx import is_orthogonal_array
 from incidence_structures import GroupDivisibleDesign
 
-
 def transversal_design(k,n,resolvable=False,check=True,existence=False):
     r"""
     Return a transversal design of parameters `k,n`.
@@ -784,7 +783,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
       .. NOTE::
 
           When ``k=None`` and ``existence=True`` the function returns an
-          integer, i.e. the largest `k` such that we can build a `TD(k,n)`.
+          integer, i.e. the largest `k` such that we can build a `OA(k,n)`.
 
     OUTPUT:
 
@@ -903,6 +902,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
     from database import OA_constructions, MOLS_constructions
     from block_design import projective_plane, projective_plane_to_OA
     from orthogonal_arrays_recursive import find_recursive_construction
+    from difference_matrices import difference_matrix
 
     assert n>=0, "n(={}) must be nonnegative".format(n)
 
@@ -999,17 +999,6 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
         OA = OA_from_wider_OA(construction(),k)
 
     # Constructions from the database II
-    elif may_be_available and k <= 6 and n == 12:
-        _OA_cache_set(6,12,True)
-
-        if existence:
-            return True
-        else:
-            from database import TD_6_12
-            TD = TD_6_12()
-            OA = [[x%n for x in R[:k]] for R in TD]
-
-    # Constructions from the database III
     # Section 6.5.1 from [Stinson2004]
     elif may_be_available and n in MOLS_constructions and k-2 <= MOLS_constructions[n][0]:
         _OA_cache_set(MOLS_constructions[n][0]+2,n,True)
@@ -1022,6 +1011,13 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
             OA = [[i,j]+[m[i,j] for m in mols]
                   for i in range(n) for j in range(n)]
             OA = OA_from_wider_OA(OA,k)
+
+    # From Difference Matrices
+    elif may_be_available and difference_matrix(n,k-1,existence=True):
+        if existence:
+            return True
+        G,M = difference_matrix(n,k-1)
+        OA = OA_from_quasi_difference_matrix(M,G,add_col=True)
 
     elif may_be_available and find_recursive_construction(k,n):
         _OA_cache_set(k,n,True)

@@ -489,7 +489,7 @@ def is_difference_matrix(M,G,k,lmbda=1,verbose=False):
     # A copy of the matrix
     for i,R in enumerate(M):
         for j,x in enumerate(R):
-            M_c[i*K+j] = group_to_int[x]
+            M_c[i*K+j] = group_to_int[G(x)]
 
     # We are now ready to test every pair of columns
     for i in range(K):

@@ -457,7 +457,7 @@ following libraries are currently supported:
   Proprietary, but free for researchers and students.
 
 * `CVXOPT <http://cvxopt.org/>`_: an LP solver from Python Software for
-  Convex Optimization, uses an interior-point methodi, always installed in Sage.
+  Convex Optimization, uses an interior-point method, always installed in Sage.
 
   Licensed under the GPL.
 

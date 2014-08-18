@@ -1195,6 +1195,19 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([t*x^2+t*y^2,6*y^2])
             sage: f.resultant()
             2*t^2
+        ::
+            sage: R.<t> = PolynomialRing(GF(17))
+            sage: P.<x,y,z> = ProjectiveSpace(R,2)
+            sage: H = Hom(P,P)
+            sage: f = H([t*x^2+t*y^2,6*y^2,2*t*z^2])
+            sage: f.resultant()
+            13*t^8
+        ::
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = Hom(P,P)
+            sage: F = H([x^2+y^2,6*y^2,10*x*z+z^2+y^2])
+            sage: F.resultant()
+            1296
         """
 
         if normalize is True:
@@ -1207,7 +1220,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             R = polys[0].parent()
             res = R.macaulay_resultant(polys)
             return(self.codomain().base_ring()(res))
-        else:
+        else:    #Original code is faster at computing the one dimensioanl case than the Macauley Resultant
             x = self.domain().gen(0)
             y = self.domain().gen(1)
             d = self.degree()

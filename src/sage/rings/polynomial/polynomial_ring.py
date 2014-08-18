@@ -1807,7 +1807,12 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
            8th edition, Thomson Brooks/Cole, 2005.
 
         """
-        to_base_ring = self.base_ring().coerce
+        # Perhaps we should be slightly stricter on the input and use
+        # self.base_ring().coerce here (as in the divided_difference()
+        # method above).  However, this breaks an example in
+        # sage.tests.french_book.nonlinear_doctest where the base ring
+        # is CC, but the function values lie in the symbolic ring.
+        to_base_ring = self.base_ring()
         points = map(lambda x: map(to_base_ring, x), points)
         var = self.gen()
 

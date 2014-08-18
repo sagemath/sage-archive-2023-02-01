@@ -58,6 +58,7 @@ from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from sage.rings.infinity import Infinity
 from designs_pyx import is_orthogonal_array
+from incidence_structures import GroupDivisibleDesign
 
 
 def transversal_design(k,n,check=True,existence=False):
@@ -125,7 +126,9 @@ def transversal_design(k,n,check=True,existence=False):
 
     EXAMPLES::
 
-        sage: designs.transversal_design(5,5)
+        sage: TD = designs.transversal_design(5,5); TD
+        Transversal Design TD(5,5)
+        sage: TD.blocks()
         [[0, 5, 10, 15, 20], [0, 6, 12, 18, 24], [0, 7, 14, 16, 23],
          [0, 8, 11, 19, 22], [0, 9, 13, 17, 21], [1, 5, 14, 18, 22],
          [1, 6, 11, 16, 21], [1, 7, 13, 19, 20], [1, 8, 10, 17, 24],
@@ -218,7 +221,7 @@ def transversal_design(k,n,check=True,existence=False):
 
     The case when `n=1`::
 
-        sage: designs.transversal_design(5,1)
+        sage: designs.transversal_design(5,1).blocks()
         [[0, 1, 2, 3, 4]]
 
     Obtained through Wilson's decomposition::
@@ -283,7 +286,7 @@ def transversal_design(k,n,check=True,existence=False):
 
     The special case `n=1`::
 
-        sage: designs.transversal_design(3, 1)
+        sage: designs.transversal_design(3, 1).blocks()
         [[0, 1, 2]]
         sage: designs.transversal_design(None, 1, existence=True)
         +Infinity
@@ -346,10 +349,77 @@ def transversal_design(k,n,check=True,existence=False):
             return Unknown
         raise NotImplementedError("I don't know how to build a TD({},{})!".format(k,n))
 
-    if check:
-        assert is_transversal_design(TD,k,n)
+    return TransversalDesign(TD,k,n,check=check)
 
-    return TD
+class TransversalDesign(GroupDivisibleDesign):
+    r"""
+    Class for Transversal Designs
+
+    INPUT:
+
+    - ``blocks`` -- collection of blocks
+
+    - ``k,n`` (integers) -- parameters of the transversal design. They can be
+      set to ``None`` (default) in which case their value is determined by the
+      blocks.
+
+    - ``check`` (boolean) -- whether to check that the design is indeed a
+      transversal design with the right parameters. Set to ``True`` by default.
+
+    EXAMPLES::
+
+        sage: designs.transversal_design(None,5)
+        Transversal Design TD(6,5)
+        sage: designs.transversal_design(None,30)
+        Transversal Design TD(6,30)
+        sage: designs.transversal_design(None,36)
+        Transversal Design TD(10,36)
+    """
+    def __init__(self, blocks, k=None,n=None,check=True,**kwds):
+        r"""
+        Constructor of the class
+
+        EXAMPLES::
+
+            sage: designs.transversal_design(None,5)
+            Transversal Design TD(6,5)
+        """
+        from math import sqrt
+        if k is None:
+            if blocks:
+                k=len(blocks[0])
+            else:
+                k=0
+        if n is None:
+            n = round(sqrt(len(blocks)))
+
+        self._n = n
+        self._k = k
+
+        if check:
+            assert is_transversal_design(blocks,k,n)
+
+        GroupDivisibleDesign.__init__(self,
+                                      k*n,
+                                      [range(i*n,(i+1)*n) for i in range(k)],
+                                      blocks,
+                                      check=False,
+                                      **kwds)
+
+    def __repr__(self):
+        r"""
+        Returns a string describing the transversal design.
+
+        EXAMPLES::
+
+            sage: designs.transversal_design(None,5)
+            Transversal Design TD(6,5)
+            sage: designs.transversal_design(None,30)
+            Transversal Design TD(6,30)
+            sage: designs.transversal_design(None,36)
+            Transversal Design TD(10,36)
+        """
+        return "Transversal Design TD({},{})".format(self._k,self._n)
 
 def is_transversal_design(B,k,n, verbose=False):
     r"""
@@ -885,7 +955,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
         else:
             from database import TD_6_12
             TD = TD_6_12()
-            OA = [[x%n for x in R] for R in TD]
+            OA = [[x%n for x in R[:k]] for R in TD]
 
     # Constructions from the database III
     # Section 6.5.1 from [Stinson2004]
@@ -1283,26 +1353,36 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
 
         sage: _ = designs.orthogonal_array(6,20,2) # indirect doctest
     """
-    Gn = G.cardinality()
+    Gn = int(G.cardinality())
     k = len(M)+bool(add_col)
-    G_to_int = {v:i for i,v in enumerate(G)}
 
+    G_to_int = {x:i for i,x in enumerate(G)}
+
+    # A cache for addition in G
+    G_sum = [[0]*Gn for _ in range(Gn)]
+    for x,i in G_to_int.iteritems():
+        for xx,ii in G_to_int.iteritems():
+            G_sum[i][ii] = G_to_int[x+xx]
+
+    # Convert M to integers
+    M = [[None if x is None else G_to_int[G(x)] for x in line] for line in M]
+
+    # Each line is expanded by [g+x for x in line for g in G] then relabeled
+    # with integers. Missing values are also handled.
     new_M = []
     for line in M:
+        inf = Gn
         new_line = []
-        # Concatenating the line+x, for all x \in G
-        for g in G:
-            inf = Gn
-            for x in line:
-                if x is None:
-                    new_line.append(inf)
-                    inf = inf + 1
-                else:
-                    new_line.append(G_to_int[g+G(x)])
+        for x in line:
+            if x is None:
+                new_line.extend([inf]*Gn)
+                inf = inf + 1
+            else:
+                new_line.extend(G_sum[x])
         new_M.append(new_line)
 
     if add_col:
-        new_M.append([i%(Gn) for i in range(len(new_line))])
+        new_M.append([i//Gn for i in range(len(new_line))])
 
     # new_M = transpose(new_M)
     new_M = zip(*new_M)
@@ -1428,18 +1508,20 @@ def OA_from_PBD(k,n,PBD, check=True):
         ...
         EmptySetError: There is no OA(n+1,n) - 3.OA(n+1,1) as all blocks do intersect in a projective plane.
 
-    Or an `OA(6,10)`::
+    Or an `OA(3,6)`::
 
         sage: _ = OA_from_PBD(3,6,pbd)
         Traceback (most recent call last):
         ...
-        RuntimeError: The PBD covers a point 8 which is not in {0, ..., 5}
+        RuntimeError: PBD is not a valid Pairwise Balanced Design on [0,...,5]
     """
     # Size of the sets of the PBD
     K = set(map(len,PBD))
+
     if check:
-        from bibd import _check_pbd
-        _check_pbd(PBD, n, K)
+        from designs_pyx import is_pairwise_balanced_design
+        if not is_pairwise_balanced_design(PBD, n, K):
+            raise RuntimeError("PBD is not a valid Pairwise Balanced Design on [0,...,{}]".format(n-1))
 
     # Building the IOA
     OAs = {i:incomplete_orthogonal_array(k,i,(1,)*i) for i in K}
@@ -1476,7 +1558,7 @@ def OA_from_wider_OA(OA,k):
 
         sage: from sage.combinat.designs.orthogonal_arrays import OA_from_wider_OA
         sage: OA_from_wider_OA(designs.orthogonal_array(6,20,2),1)[:5]
-        [(19,), (0,), (0,), (7,), (1,)]
+        [(19,), (19,), (19,), (19,), (19,)]
         sage: _ = designs.orthogonal_array(5,46) # indirect doctest
 
     """

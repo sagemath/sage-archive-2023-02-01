@@ -444,7 +444,7 @@ def OA_7_18():
             Mb[6].append(g + G((0,  0  ,2*y)))
 
     M = OA_from_quasi_difference_matrix(Mb,G,add_col=False)
-    M = M[:len(M)/2] # only develop w.r.t the last two coordinates
+    M = [M[i] for i in range(len(M)) if i%18<9] # only develop w.r.t the last two coordinates
     return M
 
 def OA_6_20():
@@ -3048,9 +3048,10 @@ def RBIBD_120_8_1():
     EXAMPLES::
 
         sage: from sage.combinat.designs.database import RBIBD_120_8_1
-        sage: from sage.combinat.designs.bibd import _check_pbd
+        sage: from sage.combinat.designs.bibd import is_pairwise_balanced_design
         sage: RBIBD = RBIBD_120_8_1()
-        sage: _ = _check_pbd(RBIBD,120,[8])
+        sage: is_pairwise_balanced_design(RBIBD,120,[8])
+        True
 
     It is indeed resolvable, and the parallel classes are given by 17 slices of
     consecutive 15 blocks::

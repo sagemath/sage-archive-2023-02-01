@@ -1220,7 +1220,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             R = polys[0].parent()
             res = R.macaulay_resultant(polys)
             return(self.codomain().base_ring()(res))
-        else:    #Original code is faster at computing the one dimensioanl case than the Macauley Resultant
+        else:    #Original code is faster at computing the one dimensional case than the Macauley Resultant
             x = self.domain().gen(0)
             y = self.domain().gen(1)
             d = self.degree()

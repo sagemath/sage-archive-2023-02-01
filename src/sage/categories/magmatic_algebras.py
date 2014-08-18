@@ -76,8 +76,8 @@ class MagmaticAlgebras(Category_over_base_ring):
         .. SEEALSO:: :meth:`Category.is_structure_category`
 
         The category of (magmatic) algebras defines no new structure:
-        a morphism of modules and of magmas between two modules is an
-        algebra morphism.
+        a morphism of modules and of magmas between two (magmatic)
+        algebras is a (magmatic) algebra morphism.
 
         .. TODO:: This category should be a :class:`CategoryWithAxiom`.
 

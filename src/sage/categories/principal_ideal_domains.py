@@ -53,7 +53,7 @@ class PrincipalIdealDomains(Category_singleton):
         EXAMPLES:
 
         The category of principal ideal domains does not define new
-        structrure: a ring-morphism between principal ideal domains is
+        structure: a ring-morphism between principal ideal domains is
         a principal ideal domain-morphism::
 
             sage: PrincipalIdealDomains().is_structure_category()

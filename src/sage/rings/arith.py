@@ -2443,7 +2443,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
 
         sage: K.<i> = QuadraticField(-1)
         sage: factor(122 - 454*i)
-        (-1) * (-i - 4) * (-3*i - 2) * (-i - 2)^3 * (i + 1)^3
+        (-3*i - 2) * (-i - 2)^3 * (i + 1)^3 * (i + 4)
 
     To access the data in a factorization::
 
@@ -4530,6 +4530,8 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
     b = QQ(b).numerator() * QQ(b).denominator()
 
     if algorithm == "pari":
+        if p == -1:
+            p = 0
         return ZZ(pari(a).hilbert(b,p))
 
     elif algorithm == 'direct':
@@ -5655,7 +5657,7 @@ def dedekind_sum(p, q, algorithm='default'):
         sage: dedekind_sum(3^54 - 1, 2^93 + 1, algorithm='pari')
         459340694971839990630374299870/29710560942849126597578981379
 
-    Pari uses a different definition if the inputs are not coprime::
+    We check consistency of the results::
 
         sage: dedekind_sum(5, 7, algorithm='default')
         -1/14
@@ -5668,7 +5670,7 @@ def dedekind_sum(p, q, algorithm='default'):
         sage: dedekind_sum(6, 8, algorithm='flint')
         -1/8
         sage: dedekind_sum(6, 8, algorithm='pari')
-        -1/24
+        -1/8
 
     REFERENCES:
 

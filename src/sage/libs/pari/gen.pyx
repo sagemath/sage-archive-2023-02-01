@@ -2254,14 +2254,7 @@ cdef class gen(sage.structure.element.RingElement):
             precision = P.get_series_precision()
         pari_catch_sig_on()
         cdef long vn = P.get_var(v)
-        if isexactzero(f.g):
-            # Special case for f = 0, because scalarser() is broken
-            # in PARI 2.5.5, causing e.g. Ser(gen_0) to give O(x^0).
-            # This is fixed in PARI 2.6.
-            if vn == -1:
-                vn = 0  # otherwise the variable will be called '#'
-            return P.new_gen(zeroser(vn, precision))
-        elif typ(f.g) == t_VEC:
+        if typ(f.g) == t_VEC:
             # The precision flag is ignored for vectors, so we first
             # convert the vector to a polynomial.
             return P.new_gen(gtoser(gtopolyrev(f.g, vn), vn, precision))
@@ -5268,7 +5261,7 @@ cdef class gen(sage.structure.element.RingElement):
     def phi(gen n):
         """
         Return the Euler phi function of n.
-        
+
         EXAMPLES::
 
             sage: pari(10).phi()
@@ -5429,10 +5422,10 @@ cdef class gen(sage.structure.element.RingElement):
 
         OUTPUT:
 
-        -  ``gen`` - a PARI ell structure.
+        -  ``gen`` -- a PARI ell structure.
 
         EXAMPLES:
-        
+
         An elliptic curve with integer coefficients::
 
             sage: e = pari([0,1,0,1,0]).ellinit(); e
@@ -5474,7 +5467,7 @@ cdef class gen(sage.structure.element.RingElement):
         - ``c`` - the product of the local Tamagawa numbers of `e`.
 
         - ``faN`` is the factorization of `N`
-        
+
         - ``L[i]`` is ``elllocalred(E, faN[i,1])``
 
         EXAMPLES::
@@ -5507,7 +5500,7 @@ cdef class gen(sage.structure.element.RingElement):
         OUTPUT: point on E
 
         EXAMPLES:
-        
+
         First we create an elliptic curve::
 
             sage: e = pari([0, 1, 1, -2, 0]).ellinit()
@@ -6382,7 +6375,9 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return P.new_gen(ellsub(self.g, t0.g, t1.g))
 
-    def elltaniyama(self, long n=16):
+    def elltaniyama(self, long n=-1):
+        if n < 0:
+            n = P.get_series_precision()
         pari_catch_sig_on()
         return P.new_gen(elltaniyama(self.g, n))
 
@@ -6581,7 +6576,7 @@ cdef class gen(sage.structure.element.RingElement):
         REFERENCES:
 
         .. [PariUsers] User's Guide to PARI/GP,
-           http://pari.math.u-bordeaux.fr/pub/pari/manuals/2.5.1/users.pdf
+           http://pari.math.u-bordeaux.fr/pub/pari/manuals/2.7.0/users.pdf
         """
         pari_catch_sig_on()
         n = bnfcertify(self.g)
@@ -6953,7 +6948,7 @@ cdef class gen(sage.structure.element.RingElement):
         - ``fa``: If present, encodes a subset of primes at which to
           check for maximality. This must be one of the three following
           things:
-        
+
             - an integer: check all primes up to ``fa`` using trial
               division.
 

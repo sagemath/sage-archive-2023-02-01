@@ -600,7 +600,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: Ep = EllipticCurve('903b3').pari_curve()
 
-        This still works, even When the curve coefficients are large
+        This still works, even when the curve coefficients are large
         (see :trac:`13163`)::
 
             sage: E = EllipticCurve([4382696457564794691603442338788106497, 28, 3992, 16777216, 298])
@@ -3708,7 +3708,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         Some curves with large torsion groups::
 
-            sage: E = EllipticCurve([-1386747,368636886])
+            sage: E = EllipticCurve([-1386747, 368636886])
             sage: T = E.torsion_subgroup(); T
             Torsion Subgroup isomorphic to Z/2 + Z/8 associated to the Elliptic Curve defined by y^2  = x^3 - 1386747*x + 368636886 over Rational Field
             sage: T == E.torsion_subgroup(algorithm="doud")

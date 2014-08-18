@@ -122,7 +122,7 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
         [2499923, 2499941, 2499943, 2499947, 2499949, 2499953, 2499967, 2499983, 2499989, 2499997]
 
     A non-trivial range without primes::
-    
+
         sage: prime_range(4652360, 4652400)
         []
 

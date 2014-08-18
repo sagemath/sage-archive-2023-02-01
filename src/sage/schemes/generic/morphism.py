@@ -81,7 +81,7 @@ AUTHORS:
 
 from sage.structure.element   import AdditiveGroupElement, RingElement, Element, generic_power, parent
 from sage.structure.sequence  import Sequence
-from sage.categories.homset   import Homset, Hom
+from sage.categories.homset   import Homset, Hom, End
 from sage.rings.all           import Integer
 from sage.rings.commutative_ring import is_CommutativeRing
 from sage.rings.morphism import is_RingHomomorphism
@@ -1332,19 +1332,40 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                     (x : y)
          
             Check that :trac:'16834' is fixed::
-            
-                sage: A.<x> = AffineSpace(QQ,1)
+           
+                sage: A.<x,y,z> = AffineSpace(RR,3)
                 sage: h = Hom(A,A)
-                sage: f = h([1])
-                sage: f.change_ring(ZZ)
-                Scheme endomorphism of Affine Space of dimension 1 over Integer Ring
-                Defn: Defined on coordinates by sending (x) to (1)
-                
-            """
-        F=self._polys
-        S=self._codomain.change_ring(R)
-        H=Hom(S,S)
-        G=[F[i].change_ring(R) for i in range(len(F))]
+                sage: f = h([x^2+1.5,y^3,z^5-2.0])
+                sage: f.change_ring(CC)
+                Scheme endomorphism of Affine Space of dimension 3 over Complex Field with 53 bits of precision
+                Defn: Defined on coordinates by sending (x, y, z) to
+                (x^2 + 1.50000000000000, y^3, z^5 - 2.00000000000000)
+                       
+            ::
+           
+                sage: A.<x,y> = ProjectiveSpace(ZZ,1)
+                sage: B.<u,v> = AffineSpace(QQ,2)
+                sage: h = Hom(A,B)
+                sage: f = h([x^2, y^2])
+                sage: f.change_ring(QQ)
+                Scheme morphism:
+                From: Projective Space of dimension 1 over Rational Field
+                To:   Affine Space of dimension 2 over Rational Field
+                Defn: Defined on coordinates by sending (x : y) to
+                (x^2, y^2)
+               
+        """
+           
+        T=self.domain().change_ring(R)
+        S=self.codomain().change_ring(R)
+       
+        if T == S:
+            H=End(T)
+        else:
+            H=Hom(T,S)
+
+        G=[f.change_ring(R) for f in self._polys]
+        
         return(H(G,check))
 
 

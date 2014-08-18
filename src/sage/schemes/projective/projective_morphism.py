@@ -1196,20 +1196,26 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.resultant()
             2*t^2
         """
-        if self.domain().dimension_relative() > 1:
-            raise TypeError("Only for dimension 1, use self.primes_of_bad_reduction() to get bad primes")
+
         if normalize is True:
             F = copy(self)
             F.normalize_coordinates()
         else:
             F = self
-        x = self.domain().gen(0)
-        y = self.domain().gen(1)
-        d = self.degree()
-        f = F[0].substitute({y:1})
-        g = F[1].substitute({y:1})
-        res = (f.lc() ** (d - g.degree()) * g.lc() ** (d - f.degree()) * f._pari_().polresultant(g, x))
-        return(self.codomain().base_ring()(res))
+        if self.domain().dimension_relative() > 1:   
+            polys = [F[i] for i in range(len(F.domain().gens()))]
+            R = polys[0].parent()
+            res = R.macaulay_resultant(polys)
+            return(self.codomain().base_ring()(res))
+        else:
+            x = self.domain().gen(0)
+            y = self.domain().gen(1)
+            d = self.degree()
+            f = F[0].substitute({y:1})
+            g = F[1].substitute({y:1})
+            res = (f.lc() ** (d - g.degree()) * g.lc() ** (d - f.degree()) * f._pari_().polresultant(g, x))
+            return(self.codomain().base_ring()(res))
+        
 
     @cached_method
     def primes_of_bad_reduction(self, check=True):

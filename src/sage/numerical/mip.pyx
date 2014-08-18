@@ -1183,7 +1183,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             if b.is_variable_integer(i):
                 var_type = 'an integer'
             elif b.is_variable_binary(i):
-                var_type = 'a boolean variable'
+                var_type = 'a boolean'
             else:
                 var_type = 'a continuous'
             if varid_name[i] == str(self.gen(i)):

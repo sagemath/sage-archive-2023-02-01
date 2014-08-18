@@ -226,7 +226,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x0 : x1) to
                     (x1^2 : x0^2 - x1^2)
         """
-#it is possible to homogenize the domain and codomain at different coordinates
+        #it is possible to homogenize the domain and codomain at different coordinates
         if isinstance(n,(tuple,list)):
             ind = tuple(n)
         else:

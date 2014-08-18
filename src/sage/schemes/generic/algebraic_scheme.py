@@ -1612,7 +1612,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
             self.__dimension = self.defining_ideal().dimension()
             return self.__dimension
 
-    def projective_embedding(self, i=None, X=None):
+    def projective_embedding(self, i=None, PP=None):
         """
         Returns a morphism from this affine scheme into an ambient
         projective space of the same dimension.
@@ -1624,8 +1624,8 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
            embedding is that which has a 1 in the i-th coordinate, numbered
            from 0.
 
-        -  ``X`` -- (default: None) ambient projective scheme, i.e., codomain of
-           morphism; this is constructed if it is not given.
+        -  ``PP`` -- (default: None) ambient projective space, i.e., ambient space
+            of codomain of morphism; this is constructed if it is not given.
 
         EXAMPLES::
 
@@ -1642,16 +1642,17 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
 
         ::
 
-            sage: A.<x,y,z>=AffineSpace(QQ,3)
-            sage: X=A.subscheme([x-y])
-            sage: X.projective_embedding(1)
+            sage: A.<x, y, z> = AffineSpace(3, ZZ)
+            sage: P = ProjectiveSpace(3,ZZ,'u')
+            sage: S = A.subscheme([x^2-y*z])
+            sage: S.projective_embedding(1,P)
             Scheme morphism:
-              From: Closed subscheme of Affine Space of dimension 3 over Rational
-            Field defined by:
-              x - y
-              To:   Closed subscheme of Projective Space of dimension 3 over
-            Rational Field defined by:
-              x0 - x2
+              From: Closed subscheme of Affine Space of dimension 3 over Integer
+            Ring defined by:
+              x^2 - y*z
+              To:   Closed subscheme of Projective Space of dimension 3 over Integer
+            Ring defined by:
+              u0^2 - u2*u3
               Defn: Defined on coordinates by sending (x, y, z) to
                     (x : 1 : y : z)
         """
@@ -1667,19 +1668,25 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         if i < 0 or i > n:
             raise ValueError("Argument i (=%s) must be between 0 and %s, inclusive"%(i, n))
         try:
-            return self.__projective_embedding[i]
+            phi = self.__projective_embedding[i]
+            #assume that if you've passed in a new ambient projective space
+            #you want to override the existing embedding
+            if PP is None or phi.codomain().ambient_space() == PP:
+                return(phi)
         except AttributeError:
             self.__projective_embedding = {}
         except KeyError:
             pass
-        if X is None:
+        if PP is None:
             PP = AA.projective_embedding(i).codomain()
-            PR = PP.coordinate_ring()
-            v = list(PP.gens())
-            z = v.pop(i)
-            v.append(z)
-            polys = self.defining_polynomials()
-            X = PP.subscheme([ PR(f.homogenize())(v) for f in polys ])
+        elif PP.dimension_relative() != n:
+            raise ValueError("Projective Space must be of dimension %s"%(n))
+        PR = PP.coordinate_ring()
+        v = list(PP.gens())
+        z = v.pop(i)
+        v.append(z)
+        polys = self.defining_polynomials()
+        X = PP.subscheme([ PR(f.homogenize())(v) for f in polys ])
         R = AA.coordinate_ring()
         v = list(R.gens())
         v.insert(i, R(1))
@@ -1854,7 +1861,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             self.__dimension = self.defining_ideal().dimension() - 1
             return self.__dimension
 
-    def affine_patch(self, i, X=None):
+    def affine_patch(self, i, AA = None):
         r"""
         Return the `i^{th}` affine patch of this projective scheme.
         This is the intersection with this `i^{th}` affine patch of
@@ -1864,7 +1871,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         - ``i`` -- integer between 0 and dimension of self, inclusive.
 
-        - ``X`` -- (default: None) ambient affine scheme, this is constructed
+        - ``AA`` -- (default: None) ambient affine space, this is constructed
             if it is not given.
 
         OUTPUT:
@@ -1895,33 +1902,47 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         ::
 
-            sage: A.<x,y,z>=AffineSpace(QQ,3)
-            sage: X=A.subscheme([x-y*z])
-            sage: Y=X.projective_embedding(1).codomain()
-            sage: Y.affine_patch(1,X).ambient_space()==A
+            sage: A.<x,y,z> = AffineSpace(QQ,3)
+            sage: X = A.subscheme([x-y*z])
+            sage: Y = X.projective_embedding(1).codomain()
+            sage: Y.affine_patch(1,A).ambient_space() == A
             True
+
+        ::
+
+            sage: P.<u,v,w> = ProjectiveSpace(2,ZZ)
+            sage: S = P.subscheme([u^2-v*w])
+            sage: A.<x, y> = AffineSpace(2, ZZ)
+            sage: S.affine_patch(1, A)
+            Closed subscheme of Affine Space of dimension 2 over Integer Ring
+            defined by:
+              x^2 - y
         """
         i = int(i)   # implicit type checking
         PP = self.ambient_space()
-        n = PP.dimension()
+        n = PP.dimension_relative()
         if i < 0 or i > n:
             raise ValueError("Argument i (= %s) must be between 0 and %s."%(i, n))
         try:
-            return self.__affine_patches[i]
+            A = self.__affine_patches[i]
+            #assume that if you've passed in a new ambient affine space
+            #you want to override the existing patch
+            if AA is None or A.ambient_space() == AA:
+                return self.__affine_patches[i]
         except AttributeError:
             self.__affine_patches = {}
         except KeyError:
             pass
-        if X is None:
+        if AA is None:
             AA = PP.affine_patch(i)
-        else:
-            AA = PP.affine_patch(i,X.ambient_space())
-        phi = AA.projective_embedding()
+        elif AA.dimension_relative() != n:
+            raise ValueError("Affine Space must be of the dimension %s"%(n))
+        phi = AA.projective_embedding(i, PP)
         polys = self.defining_polynomials()
         xi = phi.defining_polynomials()
         U = AA.subscheme([ f(xi) for f in polys ])
         U._default_embedding_index = i
-        phi = U.projective_embedding(i, self)
+        phi = U.projective_embedding(i, PP)
         self.__affine_patches[i] = U
         U._embedding_morphism = phi
         return U

@@ -721,7 +721,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
         return AlgebraicScheme_subscheme_projective(self, X)
 
-    def affine_patch(self, i, AA=None):
+    def affine_patch(self, i, AA = None):
         r"""
         Return the `i^{th}` affine patch of this projective space.
         This is an ambient affine space `\mathbb{A}^n_R,` where
@@ -769,17 +769,21 @@ class ProjectiveSpace_ring(AmbientSpace):
         if i < 0 or i > n:
             raise ValueError("Argument i (= %s) must be between 0 and %s."%(i, n))
         try:
-            return self.__affine_patches[i]
+            A = self.__affine_patches[i]
+            #assume that if you've passed in a new affine space you want to override
+            #the existing patch
+            if AA is None or A == AA:
+                return(A)
         except AttributeError:
             self.__affine_patches = {}
         except KeyError:
             pass
+        #if no ith patch exists, we may still be here with AA==None
         if AA == None:
             from sage.schemes.affine.affine_space import AffineSpace
-            AA = AffineSpace(n, self.base_ring(), names='x')
-        else:
-            if AA.dimension_relative()!=n:
-                raise ValueError("Affine Space must be of the correct dimension")
+            AA = AffineSpace(n, self.base_ring(), names = 'x')
+        elif AA.dimension_relative() != n:
+                raise ValueError("Affine Space must be of the dimension %s"%(n))
         AA._default_embedding_index = i
         phi = AA.projective_embedding(i, self)
         self.__affine_patches[i] = AA

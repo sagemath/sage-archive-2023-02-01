@@ -613,18 +613,25 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
                 i = int(n)
         else:
             i = int(i)
+
         try:
-            return self.__projective_embedding[i]
+            phi = self.__projective_embedding[i]
+            #assume that if you've passed in a new codomain you want to override
+            #the existing embedding
+            if PP is None or phi.codomain() == PP:
+                return(phi)
         except AttributeError:
             self.__projective_embedding = {}
         except KeyError:
             pass
+
+        #if no ith embedding exists, we may still be here with PP==None
         if PP is None:
             from sage.schemes.projective.projective_space import ProjectiveSpace
             PP = ProjectiveSpace(n, self.base_ring())
-        else:
-            if PP.dimension_relative()!=n:
-                raise ValueError("Projective Space must be of the correct dimension")
+        elif PP.dimension_relative() != n:
+            raise ValueError("Projective Space must be of dimension %s"%(n))
+
         R = self.coordinate_ring()
         v = list(R.gens())
         if n < 0 or n >self.dimension_relative():

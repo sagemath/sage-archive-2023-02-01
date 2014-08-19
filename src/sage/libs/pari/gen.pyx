@@ -2234,7 +2234,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(2).Ser()
             2 + O(x^16)
             sage: pari(Mod(0, 7)).Ser()
-            O(x^16)
+            Mod(0, 7) + O(x^16)
 
             sage: x = pari([1, 2, 3, 4, 5])
             sage: x.Ser()

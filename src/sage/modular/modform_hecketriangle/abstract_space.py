@@ -204,14 +204,14 @@ class FormsSpace_abstract(FormsRing_abstract):
         if (not self.is_ambient()) and (isinstance(x, list) or isinstance(x, tuple) or is_FreeModuleElement(x)) and len(x) == self.rank():
             try:
                 return self.element_from_coordinates(x)
-            except ArithmeticError, TypeError:
+            except (ArithmeticError, TypeError):
                 pass
         if hasattr(x, 'parent') and self.ambient_module() and self.ambient_module().has_coerce_map_from(x.parent()):
             return self.element_from_ambient_coordinates(self.ambient_module()(x))
         if (isinstance(x,list) or isinstance(x, tuple)) and len(x) == self.degree():
             try:
                 return self.element_from_ambient_coordinates(x)
-            except ArithmeticError, TypeError:
+            except (ArithmeticError, TypeError):
                 pass
 
         return self.element_class(self, x)

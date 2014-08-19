@@ -105,7 +105,7 @@ def ModularFormsSubSpace(*args, **kwargs):
 
         generators = [ambient_space(gen) for gen in generators]
         return SubSpaceForms(ambient_space, generators)
-    except NotImplementedError:
+    except (NotImplementedError, AttributeError):
         return ambient_space
 
 

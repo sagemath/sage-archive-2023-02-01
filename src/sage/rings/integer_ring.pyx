@@ -1281,7 +1281,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         - ``multiplicities`` -- a boolean
 
-        - ``algorithm`` -- the algorithm to use
+        - ``algorithm`` -- the algorithm to use, either "dense" or "sparse".
+          The "dense" algorithm calls `_roots_from_factorization`, and the
+          "sparse" algorithm is described in [CKS1999]_. Default is based on
+          whether `p.parent()` is sparse or not.
 
         .. NOTE::
 
@@ -1313,13 +1316,32 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: ZZ._roots_univariate_polynomial(p,multiplicities=False)
             [0, 1, -1, 100, -5445]
 
+            sage: R.<x> = PolynomialRing(ZZ,sparse=False)
+            sage: p = (x+1)^23*(x-1)^23*(x-100)*(x+5445)^5
+            sage: ZZ._roots_univariate_polynomial(p)
+            [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            sage: ZZ._roots_univariate_polynomial(p,multiplicities=False)
+            [100, -5445, 1, -1]
+
+
         """
 
         if p.degree() < 0:
             raise ValueError("Roots of 0 are not defined");
 
-        if ring is not self and ring is not None: 
-            return None
+        # A specific algorithm is available only for integer roots of integer polynomials
+        if ring is not self and ring is not None:
+            raise NotImplementedError
+
+        # Automatic choice of algorithm
+        if algorithm is None:
+            if p.degree() > 100:
+                algorithm = "sparse"
+            else:
+                algorithm = "dense"
+
+        if algorithm != "dense" and algorithm != "sparse":
+            raise ValueError("Unknown algorithm '%s'" % algorithm)
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
@@ -1331,14 +1353,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         else:
             p = p.parent()(p/p.content())
 
-        v = p.valuation()
-
-        # Automatic choice for sparse/dense to be defined
-        # Now: dense for densely represented polynomial, and sparse otherwise
-        if algorithm == "dense" or not p.parent().is_sparse():
-        # or algorithm is not "sparse" and 2*(p.degree() - v) < 3*p.number_of_terms():
+        # The dense algorithm is to compute the roots from the factorization
+        if algorithm == "dense":
             return p._roots_from_factorization(p.factor(),multiplicities)
 
+        v = p.valuation()
         p = p.shift(-v)
 
         # Root 0

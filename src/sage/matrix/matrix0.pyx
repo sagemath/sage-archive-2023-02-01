@@ -4041,7 +4041,10 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         OUTPUT:
         
-        A matrix over a ordered ring is in weak popov form if all leading positions are different. A leading position is the position i in a row with the highest order (for polynomials this is the degree), for multiple entries with equal but highest order the maximal i is chosen. (The furthest to the right in the matrix)
+        A matrix over a ordered ring is in weak popov form if all leading positions are
+        different. A leading position is the position i in a row with the highest order
+        (for polynomials this is the degree), for multiple entries with equal but
+        highest order the maximal i is chosen. (The furthest to the right in the matrix)
 
         .. WARNING::
         

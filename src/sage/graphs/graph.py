@@ -533,6 +533,7 @@ from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.digraph import DiGraph
+from sage.graphs.independent_sets import IndependentSets
 from sage.combinat.combinatorial_map import combinatorial_map
 
 class Graph(GenericGraph):
@@ -6087,8 +6088,10 @@ class Graph(GenericGraph):
         if t is None:
             R = PolynomialRing(ZZ, 't')
             t = R.gen()
-        C = self.clique_complex().faces()
-        return sum([len(C[i])*t**(i+1) for i in C.keys()])
+        number_of = [0]*(self.order() + 1)
+        for x in IndependentSets(self.complement()):
+            number_of[len(x)] += 1
+        return sum([number_of[i]*t**i for i in range(self.order()+1)])
     
     ### Miscellaneous
 

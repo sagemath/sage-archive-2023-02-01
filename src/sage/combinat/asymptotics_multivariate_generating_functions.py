@@ -86,7 +86,8 @@ Another smooth point example (Example 5.4 of [RaWi2008a]_)::
     sage: I
     Ideal (y^2 - 2*y + 1, x + 1/4*y - 5/4) of
       Multivariate Polynomial Ring in x, y over Rational Field
-    sage: s = solve(I.gens(), [SR(x) for x in R.gens()], solution_dict=true)
+    sage: s = solve([SR(z) for z in I.gens()],
+    ....:           [SR(z) for z in R.gens()], solution_dict=true)
     sage: s
     [{x: 1, y: 1}]
     sage: p = s[0]

@@ -641,6 +641,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
               - "iml" -- use an iml-based algorithm
 
+              - "flint" -- use FLINT
 
         OUTPUT: the inverse of self
 
@@ -733,6 +734,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 # Assume the error is because the matrix is not invertible.
                 raise ZeroDivisionError("input matrix must be nonsingular")
         elif algorithm == "iml":
+            AZ, denom = self._clear_denom()
+            B, d = AZ._invert_iml(check_invertible=check_invertible)
+            return (denom/d)*B
+        elif algorithm == "flint":
             AZ, denom = self._clear_denom()
             B, d = AZ._invert_flint(check_invertible=check_invertible)
             return (denom/d)*B
@@ -1276,7 +1281,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             K = constructor.identity_matrix(QQ, self.ncols())
         else:
             A, _ = self._clear_denom()
-            K = A._rational_kernel_flint().transpose().change_ring(QQ)
+            K = A._rational_kernel_iml().transpose().change_ring(QQ)
         verbose("done computing right kernel matrix over the rationals for %sx%s matrix" % (self.nrows(), self.ncols()),level=1, t=tm)
         return 'computed-iml-rational', K
 

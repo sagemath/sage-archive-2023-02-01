@@ -2635,6 +2635,8 @@ cdef class Matrix(matrix1.Matrix):
 
           - 'default' - allows the algorithm to be chosen automatically
           - 'generic' - naive algorithm usable for matrices over any field
+          - 'flint' - FLINT library code for matrices over the rationals
+            or the integers
           - 'pari' - PARI library code for matrices over number fields
             or the integers
           - 'padic' - padic algorithm from IML library for matrices
@@ -3150,10 +3152,12 @@ cdef class Matrix(matrix1.Matrix):
         algorithm = kwds.pop('algorithm', None)
         if algorithm is None:
             algorithm = 'default'
-        elif not algorithm in ['default', 'generic', 'pari', 'padic', 'pluq']:
+        elif not algorithm in ['default', 'generic', 'flint', 'pari', 'padic', 'pluq']:
             raise ValueError("matrix kernel algorithm '%s' not recognized" % algorithm )
         elif algorithm == 'padic' and not (is_IntegerRing(R) or is_RationalField(R)):
             raise ValueError("'padic' matrix kernel algorithm only available over the rationals and the integers, not over %s" % R)
+        elif algorithm == 'flint' and not (is_IntegerRing(R) or is_RationalField(R)):
+            raise ValueError("'flint' matrix kernel algorithm only available over the rationals and the integers, not over %s" % R)
         elif algorithm == 'pari' and not (is_IntegerRing(R) or (is_NumberField(R) and not is_RationalField(R))):
             raise ValueError("'pari' matrix kernel algorithm only available over non-trivial number fields and the integers, not over %s" % R)
         elif algorithm == 'generic' and not R.is_field():
@@ -3274,6 +3278,8 @@ cdef class Matrix(matrix1.Matrix):
 
           - 'default' - allows the algorithm to be chosen automatically
           - 'generic' - naive algorithm usable for matrices over any field
+          - 'flint' - FLINT library code for matrices over the rationals
+            or the integers
           - 'pari' - PARI library code for matrices over number fields
             or the integers
           - 'padic' - padic algorithm from IML library for matrices
@@ -3616,6 +3622,8 @@ cdef class Matrix(matrix1.Matrix):
 
           - 'default' - allows the algorithm to be chosen automatically
           - 'generic' - naive algorithm usable for matrices over any field
+          - 'flint' - FLINT library code for matrices over the rationals
+            or the integers
           - 'pari' - PARI library code for matrices over number fields
             or the integers
           - 'padic' - padic algorithm from IML library for matrices

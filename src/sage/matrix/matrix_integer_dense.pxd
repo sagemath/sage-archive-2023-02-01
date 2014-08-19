@@ -14,7 +14,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef char _initialized
     cdef char _initialized_linbox
     cdef mpz_t * _entries
-    cdef mpz_t ** _matrixold
+    cdef mpz_t ** _rows
     cdef fmpz_mat_t _matrix
     cdef object _pivots
     cdef int mpz_height(self, mpz_t height) except -1

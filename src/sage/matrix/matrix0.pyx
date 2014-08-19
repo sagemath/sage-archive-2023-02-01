@@ -4039,21 +4039,14 @@ cdef class Matrix(sage.structure.element.Matrix):
         r"""
         Returns ``True`` if the matrix is in weak popov form.
 
-        INPUT:
-
         OUTPUT:
-
-        ``True`` if the leading positions of the matrix are all different and
-        the matrix is therefore in weak popov form.
         
-        A leading position is the position in a row with the highest order
-        (for polynomials: degree), for positions with equal order the highest
-        position in the row is taken (the furthest to the right).
+        A matrix over a ordered ring is in weak popov form if all leading positions are different. A leading position is the position i in a row with the highest order (for polynomials this is the degree), for multiple entries with equal but highest order the maximal i is chosen. (The furthest to the right in the matrix)
 
         .. WARNING::
         
         This implementation only works for objects implementing a degree function,
-        it is designed to work for polynomialsl.
+        it is designed to work for polynomials.
         
         EXAMPLES:: 
         
@@ -4070,13 +4063,13 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: B.is_weak_popov()
             True
 
-        TESTS: 
+        A matrix not over a polynomial ring will give an error: 
         
             sage: C = matrix(ZZ,4,[-1, 1, 0, 0, 7, -2, 1, 0, 1, 0, 2, -5, -1, 1, 0, 2])
             sage: C.is_weak_popov()
-            ---------------------------------------------------------------------------
+            Traceback (most recent call last):
             ...
-            NotImplementedError: is_weak_popov only implements support for matrices ordered by a function self[x,y].degree().
+            NotImplementedError: is_weak_popov only implements support for matrices ordered by a function self[x,y].degree()
             
         
         AUTHOR:
@@ -4086,7 +4079,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         try:
             t = [[i for i,j in enumerate(v) if j==max(v)][-1] for v in self.apply_map(lambda x: x.degree()) if max(v)!=-1]
         except (NotImplementedError,AttributeError):
-            raise NotImplementedError("is_weak_popov only implements support for matrices ordered by a function self[x,y].degree().")
+            raise NotImplementedError("is_weak_popov only implements support for matrices ordered by a function self[x,y].degree()")
         return len(t)==len(set(t))
 
     ###################################################

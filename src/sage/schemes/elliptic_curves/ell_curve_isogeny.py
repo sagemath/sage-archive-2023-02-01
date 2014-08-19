@@ -813,12 +813,12 @@ class EllipticCurveIsogeny(Morphism):
     Composition tests (see :trac:`16245`)::
 
         sage: E = EllipticCurve(j=GF(7)(0))
-        sage: phi=E.isogeny( [E(0), E((0,1)), E((0,-1))]);phi
+        sage: phi = E.isogeny([E(0), E((0,1)), E((0,-1))]); phi
         Isogeny of degree 3 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7 to Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
-        sage: phi2=phi*phi;phi2
+        sage: phi2 = phi * phi; phi2
         Composite map:
           From: Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
-        To:   Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
+          To:   Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
           Defn:   Isogeny of degree 3 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7 to Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
                 then
                   Isogeny of degree 3 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7 to Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7

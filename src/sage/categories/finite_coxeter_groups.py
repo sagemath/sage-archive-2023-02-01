@@ -415,7 +415,6 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 NotImplementedError: This has only been implemented in finite type A so far!
             """
             from sage.graphs.all import Graph
-            from sage.graphs.dot2tex_utils import have_dot2tex
             R = [tuple(v) for v in self.reduced_words()]
             G = Graph()
             G.add_vertices(R)

@@ -19,7 +19,7 @@ Kazhdan-Lusztig polynomials as follows::
     sage: KL.P(s2, s2*s1*s3*s2)
     1 + q
 
-Thus we have the Kazhdan-Lusztig R and P polynomials.
+Thus we have the Kazhdan-Lusztig `R` and `P` polynomials.
 
 Known algorithms for computing Kazhdan-Lusztig polynomials are highly
 recursive, and caching of intermediate results is necessary for the

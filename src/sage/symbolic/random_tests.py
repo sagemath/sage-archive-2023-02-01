@@ -18,6 +18,7 @@ from sage.rings.all import QQ
 import sage.calculus.calculus
 import sage.symbolic.pynac
 from sage.symbolic.constants import *
+from sage.functions.hypergeometric import hypergeometric
 
 
 ###################################################################
@@ -51,7 +52,8 @@ def _mk_full_functions():
     return [(1.0, f, f.number_of_arguments())
             for (name, f) in items
             if hasattr(f, 'number_of_arguments') and
-               f.number_of_arguments() > 0]
+               f.number_of_arguments() > 0 and
+               f != hypergeometric]
 
 # For creating simple expressions
 

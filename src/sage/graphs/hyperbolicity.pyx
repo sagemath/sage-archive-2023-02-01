@@ -1,5 +1,5 @@
 r"""
-Hyperbolicity of a graph
+Hyperbolicity
 
 **Definition** :
 

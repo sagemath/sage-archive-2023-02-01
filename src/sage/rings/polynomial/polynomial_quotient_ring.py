@@ -265,7 +265,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         sage: first_class == Q.__class__
         False
         sage: [s for s in dir(Q.category().element_class) if not s.startswith('_')]
-        ['cartesian_product', 'gcd', 'is_idempotent', 'is_one', 'is_unit', 'lcm', 'lift', 'xgcd']
+        ['cartesian_product', 'euclidean_degree', 'gcd', 'is_idempotent', 'is_one', 'is_unit', 'lcm', 'lift', 'quo_rem', 'xgcd']
 
     As one can see, the elements are now inheriting additional methods: lcm and gcd. Even though
     ``Q.an_element()`` belongs to the old and not to the new element class, it still inherits
@@ -951,7 +951,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: len(iso_classes[1][1])
             2
         """
-        from sage.rings.number_field.all import is_NumberField
+        from sage.rings.number_field.number_field_base import is_NumberField
         K = self.base_ring()
         if not is_NumberField(K) or not self.__polynomial.is_squarefree():
             raise NotImplementedError

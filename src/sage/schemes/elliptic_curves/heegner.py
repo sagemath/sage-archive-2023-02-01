@@ -103,6 +103,7 @@ from sage.misc.cachefunc import cached_method
 
 from sage.structure.sage_object import SageObject
 
+import sage.rings.number_field.number_field_element
 import sage.rings.number_field.number_field as number_field
 import sage.rings.arith as arith
 import sage.rings.all as rings
@@ -1487,10 +1488,13 @@ class GaloisAutomorphismQuadraticForm(GaloisAutomorphism):
         """
         EXAMPLES::
 
-            sage: H = heegner_points(389,-20,3); s = H.ring_class_field().galois_group(H.quadratic_field())[0]
-            sage: hash(s)
-            4262582128197601113     # 64-bit
-            -1994029223             # 32-bit
+            sage: H = heegner_points(389,-20,3)
+            sage: s = H.ring_class_field().galois_group(H.quadratic_field())[0]
+            sage: H = heegner_points(389,-20,3)
+            sage: ss = H.ring_class_field().galois_group(H.quadratic_field())[0]
+            sage: hash(s) == hash(ss)
+            True
+
         """
         return hash((self.parent(), tuple(self.__quadratic_form)))
 
@@ -2593,7 +2597,7 @@ class HeegnerPointOnX0N(HeegnerPoint):
                 elif isinstance(f, BinaryQF):
                     # convert from BinaryQF
                     f = tuple(f)
-                elif rings.is_NumberFieldElement(f):
+                elif sage.rings.number_field.number_field_element.is_NumberFieldElement(f):
                     # tau = number field element
                     g = f.minpoly()
                     if g.degree() != 2:
@@ -2620,7 +2624,7 @@ class HeegnerPointOnX0N(HeegnerPoint):
         EXAMPLES::
 
             sage: y = EllipticCurve('389a').heegner_point(-7,5)
-            sage: hash(y)
+            sage: hash(y)              # random output
             -756867903203770682        # 64-bit
             -274399546                 # 32-bit
         """
@@ -2925,7 +2929,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         """
         EXAMPLES::
 
-            sage: hash(EllipticCurve('389a').heegner_point(-7,5))
+            sage: hash(EllipticCurve('389a').heegner_point(-7,5))  # random output
             -756867903203770682              # 64-bit
             -274399546                       # 32-bit
         """
@@ -3484,7 +3488,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             [(-1.89564392373896 - 0.444771808762067*I : -1.50000000000000 + 2.13102976222246*I : 1.00000000000000), ...]
             sage: y._numerical_approx_conjugates_over_QQ(prec=10)
             [(-1.9 - 0.44*I : -1.5 + 2.1*I : 1.0), ...
-             (-1.9 - 0.44*I : -1.5 + 2.1*I : 1.0)]
+             (1.4 + 0.0024*I : -1.7 - 0.0046*I : 1.0)]
         """
         v = []
         for z in self.conjugates_over_K():
@@ -3514,8 +3518,8 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: E = EllipticCurve('37a')
             sage: y = E.heegner_point(-7,3); y
             Heegner point of discriminant -7 and conductor 3 on elliptic curve of conductor 37
-            sage: y._numerical_approx_xy_poly()
-            (X^8 + 6.00000000000000*X^7 + 8.99999999999998*X^6 - 12.0000000000000*X^5 - 42.0000000000000*X^4 - 17.999999999999...*X^3 + 36.0000000000001*X^2 + 35.9999999999999*X + 8.999999999999..., X^8 + 12.0000000000000*X^7 + 72.0000000000000*X^6 + 270.000000000000*X^5 + 678.000000000001*X^4 + 1152.00000000000*X^3 + 1269.00000000000*X^2 + 810.00000000000...*X + 225.000000000001)
+            sage: y._numerical_approx_xy_poly()  # rel tol 1e-14
+            (X^8 + 6.00000000000000*X^7 + 8.99999999999998*X^6 - 12.0000000000000*X^5 - 42.0000000000000*X^4 - 17.9999999999999*X^3 + 36.0000000000001*X^2 + 35.9999999999999*X + 8.99999999999995, X^8 + 12.0000000000000*X^7 + 72.0000000000000*X^6 + 270.000000000000*X^5 + 678.000000000001*X^4 + 1152.00000000000*X^3 + 1269.00000000000*X^2 + 810.000000000002*X + 225.000000000001)
         """
         v = self._numerical_approx_conjugates_over_QQ(prec)
         R = ComplexField(prec)['X']

@@ -230,22 +230,6 @@ class Tachyon(SageObject):
 
 
 
-    def __repr__(self):
-        r"""
-        Returns the string representation of the Tachyon object,
-        which is just the scene string input to tachyon.
-
-        EXAMPLES::
-
-            sage: q = Tachyon()
-            sage: q.light((1,1,1), 1,(1,1,1))
-            sage: q.texture('s')
-            sage: q.sphere((0,0,0),1,'s')
-            sage: q.__repr__()[-20:]
-            '  \n        end_scene'
-        """
-        return self.str()
-
     def save_image(self, filename=None, *args, **kwds):
         r"""
         Save an image representation of self.  The image type is
@@ -344,20 +328,15 @@ class Tachyon(SageObject):
             sage: q.light((-1,-1,10), 1,(1,1,1))
             sage: q.texture('s')
             sage: q.sphere((0,0,0),1,'s')
-            sage: q.show(verbose = False)
+            sage: q.show(verbose=False)
         """
-        import sage.plot.plot
-        if sage.doctest.DOCTEST_MODE:
-            filename = graphics_filename()
-            self.save(os.path.join(SAGE_TMP, 'test.png'), verbose=verbose, extra_opts=extra_opts)
-            return
-        if sage.plot.plot.EMBEDDED_MODE:
-            filename = graphics_filename()
-            self.save(filename, verbose=verbose, extra_opts=extra_opts)
-            return
-        filename = tmp_filename(ext='.png')
+        filename = graphics_filename()
         self.save(filename, verbose=verbose, extra_opts=extra_opts)
-        os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.png_viewer(), filename))
+
+        from sage.doctest import DOCTEST_MODE
+        from sage.plot.plot import EMBEDDED_MODE
+        if not DOCTEST_MODE and not EMBEDDED_MODE:
+            os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.png_viewer(), filename))
 
     def _res(self):
         r"""
@@ -655,8 +634,8 @@ class Tachyon(SageObject):
             sage: t = Tachyon()
             sage: t.texture('s')
             sage: t.triangle([1,2,3],[4,5,6],[7,8,10],'s')
-            sage: t._objects[1]
-            [1, 2, 3] [4, 5, 6] [7, 8, 10] s
+            sage: t._objects[1].get_vertices()
+            ([1, 2, 3], [4, 5, 6], [7, 8, 10])
 
         """
         self._objects.append(TachyonTriangle(vertex_1,vertex_2,vertex_3,texture))
@@ -671,8 +650,10 @@ class Tachyon(SageObject):
             sage: t.light((1,1,1),.1,(1,1,1))
             sage: t.texture('s')
             sage: t.smooth_triangle([0,0,0],[0,0,1],[0,1,0],[0,1,1],[-1,1,2],[3,0,0],'s')
-            sage: t._objects[2]
-            [0, 0, 0] [0, 0, 1] [0, 1, 0] s [0, 1, 1] [-1, 1, 2] [3, 0, 0]
+            sage: t._objects[2].get_vertices()
+            ([0, 0, 0], [0, 0, 1], [0, 1, 0])
+            sage: t._objects[2].get_normals()
+            ([0, 1, 1], [-1, 1, 2], [3, 0, 0])
         """
         self._objects.append(TachyonSmoothTriangle(vertex_1, vertex_2, vertex_3, normal_1, normal_2, normal_3, texture))
 
@@ -736,7 +717,10 @@ class Tachyon(SageObject):
             sage: def f(x,y): return float(sin(x*y))
             sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
             sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=5,initial_depth=3, num_colors=60)  # increase min_depth for better picture
-            sage: t.show()
+            sage: t.show(verbose=1)
+            tachyon ...
+            Scene contains 2713 objects.
+            ...
 
         Plotting with Smooth Triangles (requires explicit gradient
         function)::
@@ -747,7 +731,10 @@ class Tachyon(SageObject):
             sage: def g(x,y): return ( float(y*cos(x*y)), float(x*cos(x*y)), 1 )
             sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
             sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=5,initial_depth=3, grad_f = g)  # increase min_depth for better picture
-            sage: t.show()
+            sage: t.show(verbose=1)
+            tachyon ...
+            Scene contains 2713 objects.
+            ...
 
         Preconditions: f is a scalar function of two variables, grad_f is
         None or a triple-valued function of two variables, min_x !=
@@ -780,6 +767,10 @@ class Tachyon(SageObject):
             sage: t.texture('t')
             sage: t.light((-20,-20,40), 0.2, (1,1,1))
             sage: t.parametric_plot(f,-5,5,'t',min_depth=6)
+            sage: t.show(verbose=1)
+            tachyon ...
+            Scene contains 514 objects.
+            ...
         """
 
         self._objects.append(ParametricPlot(f, t_0, t_f, tex, r=r, cylinders=cylinders,min_depth=min_depth,max_depth=max_depth,e_rel=.01,e_abs=.01))

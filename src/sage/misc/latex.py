@@ -4,6 +4,11 @@ LaTeX printing support
 In order to support latex formatting, an object should define a
 special method ``_latex_(self)`` that returns a string, which will be typeset
 in a mathematical mode (the exact mode depends on circumstances).
+
+    AUTHORS:
+
+    - William Stein: original implementation
+    - Joel B. Mohler: latex_variable_name() drastic rewrite and many doc-tests
 """
 
 #*****************************************************************************
@@ -14,7 +19,6 @@ in a mathematical mode (the exact mode depends on circumstances).
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 
 EMBEDDED_MODE = False
 
@@ -563,7 +567,8 @@ class _Latex_prefs_object(SageObject):
     """
     An object that holds LaTeX global preferences.
     """
-    def __init__(self, bb=False, delimiters=["(", ")"]):
+    def __init__(self, bb=False, delimiters=["(", ")"],
+                 matrix_column_alignment="r"):
         """
         Define an object that holds LaTeX global preferences.
 
@@ -577,6 +582,7 @@ class _Latex_prefs_object(SageObject):
         self._option["blackboard_bold"] = bb
         self._option["matrix_delimiters"] = list(delimiters)
         self._option["vector_delimiters"] = list(delimiters)
+        self._option["matrix_column_alignment"] = matrix_column_alignment
         self._option["macros"] = ""
         self._option["preamble"] = ""
         self._option["engine"] = "pdflatex"
@@ -1287,6 +1293,52 @@ class Latex(LatexCall):
                 _Latex_prefs._option['vector_delimiters'][0] = left
             if right is not None:
                 _Latex_prefs._option['vector_delimiters'][1] = right
+
+    def matrix_column_alignment(self, align=None):
+        r"""nodetex
+        Changes the column-alignment of the LaTeX representation of
+        matrices.
+
+        INPUT:
+
+        - ``align`` - a string (``'r'`` for right, ``'c'`` for center,
+          ``'l'`` for left) or ``None``.
+
+        OUTPUT:
+
+        If ``align`` is ``None``, then returns the current
+        alignment-string. Otherwise, set this alignment.
+
+        The input ``align`` can be any string which the LaTeX
+        ``array``-environment understands as a parameter for
+        aligning a column.
+
+        EXAMPLES::
+
+            sage: a = matrix(1, 1, [42])
+            sage: latex(a)
+            \left(\begin{array}{r}
+            42
+            \end{array}\right)
+            sage: latex.matrix_column_alignment('c')
+            sage: latex(a)
+            \left(\begin{array}{c}
+            42
+            \end{array}\right)
+            sage: latex.matrix_column_alignment('l')
+            sage: latex(a)
+            \left(\begin{array}{l}
+            42
+            \end{array}\right)
+
+        Restore defaults::
+
+            sage: latex.matrix_column_alignment('r')
+        """
+        if align is None:
+            return _Latex_prefs._option['matrix_column_alignment']
+        else:
+            _Latex_prefs._option['matrix_column_alignment'] = align
 
     @cached_method
     def has_file(self, file_name):
@@ -2227,7 +2279,7 @@ def png(x, filename, density=150, debug=False,
     if not pdflatex:
         engine = "latex"
     import sage.plot.all
-    if sage.plot.all.is_Graphics(x):
+    if sage.plot.graphics.is_Graphics(x):
         x.save(filename)
         return
     # if not graphics: create a string of latex code to write in a file
@@ -2611,9 +2663,12 @@ def latex_variable_name(x, is_fname=False):
         sage: latex_variable_name('x_ast')
         'x_{\\ast}'
 
-    AUTHORS:
-
-    - Joel B. Mohler: drastic rewrite and many doc-tests
+    TESTS::
+    
+        sage: latex_variable_name('_C')  # :trac:`16007`
+        'C'
+        sage: latex_variable_name('_K1')
+        'K_{1}'
     """
     underscore = x.find("_")
     if underscore == -1:
@@ -2631,6 +2686,11 @@ def latex_variable_name(x, is_fname=False):
     else:
         prefix = x[:underscore]
         suffix = x[underscore+1:]
+        if prefix == '':
+            from sage.calculus.calculus import symtable
+            for sym in symtable.values():
+                if sym[0] == '_' and sym[1:] == suffix:
+                    return latex_variable_name(suffix)
     if suffix and len(suffix) > 0:
         # handle the suffix specially because it very well might be numeric
         # I use strip to avoid using regex's -- It makes it a bit faster (and the code is more comprehensible to non-regex'ed people)

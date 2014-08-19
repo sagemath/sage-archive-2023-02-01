@@ -1603,6 +1603,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             Traceback (most recent call last):
             ...
             NotImplementedError: Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.
+
+        We check that the original issue in :trac:`7554` is fixed::
+
+            sage: K.<a> = PolynomialRing(QQ)
+            sage: R.<x,y> = PolynomialRing(FractionField(K))
+            sage: factor(x)
+            x
         """
         R = self.parent()
 
@@ -1676,39 +1683,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             raise ArithmeticError("f is not in I")
         return Sequence(M.list(), P, check=False, immutable=True)
 
-    #def gcd(self, f):
-    #    """
-    #    Compute the greatest common divisor of this polynomial and f.
-    #
-    #    ALGORITHM: Use Singular.
-    #
-    #    EXAMPLES:
-    #        sage: R.<x,y> = CC[]
-    #        sage: gcd(2*x,4*x)
-    #        2*x
-    #        sage: gcd(2*x,4*x)
-    #        2*x
-    #        sage: gcd(9*x*y*(x^2-y^2), 15*x*y^2*(x^2+y^2))
-    #        3*x*y
-    #
-    #    """
-    #    if type(self) is not type(f) or self.parent() is not f.parent():
-    #        self, f = canonical_coercion(self, f)
-    #        return self.gcd(f)  # this looks like recursion, but, in fact, it may be that self, right are a totally new composite type
-    #
-    #    # Singular ignores coefficients anyway, thus it is okay to work over Z here
-    #    # PARI uses the coefficients btw.
-    #    # TODO: This is slow
-    #
-    #    P = self.parent()
-    #    if P.base_ring() == ZZ:
-    #        res = self.parent()(self._singular_(force=True).gcd(f._singular_(force=True)))
-    #        coef = gcd(self.element().dict().values() + f.element().dict().values(),True)
-    #        return coef*res
-    #
-    #    P._singular_().set_ring()
-    #    return P(self._singular_().gcd(f._singular_()))
-
     @coerce_binop
     def quo_rem(self, right):
         """
@@ -1723,13 +1697,66 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         ALGORITHM: Use Singular.
         """
-        if not isinstance(self, type(right)) or self.parent() is not right.parent():
-            self, right = canonical_coercion(self, right)
-            return self.quo_rem(right)  # this looks like recursion, but, in fact, it may be that self, right are a totally new composite type
         R = self.parent()
         R._singular_().set_ring()
         X = self._singular_().division(right._singular_())
         return R(X[1][1,1]), R(X[2][1])
+
+    def resultant(self, other, variable=None):
+        """
+        Compute the resultant of ``self`` and ``other`` with respect
+        to ``variable``.
+
+        If a second argument is not provided, the first variable of
+        ``self.parent()`` is chosen.
+
+        INPUT:
+
+        - ``other`` -- polynomial in ``self.parent()``
+
+        - ``variable`` -- (optional) variable (of type polynomial) in
+          ``self.parent()``
+
+        EXAMPLES::
+
+            sage: P.<x,y> = PolynomialRing(QQ, 2)
+            sage: a = x + y
+            sage: b = x^3 - y^3
+            sage: a.resultant(b)
+            -2*y^3
+            sage: a.resultant(b, y)
+            2*x^3
+
+        TESTS::
+
+            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+            sage: P.<x,y> = MPolynomialRing_polydict_domain(QQ, 2, order='degrevlex')
+            sage: a = x + y
+            sage: b = x^3 - y^3
+            sage: a.resultant(b)
+            -2*y^3
+            sage: a.resultant(b, y)
+            2*x^3
+
+        Check that :trac:`15061` is fixed::
+
+            sage: R.<x, y> = AA[]
+            sage: (x^2 + 1).resultant(x^2 - y)
+            y^2 + 2*y + 1
+
+        """
+        R = self.parent()
+        if variable is None:
+            variable = R.gen(0)
+        if R._has_singular:
+            rt = self._singular_().resultant(other._singular_(), variable._singular_())
+            r = rt.sage_poly(R)
+        else:
+            r = self.sylvester_matrix(other, variable).det()
+        if R.ngens() <= 1 and r.degree() <= 0:
+            return R.base_ring()(r[0])
+        else:
+            return r
 
     def reduce(self, I):
         """

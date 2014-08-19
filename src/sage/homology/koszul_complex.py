@@ -80,6 +80,7 @@ class KoszulComplex(ChainComplex_class, UniqueRepresentation):
 
         TESTS::
 
+            sage: R.<x,y,z> = QQ[]
             sage: K1 = KoszulComplex(R, [x,y,z])
             sage: K2 = KoszulComplex(R, (x,y,z))
             sage: K3 = KoszulComplex((x,y,z))

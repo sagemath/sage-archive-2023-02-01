@@ -1661,7 +1661,7 @@ class ChainComplex_class(Parent):
                 string += _latex_module(ring, mat.ncols())
         return string
 
-    def cartesian_product(self, D, subdivide=True):
+    def cartesian_product(self, *factors, **kwds):
         r"""
         Return the direct sum (Cartesian product) of ``self`` with ``D``.
 
@@ -1672,7 +1672,7 @@ class ChainComplex_class(Parent):
 
         INPUT:
 
-        - ``subdivide`` -- (default: ``True``) whether to subdivide the
+        - ``subdivide`` -- (default: ``False``) whether to subdivide the
           the differential matrices
 
         EXAMPLES::
@@ -1681,10 +1681,9 @@ class ChainComplex_class(Parent):
             sage: C = ChainComplex([matrix([[-y],[x]]), matrix([[x, y]])])
             sage: D = ChainComplex([matrix([[x-y]]), matrix([[0], [0]])])
             sage: ascii_art(C.cartesian_product(D))
-                        [x y|0]       [   -y|    0]
-                        [---+-]       [    x|    0]
-                        [0 0|0]       [-----+-----]
-                        [0 0|0]       [    0|x - y]
+                        [x y 0]       [   -y     0]
+                        [0 0 0]       [    x     0]
+                        [0 0 0]       [    0 x - y]
              0 <-- C_2 <-------- C_1 <-------------- C_0 <-- 0
 
             sage: D = ChainComplex({1:matrix([[x-y]]), 4:matrix([[x], [y]])})
@@ -1693,35 +1692,62 @@ class ChainComplex_class(Parent):
                         [y]                     [x - y]
              0 <-- C_5 <---- C_4 <-- 0 <-- C_2 <-------- C_1 <-- 0
             sage: ascii_art(cartesian_product([C, D]))
-                                                                           [-y|]
-                        [+-]                     [    x     y|    0]       [ x|]
-                        [|x]                     [-----------+-----]       [--+]
-                        [|y]                     [    0     0|x - y]       [ 0|]
-             0 <-- C_5 <----- C_4 <-- 0 <-- C_2 <-------------------- C_1 <------ C_0 <-- 0
+                                                                          [-y]
+                        [x]                     [    x     y     0]       [ x]
+                        [y]                     [    0     0 x - y]       [ 0]
+             0 <-- C_5 <---- C_4 <-- 0 <-- C_2 <-------------------- C_1 <----- C_0 <-- 0
 
         TESTS::
 
             sage: C = ChainComplex({2:matrix([[-1],[2]]), 1:matrix([[2, 1]])},
             ....:                  degree_of_differential=-1)
-            sage: ascii_art(C.cartesian_product(C, subdivide=False))
-                                        [-1  0]
-                                        [ 2  0]
-                        [2 1 0 0]       [ 0 -1]
-                        [0 0 2 1]       [ 0  2]
+            sage: ascii_art(C.cartesian_product(C, subdivide=True))
+                                        [-1| 0]
+                                        [ 2| 0]
+                        [2 1|0 0]       [--+--]
+                        [---+---]       [ 0|-1]
+                        [0 0|2 1]       [ 0| 2]
              0 <-- C_0 <---------- C_1 <-------- C_2 <-- 0
-        """
-        if self.degree_of_differential() != D.degree_of_differential():
-            raise ValueError("the degrees of the differentials must match")
-        d = self.differential()
-        dD = D.differential()
-        keys = set(d.keys()).union(dD.keys())
-        zero = matrix(self.base_ring(), [])
-        diff = {k: matrix.block_diagonal(d.get(k, zero), dD.get(k, zero),
-                                         subdivide=subdivide)
-                for k in keys}
-        return ChainComplex(diff, degree_of_differential=self.degree_of_differential())
 
-    def tensor(self, D, subdivide=False):
+        ::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: C1 = ChainComplex({1:matrix([[x]])})
+            sage: C2 = ChainComplex({1:matrix([[y]])})
+            sage: C3 = ChainComplex({1:matrix([[z]])})
+            sage: ascii_art(cartesian_product([C1, C2, C3]))
+                        [x 0 0]
+                        [0 y 0]
+                        [0 0 z]
+             0 <-- C_2 <-------- C_1 <-- 0
+        """
+        if not factors:
+            return self
+        if isinstance(factors[0], (list, tuple)):
+            factors = factors[0]
+        deg_diff = self.degree_of_differential()
+        if any(D.degree_of_differential() != deg_diff for D in factors):
+            raise ValueError("the degrees of the differentials must match")
+
+        R = self.base_ring()
+        zero = R.zero()
+        subdivide = kwds.get('subdivide', False)
+        ret = self
+
+        for D in factors:
+            d = ret.differential()
+            dD = D.differential()
+
+            keys = set(d.keys()).union(dD.keys())
+            zero = matrix(R, [])
+            diff = {k: matrix.block_diagonal(d.get(k, zero), dD.get(k, zero),
+                                             subdivide=subdivide)
+                    for k in keys}
+            ret = ChainComplex(diff, degree_of_differential=deg_diff)
+
+        return ret
+
+    def tensor(self, *factors, **kwds):
         r"""
         Return the tensor product of ``self`` with ``D``.
 
@@ -1770,86 +1796,135 @@ class ChainComplex_class(Parent):
                                     [-y]
                         [x y]       [ x]
              0 <-- C_0 <------ C_1 <----- C_2 <-- 0
-            sage: C.tensor(C)
+            sage: T = C.tensor(C)
+            sage: T.differential(1)
+            [x y x y]
+            sage: T.differential(2)
+            [-y  x  0  y  0  0]
+            [ x  0  x  0  y  0]
+            [ 0 -x -y  0  0 -y]
+            [ 0  0  0 -x -y  x]
+            sage: T.differential(3)
+            [ x  y  0  0]
+            [ y  0 -y  0]
+            [-x  0  0 -y]
+            [ 0  y  x  0]
+            [ 0 -x  0  x]
+            [ 0  0  x  y]
+            sage: T.differential(4)
+            [-y]
+            [ x]
+            [-y]
+            [ x]
+
+        TESTS::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: C1 = ChainComplex({1:matrix([[x]])})
+            sage: C2 = ChainComplex({1:matrix([[y]])})
+            sage: C3 = ChainComplex({1:matrix([[z]])})
+            sage: ascii_art(tensor([C1, C2, C3]))
+                                      [-y -z  0]       [ z]
+                                      [ x  0 -z]       [-y]
+                        [x y z]       [ 0  x  y]       [ x]
+             0 <-- C_6 <-------- C_5 <----------- C_4 <----- C_3 <-- 0
         """
-        # Setup
+        if not factors:
+            return self
+        if isinstance(factors[0], (list, tuple)):
+            factors = factors[0]
         deg_diff = self.degree_of_differential()
-        if deg_diff != D.degree_of_differential():
+        if any(D.degree_of_differential() != deg_diff for D in factors):
             raise ValueError("the degrees of the differentials must match")
-        d = self.differential()
-        dD = D.differential()
-        deg = sorted((k, self.free_module_rank(k)) for k in d.keys()
-                     if self.free_module_rank(k) > 0)
-        degD = sorted((k, D.free_module_rank(k)) for k in dD.keys()
-                      if D.free_module_rank(k) > 0)
-        diff = {}
+
         R = self.base_ring()
         zero = R.zero()
+        subdivide = kwds.get('subdivide', False)
+        ret = self
 
-        # Our choice for tensor products will be x # y = x1 * y, x2 * y, ...
+        for D in factors:
+            # Setup
+            d = ret.differential()
+            dD = D.differential()
+            deg = sorted((k, ret.free_module_rank(k)) for k in d.keys()
+                         if ret.free_module_rank(k) > 0)
+            degD = sorted((k, D.free_module_rank(k)) for k in dD.keys()
+                          if D.free_module_rank(k) > 0)
+            diff = {}
 
-        # Generate the data for the differential
-        for a,r in deg:
-            for b,s in degD:
-                rp = d[a].nrows()
-                sp = dD[b].nrows()
-                if a+b not in diff:
-                    diff[a+b] = {}
-                mor = diff[a+b]
-                cur = {}
-                if rp != 0:
-                    cur[(a+deg_diff,b)] = []
-                if sp != 0:
-                    cur[(a,b+deg_diff)] = []
+            # Our choice for tensor products will be x # y = x1 * y + x2 * y + ...
 
-                for i in range(r):
-                    for j in range(s):
-                        # \partial x \otimes y
-                        if rp != 0:
-                            vec = [zero]*(rp*s)
-                            for k,val in enumerate(d[a].column(i)):
-                                vec[rp*j+k] += val
-                            cur[(a+deg_diff,b)].append(vec)
+            # Generate the data for the differential
+            for a,r in deg:
+                for b,s in degD:
+                    rp = d[a].nrows()
+                    sp = dD[b].nrows()
+                    if a+b not in diff:
+                        diff[a+b] = {}
+                    mor = diff[a+b]
+                    cur = {}
+                    if rp != 0:
+                        cur[(a+deg_diff,b)] = []
+                    if sp != 0:
+                        cur[(a,b+deg_diff)] = []
 
-                        # (-1)^a x \otimes \partial y
-                        if sp != 0:
-                            vec = [zero]*(r*sp)
-                            for k,val in enumerate(dD[b].column(j)):
-                                vec[r*k+i] += (-1)**a * val
-                            cur[(a,b+deg_diff)].append(vec)
+                    for i in range(r):
+                        for j in range(s):
+                            # \partial x_i \otimes y_j
+                            if rp != 0:
+                                vec = [zero]*(rp*s)
+                                for k,val in enumerate(d[a].column(i)):
+                                    vec[s*k+j] += val
+                                cur[(a+deg_diff,b)].append(vec)
 
-                mor[a,b] = cur
+                            # (-1)^a x_i \otimes \partial y_j
+                            if sp != 0:
+                                vec = [zero]*(r*sp)
+                                for k,val in enumerate(dD[b].column(j)):
+                                    vec[sp*i+k] += (-1)**a * val
+                                cur[(a,b+deg_diff)].append(vec)
 
-        # Parse the data into matrices
-        for k in diff:
-            # Get the data and interchange the indices
-            mor = diff[k]
-            row_keys = sorted(mor.keys())
-            cols = {}
-            col_widths = {}
-            for dom in mor:
-                c = mor[dom]
-                for im in c:
-                    if im not in cols:
-                        cols[im] = {}
-                        col_widths[im] = len(c[im])
-                    cols[im][dom] = c[im]
-            col_keys = sorted(cols.keys())
-            # Now build the matrix
-            M = []
-            for ck in col_keys:
-                M.append([])
-                col = cols[ck]
-                for rk in row_keys:
-                    if rk in col:
-                        M[-1].append(matrix(R, col[rk]).transpose())
-                    else:
-                        M[-1].append(zero)
-            diff[k] = matrix.block(M, subdivide=subdivide)
-            print k
-            print diff[k]
-        #return diff
-        return ChainComplex(diff, degree_of_differential=self.degree_of_differential())
+                    mor[a,b] = cur
+
+            # Parse the data into matrices
+            to_delete = []
+            for k in diff:
+                # Get the data and interchange the indices
+                mor = diff[k]
+                row_keys = sorted(mor.keys())
+                cols = {}
+                col_widths = {}
+                for dom in mor:
+                    c = mor[dom]
+                    for im in c:
+                        if im not in cols:
+                            cols[im] = {}
+                            col_widths[im] = len(c[im])
+                        cols[im][dom] = c[im]
+                col_keys = sorted(cols.keys())
+                # Now build the matrix
+                M = []
+                for ck in col_keys:
+                    M.append([])
+                    col = cols[ck]
+                    for rk in row_keys:
+                        if rk in col:
+                            M[-1].append(matrix(R, col[rk]).transpose())
+                        else:
+                            M[-1].append(zero)
+                diff[k] = matrix.block(M, subdivide=subdivide)
+
+                # Flag for removal any 0x0 matrices
+                if diff[k].nrows() == 0 and diff[k].ncols() == 0:
+                    to_delete.append(k)
+
+            # Delete the 0x0 matrices
+            for k in to_delete:
+                del diff[k]
+
+            ret = ChainComplex(diff, degree_of_differential=deg_diff)
+
+        return ret
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.homology.chain_complex', 'ChainComplex', ChainComplex_class)

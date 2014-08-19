@@ -1355,13 +1355,13 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                 (x^2, y^2)
                
         """
-           
+        
         T=self.domain().change_ring(R)
-        S=self.codomain().change_ring(R)
        
-        if T == S:
+        if self.is_endomorphism():
             H=End(T)
         else:
+            S=self.codomain().change_ring(R)
             H=Hom(T,S)
 
         G=[f.change_ring(R) for f in self._polys]

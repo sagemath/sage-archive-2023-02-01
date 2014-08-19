@@ -377,15 +377,40 @@ class Divisor_curve(Divisor_generic):
             3*(x, y) - (x - 2, y - 2)
             sage: D.support()
             [(0, 0), (2, 2)]
+
+        TESTS:
+
+        This checks that :trac:`10732` is fixed::
+
+            sage: R.<x, y, z> = GF(5)[]
+            sage: C = Curve(x^7 + y^7 + z^7)
+            sage: pts = C.rational_points()
+            sage: D = C.divisor([(2, pts[0])])
+            sage: D.support()
+            [(0 : 4 : 1)]
+            sage: (D + D).support()
+            [(0 : 4 : 1)]
+            sage: E = C.divisor([(-3, pts[1]), (1, pts[2])])
+            sage: (D - 2*E).support()
+            [(0 : 4 : 1), (1 : 2 : 1), (2 : 1 : 1)]
+            sage: (D - D).support()
+            []
         """
         try:
             return self._support
         except AttributeError:
             try:
-                self._support = [s[1] for s in self._points]
-                return self._support
+                pts = self._points
             except AttributeError:
-                raise NotImplementedError
+                # TODO: in the next line, we should probably replace
+                # rational_points() with irreducible_components()
+                # once Sage can deal with divisors that are not only
+                # rational points (see trac #16225)
+                self._points = [(m, self.scheme().ambient_space().subscheme(p).rational_points()[0]) for (m, p) in self]
+                pts = self._points
+            self._support = [s[1] for s in pts]
+            return self._support
+
 
     def coefficient(self, P):
         """
@@ -440,5 +465,3 @@ class Divisor_curve(Divisor_generic):
         from sage.misc.superseded import deprecation
         deprecation(9337, "This method is deprecated. It will be removed in a future release of Sage. Please use the coefficient() method instead.")
         return self.coefficient(P)
-
-

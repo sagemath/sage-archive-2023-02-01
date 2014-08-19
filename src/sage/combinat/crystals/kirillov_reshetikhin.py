@@ -749,6 +749,21 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
         """
         return self.parent().kirillov_reshetikhin_tableaux()(self)
 
+    def lusztig_involution(self):
+        """
+        Return the classical Lusztig involution on ``self``.
+
+        EXAMPLES::
+
+            sage: KRC = crystals.KirillovReshetikhin(['D',4,1], 2,2)
+            sage: elt = KRC(-1,2); elt
+            [[2], [-1]]
+            sage: elt.lusztig_involution()
+            [[1], [-2]]
+        """
+        li = self.lift().lusztig_involution()
+        return self.parent().retract(li)
+
 KirillovReshetikhinGenericCrystal.Element = KirillovReshetikhinGenericCrystalElement
 
 class KirillovReshetikhinCrystalFromPromotion(KirillovReshetikhinGenericCrystal,
@@ -2303,7 +2318,7 @@ class KR_type_BnElement(KirillovReshetikhinGenericCrystalElement):
             1
         """
         b = self.parent().to_ambient_crystal()(self)
-        return b.epsilon(0)/2
+        return b.epsilon(0) // 2
 
     def phi0(self):
         r"""
@@ -2318,7 +2333,7 @@ class KR_type_BnElement(KirillovReshetikhinGenericCrystalElement):
             0
         """
         b = self.parent().to_ambient_crystal()(self)
-        return b.phi(0)/2
+        return b.phi(0) // 2
 
 KR_type_Bn.Element = KR_type_BnElement
 
@@ -2520,6 +2535,40 @@ class KR_type_Dn_twisted(KirillovReshetikhinGenericCrystal):
         [[---, []], [+--, []]]]
     """
 
+    def _element_constructor_(self, *args, **options):
+        """
+        Construct an element of ``self``.
+
+        TESTS::
+
+            sage: KRC = crystals.KirillovReshetikhin(['D',4,1], 3, 3)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 3, 3, model='KR')
+            sage: elt = KRC.module_generators[0].f_string([3,2,3,1,2,3]); elt
+            [++-+, [[2], [3], [4], [-2]]]
+            sage: ret = KRT(elt); ret
+            [[1, 1, 2], [2, 3, 3], [4, 4, 4], [-3, -2, -1]]
+            sage: test = KRC(ret); test
+            [++-+, [[2], [3], [4], [-2]]]
+            sage: test == elt
+            True
+        """
+        from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableauxElement
+        if isinstance(args[0], KirillovReshetikhinTableauxElement):
+            elt = args[0]
+            # Check to make sure it can be converted
+            if elt.cartan_type() != self.cartan_type() \
+              or elt.parent().r() != self._r or elt.parent().s() != self._s:
+                raise ValueError("the Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
+
+            to_hw = elt.to_classical_highest_weight()
+            wt = to_hw[0].classical_weight() / 2
+            f_str = reversed(to_hw[1])
+            for x in self.module_generators:
+                if x.classical_weight() == wt:
+                    return x.f_string(f_str)
+            raise ValueError("no matching highest weight element found")
+        return KirillovReshetikhinGenericCrystal._element_constructor_(self, *args, **options)
+
     def classical_decomposition(self):
         r"""
         Specifies the classical crystal underlying the Kirillov-Reshetikhin crystal `B^{n,s}`
@@ -2639,9 +2688,9 @@ class KR_type_Dn_twisted(KirillovReshetikhinGenericCrystal):
         plus = pm.heights_of_addable_plus()
         minus = pm.heights_of_minus()
         l = len([i for i in plus if i==rank-1])
-        a = (len(plus) + l)/2
+        a = (len(plus) + l) // 2
         list += sum(([i]*a for i in range(1,rank+1)),[])
-        a = (len(minus)-l)/2
+        a = (len(minus)-l) // 2
         list += (range(1,rank+1)+[rank])*a
         for i in reversed(list):
             u = u.f(i)
@@ -3170,7 +3219,7 @@ class PMDiagram(CombinatorialObject):
         """
         t = []
         ll = self._list
-        for i in range((self.n)/2):
+        for i in range(self.n // 2):
             t.append(sum(ll[0:4*i+4]))
             t.append(sum(ll[0:4*i+4]))
         if is_even(self.n+1):

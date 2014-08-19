@@ -260,7 +260,7 @@ class BipartiteGraph(Graph):
             sage: B = BipartiteGraph(P, partition, check=False)
         """
         if data is None:
-            if partition != None and check:
+            if partition is not None and check:
                 if partition[0] or partition[1]:
                     raise ValueError("Invalid partition.")
             Graph.__init__(self, **kwds)
@@ -323,7 +323,7 @@ class BipartiteGraph(Graph):
                     for jj in range(nrows):
                         if data[jj][ii] != 0:
                             self.add_edge((ii, jj + ncols))
-        elif (isinstance(data, Graph) and partition != None):
+        elif (isinstance(data, Graph) and partition is not None):
             from copy import copy
             left, right = partition
             left = copy(left)
@@ -505,7 +505,7 @@ class BipartiteGraph(Graph):
 
         # add the vertex
         retval = Graph.add_vertex(self, name)
-        if retval != None: name = retval
+        if retval is not None: name = retval
 
         # add to proper partition
         if left:

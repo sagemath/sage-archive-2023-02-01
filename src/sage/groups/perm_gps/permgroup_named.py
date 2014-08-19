@@ -424,6 +424,18 @@ class SymmetricGroup(PermutationGroup_symalt):
         from sage.combinat.q_analogues import q_factorial
         return q_factorial(self.degree(), parameter)
 
+    def algebra(self, base_ring):
+        """
+        Return the symmetric group algebra associated to ``self``.
+
+        EXAMPLES::
+
+            sage: S4 = SymmetricGroup(4)
+            sage: S4.algebra(QQ)
+            Symmetric group algebra of order 4 over Rational Field
+        """
+        from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
+        return SymmetricGroupAlgebra(base_ring, len(self._domain))
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):
@@ -1617,7 +1629,7 @@ def TransitiveGroups(d=None):
         NotImplementedError: Only the transitive groups of order less than 30 are available in GAP's database
 
     """
-    if d == None:
+    if d is None:
         return TransitiveGroupsAll()
     else:
         d = Integer(d)
@@ -1996,7 +2008,7 @@ def PrimitiveGroups(d=None):
     enumerate groups with specified properties such as transitivity,
     solvability, ..., without creating all groups.
     """
-    if d == None:
+    if d is None:
         return PrimitiveGroupsAll()
     else:
         d = Integer(d)

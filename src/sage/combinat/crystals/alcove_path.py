@@ -270,7 +270,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
             starting_weight = P.sum(starting_weight[j-offset]*Lambda[j] for j in R.index_set())
 
         #set defaults
-        if highest_weight_crystal == None:
+        if highest_weight_crystal is None:
             highest_weight_crystal = True
 
         if not starting_weight.is_dominant():
@@ -487,7 +487,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
                 G.setdefault(x, {}) # does nothing if there's a default
                 for i in I:
                     xfi = x.f(i)
-                    if xfi != None:
+                    if xfi is not None:
                         G[x][xfi] = i
                         recently_visited.add(xfi)
             if len(recently_visited) == 0: # No new nodes, nothing more to do
@@ -680,7 +680,7 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
         j = 0
         temp = self
         temp = temp.e(i)
-        while temp != None:
+        while temp is not None:
             j+=1
             temp = temp.e(i)
 

@@ -150,7 +150,7 @@ AUTHORS:
 from sage.structure.sage_object cimport SageObject
 from sage.libs.gmp.mpz cimport mpz_t, mpz_set
 from sage.rings.integer cimport Integer
-from sage.rings.rational import Rational
+from sage.rings.rational cimport Rational
 
 include 'sage/ext/interrupt.pxi'
 include "sage/ext/stdsage.pxi"
@@ -860,6 +860,51 @@ cdef class MIP_Problem(_mutable_or_immutable):
         sig_on()
         self.thisptr.add_space_dimensions_and_embed(m)
         sig_off()
+
+    def _add_rational_constraint(self, e, denom, lower, upper):
+        """
+        Helper function for adding constraints: add the constraint
+        ``lower <= e/denom <= upper``.
+        
+        INPUT:
+
+        - ``e`` -- a linear expression (type ``Linear_Expression``)
+
+        - ``denom`` -- a positive integer
+
+        - ``lower``, ``upper`` -- a rational number or ``None``, where
+          ``None`` means that there is no constraint
+
+        TESTS:
+
+        Create a linear system with only equalities as constraints::
+
+            sage: p = MixedIntegerLinearProgram(solver="PPL")
+            sage: x = p.new_variable(nonnegative=False)
+            sage: n = 40
+            sage: v = random_vector(QQ, n)
+            sage: M = random_matrix(QQ, 2*n, n)
+            sage: for j in range(2*n):  # indirect doctest
+            ....:     lhs = p.sum(M[j,i]*x[i] for i in range(n))
+            ....:     rhs = M.row(j).inner_product(v)
+            ....:     p.add_constraint(lhs == rhs)
+            sage: p.solve()  # long time
+            0
+
+        """
+        cdef Rational rhs
+
+        if lower == upper:
+            if lower is not None:
+                rhs = Rational(lower * denom)
+                self.add_constraint(e * rhs.denominator() == rhs.numerator())
+        else:
+            if lower is not None:
+                rhs = Rational(lower * denom)
+                self.add_constraint(e * rhs.denominator() >= rhs.numerator())
+            if upper is not None:
+                rhs = Rational(upper * denom)
+                self.add_constraint(e * rhs.denominator() <= rhs.numerator())
 
     def add_constraint(self, Constraint c):
         """
@@ -2863,7 +2908,7 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: sage_cmd += 'p.minimized_generators()\n'
             sage: sage_cmd += 'p.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             space_dim 2
             -ZE -EM  +CM +GM  +CS +GS  -CP -GP  -SC +SG
@@ -3919,7 +3964,7 @@ cdef class Linear_Expression(object):
             sage: sage_cmd += 'e = 3*x+2*y+1\n'
             sage: sage_cmd += 'e.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             size 3 1 3 2
         """
@@ -4813,7 +4858,7 @@ cdef class Generator(object):
             sage: sage_cmd += 'p = point(3*x+2*y)\n'
             sage: sage_cmd += 'p.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             size 3 1 3 2 P (C)
         """
@@ -5114,7 +5159,7 @@ cdef class Generator_System(_mutable_or_immutable):
             sage: sage_cmd += 'gs = Generator_System( point(3*x+2*y+1) )\n'
             sage: sage_cmd += 'gs.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             topology NECESSARILY_CLOSED
             1 x 2 SPARSE (sorted)
@@ -5802,7 +5847,7 @@ cdef class Constraint(object):
             sage: sage_cmd += 'e = (3*x+2*y+1 > 0)\n'
             sage: sage_cmd += 'e.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             size 4 1 3 2 -1 > (NNC)
         """
@@ -6148,7 +6193,7 @@ cdef class Constraint_System(object):
             sage: sage_cmd += 'cs = Constraint_System( 3*x > 2*y+1 )\n'
             sage: sage_cmd += 'cs.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             topology NOT_NECESSARILY_CLOSED
             1 x 2 SPARSE (sorted)
@@ -6499,7 +6544,7 @@ cdef class Poly_Gen_Relation(object):
             sage: sage_cmd  = 'from sage.libs.ppl import Poly_Gen_Relation\n'
             sage: sage_cmd += 'Poly_Gen_Relation.nothing().ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             NOTHING
         """
@@ -6749,7 +6794,7 @@ cdef class Poly_Con_Relation(object):
             sage: sage_cmd  = 'from sage.libs.ppl import Poly_Con_Relation\n'
             sage: sage_cmd += 'Poly_Con_Relation.nothing().ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             NOTHING
         """

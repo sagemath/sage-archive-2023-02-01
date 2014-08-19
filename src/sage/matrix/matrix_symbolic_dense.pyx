@@ -157,7 +157,7 @@ cimport matrix
 
 cdef maxima
 
-from sage.calculus.calculus import symbolic_expression_from_maxima_string, var_cmp, maxima
+from sage.calculus.calculus import symbolic_expression_from_maxima_string, maxima
 
 cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
     def _new_c(self):
@@ -588,9 +588,8 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             sage: m.variables()
             (a, b, c, x, y)
         """
-        vars = list(set(sum([op.variables() for op in self.list()], ())))
-        vars.sort(var_cmp)
-        return tuple(vars)
+        vars = set(sum([op.variables() for op in self.list()], ()))
+        return tuple(sorted(vars, key=repr))
 
     def arguments(self):
         """

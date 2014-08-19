@@ -1378,11 +1378,7 @@ class MPolynomialIdeal_singular_repr(
             raise TypeError("algorithm '%s' unknown"%algorithm)
 
         T = Sequence([ MPolynomialIdeal(Q,t) for t in Tbar])
-
-        f = lambda x,y: cmp(x.gens(), y.gens())
-        T.sort(f)
-
-        return T
+        return sorted(T, key=lambda x: x.gens())
 
     @require_field
     def dimension(self, singular=singular_default):

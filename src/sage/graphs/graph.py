@@ -6067,10 +6067,11 @@ class Graph(GenericGraph):
 
     def clique_polynomial(self, t = None):
         """
-        Returns the clique polynomial of self. This is the polynomial where the
-        coefficient of `t^n` is the number of cliques in the graph with `n`
-        vertices. The constant terms of the clique polynomial is always taken
-        to be zero.
+        Returns the clique polynomial of self.
+
+        This is the polynomial where the coefficient of `t^n` is the number of
+        cliques in the graph with `n` vertices. The constant term of the
+        clique polynomial is always taken to be one.
 
         EXAMPLES::
 
@@ -6089,9 +6090,9 @@ class Graph(GenericGraph):
             R = PolynomialRing(ZZ, 't')
             t = R.gen()
         number_of = [0]*(self.order() + 1)
-        for x in IndependentSets(self.complement()):
+        for x in IndependentSets(self, complement = True):
             number_of[len(x)] += 1
-        return sum([number_of[i]*t**i for i in range(self.order()+1)])
+        return sum([coeff*t**i for i,coeff in enumerate(number_of) if coeff])
     
     ### Miscellaneous
 

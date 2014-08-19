@@ -325,9 +325,9 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
             - ``w`` -- reduced word of ``self``
 
-            The Coxeter-Knuth relations are given by `a a+1 a \sim a+1 a a+1`, `abc \sim acb` if `b<a<c`
-            and `abc \sim bac` if `a<c<b`. This method returns all neighbors of ``w`` under the Coxeter-Knuth
-            relations oriented from left to right.
+            The Coxeter-Knuth relations are given by `a a+1 a \sim a+1 a a+1`, `abc \sim acb`
+            if `b<a<c` and `abc \sim bac` if `a<c<b`. This method returns all neighbors of
+            ``w`` under the Coxeter-Knuth relations oriented from left to right.
 
             EXAMPLES::
 
@@ -397,7 +397,6 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 ((1, 2, 1, 3, 2), (2, 1, 2, 3, 2), None),
                 ((2, 1, 2, 3, 2), (2, 1, 3, 2, 3), None),
                 ((2, 1, 3, 2, 3), (2, 3, 1, 2, 3), None)]
-                sage: view(D)                            #optional - dot2tex graphviz
 
                 sage: w = W.from_reduced_word([1,3])
                 sage: D = w.coxeter_knuth_graph()
@@ -421,7 +420,4 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             G = Graph()
             G.add_vertices(R)
             G.add_edges([v,vp] for v in R for vp in self.coxeter_knuth_neighbor(v))
-            if have_dot2tex():
-                G.set_latex_options(format="dot2tex",
-                                    edge_labels = False)
             return G

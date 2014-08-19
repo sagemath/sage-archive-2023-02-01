@@ -349,16 +349,16 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: el = MF(MF.E4()^2*MF.E6()^2 + MF.E4()*MF.E2()^2*MF.Delta() + MF.E2()^3*MF.E4()^2*MF.E6())
             sage: el
             2 + 25*q - 2478*q^2 - 82731*q^3 - 448484*q^4 + O(q^5)
-            sage: vec = el.coordinate_vector()
-            sage: vec
+            sage: vec = el.coordinate_vector()    # long time
+            sage: vec    # long time
             (1, 1/(9*d), -11/(81*d^2), -4499/(104976*d^3), 0, 0, 0, 0, 1, 1/(2*d), 1, 5/(18*d), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-            sage: vec.parent()
+            sage: vec.parent()    # long time
             Vector space of dimension 22 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: vec.parent() == MF.module()
+            sage: vec.parent() == MF.module()    # long time
             True
-            sage: el == sum([vec[l]*MF.gen(l) for l in range(0,22)])
+            sage: el == sum([vec[l]*MF.gen(l) for l in range(0,22)])    # long time
             True
-            sage: el == MF.element_from_coordinates(vec)
+            sage: el == MF.element_from_coordinates(vec)    # long time
             True
         """
 
@@ -597,16 +597,16 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: el = MF(MF.E4()^2*MF.Delta() + MF.E4()*MF.E2()^2*MF.Delta())
             sage: el
             2*q + 120*q^2 + 3402*q^3 + 61520*q^4 + O(q^5)
-            sage: vec = el.coordinate_vector()
-            sage: vec
+            sage: vec = el.coordinate_vector()    # long time
+            sage: vec    # long time
             (1, 13/(18*d), 103/(432*d^2), 0, 0, 1, 1/(2*d), 0, 0, 0, 0, 0)
-            sage: vec.parent()
+            sage: vec.parent()    # long time
             Vector space of dimension 12 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: vec.parent() == MF.module()
+            sage: vec.parent() == MF.module()    # long time
             True
-            sage: el == sum([vec[l]*MF.gen(l) for l in range(0,12)])
+            sage: el == sum([vec[l]*MF.gen(l) for l in range(0,12)])    # long time
             True
-            sage: el == MF.element_from_coordinates(vec)
+            sage: el == MF.element_from_coordinates(vec)    # long time
             True
         """
 

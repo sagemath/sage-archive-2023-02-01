@@ -600,10 +600,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: el1 = QCF.subspace([el1])(el1)
             sage: el2 = MF(MF.E4()^2*MF.E6()^2)
             sage: el2 = MF.subspace([el2])(el2)
-            sage: el3 = el1 + el2
-            sage: el3
+            sage: el3 = el1 + el2    # long time
+            sage: el3    # long time
             1 - 527*q - 201288*q^2 + 61120668*q^3 + 20946799216*q^4 + O(q^5)
-            sage: el3.parent()
+            sage: el3.parent()    # long time
             Subspace of dimension 2 of QuasiModularForms(n=3, k=20, ep=1) over Integer Ring
         """
         

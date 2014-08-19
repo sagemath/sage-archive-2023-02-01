@@ -240,7 +240,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: subspace = MF.subspace([MF.Delta()*MF.E4()^2, MF.gen(0)])
             sage: new_ambient_space = QuasiModularForms(n=6, k=20, ep=1)
-            sage: subspace.change_ambient_space(new_ambient_space)
+            sage: subspace.change_ambient_space(new_ambient_space)    # long time
             Subspace of dimension 2 of QuasiModularForms(n=6, k=20, ep=1) over Integer Ring
         """
         return self.__class__.__base__(new_ambient_space, self._basis)

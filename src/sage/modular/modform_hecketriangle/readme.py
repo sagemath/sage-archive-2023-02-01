@@ -406,7 +406,7 @@ All classes and functions are also individually documented (with doctest example
       sage: MF.dimension()
       13
       sage: el = MF(MF.Delta()*MF.E2()^4 + MF.Delta()*MF.E2()*MF.E6())
-      sage: el.coordinate_vector()
+      sage: el.coordinate_vector()    # long time
       (0, 0, 0, 1, 29/(196*d), 0, 0, 0, 0, 1, 17/(56*d), 0, 0)
 
 
@@ -431,13 +431,13 @@ All classes and functions are also individually documented (with doctest example
 
       sage: from sage.modular.modform_hecketriangle.space import QuasiCuspForms
       sage: MF = QuasiCuspForms(n=7, k=20, ep=1)
-      sage: subspace = MF.subspace([MF.Delta()*MF.E2()^2*MF.E4(), MF.Delta()*MF.E2()^4])
-      sage: subspace
+      sage: subspace = MF.subspace([MF.Delta()*MF.E2()^2*MF.E4(), MF.Delta()*MF.E2()^4])    # long time
+      sage: subspace    # long time
       Subspace of dimension 2 of QuasiCuspForms(n=7, k=20, ep=1) over Integer Ring
-      sage: el = subspace(MF.Delta()*MF.E2()^4)
-      sage: el.coordinate_vector()
+      sage: el = subspace(MF.Delta()*MF.E2()^4)    # long time
+      sage: el.coordinate_vector()    # long time
       (0, 1)
-      sage: el.ambient_coordinate_vector()
+      sage: el.ambient_coordinate_vector()    # long time
       (0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 17/(56*d), 0, 0)
 
 

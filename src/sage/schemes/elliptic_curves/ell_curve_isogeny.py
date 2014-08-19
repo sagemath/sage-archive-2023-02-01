@@ -1050,7 +1050,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi = EllipticCurveIsogeny(E, E((0,0)))
             sage: phi(E((1,5)))
             (2 : 0 : 1)
-            
+
             sage: E = EllipticCurve(QQ, [0,0,0,3,0])
             sage: P = E((1,2))
             sage: phi = EllipticCurveIsogeny(E, [0,1])
@@ -1065,7 +1065,9 @@ class EllipticCurveIsogeny(Morphism):
             sage: tau(Q)
             (0 : 1 : 0)
 
-        TESTS (trac 10888)::
+        TESTS:
+
+        Tests for :trac:`10888`::
 
             sage: K.<th> = NumberField(x^2+3)
             sage: E = EllipticCurve(K,[7,0])
@@ -1081,14 +1083,14 @@ class EllipticCurveIsogeny(Morphism):
         Call a composed isogeny (added for :trac:`16238`)::
 
             sage: E = EllipticCurve(j=GF(7)(0))
-            sage: phi=E.isogeny( [E(0), E((0,1)), E((0,-1))])
+            sage: phi = E.isogeny([E(0), E((0,1)), E((0,-1))])
             sage: phi(E.points()[0])
             (0 : 1 : 0)
-            sage: phi2=phi*phi
+            sage: phi2 = phi * phi
             sage: phi2(E.points()[0])
             (0 : 1 : 0)
 
-        Coercion works fine with _call_ (added for :trac:`16238`)::
+        Coercion works fine with :meth:`_call_` (added for :trac:`16238`)::
 
             sage: K.<th> = NumberField(x^2+3)
             sage: E = EllipticCurve(K,[7,0])
@@ -1104,11 +1106,10 @@ class EllipticCurveIsogeny(Morphism):
             TypeError: (20 : 90 : 1) fails to convert into the map's domain Elliptic Curve defined by y^2 = x^3 + 7*x over Number Field in th with defining polynomial x^2 + 3, but a `pushforward` method is not properly implemented
 
         """
-      
         if(P.is_zero()):
             return self.__E2(0)
-        
-        xP, yP = P.xy()
+
+        (xP, yP) = P.xy()
         # if there is a pre isomorphism, apply it
         if (self.__pre_isomorphism is not None):
             temp_xP = self.__prei_x_coord_ratl_map(xP)

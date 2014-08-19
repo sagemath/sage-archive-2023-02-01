@@ -36,7 +36,7 @@ except KeyError:
     compile_result_dir = None
     keep_going = False
 
-SAGE_INC = os.path.join(SAGE_LOCAL,'include')
+SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
 # search for dependencies and add to gcc -I<path>
 include_dirs = [SAGE_INC,
@@ -175,6 +175,7 @@ for m in ext_modules:
     m.extra_compile_args = m.extra_compile_args + extra_compile_args
     m.extra_link_args = m.extra_link_args + extra_link_args
     m.library_dirs = m.library_dirs + [os.path.join(SAGE_LOCAL, "lib")]
+    m.include_dirs = m.include_dirs + include_dirs
 
 
 #############################################
@@ -583,6 +584,5 @@ code = setup(name = 'sage',
       packages    = python_packages,
       scripts = [],
       cmdclass = { 'build_ext': sage_build_ext },
-      ext_modules = ext_modules,
-      include_dirs = include_dirs)
+      ext_modules = ext_modules)
 

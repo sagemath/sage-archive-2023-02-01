@@ -23,6 +23,7 @@ from sage.categories.all import Modules
 from sage.modules.free_module_element import vector
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
+from sage.matrix.constructor import matrix
 
 from hecke_triangle_groups import HeckeTriangleGroup
 from abstract_space import FormsSpace_abstract
@@ -45,15 +46,9 @@ def canonical_parameters(ambient_space, basis):
           1 + 26208*q^3 + 530712*q^4 + O(q^5)))
     """
 
-    new_coord_basis = []
-    new_basis = []
-
-    for v in basis:
-        v_coord = ambient_space(v).ambient_coordinate_vector()
-        if not ambient_space.ambient_module().are_linearly_dependent(new_coord_basis + [v_coord]):
-            new_coord_basis += [v_coord]
-            new_basis += [ambient_space(v)]
-
+    coord_matrix = matrix([ambient_space(v).ambient_coordinate_vector() for v in basis])
+    pivots = coord_matrix.transpose().pivots()
+    new_basis = [ambient_space(basis[l]) for l in pivots]
     basis = tuple(new_basis)
 
     return (ambient_space, basis)

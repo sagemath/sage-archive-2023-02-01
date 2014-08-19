@@ -40,23 +40,91 @@ class Link:
       2. Oriented Gauss Code
       3. Planar Diagram Code
 
-      Refer to oriented_gauss_code, PD_code methods for the conventions.
-
       EXAMPLES::
-        sage: from sage.knots import link
-        sage: B = BraidGroup(8)
-        sage: L = link.Link(B([1, 2,1, -2,-1]))
-        sage: L
-        Link with 2 components represented by 5 crossings
-        sage: L = link.Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
-        sage: L
-        Knot represented by 7 crossings
-        sage: L = link.Link([[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]])
-        sage: L
-        Link with 2 components represented by 5 crossings
+
+          sage: from sage.knots import link
+          sage: B = BraidGroup(8)
+          sage: L = link.Link(B([1, 2,1, -2,-1]))
+          sage: L
+          Link with 2 components represented by 5 crossings
+          sage: L = link.Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+          sage: L
+          Knot represented by 7 crossings
+          sage: L = link.Link([[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]])
+          sage: L
+          Link with 2 components represented by 5 crossings
     """
 
     def __init__(self, x):
+        r"""
+
+        The Python constructor.
+
+        A Link can be created by using one of the conventions mentioned below:
+
+        Braidword:
+        =========
+
+        Generators of the braid group are used to generate the link.
+
+            sage: from sage.knots import link
+            sage: B = BraidGroup(8)
+            sage: L = link.Link(B([-1, -1, -1, -2,1, -2,3,-2,3]))
+            sage: L
+            Knot represented by 9 crossings
+            sage: L = link.Link(B([1, 2,1, -2,-1]))
+            sage: L
+            Link with 2 components represented by 5 crossings
+
+        Oriented Gauss Code:
+        ===================
+
+        Randomly number the crossings from 1 to n (where n is the number of
+        crossings) and start moving along the link. Trace every component of
+        the link, by starting at a particular point on one component of the link and
+        taking note of each of the crossings until one returns to the starting
+        point. Note each component as an list whose elements are the crossing
+        numbers. Put all the components together in a list. We need the orientation
+        of every crossing. This is recorded as list with +1 and -1, +1 recorded
+        if the direction from leaving over-cross to the leaving under-cross is
+        anti-clockwise, -1 if the direction from the leaving over-cross to the
+        entering over-cross is clockwise.
+
+            # for knots there is only a single component so the input is as follows
+            sage: from sage.knots import link
+            sage: L = link.Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1,-1,-1,-1,+1,+1,-1,+1]])
+            sage: L
+            Knot represented by 8 crossings
+
+            # for links there is more than one component and the input is as follows
+            sage: L = link.Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
+            sage: L
+            Link with 3 components represented by 4 crossings
+
+        Planar Diagram Code:
+        ===================
+
+        Select some point on the link. Start numbering the strands in the
+        components of the link. For a new component add one to the greatest
+        number from the previous component and proceed till all the strands
+        are numbered. At every cross start moving contruct the data as follows
+        Start with the strand number of the entering under-cross and move in the
+        clockwise direction around the cross and note down the strand numbers.
+        Construct this data at every crossing and that would give the PD-Code.
+
+            # there is no particular distinction between knots and links for this input
+
+            # One of the representations of the Trefoil knot
+            sage: from sage.knots import link
+            sage: L = link.Link([[1,5,2,4],[5,3,6,2],[3,1,4,6]])
+            sage: L
+            Knot represented by 3 crossings
+
+            # One of the representations of the Hopf link
+            sage: L = link.Link([[1,4,2,3],[4,1,3,2]])
+            sage: L
+            Link with 2 components represented by 2 crossings
+        """
         self._x = x
         if type(self._x) == list:
             if len(self._x) != 2:
@@ -116,6 +184,7 @@ class Link:
         Returns the braidword of the link.
 
         OUTPUT:
+
             - Braidword representation of the link.
 
         EXAMPLES::
@@ -259,6 +328,7 @@ class Link:
         Orientation of the crossing:
         Leaving over crossing to leaving under crossing in clockwise direction denoted by -1
         Leaving over crossing to leaving under crossing in anticlockwise direction denoted by 1
+
         OUTPUT:
             - Planar Diagram representation of the link.
 
@@ -1383,14 +1453,12 @@ class Link:
         """
         x = self.PD_code()
         while True:
-            #link = Link(PD_code=x)
             link = Link(x)
             PD_code_old = x
             x = link._vogel_move_()
             if x == "No Vogel Move":
                 x = PD_code_old
                 break
-        #L = Link(PD_code=x)
         L = Link(x)
         sc = L.seifert_circles()
         regions = L.regions()

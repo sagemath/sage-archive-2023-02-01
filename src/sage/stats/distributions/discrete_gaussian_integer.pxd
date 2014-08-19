@@ -4,7 +4,7 @@ from sage.structure.sage_object cimport SageObject
 from sage.rings.real_mpfr cimport RealNumber
 from sage.rings.integer cimport Integer
 
-cdef class DiscreteGaussianIntegerSampler(SageObject):
+cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
     cdef readonly RealNumber sigma
     cdef readonly RealNumber c
     cdef readonly Integer tau

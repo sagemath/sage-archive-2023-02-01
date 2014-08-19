@@ -90,7 +90,7 @@ cdef int number_of_integer_rings = 0
 
 # Used by IntegerRing_class._randomize_mpz():
 #   When the user requests an integer sampled from a
-#   DiscreteGaussianIntegerSampler with parameter sigma, we store the pair
+#   DiscreteGaussianDistributionIntegerSampler with parameter sigma, we store the pair
 #   (sigma, sampler) here.  When the user requests an integer for the same
 #   sigma, we do not recreate the sampler but take it from this "cache".
 _prev_discrete_gaussian_integer_sampler = (None, None)
@@ -697,7 +697,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
           See :mod:`sage.stats.distributions.discrete_gaussian_integer` for
           details.  Note that if many samples from the same discrete Gaussian
           distribution are needed, it is faster to construct a
-          :class:`sage.stats.distributions.discrete_gaussian_integer.DiscreteGaussianIntegerSampler`
+          :class:`sage.stats.distributions.discrete_gaussian_integer.DiscreteGaussianDistributionIntegerSampler`
           object which is then repeatedly queried.
 
         The default distribution for ``ZZ.random_element()`` is based on
@@ -824,8 +824,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             if x == _prev_discrete_gaussian_integer_sampler[0]:
                 r = _prev_discrete_gaussian_integer_sampler[1]()
             else:
-                from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianIntegerSampler
-                D = DiscreteGaussianIntegerSampler(sigma=x, algorithm="uniform+logtable")
+                from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
+                D = DiscreteGaussianDistributionIntegerSampler(sigma=x, algorithm="uniform+logtable")
                 r = D()
                 _prev_discrete_gaussian_integer_sampler = (x, D)
             mpz_set(value, r.value)

@@ -517,25 +517,6 @@ class FiniteField_givaro(FiniteField):
         else:
             return R(ret)
 
-    def __hash__(self):
-        """
-        The hash of a Givaro finite field is a hash over it's
-        characteristic polynomial and the string 'givaro'.
-
-        EXAMPLES::
-
-            sage: {GF(3^4, 'a'):1} # indirect doctest
-            {Finite Field in a of size 3^4: 1}
-        """
-        try:
-            return self._hash
-        except AttributeError:
-            if self.degree() > 1:
-                self._hash = hash((self.characteristic(), self.polynomial(), self.variable_name(), "givaro"))
-            else:
-                self._hash = hash((self.characteristic(), self.variable_name(), "givaro"))
-            return self._hash
-
     def _pari_modulus(self):
         """
         Return the modulus of ``self`` in a format for PARI.

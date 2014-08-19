@@ -93,39 +93,6 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         """
         return self._factory_data[0].reduce_data(self)
 
-    def __cmp__(self, other):
-        r"""
-        Compare ``self`` with ``other``.
-
-        Two finite prime fields are considered equal if and only if
-        their characteristics are equal.
-
-        EXAMPLES::
-
-            sage: K = FiniteField(3)
-            sage: copy(K) == K
-            True
-        """
-        if not isinstance(other, FiniteField_prime_modn):
-            return cmp(type(self), type(other))
-        return cmp(self.__char, other.__char)
-
-    def __richcmp__(left, right, op):
-        r"""
-        Compare ``self`` with ``right``.
-
-        EXAMPLES::
-
-            sage: k = GF(2)
-            sage: j = GF(3)
-            sage: k == j
-            False
-
-            sage: GF(2) == copy(GF(2))
-            True
-        """
-        return left._richcmp_helper(right, op)
-
     def _is_valid_homomorphism_(self, codomain, im_gens):
         """
         This is called implicitly by the ``hom`` constructor.

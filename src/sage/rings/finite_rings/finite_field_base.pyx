@@ -36,6 +36,9 @@ from sage.structure.parent cimport Parent
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
 
+# Copied from sage.misc.fast_methods, used in __hash__() below.
+cdef int SIZEOF_VOID_P_SHIFT = 8*sizeof(void *) - 4
+
 cdef class FiniteFieldIterator:
     r"""
     An iterator over a finite field. This should only be used when the field
@@ -121,6 +124,71 @@ cdef class FiniteField(Field):
         if category is None:
             category = FiniteFields()
         Field.__init__(self, base, names, normalize, category)
+
+    # The methods __hash__ and __richcmp__ below were copied from
+    # sage.misc.fast_methods.WithEqualityById; we cannot inherit from
+    # this since Cython does not support multiple inheritance.
+
+    def __hash__(self):
+        """
+        The hash provided by this class coincides with that of ``<type 'object'>``.
+
+        TESTS::
+
+            sage: F.<a> = FiniteField(2^3)
+            sage: hash(F) == hash(F)
+            True
+            sage: hash(F) == object.__hash__(F)
+            True
+
+        """
+        # This is the default hash function in Python's object.c:
+        cdef long x
+        cdef size_t y = <size_t><void *>self
+        y = (y >> 4) | (y << SIZEOF_VOID_P_SHIFT)
+        x = <long>y
+        if x==-1:
+            x = -2
+        return x
+
+    def __richcmp__(self, other, int m):
+        """
+        Compare ``self`` with ``other``.
+
+        Finite fields compare equal if and only if they are identical.
+        In particular, they are not equal unless they have the same
+        cardinality, modulus, variable name and implementation.
+
+        EXAMPLES::
+
+            sage: x = polygen(GF(3))
+            sage: F = FiniteField(3^2, 'c', modulus=x^2+1)
+            sage: F == F
+            True
+            sage: F == FiniteField(3^3, 'c')
+            False
+            sage: F == FiniteField(3^2, 'c', modulus=x^2+x+2)
+            False
+            sage: F == FiniteField(3^2, 'd')
+            False
+            sage: F == FiniteField(3^2, 'c', implementation='pari_ffelt')
+            False
+        """
+        if self is other:
+            if m == 2: # ==
+                return True
+            elif m == 3: # !=
+                return False
+            else:
+                # <= or >= or NotImplemented
+                return m==1 or m==5 or NotImplemented
+        else:
+            if m == 2:
+                return False
+            elif m == 3:
+                return True
+            else:
+                return NotImplemented
 
     def is_perfect(self):
         r"""
@@ -273,41 +341,6 @@ cdef class FiniteField(Field):
             name = 'GF_%d_%d' % (self.characteristic(), self.degree())
         sib.cache(self, v, name)
         return v
-
-    def _cmp_(left, Parent right):
-        """
-        Compares this finite field with other.
-
-        .. WARNING::
-
-            The notation of equality of finite fields in Sage is
-            currently not stable, i.e., it may change in a future version.
-
-        EXAMPLES::
-
-            sage: FiniteField(3**2, 'c') == FiniteField(3**3, 'c') # indirect doctest
-            False
-            sage: FiniteField(3**2, 'c') == FiniteField(3**2, 'c')
-            True
-
-        The variable name is (currently) relevant for comparison of finite
-        fields::
-
-            sage: FiniteField(3**2, 'c') == FiniteField(3**2, 'd')
-            False
-        """
-        if not PY_TYPE_CHECK(right, FiniteField):
-            return cmp(type(left), type(right))
-        c = cmp(left.characteristic(), right.characteristic())
-        if c: return c
-        c = cmp(left.degree(), right.degree())
-        if c: return c
-        # TODO comparing the polynomials themselves would recursively call
-        # this cmp...  Also, as mentioned above, we will get rid of this.
-        if left.degree() > 1:
-            c = cmp(str(left.polynomial()), str(right.polynomial()))
-            if c: return c
-        return 0
 
     def __iter__(self):
         """
@@ -871,18 +904,6 @@ cdef class FiniteField(Field):
             V = sage.modules.all.VectorSpace(self.prime_subfield(),self.degree())
             self.__vector_space = V
             return V
-
-    def __hash__(self):
-        r"""
-        Return a hash of this finite field.
-
-        EXAMPLES::
-
-            sage: hash(GF(17))
-            -1709973406 # 32-bit
-            9088054599082082 # 64-bit
-        """
-        return hash("GF") + hash(self.order())
 
     cpdef _coerce_map_from_(self, R):
         r"""

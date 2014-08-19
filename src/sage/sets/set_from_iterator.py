@@ -499,7 +499,7 @@ class Decorator:
             sage: S = sage_getsourcelines(d)   # indirect doctest
             sage: S[0][2]
             '        Return the number of elements of this group.\n'
-            sage: S[0][17]
+            sage: S[0][18]
             '            return Integer(1)\n'
         """
         from sage.misc.sageinspect import sage_getsourcelines

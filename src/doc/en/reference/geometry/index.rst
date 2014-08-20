@@ -43,6 +43,7 @@ polytopes and polyhedra (with rational or numerical coordinates).
 
 Hyperbolic Geometry
 -------------------
+
 .. toctree::
    :maxdepth: 1
 

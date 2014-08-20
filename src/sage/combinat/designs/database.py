@@ -3174,36 +3174,32 @@ Vmt_vectors = {
 for (m,t),(vec,source) in Vmt_vectors.iteritems():
     OA_constructions[(m+1)*t+1] = (m+2, lambda m=m,t=t,vec=vec:OA_from_Vmt(m,t,vec))
 
-def _test_Vmt_constructions():
-    r""""
-    This function does nothing, and is just here for its doctest.
+r""""
+Tests for the Vmt vectors
 
-    EXAMPLE::
+EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
-        sage: from sage.combinat.designs.orthogonal_arrays import OA_from_Vmt
-        sage: from sage.combinat.designs.database import _test_Vmt_constructions
-        sage: from sage.combinat.designs.database import Vmt_vectors
-        sage: _test_Vmt_constructions()
-        sage: for (m,t),(vec,source) in sorted(Vmt_vectors.items()):
-        ....:     k,n = m+2,(m+1)*t+1
-        ....:     assert is_orthogonal_array(OA_from_Vmt(m,t,vec),k,n)
-        ....:     print "{:11}{}".format("V({},{}):".format(m,t),source)
-        V(4,9):    As explained in the Handbook III.3.66 [DesignHandbook]_.
-        V(6,7):    As explained in the Handbook III.3.68 [DesignHandbook]_.
-        V(8,9):    Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-        V(8,11):   Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-        V(8,17):   Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-        V(8,29):   Given by Julian R. Abel.
-        V(10,13):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-        V(10,19):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-        V(10,25):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-        V(10,27):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-        V(10,31):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-        V(10,43):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
-        V(12,73):  Given by Julian R. Abel.
-    """
-    pass
+    sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+    sage: from sage.combinat.designs.orthogonal_arrays import OA_from_Vmt
+    sage: from sage.combinat.designs.database import Vmt_vectors
+    sage: for (m,t),(vec,source) in sorted(Vmt_vectors.items()):
+    ....:     k,n = m+2,(m+1)*t+1
+    ....:     assert is_orthogonal_array(OA_from_Vmt(m,t,vec),k,n)
+    ....:     print "{:11}{}".format("V({},{}):".format(m,t),source)
+    V(4,9):    As explained in the Handbook III.3.66 [DesignHandbook]_.
+    V(6,7):    As explained in the Handbook III.3.68 [DesignHandbook]_.
+    V(8,9):    Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+    V(8,11):   Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+    V(8,17):   Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+    V(8,29):   Given by Julian R. Abel.
+    V(10,13):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+    V(10,19):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+    V(10,25):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+    V(10,27):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+    V(10,31):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+    V(10,43):  Given by Julian R. Abel, using a `V(m,t)` from the Handbook [DesignHandbook]_.
+    V(12,73):  Given by Julian R. Abel.
+"""
 
 def CDF_21_5_1():
     r"""

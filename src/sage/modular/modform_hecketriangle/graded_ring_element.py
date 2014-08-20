@@ -862,7 +862,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         The new element.
 
-        EXAMPLES::
+        EXAMPLES:
             sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
             sage: MR = QuasiMeromorphicModularFormsRing(n=8, red_hom=True)
             sage: (X,Y,Z,dX,dY,dZ) = MR.diff_alg().gens()
@@ -1384,7 +1384,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
     def evaluate(self, tau, prec = None, num_prec = None):
         r"""
-        Try too return ``self`` evaluated at a point ``tau``
+        Try to return ``self`` evaluated at a point ``tau``
         in the upper half plane, where ``self`` is interpreted
         as a function in ``tau``, where ``q=exp(2*pi*i*tau)``.
 
@@ -1407,7 +1407,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                            is used.
 
         - ``num_prec``  -- An integer, namely the minimal numerical precision
-                           used for ``tau`` and ``d``. If `num_prec == None`
+                           used for ``tau`` and ``d``. If ``num_prec == None``
                            (default) then the default numerical precision of
                            ``self.parent()`` is used.
 
@@ -1625,7 +1625,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
     def __call__(self, tau, prec = None, num_prec = None):
         r"""
-        Try too return ``self`` evaluated at a point ``tau``
+        Try to return ``self`` evaluated at a point ``tau``
         in the upper half plane, where ``self`` is interpreted
         as a function in ``tau``, where ``q=exp(2*pi*i*tau)``.
 

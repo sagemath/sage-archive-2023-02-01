@@ -36,12 +36,6 @@ It defines the following functions:
     :meth:`OA_n_times_2_pow_c_from_matrix` | Return an `OA(k, \vert G\vert \cdot 2^c)` from a constrained `(G,k-1,2)`-difference matrix.
     :meth:`OA_from_wider_OA` | Return the first `k` columns of `OA`.
 
-.. TODO::
-
-    - A resolvable `OA(k,n)` is equivalent to a `OA(k+1,n)`. Sage should be able
-      to return resolvable OA, with sorted rows (so that building the
-      decomposition is easy.
-
 REFERENCES:
 
 .. [CD96] Making the MOLS table
@@ -62,7 +56,7 @@ from designs_pyx import is_orthogonal_array
 from incidence_structures import GroupDivisibleDesign
 
 
-def transversal_design(k,n,check=True,existence=False):
+def transversal_design(k,n,resolvable=False,check=True,existence=False):
     r"""
     Return a transversal design of parameters `k,n`.
 
@@ -86,6 +80,12 @@ def transversal_design(k,n,check=True,existence=False):
 
     - `n,k` -- integers. If ``k is None`` it is set to the largest value
       available.
+
+    - ``resolvable`` (boolean) -- set to ``True`` if you want the design to be
+      resolvable (see
+      :meth:`sage.combinat.designs.incidence_structures.IncidenceStructures.is_resolvable`). The
+      `n` classes of the resolvable design are obtained as the first `n` blocks,
+      then the next `n` blocks, etc ... Set to ``False`` by default.
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
@@ -295,7 +295,31 @@ def transversal_design(k,n,check=True,existence=False):
         Traceback (most recent call last):
         ...
         ValueError: there is no upper bound on k when 0<=n<=1
+
+    Resolvable TD::
+
+        sage: k,n = 5,15
+        sage: TD = designs.transversal_design(k,n,resolvable=True)
+        sage: TD.is_resolvable()
+        True
+        sage: r     = designs.transversal_design(None,n,resolvable=True,existence=True)
+        sage: non_r = designs.transversal_design(None,n,existence=True)
+        sage: r + 1 == non_r
+        True
     """
+    if resolvable:
+        if existence:
+            return orthogonal_array(k,n,resolvable=True,existence=True)
+        else:
+            OA = orthogonal_array(k,n,resolvable=True,check=False)
+            # the call to TransversalDesign will sort the block so we can not
+            # rely on the order *after* the call
+            blocks = [[i*n+c for i,c in enumerate(B)] for B in OA]
+            classes = [blocks[i:i+n] for i in range(0,n*n,n)]
+            TD = TransversalDesign(blocks,k,n,check=check,copy=False)
+            TD._classes = classes
+            return TD
+
     # Is k is None we find the largest available
     if k is None:
         if n == 0 or n == 1:
@@ -322,13 +346,6 @@ def transversal_design(k,n,check=True,existence=False):
         if existence:
             return False
         raise EmptySetError("No Transversal Design exists when k>=n+2 if n>=2")
-
-    elif n == 12 and k <= 6:
-        _OA_cache_set(6,12,True)
-        if existence:
-            return True
-        from sage.combinat.designs.database import TD_6_12
-        TD = [l[:k] for l in TD_6_12()]
 
     # Section 6.6 of [Stinson2004]
     elif orthogonal_array(k, n, existence=True) is not Unknown:
@@ -717,7 +734,7 @@ def _OA_cache_construction_available(k,n):
     else:
         return Unknown
 
-def orthogonal_array(k,n,t=2,check=True,existence=False):
+def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
     r"""
     Return an orthogonal array of parameters `k,n,t`.
 
@@ -728,6 +745,10 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
 
     More general definitions sometimes involve a `\lambda` parameter, and we
     assume here that `\lambda=1`.
+
+    An orthogonal array is said to be *resolvable* if it corresponds to a
+    resolvable transversal design (see
+    :meth:`sage.combinat.designs.incidence_structures.IncidenceStructure.is_resolvable`).
 
     For more information on orthogonal arrays, see
     :wikipedia:`Orthogonal_array`.
@@ -740,6 +761,11 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
     - ``n`` -- (integer) number of symbols
 
     - ``t`` -- (integer; default: 2) -- strength of the array
+
+    - ``resolvable`` (boolean) -- set to ``True`` if you want the design to be
+      resolvable. The `n` classes of the resolvable design are obtained as the
+      first `n` blocks, then the next `n` blocks, etc ... Set to ``False`` by
+      default.
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
@@ -859,6 +885,18 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
         sage: designs.orthogonal_array(None,5,t=t,existence=True) == t
         True
         sage: _ = designs.orthogonal_array(t,5,t)
+
+    Resolvable OA::
+
+        sage: k,n = 5,15
+        sage: OA = designs.orthogonal_array(k,n,resolvable=True)
+        sage: for i in range(n):
+        ....:     for j in range(k):
+        ....:         assert set(B[j] for B in OA[i*n:(i+1)*n]) == set(range(n))
+        sage: r     = designs.orthogonal_array(None,n,existence=True,resolvable=True)
+        sage: non_r = designs.orthogonal_array(None,n,existence=True)
+        sage: r + 1 == non_r
+        True
     """
 
     from latin_squares import mutually_orthogonal_latin_squares
@@ -866,7 +904,20 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
     from block_design import projective_plane, projective_plane_to_OA
     from orthogonal_arrays_recursive import find_recursive_construction
 
-    assert n>=0
+    assert n>=0, "n(={}) must be nonnegative".format(n)
+
+    # A resolvable OA(k,n) is an OA(k+1,n)
+    if resolvable:
+        assert t==2, "resolvable designs are only handled when t=2"
+        if existence and k is not None:
+            return orthogonal_array(k+1,n,existence=True)
+        if k is None:
+            k = orthogonal_array(None,n,existence=True)-1
+            if existence:
+                return k
+        OA = orthogonal_array(k+1,n,check=check)
+        OA.sort()
+        return [B[1:] for B in OA]
 
     # If k is set to None we find the largest value available
     if k is None:

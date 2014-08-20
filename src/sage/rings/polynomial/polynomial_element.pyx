@@ -5662,6 +5662,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [1 + O(3^5)]
             sage: parent(r[0])
             3-adic Ring with capped relative precision 5
+            
+        Spurious crash with pari-2.5.5, see :trac:`16165`::
+        
+            sage: f=(1+x+x^2)^3
+            sage: f.roots(ring=CC)
+            [(-0.500000000000000 - 0.866025403784439*I, 3),
+             (-0.500000000000000 + 0.866025403784439*I, 3)]
         """
         K = self.parent().base_ring()
         if hasattr(K, '_roots_univariate_polynomial'):

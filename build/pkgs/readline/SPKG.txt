@@ -44,8 +44,9 @@ with libtinfo (part of ncurses), this is what the patch
 
 == Changelog ==
 
-=== readline-6.3 (Erik Massop, 15 June 2014) ===
- * Trac #16480: Upgrade to 6.3 (latest upstream)
+=== readline-6.3.008 (Erik Massop, June/August 2014) ===
+ * Trac #16480: Upgrade to 6.3.008 (which is latest upstream 6.3 with official
+   patches 001 through 008).
  * Updated shobj-conf.patch. It used to do these things:
     1. Add -ltinfo in various places, namely
          i. to SHOBJ_LIBS for the general case, and

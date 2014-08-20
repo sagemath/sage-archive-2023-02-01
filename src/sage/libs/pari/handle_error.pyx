@@ -27,7 +27,7 @@ cdef void _pari_init_error_handling():
         ....: except PariError as e:
         ....:     print e.errtext()
         ....:
-          ***   argument must be positive in polcyclo.
+          ***   domain error in polcyclo: index <= 0
 
     """
     global pari_error_string
@@ -73,17 +73,17 @@ cdef int _pari_handle_exception(long err) except 0:
         sage: pari(1)/pari(0)
         Traceback (most recent call last):
         ...
-        PariError: division by zero
+        PariError: impossible inverse in gdiv: 0
 
     """
-    if err == errpile:
+    if err == e_STACK:
         # PARI is out of memory.  We double the size of the PARI stack
         # and retry the computation.
         from sage.libs.pari.all import pari
         pari.allocatemem(silent=True)
         return 0
 
-    if err == user:
+    if err == e_USER:
         raise RuntimeError("PARI user exception\n%s" % pari_error_string)
     else:
         from sage.libs.pari.all import PariError

@@ -854,7 +854,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
             sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
             sage: G.json_repr(G.default_render_params())
-            ["{vertices:[{x:0,y:0,z:1},{x:1,y:1,z:1},{x:2,y:0,z:1}],faces:[[0,1,2]],edge_color:'#0000ff'}"]
+            ["{vertices:[{x:0,y:0,z:1},{x:1,y:1,z:1},{x:2,y:0,z:1}],faces:[[0,1,2]],color:'#0000ff'}"]
 
         A simple colored one::
 
@@ -889,7 +889,7 @@ cdef class IndexFaceSet(PrimitiveObject):
                                             for i from 0 <= i < self.fcount]))
         if self.global_texture:
             color_str = "'#{}'".format(self.texture.hex_rgb())
-            return ["{vertices:%s,faces:%s,edge_color:%s}" %
+            return ["{vertices:%s,faces:%s,color:%s}" %
                     (vertices_str, faces_str, color_str)]
         else:
             color_str = "[{}]".format(",".join(["'#{}'".format(

@@ -3663,9 +3663,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: e = EllipticCurve([-1386747,368636886]);e
             Elliptic Curve defined by y^2  = x^3 - 1386747*x + 368636886 over Rational Field
             sage: G = e.torsion_subgroup(); G
-            Torsion Subgroup isomorphic to Z/2 + Z/8 associated to the Elliptic
-            Curve defined by y^2 = x^3 - 1386747*x + 368636886 over
-            Rational Field
+            Torsion Subgroup isomorphic to Z/8 + Z/2 associated to the
+             Elliptic Curve defined by y^2 = x^3 - 1386747*x + 368636886 over
+             Rational Field
             sage: G.0*3 + G.1
             (1227 : 22680 : 1)
             sage: G.1
@@ -3710,7 +3710,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve([-1386747, 368636886])
             sage: T = E.torsion_subgroup(); T
-            Torsion Subgroup isomorphic to Z/2 + Z/8 associated to the Elliptic Curve defined by y^2  = x^3 - 1386747*x + 368636886 over Rational Field
+            Torsion Subgroup isomorphic to Z/8 + Z/2 associated to the
+             Elliptic Curve defined by y^2 = x^3 - 1386747*x + 368636886 over
+             Rational Field
             sage: T == E.torsion_subgroup(algorithm="doud")
             True
             sage: T == E.torsion_subgroup(algorithm="lutz_nagell")

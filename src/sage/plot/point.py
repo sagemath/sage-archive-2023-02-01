@@ -90,12 +90,14 @@ class Point(GraphicPrimitive_xydata):
             'How big the point is (i.e., area in points^2=(1/72 inch)^2).'
         """
         return {'alpha':'How transparent the point is.',
+                'faceted': 'If True color the edge of the point. (only for 2D plots)',
+                'hue':'The color given as a hue.',
                 'legend_color':'The color of the legend text',
                 'legend_label':'The label for this item in the legend.',
-                'size': 'How big the point is (i.e., area in points^2=(1/72 inch)^2).',
-                'faceted': 'If True color the edge of the point.',
+                'marker':'the marker symbol for 2D plots only (see documentation of plot() for details)',
+                'markeredgecolor':'the color of the marker edge (only for 2D plots)',
                 'rgbcolor':'The color as an RGB tuple.',
-                'hue':'The color given as a hue.',
+                'size': 'How big the point is (i.e., area in points^2=(1/72 inch)^2).',
                 'zorder':'The layer level in which to draw'}
 
     def _plot3d_options(self, options=None):
@@ -120,10 +122,12 @@ class Point(GraphicPrimitive_xydata):
         if 'size' in options:
             options_3d['size'] = options['size']
             del options['size']
-        if 'faceted' in options:
-            if options['faceted']:
-                raise NotImplementedError("No 3d faceted points.")
-            del options['faceted']
+        if options.pop('faceted', False):
+            raise NotImplementedError("3D points can not be faceted.")
+        for o in ('marker', 'markeredgecolor'): # remove 2D options
+            if o in options:
+                del options[o]
+
         options_3d.update(GraphicPrimitive_xydata._plot3d_options(self, options))
         return options_3d
 
@@ -250,7 +254,7 @@ class Point(GraphicPrimitive_xydata):
         r"""
         TESTS:
 
-        We check to make sure that \#2076 is fixed by verifying all
+        We check to make sure that :trac:`2076` is fixed by verifying all
         the points are red::
 
             sage: point(((1,1), (2,2), (3,3)), rgbcolor=hue(1), size=30)
@@ -269,9 +273,18 @@ class Point(GraphicPrimitive_xydata):
         z = int(options.pop('zorder', 0))
         s = int(options['size'])
         faceted = options['faceted'] #faceted=True colors the edge of point
+        markeredgecolor = options['markeredgecolor']
+
         scatteroptions={}
-        if not faceted: scatteroptions['edgecolors'] = 'none'
-        subplot.scatter(self.xdata, self.ydata, s=s, c=c, alpha=a, zorder=z, label=options['legend_label'], **scatteroptions)
+        if not faceted and markeredgecolor is None:
+            scatteroptions['edgecolors'] = 'none'
+        elif markeredgecolor is not None:
+            scatteroptions['edgecolors'] = to_mpl_color(
+                                              options.pop('markeredgecolor'))
+        scatteroptions['marker'] = options.pop('marker')
+
+        subplot.scatter(self.xdata, self.ydata, s=s, c=c, alpha=a, zorder=z,
+                        label=options['legend_label'], **scatteroptions)
 
 
 def point(points, **kwds):
@@ -314,8 +327,9 @@ def point(points, **kwds):
         return point3d(points, **kwds)
 
 @rename_keyword(color='rgbcolor', pointsize='size')
-@options(alpha=1, size=10, faceted=False, rgbcolor=(0,0,1),
-         legend_color=None, legend_label=None, aspect_ratio='automatic')
+@options(alpha=1, aspect_ratio='automatic', faceted=False,
+        legend_color=None, legend_label=None, marker='o',
+        markeredgecolor=None, rgbcolor=(0,0,1), size=10)
 def point2d(points, **options):
     r"""
     A point of size ``size`` defined by point = `(x,y)`.
@@ -324,8 +338,17 @@ def point2d(points, **options):
 
     -  ``points`` - either a single point (as a tuple), a list of
        points, a single complex number, or a list of complex numbers.
-
-    Type ``point2d.options`` to see all options.
+    - ``alpha`` -- How transparent the point is.
+    - ``faceted`` -- If True color the edge of the point. (only for 2D plots)
+    - ``hue`` -- The color given as a hue.
+    - ``legend_color`` -- The color of the legend text
+    - ``legend_label`` -- The label for this item in the legend.
+    - ``marker`` -- the marker symbol for 2D plots only (see documentation of
+      :func:`plot` for details)
+    - ``markeredgecolor`` -- the color of the marker edge (only for 2D plots)
+    - ``rgbcolor`` -- The color as an RGB tuple.
+    - ``size`` -- How big the point is (i.e., area in points^2=(1/72 inch)^2).
+    - ``zorder`` -- The layer level in which to draw
 
     EXAMPLES:
 
@@ -333,13 +356,17 @@ def point2d(points, **options):
 
         sage: point((0.5, 0.5), rgbcolor=hue(0.75))
 
+    Points with customized markers and edge colors::
+
+        sage: r = [(random(), random()) for _ in range(10)]
+        sage: point(r, marker='d', markeredgecolor='red', size=20)
+
     Passing an empty list returns an empty plot::
 
         sage: point([])
         sage: import numpy; point(numpy.array([]))
 
-    If you need a 2D point to live in 3-space later,
-    this is possible::
+    If you need a 2D point to live in 3-space later, this is possible::
 
         sage: A=point((1,1))
         sage: a=A[0];a
@@ -375,7 +402,7 @@ def point2d(points, **options):
 
         sage: point([(1,2),(2,4),(3,4),(4,8),(4.5,32)],scale='semilogy',base=2)
 
-    Since Sage Version 4.4 (ticket #8599), the size of a 2d point can be
+    Since Sage Version 4.4 (:trac:`8599`), the size of a 2d point can be
     given by the argument ``size`` instead of ``pointsize``. The argument
     ``pointsize`` is still supported::
 

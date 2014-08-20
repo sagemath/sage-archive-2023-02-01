@@ -2494,17 +2494,20 @@ def OA_11_185():
 
     """
     from sage.combinat.designs.difference_family import difference_family
-    G,(B,) = difference_family(273,17) # a cyclic PG(2,16)
-    BIBD = [[int(x+i) for x in B] for i in G]
 
-    # All points congruent to 0 mod[39] are a Fano subplane
-    assert set([sum([x%39==0 for x in B]) for B in BIBD]) == set([0,1,3])
+    G,(B,) = difference_family(273,17)
+    BIBD = [[int(x+i) for x in B] for i in G] # a cyclic PG(2,16)
 
-    # Lines of the Fano subplane
-    fano_lines = [B for B in BIBD if sum([x%39==0 for x in B])>1]
+    # All points congruent to 0 mod[39] form a Fano subplane with the property
+    # that each block of the PG(2,16) intersect the Fano subplane in either 0,1
+    # or 3 points
+    assert all(sum(x%39==0 for x in B) in [0,1,3] for B in BIBD)
+
+    # Lines of the Fano subplane that are contained in blocks
+    fano_lines = [B for B in BIBD if sum(x%39==0 for x in B) == 3]
 
     # Points on a line of the Fano sublane
-    on_a_fano_line = set(sum(fano_lines,[]))
+    on_a_fano_line = set().union(*fano_lines)
 
     # Not on a line of the Fano plane
     not_on_a_fano_line = set(range(273)).difference(on_a_fano_line)
@@ -2517,7 +2520,7 @@ def OA_11_185():
     special_set = [relabel[x] for x in fano_lines[0]]
 
     # Check that everything is fine
-    assert all([len(B) in (11,13) or set(B) == set(special_set) for B in PBD])
+    assert all(len(B) in (11,13) or set(B) == set(special_set) for B in PBD)
 
     OA = OA_from_PBD(11,185,[B for B in PBD if len(B)<17],check=False)[:-185]
     OA.extend([[i]*11 for i in range(185) if i not in special_set])

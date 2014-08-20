@@ -1226,7 +1226,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             """
 
         if self.domain().dimension_relative() != self.codomain().dimension_relative():
-            raise TypeError("Domain and Codomain should be of same dimension")
+            raise ValueError("Domain and Codomain should be of same dimension")
         if normalize is True:
             F = copy(self)
             F.normalize_coordinates()

@@ -1,7 +1,18 @@
 r"""
 Common Digraphs
 
-Generators for common digraphs.
+All digraphs in Sage can be built through the ``digraphs`` object. In order to
+build a circuit on 15 elements, one can do::
+
+    sage: g = digraphs.Circuit(15)
+
+To get a circulant graph on 10 vertices in which a vertex `i` has `i+2` and
+`i+3` as outneighbors::
+
+    sage: p = digraphs.Circulant(10,[2,3])
+
+More interestingly, one can get the list of all digraphs that Sage knows how to
+build by typing ``digraphs.`` in Sage and then hitting tab.
 
 .. csv-table::
     :class: contentstable

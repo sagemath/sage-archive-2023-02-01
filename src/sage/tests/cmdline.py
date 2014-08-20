@@ -326,7 +326,8 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: F = open(script, 'w')
         sage: F.write(s)
         sage: F.close()
-        sage: (out, err, ret) = test_executable(["sage", "-t", "--debug", "-p", "2", script], "help")
+        sage: (out, err, ret) = test_executable([
+        ....:     "sage", "-t", "--debug", "-p", "2", "--warn-long", "0", script], "help")
         sage: print out
         Debugging requires single-threaded operation, setting number of threads to 1.
         Running doctests with ID...

@@ -221,12 +221,6 @@ class DescentAlgebra(Parent, UniqueRepresentation):
                               codomain=self, category=self.category()
                               ).register_as_coercion()
 
-            # Coercion to symmetric group algebra
-            SGA = SymmetricGroupAlgebra(alg.base_ring(), alg._n)
-            self.module_morphism(self.to_symmetric_group_algebra_on_basis,
-                                 codomain=SGA, category=Algebras(alg.base_ring())
-                                 ).register_as_coercion()
-
         def _element_constructor_(self, x):
             """
             Construct an element of ``self``.
@@ -296,24 +290,26 @@ class DescentAlgebra(Parent, UniqueRepresentation):
                 sage: DA = DescentAlgebra(QQ, 4)
                 sage: D = DA.D()
                 sage: B = DA.B()
-                sage: for b in D.basis(): B(b) # indirect doctest
-                B[4]
-                B[1, 3] - B[4]
-                B[2, 2] - B[4]
-                B[1, 1, 2] - B[1, 3] - B[2, 2] + B[4]
-                B[3, 1] - B[4]
-                B[1, 2, 1] - B[1, 3] - B[3, 1] + B[4]
-                B[2, 1, 1] - B[2, 2] - B[3, 1] + B[4]
-                B[1, 1, 1, 1] - B[1, 1, 2] - B[1, 2, 1] + B[1, 3] - B[2, 1, 1] + B[2, 2] + B[3, 1] - B[4]
+                sage: map(B, D.basis()) # indirect doctest
+                [B[4],
+                 B[1, 3] - B[4],
+                 B[2, 2] - B[4],
+                 B[1, 1, 2] - B[1, 3] - B[2, 2] + B[4],
+                 B[3, 1] - B[4],
+                 B[1, 2, 1] - B[1, 3] - B[3, 1] + B[4],
+                 B[2, 1, 1] - B[2, 2] - B[3, 1] + B[4],
+                 B[1, 1, 1, 1] - B[1, 1, 2] - B[1, 2, 1] + B[1, 3]
+                  - B[2, 1, 1] + B[2, 2] + B[3, 1] - B[4]]
             """
             B = self.realization_of().B()
 
-            if len(S) == 0:
+            if not S:
                 return B.one()
 
             n = self.realization_of()._n
             C = Compositions(n)
-            return B.sum_of_terms([(C.from_subset(T, n), (-1)**(len(S)-len(T))) for T in subsets(S)])
+            return B.sum_of_terms([(C.from_subset(T, n), (-1)**(len(S)-len(T)))
+                                   for T in subsets(S)])
 
         def to_symmetric_group_algebra_on_basis(self, S):
             """
@@ -323,15 +319,18 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: D = DescentAlgebra(QQ, 4).D()
-                sage: for b in Subsets(3): D.to_symmetric_group_algebra_on_basis(tuple(b))
-                [1, 2, 3, 4]
-                [2, 1, 3, 4] + [3, 1, 2, 4] + [4, 1, 2, 3]
-                [1, 3, 2, 4] + [1, 4, 2, 3] + [2, 3, 1, 4] + [2, 4, 1, 3] + [3, 4, 1, 2]
-                [1, 2, 4, 3] + [1, 3, 4, 2] + [2, 3, 4, 1]
-                [3, 2, 1, 4] + [4, 2, 1, 3] + [4, 3, 1, 2]
-                [2, 1, 4, 3] + [3, 1, 4, 2] + [3, 2, 4, 1] + [4, 1, 3, 2] + [4, 2, 3, 1]
-                [1, 4, 3, 2] + [2, 4, 3, 1] + [3, 4, 2, 1]
-                [4, 3, 2, 1]
+                sage: [D.to_symmetric_group_algebra_on_basis(tuple(b))
+                ....:  for b in Subsets(3)]
+                [[1, 2, 3, 4],
+                 [2, 1, 3, 4] + [3, 1, 2, 4] + [4, 1, 2, 3],
+                 [1, 3, 2, 4] + [1, 4, 2, 3] + [2, 3, 1, 4]
+                  + [2, 4, 1, 3] + [3, 4, 1, 2],
+                 [1, 2, 4, 3] + [1, 3, 4, 2] + [2, 3, 4, 1],
+                 [3, 2, 1, 4] + [4, 2, 1, 3] + [4, 3, 1, 2],
+                 [2, 1, 4, 3] + [3, 1, 4, 2] + [3, 2, 4, 1]
+                  + [4, 1, 3, 2] + [4, 2, 3, 1],
+                 [1, 4, 3, 2] + [2, 4, 3, 1] + [3, 4, 2, 1],
+                 [4, 3, 2, 1]]
             """
             n = self.realization_of()._n
             SGA = SymmetricGroupAlgebra(self.base_ring(), n)
@@ -368,12 +367,12 @@ class DescentAlgebra(Parent, UniqueRepresentation):
                 if S >= n or S <= 0:
                     raise ValueError("({0},) is not a subset of {{1, ..., {1}}}".format(S, n-1))
                 return self.monomial((S,))
-            if len(S) == 0:
+            if not S:
                 return self.one()
-            S = tuple(sorted(S))
+            S = sorted(S)
             if S[-1] >= n or S[0] <= 0:
                 raise ValueError("{0} is not a subset of {{1, ..., {1}}}".format(S, n-1))
-            return self.monomial(S)
+            return self.monomial(tuple(S))
 
     standard = D
 
@@ -411,7 +410,8 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             sage: DA = DescentAlgebra(QQ, 4)
             sage: B = DA.B()
             sage: list(B.basis())
-            [B[1, 1, 1, 1], B[1, 1, 2], B[1, 2, 1], B[1, 3], B[2, 1, 1], B[2, 2], B[3, 1], B[4]]
+            [B[1, 1, 1, 1], B[1, 1, 2], B[1, 2, 1], B[1, 3],
+             B[2, 1, 1], B[2, 2], B[3, 1], B[4]]
         """
         def __init__(self, alg, prefix="B"):
             r"""
@@ -470,7 +470,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             """
             n = self.realization_of()._n
             P = Compositions(n)
-            if n == 0:
+            if not n: # n == 0
                 return P([])
             return P([n])
 
@@ -498,15 +498,16 @@ class DescentAlgebra(Parent, UniqueRepresentation):
                 sage: DA = DescentAlgebra(QQ, 4)
                 sage: B = DA.B()
                 sage: I = DA.I()
-                sage: for b in B.basis(): I(b) # indirect doctest
-                I[1, 1, 1, 1]
-                1/2*I[1, 1, 1, 1] + I[1, 1, 2]
-                1/2*I[1, 1, 1, 1] + I[1, 2, 1]
-                1/6*I[1, 1, 1, 1] + 1/2*I[1, 1, 2] + 1/2*I[1, 2, 1] + I[1, 3]
-                1/2*I[1, 1, 1, 1] + I[2, 1, 1]
-                1/4*I[1, 1, 1, 1] + 1/2*I[1, 1, 2] + 1/2*I[2, 1, 1] + I[2, 2]
-                1/6*I[1, 1, 1, 1] + 1/2*I[1, 2, 1] + 1/2*I[2, 1, 1] + I[3, 1]
-                1/24*I[1, 1, 1, 1] + 1/6*I[1, 1, 2] + 1/6*I[1, 2, 1] + 1/2*I[1, 3] + 1/6*I[2, 1, 1] + 1/2*I[2, 2] + 1/2*I[3, 1] + I[4]
+                sage: map(I, B.basis()) # indirect doctest
+                [I[1, 1, 1, 1],
+                 1/2*I[1, 1, 1, 1] + I[1, 1, 2],
+                 1/2*I[1, 1, 1, 1] + I[1, 2, 1],
+                 1/6*I[1, 1, 1, 1] + 1/2*I[1, 1, 2] + 1/2*I[1, 2, 1] + I[1, 3],
+                 1/2*I[1, 1, 1, 1] + I[2, 1, 1],
+                 1/4*I[1, 1, 1, 1] + 1/2*I[1, 1, 2] + 1/2*I[2, 1, 1] + I[2, 2],
+                 1/6*I[1, 1, 1, 1] + 1/2*I[1, 2, 1] + 1/2*I[2, 1, 1] + I[3, 1],
+                 1/24*I[1, 1, 1, 1] + 1/6*I[1, 1, 2] + 1/6*I[1, 2, 1]
+                  + 1/2*I[1, 3] + 1/6*I[2, 1, 1] + 1/2*I[2, 2] + 1/2*I[3, 1] + I[4]]
             """
             I = self.realization_of().I()
 
@@ -535,15 +536,16 @@ class DescentAlgebra(Parent, UniqueRepresentation):
                 sage: DA = DescentAlgebra(QQ, 4)
                 sage: B = DA.B()
                 sage: D = DA.D()
-                sage: for b in B.basis(): D(b) # indirect doctest
-                D{} + D{1} + D{1, 2} + D{1, 2, 3} + D{1, 3} + D{2} + D{2, 3} + D{3}
-                D{} + D{1} + D{1, 2} + D{2}
-                D{} + D{1} + D{1, 3} + D{3}
-                D{} + D{1}
-                D{} + D{2} + D{2, 3} + D{3}
-                D{} + D{2}
-                D{} + D{3}
-                D{}
+                sage: map(D, B.basis()) # indirect doctest
+                [D{} + D{1} + D{1, 2} + D{1, 2, 3}
+                  + D{1, 3} + D{2} + D{2, 3} + D{3},
+                 D{} + D{1} + D{1, 2} + D{2},
+                 D{} + D{1} + D{1, 3} + D{3},
+                 D{} + D{1},
+                 D{} + D{2} + D{2, 3} + D{3},
+                 D{} + D{2},
+                 D{} + D{3},
+                 D{}]
 
             TESTS:
 
@@ -552,12 +554,12 @@ class DescentAlgebra(Parent, UniqueRepresentation):
                 sage: DA = DescentAlgebra(QQ, 0)
                 sage: B = DA.B()
                 sage: D = DA.D()
-                sage: for b in B.basis(): D(b)
-                D{}
+                sage: map(D, B.basis())
+                [D{}]
             """
             D = self.realization_of().D()
 
-            if p == []:
+            if not p:
                 return D.one()
 
             return D.sum_of_terms([(tuple(sorted(s)), 1) for s in p.to_subset().subsets()])
@@ -574,15 +576,15 @@ class DescentAlgebra(Parent, UniqueRepresentation):
 
                 sage: B = DescentAlgebra(QQ, 4).B()
                 sage: S = NonCommutativeSymmetricFunctions(QQ).Complete()
-                sage: for b in B.basis(): S(b) # indirect doctest
-                S[1, 1, 1, 1]
-                S[1, 1, 2]
-                S[1, 2, 1]
-                S[1, 3]
-                S[2, 1, 1]
-                S[2, 2]
-                S[3, 1]
-                S[4]
+                sage: map(S, B.basis()) # indirect doctest
+                [S[1, 1, 1, 1],
+                 S[1, 1, 2],
+                 S[1, 2, 1],
+                 S[1, 3],
+                 S[2, 1, 1],
+                 S[2, 2],
+                 S[3, 1],
+                 S[4]]
             """
             S = NonCommutativeSymmetricFunctions(self.base_ring()).Complete()
             return S.monomial(p)
@@ -695,7 +697,9 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: DescentAlgebra(QQ, 4).I().one()
-                1/24*I[1, 1, 1, 1] + 1/6*I[1, 1, 2] + 1/6*I[1, 2, 1] + 1/2*I[1, 3] + 1/6*I[2, 1, 1] + 1/2*I[2, 2] + 1/2*I[3, 1] + I[4]
+                1/24*I[1, 1, 1, 1] + 1/6*I[1, 1, 2] + 1/6*I[1, 2, 1]
+                 + 1/2*I[1, 3] + 1/6*I[2, 1, 1] + 1/2*I[2, 2]
+                 + 1/2*I[3, 1] + I[4]
                 sage: DescentAlgebra(QQ, 0).I().one()
                 I[]
 
@@ -747,15 +751,17 @@ class DescentAlgebra(Parent, UniqueRepresentation):
                 sage: DA = DescentAlgebra(QQ, 4)
                 sage: B = DA.B()
                 sage: I = DA.I()
-                sage: for b in I.basis(): B(b) # indirect doctest
-                B[1, 1, 1, 1]
-                -1/2*B[1, 1, 1, 1] + B[1, 1, 2]
-                -1/2*B[1, 1, 1, 1] + B[1, 2, 1]
-                1/3*B[1, 1, 1, 1] - 1/2*B[1, 1, 2] - 1/2*B[1, 2, 1] + B[1, 3]
-                -1/2*B[1, 1, 1, 1] + B[2, 1, 1]
-                1/4*B[1, 1, 1, 1] - 1/2*B[1, 1, 2] - 1/2*B[2, 1, 1] + B[2, 2]
-                1/3*B[1, 1, 1, 1] - 1/2*B[1, 2, 1] - 1/2*B[2, 1, 1] + B[3, 1]
-                -1/4*B[1, 1, 1, 1] + 1/3*B[1, 1, 2] + 1/3*B[1, 2, 1] - 1/2*B[1, 3] + 1/3*B[2, 1, 1] - 1/2*B[2, 2] - 1/2*B[3, 1] + B[4]
+                sage: map(B, I.basis()) # indirect doctest
+                [B[1, 1, 1, 1],
+                 -1/2*B[1, 1, 1, 1] + B[1, 1, 2],
+                 -1/2*B[1, 1, 1, 1] + B[1, 2, 1],
+                 1/3*B[1, 1, 1, 1] - 1/2*B[1, 1, 2] - 1/2*B[1, 2, 1] + B[1, 3],
+                 -1/2*B[1, 1, 1, 1] + B[2, 1, 1],
+                 1/4*B[1, 1, 1, 1] - 1/2*B[1, 1, 2] - 1/2*B[2, 1, 1] + B[2, 2],
+                 1/3*B[1, 1, 1, 1] - 1/2*B[1, 2, 1] - 1/2*B[2, 1, 1] + B[3, 1],
+                 -1/4*B[1, 1, 1, 1] + 1/3*B[1, 1, 2] + 1/3*B[1, 2, 1]
+                  - 1/2*B[1, 3] + 1/3*B[2, 1, 1] - 1/2*B[2, 2]
+                  - 1/2*B[3, 1] + B[4]]
             """
             B = self.realization_of().B()
 
@@ -798,7 +804,8 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             from sage.combinat.permutation import Permutations
             k = len(la)
             C = Compositions(self.realization_of()._n)
-            return self.sum_of_terms([(C(x), ~QQ(factorial(k))) for x in Permutations(la)])
+            return self.sum_of_terms([(C(x), ~QQ(factorial(k)))
+                                      for x in Permutations(la)])
 
     idempotent = I
 
@@ -835,7 +842,7 @@ class DescentAlgebraBases(Category_realization_of_parent):
             sage: DescentAlgebraBases(DA)
             Category of bases of Descent algebra of 4 over Rational Field
         """
-        return "Category of bases of %s" % self.base()
+        return "Category of bases of {}".format(self.base())
 
     def super_categories(self):
         r"""
@@ -867,7 +874,7 @@ class DescentAlgebraBases(Category_realization_of_parent):
                 sage: DA.I()
                 Descent algebra of 4 over Rational Field in the idempotent basis
             """
-            return "%s in the %s basis"%(self.realization_of(), self._basis_name)
+            return "{} in the {} basis".format(self.realization_of(), self._basis_name)
 
         def __getitem__(self, p):
             """
@@ -949,7 +956,8 @@ class DescentAlgebraBases(Category_realization_of_parent):
                  + [3, 2, 4, 1] + [4, 1, 2, 3] + [4, 1, 3, 2] + [4, 2, 3, 1]
             """
             SGA = SymmetricGroupAlgebra(self.base_ring(), self.realization_of()._n)
-            return self.module_morphism(self.to_symmetric_group_algebra_on_basis, codomain=SGA)
+            return self.module_morphism(self.to_symmetric_group_algebra_on_basis,
+                                        codomain=SGA)
 
         def to_symmetric_group_algebra_on_basis(self, S):
             """
@@ -959,17 +967,24 @@ class DescentAlgebraBases(Category_realization_of_parent):
             EXAMPLES::
 
                 sage: B = DescentAlgebra(QQ, 3).B()
-                sage: for c in Compositions(3): B.to_symmetric_group_algebra_on_basis(c)
-                [1, 2, 3] + [1, 3, 2] + [2, 1, 3] + [2, 3, 1] + [3, 1, 2] + [3, 2, 1]
-                [1, 2, 3] + [2, 1, 3] + [3, 1, 2]
-                [1, 2, 3] + [1, 3, 2] + [2, 3, 1]
-                [1, 2, 3]
+                sage: [B.to_symmetric_group_algebra_on_basis(c)
+                ....:  for c in Compositions(3)]
+                [[1, 2, 3] + [1, 3, 2] + [2, 1, 3]
+                  + [2, 3, 1] + [3, 1, 2] + [3, 2, 1],
+                 [1, 2, 3] + [2, 1, 3] + [3, 1, 2],
+                 [1, 2, 3] + [1, 3, 2] + [2, 3, 1],
+                 [1, 2, 3]]
                 sage: I = DescentAlgebra(QQ, 3).I()
-                sage: for c in Compositions(3): I.to_symmetric_group_algebra_on_basis(c)
-                [1, 2, 3] + [1, 3, 2] + [2, 1, 3] + [2, 3, 1] + [3, 1, 2] + [3, 2, 1]
-                1/2*[1, 2, 3] - 1/2*[1, 3, 2] + 1/2*[2, 1, 3] - 1/2*[2, 3, 1] + 1/2*[3, 1, 2] - 1/2*[3, 2, 1]
-                1/2*[1, 2, 3] + 1/2*[1, 3, 2] - 1/2*[2, 1, 3] + 1/2*[2, 3, 1] - 1/2*[3, 1, 2] - 1/2*[3, 2, 1]
-                1/3*[1, 2, 3] - 1/6*[1, 3, 2] - 1/6*[2, 1, 3] - 1/6*[2, 3, 1] - 1/6*[3, 1, 2] + 1/3*[3, 2, 1]
+                sage: [I.to_symmetric_group_algebra_on_basis(c)
+                ....:  for c in Compositions(3)]
+                [[1, 2, 3] + [1, 3, 2] + [2, 1, 3] + [2, 3, 1]
+                  + [3, 1, 2] + [3, 2, 1],
+                 1/2*[1, 2, 3] - 1/2*[1, 3, 2] + 1/2*[2, 1, 3]
+                  - 1/2*[2, 3, 1] + 1/2*[3, 1, 2] - 1/2*[3, 2, 1],
+                 1/2*[1, 2, 3] + 1/2*[1, 3, 2] - 1/2*[2, 1, 3]
+                  + 1/2*[2, 3, 1] - 1/2*[3, 1, 2] - 1/2*[3, 2, 1],
+                 1/3*[1, 2, 3] - 1/6*[1, 3, 2] - 1/6*[2, 1, 3]
+                  - 1/6*[2, 3, 1] - 1/6*[3, 1, 2] + 1/3*[3, 2, 1]]
             """
             D = self.realization_of().D()
             return D.to_symmetric_group_algebra(D(self[S]))

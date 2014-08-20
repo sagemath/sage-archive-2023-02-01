@@ -2096,29 +2096,35 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
             sage: AffinePermutationGroup(['A',7,1]).rank()
             8
         """
-        return self.k+1
+        return self.k + 1
 
-    def random_element(self, n):
+    def random_element(self, n=None):
         r"""
-        Returns a random affine permutation of length `n`.
+        Return a random affine permutation of length ``n``.
+
+        If ``n`` is not specified, then ``n`` is chosen as a random
+        non-negative integer in `[0, 1000]`.
 
         Starts at the identity, then chooses an upper cover at random.
         Not very uniform: actually constructs a uniformly random reduced word
         of length `n`.  Thus we most likely get elements with lots of reduced
         words!
 
+        For the actual code, see
+        :meth:`sage.categories.coxeter_group.random_element_of_length`.
+
         EXAMPLES::
 
-            sage: A=AffinePermutationGroup(['A',7,1])
-            sage: p=A.random_element(10)
-            sage: p.length()==10
+            sage: A = AffinePermutationGroup(['A',7,1])
+            sage: A.random_element() # random
+            Type A affine permutation with window [-12, 16, 19, -1, -2, 10, -3, 9]
+            sage: p = A.random_element(10)
+            sage: p.length() == 10
             True
         """
-        x=self.one()
-        for i in xrange(1,n+1):
-            antiD=x.descents(positive=True)
-            x=x.apply_simple_reflection_right(antiD[ randint(0, len(antiD)-1) ])
-        return x
+        if n is None:
+            n = randint(0, 1000)
+        return self.random_element_of_length(n)
 
     def from_word(self, w):
         r"""
@@ -2148,20 +2154,6 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
             Type A affine permutation with window [3, -1, 0, 6, 5, 4, 10, 9]
         """
         return self.from_reduced_word(self.index_set())
-
-    def elements_of_length(self, n):
-        r"""
-        Returns all elements of length `n`.
-
-        EXAMPLES::
-
-            sage: A=AffinePermutationGroup(['A',2,1])
-            sage: [len(list(A.elements_of_length(i))) for i in [0..5]]
-            [1, 3, 6, 9, 12, 15]
-        """
-        #Note: This is type-free, and should probably be included in Coxeter Groups.
-        I=self.weak_order_ideal(ConstantFunction(True), side='right')
-        return I.elements_of_depth_iterator(n)
 
 
 class AffinePermutationGroupTypeA(AffinePermutationGroupGeneric):

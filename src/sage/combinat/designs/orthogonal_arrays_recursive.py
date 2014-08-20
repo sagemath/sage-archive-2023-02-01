@@ -126,7 +126,7 @@ def find_wilson_decomposition_with_one_truncated_group(k,n):
     Helper function for Wilson's construction with one truncated column.
 
     This function looks for possible integers `m,t,u` satisfying that `mt+u=n` and
-    such that Sage knows how to build a `OA(k,m), OA(k,m+1),OA(k+1,t)` and a
+    such that Sage knows how to build a `OA(k,m)`, `OA(k,m+1)`, `OA(k+1,t)` and a
     `OA(k,u)`.
 
     INPUT:
@@ -325,7 +325,7 @@ def construction_3_3(k,n,m,i):
     INPUT:
 
     - ``k,n,m,i`` (integers) such that the following designs are available :
-      `OA(k,n),OA(k,m),OA(k,m+1),OA(k,r)`.
+      `OA(k,n)`, `OA(k,m)`, `OA(k,m+1)`, `OA(k,r)`.
 
     .. SEEALSO::
 
@@ -417,9 +417,9 @@ def construction_3_4(k,n,m,r,s):
 
     - ``k,n,m,r,s`` (integers) -- we assume that `s<n` and `1\leq r,s`
 
-      The following designs must be available:
-      `OA(k,n),OA(k,m),OA(k,m+1),OA(k,m+2),OA(k,s)`. Additionnally, it requires
-      either a `OA(k,m+r)` or a `OA(k,m+r+1)`.
+      The following designs must be available: `OA(k,n)`, `OA(k,m)`,
+      `OA(k,m+1)`, `OA(k,m+2)`, `OA(k,s)`. Additionnally, it requires either a
+      `OA(k,m+r)` or a `OA(k,m+r+1)`.
 
     .. SEEALSO::
 
@@ -513,7 +513,7 @@ def construction_3_5(k,n,m,r,s,t):
 
     This is exactly Wilson's construction with three truncated groups
     except we make sure that all blocks have size `>k`, so we don't
-    need a `OA(k,m+0)` but only `OA(k,m+1),OA(k,m+2),OA(k,m+3)`.
+    need a `OA(k,m+0)` but only `OA(k,m+1)`, `OA(k,m+2)` ,`OA(k,m+3)`.
 
     This is construction 3.5 from [AC07]_.
 
@@ -524,8 +524,8 @@ def construction_3_5(k,n,m,r,s,t):
     - ``r,s,t`` (integers) -- sizes of the three truncated groups,
       such that `r\leq s` and `(q-r-1)(q-s) \geq (q-s-1)*(q-r)`.
 
-    The following designs must be available :
-    `OA(k,n),OA(k,r),OA(k,s),OA(k,t),OA(k,m+1),OA(k,m+2),OA(k,m+3)`.
+    The following designs must be available : `OA(k,n)`, `OA(k,r)`, `OA(k,s)`,
+    `OA(k,t)`, `OA(k,m+1)`, `OA(k,m+2)`, `OA(k,m+3)`.
 
     .. SEEALSO::
 
@@ -634,7 +634,7 @@ def construction_3_6(k,n,m,i):
     INPUT:
 
     - ``k,n,m,i`` (integers) -- `n` must be a prime power. The following designs
-      must be available: `OA(k+r,q),OA(k,m),OA(k,m+1),OA(k,m+2)`.
+      must be available: `OA(k+r,q)`, `OA(k,m)`, `OA(k,m+1)`, `OA(k,m+2)`.
 
     This is construction 3.6 from [AC07]_.
 
@@ -1063,32 +1063,32 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
     such a way that all blocks have size `\leq k+2`.
 
     (in order to build a `OA(k,nm+a+b+c)` the following designs must also exist:
-    `OA(k,a),OA(k,b),OA(k,c),OA(k,m+0),OA(k,m+1),OA(k,m+2)`)
+    `OA(k,a)`, `OA(k,b)`, `OA(k,c)`, `OA(k,m+0)`, `OA(k,m+1)`, `OA(k,m+2)`)
 
     Considering the complement of each truncated column, it is also possible to
     build an `OA(k+3,n)` with three truncated columns of sizes `a,b,c` in such a
     way that all blocks have size `>k` whenever `(n-a)+(n-b)+(n-c)\leq n+1`.
 
     (in order to build a `OA(k,nm+a+b+c)` the following designs must also exist:
-    `OA(k,a),OA(k,b),OA(k,c),OA(k,m+1),OA(k,m+2),OA(k,m+3)`)
+    `OA(k,a)`, `OA(k,b)`, `OA(k,c)`, `OA(k,m+1)`, `OA(k,m+2)`, `OA(k,m+3)`)
 
     Here is the proof of Lemma 3.5 from [Thwarts]_ enriched with explanations
     from Julian R. Abel:
 
         For any prime power `n` one can build `k-1` MOLS by associating to every
-        nonzero `x\in \\mathbb F_n` the latin square:
+        nonzero `x\in \mathbb F_n` the latin square:
 
         .. MATH::
 
-            M_x(i,j) = i+x*j \text{ where }i,j\in \\mathbb F_n`
+            M_x(i,j) = i+x*j \text{ where }i,j\in \mathbb F_n
 
         In particular `M_1(i,j)=i+j`, whose `n` columns and lines are indexed by
-        the elements of `\\mathbb F_n`. If we order the elements of `\\mathbb
-        F_n` as `0,1,...,n-1,x+0,...,x+n-1,x^2+0,...` and reorder the columns
+        the elements of `\mathbb F_n`. If we order the elements of `\mathbb F_n`
+        as `0,1,...,n-1,x+0,...,x+n-1,x^2+0,...` and reorder the columns
         and lines of `M_1` accordingly, the top-left `a\times b` squares
         contains at most `a+b-1` distinct symbols.
 
-    *(When `d\neq 0`)*
+    *(When* `d\neq 0` *)*
 
     If there exists an `OA(k+3,n)` with three truncated columns of sizes `a,b,c`
     in such a way that all blocks have size `\leq k+2`, by truncating
@@ -1098,16 +1098,16 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
     `a,b,c,d` with blocks of size `\leq k+3`.
 
     (in order to build a `OA(k,nm+a+b+c+d)` the following designs must also
-    exist:
-    `OA(k,a),OA(k,b),OA(k,c),OA(k,d),OA(k,m+0),OA(k,m+1),OA(k,m+2),OA(k,m+3)`)
+    exist: `OA(k,a)`, `OA(k,b)`, `OA(k,c)`, `OA(k,d)`, `OA(k,m+0)`, `OA(k,m+1)`,
+    `OA(k,m+2)`, `OA(k,m+3)`)
 
     As before, this also shows that one can build an `OA(k+4,n)` with four
     truncated columns of sizes `a,b,c,d` in such a way that all blocks have size
     `>k` whenever `(n-a)+(n-b)+(n-c)\leq n+1`
 
     (in order to build a `OA(k,nm+a+b+c+d)` the following designs must also
-    exist:
-    `OA(k,n-a),OA(k,n-b),OA(k,n-c),OA(k,d),OA(k,m+1),OA(k,m+2),OA(k,m+3),OA(k,m+4)`)
+    exist: `OA(k,n-a)`, `OA(k,n-b)`, `OA(k,n-c)`, `OA(k,d)`, `OA(k,m+1)`,
+    `OA(k,m+2)`, `OA(k,m+3)`, `OA(k,m+4)`)
 
     INPUT:
 
@@ -1259,7 +1259,7 @@ def thwart_lemma_4_1(k,n,m):
         If `n\equiv 0,1\pmod{3}` is a prime power, then there exists a truncated
         `OA(n+1,n)` whose last four columns have size `n-2` and intersect every
         block on `1,3` or `4` values. Consequently, if there exists an
-        `OA(k,m+1),OA(k,m+3),OA(k,m+4)` and a `OA(k,n-2)` then there
+        `OA(k,m+1)`, `OA(k,m+3)`, `OA(k,m+4)` and a `OA(k,n-2)` then there
         exists an `OA(k,nm+4(n-2)`
 
         Proof: form the transversal design by removing one point of the
@@ -1402,7 +1402,7 @@ def three_factor_product(k,n1,n2,n3,check=False):
     The three factor product construction from [DukesLing14]_ does the following:
 
         If `n_1\leq n_2\leq n_3` are such that there exists an
-        `OA(k,n_1),OA(k+1,n_2)` and `OA(k+1,n_3)`, then there exists a
+        `OA(k,n_1)`, `OA(k+1,n_2)` and `OA(k+1,n_3)`, then there exists a
         `OA(k+1,n_1n_2n_3)`.
 
     It works with a modified product of orthogonal arrays ([Rees93]_, [Rees00]_)
@@ -1471,6 +1471,19 @@ def three_factor_product(k,n1,n2,n3,check=False):
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.orthogonal_arrays_recursive import three_factor_product
+
+        sage: OA = three_factor_product(4,4,4,4)
+        sage: is_orthogonal_array(OA,5,64)
+        True
+
+        sage: OA = three_factor_product(4,3,4,5)
+        sage: is_orthogonal_array(OA,5,60)
+        True
+
+        sage: OA = three_factor_product(5,4,5,7)
+        sage: is_orthogonal_array(OA,6,140)
+        True
+
         sage: OA = three_factor_product(9,8,9,9) # long time
         sage: is_orthogonal_array(OA,10,8*9*9)   # long time
         True
@@ -1519,7 +1532,7 @@ def three_factor_product(k,n1,n2,n3,check=False):
 
         .. NOTE::
 
-            The list ``s_parall+parall`` should be a `OA(k,g_2)`
+            The list ``g1_parall+parall`` should be an `OA(k,g_2)`
 
         OUTPUT:
 
@@ -1556,9 +1569,9 @@ def three_factor_product(k,n1,n2,n3,check=False):
 
                 # Update the counts
                 for i,x2 in enumerate(B2):
-                    count[i][x2]+=1
+                    count[i][x2] += 1
 
-            new_parallel_classes.extend(map(list,zip(*copies_of_OA1)))
+            new_parallel_classes.extend(map(list,izip(*copies_of_OA1)))
 
         # New g1-parallel classes, each one built from the product of a parallel
         # class with a OA1
@@ -1594,12 +1607,11 @@ def three_factor_product(k,n1,n2,n3,check=False):
     OA2 = [B[1:] for B in OA2]
 
     # We split OA3 into as many n1-parallel classes as possible, i.e. n3//n1 classes of size n1*n3
-    OA3_n1_parall = [OA3[i*n1*n3:(i+1)*n1*n3] for i in range(n3//n1)]
+    OA3_n1_parall = [OA3[i:i+n1*n3] for i in range(0,(n3-n1)*n3,n1*n3)]
 
     # Leftover blocks become parallel classes. We must split them into slices of
     # length n3
-    OA3_parall    = OA3[len(OA3_n1_parall)*n1*n3:]
-    OA3_parall    = [OA3_parall[i*n3:(i+1)*n3] for i in range(len(OA3_parall)/n3)]
+    OA3_parall    = [OA3[i:i+n3] for i in range(len(OA3_n1_parall)*n1*n3, len(OA3), n3)]
 
     # First product: OA1 and OA3
     n1_parall, parall = product_with_parallel_classes(OA1,k,n1,n3,OA3_n1_parall,OA3_parall,check=check)

@@ -84,12 +84,12 @@ class Link:
         crossings) and start moving along the link. Trace every component of
         the link, by starting at a particular point on one component of the link and
         taking note of each of the crossings until one returns to the starting
-        point. Note each component as an list whose elements are the crossing
-        numbers. Put all the components together in a list. We need the orientation
-        of every crossing. This is recorded as list with +1 and -1, +1 recorded
+        point. Note each component as a list whose elements are the crossing
+        numbers. Compile every component info into a list. We need the orientation
+        of every crossing. This is recorded as a list with +1 and -1, +1 is recorded
         if the direction from leaving over-cross to the leaving under-cross is
         anti-clockwise, -1 if the direction from the leaving over-cross to the
-        entering over-cross is clockwise.
+        leaving under-cross is clockwise.
 
             # for knots there is only a single component so the input is as follows
             sage: from sage.knots import link
@@ -108,7 +108,7 @@ class Link:
         Select some point on the link. Start numbering the strands in the
         components of the link. For a new component add one to the greatest
         number from the previous component and proceed till all the strands
-        are numbered. At every cross start moving contruct the data as follows
+        are numbered. At every cross contruct the data as follows :
         Start with the strand number of the entering under-cross and move in the
         clockwise direction around the cross and note down the strand numbers.
         Construct this data at every crossing and that would give the PD-Code.
@@ -129,9 +129,13 @@ class Link:
         self._x = x
         if type(self._x) == list:
             if len(self._x) != 2:
-                self._PD_code = self._x
-                self._oriented_gauss_code = None
-                self._braid = None
+                for i in self._x:
+                    if len(i) != 4:
+                      raise Exception("Invalid PD_Code")
+                else:
+                    self._PD_code = self._x
+                    self._oriented_gauss_code = None
+                    self._braid = None
 
             elif len(self._x) == 2:
                 if type(self._x[0][0]) == list:
@@ -385,7 +389,7 @@ class Link:
                     elif oriented_gauss_code[1][i] == 1:
                         crossing_dic.update(
                             {i + 1: [d_dic[-(i + 1)][0], d_dic[i + 1][0], d_dic[-(i + 1)][1], d_dic[i + 1][1]]})
-            pd = [crossing_dic[i] for i in crossing_dic.keys()]
+            pd = crossing_dic.values()
             self._PD_code = pd
             return self._PD_code
 
@@ -497,9 +501,11 @@ class Link:
 
         EXAMPLES::
 
+            sage: from sage.knots import link
             sage: L = link.Link([[1,5,2,4],[5,3,6,2],[3,1,4,6]])
             sage: L.dt_code()
             [4, 6, 2]
+            sage: B = BraidGroup(4)
             sage: L = link.Link(B([1, 2, 1, 2]))
             sage: L.dt_code()
             [4, -6, 8, -2]
@@ -573,9 +579,11 @@ class Link:
 
         EXAMPLES::
 
+            sage: from sage.knots import link
             sage: L = link.Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
             sage: L._dowker_notation_()
             [(1, 6), (7, 2), (3, 10), (11, 4), (14, 5), (13, 8), (12, 9)]
+            sage: B = BraidGroup(4)
             sage: L = link.Link(B([1, 2, 1, 2]))
             sage: L._dowker_notation_()
             [(2, 1), (3, 5), (6, 4), (7, 9)]

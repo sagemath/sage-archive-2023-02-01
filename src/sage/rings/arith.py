@@ -1949,6 +1949,59 @@ XGCD = xgcd
 ##         r = new_r; s = new_s
 ##     return (a, p*psign, q*qsign)
 
+def xkcd(n=""):
+    r"""
+    This function is similar to the xgcd function, but behaves
+    in a completely different way.
+
+    INPUT:
+
+    -  ``n`` - an integer (optional)
+
+    OUTPUT:
+
+    This function outputs nothing it just prints something. Note that this
+    function does not feel itself at ease in a html deprived environment.
+
+    EXAMPLES::
+
+        sage: xkcd(353) # optional - internet
+        <html><font color='black'><h1>Python</h1><img src="http://imgs.xkcd.com/comics/python.png" title="I wrote 20 short programs in Python yesterday.  It was wonderful.  Perl, I'm leaving you."><div>Source: <a href="http://xkcd.com/353" target="_blank">http://xkcd.com/353</a></div></font></html>
+    """
+    import contextlib
+    import urllib2
+    import json
+    from sage.misc.html import html
+
+    data = None
+    url = "http://dynamic.xkcd.com/api-0/jsonp/comic/{}".format(n)
+
+    try:
+        with contextlib.closing(urllib2.urlopen(url)) as f:
+            data = f.read()
+    except urllib2.HTTPError as error:
+        if error.getcode() == 400: # this error occurs when asking for a non valid comic number
+            raise RuntimeError("Could not obtain comic data from {}. Maybe you should enable time travel!".format(url))
+    except urllib2.URLError:
+        pass
+
+    if n == 1024:
+        data = None
+
+    if data:
+        data = json.loads(data)
+        img = data['img']
+        alt = data['alt']
+        title = data['safe_title']
+        link = "http://xkcd.com/{}".format(data['num'])
+        html('<h1>{}</h1><img src="{}" title="{}">'.format(title, img, alt)
+            + '<div>Source: <a href="{0}" target="_blank">{0}</a></div>'.format(link))
+        return
+
+    # TODO: raise this error in such a way that it's not clear that
+    # it is produced by sage, see http://xkcd.com/1024/
+    html('<script> alert("Error: -41"); </script>')
+
 def inverse_mod(a, m):
     """
     The inverse of the ring element a modulo m.

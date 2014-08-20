@@ -405,7 +405,7 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
     57
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    81
+    82
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
@@ -1490,7 +1490,8 @@ Here are the tests that form the test suite of quotient fields::
      '_test_one', '_test_prod',
      '_test_quo_rem',
      '_test_some_elements',
-     '_test_zero']
+     '_test_zero',
+     '_test_zero_divisors']
 
 .. end of output
 
@@ -1544,6 +1545,7 @@ Let us see what tests are actually performed::
     running ._test_quo_rem() . . . pass
     running ._test_some_elements() . . . pass
     running ._test_zero() . . . pass
+    running ._test_zero_divisors() . . . pass
 
 .. end of output
 
@@ -1711,6 +1713,7 @@ interesting.
     running ._test_quo_rem() . . . pass
     running ._test_some_elements() . . . pass
     running ._test_zero() . . . pass
+    running ._test_zero_divisors() . . . pass
 
 .. end of output
 

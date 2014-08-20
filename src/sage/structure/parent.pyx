@@ -779,7 +779,7 @@ cdef class Parent(category_object.CategoryObject):
         its categories, that is from ``EuclideanDomains().parent_class``::
 
             sage: ZZ._test_associativity
-            <bound method EuclideanDomains.parent_class._test_associativity of Integer Ring>
+            <bound method JoinCategory.parent_class._test_associativity of Integer Ring>
             sage: ZZ._test_associativity(verbose = True)
             sage: TestSuite(ZZ).run(verbose = True)
             running ._test_additive_associativity() . . . pass
@@ -800,6 +800,10 @@ cdef class Parent(category_object.CategoryObject):
             running ._test_elements_eq_symmetric() . . . pass
             running ._test_elements_eq_transitive() . . . pass
             running ._test_elements_neq() . . . pass
+            running ._test_enumerated_set_contains() . . . pass
+            running ._test_enumerated_set_iter_cardinality() . . . pass
+            running ._test_enumerated_set_iter_list() . . .Enumerated set too big; skipping test; increase tester._max_runs
+             pass
             running ._test_eq() . . . pass
             running ._test_euclidean_degree() . . . pass
             running ._test_not_implemented_methods() . . . pass
@@ -809,6 +813,7 @@ cdef class Parent(category_object.CategoryObject):
             running ._test_quo_rem() . . . pass
             running ._test_some_elements() . . . pass
             running ._test_zero() . . . pass
+            running ._test_zero_divisors() . . . pass
 
             sage: Sets().example().sadfasdf
             Traceback (most recent call last):
@@ -864,6 +869,9 @@ cdef class Parent(category_object.CategoryObject):
             _test_elements_eq_symmetric
             _test_elements_eq_transitive
             _test_elements_neq
+            _test_enumerated_set_contains
+            _test_enumerated_set_iter_cardinality
+            _test_enumerated_set_iter_list
             _test_eq
             _test_euclidean_degree
             _test_not_implemented_methods
@@ -873,6 +881,7 @@ cdef class Parent(category_object.CategoryObject):
             _test_quo_rem
             _test_some_elements
             _test_zero
+            _test_zero_divisors
             sage: F = GF(9,'a')
             sage: dir(F)
             [..., '__class__', ..., '_test_pickling', ..., 'extension', ...]
@@ -1297,6 +1306,8 @@ cdef class Parent(category_object.CategoryObject):
         else:
             return (<map.Map>mor)._call_(x)
 
+    # TODO: move this method in EnumeratedSets (.Finite?) as soon as
+    # all Sage enumerated sets are in this category
     def _list_from_iterator_cached(self):
         r"""
         Return a list of the elements of ``self``.
@@ -1334,14 +1345,14 @@ cdef class Parent(category_object.CategoryObject):
             sage: ZZ.list()
             Traceback (most recent call last):
             ...
-            ValueError: since it is infinite, cannot list Integer Ring
+            NotImplementedError: since it is infinite, cannot list Integer Ring
 
         This is the motivation for :trac:`10470` ::
 
             sage: (QQ^2).list()
             Traceback (most recent call last):
             ...
-            ValueError: since it is infinite, cannot list Vector space of dimension 2 over Rational Field
+            NotImplementedError: since it is infinite, cannot list Vector space of dimension 2 over Rational Field
 
         TESTS:
 
@@ -1400,11 +1411,20 @@ cdef class Parent(category_object.CategoryObject):
             pass
         # if known to be infinite, give up
         # if unsure, proceed (which will hang for an infinite set)
+        #
+        # TODO: The test below should really be:
+        #   if self in Sets().Infinite():
+        # However many infinite parents are not yet declared as such,
+        # which triggers some doctests failure; see e.g. matrix_space.py.
+        # For now we keep the current test as a workaround (see #16239).
+        infinite = False # We do it this way so we can raise a NotImplementedError
         try:
-            if not self.is_finite():
-                raise ValueError('since it is infinite, cannot list %s' % self )
+            if self in Sets().Infinite() or not self.is_finite():
+                infinite = True
         except (AttributeError, NotImplementedError):
             pass
+        if infinite:
+            raise NotImplementedError( 'since it is infinite, cannot list {}'.format(self) )
         the_list = list(self.__iter__())
         try:
             self._list = the_list

@@ -8,10 +8,10 @@ Link class
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.groups.braid import Braid
+#from sage.misc.lazy_import import lazy_import
+from sage.groups.braid import Braid, BraidGroup
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
-from sage.groups.braid import BraidGroup
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.finite_rings.integer_mod import Mod
 from sage.plot.arrow import arrow2d
@@ -26,6 +26,7 @@ from sage.combinat.permutation import Permutations
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.symbolic.ring import SR, var
 
+#lazy_import('sage.groups.braid', ['Braid', 'BraidGroup'])
 
 class Link:
 
@@ -44,7 +45,7 @@ class Link:
 
           sage: from sage.knots import link
           sage: B = BraidGroup(8)
-          sage: L = link.Link(B([1, 2,1, -2,-1]))
+          sage: L = link.Link(B([1, 2, 1, -2,-1]))
           sage: L
           Link with 2 components represented by 5 crossings
           sage: L = link.Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
@@ -452,6 +453,18 @@ class Link:
             - Gauss code representation of the link.
 
         EXAMPLES::
+
+            sage: from sage.knots import link
+            sage: L = link.Link([[1,4,2,3],[4,1,3,2]])
+            sage: L.gauss_code()
+            [[-1, 2], [1, -2]]
+            sage: B = BraidGroup(8)
+            sage: L = link.Link(B([1, -2, 1, -2, -2]))
+            sage: L.gauss_code()
+            [[-1, 3, -4, 5], [1, -2, 4, -5, 2, -3]]
+            sage: L = link.Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
+            sage: L.gauss_code()
+            [[-1, 2], [-3, 4], [1, 3, -4, -2]]
         """
         if self._braid != None:
             self.PD_code()
@@ -483,6 +496,16 @@ class Link:
               for knots.
 
         EXAMPLES::
+
+            sage: L = link.Link([[1,5,2,4],[5,3,6,2],[3,1,4,6]])
+            sage: L.dt_code()
+            [4, 6, 2]
+            sage: L = link.Link(B([1, 2, 1, 2]))
+            sage: L.dt_code()
+            [4, -6, 8, -2]
+            sage: L = link.Link([[[1, -2, 3, -4, 5, -1, 2, -3, 4, -5]], [1, 1, 1, 1, 1]])
+            sage: L.dt_code()
+            [6, 8, 10, 2, 4]
         """
         def _dt_internal_(b):
             N = len(b)
@@ -539,6 +562,27 @@ class Link:
             return _dt_internal_(self._braidword_detection_())
 
     def _dowker_notation_(self):
+        r"""
+        Returns the dowket notation of the link. It is the pair of incoming
+        under cross and the incoming over cross. This information at every cross
+        gives the dowker notation.
+
+        OUTPUT:
+            - List containing the pair of incoming under cross and the incoming
+              over cross.
+
+        EXAMPLES::
+
+            sage: L = link.Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+            sage: L._dowker_notation_()
+            [(1, 6), (7, 2), (3, 10), (11, 4), (14, 5), (13, 8), (12, 9)]
+            sage: L = link.Link(B([1, 2, 1, 2]))
+            sage: L._dowker_notation_()
+            [(2, 1), (3, 5), (6, 4), (7, 9)]
+            sage: L = link.Link([[1,4,2,3],[4,1,3,2]])
+            sage: L._dowker_notation_()
+            [(1, 3), (4, 2)]
+        """
         pd = self.PD_code()
         orient = self.orientation()
         dn = [(i[0], i[3]) if orient[j] == -1 else (i[0], i[1])

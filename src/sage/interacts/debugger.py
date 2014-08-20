@@ -123,7 +123,7 @@ class Debug:
         globals = self.curframe().f_globals
         try:
             code = compile(line + '\n', '<stdin>', 'single')
-            exec code in globals, locals
+            exec(code, globals, locals)
         except Exception:
             import sys
             t, v = sys.exc_info()[:2]

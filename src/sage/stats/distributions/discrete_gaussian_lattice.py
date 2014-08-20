@@ -99,7 +99,7 @@ def _iter_vectors(n, lower, upper, step=None):
     else:
         for x in range(lower, upper):
             for v in _iter_vectors(n, lower, upper, step-1):
-                v[n-1] = x
+                v[step-1] = x
                 yield v
 
 class DiscreteGaussianDistributionLatticeSampler(SageObject):
@@ -198,12 +198,12 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
             sage: D = DiscreteGaussianDistributionLatticeSampler(ZZ^n, sigma)
             sage: f = D.f
             sage: c = D._normalisation_factor_zz(); c
-            37.34...
+            15.528...
 
             sage: l = [D() for _ in xrange(m)]
             sage: v = vector(ZZ, n, (0, 0, 0))
             sage: l.count(v), ZZ(round(m*f(v)/c))
-            (57, 27)
+            (57, 64)
 
         """
         if self.B != identity_matrix(ZZ, self.B.nrows()):

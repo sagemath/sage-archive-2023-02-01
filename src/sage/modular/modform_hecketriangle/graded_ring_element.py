@@ -1382,7 +1382,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         """
         return self.q_expansion(prec, True, None, d_num_prec, fix_prec)
 
-    def __call__(self, tau, prec = None, num_prec = None):
+    def evaluate(self, tau, prec = None, num_prec = None):
         r"""
         Try too return ``self`` evaluated at a point ``tau``
         in the upper half plane, where ``self`` is interpreted
@@ -1622,3 +1622,14 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             E2    = self.parent().graded_ring().E2()
             dval  = self.parent().group().dvalue().n(num_prec)
             return self._rat.subs(x=f_rho(tau), y=f_i(tau), z=E2(tau), d=dval)
+
+    def __call__(self, tau, prec = None, num_prec = None):
+        r"""
+        Try too return ``self`` evaluated at a point ``tau``
+        in the upper half plane, where ``self`` is interpreted
+        as a function in ``tau``, where ``q=exp(2*pi*i*tau)``.
+
+        See :meth:`.evaluate` for more details.
+        """
+
+        return self.evaluate(tau, prec, num_prec)

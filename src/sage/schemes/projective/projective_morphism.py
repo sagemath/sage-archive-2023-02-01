@@ -1196,29 +1196,37 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([t*x^2+t*y^2,6*y^2])
             sage: f.resultant()
             2*t^2
+
         ::
+
             sage: R.<t> = PolynomialRing(GF(17))
             sage: P.<x,y,z> = ProjectiveSpace(R,2)
             sage: H = Hom(P,P)
             sage: f = H([t*x^2+t*y^2,6*y^2,2*t*z^2])
             sage: f.resultant()
             13*t^8
+
         ::
+
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: H = Hom(P,P)
             sage: F = H([x^2+y^2,6*y^2,10*x*z+z^2+y^2])
             sage: F.resultant()
             1296
+
         ::
+
             sage: R.<t>=PolynomialRing(QQ)
-            sage: s=(t^3+t+1).roots(QQbar)[0][0]
+            sage: s = (t^3+t+1).roots(QQbar)[0][0]
             sage: P.<x,y>=ProjectiveSpace(QQbar,1)
-            sage: H=Hom(P,P)
-            sage: f=H([s*x^3-13*y^3,y^3-15*y^3])
+            sage: H = Hom(P,P)
+            sage: f = H([s*x^3-13*y^3,y^3-15*y^3])
             sage: f.resultant()
             871.6925062959149?
             """
 
+        if self.domain().dimension_relative() != self.codomain().dimension_relative():
+            raise TypeError("Domain and Codomain should be of same dimension")
         if normalize is True:
             F = copy(self)
             F.normalize_coordinates()
@@ -1240,7 +1248,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 return(self.domain().base_ring()(res))
             except (TypeError, PariError):
                 pass
-        #Otherwise, use Macauley
+        #Otherwise, use Macaulay
         R = F[0].parent()
         res = R.macaulay_resultant(F._polys)
         return res #Coercion here is not necessary as it is already done in Macaulay Resultant

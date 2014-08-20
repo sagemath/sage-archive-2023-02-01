@@ -1121,16 +1121,35 @@ class IncidenceStructure(object):
 
         EXAMPLES:
 
-        A resolvable design::
+        Some resolvable designs::
 
             sage: TD = designs.transversal_design(2,2,resolvable=True)
             sage: TD.is_resolvable()
             True
 
-        Its classes::
+            sage: AG = designs.AffineGeometryDesign(3,1,GF(2))
+            sage: AG.is_resolvable()
+            True
 
-            sage: TD.is_resolvable(True) # random
+        Their classes::
+
+            sage: b,cls = TD.is_resolvable(True)
+            sage: b
+            True
+            sage: cls # random
             [[[0, 3], [1, 2]], [[1, 3], [0, 2]]]
+
+            sage: b,cls = AG.is_resolvable(True)
+            sage: b
+            True
+            sage: cls # random
+            [[[6, 7], [4, 5], [0, 1], [2, 3]],
+             [[5, 7], [0, 4], [3, 6], [1, 2]],
+             [[0, 2], [4, 7], [1, 3], [5, 6]],
+             [[3, 4], [0, 7], [1, 5], [2, 6]],
+             [[3, 7], [1, 6], [0, 5], [2, 4]],
+             [[0, 6], [2, 7], [1, 4], [3, 5]],
+             [[4, 6], [0, 3], [2, 5], [1, 7]]]
 
         A non-resolvable design::
 
@@ -1139,15 +1158,27 @@ class IncidenceStructure(object):
             False
             sage: Fano.is_resolvable(True)
             (False, [])
+
+        TESTS::
+
+            sage: _,cls1 = AG.is_resolvable(certificate=True, copy=True)
+            sage: _,cls2 = AG.is_resolvable(certificate=True, copy=True)
+            sage: cls1 is cls2
+            False
+
+            sage: _,cls1 = AG.is_resolvable(certificate=True, copy=False)
+            sage: _,cls2 = AG.is_resolvable(certificate=True, copy=False)
+            sage: cls1 is cls2
+            True
         """
         if self._classes is None:
-            sum_of_degrees = sum(len(x) for x in self._blocks)
-            if sum_of_degrees % self.num_points() != 0:
+            degrees = set(self.degree().itervalues())
+            if len(degrees) != 1:
                 self._classes = False
             else:
                 from sage.numerical.mip import MixedIntegerLinearProgram
                 from sage.numerical.mip import MIPSolverException
-                n_classes = sum_of_degrees // self.num_points()
+                n_classes = degrees.pop()
                 p = MixedIntegerLinearProgram(solver=solver)
                 b = p.new_variable(binary=True)
                 domain = range(self.num_points())
@@ -1176,27 +1207,30 @@ class IncidenceStructure(object):
                     self._classes = [[] for _ in range(n_classes)]
                     for (t,i),v in p.get_values(b).iteritems():
                         if v:
-                            self._classes[t].append(i)
+                            self._classes[t].append(self._blocks[i])
 
-        if check and self._classes:
+        if check and self._classes is not False:
+            assert sorted(id(c) for cls in self._classes for c in cls) == sorted(id(b) for b in self._blocks), "some set does not appear exactly once"
             domain = range(self.num_points())
-            assert sorted(sum(self._classes,[])) == range(len(self._blocks)), "some set does not appear exactly once"
             for i,c in enumerate(self._classes):
-                assert sorted(sum([self._blocks[bid] for bid in c],[])) == domain, "class {} is not a partition".format(i)
+                assert sorted(sum(c,[])) == domain, "class {} is not a partition".format(i)
 
-        if not certificate:
-            return bool(self._classes)
+        if self._classes is False:
+            return (False, []) if certificate else False
 
-        if not self._classes:
-            return (False, [])
-
-        if copy:
-            if self._point_to_index is None:
-                return [[self._blocks[Ci] for Ci in classs] for classs in self._classes]
+        if certificate:
+            if copy:
+                if self._point_to_index is None:
+                    classes = [[block[:] for block in classs] for classs in self._classes]
+                else:
+                    classes = [[[self._points[i] for i in block] for block in classs] for classs in self._classes]
             else:
-                return [[[self._points[i] for i in self._blocks[Ci]] for Ci in classs] for classs in self._classes]
+                classes = self._classes
+
+            return (True, classes)
+
         else:
-            return self._classes
+            return True
 
     ###############
     # Deprecation #

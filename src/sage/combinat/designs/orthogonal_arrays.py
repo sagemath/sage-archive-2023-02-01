@@ -312,16 +312,12 @@ def transversal_design(k,n,resolvable=False,check=True,existence=False):
             return orthogonal_array(k,n,resolvable=True,existence=True)
         else:
             OA = orthogonal_array(k,n,resolvable=True,check=False)
-            TD = [[i*n+c for i,c in enumerate(B)] for B in OA]
-            # As the blocks will be sorted, the classes are not
-            # [0,..,n-1],[n,...,2n-1],...
-            block_to_class = range(n*n)
-            block_to_class.sort(key=lambda x:TD[x])
-            block_to_class = [x//n for x in block_to_class]
-            TD = TransversalDesign(TD,k,n,check=check,copy=False)
-            TD._classes = [[] for _ in range(n)]
-            for bi,i in enumerate(block_to_class):
-                TD._classes[i].append(bi)
+            # the call to TransversalDesign will sort the block so we can not
+            # rely on the order *after* the call
+            blocks = [[i*n+c for i,c in enumerate(B)] for B in OA]
+            classes = [blocks[i:i+n] for i in range(0,n*n,n)]
+            TD = TransversalDesign(blocks,k,n,check=check,copy=False)
+            TD._classes = classes
             return TD
 
     # Is k is None we find the largest available

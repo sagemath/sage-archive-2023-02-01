@@ -49,13 +49,6 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
-#shell script to check for JVM
-cp "$SPKGDIR"/patches/testjava.sh "$SAGE_LOCAL"/share/jmol/
-if [ $? -ne 0 ]; then
-   echo "Error adding testjava.sh to jmol directory. Exiting."
-   exit 1
-fi
-
 if [ ! -d "$SAGE_LOCAL"/bin ]; then
    echo "Directory "$SAGE_LOCAL"/bin does not exist.  Your Sage install is broken. Exiting."
    exit 1

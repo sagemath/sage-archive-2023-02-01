@@ -55,7 +55,7 @@ class Link:
           Link with 2 components represented by 5 crossings
     """
 
-    def __init__(self, x):
+    def __init__(self, input_):
         r"""
 
         The Python constructor.
@@ -125,30 +125,30 @@ class Link:
             sage: L
             Link with 2 components represented by 2 crossings
         """
-        self._x = x
-        if type(self._x) == list:
-            if len(self._x) != 2:
-                for i in self._x:
+        self.input_ = input_
+        if type(self.input_) == list:
+            if len(self.input_) != 2:
+                for i in self.input_:
                     if len(i) != 4:
                       raise Exception("Invalid PD_Code")
                 else:
-                    self._PD_code = self._x
+                    self._PD_code = self.input_
                     self._oriented_gauss_code = None
                     self._braid = None
 
-            elif len(self._x) == 2:
-                if type(self._x[0][0]) == list:
-                    self._oriented_gauss_code = self._x
+            elif len(self.input_) == 2:
+                if type(self._input[0][0]) == list:
+                    self._oriented_gauss_code = self.input_
                     self._PD_code = None
                     self._braid = None
                 else:
-                    self._PD_code = self._x
+                    self._PD_code = self.input_
                     self._oriented_gauss_code = None
                     self._braid = None
         else:
             from sage.groups.braid import Braid
-            if isinstance(self._x, Braid):
-                self._braid = self._x
+            if isinstance(self.input_, Braid):
+                self._braid = self.input_
                 self._oriented_gauss_code = None
                 self._PD_code = None
 
@@ -569,7 +569,7 @@ class Link:
 
     def _dowker_notation_(self):
         r"""
-        Returns the dowket notation of the link. It is the pair of incoming
+        Returns the dowker notation of the link. It is the pair of incoming
         under cross and the incoming over cross. This information at every cross
         gives the dowker notation.
 

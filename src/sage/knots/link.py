@@ -8,8 +8,7 @@ Link class
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#from sage.misc.lazy_import import lazy_import
-from sage.groups.braid import Braid, BraidGroup
+from sage.misc.lazy_import import lazy_import
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -26,7 +25,7 @@ from sage.combinat.permutation import Permutations
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.symbolic.ring import SR, var
 
-#lazy_import('sage.groups.braid', ['Braid', 'BraidGroup'])
+lazy_import('sage.groups.braid', ['Braid', 'BraidGroup'])
 
 class Link:
 
@@ -146,14 +145,15 @@ class Link:
                     self._PD_code = self._x
                     self._oriented_gauss_code = None
                     self._braid = None
-
-        elif isinstance(self._x, Braid):
-            self._braid = self._x
-            self._oriented_gauss_code = None
-            self._PD_code = None
-
         else:
-            raise Exception("Invalid Input")
+            from sage.groups.braid import Braid
+            if isinstance(self._x, Braid):
+                self._braid = self._x
+                self._oriented_gauss_code = None
+                self._PD_code = None
+
+            else:
+                raise Exception("Invalid Input")
 
     def __repr__(self):
         r"""

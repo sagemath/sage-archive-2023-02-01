@@ -1330,9 +1330,9 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                 -x^2 - y^2
                 Defn: Defined on coordinates by sending (x : y) to
                     (x : y)
-                    
+
             Check that :trac:'16834' is fixed::
-            
+
                 sage: A.<x,y,z> = AffineSpace(RR,3)
                 sage: h = Hom(A,A)
                 sage: f = h([x^2+1.5,y^3,z^5-2.0])
@@ -1340,9 +1340,9 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                 Scheme endomorphism of Affine Space of dimension 3 over Complex Field with 53 bits of precision
                 Defn: Defined on coordinates by sending (x, y, z) to
                     (x^2 + 1.50000000000000, y^3, z^5 - 2.00000000000000)
-                    
+
             ::
-            
+
                 sage: A.<x,y> = ProjectiveSpace(ZZ,1)
                 sage: B.<u,v> = AffineSpace(QQ,2)
                 sage: h = Hom(A,B)
@@ -1353,11 +1353,9 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                     To:   Affine Space of dimension 2 over Rational Field
                     Defn: Defined on coordinates by sending (x : y) to
                     (x^2, y^2)
-                    
         """
-        
         T=self.domain().change_ring(R)
-        
+
         if self.is_endomorphism():
             H=End(T)
         else:
@@ -1365,7 +1363,6 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             H=Hom(T,S)
 
         G=[f.change_ring(R) for f in self._polys]
-        
         return(H(G,check))
 
 

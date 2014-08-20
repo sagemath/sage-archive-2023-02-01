@@ -482,7 +482,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         INPUT:
 
-        - ``vec``     - A coordinate vector with respect to ``self.gens()``.
+        - ``vec`` -- A coordinate vector with respect to ``self.gens()``.
 
         OUTPUT:
 
@@ -527,7 +527,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         INPUT:
 
-        - ``vec``     - An element of ``self.module()`` or ``self.ambient_module()``.
+        - ``vec`` -- An element of ``self.module()`` or ``self.ambient_module()``.
 
         OUTPUT:
 
@@ -1039,7 +1039,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         INPUT:
         
-        - ``m``            - An integer ``m >= -self._l1``.
+        - ``m`` -- An integer ``m >= -self._l1``.
 
         OUTPUT:
 
@@ -1248,7 +1248,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         INPUT:
 
-        - `v` -- An element of ``self``.
+        - ``v`` -- An element of ``self``.
         
         EXAMPLES::
 
@@ -1281,7 +1281,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         INPUT:
 
-        - `v` -- An element of ``self``.
+        - ``v`` -- An element of ``self``.
 
         EXAMPLES::
 

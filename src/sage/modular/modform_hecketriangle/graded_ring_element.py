@@ -1272,7 +1272,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                             Alternatively also a value as in ``d`` can be specified.
                             Also see ``MFSeriesConstructor``.
 
-        - ``d``      -- ``None`` (default) or a value to substitute for d.
+        - ``d``          -- ``None`` (default) or a value to substitute for d.
                             The base_ring will be changed accordingly (if possible).
                             Also see ``MFSeriesConstructor``.
 

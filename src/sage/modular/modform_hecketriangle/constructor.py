@@ -38,9 +38,9 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
 
     INPUT:
 
-    - `f`                -- A rational function in ``x,y,z,d`` over ``base_ring``.
+    - ``f``              -- A rational function in ``x,y,z,d`` over ``base_ring``.
 
-    - `n`                -- An integer greater or equal to `3` corresponding
+    - ``n``              -- An integer greater or equal to `3` corresponding
                             to the ``HeckeTriangleGroup`` with that parameter
                             (default: `3`).
 
@@ -52,15 +52,19 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
     A tuple ``(elem, homo, k, ep, analytic_type)`` describing the basic
     analytic properties of `f` (with the interpretation indicated above).
     
-    - ``elem``            - ``True`` if `f` has a homogeneous denominator.
-    - ``homo``            - ``True`` if `f` also has a homogeneous numerator.
-    - ``k``               - ``None`` if `f` is not homogeneneous, otherwise
+    - ``elem``           -- ``True`` if `f` has a homogeneous denominator.
+
+    - ``homo``           -- ``True`` if `f` also has a homogeneous numerator.
+
+    - ``k``              -- ``None`` if `f` is not homogeneneous, otherwise
                             the weight of `f` (which is the first component
                             of its degree).
-    - ``ep``              - ``None`` if `f` is not homogeneous, otherwise
+
+    - ``ep``             -- ``None`` if `f` is not homogeneous, otherwise
                             the multiplier of `f` (which is the second component
                             of its degree)
-    - ``analytic_type``   - The ``AnalyticType`` of `f`.
+
+    - ``analytic_type``  -- The ``AnalyticType`` of `f`.
 
     For the zero function the degree `(0, 1)` is choosen.
 

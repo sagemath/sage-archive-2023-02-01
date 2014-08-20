@@ -363,7 +363,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         INPUT:
 
-        - ``v``- An element of ``self``.
+        - ``v`` -- An element of ``self``.
 
         OUTPUT:
 

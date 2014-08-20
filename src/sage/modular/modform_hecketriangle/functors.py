@@ -521,8 +521,6 @@ class FormsRingFunctor(ConstructionFunctor):
         See :meth:`__call__` for a description of the functor.
 
         INPUT:
-        
-                                                                                
                                                                             
         - ``analytic_type``  -- An element of ``AnalyticType()``. 
 

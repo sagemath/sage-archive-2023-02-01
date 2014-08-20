@@ -855,7 +855,7 @@ class FormsRing_abstract(Parent):
 
         INPUT:
 
-        - `k` -- An integer.
+        - ``k``  -- An integer.
 
         - ``ep`` -- `+1` or `-1`.
 

@@ -85,7 +85,9 @@ class QuasiMeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, U
         INPUT:
 
         - ``group``      -- The Hecke triangle group (default: ``HeckeTriangleGroup(3)``)
+
         - ``base_ring``  -- The base_ring (default: ``ZZ``).
+
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
                             This is mainly used by the homogeneous spaces.

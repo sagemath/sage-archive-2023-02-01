@@ -208,7 +208,7 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         INPUT:
 
-        - `r` -- An integer.
+        - ``r`` -- An integer.
 
         EXAMPLES::
 
@@ -275,7 +275,7 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         INPUT:
 
-        - `r` -- An integer.
+        - ``r`` -- An integer.
 
         EXAMPLES::
 
@@ -329,7 +329,7 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         INPUT:
 
-        - ``v``    - An element of ``self``.
+        - ``v`` -- An element of ``self``.
 
         OUTPUT:
 
@@ -439,7 +439,7 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         INPUT:
 
-        - `r` -- An integer.
+        - ``r`` -- An integer.
 
         EXAMPLES::
 
@@ -490,7 +490,7 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         INPUT:
 
-        - `r` -- An integer.
+        - ``r`` -- An integer.
 
         EXAMPLES::
 
@@ -577,7 +577,7 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         INPUT:
 
-        - ``v``    - An element of ``self``.
+        - ``v`` -- An element of ``self``.
 
         OUTPUT:
 
@@ -816,7 +816,7 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         INPUT:
 
-        - ``v``    - An element of ``self``.
+        - ``v`` -- An element of ``self``.
 
         OUTPUT:
 
@@ -948,7 +948,7 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         INPUT:
 
-        - ``v``    - An element of ``self``.
+        - ``v`` -- An element of ``self``.
 
         OUTPUT:
 
@@ -1104,7 +1104,7 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
 
         INPUT:
 
-        - ``v``    - An element of ``self``, i.e. in this case the zero vector.
+        - ``v`` -- An element of ``self``, i.e. in this case the zero vector.
 
         EXAMPLES::
 

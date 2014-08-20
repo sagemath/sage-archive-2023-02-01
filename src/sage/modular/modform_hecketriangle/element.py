@@ -31,6 +31,7 @@ class FormsElement(FormsRingElement):
         INPUT:
 
         - ``parent``     -- a modular form space
+
         - ``rat``        -- a rational function which corresponds to a
                             modular form in the modular form space
 

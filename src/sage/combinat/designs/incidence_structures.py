@@ -1080,23 +1080,35 @@ class IncidenceStructure(object):
             gens = [[tuple([i-1 for i in cycle]) for cycle in g] for g in gens]
         return PermutationGroup(gens, domain=self._points)
 
-    def is_resolvable(self, certificate=False, copy=True, check=True):
+    def is_resolvable(self, certificate=False, solver=None, verbose=0, copy=True, check=True):
         r"""
         Test whether the hypergraph is resolvable
 
         A hypergraph is said to be resolvable if its sets can be partitionned
         into classes, each of which is a partition of the ground set.
 
-        Unless the design has been built to be resolvable, in which case the
-        classes should be cached and the function should answer instantaneously,
-        computing the partition is a very time-consuming problem. It is solved
-        by an Integer Linear Program, and its performances can thus change
-        according to the solvers available.
+        .. NOTE::
+
+            This problem is solved using an Integer Linear Program, and GLPK
+            (the default LP solver) has been reported to be very slow on some
+            instances. If you hit this wall, consider installing a more powerful
+            LP solver (CPLEX, Gurobi, ...).
 
         INPUT:
 
         - ``certificate`` (boolean) -- whether to return the classes along with
           the binary answer (see examples below).
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         - ``copy`` (boolean) -- ``True`` by default. When set to ``False``, a
           pointer toward the object's internal data is given. Set it to
@@ -1136,7 +1148,7 @@ class IncidenceStructure(object):
                 from sage.numerical.mip import MixedIntegerLinearProgram
                 from sage.numerical.mip import MIPSolverException
                 n_classes = sum_of_degrees // self.num_points()
-                p = MixedIntegerLinearProgram()
+                p = MixedIntegerLinearProgram(solver=solver)
                 b = p.new_variable(binary=True)
                 domain = range(self.num_points())
 
@@ -1156,7 +1168,7 @@ class IncidenceStructure(object):
                     p.add_constraint(p.sum(b[t,i] for t in range(n_classes)) == 1)
 
                 try:
-                    p.solve()
+                    p.solve(log=verbose)
                 except MIPSolverException:
                     self._classes = False
                 else:

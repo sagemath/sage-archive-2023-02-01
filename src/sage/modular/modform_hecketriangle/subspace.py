@@ -113,7 +113,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
     Submodule of (Hecke) forms in the given ambient space for the given basis.
     """
-            
+
     @staticmethod
     def __classcall__(cls, ambient_space, basis=()):
         r"""
@@ -214,7 +214,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         # return "Subspace with basis {} of {}".format([v.as_ring_element() for v in self.basis()], self._ambient_space)
         return "Subspace of dimension {} of {}".format(len(self._basis), self._ambient_space)
 
-    def change_ring(self, new_base_ring):   
+    def change_ring(self, new_base_ring):
         r"""
         Return the same space as ``self`` but over a new base ring ``new_base_ring``.
 
@@ -226,9 +226,9 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: subspace.change_ring(CC)
             Subspace of dimension 2 of ModularForms(n=6, k=20, ep=1) over Complex Field with 53 bits of precision
         """
-                            
+
         return self.__class__.__base__(self._ambient_space.change_ring(new_base_ring), self._basis)
- 
+
     def change_ambient_space(self, new_ambient_space):
         r"""
         Return a new subspace with the same basis but inside a different ambient space

@@ -147,8 +147,8 @@ class FormsElement(FormsRingElement):
         respect to ``self.parent().ambient_space().gens()``.
 
         The returned coordinate vector is an element
-        of ``self.parent().module()``.        
-        
+        of ``self.parent().module()``.
+
         Mote: This uses the corresponding function of the
         parent. If the parent has not defined a coordinate
         vector function or an ambient module for

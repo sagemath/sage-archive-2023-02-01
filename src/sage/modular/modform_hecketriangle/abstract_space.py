@@ -33,7 +33,7 @@ class FormsSpace_abstract(FormsRing_abstract):
     Abstract (Hecke) forms space.
 
     This should never be called directly. Instead one should
-    instantiate one of the derived classes of this class. 
+    instantiate one of the derived classes of this class.
     """
 
     from element import FormsElement
@@ -285,7 +285,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         r"""
         Return the one element from the corresponding space
         of constant forms.
-        
+
         Note: The one element does not lie in ``self`` in general.
 
         EXAMPLES::
@@ -410,7 +410,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         r"""
         Return a functor that constructs ``self`` (used by the coercion machinery).
 
-        EXAMPLE:: 
+        EXAMPLE::
 
             sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
             sage: QuasiModularForms(n=4, k=2, ep=1, base_ring=CC).construction()
@@ -501,7 +501,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
             sage: el.parent() == MF
             True
-            
+
             sage: subspace = MF.subspace([MF.gen(0), MF.gen(1)])
             sage: el = subspace.element_from_coordinates([1,1])
             sage: el
@@ -640,7 +640,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         of the upper half plane to the fundamental domain, the
         function ``self.group().get_FD(t, self.aut_factor)`` can be used.
         It returns the full automorphy factor of the transformation matrix
-        applied to ``t``.        
+        applied to ``t``.
 
         INPUT:
 
@@ -754,7 +754,7 @@ class FormsSpace_abstract(FormsRing_abstract):
                              of the polynomial (default: ``False``).
 
         - ``d``           -- The value which should be substituted for ``d`` (default: ``None``).
-                             The value is ignored if ``fix_d=True``.                             
+                             The value is ignored if ``fix_d=True``.
 
         - ``d_num_prec``  -- The numerical precision to be used for ``d``
                              in case ``fix_d=True`` or ``d`` is set,
@@ -781,7 +781,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.Faber_pol(0)
             1/d^2*q^2 - 117/(200*d^2)*q + 9113/(320000*d^2)
             sage: MF.Faber_pol(2)
-            1/d^4*q^4 - 11/(8*d^4)*q^3 + 41013/(80000*d^4)*q^2 - 2251291/(48000000*d^4)*q + 1974089431/(4915200000000*d^4)            
+            1/d^4*q^4 - 11/(8*d^4)*q^3 + 41013/(80000*d^4)*q^2 - 2251291/(48000000*d^4)*q + 1974089431/(4915200000000*d^4)
             sage: (MF.Faber_pol(-2)(MF.J_inv())*MF.F_simple()).q_expansion(prec=MF._l1+2)
             q^2 - 41/(200*d)*q^3 + O(q^4)
             sage: (MF.Faber_pol(-1)(MF.J_inv())*MF.F_simple()).q_expansion(prec=MF._l1+1)
@@ -873,7 +873,7 @@ class FormsSpace_abstract(FormsRing_abstract):
                              of the polynomial (default: ``False``).
 
         - ``d``           -- The value which should be substituted for ``d`` (default: ``None``).
-                             The value is ignored if ``fix_d=True``.                             
+                             The value is ignored if ``fix_d=True``.
 
         - ``d_num_prec``  -- The numerical precision to be used for ``d``
                              in case ``fix_d=True`` or ``d`` is set,
@@ -968,7 +968,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         is of the form ``q^(-m) + O(q^(self._l1 + 1))``.
 
         INPUT:
-        
+
         - ``m``           -- An integer ``m >= -self._l1``.
 
         OUTPUT:
@@ -989,7 +989,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             (-81*x^13*y*d + 62*x^8*y^3*d + 19*x^3*y^5*d)/(-100)
             sage: MF.F_basis_pol(0)
             (141913*x^13*y + 168974*x^8*y^3 + 9113*x^3*y^5)/320000
-            
+
             sage: MF(MF.F_basis_pol(-2)).q_expansion(prec=MF._l1+2)
             q^2 - 41/(200*d)*q^3 + O(q^4)
             sage: MF(MF.F_basis_pol(-1)).q_expansion(prec=MF._l1+1)
@@ -1038,7 +1038,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         of the corresponding degree.
 
         INPUT:
-        
+
         - ``m`` -- An integer ``m >= -self._l1``.
 
         OUTPUT:
@@ -1098,7 +1098,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         INPUT:
 
-        - ``laurent_series``  -- A Laurent or Power series.        
+        - ``laurent_series``  -- A Laurent or Power series.
 
         OUTPUT:
 
@@ -1201,7 +1201,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         return infinity
- 
+
     def rank(self):
         r"""
         Return the rank of ``self``.
@@ -1233,7 +1233,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         return self.dimension()
- 
+
     def coordinate_vector(self, v):
         r"""
         This method should be overloaded by subclasses.
@@ -1249,7 +1249,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         INPUT:
 
         - ``v`` -- An element of ``self``.
-        
+
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import ModularForms
@@ -1273,7 +1273,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         Return the coordinate vector of the element ``v``
         in ``self.module()`` with respect to the basis
         from ``self.ambient_space``.
-        
+
         NOTE:
 
         Elements use this method (from their parent)
@@ -1302,13 +1302,13 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         return self.module()(self.ambient_space().coordinate_vector(v))
- 
+
     def gens(self):
         r"""
         This method should be overloaded by subclasses.
 
         Return a basis of ``self``.
-        
+
         Note that the coordinate vector of elements of ``self``
         are with respect to this basis.
 
@@ -1321,7 +1321,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         raise NotImplementedError()
- 
+
     def gen(self, k=0):
         r"""
         Return the ``k``'th basis element of ``self``

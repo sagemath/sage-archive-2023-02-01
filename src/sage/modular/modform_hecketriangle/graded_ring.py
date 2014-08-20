@@ -44,7 +44,7 @@ def canonical_parameters(group, base_ring, red_hom, n=None):
     if (group == infinity):
         group = HeckeTriangleGroup(infinity)
     else:
-        try: 
+        try:
             group = HeckeTriangleGroup(ZZ(group))
         except TypeError:
             group = HeckeTriangleGroup(group.n())

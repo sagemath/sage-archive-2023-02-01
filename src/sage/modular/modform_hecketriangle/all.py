@@ -22,6 +22,6 @@ from graded_ring import ( QuasiMeromorphicModularFormsRing, QuasiWeakModularForm
 
 from space       import ( QuasiMeromorphicModularForms, QuasiWeakModularForms, QuasiModularForms, QuasiCuspForms,\
                           MeromorphicModularForms, WeakModularForms, ModularForms, CuspForms,\
-                          ZeroForm ) 
+                          ZeroForm )
 
 from subspace    import ModularFormsSubSpace

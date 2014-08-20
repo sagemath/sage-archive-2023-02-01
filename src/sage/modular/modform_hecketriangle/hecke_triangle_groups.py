@@ -147,7 +147,6 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             True
             sage: HeckeTriangleGroup(10).rho()
             0.95105651629515...? + 0.30901699437494...?*I
-                        
         """
 
         return AlgebraicField()(exp(pi/self._n*i))
@@ -342,14 +341,14 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         r"""
         Return the j'th generator for the usual representatives of
         conjugacy classes of ``self``. It is given by ``V=U^(j-1)*T``.
-        
+
         INPUT:
-        
+
         - ``j``  -- Any integer. To get the usual representatives
                     ``j`` should range from ``1`` to ``self.n()-1``.
 
         OUTPUT:
-        
+
         The corresponding matrix/element.
         The matrix is parabolic if ``j`` is congruent to +-1 modulo ``self.n()``.
         It is elliptic if ``j`` is congruent to 0 modulo ``self.n()``.

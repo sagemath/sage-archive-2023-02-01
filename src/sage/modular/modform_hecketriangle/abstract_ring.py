@@ -639,7 +639,7 @@ class FormsRing_abstract(Parent):
         free_alg         = FreeAlgebra(FractionField(ZZ),6,'X,Y,Z,dX,dY,dZ')
         (X,Y,Z,dX,dY,dZ) = free_alg.gens()
         diff_alg         = free_alg.g_algebra({dX*X:1+X*dX,dY*Y:1+Y*dY,dZ*Z:1+Z*dZ})
-        
+
         return diff_alg
 
     @cached_method

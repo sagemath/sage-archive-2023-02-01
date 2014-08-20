@@ -48,10 +48,10 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
                             polynomial ring (default: ``ZZ``).
 
     OUTPUT:
-    
+
     A tuple ``(elem, homo, k, ep, analytic_type)`` describing the basic
     analytic properties of `f` (with the interpretation indicated above).
-    
+
     - ``elem``           -- ``True`` if `f` has a homogeneous denominator.
 
     - ``homo``           -- ``True`` if `f` also has a homogeneous numerator.
@@ -115,7 +115,7 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
     if (f == 0):
         #       elem, homo, k,     ep,    analytic_type
         return (True, True, QQ(0), ZZ(1), AT([]))
- 
+
     analytic_type = AT(["quasi", "mero"])
 
     R          = PolynomialRing(base_ring,'x,y,z,d')

@@ -56,7 +56,7 @@ All classes and functions are also individually documented (with doctest example
 
 - **Analytic type:**
   The analytic type of forms, including the behavior at infinity:
-  
+
   - Meromorphic (and meromorphic at infinity)
   - Weakly holomorphic (holomorphic and meromorphic at infinity)
   - Holomorphic (and holomorphic at infinity)
@@ -101,7 +101,7 @@ All classes and functions are also individually documented (with doctest example
   The analytic type of forms is checked during construction.
   The analytic type of parent spaces after arithmetic/differential operations
   with elements is changed (extended/reduced) accordingly.
-  
+
   In particular it is possible to multiply arbitrary modular forms (and end up
   with an element of a modular forms space). If two forms of different
   weight/multiplier are added then an element of the corresponding
@@ -202,13 +202,13 @@ All classes and functions are also individually documented (with doctest example
 
   EXAMPLES::
 
-      sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing  
+      sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
       sage: ModularFormsRing(n=5).E4()
       f_rho^3
       sage: ModularFormsRing(n=5).E6()
       f_rho^2*f_i
       sage: ModularFormsRing(n=5).Delta()
-      f_rho^9*d - f_rho^4*f_i^2*d 
+      f_rho^9*d - f_rho^4*f_i^2*d
       sage: ModularFormsRing(n=5).Delta() == ModularFormsRing(n=5).f_inf()*ModularFormsRing(n=5).f_rho()^4
       True
 
@@ -292,12 +292,12 @@ All classes and functions are also individually documented (with doctest example
   work and fit into the coercion framework. In particular ring elements
   are interpreted as constant modular forms in this context and base
   extensions are done if necessary.
-  
+
 
 - **Fourier expansion of (quasi) modular forms (for Hecke triangle groups):**
   Each (quasi) modular form (in fact each ring element) possesses a Fourier
   expansion of the form ``sum_{n>=n_0} a_n q^n``, where ``n_0`` is an integer,
-  ``q=exp(2*pi*i*z/lambda)`` and the coefficients ``a_n`` are rational numbers 
+  ``q=exp(2*pi*i*z/lambda)`` and the coefficients ``a_n`` are rational numbers
   (or more generally an extension of rational numbers) up to a power of ``d``,
   where ``d`` is the (possibly) transcendental parameter described above.
   I.e. the coefficient ring is given by ``Frac(R)(d)``.
@@ -322,7 +322,7 @@ All classes and functions are also individually documented (with doctest example
   (Quasi) modular forms (and also ring elements) can be viewed as
   functions from the upper half plane and can be numerically evaluated
   by using the Fourier expansion.
-  
+
   The evaluation uses the (quasi) modularity properties (if possible)
   for a faster and more precise evaluation. The precision of the result
   depends both on the numerical precision and on the default precision

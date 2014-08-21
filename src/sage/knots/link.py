@@ -153,10 +153,14 @@ class Link:
                         if type(i) != list:
                             raise Exception("Invalid Input")
                     else:
-                        self._oriented_gauss_code = self.input_
-                        self._PD_code = None
-                        self._braid = None
-
+                        flat = [x for y in self.input_[0] for x in y]
+                        a, b = max(flat), min(flat)
+                        if 2 * len(self.input_[1]) == len(flat) and set(range(b, a + 1)) - set([0]) == set(flat):
+                            self._oriented_gauss_code = self.input_
+                            self._PD_code = None
+                            self._braid = None
+                        else:
+                            raise Exception("Invalid Input")
         else:
             from sage.groups.braid import Braid
             if isinstance(self.input_, Braid):

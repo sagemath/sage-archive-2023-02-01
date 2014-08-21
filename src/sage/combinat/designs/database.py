@@ -1,95 +1,28 @@
 r"""
 Database of small combinatorial designs
 
-This module implements known constructions combinatorial designs, and in
-particular of :mod:`Orthogonal Arrays
-<sage.combinat.designs.orthogonal_arrays>`. Most of them come from the chapter
-on :mod:`Mutually Orthogonal Latin Squares
-<sage.combinat.designs.latin_squares>` from the Handbook of Combinatorial
-Designs.
+This module implements combinatorial designs that cannot be obtained by more
+general constructions. Most of them come from the Handbook of Combinatorial
+Designs [DesignHandbook]_.
 
-Most of this would only be a dream without the mathematical knowledge and help
-of Julian R. Abel.
+All this would only be a dream without the mathematical knowledge and help of
+Julian R. Abel.
 
-All the designs returned by these functions can be obtained through the
-``designs.<tab>`` functions.
+These functions can all be obtained through the ``designs.<tab>`` functions.
 
-Implemented constructions :
+This module implements:
 
-- :func:`OA(7,18) <OA_7_18>`,
-  :func:`OA(6,20) <OA_6_20>`,
-  :func:`OA(7,21) <OA_7_21>`,
-  :func:`OA(5,22) <OA_5_22>`,
-  :func:`OA(9,24) <OA_9_24>`,
-  :func:`OA(6,26) <OA_6_26>`,
-  :func:`OA(7,28) <OA_7_28>`,
-  :func:`OA(6,30) <OA_6_30>`,
-  :func:`OA(7,33) <OA_7_33>`,
-  :func:`OA(6,34) <OA_6_34>`,
-  :func:`OA(7,35) <OA_7_35>`,
-  :func:`OA(10,36) <OA_10_36>`,
-  :func:`OA(6,38) <OA_6_38>`,
-  :func:`OA(7,39) <OA_7_39>`,
-  :func:`OA(9,40) <OA_9_40>`,
-  :func:`OA(7,42) <OA_7_42>`,
-  :func:`OA(7,44) <OA_7_44>`,
-  :func:`OA(8,45) <OA_8_45>`,
-  :func:`OA(10,48) <OA_10_48>`,
-  :func:`OA(7,51) <OA_7_51>`,
-  :func:`OA(7,52) <OA_7_52>`,
-  :func:`OA(7,54) <OA_7_54>`,
-  :func:`OA(8,55) <OA_8_55>`,
-  :func:`OA(9,56) <OA_9_56>`,
-  :func:`OA(9,57) <OA_9_57>`,
-  :func:`OA(7,60) <OA_7_60>`,
-  :func:`OA(7,62) <OA_7_62>`,
-  :func:`OA(7,66) <OA_7_66>`,
-  :func:`OA(7,68) <OA_7_68>`,
-  :func:`OA(8,69) <OA_8_69>`,
-  :func:`OA(7,74) <OA_7_74>`,
-  :func:`OA(9,75) <OA_9_75>`,
-  :func:`OA(8,76) <OA_8_76>`,
-  :func:`OA(11,80) <OA_11_80>`,
-  :func:`OA(15,112) <OA_15_112>`,
-  :func:`OA(9,120) <OA_9_120>`,
-  :func:`OA(9,135) <OA_9_135>`,
-  :func:`OA(11,160) <OA_11_160>`,
-  :func:`OA(16,176) <OA_16_176>`,
-  :func:`OA(11,185) <OA_11_185>`,
-  :func:`OA(16,208) <OA_16_208>`,
-  :func:`OA(15,224) <OA_15_224>`,
-  :func:`OA(18,273) <OA_18_273>`,
-  :func:`OA(20,352) <OA_20_352>`,
-  :func:`OA(20,416) <OA_20_416>`,
-  :func:`OA(9,514) <OA_9_514>`,
-  :func:`OA(20,544) <OA_20_544>`,
-  :func:`OA(17,560) <OA_17_560>`,
-  :func:`OA(11,640) <OA_11_640>`,
-  :func:`OA(10,796) <OA_10_796>`,
-  :func:`OA(15,896) <OA_15_896>`,
-  :func:`OA(33,993) <OA_33_993>`,
+- <LIST_OF_OA_CONSTRUCTIONS>
 
-- V(4,9),
-  V(6,7),
-  V(8,9),
-  V(8,11),
-  V(10,13),
-  V(8,17),
-  V(10,19),
-  V(8,29),
-  V(10,25),
-  V(10,27),
-  V(10,31),
-  V(10,43),
-  V(12,73)
+- <LIST_OF_MOLS_CONSTRUCTIONS>
 
-- :func:`two MOLS of order 10 <MOLS_10_2>`,
-  :func:`five MOLS of order 12 <MOLS_12_5>`,
-  :func:`four MOLS of order 14 <MOLS_14_4>`,
-  :func:`four MOLS of order 15 <MOLS_15_4>`,
-  :func:`three MOLS of order 18 <MOLS_18_3>`
+- `V(m,t)` vectors:
+<LIST_OF_VMT_VECTORS>
 
 - :func:`RBIBD(120,8,1) <RBIBD_120_8_1>`
+
+- `(v,k,\lambda)`-difference families:
+<LIST_OF_DF>
 
 **Dictionaries**
 
@@ -121,6 +54,7 @@ from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_ma
                                                      OA_n_times_2_pow_c_from_matrix,
                                                      orthogonal_array)
 from orthogonal_arrays import wilson_construction
+from string import join
 
 # Cyclic shift of a list
 cyclic_shift = lambda l,i : l[-i:]+l[:-i]
@@ -401,6 +335,12 @@ MOLS_constructions = {
     15 : (4, MOLS_15_4),
     18 : (3, MOLS_18_3)
 }
+
+# Add this data to the module's doc
+__doc__ = __doc__.replace("<LIST_OF_MOLS_CONSTRUCTIONS>",
+                          join([":func:`{} MOLS of order {} <MOLS_{}_{}>`".format(k,n,n,k)
+                                for n,(k,_) in MOLS_constructions.items()],
+                               ", "))
 
 def OA_7_18():
     r"""
@@ -3183,6 +3123,13 @@ OA_constructions = {
     896 : (15 , OA_15_896),
     993 : (33 , OA_33_993),
 }
+# Add this data to the module's doc
+__doc__ = __doc__.replace("<LIST_OF_OA_CONSTRUCTIONS>",
+                          join([":func:`OA({},{}) <OA_{}_{}>`".format(k,n,k,n)
+                                for n,(k,_) in OA_constructions.items()],
+                               ", "))
+
+__doc__
 
 Vmt_vectors = {
     (4,9) : ((0,1,3,2,8),
@@ -3317,6 +3264,12 @@ Vmt_vectors = {
 # Translate all V(m,t) into OA constructors
 for (m,t),(vec,source) in Vmt_vectors.iteritems():
     OA_constructions[(m+1)*t+1] = (m+2, lambda m=m,t=t,vec=vec:OA_from_Vmt(m,t,vec))
+
+# Add this data to the module's doc
+_all_m = sorted(set(m for m,t in Vmt_vectors.keys()))
+_VMT_DOC = join(["    - `m={}` and `t=` ".format(m)+join(["`{}`".format(t) for _,t in sorted(Vmt_vectors.keys()) if _ == m],", ")
+                 for m in _all_m],"\n")
+__doc__ = __doc__.replace("<LIST_OF_VMT_VECTORS>",_VMT_DOC)
 
 r""""
 Tests for the Vmt vectors
@@ -3759,6 +3712,11 @@ DF = {
            [0,4,21,26,29,33,35,36,47,55,56,60]]},
 }
 
+# Add this data to the module's doc
+_all_l = sorted(set(l for v,k,l in DF.keys()))
+_DF_DOC = join(["    - `\lambda={}`:\n       ".format(l)+join(["`({},{},{})`".format(v,k,l) for v,k,_ in sorted(DF.keys()) if _ == l],", ")
+                 for l in _all_l],"\n")
+__doc__ = __doc__.replace("<LIST_OF_DF>",_DF_DOC)
 
 def RBIBD_120_8_1():
     r"""

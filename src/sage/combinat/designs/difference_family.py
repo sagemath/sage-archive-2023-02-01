@@ -676,12 +676,12 @@ def difference_family(v, k, l=1, existence=False, check=True):
     #      k = (v-1)/2
     #      lambda = (k-1)/2
     elif (len(factorization) == 2 and
-          abs(pow(*factorization[0])-pow(*factorization[1]))==2 and
+          abs(pow(*factorization[0])-pow(*factorization[1])) == 2 and
           k == (v-1)//2 and
           (l is None or 2*l == (v-1)//2-1)):
 
         # A difference set can be built from the set of elements
-        # (x,y) in Z/pZ x Z/(p+2)Z such that:
+        # (x,y) in GF(p) x GF(p+2) such that:
         #
         # - either y=0
         # - x and y with x and y     squares
@@ -697,16 +697,18 @@ def difference_family(v, k, l=1, existence=False, check=True):
             p,q=q,p
         Fp = FiniteField(p,'x')
         Fq = FiniteField(q,'x')
-        Fp_squares = set(x**2 for x in Fp)
-        Fq_squares = set(x**2 for x in Fq)
+        Fpset = set(Fp)
+        Fqset = set(Fq)
+        Fp_squares = set(x**2 for x in Fpset)
+        Fq_squares = set(x**2 for x in Fqset)
 
         # Pairs of squares, pairs of non-squares
         d = []
         d.extend(product(Fp_squares.difference([0]),Fq_squares.difference([0])))
-        d.extend(product(set(Fp).difference(Fp_squares),set(Fq).difference(Fq_squares)))
+        d.extend(product(Fpset.difference(Fp_squares),Fqset.difference(Fq_squares)))
 
         # All (x,0)
-        d.extend((x,0) for x in Fp)
+        d.extend((x,0) for x in Fpset)
 
         G = cartesian_product([Fp,Fq])
         D = [d]

@@ -6965,6 +6965,7 @@ cdef class Matrix(matrix1.Matrix):
         return extended
 
     def weak_popov_form(self, transformation=None, ascend=None, old_call=True):
+    #def weak_popov_form(self, ascend=True,implementation=None):
         """
         Returns a matrix in weak Popov form which is row space-equivalent to
         the input matrix, if the input is over `k[x]` or `k(x)`.
@@ -6991,6 +6992,13 @@ cdef class Matrix(matrix1.Matrix):
           see :trac:`16896`. Until then, this function will print a deprecation
           warning as long as `transformation` was not explicitly set to ``True``
           or ``False``.
+
+         #- `implementation` - String (default: None) indicating the
+         #implementation that should be used. If None the original implementation
+         #is used, if "cython" a cython implementation of mulders-storjohann
+         #is used.
+
+        OUTPUT:
 
         - `ascend` - Deprecated and has no effect.
 
@@ -7211,6 +7219,12 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             return (W,U,d)
 
 
+        """
+        #if implementation=="cython":
+        #    from sage.matrix.weak_popov import mulders_storjohann
+        #    return mulders_storjohann(self)
+        #import sage.matrix.matrix_misc
+        #return sage.matrix.matrix_misc.weak_popov_form(self)
 
     ##########################################################################
     # Functions for symmetries of a matrix under row and column permutations #
@@ -7808,7 +7822,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             []
             sage: M.subdivision(2,4)
             [37 41 43 47]
-        
+
         Indices do not need to be in the right order (:trac:`14064`)::
 
             sage: M.subdivide([4, 2], [3, 1]); M
@@ -14893,4 +14907,4 @@ def _jordan_form_vector_in_difference(V, W):
     for v in V:
         if v not in W_space:
             return v
-    return None 
+    return None

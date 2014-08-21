@@ -171,7 +171,7 @@ cdef class FiniteField(Field):
             False
             sage: F == FiniteField(3^2, 'd')
             False
-            sage: F == FiniteField(3^2, 'c', implementation='pari_ffelt')
+            sage: F == FiniteField(3^2, 'c', impl='pari_ffelt')
             False
         """
         if self is other:

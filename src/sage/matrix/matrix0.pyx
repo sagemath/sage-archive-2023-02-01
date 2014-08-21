@@ -4093,6 +4093,14 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: F = matrix(PF,3,2,[x^2,x,x^3+2,x,4,5])
             sage: F.is_weak_popov()
             False
+            
+        TESTS::
+        
+        A matrix to check if really the rightmost value is taken:
+        
+            sage: F = matrix(PF,2,2,[x^2,x^2,x,5])
+            sage: F.is_weak_popov()
+            True
         
         AUTHOR:
 
@@ -4103,7 +4111,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             for r in range(self.nrows()):
                 max = -1
                 for c in range(self.ncols()):
-                    if self[r,c].degree()>max:
+                    if self[r,c].degree()>=max:
                         max = self[r,c].degree()
                         p = c
                 if not max==-1:

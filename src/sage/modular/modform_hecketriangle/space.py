@@ -366,6 +366,8 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
         k = self._weight
         rmax = QQ(k / ZZ(2)).floor()
         partlist = v.rat().numerator().polynomial(z).list()
+        denom = self.coeff_ring()(v.rat().denominator())
+        partlist = [part/denom for part in partlist]
         parts = partlist + [0]*(rmax + 1 - len(partlist))
         E2 = self.E2()
         coord_vector = []
@@ -614,6 +616,8 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
         k = self._weight
         rmax = QQ(k / ZZ(2)).floor()
         partlist = v.rat().numerator().polynomial(z).list()
+        denom = self.coeff_ring()(v.rat().denominator())
+        partlist = [part/denom for part in partlist]
         parts = partlist + [0]*(rmax + 1 - len(partlist))
         E2 = self.E2()
         coord_vector = []

@@ -34,7 +34,7 @@ cdef leading_position(v):
     return p
 
 
-cdef simple_transformation(M,rowtochange,basisrow,LP):
+cdef simple_transformation(M,rowtochange,basisrow,LP,U=None):
     r"""
     Function to compute a simple transformation on a matrix.
 
@@ -70,16 +70,22 @@ cdef simple_transformation(M,rowtochange,basisrow,LP):
     cdef alpha = (M[rowtochange][LP].coefficients()[-1]) / (M[basisrow][LP].coefficients()[-1])
     for i in range(M.ncols()):
         M[rowtochange,i] -= alpha*M[basisrow,i].shift(delta)
+    if U is not None:
+        for i in range(U.ncols()):
+            U[rowtochange,i] -= alpha*U[basisrow,i].shift(delta)
     return
 
 
-cpdef mulders_storjohann(M):
+cpdef mulders_storjohann(M,transposition=False):
     r"""
     Function to transform M into weak popov form.
 
     INPUT:
 
      - `M` - Matrix.
+     
+     - `transposition` - Boolean (default: False) indicating if a Matrix
+     U should be computed so that U*M = M.weak_popov_form()
      
     OUTPUT:
 
@@ -109,6 +115,11 @@ cpdef mulders_storjohann(M):
           matrices," J. Symbolic Comput. 35 (2003), no. 4, 377--401
           
     """
+    if transposition==True:
+        from sage.matrix.constructor import identity_matrix
+        U = identity_matrix(M.base_ring(),M.nrows())
+    else:
+        U = None
     lps = defaultdict(list)
     for c in range(M.nrows()):
         lp = leading_position(M[c])
@@ -124,9 +135,11 @@ cpdef mulders_storjohann(M):
                 else:
                     arownr = lps[pos][1]
                     brownr = lps[pos][0]
-                simple_transformation(M,arownr,brownr,pos)
+                simple_transformation(M,arownr,brownr,pos,U)
                 lps[pos].remove(arownr)
-                lps[leading_position(M[arownr])].append(arownr) 
+                lps[leading_position(M[arownr])].append(arownr)
                 break
+    if U is not None:
+        return (M,U)
     return M
     

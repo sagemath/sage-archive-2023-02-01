@@ -6965,7 +6965,7 @@ cdef class Matrix(matrix1.Matrix):
         return extended
 
     def weak_popov_form(self, transformation=None, ascend=None, old_call=True):
-    #def weak_popov_form(self, ascend=True,implementation=None):
+    #def weak_popov_form(self, ascend=True,implementation=None,transposition=False):
         """
         Returns a matrix in weak Popov form which is row space-equivalent to
         the input matrix, if the input is over `k[x]` or `k(x)`.
@@ -6997,6 +6997,10 @@ cdef class Matrix(matrix1.Matrix):
          #implementation that should be used. If None the original implementation
          #is used, if "cython" a cython implementation of mulders-storjohann
          #is used.
+
+         - `transposition` - Boolean (default: False) indicating if a
+         matrix U such that U*self = self.weak_popov_form() should be
+         computed. This is only used for implementation "cython".
 
         OUTPUT:
 

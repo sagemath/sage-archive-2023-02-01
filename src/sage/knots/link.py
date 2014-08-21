@@ -27,6 +27,7 @@ from sage.symbolic.ring import SR, var
 
 lazy_import('sage.groups.braid', ['Braid', 'BraidGroup'])
 
+
 class Link:
 
     r"""
@@ -130,21 +131,32 @@ class Link:
             if len(self.input_) != 2:
                 for i in self.input_:
                     if len(i) != 4:
-                      raise Exception("Invalid PD_Code")
+                        raise Exception("Invalid Input")
                 else:
                     self._PD_code = self.input_
                     self._oriented_gauss_code = None
                     self._braid = None
 
             elif len(self.input_) == 2:
-                if type(self.input_[0][0]) == list:
-                    self._oriented_gauss_code = self.input_
-                    self._PD_code = None
-                    self._braid = None
+                for i in self.input_[0]:
+                    if type(i) == list:
+                        ogc = True
+                        break
                 else:
+                    ogc = False
+                if ogc == False:
                     self._PD_code = self.input_
                     self._oriented_gauss_code = None
                     self._braid = None
+                elif ogc == True:
+                    for i in self.input_[0]:
+                        if type(i) != list:
+                            raise Exception("Invalid Input")
+                    else:
+                        self._oriented_gauss_code = self.input_
+                        self._PD_code = None
+                        self._braid = None
+
         else:
             from sage.groups.braid import Braid
             if isinstance(self.input_, Braid):

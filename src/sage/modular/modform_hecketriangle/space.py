@@ -360,6 +360,8 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
             sage: el == MF.element_from_coordinates(vec)    # long time
             True
+            sage: MF.gen(1).coordinate_vector() == vector([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])    # long time
+            True
         """
 
         (x,y,z,d) = self.pol_ring().gens()
@@ -609,6 +611,8 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: el == sum([vec[l]*MF.gen(l) for l in range(0,12)])    # long time
             True
             sage: el == MF.element_from_coordinates(vec)    # long time
+            True
+            sage: MF.gen(1).coordinate_vector() == vector([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
             True
         """
 

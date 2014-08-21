@@ -4044,7 +4044,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         A matrix over a ordered ring is in weak popov form if all leading positions are
         different. A leading position is the position i in a row with the highest order
         (for polynomials this is the degree), for multiple entries with equal but
-        highest order the maximal i is chosen. (The furthest to the right in the matrix)
+        highest order the maximal i is chosen (which is the furthest to the right in
+        the matrix).
 
         .. WARNING::
         
@@ -4074,16 +4075,45 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             NotImplementedError: is_weak_popov only implements support for matrices ordered by a function self[x,y].degree()
             
+        A non square matrix over a polynomial ring over a galois field of size 7:
+
+            sage: PF = PolynomialRing(GF(7),'x')
+            sage: D = matrix(PF,2,4,[x^2+1,1,2,x,3*x+2,0,0,0])
+            sage: D.is_weak_popov()
+            False
+            
+        A matrix with more rows than cols that is still in weak popov form:
+        
+            sage: E = matrix(PF,4,2,[4*x^3+x,x^2+5*x+2,0,0,4,x,0,0])
+            sage: E.is_weak_popov()
+            True
+            
+        A matrix with less cols than non zero rows is never in weak popov form:
+        
+            sage: F = matrix(PF,3,2,[x^2,x,x^3+2,x,4,5])
+            sage: F.is_weak_popov()
+            False
         
         AUTHOR:
 
         - David Moedinger (2014-07-30)
         """
         try:
-            t = [[i for i,j in enumerate(v) if j==max(v)][-1] for v in self.apply_map(lambda x: x.degree()) if max(v)!=-1]
+            t = set()
+            for r in range(self.nrows()):
+                max = -1
+                p = self.ncols()-1
+                for c in range(self.ncols()):
+                    if self[r,c].degree()>max:
+                        max = self[r,c].degree()
+                        p = c
+                if not max==-1:
+                    if p in t:
+                        return False
+                    t.add(p)
         except (NotImplementedError,AttributeError):
             raise NotImplementedError("is_weak_popov only implements support for matrices ordered by a function self[x,y].degree()")
-        return len(t)==len(set(t))
+        return True
 
     ###################################################
     # Invariants of a matrix

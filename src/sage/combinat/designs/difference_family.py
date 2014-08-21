@@ -13,7 +13,7 @@ It defines the following functions:
     :widths: 30, 70
     :delim: |
 
-    :func:`is_difference_family` | Return a (``k``, ``l``)-difference family on an Abelian group of size ``v``.
+    :func:`is_difference_family` | Check if the input is a (``k``, ``l``)-difference family.
     :func:`singer_difference_set` | Return a difference set associated to hyperplanes in a projective space.
     :func:`difference_family` | Return a (``k``, ``l``)-difference family on an Abelian group of size ``v``.
 
@@ -166,8 +166,7 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
         sage: is_difference_family(G, D)
         True
 
-    An example with a short block (i.e. considering restricted difference when a
-    block has a non trivial stabilizer)::
+    The following example has a third block with a non-trivial stabilizer::
 
         sage: G = Zmod(15)
         sage: D = [[0,1,4],[0,2,9],[0,5,10]]
@@ -179,9 +178,12 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
 
         sage: G = DihedralGroup(8)
         sage: x,y = G.gens()
-        sage: D1 = [[1,x,x^4], [1,x^2, y*x], [1,x^5,y], [1,x^6,y*x^2], [1,x^7,y*x^5]]
+        sage: i = G.one()
+        sage: D1 = [[i,x,x^4], [i,x^2, y*x], [i,x^5,y], [i,x^6,y*x^2], [i,x^7,y*x^5]]
         sage: is_difference_family(G, D1, 16, 3, 2)
         True
+        sage: from sage.combinat.designs.bibd import BIBD_from_difference_family
+        sage: bibd = BIBD_from_difference_family(G,D1,lambd=2)
     """
     import operator
 
@@ -227,16 +229,13 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
     if l is None:
         if nb_diff % (v-1) != 0:
             if verbose:
-                print "sum_i (1/s_i) k*(k-1) = {} is not a multiple of (v-1) = {} (stabilizer sizes {})".format(
-                        nb_diff, v-1, map(len,stab))
+                print "the number of differences (={}) must be a multiple of v-1={}".format(nbdiff,v-1)
             return False
         l = nb_diff // (v-1)
     else:
         if nb_diff != l*(v-1):
             if verbose:
-                print ("the relation sum_i (1/s_i) *k*(k-1) == l*(v-1) is not "
-                "satisfied (where the s_i are the cardinality of the stabilizer "
-                "for each blocks)")
+                print "the number of differences (={}) is not equal to l*(v-1) = {}".format(nb_diff, l*(v-1))
             return False
 
     # Check that every x \in G-{0},occurs exactly l times as a difference
@@ -250,7 +249,7 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
             for c in d:
                 if b == c:
                     continue
-                gg = mul(b,inv(c)) # = b-c
+                gg = mul(b,inv(c)) # = b-c or bc^{-1}
                 if gg not in tmp_counter:
                     tmp_counter[gg] = 0
                 where[gg].add(i)

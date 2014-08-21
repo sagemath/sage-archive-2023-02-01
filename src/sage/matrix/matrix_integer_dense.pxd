@@ -2,6 +2,7 @@ include "sage/ext/cdefs.pxi"
 include "sage/libs/ntl/decl.pxi"
 include "sage/libs/flint/fmpz.pxi"
 include "sage/libs/flint/fmpz_mat.pxi"
+include "sage/libs/flint/fmpz_poly.pxi"
 
 cimport matrix_dense
 cimport sage.rings.integer

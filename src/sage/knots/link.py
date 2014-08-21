@@ -137,7 +137,7 @@ class Link:
                     self._braid = None
 
             elif len(self.input_) == 2:
-                if type(self._input[0][0]) == list:
+                if type(self.input_[0][0]) == list:
                     self._oriented_gauss_code = self.input_
                     self._PD_code = None
                     self._braid = None

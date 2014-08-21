@@ -1046,8 +1046,9 @@ def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=Fals
     Return an `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)`.
 
     An `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)` is an orthogonal array from
-    which have been removed disjoint `OA(k,s_1),...,OA(k,s_x)`. So it can
-    exist only if a `OA(k,n)` exists.
+    which have been removed disjoint `OA(k,s_1),...,OA(k,s_x)`. If there exist
+    `OA(k,s_1),...,OA(k,s_x)` they can be used to fill the holes and give rise
+    to an `OA(k,n)`.
 
     A very useful particular case (see e.g. the Wilson construction in
     :func:`wilson_construction`) is when all `s_i=1`. In that case the
@@ -1132,7 +1133,7 @@ def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=Fals
         sage: _ = designs.incomplete_orthogonal_array(k,n,[1])
 
     A resolvable `OA(k,n)-n.OA(k,1)`. We check that extending each class and
-    adding the `[i,i,...]` blocks turns it into an `OA(k+1,n)`.
+    adding the `[i,i,...]` blocks turns it into an `OA(k+1,n)`.::
 
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: k,n=5,7

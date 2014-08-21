@@ -929,6 +929,9 @@ ext_modules = [
     Extension('sage.matrix.strassen',
               sources = ['sage/matrix/strassen.pyx']),
 
+    Extension('sage.matrix.weak_popov',
+              sources = ['sage/matrix/weak_popov.pyx']),
+
     ################################
     ##
     ## sage.matroids

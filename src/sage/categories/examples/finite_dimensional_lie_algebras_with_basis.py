@@ -56,23 +56,10 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
             sage: TestSuite(L).run()
         """
-        self._ordered_indices = range(M.dimension())
+        self._ordered_indices = names
         self._M = M
         cat = LieAlgebras(R).FiniteDimensional().WithBasis()
         Parent.__init__(self, base=R, names=names, category=cat)
-
-    def _construct_UEA(self):
-        """
-        Construct the universal enveloping algebra of ``self``.
-
-        EXAMPLES::
-
-            sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-            sage: L._construct_UEA()
-            Multivariate Polynomial Ring in a, b, c over Rational Field
-        """
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        return PolynomialRing(self.base_ring(), self.variable_names())
 
     def _repr_(self):
         """
@@ -103,7 +90,16 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             sage: M = FreeModule(ZZ, 3)
             sage: L(M([1, -2, 2]))
             (1, -2, 2)
+            sage: a,b,c = L.lie_algebra_generators()
+            sage: X = L.subalgebra([a+b, 2*a+c])
+            sage: x,y = X.basis()
+            sage: L(x)
+            (1, 0, 1)
+            sage: L(x+y)
+            (1, 1, -1)
         """
+        if isinstance(x, AbelianLieAlgebra.Element):
+            x = x.value
         return self.element_class(self, self._M(x))
 
     @cached_method
@@ -154,7 +150,12 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
         if len(names) == 1 and len(gens) != 1:
             names = tuple( names[0] + str(i) for i in range(len(gens)) )
         N = self._M.subspace([g.value for g in gens])
-        return AbelianLieAlgebra(self.base_ring(), names, N)
+        S = AbelianLieAlgebra(self.base_ring(), names, N)
+        try:
+            S._ambient = self._ambient
+        except AttributeError:
+            S._ambient = self
+        return S
 
     def basis(self):
         """
@@ -208,6 +209,49 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
         return self._M
 
     class Element(BaseExample.Element):
+        def __iter__(self):
+            """
+            Iterate over ``self`` by returning pairs ``(i, c)`` where ``i``
+            is the index of the basis element and ``c`` is the corresponding
+            coefficient.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: L.inject_variables()
+                Defining a, b, c
+                sage: elt = 2*a - c
+                sage: list(elt)
+                [('a', 2), ('c', -1)]
+            """
+            I = self.parent()._ordered_indices
+            zero = self.parent().base_ring().zero()
+            for i, c in self.value.iteritems():
+                if c != zero:
+                    yield (I[i], c)
+
+        def __getitem__(self, i):
+            """
+            Redirect the ``__getitem__()`` to the wrapped element unless
+            ``i`` is a basis index.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: L.inject_variables()
+                Defining a, b, c
+                sage: elt = 2*a + b - c
+                sage: elt[0]
+                2
+                sage: elt['a']
+                2
+                sage: elt['c']
+                -1
+            """
+            if i in self.parent()._ordered_indices:
+                i = self.parent()._ordered_indices.index(i)
+            return self.value.__getitem__(i)
+
         def _bracket_(self, y):
             """
             Return the Lie bracket ``[self, y]``.

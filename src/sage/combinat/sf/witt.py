@@ -366,7 +366,11 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         sage: s(w([4]))
         -s[1, 1, 1, 1] - s[2, 1, 1] - s[2, 2] - s[3, 1]
         sage: [type(coeff) for a, coeff in h(w([4]))]
-        [<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>]
+        [<type 'sage.rings.integer.Integer'>,
+         <type 'sage.rings.integer.Integer'>,
+         <type 'sage.rings.integer.Integer'>,
+         <type 'sage.rings.integer.Integer'>,
+         <type 'sage.rings.integer.Integer'>]
 
         sage: w(h[3])
         w[1, 1, 1] + w[2, 1] + w[3]
@@ -553,7 +557,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         # of this matrix (e. g., it being triangular in most standard cases).
         # Are there significantly faster ways to invert a triangular
         # matrix (compared to the usual matrix inversion algorithms)?
-        inverse_transition = matrix(base_ring, [[base_ring(a) for a in r] for r in ~transition_matrix_n])
+        inverse_transition = (~transition_matrix_n).change_ring(base_ring)
         # Note that we don't simply write
         # "inverse_transition = ~transition_matrix_n" because that
         # tends to cast the entries of the matrix into a quotient

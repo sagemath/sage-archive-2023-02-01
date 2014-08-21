@@ -4472,5 +4472,60 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                      for comp_shape in Compositions(sum(comp_content)) ),
                                    distinct=True )
 
+        class Element(CombinatorialFreeModule.Element):
+            """
+            An element in the Immaculate basis.
+            """
+            def bernstein_creation_operator(self, n):
+                r"""
+                Return the image of ``self`` under the `n`-th Bernstein
+                creation operator.
+
+                Let `n` be an integer. The `n`-th Bernstein creation
+                operator `\mathbb{B}_n` is defined as the endomorphism of
+                the space `NSym` of noncommutative symmetric functions
+                given by
+
+                .. MATH::
+
+                    \mathbb{B}_n I_{(\alpha_1, \alpha_2, \ldots, \alpha_n)}
+                    = I_{(n, \alpha_1, \alpha_2, \ldots, \alpha_n)},
+
+                where `I_{(\alpha_1, \alpha_2, \ldots, \alpha_n)}` is the
+                immaculate function associated to the `n`-tuple
+                `(\alpha_1, \alpha_2, \ldots, \alpha_n)`.
+
+                This has been introduced in [BBSSZ2012]_, section 3.1, in
+                analogy to the Bernstein creation operators on the
+                symmetric functions.
+
+                For more information on the `n`-th Bernstein creation
+                operator, see
+                :meth:`NonCommutativeSymmetricFunctions.Bases.ElementMethods.bernstein_creation_operator`.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: I = NSym.I()
+                    sage: b = I[1,3,2,1]
+                    sage: b.bernstein_creation_operator(3)
+                    I[3, 1, 3, 2, 1]
+                    sage: b.bernstein_creation_operator(5)
+                    I[5, 1, 3, 2, 1]
+                    sage: elt = b + 3*I[4,1,2]
+                    sage: elt.bernstein_creation_operator(1)
+                    I[1, 1, 3, 2, 1], + 3*I[1, 4, 1, 2]
+
+                We check that this agrees with the definition on the
+                Complete basis::
+
+                    sage: S = NSym.S()
+                    sage: S(elt).bernstein_creation_operator(1) == S(elt.bernstein_creation_operator(1))
+                    True
+                """
+                C = Compositions()
+                P = self.parent()
+                return P.sum_of_terms( (C([n] + list(m)), c) for m,c in self )
+
     I = Immaculate
 

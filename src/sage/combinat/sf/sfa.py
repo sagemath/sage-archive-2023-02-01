@@ -4248,8 +4248,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         """
         # We use the formula for the Bernstein creation operator on
         # a Schur function given in the docstring.
-        from sage.combinat.partition import Partitions
-        _Partitions = Partitions()
+        from sage.combinat.partition import _Partitions
         parent = self.parent()
         s = parent.realization_of().schur()
         res = s.zero()
@@ -4261,11 +4260,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             for j, p in enumerate(m + [0]):
                 # The "+ [0]" is important and corresponds to moving the ``n``
                 # to the very end!
-                if n >= p - j - 1:
-                    if n == p - j - 1:
-                        break
-                    if n + j < 0:
-                        break
+                if n == p - j - 1 or n + j < 0:
+                    break
+                if n > p - j - 1:
                     m_new = [k - 1 for k in m[:j]] + [n + j] + m[j:]
                     m_new = _Partitions(m_new)
                     res += (-1) ** j * c * s[m_new]

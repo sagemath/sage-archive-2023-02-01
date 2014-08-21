@@ -3042,7 +3042,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             #
             # TODO: The way given in Hazewinkel's [Haz2004]_ paper might
             # be faster.
-            inverse_transition = matrix(base_ring, [[base_ring(a) for a in r] for r in ~transition_matrix_n])
+            inverse_transition = (~transition_matrix_n).change_ring(base_ring)
             # Note that we don't simply write
             # "inverse_transition = ~transition_matrix_n" because that
             # tends to cast the entries of the matrix into a quotient

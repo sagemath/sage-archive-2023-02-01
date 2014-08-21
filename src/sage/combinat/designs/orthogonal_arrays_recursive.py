@@ -1735,72 +1735,54 @@ def find_brouwer_separable_design(k,n):
 
     return False
 
-def _reorder_matrix(matrix,N):
+def _reorder_matrix(matrix):
     r"""
+    Return a matrix which is obtained from ``matrix`` by permutation of each row
+    in which each column contain every symbol exactly once.
 
-    Reorders the elements of each row such that the elements appear once per
-    column.
+    The input must be a `N \times k` matrix with entries in `\{0,\ldots,N-1\}`
+    such that:
+    - the symbols on each row are distinct (and hence can be identified with
+      subsets of `\{0,\ldots,N-1\}`),
+    - each symbol appear exactly `k` times.
 
-    This is equivalent to an edge coloring of a bipartite graph. This function
-    is used by :func:`brouwer_separable_design`.
+    The problem is equivalent to an edge coloring of a bipartite graph. This
+    function is used by :func:`brouwer_separable_design`.
 
-    INPUT:
-
-    - ``matrix`` -- a `k\times N`` matrix of integers in which every `0\leq i<N`
-    appears exactly `k` times
-
-    - ``N`` -- integer
-
-    OUTPUT:
-
-    A matrix obtained by permuting the elements of each row of the first matrix,
-    such that each element appears exactly once per column.
-
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.orthogonal_arrays_recursive import _reorder_matrix
-        sage: n=10;M=[range(n)]*n; M
-        [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
-        sage: _reorder_matrix(M,10) # random
-        [(0, 1, 5, 4, 9, 3, 7, 2, 6, 8),
-         (1, 0, 6, 8, 4, 2, 9, 3, 5, 7),
-         (2, 3, 1, 9, 7, 8, 6, 0, 4, 5),
-         (3, 2, 9, 6, 8, 7, 0, 5, 1, 4),
-         (4, 5, 8, 3, 2, 6, 1, 9, 7, 0),
-         (5, 4, 3, 2, 6, 9, 8, 7, 0, 1),
-         (6, 7, 2, 0, 3, 1, 5, 4, 8, 9),
-         (7, 6, 0, 5, 1, 4, 2, 8, 9, 3),
-         (8, 9, 4, 7, 5, 0, 3, 1, 2, 6),
-         (9, 8, 7, 1, 0, 5, 4, 6, 3, 2)]
+        sage: N = 4; k = 3
+        sage: M = [[0,1,2],[0,1,3],[0,2,3],[1,2,3]]
+        sage: M2 = _reorder_matrix(M)
+        sage: all(set(M2[i][0] for i in range(N)) == set(range(N)) for i in range(k))
+        True
+
+        sage: M =[range(10)]*10
+        sage: N = k = 10
+        sage: M2 = _reorder_matrix(M)
+        sage: all(set(M2[i][0] for i in range(N)) == set(range(N)) for i in range(k))
+        True
     """
     from sage.graphs.graph import Graph
-    from sage.graphs.graph_coloring import edge_coloring
-    g = Graph()
-    matrix = map(frozenset,matrix)
+
+    N = len(matrix)
     k = len(matrix[0])
-    g.add_edges([(x,N+i) for i,S in enumerate(matrix) for x in S])
+
+    g = Graph()
+    g.add_edges((x,N+i) for i,S in enumerate(matrix) for x in S)
     matrix = []
     for _ in range(k):
         matching = g.matching(algorithm="LP")
-        col = [0]*(N)
+        col = [0]*N
         for x,i,_ in matching:
             if i<N:
                 x,i=i,x
-            col[i-N]=x
+            col[i-N] = x
         matrix.append(col)
         g.delete_edges(matching)
 
-    matrix = zip(*matrix)
-    return matrix
+    return zip(*matrix)
 
 def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
     r"""
@@ -1819,19 +1801,16 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
     `1` point.
 
     The `OA` are built by considering `B_1\cup\dots\cup B_t`, for a total of
-    `t(q^2+q+1)` points, to which `x` new points are added. The blocks of this
-    subdesign belong to two categories:
+    `t(q^2+q+1)` points (to which `x` new points are then added). The blocks of
+    this subdesign belong to two categories:
 
-    * The blocks of size `t`
+    * The blocks of size `t`: they come from the lines which intersect a
+      `B_i` on `q+1` points for some `i>t`. The blocks of size `t` can be partitionned
+      into `q^2-q+t-1` parallel classes according to their associated subplane `B_i`
+      with `i>t`.
 
-      They come from the lines which intersected a `B_i` on `q+1` points for
-      some `i>t`. The blocks of size `t` can be partitionned into `q^2-q+t-1`
-      parallel classes according to their associated subplane `B_i` with `i>t`.
-
-    * The blocks of size `q+t`
-
-      Those blocks form a separable design, as every point is incident with
-      `q+t` of them.
+    * The blocks of size `q+t`: those blocks form a symmetric design, as every
+      point is incident with `q+t` of them.
 
     **Constructions**
 
@@ -1848,7 +1827,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
         * *Sets of size* `q+t`)
 
-          A `(q+t)\times N` matrix is built whose `N` rows are the sets of size
+          A `N \times (q+t)` array is built whose rows are the sets of size
           `q+t` such that every value appears once per column. For each block of
           a `OA(k-1,q+t)-(q+t).OA(k-1,t)`, the product with the rows of the
           matrix yields a parallel class of a resolvable `OA(k-1,N)`.
@@ -1862,7 +1841,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
         * *Sets of size* `q+t`)
 
-          A `(q+t)\times (N-x)` matrix `M` is built whose `N-x` rows are the
+          A `(N-x) \times (q+t)` array `M` is built whose `N-x` rows are the
           sets of size `q+t` such that every value appears once per column. For
           each of the new `x=q+t` points `p_1,\dots,p_{q+t}` we build a matrix
           `M_i` obtained from `M` by adding a column equal to `(p_i,p_i,p_i\dots
@@ -1998,7 +1977,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
     m = q**2-q+1
     for i in range(m):
         for B in BIBD:
-            assert sum([(xx%m)==i for xx in B]) in [1,q+1], sum([(xx%m)==i for xx in B])
+            assert sum((xx%m)==i for xx in B) in [1,q+1], sum((xx%m)==i for xx in B)
 
     # We are only interested by the points of the first t Baer subplanes (each
     # has size q**2+q+1). Note that each block of the projective plane:
@@ -2022,7 +2001,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
     for B in BIBD:
         # Find the Baer subplane which B intersects on more than 1 point
-        B_mod = sorted([xx%m for xx in B])
+        B_mod = sorted(xx%m for xx in B)
         while B_mod.pop(0) != B_mod[0]:
             pass
         plane = B_mod[0]
@@ -2099,7 +2078,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         # (This is equivalent to an edge coloring of the (bipartite) incidence
         # graph of points and sets)
 
-        matrix = _reorder_matrix(blocks_of_size_q_plus_t,N)
+        matrix = _reorder_matrix(blocks_of_size_q_plus_t)
 
         # 3) We now create blocks of an OA(k-1,N) as the product of
         #    a) A set of size q+t (i.e. a row of the matrix)
@@ -2165,7 +2144,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         OA_tq1_classes = [[B[1:] for B in OA_tq1[i*(t+q+1):(i+1)*(t+q+1)]] for i in range(t+q)]
         # <SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
 
-        matrix = _reorder_matrix(blocks_of_size_q_plus_t,N-x)
+        matrix = _reorder_matrix(blocks_of_size_q_plus_t)
 
         for i,classs in enumerate(OA_tq1_classes):
             OA.extend([[R[xx] if xx<t+q else N-i-1 for xx in B] for R in matrix for B in classs])
@@ -2259,7 +2238,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         OA_tq1_classes = [[B[1:] for B in OA_tq1[i*(t+q+1):(i+1)*(t+q+1)]] for i in range(t+q)]
         # </SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
 
-        matrix = _reorder_matrix(blocks_of_size_q_plus_t,N-x)
+        matrix = _reorder_matrix(blocks_of_size_q_plus_t)
 
         for i,classs in enumerate(OA_tq1_classes):
             OA.extend([[R[xx] if xx<t+q else N-i-1 for xx in B] for R in matrix for B in classs])
@@ -2387,7 +2366,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         OA_tq1_classes = [[B[1:] for B in OA_tq1[i*(t+q+1):(i+1)*(t+q+1)]] for i in range(t+q)]
         # </SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
 
-        matrix = _reorder_matrix(blocks_of_size_q_plus_t,N-x)
+        matrix = _reorder_matrix(blocks_of_size_q_plus_t)
 
         for i,classs in enumerate(OA_tq1_classes):
             OA.extend([[R[xx] if xx<t+q else N-i-1 for xx in B]

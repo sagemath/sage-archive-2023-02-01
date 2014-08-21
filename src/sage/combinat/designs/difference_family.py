@@ -541,6 +541,12 @@ def difference_family(v, k, l=1, existence=False, check=True):
         ....:           assert designs.difference_family(v,k,l,existence=True) is True
         ....:           _ = designs.difference_family(v,k,l)
 
+    Check twin primes difference sets::
+
+        sage: for p in [3,5,11,17,29]:
+        ....:     v = p*(p+2); k = (v-1)/2;  lmbda = (k-1)/2
+        ....:     G,D = designs.difference_family(v,k,lmbda)
+
     Check the database:
 
         sage: from sage.combinat.designs.database import DF
@@ -583,7 +589,9 @@ def difference_family(v, k, l=1, existence=False, check=True):
 
     D = None
 
-    if arith.is_prime_power(v):
+    fac = arith.factor(v)
+
+    if len(fac) == 1:  # i.e. is v a prime power
         from sage.rings.finite_rings.constructor import GF
         G = K = GF(v,'z')
         x = K.multiplicative_generator()
@@ -661,6 +669,29 @@ def difference_family(v, k, l=1, existence=False, check=True):
                         B = [one,r,r**2,c,c*r,c*r**2]
                         D = [[x**(i*5) * b for b in B] for i in xrange(t)]
                         break
+
+    elif (len(fac) == 2 and
+          fac[0][0] + 2 == fac[1][0] and
+          fac[0][1] == fac[1][1] == 1 and
+          k == (v-1)//2 and
+          (l is None or 2*l == (v-1)//2-1)):
+        # i.e. v = p(p+2) where p and p+2 are prime powers
+        #      k = (v-1)/2
+        #      lambda = (k-1)/2
+        # then a difference set can be built from the set of elements (x,y)
+        # in Z/pZ x Z/(p+2)Z such that
+        # - either y=0
+        # - or x and y are both non-zero and simultaneously square or non-square
+        if existence:
+            return True
+        from sage.rings.finite_rings.integer_mod_ring import Zmod
+        p = fac[0][0]
+        q = fac[1][0]
+        v = p*q
+        G = Zmod(v)
+        d = [a for a in range(1,v) if arith.legendre_symbol(a,p) == arith.legendre_symbol(a,q)]
+        d.extend(q*i for i in range(p))
+        D = [d]
 
     if D is None and are_hyperplanes_in_projective_geometry_parameters(v,k,l):
         _, (q,d) = are_hyperplanes_in_projective_geometry_parameters(v,k,l,True)

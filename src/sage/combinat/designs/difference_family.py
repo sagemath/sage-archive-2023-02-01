@@ -543,7 +543,7 @@ def difference_family(v, k, l=1, existence=False, check=True):
 
     Check twin primes difference sets::
 
-        sage: for p in [3,5,11,17,29]:
+        sage: for p in [3,5,7,9,11]:
         ....:     v = p*(p+2); k = (v-1)/2;  lmbda = (k-1)/2
         ....:     G,D = designs.difference_family(v,k,lmbda)
 
@@ -589,9 +589,9 @@ def difference_family(v, k, l=1, existence=False, check=True):
 
     D = None
 
-    fac = arith.factor(v)
+    factorization = arith.factor(v)
 
-    if len(fac) == 1:  # i.e. is v a prime power
+    if len(factorization) == 1:  # i.e. is v a prime power
         from sage.rings.finite_rings.constructor import GF
         G = K = GF(v,'z')
         x = K.multiplicative_generator()
@@ -670,27 +670,45 @@ def difference_family(v, k, l=1, existence=False, check=True):
                         D = [[x**(i*5) * b for b in B] for i in xrange(t)]
                         break
 
-    elif (len(fac) == 2 and
-          fac[0][0] + 2 == fac[1][0] and
-          fac[0][1] == fac[1][1] == 1 and
+    # Twin prime powers construction (see :wikipedia:`Difference_set`)
+    #
+    # i.e. v = p(p+2) where p and p+2 are prime powers
+    #      k = (v-1)/2
+    #      lambda = (k-1)/2
+    elif (len(factorization) == 2 and
+          abs(pow(*factorization[0])-pow(*factorization[1]))==2 and
           k == (v-1)//2 and
           (l is None or 2*l == (v-1)//2-1)):
-        # i.e. v = p(p+2) where p and p+2 are prime powers
-        #      k = (v-1)/2
-        #      lambda = (k-1)/2
-        # then a difference set can be built from the set of elements (x,y)
-        # in Z/pZ x Z/(p+2)Z such that
+
+        # A difference set can be built from the set of elements
+        # (x,y) in Z/pZ x Z/(p+2)Z such that:
+        #
         # - either y=0
-        # - or x and y are both non-zero and simultaneously square or non-square
+        # - x and y with x and y     squares
+        # - x and y with x and y non-squares
         if existence:
             return True
-        from sage.rings.finite_rings.integer_mod_ring import Zmod
-        p = fac[0][0]
-        q = fac[1][0]
-        v = p*q
-        G = Zmod(v)
-        d = [a for a in range(1,v) if arith.legendre_symbol(a,p) == arith.legendre_symbol(a,q)]
-        d.extend(q*i for i in range(p))
+
+        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.categories.cartesian_product import cartesian_product
+        from itertools import product
+        p,q = pow(*factorization[0]), pow(*factorization[1])
+        if p>q:
+            p,q=q,p
+        Fp = FiniteField(p,'x')
+        Fq = FiniteField(q,'x')
+        Fp_squares = set(x**2 for x in Fp)
+        Fq_squares = set(x**2 for x in Fq)
+
+        # Pairs of squares, pairs of non-squares
+        d = []
+        d.extend(product(Fp_squares.difference([0]),Fq_squares.difference([0])))
+        d.extend(product(set(Fp).difference(Fp_squares),set(Fq).difference(Fq_squares)))
+
+        # All (x,0)
+        d.extend((x,0) for x in Fp)
+
+        G = cartesian_product([Fp,Fq])
         D = [d]
 
     if D is None and are_hyperplanes_in_projective_geometry_parameters(v,k,l):

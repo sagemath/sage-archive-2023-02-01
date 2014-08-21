@@ -4102,7 +4102,6 @@ cdef class Matrix(sage.structure.element.Matrix):
             t = set()
             for r in range(self.nrows()):
                 max = -1
-                p = self.ncols()-1
                 for c in range(self.ncols()):
                     if self[r,c].degree()>max:
                         max = self[r,c].degree()

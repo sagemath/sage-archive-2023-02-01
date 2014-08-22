@@ -8099,17 +8099,17 @@ class NumberField_absolute(NumberField_generic):
             1
             sage: K.hilbert_symbol(a+5, 2, P)
             -1
-            
-        Warning, the example below, while computationally correct, returns a doctest error.  This is due to a bug introduce from Pari, should be fixed by upgrade to Pari 2.8.0 at the latest::
-            
-            sage: K.<a>=NumberField(x^2+5)
-            sage: p=K.primes_above(2)[0];p
+
+        Check that the bug reported at :trac:`16043` has been fixed::
+
+            sage: K.<a> = NumberField(x^2 + 5)
+            sage: p = K.primes_above(2)[0]; p
             Fractional ideal (2, a + 1)
-            sage: K.hilbert_symbol(2*a,-1,p)
+            sage: K.hilbert_symbol(2*a, -1, p)
             1
-            sage: K.hilbert_symbol(2*a,2,p)
+            sage: K.hilbert_symbol(2*a, 2, p)
             -1
-            sage: K.hilbert_symbol(2*a,-2,p)
+            sage: K.hilbert_symbol(2*a, -2, p)
             -1
 
         AUTHOR:

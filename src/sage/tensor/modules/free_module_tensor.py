@@ -166,6 +166,7 @@ EXAMPLES:
 from sage.rings.integer import Integer
 from sage.structure.element import ModuleElement  
 from comp import Components, CompWithSym, CompFullySym, CompFullyAntiSym
+from tensor_with_indices import TensorWithIndices
 
 class FreeModuleTensor(ModuleElement):
     r"""
@@ -905,6 +906,10 @@ class FreeModuleTensor(ModuleElement):
     def __getitem__(self, args):
         r"""
         Return a component w.r.t. some basis.
+        
+        NB: if ``args`` is a string, this method acts as a shortcut for 
+        tensor contractions and symmetrizations, the string containing 
+        abstract indices.
 
         INPUT:
         
@@ -914,6 +919,8 @@ class FreeModuleTensor(ModuleElement):
           basis is assumed. 
     
         """
+        if isinstance(args, str): # tensor with specified indices
+            return TensorWithIndices(self, args).update()
         if isinstance(args, list):  # case of [[...]] syntax
             if isinstance(args[0], (int, Integer, slice)):
                 basis = self._fmodule._def_basis
@@ -1496,6 +1503,25 @@ class FreeModuleTensor(ModuleElement):
             15
             sage: a.self_contract(1,0)  # the order of the slots does not matter
             15
+            
+        Instead of the explicit call to the method :meth:`self_contract`, one
+        may use the index notation with Einstein convention (summation over
+        repeated indices); it suffices to pass the indices as a string inside
+        square brackets::
+        
+            sage: a['^i_i']
+            15
+
+        The letter 'i' to denote the repeated index can be replaced by any
+        other letter::
+        
+            sage: a['^s_s']
+            15
+
+        Moreover, the symbol '^' can be omitted::
+        
+            sage: a['i_i']
+            15
 
         The contraction on two slots having the same tensor type cannot occur::
         
@@ -1538,6 +1564,27 @@ class FreeModuleTensor(ModuleElement):
             sage: s[:] == matrix( [[sum(t[k,i,k,j] for k in M.irange()) for j in M.irange()] for i in M.irange()] )  # check
             True
             
+        Use of index notation instead of :meth:`self_contract`::
+        
+            sage: t['^k_kij'] == t.self_contract(0,1)
+            True
+            sage: t['^k_{kij}'] == t.self_contract(0,1) # LaTeX notation
+            True
+            sage: t['^k_ikj'] == t.self_contract(0,2)
+            True
+            sage: t['^k_ijk'] == t.self_contract(0,3)
+            True
+
+        Index symbols not involved in the contraction may be replaced by
+        dots::
+        
+            sage: t['^k_k..'] == t.self_contract(0,1)
+            True
+            sage: t['^k_.k.'] == t.self_contract(0,2)
+            True
+            sage: t['^k_..k'] == t.self_contract(0,3)
+            True
+        
         """
         # The indices at pos1 and pos2 must be of different types: 
         k_con = self._tensor_type[0]
@@ -1600,7 +1647,17 @@ class FreeModuleTensor(ModuleElement):
             True
             sage: s == a.contract(b, 0)
             True
-           
+        
+        Instead of the explicit call to the method :meth:`contract`, the index 
+        notation can be used to specify the contraction, via Einstein 
+        conventation (summation on repeated indices); it suffices to pass the 
+        indices as a string inside square brackets::
+        
+            sage: s1 = a['_i']*b['^i'] ; s1
+            2
+            sage: s1 == s
+            True
+
         In the present case, performing the contraction is identical to 
         applying the linear form to the module element::
         
@@ -1638,6 +1695,23 @@ class FreeModuleTensor(ModuleElement):
             sage: a.contract(b) == b.contract(a, 1) 
             True
             
+        Using the index notation with Einstein convention::
+        
+            sage: a['^i_j']*b['^j'] == a.contract(b)
+            True
+
+        The index i can be replaced by a dot::
+        
+            sage: a['^._j']*b['^j'] == a.contract(b)
+            True
+
+        and the symbol '^' may be omitted, the distinction between 
+        contravariant and covariant indices being the position with respect to 
+        the symbol '_'::
+        
+            sage: a['._j']*b['j'] == a.contract(b)
+            True
+                        
         Contraction is possible only between a contravariant index and a 
         covariant one::
         
@@ -1672,6 +1746,21 @@ class FreeModuleTensor(ModuleElement):
             ....:             
             True True True True True True True True True True True True True True True True True True True True True True True True True True True
 
+        Using index notation::
+        
+            sage: a['il_j']*b['_kl'] == a.contract(1, b, 1)
+            True
+            
+        LaTeX notation are allowed::
+        
+            sage: a['^{il}_j']*b['_{kl}'] == a.contract(1, b, 1)
+            True
+
+        Indices not involved in the contraction may be replaced by dots::
+        
+            sage: a['.l_.']*b['_.l'] == a.contract(1, b, 1)
+            True
+       
         The two tensors do not have to be defined on the same basis for the 
         contraction to take place, reflecting the fact that the contraction is 
         basis-independent::
@@ -1789,6 +1878,28 @@ class FreeModuleTensor(ModuleElement):
             ....:         
             True True True True True True True True True
     
+        Instead of invoking the method :meth:`symmetrize`, one may use the 
+        index notation with parentheses to denote the symmetrization; it 
+        suffices to pass the indices as a string inside square brackets::
+        
+            sage: t['(ij)']
+            type-(2,0) tensor on the rank-3 free module M over the Rational Field
+            sage: t['(ij)'].symmetries()
+            symmetry: (0, 1);  no antisymmetry
+            sage: t['(ij)'] == t.symmetrize()
+            True
+
+        The indices names are not significant; they can even be replaced by 
+        dots::
+            
+            sage: t['(..)'] == t.symmetrize()
+            True
+
+        The LaTeX notation can be used as well::
+        
+            sage: t['^{(ij)}'] == t.symmetrize()
+            True
+
         Symmetrization of a tensor of type (0,3) on the first two arguments::
         
             sage: t = M.tensor((0,3))
@@ -1809,6 +1920,17 @@ class FreeModuleTensor(ModuleElement):
             ....:             
             True True True True True True True True True True True True True True True True True True True True True True True True True True True
             sage: s.symmetrize((0,1)) == s  # another test
+            True
+
+        Again the index notation can be used::
+        
+            sage: t['_(ij)k'] == t.symmetrize((0,1))
+            True
+            sage: t['_(..).'] == t.symmetrize((0,1))  # no index name
+            True
+            sage: t['_{(ij)k}'] == t.symmetrize((0,1))  # LaTeX notation
+            True
+            sage: t['_{(..).}'] == t.symmetrize((0,1))  # this also allowed
             True
 
         Symmetrization of a tensor of type (0,3) on the first and last arguments::
@@ -1850,6 +1972,15 @@ class FreeModuleTensor(ModuleElement):
             sage: s.symmetrize((1,2)) == s  # another test
             True
     
+        Use of the index notation::
+        
+            sage: t['_i(jk)'] == t.symmetrize((1,2))
+            True
+            sage: t['_.(..)'] == t.symmetrize((1,2))
+            True
+            sage: t['_{i(jk)}'] == t.symmetrize((1,2))  # LaTeX notation
+            True
+
         Full symmetrization of a tensor of type (0,3)::
         
             sage: s = t.symmetrize() ; s
@@ -1869,7 +2000,14 @@ class FreeModuleTensor(ModuleElement):
             True True True True True True True True True True True True True True True True True True True True True True True True True True True
             sage: s.symmetrize() == s  # another test
             True
-
+            
+        Index notation for the full symmetrization::
+        
+            sage: t['_(ijk)'] == t.symmetrize()
+            True
+            sage: t['_{(ijk)}'] == t.symmetrize()  # LaTeX notation
+            True
+            
         Symmetrization can be performed only on arguments on the same type::
         
             sage: t = M.tensor((1,2))
@@ -1885,7 +2023,25 @@ class FreeModuleTensor(ModuleElement):
         
             sage: t.symmetrize((2,1)) == t.symmetrize((1,2))
             True
-            
+        
+        Use of the index notation::
+        
+            sage: t['^i_(jk)'] == t.symmetrize((1,2))
+            True
+            sage: t['^._(..)'] ==  t.symmetrize((1,2))
+            True
+        
+        The character '^' can be skipped, the character '_' being sufficient
+        to separate contravariant indices from covariant ones::
+        
+            sage: t['i_(jk)'] == t.symmetrize((1,2))
+            True
+        
+        The LaTeX notation can be employed::
+        
+            sage: t['^{i}_{(jk)}'] == t.symmetrize((1,2))
+            True
+
         """
         if pos is None:
             pos = range(self._tensor_rank)
@@ -1987,7 +2143,30 @@ class FreeModuleTensor(ModuleElement):
             True
             sage: s.symmetrize((0,1)) == 0  # of course
             True
+
+        Instead of invoking the method :meth:`antisymmetrize`, one can use
+        the index notation with square brackets denoting the 
+        antisymmetrization; it suffices to pass the indices as a string 
+        inside square brackets::
         
+            sage: s1 = t['_[ij]k'] ; s1
+            type-(0,3) tensor on the rank-3 free module M over the Rational Field
+            sage: s1.symmetries()
+            no symmetry;  antisymmetry: (0, 1)
+            sage: s1 == s
+            True
+
+        The LaTeX notation is recognized::
+        
+            sage: t['_{[ij]k}'] == s
+            True
+            
+        Note that in the index notation, the name of the indices is irrelevant; 
+        they can even be replaced by dots::
+        
+            sage: t['_[..].'] == s
+            True
+
         Antisymmetrization of a tensor of type (0,3) over the first and last 
         arguments::
 
@@ -2036,6 +2215,12 @@ class FreeModuleTensor(ModuleElement):
             sage: s.symmetrize((1,2)) == 0  # of course
             True
 
+        The index notation can be used instead of the explicit call to 
+        :meth:`antisymmetrize`::
+        
+            sage: t['_i[jk]'] == t.antisymmetrize((1,2))
+            True
+
         Full antisymmetrization of a tensor of type (0,3)::
         
             sage: s = t.antisymmetrize() ; s
@@ -2064,6 +2249,18 @@ class FreeModuleTensor(ModuleElement):
             sage: t.antisymmetrize() == t.antisymmetrize((0,1,2))
             True
 
+        The index notation can be used instead of the explicit call to 
+        :meth:`antisymmetrize`::
+        
+            sage: t['_[ijk]'] == t.antisymmetrize()
+            True
+            sage: t['_[abc]'] == t.antisymmetrize()
+            True
+            sage: t['_[...]'] == t.antisymmetrize()
+            True
+            sage: t['_{[ijk]}'] == t.antisymmetrize() # LaTeX notation
+            True
+
         Antisymmetrization can be performed only on arguments on the same type::
         
             sage: t = M.tensor((1,2))
@@ -2078,6 +2275,18 @@ class FreeModuleTensor(ModuleElement):
         The order of positions does not matter::
         
             sage: t.antisymmetrize((2,1)) == t.antisymmetrize((1,2))
+            True
+        
+        Again, the index notation can be used::
+        
+            sage: t['^i_[jk]'] == t.antisymmetrize((1,2))
+            True
+            sage: t['^i_{[jk]}'] == t.antisymmetrize((1,2))  # LaTeX notation
+            True
+
+        The character '^' can be skipped::
+        
+            sage: t['i_[jk]'] == t.antisymmetrize((1,2))
             True
             
         """
@@ -2106,7 +2315,6 @@ class FreeModuleTensor(ModuleElement):
             basis = self.pick_a_basis()
         res_comp = self._components[basis].antisymmetrize(pos)
         return self._fmodule.tensor_from_comp(self._tensor_type, res_comp)
-        
 
 
 #******************************************************************************

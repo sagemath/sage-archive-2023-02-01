@@ -18,4 +18,6 @@ Tensors on free modules of finite rank
 
    sage/tensor/modules/comp
 
+   sage/tensor/modules/tensor_with_indices
+
 .. include:: ../footer.txt

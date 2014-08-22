@@ -30,8 +30,10 @@ __ http://creativecommons.org/licenses/by-sa/3.0/
    free_module_tensor_spec
    
    free_module_alt_form
-
+   
    comp
+
+   tensor_with_indices
 
 Indices and Tables
 ------------------

@@ -1041,13 +1041,14 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
 
     return OA
 
-def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
+def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=False):
     r"""
     Return an `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)`.
 
     An `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)` is an orthogonal array from
-    which have been removed disjoint `OA(k,s_1),...,OA(k,s_x)`. So it can
-    exist only if a `OA(k,n)` exists.
+    which have been removed disjoint `OA(k,s_1),...,OA(k,s_x)`. If there exist
+    `OA(k,s_1),...,OA(k,s_x)` they can be used to fill the holes and give rise
+    to an `OA(k,n)`.
 
     A very useful particular case (see e.g. the Wilson construction in
     :func:`wilson_construction`) is when all `s_i=1`. In that case the
@@ -1067,6 +1068,10 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
 
           Right now the feature is only available when all holes have size 1,
           i.e. `s_i=1`.
+
+    - ``resolvable`` (boolean) -- set to ``True`` if you want the design to be
+      resolvable. The classes of the resolvable design are obtained as the first
+      `n` blocks, then the next `n` blocks, etc ... Set to ``False`` by default.
 
     - ``existence`` (boolean) -- instead of building the design, return:
 
@@ -1127,6 +1132,30 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
         sage: _ = designs.incomplete_orthogonal_array(k,n,[1,1,1])
         sage: _ = designs.incomplete_orthogonal_array(k,n,[1])
 
+    A resolvable `OA(k,n)-n.OA(k,1)`. We check that extending each class and
+    adding the `[i,i,...]` blocks turns it into an `OA(k+1,n)`.::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: k,n=5,7
+        sage: OA = designs.incomplete_orthogonal_array(k,n,[1]*n,resolvable=True)
+        sage: classes = [OA[i*n:(i+1)*n] for i in range(n-1)]
+        sage: for classs in classes: # The design is resolvable !
+        ....:     assert(len(set(col))==n for col in zip(*classs))
+        sage: OA.extend([[i]*(k) for i in range(n)])
+        sage: for i,R in enumerate(OA):
+        ....:     R.append(i//n)
+        sage: is_orthogonal_array(OA,k+1,n)
+        True
+
+    Non-existent resolvable incomplete OA::
+
+        sage: designs.incomplete_orthogonal_array(9,13,[1]*10,resolvable=True,existence=True)
+        False
+        sage: designs.incomplete_orthogonal_array(9,13,[1]*10,resolvable=True)
+        Traceback (most recent call last):
+        ...
+        EmptySetError: There is no resolvable incomplete OA(9,13) whose holes' sizes sum to 10!=n(=13)
+
     REFERENCES:
 
     .. [BvR82] More mutually orthogonal Latin squares,
@@ -1139,6 +1168,8 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
 
     y = sum(holes_sizes)
     x = len(holes_sizes)
+    if y == 0:
+        return orthogonal_array(k,n,existence=existence,resolvable=resolvable)
     if y > n:
         if existence:
             return False
@@ -1149,8 +1180,33 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
             return Unknown
         raise NotImplementedError("This function is only implemented for holes of size 1")
 
+    if resolvable and y != n:
+        if existence:
+            return False
+        raise EmptySetError("There is no resolvable incomplete OA({},{}) whose holes' sizes sum to {}!=n(={})".format(k,n,y,n))
+
+    if resolvable: # n holes of size 1 --> equivalent to OA(k+1,n)
+        if existence:
+            return orthogonal_array(k+1,n,existence=True)
+
+        OA = orthogonal_array(k+1,n)
+        OA.sort() # The future classes are now well-ordered
+        OA = [B[1:] for B in OA]
+
+        # We now relabel the points so that the last n blocks are the [i,i,...]
+        relabel = [[0]*n for _ in range(k)]
+        for i,B in enumerate(OA[-n:]):
+            for ii,xx in enumerate(B):
+                relabel[ii][xx] = i
+
+        OA = [[relabel[i][xx] for i,xx in enumerate(B)] for B in OA]
+
+        # Let's drop the last blocks
+        assert all(OA[-n+i] == [i]*k for i in range(n)), "The last n blocks should be [i,i,...]"
+        return OA[:-n]
+
     # Easy case
-    if x <= 1:
+    elif x <= 1:
         if existence:
             return orthogonal_array(k,n,existence=True)
         OA = orthogonal_array(k,n)

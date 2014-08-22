@@ -12,28 +12,17 @@ These functions can all be obtained through the ``designs.<tab>`` functions.
 
 This module implements:
 
-- <LIST_OF_OA_CONSTRUCTIONS>
+- {LIST_OF_OA_CONSTRUCTIONS}
 
-- <LIST_OF_MOLS_CONSTRUCTIONS>
+- {LIST_OF_MOLS_CONSTRUCTIONS}
 
 - `V(m,t)` vectors:
-<LIST_OF_VMT_VECTORS>
+{LIST_OF_VMT_VECTORS}
 
 - :func:`RBIBD(120,8,1) <RBIBD_120_8_1>`
 
 - `(v,k,\lambda)`-difference families:
-<LIST_OF_DF>
-
-**Dictionaries**
-
-The functions defined here are used by
-:func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`. Thus, the
-functions are indexed by dictionary which associates to every integer ``n`` a
-pair ``(k,f)`` where ``f`` is a function such that ``f()`` is a `OA(k,n)`. This
-dictionary is defined right after the constructions of OA in the file.
-
-The same goes for the constructions of MOLS, used by
-:func:`~sage.combinat.designs.latin_squares.mutually_orthogonal_latin_squares`.
+{LIST_OF_DF}
 
 REFERENCES:
 
@@ -337,10 +326,9 @@ MOLS_constructions = {
 }
 
 # Add this data to the module's doc
-__doc__ = __doc__.replace("<LIST_OF_MOLS_CONSTRUCTIONS>",
-                          join([":func:`{} MOLS of order {} <MOLS_{}_{}>`".format(k,n,n,k)
+LIST_OF_MOLS_CONSTRUCTIONS = join([":func:`{} MOLS of order {} <MOLS_{}_{}>`".format(k,n,n,k)
                                 for n,(k,_) in MOLS_constructions.items()],
-                               ", "))
+                               ", ")
 
 def OA_7_18():
     r"""
@@ -3124,12 +3112,9 @@ OA_constructions = {
     993 : (33 , OA_33_993),
 }
 # Add this data to the module's doc
-__doc__ = __doc__.replace("<LIST_OF_OA_CONSTRUCTIONS>",
-                          join([":func:`OA({},{}) <OA_{}_{}>`".format(k,n,k,n)
-                                for n,(k,_) in OA_constructions.items()],
-                               ", "))
-
-__doc__
+LIST_OF_OA_CONSTRUCTIONS = join((":func:`OA({},{}) <OA_{}_{}>`".format(k,n,k,n)
+                                for n,(k,_) in OA_constructions.items()),
+                               ", ")
 
 Vmt_vectors = {
     (4,9) : ((0,1,3,2,8),
@@ -3265,11 +3250,11 @@ Vmt_vectors = {
 for (m,t),(vec,source) in Vmt_vectors.iteritems():
     OA_constructions[(m+1)*t+1] = (m+2, lambda m=m,t=t,vec=vec:OA_from_Vmt(m,t,vec))
 
-# Add this data to the module's doc
-_all_m = sorted(set(m for m,t in Vmt_vectors.keys()))
-_VMT_DOC = join(["    - `m={}` and `t=` ".format(m)+join(["`{}`".format(t) for _,t in sorted(Vmt_vectors.keys()) if _ == m],", ")
-                 for m in _all_m],"\n")
-__doc__ = __doc__.replace("<LIST_OF_VMT_VECTORS>",_VMT_DOC)
+# Create the list of V(m,t) vectors for the doc
+_all_m = sorted(set(m for m,_ in Vmt_vectors.keys()))
+LIST_OF_VMT_VECTORS = join(("    - `m={}` and `t=` ".format(m)+
+                           join(("`{}`".format(t) for _,t in sorted(Vmt_vectors.keys()) if _ == m),", ")
+                           for m in _all_m), "\n")
 
 r""""
 Tests for the Vmt vectors
@@ -3712,11 +3697,11 @@ DF = {
            [0,4,21,26,29,33,35,36,47,55,56,60]]},
 }
 
-# Add this data to the module's doc
+# Create the list of DF for the documentation
 _all_l = sorted(set(l for v,k,l in DF.keys()))
-_DF_DOC = join(["    - `\lambda={}`:\n       ".format(l)+join(["`({},{},{})`".format(v,k,l) for v,k,_ in sorted(DF.keys()) if _ == l],", ")
-                 for l in _all_l],"\n")
-__doc__ = __doc__.replace("<LIST_OF_DF>",_DF_DOC)
+LIST_OF_DF = join(("    - `\lambda={}`:\n       ".format(l)+
+                  join(("`({},{},{})`".format(v,k,l) for v,k,_ in sorted(DF.keys()) if _ == l),", ")
+                  for l in _all_l), "\n")
 
 def RBIBD_120_8_1():
     r"""
@@ -3808,3 +3793,10 @@ def RBIBD_120_8_1():
 BIBD_constructions = {
     (120,8,1): RBIBD_120_8_1,
 }
+
+
+__doc__ = __doc__.format(
+    LIST_OF_OA_CONSTRUCTIONS   = LIST_OF_OA_CONSTRUCTIONS,
+    LIST_OF_MOLS_CONSTRUCTIONS = LIST_OF_MOLS_CONSTRUCTIONS,
+    LIST_OF_VMT_VECTORS        = LIST_OF_VMT_VECTORS,
+    LIST_OF_DF                 = LIST_OF_DF)

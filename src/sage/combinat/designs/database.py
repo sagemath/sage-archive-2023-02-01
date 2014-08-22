@@ -51,53 +51,6 @@ from string import join
 # Cyclic shift of a list
 cyclic_shift = lambda l,i : l[-i:]+l[:-i]
 
-def TD_6_12():
-    r"""
-    Return a `TD(6,12)` as built in [Hanani75]_.
-
-    This design is Lemma 3.21 from [Hanani75]_.
-
-    EXAMPLE::
-
-        sage: from sage.combinat.designs.database import TD_6_12
-        sage: from sage.combinat.designs.orthogonal_arrays import is_transversal_design
-        sage: TD = TD_6_12()
-        sage: is_transversal_design(TD,6,12)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.transversal_design(6,12,existence=True)
-        True
-
-    REFERENCES:
-
-    .. [Hanani75] Haim Hanani,
-      Balanced incomplete block designs and related designs,
-      http://dx.doi.org/10.1016/0012-365X(75)90040-0,
-      Discrete Mathematics, Volume 11, Issue 3, 1975, Pages 255-369.
-    """
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    G = AdditiveCyclic(2).cartesian_product(AdditiveCyclic(6))
-    d = [[(0,0),(0,0),(0,0),(0,0),(0,0),(0,0)],
-         [(0,0),(0,1),(1,0),(0,3),(1,2),(0,4)],
-         [(0,0),(0,2),(1,2),(1,0),(0,1),(1,5)],
-         [(0,0),(0,3),(0,2),(0,1),(1,5),(1,4)],
-         [(0,0),(0,4),(1,1),(1,3),(0,5),(0,2)],
-         [(0,0),(0,5),(0,1),(1,5),(1,3),(1,1)],
-         [(0,0),(1,0),(1,3),(0,2),(0,3),(1,2)],
-         [(0,0),(1,1),(1,5),(1,2),(1,4),(1,0)],
-         [(0,0),(1,2),(0,4),(0,5),(0,2),(1,3)],
-         [(0,0),(1,3),(1,4),(0,4),(1,1),(0,1)],
-         [(0,0),(1,4),(0,5),(1,1),(1,0),(0,3)],
-         [(0,0),(1,5),(0,3),(1,4),(0,4),(0,5)]]
-
-    r = lambda x : int(x[0])*6+int(x[1])
-    TD = [[i*12+r(G(x)+g) for i,x in enumerate(X)] for X in d for g in G]
-    for x in TD: x.sort()
-
-    return TD
-
 def _MOLS_from_string(s,k):
     r"""
     Return MOLS from a string
@@ -686,56 +639,6 @@ def OA_6_38():
     M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
     return M
 
-def OA_7_39():
-    r"""
-    Return an OA(7,39)
-
-    As explained in the Handbook III.3.61 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_7_39
-        sage: OA = OA_7_39()
-        sage: print is_orthogonal_array(OA,7,39,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(7,39,existence=True)
-        True
-    """
-    M = [
-        [   0,   0,   0,   0,   0,   0],
-        [   4,  23,  13,   5,  12,  11],
-        [  25,  11,  22,  34,  23,   6],
-        [  13,   4,  20,  17,  15,  29],
-        [  27,  21,   8,  16,  19,  26],
-        [  16,  19,  34,  38,  26,  21]
-        ]
-
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    G = AdditiveCyclic(39)
-
-    Mb=[[0,1,-1],[0,16,-16],[0,22,-22],[0,17,-17],[0,38,-38],[0,23,-23]]
-
-    for R in zip(*M):
-        a,b,c,d,e,f = [None if x is None else G(x) for x in R]
-        for i in range(3):
-            Mb[0].extend([a,-a])
-            Mb[1].extend([b,-b])
-            Mb[2].extend([c,-c])
-            Mb[3].extend([d,-d])
-            Mb[4].extend([e,-e])
-            Mb[5].extend([f,-f])
-            a,b,c,d,e,f = [16*x for x in [c,a,b,f,d,e]]
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = True)
-    return M
 
 def OA_9_40():
     r"""
@@ -2613,7 +2516,6 @@ OA_constructions = {
     30  : (6  , OA_6_30),
     34  : (6  , OA_6_34),
     38  : (6  , OA_6_38),
-    39  : (7  , OA_7_39),
     40  : (9  , OA_9_40),
     42  : (7  , OA_7_42),
     54  : (7  , OA_7_54),
@@ -3542,6 +3444,56 @@ def DM_36_9_1():
 
     return G, zip(*Mb)
 
+def DM_39_6_1():
+    r"""
+    Return a `(39,6,1)`-difference matrix.
+
+    As explained in the Handbook III.3.61 [DesignHandbook]_.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
+        sage: from sage.combinat.designs.database import DM_39_6_1
+        sage: G,M = DM_39_6_1()
+        sage: print is_difference_matrix(zip(*M),G,6,1)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.difference_matrix(39,6,existence=True)
+        True
+    """
+    M = [
+        [   0,   0,   0,   0,   0,   0],
+        [   4,  23,  13,   5,  12,  11],
+        [  25,  11,  22,  34,  23,   6],
+        [  13,   4,  20,  17,  15,  29],
+        [  27,  21,   8,  16,  19,  26],
+        [  16,  19,  34,  38,  26,  21]
+        ]
+
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(39)
+
+    Mb=[[0,1,-1],[0,16,-16],[0,22,-22],[0,17,-17],[0,38,-38],[0,23,-23]]
+
+    for R in zip(*M):
+        a,b,c,d,e,f = [None if x is None else G(x) for x in R]
+        for i in range(3):
+            Mb[0].extend([a,-a])
+            Mb[1].extend([b,-b])
+            Mb[2].extend([c,-c])
+            Mb[3].extend([d,-d])
+            Mb[4].extend([e,-e])
+            Mb[5].extend([f,-f])
+            a,b,c,d,e,f = [16*x for x in [c,a,b,f,d,e]]
+
+    return G,zip(*Mb)
+
 def DM_44_6_1():
     r"""
     Return a `(44,6,1)`-difference matrix.
@@ -4106,6 +4058,7 @@ DM = {
     (33 ,1) : (6 ,DM_33_6_1),
     (35 ,1) : (6 ,DM_35_6_1),
     (36 ,1) : (9 ,DM_36_9_1),
+    (39 ,1) : (6 ,DM_39_6_1),
     (44 ,1) : (6 ,DM_44_6_1),
     (45 ,1) : (7 ,DM_45_7_1),
     (48 ,1) : (9 ,DM_48_9_1),

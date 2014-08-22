@@ -464,7 +464,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
             sage: A = random_matrix(ZZ, 18, 11, sparse=True)
             sage: A._right_kernel_matrix(algorithm='default')[0]
-            'computed-flint-int'
+            'computed-pari-int'
             sage: A = random_matrix(ZZ, 18, 11, x = 10^200, sparse=True)
             sage: A._right_kernel_matrix(algorithm='default')[0]
             'computed-iml-int'
@@ -473,7 +473,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             'computed-iml-int'
             sage: A = random_matrix(ZZ, 60, 55, sparse=True)
             sage: A._right_kernel_matrix(algorithm='default')[0]
-            'computed-flint-int'
+            'computed-pari-int'
 
         TESTS:
 
@@ -482,8 +482,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
             sage: A = matrix(ZZ, 0, 2, sparse=True)
             sage: A._right_kernel_matrix()[1]
-            [1 0]
-            [0 1]
+            []
             sage: A = matrix(ZZ, 2, 0, sparse=True)
             sage: A._right_kernel_matrix()[1].parent()
             Full MatrixSpace of 0 by 0 dense matrices over Integer Ring

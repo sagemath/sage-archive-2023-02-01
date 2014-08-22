@@ -7,7 +7,7 @@ AUTHORS:
 
 - Robert Bradshaw
 
-- Marc Masdeu (August 2014) -- implemented using FLINT.
+- Marc Masdeu (August 2014). Implemented using FLINT.
 
 EXAMPLES::
 
@@ -33,6 +33,7 @@ TESTS::
     sage: TestSuite(a).run()
     sage: Matrix(ZZ,0,0).inverse()
     []
+
 """
 
 ######################################################################
@@ -191,8 +192,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         INPUT:
 
 
-        -  ``parent, entries, coerce, copy`` - as for
-           __init__.
+        -  ``parent, entries, coerce, copy`` - as for __init__.
 
 
         EXAMPLES::
@@ -941,6 +941,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                         return -1
                     else:
                         return 1
+        sig_off()
         return 0
 
     # TODO: Implement better
@@ -1059,7 +1060,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             x^2 - 3*x - 2
             sage: A.charpoly('y')
             y^2 - 3*y - 2
-            sage: A._cache['charpoly_flint']
+            sage: A._cache['charpoly_linbox']
             x^2 - 3*x - 2
 
         """
@@ -1067,17 +1068,20 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef fmpz_t x
         cdef Integer z
         cdef Polynomial_integer_dense_flint g
+        if algorithm == 'generic':
+            algorithm = 'linbox'
         cache_key = 'charpoly_%s' % algorithm
         g = self.fetch(cache_key)
         if g is not None:
             return g.change_variable_name(var)
+
 
         if algorithm == 'flint' or (algorithm == 'linbox' and not USE_LINBOX_POLY):
             g = PolynomialRing(ZZ,names = var).gen()
             sig_on()
             fmpz_mat_charpoly(g.__poly,self._matrix)
             sig_off()
-        elif algorithm == 'linbox' or algorithm == 'generic':
+        elif algorithm == 'linbox':
             g = self._charpoly_linbox(var)
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
@@ -1141,6 +1145,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         -  ``var`` - 'x'
 
         -  ``typ`` - 'minpoly' or 'charpoly'
+
         """
         time = verbose('computing %s of %s x %s matrix using linbox'%(typ, self._nrows, self._ncols))
         if self._nrows != self._ncols:
@@ -3698,6 +3703,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         AUTHORS:
 
         - William Stein
+
         - Marc Masdeu -- (08/2014) Use FLINT
         """
         if self._nrows != self._ncols:

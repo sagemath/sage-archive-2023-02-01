@@ -192,7 +192,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         INPUT:
 
 
-        -  ``parent, entries, coerce, copy`` - as for __init__.
+        -  ``parent, entries, coerce, copy`` - as for
+           __init__.
 
 
         EXAMPLES::
@@ -3242,7 +3243,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         -  ``nonnegative integer`` - the rank
 
-        - ``algorithm`` - either ``'modp'`` (default) or ``'flint'`` or ``'linbox'``
+        -  ``algorithm`` - either ``'modp'`` (default) or ``'flint'`` or ``'linbox'``
+
         .. note::
 
            The rank is cached.

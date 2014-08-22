@@ -1822,8 +1822,9 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
         * *Sets of size* `t`)
 
-          We take the product of each parallel class with a resolvable
-          `OA(k-1,t)-t.OA(k-1,t)`, yielding parallel classes.
+          We take the product of each parallel class with the parallel classes
+          of a resolvable `OA(k-1,t)-t.OA(k-1,t)`, yielding new parallel
+          classes.
 
         * *Sets of size* `q+t`)
 

@@ -51,7 +51,6 @@ Functions
 from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
-from sage.rings.infinity import Infinity
 from designs_pyx import is_orthogonal_array
 from incidence_structures import GroupDivisibleDesign
 

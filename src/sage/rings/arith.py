@@ -764,6 +764,11 @@ def prime_powers(start, stop=None):
         sage: type(v[0])      # trac #922
         <type 'sage.rings.integer.Integer'>
 
+        sage: prime_powers(0,1)
+        []
+        sage: prime_powers(0,2)
+        [1]
+
         sage: prime_powers("foo")
         Traceback (most recent call last):
         ...
@@ -792,7 +797,7 @@ def prime_powers(start, stop=None):
         start, stop = ZZ_1, Integer(start)
 
     # inserted to prevent an error from occurring
-    if stop < ZZ_1 or start >= stop:
+    if stop <= ZZ_1 or start >= stop:
         return []
 
     # find all the primes in the given range

@@ -452,7 +452,7 @@ def construction_3_4(k,n,m,r,s):
     elif orthogonal_array(k,m+r+1,existence=True):
         last_group = [x for x in range(s+1) if x != B0[-1]][:s-1] + [B0[-1]]
     else:
-        raise Exception
+        raise RuntimeError
 
     for i,x in enumerate(last_group):
         matrix[-1][x] = i
@@ -1817,20 +1817,20 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
     In the following, we write `N=t(q^2+q+1)+x`. The code is also heavily
     commented, and will clear any doubt.
 
-    * i) `x=0`
+    * i) `x=0`: in that case we build a resolvable `OA(k-1,N)` that will then be
+      completed into an `OA(k,N)`.
 
         * *Sets of size* `t`)
 
-          Each parallel class is multiplied with the parallel classes of a
-          resolvable `OA(k-1,t)-t.OA(k-1,t)`, yielding parallel classes of a
-          resolvable `OA(k-1,N)`.
+          We take the product of each parallel class with a resolvable
+          `OA(k-1,t)-t.OA(k-1,t)`, yielding parallel classes.
 
         * *Sets of size* `q+t`)
 
           A `N \times (q+t)` array is built whose rows are the sets of size
           `q+t` such that every value appears once per column. For each block of
           a `OA(k-1,q+t)-(q+t).OA(k-1,t)`, the product with the rows of the
-          matrix yields a parallel class of a resolvable `OA(k-1,N)`.
+          matrix yields a parallel class.
 
     * ii) `x=q+t`
 
@@ -1997,7 +1997,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
     blocks_of_size_q_plus_t = []
     partition_of_blocks_of_size_t = [[] for i in range(m-t)]
 
-    relabel = {i+j*m:(q**2+q+1)*i+j for i in range(t) for j in range(q**2+q+1)}
+    relabel = {i+j*m: N1*i+j for i in range(t) for j in range(N1)}
 
     for B in BIBD:
         # Find the Baer subplane which B intersects on more than 1 point
@@ -2059,7 +2059,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
                                             for BB in OA_class
                                             for B in PBD_parallel_class])
 
-        # 2) We build a (q+t)xN matrix such that:
+        # 2) We build a Nx(q+t) matrix such that:
         #
         #    a) Each row is a set of size q+t of the PBD
         #    b) an element appears exactly once per column.
@@ -2067,7 +2067,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         # (This is equivalent to an edge coloring of the (bipartite) incidence
         # graph of points and sets)
 
-        matrix = _reorder_matrix(blocks_of_size_q_plus_t)
+        block_of_size_q_plus_t = _reorder_matrix(blocks_of_size_q_plus_t)
 
         # 3) We now create blocks of an OA(k-1,N) as the product of
         #    a) A set of size q+t (i.e. a row of the matrix)
@@ -2078,7 +2078,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         # yields a parallel class of an OA(k-1,N)
         OA = incomplete_orthogonal_array(k-1,q+t,[1]*(q+t))
         for B in OA:
-            rOA_N_classes.append([[R[x] for x in B] for R in matrix])
+            rOA_N_classes.append([[R[x] for x in B] for R in block_of_size_q_plus_t])
 
         # 4) A last parallel class with blocks [0,0,...], [1,1,...],...
         rOA_N_classes.append([[i]*(k-1) for i in range(N)])
@@ -2108,7 +2108,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
             OA = [[B[xx] for xx in R] for R in orthogonal_array(k,t) for B in partition_of_blocks_of_size_t[0]]
         else:
             OA = OA_from_PBD(k,N,sum(partition_of_blocks_of_size_t,[]),check=False)[:-N]
-            OA.extend([[i]*k for i in range(N-x)])
+            OA.extend([i]*k for i in range(N-x))
 
         # The sets of size q+t:
         #
@@ -2121,13 +2121,13 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         OA_tq1 = incomplete_orthogonal_array(k,t+q+1,[1]*(t+q+1),resolvable=True)
         OA_tq1_classes = [OA_tq1[i*(t+q+1):(i+1)*(t+q+1)] for i in range(t+q)]
 
-        matrix = _reorder_matrix(blocks_of_size_q_plus_t)
+        blocks_of_size_q_plus_t = _reorder_matrix(blocks_of_size_q_plus_t)
 
         for i,classs in enumerate(OA_tq1_classes):
-            OA.extend([[R[xx] if xx<t+q else N-i-1 for xx in B] for R in matrix for B in classs])
+            OA.extend([R[xx] if xx<t+q else N-i-1 for xx in B] for R in blocks_of_size_q_plus_t for B in classs)
 
         # The set of size x
-        OA.extend([[N-1-xx for xx in R] for R in orthogonal_array(k,x)])
+        OA.extend([N-1-xx for xx in R] for R in orthogonal_array(k,x))
 
     # iii)
     elif (x == q**2-q+1-t and
@@ -2147,9 +2147,9 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
             # There is one partition into blocks of size t, which we extend with
             # the new vertex. The OA on t+1 points does not have to be resolvable.
 
-            OA.extend([[B[xx] if xx<t else N-1 for xx in R]
+            OA.extend([B[xx] if xx<t else N-1 for xx in R]
                        for R in incomplete_orthogonal_array(k,t+1,[1])
-                       for B in partition_of_blocks_of_size_t[0]])
+                       for B in partition_of_blocks_of_size_t[0])
 
         else:
             assert e2 == 1, "equivalent to x!=1"
@@ -2165,7 +2165,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         OA.extend(OA_from_PBD(k,N,blocks_of_size_q_plus_t,check=False)[:-N])
 
         # The set of size x
-        OA.extend([[N-xx-1 for xx in B] for B in  orthogonal_array(k,x)])
+        OA.extend([N-xx-1 for xx in B] for B in orthogonal_array(k,x))
 
 
     # iv)
@@ -2203,14 +2203,14 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         OA_tq1 = incomplete_orthogonal_array(k,t+q+1,[1]*(t+q+1),resolvable=True)
         OA_tq1_classes = [OA_tq1[i*(t+q+1):(i+1)*(t+q+1)] for i in range(t+q)]
 
-        matrix = _reorder_matrix(blocks_of_size_q_plus_t)
+        blocks_of_size_q_plus_t = _reorder_matrix(blocks_of_size_q_plus_t)
 
         for i,classs in enumerate(OA_tq1_classes):
-            OA.extend([[R[xx] if xx<t+q else N-i-1 for xx in B] for R in matrix for B in classs])
+            OA.extend([R[xx] if xx<t+q else N-i-1 for xx in B] for R in blocks_of_size_q_plus_t for B in classs)
 
         # Set of size x
         OA_k_x = orthogonal_array(k,x)
-        OA.extend([[N-i-1 for i in R] for R in OA_k_x])
+        OA.extend([N-i-1 for i in R] for R in OA_k_x)
 
     # v)
     elif (0<x and x<q**2-q+1-t and (e1 or e2) and # The result is wrong when e1=e2=0
@@ -2236,9 +2236,9 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         else:
             assert x==1, "equivalent to e2==0"
             # Only one class, the OA(k,t+1) need not be resolvable.
-            OA.extend([[B[xx] if xx < t else N-1 for xx in R]
+            OA.extend([B[xx] if xx < t else N-1 for xx in R]
                        for R in incomplete_orthogonal_array(k,t+1,[1])
-                       for B in partition_of_blocks_of_size_t[0]])
+                       for B in partition_of_blocks_of_size_t[0])
 
         # Sets of size t
         if e1:
@@ -2247,20 +2247,19 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         else:
             assert x==q**2-q-t, "equivalent to e1=0"
             # Only one class. The OA(k,t) needs not be resolvable
-            OA.extend([[B[xx] for xx in R] for R in orthogonal_array(k,t) for B in partition_of_blocks_of_size_t[-1]])
+            OA.extend([B[xx] for xx in R] for R in orthogonal_array(k,t) for B in partition_of_blocks_of_size_t[-1])
 
         if e1 and e2:
-            OA.extend([[i]*k for i in range(N-x)])
+            OA.extend([i]*k for i in range(N-x))
 
         if e1 == 0 and e2 == 0:
-            raise Exception("Brouwer's result is wrong for v) with e2=e1=0")
+            raise RuntimeError("Brouwer's construction does not work for case v) with e2=e1=0")
 
         # Sets of size q+t
         OA.extend(OA_from_PBD(k,N,blocks_of_size_q_plus_t,check=False)[:-N])
 
         # Set of size x
-        OA.extend([[N-i-1 for i in R]
-                   for R in orthogonal_array(k,x)])
+        OA.extend([N-i-1 for i in R] for R in orthogonal_array(k,x))
 
     # vi)
     elif (t+q<x and x<q**2+1 and (e3 or e4) and # The result is wrong when e3=e4=0
@@ -2286,9 +2285,9 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         else:
             assert x == q+t+1, "equivalent to e4=0"
             # Only one class. The OA(k,t+1) needs not be resolvable.
-            OA.extend([[B[xx] if xx<t else N-x for xx in R]
+            OA.extend([B[xx] if xx<t else N-x for xx in R]
                        for R in incomplete_orthogonal_array(k,t+1,[1])
-                       for B in partition_of_blocks_of_size_t[0]])
+                       for B in partition_of_blocks_of_size_t[0])
 
         # Sets of size t
         if e3:
@@ -2297,15 +2296,15 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         else:
             assert x == q**2, "equivalent to e3=0"
             # Only one class. The OA(k,t) needs not be resolvable.
-            OA.extend([[B[xx] for xx in R]
+            OA.extend([B[xx] for xx in R]
                        for R in orthogonal_array(k,t)
-                       for B in partition_of_blocks_of_size_t[-1]])
+                       for B in partition_of_blocks_of_size_t[-1])
 
         if e3 and e4:
-            OA.extend([[i]*k for i in range(N-x)])
+            OA.extend([i]*k for i in range(N-x))
 
-        if e3 == 0 and e4 == 0:
-            raise Exception("Brouwer's result is wrong for v) with e3=e4=0")
+        elif e3 == 0 and e4 == 0:
+            raise RuntimeError("Brouwer's construction does not work for case v) with e3=e4=0")
 
         # The sets of size q+t:
         #
@@ -2318,15 +2317,15 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         OA_tq1 = incomplete_orthogonal_array(k,t+q+1,[1]*(t+q+1),resolvable=True)
         OA_tq1_classes = [OA_tq1[i*(t+q+1):(i+1)*(t+q+1)] for i in range(t+q)]
 
-        matrix = _reorder_matrix(blocks_of_size_q_plus_t)
+        blocks_of_size_q_plus_t = _reorder_matrix(blocks_of_size_q_plus_t)
 
         for i,classs in enumerate(OA_tq1_classes):
-            OA.extend([[R[xx] if xx<t+q else N-i-1 for xx in B]
-                       for R in matrix
-                       for B in classs])
+            OA.extend([R[xx] if xx<t+q else N-i-1 for xx in B]
+                       for R in blocks_of_size_q_plus_t
+                       for B in classs)
 
         # Set of size x
-        OA.extend([[N-xx-1 for xx in B] for B in orthogonal_array(k,x)])
+        OA.extend([N-xx-1 for xx in B] for B in orthogonal_array(k,x))
 
     else:
         raise ValueError("This input is not handled by Brouwer's result.")

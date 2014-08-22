@@ -3267,7 +3267,8 @@ def DM_12_6_1():
       Discrete Mathematics, Volume 11, Issue 3, 1975, Pages 255-369.
     """
     from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
-    G = AdditiveAbelianGroup([2,6])
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(2).cartesian_product(AdditiveCyclic(6))
     M = [[(0,0),(0,0),(0,0),(0,0),(0,0),(0,0)],
          [(0,0),(0,1),(1,0),(0,3),(1,2),(0,4)],
          [(0,0),(0,2),(1,2),(1,0),(0,1),(1,5)],
@@ -3346,8 +3347,9 @@ def DM_24_8_1():
          "0000 1001 0111 2100 2000 0010 1110 2011 1100 1011 0101 2111 "+
          "0000 1011 2101 0100 2110 1001 2000 0110 0101 1111 2011 1010 ")
 
-    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
-    G = AdditiveAbelianGroup([3,2,2,2])
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    from sage.categories.cartesian_product import cartesian_product
+    G = cartesian_product(map(AdditiveCyclic,[2,2,6]))
     rlabel = {(x%2,x%3):x for x in range(6)}
     M = [G([int(c),int(d),rlabel[int(b),int(a)]]) for a,b,c,d in M.split()]
     M = [M[i*12:(i+1)*12] for i in range(8)]
@@ -3972,8 +3974,9 @@ def DM_60_6_1():
            [(0, 17), (0, 7), (0, 20), (0,  1), (1,  4), (0, 26), (0, 19), (0, 28), (1, 21), (0,  6)],
            [(1, 14), (1, 9), (0, 10), (0, 27), (1, 20), (0, 11), (0, 13), (1, 12), (0, 28), (1, 18)]]
 
-    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
-    G = AdditiveAbelianGroup([2,30])
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    from sage.categories.cartesian_product import cartesian_product
+    G = cartesian_product((AdditiveCyclic(2),AdditiveCyclic(30)))
     M60b=[[],[],[],[],[],[]]
     onezero = G((1,0))
 

@@ -14,7 +14,7 @@ from sage.categories.sets_cat import EmptySetError
 from sage.rings.finite_rings.constructor import FiniteField
 from sage.rings.arith import is_prime_power
 from designs_pyx import is_difference_matrix
-from database import DM_constructions
+from database import DM as DM_constructions
 
 def difference_matrix(g,k,lmbda=1,existence=False,check=True):
     r"""

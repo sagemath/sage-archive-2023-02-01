@@ -3219,7 +3219,7 @@ def OA_10_520():
     <OA_10_520>`, :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524)
     <OA_10_524>`.
 
-    Let `n=520+x` and `k=10+x`. Build a `TD(17,31)` and remove ``. Remove `8-x`
+    Let `n=520+x` and `k=10+x`. Build a `TD(17,31)`, remove `8-x`
     points contained in a common block, add a new point `p` and create a block
     `g_i\cup \{p\}` for every (possibly truncated) group `g_i`. The result is a
     `(520+x,{9+x,16,17,31,32})-PBD`. Note that all blocks of size `\geq 30` only
@@ -3295,7 +3295,7 @@ def OA_12_522():
     <OA_10_520>`, :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524)
     <OA_12_524>`.
 
-    Let `n=520+x` and `k=12+x`. Build a `TD(17,31)` and remove ``. Remove `8-x`
+    Let `n=520+x` and `k=12+x`. Build a `TD(17,31)`, remove `8-x`
     points contained in a common block, add a new point `p` and create a block
     `g_i\cup \{p\}` for every (possibly truncated) group `g_i`. The result is a
     `(520+x,{9+x,16,17,31,32})-PBD`. Note that all blocks of size `\geq 30` only
@@ -3371,7 +3371,7 @@ def OA_14_524():
     <OA_10_520>`, :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524)
     <OA_14_524>`.
 
-    Let `n=520+x` and `k=10+x`. Build a `TD(17,31)` and remove ``. Remove `8-x`
+    Let `n=520+x` and `k=10+x`. Build a `TD(17,31)`, remove `8-x`
     points contained in a common block, add a new point `p` and create a block
     `g_i\cup \{p\}` for every (possibly truncated) group `g_i`. The result is a
     `(520+x,{9+x,16,17,31,32})-PBD`. Note that all blocks of size `\geq 30` only

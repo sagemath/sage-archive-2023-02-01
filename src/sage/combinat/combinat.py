@@ -2220,33 +2220,62 @@ def number_of_tuples(S,k):
     ans=gap.eval("NrTuples(%s,%s)"%(S,ZZ(k)))
     return ZZ(ans)
 
-def unordered_tuples(S,k):
+def unordered_tuples(S, k, algorithm='itertools'):
     """
-    An unordered tuple of length k of set is a unordered selection with
-    repetitions of set and is represented by a sorted list of length k
-    containing elements from set.
+    Return the set of all unordered tuples of length ``k`` of the set ``S``.
 
-    unordered_tuples returns the set of all unordered tuples of length
-    k of the set. Wraps GAP's UnorderedTuples.
+    An unordered tuple of length `k` of set `S` is a unordered selection
+    with repetitions of `S` and is represented by a sorted list of length
+    `k` containing elements from `S`.
 
-    .. warning::
+    INPUT:
 
-       Wraps GAP - hence mset must be a list of objects that have
-       string representations that can be interpreted by the GAP
-       interpreter. If mset consists of at all complicated Sage
-       objects, this function does *not* do what you expect. A proper
-       function should be written! (TODO!)
+    - ``S`` -- the base set
+    - ``k`` -- the length of the tuples
+    - ``algorithm`` -- can be one of the following:
+
+      * ``'itertools'`` - (default) use python's itertools
+      * ``'gap'`` - wraps GAP's ``UnorderedTuples``
+
+    .. WARNING::
+
+        When using ``algorithm='gap'``, ``S`` must be a list of objects
+        that have string representations that can be interpreted by the GAP
+        interpreter. If ``S`` consists of at all complicated Sage
+        objects, this function might *not* do what you expect.
 
     EXAMPLES::
 
         sage: S = [1,2]
-        sage: unordered_tuples(S,3)
-        [[1, 1, 1], [1, 1, 2], [1, 2, 2], [2, 2, 2]]
-        sage: unordered_tuples(["a","b","c"],2)
-        ['aa', 'ab', 'ac', 'bb', 'bc', 'cc']
+        sage: unordered_tuples(S, 3)
+        [(1, 1, 1), (1, 1, 2), (1, 2, 2), (2, 2, 2)]
+
+    We check that this agrees with GAP::
+
+        sage: unordered_tuples(S, 3, algorithm='gap')
+        [(1, 1, 1), (1, 1, 2), (1, 2, 2), (2, 2, 2)]
+
+    We check the result on strings::
+
+        sage: S = ["a","b","c"]
+        sage: unordered_tuples(S, 2)
+        [('a', 'a'), ('a', 'b'), ('a', 'c'), ('b', 'b'), ('b', 'c'), ('c', 'c')]
+        sage: unordered_tuples(S, 2, algorithm='gap')
+        [('a', 'a'), ('a', 'b'), ('a', 'c'), ('b', 'b'), ('b', 'c'), ('c', 'c')]
+
+    Lastly we check on a multiset::
+
+        sage: S = [1,1,2]
+        sage: unordered_tuples(S, 3) == unordered_tuples(S, 3, 'gap')
+        True
     """
-    ans=gap.eval("UnorderedTuples(%s,%s)"%(S,ZZ(k)))
-    return eval(ans)
+    if algorithm == 'itertools':
+        import itertools
+        return list(itertools.combinations_with_replacement(sorted(set(S)), k))
+    if algorithm == 'gap':
+        ans = gap.eval("UnorderedTuples(%s,%s)"%(S,ZZ(k)))
+        return map(tuple, eval(ans))
+    raise ValueError('invalid algorithm')
 
 def number_of_unordered_tuples(S,k):
     """

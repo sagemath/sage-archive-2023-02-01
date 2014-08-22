@@ -2045,22 +2045,11 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         #    With it, from every parallel class with blocks of size t we build a
         #    parallel class of a resolvable OA(k-1,N)
 
-
-        # <SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
         rOA_N_classes = []
 
         # A resolvable OA(k-1,t)-t.OA(k-1,1)
-        OA = orthogonal_array(k,t)
-        OA.sort()
-        relabel = [[0]*t for _ in range(k)]
-        for i,B in enumerate(OA[-t:]):
-            for ii,xx in enumerate(B):
-                relabel[ii][xx] = i
-        for i in range(t):
-            relabel[0][i] = i
-        OA = [[relabel[i][xx] for i,xx in enumerate(B)] for B in OA]
-        OA_t_classes = [[B[1:] for B in OA[i*t:(i+1)*t]] for i in range(t-1)]
-        # </SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
+        OA_t = incomplete_orthogonal_array(k-1,t,[1]*t,resolvable=True)
+        OA_t_classes = [OA_t[i*t:(i+1)*t] for i in range(t-1)]
 
         # We can now build (t-1)(q^2-q+1-t) parallel classes of the resolvable
         # OA(k-1,N)
@@ -2128,21 +2117,9 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         # (x classes in total) with the rows of the ordered matrix (extended
         # with one of the new x points).
 
-        # <SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
-        #
         # Resolvable OA(k,t+q+1)-(t+q+1).OA(k,t+q+1)
-        OA_tq1 = orthogonal_array(k+1,t+q+1)
-        OA_tq1.sort()
-        relabel = [[0]*(t+q+1) for _ in range(k+1)]
-        for i,B in enumerate(OA_tq1[-(t+q+1):]):
-            for ii,xx in enumerate(B):
-                relabel[ii][xx] = i
-        for i in range(t+q+1):
-            relabel[0][i] = i
-
-        OA_tq1 = [[relabel[i][xx] for i,xx in enumerate(B)] for B in OA_tq1]
-        OA_tq1_classes = [[B[1:] for B in OA_tq1[i*(t+q+1):(i+1)*(t+q+1)]] for i in range(t+q)]
-        # <SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
+        OA_tq1 = incomplete_orthogonal_array(k,t+q+1,[1]*(t+q+1),resolvable=True)
+        OA_tq1_classes = [OA_tq1[i*(t+q+1):(i+1)*(t+q+1)] for i in range(t+q)]
 
         matrix = _reorder_matrix(blocks_of_size_q_plus_t)
 
@@ -2222,21 +2199,9 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         # (q+t classes in total) with the rows of the ordered matrix (extended
         # with the last q+t new points).
 
-        # <SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
-        #
         # Resolvable OA(k,t+q+1)-(t+q+1).OA(k,t+q+1)
-        OA_tq1 = orthogonal_array(k+1,t+q+1)
-        OA_tq1.sort()
-        relabel = [[0]*(t+q+1) for _ in range(k+1)]
-        for i,B in enumerate(OA_tq1[-(t+q+1):]):
-            for ii,xx in enumerate(B):
-                relabel[ii][xx] = i
-        for i in range(t+q+1):
-            relabel[0][i] = i
-
-        OA_tq1 = [[relabel[i][xx] for i,xx in enumerate(B)] for B in OA_tq1]
-        OA_tq1_classes = [[B[1:] for B in OA_tq1[i*(t+q+1):(i+1)*(t+q+1)]] for i in range(t+q)]
-        # </SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
+        OA_tq1 = incomplete_orthogonal_array(k,t+q+1,[1]*(t+q+1),resolvable=True)
+        OA_tq1_classes = [OA_tq1[i*(t+q+1):(i+1)*(t+q+1)] for i in range(t+q)]
 
         matrix = _reorder_matrix(blocks_of_size_q_plus_t)
 
@@ -2349,22 +2314,9 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
         # (q+t classes in total) with the rows of the ordered matrix (extended
         # with the last q+t new points).
 
-
-        # <SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
-        #
         # Resolvable OA(k,t+q+1)-(t+q+1).OA(k,t+q+1)
-        OA_tq1 = orthogonal_array(k+1,t+q+1)
-        OA_tq1.sort()
-        relabel = [[0]*(t+q+1) for _ in range(k+1)]
-        for i,B in enumerate(OA_tq1[-(t+q+1):]):
-            for ii,xx in enumerate(B):
-                relabel[ii][xx] = i
-        for i in range(t+q+1):
-            relabel[0][i] = i
-
-        OA_tq1 = [[relabel[i][xx] for i,xx in enumerate(B)] for B in OA_tq1]
-        OA_tq1_classes = [[B[1:] for B in OA_tq1[i*(t+q+1):(i+1)*(t+q+1)]] for i in range(t+q)]
-        # </SHOULD BE DONE BY THE CONSTRUCTOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRRRRRRRRRRRR>
+        OA_tq1 = incomplete_orthogonal_array(k,t+q+1,[1]*(t+q+1),resolvable=True)
+        OA_tq1_classes = [OA_tq1[i*(t+q+1):(i+1)*(t+q+1)] for i in range(t+q)]
 
         matrix = _reorder_matrix(blocks_of_size_q_plus_t)
 

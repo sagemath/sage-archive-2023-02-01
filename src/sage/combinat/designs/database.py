@@ -89,17 +89,6 @@ Implemented constructions :
   :func:`four MOLS of order 15 <MOLS_15_4>`,
   :func:`three MOLS of order 18 <MOLS_18_3>`
 
-- :func:`DF(21,5,1) <CDF_21_5_1>`
-  :func:`DF(25,4,1) <ADF_5x5_4_1>`
-  :func:`DF(37,4,1) <CDF_37_4_1>`
-  :func:`DF(81,5,1) <CDF_81_5_1>`
-  :func:`DF(91,6,1) <CDF_91_6_1>`
-  :func:`DF(121,5,1) <CDF_121_5_1>`
-  :func:`DF(141,5,1) <CDF_141_5_1>`
-  :func:`DF(161,5,1) <CDF_161_5_1>`
-  :func:`DF(201,5,1) <CDF_201_5_1>`
-  :func:`DF(221,5,1) <CDF_221_5_1>`
-
 - :func:`RBIBD(120,8,1) <RBIBD_120_8_1>`
 
 **Dictionaries**

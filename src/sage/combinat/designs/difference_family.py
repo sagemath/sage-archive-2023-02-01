@@ -541,6 +541,12 @@ def difference_family(v, k, l=1, existence=False, check=True):
         ....:           assert designs.difference_family(v,k,l,existence=True) is True
         ....:           _ = designs.difference_family(v,k,l)
 
+    Check twin primes difference sets::
+
+        sage: for p in [3,5,7,9,11]:
+        ....:     v = p*(p+2); k = (v-1)/2;  lmbda = (k-1)/2
+        ....:     G,D = designs.difference_family(v,k,lmbda)
+
     Check the database:
 
         sage: from sage.combinat.designs.database import DF
@@ -583,7 +589,9 @@ def difference_family(v, k, l=1, existence=False, check=True):
 
     D = None
 
-    if arith.is_prime_power(v):
+    factorization = arith.factor(v)
+
+    if len(factorization) == 1:  # i.e. is v a prime power
         from sage.rings.finite_rings.constructor import GF
         G = K = GF(v,'z')
         x = K.multiplicative_generator()
@@ -661,6 +669,49 @@ def difference_family(v, k, l=1, existence=False, check=True):
                         B = [one,r,r**2,c,c*r,c*r**2]
                         D = [[x**(i*5) * b for b in B] for i in xrange(t)]
                         break
+
+    # Twin prime powers construction (see :wikipedia:`Difference_set`)
+    #
+    # i.e. v = p(p+2) where p and p+2 are prime powers
+    #      k = (v-1)/2
+    #      lambda = (k-1)/2
+    elif (len(factorization) == 2 and
+          abs(pow(*factorization[0])-pow(*factorization[1])) == 2 and
+          k == (v-1)//2 and
+          (l is None or 2*l == (v-1)//2-1)):
+
+        # A difference set can be built from the set of elements
+        # (x,y) in GF(p) x GF(p+2) such that:
+        #
+        # - either y=0
+        # - x and y with x and y     squares
+        # - x and y with x and y non-squares
+        if existence:
+            return True
+
+        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.categories.cartesian_product import cartesian_product
+        from itertools import product
+        p,q = pow(*factorization[0]), pow(*factorization[1])
+        if p>q:
+            p,q=q,p
+        Fp = FiniteField(p,'x')
+        Fq = FiniteField(q,'x')
+        Fpset = set(Fp)
+        Fqset = set(Fq)
+        Fp_squares = set(x**2 for x in Fpset)
+        Fq_squares = set(x**2 for x in Fqset)
+
+        # Pairs of squares, pairs of non-squares
+        d = []
+        d.extend(product(Fp_squares.difference([0]),Fq_squares.difference([0])))
+        d.extend(product(Fpset.difference(Fp_squares),Fqset.difference(Fq_squares)))
+
+        # All (x,0)
+        d.extend((x,0) for x in Fpset)
+
+        G = cartesian_product([Fp,Fq])
+        D = [d]
 
     if D is None and are_hyperplanes_in_projective_geometry_parameters(v,k,l):
         _, (q,d) = are_hyperplanes_in_projective_geometry_parameters(v,k,l,True)

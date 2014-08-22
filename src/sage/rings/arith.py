@@ -764,6 +764,11 @@ def prime_powers(start, stop=None):
         sage: type(v[0])      # trac #922
         <type 'sage.rings.integer.Integer'>
 
+        sage: prime_powers(0,1)
+        []
+        sage: prime_powers(0,2)
+        [1]
+
         sage: prime_powers("foo")
         Traceback (most recent call last):
         ...
@@ -775,45 +780,39 @@ def prime_powers(start, stop=None):
         TypeError: stop must be an integer, bar is not an integer
 
     """
-    from sage.rings.integer import Integer
+    from integer import Integer
     # check to ensure that both inputs are positive integers
     if not isinstance(start, (int, Integer)):
         raise TypeError("start must be an integer, {} is not an integer".format(start))
     if not (isinstance(stop, (int, Integer)) or stop is None):
         raise TypeError("stop must be an integer, {} is not an integer".format(stop))
 
+    ZZ_1 = Integer(1)
+
     # coerce inputs that are ints into Integers for efficiency
     start = Integer(start)
-    if(stop is not None):
+    if stop is not None:
         stop = Integer(stop)
-
-    # deal with the case in which only one input is given
-    if stop is None:
-        start, stop = 1, Integer(start)
+    else:  # deal with the case in which only one input is given
+        start, stop = ZZ_1, Integer(start)
 
     # inserted to prevent an error from occurring
-    if stop < 1:
-        return [];
+    if stop <= ZZ_1 or start >= stop:
+        return []
 
     # find all the primes in the given range
     from fast_arith import prime_range
-    temp = prime_range(stop)
-    output = [p for p in temp if p>=start]
+    output = []
 
-    if start <= 1:
-        output.append(Integer(1))
+    if start <= ZZ_1:
+        output.append(ZZ_1)
 
-    s = stop.sqrt()
-    for p in temp:
-        # if p > the square root of stop, p^2 will be outside the given
-        # range
-        if p > s:
-            break
-        q = p*p
-        # check if each power of p falls within the given range
+    for p in prime_range(stop):
+        q = p
+        while q < start:
+            q *= p
         while q < stop:
-            if start <= q:
-                output.append(q)
+            output.append(q)
             q *= p
 
     output.sort()

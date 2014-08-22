@@ -145,9 +145,13 @@ class Link:
                 else:
                     ogc = False
                 if ogc == False:
-                    self._PD_code = self.input_
-                    self._oriented_gauss_code = None
-                    self._braid = None
+                    for i in self.input_:
+                        if len(i) != 4:
+                            raise Exception("Invalid Input")
+                    else:
+                        self._PD_code = self.input_
+                        self._oriented_gauss_code = None
+                        self._braid = None
                 elif ogc == True:
                     for i in self.input_[0]:
                         if type(i) != list:
@@ -1678,14 +1682,8 @@ class Link:
                         q = q + 1
                         break
         del crossing[-1]
-        # before we read the braid words, we make '-' in orient to -1 and similarly
-        # '+' to +1
-        sign = [None for i in range(len(orient))]
-        for i, j in enumerate(orient):
-            if j == -1:
-                sign[i] = -1
-            elif j == 1:
-                sign[i] = 1
+        # record the signs
+        sign = orient
         # each crossing belongs to two seifert circles, we find the first and
         # break
         braid = []

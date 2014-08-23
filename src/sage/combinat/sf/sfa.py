@@ -4260,9 +4260,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             for j, p in enumerate(m + [0]):
                 # The "+ [0]" is important and corresponds to moving the ``n``
                 # to the very end!
-                if n == p - j - 1 or n + j < 0:
+                if n == p - j - 1:
                     break
                 if n > p - j - 1:
+                    if n + j < 0:
+                        break
                     m_new = [k - 1 for k in m[:j]] + [n + j] + m[j:]
                     m_new = _Partitions(m_new)
                     res += (-1) ** j * c * s[m_new]

@@ -4514,7 +4514,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     I[5, 1, 3, 2, 1]
                     sage: elt = b + 3*I[4,1,2]
                     sage: elt.bernstein_creation_operator(1)
-                    I[1, 1, 3, 2, 1], + 3*I[1, 4, 1, 2]
+                    I[1, 1, 3, 2, 1] + 3*I[1, 4, 1, 2]
 
                 We check that this agrees with the definition on the
                 Complete basis::

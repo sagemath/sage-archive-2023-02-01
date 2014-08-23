@@ -158,7 +158,7 @@ class HyperbolicMethodsUHP(HyperbolicAbstractMethods):
         r"""
         Return a random point in the upper half
         plane.  The points are uniformly distributed over the rectangle
-        `[-10,10] \times [-10i,10i]`.
+        `[-10, 10] \times [0, 10i]`.
 
         EXAMPLES::
 
@@ -275,14 +275,14 @@ class HyperbolicMethodsUHP(HyperbolicAbstractMethods):
             sage: HyperbolicMethodsUHP.common_perpendicular(2, 4, 3, infinity)
             Traceback (most recent call last):
             ...
-            ValueError: Geodesics intersect. No common perpendicular exists.
+            ValueError: geodesics intersect; no common perpendicular exists
         """
         A = cls.reflection_in(start_1, end_1)
         B = cls.reflection_in(start_2, end_2)
         C = A*B
         if cls.classification(C) != 'hyperbolic':
-            raise ValueError("Geodesics intersect. " +
-                                 "No common perpendicular exists.")
+            raise ValueError("geodesics intersect; " +
+                             "no common perpendicular exists")
         return cls.fixed_point_set(C)
 
     @classmethod
@@ -929,4 +929,72 @@ class HyperbolicMethodsUHP(HyperbolicAbstractMethods):
         A = cls._crossratio_matrix(z[0],z[1],z[2])
         B = cls._crossratio_matrix(w[0],w[1],w[2])
         return B.inverse() * A
+
+#####################################################################
+## Helper functions
+
+def mobius_transform(A, z):
+    r"""
+    Given a matrix ``A`` in `GL(2, \CC)` and a point ``z`` in the complex
+    plane return the mobius transformation action of ``A`` on ``z``.
+
+    INPUT:
+
+    - ``A`` -- a `2 \times 2` invertible matrix over the complex numbers
+    - ``z`` -- a complex number or infinity
+
+    OUTPUT:
+
+    - a complex number or infinity
+
+    EXAMPLES::
+
+        sage: from sage.geometry.hyperbolic_space.hyperbolic_methods import mobius_transform
+        sage: mobius_transform(matrix(2,[1,2,3,4]),2 + I)
+        2/109*I + 43/109
+        sage: y = var('y')
+        sage: mobius_transform(matrix(2,[1,0,0,1]),x + I*y)
+        x + I*y
+
+    The matrix must be square and `2 \times 2`::
+
+        sage: mobius_transform(matrix([[3,1,2],[1,2,5]]),I)
+        Traceback (most recent call last):
+        ...
+        TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
+
+        sage: mobius_transform(identity_matrix(3),I)
+        Traceback (most recent call last):
+        ...
+        TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
+
+    The matrix can be symbolic or can be a matrix over the real
+    or complex numbers, but must be invertible::
+
+        sage: (a,b,c,d) = var('a,b,c,d');
+        sage: mobius_transform(matrix(2,[a,b,c,d]),I)
+        (I*a + b)/(I*c + d)
+
+        sage: mobius_transform(matrix(2,[0,0,0,0]),I)
+        Traceback (most recent call last):
+        ...
+        TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
+    """
+    if A.ncols() == 2 and A.nrows() == 2 and A.det() != 0:
+            (a,b,c,d) = A.list()
+            if z == infinity:
+                if c == 0:
+                    return infinity
+                return a/c
+            if a*d - b*c < 0:
+                w = z.conjugate() # Reverses orientation
+            else:
+                w = z
+            if c*z + d == 0:
+                return infinity
+            else:
+                return (a*w + b)/(c*w + d)
+    else:
+        raise TypeError("A must be an invertible 2x2 matrix over the"
+                        " complex numbers or a symbolic ring")
 

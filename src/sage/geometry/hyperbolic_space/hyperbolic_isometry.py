@@ -40,7 +40,8 @@ UHP for convenience::
 #                  http://www.gnu.org/licenses/
 #***********************************************************************
 
-from sage.structure.sage_object import SageObject
+from sage.categories.homset import Hom
+from sage.categories.morphism import Morphism
 from sage.misc.lazy_import import lazy_import
 from sage.misc.lazy_attribute import lazy_attribute
 lazy_import('sage.modules.free_module_element', 'vector')
@@ -50,15 +51,10 @@ from sage.misc.latex import latex
 from sage.rings.all import CC
 from sage.functions.other import real, imag
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicAbstractFactory')
 lazy_import('sage.geometry.hyperbolic_space.hyperbolic_methods',
             ['HyperbolicAbstractMethods', 'HyperbolicMethodsUHP'])
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory',
-            ['HyperbolicFactoryUHP', 'HyperbolicFactoryPD',
-             'HyperbolicFactoryKM', 'HyperbolicFactoryHM'])
-
-class HyperbolicIsometry(SageObject):
+class HyperbolicIsometry(Morphism):
     r"""
     Abstract base class for hyperbolic isometries.  This class should
     never be instantiated.
@@ -74,14 +70,13 @@ class HyperbolicIsometry(SageObject):
         sage: A = HyperbolicIsometryUHP(identity_matrix(2))
         sage: B = HyperbolicIsometryHM(identity_matrix(3))
     """
-    HFactory = HyperbolicAbstractFactory
-    HMethods = HyperbolicAbstractMethods
+    _HMethods = HyperbolicAbstractMethods
 
     #####################
     # "Private" Methods #
     #####################
 
-    def __init__(self, A):
+    def __init__(self, model, A):
         r"""
         See :class:`HyperbolicIsometry` for full documentation.
 
@@ -93,9 +88,10 @@ class HyperbolicIsometry(SageObject):
             [ 0  1]
             [-1  0]
         """
-        self._model = self.HFactory.get_model()
-        self._model.isometry_test(A)
+        model.isometry_test(A)
+        self._model = model
         self._matrix = A
+        Morphism.__init__(self, Hom(model, model))
 
     @lazy_attribute
     def _cached_matrix(self):
@@ -114,7 +110,7 @@ class HyperbolicIsometry(SageObject):
             [0 1]
         """
         return self.model().isometry_to_model(self.matrix(),
-                                              self.HMethods.model().short_name)
+                                              self._HMethods.model().short_name)
 
     def _repr_(self):
         r"""
@@ -132,7 +128,13 @@ class HyperbolicIsometry(SageObject):
             [1 0]
             [0 1]
         """
-        return "Isometry in {0}\n{1}".format(self.model_name(), self.matrix())
+        return self._repr_type() + " in {0}\n{1}".format(self._model.short_name(), self.matrix())
+
+    def _repr_type(self):
+        r"""
+        Return the type of morphism.
+        """
+        return "Isometry"
 
     def _latex_(self):
         r"""
@@ -155,9 +157,9 @@ class HyperbolicIsometry(SageObject):
             \end{array}\right)
         """
         if self.model().isometry_group_is_projective:
-            return "\pm " + latex(self.matrix())
+            return "\pm " + latex(self._matrix)
         else:
-            return latex(self.matrix())
+            return latex(self._matrix)
 
     def __eq__(self, other):
         r"""
@@ -173,10 +175,10 @@ class HyperbolicIsometry(SageObject):
         """
         pos_matrix = bool(abs(self.matrix() - other.matrix()) < EPSILON)
         neg_matrix = bool(abs(self.matrix() + other.matrix()) < EPSILON)
-        if self._model.isometry_group_is_projective:
-            return self.model() == other.model() and (pos_matrix or neg_matrix)
+        if self._model.is_isometry_group_projective():
+            return self._model is other._model and (pos_matrix or neg_matrix)
         else:
-            return self.model_name() == other.model_name() and pos_matrix
+            return self._model is other._model and pos_matrix
 
     def __pow__(self, n):
         r"""
@@ -189,7 +191,7 @@ class HyperbolicIsometry(SageObject):
             [41 15]
             [30 11]
         """
-        return self.__class__(self.matrix()**n)
+        return self.__class__(self._model, self.matrix()**n)
 
     def __mul__(self, other):
         r"""
@@ -225,45 +227,46 @@ class HyperbolicIsometry(SageObject):
             raise TypeError("{0} and {1} are not in the same"
                             "model".format(self, other))
         if isinstance(other, HyperbolicIsometry):
-            return type (self) (self.matrix()*other.matrix())
+            return self.__class__(self._model, self.matrix()*other.matrix())
         elif isinstance(other, HyperbolicPoint):
-            return self.HFactory.get_point(self.model().isometry_act_on_point(
+            return self._model.get_point(self.model().isometry_act_on_point(
                 self.matrix(), other.coordinates()))
         elif isinstance(other, HyperbolicGeodesic):
-            return self.HFactory.get_geodesic(self*other.start(), self*other.end())
+            return self._model.get_geodesic(self*other.start(), self*other.end())
         else:
             NotImplementedError("multiplication is not defined between a "
                                 "hyperbolic isometry and {0}".format(other))
 
-    # def __call__ (self, other):
-    #     r"""
-    #     EXAMPLES::
-    #
-    #         sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import *
-    #         sage: A = HyperbolicIsometryUHP(Matrix(2,[5,2,1,2]))
-    #         sage: p = UHP.point(2 + I)
-    #         sage: A(p)
-    #         Point in UHP 8/17*I + 53/17.
-    #
-    #         sage: g = UHP.geodesic(2 + I,4 + I)
-    #         sage: A (g)
-    #         Geodesic in UHP from 8/17*I + 53/17 to 8/37*I + 137/37.
-    #
-    #         sage: A = diagonal_matrix([1, -1, 1])
-    #         sage: A = HyperbolicIsometryHM(A)
-    #         sage: A.orientation_preserving()
-    #         False
-    #         sage: p = HM.point((0, 1, sqrt(2)))
-    #         sage: A(p)
-    #         Point in HM (0, -1, sqrt(2)).
-    #     """
-    #     from sage.geometry.hyperbolic_space.hyperbolic_geodesic import HyperbolicGeodesic
-    #     if self.model() != other.model():
-    #         raise TypeError("{0} is not in the {1} model.".format(other, self.model_name()))
-    #     if isinstance(other, HyperbolicGeodesic):
-    #         return self.HFactory.get_geodesic(self(other.start()), self(other.end()))
-    #     return self.HFactory.get_point(self.model().isometry_act_on_point(
-    #         self.matrix(), other.coordinates()))
+    def _call_(self, other):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import *
+            sage: A = HyperbolicIsometryUHP(Matrix(2,[5,2,1,2]))
+            sage: p = UHP.point(2 + I)
+            sage: A(p)
+            Point in UHP 8/17*I + 53/17.
+
+            sage: g = UHP.geodesic(2 + I,4 + I)
+            sage: A (g)
+            Geodesic in UHP from 8/17*I + 53/17 to 8/37*I + 137/37.
+
+            sage: A = diagonal_matrix([1, -1, 1])
+            sage: A = HyperbolicIsometryHM(A)
+            sage: A.orientation_preserving()
+            False
+            sage: p = HM.point((0, 1, sqrt(2)))
+            sage: A(p)
+            Point in HM (0, -1, sqrt(2)).
+        """
+        from sage.geometry.hyperbolic_space.hyperbolic_geodesic import HyperbolicGeodesic
+        if self.model() is not other.model():
+            raise TypeError("{0} is not in the {1} model".format(other, self.model_name()))
+
+        if isinstance(other, HyperbolicGeodesic):
+            return self._model.get_geodesic(self(other.start()), self(other.end()))
+        return self._model.get_point(self.model().isometry_act_on_point(
+            self.matrix(), other.coordinates()))
 
     #######################
     # Setters and Getters #
@@ -272,6 +275,12 @@ class HyperbolicIsometry(SageObject):
     def matrix(self):
         r"""
         Return the matrix of the isometry.
+
+        .. NOTE::
+
+            We do not allow the ``matrix`` constructor to work as these may
+            be elements of a projective group (ex. `PSL(n, \RR)`), so these
+            isometries aren't true matrices.
 
         EXAMPLES::
 
@@ -294,12 +303,19 @@ class HyperbolicIsometry(SageObject):
             sage: A*B == HyperbolicIsometryUHP(identity_matrix(2))
             True
         """
-        return self.HFactory.get_isometry(self.matrix().inverse())
+        return self.__class__(self._model, self.matrix().inverse())
 
-    @classmethod
-    def model(this):
+    __invert__ = inverse
+
+    def is_identity(self):
+        """
+        Return ``True`` if ``self`` is the identity isometry.
+        """
+        return self._matrix.is_one()
+
+    def model(self):
         r"""
-        Return the model to which the HyperbolicIsometry belongs.
+        Return the model to which ``self`` belongs.
 
         EXAMPLES::
 
@@ -316,10 +332,9 @@ class HyperbolicIsometry(SageObject):
             sage: HyperbolicIsometryHM(identity_matrix(3)).model()
             <class 'sage.geometry.hyperbolic_space.hyperbolic_model.HyperbolicModelHM'>
         """
-        return this.HFactory.get_model()
+        return self._model
 
-    @classmethod
-    def model_name(this):
+    def model_name(self):
         r"""
         Return the short name of the hyperbolic model.
 
@@ -338,29 +353,69 @@ class HyperbolicIsometry(SageObject):
             sage: HyperbolicIsometryHM(identity_matrix(3)).model_name()
             'HM'
         """
-        return this.model().short_name
+        return self._model.short_name()
 
-    def to_model(self, model_name):
+    def to_model(self, other):
         r"""
         Convert the current object to image in another model.
 
         INPUT:
 
-        - ``model_name`` -- a string representing the image model
+        - ``other`` -- (a string representing) the image model
 
         EXAMPLES::
 
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import *
-            sage: HyperbolicIsometryUHP(identity_matrix(2)).to_model('HM')
+            sage: H = HyperbolicPlane()
+            sage: UHP = H.UHP()
+            sage: PD = H.PD()
+            sage: KM = H.KM()
+            sage: HM = H.HM()
+
+            sage: I = UHP.get_isometry(identity_matrix(2))
+            sage: I.to_model(HM)
             Isometry in HM
             [1 0 0]
             [0 1 0]
             [0 0 1]
+            sage: I.to_model('HM')
+            Isometry in HM
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+
+            sage: I = PD.isometry(matrix(2,[I, 0, 0, -I]))
+            sage: I.to_model(UHP)
+            [ 0  1]
+            [-1  0]
+
+            sage: I.to_model(HM)
+            [-1  0  0]
+            [ 0 -1  0]
+            [ 0  0  1]
+
+            sage: Ito_model(KM)
+            [-1  0  0]
+            [ 0 -1  0]
+            [ 0  0  1]
+
+            sage: J = HM.isosometry(diagonal_matrix([-1, -1, 1]))
+            sage: J.to_model(UHP)
+            [ 0 -1]
+            [ 1  0]
+
+            sage: J.to_model(PD)
+            [-I  0]
+            [ 0  I]
+
+            sage: J.to_model(KM)
+            [-1  0  0]
+            [ 0 -1  0]
+            [ 0  0  1]
         """
-        from sage.geometry.hyperbolic_space.model_factory import ModelFactory
-        factory = ModelFactory.find_factory(model_name)
-        matrix = self.model().isometry_to_model(self.matrix(),  model_name)
-        return factory.get_isometry(matrix)
+        if isinstance(other, str):
+            other = getattr(self._model.realization_of(), other)
+        phi = other.coerce_map_from(self._model)
+        return phi.convert_isometry(self)
 
     ###################
     # Boolean Methods #
@@ -381,11 +436,11 @@ class HyperbolicIsometry(SageObject):
             sage: B.orientation_preserving()
             False
         """
-        return self.HMethods.orientation_preserving(self._cached_matrix)
+        return self._HMethods.orientation_preserving(self._cached_matrix)
 
-    ###################################
-    # Methods implemented in HMethods #
-    ###################################
+    ####################################
+    # Methods implemented in _HMethods #
+    ####################################
 
     def classification(self):
         r"""
@@ -412,7 +467,7 @@ class HyperbolicIsometry(SageObject):
             sage: E.classification()
             'reflection'
         """
-        return self.HMethods.classification(self._cached_matrix)
+        return self._HMethods.classification(self._cached_matrix)
 
     def translation_length(self):
         r"""
@@ -435,7 +490,7 @@ class HyperbolicIsometry(SageObject):
             sage: bool((p.dist(H*p) - H.translation_length()) < 10**-9)
             True
         """
-        return self.HMethods.translation_length(self._cached_matrix)
+        return self._HMethods.translation_length(self._cached_matrix)
 
     def axis(self, **graphics_options):
         r"""
@@ -460,9 +515,8 @@ class HyperbolicIsometry(SageObject):
         """
         if self.classification() not in (
                 ['hyperbolic', 'orientation-reversing hyperbolic']):
-            raise ValueError("the isometry is not hyperbolic: axis is"
-                             " undefined")
-        return self.HFactory.get_geodesic(*self.fixed_point_set())
+            raise ValueError("the isometry is not hyperbolic: axis is undefined")
+        return self._model.get_geodesic(*self.fixed_point_set())
 
     def fixed_point_set(self, **graphics_options):
         r"""
@@ -496,10 +550,10 @@ class HyperbolicIsometry(SageObject):
             ...
             ValueError: the identity transformation fixes the entire hyperbolic plane
         """
-        pts = self.HMethods.fixed_point_set(self._cached_matrix)
-        pts =  [self.HMethods.model().point_to_model(k, self.model_name()) for\
-                         k in pts]
-        return [self.HFactory.get_point(k, **graphics_options) for k in pts]
+        pts = self._HMethods.fixed_point_set(self._cached_matrix)
+        pts =  [self._HMethods.model().point_to_model(k, self.model_name())
+                for k in pts]
+        return [self._model.get_point(k, **graphics_options) for k in pts]
 
     def fixed_geodesic(self, **graphics_options):
         r"""
@@ -511,13 +565,13 @@ class HyperbolicIsometry(SageObject):
             sage: A.fixed_geodesic()
             Geodesic in UHP from 1 to -1
         """
-        fps = self.HMethods.fixed_point_set(self._cached_matrix)
+        fps = self._HMethods.fixed_point_set(self._cached_matrix)
         if len(fps) < 2:
             raise ValueError("Isometries of type"
                              " {0}".format(self.classification())
                              + " don't fix geodesics")
         from sage.geometry.hyperbolic_space.model_factory import ModelFactory
-        fact = ModelFactory.find_factory(self.HMethods.model_name())
+        fact = ModelFactory.find_factory(self._HMethods.model_name())
         geod = fact.get_geodesic(fps[0], fps[1])
         return geod.to_model(self.model_name())
 
@@ -537,9 +591,9 @@ class HyperbolicIsometry(SageObject):
             sage: A.repelling_fixed_point()
             Boundary point in UHP 0
         """
-        fp = self.HMethods.repelling_fixed_point(self._cached_matrix)
-        fp = self.HMethods.model().point_to_model(fp, self.model_name())
-        return self.HFactory.get_point(fp)
+        fp = self._HMethods.repelling_fixed_point(self._cached_matrix)
+        fp = self._HMethods.model().point_to_model(fp, self.model_name())
+        return self._model.get_point(fp)
 
     def attracting_fixed_point(self, **graphics_options):
         r"""
@@ -557,12 +611,11 @@ class HyperbolicIsometry(SageObject):
             sage: A.attracting_fixed_point()
             Boundary point in UHP +Infinity
         """
-        fp = self.HMethods.attracting_fixed_point(self._cached_matrix)
-        fp = self.HMethods.model().point_to_model(fp, self.model_name())
-        return self.HFactory.get_point(fp)
+        fp = self._HMethods.attracting_fixed_point(self._cached_matrix)
+        fp = self._HMethods.model().point_to_model(fp, self.model_name())
+        return self._model.get_point(fp)
 
-    @classmethod
-    def isometry_from_fixed_points(cls, repel, attract):
+    def isometry_from_fixed_points(self, repel, attract):
         r"""
         Given two fixed points ``repel`` and ``attract`` as hyperbolic
         points return a hyperbolic isometry with ``repel`` as repelling
@@ -584,41 +637,14 @@ class HyperbolicIsometry(SageObject):
             [-1/3 -1/3]
         """
         try:
-            A = cls.HMethods.isometry_from_fixed_points(repel._cached_coordinates,
-                                                   attract._cached_coordinates)
-            A = cls.HMethods.model().isometry_to_model(A, cls.model_name())
-            return cls.HFactory.get_isometry(A)
+            A = self._HMethods.isometry_from_fixed_points(repel._cached_coordinates,
+                                                         attract._cached_coordinates)
+            A = self._HMethods.model().isometry_to_model(A, self.model_name())
+            return self._model.get_isometry(A)
         except(AttributeError):
-            repel = cls.HFactory.get_point(repel)
-            attract = cls.HFactory.get_point(attract)
-            return cls.isometry_from_fixed_points(repel, attract)
-
-    @classmethod
-    def random_element(cls, preserve_orientation=True, **kwargs):
-        r"""
-        Return a random isometry in the Upper Half Plane model.
-
-        INPUT:
-
-        - ``preserve_orientation`` -- if ``True`` return an
-          orientation-preserving isometry
-
-        OUTPUT:
-
-        - a hyperbolic isometry
-
-        EXAMPLES::
-
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import *
-            sage: A = HyperbolicIsometryUHP.random_element()
-            sage: B = HyperbolicIsometryUHP.random_element(preserve_orientation=False)
-            sage: B.orientation_preserving()
-            False
-        """
-        A = cls.HMethods.random_isometry(preserve_orientation, **kwargs)
-        A = cls.HMethods.model().isometry_to_model(A, cls.model_name())
-        return cls.HFactory.get_isometry(A)
-
+            repel = self._model.get_point(repel)
+            attract = self._model.get_point(attract)
+            return self.isometry_from_fixed_points(repel, attract)
 
 class HyperbolicIsometryUHP(HyperbolicIsometry):
     r"""
@@ -633,9 +659,7 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
         sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometryUHP
         sage: A = HyperbolicIsometryUHP(identity_matrix(2))
     """
-
-    HFactory = HyperbolicFactoryUHP
-    HMethods = HyperbolicMethodsUHP
+    _HMethods = HyperbolicMethodsUHP
 
 class HyperbolicIsometryPD(HyperbolicIsometry):
     r"""
@@ -650,8 +674,7 @@ class HyperbolicIsometryPD(HyperbolicIsometry):
         sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometryPD
         sage: A = HyperbolicIsometryPD(identity_matrix(2))
     """
-    HFactory = HyperbolicFactoryPD
-    HMethods = HyperbolicMethodsUHP
+    _HMethods = HyperbolicMethodsUHP
 
 class HyperbolicIsometryKM(HyperbolicIsometry):
     r"""
@@ -666,8 +689,7 @@ class HyperbolicIsometryKM(HyperbolicIsometry):
         sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometryKM
         sage: A = HyperbolicIsometryKM(identity_matrix(3))
     """
-    HFactory = HyperbolicFactoryKM
-    HMethods = HyperbolicMethodsUHP
+    _HMethods = HyperbolicMethodsUHP
 
 class HyperbolicIsometryHM(HyperbolicIsometry):
     r"""
@@ -682,6 +704,5 @@ class HyperbolicIsometryHM(HyperbolicIsometry):
         sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometryHM
         sage: A = HyperbolicIsometryHM(identity_matrix(3))
     """
-    HFactory = HyperbolicFactoryHM
-    HMethods = HyperbolicMethodsUHP
+    _HMethods = HyperbolicMethodsUHP
 

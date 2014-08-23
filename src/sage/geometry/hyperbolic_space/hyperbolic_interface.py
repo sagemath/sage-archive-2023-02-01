@@ -38,48 +38,131 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #***********************************************************************
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_model',
-            ['HyperbolicModel','HyperbolicModelUHP',
-             'HyperbolicModelPD', 'HyperbolicModelHM', 'HyperbolicModelKM'])
+from sage.structure.parent import Parent
+from sage.categories.sets_cat import Sets
+from sage.categories.realizations import Realizations, Category_realization_of_parent
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.geometry.hyperbolic_space.hyperbolic_model import (
+        HyperbolicModelUHP, HyperbolicModelPD,
+        HyperbolicModelHM, HyperbolicModelKM)
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory',
-            ['HyperbolicFactory', 'HyperbolicFactoryUHP',
-             'HyperbolicFactoryPD', 'HyperbolicFactoryHM',
-             'HyperbolicFactoryKM'])
+def HyperbolicSpace(n):
+    """
+    Return ``n`` dimensional hyperbolic space.
+    """
+    if n == 2:
+        return HyperbolicPlane()
+    raise NotImplementedError("currently only implemented in dimension 2")
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_point',
-            ['HyperbolicPoint', 'HyperbolicPointUHP', 'HyperbolicPointPD',
-             'HyperbolicPointHM', 'HyperbolicPointKM'])
+class HyperbolicPlane(Parent, UniqueRepresentation):
+    """
+    The hyperbolic plane `\mathbb{H}^2`.
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_bdry_point',
-            ['HyperbolicBdryPointUHP', 'HyperbolicBdryPointPD',
-             'HyperbolicBdryPointHM', 'HyperbolicBdryPointKM'])
+    Here are the models currently implemented:
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic',
-            ['HyperbolicGeodesic', 'HyperbolicGeodesicUHP',
-             'HyperbolicGeodesicPD', 'HyperbolicGeodesicHM',
-             'HyperbolicGeodesicKM'])
+    - ``UHP`` -- upper half plane
+    - ``PD`` -- Poincare disk
+    - ``KM`` -- Klein disk
+    - ``HM`` -- hyperboloid model
+    """
+    def __init__(self):
+        """
+        Initialize ``self``.
+        """
+        Parent.__init__(self, category=Sets().WithRealizations())
 
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+        """
+        return "Hyperbolic plane"
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry',
-            ['HyperbolicIsometry', 'HyperbolicIsometryUHP',
-             'HyperbolicIsometryPD', 'HyperbolicIsometryHM',
-             'HyperbolicIsometryKM'])
+    def a_realization(self):
+        """
+        Return a realization of ``self``.
+        """
+        return self.UHP()
 
+    UHP = HyperbolicModelUHP
+    UpperHalfPlane = UHP
 
+    PD = HyperbolicModelPD
+    PoincareDisk = PD
+
+    KM = HyperbolicModelKM
+    KleinDisk = KM
+
+    HM = HyperbolicModelHM
+    Hyperboloid = HM
+
+class HyperbolicModels(Category_realization_of_parent):
+    r"""
+    The category of hyperbolic models of hyperbolic space.
+    """
+    def __init__(self, base):
+        r"""
+        Initialize the hyperbolic models of hyperbolic space.
+
+        INPUT:
+
+        - ``base`` -- a hyperbolic space
+
+        TESTS::
+
+            sage: from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicModels
+            sage: H = HyperbolicPlane()
+            sage: models = HyperbolicModels(H)
+            sage: H.UHP() in models
+            True
+        """
+        Category_realization_of_parent.__init__(self, base)
+
+    def _repr_(self):
+        r"""
+        Return the representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicModels
+            sage: H = HyperbolicPlane()
+            sage: HyperbolicModels(H)
+            Category of hyperbolic models of Hyperbolic plane
+        """
+        return "Category of hyperbolic models of {}".format(self.base())
+
+    def super_categories(self):
+        r"""
+        The super categories of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicModels
+            sage: H = HyperbolicPlane()
+            sage: models = HyperbolicModels(H)
+            sage: models.super_categories()
+            [Category of finite dimensional algebras with basis over Rational Field,
+             Category of realizations of Descent algebra of 4 over Rational Field]
+        """
+        return [Sets(), Realizations(self.base())]
+
+    class ParentMethods:
+        @lazy_attribute
+        def _computation_model(self):
+            """
+            Return the model in which to do computations by default.
+            """
+            return self.realization_of().UHP()
+
+    class ElementMethods:
+        pass
+
+# TODO: Remove this class and move its doctests
 class HyperbolicUserInterface(UniqueRepresentation):
     r"""
     Abstract base class for hyperbolic interfaces.  These provide a user
     interface for interacting with models of hyperbolic geometry without
     having the interface dictate the class structure.
     """
-    HModel = HyperbolicModel
-    HFactory = HyperbolicFactory
-    HPoint = HyperbolicPoint
-    HIsometry = HyperbolicIsometry
-    HGeodesic = HyperbolicGeodesic
-
     @classmethod
     def model_name(cls):
         r"""
@@ -396,88 +479,3 @@ class HyperbolicUserInterface(UniqueRepresentation):
         if isinstance(A, HyperbolicIsometry):
             A = A.matrix()
         return cls.HModel.isometry_to_model(A, model)
-
-
-class UHP(HyperbolicUserInterface):
-    r"""
-    Hyperbolic interface for the UHP model.
-
-    EXAMPLES::
-
-        sage: HyperbolicPlane.UHP.point(I)
-        Point in UHP I
-    """
-    HModel = HyperbolicModelUHP
-    HFactory = HyperbolicFactoryUHP
-    HPoint = HyperbolicPointUHP
-    HIsometry = HyperbolicIsometryUHP
-    HGeodesic = HyperbolicGeodesicUHP
-
-
-class PD(HyperbolicUserInterface):
-    r"""
-    Hyperbolic interface for the PD model.
-
-    EXAMPLES::
-
-        sage: HyperbolicPlane.PD.point(I)
-        Boundary point in PD I
-    """
-    HModel = HyperbolicModelPD
-    HFactory = HyperbolicFactoryPD
-    HPoint = HyperbolicPointPD
-    HIsometry = HyperbolicIsometryPD
-    HGeodesic = HyperbolicGeodesicPD
-
-
-class KM(HyperbolicUserInterface):
-    r"""
-    Hyperbolic interface for the KM model.
-
-    EXAMPLES::
-
-        sage: HyperbolicPlane.KM.point((0,0))
-        Point in KM (0, 0)
-    """
-    HModel = HyperbolicModelKM
-    HFactory = HyperbolicFactoryKM
-    HPoint = HyperbolicPointKM
-    HIsometry = HyperbolicIsometryKM
-    HGeodesic = HyperbolicGeodesicKM
-
-
-class HM(HyperbolicUserInterface):
-    r"""
-    Hyperbolic interface for the HM model.
-
-    EXAMPLES::
-
-        sage: HyperbolicPlane.HM.point((0,0,1))
-        Point in HM (0, 0, 1)
-    """
-    HModel = HyperbolicModelHM
-    HFactory = HyperbolicFactoryHM
-    HPoint = HyperbolicPointHM
-    HIsometry = HyperbolicIsometryHM
-    HGeodesic = HyperbolicGeodesicHM
-
-class HyperbolicPlane(UniqueRepresentation):
-    """
-    The hyperbolic plane `\mathbb{H}^2` in a given model.
-
-    Here are the models currently implemented:
-
-    - ``UHP`` -- upper half plane
-    - ``PD`` -- Poincare disk
-    - ``KM`` -- Klein disk
-    - ``HM`` -- hyperboloid model
-    """
-    UHP = UHP
-    UpperHalfPlane = UHP
-    PD = PD
-    PoincareDisk = PD
-    KM = KM
-    KleinDisk = KM
-    HM = HM
-    Hyperboloid = HM
-

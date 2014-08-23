@@ -21,6 +21,8 @@ from sage.rings.all import ZZ, QQ, infinity, AlgebraicField
 from sage.rings.power_series_ring import is_PowerSeriesRing
 from sage.rings.laurent_series_ring import is_LaurentSeriesRing
 from sage.modules.free_module_element import is_FreeModuleElement
+from sage.matrix.constructor import matrix
+from sage.modules.free_module_element import vector
 
 from sage.misc.cachefunc import cached_method
 
@@ -125,7 +127,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import MeromorphicModularFormsRing
-            sage: from sage.modular.modform_hecketriangle.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, QuasiWeakModularForms
             sage: MF = ModularForms(k=12, ep=1)
             sage: (x,y,z,d) = MF.pol_ring().gens()
 
@@ -150,6 +152,24 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF(qexp)
             q - 24*q^2 + 252*q^3 - 1472*q^4 + O(q^5)
             sage: MF(qexp) == MF(Delta)
+            True
+
+            sage: QF = QuasiWeakModularForms(n=8, k=10/3, ep=-1)
+            sage: QF.default_prec(2)
+            sage: el2 = QF.quasi_part_gens(min_exp=-2)[3]
+            sage: el2.reduced_parent()
+            QuasiWeakModularForms(n=8, k=10/3, ep=-1) over Integer Ring
+            sage: prec = QF.required_laurent_prec(min_exp=-2)
+            sage: qexp2 = el2.q_expansion(prec=prec)
+            sage: qexp2
+            q^-2 - 9/(128*d)*q^-1 - 261/(131072*d^2) + 960377/(100663296*d^3)*q + 1410051087/(274877906944*d^4)*q^2 + 346259317983/(351843720888320*d^5)*q^3 + O(q^4)
+            sage: qexp2.parent()
+            Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: QF(qexp2)
+            q^-2 - 9/(128*d)*q^-1 - 261/(131072*d^2) + 960377/(100663296*d^3)*q + O(q^2)
+            sage: QF(qexp2).reduced_parent()
+            QuasiWeakModularForms(n=8, k=10/3, ep=-1) over Integer Ring
+            sage: QF(qexp2) == el2
             True
 
             sage: MF([0,1]) == MF(Delta)
@@ -195,10 +215,12 @@ class FormsSpace_abstract(FormsRing_abstract):
         from graded_ring_element import FormsRingElement
         if isinstance(x, FormsRingElement):
             return self.element_class(self, x._rat)
+        # This assumes that the series corresponds to a _weakly holomorphic_ (quasi) form
         if hasattr(x, 'parent') and (is_LaurentSeriesRing(x.parent()) or is_PowerSeriesRing(x.parent())):
-            # This assumes that the series corresponds to a weakly holomorphic modular form!
-            # But the construction method (with the assumption) may also be used for more general form spaces...
-            return self.construct_form(x)
+            if (self.is_modular()):
+                return self.construct_form(x)
+            else:
+                return self.construct_quasi_form(x)
         if is_FreeModuleElement(x) and (self.module() == x.parent() or self.ambient_module() == x.parent()):
             return self.element_from_ambient_coordinates(x)
         if (not self.is_ambient()) and (isinstance(x, list) or isinstance(x, tuple) or is_FreeModuleElement(x)) and len(x) == self.rank():
@@ -1086,7 +1108,237 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         return new_space(self.F_basis_pol(m))
 
-    # TODO: This only works for weakly holomorphic modular forms!
+    def quasi_part_gens(self, r=None, min_exp=0, max_exp=infinity):
+        r"""
+        Return a basis in ``self`` of the subspace of (quasi) weakly holomorphic forms which
+        satisfy the specified properties on the quasi parts and the initial Fourier coefficient.
+
+        INPUT:
+
+        - ``r``        -- An integer or ``None`` (default), indicating the desired power of ``E2``.
+                          If ``r==None`` then all possible powers ``r``'s are choosen.
+
+        - ``min_exp``  -- An integer giving a lower bound for the first non-trivial
+                          Fourier coefficient of the generators (default: 0).
+
+        - ``max_exp``  -- An integer or ``infinity`` (default) giving an upper bound for the first
+                          non-trivial Fourier coefficient of the generators.
+                          If ``max_exp==infinity`` then no upper bound is assumed.
+
+        OUTPUT:
+
+        A basis in ``self`` of the subspace of forms with a Fourier expansion of the form
+        ``q^m + O(q^(m+1))`` with ``min_exp <= m <= max_exp`` and which are modular after
+        dividing by ``E2^r``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms
+            sage: QF = QuasiWeakModularForms(n=8, k=10/3, ep=-1)
+            sage: QF.default_prec(1)
+            sage: QF.quasi_part_gens(min_exp=-2)
+            [q^-2 + O(q), q^-1 + O(q), 1 + O(q), q^-2 - 9/(128*d)*q^-1 - 261/(131072*d^2) + O(q), q^-1 - 9/(128*d) + O(q), 1 + O(q)]
+
+            sage: QF.quasi_part_gens(min_exp=-1, max_exp=-1)
+            [q^-1 + O(q), q^-1 - 9/(128*d) + O(q)]
+            sage: QF.quasi_part_gens(min_exp=-2, r=1)
+            [q^-2 - 9/(128*d)*q^-1 - 261/(131072*d^2) + O(q), q^-1 - 9/(128*d) + O(q), 1 + O(q)]
+
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
+            sage: MF = ModularForms(k=36)
+            sage: MF.quasi_part_gens(min_exp=2)
+            [q^2 + 194184*q^4 + O(q^5), q^3 - 72*q^4 + O(q^5)]
+
+            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
+            sage: MF = QuasiModularForms(n=5, k=6, ep=-1)
+            sage: MF.default_prec(2)
+            sage: MF.dimension()
+            3
+            sage: MF.quasi_part_gens(r=0)
+            [1 - 37/(200*d)*q + O(q^2)]
+            sage: MF.quasi_part_gens(r=0)[0] == MF.E6()
+            True
+            sage: MF.quasi_part_gens(r=1)
+            [1 + 33/(200*d)*q + O(q^2)]
+            sage: MF.quasi_part_gens(r=1)[0] == MF.E2()*MF.E4()
+            True
+            sage: MF.quasi_part_gens(r=2)
+            []
+            sage: MF.quasi_part_gens(r=3)
+            [1 - 27/(200*d)*q + O(q^2)]
+            sage: MF.quasi_part_gens(r=3)[0] == MF.E2()^3
+            True
+
+            sage: from sage.modular.modform_hecketriangle.space import QuasiCuspForms, CuspForms
+            sage: MF = QuasiCuspForms(n=5, k=18, ep=-1)
+            sage: MF.default_prec(4)
+            sage: MF.dimension()
+            8
+            sage: MF.quasi_part_gens(r=0)
+            [q - 34743/(640000*d^2)*q^3 + O(q^4), q^2 - 69/(200*d)*q^3 + O(q^4)]
+            sage: MF.quasi_part_gens(r=1)
+            [q - 9/(200*d)*q^2 + 37633/(640000*d^2)*q^3 + O(q^4),
+             q^2 + 1/(200*d)*q^3 + O(q^4)]
+            sage: MF.quasi_part_gens(r=2)
+            [q - 1/(4*d)*q^2 - 24903/(640000*d^2)*q^3 + O(q^4)]
+            sage: MF.quasi_part_gens(r=3)
+            [q + 1/(10*d)*q^2 - 7263/(640000*d^2)*q^3 + O(q^4)]
+            sage: MF.quasi_part_gens(r=4)
+            [q - 11/(20*d)*q^2 + 53577/(640000*d^2)*q^3 + O(q^4)]
+            sage: MF.quasi_part_gens(r=5)
+            [q - 1/(5*d)*q^2 + 4017/(640000*d^2)*q^3 + O(q^4)]
+
+            sage: MF.quasi_part_gens(r=1)[0] == MF.E2() * CuspForms(n=5, k=16, ep=1).gen(0)
+            True
+            sage: MF.quasi_part_gens(r=1)[1] == MF.E2() * CuspForms(n=5, k=16, ep=1).gen(1)
+            True
+            sage: MF.quasi_part_gens(r=3)[0] == MF.E2()^3 * MF.Delta()
+            True
+        """
+
+        if (not self.is_weakly_holomorphic()):
+             from warnings import warn
+             warn("This function only determines generators of (quasi) weakly modular forms!")
+
+        # For modular forms spaces the quasi parts are all zero except for r=0
+        if (self.is_modular()):
+            r = ZZ(0)
+            if (r != 0):
+                return []
+
+        # If r is not specified we gather all generators for all possible r's
+        if (r is None):
+            gens = []
+            for rnew in range(ZZ(0), QQ(self._weight/ZZ(2)).floor()+1):
+                gens += self.quasi_part_gens(r=rnew, min_exp=min_exp, max_exp=max_exp)
+            return gens
+
+        r = ZZ(r)
+        if (r < 0 or 2*r > self._weight):
+            return []
+
+        min_exp = ZZ(min_exp)
+        if self.is_holomorphic():
+            if self.is_cuspidal():
+                if self.is_zerospace():
+                    return []
+                else:
+                    min_exp = max(min_exp, 1)
+            else:
+                min_exp = max(min_exp, 0)
+
+        min_exp = min(min_exp, self._l1)
+
+        E2 = self.E2()
+
+        ambient_weak_space = self.graded_ring().reduce_type("weak", degree=(self._weight-QQ(2*r), self._ep*(-1)**r))
+
+        if (max_exp == infinity):
+            max_exp = ambient_weak_space._l1
+        elif (max_exp < min_exp):
+            return []
+        else:
+            max_exp = min(ZZ(max_exp), ambient_weak_space._l1)
+
+        gens = []
+        for m in range(min_exp, max_exp+1):
+            if (r == 0):
+                gens += [ self(ambient_weak_space.F_basis(-m)) ]
+            else:
+                gens += [ self(ambient_weak_space.F_basis(-m)*E2**r) ]
+
+        return gens
+
+    def quasi_part_dimension(self, r=None, min_exp=0, max_exp=infinity):
+        r"""
+        Return the dimension of the subspace of ``self`` generated by
+        ``self.quasi_part_gens(r, min_exp, max_exp)``.
+
+        See :meth:`quasi_part_gens` for more details.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
+            sage: MF = QuasiModularForms(n=5, k=6, ep=-1)
+            sage: MF.dimension()
+            3
+            sage: MF.quasi_part_dimension(r=0)
+            1
+            sage: MF.quasi_part_dimension(r=1)
+            1
+            sage: MF.quasi_part_dimension(r=2)
+            0
+            sage: MF.quasi_part_dimension(r=3)
+            1
+            sage: MF.quasi_part_dimension(min_exp=1)
+            3
+
+            sage: from sage.modular.modform_hecketriangle.space import QuasiCuspForms
+            sage: MF = QuasiCuspForms(n=5, k=18, ep=-1)
+            sage: MF.dimension()
+            8
+            sage: MF.quasi_part_dimension(r=0)
+            2
+            sage: MF.quasi_part_dimension(r=1)
+            2
+            sage: MF.quasi_part_dimension(r=2)
+            1
+            sage: MF.quasi_part_dimension(r=3)
+            1
+            sage: MF.quasi_part_dimension(r=4)
+            1
+            sage: MF.quasi_part_dimension(r=5)
+            1
+            sage: MF.quasi_part_dimension(min_exp=2, max_exp=2)
+            2
+        """
+
+        if (not self.is_weakly_holomorphic()):
+             from warnings import warn
+             warn("This function only determines the dimension of some (quasi) weakly subspace!")
+
+        # For modular forms spaces the quasi parts are all zero except for r=0
+        if (self.is_modular()):
+            r = ZZ(0)
+            if (r != 0):
+                return ZZ(0)
+
+        # If r is not specified we calculate the total dimension over all possible r's
+        if (r is None):
+            return sum([self.quasi_part_dimension(r=rnew, min_exp=min_exp, max_exp=max_exp) for rnew in range(ZZ(0), QQ(self._weight / ZZ(2)).floor() + 1)])
+
+        r = ZZ(r)
+        if (r < 0 or 2*r > self._weight):
+            return ZZ(0)
+
+        min_exp = ZZ(min_exp)
+        if self.is_holomorphic():
+            if self.is_cuspidal():
+                if self.is_zerospace():
+                    return ZZ(0)
+                else:
+                    min_exp = max(min_exp, 1)
+            else:
+                min_exp = max(min_exp, 0)
+
+        min_exp = min(min_exp, self._l1)
+
+        n = self._group.n()
+        k = self._weight - QQ(2*r)
+        ep = self._ep * (-1)**r
+        num = ZZ((k-(1-ep)*ZZ(n)/ZZ(n-2))*ZZ(n-2)/ZZ(4))
+        l2 = num % n
+        l1 = ((num-l2)/n).numerator()
+
+        if (max_exp == infinity):
+            max_exp = l1
+        elif (max_exp < min_exp):
+            return ZZ(0)
+        else:
+            max_exp = min(ZZ(max_exp), l1)
+
+        return max(ZZ(0), max_exp - min_exp + 1)
+
     def construct_form(self, laurent_series):
         r"""
         Tries to construct an element of self with the given Fourier
@@ -1105,9 +1357,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         If possible: An element of self with the same initial
         Fourier expansion as ``laurent_series``.
 
-        Note: Instead of calling ``construct_form`` directly it is also
-        possible to use ``self(laurent_series)`` which then calls this
-        function.
+        Note: For modular spaces it is also possible to call
+        ``self(laurent_series)`` instead.
 
         EXAMPLES::
 
@@ -1146,10 +1397,10 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
         """
 
-        if (laurent_series.prec() < self._l1+1):
-            raise ValueError('Insufficient precision!')
+        if (laurent_series.prec() < self._l1 + 1):
+            raise ValueError("Insufficient precision: {} < {}!".format(laurent_series.prec(), self._l1 + 1))
 
-        laurent_series = laurent_series.add_bigoh(self._l1+1)
+        laurent_series = laurent_series.add_bigoh(self._l1 + 1)
         coefficients   = laurent_series.coefficients()
         exponents      = laurent_series.exponents()
 
@@ -1162,6 +1413,198 @@ class FormsSpace_abstract(FormsRing_abstract):
               ])
 
         return self(rat)
+
+    @cached_method
+    def _quasi_form_matrix(self, min_exp=0, incr_prec_by=0):
+        r"""
+        Return a base change matrix which transforms coordinate vectors
+        with respect to a certain basis into a vector corresponding to
+        Laurent coefficients of a series.
+
+        This is a helper function used to construct weakly holomorphic quasi
+        forms based on their initial Laurent coefficients
+        (see :meth:`construct_quasi_form`).
+
+        INPUT:
+
+        - ``min_exp``       -- An integer (default: 0), namely the lower bound for the
+                               order at infinity resp. the exponent of the Laurent series.
+
+        - ``incr_prec_by``  -- An integer (default: 0) which specifies how
+                               much the precision should be increased compared to
+                               the size of the corresponding basis.
+
+        OUTPUT:
+
+        The corresponding base change matrix.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms, ModularForms
+            sage: QF = QuasiWeakModularForms(n=8, k=10/3, ep=-1)
+            sage: A = QF._quasi_form_matrix(min_exp=-2)
+            sage: A[3]
+            (-90655/(25165824*d^3), 960377/(100663296*d^3), -11049/(262144*d^2), 15847/(262144*d^2), -39/(128*d), 1/(128*d))
+
+            sage: MF = ModularForms(k=36)
+            sage: MF._quasi_form_matrix(min_exp=2)
+            [1 0]
+            [0 1]
+        """
+
+        min_exp = ZZ(min_exp)
+        max_exp = self._l1
+
+        basis = []
+        for m in range(min_exp, max_exp + 1):
+           basis += self.quasi_part_gens(min_exp=m, max_exp=m)
+
+        column_size = len(basis)
+        # we increase the precision resp. row size by "2 + incr_prec_by"
+        # compared to the column size. The 2 is added to potentially
+        # save a costly rerun of the calculation of the Fourier expansion
+        row_size = column_size + 2 + incr_prec_by
+        prec = row_size + min_exp
+
+        coeff_ring = self.coeff_ring()
+        A = matrix(coeff_ring, row_size, 0)
+
+        for gen in basis:
+            qexp = gen.q_expansion(prec=prec)
+            vec = vector([qexp[m] for m in range(min_exp, prec)])
+            A = A.augment(vec)
+
+        # if the resulting matrix does not yet have maximal rank we increase
+        # the precision by about 25% of the column size
+        if (A.rank() < column_size):
+            incr_prec_by += column_size//ZZ(4) + 1
+            return self._quasi_form_matrix(min_exp=min_exp, incr_prec_by=incr_prec_by)
+
+        # We do an initial binary search to delete some unnecessary rows
+        while (A.rank() == column_size):
+            B = A
+            row_size = A.dimensions()[0]
+
+            # to avoid infinite loops
+            if (row_size == column_size):
+                return A
+
+            A = A.delete_rows([r for r in range(column_size + (row_size-column_size)//2 - 1, row_size)])
+
+        # Next we simply delete row by row
+        while (B.rank() == column_size):
+            A = B
+            row_size = B.dimensions()[0]
+            B = B.delete_rows([row_size-1])
+
+        return A
+
+    def required_laurent_prec(self, min_exp=0):
+        r"""
+        Return an upper bound for the required precision for Laurent series to
+        uniquely determine a corresponding (quasi) form in ``self`` with the given
+        lower bound ``min_exp`` for the order at infinity.
+
+        INPUT:
+
+        - ``min_exp``  -- An integer (default: 0), namely the lower bound for the
+                          order at infinity resp. the exponent of the Laurent series.
+
+        OUTPUT:
+
+        An integer, namely an upper bound for the number of required Laurent coefficients.
+        The bound should be precise or at least pretty sharp.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms, ModularForms
+            sage: QF = QuasiWeakModularForms(n=8, k=10/3, ep=-1)
+            sage: QF.required_laurent_prec(min_exp=-2)
+            4
+
+            sage: MF = ModularForms(k=36)
+            sage: MF.required_laurent_prec(min_exp=2)
+            4
+        """
+
+        return self._quasi_form_matrix(min_exp=min_exp).dimensions()[0] + min_exp
+
+    def construct_quasi_form(self, laurent_series):
+        r"""
+        Try to construct an element of self with the given Fourier
+        expansion. The assumption is made that the specified Fourier
+        expansion corresponds to a weakly holomorphic quasi modular form.
+
+        If the precision is too low to determine the
+        element an exception is raised.
+
+        INPUT:
+
+        - ``laurent_series``  -- A Laurent or Power series.
+
+        OUTPUT:
+
+        If possible: An element of self with the same initial
+        Fourier expansion as ``laurent_series``.
+
+        Note: For non modular spaces it is also possible to call
+        ``self(laurent_series)`` instead.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms, ModularForms
+            sage: QF = QuasiWeakModularForms(n=8, k=10/3, ep=-1)
+            sage: el = QF.quasi_part_gens(min_exp=-2)[3]
+            sage: prec = QF.required_laurent_prec(min_exp=-2)
+            sage: prec
+            4
+            sage: qexp = el.q_expansion(prec=prec)
+            sage: qexp
+            q^-2 - 9/(128*d)*q^-1 - 261/(131072*d^2) + 960377/(100663296*d^3)*q + 1410051087/(274877906944*d^4)*q^2 + 346259317983/(351843720888320*d^5)*q^3 + O(q^4)
+            sage: qexp.parent()
+            Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: el2 = QF.construct_quasi_form(qexp)
+            sage: el2.parent()
+            QuasiWeakModularForms(n=8, k=10/3, ep=-1) over Integer Ring
+            sage: el==el2
+            True
+
+            sage: MF = ModularForms(k=36)
+            sage: el = MF.quasi_part_gens(min_exp=2)[1]
+            sage: prec = MF.required_laurent_prec(min_exp=2)
+            sage: prec
+            4
+            sage: qexp = el.q_expansion(prec=prec)
+            sage: qexp
+            q^3 + O(q^4)
+            sage: qexp.parent()
+            Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: el2 = MF.construct_quasi_form(qexp)
+            sage: el2.parent()
+            ModularForms(n=3, k=36, ep=1) over Integer Ring
+            sage: el==el2
+            True
+        """
+
+        min_exp = laurent_series.valuation()
+        A = self._quasi_form_matrix(min_exp = min_exp)
+        row_size = A.dimensions()[0]
+
+        if (laurent_series.prec() < min_exp + row_size):
+            raise ValueError("Insufficient precision: {} < {}!".format(laurent_series.prec(), min_exp + row_size))
+
+        b = vector(self.coeff_ring(), [laurent_series[m] for m in range(min_exp, min_exp + row_size)])
+        try:
+            coord_vector = A.solve_right(b)
+        except ValueError:
+            raise ValueError("The Lauren series {} does not correspond to a (quasi) form of {}").format(laurent_series, self.reduce_type(["quasi", "weak"]))
+
+        basis = []
+        for m in range(min_exp, self._l1 + 1):
+           basis += self.quasi_part_gens(min_exp=m, max_exp=m)
+
+        return self(sum([coord_vector[k]*basis[k] for k in range(0, len(coord_vector))]))
+
 
 
     # DEFAULT METHODS (should be overwritten in concrete classes)
@@ -1189,9 +1632,9 @@ class FormsSpace_abstract(FormsRing_abstract):
     @cached_method
     def dimension(self):
         r"""
-        This method should be overloaded by subclasses.
-
         Return the dimension of ``self``.
+
+        Note: This method should be overloaded by subclasses.
 
         EXAMPLES::
 

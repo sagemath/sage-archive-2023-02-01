@@ -20,6 +20,7 @@ from sage.rings.all import ZZ, infinity, LaurentSeries, O
 from sage.functions.all import exp
 from sage.symbolic.all import pi, i
 from sage.structure.parent_gens import localvars
+from sage.modules.free_module_element import vector
 
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
@@ -1382,6 +1383,63 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         """
         return self.q_expansion(prec, True, None, d_num_prec, fix_prec)
 
+    def q_expansion_vector(self, min_exp = None, max_exp = None, prec = None):
+        r"""
+        Return (part of) the Laurent series expansion of ``self`` as a vector.
+
+        INPUT:
+
+        - ``min_exp`` -- An integer, specifying the first coefficient to be
+                         used for the vector. Default: ``None``, meaning that
+                         the first non-trivial coefficient is used.
+
+        - ``max_exp``  -- An integer, specifying the last coefficient to be
+                          used for the vector. Default: ``None``, meaning that
+                          the default precision + 1 is used.
+
+        - ``prec``     -- An integer, specifying the precision of the underlying
+                          Laurent series. Default: ``None``, meaning that
+                          ``max_exp + 1`` is used.
+
+        OUTPUT:
+
+        A vector of size ``max_exp - min_exp`` over the coefficient ring of self,
+        determined by the corresponding Laurent series coefficients.
+
+        EXAMPLES::
+            sage: from sage.modular.modform_hecketriangle.graded_ring import WeakModularFormsRing
+            sage: f = WeakModularFormsRing(red_hom=True).j_inv()^3
+            sage: f.q_expansion(prec=3)
+            q^-3 + 31/(24*d)*q^-2 + 20845/(27648*d^2)*q^-1 + 7058345/(26873856*d^3) + 30098784355/(495338913792*d^4)*q + 175372747465/(17832200896512*d^5)*q^2 + O(q^3)
+            sage: v = f.q_expansion_vector(max_exp=1, prec=3)
+            sage: v
+            (1, 31/(24*d), 20845/(27648*d^2), 7058345/(26873856*d^3), 30098784355/(495338913792*d^4))
+            sage: v.parent()
+            Vector space of dimension 5 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: f.q_expansion_vector(min_exp=1, max_exp=2)
+            (30098784355/(495338913792*d^4), 175372747465/(17832200896512*d^5))
+        """
+
+        if (max_exp == None):
+            max_exp = self.parent().default_prec() - 1
+        else:
+            max_exp = ZZ(max_exp)
+        if (prec == None):
+            prec = max_exp + 1
+        else:
+            prec = ZZ(prec)
+            if (prec < max_exp + 1):
+                raise ValueError("The specified precision is too low: {} < {}".format(prec, max_exp + 1))
+
+        qexp = self.q_expansion(prec=prec)
+        low_exp = qexp.valuation()
+        if (min_exp == None):
+            min_exp = low_exp
+        else:
+            min_exp = ZZ(min_exp)
+
+        return vector(self.parent().coeff_ring(), [qexp[m] for m in range(min_exp, max_exp +1)])
+
     def evaluate(self, tau, prec = None, num_prec = None):
         r"""
         Try to return ``self`` evaluated at a point ``tau``
@@ -1630,6 +1688,16 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         as a function in ``tau``, where ``q=exp(2*pi*i*tau)``.
 
         See :meth:`.evaluate` for more details.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
+            sage: QuasiMeromorphicModularFormsRing(n=5, red_hom=True).E4().full_reduce()
+            sage: z = -1/(-1/(2*i+30)-1)
+            sage: E4(z)
+            32288.05588811... - 118329.8566016...*I
+            sage: E4(z) == E4.evaluate(z)
+            True
         """
 
         return self.evaluate(tau, prec, num_prec)

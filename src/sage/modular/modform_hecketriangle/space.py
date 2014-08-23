@@ -200,51 +200,6 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
         self._analytic_type=self.AT(["quasi", "holo"])
         self._module = FreeModule(self.coeff_ring(), self.dimension())
 
-    def quasi_part_gens(self, r=0):
-        r"""
-        Return a basis of ``self`` for the submodule
-        of quasi modular forms of the form ``E2^r*f``,
-        where ``f`` is a modular form.
-
-        INPUT:
-
-        - ``r`` -- An integer.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
-            sage: MF = QuasiModularForms(n=5, k=6, ep=-1)
-            sage: MF.default_prec(2)
-            sage: MF.dimension()
-            3
-            sage: MF.quasi_part_gens(r=0)
-            [1 - 37/(200*d)*q + O(q^2)]
-            sage: MF.quasi_part_gens(r=0)[0] == MF.E6()
-            True
-            sage: MF.quasi_part_gens(r=1)
-            [1 + 33/(200*d)*q + O(q^2)]
-            sage: MF.quasi_part_gens(r=1)[0] == MF.E2()*MF.E4()
-            True
-            sage: MF.quasi_part_gens(r=2)
-            []
-            sage: MF.quasi_part_gens(r=3)
-            [1 - 27/(200*d)*q + O(q^2)]
-            sage: MF.quasi_part_gens(r=3)[0] == MF.E2()^3
-            True
-        """
-
-        r = ZZ(r)
-        if (r < 0 or 2*r > self._weight):
-            return []
-
-        gens = self.graded_ring().reduce_type("holo", degree=(self._weight-QQ(2*r), self._ep*(-1)**r)).gens()
-        if (len(gens)>0):
-            (x,y,z,d) = self.rat_field().gens()
-            #gens = [ self.graded_ring().E2()**r*gen for gen in gens ]
-            return [ self(z**r*gen._rat) for gen in gens ]
-        else:
-            return []
-
     @cached_method
     def gens(self):
         r"""
@@ -261,47 +216,7 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
              1 - 27/(200*d)*q + O(q^2)]
         """
 
-        gens = []
-        for r in range(ZZ(0), QQ(self._weight/ZZ(2)).floor()+1):
-            gens.extend(self.quasi_part_gens(r))
-
-        return gens
-
-    def quasi_part_dimension(self, r=0):
-        r"""
-        Return the dimension of the submodule of ``self`` of
-        quasi modular forms of the form ``E2^r*f``,
-        where ``f`` is a modular form.
-
-        INPUT:
-
-        - ``r`` -- An integer.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
-            sage: MF = QuasiModularForms(n=5, k=6, ep=-1)
-            sage: MF.dimension()
-            3
-            sage: MF.quasi_part_dimension(r=0)
-            1
-            sage: MF.quasi_part_dimension(r=1)
-            1
-            sage: MF.quasi_part_dimension(r=2)
-            0
-            sage: MF.quasi_part_dimension(r=3)
-            1
-        """
-
-        r  = ZZ(r)
-        n  = self.hecke_n()
-        k  = self.weight()
-        ep = self.ep()
-
-        if (r < 0 or 2*r > self._weight):
-            return 0
-
-        return max(QQ((k-2*r)*(n-2)/(4*n) - (1-ep*(-1)**r)/4).floor() + 1, 0)
+        return self.quasi_part_gens()
 
     @cached_method
     def dimension(self):
@@ -318,8 +233,7 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        k = self.weight()
-        return sum([self.quasi_part_dimension(r) for r in range(ZZ(0), QQ(k / ZZ(2)).floor() + 1)])
+        return self.quasi_part_dimension()
 
     @cached_method
     def coordinate_vector(self, v):
@@ -435,97 +349,6 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
         self._analytic_type=self.AT(["quasi", "cusp"])
         self._module = FreeModule(self.coeff_ring(), self.dimension())
 
-    def quasi_part_gens(self, r=0):
-        r"""
-        Return a basis of ``self`` for the submodule
-        of quasi cusp forms of the form ``E2^r*f``,
-        where ``f`` is a cusp form.
-
-        INPUT:
-
-        - ``r`` -- An integer.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.space import QuasiCuspForms, CuspForms
-            sage: MF = QuasiCuspForms(n=5, k=18, ep=-1)
-            sage: MF.default_prec(4)
-            sage: MF.dimension()
-            8
-            sage: MF.quasi_part_gens(r=0)
-            [q - 34743/(640000*d^2)*q^3 + O(q^4), q^2 - 69/(200*d)*q^3 + O(q^4)]
-            sage: MF.quasi_part_gens(r=1)
-            [q - 9/(200*d)*q^2 + 37633/(640000*d^2)*q^3 + O(q^4),
-             q^2 + 1/(200*d)*q^3 + O(q^4)]
-            sage: MF.quasi_part_gens(r=2)
-            [q - 1/(4*d)*q^2 - 24903/(640000*d^2)*q^3 + O(q^4)]
-            sage: MF.quasi_part_gens(r=3)
-            [q + 1/(10*d)*q^2 - 7263/(640000*d^2)*q^3 + O(q^4)]
-            sage: MF.quasi_part_gens(r=4)
-            [q - 11/(20*d)*q^2 + 53577/(640000*d^2)*q^3 + O(q^4)]
-            sage: MF.quasi_part_gens(r=5)
-            [q - 1/(5*d)*q^2 + 4017/(640000*d^2)*q^3 + O(q^4)]
-
-            sage: MF.quasi_part_gens(r=1)[0] == MF.E2() * CuspForms(n=5, k=16, ep=1).gen(0)
-            True
-            sage: MF.quasi_part_gens(r=1)[1] == MF.E2() * CuspForms(n=5, k=16, ep=1).gen(1)
-            True
-            sage: MF.quasi_part_gens(r=3)[0] == MF.E2()^3 * MF.Delta()
-            True
-        """
-
-        r = ZZ(r)
-        if (r < 0 or 2*r > self._weight):
-            return []
-
-        gens = self.graded_ring().reduce_type("cusp", degree=(self._weight-QQ(2*r), self._ep*(-1)**r)).gens()
-        if (len(gens)>0):
-            (x,y,z,d) = self.rat_field().gens()
-            #gens = [ self.graded_ring().E2()**r*gen for gen in gens ]
-            return [ self(z**r*gen._rat) for gen in gens ]
-        else:
-            return []
-
-    def quasi_part_dimension(self, r=0):
-        r"""
-        Return the dimension of the submodule of ``self`` of
-        quasi cusp forms of the form ``E2^r*f``,
-        where ``f`` is a cusp form.
-
-        INPUT:
-
-        - ``r`` -- An integer.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.space import QuasiCuspForms
-            sage: MF = QuasiCuspForms(n=5, k=18, ep=-1)
-            sage: MF.dimension()
-            8
-            sage: MF.quasi_part_dimension(r=0)
-            2
-            sage: MF.quasi_part_dimension(r=1)
-            2
-            sage: MF.quasi_part_dimension(r=2)
-            1
-            sage: MF.quasi_part_dimension(r=3)
-            1
-            sage: MF.quasi_part_dimension(r=4)
-            1
-            sage: MF.quasi_part_dimension(r=5)
-            1
-        """
-
-        r  = ZZ(r)
-        n  = self.hecke_n()
-        k  = self.weight()
-        ep = self.ep()
-
-        if (r < 0 or 2*r > self._weight):
-            return 0
-
-        return max(QQ((k-2*r)*(n-2)/(4*n) - (1-ep*(-1)**r)/4).floor(), 0)
-
     @cached_method
     def gens(self):
         r"""
@@ -548,11 +371,7 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
              q - 27/(64*d)*q^2 + 17217/(262144*d^2)*q^3 + O(q^4)]
         """
 
-        gens = []
-        for r in range(ZZ(0), QQ(self._weight/ZZ(2)).floor()+1):
-            gens.extend(self.quasi_part_gens(r))
-
-        return gens
+        return self.quasi_part_gens()
 
     @cached_method
     def dimension(self):
@@ -570,8 +389,7 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        k = self.weight()
-        return sum([self.quasi_part_dimension(r) for r in range(ZZ(0), QQ(k / ZZ(2)).floor() + 1)])
+        return self.quasi_part_dimension()
 
     @cached_method
     def coordinate_vector(self, v):
@@ -612,7 +430,7 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
             sage: el == MF.element_from_coordinates(vec)    # long time
             True
-            sage: MF.gen(1).coordinate_vector() == vector([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+            sage: MF.gen(1).coordinate_vector() == vector([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])    # long time
             True
         """
 
@@ -857,8 +675,8 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        vec = v.q_expansion(prec=self.degree()).add_bigoh(self.degree()).padded_list()
-        return self._module(vector(self.coeff_ring(), vec))
+        vec = v.q_expansion_vector(min_exp = 0, max_exp = self.degree() - 1)
+        return self._module(vec)
 
 class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
@@ -990,9 +808,8 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        vec = v.q_expansion(prec=self.degree()+1).add_bigoh(self.degree()+1).padded_list()
-        vec.pop(0)
-        return self._module(vector(self.coeff_ring(), vec))
+        vec = v.q_expansion_vector(min_exp = 1, max_exp = self.degree())
+        return self._module(vec)
 
 class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""

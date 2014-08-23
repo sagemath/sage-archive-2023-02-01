@@ -92,6 +92,7 @@ All classes and functions are also individually documented (with doctest example
   - Specifying the form as a rational function in the basic generators (see below)
   - For weakly holomorphic modular forms it is possible to exactly determine the
     form by specifying (sufficiently many) initial coefficients of its Fourier expansion.
+  - The same even works (slow!) for quasi weakly holomorphic forms
   - By specifying the coefficients with respect to a basis of the space
     (if the corresponding space supports coordinate vectors)
   - Arithmetic combination of forms or differential operators applied to forms
@@ -111,7 +112,7 @@ All classes and functions are also individually documented (with doctest example
 
   EXAMPLES::
 
-      sage: from sage.modular.modform_hecketriangle.space import CuspForms, ModularForms, MeromorphicModularForms
+      sage: from sage.modular.modform_hecketriangle.space import CuspForms, ModularForms, MeromorphicModularForms, QuasiWeakModularForms
       sage: MeromorphicModularForms(n=4, k=8, ep=1)
       MeromorphicModularForms(n=4, k=8, ep=1) over Integer Ring
       sage: CF = CuspForms(n=7, k=12, ep=1)
@@ -138,6 +139,18 @@ All classes and functions are also individually documented (with doctest example
       sage: MF(qexp)
       q - 24*q^2 + 252*q^3 - 1472*q^4 + O(q^5)
 
+      Using Laurent expansions of quasi weakly holomorphic forms:
+      sage: QF = QuasiWeakModularForms(n=8, k=10/3, ep=-1)
+      sage: qexp = (QF.quasi_part_gens(min_exp=-2)[3]).q_expansion(prec=4)
+      sage: qexp
+      q^-2 - 9/(128*d)*q^-1 - 261/(131072*d^2) + 960377/(100663296*d^3)*q + 1410051087/(274877906944*d^4)*q^2 + 346259317983/(351843720888320*d^5)*q^3 + O(q^4)
+      sage: qexp.parent()
+      Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+      sage: QF(qexp).as_ring_element()
+      (26609*f_rho^18*E2 + 98334*f_rho^10*f_i^2*E2 + 6129*f_rho^2*f_i^4*E2)/(131072*f_rho^16*d^2 - 262144*f_rho^8*f_i^2*d^2 + 131072*f_i^4*d^2)
+      sage: QF(qexp).reduced_parent()
+      QuasiWeakModularForms(n=8, k=10/3, ep=-1) over Integer Ring
+
       Using coordinate vectors:
       sage: MF([0,1]) == MF.f_inf()
       True
@@ -145,6 +158,8 @@ All classes and functions are also individually documented (with doctest example
       Using arithmetic expressions:
       sage: d = CF.coeff_ring().gen()
       sage: CF.f_rho()^7 / (d*CF.f_rho()^7 - d*CF.f_i()^2) == CF.j_inv()
+      True
+      sage: CF.f_inf().derivative() == CF.f_inf()*CF.E2()
       True
 
 - **Hauptmodul:**
@@ -445,8 +460,10 @@ All classes and functions are also individually documented (with doctest example
 Future ideas:
 -------------
 
-- **Support for general triangle groups**
+- **Define proper spaces (with coordinates) for (quasi) weakly holomorphic forms with bounds on the initial Fourier exponent**
 
-- **Support for "congruence" subgroups**
+- **Support for general triangle groups (hard)**
+
+- **Support for "congruence" subgroups (hard)**
 
 """

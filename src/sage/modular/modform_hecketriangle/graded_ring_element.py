@@ -285,6 +285,66 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         return self._rat
 
+    def fix_d(self, d_num_prec=None):
+        r"""
+        Return a new version of ``self`` where `d` is replaced by its value.
+
+        INPUT:
+
+        - ``d_num_prec``  -- An integer, the numerical precision to be used for `d`
+                             in the non-arithmetic case, default: ``None`` meaning that
+                             the default numerical precision is used
+
+        OUTPUT:
+
+        The element obtained from ``self`` by substituting `d` for its value
+        in the defining rational function. Unless ``self`` is arithmetic
+        the base ring changes accordingly and the returned element no longer lies
+        in ``self``.
+
+        Note: In the arithmetic case the new element compares equally to ``self``
+        even though the underlying rational functions differ. Also note that calculations
+        over non-exact rings are generally less reliable.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, WeakModularForms
+            sage: Delta = ModularForms().Delta()
+            sage: Delta.rat()
+            x^3*d - y^2*d
+            sage: Delta2 = Delta.fix_d()
+            sage: Delta2.rat()
+            (x^3 - y^2)/1728
+            sage: Delta == Delta2
+            True
+
+            sage: f = WeakModularForms(n=5).F_basis(1)
+            sage: f.rat()
+            (121*x^5 + 79*y^2)/(200*x^5*d - 200*y^2*d)
+            sage: f2 = f.fix_d(d_num_prec=40)
+            sage: f2.rat()
+            (121.00000000*x^5 + 79.000000000*y^2)/(1.4104468363*x^5 - 1.4104468363*y^2)
+            sage: f == f2
+            False
+            sage: f2.parent()
+            WeakModularForms(n=5, k=0, ep=1) over Real Field with 40 bits of precision
+        """
+
+        if d_num_prec == None:
+            d_num_prec = self.parent()._num_prec
+        else:
+            d_num_prec = ZZ(d_num_prec)
+
+        d = self.group().dvalue()
+
+        if (self.group().is_arithmetic()):
+            d = 1 / self.base_ring()(1/d)
+            return self.parent()(self._rat.subs(d=d))
+        else:
+            d = self.group().dvalue().n(d_num_prec)
+            base_ring = (self.base_ring()(1) * d).parent()
+            return self.parent().change_ring(base_ring)(self._rat.subs(d=d))
+
     def is_homogeneous(self):
         r"""
         Return whether ``self`` is homogeneous.

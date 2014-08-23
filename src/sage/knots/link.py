@@ -8,7 +8,6 @@ Link class
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.lazy_import import lazy_import
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -25,8 +24,6 @@ from sage.combinat.permutation import Permutations
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.symbolic.ring import SR, var
 
-lazy_import('sage.groups.braid', ['Braid', 'BraidGroup'])
-
 
 class Link:
 
@@ -37,7 +34,7 @@ class Link:
 
     - The different ways in which the input can be provided :
 
-      1. Braidword
+      1. Braid
       2. Oriented Gauss Code
       3. Planar Diagram Code
 
@@ -63,7 +60,7 @@ class Link:
 
         A Link can be created by using one of the conventions mentioned below:
 
-        Braidword:
+        Braid:
         =========
 
         Generators of the braid group are used to generate the link.
@@ -197,8 +194,8 @@ class Link:
             sage: L
             Link with 3 components represented by 4 crossings
         """
-        ncomponents = str(self.ncomponents())
-        pd_len = str(len(self.PD_code()))
+        ncomponents = self.ncomponents()
+        pd_len = len(self.PD_code())
         if self.is_knot():
             return 'Knot represented by {} crossings'.format(pd_len)
         else:
@@ -251,9 +248,11 @@ class Link:
             return self._braid
 
         elif self._oriented_gauss_code != None or self._PD_code != None:
-            gen = max([abs(i) for i in self._braidword_detection_()])
+            braid_detection = self._braidword_detection_()
+            gen = max([abs(i) for i in braid_detection])
+            from sage.groups.braid import BraidGroup
             B = BraidGroup(gen + 1)
-            self._braid = B(self._braidword_detection_())
+            self._braid = B(braid_detection)
             return self._braid
 
     def oriented_gauss_code(self):
@@ -490,18 +489,7 @@ class Link:
             sage: L.gauss_code()
             [[-1, 2], [-3, 4], [1, 3, -4, -2]]
         """
-        if self._braid != None:
-            self.PD_code()
-            gc = self.oriented_gauss_code()
-            return gc[0]
-
-        elif self._PD_code != None:
-            pd = self._PD_code
-            L = Link(pd).oriented_gauss_code()
-            return L[0]
-
-        elif self._oriented_gauss_code != None:
-            return self._oriented_gauss_code[0]
+        return self.oriented_gauss_code()[0]
 
     def dt_code(self):
         r"""
@@ -510,7 +498,7 @@ class Link:
         We start moving along the knot, as we encounter the crossings we
         start numbering them, so every crossing has two numbers assigned to
         it once we have traced the entire knot. Now we take the even number
-        associated with every knot. The following sign convention is to be
+        associated with every crossing. The following sign convention is to be
         followed:
         Take the even number with a negative sign if it is an overcrossing
         that we are encountering.
@@ -1073,45 +1061,6 @@ class Link:
                 return False
         else:
             return False
-
-    def knot_diagram(self):
-        x = self.PD_code()
-        #p = [i for i in range(len(x))]
-        p = [[None for i in range(4)] for i in range(len(x))]
-        plt = Graphics()
-        for i in range(len(x)):
-            #print (p[i],p[i] + 1)
-            a = x[i][0]
-            plt = plt + arrow((i, i, i), (i + 0.4, i, i),
-                              legend_color='purple') + arrow((i + 0.6, i, i), (i + 1, i, i))
-            p[i][0] = ((i, i, i))  # ((i,i),(i + 0.4, i))
-            p[i][2] = ((i + 0.6, i, i))  # ((i+0.6,i),(i+1,i))
-            plt = plt + arrow((i + 0.5, i, i - 0.5), (i + 0.5, i, i - 0.1)
-                              ) + arrow((i + 0.5, i, i + 0.1), (i + 0.5, i, i + 0.5))
-            p[i][1] = (i + 0.5, i, i - 0.5)  # ((i+0.5,i-0.5),(i+0.5,i-0.1))
-            p[i][3] = (i + 0.5, i, i + 0.1)  # ((i+0.5,i+0.1),(i+0.5,i+0.5))
-        # print p
-        #plt = plt + arrow2d((0,1),(1,2))
-        #plt = plt + arrow((2,1),(3,2))
-        q = [x[j][i] for j in range(len(x)) for i in range(4)]
-        r = [list(p[j][i]) for j in range(len(p)) for i in range(4)]
-        t = []
-        print q
-        print r
-        for i in range(1, len(q) + 1):
-            for j in range(len(q)):
-                if q[j] == i:
-                    t.append(j)
-                    #plt = plt + bezier_path([[r[j]]])
-        print t
-        #s = [(-1)*r[t[i]] for i in range(len(t))]
-        for i in range(0, len(t), 2):
-            print r[t[i]], r[t[i + 1]]
-            path = [[tuple(r[t[i]]), tuple(r[t[i + 1]])]]
-            b = bezier3d(path, color='green')
-            plt = plt + b
-            #plt = plt + bezier_path([[(s[i]),(s[i+1])]]).plot3d()
-        return plt
 
     #*************************************************************************
     # Various methods for the implementation of the Vogel's algorithm

@@ -2473,7 +2473,6 @@ def OA_11_185():
 
         sage: designs.orthogonal_array(11,185,existence=True)
         True
-
     """
     from sage.combinat.designs.difference_family import difference_family
 

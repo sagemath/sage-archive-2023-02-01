@@ -4522,7 +4522,17 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: S = NSym.S()
                     sage: S(elt).bernstein_creation_operator(1) == S(elt.bernstein_creation_operator(1))
                     True
+
+                Check on non-positive values of `n`::
+
+                    sage: I[2,2,2].bernstein_creation_operator(-1)
+                    I[1, 1, 1, 2] + I[1, 1, 2, 1] + I[1, 2, 1, 1] - I[1, 2, 2]
+                    sage: I[2,3,2].bernstein_creation_operator(0)
+                    -I[1, 1, 3, 2] - I[1, 2, 2, 2] - I[1, 2, 3, 1] + I[2, 3, 2]
                 """
+                if n <= 0:
+                    return super(NonCommutativeSymmetricFunctions.Immaculate.Element, self).bernstein_creation_operator(n)
+
                 C = Compositions()
                 P = self.parent()
                 return P.sum_of_terms( (C([n] + list(m)), c) for m,c in self )

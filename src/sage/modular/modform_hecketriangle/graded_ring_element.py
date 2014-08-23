@@ -1692,7 +1692,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
-            sage: QuasiMeromorphicModularFormsRing(n=5, red_hom=True).E4().full_reduce()
+            sage: E4 = QuasiMeromorphicModularFormsRing(n=5, red_hom=True).E4().full_reduce()
             sage: z = -1/(-1/(2*i+30)-1)
             sage: E4(z)
             32288.05588811... - 118329.8566016...*I

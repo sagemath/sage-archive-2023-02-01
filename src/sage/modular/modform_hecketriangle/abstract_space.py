@@ -1470,9 +1470,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         A = matrix(coeff_ring, row_size, 0)
 
         for gen in basis:
-            qexp = gen.q_expansion(prec=prec)
-            vec = vector([qexp[m] for m in range(min_exp, prec)])
-            A = A.augment(vec)
+            A = A.augment(gen.q_expansion_vector(min_exp=min_exp, max_exp=prec-1))
 
         # if the resulting matrix does not yet have maximal rank we increase
         # the precision by about 25% of the column size

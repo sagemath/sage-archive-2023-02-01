@@ -1227,10 +1227,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             else:
                 min_exp = max(min_exp, 0)
 
-        min_exp = min(min_exp, self._l1)
-
         E2 = self.E2()
-
         ambient_weak_space = self.graded_ring().reduce_type("weak", degree=(self._weight-QQ(2*r), self._ep*(-1)**r))
 
         if (max_exp == infinity):
@@ -1260,6 +1257,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
             sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
             sage: MF = QuasiModularForms(n=5, k=6, ep=-1)
+            sage: [v.as_ring_element() for v in MF.gens()]
+            [f_rho^2*f_i, f_rho^3*E2, E2^3]
             sage: MF.dimension()
             3
             sage: MF.quasi_part_dimension(r=0)
@@ -1270,8 +1269,6 @@ class FormsSpace_abstract(FormsRing_abstract):
             0
             sage: MF.quasi_part_dimension(r=3)
             1
-            sage: MF.quasi_part_dimension(min_exp=1)
-            3
 
             sage: from sage.modular.modform_hecketriangle.space import QuasiCuspForms
             sage: MF = QuasiCuspForms(n=5, k=18, ep=-1)
@@ -1320,8 +1317,6 @@ class FormsSpace_abstract(FormsRing_abstract):
                     min_exp = max(min_exp, 1)
             else:
                 min_exp = max(min_exp, 0)
-
-        min_exp = min(min_exp, self._l1)
 
         n = self._group.n()
         k = self._weight - QQ(2*r)
@@ -1440,7 +1435,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms, ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms, ModularForms, QuasiModularForms
             sage: QF = QuasiWeakModularForms(n=8, k=10/3, ep=-1)
             sage: A = QF._quasi_form_matrix(min_exp=-2)
             sage: A[3]
@@ -1450,10 +1445,16 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF._quasi_form_matrix(min_exp=2)
             [1 0]
             [0 1]
+
+            sage: QuasiModularForms(k=2)._quasi_form_matrix()
+            [1]
         """
 
         min_exp = ZZ(min_exp)
-        max_exp = self._l1
+        # We have to add + 1 to get a correct upper bound in all cases
+        # since corresponding weak space might have a higher l1 (+1) than
+        # ``self``, even if the weight is smaller
+        max_exp = self._l1 + 1
 
         basis = []
         for m in range(min_exp, max_exp + 1):
@@ -1515,7 +1516,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms, ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms, ModularForms, QuasiModularForms
             sage: QF = QuasiWeakModularForms(n=8, k=10/3, ep=-1)
             sage: QF.required_laurent_prec(min_exp=-2)
             4
@@ -1523,6 +1524,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF = ModularForms(k=36)
             sage: MF.required_laurent_prec(min_exp=2)
             4
+
+            sage: QuasiModularForms(k=2).required_laurent_prec()
+            1
         """
 
         return self._quasi_form_matrix(min_exp=min_exp).dimensions()[0] + min_exp
@@ -1550,7 +1554,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms, ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms, ModularForms, QuasiModularForms
             sage: QF = QuasiWeakModularForms(n=8, k=10/3, ep=-1)
             sage: el = QF.quasi_part_gens(min_exp=-2)[3]
             sage: prec = QF.required_laurent_prec(min_exp=-2)
@@ -1582,9 +1586,21 @@ class FormsSpace_abstract(FormsRing_abstract):
             ModularForms(n=3, k=36, ep=1) over Integer Ring
             sage: el==el2
             True
+
+            sage: QF = QuasiModularForms(k=2)
+            sage: q = PowerSeriesRing(QF.coeff_ring(), 'q').gen()
+            sage: qexp = 1 + O(q)
+            sage: QF(qexp)
+            1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 + O(q^5)
+            sage: QF(qexp) == QF.E2()
+            True
         """
 
         min_exp = laurent_series.valuation()
+        # We have to add + 1 to get a correct upper bound in all cases
+        # since corresponding weak space might have a higher l1 (+1) than
+        # ``self``, even if the weight is smaller
+        max_exp = self._l1 + 1
         A = self._quasi_form_matrix(min_exp = min_exp)
         row_size = A.dimensions()[0]
 
@@ -1598,7 +1614,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             raise ValueError("The Lauren series {} does not correspond to a (quasi) form of {}").format(laurent_series, self.reduce_type(["quasi", "weak"]))
 
         basis = []
-        for m in range(min_exp, self._l1 + 1):
+        for m in range(min_exp, max_exp + 1):
            basis += self.quasi_part_gens(min_exp=m, max_exp=m)
 
         return self(sum([coord_vector[k]*basis[k] for k in range(0, len(coord_vector))]))

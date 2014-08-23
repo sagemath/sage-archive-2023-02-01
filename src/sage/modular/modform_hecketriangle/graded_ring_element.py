@@ -1383,7 +1383,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         """
         return self.q_expansion(prec, True, None, d_num_prec, fix_prec)
 
-    def q_expansion_vector(self, min_exp = None, max_exp = None, prec = None):
+    def q_expansion_vector(self, min_exp = None, max_exp = None, prec = None, **kwargs):
         r"""
         Return (part of) the Laurent series expansion of ``self`` as a vector.
 
@@ -1418,6 +1418,8 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             Vector space of dimension 5 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: f.q_expansion_vector(min_exp=1, max_exp=2)
             (30098784355/(495338913792*d^4), 175372747465/(17832200896512*d^5))
+            sage: f.q_expansion_vector(min_exp=1, max_exp=2, fix_d=True)
+            (541778118390, 151522053809760)
         """
 
         if (max_exp == None):
@@ -1431,14 +1433,14 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             if (prec < max_exp + 1):
                 raise ValueError("The specified precision is too low: {} < {}".format(prec, max_exp + 1))
 
-        qexp = self.q_expansion(prec=prec)
-        low_exp = qexp.valuation()
+        qexp = self.q_expansion(prec=prec, **kwargs)
+
         if (min_exp == None):
-            min_exp = low_exp
+            min_exp = qexp.valuation()
         else:
             min_exp = ZZ(min_exp)
 
-        return vector(self.parent().coeff_ring(), [qexp[m] for m in range(min_exp, max_exp +1)])
+        return vector([qexp[m] for m in range(min_exp, max_exp +1)])
 
     def evaluate(self, tau, prec = None, num_prec = None):
         r"""

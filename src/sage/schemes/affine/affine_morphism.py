@@ -36,7 +36,7 @@ from sage.calculus.functions import jacobian
 from sage.categories.homset        import Hom
 from sage.misc.misc                import prod
 from sage.rings.all                import Integer, moebius
-from sage.rings.arith              import lcm
+from sage.rings.arith              import lcm, gcd
 from sage.rings.complex_field      import ComplexField
 from sage.rings.integer_ring       import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -169,9 +169,9 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            sage: A.<x,y>=AffineSpace(ZZ,2)
-            sage: H=Hom(A,A)
-            sage: f=H([(x^2-2)/x^5,y^2])
+            sage: A.<x,y> = AffineSpace(ZZ,2)
+            sage: H = Hom(A,A)
+            sage: f = H([(x^2-2)/x^5,y^2])
             sage: f.homogenize(2)
             Scheme endomorphism of Projective Space of dimension 2 over Integer Ring
               Defn: Defined on coordinates by sending (x0 : x1 : x2) to
@@ -179,9 +179,9 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         ::
 
-            sage: A.<x,y>=AffineSpace(CC,2)
-            sage: H=Hom(A,A)
-            sage: f=H([(x^2-2)/(x*y),y^2-x])
+            sage: A.<x,y> = AffineSpace(CC,2)
+            sage: H = Hom(A,A)
+            sage: f = H([(x^2-2)/(x*y),y^2-x])
             sage: f.homogenize((2,0))
             Scheme morphism:
               From: Projective Space of dimension 2 over Complex Field with 53 bits of precision
@@ -191,10 +191,10 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         ::
 
-            sage: A.<x,y>=AffineSpace(ZZ,2)
-            sage: X=A.subscheme([x-y^2])
-            sage: H=Hom(X,X)
-            sage: f=H([9*y^2,3*y])
+            sage: A.<x,y> = AffineSpace(ZZ,2)
+            sage: X = A.subscheme([x-y^2])
+            sage: H = Hom(X,X)
+            sage: f = H([9*y^2,3*y])
             sage: f.homogenize(2)
             Scheme endomorphism of Closed subscheme of Projective Space of dimension 2 over Integer Ring defined by:
               -x1^2 + x0*x2
@@ -203,10 +203,10 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         ::
 
-            sage: R.<t>=PolynomialRing(ZZ)
-            sage: A.<x,y>=AffineSpace(R,2)
-            sage: H=Hom(A,A)
-            sage: f=H([(x^2-2)/y,y^2-x])
+            sage: R.<t> = PolynomialRing(ZZ)
+            sage: A.<x,y> = AffineSpace(R,2)
+            sage: H = Hom(A,A)
+            sage: f = H([(x^2-2)/y,y^2-x])
             sage: f.homogenize((2,0))
             Scheme morphism:
               From: Projective Space of dimension 2 over Univariate Polynomial Ring in t over Integer Ring
@@ -216,15 +216,27 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         ::
 
-            sage: A.<x>=AffineSpace(QQ,1)
-            sage: H=End(A)
-            sage: f=H([x^2-1])
+            sage: A.<x> = AffineSpace(QQ,1)
+            sage: H = End(A)
+            sage: f = H([x^2-1])
             sage: f.homogenize((1,0))
             Scheme morphism:
               From: Projective Space of dimension 1 over Rational Field
               To:   Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x0 : x1) to
                     (x1^2 : x0^2 - x1^2)
+
+        ::
+
+            R.<a> = PolynomialRing(QQbar)
+            A.<x,y> = AffineSpace(R,2)
+            H = End(A)
+            f = H([QQbar(sqrt(2))*x*y,a*x^2])
+            f.homogenize(2)
+            Scheme endomorphism of Projective Space of dimension 2 over Univariate
+            Polynomial Ring in a over Algebraic Field
+              Defn: Defined on coordinates by sending (x0 : x1 : x2) to
+                    (1.414213562373095?*x0*x1 : a*x0^2 : x2^2)
         """
         #it is possible to homogenize the domain and codomain at different coordinates
         if isinstance(n,(tuple,list)):
@@ -240,7 +252,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         N = A.ambient_space().dimension_relative()  
         M = B.ambient_space().dimension_relative()  
-        
+
         #create dictionary for mapping of coordinate rings
         R = self.domain().ambient_space().coordinate_ring()
         S = A.ambient_space().coordinate_ring()
@@ -249,23 +261,23 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         vars.remove(S.gen(ind[0]))
         D = dict([[Rvars[i],vars[i]] for i in range(N)])
 
-        #find the denominators if a rational function
-        try:
-            l = lcm([self[i].denominator() for i in range(M)])
-        except Exception:  #no lcm
-            l = prod([self[i].denominator() for i in range(M)])
-
-        from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
-        from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
-        #clear denominators and coerce in case l is a constant
-        if R.base_ring() == RealField() or R.base_ring() == ComplexField() \
-        or isinstance(R.base_ring(), (PolynomialRing_general, MPolynomialRing_generic)):
-            F = [S(R(((self[i].numerator()*l))._maxima_().divide(self[i].denominator())[0].sage()).subs(D)) for i in range(M)]
-        else:
-            F = [S(R(self[i]*l).subs(D)) for i in range(M)]
+        #clear the denominators if a rational function
+        L= [self[i].denominator() for i in range(M)]
+        l = [prod(L[:j] + L[j+1:M]) for j in range(M)]
+        F = [S(R(self[i].numerator()*l[i]).subs(D)) for i in range(M)]
 
         #homogenize
-        F.insert(ind[1], S(l.subs(D))) #coerce in case l is a constant
+        DR = B.ambient_space().coordinate_ring()
+        F.insert(ind[1], S(prod(L).subs(D))) #coerce in case l is a constant
+        try:
+            #remove possible gcd of the polynomials
+            g=gcd(F)
+            F=[DR(f/g) for f in F]
+            #remove possible gcd of coefficients
+            gc = gcd([f.content() for f in F])
+            F=[DR(f/gc) for f in F]
+        except AttributeError: #no gcd
+            pass
         d = max([F[i].degree() for i in range(M+1)])
         F = [F[i].homogenize(str(newvar))*newvar**(d-F[i].degree()) for i in range(M+1)]
         return(H(F))

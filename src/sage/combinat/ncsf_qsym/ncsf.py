@@ -838,17 +838,17 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 and studied further in [BBSSZ2012]_, mainly in the context
                 of immaculate functions
                 (:class:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.I`).
-                In fact, if `(\alpha_1, \alpha_2, \ldots, \alpha_n)` is
-                an `n`-tuple of integers, then
+                In fact, if `(\alpha_1, \alpha_2, \ldots, \alpha_m)` is
+                an `m`-tuple of integers, then
 
                 .. MATH::
 
-                    \mathbb{B}_n I_{(\alpha_1, \alpha_2, \ldots, \alpha_n)}
-                    = I_{(n, \alpha_1, \alpha_2, \ldots, \alpha_n)},
+                    \mathbb{B}_n I_{(\alpha_1, \alpha_2, \ldots, \alpha_m)}
+                    = I_{(n, \alpha_1, \alpha_2, \ldots, \alpha_m)},
 
-                where `I_{(\alpha_1, \alpha_2, \ldots, \alpha_n)}` is the
-                immaculate function associated to the `n`-tuple
-                `(\alpha_1, \alpha_2, \ldots, \alpha_n)` (see
+                where `I_{(\alpha_1, \alpha_2, \ldots, \alpha_m)}` is the
+                immaculate function associated to the `m`-tuple
+                `(\alpha_1, \alpha_2, \ldots, \alpha_m)` (see
                 :meth:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.I.immaculate_function`).
 
                 EXAMPLES:
@@ -4488,12 +4488,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. MATH::
 
-                    \mathbb{B}_n I_{(\alpha_1, \alpha_2, \ldots, \alpha_n)}
-                    = I_{(n, \alpha_1, \alpha_2, \ldots, \alpha_n)},
+                    \mathbb{B}_n I_{(\alpha_1, \alpha_2, \ldots, \alpha_m)}
+                    = I_{(n, \alpha_1, \alpha_2, \ldots, \alpha_m)},
 
-                where `I_{(\alpha_1, \alpha_2, \ldots, \alpha_n)}` is the
-                immaculate function associated to the `n`-tuple
-                `(\alpha_1, \alpha_2, \ldots, \alpha_n)`.
+                where `I_{(\alpha_1, \alpha_2, \ldots, \alpha_m)}` is the
+                immaculate function associated to the `m`-tuple
+                `(\alpha_1, \alpha_2, \ldots, \alpha_m) \in \ZZ^m`.
 
                 This has been introduced in [BBSSZ2012]_, section 3.1, in
                 analogy to the Bernstein creation operators on the

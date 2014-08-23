@@ -267,15 +267,14 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         F = [S(R(self[i].numerator()*l[i]).subs(D)) for i in range(M)]
 
         #homogenize
-        DR = B.ambient_space().coordinate_ring()
         F.insert(ind[1], S(prod(L).subs(D))) #coerce in case l is a constant
         try:
             #remove possible gcd of the polynomials
             g=gcd(F)
-            F=[DR(f/g) for f in F]
+            F=[S(f/g) for f in F]
             #remove possible gcd of coefficients
             gc = gcd([f.content() for f in F])
-            F=[DR(f/gc) for f in F]
+            F=[S(f/gc) for f in F]
         except AttributeError: #no gcd
             pass
         d = max([F[i].degree() for i in range(M+1)])

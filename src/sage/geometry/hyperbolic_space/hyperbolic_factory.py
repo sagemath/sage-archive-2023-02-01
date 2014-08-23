@@ -333,7 +333,7 @@ class HyperbolicFactoryKM(HyperbolicAbstractFactory, UniqueRepresentation):
         from sage.plot.circle import circle
         return circle((0,0), 1, axes=False, color='black')
 
-class HyperbolicFactoryHM (HyperbolicAbstractFactory, UniqueRepresentation):
+class HyperbolicFactoryHM(HyperbolicAbstractFactory, UniqueRepresentation):
     """
     Factory for creating the HM model.
     """

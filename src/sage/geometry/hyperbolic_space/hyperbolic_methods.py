@@ -2,7 +2,7 @@ r"""
 Hyperbolic Methods
 
 This module should not be used directly by users.  It is provided for
-developers of sage.
+developers of Sage.
 
 This module implements computational methods for some models of
 hyperbolic space.  The methods may operate on points, geodesics, or
@@ -105,15 +105,15 @@ class HyperbolicAbstractMethods(UniqueRepresentation):
         return cls.HModel.short_name
 
 
-class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
+class HyperbolicMethodsUHP(HyperbolicAbstractMethods):
     r"""
     Hyperbolic methods for the UHP model of hyperbolic space.
     """
     HModel = HyperbolicModelUHP
 
-#################
-# Point Methods #
-#################
+    #################
+    # Point Methods #
+    #################
 
     @classmethod
     def point_dist(cls, p1, p2):
@@ -175,9 +175,9 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         return RR.random_element(min = real_min ,max=real_max) +\
             I*RR.random_element(min = imag_min,max = imag_max)
 
-####################
-# Geodesic Methods #
-####################
+    ####################
+    # Geodesic Methods #
+    ####################
 
     @classmethod
     def boundary_points(cls, p1, p2):
@@ -525,10 +525,10 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         else:
             return real(arccos((b_1+b_2)/abs(b_2-b_1)))
 
+    ####################
+    # Isometry Methods #
+    ####################
 
-####################
-# Isometry Methods #
-####################
     @classmethod
     def orientation_preserving(cls, M):
         r"""
@@ -597,8 +597,8 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
             elif tau - 2  > EPSILON:
                 return 'hyperbolic'
             else:
-                raise ValueError("Something went wrong with classification!" +
-                                 "Trace is " + str(A.trace()))
+                raise ValueError("something went wrong with classification:" +
+                                 "trace is " + str(A.trace()))
         else:  #The isometry reverses orientation.
             if tau < EPSILON:
                 return 'reflection'
@@ -631,8 +631,8 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         if cls.classification(M) in ['hyperbolic',
                                      'oriention-reversing hyperbolic']:
             return 2*arccosh(tau/2)
-            raise TypeError("Translation length is only defined for hyperbolic"
-                            " transformations.")
+            raise TypeError("translation length is only defined for hyperbolic"
+                            " transformations")
 
     @classmethod
     def isometry_from_fixed_points(cls, repel, attract):
@@ -677,7 +677,7 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
 
         OUTPUT:
 
-        - a list of hyperbolic points.
+        - a list of hyperbolic points
 
         EXAMPLES::
 
@@ -744,12 +744,12 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
     @classmethod
     def repelling_fixed_point(cls, M):
         r"""
-        For a hyperbolic isometry, return the attracting fixed point.
-        Otherwise raise a ValueError.
+        For a hyperbolic isometry, return the attracting fixed point;
+        otherwise raise a ``ValueError``.
 
         OUTPUT:
 
-        - a hyperbolic point.
+        - a hyperbolic point
 
         EXAMPLES::
 
@@ -760,8 +760,8 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         """
         if cls.classification(M) not in ['hyperbolic',
                                          'orientation-reversing hyperbolic']:
-            raise ValueError("Repelling fixed point is defined only" +
-                             "for hyperbolic isometries.")
+            raise ValueError("repelling fixed point is defined only" +
+                             "for hyperbolic isometries")
         v = M.eigenmatrix_right()[1].column(1)
         if v[1] == 0:
             return infinity
@@ -770,12 +770,12 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
     @classmethod
     def attracting_fixed_point(cls, M):
         r"""
-        For a hyperbolic isometry, return the attracting fixed point.
-        Otherwise raise a ValueError.
+        For a hyperbolic isometry, return the attracting fixed point;
+        otherwise raise a ``ValueError``.
 
         OUTPUT:
 
-        - a hyperbolic point.
+        - a hyperbolic point
 
         EXAMPLES::
 
@@ -800,11 +800,12 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
 
         INPUT:
 
-        - ``preserve_orientation`` -- if ``True`` return an orientation-preserving isometry.
+        - ``preserve_orientation`` -- if ``True`` return an
+          orientation-preserving isometry.
 
         OUTPUT:
 
-        - a hyperbolic isometry.
+        - a hyperbolic isometry
 
         EXAMPLES::
 
@@ -830,10 +831,9 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
             else:
                 return M
 
-###################
-# Helping Methods #
-###################
-
+    ###################
+    # Helping Methods #
+    ###################
 
     @classmethod
     def _to_std_geod(cls, start, p, end):
@@ -861,18 +861,19 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
     @classmethod
     def _crossratio_matrix(cls, p_0, p_1, p_2):
         r"""
-        Given three points (the list `p`) in `\mathbb{CP}^{1}' in affine
+        Given three points (the list `p`) in `\mathbb{CP}^{1}` in affine
         coordinates, return the linear fractional transformation taking
         the elements of `p` to `0`,`1`, and `\infty'.
 
         INPUT:
 
-        - A list of three distinct elements of three distinct elements of `\mathbb{CP}^1` in affine coordinates.  That is, each element must be a complex number, `\infty`, or symbolic.
+        - a list of three distinct elements of three distinct elements
+          of `\mathbb{CP}^1` in affine coordinates; that is, each element
+          must be a complex number, `\infty`, or symbolic.
 
         OUTPUT:
 
-        - An element of '\GL(2,\CC)`.
-
+        - an element of `\GL(2,\CC)`
 
         EXAMPLES::
 
@@ -921,10 +922,11 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         """
         if len(list1) != 3  or len(list2) != 3:
             raise TypeError("mobius_sending requires each list to be three"
-                            "points long.")
+                            "points long")
         pl = list1 + list2
         z = pl[0:3]
         w = pl[3:6]
         A = cls._crossratio_matrix(z[0],z[1],z[2])
         B = cls._crossratio_matrix(w[0],w[1],w[2])
         return B.inverse()*A
+

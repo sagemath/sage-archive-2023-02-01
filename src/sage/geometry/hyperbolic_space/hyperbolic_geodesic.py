@@ -14,9 +14,9 @@ EXAMPLES:
 We can construct geodesics in the upper half plane model, abbreviated
 UHP for convenience::
 
-    sage: UHP.geodesic(2, 3)
+    sage: HyperbolicPlane.UHP.geodesic(2, 3)
     Geodesic in UHP from 2 to 3
-    sage: g = UHP.geodesic(I, 3 + I)
+    sage: g = HyperbolicPlane.UHP.geodesic(I, 3 + I)
     sage: g.length()
     arccosh(11/2)
 
@@ -24,7 +24,7 @@ Geodesics are oriented, which means that two geodesics with the same
 graph will only be equal if their starting and ending points are
 the same::
 
-    sage: UHP.geodesic(1,2) == UHP.geodesic(2,1)
+    sage: HyperbolicPlane.UHP.geodesic(1,2) == HyperbolicPlane.UHP.geodesic(2,1)
     False
 """
 
@@ -82,6 +82,7 @@ class HyperbolicGeodesic(SageObject):
     EXAMPLES::
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_geodesic import *
+        sage: UHP = HyperbolicPlane.UHP
         sage: g = HyperbolicGeodesicUHP(UHP.point(I), UHP.point(2 + I))
         sage: g = HyperbolicGeodesicUHP(I, 2 + I)
     """
@@ -346,7 +347,7 @@ class HyperbolicGeodesic(SageObject):
         EXAMPLES::
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_geodesic import *
-            sage: p = UHP.point(2 + I, color="red")
+            sage: p = HyperbolicPlane.UHP.point(2 + I, color="red")
             sage: p.graphics_options()
             {'color': 'red'}
         """
@@ -354,7 +355,7 @@ class HyperbolicGeodesic(SageObject):
 
     def update_graphics(self, update=False, **options):
         r"""
-        Update the graphics options of a HyperbolicPoint.
+        Update the graphics options of a :class:`HyperbolicPoint`.
 
         INPUT:
 
@@ -838,7 +839,7 @@ class HyperbolicGeodesic(SageObject):
         first object's endpoints, then return +infinity::
 
             sage: g = HyperbolicGeodesicUHP(2, 2+I)
-            sage: p = UHP.point(5)
+            sage: p = HyperbolicPlane.UHP.point(5)
             sage: g.dist(p)
             +Infinity
         """
@@ -933,14 +934,10 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
     - ``end`` -- a :class:`HyperbolicPoint` or coordinates of a point
       in hyperbolic space representing the end of the geodesic
 
-
-    OUTPUT:
-
-    A hyperbolic geodesic.
-
     EXAMPLES::
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_geodesic import *
+        sage: UHP = HyperbolicPlane.UHP
         sage: g = HyperbolicGeodesicUHP(UHP.point(I), UHP.point(2 + I))
         sage: g = HyperbolicGeodesicUHP(I, 2 + I)
     """
@@ -1019,6 +1016,7 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
     EXAMPLES::
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_geodesic import *
+        sage: PD = HyperbolicPlane.PD
         sage: g = HyperbolicGeodesicPD(PD.point(I), PD.point(I/2))
         sage: g = HyperbolicGeodesicPD(I, I/2)
     """
@@ -1091,6 +1089,7 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
     EXAMPLES::
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_geodesic import *
+        sage: KM = HyperbolicPlane.KM
         sage: g = HyperbolicGeodesicKM(KM.point((0,1)), KM.point((0,1/2)))
         sage: g = HyperbolicGeodesicKM((0,1), (0,1/2))
     """
@@ -1130,6 +1129,7 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
     EXAMPLES::
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_geodesic import *
+        sage: HM = HyperbolicPlane.HM
         sage: g = HyperbolicGeodesicHM(HM.point((0, 0, 1)), HM.point((0,1,sqrt(2))))
         sage: g = HyperbolicGeodesicHM((0, 0, 1), (0, 1, sqrt(2)))
     """
@@ -1168,6 +1168,6 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
         pic = parametric_plot3d(hyperbola,(x,0, endtime),**graphics_options)
         if show_hyperboloid:
             bd_pic = self.HFactory.get_background_graphic()
-            pic= bd_pic + pic
+            pic = bd_pic + pic
         return pic
 

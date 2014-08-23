@@ -300,9 +300,9 @@ class HyperbolicModel(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: UHP.point_in_model(I)
+            sage: HyperbolicPlane.UHP.point_in_model(I)
             True
-            sage: UHP.point_in_model(-I)
+            sage: HyperbolicPlane.UHP.point_in_model(-I)
             False
         """
         return True
@@ -342,7 +342,7 @@ class HyperbolicModel(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: UHP.bdry_point_in_model(I)
+            sage: HyperbolicPlane.UHP.bdry_point_in_model(I)
             False
         """
         return True
@@ -382,10 +382,10 @@ class HyperbolicModel(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: UHP.isometry_in_model(identity_matrix(2))
+            sage: HyperbolicPlane.UHP.isometry_in_model(identity_matrix(2))
             True
 
-            sage: UHP.isometry_in_model(identity_matrix(3))
+            sage: HyperbolicPlane.UHP.isometry_in_model(identity_matrix(3))
             False
         """
         return True
@@ -400,7 +400,7 @@ class HyperbolicModel(UniqueRepresentation):
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_model import HyperbolicModelUHP
             sage: I2 = identity_matrix(2)
-            sage: p = UHP.random_point().coordinates()
+            sage: p = HyperbolicPlane.UHP.random_point().coordinates()
             sage: bool(norm(HyperbolicModelUHP.isometry_act_on_point(I2, p) - p) < 10**-9)
             True
         """
@@ -447,33 +447,33 @@ class HyperbolicModel(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: UHP.point_to_model(I, 'UHP')
+            sage: HyperbolicPlane.UHP.point_to_model(I, 'UHP')
             I
-            sage: UHP.point_to_model(I, 'PD')
+            sage: HyperbolicPlane.UHP.point_to_model(I, 'PD')
             0
-            sage: UHP.point_to_model(3 + I, 'KM')
+            sage: HyperbolicPlane.UHP.point_to_model(3 + I, 'KM')
             (6/11, 9/11)
-            sage: UHP.point_to_model(3 + I, 'HM')
+            sage: HyperbolicPlane.UHP.point_to_model(3 + I, 'HM')
             (3, 9/2, 11/2)
-            sage: UHP.point_to_model(I, 'PD')
+            sage: HyperbolicPlane.UHP.point_to_model(I, 'PD')
             0
-            sage: PD.point_to_model(0, 'UHP')
+            sage: HyperbolicPlane.PD.point_to_model(0, 'UHP')
             I
-            sage: UHP.point_to_model(I, 'UHP')
+            sage: HyperbolicPlane.UHP.point_to_model(I, 'UHP')
             I
-            sage: KM.point_to_model((0, 0), 'UHP')
+            sage: HyperbolicPlane.KM.point_to_model((0, 0), 'UHP')
             I
-            sage: KM.point_to_model((0, 0), 'HM')
+            sage: HyperbolicPlane.KM.point_to_model((0, 0), 'HM')
             (0, 0, 1)
-            sage: HM.point_to_model(vector((0,0,1)), 'UHP')
+            sage: HyperbolicPlane.HM.point_to_model(vector((0,0,1)), 'UHP')
             I
-            sage: HM.point_to_model(vector((0,0,1)), 'KM')
+            sage: HyperbolicPlane.HM.point_to_model(vector((0,0,1)), 'KM')
             (0, 0)
 
         It is an error to try to convert a boundary point to a model
         that doesn't support boundary points::
 
-            sage: UHP.point_to_model(infinity, 'HM')
+            sage: HyperbolicPlane.UHP.point_to_model(infinity, 'HM')
             Traceback (most recent call last):
             ...
             NotImplementedError: boundary points are not implemented for the HM model
@@ -503,30 +503,30 @@ class HyperbolicModel(UniqueRepresentation):
         EXAMPLES::
 
             sage: A = matrix(2,[I, 0, 0, -I])
-            sage: PD.isometry_to_model(A, 'UHP')
+            sage: HyperbolicPlane.PD.isometry_to_model(A, 'UHP')
             [ 0  1]
             [-1  0]
 
-            sage: PD.isometry_to_model(A, 'HM')
+            sage: HyperbolicPlane.PD.isometry_to_model(A, 'HM')
             [-1  0  0]
             [ 0 -1  0]
             [ 0  0  1]
 
-            sage: PD.isometry_to_model(A, 'KM')
+            sage: HyperbolicPlane.PD.isometry_to_model(A, 'KM')
             [-1  0  0]
             [ 0 -1  0]
             [ 0  0  1]
 
             sage: B = diagonal_matrix([-1, -1, 1])
-            sage: HM.isometry_to_model(B, 'UHP')
+            sage: HyperbolicPlane.HM.isometry_to_model(B, 'UHP')
             [ 0 -1]
             [ 1  0]
 
-            sage: HM.isometry_to_model(B, 'PD')
+            sage: HyperbolicPlane.HM.isometry_to_model(B, 'PD')
             [-I  0]
             [ 0  I]
 
-            sage: HM.isometry_to_model(B, 'KM')
+            sage: HyperbolicPlane.HM.isometry_to_model(B, 'KM')
             [-1  0  0]
             [ 0 -1  0]
             [ 0  0  1]
@@ -571,21 +571,21 @@ class HyperbolicModelUHP(HyperbolicModel, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: UHP.point_in_model(1 + I)
+            sage: HyperbolicPlane.UHP.point_in_model(1 + I)
             True
-            sage: UHP.point_in_model(infinity)
+            sage: HyperbolicPlane.UHP.point_in_model(infinity)
             False
-            sage: UHP.point_in_model(CC(infinity))
+            sage: HyperbolicPlane.UHP.point_in_model(CC(infinity))
             False
-            sage: UHP.point_in_model(RR(infinity))
+            sage: HyperbolicPlane.UHP.point_in_model(RR(infinity))
             False
-            sage: UHP.point_in_model(1)
+            sage: HyperbolicPlane.UHP.point_in_model(1)
             False
-            sage: UHP.point_in_model(12)
+            sage: HyperbolicPlane.UHP.point_in_model(12)
             False
-            sage: UHP.point_in_model(1 - I)
+            sage: HyperbolicPlane.UHP.point_in_model(1 - I)
             False
-            sage: UHP.point_in_model(-2*I)
+            sage: HyperbolicPlane.UHP.point_in_model(-2*I)
             False
         """
         return bool(imag(CC(p)) > 0)
@@ -599,21 +599,21 @@ class HyperbolicModelUHP(HyperbolicModel, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: UHP.bdry_point_in_model(1 + I)
+            sage: HyperbolicPlane.UHP.bdry_point_in_model(1 + I)
             False
-            sage: UHP.bdry_point_in_model(infinity)
+            sage: HyperbolicPlane.UHP.bdry_point_in_model(infinity)
             True
-            sage: UHP.bdry_point_in_model(CC(infinity))
+            sage: HyperbolicPlane.UHP.bdry_point_in_model(CC(infinity))
             True
-            sage: UHP.bdry_point_in_model(RR(infinity))
+            sage: HyperbolicPlane.UHP.bdry_point_in_model(RR(infinity))
             True
-            sage: UHP.bdry_point_in_model(1)
+            sage: HyperbolicPlane.UHP.bdry_point_in_model(1)
             True
-            sage: UHP.bdry_point_in_model(12)
+            sage: HyperbolicPlane.UHP.bdry_point_in_model(12)
             True
-            sage: UHP.bdry_point_in_model(1 - I)
+            sage: HyperbolicPlane.UHP.bdry_point_in_model(1 - I)
             False
-            sage: UHP.bdry_point_in_model(-2*I)
+            sage: HyperbolicPlane.UHP.bdry_point_in_model(-2*I)
             False
         """
         im = abs(imag(CC(p)).n())
@@ -629,7 +629,7 @@ class HyperbolicModelUHP(HyperbolicModel, UniqueRepresentation):
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_model import HyperbolicModelUHP
             sage: I2 = identity_matrix(2)
-            sage: p = UHP.random_point().coordinates()
+            sage: p = HyperbolicPlane.UHP.random_point().coordinates()
             sage: bool(norm(HyperbolicModelUHP.isometry_act_on_point(I2, p) - p) < 10**-9)
             True
         """
@@ -645,10 +645,10 @@ class HyperbolicModelUHP(HyperbolicModel, UniqueRepresentation):
         EXAMPLES::
 
             sage: A = matrix(2,[1,2,3,4])
-            sage: UHP.isometry_in_model(A)
+            sage: HyperbolicPlane.UHP.isometry_in_model(A)
             True
             sage: B = matrix(2,[I,2,4,1])
-            sage: UHP.isometry_in_model(B)
+            sage: HyperbolicPlane.UHP.isometry_in_model(B)
             False
         """
         return bool(A.ncols() == 2 and A.nrows() == 2 and
@@ -673,19 +673,19 @@ class HyperbolicModelUHP(HyperbolicModel, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: UHP.point_to_model(I, 'UHP')
+            sage: HyperbolicPlane.UHP.point_to_model(I, 'UHP')
             I
-            sage: UHP.point_to_model(I, 'PD')
+            sage: HyperbolicPlane.UHP.point_to_model(I, 'PD')
             0
-            sage: UHP.point_to_model(3 + I, 'KM')
+            sage: HyperbolicPlane.UHP.point_to_model(3 + I, 'KM')
             (6/11, 9/11)
-            sage: UHP.point_to_model(3 + I, 'HM')
+            sage: HyperbolicPlane.UHP.point_to_model(3 + I, 'HM')
             (3, 9/2, 11/2)
 
         It is an error to try to convert a boundary point to a model
         that doesn't support boundary points::
 
-            sage: UHP.point_to_model(infinity, 'HM')
+            sage: HyperbolicPlane.UHP.point_to_model(infinity, 'HM')
             Traceback (most recent call last):
             ...
             NotImplementedError: boundary points are not implemented for the HM model
@@ -740,7 +740,7 @@ class HyperbolicModelPD(HyperbolicModel, UniqueRepresentation):
     bounded = True
     conformal = True
     dimension = 2
-    isometry_group = "PU (1, 1)"
+    isometry_group = "PU(1, 1)"
     isometry_group_is_projective = True
     pt_conversion_dict =  {
             'PD': lambda p :  p,
@@ -772,13 +772,13 @@ class HyperbolicModelPD(HyperbolicModel, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: PD.point_in_model(1.00)
+            sage: HyperbolicPlane.PD.point_in_model(1.00)
             False
 
-            sage: PD.point_in_model(1/2 + I/2)
+            sage: HyperbolicPlane.PD.point_in_model(1/2 + I/2)
             True
 
-            sage: PD.point_in_model(1 + .2*I)
+            sage: HyperbolicPlane.PD.point_in_model(1 + .2*I)
             False
         """
         return bool(abs(CC(p)) < 1)
@@ -791,13 +791,13 @@ class HyperbolicModelPD(HyperbolicModel, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: PD.bdry_point_in_model(1.00)
+            sage: HyperbolicPlane.PD.bdry_point_in_model(1.00)
             True
 
-            sage: PD.bdry_point_in_model(1/2 + I/2)
+            sage: HyperbolicPlane.PD.bdry_point_in_model(1/2 + I/2)
             False
 
-            sage: PD.bdry_point_in_model(1 + .2*I)
+            sage: HyperbolicPlane.PD.bdry_point_in_model(1 + .2*I)
             False
         """
         return  bool(abs(abs(CC(p))- 1) < EPSILON)
@@ -813,7 +813,7 @@ class HyperbolicModelPD(HyperbolicModel, UniqueRepresentation):
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_model import HyperbolicModelPD
             sage: I2 = identity_matrix(2)
-            sage: q = PD.random_point().coordinates()
+            sage: q = HyperbolicPlane.PD.random_point().coordinates()
             sage: bool(norm(HyperbolicModelPD.isometry_act_on_point(I2, q) - q) < 10**-9)
             True
         """
@@ -832,7 +832,7 @@ class HyperbolicModelPD(HyperbolicModel, UniqueRepresentation):
 
             sage: z = [CC.random_element() for k in range(2)]; z.sort(key=abs)
             sage: A = matrix(2,[z[1], z[0],z[0].conjugate(),z[1].conjugate()])
-            sage: PD.isometry_in_model(A)
+            sage: HyperbolicPlane.PD.isometry_in_model(A)
             True
         """
         # alpha = A[0][0]
@@ -858,13 +858,13 @@ class HyperbolicModelPD(HyperbolicModel, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: PD.point_to_model(0, 'UHP')
+            sage: HyperbolicPlane.PD.point_to_model(0, 'UHP')
             I
 
-            sage: PD.point_to_model(I, 'UHP')
+            sage: HyperbolicPlane.PD.point_to_model(I, 'UHP')
             +Infinity
 
-            sage: PD.point_to_model(-I, 'UHP')
+            sage: HyperbolicPlane.PD.point_to_model(-I, 'UHP')
             0
         """
         if model_name == 'UHP' and coordinates == I:
@@ -892,7 +892,7 @@ class HyperbolicModelPD(HyperbolicModel, UniqueRepresentation):
         We check that orientation-reversing isometries behave as they
         should::
 
-            sage: PD.isometry_to_model(matrix(2,[0,I,I,0]),'UHP')
+            sage: HyperbolicPlane.PD.isometry_to_model(matrix(2,[0,I,I,0]),'UHP')
             [ 0 -1]
             [-1  0]
         """
@@ -938,13 +938,13 @@ class HyperbolicModelKM(HyperbolicModel, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: KM.point_in_model((1,0))
+            sage: HyperbolicPlane.KM.point_in_model((1,0))
             False
 
-            sage: KM.point_in_model((1/2 , 1/2))
+            sage: HyperbolicPlane.KM.point_in_model((1/2 , 1/2))
             True
 
-            sage: KM.point_in_model((1 , .2))
+            sage: HyperbolicPlane.KM.point_in_model((1 , .2))
             False
         """
         return len(p) == 2 and bool(p[0]**2 + p[1]**2 < 1)
@@ -957,13 +957,13 @@ class HyperbolicModelKM(HyperbolicModel, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: KM.bdry_point_in_model((1,0))
+            sage: HyperbolicPlane.KM.bdry_point_in_model((1,0))
             True
 
-            sage: KM.bdry_point_in_model((1/2 , 1/2))
+            sage: HyperbolicPlane.KM.bdry_point_in_model((1/2 , 1/2))
             False
 
-            sage: KM.bdry_point_in_model((1 , .2))
+            sage: HyperbolicPlane.KM.bdry_point_in_model((1 , .2))
             False
         """
         return len(p) == 2 and bool(abs(p[0]**2 + p[1]**2 - 1) < EPSILON)
@@ -979,7 +979,7 @@ class HyperbolicModelKM(HyperbolicModel, UniqueRepresentation):
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_model import HyperbolicModelKM
             sage: I3 = identity_matrix(3)
-            sage: v = vector(KM.random_point().coordinates())
+            sage: v = vector(HyperbolicPlane.KM.random_point().coordinates())
             sage: bool(norm(HyperbolicModelKM.isometry_act_on_point(I3, v) - v) < 10**-9)
             True
         """
@@ -996,7 +996,7 @@ class HyperbolicModelKM(HyperbolicModel, UniqueRepresentation):
         EXAMPLES::
 
             sage: A = matrix(3,[1, 0, 0, 0, 17/8, 15/8, 0, 15/8, 17/8])
-            sage: KM.isometry_in_model(A)
+            sage: HyperbolicPlane.KM.isometry_in_model(A)
             True
         """
         from sage.geometry.hyperbolic_space.hyperbolic_constants import LORENTZ_GRAM
@@ -1021,13 +1021,13 @@ class HyperbolicModelKM(HyperbolicModel, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: KM.point_to_model((0, 0), 'UHP')
+            sage: HyperbolicPlane.KM.point_to_model((0, 0), 'UHP')
             I
 
-            sage: KM.point_to_model((0, 0), 'HM')
+            sage: HyperbolicPlane.KM.point_to_model((0, 0), 'HM')
             (0, 0, 1)
 
-            sage: KM.point_to_model((0,1), 'UHP')
+            sage: HyperbolicPlane.KM.point_to_model((0,1), 'UHP')
             +Infinity
         """
         if model_name == 'UHP' and tuple(coordinates) == (0,1):
@@ -1069,13 +1069,13 @@ class HyperbolicModelHM(HyperbolicModel, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: HM.point_in_model((0,0,1))
+            sage: HyperbolicPlane.HM.point_in_model((0,0,1))
             True
 
-            sage: HM.point_in_model((1,0,sqrt(2)))
+            sage: HyperbolicPlane.HM.point_in_model((1,0,sqrt(2)))
             True
 
-            sage: HM.point_in_model((1,2,1))
+            sage: HyperbolicPlane.HM.point_in_model((1,2,1))
             False
         """
         return len(p) == 3 and bool(p[0]**2 + p[1]**2 - p[2]**2 + 1 < EPSILON)
@@ -1087,13 +1087,13 @@ class HyperbolicModelHM(HyperbolicModel, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: HM.bdry_point_in_model((0,0,1))
+            sage: HyperbolicPlane.HM.bdry_point_in_model((0,0,1))
             False
 
-            sage: HM.bdry_point_in_model((1,0,sqrt(2)))
+            sage: HyperbolicPlane.HM.bdry_point_in_model((1,0,sqrt(2)))
             False
 
-            sage: HM.bdry_point_in_model((1,2,1))
+            sage: HyperbolicPlane.HM.bdry_point_in_model((1,2,1))
             False
         """
         return False
@@ -1107,7 +1107,7 @@ class HyperbolicModelHM(HyperbolicModel, UniqueRepresentation):
         EXAMPLES::
 
            sage: A = diagonal_matrix([1,1,-1])
-           sage: HM.isometry_in_model(A)
+           sage: HyperbolicPlane.HM.isometry_in_model(A)
            True
         """
         from sage.geometry.hyperbolic_space.hyperbolic_constants import LORENTZ_GRAM

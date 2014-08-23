@@ -19,10 +19,10 @@ AUTHORS:
 
 EXAMPLES::
 
-    sage: UHP.point(2 + I)
+    sage: HyperbolicPlane.UHP.point(2 + I)
     Point in UHP I + 2
 
-    sage: PD.point(1/2 + I/2)
+    sage: HyperbolicPlane.PD.point(1/2 + I/2)
     Point in PD 1/2*I + 1/2
 """
 
@@ -87,13 +87,13 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: UHP.model_name()
+            sage: HyperbolicPlane.UHP.model_name()
             'Upper Half Plane Model'
-            sage: PD.model_name()
+            sage: HyperbolicPlane.PD.model_name()
             'Poincare Disk Model'
-            sage: KM.model_name()
+            sage: HyperbolicPlane.KM.model_name()
             'Klein Disk Model'
-            sage: HM.model_name()
+            sage: HyperbolicPlane.HM.model_name()
             'Hyperboloid Model'
         """
         return cls.HModel.name
@@ -105,13 +105,13 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: UHP.short_name()
+            sage: HyperbolicPlane.UHP.short_name()
             'UHP'
-            sage: PD.short_name()
+            sage: HyperbolicPlane.PD.short_name()
             'PD'
-            sage: HM.short_name()
+            sage: HyperbolicPlane.HM.short_name()
             'HM'
-            sage: KM.short_name()
+            sage: HyperbolicPlane.KM.short_name()
             'KM'
         """
         return cls.HModel.short_name
@@ -123,13 +123,13 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: UHP.is_bounded()
+            sage: HyperbolicPlane.UHP.is_bounded()
             True
-            sage: PD.is_bounded()
+            sage: HyperbolicPlane.PD.is_bounded()
             True
-            sage: KM.is_bounded()
+            sage: HyperbolicPlane.KM.is_bounded()
             True
-            sage: HM.is_bounded()
+            sage: HyperbolicPlane.HM.is_bounded()
             False
         """
         return cls.HModel.bounded
@@ -142,16 +142,16 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: UHP.point(0)
+            sage: HyperbolicPlane.UHP.point(0)
             Boundary point in UHP 0
 
-            sage: PD.point(I/2)
+            sage: HyperbolicPlane.PD.point(I/2)
             Point in PD 1/2*I
 
-            sage: KM.point((0,1))
+            sage: HyperbolicPlane.KM.point((0,1))
             Boundary point in KM (0, 1)
 
-            sage: HM.point((0,0,1))
+            sage: HyperbolicPlane.HM.point((0,0,1))
             Point in HM (0, 0, 1)
         """
         return cls.HFactory.get_point(p, **kwargs)
@@ -164,11 +164,11 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: UHP.point_in_model(I)
+            sage: HyperbolicPlane.UHP.point_in_model(I)
             True
-            sage: UHP.point_in_model(0) # Not interior point.
+            sage: HyperbolicPlane.UHP.point_in_model(0) # Not interior point.
             False
-            sage: HM.point_in_model((0,1, sqrt(2)))
+            sage: HyperbolicPlane.HM.point_in_model((0,1, sqrt(2)))
             True
         """
         return cls.HModel.point_in_model(p)
@@ -181,9 +181,9 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: UHP.bdry_point_in_model(0)
+            sage: HyperbolicPlane.UHP.bdry_point_in_model(0)
             True
-            sage: UHP.bdry_point_in_model(I) # Not boundary point
+            sage: HyperbolicPlane.UHP.bdry_point_in_model(I) # Not boundary point
             False
         """
         return cls.HModel.bdry_point_in_model(p)
@@ -197,7 +197,7 @@ class HyperbolicUserInterface(UniqueRepresentation):
         EXAMPLES::
 
             sage: A = matrix(2,[10,0,0,10]) # det(A) is not 1
-            sage: UHP.isometry_in_model(A) # But A acts isometrically
+            sage: HyperbolicPlane.UHP.isometry_in_model(A) # But A acts isometrically
             True
         """
         return cls.HModel.isometry_in_model(A)
@@ -210,16 +210,16 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: UHP.geodesic(1, 0)
+            sage: HyperbolicPlane.UHP.geodesic(1, 0)
             Geodesic in UHP from 1 to 0
 
-            sage: PD.geodesic(1, 0)
+            sage: HyperbolicPlane.PD.geodesic(1, 0)
             Geodesic in PD from 1 to 0
 
-            sage: KM.geodesic((0,1/2), (1/2, 0))
+            sage: HyperbolicPlane.KM.geodesic((0,1/2), (1/2, 0))
             Geodesic in KM from (0, 1/2) to (1/2, 0)
 
-            sage: HM.geodesic((0,0,1), (0,1, sqrt(2)))
+            sage: HyperbolicPlane.HM.geodesic((0,0,1), (0,1, sqrt(2)))
             Geodesic in HM from (0, 0, 1) to (0, 1, sqrt(2))
         """
         return cls.HFactory.get_geodesic(start, end, **kwargs)
@@ -233,23 +233,23 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: UHP.isometry(identity_matrix(2))
+            sage: HyperbolicPlane.UHP.isometry(identity_matrix(2))
             Isometry in UHP
             [1 0]
             [0 1]
 
-            sage: PD.isometry(identity_matrix(2))
+            sage: HyperbolicPlane.PD.isometry(identity_matrix(2))
             Isometry in PD
             [1 0]
             [0 1]
 
-            sage: KM.isometry(identity_matrix(3))
+            sage: HyperbolicPlane.KM.isometry(identity_matrix(3))
             Isometry in KM
             [1 0 0]
             [0 1 0]
             [0 0 1]
 
-            sage: HM.isometry(identity_matrix(3))
+            sage: HyperbolicPlane.HM.isometry(identity_matrix(3))
             Isometry in HM
             [1 0 0]
             [0 1 0]
@@ -264,7 +264,7 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: p = UHP.random_point()
+            sage: p = HyperbolicPlane.UHP.random_point()
         """
         return cls.HPoint.random_element(**kwargs)
 
@@ -275,7 +275,7 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: p = UHP.random_geodesic()
+            sage: p = HyperbolicPlane.UHP.random_geodesic()
         """
         return cls.HGeodesic.random_element(**kwargs)
 
@@ -286,7 +286,7 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: p = UHP.random_isometry()
+            sage: p = HyperbolicPlane.UHP.random_isometry()
         """
         return cls.HIsometry.random_element(**kwargs)
 
@@ -308,6 +308,7 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         EXAMPLES::
 
+            sage: UHP = HyperbolicPlane.UHP
             sage: UHP.isometry_from_fixed_points(0, 4)
             Isometry in UHP
             [  -1    0]
@@ -331,9 +332,10 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         EXAMPLES::
 
+            sage: UHP = HyperbolicPlane.UHP
             sage: UHP.dist(UHP.point(I), UHP.point(2*I))
             arccosh(5/4)
-            sage: UHP.dist(I, 2*I)
+            sage: HyperbolicPlane.UHP.dist(I, 2*I)
             arccosh(5/4)
         """
         try:
@@ -356,11 +358,11 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: UHP.point_to_model(I, 'PD')
+            sage: HyperbolicPlane.UHP.point_to_model(I, 'PD')
             0
-            sage: PD.point_to_model(I, 'UHP')
+            sage: HyperbolicPlane.PD.point_to_model(I, 'UHP')
             +Infinity
-            sage: UHP.point_to_model(UHP.point(I), 'HM')
+            sage: HyperbolicPlane.UHP.point_to_model(HyperbolicPlane.UHP.point(I), 'HM')
             (0, 0, 1)
         """
         if isinstance(p, HyperbolicPoint):
@@ -381,6 +383,7 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         EXAMPLES::
 
+            sage: UHP = HyperbolicPlane.UHP
             sage: I2 = identity_matrix(2)
             sage: UHP.isometry_to_model(I2, 'HM')
             [1 0 0]
@@ -401,7 +404,7 @@ class UHP(HyperbolicUserInterface):
 
     EXAMPLES::
 
-        sage: UHP.point(I)
+        sage: HyperbolicPlane.UHP.point(I)
         Point in UHP I
     """
     HModel = HyperbolicModelUHP
@@ -417,7 +420,7 @@ class PD(HyperbolicUserInterface):
 
     EXAMPLES::
 
-        sage: PD.point(I)
+        sage: HyperbolicPlane.PD.point(I)
         Boundary point in PD I
     """
     HModel = HyperbolicModelPD
@@ -433,7 +436,7 @@ class KM(HyperbolicUserInterface):
 
     EXAMPLES::
 
-        sage: KM.point((0,0))
+        sage: HyperbolicPlane.KM.point((0,0))
         Point in KM (0, 0)
     """
     HModel = HyperbolicModelKM
@@ -449,7 +452,7 @@ class HM(HyperbolicUserInterface):
 
     EXAMPLES::
 
-        sage: HM.point((0,0,1))
+        sage: HyperbolicPlane.HM.point((0,0,1))
         Point in HM (0, 0, 1)
     """
     HModel = HyperbolicModelHM
@@ -457,4 +460,24 @@ class HM(HyperbolicUserInterface):
     HPoint = HyperbolicPointHM
     HIsometry = HyperbolicIsometryHM
     HGeodesic = HyperbolicGeodesicHM
+
+class HyperbolicPlane(UniqueRepresentation):
+    """
+    The hyperbolic plane `\mathbb{H}^2` in a given model.
+
+    Here are the models currently implemented:
+
+    - ``UHP`` -- upper half plane
+    - ``PD`` -- Poincare disk
+    - ``KM`` -- Klein disk
+    - ``HM`` -- hyperboloid model
+    """
+    UHP = UHP
+    UpperHalfPlane = UHP
+    PD = PD
+    PoincareDisk = PD
+    KM = KM
+    KleinDisk = KM
+    HM = HM
+    Hyperboloid = HM
 

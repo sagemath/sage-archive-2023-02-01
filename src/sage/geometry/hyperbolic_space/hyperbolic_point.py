@@ -14,10 +14,10 @@ EXAMPLES:
 We can construct points in the upper half plane model, abbreviated
 UHP for convenience::
 
-    sage: UHP.point(2 + I)
+    sage: HyperbolicPlane.UHP.point(2 + I)
     Point in UHP I + 2
-    sage: g = UHP.point(3 + I)
-    sage: g.dist(UHP.point(I))
+    sage: g = HyperbolicPlane.UHP.point(3 + I)
+    sage: g.dist(HyperbolicPlane.UHP.point(I))
     arccosh(11/2)
 """
 
@@ -134,8 +134,8 @@ class HyperbolicPoint(SageObject):
         r"""
         The representation of the current point used for calculations.
         For example, if the current model uses the HyperbolicMethodsUHP
-        class, then _cached_coordinates will hold the upper half plane
-        representation of self.coordinates().
+        class, then ``_cached_coordinates`` will hold the upper half plane
+        representation of ``self.coordinates()``.
 
         EXAMPLES::
 
@@ -176,10 +176,10 @@ class HyperbolicPoint(SageObject):
         EXAMPLES::
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
-            sage: p = UHP.point(0)
+            sage: p = HyperbolicPlane.UHP.point(0)
             sage: latex(p)
             0
-            sage: q = HM.point((0,0,1))
+            sage: q = HyperbolicPlane.HM.point((0,0,1))
             sage: latex(q)
             \left(0,\,0,\,1\right)
         """
@@ -232,10 +232,10 @@ class HyperbolicPoint(SageObject):
         EXAMPLES::
 
             sage: A = matrix(2, [0, 1, 1, 0])
-            sage: A*UHP.point(2 + I)
+            sage: A * HyperbolicPlane.UHP.point(2 + I)
             Point in UHP 1/5*I + 2/5
             sage: B = diagonal_matrix([-1, -1, 1])
-            sage: B*HM.point((0, 1, sqrt(2)))
+            sage: B * HyperbolicPlane.HM.point((0, 1, sqrt(2)))
             Point in HM (0, -1, sqrt(2))
         """
         from sage.matrix.matrix import is_Matrix
@@ -470,7 +470,7 @@ class HyperbolicPoint(SageObject):
             sage: A.orientation_preserving()
             True
 
-            sage: A*A == UHP.isometry(identity_matrix(2))
+            sage: A*A == HyperbolicPlane.UHP.isometry(identity_matrix(2))
             True
         """
         A = self.HMethods.symmetry_in(self._cached_coordinates)
@@ -492,11 +492,11 @@ class HyperbolicPoint(SageObject):
             True
 
             sage: p = HyperbolicPointPD.random_element()
-            sage: PD.point_in_model(p.coordinates())
+            sage: HyperbolicPlane.PD.point_in_model(p.coordinates())
             True
 
             sage: p = HyperbolicPointKM.random_element()
-            sage: KM.point_in_model(p.coordinates())
+            sage: HyperbolicPlane.KM.point_in_model(p.coordinates())
             True
 
             sage: p = HyperbolicPointHM.random_element().coordinates()

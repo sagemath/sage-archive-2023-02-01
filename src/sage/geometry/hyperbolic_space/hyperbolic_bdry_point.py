@@ -19,12 +19,12 @@ EXAMPLES:
 We can construct boundary points in the upper half plane model, 
 abbreviated UHP for convenience::
 
-    sage: UHP.point(3)
+    sage: HyperbolicPlane.UHP.point(3)
     Boundary point in UHP 3
 
 Points on the boundary are infinitely far from interior points::
 
-    sage: UHP.point(3).dist(UHP.point(I))
+    sage: HyperbolicPlane.UHP.point(3).dist(HyperbolicPlane.UHP.point(I))
     +Infinity
 """
 

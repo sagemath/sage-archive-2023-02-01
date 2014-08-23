@@ -188,11 +188,11 @@ class HyperbolicMethodsUHP(HyperbolicAbstractMethods):
 
         INPUT:
 
-        - ``p1``, ``p2`` -- points in the hyperbolic plane.
+        - ``p1``, ``p2`` -- points in the hyperbolic plane
 
         OUTPUT:
 
-        - a list of boundary points.
+        - a list of boundary points
 
         EXAMPLES::
 
@@ -257,11 +257,11 @@ class HyperbolicMethodsUHP(HyperbolicAbstractMethods):
 
         INPUT:
 
-        - ``other`` -- a hyperbolic geodesic in current model.
+        - ``other`` -- a hyperbolic geodesic in current model
 
         OUTPUT:
 
-        - a hyperbolic geodesic.
+        - a hyperbolic geodesic
 
         EXAMPLES::
 
@@ -293,11 +293,11 @@ class HyperbolicMethodsUHP(HyperbolicAbstractMethods):
 
         INPUT:
 
-        - ``other`` -- a hyperbolic geodesic in the current model.
+        - ``other`` -- a hyperbolic geodesic in the current model
 
         OUTPUT:
 
-        - a hyperbolic point.
+        - a hyperbolic point
 
         EXAMPLES::
 
@@ -311,7 +311,7 @@ class HyperbolicMethodsUHP(HyperbolicAbstractMethods):
             sage: HyperbolicMethodsUHP.intersection(4, 5, 5, 7)
             Traceback (most recent call last):
             ...
-            ValueError: Geodesics don't intersect.
+            ValueError: geodesics don't intersect
 
         If the given geodesics are identical, return that
         geodesic::
@@ -331,7 +331,7 @@ class HyperbolicMethodsUHP(HyperbolicAbstractMethods):
         B = cls.reflection_in(start_2, end_2)
         C = A*B
         if cls.classification(C) in ['hyperbolic', 'parabolic']:
-            raise ValueError("Geodesics don't intersect.")
+            raise ValueError("geodesics don't intersect")
         return cls.fixed_point_set(C)
 
     @classmethod
@@ -412,11 +412,11 @@ class HyperbolicMethodsUHP(HyperbolicAbstractMethods):
 
         INPUT:
 
-        - ``other`` -- a hyperbolic point in the same model.
+        - ``other`` -- a hyperbolic point in the same model
 
         OUTPUT:
 
-        - the hyperbolic distance.
+        - the hyperbolic distance
 
         EXAMPLES::
 
@@ -424,7 +424,7 @@ class HyperbolicMethodsUHP(HyperbolicAbstractMethods):
             sage: HyperbolicMethodsUHP.geod_dist_from_point(2, 2 + I, I)
             arccosh(1/10*sqrt(5)*((sqrt(5) - 1)^2 + 4) + 1)
 
-        If p is a boundary point, the distance is infinity::
+        If `p` is a boundary point, the distance is infinity::
 
             sage: HyperbolicMethodsUHP.geod_dist_from_point(2, 2 + I, 5)
             +Infinity
@@ -458,7 +458,7 @@ class HyperbolicMethodsUHP(HyperbolicAbstractMethods):
 
         INPUT:
 
-        - ``start`` -- a real number or infinity.
+        - ``start`` -- a real number or infinity
         - ``end`` -- a real number or infinity
 
         EXAMPLES::
@@ -928,5 +928,5 @@ class HyperbolicMethodsUHP(HyperbolicAbstractMethods):
         w = pl[3:6]
         A = cls._crossratio_matrix(z[0],z[1],z[2])
         B = cls._crossratio_matrix(w[0],w[1],w[2])
-        return B.inverse()*A
+        return B.inverse() * A
 

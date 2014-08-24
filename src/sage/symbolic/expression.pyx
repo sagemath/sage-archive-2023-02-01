@@ -90,8 +90,7 @@ Test Jacobian on Pynac expressions. (:trac:`5546`) ::
     sage: jacobian(f, [x,y])
     [1 1]
 
-
-Test if matrices work :trac:`5546` ::
+Test if matrices work (:trac:`5546`) ::
 
     sage: var('x,y,z')
     (x, y, z)
@@ -724,7 +723,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(SR(a+1)^x)
             \left(a + 1\right)^{x}
 
-        More powers, :trac:`7406`::
+        More powers (:trac:`7406`)::
 
             sage: latex((x^pi)^e)
             {\left(x^{\pi}\right)}^{e}
@@ -736,7 +735,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex((a^b)^c)
             {\left(a^{b}\right)}^{c}
 
-        Separate coefficients to numerator and denominator, :trac:`7363`::
+        Separate coefficients to numerator and denominator (:trac:`7363`)::
 
             sage: latex(2/(x+1))
             \frac{2}{x + 1}
@@ -792,7 +791,7 @@ cdef class Expression(CommutativeRingElement):
             x - \left(2 i - 1\right) \, y
 
         Check if complex coefficients with denominators are displayed
-        correctly :trac:`10769`::
+        correctly (:trac:`10769`)::
 
             sage: var('a x')
             (a, x)
@@ -802,7 +801,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(ratio)
             \frac{i \, x^{2}}{2 \, a}
 
-        Parenthesis in powers, :trac:`13262`::
+        Parenthesis in powers (:trac:`13262`)::
 
             sage: latex(1+x^(2/3)+x^(-2/3))
             x^{\frac{2}{3}} + \frac{1}{x^{\frac{2}{3}}} + 1
@@ -1307,7 +1306,7 @@ cdef class Expression(CommutativeRingElement):
 
         We create a function with 10 arguments and test if there are
         hash collisions between any of its derivatives of order at
-        most 7. :trac:`7508`::
+        most 7. :trac:`7508` ::
 
             sage: num_vars = 10; max_order=7
             sage: X = var(' '.join(['x'+str(i) for i in range(num_vars)]))
@@ -4197,7 +4196,9 @@ cdef class Expression(CommutativeRingElement):
             sage: 1/gamma(x).subs(x=-1)
             0
 
-            # verify that this operation does not modify the passed dictionary (:trac:`6622`)
+        Verify that this operation does not modify the passed
+        dictionary (:trac:`6622`)::
+
             sage: var('v t')
             (v, t)
             sage: f = v*t
@@ -9984,15 +9985,15 @@ cdef class Expression(CommutativeRingElement):
 
         -  ``b`` - upper endpoint of the sum
 
-        - ``algorithm`` - (default: 'maxima')  one of
+        - ``algorithm`` - (default: ``'maxima'``)  one of
 
-                - 'maxima' - use Maxima (the default)
+                - ``'maxima'`` - use Maxima (the default)
 
-                - 'maple' - (optional) use Maple
+                - ``'maple'`` - (optional) use Maple
 
-                - 'mathematica' - (optional) use Mathematica
+                - ``'mathematica'`` - (optional) use Mathematica
 
-                - 'giac' - (optional) use Giac
+                - ``'giac'`` - (optional) use Giac
 
 
         EXAMPLES::

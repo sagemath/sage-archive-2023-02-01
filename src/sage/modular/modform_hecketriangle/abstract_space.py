@@ -1108,6 +1108,30 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         return new_space(self.F_basis_pol(m))
 
+    def _canonical_min_exp(self, min_exp):
+        r"""
+        Return an adjusted value of ``min_exp`` corresponding to the analytic type of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
+            sage: CF = CuspForms(n=5, k=16, ep=1)
+            sage: CF._canonical_min_exp(-2)
+            1
+        """
+
+        ZZ(min_exp)
+        if self.is_holomorphic():
+            if self.is_cuspidal():
+                if self.is_zerospace():
+                    return []
+                else:
+                    min_exp = max(min_exp, 1)
+            else:
+                min_exp = max(min_exp, 0)
+
+        return min_exp
+
     def quasi_part_gens(self, r=None, min_exp=0, max_exp=infinity):
         r"""
         Return a basis in ``self`` of the subspace of (quasi) weakly holomorphic forms which
@@ -1201,6 +1225,8 @@ class FormsSpace_abstract(FormsRing_abstract):
              from warnings import warn
              warn("This function only determines generators of (quasi) weakly modular forms!")
 
+        min_exp = self._canonical_min_exp(min_exp)
+
         # For modular forms spaces the quasi parts are all zero except for r=0
         if (self.is_modular()):
             r = ZZ(0)
@@ -1217,16 +1243,6 @@ class FormsSpace_abstract(FormsRing_abstract):
         r = ZZ(r)
         if (r < 0 or 2*r > self._weight):
             return []
-
-        min_exp = ZZ(min_exp)
-        if self.is_holomorphic():
-            if self.is_cuspidal():
-                if self.is_zerospace():
-                    return []
-                else:
-                    min_exp = max(min_exp, 1)
-            else:
-                min_exp = max(min_exp, 0)
 
         E2 = self.E2()
         ambient_weak_space = self.graded_ring().reduce_type("weak", degree=(self._weight-QQ(2*r), self._ep*(-1)**r))
@@ -1295,6 +1311,8 @@ class FormsSpace_abstract(FormsRing_abstract):
              from warnings import warn
              warn("This function only determines the dimension of some (quasi) weakly subspace!")
 
+        min_exp = self._canonical_min_exp(min_exp)
+
         # For modular forms spaces the quasi parts are all zero except for r=0
         if (self.is_modular()):
             r = ZZ(0)
@@ -1308,16 +1326,6 @@ class FormsSpace_abstract(FormsRing_abstract):
         r = ZZ(r)
         if (r < 0 or 2*r > self._weight):
             return ZZ(0)
-
-        min_exp = ZZ(min_exp)
-        if self.is_holomorphic():
-            if self.is_cuspidal():
-                if self.is_zerospace():
-                    return ZZ(0)
-                else:
-                    min_exp = max(min_exp, 1)
-            else:
-                min_exp = max(min_exp, 0)
 
         n = self._group.n()
         k = self._weight - QQ(2*r)
@@ -1451,7 +1459,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             [1]
         """
 
-        min_exp = ZZ(min_exp)
+        min_exp = self._canonical_min_exp(min_exp)
         # We have to add + 1 to get a correct upper bound in all cases
         # since corresponding weak space might have a higher l1 (+1) than
         # ``self``, even if the weight is smaller
@@ -1532,6 +1540,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             1
         """
 
+        min_exp = self._canonical_min_exp(min_exp)
         return self._quasi_form_matrix(min_exp=min_exp).dimensions()[0] + min_exp
 
     def construct_quasi_form(self, laurent_series):
@@ -1687,6 +1696,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         if (not self.is_weakly_holomorphic()):
              from warnings import warn
              warn("This function only determines elements / a basis of (quasi) weakly modular forms!")
+
+        min_exp = self._canonical_min_exp(min_exp)
 
         if (m is None):
             A = self._quasi_form_matrix(min_exp=min_exp)

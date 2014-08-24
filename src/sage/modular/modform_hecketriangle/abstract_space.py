@@ -1116,7 +1116,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         INPUT:
 
         - ``r``        -- An integer or ``None`` (default), indicating the desired power of ``E2``.
-                          If ``r==None`` then all possible powers ``r``'s are choosen.
+                          If ``r==None`` then all possible powers (``r``) are choosen.
 
         - ``min_exp``  -- An integer giving a lower bound for the first non-trivial
                           Fourier coefficient of the generators (default: 0).
@@ -1461,10 +1461,8 @@ class FormsSpace_abstract(FormsRing_abstract):
            basis += self.quasi_part_gens(min_exp=m, max_exp=m)
 
         column_size = len(basis)
-        # we increase the precision resp. row size by "2 + incr_prec_by"
-        # compared to the column size. The 2 is added to potentially
-        # save a costly rerun of the calculation of the Fourier expansion
-        row_size = column_size + 2 + incr_prec_by
+        # a non-trivial incr_prec_by will be added in case the resulting matrix does not have full rank
+        row_size = column_size + incr_prec_by
         prec = row_size + min_exp
 
         coeff_ring = self.coeff_ring()
@@ -1474,20 +1472,24 @@ class FormsSpace_abstract(FormsRing_abstract):
             A = A.augment(gen.q_expansion_vector(min_exp=min_exp, max_exp=prec-1))
 
         # if the resulting matrix does not yet have maximal rank we increase
-        # the precision by about 25% of the column size
+        # the precision by about 20% of the column size
         if (A.rank() < column_size):
-            incr_prec_by += column_size//ZZ(4) + 1
+            if (incr_prec_by == 0):
+                print "Encountered a matrix with non-maximal rank (rare, please report)!"
+            incr_prec_by += column_size//ZZ(5) + 1
             return self._quasi_form_matrix(min_exp=min_exp, incr_prec_by=incr_prec_by)
+        elif (incr_prec_by == 0):
+            return A
 
         # We do an initial binary search to delete some unnecessary rows
         while (A.rank() == column_size):
-            B = A
             row_size = A.dimensions()[0]
 
             # to avoid infinite loops
             if (row_size == column_size):
                 return A
 
+            B = A
             A = A.delete_rows([r for r in range(column_size + (row_size-column_size)//2 - 1, row_size)])
 
         # Next we simply delete row by row
@@ -1619,6 +1621,107 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         return self(sum([coord_vector[k]*basis[k] for k in range(0, len(coord_vector))]))
 
+    @cached_method
+    def q_basis(self, m=None, min_exp=0):
+        r"""
+        Try to return a (basis) element of ``self`` with a Laurent series of the form
+        ``q^m + O(q^N)``, where ``N=self.required_laurent_prec(min_exp)``.
+
+        If ``m==None`` the whole basis (with varying ``m``'s) is returned if it exists.
+
+        INPUT:
+
+        - ``m``        -- An integer, indicating the desired initial Laurent exponent of the element.
+                          If ``m==None`` (default) then the whole basis is returned.
+
+        - ``min_exp``  -- An integer, indicating the minimal Laurent exponent of the
+                          subspace of ``self`` which should be considered (default: 0).
+
+        OUTPUT:
+
+        The corresponding basis (if ``m==None``) resp. the corresponding basis vector (if ``m!=None``).
+        If the basis resp. element doesn't exist an exception is raised.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms, ModularForms, QuasiModularForms
+            sage: QF = QuasiWeakModularForms(n=8, k=10/3, ep=-1)
+            sage: QF.default_prec(QF.required_laurent_prec(min_exp=-2))
+            sage: q_basis = QF.q_basis(min_exp=-2)
+            sage: q_basis
+            [q^-2 + O(q^4), q^-1 + O(q^4), 1 + O(q^4), q + O(q^4), q^2 + O(q^4), q^3 + O(q^4)]
+            sage: QF.q_basis(m=-2, min_exp=-2)
+            q^-2 + O(q^4)
+
+            sage: MF = ModularForms(k=36)
+            sage: MF.q_basis() == MF.gens()
+            True
+
+            sage: QF = QuasiModularForms(k=6)
+            sage: QF.required_laurent_prec()
+            3
+            sage: QF.q_basis()
+            [1 - 20160*q^3 - 158760*q^4 + O(q^5), q - 60*q^3 - 248*q^4 + O(q^5), q^2 + 8*q^3 + 30*q^4 + O(q^5)]
+        """
+
+        if (not self.is_weakly_holomorphic()):
+             from warnings import warn
+             warn("This function only determines elements / a basis of (quasi) weakly modular forms!")
+
+        if (m is None):
+            A = self._quasi_form_matrix(min_exp=min_exp)
+
+            if (A.is_invertible()):
+                B = A.inverse()
+
+                max_exp = self._l1 + 1
+                basis = []
+                for k in range(min_exp, max_exp + 1):
+                    basis += self.quasi_part_gens(min_exp=k, max_exp=k)
+
+                column_len = A.dimensions()[1]
+                q_basis = []
+                for k in range(0, column_len):
+                    el = self(sum([B[l][k] * basis[l] for l in range(0, column_len)]))
+                    q_basis += [el]
+
+                return q_basis
+            else:
+                raise ValueError("Unfortunately a q_basis doesn't exist in this case (this is rare/interesting, please report)")
+        else:
+            if (m < min_exp):
+                raise ValueError("Index out of range: m={} < {}=min_exp").format(m, min_exp)
+
+            if (self.q_basis.is_in_cache(min_exp=min_exp)):
+                q_basis = self.q_basis(min_exp=min_exp)
+
+                column_len = len(q_basis)
+                if (m >= column_len + min_exp):
+                    raise ValueError("Index out of range: m={} >= {}=dimension + min_exp").format(m, size + min_exp)
+
+                return q_basis[m - min_exp]
+            else:
+                row_len = self.required_laurent_prec(min_exp = min_exp) - min_exp
+                if (m >= row_len + min_exp):
+                    raise ValueError("Index out of range: m={} >= {}=required_precision + min_exp").format(m, row_len + min_exp)
+
+                A = self._quasi_form_matrix(min_exp = min_exp)
+                b = vector(self.coeff_ring(), row_len)
+                b[m - min_exp] = 1
+                try:
+                    coord_vector = A.solve_right(b)
+                except ValueError:
+                    raise ValueError("Unfortunately the q_basis vector (m={}, min_exp={}) doesn't exist in this case (this is rare/interesting, please report)").format(m, min_exp)
+
+                max_exp = self._l1 + 1
+                basis = []
+                for k in range(min_exp, max_exp + 1):
+                    basis += self.quasi_part_gens(min_exp=k, max_exp=k)
+
+                column_len = A.dimensions()[1]
+                el = self(sum([coord_vector[l] * basis[l] for l in range(0, column_len)]))
+
+                return el
 
 
     # DEFAULT METHODS (should be overwritten in concrete classes)

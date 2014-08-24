@@ -270,7 +270,7 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             Vector space of dimension 22 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: vec.parent() == MF.module()    # long time
             True
-            sage: el == sum([vec[l]*MF.gen(l) for l in range(0,22)])    # long time
+            sage: el == MF(sum([vec[l]*MF.gen(l) for l in range(0,22)]))    # long time
             True
             sage: el == MF.element_from_coordinates(vec)    # long time
             True
@@ -426,7 +426,7 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             Vector space of dimension 12 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: vec.parent() == MF.module()    # long time
             True
-            sage: el == sum([vec[l]*MF.gen(l) for l in range(0,12)])    # long time
+            sage: el == MF(sum([vec[l]*MF.gen(l) for l in range(0,12)]))    # long time
             True
             sage: el == MF.element_from_coordinates(vec)    # long time
             True

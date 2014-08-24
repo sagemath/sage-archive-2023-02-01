@@ -285,7 +285,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         return self._rat
 
-    def fix_d(self, d_num_prec=None):
+    def _fix_d(self, d_num_prec=None):
         r"""
         Return a new version of ``self`` where `d` is replaced by its value.
 
@@ -312,7 +312,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: Delta = ModularForms().Delta()
             sage: Delta.rat()
             x^3*d - y^2*d
-            sage: Delta2 = Delta.fix_d()
+            sage: Delta2 = Delta._fix_d()
             sage: Delta2.rat()
             (x^3 - y^2)/1728
             sage: Delta == Delta2
@@ -321,7 +321,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f = WeakModularForms(n=5).F_basis(1)
             sage: f.rat()
             (121*x^5 + 79*y^2)/(200*x^5*d - 200*y^2*d)
-            sage: f2 = f.fix_d(d_num_prec=40)
+            sage: f2 = f._fix_d(d_num_prec=40)
             sage: f2.rat()
             (121.00000000*x^5 + 79.000000000*y^2)/(1.4104468363*x^5 - 1.4104468363*y^2)
             sage: f == f2

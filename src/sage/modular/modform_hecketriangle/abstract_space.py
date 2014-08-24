@@ -1702,7 +1702,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         if (m is None):
             A = self._quasi_form_matrix(min_exp=min_exp)
 
-            if (A.is_invertible()):
+            # If A is square it should automatically be invertible (by the previous procedures)
+            if (A.is_square()):
                 B = A.inverse()
 
                 max_exp = self._l1 + 1

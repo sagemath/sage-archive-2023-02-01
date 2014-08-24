@@ -5346,8 +5346,8 @@ cdef class Matrix(matrix1.Matrix):
         The method also works for matrices over finite fields::
 
             sage: M = matrix(GF(3), [[0,1,1],[1,2,0],[2,0,1]])
-            sage: ev = M.eigenvalues(); ev
-            [2*z3, 2*z3 + 2, 2*z3 + 1]
+            sage: ev = sorted(M.eigenvalues()); ev
+            [2*z3, 2*z3 + 1, 2*z3 + 2]
 
         Similarly as in the case of QQbar, the eigenvalues belong to some
         algebraic closure but they can be converted to elements of a finite

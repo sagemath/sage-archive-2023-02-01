@@ -909,7 +909,8 @@ class NumberField_relative(NumberField_generic):
             ValueError: Length must be equal to the degree of this number field
 
         TESTS:
-        Examples from Trac ticket \#4727::
+
+        Examples from Trac ticket :trac:`4727`::
 
             sage: K.<j,b> = QQ[sqrt(-1), sqrt(2)]
             sage: j
@@ -923,17 +924,17 @@ class NumberField_relative(NumberField_generic):
             sage: K((b*j + 1/2).list())
             sqrt2*I + 1/2
 
-        Examples from Trac \#4869::
+        Examples from Trac :trac:`4869`::
 
             sage: K.<z> = CyclotomicField(7)
             sage: Ky.<y> = PolynomialRing(K)
             sage: L.<a> = K.extension(y^2 + 1)
-            sage: K(K.polynomial_ring().random_element())
+            sage: K(K.polynomial_ring().random_element()) # random
             -12*z^2 + 1/2*z - 1/95
-            sage: L(L.polynomial_ring().random_element())
+            sage: L(L.polynomial_ring().random_element()) # random
             (z^5 + 1/3*z^4 - z^3 + z^2 - z + 2/3)*a + 1/4*z^5 - 7/2*z^4 + 5/3*z^3 - 1/4*z^2 + 3/2*z - 1
 
-        Examples from Trac \#11307::
+        Examples from :trac:`11307`::
 
             sage: L = NumberField([x^2 + 1, x^2 - 3], 'a')
             sage: L(L)

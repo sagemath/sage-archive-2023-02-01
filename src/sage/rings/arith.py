@@ -1558,8 +1558,8 @@ def gcd(a, b=None, **kwargs):
 
         sage: R.<x>=QQ[]
         sage: S.<x>=ZZ[]
-        sage: p = S.random_element()
-        sage: q = R.random_element()
+        sage: p = S.random_element(degree=(0,10))
+        sage: q = R.random_element(degree=(0,10))
         sage: parent(gcd(1/p,q))
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
         sage: parent(gcd([1/p,q]))
@@ -1707,8 +1707,8 @@ def lcm(a, b=None):
 
         sage: R.<x>=QQ[]
         sage: S.<x>=ZZ[]
-        sage: p = S.random_element()
-        sage: q = R.random_element()
+        sage: p = S.random_element(degree=(0,5))
+        sage: q = R.random_element(degree=(0,5))
         sage: parent(lcm([1/p,q]))
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
 

@@ -1155,7 +1155,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         If a tuple of two integers is given for the degree argument, a
         polynomial of degree in between the bound is given::
-        
+
             sage: R.random_element(degree=(0,8))
             x^8 + 4*x^7 + 2*x^6 - x^4 + 4*x^3 - 5*x^2 + x + 14
             sage: R.random_element(degree=(0,8))
@@ -1190,7 +1190,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R.random_element(degree=-2)
             Traceback (most recent call last):
             ...
-            AssertionError: degree should be an integer greater or equal than -1
+            ValueError: degree should be an integer greater or equal than -1
         """
         R = self.base_ring()
 
@@ -1202,7 +1202,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         else:
             degree = (degree,degree)
 
-        assert degree[0] > -2, "degree should be an integer greater or equal than -1"
+        if degree[0] <= -2:
+            raise ValueError("degree should be an integer greater or equal than -1")
 
         p = self([R.random_element(*args,**kwds) for _ in xrange(degree[1]+1)])
 

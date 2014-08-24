@@ -2190,6 +2190,145 @@ def OA_10_469():
 
     return OA
 
+def OA_520_plus_x(x):
+    r"""
+    Return an `OA(10+x,520+x)`.
+
+    The consruction shared by Julian R. Abel can build three designs:
+    `OA(10,520), OA(12,522), OA(14,524)`.
+
+        Let `n=520+x` and `k=10+x`. Build a `TD(17,31)`. Remove `8-x` points
+        contained in a common block, add a new point `p` and create a block
+        `g_i\cup \{p\}` for every (possibly truncated) group `g_i`. The result
+        is a `(520+x,{9+x,16,17,31,32})-PBD`. Note that all blocks of size `\geq
+        30` only intersect on `p`, and that the unique block `B_9` of size `9`
+        intersects all blocks of size `32` on one point. Now:
+
+        * Build an `OA(k,16)-16.OA(k,16)` for each block of size 16
+
+        * Build an `OA(k,17)-17.OA(k,17)` for each block of size 17
+
+        * Build an `OA(k,31)-OA(k,1)` for each block of size 31 (with the hole on
+          `p`).
+
+        * Build an `OA(k,32)-2.OA(k,1)` for each block `B` of size 32 (with the
+          holes on `p` and `B\cap B_9`).
+
+        * Build an `OA(k,9)` on `B_9`.
+
+        Only a row `[p,p,...]` is missing from the `OA(10+x,520+x)`
+
+    This construction is used in :func:`OA(10,520) <OA_10_520>`,
+    :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524) <OA_10_524>`.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_520_plus_x
+        sage: OA = OA_520_plus_x(0)                   # not tested (already tested in OA_10_520
+        sage: print is_orthogonal_array(OA,10,520,2)  # not tested (already tested in OA_10_520
+        True
+
+    """
+    from orthogonal_arrays import incomplete_orthogonal_array
+    k = 9+x+1
+
+    # The OA(17,31) with a block [30,30,...]
+    OA = incomplete_orthogonal_array(17,31,[1])
+    OA.append([30]*17)
+
+    # We truncate [30,30,...] to its first 9+x coordinates, and add sets
+    # corresponding to each (possibly truncated) group extended with a new
+    # point. The result is a (520+x,{9+x,16,17,31,32})-PBD.
+    new_point = 31*17
+    PBD = [[i*31+xx for i,xx in enumerate(B) if i<9+x or xx<30] for B in OA] # truncated blocks
+    PBD.extend([range(i*31,i*31+30+bool(i<9+x))+[new_point] for i in range(17)]) # extended (+truncated) groups
+
+    relabel = {v:i for i,v in enumerate(sorted(set().union(*PBD)))}
+    PBD = [[relabel[xx] for xx in B] for B in PBD]
+
+    subdesigns = {
+        9+x: orthogonal_array(k,9+x),
+        16 : incomplete_orthogonal_array(k,16,[1]*16),
+        17 : incomplete_orthogonal_array(k,17,[1]*17),
+        31 : incomplete_orthogonal_array(k,31,[1]),
+        32 : incomplete_orthogonal_array(k,32,[1]*2),
+       }
+
+    OA = []
+    for B in PBD:
+        OA.extend([[B[xx] for xx in R]
+                   for R in subdesigns[len(B)]])
+
+    OA.append([relabel[new_point]]*k)
+    return OA
+
+def OA_10_520():
+    r"""
+    Return an OA(10,520).
+
+    This design is built by the slightly more general construction
+    :func:`OA_520_plus_x`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_520
+        sage: OA = OA_10_520()
+        sage: print is_orthogonal_array(OA,10,520,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,520,existence=True)
+        True
+    """
+    return OA_520_plus_x(0)
+
+def OA_12_522():
+    r"""
+    Return an OA(12,522)
+
+    This design is built by the slightly more general construction
+    :func:`OA_520_plus_x`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_12_522
+        sage: OA = OA_12_522()
+        sage: print is_orthogonal_array(OA,12,522,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(12,522,existence=True)
+        True
+    """
+    return OA_520_plus_x(2)
+
+def OA_14_524():
+    r"""
+    Return an OA(14,524)
+
+    This design is built by the slightly more general construction
+    :func:`OA_520_plus_x`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_14_524
+        sage: OA = OA_14_524()
+        sage: print is_orthogonal_array(OA,14,524,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(14,524,existence=True)
+        True
+    """
+    return OA_520_plus_x(4)
+
 def OA_15_896():
     r"""
     Returns an OA(15,896)
@@ -2236,234 +2375,6 @@ def OA_15_896():
     Y = [None, 0,1,2,121,66,77,78,41,100,74,118,108,43]
 
     return OA_n_times_2_pow_c_from_matrix(15,7,FiniteField(7),zip(*A),Y,check=False)
-
-def OA_10_520():
-    r"""
-    Return an OA(10,520)
-
-    The consruction shared by Julian R. Abel works for :func:`OA(10,520)
-    <OA_10_520>`, :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524)
-    <OA_10_524>`.
-
-    Let `n=520+x` and `k=10+x`. Build a `TD(17,31)`. Remove `8-x` points
-    contained in a common block, add a new point `p` and create a block `g_i\cup
-    \{p\}` for every (possibly truncated) group `g_i`. The result is a
-    `(520+x,{9+x,16,17,31,32})-PBD`. Note that all blocks of size `\geq 30` only
-    intersect on `p`, and that the unique block `B_9` of size `9` intersects all
-    blocks of size `32` on one point. Now:
-
-    * Build an `OA(k,16)-16.OA(k,16)` for each block of size 16
-
-    * Build an `OA(k,17)-17.OA(k,17)` for each block of size 17
-
-    * Build an `OA(k,31)-OA(k,1)` for each block of size 31 (with the hole on
-      `p`).
-
-    * Build an `OA(k,32)-2.OA(k,1)` for each block `B` of size 32 (with the
-      holes on `p` and `B\cap B_9`).
-
-    * Build an `OA(k,9)` on `B_9`.
-
-    Only a row `[p,p,...]` is missing for th `OA(10+x,520+x)`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_10_520
-        sage: OA = OA_10_520()
-        sage: print is_orthogonal_array(OA,10,520,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(10,520,existence=True)
-        True
-    """
-    from orthogonal_arrays import incomplete_orthogonal_array
-    x = 0
-    k = 9+x+1
-
-    # The OA(17,31) with a block [30,30,...]
-    OA = incomplete_orthogonal_array(17,31,[1])
-    OA.append([30]*17)
-
-    # We truncate [30,30,...] to its first 9+x coordinates, and add sets
-    # corresponding to each (possibly truncated) group extended with a new
-    # point. The result is a (520+x,{9+x,16,17,31,32})-PBD.
-    new_point = 31*17
-    PBD = [[i*31+xx for i,xx in enumerate(B) if i<9+x or xx<30] for B in OA] # truncated blocks
-    PBD.extend([range(i*31,i*31+30+bool(i<9+x))+[new_point] for i in range(17)]) # extended (+truncated) groups
-
-    relabel = {v:i for i,v in enumerate(sorted(set().union(*PBD)))}
-    PBD = [[relabel[xx] for xx in B] for B in PBD]
-
-    subdesigns = {
-        9+x: orthogonal_array(k,9+x),
-        16 : incomplete_orthogonal_array(k,16,[1]*16),
-        17 : incomplete_orthogonal_array(k,17,[1]*17),
-        31 : incomplete_orthogonal_array(k,31,[1]),
-        32 : incomplete_orthogonal_array(k,32,[1]*2),
-       }
-
-    OA = []
-    for B in PBD:
-        OA.extend([[B[xx] for xx in R]
-                   for R in subdesigns[len(B)]])
-
-    OA.append([relabel[new_point]]*k)
-    return OA
-
-def OA_12_522():
-    r"""
-    Return an OA(12,522)
-
-    The consruction shared by Julian R. Abel works for :func:`OA(10,520)
-    <OA_10_520>`, :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524)
-    <OA_12_524>`.
-
-    Let `n=520+x` and `k=12+x`. Build a `TD(17,31)`. Remove `8-x` points
-    contained in a common block, add a new point `p` and create a block `g_i\cup
-    \{p\}` for every (possibly truncated) group `g_i`. The result is a
-    `(520+x,{9+x,16,17,31,32})-PBD`. Note that all blocks of size `\geq 30` only
-    intersect on `p`, and that the unique block `B_9` of size `9` intersects all
-    blocks of size `32` on one point. Now:
-
-    * Build an `OA(k,16)-16.OA(k,16)` for each block of size 16
-
-    * Build an `OA(k,17)-17.OA(k,17)` for each block of size 17
-
-    * Build an `OA(k,31)-OA(k,1)` for each block of size 31 (with the hole on
-      `p`).
-
-    * Build an `OA(k,32)-2.OA(k,1)` for each block `B` of size 32 (with the
-      holes on `p` and `B\cap B_9`).
-
-    * Build an `OA(k,9)` on `B_9`.
-
-    Only a row `[p,p,...]` is missing for the `OA(12+x,520+x)`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_12_522
-        sage: OA = OA_12_522()
-        sage: print is_orthogonal_array(OA,12,522,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(12,522,existence=True)
-        True
-    """
-    from orthogonal_arrays import incomplete_orthogonal_array
-    x = 2
-    k = 9+x+1
-
-    # The OA(17,31) with a block [30,30,...]
-    OA = incomplete_orthogonal_array(17,31,[1])
-    OA.append([30]*17)
-
-    # We truncate [30,30,...] to its first 9+x coordinates, and add sets
-    # corresponding to each (possibly truncated) group extended with a new
-    # point. The result is a (520+x,{9+x,16,17,31,32})-PBD.
-    new_point = 31*17
-    PBD = [[i*31+xx for i,xx in enumerate(B) if i<9+x or xx<30] for B in OA] # truncated blocks
-    PBD.extend([range(i*31,i*31+30+bool(i<9+x))+[new_point] for i in range(17)]) # extended (+truncated) groups
-
-    relabel = {v:i for i,v in enumerate(sorted(set().union(*PBD)))}
-    PBD = [[relabel[xx] for xx in B] for B in PBD]
-
-    subdesigns = {
-        9+x: orthogonal_array(k,9+x),
-        16 : incomplete_orthogonal_array(k,16,[1]*16),
-        17 : incomplete_orthogonal_array(k,17,[1]*17),
-        31 : incomplete_orthogonal_array(k,31,[1]),
-        32 : incomplete_orthogonal_array(k,32,[1]*2),
-       }
-
-    OA = []
-    for B in PBD:
-        OA.extend([[B[xx] for xx in R]
-                   for R in subdesigns[len(B)]])
-
-    OA.append([relabel[new_point]]*k)
-    return OA
-
-def OA_14_524():
-    r"""
-    Return an OA(14,524)
-
-    The consruction shared by Julian R. Abel works for :func:`OA(10,520)
-    <OA_10_520>`, :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524)
-    <OA_14_524>`.
-
-    Let `n=520+x` and `k=10+x`. Build a `TD(17,31)`. Remove `8-x` points
-    contained in a common block, add a new point `p` and create a block `g_i\cup
-    \{p\}` for every (possibly truncated) group `g_i`. The result is a
-    `(520+x,{9+x,16,17,31,32})-PBD`. Note that all blocks of size `\geq 30` only
-    intersect on `p`, and that the unique block `B_9` of size `9` intersects all
-    blocks of size `32` on one point. Now:
-
-    * Build an `OA(k,16)-16.OA(k,16)` for each block of size 16
-
-    * Build an `OA(k,17)-17.OA(k,17)` for each block of size 17
-
-    * Build an `OA(k,31)-OA(k,1)` for each block of size 31 (with the hole on
-      `p`).
-
-    * Build an `OA(k,32)-2.OA(k,1)` for each block `B` of size 32 (with the
-      holes on `p` and `B\cap B_9`).
-
-    * Build an `OA(k,9)` on `B_9`.
-
-    Only a row `[p,p,...]` is missing for the `OA(10+x,520+x)`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_14_524
-        sage: OA = OA_14_524()
-        sage: print is_orthogonal_array(OA,14,524,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(14,524,existence=True)
-        True
-    """
-    from orthogonal_arrays import incomplete_orthogonal_array
-    x = 4
-    k = 9+x+1
-
-    # The OA(17,31) with a block [30,30,...]
-    OA = incomplete_orthogonal_array(17,31,[1])
-    OA.append([30]*17)
-
-    # We truncate [30,30,...] to its first 9+x coordinates, and add sets
-    # corresponding to each (possibly truncated) group extended with a new
-    # point. The result is a (520+x,{9+x,16,17,31,32})-PBD.
-    new_point = 31*17
-    PBD = [[i*31+xx for i,xx in enumerate(B) if i<9+x or xx<30] for B in OA] # truncated blocks
-    PBD.extend([range(i*31,i*31+30+bool(i<9+x))+[new_point] for i in range(17)]) # extended (+truncated) groups
-
-    relabel = {v:i for i,v in enumerate(sorted(set().union(*PBD)))}
-    PBD = [[relabel[xx] for xx in B] for B in PBD]
-
-    subdesigns = {
-        9+x: orthogonal_array(k,9+x),
-        16 : incomplete_orthogonal_array(k,16,[1]*16),
-        17 : incomplete_orthogonal_array(k,17,[1]*17),
-        31 : incomplete_orthogonal_array(k,31,[1]),
-        32 : incomplete_orthogonal_array(k,32,[1]*2),
-       }
-
-    OA = []
-    for B in PBD:
-        OA.extend([[B[xx] for xx in R]
-                   for R in subdesigns[len(B)]])
-
-    OA.append([relabel[new_point]]*k)
-    return OA
 
 def OA_25_1262():
     r"""

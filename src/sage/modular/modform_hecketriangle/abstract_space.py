@@ -1127,9 +1127,10 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         OUTPUT:
 
-        A basis in ``self`` of the subspace of forms with a Fourier expansion of the form
-        ``q^m + O(q^(m+1))`` with ``min_exp <= m <= max_exp`` and which are modular after
-        dividing by ``E2^r``.
+        A basis in ``self`` of the subspace of forms which are modular after dividing by ``E2^r``
+        and which have a Fourier expansion of the form ``q^m + O(q^(m+1))`` with
+        ``min_exp <= m <= max_exp`` for each quasi part. Note that linear combinations of
+        forms/quasi parts can have a higher order at infinity than ``min_exp``.
 
         EXAMPLES::
 
@@ -1475,7 +1476,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         # the precision by about 20% of the column size
         if (A.rank() < column_size):
             if (incr_prec_by == 0):
-                print "Encountered a matrix with non-maximal rank (rare, please report)!"
+                print "Encountered a base change matrix with not-yet-maximal rank (rare, please report)!"
             incr_prec_by += column_size//ZZ(5) + 1
             return self._quasi_form_matrix(min_exp=min_exp, incr_prec_by=incr_prec_by)
         elif (incr_prec_by == 0):
@@ -1504,7 +1505,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         r"""
         Return an upper bound for the required precision for Laurent series to
         uniquely determine a corresponding (quasi) form in ``self`` with the given
-        lower bound ``min_exp`` for the order at infinity.
+        lower bound ``min_exp`` for the order at infinity (for each quasi part).
 
         INPUT:
 
@@ -1552,7 +1553,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         Fourier expansion as ``laurent_series``.
 
         Note: For non modular spaces it is also possible to call
-        ``self(laurent_series)`` instead.
+        ``self(laurent_series)`` instead. Also note that this function works
+        much faster if a corresponding (cached) ``q_basis`` is available.
 
         EXAMPLES::
 
@@ -1571,6 +1573,11 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: el2.parent()
             QuasiWeakModularForms(n=8, k=10/3, ep=-1) over Integer Ring
             sage: el==el2
+            True
+
+            If a q_basis is available the construction uses a different algorithm which we also check:
+            sage: basis = QF.q_basis(min_exp=-2)
+            sage: QF(qexp) == el2
             True
 
             sage: MF = ModularForms(k=36)
@@ -1599,10 +1606,19 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         min_exp = laurent_series.valuation()
-        # We have to add + 1 to get a correct upper bound in all cases
-        # since corresponding weak space might have a higher l1 (+1) than
-        # ``self``, even if the weight is smaller
-        max_exp = self._l1 + 1
+
+        # if a q_basis is available we can construct the form much faster
+        if (self.q_basis.is_in_cache(min_exp=min_exp)):
+            basis = self.q_basis(min_exp=min_exp)
+            size = len(basis)
+
+            if (laurent_series.prec() < min_exp + size):
+                raise ValueError("Insufficient precision: {} < {}!".format(laurent_series.prec(), min_exp + size))
+
+            b = vector(self.coeff_ring(), [laurent_series[m] for m in range(min_exp, min_exp + len(basis))])
+
+            return self(sum([b[k]*basis[k] for k in range(0, len(basis))]))
+
         A = self._quasi_form_matrix(min_exp = min_exp)
         row_size = A.dimensions()[0]
 
@@ -1615,6 +1631,10 @@ class FormsSpace_abstract(FormsRing_abstract):
         except ValueError:
             raise ValueError("The Lauren series {} does not correspond to a (quasi) form of {}").format(laurent_series, self.reduce_type(["quasi", "weak"]))
 
+        # We have to add + 1 to get a correct upper bound in all cases
+        # since corresponding weak space might have a higher l1 (+1) than
+        # ``self``, even if the weight is smaller
+        max_exp = self._l1 + 1
         basis = []
         for m in range(min_exp, max_exp + 1):
            basis += self.quasi_part_gens(min_exp=m, max_exp=m)
@@ -1634,8 +1654,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         - ``m``        -- An integer, indicating the desired initial Laurent exponent of the element.
                           If ``m==None`` (default) then the whole basis is returned.
 
-        - ``min_exp``  -- An integer, indicating the minimal Laurent exponent of the
-                          subspace of ``self`` which should be considered (default: 0).
+        - ``min_exp``  -- An integer, indicating the minimal Laurent exponent (for each quasi part)
+                          of the subspace of ``self`` which should be considered (default: 0).
 
         OUTPUT:
 

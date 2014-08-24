@@ -2436,6 +2436,87 @@ def OA_11_185():
     OA.extend([[special_set[x] for x in B] for B in orthogonal_array(11,17)])
     return OA
 
+def OA_10_205():
+    r"""
+    Return an OA(10,205)
+
+    Julian R. Abel shared the following construction, which originally appeared
+    in Theorem 8.7 of [Greig99]_, and can in Lemmas 5.14-5.16 of [ColDin01]_:
+
+        Consider a `PG(2,4^2)` containing a Baer subplane (i.e. a `PG(2,4)`) `B`
+        and a point `p\in B`. Among the `4^2+1=17` lines of `PG(2,4^2)`
+        containing `p`:
+
+        * `4+1=5` lines intersect `B` on `5` points
+
+        * `4^2-4=12` lines intersect `B` on `1` point
+
+        As those lines are disjoint outside of `B` we can use them as groups to
+        build a GDD on `16^2+16+1-(4^4+4+1)=252` points. By keeping only 9 lines
+        of the second kind, however, we obtain a `(204,\{9,13,17\})`-GDD of type
+        12^5.16^9.
+
+        We complete it into a PBD by adding a block `g\cup \{204\}` for each
+        group `g`. We then build an OA from this PBD using the fact that all
+        blocks of size 9 are disjoint.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_PBD`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_205
+        sage: OA = OA_10_205()
+        sage: print is_orthogonal_array(OA,10,205,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,205,existence=True)
+        True
+    """
+    # Base block of a cyclic PG(2,4^2)
+    pplane_size = 16**2+16+1
+    baer_subplane_size = 4**2+4+1
+
+    B = [0, 1, 22, 33, 83, 122, 135, 141, 145, 159, 175, 200, 226, 229, 231, 238, 246]
+    pplane = [[(xx+i)%pplane_size for xx in B]  for i in range(pplane_size)]
+    baer_subplane = set([i*pplane_size/baer_subplane_size for i in range(baer_subplane_size)])
+
+    p = list(baer_subplane)[0]
+
+    # We want all lines through p, but keep only 9 of those which intersect the
+    # subplane on 1 point.
+    lines_through_p = [B for B in pplane if p in B]
+    lines_through_p.sort(key=lambda s:len(baer_subplane.intersection(s)))
+
+    # Remove the Baer subplane and relabel everything to a (204,{9,13})-GDD of type
+    # 12^5.16^9 whose groups are the subset of (truncated) lines through p
+    groups = [[xx for xx in l if xx not in baer_subplane] for l in lines_through_p[4**2-4-9:]]
+    relabel = {v:i for i,v in enumerate(sum(groups,[]))}
+    GDD = [[relabel[xx] for xx in B if xx in relabel] for B in pplane if p not in B]
+
+    # We turn the GDD into a PBD by extending the groups with a new point 204.
+    GDD.extend([[relabel[xx] for xx in G]+[204] for G in groups])
+
+    # We build the OA, knowing that the blocks of size 9 are disjoint
+    blocks_of_size_9 = [B for B in GDD if len(B) == 9]
+    blocks_of_size_9_union = sum(blocks_of_size_9,[])
+
+    OA = OA_from_PBD(10,205,[B for B in GDD if len(B)!=9],check=False)[:-205]
+
+    OA.extend([[B[xx] for xx in R]
+               for R in orthogonal_array(10,9)
+               for B in blocks_of_size_9])
+
+    # The missing [i,i,...] blocks
+    OA.extend([[i]*10
+               for i in set(range(205)).difference(blocks_of_size_9_union)])
+
+    return OA
+
 def OA_16_208():
     r"""
     Returns an OA(16,208)
@@ -2541,6 +2622,45 @@ def OA_15_224():
     Y = [None, 0, 1, 2, 27, 22, 11, 4, 26, 25, 29, 24, 7, 20]
 
     return OA_n_times_2_pow_c_from_matrix(15,5,FiniteField(7),zip(*A),Y,check=False)
+
+def OA_11_254():
+    r"""
+    Return an OA(11,254)
+
+    This constructions appears in [Greig99]_.
+
+    From a cyclic `PG(2,19)` whose base blocks contains 7,9, and 4 points in the
+    congruence classes mod 3, build a `(254,{11,13,16})-PBD` by ignoring the
+    points of a congruence class. There exist `OA(12,11),OA(12,13),OA(12,16)`,
+    which gives the `OA(11,254)`.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_PBD`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_11_254
+        sage: OA = OA_11_254()
+        sage: print is_orthogonal_array(OA,11,254,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(11,254,existence=True)
+        True
+    """
+
+    # Base block of a PG(2,19)
+    B = (0,1,19,28,96,118,151,153,176,202,240,254,290,296,300,307,337,361,366,369)
+    BIBD = [[(x+i)%381 for x in B]  for i in range(381)]
+
+    # We only keep points congruent to 0,1 mod 3 and relabel the PBD. The result is
+    # a (254,{11,13,16})-PBD
+    BIBD = [[2*(x//3)+x%3 for x in B if x%3<2] for B in BIBD]
+
+    return OA_from_PBD(11,254,BIBD,check=False)
 
 def OA_18_273():
     r"""
@@ -2969,6 +3089,80 @@ def OA_10_796():
 
     return OA
 
+def OA_10_469():
+    r"""
+    Return an OA(10,469)
+
+    This construction appears in [Brouwer80]_. It is based on the same technique
+    used in
+    :func:`~sage.combinat.designs.orthogonal_arrays_recursive.brouwer_separable_design`.
+
+    Julian R. Abel's instructions:
+
+        Brouwer notes that a cyclic `PG(2,37)` (or `(1407,38,1)`-BIBD) can be
+        obtained with a base block containing `13,9,` and `16` points in each
+        residue class mod 3. Thus, by reducing the `PG(2,37)` to its points
+        congruent to `0 \pmod 3` one obtains a `(469,\{9,13,16\})`-PBD which
+        consists in 3 symmetric designs, i.e. 469 blocks of size 9, 469 blocks
+        of size 13, and 469 blocks of size 16.
+
+        For each block size `s`, one can build a matrix with size `s\times 469`
+        in which each block is a row, and such that each point of the PBD
+        appears once per column. By multiplying a row of an `OA(9,s)-s.OA(9,1)`
+        with the rows of the matrix one obtains a parallel class of a resolvable
+        `OA(9,469)`.
+
+        Add to this the parallel class of all blocks `(0,0,...),(1,1,...),...`
+        to obtain a resolvable `OA(9,469)` equivalent to an `OA(10,469)`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_469
+        sage: OA = OA_10_469()
+        sage: print is_orthogonal_array(OA,10,469,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,469,existence=True)
+        True
+    """
+    from orthogonal_arrays_recursive import _reorder_matrix
+    from orthogonal_arrays import incomplete_orthogonal_array
+
+    OA = []
+
+    # A cyclic (1407,38,1)-BIBD
+    B = (0,1,27,44,63,69,102,149,237,249,395,436,510,515,525,533,547,592,665,
+         731,824,837,848,932,1002,1051,1055,1089,1105,1145,1165,1196,1217,1226,
+         1274,1281,1309,1405)
+
+    BIBD = [[(x+i)%1407 for x in B]  for i in range(1407)]
+
+    # Only keep points v congruent to 0 mod 3 and relabel
+    PBD = [[x//3 for x in B if x%3==0] for B in BIBD]
+
+    # Split the block according to their size
+    blocks = {9:[],13:[],16:[]}
+    for B in PBD:
+        blocks[len(B)].append(B)
+
+    # Product of each symmetric design with the OA
+    for b_size,symmetric_design in blocks.iteritems():
+        matrix = _reorder_matrix(symmetric_design)
+        OA.extend([[B[xx] for xx in R]
+                   for R in incomplete_orthogonal_array(9,b_size,[1]*b_size)
+                   for B in matrix])
+
+    # Last parallel class
+    OA.extend([[i]*9 for i in range(469)])
+
+    for i,R in enumerate(OA):
+        R.append(i//469)
+
+    return OA
+
 def OA_15_896():
     r"""
     Returns an OA(15,896)
@@ -3016,6 +3210,234 @@ def OA_15_896():
 
     return OA_n_times_2_pow_c_from_matrix(15,7,FiniteField(7),zip(*A),Y,check=False)
 
+def OA_10_520():
+    r"""
+    Return an OA(10,520)
+
+    The consruction shared by Julian R. Abel works for :func:`OA(10,520)
+    <OA_10_520>`, :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524)
+    <OA_10_524>`.
+
+    Let `n=520+x` and `k=10+x`. Build a `TD(17,31)`, remove `8-x`
+    points contained in a common block, add a new point `p` and create a block
+    `g_i\cup \{p\}` for every (possibly truncated) group `g_i`. The result is a
+    `(520+x,{9+x,16,17,31,32})-PBD`. Note that all blocks of size `\geq 30` only
+    intersect on `p`, and that the unique block `B_9` of size `9` intersects all
+    blocks of size `32` on one point. Now:
+
+    * Build an `OA(k,16)-16.OA(k,16)` for each block of size 16
+
+    * Build an `OA(k,17)-16.OA(k,17)` for each block of size 16
+
+    * Build an `OA(k,31)-OA(k,1)` for each block of size 31 (with the hole on
+      `p`).
+
+    * Build an `OA(k,32)-2.OA(k,1)` for each block `B` of size 32 (with the
+      holes on `p` and `B\cap B_9`).
+
+    * Build an `OA(k,9)` on `B_9`.
+
+    Only a row `[p,p,...]` is missing for th `OA(10+x,520+x)`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_520
+        sage: OA = OA_10_520()
+        sage: print is_orthogonal_array(OA,10,520,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,520,existence=True)
+        True
+    """
+    from orthogonal_arrays import incomplete_orthogonal_array
+    x = 0
+    k = 9+x+1
+
+    # The OA(17,31) with a block [30,30,...]
+    OA = incomplete_orthogonal_array(17,31,[1])
+    OA.append([30]*17)
+
+    # We truncate [30,30,...] to its first 9+x coordinates, and add sets
+    # corresponding to each (possibly truncated) group extended with a new
+    # point. The result is a (520+x,{9+x,16,17,31,32})-PBD.
+    new_point = 31*17
+    PBD = [[i*31+xx for i,xx in enumerate(B) if i<9+x or xx<30] for B in OA] # truncated blocks
+    PBD.extend([range(i*31,i*31+30+bool(i<9+x))+[new_point] for i in range(17)]) # extended (+truncated) groups
+
+    relabel = {v:i for i,v in enumerate(sorted(set().union(*PBD)))}
+    PBD = [[relabel[xx] for xx in B] for B in PBD]
+
+    subdesigns = {
+        9+x: orthogonal_array(k,9+x),
+        16 : incomplete_orthogonal_array(k,16,[1]*16),
+        17 : incomplete_orthogonal_array(k,17,[1]*17),
+        31 : incomplete_orthogonal_array(k,31,[1]),
+        32 : incomplete_orthogonal_array(k,32,[1]*2),
+       }
+
+    OA = []
+    for B in PBD:
+        OA.extend([[B[xx] for xx in R]
+                   for R in subdesigns[len(B)]])
+
+    OA.append([relabel[new_point]]*k)
+    return OA
+
+def OA_12_522():
+    r"""
+    Return an OA(12,522)
+
+    The consruction shared by Julian R. Abel works for :func:`OA(10,520)
+    <OA_10_520>`, :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524)
+    <OA_12_524>`.
+
+    Let `n=520+x` and `k=12+x`. Build a `TD(17,31)`, remove `8-x`
+    points contained in a common block, add a new point `p` and create a block
+    `g_i\cup \{p\}` for every (possibly truncated) group `g_i`. The result is a
+    `(520+x,{9+x,16,17,31,32})-PBD`. Note that all blocks of size `\geq 30` only
+    intersect on `p`, and that the unique block `B_9` of size `9` intersects all
+    blocks of size `32` on one point. Now:
+
+    * Build an `OA(k,16)-16.OA(k,16)` for each block of size 16
+
+    * Build an `OA(k,17)-16.OA(k,17)` for each block of size 16
+
+    * Build an `OA(k,31)-OA(k,1)` for each block of size 31 (with the hole on
+      `p`).
+
+    * Build an `OA(k,32)-2.OA(k,1)` for each block `B` of size 32 (with the
+      holes on `p` and `B\cap B_9`).
+
+    * Build an `OA(k,9)` on `B_9`.
+
+    Only a row `[p,p,...]` is missing for the `OA(12+x,520+x)`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_12_522
+        sage: OA = OA_12_522()
+        sage: print is_orthogonal_array(OA,12,522,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(12,522,existence=True)
+        True
+    """
+    from orthogonal_arrays import incomplete_orthogonal_array
+    x = 2
+    k = 9+x+1
+
+    # The OA(17,31) with a block [30,30,...]
+    OA = incomplete_orthogonal_array(17,31,[1])
+    OA.append([30]*17)
+
+    # We truncate [30,30,...] to its first 9+x coordinates, and add sets
+    # corresponding to each (possibly truncated) group extended with a new
+    # point. The result is a (520+x,{9+x,16,17,31,32})-PBD.
+    new_point = 31*17
+    PBD = [[i*31+xx for i,xx in enumerate(B) if i<9+x or xx<30] for B in OA] # truncated blocks
+    PBD.extend([range(i*31,i*31+30+bool(i<9+x))+[new_point] for i in range(17)]) # extended (+truncated) groups
+
+    relabel = {v:i for i,v in enumerate(sorted(set().union(*PBD)))}
+    PBD = [[relabel[xx] for xx in B] for B in PBD]
+
+    subdesigns = {
+        9+x: orthogonal_array(k,9+x),
+        16 : incomplete_orthogonal_array(k,16,[1]*16),
+        17 : incomplete_orthogonal_array(k,17,[1]*17),
+        31 : incomplete_orthogonal_array(k,31,[1]),
+        32 : incomplete_orthogonal_array(k,32,[1]*2),
+       }
+
+    OA = []
+    for B in PBD:
+        OA.extend([[B[xx] for xx in R]
+                   for R in subdesigns[len(B)]])
+
+    OA.append([relabel[new_point]]*k)
+    return OA
+
+def OA_14_524():
+    r"""
+    Return an OA(14,524)
+
+    The consruction shared by Julian R. Abel works for :func:`OA(10,520)
+    <OA_10_520>`, :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524)
+    <OA_14_524>`.
+
+    Let `n=520+x` and `k=10+x`. Build a `TD(17,31)`, remove `8-x`
+    points contained in a common block, add a new point `p` and create a block
+    `g_i\cup \{p\}` for every (possibly truncated) group `g_i`. The result is a
+    `(520+x,{9+x,16,17,31,32})-PBD`. Note that all blocks of size `\geq 30` only
+    intersect on `p`, and that the unique block `B_9` of size `9` intersects all
+    blocks of size `32` on one point. Now:
+
+    * Build an `OA(k,16)-16.OA(k,16)` for each block of size 16
+
+    * Build an `OA(k,17)-16.OA(k,17)` for each block of size 16
+
+    * Build an `OA(k,31)-OA(k,1)` for each block of size 31 (with the hole on
+      `p`).
+
+    * Build an `OA(k,32)-2.OA(k,1)` for each block `B` of size 32 (with the
+      holes on `p` and `B\cap B_9`).
+
+    * Build an `OA(k,9)` on `B_9`.
+
+    Only a row `[p,p,...]` is missing for the `OA(10+x,520+x)`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_14_524
+        sage: OA = OA_14_524()
+        sage: print is_orthogonal_array(OA,14,524,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(14,524,existence=True)
+        True
+    """
+    from orthogonal_arrays import incomplete_orthogonal_array
+    x = 4
+    k = 9+x+1
+
+    # The OA(17,31) with a block [30,30,...]
+    OA = incomplete_orthogonal_array(17,31,[1])
+    OA.append([30]*17)
+
+    # We truncate [30,30,...] to its first 9+x coordinates, and add sets
+    # corresponding to each (possibly truncated) group extended with a new
+    # point. The result is a (520+x,{9+x,16,17,31,32})-PBD.
+    new_point = 31*17
+    PBD = [[i*31+xx for i,xx in enumerate(B) if i<9+x or xx<30] for B in OA] # truncated blocks
+    PBD.extend([range(i*31,i*31+30+bool(i<9+x))+[new_point] for i in range(17)]) # extended (+truncated) groups
+
+    relabel = {v:i for i,v in enumerate(sorted(set().union(*PBD)))}
+    PBD = [[relabel[xx] for xx in B] for B in PBD]
+
+    subdesigns = {
+        9+x: orthogonal_array(k,9+x),
+        16 : incomplete_orthogonal_array(k,16,[1]*16),
+        17 : incomplete_orthogonal_array(k,17,[1]*17),
+        31 : incomplete_orthogonal_array(k,31,[1]),
+        32 : incomplete_orthogonal_array(k,32,[1]*2),
+       }
+
+    OA = []
+    for B in PBD:
+        OA.extend([[B[xx] for xx in R]
+                   for R in subdesigns[len(B)]])
+
+    OA.append([relabel[new_point]]*k)
+    return OA
+
 def OA_33_993():
     r"""
     Return an OA(33,993)
@@ -3048,6 +3470,43 @@ def OA_33_993():
     G = AdditiveCyclic(993)
     M = OA_from_quasi_difference_matrix(Mb,G,add_col=True)
     return M
+
+def OA_25_1262():
+    r"""
+    Returns an OA(25,1262)
+
+    The construction is given in [Greig99]_. In Julian R. Abel's words:
+
+        Start with a cyclic `PG(2,43)` or `(1893,44,1)`-BIBD whose base block
+        contains respectively `12,13` and `19` point in the residue classes mod
+        3. In the resulting BIBD, remove one of the three classes: the result is
+        a `(1262, \{25, 31,32\})`-PBD, from which the `OA(25,1262)` is obtained.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_25_1262
+        sage: OA = OA_25_1262()                       # not tested -- too long
+        sage: print is_orthogonal_array(OA,25,1262,2) # not tested -- too long
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(25,1262,existence=True)
+        True
+    """
+
+    from sage.combinat.designs.orthogonal_arrays import OA_from_PBD
+    B = (0, 68, 78, 106, 227, 296, 304, 330, 354, 411, 624, 631, 636, 732, 747,
+         772, 794, 846, 869, 939, 948, 1011, 1015, 1031, 1135, 1171, 1188, 1206,
+         1217, 1219, 1220, 1261, 1306, 1349, 1370, 1400, 1461, 1480, 1517, 1714,
+         1768, 1827, 1833, 1866)
+
+    BIBD = [[(x+i)%1893 for x in B] for i in range(1893)] # a (1893,44,1)-BIBD
+    PBD = [[x for x in B if (x%3)<2] for B in BIBD]       # We only keep the x with x%3=0,1
+    PBD = [[2*(x//3)+(x%3) for x in B] for B in PBD]      # The (1262, {25, 31,32})-PBD
+
+    return OA_from_PBD(25,1262,PBD,check=False)
 
 # Index of the OA constructions
 #
@@ -3097,18 +3556,25 @@ OA_constructions = {
     160 : (11 , OA_11_160),
     176 : (16 , OA_16_176),
     185 : (11 , OA_11_185),
+    205 : (10 , OA_10_205),
     208 : (16 , OA_16_208),
     224 : (15 , OA_15_224),
+    254 : (11 , OA_11_254),
     273 : (18 , OA_18_273),
     352 : (20 , OA_20_352),
     416 : (20 , OA_20_416),
+    469 : (10 , OA_10_469),
     514 : (9  , OA_9_514),
+    520 : (10 , OA_10_520),
+    522 : (12 , OA_12_522),
+    524 : (14 , OA_14_524),
     544 : (20 , OA_20_544),
     560 : (17 , OA_17_560),
     640 : (11 , OA_11_640),
     796 : (10 , OA_10_796),
     896 : (15 , OA_15_896),
     993 : (33 , OA_33_993),
+    1262 : (25 , OA_25_1262),
 }
 # Add this data to the module's doc
 LIST_OF_OA_CONSTRUCTIONS = join((":func:`OA({},{}) <OA_{}_{}>`".format(k,n,k,n)

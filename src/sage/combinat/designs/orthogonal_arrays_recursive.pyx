@@ -23,6 +23,7 @@ Functions
 from sage.misc.cachefunc import cached_function
 from orthogonal_arrays import orthogonal_array
 from designs_pyx import is_orthogonal_array
+from sage.combinat.designs.orthogonal_arrays import wilson_construction
 
 @cached_function
 def find_recursive_construction(k,n):
@@ -86,7 +87,7 @@ def find_recursive_construction(k,n):
             return res
     return False
 
-def find_product_decomposition(k,n):
+def find_product_decomposition(int k,int n):
     r"""
     Look for a factorization of `n` in order to build an `OA(k,n)`.
 
@@ -115,15 +116,16 @@ def find_product_decomposition(k,n):
         sage: _ = f(*args)
     """
     from sage.rings.arith import divisors
+    cdef int n1,n2
     for n1 in divisors(n)[1:-1]: # we ignore 1 and n
         n2 = n//n1  # n2 is decreasing along the loop
         if n2 < n1:
             break
-        if orthogonal_array(k, n1, existence=True) and orthogonal_array(k, n2, existence=True):
+        if is_available(k, n1) and is_available(k, n2):
             return simple_wilson_construction, (k,n1,n2,())
     return False
 
-def find_wilson_decomposition_with_one_truncated_group(k,n):
+def find_wilson_decomposition_with_one_truncated_group(int k,int n):
     r"""
     Helper function for Wilson's construction with one truncated column.
 
@@ -151,6 +153,7 @@ def find_wilson_decomposition_with_one_truncated_group(k,n):
         sage: find_wilson_decomposition_with_one_truncated_group(4,20)
         False
     """
+    cdef int r,u,m
     # If there exists a TD(k+1,t) then k+1 < t+2, i.e. k <= t
     for r in range(max(1,k),n-1):
         u = n%r
@@ -164,15 +167,15 @@ def find_wilson_decomposition_with_one_truncated_group(k,n):
         if k >= m+2:
             break
 
-        if (orthogonal_array(k  ,m  , existence=True) and
-            orthogonal_array(k  ,m+1, existence=True) and
-            orthogonal_array(k+1,r  , existence=True) and
-            orthogonal_array(k  ,u  , existence=True)):
+        if (is_available(k  ,m  ) and
+            is_available(k  ,m+1) and
+            is_available(k+1,r  ) and
+            is_available(k  ,u  )):
             return simple_wilson_construction, (k,r,m,(u,))
 
     return False
 
-def find_wilson_decomposition_with_two_truncated_groups(k,n):
+def find_wilson_decomposition_with_two_truncated_groups(int k,int n):
     r"""
     Helper function for Wilson's construction with two trucated columns.
 
@@ -197,9 +200,10 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
         (5, 7, 7, (4, 5))
         sage: _ = f(*args)
     """
+    cdef int r,m_min,m_max,m,r1_min,r1_max,r1,r2
     for r in [1] + range(k+1,n-2): # as r*1+1+1 <= n and because we need
                                    # an OA(k+2,r), necessarily r=1 or r >= k+1
-        if not orthogonal_array(k+2,r,existence=True):
+        if not is_available(k+2,r):
             continue
         m_min = (n - (2*r-2))//r
         m_max = (n - 2)//r
@@ -211,9 +215,9 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
             r1_p_r2 = n-r*m # the sum of r1+r2
                             # it is automatically >= 2 since m <= m_max
             if (r1_p_r2 > 2*r-2 or
-                not orthogonal_array(k,m  ,existence=True) or
-                not orthogonal_array(k,m+1,existence=True) or
-                not orthogonal_array(k,m+2,existence=True)):
+                not is_available(k,m  ) or
+                not is_available(k,m+1) or
+                not is_available(k,m+2)):
                 continue
 
             r1_min = r1_p_r2 - (r-1)
@@ -223,10 +227,10 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
             else:
                 r1_values = [1] + range(k-1, r1_max+1)
             for r1 in r1_values:
-                if not orthogonal_array(k,r1,existence=True):
+                if not is_available(k,r1):
                     continue
                 r2 = r1_p_r2-r1
-                if orthogonal_array(k,r2,existence=True):
+                if is_available(k,r2):
                     assert n == r*m+r1+r2
                     return simple_wilson_construction, (k,r,m,(r1,r2))
     return False
@@ -263,7 +267,7 @@ def simple_wilson_construction(k,r,m,u):
         sage: is_orthogonal_array(OA,5,58)
         True
     """
-    from sage.combinat.designs.orthogonal_arrays import wilson_construction, OA_relabel
+    from sage.combinat.designs.orthogonal_arrays import OA_relabel
 
     n = r*m + sum(u)
     n_trunc = len(u)
@@ -275,7 +279,7 @@ def simple_wilson_construction(k,r,m,u):
 
     return wilson_construction(OA,k,r,m,n_trunc,u,False)
 
-def find_construction_3_3(k,n):
+def find_construction_3_3(int k,int n):
     r"""
     Finds a decomposition for construction 3.3 from [AC07]_
 
@@ -298,9 +302,10 @@ def find_construction_3_3(k,n):
         (11, 11, 16, 1)
         sage: find_construction_3_3(12,11)
     """
+    cdef int mm,nn,i
     for mm in range(k-1,n//2+1):
-        if (not orthogonal_array(k ,mm  , existence=True) or
-            not orthogonal_array(k ,mm+1, existence=True)):
+        if (not is_available(k ,mm  ) or
+            not is_available(k ,mm+1)):
             continue
 
         for nn in range(2,n//mm+1):
@@ -308,8 +313,8 @@ def find_construction_3_3(k,n):
             if i<=0:
                 continue
 
-            if (orthogonal_array(k+i, nn  , existence=True) and
-                orthogonal_array(k  , mm+i, existence=True)):
+            if (is_available(k+i, nn  ) and
+                is_available(k  , mm+i)):
                 return construction_3_3, (k,nn,mm,i)
 
 def construction_3_3(k,n,m,i):
@@ -379,10 +384,11 @@ def find_construction_3_4(k,n):
         (8, 25, 7, 12, 9)
         sage: find_construction_3_4(9,24)
     """
+    cdef int mm,nn,i,r,s
     for mm in range(k-1,n//2+1):
-        if (not orthogonal_array(k,mm+0,existence=True) or
-            not orthogonal_array(k,mm+1,existence=True) or
-            not orthogonal_array(k,mm+2,existence=True)):
+        if (not is_available(k,mm+0) or
+            not is_available(k,mm+1) or
+            not is_available(k,mm+2)):
             continue
 
         for nn in range(2,n//mm+1):
@@ -392,9 +398,9 @@ def find_construction_3_4(k,n):
 
             for s in range(1,min(i,nn)):
                 r = i-s
-                if (orthogonal_array(k+r+1,nn,existence=True) and
-                    orthogonal_array(k    , s,existence=True) and
-                    (orthogonal_array(k,mm+r,existence=True) or orthogonal_array(k,mm+r+1,existence=True))):
+                if (is_available(k+r+1,nn) and
+                    is_available(k    , s) and
+                    (is_available(k,mm+r) or is_available(k,mm+r+1))):
                     return construction_3_4, (k,nn,mm,r,s)
 
 def construction_3_4(k,n,m,r,s):
@@ -447,9 +453,9 @@ def construction_3_4(k,n,m,r,s):
         matrix[i][B0[i]] = 0
 
     # Last column
-    if orthogonal_array(k,m+r,existence=True):
+    if is_available(k,m+r):
         last_group = [x for x in range(s+1) if x != B0[-1]][:s]
-    elif orthogonal_array(k,m+r+1,existence=True):
+    elif is_available(k,m+r+1):
         last_group = [x for x in range(s+1) if x != B0[-1]][:s-1] + [B0[-1]]
     else:
         raise RuntimeError
@@ -485,12 +491,12 @@ def find_construction_3_5(k,n):
         sage: find_construction_3_5(9,24)
     """
     from sage.combinat.integer_list import IntegerListsLex
-
+    cdef int mm,i,nn,r,s,t
     for mm in range(2,n//2+1):
         if (mm+3 >= n or
-            not orthogonal_array(k,mm+1,existence=True) or
-            not orthogonal_array(k,mm+2,existence=True) or
-            not orthogonal_array(k,mm+3,existence=True)):
+            not is_available(k,mm+1) or
+            not is_available(k,mm+2) or
+            not is_available(k,mm+3)):
             continue
 
         for nn in range(2,n//mm+1):
@@ -498,15 +504,15 @@ def find_construction_3_5(k,n):
             if i<=0:
                 continue
 
-            if not orthogonal_array(k+3,nn,existence=True):
+            if not is_available(k+3,nn):
                 continue
 
             for r,s,t in IntegerListsLex(i,length=3,ceiling=[nn-1,nn-1,nn-1]):
                 if (r <= s and
                     (nn-r-1)*(nn-s) < t and
-                    (r==0 or orthogonal_array(k,r,existence=True)) and
-                    (s==0 or orthogonal_array(k,s,existence=True)) and
-                    (t==0 or orthogonal_array(k,t,existence=True))):
+                    (r==0 or is_available(k,r)) and
+                    (s==0 or is_available(k,s)) and
+                    (t==0 or is_available(k,t))):
                     return construction_3_5, (k,nn,mm,r,s,t)
 
 def construction_3_5(k,n,m,r,s,t):
@@ -609,11 +615,12 @@ def find_construction_3_6(k,n):
         sage: find_construction_3_6(8,98)
     """
     from sage.rings.arith import is_prime_power
+    cdef int mm,nn,i
 
     for mm in range(k-1,n//2+1):
-        if (not orthogonal_array(k,mm+0,existence=True) or
-            not orthogonal_array(k,mm+1,existence=True) or
-            not orthogonal_array(k,mm+2,existence=True)):
+        if (not is_available(k,mm+0) or
+            not is_available(k,mm+1) or
+            not is_available(k,mm+2)):
             continue
 
         for nn in range(2,n//mm+1):
@@ -622,7 +629,7 @@ def find_construction_3_6(k,n):
                 continue
 
             if (is_prime_power(nn) and
-                orthogonal_array(k+i,nn,existence=True)):
+                is_available(k+i,nn)):
                 return construction_3_6, (k,nn,mm,i)
 
 def construction_3_6(k,n,m,i):
@@ -879,7 +886,7 @@ def construction_q_x(k,q,x,check=True):
 
     return OA
 
-def find_q_x(k,n):
+def find_q_x(int k,int n):
     r"""
     Find integers `q,x` such that the `q-x` construction yields an `OA(k,n)`.
 
@@ -912,26 +919,27 @@ def find_q_x(k,n):
         (9, 16, 6)
     """
     from sage.rings.arith import is_prime_power
+    cdef int q,x
+
     # n = (q-1)*(q-x) + x + 2
     #   = q^2 - q*x - q + 2*x + 2
-
     for q in range(max(3,k+2),n):
         # n-q**2+q-2 = 2x-qx
         #            = x(2-q)
         x = (n-q**2+q-2)//(2-q)
         if (x < q and
             0 < x and
-            n == (q-1)*(q-x)+x+2 and
-            is_prime_power(q) and
-            orthogonal_array(k+1,q-x-1,existence=True) and
-            orthogonal_array(k+1,q-x+1,existence=True) and
+            n == (q-1)*(q-x)+x+2    and
+            is_prime_power(q)       and
+            is_available(k+1,q-x-1) and
+            is_available(k+1,q-x+1) and
             # The next is always True, because q is a prime power
-            # orthogonal_array(k+1,q,existence=True) and
-            orthogonal_array(k, x+2 ,existence=True)):
+            # is_available(k+1,q) and
+            is_available(k, x+2 )):
             return construction_q_x, (k,q,x)
     return False
 
-def find_thwart_lemma_3_5(k,N):
+def find_thwart_lemma_3_5(int k,int N):
     r"""
     A function to find the values for which one can apply the
     Lemma 3.5 from [Thwarts]_.
@@ -983,9 +991,7 @@ def find_thwart_lemma_3_5(k,N):
         ....:     assert designs.orthogonal_array(k,n,existence=True) is True    # not tested -- too long
     """
     from sage.rings.arith import prime_powers
-
-    k = int(k)
-    N = int(N)
+    cdef int n,m,a,b,c,d
 
     for n in prime_powers(k+2,N-2): # There must exist a OA(k+3,n) thus n>=k+2
                                     # At least 3 columns are nonempty thus n<N-2
@@ -996,60 +1002,60 @@ def find_thwart_lemma_3_5(k,N):
 
         # 1. look for m,a,b,c,d with complement=False
         # (we restrict to a >= b >= c)
-        for m in xrange(max(k-1,(N+n-1)//n-4), N//n+1):
-            if not (orthogonal_array(k,m+0,existence=True) and
-                    orthogonal_array(k,m+1,existence=True) and
-                    orthogonal_array(k,m+2,existence=True)):
+        for m in range(max(k-1,(N+n-1)//n-4), N//n+1):
+            if not (is_available(k,m+0) and
+                    is_available(k,m+1) and
+                    is_available(k,m+2)):
                 continue
 
             NN = N - n*m
             # as a >= b >= c and d <= n we can restrict the start of the loops
             for a in range(max(0, (NN-n+2)//3), min(n, NN)+1): # (NN-n+2)//3 <==> ceil((NN-n)/3)x
-                if not orthogonal_array(k,a,existence=True):
+                if not is_available(k,a):
                     continue
                 for b in range(max(0, (NN-n-a+1)//2), min(a, n+1-a, NN-a)+1):
-                    if not orthogonal_array(k,b,existence=True):
+                    if not is_available(k,b):
                         continue
                     for c in range(max(0, NN-n-a-b), min(b, n+1-a-b, NN-a-b)+1):
-                        if not orthogonal_array(k,c,existence=True):
+                        if not is_available(k,c):
                             continue
 
                         d = NN - (a + b + c)  # necessarily 0 <= d <= n
                         if d == 0:
                             return thwart_lemma_3_5, (k,n,m,a,b,c,0,False)
                         elif (k+4 <= n+1 and
-                            orthogonal_array(k,d,existence=True) and
-                            orthogonal_array(k,m+3,existence=True)):
+                              is_available(k, d ) and
+                              is_available(k,m+3)):
                             return thwart_lemma_3_5, (k,n,m,a,b,c,d,False)
 
         # 2. look for m,a,b,c,d with complement=True
         # (we restrict to a >= b >= c)
-        for m in xrange(max(k-2,N//n-4), (N+n-1)//n):
-            if not (orthogonal_array(k,m+1,existence=True) and
-                    orthogonal_array(k,m+2,existence=True) and
-                    orthogonal_array(k,m+3,existence=True)):
+        for m in range(max(k-2,N//n-4), (N+n-1)//n):
+            if not (is_available(k,m+1) and
+                    is_available(k,m+2) and
+                    is_available(k,m+3)):
                 continue
 
             NN = N - n*m
             for a in range(max(0, (NN-n+2)//3), min(n, NN)+1): # (NN-n+2)//3 <==> ceil((NN-n)/3)
-                if not orthogonal_array(k,a,existence=True):
+                if not is_available(k,a):
                     continue
                 na = n-a
                 for b in range(max(0, (NN-n-a+1)//2), min(a, NN-a)+1):
                     nb = n-b
-                    if na+nb > n+1 or not orthogonal_array(k,b,existence=True):
+                    if na+nb > n+1 or not is_available(k,b):
                         continue
                     for c in range(max(0, NN-n-a-b), min(b, NN-a-b)+1):
                         nc = n-c
-                        if na+nb+nc > n+1 or not orthogonal_array(k,c,existence=True):
+                        if na+nb+nc > n+1 or not is_available(k,c):
                             continue
 
                         d = NN - (a + b + c)  # necessarily d <= n
                         if d == 0:
                             return thwart_lemma_3_5, (k,n,m,a,b,c,0,True)
                         elif (k+4 <= n+1 and
-                            orthogonal_array(k,d,existence=True) and
-                            orthogonal_array(k,m+4,existence=True)):
+                              is_available(k, d ) and
+                              is_available(k,m+4)):
                             return thwart_lemma_3_5, (k,n,m,a,b,c,d,True)
 
     return False
@@ -1147,7 +1153,6 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
     """
     from sage.rings.arith import is_prime_power
     from sage.rings.finite_rings.constructor import FiniteField as GF
-    from sage.combinat.designs.orthogonal_arrays import wilson_construction
 
     if complement:
         a,b,c = n-a,n-b,n-c
@@ -1208,7 +1213,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
 
     return wilson_construction(OA,k,n,m,len(sizes),sizes, check=False)
 
-def find_thwart_lemma_4_1(k,n):
+def find_thwart_lemma_4_1(int k,int n):
     r"""
     Finds a decomposition for Lemma 4.1 from [Thwarts]_.
 
@@ -1233,6 +1238,8 @@ def find_thwart_lemma_4_1(k,n):
         False
     """
     from sage.rings.arith import factor
+    cdef int nn,mm
+
     #      n  = nn*mm+4(nn-2)
     # <=> n+8 = nn(mm+4)
     #
@@ -1242,10 +1249,10 @@ def find_thwart_lemma_4_1(k,n):
         if (k+4 > nn+1 or
             mm <= 1 or
             nn % 3 == 2 or
-            not orthogonal_array(k,nn-2,existence=True) or
-            not orthogonal_array(k,mm+1,existence=True) or
-            not orthogonal_array(k,mm+3,existence=True) or
-            not orthogonal_array(k,mm+4,existence=True)):
+            not is_available(k,nn-2) or
+            not is_available(k,mm+1) or
+            not is_available(k,mm+3) or
+            not is_available(k,mm+4)):
             continue
 
         return thwart_lemma_4_1,(k,nn,mm)
@@ -1378,20 +1385,22 @@ def find_three_factor_product(k,n):
         sage: find_three_factor_product(10,50)
         False
     """
+    cdef int n1,n2,n3
+
     # we want to write n=n1*n2*n3 where n1<=n2<=n3 and we can build:
     # - a OA(k-1,n1)
     # - a OA( k ,n2)
     # - a OA( k ,n3)
     from sage.rings.arith import divisors
     for n1 in divisors(n)[1:-1]:
-        if not orthogonal_array(k-1,n1,existence=True):
+        if not is_available(k-1,n1):
             continue
         for n2 in divisors(n//n1):
             n3 = n//n1//n2
             if (n2<n1 or
                 n3<n2 or
-                not orthogonal_array(k,n2,existence=True) or
-                not orthogonal_array(k,n3,existence=True)):
+                not is_available(k,n2) or
+                not is_available(k,n3)):
                 continue
             return three_factor_product,(k-1,n1,n2,n3)
 
@@ -1651,7 +1660,7 @@ def three_factor_product(k,n1,n2,n3,check=False):
 
     return OA
 
-def find_brouwer_separable_design(k,n):
+def find_brouwer_separable_design(int k,int n):
     r"""
     Find integers `t,q,x` such that :func:`brouwer_separable_design` gives a `OA(k,t(q^2+q+1)+x)`.
 
@@ -1671,6 +1680,8 @@ def find_brouwer_separable_design(k,n):
         False
     """
     from sage.rings.arith import prime_powers
+    cdef int q,x,baer_subplane_size, max_t, min_t, t,e1,e2,e3,e4
+
     for q in prime_powers(2,n):
         baer_subplane_size = q**2+q+1
         if baer_subplane_size > n:
@@ -1692,45 +1703,45 @@ def find_brouwer_separable_design(k,n):
 
             # i)
             if (x == 0 and
-                orthogonal_array(k, t,existence=True)  and
-                orthogonal_array(k,t+q,existence=True)):
+                is_available(k, t)  and
+                is_available(k,t+q)):
                 return brouwer_separable_design, (k,t,q,x)
 
             # ii)
             elif (x == t+q and
-                  orthogonal_array(k+e3,  t  ,existence=True) and
-                  orthogonal_array(  k , t+q ,existence=True) and
-                  orthogonal_array(k+1 ,t+q+1,existence=True)):
+                  is_available(k+e3,  t  ) and
+                  is_available(  k , t+q ) and
+                  is_available(k+1 ,t+q+1)):
                 return brouwer_separable_design, (k,t,q,x)
 
             # iii)
             elif (x == q**2-q+1-t and
-                  orthogonal_array(  k  ,  x  ,existence=True) and
-                  orthogonal_array( k+e2, t+1 ,existence=True) and
-                  orthogonal_array( k+1 , t+q ,existence=True)):
+                  is_available(  k  ,  x  ) and
+                  is_available( k+e2, t+1 ) and
+                  is_available( k+1 , t+q )):
                 return brouwer_separable_design, (k,t,q,x)
 
             # iv)
             elif (x == q**2+1 and
-                  orthogonal_array(  k  ,  x  ,existence=True) and
-                  orthogonal_array( k+e4, t+1 ,existence=True) and
-                  orthogonal_array( k+1 ,t+q+1,existence=True)):
+                  is_available(  k  ,  x  ) and
+                  is_available( k+e4, t+1 ) and
+                  is_available( k+1 ,t+q+1)):
                 return brouwer_separable_design, (k,t,q,x)
 
             # v)
             elif (0<x and x<q**2-q+1-t and (e1 or e2) and
-                  orthogonal_array(  k  ,  x  ,existence=True) and
-                  orthogonal_array( k+e1,  t  ,existence=True) and
-                  orthogonal_array( k+e2, t+1 ,existence=True) and
-                  orthogonal_array( k+1 , t+q ,existence=True)):
+                  is_available(  k  ,  x  ) and
+                  is_available( k+e1,  t  ) and
+                  is_available( k+e2, t+1 ) and
+                  is_available( k+1 , t+q )):
                 return brouwer_separable_design, (k,t,q,x)
 
             # vi)
             elif (t+q<x and x<q**2+1 and (e3 or e4) and
-                  orthogonal_array(  k  ,  x  ,existence=True) and
-                  orthogonal_array( k+e3,  t  ,existence=True) and
-                  orthogonal_array( k+e4, t+1 ,existence=True) and
-                  orthogonal_array( k+1 ,t+q+1,existence=True)):
+                  is_available(  k  ,  x  ) and
+                  is_available( k+e3,  t  ) and
+                  is_available( k+e4, t+1 ) and
+                  is_available( k+1 ,t+q+1)):
                 return brouwer_separable_design, (k,t,q,x)
 
     return False
@@ -2091,9 +2102,9 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
     # ii)
     elif (x == t+q and
-          orthogonal_array(k+e3,  t  ,existence=True) and
-          orthogonal_array( k  , t+q ,existence=True) and
-          orthogonal_array( k+1,t+q+1,existence=True)):
+          is_available(k+e3,  t  ) and
+          is_available( k  , t+q ) and
+          is_available( k+1,t+q+1)):
 
         if verbose:
             print "Case ii) with k={},q={},t={},x={},e3={}".format(k,q,t,x,e3)
@@ -2132,9 +2143,9 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
     # iii)
     elif (x == q**2-q+1-t and
-          orthogonal_array( k  ,  x  ,existence=True) and # d0
-          orthogonal_array(k+e2, t+1 ,existence=True) and # d2-e2
-          orthogonal_array(k+1 , t+q ,existence=True)):   # d3-e1
+          is_available( k  ,  x  ) and # d0
+          is_available(k+e2, t+1 ) and # d2-e2
+          is_available(k+1 , t+q )):   # d3-e1
         if verbose:
             print "Case iii) with k={},q={},t={},x={},e2={}".format(k,q,t,x,e2)
 
@@ -2171,9 +2182,9 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
     # iv)
     elif (x == q**2+1 and
-          orthogonal_array( k  ,  x  ,existence=True) and # d0
-          orthogonal_array(k+e4, t+1 ,existence=True) and # d2-e4
-          orthogonal_array(k+ 1,t+q+1,existence=True)):   # d4-1
+          is_available( k  ,  x  ) and # d0
+          is_available(k+e4, t+1 ) and # d2-e4
+          is_available(k+ 1,t+q+1)):   # d4-1
 
         if verbose:
             print "Case iv) with k={},q={},t={},x={},e4={}".format(k,q,t,x,e4)
@@ -2215,10 +2226,10 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
     # v)
     elif (0<x and x<q**2-q+1-t and (e1 or e2) and # The result is wrong when e1=e2=0
-          orthogonal_array(k   ,x  ,existence=True) and # d0
-          orthogonal_array(k+e1,t  ,existence=True) and # d1-e1
-          orthogonal_array(k+e2,t+1,existence=True) and # d2-e2
-          orthogonal_array(k+1,t+q,existence=True)):   # d3-1
+          is_available(k   ,x  ) and # d0
+          is_available(k+e1,t  ) and # d1-e1
+          is_available(k+e2,t+1) and # d2-e2
+          is_available(k+1,t+q)):   # d3-1
         if verbose:
             print "Case v) with k={},q={},t={},x={},e1={},e2={}".format(k,q,t,x,e1,e2)
 
@@ -2264,10 +2275,10 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
     # vi)
     elif (t+q<x and x<q**2+1 and (e3 or e4) and # The result is wrong when e3=e4=0
-          orthogonal_array(k   ,x    ,existence=True) and # d0
-          orthogonal_array(k+e3,t    ,existence=True) and # d1-e3
-          orthogonal_array(k+e4,t+1  ,existence=True) and # d2-e4
-          orthogonal_array(k+1,t+q+1,existence=True)):    # d4-1
+          is_available(k   ,x   ) and # d0
+          is_available(k+e3,t   ) and # d1-e3
+          is_available(k+e4,t+1 ) and # d2-e4
+          is_available(k+1,t+q+1)):    # d4-1
         if verbose:
             print "Case vi) with k={},q={},t={},x={},e3={},e4={}".format(k,q,t,x,e3,e4)
 
@@ -2334,3 +2345,21 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
     if check:
         assert is_orthogonal_array(OA,k,N,2,1)
     return OA
+
+from designs_pyx cimport _OA_cache, _OA_cache_size
+cdef bint is_available(k,n):
+    r"""
+    Return whether Sage can build an OA(k,n)
+
+    INPUT:
+
+    - ``k,n`` (integers)
+    """
+    if n >= _OA_cache_size:
+        return orthogonal_array(k,n,existence=True)
+    if k <= _OA_cache[n].max_true:
+        return True
+    elif k >= _OA_cache[n].min_unknown:
+        return False
+    else:
+        return orthogonal_array(k,n,existence=True)

@@ -4102,9 +4102,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: F.is_weak_popov()
             True
             
-        .. SEEALSO:
+        .. SEEALSO::
 
-        - :meth:`weak_popov_form <sage.matrix.matrix2.weak_popov_form>`
+            - :meth:`weak_popov_form <sage.matrix.matrix2.weak_popov_form>`
 
         REFERENCES:
 

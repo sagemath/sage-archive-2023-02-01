@@ -1577,7 +1577,8 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
         - ``points`` -- a list of pairs `(x_0, y_0), (x_1, y_1),
           \dots, (x_n, y_n)` of elements of the base ring of ``self``,
-          where `x_i \neq x_j` for `i \neq j`.
+          where `x_i - x_j` is invertible for `i \neq j`.  This method
+          converts the `x_i` and `y_i` into the base ring of `self`.
 
         - ``full_table`` -- boolean (default: ``False``): If ``True``,
           return the full divided-difference table.  If ``False``,
@@ -1590,7 +1591,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         Lagrange interpolation polynomial `P_n(x)` that passes through
         the points in ``points`` (see :meth:`lagrange_polynomial`).
         These are the coefficients `F_{0,0}, F_{1,1}, \dots, `F_{n,n}`
-        such that
+        in the base ring of ``self`` such that
 
         .. math::
 
@@ -1649,7 +1650,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
            MATLAB*.  3rd edition, Prentice-Hall, 1999.
 
         """
-        to_base_ring = self.base_ring().coerce
+        to_base_ring = self.base_ring()
         points = map(lambda x: map(to_base_ring, x), points)
         n = len(points)
         F = [[points[i][1]] for i in xrange(n)]
@@ -1672,7 +1673,8 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
         - ``points`` -- a list of pairs `(x_0, y_0), (x_1, y_1),
           \dots, (x_n, y_n)` of elements of the base ring of ``self``,
-          where `x_i \neq x_j` for `i \neq j`.
+          where `x_i - x_j` is invertible for `i \neq j`.  This method
+          converts the `x_i` and `y_i` into the base ring of `self`.
 
         - ``algorithm`` -- (default: ``'divided_difference'``): one of
           the following:
@@ -1703,8 +1705,8 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
         The Lagrange interpolation polynomial through the points
         `(x_0, y_0), (x_1, y_1), \dots, (x_n, y_n)`.  This is the
-        unique polynomial `P_n` of degree at most `n` satisfying
-        `P_n(x_i) = y_i` for `0 \le i \le n`.
+        unique polynomial `P_n` of degree at most `n` in ``self``
+        satisfying `P_n(x_i) = y_i` for `0 \le i \le n`.
 
         EXAMPLES:
 
@@ -1808,8 +1810,8 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
         """
         # Perhaps we should be slightly stricter on the input and use
-        # self.base_ring().coerce here (as in the divided_difference()
-        # method above).  However, this breaks an example in
+        # self.base_ring().coerce here and in the divided_difference()
+        # method above.  However, this breaks an example in
         # sage.tests.french_book.nonlinear_doctest where the base ring
         # is CC, but the function values lie in the symbolic ring.
         to_base_ring = self.base_ring()

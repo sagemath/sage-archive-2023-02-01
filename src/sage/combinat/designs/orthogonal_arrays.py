@@ -1017,6 +1017,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
 
     # From Difference Matrices
     elif may_be_available and difference_matrix(n,k-1,existence=True):
+        _OA_cache_set(k,n,True)
         if existence:
             return True
         G,M = difference_matrix(n,k-1)

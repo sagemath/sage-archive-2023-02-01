@@ -252,8 +252,11 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         q = self._series_ring.gen()
         n = self.hecke_n()
-        temp_expr = ((-q*self.J_inv_ZZ().derivative())**2/(self.J_inv_ZZ()*(self.J_inv_ZZ()-1))).power_series()
-        f_rho_ZZ = (temp_expr.log()/(n-2)).exp()
+        if (n == infinity):
+            f_rho_ZZ = self._series_ring(1)
+        else:
+            temp_expr = ((-q*self.J_inv_ZZ().derivative())**2/(self.J_inv_ZZ()*(self.J_inv_ZZ()-1))).power_series()
+            f_rho_ZZ = (temp_expr.log()/(n-2)).exp()
         return f_rho_ZZ
 
     @cached_method
@@ -275,8 +278,11 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         q = self._series_ring.gen()
         n = self.hecke_n()
-        temp_expr = ((-q*self.J_inv_ZZ().derivative())**n/(self.J_inv_ZZ()**(n-1)*(self.J_inv_ZZ()-1))).power_series()
-        f_i_ZZ = (temp_expr.log()/(n-2)).exp()
+        if (n == infinity):
+            f_i_ZZ = (-q*self.J_inv_ZZ().derivative()/self.J_inv_ZZ()).power_series()
+        else:
+            temp_expr = ((-q*self.J_inv_ZZ().derivative())**n/(self.J_inv_ZZ()**(n-1)*(self.J_inv_ZZ()-1))).power_series()
+            f_i_ZZ = (temp_expr.log()/(n-2)).exp()
         return f_i_ZZ
 
     @cached_method
@@ -298,8 +304,11 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         q = self._series_ring.gen()
         n = self.hecke_n()
-        temp_expr  = ((-q*self.J_inv_ZZ().derivative())**(2*n)/(self.J_inv_ZZ()**(2*n-2)*(self.J_inv_ZZ()-1)**n)/q**(n-2)).power_series()
-        f_inf_ZZ = (temp_expr.log()/(n-2)).exp()*q
+        if (n == infinity):
+            f_inf_ZZ = ((-q*self.J_inv_ZZ().derivative())**2/(self.J_inv_ZZ()**2*(self.J_inv_ZZ()-1))).power_series()
+        else:
+            temp_expr  = ((-q*self.J_inv_ZZ().derivative())**(2*n)/(self.J_inv_ZZ()**(2*n-2)*(self.J_inv_ZZ()-1)**n)/q**(n-2)).power_series()
+            f_inf_ZZ = (temp_expr.log()/(n-2)).exp()*q
         return f_inf_ZZ
 
     @cached_method
@@ -320,7 +329,11 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         """
 
         n = self.hecke_n()
-        if (ZZ(2).divides(n)):
+        if (n == infinity):
+            q = self._series_ring.gen()
+            temp_expr = (self.J_inv_ZZ()/self.f_inf_ZZ()*q**2).power_series()
+            return 1/q*self.f_i_ZZ()*(temp_expr.log()/2).exp()
+        elif (ZZ(2).divides(n)):
             return self.f_i_ZZ()*(self.f_rho_ZZ()**(ZZ(n/ZZ(2))))/self.f_inf_ZZ()
         else:
             #return self._qseries_ring([])
@@ -365,7 +378,6 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         """
 
         q = self._series_ring.gen()
-        n = self.hecke_n()
         E6_ZZ = ((-q*self.J_inv_ZZ().derivative())**3/(self.J_inv_ZZ()**2*(self.J_inv_ZZ()-1))).power_series()
         return E6_ZZ
 
@@ -379,15 +391,14 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3).Delta_ZZ()
-            q - 1/72*q^2 + O(q^3)
+            q - 1/72*q^2 + 7/82944*q^3 + O(q^4)
             sage: MFSeriesConstructor(group=5, prec=3).Delta_ZZ()
-            71/50*q + 28267/16000*q^2 + O(q^3)
+            q + 47/200*q^2 + 11367/640000*q^3 + O(q^4)
             sage: MFSeriesConstructor(group=5, prec=3).Delta_ZZ().parent()
             Power Series Ring in q over Rational Field
         """
 
-        n = self.hecke_n()
-        return self.E4_ZZ()**(2*n-6)*(self.E4_ZZ()**n-self.E6_ZZ()**2)
+        return (self.f_inf_ZZ()**3*self.J_inv_ZZ()**2/(self.f_rho_ZZ()**6)).power_series()
 
     @cached_method
     def E2_ZZ(self):
@@ -655,14 +666,14 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(group=4, prec=3).G_inv(fix_d=True)
-            1/16777216*q^-1 - 3/2097152 - 955/4194304*q + O(q^2)
+            1/65536*q^-1 - 3/8192 - 955/16384*q + O(q^2)
             sage: MFSeriesConstructor(group=4, prec=3).G_inv_ZZ() == MFSeriesConstructor(group=4, prec=3).G_inv(d=1)
             True
 
             sage: MFSeriesConstructor(group=8, prec=3).G_inv()
-            d^3*q^-1 - 15*d^2/128 - 15139*d/262144*q + O(q^2)
+            d^2*q^-1 - 15*d/128 - 15139/262144*q + O(q^2)
             sage: MFSeriesConstructor(group=8, prec=3).G_inv(fix_d=True)
-            1.648388300301...e-6*q^-1 - 0.00001635263105300... - 0.0006821979994337...*q + O(q^2)
+            0.000139542451652...*q^-1 - 0.00138431353078... - 0.0577507019042...*q + O(q^2)
 
             sage: MFSeriesConstructor(group=8, prec=3).G_inv().parent()
             Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
@@ -671,7 +682,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         """
 
         (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
-        return d**2*self.G_inv_ZZ()(qseries_ring.gen()/d)
+        return d*self.G_inv_ZZ()(qseries_ring.gen()/d)
 
     @cached_method
     def E4(self, base_ring = ZZ, fix_d=False, d=None, d_num_prec=ZZ(53)):
@@ -736,14 +747,14 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3).Delta(fix_d=True)
-            q - 24*q^2 + O(q^3)
+            q - 24*q^2 + 252*q^3 + O(q^4)
             sage: MFSeriesConstructor(prec=3).Delta_ZZ() == MFSeriesConstructor(prec=3).Delta(d=1)
             True
 
             sage: MFSeriesConstructor(group=5, prec=3).Delta()
-            71/50*q + 28267/(16000*d)*q^2 + O(q^3)
+            q + 47/(200*d)*q^2 + 11367/(640000*d^2)*q^3 + O(q^4)
             sage: MFSeriesConstructor(group=5, prec=3).Delta(fix_d=True)
-            0.0000000000000... + 1.420000000000...*q + 250.5145822707...*q^2 + O(q^3)
+            0.000000000000... + 1.00000000000000*q + 33.3227731750...*q^2 + 357.118571175...*q^3 + O(q^4)
 
             sage: MFSeriesConstructor(group=5, prec=3).Delta().parent()
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring

@@ -52,9 +52,9 @@ cdef simple_transformation(M,rowtochange,basisrow,LP,U=None):
 
     OUTPUT:
 
-        Transforms M[rowtochange] into M[rowtochange]-a*x^d*M[basisrow], wherby d is the difference of
-        the degree of the leading positions and a is the division of the
-        leading coefficients.
+    Transforms M[rowtochange] into M[rowtochange]-a*x^d*M[basisrow], wherby d is the 
+    difference of the degree of the leading positions and a is the division of the
+    leading coefficients.
     
     .. WARNING::
     
@@ -88,7 +88,7 @@ cpdef mulders_storjohann(M,transposition=False):
      
     OUTPUT:
 
-        M transformed into weak popov form.
+    M transformed into weak popov form.
     
     ALGORITHM::
     

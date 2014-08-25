@@ -51,7 +51,6 @@ Functions
 from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
-from sage.rings.infinity import Infinity
 from designs_pyx import is_orthogonal_array
 from incidence_structures import GroupDivisibleDesign
 
@@ -624,7 +623,7 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
 # corresponding to the max/min values of which orthogonal_array returns
 # truth_value.
 
-_OA_cache = {0:(Infinity,None,None,None),1:(Infinity,None,None,None)}
+_OA_cache = {0:(float("+inf"),None,None,None),1:(float("+inf"),None,None,None)}
 def _OA_cache_set(k,n,truth_value):
     r"""
     Sets a value in the OA cache of existence results

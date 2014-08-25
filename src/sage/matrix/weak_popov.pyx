@@ -169,7 +169,7 @@ cpdef mulders_storjohann(M,transposition=False):
         TypeError: the entries of M must lie in a univariate polynomial ring
 
     It is also an error to call this function using a matrix containing
-    elements of the fraction field.
+    elements of the fraction field. ::
 
         sage: R.<t> = QQ['t']
         sage: M = matrix([[1/t,1/(t^2),t],[0,0,t]])
@@ -178,6 +178,16 @@ cpdef mulders_storjohann(M,transposition=False):
         ...
         TypeError: the entries of M must lie in a univariate polynomial ring
             
+    This function can be called directly. ::
+    
+        sage: from sage.matrix.weak_popov import mulders_storjohann
+        sage: PF = PolynomialRing(GF(2,'a'),'x')
+        sage: E = matrix(PF,[[x+1,x,x],[x^2,x,x^4+x^3+x^2+x]])
+        sage: mulders_storjohann(E)
+        [          x + 1               x               x]
+        [x^4 + x^3 + x^2         x^4 + x   x^3 + x^2 + x]
+
+    
     .. SEEALSO::
 
         :meth:`is_weak_popov <sage.matrix.matrix0.is_weak_popov>`
@@ -204,6 +214,15 @@ cpdef mulders_storjohann(M,transposition=False):
         else:
             lps[lp].append(c)
 
+    """
+    If there are conflicts, the dictionary will contain at least one entry with
+    more than one list entry:
+    {0:[1,3],1:[0],5:[2]}
+    But if all are singular:
+    {-1:[0],0:[2],2:[1]}
+    The length of lps will be the number of rows, because every row has its 
+    own entry.
+    """
     while len(lps) < M.nrows():
         for pos in lps:
             if len(lps[pos]) > 1:

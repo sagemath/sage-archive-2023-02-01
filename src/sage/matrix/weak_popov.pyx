@@ -73,7 +73,6 @@ cdef simple_transformation(M,rowtochange,basisrow,LP,U=None):
     if U is not None:
         for i in range(U.ncols()):
             U[rowtochange,i] -= alpha*U[basisrow,i].shift(delta)
-    return
 
 
 cpdef mulders_storjohann(M,transposition=False):

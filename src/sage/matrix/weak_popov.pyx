@@ -106,7 +106,9 @@ cpdef mulders_storjohann(M,transposition=False):
     EXAMPLES:
         
     
-        
+    .. SEEALSO::
+
+        :meth:`is_weak_popov <sage.matrix.matrix0.is_weak_popov>`
         
     REFERENCES::
 

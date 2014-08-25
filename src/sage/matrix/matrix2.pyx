@@ -7171,6 +7171,14 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
            for row operations; however, references such as [Hes2002]_ transpose and use
            column operations.
 
+         - There are multiple weak Popov forms of a matrix, so one may want to
+           extend this code to produce a Popov form (see section 1.2 of [V]).  The
+           latter is canonical, but more work to produce.
+
+        .. SEEALSO::
+
+            :meth:`is_weak_popov <sage.matrix.matrix0.is_weak_popov>`
+
         REFERENCES:
 
         - [Hes2002]_

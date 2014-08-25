@@ -3464,13 +3464,12 @@ def DM_39_6_1():
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(39)
 
-    Mb=[[0,1,-1],[0,16,-16],[0,22,-22],[0,17,-17],[0,38,-38],[0,23,-23]]
     Mb=[[ 0,  0,  0,  0,  0,  0],
         [ 1, 16, 22, 17, 38, 23],
         [-1,-16,-22,-17,-38,-23]]
 
     for R in zip(*M):
-        a,b,c,d,e,f = [None if x is None else G(x) for x in R]
+        a,b,c,d,e,f = map(G,R)
         for i in range(3):
             Mb.append([ a, b, c, d, e, f])
             Mb.append([-a,-b,-c,-d,-e,-f])

@@ -699,9 +699,6 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
             P = x.parent()
         except AttributeError:
             return self.element_class(self, x, **kwds)
-        if hasattr(P, '_freegroup_'):
-            if P.FreeGroup() is self:
-                return self.element_class(self, x.Tietze(), **kwds)
         if isinstance(P, FreeGroup_class):
             names = set(P._names[abs(i)-1] for i in x.Tietze())
             if names.issubset(self._names):

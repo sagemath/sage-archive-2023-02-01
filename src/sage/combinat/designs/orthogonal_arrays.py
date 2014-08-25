@@ -1033,7 +1033,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
         raise NotImplementedError("I don't know how to build an OA({},{})!".format(k,n))
 
     if check:
-        assert is_orthogonal_array(OA,k,n,t)
+        assert is_orthogonal_array(OA,k,n,t), "Sage built an incorrect OA({},{}) O_o".format(k,n)
 
     return OA
 
@@ -1517,7 +1517,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
 
     # check that the first part of the matrix A is a (G,k-1,2)-difference matrix
     B = [[G(a) for a,b in R] for R in A]
-    if check and not is_difference_matrix(B,G,k-1,2):
+    if check and not is_difference_matrix(zip(*B),G,k-1,2):
         raise ValueError("the first part of the matrix A must be a "
                          "(G,k-1,2)-difference matrix")
 
@@ -1553,7 +1553,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
 
     # build the quasi difference matrix and return the associated OA
     Mb = [[e+GG((G.zero(),x*v)) for v in H for e in R] for x,R in izip(Y,A)]
-    return OA_from_quasi_difference_matrix(Mb,GG,add_col=True)
+    return OA_from_quasi_difference_matrix(zip(*Mb),GG,add_col=True)
 
 def OA_from_quasi_difference_matrix(M,G,add_col=True):
     r"""
@@ -1561,12 +1561,12 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
 
     **Difference Matrices**
 
-    Let `G` be a group of order `g`. A *difference matrix* `M` is a `k \times g`
+    Let `G` be a group of order `g`. A *difference matrix* `M` is a `g\times k`
     matrix with entries from `G` such that for any `1\leq i < j < k` the set
-    `\{d_{il}-d_{jl}:1\leq l \leq g\}` is equal to `G`.
+    `\{d_{li}-d_{lj}:1\leq l \leq g\}` is equal to `G`.
 
     By concatenating the `g` matrices `M+x` (where `x\in G`), one obtains a
-    matrix of size `x\times g^2` which is also an `OA(k,g)`.
+    matrix of size `g^2\times x` which is also an `OA(k,g)`.
 
     **Quasi-difference Matrices**
 
@@ -1576,7 +1576,7 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
     a trivial action.
 
     This produces an incomplete orthogonal array with a "hole" (i.e. missing
-    rows) of size 'u' (i.e. the number of missing values per row of `M`). If
+    rows) of size 'u' (i.e. the number of missing values per column of `M`). If
     there exists an `OA(k,u)`, then adding the rows of this `OA(k,u)` to the
     incomplete orthogonal array should lead to an OA...
 
@@ -1584,14 +1584,14 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
 
     Let `G` be an abelian group of order `n`. A
     `(n,k;\lambda,\mu;u)`-quasi-difference matrix (QDM) is a matrix `Q=(q_{ij})`
-    with `k` rows and `\lambda(n-1+2u)+\mu` columns, with each entry either
-    empty or containing an element of `G`. Each row contains exactly `\lambda u`
-    entries, and each column contains at most one empty entry. Furthermore, for
+    with `\lambda(n-1+2u)+\mu` rows and `k` columns, with each entry either
+    empty or containing an element of `G`. Each column contains exactly `\lambda
+    u` entries, and each row contains at most one empty entry. Furthermore, for
     each `1 \leq i < j \leq k` the multiset
 
     .. MATH::
 
-        \{ q_{il} - q_{jl}: 1 \leq l \leq \lambda (n-1+2u)+\mu, \text{ with }q_{il}\text{ and }q_{jl}\text{ not  empty}\}
+        \{ q_{li} - q_{lj}: 1 \leq l \leq \lambda (n-1+2u)+\mu, \text{ with }q_{li}\text{ and }q_{lj}\text{ not  empty}\}
 
     contains every nonzero element of `G` exactly `\lambda` times, and contains
     0 exactly `\mu` times.
@@ -1600,12 +1600,12 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
 
     If a `(n,k;\lambda,\mu;u)`-QDM exists and `\mu \leq \lambda`, then an
     `ITD_\lambda (k,n+u;u)` exists. Start with a `(n,k;\lambda,\mu;u)`-QDM `A`
-    over the group `G`. Append `\lambda-\mu` columns of zeroes. Then select `u`
+    over the group `G`. Append `\lambda-\mu` rows of zeroes. Then select `u`
     elements `\infty_1,\dots,\infty_u` not in `G`, and replace the empty
     entries, each by one of these infinite symbols, so that `\infty_i` appears
-    exactly once in each row. Develop the resulting matrix over the group `G`
-    (leaving infinite symbols fixed), to obtain a `k\times \lambda (n^2+2nu)`
-    matrix `T`. Then `T` is an orthogonal array with `k` rows and index
+    exactly once in each column. Develop the resulting matrix over the group `G`
+    (leaving infinite symbols fixed), to obtain a `\lambda (n^2+2nu)\times k`
+    matrix `T`. Then `T` is an orthogonal array with `k` columns and index
     `\lambda`, having `n+u` symbols and one hole of size `u`.
 
     Adding to `T` an `OA(k,u)` with elements `\infty_1,\dots,\infty_u` yields
@@ -1628,8 +1628,9 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
 
         sage: _ = designs.orthogonal_array(6,20,2) # indirect doctest
     """
+    from itertools import izip
     Gn = int(G.cardinality())
-    k = len(M)+bool(add_col)
+    k = len(M[0])+bool(add_col)
 
     G_to_int = {x:i for i,x in enumerate(G)}
 
@@ -1645,7 +1646,7 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
     # Each line is expanded by [g+x for x in line for g in G] then relabeled
     # with integers. Missing values are also handled.
     new_M = []
-    for line in M:
+    for line in izip(*M):
         inf = Gn
         new_line = []
         for x in line:
@@ -1716,12 +1717,12 @@ def QDM_from_Vmt(m,t,V):
 
     *Construction of a quasi-difference matrix from a `V(m,t)` vector*
 
-    Starting with a `V(m,t)` vector `(a_1,\dots,a_{m+1})`, form a single column
-    of length `m+2` whose first entry is empty, and whose remaining entries are
-    `(a_1,\dots,a_{m+1})`. Form `t` columns by multiplying this column by the
-    `t` th roots, i.e. the powers of `\omega^m`. From each of these `t` columns,
-    form `m+2` columns by taking the `m+2` cyclic shifts of the column. The
-    result is a `(a,m+2;1,0;t)-QDM`.
+    Starting with a `V(m,t)` vector `(a_1,\dots,a_{m+1})`, form a single row of
+    length `m+2` whose first entry is empty, and whose remaining entries are
+    `(a_1,\dots,a_{m+1})`. Form `t` rows by multiplying this row by the `t` th
+    roots, i.e. the powers of `\omega^m`. From each of these `t` rows, form
+    `m+2` rows by taking the `m+2` cyclic shifts of the row. The result is a
+    `(a,m+2;1,0;t)-QDM`.
 
     For more information, refer to the Handbook of Combinatorial Designs
     [DesignHandbook]_.
@@ -1759,7 +1760,7 @@ def QDM_from_Vmt(m,t,V):
 
     M.append([0]*q)
 
-    return zip(*M)
+    return M
 
 def OA_from_PBD(k,n,PBD, check=True):
     r"""

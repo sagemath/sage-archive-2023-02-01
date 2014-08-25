@@ -324,17 +324,17 @@ def OA_7_18():
     M = [G(map(int,xxx)) for xxx in M.split()]
     M = [M[i*12:(i+1)*12] for i in range(7)]
 
-    Mb = [[] for _ in range(7)]
+    Mb = []
 
     for a,b,c,d,e,f,g in zip(*M):
         for y in range(3):
-            Mb[0].append(a + G((0,  0  , 0 )))
-            Mb[1].append(b + G((0,  0  , y )))
-            Mb[2].append(c + G((0,  y  , 0 )))
-            Mb[3].append(d + G((0, 2*y , y )))
-            Mb[4].append(e + G((0, 2*y ,2*y)))
-            Mb[5].append(f + G((0,  y  ,2*y)))
-            Mb[6].append(g + G((0,  0  ,2*y)))
+            Mb.append([a + G((0,  0  , 0 )),
+                       b + G((0,  0  , y )),
+                       c + G((0,  y  , 0 )),
+                       d + G((0, 2*y , y )),
+                       e + G((0, 2*y ,2*y)),
+                       f + G((0,  y  ,2*y)),
+                       g + G((0,  0  ,2*y))])
 
     M = OA_from_quasi_difference_matrix(Mb,G,add_col=False)
     M = [M[i] for i in range(len(M)) if i%18<9] # only develop w.r.t the last two coordinates
@@ -370,16 +370,13 @@ def OA_6_20():
        [   1,   0,  15,  17,   7,  14,   6],
        [  11,   0,  10,   5,  11,   3,   4]]
 
-    Mb=[[],[],[],[],[],[]]
+    Mb=[]
 
     for R in zip(*M):
         a,b,c,d,e,f = R
-        Mb[0].extend([a,b,c])
-        Mb[1].extend([b,c,a])
-        Mb[2].extend([c,a,b])
-        Mb[3].extend([d,f,e])
-        Mb[4].extend([e,d,f])
-        Mb[5].extend([f,e,d])
+        Mb.append([a,b,c,d,e,f])
+        Mb.append([b,c,a,f,d,e])
+        Mb.append([c,a,b,e,f,d])
 
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     M = OA_from_quasi_difference_matrix(Mb,AdditiveCyclic(19),add_col=False)
@@ -419,21 +416,24 @@ def OA_5_22():
         [  12,   9,  19,  16,   5,   2,   0],
         ]
 
-    Mb=[[],[],[],[],[]]
+    Mb=[[0,7,14,None,0],
+        [0,14,7,0,None]]
 
     for R in zip(*M):
         a,b,c,d,e = [G(x) if x is not None else None for x in R]
-        Mb[0].extend([a,16*c,4*b])
-        Mb[1].extend([b,None if a is None else 16*a,4*c])
-        Mb[2].extend([c,16*b,None if a is None else 4*a])
-        Mb[3].extend([d,16*d+7,4*d+14])
-        Mb[4].extend([e,16*e+14,4*e+7])
+        Mb.append([a,b,c,d,e])
 
-    Mb[0].extend([0,0])
-    Mb[1].extend([7,14])
-    Mb[2].extend([14,7])
-    Mb[3].extend([None,0])
-    Mb[4].extend([0,None])
+        Mb.append([16*c,
+                   None if a is None else 16*a,
+                   16*b,
+                   16*d+7,
+                   16*e+14])
+
+        Mb.append([4*b,
+                   4*c,
+                   None if a is None else 4*a,
+                   4*d+14,
+                   4*e+7])
 
     M = OA_from_quasi_difference_matrix(Mb,G,add_col=False)
     return M
@@ -472,16 +472,16 @@ def OA_6_26():
 
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(21)
-    Mb=[[0],[0],[0],[0],[0],[0]]
+    Mb=[[0,0,0,0,0,0]]
 
     for R in zip(*M):
         a,b,c,d,e,f = R
-        Mb[0].extend([a,b,c,d,e,f])
-        Mb[1].extend([b,c,d,e,f,a])
-        Mb[2].extend([c,d,e,f,a,b])
-        Mb[3].extend([d,e,f,a,b,c])
-        Mb[4].extend([e,f,a,b,c,d])
-        Mb[5].extend([f,a,b,c,d,e])
+        Mb.append([a,b,c,d,e,f])
+        Mb.append([b,c,d,e,f,a])
+        Mb.append([c,d,e,f,a,b])
+        Mb.append([d,e,f,a,b,c])
+        Mb.append([e,f,a,b,c,d])
+        Mb.append([f,a,b,c,d,e])
 
     M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
     return M
@@ -523,17 +523,18 @@ def OA_6_30():
     G = AdditiveAbelianGroup([5,5])
     M = [[None if x is None else G(vector(x)) for x in L] for L in M]
 
-    Mb=[[],[],[],[],[],[]]
+    Mb=[]
 
     for R in zip(*M):
         a,b,c,d,e,f = R
         for i in range(5):
-            Mb[0].append(None if a is None else a+G(vector((i,i))))
-            Mb[1].append(None if b is None else b+G(vector((2*i,i))))
-            Mb[2].append(None if c is None else c+G(vector((i,0))))
-            Mb[3].append(None if d is None else d+G(vector((4*i,0))))
-            Mb[4].append(None if e is None else e+G(vector((3*i,4*i))))
-            Mb[5].append(None if f is None else f+G(vector((4*i,4*i))))
+            Mb.append([
+                None if a is None else a+G(vector((i,i))),
+                None if b is None else b+G(vector((2*i,i))),
+                None if c is None else c+G(vector((i,0))),
+                None if d is None else d+G(vector((4*i,0))),
+                None if e is None else e+G(vector((3*i,4*i))),
+                None if f is None else f+G(vector((4*i,4*i)))])
 
     M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
     return M
@@ -573,18 +574,17 @@ def OA_6_34():
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(33)
 
-    Mb=[[0,1,3,10,5],[0,4,12,7,20],[0,16,15,28,14],[0,31,27,13,23],[0,25,9,19,26],[0,11,11,0,None]]
+    Mb = [[ 0,  0,  0,  0,  0,   0],
+          [ 1,  4, 16, 31, 25,  11],
+          [ 3, 12, 15, 27,  9,  11],
+          [10,  7, 28, 13, 19,   0],
+          [ 5, 20, 14, 23, 26,None]]
 
     times4 = lambda x : None if x is None else 4*x
     for R in zip(*M):
         a,b,c,d,e,f = [None if x is None else G(x) for x in R]
         for i in range(5):
-            Mb[0].append(a)
-            Mb[1].append(b)
-            Mb[2].append(c)
-            Mb[3].append(d)
-            Mb[4].append(e)
-            Mb[5].append(f)
+            Mb.append([a,b,c,d,e,f])
             a,b,c,d,e,f = map(times4,[e,a,b,c,d,f])
 
     M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
@@ -625,16 +625,13 @@ def OA_6_38():
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(37)
 
-    Mb=[[],[],[],[],[],[]]
+    Mb=[]
 
     for R in zip(*M):
         a,b,c,d,e,f = R
-        Mb[0].extend([a,b,c])
-        Mb[1].extend([b,c,a])
-        Mb[2].extend([c,a,b])
-        Mb[3].extend([d,f,e])
-        Mb[4].extend([e,d,f])
-        Mb[5].extend([f,e,d])
+        Mb.append([a,b,c,d,e,f])
+        Mb.append([b,c,a,f,d,e])
+        Mb.append([c,a,b,e,f,d])
 
     M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
     return M
@@ -716,11 +713,11 @@ def OA_7_42():
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(35)
 
-    Mb=[[],[],[],[],[],[],[]]
+    Mb=[]
 
     for R in zip(*M):
         for i in range(7):
-            Mb[i].extend(cyclic_shift(R,i))
+            Mb.append(cyclic_shift(R,i))
 
     M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
     return M
@@ -761,12 +758,11 @@ def OA_7_54():
         [  30,  16,  33,  27, -30, -16, -33, -27,   0],
         ]
 
-    Mb=[[] for _ in range(7)]
+    Mb=[]
 
     for R in zip(*M):
         for c in range(7):
-            for i,x in enumerate(cyclic_shift(R,c)):
-                Mb[i].append(x)
+            Mb.append(cyclic_shift(R,c))
 
     M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
     return M
@@ -807,12 +803,11 @@ def OA_7_62():
         [41 , 11 ,  1 , 17 , -41 , -11 , - 1 , -17, 28 , 11 ]
         ]
 
-    Mb=[[] for _ in range(7)]
+    Mb=[]
 
     for R in zip(*M):
         for c in range(7):
-            for i,x in enumerate(cyclic_shift(R,c)):
-                Mb[i].append(x)
+            Mb.append(cyclic_shift(R,c))
 
     M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
     return M
@@ -849,7 +844,7 @@ def OA_9_65():
     M = [[B[x] for x in R] for R in M] # replacing [0,..,8] by the elements of B
     M.append([0]*9)
 
-    M = OA_from_quasi_difference_matrix(zip(*M), G(57),add_col=False)
+    M = OA_from_quasi_difference_matrix(M, G(57),add_col=False)
     return M
 
 def OA_7_66():
@@ -1872,7 +1867,7 @@ def OA_9_514():
 
     Vm8_57 = [0,1,3,2,12,333,363,154,340]
     QDM = QDM_from_Vmt(8,57,Vm8_57)
-    QDM = QDM[:-1]
+    QDM = [B[:-1] for B in QDM]
     return OA_from_quasi_difference_matrix(QDM,Fq,add_col=False)
 
 def OA_20_544():
@@ -3065,7 +3060,7 @@ def DM_12_6_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_12_6_1
         sage: G,M = DM_12_6_1()
-        sage: is_difference_matrix(zip(*M),G,6,1)
+        sage: is_difference_matrix(M,G,6,1)
         True
 
     Can be obtained from the constructor::
@@ -3108,7 +3103,7 @@ def DM_21_6_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_21_6_1
         sage: G,M = DM_21_6_1()
-        sage: is_difference_matrix(zip(*M),G,6,1)
+        sage: is_difference_matrix(M,G,6,1)
         True
 
     Can be obtained from the constructor::
@@ -3122,16 +3117,15 @@ def DM_21_6_1():
          [ 14,   1,   3,  13],
          [ 18,  19,  12,   7]]
 
-    Mb = [[0],[0],[0],[0],[0],[0]]
+    Mb = [[0,0,0,0,0,0]]
     for a,b,c,d,e in zip(*M):
-        Mb[0].extend([a,b,c,d,e])
-        Mb[1].extend([b,c,d,e,a])
-        Mb[2].extend([c,d,e,a,b])
-        Mb[3].extend([d,e,a,b,c])
-        Mb[4].extend([e,a,b,c,d])
-        Mb[5].extend([0,0,0,0,0])
+        Mb.append([a,b,c,d,e,0])
+        Mb.append([b,c,d,e,a,0])
+        Mb.append([c,d,e,a,b,0])
+        Mb.append([d,e,a,b,c,0])
+        Mb.append([e,a,b,c,d,0])
 
-    return AdditiveCyclic(21), zip(*Mb)
+    return AdditiveCyclic(21), Mb
 
 def DM_24_8_1():
     r"""
@@ -3144,7 +3138,7 @@ def DM_24_8_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_24_8_1
         sage: G,M = DM_24_8_1()
-        sage: is_difference_matrix(zip(*M),G,8,1)
+        sage: is_difference_matrix(M,G,8,1)
         True
 
     Can be obtained from the constructor::
@@ -3166,18 +3160,18 @@ def DM_24_8_1():
     rlabel = {(x%2,x%3):x for x in range(6)}
     M = [G([int(c),int(d),rlabel[int(b),int(a)]]) for a,b,c,d in M.split()]
     M = [M[i*12:(i+1)*12] for i in range(8)]
-    Mb = [[] for _ in range(8)]
+    Mb = []
     for a,b,c,d,e,f,g,h in zip(*M):
-        Mb[0].extend([a, a + G([0,0,rlabel[0,0]])])
-        Mb[1].extend([b, b + G([0,1,rlabel[0,0]])])
-        Mb[2].extend([c, c + G([1,0,rlabel[0,0]])])
-        Mb[3].extend([d, d + G([1,1,rlabel[0,0]])])
-        Mb[4].extend([e, e + G([0,0,rlabel[1,0]])])
-        Mb[5].extend([f, f + G([0,1,rlabel[1,0]])])
-        Mb[6].extend([g, g + G([1,0,rlabel[1,0]])])
-        Mb[7].extend([h, h + G([1,1,rlabel[1,0]])])
+        Mb.append([a,b,c,d,e,f,g,h])
+        Mb.append([a + G([0,0,rlabel[0,0]]),
+                   b + G([0,1,rlabel[0,0]]),
+                   c + G([1,0,rlabel[0,0]]),
+                   d + G([1,1,rlabel[0,0]]),
+                   e + G([0,0,rlabel[1,0]]),
+                   f + G([0,1,rlabel[1,0]]),
+                   g + G([1,0,rlabel[1,0]]),
+                   h + G([1,1,rlabel[1,0]])])
 
-    Mb = zip(*Mb)
     return G, Mb
 
 def DM_28_6_1():
@@ -3191,7 +3185,7 @@ def DM_28_6_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_28_6_1
         sage: G,M = DM_28_6_1()
-        sage: is_difference_matrix(zip(*M),G,6,1)
+        sage: is_difference_matrix(M,G,6,1)
         True
 
     Can be obtained from the constructor::
@@ -3213,18 +3207,15 @@ def DM_28_6_1():
     G = AdditiveAbelianGroup([2,2,7])
     M = [[G(vector([x//2,x%2,y])) for x,y in L] for L in M]
 
-    Mb=[[0],[0],[0],[0],[0],[0]]
+    Mb=[[0,0,0,0,0,0]]
 
     for R in zip(*M):
         a,b,c,d,e,f = R
-        Mb[0].extend([a,b,c])
-        Mb[1].extend([b,c,a])
-        Mb[2].extend([c,a,b])
-        Mb[3].extend([d,f,e])
-        Mb[4].extend([e,d,f])
-        Mb[5].extend([f,e,d])
+        Mb.append([a,b,c,d,e,f])
+        Mb.append([b,c,a,f,d,e])
+        Mb.append([c,a,b,e,f,d])
 
-    return G, zip(*Mb)
+    return G, Mb
 
 def DM_33_6_1():
     r"""
@@ -3237,7 +3228,7 @@ def DM_33_6_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_33_6_1
         sage: G,M = DM_33_6_1()
-        sage: is_difference_matrix(zip(*M),G,6,1)
+        sage: is_difference_matrix(M,G,6,1)
         True
 
     Can be obtained from the constructor::
@@ -3256,20 +3247,17 @@ def DM_33_6_1():
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(33)
 
-    Mb=[[0,1,7],[0,4,28],[0,16,13],[0,31,19],[0,25,10],[0,22,0]]
+    Mb = [[0, 0, 0, 0, 0, 0],
+          [1, 4,16,31,25,22],
+          [7,28,13,19,10, 0]]
 
     for R in zip(*M):
         a,b,c,d,e,f = R
         for i in range(5):
-            Mb[0].append(a)
-            Mb[1].append(b)
-            Mb[2].append(c)
-            Mb[3].append(d)
-            Mb[4].append(e)
-            Mb[5].append(f)
+            Mb.append([a,b,c,d,e,f])
             a,b,c,d,e,f = 4*e,4*a,4*b,4*c,4*d,4*f
 
-    return G, zip(*Mb)
+    return G, Mb
 
 def DM_35_6_1():
     r"""
@@ -3282,7 +3270,7 @@ def DM_35_6_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_35_6_1
         sage: G,M = DM_35_6_1()
-        sage: is_difference_matrix(zip(*M),G,6,1)
+        sage: is_difference_matrix(M,G,6,1)
         True
 
     Can be obtained from the constructor::
@@ -3314,7 +3302,7 @@ def DM_36_9_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_36_9_1
         sage: G,M = DM_36_9_1()
-        sage: is_difference_matrix(zip(*M),G,9,1)
+        sage: is_difference_matrix(M,G,9,1)
         True
 
     Can be obtained from the constructor::
@@ -3338,22 +3326,23 @@ def DM_36_9_1():
     G = AdditiveAbelianGroup([2,2,3,3])
     M = [[G(vector(x)) for x in L] for L in M]
 
-    Mb=[[],[],[],[],[],[],[],[],[]]
+    Mb=[]
 
     for R in zip(*M):
         a,b,c,d,e,f,g,h,i = R
         for y in range(3):
-            Mb[0].append(a+G(vector([0,0,0,0])))
-            Mb[1].append(b+G(vector([0,0,y,0])))
-            Mb[2].append(c+G(vector([0,0,2*y,0])))
-            Mb[3].append(d+G(vector([0,0,0,y])))
-            Mb[4].append(e+G(vector([0,0,0,2*y])))
-            Mb[5].append(f+G(vector([0,0,y,y])))
-            Mb[6].append(g+G(vector([0,0,2*y,2*y])))
-            Mb[7].append(h+G(vector([0,0,y,2*y])))
-            Mb[8].append(i+G(vector([0,0,2*y,y])))
+            Mb.append([
+                a+G(vector([0,0,0,0])),
+                b+G(vector([0,0,y,0])),
+                c+G(vector([0,0,2*y,0])),
+                d+G(vector([0,0,0,y])),
+                e+G(vector([0,0,0,2*y])),
+                f+G(vector([0,0,y,y])),
+                g+G(vector([0,0,2*y,2*y])),
+                h+G(vector([0,0,y,2*y])),
+                i+G(vector([0,0,2*y,y]))])
 
-    return G, zip(*Mb)
+    return G, Mb
 
 def DM_39_6_1():
     r"""
@@ -3361,16 +3350,12 @@ def DM_39_6_1():
 
     As explained in the Handbook III.3.61 [DesignHandbook]_.
 
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
     EXAMPLES::
 
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_39_6_1
         sage: G,M = DM_39_6_1()
-        sage: print is_difference_matrix(zip(*M),G,6,1)
+        sage: is_difference_matrix(M,G,6,1)
         True
 
     The design is available from the general constructor::
@@ -3390,20 +3375,18 @@ def DM_39_6_1():
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(39)
 
-    Mb=[[0,1,-1],[0,16,-16],[0,22,-22],[0,17,-17],[0,38,-38],[0,23,-23]]
+    Mb=[[ 0,  0,  0,  0,  0,  0],
+        [ 1, 16, 22, 17, 38, 23],
+        [-1,-16,-22,-17,-38,-23]]
 
     for R in zip(*M):
-        a,b,c,d,e,f = [None if x is None else G(x) for x in R]
+        a,b,c,d,e,f = map(G,R)
         for i in range(3):
-            Mb[0].extend([a,-a])
-            Mb[1].extend([b,-b])
-            Mb[2].extend([c,-c])
-            Mb[3].extend([d,-d])
-            Mb[4].extend([e,-e])
-            Mb[5].extend([f,-f])
+            Mb.append([ a, b, c, d, e, f])
+            Mb.append([-a,-b,-c,-d,-e,-f])
             a,b,c,d,e,f = [16*x for x in [c,a,b,f,d,e]]
 
-    return G,zip(*Mb)
+    return G,Mb
 
 def DM_44_6_1():
     r"""
@@ -3416,7 +3399,7 @@ def DM_44_6_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_44_6_1
         sage: G,M = DM_44_6_1()
-        sage: is_difference_matrix(zip(*M),G,6,1)
+        sage: is_difference_matrix(M,G,6,1)
         True
 
     Can be obtained from the constructor::
@@ -3441,13 +3424,12 @@ def DM_44_6_1():
 
     M = [[G2211(x) for x in L] for L in M]
 
-    Mb=[[],[],[],[],[],[]]
+    Mb=[]
 
     for R in zip(*M):
         for c in range(5):
             (x1,y1,z1),(x2,y2,z2),(x3,y3,z3),(x4,y4,z4),(x5,y5,z5),(x6,y6,z6) = R
-            for i,e in enumerate(R):
-                Mb[i].append(e)
+            Mb.append(list(R))
             R = [(x5,y5,5*z5),
                  (x1,y1,5*z1),
                  (x2,y2,5*z2),
@@ -3456,14 +3438,14 @@ def DM_44_6_1():
                  (x6,y6,5*z6)]
 
     for x,y,z in [(0,0,0), (1,0,1),(1,1,2),(0,0,8)]:
-        Mb[0].append((x,y,z))
-        Mb[1].append((x,y,5*z))
-        Mb[2].append((x,y,3*z))
-        Mb[3].append((x,y,4*z))
-        Mb[4].append((x,y,9*z))
-        Mb[5].append((0,0,0))
+        Mb.append([(x,y,z),
+                   (x,y,5*z),
+                   (x,y,3*z),
+                   (x,y,4*z),
+                   (x,y,9*z),
+                   (0,0,0)])
 
-    return G2211, zip(*Mb)
+    return G2211, Mb
 
 def DM_45_7_1():
     r"""
@@ -3479,7 +3461,7 @@ def DM_45_7_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_45_7_1
         sage: G,M = DM_45_7_1()
-        sage: is_difference_matrix(zip(*M),G,7,1)
+        sage: is_difference_matrix(M,G,7,1)
         True
 
     Can be obtained from the constructor::
@@ -3506,20 +3488,20 @@ def DM_45_7_1():
 
     M[6].extend(M[6][1:8])
 
-    Mb=[[],[],[],[],[],[],[]]
+    Mb=[]
 
     for R in zip(*M):
         (x1,y1,z1),(x2,y2,z2),(x3,y3,z3),(x4,y4,z4),(x5,y5,z5),(x6,y6,z6),(x7,y7,z7) = R
         for i in range(3):
-            Mb[0].append((x1, y1    , z1+i  ))
-            Mb[1].append((x2, y2+2*i, z2    ))
-            Mb[2].append((x3, y3+i  , z3+2*i))
-            Mb[3].append((x4, y4+2*i, z4+i  ))
-            Mb[4].append((x5, y5+i  , z5    ))
-            Mb[5].append((x6, y6    , z6+2*i))
-            Mb[6].append((x7, y7    , z7    ))
+            Mb.append([(x1, y1    , z1+i  ),
+                       (x2, y2+2*i, z2    ),
+                       (x3, y3+i  , z3+2*i),
+                       (x4, y4+2*i, z4+i  ),
+                       (x5, y5+i  , z5    ),
+                       (x6, y6    , z6+2*i),
+                       (x7, y7    , z7    )])
 
-    return G533, zip(*Mb)
+    return G533, Mb
 
 def DM_48_9_1():
     r"""
@@ -3532,7 +3514,7 @@ def DM_48_9_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_48_9_1
         sage: G,M = DM_48_9_1()
-        sage: is_difference_matrix(zip(*M),G,9,1)
+        sage: is_difference_matrix(M,G,9,1)
         True
 
     Can be obtained from the constructor::
@@ -3559,18 +3541,16 @@ def DM_48_9_1():
         ]
 
     A = [[F3F16((F3(a),w**b)) for a,b in L] for L in A]
+    V = [12,2,7,0,5,10,3,8,13]
 
-    Mb = [[] for _ in range(9)]
+    Mb = []
     for L in zip(*A):
-        for i,e in enumerate(L):
-            Mb[i].append(e)
+        Mb.append(L)
 
         for u in [0,1,4]:
-            V = [12,2,7,0,5,10,3,8,13]
-            for i,(e,x) in enumerate(zip(L,V)):
-                Mb[i].append(e+F3F16((F3(0),w**(x+u))))
+            Mb.append([e+F3F16((0,w**(x+u))) for (e,x) in zip(L,V)])
 
-    return F3F16, zip(*Mb)
+    return F3F16, Mb
 
 def DM_51_6_1():
     r"""
@@ -3583,7 +3563,7 @@ def DM_51_6_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_51_6_1
         sage: G,M = DM_51_6_1()
-        sage: is_difference_matrix(zip(*M),G,6,1)
+        sage: is_difference_matrix(M,G,6,1)
         True
 
     Can be obtained from the constructor::
@@ -3601,16 +3581,18 @@ def DM_51_6_1():
         [  34,  32,  36,  26,  20]
         ]
 
-    Mb=[[0],[0],[0],[0],[0],[0]*51]
+    Mb=[[0,0,0,0,0]]
 
     for R in zip(*M):
         for i in range(5):
-            for RR in [R, [-x for x in R]]:
-                for i,x in enumerate(RR):
-                    Mb[i].append(x)
+            for RR in [list(R), [-x for x in R]]:
+                Mb.append(RR)
             R = cyclic_shift(R,1)
 
-    return G,zip(*Mb)
+    for R in Mb:
+        R.append(0)
+
+    return G,Mb
 
 def DM_52_6_1():
     r"""
@@ -3623,7 +3605,7 @@ def DM_52_6_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_52_6_1
         sage: G,M = DM_52_6_1()
-        sage: is_difference_matrix(zip(*M),G,6,1)
+        sage: is_difference_matrix(M,G,6,1)
         True
 
     Can be obtained from the constructor::
@@ -3697,7 +3679,7 @@ def DM_55_7_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_55_7_1
         sage: G,M = DM_55_7_1()
-        sage: is_difference_matrix(zip(*M),G,7,1)
+        sage: is_difference_matrix(M,G,7,1)
         True
 
     Can be obtained from the constructor::
@@ -3716,14 +3698,14 @@ def DM_55_7_1():
         [ 16 , 49 , 47 , 29 , 31 , 4  , 44 , 21 , 18]
         ]
 
-    Mb=[[0],[0],[0],[0],[0],[0],[0]*55]
+    Mb=[[0,0,0,0,0,0,0]]
 
     for R in zip(*M):
+        R = list(R)
         for c in range(6):
-            for i,x in enumerate(cyclic_shift(R,c)):
-                Mb[i].append(x)
+            Mb.append(cyclic_shift(R,c)+[0])
 
-    return G, zip(*Mb)
+    return G, Mb
 
 def DM_56_8_1():
     r"""
@@ -3736,7 +3718,7 @@ def DM_56_8_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_56_8_1
         sage: G,M = DM_56_8_1()
-        sage: is_difference_matrix(zip(*M),G,8,1)
+        sage: is_difference_matrix(M,G,8,1)
         True
 
     Can be obtained from the constructor::
@@ -3762,16 +3744,15 @@ def DM_56_8_1():
         [(1,0), (   1,0), (   1,0), (   1,0), (   1,0), (   1,0), (   1,0), (   1,0)]
         ]
 
-    Mb=[[] for _ in range(8)]
+    Mb=[]
 
     for R in zip(*M):
         for _ in range(7):
-            for i,e in enumerate(R):
-                Mb[i].append(e)
+            Mb.append(R)
             (x1,y1),(x2,y2),(x3,y3),(x4,y4),(x5,y5),(x6,y6),(x7,y7),(x8,y8) = R
             R = [(w*x7,y7), (w*x1,y1), (w*x2,y2), (w*x3,y3), (w*x4,y4), (w*x5,y5), (w*x6,y6), (w*x8,y8)]
 
-    return G, zip(*Mb)
+    return G, Mb
 
 def DM_57_8_1():
     r"""
@@ -3784,7 +3765,7 @@ def DM_57_8_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_57_8_1
         sage: G,M = DM_57_8_1()
-        sage: is_difference_matrix(zip(*M),G,8,1)
+        sage: is_difference_matrix(M,G,8,1)
         True
 
     Can be obtained from the constructor::
@@ -3796,11 +3777,10 @@ def DM_57_8_1():
     B = (1,6,7,9,19,38,42,49) # base block of a (57,8,1) BIBD
     M = [[B[x] for x in R] for R in M]
     M.append([0]*8)
-    Mb = zip(*M)
 
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(57)
-    return G, zip(*Mb)
+    return G, M
 
 def DM_60_6_1():
     r"""
@@ -3823,7 +3803,7 @@ def DM_60_6_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_60_6_1
         sage: G,M = DM_60_6_1()
-        sage: is_difference_matrix(zip(*M),G,6,1)
+        sage: is_difference_matrix(M,G,6,1)
         True
 
     Can be obtained from the constructor::
@@ -3840,19 +3820,19 @@ def DM_60_6_1():
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     from sage.categories.cartesian_product import cartesian_product
     G = cartesian_product((AdditiveCyclic(2),AdditiveCyclic(30)))
-    M60b=[[],[],[],[],[],[]]
+    M60b=[]
     onezero = G((1,0))
 
     for R in zip(*M60):
         a,b,c,d,e,f = map(G,R)
-        M60b[0].extend([a,c,b,-d,-e,-f])
-        M60b[1].extend([b,a,c,-e,-f,-d])
-        M60b[2].extend([c,b,a,-f,-d,-e])
-        M60b[3].extend([d,e,f,-a+onezero,-c+onezero,-b+onezero])
-        M60b[4].extend([e,f,d,-b+onezero,-a+onezero,-c+onezero])
-        M60b[5].extend([f,d,e,-c+onezero,-b+onezero,-a+onezero])
+        M60b.append([a,b,c,d,e,f])
+        M60b.append([c,a,b,e,f,d])
+        M60b.append([b,c,a,f,d,e])
+        M60b.append([-d,-e,-f,-a+onezero,-b+onezero,-c+onezero])
+        M60b.append([-e,-f,-d,-c+onezero,-a+onezero,-b+onezero])
+        M60b.append([-f,-d,-e,-b+onezero,-c+onezero,-a+onezero])
 
-    return G, zip(*M60b)
+    return G, M60b
 
 def DM_75_8_1():
     r"""
@@ -3865,7 +3845,7 @@ def DM_75_8_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_75_8_1
         sage: G,M = DM_75_8_1()
-        sage: is_difference_matrix(zip(*M),G,8,1)
+        sage: is_difference_matrix(M,G,8,1)
         True
 
     Can be obtained from the constructor::
@@ -3913,7 +3893,7 @@ def DM_273_17_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_273_17_1
         sage: G,M = DM_273_17_1()
-        sage: is_difference_matrix(zip(*M),G,17,1)
+        sage: is_difference_matrix(M,G,17,1)
         True
 
     Can be obtained from the constructor::
@@ -3925,11 +3905,10 @@ def DM_273_17_1():
     B = (1,2,4,8,16,32,64,91,117,128,137,182,195,205,234,239,256) # (273,17,1) difference set
     M = [[B[x] for x in R] for R in M]
     M.append([0]*17)
-    Mb = zip(*M)
 
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(273)
-    return G, zip(*Mb)
+    return G, M
 
 def DM_993_32_1():
     r"""
@@ -3942,7 +3921,7 @@ def DM_993_32_1():
         sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
         sage: from sage.combinat.designs.database import DM_993_32_1
         sage: G,M = DM_993_32_1()
-        sage: is_difference_matrix(zip(*M),G,32,1)
+        sage: is_difference_matrix(M,G,32,1)
         True
 
     Can be obtained from the constructor::

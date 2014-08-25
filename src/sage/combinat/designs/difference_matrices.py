@@ -116,7 +116,6 @@ def difference_matrix(g,k,lmbda=1,existence=False,check=True):
             return Unknown
         raise NotImplementedError("I don't know how to build a ({},{},{})-Difference Matrix!".format(g,k,lmbda))
 
-    M = zip(*M)
     if check:
         assert is_difference_matrix(M,G,k,lmbda,1), "Sage built something which is not a ({},{},{})-DM!".format(g,k,lmbda)
 

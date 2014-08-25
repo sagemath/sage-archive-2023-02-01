@@ -63,6 +63,8 @@ objects like operation tables (e.g. the multiplication table of a group).
    sage/matrix/matrix2
 
    sage/matrix/strassen
+   
+   sage/matrix/weak_popov
 
    sage/matrix/berlekamp_massey
 

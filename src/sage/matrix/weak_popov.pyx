@@ -104,7 +104,8 @@ cpdef mulders_storjohann(M,transposition=False):
                 #. substitute M[x] = M[x] - a * x^d * M[y]
 
     EXAMPLES:
-        
+    
+    
     
     .. SEEALSO::
 

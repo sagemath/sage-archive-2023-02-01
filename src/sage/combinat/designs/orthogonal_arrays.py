@@ -897,12 +897,6 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
         True
     """
 
-    from latin_squares import mutually_orthogonal_latin_squares
-    from database import OA_constructions, MOLS_constructions
-    from block_design import projective_plane, projective_plane_to_OA
-    from orthogonal_arrays_recursive import find_recursive_construction
-    from difference_matrices import difference_matrix
-
     assert n>=0, "n(={}) must be nonnegative".format(n)
 
     # A resolvable OA(k,n) is an OA(k+1,n)
@@ -919,7 +913,9 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
         return [B[1:] for B in OA]
 
     # If k is set to None we find the largest value available
+
     if k is None:
+        from block_design import projective_plane
         if n == 0 or n == 1:
             if existence:
                 from sage.rings.infinity import Infinity
@@ -939,6 +935,12 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
 
     if existence and _OA_cache_get(k,n) is not None and t == 2:
         return _OA_cache_get(k,n)
+
+    from block_design import projective_plane
+    from latin_squares import mutually_orthogonal_latin_squares
+    from database import OA_constructions, MOLS_constructions
+    from orthogonal_arrays_recursive import find_recursive_construction
+    from difference_matrices import difference_matrix
 
     may_be_available = _OA_cache_construction_available(k,n) is not False
 
@@ -980,11 +982,13 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
         if k == n+1:
             if existence:
                 return projective_plane(n, existence=True)
+            from block_design import projective_plane_to_OA
             p = projective_plane(n, check=False)
             OA = projective_plane_to_OA(p, check=False)
         else:
             if existence:
                 return True
+            from block_design import projective_plane_to_OA
             p = projective_plane(n, check=False)
             OA = [l[:k] for l in projective_plane_to_OA(p, check=False)]
 

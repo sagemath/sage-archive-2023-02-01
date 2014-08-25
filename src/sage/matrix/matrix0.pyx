@@ -4049,58 +4049,67 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         .. WARNING::
         
-        This implementation only works for objects implementing a degree function,
-        it is designed to work for polynomials.
+            This implementation only works for objects implementing a degree function,
+            it is designed to work for polynomials.
         
-        EXAMPLES:: 
+        EXAMPLES:
         
-        A matrix with the same leading position in two rows. ::
+        A matrix with the same leading position in two rows is not in weak popov form. ::
         
             sage: PF = PolynomialRing(GF(2^12,'a'),'x')
             sage: A = matrix(PF,3,[x,x^2,x^3,x^2,x^2,x^2,x^3,x^2,x])
             sage: A.is_weak_popov()
             False
             
-        A matrix that has different leading positions. ::
+        If a matrix has different leading positions, it is in weak popov form. ::
         
             sage: B = matrix(PF,3,[1,1,x^3,x^2,1,1,1,x^2,1])
             sage: B.is_weak_popov()
             True
 
-        A matrix not over a polynomial ring will give an error: 
+        A matrix not over a polynomial ring will give an error. :: 
         
-            sage: C = matrix(ZZ,4,[-1, 1, 0, 0, 7, -2, 1, 0, 1, 0, 2, -5, -1, 1, 0, 2])
+            sage: C = matrix(ZZ,4,[-1, 1, 0, 0, 7, 2, 1, 0, 1, 0, 2, -5, -1, 1, 0, 2])
             sage: C.is_weak_popov()
             Traceback (most recent call last):
             ...
             NotImplementedError: is_weak_popov only implements support for matrices ordered by a function self[x,y].degree()
             
-        A non square matrix over a polynomial ring over a galois field of size 7:
+        Weak popov form is not restricted to square matrices. ::
 
             sage: PF = PolynomialRing(GF(7),'x')
             sage: D = matrix(PF,2,4,[x^2+1,1,2,x,3*x+2,0,0,0])
             sage: D.is_weak_popov()
             False
             
-        A matrix with more rows than cols that is still in weak popov form:
+        Even a matrix with more rows than cols can still be in weak popov form. ::
         
             sage: E = matrix(PF,4,2,[4*x^3+x,x^2+5*x+2,0,0,4,x,0,0])
             sage: E.is_weak_popov()
             True
             
-        A matrix with less cols than non zero rows is never in weak popov form:
+        But a matrix with less cols than non zero rows is never in weak popov form. ::
         
             sage: F = matrix(PF,3,2,[x^2,x,x^3+2,x,4,5])
             sage: F.is_weak_popov()
             False
             
-        TESTS::
+        TESTS:
         
-        A matrix to check if really the rightmost value is taken:
+        A matrix to check if really the rightmost value is taken. ::
         
             sage: F = matrix(PF,2,2,[x^2,x^2,x,5])
             sage: F.is_weak_popov()
             True
+            
+        .. SEEALSO:
+
+        - :meth:`weak_popov_form <sage.matrix.matrix2.weak_popov_form>`
+
+        REFERENCES:
+
+        .. [MS] T. Mulders, A. Storjohann, "On lattice reduction for polynomial
+          matrices," J. Symbolic Comput. 35 (2003), no. 4, 377--401
         
         AUTHOR:
 

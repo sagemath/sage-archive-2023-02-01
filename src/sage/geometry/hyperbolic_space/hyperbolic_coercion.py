@@ -23,10 +23,14 @@ from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometr
 from sage.categories.morphism import Morphism
 from sage.symbolic.pynac import I
 from sage.matrix.constructor import matrix
+from sage.modules.free_module_element import vector
 from sage.rings.all import RR
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
+#from sage.functions.other import real, imag, sqrt
 from sage.misc.lazy_import import lazy_import
+lazy_import('sage.functions.other', ['real','imag','sqrt'])
+lazy_import('sage.misc.misc', 'attrcall')
 
 class HyperbolicModelCoercion(Morphism):
     """
@@ -54,19 +58,21 @@ class HyperbolicModelCoercion(Morphism):
 
             sage: UHP = HyperbolicPlane().UHP()
             sage: PD = HyperbolicPlane().PD()
+            sage: HM = HyperbolicPlane().HM()
             sage: phi = UHP.coerce_map_from(PD)
             sage: phi(PD.get_point(0.5+0.5*I))
             Point in UHP 2.00000000000000 + 1.00000000000000*I
+            sage: psi = HM.coerce_map_from(UHP)
+            sage: psi(UHP.get_point(I))
+            (0, 0, 1)
 
         It is an error to try to convert a boundary point to a model
         that doesn't support boundary points::
 
-            sage: HM = HyperbolicPlane().HM()
-            sage: psi = HM.coerce_map_from(UHP)
-            sage: psi(UHP(infinity)
+            sage: psi(UHP(infinity))
             Traceback (most recent call last):
             ...
-            NotImplementedError: boundary points are not implemented for the Hyperbolid Model
+            NotImplementedError: boundary points are not implemented for the Hyperboloid Model
         """
         C = self.codomain()
         bdry = False
@@ -74,11 +80,11 @@ class HyperbolicModelCoercion(Morphism):
             if self.domain().is_bounded():
                 bdry = x.is_boundary()
             else:
-                bdry = C.bdry_point_in_model(x)
+                bdry = C.boundary_point_in_model(x)
         elif self.domain().is_bounded() and x.is_boundary():
             raise NotImplementedError("boundary points are not implemented for"
                                       " the {0}".format(C.name()))
-        return C.element_class(C, self.image_point(x.coordinates()), bdry,
+        return C.element_class(C, self.image_coordinates(x.coordinates()), bdry,
                                check=False, **x.graphics_options())
 
     def convert_geodesic(self, x):
@@ -107,7 +113,7 @@ class HyperbolicModelCoercion(Morphism):
             sage: UHP = HyperbolicPlane().UHP()
             sage: PD = HyperbolicPlane().PD()
             sage: phi = UHP.coerce_map_from(PD)
-            sage: phi(PD.get_point(0.5+0.5*I))
+            sage: phi(PD.get_point(0.5+0.5*I)) # Wrong test...
             Point in UHP 2.00000000000000 + 1.00000000000000*I
         """
         return self.codomain().get_isometry(self.image_isometry(x._matrix))
@@ -136,7 +142,7 @@ class CoercionUHPtoPD(HyperbolicModelCoercion):
     """
     Coercion from the UHP to PD model.
     """
-    def image_point(self, x):
+    def image_coordinates(self, x):
         """
         Return the image of the coordinates of the hyperbolic point ``x``
         under ``self``.
@@ -146,8 +152,10 @@ class CoercionUHPtoPD(HyperbolicModelCoercion):
             sage: UHP = HyperbolicPlane().UHP()
             sage: PD = HyperbolicPlane().PD()
             sage: phi = PD.coerce_map_from(UHP)
-            sage: phi.image_point(I)
-            Point in PD 0
+            sage: phi.image_coordinates(I)
+            0
+            sage: phi.image_coorindates(I)
+            +Infinity
         """
         if x == infinity:
             return I
@@ -166,20 +174,23 @@ class CoercionUHPtoKM(HyperbolicModelCoercion):
     """
     Coercion from the UHP to KM model.
     """
-    def image_point(self, x):
+    def image_coordinates(self, x):
         """
         Return the image of the coordinates of the hyperbolic point ``x``
         under ``self``.
 
         EXAMPLES::
 
-            sage: HyperbolicPlane.UHP.point_to_model(3 + I, 'KM')
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: KM = HyperbolicPlane().KM()
+            sage: phi = KM.coerce_map_from(UHP)
+            sage: phi.image_coordinates(3 + I)
             (6/11, 9/11)
         """
-        if p == infinity:
+        if x == infinity:
             return (0, 1)
-        return ((2*real(p))/(real(p)**2 + imag(p)**2 + 1),
-                (real(p)**2 + imag(p)**2 - 1)/(real(p)**2 + imag(p)**2 + 1))
+        return ((2*real(x))/(real(x)**2 + imag(x)**2 + 1),
+                (real(x)**2 + imag(x)**2 - 1)/(real(x)**2 + imag(x)**2 + 1))
 
     def image_isometry(self, x):
         """
@@ -194,14 +205,17 @@ class CoercionUHPtoHM(HyperbolicModelCoercion):
     """
     Coercion from the UHP to HM model.
     """
-    def image_point(self, x):
+    def image_coordinates(self, x):
         """
         Return the image of the coordinates of the hyperbolic point ``x``
         under ``self``.
 
         EXAMPLES::
 
-            sage: HyperbolicPlane.UHP.point_to_model(3 + I, 'HM')
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: HM = HyperbolicPlane().HM()
+            sage: phi = HM.coerce_map_from(UHP)
+            sage: phi.image_coordinates(3 + I)
             (3, 9/2, 11/2)
         """
         return vector((real(x)/imag(x),
@@ -225,7 +239,7 @@ class CoercionPDtoUHP(HyperbolicModelCoercion):
     """
     Coercion from the PD to UHP model.
     """
-    def image_point(self, x):
+    def image_coordinates(self, x):
         """
         Return the image of the coordinates of the hyperbolic point ``x``
         under ``self``.
@@ -235,9 +249,9 @@ class CoercionPDtoUHP(HyperbolicModelCoercion):
             sage: PD = HyperbolicPlane().PD()
             sage: UHP = HyperbolicPlane().UHP()
             sage: phi = UHP.coerce_map_from(PD)
-            sage: phi.image_point(0.5+0.5*I)
+            sage: phi.image_coordinates(0.5+0.5*I)
             2.00000000000000 + 1.00000000000000*I
-            sage: phi.image_point(0)
+            sage: phi.image_coordinates(0)
             I
         """
         if x == I:
@@ -257,7 +271,7 @@ class CoercionPDtoKM(HyperbolicModelCoercion):
     """
     Coercion from the PD to KM model.
     """
-    def image_point(self, x):
+    def image_coordinates(self, x):
         """
         Return the image of the coordinates of the hyperbolic point ``x``
         under ``self``.
@@ -281,7 +295,7 @@ class CoercionPDtoHM(HyperbolicModelCoercion):
     """
     Coercion from the PD to HM model.
     """
-    def image_point(self, x):
+    def image_coordinates(self, x):
         """
         Return the image of the coordinates of the hyperbolic point ``x``
         under ``self``.
@@ -312,14 +326,17 @@ class CoercionKMtoUHP(HyperbolicModelCoercion):
     """
     Coercion from the KM to UHP model.
     """
-    def image_point(self, x):
+    def image_coordinates(self, x):
         """
         Return the image of the coordinates of the hyperbolic point ``x``
         under ``self``.
 
         EXAMPLES::
 
-            sage: HyperbolicPlane.KM.point_to_model((0, 0), 'UHP')
+            sage: KM = HyperbolicPlane().KM()
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: phi = UHP.coerce_map_from(KM)
+            sage: phi.image_coordinates((0, 0))
             I
         """
         if tuple(x) == (0, 1):
@@ -341,7 +358,7 @@ class CoercionKMtoPD(HyperbolicModelCoercion):
     """
     Coercion from the KM to PD model.
     """
-    def image_point(self, x):
+    def image_coordinates(self, x):
         """
         Return the image of the coordinates of the hyperbolic point ``x``
         under ``self``.
@@ -365,14 +382,17 @@ class CoercionKMtoHM(HyperbolicModelCoercion):
     """
     Coercion from the KM to HM model.
     """
-    def image_point(self, x):
+    def image_coordinates(self, x):
         """
         Return the image of the coordinates of the hyperbolic point ``x``
         under ``self``.
 
         EXAMPLES::
 
-            sage: HyperbolicPlane.KM.point_to_model((0, 0), 'HM')
+            sage: KM = HyperbolicPlane().KM()
+            sage: HM = HyperbolicPlane().HM()
+            sage: phi = HM.coerce_map_from(KM)
+            sage: phi.image_coordinates((0, 0))
             (0, 0, 1)
         """
         return (vector((2*x[0], 2*x[1], 1 + x[0]**2 + x[1]**2))
@@ -395,14 +415,17 @@ class CoercionHMtoUHP(HyperbolicModelCoercion):
     """
     Coercion from the HM to UHP model.
     """
-    def image_point(self, x):
+    def image_coordinates(self, x):
         """
         Return the image of the coordinates of the hyperbolic point ``x``
         under ``self``.
 
         EXAMPLES::
 
-            sage: HyperbolicPlane.HM.point_to_model(vector((0,0,1)), 'UHP')
+            sage: HM = HyperbolicPlane().HM()
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: phi = UHP.coerce_map_from(HM)
+            sage: phi.image_coordinates( vector((0,0,1)) )
             I
         """
         return -((x[0]*x[2] + x[0]) + I*(x[2] + 1)) / ((x[1] - 1)*x[2]
@@ -421,7 +444,7 @@ class CoercionHMtoPD(HyperbolicModelCoercion):
     """
     Coercion from the HM to PD model.
     """
-    def image_point(self, x):
+    def image_coordinates(self, x):
         """
         Return the image of the coordinates of the hyperbolic point ``x``
         under ``self``.
@@ -444,14 +467,17 @@ class CoercionHMtoKM(HyperbolicModelCoercion):
     """
     Coercion from the HM to KM model.
     """
-    def image_point(self, x):
+    def image_coordinates(self, x):
         """
         Return the image of the coordinates of the hyperbolic point ``x``
         under ``self``.
 
         EXAMPLES::
 
-            sage: HyperbolicPlane.HM.point_to_model(vector((0,0,1)), 'KM')
+            sage: HM = HyperbolicPlane().HM()
+            sage: KM = HyperbolicPlane().KM()
+            sage: phi = KM.coerce_map_from(HM)
+            sage: phi.image_coordinates( vector((0,0,1)) )
             (0, 0)
         """
         return (x[0]/(1 + x[2]), x[1]/(1 + x[2]))
@@ -481,22 +507,24 @@ def SL2R_to_SO21(A):
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_coercion import SL2R_to_SO21
         sage: A = SL2R_to_SO21(identity_matrix(2))
-        sage: J =  matrix([[1,0,0],[0,1,0],[0,0,-1]]) #Lorentzian Gram matrix
+        sage: J = matrix([[1,0,0],[0,1,0],[0,0,-1]]) #Lorentzian Gram matrix
         sage: norm(A.transpose()*J*A - J) < 10**-4
         True
     """
     a,b,c,d = (A/A.det().sqrt()).list()
-    B = matrix(3, [a*d + b*c, a*c - b*d, a*c + b*d, a*b - c*d,
-                   Integer(1)/Integer(2)*a**2 - Integer(1)/Integer(2)*b**2 -
-                   Integer(1)/Integer(2)*c**2 + Integer(1)/Integer(2)*d**2,
-                   Integer(1)/Integer(2)*a**2 + Integer(1)/Integer(2)*b**2 -
-                   Integer(1)/Integer(2)*c**2 - Integer(1)/Integer(2)*d**2,
-                   a*b + c*d, Integer(1)/Integer(2)*a**2 -
-                   Integer(1)/Integer(2)*b**2 + Integer(1)/Integer(2)*c**2 -
-                   Integer(1)/Integer(2)*d**2, Integer(1)/Integer(2)*a**2 +
-                   Integer(1)/Integer(2)*b**2 + Integer(1)/Integer(2)*c**2 +
-                   Integer(1)/Integer(2)*d**2])
-    B = B.apply_map(attrcall('real')) # Kill ~0 imaginary parts
+    B = matrix(3, map(real,
+                      [a*d + b*c, a*c - b*d, a*c + b*d, a*b - c*d,
+                       Integer(1)/Integer(2)*a**2 - Integer(1)/Integer(2)*b**2 -
+                       Integer(1)/Integer(2)*c**2 + Integer(1)/Integer(2)*d**2,
+                       Integer(1)/Integer(2)*a**2 + Integer(1)/Integer(2)*b**2 -
+                       Integer(1)/Integer(2)*c**2 - Integer(1)/Integer(2)*d**2,
+                       a*b + c*d, Integer(1)/Integer(2)*a**2 -
+                       Integer(1)/Integer(2)*b**2 + Integer(1)/Integer(2)*c**2 -
+                       Integer(1)/Integer(2)*d**2, Integer(1)/Integer(2)*a**2 +
+                       Integer(1)/Integer(2)*b**2 + Integer(1)/Integer(2)*c**2 +
+                       Integer(1)/Integer(2)*d**2]
+               )) # Kill ~0 imaginary parts
+    #B = B.apply_map(attrcall('real')) 
     if A.det() > 0:
         return B
     else:

@@ -51,12 +51,13 @@ Points on the boundary are infinitely far from interior points::
 
 from sage.structure.element import Element
 from sage.symbolic.pynac import I
-from sage.misc.lazy_import import lazy_import
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.latex import latex
 from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometry
+from sage.rings.infinity import infinity
+from sage.rings.all import RR, CC
 
-lazy_import('sage.rings.all', ['RR', 'CC'])
+from sage.misc.lazy_import import lazy_import
 lazy_import('sage.functions.other', 'real')
 lazy_import('sage.modules.free_module_element', 'vector')
 
@@ -84,11 +85,10 @@ class HyperbolicPoint(Element):
     Note that the coordinate representation does not differentiate the
     different models::
 
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
-        sage: p = HyperbolicPointUHP(.2 + .3*I); p
+        sage: p = HyperbolicPlane().UHP().get_point(.2 + .3*I); p
         Point in UHP 0.200000000000000 + 0.300000000000000*I
 
-        sage: q = HyperbolicPointPD(0.2 + 0.3*I); q
+        sage: q = HyperbolicPlane().PD().get_point(0.2 + 0.3*I); q
         Point in PD 0.200000000000000 + 0.300000000000000*I
 
         sage: p == q
@@ -99,11 +99,10 @@ class HyperbolicPoint(Element):
 
     Similarly for boundary points::
 
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_bdry_point import *
-        sage: p = HyperbolicBdryPointUHP(1); p
+        sage: p = HyperbolicPlane().UHP().get_point(1); p
         Boundary point in UHP 1
 
-        sage: q = HyperbolicBdryPointPD(1); q
+        sage: q = HyperbolicPlane().PD().get_point(1); q
         Boundary point in PD 1
 
         sage: p == q
@@ -115,23 +114,22 @@ class HyperbolicPoint(Element):
     It is an error to specify a point that does not lie in the
     appropriate model::
 
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
-        sage: HyperbolicPointUHP(0.2 - 0.3*I)
+        sage: HyperbolicPlane().UHP().get_point(0.2 - 0.3*I)
         Traceback (most recent call last):
         ...
         ValueError: 0.200000000000000 - 0.300000000000000*I is not a valid point in the UHP model
 
-        sage: HyperbolicPointPD(1.2)
+        sage: HyperbolicPlane().PD().get_point(1.2)
         Traceback (most recent call last):
         ...
         ValueError: 1.20000000000000 is not a valid point in the PD model
 
-        sage: HyperbolicPointKM((1,1))
+        sage: HyperbolicPlane().KM().get_point((1,1))
         Traceback (most recent call last):
         ...
         ValueError: (1, 1) is not a valid point in the KM model
 
-        sage: HyperbolicPointHM((1, 1, 1))
+        sage: HyperbolicPlane().HM().get_point((1, 1, 1))
         Traceback (most recent call last):
         ...
         ValueError: (1, 1, 1) is not a valid point in the HM model
@@ -139,7 +137,7 @@ class HyperbolicPoint(Element):
     It is an error to specify an interior point of hyperbolic space as a
     boundary point::
 
-        sage: HyperbolicBdryPointUHP(0.2 + 0.3*I)
+        sage: HyperbolicPlane().UHP().get_point(0.2 + 0.3*I, boundary=True)
         Traceback (most recent call last):
         ...
         ValueError: 0.200000000000000 + 0.300000000000000*I is not a valid boundary point in the UHP model
@@ -150,15 +148,13 @@ class HyperbolicPoint(Element):
 
         EXAMPLES::
 
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
-            sage: p = HyperbolicPointUHP(I)
-            sage: p
-            Point in UHP I
+            sage: p = HyperbolicPlane().UHP().get_point(I)
+            sage: TestSuite(p).run()
         """
         if is_boundary:
             if not model.is_bounded():
                 raise NotImplementedError("boundary points are not implemented in the {0} model".format(model.short_name()))
-            if check and not model.bdry_point_in_model(coordinates):
+            if check and not model.boundary_point_in_model(coordinates):
                 raise ValueError(
                     "{0} is not a valid".format(coordinates) +
                     " boundary point in the {0} model".format(model.short_name()))
@@ -189,8 +185,7 @@ class HyperbolicPoint(Element):
 
         EXAMPLES::
 
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
-            sage: A = HyperbolicPointHM((0, 0, 1))
+            sage: A = HyperbolicPlane().HM().get_point((0, 0, 1))
             sage: A._cached_coordinates
             I
         """
@@ -317,17 +312,16 @@ class HyperbolicPoint(Element):
 
         EXAMPLES::
 
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
-            sage: HyperbolicPointUHP(2 + I).coordinates()
+            sage: HyperbolicPlane().UHP().get_point(2 + I).coordinates()
             I + 2
 
-            sage: HyperbolicPointPD(1/2 + 1/2*I).coordinates()
+            sage: HyperbolicPlane().PD().get_point(1/2 + 1/2*I).coordinates()
             1/2*I + 1/2
 
-            sage: HyperbolicPointKM((1/3, 1/4)).coordinates()
+            sage: HyperbolicPlane().KM().get_point((1/3, 1/4)).coordinates()
             (1/3, 1/4)
 
-            sage: HyperbolicPointHM((0,0,1)).coordinates()
+            sage: HyperbolicPlane().HM().get_point((0,0,1)).coordinates()
             (0, 0, 1)
         """
         return self._coordinates
@@ -339,40 +333,19 @@ class HyperbolicPoint(Element):
         EXAMPLES::
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
-            sage: HyperbolicPointUHP(I).model()
+            sage: HyperbolicPlane().UHP().get_point(I).model()
             <class 'sage.geometry.hyperbolic_space.hyperbolic_model.HyperbolicModelUHP'>
 
-            sage: HyperbolicPointPD(0).model()
+            sage: HyperbolicPlane().PD().get_point(0).model()
             <class 'sage.geometry.hyperbolic_space.hyperbolic_model.HyperbolicModelPD'>
 
-            sage: HyperbolicPointKM((0,0)).model()
+            sage: HyperbolicPlane().KM().get_point((0,0)).model()
             <class 'sage.geometry.hyperbolic_space.hyperbolic_model.HyperbolicModelKM'>
 
-            sage: HyperbolicPointHM((0,0,1)).model()
+            sage: HyperbolicPlane().HM().get_point((0,0,1)).model()
             <class 'sage.geometry.hyperbolic_space.hyperbolic_model.HyperbolicModelHM'>
         """
         return self.parent()
-
-    def model_name(self):
-        r"""
-        Return the short name of the hyperbolic model.
-
-        EXAMPLES::
-
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
-            sage: HyperbolicPointUHP(I).model_name()
-            'UHP'
-
-            sage: HyperbolicPointPD(0).model_name()
-            'PD'
-
-            sage: HyperbolicPointKM((0,0)).model_name()
-            'KM'
-
-            sage: HyperbolicPointHM((0,0,1)).model_name()
-            'HM'
-        """
-        return self.parent().short_name
 
     def is_boundary(self):
         """
@@ -446,33 +419,33 @@ class HyperbolicPoint(Element):
 
         EXAMPLES::
 
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
-            sage: p1 = HyperbolicPointUHP(5 + 7*I)
-            sage: p2 = HyperbolicPointUHP(1.0 + I)
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: p1 = UHP.get_point(5 + 7*I)
+            sage: p2 = UHP.get_point(1.0 + I)
             sage: p1.dist(p2)
             2.23230104635820
 
-            sage: p1 = HyperbolicPointPD(0)
-            sage: p2 = HyperbolicPointPD(I/2)
+            sage: p1 = HyperbolicPlane().PD().get_point(0)
+            sage: p2 = HyperbolicPlane().PD().get_point(I/2)
             sage: p1.dist(p2)
             arccosh(5/3)
 
-            sage: p1.to_model('UHP').dist(p2.to_model('UHP'))
+            sage: UHP(p1).dist(UHP(p2))
             arccosh(5/3)
 
-            sage: p1 = HyperbolicPointKM((0, 0))
-            sage: p2 = HyperbolicPointKM((1/2, 1/2))
+            sage: p1 = HyperbolicPlane().KM().get_point((0, 0))
+            sage: p2 = HyperbolicPlane().KM().get_point((1/2, 1/2))
             sage: numerical_approx(p1.dist(p2))
             0.881373587019543
 
-            sage: p1 = HyperbolicPointHM((0,0,1))
-            sage: p2 = HyperbolicPointHM((1,0,sqrt(2)))
+            sage: p1 = HyperbolicPlane().HM().get_point((0,0,1))
+            sage: p2 = HyperbolicPlane().HM().get_point((1,0,sqrt(2)))
             sage: numerical_approx(p1.dist(p2))
             0.881373587019543
 
         Distance between a point and itself is 0::
 
-            sage: p = HyperbolicPointUHP(47 + I)
+            sage: p = HyperbolicPlane().UHP().get_point(47 + I)
             sage: p.dist(p)
             0
         """
@@ -490,36 +463,35 @@ class HyperbolicPoint(Element):
 
         EXAMPLES::
 
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
-            sage: z = HyperbolicPointUHP(3 + 2*I)
+            sage: z = HyperbolicPlane().UHP().get_point(3 + 2*I)
             sage: z.symmetry_in()
             Isometry in UHP
             [  3/2 -13/2]
             [  1/2  -3/2]
 
-            sage: HyperbolicPointUHP(I).symmetry_in()
+            sage: HyperbolicPlane().UHP().get_point(I).symmetry_in()
             Isometry in UHP
             [ 0 -1]
             [ 1  0]
 
-            sage: HyperbolicPointPD(0).symmetry_in()
+            sage: HyperbolicPlane().PD().get_point(0).symmetry_in()
             Isometry in PD
             [-I  0]
             [ 0  I]
 
-            sage: HyperbolicPointKM((0, 0)).symmetry_in()
+            sage: HyperbolicPlane().KM().get_point((0, 0)).symmetry_in()
             Isometry in KM
             [-1  0  0]
             [ 0 -1  0]
             [ 0  0  1]
 
-            sage: HyperbolicPointHM((0,0,1)).symmetry_in()
+            sage: HyperbolicPlane().HM().get_point((0,0,1)).symmetry_in()
             Isometry in HM
             [-1  0  0]
             [ 0 -1  0]
             [ 0  0  1]
 
-            sage: p = HyperbolicPointUHP.random_element()
+            sage: p = HyperbolicPlane().UHP().random_element()
             sage: A = p.symmetry_in()
             sage: A*p == p
             True
@@ -527,7 +499,7 @@ class HyperbolicPoint(Element):
             sage: A.orientation_preserving()
             True
 
-            sage: A*A == HyperbolicPlane.UHP.isometry(identity_matrix(2))
+            sage: A*A == HyperbolicPlane().UHP().isometry(identity_matrix(2))
             True
         """
         A = self._HMethods.symmetry_in(self._cached_coordinates)
@@ -542,18 +514,9 @@ class HyperbolicPoint(Element):
         r"""
         EXAMPLES::
 
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
-            sage: HyperbolicPointUHP(I).show()
-            sage: HyperbolicPointPD(0).show()
-            sage: HyperbolicPointKM((0,0)).show()
-            sage: HyperbolicPointHM((0,0,1)).show()
-
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_bdry_point import *
-            sage: HyperbolicBdryPointUHP(0).show()
-            sage: HyperbolicBdryPointUHP(infinity).show()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: can't draw the point infinity
+            sage: HyperbolicPlane().PD().get_point(0).show()
+            sage: HyperbolicPlane().KM().get_point((0,0)).show()
+            sage: HyperbolicPlane().HM().get_point((0,0,1)).show()
         """
         p = self.coordinates()
         if p == infinity:
@@ -597,27 +560,27 @@ class HyperbolicPointUHP(HyperbolicPoint):
 
     EXAMPLES::
 
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_point import HyperbolicPointUHP
-        sage: HyperbolicPointUHP(2*I)
+        sage: HyperbolicPlane().UHP().get_point(2*I)
         Point in UHP 2*I
 
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_bdry_point import HyperbolicBdryPointUHP
-        sage: q = HyperbolicBdryPointUHP(1); q
+        sage: HyperbolicPlane().UHP().get_point(1)
         Boundary point in UHP 1
 
     """
-    _HMethods = HyperbolicMethodsUHP
 
     def show(self, boundary=True, **options):
         r"""
         EXAMPLES::
 
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
-            sage: HyperbolicPointUHP(I).show()
-            sage: HyperbolicPointPD(0).show()
-            sage: HyperbolicPointKM((0,0)).show()
-            sage: HyperbolicPointHM((0,0,1)).show()
+            sage: HyperbolicPlane().UHP().get_point(I).show()
+
+            sage: HyperbolicPlane().UHP().get_point(0).show()
+            sage: HyperbolicPlane().UHP().get_point(infinity).show()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: can't draw the point infinity
         """
+        # FIXME: Something didn't get put into the UHP point's show() properly
         opts = dict([('axes', False),('aspect_ratio',1)])
         opts.update(self.graphics_options())
         opts.update(options)
@@ -643,15 +606,12 @@ class HyperbolicPointPD(HyperbolicPoint):
 
     EXAMPLES::
 
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_point import HyperbolicPointPD
-        sage: HyperbolicPointPD(0)
+        sage: HyperbolicPlane().PD().get_point(0)
         Point in PD 0
 
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_bdry_point import HyperbolicBdryPointPD
-        sage: q = HyperbolicBdryPointPD(1); q
+        sage: HyperbolicPlane().PD().get_point(1)
         Boundary point in PD 1
     """
-    _HMethods = HyperbolicMethodsUHP
 
 class HyperbolicPointKM(HyperbolicPoint):
     r"""
@@ -663,15 +623,12 @@ class HyperbolicPointKM(HyperbolicPoint):
 
     EXAMPLES::
 
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_point import HyperbolicPointKM
-        sage: HyperbolicPointKM((0,0))
+        sage: HyperbolicPlane().KM().get_point((0,0))
         Point in KM (0, 0)
 
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_bdry_point import HyperbolicBdryPointKM
-        sage: q = HyperbolicBdryPointKM((1,0)); q
+        sage: HyperbolicPlane().KM().get_point((1,0))
         Boundary point in KM (1, 0)
     """
-    _HMethods = HyperbolicMethodsUHP
 
 class HyperbolicPointHM(HyperbolicPoint):
     r"""
@@ -684,15 +641,12 @@ class HyperbolicPointHM(HyperbolicPoint):
 
     EXAMPLES::
 
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_point import HyperbolicPointHM
-        sage: HyperbolicPointHM((0,0,1))
+        sage: HyperbolicPlane().HM().get_point((0,0,1))
         Point in HM (0, 0, 1)
 
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_bdry_point import HyperbolicBdryPointHM
-        sage: q = HyperbolicBdryPointHM((1,0,0)); q
+        sage: HyperbolicPlane().HM().get_point((1,0,0), is_boundary=True)
         Traceback (most recent call last):
         ...
         NotImplementedError: boundary points are not implemented in the HM model
     """
-    _HMethods = HyperbolicMethodsUHP
 

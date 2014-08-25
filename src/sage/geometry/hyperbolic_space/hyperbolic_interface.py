@@ -146,12 +146,23 @@ class HyperbolicModels(Category_realization_of_parent):
         return [Sets(), Realizations(self.base())]
 
     class ParentMethods:
-        @lazy_attribute
-        def _computation_model(self):
+        def _an_element_(self):
             """
-            Return the model in which to do computations by default.
+            Return an element of ``self``.
+
+            EXAMPLES::
+
+                sage: H = HyperbolicPlane()
+                sage: H.UHP().an_element()
+                Point in UHP I
+                sage: H.PD().an_element()
+                Point in PD 0
+                sage: H.KM().an_element()
+                Point in KM (0, 0)
+                sage: H.HM().an_element()
+                Point in HM (0, 0, 1)
             """
-            return self.realization_of().UHP()
+            return self(self.realization_of().PD().get_point(0))
 
     class ElementMethods:
         pass
@@ -163,41 +174,6 @@ class HyperbolicUserInterface(UniqueRepresentation):
     interface for interacting with models of hyperbolic geometry without
     having the interface dictate the class structure.
     """
-    @classmethod
-    def model_name(cls):
-        r"""
-        Return the full name of the hyperbolic model.
-
-        EXAMPLES::
-
-            sage: HyperbolicPlane.UHP.model_name()
-            'Upper Half Plane Model'
-            sage: HyperbolicPlane.PD.model_name()
-            'Poincare Disk Model'
-            sage: HyperbolicPlane.KM.model_name()
-            'Klein Disk Model'
-            sage: HyperbolicPlane.HM.model_name()
-            'Hyperboloid Model'
-        """
-        return cls.HModel.name
-
-    @classmethod
-    def short_name(cls):
-        r"""
-        Return the short name of the hyperbolic model.
-
-        EXAMPLES::
-
-            sage: HyperbolicPlane.UHP.short_name()
-            'UHP'
-            sage: HyperbolicPlane.PD.short_name()
-            'PD'
-            sage: HyperbolicPlane.HM.short_name()
-            'HM'
-            sage: HyperbolicPlane.KM.short_name()
-            'KM'
-        """
-        return cls.HModel.short_name
 
     @classmethod
     def is_bounded(cls):
@@ -257,19 +233,19 @@ class HyperbolicUserInterface(UniqueRepresentation):
         return cls.HModel.point_in_model(p)
 
     @classmethod
-    def bdry_point_in_model(cls, p):
+    def boundary_point_in_model(cls, p):
         r"""
         Return ``True`` if ``p`` gives the coordinates of a point on the
         ideal boundary of hyperbolic space in the current model.
 
         EXAMPLES::
 
-            sage: HyperbolicPlane.UHP.bdry_point_in_model(0)
+            sage: HyperbolicPlane.UHP.boundary_point_in_model(0)
             True
-            sage: HyperbolicPlane.UHP.bdry_point_in_model(I) # Not boundary point
+            sage: HyperbolicPlane.UHP.boundary_point_in_model(I) # Not boundary point
             False
         """
-        return cls.HModel.bdry_point_in_model(p)
+        return cls.HModel.boundary_point_in_model(p)
 
     @classmethod
     def isometry_in_model(cls, A):
@@ -425,32 +401,6 @@ class HyperbolicUserInterface(UniqueRepresentation):
             return a.dist(b)
         except(AttributeError):
             return cls.point(a).dist(cls.point(b))
-
-    @classmethod
-    def point_to_model(cls, p, model):
-        r"""
-        Return the image of ``p`` in the model ``model``.
-
-        INPUT:
-
-        - ``p`` -- a point in the current model of hyperbolic space
-          either as coordinates or as a :class:`HyperbolicPoint`
-
-        - ``model`` -- the name of an implemented model of hyperbolic
-          space of the same dimension
-
-        EXAMPLES::
-
-            sage: HyperbolicPlane.UHP.point_to_model(I, 'PD')
-            0
-            sage: HyperbolicPlane.PD.point_to_model(I, 'UHP')
-            +Infinity
-            sage: HyperbolicPlane.UHP.point_to_model(HyperbolicPlane.UHP.point(I), 'HM')
-            (0, 0, 1)
-        """
-        if isinstance(p, HyperbolicPoint):
-            p = p.coordinates()
-        return cls.HModel.point_to_model(p, model)
 
     @classmethod
     def isometry_to_model(cls, A, model):

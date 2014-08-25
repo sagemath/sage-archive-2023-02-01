@@ -51,9 +51,6 @@ from sage.misc.latex import latex
 from sage.rings.all import CC
 from sage.functions.other import real, imag
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_methods',
-            ['HyperbolicAbstractMethods', 'HyperbolicMethodsUHP'])
-
 class HyperbolicIsometry(Morphism):
     r"""
     Abstract base class for hyperbolic isometries.  This class should
@@ -70,7 +67,6 @@ class HyperbolicIsometry(Morphism):
         sage: A = HyperbolicIsometryUHP(identity_matrix(2))
         sage: B = HyperbolicIsometryHM(identity_matrix(3))
     """
-    _HMethods = HyperbolicAbstractMethods
 
     #####################
     # "Private" Methods #
@@ -567,8 +563,7 @@ class HyperbolicIsometry(Morphism):
         """
         fps = self._HMethods.fixed_point_set(self._cached_matrix)
         if len(fps) < 2:
-            raise ValueError("Isometries of type"
-                             " {0}".format(self.classification())
+            raise ValueError("isometries of type {0}".format(self.classification())
                              + " don't fix geodesics")
         from sage.geometry.hyperbolic_space.model_factory import ModelFactory
         fact = ModelFactory.find_factory(self._HMethods.model_name())
@@ -659,7 +654,6 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
         sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometryUHP
         sage: A = HyperbolicIsometryUHP(identity_matrix(2))
     """
-    _HMethods = HyperbolicMethodsUHP
 
 class HyperbolicIsometryPD(HyperbolicIsometry):
     r"""
@@ -674,7 +668,6 @@ class HyperbolicIsometryPD(HyperbolicIsometry):
         sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometryPD
         sage: A = HyperbolicIsometryPD(identity_matrix(2))
     """
-    _HMethods = HyperbolicMethodsUHP
 
 class HyperbolicIsometryKM(HyperbolicIsometry):
     r"""
@@ -689,7 +682,6 @@ class HyperbolicIsometryKM(HyperbolicIsometry):
         sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometryKM
         sage: A = HyperbolicIsometryKM(identity_matrix(3))
     """
-    _HMethods = HyperbolicMethodsUHP
 
 class HyperbolicIsometryHM(HyperbolicIsometry):
     r"""
@@ -704,5 +696,4 @@ class HyperbolicIsometryHM(HyperbolicIsometry):
         sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometryHM
         sage: A = HyperbolicIsometryHM(identity_matrix(3))
     """
-    _HMethods = HyperbolicMethodsUHP
 

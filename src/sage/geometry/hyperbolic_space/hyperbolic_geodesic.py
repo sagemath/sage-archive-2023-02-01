@@ -172,8 +172,8 @@ class HyperbolicGeodesic(SageObject):
             True
         """
         if self.model().is_bounded():
-            return (self.model().bdry_point_in_model(self.start().coordinates())
-                    and self.model().bdry_point_in_model(self.end().coordinates()))
+            return (self.model().boundary_point_in_model(self.start().coordinates())
+                    and self.model().boundary_point_in_model(self.end().coordinates()))
         else:
             return False #All non-bounded geodesics start life incomplete.
 

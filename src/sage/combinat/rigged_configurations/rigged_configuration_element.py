@@ -2141,3 +2141,38 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
             phi *= 2
         return Integer(phi)
 
+    @cached_method
+    def cocharge(self):
+        r"""
+        Compute the cocharge statistic.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(CartanType(['A',4,2]).dual(), [[1,1],[2,2]])
+            sage: sc = RC.cartan_type().as_folding().scaling_factors()
+            sage: all(mg.cocharge() * sc[0] == mg.to_virtual_configuration().cocharge()
+            ....:     for mg in RC.module_generators)
+            True
+        """
+        #return self.to_virtual_configuration().cocharge() / self.parent()._folded_ct.gamma[0]
+        vct = self.parent()._folded_ct
+        cc = 0
+        rigging_sum = 0
+        #sigma = vct.folding_orbit()
+        #gammatilde = list(vct.scaling_factors())
+        #gammatilde[-1] = 2
+        for a, p in enumerate(self):
+            t_check = 1 # == len(sigma[a+1]) * gammatilde[a+1] / gammatilde[0]
+            for pos, i in enumerate(p._list):
+                # Add the rigging
+                rigging_sum += t_check * p.rigging[pos]
+                # Add the L matrix contribution
+                for dim in self.parent().dims:
+                    if dim[0] == a + 1:
+                        cc += t_check * min(dim[1], i)
+                # Subtract the vacancy number
+                cc -= t_check * p.vacancy_numbers[pos]
+        return cc / 2 + rigging_sum
+
+    cc = cocharge
+

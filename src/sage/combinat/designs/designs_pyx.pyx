@@ -7,8 +7,10 @@ Functions
 ---------
 """
 include "sage/misc/bitset.pxi"
+include "sage/ext/stdsage.pxi"
 
 from libc.string cimport memset
+from sage.misc.unknown import Unknown
 
 def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="OA"):
     r"""
@@ -501,3 +503,84 @@ def is_difference_matrix(M,G,k,lmbda=1,verbose=False):
     sage_free(G_seen)
     sage_free(M_c)
     return True
+
+# Cached information for OA constructions (see .pxd file for more info)
+
+_OA_cache = <cache_entry *> sage_malloc(2*sizeof(cache_entry))
+if (_OA_cache == NULL):
+    sage_free(_OA_cache)
+    raise MemoryError
+_OA_cache[0].max_true = -1
+_OA_cache[1].max_true = -1
+_OA_cache_size = 2
+
+cpdef _OA_cache_set(int k,int n,truth_value):
+    r"""
+    Sets a value in the OA cache of existence results
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    - ``truth_value`` -- one of ``True,False,Unknown``
+    """
+    global _OA_cache, _OA_cache_size
+    cdef int i
+    if _OA_cache_size <= n:
+        new_cache_size = n+100
+        _OA_cache = <cache_entry *> sage_realloc(_OA_cache,new_cache_size*sizeof(cache_entry))
+        if _OA_cache == NULL:
+            sage_free(_OA_cache)
+            raise MemoryError
+
+        for i in range(_OA_cache_size,new_cache_size):
+            _OA_cache[i].max_true = 0
+            _OA_cache[i].min_unknown = -1
+            _OA_cache[i].max_unknown = 0
+            _OA_cache[i].min_false = -1
+
+        _OA_cache_size = new_cache_size
+
+    if truth_value is True:
+        _OA_cache[n].max_true    = k if k>_OA_cache[n].max_true    else _OA_cache[n].max_true
+    elif truth_value is Unknown:
+        _OA_cache[n].min_unknown = k if k<_OA_cache[n].min_unknown else _OA_cache[n].min_unknown
+        _OA_cache[n].max_unknown = k if k>_OA_cache[n].max_unknown else _OA_cache[n].max_unknown
+    else:
+        _OA_cache[n].min_false   = k if k<_OA_cache[n].min_false   else _OA_cache[n].min_false
+
+cpdef _OA_cache_get(int k,int n):
+    r"""
+    Gets a value from the OA cache of existence results
+
+    INPUT:
+
+    ``k,n`` (integers)
+    """
+    if n>=_OA_cache_size:
+        return None
+    if k <= _OA_cache[n].max_true:
+        return True
+    elif (k >= _OA_cache[n].min_unknown and k <= _OA_cache[n].max_unknown):
+        return Unknown
+    elif k >= _OA_cache[n].min_false:
+        return False
+
+    return None
+
+cpdef _OA_cache_construction_available(int k,int n):
+    r"""
+    Tests if a construction is implemented using the cache's information
+
+    INPUT:
+
+    - ``k,n`` (integers)
+    """
+    if n>=_OA_cache_size:
+        return Unknown
+    if k <= _OA_cache[n].max_true:
+        return True
+    if k >= _OA_cache[n].min_unknown:
+        return False
+    else:
+        return Unknown

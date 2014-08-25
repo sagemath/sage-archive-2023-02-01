@@ -577,7 +577,9 @@ class Link:
 
     def _dowker_notation_(self):
         r"""
-        Returns the dowker notation of the link. It is the pair of incoming
+        Returns the dowker notation of the link. Similar to the PD Code we number the
+        components. So every crossing is represented by four numbers. We focus on
+        the incoming entites of the under and the over crossing. It is the pair of incoming
         under cross and the incoming over cross. This information at every cross
         gives the dowker notation.
 
@@ -720,10 +722,10 @@ class Link:
     def Seifert_Matrix(self):
         r"""
         Returns the Seifert Matrix associated with the braidword.
-        This is further used to calculate the Alexander Polynomial.
 
         OUTPUT:
-            - Returns the Seifert Matrix of the link.
+            - The intersection matrix of a (not necessarily minimal) Seifert surface of the
+              link.
 
         EXAMPLES::
 

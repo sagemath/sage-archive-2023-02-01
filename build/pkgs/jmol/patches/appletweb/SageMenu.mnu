@@ -1,4 +1,4 @@
-# popupMenu.mnu Jmol version 14.0.11  2014-03-08 16:05:
+# popupMenu.mnu Jmol version 14.0.13  2014-04-03
 # edited for SageMath 2014-04-14 J. Gutow <gutow@uwosh.edu>
 
 # Part I -- Menu Structure
@@ -58,10 +58,8 @@ FILEUNITMenu | Symmetry = SYMMETRYShowComputedMenu SYMMETRYhide FILEMOLload FILE
 [set_boundbox]Menu | Boundbox = off#axes dotted - byPixelMenu byAngstromMenu
 byPixelMenu | Pixel Width = 1p 3p 5p 10p
 byAngstromMenu | Angstrom Width = 10a 20a 25a 50a 100a
-aboutMenu | About... = jmolMenu systemMenu
+aboutMenu | About... = jmolMenu
 jmolMenu | Jmol = APPLETid version date - help - mouse translations jmolorg
-systemMenu | System = os javaVender javaVersion JAVAprocessors JAVAmemMax JAVAmemTotal
-
 
 # Part II -- Key Definitions
 # --------------------------
@@ -341,14 +339,8 @@ back | Back = if not(showBoundBox);if not(showUnitcell);boundbox on;moveto 1.0 f
 # Part III -- Word Translations
 # -----------------------------
 
-version | 14.0.11
-date | 2014-03-08 16:05:
-os | Linux
-JAVAmemTotal | ?
-JAVAmemMax | ?
-JAVAprocessors | ?
-javaVender | Java: Oracle Corporation
-javaVersion | Java 1.7.0_51
+version | 14.0.13
+date | 2014-04-03
 modelSetMenu | No atoms loaded
 configurationComputedMenu | Configurations
 elementsComputedMenu | Element

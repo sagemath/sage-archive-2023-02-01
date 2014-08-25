@@ -173,7 +173,7 @@ cpdef mulders_storjohann(M,transposition=False):
 
         sage: R.<t> = QQ['t']
         sage: M = matrix([[1/t,1/(t^2),t],[0,0,t]])
-        sage: M.weak_popov_form()
+        sage: M.weak_popov_form(implementation="cython")
         Traceback (most recent call last):
         ...
         TypeError: the entries of M must lie in a univariate polynomial ring

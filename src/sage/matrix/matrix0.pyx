@@ -4037,7 +4037,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def is_weak_popov(self):
         r"""
-        Returns ``True`` if the matrix is in weak popov form.
+        Return ``True`` if the matrix is in weak popov form.
 
         OUTPUT:
         
@@ -4109,7 +4109,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         REFERENCES:
 
         .. [MS] T. Mulders, A. Storjohann, "On lattice reduction for polynomial
-          matrices," J. Symbolic Comput. 35 (2003), no. 4, 377--401
+          matrices, " J. Symbolic Comput. 35 (2003), no. 4, 377--401
         
         AUTHOR:
 
@@ -4120,15 +4120,18 @@ cdef class Matrix(sage.structure.element.Matrix):
             for r in range(self.nrows()):
                 max = -1
                 for c in range(self.ncols()):
-                    if self[r,c].degree()>=max:
-                        max = self[r,c].degree()
+                    if self[r, c].degree() >= max:
+                        max = self[r, c].degree()
                         p = c
-                if not max==-1:
+                if not max == -1:
                     if p in t:
                         return False
                     t.add(p)
         except (NotImplementedError,AttributeError):
-            raise NotImplementedError("is_weak_popov only implements support for matrices ordered by a function self[x,y].degree()")
+            raise NotImplementedError(
+                "is_weak_popov only implements support for matrices ordered"+ 
+                " by a function self[x,y].degree()"
+            )
         return True
 
     ###################################################

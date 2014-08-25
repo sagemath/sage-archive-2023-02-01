@@ -88,7 +88,8 @@ cpdef mulders_storjohann(M,transposition=False):
      
     OUTPUT:
 
-    M transformed into weak popov form.
+    M transformed into weak popov form. If transposition is True, a touple
+    (M,U) is returned with U*Original M = M in weak popov form.
     
     ALGORITHM::
     
@@ -105,7 +106,28 @@ cpdef mulders_storjohann(M,transposition=False):
 
     EXAMPLES:
     
+    The value transposition can be used to check unimodular equivalence. ::
     
+        sage: F.<a> = GF(2^4,'a')
+        sage: PF.<x> = F[]
+        sage: A = matrix(PF,[[1,a*x^17+1],[0,a*x^11+a^2*x^7+1]])
+        sage: Ac = copy(A)
+        sage: au = A.weak_popov_form(implementation="cython",transposition=True)
+        sage: au[1]*A == au[0]
+        True
+        sage: au[1].is_invertible()
+        True
+
+    The cython implementation can be used to speed up the computation of
+    a weak popov form. ::
+    
+        sage: B = 
+        matrix(PF,[[x^2+a,x^2+a,x^2+a],[x^3+a*x+1,x+a^2,x^5+a*x^4+a^2*x^3]])
+        sage: B.weak_popov_form(implementation="cython")
+        [                    x^2 + a                     x^2 + a                 
+    x^2 + a]
+        [x^5 + (a + 1)*x^3 + a*x + 1       x^5 + a*x^3 + x + a^2       a*x^4 + 
+(a^2 + a)*x^3]
     
     .. SEEALSO::
 
@@ -115,7 +137,6 @@ cpdef mulders_storjohann(M,transposition=False):
 
     .. [MS] T. Mulders, A. Storjohann, "On lattice reduction for polynomial
           matrices," J. Symbolic Comput. 35 (2003), no. 4, 377--401
-          
     """
     if transposition==True:
         from sage.matrix.constructor import identity_matrix
@@ -132,14 +153,14 @@ cpdef mulders_storjohann(M,transposition=False):
         for pos in lps:
             if len(lps[pos])>1:
                 if (M[lps[pos][0]][pos].degree() >= M[lps[pos][1]][pos].degree()):
-                    arownr = lps[pos][0]
-                    brownr = lps[pos][1]
+                    rowtochange = lps[pos][0]
+                    basisrow = lps[pos][1]
                 else:
-                    arownr = lps[pos][1]
-                    brownr = lps[pos][0]
-                simple_transformation(M,arownr,brownr,pos,U)
-                lps[pos].remove(arownr)
-                lps[leading_position(M[arownr])].append(arownr)
+                    rowtochange = lps[pos][1]
+                    basisrow = lps[pos][0]
+                simple_transformation(M,rowtochange,basisrow,pos,U)
+                lps[pos].remove(rowtochange)
+                lps[leading_position(M[rowtochange])].append(rowtochange)
                 break
     if U is not None:
         return (M,U)

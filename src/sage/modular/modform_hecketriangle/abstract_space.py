@@ -634,20 +634,36 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
             sage: MF.dimension() == MF._l1 + 1
             True
+
+            sage: MF = ModularForms(n=infinity, k=8, ep=1)
+            sage: MF.weight_parameters()
+            (2, 0)
+            sage: MF.dimension() == MF._l1 + 1
+            True
         """
 
         n = self._group.n()
         k = self._weight
         ep = self._ep
-        num = (k-(1-ep)*ZZ(n)/ZZ(n-2))*ZZ(n-2)/ZZ(4)
-
+        if (n == infinity):
+            num = (k-(1-ep)) / ZZ(4)
+        else:
+            num = (k-(1-ep)*ZZ(n)/ZZ(n-2)) * ZZ(n-2) / ZZ(4)
         if (num.is_integral()):
             num = ZZ(num)
-            l2 = num%n
-            l1 = ((num-l2)/n).numerator()
+            if (n == infinity):
+                # TODO: Figure out what to do in this case
+                # (l1 and l2 are no longer defined in an analog/unique way)
+                #l2 = num % ZZ(2)
+                #l1 = ((num-l2)/ZZ(2)).numerator()
+                l2 = ZZ(0)
+                l1 = num
+            else:
+                l2 = num % n
+                l1 = ((num-l2)/n).numerator()
         else:
-            raise ValueError('Invalid or non-occuring weight!')
-        return (l1,l2)
+            raise ValueError("Invalid or non-occuring weight k={}, ep={}!".format(k,ep))
+        return (l1, l2)
 
     # TODO: this only makes sense for modular forms,
     # resp. needs a big adjustment for quasi modular forms
@@ -734,20 +750,39 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.F_simple() == MF.f_inf()^MF._l1 * MF.f_rho()^MF._l2 * MF.f_i()
             True
 
-            sage: from sage.modular.modform_hecketriangle.space import CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms, ModularForms
             sage: MF = CuspForms(n=5, k=2, ep=-1)
             sage: MF._l1
             -1
             sage: MF.F_simple().parent()
             WeakModularForms(n=5, k=2, ep=-1) over Integer Ring
+
+            sage: MF = ModularForms(n=infinity, k=8, ep=1)
+            sage: MF.F_simple().reduced_parent()
+            ModularForms(n=+Infinity, k=8, ep=1) over Integer Ring
+            sage: MF.F_simple()
+            q^2 - 16*q^3 + 120*q^4 + O(q^5)
         """
 
         (x,y,z,d) = self.rat_field().gens()
 
-        finf_pol = d*(x**self._group.n() - y**2)
-        rat = finf_pol**self._l1 * x**self._l2 * y**(ZZ(1-self._ep)/ZZ(2))
+        if (self.hecke_n() == infinity):
+            # TODO: Think about what to in the case of n=infinity
+            # (there are 2 cuspidal parameters/variables instead of 1)
+            # For now we immitate the behavior of n < infinity,
+            # trying to get an element with maximal order at infinity
+            finf_pol = d*(x - y**2)
+            rat = finf_pol**self._l1 * x**self._l2 * y**(ZZ(1-self._ep)/ZZ(2))
+        else:
+            finf_pol = d*(x**self._group.n() - y**2)
+            rat = finf_pol**self._l1 * x**self._l2 * y**(ZZ(1-self._ep)/ZZ(2))
 
-        if (self._l1 > 0):
+        if (self.hecke_n() == infinity):
+            if (self._l1 >= 0):
+                new_space = self.extend_type("holo")
+            else:
+                new_space = self.extend_type("weak")
+        elif (self._l1 > 0):
             new_space = self.extend_type("cusp")
         elif (self._l1 == 0):
             new_space = self.extend_type("holo")
@@ -766,6 +801,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         The Faber polynomials are used to construct a basis of weakly holomorphic forms
         and to recover such forms from their initial Fourier coefficients.
+
+        Note: The function only works for ``n < infinity``.
 
         INPUT:
 
@@ -842,6 +879,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             q^-3 + 2240 + O(q)
         """
 
+        if (self.hecke_n() == infinity):
+            raise NotImplementedError
+
         m = ZZ(m)
         if (m < -self._l1):
             raise ValueError("Invalid basis index: {}<{}!".format(m,-self._l1))
@@ -885,6 +925,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         ``p(q)`` is a monic polynomial of degree ``self._l1 + m``.
 
         The relation to ``Faber_pol`` is: ``faber_pol(q) = Faber_pol(d*q)``.
+
+        Note: The function only works for ``n < infinity``.
 
         INPUT:
 
@@ -950,6 +992,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             q^-3 + 2240 + O(q)
         """
 
+        if (self.hecke_n() == infinity):
+            raise NotImplementedError
+
         m = ZZ(m)
         if (m < -self._l1):
             raise ValueError("Invalid basis index: {}<{}!".format(m,-self._l1))
@@ -988,6 +1033,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         forms of the same degree as ``self``. The basis element
         is determined by the property that the Fourier expansion
         is of the form ``q^(-m) + O(q^(self._l1 + 1))``.
+
+        Note: The function only works for ``n < infinity``.
 
         INPUT:
 
@@ -1038,6 +1085,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             q^-2 + 25/(4096*d^2) + O(q)
         """
 
+        if (self.hecke_n() == infinity):
+            raise NotImplementedError
+
         (x,y,z,d) = self.rat_field().gens()
 
         n        = self._group.n()
@@ -1058,6 +1108,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         In particular for all ``m >= -self._l1`` these elements form
         a basis of the space of weakly holomorphic modular forms
         of the corresponding degree.
+
+        Note: The function only works for ``n < infinity``.
 
         INPUT:
 
@@ -1099,6 +1151,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             q^-2 + 400 + O(q)
         """
 
+        if (self.hecke_n() == infinity):
+            raise NotImplementedError
+
         if (m < 0):
             new_space = self.extend_type("cusp")
         elif (m == 0):
@@ -1111,6 +1166,7 @@ class FormsSpace_abstract(FormsRing_abstract):
     def _canonical_min_exp(self, min_exp):
         r"""
         Return an adjusted value of ``min_exp`` corresponding to the analytic type of ``self``.
+        Note: The function only works for ``n < infinity``.
 
         EXAMPLES::
 
@@ -1119,6 +1175,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: CF._canonical_min_exp(-2)
             1
         """
+
+        if (self.hecke_n() == infinity):
+            raise NotImplementedError
 
         ZZ(min_exp)
         if self.is_holomorphic():
@@ -1136,6 +1195,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         r"""
         Return a basis in ``self`` of the subspace of (quasi) weakly holomorphic forms which
         satisfy the specified properties on the quasi parts and the initial Fourier coefficient.
+
+        Note: The function only works for ``n < infinity``.
 
         INPUT:
 
@@ -1221,6 +1282,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
         """
 
+        if (self.hecke_n() == infinity):
+            raise NotImplementedError
+
         if (not self.is_weakly_holomorphic()):
              from warnings import warn
              warn("This function only determines generators of (quasi) weakly modular forms!")
@@ -1270,6 +1334,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         See :meth:`quasi_part_gens` for more details.
 
+        Note: The function only works for ``n < infinity``.
+
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
@@ -1306,6 +1372,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.quasi_part_dimension(min_exp=2, max_exp=2)
             2
         """
+
+        if (self.hecke_n() == infinity):
+            raise NotImplementedError
 
         if (not self.is_weakly_holomorphic()):
              from warnings import warn
@@ -1351,6 +1420,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         If the precision is too low to determine the
         element an exception is raised.
+
+        Note: The function only works for ``n < infinity``.
 
         INPUT:
 
@@ -1401,6 +1472,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
         """
 
+        if (self.hecke_n() == infinity):
+            raise NotImplementedError
+
         if (laurent_series.prec() < self._l1 + 1):
             raise ValueError("Insufficient precision: {} < {}!".format(laurent_series.prec(), self._l1 + 1))
 
@@ -1428,6 +1502,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         This is a helper function used to construct weakly holomorphic quasi
         forms based on their initial Laurent coefficients
         (see :meth:`construct_quasi_form`).
+
+        Note: The function only works for ``n < infinity``.
 
         INPUT:
 
@@ -1458,6 +1534,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: QuasiModularForms(k=2)._quasi_form_matrix()
             [1]
         """
+
+        if (self.hecke_n() == infinity):
+            raise NotImplementedError
 
         min_exp = self._canonical_min_exp(min_exp)
         # We have to add + 1 to get a correct upper bound in all cases
@@ -1515,6 +1594,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         uniquely determine a corresponding (quasi) form in ``self`` with the given
         lower bound ``min_exp`` for the order at infinity (for each quasi part).
 
+        Note: The function only works for ``n < infinity``.
+
         INPUT:
 
         - ``min_exp``  -- An integer (default: 0), namely the lower bound for the
@@ -1540,6 +1621,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             1
         """
 
+        if (self.hecke_n() == infinity):
+            raise NotImplementedError
+
         min_exp = self._canonical_min_exp(min_exp)
         return self._quasi_form_matrix(min_exp=min_exp).dimensions()[0] + min_exp
 
@@ -1551,6 +1635,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         If the precision is too low to determine the
         element an exception is raised.
+
+        Note: The function only works for ``n < infinity``.
 
         INPUT:
 
@@ -1614,6 +1700,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
         """
 
+        if (self.hecke_n() == infinity):
+            raise NotImplementedError
+
         min_exp = laurent_series.valuation()
 
         # if a q_basis is available we can construct the form much faster
@@ -1658,6 +1747,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         If ``m==None`` the whole basis (with varying ``m``'s) is returned if it exists.
 
+        Note: The function only works for ``n < infinity``.
+
         INPUT:
 
         - ``m``        -- An integer, indicating the desired initial Laurent exponent of the element.
@@ -1692,6 +1783,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: QF.q_basis()
             [1 - 20160*q^3 - 158760*q^4 + O(q^5), q - 60*q^3 - 248*q^4 + O(q^5), q^2 + 8*q^3 + 30*q^4 + O(q^5)]
         """
+
+        if (self.hecke_n() == infinity):
+            raise NotImplementedError
 
         if (not self.is_weakly_holomorphic()):
              from warnings import warn

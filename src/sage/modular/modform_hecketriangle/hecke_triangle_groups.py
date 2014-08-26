@@ -125,9 +125,14 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             3.0000000000000...?
             sage: HeckeTriangleGroup(10).lam()
             1.9021130325903...?
+            sage: HeckeTriangleGroup(infinity).lam()
+            2
         """
 
-        return AA(2 * cos(pi/self._n))
+        if (self._n == infinity):
+            return AA(2)
+        else:
+            return AA(2 * cos(pi/self._n))
 
     @cached_method
     def rho(self):
@@ -147,9 +152,15 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             True
             sage: HeckeTriangleGroup(10).rho()
             0.95105651629515...? + 0.30901699437494...?*I
+            sage: HeckeTriangleGroup(infinity).rho()
+            1
         """
 
-        return AlgebraicField()(exp(pi/self._n*i))
+        # TODO: maybe rho should be replaced by -rhobar
+        if (self._n == infinity):
+            return AA(1)
+        else:
+            return AlgebraicField()(exp(pi/self._n*i))
 
     @cached_method
     def alpha(self):
@@ -171,6 +182,8 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             1/6
             sage: HeckeTriangleGroup(10).alpha()
             1/5
+            sage: HeckeTriangleGroup(infinity).alpha()
+            1/4
         """
 
         return ZZ(1)/ZZ(2) * (ZZ(1)/ZZ(2) - ZZ(1)/self._n)
@@ -195,6 +208,8 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             1/3
             sage: HeckeTriangleGroup(10).beta()
             3/10
+            sage: HeckeTriangleGroup(infinity).beta()
+            1/4
         """
 
         return ZZ(1)/ZZ(2) * (ZZ(1)/ZZ(2) + ZZ(1)/self._n)
@@ -412,7 +427,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             1/64
         """
 
-        n=self._n
+        n = self._n
         if (n==3):
             return ZZ(1)/ZZ(2**6*3**3)
         elif (n==4):

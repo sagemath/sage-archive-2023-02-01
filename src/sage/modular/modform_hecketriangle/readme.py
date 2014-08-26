@@ -482,6 +482,44 @@ All classes and functions are also individually documented (with doctest example
       (0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 17/(56*d), 0, 0)
 
 
+- **Theta subgroup**
+  The Hecke triangle group corresponding to ``n=infinity`` is also partially
+  supported.
+
+  EXAMPLES::
+
+      sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
+      sage: MR = QuasiMeromorphicModularFormsRing(n=infinity, red_hom=True)
+      sage: MR
+      QuasiMeromorphicModularFormsRing(n=+Infinity) over Integer Ring
+      sage: j_inv = MR.j_inv()
+      sage: f_i = MR.f_i()
+      sage: E4 = MR.E4()
+      sage: E2 = MR.E2()
+
+      sage: j_inv
+      q^-1 + 24 + 276*q + 2048*q^2 + 11202*q^3 + 49152*q^4 + O(q^5)
+      sage: MR.f_rho() == MR(1)
+      True
+      sage: E4
+      1 + 16*q + 112*q^2 + 448*q^3 + 1136*q^4 + O(q^5)
+      sage: f_i
+      1 - 24*q + 24*q^2 - 96*q^3 + 24*q^4 + O(q^5)
+      sage: E2
+      1 - 8*q - 8*q^2 - 32*q^3 - 40*q^4 + O(q^5)
+      sage: E4.derivative() == E4 * (E2 - f_i)
+      True
+      sage: f_i.serre_derivative() == -1/2 * E4
+      True
+      sage: MF = E4.reduced_parent()
+      sage: MF
+      ModularForms(n=+Infinity, k=4, ep=1) over Integer Ring
+      sage: MF.dimension()
+      2
+      sage: E4(i)
+      1.941017189...
+
+
 
 Future ideas:
 -------------

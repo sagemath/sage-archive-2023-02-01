@@ -111,6 +111,8 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             Power series constructor for Hecke modular forms for n=4 with (basic series) precision 10
             sage: MFSeriesConstructor(group=5, prec=12)
             Power series constructor for Hecke modular forms for n=5 with (basic series) precision 12
+            sage: MFSeriesConstructor(group=infinity)
+            Power series constructor for Hecke modular forms for n=+Infinity with (basic series) precision 10
         """
 
         self._group          = group
@@ -198,6 +200,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             q^-1 + 79/200 + 42877/640000*q + O(q^2)
             sage: MFSeriesConstructor(group=5, prec=3).J_inv_ZZ().parent()
             Laurent Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).J_inv_ZZ()
+            q^-1 + 3/8 + 69/1024*q + O(q^2)
         """
 
         F1       = lambda a,b:   self._series_ring(
@@ -248,6 +253,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             1 + 7/100*q + 21/160000*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3).f_rho_ZZ().parent()
             Power Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).f_rho_ZZ()
+            1
         """
 
         q = self._series_ring.gen()
@@ -274,6 +282,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             1 - 13/40*q - 351/64000*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3).f_i_ZZ().parent()
             Power Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).f_i_ZZ()
+            1 - 3/8*q + 3/512*q^2 + O(q^3)
         """
 
         q = self._series_ring.gen()
@@ -300,6 +311,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             q - 9/200*q^2 + 279/640000*q^3 + O(q^4)
             sage: MFSeriesConstructor(group=5, prec=3).f_inf_ZZ().parent()
             Power Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).f_inf_ZZ()
+            q - 1/8*q^2 + 7/1024*q^3 + O(q^4)
         """
 
         q = self._series_ring.gen()
@@ -326,9 +340,13 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             q^-1 - 15/128 - 15139/262144*q + O(q^2)
             sage: MFSeriesConstructor(group=8, prec=3).G_inv_ZZ().parent()
             Laurent Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).G_inv_ZZ()
+            q^-1 - 1/8 - 59/1024*q + O(q^2)
         """
 
         n = self.hecke_n()
+        # Note that G_inv is not a weakly holomorphic form (because of the behavior at -1)
         if (n == infinity):
             q = self._series_ring.gen()
             temp_expr = (self.J_inv_ZZ()/self.f_inf_ZZ()*q**2).power_series()
@@ -354,6 +372,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             1 + 21/100*q + 483/32000*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3).E4_ZZ().parent()
             Power Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).E4_ZZ()
+            1 + 1/4*q + 7/256*q^2 + O(q^3)
         """
 
         q = self._series_ring.gen()
@@ -375,6 +396,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             1 - 37/200*q - 14663/320000*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3).E6_ZZ().parent()
             Power Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).E6_ZZ()
+            1 - 1/8*q - 31/512*q^2 + O(q^3)
         """
 
         q = self._series_ring.gen()
@@ -396,6 +420,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             q + 47/200*q^2 + 11367/640000*q^3 + O(q^4)
             sage: MFSeriesConstructor(group=5, prec=3).Delta_ZZ().parent()
             Power Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).Delta_ZZ()
+            q + 3/8*q^2 + 63/1024*q^3 + O(q^4)
         """
 
         return (self.f_inf_ZZ()**3*self.J_inv_ZZ()**2/(self.f_rho_ZZ()**6)).power_series()
@@ -415,6 +442,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             1 - 9/200*q - 369/320000*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3).E2_ZZ().parent()
             Power Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).E2_ZZ()
+            1 - 1/8*q - 1/512*q^2 + O(q^3)
         """
 
         q = self._series_ring.gen()
@@ -513,6 +543,15 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             sage: d
             0.00705223418128...
 
+            sage: (base_ring, coeff_ring, qseries_ring, d) = MFSeriesConstructor(group=infinity).series_data(fix_d=True)
+            sage: base_ring
+            Rational Field
+            sage: coeff_ring
+            Rational Field
+            sage: qseries_ring
+            Power Series Ring in q over Rational Field
+            sage: d
+            1/64
 
         .. NOTE:
 
@@ -570,6 +609,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: MFSeriesConstructor(group=5, prec=3).J_inv(fix_d=True).parent()
             Laurent Series Ring in q over Real Field with 53 bits of precision
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).J_inv(fix_d=True)
+            1/64*q^-1 + 3/8 + 69/16*q + O(q^2)
         """
 
         (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
@@ -598,6 +640,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: MFSeriesConstructor(group=5, prec=3).f_rho(fix_d=True).parent()
             Power Series Ring in q over Real Field with 53 bits of precision
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).f_rho(fix_d=True)
+            1
         """
 
         (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
@@ -625,6 +670,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: MFSeriesConstructor(group=5, prec=3).f_i(fix_d=True).parent()
             Power Series Ring in q over Real Field with 53 bits of precision
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).f_i(fix_d=True)
+            1 - 24*q + 24*q^2 + O(q^3)
         """
 
         (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
@@ -652,6 +700,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: MFSeriesConstructor(group=5, prec=3).f_inf(fix_d=True).parent()
             Power Series Ring in q over Real Field with 53 bits of precision
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).f_inf(fix_d=True)
+            q - 8*q^2 + 28*q^3 + O(q^4)
         """
 
         (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
@@ -661,6 +712,8 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
     def G_inv(self, base_ring = ZZ, fix_d=False, d=None, d_num_prec=ZZ(53)):
         r"""
         Return the Fourier expansion of ``G_inv``.
+
+        Note: For ``n=infinity`` the corresponding function is not meromorphic at the cusp ``-1``.
 
         EXAMPLES::
 
@@ -679,6 +732,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: MFSeriesConstructor(group=8, prec=3).G_inv(fix_d=True).parent()
             Laurent Series Ring in q over Real Field with 53 bits of precision
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).G_inv(fix_d=True)
+            1/4096*q^-1 - 1/512 - 59/1024*q + O(q^2)
         """
 
         (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
@@ -706,6 +762,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: MFSeriesConstructor(group=5, prec=3).E4(fix_d=True).parent()
             Power Series Ring in q over Real Field with 53 bits of precision
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).E4(fix_d=True)
+            1 + 16*q + 112*q^2 + O(q^3)
         """
 
         (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
@@ -733,6 +792,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: MFSeriesConstructor(group=5, prec=3).E6(fix_d=True).parent()
             Power Series Ring in q over Real Field with 53 bits of precision
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).E6(fix_d=True)
+            1 - 8*q - 248*q^2 + O(q^3)
         """
 
         (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
@@ -760,6 +822,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: MFSeriesConstructor(group=5, prec=3).Delta(fix_d=True).parent()
             Power Series Ring in q over Real Field with 53 bits of precision
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).Delta(fix_d=True)
+            q + 24*q^2 + 252*q^3 + O(q^4)
         """
 
         (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
@@ -787,6 +852,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: MFSeriesConstructor(group=5, prec=3).E2(fix_d=True).parent()
             Power Series Ring in q over Real Field with 53 bits of precision
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).E2(fix_d=True)
+            1 - 8*q - 8*q^2 + O(q^3)
         """
 
         (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)

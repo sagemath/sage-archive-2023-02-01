@@ -1373,13 +1373,26 @@ class BrandtModule_class(AmbientHeckeModule):
             (1, 1, 1, 2, 1, 1, 2, 1, 1, 1)
             sage: BrandtModule(5,13).monodromy_weights()
             (1, 3, 1, 1, 1, 3)
+            sage: BrandtModule(2).monodromy_weights()
+            (12,)
             sage: BrandtModule(2,7).monodromy_weights()
             (3, 3)
         """
         try: return self.__monodromy_weights
         except AttributeError: pass
-        bv = B._brandt_series_vectors(2)
-        w = tuple([bv[i][i][1]*bv[i][i].denominator()/2 for i in range(len(bv))])
+        # Before normalization,
+        #
+        #     theta(R) = 1 + e*q + ....
+        #
+        # where e is the number of units in the order R.
+        #
+        # Since the theta series may be normalized as
+        #
+        #     c * theta(R) = a[0] + a[1]*q + ...
+        #
+        # we recover e = a[1]/a[0] regardless of normalization.
+        bv = self._brandt_series_vectors(2)
+        w = tuple(bv[i][i][1]/bv[i][i][0]/2 for i in range(len(bv)))
         self.__monodromy_weights = w
         return w
 

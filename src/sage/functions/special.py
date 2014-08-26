@@ -211,11 +211,11 @@ def _init():
         sage: sage.functions.special._done
         False
 
-    Then after using one of these functions, it changes::
+    Then after using one of the MaximaFunctions, it changes::
 
-        sage: from sage.functions.special import spherical_harmonic
-        sage: spherical_harmonic(3,2,1,2)
-        15/4*sqrt(7/30)*cos(1)*e^(4*I)*sin(1)^2/sqrt(pi)
+        sage: from sage.functions.special import elliptic_ec
+        sage: elliptic_ec(0.1)
+        1.53075763689776
         sage: sage.functions.special._done
         True
     """

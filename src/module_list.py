@@ -263,8 +263,8 @@ ext_modules = [
     Extension('sage.combinat.designs.designs_pyx',
               sources=['sage/combinat/designs/designs_pyx.pyx']),
 
-    Extension('sage.combinat.designs.orthogonal_arrays_recursive',
-              sources=['sage/combinat/designs/orthogonal_arrays_recursive.pyx']),
+    Extension('sage.combinat.designs.orthogonal_arrays_find_recursive',
+              sources=['sage/combinat/designs/orthogonal_arrays_find_recursive.pyx']),
 
     ################################
     ##

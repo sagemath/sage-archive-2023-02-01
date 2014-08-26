@@ -1662,7 +1662,7 @@ def QDM_from_Vmt(m,t,V):
         for ii in range(m+2):
             M.append(L[-ii:]+L[:-ii]) # cyclic shift
 
-    M.append([0]*q)
+    M.append([0]*(m+2))
 
     return Fq, M
 

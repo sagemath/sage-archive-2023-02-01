@@ -2500,13 +2500,13 @@ Tests for the Vmt vectors
 
 EXAMPLES::
 
-    sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
-    sage: from sage.combinat.designs.orthogonal_arrays import OA_from_Vmt
+    sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+    sage: from sage.combinat.designs.orthogonal_arrays import QDM_from_Vmt
     sage: from sage.combinat.designs.database import Vmt_vectors
     sage: for (m,t),(vec,source) in sorted(Vmt_vectors.items()):
-    ....:     k,n = m+2,(m+1)*t+1
+    ....:     G,M = QDM_from_Vmt(m,t,vec)
     ....:     if n < 1000:
-    ....:         assert is_orthogonal_array(OA_from_Vmt(m,t,vec),k,n)
+    ....:         assert  is_quasi_difference_matrix(M,G,m+2,1,1,t,verbose=1),(m,t)
     ....:     print "{:11}{}".format("V({},{}):".format(m,t),source)
     V(4,9):    A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
                  Discrete Mathematics 1982, vol 39, num 3, pp 263-281
@@ -2520,6 +2520,8 @@ EXAMPLES::
                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
     V(8,29):   Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(8,57):   A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
+                  Discrete Mathematics 1982, vol 39, num 3, pp 263-281
     V(10,13):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
                    Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
     V(10,19):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
@@ -2573,7 +2575,6 @@ EXAMPLES::
     V(12,229): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
                    Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
 """
-
 
 DF = {
 ##############

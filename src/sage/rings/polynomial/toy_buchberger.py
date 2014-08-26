@@ -203,8 +203,7 @@ def buchberger(F):
 
     """
     G = set(F.gens())
-    B = set(filter(lambda x_y: x_y[0] != x_y[1],
-                   [(g1, g2) for g1 in G for g2 in G]))
+    B = set((g1, g2) for g1 in G for g2 in G if g1 != g2)
 
     if get_verbose() >= 1:
         reductions_to_zero = 0

@@ -1125,7 +1125,7 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
     say 10,000 entries, each limited to 16 bits.  ::
 
         sage: A = random_matrix(ZZ, 100, 100, x=2^16); A
-        100 x 100 dense matrix over Integer Ring (type 'print A.str()' to see all of the entries)
+        100 x 100 dense matrix over Integer Ring (use the '.str()' method to see the entries)
 
     Random rational matrices.  Now ``num_bound`` and ``den_bound`` control the
     generation of random elements, by specifying limits on the absolute value of
@@ -3340,7 +3340,7 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
     # entry of the resultant matrix after addition of scalar multiple of a row.
     if ring==QQ or ring==ZZ:
         # If upper_bound is not set, don't control entry size.
-        if upper_bound==None:
+        if upper_bound is None:
         # If size control is not desired, the routine will run slightly faster, particularly with large matrices.
             for pivots in range(rank-1,-1,-1):
                 row_index=0
@@ -3707,12 +3707,12 @@ def random_unimodular_matrix(parent, upper_bound=None, max_tries=100):
     size=parent.nrows()
     if parent.nrows()!=parent.ncols():
         raise TypeError("a unimodular matrix must be square.")
-    if upper_bound!=None and (ring!=ZZ and ring!=QQ):
+    if upper_bound is not None and (ring!=ZZ and ring!=QQ):
         raise TypeError("only matrices over ZZ or QQ can have size control.")
-    if upper_bound==None:
+    if upper_bound is None:
         # random_echelonizable_matrix() always returns a determinant one matrix if given full rank.
         return random_matrix(ring, size, algorithm='echelonizable', rank=size)
-    elif upper_bound!=None and (ring==ZZ or ring==QQ):
+    elif upper_bound is not None and (ring==ZZ or ring==QQ):
         return random_matrix(ring, size,algorithm='echelonizable',rank=size, upper_bound=upper_bound, max_tries=max_tries)
 
 
@@ -3880,11 +3880,11 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
     size=parent.nrows()
     if parent.nrows()!=parent.ncols():
         raise TypeError("a diagonalizable matrix must be square.")
-    if eigenvalues!=None and dimensions==None:
+    if eigenvalues is not None and dimensions is None:
         raise ValueError("the list of eigenvalues must have a list of dimensions corresponding to each eigenvalue.")
-    if eigenvalues==None and dimensions!=None:
+    if eigenvalues is None and dimensions is not None:
         raise ValueError("the list of dimensions must have a list of corresponding eigenvalues.")
-    if eigenvalues==None and dimensions==None:
+    if eigenvalues is None and dimensions is None:
         values=[]
         #create a list with "size" number of entries
         for eigen_index in range(size):

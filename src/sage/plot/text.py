@@ -118,7 +118,7 @@ class Text(GraphicPrimitive):
             sage: s.jmol_repr(s.testing_render_params())[0][1]
             'color atom  [0,0,255]'
         """
-        if options == None:
+        if options is None:
             options = dict(self.options())
         options_3d = {}
         # TODO: figure out how to implement rather than ignore

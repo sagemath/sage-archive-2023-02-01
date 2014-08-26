@@ -10,7 +10,6 @@ Commutative algebra ideals
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.cachefunc import cached_method
 from category_types import Category_ideal, Category_in_ambient
 from algebra_ideals import AlgebraIdeals
 

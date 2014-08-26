@@ -573,6 +573,41 @@ def symbolic_sum(expression, *args, **kwds):
         sage: sum(1/k^5, k, 1, oo)
         zeta(5)
 
+    .. WARNING::
+    
+        This function only works with symbolic expressions. To sum any
+        other objects like list elements or function return values,
+        please use python summation, see
+        http://docs.python.org/library/functions.html#sum
+
+        In particular, this does not work::
+        
+            sage: n = var('n')
+            sage: list=[1,2,3,4,5]
+            sage: sum(list[n],n,0,3)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x (=n) to an integer
+            
+        Use python ``sum()`` instead::
+        
+            sage: sum(list[n] for n in range(4))
+            10
+            
+        Also, only a limited number of functions are recognized in symbolic sums::
+        
+            sage: sum(valuation(n,2),n,1,5)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'valuation'
+            
+        Again, use python ``sum()``::
+        
+            sage: sum(valuation(n+1,2) for n in range(5))
+            3
+            
+        (now back to the Sage ``sum`` examples)
+
     A well known binomial identity::
 
         sage: sum(binomial(n,k), k, 0, n)
@@ -729,15 +764,22 @@ def integral(x, *args, **kwds):
         2
 
     Another symbolic integral, from :trac:`11238`, that used to return
-    zero incorrectly; with maxima 5.26.0 one gets 1/2*sqrt(pi)*e^(1/4),
-    whereas with 5.29.1 the expression is less pleasant, but still
-    has the same value::
+    zero incorrectly; with Maxima 5.26.0 one gets
+    ``1/2*sqrt(pi)*e^(1/4)``, whereas with 5.29.1, and even more so
+    with 5.33.0, the expression is less pleasant, but still has the
+    same value.  Unfortunately, the computation takes a very long time
+    with the default settings, so we temporarily use the Maxima
+    setting ``domain: real``::
 
+        sage: sage.calculus.calculus.maxima('domain: real')
+        real
         sage: f = exp(-x) * sinh(sqrt(x))
         sage: t = integrate(f, x, 0, Infinity); t            # long time
-        1/4*(sqrt(pi)*(erf(1) - 1) + sqrt(pi) + 2*e^(-1) - 2)*e^(1/4) - 1/4*(sqrt(pi)*(erf(1) - 1) - sqrt(pi) + 2*e^(-1) - 2)*e^(1/4)
+        1/4*sqrt(pi)*(erf(1) - 1)*e^(1/4) - 1/4*(sqrt(pi)*(erf(1) - 1) - sqrt(pi) + 2*e^(-1) - 2)*e^(1/4) + 1/4*sqrt(pi)*e^(1/4) - 1/2*e^(1/4) + 1/2*e^(-3/4)
         sage: t.simplify_exp()  # long time
         1/2*sqrt(pi)*e^(1/4)
+        sage: sage.calculus.calculus.maxima('domain: complex')
+        complex
 
     An integral which used to return -1 before maxima 5.28. See :trac:`12842`::
 
@@ -1666,7 +1708,7 @@ def sqrt(x):
     EXAMPLES::
 
         sage: numerical_sqrt(10.1)
-        doctest:1: DeprecationWarning: numerical_sqrt is deprecated, use sqrt(x, prec=n) instead
+        doctest:...: DeprecationWarning: numerical_sqrt is deprecated, use sqrt(x, prec=n) instead
         See http://trac.sagemath.org/5404 for details.
         3.17804971641414
         sage: numerical_sqrt(9)

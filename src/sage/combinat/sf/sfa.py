@@ -212,7 +212,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import Integer, PolynomialRing, is_Polynomial, is_MPolynomial, QQ
+from sage.rings.all import Integer, PolynomialRing, QQ
+from sage.rings.polynomial.polynomial_element import is_Polynomial
+from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 import sage.combinat.partition
 from sage.combinat.partition import _Partitions, Partitions
 import sage.libs.symmetrica.all as symmetrica  # used in eval()
@@ -220,6 +222,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.misc.misc import prod, uniq
 from copy import copy
+from functools import reduce
 
 
 def SymmetricFunctionAlgebra(R, basis="schur"):
@@ -382,12 +385,12 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             sage: Sym = SymmetricFunctions(QQ)
             sage: bases = SymmetricFunctionsBases(Sym)
             sage: bases.super_categories()
-            [Category of graded hopf algebras with basis over Rational Field, Category of realizations of Symmetric Functions over Rational Field, Category of commutative rings]
+            [Category of commutative graded hopf algebras with basis over Rational Field,
+             Category of realizations of Symmetric Functions over Rational Field]
         """
         from sage.categories.all import CommutativeRings, GradedHopfAlgebrasWithBasis
-        return [GradedHopfAlgebrasWithBasis(self.base().base_ring()),
-                Realizations(self.base()),
-                CommutativeRings()]
+        return [GradedHopfAlgebrasWithBasis(self.base().base_ring()).Commutative(),
+                Realizations(self.base())]
 
     class ParentMethods:
 
@@ -407,7 +410,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 sage: s.is_integral_domain()
                 True
 
-            The following doctest is disabled pending :trac:`10963`::
+            The following doctest is disabled pending :trac:`15475`::
 
                 sage: s = SymmetricFunctions(Zmod(14)).s() # not tested
                 sage: s.is_integral_domain() # not tested
@@ -2020,11 +2023,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: s.set_print_style('lex')
         """
         if ps == 'lex':
-            self.print_options(monomial_cmp = lambda x,y: cmp(x,y))
+            self.print_options(generator_cmp = lambda x,y: cmp(x,y))
         elif ps == 'length':
-            self.print_options(monomial_cmp = lambda x,y: cmp(len(x), len(y)))
+            self.print_options(generator_cmp = lambda x,y: cmp(len(x), len(y)))
         elif ps == 'maximal_part':
-            self.print_options(monomial_cmp = lambda x,y: cmp(_lmax(x), _lmax(y)))
+            self.print_options(generator_cmp = lambda x,y: cmp(_lmax(x), _lmax(y)))
         else:
             raise ValueError("the print style must be one of lex, length, or maximal_part ")
         self._print_style = ps
@@ -4323,9 +4326,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             0
         """
         if exact:
-            res = dict( filter( lambda x: sum(x[0]) == d, self._monomial_coefficients.items()) )
+            res = dict(x for x in self._monomial_coefficients.items() if sum(x[0]) == d)
         else:
-            res = dict( filter( lambda x: sum(x[0]) <= d, self._monomial_coefficients.items()) )
+            res = dict(x for x in self._monomial_coefficients.items() if sum(x[0]) <= d)
         return self.parent()._from_dict(res)
 
     def restrict_partition_lengths(self, l, exact = True):
@@ -4356,9 +4359,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             s[1] + s[2, 1] + s[4]
         """
         if exact:
-            res = dict( filter( lambda x: len(x[0]) == l, self._monomial_coefficients.items()) )
+            res = dict(x for x in self._monomial_coefficients.items() if len(x[0]) == l)
         else:
-            res = dict( filter( lambda x: len(x[0]) <= l, self._monomial_coefficients.items()) )
+            res = dict(x for x in self._monomial_coefficients.items() if len(x[0]) <= l)
         return self.parent()._from_dict(res)
 
     def restrict_parts(self, n):
@@ -4380,7 +4383,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: z.restrict_parts(1)
             s[1] + s[1, 1, 1]
         """
-        res = dict( filter( lambda x: _lmax(x[0]) <= n, self._monomial_coefficients.items()) )
+        res = dict(x for x in self._monomial_coefficients.items() if _lmax(x[0]) <= n)
         return self.parent()._from_dict(res)
 
     def expand(self, n, alphabet = 'x'):

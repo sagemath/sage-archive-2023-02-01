@@ -214,7 +214,9 @@ thought. Here, we draw the root lattice, with the positive roots of
 small height in the root poset::
 
     sage: L = RootSystem(["A",1,1]).root_lattice()
-    sage: positive_roots = TransitiveIdealGraded(attrcall("pred"), L.simple_roots())
+    sage: seed = L.simple_roots()
+    sage: succ = attrcall("pred")
+    sage: positive_roots = RecursivelyEnumeratedSet(seed, succ, structure='graded')
     sage: it = iter(positive_roots)
     sage: first_positive_roots = [it.next() for i in range(10)]
     sage: L.plot(roots=first_positive_roots, affine=False, alcoves=False)
@@ -238,7 +240,9 @@ small height in the root poset::
 Here is a polished solution for the first exercise::
 
     sage: L = RootSystem(["A",1,1]).weight_space()
-    sage: positive_coroots = TransitiveIdealGraded(attrcall("pred"), L.simple_coroots())
+    sage: seed = L.simple_coroots()
+    sage: succ = attrcall("pred")
+    sage: positive_coroots = RecursivelyEnumeratedSet(seed, succ, structure='graded')
     sage: it = iter(positive_coroots)
     sage: first_positive_coroots = [it.next() for i in range(20)]
     sage: p = L.plot(fundamental_chamber=True, reflection_hyperplanes=first_positive_coroots,

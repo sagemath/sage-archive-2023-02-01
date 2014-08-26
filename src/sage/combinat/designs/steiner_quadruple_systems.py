@@ -52,7 +52,7 @@ This module's main function is the following :
     :widths: 15, 20, 65
     :delim: |
 
-    | :func:`steiner_quadruple_system` | Returns a Steiner Quadruple System on `n` points
+    | :func:`steiner_quadruple_system` | Return a Steiner Quadruple System on `n` points
 
 This function redistributes its work among 6 constructions :
 
@@ -61,15 +61,15 @@ This function redistributes its work among 6 constructions :
     :widths: 15, 20, 65
     :delim: |
 
-    Construction `1` | :func:`two_n`                | Returns a Steiner Quadruple System on `2n` points
-    Construction `2` | :func:`three_n_minus_two`    | Returns a Steiner Quadruple System on `3n-2` points
-    Construction `3` | :func:`three_n_minus_eight`  | Returns a Steiner Quadruple System on `3n-8` points
-    Construction `4` | :func:`three_n_minus_four`   | Returns a Steiner Quadruple System on `3n-4` points
-    Construction `5` | :func:`four_n_minus_six`     | Returns a Steiner Quadruple System on `4n-6` points
-    Construction `6` | :func:`twelve_n_minus_ten`   | Returns a Steiner Quadruple System on `12n-10` points
+    Construction `1` | :func:`two_n`                | Return a Steiner Quadruple System on `2n` points
+    Construction `2` | :func:`three_n_minus_two`    | Return a Steiner Quadruple System on `3n-2` points
+    Construction `3` | :func:`three_n_minus_eight`  | Return a Steiner Quadruple System on `3n-8` points
+    Construction `4` | :func:`three_n_minus_four`   | Return a Steiner Quadruple System on `3n-4` points
+    Construction `5` | :func:`four_n_minus_six`     | Return a Steiner Quadruple System on `4n-6` points
+    Construction `6` | :func:`twelve_n_minus_ten`   | Return a Steiner Quadruple System on `12n-10` points
 
 It also defines two specific Steiner Quadruple Systems that the constructions
-require, i.e.`SQS_{14}` and `SQS_{38}` as well as the systems of pairs
+require, i.e. `SQS_{14}` and `SQS_{38}` as well as the systems of pairs
 `P_{\alpha}(m)` and `\overline P_{\alpha}(m)` (see [Hanani60]_).
 
 Functions
@@ -80,7 +80,7 @@ from sage.misc.cachefunc import cached_function
 # Construction 1
 def two_n(n,B):
     r"""
-    Returns a Steiner Quadruple System on `2n` points.
+    Return a Steiner Quadruple System on `2n` points.
 
     INPUT:
 
@@ -118,7 +118,7 @@ def two_n(n,B):
 # Construction 2
 def three_n_minus_two(n,B):
     """
-    Returns a Steiner Quadruple System on `3n-2` points.
+    Return a Steiner Quadruple System on `3n-2` points.
 
     INPUT:
 
@@ -176,7 +176,7 @@ def three_n_minus_two(n,B):
 # Construction 3
 def three_n_minus_eight(n, B):
     """
-    Returns a Steiner Quadruple System on `3n-8` points.
+    Return a Steiner Quadruple System on `3n-8` points.
 
     INPUT:
 
@@ -219,7 +219,7 @@ def three_n_minus_eight(n, B):
 
 
     # Line 4.
-    k = (n-14)/12
+    k = (n-14) // 12
     for i in xrange(3):
         for b in xrange(n-4):
             for bb in xrange(n-4):
@@ -243,7 +243,7 @@ def three_n_minus_eight(n, B):
 # Construction 4
 def three_n_minus_four(n, B):
     """
-    Returns a Steiner Quadruple System on `3n-4` points.
+    Return a Steiner Quadruple System on `3n-4` points.
 
     INPUT:
 
@@ -281,7 +281,7 @@ def three_n_minus_four(n, B):
                 Y.append((r(0,aa),r(1,aaa), r(2,aaaa),3*(n-2)+a))
 
     # Line 4.
-    k = (n-10)/12
+    k = (n-10) // 12
     for i in xrange(3):
         for b in xrange(n-2):
             for bb in xrange(n-2):
@@ -308,7 +308,7 @@ def three_n_minus_four(n, B):
 # Construction 5
 def four_n_minus_six(n, B):
     """
-    Returns a Steiner Quadruple System on `4n-6` points.
+    Return a Steiner Quadruple System on `4n-6` points.
 
     INPUT:
 
@@ -338,7 +338,7 @@ def four_n_minus_six(n, B):
                 Y.append(tuple(r(i,ii,x) if x<= n-3 else x+3*(n-2) for x in s ))
 
     # Line 2/3/4/5
-    k = f/2
+    k = f // 2
     for l in xrange(2):
         for eps in xrange(2):
             for c in xrange(k):
@@ -386,7 +386,7 @@ def four_n_minus_six(n, B):
 # Construction 6
 def twelve_n_minus_ten(n, B):
     """
-    Returns a Steiner Quadruple System on `12n-6` points.
+    Return a Steiner Quadruple System on `12n-6` points.
 
     INPUT:
 
@@ -407,7 +407,7 @@ def twelve_n_minus_ten(n, B):
 
     B14 = steiner_quadruple_system(14)
     r = lambda i,x : i%(n-1)+(x%12)*(n-1)
-    k = n/2
+    k = n // 2
 
     # Line 1.
     Y = []
@@ -528,7 +528,7 @@ def relabel_system(n,B):
 
 def P(alpha, m):
     r"""
-    Returns the collection of pairs `P_{\alpha}(m)`
+    Return the collection of pairs `P_{\alpha}(m)`
 
     For more information on this system, see [Hanani60]_.
 
@@ -543,10 +543,10 @@ def P(alpha, m):
     if m%2==0:
         if alpha < m:
             if alpha%2 == 0:
-                b = alpha/2
+                b = alpha // 2
                 return [(2*a, (2*a + 2*b + 1)%(2*m)) for a in xrange(m)]
             else:
-                b = (alpha-1)/2
+                b = (alpha-1) // 2
                 return [(2*a, (2*a - 2*b - 1)%(2*m)) for a in xrange(m)]
         else:
             y = alpha - m
@@ -557,10 +557,10 @@ def P(alpha, m):
     else:
         if alpha < m-1:
             if alpha % 2 == 0:
-                b = alpha/2
+                b = alpha // 2
                 return [(2*a,(2*a+2*b+1)%(2*m)) for a in xrange(m)]
             else:
-                b = (alpha-1)/2
+                b = (alpha-1) // 2
                 return [(2*a,(2*a-2*b-1)%(2*m)) for a in xrange(m)]
         else:
             y = alpha-m+1
@@ -571,7 +571,7 @@ def P(alpha, m):
 
 def _missing_pair(n,l):
     r"""
-    Returns the smallest `(x,x+1)` that is not contained in `l`.
+    Return the smallest `(x,x+1)` that is not contained in `l`.
 
     EXAMPLE::
 
@@ -590,7 +590,7 @@ def _missing_pair(n,l):
 
 def barP(eps, m):
     r"""
-    Returns the collection of pairs `\overline P_{\alpha}(m)`
+    Return the collection of pairs `\overline P_{\alpha}(m)`
 
     For more information on this system, see [Hanani60]_.
 
@@ -605,7 +605,7 @@ def barP(eps, m):
 @cached_function
 def barP_system(m):
     r"""
-    Returns the 1-factorization of `K_{2m}` `\overline P(m)`
+    Return the 1-factorization of `K_{2m}` `\overline P(m)`
 
     For more information on this system, see [Hanani60]_.
 
@@ -628,7 +628,7 @@ def barP_system(m):
         # The first (shorter) collections of  pairs, obtained from P by removing
         # pairs. Those are added to 'last', a new list of pairs
         last = []
-        for n in xrange(1,(m-2)/2+1):
+        for n in xrange(1, (m-2)//2+1):
             pairs.append([p for p in P(2*n,m) if not isequal(p,(2*n,(4*n+1)%(2*m)))])
             last.append((2*n,(4*n+1)%(2*m)))
             pairs.append([p for p in P(2*n-1,m) if not isequal(p,(2*m-2-2*n,2*m-1-4*n))])
@@ -655,7 +655,7 @@ def barP_system(m):
 
         # Now the points must be relabeled
         relabel = {}
-        for n in xrange(1,(m-2)/2+1):
+        for n in xrange(1, (m-2)//2+1):
             relabel[2*n] = (4*n)%(2*m)
             relabel[4*n+1] = (4*n+1)%(2*m)
             relabel[2*m-2-2*n] = (4*n-2)%(2*m)
@@ -671,7 +671,7 @@ def barP_system(m):
         # pairs. Those are added to 'last', a new list of pairs
 
         last = []
-        for n in xrange(0,(m-3)/2+1):
+        for n in xrange(0, (m-3)//2+1):
             pairs.append([p for p in P(2*n,m) if not isequal(p,(2*n,(4*n+1)%(2*m)))])
             last.append((2*n,(4*n+1)%(2*m)))
             pairs.append([p for p in P(2*n+1,m) if not isequal(p,(2*m-2-2*n,2*m-3-4*n))])
@@ -693,7 +693,7 @@ def barP_system(m):
 
         # Now the points must be relabeled
         relabel = {}
-        for n in xrange(0,(m-3)/2+1):
+        for n in xrange(0, (m-3)//2+1):
             relabel[2*n] = (4*n)%(2*m)
             relabel[4*n+1] = (4*n+1)%(2*m)
             relabel[2*m-2-2*n] = (4*n+2)%(2*m)
@@ -717,7 +717,7 @@ def barP_system(m):
 @cached_function
 def steiner_quadruple_system(n, check = False):
     r"""
-    Returns a Steiner Quadruple System on `n` points.
+    Return a Steiner Quadruple System on `n` points.
 
     INPUT:
 
@@ -751,22 +751,22 @@ def steiner_quadruple_system(n, check = False):
     elif n == 38:
         return _SQS38()
     elif (n%12) in [4,8]:
-        nn = n/2
+        nn =  n // 2
         sqs = two_n(nn,steiner_quadruple_system(nn, check = False))
     elif (n%18) in [4,10]:
-        nn = (n+2)/3
+        nn = (n+2) // 3
         sqs = three_n_minus_two(nn,steiner_quadruple_system(nn, check = False))
     elif (n%36) == 34:
-        nn = (n+8)/3
+        nn = (n+8) // 3
         sqs = three_n_minus_eight(nn,steiner_quadruple_system(nn, check = False))
     elif (n%36) == 26 :
-        nn = (n+4)/3
+        nn = (n+4) // 3
         sqs = three_n_minus_four(nn,steiner_quadruple_system(nn, check = False))
     elif (n%24) in [2,10]:
-        nn = (n+6)/4
+        nn = (n+6) // 4
         sqs = four_n_minus_six(nn,steiner_quadruple_system(nn, check = False))
     elif (n%72) in [14,38]:
-        nn = (n+10)/12
+        nn = (n+10) // 12
         sqs = twelve_n_minus_ten(nn, steiner_quadruple_system(nn, check = False))
     else:
         raise ValueError("This shouldn't happen !")
@@ -821,9 +821,9 @@ def is_steiner_quadruple_system(n,B):
 
 def _SQS14():
     r"""
-    Returns a Steiner Quadruple System on 14 points.
+    Return a Steiner Quadruple System on 14 points.
 
-    Obtained form the La Jolla Covering Repository.
+    Obtained from the La Jolla Covering Repository.
 
     EXAMPLE::
 
@@ -853,9 +853,9 @@ def _SQS14():
 
 def _SQS38():
     r"""
-    Returns a Steiner Quadruple System on 14 points.
+    Return a Steiner Quadruple System on 14 points.
 
-    Obtained form the La Jolla Covering Repository.
+    Obtained from the La Jolla Covering Repository.
 
     EXAMPLE::
 

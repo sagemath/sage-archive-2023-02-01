@@ -157,7 +157,7 @@ class SchemeMorphism(Element):
         sage: A2.structure_morphism().domain()
         Affine Space of dimension 2 over Rational Field
         sage: A2.structure_morphism().category()
-        Category of hom sets in Category of Schemes
+        Category of hom sets in Category of schemes
     """
 
     def __init__(self, parent, codomain=None):
@@ -428,7 +428,7 @@ class SchemeMorphism(Element):
 
             sage: A2 = AffineSpace(QQ,2)
             sage: A2.structure_morphism().category()
-            Category of hom sets in Category of Schemes
+            Category of hom sets in Category of schemes
         """
         return self.parent().category()
 
@@ -440,7 +440,7 @@ class SchemeMorphism(Element):
 
             sage: A2 = AffineSpace(QQ,2)
             sage: A2.structure_morphism().category_for()
-            Category of Schemes
+            Category of schemes
         """
         return self.parent().homset_category()
 
@@ -1556,7 +1556,7 @@ class SchemeMorphism_point(SchemeMorphism):
         Q=[]
         for i in range(len(self._coords)):
             Q.append(R(self._coords[i]))
-        return(S.point(Q,check))
+        return(S.point(Q, check=check))
 
     def __copy__(self):
         r"""
@@ -1575,4 +1575,4 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: copy(Q) == Q
             True
         """
-        return(self._codomain.point(self._coords,False))
+        return(self._codomain.point(self._coords, check=False))

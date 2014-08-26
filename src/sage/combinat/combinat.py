@@ -2251,23 +2251,9 @@ def unordered_tuples(S,k):
         [[1, 1, 1], [1, 1, 2], [1, 2, 2], [2, 2, 2]]
         sage: unordered_tuples(["a","b","c"],2)
         ['aa', 'ab', 'ac', 'bb', 'bc', 'cc']
-        sage: unordered_tuples(["ab","b","c"],2)
-        [['ab', 'ab'], ['ab', 'b'], ['ab', 'c'], ['b', 'b'], ['b', 'c'], ['c', 'c']]
-
     """
-    from sage.libs.gap.libgap import libgap
-    if all(isinstance(s,str) and len(s)==1 for s in S):
-        ans=libgap.eval("UnorderedTuples(%s,%s)"%(S,ZZ(k)))
-    else:
-        setstr = '['
-        for elem in S:
-            if isinstance(elem,str):
-                setstr += '"' + elem + '"' + ','
-            else:
-                setstr += str(elem) + ','
-        setstr = setstr[:-1] + ']'
-        ans=libgap.eval("UnorderedTuples(%s,%s)"%(setstr,ZZ(k)))
-    return ans.sage()
+    ans=gap.eval("UnorderedTuples(%s,%s)"%(S,ZZ(k)))
+    return eval(ans)
 
 def number_of_unordered_tuples(S,k):
     """

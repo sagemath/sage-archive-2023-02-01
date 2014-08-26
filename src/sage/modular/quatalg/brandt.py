@@ -1413,8 +1413,9 @@ class BrandtModule_class(AmbientHeckeModule):
         #     c * theta(R) = a[0] + a[1]*q + ...
         #
         # we recover e = a[1]/a[0] regardless of normalization.
-        bv = self._brandt_series_vectors(2)
-        w = tuple(bv[i][i][1]/bv[i][i][0]/2 for i in range(len(bv)))
+        orders = self._ideal_products(diagonal_only=True)
+        thetas = (R.theta_series_vector(2) for R in orders)
+        w = tuple(a[1]/a[0]/2 for a in thetas)
         self.__monodromy_weights = w
         return w
 

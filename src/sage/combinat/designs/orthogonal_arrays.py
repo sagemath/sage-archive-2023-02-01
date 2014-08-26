@@ -514,7 +514,7 @@ def wilson_construction(OA,k,r,m,n_trunc,u,check=True):
 
         sage: from sage.combinat.designs.orthogonal_arrays import wilson_construction
         sage: from sage.combinat.designs.orthogonal_arrays import OA_relabel
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_wilson_decomposition_with_one_truncated_group
+        sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_wilson_decomposition_with_one_truncated_group
         sage: total = 0
         sage: for k in range(3,8):
         ....:    for n in range(1,30):
@@ -824,7 +824,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
     from block_design import projective_plane
     from latin_squares import mutually_orthogonal_latin_squares
     from database import OA_constructions, MOLS_constructions
-    from orthogonal_arrays_recursive import find_recursive_construction
+    from orthogonal_arrays_find_recursive import find_recursive_construction
     from difference_matrices import difference_matrix
 
     may_be_available = _OA_cache_construction_available(k,n) is not False

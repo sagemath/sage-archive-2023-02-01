@@ -1,3 +1,5 @@
+from orthogonal_arrays import orthogonal_array, wilson_construction, is_orthogonal_array
+
 def simple_wilson_construction(k,r,m,u):
     r"""
     Return an `OA(k,rm + \sum u_i)` from Wilson construction.
@@ -15,7 +17,7 @@ def simple_wilson_construction(k,r,m,u):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import simple_wilson_construction
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import simple_wilson_construction
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
 
         sage: OA = simple_wilson_construction(6,7,12,())
@@ -66,8 +68,8 @@ def construction_3_3(k,n,m,i):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_construction_3_3
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import construction_3_3
+        sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_construction_3_3
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import construction_3_3
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: k=11;n=177
         sage: is_orthogonal_array(construction_3_3(*find_construction_3_3(k,n)[1]),k,n,2)
@@ -118,8 +120,8 @@ def construction_3_4(k,n,m,r,s):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_construction_3_4
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import construction_3_4
+        sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_construction_3_4
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import construction_3_4
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: k=8;n=196
         sage: is_orthogonal_array(construction_3_4(*find_construction_3_4(k,n)[1]),k,n,2)
@@ -136,9 +138,9 @@ def construction_3_4(k,n,m,r,s):
         matrix[i][B0[i]] = 0
 
     # Last column
-    if is_available(k,m+r):
+    if   orthogonal_array(k, m+r  ,existence=True):
         last_group = [x for x in range(s+1) if x != B0[-1]][:s]
-    elif is_available(k,m+r+1):
+    elif orthogonal_array(k,m+r+1,existence=True):
         last_group = [x for x in range(s+1) if x != B0[-1]][:s-1] + [B0[-1]]
     else:
         raise RuntimeError
@@ -176,8 +178,8 @@ def construction_3_5(k,n,m,r,s,t):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_construction_3_5
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import construction_3_5
+        sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_construction_3_5
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import construction_3_5
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: k=8;n=111
         sage: is_orthogonal_array(construction_3_5(*find_construction_3_5(k,n)[1]),k,n,2)
@@ -248,8 +250,8 @@ def construction_3_6(k,n,m,i):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_construction_3_6
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import construction_3_6
+        sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_construction_3_6
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import construction_3_6
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: k=8;n=95
         sage: is_orthogonal_array(construction_3_6(*find_construction_3_6(k,n)[1]),k,n,2)
@@ -287,7 +289,7 @@ def OA_and_oval(q):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import OA_and_oval
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import OA_and_oval
         sage: _ = OA_and_oval
 
     """
@@ -417,7 +419,7 @@ def construction_q_x(k,q,x,check=True):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import construction_q_x
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import construction_q_x
         sage: _ = construction_q_x(9,16,6)
 
     REFERENCES:
@@ -548,7 +550,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import thwart_lemma_3_5
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import thwart_lemma_3_5
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: OA = thwart_lemma_3_5(6,23,7,5,7,8)
         sage: is_orthogonal_array(OA,6,23*7+5+7+8,2)
@@ -811,7 +813,7 @@ def three_factor_product(k,n1,n2,n3,check=False):
     EXAMPLE::
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import three_factor_product
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import three_factor_product
 
         sage: OA = three_factor_product(4,4,4,4)
         sage: is_orthogonal_array(OA,5,64)
@@ -1006,7 +1008,7 @@ def _reorder_matrix(matrix):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import _reorder_matrix
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import _reorder_matrix
         sage: N = 4; k = 3
         sage: M = [[0,1,2],[0,1,3],[0,2,3],[1,2,3]]
         sage: M2 = _reorder_matrix(M)
@@ -1182,7 +1184,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
     Test all possible cases::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import brouwer_separable_design
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import brouwer_separable_design
         sage: k,q,t=4,4,3; _=brouwer_separable_design(k,q,t,0,verbose=True)
         Case i) with k=4,q=3,t=4,x=0
         sage: k,q,t=3,3,3; _=brouwer_separable_design(k,t,q,t+q,verbose=True,check=True)
@@ -1346,9 +1348,9 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
     # ii)
     elif (x == t+q and
-          is_available(k+e3,  t  ) and
-          is_available( k  , t+q ) and
-          is_available( k+1,t+q+1)):
+          orthogonal_array(k+e3,  t  ,existence=True) and
+          orthogonal_array( k  , t+q ,existence=True) and
+          orthogonal_array( k+1,t+q+1,existence=True)):
 
         if verbose:
             print "Case ii) with k={},q={},t={},x={},e3={}".format(k,q,t,x,e3)
@@ -1387,9 +1389,9 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
     # iii)
     elif (x == q**2-q+1-t and
-          is_available( k  ,  x  ) and # d0
-          is_available(k+e2, t+1 ) and # d2-e2
-          is_available(k+1 , t+q )):   # d3-e1
+          orthogonal_array( k  ,  x  ,existence=True) and # d0
+          orthogonal_array(k+e2, t+1 ,existence=True) and # d2-e2
+          orthogonal_array(k+1 , t+q ,existence=True)):   # d3-e1
         if verbose:
             print "Case iii) with k={},q={},t={},x={},e2={}".format(k,q,t,x,e2)
 
@@ -1426,9 +1428,9 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
     # iv)
     elif (x == q**2+1 and
-          is_available( k  ,  x  ) and # d0
-          is_available(k+e4, t+1 ) and # d2-e4
-          is_available(k+ 1,t+q+1)):   # d4-1
+          orthogonal_array( k  ,  x  ,existence=True) and # d0
+          orthogonal_array(k+e4, t+1 ,existence=True) and # d2-e4
+          orthogonal_array(k+ 1,t+q+1,existence=True)):   # d4-1
 
         if verbose:
             print "Case iv) with k={},q={},t={},x={},e4={}".format(k,q,t,x,e4)
@@ -1470,10 +1472,10 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
     # v)
     elif (0<x and x<q**2-q+1-t and (e1 or e2) and # The result is wrong when e1=e2=0
-          is_available(k   ,x  ) and # d0
-          is_available(k+e1,t  ) and # d1-e1
-          is_available(k+e2,t+1) and # d2-e2
-          is_available(k+1,t+q)):   # d3-1
+          orthogonal_array(k   ,x  ,existence=True) and # d0
+          orthogonal_array(k+e1,t  ,existence=True) and # d1-e1
+          orthogonal_array(k+e2,t+1,existence=True) and # d2-e2
+          orthogonal_array(k+1,t+q,existence=True)):   # d3-1
         if verbose:
             print "Case v) with k={},q={},t={},x={},e1={},e2={}".format(k,q,t,x,e1,e2)
 
@@ -1519,10 +1521,10 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
     # vi)
     elif (t+q<x and x<q**2+1 and (e3 or e4) and # The result is wrong when e3=e4=0
-          is_available(k   ,x   ) and # d0
-          is_available(k+e3,t   ) and # d1-e3
-          is_available(k+e4,t+1 ) and # d2-e4
-          is_available(k+1,t+q+1)):    # d4-1
+          orthogonal_array(k   ,x   ,existence=True) and # d0
+          orthogonal_array(k+e3,t   ,existence=True) and # d1-e3
+          orthogonal_array(k+e4,t+1 ,existence=True) and # d2-e4
+          orthogonal_array(k+1,t+q+1,existence=True)):    # d4-1
         if verbose:
             print "Case vi) with k={},q={},t={},x={},e3={},e4={}".format(k,q,t,x,e3,e4)
 

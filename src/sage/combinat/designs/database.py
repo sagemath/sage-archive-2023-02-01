@@ -2117,7 +2117,7 @@ def OA_10_469():
 
     This construction appears in [Brouwer80]_. It is based on the same technique
     used in
-    :func:`~sage.combinat.designs.orthogonal_arrays_recursive.brouwer_separable_design`.
+    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.brouwer_separable_design`.
 
     Julian R. Abel's instructions:
 
@@ -2150,7 +2150,7 @@ def OA_10_469():
         sage: designs.orthogonal_array(10,469,existence=True)
         True
     """
-    from orthogonal_arrays_recursive import _reorder_matrix
+    from orthogonal_arrays_build_recursive import _reorder_matrix
     from orthogonal_arrays import incomplete_orthogonal_array
 
     OA = []

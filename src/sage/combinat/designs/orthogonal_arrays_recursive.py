@@ -2,9 +2,7 @@ r"""
 Orthogonal arrays (Recursive constructions)
 
 This module implements several functions to find recursive constructions of
-:mod:`Orthogonal Arrays <sage.combinat.designs.orthogonal_arrays>` using
-Wilson's construction. To this end, they compute and truncate OA in specific
-ways.
+:mod:`Orthogonal Arrays <sage.combinat.designs.orthogonal_arrays>`.
 
 The main function of this module, i.e. :func:`find_recursive_construction`,
 queries all implemented recursive constructions of designs. It is used by
@@ -40,6 +38,8 @@ def find_recursive_construction(k,n):
     - :func:`construction_3_5`
     - :func:`construction_3_6`
     - :func:`construction_q_x`
+    - :func:`thwart_lemma_3_5`
+    - :func:`thwart_lemma_4_1`
 
     INPUT:
 
@@ -47,7 +47,7 @@ def find_recursive_construction(k,n):
 
     OUTPUT:
 
-    Returns a pair ``f,args`` such that ``f(*args)`` returns the requested `OA`
+    Return a pair ``f,args`` such that ``f(*args)`` returns the requested `OA`
     if possible, and ``False`` otherwise.
 
     EXAMPLES::
@@ -63,7 +63,7 @@ def find_recursive_construction(k,n):
         ....:         OA = f(*args)
         ....:         assert is_orthogonal_array(OA,k,n,2,verbose=True)
         sage: print count
-        54
+        53
     """
     assert k > 3
 
@@ -74,7 +74,9 @@ def find_recursive_construction(k,n):
                    find_construction_3_4,
                    find_construction_3_5,
                    find_construction_3_6,
-                   find_q_x]:
+                   find_q_x,
+                   find_thwart_lemma_3_5,
+                   find_thwart_lemma_4_1]:
         res = find_c(k,n)
         if res:
             return res
@@ -131,7 +133,7 @@ def find_wilson_decomposition_with_one_truncated_group(k,n):
 
     OUTPUT:
 
-    A pair `f,args` such that `f(*args)` is an `OA(k,n)` or ``False`` if no
+    A pair ``f,args`` such that ``f(*args)`` is an `OA(k,n)` or ``False`` if no
     decomposition with one truncated block was found.
 
     EXAMPLES::
@@ -191,7 +193,7 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
         (5, 7, 7, (4, 5))
         sage: _ = f(*args)
     """
-    for r in [1] + range(k+1,n-2): # as r*1+1+1 <= n and because we need 
+    for r in [1] + range(k+1,n-2): # as r*1+1+1 <= n and because we need
                                    # an OA(k+2,r), necessarily r=1 or r >= k+1
         if not orthogonal_array(k+2,r,existence=True):
             continue
@@ -227,7 +229,7 @@ def find_wilson_decomposition_with_two_truncated_groups(k,n):
 
 def simple_wilson_construction(k,r,m,u):
     r"""
-    Return an `OA(k,r*m + \sum u_i)` from Wilson construction.
+    Return an `OA(k,rm + \sum u_i)` from Wilson construction.
 
     INPUT:
 
@@ -308,7 +310,7 @@ def find_construction_3_3(k,n):
 
 def construction_3_3(k,n,m,i):
     r"""
-    Returns an `OA(k,nm+i)`.
+    Return an `OA(k,nm+i)`.
 
     This is Wilson's construction with `i` truncated columns of size 1 and such
     that a block `B_0` of the incomplete OA intersects all truncated columns. As
@@ -393,7 +395,7 @@ def find_construction_3_4(k,n):
 
 def construction_3_4(k,n,m,r,s):
     r"""
-    Returns a `OA(k,nm+rs)`.
+    Return a `OA(k,nm+rs)`.
 
     This is Wilson's construction applied to a truncated `OA(k+r+1,n)` with `r`
     columns of size `1` and one column of size `s`.
@@ -505,7 +507,7 @@ def find_construction_3_5(k,n):
 
 def construction_3_5(k,n,m,r,s,t):
     r"""
-    Returns an `OA(k,nm+r+s+t)`.
+    Return an `OA(k,nm+r+s+t)`.
 
     This is exactly Wilson's construction with three truncated groups
     except we make sure that all blocks have size `>k`, so we don't
@@ -621,7 +623,7 @@ def find_construction_3_6(k,n):
 
 def construction_3_6(k,n,m,i):
     r"""
-    Returns a `OA(k,nm+i)`
+    Return a `OA(k,nm+i)`
 
     This is Wilson's construction with `r` columns of order `1`, in which each
     block intersects at most two truncated columns. Such a design exists when
@@ -658,7 +660,7 @@ def construction_3_6(k,n,m,i):
 
 def OA_and_oval(q):
     r"""
-    Returns a `OA(q+1,q)` whose blocks contains `\leq 2` zeroes in the last `q`
+    Return a `OA(q+1,q)` whose blocks contains `\leq 2` zeroes in the last `q`
     columns.
 
     This `OA` is build from a projective plane of order `q`, in which there
@@ -695,7 +697,7 @@ def OA_and_oval(q):
     from sage.numerical.mip import MixedIntegerLinearProgram
     p = MixedIntegerLinearProgram()
     b = p.new_variable(binary=True)
-    V = B.points()
+    V = B.ground_set()
     p.add_constraint(p.sum([b[i] for i in V]) == q+1)
     for bl in B:
         p.add_constraint(p.sum([b[i] for i in bl]) <= 2)
@@ -752,7 +754,7 @@ def OA_and_oval(q):
 
 def construction_q_x(k,q,x,check=True):
     r"""
-    Returns an `OA(k,(q-1)*(q-x)+x+2)` using the `q-x` construction.
+    Return an `OA(k,(q-1)*(q-x)+x+2)` using the `q-x` construction.
 
     Let `v=(q-1)*(q-x)+x+2`. If there exists a projective plane of order `q`
     (e.g. when `q` is a prime power) and `0<x<q` then there exists a
@@ -924,3 +926,426 @@ def find_q_x(k,n):
             orthogonal_array(k, x+2 ,existence=True)):
             return construction_q_x, (k,q,x)
     return False
+
+def find_thwart_lemma_3_5(k,N):
+    r"""
+    A function to find the values for which one can apply the
+    Lemma 3.5 from [Thwarts]_.
+
+    OUTPUT:
+
+    A pair ``(f,args)`` such that ``f(*args)`` returns an `OA(k,n)` or ``False``
+    if the construction is not available.
+
+    .. SEEALSO::
+
+        :func:`thwart_lemma_3_5`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_thwart_lemma_3_5
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+
+        sage: f,args = find_thwart_lemma_3_5(7,66)
+        sage: args
+        (7, 9, 7, 1, 1, 1, 0, False)
+        sage: OA = f(*args)
+        sage: is_orthogonal_array(OA,7,66,2)
+        True
+
+        sage: f,args = find_thwart_lemma_3_5(6,100)
+        sage: args
+        (6, 8, 10, 8, 7, 5, 0, True)
+        sage: OA = f(*args)
+        sage: is_orthogonal_array(OA,6,100,2)
+        True
+
+    Some values from [Thwarts]_::
+
+        sage: kn = ((10,1046), (10,1048), (10,1059), (11,1524),
+        ....:       (11,2164), (12,3362), (12,3992),  (12,3994))
+        sage: for k,n in kn:
+        ....:     print k,n,find_thwart_lemma_3_5(k,n)[1]
+        10 1046 (10, 13, 79, 9, 1, 0, 9, False)
+        10 1048 (10, 13, 79, 9, 1, 0, 11, False)
+        10 1059 (10, 13, 80, 9, 1, 0, 9, False)
+        11 1524 (11, 19, 78, 16, 13, 13, 0, True)
+        11 2164 (11, 27, 78, 23, 19, 16, 0, True)
+        12 3362 (12, 16, 207, 13, 13, 11, 13, True)
+        12 3992 (12, 19, 207, 16, 13, 11, 19, True)
+        12 3994 (12, 19, 207, 16, 13, 13, 19, True)
+
+        sage: for k,n in kn:                                                     # not tested -- too long
+        ....:     assert designs.orthogonal_array(k,n,existence=True) is True    # not tested -- too long
+    """
+    from sage.rings.arith import prime_powers
+
+    k = int(k)
+    N = int(N)
+
+    for n in prime_powers(k+2,N-2): # There must exist a OA(k+3,n) thus n>=k+2
+                                    # At least 3 columns are nonempty thus n<N-2
+
+        # we look for (m,n,a,b,c,d) with N = mn + a + b + c (+d) and
+        # 0 <= a,b,c,d <= n
+        # hence we have N/n-4 <= m <= N/n
+
+        # 1. look for m,a,b,c,d with complement=False
+        # (we restrict to a >= b >= c)
+        for m in xrange(max(k-1,(N+n-1)//n-4), N//n+1):
+            if not (orthogonal_array(k,m+0,existence=True) and
+                    orthogonal_array(k,m+1,existence=True) and
+                    orthogonal_array(k,m+2,existence=True)):
+                continue
+
+            NN = N - n*m
+            # as a >= b >= c and d <= n we can restrict the start of the loops
+            for a in range(max(0, (NN-n+2)//3), min(n, NN)+1): # (NN-n+2)//3 <==> ceil((NN-n)/3)x
+                if not orthogonal_array(k,a,existence=True):
+                    continue
+                for b in range(max(0, (NN-n-a+1)//2), min(a, n+1-a, NN-a)+1):
+                    if not orthogonal_array(k,b,existence=True):
+                        continue
+                    for c in range(max(0, NN-n-a-b), min(b, n+1-a-b, NN-a-b)+1):
+                        if not orthogonal_array(k,c,existence=True):
+                            continue
+
+                        d = NN - (a + b + c)  # necessarily 0 <= d <= n
+                        if d == 0:
+                            return thwart_lemma_3_5, (k,n,m,a,b,c,0,False)
+                        elif (k+4 <= n+1 and
+                            orthogonal_array(k,d,existence=True) and
+                            orthogonal_array(k,m+3,existence=True)):
+                            return thwart_lemma_3_5, (k,n,m,a,b,c,d,False)
+
+        # 2. look for m,a,b,c,d with complement=True
+        # (we restrict to a >= b >= c)
+        for m in xrange(max(k-2,N//n-4), (N+n-1)//n):
+            if not (orthogonal_array(k,m+1,existence=True) and
+                    orthogonal_array(k,m+2,existence=True) and
+                    orthogonal_array(k,m+3,existence=True)):
+                continue
+
+            NN = N - n*m
+            for a in range(max(0, (NN-n+2)//3), min(n, NN)+1): # (NN-n+2)//3 <==> ceil((NN-n)/3)
+                if not orthogonal_array(k,a,existence=True):
+                    continue
+                na = n-a
+                for b in range(max(0, (NN-n-a+1)//2), min(a, NN-a)+1):
+                    nb = n-b
+                    if na+nb > n+1 or not orthogonal_array(k,b,existence=True):
+                        continue
+                    for c in range(max(0, NN-n-a-b), min(b, NN-a-b)+1):
+                        nc = n-c
+                        if na+nb+nc > n+1 or not orthogonal_array(k,c,existence=True):
+                            continue
+
+                        d = NN - (a + b + c)  # necessarily d <= n
+                        if d == 0:
+                            return thwart_lemma_3_5, (k,n,m,a,b,c,0,True)
+                        elif (k+4 <= n+1 and
+                            orthogonal_array(k,d,existence=True) and
+                            orthogonal_array(k,m+4,existence=True)):
+                            return thwart_lemma_3_5, (k,n,m,a,b,c,d,True)
+
+    return False
+
+def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
+    r"""
+    Returns an `OA(k,nm+a+b+c+d)`
+
+    *(When `d=0`)*
+
+    According to [Thwarts]_ when `n` is a prime power and `a+b+c\leq n+1`, one
+    can build an `OA(k+3,n)` with three truncated columns of sizes `a,b,c` in
+    such a way that all blocks have size `\leq k+2`.
+
+    (in order to build a `OA(k,nm+a+b+c)` the following designs must also exist:
+    `OA(k,a),OA(k,b),OA(k,c),OA(k,m+0),OA(k,m+1),OA(k,m+2)`)
+
+    Considering the complement of each truncated column, it is also possible to
+    build an `OA(k+3,n)` with three truncated columns of sizes `a,b,c` in such a
+    way that all blocks have size `>k` whenever `(n-a)+(n-b)+(n-c)\leq n+1`.
+
+    (in order to build a `OA(k,nm+a+b+c)` the following designs must also exist:
+    `OA(k,a),OA(k,b),OA(k,c),OA(k,m+1),OA(k,m+2),OA(k,m+3)`)
+
+    Here is the proof of Lemma 3.5 from [Thwarts]_ enriched with explanations
+    from Julian R. Abel:
+
+        For any prime power `n` one can build `k-1` MOLS by associating to every
+        nonzero `x\in \\mathbb F_n` the latin square:
+
+        .. MATH::
+
+            M_x(i,j) = i+x*j \text{ where }i,j\in \\mathbb F_n`
+
+        In particular `M_1(i,j)=i+j`, whose `n` columns and lines are indexed by
+        the elements of `\\mathbb F_n`. If we order the elements of `\\mathbb
+        F_n` as `0,1,...,n-1,x+0,...,x+n-1,x^2+0,...` and reorder the columns
+        and lines of `M_1` accordingly, the top-left `a\times b` squares
+        contains at most `a+b-1` distinct symbols.
+
+    *(When `d\neq 0`)*
+
+    If there exists an `OA(k+3,n)` with three truncated columns of sizes `a,b,c`
+    in such a way that all blocks have size `\leq k+2`, by truncating
+    arbitrarily another column to size `d` one obtains an `OA` with 4 truncated
+    columns whose blocks miss at least one value. Thus, following the proof
+    again one can build an `OA(k+4)` with four truncated columns of sizes
+    `a,b,c,d` with blocks of size `\leq k+3`.
+
+    (in order to build a `OA(k,nm+a+b+c+d)` the following designs must also
+    exist:
+    `OA(k,a),OA(k,b),OA(k,c),OA(k,d),OA(k,m+0),OA(k,m+1),OA(k,m+2),OA(k,m+3)`)
+
+    As before, this also shows that one can build an `OA(k+4,n)` with four
+    truncated columns of sizes `a,b,c,d` in such a way that all blocks have size
+    `>k` whenever `(n-a)+(n-b)+(n-c)\leq n+1`
+
+    (in order to build a `OA(k,nm+a+b+c+d)` the following designs must also
+    exist:
+    `OA(k,n-a),OA(k,n-b),OA(k,n-c),OA(k,d),OA(k,m+1),OA(k,m+2),OA(k,m+3),OA(k,m+4)`)
+
+    INPUT:
+
+    - ``k,n,m,a,b,c,d`` -- integers which must satisfy the constraints above. In
+      particular, `a+b+c\leq n+1` must hold. By default, `d=0`.
+
+    - ``complement`` (boolean) -- whether to complement the sets, i.e. follow
+      the `n-a,n-b,n-c` variant described above.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import thwart_lemma_3_5
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: OA = thwart_lemma_3_5(6,23,7,5,7,8)
+        sage: is_orthogonal_array(OA,6,23*7+5+7+8,2)
+        True
+
+    With sets of parameters from [Thwarts]_::
+
+        sage: l = [
+        ....:    [11, 27, 78, 16, 17, 25, 0],
+        ....:    [12, 19, 208, 11, 13, 16, 0],
+        ....:    [12, 19, 208, 13, 13, 16, 0],
+        ....:    [10, 13, 78, 9, 9, 13, 1],
+        ....:    [10, 13, 79, 9, 9, 13, 1]]
+        sage: for k,n,m,a,b,c,d in l:                                       # not tested -- too long
+        ....:     OA = thwart_lemma_3_5(k,n,m,a,b,c,d,complement=True)      # not tested -- too long
+        ....:     assert is_orthogonal_array(OA,k,n*m+a+b+c+d,verbose=True) # not tested -- too long
+
+    REFERENCE:
+
+    .. [Thwarts] Thwarts in transversal designs
+      Charles J.Colbourn, Jeffrey H. Dinitz, Mieczyslaw Wojtas.
+      Designs, Codes and Cryptography 5, no. 3 (1995): 189-197.
+    """
+    from sage.rings.arith import is_prime_power
+    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.combinat.designs.orthogonal_arrays import wilson_construction
+
+    if complement:
+        a,b,c = n-a,n-b,n-c
+
+    assert is_prime_power(n), "n(={}) must be a prime power".format(n)
+    assert a<=n and b<=n and c<=n and d<=n, "a,b,c,d (={},{},{},{}) must be <=n(={})".format(a,b,c,d,n)
+    assert a+b+c<=n+1, "{}={}+{}+{}=a+b+c>n+1={}+1 violates the assumptions".format(a+b+c,a,b,c,n)
+    assert k+3+bool(d) <= n+1, "There exists no OA({},{}).".format(k+3+bool(d),n)
+    G = GF(n,prefix='x',conway=True)
+    G_set = sorted(G) # sorted by lexicographic order, G[1] = 1
+    assert G_set[0] == G.zero() and G_set[1] == G.one(), "problem with the ordering of {}".format(G)
+    G_to_int = {v:i for i,v in enumerate(G_set)}
+
+    # Builds an OA(n+1,n) whose last n-1 colums are
+    #
+    # \forall x \in G and x!=0, C_x(i,j) = i+x*j
+    #
+    # (only the necessary columns are built)
+    OA = [[G_to_int[i+x*j] for i in G_set for j in G_set] for x in G_set[1:k+2+bool(d)]]
+    # Adding the first two trivial columns
+    OA.insert(0,[j for i in range(n) for j in range(n)])
+    OA.insert(0,[i for i in range(n) for j in range(n)])
+    OA=zip(*OA)
+    OA.sort()
+
+    # Moves the first three columns to the end
+    OA = [list(B[3:]+B[:3]) for B in OA]
+
+    # Set of values in the axb square
+    third_complement= set([B[-1] for B in OA if B[-3] < a and B[-2] < b])
+
+    assert n-len(third_complement) >= c
+
+    # The keepers
+    first_set  = range(a)
+    second_set = range(b)
+    third_set  = [x for x in range(n) if x not in third_complement][:c]
+
+    last_sets  = [first_set,second_set,third_set]
+
+    if complement:
+        last_sets = [set(range(n)).difference(s) for s in last_sets]
+
+    sizes = map(len,last_sets)
+    last_sets_dict = [{v:i for i,v in enumerate(s)} for s in last_sets]
+
+    # Truncating the OA
+    for i,D in enumerate(last_sets_dict):
+        kk = len(OA[0])-3+i
+        for R in OA:
+            R[kk] = D[R[kk]] if R[kk] in D else None
+
+    if d:
+        for R in OA:
+            if R[-4] >= d:
+                R[-4] = None
+        sizes.insert(0,d)
+
+    return wilson_construction(OA,k,n,m,len(sizes),sizes, check=False)
+
+def find_thwart_lemma_4_1(k,n):
+    r"""
+    Finds a decomposition for Lemma 4.1 from [Thwarts]_.
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    .. SEEALSO::
+
+        :func:`thwart_lemma_4_1`
+
+    OUTPUT:
+
+    A pair ``f,args`` such that ``f(*args)`` returns the requested OA.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_thwart_lemma_4_1
+        sage: find_thwart_lemma_4_1(10,408)[1]
+        (10, 13, 28)
+        sage: find_thwart_lemma_4_1(10,50)
+        False
+    """
+    from sage.rings.arith import factor
+    #      n  = nn*mm+4(nn-2)
+    # <=> n+8 = nn(mm+4)
+    #
+    # nn is a prime power dividing n+8
+    for nn in (p**i for p,imax in factor(n+8) for i in range(1,imax+1)):
+        mm = (n+8)//nn-4
+        if (k+4 > nn+1 or
+            mm <= 1 or
+            nn % 3 == 2 or
+            not orthogonal_array(k,nn-2,existence=True) or
+            not orthogonal_array(k,mm+1,existence=True) or
+            not orthogonal_array(k,mm+3,existence=True) or
+            not orthogonal_array(k,mm+4,existence=True)):
+            continue
+
+        return thwart_lemma_4_1,(k,nn,mm)
+
+    return False
+
+def thwart_lemma_4_1(k,n,m):
+    r"""
+    Returns an `OA(k,nm+4(n-2))`.
+
+    Implements Lemma 4.1 from [Thwarts]_.
+
+        If `n\equiv 0,1\pmod{3}` is a prime power, then there exists a truncated
+        `OA(n+1,n)` whose last four columns have size `n-2` and intersect every
+        block on `1,3` or `4` values. Consequently, if there exists an
+        `OA(k,m+1),OA(k,m+3),OA(k,m+4)` and a `OA(k,n-2)` then there
+        exists an `OA(k,nm+4(n-2)`
+
+        Proof: form the transversal design by removing one point of the
+        `AG(2,3)` (Affine Geometry) contained in the Desarguesian Projective
+        Plane `PG(2,n)`.
+
+    The affine geometry on 9 points contained in the projective geometry
+    `PG(2,n)` is given explicitly in [OS64]_ (Thanks to Julian R. Abel for
+    finding the reference!).
+
+    REFERENCES:
+
+    .. [OS64] Finite projective planes with affine subplanes,
+      T. G. Ostrom and F. A. Sherk.
+      Canad. Math. Bull vol7 num.4 (1964)
+    """
+    from sage.combinat.designs.designs_pyx import is_orthogonal_array
+    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.arith import is_prime_power
+    from block_design import DesarguesianProjectivePlaneDesign
+    from itertools import chain
+
+    assert is_prime_power(n), "n(={}) must be a prime power"
+    assert k+4 <= n+1
+
+    q = n
+    K = FiniteField(q, 'x')
+    relabel = {x:i for i,x in enumerate(K)}
+    PG = DesarguesianProjectivePlaneDesign(q,check=False).blocks(copy=False)
+
+    if q % 3 == 0:
+        t = K.one()
+    elif q%3 == 1:
+        t = K.multiplicative_generator()**((q-1)//3)
+    else:
+        raise ValueError("q(={}) must be congruent to 0 or 1 mod 3".format(q))
+
+    # The projective plane is labelled with integer coordinates. This code
+    # relabels to integers the following points (given by homogeneous
+    # coordinates in the projective space):
+    #
+    # - (1+t,t,1+t), (1,1,1), (1+t,t,t), (1,1,2), (0,0,1), (1,0,1), (0,1,1+t),
+    #   (0,1,1), (1,0,-t)
+    points = [(1+t,t,1+t), (1,1,1), (1+t,t,t), (1,1,2), (0,0,1), (1,0,1), (0,1,1+t), (0,1,1), (1,0,-t)]
+    points = [map(K,t) for t in points] # triples of K^3
+    AG_2_3 = []
+    for x,y,z in points:
+        if z!=0:
+            x,y,z = x/z,y/z,z/z
+            AG_2_3.append(relabel[x]+n*relabel[y])
+        elif y!=0:
+            x,y,z=x/y,y/y,z
+            AG_2_3.append(q**2+relabel[x])
+        else:
+            AG_2_3.append(q**2+q)
+
+    AG_2_3 = set(AG_2_3)
+
+    # All blocks of PG should intersect 'AG_2_3' on !=2 AG_2_3.
+    assert all(len(AG_2_3.intersection(B)) != 2 for B in PG)
+
+    p = list(AG_2_3)[0]
+    # We now build a TD from the PG by removing p, in such a way that the last
+    # two elements of the last 4 columns are elements of AG_2_3
+    blocks = []
+    columns = []
+    for B in PG:
+        if p not in B:
+            blocks.append(B)
+        else:
+            B.remove(p)
+            columns.append(B)
+
+    # The columns containing elements from the AG are the last ones, and those
+    # elements should be the last two
+    columns.sort(key=lambda x:len(AG_2_3.intersection(x)))
+    for i in range(4):
+        columns[-i-1].sort(key=lambda x: int(x in AG_2_3))
+
+    relabel = {v:i for i,v in enumerate(chain(columns))}
+
+    TD = [sorted(relabel[x] for x in B) for B in blocks]
+
+    # We build the OA, removing unnecessary columns
+    OA = [[x%q for x in B[-k-4:]] for B in TD]
+    for B in OA:
+        for i in range(4):
+            if B[k+i] >= n-2:
+                B[k+i] = None
+
+    return wilson_construction(OA,k,n,m,4,[n-2,]*4,check=False)

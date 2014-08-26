@@ -211,19 +211,17 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             sage: F.gen(3).change_level(1)
             Traceback (most recent call last):
             ...
-            TypeError: not in prime subfield
+            ValueError: z3 is not in the image of Ring morphism:
+              From: Finite Field of size 3
+              To:   Finite Field in z3 of size 3^3
+              Defn: 1 |--> 1
 
         """
         F = self.parent()
         l = self._level
         m = l.gcd(n)
         xl = self._value
-        if m == 1:
-            # Sections of canonical coercion maps from F_p to other
-            # finite fields of characteristic p are not implemented.
-            xm = F.base_ring()(xl)
-        else:
-            xm = F.inclusion(m, l).section()(xl)
+        xm = F.inclusion(m, l).section()(xl)
         xn = F.inclusion(m, n)(xm)
         return self.__class__(F, xn)
 
@@ -742,9 +740,10 @@ class AlgebraicClosureFiniteField_generic(Field):
 
             sage: F = GF(3).algebraic_closure()
             sage: F.inclusion(1, 2)
-            Ring Coercion morphism:
+            Ring morphism:
               From: Finite Field of size 3
               To:   Finite Field in z2 of size 3^2
+              Defn: 1 |--> 1
             sage: F.inclusion(2, 4)
             Ring morphism:
               From: Finite Field in z2 of size 3^2
@@ -752,9 +751,7 @@ class AlgebraicClosureFiniteField_generic(Field):
               Defn: z2 |--> 2*z4^3 + 2*z4^2 + 1
 
         """
-        if m == 1:
-            return self.base_ring().hom(self._subfield(n))
-        elif m.divides(n):
+        if m.divides(n):
             return self._subfield(m).hom((self._get_im_gen(m, n),))
         else:
             raise ValueError("subfield of degree %s not contained in subfield of degree %s" % (m, n))
@@ -1066,6 +1063,8 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
 
         """
         p = self.characteristic()
+        if m == 1:
+            return self._subfield(n).one_element()
         return self._subfield(n).gen() ** ((p**n - 1)//(p**m - 1))
 
 

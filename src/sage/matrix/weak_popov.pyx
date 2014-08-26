@@ -1,9 +1,10 @@
 """
-Mulders-Storjohann algorithm to compute the weak popov form of polynomial matrices.
+Mulders-Storjohann algorithm to compute the weak popov form 
+of polynomial matrices.
 
 AUTHORS:
 
-- David Mödinger (2014-08-21: initial version
+- David Mödinger (2014-08-21): initial version
 
 """
 from collections import defaultdict
@@ -18,7 +19,9 @@ cdef leading_position(v):
 
     OUTPUT:
 
-    Outputs the leading position of a vector v, which is the position with highest degree. For multiple positions with equal degrees the highest position i, or rightmost in the vector, is chosen.
+    Outputs the leading position of a vector v, which is the position 
+    with highest degree. For multiple positions with equal degrees 
+    the highest position i, or rightmost in the vector, is chosen.
     
     .. note::
     
@@ -28,13 +31,13 @@ cdef leading_position(v):
     p = -1 # pos of max
     m = -1 # max
     for c in range(v.degree()):
-        if(v[c].degree()>=m):
+        if(v[c].degree() >= m):
             m = v[c].degree()
             p = c
     return p
 
 
-cdef simple_transformation(M,rowtochange,basisrow,LP,U=None):
+cdef simple_transformation(M, rowtochange, basisrow, LP, U=None):
     r"""
     Function to compute a simple transformation on a matrix.
 
@@ -52,9 +55,9 @@ cdef simple_transformation(M,rowtochange,basisrow,LP,U=None):
 
     OUTPUT:
 
-    Transforms M[rowtochange] into M[rowtochange]-a*x^d*M[basisrow], wherby d is the 
-    difference of the degree of the leading positions and a is the division of the
-    leading coefficients.
+    Transforms M[rowtochange] into M[rowtochange]-a*x^d*M[basisrow], 
+    wherby d is the difference of the degree of the leading positions 
+    and a is the division of the leading coefficients.
     
     .. WARNING::
     
@@ -66,16 +69,16 @@ cdef simple_transformation(M,rowtochange,basisrow,LP,U=None):
         This method is used in the mulders-storjohann algorithm.
 
     """
-    cdef delta = M[rowtochange][LP].degree()-M[basisrow][LP].degree()
+    cdef delta = M[rowtochange][LP].degree() - M[basisrow][LP].degree()
     cdef alpha = (M[rowtochange][LP].coefficients()[-1]) / (M[basisrow][LP].coefficients()[-1])
     for i in range(M.ncols()):
-        M[rowtochange,i] -= alpha*M[basisrow,i].shift(delta)
+        M[rowtochange,i] -= alpha * M[basisrow,i].shift(delta)
     if U is not None:
         for i in range(U.ncols()):
-            U[rowtochange,i] -= alpha*U[basisrow,i].shift(delta)
+            U[rowtochange,i] -= alpha * U[basisrow,i].shift(delta)
 
 
-cpdef mulders_storjohann(M,transposition=False):
+cpdef mulders_storjohann(M, transposition=False):
     r"""
     Function to transform M into weak popov form.
 
@@ -91,6 +94,11 @@ cpdef mulders_storjohann(M,transposition=False):
     M transformed into weak popov form. If transposition is True, a touple
     (M,U) is returned with U*Original M = M in weak popov form.
     
+    .. WARNING::
+    
+        This function modifies your parameter matrix. If you want it saved, 
+        make a copy.
+    
     ALGORITHM::
     
         This function uses the mulders-storjohann algorithm of [MS].
@@ -98,8 +106,10 @@ cpdef mulders_storjohann(M,transposition=False):
         #. As long as M is not in weak popov form do:
             #. Find two rows with conflicting leading positions.
             #. Do a simple transformation:
-                #. Let x and y be indicators of rows with identical leading position
-                #. Let LP be the Leading Position and LC the Leading Coefficient
+                #. Let x and y be indicators of rows with identical 
+                   leading position
+                #. Let LP be the Leading Position and LC the Leading 
+                   Coefficient
                 #. let a = LP(M[x]).degree() - LP(M[y]).degree()
                 #. let d = LC(LP(M[x])) / LC(LP(M[y]))
                 #. substitute M[x] = M[x] - a * x^d * M[y]
@@ -201,29 +211,31 @@ cpdef mulders_storjohann(M,transposition=False):
     if not is_PolynomialRing(M.base_ring()):
         raise TypeError("the entries of M must lie in a univariate polynomial ring")
 
-    if transposition==True:
+    if transposition == True:
         from sage.matrix.constructor import identity_matrix
-        U = identity_matrix(M.base_ring(),M.nrows())
+        U = identity_matrix(M.base_ring(), M.nrows())
     else:
         U = None
+    
+    zerolines = 0
     lps = defaultdict(list)
     for c in range(M.nrows()):
         lp = leading_position(M[c])
         if M[c, lp] == 0:
-            lps[-c-1].append(c)    # This enables easy success check while ignoring a zero row
+            zerolines += 1
         else:
             lps[lp].append(c)
 
     """
-    If there are conflicts, the dictionary will contain at least one entry with
-    more than one list entry:
+    If there are conflicts, the dictionary will contain at least one 
+    entry with more than one list entry:
     {0:[1,3],1:[0],5:[2]}
     But if all are singular:
-    {-1:[0],0:[2],2:[1]}
-    The length of lps will be the number of rows, because every row has its 
-    own entry.
+    {0:[2],2:[1]}
+    The length of lps will be the number of rows, because every 
+    non zero row has its own entry. Zero rows are counted and ignored.
     """
-    while len(lps) < M.nrows():
+    while (len(lps) + zerolines) < M.nrows():
         for pos in lps:
             if len(lps[pos]) > 1:
                 if (M[lps[pos][0]][pos].degree() >= M[lps[pos][1]][pos].degree()):
@@ -232,15 +244,16 @@ cpdef mulders_storjohann(M,transposition=False):
                 else:
                     rowtochange = lps[pos][1]
                     basisrow = lps[pos][0]
-                simple_transformation(M,rowtochange,basisrow,pos,U)
+                simple_transformation(M,rowtochange, basisrow, pos, U)
                 lps[pos].remove(rowtochange)
                 
                 if M[rowtochange, leading_position(M[rowtochange])] == 0:
-                    lps[-rowtochange-1].append(rowtochange)    # ignore a line of pure zeros
+                    zerolines += 1
                 else:
                     lps[leading_position(M[rowtochange])].append(rowtochange)
                 break
+
     if U is not None:
-        return (M,U)
+        return (M, U)
     return M
     

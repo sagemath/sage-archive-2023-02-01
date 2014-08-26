@@ -1370,42 +1370,6 @@ def OA_20_416():
 
     return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(13),zip(*A),Y,check=False)
 
-def OA_9_514():
-    r"""
-    Returns an OA(9,514)
-
-    Construction shared by Julian R. Abel:
-
-        A `V(8,57)` vector appears on page p281 of the Brouwer-Van Rees paper
-        [BvR82]_. This gives a `TD(8+2, 514) - TD(8+2,57)`. Using a `TD(9,57)`
-        (not a `TD(10,57)`) it yields a `TD(9,514)`.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_9_514
-        sage: OA = OA_9_514()
-        sage: print is_orthogonal_array(OA,9,514,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(9,514,existence=True)
-        True
-    """
-    from sage.rings.finite_rings.constructor import FiniteField
-    q = 8*57+1
-    Fq = FiniteField(q)
-
-    Vm8_57 = [0,1,3,2,12,333,363,154,340]
-    _, QDM = QDM_from_Vmt(8,57,Vm8_57)
-    QDM = [B[:-1] for B in QDM]
-    return OA_from_quasi_difference_matrix(QDM,Fq,add_col=False)
-
 def OA_20_544():
     r"""
     Returns an OA(20,544)
@@ -1973,7 +1937,6 @@ OA_constructions = {
     352 : (20 , OA_20_352),
     416 : (20 , OA_20_416),
     469 : (10 , OA_10_469),
-    514 : (9  , OA_9_514),
     520 : (10 , OA_10_520),
     522 : (12 , OA_12_522),
     524 : (14 , OA_14_524),
@@ -2409,6 +2372,10 @@ Vmt_vectors = {
     (8,29) : ((0,1,4,11,94,60,85,16,198),
               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (8,57) : ((0,1,3,2,12,333,363,154,340),
+              """A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
+              Discrete Mathematics 1982, vol 39, num 3, pp 263-281"""),
 
     (10,13) : ((0,1,5,10,22,6,14,9,53,129,84),
                """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,

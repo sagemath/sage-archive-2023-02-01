@@ -1,0 +1,12 @@
+diff -druN ntl.orig/include/NTL/vector.h ntl/include/NTL/vector.h
+--- ntl.orig/include/NTL/vector.h	2014-08-21 20:06:48.000000000 -0700
++++ ntl/include/NTL/vector.h	2014-08-26 09:03:01.996311256 -0700
+@@ -424,7 +424,7 @@
+    if (n >= allocated()) pos = position(a);
+    AllocateTo(n);
+    if (pos != -1) src = elts() + pos;
+-   Init(n, a, *src);
++   Init(n, *src);
+    AdjustLength(n);
+ }
+ 

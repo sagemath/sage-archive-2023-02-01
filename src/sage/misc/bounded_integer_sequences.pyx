@@ -585,16 +585,16 @@ cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
             if offset_mod_src:
                 if (offset_mod_src+S.itembitsize >= mp_bits_per_limb):
                     mpn_rshift(tmp_limb, seq_src._mp_d+offset_div_src, 2, offset_mod_src)
+                    tmp_limb[0] &= S.mask_item
                 else:
-                    tmp_limb[0] = (seq_src._mp_d[offset_div_src])>>offset_mod_src
+                    tmp_limb[0] = ((seq_src._mp_d[offset_div_src])>>offset_mod_src) & S.mask_item
             else:
-                tmp_limb[0] = seq_src._mp_d[offset_div_src]
-            tmp_limb[0] &= S.mask_item
+                tmp_limb[0] = seq_src._mp_d[offset_div_src] & S.mask_item
         elif offset_div_src == max_limb:
             if offset_mod_src:
-                tmp_limb[0] = (seq_src._mp_d[offset_div_src])>>offset_mod_src
+                tmp_limb[0] = ((seq_src._mp_d[offset_div_src])>>offset_mod_src) & S.mask_item
             else:
-                tmp_limb[0] = seq_src._mp_d[offset_div_src]
+                tmp_limb[0] = seq_src._mp_d[offset_div_src] & S.mask_item
         else:
             tmp_limb[0] = 0
         # put data from tmp_limb[0] to tgt
@@ -1089,6 +1089,14 @@ cdef class BoundedIntegerSequence:
             <9, 7, 6, 4>
 
         TESTS::
+
+            sage: S = BoundedIntegerSequence(8, [4,1,6,2,7,2,5,5,2])
+            sage: S[-1::-2]
+            <2, 5, 7, 6, 4>
+            sage: S[1::2]
+            <1, 2, 2, 5>
+
+        ::
 
             sage: L = [randint(0,26) for i in range(5000)]
             sage: S = BoundedIntegerSequence(27, L)

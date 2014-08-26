@@ -1168,13 +1168,16 @@ class BrandtModule_class(AmbientHeckeModule):
         return ideals
 
 
-    def _ideal_products(self):
+    def _ideal_products(self, diagonal_only=False):
         """
         Return all products of right ideals, which are used in computing
         the Brandt matrices.
 
         This function is used internally by the Brandt matrices
         algorithms.
+
+        INPUT:
+        - diagonal_only -- bool (default: False)
 
         OUTPUT:
 
@@ -1190,9 +1193,16 @@ class BrandtModule_class(AmbientHeckeModule):
              [Fractional ideal (8 + 24*j + 24*k, 4*i + 24*j + 4*k, 32*j, 32*k),
               Fractional ideal (8 + 4*i + 16*j + 28*k, 8*i + 16*j + 8*k, 32*j, 64*k),
               Fractional ideal (16 + 16*j + 16*k, 4*i + 24*j + 4*k, 32*j + 32*k, 64*k)]]
+            sage: B._ideal_products(diagonal_only=True)
+            [Fractional ideal (8 + 8*j + 8*k, 4*i + 8*j + 4*k, 16*j, 16*k),
+             Fractional ideal (16 + 16*j + 48*k, 4*i + 8*j + 36*k, 32*j + 32*k, 64*k),
+             Fractional ideal (16 + 16*j + 16*k, 4*i + 24*j + 4*k, 32*j + 32*k, 64*k)]
         """
         try:
-            return self.__ideal_products
+            if diagonal_only:
+                return self.__ideal_products_diagonal
+            else:
+                return self.__ideal_products
         except AttributeError:
             pass
 
@@ -1201,10 +1211,22 @@ class BrandtModule_class(AmbientHeckeModule):
         if n == 0:
             return matrix(self.base_ring()[['q']], 0)
 
-        # 1. Compute the theta series
+        # 1. Compute the diagonal
+        try:
+            D = self.__ideal_products_diagonal
+        except AttributeError:
+            D = [I.multiply_by_conjugate(I) for I in L]
+            self.__ideal_products_diagonal = D
+
+        if diagonal_only:
+            return D
+
+        # 2. Compute the rest of the products
         P = []
         for i in range(n):
-            P.append([L[i].multiply_by_conjugate(L[j]) for j in range(i+1)])
+            v = [L[i].multiply_by_conjugate(L[j]) for j in range(i)]
+            v.append(D[i])
+            P.append(v)
         self.__ideal_products = P
         return P
 

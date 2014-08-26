@@ -24,6 +24,9 @@ from sage.misc.cachefunc import cached_function
 from orthogonal_arrays import orthogonal_array
 from designs_pyx import is_orthogonal_array
 from sage.combinat.designs.orthogonal_arrays import wilson_construction
+from sage.combinat.integer_list import IntegerListsLex
+from sage.rings.integer cimport Integer, smallInteger
+from sage.rings.arith import prime_powers
 
 @cached_function
 def find_recursive_construction(k,n):
@@ -115,9 +118,8 @@ def find_product_decomposition(int k,int n):
         (6, 7, 12, ())
         sage: _ = f(*args)
     """
-    from sage.rings.arith import divisors
     cdef int n1,n2
-    for n1 in divisors(n)[1:-1]: # we ignore 1 and n
+    for n1 in smallInteger(n).divisors()[1:-1]: # we ignore 1 and n
         n2 = n//n1  # n2 is decreasing along the loop
         if n2 < n1:
             break
@@ -467,7 +469,7 @@ def construction_3_4(k,n,m,r,s):
     OA = wilson_construction(OA,k,n,m,r+1,[1]*r+[s],check=False)
     return OA
 
-def find_construction_3_5(k,n):
+def find_construction_3_5(int k,int n):
     r"""
     Finds a decomposition for construction 3.5 from [AC07]_
 
@@ -490,7 +492,6 @@ def find_construction_3_5(k,n):
         (8, 13, 6, 11, 11, 11)
         sage: find_construction_3_5(9,24)
     """
-    from sage.combinat.integer_list import IntegerListsLex
     cdef int mm,i,nn,r,s,t
     for mm in range(2,n//2+1):
         if (mm+3 >= n or
@@ -591,7 +592,7 @@ def construction_3_5(k,n,m,r,s,t):
     OA = wilson_construction(OA,k,q,m,3,[r,s,t], check=False)
     return OA
 
-def find_construction_3_6(k,n):
+def find_construction_3_6(int k,int n):
     r"""
     Finds a decomposition for construction 3.6 from [AC07]_
 
@@ -614,7 +615,6 @@ def find_construction_3_6(k,n):
         (8, 13, 7, 4)
         sage: find_construction_3_6(8,98)
     """
-    from sage.rings.arith import is_prime_power
     cdef int mm,nn,i
 
     for mm in range(k-1,n//2+1):
@@ -628,8 +628,8 @@ def find_construction_3_6(k,n):
             if i<=0:
                 continue
 
-            if (is_prime_power(nn) and
-                is_available(k+i,nn)):
+            if (is_available(k+i,nn) and
+                smallInteger(nn).is_prime_power()):
                 return construction_3_6, (k,nn,mm,i)
 
 def construction_3_6(k,n,m,i):
@@ -918,7 +918,6 @@ def find_q_x(int k,int n):
         sage: find_q_x(9,158)[1]
         (9, 16, 6)
     """
-    from sage.rings.arith import is_prime_power
     cdef int q,x
 
     # n = (q-1)*(q-x) + x + 2
@@ -929,13 +928,13 @@ def find_q_x(int k,int n):
         x = (n-q**2+q-2)//(2-q)
         if (x < q and
             0 < x and
-            n == (q-1)*(q-x)+x+2    and
-            is_prime_power(q)       and
-            is_available(k+1,q-x-1) and
-            is_available(k+1,q-x+1) and
+            n == (q-1)*(q-x)+x+2             and
+            is_available(k+1,q-x-1)          and
+            is_available(k+1,q-x+1)          and
             # The next is always True, because q is a prime power
             # is_available(k+1,q) and
-            is_available(k, x+2 )):
+            is_available(k, x+2 )            and
+            smallInteger(q).is_prime_power()):
             return construction_q_x, (k,q,x)
     return False
 
@@ -990,7 +989,6 @@ def find_thwart_lemma_3_5(int k,int N):
         sage: for k,n in kn:                                                     # not tested -- too long
         ....:     assert designs.orthogonal_array(k,n,existence=True) is True    # not tested -- too long
     """
-    from sage.rings.arith import prime_powers
     cdef int n,m,a,b,c,d
 
     for n in prime_powers(k+2,N-2): # There must exist a OA(k+3,n) thus n>=k+2
@@ -1237,25 +1235,27 @@ def find_thwart_lemma_4_1(int k,int n):
         sage: find_thwart_lemma_4_1(10,50)
         False
     """
-    from sage.rings.arith import factor
-    cdef int nn,mm
+    cdef int p,i,imax,nn,mm
 
     #      n  = nn*mm+4(nn-2)
     # <=> n+8 = nn(mm+4)
     #
     # nn is a prime power dividing n+8
-    for nn in (p**i for p,imax in factor(n+8) for i in range(1,imax+1)):
-        mm = (n+8)//nn-4
-        if (k+4 > nn+1 or
-            mm <= 1 or
-            nn % 3 == 2 or
-            not is_available(k,nn-2) or
-            not is_available(k,mm+1) or
-            not is_available(k,mm+3) or
-            not is_available(k,mm+4)):
-            continue
+    for p,imax in smallInteger(n+8).factor():
+        nn = 1
+        for i in range(1,imax+1):
+            nn *= p
+            mm = (n+8)//nn-4
+            if (k+4 > nn+1 or
+                mm <= 1 or
+                nn % 3 == 2 or
+                not is_available(k,nn-2) or
+                not is_available(k,mm+1) or
+                not is_available(k,mm+3) or
+                not is_available(k,mm+4)):
+                continue
 
-        return thwart_lemma_4_1,(k,nn,mm)
+            return thwart_lemma_4_1,(k,nn,mm)
 
     return False
 
@@ -1361,7 +1361,7 @@ def thwart_lemma_4_1(k,n,m):
 
     return wilson_construction(OA,k,n,m,4,[n-2,]*4,check=False)
 
-def find_three_factor_product(k,n):
+def find_three_factor_product(int k,int n):
     r"""
     Finds a decomposition for a three-factor product from [DukesLing14]_
 
@@ -1391,12 +1391,11 @@ def find_three_factor_product(k,n):
     # - a OA(k-1,n1)
     # - a OA( k ,n2)
     # - a OA( k ,n3)
-    from sage.rings.arith import divisors
-    for n1 in divisors(n)[1:-1]:
+    for n1 in smallInteger(n).divisors()[1:-1]:
         if not is_available(k-1,n1):
             continue
-        for n2 in divisors(n//n1):
-            n3 = n//n1//n2
+        for n2 in smallInteger(n//n1).divisors():
+            n3 = n/n1/n2
             if (n2<n1 or
                 n3<n2 or
                 not is_available(k,n2) or
@@ -1679,7 +1678,6 @@ def find_brouwer_separable_design(int k,int n):
         sage: find_brouwer_separable_design(5,14)
         False
     """
-    from sage.rings.arith import prime_powers
     cdef int q,x,baer_subplane_size, max_t, min_t, t,e1,e2,e3,e4
 
     for q in prime_powers(2,n):
@@ -2347,7 +2345,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
     return OA
 
 from designs_pyx cimport _OA_cache, _OA_cache_size
-cdef bint is_available(k,n):
+cdef bint is_available(int k,int n):
     r"""
     Return whether Sage can build an OA(k,n)
 

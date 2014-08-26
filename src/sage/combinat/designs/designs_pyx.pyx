@@ -154,7 +154,7 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
     Checks that input is a Group Divisible Design on `\{0,...,v-1\}`
 
     For more information on Group Divisible Designs, see
-    :class:`~sage.combinat.designs.incidence_structure.GroupDivisibleDesign`.
+    :class:`~sage.combinat.designs.incidence_structures.GroupDivisibleDesign`.
 
     INPUT:
 

@@ -84,7 +84,7 @@ def transversal_design(k,n,resolvable=False,check=True,existence=False):
 
     - ``resolvable`` (boolean) -- set to ``True`` if you want the design to be
       resolvable (see
-      :meth:`sage.combinat.designs.incidence_structures.IncidenceStructures.is_resolvable`). The
+      :meth:`sage.combinat.designs.incidence_structures.IncidenceStructure.is_resolvable`). The
       `n` classes of the resolvable design are obtained as the first `n` blocks,
       then the next `n` blocks, etc ... Set to ``False`` by default.
 

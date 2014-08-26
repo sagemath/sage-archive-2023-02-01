@@ -1,3 +1,37 @@
+r"""
+Orthogonal arrays (build recursive constructions)
+
+This module implements several constructions of :mod:`Orthogonal Arrays
+<sage.combinat.designs.orthogonal_arrays>`. As their input can be complex, they
+all have a counterpart in the
+:mod:`~sage.combinat.designs.orthogonal_arrays_find_recursive` module that
+automatically computes it.
+
+All these constructions are automatically queried when the
+:func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array` function is
+called.
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :func:`simple_wilson_construction` | Return an `OA(k,rm + \sum u_i)` from Wilson construction.
+    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_3` | Return an `OA(k,nm+i)`.
+    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_4` | Return a `OA(k,nm+rs)`.
+    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_5` | Return an `OA(k,nm+r+s+t)`.
+    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_6` | Return a `OA(k,nm+i)`.
+    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_q_x` | Return an `OA(k,(q-1)*(q-x)+x+2)` using the `q-x` construction.
+    :func:`OA_and_oval` | Return a `OA(q+1,q)` whose blocks contains `\leq 2` zeroes in the last `q` columns.
+    :func:`thwart_lemma_3_5` | Returns an `OA(k,nm+a+b+c+d)`.
+    :func:`thwart_lemma_4_1` | Returns an `OA(k,nm+4(n-2))`.
+    :func:`three_factor_product` | Returns an `OA(k+1,n_1n_2n_3)`.
+    :func:`brouwer_separable_design` | Returns a `OA(k,t(q^2+q+1)+x)` using Brouwer's result on separable designs.
+
+Functions
+---------
+"""
+
 from orthogonal_arrays import orthogonal_array, wilson_construction, is_orthogonal_array
 
 def simple_wilson_construction(k,r,m,u):
@@ -14,6 +48,10 @@ def simple_wilson_construction(k,r,m,u):
 
         As soon as wilson construction accepts an empty master design we should
         remove this intermediate functions.
+
+    .. SEEALSO::
+
+        :func:`~sage.combinat.designs.orthogonal_arrays.wilson_construction`
 
     EXAMPLES::
 
@@ -64,7 +102,7 @@ def construction_3_3(k,n,m,i):
 
     .. SEEALSO::
 
-        :func:`find_construction_3_3`
+        :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_construction_3_3`
 
     EXAMPLES::
 
@@ -88,6 +126,7 @@ def construction_3_3(k,n,m,i):
     OA.extend(OA_relabel(orthogonal_array(k,m+i),k,m+i,matrix=matrix))
     assert is_orthogonal_array(OA,k,n*m+i)
     return OA
+
 def construction_3_4(k,n,m,r,s):
     r"""
     Return a `OA(k,nm+rs)`.
@@ -116,7 +155,7 @@ def construction_3_4(k,n,m,r,s):
 
     .. SEEALSO::
 
-        :func:`find_construction_3_4`
+        :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_construction_3_4`
 
     EXAMPLES::
 
@@ -174,7 +213,7 @@ def construction_3_5(k,n,m,r,s,t):
 
     .. SEEALSO::
 
-        :func:`find_construction_3_5`
+        :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_construction_3_5`
 
     EXAMPLES::
 
@@ -245,7 +284,8 @@ def construction_3_6(k,n,m,i):
 
     .. SEEALSO::
 
-        - :func:`construction_3_6`
+        - :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_construction_3_6`
+
         - :func:`OA_and_oval`
 
     EXAMPLES::
@@ -284,8 +324,8 @@ def OA_and_oval(q):
 
     .. NOTE::
 
-            This function is called by :func:`construction_3_6`, an
-            implementation of Construction 3.6 from [AC07]_.
+        This function is called by :func:`construction_3_6`, an implementation
+        of Construction 3.6 from [AC07]_.
 
     EXAMPLES::
 
@@ -412,7 +452,7 @@ def construction_q_x(k,q,x,check=True):
 
     .. SEEALSO::
 
-        - :func:`find_q_x`
+        - :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_q_x`
         - :func:`~sage.combinat.designs.block_design.projective_plane`
         - :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`
         - :func:`~sage.combinat.designs.orthogonal_arrays.OA_from_PBD`
@@ -548,6 +588,10 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
     - ``complement`` (boolean) -- whether to complement the sets, i.e. follow
       the `n-a,n-b,n-c` variant described above.
 
+    .. SEEALSO::
+
+        - :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_thwart_lemma_3_5`
+
     EXAMPLES::
 
         sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import thwart_lemma_3_5
@@ -655,6 +699,10 @@ def thwart_lemma_4_1(k,n,m):
     The affine geometry on 9 points contained in the projective geometry
     `PG(2,n)` is given explicitly in [OS64]_ (Thanks to Julian R. Abel for
     finding the reference!).
+
+    .. SEEALSO::
+
+        - :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_thwart_lemma_4_1`
 
     REFERENCES:
 
@@ -809,6 +857,10 @@ def three_factor_product(k,n1,n2,n3,check=False):
     - ``check`` -- (boolean) Whether to check that everything is going smoothly
       while the design is being built. It is disabled by default, as the
       constructor of orthogonal arrays checks the final design anyway.
+
+    .. SEEALSO::
+
+        - :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_three_factor_product`
 
     EXAMPLE::
 
@@ -1173,6 +1225,10 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
     - ``verbose`` (boolean) -- whether to print some information on the
       construction and parameters being used.
+
+    .. SEEALSO::
+
+        - :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_brouwer_separable_design`
 
     REFERENCES:
 

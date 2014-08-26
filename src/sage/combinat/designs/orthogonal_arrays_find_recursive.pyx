@@ -1,13 +1,35 @@
 r"""
-Orthogonal arrays (Recursive constructions)
+Orthogonal arrays (find recursive constructions)
 
 This module implements several functions to find recursive constructions of
 :mod:`Orthogonal Arrays <sage.combinat.designs.orthogonal_arrays>`.
 
 The main function of this module, i.e. :func:`find_recursive_construction`,
-queries all implemented recursive constructions of designs. It is used by
-Sage's function
-:func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`.
+queries all implemented recursive constructions of designs implemented in
+:mod:`~sage.combinat.designs.orthogonal_arrays_build_recursive` in order to
+obtain an `OA(k,n)`.
+
+:func:`find_recursive_construction` is called by the
+:func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array` function.
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :func:`find_recursive_construction` | Find a recursive construction of an `OA(k,n)` (calls all others ``find_*`` functions)
+    :func:`find_product_decomposition` | Find `n_1n_2=n` to obtain an `OA(k,n)` by the product construction
+    :func:`find_wilson_decomposition_with_one_truncated_group` | Find `rm+u=n` to obtain an `OA(k,n)` by Wilson's construction with one truncated column.
+    :func:`find_wilson_decomposition_with_two_truncated_groups` | Find `rm+r_1+r_2=n` to obtain an `OA(k,n)` by Wilson's construction with two truncated columns.
+    :func:`find_construction_3_3` | Find a decomposition for construction 3.3 from [AC07]_.
+    :func:`find_construction_3_4` | Find a decomposition for construction 3.4 from [AC07]_.
+    :func:`find_construction_3_5` | Find a decomposition for construction 3.5 from [AC07]_.
+    :func:`find_construction_3_6` | Find a decomposition for construction 3.6 from [AC07]_.
+    :func:`find_q_x` | Find integers `q,x` such that the `q-x` construction yields an `OA(k,n)`.
+    :func:`find_thwart_lemma_3_5` | Find the values on which Lemma 3.5 from [Thwarts]_ applies.
+    :func:`find_thwart_lemma_4_1` | Find a decomposition for Lemma 4.1 from [Thwarts]_.
+    :func:`find_three_factor_product` | Find `n_1n_2n_3=n` to obtain an `OA(k,n)` by the three-factor product from [DukesLing14]_
+    :func:`find_brouwer_separable_design` | Find `t(q^2+q+1)+x=n` to obtain an `OA(k,n)` by Brouwer's separable design construction.
 
 REFERENCES:
 
@@ -29,21 +51,21 @@ from sage.rings.arith import prime_powers
 @cached_function
 def find_recursive_construction(k,n):
     r"""
-    Find a recursive construction of a `OA(k,n)`
+    Find a recursive construction of an `OA(k,n)` (calls all others ``find_*`` functions)
 
     This determines whether an `OA(k,n)` can be built through the following
     constructions:
 
-    - :func:`simple_wilson_construction` (0, 1 or 2 truncated columns)
-    - :func:`construction_3_3`
-    - :func:`construction_3_4`
-    - :func:`construction_3_5`
-    - :func:`construction_3_6`
-    - :func:`construction_q_x`
-    - :func:`thwart_lemma_3_5`
-    - :func:`thwart_lemma_4_1`
-    - :func:`three_factor_product`
-    - :func:`brouwer_separable_design`
+    - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.simple_wilson_construction` (0, 1 or 2 truncated columns)
+    - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_3`
+    - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_4`
+    - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_5`
+    - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_6`
+    - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_q_x`
+    - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.thwart_lemma_3_5`
+    - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.thwart_lemma_4_1`
+    - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.three_factor_product`
+    - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.brouwer_separable_design`
 
     INPUT:
 
@@ -90,7 +112,7 @@ def find_recursive_construction(k,n):
 
 def find_product_decomposition(int k,int n):
     r"""
-    Look for a factorization of `n` in order to build an `OA(k,n)`.
+    Find `n_1n_2=n` to obtain an `OA(k,n)` by the product construction.
 
     If Sage can build a `OA(k,n_1)` and a `OA(k,n_2)` such that `n=n_1\times
     n_2` then a `OA(k,n)` can be built by a product construction (which
@@ -128,7 +150,7 @@ def find_product_decomposition(int k,int n):
 
 def find_wilson_decomposition_with_one_truncated_group(int k,int n):
     r"""
-    Helper function for Wilson's construction with one truncated column.
+    Find `rm+u=n` to obtain an `OA(k,n)` by Wilson's construction with one truncated column.
 
     This function looks for possible integers `m,t,u` satisfying that `mt+u=n` and
     such that Sage knows how to build a `OA(k,m)`, `OA(k,m+1)`, `OA(k+1,t)` and a
@@ -179,7 +201,7 @@ def find_wilson_decomposition_with_one_truncated_group(int k,int n):
 
 def find_wilson_decomposition_with_two_truncated_groups(int k,int n):
     r"""
-    Helper function for Wilson's construction with two trucated columns.
+    Find `rm+r_1+r_2=n` to obtain an `OA(k,n)` by Wilson's construction with two truncated columns.
 
     Look for integers `r,m,r_1,r_2` satisfying `n=rm+r_1+r_2` and `1\leq r_1,r_2<r`
     and such that the following designs exist : `OA(k+2,r)`, `OA(k,r1)`,
@@ -240,7 +262,7 @@ def find_wilson_decomposition_with_two_truncated_groups(int k,int n):
 
 def find_construction_3_3(int k,int n):
     r"""
-    Finds a decomposition for construction 3.3 from [AC07]_
+    Find a decomposition for construction 3.3 from [AC07]_
 
     INPUT:
 
@@ -248,7 +270,7 @@ def find_construction_3_3(int k,int n):
 
     .. SEEALSO::
 
-        :func:`construction_3_3`
+        :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_3`
 
     OUTPUT:
 
@@ -279,7 +301,7 @@ def find_construction_3_3(int k,int n):
 
 def find_construction_3_4(k,n):
     r"""
-    Finds a decomposition for construction 3.4 from [AC07]_
+    Find a decomposition for construction 3.4 from [AC07]_
 
     INPUT:
 
@@ -287,7 +309,7 @@ def find_construction_3_4(k,n):
 
     .. SEEALSO::
 
-        :func:`construction_3_4`
+        :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_4`
 
     OUTPUT:
 
@@ -322,7 +344,7 @@ def find_construction_3_4(k,n):
 
 def find_construction_3_5(int k,int n):
     r"""
-    Finds a decomposition for construction 3.5 from [AC07]_
+    Find a decomposition for construction 3.5 from [AC07]_
 
     INPUT:
 
@@ -330,7 +352,7 @@ def find_construction_3_5(int k,int n):
 
     .. SEEALSO::
 
-        :func:`construction_3_5`
+        :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_5`
 
     OUTPUT:
 
@@ -370,7 +392,7 @@ def find_construction_3_5(int k,int n):
 
 def find_construction_3_6(int k,int n):
     r"""
-    Finds a decomposition for construction 3.6 from [AC07]_
+    Find a decomposition for construction 3.6 from [AC07]_
 
     INPUT:
 
@@ -378,7 +400,7 @@ def find_construction_3_6(int k,int n):
 
     .. SEEALSO::
 
-        :func:`construction_3_6`
+        :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_6`
 
     OUTPUT:
 
@@ -413,7 +435,7 @@ def find_q_x(int k,int n):
     r"""
     Find integers `q,x` such that the `q-x` construction yields an `OA(k,n)`.
 
-    See the documentation of :func:`construction_q_x` to find out what
+    See the documentation of :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_q_x` to find out what
     hypotheses the integers `q,x` must satisfy.
 
     .. WARNING::
@@ -431,7 +453,7 @@ def find_q_x(int k,int n):
 
     .. SEEALSO::
 
-        :func:`construction_q_x`
+        :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_q_x`
 
     EXAMPLE::
 
@@ -464,8 +486,7 @@ def find_q_x(int k,int n):
 
 def find_thwart_lemma_3_5(int k,int N):
     r"""
-    A function to find the values for which one can apply the
-    Lemma 3.5 from [Thwarts]_.
+    Find the values on which Lemma 3.5 from [Thwarts]_ applies.
 
     OUTPUT:
 
@@ -474,7 +495,7 @@ def find_thwart_lemma_3_5(int k,int N):
 
     .. SEEALSO::
 
-        :func:`thwart_lemma_3_5`
+        :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.thwart_lemma_3_5`
 
     EXAMPLES::
 
@@ -585,7 +606,7 @@ def find_thwart_lemma_3_5(int k,int N):
 
 def find_thwart_lemma_4_1(int k,int n):
     r"""
-    Finds a decomposition for Lemma 4.1 from [Thwarts]_.
+    Find a decomposition for Lemma 4.1 from [Thwarts]_.
 
     INPUT:
 
@@ -593,7 +614,7 @@ def find_thwart_lemma_4_1(int k,int n):
 
     .. SEEALSO::
 
-        :func:`thwart_lemma_4_1`
+        :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.thwart_lemma_4_1`
 
     OUTPUT:
 
@@ -634,7 +655,7 @@ def find_thwart_lemma_4_1(int k,int n):
 
 def find_three_factor_product(int k,int n):
     r"""
-    Finds a decomposition for a three-factor product from [DukesLing14]_
+    Find `n_1n_2n_3=n` to obtain an `OA(k,n)` by the three-factor product from [DukesLing14]_
 
     INPUT:
 
@@ -642,7 +663,7 @@ def find_three_factor_product(int k,int n):
 
     .. SEEALSO::
 
-        :func:`three_factor_product`
+        :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.three_factor_product`
 
     OUTPUT:
 
@@ -679,14 +700,15 @@ def find_three_factor_product(int k,int n):
 
 def find_brouwer_separable_design(int k,int n):
     r"""
-    Find integers `t,q,x` such that :func:`brouwer_separable_design` gives a `OA(k,t(q^2+q+1)+x)`.
+    Find `t(q^2+q+1)+x=n` to obtain an `OA(k,n)` by Brouwer's separable design construction.
 
     INPUT:
 
     - ``k,n`` (integers)
 
     The assumptions made on the parameters `t,q,x` are explained in the
-    documentation of :func:`brouwer_separable_design`.
+    documentation of
+    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.brouwer_separable_design`.
 
     EXAMPLE::
 

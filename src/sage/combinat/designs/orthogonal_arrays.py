@@ -35,6 +35,9 @@ It defines the following functions:
     :meth:`OA_from_PBD` | Return an `OA(k,n)` from a PBD
     :meth:`OA_n_times_2_pow_c_from_matrix` | Return an `OA(k, \vert G\vert \cdot 2^c)` from a constrained `(G,k-1,2)`-difference matrix.
     :meth:`OA_from_wider_OA` | Return the first `k` columns of `OA`.
+    :meth:`QDM_from_Vmt` | Return a QDM a `V(m,t)`
+
+
 
 REFERENCES:
 
@@ -823,7 +826,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
 
     from block_design import projective_plane
     from latin_squares import mutually_orthogonal_latin_squares
-    from database import OA_constructions, MOLS_constructions
+    from database import OA_constructions, MOLS_constructions, QDM
     from orthogonal_arrays_find_recursive import find_recursive_construction
     from difference_matrices import difference_matrix
 
@@ -877,7 +880,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
             p = projective_plane(n, check=False)
             OA = [l[:k] for l in projective_plane_to_OA(p, check=False)]
 
-    # Constructions from the database
+    # Constructions from the database (OA)
     elif may_be_available and n in OA_constructions and k <= OA_constructions[n][0]:
         _OA_cache_set(OA_constructions[n][0],n,True)
         if existence:
@@ -886,8 +889,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
 
         OA = OA_from_wider_OA(construction(),k)
 
-    # Constructions from the database II
-    # Section 6.5.1 from [Stinson2004]
+    # Constructions from the database II (MOLS: Section 6.5.1 from [Stinson2004])
     elif may_be_available and n in MOLS_constructions and k-2 <= MOLS_constructions[n][0]:
         _OA_cache_set(MOLS_constructions[n][0]+2,n,True)
 
@@ -899,6 +901,23 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
             OA = [[i,j]+[m[i,j] for m in mols]
                   for i in range(n) for j in range(n)]
             OA = OA_from_wider_OA(OA,k)
+
+    # Constructions from the database III (Quasi-difference matrices)
+    elif (may_be_available and
+          (n,1) in QDM and
+          any(kk>=k and mu<=lmbda and orthogonal_array(k,u,existence=True) for _,kk,lmbda,mu,u in QDM[n,1])):
+        _OA_cache_set(k,n,True)
+
+        if existence:
+            return True
+        else:
+            for nn,kk,lmbda,mu,u in QDM[n,1]:
+                if (kk>=k and
+                    mu<=lmbda and
+                    orthogonal_array(k,u,existence=True)):
+                    G,M = QDM[n,1][nn,kk,lmbda,mu,u]()
+                    M = [R[:k] for R in M]
+                    OA = OA_from_quasi_difference_matrix(M,G,add_col=False)
 
     # From Difference Matrices
     elif may_be_available and difference_matrix(n,k-1,existence=True):
@@ -1581,13 +1600,12 @@ def OA_from_Vmt(m,t,V):
     """
     from sage.rings.finite_rings.constructor import FiniteField
     q = m*t+1
-    Fq = FiniteField(q, 'x')
-    M = QDM_from_Vmt(m,t,V)
+    Fq, M = QDM_from_Vmt(m,t,V)
     return OA_from_quasi_difference_matrix(M,Fq,add_col = False)
 
 def QDM_from_Vmt(m,t,V):
     r"""
-    Returns an Orthogonal Array from a `V(m,t)`
+    Return a QDM from a `V(m,t)`
 
     **Definition**
 
@@ -1646,7 +1664,7 @@ def QDM_from_Vmt(m,t,V):
 
     M.append([0]*q)
 
-    return M
+    return Fq, M
 
 def OA_from_PBD(k,n,PBD, check=True):
     r"""

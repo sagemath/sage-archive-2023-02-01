@@ -202,7 +202,9 @@ Here are the currently implemented policies:
 - :class:`SelfParentPolicy`: provide systematically ``Element`` and
   element_class and ensure that the parent is ``self``.
 
-.. TODO:: Generalize :class:`TopMostParentPolicy` to be able to have several
+.. TODO::
+
+    Generalize :class:`TopMostParentPolicy` to be able to have several
     topmost parent.
 
 .. RUBRIC:: Technicalities: how policies inform parents
@@ -261,12 +263,13 @@ A factory should
    the :class:`ParentWithSetFactory` if no policy is given to the factory.
 
 
-.. TODO:: There is currently no support for dealing with sets of
+.. TODO::
+
+    There is currently no support for dealing with sets of
     constraints. The set factory and the parents must cooperate to
     consistently handle them. More support, together with a generic mechanism
     to select the appropriate parent class from the constraints, will be added
-    shortly to sage, as soon as we have gathered sufficiently enough
-    use-cases.
+    as soon as we have gathered sufficiently enough use-cases.
 
 AUTHORS:
 
@@ -388,8 +391,10 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
 
     - ``factory`` -- a :class:`SetFactory`
 
-    .. WARNING:: This class is a base class for policies, one should not try
-       to create instances.
+    .. WARNING::
+
+        This class is a base class for policies, one should not try
+        to create instances.
     """
     def __init__(self, factory):
         r"""
@@ -405,7 +410,7 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
 
     def factory(self):
         r"""
-        Returns the factory for ``self``.
+        Return the factory for ``self``.
 
         EXAMPLES::
 
@@ -541,7 +546,7 @@ class SelfParentPolicy(SetFactoryPolicy):
 
     def _element_constructor_attributes(self, constraints):
         r"""
-        Returns the element constructor attributes as per
+        Return the element constructor attributes as per
         :meth:`SetFactoryPolicy._element_constructor_attributes`
 
         INPUT:
@@ -607,7 +612,7 @@ class TopMostParentPolicy(SetFactoryPolicy):
 
     def _element_constructor_attributes(self, constraints):
         r"""
-        Returns the element constructor attributes as per
+        Return the element constructor attributes as per
         :meth:`SetFactoryPolicy._element_constructor_attributes`.
 
         INPUT:
@@ -704,7 +709,7 @@ class FacadeParentPolicy(SetFactoryPolicy):
 
     def _element_constructor_attributes(self, constraints):
         r"""
-        Returns the element constructor attributes as per
+        Return the element constructor attributes as per
         :meth:`SetFactoryPolicy._element_constructor_attributes`.
 
         INPUT:
@@ -792,7 +797,7 @@ class ParentWithSetFactory(Parent):
 
     def constraints(self):
         r"""
-        Returns the constraints defining ``self``.
+        Return the constraints defining ``self``.
 
         Currently there is no specification on how constraints are
         handled.
@@ -811,7 +816,7 @@ class ParentWithSetFactory(Parent):
 
     def policy(self):
         r"""
-        Returns the policy used when ``self`` was created.
+        Return the policy used when ``self`` was created.
 
         EXAMPLES::
 
@@ -825,7 +830,7 @@ class ParentWithSetFactory(Parent):
 
     def facade_policy(self):
         r"""
-        Returns the policy for parent facade for ``self``.
+        Return the policy for parent facade for ``self``.
 
         EXAMPLES::
 
@@ -853,7 +858,7 @@ class ParentWithSetFactory(Parent):
 
     def factory(self):
         r"""
-        Returns the factory which built ``self``.
+        Return the factory which built ``self``.
 
         EXAMPLES::
 
@@ -867,7 +872,7 @@ class ParentWithSetFactory(Parent):
 
     def subset(self, *args, **options):
         r"""
-        Returns a subset of ``self`` by adding more constraints.
+        Return a subset of ``self`` by adding more constraints.
 
         EXAMPLES::
 

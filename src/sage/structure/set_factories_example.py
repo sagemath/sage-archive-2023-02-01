@@ -6,7 +6,9 @@ The goal of this module is to exemplify the use of set factories. Note
 that the code is intentionally kept minimal; many things and in
 particular several iterators could be written in a more efficient way.
 
-.. SEEALSO:: :mod:`.set_factories` for an introduction to set
+.. SEEALSO::
+
+    :mod:`.set_factories` for an introduction to set
     factories, their specifications, and examples of their use and
     implementation based on this module.
 """
@@ -34,7 +36,9 @@ class XYPairsFactory(SetFactory):
     r"""
     An example of set factory, for sets of pairs of integers.
 
-    .. SEEALSO:: :mod:`.set_factories` for an introduction to set factories.
+    .. SEEALSO::
+
+        :mod:`.set_factories` for an introduction to set factories.
     """
     def __call__(self, x=None, y=None, policy=None):
         r"""
@@ -50,7 +54,9 @@ class XYPairsFactory(SetFactory):
         - ``y=b`` -- where ``b`` is an integer (default to ``None``).
         - ``policy`` -- the policy passed to the created set.
 
-        .. SEEALSO:: :class:`.set_factories.SetFactoryPolicy`
+        .. SEEALSO::
+
+            :class:`.set_factories.SetFactoryPolicy`
 
         EXAMPLES:
 
@@ -64,8 +70,10 @@ class XYPairsFactory(SetFactory):
             sage: P = XYPairs(); P.list()
             [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (0, 2), (1, 2), (2, 2), (3, 2), (4, 2), (0, 3), (1, 3), (2, 3), (3, 3), (4, 3), (0, 4), (1, 4), (2, 4), (3, 4), (4, 4)]
 
-        .. note:: This function is actually the ``__call__`` method of
-                  :class:`XYPairsFactory`.
+        .. NOTE::
+
+            This function is actually the ``__call__`` method of
+            :class:`XYPairsFactory`.
         """
         if policy is None:
             policy = self._default_policy
@@ -310,7 +318,7 @@ class Pairs_Y(ParentWithSetFactory, DisjointUnionEnumeratedSets):
     r"""
     The set of pairs `(0, y), (1, y), ..., (4, y)`.
 
-    .. warning::
+    .. WARNING::
 
         Put a nice warning _single_pair
 

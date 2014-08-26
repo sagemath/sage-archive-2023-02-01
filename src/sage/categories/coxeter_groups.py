@@ -625,7 +625,63 @@ class CoxeterGroups(Category_singleton):
                 [2 3 1]
             """
             from sage.groups.matrix_gps.coxeter_group import CoxeterMatrixGroup
-            return CoxeterMatrixGroup(self.coxeter_matrix(), index_set=self.index_set())
+            return CoxeterMatrixGroup(self.coxeter_matrix(),
+                                      index_set=self.index_set())
+
+        def elements_of_length(self, n):
+            r"""
+            Return all elements of length `n`.
+
+            EXAMPLES::
+
+                sage: A = AffinePermutationGroup(['A',2,1])
+                sage: [len(list(A.elements_of_length(i))) for i in [0..5]]
+                [1, 3, 6, 9, 12, 15]
+
+                sage: W = CoxeterGroup(['H',3])
+                sage: [len(list(W.elements_of_length(i))) for i in range(4)]
+                [1, 3, 5, 7]
+
+                sage: W = CoxeterGroup(['A',2])
+                sage: [len(list(W.elements_of_length(i))) for i in range(6)]
+                [1, 2, 2, 1, 0, 0]
+            """
+            I = self.weak_order_ideal(ConstantFunction(True), side='right')
+            return I.elements_of_depth_iterator(n)
+
+        def random_element_of_length(self, n):
+            r"""
+            Return a random element of length ``n`` in ``self``.
+
+            Starts at the identity, then chooses an upper cover at random.
+
+            Not very uniform: actually constructs a uniformly random
+            reduced word of length `n`. Thus we most likely get
+            elements with lots of reduced words!
+
+            EXAMPLES::
+
+                sage: A = AffinePermutationGroup(['A', 7, 1])
+                sage: p = A.random_element_of_length(10)
+                sage: p in A
+                True
+                sage: p.length() == 10
+                True
+
+                sage: W = CoxeterGroup(['A', 4])
+                sage: p = W.random_element_of_length(5)
+                sage: p in W
+                True
+                sage: p.length() == 5
+                True
+            """
+            from sage.misc.prandom import randint
+            x = self.one()
+            for i in xrange(1, n + 1):
+                antiD = x.descents(positive=True)
+                rnd = randint(0, len(antiD) - 1)
+                x = x.apply_simple_reflection_right(antiD[rnd])
+            return x
 
         # TODO: Groups() should have inverse() call __invert__
         # With strong doc stating that this is just a convenience for the user

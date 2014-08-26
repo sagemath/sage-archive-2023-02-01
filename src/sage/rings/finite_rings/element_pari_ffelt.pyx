@@ -49,7 +49,19 @@ cdef GEN _INT_to_FFELT(GEN g, GEN x) except NULL:
     Convert the t_INT `x` to an element of the field of definition of
     the t_FFELT `g`.
 
-    This function must be called within pari_catch_sig_on() ... pari_catch_sig_off().
+    This function must be called within ``pari_catch_sig_on()``
+    ... ``pari_catch_sig_off()``.
+
+    TESTS:
+
+    Converting large integers to finite field elements does not lead
+    to overflow errors (see :trac:`16807`)::
+
+        sage: p = previous_prime(2^64)
+        sage: F.<x> = GF(p^2)
+        sage: x * 2^63
+        9223372036854775808*x
+
     """
     cdef GEN f, p = gel(g, 4), result
     cdef long t
@@ -71,7 +83,7 @@ cdef GEN _INT_to_FFELT(GEN g, GEN x) except NULL:
         elif t == t_FF_Flxq:
             f = cgetg(3, t_VECSMALL)
             set_gel(f, 1, gmael(g, 2, 1))
-            f[2] = itos(x)
+            f[2] = itou(x)
         else:
             pari_catch_sig_off()
             raise TypeError("unknown PARI finite field type")
@@ -611,12 +623,28 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             2*a^9 + a^5 + 4*a^4 + 4*a^3 + a^2 + 3*a
             sage: a^(e % (5^10 - 1))
             2*a^9 + a^5 + 4*a^4 + 4*a^3 + a^2 + 3*a
+
+        The exponent is converted to an integer (see :trac:`16540`)::
+
+            sage: q = 11^23
+            sage: F.<a> = FiniteField(q)
+            sage: a^Mod(1, q - 1)
+            a
+
+        .. WARNING::
+
+            For efficiency reasons, we do not verify that the
+            exponentiation is well defined before converting the
+            exponent to an integer.  This means that ``a^Mod(1, n)``
+            returns `a` even if `n` is not a multiple of the
+            multiplicative order of `a`.
+
         """
         if exp == 0:
             return self._parent.one_element()
         if exp < 0 and FF_equal0(self.val):
             raise ZeroDivisionError
-        exp = pari(exp)
+        exp = Integer(exp)._pari_()
         cdef FiniteFieldElement_pari_ffelt x = self._new()
         pari_catch_sig_on()
         x.construct(FF_pow(self.val, (<pari_gen>exp).g))

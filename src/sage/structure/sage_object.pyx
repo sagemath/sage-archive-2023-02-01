@@ -1414,6 +1414,12 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
         Successfully unpickled ... objects.
         Failed to unpickle 0 objects.
 
+    Check that unpickling a second time works (see :trac:`5838`)::
+
+        sage: sage.structure.sage_object.unpickle_all()
+        Successfully unpickled ... objects.
+        Failed to unpickle 0 objects.
+
     When it is not possible to unpickle a pickle in the pickle_jar then
     :meth:`unpickle_all` prints the following error message which warns against removing
     pickles from the pickle_jar and directs the user towards

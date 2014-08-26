@@ -35,6 +35,8 @@ name_regex = re.compile(r".*\s(\w+)([(].*)?:")
 # LaTeX file parsing
 begin_verb = re.compile(r"\s*\\begin{verbatim}")
 end_verb = re.compile(r"\s*\\end{verbatim}\s*(%link)?")
+begin_lstli = re.compile(r"\s*\\begin{lstlisting}")
+end_lstli = re.compile(r"\s*\\end{lstlisting}\s*(%link)?")
 skip = re.compile(r".*%skip.*")
 
 # ReST file parsing
@@ -150,7 +152,7 @@ class DocTestSource(object):
         This function is called when a docstring block is completed
         (either by ending a triple quoted string in a Python file,
         unindenting from a comment block in a ReST file, or ending a
-        verbatim environment in a LaTeX file.
+        verbatim or lstlisting environment in a LaTeX file).
 
         INPUT:
 
@@ -696,6 +698,7 @@ class FileDocTestSource(DocTestSource):
             ....:             FDS = FileDocTestSource(filename, DocTestDefaults(long=True,optional=True))
             ....:             FDS._test_enough_doctests(verbose=False)
             There are 7 tests in sage/combinat/dyck_word.py that are not being run
+            There are 4 tests in sage/combinat/finite_state_machine.py that are not being run
             There are 6 tests in sage/combinat/interval_posets.py that are not being run
             There are 18 tests in sage/combinat/partition.py that are not being run
             There are 15 tests in sage/combinat/permutation.py that are not being run
@@ -1133,11 +1136,11 @@ class TexSource(SourceLanguage):
         r"""
         Determines whether the input line starts a docstring.
 
-        Docstring blocks in tex files are defined by verbatim
-        environments, and can be linked together by adding %link
-        immediately after the \end{verbatim}.
+        Docstring blocks in tex files are defined by verbatim or
+        lstlisting environments, and can be linked together by adding
+        %link immediately after the \end{verbatim} or \end{lstlisting}.
 
-        Within a verbatim block, you can tell Sage not to
+        Within a verbatim (or lstlisting) block, you can tell Sage not to
         process the rest of the block by including a %skip line.
 
         INPUT:
@@ -1157,9 +1160,11 @@ class TexSource(SourceLanguage):
             sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS._init()
 
-        We start docstrings with \begin{verbatim}::
+        We start docstrings with \begin{verbatim} or \begin{lstlisting}::
 
             sage: FDS.starting_docstring(r"\begin{verbatim}")
+            True
+            sage: FDS.starting_docstring(r"\begin{lstlisting}")
             True
             sage: FDS.skipping
             False
@@ -1202,17 +1207,17 @@ class TexSource(SourceLanguage):
             if self.ending_docstring(line, check_skip=False):
                 self.skipping = False
             return False
-        return bool(begin_verb.match(line))
+        return bool(begin_verb.match(line) or begin_lstli.match(line))
 
     def ending_docstring(self, line, check_skip=True):
         r"""
         Determines whether the input line ends a docstring.
 
-        Docstring blocks in tex files are defined by verbatim
-        environments, and can be linked together by adding %link
-        immediately after the \end{verbatim}.
+        Docstring blocks in tex files are defined by verbatim or
+        lstlisting environments, and can be linked together by adding
+        %link immediately after the \end{verbatim} or \end{lstlisting}.
 
-        Within a verbatim block, you can tell Sage not to
+        Within a verbatim (or lstlisting) block, you can tell Sage not to
         process the rest of the block by including a %skip line.
 
         INPUT:
@@ -1234,6 +1239,8 @@ class TexSource(SourceLanguage):
             sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS._init()
             sage: FDS.ending_docstring(r"\end{verbatim}")
+            True
+            sage: FDS.ending_docstring(r"\end{lstlisting}")
             True
             sage: FDS.linking
             False
@@ -1257,10 +1264,18 @@ class TexSource(SourceLanguage):
             else:
                 self.linking = False
             return True
+        m = end_lstli.match(line)
+        if m:
+            if m.groups()[0]:
+                self.linking = True
+            else:
+                self.linking = False
+            return True
         if check_skip and skip.match(line):
             self.skipping = True
             return True
         return False
+
 
 class RestSource(SourceLanguage):
     """

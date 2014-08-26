@@ -393,10 +393,10 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         Traceback (most recent call last):
         ...
         ValueError: Computation failed since Maxima requested additional
-        constraints; using the 'assume' command before integral evaluation
-        *may* help (example of legal syntax is 'assume(n+1>0)', see `assume?`
+        constraints; using the 'assume' command before evaluation
+        *may* help (example of legal syntax is 'assume(n>0)', see `assume?`
         for more details)
-        Is  n+1  zero or nonzero?
+        Is n equal to -1?
         sage: assume(n > 0)
         sage: integral(x^n,x)
         x^(n + 1)/(n + 1)
@@ -515,10 +515,10 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         Traceback (most recent call last):
         ...
         ValueError: Computation failed since Maxima requested additional
-        constraints; using the 'assume' command before integral evaluation
+        constraints; using the 'assume' command before evaluation
         *may* help (example of legal syntax is 'assume(a>0)', see `assume?`
         for more details)
-        Is  a  positive or negative?
+        Is a positive or negative?
 
     So we just assume that `a>0` and the integral works::
 
@@ -555,8 +555,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: res = integral(f,x,0.0001414, 1.); res
         Traceback (most recent call last):
         ...
-        ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(50015104*y^2-50015103>0)', see `assume?` for more details)
-        Is  50015104*y^2-50015103  positive, negative, or zero?
+        ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before evaluation *may* help (example of legal syntax is 'assume(50015104*y^2-50015103>0)', see `assume?` for more details)
+        Is 50015104*y^2-50015103 positive, negative or zero?
         sage: assume(y>1)
         sage: res = integral(f,x,0.0001414, 1.); res
         -2*y*arctan(0.0001414/y) + 2*y*arctan(1/y) + log(y^2 + 1.0) - 0.0001414*log(y^2 + 1.999396e-08) - 1.9997172
@@ -668,6 +668,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: F = integrate(f, t, 1, Infinity)
         sage: F(x=1, a=7).numerical_approx() # abs tol 1e-10
         4.32025625668262
+        sage: forget()
 
     Verify that MinusInfinity works with sympy (:trac:`12345`)::
 
@@ -677,8 +678,14 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
     Check that :trac:`11737` is fixed::
 
         sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))
-        0.285736646322858
+        0.285736646322853
 
+    Check that :trac:`14209` is fixed::
+
+        sage: integral(e^(-abs(x))/cosh(x),x,-infinity,infinity)
+        2*log(2)
+        sage: integral(e^(-abs(x))/cosh(x),x,-infinity,infinity)
+        2*log(2)
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

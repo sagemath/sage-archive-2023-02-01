@@ -642,12 +642,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                 setPixel( (x,y), colorExact((r-delta,g-delta,b-delta)) )
 
         if filename is None:
-            from sage.misc.temporary_file import graphics_filename, tmp_dir
-            from sage.doctest import DOCTEST_MODE
+            from sage.misc.temporary_file import graphics_filename
             filename = graphics_filename()
-            if DOCTEST_MODE:
-                import os
-                filename = os.path.join(tmp_dir(), filename)
 
         im.writePng(filename)
 

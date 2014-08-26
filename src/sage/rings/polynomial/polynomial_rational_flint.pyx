@@ -614,6 +614,42 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
+    def revert_series(self, n):
+        r"""
+        Return a polynomial `f` such that `f(self(x)) = self(f(x)) = x mod x^n`.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: f = t - t^3/6 + t^5/120
+            sage: f.revert_series(6)
+            3/40*t^5 + 1/6*t^3 + t
+
+            sage: f.revert_series(-1)
+            Traceback (most recent call last):
+            ValueError: argument n must be a non-negative integer, got -1
+
+            sage: g = - t^3/3 + t^5/5
+            sage: g.revert_series(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: self must have constant coefficient 0 and a unit for coefficient t^1
+        """
+
+        cdef Polynomial_rational_flint res = self._new()
+        cdef unsigned long m
+        if n < 0:
+            raise ValueError("argument n must be a non-negative integer, got {}".format(n))
+        m = n
+        if not self[0].is_zero() or not self[1].is_unit():
+            raise ValueError("self must have constant coefficient 0 and a unit for coefficient {}^1".format(self.parent().gen()))
+
+        sig_on()
+        fmpq_poly_revert_series(res.__poly, self.__poly, m)
+        sig_off()
+
+        return res
+
     ###########################################################################
     # Comparisons                                                             #
     ###########################################################################
@@ -1413,7 +1449,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: G = f.galois_group(); G            # optional - database_gap
             Transitive group number 5 of degree 4
             sage: G.gens()                           # optional - database_gap
-            [(1,2,3,4), (1,2)]
+            [(1,2), (1,2,3,4)]
             sage: G.order()                          # optional - database_gap
             24
 
@@ -1568,9 +1604,9 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: R.<x> = QQ[]
             sage: f = x^3 - 2
             sage: f.factor_padic(2)
-            (1 + O(2^10))*x^3 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + O(2^10))
+            (1 + O(2^10))*x^3 + (O(2^10))*x^2 + (O(2^10))*x + (2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + O(2^10))
             sage: f.factor_padic(3)
-            (1 + O(3^10))*x^3 + (1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10))
+            (1 + O(3^10))*x^3 + (O(3^10))*x^2 + (O(3^10))*x + (1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10))
             sage: f.factor_padic(5)
             ((1 + O(5^10))*x + (2 + 4*5 + 2*5^2 + 2*5^3 + 5^4 + 3*5^5 + 4*5^7 + 2*5^8 + 5^9 + O(5^10))) * ((1 + O(5^10))*x^2 + (3 + 2*5^2 + 2*5^3 + 3*5^4 + 5^5 + 4*5^6 + 2*5^8 + 3*5^9 + O(5^10))*x + (4 + 5 + 2*5^2 + 4*5^3 + 4*5^4 + 3*5^5 + 3*5^6 + 4*5^7 + 4*5^9 + O(5^10)))
 

@@ -181,6 +181,34 @@ EXAMPLES::
     -1
     sage: cmp(RIF(0, 1), RIF(0, 1))
     0
+
+Comparison with infinity is defined through coercion to the infinity
+ring where semi-infinite intervals are sent to their central value
+(plus or minus infinity); This implements the above convention for
+inequalities::
+
+    sage: InfinityRing.has_coerce_map_from(RIF)
+    True
+    sage: -oo < RIF(-1,1) < oo
+    True
+    sage: -oo < RIF(0,oo) <= oo
+    True
+    sage: -oo <= RIF(-oo,-1) < oo
+    True
+
+Comparison by equality shows what the semi-infinite intervals actually
+coerce to::
+
+    sage: RIF(1,oo) == oo
+    True
+    sage: RIF(-oo,-1) == -oo
+    True
+
+For lack of a better value in the infinity ring, the doubly infinite
+interval coerces to plus infinity::
+
+    sage: RIF(-oo,oo) == oo
+    True
 """
 
 ############################################################################
@@ -1020,18 +1048,6 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         x = self._new()
         mpfi_const_log2(x.value)
         return x
-
-# MPFI does not have factorial
-#     def factorial(self, int n):
-#         """
-#         Return the factorial of the integer n as a real number.
-#         """
-#         cdef RealIntervalFieldElement x
-#         if n < 0:
-#             raise ArithmeticError, "n must be nonnegative"
-#         x = self._new()
-#         mpfr_fac_ui(x.value, n, self.rnd)
-#         return x
 
     def scientific_notation(self, status=None):
         """
@@ -4579,6 +4595,31 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         known_bits = -self.relative_diameter().log2()
 
         return sage.rings.arith.algdep(self.center(), n, known_bits=known_bits)
+        
+    def factorial(self):
+        """
+        Return the factorial evaluated on ``self``.
+
+        EXAMPLES::
+
+            sage: RIF(5).factorial()
+            120
+            sage: RIF(2.3,5.7).factorial()
+            1.?e3
+            sage: RIF(2.3).factorial()
+            2.683437381955768?
+
+        Recover the factorial as integer::
+
+            sage: f = RealIntervalField(200)(50).factorial()
+            sage: f
+            3.0414093201713378043612608166064768844377641568960512000000000?e64
+            sage: f.unique_integer()
+            30414093201713378043612608166064768844377641568960512000000000000
+            sage: 50.factorial()
+            30414093201713378043612608166064768844377641568960512000000000000
+        """
+        return (self+1).gamma()
 
     def gamma(self):
         """

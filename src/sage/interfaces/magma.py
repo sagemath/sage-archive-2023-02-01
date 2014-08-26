@@ -183,7 +183,6 @@ coercion system compared to Sage's::
     ...
     TypeError: Error evaluating Magma code.
     ...
-    Runtime error in '*': Bad argument types
     Argument types given: RngUPolElt[RngInt], FldRatElt
 
 
@@ -711,6 +710,17 @@ class Magma(Expect):
             sage: R._magma_cache                    # optional - magma
             {Magma: Univariate Polynomial Ring in x over Integer Ring,
              Magma: Univariate Polynomial Ring in x over Integer Ring}
+
+            sage: P.<x,y> = PolynomialRing(GF(127)) # optional - magma
+            sage: m = Magma()                       # optional - magma
+            sage: m(P)                              # optional - magma
+            Polynomial ring of rank 2 over GF(127)
+            Order: Graded Reverse Lexicographical
+            Variables: x, y
+            sage: P._magma_cache                    # optional - magma
+            {Magma: Polynomial ring of rank 2 over GF(127)
+            Order: Graded Reverse Lexicographical
+            Variables: x, y}
         """
         if isinstance(x, bool):
             return Expect.__call__(self, 'true' if x else 'false')
@@ -933,10 +943,12 @@ class Magma(Expect):
 
         EXAMPLES: Attaching a file that exists is fine::
 
+            sage: SAGE_EXTCODE = SAGE_ENV['SAGE_EXTCODE']               # optional - magma
             sage: magma.attach('%s/magma/sage/basic.m'%SAGE_EXTCODE)    # optional - magma
 
         Attaching a file that doesn't exist raises an exception::
 
+            sage: SAGE_EXTCODE = SAGE_ENV['SAGE_EXTCODE']                 # optional - magma
             sage: magma.attach('%s/magma/sage/basic2.m'%SAGE_EXTCODE)     # optional - magma
             Traceback (most recent call last):
             ...
@@ -961,6 +973,7 @@ class Magma(Expect):
 
         EXAMPLES::
 
+            sage: SAGE_EXTCODE = SAGE_ENV['SAGE_EXTCODE']            # optional - magma
             sage: magma.attach_spec('%s/magma/spec'%SAGE_EXTCODE)    # optional - magma
             sage: magma.attach_spec('%s/magma/spec2'%SAGE_EXTCODE)   # optional - magma
             Traceback (most recent call last):
@@ -996,7 +1009,7 @@ class Magma(Expect):
             sage: filename = os.path.join(SAGE_TMP, 'a.m')
             sage: open(filename, 'w').write('function f(n) return n^2; end function;\nprint "hi";')
             sage: print magma.load(filename)      # optional - magma
-            Loading ".../tmp/.../a.m"
+            Loading ".../a.m"
             hi
             sage: magma('f(12)')       # optional - magma
             144

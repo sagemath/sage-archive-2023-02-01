@@ -97,6 +97,7 @@ import real_mpfr
 RR = real_mpfr.RealField()
 
 from real_double import RealDoubleElement, RDF
+from sage.rings.integer_ring import ZZ
 
 
 from sage.structure.parent_gens import ParentWithGens
@@ -1491,6 +1492,64 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return True
 
+    def is_integer(self):
+        """
+        Returns True if this number is a integer
+
+        EXAMPLES::
+
+            sage: CDF(0.5).is_integer()
+            False
+            sage: CDF(I).is_integer()
+            False
+            sage: CDF(2).is_integer()
+            True
+        """
+        return (self.real() in ZZ) and (self.imag()==0)
+
+    def is_positive_infinity(self):
+        r"""
+        Check if ``self`` is `+\infty`.
+
+        EXAMPLES::
+
+            sage: CDF(1, 2).is_positive_infinity()
+            False
+            sage: CDF(oo, 0).is_positive_infinity()
+            True
+            sage: CDF(0, oo).is_positive_infinity()
+            False
+        """
+        return self.real().is_positive_infinity() and self.imag().is_zero()
+
+    def is_negative_infinity(self):
+        r"""
+        Check if ``self`` is `-\infty`.
+
+        EXAMPLES::
+
+            sage: CDF(1, 2).is_negative_infinity()
+            False
+            sage: CDF(-oo, 0).is_negative_infinity()
+            True
+            sage: CDF(0, -oo).is_negative_infinity()
+            False
+        """
+        return self.real().is_negative_infinity() and self.imag().is_zero()
+
+    def is_infinity(self):
+        r"""
+        Check if ``self`` is `\infty`.
+
+        EXAMPLES::
+
+            sage: CDF(1, 2).is_infinity()
+            False
+            sage: CDF(0, oo).is_infinity()
+            True
+        """
+        return self.real().is_infinity() or self.imag().is_infinity()
+
     def _pow_(self, ComplexDoubleElement a):
         """
         The function returns the complex number `z` raised to the
@@ -2044,8 +2103,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         The optional argument allows us to omit the fractional part::
 
-            sage: z.eta(omit_frac=True)  # abs tol 1e-12
-            0.998129069926 - 8.12769318782e-22*I
+            sage: z.eta(omit_frac=True)
+            0.998129069926
             sage: pi = CDF(pi)
             sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])  # abs tol 1e-12
             0.998129069926 + 4.59084695545e-19*I
@@ -2123,7 +2182,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: a.agm(b, algorithm='principal')
             0.338175462986 - 0.0135326969565*I
             sage: a.agm(b, algorithm='pari')
-            0.080689185076 + 0.239036532686*I
+            -0.371591652352 + 0.319894660207*I
 
         Some degenerate cases::
 
@@ -2231,7 +2290,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(2,0).gamma_inc(CDF(1,1))
             0.707092096346 - 0.42035364096*I
         """
-        return self._new_from_gen(self._pari_().incgam(t))
+        return self._new_from_gen(self._pari_().incgam(t, precision=53))
 
     def zeta(self):
         """

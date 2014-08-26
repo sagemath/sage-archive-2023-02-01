@@ -376,6 +376,26 @@ class Constant(object):
         """
         return self._pynac.expression()
 
+    def _symbolic_(self, SR):
+        """
+        Returns an expression for this constant.
+
+        INPUT:
+
+        - ``SR`` - a symbolic ring parent
+
+        EXAMPLES::
+
+            sage: SR(pi.pyobject())
+            pi
+            sage: pi.pyobject()._symbolic_(SR)
+            pi
+            sage: f(x,y) = 2
+            sage: f.parent()(pi.pyobject())
+            (x, y) |--> pi
+        """
+        return SR(self.expression())
+
     def name(self):
         """
         Returns the name of this constant.
@@ -848,10 +868,10 @@ class Log2(Constant):
         sage: maxima(log2)
         log(2)
         sage: maxima(log2).float()
-        .6931471805599453
+        0.6931471805599453
         sage: gp(log2)
         0.6931471805599453094172321215             # 32-bit
-        0.69314718055994530941723212145817656808   # 64-bit
+        0.69314718055994530941723212145817656807   # 64-bit
         sage: RealField(150)(2).log()
         0.69314718055994530941723212145817656807550013
     """

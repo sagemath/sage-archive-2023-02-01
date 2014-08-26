@@ -5,6 +5,7 @@ Symbolic Calculus
    :maxdepth: 2
 
    sage/symbolic/expression
+   sage/symbolic/assumptions
    sage/symbolic/relation
    sage/symbolic/function_factory
    sage/calculus/calculus

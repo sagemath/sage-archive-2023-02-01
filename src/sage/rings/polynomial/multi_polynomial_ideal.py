@@ -518,7 +518,7 @@ class MagmaDefaultContext:
 
         EXAMPLE::
 
-            sage: from sage.rings.polynomial.multi_polynomial_ideal import MagmaDefaultContext
+            sage: from sage.rings.polynomial.multi_polynomial_ideal import MagmaDefaultContext # optional - magma
             sage: magma.SetVerbose('Groebner',1) # optional - magma
             sage: with MagmaDefaultContext(): magma.GetVerbose('Groebner')  # optional - magma
             0
@@ -616,7 +616,7 @@ def is_MPolynomialIdeal(x):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.all import is_MPolynomialIdeal
+        sage: from sage.rings.polynomial.multi_polynomial_ideal import is_MPolynomialIdeal
         sage: P.<x,y,z> = PolynomialRing(QQ)
         sage: I = [x + 2*y + 2*z - 1, x^2 + 2*y^2 + 2*z^2 - x, 2*x*y + 2*y*z - y]
 
@@ -689,12 +689,20 @@ class MPolynomialIdeal_magma_repr:
             sage: gb = I.groebner_basis('magma:GroebnerBasis') # indirect doctest; optional - magma
             sage: len(gb)                                      # optional - magma
             45
+
+         We may also pass a degree bound to Magma::
+        
+            sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
+            sage: I = sage.rings.ideal.Cyclic(R,6)
+            sage: gb = I.groebner_basis('magma:GroebnerBasis', deg_bound=4) # indirect doctest; optional - magma
+            sage: len(gb)                                      # optional - magma
+            7
         """
         R   = self.ring()
         if not deg_bound:
             mself = magma(self)
         else:
-            mself = magma(self.gens())
+            mself = magma(list(self.gens())) # PolynomialSequence converts to a Magma Ideal too, so we force a list
 
         if get_verbose() >= 2:
             prot = True
@@ -1017,6 +1025,7 @@ class MPolynomialIdeal_singular_repr(
              (Ideal (z^2 + 1, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field,
               Ideal (z^2 + 1, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field)]
 
+            sage: from functools import reduce
             sage: reduce(lambda Qi,Qj: Qi.intersection(Qj), [Qi for (Qi,radQi) in pd]) == I
             True
 
@@ -1130,6 +1139,7 @@ class MPolynomialIdeal_singular_repr(
 
         ::
 
+            sage: from functools import reduce
             sage: reduce(lambda Qi,Qj: Qi.intersection(Qj), pd) == I
             True
 
@@ -1496,6 +1506,15 @@ class MPolynomialIdeal_singular_repr(
             0
             sage: I.vector_space_dimension()
             4
+
+        When the ideal is not zero-dimensional, we return infinity::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: I = R.ideal(x)
+            sage: I.dimension()
+            1
+            sage: I.vector_space_dimension()
+            +Infinity
         """
         R = self.ring()
         gb = R.ideal(self.groebner_basis())
@@ -1505,7 +1524,8 @@ class MPolynomialIdeal_singular_repr(
         vd = Integer(vdim(gb, attributes={gb:{'isSB':1}}))
 
         if vd == -1:
-            raise TypeError("ideal is not zero dimensional")
+            from sage.rings.infinity import Infinity
+            return Infinity
         else:
             return vd
 
@@ -2591,6 +2611,13 @@ class MPolynomialIdeal_singular_repr(
             sage: I.variety()
             []
 
+        Check that the issue at :trac:`16485` is fixed::
+
+            sage: R.<a,b,c> = PolynomialRing(QQ, order='lex')
+            sage: I = R.ideal(c^2-2, b-c, a)
+            sage: I.variety(QQbar)
+            [...a: 0...]
+
         ALGORITHM:
 
         Uses triangular decomposition.
@@ -2611,9 +2638,9 @@ class MPolynomialIdeal_singular_repr(
                 return V
 
             variable = f.variable(0)
-            roots = f.univariate_polynomial().roots(ring=ring)
+            roots = f.univariate_polynomial().roots(ring=ring, multiplicities=False)
 
-            for root,_ in roots:
+            for root in roots:
                 vbar = v.copy()
                 vbar[variable] = root
                 Tbar = [ f.subs({variable:root}) for f in T ]
@@ -2644,7 +2671,7 @@ class MPolynomialIdeal_singular_repr(
 
         V = []
         for t in T:
-            Vbar = _variety(list(t),[])
+            Vbar = _variety([P(f) for f in t], [])
             #Vbar = _variety(list(t.gens()),[])
 
             for v in Vbar:
@@ -2898,9 +2925,9 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
             Defining x, y, z
             sage: I = H.ideal([y^2, x^2, z^2-H.one_element()],coerce=False) # indirect doctest
             sage: I
-            Left Ideal (y^2, x^2, z^2 - 1) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            Left Ideal (y^2, x^2, z^2 - 1) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
             sage: H.ideal([y^2, x^2, z^2-H.one_element()], side="twosided")
-            Twosided Ideal (y^2, x^2, z^2 - 1) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            Twosided Ideal (y^2, x^2, z^2 - 1) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
             sage: H.ideal([y^2, x^2, z^2-H.one_element()], side="right")
             Traceback (most recent call last):
             ...
@@ -2932,7 +2959,7 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
             Defining x, y, z
             sage: id = H.ideal(x + y, y + z)
             sage: id.std()  # indirect doctest
-            Left Ideal (z, y, x) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            Left Ideal (z, y, x) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
         """
         from sage.libs.singular.function import singular_function
         fun = singular_function(cmd)
@@ -2954,7 +2981,7 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
             Defining x, y, z
             sage: I = H.ideal([y^2, x^2, z^2-H.one_element()],coerce=False)
             sage: I.std()
-            Left Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            Left Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
 
         If the ideal is a left ideal, then std returns a left
         Groebner basis. But if it is a two-sided ideal, then
@@ -2962,14 +2989,14 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
 
             sage: JL = H.ideal([x^3, y^3, z^3 - 4*z])
             sage: JL
-            Left Ideal (x^3, y^3, z^3 - 4*z) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            Left Ideal (x^3, y^3, z^3 - 4*z) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
             sage: JL.std()
-            Left Ideal (z^3 - 4*z, y*z^2 - 2*y*z, x*z^2 + 2*x*z, 2*x*y*z - z^2 - 2*z, y^3, x^3) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            Left Ideal (z^3 - 4*z, y*z^2 - 2*y*z, x*z^2 + 2*x*z, 2*x*y*z - z^2 - 2*z, y^3, x^3) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
             sage: JT = H.ideal([x^3, y^3, z^3 - 4*z], side='twosided')
             sage: JT
-            Twosided Ideal (x^3, y^3, z^3 - 4*z) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            Twosided Ideal (x^3, y^3, z^3 - 4*z) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
             sage: JT.std()
-            Twosided Ideal (z^3 - 4*z, y*z^2 - 2*y*z, x*z^2 + 2*x*z, y^2*z - 2*y^2, 2*x*y*z - z^2 - 2*z, x^2*z + 2*x^2, y^3, x*y^2 - y*z, x^2*y - x*z - 2*x, x^3) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            Twosided Ideal (z^3 - 4*z, y*z^2 - 2*y*z, x*z^2 + 2*x*z, y^2*z - 2*y^2, 2*x*y*z - z^2 - 2*z, x^2*z + 2*x^2, y^3, x*y^2 - y*z, x^2*y - x*z - 2*x, x^3) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
             sage: JT.std() == JL.twostd()
             True
 
@@ -3017,7 +3044,7 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
            sage: I._groebner_strategy()
            Groebner Strategy for ideal generated by 6 elements over
            Noncommutative Multivariate Polynomial Ring in x, y, z over Rational
-           Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+           Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
 
         .. note::
 
@@ -3044,8 +3071,8 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
             sage: I = H.ideal([y^2, x^2, z^2-H.one_element()],coerce=False, side='twosided')
             sage: Q = H.quotient(I); Q
             Quotient of Noncommutative Multivariate Polynomial Ring in x, y, z
-            over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y,
-            z*x: x*z + 2*x} by the ideal (y^2, x^2, z^2 - 1)
+             over Rational Field, nc-relations: {z*x: x*z + 2*x,
+             z*y: y*z - 2*y, y*x: x*y - z} by the ideal (y^2, x^2, z^2 - 1)
             sage: Q.2^2 == Q.one_element()   # indirect doctest
             True
 
@@ -3055,7 +3082,7 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
             sage: I.std()
             Twosided Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2)
             of Noncommutative Multivariate Polynomial Ring in x, y, z over
-            Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
 
         Here is the corresponding direct test::
 
@@ -3075,10 +3102,10 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
             sage: H.<x,y,z> = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
             sage: JL = H.ideal([x^3, y^3, z^3 - 4*z])
             sage: JL.std()
-            Left Ideal (z^3 - 4*z, y*z^2 - 2*y*z, x*z^2 + 2*x*z, 2*x*y*z - z^2 - 2*z, y^3, x^3) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            Left Ideal (z^3 - 4*z, y*z^2 - 2*y*z, x*z^2 + 2*x*z, 2*x*y*z - z^2 - 2*z, y^3, x^3) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
             sage: JT = H.ideal([x^3, y^3, z^3 - 4*z], side='twosided')
             sage: JT.std()
-            Twosided Ideal (z^3 - 4*z, y*z^2 - 2*y*z, x*z^2 + 2*x*z, y^2*z - 2*y^2, 2*x*y*z - z^2 - 2*z, x^2*z + 2*x^2, y^3, x*y^2 - y*z, x^2*y - x*z - 2*x, x^3) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
+            Twosided Ideal (z^3 - 4*z, y*z^2 - 2*y*z, x*z^2 + 2*x*z, y^2*z - 2*y^2, 2*x*y*z - z^2 - 2*z, x^2*z + 2*x^2, y^3, x*y^2 - y*z, x^2*y - x*z - 2*x, x^3) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
 
         Apparently, ``x*y^2-y*z`` should be in the two-sided, but not
         in the left ideal::
@@ -3839,7 +3866,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                         gb = toy_d_basis.d_basis(I, *args, **kwds)
 
                         R = self.ring()
-                        gb = filter(lambda f: f,[R(f) for f in gb])
+                        gb = [r for r in (R(f) for f in gb) if r]
                     else:
                         if self.ring().term_order().is_global():
                             verbose("Warning: falling back to very slow toy implementation.", level=0)

@@ -29,7 +29,8 @@ from sage.rings.finite_rings.constructor import is_FiniteField
 
 from sage.structure.all import Sequence
 
-from sage.schemes.generic.all import (is_AmbientSpace, is_AlgebraicScheme)
+from sage.schemes.generic.ambient_space import is_AmbientSpace
+from sage.schemes.generic.algebraic_scheme import is_AlgebraicScheme
 
 from sage.schemes.affine.all import AffineSpace
 

@@ -197,7 +197,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         sage: FF
         Ring of integers modulo 29
         sage: FF.category()
-        Join of Category of commutative rings and Category of subquotients of monoids and Category of quotients of semigroups and Category of finite enumerated sets
+        Join of Category of finite commutative rings and
+         Category of subquotients of monoids and
+         Category of quotients of semigroups
         sage: FF.is_field()
         True
         sage: FF.characteristic()
@@ -237,7 +239,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
         sage: Z16 = IntegerModRing(16)
         sage: Z16.category()
-        Join of Category of commutative rings and Category of subquotients of monoids and Category of quotients of semigroups and Category of finite enumerated sets
+        Join of Category of finite commutative rings and
+         Category of subquotients of monoids and
+         Category of quotients of semigroups
         sage: Z16.is_field()
         False
         sage: Z16.order()
@@ -940,7 +944,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         except (NotImplementedError, PariError):
             raise TypeError("error coercing to finite field")
         except TypeError:
-            if sage.interfaces.all.is_GapElement(x):
+            if sage.interfaces.gap.is_GapElement(x):
                 from sage.interfaces.gap import intmod_gap_to_sage
                 try:
                     y = intmod_gap_to_sage(x)

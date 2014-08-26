@@ -1032,7 +1032,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
             self._h_inverse_transition_matrices = {}
             self   .register_coercion(self._h._module_morphism(self._h_to_w_on_basis, codomain = self))
             self._h.register_coercion(self._module_morphism(self._w_to_h_on_basis, codomain = self._h))
-            if self._friendly == None:
+            if self._friendly is None:
                 self._friendly = self._h
 
         if self._coerce_e:
@@ -1054,7 +1054,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
             self._e_inverse_transition_matrices = {}
             self   .register_coercion(self._e._module_morphism(self._e_to_w_on_basis, codomain = self))
             self._e.register_coercion(self._module_morphism(self._w_to_e_on_basis, codomain = self._e))
-            if self._friendly == None:
+            if self._friendly is None:
                 self._friendly = self._e
 
     def from_other_uncached(self, u):

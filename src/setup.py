@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-import os, sys, time, errno, platform, subprocess
+import os, sys, time, errno, platform, subprocess, glob
 from distutils.core import setup
-from distutils.extension import Extension
-from glob import glob, fnmatch
-from warnings import warn
+
+# Make sure stdout doesn't buffer output, otherwise output
+# like "Cythonizing foo.pyx" appears in the wrong order.
+sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
 #########################################################
 ### List of Extensions
@@ -17,7 +18,6 @@ from warnings import warn
 
 from module_list import ext_modules
 import sage.ext.gen_interpreters
-import warnings
 from sage.env import *
 
 #########################################################
@@ -36,7 +36,7 @@ except KeyError:
     compile_result_dir = None
     keep_going = False
 
-SAGE_INC = os.path.join(SAGE_LOCAL,'include')
+SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
 # search for dependencies and add to gcc -I<path>
 include_dirs = [SAGE_INC,
@@ -175,6 +175,7 @@ for m in ext_modules:
     m.extra_compile_args = m.extra_compile_args + extra_compile_args
     m.extra_link_args = m.extra_link_args + extra_link_args
     m.library_dirs = m.library_dirs + [os.path.join(SAGE_LOCAL, "lib")]
+    m.include_dirs = m.include_dirs + include_dirs
 
 
 #############################################
@@ -272,7 +273,7 @@ def execute_list_of_commands(command_list):
 
     print "Executing %s (using %s)"%(plural(len(command_list),"command"), plural(nthreads,"thread"))
     execute_list_of_commands_in_parallel(command_list, nthreads)
-    print "Time to execute %s: %s seconds"%(plural(len(command_list),"command"), time.time() - t)
+    print "Time to execute %s: %.2f seconds."%(plural(len(command_list),"command"), time.time() - t)
 
 
 ########################################################################
@@ -314,7 +315,6 @@ class sage_build_ext(build_ext):
             print "self.compiler.linker_so:"
             print self.compiler.linker_so
             # There are further interesting variables...
-            sys.stdout.flush()
 
 
         # At least on MacOS X, the library dir of the *original* Sage
@@ -353,7 +353,6 @@ class sage_build_ext(build_ext):
         if DEBUG:
             print "self.compiler.linker_so (after fixing library dirs):"
             print self.compiler.linker_so
-            sys.stdout.flush()
 
 
         # First, sanity-check the 'extensions' list
@@ -370,7 +369,7 @@ class sage_build_ext(build_ext):
 
         execute_list_of_commands(compile_commands)
 
-        print "Total time spent compiling C/C++ extensions: ", time.time() - t, "seconds."
+        print "Total time spent compiling C/C++ extensions: %.2f seconds." % (time.time() - t)
 
     def prepare_extension(self, ext):
         sources = ext.sources
@@ -501,10 +500,7 @@ class sage_build_ext(build_ext):
 ###### Cythonize
 #############################################
 
-if not sdist:
-    print "Updating Cython code...."
-    t = time.time()
-
+def run_cythonize():
     from Cython.Build import cythonize
     import Cython.Compiler.Options
     import Cython.Compiler.Main
@@ -519,63 +515,90 @@ if not sdist:
     # enclosing Python scope (e.g. to perform variable injection).
     Cython.Compiler.Options.old_style_globals = True
 
+    debug = False
     if os.environ.get('SAGE_DEBUG', None) != 'no':
+        print('Enabling Cython debugging support')
+        debug = True
         Cython.Compiler.Main.default_options['gdb_debug'] = True
         Cython.Compiler.Main.default_options['output_dir'] = 'build'
 
-    CYCACHE_DIR = os.environ.get('CYCACHE_DIR', os.path.join(DOT_SAGE,'cycache'))
-    if os.path.exists(os.path.join(CYCACHE_DIR, os.pardir)):
-        Cython.Compiler.Main.default_options['cache'] = CYCACHE_DIR
+    profile = False
+    if os.environ.get('SAGE_PROFILE', None) == 'yes':
+        print('Enabling Cython profiling support')
+        profile = True
+
+    # Enable Cython caching (the cache is stored in ~/.cycache which is
+    # Cython's default).
+    Cython.Compiler.Main.default_options['cache'] = True
 
     force = True
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')
-    if os.path.exists(version_file) and open(version_file).read() == Cython.__version__:
+    version_stamp = '\n'.join([
+        'cython version: ' + str(Cython.__version__),
+        'debug: ' + str(debug),
+        'profile: ' + str(profile),
+    ])
+    if os.path.exists(version_file) and open(version_file).read() == version_stamp:
         force = False
 
+    global ext_modules
     ext_modules = cythonize(
         ext_modules,
-        nthreads = int(os.environ.get('SAGE_NUM_THREADS', 0)),
-        build_dir = None, # Don't "cythonize out-of-tree" (cf. #14570) until
-                          # sage-clone and sage-sync-build can deal with that.
-        force=force)
+        nthreads=int(os.environ.get('SAGE_NUM_THREADS', 0)),
+        build_dir='build/cythonized',
+        force=force,
+        compiler_directives={
+            'profile': profile,
+        })
 
-    open(version_file, 'w').write(Cython.__version__)
-    print "Finished compiling Cython code (time = %s seconds)" % (time.time() - t)
-    sys.stdout.flush()
+    open(version_file, 'w').write(version_stamp)
+
+
+print "Updating Cython code...."
+t = time.time()
+run_cythonize()
+print "Finished Cythonizing, time: %.2f seconds." % (time.time() - t)
+
+
+#########################################################
+### Discovering Python Sources
+#########################################################
+
+print "Discovering Python source code...."
+t = time.time()
+from sage_setup.find import find_python_sources
+python_packages, python_modules = find_python_sources(
+    SAGE_SRC, ['sage', 'sage_setup'])
+print "Discovered Python source, time: %.2f seconds." % (time.time() - t)
+
+
+#########################################################
+### Clean
+#########################################################
+
+print('Cleaning up stale installed files....')
+t = time.time()
+from sage_setup.clean import clean_install_dir
+output_dirs = SITE_PACKAGES + glob.glob(os.path.join(SAGE_SRC, 'build', 'lib*'))
+for output_dir in output_dirs:
+    print('- cleaning {0}'.format(output_dir))
+    clean_install_dir(output_dir, python_packages, python_modules, ext_modules)
+print('Finished cleaning, time: %.2f seconds.' % (time.time() - t))
 
 
 #########################################################
 ### Distutils
 #########################################################
 
-def python_packages():
-    packages = []
-    root = os.path.join(os.path.dirname(__file__))
-    for dirpath, dirnames, filenames in os.walk(os.path.join(root, 'sage')):
-        if '__init__.py' in filenames:
-            packages.append(dirpath.replace(os.path.sep, '.'))
-    return packages
-
 code = setup(name = 'sage',
-
       version     =  SAGE_VERSION,
-
       description = 'Sage: Open Source Mathematics Software',
-
       license     = 'GNU Public License (GPL)',
-
       author      = 'William Stein et al.',
-
       author_email= 'http://groups.google.com/group/sage-support',
-
       url         = 'http://www.sagemath.org',
-
-      packages    = python_packages(),
-
+      packages    = python_packages,
       scripts = [],
-
       cmdclass = { 'build_ext': sage_build_ext },
-
-      ext_modules = ext_modules,
-      include_dirs = include_dirs)
+      ext_modules = ext_modules)
 

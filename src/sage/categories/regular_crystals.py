@@ -20,8 +20,7 @@ Regular Crystals
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
-from sage.combinat.subset import Subsets
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.tensor import TensorProductsCategory
 
 class RegularCrystals(Category_singleton):
     r"""
@@ -498,6 +497,7 @@ class RegularCrystals(Category_singleton):
                 sage: t._test_stembridge_local_axioms(verbose=True)
                 True
             """
+            from sage.combinat.subset import Subsets
             tester = self._tester(**options)
             goodness=True
             if index_set is None: index_set=self.index_set()
@@ -535,4 +535,18 @@ class RegularCrystals(Category_singleton):
             tester.assertTrue(goodness)
             return goodness
 
+    class TensorProducts(TensorProductsCategory):
+        """
+        The category of regular crystals constructed by tensor
+        product of regular crystals.
+        """
+        @cached_method
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: RegularCrystals().TensorProducts().extra_super_categories()
+                [Category of regular crystals]
+            """
+            return [self.base_category()]
 

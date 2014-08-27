@@ -355,7 +355,7 @@ All classes and functions are also individually documented (with doctest example
       sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
       sage: f_i = ModularFormsRing(n=4).f_i()
       sage: f_i(i)
-      2.442490654175...e-15
+      0
       sage: f_i(infinity)
       1
       sage: f_i(1/7 + 0.01*i)

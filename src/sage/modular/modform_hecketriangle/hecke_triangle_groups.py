@@ -492,29 +492,46 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         else:
             return False
 
-    def act(self,mat,t):
+    def act(self, mat, t, prec=ZZ(53)):
         r"""
         Return the image of ``t`` under the action of the matrix ``mat``
         by linear fractional transformations.
 
         INPUT:
 
-        - ``mat`` -- An element of the Hecke triangle group (no check is performed
-          though and the function works for more general matrices as well).
+        - ``mat``   -- An element of the Hecke triangle group (no check is performed
+                       though and the function works for more general matrices as well).
 
-        - ``t`` -- A complex number or an element of AlgebraicField().
+        - ``t``     -- A complex number or an element of AlgebraicField().
+
+        - ``prec``  -- The precision to reduce ``t`` to in case we are forced
+                       to approximate it (e.g. if ``t`` is symbolic), default: 53.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: G = HeckeTriangleGroup(5)
-            sage: G.act(G.S(), AlgebraicField()(1 + i/2))
+            sage: G.act(G.S(), 1 + i/2)
             2/5*I - 4/5
+            sage: G.act(G.S(), 1 + i/2).parent()
+            Algebraic Field
+            sage: G.act(G.S(), i + exp(-2))
+            -0.132901114417... + 0.982013790037...*I
+            sage: G.act(G.S(), i + exp(-2), prec=60).parent()
+            Complex Field with 60 bits of precision
         """
+
+        try:
+            t = AA(1)*t
+        except TypeError:
+            try:
+                t = AlgebraicField()(t)
+            except (TypeError, ValueError):
+                t = t.n(prec=prec)
 
         return (mat[0][0]*t + mat[0][1])/(mat[1][0]*t + mat[1][1])
 
-    def get_FD(self, z, aut_factor=None):
+    def get_FD(self, z, aut_factor=None, prec=ZZ(53)):
         r"""
         Return a tuple (A,w,fact) which determines how to map ``z``
         to the usual (strict) fundamental domain of ``self``.
@@ -532,6 +549,9 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
             ``aut_factor`` has to be defined for ``t`` a complex number
             or ``t`` an element of AlgebraicField().
+
+        - ``prec`` -- The precision to reduce ``z`` to in case we are forced
+                      to approximate it (e.g. if ``z`` is symbolic), default: 53.
 
         OUTPUT:
 
@@ -613,23 +633,23 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         w = z
         while (abs(w) < ZZ(1) or abs(w.real()) > self.lam()/ZZ(2)):
             if (abs(w) < ZZ(1)):
-                w = self.act(self._S, w)
+                w = self.act(self._S, w, prec=prec)
                 A = S*A
                 L.append(-S)
             while (w.real() >= self.lam()/ZZ(2)):
-                w = self.act(TI, w)
+                w = self.act(TI, w, prec=prec)
                 A = TI*A
                 L.append(T)
             while (w.real() < -self.lam()/ZZ(2)):
-                w = self.act(T, w)
+                w = self.act(T, w, prec=prec)
                 A = T*A
                 L.append(TI)
         if (w.real() == self.lam()/ZZ(2)):
-            w = self.act(TI, w)
+            w = self.act(TI, w, prec=prec)
             A = TI*A
             L.append(T)
         if (abs(w) == ZZ(1) and w.real() > ZZ(0)):
-            w = self.act(S,w)
+            w = self.act(S, w, prec=prec)
             A = S*A
             L.append(-S)
 
@@ -637,19 +657,19 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             new_factor = ZZ(1)
         else:
             B = ID
-            temp_w = self.act(A, z)
+            temp_w = self.act(A, z, prec=prec)
             new_factor = ZZ(1)
             for gamma in reversed(L):
                 B = gamma*B
                 new_factor *= aut_factor(gamma, temp_w)
-                temp_w = self.act(gamma, temp_w)
+                temp_w = self.act(gamma, temp_w, prec=prec)
 
         # Somehow A.inverse() causes problems with large numbers
         AI = matrix(AA, [[A[1,1],-A[0,1]], [-A[1,0],A[0,0]]])
 
-        return (AI, self.act(A,z), new_factor)
+        return (AI, self.act(A,z,prec=prec), new_factor)
 
-    def in_FD(self,z):
+    def in_FD(self, z):
         r"""
         Returns ``True`` if ``z`` lies in the (strict) fundamental
         domain of ``self``.

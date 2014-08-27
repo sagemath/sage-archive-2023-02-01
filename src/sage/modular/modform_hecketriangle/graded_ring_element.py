@@ -1232,65 +1232,83 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         return self.diff_op(self.parent()._serre_derivative_op(), self.parent().extend_type(ring=True))
 
     @cached_method
-    def order_inf(self):
-        """
-        Return the order at infinity of ``self``.
+    def order_at(self, tau=infinity):
+        r"""
+        Return the (overall) order of ``self`` at ``tau`` if easily possible:
+        Namely if ``tau`` is ``infinity`` or congruent to ``i`` resp. ``rho``.
 
-        If ``self`` is homogeneous and modular then
-        only the rational function ``self.rat()`` is used.
-        Otherwise the Fourier expansion is used
-        (with increasing precision until the order
-        can be determined).
+        If ``self`` is homogeneous and modular then the rational function
+        ``self.rat()`` is used. Otherwise only ``tau=infinity`` is supported
+        by using the Fourier expansion with increasing precision
+        (until the order can be determined).
+
+        The function is mainly used to be able to work with the correct
+        precision for Laurent series.
+
+        Note: For quasi forms one cannot deduce the analytic type from
+        this order at ``infinity`` since the analytic order is defined by the
+        behavior on each quasi part and not by their linear combination.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
             sage: MR = QuasiMeromorphicModularFormsRing(red_hom=True)
-            sage: (MR.Delta()^3).order_inf()
+            sage: (MR.Delta()^3).order_at(infinity)
             3
-            sage: MR.E2().order_inf()
+            sage: MR.E2().order_at(infinity)
             0
-            sage: (MR.J_inv()^2).order_inf()
+            sage: (MR.J_inv()^2).order_at(infinity)
             -2
             sage: x,y,z,d = MR.pol_ring().gens()
             sage: el = MR((z^3-y)^2/(x^3-y^2)).full_reduce()
             sage: el
             108*q + 11664*q^2 + 502848*q^3 + 12010464*q^4 + O(q^5)
-            sage: el.order_inf()
+            sage: el.order_at(infinity)
             1
             sage: el.parent()
             QuasiWeakModularForms(n=3, k=0, ep=1) over Integer Ring
             sage: el.is_holomorphic()
             False
-            sage: MR((z-y)^2+(x-y)^3).order_inf()
+            sage: MR((z-y)^2+(x-y)^3).order_at(infinity)
             2
-            sage: MR((x-y)^10).order_inf()
+            sage: MR((x-y)^10).order_at(infinity)
             10
-            sage: MR.zero().order_inf()
+            sage: MR.zero().order_at(infinity)
             +Infinity
+            sage: (MR(x*y^2)/MR.J_inv()).order_at(i)
+            2
+            sage: (MR(x*y^2)/MR.J_inv()).order_at(MR.group().rho())
+            -2
 
             sage: MR = QuasiMeromorphicModularFormsRing(n=infinity, red_hom=True)
-            sage: (MR.Delta()^3*MR.E4()).order_inf()
+            sage: (MR.Delta()^3*MR.E4()).order_at(infinity)
             3
-            sage: MR.E2().order_inf()
+            sage: MR.E2().order_at(infinity)
             0
-            sage: (MR.J_inv()^2/MR.E4()).order_inf()
+            sage: (MR.J_inv()^2/MR.E4()).order_at(infinity)
             -2
             sage: el = MR((z^3-x*y)^2/(x^2*(x-y^2))).full_reduce()
             sage: el
             4*q - 304*q^2 + 8128*q^3 - 106144*q^4 + O(q^5)
-            sage: el.order_inf()
+            sage: el.order_at(infinity)
             1
             sage: el.parent()
             QuasiWeakModularForms(n=+Infinity, k=0, ep=1) over Integer Ring
             sage: el.is_holomorphic()
             False
-            sage: MR((z-x)^2+(x-y)^3).order_inf()
+            sage: MR((z-x)^2+(x-y)^3).order_at(infinity)
             2
-            sage: MR((x-y)^10).order_inf()
+            sage: MR((x-y)^10).order_at(infinity)
             10
-            sage: MR.zero().order_inf()
+            sage: MR.zero().order_at(infinity)
             +Infinity
+
+            sage: (MR.j_inv()*MR.f_i()^3).order_at(-1)
+            1
+            sage: (MR.j_inv()*MR.f_i()^3).order_at(i)
+            3
+            sage: (1/MR.f_inf()^2).order_at(-1)
+            0
         """
 
         if self.is_zero():
@@ -1302,35 +1320,53 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             numerator = R(rat.numerator())
             denom     = R(rat.denominator())
             (x,y,z,d) = R.gens()
-            # We intentially leave out the d-factor!
-            if (self.hecke_n() == infinity):
-                finf_pol  = (x-y**2)
+            n         = self.hecke_n()
+
+            if (tau == i):
+                f_pol = y
+            # This includes the case rho=1 resp. n=infinity
+            elif (tau == self.group().rho() or tau == -self.group().rho().conjugate()):
+                f_pol = x
+            # We intentionally leave out the d-factor!
+            elif (tau == infinity):
+                if (n == infinity):
+                    f_pol = x - y**2
+                else:
+                    f_pol = x**n - y**2
+            elif (tau.imag() > 0):
+                if (self.group().in_FD(tau)):
+                    raise NotImplementedError
+                else:
+                    w = self.group().get_FD(tau, prec=self.parent().default_num_prec())[1]
+                    return self.order_at(w)
             else:
-                finf_pol  = (x**self.hecke_n()-y**2)
+                raise ValueError("tau={} does not lie in the extended upper half plane!").format(tau)
 
-            order_inf = 0
+            order_f = 0
             # There seems to be a bug in Singular, for now this "try, except" is a workaround
-            # Also numerator /= finf_pol doesn't seem to return an element of R for non-exact rings...
+            # Also numerator /= f_pol doesn't seem to return an element of R for non-exact rings...
             try:
-                while (finf_pol.divides(numerator)):
-                    numerator  = numerator.quo_rem(finf_pol)[0]
-                    #numerator /= finf_pol
+                while (f_pol.divides(numerator)):
+                    numerator  = numerator.quo_rem(f_pol)[0]
+                    #numerator /= f_pol
                     numerator  = R(numerator)
-                    order_inf += 1
+                    order_f += 1
             except TypeError:
                 pass
             try:
-                while (finf_pol.divides(denom)):
-                    denom      = denom.quo_rem(finf_pol)[0]
-                    #denom     /= finf_pol
+                while (f_pol.divides(denom)):
+                    denom      = denom.quo_rem(f_pol)[0]
+                    #denom     /= f_pol
                     denom      = R(denom)
-                    order_inf -= 1
+                    order_f -= 1
             except TypeError:
                 pass
 
-            return order_inf
-
+            return order_f
         else:
+            if (tau != infinity):
+                raise NotImplementedError
+
             num_val   = prec_num_bound   = 1 #(self.parent()._prec/ZZ(2)).ceil()
             denom_val = prec_denom_bound = 1 #(self.parent()._prec/ZZ(2)).ceil()
 
@@ -1503,17 +1539,17 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             if not (fix_d or (d is not None) or self.base_ring().is_exact()):
                 from warnings import warn
                 warn("For non-exact base rings it is strongly recommended to fix/set d!")
-            if ((not self.is_zero()) and prec <= self.order_inf()):
+            if ((not self.is_zero()) and prec <= self.order_at(infinity)):
                 from warnings import warn
                 warn("precision too low to determine any coefficient!")
 
             # This should _exactly_ ensure the given precision O(q^prec):
-            prec += self.denominator().order_inf() + max(-self.order_inf(), 0)
+            prec += self.denominator().order_at(infinity) + max(-self.order_at(infinity), 0)
 
-            # The result will have "max(prec-self.order_inf(),0)" significant coefficients
+            # The result will have "max(prec-self.order_at(infinity),0)" significant coefficients
             # So adding the following line to the above one
             # would instead give "prec" many significant coefficients:
-            # prec += self.order_inf()
+            # prec += self.order_at(infinity)
 
         SC = MFSeriesConstructor(self.group(), prec)
         (base_ring, coeff_ring, qseries_ring, D) = SC.series_data(self.base_ring(), fix_d, d, d_num_prec)
@@ -1808,11 +1844,11 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         ALGORITHM:
 
-        #. If ``(tau == infinity)``:
+        #. If the order of ``self`` at ``tau`` is known and nonzero:
+           Return ``0`` resp. ``infinity``.
 
-           Return ``infinity`` unless the order at infinity is
-           non-negative in which case the constant Fourier coefficient
-           is returned.
+        #. Else if ``tau==infinity`` and the order is zero:
+           Return the constant Fourier coefficient of ``self``.
 
         #. Else if ``self`` is homogeneous and modular:
 
@@ -1874,9 +1910,15 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: rho   = MR.group().rho()
 
             sage: f_rho(rho)
-            7.924774170220...e-10 + 3.216846821336...e-16*I
+            0
+            sage: f_rho(rho + 1e-100)    # since rho == rho + 1e-100
+            0
+            sage: f_rho(rho + 1e-6)
+            2.525...e-10 - 3.884...e-6*I
             sage: f_i(i)
-            6.072919944699...e-14
+            0
+            sage: f_i(i + 1e-1000)
+            -6.072...e-14 - 4.101...e-1000*I
             sage: f_inf(infinity)
             0
 
@@ -1978,7 +2020,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: E4    = MR.E4().full_reduce()
 
             sage: f_i(i)
-            -2.99138491755...e-12
+            0
+            sage: f_i(i + 1e-1000)
+            2.991...e-12 - 3.048...e-1000*I
             sage: f_inf(infinity)
             0
 
@@ -2057,17 +2101,20 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         if (num_prec == None):
             num_prec = self.parent().default_num_prec()
 
-        if (tau==infinity):
-            if (self.AT(["cusp", "quasi"]) >= self.analytic_type()):
-                return ZZ(0)
-            #if (self.AT(["holo", "quasi"]) >= self.analytic_type()):
-            elif self.order_inf() > 0:
-                return ZZ(0)
-            elif self.order_inf() < 0:
-                return infinity
-            else:
-                return self.q_expansion(prec=1)[0]
+        # In case the order is known
+        try:
+            order_tau = self.order_at(tau)
 
+            if (order_tau > 0):
+                return ZZ(0)
+            elif (order_tau < 0):
+                return infinity
+            elif (tau == infinity):
+                return self.q_expansion(prec=1)[0]
+        except NotImplementedError:
+            pass
+
+        # The general case
         num_prec = max(\
             ZZ(getattr(tau,'prec',lambda: num_prec)()),\
             num_prec\
@@ -2077,14 +2124,14 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         if (self.is_homogeneous() and self.is_modular()):
             q_exp = self.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec)
-            A, w, aut_factor = self.group().get_FD(tau,self.reduce(force=True).parent().aut_factor)
+            A, w, aut_factor = self.group().get_FD(tau, self.reduce(force=True).parent().aut_factor, prec=num_prec)
             if (type(q_exp) == LaurentSeries):
                 return q_exp.laurent_polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w)) * aut_factor
             else:
                 return q_exp.polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w)) * aut_factor
         elif (self._rat == z):
             E2 = self.parent().graded_ring().E2().reduce(force=True)
-            A, w, aut_factor = self.group().get_FD(tau,E2.parent().aut_factor)
+            A, w, aut_factor = self.group().get_FD(tau, E2.parent().aut_factor, prec=num_prec)
             E2_wvalue = E2.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec).polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w))
             if (self.hecke_n() == infinity):
                 E2_cor_term = 4 * self.group().lam() / (2*pi*i).n(num_prec) * A[1][0] * (A[1][0]*w + A[1][1])

@@ -1097,7 +1097,7 @@ def hnf_cmp(I, J):
     """
     t = int(I.norm() - J.norm())
     if t:
-        return sign(t)
+        return cmp(t,0)
 
     return cmp(I.pari_hnf(), J.pari_hnf())
 
@@ -1317,7 +1317,7 @@ def possible_isogeny_degrees(E, verbose=False):
 
     INPUT:
 
-    - ``E`` -- An elliptic curve with CM defined over a number field.
+    - ``E`` -- An elliptic curve defined over a number field.
 
     OUTPUT:
 
@@ -1366,27 +1366,25 @@ def possible_isogeny_degrees(E, verbose=False):
     EXAMPLES:
 
     For curves without CM we determine the primes at which the mod `p`
-    Galois representation is not surjective, which is a finite set
-    containing the desired primes (and possibly more)::
+    Galois representation is reducible, i.e. contained in a Borel
+    subgroup::
 
         sage: from sage.schemes.elliptic_curves.isogeny_class import possible_isogeny_degrees
         sage: E = EllipticCurve('11a1')
         sage: possible_isogeny_degrees(E)
         [5]
 
-    In this case `E` really does have rational `5`-isogenies::
+    We check that in this case `E` really does have rational
+    `5`-isogenies::
 
         sage: [phi.degree() for phi in E.isogenies_prime_degree()]
         [5, 5]
 
-    Over an extension field there may be more non-surjective primes::
+    Over an extension field::
 
         sage: E3 = E.change_ring(CyclotomicField(3))
         sage: possible_isogeny_degrees(E3)
-        [3, 5]
-
-    But not necesarily any more isogeny primes::
-
+        [5]
         sage: [phi.degree() for phi in E3.isogenies_prime_degree()]
         [5, 5]
 
@@ -1527,4 +1525,4 @@ def possible_isogeny_degrees(E, verbose=False):
     if verbose:
         print("Non-CM case, using Galois representation")
 
-    return E.galois_representation().non_surjective()
+    return E.galois_representation().reducible_primes()

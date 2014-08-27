@@ -1424,6 +1424,16 @@ class FreeQuadraticModule_submodule_with_basis_field(
             User basis matrix:
             [1 2 3]
             [4 5 6]
+            sage: V = VectorSpace(QQ, 3, inner_product_matrix=1)
+            sage: V.span_of_basis([[1,2,3],[4,5,6]])
+            Quadratic space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
+            [1 2 3]
+            [4 5 6]
+            Inner product matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
         """
         free_module.FreeModule_submodule_with_basis_field.__init__(
             self, ambient=ambient, basis=basis, check=check,

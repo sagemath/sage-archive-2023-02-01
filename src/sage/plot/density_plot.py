@@ -42,7 +42,7 @@ class DensityPlot(GraphicPrimitive):
 
     EXAMPLES:
 
-    Note this should normally be used indirectly via `density_plot``::
+    Note this should normally be used indirectly via ``density_plot``::
 
         sage: from sage.plot.density_plot import DensityPlot
         sage: D = DensityPlot([[1,3],[2,4]],(1,2),(2,3),options={})
@@ -220,6 +220,20 @@ def density_plot(f, xrange, yrange, **options):
     ::
 
         sage: density_plot(log(x) + log(y), (x, 1, 10), (y, 1, 10)).show(dpi=20) # These are equivalent
+
+    TESTS:
+
+    Check that :trac:`15315` is fixed, i.e., density_plot respects the
+    ``aspect_ratio`` parameter. Without the fix, it looks like a thin line
+    of width a few mm. With the fix it should look like a nice fat layered
+    image::
+
+        sage: density_plot((x*y)^(1/2), (x,0,3), (y,0,500), aspect_ratio=.01)
+
+    Default ``aspect_ratio`` is ``"automatic"``, and that should work too::
+
+        sage: density_plot((x*y)^(1/2), (x,0,3), (y,0,500))
+
     """
     from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid

@@ -33,6 +33,7 @@ It defines the following functions:
     :meth:`OA_from_quasi_difference_matrix` | Return an Orthogonal Array from a Quasi-Difference matrix
     :meth:`OA_from_Vmt` | Return an Orthogonal Array from a `V(m,t)`
     :meth:`OA_from_PBD` | Return an `OA(k,n)` from a PBD
+    :meth:`OA_n_times_2_pow_c_from_matrix` | Return an `OA(k, \vert G\vert \cdot 2^c)` from a constrained `(G,k-1,2)`-difference matrix.
     :meth:`OA_from_wider_OA` | Return the first `k` columns of `OA`.
 
 .. TODO::
@@ -58,6 +59,7 @@ from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from sage.rings.infinity import Infinity
 from designs_pyx import is_orthogonal_array
+from incidence_structures import GroupDivisibleDesign
 
 
 def transversal_design(k,n,check=True,existence=False):
@@ -125,7 +127,9 @@ def transversal_design(k,n,check=True,existence=False):
 
     EXAMPLES::
 
-        sage: designs.transversal_design(5,5)
+        sage: TD = designs.transversal_design(5,5); TD
+        Transversal Design TD(5,5)
+        sage: TD.blocks()
         [[0, 5, 10, 15, 20], [0, 6, 12, 18, 24], [0, 7, 14, 16, 23],
          [0, 8, 11, 19, 22], [0, 9, 13, 17, 21], [1, 5, 14, 18, 22],
          [1, 6, 11, 16, 21], [1, 7, 13, 19, 20], [1, 8, 10, 17, 24],
@@ -218,7 +222,7 @@ def transversal_design(k,n,check=True,existence=False):
 
     The case when `n=1`::
 
-        sage: designs.transversal_design(5,1)
+        sage: designs.transversal_design(5,1).blocks()
         [[0, 1, 2, 3, 4]]
 
     Obtained through Wilson's decomposition::
@@ -283,7 +287,7 @@ def transversal_design(k,n,check=True,existence=False):
 
     The special case `n=1`::
 
-        sage: designs.transversal_design(3, 1)
+        sage: designs.transversal_design(3, 1).blocks()
         [[0, 1, 2]]
         sage: designs.transversal_design(None, 1, existence=True)
         +Infinity
@@ -346,10 +350,77 @@ def transversal_design(k,n,check=True,existence=False):
             return Unknown
         raise NotImplementedError("I don't know how to build a TD({},{})!".format(k,n))
 
-    if check:
-        assert is_transversal_design(TD,k,n)
+    return TransversalDesign(TD,k,n,check=check)
 
-    return TD
+class TransversalDesign(GroupDivisibleDesign):
+    r"""
+    Class for Transversal Designs
+
+    INPUT:
+
+    - ``blocks`` -- collection of blocks
+
+    - ``k,n`` (integers) -- parameters of the transversal design. They can be
+      set to ``None`` (default) in which case their value is determined by the
+      blocks.
+
+    - ``check`` (boolean) -- whether to check that the design is indeed a
+      transversal design with the right parameters. Set to ``True`` by default.
+
+    EXAMPLES::
+
+        sage: designs.transversal_design(None,5)
+        Transversal Design TD(6,5)
+        sage: designs.transversal_design(None,30)
+        Transversal Design TD(6,30)
+        sage: designs.transversal_design(None,36)
+        Transversal Design TD(10,36)
+    """
+    def __init__(self, blocks, k=None,n=None,check=True,**kwds):
+        r"""
+        Constructor of the class
+
+        EXAMPLES::
+
+            sage: designs.transversal_design(None,5)
+            Transversal Design TD(6,5)
+        """
+        from math import sqrt
+        if k is None:
+            if blocks:
+                k=len(blocks[0])
+            else:
+                k=0
+        if n is None:
+            n = round(sqrt(len(blocks)))
+
+        self._n = n
+        self._k = k
+
+        if check:
+            assert is_transversal_design(blocks,k,n)
+
+        GroupDivisibleDesign.__init__(self,
+                                      k*n,
+                                      [range(i*n,(i+1)*n) for i in range(k)],
+                                      blocks,
+                                      check=False,
+                                      **kwds)
+
+    def __repr__(self):
+        r"""
+        Returns a string describing the transversal design.
+
+        EXAMPLES::
+
+            sage: designs.transversal_design(None,5)
+            Transversal Design TD(6,5)
+            sage: designs.transversal_design(None,30)
+            Transversal Design TD(6,30)
+            sage: designs.transversal_design(None,36)
+            Transversal Design TD(10,36)
+        """
+        return "Transversal Design TD({},{})".format(self._k,self._n)
 
 def is_transversal_design(B,k,n, verbose=False):
     r"""
@@ -885,7 +956,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
         else:
             from database import TD_6_12
             TD = TD_6_12()
-            OA = [[x%n for x in R] for R in TD]
+            OA = [[x%n for x in R[:k]] for R in TD]
 
     # Constructions from the database III
     # Section 6.5.1 from [Stinson2004]
@@ -1210,6 +1281,177 @@ def OA_relabel(OA,k,n,blocks=tuple(),matrix=None):
 
     return OA
 
+def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
+    r"""
+    Return an `OA(k, |G| \cdot 2^c)` from a constrained `(G,k-1,2)`-difference
+    matrix.
+
+    This construction appears in [AbelCheng1994]_ and [AbelThesis]_.
+
+    Let `G` be an additive Abelian group. We denote by `H` a `GF(2)`-hyperplane
+    in `GF(2^c)`.
+
+    Let `A` be a `(k-1) \times 2|G|` array with entries in `G \times GF(2^c)`
+    and `Y` be a vector with `k-1` entries in `GF(2^c)`. Let `B` and `C` be
+    respectively the part of the array that belong to `G` and `GF(2^c)`.
+
+    The input `A` and `Y` must satisfy the following conditions. For any `i \neq
+    j` and `g \in G`:
+
+    - there are exactly two values of `s` such that `B_{i,s} - B_{j,s} = g`
+      (i.e. `B` is a `(G,k-1,2)`-difference matrix),
+
+    - let `s_1` and `s_2` denote the two values of `s` given above, then exactly
+      one of `C_{i,s_1} - C_{j,s_1}` and `C_{i,s_2} - C_{j,s_2}` belongs to the
+      `GF(2)`-hyperplane `(Y_i - Y_j) \cdot H` (we implicitely assumed that `Y_i
+      \not= Y_j`).
+
+    Under these conditions, it is easy to check that the array whose `k-1` rows
+    of length `|G|\cdot 2^c` indexed by `1 \leq i \leq k-1` given by `A_{i,s} +
+    (0, Y_i \cdot v)` where `1\leq s \leq 2|G|,v\in H` is a `(G \times
+    GF(2^c),k-1,1)`-difference matrix.
+
+    INPUT:
+
+    - ``k,c`` (integers) -- integers
+
+    - ``G`` -- an additive Abelian group
+
+    - ``A`` -- a matrix with entries in `G \times GF(2^c)`
+
+    - ``Y`` -- a vector with entries in `GF(2^c)`
+
+    - ``check`` -- (boolean) Whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to
+      ``True`` by default.
+
+    .. NOTE::
+
+        By convention, a multiplicative generator `w` of `GF(2^c)^*` is fixed
+        (inside the function). The hyperplane `H` is the one spanned by `w^0,
+        w^1, \ldots, w^{c-1}`. The `GF(2^c)` part of the input matrix `A` and
+        vector `Y` are given in the following form: the integer `i` corresponds
+        to the element `w^i` and ``None`` corresponds to `0`.
+
+    .. SEEALSO::
+
+        Several examples use this construction:
+
+        - :func:`~sage.combinat.designs.database.OA_9_40`
+        - :func:`~sage.combinat.designs.database.OA_11_80`
+        - :func:`~sage.combinat.designs.database.OA_15_112`
+        - :func:`~sage.combinat.designs.database.OA_11_160`
+        - :func:`~sage.combinat.designs.database.OA_16_176`
+        - :func:`~sage.combinat.designs.database.OA_16_208`
+        - :func:`~sage.combinat.designs.database.OA_15_224`
+        - :func:`~sage.combinat.designs.database.OA_20_352`
+        - :func:`~sage.combinat.designs.database.OA_20_416`
+        - :func:`~sage.combinat.designs.database.OA_20_544`
+        - :func:`~sage.combinat.designs.database.OA_11_640`
+        - :func:`~sage.combinat.designs.database.OA_15_896`
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import OA_n_times_2_pow_c_from_matrix
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: A = [
+        ....: [(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None)],
+        ....: [(0,None),(1,None),   (2,2),   (3,2),   (4,2),(2,None),(3,None),(4,None),   (0,2),   (1,2)],
+        ....: [(0,None),   (2,5),   (4,5),   (1,2),   (3,6),   (3,4),   (0,0),   (2,1),   (4,1),   (1,6)],
+        ....: [(0,None),   (3,4),   (1,4),   (4,0),   (2,5),(3,None),   (1,0),   (4,1),   (2,2),   (0,3)],
+        ....: ]
+        sage: Y = [None, 0, 1, 6]
+        sage: OA = OA_n_times_2_pow_c_from_matrix(5,3,GF(5),A,Y)
+        sage: is_orthogonal_array(OA,5,40,2)
+        True
+
+        sage: A[0][0] = (1,None)
+        sage: OA_n_times_2_pow_c_from_matrix(5,3,GF(5),A,Y)
+        Traceback (most recent call last):
+        ...
+        ValueError: the first part of the matrix A must be a
+        (G,k-1,2)-difference matrix
+
+        sage: A[0][0] = (0,0)
+        sage: OA_n_times_2_pow_c_from_matrix(5,3,GF(5),A,Y)
+        Traceback (most recent call last):
+        ...
+        ValueError: B_2,0 - B_0,0 = B_2,6 - B_0,6 but the associated part of the
+        matrix C does not satisfies the required condition
+
+    REFERENCES:
+
+    .. [AbelThesis] On the Existence of Balanced Incomplete Block Designs and Transversal Designs,
+       Julian R. Abel,
+       PhD Thesis,
+       University of New South Wales,
+       1995
+
+    .. [AbelCheng1994] R.J.R. Abel and Y.W. Cheng,
+       Some new MOLS of order 2np for p a prime power,
+       The Australasian Journal of Combinatorics, vol 10 (1994)
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.rings.integer import Integer
+    from itertools import izip,combinations
+    from designs_pyx import is_difference_matrix
+
+    G_card = G.cardinality()
+
+    if len(A) != k-1 or any(len(a) != 2*G_card for a in A):
+        raise ValueError("A must be a (k-1) x (2|G|) array")
+    if len(Y) != k-1:
+        raise ValueError("Y must be a (k-1)-vector")
+
+    F = FiniteField(2**c,'w')
+    GG = G.cartesian_product(F)
+
+    # dictionnary from integers to elments of GF(2^c): i -> w^i, None -> 0
+    w = F.multiplicative_generator()
+    r = {i:w**i for i in xrange(2**c-1)}
+    r[None] = F.zero()
+
+    # check that the first part of the matrix A is a (G,k-1,2)-difference matrix
+    B = [[G(a) for a,b in R] for R in A]
+    if check and not is_difference_matrix(B,G,k-1,2):
+        raise ValueError("the first part of the matrix A must be a "
+                         "(G,k-1,2)-difference matrix")
+
+    # convert:
+    #  the matrix A to a matrix over G \times GF(2^c)
+    #  the vector Y to a vector over GF(2^c)
+    A = [[GG((G(a),r[b])) for a,b in R] for R in A]
+    Y = [r[b] for b in Y]
+
+    # make the list of the elements of GF(2^c) which belong to the
+    # GF(2)-subspace <w^0,...,w^(c-2)> (that is the GF(2)-hyperplane orthogonal
+    # to w^(c-1))
+    H = [sum((r[i] for i in S), F.zero()) for s in range(c) for S in combinations(range(c-1),s)]
+    assert len(H) == 2**(c-1)
+
+    # check that the second part of the matrix A satisfy the conditions
+    if check:
+        G_card = G.cardinality()
+        for i in range(len(B)):
+            for j in range(i):
+                g_to_col_indices = {g: [] for g in G}
+                Hij = set([(Y[i] - Y[j]) * v for v in H])
+                for s in range(2 * G_card):
+                    g_to_col_indices[B[i][s] - B[j][s]].append(s)
+                for s1,s2 in g_to_col_indices.itervalues():
+                    v1 = A[i][s1][1] - A[j][s1][1]
+                    v2 = A[i][s2][1] - A[j][s2][1]
+
+                    if (v1 in Hij) == (v2 in Hij):
+                        raise ValueError("B_{},{} - B_{},{} = B_{},{} - B_{},{} but"
+                              " the associated part of the matrix C does not satisfies"
+                              " the required condition".format(i,s1,j,s1,i,s2,j,s2))
+
+    # build the quasi difference matrix and return the associated OA
+    Mb = [[e+GG((G.zero(),x*v)) for v in H for e in R] for x,R in izip(Y,A)]
+    return OA_from_quasi_difference_matrix(Mb,GG,add_col=True)
+
 def OA_from_quasi_difference_matrix(M,G,add_col=True):
     r"""
     Return an Orthogonal Array from a Quasi-Difference matrix
@@ -1283,26 +1525,36 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
 
         sage: _ = designs.orthogonal_array(6,20,2) # indirect doctest
     """
-    Gn = G.cardinality()
+    Gn = int(G.cardinality())
     k = len(M)+bool(add_col)
-    G_to_int = {v:i for i,v in enumerate(G)}
 
+    G_to_int = {x:i for i,x in enumerate(G)}
+
+    # A cache for addition in G
+    G_sum = [[0]*Gn for _ in range(Gn)]
+    for x,i in G_to_int.iteritems():
+        for xx,ii in G_to_int.iteritems():
+            G_sum[i][ii] = G_to_int[x+xx]
+
+    # Convert M to integers
+    M = [[None if x is None else G_to_int[G(x)] for x in line] for line in M]
+
+    # Each line is expanded by [g+x for x in line for g in G] then relabeled
+    # with integers. Missing values are also handled.
     new_M = []
     for line in M:
+        inf = Gn
         new_line = []
-        # Concatenating the line+x, for all x \in G
-        for g in G:
-            inf = Gn
-            for x in line:
-                if x is None:
-                    new_line.append(inf)
-                    inf = inf + 1
-                else:
-                    new_line.append(G_to_int[g+G(x)])
+        for x in line:
+            if x is None:
+                new_line.extend([inf]*Gn)
+                inf = inf + 1
+            else:
+                new_line.extend(G_sum[x])
         new_M.append(new_line)
 
     if add_col:
-        new_M.append([i%(Gn) for i in range(len(new_line))])
+        new_M.append([i//Gn for i in range(len(new_line))])
 
     # new_M = transpose(new_M)
     new_M = zip(*new_M)
@@ -1317,6 +1569,32 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
 def OA_from_Vmt(m,t,V):
     r"""
     Return an Orthogonal Array from a `V(m,t)`
+
+    INPUT:
+
+    - ``m,t`` (integers)
+
+    - ``V`` -- the vector `V(m,t)`.
+
+    .. SEEALSO::
+
+        - :func:`QDM_from_Vmt`
+
+        - :func:`OA_from_quasi_difference_matrix`
+
+    EXAMPLES::
+
+        sage: _ = designs.orthogonal_array(6,46) # indirect doctest
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    q = m*t+1
+    Fq = FiniteField(q, 'x')
+    M = QDM_from_Vmt(m,t,V)
+    return OA_from_quasi_difference_matrix(M,Fq,add_col = False)
+
+def QDM_from_Vmt(m,t,V):
+    r"""
+    Returns an Orthogonal Array from a `V(m,t)`
 
     **Definition**
 
@@ -1361,8 +1639,8 @@ def OA_from_Vmt(m,t,V):
     """
     from sage.rings.finite_rings.constructor import FiniteField
     q = m*t+1
-    Fq = FiniteField(q)
-    w = Fq.primitive_element()
+    Fq = FiniteField(q, 'x')
+    w = Fq.multiplicative_generator()
 
     # Cyclic shift of a list
     cyclic_shift = lambda l,i : l[-i:]+l[:-i]
@@ -1377,10 +1655,8 @@ def OA_from_Vmt(m,t,V):
             M.append(cyclic_shift(L,ii))
 
     M.append([0]*q)
-    M = zip(*M)
-    M = OA_from_quasi_difference_matrix(M,Fq,add_col = False)
 
-    return M
+    return zip(*M)
 
 def OA_from_PBD(k,n,PBD, check=True):
     r"""
@@ -1428,18 +1704,20 @@ def OA_from_PBD(k,n,PBD, check=True):
         ...
         EmptySetError: There is no OA(n+1,n) - 3.OA(n+1,1) as all blocks do intersect in a projective plane.
 
-    Or an `OA(6,10)`::
+    Or an `OA(3,6)`::
 
         sage: _ = OA_from_PBD(3,6,pbd)
         Traceback (most recent call last):
         ...
-        RuntimeError: The PBD covers a point 8 which is not in {0, ..., 5}
+        RuntimeError: PBD is not a valid Pairwise Balanced Design on [0,...,5]
     """
     # Size of the sets of the PBD
     K = set(map(len,PBD))
+
     if check:
-        from bibd import _check_pbd
-        _check_pbd(PBD, n, K)
+        from designs_pyx import is_pairwise_balanced_design
+        if not is_pairwise_balanced_design(PBD, n, K):
+            raise RuntimeError("PBD is not a valid Pairwise Balanced Design on [0,...,{}]".format(n-1))
 
     # Building the IOA
     OAs = {i:incomplete_orthogonal_array(k,i,(1,)*i) for i in K}
@@ -1476,7 +1754,7 @@ def OA_from_wider_OA(OA,k):
 
         sage: from sage.combinat.designs.orthogonal_arrays import OA_from_wider_OA
         sage: OA_from_wider_OA(designs.orthogonal_array(6,20,2),1)[:5]
-        [(19,), (0,), (0,), (7,), (1,)]
+        [(19,), (19,), (19,), (19,), (19,)]
         sage: _ = designs.orthogonal_array(5,46) # indirect doctest
 
     """

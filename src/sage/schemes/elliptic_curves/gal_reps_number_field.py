@@ -357,74 +357,81 @@ def _maybe_borels(E, L, patience=100):
 
     - ``L`` - list - a list of prime numbers.
 
-    - ``patience`` - int (a bound on the number of traces of Frobenius to
-                          use while trying to prove ).
+    - ``patience`` - int (a positive integer bounding the number of
+                          traces of Frobenius to use while trying to
+                          prove irreducibility).
 
-    OUTPUT: list - The list of all primes l in L for which the mod l image
-                   might fail to be contained in a Borel subgroup of GL_2(F_ell).
+    OUTPUT: list - The list of all primes `\ell` in L for which the
+                   mod `\ell` image might be contained in a Borel
+                   subgroup of `GL_2(\mathbf{F}_{\ell})`.
 
     EXAMPLES::
 
-        sage: E = EllipticCurve_from_j(2268945/128) # c.f. [Sutherland12] --- no 7-isogeny, but...
+        sage: E = EllipticCurve('11a1') # has a 5-isogeny
+        sage: sage.schemes.elliptic_curves.gal_reps_number_field._maybe_borels(E,primes(40))
+        [5]
+
+    Example to show that the output may contain primes where the
+    representation is in fact reducible.  Over `\QQ` the following is
+    essentially the unique such example by [Sutherland12]_::
+
+        sage: E = EllipticCurve_from_j(2268945/128)
         sage: sage.schemes.elliptic_curves.gal_reps_number_field._maybe_borels(E, [7, 11])
         [7]
-    """
 
+    This curve does posess a 7-isogeny modulo every prime of good reduction, but has no rational 7-isogeny::
+
+        sage: E.isogenies_prime_degree(7)
+        []
+
+    A number field example:
+
+        sage: K.<i> = QuadraticField(-1)
+        sage: E = EllipticCurve([1+i, -i, i, -399-240*i,  2627+2869*i])
+        sage: sage.schemes.elliptic_curves.gal_reps_number_field._maybe_borels(E, primes(20))
+        [2, 3]
+
+    Here the curve really does possess isognies of degrees 2 and 3::
+
+        sage: [len(E.isogenies_prime_degree(l)) for l in [2,3]]
+        [1, 1]
+    """
     E = _over_numberfield(E)
     K = E.base_field()
 
-    output = []
+    L = list(set(L)) # Remove duplicates from L and makes a copy for output
+    L.sort()
 
-    L = list(set(L)) # Remove duplicates from L.
-
-    for l in L:
-        if l == 2: # c.f. Section 5.3(a) of [Serre72].
-            if not E.division_polynomial(2).is_irreducible():
-                output.append(2)
-
-    for l in output:
-        L.remove(l)
-    if 2 in L:
+    include_2 = False
+    if 2 in L: # c.f. Section 5.3(a) of [Serre72].
         L.remove(2)
-
-    D = {}
-    for l in L:
-        D[l] = True
+        include_2 = not E.division_polynomial(2).is_irreducible()
 
     for P in K.primes_of_degree_one_iter():
+        if not (L and patience): # stop if no primes are left, or
+                                 # patience is exhausted
+            break
+
+        patience -= 1
+
+        # Check whether the Frobenius polynomial at P is irreducible
+        # modulo each l, dropping l from the list if so.
+
         try:
             trace = E.change_ring(P.residue_field()).trace_of_frobenius()
         except ArithmeticError: # Bad reduction at P.
             continue
 
-        patience -= 1
-
         determinant = P.norm()
         discriminant = trace**2 - 4 * determinant
 
-        irred = [] # Primes we discover are not contained in a Borel go here.
+        for l in L:
+            if legendre_symbol(discriminant,l)==-1:
+                L.remove(l)
 
-        for l in D.iterkeys():
-            disc = GF(l)(discriminant)
-
-            if legendre_symbol(disc, l) == -1:
-                # If the matrix is non-diagonalizable over F_p, it can't be
-                # contained in a Borel subgroup.
-                irred.append(l)
-
-        for l in irred:
-            D.pop(l)
-        irred = []
-
-        if (D == {}) or (patience == 0):
-            break
-
-    for l in D.iterkeys():
-        output.append(l)
-
-    output.sort()
-    return output
-
+    if include_2:
+        L = [2] + L
+    return L
 
 def _exceptionals(E, L, patience=1000):
     r"""

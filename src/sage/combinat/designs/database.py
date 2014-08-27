@@ -54,17 +54,29 @@ Implemented constructions :
   :func:`OA(11,80) <OA_11_80>`,
   :func:`OA(10,82) <OA_10_82>`,
   :func:`OA(10,100) <OA_10_100>`,
+  :func:`OA(15,112) <OA_15_112>`,
   :func:`OA(9,120) <OA_9_120>`,
   :func:`OA(9,135) <OA_9_135>`,
   :func:`OA(12,144) <OA_12_144>`,
   :func:`OA(10,154) <OA_10_154>`,
+  :func:`OA(11,160) <OA_11_160>`,
+  :func:`OA(16,176) <OA_16_176>`,
+  :func:`OA(16,208) <OA_16_208>`,
   :func:`OA(12,210) <OA_12_210>`,
+  :func:`OA(15,224) <OA_15_224>`,
   :func:`OA(18,273) <OA_18_273>`,
   :func:`OA(12,276) <OA_12_276>`,
   :func:`OA(12,298) <OA_12_298>`,
   :func:`OA(12,342) <OA_12_342>`,
+  :func:`OA(20,352) <OA_20_352>`,
+  :func:`OA(20,416) <OA_20_416>`,
   :func:`OA(12,474) <OA_12_474>`,
-  :func:`OA(33,993) <OA_33_993>`
+  :func:`OA(9,514) <OA_9_514>`,
+  :func:`OA(20,544) <OA_20_544>`,
+  :func:`OA(11,640) <OA_11_640>`,
+  :func:`OA(10,796) <OA_10_796>`,
+  :func:`OA(15,896) <OA_15_896>`,
+  :func:`OA(33,993) <OA_33_993>`,
 
 - :func:`two MOLS of order 10 <MOLS_10_2>`,
   :func:`five MOLS of order 12 <MOLS_12_5>`,
@@ -109,8 +121,10 @@ Functions
 
 from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_matrix,
                                                      OA_from_Vmt,
+                                                     QDM_from_Vmt,
                                                      OA_from_wider_OA,
                                                      OA_from_PBD,
+                                                     OA_n_times_2_pow_c_from_matrix,
                                                      orthogonal_array)
 
 # Cyclic shift of a list
@@ -142,8 +156,8 @@ def TD_6_12():
       http://dx.doi.org/10.1016/0012-365X(75)90040-0,
       Discrete Mathematics, Volume 11, Issue 3, 1975, Pages 255-369.
     """
-    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
-    G = AdditiveAbelianGroup([2,6])
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(2).cartesian_product(AdditiveCyclic(6))
     d = [[(0,0),(0,0),(0,0),(0,0),(0,0),(0,0)],
          [(0,0),(0,1),(1,0),(0,3),(1,2),(0,4)],
          [(0,0),(0,2),(1,2),(1,0),(0,1),(1,5)],
@@ -444,7 +458,7 @@ def OA_7_18():
             Mb[6].append(g + G((0,  0  ,2*y)))
 
     M = OA_from_quasi_difference_matrix(Mb,G,add_col=False)
-    M = M[:len(M)/2] # only develop w.r.t the last two coordinates
+    M = [M[i] for i in range(len(M)) if i%18<9] # only develop w.r.t the last two coordinates
     return M
 
 def OA_6_20():
@@ -619,8 +633,9 @@ def OA_9_24():
          "0000 1001 0111 2100 2000 0010 1110 2011 1100 1011 0101 2111 "+
          "0000 1011 2101 0100 2110 1001 2000 0110 0101 1111 2011 1010 ")
 
-    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
-    G = AdditiveAbelianGroup([3,2,2,2])
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    from sage.categories.cartesian_product import cartesian_product
+    G = cartesian_product(map(AdditiveCyclic,[2,2,6]))
     rlabel = {(x%2,x%3):x for x in range(6)}
     M = [G([int(c),int(d),rlabel[int(b),int(a)]]) for a,b,c,d in M.split()]
     M = [M[i*12:(i+1)*12] for i in range(8)]
@@ -1093,11 +1108,12 @@ def OA_9_40():
     r"""
     Return an OA(9,40)
 
-    As explained in the Handbook III.3.62 [DesignHandbook]_.
+    As explained in the Handbook III.3.62 [DesignHandbook]_. Uses the fact that
+    `40 = 2^3 \times 5` and that `5` is prime.
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
 
     EXAMPLES::
 
@@ -1114,12 +1130,6 @@ def OA_9_40():
     """
     from sage.rings.finite_rings.constructor import FiniteField
 
-    F8 = FiniteField(8,'x')
-    F5 = FiniteField(5)
-    F5F8 = F5.cartesian_product(F8)
-    w = F8.primitive_element()
-    assert w**3 == w+1
-
     A = [
         [(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None)],
         [(0,None),(1,None),   (2,2),   (3,2),   (4,2),(2,None),(3,None),(4,None),   (0,2),   (1,2)],
@@ -1130,38 +1140,9 @@ def OA_9_40():
         [(1,None),   (0,3),   (1,2),   (4,5),(4,None),   (2,3),   (0,0),   (2,2),   (3,0),(3,None)],
         [(4,None),   (1,3),   (0,0),   (1,1),   (4,0),   (3,1),   (2,5),(0,None),   (2,1),(3,None)]
         ]
-    Y = [
-        [None, 0, 1, 6, 5, 4, 3, 2],
-        [None, 1, 2, 0, 6, 5, 4, 3],
-        ]
-    r = lambda x : F8(0) if x is None else w**x
+    Y = [None, 0, 1, 6, 5, 4, 3, 2]
 
-    A = [[(F5(a),r(b)) for a,b in L] for L in A]
-    Y = [[r(b) for b in L] for L in Y]
-
-    def t(i,(x,y)):
-        a,b = A[x][y]
-        b = Y[i][x]
-        return F5F8((F5(0),b))
-
-    R = {w:(0,1,0),
-         w**2:(1,0,0),
-         w**3:(0,1,1),
-         w**4:(1,1,0),
-         w**5:(1,1,1),
-         w**6:(1,0,1),
-         w**7:(0,0,1),
-         F8(0):(0,0,0)
-         }
-    Mb = [[] for _ in range(8)]
-    for y in range(len(A[0])):
-        for x in range(len(A)):
-            t1,t2 = t(0,(x,y)), t(1,(x,y))
-            e = F5F8(A[x][y])
-            Mb[x].extend([e,e+t1,e+t2,e+t1+t2])
-
-    M = OA_from_quasi_difference_matrix(Mb,F5F8,add_col = True)
-    return M
+    return OA_n_times_2_pow_c_from_matrix(9,3,FiniteField(5),A,Y,check=False)
 
 def OA_7_42():
     r"""
@@ -1386,10 +1367,10 @@ def OA_10_48():
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
-    F16 = FiniteField(16,'x')
+    F16 = FiniteField(16,prefix='x',conway=True)
     F3 = FiniteField(3)
     F3F16 = F3.cartesian_product(F16)
-    w = F16.primitive_element()
+    w = F16.gens()[0]
     assert w**4 == w+1
 
     A = [
@@ -1516,10 +1497,10 @@ def OA_7_52():
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     from sage.rings.finite_rings.constructor import FiniteField
-    F4  = FiniteField(4,'z')
+    F4  = FiniteField(4,prefix='z',conway=True)
     G13 = FiniteField(13)
     G = F4.cartesian_product(G13)
-    z = F4('z')
+    z = F4.gens()[0]
     assert z**2 == z+1
 
     M = [
@@ -1688,11 +1669,11 @@ def OA_9_56():
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
-    F8  = FiniteField(8,'z')
+    F8  = FiniteField(8,prefix='w',conway=True)
     F7  = FiniteField(7)
     G   = F8.cartesian_product(F7)
 
-    w = F8.primitive_element()
+    w = F8.gens()[0]
     assert w**3 == w+1
 
     M = [
@@ -1788,8 +1769,10 @@ def OA_7_60():
            [(0, 17), (0, 7), (0, 20), (0,  1), (1,  4), (0, 26), (0, 19), (0, 28), (1, 21), (0,  6)],
            [(1, 14), (1, 9), (0, 10), (0, 27), (1, 20), (0, 11), (0, 13), (1, 12), (0, 28), (1, 18)]]
 
-    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
-    G = AdditiveAbelianGroup([2,30])
+
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    from sage.categories.cartesian_product import cartesian_product
+    G = cartesian_product((AdditiveCyclic(2),AdditiveCyclic(30)))
     M60b=[[],[],[],[],[],[]]
     onezero = G((1,0))
 
@@ -2205,11 +2188,12 @@ def OA_11_80():
     r"""
     Return an OA(11,80)
 
-    As explained in the Handbook III.3.76 [DesignHandbook]_.
+    As explained in the Handbook III.3.76 [DesignHandbook]_. Uses the fact that
+    `80 = 2^4 \times 5` and that `5` is prime.
 
     .. SEEALSO::
 
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
 
     EXAMPLES::
 
@@ -2225,12 +2209,6 @@ def OA_11_80():
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
-    F16 = FiniteField(2**4,'w')
-    F5  = FiniteField(5)
-    G  = F5.cartesian_product(F16)
-
-    w = F16.primitive_element()
-    assert w**4 == w+1
 
     A = [
         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None)],
@@ -2244,31 +2222,9 @@ def OA_11_80():
         [(4,None),    (4,6),    (1,2), (0,None),   (1,13),    (3,8),    (3,2),    (2,0),   (0,14), (2,None)],
         [(1,None),    (4,9),    (4,1),    (1,0),    (0,4),    (2,5), (3,None),    (3,5), (2,None), (0,None)]
         ]
-    Y = [
-        [None, 0, 1, 14, 12, 7, 2, 11, 3, 6],
-        [None, 1, 2, 0 , 13, 8, 3, 12, 4, 7],
-        [None, 2, 3, 1 , 14, 9, 4, 13, 5, 8]
-        ]
-    r = lambda x : F16(0) if x is None else w**x
+    Y = [None, 0, 1, 14, 12, 7, 2, 11, 3, 6]
 
-    A = [[(F5(a),r(b)) for a,b in L] for L in A]
-    Y = [[r(b) for b in L] for L in Y]
-
-    def t(i,(x,y)):
-        a,b = A[x][y]
-        b = Y[i][x]
-        return G((F5(0),b))
-
-    Mb = [[] for _ in range(10)]
-
-    for y in range(len(A[0])):
-        for x in range(len(A)):
-            t1,t2,t3 = t(0,(x,y)), t(1,(x,y)), t(2,(x,y))
-            e = G(A[x][y])
-            Mb[x].extend([e,e+t1,e+t2,e+t1+t2,e+t3,e+t3+t1,e+t3+t2,e+t3+t2+t1])
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = True)
-    return M
+    return OA_n_times_2_pow_c_from_matrix(11,4,FiniteField(5),A,Y,check=False)
 
 def OA_10_82():
     r"""
@@ -2323,6 +2279,52 @@ def OA_10_100():
     """
     M = OA_from_Vmt(8,11,[0,1,6,56,22,35,47,23,60])
     return M
+
+def OA_15_112():
+    r"""
+    Returns an OA(15,112)
+
+    Published by Julian R. Abel in [AbelThesis]_. Uses the fact that 112 = `2^4
+    \times 7` and that `7` is prime.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_15_112
+        sage: OA = OA_15_112()
+        sage: print is_orthogonal_array(OA,15,112,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(15,112,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+
+    A = [
+        [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
+        [(0,None), (1,None), (2,None), (3,   5), (4,   9), (5,  11), (6,  12), (1,  10), (0,  10), (1,  11), (4,  13), (2,   6), (2,   2), (4,   1)],
+        [(0,None), (2,   3), (4,   6), (6,   0), (1,   1), (3,  12), (5,   6), (4,   2), (1,   9), (0,   3), (1,   7), (4,   7), (2,   8), (2,   5)],
+        [(0,None), (3,   3), (6,   2), (2,   3), (5,   2), (1,   9), (4,  13), (2,   8), (4,  12), (1,  12), (0,   7), (1,  10), (4,  11), (2,  14)],
+        [(0,None), (4,None), (1,   0), (5,   1), (2,   0), (6,   7), (3,   4), (2,  11), (2,   9), (4,  13), (1,   3), (0,   7), (1,  11), (4,   2)],
+        [(0,None), (5,None), (3,  14), (1,   7), (6,   5), (4,   3), (2,   1), (4,   6), (2,   5), (2,  14), (4,  12), (1,   1), (0,   2), (1,   2)],
+        [(0,None), (6,None), (5,   0), (4,   4), (3,  11), (2,   2), (1,   7), (1,  13), (4,   8), (2,  11), (2,   3), (4,None), (1,   8), (0,  10)],
+        [(0,None), (4,   3), (2,  14), (1,   5), (1,   4), (2,   5), (4,   2), (0,   8), (6,  10), (3,  11), (5,   6), (5,   5), (3,   0), (6,  11)],
+        [(0,None), (5,   3), (4,   0), (4,   6), (5,   4), (0,   3), (3,  11), (6,None), (0,   4), (6,   5), (3,  13), (5,   6), (5,   4), (3,   4)],
+        [(0,None), (6,   3), (6,   4), (0,   5), (2,   5), (5,   5), (2,None), (3,   6), (6,   7), (0,  12), (6,  12), (3,  12), (5,None), (5,  10)],
+        [(0,None), (0,   3), (1,None), (3,   9), (6,   8), (3,  14), (1,  14), (5,   6), (3,   8), (6,  13), (0,   8), (6,   3), (3,   9), (5,   0)], # the last 3,9 was a 3,3
+        [(0,None), (1,   3), (3,   1), (6,   6), (3,None), (1,  10), (0,   1), (5,   7), (5,   7), (3,  14), (6,   0), (0,  10), (6,   9), (3,   6)],
+        [(0,None), (2,None), (5,   3), (2,  10), (0,   8), (6,   5), (6,   0), (3,   7), (5,   1), (5,  12), (3,  14), (6,   4), (0,  10), (6,   4)],
+        [(0,None), (3,None), (0,   4), (5,   6), (4,   1), (4,   7), (5,   1), (6,   8), (3,   2), (5,   2), (5,   2), (3,  13), (6,   7), (0,   2)]
+    ]
+    Y = [None, 0, 1, 14, 12, 7, 2, 11, 3, 4, 5, 10, 8, 6]
+
+    return OA_n_times_2_pow_c_from_matrix(15,4,FiniteField(7),zip(*A),Y,check=False)
 
 def OA_9_120():
     r"""
@@ -2512,6 +2514,162 @@ def OA_10_154():
     M = OA_from_Vmt(8,17,[0,1,3,2,133,126,47,109,74])
     return M
 
+def OA_11_160():
+    r"""
+    Returns an OA(11,160)
+
+    Published by Julian R. Abel in [AbelThesis]_. Uses the fact that `160 = 2^5
+    \times 5` is a product of a power of `2` and a prime number.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_11_160
+        sage: OA = OA_11_160()
+        sage: print is_orthogonal_array(OA,11,160,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(11,160,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+
+    A = [
+         [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (4,None), (1,None)],
+         [(0,None), (1,None), (2,   5), (3,   9), (4,   9), (1,  16), (0,  20), (1,  23), (4,  24), (4,  19)],
+         [(0,None), (2,   4), (4,   3), (1,  10), (3,  10), (4,  20), (1,   1), (0,  24), (1,   5), (4,   2)],
+         [(0,None), (3,None), (1,  28), (4,   7), (2,   6), (4,   4), (4,  23), (1,   5), (0,   8), (1,   1)],
+         [(0,None), (4,   4), (3,  25), (2,  24), (1,  13), (1,   6), (4,   6), (4,   2), (1,  18), (0,   1)],
+         [(0,None), (2,None), (3,   3), (3,  21), (2,  18), (0,   6), (2,  20), (3,   3), (3,  11), (2,   1)],
+         [(0,None), (3,   4), (0,   5), (1,  27), (1,  30), (2,None), (0,   0), (2,   2), (3,   2), (3,  18)],
+         [(0,None), (4,None), (2,  19), (4,  26), (0,  12), (3,  19), (2,   4), (0,   2), (2,   0), (3,   0)],
+         [(0,None), (0,   4), (4,  29), (2,  29), (4,None), (3,   0), (3,   0), (2,   1), (0,  18), (2,None)],
+         [(0,None), (1,   4), (1,   5), (0,  19), (3,   2), (2,   0), (3,None), (3,   0), (2,None), (0,None)],
+        ]
+
+    Y = [None, 0, 1, 2, 15, 27, 22, 12, 3, 28]
+
+    return OA_n_times_2_pow_c_from_matrix(11,5,FiniteField(5),zip(*A),Y,check=False)
+
+def OA_16_176():
+    r"""
+    Returns an OA(16,176)
+
+    Published by Julian R. Abel in [AbelThesis]_. Uses the fact that `176 = 2^4
+    \times 11` is a product of a power of `2` and a prime number.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_16_176
+        sage: OA = OA_16_176()
+        sage: print is_orthogonal_array(OA,16,176,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(16,176,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+
+    A = [
+        [(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(0 ,None),(1 ,None),(4 ,None),(9 ,None)],
+        [(0 ,None),(1 ,None),(2 ,None),(3 ,   0),(4 ,   2),(5 ,  12),(6 ,   5),(7 ,   6),(8 ,  13),(9 ,   9),(10,  11),(1 ,   3),(0 ,   6),(1 ,  14),(4 ,  12)],
+        [(0 ,None),(2 ,None),(4 ,   4),(6 ,   4),(8 ,   7),(10,   2),(1 ,   2),(3 ,  13),(5 ,   0),(7 ,   3),(9 ,   7),(4 ,   6),(1 ,  12),(0 ,   1),(1 ,  10)], # 5,1 became 5,0
+        [(0 ,None),(3 ,None),(6 ,   3),(9 ,   4),(1 ,   6),(4 ,  13),(7 ,   1),(10,   1),(2 ,   7),(5 ,   1),(8 ,   0),(9 ,   6),(4 ,   4),(1 ,   5),(0 ,   1)],
+        [(0 ,None),(4 ,None),(8 ,  13),(1 ,   8),(5 ,   0),(9 ,   5),(2 ,  14),(6 ,None),(10,   5),(3 ,   7),(7 ,  10),(5 ,   3),(9 ,  10),(4 ,  11),(1 ,  14)],
+        [(0 ,None),(5 ,None),(10,  10),(4 ,   2),(9 ,   7),(3 ,   2),(8 ,   3),(2 ,  13),(7 ,   7),(1 ,   9),(6 ,None),(3 ,   7),(5 ,   1),(9 ,  10),(4 ,  11)],
+        [(0 ,None),(6 ,None),(1 ,   8),(7 ,  14),(2 ,   2),(8 ,   3),(3 ,  11),(9 ,  12),(4 ,   8),(10,  13),(5 ,   1),(3 ,   6),(3 ,   5),(5 ,  10),(9 ,   9)],
+        [(0 ,None),(7 ,None),(3 ,   3),(10,None),(6 ,  14),(2 ,   4),(9 ,   1),(5 ,   7),(1 ,   5),(8 ,   7),(4 ,  13),(5 ,   6),(3 ,   6),(3 ,  11),(5 ,   3)],
+        [(0 ,None),(8 ,None),(5 ,  14),(2 ,  11),(10,  14),(7 ,   8),(4 ,  14),(1 ,  14),(9 ,   9),(6 ,  14),(3 ,   9),(9 ,   2),(5 ,   6),(3 ,   3),(3 ,  10)],
+        [(0 ,None),(9 ,None),(7 ,   5),(5 ,   5),(3 ,   8),(1 ,   8),(10,None),(8 ,  12),(6 ,   9),(4 ,  12),(2 ,   9),(4 ,   7),(9 ,   2),(5 ,   0),(3 ,   7)],
+        [(0 ,None),(10,None),(9 ,  11),(8 ,   7),(7 ,   6),(6 ,  12),(5 ,None),(4 ,   1),(3 ,  13),(2 ,   8),(1 ,   9),(1 ,None),(4 ,   3),(9 ,   7),(5 ,  13)],
+        [(0 ,None),(6 ,   3),(2 ,   0),(10,   8),(8 ,  12),(7 ,   9),(7 ,   2),(8 ,   0),(10,   7),(2 ,  10),(6 ,   4),(0 ,   7),(10,  10),(7 ,   3),(2 ,  11)],
+        [(0 ,None),(7 ,   3),(4 ,None),(2 ,  12),(1 ,  10),(1 ,   3),(2 ,   8),(4 ,   9),(7 ,   0),(0 ,   1),(5 ,   6),(10,   3),(0 ,   9),(10,  13),(7 ,  11)],
+        [(0 ,None),(8 ,   3),(6 ,   8),(5 ,   2),(5 ,  13),(6 ,   1),(8 ,   9),(0 ,   2),(4 ,  10),(9 ,   8),(4 ,  12),(7 ,   7),(10,   2),(0 ,  12),(10,   4)],
+        [(0 ,None),(9 ,   3),(8 ,   3),(8 ,   9),(9 ,   1),(0 ,   4),(3 ,   3),(7 ,  11),(1 ,   9),(7 ,  10),(3 ,   8),(2 ,  10),(7 ,   6),(10,  14),(0 ,   3)],
+        [(0 ,None),(10,   3),(10,   5),(0 ,   1),(2 ,   1),(5 ,   8),(9 ,   2),(3 ,   5),(9 ,   5),(5 ,   3),(2 ,   4),(6 ,  12),(2 ,   6),(7 ,  11),(10,   7)],
+        [(0 ,None),(0 ,   3),(1 ,None),(3 ,   2),(6 ,   8),(10,  11),(4 ,   6),(10,None),(6 ,None),(3 ,   1),(1 ,   1),(8 ,   0),(6 ,  14),(2 ,   0),(7 ,  14)],
+        [(0 ,None),(1 ,   3),(3 ,   8),(6 ,   9),(10,   8),(4 ,  10),(10,   1),(6 ,  10),(3 ,   0),(1 ,   8),(0 ,  11),(8 ,  10),(8 ,  14),(6 ,  10),(2 ,  14)],
+        [(0 ,None),(2 ,   3),(5 ,   1),(9 ,   8),(3 ,   4),(9 ,  14),(5 ,   5),(2 ,   4),(0 ,   2),(10,   2),(10,None),(6 ,   2),(8 ,   5),(8 ,   1),(6 ,   9)],
+        [(0 ,None),(3 ,   3),(7 ,   0),(1 ,None),(7 ,   1),(3 ,  10),(0 ,   8),(9 ,  13),(8 ,None),(8 ,  10),(9 ,  14),(2 ,   0),(6 ,   5),(8 ,   5),(8 ,   7)], # 2,None became 2,0
+        [(0 ,None),(4 ,   3),(9 ,  10),(4 ,  14),(0 ,  14),(8 ,  14),(6 ,  14),(5 ,   6),(5 ,  13),(6 ,   5),(8 ,  12),(7 ,   1),(2 ,   4),(6 ,   3),(8 ,   6)],
+        [(0 ,None),(5 ,   3),(0 ,   8),(7 ,   3),(4 ,  10),(2 ,   1),(1 ,   3),(1 ,  10),(2 ,None),(4 ,   8),(7 ,  12),(10,   6),(7 ,  10),(2 ,   6),(6 ,   1)], # 7,12 became 4,8
+    ]
+
+    Y = [None, 0, 1, 2, 8, 6, 9, 4, 10, 3, 5, 11, 13, 14, 12]
+    return OA_n_times_2_pow_c_from_matrix(16,4,FiniteField(11),zip(*A),Y,check=False)
+
+def OA_16_208():
+    r"""
+    Returns an OA(16,208)
+
+    Published by Julian R. Abel in [AbelThesis]_. Uses the fact that `208 = 2^4
+    \times 13` is a product of `2` and a prime number.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_16_208
+        sage: OA = OA_16_208()                        # not tested -- too long
+        sage: print is_orthogonal_array(OA,16,208,2)  # not tested -- too long
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(16,208,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+
+    A = [
+        [(0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (0 ,None), (1 ,None)],
+        [(0 ,None), (1 ,None), (2 ,   0), (3 ,   7), (4 ,   1), (5 ,  11), (6 ,   2), (7 ,  10), (8 ,None), (9 ,  10), (10,None), (11,   3), (12,   3), (1 ,   4), (0 ,   8)],
+        [(0 ,None), (2 ,None), (4 ,   4), (6 ,   3), (8 ,   0), (10,   5), (12,  14), (1 ,None), (3 ,  10), (5 ,   7), (7 ,   3), (9 ,  12), (11,   6), (4 ,   9), (1 ,  14)],
+        [(0 ,None), (3 ,None), (6 ,   4), (9 ,   6), (12,  10), (2 ,  11), (5 ,  14), (8 ,   3), (11,  13), (1 ,   1), (4 ,  12), (7 ,  14), (10,   1), (9 ,   7), (4 ,   8)],
+        [(0 ,None), (4 ,None), (8 ,   9), (12,   5), (3 ,  10), (7 ,  14), (11,   0), (2 ,   6), (6 ,  11), (10,  11), (1 ,   9), (5 ,   3), (9 ,   9), (3 ,   6), (9 ,   8)],
+        [(0 ,None), (5 ,None), (10,   5), (2 ,   5), (7 ,   3), (12,   3), (4 ,  12), (9 ,   3), (1 ,   2), (6 ,   2), (11,None), (3 ,  13), (8 ,   7), (12,  10), (3 ,   1)],
+        [(0 ,None), (6 ,None), (12,  13), (5 ,   5), (11,  13), (4 ,   6), (10,   6), (3 ,   2), (9 ,   4), (2 ,  12), (8 ,  13), (1 ,  13), (7 ,   2), (10,   8), (12,None)],
+        [(0 ,None), (7 ,None), (1 ,   2), (8 ,  12), (2 ,   4), (9 ,  12), (3 ,   0), (10,  10), (4 ,  14), (11,  11), (5 ,  14), (12,   9), (6 ,   8), (10,   3), (10,   6)],
+        [(0 ,None), (8 ,None), (3 ,None), (11,   4), (6 ,  12), (1 ,  12), (9 ,  14), (4 ,   2), (12,   9), (7 ,   9), (2 ,None), (10,   1), (5 ,  14), (12,   5), (10,   8)],
+        [(0 ,None), (9 ,None), (5 ,   9), (1 ,   7), (10,   6), (6 ,   3), (2 ,   6), (11,  10), (7 ,  11), (3 ,  13), (12,   2), (8 ,   0), (4 ,  13), (3 ,   3), (12,  14)],
+        [(0 ,None), (10,None), (7 ,   7), (4 ,   1), (1 ,   8), (11,   1), (8 ,  11), (5 ,   4), (2 ,  11), (12,   8), (9 ,  12), (6 ,   4), (3 ,   0), (9 ,   4), (3 ,   8)],
+        [(0 ,None), (11,None), (9 ,   3), (7 ,  11), (5 ,  14), (3 ,  10), (1 ,  10), (12,   0), (10,   2), (8 ,   2), (6 ,   6), (4 ,   2), (2 ,  12), (4 ,   8), (9 ,  10)],
+        [(0 ,None), (12,None), (11,   4), (10,   9), (9 ,   2), (8 ,None), (7 ,   9), (6 ,  12), (5 ,   5), (4 ,None), (3 ,   7), (2 ,  10), (1 ,  13), (1 ,   6), (4 ,   0)],
+        [(0 ,None), (5 ,   3), (7 ,   5), (6 ,   5), (2 ,  14), (8 ,   5), (11,   1), (11,   6), (8 ,  13), (2 ,  13), (6 ,   9), (7 ,None), (5 ,  10), (0 ,   5), (2 ,   8)],
+        [(0 ,None), (6 ,   3), (9 ,   4), (9 ,  13), (6 ,   4), (0 ,   5), (4 ,   6), (5 ,   2), (3 ,None), (11,  14), (3 ,   3), (5 ,   7), (4 ,   1), (2 ,   8), (0 ,   2)],
+        [(0 ,None), (7 ,   3), (11,   5), (12,  12), (10,None), (5 ,   5), (10,   7), (12,   9), (11,   9), (7 ,   7), (0 ,   0), (3 ,  12), (3 ,  11), (8 ,  13), (2 ,  14)],
+        [(0 ,None), (8 ,   3), (0 ,   8), (2 ,   6), (1 ,None), (10,   9), (3 ,  12), (6 ,   8), (6 ,   4), (3 ,   9), (10,   2), (1 ,  11), (2 ,   7), (5 ,   2), (8 ,   2)],
+        [(0 ,None), (9 ,   3), (2 ,   3), (5 ,   3), (5 ,   8), (2 ,   0), (9 ,   1), (0 ,   3), (1 ,  14), (12,   3), (7 ,   6), (12,   4), (1 ,   3), (6 ,  10), (5 ,   7)],
+        [(0 ,None), (10,   3), (4 ,   2), (8 ,   0), (9 ,   8), (7 ,   1), (2 ,   5), (7 ,None), (9 ,   2), (8 ,   4), (4 ,  14), (10,  13), (0 ,  10), (11,   7), (6 ,  10)],
+        [(0 ,None), (11,   3), (6 ,   9), (11,  14), (0 ,  10), (12,  13), (8 ,   6), (1 ,   8), (4 ,   7), (4 ,   0), (1 ,  14), (8 ,   2), (12,   8), (7 ,  10), (11,   7)], # 6,10 became 6,9
+        [(0 ,None), (12,   3), (8 ,  12), (1 ,   9), (4 ,   6), (4 ,  13), (1 ,   6), (8 ,   1), (12,   4), (0 ,   7), (11,   5), (6 ,   6), (11,  14), (7 ,   3), (7 ,   5)],
+        [(0 ,None), (0 ,   3), (10,  10), (4 ,   2), (8 ,   1), (9 ,None), (7 ,   2), (2 ,  10), (7 ,  13), (9 ,   5), (8 ,  14), (4 ,   7), (10,  11), (11,  13), (7 ,   0)],
+        [(0 ,None), (1 ,   3), (12,  11), (7 ,  12), (12,  13), (1 ,   2), (0 ,   9), (9 ,   6), (2 ,  13), (5 ,   4), (5 ,  13), (2 ,   4), (9 ,  12), (6 ,   5), (11,   1)],
+        [(0 ,None), (2 ,   3), (1 ,   8), (10,None), (3 ,  13), (6 ,None), (6 ,   1), (3 ,   0), (10,   4), (1 ,  14), (2 ,   0), (0 ,   3), (8 ,  13), (5 ,   1), (6 ,   7)], # 2,None became 2,0
+        [(0 ,None), (3 ,   3), (3 ,  14), (0 ,   1), (7 ,  14), (11,   4), (12,   9), (10,   1), (5 ,   9), (10,None), (12,  13), (11,None), (7 ,   7), (8 ,   6), (5 ,   0)],
+        [(0 ,None), (4 ,   3), (5 ,  10), (3 ,   8), (11,   8), (3 ,   0), (5 ,   7), (4 ,  12), (0 ,  13), (6 ,None), (9 ,  11), (9 ,   5), (6 ,   0), (2 ,   5), (8 ,   8)],
+    ]
+
+    Y = [None, 0, 1, 2, 12, 9, 13, 11, 7, 4, 8, 5, 14, 6, 3]
+
+    return OA_n_times_2_pow_c_from_matrix(16,4,FiniteField(13),zip(*A),Y,check=False)
+
 def OA_12_210():
     r"""
     Return an OA(12,210)
@@ -2538,6 +2696,53 @@ def OA_12_210():
     """
     M = OA_from_Vmt(10,19,[0, 1, 3, 96, 143, 156, 182, 142, 4, 189, 25])
     return M
+
+def OA_15_224():
+    r"""
+    Returns an OA(15,224)
+
+    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that `224=2^5
+    \times 7` is a product of a power of `2` and a prime number).
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_15_224
+        sage: OA = OA_15_224()                         # not tested -- too long
+        sage: print is_orthogonal_array(OA,15,224,2)   # not tested -- too long
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(15,224,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+
+    A = [
+        [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
+        [(0,None), (1,None), (2,   9), (3,  23), (4,  29), (5,   4), (6,  30), (1,  26), (0,None), (1,  11), (4,   2), (2,  28), (2,None), (4,  13)],
+        [(0,None), (2,None), (4,   8), (6,None), (1,  29), (3,  21), (5,   4), (4,   5), (1,   4), (0,  14), (1,   5), (4,   6), (2,   0), (2,   2)],
+        [(0,None), (3,None), (6,   8), (2,  12), (5,   4), (1,   1), (4,   2), (2,   1), (4,  18), (1,  27), (0,   5), (1,None), (4,   1), (2,None)],
+        [(0,None), (4,None), (1,   9), (5,   2), (2,  29), (6,  17), (3,   0), (2,  12), (2,   5), (4,  22), (1,   0), (0,  29), (1,  19), (4,None)],
+        [(0,None), (5,None), (3,  26), (1,   0), (6,  29), (4,  16), (2,  11), (4,  21), (2,  28), (2,  16), (4,   0), (1,   3), (0,  11), (1,   2)],
+        [(0,None), (6,None), (5,   3), (4,  19), (3,  24), (2,  20), (1,  28), (1,  12), (4,  23), (2,   0), (2,   5), (4,  29), (1,   0), (0,   2)],
+        [(0,None), (4,   4), (2,  14), (1,  23), (1,  22), (2,  17), (4,  17), (0,  25), (6,  21), (3,  11), (5,   2), (5,  27), (3,   5), (6,   2)],
+        [(0,None), (5,   4), (4,   3), (4,   0), (5,  20), (0,   4), (3,   8), (6,  28), (0,  16), (6,   1), (3,  22), (5,   0), (5,   0), (3,   2)],
+        [(0,None), (6,   4), (6,None), (0,  18), (2,   0), (5,  20), (2,   4), (3,  11), (6,  15), (0,  18), (6,   5), (3,   0), (5,None), (5,   2)],
+        [(0,None), (0,   4), (1,  15), (3,  29), (6,  20), (3,  24), (1,  13), (5,  30), (3,   2), (6,None), (0,  10), (6,   3), (3,   0), (5,None)],
+        [(0,None), (1,   4), (3,   4), (6,  12), (3,  28), (1,  27), (0,   6), (5,   7), (5,  29), (3,   0), (6,   0), (0,   0), (6,   0), (3,None)], # 6,19 became 6,12
+        [(0,None), (2,   4), (5,  11), (2,   5), (0,  21), (6,  11), (6,  24), (3,  24), (5,  11), (5,  30), (3,None), (6,None), (0,None), (6,   1)],
+        [(0,None), (3,   4), (0,  11), (5,  11), (4,  22), (4,   2), (5,  23), (6,  22), (3,  27), (5,   1), (5,   0), (3,None), (6,None), (0,None)]
+    ]
+
+    Y = [None, 0, 1, 2, 27, 22, 11, 4, 26, 25, 29, 24, 7, 20]
+
+    return OA_n_times_2_pow_c_from_matrix(15,5,FiniteField(7),zip(*A),Y,check=False)
 
 def OA_18_273():
     r"""
@@ -2651,6 +2856,125 @@ def OA_12_342():
     M = OA_from_Vmt(10,31,[0,1,3,57,128,247,289,239,70,271,96])
     return M
 
+def OA_20_352():
+    r"""
+    Returns an OA(20,352)
+
+    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that `352=2^5
+    \times 11` is the product of a power of `2` and a prime number).
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_20_352
+        sage: OA = OA_20_352()                        # not tested (~25s)
+        sage: print is_orthogonal_array(OA,20,352,2)  # not tested (~25s)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(20,352,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+
+    # Column 8, line 6 : 4,25 became 4,27
+    #           line 17: 3,0  became 3,None
+    # Column 14,line 1 : 4,1  became 4,0
+    # Column 18,line 18: 0,0  became 0,None
+    A = [
+        [(0,None),(0, None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(0,None),(1,None),(4,None),(9,None),(5, None),(3,None),(3,None),(5,None)],
+        [(0,None),(1, None),(2,  13),(3,   2),(4,   0),(5,   8),(6,  30),(7,   0),(8,  13),(9,  26),(10, 10),(1,  29),(0,   9),(1,  11),(4,   0),(9,   23),(5,   7),(3,  25),(3,  29)],
+        [(0,None),(2, None),(4,  29),(6,   6),(8,   3),(10, 18),(1,  21),(3,  24),(5,   4),(7,   7),(9,  29),(4,  22),(1,   2),(0,  27),(1,  10),(4,   13),(9,  22),(5,   6),(3,  20)],
+        [(0,None),(3, None),(6,  25),(9,  21),(1,  23),(4,  25),(7,  12),(10, 16),(2,  26),(5,  27),(8,  19),(9,  27),(4,   6),(1,   5),(0,   6),(1,   15),(4,  10),(9,   2),(5,  14)],
+        [(0,None),(4, None),(8,   3),(1,  23),(5,  17),(9,   7),(2,   7),(6,  25),(10, 27),(3,  30),(7,   5),(5,  23),(9,  24),(4,  16),(1,  12),(0,    8),(1,  12),(4,  17),(9,  28)],
+        [(0,None),(5, None),(10, 10),(4,  27),(9,   4),(3,  24),(8,  21),(2,   3),(7,  22),(1,  21),(6,  24),(3,  28),(5,   3),(9,  26),(4,  29),(1,    9),(0,  19),(1,   2),(4,   0)],
+        [(0,None),(6, None),(1,  11),(7,   9),(2,  14),(8,  15),(3,  11),(9,   7),(4,  27),(10, 13),(5,   4),(3,  18),(3,   0),(5,   5),(9,   2),(4,    7),(1,  30),(0,  10),(1,None)],
+        [(0,None),(7, None),(3,  25),(10,  7),(6,  29),(2,   4),(9,  10),(5,  22),(1,  25),(8,  18),(4,  11),(5,  21),(3,  29),(3,  14),(5,  12),(9,   25),(4,   2),(1,  13),(0,  19)],
+        [(0,None),(8, None),(5,  27),(2,  30),(10, 24),(7,   4),(4,   6),(1,   4),(9,   5),(6,  27),(3,   0),(9,   2),(5,  20),(3,  10),(3,  13),(5,    2),(9,   5),(4,  21),(1,  12)],
+        [(0,None),(9, None),(7,  21),(5,   0),(3,   9),(1,  13),(10, 17),(8,   1),(6,  15),(4,  30),(2,  28),(4,   3),(9,  28),(5,   0),(3,None),(3,    2),(5,  23),(9,  10),(4,  15)],
+        [(0,None),(10,None),(9,  29),(8,   8),(7,   6),(6,   6),(5,  18),(4,  20),(3,  22),(2,   7),(1,  13),(1,  24),(4,  13),(9,  14),(5,  29),(3,   27),(3,  16),(5,  12),(9,   4)],
+        [(0,None),(6,    4),(2,  17),(10, 16),(8,  26),(7,  17),(7,  21),(8,   9),(10,  2),(2,  25),(6,  27),(0,  20),(10,  8),(7,  12),(2,  26),(6,   22),(8,   8),(8,  16),(6,  13)],
+        [(0,None),(7,    4),(4,   1),(2,   0),(1,   8),(1,  18),(2,  10),(4,   9),(7,   2),(0,  11),(5,  27),(10, 27),(0,  16),(10, 19),(7,   0),(2,    2),(6,  26),(8,  30),(8,   6)],
+        [(0,None),(8,    4),(6,  19),(5,  24),(5,  16),(6,  20),(8,None),(0,  17),(4,   5),(9,  23),(4,  27),(7,  22),(10, 25),(0,  23),(10, 11),(7,   10),(2,  16),(6,  28),(8,   3)],
+        [(0,None),(9,    4),(8,  14),(8,  30),(9,  16),(0,   0),(3,  25),(7,  30),(1,  27),(7,   4),(3,  10),(2,   5),(7,   3),(10, 11),(0,  21),(10,None),(7,   7),(2,  19),(6,  24)],
+        [(0,None),(10,   4),(10, 30),(0,  12),(2,   9),(5,   9),(9,   0),(3,  14),(9,  17),(5,  17),(2,  18),(6,  10),(2,   0),(7,  16),(10, 23),(0,    1),(10, 26),(7,  18),(2,   9)],
+        [(0,None),(0,    4),(1,  13),(3,  28),(6,  25),(10, 28),(4,  16),(10, 17),(6,  23),(3,   7),(1,  22),(8,  22),(6,  27),(2,  29),(7,   5),(10,  14),(0,  12),(10, 14),(7,   6)],
+        [(0,None),(1,    4),(3,   6),(6,   4),(10, 13),(4,  12),(10, 15),(6,  27),(3,None),(1,  26),(0,   3),(8,  21),(8,  26),(6,  13),(2,  27),(7,   11),(10,  5),(0,   3),(10,  3)],
+        [(0,None),(2,    4),(5,  12),(9,  27),(3,   7),(9,  21),(5,None),(2,  22),(0,  28),(10, 30),(10, 25),(6,  12),(8,   6),(8,  30),(6,  28),(2,    6),(7,  26),(10,  3),(0,None)],
+        [(0,None),(3,    4),(7,  22),(1,   7),(7,   8),(3,  12),(0,  27),(9,   1),(8,  17),(8,   4),(9,  12),(2,  16),(6,  23),(8,  14),(8,   2),(6,   26),(2,  14),(7,  22),(10, 30)],
+        [(0,None),(4,    4),(9,  21),(4,  25),(0,   9),(8,  23),(6,   5),(5,  20),(5,  13),(6,  19),(8,   0),(7,  30),(2,  29),(6,  24),(8,  18),(8,   10),(6,   9),(2,  20),(7,   4)],
+        [(0,None),(5,    4),(0,  25),(7,   4),(4,  20),(2,   3),(1,None),(1,  21),(2,None),(4,  26),(7,   1),(10, 23),(7,  20),(2,   3),(6,   5),(8,   19),(8,   9),(6,  23),(2,   7)],
+    ]
+
+    Y = [None, 0, 1, 2, 18, 5, 11, 4, 13, 26, 25, 29, 24, 7, 20, 19, 9, 12, 15]
+
+    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(11),zip(*A),Y,check=False)
+
+def OA_20_416():
+    r"""
+    Returns an OA(20,416)
+
+    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that `416=2^5
+    \times 13` is the product of a power of `2` and a prime number).
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_20_416
+        sage: OA = OA_20_416()                        # not tested (~35s)
+        sage: print is_orthogonal_array(OA,20,416,2)  # not tested
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(20,416,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+
+    Z = None
+    A=[
+        [(0,Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (0 , Z), (1 , Z), (4 , Z), (9 , Z), (3 , Z), (12, Z)],
+        [(0,Z), (1 , Z), (2 ,18), (3 , 2), (4 ,20), (5 ,22), (6 ,11), (7 ,19), (8 , 0), (9 ,26), (10, Z), (11, 5), (12,27), (1 ,17), (0 ,30), (1 ,22), (4 ,29), (9 , 6), (3 ,19)],
+        [(0,Z), (2 , 4), (4 ,21), (6 ,10), (8 ,24), (10,13), (12, 7), (1 ,11), (3 ,29), (5 ,12), (7 ,21), (9 , 2), (11,11), (4 , 5), (1 ,11), (0 ,23), (1 ,13), (4 , 6), (9 ,15)],
+        [(0,Z), (3 , 4), (6 ,17), (9 ,20), (12,26), (2 , 2), (5 ,12), (8 ,29), (11, 1), (1 , Z), (4 ,15), (7 ,16), (10,27), (9 , 2), (4 , 7), (1 , 5), (0 ,23), (1 ,24), (4 , 8)],
+        [(0,Z), (4 , 4), (8 ,29), (12, 8), (3 , 3), (7 , 8), (11, 2), (2 ,17), (6 , 4), (10, 2), (1 ,21), (5 ,29), (9 ,20), (3 , 2), (9 , 1), (4 ,14), (1 ,21), (0 ,24), (1 ,28)],
+        [(0,Z), (5 , 4), (10,22), (2 ,18), (7 , 6), (12, 2), (4 ,18), (9 ,27), (1 ,15), (6 , Z), (11,20), (3 ,15), (8 , 9), (12, 9), (3 , 3), (9 ,13), (4 , 4), (1 , 7), (0 ,14)],
+        [(0,Z), (6 , Z), (12,23), (5 ,13), (11,11), (4 ,10), (10, 0), (3 , 4), (9 ,16), (2 ,28), (8 ,27), (1 , 1), (7 ,23), (10,17), (12, 9), (3 ,20), (9 ,16), (4 ,17), (1 ,26)],
+        [(0,Z), (7 , Z), (1 , 3), (8 ,13), (2 , 8), (9 , 9), (3 , 0), (10,26), (4 , 5), (11, 6), (5 ,22), (12, 1), (6 ,17), (10,10), (10, 5), (12,15), (3 ,25), (9 , Z), (4 , 4)],
+        [(0,Z), (8 , 4), (3 ,10), (11, 3), (6 ,17), (1 ,21), (9 ,18), (4 , 5), (12,27), (7 ,20), (2 ,16), (10,25), (5 ,22), (12,21), (10,25), (10,12), (12,28), (3 ,19), (9 ,29)],
+        [(0,Z), (9 , 4), (5 , 6), (1 ,16), (10, 4), (6 ,24), (2 ,14), (11,11), (7 , 2), (3 , 9), (12,30), (8 ,28), (4 , 2), (3 , 7), (12, 6), (10,17), (10, 2), (12,13), (3 ,26)],
+        [(0,Z), (10, 4), (7 ,11), (4 ,18), (1 ,23), (11,21), (8 ,28), (5 ,21), (2 ,29), (12,20), (9 , 0), (6 , 8), (3 , 6), (9 , 7), (3 ,12), (12, 5), (10, 1), (10,21), (12, 5)],
+        [(0,Z), (11, 4), (9 ,22), (7 ,11), (5 ,17), (3 , Z), (1 ,17), (12,25), (10,14), (8 ,18), (6 , 2), (4 ,17), (2 ,25), (4 ,29), (9 , 6), (3 , 2), (12, 8), (10,13), (10,14)],
+        [(0,Z), (12, Z), (11, 7), (10,26), (9 ,24), (8 , 4), (7 ,25), (6 , Z), (5 ,13), (4 , 9), (3 , 5), (2 ,19), (1 ,10), (1 ,26), (4 ,14), (9 , 7), (3 ,11), (12, 9), (10,20)],
+        [(0,Z), (5 , Z), (7 , 7), (6 ,27), (2 , 5), (8 , 1), (11,23), (11, Z), (8 ,23), (2 ,21), (6 ,20), (7 , 5), (5 , 6), (0 , 2), (2 ,12), (8 ,15), (5 ,22), (6 ,25), (11,10)],
+        [(0,Z), (6 , 4), (9 ,24), (9 ,18), (6 ,26), (0 ,26), (4 ,17), (5 ,24), (3 , 5), (11, 9), (3 ,15), (5 ,23), (4 ,22), (2 ,26), (0 , 8), (2 ,21), (8 ,25), (5 ,15), (6 , 8)],
+        [(0,Z), (7 , 4), (11,11), (12, 9), (10,10), (5 , 6), (10, 1), (12,24), (11, 6), (7 ,26), (0 , 8), (3 ,10), (3 ,29), (8 , 3), (2 ,24), (0 ,22), (2 ,13), (8 , 2), (5 , 0)],
+        [(0,Z), (8 , Z), (0 ,27), (2 , 0), (1 ,25), (10,21), (3 ,10), (6 ,20), (6 ,14), (3 , 1), (10, 3), (1 ,15), (2 ,14), (5 ,12), (8 ,11), (2 ,28), (0 ,15), (2 ,13), (8 ,22)],
+        [(0,Z), (9 , Z), (2 ,13), (5 ,11), (5 , 6), (2 ,24), (9 , 9), (0 ,14), (1 ,30), (12, 1), (7 ,15), (12,15), (1 , 5), (6 ,23), (5 , 9), (8 , 3), (2 ,27), (0 ,28), (2 ,12)],
+        [(0,Z), (10, Z), (4 ,18), (8 ,23), (9 ,27), (7 , 4), (2 , 2), (7 , Z), (9 ,10), (8 , 8), (4 , 0), (10,12), (0 ,21), (11,28), (6 ,15), (5 ,23), (8 , 5), (2 ,28), (0 , 7)],
+        [(0,Z), (11, Z), (6 , 7), (11,27), (0 , 0), (12,17), (8 ,11), (1 ,12), (4 ,22), (4 ,15), (1 ,16), (8 , 0), (12, 6), (7 ,16), (11,30), (6 ,21), (5 ,14), (8 ,17), (2 ,26)],
+        [(0,Z), (12, 4), (8 ,28), (1 ,22), (4 , 2), (4 ,15), (1 , 6), (8 ,12), (12,19), (0 ,21), (11, 2), (6 , 4), (11,19), (7 ,30), (7 ,11), (11,12), (6 ,20), (5 , 3), (8 , 7)],
+        [(0,Z), (0 , 4), (10,21), (4 , 4), (8 , 1), (9 , 6), (7 ,30), (2 , 4), (7 , 8), (9 ,30), (8 , 3), (4 ,22), (10, 3), (11,25), (7 , 1), (7 ,24), (11,20), (6 ,30), (5 , 4)],
+        [(0,Z), (1 , 4), (12,21), (7 , 3), (12, 2), (1 , 1), (0 , 6), (9 ,14), (2 ,19), (5 , 6), (5 ,12), (2 , 9), (9 , 9), (6 ,19), (11, Z), (7 , 4), (7 , 6), (11,29), (6 ,15)],
+        [(0,Z), (2 , Z), (1 ,22), (10, Z), (3 , 5), (6 ,30), (6 ,26), (3 , 1), (10,12), (1 ,16), (2 ,28), (0 ,20), (8 ,11), (5 ,29), (6 , 7), (11,21), (7 ,14), (7 , 8), (11,11)],
+        [(0,Z), (3 , Z), (3 , 4), (0 ,18), (7 , 2), (11,16), (12,28), (10, 4), (5 ,28), (10, 0), (12, 4), (11,10), (7 ,11), (8 ,17), (5 , 6), (6 ,16), (11, 4), (7 ,22), (7 ,28)],
+        [(0,Z), (4 , Z), (5 ,22), (3 ,18), (11, Z), (3 ,15), (5 , 1), (4 ,26), (0 ,10), (6 , 8), (9 , 9), (9 ,29), (6 , Z), (2 ,23), (8 ,28), (5 ,30), (6 , 8), (11,24), (7 ,16)]
+    ]
+
+    Y = [None, 0, 1, 2, 18, 5, 11, 4, 13, 26, 25, 29, 24, 7, 20, 19, 9, 12, 15]
+
+    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(13),zip(*A),Y,check=False)
+
 def OA_12_474():
     r"""
     Return an OA(12,474)
@@ -2677,6 +3001,271 @@ def OA_12_474():
     """
     M = OA_from_Vmt(10,43,[0,1,6,29,170,207,385,290,375,32,336])
     return M
+
+def OA_9_514():
+    r"""
+    Returns an OA(9,514)
+
+    Construction shared by Julian R. Abel:
+
+        A `V(8,57)` vector appears on page p281 of the Brouwer-Van Rees paper
+        [BvR82]_. This gives a `TD(8+2, 514) - TD(8+2,57)`. Using a `TD(9,57)`
+        (not a `TD(10,57)`) it yields a `TD(9,514)`.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_514
+        sage: OA = OA_9_514()
+        sage: print is_orthogonal_array(OA,9,514,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(9,514,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    q = 8*57+1
+    Fq = FiniteField(q)
+
+    Vm8_57 = [0,1,3,2,12,333,363,154,340]
+    QDM = QDM_from_Vmt(8,57,Vm8_57)
+    QDM = QDM[:-1]
+    return OA_from_quasi_difference_matrix(QDM,Fq,add_col=False)
+
+def OA_20_544():
+    r"""
+    Returns an OA(20,544)
+
+    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that
+    `544=2^5 \times 17` is the product of a power of `2` and a prime number).
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_20_544
+        sage: OA = OA_20_544()                        # not tested (too long ~1mn)
+        sage: print is_orthogonal_array(OA,20,544,2)  # not tested
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(20,544,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+
+    Z = None
+
+    A=[
+        [(0,Z),(0 , Z),(0 , Z),(0 , Z),(0 , Z),(0 , Z),(0 , Z),(0 , Z),(0 , Z),(0 , Z),(0 , Z),(0 , Z),(0 , Z),(0 , Z),(0 , Z),(0 , Z),(0 , Z),(0 , Z),(1 , Z)],
+        [(0,Z),(1 , 4),(2 , 7),(3 ,30),(4 ,17),(5 , 2),(6 ,22),(7 ,23),(8 ,28),(9 , 2),(10,27),(11,26),(12,13),(13,25),(14,18),(15,15),(16,18),(1 ,14),(0 , 1)],
+        [(0,Z),(2 , 4),(4 ,20),(6 ,29),(8 ,27),(10, 7),(12,20),(14,19),(16,26),(1 ,28),(3 , Z),(5 ,27),(7 , Z),(9 ,11),(11, Z),(13,17),(15, 1),(4 ,14),(1 ,14)],
+        [(0,Z),(3 , Z),(6 ,14),(9 ,26),(12,17),(15,15),(1 ,26),(4 ,24),(7 ,27),(10,13),(13,10),(16, 7),(2 , 1),(5 , Z),(8 , 1),(11,15),(14,18),(9 ,21),(4 , 6)],
+        [(0,Z),(4 , 4),(8 , Z),(12, 2),(16,23),(3 ,19),(7 ,26),(11, 7),(15,26),(2 , 3),(6 ,11),(10,16),(14,23),(1 ,30),(5 , 1),(9 ,30),(13,19),(16,10),(9 , 4)],
+        [(0,Z),(5 , Z),(10,17),(15,19),(3 ,13),(8 , 4),(13,21),(1 , 9),(6 , 7),(11, 4),(16,24),(4 , 6),(9 ,11),(14, Z),(2 , 6),(7 ,14),(12,10),(8 ,12),(16, 1)],
+        [(0,Z),(6 , Z),(12, 1),(1 ,23),(7 ,21),(13,10),(2 , 0),(8 ,15),(14,19),(3 ,30),(9 ,21),(15,17),(4 ,25),(10,20),(16,15),(5 ,16),(11,15),(2 ,22),(8 ,29)], # 2,Z -> 2,0
+        [(0,Z),(7 , Z),(14,30),(4 ,26),(11,24),(1 ,22),(8 ,22),(15,27),(5 ,23),(12,13),(2 ,18),(9 ,22),(16, 6),(6 ,27),(13,19),(3 , 1),(10,16),(15, 9),(2 , 5)],
+        [(0,Z),(8 , 4),(16, 5),(7 ,18),(15,11),(6 , 1),(14,21),(5 ,28),(13,19),(4 , 7),(12,19),(3 ,15),(11,13),(2 ,23),(10, 1),(1 ,23),(9 ,19),(13,27),(15,25)], # 13,9 -> 15,25
+        [(0,Z),(9 , Z),(1 , 3),(10, 4),(2 ,29),(11,13),(3 ,27),(12,11),(4 ,30),(13, 9),(5 ,18),(14,17),(6 ,18),(15,10),(7 ,11),(16,28),(8 ,26),(13,12),(13, 9)],
+        [(0,Z),(10, Z),(3 ,18),(13,21),(6 , 8),(16, 1),(9 ,11),(2 ,11),(12,12),(5 ,20),(15,21),(8 ,12),(1 , 5),(11,28),(4 ,16),(14,16),(7 ,21),(15, 0),(13,20)],
+        [(0,Z),(11, 4),(5 ,25),(16, 2),(10,18),(4 , 6),(15,20),(9 ,29),(3 ,13),(14,24),(8 ,18),(2 ,22),(13, 1),(7 , 8),(1 ,21),(12,16),(6 ,23),(2 ,10),(15,26)],
+        [(0,Z),(12, 4),(7 ,11),(2 , 4),(14,25),(9 , 0),(4 , 5),(16,21),(11,18),(6 ,18),(1 ,22),(13,27),(8 ,23),(3 ,20),(15,18),(10, 7),(5 ,10),(8 ,11),(2 ,18)],
+        [(0,Z),(13, Z),(9 ,21),(5 ,17),(1 ,26),(14,30),(10,11),(6 , 1),(2 , 8),(15, 9),(11, 5),(7 ,29),(3 ,17),(16, 3),(12, 3),(8 ,30),(4 , 3),(16, 5),(8 ,21)],
+        [(0,Z),(14, Z),(11,20),(8 ,24),(5 , Z),(2 , 2),(16,24),(13,12),(10,21),(7 ,26),(4 ,29),(1 , 1),(15, 1),(12,19),(9 , 8),(6 ,26),(3 ,10),(9 ,20),(16,21)],
+        [(0,Z),(15, Z),(13,21),(11,10),(9 , 7),(7 ,21),(5 ,11),(3 ,19),(1 ,29),(16,13),(14, 9),(12, 9),(10, 8),(8 ,16),(6 ,15),(4 ,14),(2 ,29),(4 ,16),(9 , 9)],
+        [(0,Z),(16, 4),(15,19),(14,21),(13, 0),(12,13),(11,28),(10,21),(9 , 5),(8 ,18),(7 , 2),(6 , Z),(5 ,20),(4 ,26),(3 , 8),(2 , 9),(1 ,23),(1 ,19),(4 ,23)], # 13,Z -> 13,0
+        [(0,Z),(3 , 4),(12,11),(10,17),(14,14),(7 , 1),(6 ,27),(11,25),(5 , 2),(5 ,24),(11,15),(6 , 8),(7 ,28),(14,21),(10, 4),(12,20),(3 ,26),(0 , 5),(3 ,12)],
+        [(0,Z),(4 , Z),(14,17),(13,26),(1 ,12),(12,12),(12,23),(1 ,13),(13, 7),(14,10),(4 ,28),(0 ,11),(2 , 7),(10,15),(7 , Z),(10, 1),(2 , 6),(3 ,24),(0 ,18)],
+        [(0,Z),(5 , 4),(16,24),(16, 1),(5 ,27),(0 ,14),(1 ,11),(8 ,13),(4 ,25),(6 ,25),(14,14),(11, 6),(14, 4),(6 ,24),(4 , 4),(8 ,28),(1 ,14),(12,22),(3 ,11)],
+        [(0,Z),(6 , 4),(1 ,10),(2 , 6),(9 ,12),(5 , 3),(7 ,11),(15,30),(12,21),(15,26),(7 , 3),(5 ,12),(9 , 0),(2 ,25),(1 , 2),(6 , 0),(0 ,13),(10,13),(12,14)],
+        [(0,Z),(7 , 4),(3 ,24),(5 ,25),(13,20),(10,19),(13,16),(5 , 4),(3 ,23),(7 ,20),(0 , 8),(16, 4),(4 ,19),(15, 0),(15,10),(4 ,11),(16, 7),(14,11),(10, 6)],
+        [(0,Z),(8 , Z),(5 , 1),(8 ,21),(0 , 1),(15,17),(2 ,26),(12, 2),(11, 6),(16, 2),(10,15),(10,13),(16,16),(11,12),(12,22),(2 ,11),(15,22),(7 ,30),(14,22)], # 8,9 -> 8,21
+        [(0,Z),(9 , 4),(7 ,20),(11,24),(4 , 7),(3 ,11),(8 ,21),(2 ,23),(2 , 2),(8 ,12),(3 , 8),(4 ,13),(11,17),(7 , 4),(9 , 3),(0 ,18),(14,12),(6 ,26),(7 ,28)],
+        [(0,Z),(10, 4),(9 ,22),(14,23),(8 , 5),(8 , 8),(14,12),(9 , 6),(10,20),(0 ,11),(13,23),(15,26),(6 ,12),(3 ,15),(6 , Z),(15,18),(13, 1),(11,22),(6 ,24)],
+        [(0,Z),(11, Z),(11,11),(0 ,28),(12,16),(13,18),(3 , 3),(16,22),(1 , 9),(9 , Z),(6 ,21),(9 , 6),(1 , 0),(16, 1),(3 , 2),(13,28),(12, 6),(5 ,18),(11, 9)],
+        [(0,Z),(12, Z),(13, 5),(3 ,14),(16,22),(1 , 5),(9 , 1),(6 , Z),(9 , 3),(1 , 9),(16,21),(3 ,18),(13,17),(12,29),(0 ,13),(11, 4),(11,18),(5 ,21),(5 , 6)],
+        [(0,Z),(13, 4),(15,27),(6 ,26),(3 ,20),(6 ,29),(15,11),(13,18),(0 , 4),(10, 5),(9 ,16),(14,26),(8 ,20),(8 , 8),(14,11),(9 ,10),(10, 9),(11,17),(5 ,21)],
+        [(0,Z),(14, 4),(0 ,29),(9 , 8),(7 , 2),(11,18),(4 ,22),(3 ,22),(8 ,13),(2 ,23),(2 ,21),(8 , 9),(3 ,30),(4 ,21),(11, 5),(7 ,25),(9 , Z),(6 , 0),(11,17)],
+        [(0,Z),(15, 4),(2 ,27),(12,27),(11,28),(16, 0),(10, 6),(10,12),(16,11),(11,15),(12, 2),(2 ,10),(15,19),(0 ,11),(8 ,10),(5 , 6),(8 , 5),(7 , 7),(6 ,16)],
+        [(0,Z),(16, Z),(4 ,23),(15, 4),(15,30),(4 ,27),(16,12),(0 , 8),(7 , 9),(3 , 6),(5 ,26),(13,28),(10,12),(13,14),(5 ,30),(3 ,27),(7 , 6),(14,15),(7 ,18)],
+        [(0,Z),(0 , 4),(6 ,13),(1 ,14),(2 , 2),(9 ,11),(5 , 5),(7 ,13),(15,24),(12,16),(15,20),(7 ,24),(5 ,19),(9 ,25),(2 ,26),(1 ,20),(6 ,28),(10, 5),(14,11)],
+        [(0,Z),(1 , Z),(8 ,25),(4 , 5),(6 , 6),(14, 6),(11,11),(14,22),(6 , 2),(4 , 2),(8 ,14),(1 ,13),(0 , 3),(5 , 6),(16,21),(16,11),(5 , 8),(12,15),(10,20)], # 12,14->12,15
+        [(0,Z),(2 , Z),(10,19),(7 ,29),(10,22),(2 ,23),(0 ,15),(4 ,19),(14, 6),(13,14),(1 , 5),(12,24),(12, 8),(1 , 4),(13, 1),(14,21),(4 ,17),(3 , 3),(12,27)],
+    ]
+
+    Y = [None, 0, 1, 2, 18, 5, 11, 4, 13, 26, 25, 29, 24, 7, 20, 19, 9, 12, 15]
+
+    return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(17),zip(*A),Y,check=False)
+
+def OA_11_640():
+    r"""
+    Returns an OA(11,640)
+
+    Published by Julian R. Abel in [AbelThesis]_ (uses the fact that `640=2^7
+    \times 5` is the product of a power of `2` and a prime number).
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_11_640
+        sage: OA = OA_11_640()                        # not tested (too long)
+        sage: print is_orthogonal_array(OA,11,640,2)  # not tested (too long)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(11,640,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+
+    A = [
+        [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (4,None), (1,None)],
+        [(0,None), (1,None), (2,   7), (3,  55), (4,  54), (1,  87), (0, 124), (1, 123), (4,  83), (4,  61)], # 0,25 became 0,124
+        [(0,None), (2,None), (4,  14), (1,  63), (3,   6), (4,  87), (1,  16), (0,  47), (1,  29), (4,  16)],
+        [(0,None), (3,None), (1,   1), (4,  15), (2,   5), (4,  32), (4,  30), (1,   3), (0,  12), (1,  14)],
+        [(0,None), (4,None), (3,  28), (2,  62), (1,  64), (1,  55), (4,  63), (4,   4), (1,   0), (0,   0)],
+        [(0,None), (2,   6), (3,   8), (3,   7), (2,  12), (0,   1), (2,   6), (3,  97), (3,  45), (2,   0)],
+        [(0,None), (3,   6), (0,  63), (1,   5), (1,   6), (2,  97), (0,  28), (2,  63), (3,   0), (3,   2)],
+        [(0,None), (4,   6), (2,   4), (4,  65), (0,   6), (3,  68), (2,   1), (0,  14), (2,   1), (3,   0)],
+        [(0,None), (0,   6), (4,   9), (2,None), (4,  29), (3,  15), (3,   0), (2,   1), (0,   7), (2,   4)],
+        [(0,None), (1,   6), (1,  14), (0,  14), (3,   4), (2,   0), (3,None), (3,   4), (2,   0), (0,None)]
+    ]
+    Y = [None, 0, 1, 2, 121, 66, 77, 78, 41, 100]
+
+    return OA_n_times_2_pow_c_from_matrix(11,7,FiniteField(5),zip(*A),Y,check=False)
+
+def OA_10_796():
+    r"""
+    Returns an OA(10,796)
+
+    Construction shared by Julian R. Abel, from [AC07]_:
+
+        Truncate one block of a `TD(17,47)` to size `13`, then add an extra
+        point. Form a block on each group plus the extra point: we obtain a
+        `(796, \{13,16,17,47,48\})`-PBD in which only the extra point lies in
+        more than one block of size `48` (and each other point lies in exactly 1
+        such block).
+
+        For each block `B` (of size `k` say) not containing the extra point,
+        construct a `TD(10, k) - k.TD(k,1)` on `I(10) X B`.  For each block `B`
+        (of size `k=47` or `48`) containing the extra point, construct a
+        `TD(10,k) - TD(k,1)` on `I(10) X B`, the size `1` hole being on `I(10) X
+        P` where `P` is the extra point. Finally form `1` extra block of size
+        `10` on `I(10) X P`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_796
+        sage: OA = OA_10_796()
+        sage: print is_orthogonal_array(OA,10,796,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,796,existence=True)
+        True
+    """
+    from sage.combinat.designs.orthogonal_arrays import OA_relabel
+    from sage.combinat.designs.orthogonal_arrays import OA_from_PBD
+    from orthogonal_arrays import incomplete_orthogonal_array
+
+    OA = orthogonal_array(17,47)
+    OA = OA_relabel(OA,17,47,blocks=[OA[0]]) # making sure [46]*17 is a block
+    PBD = [[i*47+x for i,x in enumerate(B) if (x<46 or i<13)] for B in OA]
+    extra_point = 10000
+    PBD.extend([range(i*47,(i+1)*47-int(i>=13))+[extra_point] for i in range(17)]) # Adding the columns
+
+    rel = {v:i for i,v in enumerate(set(range(17*47)).difference([(i+1)*47-1 for i in range(13,17)]))}
+    rel[extra_point] = len(rel)
+
+    PBD = [[rel[x] for x in B] for B in PBD]
+    assert set(map(len,PBD)) == set([13, 16, 17, 47, 48])
+    extra_point = rel[extra_point]
+
+    others = []
+    OA = []
+    span = set()
+    iOA = {47: incomplete_orthogonal_array(10,47,(1,)),
+           48: incomplete_orthogonal_array(10,48,(1,))}
+
+    for B in PBD:
+        if len(B) >= 47:
+            B.sort(key=lambda x:int(x==extra_point))
+            OA.extend([[B[i] for i in BB] for BB in iOA[len(B)]])
+            span.update(B[:-1])
+        else:
+            others.append(B)
+
+    OA.extend(OA_from_PBD(10,796,others,check=False))
+    OA = OA[:-796] # removes the [x]*k
+
+    for x in set(range(796)).difference(span):
+        OA.append([x]*10)
+
+    return OA
+
+def OA_15_896():
+    r"""
+    Returns an OA(15,896)
+
+    Uses the fact that `896 = 2^7 \times 7` is the product of a power of `2` and
+    a prime number.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_n_times_2_pow_c_from_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_15_896
+        sage: OA = OA_15_896()                          # not tested -- too long (~2min)
+        sage: print is_orthogonal_array(OA,15,896,2)    # not tested -- too long
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(15,896,existence=True)
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+
+    A = [
+        [(0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (0,None), (1,None), (4,None), (2,None), (2,None), (4,None), (1,None)],
+        [(0,None), (1,None), (2,  17), (3,  20), (4,  49), (5,   4), (6,  59), (1,  15), (0, 114), (1,  76), (4, 106), (2,  87), (2, 118), (4,  49)], # 4,120 became the leftmost 4,49
+        [(0,None), (2,None), (4,   2), (6,  98), (1,  53), (3,  97), (5, 123), (4,   3), (1,  32), (0,  10), (1,  45), (4,   3), (2,   1), (2,  14)],
+        [(0,None), (3,None), (6,  16), (2,  86), (5, 102), (1,  64), (4,  69), (2,  11), (4,  55), (1,  90), (0, 115), (1,  15), (4,   7), (2,   0)],
+        [(0,None), (4,None), (1,   4), (5, 110), (2,  51), (6, 118), (3,   8), (2,  81), (2,  79), (4,  98), (1,   2), (0,   3), (1,   7), (4,None)],
+        [(0,None), (5,None), (3,  66), (1,  70), (6, 102), (4, 119), (2,  20), (4,  86), (2,  59), (2,  15), (4,  63), (1, 126), (0,   1), (1,   0)],
+        [(0,None), (6,None), (5,  94), (4,  48), (3,  90), (2,   2), (1,  13), (1,  53), (4, 117), (2,  21), (2,   2), (4,   1), (1,   0), (0,   0)],
+        [(0,None), (4,   6), (2,  21), (1, 112), (1,  36), (2,  14), (4,  60), (0,   1), (6,  64), (3,   0), (5,  31), (5,   3), (3,   3), (6,  14)],
+        [(0,None), (5,   6), (4,  61), (4,None), (5, 108), (0,  91), (3,  10), (6,  15), (0,None), (6,  15), (3,   7), (5,   0), (5,   1), (3,   0)],
+        [(0,None), (6,   6), (6, 107), (0,  88), (2,  12), (5,  44), (2,  31), (3,  64), (6,   0), (0,None), (6,   2), (3,   3), (5,None), (5,   0)],
+        [(0,None), (0,   6), (1,  52), (3, 115), (6,  30), (3,  78), (1,  64), (5,  63), (3,   5), (6,None), (0,None), (6,   3), (3,   1), (5,None)],
+        [(0,None), (1,   6), (3, 117), (6,  19), (3,   9), (1,  31), (0,  56), (5,   0), (5,  63), (3,None), (6,None), (0,None), (6,   7), (3,None)],
+        [(0,None), (2,   6), (5, 116), (2,   3), (0,   0), (6,None), (6,   1), (3,   0), (5,   0), (5,   2), (3,None), (6,None), (0,None), (6,   0)],
+        [(0,None), (3,   6), (0,   0), (5,   0), (4,   1), (4,None), (5,None), (6,   0), (3,   2), (5,   0), (5,None), (3,None), (6,None), (0,None)] # 0,0 became the rightmost 0,None
+    ]
+
+    Y = [None, 0,1,2,121,66,77,78,41,100,74,118,108,43]
+
+    return OA_n_times_2_pow_c_from_matrix(15,7,FiniteField(7),zip(*A),Y,check=False)
 
 def OA_33_993():
     r"""
@@ -2757,17 +3346,29 @@ OA_constructions = {
     80  : (11 , OA_11_80),
     82  : (10 , OA_10_82),
     100 : (10 , OA_10_100),
+    112 : (15 , OA_15_112),
     120 : (9  , OA_9_120),
     135 : (9  , OA_9_135),
     144 : (12 , OA_12_144),
     154 : (10 , OA_10_154),
+    160 : (11 , OA_11_160),
+    176 : (16 , OA_16_176),
+    208 : (16 , OA_16_208),
     210 : (12 , OA_12_210),
+    224 : (15 , OA_15_224),
     273 : (18 , OA_18_273),
     276 : (12 , OA_12_276),
     298 : (12 , OA_12_298),
     342 : (12 , OA_12_342),
+    352 : (20 , OA_20_352),
+    416 : (20 , OA_20_416),
     474 : (12 , OA_12_474),
-    993 : (33 , OA_33_993)
+    514 : (9  , OA_9_514),
+    544 : (20 , OA_20_544),
+    640 : (11 , OA_11_640),
+    796 : (10 , OA_10_796),
+    896 : (15 , OA_15_896),
+    993 : (33 , OA_33_993),
 }
 
 def CDF_21_5_1():
@@ -3048,9 +3649,10 @@ def RBIBD_120_8_1():
     EXAMPLES::
 
         sage: from sage.combinat.designs.database import RBIBD_120_8_1
-        sage: from sage.combinat.designs.bibd import _check_pbd
+        sage: from sage.combinat.designs.bibd import is_pairwise_balanced_design
         sage: RBIBD = RBIBD_120_8_1()
-        sage: _ = _check_pbd(RBIBD,120,[8])
+        sage: is_pairwise_balanced_design(RBIBD,120,[8])
+        True
 
     It is indeed resolvable, and the parallel classes are given by 17 slices of
     consecutive 15 blocks::

@@ -27,7 +27,7 @@ import collections
 from sage.misc.preparser import preparse, strip_string_literals
 from functools import reduce
 
-float_regex = re.compile('([+-]?((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
+float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
 optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
@@ -35,6 +35,13 @@ random_marker = re.compile('.*random', re.I)
 tolerance_pattern = re.compile(r'\b((?:abs(?:olute)?)|(?:rel(?:ative)?))? *?tol(?:erance)?\b( +[0-9.e+-]+)?')
 backslash_replacer = re.compile(r"""(\s*)sage:(.*)\\\ *
 \ *(((\.){4}:)|((\.){3}))?\ *""")
+
+# Use this real field to compute doctest tolerances. It allows large
+# numbers like 1e1000, it parses strings with spaces like RR(" - 1 ")
+# out of the box and it is slightly more precise than Python's 53 bits.
+# We need to import from sage.all to avoid circular imports.
+from sage.all import RealField
+Rtol = RealField(64)
 
 
 # This is the correct pattern to match ISO/IEC 6429 ANSI escape sequences:
@@ -132,13 +139,13 @@ def parse_tolerance(source, want):
         sage: marked = parse_tolerance("sage: s.update(abs_tol = .0000001)", "")
         sage: type(marked)
         <type 'str'>
-        sage: marked = parse_tolerance("sage: s.update(tol = 0.1); s.rel_tol # abs tol 0.01", "")
+        sage: marked = parse_tolerance("sage: s.update(tol = 0.1); s.rel_tol # abs tol     0.01 ", "")
         sage: marked.tol
         0
         sage: marked.rel_tol
         0
         sage: marked.abs_tol
-        0.01
+        0.0100000000000000000
     """
     safe, literals, state = strip_string_literals(source)
     first_line = safe.split('\n', 1)[0]
@@ -155,9 +162,9 @@ def parse_tolerance(source, want):
         if m:
             rel_or_abs, epsilon = m.groups()
             if epsilon is None:
-                epsilon = 1e-15
+                epsilon = Rtol("1e-15")
             else:
-                epsilon = float(epsilon.strip())
+                epsilon = Rtol(epsilon)
             if rel_or_abs is None:
                 want = MarkedOutput(want).update(tol=epsilon)
             elif rel_or_abs.startswith('rel'):
@@ -491,7 +498,7 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: type(ex.want)
             <class 'sage.doctest.parsing.MarkedOutput'>
             sage: ex.want.tol
-            2e-11
+            2.00000000000000000e-11
 
         You can use continuation lines::
 
@@ -585,7 +592,7 @@ class SageOutputChecker(doctest.OutputChecker):
         sage: type(ex.want)
         <class 'sage.doctest.parsing.MarkedOutput'>
         sage: ex.want.tol
-        2e-11
+        2.00000000000000000e-11
         sage: OC.check_output(ex.want, '0.893515349287690', optflag)
         True
         sage: OC.check_output(ex.want, '0.8935153492877', optflag)
@@ -623,6 +630,63 @@ class SageOutputChecker(doctest.OutputChecker):
             else:
                 return '<CSI-'+ansi_escape.lstrip('\x1b[\x9b')+'>'
         return ansi_escape_sequence.subn(human_readable, string)[0]
+
+    def check_tolerance(self, wantval, gotval, want):
+        """
+        Check whether ``gotval`` is close enough to ``wantval``
+        according to the tolerance options in ``want``.
+
+        INPUT:
+
+        - ``wantval`` -- a real number
+        - ``gotval`` -- a real number
+        - ``want`` -- a :class:`MarkedOutput` describing the tolerance
+
+        OUTPUT:
+
+        - boolean, whether ``gotval`` matches ``wantval`` up to the
+          specified tolerance.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.parsing import MarkedOutput, SageOutputChecker
+            sage: OC = SageOutputChecker()
+            sage: want_tol = MarkedOutput().update(tol=0.1)
+            sage: want_abs = MarkedOutput().update(abs_tol=0.1)
+            sage: want_rel = MarkedOutput().update(rel_tol=0.1)
+            sage: OC.check_tolerance(1e1000, 1e1000, want_tol)
+            True
+            sage: OC.check_tolerance(1e1000, 1e1000, want_abs)
+            True
+            sage: OC.check_tolerance(1e1000, 1e1000, want_rel)
+            True
+            sage: OC.check_tolerance(1e1000, 1.01e1000, want_tol)
+            True
+            sage: OC.check_tolerance(1e1000, 1.01e1000, want_abs)
+            False
+            sage: OC.check_tolerance(1e1000, 1.01e1000, want_rel)
+            True
+            sage: OC.check_tolerance(0, 1e-1000, want_tol)
+            True
+            sage: OC.check_tolerance(0, 1e-1000, want_abs)
+            True
+            sage: OC.check_tolerance(0, 1e-1000, want_rel)
+            False
+        """
+        if want.tol:
+            if wantval == 0:
+                return abs(gotval) <= want.tol
+            else:
+                return abs(1 - gotval/wantval) <= want.tol
+        elif want.abs_tol:
+            return abs(wantval - gotval) <= want.abs_tol
+        elif want.rel_tol:
+            if wantval == 0:
+                return gotval == 0
+            else:
+                return abs(1 - gotval/wantval) <= want.rel_tol
+        else:
+            return wantval == gotval
 
     def check_output(self, want, got, optionflags):
         """
@@ -705,8 +769,6 @@ class SageOutputChecker(doctest.OutputChecker):
             sage: OC.check_output(zerorel,ten,optflag)
             False
 
-        TESTS:
-
         More explicit tolerance checks::
 
             sage: _ = x  # rel tol 1e10
@@ -718,28 +780,28 @@ class SageOutputChecker(doctest.OutputChecker):
             -0.5
             sage: print "1.000009"   # abs tol 1e-5
             1.0
+            sage: 0  # rel tol 1
+            1
+
+        Spaces before numbers or between the sign and number are ignored::
+
+            sage: print "[ - 1, 2]"  # abs tol 1e-10
+            [-1,2]
         """
         got = self.human_readable_escape_sequences(got)
         if isinstance(want, MarkedOutput):
             if want.random:
                 return True
             elif want.tol or want.rel_tol or want.abs_tol:
-                if want.tol:
-                    check_tol = lambda a, b: (a == 0 and abs(b) < want.tol) or (a*b != 0 and abs(a-b)/abs(a) < want.tol)
-                elif want.abs_tol:
-                    check_tol = lambda a, b: abs(a-b) < want.abs_tol
-                else:
-                    check_tol = lambda a, b: (a == b == 0) or (a*b != 0 and abs(a-b)/abs(a) < want.rel_tol)
-                want_values = [float(g[0]) for g in float_regex.findall(want)]
-                got_values = [float(g[0]) for g in float_regex.findall(got)]
+                want_values = [Rtol(g[0]) for g in float_regex.findall(want)]
+                got_values = [Rtol(g[0]) for g in float_regex.findall(got)]
                 if len(want_values) != len(got_values):
                     return False
                 if not doctest.OutputChecker.check_output(self,
                         float_regex.sub('*', want), float_regex.sub('*', got), optionflags):
                     return False
-                return all(check_tol(*ab) for ab in zip(want_values, got_values))
+                return all(self.check_tolerance(a, b, want) for a, b in zip(want_values, got_values))
         ok = doctest.OutputChecker.check_output(self, want, got, optionflags)
-        #sys.stderr.write(str(ok) + " want: " + repr(want) + " got: " + repr(got) + "\n")
         return ok
 
     def output_difference(self, example, got, optionflags):
@@ -792,7 +854,7 @@ class SageOutputChecker(doctest.OutputChecker):
                 10.0
             Got:
                 0.0
-            Tolerance exceeded: infinity > 1e-01
+            Tolerance exceeded: 1e+00 > 1e-01
 
             sage: print OC.output_difference(tentol,eps,optflag)
             Expected:
@@ -809,7 +871,6 @@ class SageOutputChecker(doctest.OutputChecker):
             Tolerance exceeded in 2 of 6
                 10.0 vs 8.7
                 10.0 vs 11.2
-
 
         TESTS::
 
@@ -853,14 +914,14 @@ class SageOutputChecker(doctest.OutputChecker):
                 0.0
             Got:
                 -0.05
-            Tolerance exceeded: infinity > 1e-01
+            Tolerance exceeded: inf > 1e-01
 
             sage: print OC.output_difference(zerorel,ten,optflag)
             Expected:
                 0.0
             Got:
                 10.05
-            Tolerance exceeded: infinity > 1e-01
+            Tolerance exceeded: inf > 1e-01
 
         """
         got = self.human_readable_escape_sequences(got)
@@ -871,37 +932,29 @@ class SageOutputChecker(doctest.OutputChecker):
                 diff += "\n"
             want_str = [g[0] for g in float_regex.findall(want)]
             got_str = [g[0] for g in float_regex.findall(got)]
-            want_values = [float(g) for g in want_str]
-            got_values = [float(g) for g in got_str]
+            want_values = [Rtol(g) for g in want_str]
+            got_values = [Rtol(g) for g in got_str]
             starwant = float_regex.sub('*', want)
             stargot = float_regex.sub('*', got)
             if len(want_values) > 0 and len(want_values) == len(got_values) and \
                doctest.OutputChecker.check_output(self, starwant, stargot, optionflags):
                 def failstr(c,d,actual,desired):
                     if len(want_values) == 1:
-                        if actual != 'infinity':
-                            actual = "%.0e"%(actual)
-                        return "Tolerance exceeded: %s > %.0e\n"%(actual, desired)
+                        return "Tolerance exceeded: %.0e > %.0e\n"%(actual, desired)
                     else:
                         return "    %s vs %s"%(c,d)
                 fails = []
                 for a, b, c, d in zip(want_values, got_values, want_str, got_str):
-                    if want.tol:
-                        if a == 0:
-                            if abs(b) >= want.tol:
+                    if not self.check_tolerance(a, b, want):
+                        if want.tol:
+                            if a == 0:
                                 fails.append(failstr(c,d,abs(b),want.tol))
-                        elif b == 0:
-                            fails.append(failstr(c,d,"infinity",want.tol))
-                        elif abs((a - b) / a) >= want.tol:
-                            fails.append(failstr(c,d,abs((a - b) / a), want.tol))
-                    elif want.abs_tol:
-                        if abs(a - b) >= want.abs_tol:
+                            else:
+                                fails.append(failstr(c,d,abs(1 - b/a), want.tol))
+                        elif want.abs_tol:
                             fails.append(failstr(c,d,abs(a - b),want.abs_tol))
-                    elif a == 0:
-                        if b != 0:
-                            fails.append(failstr(c,d,"infinity",want.rel_tol))
-                    elif abs((a - b) / a) >= want.rel_tol:
-                        fails.append(failstr(c,d,abs((a - b) / a),want.rel_tol))
+                        else:
+                            fails.append(failstr(c,d,abs(1 - b/a),want.rel_tol))
                 if len(want_values) == 1 and len(fails) == 1: # fails should always be 1...
                     diff += fails[0]
                 else:

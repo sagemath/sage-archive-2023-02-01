@@ -2808,9 +2808,9 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.<a> = NumberField(x^2 + 23)
             sage: d = K.ideals_of_bdd_norm(10)
             sage: for n in d:
-            ...       print n
-            ...       for I in d[n]:
-            ...           print I
+            ....:     print n
+            ....:     for I in d[n]:
+            ....:         print I
             1
             Fractional ideal (1)
             2
@@ -2825,13 +2825,13 @@ class NumberField_generic(number_field_base.NumberField):
             Fractional ideal (4, 1/2*a + 5/2)
             5
             6
-            Fractional ideal (-1/2*a + 1/2)
+            Fractional ideal (1/2*a - 1/2)
             Fractional ideal (6, 1/2*a + 5/2)
             Fractional ideal (6, 1/2*a + 7/2)
             Fractional ideal (1/2*a + 1/2)
             7
             8
-            Fractional ideal (-1/2*a - 3/2)
+            Fractional ideal (1/2*a + 3/2)
             Fractional ideal (4, a - 1)
             Fractional ideal (4, a + 1)
             Fractional ideal (1/2*a - 3/2)
@@ -3065,13 +3065,13 @@ class NumberField_generic(number_field_base.NumberField):
 
         EXAMPLES::
 
-            sage: K.<i>=QuadraticField(-1)
-            sage: it=K.primes_of_bounded_norm_iter(10)
+            sage: K.<i> = QuadraticField(-1)
+            sage: it = K.primes_of_bounded_norm_iter(10)
             sage: list(it)
             [Fractional ideal (i + 1),
              Fractional ideal (3),
              Fractional ideal (-i - 2),
-             Fractional ideal (i - 2)]
+             Fractional ideal (2*i + 1)]
             sage: list(K.primes_of_bounded_norm_iter(1))
             []
         """
@@ -3327,7 +3327,9 @@ class NumberField_generic(number_field_base.NumberField):
             return self.__pari_nf
         except AttributeError:
             f = self.pari_polynomial("y")
-            self.__pari_nf = pari([f, self._pari_integral_basis(important=important)]).nfinit()
+            if f.poldegree() > 1:
+                f = pari([f, self._pari_integral_basis(important=important)])
+            self.__pari_nf = f.nfinit()
             return self.__pari_nf
 
     def pari_zk(self):
@@ -3410,7 +3412,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: len(k.pari_bnf())
             10
             sage: k.pari_bnf()[:4]
-            [[;], matrix(0,7), [;], ...]
+            [[;], matrix(0,3), [;], ...]
             sage: len(k.pari_nf())
             9
             sage: k.<a> = NumberField(x^7 + 7); k
@@ -3771,8 +3773,8 @@ class NumberField_generic(number_field_base.NumberField):
               14/13*a^2 + 267/13*a - 85/13,
               7/13*a^2 + 127/13*a - 49/13,
               -1,
-              1/13*a^2 + 20/13*a - 7/13,
-              1/13*a^2 - 19/13*a + 6/13],
+              1/13*a^2 - 19/13*a + 6/13,
+              1/13*a^2 - 19/13*a - 7/13],
              [(Fractional ideal (11, a - 2), 2),
               (Fractional ideal (19, 1/13*a^2 - 45/13*a - 332/13), 2)])
         """
@@ -3920,7 +3922,7 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<a> = NumberField(x^3 - 381 * x + 127)
             sage: K.selmer_group(K.primes_above(13), 2)
-            [-7/13*a^2 - 140/13*a + 36/13, 14/13*a^2 + 267/13*a - 85/13, 7/13*a^2 + 127/13*a - 49/13, -1, 1/13*a^2 + 20/13*a - 7/13, 1/13*a^2 - 19/13*a + 6/13, -2/13*a^2 - 53/13*a + 92/13, 10/13*a^2 + 44/13*a - 4555/13]
+            [-7/13*a^2 - 140/13*a + 36/13, 14/13*a^2 + 267/13*a - 85/13, 7/13*a^2 + 127/13*a - 49/13, -1, 1/13*a^2 - 19/13*a + 6/13, 1/13*a^2 - 19/13*a - 7/13, 2/13*a^2 + 53/13*a - 92/13, 10/13*a^2 + 44/13*a - 4555/13]
 
         Verify that :trac:`16708` is fixed::
 
@@ -4537,19 +4539,19 @@ class NumberField_generic(number_field_base.NumberField):
         Here are the factors::
 
             sage: fi, fj = K.factor(17); fi,fj
-            ((Fractional ideal (4*I + 1), 1), (Fractional ideal (-I - 4), 1))
+            ((Fractional ideal (I - 4), 1), (Fractional ideal (I + 4), 1))
 
         Now we extract the reduced form of the generators::
 
             sage: zi = fi[0].gens_reduced()[0]; zi
-            4*I + 1
+            I - 4
             sage: zj = fj[0].gens_reduced()[0]; zj
-            -I - 4
+            I + 4
 
         We recover the integer that was factored in `\ZZ[i]` (up to a unit)::
 
             sage: zi*zj
-            -17*I
+            -17
 
         One can also factor elements or ideals of the number field::
 
@@ -4559,15 +4561,14 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.factor(1+a)
             Fractional ideal (a + 1)
             sage: K.factor(1+a/5)
-            (Fractional ideal (-3*a - 2)) * (Fractional ideal (a + 1)) * (Fractional ideal (-a - 2))^-1 * (Fractional ideal (a - 2))^-1
+            (Fractional ideal (-3*a - 2)) * (Fractional ideal (a + 1)) * (Fractional ideal (-a - 2))^-1 * (Fractional ideal (2*a + 1))^-1
 
         An example over a relative number field::
 
             sage: pari('setrand(2)')
             sage: L.<b> = K.extension(x^2 - 7)
             sage: f = L.factor(a + 1); f
-            (Fractional ideal (-1/2*a*b - a - 1/2)) * (Fractional ideal (1/2*b + 1/2*a - 1)) # 32-bit
-            (Fractional ideal (1/2*a*b + a + 1/2)) * (Fractional ideal (-1/2*b - 1/2*a + 1)) # 64-bit
+            (Fractional ideal (1/2*a*b - a + 1/2)) * (Fractional ideal (-1/2*a*b - a + 1/2))
             sage: f.value() == a+1
             True
 
@@ -4893,8 +4894,7 @@ class NumberField_generic(number_field_base.NumberField):
         except (AttributeError, KeyError):
             f = self.pari_polynomial("y")
             if len(v) > 0:
-                m = self._pari_disc_factorization_matrix(v)
-                B = f.nfbasis(fa = m)
+                B = f.nfbasis(fa=v)
             elif self._assume_disc_small:
                 B = f.nfbasis(1)
             elif not important:
@@ -4914,34 +4914,6 @@ class NumberField_generic(number_field_base.NumberField):
 
             self._integral_basis_dict[v] = B
             return B
-
-    def _pari_disc_factorization_matrix(self, v):
-        """
-        Returns a PARI matrix representation for the partial
-        factorization of the discriminant of the defining polynomial
-        of self, defined by the list of primes in the Python list v.
-        This function is used internally by the number fields code.
-
-        EXAMPLES::
-
-            sage: x = polygen(QQ,'x')
-            sage: f = x^3 + 17*x + 393; f.discriminant().factor()
-            -1 * 5^2 * 29 * 5779
-            sage: K.<a> = NumberField(f)
-            sage: fa = K._pari_disc_factorization_matrix([5,29]); fa
-            [5, 2; 29, 1]
-            sage: fa.type()
-            't_MAT'
-        """
-        f = self.pari_polynomial()
-        m = pari.matrix(len(v), 2)
-        d = f.poldisc()
-        for i in range(len(v)):
-            p = pari(ZZ(v[i]))
-            m[i,0] = p
-            m[i,1] = d.valuation(p)
-        return m
-
 
     def reduced_basis(self, prec=None):
         r"""
@@ -5639,7 +5611,14 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.units(proof=True)  # takes forever, not tested
             ...
             sage: K.units(proof=False)  # result not independently verified
-            (a^9 + a - 1, a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1, 2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4, a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1, a^16 + a^15 + a^14 + a^13 + a^12 + a^11 + a^10 + a^9 + a^8 + a^7 + a^6 + a^5 + a^4 + a^3 + a^2 - 2, 2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4, a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2, 2*a^16 + a^15 - a^11 - 3*a^10 - 4*a^9 - 4*a^8 - 4*a^7 - 5*a^6 - 7*a^5 - 8*a^4 - 6*a^3 - 5*a^2 - 6*a - 7)
+            (a^9 + a - 1,
+             a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2,
+             a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1,
+             2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4,
+             2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4,
+             a^16 - a^15 - 3*a^14 - 4*a^13 - 4*a^12 - 3*a^11 - a^10 + 2*a^9 + 4*a^8 + 5*a^7 + 4*a^6 + 2*a^5 - 2*a^4 - 6*a^3 - 9*a^2 - 9*a - 7,
+             a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1,
+             5*a^16 - 6*a^14 + a^13 + 7*a^12 - 2*a^11 - 7*a^10 + 4*a^9 + 7*a^8 - 6*a^7 - 7*a^6 + 8*a^5 + 6*a^4 - 11*a^3 - 5*a^2 + 13*a + 4)
         """
         proof = proof_flag(proof)
 
@@ -5711,7 +5690,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: U.gens()
             (u0, u1, u2, u3, u4, u5, u6, u7, u8)
             sage: U.gens_values()  # result not independently verified
-            [-1, a^9 + a - 1, a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1, 2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4, a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1, a^16 + a^15 + a^14 + a^13 + a^12 + a^11 + a^10 + a^9 + a^8 + a^7 + a^6 + a^5 + a^4 + a^3 + a^2 - 2, 2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4, a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2, 2*a^16 + a^15 - a^11 - 3*a^10 - 4*a^9 - 4*a^8 - 4*a^7 - 5*a^6 - 7*a^5 - 8*a^4 - 6*a^3 - 5*a^2 - 6*a - 7]
+            [-1, a^9 + a - 1, a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2, a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1, 2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4, 2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4, a^16 - a^15 - 3*a^14 - 4*a^13 - 4*a^12 - 3*a^11 - a^10 + 2*a^9 + 4*a^8 + 5*a^7 + 4*a^6 + 2*a^5 - 2*a^4 - 6*a^3 - 9*a^2 - 9*a - 7, a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1, 5*a^16 - 6*a^14 + a^13 + 7*a^12 - 2*a^11 - 7*a^10 + 4*a^9 + 7*a^8 - 6*a^7 - 7*a^6 + 8*a^5 + 6*a^4 - 11*a^3 - 5*a^2 + 13*a + 4]
         """
         proof = proof_flag(proof)
 
@@ -5761,8 +5740,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: U.gens()
             (u0, u1, u2, u3)
             sage: U.gens_values()
-            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 6/275*a^3 - 9/55*a^2 + 14/11*a - 2, 14/275*a^3 - 21/55*a^2 + 29/11*a - 6, 1/275*a^3 + 4/55*a^2 - 5/11*a + 5]  # 32-bit
-            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 6/275*a^3 - 9/55*a^2 + 14/11*a - 2, -14/275*a^3 + 21/55*a^2 - 29/11*a + 6, 1/275*a^3 + 4/55*a^2 - 5/11*a + 5]  # 64-bit
+            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 6/275*a^3 - 9/55*a^2 + 14/11*a - 2, -14/275*a^3 + 21/55*a^2 - 29/11*a + 6, 1/275*a^3 + 4/55*a^2 - 5/11*a + 5]
             sage: U.invariants()
             (10, 0, 0, 0)
             sage: [u.multiplicative_order() for u in U.gens()]
@@ -5906,9 +5884,9 @@ class NumberField_generic(number_field_base.NumberField):
             sage: r.<x> = QQ[]
             sage: K.<b> = NumberField(x^2+1)
             sage: K.zeta(4)
-            -b
+            b
             sage: K.zeta(4,all=True)
-            [-b, b]
+            [b, -b]
             sage: K.zeta(3)
             Traceback (most recent call last):
             ...
@@ -6006,7 +5984,7 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<i> = NumberField(x^2+1)
             sage: z = K.primitive_root_of_unity(); z
-            -i
+            i
             sage: z.multiplicative_order()
             4
 
@@ -6032,11 +6010,11 @@ class NumberField_generic(number_field_base.NumberField):
             sage: z.multiplicative_order()
             6
 
-            sage: K = CyclotomicField(7)
+            sage: K = CyclotomicField(3)
             sage: z = K.primitive_root_of_unity(); z
-            zeta7^5 + zeta7^4 + zeta7^3 + zeta7^2 + zeta7 + 1
+            zeta3 + 1
             sage: z.multiplicative_order()
-            14
+            6
 
         TESTS:
 
@@ -6070,7 +6048,7 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<b> = NumberField(x^2+1)
             sage: zs = K.roots_of_unity(); zs
-            [-b, -1, b, 1]
+            [b, -1, -b, 1]
             sage: [ z**K.number_of_roots_of_unity() for z in zs ]
             [1, 1, 1, 1]
         """
@@ -8163,8 +8141,7 @@ class NumberField_absolute(NumberField_generic):
             sage: K.hilbert_conductor(K(2),K(-2))
             Fractional ideal (1)
             sage: K.hilbert_conductor(K(2*b),K(-2))
-            Fractional ideal (-b^2 - b + 2)
-
+            Fractional ideal (b^2 + b - 2)
 
         AUTHOR:
 

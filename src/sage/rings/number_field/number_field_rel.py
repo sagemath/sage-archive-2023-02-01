@@ -214,7 +214,7 @@ class NumberField_relative(NumberField_generic):
             sage: b
             Traceback (most recent call last):
             ...
-            PariError: incorrect type in core2partial
+            PariError: incorrect type in core2partial (t_FRAC)
 
         However, if the polynomial is linear, rational coefficients should work::
 
@@ -1082,7 +1082,7 @@ class NumberField_relative(NumberField_generic):
         pol = element.polynomial('y')
         t2 = pol(a).lift()
         if check:
-            t1 = self.pari_rnf().rnfeltreltoabs(pol._pari_())
+            t1 = self.pari_rnf().rnfeltreltoabs(pol).lift()
             assert t1 == t2
         return t2
 
@@ -1167,7 +1167,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: k.<a> = NumberField([x^3 + 2, x^2 + 2])
             sage: k._pari_base_bnf()
-            [[;], matrix(0,9), [;], ... 0]
+            [[;], matrix(0,3), [;], ...]
         """
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
         return abs_base.pari_bnf(proof, units)
@@ -1305,10 +1305,10 @@ class NumberField_relative(NumberField_generic):
         Galois conjugate::
 
             sage: for g in G:
-            ...     if L1.is_isomorphic_relative(L2, g.as_hom()):
-            ...         print g.as_hom()
+            ....:   if L1.is_isomorphic_relative(L2, g.as_hom()):
+            ....:       print g.as_hom()
             Ring endomorphism of Number Field in z9 with defining polynomial x^6 + x^3 + 1
-              Defn: z9 |--> -z9^4 - z9
+              Defn: z9 |--> z9^4
         """
         if is_RelativeNumberField(other):
             s_base_field = self.base_field()
@@ -1597,7 +1597,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: k.<a> = NumberField([x^4 + 3, x^2 + 2])
             sage: k.pari_rnf()
-            [x^4 + 3, [], [[108, 0; 0, 108], 3], [8, 0; 0, 8], [], [], [[1, x - 1, x^2 - 1, x^3 - x^2 - x - 3], ..., 0]
+            [x^4 + 3, [[364, -10*x^7 - 87*x^5 - 370*x^3 - 41*x], 1/364], [[108, 0; 0, 108], 3], ...]
         """
         return self._pari_base_nf().rnfinit(self.pari_relative_polynomial())
 
@@ -2329,7 +2329,7 @@ class NumberField_relative(NumberField_generic):
             ...
             ValueError: The element b is not in the base field
         """
-        polmodmod_xy = self.pari_rnf().rnfeltabstorel( self(element)._pari_() )
+        polmodmod_xy = self.pari_rnf().rnfeltabstorel( self(element)._pari_('x') )
         # polmodmod_xy is a POLMOD with POLMOD coefficients in general.
         # These POLMOD coefficients represent elements of the base field K.
         # We do two lifts so we get a polynomial. We need the simplify() to

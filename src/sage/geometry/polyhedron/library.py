@@ -174,7 +174,7 @@ class Polytopes():
 
         INPUT:
 
-        - ``dim_n`` -- The dimension of the cross-polytope, a positive
+        - ``dim_n`` -- The dimension of the simplex, a positive
           integer.
 
         - ``project`` -- Optional argument, whether to project

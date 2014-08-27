@@ -133,15 +133,12 @@ def tetrahedron(center=(0,0,0), size=1, **kwds):
 
     INPUT:
 
-
     -  ``center`` - (default: (0,0,0))
 
     -  ``size`` - (default: 1)
 
-    -  ``color`` - a word that describes a color
-
-    -  ``rgbcolor`` - (r,g,b) with r, g, b between 0 and 1
-       that describes a color
+    - ``color`` -- a string (``"red"``, ``"green"``, etc)
+      or a tuple (r, g, b) with r, g, b numbers between 0 and 1
 
     -  ``opacity`` - (default: 1) if less than 1 then is
        transparent

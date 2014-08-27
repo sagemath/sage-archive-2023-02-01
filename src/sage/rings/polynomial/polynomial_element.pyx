@@ -1413,10 +1413,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Also check that such computations can be interrupted::
 
-            sage: K.<a> = GF(2**8)
+            sage: K.<a> = GF(2^8)
             sage: x = polygen(K)
-            sage: alarm(1)
-            sage: (x**1000000+x+a).any_root()
+            sage: pol = x^1000000 + x + a
+            sage: alarm(0.5); pol.any_root()
             Traceback (most recent call last):
             ...
             AlarmInterrupt

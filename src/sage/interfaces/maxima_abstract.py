@@ -1753,7 +1753,7 @@ class MaximaAbstractElement(InterfaceElement):
             sage: y,d = var('y,d')
             sage: f = function('f')
             sage: latex(maxima(derivative(f(x*y), x)))
-            \left(\left.{{{\it \partial}}\over{{\it \partial}\,{\it t_0}}}\,f  \left({\it t_0}\right)\right|_{\left[ {\it t_0}=x\,y \right] }  \right)\,{\it y}
+            \left(\left.{{{\it \partial}}\over{{\it \partial}\,  {\it t_0}}}\,f\left({\it t_0}\right)  \right|_{\left[ {\it t_0}={\it x}\,  {\it y} \right] }\right)\,{\it y}
             sage: latex(maxima(derivative(f(x,y,d), d,x,x,y)))
             {{{\it \partial}^4}\over{{\it \partial}\,{\it d}\,  {\it \partial}\,{\it x}^2\,{\it \partial}\,  {\it y}}}\,f\left({\it x} ,  {\it y} , {\it d}\right)
             sage: latex(maxima(d/(d-2)))

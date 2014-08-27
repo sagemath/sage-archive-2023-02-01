@@ -227,7 +227,7 @@ cpdef find_wilson_decomposition_with_two_truncated_groups(int k,int n):
         (5, 7, 7, (4, 5))
         sage: _ = f(*args)
     """
-    cdef int r,m_min,m_max,m,r1_min,r1_max,r1,r2
+    cdef int r,m_min,m_max,m,r1_min,r1_max,r1,r2,r1_p_r2
     for r in [1] + range(k+1,n-2): # as r*1+1+1 <= n and because we need
                                    # an OA(k+2,r), necessarily r=1 or r >= k+1
         if not is_available(k+2,r):
@@ -302,7 +302,7 @@ cpdef find_construction_3_3(int k,int n):
                 from orthogonal_arrays_build_recursive import construction_3_3
                 return construction_3_3, (k,nn,mm,i)
 
-cpdef find_construction_3_4(k,n):
+cpdef find_construction_3_4(int k,int n):
     r"""
     Find a decomposition for construction 3.4 from [AC07]_
 
@@ -384,6 +384,7 @@ cpdef find_construction_3_5(int k,int n):
             if not is_available(k+3,nn):
                 continue
 
+            # Enumerate all  r,s,t<nn such that r+s+t=i and r<=s
             for s in range(min(i+1,nn)):
                 for r in range(max(0,i-nn-s), min(s+1,i-s+1,nn)):
                     t = i - r - s
@@ -539,7 +540,7 @@ cpdef find_thwart_lemma_3_5(int k,int N):
         ....:     assert designs.orthogonal_array(k,n,existence=True) is True    # not tested -- too long
     """
     from orthogonal_arrays_build_recursive import thwart_lemma_3_5
-    cdef int n,m,a,b,c,d
+    cdef int n,m,a,b,c,d,NN,na,nb,nc
 
     for n in prime_powers(k+2,N-2): # There must exist a OA(k+3,n) thus n>=k+2
                                     # At least 3 columns are nonempty thus n<N-2

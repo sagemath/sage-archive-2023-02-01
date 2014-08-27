@@ -12,10 +12,6 @@ from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.finite_rings.integer_mod import Mod
-from sage.plot.arrow import arrow2d
-from sage.plot.arrow import arrow
-from sage.plot.graphics import Graphics
-from sage.plot.plot3d.shapes2 import bezier3d
 from sage.graphs.digraph import DiGraph
 from copy import deepcopy, copy
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
@@ -23,6 +19,7 @@ from sage.rings.integer_ring import IntegerRing
 from sage.combinat.permutation import Permutations
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.symbolic.ring import SR, var
+from sage.rings.integer import Integer
 
 
 class Link:
@@ -570,10 +567,10 @@ class Link:
             return code
 
         if self._braid != None:
-            return _dt_internal_(self._braid.Tietze())
-
-        elif self._oriented_gauss_code != None or self._PD_code != None:
-            return _dt_internal_(self._braidword_detection_())
+            b = self.braidword()
+        else:
+            b = self._braidword_detection_()
+        return _dt_internal_(b)
 
     def _dowker_notation_(self):
         r"""
@@ -938,6 +935,10 @@ class Link:
         r"""
         Returns the alexander polynomial of the link
 
+        INPUT:
+            - ``var`` -- string (default: ``'t'``); the name of the
+                variable in the entries of the matrix
+
         OUTPUT:
             - Alexander Polynomial of the Link
 
@@ -987,7 +988,7 @@ class Link:
         """
         if self.is_knot() == True:
             a = self.alexander_polynomial()
-            return int(abs(a(-1)))
+            return Integer(abs(a(-1)))
         else:
             raise Exception("Determinant implmented only for knots")
 

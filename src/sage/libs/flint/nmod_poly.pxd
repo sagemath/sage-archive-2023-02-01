@@ -1,9 +1,4 @@
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
-
-from sage.libs.flint.flint cimport *
-
-from flint import *
 
 cdef extern from "flint/nmod_poly.h":
     ctypedef unsigned long mp_bitcnt_t

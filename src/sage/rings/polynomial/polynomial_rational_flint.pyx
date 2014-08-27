@@ -17,12 +17,10 @@ AUTHOR:
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/gmp.pxi"
-include "sage/libs/ntl/decl.pxi"
-
 include "sage/ext/cdefs.pxi"
-include "sage/libs/flint/fmpz.pxi"
-include "sage/libs/flint/fmpz_poly.pxi"
-include "sage/libs/flint/fmpq_poly.pxd"
+
+include "sage/libs/ntl/decl.pxi"
+include "sage/libs/flint/fmpq_poly.pxi"
 
 from sage.interfaces.all import singular as singular_default
 

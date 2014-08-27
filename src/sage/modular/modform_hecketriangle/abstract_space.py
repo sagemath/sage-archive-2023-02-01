@@ -314,13 +314,33 @@ class FormsSpace_abstract(FormsRing_abstract):
 
             sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: MF = CuspForms(k=12)
+            sage: (MF.Delta()^(-1)).parent()
+            MeromorphicModularForms(n=3, k=-12, ep=1) over Integer Ring
             sage: MF.one_element()
             1 + O(q^5)
-            sage: MF.one_element().parent()
-            ModularForms(n=3, k=0, ep=1) over Integer Ring
         """
 
         return self.extend_type("holo", ring=True)(1).reduce()
+
+    # To be able to take power 0 of an element we apparently also need to define one()
+    def one(self):
+        r"""
+        Return the one element from the corresponding space
+        of constant forms.
+
+        Note: The one element does not lie in ``self`` in general.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
+            sage: MF = CuspForms(k=12)
+            sage: MF.Delta()^0 == MF.one()
+            True
+            sage: (MF.Delta()^0).parent()
+            ModularForms(n=3, k=0, ep=1) over Integer Ring
+        """
+
+        return self.one_element()
 
     def is_ambient(self):
         r"""

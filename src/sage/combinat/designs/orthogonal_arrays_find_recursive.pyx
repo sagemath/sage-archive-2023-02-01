@@ -1,3 +1,4 @@
+# cython: cdivision=True
 r"""
 Orthogonal arrays (find recursive constructions)
 
@@ -44,12 +45,11 @@ Functions
 """
 from sage.misc.cachefunc import cached_function
 from orthogonal_arrays import orthogonal_array
-from sage.combinat.integer_list import IntegerListsLex
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.arith import prime_powers
 
 @cached_function
-def find_recursive_construction(k,n):
+def find_recursive_construction(k, n):
     r"""
     Find a recursive construction of an `OA(k,n)` (calls all others ``find_*`` functions)
 
@@ -110,7 +110,7 @@ def find_recursive_construction(k,n):
             return res
     return False
 
-def find_product_decomposition(int k,int n):
+cpdef find_product_decomposition(int k,int n):
     r"""
     Find `n_1n_2=n` to obtain an `OA(k,n)` by the product construction.
 
@@ -139,16 +139,19 @@ def find_product_decomposition(int k,int n):
         sage: _ = f(*args)
     """
     cdef int n1,n2
-    for n1 in smallInteger(n).divisors()[1:-1]: # we ignore 1 and n
-        n2 = n//n1  # n2 is decreasing along the loop
+    for n1 in range(2,n):
+        n2 = n/n1  # n2 is decreasing along the loop
         if n2 < n1:
             break
+        if n%n1:  # we want to iterate only through divisors of n1... it seems
+                  # faster to use that rather than calling the divisors function
+            continue
         if is_available(k, n1) and is_available(k, n2):
             from orthogonal_arrays_build_recursive import simple_wilson_construction
             return simple_wilson_construction, (k,n1,n2,())
     return False
 
-def find_wilson_decomposition_with_one_truncated_group(int k,int n):
+cpdef find_wilson_decomposition_with_one_truncated_group(int k,int n):
     r"""
     Find `rm+u=n` to obtain an `OA(k,n)` by Wilson's construction with one truncated column.
 
@@ -185,7 +188,7 @@ def find_wilson_decomposition_with_one_truncated_group(int k,int n):
         if u == 0 or (u>1 and k >= u+2):
             continue
 
-        m = n//r
+        m = n/r
         # If there exists a TD(k,m) then k<m+2
         if k >= m+2:
             break
@@ -199,7 +202,7 @@ def find_wilson_decomposition_with_one_truncated_group(int k,int n):
 
     return False
 
-def find_wilson_decomposition_with_two_truncated_groups(int k,int n):
+cpdef find_wilson_decomposition_with_two_truncated_groups(int k,int n):
     r"""
     Find `rm+r_1+r_2=n` to obtain an `OA(k,n)` by Wilson's construction with two truncated columns.
 
@@ -229,8 +232,8 @@ def find_wilson_decomposition_with_two_truncated_groups(int k,int n):
                                    # an OA(k+2,r), necessarily r=1 or r >= k+1
         if not is_available(k+2,r):
             continue
-        m_min = (n - (2*r-2))//r
-        m_max = (n - 2)//r
+        m_min = (n - (2*r-2))/r
+        m_max = (n - 2)/r
         if m_min > 1:
             m_values = range(max(m_min,k-1), m_max+1)
         else:
@@ -260,7 +263,7 @@ def find_wilson_decomposition_with_two_truncated_groups(int k,int n):
                     return simple_wilson_construction, (k,r,m,(r1,r2))
     return False
 
-def find_construction_3_3(int k,int n):
+cpdef find_construction_3_3(int k,int n):
     r"""
     Find a decomposition for construction 3.3 from [AC07]_
 
@@ -284,12 +287,12 @@ def find_construction_3_3(int k,int n):
         sage: find_construction_3_3(12,11)
     """
     cdef int mm,nn,i
-    for mm in range(k-1,n//2+1):
+    for mm in range(k-1,n/2+1):
         if (not is_available(k ,mm  ) or
             not is_available(k ,mm+1)):
             continue
 
-        for nn in range(2,n//mm+1):
+        for nn in range(2,n/mm+1):
             i = n-nn*mm
             if i<=0:
                 continue
@@ -299,7 +302,7 @@ def find_construction_3_3(int k,int n):
                 from orthogonal_arrays_build_recursive import construction_3_3
                 return construction_3_3, (k,nn,mm,i)
 
-def find_construction_3_4(k,n):
+cpdef find_construction_3_4(k,n):
     r"""
     Find a decomposition for construction 3.4 from [AC07]_
 
@@ -323,13 +326,13 @@ def find_construction_3_4(k,n):
         sage: find_construction_3_4(9,24)
     """
     cdef int mm,nn,i,r,s
-    for mm in range(k-1,n//2+1):
+    for mm in range(k-1,n/2+1):
         if (not is_available(k,mm+0) or
             not is_available(k,mm+1) or
             not is_available(k,mm+2)):
             continue
 
-        for nn in range(2,n//mm+1):
+        for nn in range(2,n/mm+1):
             i = n-nn*mm
             if i<=0:
                 continue
@@ -342,7 +345,7 @@ def find_construction_3_4(k,n):
                     from orthogonal_arrays_build_recursive import construction_3_4
                     return construction_3_4, (k,nn,mm,r,s)
 
-def find_construction_3_5(int k,int n):
+cpdef find_construction_3_5(int k,int n):
     r"""
     Find a decomposition for construction 3.5 from [AC07]_
 
@@ -362,18 +365,18 @@ def find_construction_3_5(int k,int n):
 
         sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_construction_3_5
         sage: find_construction_3_5(8,111)[1]
-        (8, 13, 6, 11, 11, 11)
+        (8, 13, 6, 9, 11, 13)
         sage: find_construction_3_5(9,24)
     """
     cdef int mm,i,nn,r,s,t
-    for mm in range(2,n//2+1):
+    for mm in range(2,n/2+1):
         if (mm+3 >= n or
             not is_available(k,mm+1) or
             not is_available(k,mm+2) or
             not is_available(k,mm+3)):
             continue
 
-        for nn in range(2,n//mm+1):
+        for nn in range(2,n/mm+1):
             i = n-nn*mm
             if i<=0:
                 continue
@@ -381,16 +384,17 @@ def find_construction_3_5(int k,int n):
             if not is_available(k+3,nn):
                 continue
 
-            for r,s,t in IntegerListsLex(i,length=3,ceiling=[nn-1,nn-1,nn-1]):
-                if (r <= s and
-                    (nn-r-1)*(nn-s) < t and
-                    (r==0 or is_available(k,r)) and
-                    (s==0 or is_available(k,s)) and
-                    (t==0 or is_available(k,t))):
-                    from orthogonal_arrays_build_recursive import construction_3_5
-                    return construction_3_5, (k,nn,mm,r,s,t)
+            for s in range(min(i+1,nn)):
+                for r in range(max(0,i-nn-s), min(s+1,i-s+1,nn)):
+                    t = i - r - s
+                    if ((nn-r-1)*(nn-s) < t         and
+                        (r==0 or is_available(k,r)) and
+                        (s==0 or is_available(k,s)) and
+                        (t==0 or is_available(k,t))):
+                        from orthogonal_arrays_build_recursive import construction_3_5
+                        return construction_3_5, (k,nn,mm,r,s,t)
 
-def find_construction_3_6(int k,int n):
+cpdef find_construction_3_6(int k,int n):
     r"""
     Find a decomposition for construction 3.6 from [AC07]_
 
@@ -415,13 +419,13 @@ def find_construction_3_6(int k,int n):
     """
     cdef int mm,nn,i
 
-    for mm in range(k-1,n//2+1):
+    for mm in range(k-1,n/2+1):
         if (not is_available(k,mm+0) or
             not is_available(k,mm+1) or
             not is_available(k,mm+2)):
             continue
 
-        for nn in range(2,n//mm+1):
+        for nn in range(2,n/mm+1):
             i = n-nn*mm
             if i<=0:
                 continue
@@ -431,7 +435,7 @@ def find_construction_3_6(int k,int n):
                 from orthogonal_arrays_build_recursive import construction_3_6
                 return construction_3_6, (k,nn,mm,i)
 
-def find_q_x(int k,int n):
+cpdef find_q_x(int k,int n):
     r"""
     Find integers `q,x` such that the `q-x` construction yields an `OA(k,n)`.
 
@@ -470,7 +474,7 @@ def find_q_x(int k,int n):
     for q in range(max(3,k+2),n):
         # n-q**2+q-2 = 2x-qx
         #            = x(2-q)
-        x = (n-q**2+q-2)//(2-q)
+        x = (n-q**2+q-2)/(2-q)
         if (x < q and
             0 < x and
             n == (q-1)*(q-x)+x+2             and
@@ -484,7 +488,7 @@ def find_q_x(int k,int n):
             return construction_q_x, (k,q,x)
     return False
 
-def find_thwart_lemma_3_5(int k,int N):
+cpdef find_thwart_lemma_3_5(int k,int N):
     r"""
     Find the values on which Lemma 3.5 from [Thwarts]_ applies.
 
@@ -546,7 +550,7 @@ def find_thwart_lemma_3_5(int k,int N):
 
         # 1. look for m,a,b,c,d with complement=False
         # (we restrict to a >= b >= c)
-        for m in range(max(k-1,(N+n-1)//n-4), N//n+1):
+        for m in range(max(k-1,(N+n-1)/n-4), N/n+1):
             if not (is_available(k,m+0) and
                     is_available(k,m+1) and
                     is_available(k,m+2)):
@@ -554,10 +558,10 @@ def find_thwart_lemma_3_5(int k,int N):
 
             NN = N - n*m
             # as a >= b >= c and d <= n we can restrict the start of the loops
-            for a in range(max(0, (NN-n+2)//3), min(n, NN)+1): # (NN-n+2)//3 <==> ceil((NN-n)/3)x
+            for a in range(max(0, (NN-n+2)/3), min(n, NN)+1): # (NN-n+2)/3 <==> ceil((NN-n)/3)x
                 if not is_available(k,a):
                     continue
-                for b in range(max(0, (NN-n-a+1)//2), min(a, n+1-a, NN-a)+1):
+                for b in range(max(0, (NN-n-a+1)/2), min(a, n+1-a, NN-a)+1):
                     if not is_available(k,b):
                         continue
                     for c in range(max(0, NN-n-a-b), min(b, n+1-a-b, NN-a-b)+1):
@@ -574,18 +578,18 @@ def find_thwart_lemma_3_5(int k,int N):
 
         # 2. look for m,a,b,c,d with complement=True
         # (we restrict to a >= b >= c)
-        for m in range(max(k-2,N//n-4), (N+n-1)//n):
+        for m in range(max(k-2,N/n-4), (N+n-1)/n):
             if not (is_available(k,m+1) and
                     is_available(k,m+2) and
                     is_available(k,m+3)):
                 continue
 
             NN = N - n*m
-            for a in range(max(0, (NN-n+2)//3), min(n, NN)+1): # (NN-n+2)//3 <==> ceil((NN-n)/3)
+            for a in range(max(0, (NN-n+2)/3), min(n, NN)+1): # (NN-n+2)/3 <==> ceil((NN-n)/3)
                 if not is_available(k,a):
                     continue
                 na = n-a
-                for b in range(max(0, (NN-n-a+1)//2), min(a, NN-a)+1):
+                for b in range(max(0, (NN-n-a+1)/2), min(a, NN-a)+1):
                     nb = n-b
                     if na+nb > n+1 or not is_available(k,b):
                         continue
@@ -604,7 +608,7 @@ def find_thwart_lemma_3_5(int k,int N):
 
     return False
 
-def find_thwart_lemma_4_1(int k,int n):
+cpdef find_thwart_lemma_4_1(int k,int n):
     r"""
     Find a decomposition for Lemma 4.1 from [Thwarts]_.
 
@@ -638,7 +642,7 @@ def find_thwart_lemma_4_1(int k,int n):
         nn = 1
         for i in range(1,imax+1):
             nn *= p
-            mm = (n+8)//nn-4
+            mm = (n+8)/nn-4
             if (k+4 > nn+1 or
                 mm <= 1 or
                 nn % 3 == 2 or
@@ -653,7 +657,7 @@ def find_thwart_lemma_4_1(int k,int n):
 
     return False
 
-def find_three_factor_product(int k,int n):
+cpdef find_three_factor_product(int k,int n):
     r"""
     Find `n_1n_2n_3=n` to obtain an `OA(k,n)` by the three-factor product from [DukesLing14]_
 
@@ -686,7 +690,7 @@ def find_three_factor_product(int k,int n):
     for n1 in smallInteger(n).divisors()[1:-1]:
         if not is_available(k-1,n1):
             continue
-        for n2 in smallInteger(n//n1).divisors():
+        for n2 in smallInteger(n/n1).divisors():
             n3 = n/n1/n2
             if (n2<n1 or
                 n3<n2 or
@@ -698,7 +702,7 @@ def find_three_factor_product(int k,int n):
 
     return False
 
-def find_brouwer_separable_design(int k,int n):
+cpdef find_brouwer_separable_design(int k,int n):
     r"""
     Find `t(q^2+q+1)+x=n` to obtain an `OA(k,n)` by Brouwer's separable design construction.
 
@@ -730,8 +734,8 @@ def find_brouwer_separable_design(int k,int n):
         # <=>             n-q^2-1 <= t(q^2+q+1)
         # <=> (n-q^2-1)/(q^2+q+1) <= t
 
-        min_t = (n-q**2-1)//baer_subplane_size
-        max_t = min(n//baer_subplane_size,q**2-q+1)
+        min_t = (n-q**2-1)/baer_subplane_size
+        max_t = min(n/baer_subplane_size,q**2-q+1)
 
         for t in range(min_t,max_t+1):
             x = n - t*baer_subplane_size

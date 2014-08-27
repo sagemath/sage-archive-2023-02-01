@@ -1411,7 +1411,7 @@ class FreeQuadraticModule_submodule_with_basis_field(
         sage: loads(W.dumps()) == W
         True
     """
-    def __init__(self, ambient, basis, inner_product_basis,
+    def __init__(self, ambient, basis, inner_product_matrix,
                  check=True, echelonize=False, echelonized_basis=None, already_echelonized=False):
         """
         Create a vector space with given basis.

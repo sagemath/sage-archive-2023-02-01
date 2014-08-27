@@ -2469,6 +2469,10 @@ Vmt_vectors = {
                """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
                Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
 
+    (12,185) : ((0,1,404,324,935,605,366,360,178,221,533,1940,30),
+               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
+
     (12,191) : ((0,1,491,527,939,377,1685,1735,1967,1176,391,2192,681),
                """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
                Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
@@ -2567,6 +2571,8 @@ EXAMPLES::
     V(12,121): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
                    Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
     V(12,169): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
+    V(12,185): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
                    Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
     V(12,191): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
                    Australasian Journal of Combinatorics 2008, vol 40, pp 69-85

@@ -309,6 +309,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
         from sage.algebras.free_algebra import FreeAlgebra
         from sage.rings.polynomial.term_order import TermOrder
         from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+        from sage.modules.free_module_element import vector
 
         if names is None:
             if degrees is None:
@@ -330,7 +331,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                 try:
                     rank = len(list(degrees[0]))
                     G = AdditiveAbelianGroup([0]*rank)
-                    degrees = [G(_) for _ in degrees]
+                    degrees = [G(vector(_)) for _ in degrees]
                 except TypeError:
                     # The entries of degrees are not iterables, so
                     # treat as singly-graded.
@@ -935,12 +936,13 @@ class GCAlgebra_multigraded(GCAlgebra):
         """
         from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
         from sage.rings.integer import Integer
+        from sage.modules.free_module_element import vector
 
         tot_basis = GCAlgebra.basis(self, total_degree(n))
         if total or isinstance(n, (int, Integer)):
             return tot_basis
         G = AdditiveAbelianGroup([0] * self._grading_rank)
-        n = G(n)
+        n = G(vector(n))
         return [_ for _ in tot_basis if _.degree() == n]
 
 
@@ -1728,12 +1730,13 @@ class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra_class):
         from sage.matrix.constructor import matrix
         from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
         from sage.rings.integer import Integer
+        from sage.modules.free_module_element import vector
 
         if total or isinstance(n, (int, Integer)):
             return self.differential_matrix(total_degree(n))
 
         G = AdditiveAbelianGroup([0] * self._grading_rank)
-        n = G(n)
+        n = G(vector(n))
         dom = self.basis(n)
         cod = self.basis(n+self._degree_of_differential)
         cokeys = [a.lift().dict().keys()[0] for a in cod]
@@ -1780,12 +1783,13 @@ class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra_class):
         from sage.modules.free_module import VectorSpace
         from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
         from sage.rings.integer import Integer
+        from sage.modules.free_module_element import vector
 
         if total or isinstance(n, (int, Integer)):
             return CDGAlgebra_class.coboundaries(self, total_degree(n))
 
         G = AdditiveAbelianGroup([0] * self._grading_rank)
-        n = G(n)
+        n = G(vector(n))
         F = self.base_ring()
         if total_degree(n) == 0:
             return VectorSpace(F, 0)
@@ -1831,12 +1835,13 @@ class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra_class):
         from sage.modules.free_module import VectorSpace
         from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
         from sage.rings.integer import Integer
+        from sage.modules.free_module_element import vector
 
         if total or isinstance(n, (int, Integer)):
             return CDGAlgebra_class.cocycles(self, total_degree(n))
 
         G = AdditiveAbelianGroup([0] * self._grading_rank)
-        n = G(n)
+        n = G(vector(n))
         F = self.base_ring()
         if total_degree(n) == 0:
             return VectorSpace(F, 1)
@@ -2071,7 +2076,7 @@ def CDGAlgebra(ring, names=None, degrees=None, differential=None, relations=None
         [a*c]
         sage: G = AdditiveAbelianGroup([0,0]); G
         Additive abelian group isomorphic to Z + Z
-        sage: D.basis(G([1,2]))
+        sage: D.basis(G(vector([1,2])))
         [a*c]
         sage: (a*b*c**2).degree()
         (2, 5)

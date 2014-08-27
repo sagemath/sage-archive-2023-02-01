@@ -148,7 +148,9 @@ def Hom(X, Y, category=None, check=True):
     is used::
 
         sage: Hom(X, Y)
-        Set of Morphisms from Integer Ring to Symmetric group of order 3! as a permutation group in Category of monoids
+        Set of Morphisms from Integer Ring
+         to Symmetric group of order 3! as a permutation group
+         in Join of Category of monoids and Category of enumerated sets
 
     Otherwise, if ``category`` is specified, then ``category`` is used,
     after checking that ``X`` and ``Y`` are indeed in ``category``::
@@ -668,7 +670,7 @@ class Homset(Set_generic):
             sage: E = EllipticCurve('37a')
             sage: H = E(0).parent(); H
             Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
-            sage: hash(H)
+            sage: hash(H)           # random output
             -1145411691             # 32-bit
             -8446824869798451307    # 64-bit
         """

@@ -1592,7 +1592,7 @@ def inf(s,t):
         sage: sp2 = Set([Set([1,3]), Set([2,4])])
         sage: s = Set([ Set([2,4]), Set([3]), Set([1])]) #{{2, 4}, {3}, {1}}
         sage: sage.combinat.set_partition.inf(sp1, sp2) == s
-        doctest:1: DeprecationWarning: inf(s, t) is deprecated. Use s.inf(t) instead.
+        doctest:...: DeprecationWarning: inf(s, t) is deprecated. Use s.inf(t) instead.
         See http://trac.sagemath.org/14140 for details.
         True
     """
@@ -1612,7 +1612,7 @@ def sup(s,t):
         sage: sp2 = Set([Set([1,3]), Set([2,4])])
         sage: s = Set([ Set([1,2,3,4]) ])
         sage: sage.combinat.set_partition.sup(sp1, sp2) == s
-        doctest:1: DeprecationWarning: sup(s, t) is deprecated. Use s.sup(t) instead.
+        doctest:...: DeprecationWarning: sup(s, t) is deprecated. Use s.sup(t) instead.
         See http://trac.sagemath.org/14140 for details.
         True
     """
@@ -1632,7 +1632,7 @@ def standard_form(sp):
     EXAMPLES::
 
         sage: map(sage.combinat.set_partition.standard_form, SetPartitions(4, [2,2]))
-        doctest:1: DeprecationWarning: standard_form(sp) is deprecated. Use sp.standard_form() instead.
+        doctest:...: DeprecationWarning: standard_form(sp) is deprecated. Use sp.standard_form() instead.
         See http://trac.sagemath.org/14140 for details.
         [[[1, 2], [3, 4]], [[1, 3], [2, 4]], [[1, 4], [2, 3]]]
     """
@@ -1649,7 +1649,7 @@ def less(s, t):
 
         sage: z = SetPartitions(3).list()
         sage: sage.combinat.set_partition.less(z[0], z[1])
-        doctest:1: DeprecationWarning: less(s, t) is deprecated. Use SetPartitions.is_less_tan(s, t) instead.
+        doctest:...: DeprecationWarning: less(s, t) is deprecated. Use SetPartitions.is_less_tan(s, t) instead.
         See http://trac.sagemath.org/14140 for details.
         False
     """

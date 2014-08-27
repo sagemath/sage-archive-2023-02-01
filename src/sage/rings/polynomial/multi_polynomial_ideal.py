@@ -518,7 +518,7 @@ class MagmaDefaultContext:
 
         EXAMPLE::
 
-            sage: from sage.rings.polynomial.multi_polynomial_ideal import MagmaDefaultContext
+            sage: from sage.rings.polynomial.multi_polynomial_ideal import MagmaDefaultContext # optional - magma
             sage: magma.SetVerbose('Groebner',1) # optional - magma
             sage: with MagmaDefaultContext(): magma.GetVerbose('Groebner')  # optional - magma
             0
@@ -689,12 +689,20 @@ class MPolynomialIdeal_magma_repr:
             sage: gb = I.groebner_basis('magma:GroebnerBasis') # indirect doctest; optional - magma
             sage: len(gb)                                      # optional - magma
             45
+
+         We may also pass a degree bound to Magma::
+        
+            sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
+            sage: I = sage.rings.ideal.Cyclic(R,6)
+            sage: gb = I.groebner_basis('magma:GroebnerBasis', deg_bound=4) # indirect doctest; optional - magma
+            sage: len(gb)                                      # optional - magma
+            7
         """
         R   = self.ring()
         if not deg_bound:
             mself = magma(self)
         else:
-            mself = magma(self.gens())
+            mself = magma(list(self.gens())) # PolynomialSequence converts to a Magma Ideal too, so we force a list
 
         if get_verbose() >= 2:
             prot = True
@@ -1498,6 +1506,15 @@ class MPolynomialIdeal_singular_repr(
             0
             sage: I.vector_space_dimension()
             4
+
+        When the ideal is not zero-dimensional, we return infinity::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: I = R.ideal(x)
+            sage: I.dimension()
+            1
+            sage: I.vector_space_dimension()
+            +Infinity
         """
         R = self.ring()
         gb = R.ideal(self.groebner_basis())
@@ -1507,7 +1524,8 @@ class MPolynomialIdeal_singular_repr(
         vd = Integer(vdim(gb, attributes={gb:{'isSB':1}}))
 
         if vd == -1:
-            raise TypeError("ideal is not zero dimensional")
+            from sage.rings.infinity import Infinity
+            return Infinity
         else:
             return vd
 
@@ -2593,6 +2611,13 @@ class MPolynomialIdeal_singular_repr(
             sage: I.variety()
             []
 
+        Check that the issue at :trac:`16485` is fixed::
+
+            sage: R.<a,b,c> = PolynomialRing(QQ, order='lex')
+            sage: I = R.ideal(c^2-2, b-c, a)
+            sage: I.variety(QQbar)
+            [...a: 0...]
+
         ALGORITHM:
 
         Uses triangular decomposition.
@@ -2613,9 +2638,9 @@ class MPolynomialIdeal_singular_repr(
                 return V
 
             variable = f.variable(0)
-            roots = f.univariate_polynomial().roots(ring=ring)
+            roots = f.univariate_polynomial().roots(ring=ring, multiplicities=False)
 
-            for root,_ in roots:
+            for root in roots:
                 vbar = v.copy()
                 vbar[variable] = root
                 Tbar = [ f.subs({variable:root}) for f in T ]
@@ -2646,7 +2671,7 @@ class MPolynomialIdeal_singular_repr(
 
         V = []
         for t in T:
-            Vbar = _variety(list(t),[])
+            Vbar = _variety([P(f) for f in t], [])
             #Vbar = _variety(list(t.gens()),[])
 
             for v in Vbar:

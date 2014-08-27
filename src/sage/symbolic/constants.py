@@ -376,6 +376,26 @@ class Constant(object):
         """
         return self._pynac.expression()
 
+    def _symbolic_(self, SR):
+        """
+        Returns an expression for this constant.
+
+        INPUT:
+
+        - ``SR`` - a symbolic ring parent
+
+        EXAMPLES::
+
+            sage: SR(pi.pyobject())
+            pi
+            sage: pi.pyobject()._symbolic_(SR)
+            pi
+            sage: f(x,y) = 2
+            sage: f.parent()(pi.pyobject())
+            (x, y) |--> pi
+        """
+        return SR(self.expression())
+
     def name(self):
         """
         Returns the name of this constant.

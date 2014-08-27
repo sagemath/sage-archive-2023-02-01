@@ -201,7 +201,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
             """
             from sage.combinat.family import Family
-            return Family(self._basis_keys, self.monomial)
+            return Family(self._indices, self.monomial)
 
         def module_morphism(self, on_basis = None, diagonal = None, triangular = None, **keywords):
             r"""

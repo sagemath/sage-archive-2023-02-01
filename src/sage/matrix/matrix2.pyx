@@ -6776,8 +6776,7 @@ cdef class Matrix(matrix1.Matrix):
         from sage.misc.superseded import deprecation
         deprecation(16888, 'You can just call row_reduced_form() instead')
         return self.row_reduced_form(ascend)
-
-    def row_reduced_form(self, ascend=True):
+    def row_reduced_form(self, ascend=None):
         """
         This function computes a row reduced form of a matrix over a rational
         function field `k(x)`, for `k` a field.
@@ -6920,7 +6919,7 @@ cdef class Matrix(matrix1.Matrix):
 
         """
         import sage.matrix.matrix_misc
-        return sage.matrix.matrix_misc.row_reduced_form(self)
+        return sage.matrix.matrix_misc.row_reduced_form(self,ascend)
 
     ##########################################################################
     # Functions for symmetries of a matrix under row and column permutations #

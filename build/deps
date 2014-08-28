@@ -31,6 +31,7 @@ all-sage: \
      $(INST)/$(CDDLIB) \
      $(INST)/$(CEPHES) \
      $(INST)/$(CLIQUER) \
+     $(INST)/$(COMBINATORIAL_DESIGNS) \
      $(INST)/$(CONWAY) \
      $(INST)/$(CVXOPT) \
      $(INST)/$(CYTHON) \
@@ -163,11 +164,14 @@ $(INST)/prereq: ../configure
 	    fi; )
 	touch $@
 
+$(INST)/$(PATCH):
+	+$(PIPE) "$(SAGE_SPKG) $(PATCH) 2>&1" "tee -a $(SAGE_LOGS)/$(PATCH).log"
+
+$(INST)/$(PKGCONF): $(INST)/$(PATCH)
+	+$(PIPE) "$(SAGE_SPKG) $(PKGCONF) 2>&1" "tee -a $(SAGE_LOGS)/$(PKGCONF).log"
+
 $(INST)/$(BZIP2): $(INST)/prereq $(INST)/$(PKGCONF)
 	+$(PIPE) "$(SAGE_SPKG) $(BZIP2) 2>&1" "tee -a $(SAGE_LOGS)/$(BZIP2).log"
-
-$(INST)/$(PATCH): $(INST)/$(BZIP2)
-	+$(PIPE) "$(SAGE_SPKG) $(PATCH) 2>&1" "tee -a $(SAGE_LOGS)/$(PATCH).log"
 
 ###############################################################################
 # Building normal packages
@@ -184,6 +188,9 @@ $(INST)/$(BOOST_CROPPED):
 
 $(INST)/$(CLIQUER):
 	+$(PIPE) "$(SAGE_SPKG) $(CLIQUER) 2>&1" "tee -a $(SAGE_LOGS)/$(CLIQUER).log"
+
+$(INST)/$(COMBINATORIAL_DESIGNS):
+	+$(PIPE) "$(SAGE_SPKG) $(COMBINATORIAL_DESIGNS) 2>&1" "tee -a $(SAGE_LOGS)/$(COMBINATORIAL_DESIGNS).log"
 
 $(INST)/$(NCURSES): $(INST)/$(PKGCONF)
 	+$(PIPE) "$(SAGE_SPKG) $(NCURSES) 2>&1" "tee -a $(SAGE_LOGS)/$(NCURSES).log"
@@ -471,6 +478,7 @@ $(INST)/sage: \
 		 $(INST)/$(IML) \
 		 $(INST)/$(JINJA2) \
 		 $(INST)/$(LCALC) \
+		 $(INST)/$(LRCALC) \
 		 $(INST)/$(LIBGAP) \
 		 $(INST)/$(LIBPNG) \
 		 $(INST)/$(LINBOX) \
@@ -520,9 +528,6 @@ $(INST)/$(GCC): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(MPC) \
 
 $(INST)/$(PILLOW): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(PILLOW) 2>&1" "tee -a $(SAGE_LOGS)/$(PILLOW).log"
-
-$(INST)/$(PKGCONF): 
-	+$(PIPE) "$(SAGE_SPKG) $(PKGCONF) 2>&1" "tee -a $(SAGE_LOGS)/$(PKGCONF).log"
 
 $(INST)/$(PKGCONFIG): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(PKGCONFIG) 2>&1" "tee -a $(SAGE_LOGS)/$(PKGCONFIG).log"

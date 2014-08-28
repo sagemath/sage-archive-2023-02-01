@@ -5455,7 +5455,7 @@ cdef class Expression(CommutativeRingElement):
                     ans += coeff*xpow
         return ans
 
-    def polynomial(self, base_ring, ring=None):
+    def polynomial(self, base_ring=None, ring=None):
         r"""
         Return this symbolic expression as an algebraic polynomial
         over the given base ring, if possible.
@@ -5464,14 +5464,21 @@ cdef class Expression(CommutativeRingElement):
         polynomials into optimised algebraic polynomials over a given
         base ring.
 
+        You can specify either the base ring (``base_ring``) you want
+        the output polynomial to be over, or you can specify the full
+        polynomial ring (``ring``) you want the output polynomial to
+        be an element of.
+
+        INPUT:
+
+        -  ``base_ring`` - (optional) the base ring for the polynomial
+
+        -  ``ring`` - (optional) the parent for the polynomial
+
         .. warning::
 
            This is different from :meth:`poly` which is used to rewrite
            self as a polynomial in terms of one of the variables.
-
-        INPUT:
-
-        -  ``base_ring`` - a ring
 
         EXAMPLES::
 
@@ -5538,6 +5545,23 @@ cdef class Expression(CommutativeRingElement):
             3*x^35 + 2*y^35
             sage: parent(g)
             Multivariate Polynomial Ring in x, y over Finite Field of size 7
+
+        We check to make sure constants are converted appropriately::
+
+            sage: (pi*x).polynomial(SR)
+            pi*x
+
+        Using the ``ring`` parameter, you can also create polynomials
+        rings over the symbolic ring where only certain variables are
+        considered generators of the polynomial ring and the others
+        are considered "constants"::
+
+            sage: a, x, y = var('a,x,y')
+            sage: f = a*x^10*y+3*x
+            sage: B = f.polynomial(ring=SR['x,y'])
+            sage: B.coefficients()
+            [a, 3]
+
         """
         from sage.symbolic.expression_conversions import polynomial
         return polynomial(self, base_ring=base_ring, ring=ring)
@@ -8058,11 +8082,9 @@ cdef class Expression(CommutativeRingElement):
 
     def simplify_hypergeometric(self, algorithm='maxima'):
         """
-        Simplify an expression containing hypergeometric functions
+        Simplify an expression containing hypergeometric functions.
 
         INPUT:
-
-        - ``self`` -- symbolic expression
  
         - ``algorithm`` -- (default: ``'maxima'``) the algorithm to use for
           for simplification. Implemented are ``'maxima'``, which uses Maxima's
@@ -8111,7 +8133,7 @@ cdef class Expression(CommutativeRingElement):
                                             ops[1].operands()),
                                         ops[2].simplify_hypergeometric(algorithm))))
             else:
-                return NotImplementedError('unknown algorithm')
+                raise NotImplementedError('unknown algorithm')
         if not op:
             return self
         return op(*map(lambda o: o.simplify_hypergeometric(algorithm), ops))

@@ -62,6 +62,8 @@ This is a catalog of crystals that are currently in Sage:
 * :class:`NakajimaMonomials <sage.combinat.crystals.monomial_crystals.CrystalOfNakajimaMonomials>`
 * :class:`ProjectedLevelZeroLSPaths
   <sage.combinat.crystals.littelmann_path.CrystalOfProjectedLevelZeroLSPaths>`
+* :class:`RiggedConfigurations
+  <sage.combinat.rigged_configurations.rc_crystal.CrystalOfRiggedConfigurations>`
 * :class:`Spins <sage.combinat.crystals.spins.CrystalOfSpins>`
 * :class:`SpinsPlus <sage.combinat.crystals.spins.CrystalOfSpinsPlus>`
 * :class:`SpinsMinus <sage.combinat.crystals.spins.CrystalOfSpinsMinus>`
@@ -96,6 +98,7 @@ from generalized_young_walls import CrystalOfGeneralizedYoungWalls as Generalize
 from monomial_crystals import CrystalOfNakajimaMonomials as NakajimaMonomials
 from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
 from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinCrystal as KirillovReshetikhin
+from sage.combinat.rigged_configurations.rc_crystal import CrystalOfRiggedConfigurations as RiggedConfigurations
 
 from tensor_product import TensorProductOfCrystals as TensorProduct
 from direct_sum import DirectSumOfCrystals as DirectSum

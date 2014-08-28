@@ -6712,6 +6712,40 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return P.new_gen(idealappr0(self.g, t0.g, flag))
 
+    def idealchinese(self, x, y):
+        """
+        Chinese Remainder Theorem over number fields.
+        
+        INPUT:
+
+        - ``x`` -- prime ideal factorization
+        - ``y`` -- vector of elements
+
+        OUTPUT:
+
+        An element b in the ambient number field ``self`` such that
+        `v_p(b-y_p) \ge v_p(x)` for all prime ideals `p` dividing `x`,
+        and `v_p(b) \ge 0` for all other `p`.
+
+        EXAMPLES::
+
+            sage: F = QuadraticField(5, 'alpha')
+            sage: nf = F._pari_()
+            sage: P = F.ideal(F.gen())
+            sage: Q = F.ideal(2)
+            sage: moduli = pari.matrix(2,2,[P.pari_prime(),4,Q.pari_prime(),4])
+            sage: residues = pari.vector(2,[0,1])
+            sage: b = F(nf.idealchinese(moduli,residues))
+            sage: b.valuation(P) >= 4
+            True
+            sage: (b-1).valuation(Q) >= 2
+            True
+        """
+        cdef gen tx = objtogen(x)
+        cdef gen ty = objtogen(y)
+        pari_catch_sig_on()
+        return P.new_gen(idealchinese(self.g, tx.g, ty.g))
+
     def idealcoprime(self, x, y):
         """
         Given two integral ideals x and y of a pari number field self,

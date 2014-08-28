@@ -6387,12 +6387,12 @@ cdef class Matrix(matrix1.Matrix):
             extended.set_immutable()
         return extended
 
-    def weak_popov_form(self, ascend=None):
+    def weak_popov_form(self, ascend=True):
         from sage.misc.superseded import deprecation
         deprecation(16888, 'You can just call row_reduced_form() instead')
-        return self.row_reduced_form(ascend=True)
+        return self.row_reduced_form(ascend)
 
-    def row_reduced_form(self, ascend=None):
+    def row_reduced_form(self, ascend=True):
         """
         This function computes a row reduced form of a matrix over a rational
         function field `k(x)`, for `k` a field.
@@ -6543,7 +6543,7 @@ cdef class Matrix(matrix1.Matrix):
 
         """
         import sage.matrix.matrix_misc
-        return sage.matrix.matrix_misc.row_reduced_form(self,ascend)
+        return sage.matrix.matrix_misc.row_reduced_form(self)
 
     ##########################################################################
     # Functions for symmetries of a matrix under row and column permutations #

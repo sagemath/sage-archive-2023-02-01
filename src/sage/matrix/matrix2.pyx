@@ -6387,9 +6387,14 @@ cdef class Matrix(matrix1.Matrix):
             extended.set_immutable()
         return extended
 
-    def weak_popov_form(self, ascend=True):
+    def weak_popov_form(self, ascend=None):
+        from sage.misc.superseded import deprecation
+        deprecation(16888, 'You can just call row_reduced_form() instead')
+        return self.row_reduced_form(ascend=True)
+
+    def row_reduced_form(self, ascend=None):
         """
-        This function computes a weak Popov form of a matrix over a rational
+        This function computes a row reduced form of a matrix over a rational
         function field `k(x)`, for `k` a field.
 
         INPUT:
@@ -6422,7 +6427,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<t> = GF(3)['t']
             sage: K = FractionField(R)
             sage: M = matrix([[(t-1)^2/t],[(t-1)]])
-            sage: M.weak_popov_form()
+            sage: M.row_reduced_form()
             (
             [          0]  [      t 2*t + 1]
             [(2*t + 1)/t], [      1       2], [-Infinity, 0]
@@ -6435,7 +6440,7 @@ cdef class Matrix(matrix1.Matrix):
         ::
 
             sage: M1 = matrix([[t*(t-1)*(t+1)],[t*(t-2)*(t+2)],[t]])
-            sage: output1 = M1.weak_popov_form()
+            sage: output1 = M1.row_reduced_form()
             sage: output1
             (
             [0]  [        1         0 2*t^2 + 1]
@@ -6450,7 +6455,7 @@ cdef class Matrix(matrix1.Matrix):
         ::
 
             sage: M2 = M1.change_ring(K)
-            sage: output2 = M2.weak_popov_form()
+            sage: output2 = M2.row_reduced_form()
             sage: output1 == output2
             True
             sage: output1[0].base_ring() is K
@@ -6469,7 +6474,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t^3 - t,t^2 - 2],[0,t]]).transpose()
-            sage: M.weak_popov_form()
+            sage: M.row_reduced_form()
             (
             [      t    -t^2]  [ 1 -t]
             [t^2 - 2       t], [ 0  1], [2, 2]
@@ -6482,7 +6487,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<t> = GF(5)['t']
             sage: K = FractionField(R)
             sage: M = matrix([[K(0),K(0)],[K(0),K(0)]])
-            sage: M.weak_popov_form()
+            sage: M.row_reduced_form()
             (
             [0 0]  [1 0]
             [0 0], [0 1], [-Infinity, -Infinity]
@@ -6494,7 +6499,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t,t,t],[0,0,t]], ascend=False)
-            sage: M.weak_popov_form()
+            sage: M.row_reduced_form()
             (
             [t t t]  [1 0]
             [0 0 t], [0 1], [1, 1]
@@ -6506,7 +6511,7 @@ cdef class Matrix(matrix1.Matrix):
         ::
 
             sage: M = matrix([[1,0],[1,1]])
-            sage: M.weak_popov_form()
+            sage: M.row_reduced_form()
             Traceback (most recent call last):
             ...
             TypeError: the coefficients of M must lie in a univariate
@@ -6538,7 +6543,7 @@ cdef class Matrix(matrix1.Matrix):
 
         """
         import sage.matrix.matrix_misc
-        return sage.matrix.matrix_misc.weak_popov_form(self)
+        return sage.matrix.matrix_misc.row_reduced_form(self,ascend)
 
     ##########################################################################
     # Functions for symmetries of a matrix under row and column permutations #

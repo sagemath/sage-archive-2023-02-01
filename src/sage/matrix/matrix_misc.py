@@ -25,7 +25,7 @@ def row_iterator(A):
     for i in xrange(A.nrows()):
         yield A.row(i)
 
-def weak_popov_form(M,ascend=True):
+def row_reduced_form(M,ascend=None):
     """
     This function computes a weak Popov form of a matrix over a rational
     function field `k(x)`, for `k` a field.
@@ -75,6 +75,10 @@ def weak_popov_form(M,ascend=True):
     more information.
     """
 
+    if ascend is not None:
+        from sage.misc.superseded import deprecation
+        deprecation(16888, 'Keyword ascend is deprecated and should no longer be used.')
+        
     # determine whether M has polynomial or rational function coefficients
     R0 = M.base_ring()
 
@@ -180,22 +184,24 @@ def weak_popov_form(M,ascend=True):
                     # so continue onto next step of algorithm
                     break
 
-    # sort the rows in order of degree
-    d = []
-    from sage.rings.all import infinity
-    for i in range(len(r)):
-        d.append(max([e.degree() for e in r[i]]))
-        if d[i] < 0:
-            d[i] = -infinity
-        else:
-            d[i] -= den.degree()
+    if ascend is not None:
+        # sort the rows in order of degree
+        d = []
+        from sage.rings.all import infinity
+        for i in range(len(r)):
+            d.append(max([e.degree() for e in r[i]]))
+            if d[i] < 0:
+                d[i] = -infinity
+            else:
+                d[i] -= den.degree()
 
-    for i in range(len(r)):
-        for j in range(i+1,len(r)):
-            if (ascend and d[i] > d[j]) or (not ascend and d[i] < d[j]):
-                (r[i], r[j]) = (r[j], r[i])
-                (d[i], d[j]) = (d[j], d[i])
-                (N[i], N[j]) = (N[j], N[i])
+        for i in range(len(r)):
+            for j in range(i+1,len(r)):
+                if (ascend and d[i] > d[j]) or (not ascend and d[i] < d[j]):
+                    (r[i], r[j]) = (r[j], r[i])
+                    (d[i], d[j]) = (d[j], d[i])
+                    (N[i], N[j]) = (N[j], N[i])
 
-    # return reduced matrix and operations matrix
-    return (matrix(r)/den, matrix(N), d)
+        # return reduced matrix and operations matrix
+        return (matrix(r)/den, matrix(N), d)
+    return (matrix(r)/den)

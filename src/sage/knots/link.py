@@ -254,7 +254,7 @@ class Link:
 
     def oriented_gauss_code(self):
         r"""
-        Return the oriented gauss code of the input. The oriented gauss
+        Return the oriented gauss code of the link. The oriented gauss
         code has two parts
         a. The gauss code
         b. The orientation of each crossing
@@ -295,7 +295,10 @@ class Link:
         if self._oriented_gauss_code != None:
             return self._oriented_gauss_code
 
-        elif self._PD_code != None:
+        if self._PD_code == None:
+            self.PD_code()
+
+        if self._PD_code != None:
             pd = self._PD_code
             orient = self.orientation()
             crossing_info = {}
@@ -326,11 +329,6 @@ class Link:
             oriented_code = [code, orient]
             self._oriented_gauss_code = oriented_code
             return self._oriented_gauss_code
-
-        elif self._braid != None:
-            self.PD_code()
-            gc = self.oriented_gauss_code()
-            return gc
 
     def PD_code(self):
         r"""

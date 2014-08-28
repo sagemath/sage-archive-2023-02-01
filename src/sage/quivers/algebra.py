@@ -577,6 +577,7 @@ class PathAlgebra(CombinatorialFreeModule):
             if not c.dimension():
                 break
             result.append(c)
+            i += 1
         return result
 
     ###########################################################################

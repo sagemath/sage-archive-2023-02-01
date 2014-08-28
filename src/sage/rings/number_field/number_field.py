@@ -1165,7 +1165,7 @@ class NumberField_generic(number_field_base.NumberField):
         else:
             self.__latex_variable_name = latex_name
         self.__polynomial = polynomial
-        self.__pari_bnf_certified = False
+        self._pari_bnf_certified = False
         self._integral_basis_dict = {}
         embedding = number_field_morphisms.create_embedding_from_approx(self, embedding)
         self._populate_coercion_lists_(embedding=embedding)
@@ -3249,12 +3249,12 @@ class NumberField_generic(number_field_base.NumberField):
             PariError: theta already exists with incompatible valence
         """
         try:
-            return self.__pari_polynomial.change_variable_name(name)
+            return self._pari_polynomial.change_variable_name(name)
         except AttributeError:
             polypari = self.polynomial()._pari_with_name(name)
             polypari /= polypari.content()   # make polypari integral
-            self.__pari_polynomial = polypari
-            return self.__pari_polynomial
+            self._pari_polynomial = polypari
+            return self._pari_polynomial
 
     def pari_nf(self, important=True):
         """
@@ -3324,13 +3324,13 @@ class NumberField_generic(number_field_base.NumberField):
         if self.absolute_polynomial().denominator() != 1:
             raise TypeError("Unable to coerce number field defined by non-integral polynomial to PARI.")
         try:
-            return self.__pari_nf
+            return self._pari_nf
         except AttributeError:
             f = self.pari_polynomial("y")
             if f.poldegree() > 1:
                 f = pari([f, self._pari_integral_basis(important=important)])
-            self.__pari_nf = f.nfinit()
-            return self.__pari_nf
+            self._pari_nf = f.nfinit()
+            return self._pari_nf
 
     def pari_zk(self):
         """
@@ -3422,21 +3422,21 @@ class NumberField_generic(number_field_base.NumberField):
         proof = get_flag(proof, "number_field")
         # First compute bnf
         try:
-            bnf = self.__pari_bnf
+            bnf = self._pari_bnf
         except AttributeError:
             if self.absolute_polynomial().denominator() != 1:
                 raise TypeError("Unable to coerce number field defined by non-integral polynomial to PARI.")
             f = self.pari_polynomial("y")
             if units:
-                self.__pari_bnf = f.bnfinit(1)
+                self._pari_bnf = f.bnfinit(1)
             else:
-                self.__pari_bnf = f.bnfinit()
-            bnf = self.__pari_bnf
+                self._pari_bnf = f.bnfinit()
+            bnf = self._pari_bnf
         # Certify if needed
-        if proof and not getattr(self, "__pari_bnf_certified", False):
+        if proof and not getattr(self, "_pari_bnf_certified", False):
             if bnf.bnfcertify() != 1:
                 raise ValueError("The result is not correct according to bnfcertify")
-            self.__pari_bnf_certified = True
+            self._pari_bnf_certified = True
         return bnf
 
     def pari_rnfnorm_data(self, L, proof=True):

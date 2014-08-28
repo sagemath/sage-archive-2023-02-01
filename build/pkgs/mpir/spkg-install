@@ -233,11 +233,10 @@ fi
 
 
 # Pre-configure MPIR to get the settings it would use if CFLAGS were empty:
-echo "Checking what CFLAGS MPIR would use if they were empty..."
-(unset CFLAGS CPPFLAGS CXXFLAGS && ./configure $MPIR_CONFIGURE) &>configure-empty.log
+echo "------------------------------------------------------------------------"
+echo "Configuring MPIR with empty CFLAGS to determine the defaults:"
+(unset CFLAGS CPPFLAGS CXXFLAGS && ./configure $MPIR_CONFIGURE)
 if [ $? -ne 0 ]; then
-    # Output the log of the failed configure run
-    cat configure-empty.log
     echo >&2 "Error configuring MPIR (with CFLAGS unset)."
     echo >&2 "Consult `pwd`/config.log for for details."
     exit 1
@@ -252,6 +251,7 @@ if [ -z "$mpir_cc" ]; then
     echo >&2 "Please report this to <sage-devel@googlegroups.com>"
     exit 1
 fi
+echo "------------------------------------------------------------------------"
 echo "Settings chosen by MPIR when configuring with CFLAGS unset:"
 echo "  CC:      $mpir_cc"
 echo "  CFLAGS:  $mpir_cflags"
@@ -289,6 +289,7 @@ echo "(These settings may still get overridden by 'configure' or Makefiles.)"
 # We also add '--libdir="$SAGE_LOCAL/lib"' below, since newer autotools may
 # otherwise put the libraries into .../lib64 on 64-bit systems (cf. #12131).
 
+echo "------------------------------------------------------------------------"
 echo "Configuring MPIR with the following options:"
 echo "    --prefix=\"$SAGE_LOCAL\" --libdir=\"$SAGE_LOCAL/lib\" $MPIR_CONFIGURE"
 echo "You can set MPIR_CONFIGURE to pass additional parameters."

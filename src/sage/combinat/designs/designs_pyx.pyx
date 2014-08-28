@@ -394,22 +394,22 @@ def is_difference_matrix(M,G,k,lmbda=1,verbose=False):
         ....:      [0, 2, 4, 1, 3, 3, 0, 2, 4, 1]]
         sage: G = GF(5)
         sage: B = [[G(b) for b in R] for R in B]
-        sage: is_difference_matrix(B,G,3,2)
+        sage: is_difference_matrix(zip(*B),G,3,2)
         True
 
     Bad input::
 
+        sage: for R in M: R.append(None)
+        sage: is_difference_matrix(M,F,q,verbose=1)
+        The matrix has 28 columns but k=27
+        False
+        sage: for R in M: _=R.pop(-1)
         sage: M.append([None]*3**3)
         sage: is_difference_matrix(M,F,q,verbose=1)
-        The matrix has 28 rows but k=27
+        The matrix has 28 rows but lambda.|G|=1.27=27
         False
-        sage: _=M.pop()
-        sage: M[0].append(1)
-        sage: is_difference_matrix(M,F,q,verbose=1)
-        Rows 0 and 1 do not have the same length
-        False
-        sage: _= M[0].pop(-1)
-        sage: M[-1] = [0]*3**3
+        sage: _= M.pop(-1)
+        sage: for R in M: R[-1] = 0
         sage: is_difference_matrix(M,F,q,verbose=1)
         Rows 0 and 26 do not generate all elements of G exactly lambda(=1)
         times. The element 0 appeared 27 times as a difference.
@@ -421,36 +421,22 @@ def is_difference_matrix(M,G,k,lmbda=1,verbose=False):
     assert lmbda >=1
 
     cdef int G_card = G.cardinality()
+    cdef int M_nrows = len(M)
     cdef int i,j,ii
     cdef int K = k
     cdef int L = lmbda
-    cdef tuple R
-
-    # The comments and variables of this code have been written for a different
-    # definition of a Difference Matrix, i.e. with cols/rows reversed. This will
-    # be corrected soon.
-    #
-    # We transpose the matrix as a first step.
-    if M:
-        for i,row in enumerate(M):
-            if len(row) != len(M[0]):
-                if verbose:
-                    print "Rows 0 and {} do not have the same length".format(i)
-                return False
-    M = zip(*M)
-    cdef int M_nrows = len(M)
 
     # Height of the matrix
     if G_card*lmbda != M_nrows:
         if verbose:
-            print "The matrix has {} columns but lambda.|G|={}.{}={}".format(M_nrows,lmbda,G_card,lmbda*G_card)
+            print "The matrix has {} rows but lambda.|G|={}.{}={}".format(M_nrows,lmbda,G_card,lmbda*G_card)
         return False
 
     # Width of the matrix
     for R in M:
         if len(R)!=K:
             if verbose:
-                print "The matrix has {} rows but k={}".format(len(R),K)
+                print "The matrix has {} columns but k={}".format(len(R),K)
             return False
 
     # When |G|=0
@@ -489,7 +475,7 @@ def is_difference_matrix(M,G,k,lmbda=1,verbose=False):
     # A copy of the matrix
     for i,R in enumerate(M):
         for j,x in enumerate(R):
-            M_c[i*K+j] = group_to_int[x]
+            M_c[i*K+j] = group_to_int[G(x)]
 
     # We are now ready to test every pair of columns
     for i in range(K):

@@ -1637,7 +1637,7 @@ def do_polred(poly):
         sage: do_polred(x^2 - x - 11)
         (1/3*x + 1/3, 3*x - 1, x^2 - x - 1)
         sage: do_polred(x^3 + 123456)
-        (-1/4*x, -4*x, x^3 - 1929)
+        (1/4*x, 4*x, x^3 + 1929)
 
     This shows that :trac:`13054` has been fixed::
 
@@ -1889,11 +1889,11 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
     elements, and then mapping them back into ``QQbar``::
 
         sage: (fld,nums,hom) = number_field_elements_from_algebraics((rt2, rt3, qqI, z3))
-        sage: fld,nums,hom
-        (Number Field in a with defining polynomial y^8 - y^4 + 1, [-a^5 + a^3 + a, a^6 - 2*a^2, -a^6, a^4 - 1], Ring morphism:
-        From: Number Field in a with defining polynomial y^8 - y^4 + 1
-        To:   Algebraic Field
-        Defn: a |--> -0.2588190451025208? + 0.9659258262890683?*I)
+        sage: fld,nums,hom  # random
+        (Number Field in a with defining polynomial y^8 - y^4 + 1, [-a^5 + a^3 + a, a^6 - 2*a^2, a^6, -a^4], Ring morphism:
+          From: Number Field in a with defining polynomial y^8 - y^4 + 1
+          To:   Algebraic Field
+          Defn: a |--> -0.2588190451025208? - 0.9659258262890683?*I)
         sage: (nfrt2, nfrt3, nfI, nfz3) = nums
         sage: hom(nfrt2)
         1.414213562373095? + 0.?e-18*I
@@ -1906,7 +1906,8 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         sage: nfI^2
         -1
         sage: sum = nfrt2 + nfrt3 + nfI + nfz3; sum
-        -a^5 + a^4 + a^3 - 2*a^2 + a - 1
+        -a^5 + a^4 + a^3 - 2*a^2 + a - 1     # 32-bit
+        2*a^6 - a^5 - a^4 + a^3 - 2*a^2 + a  # 64-bit
         sage: hom(sum)
         2.646264369941973? + 1.866025403784439?*I
         sage: hom(sum) == rt2 + rt3 + qqI + z3

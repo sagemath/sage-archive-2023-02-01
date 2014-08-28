@@ -259,8 +259,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
               A = 0
               B = Mod(1, y^2 + 7)
               C = Mod(y, y^2 + 7)
+            <BLANKLINE>
               Computing L(S,2)
-              L(S,2) = [Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y + 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1/2*y - 1/2, y^2 + 7)*x + Mod(1/2*y - 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x + Mod(-1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+              L(S,2) = [Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y + 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x^2 + 2, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y - 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+            <BLANKLINE>
               Computing the Selmer group
               #LS2gen = 2
                LS2gen = [Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
@@ -274,7 +276,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
               zc*z1^2 = Mod(Mod(2*y - 2, y^2 + 7)*x + Mod(2*y + 10, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
               quartic: (-1/2*y + 1/2)*Y^2 = x^4 + (-3*y - 15)*x^2 + (-8*y - 16)*x + (-11/2*y - 15/2)
               reduced: Y^2 = (-1/2*y + 1/2)*x^4 - 4*x^3 + (-3*y + 3)*x^2 + (2*y - 2)*x + (1/2*y + 3/2)
-              not ELS at [2, [0, 1]~, 1, 1, [1, 1]~]
+              not ELS at [2, [0, 1]~, 1, 1, [1, -2; 1, 0]]
               zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
               comes from the trivial point [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]
               m1 = 1
@@ -314,8 +316,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K = CyclotomicField(43).subfields(3)[0][0]
             sage: E = EllipticCurve(K, '37')
             sage: E.simon_two_descent()  # long time (4s on sage.math, 2013)
-            (3, 3, [(0 : 0 : 1), (1/2*zeta43_0^2 + 3/2*zeta43_0 - 2 : -zeta43_0^2 - 4*zeta43_0 + 3 : 1)])
-
+            (3, 3, [(0 : 0 : 1), (-1/4*zeta43_0^2 - 1/2*zeta43_0 + 3 : -3/8*zeta43_0^2 - 3/4*zeta43_0 + 4 : 1)])
         """
         verbose = int(verbose)
         if known_points is None:
@@ -358,7 +359,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         - ``map`` -- (default: ``False``) also return an embedding of
           the :meth:`base_field` into the resulting field.
 
-        - ``kwds`` -- additional keywords passed to 
+        - ``kwds`` -- additional keywords passed to
           :func:`sage.rings.number_field.splitting_field.splitting_field`.
 
         OUTPUT:
@@ -818,7 +819,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<v> = NumberField(x^2 + 161*x - 150)
             sage: E = EllipticCurve([25105/216*v - 3839/36, 634768555/7776*v - 98002625/1296, 634768555/7776*v - 98002625/1296, 0, 0])
             sage: E.global_integral_model()
-            Elliptic Curve defined by y^2 + (-502639783*v+465618899)*x*y + (-6603604211463489399460860*v+6117229527723443603191500)*y = x^3 + (1526887622075335620*v-1414427901517840500)*x^2 over Number Field in v with defining polynomial x^2 + 161*x - 150
+            Elliptic Curve defined by y^2 + (2094779518028859*v-1940492905300351)*x*y + (477997268472544193101178234454165304071127500*v-442791377441346852919930773849502871958097500)*y = x^3 + (26519784690047674853185542622500*v-24566525306469707225840460652500)*x^2 over Number Field in v with defining polynomial x^2 + 161*x - 150
 
         :trac:`14476`::
 
@@ -948,7 +949,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<i> = NumberField(x^2+1)
             sage: E = EllipticCurve([1 + i, 0, 1, 0, 0])
             sage: E.local_data()
-            [Local data at Fractional ideal (i - 2):
+            [Local data at Fractional ideal (2*i + 1):
             Reduction type: bad non-split multiplicative
             Local minimal model: Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1
             Minimal discriminant valuation: 1
@@ -1508,7 +1509,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Fractional ideal (21*i - 3)
             sage: K.<a>=NumberField(x^2-x+3)
             sage: EllipticCurve([1 + a , -1 + a , 1 + a , -11 + a , 5 -9*a  ]).conductor()
-            Fractional ideal (6*a)
+            Fractional ideal (-6*a)
 
         A not so well known curve with everywhere good reduction::
 
@@ -2117,7 +2118,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.gens(lim1=1, lim3=1)
             []
             sage: E.rank(), E.gens()  # long time (about 3 s)
-            (1, [(-369/25*y^3 + 539/25*y^2 - 1178/25*y + 1718/25 : -27193/125*y^3 + 39683/125*y^2 - 86816/125*y + 126696/125 : 1)])
+            (1, [(9/25*y^2 + 26/25 : -229/125*y^3 - 67/25*y^2 - 731/125*y - 213/25 : 1)])
 
         Here is a curve of rank 2, yet the list contains many points::
 
@@ -2310,10 +2311,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<i> = QuadraticField(-1)
             sage: E1 = EllipticCurve([i + 1, 0, 1, -240*i - 400, -2869*i - 2627])
             sage: E1.conductor()
-            Fractional ideal (4*i + 7)
+            Fractional ideal (-4*i - 7)
             sage: E2 = EllipticCurve([1+i,0,1,0,0])
             sage: E2.conductor()
-            Fractional ideal (4*i + 7)
+            Fractional ideal (-4*i - 7)
             sage: E1.is_isogenous(E2)  # long time (2s on sage.math, 2014)
             Traceback (most recent call last):
             ...

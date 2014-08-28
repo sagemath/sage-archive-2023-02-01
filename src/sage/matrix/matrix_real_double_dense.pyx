@@ -58,9 +58,9 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
         sage: m**2
         [ 7.0 10.0]
         [15.0 22.0]
-        sage: n= m^(-1); n
-        [-2.0  1.0]
-        [ 1.5 -0.5]
+        sage: n = m^(-1); n
+        [-1.9999999999999996  0.9999999999999998]
+        [ 1.4999999999999998 -0.4999999999999999]
 
     To compute eigenvalues the use the functions left_eigenvectors or
     right_eigenvectors

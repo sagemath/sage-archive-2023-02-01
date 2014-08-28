@@ -542,12 +542,11 @@ class Function_log_integral_offset(BuiltinFunction):
     smallest x with `\pi(x) > \operatorname{li}(x)`",
     Bays and Hudson, Mathematics of Computation, 69 (2000) 1285-1296.
 
-    Here is a test from the mpmath documentation.
-    There are 1,925,320,391,606,803,968,923 prime numbers less than 1e23.
-    The value of ``log_integral_offset(1e23)`` is very close to this::
+    .. NOTE::
 
-        sage: log_integral_offset(1e23)
-        1.92532039161405e21
+        Definite integration returns a part symbolic and part
+        numerical result.  This is because when Li(x) is evaluated it is
+        passed as li(x)-li(2).
 
     EXAMPLES:
 
@@ -562,7 +561,7 @@ class Function_log_integral_offset(BuiltinFunction):
         sage: log_integral_offset(2)
         0
         sage: for n in range(1,7):
-        ...    print '%-10s%-10s%-20s'%(10^n, prime_pi(10^n), N(Li(10^n)))
+        ....:  print '%-10s%-10s%-20s'%(10^n, prime_pi(10^n), N(Li(10^n)))
         10        4         5.12043572466980
         100       25        29.0809778039621
         1000      168       176.564494210035
@@ -570,25 +569,25 @@ class Function_log_integral_offset(BuiltinFunction):
         100000    9592      9628.76383727068
         1000000   78498     78626.5039956821
 
+    Here is a test from the mpmath documentation.
+    There are 1,925,320,391,606,803,968,923 prime numbers less than 1e23.
+    The value of ``log_integral_offset(1e23)`` is very close to this::
+
+        sage: log_integral_offset(1e23)
+        1.92532039161405e21
+
     Symbolic derivatives are handled by Sage and integration by Maxima::
 
         sage: x = var('x')
         sage: f = log_integral_offset(x)
         sage: f.diff(x)
         1/log(x)
-
         sage: f.integrate(x)
         -x*log_integral(2) + x*log_integral(x) - Ei(2*log(x))
-
         sage: Li(x).integrate(x,2.0,4.5)
-        -2.5*log_integral(2) + 5.79932114741
-
+        -2.5*log_integral(2) + 5.799321147411334
         sage: N(f.integrate(x,2.0,3.0))
         0.601621785860587
-
-    Note:  Definite integration returns a part symbolic and part
-           numerical result.  This is because when Li(x) is evaluated it is
-           passed as li(x)-li(2).
 
     ALGORITHM:
 

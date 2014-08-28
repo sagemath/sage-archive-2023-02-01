@@ -547,7 +547,7 @@ class Function_arctan(GinacFunction):
             sage: arctan(1/2)
             arctan(1/2)
             sage: RDF(arctan(1/2))
-            0.463647609001
+            0.4636476090008061
             sage: arctan(1 + I)
             arctan(I + 1)
             sage: arctan(1/2).n(100)
@@ -604,7 +604,7 @@ class Function_arccot(BuiltinFunction):
             sage: arccot(1/2)
             arccot(1/2)
             sage: RDF(arccot(1/2))
-            1.10714871779
+            1.1071487177940904
             sage: arccot(1 + I)
             arccot(I + 1)
 
@@ -686,7 +686,7 @@ class Function_arccsc(BuiltinFunction):
             sage: arccsc(2)
             arccsc(2)
             sage: RDF(arccsc(2))
-            0.523598775598
+            0.5235987755982989
             sage: arccsc(1 + I)
             arccsc(I + 1)
 
@@ -764,7 +764,7 @@ class Function_arcsec(BuiltinFunction):
             sage: arcsec(2)
             arcsec(2)
             sage: RDF(arcsec(2))
-            1.0471975512
+            1.0471975511965979
             sage: arcsec(1 + I)
             arcsec(I + 1)
 

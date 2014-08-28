@@ -1320,7 +1320,7 @@ class MaximaAbstractElement(InterfaceElement):
         EXAMPLES::
 
             sage: CDF(maxima('sqrt(2)+1'))
-            2.41421356237
+            2.414213562373095
         """
         return C(self._sage_())
 
@@ -1337,7 +1337,7 @@ class MaximaAbstractElement(InterfaceElement):
         EXAMPLES::
 
             sage: RDF(maxima('sqrt(2)+1'))
-            2.41421356237
+            2.414213562373095
         """
         return R(self._sage_())
 

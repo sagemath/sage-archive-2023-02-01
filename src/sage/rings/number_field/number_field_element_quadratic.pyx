@@ -833,7 +833,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: fibonacci(10)*phi < fibonacci(11)
             True
             sage: RDF(fibonacci(10)*phi)
-            88.9918693812
+            88.99186938124421
             sage: fibonacci(11)
             89
             sage: l = [-2, phi+3, 2*phi-1, 2*phi-5, 0, -phi+2, fibonacci(20)*phi - fibonacci(21)]
@@ -841,7 +841,9 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: l
             [-2, 2*phi - 5, 6765*phi - 10946, 0, -phi + 2, 2*phi - 1, phi + 3]
             sage: map(RDF, l)
-            [-2.0, -1.7639320225, -6.61069607304e-05, 0.0, 0.38196601125, 2.2360679775, 4.61803398875]
+            [-2.0, -1.7639320225002102, -6.610696073039435e-05, 0.0, 0.3819660112501051, 2.23606797749979, 4.618033988749895]
+
+        ::
 
             sage: L.<psi> = NumberField(x^2-x-1, 'psi', embedding=-0.618)
             sage: psi < 0
@@ -851,7 +853,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: fibonacci(10)*psi < -fibonacci(9)
             False
             sage: RDF(fibonacci(10)*psi)
-            -33.9918693812
+            -33.99186938124422
             sage: fibonacci(9)
             34
             sage: l = [-1, psi, 0, fibonacci(20)*psi + fibonacci(19), 3*psi+2]
@@ -859,7 +861,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: l
             [-1, psi, 0, 6765*psi + 4181, 3*psi + 2]
             sage: map(RDF, l)
-            [-1.0, -0.61803398875, 0.0, 6.61069607304e-05, 0.14589803375]
+            [-1.0, -0.6180339887498949, 0.0, 6.610696073039435e-05, 0.1458980337503153]
 
         For a field with no specified embedding the comparison uses the standard
         embedding::

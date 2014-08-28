@@ -496,7 +496,7 @@ class Function_floor(BuiltinFunction):
             sage: a = floor(5.4 + x); a
             floor(x + 5.40000000000000)
             sage: a.simplify()
-            floor(x + 0.4) + 5
+            floor(x + 0.40000000000000036) + 5
             sage: a(x=2)
             7
 
@@ -641,9 +641,9 @@ class Function_gamma(GinacFunction):
 
             sage: from sage.functions.other import gamma1
             sage: gamma1(CDF(0.5,14))
-            -4.05370307804e-10 - 5.77329983455e-10*I
+            -4.0537030780372815e-10 - 5.773299834553605e-10*I
             sage: gamma1(CDF(I))
-            -0.154949828302 - 0.498015668118*I
+            -0.15494982830181067 - 0.49801566811835607*I
 
         Recall that `\Gamma(n)` is `n-1` factorial::
 
@@ -897,9 +897,9 @@ class Function_gamma_inc(BuiltinFunction):
         EXAMPLES::
 
             sage: gamma_inc(CDF(0,1), 3)
-            0.00320857499337 + 0.0124061858119*I
+            0.003208574993369116 + 0.012406185811871568*I
             sage: gamma_inc(RDF(1), 3)
-            0.0497870683679
+            0.049787068367863944
             sage: gamma_inc(3,2)
             gamma(3, 2)
             sage: gamma_inc(x,0)
@@ -1027,9 +1027,9 @@ def gamma(a, *args, **kwds):
         ::
 
             sage: gamma(CDF(0.5,14))
-            -4.05370307804e-10 - 5.77329983455e-10*I
+            -4.0537030780372815e-10 - 5.773299834553605e-10*I
             sage: gamma(CDF(I))
-            -0.154949828302 - 0.498015668118*I
+            -0.15494982830181067 - 0.49801566811835607*I
 
         The gamma function only works with input that can be coerced to the
         Symbolic Ring::

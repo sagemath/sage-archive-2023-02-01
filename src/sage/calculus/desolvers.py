@@ -1174,7 +1174,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
 
         sage: x,y=var('x y')
         sage: desolve_rk4(x*y*(2-y),y,ics=[0,1],end_points=1,step=0.5)
-        [[0, 1], [0.5, 1.12419127425], [1.0, 1.46159016229]]
+        [[0, 1], [0.5, 1.12419127424558], [1.0, 1.4615901622888245]]
 
     Variant 1 for input - we can pass ODE in the form used by
     desolve function In this example we integrate bakwards, since
@@ -1182,7 +1182,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
 
         sage: y=function('y',x)
         sage: desolve_rk4(diff(y,x)+y*(y-1) == x-2,y,ics=[1,1],step=0.5, end_points=0)
-        [[0.0, 8.90425710896], [0.5, 1.90932794536], [1, 1]]
+        [[0.0, 8.904257108962112], [0.5, 1.9093279453615346], [1, 1]]
 
     Here we show how to plot simple pictures. For more advanced
     aplications use list_plot instead. To see the resulting picture

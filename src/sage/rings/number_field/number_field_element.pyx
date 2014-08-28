@@ -2176,7 +2176,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: K.<a> = NumberField(x^5-x+1, embedding=-1)
             sage: SR(a)
-            -1.1673040153
+            -1.1673040152963672
 
         ::
 

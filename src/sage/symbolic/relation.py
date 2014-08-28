@@ -545,7 +545,7 @@ def solve(f, *args, **kwds):
     underlying algorithm in Maxima::
 
         sage: sols = solve([x^3==y,y^2==x],[x,y]); sols[-1], sols[0]
-        ([x == 0, y == 0], [x == (0.309016994375 + 0.951056516295*I),  y == (-0.809016994375 - 0.587785252292*I)])
+        ([x == 0, y == 0], [x == (0.30901699437494745 + 0.9510565162951535*I), y == (-0.8090169943749475 - 0.5877852522924731*I)])
         sage: sols[0][0].rhs().pyobject().parent()
         Complex Double Field
 
@@ -727,7 +727,7 @@ def solve(f, *args, **kwds):
         sage: var('y,z')
         (y, z)
         sage: solve([x^2*y*z==18,x*y^3*z==24,x*y*z^4==6],x,y,z)
-        [[x == 3, y == 2, z == 1], [x == (1.33721506733 - 2.68548987407*I), y == (-1.70043427146 + 1.05286432575*I), z == (0.932472229404 - 0.361241666187*I)], ...]
+        [[x == 3, y == 2, z == 1], [x == (1.337215067329613 - 2.685489874065195*I), y == (-1.7004342714592282 + 1.052864325754712*I), z == (0.9324722294043555 - 0.3612416661871523*I)], ...]
     """
     from sage.symbolic.expression import is_Expression
     if is_Expression(f): # f is a single expression

@@ -4126,13 +4126,13 @@ class NumberField_generic(number_field_base.NumberField):
             sage: L1.<a1> = NumberField(K1.polynomial(), 'a1', embedding=CC.0)
             sage: L2.<a2> = NumberField(K2.polynomial(), 'a2', embedding=CC.0)
             sage: [CDF(a1), CDF(a2)]
-            [-0.629384245426, -0.77083512672]
+            [-0.6293842454258951, -0.7708351267200304]
 
         and we get the same embeddings via the compositum::
 
             sage: F, L1_into_F, L2_into_F, k = L1.composite_fields(L2, both_maps=True)[0]
             sage: [CDF(L1_into_F(L1.gen())), CDF(L2_into_F(L2.gen()))]
-            [-0.629384245426, -0.77083512672]
+            [-0.6293842454258959, -0.7708351267200312]
 
         Let's check that if only one field has an embedding, the resulting
         fields do not have embeddings::
@@ -6738,7 +6738,7 @@ class NumberField_absolute(NumberField_generic):
 
             sage: K.<a> = NumberField(x^4 - 23, embedding=50)
             sage: K, CDF(a)
-            (Number Field in a with defining polynomial x^4 - 23, 2.18993870309)
+            (Number Field in a with defining polynomial x^4 - 23, 2.1899387030948425)
             sage: Ss = K.subfields(); len(Ss) # indirect doctest
             3
             sage: diffs = [ S.coerce_embedding()(S.gen()) - CDF(S_into_K(S.gen())) for S, S_into_K, _ in Ss ]
@@ -6746,14 +6746,14 @@ class NumberField_absolute(NumberField_generic):
             True
 
             sage: L1, _, _ = K.subfields(2)[0]; L1, CDF(L1.gen()) # indirect doctest
-            (Number Field in a0 with defining polynomial x^2 - 23, -4.79583152331)
+            (Number Field in a0 with defining polynomial x^2 - 23, -4.795831523312721)
 
             If we take a different embedding of the large field, we get a
             different embedding of the degree 2 subfield::
 
             sage: K.<a> = NumberField(x^4 - 23, embedding=-50)
             sage: L2, _, _ = K.subfields(2)[0]; L2, CDF(L2.gen()) # indirect doctest
-            (Number Field in a0 with defining polynomial x^2 - 23, -4.79583152331)
+            (Number Field in a0 with defining polynomial x^2 - 23, -4.795831523312721)
 
         Test for :trac: `7695`::
 

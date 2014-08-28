@@ -928,9 +928,6 @@ class Link:
             sum = sum + s[i]
         return sum
 
-    # for version 6.1.1 the exponents results in list of tuples
-    # for the later versions the edit is as follows:
-    # return t**((-max(f.exponents())-min(f.exponents()))/2)*f
     def alexander_polynomial(self, var='t'):
         r"""
         Return the alexander polynomial of the link
@@ -952,17 +949,16 @@ class Link:
             sage: B = BraidGroup(8)
             sage: L = link.Link(B([-2, 4, 1, 6, 1, 4]))
             sage: L.alexander_polynomial()
-            t - 2 + t^-1
+            t^-1 - 2 + t
             sage: L = link.Link(B([1, 2, 1, 2]))
             sage: L.alexander_polynomial()
-            t - 1 + t^-1
+            t^-1 - 1 + t
         """
         R = LaurentPolynomialRing(ZZ, var)
         t = R.gen()
         f = (self.Seifert_Matrix() - t *
              (self.Seifert_Matrix().transpose())).determinant()
-        x = [i[0] for i in f.exponents()]
-        return t ** ((-max(x) - min(x)) / 2) * f if x != [] else f
+        return t ** ((-max(f.exponents()) - min(f.exponents())) / 2) * f if f != 0 else f
 
     def knot_determinant(self):
         r"""

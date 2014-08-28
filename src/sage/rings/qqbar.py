@@ -492,7 +492,9 @@ from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldEle
 from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField, is_ComplexIntervalField
 from sage.rings.complex_interval import is_ComplexIntervalFieldElement
-from sage.rings.polynomial.all import PolynomialRing, is_Polynomial
+from sage.rings.polynomial.all import PolynomialRing
+from sage.rings.polynomial.polynomial_element import is_Polynomial
+from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.number_field.number_field import NumberField, QuadraticField, CyclotomicField
@@ -854,7 +856,7 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
         if n == 0:
             return self(1)
         else:
-            raise IndexError, "n must be 0"
+            raise IndexError("n must be 0")
 
     def ngens(self):
         r"""
@@ -1728,7 +1730,7 @@ def find_zero_result(fn, l):
         if ambig:
             continue
         if result is None:
-            raise ValueError, 'find_zero_result could not find any zeroes'
+            raise ValueError('find_zero_result could not find any zeroes')
         return result
 
 def conjugate_expand(v):
@@ -3132,6 +3134,10 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             2/7*I + 1/3
             sage: QQbar.zeta(4) + 5
             I + 5
+            sage: QQbar.zeta(4)
+            1*I
+            sage: 3*QQbar.zeta(4)
+            3*I
             sage: QQbar.zeta(17)
             0.9324722294043558? + 0.3612416661871530?*I
             sage: AA(19).sqrt()
@@ -3147,6 +3153,36 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             return repr(CIF(self._value))
         else:
             return repr(RIF(self._value))
+
+    def _latex_(self):
+        r"""
+        Returns the latex representation of this number.
+
+        EXAMPLES::
+
+            sage: latex(AA(22/7))
+            \frac{22}{7}
+            sage: latex(QQbar(1/3 + 2/7*I))
+            \frac{2}{7} \sqrt{-1} + \frac{1}{3}
+            sage: latex(QQbar.zeta(4) + 5)
+            \sqrt{-1} + 5
+            sage: latex(QQbar.zeta(4))
+            1 \sqrt{-1}
+            sage: latex(3*QQbar.zeta(4))
+            3 \sqrt{-1}
+            sage: latex(QQbar.zeta(17))
+            0.9324722294043558? + 0.3612416661871530? \sqrt{-1}
+            sage: latex(AA(19).sqrt())
+            4.358898943540674?
+        """
+        from sage.misc.latex import latex
+        if self._descr.is_rational():
+            return latex(self._descr._value)
+        if isinstance(self._descr, ANRootOfUnity) and self._descr._angle == QQ_1_4:
+            return r'%s \sqrt{-1}'%self._descr._scale
+        if isinstance(self._descr, ANExtensionElement) and self._descr._generator is QQbar_I_generator:
+            return latex(self._descr._value)
+        return repr(self).replace('*I', r' \sqrt{-1}')
 
     def _sage_input_(self, sib, coerce):
         r"""
@@ -3377,6 +3413,19 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             return bool(self >= 0)
         else:
             return True
+
+    def is_integer(self):
+        """
+        Return True if this number is a integer
+
+        EXAMPLES::
+        
+            sage: QQbar(2).is_integer()
+            True
+            sage: QQbar(1/2).is_integer()
+            False
+        """
+        return self in ZZ
 
     def sqrt(self, all=False, extend=True):
         """
@@ -3751,7 +3800,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             1.41421356237309504880168872420969807857?
         """
         if diam <= 0:
-            raise ValueError, 'diameter must be positive in interval_diameter'
+            raise ValueError('diameter must be positive in interval_diameter')
 
         while self._value.diameter() > diam:
             self._more_precision()
@@ -4528,7 +4577,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: AA(-16)^(1/4)/QQbar.zeta(8)
             2
 
-        We check that #7859 is fixed::
+        We check that :trac:`7859` is fixed::
 
             sage: (AA(2)^(1/2)-AA(2)^(1/2))^(1/2)
             0
@@ -6785,11 +6834,16 @@ class ANRoot(ANDescr):
             sage: x = polygen(QQ); y = (x^3 + x + 1).roots(AA,multiplicities=False)[0]._descr
             sage: y._interval_fast(128)
             -0.68232780382801932736948373971104825689?
+
+        Check that :trac:`15493` is fixed::
+
+            sage: y._interval_fast(20).parent() is RealIntervalField(20)
+            True
         """
         if prec == self._interval.prec():
             return self._interval
         if prec < self._interval.prec():
-            return type(self._interval.parent())(prec)(self._interval)
+            return self._interval.parent().to_prec(prec)(self._interval)
         self._more_precision()
         return self._interval_fast(prec)
 

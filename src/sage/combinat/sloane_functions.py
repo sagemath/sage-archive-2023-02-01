@@ -214,13 +214,13 @@ class SloaneSequence(SageObject):
             ValueError: input n (=0) must be a positive integer
         """
         if not isinstance(n, (int, long, Integer_class)):
-            raise TypeError, "input must be an int, long, or Integer"
+            raise TypeError("input must be an int, long, or Integer")
         m = ZZ(n)
         if m < self.offset:
             if self.offset == 1:
-                raise ValueError, "input n (=%s) must be a positive integer" % (n)
+                raise ValueError("input n (=%s) must be a positive integer" % (n))
             else:
-                raise ValueError, "input n (=%s) must be an integer >= %s" % (n, self.offset)
+                raise ValueError("input n (=%s) must be an integer >= %s" % (n, self.offset))
         return self._eval(m)
 
     def _eval(self, n):
@@ -291,7 +291,7 @@ class SloaneSequence(SageObject):
         LENGTH = 100000
         (start, stop, step) = n.indices(2*LENGTH)
         if abs(stop - start) > LENGTH:
-            raise IndexError, "slice (=%s) too long"%n
+            raise IndexError("slice (=%s) too long"%n)
         # The dirty work of generating indices is left to a range list
         # This could be slow but in practice seems fine
         # NOTE: n is a SLICE, not an index
@@ -370,6 +370,7 @@ class A000001(SloaneSequence):
             sage: sloane.A000001._eval(4)
             2
             sage: sloane.A000001._eval(51) # optional - database_gap
+            1
         """
         if n <= 50:
             return self._small[n-1]
@@ -9426,7 +9427,7 @@ class A111787(SloaneSequence):
         else:
             for d in srange(3,n,2):
                 if n % d == 0:
-                    return min(d, 2*n/d)
+                    return min(d, 2*n//d)
 
 
 class ExponentialNumbers(SloaneSequence):
@@ -9738,6 +9739,6 @@ class Sloane(SageObject):
                 setattr(self, name, seq)
                 return seq
             except AttributeError:
-                raise AttributeError, name
+                raise AttributeError(name)
 
 sloane = Sloane()

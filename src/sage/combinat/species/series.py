@@ -52,11 +52,11 @@ class LazyPowerSeriesRing(Algebra):
         """
         #Make sure R is a ring with unit element
         if not R in Rings():
-            raise TypeError, "Argument R must be a ring."
+            raise TypeError("Argument R must be a ring.")
         try:
             z = R(Integer(1))
         except Exception:
-            raise ValueError, "R must have a unit element"
+            raise ValueError("R must have a unit element")
 
         #Take care of the names
         if names is None:
@@ -201,7 +201,7 @@ class LazyPowerSeriesRing(Algebra):
             x = BR(x)
             return self.term(x, 0)
 
-        raise TypeError, "do not know how to coerce %s into self"%x
+        raise TypeError("do not know how to coerce %s into self"%x)
 
     def zero_element(self):
         """
@@ -250,7 +250,7 @@ class LazyPowerSeriesRing(Algebra):
             [0, 0, 3, 0, 0]
         """
         if n < 0:
-            raise ValueError, "n must be non-negative"
+            raise ValueError("n must be non-negative")
         BR = self.base_ring()
         if r == 0:
             res = self._new_initial(inf, Stream([0]))
@@ -1160,7 +1160,7 @@ class LazyPowerSeries(AlgebraElement):
             1
         """
         if not isinstance(n, (int, Integer)) or n < 0:
-            raise ValueError, "n must be a nonnegative integer"
+            raise ValueError("n must be a nonnegative integer")
         return prod([self]*n, self.parent().identity_element())
 
     def __call__(self, y):
@@ -1688,4 +1688,4 @@ def uninitialized():
         ...
         RuntimeError: we should never be here
     """
-    raise RuntimeError, "we should never be here"
+    raise RuntimeError("we should never be here")

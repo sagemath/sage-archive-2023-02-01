@@ -336,7 +336,7 @@ class Sage(Expect):
         cmd = '%s=%s'%(var,value)
         out = self.eval(cmd)
         if 'Traceback' in out:
-            raise TypeError, "Error executing code in Sage\nCODE:\n\t%s\nSage ERROR:\n\t%s"%(cmd, out)
+            raise TypeError("Error executing code in Sage\nCODE:\n\t%s\nSage ERROR:\n\t%s"%(cmd, out))
 
     def get(self, var):
         """

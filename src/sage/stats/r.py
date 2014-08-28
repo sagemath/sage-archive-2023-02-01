@@ -31,7 +31,7 @@ def ttest(x,y,conf_level = 0.95, **kw):
       0.941026372027427
    """
    if len(x) != len(y):
-      raise AttributeError, "vectors x and y must be of same length"
+      raise AttributeError("vectors x and y must be of same length")
 
    test = myR.t_test(x,y,conf_level = conf_level, **kw)._sage_()
    t = test.get('DATA').get('p_value')

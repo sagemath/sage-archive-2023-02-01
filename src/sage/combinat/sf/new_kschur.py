@@ -86,10 +86,10 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
             sage: TestSuite(Sym.kBoundedSubspace(1)).run(skip=["_test_not_implemented_methods"])
         """
         if not isinstance(k, (int, Integer)) or (k < 1):
-            raise ValueError, "k must be a positive integer"
+            raise ValueError("k must be a positive integer")
 
         if not isinstance(Sym,SymmetricFunctions):
-            raise ValueError, "Sym must be an algebra of symmetric functions"
+            raise ValueError("Sym must be an algebra of symmetric functions")
 
         self.indices = ConstantFunction(Partitions_all_bounded(k))
 
@@ -196,7 +196,7 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
             sage: TestSuite(kh3).run()
         """
         if self.t!=1:
-            raise ValueError, "This basis only exists for t=1"
+            raise ValueError("This basis only exists for t=1")
         return kHomogeneous(self)
 
     def K_kschur(self):
@@ -226,7 +226,7 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
             ValueError: This basis only exists for t=1
         """
         if self.t!=1:
-            raise ValueError, "This basis only exists for t=1"
+            raise ValueError("This basis only exists for t=1")
         return K_kSchur(self)
 
 
@@ -285,7 +285,10 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             sage: KBB = KBoundedSubspaceBases(KB); KBB
             Category of k bounded subspace bases of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field
             sage: KBB.super_categories()
-            [Category of realizations of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field, Join of Category of graded coalgebras with basis over Univariate Polynomial Ring in t over Rational Field and Category of subobjects of sets]
+            [Category of realizations of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field,
+             Join of Category of graded modules with basis over Univariate Polynomial Ring in t over Rational Field
+                 and Category of coalgebras with basis over Univariate Polynomial Ring in t over Rational Field
+                 and Category of subobjects of sets]
         """
         R = self.base().base_ring()
         category = GradedHopfAlgebrasWithBasis(R) if self.t == 1 else GradedCoalgebrasWithBasis(R)
@@ -325,8 +328,8 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 else:
                     raise TypeError("do not know how to make x (= %s) an element of %s"%(x, self))
             #x is an element of the basis enumerated set;
-            elif x in self._basis_keys:
-                return self.monomial(self._basis_keys(x))
+            elif x in self._indices:
+                return self.monomial(self._indices(x))
             raise TypeError("do not know how to make x (= %s) an element of self (=%s)"%(x,self))
 
         def _convert_map_from_(self,Q):
@@ -386,7 +389,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 else:
                     c = Partition(list(c))
 
-            if c not in self._basis_keys:
+            if c not in self._indices:
                 raise TypeError("do not know how to make %s an element of %s"%(c,self))
             return self.monomial(c)
 
@@ -1499,7 +1502,7 @@ class K_kSchur(CombinatorialFreeModule):
             ValueError: Partition should be 3-bounded
         """
         if la != [] and (la[0] > self.k):
-            raise  ValueError, "Partition should be %d-bounded"%self.k
+            raise  ValueError("Partition should be %d-bounded"%self.k)
         return self._DualGrothendieck(Partition(la))
 
     def K_k_Schur_non_commutative_variables(self,la):

@@ -39,6 +39,7 @@ import integer
 import infinity
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
+from sage.rings.integer_ring import ZZ
 
 include "sage/ext/stdsage.pxi"
 
@@ -2019,7 +2020,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: C, i = ComplexField(30).objgen()
-            sage: (1+i).gamma_inc(2 + 3*i)
+            sage: (1+i).gamma_inc(2 + 3*i)  # abs tol 2e-10
             0.0020969149 - 0.059981914*I
             sage: (1+i).gamma_inc(5)
             -0.0013781309 + 0.0065198200*I
@@ -2027,8 +2028,17 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             0.70709210 - 0.42035364*I
             sage: CC(2).gamma_inc(5)
             0.0404276819945128
+
+        TESTS:
+
+        Check that :trac:`7099` is fixed::
+
+            sage: C = ComplexField(400)
+            sage: C(2 + I).gamma_inc(C(3 + I))  # abs tol 1e-120
+            0.121515644664508695525971545977439666159749344176962379708992904126499444842886620664991650378432544392118359044438541515 + 0.101533909079826033296475736021224621546966200987295663190553587086145836461236284668967411665020429964946098113930918850*I
+
         """
-        return self._parent(self._pari_().incgam(t))
+        return self._parent(self._pari_().incgam(t, precision=self.prec()))
 
     def log(self,base=None):
         r"""
@@ -2276,6 +2286,62 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             False
         """
         return (mpfr_zero_p(self.__re) != 0)
+
+    def is_integer(self):
+        """
+        Return ``True`` if ``self`` is a integer
+
+        EXAMPLES::
+
+            sage: CC(3).is_integer()
+            True
+            sage: CC(1,2).is_integer()
+            False
+        """
+        return self.is_real() and self.real() in ZZ
+
+    def is_positive_infinity(self):
+        r"""
+        Check if ``self`` is `+\infty`.
+
+        EXAMPLES::
+
+            sage: CC(1, 2).is_positive_infinity()
+            False
+            sage: CC(oo, 0).is_positive_infinity()
+            True
+            sage: CC(0, oo).is_positive_infinity()
+            False
+        """
+        return self.real().is_positive_infinity() and self.imag().is_zero()
+
+    def is_negative_infinity(self):
+        r"""
+        Check if ``self`` is `-\infty`.
+
+        EXAMPLES::
+
+            sage: CC(1, 2).is_negative_infinity()
+            False
+            sage: CC(-oo, 0).is_negative_infinity()
+            True
+            sage: CC(0, -oo).is_negative_infinity()
+            False
+        """
+        return self.real().is_negative_infinity() and self.imag().is_zero()
+
+    def is_infinity(self):
+        r"""
+        Check if ``self`` is `\infty`.
+
+        EXAMPLES::
+
+            sage: CC(1, 2).is_infinity()
+            False
+            sage: CC(0, oo).is_infinity()
+            True
+        """
+        return self.real().is_infinity() or self.imag().is_infinity()
 
     def zeta(self):
         """

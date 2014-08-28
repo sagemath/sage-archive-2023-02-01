@@ -349,11 +349,11 @@ class SuffixTrie(SageObject):
             TypeError: 17 is not a state
         """
         if not isinstance(state, (int,Integer)):
-            raise TypeError, "%s is not an integer" % state
+            raise TypeError("%s is not an integer" % state)
         if state == -1:
-            raise TypeError, "suffix link is not defined for -1"
+            raise TypeError("suffix link is not defined for -1")
         if state not in range(len(self._suffix_link)):
-            raise TypeError, "%s is not a state" % state
+            raise TypeError("%s is not a state" % state)
         return self._suffix_link[state]
 
     def active_state(self):
@@ -838,7 +838,7 @@ class ImplicitSuffixTree(SageObject):
             for (v,(i,j)) in d[u].iteritems():
                 if word_labels:
                     d[u][v] = self._word[i:j]
-                elif j == None:
+                elif j is None:
                     d[u][v] = (i,len(self._letters))
         return DiGraph(d)
 
@@ -1025,7 +1025,7 @@ class ImplicitSuffixTree(SageObject):
         if state in self._suffix_link:
             return self._suffix_link[state]
         else:
-            raise TypeError, "there is no suffix link from %s" % state
+            raise TypeError("there is no suffix link from %s" % state)
 
     def active_state(self):
         r"""
@@ -1185,7 +1185,7 @@ class ImplicitSuffixTree(SageObject):
             length_word = self.word().length()
             num_factors = 1 # empty word
             for (u,v,(i,j)) in self.edge_iterator():
-                if j == None:
+                if j is None:
                     num_factors += length_word - i
                 else:
                     num_factors += j - i
@@ -1200,14 +1200,14 @@ class ImplicitSuffixTree(SageObject):
                 if l < n:
                     if self._transition_function[v] != {}:
                         for ((i,j),u) in self._transition_function[v].iteritems():
-                            if j == None:
+                            if j is None:
                                 j = self.word().length()
                             if j - i >= n - l:
                                 num_factors += 1
                             else:
                                 queue.append((u,l+j-i+1))
         else:
-            raise TypeError, "not an integer or None: %s" %s
+            raise TypeError("not an integer or None: %s" %s)
         return num_factors
 
     def factor_iterator(self,n=None):
@@ -1253,7 +1253,7 @@ class ImplicitSuffixTree(SageObject):
                 yield w
                 if self._transition_function[v] != {}:
                     for ((i,j),u) in self._transition_function[v].iteritems():
-                        if j == None:
+                        if j is None:
                             j = self.word().length()
                         for k in range(i,j):
                             yield w * self.word()[i-1:k]
@@ -1268,14 +1268,14 @@ class ImplicitSuffixTree(SageObject):
                 if length_w < n:
                     if self._transition_function[v] != {}:
                         for ((i,j),u) in self._transition_function[v].iteritems():
-                            if j == None:
+                            if j is None:
                                 j = self.word().length()
                             if j - i >= n - length_w:
                                 yield w*self.word()[i-1:i-1+n-length_w]
                             else:
                                 queue.append((u,w*self.word()[i-1:j]))
         else:
-            raise TypeError, "not an integer or None: %s" %s
+            raise TypeError("not an integer or None: %s" %s)
 
     #####
     # Miscellaneous methods

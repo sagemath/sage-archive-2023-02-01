@@ -119,15 +119,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         sage: EllipticCurve([i, i - 1, i + 1, 24*i + 15, 14*i + 35])
         Elliptic Curve defined by y^2 + i*x*y + (i+1)*y = x^3 + (i-1)*x^2 + (24*i+15)*x + (14*i+35) over Number Field in i with defining polynomial x^2 + 1
     """
-    def __init__(self, x, y=None):
+    def __init__(self, K, ainvs):
         r"""
-        Allow some ways to create an elliptic curve over a number
-        field in addition to the generic ones.
-
-        INPUT:
-
-        - ``x``, ``y`` -- see examples.
-
         EXAMPLES:
 
         A curve from the database of curves over `\QQ`, but over a larger field:
@@ -142,25 +135,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in i with defining polynomial x^2 + 1
 
         """
-        if y is None:
-            if isinstance(x, list):
-                ainvs = x
-                field = ainvs[0].parent()
-        else:
-            if isinstance(y, str):
-                from sage.databases.cremona import CremonaDatabase
-                field = x
-                X = CremonaDatabase()[y]
-                ainvs = list(X.a_invariants())
-            else:
-                field = x
-                ainvs = y
-        if not (isinstance(field, Ring) and isinstance(ainvs,list)):
-            raise TypeError
-
-        EllipticCurve_field.__init__(self, [field(x) for x in ainvs])
-        self._point = ell_point.EllipticCurvePoint_number_field
         self._known_points = []
+        EllipticCurve_field.__init__(self, K, ainvs)
+
+    _point = ell_point.EllipticCurvePoint_number_field
 
     def base_extend(self, R):
         """
@@ -1624,7 +1602,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             proof = sage.structure.proof.proof.get_flag(None, "number_field")
         K = self.base_ring()
         if K.class_number() != 1:
-            raise ValueError, "global minimal models only exist in general for class number 1"
+            raise ValueError("global minimal models only exist in general for class number 1")
 
         E = self.global_integral_model()
         primes = E.base_ring()(E.discriminant()).support()
@@ -1669,16 +1647,16 @@ class EllipticCurve_number_field(EllipticCurve_field):
        try:
            place = K.ideal(place)
        except TypeError:
-           raise TypeError, "The parameter must be an ideal of the base field of the elliptic curve"
+           raise TypeError("The parameter must be an ideal of the base field of the elliptic curve")
        if not place.is_prime():
-           raise ValueError, "The ideal must be prime."
+           raise ValueError("The ideal must be prime.")
        disc = self.discriminant()
        if not K.ideal(disc).valuation(place) == 0:
            local_data=self.local_data(place)
            if local_data.has_good_reduction():
                Fv = OK.residue_field(place)
                return local_data.minimal_model().change_ring(Fv)
-           raise ValueError, "The curve must have good reduction at the place."
+           raise ValueError("The curve must have good reduction at the place.")
        Fv = OK.residue_field(place)
        return self.change_ring(Fv)
 
@@ -2075,7 +2053,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         if lower == upper:
             return lower
         else:
-            raise ValueError, 'There is insufficient data to determine the rank - 2-descent gave lower bound %s and upper bound %s' % (lower, upper)
+            raise ValueError('There is insufficient data to determine the rank - 2-descent gave lower bound %s and upper bound %s' % (lower, upper))
 
     def gens(self, **kwds):
         r"""
@@ -2240,6 +2218,23 @@ class EllipticCurve_number_field(EllipticCurve_field):
         from sage.schemes.elliptic_curves.period_lattice import PeriodLattice_ell
         return PeriodLattice_ell(self,embedding)
 
+    def height_function(self):
+        """
+        Return the canonical height function attached to self.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^2 - 5)
+            sage: E = EllipticCurve(K, '11a3')
+            sage: E.height_function()
+            EllipticCurveCanonicalHeight object associated to Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in a with defining polynomial x^2 - 5
+
+        """
+        if not hasattr(self, '_height_function'):
+            from sage.schemes.elliptic_curves.height import EllipticCurveCanonicalHeight
+            self._height_function = EllipticCurveCanonicalHeight(self)
+        return self._height_function
+
     def is_isogenous(self, other, proof=True, maxnorm=100):
         """
         Returns whether or not self is isogenous to other.
@@ -2353,12 +2348,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         """
         if not is_EllipticCurve(other):
-            raise ValueError, "Second argument is not an Elliptic Curve."
+            raise ValueError("Second argument is not an Elliptic Curve.")
         if self.is_isomorphic(other):
             return True
         K = self.base_field()
         if K != other.base_field():
-            raise ValueError, "Second argument must be defined over the same number field."
+            raise ValueError("Second argument must be defined over the same number field.")
 
         E1 = self.integral_model()
         E2 = other.integral_model()
@@ -2399,7 +2394,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # At this point is is highly likely that the curves are
         # isogenous, but we have not proved it.
 
-        raise NotImplementedError, "Curves appear to be isogenous (same conductor, isogenous modulo all primes of norm up to %s), but no isogeny has been constructed." % (10*maxnorm)
+        raise NotImplementedError("Curves appear to be isogenous (same conductor, isogenous modulo all primes of norm up to %s), but no isogeny has been constructed." % (10*maxnorm))
 
     def isogeny_degree(self, other):
         """

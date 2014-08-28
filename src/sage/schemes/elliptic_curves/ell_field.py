@@ -19,12 +19,15 @@ import sage.rings.all as rings
 from sage.rings.complex_field import is_ComplexField
 from sage.rings.real_mpfr import is_RealField
 from constructor import EllipticCurve
+from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
 
 from ell_curve_isogeny import EllipticCurveIsogeny, isogeny_codomain_from_kernel
 
 class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
     base_field = ell_generic.EllipticCurve_generic.base_ring
+
+    _point = EllipticCurvePoint_field
 
     # Twists: rewritten by John Cremona as follows:
     #
@@ -141,15 +144,15 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                     while len((x**2-D).roots())>0:
                         D = K.random_element()
             else:
-                raise ValueError, "twisting parameter D must be specified over infinite fields."
+                raise ValueError("twisting parameter D must be specified over infinite fields.")
         else:
             try:
                 D=K(D)
             except ValueError:
-                raise ValueError, "twisting parameter D must be in the base field."
+                raise ValueError("twisting parameter D must be in the base field.")
 
             if char!=2 and D.is_zero():
-                raise ValueError, "twisting parameter D must be nonzero when characteristic is not 2"
+                raise ValueError("twisting parameter D must be nonzero when characteristic is not 2")
 
         if char!=2:
             b2,b4,b6,b8=self.b_invariants()
@@ -166,7 +169,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             assert E0.a4()==K(0)
             return EllipticCurve(K,[1,E0.a2()+D,0,0,E0.a6()])
         else:
-            raise ValueError, "Quadratic twist not implemented in char 2 when j=0"
+            raise ValueError("Quadratic twist not implemented in char 2 when j=0")
 
     def two_torsion_rank(self):
         r"""
@@ -236,13 +239,13 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         D=K(D)
 
         if char==2 or char==3:
-            raise ValueError, "Quartic twist not defined in chars 2,3"
+            raise ValueError("Quartic twist not defined in chars 2,3")
 
         if self.j_invariant() !=K(1728):
-            raise ValueError, "Quartic twist not defined when j!=1728"
+            raise ValueError("Quartic twist not defined when j!=1728")
 
         if D.is_zero():
-            raise ValueError, "quartic twist requires a nonzero argument"
+            raise ValueError("quartic twist requires a nonzero argument")
 
         c4,c6=self.c_invariants()
         # E is isomorphic to  [0,0,0,-27*c4,0]
@@ -281,13 +284,13 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         D=K(D)
 
         if char==2 or char==3:
-            raise ValueError, "Sextic twist not defined in chars 2,3"
+            raise ValueError("Sextic twist not defined in chars 2,3")
 
         if self.j_invariant() !=K(0):
-            raise ValueError, "Sextic twist not defined when j!=0"
+            raise ValueError("Sextic twist not defined when j!=0")
 
         if D.is_zero():
-            raise ValueError, "Sextic twist requires a nonzero argument"
+            raise ValueError("Sextic twist requires a nonzero argument")
 
         c4,c6=self.c_invariants()
         # E is isomorphic to  [0,0,0,0,-54*c6]
@@ -389,7 +392,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         E = self
         F = other
         if not is_EllipticCurve(E) or not is_EllipticCurve(F):
-            raise ValueError, "arguments are not elliptic curves"
+            raise ValueError("arguments are not elliptic curves")
         K = E.base_ring()
         zero = K.zero_element()
         if not K == F.base_ring():
@@ -406,10 +409,10 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         char=K.characteristic()
 
         if char==2:
-            raise NotImplementedError, "not implemented in characteristic 2"
+            raise NotImplementedError("not implemented in characteristic 2")
         elif char==3:
             if j==0:
-                raise NotImplementedError, "not implemented in characteristic 3 for curves of j-invariant 0"
+                raise NotImplementedError("not implemented in characteristic 3 for curves of j-invariant 0")
             D = E.b2()/F.b2()
 
         else:
@@ -488,7 +491,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         E = self
         F = other
         if not is_EllipticCurve(E) or not is_EllipticCurve(F):
-            raise ValueError, "arguments are not elliptic curves"
+            raise ValueError("arguments are not elliptic curves")
         K = E.base_ring()
         zero = K.zero_element()
         if not K == F.base_ring():
@@ -503,9 +506,9 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         char=K.characteristic()
 
         if char==2:
-            raise NotImplementedError, "not implemented in characteristic 2"
+            raise NotImplementedError("not implemented in characteristic 2")
         elif char==3:
-            raise NotImplementedError, "not implemented in characteristic 3"
+            raise NotImplementedError("not implemented in characteristic 3")
         else:
             # now char!=2,3:
             D = F.c4()/E.c4()
@@ -557,7 +560,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         E = self
         F = other
         if not is_EllipticCurve(E) or not is_EllipticCurve(F):
-            raise ValueError, "arguments are not elliptic curves"
+            raise ValueError("arguments are not elliptic curves")
         K = E.base_ring()
         zero = K.zero_element()
         if not K == F.base_ring():
@@ -572,9 +575,9 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         char=K.characteristic()
 
         if char==2:
-            raise NotImplementedError, "not implemented in characteristic 2"
+            raise NotImplementedError("not implemented in characteristic 2")
         elif char==3:
-            raise NotImplementedError, "not implemented in characteristic 3"
+            raise NotImplementedError("not implemented in characteristic 3")
         else:
             # now char!=2,3:
             D = F.c6()/E.c6()
@@ -588,23 +591,29 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
     def descend_to(self, K, f=None):
         r"""
-        Given a subfield `K` and an elliptic curve self defined over a field `L`,
-        this function determines whether there exists an elliptic curve over `K`
-        which is isomorphic over `L` to self. If one exists, it finds it.
+        Given an elliptic curve self defined over a field `L` and a
+        subfield `K` of `L`, return all elliptic curves over `K` which
+        are isomorphic over `L` to self.
 
         INPUT:
 
-        - `K` -- a subfield of the base field of self.
-        - `f` -- an embedding of `K` into the base field of self.
+        - `K` -- a field which embeds into the base field `L` of self.
+
+        - `f` (optional) -- an embedding of `K` into `L`.  Ignored if
+          `K` is `\QQ`.
 
         OUTPUT:
 
-        Either an elliptic curve defined over `K` which is isomorphic to self
-        or None if no such curve exists.
+        A list (possibly empty) of elliptic curves defined over `K`
+        which are isomorphic to self over `L`, up to isomorphism over
+        `K`.
 
         .. NOTE::
 
-            This only works over number fields and QQ.
+           Currently only implemented over number fields.  To extend
+           to other fields of characteristic not 2 or 3, what is
+           needed is a method giving the preimages in `K^*/(K^*)^m` of
+           an element of the base field, for `m=2,4,6`.
 
         EXAMPLES::
 
@@ -619,84 +628,129 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: F.<b> = QuadraticField(23)
             sage: G.<a> = F.extension(x^3+5)
             sage: E = EllipticCurve(j=1728*b).change_ring(G)
-            sage: E.descend_to(F)
-            Elliptic Curve defined by y^2 = x^3 + (8957952*b-206032896)*x + (-247669456896*b+474699792384) over Number Field in b with defining polynomial x^2 - 23
+            sage: EF = E.descend_to(F); EF
+            [Elliptic Curve defined by y^2 = x^3 + (27*b-621)*x + (-1296*b+2484) over Number Field in b with defining polynomial x^2 - 23]
+            sage: all([Ei.change_ring(G).is_isomorphic(E) for Ei in EF])
+            True
 
         ::
 
             sage: L.<a> = NumberField(x^4 - 7)
-            sage: K.<b> = NumberField(x^2 - 7)
+            sage: K.<b> = NumberField(x^2 - 7, embedding=a^2)
             sage: E = EllipticCurve([a^6,0])
-            sage: E.descend_to(K)
-            Elliptic Curve defined by y^2 = x^3 + 1296/49*b*x over Number Field in b with defining polynomial x^2 - 7
+            sage: EK = E.descend_to(K); EK
+            [Elliptic Curve defined by y^2 = x^3 + b*x over Number Field in b with defining polynomial x^2 - 7,
+            Elliptic Curve defined by y^2 = x^3 + 7*b*x over Number Field in b with defining polynomial x^2 - 7]
+            sage: all([Ei.change_ring(L).is_isomorphic(E) for Ei in EK])
+            True
 
         ::
 
             sage: K.<a> = QuadraticField(17)
             sage: E = EllipticCurve(j = 2*a)
-            sage: print E.descend_to(QQ)
-            None
+            sage: E.descend_to(QQ)
+            []
+
+        TESTS:
+
+        Check that :trac:`16456` is fixed::
+
+            sage: K.<a> = NumberField(x^3-2)
+            sage: E = EllipticCurve('11a1').quadratic_twist(2)
+            sage: EK = E.change_ring(K)
+            sage: EK2 = EK.change_weierstrass_model((a,a,a,a+1))
+            sage: EK2.descend_to(QQ)
+            [Elliptic Curve defined by y^2 = x^3 + x^2 - 41*x - 199 over Rational Field]
+
+            sage: k.<i> = QuadraticField(-1)
+            sage: E = EllipticCurve(k,[0,0,0,1,0])
+            sage: E.descend_to(QQ)
+            [Elliptic Curve defined by y^2 = x^3 + x over Rational Field,
+            Elliptic Curve defined by y^2 = x^3 - 4*x over Rational Field]
+
         """
         if not K.is_field():
-            raise TypeError, "Input must be a field."
-        if self.base_field()==K:
+            raise TypeError("Input must be a field.")
+        L = self.base_field()
+        if L is K:
             return self
+        elif L == K:  # number fields can be equal but not identical
+            return self.base_extend(K)
+
+        # Construct an embedding f of K in L, and check that the
+        # j-invariant is in the image, otherwise return an empty list:
+
         j = self.j_invariant()
         from sage.rings.all import QQ
         if K == QQ:
-            f = QQ.embeddings(self.base_field())[0]
-            if j in QQ:
-                jbase = QQ(j)
-            else:
-                return None
-        elif f == None:
-            embeddings = K.embeddings(self.base_field())
+            try:
+                jK = QQ(j)
+            except (ValueError, TypeError):
+                return []
+        elif f is None:
+            embeddings = K.embeddings(L)
             if len(embeddings) == 0:
-                raise TypeError, "Input must be a subfield of the base field of the curve."
+                raise TypeError("Input must be a subfield of the base field of the curve.")
             for g in embeddings:
                 try:
-                    jbase = g.preimage(j)
+                    jK = g.preimage(j)
                     f = g
                     break
                 except Exception:
                     pass
-            if f == None:
-                return None
+            if f is None:
+                return []
         else:
             try:
-                jbase = f.preimage(j)
-            except Exception:
-                return None
-        E = EllipticCurve(j=jbase)
-        E2 = EllipticCurve(self.base_field(), [f(a) for a in E.a_invariants()])
-        if jbase==0:
-            d = self.is_sextic_twist(E2)
-            if d == 1:
-                return E
-            if d == 0:
-                return None
-            Etwist = E2.sextic_twist(d)
-        elif jbase==1728:
-            d = self.is_quartic_twist(E2)
-            if d == 1:
-                return E
-            if d == 0:
-                return None
-            Etwist = E2.quartic_twist(d)
-        else:
-            d = self.is_quadratic_twist(E2)
-            if d == 1:
-                return E
-            if d == 0:
-                return None
-            Etwist = E2.quadratic_twist(d)
-        if Etwist.is_isomorphic(self):
+                if f.domain() != K:
+                    raise ValueError("embedding has wrong domain")
+                if f.codomain() != L:
+                    raise ValueError("embedding has wrong codomain")
+            except AttributeError:
+                raise ValueError("invalid embedding: %s" % s)
             try:
-                Eout = EllipticCurve(K, [f.preimage(a) for a in Etwist.a_invariants()])
+                jK = f.preimage(j)
             except Exception:
-                return None
-            else:
-                return Eout
+                return []
+
+        # Now we have the j-invariant in K and must find all twists
+        # which work, separating the cases of j=0 and j=1728.
+
+        if L.characteristic():
+            raise NotImplementedError("Not implemented in positive characteristic")
+
+        if jK == 0:
+            t = -54*self.c6()
+            try:
+                dlist = t.descend_mod_power(K,6)
+                # list of d in K such that t/d is in L*^6
+            except AttributeError:
+                raise NotImplementedError("Not implemented over %s" % L)
+            Elist = [EllipticCurve([0,0,0,0,d]) for d in dlist]
+        elif jK == 1728:
+            t = -27*self.c4()
+            try:
+                dlist = t.descend_mod_power(K,4)
+                # list of d in K such that t/d is in L*^4
+            except AttributeError:
+                raise NotImplementedError("Not implemented over %s" % L)
+            Elist = [EllipticCurve([0,0,0,d,0]) for d in dlist]
+        else:
+            c4, c6 = self.c_invariants()
+            t = c6/c4
+            try:
+                dlist = t.descend_mod_power(K,2)
+                # list of d in K such that t/d is in L*^2
+            except AttributeError:
+                raise NotImplementedError("Not implemented over %s" % L)
+            c = -27*jK/(jK-1728) # =-27c4^3/c6^2
+            a4list = [c*d**2 for d in dlist]
+            a6list = [2*a4*d for a4,d in zip(a4list,dlist)]
+            Elist = [EllipticCurve([0,0,0,a4,a6]) for a4,a6 in zip(a4list,a6list)]
+
+        if K is QQ:
+            Elist = [E.minimal_model() for E in Elist]
+        return Elist
 
     def isogeny(self, kernel, codomain=None, degree=None, model=None, check=True):
         r"""
@@ -939,11 +993,11 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         """
         F = self.base_ring()
         if is_RealField(F):
-            raise NotImplementedError, "This code could be implemented for general real fields, but has not been yet."
+            raise NotImplementedError("This code could be implemented for general real fields, but has not been yet.")
         if is_ComplexField(F):
-            raise NotImplementedError, "This code could be implemented for general complex fields, but has not been yet."
+            raise NotImplementedError("This code could be implemented for general complex fields, but has not been yet.")
         if F == rings.QQbar:
-            raise NotImplementedError, "This code could be implemented for QQbar, but has not been yet."
+            raise NotImplementedError("This code could be implemented for QQbar, but has not been yet.")
 
         from isogeny_small_degree import isogenies_prime_degree
         if l is None:
@@ -954,17 +1008,17 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             try:
                 l = rings.ZZ(l)
             except TypeError:
-                raise ValueError, "%s is not prime."%l
+                raise ValueError("%s is not prime."%l)
             if l.is_prime():
                 return isogenies_prime_degree(self, l)
             else:
-                raise ValueError, "%s is not prime."%l
+                raise ValueError("%s is not prime."%l)
 
         L = list(set(l))
         try:
             L = [rings.ZZ(l) for l in L]
         except TypeError:
-            raise ValueError, "%s is not a list of primes."%l
+            raise ValueError("%s is not a list of primes."%l)
 
         L.sort()
         return sum([isogenies_prime_degree(self,l) for l in L],[])
@@ -1016,11 +1070,11 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         """
         from ell_generic import is_EllipticCurve
         if not is_EllipticCurve(other):
-            raise ValueError, "Second argument is not an Elliptic Curve."
+            raise ValueError("Second argument is not an Elliptic Curve.")
         if self.is_isomorphic(other):
             return True
         else:
-            raise NotImplementedError, "Only implemented for isomorphic curves over general fields."
+            raise NotImplementedError("Only implemented for isomorphic curves over general fields.")
 
     def weierstrass_p(self, prec=20, algorithm=None):
         r"""

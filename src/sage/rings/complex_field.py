@@ -504,7 +504,7 @@ class ComplexField_class(field.Field):
             1.00000000000000*I
         """
         if n != 0:
-            raise IndexError, "n must be 0"
+            raise IndexError("n must be 0")
         return complex_number.ComplexNumber(self, 0, 1)
 
     def is_field(self, proof = True):
@@ -677,3 +677,53 @@ class ComplexField_class(field.Field):
         """
         return self
 
+    def _factor_univariate_polynomial(self, f):
+        """
+        Factor the univariate polynomial ``f``.
+
+        INPUT:
+
+        - ``f`` -- a univariate polynomial defined over the complex numbers
+
+        OUTPUT:
+
+        - A factorization of ``f`` over the complex numbers into a unit and
+          monic irreducible factors
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.factor`.
+
+            This method calls PARI to compute the factorization.
+
+        TESTS::
+
+            sage: k = ComplexField(100)
+            sage: R.<x> = k[]
+            sage: k._factor_univariate_polynomial( x )
+            x
+            sage: k._factor_univariate_polynomial( 2*x )
+            (2.0000000000000000000000000000) * x
+            sage: k._factor_univariate_polynomial( x^2 )
+            x^2
+            sage: k._factor_univariate_polynomial( x^2 + 3 )
+            (x - 1.7320508075688772935274463415*I) * (x + 1.7320508075688772935274463415*I)
+            sage: k._factor_univariate_polynomial( x^2 + 1 )
+            (x - I) * (x + I)
+            sage: k._factor_univariate_polynomial( k(I) * (x^2 + 1) )
+            (1.0000000000000000000000000000*I) * (x - I) * (x + I)
+
+        """
+        R = f.parent()
+
+        # if the polynomial does not have complex coefficients, PARI will
+        # factor it over the reals. To make sure it has complex coefficients we
+        # multiply with I.
+        I = R.base_ring().gen()
+        g = f*I if f.leading_coefficient()!=I else f
+
+        F = list(g._pari_with_name().factor())
+
+        from sage.structure.factorization import Factorization
+        return Factorization([(R(g).monic(),e) for g,e in zip(*F)], f.leading_coefficient())

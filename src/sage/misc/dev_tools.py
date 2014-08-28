@@ -410,9 +410,9 @@ def import_statements(*objects, **options):
     If the object has several names, an other way to get the import
     statement you expect is to use a string instead of the object::
 
-        sage: import_statements(cached_function)
-        # ** Warning **: several names for that object: CachedFunction, cached_function
-        from sage.misc.cachefunc import CachedFunction
+        sage: import_statements(matrix)
+        # ** Warning **: several names for that object: Matrix, matrix
+        from sage.matrix.constructor import Matrix
 
         sage: import_statements('cached_function')
         from sage.misc.cachefunc import cached_function
@@ -544,9 +544,9 @@ def import_statements(*objects, **options):
                 modules = set()
                 for o in obj:
                     modules.update(find_object_modules(o))
-                print "# **Warning**: distinct objects with name '%s' in:"%name
+                print("# **Warning**: distinct objects with name '{}' in:".format(name))
                 for module_name in modules:
-                    print "#   - %s"%module_name
+                    print("#   - {}".format(module_name))
 
             # choose a random object among the potentially enormous list of
             # objects we get from "name"
@@ -576,13 +576,13 @@ def import_statements(*objects, **options):
             del modules['__main__']
 
         if not modules:
-            raise ValueError("no import statement found for '%s'."%obj)
+            raise ValueError("no import statement found for '{}'.".format(obj))
 
         if len(modules) == 1:  # the module is well defined
             module_name, obj_names = modules.items()[0]
             if name is None:
                 if verbose and len(obj_names) > 1:
-                    print "# ** Warning **: several names for that object: %s"%', '.join(sorted(obj_names))
+                    print("# ** Warning **: several names for that object: {}".format(', '.join(sorted(obj_names))))
                 name = alias = obj_names[0]
             elif name in modules[module_name]:
                 alias = name
@@ -630,12 +630,11 @@ def import_statements(*objects, **options):
 
             not_all_modules = [module_name for module_name in modules if not '.all_' in module_name and not module_name.endswith('.all')]
             if not(not_all_modules):
-                print "# ** Warning **: the object %s is only defined in .all modules"%obj
+                print("# ** Warning **: the object {} is only defined in .all modules".format(obj))
                 module_name = modules.keys()[0]
-
             else:
                 if len(not_all_modules) > 1:
-                    print "# ** Warning **: several modules for the object %s: %s"%(obj, ', '.join(modules.keys()))
+                    print("# ** Warning **: several modules for the object {}: {}".format(obj, ', '.join(modules.keys())))
                 module_name = not_all_modules[0]
 
         # 3. Now that we found the module, we fix the problem of the alias
@@ -660,5 +659,5 @@ def import_statements(*objects, **options):
     if answer_as_str:
         return '\n'.join(res)
     else:
-        print '\n'.join(res)
+        print('\n'.join(res))
 

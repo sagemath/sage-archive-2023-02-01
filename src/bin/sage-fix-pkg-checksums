@@ -1,20 +1,34 @@
 #!/usr/bin/env bash
 
-for upstream in $SAGE_ROOT/upstream/*.tar*
+# If any command-line arguments are present, treat them as files to be
+# checksummed. If no arguments are present, all tarballs in
+# $SAGE_ROOT/upstream are checksummed.
+if [ $# -eq 0 ]; then
+    cd "$SAGE_ROOT"
+    set upstream/*.tar*
+fi
+
+for upstream in "$@"
 do
     tarball=`basename "$upstream"`
     pkg_name=${tarball%-*}
     pkg_compression=${tarball#*.tar}   # gz or bz2
-    if [ -e "$SAGE_ROOT/build/pkgs/$pkg_name" ]; then
+    if [ -d "$SAGE_ROOT/build/pkgs/$pkg_name" ]; then
         sage_version=`cat "$SAGE_ROOT/build/pkgs/$pkg_name/package-version.txt" | sed 's/\.p[0-9][0-9]*$//'`
         if [ ${tarball%.tar*} = "$pkg_name-$sage_version" ]; then
-            echo $tarball
+            echo >&2 $tarball
             checksums="$SAGE_ROOT/build/pkgs/$pkg_name/checksums.ini"
             echo "tarball=$pkg_name-VERSION.tar$pkg_compression" > $checksums
+
             echo -n "sha1=" >> $checksums
-            shasum -a 1 $upstream | sed 's/ .*//' >> $checksums
+            if command -v sha1sum &>/dev/null; then
+                sha1sum $upstream | sed 's/ .*//' >> $checksums
+            else
+                shasum -a 1 $upstream | sed 's/ .*//' >> $checksums
+            fi
+
             echo -n "md5=" >> $checksums
-            if command -v md5 > /dev/null; then
+            if command -v md5 &>/dev/null; then
                 md5 $upstream | sed 's/.*= *//' >> $checksums
             else
                 md5sum $upstream | sed 's/ .*//' >> $checksums

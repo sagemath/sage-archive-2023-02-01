@@ -82,7 +82,7 @@ def deprecation(trac_number, message):
         sage: def foo():
         ....:  sage.misc.superseded.deprecation(13109, 'the function foo is replaced by bar')
         sage: foo()
-        doctest:1: DeprecationWarning: the function foo is replaced by bar
+        doctest:...: DeprecationWarning: the function foo is replaced by bar
         See http://trac.sagemath.org/13109 for details.
     """
     _check_trac_number(trac_number)
@@ -182,7 +182,7 @@ class DeprecatedFunctionAlias(object):
                 for key, val in ref_copy.iteritems():
                     if val is self:
                         return key
-        raise AttributeError, "The name of this deprecated function can not be determined"
+        raise AttributeError("The name of this deprecated function can not be determined")
 
     def __call__(self, *args, **kwds):
         """
@@ -192,7 +192,7 @@ class DeprecatedFunctionAlias(object):
             sage: def bla(): return 42
             sage: blo = deprecated_function_alias(13109, bla)
             sage: blo()
-            doctest:1: DeprecationWarning: blo is deprecated. Please use bla instead.
+            doctest:...: DeprecationWarning: blo is deprecated. Please use bla instead.
             See http://trac.sagemath.org/13109 for details.
             42
         """

@@ -192,17 +192,16 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
         if P(2) == 0:
             # characteristic 2
             if h == 0:
-                raise ValueError, \
-                   "In characteristic 2, argument h (= %s) must be non-zero."%h
+                raise ValueError("In characteristic 2, argument h (= %s) must be non-zero."%h)
             if h[g+1] == 0 and f[2*g+1]**2 == f[2*g+2]*h[g]**2:
-                raise ValueError, "Not a hyperelliptic curve: " \
-                                  "highly singular at infinity."
+                raise ValueError("Not a hyperelliptic curve: " \
+                                  "highly singular at infinity.")
             should_be_coprime = [h, f*h.derivative()**2+f.derivative()**2]
         else:
             # characteristic not 2
             if not F.degree() in [2*g+1, 2*g+2]:
-                raise ValueError, "Not a hyperelliptic curve: " \
-                                  "highly singular at infinity."
+                raise ValueError("Not a hyperelliptic curve: " \
+                                  "highly singular at infinity.")
             should_be_coprime = [F, F.derivative()]
         try:
             smooth = should_be_coprime[0].gcd(should_be_coprime[1]).degree()==0
@@ -210,13 +209,13 @@ def HyperellipticCurve(f, h=0, names=None, PP=None, check_squarefree=True):
             try:
                 smooth = should_be_coprime[0].resultant(should_be_coprime[1])!=0
             except (AttributeError, NotImplementedError, TypeError):
-                raise NotImplementedError, "Cannot determine whether " \
+                raise NotImplementedError("Cannot determine whether " \
                       "polynomials %s have a common root. Use " \
                       "check_squarefree=False to skip this check." % \
-                      should_be_coprime
+                      should_be_coprime)
         if not smooth:
-            raise ValueError, "Not a hyperelliptic curve: " \
-                              "singularity in the provided affine patch."
+            raise ValueError("Not a hyperelliptic curve: " \
+                              "singularity in the provided affine patch.")
     R = P.base_ring()
     PP = ProjectiveSpace(2, R)
     if names is None:

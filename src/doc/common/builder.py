@@ -35,6 +35,33 @@ from sage.env import SAGE_DOC, SAGE_SRC
 execfile(os.path.join(SAGE_DOC, 'common' , 'build_options.py'))
 
 
+def delete_empty_directories(root_dir, verbose=True):
+    """
+    Delete all empty directories found under ``root_dir``
+
+    INPUT:
+
+    - ``root_dir`` -- string. A valid directory name.
+    """
+    for dirpath, dirnames, filenames in os.walk(root_dir, topdown=False):
+        if not dirnames + filenames:
+            if verbose:
+                print('Deleting empty directory {0}'.format(dirpath))
+            os.rmdir(dirpath)
+
+
+def print_build_error():
+    """
+    Print docbuild error and hint how to solve it
+    """
+    logger.error('Error building the documentation.')
+    if INCREMENTAL_BUILD:
+        logger.error('''
+Note: incremental documentation builds sometimes cause spurious
+error messages. To be certain that these are real errors, run
+"make doc-clean" first and try again.''')
+
+
 ##########################################
 #      Parallel Building Ref Manual      #
 ##########################################
@@ -79,12 +106,7 @@ def builder_helper(type):
         # Execute custom-sphinx-build.py
         sys.argv = [os.path.join(SAGE_DOC, 'common', 'custom-sphinx-build.py')]
         sys.argv.extend(build_command.split())
-        try:
-            execfile(sys.argv[0])
-        except Exception:
-            import traceback
-            logger.error(traceback.format_exc())
-            raise
+        execfile(sys.argv[0])
 
         # Print message about location of output:
         #   - by default if html output
@@ -285,13 +307,8 @@ class AllBuilder(object):
             pool.join()
         except Exception:
             pool.terminate()
-            logger.error('Error building the documentation.')
-            if INCREMENTAL_BUILD:
-                logger.error('''
-Note: incremental documentation builds sometimes cause spurious
-error messages. To be certain that these are real errors, run
-"make doc-clean" first and try again.''')
-            raise
+            if ABORT_ON_ERROR:
+                raise
         logger.warning("Elapsed time: %.1f seconds."%(time.time()-start))
         logger.warning("Done building the documentation!")
 
@@ -487,13 +504,8 @@ class ReferenceBuilder(AllBuilder):
                 pool.join()
             except Exception:
                 pool.terminate()
-                logger.error('Error building the documentation.')
-                if INCREMENTAL_BUILD:
-                    logger.error('''
-Note: incremental documentation builds sometimes cause spurious
-error messages. To be certain that these are real errors, run
-"make doc-clean" first and try again.''')
-                raise
+                if ABORT_ON_ERROR:
+                    raise
             # The html refman must be build at the end to ensure correct
             # merging of indexes and inventories.
             # Sphinx is run here in the current process (not in a
@@ -1056,7 +1068,7 @@ def get_builder(name):
         return AllBuilder()
     elif name.endswith('reference'):
         return ReferenceBuilder(name)
-    elif 'reference' in name:
+    elif 'reference' in name and os.path.exists(os.path.join(SAGE_DOC, 'en', name)):
         return ReferenceSubBuilder(name)
     elif name.endswith('website'):
         return WebsiteBuilder(name)
@@ -1338,6 +1350,9 @@ def setup_parser():
     advanced.add_option("-U", "--update-mtimes", dest="update_mtimes",
                         default=False, action="store_true",
                         help="before building reference manual, update modification times for auto-generated ReST files")
+    advanced.add_option("-k", "--keep-going", dest="keep_going",
+                        default=False, action="store_true",
+                        help="Do not abort on errors but continue as much as possible after an error")
     parser.add_option_group(advanced)
 
     return parser
@@ -1433,6 +1448,7 @@ if __name__ == '__main__':
     except ValueError:
         help_message_short(parser=parser, error=True)
         sys.exit(1)
+    delete_empty_directories(SAGE_DOC)
 
     # Set up module-wide logging.
     logger = setup_logger(options.verbose, options.color)
@@ -1459,16 +1475,20 @@ if __name__ == '__main__':
     if options.warn_links:
         ALLSPHINXOPTS += "-n "
 
+    ABORT_ON_ERROR = not options.keep_going
+
     # Make sure common/static exists.
     mkdir(os.path.join(SAGE_DOC, 'common', 'static'))
 
     import sage.all
 
-    # Minimize GAP/libGAP RAM usage when we build the docs
-    set_gap_memory_pool_size(1)  # 1 MB
-
     # Set up Intersphinx cache
     C = IntersphinxCache()
 
     # Get the builder and build.
-    getattr(get_builder(name), type)()
+    try:
+        getattr(get_builder(name), type)()
+    except Exception:
+        print_build_error()
+        raise
+        

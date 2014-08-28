@@ -756,7 +756,10 @@ cdef class GurobiBackend(GenericBackend):
 
         cdef double value[1]
         check(self.env,GRBgetdblattrelement(self.model, "X", variable, value))
-        return round(value[0]) if self.is_variable_binary(variable) else value[0]
+        if self.is_variable_continuous(variable):
+            return value[0]
+        else:
+            return round(value[0])
 
     cpdef int ncols(self):
         """

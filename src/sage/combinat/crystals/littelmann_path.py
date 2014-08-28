@@ -4,7 +4,8 @@ Littelmann paths
 AUTHORS:
 
 - Mark Shimozono, Anne Schilling (2012): Initial version
-- Anne Schilling (2013): Implemented :class:`CrystalOfProjectedLevelZeroLSPaths`
+- Anne Schilling (2013): Implemented
+  :class:`~sage.combinat.crystals.littlemann_path.CrystalOfProjectedLevelZeroLSPaths`
 """
 #****************************************************************************
 #       Copyright (C) 2012 Mark Shimozono
@@ -26,7 +27,6 @@ from sage.misc.cachefunc import cached_in_parent_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
-from sage.categories.crystals import Crystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.finite_crystals import FiniteCrystals
@@ -65,10 +65,10 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
         sage: R = RootSystem(['A',2,1])
         sage: La = R.weight_space(extended = True).basis()
-        sage: B = CrystalOfLSPaths(La[2]-La[0]); B
+        sage: B = crystals.LSPaths(La[2]-La[0]); B
         The crystal of LS paths of type ['A', 2, 1] and weight -Lambda[0] + Lambda[2]
 
-        sage: C = CrystalOfLSPaths(['A',2,1],[-1,0,1]); C
+        sage: C = crystals.LSPaths(['A',2,1],[-1,0,1]); C
         The crystal of LS paths of type ['A', 2, 1] and weight -Lambda[0] + Lambda[2]
         sage: B == C
         True
@@ -89,7 +89,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
     For classical highest weight crystals we can also compare the results with the tableaux implementation::
 
-        sage: C = CrystalOfLSPaths(['A',2],[1,1])
+        sage: C = crystals.LSPaths(['A',2],[1,1])
         sage: sorted(C, key=str)
         [(-2*Lambda[1] + Lambda[2],), (-Lambda[1] + 1/2*Lambda[2], Lambda[1] - 1/2*Lambda[2]),
          (-Lambda[1] + 2*Lambda[2],), (-Lambda[1] - Lambda[2],),
@@ -97,7 +97,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
          (Lambda[1] + Lambda[2],), (Lambda[1] - 2*Lambda[2],)]
         sage: C.cardinality()
         8
-        sage: B = CrystalOfTableaux(['A',2],shape=[2,1])
+        sage: B = crystals.Tableaux(['A',2],shape=[2,1])
         sage: B.cardinality()
         8
         sage: B.digraph().is_isomorphic(C.digraph())
@@ -107,7 +107,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
         sage: R = RootSystem(['A',2,1])
         sage: La = R.weight_lattice(extended = True).basis()
-        sage: B = CrystalOfLSPaths(La[2]); B
+        sage: B = crystals.LSPaths(La[2]); B
         Traceback (most recent call last):
         ...
         ValueError: Please use the weight space, rather than weight lattice for your weights
@@ -123,21 +123,23 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
         """
         Classcall to mend the input.
 
-        Internally, the CrystalOfLSPaths code works with a ``starting_weight`` that
-        is in the ``weight_space`` associated to the crystal. The user can, however,
-        also input a ``cartan_type`` and the coefficients of the fundamental weights
-        as ``starting_weight``. This code transforms the input into the right
+        Internally, the
+        :class:`~sage.combinat.crystals.littlemann_path.CrystalOfLSPaths` code
+        works with a ``starting_weight`` that is in the weight space associated
+        to the crystal. The user can, however, also input a ``cartan_type``
+        and the coefficients of the fundamental weights as
+        ``starting_weight``. This code transforms the input into the right
         format (also necessary for UniqueRepresentation).
 
         TESTS::
 
-            sage: CrystalOfLSPaths(['A',2,1],[-1,0,1])
+            sage: crystals.LSPaths(['A',2,1],[-1,0,1])
             The crystal of LS paths of type ['A', 2, 1] and weight -Lambda[0] + Lambda[2]
 
             sage: R = RootSystem(['B',2,1])
             sage: La = R.weight_space().basis()
-            sage: C = CrystalOfLSPaths(['B',2,1],[0,0,1])
-            sage: B = CrystalOfLSPaths(La[2])
+            sage: C = crystals.LSPaths(['B',2,1],[0,0,1])
+            sage: B = crystals.LSPaths(La[2])
             sage: B is C
             True
         """
@@ -160,7 +162,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
         """
         EXAMPLES::
 
-            sage: C = CrystalOfLSPaths(['A',2,1],[-1,0,1]); C
+            sage: C = crystals.LSPaths(['A',2,1],[-1,0,1]); C
             The crystal of LS paths of type ['A', 2, 1] and weight -Lambda[0] + Lambda[2]
             sage: C.R
             Root system of type ['A', 2, 1]
@@ -173,16 +175,16 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: C = CrystalOfLSPaths(['A',2,1], [-1,0,1])
-            sage: TestSuite(C).run()
-            sage: C = CrystalOfLSPaths(['E',6], [1,0,0,0,0,0])
+            sage: C = crystals.LSPaths(['A',2,1], [-1,0,1])
+            sage: TestSuite(C).run() # long time
+            sage: C = crystals.LSPaths(['E',6], [1,0,0,0,0,0])
             sage: TestSuite(C).run()
         """
         cartan_type = starting_weight.parent().cartan_type()
         self.R = RootSystem(cartan_type)
         self.weight = starting_weight
         if not self.weight.parent().base_ring().has_coerce_map_from(QQ):
-             raise ValueError, "Please use the weight space, rather than weight lattice for your weights"
+             raise ValueError("Please use the weight space, rather than weight lattice for your weights")
         self._cartan_type = cartan_type
         self._name = "The crystal of LS paths of type %s and weight %s"%(cartan_type,starting_weight)
         if cartan_type.is_affine():
@@ -207,7 +209,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
         """
         EXAMPLES::
 
-            sage: CrystalOfLSPaths(['B',3],[1,1,0]) # indirect doctest
+            sage: crystals.LSPaths(['B',3],[1,1,0]) # indirect doctest
             The crystal of LS paths of type ['B', 3] and weight Lambda[1] + Lambda[2]
         """
         return self._name
@@ -216,7 +218,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
         """
         TESTS::
 
-            sage: C = CrystalOfLSPaths(['E',6],[1,0,0,0,0,0])
+            sage: C = crystals.LSPaths(['E',6],[1,0,0,0,0,0])
             sage: c=C.an_element()
             sage: TestSuite(c).run()
         """
@@ -227,7 +229,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLSPaths(['A',2],[1,1])
+                sage: C = crystals.LSPaths(['A',2],[1,1])
                 sage: b = C.module_generators[0]
                 sage: b.endpoint()
                 Lambda[1] + Lambda[2]
@@ -254,7 +256,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLSPaths(['A',2],[1,1])
+                sage: C = crystals.LSPaths(['A',2],[1,1])
                 sage: Lambda = C.R.weight_space().fundamental_weights(); Lambda
                 Finite family {1: Lambda[1], 2: Lambda[2]}
                 sage: c = C(tuple([1/2*Lambda[1]+1/2*Lambda[2], 1/2*Lambda[1]+1/2*Lambda[2]]))
@@ -296,7 +298,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLSPaths(['A',2],[1,1])
+                sage: C = crystals.LSPaths(['A',2],[1,1])
                 sage: b = C.module_generators[0]
                 sage: b.split_step(0,1/3)
                 (1/3*Lambda[1] + 1/3*Lambda[2], 2/3*Lambda[1] + 2/3*Lambda[2])
@@ -311,7 +313,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLSPaths(['A',2],[1,1])
+                sage: C = crystals.LSPaths(['A',2],[1,1])
                 sage: b = C.module_generators[0]
                 sage: b.reflect_step(0,1)
                 (-Lambda[1] + 2*Lambda[2],)
@@ -328,7 +330,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
             TESTS::
 
-                sage: C = CrystalOfLSPaths(['A',2],[1,1])
+                sage: C = crystals.LSPaths(['A',2],[1,1])
                 sage: b = C.module_generators[0]
                 sage: b._string_data(1)
                 ()
@@ -365,7 +367,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLSPaths(['A',2],[1,1])
+                sage: C = crystals.LSPaths(['A',2],[1,1])
                 sage: [c.epsilon(1) for c in C]
                 [0, 1, 0, 0, 1, 0, 1, 2]
                 sage: [c.epsilon(2) for c in C]
@@ -382,7 +384,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLSPaths(['A',2],[1,1])
+                sage: C = crystals.LSPaths(['A',2],[1,1])
                 sage: [c.phi(1) for c in C]
                 [1, 0, 0, 1, 0, 2, 1, 0]
                 sage: [c.phi(2) for c in C]
@@ -406,7 +408,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLSPaths(['A',2],[1,1])
+                sage: C = crystals.LSPaths(['A',2],[1,1])
                 sage: c = C[2]; c
                 (1/2*Lambda[1] - Lambda[2], -1/2*Lambda[1] + Lambda[2])
                 sage: c.e(1)
@@ -468,7 +470,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLSPaths(['A',2],[1,1])
+                sage: C = crystals.LSPaths(['A',2],[1,1])
                 sage: for c in C:
                 ...     print c, c.dualize()
                 ...
@@ -503,7 +505,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLSPaths(['A',2],[1,1])
+                sage: C = crystals.LSPaths(['A',2],[1,1])
                 sage: c = C.module_generators[0]
                 sage: c.f(1)
                 (-Lambda[1] + 2*Lambda[2],)
@@ -515,7 +517,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
                 sage: c.f(2,length_only=True)
                 1
 
-                sage: C = CrystalOfLSPaths(['A',2,1],[-1,-1,2])
+                sage: C = crystals.LSPaths(['A',2,1],[-1,-1,2])
                 sage: c = C.module_generators[0]
                 sage: c.f(2,power=2)
                 (Lambda[0] + Lambda[1] - 2*Lambda[2],)
@@ -524,7 +526,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
             dual_path = dual_path.e(i, power, to_string_end, length_only)
             if length_only:
                 return dual_path
-            if dual_path == None:
+            if dual_path is None:
                 return None
             return dual_path.dualize()
 
@@ -537,14 +539,14 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLSPaths(['A',2],[1,1])
+                sage: C = crystals.LSPaths(['A',2],[1,1])
                 sage: c = C.module_generators[0]
                 sage: c.s(1)
                 (-Lambda[1] + 2*Lambda[2],)
                 sage: c.s(2)
                 (2*Lambda[1] - Lambda[2],)
 
-                sage: C = CrystalOfLSPaths(['A',2,1],[-1,0,1])
+                sage: C = crystals.LSPaths(['A',2,1],[-1,0,1])
                 sage: c = C.module_generators[0]; c
                 (-Lambda[0] + Lambda[2],)
                 sage: c.s(2)
@@ -568,7 +570,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLSPaths(['A',2],[1,1])
+                sage: C = crystals.LSPaths(['A',2],[1,1])
                 sage: c = C.module_generators[0]
                 sage: c._latex_()
                 [\Lambda_{1} + \Lambda_{2}]
@@ -586,21 +588,21 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
     When ``weight`` is just a single fundamental weight `\Lambda_r`, this crystal is
     isomorphic to a Kirillov-Reshetikhin (KR) crystal, see also
-    :meth:`sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystalFromLSPaths`.
+    :meth:`sage.combinat.crystals.kirillov_reshetikhin.crystals.KirillovReshetikhinFromLSPaths`.
     For general weights, it is isomorphic to a tensor product of single-column KR crystals.
 
     EXAMPLES::
 
         sage: R = RootSystem(['C',3,1])
         sage: La = R.weight_space().basis()
-        sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[3])
+        sage: LS = crystals.ProjectedLevelZeroLSPaths(La[1]+La[3])
         sage: LS.cardinality()
         84
         sage: GLS = LS.digraph()
 
-        sage: K1 = KirillovReshetikhinCrystal(['C',3,1],1,1)
-        sage: K3 = KirillovReshetikhinCrystal(['C',3,1],3,1)
-        sage: T = TensorProductOfCrystals(K3,K1)
+        sage: K1 = crystals.KirillovReshetikhin(['C',3,1],1,1)
+        sage: K3 = crystals.KirillovReshetikhin(['C',3,1],3,1)
+        sage: T = crystals.TensorProduct(K3,K1)
         sage: T.cardinality()
         84
         sage: GT = T.digraph() # long time
@@ -612,7 +614,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
         sage: ct = CartanType(['A',4,2]).dual()
         sage: P = RootSystem(ct).weight_space()
         sage: La = P.fundamental_weights()
-        sage: C = CrystalOfProjectedLevelZeroLSPaths(La[1])
+        sage: C = crystals.ProjectedLevelZeroLSPaths(La[1])
         sage: sorted(C, key=str)
         [(-Lambda[0] + Lambda[1],),
          (-Lambda[1] + 2*Lambda[2],),
@@ -626,16 +628,18 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
         """
         Classcall to mend the input.
 
-        Internally, the CrystalOfProjectedLevelZeroLSPaths uses a level zero weight,
-        which is passed on to CrystalOfLSPaths. ``weight`` is first coerced to
-        a level zero weight.
+        Internally, the
+        :class:`~sage.combinat.crystals.littlemann_path.CrystalOfProjectedLevelZeroLSPaths`
+        uses a level zero weight, which is passed on to
+        :class:`~sage.combinat.crystals.littlemann_path.CrystalOfLSPaths`.
+        ``weight`` is first coerced to a level zero weight.
 
         TESTS::
 
             sage: R = RootSystem(['C',3,1])
             sage: La = R.weight_space().basis()
-            sage: C = CrystalOfProjectedLevelZeroLSPaths(La[1] + La[2])
-            sage: C2 = CrystalOfProjectedLevelZeroLSPaths(La[1] + La[2])
+            sage: C = crystals.ProjectedLevelZeroLSPaths(La[1] + La[2])
+            sage: C2 = crystals.ProjectedLevelZeroLSPaths(La[1] + La[2])
             sage: C is C2
             True
         """
@@ -663,12 +667,12 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
             sage: R = RootSystem(['A',2,1])
             sage: La = R.weight_space().basis()
-            sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1])
-            sage: LS.one_dimensional_configuration_sum()
+            sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1])
+            sage: LS.one_dimensional_configuration_sum() # long time
             B[-2*Lambda[1] + 2*Lambda[2]] + (q+1)*B[-Lambda[1]]
             + (q+1)*B[Lambda[1] - Lambda[2]] + B[2*Lambda[1]] + B[-2*Lambda[2]] + (q+1)*B[Lambda[2]]
             sage: R.<t> = ZZ[]
-            sage: LS.one_dimensional_configuration_sum(t, False)
+            sage: LS.one_dimensional_configuration_sum(t, False) # long time
             B[-2*Lambda[1] + 2*Lambda[2]] + (t+1)*B[-Lambda[1]] + (t+1)*B[Lambda[1] - Lambda[2]]
             + B[2*Lambda[1]] + B[-2*Lambda[2]] + (t+1)*B[Lambda[2]]
 
@@ -676,30 +680,30 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
             sage: R = RootSystem(['B',3,1])
             sage: La = R.weight_space().basis()
-            sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[2])
+            sage: LS = crystals.ProjectedLevelZeroLSPaths(La[1]+La[2])
             sage: LS.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum(group_components=False) # long time
             True
-            sage: K1 = KirillovReshetikhinCrystal(['B',3,1],1,1)
-            sage: K2 = KirillovReshetikhinCrystal(['B',3,1],2,1)
-            sage: T = TensorProductOfCrystals(K2,K1)
-            sage: T.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum()
+            sage: K1 = crystals.KirillovReshetikhin(['B',3,1],1,1)
+            sage: K2 = crystals.KirillovReshetikhin(['B',3,1],2,1)
+            sage: T = crystals.TensorProduct(K2,K1)
+            sage: T.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum() # long time
             True
 
             sage: R = RootSystem(['D',4,2])
             sage: La = R.weight_space().basis()
-            sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[2])
-            sage: K1 = KirillovReshetikhinCrystal(['D',4,2],1,1)
-            sage: K2 = KirillovReshetikhinCrystal(['D',4,2],2,1)
-            sage: T = TensorProductOfCrystals(K2,K1)
-            sage: T.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum()
+            sage: LS = crystals.ProjectedLevelZeroLSPaths(La[1]+La[2])
+            sage: K1 = crystals.KirillovReshetikhin(['D',4,2],1,1)
+            sage: K2 = crystals.KirillovReshetikhin(['D',4,2],2,1)
+            sage: T = crystals.TensorProduct(K2,K1)
+            sage: T.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum() # long time
             True
 
             sage: R = RootSystem(['A',5,2])
             sage: La = R.weight_space().basis()
-            sage: LS = CrystalOfProjectedLevelZeroLSPaths(3*La[1])
-            sage: K1 = KirillovReshetikhinCrystal(['A',5,2],1,1)
-            sage: T = TensorProductOfCrystals(K1,K1,K1)
-            sage: T.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum()
+            sage: LS = crystals.ProjectedLevelZeroLSPaths(3*La[1])
+            sage: K1 = crystals.KirillovReshetikhin(['A',5,2],1,1)
+            sage: T = crystals.TensorProduct(K1,K1,K1)
+            sage: T.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum() # long time
             True
         """
         if q is None:
@@ -740,17 +744,17 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             sage: C = CartanType(['C',2,1])
             sage: R = RootSystem(C)
             sage: La = R.weight_space().basis()
-            sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1])
+            sage: LS = crystals.ProjectedLevelZeroLSPaths(La[1])
             sage: LS.is_perfect()
             False
-            sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[2])
+            sage: LS = crystals.ProjectedLevelZeroLSPaths(La[2])
             sage: LS.is_perfect()
             True
 
             sage: C = CartanType(['E',6,1])
             sage: R = RootSystem(C)
             sage: La = R.weight_space().basis()
-            sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1])
+            sage: LS = crystals.ProjectedLevelZeroLSPaths(La[1])
             sage: LS.is_perfect()
             True
             sage: LS.is_perfect(2)
@@ -759,13 +763,13 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             sage: C = CartanType(['D',4,1])
             sage: R = RootSystem(C)
             sage: La = R.weight_space().basis()
-            sage: all(CrystalOfProjectedLevelZeroLSPaths(La[i]).is_perfect() for i in [1,2,3,4])
+            sage: all(crystals.ProjectedLevelZeroLSPaths(La[i]).is_perfect() for i in [1,2,3,4])
             True
 
             sage: C = CartanType(['A',6,2])
             sage: R = RootSystem(C)
             sage: La = R.weight_space().basis()
-            sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[2])
+            sage: LS = crystals.ProjectedLevelZeroLSPaths(La[1]+La[2])
             sage: LS.is_perfect()
             True
             sage: LS.is_perfect(2)
@@ -814,7 +818,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
                 sage: R = RootSystem(['C',3,1])
                 sage: La = R.weight_space().basis()
-                sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[3])
+                sage: LS = crystals.ProjectedLevelZeroLSPaths(La[1]+La[3])
                 sage: b = LS.module_generators[0]
                 sage: b.scalar_factors()
                 [1]
@@ -856,7 +860,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
                 sage: R = RootSystem(['C',3,1])
                 sage: La = R.weight_space().basis()
-                sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[3])
+                sage: LS = crystals.ProjectedLevelZeroLSPaths(La[1]+La[3])
                 sage: b = LS.module_generators[0]
                 sage: c = b.f(1).f(3).f(2)
                 sage: c.weyl_group_representation()
@@ -929,7 +933,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
                 sage: R = RootSystem(['C',3,1])
                 sage: La = R.weight_space().basis()
-                sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[3])
+                sage: LS = crystals.ProjectedLevelZeroLSPaths(La[1]+La[3])
                 sage: b = LS.module_generators[0]
                 sage: c = b.f(1).f(3).f(2)
                 sage: c.energy_function()
@@ -940,7 +944,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
                 sage: R = RootSystem(['A',2,1])
                 sage: La = R.weight_space().basis()
-                sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1])
+                sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1])
                 sage: b = LS.module_generators[0]
                 sage: c = b.e(0)
                 sage: c.energy_function()
@@ -960,7 +964,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
                 sage: R = RootSystem(['A',2,1])
                 sage: La = R.weight_space().basis()
-                sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1]+La[2])
+                sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1]+La[2])
                 sage: G = LS.digraph(index_set=[1,2])
                 sage: C = G.connected_components()
                 sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C]
@@ -968,7 +972,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
                 sage: R = RootSystem(['D',4,2])
                 sage: La = R.weight_space().basis()
-                sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[2])
+                sage: LS = crystals.ProjectedLevelZeroLSPaths(La[2])
                 sage: J = R.cartan_type().classical().index_set()
                 sage: hw = [x for x in LS if x.is_highest_weight(J)]
                 sage: [(x.weight(), x.energy_function()) for x in hw]
@@ -980,7 +984,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
                 sage: R = RootSystem(CartanType(['G',2,1]).dual())
                 sage: La = R.weight_space().basis()
-                sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[2])
+                sage: LS = crystals.ProjectedLevelZeroLSPaths(La[1]+La[2])
                 sage: G = LS.digraph(index_set=[1,2])
                 sage: C = G.connected_components()
                 sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C] # long time
@@ -989,7 +993,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                 sage: ct = CartanType(['BC',2,2]).dual()
                 sage: R = RootSystem(ct)
                 sage: La = R.weight_space().basis()
-                sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1]+La[2])
+                sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1]+La[2])
                 sage: G = LS.digraph(index_set=R.cartan_type().classical().index_set())
                 sage: C = G.connected_components()
                 sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C] # long time
@@ -997,7 +1001,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
                 sage: R = RootSystem(['BC',2,2])
                 sage: La = R.weight_space().basis()
-                sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1]+La[2])
+                sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1]+La[2])
                 sage: G = LS.digraph(index_set=R.cartan_type().classical().index_set())
                 sage: C = G.connected_components()
                 sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C] # long time

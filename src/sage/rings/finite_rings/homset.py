@@ -89,12 +89,15 @@ class FiniteFieldHomset(RingHomset_generic):
         if isinstance(im_gens, FiniteFieldHomomorphism_generic):
             return self._coerce_impl(im_gens)
         try:
+            if self.domain().degree() == 1:
+                from sage.rings.finite_rings.hom_prime_finite_field import FiniteFieldHomomorphism_prime
+                return FiniteFieldHomomorphism_prime(self, im_gens, check=check)
             return FiniteFieldHomomorphism_generic(self, im_gens, check=check)
         except (NotImplementedError, ValueError) as err:
             try:
                 return self._coerce_impl(im_gens)
             except TypeError:
-                raise TypeError, "images do not define a valid homomorphism"
+                raise TypeError("images do not define a valid homomorphism")
 
     def _coerce_impl(self, x):
         """
@@ -106,10 +109,8 @@ class FiniteFieldHomset(RingHomset_generic):
             sage: l.<b> = GF(625)
             sage: H = Hom(k, l)
             sage: G = loads(dumps(H))
-            sage: H == G
+            sage: H is G
             True
-            sage: H is G # this should change eventually
-            False
             sage: G.coerce(list(H)[0]) # indirect doctest
             Ring morphism:
               From: Finite Field in a of size 5^2

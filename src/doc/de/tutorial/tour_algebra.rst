@@ -156,7 +156,7 @@ berechnen. Die Gleichung :math:`x'+x-1=0` berechnen Sie wie folgt:
     sage: x = function('x',t)   # definiere x als Funktion dieser Variablen
     sage: DE = diff(x, t) + x - 1
     sage: desolve(DE, [x,t])
-    (c + e^t)*e^(-t)
+    (_C + e^t)*e^(-t)
 
 Dies benutzt Sages Schnittstelle zu Maxima [Max]_, daher kann sich die
 Ausgabe ein wenig von anderen Ausgaben in Sage unterscheiden. In

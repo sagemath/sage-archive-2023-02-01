@@ -849,7 +849,7 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
             <class 'sage.modules.vector_space_morphism.VectorSpaceMorphism'>
         """
         if not vector_space_homspace.is_VectorSpaceHomspace(homspace):
-            raise TypeError, 'homspace must be a vector space hom space, not {0}'.format(homspace)
+            raise TypeError('homspace must be a vector space hom space, not {0}'.format(homspace))
         if isinstance(A, matrix_morphism.MatrixMorphism):
             A = A.matrix()
         if not is_Matrix(A):

@@ -78,7 +78,7 @@ class Debug:
                 tb=tb.tb_next
             self._stack = inspect.getinnerframes(tb)
         except AttributeError:
-            raise RuntimeError, "no traceback has been produced; nothing to debug"
+            raise RuntimeError("no traceback has been produced; nothing to debug")
         self._curframe_index = len(self._stack) - 1
 
     def curframe(self):

@@ -28,14 +28,15 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.combinat.misc import IterableFunctionCall
 import sage.combinat.tableau as tableau
-from sage.rings.all import ZZ, QQ
+from sage.rings.all import QQ
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.rigged_configurations.kleber_tree import KleberTree, VirtualKleberTree
-from sage.combinat.rigged_configurations.rigged_configuration_element import RiggedConfigurationElement, \
-  RCNonSimplyLacedElement
+from sage.combinat.rigged_configurations.rigged_configuration_element import (
+     RiggedConfigurationElement, KRRCSimplyLacedElement, KRRCNonSimplyLacedElement,
+     KRRCTypeA2DualElement)
 
 RiggedConfigurationOptions=GlobalOptions(name='rigged configurations',
     doc=r"""
@@ -94,6 +95,34 @@ RiggedConfigurationOptions=GlobalOptions(name='rigged configurations',
     notation = dict(alt_name='convention')
 )
 
+# Used in the KR crystals catalog so that there is a common interface
+def KirillovReshetikhinCrystal(cartan_type, r, s):
+    """
+    Return the KR crystal `B^{r,s}` using
+    :class:`rigged configurations <RiggedConfigurations>`.
+
+    This is the rigged configuration `RC(B^{r,s})` or `RC(L)` with
+    `L = (L_i^{(a)})` and `L_i^{(a)} = \delta_{a,r} \delta_{i,s}`.
+
+    EXAMPLES::
+
+        sage: K1 = crystals.kirillov_reshetikhin.RiggedConfigurations(['A',6,2], 2, 1)
+        sage: K2 = crystals.kirillov_reshetikhin.LSPaths(['A',6,2], 2, 1)
+        sage: K1.digraph().is_isomorphic(K2.digraph(), edge_labels=True)
+        True
+
+    TESTS:
+
+    We explicitly import and check we get the same crystal::
+
+        sage: from sage.combinat.rigged_configurations.rigged_configurations import KirillovReshetikhinCrystal
+        sage: K1 = crystals.kirillov_reshetikhin.RiggedConfigurations(['A',6,2], 2, 1)
+        sage: K1 is KirillovReshetikhinCrystal(['A',6,2], 2, 1)
+        True
+    """
+    from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+    return RiggedConfigurations(cartan_type, [[r,s]])
+
 # Note on implementation, this class is used for simply-laced types only
 class RiggedConfigurations(Parent, UniqueRepresentation):
     r"""
@@ -145,18 +174,20 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
     highest weight ones using the crystal operators.
 
     Rigged configurations are conjecturally in bijection with
-    :class:`TensorProductOfKirillovReshetikhinTableaux` of non-exceptional
-    affine types where the list `B` corresponds to the tensor factors
-    `B^{r,s}`. The bijection has been proven in types `A_n^{(1)}` and
-    `D_n^{(1)}` and when the only non-zero entries of `L_i^{(a)}` are either
+    :class:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux`
+    of non-exceptional affine types where the list `B` corresponds to the
+    tensor factors `B^{r,s}`. The bijection has been proven in types `A_n^{(1)}`
+    and `D_n^{(1)}` and when the only non-zero entries of `L_i^{(a)}` are either
     only `L_1^{(a)}` or only `L_i^{(1)}` (corresponding to single columns or
     rows respectively) [RigConBijection]_, [BijectionLRT]_, [BijectionDn]_.
 
     KR crystals are implemented in Sage, see
-    :class:`KirillovReshetikhinCrystal`, however, in the bijection with
-    rigged configurations a different realization of the elements in the
-    crystal are obtained, which are coined KR tableaux, see
-    :class:`KirillovReshetikhinTableaux`. For more details see [OSS2011]_.
+    :func:`~sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal`,
+    however, in the bijection with rigged configurations a different
+    realization of the elements in the crystal are obtained, which are
+    coined KR tableaux, see
+    :class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux`.
+    For more details see [OSS2011]_.
 
     .. NOTE::
 
@@ -325,9 +356,9 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
     ::
 
         sage: RC = RiggedConfigurations(['D', 4, 1], [[4,1], [3,3]])
-        sage: KR1 = KirillovReshetikhinCrystal(['D', 4, 1], 4, 1)
-        sage: KR2 = KirillovReshetikhinCrystal(['D', 4, 1], 3, 3)
-        sage: T = TensorProductOfCrystals(KR1, KR2)
+        sage: KR1 = crystals.KirillovReshetikhin(['D', 4, 1], 4, 1)
+        sage: KR2 = crystals.KirillovReshetikhin(['D', 4, 1], 3, 3)
+        sage: T = crystals.TensorProduct(KR1, KR2)
         sage: t = T[1]; t
         [[++++, []], [+++-, [[1], [2], [4], [-4]]]]
         sage: ret = RC(t)
@@ -346,7 +377,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 1]])
         sage: c = RC.cardinality(); c
         29
-        sage: K = KirillovReshetikhinCrystal(['D',4,1],2,1)
+        sage: K = crystals.KirillovReshetikhin(['D',4,1],2,1)
         sage: K.cardinality() == c
         True
     """
@@ -402,8 +433,10 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         """
         self._cartan_type = cartan_type
         self.dims = B
+        cl = cartan_type.classical()
+        self._rc_index = cl.index_set()
         # We store the Cartan matrix for the vacancy number calculations for speed
-        self._cartan_matrix = self._cartan_type.classical().cartan_matrix()
+        self._cartan_matrix = cl.cartan_matrix()
         Parent.__init__(self, category=(RegularCrystals(), FiniteCrystals()))
 
     def _repr_(self):
@@ -655,7 +688,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
         TESTS::
 
-            sage: KT = TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[2,4],[1,2]])
+            sage: KT = crystals.TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[2,4],[1,2]])
             sage: t = KT(pathlist=[[2,1,2,1,-2,2,-1,-2],[2,-2]])
             sage: rc = t.to_rigged_configuration(); rc
             <BLANKLINE>
@@ -720,7 +753,10 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             sage: RC._calc_vacancy_number(elt.nu(), 1, 0)
             0
         """
-        row_len = partitions[a][i]
+        if i is None:
+            row_len = float("inf")
+        else:
+            row_len = partitions[a][i]
 
         vac_num = 0
         if "B" in options:
@@ -972,11 +1008,11 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             if z != x:
                 rejects.append((x, z))
 
-        tester.assertTrue(len(rejects) == 0, "Bijection is not correct: %s"%rejects)
+        tester.assertTrue(len(rejects) == 0, "Bijection is not correct: {}".format(rejects))
         if len(rejects) != 0:
             return rejects
 
-RiggedConfigurations.Element = RiggedConfigurationElement
+    Element = KRRCSimplyLacedElement
 
 class RCNonSimplyLaced(RiggedConfigurations):
     r"""
@@ -1046,7 +1082,10 @@ class RCNonSimplyLaced(RiggedConfigurations):
             sage: RC._calc_vacancy_number(elt.nu(), 1, 0)
             0
         """
-        row_len = partitions[a][i]
+        if i is None:
+            row_len = float("inf")
+        else:
+            row_len = partitions[a][i]
 
         vac_num = 0
         if "B" in options:
@@ -1306,10 +1345,10 @@ class RCNonSimplyLaced(RiggedConfigurations):
             for i, p in enumerate(elt):
                 for j, vac_num in enumerate(p.vacancy_numbers):
                     tester.assertTrue(vac_num == x[i].vacancy_numbers[j],
-                      "Incorrect vacancy number: %s\nComputed: %s\nFor: %s"\
-                      %(x[i].vacancy_numbers[j],vac_num, x))
+                      "Incorrect vacancy number: {}\nComputed: {}\nFor: {}".format(
+                       x[i].vacancy_numbers[j],vac_num, x))
 
-RCNonSimplyLaced.Element = RCNonSimplyLacedElement
+    Element = KRRCNonSimplyLacedElement
 
 class RCTypeA2Even(RCNonSimplyLaced):
     """
@@ -1388,7 +1427,10 @@ class RCTypeA2Even(RCNonSimplyLaced):
             sage: RC._calc_vacancy_number(elt.nu(), 1, 0)
             0
         """
-        row_len = partitions[a][i]
+        if i is None:
+            row_len = float("inf")
+        else:
+            row_len = partitions[a][i]
 
         vac_num = 0
         if "B" in options:
@@ -1543,7 +1585,10 @@ class RCTypeA2Dual(RCTypeA2Even):
         """
         if a != self._cartan_type.classical().rank()-1:
             return RCTypeA2Even._calc_vacancy_number(self, partitions, a, i, **options)
-        row_len = partitions[a][i]
+        if i is None:
+            row_len = float("inf")
+        else:
+            row_len = partitions[a][i]
 
         vac_num = 0
         if "B" in options:
@@ -1826,6 +1871,8 @@ class RCTypeA2Dual(RCTypeA2Even):
             vac_nums[a] = [vac_val for vac_val in vrc[index].vacancy_numbers]
         return self.element_class(self, partition_list=partitions,
                                   rigging_list=riggings, vacancy_numbers_list=vac_nums)
+
+    Element = KRRCTypeA2DualElement
 
 def HighestWeightRiggedConfigurations(cartan_type, B):
     """

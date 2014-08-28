@@ -101,7 +101,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             True
         """
         ct = CartanType(ct)
-        if prefix == None:
+        if prefix is None:
             if ct.is_atomic():
                 prefix = ct[0]+str(ct[1])
             else:
@@ -121,7 +121,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         self._base_ring = base_ring
         self._space = RootSystem(self._cartan_type).ambient_space()
         self._origin = self._space.zero()
-        if prefix == None:
+        if prefix is None:
             if ct.is_atomic():
                 prefix = ct[0]+str(ct[1])
             else:
@@ -195,10 +195,12 @@ class WeylCharacterRing(CombinatorialFreeModule):
         ``word`` as an element of the weight ring. Only available if
         ``style="coroots"``. The Demazure operators are also available as
         methods of :class:`WeightRing` elements, and as methods of crystals.
-        Given a :class:`CrystalOfTableaux` with given highest weight vector,
-        the Demazure method on the crystal will give the equivalent of this
-        method, except that the Demazure character of the crystal is given
-        as a sum of monomials instead of an element of the :class:`WeightRing`.
+        Given a
+        :class:`~sage.combinat.crystals.tensor_product.CrystalOfTableaux`
+        with given highest weight vector, the Demazure method on the
+        crystal will give the equivalent of this method, except that
+        the Demazure character of the crystal is given as a sum of
+        monomials instead of an element of the :class:`WeightRing`.
 
         See :meth:`WeightRing.Element.demazure` and
         :meth:`sage.categories.classical_crystals.ClassicalCrystals.ParentMethods.demazure_character`

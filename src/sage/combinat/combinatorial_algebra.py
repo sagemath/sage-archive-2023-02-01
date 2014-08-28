@@ -38,7 +38,7 @@ symmetric functions.
     sage: ps(2)
     2*p[]
 
-The important things to define are ._basis_keys which
+The important things to define are ._indices which
 specifies the combinatorial class that indexes the basis elements,
 ._one which specifies the identity element in the algebra, ._name
 which specifies the name of the algebra, .print_options is used to set
@@ -121,7 +121,7 @@ class CombinatorialAlgebraElementOld(CombinatorialFreeModule.Element):
         if len(mcs) == 1 and one in mcs:
             return self.parent()( ~mcs[ one ] )
         else:
-            raise ValueError, "cannot invert self (= %s)"%self
+            raise ValueError("cannot invert self (= %s)"%self)
 
 
 
@@ -172,9 +172,9 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
         required = ['_one',]
         for r in required:
             if not hasattr(self, r):
-                raise ValueError, "%s is required"%r
+                raise ValueError("%s is required"%r)
         if not hasattr(self, '_multiply') and not hasattr(self, '_multiply_basis'):
-            raise ValueError, "either _multiply or _multiply_basis is required"
+            raise ValueError("either _multiply or _multiply_basis is required")
 
         #Create a class for the elements of this combinatorial algebra
         #We need to do this so to distinguish between element of different
@@ -191,8 +191,9 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
             category = AlgebrasWithBasis(R)
 
         # for backward compatibility
-        if cc is None and hasattr(self, "_basis_keys"):
-            cc = self._basis_keys
+        if cc is None:
+            if hasattr(self, "_indices"):
+                cc = self._indices
         assert(cc is not None)
 
         CombinatorialFreeModule.__init__(self, R, cc, element_class, category = category)
@@ -232,7 +233,7 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
             else:
                 return eclass(self, {self._one:R(x)})
 
-        raise TypeError, "do not know how to make x (= %s) an element of self (=%s)"%(x,self)
+        raise TypeError("do not know how to make x (= %s) an element of self (=%s)"%(x,self))
 
     def _an_element_impl(self):
         """

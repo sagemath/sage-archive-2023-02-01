@@ -97,6 +97,7 @@ import real_mpfr
 RR = real_mpfr.RealField()
 
 from real_double import RealDoubleElement, RDF
+from sage.rings.integer_ring import ZZ
 
 
 from sage.structure.parent_gens import ParentWithGens
@@ -1491,6 +1492,64 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return True
 
+    def is_integer(self):
+        """
+        Returns True if this number is a integer
+
+        EXAMPLES::
+
+            sage: CDF(0.5).is_integer()
+            False
+            sage: CDF(I).is_integer()
+            False
+            sage: CDF(2).is_integer()
+            True
+        """
+        return (self.real() in ZZ) and (self.imag()==0)
+
+    def is_positive_infinity(self):
+        r"""
+        Check if ``self`` is `+\infty`.
+
+        EXAMPLES::
+
+            sage: CDF(1, 2).is_positive_infinity()
+            False
+            sage: CDF(oo, 0).is_positive_infinity()
+            True
+            sage: CDF(0, oo).is_positive_infinity()
+            False
+        """
+        return self.real().is_positive_infinity() and self.imag().is_zero()
+
+    def is_negative_infinity(self):
+        r"""
+        Check if ``self`` is `-\infty`.
+
+        EXAMPLES::
+
+            sage: CDF(1, 2).is_negative_infinity()
+            False
+            sage: CDF(-oo, 0).is_negative_infinity()
+            True
+            sage: CDF(0, -oo).is_negative_infinity()
+            False
+        """
+        return self.real().is_negative_infinity() and self.imag().is_zero()
+
+    def is_infinity(self):
+        r"""
+        Check if ``self`` is `\infty`.
+
+        EXAMPLES::
+
+            sage: CDF(1, 2).is_infinity()
+            False
+            sage: CDF(0, oo).is_infinity()
+            True
+        """
+        return self.real().is_infinity() or self.imag().is_infinity()
+
     def _pow_(self, ComplexDoubleElement a):
         """
         The function returns the complex number `z` raised to the
@@ -2231,7 +2290,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(2,0).gamma_inc(CDF(1,1))
             0.707092096346 - 0.42035364096*I
         """
-        return self._new_from_gen(self._pari_().incgam(t))
+        return self._new_from_gen(self._pari_().incgam(t, precision=53))
 
     def zeta(self):
         """

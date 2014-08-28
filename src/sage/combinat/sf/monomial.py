@@ -174,7 +174,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
                                 for (e,c) in f.dict().iteritems()
                                 if tuple(sorted(e)) == tuple(reversed(e)))
         if check and out.expand(f.parent().ngens(),f.parent().gens()) != f:
-            raise ValueError, "%s is not a symmetric polynomial"%f
+            raise ValueError("%s is not a symmetric polynomial"%f)
         return out
 
     def from_polynomial_exp(self, p):

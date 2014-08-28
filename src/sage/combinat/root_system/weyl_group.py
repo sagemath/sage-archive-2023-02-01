@@ -363,7 +363,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
                 ret[r] = alp
             return Family(ret)
         except Exception:
-            raise NotImplementedError, "reflections are only implemented for finite Weyl groups"
+            raise NotImplementedError("reflections are only implemented for finite Weyl groups")
 
     def _repr_(self):
         """
@@ -470,7 +470,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             [ 0  0  1]
         """
         if i not in self.index_set():
-            raise ValueError, "i must be in the index set"
+            raise ValueError("i must be in the index set")
         return self.simple_reflections()[i]
 
     def long_element_hardcoded(self):
@@ -513,7 +513,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
                      [0, 0, 0, 0, -half, half, half, half]]
                 m = matrix(QQ, 8, l)
             else:
-                raise NotImplementedError, "Not implemented yet for this type"
+                raise NotImplementedError("Not implemented yet for this type")
         elif type[0] == 'G':
             third = ZZ(1)/ZZ(3)
             twothirds = ZZ(2)/ZZ(3)

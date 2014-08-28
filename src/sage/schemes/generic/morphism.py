@@ -157,7 +157,7 @@ class SchemeMorphism(Element):
         sage: A2.structure_morphism().domain()
         Affine Space of dimension 2 over Rational Field
         sage: A2.structure_morphism().category()
-        Category of hom sets in Category of Schemes
+        Category of hom sets in Category of schemes
     """
 
     def __init__(self, parent, codomain=None):
@@ -176,7 +176,7 @@ class SchemeMorphism(Element):
         if codomain is not None:
             parent = Hom(parent, codomain)
         if not isinstance(parent, Homset):
-            raise TypeError, "parent (=%s) must be a Homspace"%parent
+            raise TypeError("parent (=%s) must be a Homspace"%parent)
         Element.__init__(self, parent)
         self.domain = ConstantFunction(parent.domain())
         self._codomain = parent.codomain()
@@ -428,7 +428,7 @@ class SchemeMorphism(Element):
 
             sage: A2 = AffineSpace(QQ,2)
             sage: A2.structure_morphism().category()
-            Category of hom sets in Category of Schemes
+            Category of hom sets in Category of schemes
         """
         return self.parent().category()
 
@@ -440,7 +440,7 @@ class SchemeMorphism(Element):
 
             sage: A2 = AffineSpace(QQ,2)
             sage: A2.structure_morphism().category_for()
-            Category of Schemes
+            Category of schemes
         """
         return self.parent().homset_category()
 
@@ -687,7 +687,7 @@ class SchemeMorphism_structure_map(SchemeMorphism):
         """
         SchemeMorphism.__init__(self, parent, codomain=None)
         if self.domain().base_scheme() != self._codomain:
-            raise ValueError, "parent must have codomain equal the base scheme of domain."
+            raise ValueError("parent must have codomain equal the base scheme of domain.")
 
     def _repr_defn(self):
         r"""
@@ -934,15 +934,15 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         """
         if check:
             if not isinstance(polys, (list, tuple)):
-                raise TypeError, "polys (=%s) must be a list or tuple"%polys
+                raise TypeError("polys (=%s) must be a list or tuple"%polys)
             source_ring = parent.domain().coordinate_ring()
             target = parent._codomain.ambient_space()
             if len(polys) != target.ngens():
-                raise ValueError, "there must be %s polynomials"%target.ngens()
+                raise ValueError("there must be %s polynomials"%target.ngens())
             try:
                 polys = [source_ring(poly) for poly in polys]
             except TypeError:
-                raise TypeError, "polys (=%s) must be elements of %s"%(polys,source_ring)
+                raise TypeError("polys (=%s) must be elements of %s"%(polys,source_ring))
             if isinstance(source_ring, QuotientRing_generic):
                 lift_polys = [f.lift() for f in polys]
             else:
@@ -1556,7 +1556,7 @@ class SchemeMorphism_point(SchemeMorphism):
         Q=[]
         for i in range(len(self._coords)):
             Q.append(R(self._coords[i]))
-        return(S.point(Q,check))
+        return(S.point(Q, check=check))
 
     def __copy__(self):
         r"""
@@ -1575,4 +1575,4 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: copy(Q) == Q
             True
         """
-        return(self._codomain.point(self._coords,False))
+        return(self._codomain.point(self._coords, check=False))

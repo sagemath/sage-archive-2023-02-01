@@ -3,9 +3,11 @@ Quaternion Algebras
 
 AUTHORS:
 
-- Jon Bobber -- 2009 rewrite
+- Jon Bobber (2009): rewrite
 
-- William Stein -- 2009 rewrite
+- William Stein (2009): rewrite
+
+- Julian Rueth (2014-03-02): use UniqueFactory for caching
 
 This code is partly based on Sage code by David Kohel from 2005.
 
@@ -21,6 +23,7 @@ Pickling test::
 ########################################################################
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #       Copyright (C) 2009 Jonathon Bober <jwbober@gmail.com>
+#       Copyright (C) 2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -53,6 +56,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import diagonal_matrix, matrix
 from sage.structure.sequence import Sequence
 from sage.structure.element import is_RingElement
+from sage.structure.factory import UniqueFactory
 from sage.modules.free_module import VectorSpace, FreeModule
 from sage.modules.free_module_element import vector
 
@@ -72,9 +76,7 @@ _Fields = Fields()
 # Constructor
 ########################################################
 
-_cache = {}
-
-def QuaternionAlgebra(arg0, arg1=None, arg2=None, names='i,j,k'):
+class QuaternionAlgebraFactory(UniqueFactory):
     """
     There are three input formats:
 
@@ -192,60 +194,76 @@ def QuaternionAlgebra(arg0, arg1=None, arg2=None, names='i,j,k'):
         sage: parent(Q._b)
         Rational Field
     """
+    def create_key(self, arg0, arg1=None, arg2=None, names='i,j,k'):
+        """
+        Create a key that uniquely determines a quaternion algebra.
 
-    # QuaternionAlgebra(D)
-    if arg1 is None and arg2 is None:
-        K = QQ
-        D = Integer(arg0)
-        a, b = hilbert_conductor_inverse(D)
-        a = Rational(a); b = Rational(b)
+        TESTS::
 
-    elif arg2 is None:
-        # If arg0 or arg1 are Python data types, coerce them
-        # to the relevant Sage types. This is a bit inelegant.
-        L = []
-        for a in [arg0,arg1]:
-            if is_RingElement(a):
-                L.append(a)
-            elif isinstance(a, int) or isinstance(a, long):
-                L.append(Integer(a))
-            elif isinstance(a, float):
-                L.append(RR(a))
-            else:
-                raise ValueError("a and b must be elements of a ring with characteristic not 2")
+            sage: QuaternionAlgebra.create_key(-1,-1)
+            (Rational Field, -1, -1, ('i', 'j', 'k'))
 
-        # QuaternionAlgebra(a, b)
-        v = Sequence(L)
-        K = v.universe().fraction_field()
-        a = K(v[0])
-        b = K(v[1])
+        """
+        # QuaternionAlgebra(D)
+        if arg1 is None and arg2 is None:
+            K = QQ
+            D = Integer(arg0)
+            a, b = hilbert_conductor_inverse(D)
+            a = Rational(a); b = Rational(b)
 
-    # QuaternionAlgebra(K, a, b)
-    else:
-        K = arg0
-        if K not in _Fields:
-            raise TypeError("base ring of quaternion algebra must be a field")
-        a = K(arg1)
-        b = K(arg2)
+        elif arg2 is None:
+            # If arg0 or arg1 are Python data types, coerce them
+            # to the relevant Sage types. This is a bit inelegant.
+            L = []
+            for a in [arg0,arg1]:
+                if is_RingElement(a):
+                    L.append(a)
+                elif isinstance(a, int) or isinstance(a, long):
+                    L.append(Integer(a))
+                elif isinstance(a, float):
+                    L.append(RR(a))
+                else:
+                    raise ValueError("a and b must be elements of a ring with characteristic not 2")
 
-    if K.characteristic() == 2:
-        # Lameness!
-        raise ValueError("a and b must be elements of a ring with characteristic not 2")
-    if a == 0 or b == 0:
-        raise ValueError("a and b must be nonzero")
+            # QuaternionAlgebra(a, b)
+            v = Sequence(L)
+            K = v.universe().fraction_field()
+            a = K(v[0])
+            b = K(v[1])
 
-    global _cache
-    names = normalize_names(3, names)
-    key = (K, a, b, names)
-    if key in _cache:
-        return _cache[key]
-    A = QuaternionAlgebra_ab(K, a, b, names=names)
-    A._key = key
-    _cache[key] = A
-    return A
+        # QuaternionAlgebra(K, a, b)
+        else:
+            K = arg0
+            if K not in _Fields:
+                raise TypeError("base ring of quaternion algebra must be a field")
+            a = K(arg1)
+            b = K(arg2)
 
+        if K.characteristic() == 2:
+            # Lameness!
+            raise ValueError("a and b must be elements of a ring with characteristic not 2")
+        if a == 0 or b == 0:
+            raise ValueError("a and b must be nonzero")
+
+        names = normalize_names(3, names)
+        return (K, a, b, names)
 
 
+    def create_object(self, version, key, **extra_args):
+        """
+        Create the object from the key (extra arguments are ignored). This is
+        only called if the object was not found in the cache.
+
+        TESTS::
+
+            sage: QuaternionAlgebra.create_object("6.0", (QQ, -1, -1, ('i', 'j', 'k')))
+            Quaternion Algebra (-1, -1) with base ring Rational Field
+
+        """
+        K, a, b, names = key
+        return QuaternionAlgebra_ab(K, a, b, names=names)
+
+QuaternionAlgebra = QuaternionAlgebraFactory("QuaternionAlgebra")
 
 ########################################################
 # Classes
@@ -872,23 +890,6 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         if c: return c
         return cmp((self._a, self._b), (other._a, other._b))
 
-    def __reduce__(self):
-        """
-        Internal method used for pickling.
-
-        TESTS::
-
-            sage: QuaternionAlgebra(QQ,-1,-2).__reduce__()
-            (<function unpickle_QuaternionAlgebra_v0 at ...>, (Rational Field, -1, -2, ('i', 'j', 'k')))
-
-        Test uniqueness of parent::
-
-            sage: Q = QuaternionAlgebra(QQ,-1,-2)
-            sage: loads(dumps(Q)) is Q
-            True
-        """
-        return unpickle_QuaternionAlgebra_v0, self._key
-
     def gen(self, i=0):
         """
         Return the `i^{th}` generator of ``self``.
@@ -1238,7 +1239,7 @@ def unpickle_QuaternionAlgebra_v0(*key):
     EXAMPLES::
 
         sage: Q = QuaternionAlgebra(-5,-19)
-        sage: f, t = Q.__reduce__()
+        sage: t = (QQ, -5, -19, ('i', 'j', 'k'))
         sage: sage.algebras.quatalg.quaternion_algebra.unpickle_QuaternionAlgebra_v0(*t)
         Quaternion Algebra (-5, -19) with base ring Rational Field
         sage: loads(dumps(Q)) == Q
@@ -1247,7 +1248,6 @@ def unpickle_QuaternionAlgebra_v0(*key):
         True
     """
     return QuaternionAlgebra(*key)
-
 
 class QuaternionOrder(Algebra):
     """
@@ -1321,7 +1321,7 @@ class QuaternionOrder(Algebra):
             # has rank 4
             V = A.base_ring()**4
             if V.span([ V(x.coefficient_tuple()) for x in basis]).dimension() != 4:
-                raise ValueError, "basis must have rank 4"
+                raise ValueError("basis must have rank 4")
 
             # The additional checks will work over QQ and over number fields,
             # but we can't actually do much with an order defined over a number
@@ -1332,13 +1332,13 @@ class QuaternionOrder(Algebra):
                 v = M.solve_left(V([1,0,0,0]))
 
                 if v.denominator() != 1:
-                    raise ValueError, "lattice must contain 1"
+                    raise ValueError("lattice must contain 1")
 
                 # check if multiplicatively closed
                 M1 = basis_for_quaternion_lattice(basis)
                 M2 = basis_for_quaternion_lattice(list(basis) + [ x*y for x in basis for y in basis])
                 if M1 != M2:
-                    raise ValueError, "given lattice must be a ring"
+                    raise ValueError("given lattice must be a ring")
 
             if A.base_ring() != QQ:     # slow code over number fields (should eventually use PARI's nfhnf)
                 O = None
@@ -1352,13 +1352,13 @@ class QuaternionOrder(Algebra):
                     v = M.solve_left(V([1,0,0,0]))
 
                     if any([ not a in O for a in v]):
-                        raise ValueError, "lattice must contain 1"
+                        raise ValueError("lattice must contain 1")
 
                     # check if multiplicatively closed
                     Y = matrix(QQ, 16, 4, [ (x*y).coefficient_tuple() for x in basis for y in basis])
                     X = M.solve_left(Y)
                     if any([ not a in O for x in X for a in x ]):
-                        raise ValueError, "given lattice must be a ring"
+                        raise ValueError("given lattice must be a ring")
 
         self.__basis = basis
         self.__quaternion_algebra = A
@@ -2857,15 +2857,15 @@ def maxord_solve_aux_eq(a, b, p):
         ...           assert mod(1 - a*y^2 - b*z^2 + a*b*w^2, 4) == 0
     """
     if p != ZZ(2):
-        raise NotImplementedError, "Algorithm only implemented over ZZ at the moment"
+        raise NotImplementedError("Algorithm only implemented over ZZ at the moment")
 
     v_a = a.valuation(p)
     v_b = b.valuation(p)
 
     if v_a != 0:
-        raise RuntimeError, "a must have v_p(a)=0"
+        raise RuntimeError("a must have v_p(a)=0")
     if v_b != 0 and v_b != 1:
-        raise RuntimeError, "b must have v_p(b) in {0,1}"
+        raise RuntimeError("b must have v_p(b) in {0,1}")
 
     R = ZZ.quo(ZZ(4))
     lut = {

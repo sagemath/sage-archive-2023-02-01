@@ -95,7 +95,7 @@ import sage.rings.arith as arith
 
 from sage.modules.free_module_element import vector
 import sage.matrix.all as matrix
-import monsky_washnitzer
+import sage.schemes.hyperelliptic_curves.monsky_washnitzer
 # from sage.interfaces.all import gp
 from sage.misc.functional import log
 
@@ -663,6 +663,7 @@ class pAdicLseries(SageObject):
 
             sage: E = EllipticCurve('11a1')
             sage: Lp = E.padic_lseries(5)
+            sage: Lp._pAdicLseries__series = {}  # clear cached series
             sage: Lp._get_series_from_cache(3,5,1,0)
             sage: Lp.series(3,prec=5)
             5 + 4*5^2 + 4*5^3 + O(5^4) + O(5)*T + O(5)*T^2 + O(5)*T^3 + O(5)*T^4 + O(T^5)
@@ -1126,7 +1127,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             if gcd(D,self._E.conductor())!= 1:
                 for ell in prime_divisors(D):
                     if valuation(self._E.conductor(),ell) > valuation(D,ell) :
-                        raise ValueError("can not twist a curve of conductor (=%s) by the quadratic twist (=%s)."%(self._E.conductor(),D) )
+                        raise ValueError("can not twist a curve of conductor (=%s) by the quadratic twist (=%s)."%(self._E.conductor(),D))
 
         p = self._p
         eta = ZZ(eta) % (p-1)
@@ -1346,13 +1347,13 @@ class pAdicLseriesSupersingular(pAdicLseries):
         if p < 4 and algorithm == "mw":
             print "Warning: If this fails try again using algorithm=\"approx\""
         Ew = E.integral_short_weierstrass_model()
-        adjusted_prec = monsky_washnitzer.adjusted_prec(p, prec)
+        adjusted_prec = sage.schemes.hyperelliptic_curves.monsky_washnitzer.adjusted_prec(p, prec)
         modprecring = Integers(p**adjusted_prec)
         output_ring = Qp(p, prec)
         R, x = PolynomialRing(modprecring, 'x').objgen()
         Q = x**3 + modprecring(Ew.a4()) * x + modprecring(Ew.a6())
         trace = Ew.ap(p)
-        fr = monsky_washnitzer.matrix_of_frobenius(Q, p, adjusted_prec, trace)
+        fr = sage.schemes.hyperelliptic_curves.monsky_washnitzer.matrix_of_frobenius(Q, p, adjusted_prec, trace)
         fr = matrix.matrix(output_ring,2,2,fr)
 
         # return a vector for PARI's ellchangecurve to pass from e1 to e2
@@ -1454,7 +1455,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
                     gamma = gamma % p**dga
                     verbose("gamma_prec increased to %s\n gamma is now %s"%(dga,gamma))
                 else:
-                    raise RuntimeError,  "Bug: no delta or gamma can exist"
+                    raise RuntimeError("Bug: no delta or gamma can exist")
 
         # end of approximation of delta and gamma
         R = Qp(p,max(dpr,dga)+1)

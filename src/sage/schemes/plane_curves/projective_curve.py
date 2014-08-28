@@ -36,16 +36,16 @@ class ProjectiveSpaceCurve_generic(Curve_generic_projective):
 
     def __init__(self, A, X):
         if not is_ProjectiveSpace(A):
-            raise TypeError, "A (=%s) must be a projective space"%A
+            raise TypeError("A (=%s) must be a projective space"%A)
         Curve_generic_projective.__init__(self, A, X)
         d = self.dimension()
         if d != 1:
-            raise ValueError, "defining equations (=%s) define a scheme of dimension %s != 1"%(X,d)
+            raise ValueError("defining equations (=%s) define a scheme of dimension %s != 1"%(X,d))
 
 class ProjectiveCurve_generic(Curve_generic_projective):
     def __init__(self, A, f):
         if not (is_ProjectiveSpace(A) and A.dimension != 2):
-            raise TypeError, "Argument A (= %s) must be a projective plane."%A
+            raise TypeError("Argument A (= %s) must be a projective plane."%A)
         Curve_generic_projective.__init__(self, A, [f])
 
     def _repr_type(self):
@@ -526,9 +526,9 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         try:
             X1 = f.Adj_div()
         except (TypeError, RuntimeError) as s:
-            raise RuntimeError, str(s) + "\n\n ** Unable to use the\
+            raise RuntimeError(str(s) + "\n\n ** Unable to use the\
                                           Brill-Noether Singular package to\
-                                          compute all points (see above)."
+                                          compute all points (see above).")
 
         X2 = singular.NSplaces(1, X1)
         R = X2[5][1][1]
@@ -541,7 +541,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         # faster (and more robust).
         v = singular('POINTS').sage_flattened_str_list()
         pnts = [self(int(v[3*i]), int(v[3*i+1]), int(v[3*i+2]))
-                for i in range(len(v)/3)]
+                for i in range(len(v)//3)]
         # singular always dehomogenizes with respect to the last variable
         # so if this variable divides the curve equation, we need to add
         # points at infinity
@@ -599,7 +599,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         try:
             X1 = f.Adj_div()
         except (TypeError, RuntimeError) as s:
-            raise RuntimeError, str(s) + "\n\n ** Unable to use the Brill-Noether Singular package to compute all points (see above)."
+            raise RuntimeError(str(s) + "\n\n ** Unable to use the Brill-Noether Singular package to compute all points (see above).")
         X2 = singular.NSplaces(1, X1)
         # retrieve list of all computed closed points (possibly of degree >1)
         v = X2[3].sage_flattened_str_list()    # We use sage_flattened_str_list since iterating through
@@ -613,7 +613,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         R = X2[5][1][1]
         singular.set_ring(R)
         v = singular('POINTS').sage_flattened_str_list()
-        coords = [self(int(v[3*i]), int(v[3*i+1]), int(v[3*i+2])) for i in range(len(v)/3)]
+        coords = [self(int(v[3*i]), int(v[3*i+1]), int(v[3*i+2])) for i in range(len(v)//3)]
         # build correct representation of D for singular
         Dsupport = D.support()
         Dcoeffs = []
@@ -687,14 +687,14 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             S_enum = self.rational_points(algorithm = "enum")
             S_bn = self.rational_points(algorithm = "bn")
             if S_enum != S_bn:
-                raise RuntimeError, "Bug in rational_points -- different\
+                raise RuntimeError("Bug in rational_points -- different\
                                      algorithms give different answers for\
-                                     curve %s!"%self
+                                     curve %s!"%self)
             return S_enum
 
         else:
 
-            raise ValueError, "No algorithm '%s' known"%algorithm
+            raise ValueError("No algorithm '%s' known"%algorithm)
 
 def Hasse_bounds(q, genus=1):
     r"""

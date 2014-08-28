@@ -230,9 +230,9 @@ class MatrixPlot(GraphicPrimitive):
 
 @suboptions('colorbar', orientation='vertical', format=None)
 @suboptions('subdivision',boundaries=None, style=None)
-@options(cmap='gray',marker='.',frame=True, axes=False, norm=None,
-         vmin=None, vmax=None, origin='upper',ticks_integer=True,
-         subdivisions=False, colorbar=False)
+@options(aspect_ratio=1, axes=False, cmap='gray', colorbar=False,
+         frame=True, marker='.', norm=None, origin='upper',
+         subdivisions=False, ticks_integer=True, vmin=None, vmax=None)
 def matrix_plot(mat, **options):
     r"""
     A plot of a given matrix or 2D array.
@@ -452,6 +452,12 @@ def matrix_plot(mat, **options):
     Test that sparse matrices also work with subdivisions::
 
         sage: matrix_plot(sparse, subdivisions=True, subdivision_boundaries=[[2,4],[6,8]])
+
+    Test that matrix plots have aspect ratio one (see :trac:`15315`)::
+
+        sage: P = matrix_plot(random_matrix(RDF, 5))
+        sage: P.aspect_ratio()
+        1
     """
     import numpy as np
     import scipy.sparse as scipysparse
@@ -466,7 +472,7 @@ def matrix_plot(mat, **options):
             try:
                 data = np.asarray([d for _,d in entries], dtype=float)
             except Exception:
-                raise ValueError, "can not convert entries to floating point numbers"
+                raise ValueError("can not convert entries to floating point numbers")
             positions = np.asarray([[row for (row,col),_ in entries],
                                     [col for (row,col),_ in entries]], dtype=int)
             mat = scipysparse.coo_matrix((data,positions), shape=(mat.nrows(), mat.ncols()))
@@ -484,12 +490,12 @@ def matrix_plot(mat, **options):
         else:
             xy_data_array = np.asarray(mat, dtype = float)
     except TypeError:
-        raise TypeError, "mat must be a Matrix or a two dimensional array"
+        raise TypeError("mat must be a Matrix or a two dimensional array")
     except ValueError:
-        raise ValueError, "can not convert entries to floating point numbers"
+        raise ValueError("can not convert entries to floating point numbers")
 
     if len(xy_data_array.shape) < 2:
-        raise TypeError, "mat must be a Matrix or a two dimensional array"
+        raise TypeError("mat must be a Matrix or a two dimensional array")
 
     xrange = (0, xy_data_array.shape[1])
     yrange = (0, xy_data_array.shape[0])

@@ -6,24 +6,23 @@ Fields
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
-#                2012      Julian Rueth <julian.rueth@fsfe.org>
+#                2012-2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category
-from sage.categories.category_singleton import Category_singleton, Category_contains_method_by_parent_class
+from sage.misc.lazy_attribute import lazy_class_attribute
+from sage.misc.lazy_import import LazyImport
+from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.category_singleton import Category_contains_method_by_parent_class
 from sage.categories.euclidean_domains import EuclideanDomains
-from sage.categories.unique_factorization_domains import UniqueFactorizationDomains
 from sage.categories.division_rings import DivisionRings
 
-from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_class_attribute
 import sage.rings.ring
 from sage.structure.element import coerce_binop
 
-class Fields(Category_singleton):
+class Fields(CategoryWithAxiom):
     """
     The category of (commutative) fields, i.e. commutative rings where
     all non-zero elements have multiplicative inverses
@@ -34,7 +33,7 @@ class Fields(Category_singleton):
         sage: K
         Category of fields
         sage: Fields().super_categories()
-        [Category of euclidean domains, Category of unique factorization domains, Category of division rings]
+        [Category of euclidean domains, Category of division rings]
 
         sage: K(IntegerRing())
         Rational Field
@@ -48,16 +47,17 @@ class Fields(Category_singleton):
 
         sage: TestSuite(Fields()).run()
     """
+    _base_category_class_and_axiom = (DivisionRings, "Commutative")
 
-    def super_categories(self):
+    def extra_super_categories(self):
         """
         EXAMPLES::
 
-            sage: Fields().super_categories()
-            [Category of euclidean domains, Category of unique factorization domains, Category of division rings]
+            sage: Fields().extra_super_categories()
+            [Category of euclidean domains]
 
         """
-        return [EuclideanDomains(), UniqueFactorizationDomains(), DivisionRings()]
+        return [EuclideanDomains()]
 
     def __contains__(self, x):
         """
@@ -148,7 +148,7 @@ class Fields(Category_singleton):
             sage: K
             Category of fields
             sage: Fields().super_categories()
-            [Category of euclidean domains, Category of unique factorization domains, Category of division rings]
+            [Category of euclidean domains, Category of division rings]
 
             sage: K(IntegerRing()) # indirect doctest
             Rational Field
@@ -161,25 +161,28 @@ class Fields(Category_singleton):
         try:
             return x.fraction_field()
         except AttributeError:
-            raise TypeError, "unable to associate a field to %s"%x
+            raise TypeError("unable to associate a field to %s"%x)
+
+    Finite = LazyImport('sage.categories.finite_fields', 'FiniteFields', at_startup=True)
 
     class ParentMethods:
-        def is_field(self):
-            """
-            Return True, since this in an object of the category of fields.
+
+        def is_field( self, proof=True ):
+            r"""
+            Returns True as ``self`` is a field.
 
             EXAMPLES::
 
+                sage: QQ.is_field()
+                True
                 sage: Parent(QQ,category=Fields()).is_field()
                 True
-
             """
             return True
 
         def is_integrally_closed(self):
             r"""
-
-            Return ``True``, as per :meth:`IntegralDomain.is_integraly_closed`:
+            Return ``True``, as per :meth:`IntegralDomain.is_integrally_closed`:
             for every field `F`, `F` is its own field of fractions,
             hence every element of `F` is integral over `F`.
 
@@ -195,6 +198,25 @@ class Fields(Category_singleton):
                 True
             """
             return True
+
+        def is_perfect(self):
+            r"""
+            Return whether this field is perfect, i.e., its characteristic is
+            `p=0` or every element has a `p`-th root.
+
+            EXAMPLES::
+
+                sage: QQ.is_perfect()
+                True
+                sage: GF(2).is_perfect()
+                True
+                sage: FunctionField(GF(2), 'x').is_perfect()
+                False
+
+            """
+            if self.characteristic() == 0:
+                return True
+            else: raise NotImplementedError
 
         def _test_characteristic_fields(self, **options):
             """
@@ -226,29 +248,6 @@ class Fields(Category_singleton):
             except NotImplementedError:
                 return
 
-        def is_integral_domain(self):
-            r"""
-
-            Returns ``True``, as fields are integral domains.
-
-            EXAMPLES::
-
-                sage: QQ.is_integral_domain()
-                True
-            """
-            return True
-
-        def is_field( self, proof=True ):
-            r"""
-            Returns True as ``self`` is a field.
-
-            EXAMPLES::
-
-                sage: QQ.is_field()
-                True
-            """
-            return True
-
         def fraction_field(self):
             r"""
             Returns the *fraction field* of ``self``, which is ``self``.
@@ -259,6 +258,75 @@ class Fields(Category_singleton):
                 True
             """
             return self
+
+        def _squarefree_decomposition_univariate_polynomial(self, f):
+            r"""
+            Return the square-free decomposition of ``f`` over this field.
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.squarefree_decomposition`.
+
+            INPUT:
+
+            - ``f`` -- a univariate non-zero polynomial over this field
+
+            ALGORITHM: For rings of characteristic zero, we use the algorithm
+            descriped in [Yun]_. Other fields may provide their own
+            implementation by overriding this method.
+
+            EXAMPLES::
+
+                sage: x = polygen(QQ)
+                sage: p = 37 * (x-1)^3 * (x-2)^3 * (x-1/3)^7 * (x-3/7)
+                sage: p.squarefree_decomposition()
+                (37*x - 111/7) * (x^2 - 3*x + 2)^3 * (x - 1/3)^7
+                sage: p = 37 * (x-2/3)^2
+                sage: p.squarefree_decomposition()
+                (37) * (x - 2/3)^2
+                sage: x = polygen(GF(3))
+                sage: x.squarefree_decomposition()
+                x
+                sage: f = QQbar['x'](1)
+                sage: f.squarefree_decomposition()
+                1
+
+            REFERENCES:
+
+            .. [Yun] Yun, David YY. On square-free decomposition algorithms.
+               In Proceedings of the third ACM symposium on Symbolic and algebraic
+               computation, pp. 26-35. ACM, 1976.
+
+            """
+            from sage.structure.factorization import Factorization
+            if f.degree() == 0:
+                return Factorization([], unit=f[0])
+            if self.characteristic() != 0:
+                raise NotImplementedError("square-free decomposition not implemented for this polynomial.")
+
+            factors = []
+            cur = f
+            f = [f]
+            while cur.degree() > 0:
+                cur = cur.gcd(cur.derivative())
+                f.append(cur)
+
+            g = []
+            for i in range(len(f) - 1):
+                g.append(f[i] // f[i+1])
+
+            a = []
+            for i in range(len(g) - 1):
+                a.append(g[i] // g[i+1])
+            a.append(g[-1])
+
+            unit = f[-1]
+            for i in range(len(a)):
+                if a[i].degree() > 0:
+                    factors.append((a[i], i+1))
+                else:
+                    unit = unit * a[i].constant_coefficient() ** (i + 1)
+
+            return Factorization(factors, unit=unit, sort=False)
 
         def __pow__(self, n):
             r"""
@@ -273,6 +341,42 @@ class Fields(Category_singleton):
             return FreeModule(self, n)
 
     class ElementMethods:
+        def euclidean_degree(self):
+            r"""
+            Return the degree of this element as an element of a euclidean
+            domain.
+
+            In a field, this returns 0 for all but the zero element (for
+            which it is undefined).
+
+            EXAMPLES::
+
+                sage: QQ.one().euclidean_degree()
+                0
+            """
+            if self.is_zero():
+                raise ValueError("euclidean degree not defined for the zero element")
+            from sage.rings.all import ZZ
+            return ZZ.zero()
+
+        def quo_rem(self, other):
+            r"""
+            Return the quotient with remainder of the division of this element
+            by ``other``.
+
+            INPUT:
+
+            - ``other`` -- an element of the field
+
+            EXAMPLES::
+
+                sage: f,g = QQ(1), QQ(2)
+                sage: f.quo_rem(g)
+                (1/2, 0)
+            """
+            if other.is_zero():
+                raise ZeroDivisionError
+            return (self/other, self.parent().zero())
 
         def is_unit( self ):
             r"""
@@ -333,7 +437,7 @@ class Fields(Category_singleton):
             try:
                 other = P(other)
             except (TypeError, ValueError):
-                raise ArithmeticError, "The second argument can not be interpreted in the parent of the first argument. Can't compute the gcd"
+                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the gcd")
             from sage.rings.integer_ring import ZZ
             if ZZ.is_subring(P):
                 try:
@@ -388,7 +492,7 @@ class Fields(Category_singleton):
             try:
                 other = P(other)
             except (TypeError, ValueError):
-                raise ArithmeticError, "The second argument can not be interpreted in the parent of the first argument. Can't compute the lcm"
+                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the lcm")
             from sage.rings.integer_ring import ZZ
             if ZZ.is_subring(P):
                 try:

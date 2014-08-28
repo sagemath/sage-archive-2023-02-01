@@ -749,7 +749,7 @@ def bisection_method(
             elif fc*fb < 0:
                 a, b = c, b
             else:
-                raise ValueError, "f must have a sign change in the interval (%s,%s)"%(a,b)
+                raise ValueError("f must have a sign change in the interval (%s,%s)"%(a,b))
             intervals.append((a,b))
             round += 1
         return c, intervals

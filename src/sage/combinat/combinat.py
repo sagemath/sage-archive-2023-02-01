@@ -96,7 +96,6 @@ contains the following combinatorial functions:
 .. TODO::
 
     GUAVA commands:
-        * MOLS returns a list of n Mutually Orthogonal Latin Squares (MOLS).
         * VandermondeMat
         * GrayMat returns a list of all different vectors of length n over
           the field F, using Gray ordering.
@@ -449,7 +448,7 @@ def euler_number(n):
     """
     n = ZZ(n)
     if n < 0:
-        raise ValueError, "n (=%s) must be a nonnegative integer"%n
+        raise ValueError("n (=%s) must be a nonnegative integer"%n)
     return ZZ(maxima.eval("euler(%s)"%n))
 
 def fibonacci(n, algorithm="pari"):
@@ -506,7 +505,7 @@ def fibonacci(n, algorithm="pari"):
     elif algorithm == 'gap':
         return ZZ(gap.eval("Fibonacci(%s)"%n))
     else:
-        raise ValueError, "no algorithm %s"%algorithm
+        raise ValueError("no algorithm %s"%algorithm)
 
 def lucas_number1(n,P,Q):
     """
@@ -847,9 +846,9 @@ class CombinatorialObject(SageObject):
             sage: sorted(L, cmp)
             [[1], [2], [3], [4]]
             sage: f = Foo([4])
-            sage: f == None
+            sage: f is None
             False
-            sage: f != None
+            sage: f is not None
             True
 
         .. WARNING::
@@ -1188,7 +1187,7 @@ class CombinatorialClass(Parent):
             ...
             AttributeError: __len__ has been removed; use .cardinality() instead
         """
-        raise AttributeError, "__len__ has been removed; use .cardinality() instead"
+        raise AttributeError("__len__ has been removed; use .cardinality() instead")
 
     def is_finite(self):
         """
@@ -1334,7 +1333,7 @@ class CombinatorialClass(Parent):
         if x in self:
             return self._element_constructor_(x)
         else:
-            raise ValueError, "%s not in %s"%(x, self)
+            raise ValueError("%s not in %s"%(x, self))
 
     Element = CombinatorialObject # mostly for backward compatibility
     @lazy_attribute
@@ -1449,7 +1448,7 @@ class CombinatorialClass(Parent):
             except (TypeError, ValueError):
                 break
 
-            if l == None:
+            if l is None:
                 break
             else:
                 li.append(l)
@@ -1477,7 +1476,7 @@ class CombinatorialClass(Parent):
             except (TypeError, ValueError, IndexError):
                 break
 
-            if u == None:
+            if u is None:
                 break
             else:
                 yield u
@@ -1527,7 +1526,7 @@ class CombinatorialClass(Parent):
         elif self.list != self.__list_from_iterator:
             return self.__iterator_from_list()
         else:
-            raise NotImplementedError, "iterator called but not implemented"
+            raise NotImplementedError("iterator called but not implemented")
 
     def __unrank_from_iterator(self, r):
         """
@@ -1545,7 +1544,7 @@ class CombinatorialClass(Parent):
             if counter == r:
                 return u
             counter += 1
-        raise ValueError, "the value must be between %s and %s inclusive"%(0,counter-1)
+        raise ValueError("the value must be between %s and %s inclusive"%(0,counter-1))
 
     #Set the default implementation of unrank
     unrank = __unrank_from_iterator
@@ -1582,7 +1581,7 @@ class CombinatorialClass(Parent):
             ...
             NotImplementedError: Deprecated: use random_element() instead
         """
-        raise NotImplementedError, "Deprecated: use random_element() instead"
+        raise NotImplementedError("Deprecated: use random_element() instead")
 
     def __rank_from_iterator(self, obj):
         """
@@ -1705,7 +1704,7 @@ class CombinatorialClass(Parent):
             [[1, 2], [2, 1], [1]]
         """
         if not isinstance(right_cc, CombinatorialClass):
-            raise TypeError, "right_cc must be a CombinatorialClass"
+            raise TypeError("right_cc must be a CombinatorialClass")
         return UnionCombinatorialClass(self, right_cc, name=name)
 
     def map(self, f, name=None):
@@ -2126,7 +2125,7 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
             ...
             NotImplementedError: infinite list
         """
-        raise NotImplementedError, "infinite list"
+        raise NotImplementedError("infinite list")
 
     def __iter__(self):
         """
@@ -2158,76 +2157,6 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
 
 #####################################################
 #### combinatorial sets/lists
-
-def number_of_combinations(mset,k):
-    """
-    Returns the size of combinations(mset,k). IMPLEMENTATION: Wraps
-    GAP's NrCombinations.
-
-    EXAMPLES::
-
-        sage: mset = [1,1,2,3,4,4,5]
-        sage: number_of_combinations(mset,2)
-        doctest:1: DeprecationWarning: Use Combinations(mset,k).cardinality() instead.
-        See http://trac.sagemath.org/14138 for details.
-        12
-    """
-    from sage.combinat.combination import Combinations
-    from sage.misc.superseded import deprecation
-    deprecation(14138, 'Use Combinations(mset,k).cardinality() instead.')
-    return Combinations(mset,k).cardinality()
-
-def number_of_arrangements(mset,k):
-    """
-    Returns the size of arrangements(mset,k).
-
-    EXAMPLES::
-
-        sage: mset = [1,1,2,3,4,4,5]
-        sage: number_of_arrangements(mset,2)
-        doctest:1: DeprecationWarning: Use Arrangements(mset,k).cardinality() instead.
-        See http://trac.sagemath.org/14138 for details.
-        22
-    """
-    from sage.combinat.permutation import Arrangements
-    from sage.misc.superseded import deprecation
-    deprecation(14138, 'Use Arrangements(mset,k).cardinality() instead.')
-    return Arrangements(mset, k).cardinality()
-
-def derangements(mset):
-    """
-    This is deprecated in :trac:`9005`. Use instead :class:`Derangements`.
-
-    EXAMPLES::
-
-        sage: mset = [1,2,3,4]
-        sage: D = derangements(mset); D
-        doctest:1: DeprecationWarning: derangements() is deprecated. Use Derangements instead.
-        See http://trac.sagemath.org/9005 for details.
-        Derangements of the set [1, 2, 3, 4]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9005,'derangements() is deprecated. Use Derangements instead.')
-    from sage.combinat.derangements import Derangements
-    return Derangements(mset)
-
-def number_of_derangements(mset):
-    """
-    This is deprecated in :trac:`9005`. Use :meth:`Derangements.cardinality()`
-    instead.
-
-    EXAMPLES::
-
-        sage: mset = [1,2,3,4]
-        sage: number_of_derangements(mset)
-        doctest:1: DeprecationWarning: number_of_derangements() is deprecated. Use Derangements.cardinality() instead.
-        See http://trac.sagemath.org/9005 for details.
-        9
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9005,'number_of_derangements() is deprecated. Use Derangements.cardinality() instead.')
-    from sage.combinat.derangements import Derangements
-    return Derangements(mset).cardinality()
 
 def tuples(S,k):
     """
@@ -2378,100 +2307,6 @@ def permutations(mset):
     from sage.combinat.permutation import Permutations
     ans = Permutations(mset)
     return ans.list()
-
-def permutations_iterator(mset,n=None):
-    """
-    Do not use this function. It is deprecated in :trac:`14138`.
-    Use Permutations instead. For example, instead of
-
-    ``for p in permutations_iterator(range(1, m+1), n)``
-
-    use
-
-    ``for p in Permutations(m, n)``.
-
-    Note that :class:`Permutations`, unlike this function, treats repeated
-    elements as identical.
-
-    If you insist on using this now:
-
-    Returns an iterator (http://docs.python.org/lib/typeiter.html)
-    which can be used in place of permutations(mset) if all you need it
-    for is a 'for' loop.
-
-    Posted by Raymond Hettinger, 2006/03/23, to the Python Cookbook:
-    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/474124
-
-    Note- This function considers repeated elements as different
-    entries, so for example::
-
-        sage: from sage.combinat.combinat import permutations, permutations_iterator
-        sage: mset = [1,2,2]
-        sage: permutations(mset)
-        doctest:...: DeprecationWarning: Use the Permutations object instead.
-        See http://trac.sagemath.org/14772 for details.
-        [[1, 2, 2], [2, 1, 2], [2, 2, 1]]
-        sage: for p in permutations_iterator(mset): print p
-        doctest:...: DeprecationWarning: Use the Permutations object instead.
-        See http://trac.sagemath.org/14138 for details.
-        [1, 2, 2]
-        [2, 1, 2]
-        [2, 2, 1]
-        [2, 1, 2]
-        [2, 2, 1]
-
-    EXAMPLES::
-
-        sage: X = permutations_iterator(range(3),2)
-        sage: [x for x in X]
-        [[0, 1], [0, 2], [1, 0], [1, 2], [2, 0], [2, 1]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14138, 'Use the Permutations object instead.')
-    items = mset
-    if n is None:
-        n = len(items)
-    from sage.combinat.permutation import Permutations
-    for i in range(len(items)):
-        v = items[i:i+1]
-        if n == 1:
-            yield v
-        else:
-            rest = items[:i] + items[i+1:]
-            for p in Permutations(rest, n-1):
-                yield v + list(p)
-
-def number_of_permutations(mset):
-    """
-    Do not use this function. It was deprecated in :trac:`14138`.
-    Use :class:`Permutations` instead. For example, instead of
-
-    ``number_of_permutations(mset)``
-
-    use
-
-    ``Permutations(mset).cardinality()``.
-
-    If you insist on using this now:
-
-    Returns the size of permutations(mset).
-
-    AUTHORS:
-
-    - Robert L. Miller
-
-    EXAMPLES::
-
-        sage: mset = [1,1,2,2,2]
-        sage: number_of_permutations(mset)
-        doctest:...: DeprecationWarning: Use the Permutations object instead.
-        See http://trac.sagemath.org/14138 for details.
-        10
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14138, 'Use the Permutations object instead.')
-    from sage.combinat.permutation import Permutations
-    return Permutations(mset).cardinality()
 
 def cyclic_permutations(mset):
     """
@@ -2769,7 +2604,7 @@ def bernoulli_polynomial(x, n):
         if n < 0:
             raise TypeError
     except TypeError:
-        raise ValueError, "The second argument must be a non-negative integer"
+        raise ValueError("The second argument must be a non-negative integer")
 
     if n == 0:
         return ZZ(1)

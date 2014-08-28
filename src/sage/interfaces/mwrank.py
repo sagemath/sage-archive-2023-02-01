@@ -123,12 +123,12 @@ def validate_mwrank_input(s):
     if isinstance(s,(list,tuple)):
         from sage.rings.all import ZZ
         if len(s)!=5:
-            raise ValueError, "%s is not valid input to mwrank (should have 5 entries)" % s
+            raise ValueError("%s is not valid input to mwrank (should have 5 entries)" % s)
         try:
             ai = [ZZ(a) for a in s]
             return str(ai)
         except (TypeError,ValueError):
-            raise ValueError, "%s is not valid input to mwrank (entries should be integers)" % s
+            raise ValueError("%s is not valid input to mwrank (entries should be integers)" % s)
 
     if isinstance(s,str):
         if AINVS_PLAIN_RE.match(s):
@@ -137,7 +137,7 @@ def validate_mwrank_input(s):
         ss = s.replace(' ','').replace('\n','').replace('\t','')
         if AINVS_LIST_RE.match(ss):
             return ss
-    raise ValueError, "%s is not valid input to mwrank" % s
+    raise ValueError("%s is not valid input to mwrank" % s)
 
 class Mwrank_class(Expect):
     """
@@ -263,13 +263,13 @@ class Mwrank_class(Expect):
         try:
             s = validate_mwrank_input(cmd)
         except ValueError as err:
-            raise ValueError, "Invalid input: %s" % err
+            raise ValueError("Invalid input: %s" % err)
         try:
             return self.eval(s)
         except ValueError as err:
-            raise ValueError, err
+            raise ValueError(err)
         except RuntimeError:
-            raise ValueError, cmd
+            raise ValueError(cmd)
 
     def eval(self, s, **kwds):
         """
@@ -316,9 +316,9 @@ class Mwrank_class(Expect):
             ss = validate_mwrank_input(s)
             return Expect.eval(self, ss, **kwds)
         except ValueError as err:
-            raise ValueError, 'Invalid input: %s' % err
+            raise ValueError('Invalid input: %s' % err)
         except RuntimeError:
-            raise ValueError, 'Invalid input (%s) to mwrank (singular curve)' % s
+            raise ValueError('Invalid input (%s) to mwrank (singular curve)' % s)
 
     def console(self):
         """

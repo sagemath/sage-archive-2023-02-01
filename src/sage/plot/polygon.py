@@ -225,7 +225,7 @@ class Polygon(GraphicPrimitive_xydata):
         if len(zdata)==len(self.xdata):
             return IndexFaceSet([[(x, y, z) for x, y, z in zip(self.xdata, self.ydata, zdata)]], **options)
         else:
-            raise ValueError, 'Incorrect number of heights given'
+            raise ValueError('Incorrect number of heights given')
 
     def _render_on_subplot(self, subplot):
         """

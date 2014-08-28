@@ -81,12 +81,6 @@ changes, and the iteration breaks for :class:`weakref.WeakValueDictionary`::
     sage: del C[:5]
     sage: len(D)
     10
-    sage: for k in D.iterkeys():
-    ....:     gc.enable()
-    ....:     _ = gc.collect()
-    Traceback (most recent call last):
-    ...
-    RuntimeError: dictionary changed size during iteration
 
 With :class:`~sage.misc.weak_dict.WeakValueDictionary`, the behaviour is
 safer. Note that iteration over a WeakValueDictionary is non-deterministic,

@@ -6745,16 +6745,18 @@ cdef class gen(sage.structure.element.RingElement):
 
     def idealchinese(self, x, y):
         """
-
+        Chinese Remainder Theorem over number fields.
+        
         INPUT:
 
-        - ``x`` : prime ideal factorization
-        - ``y`` : vector of elements
+        - ``x`` -- prime ideal factorization
+        - ``y`` -- vector of elements
 
         OUTPUT:
 
-        An elementbb such that v_p(b-y_p)>=v_p(x) for all
-        prime ideals p dividing x, and v_p(b)>=0 for all other p.
+        An element b in the ambient number field ``self`` such that
+        `v_p(b-y_p) \ge v_p(x)` for all prime ideals `p` dividing `x`,
+        and `v_p(b) \ge 0` for all other `p`.
 
         EXAMPLES::
 
@@ -6762,10 +6764,12 @@ cdef class gen(sage.structure.element.RingElement):
             sage: nf = F._pari_()
             sage: P = F.ideal(F.gen())
             sage: Q = F.ideal(2)
-            sage: ans = F(nf.idealchinese(pari.matrix(2,2,[P.pari_prime(),4,Q.pari_prime(),4]),pari.vector(2,[0,1])))
-            sage: ans.valuation(P) >= 4
+            sage: moduli = pari.matrix(2,2,[P.pari_prime(),4,Q.pari_prime(),4])
+            sage: residues = pari.vector(2,[0,1])
+            sage: b = F(nf.idealchinese(moduli,residues))
+            sage: b.valuation(P) >= 4
             True
-            sage: (ans-1).valuation(Q) >= 2
+            sage: (b-1).valuation(Q) >= 2
             True
         """
         cdef gen tx = objtogen(x)

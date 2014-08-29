@@ -128,13 +128,10 @@ class Algebras(CategoryWithAxiom_over_base_ring):
 
                 EXAMPLES::
 
-                    sage: A3 = SymmetricGroup(3).algebra(QQ)
-                    sage: Z3 = A3.center()
-                    sage: Z3._refine_category_(SemisimpleAlgebras(QQ))
-                    sage: orth = Z3.orthogonal_idempotents()
-                    sage: x = orth[2]._lift_idempotent()
-                    sage: x not in Z3 and x in A3
-                    True
+                    sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example().semisimple_quotient()
+                    sage: orth = A.orthogonal_idempotents()
+                    sage: orth[1]._lift_idempotent()
+                    x
 
                 TODO: better documentation.
                 """

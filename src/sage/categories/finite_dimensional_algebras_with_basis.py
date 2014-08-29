@@ -351,7 +351,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             center.rename("Center of {}".format(self))
             return center
 
-        def orthogonal_idempotent(self):
+        def orthogonal_idempotents(self):
             r"""
             Return a maximal family of orthogonal idempotents of ``self``.
 

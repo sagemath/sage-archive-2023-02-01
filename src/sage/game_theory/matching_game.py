@@ -324,13 +324,13 @@ class MatchingGame(SageObject):
         r"""
         Constructs a ``BipartiteGraph`` Object of the game.
         """
-        self._is_sovled()
+        self._is_solved()
 
         sol_dict = self._sol_dict()
         graph = BipartiteGraph(sol_dict)
         return(graph)
 
-    def _is_sovled(self):
+    def _is_solved(self):
         r"""
         Checks if the Game has been solved yet.
         """
@@ -386,7 +386,7 @@ class MatchingGame(SageObject):
 
         INPUTS:
 
-        -``name`` - Can be a string or numer. If left blank will automatically
+        -``name`` - Can be a string or a number. If left blank will automatically
                     generate an integer.
         """
         if name is False:
@@ -402,7 +402,7 @@ class MatchingGame(SageObject):
 
         INPUTS:
 
-        -``name`` - Can be a string or numer. If left blank will automatically
+        -``name`` - Can be a string or number. If left blank will automatically
                     generate an integer.
         """
         if name is False:
@@ -418,7 +418,7 @@ class MatchingGame(SageObject):
         values are their partner as a single element list. This is to allow
         the creation of ``BipartiteGraph``.
         """
-        self._is_sovled()
+        self._is_solved()
 
         sol_dict = {}
         for s in self.suitors:

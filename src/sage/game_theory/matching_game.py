@@ -344,7 +344,7 @@ class MatchingGame(SageObject):
 
         EXAMPLES::
 
-        An error is returned if the game is not solved:
+        An error is returned if the game is not solved::
 
             sage: suit = {0: (3, 4),
             ....:         1: (3, 4)}
@@ -371,7 +371,7 @@ class MatchingGame(SageObject):
 
         EXAMPLES::
 
-        An error is returned if the game is not solved:
+        An error is returned if the game is not solved::
 
             sage: suit = {0: (3, 4),
             ....:         1: (3, 4)}
@@ -422,7 +422,7 @@ class MatchingGame(SageObject):
         r"""
         Raises an error if all players do not have acceptable preferences.
 
-        TESTS:
+        EXAMPLES:
 
         Not enough reviewers. ::
 
@@ -446,7 +446,7 @@ class MatchingGame(SageObject):
             ...
             ValueError: Must have the same number of reviewers as suitors
 
-        Suitors preferences make no sense. ::
+        Suitors preferences are incomplete. ::
 
             sage: suit = {0: (3, 8),
             ....:         1: (0, 0)}
@@ -458,6 +458,17 @@ class MatchingGame(SageObject):
             ...
             ValueError: Suitor preferences are not complete
 
+        Reviewer preferences are incomplete. ::
+
+            sage: suit = {0: (3, 4),
+            ....:         1: (3, 4)}
+            sage: revr = {3: (0, 2, 1),
+            ....:         4: (1, 0)}
+            sage: g = MatchingGame([suit, revr])
+            sage: g._is_complete()
+            Traceback (most recent call last):
+            ...
+            ValueError: Reviewer preferences are not complete
         """
         if len(self.suitors) != len(self.reviewers):
             raise ValueError("Must have the same number of reviewers as suitors")

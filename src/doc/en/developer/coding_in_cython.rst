@@ -208,7 +208,7 @@ On certain systems, you can still quit Sage by typing ``CTRL-\``
 
 .. highlight:: cython
 
-There are two related mechanisms to deal with interrupts:
+Sage provides two related mechanisms to deal with interrupts:
 
 * :ref:`Use sig_check() <section_sig_check>` if you are writing mixed
   Cython/Python code. Typically this is code with (nested) loops where
@@ -222,7 +222,8 @@ There are two related mechanisms to deal with interrupts:
 The functions ``sig_check()``, ``sig_on()`` and ``sig_off()`` can be
 put in all kinds of Cython functions: ``def``, ``cdef`` or ``cpdef``.
 You cannot put them in pure Python code (files with extension ``.py``).
-To use these functions, you need to include their declarations with::
+These functions are specific to Sage. To use them, you need to include
+their declarations with::
 
     include "sage/ext/interrupt.pxi"
 
@@ -373,14 +374,16 @@ If you do this, the effect is exactly the same as if only the outer
 a reference counter and otherwise do nothing.  Make sure that the number
 of ``sig_on()`` calls equal the number of ``sig_off()`` calls::
 
-    def stack_sig_on():
+    def f1():
         sig_on()
+        x = f2()
+        sig_off()
+
+    def f2():
         sig_on()
-        sig_on()
-        # (some code)
+        # ...
         sig_off()
-        sig_off()
-        sig_off()
+        return ans
 
 Extra care must be taken with exceptions raised inside ``sig_on()``.
 The problem is that, if you do not do anything special, the ``sig_off()``
@@ -470,7 +473,8 @@ and the custom exception ``SignalError``, based on ``BaseException``, otherwise)
 
 This exception can be handled by a ``try``/``except`` block as explained above.
 A segmentation fault or ``abort()`` unguarded by ``sig_on()`` would
-simply terminate Sage.
+simply terminate Sage. This applies only to ``sig_on()``, the function
+``sig_check()`` only deals with interrupts and alarms.
 
 Instead of ``sig_on()``, there is also a function ``sig_str(s)``,
 which takes a C string ``s`` as argument.
@@ -581,7 +585,7 @@ one sometimes wants to check that certain code can be interrupted in a clean way
 The best way to do this is to use :func:`alarm`.
 
 The following is an example of a doctest demonstrating that
-the function ``factor()`` can be interrupted::
+the function :func:`factor()` can be interrupted::
 
     sage: alarm(0.5); factor(10^1000 + 3)
     Traceback (most recent call last):
@@ -591,10 +595,14 @@ the function ``factor()`` can be interrupted::
 Releasing the Global Interpreter Lock (GIL)
 -------------------------------------------
 
-All the functions related to interrupt and signal handling are declared
-``nogil``. This means that they can be used in Cython code inside
-``with nogil`` blocks. If ``sig_on()`` needs to raise an exception,
-the GIL is temporarily acquired internally.
+All the functions related to interrupt and signal handling do not
+require the
+`Python GIL <http://docs.cython.org/src/userguide/external_C_code.html#acquiring-and-releasing-the-gil>`_
+(if you don't know what this means, you can safely ignore this section),
+they are declared ``nogil``.
+This means that they can be used in Cython code inside ``with nogil``
+blocks. If ``sig_on()`` needs to raise an exception, the GIL is
+temporarily acquired internally.
 
 If you use C libraries without the GIL and you want to raise an exception
 after :ref:`sig_error() <sig-error>`, remember to acquire the GIL

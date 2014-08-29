@@ -366,7 +366,27 @@ class MatchingGame(SageObject):
     def bi_partite(self):
         r"""
         Constructs a ``BipartiteGraph`` Object of the game.
-        This method
+        This method is similar to the plot method.
+        Note that the game must be solved for this to work.
+
+        EXAMPLES::
+
+        An error is returned if the game is not solved:
+
+            sage: suit = {0: (3, 4),
+            ....:         1: (3, 4)}
+            sage: revr = {3: (0, 1),
+            ....:         4: (1, 0)}
+            sage: g = MatchingGame([suit, revr])
+            sage: g.bi_partite()
+            Traceback (most recent call last):
+            ...
+            ValueError: Game has not been solved yet
+
+            sage: g.solve()
+            {0: [3], 1: [4], 3: [0], 4: [1]}
+            sage: g.bi_partite()
+            Bipartite graph on 4 vertices
         """
         self._is_solved()
 

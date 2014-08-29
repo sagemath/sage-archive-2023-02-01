@@ -91,6 +91,10 @@ RiggedConfigurationOptions=GlobalOptions(name='rigged configurations',
     element_ascii_art=dict(default=True,
                      description='display using the repr option ``element_ascii_art``',
                      checker=lambda x: isinstance(x, bool)),
+    
+    half_width_boxes_type_B=dict(default=True,
+            description='display the last rigged partition in affine type B as half width boxes',
+            checker=lambda x: isinstance(x, bool)),
     convention=dict(link_to=(tableau.TableauOptions,'convention')),
     notation = dict(alt_name='convention')
 )
@@ -497,8 +501,6 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         from sage.combinat.backtrack import TransitiveIdeal
         return TransitiveIdeal(lambda x: [x.f(i) for i in index_set],
                                self.module_generators).__iter__()
-
-    use_half_width_boxes_type_B = True
 
     @lazy_attribute
     def module_generators(self):

@@ -179,7 +179,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
                             return map( lambda x: x.lift(), res)
 
                     @cached_method
-                    def orthogonal_idempotents(self):
+                    def orthogonal_idempotents(self, dimSimple=False):
                         r"""
                         Return the minimal orthogonal idempotents of ``self``.
 
@@ -193,10 +193,8 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
                         EXAMPLES::
 
-                            sage: G5 = SymmetricGroup(5)
-                            sage: A5 = G5.algebra(QQ)
+                            sage: A5 = SymmetricGroup(5).algebra(QQ)
                             sage: Z5 = A5.center()
-                            sage: orth = Z5.orthogonal_idempotents()
                             sage: orth = Z5.orthogonal_idempotents()
                             sage: sorted(orth, key=str)
                             [1/120*B[0] + 1/120*B[1] + 1/120*B[2] + 1/120*B[3]
@@ -215,6 +213,4 @@ class SemisimpleAlgebras(Category_over_base_ring):
                             sage: orth[1] ** 2 == orth[1]
                             True
                         """
-                        return [(e.leading_coefficient()/(e*e).leading_coefficient())*e
-                                for e in
-                                self._semi_simple_commutative_decomposition_generators()]
+                        return [(e.leading_coefficient()/(e*e).leading_coefficient())*e for e in self._semi_simple_commutative_decomposition_generators()]

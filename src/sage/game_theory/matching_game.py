@@ -271,6 +271,15 @@ class MatchingGame(SageObject):
 
     def _repr_(self):
         r"""
+        Returns a basic representation of the game stating how many players are in the game.
+
+        EXAMPLES::
+
+        Matching game with 2 reviewers and 2 suitors. ::
+
+            sage: M = MatchingGame(2)
+            sage: M
+            A matching game with 4 players
         """
         n = len(self.reviewers) + len(self.suitors)
         return 'A matching game with %s players' % n
@@ -305,6 +314,21 @@ class MatchingGame(SageObject):
         return output
 
     def game_to_dict(self):
+        r"""
+        Obtains the preference dictionaries for a game.
+        This is relevant if a game has been created by adding the preferences
+        manually.
+
+        EXAMPLES::
+
+            sage: suit = {0: (3, 4),
+            ....:         1: (3, 4)}
+            sage: revr = {3: (0, 1),
+            ....:         4: (1, 0)}
+            sage: g = MatchingGame([suit, revr])
+            sage: g.game_to_dict()
+            ({0: (3, 4), 1: (3, 4)}, {3: (0, 1), 4: (1, 0)})
+        """
         suitor_dictionary = {}
         reviewer_dictionary = {}
         for suitor in self.suitors:
@@ -316,6 +340,25 @@ class MatchingGame(SageObject):
     def plot(self):
         r"""
         Creates the plot representing the stable matching for the game.
+        Note that the game must be solved for this to work.
+
+        EXAMPLES::
+
+        An error is returned if the game is not solved:
+
+            sage: suit = {0: (3, 4),
+            ....:         1: (3, 4)}
+            sage: revr = {3: (0, 1),
+            ....:         4: (1, 0)}
+            sage: g = MatchingGame([suit, revr])
+            sage: plot(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: Game has not been solved yet
+
+            sage: g.solve()
+            {0: [3], 1: [4], 3: [0], 4: [1]}
+            sage: plot(g)
         """
         pl = self.bi_partite()
         return pl.plot()
@@ -323,12 +366,13 @@ class MatchingGame(SageObject):
     def bi_partite(self):
         r"""
         Constructs a ``BipartiteGraph`` Object of the game.
+        This method
         """
         self._is_solved()
 
         sol_dict = self._sol_dict()
         graph = BipartiteGraph(sol_dict)
-        return(graph)
+        return graph
 
     def _is_solved(self):
         r"""

@@ -571,7 +571,21 @@ class MatchingGame(SageObject):
         r"""
         Creates a dictionary of the stable matching. Keys are the player,
         values are their partner as a single element list. This is to allow
-        the creation of ``BipartiteGraph``.
+        the creation of ``BipartiteGraph`` and is also what is returned when
+        running ``solve``.
+
+        EXAMPLES::
+
+            sage: suit = {0: (3, 4),
+            ....:         1: (3, 4)}
+            sage: revr = {3: (0, 1),
+            ....:         4: (1, 0)}
+            sage: g = MatchingGame([suit, revr])
+            sage: g.solve()
+            {0: [3], 1: [4], 3: [0], 4: [1]}
+            sage: g._sol_dict()
+            {0: [3], 1: [4], 3: [0], 4: [1]}
+
         """
         self._is_solved()
 

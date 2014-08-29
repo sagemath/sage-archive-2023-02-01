@@ -904,18 +904,18 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
 
     # Constructions from the database III (Quasi-difference matrices)
     elif (may_be_available and
-          (n,1) in QDM and
-          any(kk>=k and mu<=lmbda and orthogonal_array(k,u,existence=True) for _,kk,lmbda,mu,u in QDM[n,1])):
+          (n,1) in QDM     and
+          any(kk>=k and mu<=lmbda and orthogonal_array(k,u,existence=True) for (_,lmbda,mu,u),(kk,_) in QDM[n,1].items())):
         _OA_cache_set(k,n,True)
 
         if existence:
             return True
         else:
-            for nn,kk,lmbda,mu,u in QDM[n,1]:
-                if (kk>=k and
+            for (nn,lmbda,mu,u),(kk,f) in QDM[n,1].items():
+                if (kk>=k     and
                     mu<=lmbda and
                     orthogonal_array(k,u,existence=True)):
-                    G,M = QDM[n,1][nn,kk,lmbda,mu,u]()
+                    G,M = f()
                     M = [R[:k] for R in M]
                     OA = OA_from_quasi_difference_matrix(M,G,add_col=False)
 
@@ -941,7 +941,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
         raise NotImplementedError("I don't know how to build an OA({},{})!".format(k,n))
 
     if check:
-        assert is_orthogonal_array(OA,k,n,t), "Sage built an incorrect OA({},{}) O_o".format(k,n)
+        assert is_orthogonal_array(OA,k,n,t,verbose=1), "Sage built an incorrect OA({},{}) O_o".format(k,n)
 
     return OA
 

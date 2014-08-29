@@ -1952,9 +1952,9 @@ LIST_OF_OA_CONSTRUCTIONS = join((":func:`OA({},{}) <OA_{}_{}>`".format(k,n,k,n)
                                 for n,(k,_) in OA_constructions.items()),
                                ", ")
 
-def QDM_19_6_1_0_1():
+def QDM_19_6_1_1_1():
     r"""
-    Return a `(19,6;1,0;1)`-quasi-difference matrix.
+    Return a `(19,6;1,1;1)`-quasi-difference matrix.
 
     Used to build an `OA(6,20)`
 
@@ -1962,9 +1962,11 @@ def QDM_19_6_1_0_1():
 
     EXAMPLE::
 
-        sage: designs.orthogonal_array(6,20,existence=True)
+        sage: from sage.combinat.designs.database import QDM_19_6_1_1_1
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_19_6_1_1_1()
+        sage: is_quasi_difference_matrix(M,G,6,1,1,1)
         True
-        sage: _=designs.orthogonal_array(6,20)
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     M=[[None,   7,  13,   1,  16,   9,   2],
@@ -1984,9 +1986,9 @@ def QDM_19_6_1_0_1():
 
     return AdditiveCyclic(19), Mb
 
-def QDM_21_5_1_0_1():
+def QDM_21_5_1_1_1():
     r"""
-    Return a `(21,5;1,0;1)`-quasi-difference matrix.
+    Return a `(21,5;1,1;1)`-quasi-difference matrix.
 
     Used to build an `OA(5,22)`
 
@@ -1994,9 +1996,11 @@ def QDM_21_5_1_0_1():
 
     EXAMPLE::
 
-        sage: designs.orthogonal_array(5,22,existence=True)
+        sage: from sage.combinat.designs.database import QDM_21_5_1_1_1
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_21_5_1_1_1()
+        sage: is_quasi_difference_matrix(M,G,5,1,1,1)
         True
-        sage: _=designs.orthogonal_array(5,22)
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(21)
@@ -2029,9 +2033,9 @@ def QDM_21_5_1_0_1():
 
     return G, Mb
 
-def QDM_21_6_1_0_5():
+def QDM_21_6_1_1_5():
     r"""
-    Return a `(21,6;1,0;5)`-quasi-difference matrix.
+    Return a `(21,6;1,1;5)`-quasi-difference matrix.
 
     Used to build an `OA(6,26)`
 
@@ -2039,9 +2043,11 @@ def QDM_21_6_1_0_5():
 
     EXAMPLE::
 
-        sage: designs.orthogonal_array(6,26,existence=True)
+        sage: from sage.combinat.designs.database import QDM_21_6_1_1_5
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_21_6_1_1_5()
+        sage: is_quasi_difference_matrix(M,G,6,1,1,5)
         True
-        sage: _=designs.orthogonal_array(6,26)
     """
     M = [
         [None,None,None,None,None],
@@ -2067,9 +2073,9 @@ def QDM_21_6_1_0_5():
 
     return G, Mb
 
-def QDM_25_6_1_0_5():
+def QDM_25_6_1_1_5():
     r"""
-    Return a `(25,6;1,0;5)`-quasi-difference matrix.
+    Return a `(25,6;1,1;5)`-quasi-difference matrix.
 
     Used to build an `OA(6,30)`
 
@@ -2077,9 +2083,11 @@ def QDM_25_6_1_0_5():
 
     EXAMPLE::
 
-        sage: designs.orthogonal_array(6,30,existence=True)
+        sage: from sage.combinat.designs.database import QDM_25_6_1_1_5
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_25_6_1_1_5()
+        sage: is_quasi_difference_matrix(M,G,6,1,1,5)
         True
-        sage: _=designs.orthogonal_array(6,30)
     """
     M = [
         [(0,0),None,(0,0),(0,0),(0,0),(0,0),(0,0)],
@@ -2110,9 +2118,9 @@ def QDM_25_6_1_0_5():
 
     return G, Mb
 
-def QDM_33_6_1_0_1():
+def QDM_33_6_1_1_1():
     r"""
-    Return a `(33,6;1,0;1)`-quasi-difference matrix.
+    Return a `(33,6;1,1;1)`-quasi-difference matrix.
 
     Used to build an `OA(6,34)`
 
@@ -2120,9 +2128,11 @@ def QDM_33_6_1_0_1():
 
     EXAMPLE::
 
-        sage: designs.orthogonal_array(6,34,existence=True)
+        sage: from sage.combinat.designs.database import QDM_33_6_1_1_1
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_33_6_1_1_1()
+        sage: is_quasi_difference_matrix(M,G,6,1,1,1)
         True
-        sage: _=designs.orthogonal_array(6,34)
     """
     M = [
         [None,   0,   0,   0,   0,   0],
@@ -2151,9 +2161,9 @@ def QDM_33_6_1_0_1():
 
     return G, Mb
 
-def QDM_37_6_1_0_1():
+def QDM_37_6_1_1_1():
     r"""
-    Return a `(37,6;1,0;1)`-quasi-difference matrix.
+    Return a `(37,6;1,1;1)`-quasi-difference matrix.
 
     Used to build an `OA(6,38)`
 
@@ -2161,9 +2171,11 @@ def QDM_37_6_1_0_1():
 
     EXAMPLE::
 
-        sage: designs.orthogonal_array(6,38,existence=True)
+        sage: from sage.combinat.designs.database import QDM_37_6_1_1_1
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_37_6_1_1_1()
+        sage: is_quasi_difference_matrix(M,G,6,1,1,1)
         True
-        sage: _=designs.orthogonal_array(6,38)
     """
     M = [
         [None,  10,   1,   2,   6,   3,  22,   5,   7,   9,  14,  18,  28],
@@ -2187,9 +2199,9 @@ def QDM_37_6_1_0_1():
 
     return G, Mb
 
-def QDM_35_7_1_0_7():
+def QDM_35_7_1_1_7():
     r"""
-    Return a `(35,7;1,0;7)`-quasi-difference matrix.
+    Return a `(35,7;1,1;7)`-quasi-difference matrix.
 
     Used to build an `OA(7,42)`
 
@@ -2197,9 +2209,11 @@ def QDM_35_7_1_0_7():
 
     EXAMPLE::
 
-        sage: designs.orthogonal_array(7,42,existence=True)
+        sage: from sage.combinat.designs.database import QDM_35_7_1_1_7
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_35_7_1_1_7()
+        sage: is_quasi_difference_matrix(M,G,7,1,1,7)
         True
-        sage: _=designs.orthogonal_array(7,42)
     """
     M = [
         [None,None,None,None,None,None,None],
@@ -2222,9 +2236,9 @@ def QDM_35_7_1_0_7():
 
     return G, Mb
 
-def QDM_45_7_1_0_9():
+def QDM_45_7_1_1_9():
     r"""
-    Return a `(45,7;1,0;9)`-quasi-difference matrix.
+    Return a `(45,7;1,1;9)`-quasi-difference matrix.
 
     Used to build an `OA(7,54)`
 
@@ -2232,9 +2246,11 @@ def QDM_45_7_1_0_9():
 
     EXAMPLE::
 
-        sage: designs.orthogonal_array(7,54,existence=True)
+        sage: from sage.combinat.designs.database import QDM_45_7_1_1_9
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_45_7_1_1_9()
+        sage: is_quasi_difference_matrix(M,G,7,1,1,9)
         True
-        sage: _=designs.orthogonal_array(7,54)
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(45)
@@ -2257,9 +2273,9 @@ def QDM_45_7_1_0_9():
 
     return G, Mb
 
-def QDM_54_7_1_0_8():
+def QDM_54_7_1_1_8():
     r"""
-    Return a `(54,7;1,0;8)`-quasi-difference matrix.
+    Return a `(54,7;1,1;8)`-quasi-difference matrix.
 
     Used to build an `OA(7,62)`
 
@@ -2267,9 +2283,11 @@ def QDM_54_7_1_0_8():
 
     EXAMPLE::
 
-        sage: designs.orthogonal_array(7,62,existence=True)
+        sage: from sage.combinat.designs.database import QDM_54_7_1_1_8
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_54_7_1_1_8()
+        sage: is_quasi_difference_matrix(M,G,7,1,1,8)
         True
-        sage: _=designs.orthogonal_array(7,62)
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(54)
@@ -2292,9 +2310,9 @@ def QDM_54_7_1_0_8():
 
     return G, Mb
 
-def QDM_57_9_1_0_8():
+def QDM_57_9_1_1_8():
     r"""
-    Return a `(57,9;1,0;8)`-quasi-difference matrix.
+    Return a `(57,9;1,1;8)`-quasi-difference matrix.
 
     Used to build an `OA(9,65)`
 
@@ -2302,9 +2320,11 @@ def QDM_57_9_1_0_8():
 
     EXAMPLE::
 
-        sage: designs.orthogonal_array(9,65,existence=True)
+        sage: from sage.combinat.designs.database import QDM_57_9_1_1_8
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_57_9_1_1_8()
+        sage: is_quasi_difference_matrix(M,G,9,1,1,8)
         True
-        sage: _=designs.orthogonal_array(9,65)
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as G
 
@@ -2323,30 +2343,31 @@ def QDM_57_9_1_0_8():
 #
 # QDM = {
 #     (n+u,lmbda): { # QDM with mu<=lmbda=1 yields a OA(k,n+u)-OA(k,u)
-#         (n,k,lmbda,mu,u): qdm_constructor,
+#         (n,lmbda,mu,u): (k,qdm_constructor),
 #         }
 # }
 
 QDM = {}
-for ((n,k,lmbda,mu,u),f) in [((19,6,1,0,1), QDM_19_6_1_0_1),
-                             ((21,5,1,0,1), QDM_21_5_1_0_1),
-                             ((21,6,1,0,5), QDM_21_6_1_0_5),
-                             ((25,6,1,0,5), QDM_25_6_1_0_5),
-                             ((33,6,1,0,1), QDM_33_6_1_0_1),
-                             ((37,6,1,0,1), QDM_37_6_1_0_1),
-                             ((35,7,1,0,7), QDM_35_7_1_0_7),
-                             ((45,7,1,0,9), QDM_45_7_1_0_9),
-                             ((54,7,1,0,8), QDM_54_7_1_0_8),
-                             ((57,9,1,0,8), QDM_57_9_1_0_8)]:
+for ((n,k,lmbda,mu,u),f) in [((19,6,1,1,1), QDM_19_6_1_1_1),
+                             ((21,5,1,1,1), QDM_21_5_1_1_1),
+                             ((21,6,1,1,5), QDM_21_6_1_1_5),
+                             ((25,6,1,1,5), QDM_25_6_1_1_5),
+                             ((33,6,1,1,1), QDM_33_6_1_1_1),
+                             ((37,6,1,1,1), QDM_37_6_1_1_1),
+                             ((35,7,1,1,7), QDM_35_7_1_1_7),
+                             ((45,7,1,1,9), QDM_45_7_1_1_9),
+                             ((54,7,1,1,8), QDM_54_7_1_1_8),
+                             ((57,9,1,1,8), QDM_57_9_1_1_8)]:
     if not (n+u,lmbda) in QDM:
         QDM[n+u,lmbda] = {}
-    QDM[n+u,lmbda][n,k,lmbda,mu,u] = f
+    QDM[n+u,lmbda][n,lmbda,mu,u] = (k,f)
 
 # Create the list of QDM matrices for the doc
-LIST_OF_QDM = join(("`({},{};{},{};{})`".format(*params)
-                    for key in sorted(QDM.keys())
-                    for params in sorted(QDM[key].keys())),
-                    ", ")
+LIST_OF_QDM = join(("`({},{};{},{};{})`".format(n,k,lmbda,mu,u)
+                    for n,k,lmbda,mu,u in
+                    sorted((n,k,lmbda,mu,u) for entry in QDM.values()
+                           for (n,lmbda,mu,u),(k,_) in sorted(entry.items()))),
+                   ", ")
 
 Vmt_vectors = {
     (4,9) : ((0,1,3,2,8),
@@ -2491,7 +2512,7 @@ for (m,t),(vec,source) in Vmt_vectors.iteritems():
     n,k,lmbda,mu,u = (m*t+1,m+2,1,0,t)
     if not (n+u,lmbda) in QDM:
         QDM[n+u,lmbda] = {}
-    QDM[n+u,lmbda][n,k,lmbda,mu,u] = lambda m=m,t=t,vec=vec:QDM_from_Vmt(m,t,vec)
+    QDM[n+u,lmbda][n,lmbda,mu,u] = (k,lambda m=m,t=t,vec=vec:QDM_from_Vmt(m,t,vec))
 
 # Create the list of V(m,t) vectors for the doc
 _all_m = sorted(set(m for m,_ in Vmt_vectors.keys()))

@@ -475,7 +475,7 @@ def is_quasi_difference_matrix(M,G,int k,int lmbda,int mu,int u,verbose=False):
     A quasi-difference matrix from the database::
 
         sage: from sage.combinat.designs.database import QDM
-        sage: G,M = QDM[38,1][37,6,1,0,1]()
+        sage: G,M = QDM[38,1][37,1,1,1][1]()
         sage: is_quasi_difference_matrix(M,G,k=6,lmbda=1,mu=1,u=1)
         True
 

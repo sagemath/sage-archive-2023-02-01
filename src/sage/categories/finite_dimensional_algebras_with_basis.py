@@ -366,7 +366,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 An example of a finite dimensional algebra with basis: the path
                 algebra of the Kronecker quiver (containing the arrows a:x->y
                 and b:x->y) over Rational Field
-                sage: A.orthogonal_idempotent()
+                sage: A.orthogonal_idempotents()
                 [y, x]
             """
             Aquo = self.semisimple_quotient()

@@ -303,11 +303,11 @@ class MaximaFunction(BuiltinFunction):
         TESTS:
 
         Check if complex numbers in the arguments are converted to maxima
-        correctly :trac:`7557`::
+        correctly (see :trac:`7557`)::
 
             sage: t = f(1.2+2*I*elliptic_kc(1-.5),.5)
-            sage: t._maxima_init_(maxima)
-            '0.88771548861927...*%i'
+            sage: t._maxima_init_(maxima)  # abs tol 1e-13
+            '0.88771548861928029 - 1.7301614091485560e-15*%i'
             sage: t.n() # abs tol 1e-13
             0.887715488619280 - 1.79195288804672e-15*I
 

@@ -46,6 +46,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.h_polynomial` | Returns the h-polynomial of a bounded poset.
     :meth:`~FinitePoset.has_bottom` | Returns True if the poset has a unique minimal element.
     :meth:`~FinitePoset.hasse_diagram` | Returns the Hasse diagram of ``self`` as a Sage :class:`DiGraph`.
+    :meth:`~FinitePoset.has_isomorphic_subposet` | Return ``True`` if the poset contains a subposet isomorphic to another poset, and ``False`` otherwise.
     :meth:`~FinitePoset.has_top` | Returns True if the poset contains a unique maximal element, and False otherwise.
     :meth:`~FinitePoset.incomparability_graph` | Returns the incomparability graph of the poset.
     :meth:`~FinitePoset.interval` | Returns a list of the elements `z` such that `x \le z \le y`.
@@ -1946,6 +1947,27 @@ class FinitePoset(UniqueRepresentation, Parent):
             True
         """
         return self._hasse_diagram.has_top()
+
+    def has_isomorphic_subposet(self, other):
+        """
+        Return ``True`` if the poset contains a subposet isomorphic to ``other``.
+
+        EXAMPLES::
+
+            sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
+            sage: T = Poset({1:[2,3], 2:[4,5], 3:[6,7]})
+            sage: N5 = Posets.PentagonPoset()
+
+            sage: T.has_isomorphic_subposet(D)
+            False
+            sage: N5.has_isomorphic_subposet(D)
+            True
+
+            sage: len([P for P in Posets(5) if P.has_isomorphic_subposet(D)])
+            11
+
+        """
+        return self._hasse_diagram.has_isomorphic_subposet(other)
 
     def is_bounded(self):
         """

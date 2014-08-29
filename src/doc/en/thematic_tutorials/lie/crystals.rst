@@ -699,7 +699,7 @@ You may construct the tensor product of several crystals in Sage using
     sage: T.cardinality()
     27
     sage: T.highest_weight_vectors()
-    [[1, 1, 1], [1, 2, 1], [2, 1, 1], [3, 2, 1]]
+    ([1, 1, 1], [2, 1, 1], [1, 2, 1], [3, 2, 1])
 
 This crystal has four highest weight vectors. We may understand this
 as follows::

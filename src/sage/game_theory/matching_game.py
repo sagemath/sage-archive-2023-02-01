@@ -489,6 +489,33 @@ class MatchingGame(SageObject):
 
         -``name`` - Can be a string or a number. If left blank will automatically
                     generate an integer.
+
+        EXAMPLES::
+
+        Creating a two player game::
+
+            sage: g = MatchingGame(2)
+            sage: g.suitors
+            [1, 2]
+
+        Adding a suitor without specifying a name::
+
+            sage: g.add_suitor()
+            sage: g.suitors
+            [1, 2, 3]
+
+        Adding a suitor while specifying a name::
+
+            sage: g.add_suitor('D')
+            sage: g.suitors
+            [1, 2, 3, 'D']
+
+        Note that now our game is no longer complete::
+
+            sage: g._is_complete()
+            Traceback (most recent call last):
+            ...
+            ValueError: Must have the same number of reviewers as suitors
         """
         if name is False:
             name = len(self.suitors) + 1
@@ -505,6 +532,33 @@ class MatchingGame(SageObject):
 
         -``name`` - Can be a string or number. If left blank will automatically
                     generate an integer.
+
+        EXAMPLES::
+
+        Creating a two player game::
+
+            sage: g = MatchingGame(2)
+            sage: g.reviewers
+            [-1, -2]
+
+        Adding a suitor without specifying a name::
+
+            sage: g.add_reviewer()
+            sage: g.reviewers
+            [-1, -2, -3]
+
+        Adding a suitor while specifying a name::
+
+            sage: g.add_reviewer(10)
+            sage: g.reviewers
+            [-1, -2, -3, 10]
+
+        Note that now our game is no longer complete::
+
+            sage: g._is_complete()
+            Traceback (most recent call last):
+            ...
+            ValueError: Must have the same number of reviewers as suitors
         """
         if name is False:
             name = -len(self.reviewers) - 1

@@ -396,7 +396,22 @@ class MatchingGame(SageObject):
 
     def _is_solved(self):
         r"""
-        Checks if the Game has been solved yet.
+        Raises an error if the Game has been solved yet.
+
+        EXAMPLES::
+
+            sage: suit = {0: (3, 4),
+            ....:         1: (3, 4)}
+            sage: revr = {3: (0, 1),
+            ....:         4: (1, 0)}
+            sage: g = MatchingGame([suit, revr])
+            sage: g._is_solved()
+            Traceback (most recent call last):
+            ...
+            ValueError: Game has not been solved yet
+            sage: g.solve()
+            {0: [3], 1: [4], 3: [0], 4: [1]}
+            sage: g._is_solved()
         """
         suitor_check = all(s.partner for s in self.suitors)
         reviewer_check = all(r.partner for r in self.reviewers)
@@ -405,7 +420,7 @@ class MatchingGame(SageObject):
 
     def _is_complete(self):
         r"""
-        Checks that all players have acceptable preferences.
+        Raises an error if all players do not have acceptable preferences.
 
         TESTS:
 
@@ -414,6 +429,17 @@ class MatchingGame(SageObject):
             sage: suit = {0: (3, 4),
             ....:         1: (3, 4)}
             sage: revr = {3: (0, 1)}
+            sage: g = MatchingGame([suit, revr])
+            sage: g._is_complete()
+            Traceback (most recent call last):
+            ...
+            ValueError: Must have the same number of reviewers as suitors
+
+        Not enough suitors. ::
+
+            sage: suit = {0: (3, 4)}
+            sage: revr = {1: (0, 2),
+            ....:         3: (0, 1)}
             sage: g = MatchingGame([suit, revr])
             sage: g._is_complete()
             Traceback (most recent call last):

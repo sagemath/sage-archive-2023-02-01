@@ -115,11 +115,11 @@ class MatchingGame(SageObject):
          'M': ['B'],
          'L': ['D']}
 
-    Matchings have a natural representations as bi-partitie graph: ::
+    Matchings have a natural representations as bi-partite graph: ::
 
         sage: plot(m)
 
-    The above plots the bi-partitite graph associated with the matching.
+    The above plots the bi-partite graph associated with the matching.
     This plot can be accessed directly: ::
 
         sage: graph = m.bi_partite()
@@ -180,7 +180,7 @@ class MatchingGame(SageObject):
     It can be shown that the Gale Shapley algorithm will return the stable
     matching that is optimal from the point of view of the suitors and is in
     fact the worst possible matching from the point of view of the reviewers.
-    To quickly obtain the matching that is optimal for the reviewes we use the
+    To quickly obtain the matching that is optimal for the reviewers we use the
     ``solve`` method with the ``invert=True`` option: ::
 
         sage: left_dict = {'a': ('A', 'B', 'C'),

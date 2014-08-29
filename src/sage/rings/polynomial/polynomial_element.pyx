@@ -5334,8 +5334,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = CDF['x']([1,2,3,4]); f
             4.0*x^3 + 3.0*x^2 + 2.0*x + 1.0
             sage: r = f.roots(multiplicities=False)
-            sage: [f(a) for a in r]  # abs tol 1e-14
-            [2.55351295663786e-15 + 9.127794063086602e-16*I, -1.1102230246251565e-15 + 9.394001960864873e-16*I, -2.220446049250313e-16 + 1.216102143031944e-15*I]
+            sage: [f(a).abs() for a in r]  # abs tol 1e-14
+            [2.574630599127759e-15, 1.457101633618084e-15, 1.1443916996305594e-15]
 
         Another example over RDF::
 

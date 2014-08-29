@@ -6992,8 +6992,8 @@ cdef class Expression(CommutativeRingElement):
             1/2*I*pi
             sage: SR(1/2).arccosh()
             arccosh(1/2)
-            sage: SR(CDF(1/2)).arccosh()
-            1.0471975511965979*I
+            sage: SR(CDF(1/2)).arccosh()  # rel tol 1e-15
+            1.0471975511965976*I
             sage: maxima('acosh(0.5)')
             1.04719755119659...*%i
 

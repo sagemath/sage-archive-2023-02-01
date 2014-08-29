@@ -53,8 +53,8 @@ cdef class Vector_complex_double_dense(vector_double_dense.Vector_double_dense):
         sage: v = vector(CDF,[(1,-1), (2,pi), (3,5)])
         sage: v
         (1.0 - 1.0*I, 2.0 + 3.141592653589793*I, 3.0 + 5.0*I)
-        sage: v*v
-        -21.869604401089358 + 40.56637061435917*I
+        sage: v*v  # rel tol 1e-15
+        -21.86960440108936 + 40.56637061435917*I
     """
     def __cinit__(self, parent, entries, coerce=True, copy=True):
         global numpy

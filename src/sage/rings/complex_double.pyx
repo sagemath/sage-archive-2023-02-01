@@ -1511,7 +1511,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: a.nth_root(3)
             5.000000000000001
             sage: a = CDF(10, 2)
-            sage: [r^5 for r in a.nth_root(5, all=True)]  # rel tol 1e-15
+            sage: [r^5 for r in a.nth_root(5, all=True)]  # rel tol 1e-14
             [9.999999999999998 + 2.0*I, 9.999999999999993 + 2.000000000000002*I, 9.999999999999996 + 1.9999999999999907*I, 9.999999999999993 + 2.0000000000000004*I, 9.999999999999998 + 1.9999999999999802*I]
             sage: abs(sum(a.nth_root(111, all=True)))  # rel tol 0.1
             1.1057313523818259e-13
@@ -2061,8 +2061,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(1,1).arcsech()
-            0.5306375309525178 - 1.118517879643706*I
+            sage: CDF(1,1).arcsech()  # rel tol 1e-15
+            0.5306375309525176 - 1.118517879643706*I
         """
         return self._new_c(gsl_complex_arcsech(self._complex))
 

@@ -2386,7 +2386,7 @@ class CDFInterpreter(StackInterpreter):
             sage: f(CDF(1+2j))
             -10391778.999999996 + 3349659.499999962*I
             sage: ff = fast_callable(f, CDF)
-            sage: ff(1 + 2j)  # rel tol 1e-15
+            sage: ff(1 + 2j)  # rel tol 1e-14
             -10391779.000000004 + 3349659.49999997*I
             sage: ff.python_calls()
             []

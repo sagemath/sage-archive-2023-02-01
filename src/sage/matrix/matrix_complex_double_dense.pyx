@@ -77,8 +77,8 @@ cdef class Matrix_complex_double_dense(matrix_double_dense.Matrix_double_dense):
     ::
 
         sage: b = vector(CDF,[5,6])
-        sage: m.solve_right(b)
-        (2.6666666666666665 + 0.6666666666666666*I, -0.3333333333333333 - 1.1666666666666667*I)
+        sage: m.solve_right(b)  # abs tol 1e-14
+        (2.6666666666666665 + 0.6666666666666669*I, -0.3333333333333333 - 1.1666666666666667*I)
 
     See the commands qr, lu, and svd for QR, LU, and singular value
     decomposition.

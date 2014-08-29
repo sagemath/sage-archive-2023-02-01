@@ -572,7 +572,7 @@ def gv_bound_asymp(delta,q):
     EXAMPLES::
 
         sage: RDF(gv_bound_asymp(1/4,2))
-        0.18872187554086717
+        0.18872187554086...
         sage: f = lambda x: gv_bound_asymp(x,2)
         sage: plot(f,0,1)
     """

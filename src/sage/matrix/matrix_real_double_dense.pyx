@@ -79,8 +79,8 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
     ::
 
         sage: b = vector(RDF,[5,6])
-        sage: m.solve_right(b)
-        (-4.0, 4.5)
+        sage: m.solve_right(b)  # rel tol 1e-15
+        (-3.9999999999999987, 4.499999999999999)
 
     See the commands qr, lu, and svd for QR, LU, and singular value
     decomposition.

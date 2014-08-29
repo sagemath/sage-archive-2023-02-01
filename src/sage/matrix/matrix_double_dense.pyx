@@ -1381,7 +1381,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
             sage: G = graphs.HigmanSimsGraph()
             sage: A = G.adjacency_matrix().change_ring(RDF)
-            sage: A.eigenvalues(algorithm='symmetric', tol=1.0e-5)  # tol 1e-15
+            sage: A.eigenvalues(algorithm='symmetric', tol=1.0e-5)  # tol 2e-15
             [(-8.0, 22), (1.9999999999999984, 77), (21.999999999999996, 1)]
 
         TESTS:
@@ -3839,7 +3839,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.exp()  # tol 1e-14
             [-19.614602953804912 + 12.517743846762578*I   3.7949636449582176 + 28.88379930658099*I]
             [ -32.383580980922254 + 21.88423595789845*I   2.269633004093535 + 44.901324827684824*I]
-            sage: A.exp(algorithm='eig')  # tol 1e-14
+            sage: A.exp(algorithm='eig')  # tol 2e-14
             [-19.614602953804923 + 12.51774384676257*I 3.7949636449582016 + 28.883799306580997*I]
             [-32.38358098092227 + 21.884235957898433*I  2.2696330040935084 + 44.90132482768484*I]
             sage: A.exp(algorithm='taylor', order=5)  # tol 1e-14

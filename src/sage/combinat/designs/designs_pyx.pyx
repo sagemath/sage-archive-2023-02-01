@@ -479,7 +479,7 @@ def is_quasi_difference_matrix(M,G,int k,int lmbda,int mu,int u,verbose=False):
         sage: is_quasi_difference_matrix(M,G,k=6,lmbda=1,mu=1,u=1)
         True
 
-    Bad input:
+    Bad input::
 
         sage: is_quasi_difference_matrix(M,G,k=6,lmbda=1,mu=1,u=3,verbose=1)
         The matrix has 39 rows instead of lambda(|G|-1+2u)+mu=1(37-1+2.3)+1=43

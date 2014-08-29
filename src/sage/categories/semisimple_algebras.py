@@ -57,155 +57,164 @@ class SemisimpleAlgebras(Category_over_base_ring):
         R = self.base_ring()
         return [Algebras(R)]
 
-    class ParentMethods:
+    class FiniteDimensional(CategoryWithAxiom_over_base_ring):
 
-        @cached_method
-        def orthogonal_idempotents(self):
-            r"""
-            Return a maximal list of orthogonal idempotents of ``self``.
+        class WithBasis(CategoryWithAxiom_over_base_ring):
 
-            INPUT:
+            class ParentMethods:
 
-            - ``self`` -- semisimple algebra
+                @cached_method
+                def orthogonal_idempotents(self):
+                    r"""
+                    Return a maximal list of orthogonal idempotents of ``self``.
 
-            EXAMPLES::
+                    INPUT:
 
-                sage: A3 = SymmetricGroup(3).algebra(QQ)
-                sage: orth3 = A3.orthogonal_idempotents()
-                sage: sorted(orth3, key=str)
-                [1/6*B[()] + 1/6*B[(2,3)] + 1/6*B[(1,2)] + 1/6*B[(1,2,3)] +
-                1/6*B[(1,3,2)] + 1/6*B[(1,3)], 1/6*B[()] - 1/6*B[(2,3)] -
-                1/6*B[(1,2)] + 1/6*B[(1,2,3)] + 1/6*B[(1,3,2)] - 1/6*B[(1,3)],
-                2/3*B[()] - 1/3*B[(1,2,3)] - 1/3*B[(1,3,2)]]
+                    - ``self`` -- semisimple algebra
 
-            ::
+                    EXAMPLES::
 
-                sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
-                An example of a finite dimensional algebra with basis: the path
-                algebra of the Kronecker quiver (containing the arrows a:x->y
-                and b:x->y) over Rational Field 
-                sage: Aquo = A.semisimple_quotient()
-                sage: orth = Aquo.orthogonal_idempotents()
-                sage: sorted(orth, key=str)
-                [B['x'], B['y']]
-            """
-            Z = self.center()
-            orth = Z.orthogonal_idempotents()
-            return [x.lift() for x in orth]
+                        sage: A3 = SymmetricGroup(3).algebra(QQ)
+                        sage: orth3 = A3.orthogonal_idempotents()
+                        sage: sorted(orth3, key=str)
+                        [1/6*B[()] + 1/6*B[(2,3)] + 1/6*B[(1,2)] + 1/6*B[(1,2,3)] +
+                        1/6*B[(1,3,2)] + 1/6*B[(1,3)], 1/6*B[()] - 1/6*B[(2,3)] -
+                        1/6*B[(1,2)] + 1/6*B[(1,2,3)] + 1/6*B[(1,3,2)] - 1/6*B[(1,3)],
+                        2/3*B[()] - 1/3*B[(1,2,3)] - 1/3*B[(1,3,2)]]
+
+                    ::
+
+                        sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example(); A
+                        An example of a finite dimensional algebra with basis: the path
+                        algebra of the Kronecker quiver (containing the arrows a:x->y
+                        and b:x->y) over Rational Field 
+                        sage: Aquo = A.semisimple_quotient()
+                        sage: orth = Aquo.orthogonal_idempotents()
+                        sage: sorted(orth, key=str)
+                        [B['x'], B['y']]
+                    """
+                    Z = self.center()
+                    orth = Z.orthogonal_idempotents()
+                    return [x.lift() for x in orth]
 
 
-    class Commutative(CategoryWithAxiom_over_base_ring):
+            class Commutative(CategoryWithAxiom_over_base_ring):
 
-        class ParentMethods:
+                class ParentMethods:
 
-            @cached_method
-            def _semi_simple_commutative_decomposition_generators(self, listGen=None, topLevel=True):
-                r"""
-                Decompose a commutative finite dimensional semi-simple algebra
-                ``A`` into a direct sum of simple A-modules.
+                    @cached_method
+                    def _semi_simple_commutative_decomposition_generators(self, listGen=None, topLevel=True):
+                        r"""
+                        Decompose a commutative finite dimensional semi-simple
+                        algebra ``A`` into a direct sum of simple A-modules.
 
-                INPUT:
+                        INPUT:
 
-                - ``self`` a finite dimensional semisimple commutative algebra.
+                        - ``self`` a finite dimensional semisimple commutative
+                          algebra.
 
-                OUTPUT:
+                        OUTPUT:
 
-                - list of elements of ``self`` each generating a simple
-                  submodule of ``self`` in direct sum with the others. The list
-                  is maximal.
+                        - list of elements of ``self`` each generating a simple
+                          submodule of ``self`` in direct sum with the others.
+                          The list is maximal.
 
-                Return a list of generators of simple A-modules.
+                        Return a list of generators of simple A-modules.
 
-                EXAMPLES:
+                        EXAMPLES:
 
-                    sage: G5 = SymmetricGroup(5)
-                    sage: A5 = G5.algebra(QQ)
-                    sage: Z5 = A5.center()
-                    sage: gens = Z5._semi_simple_commutative_decomposition_generators()
-                    sage: sorted(gens, key=str)
-                    [B[0] + 1/2*B[1] + 1/4*B[3] - 1/4*B[4] - 1/4*B[6], B[0] +
-                    1/5*B[1] + 1/5*B[2] - 1/5*B[3] + 1/5*B[4] - 1/5*B[5], B[0]
-                    + B[1] + B[2] + B[3] + B[4] + B[5] + B[6], B[0] - 1/2*B[1]
-                    + 1/4*B[3] + 1/4*B[4] - 1/4*B[6], B[0] - 1/3*B[2] +
-                    1/6*B[6], B[0] - 1/5*B[1] + 1/5*B[2] - 1/5*B[3] - 1/5*B[4]
-                    + 1/5*B[5], B[0] - B[1] + B[2] + B[3] - B[4] - B[5] + B[6]]
-                """
-                #Terminal case and stuffs
-                if listGen==None:
-                    listGen = self.basis().list()
-                if self.dimension() == 1:
-                    if topLevel:
-                        return self.basis().list()
-                    else:
-                        return [x.lift() for x in self.basis()]
+                            sage: G5 = SymmetricGroup(5)
+                            sage: A5 = G5.algebra(QQ)
+                            sage: Z5 = A5.center()
+                            sage: gens = Z5._semi_simple_commutative_decomposition_generators()
+                            sage: sorted(gens, key=str)
+                            [B[0] + 1/2*B[1] + 1/4*B[3] - 1/4*B[4] - 1/4*B[6],
+                            B[0] + 1/5*B[1] + 1/5*B[2] - 1/5*B[3] + 1/5*B[4] -
+                            1/5*B[5], B[0] + B[1] + B[2] + B[3] + B[4] + B[5] +
+                            B[6], B[0] - 1/2*B[1] + 1/4*B[3] + 1/4*B[4] -
+                            1/4*B[6], B[0] - 1/3*B[2] + 1/6*B[6], B[0] -
+                            1/5*B[1] + 1/5*B[2] - 1/5*B[3] - 1/5*B[4] +
+                            1/5*B[5], B[0] - B[1] + B[2] + B[3] - B[4] - B[5] +
+                            B[6]]
+                        """
+                        #Terminal case and stuffs
+                        if listGen==None:
+                            listGen = self.basis().list()
+                        if self.dimension() == 1:
+                            if topLevel:
+                                return self.basis().list()
+                            else:
+                                return [x.lift() for x in self.basis()]
 
-                #Searching for a good generator...
-                res = []
-                B = self.basis()
-                while len(res)<2:
-                    if listGen==[]:
-                        raise Exception("Unable to fully decompose...")
-                    curGen = listGen[ZZ.random_element(len(listGen))]
-                    listGen.remove(curGen)
-                    phi = self.module_morphism(on_basis=lambda i:
-                            curGen*B[i],
-                            codomain=self,
-                            triangular=True)
-                    aMat = phi.matrix(self.base_ring())
-                    res = aMat.eigenspaces_right()
+                        #Searching for a good generator...
+                        res = []
+                        B = self.basis()
+                        while len(res)<2:
+                            if listGen==[]:
+                                raise Exception("Unable to fully decompose...")
+                            curGen = listGen[ZZ.random_element(len(listGen))]
+                            listGen.remove(curGen)
+                            phi = self.module_morphism(on_basis=lambda i:
+                                    curGen*B[i],
+                                    codomain=self,
+                                    triangular=True)
+                            aMat = phi.matrix(self.base_ring())
+                            res = aMat.eigenspaces_right()
 
-                #Gotcha! Let's settle the algebra...
-                
-                res = [vector_space for _,vector_space in res]
-                res = [[self.from_vector(vector) for vector in eigenspace.basis()]
-                        for eigenspace in res]
-                
-                decomp = [self.submodule(v,
-                    category=SemisimpleAlgebras(self.base_ring()).WithBasis().FiniteDimensional().Commutative().Subobjects()) for v in res]
+                        #Gotcha! Let's settle the algebra...
+                        
+                        res = [vector_space for _,vector_space in res]
+                        res = [[self.from_vector(vector) for vector in eigenspace.basis()]
+                                for eigenspace in res]
+                        
+                        decomp = [self.submodule(v,
+                            category=SemisimpleAlgebras(self.base_ring()).WithBasis().FiniteDimensional().Commutative().Subobjects()) for v in res]
 
-                #Recursive on decomp
-                res = [x for space in decomp for x in
-                        space._semi_simple_commutative_decomposition_generators(topLevel=False)]
-                if topLevel:
-                    return res
-                else:
-                    return map( lambda x: x.lift(), res)
+                        #Recursive on decomp
+                        res = [x for space in decomp for x in
+                                space._semi_simple_commutative_decomposition_generators(topLevel=False)]
+                        if topLevel:
+                            return res
+                        else:
+                            return map( lambda x: x.lift(), res)
 
-            @cached_method
-            def orthogonal_idempotents(self):
-                r"""
-                Return the minimal orthogonal idempotents of ``self``.
+                    @cached_method
+                    def orthogonal_idempotents(self):
+                        r"""
+                        Return the minimal orthogonal idempotents of ``self``.
 
-                INPUT::
+                        INPUT::
 
-                    - ``self`` a commutative semisimple algebra
+                            - ``self`` a commutative semisimple algebra
 
-                OUTPUT::
+                        OUTPUT::
 
-                    - list of idempotents of ``self``
+                            - list of idempotents of ``self``
 
-                EXAMPLES::
+                        EXAMPLES::
 
-                    sage: G5 = SymmetricGroup(5)
-                    sage: A5 = G5.algebra(QQ)
-                    sage: Z5 = A5.center()
-                    sage: orth = Z5.orthogonal_idempotents()
-                    sage: orth = Z5.orthogonal_idempotents()
-                    sage: sorted(orth, key=str)
-                    [1/120*B[0] + 1/120*B[1] + 1/120*B[2] + 1/120*B[3] +
-                    1/120*B[4] + 1/120*B[5] + 1/120*B[6], 1/120*B[0] -
-                    1/120*B[1] + 1/120*B[2] + 1/120*B[3] - 1/120*B[4] -
-                    1/120*B[5] + 1/120*B[6], 2/15*B[0] + 1/15*B[1] + 1/30*B[3]
-                    - 1/30*B[4] - 1/30*B[6], 2/15*B[0] - 1/15*B[1] + 1/30*B[3]
-                    + 1/30*B[4] - 1/30*B[6], 3/10*B[0] - 1/10*B[2] + 1/20*B[6],
-                    5/24*B[0] + 1/24*B[1] + 1/24*B[2] - 1/24*B[3] + 1/24*B[4] -
-                    1/24*B[5], 5/24*B[0] - 1/24*B[1] + 1/24*B[2] - 1/24*B[3] -
-                    1/24*B[4] + 1/24*B[5]]
-                    sage: orth[2] * orth[4]
-                    0
-                    sage: orth[1] ** 2 == orth[1]
-                    True
-                """
-                return [(e.leading_coefficient()/(e*e).leading_coefficient())*e
-                        for e in
-                        self._semi_simple_commutative_decomposition_generators()]
+                            sage: G5 = SymmetricGroup(5)
+                            sage: A5 = G5.algebra(QQ)
+                            sage: Z5 = A5.center()
+                            sage: orth = Z5.orthogonal_idempotents()
+                            sage: orth = Z5.orthogonal_idempotents()
+                            sage: sorted(orth, key=str)
+                            [1/120*B[0] + 1/120*B[1] + 1/120*B[2] + 1/120*B[3]
+                            + 1/120*B[4] + 1/120*B[5] + 1/120*B[6], 1/120*B[0]
+                            - 1/120*B[1] + 1/120*B[2] + 1/120*B[3] - 1/120*B[4]
+                            - 1/120*B[5] + 1/120*B[6], 2/15*B[0] + 1/15*B[1] +
+                            1/30*B[3]
+                            - 1/30*B[4] - 1/30*B[6], 2/15*B[0] - 1/15*B[1] +
+                              1/30*B[3] + 1/30*B[4] - 1/30*B[6], 3/10*B[0] -
+                              1/10*B[2] + 1/20*B[6], 5/24*B[0] + 1/24*B[1] +
+                              1/24*B[2] - 1/24*B[3] + 1/24*B[4] - 1/24*B[5],
+                              5/24*B[0] - 1/24*B[1] + 1/24*B[2] - 1/24*B[3] -
+                              1/24*B[4] + 1/24*B[5]]
+                            sage: orth[2] * orth[4]
+                            0
+                            sage: orth[1] ** 2 == orth[1]
+                            True
+                        """
+                        return [(e.leading_coefficient()/(e*e).leading_coefficient())*e
+                                for e in
+                                self._semi_simple_commutative_decomposition_generators()]

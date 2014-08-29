@@ -640,6 +640,11 @@ class MatchingGame(SageObject):
 
 
 class _Player():
+    r"""
+    A class to act as a data holder for the players used of the matching games
+    These instances are used when initiating players and to keep track of
+    whether or not partners have a preference.
+    """
     def __init__(self, name, player_type, len_pref):
         self.name = name
         self.type = player_type
@@ -647,6 +652,9 @@ class _Player():
         self.partner = False
 
     def __hash__(self):
+        r"""
+        Used so that instances can be hashed.
+        """
         return hash(self.name)
 
     def __repr__(self):

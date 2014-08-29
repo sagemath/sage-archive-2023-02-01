@@ -1,3 +1,5 @@
+Test various failing tolerance checks.
+
 Tolerance but no numbers::
 
     sage: print ":-("    # abs tol 0.1

@@ -3,9 +3,11 @@ Alphabetical module list
 
 .. NOTE::
 
-   This is built automatically by running in src/sage/combinat::
+   This can be updated semi-automatically by running in src/sage/combinat::
 
-        for x in **/*.py*; do echo "    sage/combinat/"`echo $x | sed 's/\.py.?$//'`; done >! /tmp/module_list
+        for x in **/*.py*; do echo "    sage/combinat/$x"; done | perl -pe 's/\.pyx?$//' >! /tmp/module_list.rst
+
+   and copy pasting the result back there.
 
 .. TODO::
 
@@ -74,12 +76,17 @@ Alphabetical module list
     sage/combinat/designs/bibd
     sage/combinat/designs/block_design
     sage/combinat/designs/covering_design
+    sage/combinat/designs/database
     sage/combinat/designs/design_catalog
+    sage/combinat/designs/designs_pyx
+    sage/combinat/designs/difference_family
+    sage/combinat/designs/difference_matrices
     sage/combinat/designs/ext_rep
     sage/combinat/designs/incidence_structures
     sage/combinat/designs/__init__
     sage/combinat/designs/latin_squares
     sage/combinat/designs/orthogonal_arrays
+    sage/combinat/designs/orthogonal_arrays_recursive
     sage/combinat/designs/steiner_quadruple_systems
     sage/combinat/diagram_algebras
     sage/combinat/dict_addition
@@ -91,11 +98,12 @@ Alphabetical module list
     sage/combinat/expnums
     sage/combinat/family
     sage/combinat/finite_class
-    sage/combinat/finite_state_machine
     sage/combinat/finite_state_machine_generators
+    sage/combinat/finite_state_machine
     sage/combinat/free_module
     sage/combinat/gelfand_tsetlin_patterns
     sage/combinat/graph_path
+    sage/combinat/gray_codes
     sage/combinat/hall_polynomial
     sage/combinat/__init__
     sage/combinat/integer_list
@@ -103,6 +111,7 @@ Alphabetical module list
     sage/combinat/integer_vector
     sage/combinat/integer_vectors_mod_permgroup
     sage/combinat/integer_vector_weighted
+    sage/combinat/interval_posets
     sage/combinat/kazhdan_lusztig
     sage/combinat/knutson_tao_puzzles
     sage/combinat/k_tableau
@@ -170,6 +179,8 @@ Alphabetical module list
     sage/combinat/rigged_configurations/__init__
     sage/combinat/rigged_configurations/kleber_tree
     sage/combinat/rigged_configurations/kr_tableaux
+    sage/combinat/rigged_configurations/rc_crystal
+    sage/combinat/rigged_configurations/rc_infinity
     sage/combinat/rigged_configurations/rigged_configuration_element
     sage/combinat/rigged_configurations/rigged_configurations
     sage/combinat/rigged_configurations/rigged_partition
@@ -184,9 +195,12 @@ Alphabetical module list
     sage/combinat/root_system/coxeter_group
     sage/combinat/root_system/coxeter_matrix
     sage/combinat/root_system/dynkin_diagram
+    sage/combinat/root_system/hecke_algebra_representation
     sage/combinat/root_system/__init__
+    sage/combinat/root_system/non_symmetric_macdonald_polynomials
     sage/combinat/root_system/pieri_factors
     sage/combinat/root_system/plot
+    sage/combinat/root_system/root_lattice_realization_algebras
     sage/combinat/root_system/root_lattice_realizations
     sage/combinat/root_system/root_space
     sage/combinat/root_system/root_system
@@ -242,6 +256,7 @@ Alphabetical module list
     sage/combinat/sf/sfa
     sage/combinat/sf/sf
     sage/combinat/sf/witt
+    sage/combinat/shuffle
     sage/combinat/sidon_sets
     sage/combinat/similarity_class_type
     sage/combinat/six_vertex_model

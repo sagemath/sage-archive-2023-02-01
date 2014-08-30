@@ -245,7 +245,12 @@ Using ``sig_check()``
 ``sig_check()`` can be used to check for pending interrupts.
 If an interrupt happens during the execution of C or Cython code,
 it will be caught by the next ``sig_check()``, the next ``sig_on()``
-or possibly the next Python code.
+or possibly the next Python statement.
+With the latter we mean that certain Python statements also
+check for interrupts, an example of this is the ``print`` statement.
+The following loop *can* be interrupted::
+
+    sage: cython('print "Hello"')
 
 The typical use case for ``sig_check()`` is within tight loops doing
 complicated stuff

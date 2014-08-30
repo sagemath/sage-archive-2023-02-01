@@ -12207,7 +12207,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.norm('frob')
             5.656854249492381
             sage: A.norm(2)
-            5.470684443210384
+            5.470684443210...
             sage: A.norm(1)
             6.0
             sage: A.norm(Infinity)

@@ -3153,9 +3153,8 @@ def pushout(R, S):
         Laurent Series Ring in x over Rational Field
 
     A construction with ``coercion_reversed = True`` (currently only
-    the :class:`SubspaceFunctor` construction) is only applied if an
-    instance of it appears on each side, in which case the two
-    instances are correctly combined by their ``merge`` methods::
+    the :class:`SubspaceFunctor` construction) is only applied if it
+    leads to a valid coercion::
 
         sage: V = (QQ^3).span([[1, 2, 3/4]])
         sage: A = ZZ^3
@@ -3167,6 +3166,45 @@ def pushout(R, S):
         User basis matrix:
         [1 2 0]
         [0 0 1]
+
+        sage: from sage.categories.pushout import ConstructionFunctor
+        sage: class EvenPolynomialRing(type(QQ['x'])):
+        ...     def __init__(self, base, var):
+        ...         super(EvenPolynomialRing, self).__init__(base, var)
+        ...         self.register_embedding(base[var])
+        ...     def __repr__(self):
+        ...         return "Even Power " + super(EvenPolynomialRing, self).__repr__()
+        ...     def construction(self):
+        ...         return EvenPolynomialFunctor(), self.base()[self.variable_name()]
+        ...     def _coerce_map_from_(self, R):
+        ...         return self.base().has_coerce_map_from(R)
+        ...
+        sage: class EvenPolynomialFunctor(ConstructionFunctor):
+        ...     rank = 10
+        ...     coercion_reversed = True
+        ...     def __init__(self):
+        ...         ConstructionFunctor.__init__(self, Rings(), Rings())
+        ...     def __call__(self, R):
+        ...         return EvenPolynomialRing(R.base(), R.variable_name())
+        ...
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), ZZ)
+        Even Power Univariate Polynomial Ring in x over Rational Field
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), QQ)
+        Even Power Univariate Polynomial Ring in x over Rational Field
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), RR)
+        Even Power Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), ZZ['x'])
+        Univariate Polynomial Ring in x over Rational Field
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), QQ['x'])
+        Univariate Polynomial Ring in x over Rational Field
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), RR['x'])
+        Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), EvenPolynomialRing(QQ, 'x'))
+        Even Power Univariate Polynomial Ring in x over Rational Field
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), EvenPolynomialRing(RR, 'x'))
+        Even Power Univariate Polynomial Ring in x over Real Field with 53 bits of precision
 
     AUTHORS:
 
@@ -3187,9 +3225,11 @@ def pushout(R, S):
     Ss = [c[1] for c in S_tower]
 
     if R in Ss:
-        return S
+        if not any(c[0].coercion_reversed for c in S_tower[1:]):
+            return S
     elif S in Rs:
-        return R
+        if not any(c[0].coercion_reversed for c in R_tower[1:]):
+            return R
 
     if Rs[-1] in Ss:
         Rs, Ss = Ss, Rs
@@ -3224,13 +3264,22 @@ def pushout(R, S):
         raise CoercionException("No common base")
 
     # Rc is a list of functors from Z to R and Sc is a list of functors from Z to S
-    Rc = [c[0] for c in R_tower[1:len(Rs)+1]]
-    Sc = [c[0] for c in S_tower[1:len(Ss)+1]]
-
-    Rc = sum([c.expand() for c in Rc], [])
-    Sc = sum([c.expand() for c in Sc], [])
+    R_tower = expand_tower(R_tower[:len(Rs)+1])
+    S_tower = expand_tower(S_tower[:len(Ss)+1])
+    Rc = [c[0] for c in R_tower[1:]]
+    Sc = [c[0] for c in S_tower[1:]]
 
     all = IdentityConstructionFunctor()
+
+    def apply_from(Xc):
+        c = Xc.pop()
+        if c.coercion_reversed:
+            Yc = Sc if Xc is Rc else Rc
+            Y_tower = S_tower if Xc is Rc else R_tower
+            Y_partial = Y_tower[len(Yc)][1]
+            if not (c * all)(Z).has_coerce_map_from(Y_partial):
+                return all
+        return c * all
 
     try:
 
@@ -3238,22 +3287,14 @@ def pushout(R, S):
             # print Z
             # if we are out of functors in either tower, there is no ambiguity
             if len(Sc) == 0:
-                c = Rc.pop()
-                if not c.coercion_reversed:
-                    all = c * all
+                all = apply_from(Rc)
             elif len(Rc) == 0:
-                c = Sc.pop()
-                if not c.coercion_reversed:
-                    all = c * all
+                all = apply_from(Sc)
             # if one of the functors has lower rank, do it first
             elif Rc[-1].rank < Sc[-1].rank:
-                c = Rc.pop()
-                if not c.coercion_reversed:
-                    all = c * all
+                all = apply_from(Rc)
             elif Sc[-1].rank < Rc[-1].rank:
-                c = Sc.pop()
-                if not c.coercion_reversed:
-                    all = c * all
+                all = apply_from(Sc)
             else:
                 # the ranks are the same, so things are a bit subtler
                 if Rc[-1] == Sc[-1]:
@@ -3301,6 +3342,7 @@ def pushout(R, S):
         # We do this because we may be trying all kinds of things that don't
         # make sense, and in this case simply want to return that a pushout
         # couldn't be found.
+        raise
         raise CoercionException(ex)
 
 
@@ -3513,7 +3555,43 @@ def construction_tower(R):
         c = R.construction()
     return tower
 
+def expand_tower(tower):
+    """
+    An auxiliary function that is used in :func:`pushout`.
 
+    INPUT:
+
+    A construction tower as returned by :func:`construction_tower`.
+
+    OUTPUT:
+
+    A new construction tower with all the construction functors expanded.
+
+    EXAMPLE::
+
+        sage: from sage.categories.pushout import construction_tower, expand_tower
+        sage: construction_tower(QQ['x,y,z'])
+        [(None, Multivariate Polynomial Ring in x, y, z over Rational Field),
+         (MPoly[x,y,z], Rational Field),
+         (FractionField, Integer Ring)]
+        sage: expand_tower(construction_tower(QQ['x,y,z']))
+        [(None, Multivariate Polynomial Ring in x, y, z over Rational Field),
+         (MPoly[z], Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field),
+         (MPoly[y], Univariate Polynomial Ring in x over Rational Field),
+         (MPoly[x], Rational Field),
+         (FractionField, Integer Ring)]
+    """
+    new_tower = []
+    for f, R in reversed(tower):
+        if f is None:
+            new_tower.append((f, R))
+        else:
+            fs = f.expand()
+            for ff in reversed(fs[1:]):
+                new_tower.append((ff, R))
+                R = ff(R)
+            new_tower.append((fs[0], R))
+    return list(reversed(new_tower))
 
 def type_to_parent(P):
     """

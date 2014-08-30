@@ -28,6 +28,7 @@ the design catalog:
    ../sage/combinat/designs/orthogonal_arrays
    ../sage/combinat/designs/orthogonal_arrays_recursive
    ../sage/combinat/designs/difference_family
+   ../sage/combinat/designs/difference_matrices
    ../sage/combinat/designs/steiner_quadruple_systems
    ../sage/combinat/designs/database
 

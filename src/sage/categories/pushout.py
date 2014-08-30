@@ -3167,6 +3167,8 @@ def pushout(R, S):
         [1 2 0]
         [0 0 1]
 
+    Some more tests with ``coercion_reversed = True``::
+
         sage: from sage.categories.pushout import ConstructionFunctor
         sage: class EvenPolynomialRing(type(QQ['x'])):
         ...     def __init__(self, base, var):
@@ -3205,6 +3207,11 @@ def pushout(R, S):
         Even Power Univariate Polynomial Ring in x over Rational Field
         sage: pushout(EvenPolynomialRing(QQ, 'x'), EvenPolynomialRing(RR, 'x'))
         Even Power Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+
+        sage: pushout(EvenPolynomialRing(QQ, 'x')^2, RR^2)
+        Ambient free module of rank 2 over the principal ideal domain Even Power Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+        sage: pushout(EvenPolynomialRing(QQ, 'x')^2, RR['x']^2)
+        Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Real Field with 53 bits of precision
 
     AUTHORS:
 
@@ -3317,9 +3324,9 @@ def pushout(R, S):
                         if Sc[-1] in Rc:
                             raise CoercionException("Ambiguous Base Extension", R, S)
                         else:
-                            all = Sc.pop() * all
+                            all = apply_from(Sc)
                     elif Sc[-1] in Rc:
-                        all = Rc.pop() * all
+                        all = apply_from(Rc)
                     # If, perchance, the two functors commute, then we may do them in any order.
                     elif Rc[-1].commutes(Sc[-1]) or Sc[-1].commutes(Rc[-1]):
                         all = Sc.pop() * Rc.pop() * all
@@ -3342,7 +3349,6 @@ def pushout(R, S):
         # We do this because we may be trying all kinds of things that don't
         # make sense, and in this case simply want to return that a pushout
         # couldn't be found.
-        raise
         raise CoercionException(ex)
 
 

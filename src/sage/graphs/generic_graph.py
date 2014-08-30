@@ -14454,9 +14454,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.transitive_closure().edges(labels=False)
             [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (1, 3), (2, 4), (2, 5)]
 
+        On an immutable digraph::
+
+            sage: digraphs.Path(5).copy(immutable=True).transitive_closure()
+            Transitive closure of Path: Digraph on 5 vertices
         """
         from copy import copy
-        G = copy(self)
+        G = self.copy(immutable=False)
         G.name('Transitive closure of ' + self.name())
         for v in G:
             # todo optimization opportunity: we are adding edges that

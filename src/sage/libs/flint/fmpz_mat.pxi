@@ -22,6 +22,7 @@ cdef extern from "flint/fmpz_mat.h":
     int fmpz_mat_is_zero(const fmpz_mat_t mat)
     void fmpz_mat_charpoly(fmpz_poly_t cp, const fmpz_mat_t mat)
     void fmpz_mat_det(fmpz_t det, const fmpz_mat_t A)
+    int fmpz_mat_inv(fmpz_mat_t Ainv, fmpz_t den, const fmpz_mat_t A)
     void fmpz_mat_transpose(fmpz_mat_t B, const fmpz_mat_t A)
     long fmpz_mat_rref(fmpz_mat_t B, fmpz_t den, const fmpz_mat_t A)
     long fmpz_mat_fflu(fmpz_mat_t B, fmpz_poly_t den, long *perm, const fmpz_mat_t A, int rank_check)

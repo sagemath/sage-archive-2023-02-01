@@ -6758,7 +6758,7 @@ cdef class Matrix(matrix1.Matrix):
                     n = [j for j in range(nrows - l) if SN[j] == nb]
                     # Now compare to our previous max
                     if b < nb:
-                        # Bigger so save line 
+                        # Bigger so save line
                         b = nb
                         m = [n]
                         # and delete all previous attempts

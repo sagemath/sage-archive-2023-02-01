@@ -216,16 +216,16 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Py_ssize_t i, k
         self._rows = <mpz_t **> sage_malloc(sizeof(mpz_t*)*self._nrows)
         self._entries = <mpz_t *> sage_malloc(sizeof(mpz_t) * self._nrows * self._ncols)
-
         sig_on()
         fmpz_mat_init(self._matrix,self._nrows,self._ncols)
+        if self._matrix == NULL:
+            raise MemoryError("out of memory allocating a matrix")
         k = 0
         for i from 0 <= i < self._nrows:
             self._rows[i] = self._entries + k
             k += self._ncols
         sig_off()
-        if self._matrix == NULL:
-            raise MemoryError("out of memory allocating a matrix")
+
         self._initialized_linbox = False
 
     cdef _init_linbox(self):
@@ -302,7 +302,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def __dealloc__(self):
         """
-        Frees all the memory allocated for this matrix. EXAMPLE::
+        Frees all the memory allocated for this matrix.
+
+        EXAMPLE::
 
             sage: a = Matrix(ZZ,2,[1,2,3,4])
             sage: del a
@@ -543,7 +545,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """
-        Returns (j, i) entry of self as a new Integer.
+        Returns (i, j) entry of self as a new Integer.
 
         .. warning::
 
@@ -572,7 +574,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     cdef get_unsafe_mpz(self, Py_ssize_t i, Py_ssize_t j, mpz_t value):
         """
-        Returns (j, i) entry of self as a new Integer.
+        Returns (i, j) entry of self as a new Integer.
 
         .. warning::
 
@@ -806,6 +808,92 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             False
         """
         return not fmpz_mat_is_zero(self._matrix)
+
+
+    def _multiply_linbox(left, Matrix_integer_dense right):
+        """
+        Multiply matrices over ZZ using linbox.
+
+        .. warning::
+
+           This is very slow right now, i.e., linbox is very slow.
+
+        EXAMPLES::
+
+            sage: A = matrix(ZZ,2,3,range(6))
+            sage: A*A.transpose()
+            [ 5 14]
+            [14 50]
+            sage: A._multiply_linbox(A.transpose())
+            [ 5 14]
+            [14 50]
+        """
+        cdef int e
+        cdef long int i,j
+        cdef Matrix_integer_dense ans
+        left._init_linbox()
+        ans = left.new_matrix(nrows = left.nrows(), ncols = right.ncols())
+
+        right._init_linbox()
+        ans._init_linbox()
+        sig_on()
+        linbox.matrix_matrix_multiply(ans._rows, right._rows, right._nrows, right._ncols)
+        for i from 0 <= i < ans._nrows:
+            for j from 0 <= j < ans._ncols:
+                fmpz_set_mpz(fmpz_mat_entry(ans._matrix,i,j),ans._rows[i][j])
+        sig_off()
+        return ans
+
+    def _multiply_classical(self, Matrix_integer_dense right):
+        """
+        EXAMPLE::
+
+            sage: n = 3
+            sage: a = MatrixSpace(ZZ,n,n)(range(n^2))
+            sage: b = MatrixSpace(ZZ,n,n)(range(1, n^2 + 1))
+            sage: a._multiply_classical(b)
+            [ 18  21  24]
+            [ 54  66  78]
+            [ 90 111 132]
+        """
+        if self._ncols != right._nrows:
+            raise IndexError("Number of columns of self must equal number of rows of right.")
+
+        cdef Py_ssize_t i, j, k, nr, nc, snc
+        cdef object parent
+
+        nr = self._nrows
+        nc = right._ncols
+        snc = self._ncols
+
+        if self._nrows == right._nrows:
+            # self acts on the space of right
+            parent = right.parent()
+        if self._ncols == right._ncols:
+            # right acts on the space of self
+            parent = self.parent()
+        else:
+            parent = self.matrix_space(nr, nc)
+
+        cdef Matrix_integer_dense M, _right
+        _right = right
+
+        M = Matrix_integer_dense.__new__(Matrix_integer_dense, parent, None, None, None)
+        Matrix.__init__(M, parent)
+
+        cdef fmpz_t s
+        fmpz_init(s)
+        sig_on()
+        for i from 0 <= i < nr:
+            for j from 0 <= j < nc:
+                fmpz_set_si(s,0)   # set s = 0
+                for k from 0 <= k < snc:
+                    fmpz_addmul(s, fmpz_mat_entry(self._matrix,i,k), fmpz_mat_entry(_right._matrix,k,j))
+                fmpz_set(fmpz_mat_entry(M._matrix,i,j),s)
+        sig_off()
+        fmpz_clear(s)
+        M._initialized = True
+        return M
 
     cdef sage.structure.element.Matrix _matrix_times_matrix_(self, sage.structure.element.Matrix right):
         cdef Py_ssize_t i, j, k, l, nr, nc, snc
@@ -1270,6 +1358,50 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         # Compute log(wsq * 4^wsq_e / N) =
         # log(wsq * 4^wsq_e / N) = log(wsq/N) + wsq_e * log(4)
         return log(wsq/N) + wsq_e * log(4.0)
+
+    def _multiply_multi_modular(left, Matrix_integer_dense right):
+        """
+        Multiply this matrix by ``left`` using a multi modular algorithm.
+
+        EXAMPLES::
+
+            sage: M = Matrix(ZZ, 2, 3, range(5,11))
+            sage: N = Matrix(ZZ, 3, 2, range(15,21))
+            sage: M._multiply_multi_modular(N)
+            [310 328]
+            [463 490]
+            sage: M._multiply_multi_modular(-N)
+            [-310 -328]
+            [-463 -490]
+        """
+        cdef Integer h
+        cdef mod_int *moduli
+        cdef int i, n, k
+        cdef object parent
+
+        nr = left._nrows
+        nc = right._ncols
+        snc = left._ncols
+
+        parent = left.matrix_space(nr, nc)
+
+        cdef Matrix_integer_dense result
+
+        result = Matrix_integer_dense.__new__(Matrix_integer_dense, parent, None, None, None)
+        Matrix.__init__(result, parent)
+
+        h = left.height() * right.height() * left.ncols()
+        verbose('multiplying matrices of height %s and %s'%(left.height(),right.height()))
+        mm = MultiModularBasis(h)
+        res = left._reduce(mm)
+        res_right = right._reduce(mm)
+        k = len(mm)
+        for i in range(k):  # yes, I could do this with zip, but to conserve memory...
+            t = cputime()
+            res[i] *= res_right[i]
+            verbose('multiplied matrices modulo a prime (%s/%s)'%(i+1,k), t)
+        _lift_crt(result, res, mm)  # changes result
+        return result
 
     cdef void reduce_entry_unsafe(self, Py_ssize_t i, Py_ssize_t j, Integer modulus):
         # Used for p-adic matrices.
@@ -2417,14 +2549,16 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             proof = get_proof_flag(proof, "linear_algebra")
             K = self._rational_kernel_flint().transpose().saturation(proof=proof)
             format = 'computed-flint-int'
-        if algorithm == 'pari':
+        elif algorithm == 'pari':
             K = self._pari_().matkerint().mattranspose().python()
             format = 'computed-pari-int'
-        if algorithm == 'padic':
+        elif algorithm == 'padic':
             proof = kwds.pop('proof', None)
             proof = get_proof_flag(proof, "linear_algebra")
             K = self._rational_kernel_iml().transpose().saturation(proof=proof)
             format = 'computed-iml-int'
+        else:
+            raise ValueError('unknown algorithm: %s'%algorithm)
         tm = verbose("done computing right kernel matrix over the integers for %sx%s matrix" % (self.nrows(), self.ncols()),level=1, t=tm)
         return (format, K)
 
@@ -2766,7 +2900,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         - ``use_givens`` -- (default: ``False``) use Givens orthogonalization
           only applicable to approximate reductions and NTL; this is more
-          stable but slower 
+          stable but slower
 
         - ``use_siegel`` -- (default: ``False``) use Siegel's condition
           instead of Lovasz's condition, ignored by NTL
@@ -3307,7 +3441,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     #### Determinant
 
-    def determinant(self, algorithm='flint', proof=None, stabilize=2):
+    def determinant(self, algorithm='default', proof=None, stabilize=2):
         r"""
         Return the determinant of this matrix.
 
@@ -3317,7 +3451,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
           - ``'default'`` -- automatically determine which algorithm
                              to use depending on the matrix.
-
 
           - ``'flint'`` -- let flint do the determinant
 
@@ -3436,6 +3569,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         proof = get_proof_flag(proof, "linear_algebra")
 
         if algorithm == 'default':
+            algorithm = 'flint'
             # These heuristics are by Jeroen Demeyer (#14007).  There
             # is no mathematics behind this, it was experimentally
             # observed to work well.  I tried various estimates for
@@ -3447,15 +3581,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             # mostly small entries, but it is never much faster than
             # padic (and it only works with proof=False), so we never
             # default to using linbox.
-
             # I favor FLINT instead of PARI. -- Marc Masdeu.
-            difficulty = (self._log_avg_sq1() + 2.0) * (n * n)
-            if difficulty <= 800:
-                algorithm = 'flint'
-            elif n <= 48 or (proof and n <= 72) or (proof and n <= 400 and difficulty <= 600000):
-                algorithm = 'ntl'
-            else:
-                algorithm = 'padic'
+            # (the thresholds have to be recalculated)
+            #difficulty = (self._log_avg_sq1() + 2.0) * (n * n)
+            #if difficulty <= 800:
+            #    algorithm = 'flint'
+            #elif n <= 48 or (proof and n <= 72) or (proof and n <= 400 and difficulty <= 600000):
+            #    algorithm = 'ntl'
+            #else:
+            #    algorithm = 'padic'
 
         if algorithm == 'flint':
             fmpz_init(e)
@@ -3672,10 +3806,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         -  ``self`` - an invertible matrix
 
-        -  ``use_nullspace`` - (default: False): whether to
-           use nullspace algorithm, which is slower, but doesn't require
-           checking that the matrix is invertible as a precondition.
-
         -  ``check_invertible`` - (default: True) whether to
            check that the matrix is invertible.
 
@@ -3711,11 +3841,25 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._nrows != self._ncols:
             raise TypeError("self must be a square matrix.")
 
-        P = self.parent()
-        time = verbose('computing inverse of %s x %s matrix using FLINT'%(self._nrows, self._ncols))
-        if check_invertible and self.rank() != self._nrows:
-            raise ZeroDivisionError("input matrix must be nonsingular")
-        return self._solve_flint(P.identity_matrix(), right=True)
+        cdef Matrix_integer_dense M
+        cdef int res
+        cdef Integer den = Integer(0)
+        cdef fmpz_t fden
+        fmpz_init(fden)
+        M = Matrix_integer_dense.__new__(Matrix_integer_dense, self._parent, None, None, None)
+        verbose('computing inverse of %s x %s matrix using FLINT'%(self._nrows, self._ncols))
+        sig_on()
+        res = fmpz_mat_inv(M._matrix,fden,self._matrix)
+        fmpz_get_mpz(den.value,fden)
+        sig_off()
+        M._initialized = True
+        fmpz_clear(fden)
+        if check_invertible and res == 0:
+            raise ZeroDivisionError('Matrix is singular')
+        if fmpz_cmp_si(fden,0) < 0:
+            return -M,-den
+        else:
+            return M,den
 
     def _solve_right_nonsingular_square(self, B, check_rank=True, algorithm = 'iml'):
         r"""
@@ -3852,9 +3996,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         if algorithm == 'flint':
             X, d = self._solve_flint(C, right=True)
-        else: # iml
-            algorithm = 'iml'
+        elif algorithm == 'iml': # iml
             X, d = self._solve_iml(C, right = True)
+        else:
+            raise ValueError("Unknown algorithm '%s'"%algorithm)
         if d != 1:
             X = (1/d) * X
         if not matrix:

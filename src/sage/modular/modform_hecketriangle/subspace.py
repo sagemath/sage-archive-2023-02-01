@@ -149,7 +149,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, QuasiCuspForms
             sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: MF
             ModularForms(n=6, k=20, ep=1) over Integer Ring
@@ -183,6 +183,16 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
             sage: subspace.is_ambient()
             False
+
+            sage: MF = QuasiCuspForms(n=infinity, k=12, ep=1)
+            sage: MF.dimension()
+            4
+            sage: subspace = MF.subspace([MF.Delta(), MF.E4()*MF.f_inf()*MF.E2()*MF.f_i(), MF.E4()*MF.f_inf()*MF.E2()^2, MF.E4()*MF.f_inf()*(MF.E4()-MF.E2()^2)])
+            sage: subspace.default_prec(3)
+            sage: subspace
+            Subspace of dimension 3 of QuasiCuspForms(n=+Infinity, k=12, ep=1) over Integer Ring
+            sage: subspace.gens()
+            [q + 24*q^2 + O(q^3), q - 24*q^2 + O(q^3), q - 8*q^2 + O(q^3)]
         """
 
         FormsSpace_abstract.__init__(self, group=ambient_space.group(), base_ring=ambient_space.base_ring(), k=ambient_space.weight(), ep=ambient_space.ep(), n=ambient_space.hecke_n())
@@ -374,7 +384,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, QuasiCuspForms
             sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: subspace = MF.subspace([(MF.Delta()*MF.E4()^2).as_ring_element(), MF.gen(0)])
             sage: subspace.coordinate_vector(MF.gen(0) + MF.Delta()*MF.E4()^2).parent()
@@ -388,6 +398,14 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             Vector space of dimension 2 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: subspace.coordinate_vector(subspace.gen(0))
             (1, 0)
+
+            sage: MF = QuasiCuspForms(n=infinity, k=12, ep=1)
+            sage: subspace = MF.subspace([MF.Delta(), MF.E4()*MF.f_inf()*MF.E2()*MF.f_i(), MF.E4()*MF.f_inf()*MF.E2()^2, MF.E4()*MF.f_inf()*(MF.E4()-MF.E2()^2)])
+            sage: el = MF.E4()*MF.f_inf()*(7*MF.E4() - 3*MF.E2()^2)
+            sage: subspace.coordinate_vector(el)
+            (7, 0, -3)
+            sage: subspace.ambient_coordinate_vector(el)
+            (7, 21/(8*d), 0, -3)
         """
 
         return self._module.coordinate_vector(self.ambient_coordinate_vector(v))

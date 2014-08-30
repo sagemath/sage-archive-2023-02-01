@@ -258,13 +258,13 @@ All classes and functions are also individually documented (with doctest example
 
       A quasi weak form can be constructed by using its initial Laurent expansion:
       sage: QF = QuasiWeakModularForms(n=8, k=10/3, ep=-1)
-      sage: qexp = (QF.quasi_part_gens(min_exp=-2)[3]).q_expansion(prec=4)
+      sage: qexp = (QF.quasi_part_gens(min_exp=-1)[4]).q_expansion(prec=5)
       sage: qexp
-      q^-2 - 9/(128*d)*q^-1 - 261/(131072*d^2) + 960377/(100663296*d^3)*q + 1410051087/(274877906944*d^4)*q^2 + 346259317983/(351843720888320*d^5)*q^3 + O(q^4)
+      q^-1 - 19/(64*d) - 7497/(262144*d^2)*q + 15889/(8388608*d^3)*q^2 + 543834047/(1649267441664*d^4)*q^3 + 711869853/(43980465111040*d^5)*q^4 + O(q^5)
       sage: qexp.parent()
       Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
       sage: QF(qexp).as_ring_element()
-      (26609*f_rho^18*E2 + 98334*f_rho^10*f_i^2*E2 + 6129*f_rho^2*f_i^4*E2)/(131072*f_rho^16*d^2 - 262144*f_rho^8*f_i^2*d^2 + 131072*f_i^4*d^2)
+      f_rho^3*f_i*E2^2/(f_rho^8*d - f_i^2*d)
       sage: QF(qexp).reduced_parent()
       QuasiWeakModularForms(n=8, k=10/3, ep=-1) over Integer Ring
 
@@ -387,13 +387,13 @@ All classes and functions are also individually documented (with doctest example
       sage: MF = WeakModularForms(n=5, k=62/3, ep=-1)
       sage: MF.disp_prec(MF._l1+2)
 
-      sage: MF.F_basis(-2)
-      q^2 - 41/(200*d)*q^3 + O(q^4)
-      sage: MF.F_basis(-1)
-      q - 13071/(640000*d^2)*q^3 + O(q^4)
-      sage: MF.F_basis(0)
-      1 - 277043/(192000000*d^3)*q^3 + O(q^4)
       sage: MF.F_basis(2)
+      q^2 - 41/(200*d)*q^3 + O(q^4)
+      sage: MF.F_basis(1)
+      q - 13071/(640000*d^2)*q^3 + O(q^4)
+      sage: MF.F_basis(-0)
+      1 - 277043/(192000000*d^3)*q^3 + O(q^4)
+      sage: MF.F_basis(-2)
       q^-2 - 162727620113/(40960000000000000*d^5)*q^3 + O(q^4)
 
 
@@ -407,11 +407,21 @@ All classes and functions are also individually documented (with doctest example
       sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms
       sage: QF = QuasiWeakModularForms(n=8, k=10/3, ep=-1)
       sage: QF.default_prec(1)
-      sage: QF.quasi_part_gens(min_exp=-2)
-      [q^-2 + O(q), q^-1 + O(q), 1 + O(q), q^-2 - 9/(128*d)*q^-1 - 261/(131072*d^2) + O(q), q^-1 - 9/(128*d) + O(q), 1 + O(q)]
-      sage: QF.default_prec(QF.required_laurent_prec(min_exp=-2))
-      sage: QF.q_basis(min_exp=-2)    # long time
-      [q^-2 + O(q^4), q^-1 + O(q^4), 1 + O(q^4), q + O(q^4), q^2 + O(q^4), q^3 + O(q^4)]
+      sage: QF.quasi_part_gens(min_exp=-1)
+      [q^-1 + O(q),
+       1 + O(q),
+       q^-1 - 9/(128*d) + O(q),
+       1 + O(q),
+       q^-1 - 19/(64*d) + O(q),
+       q^-1 + 1/(64*d) + O(q)]
+      sage: QF.default_prec(QF.required_laurent_prec(min_exp=-1))
+      sage: QF.q_basis(min_exp=-1)    # long time
+      [q^-1 + O(q^5),
+       1 + O(q^5),
+       q + O(q^5),
+       q^2 + O(q^5),
+       q^3 + O(q^5),
+       q^4 + O(q^5)]
 
 
 - **Dimension and basis for holomorphic or cuspidal (quasi) modular forms**
@@ -483,8 +493,9 @@ All classes and functions are also individually documented (with doctest example
 
 
 - **Theta subgroup**
-  The Hecke triangle group corresponding to ``n=infinity`` is also partially
-  supported.
+  The Hecke triangle group corresponding to ``n=infinity`` is also
+  completely supported. In particular the (special) behavior around
+  the cusp ``-1`` is considered and can be specfied.
 
   EXAMPLES::
 
@@ -492,10 +503,10 @@ All classes and functions are also individually documented (with doctest example
       sage: MR = QuasiMeromorphicModularFormsRing(n=infinity, red_hom=True)
       sage: MR
       QuasiMeromorphicModularFormsRing(n=+Infinity) over Integer Ring
-      sage: j_inv = MR.j_inv()
-      sage: f_i = MR.f_i()
-      sage: E4 = MR.E4()
-      sage: E2 = MR.E2()
+      sage: j_inv = MR.j_inv().full_reduce()
+      sage: f_i = MR.f_i().full_reduce()
+      sage: E4 = MR.E4().full_reduce()
+      sage: E2 = MR.E2().full_reduce()
 
       sage: j_inv
       q^-1 + 24 + 276*q + 2048*q^2 + 11202*q^3 + 49152*q^4 + O(q^5)
@@ -511,13 +522,31 @@ All classes and functions are also individually documented (with doctest example
       True
       sage: f_i.serre_derivative() == -1/2 * E4
       True
-      sage: MF = E4.reduced_parent()
+      sage: MF = f_i.serre_derivative().parent()
       sage: MF
       ModularForms(n=+Infinity, k=4, ep=1) over Integer Ring
       sage: MF.dimension()
       2
+      sage: MF.gens()
+      [1 + 240*q^2 + 2160*q^4 + O(q^5), q - 8*q^2 + 28*q^3 - 64*q^4 + O(q^5)]
       sage: E4(i)
       1.941017189...
+      sage: E4.order_at(-1)
+      1
+
+      sage: MF = (E2/E4).reduced_parent()
+      sage: MF.quasi_part_gens(order_1=-1)
+      [1 - 40*q + 552*q^2 - 4896*q^3 + 33320*q^4 + O(q^5),
+       1 - 24*q + 264*q^2 - 2016*q^3 + 12264*q^4 + O(q^5)]
+      sage: prec = MF.required_laurent_prec(order_1=-1)
+      sage: qexp = (E2/E4).q_expansion(prec=prec)
+      sage: qexp
+      1 - 3/(8*d)*q + O(q^2)
+      sage: MF.construct_quasi_form(qexp, order_1=-1) == E2/E4
+      True
+      sage: MF.disp_prec(6)
+      sage: MF.q_basis(m=-1, order_1=-1, min_exp=-1)
+      q^-1 - 203528/7*q^5 + O(q^6)
 
 
 

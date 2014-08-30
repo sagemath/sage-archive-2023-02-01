@@ -209,8 +209,7 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT(["quasi", "holo"])
-        if (self.hecke_n() != infinity):
-            self._module = FreeModule(self.coeff_ring(), self.dimension())
+        self._module = FreeModule(self.coeff_ring(), self.dimension())
 
     @cached_method
     def gens(self):
@@ -226,10 +225,12 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             [1 - 37/(200*d)*q + O(q^2),
              1 + 33/(200*d)*q + O(q^2),
              1 - 27/(200*d)*q + O(q^2)]
-        """
 
-        if (self.hecke_n() == infinity):
-            raise NotImplementedError
+            sage: MF = QuasiModularForms(n=infinity, k=2, ep=-1)
+            sage: MF.default_prec(2)
+            sage: MF.gens()
+            [1 - 24*q + O(q^2), 1 - 8*q + O(q^2)]
+        """
 
         return self.quasi_part_gens()
 
@@ -247,9 +248,6 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: len(MF.gens()) == MF.dimension()
             True
         """
-
-        if (self.hecke_n() == infinity):
-            raise NotImplementedError
 
         return self.quasi_part_dimension()
 
@@ -294,10 +292,16 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
             sage: MF.gen(1).coordinate_vector() == vector([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])    # long time
             True
-        """
 
-        if (self.hecke_n() == infinity):
-            raise NotImplementedError
+            sage: MF = QuasiModularForms(n=infinity, k=4, ep=1)
+            sage: el2 = MF.E4() + MF.E2()^2
+            sage: el2
+            2 + 160*q^2 + 512*q^3 + 1632*q^4 + O(q^5)
+            sage: el2.coordinate_vector()
+            (1, 1/(4*d), 0, 1)
+            sage: el2 == MF.element_from_coordinates(el2.coordinate_vector())
+            True
+        """
 
         (x,y,z,d) = self.pol_ring().gens()
         k = self._weight
@@ -310,10 +314,7 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
         coord_vector = []
 
         for r in range(ZZ(0), rmax + 1):
-            if (r==ZZ(0)):
-                gens = self.quasi_part_gens(r)
-            else:
-                gens = [v/E2**r for v in self.quasi_part_gens(r)]
+            gens = [v/E2**r for v in self.quasi_part_gens(r)]
 
             if len(gens) > 0:
                 ambient_space = self.graded_ring().reduce_type("holo", degree=(gens[0].weight(), gens[0].ep()))
@@ -371,8 +372,7 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT(["quasi", "cusp"])
-        if (self.hecke_n() != infinity):
-            self._module = FreeModule(self.coeff_ring(), self.dimension())
+        self._module = FreeModule(self.coeff_ring(), self.dimension())
 
     @cached_method
     def gens(self):
@@ -394,10 +394,11 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
              q - 23/(64*d)*q^2 - 3103/(262144*d^2)*q^3 + O(q^4),
              q - 3/(64*d)*q^2 - 4863/(262144*d^2)*q^3 + O(q^4),
              q - 27/(64*d)*q^2 + 17217/(262144*d^2)*q^3 + O(q^4)]
-        """
 
-        if (self.hecke_n() == infinity):
-            raise NotImplementedError
+            sage: MF = QuasiCuspForms(n=infinity, k=10, ep=-1)
+            sage: MF.gens()
+            [q - 16*q^2 - 156*q^3 - 256*q^4 + O(q^5), q - 60*q^3 - 256*q^4 + O(q^5)]
+        """
 
         return self.quasi_part_gens()
 
@@ -415,10 +416,10 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             7
             sage: len(MF.gens()) == MF.dimension()
             True
-        """
 
-        if (self.hecke_n() == infinity):
-            raise NotImplementedError
+            sage: QuasiCuspForms(n=infinity, k=10, ep=-1).dimension()
+            2
+        """
 
         return self.quasi_part_dimension()
 
@@ -463,10 +464,14 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
             sage: MF.gen(1).coordinate_vector() == vector([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])    # long time
             True
-        """
 
-        if (self.hecke_n() == infinity):
-            raise NotImplementedError
+            sage: MF = QuasiCuspForms(n=infinity, k=10, ep=-1)
+            sage: el2 = MF(MF.E4()*MF.f_inf()*(MF.f_i() - MF.E2()))
+            sage: el2.coordinate_vector()
+            (1, -1)
+            sage: el2 == MF.element_from_coordinates(el2.coordinate_vector())
+            True
+        """
 
         (x,y,z,d) = self.pol_ring().gens()
         k = self._weight
@@ -479,10 +484,7 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
         coord_vector = []
 
         for r in range(ZZ(0), rmax + 1):
-            if (r==ZZ(0)):
-                gens = self.quasi_part_gens(r)
-            else:
-                gens = [v/E2**r for v in self.quasi_part_gens(r)]
+            gens = [v/E2**r for v in self.quasi_part_gens(r)]
 
             if len(gens) > 0:
                 ambient_space = self.graded_ring().reduce_type("cusp", degree=(gens[0].weight(), gens[0].ep()))
@@ -637,8 +639,7 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type = self.AT(["holo"])
-        if (self.hecke_n() != infinity):
-            self._module = FreeModule(self.coeff_ring(), self.dimension())
+        self._module = FreeModule(self.coeff_ring(), self.dimension())
 
     @cached_method
     def gens(self):
@@ -656,12 +657,12 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
              q + 21742*q^4 + O(q^5),
              q^2 + 702*q^4 + O(q^5),
              q^3 - 6*q^4 + O(q^5)]
+
+            sage: ModularForms(n=infinity, k=4).gens()
+            [1 + 240*q^2 + 2160*q^4 + O(q^5), q - 8*q^2 + 28*q^3 - 64*q^4 + O(q^5)]
         """
 
-        if (self.hecke_n() == infinity):
-            raise NotImplementedError
-
-        return [ self.F_basis(m) for m in range(ZZ(0), -(self._l1 + 1), -1)]
+        return [ self.F_basis(m) for m in range(self.dimension()) ]
 
     @cached_method
     def dimension(self):
@@ -722,10 +723,11 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
             sage: el == MF.element_from_coordinates(vec)
             True
-        """
 
-        if (self.hecke_n() == infinity):
-            raise NotImplementedError
+            sage: MF = ModularForms(n=infinity, k=8, ep=1)
+            sage: (MF.E4()^2).coordinate_vector()
+            (1, 1/(2*d), 15/(128*d^2))
+        """
 
         vec = v.q_expansion_vector(min_exp = 0, max_exp = self.degree() - 1)
         return self._module(vec)
@@ -778,8 +780,7 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT(["cusp"])
-        if (self.hecke_n() != infinity):
-            self._module = FreeModule(self.coeff_ring(), self.dimension())
+        self._module = FreeModule(self.coeff_ring(), self.dimension())
 
     @cached_method
     def gens(self):
@@ -798,12 +799,13 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             [q + 296888795/(10319560704*d^3)*q^4 + O(q^5),
              q^2 + 6629/(221184*d^2)*q^4 + O(q^5),
              q^3 - 25/(96*d)*q^4 + O(q^5)]
+
+            sage: MF = CuspForms(n=infinity, k=8, ep=1)
+            sage: MF.gen(0) == MF.E4()*MF.f_inf()
+            True
           """
 
-        if (self.hecke_n() == infinity):
-            raise NotImplementedError
-
-        return [ self.F_basis(m) for m in range(ZZ(-1), -(self._l1 + 1), -1)]
+        return [ self.F_basis(m, order_1=ZZ(1)) for m in range(1, self.dimension() + 1) ]
 
     @cached_method
     def dimension(self):
@@ -818,6 +820,9 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             3
             sage: len(MF.gens()) == MF.dimension()
             True
+
+            sage: CuspForms(n=infinity, k=8).dimension()
+            1
         """
 
         if (self.hecke_n() == infinity):
@@ -865,10 +870,15 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
             sage: el == MF.element_from_coordinates(vec)
             True
-        """
 
-        if (self.hecke_n() == infinity):
-            raise NotImplementedError
+            sage: MF = CuspForms(n=infinity, k=16)
+            sage: el2 = MF(MF.Delta()*MF.E4())
+            sage: vec2 = el2.coordinate_vector()
+            sage: vec2
+            (1, 5/(8*d), 187/(1024*d^2))
+            sage: el2 == MF.element_from_coordinates(vec2)
+            True
+        """
 
         vec = v.q_expansion_vector(min_exp = 1, max_exp = self.degree())
         return self._module(vec)

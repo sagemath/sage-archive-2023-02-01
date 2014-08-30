@@ -353,7 +353,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: Delta == Delta2
             True
 
-            sage: f = WeakModularForms(n=5).F_basis(1)
+            sage: f = WeakModularForms(n=5).F_basis(-1)
             sage: f.rat()
             (121*x^5 + 79*y^2)/(200*x^5*d - 200*y^2*d)
             sage: f2 = f._fix_d(d_num_prec=40)

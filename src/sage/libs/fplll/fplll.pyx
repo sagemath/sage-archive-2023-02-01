@@ -1462,5 +1462,5 @@ cdef to_sage(ZZ_mat[mpz_t] *A):
 
     for i from 0 <= i < A.getRows():
         for j from 0 <= j < A.getCols():
-            fmpz_set_mpz(fmpz_mat_entry(B._matrix,i,j),A[0][i][j].getData())
+            B.set_unsafe_mpz(i,j,A[0][i][j].getData())
     return B

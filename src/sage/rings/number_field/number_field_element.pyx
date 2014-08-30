@@ -2116,7 +2116,7 @@ cdef class NumberFieldElement(FieldElement):
             raise TypeError, "Unable to coerce %s to a rational"%self
         cdef Integer num
         num = PY_NEW(Integer)
-        ZZX_getitem_as_mpz(&num.value, &self.__numerator, 0)
+        ZZX_getitem_as_mpz(num.value, &self.__numerator, 0)
         return num / (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
 
     def _symbolic_(self, SR):
@@ -2408,19 +2408,19 @@ cdef class NumberFieldElement(FieldElement):
         cdef int i
         for i from 0 <= i <= ZZX_deg(self.__numerator):
             numCoeff = PY_NEW(Integer)
-            ZZX_getitem_as_mpz(&numCoeff.value, &self.__numerator, i)
+            ZZX_getitem_as_mpz(numCoeff.value, &self.__numerator, i)
             coeffs.append( numCoeff / den )
         return coeffs
 
-    cdef void _ntl_coeff_as_mpz(self, mpz_t* z, long i):
+    cdef void _ntl_coeff_as_mpz(self, mpz_t z, long i):
         if i > ZZX_deg(self.__numerator):
-            mpz_set_ui(z[0], 0)
+            mpz_set_ui(z, 0)
         else:
             ZZX_getitem_as_mpz(z, &self.__numerator, i)
 
-    cdef void _ntl_denom_as_mpz(self, mpz_t* z):
+    cdef void _ntl_denom_as_mpz(self, mpz_t z):
         cdef Integer denom = (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
-        mpz_set(z[0], denom.value)
+        mpz_set(z, denom.value)
 
     def denominator(self):
         """

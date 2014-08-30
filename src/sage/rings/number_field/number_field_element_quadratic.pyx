@@ -192,11 +192,11 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         else:
             NumberFieldElement_absolute.__init__(self, parent, f)
             # poly is in gen (which may not be sqrt(d))
-            self._ntl_coeff_as_mpz(&self.a, 0)
-            self._ntl_coeff_as_mpz(&self.b, 1)
+            self._ntl_coeff_as_mpz(self.a, 0)
+            self._ntl_coeff_as_mpz(self.b, 1)
             if mpz_cmp_ui(self.a, 0) or mpz_cmp_ui(self.b, 0):
                 gen = parent.gen()  # should this be cached?
-                self._ntl_denom_as_mpz(&self.denom)
+                self._ntl_denom_as_mpz(self.denom)
                 if mpz_cmp_ui(self.b, 0):
                     mpz_mul(self.a, self.a, gen.denom)
                     mpz_addmul(self.a, self.b, gen.a)
@@ -465,43 +465,43 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
         x = <NumberFieldElement_absolute>PY_NEW(NumberFieldElement_absolute)
 
-        mpz_to_ZZ(&elt_den, &(self.denom))
+        mpz_to_ZZ(&elt_den, self.denom)
 
         mpz_init(tmp_mpz)
 
         ## set the two terms in the polynomial
         if n == 4:
-            mpz_to_ZZ(&tmp_coeff, &(self.a))
+            mpz_to_ZZ(&tmp_coeff, self.a)
             ZZX_SetCoeff(elt_num, 0, tmp_coeff)
-            mpz_to_ZZ(&tmp_coeff, &(self.b))
+            mpz_to_ZZ(&tmp_coeff, self.b)
             ZZX_SetCoeff(elt_num, 1, tmp_coeff)
 
         elif n == 3:
             ## num[0] = a + b
             mpz_add(tmp_mpz, tmp_mpz, self.a)
             mpz_add(tmp_mpz, tmp_mpz, self.b)
-            mpz_to_ZZ(&tmp_coeff, &tmp_mpz)
+            mpz_to_ZZ(&tmp_coeff, tmp_mpz)
             ZZX_SetCoeff(elt_num, 0, tmp_coeff)
 
             ## num[1] = 2*b
             mpz_sub(tmp_mpz, tmp_mpz, self.a)
             tmp_const = 2
             mpz_mul_si(tmp_mpz, tmp_mpz, tmp_const)
-            mpz_to_ZZ(&tmp_coeff, &tmp_mpz)
+            mpz_to_ZZ(&tmp_coeff, tmp_mpz)
             ZZX_SetCoeff(elt_num, 1, tmp_coeff)
 
         elif n == 6:
             ## num[0] = a - b
             mpz_add(tmp_mpz, tmp_mpz, self.a)
             mpz_sub(tmp_mpz, tmp_mpz, self.b)
-            mpz_to_ZZ(&tmp_coeff, &tmp_mpz)
+            mpz_to_ZZ(&tmp_coeff, tmp_mpz)
             ZZX_SetCoeff(elt_num, 0, tmp_coeff)
 
             ## num[1] = 2*b
             mpz_sub(tmp_mpz, tmp_mpz, self.a)
             tmp_const = -2
             mpz_mul_si(tmp_mpz, tmp_mpz, tmp_const)
-            mpz_to_ZZ(&tmp_coeff, &tmp_mpz)
+            mpz_to_ZZ(&tmp_coeff, tmp_mpz)
             ZZX_SetCoeff(elt_num, 1, tmp_coeff)
 
         mpz_clear(tmp_mpz)

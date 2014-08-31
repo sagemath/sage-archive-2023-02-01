@@ -27,7 +27,6 @@ from sage.modules.free_module_element import vector
 from sage.misc.cachefunc import cached_method
 
 from abstract_ring import FormsRing_abstract
-from series_constructor import MFSeriesConstructor
 
 
 class FormsSpace_abstract(FormsRing_abstract):
@@ -827,11 +826,11 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         return new_space(rat)
 
-    def Faber_pol(self, m, order_1=ZZ(0), fix_d=False, d=None, d_num_prec=None):
+    def Faber_pol(self, m, order_1=ZZ(0), **kwargs):
         r"""
         Return the ``m``'th Faber polynomial of ``self``.
 
-        Namely a polynomial `P(q)` such that ``P(J_inv)*F_simple(order_1)``
+        Namely a polynomial ``P(q)`` such that ``P(J_inv)*F_simple(order_1)``
         has a Fourier expansion of the form ``q^m + O(q^(order_inf + 1))``.
         where ``order_inf = self._l1 - order_1`` and ``d^(order_inf - m)*P(q)``
         is a monic polynomial of degree ``order_inf - m``.
@@ -849,23 +848,18 @@ class FormsSpace_abstract(FormsRing_abstract):
         - ``order_1``     -- The order at ``-1`` of F_simple (default: 0).
                              This parameter is ignored if ``n != infinity``.
 
-        - ``fix_d``       -- ``True`` if the value of ``d`` should be
-                             (numerically) substituted for the coefficients
-                             of the polynomial (default: ``False``).
+        - ``fix_d``       -- If ``False`` (default) a formal parameter is used for ``d``.
+                             If ``True`` then the numerical value of ``d`` is used
+                             (resp. an exact value if the group is arithmetic).
+                             Otherwise the given value is used for ``d``.
 
-        - ``d``           -- The value which should be substituted for ``d`` (default: ``None``).
-                             The value is ignored if ``fix_d=True``.
-
-        - ``d_num_prec``  -- The numerical precision to be used for ``d``
-                             in case ``fix_d=True`` or ``d`` is set,
-                             Default: ``None``, in which case the default
-                             numerical precision ``self.num_prec()`` is used.
+        - ``d_num_prec``  -- The precision to be used if a numerical value for ``d`` is substituted.
+                             Default: ``None`` in which case the default
+                             numerical precision of ``self.parent()`` is used.
 
         OUTPUT:
 
-        The corresponding Faber polynomial `P(q)` with coefficients in ``self.coeff_ring()``
-        resp. a numerical ring in case ``fix_d=True`` or ``d`` is set
-        (and the group of ``self`` is not arithmetic).
+        The corresponding Faber polynomial ``P(q)``.
 
         EXAMPLES::
 
@@ -891,15 +885,15 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: (MF.Faber_pol(-2)(MF.J_inv())*MF.F_simple()).q_expansion(prec=MF._l1+1)
             q^-2 + O(q^3)
 
-            sage: MF.Faber_pol(2, d=1)
+            sage: MF.Faber_pol(2, fix_d=1)
             1
-            sage: MF.Faber_pol(1, d=1)
+            sage: MF.Faber_pol(1, fix_d=1)
             q - 19/100
-            sage: MF.Faber_pol(-2, d=1)
+            sage: MF.Faber_pol(-2, fix_d=1)
             q^4 - 11/8*q^3 + 41013/80000*q^2 - 2251291/48000000*q + 1974089431/4915200000000
-            sage: (MF.Faber_pol(2, d=1)(MF.J_inv())*MF.F_simple()).q_expansion(prec=MF._l1+2, d=1)
+            sage: (MF.Faber_pol(2, fix_d=1)(MF.J_inv())*MF.F_simple()).q_expansion(prec=MF._l1+2, fix_d=1)
             q^2 - 41/200*q^3 + O(q^4)
-            sage: (MF.Faber_pol(-2)(MF.J_inv())*MF.F_simple()).q_expansion(prec=MF._l1+1, d=1)
+            sage: (MF.Faber_pol(-2)(MF.J_inv())*MF.F_simple()).q_expansion(prec=MF._l1+1, fix_d=1)
             q^-2 + O(q^3)
 
             sage: MF = WeakModularForms(n=4, k=-2)
@@ -955,21 +949,19 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         if (m > order_inf):
             raise ValueError("Invalid basis index: m = {} > {} = order_inf!".format(m, order_inf))
-        if (d_num_prec == None):
-            d_num_prec = self._num_prec
 
         prec          = 2*order_inf - m + 1
-        (base_ring, coeff_ring, qseries_ring, d) = MFSeriesConstructor(self._group, prec).series_data(self.base_ring(), fix_d, d, d_num_prec)
-        q             = qseries_ring.gen()
+        d             = self.get_d(**kwargs)
+        q             = self.get_q(prec=prec, **kwargs)
 
-        simple_qexp   = self.F_simple(order_1=order_1).q_expansion(prec=prec, fix_d=fix_d, d=d, d_num_prec=d_num_prec)
-        J_qexp        = self.J_inv().q_expansion(prec=order_inf - m, fix_d=fix_d, d=d, d_num_prec=d_num_prec)
+        simple_qexp   = self.F_simple(order_1=order_1).q_expansion(prec=prec, **kwargs)
+        J_qexp        = self.J_inv().q_expansion(prec=order_inf - m, **kwargs)
 
         # The precision could be infinity, otherwise we could do this:
         #assert(temp_reminder.prec() == 1)
         temp_reminder = (1 / simple_qexp / q**(-m)).add_bigoh(1)
 
-        fab_pol       = qseries_ring([])
+        fab_pol       = q.parent()([])
         while (len(temp_reminder.coefficients()) > 0):
             temp_coeff     = temp_reminder.coefficients()[0]
             temp_exp       = -temp_reminder.exponents()[0]
@@ -978,13 +970,13 @@ class FormsSpace_abstract(FormsRing_abstract):
             temp_reminder -= temp_coeff * (J_qexp/d)**temp_exp
             # The first term is zero only up to numerical errors,
             # so we manually have to remove it
-            if (not base_ring.is_exact()):
+            if (not d.parent().is_exact()):
                 temp_reminder=temp_reminder.truncate_neg(-temp_exp+1)
 
         return fab_pol.polynomial()
 
     # very similar to Faber_pol: faber_pol(q)=Faber_pol(d*q)
-    def faber_pol(self, m, order_1=ZZ(0), fix_d=False, d=None, d_num_prec=None):
+    def faber_pol(self, m, order_1=ZZ(0), **kwargs):
         r"""
         If ``n=infinity`` a non-trivial order of ``-1`` can be specified through the
         parameter ``order_1`` (default: 0). Otherwise it is ignored.
@@ -992,7 +984,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         with a different normalization based on ``j_inv``
         instead of ``J_inv``.
 
-        Namely a polynomial p(q) such that ``p(j_inv)*F_simple()``
+        Namely a polynomial ``p(q)`` such that ``p(j_inv)*F_simple()``
         has a Fourier expansion of the form ``q^m + O(q^(order_inf + 1))``.
         where ``order_inf = self._l1 - order_1`` and ``p(q)`` is a
         monic polynomial of degree ``order_inf - m``.
@@ -1009,23 +1001,18 @@ class FormsSpace_abstract(FormsRing_abstract):
         - ``order_1``     -- The order at ``-1`` of ``F_simple`` (default: 0).
                              This parameter is ignored if ``n != infinity``.
 
-        - ``fix_d``       -- ``True`` if the value of ``d`` should be
-                             (numerically) substituted for the coefficients
-                             of the polynomial (default: ``False``).
+        - ``fix_d``       -- If ``False`` (default) a formal parameter is used for ``d``.
+                             If ``True`` then the numerical value of ``d`` is used
+                             (resp. an exact value if the group is arithmetic).
+                             Otherwise the given value is used for ``d``.
 
-        - ``d``           -- The value which should be substituted for ``d`` (default: ``None``).
-                             The value is ignored if ``fix_d=True``.
-
-        - ``d_num_prec``  -- The numerical precision to be used for ``d``
-                             in case ``fix_d=True`` or ``d`` is set,
-                             Default: ``None``, in which case the default
-                             numerical precision ``self.num_prec()`` is used.
+        - ``d_num_prec``  -- The precision to be used if a numerical value for ``d`` is substituted.
+                             Default: ``None`` in which case the default
+                             numerical precision of ``self.parent()`` is used.
 
         OUTPUT:
 
-        The corresponding Faber polynomial ``p(q)`` with coefficients in ``self.coeff_ring()``
-        resp. a numerical ring in case ``fix_d=True`` or ``d`` is set
-        (and the group of ``self`` is not arithmetic).
+        The corresponding Faber polynomial ``p(q)``.
 
         EXAMPLES::
 
@@ -1104,21 +1091,19 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         if (m > order_inf):
             raise ValueError("Invalid basis index: m = {} > {} = order_inf!".format(m, order_inf))
-        if (d_num_prec == None):
-            d_num_prec = self._num_prec
 
         prec          = 2*order_inf - m + 1
-        (base_ring, coeff_ring, qseries_ring, d) = MFSeriesConstructor(self._group, prec).series_data(self.base_ring(), fix_d, d, d_num_prec)
-        q             = qseries_ring.gen()
+        d             = self.get_d(**kwargs)
+        q             = self.get_q(prec=prec, **kwargs)
 
-        simple_qexp   = self.F_simple(order_1=order_1).q_expansion(prec=prec, fix_d=fix_d, d=d, d_num_prec=d_num_prec)
-        j_qexp        = self.j_inv().q_expansion(prec=order_inf - m, fix_d=fix_d, d=d, d_num_prec=d_num_prec)
+        simple_qexp   = self.F_simple(order_1=order_1).q_expansion(prec=prec, **kwargs)
+        j_qexp        = self.j_inv().q_expansion(prec=order_inf - m, **kwargs)
 
         # The precision could be infinity, otherwise we could do this:
         #assert(temp_reminder.prec() == 1)
         temp_reminder = (1 / simple_qexp / q**(-m)).add_bigoh(1)
 
-        fab_pol       = qseries_ring([])
+        fab_pol       = q.parent()([])
         while (len(temp_reminder.coefficients()) > 0):
             temp_coeff     = temp_reminder.coefficients()[0]
             temp_exp       = -temp_reminder.exponents()[0]
@@ -1127,7 +1112,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             temp_reminder -= temp_coeff*j_qexp**temp_exp
             # The first term is zero only up to numerical errors,
             # so we manually have to remove it
-            if (not base_ring.is_exact()):
+            if (not d.parent().is_exact()):
                 temp_reminder=temp_reminder.truncate_neg(-temp_exp+1)
 
         return fab_pol.polynomial()

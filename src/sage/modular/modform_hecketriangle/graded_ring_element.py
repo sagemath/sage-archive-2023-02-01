@@ -326,9 +326,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         INPUT:
 
-        - ``d_num_prec``  -- An integer, the numerical precision to be used for `d`
-                             in the non-arithmetic case, default: ``None`` meaning that
-                             the default numerical precision is used
+        - ``d_num_prec``  -- An integer, the numerical precision to be used for ``d``
+                             in the non-arithmetic case. Default: ``None``, meaning that
+                             the default numerical precision is used.
 
         OUTPUT:
 
@@ -337,9 +337,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         the base ring changes accordingly and the returned element no longer lies
         in ``self``.
 
-        Note: In the arithmetic case the new element compares equally to ``self``
-        even though the underlying rational functions differ. Also note that calculations
-        over non-exact rings are generally less reliable.
+        Note: In the arithmetic case is the main reason for this function. In that case
+        the new element compares equally to ``self`` even though the underlying rational
+        functions differ. Also note that calculations over non-exact rings are generally
+        less reliable.
 
         EXAMPLES::
 
@@ -349,7 +350,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             x^3*d - y^2*d
             sage: Delta2 = Delta._fix_d()
             sage: Delta2.rat()
-            (x^3 - y^2)/1728
+            1/1728*x^3 - 1/1728*y^2
             sage: Delta == Delta2
             True
 
@@ -365,20 +366,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             WeakModularForms(n=5, k=0, ep=1) over Real Field with 40 bits of precision
         """
 
-        if d_num_prec == None:
-            d_num_prec = self.parent()._num_prec
-        else:
-            d_num_prec = ZZ(d_num_prec)
+        d = self.parent().get_d(fix_d=True, d_num_prec=d_num_prec)
+        base_ring = (self.base_ring()(1) * d).parent()
 
-        d = self.group().dvalue()
-
-        if (self.group().is_arithmetic()):
-            d = 1 / self.base_ring()(1/d)
-            return self.parent()(self._rat.subs(d=d))
-        else:
-            d = self.group().dvalue().n(d_num_prec)
-            base_ring = (self.base_ring()(1) * d).parent()
-            return self.parent().change_ring(base_ring)(self._rat.subs(d=d))
+        return self.parent().change_ring(base_ring)(self._rat.subs(d=d))
 
     def is_homogeneous(self):
         r"""
@@ -1492,53 +1483,29 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
     #precision is actually acuracy, maybe add "real precision" meaning number of rel. coef
     @cached_method
-    def _q_expansion_cached(self, prec, fix_d, d, d_num_prec, fix_prec = False):
+    def _q_expansion_cached(self, prec, fix_d, subs_d, d_num_prec, fix_prec = False):
         """
         Returns the Fourier expansion of self (cached).
-        Don't call this function, instead use ``q_expansion``.
+        Don't call this function, instead use :meth:`q_expansion`.
+        Also see :meth:`q_expansion` for a description of the arguments.
 
-        INPUT:
-
-        - ``prec``       -- An integer, the desired output precision O(q^prec).
-
-        - ``fix_d``      -- If ``True`` then the numerical value of d
-                            corresponding to n will be used.
-                            If n = 3, 4, 6 the used value is exact.
-                            The base_ring will be changed accordingly (if possible).
-                            Also see ``MFSeriesConstructor``.
-
-        - ``d``         -- ``None`` or a value to substitute for d.
-                            The base_ring will be changed accordingly (if possible).
-                            Also see ``MFSeriesConstructor``.
-
-        - ``d_num_prec`` -- An integer, namely the precision to be used if a
-                            numerical value for d is substituted.
-
-        - ``fix_prec``   -- If ``fix_prec`` is not ``False`` (default)
-                            then the precision of the ``MFSeriesConstructor`` is
-                            set such that the output has exactly the specified
-                            precision O(q^prec).
-
-        OUTPUT:
-
-        The Fourier expansion of self as a ``FormalPowerSeries`` or ``FormalLaurentSeries``.
+        Regarding the additional option ``subs_d``:
+        Caching doesn't distinguish between ``True`` and ``1``. If ``fix_d`` is
+        not boolean then ``subs_d=fix_d`` should be set make that distinction.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import WeakModularFormsRing
             sage: J_inv = WeakModularFormsRing(red_hom=True).J_inv()
-            sage: J_inv._q_expansion_cached(5, False, None, 53, False) == J_inv.q_expansion()
+            sage: J_inv._q_expansion_cached(prec=5, fix_d=False, subs_d=None, d_num_prec=53, fix_prec=False) == J_inv.q_expansion()
             True
-            sage: J_inv._q_expansion_cached(5, True, None, 53, False) == J_inv.q_expansion_fixed_d()
+            sage: J_inv._q_expansion_cached(prec=5, fix_d=True, subs_d=None, d_num_prec=53, fix_prec=False) == J_inv.q_expansion_fixed_d()
             True
         """
 
         if (fix_prec == False):
             #if (prec <1):
             #    print "Warning: non-positiv precision!"
-            if not (fix_d or (d is not None) or self.base_ring().is_exact()):
-                from warnings import warn
-                warn("For non-exact base rings it is strongly recommended to fix/set d!")
             if ((not self.is_zero()) and prec <= self.order_at(infinity)):
                 from warnings import warn
                 warn("precision too low to determine any coefficient!")
@@ -1552,22 +1519,39 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             # prec += self.order_at(infinity)
 
         SC = MFSeriesConstructor(self.group(), prec)
-        (base_ring, coeff_ring, qseries_ring, D) = SC.series_data(self.base_ring(), fix_d, d, d_num_prec)
+        formal_d = self.parent().get_d()
+        formal_q = self.parent().get_q(prec)
+
         if (self.hecke_n() == infinity):
-            X  = SC.E4(self.base_ring(), fix_d, d, d_num_prec)
+            X = SC.E4_ZZ().base_extend(formal_d.parent())
         else:
-            X  = SC.f_rho(self.base_ring(), fix_d, d, d_num_prec)
-        Y  = SC.f_i(self.base_ring(), fix_d, d, d_num_prec)
+            X = SC.f_rho_ZZ().base_extend(formal_d.parent())
+        Y  = SC.f_i_ZZ().base_extend(formal_d.parent())
 
         if (self.parent().is_modular()):
-            qexp = self._rat.subs(x=X,y=Y,d=D)
+            qexp = self._rat.subs(x=X, y=Y, d=formal_d)
         else:
-            Z = SC.E2(self.base_ring(), fix_d, d, d_num_prec)
-            qexp = self._rat.subs(x=X,y=Y,z=Z,d=D)
+            Z = SC.E2_ZZ().base_extend(formal_d.parent())
+            qexp = self._rat.subs(x=X, y=Y, z=Z, d=formal_d)
 
-        return (qexp + O(qseries_ring.gen()**prec)).parent()(qexp)
+        qexp = (qexp + O(formal_q**prec)).parent()(qexp)
+        qexp = qexp(formal_q/formal_d)
+        cur_prec = qexp.prec()
 
-    def q_expansion(self, prec = None, fix_d = False, d=None, d_num_prec = None, fix_prec = False):
+        if (subs_d):
+            fix_d = subs_d
+        d = self.parent().get_d(fix_d, d_num_prec)
+        q = self.parent().get_q(prec, fix_d, d_num_prec)
+
+        qexp = sum([(qexp.coefficients()[m]).subs(d=d) * q**qexp.exponents()[m] for m in range(len(qexp.coefficients()))])
+        if (cur_prec != infinity):
+            qexp += O(q**cur_prec)
+        else:
+            qexp = (qexp + O(q)).parent()(qexp)
+
+        return qexp
+
+    def q_expansion(self, prec = None, fix_d = False, d_num_prec = None, fix_prec = False):
         """
         Returns the Fourier expansion of self.
 
@@ -1577,18 +1561,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                             Default: ``None`` in which case the default precision
                             of ``self.parent()`` is used.
 
-        - ``fix_d``      -- If ``True`` then the numerical value of d corresponding to n
-                            will be used (default: ``False``).
-                            If n = 3, 4, 6 the used value is exact.
-                            The base_ring will be changed accordingly (if possible).
-                            Alternatively also a value as in ``d`` can be specified.
-                            Also see ``MFSeriesConstructor``.
+        - ``fix_d``      -- If ``False`` (default) a formal parameter is used for ``d``.
+                            If ``True`` then the numerical value of ``d`` is used
+                            (resp. an exact value if the group is arithmetic).
+                            Otherwise the given value is used for ``d``.
 
-        - ``d``          -- ``None`` (default) or a value to substitute for d.
-                            The base_ring will be changed accordingly (if possible).
-                            Also see ``MFSeriesConstructor``.
-
-        - ``d_num_prec`` -- The precision to be used if a numerical value for d is substituted.
+        - ``d_num_prec`` -- The precision to be used if a numerical value for ``d`` is substituted.
                             Default: ``None`` in which case the default
                             numerical precision of ``self.parent()`` is used.
 
@@ -1666,24 +1644,21 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         """
 
         if prec == None:
-            prec = self.parent()._prec
+            prec = self.parent().default_prec()
         if d_num_prec == None:
-            d_num_prec = self.parent()._num_prec
-
-        if isinstance(fix_d,bool) and (fix_d == True):
-            d = None
-        elif d is None:
-            d = fix_d
-            fix_d = False
+            d_num_prec = self.parent().default_num_prec()
+        if not isinstance(fix_d, bool):
+            subs_d = fix_d
+            fix_d = None
         else:
-            fix_d = False
+            subs_d = None
 
-        return self._q_expansion_cached(prec, fix_d, d, d_num_prec, fix_prec)
+        return self._q_expansion_cached(prec, fix_d, subs_d, d_num_prec, fix_prec)
 
     def q_expansion_fixed_d(self, prec = None, d_num_prec = None, fix_prec = False):
         """
         Returns the Fourier expansion of self.
-        The numerical (or exact) value for d is substituted.
+        The numerical (or exact) value for ``d`` is substituted.
 
 
         INPUT:
@@ -1692,7 +1667,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                             Default: ``None`` in which case the default precision
                             of ``self.parent()`` is used.
 
-        - ``d_num_prec`` -- The precision to be used if a numerical value for d is substituted.
+        - ``d_num_prec`` -- The precision to be used if a numerical value for ``d`` is substituted.
                             Default: ``None`` in which case the default
                             numerical precision of ``self.parent()`` is used.
 
@@ -1735,8 +1710,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             1/32*q^-1 + O(1)
             sage: WeakModularFormsRing(n=infinity)((x+1)/(x-y^2)).q_expansion_fixed_d(prec=2)
             1/32*q^-1 + 1/2 + 39/8*q + O(q^2)
+
+            sage: (WeakModularFormsRing(n=14).J_inv()^3).q_expansion_fixed_d(prec=2)
+            2.933373093...e-6*q^-3 + 0.0002320999814...*q^-2 + 0.009013529265...*q^-1 + 0.2292916854... + 4.303583833...*q + O(q^2)
         """
-        return self.q_expansion(prec, True, None, d_num_prec, fix_prec)
+
+        return self.q_expansion(prec, True, d_num_prec, fix_prec)
 
     def q_expansion_vector(self, min_exp = None, max_exp = None, prec = None, **kwargs):
         r"""
@@ -1918,7 +1897,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: f_i(i)
             0
             sage: f_i(i + 1e-1000)
-            -6.072...e-14 - 4.101...e-1000*I
+            -6.084...e-14 - 4.101...e-1000*I
             sage: f_inf(infinity)
             0
 

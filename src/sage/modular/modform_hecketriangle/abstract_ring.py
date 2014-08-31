@@ -16,7 +16,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import FractionField, PolynomialRing, ZZ, QQ, infinity
+from sage.rings.all import FractionField, PolynomialRing, PowerSeriesRing, ZZ, QQ, infinity
 from sage.algebras.free_algebra import FreeAlgebra
 
 from sage.structure.parent import Parent
@@ -612,6 +612,119 @@ class FormsRing_abstract(Parent):
 
         return self._rat_field
 
+    def get_d(self, fix_d = False, d_num_prec = None):
+        r"""
+        Return the parameter ``d`` of self. Also see ``HeckeTriangleGroup().dvalue()``.
+
+        INPUT:
+
+        - ``fix_d``      -- If ``False`` (default) a formal parameter is used for ``d``.
+                            If ``True`` then the numerical value of ``d`` is used
+                            (resp. an exact value if the group is arithmetic).
+                            Otherwise the given value is used for ``d``.
+
+        - ``d_num_prec`` -- The precision to be used if a numerical value for ``d`` is substituted.
+                            Default: ``None`` in which case the default
+                            numerical precision of ``self.parent()`` is used.
+
+        OUTPUT:
+
+        The corresponding formal, numerical or exact parameter ``d`` of ``self``,
+        depending on the arguments and whether ``self.group()`` is arithmetic.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
+            sage: ModularFormsRing(n=8).get_d()
+            d
+            sage: ModularFormsRing(n=8).get_d().parent()
+            Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: ModularFormsRing(n=infinity).get_d(fix_d = True)
+            1/64
+            sage: ModularFormsRing(n=infinity).get_d(fix_d = True).parent()
+            Rational Field
+            sage: ModularFormsRing(n=5).default_num_prec(40)
+            sage: ModularFormsRing(n=5).get_d(fix_d = True)
+            0.0070522341...
+            sage: ModularFormsRing(n=5).get_d(fix_d = True).parent()
+            Real Field with 40 bits of precision
+            sage: ModularFormsRing(n=5).get_d(fix_d = True, d_num_prec=100).parent()
+            Real Field with 100 bits of precision
+            sage: ModularFormsRing(n=5).get_d(fix_d=1).parent()
+            Integer Ring
+        """
+
+        if d_num_prec is None:
+            d_num_prec = self.default_num_prec()
+        else:
+            d_num_prec = ZZ(d_num_prec)
+
+        if (fix_d is True):
+            d = self._group.dvalue()
+            if (self._group.is_arithmetic()):
+                d = 1 / self.base_ring()(1/d)
+            else:
+                d = self.group().dvalue().n(d_num_prec)
+        elif (fix_d is False):
+            d = FractionField(PolynomialRing(self.base_ring(), "d")).gen()
+        else:
+            d = fix_d
+
+        return d
+
+    def get_q(self, prec = None, fix_d = False, d_num_prec = None):
+        r"""
+        Return the generator of the power series of the Fourier expansion of ``self``.
+
+        INPUT:
+
+        - ``prec``       -- An integer or ``None`` (default), namely the desired default
+                            precision of the space of power series. If nothing is specified
+                            the default precision of ``self`` is used.
+
+        - ``fix_d``      -- If ``False`` (default) a formal parameter is used for ``d``.
+                            If ``True`` then the numerical value of ``d`` is used
+                            (resp. an exact value if the group is arithmetic).
+                            Otherwise the given value is used for ``d``.
+
+        - ``d_num_prec`` -- The precision to be used if a numerical value for ``d`` is substituted.
+                            Default: ``None`` in which case the default
+                            numerical precision of ``self.parent()`` is used.
+
+        OUTPUT:
+
+        The generator of the ``PowerSeriesRing`` of corresponding to the given
+        parameters. The base ring of the power series ring is given by the corresponding
+        parent of ``self.get_d()`` with the same arguments.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
+            sage: ModularFormsRing(n=8).default_prec(5)
+            sage: ModularFormsRing(n=8).get_q().parent()
+            Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: ModularFormsRing(n=8).get_q().parent().default_prec()
+            5
+            sage: ModularFormsRing(n=infinity).get_q(prec=12, fix_d = True).parent()
+            Power Series Ring in q over Rational Field
+            sage: ModularFormsRing(n=infinity).get_q(prec=12, fix_d = True).parent().default_prec()
+            12
+            sage: ModularFormsRing(n=5).default_num_prec(40)
+            sage: ModularFormsRing(n=5).get_q(fix_d = True).parent()
+            Power Series Ring in q over Real Field with 40 bits of precision
+            sage: ModularFormsRing(n=5).get_q(fix_d = True, d_num_prec=100).parent()
+            Power Series Ring in q over Real Field with 100 bits of precision
+            sage: ModularFormsRing(n=5).get_q(fix_d=1).parent()
+            Power Series Ring in q over Rational Field
+        """
+
+        d = self.get_d(fix_d, d_num_prec)
+        if (prec is None):
+            prec = self.default_prec()
+
+        base_ring = d.parent()
+        return PowerSeriesRing(FractionField(base_ring), 'q', default_prec = prec).gen()
+
     @cached_method
     def diff_alg(self):
         r"""
@@ -923,13 +1036,16 @@ class FormsRing_abstract(Parent):
             d*q^-1 + 79/200 + 42877/(640000*d)*q + 12957/(2000000*d^2)*q^2 + O(q^3)
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
-            sage: WeakModularForms(n=5).J_inv().q_expansion(prec=5) == MFC(group=5, prec=7).J_inv().add_bigoh(5)
+            sage: MF = WeakModularForms(n=5)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: WeakModularForms(n=5).J_inv().q_expansion(prec=5) == MFC(group=5, prec=7).J_inv_ZZ()(q/d).add_bigoh(5)
             True
-            sage: WeakModularForms(n=infinity).J_inv().q_expansion(prec=5) == MFC(group=infinity, prec=7).J_inv().add_bigoh(5)
+            sage: WeakModularForms(n=infinity).J_inv().q_expansion(prec=5) == MFC(group=infinity, prec=7).J_inv_ZZ()(q/d).add_bigoh(5)
             True
-            sage: WeakModularForms(n=5).J_inv().q_expansion(d=1, prec=5) == MFC(group=5, prec=7).J_inv_ZZ().add_bigoh(5)
+            sage: WeakModularForms(n=5).J_inv().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).J_inv_ZZ().add_bigoh(5)
             True
-            sage: WeakModularForms(n=infinity).J_inv().q_expansion(d=1, prec=5) == MFC(group=infinity, prec=7).J_inv_ZZ().add_bigoh(5)
+            sage: WeakModularForms(n=infinity).J_inv().q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).J_inv_ZZ().add_bigoh(5)
             True
 
             sage: WeakModularForms(n=infinity).J_inv()
@@ -1048,13 +1164,16 @@ class FormsRing_abstract(Parent):
             1 + 7/(100*d)*q + 21/(160000*d^2)*q^2 + O(q^3)
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
-            sage: ModularForms(n=5).f_rho().q_expansion(prec=5) == MFC(group=5, prec=7).f_rho().add_bigoh(5)
+            sage: MF = ModularForms(n=5)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: ModularForms(n=5).f_rho().q_expansion(prec=5) == MFC(group=5, prec=7).f_rho_ZZ()(q/d).add_bigoh(5)
             True
-            sage: ModularForms(n=infinity).f_rho().q_expansion(prec=5) == MFC(group=infinity, prec=7).f_rho().add_bigoh(5)
+            sage: ModularForms(n=infinity).f_rho().q_expansion(prec=5) == MFC(group=infinity, prec=7).f_rho_ZZ()(q/d).add_bigoh(5)
             True
-            sage: ModularForms(n=5).f_rho().q_expansion(d=1, prec=5) == MFC(group=5, prec=7).f_rho_ZZ().add_bigoh(5)
+            sage: ModularForms(n=5).f_rho().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).f_rho_ZZ().add_bigoh(5)
             True
-            sage: ModularForms(n=infinity).f_rho().q_expansion(d=1, prec=5) == MFC(group=infinity, prec=7).f_rho_ZZ().add_bigoh(5)
+            sage: ModularForms(n=infinity).f_rho().q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).f_rho_ZZ().add_bigoh(5)
             True
 
             sage: ModularForms(n=infinity, k=0).f_rho() == ModularForms(n=infinity, k=0)(1)
@@ -1114,13 +1233,16 @@ class FormsRing_abstract(Parent):
             1 - 13/(40*d)*q - 351/(64000*d^2)*q^2 + O(q^3)
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
-            sage: ModularForms(n=5).f_i().q_expansion(prec=5) == MFC(group=5, prec=7).f_i().add_bigoh(5)
+            sage: MF = ModularForms(n=5)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: ModularForms(n=5).f_i().q_expansion(prec=5) == MFC(group=5, prec=7).f_i_ZZ()(q/d).add_bigoh(5)
             True
-            sage: ModularForms(n=infinity).f_i().q_expansion(prec=5) == MFC(group=infinity, prec=7).f_i().add_bigoh(5)
+            sage: ModularForms(n=infinity).f_i().q_expansion(prec=5) == MFC(group=infinity, prec=7).f_i_ZZ()(q/d).add_bigoh(5)
             True
-            sage: ModularForms(n=5).f_i().q_expansion(d=1, prec=5) == MFC(group=5, prec=7).f_i_ZZ().add_bigoh(5)
+            sage: ModularForms(n=5).f_i().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).f_i_ZZ().add_bigoh(5)
             True
-            sage: ModularForms(n=infinity).f_i().q_expansion(d=1, prec=5) == MFC(group=infinity, prec=7).f_i_ZZ().add_bigoh(5)
+            sage: ModularForms(n=infinity).f_i().q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).f_i_ZZ().add_bigoh(5)
             True
 
             sage: ModularForms(n=infinity, k=2).f_i()
@@ -1179,13 +1301,16 @@ class FormsRing_abstract(Parent):
             q - 9/(200*d)*q^2 + O(q^3)
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
-            sage: ModularForms(n=5).f_inf().q_expansion(prec=5) == MFC(group=5, prec=7).f_inf().add_bigoh(5)
+            sage: MF = ModularForms(n=5)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: ModularForms(n=5).f_inf().q_expansion(prec=5) == (d*MFC(group=5, prec=7).f_inf_ZZ()(q/d)).add_bigoh(5)
             True
-            sage: ModularForms(n=infinity).f_inf().q_expansion(prec=5) == MFC(group=infinity, prec=7).f_inf().add_bigoh(5)
+            sage: ModularForms(n=infinity).f_inf().q_expansion(prec=5) == (d*MFC(group=infinity, prec=7).f_inf_ZZ()(q/d)).add_bigoh(5)
             True
-            sage: ModularForms(n=5).f_inf().q_expansion(d=1, prec=5) == MFC(group=5, prec=7).f_inf_ZZ().add_bigoh(5)
+            sage: ModularForms(n=5).f_inf().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).f_inf_ZZ().add_bigoh(5)
             True
-            sage: ModularForms(n=infinity).f_inf().q_expansion(d=1, prec=5) == MFC(group=infinity, prec=7).f_inf_ZZ().add_bigoh(5)
+            sage: ModularForms(n=infinity).f_inf().q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).f_inf_ZZ().add_bigoh(5)
             True
 
             sage: ModularForms(n=infinity, k=4).f_inf().reduced_parent()
@@ -1255,9 +1380,12 @@ class FormsRing_abstract(Parent):
             d^2*q^-1 - 15*d/128 - 15139/262144*q - 11575/(1572864*d)*q^2 + O(q^3)
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
-            sage: WeakModularForms(n=8).G_inv().q_expansion(prec=5) == MFC(group=8, prec=7).G_inv().add_bigoh(5)
+            sage: MF = WeakModularForms(n=8)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: WeakModularForms(n=8).G_inv().q_expansion(prec=5) == (d*MFC(group=8, prec=7).G_inv_ZZ()(q/d)).add_bigoh(5)
             True
-            sage: WeakModularForms(n=8).G_inv().q_expansion(d=1, prec=5) == MFC(group=8, prec=7).G_inv_ZZ().add_bigoh(5)
+            sage: WeakModularForms(n=8).G_inv().q_expansion(fix_d=1, prec=5) == MFC(group=8, prec=7).G_inv_ZZ().add_bigoh(5)
             True
 
             sage: WeakModularForms(n=4, k=0, ep=-1).G_inv()
@@ -1407,13 +1535,16 @@ class FormsRing_abstract(Parent):
             1 + 21/(100*d)*q + 483/(32000*d^2)*q^2 + O(q^3)
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
-            sage: ModularForms(n=5, k=4).E4().q_expansion(prec=5) == MFC(group=5, prec=7).E4().add_bigoh(5)
+            sage: MF = ModularForms(n=5)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: ModularForms(n=5, k=4).E4().q_expansion(prec=5) == MFC(group=5, prec=7).E4_ZZ()(q/d).add_bigoh(5)
             True
-            sage: ModularForms(n=infinity, k=4).E4().q_expansion(prec=5) == MFC(group=infinity, prec=7).E4().add_bigoh(5)
+            sage: ModularForms(n=infinity, k=4).E4().q_expansion(prec=5) == MFC(group=infinity, prec=7).E4_ZZ()(q/d).add_bigoh(5)
             True
-            sage: ModularForms(n=5, k=4).E4().q_expansion(d=1, prec=5) == MFC(group=5, prec=7).E4_ZZ().add_bigoh(5)
+            sage: ModularForms(n=5, k=4).E4().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).E4_ZZ().add_bigoh(5)
             True
-            sage: ModularForms(n=infinity, k=4).E4().q_expansion(d=1, prec=5) == MFC(group=infinity, prec=7).E4_ZZ().add_bigoh(5)
+            sage: ModularForms(n=infinity, k=4).E4().q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).E4_ZZ().add_bigoh(5)
             True
 
             sage: ModularForms(n=infinity, k=4).E4()
@@ -1470,13 +1601,16 @@ class FormsRing_abstract(Parent):
             1 - 37/(200*d)*q - 14663/(320000*d^2)*q^2 + O(q^3)
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
-            sage: ModularForms(n=5, k=6).E6().q_expansion(prec=5) == MFC(group=5, prec=7).E6().add_bigoh(5)
+            sage: MF = ModularForms(n=5, k=6)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: ModularForms(n=5, k=6).E6().q_expansion(prec=5) == MFC(group=5, prec=7).E6_ZZ()(q/d).add_bigoh(5)
             True
-            sage: ModularForms(n=infinity, k=6).E6().q_expansion(prec=5) == MFC(group=infinity, prec=7).E6().add_bigoh(5)
+            sage: ModularForms(n=infinity, k=6).E6().q_expansion(prec=5) == MFC(group=infinity, prec=7).E6_ZZ()(q/d).add_bigoh(5)
             True
-            sage: ModularForms(n=5, k=6).E6().q_expansion(d=1, prec=5) == MFC(group=5, prec=7).E6_ZZ().add_bigoh(5)
+            sage: ModularForms(n=5, k=6).E6().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).E6_ZZ().add_bigoh(5)
             True
-            sage: ModularForms(n=infinity, k=6).E6().q_expansion(d=1, prec=5) == MFC(group=infinity, prec=7).E6_ZZ().add_bigoh(5)
+            sage: ModularForms(n=infinity, k=6).E6().q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).E6_ZZ().add_bigoh(5)
             True
 
             sage: ModularForms(n=infinity, k=6).E6()
@@ -1538,13 +1672,16 @@ class FormsRing_abstract(Parent):
             True
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
-            sage: CuspForms(n=5, k=12).Delta().q_expansion(prec=5) == MFC(group=5, prec=7).Delta().add_bigoh(5)
+            sage: MF = CuspForms(n=5, k=12)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: CuspForms(n=5, k=12).Delta().q_expansion(prec=5) == (d*MFC(group=5, prec=7).Delta_ZZ()(q/d)).add_bigoh(5)
             True
-            sage: CuspForms(n=infinity, k=12).Delta().q_expansion(prec=5) == MFC(group=infinity, prec=7).Delta().add_bigoh(5)
+            sage: CuspForms(n=infinity, k=12).Delta().q_expansion(prec=5) == (d*MFC(group=infinity, prec=7).Delta_ZZ()(q/d)).add_bigoh(5)
             True
-            sage: CuspForms(n=5, k=12).Delta().q_expansion(d=1, prec=5) == MFC(group=5, prec=7).Delta_ZZ().add_bigoh(5)
+            sage: CuspForms(n=5, k=12).Delta().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).Delta_ZZ().add_bigoh(5)
             True
-            sage: CuspForms(n=infinity, k=12).Delta().q_expansion(d=1, prec=5) == MFC(group=infinity, prec=7).Delta_ZZ().add_bigoh(5)
+            sage: CuspForms(n=infinity, k=12).Delta().q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).Delta_ZZ().add_bigoh(5)
             True
 
             sage: CuspForms(n=infinity, k=12).Delta()
@@ -1606,13 +1743,16 @@ class FormsRing_abstract(Parent):
             True
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
-            sage: QuasiModularForms(n=5, k=2).E2().q_expansion(prec=5) == MFC(group=5, prec=7).E2().add_bigoh(5)
+            sage: MF = QuasiModularForms(n=5, k=2)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: QuasiModularForms(n=5, k=2).E2().q_expansion(prec=5) == MFC(group=5, prec=7).E2_ZZ()(q/d).add_bigoh(5)
             True
-            sage: QuasiModularForms(n=infinity, k=2).E2().q_expansion(prec=5) == MFC(group=infinity, prec=7).E2().add_bigoh(5)
+            sage: QuasiModularForms(n=infinity, k=2).E2().q_expansion(prec=5) == MFC(group=infinity, prec=7).E2_ZZ()(q/d).add_bigoh(5)
             True
-            sage: QuasiModularForms(n=5, k=2).E2().q_expansion(d=1, prec=5) == MFC(group=5, prec=7).E2_ZZ().add_bigoh(5)
+            sage: QuasiModularForms(n=5, k=2).E2().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).E2_ZZ().add_bigoh(5)
             True
-            sage: QuasiModularForms(n=infinity, k=2).E2().q_expansion(d=1, prec=5) == MFC(group=infinity, prec=7).E2_ZZ().add_bigoh(5)
+            sage: QuasiModularForms(n=infinity, k=2).E2().q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).E2_ZZ().add_bigoh(5)
             True
 
             sage: QuasiModularForms(n=infinity, k=2).E2()

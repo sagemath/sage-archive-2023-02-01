@@ -116,49 +116,48 @@ class Link:
             sage: L
             Link with 2 components represented by 2 crossings
         """
-        self.input_ = input_
-        if type(self.input_) == list:
-            if len(self.input_) != 2:
-                for i in self.input_:
+        if type(input_) == list:
+            if len(input_) != 2:
+                for i in input_:
                     if len(i) != 4:
                         raise Exception("Invalid Input")
                 else:
-                    self._PD_code = self.input_
+                    self._PD_code = input_
                     self._oriented_gauss_code = None
                     self._braid = None
 
-            elif len(self.input_) == 2:
-                for i in self.input_[0]:
+            elif len(input_) == 2:
+                for i in input_[0]:
                     if type(i) == list:
                         ogc = True
                         break
                 else:
                     ogc = False
                 if ogc == False:
-                    for i in self.input_:
+                    for i in input_:
                         if len(i) != 4:
                             raise Exception("Invalid Input")
                     else:
-                        self._PD_code = self.input_
+                        self._PD_code = input_
                         self._oriented_gauss_code = None
                         self._braid = None
                 elif ogc == True:
-                    for i in self.input_[0]:
+                    for i in input_[0]:
                         if type(i) != list:
                             raise Exception("Invalid Input")
                     else:
-                        flat = [x for y in self.input_[0] for x in y]
+                        flat = [x for y in input_[0] for x in y]
                         a, b = max(flat), min(flat)
-                        if 2 * len(self.input_[1]) == len(flat) and set(range(b, a + 1)) - set([0]) == set(flat):
-                            self._oriented_gauss_code = self.input_
+                        if 2 * len(input_[1]) == len(flat) and set(range(b, a + 1)) - set([0]) == set(flat):
+                            self._oriented_gauss_code = input_
                             self._PD_code = None
                             self._braid = None
                         else:
                             raise Exception("Invalid Input")
         else:
             from sage.groups.braid import Braid
-            if isinstance(self.input_, Braid):
-                self._braid = self.input_
+            if isinstance(input_, Braid):
+                self._braid = input_
                 self._oriented_gauss_code = None
                 self._PD_code = None
 

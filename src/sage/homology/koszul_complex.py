@@ -10,9 +10,10 @@ Koszul Complexes
 #  the License, or (at your option) any later version.
 #
 #                  http://www.gnu.org/licenses/
-###################################################.#####################
+########################################################################
 
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.parent import Parent
 from sage.combinat.choose_nk import rank
 from sage.rings.arith import binomial
 from sage.rings.all import ZZ
@@ -49,6 +50,11 @@ class KoszulComplex(ChainComplex_class, UniqueRepresentation):
     Then the Koszul complex is given by
     `K_*(x_1, \ldots, x_n) = \bigotimes_i K_{x_i}`.
 
+    INPUT:
+
+    - ``R`` -- the base ring
+    - ``elements`` -- a tuple of elements of ``R``
+
     EXAMPLES::
 
         sage: R.<x,y,z> = QQ[]
@@ -74,7 +80,7 @@ class KoszulComplex(ChainComplex_class, UniqueRepresentation):
     - :wikipedia:`Koszul_complex`
     """
     @staticmethod
-    def __classcall_private__(cls, R, elements=None):
+    def __classcall_private__(cls, R=None, elements=None):
         """
         Normalize input to ensure a unique representation.
 
@@ -86,13 +92,29 @@ class KoszulComplex(ChainComplex_class, UniqueRepresentation):
             sage: K3 = KoszulComplex((x,y,z))
             sage: K1 is K2 and K2 is K3
             True
+
+        Check some corner cases::
+
+            sage: K1 = KoszulComplex(ZZ)
+            sage: K2 = KoszulComplex(())
+            sage: K3 = KoszulComplex(ZZ, [])
+            sage: K1 is K2 and K2 is K3
+            True
+            sage: K1 is KoszulComplex()
+            True
         """
         if elements is None:
+            if R is None:
+                R = ()
             elements = R
             if not elements:
                 R = ZZ # default to ZZ as the base ring if no elements are given
+            elif isinstance(R, Parent):
+                elements = ()
             else:
                 R = elements[0].parent()
+        elif R is None: # elements is not None
+            R = elements[0].parent()
         return super(KoszulComplex, cls).__classcall__(cls, R, tuple(elements))
 
     def __init__(self, R, elements):
@@ -137,6 +159,11 @@ class KoszulComplex(ChainComplex_class, UniqueRepresentation):
             sage: KoszulComplex(R, [x,y,z])
             Koszul complex defined by (x, y, z) over
              Multivariate Polynomial Ring in x, y, z over Rational Field
+
+            sage: KoszulComplex(ZZ, [])
+            Trivial Koszul complex over Integer Ring
         """
+        if not self._elements:
+            return "Trivial Koszul complex over {}".format(self.base_ring())
         return "Koszul complex defined by {} over {}".format(self._elements, self.base_ring())
 

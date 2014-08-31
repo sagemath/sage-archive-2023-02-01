@@ -1667,9 +1667,10 @@ class ChainComplex_class(Parent):
         Return the direct sum (Cartesian product) of ``self`` with ``D``.
 
         Let `C` and `D` be two chain complexes with differentials
-        `\partial_C` and `\partial_D` respectively. The direct sum
-        `S = C \oplus D` is a chain complex given by `S_i = C_i \oplus D_i`
-        with differential `\partial = \partial_C \oplus \partial_D`.
+        `\partial_C` and `\partial_D`, respectively, of the same degree.
+        The direct sum `S = C \oplus D` is a chain complex given by
+        `S_i = C_i \oplus D_i` with differential
+        `\partial = \partial_C \oplus \partial_D`.
 
         INPUT:
 
@@ -1698,6 +1699,15 @@ class ChainComplex_class(Parent):
                         [y]                     [    0     0 x - y]       [ 0]
              0 <-- C_5 <---- C_4 <-- 0 <-- C_2 <-------------------- C_1 <----- C_0 <-- 0
 
+        The degrees of the differentials must agree::
+
+            sage: C = ChainComplex({1:matrix([[x]])}, degree_of_differential=-1)
+            sage: D = ChainComplex({1:matrix([[x]])}, degree_of_differential=1)
+            sage: C.cartesian_product(D)
+            Traceback (most recent call last):
+            ...
+            ValueError: the degrees of the differentials must match
+
         TESTS::
 
             sage: C = ChainComplex({2:matrix([[-1],[2]]), 1:matrix([[2, 1]])},
@@ -1721,6 +1731,13 @@ class ChainComplex_class(Parent):
                         [0 y 0]
                         [0 0 z]
              0 <-- C_2 <-------- C_1 <-- 0
+            sage: ascii_art(C1.cartesian_product([C2, C3], subdivide=True))
+                        [x|0|0]
+                        [-+-+-]
+                        [0|y|0]
+                        [-+-+-]
+                        [0|0|z]
+             0 <-- C_2 <-------- C_1 <-- 0
         """
         if not factors:
             return self
@@ -1730,31 +1747,26 @@ class ChainComplex_class(Parent):
         if any(D.degree_of_differential() != deg_diff for D in factors):
             raise ValueError("the degrees of the differentials must match")
 
+        factors = [self] + list(factors)
         R = self.base_ring()
-        zero = R.zero()
+        zero = matrix(R, [])
         subdivide = kwds.get('subdivide', False)
         ret = self
 
-        for D in factors:
-            d = ret.differential()
-            dD = D.differential()
-
-            keys = set(d.keys()).union(dD.keys())
-            zero = matrix(R, [])
-            diff = {k: matrix.block_diagonal(d.get(k, zero), dD.get(k, zero),
-                                             subdivide=subdivide)
-                    for k in keys}
-            ret = ChainComplex(diff, degree_of_differential=deg_diff)
-
-        return ret
+        diffs = [D.differential() for D in factors]
+        keys = reduce(lambda X,d: X.union(d.keys()), diffs, set())
+        ret = {k: matrix.block_diagonal([d.get(k, zero) for d in diffs],
+                                         subdivide=subdivide)
+               for k in keys}
+        return ChainComplex(ret, degree_of_differential=deg_diff)
 
     def tensor(self, *factors, **kwds):
         r"""
         Return the tensor product of ``self`` with ``D``.
 
         Let `C` and `D` be two chain complexes with differentials
-        `\partial_C` and `\partial_D` respectively. The tensor product
-        `S = C \otimes D` is a chain complex given by
+        `\partial_C` and `\partial_D`, respectively, of the same degree.
+        The tensor product `S = C \otimes D` is a chain complex given by
 
         .. MATH::
 
@@ -1773,6 +1785,10 @@ class ChainComplex_class(Parent):
 
         - ``subdivide`` -- (default: ``False``) whether to subdivide the
           the differential matrices
+
+        .. TODO::
+
+            Make subdivision work correctly on multiple factors.
 
         EXAMPLES::
 
@@ -1817,6 +1833,14 @@ class ChainComplex_class(Parent):
             [ x]
             [-y]
             [ x]
+
+        The degrees of the differentials must agree::
+
+            sage: C1p = ChainComplex({1:matrix([[x]])}, degree_of_differential=1)
+            sage: C1.tensor(C1p)
+            Traceback (most recent call last):
+            ...
+            ValueError: the degrees of the differentials must match
 
         TESTS::
 

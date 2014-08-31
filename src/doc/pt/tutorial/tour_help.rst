@@ -111,15 +111,15 @@ pontos após a lista de nomes das variáveis. Por exemplo:
 ::
 
     sage: def is_even(n):
-    ...       return n%2 == 0
-    ...
+    ....:     return n % 2 == 0
+    ....:
     sage: is_even(2)
     True
     sage: is_even(3)
     False
 
 Observação: Dependendo da versão do tutorial que você está lendo,
-você pode ver três pontos ``...`` na segunda linha desse exemplo. Não
+você pode ver três pontos ``....:`` na segunda linha desse exemplo. Não
 digite esses pontos; eles são apenas para enfatizar que o código está
 tabulado. Se for esse o caso, pressione [Enter] uma vez após o fim do
 bloco de código para inserir uma linha em branco e concluir a
@@ -133,7 +133,7 @@ padrão ``divisor=2`` se ``divisor`` não é especificado.
 ::
 
     sage: def is_divisible_by(number, divisor=2):
-    ...       return number%divisor == 0
+    ....:     return number%divisor == 0
     sage: is_divisible_by(6,2)
     True
     sage: is_divisible_by(6)
@@ -166,11 +166,11 @@ inicia o seu bloco de código.
 ::
 
     sage: def even(n):
-    ...       v = []
-    ...       for i in range(3,n):
-    ...           if i % 2 == 0:
-    ...               v.append(i)
-    ...      return v
+    ....:     v = []
+    ....:     for i in range(3,n):
+    ....:         if i % 2 == 0:
+    ....:             v.append(i)
+    ....:    return v
     Syntax Error:
            return v
 
@@ -179,11 +179,11 @@ Se você corrigir a tabulação, a função fica correta:
 ::
 
     sage: def even(n):
-    ...       v = []
-    ...       for i in range(3,n):
-    ...           if i % 2 == 0:
-    ...               v.append(i)
-    ...       return v
+    ....:     v = []
+    ....:     for i in range(3,n):
+    ....:         if i % 2 == 0:
+    ....:             v.append(i)
+    ....:     return v
     sage: even(10)
     [4, 6, 8]
 
@@ -202,7 +202,7 @@ uma linha, use a barra invertida para quebrar a linha:
 ::
 
     sage: 2 + \
-    ...      3
+    ....:    3
     5
 
 Em Sage, a contagem é feita iterando sobre um intervalo de inteiros.
@@ -212,7 +212,7 @@ i++)`` em C++ ou Java:
 ::
 
     sage: for i in range(3):
-    ...       print i
+    ....:     print i
     0
     1
     2
@@ -222,7 +222,7 @@ A primeira linha abaixo é equivalente a ``for(i=2; i<5; i++)``.
 ::
 
     sage: for i in range(2,5):
-    ...       print i
+    ....:     print i
     2
     3
     4
@@ -233,7 +233,7 @@ a ``for(i=1; i<6; i+=2)``.
 ::
 
     sage: for i in range(1,6,2):
-    ...       print i
+    ....:     print i
     1
     3
     5
@@ -247,7 +247,7 @@ alguns números.
 ::
 
     sage: for i in range(5):
-    ...       print '%6s %6s %6s'%(i, i^2, i^3)
+    ....:     print '%6s %6s %6s'%(i, i^2, i^3)
          0      0      0
          1      1      1
          2      4      8
@@ -321,11 +321,11 @@ pares positivos até *n*; essa classe é derivada do tipo ``list``.
 ::
 
     sage: class Evens(list):
-    ...       def __init__(self, n):
-    ...           self.n = n
-    ...           list.__init__(self, range(2, n+1, 2))
-    ...       def __repr__(self):
-    ...           return "Even positive numbers up to n."
+    ....:     def __init__(self, n):
+    ....:         self.n = n
+    ....:         list.__init__(self, range(2, n+1, 2))
+    ....:     def __repr__(self):
+    ....:         return "Even positive numbers up to n."
 
 O método ``__init__`` é evocado para inicializar o objeto quando ele é
 criado; o método ``__repr__`` imprime o objeto. Nós evocamos o

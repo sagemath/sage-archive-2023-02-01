@@ -1,5 +1,6 @@
 r"""
 Interface to QEPCAD
+===================
 
 The basic function of QEPCAD is to construct cylindrical algebraic
 decompositions (CADs) of $\RR^k$, given a list of polynomials.  Using

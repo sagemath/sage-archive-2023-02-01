@@ -11,3 +11,6 @@ from examples import simplicial_complexes
 from delta_complex import DeltaComplex, delta_complexes
 
 from cubical_complex import CubicalComplex, cubical_complexes
+
+from sage.homology.koszul_complex import KoszulComplex
+

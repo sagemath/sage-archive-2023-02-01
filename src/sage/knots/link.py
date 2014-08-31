@@ -37,15 +37,14 @@ class Link:
 
       EXAMPLES::
 
-          sage: from sage.knots import link
           sage: B = BraidGroup(8)
-          sage: L = link.Link(B([1, 2, 1, -2,-1]))
+          sage: L = Link(B([1, 2, 1, -2,-1]))
           sage: L
           Link with 2 components represented by 5 crossings
-          sage: L = link.Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+          sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
           sage: L
           Knot represented by 7 crossings
-          sage: L = link.Link([[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]])
+          sage: L = Link([[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]])
           sage: L
           Link with 2 components represented by 5 crossings
     """
@@ -62,12 +61,11 @@ class Link:
 
         Generators of the braid group are used to generate the link.
 
-            sage: from sage.knots import link
             sage: B = BraidGroup(8)
-            sage: L = link.Link(B([-1, -1, -1, -2,1, -2,3,-2,3]))
+            sage: L = Link(B([-1, -1, -1, -2,1, -2,3,-2,3]))
             sage: L
             Knot represented by 9 crossings
-            sage: L = link.Link(B([1, 2,1, -2,-1]))
+            sage: L = Link(B([1, 2,1, -2,-1]))
             sage: L
             Link with 2 components represented by 5 crossings
 
@@ -86,13 +84,12 @@ class Link:
         leaving under-cross is clockwise.
 
             # for knots there is only a single component so the input is as follows
-            sage: from sage.knots import link
-            sage: L = link.Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1,-1,-1,-1,+1,+1,-1,+1]])
+            sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1,-1,-1,-1,+1,+1,-1,+1]])
             sage: L
             Knot represented by 8 crossings
 
             # for links there is more than one component and the input is as follows
-            sage: L = link.Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
+            sage: L = Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
             sage: L
             Link with 3 components represented by 4 crossings
 
@@ -110,13 +107,12 @@ class Link:
             # there is no particular distinction between knots and links for this input
 
             # One of the representations of the Trefoil knot
-            sage: from sage.knots import link
-            sage: L = link.Link([[1,5,2,4],[5,3,6,2],[3,1,4,6]])
+            sage: L = Link([[1,5,2,4],[5,3,6,2],[3,1,4,6]])
             sage: L
             Knot represented by 3 crossings
 
             # One of the representations of the Hopf link
-            sage: L = link.Link([[1,4,2,3],[4,1,3,2]])
+            sage: L = Link([[1,4,2,3],[4,1,3,2]])
             sage: L
             Link with 2 components represented by 2 crossings
         """
@@ -179,15 +175,14 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
             sage: B = BraidGroup(8)
-            sage: L = link.Link(B([1, 2, 1, 2]))
+            sage: L = Link(B([1, 2, 1, 2]))
             sage: L
             Knot represented by 4 crossings
-            sage: L = link.Link([[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
+            sage: L = Link([[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
             sage: L
             Knot represented by 7 crossings
-            sage: L = link.Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
+            sage: L = Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
             sage: L
             Link with 3 components represented by 4 crossings
         """
@@ -208,14 +203,13 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
-            sage: L = link.Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1,-1,-1,-1,+1,+1,-1,+1]])
+            sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1,-1,-1,-1,+1,+1,-1,+1]])
             sage: L.braidword()
             (-1, 2, -1, -2, -2, 1, 1, -2)
-            sage: L = link.Link([[1,4,2,3],[4,1,3,2]])
+            sage: L = Link([[1,4,2,3],[4,1,3,2]])
             sage: L.braidword()
             (-1, -1)
-            sage: L = link.Link([[[1, -2, 3, -4], [-1, 5, -3, 2, -5, 4]], [-1, 1, 1, -1, -1]])
+            sage: L = Link([[[1, -2, 3, -4], [-1, 5, -3, 2, -5, 4]], [-1, 1, 1, -1, -1]])
             sage: L.braidword()
             (1, -2, 1, -2, -2)
         """
@@ -230,14 +224,13 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
-            sage: L = link.Link([[2,3,1,4],[4,1,3,2]])
+            sage: L = Link([[2,3,1,4],[4,1,3,2]])
             sage: L.braid()
             s^2
-            sage: L = link.Link([[[-1, 2, -3, 1, -2, 3]], [-1, -1, -1]])
+            sage: L = Link([[[-1, 2, -3, 1, -2, 3]], [-1, -1, -1]])
             sage: L.braid()
             s^-3
-            sage: L = link.Link([[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]])
+            sage: L = Link([[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]])
             sage: L.braid()
             (s0*s1^-1)^2*s1^-1
         """
@@ -279,16 +272,15 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
-            sage: L = link.Link([[1,11,2,10],[6,2,7,3],[3,12,4,9],[9,5,10,6],[8,1,5,4],[11,8,12,7]])
+            sage: L = Link([[1,11,2,10],[6,2,7,3],[3,12,4,9],[9,5,10,6],[8,1,5,4],[11,8,12,7]])
             sage: L.oriented_gauss_code()
             [[[-1, 2, -3, 5], [4, -2, 6, -5], [-4, 1, -6, 3]], [-1, 1, 1, 1, -1, -1]]
-            sage: L = link.Link([[1,4,2,3],[6,1,3,2],[7,4,8,5],[5,8,6,7]])
+            sage: L = Link([[1,4,2,3],[6,1,3,2],[7,4,8,5],[5,8,6,7]])
             sage: L.oriented_gauss_code()
             [[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]]
             sage: B = BraidGroup(8)
             sage: b=B([1,1,1,1,1])
-            sage: L = link.Link(b)
+            sage: L = Link(b)
             sage: L.oriented_gauss_code()
             [[[1, -2, 3, -4, 5, -1, 2, -3, 4, -5]], [1, 1, 1, 1, 1]]
         """
@@ -353,16 +345,15 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
-            sage: L = link.Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1,1,-1,-1]])
+            sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1,1,-1,-1]])
             sage: L.PD_code()
             [[6, 1, 7, 2], [2, 5, 3, 6], [8, 4, 1, 3], [4, 8, 5, 7]]
             sage: B = BraidGroup(2)
             sage: b=B([1,1,1,1,1])
-            sage: L = link.Link(b)
+            sage: L = Link(b)
             sage: L.PD_code()
             [[2, 1, 3, 4], [4, 3, 5, 6], [6, 5, 7, 8], [8, 7, 9, 10], [10, 9, 1, 2]]
-            sage: L = link.Link([[[2, -1], [1, -2]], [1, 1]])
+            sage: L = Link([[[2, -1], [1, -2]], [1, 1]])
             sage: L.PD_code()
             [[2, 3, 1, 4], [4, 1, 3, 2]]
         """
@@ -472,15 +463,14 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
-            sage: L = link.Link([[1,4,2,3],[4,1,3,2]])
+            sage: L = Link([[1,4,2,3],[4,1,3,2]])
             sage: L.gauss_code()
             [[-1, 2], [1, -2]]
             sage: B = BraidGroup(8)
-            sage: L = link.Link(B([1, -2, 1, -2, -2]))
+            sage: L = Link(B([1, -2, 1, -2, -2]))
             sage: L.gauss_code()
             [[-1, 3, -4, 5], [1, -2, 4, -5, 2, -3]]
-            sage: L = link.Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
+            sage: L = Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
             sage: L.gauss_code()
             [[-1, 2], [-3, 4], [1, 3, -4, -2]]
         """
@@ -504,15 +494,14 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
-            sage: L = link.Link([[1,5,2,4],[5,3,6,2],[3,1,4,6]])
+            sage: L = Link([[1,5,2,4],[5,3,6,2],[3,1,4,6]])
             sage: L.dt_code()
             [4, 6, 2]
             sage: B = BraidGroup(4)
-            sage: L = link.Link(B([1, 2, 1, 2]))
+            sage: L = Link(B([1, 2, 1, 2]))
             sage: L.dt_code()
             [4, -6, 8, -2]
-            sage: L = link.Link([[[1, -2, 3, -4, 5, -1, 2, -3, 4, -5]], [1, 1, 1, 1, 1]])
+            sage: L = Link([[[1, -2, 3, -4, 5, -1, 2, -3, 4, -5]], [1, 1, 1, 1, 1]])
             sage: L.dt_code()
             [6, 8, 10, 2, 4]
         """
@@ -584,15 +573,14 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
-            sage: L = link.Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
             sage: L._dowker_notation_()
             [(1, 6), (7, 2), (3, 10), (11, 4), (14, 5), (13, 8), (12, 9)]
             sage: B = BraidGroup(4)
-            sage: L = link.Link(B([1, 2, 1, 2]))
+            sage: L = Link(B([1, 2, 1, 2]))
             sage: L._dowker_notation_()
             [(2, 1), (3, 5), (6, 4), (7, 9)]
-            sage: L = link.Link([[1,4,2,3],[4,1,3,2]])
+            sage: L = Link([[1,4,2,3],[4,1,3,2]])
             sage: L._dowker_notation_()
             [(1, 3), (4, 2)]
         """
@@ -616,16 +604,15 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
             sage: B = BraidGroup(4)
-            sage: L = link.Link(B([-1, 3, 1, 3]))
+            sage: L = Link(B([-1, 3, 1, 3]))
             sage: L._braidwordcomponents_()
             [[-1, 1], [3, 3]]
             sage: B = BraidGroup(8)
-            sage: L = link.Link(B([-1, 3, 1, 5, 1, 7, 1, 6]))
+            sage: L = Link(B([-1, 3, 1, 5, 1, 7, 1, 6]))
             sage: L._braidwordcomponents_()
             [[-1, 1, 1, 1], [3], [5, 7, 6]]
-            sage: L = link.Link(B([-2, 4, 1, 6, 1, 4]))
+            sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
             sage: L._braidwordcomponents_()
             [[-2, 1, 1], [4, 4], [6]]
         """
@@ -661,16 +648,15 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
             sage: B = BraidGroup(4)
-            sage: L = link.Link(B([-1, 3, 1, 3]))
+            sage: L = Link(B([-1, 3, 1, 3]))
             sage: L._braidwordcomponentsvector_()
             [-1, 1, 3, 3]
             sage: B = BraidGroup(8)
-            sage: L = link.Link(B([-1, 3, 1, 5, 1, 7, 1, 6]))
+            sage: L = Link(B([-1, 3, 1, 5, 1, 7, 1, 6]))
             sage: L._braidwordcomponentsvector_()
             [-1, 1, 1, 1, 3, 5, 7, 6]
-            sage: L = link.Link(B([-2, 4, 1, 6, 1, 4]))
+            sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
             sage: L._braidwordcomponentsvector_()
             [-2, 1, 1, 4, 4, 6]
         """
@@ -689,16 +675,15 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
             sage: B = BraidGroup(4)
-            sage: L = link.Link(B([-1, 3, 1, 3]))
+            sage: L = Link(B([-1, 3, 1, 3]))
             sage: L._homology_generators_()
             [1, 0, 3]
             sage: B = BraidGroup(8)
-            sage: L = link.Link(B([-1, 3, 1, 5, 1, 7, 1, 6]))
+            sage: L = Link(B([-1, 3, 1, 5, 1, 7, 1, 6]))
             sage: L._homology_generators_()
             [1, 2, 3, 0, 0, 0, 0]
-            sage: L = link.Link(B([-2, 4, 1, 6, 1, 4]))
+            sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
             sage: L._homology_generators_()
             [0, 2, 0, 4, 0]
         """
@@ -724,19 +709,18 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
             sage: B = BraidGroup(4)
-            sage: L = link.Link(B([-1, 3, 1, 3]))
+            sage: L = Link(B([-1, 3, 1, 3]))
             sage: L.Seifert_Matrix()
             [ 0  0]
             [ 0 -1]
             sage: B = BraidGroup(8)
-            sage: L = link.Link(B([-1, 3, 1, 5, 1, 7, 1, 6]))
+            sage: L = Link(B([-1, 3, 1, 5, 1, 7, 1, 6]))
             sage: L.Seifert_Matrix()
             [ 0  0  0]
             [ 1 -1  0]
             [ 0  1 -1]
-            sage: L = link.Link(B([-2, 4, 1, 6, 1, 4]))
+            sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
             sage: L.Seifert_Matrix()
             [-1  0]
             [ 0 -1]
@@ -796,16 +780,15 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
             sage: B = BraidGroup(4)
-            sage: L = link.Link(B([-1, 3, 1, 3]))
+            sage: L = Link(B([-1, 3, 1, 3]))
             sage: L.ncomponents()
             4
             sage: B = BraidGroup(8)
-            sage: L = link.Link(B([-2, 4, 1, 6, 1, 4]))
+            sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
             sage: L.ncomponents()
             5
-            sage: L = link.Link(B([1, 2, 1, 2]))
+            sage: L = Link(B([1, 2, 1, 2]))
             sage: L.ncomponents()
             1
         """
@@ -822,13 +805,12 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
             sage: B = BraidGroup(4)
-            sage: L = link.Link(B([1,3,1,-3]))
+            sage: L = Link(B([1,3,1,-3]))
             sage: L.is_knot()
             False
             sage: B = BraidGroup(8)
-            sage: L = link.Link(B([1, 2, 3, 4, 5, 6]))
+            sage: L = Link(B([1, 2, 3, 4, 5, 6]))
             sage: L.is_knot()
             True
         """
@@ -846,16 +828,15 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
             sage: B = BraidGroup(4)
-            sage: L = link.Link(B([-1, 3, 1, 3]))
+            sage: L = Link(B([-1, 3, 1, 3]))
             sage: L.genus()
             0
             sage: B = BraidGroup(8)
-            sage: L = link.Link(B([-2, 4, 1, 6, 1, 4]))
+            sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
             sage: L.genus()
             0
-            sage: L = link.Link(B([1, 2, 1, 2]))
+            sage: L = Link(B([1, 2, 1, 2]))
             sage: L.genus()
             1
         """
@@ -904,16 +885,15 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
             sage: B = BraidGroup(4)
-            sage: L = link.Link(B([-1, 3, 1, 3]))
+            sage: L = Link(B([-1, 3, 1, 3]))
             sage: L.signature()
             -1
             sage: B = BraidGroup(8)
-            sage: L = link.Link(B([-2, 4, 1, 6, 1, 4]))
+            sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
             sage: L.signature()
             -2
-            sage: L = link.Link(B([1, 2, 1, 2]))
+            sage: L = Link(B([1, 2, 1, 2]))
             sage: L.signature()
             -2
         """
@@ -939,16 +919,15 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
             sage: B = BraidGroup(4)
-            sage: L = link.Link(B([-1, 3, 1, 3]))
+            sage: L = Link(B([-1, 3, 1, 3]))
             sage: L.alexander_polynomial()
             0
             sage: B = BraidGroup(8)
-            sage: L = link.Link(B([-2, 4, 1, 6, 1, 4]))
+            sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
             sage: L.alexander_polynomial()
             t^-1 - 2 + t
-            sage: L = link.Link(B([1, 2, 1, 2]))
+            sage: L = Link(B([1, 2, 1, 2]))
             sage: L.alexander_polynomial()
             t^-1 - 1 + t
         """
@@ -967,16 +946,15 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
             sage: B = BraidGroup(4)
-            sage: L = link.Link(B([-1, 2, 1, 2]))
+            sage: L = Link(B([-1, 2, 1, 2]))
             sage: L.knot_determinant()
             1
             sage: B = BraidGroup(8)
-            sage: L = link.Link(B([2, 4, 2, 3, 1, 2]))
+            sage: L = Link(B([2, 4, 2, 3, 1, 2]))
             sage: L.knot_determinant()
             3
-            sage: L = link.Link(B([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,2,1,2,2,2,2,2,2,2,1,2,1,2,-1,2,-2]))
+            sage: L = Link(B([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,2,1,2,2,2,2,2,2,2,1,2,1,2,-1,2,-2]))
             sage: L.knot_determinant()
             65
         """
@@ -995,16 +973,15 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
             sage: B = BraidGroup(4)
-            sage: L = link.Link(B([-1, 2, 1, 2]))
+            sage: L = Link(B([-1, 2, 1, 2]))
             sage: L.arf_invariant()
             0
             sage: B = BraidGroup(8)
-            sage: L = link.Link(B([-2, 3, 1, 2, 1, 4]))
+            sage: L = Link(B([-2, 3, 1, 2, 1, 4]))
             sage: L.arf_invariant()
             0
-            sage: L = link.Link(B([1, 2, 1, 2]))
+            sage: L = Link(B([1, 2, 1, 2]))
             sage: L.arf_invariant()
             1
         """
@@ -1031,21 +1008,20 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
             sage: B = BraidGroup(4)
-            sage: L = link.Link(B([-1, -1, -1, -1]))
+            sage: L = Link(B([-1, -1, -1, -1]))
             sage: L.is_alternating()
             False
-            sage: L = link.Link(B([1, -2, -1, 2]))
+            sage: L = Link(B([1, -2, -1, 2]))
             sage: L.is_alternating()
             False
-            sage: L = link.Link(B([-1, 3, 1,3, 2]))
+            sage: L = Link(B([-1, 3, 1,3, 2]))
             sage: L.is_alternating()
             False
-            sage: L = link.Link(B([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,2,1,2,2,2,2,2,2,2,1,2,1,2,-1,2,-2]))
+            sage: L = Link(B([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,2,1,2,2,2,2,2,2,2,1,2,1,2,-1,2,-2]))
             sage: L.is_alternating()
             False
-            sage: L = link.Link(B([-1,2,-1,2]))
+            sage: L = Link(B([-1,2,-1,2]))
             sage: L.is_alternating()
             True
         """
@@ -1089,11 +1065,10 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
-            sage: L = link.Link([[1, 4, 5, 2], [3, 5, 6, 7], [4, 8, 9, 6], [7, 9, 10, 11], [8, 1, 13, 10], [11, 13, 2, 3]])
+            sage: L = Link([[1, 4, 5, 2], [3, 5, 6, 7], [4, 8, 9, 6], [7, 9, 10, 11], [8, 1, 13, 10], [11, 13, 2, 3]])
             sage: L.orientation()
             [-1, 1, -1, 1, -1, 1]
-            sage: L = link.Link([[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
+            sage: L = Link([[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
             sage: L.orientation()
             [-1, -1, -1, -1, 1, -1, 1]
         """
@@ -1149,24 +1124,23 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
-            sage: L = link.Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
+            sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
             sage: L.seifert_circles()
             [[6, 2], [8, 4], [7, 5, 3, 1]]
-            sage: L = link.Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
+            sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
             sage: L.seifert_circles()
             [[10, 6, 12, 2], [16, 8, 14, 4], [13, 9, 3, 15, 5, 11, 7, 1]]
-            sage: L = link.Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1,-1,-1,-1,1,-1,1]])
+            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1,-1,-1,-1,1,-1,1]])
             sage: L.seifert_circles()
             [[13, 9], [12, 10, 4], [8, 14, 6, 2], [7, 3, 11, 5, 1]]
-            sage: L = link.Link([[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
+            sage: L = Link([[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
             sage: L.seifert_circles()
             [[13, 9], [12, 10, 4], [8, 14, 6, 2], [7, 3, 11, 5, 1]]
-            sage: L = link.Link([[[-1, 2, -3, 5], [4, -2, 6, -5], [-4, 1, -6, 3]], [-1, 1, 1, 1, -1, -1]])
+            sage: L = Link([[[-1, 2, -3, 5], [4, -2, 6, -5], [-4, 1, -6, 3]], [-1, 1, 1, 1, -1, -1]])
             sage: L.seifert_circles()
             [[11, 8, 1], [9, 6, 3], [7, 12, 4, 5, 10, 2]]
             sage: B = BraidGroup(2)
-            sage: L = link.Link(B([1, 1, 1]))
+            sage: L = Link(B([1, 1, 1]))
             sage: L.seifert_circles()
             [[3, 5, 1], [4, 6, 2]]
         """
@@ -1214,21 +1188,20 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
-            sage: L = link.Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
             sage: L.regions()
             [[4, -11], [2, -7], [6, -1], [13, 9], [-4, -10, -12], [-8, -2, -6, -14], [10, -3, 8, -13], [14, -5, 12, -9], [7, 3, 11, 5, 1]]
-            sage: L = link.Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
+            sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
             sage: L.regions()
             [[-2, -6], [8, 4], [5, 3, -8], [2, -5, -7], [1, 7, -4], [6, -1, -3]]
-            sage: L = link.Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
+            sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
             sage: L.regions()
             [[6, -11], [15, -4], [9, 3, -14], [2, -9, -13], [1, 13, -8], [12, -1, -7], [5, 11, 7, -16], [-3, 10, -5, -15], [-6, -10, -2, -12], [16, 8, 14, 4]]
             sage: B = BraidGroup(2)
-            sage: L = link.Link(B([-1, -1, -1]))
+            sage: L = Link(B([-1, -1, -1]))
             sage: L.regions()
             [[6, -5], [4, -3], [2, -1], [-4, -2, -6], [3, 5, 1]]
-            sage: L = link.Link([[[1, -2, 3, -4], [-1, 5, -3, 2, -5, 4]], [-1, 1, 1, -1, -1]])
+            sage: L = Link([[[1, -2, 3, -4], [-1, 5, -3, 2, -5, 4]], [-1, 1, 1, -1, -1]])
             sage: L.regions()
             [[1, -5], [8, 3], [-6, -1, -10], [-2, 6, -9], [10, -4, -7], [9, 7, -3], [4, 5, 2, -8]]
         """
@@ -1300,23 +1273,22 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
-            sage: L = link.Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
+            sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
             sage: L._vogel_move_()
             'No Vogel Move'
-            sage: L = link.Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
+            sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
             sage: L._vogel_move_()
             'No Vogel Move'
-            sage: L = link.Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
             sage: L._vogel_move_()
             [[1, 7, 2, 6], [7, 3, 8, 2], [16, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [18, 9, 14, 8], [12, 9, 13, 10], [13, 15, 17, 16], [17, 15, 18, 3]]
-            sage: L = link.Link([[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
+            sage: L = Link([[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
             sage: L._vogel_move_()
             [[1, 7, 2, 6], [7, 3, 8, 2], [16, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [18, 9, 14, 8], [12, 9, 13, 10], [13, 15, 17, 16], [17, 15, 18, 3]]
-            sage: L = link.Link([[1,4,2,3],[6,1,3,2],[7,4,8,5],[5,8,6,7]])
+            sage: L = Link([[1,4,2,3],[6,1,3,2],[7,4,8,5],[5,8,6,7]])
             sage: L._vogel_move_()
             [[1, 4, 2, 3], [6, 1, 3, 10], [12, 4, 8, 5], [5, 8, 6, 7], [7, 10, 11, 9], [11, 2, 12, 9]]
-            sage: L = link.Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
+            sage: L = Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
             sage: L._vogel_move_()
             [[1, 6, 2, 5], [8, 1, 5, 10], [12, 6, 4, 7], [7, 4, 8, 3], [3, 10, 11, 9], [11, 2, 12, 9]]
         """
@@ -1443,26 +1415,25 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
-            sage: L = link.Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
+            sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
             sage: L._info_all_moves_()
             [[[6, 2], [8, 4], [7, 5, 3, 1]],
             [[-2, -6], [8, 4], [5, 3, -8], [2, -5, -7], [1, 7, -4], [6, -1, -3]],
             [[6, 1, 7, 2], [2, 5, 3, 6], [8, 4, 1, 3], [4, 8, 5, 7]],
             [1, 1, -1, -1]]
-            sage: L = link.Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
+            sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
             sage: L._info_all_moves_()
             [[[10, 6, 12, 2], [16, 8, 14, 4], [13, 9, 3, 15, 5, 11, 7, 1]],
             [[6, -11], [15, -4], [9, 3, -14], [2, -9, -13], [1, 13, -8], [12, -1, -7], [5, 11, 7, -16], [-3, 10, -5, -15], [-6, -10, -2, -12], [16, 8, 14, 4]],
             [[1, 13, 2, 12], [9, 3, 10, 2], [14, 4, 15, 3], [4, 16, 5, 15], [10, 5, 11, 6], [6, 11, 7, 12], [16, 8, 1, 7], [13, 8, 14, 9]],
             [-1, -1, -1, -1, 1, 1, -1, 1]]
-            sage: L = link.Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
             sage: L._info_all_moves_()
             [[[17, 15], [21, 19], [7, 3, 18, 9, 13, 16, 11, 5, 1], [8, 14, 20, 10, 4, 12, 22, 6, 2]],
             [[-19, -21], [4, -11], [2, -7], [6, -1], [17, 15], [-3, 8, -18], [-13, 10, -16], [14, 20, -9], [12, 22, -5], [18, 9, 13, -15], [21, -12, -4, -10, -20], [19, -14, -8, -2, -6, -22], [16, 11, 5, 1, 7, 3, -17]],
             [[1, 7, 2, 6], [7, 3, 8, 2], [16, 11, 4, 10], [11, 5, 12, 4], [22, 5, 1, 6], [18, 9, 14, 8], [20, 9, 13, 10], [13, 15, 17, 16], [17, 15, 18, 3], [14, 20, 21, 19], [21, 12, 22, 19]],
             [-1, -1, -1, -1, 1, -1, 1, 1, -1, -1, 1]]
-            sage: L = link.Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
+            sage: L = Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
             sage: L._info_all_moves_()
             [[[11, 9], [6, 4, 8, 1], [12, 7, 3, 10, 5, 2]],
             [[-9, -11], [7, -4], [5, -1], [3, 10, -8], [2, 12, -6], [9, -3, -7, -12], [11, -2, -5, -10], [6, 4, 8, 1]],
@@ -1497,24 +1468,23 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
-            sage: L = link.Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
+            sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
             sage: L._braidword_detection_()
             [1, -2, 1, -2]
-            sage: L = link.Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
             sage: L._braidword_detection_()
             [1, -2, -2, 3, 2, -2, -2, -1, -2, -3, 2]
-            sage: L = link.Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
+            sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
             sage: L._braidword_detection_()
             [-1, 2, -1, -2, -2, 1, 1, -2]
-            sage: L = link.Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
+            sage: L = Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
             sage: L._braidword_detection_()
             [-1, -2, -2, 1, 2, 2]
             sage: B = BraidGroup(8)
-            sage: L = link.Link(B([1,1]))
+            sage: L = Link(B([1,1]))
             sage: L._braidword_detection_()
             [1, 1]
-            sage: L = link.Link(B([1, 2, 1, -2, -1]))
+            sage: L = Link(B([1, 2, 1, -2, -1]))
             sage: L._braidword_detection_()
             [1, 2, -1, -2, 2]
         """
@@ -1650,14 +1620,13 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
-            sage: L = link.Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
+            sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
             sage: L.writhe()
             0
-            sage: L = link.Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
             sage: L.writhe()
             -3
-            sage: L = link.Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
+            sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
             sage: L.writhe()
             -2
         """
@@ -1686,19 +1655,18 @@ class Link:
 
         EXAMPLES::
 
-            sage: from sage.knots import link
-            sage: L = link.Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
+            sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
             sage: L.jones_polynomial()
             q^2 - q - 1/q + 1/q^2 + 1
-            sage: L = link.Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
             sage: L.jones_polynomial()
             1/q + 1/q^3 - 1/q^4
             sage: l1 = [[1,4,2,3],[4,1,3,2]]
-            sage: L = link.Link(l1)
+            sage: L = Link(l1)
             sage: L.jones_polynomial()
             -1/sqrt(q) - 1/q^(5/2)
             sage: l5 = [[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]]
-            sage: L = link.Link(l5)
+            sage: L = Link(l5)
             sage: L.jones_polynomial()
             -q^(3/2) + sqrt(q) - 2/sqrt(q) + 1/q^(3/2) - 2/q^(5/2) + 1/q^(7/2)
         """

@@ -12,7 +12,7 @@ disjoint cells, for each $j$ in $0 \leq j \leq k$.  The sign of each
 polynomial in $A$ is constant in each cell of $\RR^k$, and for each
 cell in $\RR^j$ ($j > 1$), the projection of that cell into
 $\RR^{j-1}$ is a cell of $\RR^{j-1}$.  (This property makes the
-decomposition ``cylindrical''.)
+decomposition 'cylindrical'.)
 
 Given a formula $\exists x. P(a,b,x) = 0$ (for a polynomial $P$), and
 a cylindrical algebraic decomposition for $P$, we can eliminate the
@@ -80,10 +80,10 @@ How about the projection onto the $y$ axis? ::
     sage: qepcad(qf.exists(x, ellipse == 0))   # optional - qepcad
     8 y^2 + 16 y - 85 <= 0
 
-QEPCAD deals with more quantifiers than just ``exists'', of course.
-Besides the standard ``forall'', there are also ``for infinitely
-many'', ``for all but finitely many'', ``for a connected subset'', and
-``for exactly $k$''.  The \function{qepcad} documentation has examples
+QEPCAD deals with more quantifiers than just 'exists', of course.
+Besides the standard 'forall', there are also 'for infinitely
+many', 'for all but finitely many', 'for a connected subset', and
+'for exactly k'.  The \function{qepcad} documentation has examples
 of all of these; here we'll just give one example.
 
 First we construct a circle::
@@ -285,13 +285,13 @@ for this interface.)
 
 The execution of QEPCAD is divided into four phases; most commands are
 not available during all phases.  We saw above that QEPCAD starts out
-in phase `Before Normalization'; we see that the \code{d_cell} command
+in phase 'Before Normalization'; we see that the \code{d_cell} command
 is not available in this phase::
 
     sage: qe.d_cell()                                                         # optional - qepcad
     Error GETCID: This command is not active here.
 
-We will focus here on the fourth (and last) phase, `Before Solution',
+We will focus here on the fourth (and last) phase, 'Before Solution',
 because this interface has special support for some operations in this
 phase.  Consult the QEPCAD documentation for information on the other
 phases.
@@ -302,16 +302,16 @@ command, which partially completes a phase for phases that have
 multiple steps, and the \code{finish} command, which runs QEPCAD to
 completion.) ::
 
-    sage: qe.go()                                                             # optional - qepcad
+    sage: qe.go()                                        # optional - qepcad
     QEPCAD object has moved to phase 'Before Projection (x)'
-    sage: qe.go()                                                             # optional - qepcad
+    sage: qe.go()                                        # optional - qepcad
     QEPCAD object has moved to phase 'Before Choice'
-    sage: qe.go()                                                             # optional - qepcad
+    sage: qe.go()                                        # optional - qepcad
     QEPCAD object has moved to phase 'Before Solution'
 
 Note that the \class{Qepcad} object returns the new phase whenever the
 phase changes, as a convenience for interactive use; except that when
-the new phase is `EXITED', the solution formula printed by QEPCAD is
+the new phase is 'EXITED', the solution formula printed by QEPCAD is
 returned instead. ::
 
     sage: qe.go()                                                             # optional - qepcad
@@ -329,8 +329,8 @@ resulting \var{qe} object. ::
     QEPCAD object has moved to phase 'Before Choice'
     QEPCAD object has moved to phase 'Before Solution'
 
-We said before that QEPCAD creates ``cylindrical algebraic
-decompositions''; since we have a bivariate polynomial, we get
+We said before that QEPCAD creates 'cylindrical algebraic
+decompositions'; since we have a bivariate polynomial, we get
 decompositions of $\RR^0$, $\RR^1$, and $\RR^2$.  In this case, where
 our example is a circle of radius $\sqrt{3}$ centered on the origin,
 these decompositions are as follows:
@@ -350,7 +350,7 @@ the circle, the upper semicircle, and above the circle.
 QEPCAD (and this QEPCAD interface) number the cells in a stack
 starting with 1.  Each cell has an \emph{index}, which is a tuple of
 integers describing the path to the cell in the tree of all cells.
-For example, the cell ``below the circle'' has index (3,1) (the first
+For example, the cell 'below the circle' has index (3,1) (the first
 cell in the stack over the third cell of $\RR^1$) and the interior of
 the circle has index (3,3).
 
@@ -476,7 +476,7 @@ Now we want to find all cells $c$ in the decomposition of $\RR^1$ such
 that the stack over $c$ contains exactly two cells on the ellipse, and
 also contains exactly two cells on the circle.
 
-Our input polynomials are ``level-2 projection factors'', we see::
+Our input polynomials are 'level-2 projection factors', we see::
 
     sage: qe.d_proj_factors()                                                 # optional - qepcad
     P_1,1  = fac(J_1,1) = fac(dis(A_2,1))
@@ -649,6 +649,7 @@ def _update_command_info():
 # Qepcad_expect is a subclass of Expect, and is never seen by the user;
 # Qepcad is a wrapper for Qepcad_expect, and is what the user interacts with.
 
+
 class Qepcad_expect(Expect):
     r"""
     The low-level wrapper for QEPCAD.
@@ -681,6 +682,7 @@ class Qepcad_expect(Expect):
                         restart_on_ctrlc=False,
                         verbose_start=False,
                         logfile=logfile)
+
 
 class Qepcad:
     r"""
@@ -1205,6 +1207,7 @@ def _format_cell_index(a):
     else:
         return str(tuple(a))
 
+
 class QepcadFunction(ExpectFunction):
     r"""
     A wrapper for a QEPCAD command.
@@ -1262,7 +1265,7 @@ def qepcad(formula, assume=None, interact=False, solution=None, vars=None, **kwa
     r"""
     Quantifier elimination and formula simplification using QEPCAD B.
 
-    If \var{assume} is specified, then the given formula is ``assumed'',
+    If \var{assume} is specified, then the given formula is 'assumed',
     which is taken into account during final solution formula construction.
 
     If \code{interact=True} is given, then a \class{Qepcad} object is
@@ -1380,7 +1383,7 @@ def qepcad(formula, assume=None, interact=False, solution=None, vars=None, **kwa
         c > 0 \/ a > 0 \/ 4 a c - b^2 < 0
 
     However, since $y >= 0$ is not open, the equivalence does not
-    hold if you replace ``positive'' with ``nonnegative''.
+    hold if you replace 'positive' with 'nonnegative'.
     (We assume $a \neq 0$ to get simpler formulas.) ::
 
         sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c >= 0), assume=(a != 0))    # optional - qepcad
@@ -1517,6 +1520,7 @@ def qepcad_version():
         if 'Version' in line:
             return line.strip()
 
+
 class qformula:
     """
     A qformula holds a string describing a formula in QEPCAD's syntax,
@@ -1557,6 +1561,7 @@ class qformula:
             'x + y = 0'
         """
         return self.formula
+
 
 class qepcad_formula_factory:
     r"""
@@ -1631,8 +1636,8 @@ class qepcad_formula_factory:
 
         OUTPUT:
 
-        form_strs -- a list of formulas as strings
-        vars -- a frozenset of all variables in the formulas
+        - form_strs -- a list of formulas as strings
+        - vars -- a frozenset of all variables in the formulas
 
         EXAMPLES::
 
@@ -1713,7 +1718,7 @@ class qepcad_formula_factory:
           or a list of polynomials, equalities, or inequalities
 
         A polynomial $p$ is interpreted as the equation $p = 0$.
-        A list is interpreted as the conjunction (``and'') of the elements.
+        A list is interpreted as the conjunction ('and') of the elements.
 
         EXAMPLES::
 
@@ -1732,8 +1737,10 @@ class qepcad_formula_factory:
 
     def and_(self, *formulas):
         r"""
-        Returns the conjunction of its input formulas.  (This method would
-        be named ``and'' if that weren't a Python keyword.)
+        Return the conjunction of its input formulas.
+
+        (This method would be named 'and' if that were not a Python
+        keyword.)
 
         Each input formula may be a \class{qformula} as returned by the
         methods of \code{qepcad_formula}, a symbolic equality or
@@ -1756,8 +1763,10 @@ class qepcad_formula_factory:
 
     def or_(self, *formulas):
         r"""
-        Returns the disjunction of its input formulas.  (This method would
-        be named ``or'' if that weren't a Python keyword.)
+        Return the disjunction of its input formulas.
+
+        (This method would be named 'or' if that were not a Python
+        keyword.)
 
         Each input formula may be a \class{qformula} as returned by the
         methods of \code{qepcad_formula}, a symbolic equality or
@@ -1780,8 +1789,10 @@ class qepcad_formula_factory:
 
     def not_(self, formula):
         r"""
-        Returns the negation of its input formula.  (This method would be
-        named ``not'' if that weren't a Python keyword.)
+        Return the negation of its input formula.
+
+        (This method would be named 'not' if that were not a Python
+        keyword.)
 
         The input formula may be a \class{qformula} as returned by the
         methods of \code{qepcad_formula}, a symbolic equality or
@@ -1806,7 +1817,7 @@ class qepcad_formula_factory:
     def implies(self, f1, f2):
         r"""
         Returns the implication of its input formulas (that is, given
-        formulas $P$ and $Q$, returns ``$P$ implies $Q$'').
+        formulas $P$ and $Q$, returns '$P$ implies $Q$').
 
         The input formulas may be a \class{qformula} as returned by the
         methods of \code{qepcad_formula}, a symbolic equality or
@@ -1832,7 +1843,7 @@ class qepcad_formula_factory:
     def iff(self, f1, f2):
         r"""
         Returns the equivalence of its input formulas (that is, given
-        formulas $P$ and $Q$, returns ``$P$ iff $Q$'').
+        formulas $P$ and $Q$, returns '$P$ iff $Q$').
 
         The input formulas may be a \class{qformula} as returned by the
         methods of \code{qepcad_formula}, a symbolic equality or
@@ -1996,7 +2007,7 @@ class qepcad_formula_factory:
 
         (Note that QEPCAD does not support $k=0$ with this syntax, so if
         $k=0$ is requested we implement it with \method{forall} and
-        \method{not_}.)
+        :meth:`not_`.)
 
         The input formula may be a \class{qformula} as returned by the
         methods of \code{qepcad_formula}, a symbolic equality or
@@ -2107,6 +2118,7 @@ def _eval_qepcad_algebraic(text):
             return AA.polynomial_root(p, intv)
 
     raise ValueError("%s or %s not an exact floating-point number"%(lbound, ubound))
+
 
 class QepcadCell:
     r"""
@@ -2416,7 +2428,7 @@ class QepcadCell:
         formula construction.
 
         The argument \var{v} should be either a boolean or \code{None}
-        (which will set the truth value to ``undetermined'').
+        (which will set the truth value to 'undetermined').
 
         EXAMPLES::
 

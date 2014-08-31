@@ -12,10 +12,10 @@ Categories
 Basic enumerated sets
 ---------------------
 
-- :class:`sage.combinat.subset.Subsets`, :class:`sage.combinat.combination.Combinations`
-- :class:`sage.combinat.permutation.Arrangements`, :class:`sage.combinat.tuple.Tuples`
-- :class:`sage.sets.finite_enumerated_set.FiniteEnumeratedSet`
-- :class:`DisjointUnionEnumeratedSets`, :class:`CartesianProduct`
+- :class:`~sage.combinat.subset.Subsets`, :class:`~sage.combinat.combination.Combinations`
+- :class:`~sage.combinat.permutation.Arrangements`, :class:`~sage.combinat.tuple.Tuples`
+- :class:`~sage.sets.finite_enumerated_set.FiniteEnumeratedSet`
+- :class:`~DisjointUnionEnumeratedSets`, :class:`~CartesianProduct`
 
 Integer lists
 -------------
@@ -23,11 +23,11 @@ Integer lists
 - :ref:`sage.combinat.partition`
   (see also: :ref:`sage.combinat.catalog_partitions`)
 - :ref:`sage.combinat.composition`
-- :class:`sage.combinat.composition_signed.SignedCompositions`
+- :class:`~sage.combinat.composition_signed.SignedCompositions`
 
-- :class:`sage.combinat.integer_vector.IntegerVectors`
-- :func:`sage.combinat.integer_vector_weighted.WeightedIntegerVectors`
-- :class:`sage.combinat.integer_vectors_mod_permgroup.IntegerVectorsModPermutationGroup`
+- :class:`~sage.combinat.integer_vector.IntegerVectors`
+- :func:`~sage.combinat.integer_vector_weighted.WeightedIntegerVectors`
+- :class:`~sage.combinat.integer_vectors_mod_permgroup.IntegerVectorsModPermutationGroup`
 
 - :ref:`sage.combinat.parking_functions`
 - :ref:`sage.combinat.non_decreasing_parking_function`
@@ -50,7 +50,7 @@ Permutations, ...
 
 - :ref:`sage.combinat.permutation`
 - :ref:`sage.combinat.affine_permutation`
-- :class:`sage.combinat.permutation.Arrangements`
+- :class:`~sage.combinat.permutation.Arrangements`
 - :ref:`sage.combinat.derangements`
 
 .. SEEALSO::
@@ -87,7 +87,7 @@ Set partitions, ...
 
 - :ref:`sage.combinat.set_partition_ordered`
 - :ref:`sage.combinat.set_partition`
-- :class:`sage.combinat.subsets_pairwise.PairwiseCompatibleSubsets`
+- :class:`~sage.combinat.subsets_pairwise.PairwiseCompatibleSubsets`
 
 Trees
 -----
@@ -111,17 +111,17 @@ Backtracking solvers and generic enumerated sets
     Do we want a separate section, possibly more proeminent, for
     backtracking solvers?
 
-- :class:`sage.combinat.backtrack.GenericBacktracker`
-- :class:`sage.combinat.backtrack.TransitiveIdeal`
-- :class:`sage.combinat.backtrack.TransitiveIdealGraded`
-- :func:`sage.combinat.tools.transitive_ideal`
-- :class:`sage.combinat.backtrack.SearchForest`
+- :class:`~sage.combinat.backtrack.GenericBacktracker`
+- :class:`~sage.combinat.backtrack.TransitiveIdeal`
+- :class:`~sage.combinat.backtrack.TransitiveIdealGraded`
+- :func:`~sage.combinat.tools.transitive_ideal`
+- :class:`~sage.combinat.backtrack.SearchForest`
 - :ref:`sage.combinat.tiling`
 - :ref:`sage.combinat.dlx`
 - :ref:`sage.combinat.matrices.dlxcpp`
 - :ref:`sage.combinat.species`
-- :class:`sage.combinat.integer_list.IntegerListsLex`
-- :class:`sage.combinat.integer_vectors_mod_permgroup.IntegerVectorsModPermutationGroup`
+- :class:`~sage.combinat.integer_list.IntegerListsLex`
+- :class:`~sage.combinat.integer_vectors_mod_permgroup.IntegerVectorsModPermutationGroup`
 
 Low level enumerated sets
 -------------------------
@@ -135,7 +135,7 @@ Low level enumerated sets
 Misc enumerated sets
 --------------------
 
-- :class:`sage.combinat.gelfand_tsetlin_patterns.GelfandTsetlinPattern`, :class:`sage.combinat.gelfand_tsetlin_patterns.GelfandTsetlinPatterns`
-- :class:`sage.combinat.knutson_tao_puzzles.KnutsonTaoPuzzleSolver`
+- :class:`~sage.combinat.gelfand_tsetlin_patterns.GelfandTsetlinPattern`, :class:`~sage.combinat.gelfand_tsetlin_patterns.GelfandTsetlinPatterns`
+- :class:`~sage.combinat.knutson_tao_puzzles.KnutsonTaoPuzzleSolver`
 - :func:`LatticePolytope`
 """

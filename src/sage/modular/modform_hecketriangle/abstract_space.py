@@ -1700,6 +1700,10 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
         """
 
+        # In case the Laurent coefficients don't yet lie in a polynomial ring
+        # (in "d") we try to "rationalize" the series
+        laurent_series = self.rationalize_series(laurent_series)
+
         order_1 = self._canonical_min_exp(0, order_1)[1]
         order_inf = self._l1 - order_1
 
@@ -1952,6 +1956,10 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
         """
 
+        # In case the Laurent coefficients don't yet lie in a polynomial ring
+        # (in "d") we try to "rationalize" the series
+        laurent_series = self.rationalize_series(laurent_series)
+
         min_exp1 = laurent_series.valuation()
         (min_exp, order_1) = self._canonical_min_exp(min_exp1, order_1)
 
@@ -2108,6 +2116,165 @@ class FormsSpace_abstract(FormsRing_abstract):
                 el = self(sum([coord_vector[l] * basis[l] for l in range(0, column_len)]))
 
                 return el
+
+    def rationalize_series(self, laurent_series, coeff_bound = 1e-10):
+        r"""
+        Try to return a Laurent series with coefficients in ``self.coeff_ring()``
+        that matches the given Laurent series.
+
+        We give our best but there is absolutely no guarantee that it will work!
+
+        INPUT:
+
+        - ``laurent_series``  -- A Laurent series. If the Laurent coefficients already
+                                 coerce into ``self.coeff_ring()`` with a formal parameter
+                                 then the Laurent series is returned as is.
+
+                                 Otherwise it is assumed that the series is normalized
+                                 in the sense that the first non-trivial coefficient
+                                 is a power of ``d`` (e.g. ``1``).
+
+        - ``coeff_bound``     -- Either ``None`` resp. ``0`` or a positive real number
+                                 (default: ``1e-10``). If specified ``coeff_bound``
+                                 gives a lower bound for the size of the initial Laurent
+                                 coefficients. If a coefficient is smaller it is
+                                 assumed to be zero.
+
+        OUTPUT:
+
+        A Laurent series over ``self.coeff_ring()`` corresponding to the given Laurent series.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms, ModularForms, QuasiCuspForms
+            sage: WF = WeakModularForms(n=14)
+            sage: qexp = WF.J_inv().q_expansion_fixed_d(d_num_prec=1000)
+            sage: qexp.parent()
+            Laurent Series Ring in q over Real Field with 1000 bits of precision
+            sage: qexp_int = WF.rationalize_series(qexp)
+            sage: qexp_int.add_bigoh(3)
+            d*q^-1 + 37/98 + 2587/(38416*d)*q + 899/(117649*d^2)*q^2 + O(q^3)
+            sage: qexp_int == WF.J_inv().q_expansion()
+            True
+            sage: WF(qexp_int) == WF.J_inv()
+            True
+            sage: WF.rationalize_series(qexp_int) == qexp_int
+            True
+
+            sage: WF.rationalize_series(qexp.parent()(1))
+            1
+            sage: WF.rationalize_series(qexp_int.parent()(1)).parent()
+            Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+
+            sage: MF = ModularForms(n=infinity, k=4)
+            sage: qexp = MF.E4().q_expansion_fixed_d()
+            sage: qexp.parent()
+            Power Series Ring in q over Rational Field
+            sage: qexp_int = MF.rationalize_series(qexp)
+            sage: qexp_int.parent()
+            Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: qexp_int == MF.E4().q_expansion()
+            True
+            sage: MF(qexp_int) == MF.E4()
+            True
+            sage: MF.rationalize_series(qexp_int) == qexp_int
+            True
+
+            sage: QF = QuasiCuspForms(n=8, k=22/3, ep=-1)
+            sage: el = QF(QF.f_inf()*QF.E2())
+            sage: qexp = el.q_expansion_fixed_d(d_num_prec=1000)
+            sage: qexp.parent()
+            Power Series Ring in q over Real Field with 1000 bits of precision
+            sage: qexp_int = QF.rationalize_series(qexp)
+            sage: qexp_int.parent()
+            Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: qexp_int == el.q_expansion()
+            True
+            sage: QF(qexp_int) == el
+            True
+            sage: QF.rationalize_series(qexp_int) == qexp_int
+            True
+        """
+
+        from sage.rings.all import FractionField, PolynomialRing, PowerSeriesRing, prime_range
+        from sage.misc.all import prod
+        from sage.functions.other import factorial
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        from warnings import warn
+
+        base_ring = laurent_series.base_ring()
+
+        # If the coefficients already coerce to our coefficient ring
+        # and are in polynomial form we simply return the laurent series
+        if (is_PolynomialRing(base_ring.base())):
+            if (self.coeff_ring().has_coerce_map_from(base_ring)):
+                return laurent_series
+            else:
+                raise ValueError("The Laurent coefficients don't coerce into the coefficient ring of self!")
+        # Else the case that the Laurent series is exact but the group is non-arithmetic
+        # shouldn't occur (except for trivial cases)
+        elif (base_ring.is_exact() and not self.group().is_arithmetic()):
+            prec = self.default_num_prec()
+            dvalue = self.group().dvalue().n(prec)
+        # For arithmetic groups the coefficients are exact though (so is d)
+        elif (base_ring.is_exact()):
+            prec = self.default_num_prec()
+            dvalue = self.group().dvalue()
+        else:
+            prec = laurent_series.base_ring().prec()
+            dvalue = self.group().dvalue().n(prec)
+
+        d = self.coeff_ring().gen()
+        q = PowerSeriesRing(self.coeff_ring(), "q").gen()
+
+        if (not base_ring.is_exact() and coeff_bound):
+            coeff_bound = base_ring(coeff_bound)
+            num_q = laurent_series.parent().gen()
+            laurent_series = sum([laurent_series[i]*num_q**i for i in range(laurent_series.exponents()[0], laurent_series.exponents()[-1]+1) if laurent_series[i].abs() > coeff_bound])
+
+        first_exp = laurent_series.exponents()[0]
+        first_coeff = laurent_series[first_exp]
+        d_power = (first_coeff.abs().n(prec).log()/dvalue.n(prec).log()).round()
+
+        if (first_coeff < 0):
+            return -self.rationalize_series(-laurent_series, coeff_bound=coeff_bound)
+        elif (first_exp + d_power != 0):
+            cor_factor = dvalue**(-(first_exp + d_power))
+            return d**(first_exp + d_power) * self.rationalize_series(cor_factor * laurent_series, coeff_bound=coeff_bound)
+        else:
+            if (base_ring.is_exact() and self.group().is_arithmetic()):
+                tolerance = 0
+            else:
+                tolerance = 10*ZZ(1).n(prec).ulp()
+
+            if (first_coeff * dvalue**first_exp - ZZ(1)) > tolerance:
+                raise ValueError("The Laurent series is not normalized correctly!")
+
+        def denominator_estimate(m):
+            cor_exp = max(-first_exp, 0)
+            m += cor_exp
+
+            if (self.group().is_arithmetic()):
+                return ZZ(1/dvalue)**m
+
+            hecke_n = self.hecke_n()
+            bad_factors = [fac for fac in factorial(m).factor() if (fac[0] % hecke_n) not in [1, hecke_n-1] and fac[0] > 2]
+            bad_factorial = prod([fac[0]**fac[1] for fac in bad_factors])
+
+            return ZZ(2**(6*m) * hecke_n**(2*m) * prod([ p**m for p in prime_range(m+1) if hecke_n % p == 0 and p > 2 ]) * bad_factorial)**(cor_exp + 1)
+
+        def rationalize_coefficient(coeff, m):
+            # TODO: figure out a correct bound for the required precision
+            if (not self.group().is_arithmetic() and denominator_estimate(m).log(2).n().ceil() > prec):
+                warn("The precision from coefficient m={} on is too low!".format(m))
+
+            int_estimate = denominator_estimate(m) * coeff * dvalue**m
+
+            return int_estimate.round() / denominator_estimate(m) / d**m
+
+        laurent_series = sum([rationalize_coefficient(laurent_series[m], m) * q**m for m in range(first_exp, laurent_series.exponents()[-1] + 1)])
+
+        return laurent_series
 
 
     # DEFAULT METHODS (should be overwritten in concrete classes)

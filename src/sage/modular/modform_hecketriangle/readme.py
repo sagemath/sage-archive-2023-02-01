@@ -549,6 +549,36 @@ All classes and functions are also individually documented (with doctest example
       q^-1 - 203528/7*q^5 + O(q^6)
 
 
+- **Determine exact coefficients from numerical ones**
+  There is some experimental support for replacing numerical coefficients with
+  corresponding exact coefficients. There is however NO guarantee that
+  the procedure will work (and most probably there are cases where it won't).
+
+  EXAMPLES:
+
+     sage: from sage.modular.modform_hecketriangle.space import WeakModularForms, QuasiCuspForms
+     sage: WF = WeakModularForms(n=14)
+     sage: qexp = WF.J_inv().q_expansion_fixed_d(d_num_prec=1000)
+     sage: qexp.parent()
+     Laurent Series Ring in q over Real Field with 1000 bits of precision
+     sage: qexp_int = WF.rationalize_series(qexp)
+     sage: qexp_int.parent()
+     Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+     sage: qexp_int == WF.J_inv().q_expansion()
+     True
+     sage: WF(qexp_int) == WF.J_inv()
+     True
+
+     sage: QF = QuasiCuspForms(n=8, k=22/3, ep=-1)
+     sage: el = QF(QF.f_inf()*QF.E2())
+     sage: qexp = el.q_expansion_fixed_d(d_num_prec=1000)
+     sage: qexp_int = QF.rationalize_series(qexp)
+     sage: qexp_int == el.q_expansion()
+     True
+     sage: QF(qexp_int) == el
+     True
+
+
 
 Future ideas:
 -------------

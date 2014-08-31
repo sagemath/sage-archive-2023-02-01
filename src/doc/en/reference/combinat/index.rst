@@ -3,6 +3,10 @@ Combinatorics
 
 .. automodule:: sage.combinat
 
+
+Alphabetical Module List
+------------------------
+
 .. toctree::
    :maxdepth: 1
 

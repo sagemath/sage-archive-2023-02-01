@@ -55,7 +55,7 @@ Permutations, ...
 
 .. SEEALSO::
 
-    - :class:`SymmetricGroup`, :class:`PermutationGroup`, :ref:`sage.groups.perm_gps.permutation_groups_catalog`
+    - :class:`SymmetricGroup`, :func:`PermutationGroup`, :ref:`sage.groups.perm_gps.permutation_groups_catalog`
     - :class:`FiniteSetMaps`
     - :ref:`sage.combinat.integer_vectors_mod_permgroup`
     - :ref:`sage.combinat.rsk`

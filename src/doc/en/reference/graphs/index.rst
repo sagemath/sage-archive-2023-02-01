@@ -1,3 +1,4 @@
+.. _sage.graphs:
 
 Graph Theory
 ============

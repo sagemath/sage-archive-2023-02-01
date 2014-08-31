@@ -212,6 +212,7 @@ AUTHORS:
 - Alexandre P. Zuge (2013-07): added join operation.
 
 - Amritanshu Prasad (2014-08): added clique polynomial
+
 Graph Format
 ------------
 

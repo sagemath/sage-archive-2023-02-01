@@ -93,9 +93,8 @@ class SemisimpleAlgebras(Category_over_base_ring):
                         sage: sorted(orth, key=str)
                         [B['x'], B['y']]
                     """
-                    Z = self.center()
-                    orth = Z.orthogonal_idempotents()
-                    return [x.lift() for x in orth]
+                    return [x.lift()
+                            for x in self.center().orthogonal_idempotents()]
 
 
             class Commutative(CategoryWithAxiom_over_base_ring):
@@ -103,7 +102,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
                 class ParentMethods:
 
                     @cached_method
-                    def _semi_simple_commutative_decomposition_generators(self, listGen=None, topLevel=True):
+                    def _orthogonal_decomposition(self, listGen=None, topLevel=True):
                         r"""
                         Decompose a commutative finite dimensional semi-simple
                         algebra ``A`` into a direct sum of simple A-modules.
@@ -126,7 +125,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
                             sage: G5 = SymmetricGroup(5)
                             sage: A5 = G5.algebra(QQ)
                             sage: Z5 = A5.center()
-                            sage: gens = Z5._semi_simple_commutative_decomposition_generators()
+                            sage: gens = Z5._orthogonal_decomposition()
                             sage: sorted(gens, key=str)
                             [B[0] + 1/2*B[1] + 1/4*B[3] - 1/4*B[4] - 1/4*B[6],
                             B[0] + 1/5*B[1] + 1/5*B[2] - 1/5*B[3] + 1/5*B[4] -
@@ -172,7 +171,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
                         #Recursive on decomp
                         res = [x for space in decomp for x in
-                                space._semi_simple_commutative_decomposition_generators(topLevel=False)]
+                                space._orthogonal_decomposition(topLevel=False)]
                         if topLevel:
                             return res
                         else:
@@ -213,4 +212,5 @@ class SemisimpleAlgebras(Category_over_base_ring):
                             sage: orth[1] ** 2 == orth[1]
                             True
                         """
-                        return [(e.leading_coefficient()/(e*e).leading_coefficient())*e for e in self._semi_simple_commutative_decomposition_generators()]
+                        return [(e.leading_coefficient()/(e*e).leading_coefficient())*e for
+                            e in self._orthogonal_decomposition()]

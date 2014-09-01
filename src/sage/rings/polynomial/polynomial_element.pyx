@@ -3054,15 +3054,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (-2*x^2 - 1).factor().expand()
             -2.0*x^2 - 1.0000000000000002
             sage: f = (x - 1)^3
-            sage: f.factor()
-            (x - 0.9999901380833636) * (x^2 - 2.0000098619166398*x + 1.0000098620138984)
+            sage: f.factor()  # abs tol 1e-6
+            (x - 0.9999894993080326) * (x^2 - 2.0000105006919666*x + 1.0000105008022333)
 
         The above output is incorrect because it relies on the
         :meth:`.roots` method, which does not detect that all the roots
         are real::
 
-            sage: f.roots()
-            [(0.9999901380833636, 1)]
+            sage: f.roots()  # abs tol 1e-6
+            [(0.9999894993080326, 1)]
 
         Over the complex double field the factors are approximate and
         therefore occur with multiplicity 1::

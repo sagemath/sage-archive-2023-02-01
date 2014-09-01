@@ -584,13 +584,13 @@ cdef class RealDoubleField_class(Field):
         roots not to be real even though they are::
 
             sage: f = (x-1)^3
-            sage: f.roots(ring=CDF)
-            [(0.9999901380833636, 1), (1.0000049309583199 - 8.540746793320394e-06*I, 1), (1.0000049309583199 + 8.540746793320394e-06*I, 1)]
+            sage: f.roots(ring=CDF)  # abs tol 1e-6
+            [(0.9999894993080326, 1), (1.0000052503459833 - 9.09398093719616e-06*I, 1), (1.0000052503459833 + 9.09398093719616e-06*I, 1)]
 
         This leads to the following incorrect factorization::
 
-            sage: f.factor()
-            (x - 0.9999901380833636) * (x^2 - 2.0000098619166398*x + 1.0000098620138984)
+            sage: f.factor()  # abs tol 1e-6
+            (x - 0.9999894993080326) * (x^2 - 2.0000105006919666*x + 1.0000105008022333)
         """
         roots = f.roots(sage.rings.complex_double.CDF)
 

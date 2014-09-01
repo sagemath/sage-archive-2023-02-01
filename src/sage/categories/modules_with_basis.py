@@ -207,41 +207,39 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             r"""
             Construct a module morphism from ``self`` to ``codomain``.
 
-            Let ``self`` be the module `X` with a basis indexed by
-            `I`.  This constructs a morphism `f: X \to Y` by linearity
-            from a map `I \to Y` which is to be its restriction to the
+            Let ``self`` be a module `X` with a basis indexed by `I`.
+            This constructs a morphism `f: X \to Y` by linearity from
+            a map `I \to Y` which is to be its restriction to the
             basis `(x_i)_{i \in I}` of `X`. Some variants are possible
             too.
 
             INPUT:
 
-            - ``self`` -- a parent `X` in ModulesWithBasis(R), with basis `x`
+            - ``self`` -- a parent `X` in ``ModulesWithBasis(R)`` with
+              basis `x=(x_i)_{i\in I}`.
 
-            Exactly one of the three following options must be used to
-            define the morphism from:
+            Exactly one of the three following options must be
+            specified to define the morphism from:
 
-            - ``on_basis`` -- a function `f` which accepts elements of
-              `I` (the indexing set of the basis of `X`) as
-              ``position``-th argument and returns elements of `Y`
-            - ``diagonal`` -- a function `d` from `I` to the base ring
-              `R` of ``self`` and ``codomain``
-            - ``function`` - a function `f` from `X` to `Y`
+            - ``on_basis`` -- a function `f` from `I` to `Y`
+            - ``diagonal`` -- a function `d` from `I` to `R`
+            - ``function`` -- a function `f` from `X` to `Y`
 
             Further options include:
 
             - ``codomain`` -- the codomain `Y` of `f` (default:
               ``f.codomain()`` if it's defined)
-            - ``zero`` -- the zero of the codomain (default: ``codomain.zero()``)
+            - ``zero`` -- the zero of the codomain (default: ``codomain.zero()``);
               can be used (with care) to define affine maps
             - ``position`` -- a non-negative integer specifying which
-               positional argument in used as the input of the function
-               (default: 0); this is currently only used with ``on_basis``
+              positional argument in used as the input of the function `f`
+              (default: 0); this is currently only used with ``on_basis``
             - ``triangular`` --  (default: ``None``) ``"upper"`` or
               ``"lower"`` or ``None``:
 
-              * ``"upper"`` - if the :meth:`leading_support()` of the image
+              * ``"upper"`` - if the :meth:`leading_support` of the image
                 of the basis vector `x_i` is `i`, or
-              * ``"lower"`` - if the :meth:`trailing_support()` of the image
+              * ``"lower"`` - if the :meth:`trailing_support` of the image
                 of the basis vector `x_i` is `i`
 
             - ``category`` -- a category; by default, this is
@@ -407,6 +405,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
                - support for diagonal morphisms between modules not
                  sharing the same index set
+
+               - cleanup the defaut value of the category to make it
+                 more systematic and uniform
             """
             if diagonal is not None:
                 return DiagonalModuleMorphism(diagonal = diagonal, domain = self, **keywords)
@@ -1152,9 +1153,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
                We check that the homset category is properly set up::
 
-                    sage: category = FiniteDimensionalModulesWithBasis(QQ)
-                    sage: X = CombinatorialFreeModule(QQ, [1,2,3], category = category);   X.rename("X")
-                    sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4], category = category); Y.rename("Y")
+                    sage: X = CombinatorialFreeModule(QQ, [1,2,3]);   X.rename("X")
+                    sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4]); Y.rename("Y")
                     sage: H = Hom(X, Y)
                     sage: H.zero().category_for()
                     Category of finite dimensional vector spaces with basis over Rational Field
@@ -1417,9 +1417,8 @@ class ModuleMorphismByLinearity(Morphism):
 
         EXAMPLES::
 
-            sage: category = ModulesWithBasis(ZZ).FiniteDimensional()
-            sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2], category=category)
-            sage: Y = CombinatorialFreeModule(ZZ, [1, 2], category=category)
+            sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
+            sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
             sage: phi = sage.categories.modules_with_basis.ModuleMorphismByLinearity(X, on_basis = Y.monomial * abs)
 
         TESTS::
@@ -2124,7 +2123,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
     def cokernel_basis_indices(self):
         """
-        Returns a basis of the cokernel of ``self``
+        Return a basis of the cokernel of ``self``.
 
         OUTPUT: a list of indices of the basis of the codomain of
            ``self`` so that the corresponding basis elements span a
@@ -2172,6 +2171,8 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
         category = ModulesWithBasis(self.codomain().base_ring()).or_subcategory(category)
         return SetMorphism(Hom(self.codomain(), self.codomain(), category),
                            self.co_reduced)
+
+    co_kernel_projection = deprecated_function_alias(8678, cokernel_projection)
 
 class DiagonalModuleMorphism(ModuleMorphismByLinearity):
     r"""

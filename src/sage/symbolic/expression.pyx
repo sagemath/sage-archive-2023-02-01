@@ -9225,7 +9225,7 @@ cdef class Expression(CommutativeRingElement):
 
     def solve(self, x, multiplicities=False, solution_dict=False, explicit_solutions=False, to_poly_solve=False):
         r"""
-        Analytically solve the equation ``self == 0`` or an univarite
+        Analytically solve the equation ``self == 0`` or an univariate
         inequality for the variable `x`.
 
         .. warning::
@@ -9255,8 +9255,8 @@ cdef class Expression(CommutativeRingElement):
            solutions, but possibly encounter approximate solutions.
            This keyword is incompatible with ``multiplicities=True``
            and is not used when solving an inequality. Setting ``to_poly_solve``
-           to 'force' (string) omits Maxima's solve command (usefull when
-           some solution of trigonometric equations are lost).
+           to ``force`` omits Maxima's solve command (useful when
+           some solutions of trigonometric equations are lost).
 
         EXAMPLES::
 
@@ -9267,7 +9267,7 @@ cdef class Expression(CommutativeRingElement):
             sage: solve((z^3-1)^3, z, multiplicities=True)
             ([z == 1/2*I*sqrt(3) - 1/2, z == -1/2*I*sqrt(3) - 1/2, z == 1], [3, 3, 3])
 
-        A simple example to show use of the keyword
+        A simple example to show the use of the keyword
         ``multiplicities``::
 
             sage: ((x^2-1)^2).solve(x)
@@ -9290,7 +9290,7 @@ cdef class Expression(CommutativeRingElement):
             sage: solve(x*sin(x)==x^2,x,explicit_solutions=True)
             [x == 0]
 
-        The following examples show use of the keyword ``to_poly_solve``::
+        The following examples show the use of the keyword ``to_poly_solve``::
 
             sage: solve(abs(1-abs(1-x)) == 10, x)
             [abs(abs(x - 1) - 1) == 10]
@@ -9339,18 +9339,20 @@ cdef class Expression(CommutativeRingElement):
 
             sage: forget()
 
-        In some cases it may be worthwhile to directly use to_poly_solve,
+        In some cases it may be worthwhile to directly use ``to_poly_solve``
         if one suspects some answers are being missed::
 
             sage: solve(cos(x)==0, x)
             [x == 1/2*pi]
             sage: solve(cos(x)==0, x, to_poly_solve=True)
             [x == 1/2*pi]
+            
+            
             sage: solve(cos(x)==0, x, to_poly_solve='force')
             [x == 1/2*pi + pi*z...]
 
-        If a returned unsolved expression has a denominator, but the
-        original one did not, this may also be true::
+        The same may also apply if a returned unsolved expression has a
+        denominator, but the original one did not::
 
             sage: solve(cos(x) * sin(x) == 1/2, x, to_poly_solve=True)
             [sin(x) == 1/2/cos(x)]

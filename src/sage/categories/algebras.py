@@ -119,31 +119,6 @@ class Algebras(CategoryWithAxiom_over_base_ring):
 
     class Quotients(QuotientsCategory):
 
-        class ElementMethods:
-
-            def _lift_idempotent(self):
-                r"""
-                Lift an idempotent of parent of ``self`` into an indempotent of
-                parent of ``self.lift()``
-
-                EXAMPLES::
-
-                    sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example().semisimple_quotient()
-                    sage: orth = A.orthogonal_idempotents()
-                    sage: orth[1]._lift_idempotent()
-                    x
-
-                TODO: better documentation.
-                """
-                idempOld = None
-                idemp = self.lift()
-                p = idemp.parent()
-                while idemp <> idempOld:
-                    tmp = idemp
-                    idemp = (p.one() - (p.one() - idemp**2)**2)
-                    idempOld = tmp
-                return idemp
-
         class ParentMethods:
 
             def algebra_generators(self):

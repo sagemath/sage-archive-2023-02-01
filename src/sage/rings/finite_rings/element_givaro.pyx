@@ -384,11 +384,34 @@ cdef class Cache_givaro(SageObject):
 
         EXAMPLES::
 
-            sage: k = GF(2**8, 'a')
+            sage: k = GF(3^8, 'a')
+            sage: type(k)
+            <class 'sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro_with_category'>
             sage: e = k.vector_space().gen(1); e
             (0, 1, 0, 0, 0, 0, 0, 0)
             sage: k(e) #indirect doctest
             a
+
+        TESTS:
+
+        Check coercion of large integers::
+
+            sage: k(-5^13)
+            1
+            sage: k(2^31)
+            2
+            sage: k(int(10^19))
+            1
+            sage: k(2^63)
+            2
+            sage: k(2^100)
+            1
+            sage: k(int(2^100))
+            1
+            sage: k(long(2^100))
+            1
+            sage: k(-2^100)
+            2
 
         For more examples, see
         ``finite_field_givaro.FiniteField_givaro._element_constructor_``
@@ -416,14 +439,9 @@ cdef class Cache_givaro(SageObject):
              PY_TYPE_CHECK(e, long) or is_IntegerMod(e):
             try:
                 e_int = e
-                if e != e_int:       # overflow in Pyrex is often not detected correctly... but this is bullet proof.
-                                     # sometimes it is detected correctly, so we do have to use exceptions though.
-                                     # todo -- be more eloquent here!!
-                    raise OverflowError
-                res = self.objectptr.initi(res,e_int)
             except OverflowError:
-                e = e % self.characteristic()
-                res = self.objectptr.initi(res,int(e))
+                e_int = e % self.characteristic()
+            res = self.objectptr.initi(res, e_int)
 
         elif e is None:
             e_int = 0

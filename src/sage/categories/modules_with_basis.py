@@ -1603,7 +1603,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
         sage: [phi.preimage(x[i]) for i in range(1, 4)]
         [-1/3*B[1] + B[2] - 1/12*B[3], 1/4*B[3], 1/3*B[1] - 1/6*B[3]]
     """
-    def __init__(self, on_basis, domain, triangular = "upper", unitriangular=False,
+    def __init__(self, on_basis=None, domain=None, triangular = "upper", unitriangular=False,
                  codomain = None, category = None, cmp = None,
                  inverse = None, inverse_on_support = None, invertible = None):
         """
@@ -1641,11 +1641,11 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
         self._unitriangular = unitriangular
         self._inverse = inverse
-        self.on_basis = on_basis # should this be called on_basis (or _on_basis)?
+        self._on_basis = on_basis # should this be called on_basis (or _on_basis)?
         if inverse_on_support == "compute":
             self._inverse_on_support = self._inverse_on_support_precomputed
             for i in self.domain().basis().keys():
-                (j, c) = self._dominant_item(self.on_basis(i))
+                (j, c) = self._dominant_item(self._on_basis(i))
                 self._inverse_on_support.set_cache(i, j)
         elif inverse_on_support is None:
             self._inverse_on_support = self._inverse_on_support_trivial

@@ -896,7 +896,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: (MF.Faber_pol(-2)(MF.J_inv())*MF.F_simple()).q_expansion(prec=MF._l1+1, fix_d=1)
             q^-2 + O(q^3)
 
-            sage: MF = WeakModularForms(n=4, k=-2)
+            sage: MF = WeakModularForms(n=4, k=-2, ep=1)
             sage: MF.weight_parameters()
             (-1, 3)
 
@@ -1038,7 +1038,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: (MF.faber_pol(-2)(MF.j_inv())*MF.F_simple()).q_expansion(prec=MF._l1+1)
             q^-2 + O(q^3)
 
-            sage: MF = WeakModularForms(n=4, k=-2)
+            sage: MF = WeakModularForms(n=4, k=-2, ep=1)
             sage: MF.weight_parameters()
             (-1, 3)
 
@@ -1165,7 +1165,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF(MF.F_basis_pol(-2)).parent()
             WeakModularForms(n=5, k=62/3, ep=-1) over Integer Ring
 
-            sage: MF = WeakModularForms(n=4, k=-2)
+            sage: MF = WeakModularForms(n=4, k=-2, ep=1)
             sage: MF.weight_parameters()
             (-1, 3)
 
@@ -1265,7 +1265,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.F_basis(-2).parent() == MF
             True
 
-            sage: MF = CuspForms(n=4, k=-2)
+            sage: MF = CuspForms(n=4, k=-2, ep=1)
             sage: MF.weight_parameters()
             (-1, 3)
 
@@ -2102,7 +2102,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
                 return el
 
-    def rationalize_series(self, laurent_series, coeff_bound = 1e-10):
+    def rationalize_series(self, laurent_series, coeff_bound = 1e-10, denom_factor = ZZ(1)):
         r"""
         Try to return a Laurent series with coefficients in ``self.coeff_ring()``
         that matches the given Laurent series.
@@ -2124,6 +2124,10 @@ class FormsSpace_abstract(FormsRing_abstract):
                                  gives a lower bound for the size of the initial Laurent
                                  coefficients. If a coefficient is smaller it is
                                  assumed to be zero.
+
+        - ``denom_factor``    -- An integer (default: 1) whose factor might occur in
+                                 the denominator of the given Laurent coefficients
+                                 (in addition to naturally occuring factors).
 
         OUTPUT:
 
@@ -2187,6 +2191,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         from warnings import warn
 
+        denom_factor = ZZ(denom_factor)
         base_ring = laurent_series.base_ring()
 
         # If the coefficients already coerce to our coefficient ring
@@ -2208,6 +2213,9 @@ class FormsSpace_abstract(FormsRing_abstract):
         else:
             prec = laurent_series.base_ring().prec()
             dvalue = self.group().dvalue().n(prec)
+
+        # This messes up doctests...
+        #warn("Using an experimental rationalization of coefficients, please check the result for correctness!")
 
         d = self.get_d()
         q = self.get_q()
@@ -2235,6 +2243,8 @@ class FormsSpace_abstract(FormsRing_abstract):
             if (first_coeff * dvalue**first_exp - ZZ(1)) > tolerance:
                 raise ValueError("The Laurent series is not normalized correctly!")
 
+        # TODO: This is not a good enough estimate, see e.g. E12
+        # (however for exact base rings + arithmetic groups we don't need it)
         def denominator_estimate(m):
             cor_exp = max(-first_exp, 0)
             m += cor_exp
@@ -2253,9 +2263,15 @@ class FormsSpace_abstract(FormsRing_abstract):
             if (not self.group().is_arithmetic() and denominator_estimate(m).log(2).n().ceil() > prec):
                 warn("The precision from coefficient m={} on is too low!".format(m))
 
-            int_estimate = denominator_estimate(m) * coeff * dvalue**m
+            rational_coeff = coeff * dvalue**m
 
-            return int_estimate.round() / denominator_estimate(m) / d**m
+            if (base_ring.is_exact() and self.group().is_arithmetic() and rational_coeff in QQ):
+                rational_coeff = QQ(rational_coeff)
+            else:
+                int_estimate = denominator_estimate(m) * denom_factor * rational_coeff
+                rational_coeff = int_estimate.round() / denominator_estimate(m) / denom_factor
+
+            return rational_coeff / d**m
 
         laurent_series = sum([rationalize_coefficient(laurent_series[m], m) * q**m for m in range(first_exp, laurent_series.exponents()[-1] + 1)])
 

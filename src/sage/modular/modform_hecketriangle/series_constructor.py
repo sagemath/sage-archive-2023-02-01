@@ -23,6 +23,7 @@ AUTHORS:
 from sage.rings.all import ZZ, QQ, infinity, rising_factorial, PolynomialRing, LaurentSeries, PowerSeriesRing, FractionField
 from sage.rings.big_oh import O
 from sage.functions.all import exp
+from sage.rings.arith import bernoulli, sigma
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
@@ -477,3 +478,102 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         q = self._series_ring.gen()
         E2_ZZ = (q*self.f_inf_ZZ().derivative())/self.f_inf_ZZ()
         return E2_ZZ
+
+    @cached_method
+    def EisensteinSeries(self, k):
+        r"""
+        Return the power series expansion of the normalized Eisenstein series
+        of weight ``k`` for the given group if possible.
+
+        Only arithmetic groups with ``n < infinity`` are supported!
+
+        INPUT:
+
+        - ``k``  -- A non-negative even integer, namely the weight.
+
+        OUTPUT:
+
+        The power series of the normalized Eisenstein series of weight ``k``
+        for the (assumed arithmetic) group and precision of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
+            sage: MFC = MFSeriesConstructor(prec=6)
+            sage: MFC.EisensteinSeries(k=0)
+            1
+            sage: MFC.EisensteinSeries(k=2)
+            1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)
+            sage: MFC.EisensteinSeries(k=6)
+            1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)
+            sage: MFC.EisensteinSeries(k=12)
+            1 + 65520/691*q + 134250480/691*q^2 + 11606736960/691*q^3 + 274945048560/691*q^4 + 3199218815520/691*q^5 + O(q^6)
+            sage: MFC.EisensteinSeries(k=12).parent()
+            Power Series Ring in q over Rational Field
+
+            sage: MFC = MFSeriesConstructor(group=4, prec=5)
+            sage: MFC.EisensteinSeries(k=2)
+            1 - 8*q - 40*q^2 - 32*q^3 - 104*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries(k=4)
+            1 + 48*q + 624*q^2 + 1344*q^3 + 5232*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries(k=6)
+            1 - 56*q - 2296*q^2 - 13664*q^3 - 73976*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries(k=12)
+            1 + 1008/691*q + 2129904/691*q^2 + 178565184/691*q^3 + 4362108912/691*q^4 + O(q^5)
+
+            sage: MFC = MFSeriesConstructor(group=6, prec=5)
+            sage: MFC.EisensteinSeries(k=2)
+            1 - 6*q - 18*q^2 - 42*q^3 - 42*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries(k=4)
+            1 + 24*q + 216*q^2 + 888*q^3 + 1752*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries(k=6)
+            1 - 18*q - 594*q^2 - 4878*q^3 - 19026*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries(k=12)
+            1 + 6552/50443*q + 13425048/50443*q^2 + 1165450104/50443*q^3 + 27494504856/50443*q^4 + O(q^5)
+        """
+
+        try:
+            if k < 0:
+                raise TypeError
+            k = 2*ZZ(k/2)
+        except TypeError:
+            raise TypeError("k={} has to be a non-negative even integer!".format(k))
+
+        if (not self.group().is_arithmetic() or self.group().n() == infinity):
+            # Exceptional cases should be called manually (see in FormsRing_abstract)
+            raise NotImplementedError
+
+        # Trivial case
+        if k == 0:
+            return self._series_ring(1)
+
+        M    = ZZ(self.group().lam()**2)
+        lamk = M**(ZZ(k/2))
+
+        def coeff(m):
+            m = ZZ(m)
+            if m < 0:
+                return ZZ(0)
+            elif m == 0:
+                return ZZ(1)
+
+            factor = -2*k / QQ(bernoulli(k)) / lamk
+            sum1   = sigma(m, k-1)
+            if M.divides(m):
+                sum2 = (lamk-1) * sigma(ZZ(m/M), k-1)
+            else:
+                sum2 = ZZ(0)
+            if (M == 1):
+                sum3 = ZZ(0)
+            else:
+                if (m == 1):
+                    N = ZZ(1)
+                else:
+                    N = ZZ(m / M**ZZ(m.valuation(M)))
+                sum3 = -sigma(ZZ(N), k-1) * ZZ(m/N)**(k-1) / (lamk + 1)
+
+            return factor * (sum1 + sum2 + sum3)
+
+        q = self._series_ring.gen()
+
+        return sum([coeff(m)*q**m for m in range(self.prec())]).add_bigoh(self.prec())

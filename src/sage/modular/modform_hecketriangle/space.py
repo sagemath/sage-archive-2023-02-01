@@ -58,6 +58,8 @@ def canonical_parameters(group, base_ring, k, ep, n=None):
     if (ep == None):
         if (n == infinity):
             ep = (-1)**(k/ZZ(2))
+        elif (ZZ(2).divides(n)):
+            ep = (-1)**(k*ZZ(n-2)/ZZ(4))
         else:
             ep = (-1)**(k*ZZ(n-2)/ZZ(2))
     ep = ZZ(ep)

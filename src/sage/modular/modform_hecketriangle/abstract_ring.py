@@ -18,12 +18,14 @@ AUTHORS:
 
 from sage.rings.all import FractionField, PolynomialRing, PowerSeriesRing, ZZ, QQ, infinity
 from sage.algebras.free_algebra import FreeAlgebra
+from sage.rings.arith import bernoulli, sigma
 
 from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_method
 
 from hecke_triangle_groups import HeckeTriangleGroup
 from constructor import FormsRing, FormsSpace, rational_type
+from series_constructor import MFSeriesConstructor
 
 
 # Maybe replace Parent by just SageObject?
@@ -1129,15 +1131,14 @@ class FormsRing_abstract(Parent):
     @cached_method
     def f_rho(self):
         r"""
-        Return the generator ``f_rho`` of the graded ring of ``self``.
-        Up to the group action ``f_rho`` has exactly one simple zero at ``rho``. ``f_rho`` is
-        normalized such that its first nontrivial Fourier coefficient is ``1``.
-
-        The polynomial variable ``x`` exactly corresponds to ``f_rho``.
+        Return a normalized modular form ``f_rho`` with exactly one simple
+        zero at ``rho`` (up to the group action).
 
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
+
+        The polynomial variable ``x`` exactly corresponds to ``f_rho``.
 
         NOTE:
 
@@ -1146,7 +1147,7 @@ class FormsRing_abstract(Parent):
         and the polynomial variable ``x`` no longer refers to ``f_rho``.
         Instead it refers to ``E4`` which has exactly one simple zero
         at the cusp ``-1``. Also note that ``E4`` is the limit of
-        ``f_rho^n``.
+        ``f_rho^(n-2)``.
 
         EXAMPLES::
 
@@ -1207,15 +1208,14 @@ class FormsRing_abstract(Parent):
     @cached_method
     def f_i(self):
         r"""
-        Return the generator ``f_i`` of the graded ring of ``self``.
-        Up to the group action ``f_i`` has exactly one simple zero at ``i``. ``f_i`` is
-        normalized such that its first nontrivial Fourier coefficient is ``1``.
-
-        The polynomial variable ``y`` exactly corresponds to ``f_i``.
+        Return a normalized modular form ``f_i`` with exactly one simple
+        zero at ``i`` (up to the group action).
 
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
+
+        The polynomial variable ``y`` exactly corresponds to ``f_i``.
 
         EXAMPLES::
 
@@ -1273,19 +1273,16 @@ class FormsRing_abstract(Parent):
     @cached_method
     def f_inf(self):
         r"""
-        Return the first nontrivial cusp form ``f_inf`` of the graded ring of ``self``.
-        Up to the group action ``f_inf`` has exactly one simple zero at ``infinity``.
-        ``f_inf`` is normalized such that its first nontrivial Fourier coefficient is ``1``.
+        Return a normalized (according to its first nontrivial Fourier coefficient) cusp form
+        ``f_inf`` with exactly one simple zero at ``infinity`` (up to the group action).
 
-        It lies in a (cuspidal) extension of the graded ring of ``self``.
-        In case ``has_reduce_hom`` is ``True`` it is given as an element of
-        the corresponding homogeneous space.
+        It lies in a (cuspidal) extension of the graded ring of ``self``. In case ``has_reduce_hom``
+        is ``True`` it is given as an element of the corresponding homogeneous space.
 
         NOTE:
 
         If ``n=infinity`` then ``f_inf`` is no longer a cusp form since it doesn't
-        vannish at the cusp ``-1``. The first non-trivial cusp form is given by
-        ``E4*f_inf``.
+        vannish at the cusp ``-1``. The first non-trivial cusp form is given by ``E4*f_inf``.
 
         EXAMPLES::
 
@@ -1494,22 +1491,13 @@ class FormsRing_abstract(Parent):
     @cached_method
     def E4(self):
         r"""
-        Return the normalized Eisenstein series of weight 4` of the graded ring of ``self``.
+        Return the normalized Eisenstein series of weight `4`.
+
+        It lies in a (holomorphic) extension of the graded ring of ``self``.
+        In case ``has_reduce_hom`` is ``True`` it is given as an element of
+        the corresponding homogeneous space.
+
         It is equal to ``f_rho^(n-2)``.
-
-        It lies in a (holomorphic) extension of the graded ring of ``self``.
-        In case ``has_reduce_hom`` is ``True`` it is given as an element of
-        the corresponding homogeneous space.
-
-        Return the generator ``f_rho`` of the graded ring of ``self``.
-        Up to the group action ``f_rho`` has exactly one simple zero at ``rho``. ``f_rho`` is
-        normalized such that its first nontrivial Fourier coefficient is ``1``.
-
-        The polynomial variable ``x`` exactly corresponds to ``f_rho``.
-
-        It lies in a (holomorphic) extension of the graded ring of ``self``.
-        In case ``has_reduce_hom`` is ``True`` it is given as an element of
-        the corresponding homogeneous space.
 
         NOTE:
 
@@ -1578,12 +1566,13 @@ class FormsRing_abstract(Parent):
     @cached_method
     def E6(self):
         r"""
-        Return the normalized Eisenstein series of weight `6` of the graded ring of ``self``,
-        It is equal to ``f_rho^(n-3) * f_i``.
+        Return the normalized Eisenstein series of weight `6`.
 
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
+
+        It is equal to ``f_rho^(n-3) * f_i``.
 
         EXAMPLES::
 
@@ -1644,13 +1633,14 @@ class FormsRing_abstract(Parent):
     @cached_method
     def Delta(self):
         r"""
-        Return an analog of the Delta-function of the graded ring of ``self``.
+        Return an analog of the Delta-function.
+
+        It lies in the graded ring of ``self``. In case ``has_reduce_hom`` is ``True``
+        it is given as an element of the corresponding homogeneous space.
+
         It is a cusp form of weight `12` and is equal to
         ``d*(E4^3 - E6^2)`` or (in terms of the generators) ``d*x^(2*n-6)*(x^n - y^2)``.
 
-        It lies in a (cuspidal) extension of the graded ring of ``self``.
-        In case ``has_reduce_hom`` is ``True`` it is given as an element of
-        the corresponding homogeneous space.
 
         Note that ``Delta`` is also a cusp form for ``n=infinity``.
 
@@ -1715,13 +1705,15 @@ class FormsRing_abstract(Parent):
     @cached_method
     def E2(self):
         r"""
-        Return the normalized quasi holomorphic Eisenstein series of weight `2` of the
-        graded ring of ``self``. It is also a generator of the graded ring of
-        ``self`` and  the polynomial variable ``z`` exactly corresponds to ``E2``.
+        Return the normalized quasi holomorphic Eisenstein series of weight `2`.
 
         It lies in a (quasi holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
+
+        It is in particular also a generator of the graded ring of
+        ``self`` and  the polynomial variable ``z`` exactly corresponds to ``E2``.
+
 
         EXAMPLES::
 
@@ -1777,3 +1769,159 @@ class FormsRing_abstract(Parent):
         (x,y,z,d) = self._pol_ring.gens()
 
         return self.extend_type(["holo", "quasi"], ring=True)(z).reduce()
+
+    @cached_method
+    def EisensteinSeries(self, k=None):
+        r"""
+        Return the normalized Eisenstein series of weight ``k``.
+
+        Only arithmetic groups or trivial weights (with corresponding
+        one dimensional spaces) are supported.
+
+        INPUT:
+
+        - ``k``  -- A non-negative even integer, namely the weight.
+
+                    If ``k=None`` (default) then the weight of ``self``
+                    is choosen if ``self`` is homogeneous and the
+                    weight is possible, otherwise ``k=0`` is set.
+
+        OUTPUT:
+
+        A modular form element lying in a (holomorphic) extension of
+        the graded ring of ``self``. In case ``has_reduce_hom`` is
+        ``True`` it is given as an element of the corresponding
+        homogeneous space.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing, CuspFormsRing
+            sage: MR = ModularFormsRing()
+            sage: MR.EisensteinSeries() == MR.one_element()
+            True
+            sage: E8 = MR.EisensteinSeries(k=8)
+            sage: E8 in MR
+            True
+            sage: E8
+            f_rho^2
+
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms, ModularForms
+            sage: MF = ModularForms(n=4, k=12)
+            sage: E12 = MF.EisensteinSeries()
+            sage: E12 in MF
+            True
+            sage: CuspFormsRing(n=4, red_hom=True).EisensteinSeries(k=12).parent()
+            ModularForms(n=4, k=12, ep=1) over Integer Ring
+            sage: MF.disp_prec(4)
+            sage: E12
+            1 + 1008/691*q + 2129904/691*q^2 + 178565184/691*q^3 + O(q^4)
+
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
+            sage: ModularForms(n=3, k=2).EisensteinSeries().q_expansion_fixed_d(prec=5) == MFC(group=3, prec=7).EisensteinSeries(k=2).add_bigoh(5)
+            True
+            sage: ModularForms(n=3, k=4).EisensteinSeries().q_expansion_fixed_d(prec=5) == MFC(group=3, prec=7).EisensteinSeries(k=4).add_bigoh(5)
+            True
+            sage: ModularForms(n=3, k=6).EisensteinSeries().q_expansion_fixed_d(prec=5) == MFC(group=3, prec=7).EisensteinSeries(k=6).add_bigoh(5)
+            True
+            sage: ModularForms(n=3, k=8).EisensteinSeries().q_expansion_fixed_d(prec=5) == MFC(group=3, prec=7).EisensteinSeries(k=8).add_bigoh(5)
+            True
+            sage: ModularForms(n=4, k=2).EisensteinSeries().q_expansion_fixed_d(prec=5) == MFC(group=4, prec=7).EisensteinSeries(k=2).add_bigoh(5)
+            True
+            sage: ModularForms(n=4, k=4).EisensteinSeries().q_expansion_fixed_d(prec=5) == MFC(group=4, prec=7).EisensteinSeries(k=4).add_bigoh(5)
+            True
+            sage: ModularForms(n=4, k=6).EisensteinSeries().q_expansion_fixed_d(prec=5) == MFC(group=4, prec=7).EisensteinSeries(k=6).add_bigoh(5)
+            True
+            sage: ModularForms(n=4, k=8).EisensteinSeries().q_expansion_fixed_d(prec=5) == MFC(group=4, prec=7).EisensteinSeries(k=8).add_bigoh(5)
+            True
+            sage: ModularForms(n=6, k=2, ep=-1).EisensteinSeries().q_expansion_fixed_d(prec=5) == MFC(group=6, prec=7).EisensteinSeries(k=2).add_bigoh(5)
+            True
+            sage: ModularForms(n=6, k=4).EisensteinSeries().q_expansion_fixed_d(prec=5) == MFC(group=6, prec=7).EisensteinSeries(k=4).add_bigoh(5)
+            True
+            sage: ModularForms(n=6, k=6, ep=-1).EisensteinSeries().q_expansion_fixed_d(prec=5) == MFC(group=6, prec=7).EisensteinSeries(k=6).add_bigoh(5)
+            True
+            sage: ModularForms(n=6, k=8).EisensteinSeries().q_expansion_fixed_d(prec=5) == MFC(group=6, prec=7).EisensteinSeries(k=8).add_bigoh(5)
+            True
+
+            sage: ModularForms(n=3, k=12).EisensteinSeries()
+            1 + 65520/691*q + 134250480/691*q^2 + 11606736960/691*q^3 + 274945048560/691*q^4 + O(q^5)
+            sage: ModularForms(n=4, k=12).EisensteinSeries()
+            1 + 1008/691*q + 2129904/691*q^2 + 178565184/691*q^3 + O(q^4)
+            sage: ModularForms(n=6, k=12).EisensteinSeries()
+            1 + 6552/50443*q + 13425048/50443*q^2 + 1165450104/50443*q^3 + 27494504856/50443*q^4 + O(q^5)
+            sage: ModularForms(n=3, k=20).EisensteinSeries()
+            1 + 13200/174611*q + 6920614800/174611*q^2 + 15341851377600/174611*q^3 + 3628395292275600/174611*q^4 + O(q^5)
+            sage: ModularForms(n=4).EisensteinSeries(k=8)
+            1 + 480/17*q + 69600/17*q^2 + 1050240/17*q^3 + 8916960/17*q^4 + O(q^5)
+            sage: ModularForms(n=6).EisensteinSeries(k=20)
+            1 + 264/206215591*q + 138412296/206215591*q^2 + 306852616488/206215591*q^3 + 72567905845512/206215591*q^4 + O(q^5)
+        """
+
+        if (k is None):
+            try:
+                if not self.is_homogeneous():
+                    raise TypeError
+                k = self.weight()
+                if k < 0:
+                    raise TypeError
+                k = 2*ZZ(k/2)
+                #if self.ep() != ZZ(-1)**ZZ(k/2):
+                #    raise TypeError
+            except TypeError:
+                k = ZZ(0)
+
+        try:
+            if k < 0:
+                raise TypeError
+            k = 2*ZZ(k/2)
+        except TypeError:
+            raise TypeError("k={} has to be a non-negative even integer!".format(k))
+
+        n = self.hecke_n()
+
+        # The case n=infinity is special (there are 2 cusps)
+        # Until we/I get confirmation what is what sort of Eisenstein series
+        # this case is excluded...
+        if    n == infinity:
+            # We set the weight zero Eisenstein series to 1
+            pass
+        elif  k == 0:
+            return self.one()
+        elif  k == 2:
+            # This is a bit problematic, e.g. for n=infinity there is a
+            # classical Eisenstein series of weight 2
+            return self.E2()
+        elif  k == 4:
+            return self.E4()
+        elif  k == 6:
+            return self.E6()
+
+        # Basic variables
+        ep = (-ZZ(1))**(k/2)
+        extended_self = self.extend_type(["holo"], ring=True)
+        # reduced_self is a classical ModularForms space
+        reduced_self = extended_self.reduce_type(["holo"], degree = (QQ(k), ep))
+
+        if (n == infinity):
+            l2  = ZZ(0)
+            l1  = ZZ((k-(1-ep)) / ZZ(4))
+        else:
+            num = ZZ((k-(1-ep)*n/(n-2)) * (n-2) / ZZ(4))
+            l2  = num % n
+            l1  = ((num-l2)/n).numerator()
+
+        # If the space is one dimensional we return the normalized generator
+        if l1 == 0:
+            return extended_self(reduced_self.F_basis(0)).reduce()
+
+        # The non-arithmetic remaining cases (incomplete, very hard in general)
+        # TODO: the n = infinity case(s) (doable)
+        # TODO: the n = 5 case (hard)
+        if (not self.group().is_arithmetic() or n == infinity):
+            raise NotImplementedError
+
+        # The arithmetic cases
+        prec = reduced_self._l1 + 1
+        MFC = MFSeriesConstructor(group=self.group(), prec=prec)
+        q_series = MFC.EisensteinSeries(k=k)
+
+        return extended_self(reduced_self.construct_form(q_series)).reduce()

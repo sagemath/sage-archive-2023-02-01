@@ -198,15 +198,29 @@ All classes and functions are also individually documented (with doctest example
 
 
 - **Eisenstein series and Delta:**
-  There is no general support for Eisenstein series, however the Eisenstein
-  series of weight ``2``, ``4`` and ``6`` are implemented. Note that they
-  exist for all ``n`` and (except for ``n=3``) ``E4`` and ``E6`` do not coincide
-  with ``f_rho`` and ``f_i``. Similarly there always exists a (generalization of)
-  ``Delta`` that also does not coincide with ``f_inf`` (except for ``n=3``).
+  The Eisenstein series of weight ``2``, ``4`` and ``6`` exist for all ``n`` and
+  are all implemented . Note that except for ``n=3`` the series ``E4`` and ``E6``
+  do not coincide with ``f_rho`` and ``f_i``.
+
+  Similarly there always exists a (generalization of) ``Delta``. Except for ``n=3``
+  it also does not coincide with ``f_inf``.
+
+  In general Eisenstein series of all even weights exist for all ``n``.
+  In the non-arithmetic cases they are however very hard to determine
+  (it's an open problem(?) and consequently not yet implemented,
+  except for trivial one-dimensional cases).
+
+  The Eisenstein series in the arithmetic cases ``n = 3, 4, 6`` are fully
+  implemented though. Note that this requires a lot more work/effort
+  for ``k != 2, 4, 6`` resp. for multidimensional spaces.
+
+  The case ``n=infinity`` is a special case (since there are two cusps)
+  and is not implemented yet.
 
   EXAMPLES::
 
       sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
+      sage: from sage.modular.modform_hecketriangle.space import ModularForms
       sage: ModularFormsRing(n=5).E4()
       f_rho^3
       sage: ModularFormsRing(n=5).E6()
@@ -215,6 +229,24 @@ All classes and functions are also individually documented (with doctest example
       f_rho^9*d - f_rho^4*f_i^2*d
       sage: ModularFormsRing(n=5).Delta() == ModularFormsRing(n=5).f_inf()*ModularFormsRing(n=5).f_rho()^4
       True
+
+      The basic generators in some arithmetic cases:
+      sage: ModularForms(n=3, k=6).E6()
+      1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 + O(q^5)
+      sage: ModularForms(n=4, k=6).E6()
+      1 - 56*q - 2296*q^2 - 13664*q^3 - 73976*q^4 + O(q^5)
+      sage: ModularForms(n=infinity, k=4).E4()
+      1 + 16*q + 112*q^2 + 448*q^3 + 1136*q^4 + O(q^5)
+
+      General Eisenstein series in some arithmetic cases:
+      sage: ModularFormsRing(n=4).EisensteinSeries(k=8)
+      (-25*f_rho^4 - 9*f_i^2)/(-34)
+      sage: ModularForms(n=3, k=12).EisensteinSeries()
+      1 + 65520/691*q + 134250480/691*q^2 + 11606736960/691*q^3 + 274945048560/691*q^4 + O(q^5)
+      sage: ModularForms(n=6, k=12).EisensteinSeries()
+      1 + 6552/50443*q + 13425048/50443*q^2 + 1165450104/50443*q^3 + 27494504856/50443*q^4 + O(q^5)
+      sage: ModularForms(n=4, k=22, ep=-1).EisensteinSeries()
+      1 - 184/53057489*q - 386252984/53057489*q^2 - 1924704989536/53057489*q^3 - 810031218278584/53057489*q^4 + O(q^5)
 
 
 - **Generator for ``k=0``, ``ep=-1``**

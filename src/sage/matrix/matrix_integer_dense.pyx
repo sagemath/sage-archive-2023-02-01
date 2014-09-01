@@ -269,7 +269,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                                          0, 0, 0)
         cdef Py_ssize_t i
         sig_on()
-        fmpz_mat_init_set(A._matrix,self._matrix)
+        fmpz_mat_set(A._matrix,self._matrix)
         sig_off()
         A._initialized = True
         if self._initialized_linbox:
@@ -309,10 +309,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: a = Matrix(ZZ,2,[1,2,3,4])
             sage: del a
         """
-        if self._initialized:
-            fmpz_mat_clear(self._matrix)
+        fmpz_mat_clear(self._matrix)
         if self._initialized_linbox:
             self._dealloc_linbox()
+        sage_free(self._rows)
+        sage_free(self._entries)
 
     def __init__(self, parent, entries, copy, coerce):
         r"""
@@ -407,10 +408,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             is_list = 1
 
         if is_list:
-
             # Create the matrix whose entries are in the given entry list.
             if len(entries) != self._nrows * self._ncols:
-                fmpz_mat_clear(self._matrix)
+                # fmpz_mat_clear(self._matrix)
                 raise TypeError("entries has the wrong length")
             if coerce:
                 k = 0
@@ -430,15 +430,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                         k += 1
                 self._initialized = True
         else:
-
             # If x is zero, make the zero matrix and be done.
             if mpz_sgn(x.value) == 0:
                 self._zero_out_matrix()
+                self._initialized = True
                 return
 
             # the matrix must be square:
             if self._nrows != self._ncols:
-                fmpz_mat_clear(self._matrix)
                 raise TypeError("nonzero scalar matrix must be square")
 
             # Now we set all the diagonal entries to x and all other entries to 0.
@@ -743,7 +742,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         entries.)
         """
         sig_on()
-        fmpz_mat_init(self._matrix,self._nrows,self._ncols)
         fmpz_mat_zero(self._matrix)
         sig_off()
         self._initialized = True
@@ -5743,7 +5741,7 @@ cpdef _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     for k in range(n):
         sage_free(row_list[k])
     sage_free(row_list)
-
+    sage_free(tmp)
     sig_off()
     return M
 

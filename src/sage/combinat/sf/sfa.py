@@ -410,7 +410,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 sage: s.is_integral_domain()
                 True
 
-            The following doctest is disabled pending :trac:`10963`::
+            The following doctest is disabled pending :trac:`15475`::
 
                 sage: s = SymmetricFunctions(Zmod(14)).s() # not tested
                 sage: s.is_integral_domain() # not tested
@@ -2023,11 +2023,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: s.set_print_style('lex')
         """
         if ps == 'lex':
-            self.print_options(monomial_cmp = lambda x,y: cmp(x,y))
+            self.print_options(generator_cmp = lambda x,y: cmp(x,y))
         elif ps == 'length':
-            self.print_options(monomial_cmp = lambda x,y: cmp(len(x), len(y)))
+            self.print_options(generator_cmp = lambda x,y: cmp(len(x), len(y)))
         elif ps == 'maximal_part':
-            self.print_options(monomial_cmp = lambda x,y: cmp(_lmax(x), _lmax(y)))
+            self.print_options(generator_cmp = lambda x,y: cmp(_lmax(x), _lmax(y)))
         else:
             raise ValueError("the print style must be one of lex, length, or maximal_part ")
         self._print_style = ps

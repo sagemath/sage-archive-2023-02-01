@@ -252,12 +252,9 @@ from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.geometry.toric_plotter import ToricPlotter
 from sage.graphs.digraph import DiGraph
 from sage.matrix.all import matrix
-from sage.misc.all import cached_method, flatten, walltime, prod
-from sage.misc.superseded import deprecation
+from sage.misc.all import cached_method, walltime, prod
 from sage.modules.all import vector
-from sage.rings.all import QQ, RR, ZZ
-from sage.structure.all import Sequence
-from sage.structure.coerce import parent
+from sage.rings.all import QQ, ZZ
 
 
 def is_Fan(x):
@@ -287,7 +284,7 @@ def is_Fan(x):
 
 
 def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
-        is_complete=None, virtual_rays=None, discard_faces=False, **kwds):
+        is_complete=None, virtual_rays=None, discard_faces=False):
     r"""
     Construct a rational polyhedral fan.
 
@@ -475,13 +472,6 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
                     raise ValueError("virtual rays must be linearly "
                     "independent and with other rays span the ambient space.")
         return RationalPolyhedralFan(cones, R, lattice, is_complete, V)
-
-    if "discard_warning" in kwds:
-        deprecation(11627, "discard_warning is deprecated, use discard_faces instead.")
-        discard_faces = not discard_warning
-        kwds.pop(discard_warning)
-    if kwds:
-        raise ValueError("unrecognized keywords: %s" % kwds)
 
     if not check and not normalize and not discard_faces:
         return result()
@@ -1683,9 +1673,9 @@ class RationalPolyhedralFan(IntegralRayCollection,
             result += " %d-d lattice" % self.lattice_dim()
         return result
 
-    def _subdivide_palp(self, new_rays, verbose):
+    def _subdivide_stellar(self, new_rays, verbose):
         r"""
-        Subdivide ``self`` adding ``new_rays`` one by one.
+        Return iterative stellar subdivision of ``self`` via ``new_rays``.
 
         INPUT:
 
@@ -1698,24 +1688,16 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         - rational polyhedral fan.
 
-        .. NOTE::
-
-            All generating cones of ``self`` must be full-dimensional.
-
         TESTS::
 
             sage: cone1 = Cone([(1,0), (0,1)])
             sage: cone2 = Cone([(-1,0)])
             sage: new_rays = sage.geometry.cone.normalize_rays([(1,1)], None)
             sage: fan = Fan([cone1, cone2])
-            sage: fan._subdivide_palp(new_rays, True)
-            Traceback (most recent call last):
-            ...
-            ValueError: PALP-subdividing can be used only for
-            fans whose generating cones are full-dimensional!
+            sage: fan._subdivide_stellar(new_rays, False)
+            Rational polyhedral fan in 2-d lattice N
             sage: fan = Fan([cone1])
-            sage: # Timing information will depend on your machine
-            sage: new_fan = fan._subdivide_palp(new_rays, True)
+            sage: new_fan = fan._subdivide_stellar(new_rays, True)
             R:1/1  C:2  T:...(ms)  T/new:...(ms)  T/all:...(ms)
             sage: new_fan.rays()
             N(1, 0),
@@ -1723,77 +1705,41 @@ class RationalPolyhedralFan(IntegralRayCollection,
             N(1, 1)
             in 2-d lattice N
             sage: for cone in new_fan: print cone.ambient_ray_indices()
-            (1, 2)
             (0, 2)
+            (1, 2)
 
         We make sure that this function constructs cones with ordered ambient
-        ray indices (see Trac 9812)::
+        ray indices (see :trac:`9812`)::
 
             sage: C = Cone([(1,0,0), (0,1,0), (1,0,1), (0,1,1)])
             sage: F = Fan([C]).make_simplicial()
             sage: [cone.ambient_ray_indices() for cone in F]
             [(0, 2, 3), (0, 1, 3)]
         """
-        dim = self.lattice_dim()
-        N = self.lattice()
-        for cone in self:
-            if cone.dim() != dim:
-                raise ValueError("PALP-subdividing can be used only for fans "
-                            "whose generating cones are full-dimensional!")
-        # Convert cones to lattice polytopes
-        cone_polytopes = [cone.lattice_polytope() for cone in self]
-        for cone_polytope in cone_polytopes:
-            cone_polytope._dim = dim
-        all_faces(cone_polytopes)
-        all_facet_equations(cone_polytopes)
-        # Iterative subdivision
+        cones = self.generating_cones()
         for n, ray in enumerate(new_rays):
-            start = walltime()
-            old_polytopes = []
-            new_polytopes = []
-            for cone_polytope in cone_polytopes:
-                if (cone_polytope.nvertices() == dim + 1 #simplex
-                    and ray in cone_polytope.vertices_pc()):
-                    old_polytopes.append(cone_polytope)
-                    continue # Subdivision would not give any new polytopes
-                distances = cone_polytope.distances(ray)
-                # The origin is the last 0-dimensional face
-                cone_facets = cone_polytope.faces(dim=0)[-1].facets()
-                if all(distances[fn] >= 0 for fn in cone_facets):
-                    # Ray is inside the cone, even if not inside cone_polytope
-                    # Do subdivision with cones over each non-containing facet
-                    vertices = cone_polytope.vertices_pc()
-                    for fn in cone_facets:
-                        if distances[fn] > 0:
-                            new_v = [vertices[v] for v in
-                                        cone_polytope.facets()[fn].vertices()]
-                            # Add ray keeping the origin last
-                            new_v.insert(-1, ray)
-                            new_polytope = LatticePolytope(new_v, lattice=N,
-                                                        compute_vertices=False)
-                            new_polytope._dim = dim
-                            new_polytopes.append(new_polytope)
+            if verbose:
+                start = walltime()
+            new = []
+            for cone in cones:
+                if ray in cone:
+                    new.extend(Cone(tuple(facet.rays())+(ray,), check=False)
+                               for facet in cone.facets() if ray not in facet)
                 else:
-                    old_polytopes.append(cone_polytope)
-            # Precompute data for new polytopes using single calls to PALP
-            all_faces(new_polytopes)
-            all_facet_equations(new_polytopes)
-            cone_polytopes = old_polytopes + new_polytopes
+                    new.append(cone)
             if verbose:
                 t = walltime(start)
-                # Avoid division by zero
-                T_new = ("%d" % (t / len(new_polytopes) * 1000)
-                         if new_polytopes else "-")
+                added = len(new) - len(cones)
+                T_new = "%d" % (t / added * 1000) if added else "-"
                 print("R:%d/%d  C:%d  T:%d(ms)  T/new:%s(ms)  T/all:%d(ms)"
-                    % (n + 1, len(new_rays), len(cone_polytopes), t * 1000,
-                       T_new, t / len(cone_polytopes) * 1000))
-        # Convert lattice polytopes to cones
+                      % (n + 1, len(new_rays), len(new), t * 1000,
+                         T_new, t / len(new) * 1000))
+            cones = new
         new_fan_rays = list(self.rays())
         new_fan_rays.extend(ray for ray in new_rays
                                 if ray not in self.rays().set())
-        cones = tuple(tuple(sorted(new_fan_rays.index(cone_polytope.vertex(v))
-                            for v in range(cone_polytope.nvertices() - 1)))
-                      for cone_polytope in cone_polytopes)
+        cones = tuple(tuple(sorted(new_fan_rays.index(ray) for ray in cone))
+                      for cone in cones)
         fan = Fan(cones, new_fan_rays, check=False, normalize=False)
         return fan
 
@@ -2910,7 +2856,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         if self.lattice().zero() in rays:
             raise ValueError("the origin cannot be used for fan subdivision!")
         if algorithm == "default":
-            algorithm = "palp"
+            algorithm = "stellar"
         method_name = "_subdivide_" + algorithm
         if not hasattr(self, method_name):
             raise ValueError('"%s" is an unknown subdivision algorithm!'
@@ -3010,7 +2956,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             return virtual
 
     def primitive_collections(self):
-        ur"""
+        r"""
         Return the primitive collections.
 
         OUTPUT:

@@ -332,6 +332,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 True
                 sage: [c.lift() for c in center.basis()]
                 [x + y]
+                sage: DihedralGroup(6).algebra(QQ).center() in SemisimpleAlgebras
+                True
 
             .. TODO::
 
@@ -342,10 +344,9 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: TestSuite(center).run()
             """
-            if self in SemisimpleAlgebras(self.base_ring()):
-                category = SemisimpleAlgebras(self.base_ring()).FiniteDimensional().WithBasis().Subobjects().Commutative()
-            else:
-                category = Algebras(self.base_ring()).FiniteDimensional().WithBasis().Subobjects().Commutative()
+            category = Algebras(self.base_ring()).FiniteDimensional().Subobjects().Commutative().WithBasis()
+            if self in SemisimpleAlgebras:
+                category = category & SemisimpleAlgebras(self.base_ring())
             center = self.submodule(self.center_basis(),
                                     category = category,
                                     already_echelonized = True)

@@ -750,10 +750,10 @@ class ModularForm_abstract(ModuleElement):
             sage: abs(L(1)) < 2^-100
             True
 
-	    sage: f = Newforms(27, names='a')[0]
-	    sage: L = f.cuspform_lseries()
-	    sage: L(1)
-	    0.588879583428483
+            sage: f = Newforms(27, names='a')[0]
+            sage: L = f.cuspform_lseries()
+            sage: L(1)
+            0.588879583428483
         """
         if self.q_expansion().list()[0] != 0:
             raise TypeError("f = %s is not a cusp form" % self)

@@ -736,6 +736,19 @@ class ModularForm_abstract(ModuleElement):
             (0.725681061936153, 0.725681061936153)
             sage: CuspForms(1, 30).0.cuspform_lseries().eps
             -1
+
+        We can change the precision (in bits)
+
+            sage: f = Newforms(389, names='a')[0]
+            sage: L = f.cuspform_lseries(prec=30)
+            sage: abs(L(1)) < 2^-30
+            True
+            sage: L = f.cuspform_lseries(prec=53)
+            sage: abs(L(1)) < 2^-53
+            True
+            sage: L = f.cuspform_lseries(prec=100)
+            sage: abs(L(1)) < 2^-100
+            True
         """
         if self.q_expansion().list()[0] != 0:
             raise TypeError("f = %s is not a cusp form" % self)
@@ -752,7 +765,10 @@ class ModularForm_abstract(ModuleElement):
                        weight = l,
                        eps = e,
                        prec = prec)
-        s = 'coeff = %s;'%self.q_expansion(prec).list()
+        # Find out how many coefficients of the Dirichlet series are needed
+        # in order to compute to the required precision
+        num_coeffs = L.num_coeffs()
+        s = 'coeff = %s;'%self.q_expansion(num_coeffs+2).list()
         L.init_coeffs('coeff[k+1]',pari_precode = s,
                       max_imaginary_part=max_imaginary_part,
                       max_asymp_coeffs=max_asymp_coeffs)

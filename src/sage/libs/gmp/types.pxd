@@ -1,3 +1,5 @@
+from libc.stdio cimport FILE
+
 cdef extern from "gmp.h":
     # GMP's configuration of how many bits are stuffed into a limb
     cdef int GMP_LIMB_BITS

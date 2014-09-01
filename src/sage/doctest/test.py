@@ -51,7 +51,7 @@ Check handling of tolerances::
     Doctesting 1 file.
     sage -t --warn-long 0.0 tolerance.rst
     **********************************************************************
-    File "tolerance.rst", line 3, in sage.doctest.tests.tolerance
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
     Failed example:
         print ":-("    # abs tol 0.1
     Expected:
@@ -59,7 +59,7 @@ Check handling of tolerances::
     Got:
         :-(
     **********************************************************************
-    File "tolerance.rst", line 8, in sage.doctest.tests.tolerance
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
     Failed example:
         print "1.0 2.0 3.0"  # abs tol 0.1
     Expected:
@@ -67,7 +67,7 @@ Check handling of tolerances::
     Got:
         1.0 2.0 3.0
     **********************************************************************
-    File "tolerance.rst", line 10, in sage.doctest.tests.tolerance
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
     Failed example:
         print "Hello"  # abs tol 0.1
     Expected:
@@ -75,7 +75,7 @@ Check handling of tolerances::
     Got:
         Hello
     **********************************************************************
-    File "tolerance.rst", line 12, in sage.doctest.tests.tolerance
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
     Failed example:
         print "1.0"  # abs tol 0.1
     Expected:
@@ -83,7 +83,7 @@ Check handling of tolerances::
     Got:
         1.0
     **********************************************************************
-    File "tolerance.rst", line 17, in sage.doctest.tests.tolerance
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
     Failed example:
         print "Hello 1.1"  # abs tol 0.1
     Expected:
@@ -91,7 +91,7 @@ Check handling of tolerances::
     Got:
         Hello 1.1
     **********************************************************************
-    File "tolerance.rst", line 22, in sage.doctest.tests.tolerance
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
     Failed example:
         print "Hello 1.0"  # rel tol 1e-6
     Expected:

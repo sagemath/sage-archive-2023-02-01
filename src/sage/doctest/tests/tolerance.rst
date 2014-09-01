@@ -1,4 +1,5 @@
-Test various failing tolerance checks.
+These doctests are intentionally failing. They test that, even though
+a tolerance is specified, not everything is accepted.
 
 Tolerance but no numbers::
 

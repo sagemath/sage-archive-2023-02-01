@@ -118,10 +118,10 @@ class Link:
         """
         if type(input_) == list:
             if len(input_) != 2:
-                for i in input_:
-                    if len(i) != 4:
-                        raise Exception("Invalid Input")
-                else:
+                pd_error = _pd_check_(input_)
+                if pd_error == True:
+                    raise Exception("Invalid Input")
+                elif pd_error == False:
                     self._PD_code = input_
                     self._oriented_gauss_code = None
                     self._braid = None
@@ -134,10 +134,10 @@ class Link:
                 else:
                     ogc = False
                 if ogc == False:
-                    for i in input_:
-                        if len(i) != 4:
-                            raise Exception("Invalid Input")
-                    else:
+                    pd_error = _pd_check_(input_)
+                    if pd_error == True:
+                        raise Exception("Invalid Input")
+                    elif pd_error == False:
                         self._PD_code = input_
                         self._oriented_gauss_code = None
                         self._braid = None
@@ -1773,3 +1773,17 @@ def _rule_3_(pd):
                 if b in l:
                     i[i.index(l)][l.index(b)] = min(k)
     return pd
+
+
+def _pd_check_(pd):
+    pd_error = False
+    for i in pd:
+        if len(i) != 4:
+            pd_error = True
+    else:
+        flat = [x for y in pd for x in y]
+        set_flat = set(flat)
+        for i in set_flat:
+            if flat.count(i) != 2:
+                pd_error = True
+    return pd_error

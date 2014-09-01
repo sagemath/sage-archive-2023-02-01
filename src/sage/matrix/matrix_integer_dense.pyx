@@ -810,7 +810,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return not fmpz_mat_is_zero(self._matrix)
 
 
-    def _multiply_linbox(left, Matrix_integer_dense right):
+    def _multiply_linbox(self, Matrix_integer_dense right):
         """
         Multiply matrices over ZZ using linbox.
 
@@ -831,11 +831,22 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef int e
         cdef long int i,j
         cdef Matrix_integer_dense ans
-        left._init_linbox()
-        ans = left.new_matrix(nrows = left.nrows(), ncols = right.ncols())
+        cdef Matrix_integer_dense left = <Matrix_integer_dense>self
+
+        if self._nrows == right._nrows:
+            # self acts on the space of right
+            parent = right.parent()
+        if self._ncols == right._ncols:
+            # right acts on the space of self
+            parent = self.parent()
+        else:
+            parent = self.matrix_space(left._nrows, right._ncols)
 
         right._init_linbox()
+        ans = Matrix_integer_dense.__new__(Matrix_integer_dense, parent, None, None, None)
+        Matrix.__init__(ans, parent)
         ans._init_linbox()
+        left._init_linbox()
         sig_on()
         linbox.matrix_matrix_multiply(ans._rows, right._rows, right._nrows, right._ncols)
         for i from 0 <= i < ans._nrows:
@@ -1359,7 +1370,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         # log(wsq * 4^wsq_e / N) = log(wsq/N) + wsq_e * log(4)
         return log(wsq/N) + wsq_e * log(4.0)
 
-    def _multiply_multi_modular(left, Matrix_integer_dense right):
+    def _multiply_multi_modular(self, Matrix_integer_dense right):
         """
         Multiply this matrix by ``left`` using a multi modular algorithm.
 
@@ -1375,6 +1386,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [-463 -490]
         """
         cdef Integer h
+        cdef Matrix_integer_dense left = <Matrix_integer_dense>self
         cdef mod_int *moduli
         cdef int i, n, k
         cdef object parent
@@ -1383,12 +1395,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         nc = right._ncols
         snc = left._ncols
 
-        parent = left.matrix_space(nr, nc)
 
         cdef Matrix_integer_dense result
 
-        result = Matrix_integer_dense.__new__(Matrix_integer_dense, parent, None, None, None)
-        Matrix.__init__(result, parent)
 
         h = left.height() * right.height() * left.ncols()
         verbose('multiplying matrices of height %s and %s'%(left.height(),right.height()))
@@ -1400,6 +1409,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             t = cputime()
             res[i] *= res_right[i]
             verbose('multiplied matrices modulo a prime (%s/%s)'%(i+1,k), t)
+        result = left.new_matrix(nr,nc)
         _lift_crt(result, res, mm)  # changes result
         return result
 
@@ -1511,26 +1521,24 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         nr = self._nrows
         nc = self._ncols
 
-        cdef mod_int *row_list
-        row_list = <mod_int*>sage_malloc(sizeof(mod_int) * n)
-        if row_list == NULL:
+        cdef mod_int *entry_list
+        entry_list = <mod_int*>sage_malloc(sizeof(mod_int) * n)
+        if entry_list == NULL:
             raise MemoryError("out of memory allocating multi-modular coefficient list")
 
         sig_on()
         for i from 0 <= i < nr:
             for j from 0 <= j < nc:
                 self.get_unsafe_mpz(i,j,tmp)
-                mm.mpz_reduce(tmp, row_list)
+                mm.mpz_reduce(tmp, entry_list)
                 for k from 0 <= k < n:
                     if isinstance(res[k], Matrix_modn_dense_float):
-                        for j in range(nc):
-                            (<Matrix_modn_dense_float>res[k])._matrix[i][j] = (<float>row_list[k])%(<Matrix_modn_dense_float>res[k]).p
+                        (<Matrix_modn_dense_float>res[k])._matrix[i][j] = (<float>entry_list[k])%(<Matrix_modn_dense_float>res[k]).p
                     else:
-                        for j in range(nc):
-                            (<Matrix_modn_dense_double>res[k])._matrix[i][j] = (<double>row_list[k])%(<Matrix_modn_dense_double>res[k]).p
+                        (<Matrix_modn_dense_double>res[k])._matrix[i][j] = (<double>entry_list[k])%(<Matrix_modn_dense_double>res[k]).p
         sig_off()
         mpz_clear(tmp)
-        sage_free(row_list)
+        sage_free(entry_list)
         return res
 
     def _echelon_in_place_classical(self):

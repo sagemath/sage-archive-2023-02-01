@@ -475,7 +475,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             # Dimension of simple modules
             dimSimples = [sqrt(Aquo.principal_ideal(e, side).dimension()) for e in
                     orth_quo]
-            orth = [x._lift_idempotent() for x in orth_quo]
+            orth = [self._lift_idempotent(x) for x in orth_quo]
             return Matrix(self.base_ring(),
                     len(orth),
                     lambda i,j: self._cartan_matrix_coef(orth[i], orth[j])/(dimSimples[i]*dimSimples[j]))

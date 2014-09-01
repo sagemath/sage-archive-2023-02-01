@@ -566,7 +566,7 @@ All classes and functions are also individually documented (with doctest example
      Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
      sage: qexp_int == WF.J_inv().q_expansion()
      True
-     sage: WF(qexp_int) == WF.J_inv()
+     sage: WF(qexp) == WF.J_inv()
      True
 
      sage: QF = QuasiCuspForms(n=8, k=22/3, ep=-1)
@@ -575,7 +575,7 @@ All classes and functions are also individually documented (with doctest example
      sage: qexp_int = QF.rationalize_series(qexp)
      sage: qexp_int == el.q_expansion()
      True
-     sage: QF(qexp_int) == el
+     sage: QF(qexp) == el
      True
 
 

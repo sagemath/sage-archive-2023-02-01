@@ -2141,7 +2141,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             d*q^-1 + 37/98 + 2587/(38416*d)*q + 899/(117649*d^2)*q^2 + O(q^3)
             sage: qexp_int == WF.J_inv().q_expansion()
             True
-            sage: WF(qexp_int) == WF.J_inv()
+            sage: WF(qexp) == WF.J_inv()
             True
             sage: WF.rationalize_series(qexp_int) == qexp_int
             True
@@ -2160,7 +2160,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: qexp_int == MF.E4().q_expansion()
             True
-            sage: MF(qexp_int) == MF.E4()
+            sage: MF(qexp) == MF.E4()
             True
             sage: MF.rationalize_series(qexp_int) == qexp_int
             True
@@ -2175,7 +2175,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: qexp_int == el.q_expansion()
             True
-            sage: QF(qexp_int) == el
+            sage: QF(qexp) == el
             True
             sage: QF.rationalize_series(qexp_int) == qexp_int
             True

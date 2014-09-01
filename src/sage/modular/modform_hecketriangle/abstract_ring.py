@@ -612,7 +612,7 @@ class FormsRing_abstract(Parent):
 
         return self._rat_field
 
-    def get_d(self, fix_d = False, d_num_prec = None):
+    def get_d(self, fix_d = False, d_num_prec = None, pol = False):
         r"""
         Return the parameter ``d`` of self. Also see ``HeckeTriangleGroup().dvalue()``.
 
@@ -623,13 +623,17 @@ class FormsRing_abstract(Parent):
                             (resp. an exact value if the group is arithmetic).
                             Otherwise the given value is used for ``d``.
 
-        - ``d_num_prec`` -- The precision to be used if a numerical value for ``d`` is substituted.
-                            Default: ``None`` in which case the default
-                            numerical precision of ``self.parent()`` is used.
+        - ``d_num_prec`` -- An integer, namely the precision to be used if a numerical
+                            value for ``d`` is substituted. Default: ``None`` in which case
+                            the default numerical precision of ``self.parent()`` is used.
+
+        - ``pol``        -- If ``True`` the other arguments are ignored and the polynomial
+                            variable for ``d`` of the polynomial ring of ``self`` is returned.
+                            Default: ``False``.
 
         OUTPUT:
 
-        The corresponding formal, numerical or exact parameter ``d`` of ``self``,
+        The corresponding formal, numerical, exact or polynomial parameter ``d`` of ``self``,
         depending on the arguments and whether ``self.group()`` is arithmetic.
 
         EXAMPLES::
@@ -652,7 +656,15 @@ class FormsRing_abstract(Parent):
             Real Field with 100 bits of precision
             sage: ModularFormsRing(n=5).get_d(fix_d=1).parent()
             Integer Ring
+
+            sage: ModularFormsRing(n=5).get_d(pol=True)
+            d
+            sage: ModularFormsRing(n=5).get_d(pol=True).parent()
+            Multivariate Polynomial Ring in x, y, z, d over Integer Ring
         """
+
+        if (pol == True):
+            return self.pol_ring().gens()[3]
 
         if d_num_prec is None:
             d_num_prec = self.default_num_prec()
@@ -1667,7 +1679,7 @@ class FormsRing_abstract(Parent):
             sage: Delta
             q + 47/(200*d)*q^2 + O(q^3)
 
-            sage: d = ModularForms(n=5).coeff_ring().gen()
+            sage: d = ModularForms(n=5).get_d()
             sage: Delta == (d*(ModularForms(n=5).E4()^3-ModularForms(n=5).E6()^2))
             True
 

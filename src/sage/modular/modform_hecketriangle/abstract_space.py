@@ -1659,7 +1659,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
             sage: MF = WeakModularForms(n=5, k=62/3, ep=-1)
             sage: MF.default_prec(MF._l1+1)
-            sage: d = MF.coeff_ring().gen()
+            sage: d = MF.get_d()
             sage: MF.weight_parameters()
             (2, 3)
             sage: el2 = d*MF.F_basis(2) + 2*MF.F_basis(1) + MF.F_basis(-2)
@@ -1922,7 +1922,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
 
             sage: QF = QuasiModularForms(k=2)
-            sage: q = PowerSeriesRing(QF.coeff_ring(), 'q').gen()
+            sage: q = QF.get_q()
             sage: qexp3 = 1 + O(q)
             sage: QF(qexp3)
             1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 + O(q^5)
@@ -2209,8 +2209,8 @@ class FormsSpace_abstract(FormsRing_abstract):
             prec = laurent_series.base_ring().prec()
             dvalue = self.group().dvalue().n(prec)
 
-        d = self.coeff_ring().gen()
-        q = PowerSeriesRing(self.coeff_ring(), "q").gen()
+        d = self.get_d()
+        q = self.get_q()
 
         if (not base_ring.is_exact() and coeff_bound):
             coeff_bound = base_ring(coeff_bound)

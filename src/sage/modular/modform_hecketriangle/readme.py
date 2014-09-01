@@ -144,7 +144,7 @@ All classes and functions are also individually documented (with doctest example
       True
 
       Using arithmetic expressions:
-      sage: d = CF.coeff_ring().gen()
+      sage: d = CF.get_d()
       sage: CF.f_rho()^7 / (d*CF.f_rho()^7 - d*CF.f_i()^2) == CF.j_inv()
       True
       sage: MF.E4().serre_derivative() == -1/3 * MF.E6()
@@ -554,7 +554,7 @@ All classes and functions are also individually documented (with doctest example
   corresponding exact coefficients. There is however NO guarantee that
   the procedure will work (and most probably there are cases where it won't).
 
-  EXAMPLES:
+  EXAMPLES::
 
      sage: from sage.modular.modform_hecketriangle.space import WeakModularForms, QuasiCuspForms
      sage: WF = WeakModularForms(n=14)

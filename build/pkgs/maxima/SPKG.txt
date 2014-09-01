@@ -69,6 +69,10 @@ The following patches are applied:
 
  * infodir.patch: Correct the path to the Info directory.
 
+ * limit-replace-logs.patch: Fix for Maxima bug #2621 (gamma limit
+   error).  Introduced in Trac #15033 (Wrong limit value of expression
+   involving gamma function).
+
  * matrixexp.patch: Fix matrixexp(matrix([%i*%pi])), which broke after
    Maxima 5.29.1.  Introduced in Trac #13973.
 

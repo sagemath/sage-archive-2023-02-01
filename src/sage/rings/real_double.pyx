@@ -894,14 +894,12 @@ cdef class RealDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: sage_input(RDF(NaN), verify=True)
-            # Verified
+            sage: sage_input(RDF(NaN))
             RDF(NaN)
             sage: sage_input(RDF(-infinity), verify=True)
             # Verified
             -RDF(infinity)
-            sage: sage_input(RDF(-infinity)*polygen(RDF), verify=True)
-            # Verified
+            sage: sage_input(RDF(-infinity)*polygen(RDF))
             R.<x> = RDF[]
             -RDF(infinity)*x + RDF(NaN)
             sage: sage_input(RDF(pi), verify=True)
@@ -1670,15 +1668,36 @@ cdef class RealDoubleElement(FieldElement):
             True
             sage: RDF(-2) > RDF(-4)
             True
+
+        TESTS:
+
+        Check comparisons with ``NaN`` (:trac:`16515`)::
+
+            sage: n = RDF('NaN')
+            sage: n == n
+            False
+            sage: n == RDF(1)
+            False
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
-        if left._value < (<RealDoubleElement>right)._value:
-            return -1
-        elif left._value > (<RealDoubleElement>right)._value:
-            return 1
-        return 0
+    cdef _richcmp_c_impl(left, Element right, int op):
+        # We really need to use the correct operators, to deal
+        # correctly with NaNs.
+        cdef double x = (<RealDoubleElement>left)._value
+        cdef double y = (<RealDoubleElement>right)._value
+        if op == 0:
+            return x < y
+        elif op == 1:
+            return x <= y
+        elif op == 2:
+            return x == y
+        elif op == 3:
+            return x != y
+        elif op == 4:
+            return x > y
+        else:
+            return x >= y
 
 
     ############################

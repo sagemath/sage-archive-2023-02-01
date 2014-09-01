@@ -13,8 +13,9 @@ AUTHORS:
 
 -  Simon King: Use a faster way of conversion from the base ring.
 
--  Julian Rueth (2012-05-25): Fixed is_squarefree() for imperfect fields.
-                              Fixed division without remainder over QQbar.
+-  Julian Rueth (2012-05-25,2014-05-09): Fixed is_squarefree() for imperfect
+   fields, fixed division without remainder over QQbar; added ``_cache_key``
+   for polynomials with unhashable coefficients
 
 -  Simon King (2013-10): Implement copying of :class:`PolynomialBaseringInjection`.
 
@@ -829,6 +830,31 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def __iter__(self):
         return iter(self.list())
 
+    def _cache_key(self):
+        """
+        Return a hashable key which identifies this element.
+
+        EXAMPLES::
+
+            sage: K.<u> = Qq(4)
+            sage: R.<x> = K[]
+            sage: f = x
+            sage: hash(f)
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+            sage: f._cache_key()
+            (..., (0, 1 + O(2^20)))
+
+            sage: @cached_function
+            ....: def foo(t): return t
+            ....:
+            sage: foo(x)
+            (1 + O(2^20))*x
+
+        """
+        return (self.parent(), tuple(self))
+
     # you may have to replicate this boilerplate code in derived classes if you override
     # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
     # explains how __richcmp__, __hash__, and __cmp__ are tied together.
@@ -1387,10 +1413,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Also check that such computations can be interrupted::
 
-            sage: K.<a> = GF(2**8)
+            sage: K.<a> = GF(2^8)
             sage: x = polygen(K)
-            sage: alarm(1)
-            sage: (x**1000000+x+a).any_root()
+            sage: pol = x^1000000 + x + a
+            sage: alarm(0.5); pol.any_root()
             Traceback (most recent call last):
             ...
             AlarmInterrupt
@@ -2494,6 +2520,29 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         raise NotImplementedError
 
+    def euclidean_degree(self):
+        r"""
+        Return the degree of this element as an element of a euclidean domain.
+
+        If this polynomial is defined over a field, this is simply its :meth:`degree`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: x.euclidean_degree()
+            1
+            sage: R.<x> = ZZ[]
+            sage: x.euclidean_degree()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        """
+        from sage.categories.fields import Fields
+        if self.base_ring() in Fields():
+            return self.degree()
+        raise NotImplementedError
+
     def denominator(self):
         """
         Return a denominator of self.
@@ -3199,9 +3248,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: K.<a> = QuadraticField(p*q)
             sage: R.<x> = PolynomialRing(K)
             sage: K.pari_polynomial('a').nffactor("x^2+1")
-            Traceback (most recent call last):
-            ...
-            PariError: precision too low in floorr (precision loss in truncation)
+            Mat([x^2 + 1, 1])
             sage: factor(x^2 + 1)
             x^2 + 1
             sage: factor( (x - a) * (x + 2*a) )
@@ -3351,19 +3398,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             # PARI's nffactor() ignores the unit, _factor_pari_helper()
             # adds back the unit of the factorization.
             return self._factor_pari_helper(G)
-
-        elif is_RealField(R):
-            n = pari.set_real_precision(int(3.5*R.prec()) + 1)
-            G = list(self._pari_with_name().factor())
-
-        elif sage.rings.complex_field.is_ComplexField(R):
-            # This is a hack to make the polynomial have complex coefficients, since
-            # otherwise PARI will factor over RR.
-            n = pari.set_real_precision(int(3.5*R.prec()) + 1)
-            if self.leading_coefficient() != R.gen():
-                G = list((pari(R.gen())*self._pari_with_name()).factor())
-            else:
-                G = self._pari_with_name().factor()
 
         if G is None:
             # See if we can do this as a singular polynomial as a fallback
@@ -4612,7 +4646,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pari(f)
             Traceback (most recent call last):
             ...
-            PariError: variable must have higher priority in gtopoly
+            PariError: incorrect priority in gtopoly: variable x <= a
 
         Stacked polynomial rings, first with a univariate ring on the
         bottom::
@@ -4871,6 +4905,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: P = x^2 - F
             sage: P.resultant(P.derivative())
             -4 - 4*T + O(T^2)
+
+        Check that :trac:`16360` is fixed::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: y.resultant(y+x)
+            x
+
+            sage: K.<a> = FunctionField(QQ)
+            sage: R.<b> = K[]
+            sage: L.<b> = K.extension(b^2-a)
+            sage: R.<x> = L[]
+            sage: f=x^2-a
+            sage: g=x-b
+            sage: f.resultant(g)
+            0
+
         """
         variable = self.variable_name()
         if variable != 'x' and self.parent()._mpoly_base_ring() != self.parent().base_ring():
@@ -4883,7 +4934,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         try:
             res = self._pari_with_name().polresultant(other._pari_with_name())
             return self.parent().base_ring()(res)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, PariError, NotImplementedError):
             return self.sylvester_matrix(other).det()
 
     def discriminant(self):
@@ -5611,6 +5662,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [1 + O(3^5)]
             sage: parent(r[0])
             3-adic Ring with capped relative precision 5
+            
+        Spurious crash with pari-2.5.5, see :trac:`16165`::
+        
+            sage: f=(1+x+x^2)^3
+            sage: f.roots(ring=CC)
+            [(-0.500000000000000 - 0.866025403784439*I, 3),
+             (-0.500000000000000 + 0.866025403784439*I, 3)]
         """
         K = self.parent().base_ring()
         if hasattr(K, '_roots_univariate_polynomial'):
@@ -6631,6 +6689,112 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         # otherwise not cyclotomic
         return False
+
+    def homogenize(self, var='h'):
+        r"""
+        Return the homogenization of this polynomial.
+
+        The polynomial itself is returned if it homogeneous already. Otherwise,
+        its monomials are multiplied with the smallest powers of ``var`` such
+        that they all have the same total degree.
+
+        INPUT:
+
+        - ``var`` -- a variable in the polynomial ring (as a string, an element
+          of the ring, or ``0``) or a name for a new variable (default:
+          ``'h'``)
+
+        OUTPUT:
+
+        If ``var`` specifies the variable in the polynomial ring, then a
+        homogeneous element in that ring is returned. Otherwise, a homogeneous
+        element is returned in a polynomial ring with an extra last variable
+        ``var``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^2 + 1
+            sage: f.homogenize()
+            x^2 + h^2
+
+        The parameter ``var`` can be used to specify the name of the variable::
+
+            sage: g = f.homogenize('z'); g
+            x^2 + z^2
+            sage: g.parent()
+            Multivariate Polynomial Ring in x, z over Rational Field
+
+        However, if the polynomial is homogeneous already, then that parameter
+        is ignored and no extra variable is added to the polynomial ring::
+
+            sage: f = x^2
+            sage: g = f.homogenize('z'); g
+            x^2
+            sage: g.parent()
+            Univariate Polynomial Ring in x over Rational Field
+
+        For compatibility with the multivariate case, if ``var`` specifies the
+        variable of the polynomial ring, then the monomials are multiplied with
+        the smallest powers of ``var`` such that the result is homogeneous; in
+        other words, we end up with a monomial whose leading coefficient is the
+        sum of the coefficients of the polynomial::
+
+            sage: f = x^2 + x + 1
+            sage: f.homogenize('x')
+            3*x^2
+
+        In positive characterstic, the degree can drop in this case::
+
+            sage: R.<x> = GF(2)[]
+            sage: f = x + 1
+            sage: f.homogenize(x)
+            0
+
+        For compatibility with the multivariate case, the parameter ``var`` can
+        also be 0 to specify the variable in the polynomial ring::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^2 + x + 1
+            sage: f.homogenize(0)
+            3*x^2
+
+        """
+        if self.is_homogeneous():
+            return self
+
+        x, = self.variables()
+
+        if PY_TYPE_CHECK(var, int) or PY_TYPE_CHECK(var, Integer):
+            if var:
+                raise TypeError, "Variable index %d must be < 1."%var
+            else:
+                return sum(self.coefficients())*x**self.degree()
+
+        x_name = self.variable_name()
+        var = str(var)
+
+        if var == x_name:
+            return sum(self.coefficients())*x**self.degree()
+
+        P = PolynomialRing(self.base_ring(), [x_name, var])
+        return P(self)._homogenize(1)
+
+    def is_homogeneous(self):
+        r"""
+        Return ``True`` if this polynomial is homogeneous.
+
+        EXAMPLES::
+
+            sage: P.<x> = PolynomialRing(QQ)
+            sage: x.is_homogeneous()
+            True
+            sage: P(0).is_homogeneous()
+            True
+            sage: (x+1).is_homogeneous()
+            False
+        """
+        return len(self.exponents()) < 2
 
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function

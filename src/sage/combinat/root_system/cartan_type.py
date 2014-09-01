@@ -2374,6 +2374,42 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
         """
         return self.letter
 
+    @cached_method
+    def opposition_automorphism(self):
+        r"""
+        Returns the opposition automorphism
+
+        The *opposition automorphism* is the automorphism
+        `i \mapsto i^*` of the vertices Dynkin diagram such that,
+        for `w_0` the longest element of the Weyl group, and any
+        simple root `\alpha_i`, one has `\alpha_{i^*} = -w_0(\alpha_i)`.
+
+        The automorphism is returned as a :class:`Family`.
+
+        EXAMPLES::
+
+            sage: ct = CartanType(['A', 5])
+            sage: ct.opposition_automorphism()
+            Finite family {1: 5, 2: 4, 3: 3, 4: 2, 5: 1}
+
+            sage: ct = CartanType(['D', 4])
+            sage: ct.opposition_automorphism()
+            Finite family {1: 1, 2: 2, 3: 3, 4: 4}
+
+            sage: ct = CartanType(['D', 5])
+            sage: ct.opposition_automorphism()
+            Finite family {1: 1, 2: 2, 3: 3, 4: 5, 5: 4}
+
+            sage: ct = CartanType(['C', 4])
+            sage: ct.opposition_automorphism()
+            Finite family {1: 1, 2: 2, 3: 3, 4: 4}
+        """
+        Q = self.root_system().root_lattice()
+        W = Q.weyl_group()
+        w0 = W.long_element()
+        alpha = Q.simple_roots()
+        d = {i: (w0.action(alpha[i])).leading_support() for i in self.index_set()}
+        return Family(d)
 
 ##########################################################################
 class CartanType_standard_affine(UniqueRepresentation, SageObject, CartanType_affine):

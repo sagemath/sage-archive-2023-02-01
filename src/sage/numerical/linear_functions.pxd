@@ -1,6 +1,7 @@
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport ModuleElement, RingElement, Element
 
+cpdef is_LinearFunction(x)
 
 cdef class LinearFunctionsParent_class(Parent):
     cpdef _element_constructor_(self, x)

@@ -284,20 +284,20 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
                 if not value:
                     value = [0]
                 try:
-                    # First, try the conversion directly in PARI.  This
-                    # should cover the most common cases, like converting
-                    # from integers or intmods.
                     # Convert the list to PARI, then mod out the
-                    # characteristic (PARI can do this directly for lists),
-                    # convert to a polynomial with variable "a" and finally
-                    # mod out the field modulus.
-                    self.__value = pari(value).Mod(parent.characteristic()).Polrev("a").Mod(parent._pari_modulus())
+                    # characteristic (PARI can do this directly for lists).
+                    # If we get only INTMODs, we can do the conversion
+                    # directly.
+                    parilist = pari(value).Mod(parent.characteristic())
+                    if not all(c.type() == "t_INTMOD" for c in parilist):
+                        raise RuntimeError
                 except RuntimeError:
                     # That didn't work, do it in a more general but also
                     # slower way: first convert all list elements to the
                     # prime field.
                     GFp = parent.prime_subfield()
-                    self.__value = pari([GFp(c) for c in value]).Polrev("a").Mod(parent._pari_modulus())
+                    parilist = pari([GFp(c) for c in value])
+                self.__value = parilist.Polrev("a").Mod(parent._pari_modulus())
             elif isinstance(value, str):
                 raise TypeError("value must not be a string")
             else:

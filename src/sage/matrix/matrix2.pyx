@@ -35,7 +35,6 @@ from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.sequence import Sequence
 from sage.structure.element import is_Vector
 from sage.misc.misc import verbose, get_verbose
-from sage.misc.temporary_file import graphics_filename
 from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer import Integer
@@ -5347,8 +5346,8 @@ cdef class Matrix(matrix1.Matrix):
         The method also works for matrices over finite fields::
 
             sage: M = matrix(GF(3), [[0,1,1],[1,2,0],[2,0,1]])
-            sage: ev = M.eigenvalues(); ev
-            [2*z3, 2*z3 + 2, 2*z3 + 1]
+            sage: ev = sorted(M.eigenvalues()); ev
+            [2*z3, 2*z3 + 1, 2*z3 + 2]
 
         Similarly as in the case of QQbar, the eigenvalues belong to some
         algebraic closure but they can be converted to elements of a finite
@@ -7703,7 +7702,7 @@ cdef class Matrix(matrix1.Matrix):
 
         A matrix is said to be bistochastic if both the sums of the
         entries of each row and the sum of the entries of each column
-        are equal to 1.
+        are equal to 1 and all entries are nonnegative.
 
         INPUT:
 
@@ -7726,6 +7725,13 @@ cdef class Matrix(matrix1.Matrix):
             False
             sage: (2 * Matrix(5,5,1)).is_bistochastic(normalized = False)
             True
+
+        Here is a matrix whose row and column sums is 1, but not all entries are
+        nonnegative::
+
+            sage: m = matrix([[-1,2],[2,-1]])
+            sage: m.is_bistochastic()
+            False
         """
 
         row_sums = map(sum, self.rows())
@@ -7735,7 +7741,8 @@ cdef class Matrix(matrix1.Matrix):
                 col_sums[0] == row_sums[0] and\
                 row_sums == col_sums and\
                 row_sums == len(row_sums) * [col_sums[0]] and\
-                ((not normalized) or col_sums[0] == self.base_ring()(1))
+                ((not normalized) or col_sums[0] == self.base_ring()(1)) and\
+                all(entry>=0 for row in self for entry in row)
 
     def is_normal(self):
         r"""
@@ -7941,7 +7948,7 @@ cdef class Matrix(matrix1.Matrix):
         EXAMPLE::
 
             sage: M = random_matrix(CC, 4)
-            sage: M.visualize_structure(os.path.join(SAGE_TMP, "matrix.png"))
+            sage: M.visualize_structure()
         """
         import gd
         import os
@@ -7996,6 +8003,7 @@ cdef class Matrix(matrix1.Matrix):
                 setPixel((y,x), val)
 
         if filename is None:
+            from sage.misc.temporary_file import graphics_filename
             filename = graphics_filename()
 
         im.writePng(filename)
@@ -11423,6 +11431,20 @@ cdef class Matrix(matrix1.Matrix):
             sage: isinstance(ds, tuple), isinstance(dh, tuple)
             (True, True)
 
+        We check that :trac:`16633` is fixed::
+
+            sage: A = matrix(QQ, [[ 4, -2,  4,  2],
+            ....:                 [-2, 10, -2, -7],
+            ....:                 [ 4, -2,  8,  4],
+            ....:                 [ 2, -7,  4,  7]])
+            sage: A.set_immutable()
+            sage: L,d = A._indefinite_factorization('symmetric')
+            sage: A
+            [ 4 -2  4  2]
+            [-2 10 -2 -7]
+            [ 4 -2  8  4]
+            [ 2 -7  4  7]
+
         AUTHOR:
 
         - Rob Beezer (2012-05-24)
@@ -11470,6 +11492,10 @@ cdef class Matrix(matrix1.Matrix):
             # we need a copy no matter what, so we
             # (potentially) change to fraction field at the same time
             L = self.change_ring(F)
+            # The change ring doesn't necessarily return a copy if ``self``
+            #   is immutable and ``F`` is the same as the base ring
+            if L is self:
+                L = self.__copy__()
             m = L._nrows
             zero = F(0)
             one = F(1)

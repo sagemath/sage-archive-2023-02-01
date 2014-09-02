@@ -177,7 +177,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: qexp3 = el3.q_expansion(prec=prec)
             sage: qexp3
             2 - 7/(4*d)*q + 195/(256*d^2)*q^2 - 903/(4096*d^3)*q^3 + 41987/(1048576*d^4)*q^4 - 181269/(33554432*d^5)*q^5 + O(q^6)
-            sage: QF.construct_quasi_form(qexp3) == el3
+            sage: QF.construct_quasi_form(qexp3, check=False) == el3
             False
             sage: QF.construct_quasi_form(qexp3, order_1=-1) == el3
             True
@@ -1611,7 +1611,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         return max(ZZ(0), max_exp - min_exp + 1)
 
-    def construct_form(self, laurent_series, order_1=ZZ(0)):
+    def construct_form(self, laurent_series, order_1=ZZ(0), check=True):
         r"""
         Tries to construct an element of self with the given Fourier
         expansion. The assumption is made that the specified Fourier
@@ -1624,8 +1624,11 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         - ``laurent_series``  -- A Laurent or Power series.
 
-        - ``order_1``  -- A lower bound for the order at ``-1`` of the form (default: 0).
-                          If ``n!=infinity`` this parameter is ignored.
+        - ``order_1``         -- A lower bound for the order at ``-1`` of the form (default: 0).
+                                 If ``n!=infinity`` this parameter is ignored.
+
+        - ``check``           -- If ``True`` (default) then the series expansion of the constructed
+                                 form is compared against the given (rationalized) series.
 
         OUTPUT:
 
@@ -1695,9 +1698,9 @@ class FormsSpace_abstract(FormsRing_abstract):
         if (laurent_series.prec() < order_inf + 1):
             raise ValueError("Insufficient precision: {} < {} = order_inf!".format(laurent_series.prec(), order_inf + 1))
 
-        laurent_series = laurent_series.add_bigoh(order_inf + 1)
-        coefficients   = laurent_series.coefficients()
-        exponents      = laurent_series.exponents()
+        new_series     = laurent_series.add_bigoh(order_inf + 1)
+        coefficients   = new_series.coefficients()
+        exponents      = new_series.exponents()
 
         if (len(coefficients) == 0):
             return self(0)
@@ -1707,7 +1710,14 @@ class FormsSpace_abstract(FormsRing_abstract):
                   for j in range(ZZ(len(coefficients)))
               ])
 
-        return self(rat)
+        el = self(rat)
+
+        if (check):
+            prec = min(laurent_series.prec(), laurent_series.exponents()[-1] + 1)
+            if (el.q_expansion(prec=prec) != laurent_series):
+                raise ValueError("The Laurent series {} does not correspond to a form of {}".format(laurent_series, self.reduce_type(["weak"])))
+
+        return el
 
     @cached_method
     def _quasi_form_matrix(self, min_exp=0, order_1=ZZ(0), incr_prec_by=0):
@@ -1856,7 +1866,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         return self._quasi_form_matrix(min_exp=min_exp, order_1=order_1).dimensions()[0] + min_exp
 
-    def construct_quasi_form(self, laurent_series, order_1=ZZ(0)):
+    def construct_quasi_form(self, laurent_series, order_1=ZZ(0), check=True):
         r"""
         Try to construct an element of self with the given Fourier
         expansion. The assumption is made that the specified Fourier
@@ -1871,6 +1881,9 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         - ``order_1``         -- A lower bound for the order at ``-1`` for all quasi parts of the
                                  form (default: 0). If ``n!=infinity`` this parameter is ignored.
+
+        - ``check``           -- If ``True`` (default) then the series expansion of the constructed
+                                 form is compared against the given (rationalized) series.
 
         OUTPUT:
 
@@ -1910,9 +1923,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: prec = MF.required_laurent_prec(min_exp=2)
             sage: prec
             4
-            sage: qexp2 = el2.q_expansion(prec=prec)
+            sage: qexp2 = el2.q_expansion(prec=prec + 1)
             sage: qexp2
-            q^3 + O(q^4)
+            q^3 - 1/(24*d)*q^4 + O(q^5)
             sage: qexp2.parent()
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: constructed_el2 = MF.construct_quasi_form(qexp2)
@@ -1935,7 +1948,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: qexp4 = el4.q_expansion(prec=prec)
             sage: qexp4
             2 - 7/(4*d)*q + 195/(256*d^2)*q^2 - 903/(4096*d^3)*q^3 + 41987/(1048576*d^4)*q^4 - 181269/(33554432*d^5)*q^5 + O(q^6)
-            sage: QF.construct_quasi_form(qexp4) == el4
+            sage: QF.construct_quasi_form(qexp4, check=False) == el4
             False
             sage: QF.construct_quasi_form(qexp4, order_1=-1) == el4
             True
@@ -1944,8 +1957,9 @@ class FormsSpace_abstract(FormsRing_abstract):
         # In case the Laurent coefficients don't yet lie in a polynomial ring
         # (in "d") we try to "rationalize" the series
         laurent_series = self.rationalize_series(laurent_series)
+        prec = min(laurent_series.prec(), laurent_series.exponents()[-1] + 1)
 
-        min_exp1 = laurent_series.valuation()
+        min_exp1 = laurent_series.exponents()[0]
         (min_exp, order_1) = self._canonical_min_exp(min_exp1, order_1)
 
         if (min_exp != min_exp1):
@@ -1956,36 +1970,43 @@ class FormsSpace_abstract(FormsRing_abstract):
             basis = self.q_basis(min_exp=min_exp, order_1=order_1)
             size = len(basis)
 
-            if (laurent_series.prec() < min_exp + size):
+            if (prec < min_exp + size):
                 raise ValueError("Insufficient precision: {} < {}!".format(laurent_series.prec(), min_exp + size))
 
             b = vector(self.coeff_ring(), [laurent_series[m] for m in range(min_exp, min_exp + len(basis))])
 
-            return self(sum([b[k]*basis[k] for k in range(0, len(basis))]))
+            el = self(sum([b[k]*basis[k] for k in range(0, len(basis))]))
+        else:
+            A = self._quasi_form_matrix(min_exp = min_exp, order_1=order_1)
+            row_size = A.dimensions()[0]
 
-        A = self._quasi_form_matrix(min_exp = min_exp, order_1=order_1)
-        row_size = A.dimensions()[0]
+            if (prec < min_exp + row_size):
+                raise ValueError("Insufficient precision: {} < {}!".format(laurent_series.prec(), min_exp + row_size))
 
-        if (laurent_series.prec() < min_exp + row_size):
-            raise ValueError("Insufficient precision: {} < {}!".format(laurent_series.prec(), min_exp + row_size))
+            b = vector(self.coeff_ring(), [laurent_series[m] for m in range(min_exp, min_exp + row_size)])
+            try:
+                coord_vector = A.solve_right(b)
+            except ValueError:
+                raise ValueError("The Laurent series {} does not correspond to a (quasi) form of {}".format(laurent_series, self.reduce_type(["quasi", "weak"])))
 
-        b = vector(self.coeff_ring(), [laurent_series[m] for m in range(min_exp, min_exp + row_size)])
-        try:
-            coord_vector = A.solve_right(b)
-        except ValueError:
-            raise ValueError("The Laurent series {} does not correspond to a (quasi) form of {}".format(laurent_series, self.reduce_type(["quasi", "weak"])))
+            order_inf = self._l1 - order_1
 
-        order_inf = self._l1 - order_1
+            # We have to add + 1 to get a correct upper bound in all cases
+            # since corresponding weak space might have a higher l1 (+1) than
+            # ``self``, even if the weight is smaller
+            max_exp = order_inf + 1
+            basis = []
+            for m in range(min_exp, max_exp + 1):
+               basis += self.quasi_part_gens(min_exp=m, max_exp=m, order_1=order_1)
 
-        # We have to add + 1 to get a correct upper bound in all cases
-        # since corresponding weak space might have a higher l1 (+1) than
-        # ``self``, even if the weight is smaller
-        max_exp = order_inf + 1
-        basis = []
-        for m in range(min_exp, max_exp + 1):
-           basis += self.quasi_part_gens(min_exp=m, max_exp=m, order_1=order_1)
+            el = self(sum([coord_vector[k]*basis[k] for k in range(0, len(coord_vector))]))
 
-        return self(sum([coord_vector[k]*basis[k] for k in range(0, len(coord_vector))]))
+        if (check):
+            if (el.q_expansion(prec=prec) != laurent_series):
+                raise ValueError("The Laurent series {} does not correspond to a form of {}".format(laurent_series, self.reduce_type(["quasi", "weak"])))
+
+        return el
+
 
     @cached_method
     def q_basis(self, m=None, min_exp=0, order_1=ZZ(0)):
@@ -2193,6 +2214,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         denom_factor = ZZ(denom_factor)
         base_ring = laurent_series.base_ring()
+        series_prec = laurent_series.prec()
 
         # If the coefficients already coerce to our coefficient ring
         # and are in polynomial form we simply return the laurent series
@@ -2223,7 +2245,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         if (not base_ring.is_exact() and coeff_bound):
             coeff_bound = base_ring(coeff_bound)
             num_q = laurent_series.parent().gen()
-            laurent_series = sum([laurent_series[i]*num_q**i for i in range(laurent_series.exponents()[0], laurent_series.exponents()[-1]+1) if laurent_series[i].abs() > coeff_bound])
+            laurent_series = sum([laurent_series[i]*num_q**i for i in range(laurent_series.exponents()[0], laurent_series.exponents()[-1]+1) if laurent_series[i].abs() > coeff_bound]).add_bigoh(series_prec)
 
         first_exp = laurent_series.exponents()[0]
         first_coeff = laurent_series[first_exp]
@@ -2273,7 +2295,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
             return rational_coeff / d**m
 
-        laurent_series = sum([rationalize_coefficient(laurent_series[m], m) * q**m for m in range(first_exp, laurent_series.exponents()[-1] + 1)])
+        laurent_series = sum([rationalize_coefficient(laurent_series[m], m) * q**m for m in range(first_exp, laurent_series.exponents()[-1] + 1)]).add_bigoh(series_prec)
 
         return laurent_series
 

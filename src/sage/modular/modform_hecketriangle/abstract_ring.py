@@ -1924,4 +1924,4 @@ class FormsRing_abstract(Parent):
         MFC = MFSeriesConstructor(group=self.group(), prec=prec)
         q_series = MFC.EisensteinSeries(k=k)
 
-        return extended_self(reduced_self.construct_form(q_series)).reduce()
+        return extended_self(reduced_self.construct_form(q_series, check=False)).reduce()

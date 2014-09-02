@@ -168,9 +168,6 @@ cdef list biseq_to_list(biseq_t S):
     cdef int max_limb
     index = 0
     cdef mp_limb_t *tmp_limb
-    tmp_limb = <mp_limb_t*>sage_malloc(2<<times_size_of_limb)
-    if tmp_limb==NULL:
-        raise MemoryError("Cannot even allocate two long integers")
     cdef list L = []
     cdef size_t n
     # If limb_index<max_limb, then we safely are in allocated memory.
@@ -179,6 +176,9 @@ cdef list biseq_to_list(biseq_t S):
     max_limb = seq._mp_size - 1
     if max_limb<0:
         return [int(0)]*S.length
+    tmp_limb = <mp_limb_t*>sage_malloc(2<<times_size_of_limb)
+    if tmp_limb==NULL:
+        raise MemoryError("Cannot even allocate two long integers")
     for n from S.length>=n>0:
         limb_index = index>>times_mp_bits_per_limb
         bit_index  = index&mod_mp_bits_per_limb

@@ -2348,14 +2348,53 @@ LIST_OF_QDM = join(("`({},{};{},{};{})`".format(*params)
                     for params in sorted(QDM[key].keys())),
                     ", ")
 
+_ref_Handbook = """Handbook of Combinatorial Designs (2ed),
+                   C. Colbourn, J. Dinitz,
+                   2010 CRC Press"""
+
 Vmt_vectors = {
+    (3 ,2 ) : ((0,1,3,6),    _ref_Handbook),
+    (3 ,4 ) : ((0,1,3,9),    _ref_Handbook),
+    (3 ,10) : ((0,1,4,13),   _ref_Handbook),
+    (3 ,12) : ((0,1,3,10),   _ref_Handbook),
+    (3 ,20) : ((0,1,3,13),   _ref_Handbook),
+    (3 ,6 ) : ((0,1,3,7),    _ref_Handbook),
+    (3 ,26) : ((0,1,3,8),    _ref_Handbook),
+    (3 ,32) : ((0,1,3,9),    _ref_Handbook),
+    (3 ,6 ) : ((0,1,3,7),    _ref_Handbook),
+    (3 ,14) : ((0,1,4,13),   _ref_Handbook),
+    (3 ,24) : ((0,1,3,15),   _ref_Handbook),
+    (3 ,34) : ((0,1,3,7),    _ref_Handbook),
+    (4 ,3 ) : ((0,1,3,7,2),  _ref_Handbook),
+    (4 ,7 ) : ((0,1,3,7,19), _ref_Handbook),
+
     (4,9) : ((0,1,3,2,8),
              """A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
              Discrete Mathematics 1982, vol 39, num 3, pp 263-281"""),
 
+    (4 ,13) : ((0,1,3,7,19),        _ref_Handbook),
+    (4 ,15) : ((0,1,3,7,5),         _ref_Handbook),
+    (4 ,25) : ((0,1,3,2,31),        _ref_Handbook),
+    (5 ,6 ) : ((0,1,3,7,30,17),     _ref_Handbook),
+    (5 ,8 ) : ((0,1,3,22,14,18),    _ref_Handbook),
+    (5 ,12) : ((0,1,3,7,23,50),     _ref_Handbook),
+    (5 ,14) : ((0,1,3,9,25,54),     _ref_Handbook),
+    (5 ,20) : ((0,1,3,10,43,91),    _ref_Handbook),
+    (5 ,26) : ((0,1,3,6,48,15),     _ref_Handbook),
+    (6 ,5 ) : ((0,1,7,30,12,21,15), _ref_Handbook),
+
     (6,7) : ((0,1,3,16,35,26,36),
              """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
              Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (6 ,11) : ((0,1,3,14,7,24,27),      _ref_Handbook),
+    (6 ,13) : ((0,1,3,7,55,47,34),      _ref_Handbook),
+    (6 ,17) : ((0,1,3,2,14,99,29),      _ref_Handbook),
+    (6 ,21) : ((0,1,4,13,66,93,45),     _ref_Handbook),
+    (7 ,6 ) : ((0,1,12,27,37,16,30,35), _ref_Handbook),
+    (7 ,10) : ((0,1,3,45,9,50,28,16),   _ref_Handbook),
+    (7 ,16) : ((0,1,3,7,82,72,93,39),   _ref_Handbook),
+    (7 ,18) : ((0,1,3,6,97,114,99,26),  _ref_Handbook),
 
     (8,9) : ((0,1,20,70,23,59,3,8,19),
              """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
@@ -2377,15 +2416,27 @@ Vmt_vectors = {
               """A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
               Discrete Mathematics 1982, vol 39, num 3, pp 263-281"""),
 
-    (9,14) : ((0,1,11,25,37,8,100,23,95,42),"Handbook of Combinatorial Designs 2ed"),
+    (9 ,12) : ((0,1,4,19,56,22,83,95,52,96),      _ref_Handbook),
+    (9 ,14) : ((0,1,11,25,37,8,100,23,95,42),     _ref_Handbook),
+    (9 ,18) : ((0,1,3,7,36,30,158,94,52,70),      _ref_Handbook),
+    (9 ,20) : ((0,1,3,19,145,70,173,159,18,85),   _ref_Handbook),
+    (9 ,22) : ((0,1,3,31,99,190,174,46,87,127),   _ref_Handbook),
+    (9 ,30) : ((0,1,3,8,197,68,119,13,215,105),   _ref_Handbook),
+    (9 ,34) : ((0,1,3,13,140,81,74,131,303,238),  _ref_Handbook),
+    (9 ,42) : ((0,1,3,6,66,258,186,346,104,152),  _ref_Handbook),
+    (9 ,44) : ((0,1,4,11,144,103,216,77,160,363), _ref_Handbook),
 
     (10,13) : ((0,1,5,10,22,6,14,9,53,129,84),
                """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
                Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
 
+    (10,15) : ((0,1,45,146,51,97,70,137,85,133,18),   _ref_Handbook),
+
     (10,19) : ((0,1,3,96,143,156,182,142,4,189,25),
                """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
                Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (10,21) : ((0,1,6,188,205,39,101,113,30,32,42),   _ref_Handbook),
 
     (10,25) : ((0,1,3,85,140,178,195,22,48,179,188),
                """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
@@ -2399,9 +2450,13 @@ Vmt_vectors = {
                """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
                Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
 
+    (10,33) : ((0,1,3,67,319,44,249,146,302,282,90),  _ref_Handbook),
+
     (10,43) : ((0,1,6,29,170,207,385,290,375,32,336),
                """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
                Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (10,49) : ((0,1,3,8,406,72,335,197,324,383,395),  _ref_Handbook),
 
     (10, 81) : ((0,1,3,2,27,438,615,708,168,410,656),
                """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
@@ -2513,76 +2568,7 @@ EXAMPLES::
     ....:     G,M = QDM_from_Vmt(m,t,vec)
     ....:     if n < 1000:
     ....:         assert  is_quasi_difference_matrix(M,G,m+2,1,1,t,verbose=1),(m,t)
-    ....:     print "{:11}{}".format("V({},{}):".format(m,t),source)
-    V(4,9):    A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
-                 Discrete Mathematics 1982, vol 39, num 3, pp 263-281
-    V(6,7):    Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                 Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(8,9):    Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                 Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(8,11):   Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                  Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(8,17):   Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                  Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(8,29):   Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                  Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(8,57):   A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
-                  Discrete Mathematics 1982, vol 39, num 3, pp 263-281
-    V(9,14):   Handbook of Combinatorial Designs 2ed
-    V(10,13):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,19):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,25):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,27):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,31):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,43):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,81):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,97):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,103): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,181): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,187): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,259): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,273): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,319): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,391): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(10,409): Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
-    V(12,73):  J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40 pp 69-85
-    V(12,83):  J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,89):  J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,101): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,103): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,121): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,169): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,185): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,191): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,199): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
-    V(12,229): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
+    ....:     assert len(source)>10
 """
 
 DF = {

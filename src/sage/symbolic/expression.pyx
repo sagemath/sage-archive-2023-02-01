@@ -8106,7 +8106,7 @@ cdef class Expression(CommutativeRingElement):
 
         if complexity_measure is None:
             return simplified_expr
-        
+
         if complexity_measure(simplified_expr) < complexity_measure(self):
             return simplified_expr
         else:
@@ -10236,6 +10236,75 @@ cdef class Expression(CommutativeRingElement):
         if not is_a_relational(self._gobj):
             raise TypeError("this expression must be a relation")
         return self / x
+
+
+    def implicit_derivative(self, Y, X, n=1):
+        """
+        Return the n'th derivative of Y with respect to X given implicitly by this expression.
+
+        INPUT:
+
+        - ``Y`` - The dependent variable of the implicit expression.
+
+        - ``X`` - The independent variable with respect to which the derivative is taken.
+
+
+        - ``n`` - (default : 1) the order of the derivative.
+
+        EXAMPLES:
+
+        ::
+
+            sage: var('x, y')
+            (x, y)
+            sage: f = cos(x)*sin(y)
+            sage: f.implicit_derivative(y, x)
+            sin(x)*sin(y)/(cos(x)*cos(y))
+            sage: g = x*y^2
+            sage: g.implicit_derivative(y, x, 3)
+            -1/4*(y + 2*y/x)/x^2 + 1/4*(2*y^2/x - y^2/x^2)/(x*y) - 3/4*y/x^3
+
+            It is an error to not include a Y term in the expression F::
+
+            sage: (cos(x)*sin(x)).implicit_derivative(y, x)
+            Traceback (most recent call last):
+            ...
+            ValueError: Expression cos(x)*sin(x) contains no y terms
+
+
+        TESTS::
+
+            sage: var('x,y')  # check that the pynac registry is not polluted
+            (x, y)
+            sage: psr=copy(sage.symbolic.ring.pynac_symbol_registry)
+            sage: (x^6*y^5).implicit_derivative(y, x, 3)
+            -792/125*y/x^3 + 12/25*(15*x^4*y^5 + 28*x^3*y^5)/(x^6*y^4) - 36/125*(20*x^5*y^4 + 43*x^4*y^4)/(x^7*y^3)
+            sage: psr==sage.symbolic.ring.pynac_symbol_registry
+            True
+        """
+        from sage.calculus.calculus import SR
+        if not self.has(Y):
+            raise ValueError, "Expression {} contains no {} terms".format(self, Y)
+        x = SR.symbol()
+        yy = SR.symbol()
+        y = SymbolicFunction('y', 1)(x)
+        f = SymbolicFunction('f', 2)(x, yy)
+        Fx = f.diff(x)
+        Fy = f.diff(yy)
+        G = -(Fx/Fy)
+        G = G.subs({yy: y})
+        di = {y.diff(x): -self.diff(X)/self.diff(Y)}
+        R = G
+        S = G.diff(x, n - 1)
+        for i in range(n + 1):
+            di[y.diff(x, i + 1).subs({x: x})] = R
+            S = S.subs(di)
+            R = G.diff(x, i)
+            for j in range(n + 1 - i):
+                di[f.diff(x, i, yy, j).subs({x: x, yy: y})] = self.diff(X, i, Y, j)
+                S = S.subs(di)
+        return S
+
 
 
     # Functions to add later, maybe.  These were in Ginac mainly

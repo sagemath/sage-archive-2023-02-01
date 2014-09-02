@@ -4,7 +4,7 @@ from calculus import (laplace, inverse_laplace,
 
 from functional import (diff, derivative,
                         expand,
-                        taylor, simplify, implicit_derivative)
+                        taylor, simplify)
 
 from functions import (wronskian,jacobian)
 

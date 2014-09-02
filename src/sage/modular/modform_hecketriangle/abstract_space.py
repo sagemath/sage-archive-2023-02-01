@@ -1752,7 +1752,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: QF = QuasiWeakModularForms(n=8, k=10/3, ep=-1)
             sage: A = QF._quasi_form_matrix(min_exp=-1)
             sage: A[3]
-            (-1215/(65536*d^3), 134099/(16777216*d^3), 15889/(8388608*d^3), -8851/(8388608*d^3), -2171/(131072*d^2), -811/(131072*d^2))
+            (-1215/(65536*d^3), -2171/(131072*d^2), 134099/(16777216*d^3), -811/(131072*d^2), 15889/(8388608*d^3), -8851/(8388608*d^3))
 
             sage: MF = ModularForms(k=36)
             sage: MF._quasi_form_matrix(min_exp=2)
@@ -1778,9 +1778,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         # ``self``, even if the weight is smaller
         max_exp = order_inf + 1
 
-        basis = []
-        for m in range(min_exp, max_exp + 1):
-           basis += self.quasi_part_gens(min_exp=m, max_exp=m, order_1=order_1)
+        basis = self.quasi_part_gens(min_exp=min_exp, max_exp=max_exp, order_1=order_1)
 
         column_size = len(basis)
         # a non-trivial incr_prec_by will be added in case the resulting matrix does not have full rank
@@ -1995,9 +1993,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             # since corresponding weak space might have a higher l1 (+1) than
             # ``self``, even if the weight is smaller
             max_exp = order_inf + 1
-            basis = []
-            for m in range(min_exp, max_exp + 1):
-               basis += self.quasi_part_gens(min_exp=m, max_exp=m, order_1=order_1)
+            basis = self.quasi_part_gens(min_exp=min_exp, max_exp=max_exp, order_1=order_1)
 
             el = self(sum([coord_vector[k]*basis[k] for k in range(0, len(coord_vector))]))
 
@@ -2074,9 +2070,7 @@ class FormsSpace_abstract(FormsRing_abstract):
                 B = A.inverse()
 
                 max_exp = order_inf + 1
-                basis = []
-                for k in range(min_exp, max_exp + 1):
-                    basis += self.quasi_part_gens(min_exp=k, max_exp=k, order_1=order_1)
+                basis = self.quasi_part_gens(min_exp=min_exp, max_exp=max_exp, order_1=order_1)
 
                 column_len = A.dimensions()[1]
                 q_basis = []
@@ -2114,9 +2108,7 @@ class FormsSpace_abstract(FormsRing_abstract):
                     raise ValueError("Unfortunately the q_basis vector (m={}, min_exp={}) doesn't exist in this case (this is rare/interesting, please report)".format(m, min_exp))
 
                 max_exp = order_inf + 1
-                basis = []
-                for k in range(min_exp, max_exp + 1):
-                    basis += self.quasi_part_gens(min_exp=k, max_exp=k, order_1=order_1)
+                basis = self.quasi_part_gens(min_exp=min_exp, max_exp=max_exp, order_1=order_1)
 
                 column_len = A.dimensions()[1]
                 el = self(sum([coord_vector[l] * basis[l] for l in range(0, column_len)]))

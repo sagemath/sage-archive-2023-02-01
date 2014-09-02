@@ -2349,198 +2349,97 @@ LIST_OF_QDM = join(("`({},{};{},{};{})`".format(*params)
                     ", ")
 
 _ref_Handbook = """Handbook of Combinatorial Designs (2ed),
-                   C. Colbourn, J. Dinitz,
-                   2010 CRC Press"""
+    C. Colbourn, J. Dinitz, 2010 CRC Press"""
+
+_ref_Brouwer_vanRees = """A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
+    Discrete Mathematics 1982, vol 39, num 3, pp 263-281"""
+
+_ref_Colbourn = """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
+    Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""
+
+_ref_Abel_v_12_t = """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+     Australasian Journal of Combinatorics 2008, vol 40 pp 69-85"""
 
 Vmt_vectors = {
-    (3 ,2 ) : ((0,1,3,6),    _ref_Handbook),
-    (3 ,4 ) : ((0,1,3,9),    _ref_Handbook),
-    (3 ,10) : ((0,1,4,13),   _ref_Handbook),
-    (3 ,12) : ((0,1,3,10),   _ref_Handbook),
-    (3 ,20) : ((0,1,3,13),   _ref_Handbook),
-    (3 ,6 ) : ((0,1,3,7),    _ref_Handbook),
-    (3 ,26) : ((0,1,3,8),    _ref_Handbook),
-    (3 ,32) : ((0,1,3,9),    _ref_Handbook),
-    (3 ,6 ) : ((0,1,3,7),    _ref_Handbook),
-    (3 ,14) : ((0,1,4,13),   _ref_Handbook),
-    (3 ,24) : ((0,1,3,15),   _ref_Handbook),
-    (3 ,34) : ((0,1,3,7),    _ref_Handbook),
-    (4 ,3 ) : ((0,1,3,7,2),  _ref_Handbook),
-    (4 ,7 ) : ((0,1,3,7,19), _ref_Handbook),
-
-    (4,9) : ((0,1,3,2,8),
-             """A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
-             Discrete Mathematics 1982, vol 39, num 3, pp 263-281"""),
-
-    (4 ,13) : ((0,1,3,7,19),        _ref_Handbook),
-    (4 ,15) : ((0,1,3,7,5),         _ref_Handbook),
-    (4 ,25) : ((0,1,3,2,31),        _ref_Handbook),
-    (5 ,6 ) : ((0,1,3,7,30,17),     _ref_Handbook),
-    (5 ,8 ) : ((0,1,3,22,14,18),    _ref_Handbook),
-    (5 ,12) : ((0,1,3,7,23,50),     _ref_Handbook),
-    (5 ,14) : ((0,1,3,9,25,54),     _ref_Handbook),
-    (5 ,20) : ((0,1,3,10,43,91),    _ref_Handbook),
-    (5 ,26) : ((0,1,3,6,48,15),     _ref_Handbook),
-    (6 ,5 ) : ((0,1,7,30,12,21,15), _ref_Handbook),
-
-    (6,7) : ((0,1,3,16,35,26,36),
-             """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-             Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (6 ,11) : ((0,1,3,14,7,24,27),      _ref_Handbook),
-    (6 ,13) : ((0,1,3,7,55,47,34),      _ref_Handbook),
-    (6 ,17) : ((0,1,3,2,14,99,29),      _ref_Handbook),
-    (6 ,21) : ((0,1,4,13,66,93,45),     _ref_Handbook),
-    (7 ,6 ) : ((0,1,12,27,37,16,30,35), _ref_Handbook),
-    (7 ,10) : ((0,1,3,45,9,50,28,16),   _ref_Handbook),
-    (7 ,16) : ((0,1,3,7,82,72,93,39),   _ref_Handbook),
-    (7 ,18) : ((0,1,3,6,97,114,99,26),  _ref_Handbook),
-
-    (8,9) : ((0,1,20,70,23,59,3,8,19),
-             """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-             Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (8,11) : ((0,1,6,56,22,35,47,23,60),
-              """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-              Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (8,17) : ((0,1,3,2,133,126,47,109,74),
-              """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-              Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (8,29) : ((0,1,4,11,94,60,85,16,198),
-              """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-              Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (8,57) : ((0,1,3,2,12,333,363,154,340),
-              """A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
-              Discrete Mathematics 1982, vol 39, num 3, pp 263-281"""),
-
-    (9 ,12) : ((0,1,4,19,56,22,83,95,52,96),      _ref_Handbook),
-    (9 ,14) : ((0,1,11,25,37,8,100,23,95,42),     _ref_Handbook),
-    (9 ,18) : ((0,1,3,7,36,30,158,94,52,70),      _ref_Handbook),
-    (9 ,20) : ((0,1,3,19,145,70,173,159,18,85),   _ref_Handbook),
-    (9 ,22) : ((0,1,3,31,99,190,174,46,87,127),   _ref_Handbook),
-    (9 ,30) : ((0,1,3,8,197,68,119,13,215,105),   _ref_Handbook),
-    (9 ,34) : ((0,1,3,13,140,81,74,131,303,238),  _ref_Handbook),
-    (9 ,42) : ((0,1,3,6,66,258,186,346,104,152),  _ref_Handbook),
-    (9 ,44) : ((0,1,4,11,144,103,216,77,160,363), _ref_Handbook),
-
-    (10,13) : ((0,1,5,10,22,6,14,9,53,129,84),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,15) : ((0,1,45,146,51,97,70,137,85,133,18),   _ref_Handbook),
-
-    (10,19) : ((0,1,3,96,143,156,182,142,4,189,25),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,21) : ((0,1,6,188,205,39,101,113,30,32,42),   _ref_Handbook),
-
-    (10,25) : ((0,1,3,85,140,178,195,22,48,179,188),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,27) : ((0,1,3,82,109,241,36,112,141,263,126),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,31) : ((0,1,3,57,128,247,289,239,70,271,96),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,33) : ((0,1,3,67,319,44,249,146,302,282,90),  _ref_Handbook),
-
-    (10,43) : ((0,1,6,29,170,207,385,290,375,32,336),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,49) : ((0,1,3,8,406,72,335,197,324,383,395),  _ref_Handbook),
-
-    (10, 81) : ((0,1,3,2,27,438,615,708,168,410,656),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10, 97) : ((0,1,3,6,11,274,772,340,707,157,556),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,103) : ((0,1,3,2,7,744,342,797,468,46,561),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,181) : ((0,1,3,8,5,68,514,16,1168,225,929),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,187) : ((0,1,3,7,2,325,1138,730,1013,534,366),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,259) : ((0,1,3,7,2,15,324,1956,1353,2041,1616),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,273) : ((0,1,3,6,11,28,2573,38,1215,1299,2468),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,319) : ((0,1,3,7,2,43,239,1335,1586,2724,63),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,391) : ((0,1,3,2,5,32,555,3450,1242,1823,3833),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (10,409) : ((0,1,3,2,5,11,505,3202,1502,2521,3023),
-               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
-               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
-
-    (12,73) : ((0,1,607,719,837,496,240,645,184,829,451,830,770),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40 pp 69-85"""),
-
-    (12, 83) : ((0,1,627,898,836,939,742,42,847,531,173,607,361),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12, 89) : ((0,1,602,894,827,661,350,647,304,47,430,533,550),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12,101) : ((0,1,787,1049,818,1064,288,346,464,958,1188,340,1192),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12,103) : ((0,1,770,1027,806,1082,515,436,1096,1060,57,1135,1144),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12,121) : ((0,1,713,1265,848,421,998,69,874,1126,693,467,1164),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12,169) : ((0,1,425,326,951,1211,1881,1063,1631,1363,1554,665,1600),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12,185) : ((0,1,404,324,935,605,366,360,178,221,533,1940,30),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12,191) : ((0,1,491,527,939,377,1685,1735,1967,1176,391,2192,681),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12,199) : ((0,1,377,524,946,560,316,1591,2036,273,1841,2091,713),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
-
-    (12,229) : ((0,1,338,312,933,380,401,2398,612,1279,1514,268,528),
-               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
-               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
+    (3 ,2 ) : ((0,1,3,6),                               _ref_Handbook),
+    (3 ,4 ) : ((0,1,3,9),                               _ref_Handbook),
+    (3 ,10) : ((0,1,4,13),                              _ref_Handbook),
+    (3 ,12) : ((0,1,3,10),                              _ref_Handbook),
+    (3 ,20) : ((0,1,3,13),                              _ref_Handbook),
+    (3 ,6 ) : ((0,1,3,7),                               _ref_Handbook),
+    (3 ,26) : ((0,1,3,8),                               _ref_Handbook),
+    (3 ,32) : ((0,1,3,9),                               _ref_Handbook),
+    (3 ,6 ) : ((0,1,3,7),                               _ref_Handbook),
+    (3 ,14) : ((0,1,4,13),                              _ref_Handbook),
+    (3 ,24) : ((0,1,3,15),                              _ref_Handbook),
+    (3 ,34) : ((0,1,3,7),                               _ref_Handbook),
+    (4 ,3 ) : ((0,1,3,7,2),                             _ref_Handbook),
+    (4 ,7 ) : ((0,1,3,7,19),                            _ref_Handbook),
+    (4 ,9 ) : ((0,1,3,2,8),                             _ref_Brouwer_vanRees),
+    (4 ,13) : ((0,1,3,7,19),                            _ref_Handbook),
+    (4 ,15) : ((0,1,3,7,5),                             _ref_Handbook),
+    (4 ,25) : ((0,1,3,2,31),                            _ref_Handbook),
+    (5 ,6 ) : ((0,1,3,7,30,17),                         _ref_Handbook),
+    (5 ,8 ) : ((0,1,3,22,14,18),                        _ref_Handbook),
+    (5 ,12) : ((0,1,3,7,23,50),                         _ref_Handbook),
+    (5 ,14) : ((0,1,3,9,25,54),                         _ref_Handbook),
+    (5 ,20) : ((0,1,3,10,43,91),                        _ref_Handbook),
+    (5 ,26) : ((0,1,3,6,48,15),                         _ref_Handbook),
+    (6 ,5 ) : ((0,1,7,30,12,21,15),                     _ref_Handbook),
+    (6 ,7 ) : ((0,1,3,16,35,26,36),                     _ref_Colbourn),
+    (6 ,11) : ((0,1,3,14,7,24,27),                      _ref_Handbook),
+    (6 ,13) : ((0,1,3,7,55,47,34),                      _ref_Handbook),
+    (6 ,17) : ((0,1,3,2,14,99,29),                      _ref_Handbook),
+    (6 ,21) : ((0,1,4,13,66,93,45),                     _ref_Handbook),
+    (7 ,6 ) : ((0,1,12,27,37,16,30,35),                 _ref_Handbook),
+    (7 ,10) : ((0,1,3,45,9,50,28,16),                   _ref_Handbook),
+    (7 ,16) : ((0,1,3,7,82,72,93,39),                   _ref_Handbook),
+    (7 ,18) : ((0,1,3,6,97,114,99,26),                  _ref_Handbook),
+    (8 ,9 ) : ((0,1,20,70,23,59,3,8,19),                _ref_Colbourn),
+    (8 ,11) : ((0,1,6,56,22,35,47,23,60),               _ref_Colbourn),
+    (8 ,17) : ((0,1,3,2,133,126,47,109,74),             _ref_Colbourn),
+    (8 ,29) : ((0,1,4,11,94,60,85,16,198),              _ref_Colbourn),
+    (8 ,57) : ((0,1,3,2,12,333,363,154,340),            _ref_Brouwer_vanRees),
+    (9 ,12) : ((0,1,4,19,56,22,83,95,52,96),            _ref_Handbook),
+    (9 ,14) : ((0,1,11,25,37,8,100,23,95,42),           _ref_Handbook),
+    (9 ,18) : ((0,1,3,7,36,30,158,94,52,70),            _ref_Handbook),
+    (9 ,20) : ((0,1,3,19,145,70,173,159,18,85),         _ref_Handbook),
+    (9 ,22) : ((0,1,3,31,99,190,174,46,87,127),         _ref_Handbook),
+    (9 ,30) : ((0,1,3,8,197,68,119,13,215,105),         _ref_Handbook),
+    (9 ,34) : ((0,1,3,13,140,81,74,131,303,238),        _ref_Handbook),
+    (9 ,42) : ((0,1,3,6,66,258,186,346,104,152),        _ref_Handbook),
+    (9 ,44) : ((0,1,4,11,144,103,216,77,160,363),       _ref_Handbook),
+    (10,13) : ((0,1,5,10,22,6,14,9,53,129,84),          _ref_Colbourn),
+    (10,15) : ((0,1,45,146,51,97,70,137,85,133,18),     _ref_Handbook),
+    (10,19) : ((0,1,3,96,143,156,182,142,4,189,25),     _ref_Colbourn),
+    (10,21) : ((0,1,6,188,205,39,101,113,30,32,42),     _ref_Handbook),
+    (10,25) : ((0,1,3,85,140,178,195,22,48,179,188),    _ref_Colbourn),
+    (10,27) : ((0,1,3,82,109,241,36,112,141,263,126),   _ref_Colbourn),
+    (10,31) : ((0,1,3,57,128,247,289,239,70,271,96),    _ref_Colbourn),
+    (10,33) : ((0,1,3,67,319,44,249,146,302,282,90),    _ref_Handbook),
+    (10,43) : ((0,1,6,29,170,207,385,290,375,32,336),   _ref_Colbourn),
+    (10,49) : ((0,1,3,8,406,72,335,197,324,383,395),    _ref_Handbook),
+    (10,81) : ((0,1,3,2,27,438,615,708,168,410,656),    _ref_Colbourn),
+    (10,97) : ((0,1,3,6,11,274,772,340,707,157,556),    _ref_Colbourn),
+    (10,103) : ((0,1,3,2,7,744,342,797,468,46,561),     _ref_Colbourn),
+    (10,181) : ((0,1,3,8,5,68,514,16,1168,225,929),     _ref_Colbourn),
+    (10,187) : ((0,1,3,7,2,325,1138,730,1013,534,366),  _ref_Colbourn),
+    (10,259) : ((0,1,3,7,2,15,324,1956,1353,2041,1616), _ref_Colbourn),
+    (10,273) : ((0,1,3,6,11,28,2573,38,1215,1299,2468), _ref_Colbourn),
+    (10,319) : ((0,1,3,7,2,43,239,1335,1586,2724,63),   _ref_Colbourn),
+    (10,391) : ((0,1,3,2,5,32,555,3450,1242,1823,3833), _ref_Colbourn),
+    (10,409) : ((0,1,3,2,5,11,505,3202,1502,2521,3023), _ref_Colbourn),
+    (12, 73) : ((0,1,607,719,837,496,240,645,184,829,451,830,770),        _ref_Abel_v_12_t),
+    (12, 83) : ((0,1,627,898,836,939,742,42,847,531,173,607,361),         _ref_Abel_v_12_t),
+    (12, 89) : ((0,1,602,894,827,661,350,647,304,47,430,533,550),         _ref_Abel_v_12_t),
+    (12,101) : ((0,1,787,1049,818,1064,288,346,464,958,1188,340,1192),    _ref_Abel_v_12_t),
+    (12,103) : ((0,1,770,1027,806,1082,515,436,1096,1060,57,1135,1144),   _ref_Abel_v_12_t),
+    (12,121) : ((0,1,713,1265,848,421,998,69,874,1126,693,467,1164),      _ref_Abel_v_12_t),
+    (12,169) : ((0,1,425,326,951,1211,1881,1063,1631,1363,1554,665,1600), _ref_Abel_v_12_t),
+    (12,185) : ((0,1,404,324,935,605,366,360,178,221,533,1940,30),        _ref_Abel_v_12_t),
+    (12,191) : ((0,1,491,527,939,377,1685,1735,1967,1176,391,2192,681),   _ref_Abel_v_12_t),
+    (12,199) : ((0,1,377,524,946,560,316,1591,2036,273,1841,2091,713),    _ref_Abel_v_12_t),
+    (12,229) : ((0,1,338,312,933,380,401,2398,612,1279,1514,268,528),     _ref_Abel_v_12_t),
 
 }
 # Translate all V(m,t) into (mt+1,m+2;1,0;t)-QDM constructors

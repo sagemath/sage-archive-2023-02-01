@@ -560,12 +560,11 @@ def wilson_construction(OA,k,r,m,u,check=True):
 
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: from sage.combinat.designs.orthogonal_arrays import wilson_construction
-        sage: OA = designs.orthogonal_array(12,11)                                      # not tested -- too long
-        sage: OA = [[x if (i<11 or x<5) else None for i,x in enumerate(R)] for R in OA] # not tested -- too long
-        sage: OAb = wilson_construction(OA,11,11,127,[[(14,2),(1,3)]])                  # not tested -- too long
-        sage: is_orthogonal_array(OAb,11,1428)                                          # not tested -- too long
+        sage: OA = designs.orthogonal_array(6,11)
+        sage: OA = [[x if (i<5 or x<5) else None for i,x in enumerate(R)] for R in OA]
+        sage: OAb = wilson_construction(OA,5,11,21,[[(5,5)]])
+        sage: is_orthogonal_array(OAb,5,256)
         True
-
     """
     master_design = OA
 
@@ -1135,6 +1134,13 @@ def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=Fals
         ...
         EmptySetError: There is no resolvable incomplete OA(9,13) whose holes' sizes sum to 10!=n(=13)
 
+    Error message for big holes::
+
+        sage: designs.incomplete_orthogonal_array(6,4*9,[9,9,8])
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I was not able to build this OA(6,36)-OA(6,8)-2.OA(6,9)
+
     REFERENCES:
 
     .. [BvR82] More mutually orthogonal Latin squares,
@@ -1233,7 +1239,11 @@ def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=Fals
     else:
         if existence:
             return Unknown
-        raise NotImplementedError("I was not able to build this OA({},{})-{}.OA({},1)".format(k,n,x,k))
+        # format the list of holes
+        from string import join
+        f = lambda x: "" if x == 1 else "{}.".format(x)
+        holes_string = join(["-{}OA({},{})".format(f(holes_sizes.count(x)),k,x) for x in sorted(set(holes_sizes))],'')
+        raise NotImplementedError("I was not able to build this OA({},{}){}".format(k,n,holes_string))
 
     assert x == len(independent_set)
 

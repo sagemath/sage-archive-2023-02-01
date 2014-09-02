@@ -23,7 +23,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef _mod_int_c(self, mod_int modulus)
     cdef _mod_two(self)
     cdef _zero_out_matrix(self)
-    cdef _new_unitialized_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols)
     cdef _pickle_version0(self)
     cdef _unpickle_version0(self, data)
     cpdef _export_as_string(self, int base=?)
@@ -40,7 +39,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
             mod_int det) except -1
     cdef long long* _hnf_modn_impl(Matrix_integer_dense self, mod_int det,
                                    Py_ssize_t nrows, Py_ssize_t ncols) except NULL
-    cdef _new_uninitialized_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols)
+    cdef Matrix_integer_dense _new_uninitialized_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols)
 
     cdef extract_hnf_from_pari_matrix(self, GEN H, int flag, bint include_zero_rows)
 

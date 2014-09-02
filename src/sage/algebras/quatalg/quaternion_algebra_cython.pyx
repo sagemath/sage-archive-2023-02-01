@@ -241,6 +241,7 @@ def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense 
         # WARNING -- we do *not* canonicalize the entries in the quaternion.  This is
         # I think _not_ needed for quaternion_element.pyx
         v.append(x)
+    mpz_clear(tmp)
     return v
 
 

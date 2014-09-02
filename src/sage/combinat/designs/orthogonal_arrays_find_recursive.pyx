@@ -31,6 +31,7 @@ obtain an `OA(k,n)`.
     :func:`find_thwart_lemma_4_1` | Find a decomposition for Lemma 4.1 from [Thwarts]_.
     :func:`find_three_factor_product` | Find `n_1n_2n_3=n` to obtain an `OA(k,n)` by the three-factor product from [DukesLing14]_
     :func:`find_brouwer_separable_design` | Find `t(q^2+q+1)+x=n` to obtain an `OA(k,n)` by Brouwer's separable design construction.
+    :func:`find_brouwer_van_rees_with_one_truncated_column` | Find `rm+x_1+...+x_c=n` such that the Brouwer-van Rees constructions yields a `OA(k,n)`.
 
 REFERENCES:
 
@@ -66,6 +67,7 @@ def find_recursive_construction(k, n):
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.thwart_lemma_4_1`
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.three_factor_product`
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.brouwer_separable_design`
+    - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.find_brouwer_van_rees_with_one_truncated_column`
 
     INPUT:
 
@@ -104,7 +106,8 @@ def find_recursive_construction(k, n):
                    find_thwart_lemma_3_5,
                    find_thwart_lemma_4_1,
                    find_three_factor_product,
-                   find_brouwer_separable_design]:
+                   find_brouwer_separable_design,
+                   find_brouwer_van_rees_with_one_truncated_column]:
         res = find_c(k,n)
         if res:
             return res
@@ -787,6 +790,127 @@ cpdef find_brouwer_separable_design(int k,int n):
                   is_available( k+e4, t+1 ) and
                   is_available( k+1 ,t+q+1)):
                 return brouwer_separable_design, (k,t,q,x)
+
+    return False
+
+# Associates to n the list of k,x with x>1 such that there exists an
+# OA(k,n+x)-OA(k,x). Useful in find_brouwer_separable_design
+from sage.combinat.designs.database import QDM as _QDM
+cdef dict ioa_indexed_by_n_minus_x = {}
+for x in _QDM.itervalues():
+    for (n,_,_,u),(k,_) in x.items():
+        if u>1:
+            if not n in ioa_indexed_by_n_minus_x:
+                ioa_indexed_by_n_minus_x[n] = []
+            ioa_indexed_by_n_minus_x[n].append((k,u))
+
+def multiple(list S,int k,int cutoff):
+    r"""
+    Lists all integers that belong to `S+...+S=k'\cdot S` for some `k'\leq k`.
+
+    INPUT:
+
+    - ``S`` -- a list of integers
+
+    - ``k`` (integer)
+
+    - ``cutoff`` (integer) - discard integers (strictly) larger than
+      ``cutoff``.
+
+    OUTPUT:
+
+    A dictionary associating to each `x\leq M` its sum as `<k`
+    elements of `S`.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import multiple
+        sage: D = multiple([5,12],100,20)
+        sage: print sorted(D.keys())
+        [0, 5, 10, 12, 15, 17, 20]
+        sage: D[17]
+        (12, 5)
+    """
+    cdef int i,ii,iii
+    cdef dict D,new_D
+    cdef bint changed
+    D = {0:tuple()}
+
+    # The answer for a given k can be easily deduced from the answer
+    # for k-1. That's how we build the list, incrementally starting
+    # from k=0
+    for _ in range(k):
+        changed=False
+        new_D={}
+        for i in S:
+            for ii in D:
+                iii = i+ii
+                if (iii <= cutoff and   # The new integer is too big
+                    iii not in D  and   # We had it in D     already
+                    iii not in new_D):  # We had it in new_D already
+                    changed=True
+                    new_D[iii] = D[ii]+(i,)
+        if not changed:
+            break
+        D.update(new_D)
+    return D
+
+cpdef find_brouwer_van_rees_with_one_truncated_column(int k,int n):
+    r"""
+    Find `rm+x_1+...+x_c=n` such that the Brouwer-van Rees constructions yields a `OA(k,n)`.
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    The assumptions made on the parameters `r,m,x_1,...,x_c` are
+    explained in the documentation of
+    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.brouwer_van_rees_with_one_truncated_column`.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_brouwer_van_rees_with_one_truncated_column
+        sage: find_brouwer_van_rees_with_one_truncated_column(5,53)[1]
+        (5, 7, 7, (2, 2))
+    """
+    cdef list available_multipliers
+    cdef int kk,uu,r,m,remainder
+    cdef dict multiple_dict
+
+    # We write n=rm+remainder
+    for m in range(2,n//2):
+        if not is_available(k,m):
+            continue
+
+        # List of x such that a OA(k,m+x)-OA(k,x) exists
+        #
+        # This is the list of integers that can be used as multipliers
+        # for the points of the truncated column
+        available_multipliers = []
+        if is_available(k,m+1):
+            available_multipliers.append(1)
+        for kk,uu in ioa_indexed_by_n_minus_x.get(m,[]):
+            if kk>=k:
+                available_multipliers.append(uu)
+
+        # We stop if there is no multiplier, or if 1 is the only
+        # multiplier (those cases are handled by other functions)
+        if (not available_multipliers or
+            (len(available_multipliers) == 1 and available_multipliers[0] == 1)):
+            continue
+
+        for r in range(2,n//m+1):
+            remainder = n-r*m
+            if (not is_available(k+1,r) or
+                not is_available(k,remainder)):
+                continue
+
+            multiple_dict = multiple(available_multipliers,r,remainder)
+
+            if remainder in multiple_dict:
+                from orthogonal_arrays_build_recursive import brouwer_van_rees_with_one_truncated_column
+                return (brouwer_van_rees_with_one_truncated_column,
+                        (k,r,m,multiple_dict[remainder]))
 
     return False
 

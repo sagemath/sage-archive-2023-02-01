@@ -9225,7 +9225,7 @@ cdef class Expression(CommutativeRingElement):
 
     def solve(self, x, multiplicities=False, solution_dict=False, explicit_solutions=False, to_poly_solve=False):
         r"""
-        Analytically solve the equation ``self == 0`` or an univariate
+        Analytically solve the equation ``self == 0`` or a univariate
         inequality for the variable `x`.
 
         .. warning::
@@ -9255,7 +9255,7 @@ cdef class Expression(CommutativeRingElement):
            solutions, but possibly encounter approximate solutions.
            This keyword is incompatible with ``multiplicities=True``
            and is not used when solving an inequality. Setting ``to_poly_solve``
-           to ``force`` omits Maxima's solve command (useful when
+           to ``'force'`` omits Maxima's solve command (useful when
            some solutions of trigonometric equations are lost).
 
         EXAMPLES::

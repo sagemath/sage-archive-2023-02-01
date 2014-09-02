@@ -1807,14 +1807,15 @@ def OA_from_PBD(k,n,PBD, check=True):
         sage: is_orthogonal_array(oa, 3, 10)
         True
 
-    But we cannot build an `OA(4,10)`::
+    But we cannot build an `OA(4,10)` for this PBD (although there
+    exists an `OA(4,10)`::
 
         sage: OA_from_PBD(4,10,pbd)
         Traceback (most recent call last):
         ...
         EmptySetError: There is no OA(n+1,n) - 3.OA(n+1,1) as all blocks do intersect in a projective plane.
 
-    Or an `OA(3,6)`::
+    Or an `OA(3,6)` (as the PBD has 10 points)::
 
         sage: _ = OA_from_PBD(3,6,pbd)
         Traceback (most recent call last):

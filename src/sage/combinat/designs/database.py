@@ -155,7 +155,8 @@ def MOLS_14_4():
     r"""
     Return four MOLS of order 14
 
-    These MOLS were shared by Ian Wanless.
+    These MOLS were shared by Ian Wanless. The first proof of existence was
+    given in [Todorov12]_.
 
     EXAMPLES::
 
@@ -169,6 +170,12 @@ def MOLS_14_4():
 
         sage: designs.mutually_orthogonal_latin_squares(4,14,existence=True)
         True
+
+    REFERENCE::
+
+    .. [Todorov12] D.T. Todorov,
+      Four mutually orthogonal Latin squares of order 14,
+      Journal of Combinatorial Designs 2012, vol.20 n.8 pp.363-367
     """
     M = """
         bjihgkecalnfmd  bfmcenidgjhalk  bcdefghijklmna  bcdefghijklmna
@@ -3882,10 +3889,11 @@ def RBIBD_120_8_1():
     Construction shared by Julian R. Abel:
 
         Seiden's method: Start with a cyclic `(273,17,1)-BIBD` and let `B` be an
-        hyperoval, i.e. a set which intersects any block of the BIBD in either 0
-        (153 blocks) or 2 points (120 blocks). Dualise this design and take
-        these last 120 blocks as points in the design; blocks in the design will
-        correspond to the `273-18=255` non-hyperoval points.
+        hyperoval, i.e. a set of 18 points which intersects any block of the
+        BIBD in either 0 points (153 blocks) or 2 points (120 blocks). Dualise
+        this design and take these last 120 blocks as points in the design;
+        blocks in the design will correspond to the `273-18=255` non-hyperoval
+        points.
 
         The design is also resolvable.  In the original `PG(2,16)` take any
         point `T` in the hyperoval and consider a block `B1` containing `T`.

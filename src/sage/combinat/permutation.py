@@ -5963,14 +5963,14 @@ def bistochastic_as_sum_of_permutations(M, check = True):
     if n != M.ncols():
         raise ValueError("The matrix is expected to be square")
 
+    if not all([x >= 0 for x in M.list()]):
+        raise ValueError("The matrix should have nonnegative entries")
+
     if check and not M.is_bistochastic(normalized = False):
         raise ValueError("The matrix is not bistochastic")
 
     if not RR.has_coerce_map_from(M.base_ring()):
         raise ValueError("The base ring of the matrix must have a coercion map to RR")
-
-    if not all([x >= 0 for x in M.list()]):
-        raise ValueError("The matrix should have nonnegative entries")
 
     CFM = CombinatorialFreeModule(M.base_ring(), Permutations(n))
     value = 0

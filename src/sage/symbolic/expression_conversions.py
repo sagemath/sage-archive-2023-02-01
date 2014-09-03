@@ -948,8 +948,17 @@ class PolynomialConverter(Converter):
             x
             sage: _.parent()
             Univariate Polynomial Ring in x over Rational Field
+            sage: y = var('y')
+            sage: p = PolynomialConverter(x*y, ring=SR['x'])
+            sage: p.symbol(y)
+            y
         """
-        return self.ring(repr(ex))
+        try:
+            #The symbol is one of the polynomial generators
+            return self.ring(repr(ex))
+        except TypeError:
+            #The symbol should go into the base ring
+            return self.base_ring(repr(ex))
 
     def pyobject(self, ex, obj):
         """
@@ -1071,6 +1080,9 @@ def polynomial(ex, base_ring=None, ring=None):
          t^2 - 2*s*t + 1
          sage: _.parent()
          Univariate Polynomial Ring in t over Symbolic Ring
+
+         sage: polynomial(x*y, ring=SR['x'])
+         y*x
 
          sage: polynomial(y - sqrt(x), ring=SR[y])
          y - sqrt(x)

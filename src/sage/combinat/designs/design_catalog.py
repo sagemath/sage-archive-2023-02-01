@@ -48,6 +48,8 @@ This module gathers the following designs :
     :meth:`~sage.combinat.designs.orthogonal_arrays.transversal_design`
     :meth:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`
     :meth:`~sage.combinat.designs.orthogonal_arrays.incomplete_orthogonal_array`
+    :meth:`~sage.combinat.designs.difference_family.difference_family`
+    :meth:`~sage.combinat.designs.difference_matrices.difference_matrix`
     :meth:`~sage.combinat.designs.bibd.steiner_triple_system`
     :meth:`~sage.combinat.designs.steiner_quadruple_systems.steiner_quadruple_system`
     :meth:`~sage.combinat.designs.block_design.projective_plane`
@@ -84,6 +86,7 @@ from sage.combinat.designs.orthogonal_arrays import transversal_design, orthogon
 
 
 from sage.combinat.designs.difference_family import difference_family
+from difference_matrices import difference_matrix
 
 from sage.combinat.designs.incidence_structures import IncidenceStructure
 BlockDesign = IncidenceStructure    # just an alias

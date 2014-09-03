@@ -1757,7 +1757,8 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             sage: loads(dumps(c)) == c
             False
         """
-        ModuleMorphismByLinearity.__init__(self, domain = domain, codomain = codomain, category = category)
+        ModuleMorphismByLinearity.__init__(self, on_basis=on_basis,
+                                           domain=domain, codomain=codomain, category=category)
         if triangular == "upper":
             self._dominant_item = attrcall("leading_item",  cmp)
         else:
@@ -1768,11 +1769,10 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
 
         self._unitriangular = unitriangular
         self._inverse = inverse
-        self.on_basis = on_basis # should this be called on_basis (or _on_basis)?
         if inverse_on_support == "compute":
             self._inverse_on_support = self._inverse_on_support_precomputed
             for i in self.domain().basis().keys():
-                (j, c) = self._dominant_item(self.on_basis(i))
+                (j, c) = self._dominant_item(self._on_basis(i))
                 self._inverse_on_support.set_cache(i, j)
         elif inverse_on_support is None:
             self._inverse_on_support = self._inverse_on_support_trivial

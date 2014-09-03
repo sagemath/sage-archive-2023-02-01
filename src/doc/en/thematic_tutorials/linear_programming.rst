@@ -457,14 +457,14 @@ following libraries are currently supported:
   Proprietary, but free for researchers and students.
 
 * `CVXOPT <http://cvxopt.org/>`_: an LP solver from Python Software for
-  Convex Optimization, uses an interior-point method.
+  Convex Optimization, uses an interior-point method, always installed in Sage.
 
   Licensed under the GPL.
 
 * `GLPK <http://www.gnu.org/software/glpk/>`_: A solver from `GNU
   <http://www.gnu.org/>`_
 
-  Licensed under the GPLv3. This solver is installed by default with Sage.
+  Licensed under the GPLv3. This solver is always installed, as the default one, in Sage.
 
 * `GUROBI <http://www.gurobi.com/>`_
 
@@ -472,8 +472,9 @@ following libraries are currently supported:
 
 * `PPL <http://bugseng.com/products/ppl>`_: A solver from bugSeng.
 
-  Licensed under the GPLv3. This solver provides exact (arbitrary precision) computation.
+  This solver provides exact (arbitrary precision) computation, always installed in Sage.
 
+  Licensed under the GPLv3.
 
 Using CPLEX or GUROBI through Sage
 ----------------------------------
@@ -524,9 +525,9 @@ create symbolic links to these files in the appropriate directories:
 
 * For GUROBI
 
-    * ``libgurobi45.so`` -- in ``SAGE_ROOT/local/lib/``, type::
+    * ``libgurobi56.so`` -- in ``SAGE_ROOT/local/lib/``, type::
 
-        ln -s /path/to/lib/libgurobi45.so libgurobi.so
+        ln -s /path/to/lib/libgurobi56.so libgurobi.so
 
     * ``gurobi_c.h`` -- in ``SAGE_ROOT/local/include/``, type::
 

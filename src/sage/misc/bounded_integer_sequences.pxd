@@ -1,6 +1,6 @@
 include "sage/libs/ntl/decl.pxi"
 
-ctypedef struct biseq_t:  # bounded integer sequence type
+ctypedef struct biseq:  # bounded integer sequence
     mpz_t data                # Use GMP integers as bitarrays
     unsigned long int bitsize # Bitsize of "data"
     unsigned int itembitsize  # Bitsize of one element of this sequence.
@@ -14,17 +14,21 @@ ctypedef struct biseq_t:  # bounded integer sequence type
                               # to repeat this multiplication and thus store
                               # the result.
 
-cdef biseq_t* allocate_biseq(size_t l, unsigned long int itemsize) except NULL
+ctypedef biseq *biseq_t
+
+cdef biseq_t allocate_biseq(size_t l, unsigned long int itemsize) except NULL
    # Allocate memory (filled with zero) for a bounded integer sequence
    # of length l with items fitting in itemsize bits.
 
-cdef biseq_t* list_to_biseq(biseq_t S, list data) except NULL
-   # Assumes that S is allocated
+cdef void dealloc_biseq(biseq_t S)
+
+cdef biseq_t list_to_biseq(list data, unsigned int bound) except NULL
+   # Convert a list to a bounded integer sequence
 
 cdef list biseq_to_list(biseq_t S)
    # Convert a bounded integer sequence to a list
 
-cdef biseq_t* concat_biseq(biseq_t S1, biseq_t S2) except NULL
+cdef biseq_t concat_biseq(biseq_t S1, biseq_t S2) except NULL
    # Does not test whether the sequences have the same bound!
 
 cdef inline bint startswith_biseq(biseq_t S1, biseq_t S2)
@@ -47,7 +51,7 @@ cdef int index_biseq(biseq_t S, int item, size_t start) except -2
 cdef int getitem_biseq(biseq_t S, unsigned long int index) except -1
    # Returns S[index], without checking margins
 
-cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL
+cdef biseq_t slice_biseq(biseq_t S, int start, int stop, int step) except NULL
    # Returns the biseq S[start:stop:step]
 
 cdef class BoundedIntegerSequence:

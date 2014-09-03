@@ -16,7 +16,7 @@ modules::
        # Allocate memory (filled with zero) for a bounded integer sequence
        # of length l with items fitting in itemsize bits.
 
-    cdef biseq_t* list_to_biseq(biseq_t S, list data) except NULL
+    cdef biseq_t* list_to_biseq(list data, unsigned int bound) except NULL
        # Assumes that S is allocated
 
     cdef list biseq_to_list(biseq_t S)
@@ -99,13 +99,15 @@ from cython.operator import dereference as deref, preincrement as preinc, predec
 # (De)allocation, copying
 #
 
-cdef biseq_t* allocate_biseq(size_t l, unsigned long int itemsize) except NULL:
+cdef biseq_t allocate_biseq(size_t l, unsigned long int itemsize) except NULL:
     """
     Allocate memory for a bounded integer sequence of length l with items
     fitting in itemsize bits. Returns a pointer to the bounded integer
     sequence, or NULL on error.
     """
-    cdef biseq_t out
+    cdef biseq_t out = <biseq_t>sage_malloc(sizeof(biseq))
+    if out==NULL:
+        raise MemoryError("Can not allocate bounded integer sequence")
     out.bitsize = l*itemsize
     out.length = l
     out.itembitsize = itemsize
@@ -113,29 +115,36 @@ cdef biseq_t* allocate_biseq(size_t l, unsigned long int itemsize) except NULL:
     sig_on()
     mpz_init2(out.data, out.bitsize+mp_bits_per_limb)
     sig_off()
-    return &out
+    return out
+
+cdef void dealloc_biseq(biseq_t S):
+    mpz_clear(S.data)
+    sage_free(S)
 
 #
 # Conversion
 #
 
-cdef biseq_t* list_to_biseq(biseq_t S, list data) except NULL:
+cdef biseq_t list_to_biseq(list data, unsigned int bound) except NULL:
     """
-    Fill the content of a list into a bounded integer sequence.
-
-    The bounded integer sequence is supposed to have enough memory allocated
-    and initialised to zero. This function returns a pointer to the originally
-    given bounded integer sequence, or NULL on error.
+    Convert a list into a bounded integer sequence.
 
     """
+    cdef mpz_t tmp
+    cdef biseq_t S
+    if bound!=0:
+        mpz_init_set_ui(tmp, bound-1)
+        S = allocate_biseq(len(data), mpz_sizeinbase(tmp, 2))
+        mpz_clear(tmp)
+    else:
+        raise ValueError("The bound for the items of bounded integer sequences must be positive")
     cdef unsigned long int item
-    cdef __mpz_struct *S_boil
     cdef mp_limb_t item_limb
     cdef mp_limb_t tmp_limb
     cdef int offset_mod, offset_div
     cdef int offset = 0
     if not data:
-        return &S
+        return S
     for item in data:
         item_limb = <mp_limb_t>(item&S.mask_item)
         offset_mod = offset&mod_mp_bits_per_limb
@@ -152,7 +161,7 @@ cdef biseq_t* list_to_biseq(biseq_t S, list data) except NULL:
             if item_limb!=0 and offset_div>=(<__mpz_struct*>S.data)._mp_size:
                 (<__mpz_struct*>S.data)._mp_size = offset_div+1
         offset += S.itembitsize
-    return &S
+    return S
 
 cdef list biseq_to_list(biseq_t S):
     """
@@ -201,7 +210,7 @@ cdef list biseq_to_list(biseq_t S):
 # Arithmetics
 #
 
-cdef biseq_t *concat_biseq(biseq_t S1, biseq_t S2) except NULL:
+cdef biseq_t concat_biseq(biseq_t S1, biseq_t S2) except NULL:
     """
     Concatenate two bounded integer sequences.
 
@@ -216,7 +225,9 @@ cdef biseq_t *concat_biseq(biseq_t S1, biseq_t S2) except NULL:
     - A pointer to the concatenated sequence, or NULL on error.
 
     """
-    cdef biseq_t out
+    cdef biseq_t out = <biseq_t>sage_malloc(sizeof(biseq))
+    if out==NULL:
+        raise MemoryError("Can not allocate bounded integer sequence")
     out.bitsize = S1.bitsize+S2.bitsize
     out.length = S1.length+S2.length
     out.itembitsize = S1.itembitsize # do not test == S2.itembitsize
@@ -226,7 +237,7 @@ cdef biseq_t *concat_biseq(biseq_t S1, biseq_t S2) except NULL:
     sig_off()
     mpz_mul_2exp(out.data, S2.data, S1.bitsize)
     mpz_ior(out.data, out.data, S1.data)
-    return &out
+    return out
 
 cdef inline bint startswith_biseq(biseq_t S1, biseq_t S2):
     """
@@ -489,7 +500,7 @@ cdef int getitem_biseq(biseq_t S, unsigned long int index) except -1:
         out = <int>(seq._mp_d[limb_index])
     return out&S.mask_item
 
-cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
+cdef biseq_t slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
     """
     Create the slice S[start:stop:step] as bounded integer sequence.
 
@@ -509,8 +520,7 @@ cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
             return allocate_biseq(0, S.itembitsize)
         else:
             length = ((stop-start+1)//step)+1
-    cdef biseq_t out
-    out = deref(allocate_biseq(length, S.itembitsize))
+    cdef biseq_t out = allocate_biseq(length, S.itembitsize)
     cdef unsigned int offset_mod, offset_div
     cdef int limb_size
     total_shift = start*S.itembitsize
@@ -526,14 +536,14 @@ cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
         limb_size = min(limb_size, (<__mpz_struct*>(S.data))._mp_size-offset_div)
         if limb_size<=0:
             (<__mpz_struct*>(out.data))._mp_size = 0
-            return &out
+            return out
         mpn_rshift((<__mpz_struct*>(out.data))._mp_d, (<__mpz_struct*>(S.data))._mp_d+offset_div, limb_size, offset_mod)
         for n from limb_size>n>=0:
             if (<__mpz_struct*>(out.data))._mp_d[n]:
                 break
         (<__mpz_struct*>(out.data))._mp_size = n+1
         mpz_fdiv_r_2exp(out.data, out.data, out.bitsize)
-        return &out
+        return out
 
     # Convention for variable names: We move data from *_src to *_tgt
     # tmp_limb is used to temporarily store the data that we move/shift
@@ -586,7 +596,7 @@ cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
                 seq_tgt._mp_size = offset_div_tgt+1
         offset_tgt += S.itembitsize
         offset_src += bitstep
-    return &out
+    return out
 
 ###########################################
 # A cdef class that wraps the above, and
@@ -781,11 +791,7 @@ cdef class BoundedIntegerSequence:
 
         """
         # In __init__, we'll raise an error if the bound is 0.
-        cdef mpz_t tmp
-        if bound!=0:
-            mpz_init_set_ui(tmp, bound-1)
-            self.data = deref(allocate_biseq(len(data), mpz_sizeinbase(tmp, 2)))
-            mpz_clear(tmp)
+        self.data = NULL
 
     def __dealloc__(self):
         """
@@ -798,7 +804,8 @@ cdef class BoundedIntegerSequence:
             sage: del S     # indirect doctest
 
         """
-        mpz_clear(self.data.data)
+        if self.data!=NULL:
+            dealloc_biseq(self.data)
 
     def __init__(self, unsigned long int bound, list data):
         """
@@ -842,7 +849,7 @@ cdef class BoundedIntegerSequence:
         """
         if bound==0:
             raise ValueError("Positive bound expected")
-        self.data = deref(list_to_biseq(self.data, data))
+        self.data = list_to_biseq(data, bound)
 
     def __copy__(self):
         """
@@ -1099,6 +1106,12 @@ cdef class BoundedIntegerSequence:
             sage: S[2:2] == X[4:2]
             True
 
+        ::
+
+            sage: S = BoundedIntegerSequence(6, [3, 5, 3, 1, 5, 2, 2, 5, 3, 3, 4])
+            sage: S[10]
+            4
+
         """
         cdef BoundedIntegerSequence out
         cdef int start,stop,step
@@ -1107,7 +1120,7 @@ cdef class BoundedIntegerSequence:
             if start==0 and stop==self.data.length and step==1:
                 return self
             out = BoundedIntegerSequence.__new__(BoundedIntegerSequence, 0, None)
-            out.data = deref(slice_biseq(self.data, start, stop, step))
+            out.data = slice_biseq(self.data, start, stop, step)
             return out
         cdef long Index
         try:
@@ -1348,7 +1361,7 @@ cdef class BoundedIntegerSequence:
         if right.data.itembitsize!=myself.data.itembitsize:
             raise ValueError("can only concatenate bounded integer sequences of compatible bounds")
         out = BoundedIntegerSequence.__new__(BoundedIntegerSequence, 0, None)
-        out.data = deref(concat_biseq(myself.data, right.data))
+        out.data = concat_biseq(myself.data, right.data)
         return out
 
     cpdef BoundedIntegerSequence maximal_overlap(self, BoundedIntegerSequence other):
@@ -1483,6 +1496,9 @@ cpdef BoundedIntegerSequence NewBISEQ(data, unsigned long int bitsize, unsigned 
 
     """
     cdef BoundedIntegerSequence out = BoundedIntegerSequence.__new__(BoundedIntegerSequence, 0, None)
+    out.data = <biseq_t>sage_malloc(sizeof(biseq))
+    if out.data==NULL:
+        raise MemoryError("Can not allocate bounded integer sequence")
     mpz_init2(out.data.data, bitsize+mp_bits_per_limb)
     out.data.bitsize = bitsize
     out.data.itembitsize = itembitsize
@@ -1492,14 +1508,22 @@ cpdef BoundedIntegerSequence NewBISEQ(data, unsigned long int bitsize, unsigned 
     return out
 
 def _biseq_stresstest():
+    """
+    This function creates many bounded integer sequences and manipulates them
+    in various ways, in order to try to detect random memory corruptions.
+
+    TESTS::
+
+        sage: from sage.misc.bounded_integer_sequences import _biseq_stresstest
+        sage: _biseq_stresstest()
+
+    """
     cdef int i
     from sage.misc.prandom import randint
     cdef list L = [BoundedIntegerSequence(6, [randint(0,5) for x in range(randint(4,10))]) for y in range(100)]
     cdef int branch
     cdef BoundedIntegerSequence S, T
     for i from 0<=i<10000:
-        if (i%1000) == 0:
-            print i
         branch = randint(0,4)
         if branch == 0:
             L[randint(0,99)] = L[randint(0,99)]+L[randint(0,99)]

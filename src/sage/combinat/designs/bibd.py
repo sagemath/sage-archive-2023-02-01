@@ -148,9 +148,9 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
     For `k > 5` there are currently very few constructions::
 
         sage: [v for v in xrange(150) if designs.balanced_incomplete_block_design(v,6,existence=True) is True]
-        [1, 6, 31, 91]
+        [1, 6, 31, 81, 91, 121]
         sage: [v for v in xrange(150) if designs.balanced_incomplete_block_design(v,6,existence=True) is Unknown]
-        [51, 61, 66, 76, 81, 96, 106, 111, 121, 126, 136, 141]
+        [51, 61, 66, 76, 96, 106, 111, 126, 136, 141]
 
     But we know some inexistence results::
 
@@ -473,25 +473,30 @@ def BIBD_from_TD(v,k,existence=False):
 
     return BIBD
 
-def BIBD_from_difference_family(G, D, check=True):
+
+
+def BIBD_from_difference_family(G, D, lambd=None, check=True):
     r"""
     Return the BIBD associated to the difference family ``D`` on the group ``G``.
 
-    Let `G` be a finite Abelian group. A *simple `(G,k)`-difference family* (or
-    a *`(G,k,1)`-difference family*) is a family `B = \{B_1,B_2,\ldots,B_b\}` of
-    `k`-subsets of `G` such that for each element of `G \backslash \{0\}` there
-    exists a unique `s \in \{1,\ldots,b\}` and a unique pair of distinct
-    elements `x,y \in B_s` such that `x - y = g`.
+    Let `G` be a group. A `(G,k,\lambda)`-*difference family* is a family `B =
+    \{B_1,B_2,\ldots,B_b\}` of `k`-subsets of `G` such that for each element of
+    `G \backslash \{0\}` there exists exactly `\lambda` pairs of elements
+    `(x,y)`, `x` and `y` belonging to the same block, such that `x - y = g` (or
+    x y^{-1} = g` in multiplicative notation).
 
-    If `\{B_1, B_2, \ldots, B_b\}` is a simple `(G,k)`-difference family then
-    its set of translates `\{B_i + g; i \in \{1,\ldots,b\}, g \in G\}` is a
-    `(v,k,1)`-BIBD where `v` is the cardinality of `G`.
+    If `\{B_1, B_2, \ldots, B_b\}` is a `(G,k,\lambda)`-difference family then
+    its set of translates `\{B_i \cdot g; i \in \{1,\ldots,b\}, g \in G\}` is a
+    `(v,k,\lambda)`-BIBD where `v` is the cardinality of `G`.
 
     INPUT::
 
     - ``G`` - a finite additive Abelian group
 
-    - ``D`` - a difference family on ``G``.
+    - ``D`` - a difference family on ``G`` (short blocks are allowed).
+
+    - ``lambd`` - the `\lambda` parameter (optional, only used if ``check`` is
+      ``True``)
 
     - ``check`` - whether or not we check the output (default: ``True``)
 
@@ -526,10 +531,27 @@ def BIBD_from_difference_family(G, D, check=True):
          [19, 20, 2, 12, 14],
          [20, 0, 3, 13, 15]]
     """
-    r = {e:i for i,e in enumerate(G)}
-    bibd = [[r[G(x)+g] for x in d] for d in D for g in r]
+    from difference_family import group_law, block_stabilizer
+    identity, mul, inv = group_law(G)
+    bibd = []
+    Gset = set(G)
+    p_to_i = {g:i for i,g in enumerate(Gset)}
+    for b in D:
+        b = map(G,b)
+        S = block_stabilizer(G,b)
+        GG = Gset.copy()
+        while GG:
+            g = GG.pop()
+            if S: GG.difference_update(mul(s,g) for s in S)
+            bibd.append([p_to_i[mul(i,g)] for i in b])
+
     if check:
-        assert is_pairwise_balanced_design(bibd, G.cardinality(), [len(D[0])], 1)
+        if lambd is None:
+            k = len(bibd[0])
+            v = G.cardinality()
+            lambd = (len(bibd) * k * (k-1)) // (v * (v-1))
+        assert is_pairwise_balanced_design(bibd, G.cardinality(), [len(D[0])], lambd=lambd)
+
     return bibd
 
 ################

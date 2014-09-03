@@ -623,12 +623,28 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             2*a^9 + a^5 + 4*a^4 + 4*a^3 + a^2 + 3*a
             sage: a^(e % (5^10 - 1))
             2*a^9 + a^5 + 4*a^4 + 4*a^3 + a^2 + 3*a
+
+        The exponent is converted to an integer (see :trac:`16540`)::
+
+            sage: q = 11^23
+            sage: F.<a> = FiniteField(q)
+            sage: a^Mod(1, q - 1)
+            a
+
+        .. WARNING::
+
+            For efficiency reasons, we do not verify that the
+            exponentiation is well defined before converting the
+            exponent to an integer.  This means that ``a^Mod(1, n)``
+            returns `a` even if `n` is not a multiple of the
+            multiplicative order of `a`.
+
         """
         if exp == 0:
             return self._parent.one_element()
         if exp < 0 and FF_equal0(self.val):
             raise ZeroDivisionError
-        exp = pari(exp)
+        exp = Integer(exp)._pari_()
         cdef FiniteFieldElement_pari_ffelt x = self._new()
         pari_catch_sig_on()
         x.construct(FF_pow(self.val, (<pari_gen>exp).g))

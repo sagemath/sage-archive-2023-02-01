@@ -1413,10 +1413,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Also check that such computations can be interrupted::
 
-            sage: K.<a> = GF(2**8)
+            sage: K.<a> = GF(2^8)
             sage: x = polygen(K)
-            sage: alarm(1)
-            sage: (x**1000000+x+a).any_root()
+            sage: pol = x^1000000 + x + a
+            sage: alarm(0.5); pol.any_root()
             Traceback (most recent call last):
             ...
             AlarmInterrupt
@@ -3248,9 +3248,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: K.<a> = QuadraticField(p*q)
             sage: R.<x> = PolynomialRing(K)
             sage: K.pari_polynomial('a').nffactor("x^2+1")
-            Traceback (most recent call last):
-            ...
-            PariError: precision too low in floorr (precision loss in truncation)
+            Mat([x^2 + 1, 1])
             sage: factor(x^2 + 1)
             x^2 + 1
             sage: factor( (x - a) * (x + 2*a) )
@@ -4648,7 +4646,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pari(f)
             Traceback (most recent call last):
             ...
-            PariError: variable must have higher priority in gtopoly
+            PariError: incorrect priority in gtopoly: variable x <= a
 
         Stacked polynomial rings, first with a univariate ring on the
         bottom::
@@ -5664,6 +5662,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [1 + O(3^5)]
             sage: parent(r[0])
             3-adic Ring with capped relative precision 5
+            
+        Spurious crash with pari-2.5.5, see :trac:`16165`::
+        
+            sage: f=(1+x+x^2)^3
+            sage: f.roots(ring=CC)
+            [(-0.500000000000000 - 0.866025403784439*I, 3),
+             (-0.500000000000000 + 0.866025403784439*I, 3)]
         """
         K = self.parent().base_ring()
         if hasattr(K, '_roots_univariate_polynomial'):

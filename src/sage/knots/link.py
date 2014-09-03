@@ -547,7 +547,7 @@ class Link:
             sage: B = BraidGroup(4)
             sage: L = Link(B([1, 2, 1, 2]))
             sage: L._dowker_notation_()
-            [(2, 1), (3, 5), (6, 4), (7, 9)]
+            [(2, 1), (3, 6), (7, 5), (8, 10)]
             sage: L = Link([[1,4,2,3],[4,1,3,2]])
             sage: L._dowker_notation_()
             [(1, 3), (4, 2)]

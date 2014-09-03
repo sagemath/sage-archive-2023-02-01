@@ -1566,6 +1566,15 @@ cdef class NumberFieldElement(FieldElement):
             True
             sage: is_square(c+1)
             False
+
+        TESTS:
+
+        Test that :trac:`16894` is fixed::
+
+            sage: K.<a> = QuadraticField(22)
+            sage: u = K.units()[0]
+            sage: (u^14).is_square()
+            True
         """
         v = self.sqrt(all=True)
         t = len(v) > 0

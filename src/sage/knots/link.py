@@ -396,53 +396,24 @@ class Link:
             return self._PD_code
 
         elif self._braid != None:
+            strings = range(1, self._braid.strands() + 1)
             b = list(self._braid.Tietze())
-            reg = [i for i in range(1, max([abs(i) for i in b]) + 2)]
-            regcp = deepcopy(reg)
-            pd = [[None for i in range(4)] for i in range(len(b))]
-            for i, j in enumerate(b):
-                if cmp(j, 0) == -1:
-                    pd[i][0] = reg[abs(j) - 1]
-                    pd[i][1] = max(reg) + 1
-                    pd[i][2] = max(reg) + 2
-                    pd[i][3] = reg[abs(j)]
-                    reg[regcp.index(abs(j))] = max(reg) + 1
-                    reg[regcp.index(abs(j)) + 1] = max(reg) + 1
-                elif cmp(j, 0) == 1:
-                    pd[i][0] = reg[abs(j)]
-                    pd[i][1] = reg[abs(j) - 1]
-                    pd[i][2] = max(reg) + 1
-                    pd[i][3] = max(reg) + 2
-                    reg[regcp.index(abs(j))] = max(reg) + 1
-                    reg[regcp.index(abs(j)) + 1] = max(reg) + 1
-            # correcting the last components in the generated pd code
-            b_reversed = b[::-1]
-            pd_reversed = pd[::-1]
-            b_reversed_abs = [abs(i) for i in b_reversed]
-            braid_contents = list(set(b_reversed_abs))
-            for i in braid_contents:
-                for j in b_reversed:
-                    if abs(i) <= abs(b_reversed[0]):
-                        if j == i:
-                            pd_reversed[b_reversed.index(j)][2] = i
-                            break
-                        elif j == -i:
-                            pd_reversed[b_reversed.index(j)][1] = i
-                            break
-                    elif abs(i) > abs(b_reversed[0]):
-                        if j == i:
-                            pd_reversed[b_reversed.index(j)][3] = i + 1
-                            break
-                        elif j == -i:
-                            pd_reversed[b_reversed.index(j)][2] = i + 1
-                            break
-            if b_reversed[0] < 0:
-                pd_reversed[0][2] = abs(b_reversed[0]) + 1
-            elif b_reversed[0] > 0:
-                pd_reversed[0][3] = abs(b_reversed[0]) + 1
-            pd_original = pd_reversed[::-1]
-            self._PD_code = pd_original
-            return self._PD_code
+            pd = []
+            strings_max = strings[-1]
+            for i in b:
+                if i > 0:
+                    pd.append([strings[i], strings[i-1], strings_max + 1, strings_max + 2])
+                else:
+                    pd.append([strings[abs(i)-1], strings_max + 1, strings_max + 2, strings[abs(i)]])
+                strings[abs(i)-1] = strings_max + 1
+                strings[abs(i)] = strings_max + 2
+                strings_max = strings_max + 2
+            for i in pd:
+                for j in range(4):
+                    if i[j] in strings:
+                        i[j] = strings.index(i[j]) + 1
+            self._PD_code = pd
+            return pd
 
     def gauss_code(self):
         r"""

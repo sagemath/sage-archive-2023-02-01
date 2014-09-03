@@ -833,21 +833,21 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         EXAMPLES::
 
-            sage: v = vector(ZZ, 4, range(4))               #optional - giac
-            sage: giac(v)+v                                #optional -  giac
+            sage: v = vector(ZZ, 4, range(4))              # optional - giac
+            sage: giac(v)+v                                # optional -  giac
             [0,2,4,6]
 
         ::
 
-            sage: v = vector(QQ, 3, [2/3, 0, 5/4])          #optional
-            sage: giac(v)                                  #optional
+            sage: v = vector(QQ, 3, [2/3, 0, 5/4])         # optional -  giac
+            sage: giac(v)                                  # optional -  giac
             [2/3,0,5/4]
 
         ::
 
-            sage: P.<x> = ZZ[]                                       #optional
-            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x]) #optional
-            sage: giac(v)                                           #optional
+            sage: P.<x> = ZZ[]                                       # optional -  giac
+            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x]) # optional -  giac
+            sage: giac(v)                                            # optional -  giac
             [x^2+2,2*x+1,-2*x^2+4*x]
         """
         return self.list()

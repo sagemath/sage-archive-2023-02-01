@@ -125,7 +125,7 @@ the command, you can press q to immediately get back to your
 original prompt.
 
 Incidentally you can always get into a giac console by the
-command
+command.
 
 ::
 
@@ -913,9 +913,10 @@ class GiacElement(ExpectElement):
 
     def __iter__(self):
         """
-        EXAMPLES:
-            sage: l = giac([1,2,3]) #optional
-            sage: list(iter(l))          #optional
+        EXAMPLES::
+
+            sage: l = giac([1,2,3])                # optional - giac
+            sage: list(iter(l))                    # optional - giac
             [1, 2, 3]
         """
         for i in range(len(self)):  # zero-indexed if giac is maple_mode(0)

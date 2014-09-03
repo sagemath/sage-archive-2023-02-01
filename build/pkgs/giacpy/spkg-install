@@ -14,13 +14,6 @@ fi
 cd src
 
 
-sage setup.py build_ext
-
-
-if [ $? -ne 0 ]; then
-    exit 1
-fi
-
 # It is very important that we have SAGE_LOCAL set, otherwise this
 # might potentially delete stuff in /lib
 echo "Deleting $SAGE_LOCAL/lib/python/site-packages/giacpy*"

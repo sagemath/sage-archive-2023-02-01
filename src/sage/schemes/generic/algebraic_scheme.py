@@ -2065,6 +2065,202 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         self._smooth = (sing_dim <= 0)
         return self._smooth
 
+class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_subscheme_projective):
+
+    def segre_embedding(self,var='u'):
+        """
+        Returns the Segre embedding of self into the appropriate projective space.
+
+        INPUT:
+
+        - var -- string. the variables names of the new space
+
+        OUTPUT:
+
+        - Subscheme of projective space
+
+        - Hom -- from self to the appropiate projective space
+
+
+        EXAMPLES::
+
+            sage: X.<y0,y1,y2,y3,y4,y5> = ProjectiveSpace_cartesian_product(ZZ,[2,2])
+            sage: Y,phi = X.subscheme([]).segre_embedding(); phi
+            Scheme morphism:
+              From: Closed subscheme of Product of Projective Space of dimension 2 over Integer Ring and Projective Space of dimension 2 over Integer Ring defined by:
+              (no polynomials)
+              To:   Closed subscheme of Projective Space of dimension 8 over Integer Ring defined by:
+              -u5*u7 + u4*u8,
+              -u5*u6 + u3*u8,
+              -u4*u6 + u3*u7,
+              -u2*u7 + u1*u8,
+              -u2*u4 + u1*u5,
+              -u2*u6 + u0*u8,
+              -u1*u6 + u0*u7,
+              -u2*u3 + u0*u5,
+              -u1*u3 + u0*u4
+              Defn: Defined by sending (u0bar : u1bar : u2bar : u3bar : u4bar : u5bar : u6bar : u7bar : u8bar) to
+                    (y0*y3 : y0*y4 : y0*y5 : y1*y3 : y1*y4 : y1*y5 : y2*y3 : y2*y4 : y2*y5).
+
+            ::
+
+            sage: X.<x,y,z,w,u,v> =ProjectiveSpace_cartesian_product([2,2],QQ)
+            sage: L = (-w - v)*x + (-w*y - u*z)
+            sage: Q = (-u*w - v^2)*x^2 + ((-w^2 - u*w + (-u*v - u^2))*y + (-w^2 - u*v)*z)*x + ((-w^2 - u*w - u^2)*y^2 + (-u*w - v^2)*z*y + (-w^2 + (-v - u)*w)*z^2)
+            sage: W = X.subscheme([L,Q])
+            sage: Y,phi = W.segre_embedding()
+            sage: phi(W([0,1,0,0,0,1])).codomain() == Y
+            True
+        """
+        #number components=2, need to do some kind of serial embedding for more than 2.
+        AS = self.ambient_space()
+        N = AS.dimension_relative_components()
+        if len(N) > 2:
+            raise NotImplementedError("Cannot have more than two components.")
+        M = (N[0]+1)*(N[1]+1)-1
+        vars = list(AS.coordinate_ring().variable_names()) + [var + str(i) for i in range(M+1)]
+        from sage.rings.all import PolynomialRing
+        R = PolynomialRing(AS.base_ring(),AS.ngens()+M+1,vars,order='lex')
+        mapping = []
+        k = AS.ngens()
+        for i in range(N[0]+1):
+            for j in range(N[0]+1,N[0]+1+N[1]+1):
+                mapping.append(R.gen(k)-R(AS.gen(i)*AS.gen(j)))
+                k+=1
+
+        I = R.ideal(list(self.defining_polynomials()) + mapping)
+        J = I.elimination_ideal(R.gens()[0:AS.ngens()])
+
+        #create new scheme               
+        from sage.schemes.projective.projective_space import ProjectiveSpace
+        PS = ProjectiveSpace(self.base_ring(),M,R.gens()[AS.ngens():])
+        Y = PS.subscheme(J.gens())
+
+        #create embedding for points
+        mapping = []
+        for i in range(N[0]+1):
+            for j in range(N[0]+1,N[0]+1+N[1]+1):
+                mapping.append(AS.gen(i)*AS.gen(j))
+        phi = self.hom(mapping,Y)
+
+        return (Y,phi)
+
+    def dimension(self):
+        """
+        Return the dimension of the affine algebraic subscheme.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+            
+            sage: X.<x,y,z,w,u,v> = ProjectiveSpace_cartesian_product([2,2],QQ)
+            sage: L = (-w - v)*x + (-w*y - u*z)
+            sage: Q = (-u*w - v^2)*x^2 + ((-w^2 - u*w + (-u*v - u^2))*y + (-w^2 - u*v)*z)*x + ((-w^2 - u*w - u^2)*y^2 + (-u*w - v^2)*z*y + (-w^2 + (-v - u)*w)*z^2)
+            sage: W = X.subscheme([L,Q])
+            sage: W.dimension()
+            2
+        """
+        try:
+            return self.__dimension
+        except AttributeError:
+            X,phi = self.segre_embedding()
+            self.__dimension = X.defining_ideal().dimension()-1
+            return self.__dimension
+
+    def is_smooth(self, point=None):
+        r"""
+        Test whether the algebraic subscheme is smooth.
+
+        EXAMPLES::
+
+            sage: X.<x,y,z,w,u,v> = ProjectiveSpace_cartesian_product([2,2],QQ)
+            sage: L = (-w - v)*x + (-w*y - u*z)
+            sage: Q = (-u*w - v^2)*x^2 + ((-w^2 - u*w + (-u*v - u^2))*y + (-w^2 - u*v)*z)*x + ((-w^2 - u*w - u^2)*y^2 + (-u*w - v^2)*z*y + (-w^2 + (-v - u)*w)*z^2)
+            sage: W = X.subscheme([L,Q])
+            sage: W.is_smooth()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError("Not Implemented")
+
+    def affine_patch(self, I, return_embedding=False):
+        r"""
+        Return the `I^{th}` affine patch of this projective scheme
+        where 'I' is a multi-index.
+
+        INPUT:
+
+        - ``I`` -- a list or tuple of positive integers
+
+        - ``return_embedding`` -- Boolean, if true the projective embedding is also returned 
+
+        OUTPUT: 
+
+        - An affine algebraic scheme
+
+        - An embedding into a product of projective space (optional)
+
+        EXAMPLES::
+
+            sage: PP.<x,y,z,w,u,v> = ProjectiveSpace_cartesian_product([3,1],QQ)
+            sage: W = PP.subscheme([y^2*z-x^3,z^2-w^2,u^3-v^3])
+            sage: W.affine_patch([0,1],True)
+            (Closed subscheme of Affine Space of dimension 4 over Rational Field
+            defined by:
+              x0^2*x1 - 1,
+              x1^2 - x2^2,
+              x3^3 - 1, Scheme morphism:
+              From: Closed subscheme of Affine Space of dimension 4 over Rational
+            Field defined by:
+              x0^2*x1 - 1,
+              x1^2 - x2^2,
+              x3^3 - 1
+              To:   Closed subscheme of Product of Projective Space of dimension 3
+            over Rational Field and Projective Space of dimension 1 over Rational
+            Field defined by:
+              -x^3 + y^2*z,
+              z^2 - w^2,
+              u^3 - v^3
+              Defn: Defined on coordinates by sending (x0, x1, x2, x3) to
+                    (1 : x0 : x1 : x2 : x3 : 1))
+        """
+        if not isinstance(I, (list, tuple)):
+            raise TypeError('The argument I=%s must be a list or tuple of positice integers'%I)
+        PP = self.ambient_space()
+        N = PP.dimension_relative_components()
+        if len(I) != len(N):
+            raise ValueError('The argument I=%s must have %s entries'%(I,len(N)))
+        I = tuple([int(i) for i in I])   # implicit type checking
+        for i in range(len(I)):
+            if I[i] < 0 or I[i] > N[i]:
+                raise ValueError("Argument i (= %s) must be between 0 and %s."%(I[i], N[i]))
+        try:
+            if return_embedding:
+                return self.__affine_patches[I]
+            else:
+                return self.__affine_patches[I][0]
+        except AttributeError:
+            self.__affine_patches = {}
+        except KeyError:
+            pass
+        from sage.schemes.affine.affine_space import AffineSpace
+        AA = AffineSpace(PP.base_ring(),sum(N),'x')
+        v = list(AA.gens())
+        index = 0
+        for i in range(len(I)):
+            v.insert(index+I[i],1)
+            index += N[i]+1
+        phi = AA.hom(v,self)
+        polys = self.defining_polynomials()
+        xi = phi.defining_polynomials()
+        U = AA.subscheme([ f(xi) for f in polys ])
+        phi = U.hom(v,self)
+        self.__affine_patches.update({I:(U,phi)})
+        if return_embedding:
+            return U,phi
+        else:
+            return U
 
 #*******************************************************************
 # Toric varieties

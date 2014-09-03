@@ -827,6 +827,31 @@ class ProjectiveSpace_ring(AmbientSpace):
         H = Hom(self,self)
         return(H(F))
 
+    def cartesian_product(self,other):
+        r"""
+        Return the cartesian product of the projective spaces `self` and `other`.
+
+        INPUT:
+
+        - ``other`` - A projective space with the same base_ring as self
+
+        OUTPUT:
+
+        - A cartesian product of projective spaces
+
+        EXAMPLES::
+
+            sage: P1 = ProjectiveSpace(QQ,1,'x')
+            sage: P2 = ProjectiveSpace(QQ,2,'y')
+            sage: PP = P1.cartesian_product(P2); PP
+            Product of Projective Space of dimension 1 over Rational Field and
+            Projective Space of dimension 2 over Rational Field
+            sage: PP.gens()
+            (x0, x1, y0, y1, y2)
+        """
+        from sage.schemes.projective.projective_space_cartesian_product import ProjectiveSpace_cartesian_product
+        return ProjectiveSpace_cartesian_product([self,other])
+
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):
         """

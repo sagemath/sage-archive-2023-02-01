@@ -281,3 +281,41 @@ register_unpickle_override('sage.schemes.generic.homset',
                            'SchemeHomsetModule_abelian_variety_coordinates_field',
                            SchemeHomset_points_abelian_variety_field)
 
+class SchemeHomset_points_projective_cartesian_product(SchemeHomset_points):
+    """
+    Set of rational points of a cartesian product of projective spaces.
+
+    INPUT:
+
+    See :class:`SchemeHomset_generic`.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.projective.projective_homset import SchemeHomset_points_projective_cartesian_product
+        sage: SchemeHomset_points_projective_cartesian_product(Spec(QQ), ProjectiveSpace_cartesian_product([1,1],QQ,'z'))
+        Set of rational points of Product of Projective Space of dimension 1
+        over Rational Field and Projective Space of dimension 1 over Rational
+        Field
+    """
+
+    def _element_constructor_(self, v, **kwds):
+        """
+        The element constructor.
+
+        INPUT:
+
+        - ``v`` -- anything that determines a scheme morphism in the Hom-set.
+
+        OUTPUT: The scheme morphism determined by ``v``.
+
+        EXAMPLES::
+
+            sage: P = ProjectiveSpace_cartesian_product([1,1],QQ,'z')
+            sage: Q = P([1,2,2,3]); Q
+            (1/2 : 1 : 2/3 : 1)
+            sage: type(Q)
+            <class 'sage.schemes.projective.projective_space_cartesian_product.ProjectiveSpace_cartesian_product_point'>
+            sage: P(QQ)._element_constructor_([1,2,2,0])
+            (1/2 : 1 : 1 : 0)
+        """
+        return self.codomain()._point(self, v, **kwds)

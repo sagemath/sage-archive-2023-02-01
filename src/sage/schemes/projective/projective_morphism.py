@@ -41,6 +41,7 @@ AUTHORS:
 
 from sage.categories.homset        import Hom
 from sage.functions.all            import sqrt
+from sage.libs.pari.gen            import PariError
 from sage.matrix.constructor       import matrix, identity_matrix
 from sage.misc.cachefunc           import cached_method
 from sage.misc.misc                import subsets
@@ -1166,7 +1167,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def resultant(self, normalize=False):
         r"""
-        Computes the resultant of the defining polynomials of ``self`` if ``self`` is a map on the projective line.
+        Computes the resultant of the defining polynomials of ``self`` if ``self`` is a map in `\mathbb{P}^n`
 
         If ``normalize`` is ``True``, then first normalize the coordinate
         functions with :meth:`normalize_coordinates`.
@@ -1195,21 +1196,62 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([t*x^2+t*y^2,6*y^2])
             sage: f.resultant()
             2*t^2
-        """
-        if self.domain().dimension_relative() > 1:
-            raise TypeError("Only for dimension 1, use self.primes_of_bad_reduction() to get bad primes")
+
+        ::
+
+            sage: R.<t> = PolynomialRing(GF(17))
+            sage: P.<x,y,z> = ProjectiveSpace(R,2)
+            sage: H = Hom(P,P)
+            sage: f = H([t*x^2+t*y^2,6*y^2,2*t*z^2])
+            sage: f.resultant()
+            13*t^8
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = Hom(P,P)
+            sage: F = H([x^2+y^2,6*y^2,10*x*z+z^2+y^2])
+            sage: F.resultant()
+            1296
+
+        ::
+
+            sage: R.<t>=PolynomialRing(QQ)
+            sage: s = (t^3+t+1).roots(QQbar)[0][0]
+            sage: P.<x,y>=ProjectiveSpace(QQbar,1)
+            sage: H = Hom(P,P)
+            sage: f = H([s*x^3-13*y^3,y^3-15*y^3])
+            sage: f.resultant()
+            871.6925062959149?
+            """
+
+        if self.domain().dimension_relative() != self.codomain().dimension_relative():
+            raise ValueError("Domain and Codomain should be of same dimension")
         if normalize is True:
             F = copy(self)
             F.normalize_coordinates()
         else:
             F = self
-        x = self.domain().gen(0)
-        y = self.domain().gen(1)
-        d = self.degree()
-        f = F[0].substitute({y:1})
-        g = F[1].substitute({y:1})
-        res = (f.lc() ** (d - g.degree()) * g.lc() ** (d - f.degree()) * f._pari_().polresultant(g, x))
-        return(self.codomain().base_ring()(res))
+
+        if self.domain().dimension_relative() == 1:
+            x = self.domain().gen(0)
+            y = self.domain().gen(1)
+            d = self.degree()
+            F = self
+            f = F[0].substitute({y:1})
+            g = F[1].substitute({y:1})
+            #Try to use pari first, as it is faster for one dimensional case
+            #however the coercion from a Pari object to a sage object breaks 
+            #in the case of QQbar, so we just pass it into the macaulay resultant
+            try:
+                res = (f.lc() ** (d - g.degree()) * g.lc() ** (d - f.degree()) * f._pari_().polresultant(g, x))
+                return(self.domain().base_ring()(res))
+            except (TypeError, PariError):
+                pass
+        #Otherwise, use Macaulay
+        R = F[0].parent()
+        res = R.macaulay_resultant(F._polys)
+        return res #Coercion here is not necessary as it is already done in Macaulay Resultant
 
     @cached_method
     def primes_of_bad_reduction(self, check=True):

@@ -331,7 +331,7 @@ fi
 # matching package (case 3 above).
 if [ $INFO -eq 0 -a $FORCE -eq 0 -a -f "$SAGE_SPKG_INST/$PKG_NAME" ]; then
     echo "Package $PKG_NAME is already installed."
-    echo "Use 'sage -f $PKG_SRC' to force a reinstallation."
+    echo "Use 'sage -f $PKG_BASE' to force a reinstallation."
     # Touch installed file such that "make" considers it up-to-date.
     touch "$SAGE_SPKG_INST/$PKG_NAME"
     exit 0
@@ -430,7 +430,7 @@ if [ ! -f "$PKG_SRC" ]; then
         # Check a second time whether the package is already installed.
         if [ $INFO -eq 0 -a $FORCE -eq 0 -a -f "$SAGE_SPKG_INST/$PKG_NAME" ]; then
             echo "Package $PKG_NAME is already installed."
-            echo "Use 'sage -f $PKG_URL' to force a reinstallation."
+            echo "Use 'sage -f $PKG_BASE' to force a reinstallation."
             # Touch installed file such that "make" considers it up-to-date.
             touch "$SAGE_SPKG_INST/$PKG_NAME"
             exit 0

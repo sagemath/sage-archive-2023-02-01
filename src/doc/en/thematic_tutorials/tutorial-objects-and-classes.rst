@@ -296,13 +296,14 @@ Some particular actions modify the data structure of ``el``::
         sage: type(e)
         <type 'sage.rings.integer.Integer'>
         sage: e.__dict__
-        dict_proxy({'__module__': 'sage.categories.euclidean_domains',
-        '__doc__': None, '_reduction': (<built-in function getattr>, (Category
-        of euclidean domains, 'element_class')), 'gcd':
-        <sage.structure.element.NamedBinopMethod object at 0x...>,
-        '_sage_src_lines_': <staticmethod object at 0x...>})
+        dict_proxy({'__module__': 'sage.categories.category',
+         '_reduction': (<built-in function getattr>,
+             (Join of Category of euclidean domains
+              and Category of infinite enumerated sets, 'element_class')),
+         '__doc__': ...,
+         '_sage_src_lines_': <staticmethod object at 0x...>})
         sage: e.__dict__.keys()
-        ['__module__', '__doc__', '_reduction', 'gcd', '_sage_src_lines_']
+        ['__module__', '_reduction', '__doc__', '_sage_src_lines_']
 
         sage: id4 = SymmetricGroup(4).one()
         sage: type(id4)

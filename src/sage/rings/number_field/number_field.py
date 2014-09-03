@@ -104,6 +104,7 @@ from sage.rings.finite_rings.integer_mod import mod
 from sage.misc.functional import is_odd
 from sage.misc.misc_c import prod
 from sage.categories.homset import End
+from sage.rings.all import Infinity
 
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name
@@ -2807,9 +2808,9 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.<a> = NumberField(x^2 + 23)
             sage: d = K.ideals_of_bdd_norm(10)
             sage: for n in d:
-            ...       print n
-            ...       for I in d[n]:
-            ...           print I
+            ....:     print n
+            ....:     for I in d[n]:
+            ....:         print I
             1
             Fractional ideal (1)
             2
@@ -2824,13 +2825,13 @@ class NumberField_generic(number_field_base.NumberField):
             Fractional ideal (4, 1/2*a + 5/2)
             5
             6
-            Fractional ideal (-1/2*a + 1/2)
+            Fractional ideal (1/2*a - 1/2)
             Fractional ideal (6, 1/2*a + 5/2)
             Fractional ideal (6, 1/2*a + 7/2)
             Fractional ideal (1/2*a + 1/2)
             7
             8
-            Fractional ideal (-1/2*a - 3/2)
+            Fractional ideal (1/2*a + 3/2)
             Fractional ideal (4, a - 1)
             Fractional ideal (4, a + 1)
             Fractional ideal (1/2*a - 3/2)
@@ -3064,13 +3065,13 @@ class NumberField_generic(number_field_base.NumberField):
 
         EXAMPLES::
 
-            sage: K.<i>=QuadraticField(-1)
-            sage: it=K.primes_of_bounded_norm_iter(10)
+            sage: K.<i> = QuadraticField(-1)
+            sage: it = K.primes_of_bounded_norm_iter(10)
             sage: list(it)
             [Fractional ideal (i + 1),
              Fractional ideal (3),
              Fractional ideal (-i - 2),
-             Fractional ideal (i - 2)]
+             Fractional ideal (2*i + 1)]
             sage: list(K.primes_of_bounded_norm_iter(1))
             []
         """
@@ -3326,7 +3327,9 @@ class NumberField_generic(number_field_base.NumberField):
             return self.__pari_nf
         except AttributeError:
             f = self.pari_polynomial("y")
-            self.__pari_nf = pari([f, self._pari_integral_basis(important=important)]).nfinit()
+            if f.poldegree() > 1:
+                f = pari([f, self._pari_integral_basis(important=important)])
+            self.__pari_nf = f.nfinit()
             return self.__pari_nf
 
     def pari_zk(self):
@@ -3409,7 +3412,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: len(k.pari_bnf())
             10
             sage: k.pari_bnf()[:4]
-            [[;], matrix(0,7), [;], ...]
+            [[;], matrix(0,3), [;], ...]
             sage: len(k.pari_nf())
             9
             sage: k.<a> = NumberField(x^7 + 7); k
@@ -3770,8 +3773,8 @@ class NumberField_generic(number_field_base.NumberField):
               14/13*a^2 + 267/13*a - 85/13,
               7/13*a^2 + 127/13*a - 49/13,
               -1,
-              1/13*a^2 + 20/13*a - 7/13,
-              1/13*a^2 - 19/13*a + 6/13],
+              1/13*a^2 - 19/13*a + 6/13,
+              1/13*a^2 - 19/13*a - 7/13],
              [(Fractional ideal (11, a - 2), 2),
               (Fractional ideal (19, 1/13*a^2 - 45/13*a - 332/13), 2)])
         """
@@ -3819,50 +3822,99 @@ class NumberField_generic(number_field_base.NumberField):
         assert A[:c] == 1 and A[c:] == 0
         return Q[:c, :a]
 
-    def selmer_group(self, S, m, proof=True):
+    def selmer_group(self, S, m, proof=True, orders=False):
         r"""
-        Compute the Selmer group `K(S,m)`.  This is the subgroup of
-        `K^\times/(K^\times)^m` consisting of elements `a` such that
-        `K(\sqrt[m]{a})/K` is unramified at all primes of `K` outside
-        of `S`.
+        Compute the group `K(S,m)`.
 
         INPUT:
 
-        - ``S`` - A set of primes of self.
+        - ``S`` -- a set of primes of ``self``
 
-        - ``m`` - A positive integer.
+        - ``m`` -- a positive integer
 
-        - ``proof`` - If False, assume the GRH in computing the class group.
+        - ``proof`` -- if False, assume the GRH in computing the class group
+
+        - ``orders`` (default False) -- if True, output two lists, the
+          generators and their orders
 
         OUTPUT:
 
-        A list of generators of `K(S,m)`.
+        A list of generators of `K(S,m)`, and (optionally) their
+        orders as elements of `K^\times/(K^\times)^m`.  This is the
+        subgroup of `K^\times/(K^\times)^m` consisting of elements `a`
+        such that the valuation of `a` is divisible by `m` at all
+        primes not in `S`.  It fits in an exact sequence between the
+        units modulo `m`-th powers and the `m`-torsion in the
+        `S`-class group:
+
+        .. math::
+
+            1                                    \longrightarrow
+            O_{K,S}^\times / (O_{K,S}^\times)^m  \longrightarrow
+            K(S,m)                               \longrightarrow
+            \operatorname{Cl}_{K,S}[m]           \longrightarrow
+            0.
+
+        The group `K(S,m)` contains the subgroup of those `a` such
+        that `K(\sqrt[m]{a})/K` is unramified at all primes of `K`
+        outside of `S`, but may contain it properly when not all
+        primes dividing `m` are in `S`.
 
         EXAMPLES::
 
             sage: K.<a> = QuadraticField(-5)
             sage: K.selmer_group((), 2)
             [-1, 2]
-            sage: K.selmer_group([K.ideal(2, -a+1)], 2)
+
+        The previous example shows that the group generated by the
+        output may be strictly larger than the 'true' Selmer group of
+        elements giving extensions unramified outside `S`, since that
+        has order just 2, generated by `-1`::
+
+            sage: K.class_number()
+            2
+            sage: K.hilbert_class_field('b')
+            Number Field in b with defining polynomial x^2 + 1 over its base field
+
+        When `m` is prime all the orders are equal to `m`, but in general they are only divisors of `m`::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: P2 = K.ideal(2, -a+1)
+            sage: P3 = K.ideal(3, a+1)
+            sage: K.selmer_group((), 2, orders=True)
+            ([-1, 2], [2, 2])
+            sage: K.selmer_group((), 4, orders=True)
+            ([-1, 4], [2, 2])
+            sage: K.selmer_group([P2], 2)
             [2, -1]
-            sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1)], 2)
+            sage: K.selmer_group((P2,P3), 4)
             [2, a + 1, -1]
-            sage: K.selmer_group((K.ideal(2, -a+1),K.ideal(3, a+1)), 4)
-            [2, a + 1, -1]
-            sage: K.selmer_group([K.ideal(2, -a+1)], 3)
+            sage: K.selmer_group((P2,P3), 4, orders=True)
+            ([2, a + 1, -1], [4, 4, 2])
+            sage: K.selmer_group([P2], 3)
             [2]
-            sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1)], 3)
+            sage: K.selmer_group([P2, P3], 3)
             [2, a + 1]
-            sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)  # random signs
+            sage: K.selmer_group([P2, P3, K.ideal(a)], 3)  # random signs
             [2, a + 1, a]
+
+        Example over `\QQ` (as a number field)::
+
             sage: K.<a> = NumberField(polygen(QQ))
             sage: K.selmer_group([],5)
             []
+            sage: K.selmer_group([K.prime_above(p) for p in [2,3,5]],2)
+            [2, 3, 5, -1]
+            sage: K.selmer_group([K.prime_above(p) for p in [2,3,5]],6, orders=True)
+            ([2, 3, 5, -1], [6, 6, 6, 2])
 
         TESTS::
 
             sage: K.<a> = QuadraticField(-5)
-            sage: S = K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)
+            sage: P2 = K.ideal(2, -a+1)
+            sage: P3 = K.ideal(3, a+1)
+            sage: P5 = K.ideal(a)
+            sage: S = K.selmer_group([P2, P3, P5], 3)
             sage: S == [2, a + 1, a] or S == [2, a + 1, -a]
             True
 
@@ -3870,32 +3922,47 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<a> = NumberField(x^3 - 381 * x + 127)
             sage: K.selmer_group(K.primes_above(13), 2)
-            [-7/13*a^2 - 140/13*a + 36/13, 14/13*a^2 + 267/13*a - 85/13, 7/13*a^2 + 127/13*a - 49/13, -1, 1/13*a^2 + 20/13*a - 7/13, 1/13*a^2 - 19/13*a + 6/13, -2/13*a^2 - 53/13*a + 92/13, 10/13*a^2 + 44/13*a - 4555/13]
+            [-7/13*a^2 - 140/13*a + 36/13, 14/13*a^2 + 267/13*a - 85/13, 7/13*a^2 + 127/13*a - 49/13, -1, 1/13*a^2 - 19/13*a + 6/13, 1/13*a^2 - 19/13*a - 7/13, 2/13*a^2 + 53/13*a - 92/13, 10/13*a^2 + 44/13*a - 4555/13]
+
+        Verify that :trac:`16708` is fixed::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: p = K.primes_above(2)[0]
+            sage: S = K.selmer_group((), 4)
+            sage: all(4.divides(x.valuation(p)) for x in S)
+            True
         """
         units, clgp_gens = self._S_class_group_and_units(tuple(S), proof=proof)
         gens = []
-        from sage.rings.infinity import Infinity
+        ords = []
         for unit in units:
             order = unit.multiplicative_order()
-            if order == Infinity or order.gcd(m) != 1:
+            if order == Infinity:
                 gens.append(unit)
+                ords.append(m)
+            else:
+                m1 = order.gcd(m)
+                if m1!= 1:
+                    gens.append(unit)
+                    ords.append(m1)
         card_S = len(S)
         if card_S != 0:
             from sage.matrix.constructor import Matrix
             H = self.class_group()
-            ords = [g.order() for g in H.gens()]
-            pari_ords = pari(ords).Col()
+            gen_ords = [g.order() for g in H.gens()]
+            pari_ords = pari(gen_ords).Col()
             Sords = [H(s).order() for s in S]
             MS = Matrix(ZZ, [H(s).exponents() for s in S]).transpose()
             pari_MS = pari(MS)
         for gen, order in clgp_gens:
-            if order.gcd(m) != 1:
-                # The ideal I = gen^(order/gcd) is of order gcd in
-                # Cl_S[m].  After multiplying by primes in S, the
-                # ideal I^gcd = gen^order becomes principal.  We take
+            d = order.gcd(m)
+            if d != 1:
+                # The ideal I = gen^(order/d) has order d in Cl_S[m].
+                # After multiplying by primes in S, the ideal
+                # I^m = gen^(order*m/d) becomes principal.  We take
                 # a generator of this ideal to get the corresponding
                 # generator of the m-Selmer group.
-                J = gen ** order
+                J = gen ** (order * m // d)
                 if card_S != 0 and not J.is_principal():
                     B = H(J).exponents()
                     pari_B = (-pari(B)).Col()
@@ -3903,7 +3970,57 @@ class NumberField_generic(number_field_base.NumberField):
                     Spart = prod([S[i] ** (exps[i] % Sords[i]) for i in range(card_S)])
                     J *= Spart
                 gens.append(self(J.gens_reduced()[0]))
-        return gens
+                ords.append(d)
+        if orders:
+            return gens, ords
+        else:
+            return gens
+
+    def selmer_group_iterator(self, S, m, proof=True):
+        r"""
+        Return an iterator through elements of the finite group `K(S,m)`.
+
+        INPUT:
+
+        - ``S`` -- a set of primes of ``self``
+
+        - ``m`` -- a positive integer
+
+        - ``proof`` -- if False, assume the GRH in computing the class group
+
+        OUTPUT:
+
+        An iterator yielding the distinct elements of `K(S,m)`.  See
+        the docstring for :meth:`NumberField_generic.selmer_group` for
+        more information.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: list(K.selmer_group_iterator((), 2))
+            [1, 2, -1, -2]
+            sage: list(K.selmer_group_iterator((), 4))
+            [1, 4, -1, -4]
+            sage: list(K.selmer_group_iterator([K.ideal(2, -a+1)], 2))
+            [1, -1, 2, -2]
+            sage: list(K.selmer_group_iterator([K.ideal(2, -a+1), K.ideal(3, a+1)], 2))
+            [1, -1, a + 1, -a - 1, 2, -2, 2*a + 2, -2*a - 2]
+
+        Examples over `\QQ` (as a number field)::
+
+            sage: K.<a> = NumberField(polygen(QQ))
+            sage: list(K.selmer_group_iterator([], 5))
+            [1]
+            sage: list(K.selmer_group_iterator([], 4))
+            [1, -1]
+            sage: list(K.selmer_group_iterator([K.prime_above(p) for p in [11,13]],2))
+            [1, -1, 13, -13, 11, -11, 143, -143]
+        """
+        KSgens, ords = self.selmer_group(S=S, m=m, proof=proof, orders=True)
+        one = self.one_element()
+        from sage.misc.all import cartesian_product_iterator
+        for ev in cartesian_product_iterator([range(o) for o in ords]):
+            yield prod([p**e for p,e in zip(KSgens, ev)], one)
 
     def composite_fields(self, other, names=None, both_maps=False, preserve_embedding=True):
         """
@@ -4158,7 +4275,7 @@ class NumberField_generic(number_field_base.NumberField):
                             self_to_F = self.hom([a])
                             other_to_F = other.hom([(~self.hom([F(a_in_F)]))(F(b_in_F))])
                             F = self
-                            k = sage.rings.infinity.Infinity
+                            k = Infinity
                             i -= 1
                         elif r.degree() == n:
                             other_to_F = other.hom([b])
@@ -4422,19 +4539,19 @@ class NumberField_generic(number_field_base.NumberField):
         Here are the factors::
 
             sage: fi, fj = K.factor(17); fi,fj
-            ((Fractional ideal (4*I + 1), 1), (Fractional ideal (-I - 4), 1))
+            ((Fractional ideal (I - 4), 1), (Fractional ideal (I + 4), 1))
 
         Now we extract the reduced form of the generators::
 
             sage: zi = fi[0].gens_reduced()[0]; zi
-            4*I + 1
+            I - 4
             sage: zj = fj[0].gens_reduced()[0]; zj
-            -I - 4
+            I + 4
 
         We recover the integer that was factored in `\ZZ[i]` (up to a unit)::
 
             sage: zi*zj
-            -17*I
+            -17
 
         One can also factor elements or ideals of the number field::
 
@@ -4444,15 +4561,14 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.factor(1+a)
             Fractional ideal (a + 1)
             sage: K.factor(1+a/5)
-            (Fractional ideal (-3*a - 2)) * (Fractional ideal (a + 1)) * (Fractional ideal (-a - 2))^-1 * (Fractional ideal (a - 2))^-1
+            (Fractional ideal (-3*a - 2)) * (Fractional ideal (a + 1)) * (Fractional ideal (-a - 2))^-1 * (Fractional ideal (2*a + 1))^-1
 
         An example over a relative number field::
 
             sage: pari('setrand(2)')
             sage: L.<b> = K.extension(x^2 - 7)
             sage: f = L.factor(a + 1); f
-            (Fractional ideal (-1/2*a*b - a - 1/2)) * (Fractional ideal (1/2*b + 1/2*a - 1)) # 32-bit
-            (Fractional ideal (1/2*a*b + a + 1/2)) * (Fractional ideal (-1/2*b - 1/2*a + 1)) # 64-bit
+            (Fractional ideal (1/2*a*b - a + 1/2)) * (Fractional ideal (-1/2*a*b - a + 1/2))
             sage: f.value() == a+1
             True
 
@@ -4778,8 +4894,7 @@ class NumberField_generic(number_field_base.NumberField):
         except (AttributeError, KeyError):
             f = self.pari_polynomial("y")
             if len(v) > 0:
-                m = self._pari_disc_factorization_matrix(v)
-                B = f.nfbasis(fa = m)
+                B = f.nfbasis(fa=v)
             elif self._assume_disc_small:
                 B = f.nfbasis(1)
             elif not important:
@@ -4799,34 +4914,6 @@ class NumberField_generic(number_field_base.NumberField):
 
             self._integral_basis_dict[v] = B
             return B
-
-    def _pari_disc_factorization_matrix(self, v):
-        """
-        Returns a PARI matrix representation for the partial
-        factorization of the discriminant of the defining polynomial
-        of self, defined by the list of primes in the Python list v.
-        This function is used internally by the number fields code.
-
-        EXAMPLES::
-
-            sage: x = polygen(QQ,'x')
-            sage: f = x^3 + 17*x + 393; f.discriminant().factor()
-            -1 * 5^2 * 29 * 5779
-            sage: K.<a> = NumberField(f)
-            sage: fa = K._pari_disc_factorization_matrix([5,29]); fa
-            [5, 2; 29, 1]
-            sage: fa.type()
-            't_MAT'
-        """
-        f = self.pari_polynomial()
-        m = pari.matrix(len(v), 2)
-        d = f.poldisc()
-        for i in range(len(v)):
-            p = pari(ZZ(v[i]))
-            m[i,0] = p
-            m[i,1] = d.valuation(p)
-        return m
-
 
     def reduced_basis(self, prec=None):
         r"""
@@ -5524,7 +5611,14 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.units(proof=True)  # takes forever, not tested
             ...
             sage: K.units(proof=False)  # result not independently verified
-            (a^9 + a - 1, a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1, 2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4, a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1, a^16 + a^15 + a^14 + a^13 + a^12 + a^11 + a^10 + a^9 + a^8 + a^7 + a^6 + a^5 + a^4 + a^3 + a^2 - 2, 2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4, a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2, 2*a^16 + a^15 - a^11 - 3*a^10 - 4*a^9 - 4*a^8 - 4*a^7 - 5*a^6 - 7*a^5 - 8*a^4 - 6*a^3 - 5*a^2 - 6*a - 7)
+            (a^9 + a - 1,
+             a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2,
+             a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1,
+             2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4,
+             2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4,
+             a^16 - a^15 - 3*a^14 - 4*a^13 - 4*a^12 - 3*a^11 - a^10 + 2*a^9 + 4*a^8 + 5*a^7 + 4*a^6 + 2*a^5 - 2*a^4 - 6*a^3 - 9*a^2 - 9*a - 7,
+             a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1,
+             5*a^16 - 6*a^14 + a^13 + 7*a^12 - 2*a^11 - 7*a^10 + 4*a^9 + 7*a^8 - 6*a^7 - 7*a^6 + 8*a^5 + 6*a^4 - 11*a^3 - 5*a^2 + 13*a + 4)
         """
         proof = proof_flag(proof)
 
@@ -5596,7 +5690,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: U.gens()
             (u0, u1, u2, u3, u4, u5, u6, u7, u8)
             sage: U.gens_values()  # result not independently verified
-            [-1, a^9 + a - 1, a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1, 2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4, a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1, a^16 + a^15 + a^14 + a^13 + a^12 + a^11 + a^10 + a^9 + a^8 + a^7 + a^6 + a^5 + a^4 + a^3 + a^2 - 2, 2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4, a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2, 2*a^16 + a^15 - a^11 - 3*a^10 - 4*a^9 - 4*a^8 - 4*a^7 - 5*a^6 - 7*a^5 - 8*a^4 - 6*a^3 - 5*a^2 - 6*a - 7]
+            [-1, a^9 + a - 1, a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2, a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1, 2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4, 2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4, a^16 - a^15 - 3*a^14 - 4*a^13 - 4*a^12 - 3*a^11 - a^10 + 2*a^9 + 4*a^8 + 5*a^7 + 4*a^6 + 2*a^5 - 2*a^4 - 6*a^3 - 9*a^2 - 9*a - 7, a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1, 5*a^16 - 6*a^14 + a^13 + 7*a^12 - 2*a^11 - 7*a^10 + 4*a^9 + 7*a^8 - 6*a^7 - 7*a^6 + 8*a^5 + 6*a^4 - 11*a^3 - 5*a^2 + 13*a + 4]
         """
         proof = proof_flag(proof)
 
@@ -5646,8 +5740,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: U.gens()
             (u0, u1, u2, u3)
             sage: U.gens_values()
-            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 6/275*a^3 - 9/55*a^2 + 14/11*a - 2, 14/275*a^3 - 21/55*a^2 + 29/11*a - 6, 1/275*a^3 + 4/55*a^2 - 5/11*a + 5]  # 32-bit
-            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 6/275*a^3 - 9/55*a^2 + 14/11*a - 2, -14/275*a^3 + 21/55*a^2 - 29/11*a + 6, 1/275*a^3 + 4/55*a^2 - 5/11*a + 5]  # 64-bit
+            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 6/275*a^3 - 9/55*a^2 + 14/11*a - 2, -14/275*a^3 + 21/55*a^2 - 29/11*a + 6, 1/275*a^3 + 4/55*a^2 - 5/11*a + 5]
             sage: U.invariants()
             (10, 0, 0, 0)
             sage: [u.multiplicative_order() for u in U.gens()]
@@ -5791,9 +5884,9 @@ class NumberField_generic(number_field_base.NumberField):
             sage: r.<x> = QQ[]
             sage: K.<b> = NumberField(x^2+1)
             sage: K.zeta(4)
-            -b
+            b
             sage: K.zeta(4,all=True)
-            [-b, b]
+            [b, -b]
             sage: K.zeta(3)
             Traceback (most recent call last):
             ...
@@ -5891,7 +5984,7 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<i> = NumberField(x^2+1)
             sage: z = K.primitive_root_of_unity(); z
-            -i
+            i
             sage: z.multiplicative_order()
             4
 
@@ -5917,11 +6010,11 @@ class NumberField_generic(number_field_base.NumberField):
             sage: z.multiplicative_order()
             6
 
-            sage: K = CyclotomicField(7)
+            sage: K = CyclotomicField(3)
             sage: z = K.primitive_root_of_unity(); z
-            zeta7^5 + zeta7^4 + zeta7^3 + zeta7^2 + zeta7 + 1
+            zeta3 + 1
             sage: z.multiplicative_order()
-            14
+            6
 
         TESTS:
 
@@ -5955,7 +6048,7 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<b> = NumberField(x^2+1)
             sage: zs = K.roots_of_unity(); zs
-            [-b, -1, b, 1]
+            [b, -1, -b, 1]
             sage: [ z**K.number_of_roots_of_unity() for z in zs ]
             [1, 1, 1, 1]
         """
@@ -7396,7 +7489,7 @@ class NumberField_absolute(NumberField_generic):
             R = sage.rings.real_double.RDF
             C = sage.rings.complex_double.CDF
 
-        elif prec == sage.rings.infinity.Infinity:
+        elif prec == Infinity:
             R = sage.rings.all.AA
             C = sage.rings.all.QQbar
 
@@ -7631,7 +7724,11 @@ class NumberField_absolute(NumberField_generic):
                 raise ValueError("Co-domain of morphism must be self")
             L = alpha.domain()
             alpha = alpha(L.gen()) # relativize over phi's domain
-            f = L.defining_polynomial() # = alpha.minpoly()
+            if L is QQ:
+                from sage.rings.all import polygen
+                f = polygen(QQ)
+            else:
+                f = L.defining_polynomial() # = alpha.minpoly()
         else:
             # alpha must be an element coercible to self
             alpha = self(alpha)
@@ -7668,7 +7765,10 @@ class NumberField_absolute(NumberField_generic):
         if structure is None:
             from sage.rings.number_field.structure import RelativeFromAbsolute
             structure = RelativeFromAbsolute(self, alpha)
-        return L.extension(f, names[0], structure=structure)
+        if L is QQ:
+            return L.extension(f, names[0])
+        else:
+            return L.extension(f, names[0], structure=structure)
 
     # Synonyms so that terminology appropriate to relative number fields
     # can be applied to an absolute number field:
@@ -8041,8 +8141,7 @@ class NumberField_absolute(NumberField_generic):
             sage: K.hilbert_conductor(K(2),K(-2))
             Fractional ideal (1)
             sage: K.hilbert_conductor(K(2*b),K(-2))
-            Fractional ideal (-b^2 - b + 2)
-
+            Fractional ideal (b^2 + b - 2)
 
         AUTHOR:
 
@@ -8056,6 +8155,150 @@ class NumberField_absolute(NumberField_generic):
                 d *= p
         return d
 
+    def elements_of_bounded_height(self,bound,precision=53,LLL=False):
+        r"""
+        Return an iterator over the elements of ``self`` with relative
+        multiplicative height at most ``bound``.
+
+        The algorithm requires floating point arithmetic, so the user is
+        allowed to specify the precision for such calculations.
+
+        It might be helpful to work with an LLL-reduced system of fundamental
+        units, so the user has the option to perform an LLL reduction for the
+        fundamental units by setting ``LLL`` to True.
+
+        Certain computations may be faster assuming GRH, which may be done
+        globally by using the number_field(True/False) switch.
+
+        For details: See [Doyle-Krumm].
+
+        INPUT:
+
+        - ``bound`` - a real number
+        - ``precision`` - (default: 53) a positive integer
+        - ``LLL`` - (default: False) a boolean value
+
+        OUTPUT:
+
+        - an iterator of number field elements
+
+        .. WARNING::
+
+           In the current implementation, the output of the algorithm cannot be
+           guaranteed to be correct due to the necessity of floating point
+           computations. In some cases, the default 53-bit precision is
+           considerably lower than would be required for the algorithm to
+           generate correct output.
+
+        .. TODO::
+
+           Should implement a version of the algorithm that guarantees correct
+           output. See Algorithm 4 in [Doyle-Krumm] for details of an
+           implementation that takes precision issues into account.
+
+        EXAMPLES:
+
+        There are no elements in a number field with multiplicative height less
+        than 1::
+
+            sage: K.<g> = NumberField(x^5 - x + 19)
+            sage: list(K.elements_of_bounded_height(0.9))
+            []
+
+        The only elements in a number field of height 1 are 0 and the roots of
+        unity::
+
+            sage: K.<a> = NumberField(x^2 + x + 1)
+            sage: list(K.elements_of_bounded_height(1))
+            [0, a + 1, a, -1, -a - 1, -a, 1]
+
+        ::
+
+            sage: K.<a> = CyclotomicField(20)
+            sage: len(list(K.elements_of_bounded_height(1)))
+            21
+
+        The elements in the output iterator all have relative multiplicative
+        height at most the input bound::
+
+            sage: K.<a> = NumberField(x^6 + 2)
+            sage: L = K.elements_of_bounded_height(5)
+            sage: for t in L:
+            ....:     exp(6*t.global_height())
+            ....:
+            1.00000000000000
+            1.00000000000000
+            1.00000000000000
+            2.00000000000000
+            2.00000000000000
+            2.00000000000000
+            2.00000000000000
+            4.00000000000000
+            4.00000000000000
+            4.00000000000000
+            4.00000000000000
+
+        ::
+
+            sage: K.<a> = NumberField(x^2 - 71)
+            sage: L = K.elements_of_bounded_height(20)
+            sage: all(exp(2*t.global_height()) <= 20 for t in L) # long time (5 s)
+            True
+
+        ::
+
+            sage: K.<a> = NumberField(x^2 + 17)
+            sage: L = K.elements_of_bounded_height(120)
+            sage: len(list(L))
+            9047
+
+        ::
+
+            sage: K.<a> = NumberField(x^4 - 5)
+            sage: L = K.elements_of_bounded_height(50)
+            sage: len(list(L)) # long time (2 s)
+            2163
+
+        ::
+
+            sage: K.<a> = CyclotomicField(13)
+            sage: L = K.elements_of_bounded_height(2)
+            sage: len(list(L)) # long time (3 s)
+            27
+
+        ::
+
+            sage: K.<a> = NumberField(x^6 + 2)
+            sage: L = K.elements_of_bounded_height(60, precision=100)
+            sage: len(list(L)) # long time (5 s)
+            1899
+
+        ::
+
+            sage: K.<a> = NumberField(x^4 - x^3 - 3*x^2 + x + 1)
+            sage: L = K.elements_of_bounded_height(10, LLL=true)
+            sage: len(list(L))
+            99
+
+        AUTHORS:
+
+        - John Doyle (2013)
+
+        - David Krumm (2013)
+
+        REFERENCES:
+
+        ..  [Doyle-Krumm] John R. Doyle and David Krumm, Computing algebraic
+            numbers of bounded height, :arxiv:`1111.4963` (2013).
+
+        """
+        from sage.rings.number_field.bdd_height import bdd_height, bdd_height_iq
+        r1, r2 = self.signature()
+        r = r1 + r2 - 1
+        if self.degree() == 2 and r == 0:
+            return bdd_height_iq(self, bound)
+        else:
+            return bdd_height(self, bound, precision, LLL)
 
 class NumberField_cyclotomic(NumberField_absolute):
     """
@@ -8332,14 +8575,17 @@ class NumberField_cyclotomic(NumberField_absolute):
 
     def _coerce_map_from_(self, K):
         r"""
-        The cyclotomic field `\Q(\zeta_n)` coerces into the cyclotomic field
-        `\Q(\zeta_m)` iff `n'|m`, where `n'` is the odd part of `n` if `4 \not
-        | n` and `n'=n` otherwise.
+        Return a coercion map from `K` to ``self``, or None.
 
-        The morphism is consistant with the chosen embedding into `\CC`.
+        The cyclotomic field `\QQ(\zeta_n)` coerces into the
+        cyclotomic field `\QQ(\zeta_m)` if and only if `n' \mid m`,
+        where `n'` is the odd part of `n` if `4 \nmid n` and `n' = n`
+        otherwise.
 
-        If `K` is not a cyclotomic field, the normal coercion rules for number
-        fields are used.
+        The morphism is consistent with the chosen embedding into `\CC`.
+
+        If `K` is not a cyclotomic field, the normal coercion rules
+        for number fields are used.
 
         EXAMPLES::
 
@@ -9823,12 +10069,12 @@ def refine_embedding(e, prec=None):
 
     # We first compute all the embeddings at the new precision:
     if sage.rings.real_mpfr.is_RealField(RC) or RC is RDF:
-        if prec==sage.rings.infinity.Infinity:
+        if prec == Infinity:
             elist = K.embeddings(sage.rings.qqbar.AA)
         else:
             elist = K.real_embeddings(prec)
     else:
-        if prec==sage.rings.infinity.Infinity:
+        if prec == Infinity:
             elist = K.embeddings(sage.rings.qqbar.QQbar)
         else:
             elist = K.complex_embeddings(prec)

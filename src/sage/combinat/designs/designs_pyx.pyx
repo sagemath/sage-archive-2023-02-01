@@ -8,6 +8,8 @@ Functions
 """
 include "sage/misc/bitset.pxi"
 
+from libc.string cimport memset
+
 def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="OA"):
     r"""
     Check that the integer matrix `OA` is an `OA(k,n,t)`.
@@ -356,3 +358,146 @@ def is_pairwise_balanced_design(blocks,v,K=None,lambd=1,verbose=False):
                                      K=K,
                                      lambd=lambd,
                                      verbose=verbose)
+
+def is_difference_matrix(M,G,k,lmbda=1,verbose=False):
+    r"""
+    Test if `M` is a `(G,k,\lambda)`-difference matrix.
+
+    A matrix `M` is a `(G,k,\lambda)`-difference matrix if its entries are
+    element of `G`, and if for any two rows `R,R'` of `M` and `x\in G` there
+    are exactly `\lambda` values `i` such that `R_i-R'_i=x`.
+
+    INPUT:
+
+    - ``M`` -- a matrix with entries from ``G``
+
+    - ``G`` -- a group
+
+    - ``k`` -- integer
+
+    - ``lmbda`` (integer) -- set to `1` by default.
+
+    - ``verbose`` (boolean) -- whether to print some information when the answer
+      is ``False``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_difference_matrix
+        sage: q = 3**3
+        sage: F = GF(q,'x')
+        sage: M = [[x*y for y in F] for x in F]
+        sage: is_difference_matrix(M,F,q,verbose=1)
+        True
+
+        sage: B = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ....:      [0, 1, 2, 3, 4, 2, 3, 4, 0, 1],
+        ....:      [0, 2, 4, 1, 3, 3, 0, 2, 4, 1]]
+        sage: G = GF(5)
+        sage: B = [[G(b) for b in R] for R in B]
+        sage: is_difference_matrix(zip(*B),G,3,2)
+        True
+
+    Bad input::
+
+        sage: for R in M: R.append(None)
+        sage: is_difference_matrix(M,F,q,verbose=1)
+        The matrix has 28 columns but k=27
+        False
+        sage: for R in M: _=R.pop(-1)
+        sage: M.append([None]*3**3)
+        sage: is_difference_matrix(M,F,q,verbose=1)
+        The matrix has 28 rows but lambda.|G|=1.27=27
+        False
+        sage: _= M.pop(-1)
+        sage: for R in M: R[-1] = 0
+        sage: is_difference_matrix(M,F,q,verbose=1)
+        Rows 0 and 26 do not generate all elements of G exactly lambda(=1)
+        times. The element 0 appeared 27 times as a difference.
+        False
+    """
+    from difference_family import group_law
+
+    assert k>=2
+    assert lmbda >=1
+
+    cdef int G_card = G.cardinality()
+    cdef int M_nrows = len(M)
+    cdef int i,j,ii
+    cdef int K = k
+    cdef int L = lmbda
+
+    # Height of the matrix
+    if G_card*lmbda != M_nrows:
+        if verbose:
+            print "The matrix has {} rows but lambda.|G|={}.{}={}".format(M_nrows,lmbda,G_card,lmbda*G_card)
+        return False
+
+    # Width of the matrix
+    for R in M:
+        if len(R)!=K:
+            if verbose:
+                print "The matrix has {} columns but k={}".format(len(R),K)
+            return False
+
+    # When |G|=0
+    if M_nrows == 0:
+        return True
+
+    # Map group element with integers
+    cdef list int_to_group = list(G)
+    cdef dict group_to_int = {v:i for i,v in enumerate(int_to_group)}
+
+    # Allocations
+    cdef int ** x_minus_y     = <int **> sage_malloc(G_card*sizeof(int *))
+    cdef int * x_minus_y_data = <int *>  sage_malloc(G_card*G_card*sizeof(int))
+    cdef int * M_c            = <int *>  sage_malloc(k*M_nrows*sizeof(int))
+    cdef int * G_seen         = <int *>  sage_malloc(G_card*sizeof(int))
+    if (x_minus_y == NULL or x_minus_y_data == NULL or M_c == NULL or G_seen == NULL):
+        sage_free(x_minus_y)
+        sage_free(x_minus_y_data)
+        sage_free(G_seen)
+        sage_free(M_c)
+        raise MemoryError
+
+    # The "x-y" table. If g_i, g_j \in G, then x_minus_y[i][j] is equal to
+    # group_to_int[g_i-g_j]
+    zero, op, inv = group_law(G)
+    x_minus_y[0] = x_minus_y_data
+    for i in range(1,G_card):
+        x_minus_y[i] = x_minus_y[i-1] + G_card
+
+    for j,Gj in enumerate(int_to_group):
+        minus_Gj = inv(Gj)
+        assert op(Gj, minus_Gj) == zero
+        for i,Gi in enumerate(int_to_group):
+            x_minus_y[i][j] = group_to_int[op(Gi,minus_Gj)]
+
+    # A copy of the matrix
+    for i,R in enumerate(M):
+        for j,x in enumerate(R):
+            M_c[i*K+j] = group_to_int[G(x)]
+
+    # We are now ready to test every pair of columns
+    for i in range(K):
+        for j in range(i+1,K):
+            memset(G_seen, 0, G_card*sizeof(int))
+            for ii in range(M_nrows):
+                G_seen[x_minus_y[M_c[ii*K+i]][M_c[ii*K+j]]] += 1
+
+            for ii in range(G_card):
+                if G_seen[ii] != L:
+                    if verbose:
+                        print ("Rows {} and {} do not generate all elements of G "
+                         "exactly lambda(={}) times. The element {} appeared {} "
+                         "times as a difference.".format(i,j,L,int_to_group[ii],G_seen[ii]))
+                    sage_free(x_minus_y_data)
+                    sage_free(x_minus_y)
+                    sage_free(G_seen)
+                    sage_free(M_c)
+                    return False
+
+    sage_free(x_minus_y_data)
+    sage_free(x_minus_y)
+    sage_free(G_seen)
+    sage_free(M_c)
+    return True

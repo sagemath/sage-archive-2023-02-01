@@ -126,8 +126,6 @@ class Groups(CategoryWithAxiom):
                 sage: F.monoid_generators()
                 Family (x, y, x^-1, y^-1)
             """
-            if self in Groups().Finite():
-                return self.group_generators()
             G = self.group_generators()
             from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
             if G not in FiniteEnumeratedSets():

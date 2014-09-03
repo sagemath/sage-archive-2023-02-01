@@ -200,7 +200,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
         def matrix(self, base_ring=None, side="left"):
             r"""
             Return the matrix of this morphism in the distinguished
-            basis of the domain and codomain.
+            bases of the domain and codomain.
 
             INPUT:
 
@@ -213,6 +213,9 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             acting on the left; i.e. each column of the matrix
             represents the image of an element of the basis of the
             domain.
+
+            The order of the rows and columns matches with the order
+            in which the bases are enumerated.
 
             .. SEEALSO:: :func:`_from_matrix`
 
@@ -279,21 +282,34 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             m.set_immutable()
             return m
 
-        def _from_matrix(self, hom, m):
+        @classmethod
+        def _from_matrix(cls, hom, m, side="left"):
             """
-            Construct a morphism in the homset ``hom`` from the matrix ``m``.
+            Construct a morphism in the homset ``hom`` from its matrix ``m``
+            in the distinguished bases of the domain and codomain.
+
+            INPUT:
+
+            - ``hom`` -- a homset
+
+            - ``side`` -- "left" or "right" (default: "left")
+
+            If ``side`` is "left", this morphism is considered as
+            acting on the left; i.e. each column of the matrix
+            represents the image of an element of the basis of the
+            domain.
 
             .. SEEALSO:: :func:`matrix`
 
             EXAMPLES::
 
-                sage: category = FiniteDimensionalModulesWithBasis(ZZ)
-                sage: X = CombinatorialFreeModule(ZZ, [1,2], category = category); X.rename("X"); x = X.basis()
-                sage: Y = CombinatorialFreeModule(ZZ, [3,4], category = category); Y.rename("Y"); y = Y.basis()
+                sage: X = CombinatorialFreeModule(ZZ, [1,2]); X.rename("X"); x = X.basis()
+                sage: Y = CombinatorialFreeModule(ZZ, [3,4]); Y.rename("Y"); y = Y.basis()
                 sage: H = Hom(X,Y)
 
             This is a static method which can be called from any
-            element of the homset::
+            element of the homset, or from the morphism class of the
+            category::
 
                 sage: C = H.zero()
                 sage: phi = C._from_matrix(H, matrix([[1,2],[3,5]]))
@@ -304,31 +320,45 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: phi(x[2])
                 2*B[3] + 5*B[4]
 
+                sage: C = H.homset_category().morphism_class
+                sage: phi = C._from_matrix(H, matrix([[1,2],[3,5]]), side="right")
+                sage: phi(x[1])
+                B[3] + 2*B[4]
+                sage: phi(x[2])
+                3*B[3] + 5*B[4]
+
+            .. WARNING::
+
+                This is a private method whose API is likely to change
+                without notice.
+
             .. TODO::
 
                 Design a better API. We would want to do something
-                like ``hom(matrix=)`` which would call
+                like ``hom(matrix=m)`` which would call
                 ``hom._from_matrix`` or
-                ``domain.morphism_from_matrix``. The thing is to
+                ``domain.morphism_from_matrix``, or
+                ``hom._element_class._from_matrix``. The thing is to
                 handle proper inheritance since this should be
                 available to homsets in any subcategory of
-                ModulesWithBasis.FiniteDimensional. See also
+                :class:`ModulesWithBasis.FiniteDimensional`. See also
                 discussion on trac:`10668`.
             """
             X = hom.domain()
             Y = hom.codomain()
             import sage.combinat.ranker
             rankX  = sage.combinat.ranker.rank_from_list(tuple(X.basis().keys()))
-            d = dict( (xt, Y.from_vector(m.column(rankX(xt)))) for xt in X.basis().keys() )
+            if side == "left":
+                m = m.transpose()
+            d = dict( (xt, Y.from_vector(m.row(rankX(xt)))) for xt in X.basis().keys() )
             return hom(on_basis = d.__getitem__)
 
         def __invert__(self):
             """
             Return the inverse morphism of ``self``
 
-
-            If ``self`` is is not invertible an error is raised.
-            This is achieved by inverting the ``self.matrix()``.
+            This is achieved by inverting the ``self.matrix()``. An
+            error is raised if ``self`` is not invertible.
 
             EXAMPLES::
 

@@ -45,7 +45,7 @@ class Objects(Category_singleton):
         .. SEEALSO:: :meth:`Category.is_structure_category`
 
         By convention, the category of objects does not define new
-        structrure.
+        structure.
 
         EXAMPLES::
 
@@ -95,7 +95,7 @@ class Objects(Category_singleton):
             This used to be called ``hom_category``::
 
                 sage: Sets().hom_category()
-                doctest:1: DeprecationWarning: hom_category is deprecated. Please use Homsets instead.
+                doctest:...: DeprecationWarning: hom_category is deprecated. Please use Homsets instead.
                 See http://trac.sagemath.org/10668 for details.
                 Category of homsets of sets
 

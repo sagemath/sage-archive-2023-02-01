@@ -1231,6 +1231,19 @@ class Category(UniqueRepresentation, SageObject):
         result of :meth:`is_structure_category` on the super
         categories.
 
+        .. WARNING::
+
+            A positive answer is guaranteed to be mathematically
+            correct. A negative answer may mean that Sage has not (or
+            can not yet within the current model) be taught enough
+            information to derive this information. See
+            :meth:`full_super_categories` for a discussion.
+
+        .. SEEALSO::
+
+            - :meth:`is_subcategory`
+            - :meth:`full_super_categories`
+
         EXAMPLES::
 
             sage: Magmas().Associative().is_full_subcategory(Magmas())
@@ -1240,15 +1253,24 @@ class Category(UniqueRepresentation, SageObject):
             sage: Rings().is_full_subcategory(Magmas().Unital() & AdditiveMagmas().AdditiveUnital())
             True
 
+        Here are two typical examples of false negatives::
+
+            sage: Groups().is_full_subcategory(Semigroups())
+            False
+            sage: Groups().is_full_subcategory(Semigroups()) # todo: not implemented
+            True
+            sage: Fields().is_full_subcategory(Rings())
+            False
+            sage: Fields().is_full_subcategory(Rings())      # todo: not implemented
+            True
+
         .. TODO::
 
-            Those are consequences of :class:`EuclideanDomains`
+            The latter is a consequence of :class:`EuclideanDomains`
             currently being a structure category. Is this what we
             want?::
 
                 sage: EuclideanDomains().is_full_subcategory(Rings())
-                False
-                sage: Fields().is_full_subcategory(Rings())
                 False
         """
         return self.is_subcategory(other) and \
@@ -1260,24 +1282,27 @@ class Category(UniqueRepresentation, SageObject):
         """
         Return the *immediate* full super categories of ``self``.
 
-        Return the categories C in ``self.super_categories()`` such
-        that ``self`` is a full subcategory of ``C``.
-
         .. SEEALSO::
 
             - :meth:`super_categories`
             - :meth:`is_full_subcategory`
 
-        .. NOTE::
+        .. WARNING::
 
             The current implementation selects the full subcategories
             among the immediate super categories of ``self``. This
-            assumes that, if `A,B,C` is a chain of categories and `A`
-            is a full subcategory of `C`, then `A` is a full
-            subcategory of `B` and `B` is a full subcategory of
-            `C`. This is correct with the current model for full
-            subcategories, but this model might be too restrictive in
-            certain situations.
+            assumes that, if `C\subset B\subset A` is a chain of
+            categories and `C` is a full subcategory of `A`, then `C`
+            is a full subcategory of `B` and `B` is a full subcategory
+            of `A`.
+
+            This assumption is guaranteed to hold with the current
+            model and implementation of full subcategories in
+            Sage. However, mathematically speaking, this is too
+            restrictive. This indeed prevents the complete modelling
+            of situations where any `A` morphism between elements of
+            `C` automatically preserves the `B` structure. See below
+            for an example.
 
         EXAMPLES:
 
@@ -1287,7 +1312,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: Semigroups().Finite().full_super_categories()
             [Category of semigroups]
 
-        On the other hand a semigroup morphism between two monoids is
+        On the other hand, a semigroup morphism between two monoids is
         not necessarily a monoid morphism (which must map the unit to
         the unit)::
 
@@ -1295,6 +1320,18 @@ class Category(UniqueRepresentation, SageObject):
             [Category of semigroups, Category of unital magmas]
             sage: Monoids().full_super_categories()
             [Category of unital magmas]
+
+        Any semigroup morphism between two groups is automatically a
+        monoid morphism (in a group the unit is the unique idempotent,
+        so it has to be mapped to the unit). Yet, due to the
+        limitation of the model advertised above, Sage currently can't
+        be taught that the category of groups is a full subcategory of
+        the category of semigroups::
+
+            sage: Groups().full_super_categories()     # todo: not implemented
+            [Category of monoids, Category of semigroups, Category of inverse unital magmas]
+            sage: Groups().full_super_categories()
+            [Category of monoids, Category of inverse unital magmas]
         """
         return [C for C in self.super_categories()
                 if self.is_full_subcategory(C)]
@@ -2748,13 +2785,15 @@ class CategoryWithParameters(Category):
         The parent class of an algebra depends only on the category of the base ring::
 
             sage: Algebras(ZZ)._make_named_class_key("parent_class")
-            Category of euclidean domains
+            Join of Category of euclidean domains
+                and Category of infinite enumerated sets
 
         The morphism class of a bimodule depends only on the category
         of the left and right base rings::
 
             sage: Bimodules(QQ, ZZ)._make_named_class_key("morphism_class")
-            (Category of quotient fields, Category of euclidean domains)
+            (Category of quotient fields,
+             Join of Category of euclidean domains and Category of infinite enumerated sets)
 
         The element class of a join category depends only on the
         element class of its super categories::
@@ -2881,7 +2920,8 @@ class JoinCategory(CategoryWithParameters):
         EXAMPLES::
 
             sage: Modules(ZZ)._make_named_class_key('element_class')
-            Category of euclidean domains
+            Join of Category of euclidean domains
+                and Category of infinite enumerated sets
             sage: Modules(QQ)._make_named_class_key('parent_class')
             Category of quotient fields
             sage: Schemes(Spec(ZZ))._make_named_class_key('parent_class')

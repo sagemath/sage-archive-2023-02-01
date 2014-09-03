@@ -262,7 +262,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         D = dict([[Rvars[i],vars[i]] for i in range(N)])
 
         #clear the denominators if a rational function
-        L= [self[i].denominator() for i in range(M)]
+        L = [self[i].denominator() for i in range(M)]
         l = [prod(L[:j] + L[j+1:M]) for j in range(M)]
         F = [S(R(self[i].numerator()*l[i]).subs(D)) for i in range(M)]
 
@@ -270,11 +270,11 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         F.insert(ind[1], S(prod(L).subs(D))) #coerce in case l is a constant
         try:
             #remove possible gcd of the polynomials
-            g=gcd(F)
-            F=[S(f/g) for f in F]
+            g = gcd(F)
+            F = [S(f/g) for f in F]
             #remove possible gcd of coefficients
             gc = gcd([f.content() for f in F])
-            F=[S(f/gc) for f in F]
+            F = [S(f/gc) for f in F]
         except AttributeError: #no gcd
             pass
         d = max([F[i].degree() for i in range(M+1)])
@@ -303,9 +303,9 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            sage: A.<x,y>=AffineSpace(QQ,2)
-            sage: H=Hom(A,A)
-            sage: f=H([x^2+y^2,y^2])
+            sage: A.<x,y> = AffineSpace(QQ,2)
+            sage: H = Hom(A,A)
+            sage: f = H([x^2+y^2,y^2])
             sage: f.dynatomic_polynomial(2)
             Traceback (most recent call last):
             ...
@@ -313,26 +313,26 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
             ::
 
-            sage: A.<x>=AffineSpace(ZZ,1)
-            sage: H=Hom(A,A)
-            sage: f=H([(x^2+1)/x])
+            sage: A.<x> = AffineSpace(ZZ,1)
+            sage: H = Hom(A,A)
+            sage: f = H([(x^2+1)/x])
             sage: f.dynatomic_polynomial(4)
             2*x^12 + 18*x^10 + 57*x^8 + 79*x^6 + 48*x^4 + 12*x^2 + 1
 
             ::
 
-            sage: A.<x>=AffineSpace(CC,1)
-            sage: H=Hom(A,A)
-            sage: f=H([(x^2+1)/(3*x)])
+            sage: A.<x> = AffineSpace(CC,1)
+            sage: H = Hom(A,A)
+            sage: f = H([(x^2+1)/(3*x)])
             sage: f.dynatomic_polynomial(3)
             13.0000000000000*x^6 + 117.000000000000*x^4 + 78.0000000000000*x^2 +
             1.00000000000000
 
             ::
 
-            sage: A.<x>=AffineSpace(QQ,1)
-            sage: H=Hom(A,A)
-            sage: f=H([x^2-10/9])
+            sage: A.<x> = AffineSpace(QQ,1)
+            sage: H = Hom(A,A)
+            sage: f = H([x^2-10/9])
             sage: f.dynatomic_polynomial([2,1])
             531441*x^4 - 649539*x^2 - 524880
         """
@@ -343,16 +343,16 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             raise NotImplementedError("Not implemented for subschemes")
         if self.domain().dimension_relative()>1:
             raise TypeError("Does not make sense in dimension >1")
-        F=self.homogenize(1).dynatomic_polynomial(period)
-        if F.denominator()==1:
-            R=F.parent()
-            S=self.coordinate_ring()
-            phi=R.hom([S.gen(0),1],S)
+        F = self.homogenize(1).dynatomic_polynomial(period)
+        if F.denominator() == 1:
+            R = F.parent()
+            S = self.coordinate_ring()
+            phi = R.hom([S.gen(0),1],S)
             return(phi(F))
         else:
-            R=F.numerator().parent()
-            S=self.coordinate_ring()
-            phi=R.hom([S.gen(0),1],S)
+            R = F.numerator().parent()
+            S = self.coordinate_ring()
+            phi = R.hom([S.gen(0),1],S)
             return(phi(F.numerator())/phi(F.denominator()))
 
     def nth_iterate_map(self,n):

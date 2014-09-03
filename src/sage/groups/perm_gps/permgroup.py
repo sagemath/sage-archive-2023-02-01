@@ -1503,6 +1503,7 @@ class PermutationGroup_generic(group.Group):
     def order(self):
         """
         Return the number of elements of this group.
+        See also: G.degree()
 
         EXAMPLES::
 

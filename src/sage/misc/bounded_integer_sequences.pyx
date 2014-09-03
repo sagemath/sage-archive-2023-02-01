@@ -167,8 +167,7 @@ cdef list biseq_to_list(biseq_t S):
     """
     Convert a bounded integer sequence to a list of integers.
     """
-    cdef unsigned int index, limb_index, bit_index
-    cdef int max_limb
+    cdef int index, limb_index, bit_index, max_limb
     index = 0
     cdef list L = []
     cdef size_t n
@@ -271,7 +270,7 @@ cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start):
     if S1.length<S2.length+start:
         return -1
     cdef __mpz_struct seq
-    cdef unsigned int limb_size, limb_size_orig
+    cdef int limb_size, limb_size_orig
     cdef mpz_t tmp
     # Idea: We shift-copy enough limbs from S1 to tmp and then compare with
     # S2, for each shift.
@@ -309,10 +308,10 @@ cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start):
     limb_size_orig = seq._mp_size
 
     seq = deref(<__mpz_struct*>S1.data)
-    cdef unsigned int n, limb_index, bit_index
+    cdef int n, limb_index, bit_index
     # The maximal number of limbs of S1 that is safe to use after the current
     # position.
-    cdef unsigned int max_limb_size = seq._mp_size-((start*S1.itembitsize)>>times_mp_bits_per_limb)
+    cdef int max_limb_size = seq._mp_size-((start*S1.itembitsize)>>times_mp_bits_per_limb)
     if ((start*S1.itembitsize)&mod_mp_bits_per_limb)==0:
         # We increase it, since in the loop it is decreased when the index is
         # zero modulo bits per limb
@@ -392,7 +391,7 @@ cdef int max_overlap_biseq(biseq_t S1, biseq_t S2) except 0:
     sig_off()
     # We will use tmp to store enough bits to be able to compare with the tail
     # of S1.
-    cdef unsigned int n, limb_index, bit_index
+    cdef int n, limb_index, bit_index
     cdef int index, i, start_index
     if S2.length>=S1.length:
         start_index = 1
@@ -434,7 +433,7 @@ cdef int index_biseq(biseq_t S, int item, size_t start) except -2:
     cdef __mpz_struct seq
     seq = deref(<__mpz_struct*>S.data)
 
-    cdef unsigned int n, limb_index, bit_index, max_limb
+    cdef int n, limb_index, bit_index, max_limb
     cdef mp_limb_t tmp_limb[2]
     item &= S.mask_item
     n = 0
@@ -463,8 +462,8 @@ cdef int index_biseq(biseq_t S, int item, size_t start) except -2:
             elif item==(seq._mp_d[limb_index]&S.mask_item):
                 return index
         else:
-            if item==0 and index<S.length-1:
-                return index+1
+            if item==0 and index<S.length:
+                return index
             else:
                 return -1
         n += S.itembitsize
@@ -477,7 +476,7 @@ cdef int getitem_biseq(biseq_t S, unsigned long int index) except -1:
     """
     cdef __mpz_struct seq
     seq = deref(<__mpz_struct*>S.data)
-    cdef unsigned long int limb_index, bit_index, limb_size
+    cdef long int limb_index, bit_index, limb_size
     index *= S.itembitsize
     limb_index = index>>times_mp_bits_per_limb
     bit_index  = index&mod_mp_bits_per_limb
@@ -488,7 +487,7 @@ cdef int getitem_biseq(biseq_t S, unsigned long int index) except -1:
     if bit_index:
         # limb_size is 1 or 2
         limb_size = ((bit_index+S.itembitsize-1)>>times_mp_bits_per_limb)+1
-        if limb_index+limb_size>=seq._mp_size:
+        if limb_index+limb_size>seq._mp_size:
             limb_size = 1 # the second limb may be non-allocated memory and
                           # should be treated as zero.
         if limb_size!=1:
@@ -509,7 +508,7 @@ cdef biseq_t slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
     - A pointer to the resulting bounded integer sequence, or NULL on error.
 
     """
-    cdef unsigned long int length, total_shift, n
+    cdef long int length, total_shift, n
     if step>0:
         if stop>start:
             length = ((stop-start-1)//step)+1
@@ -521,7 +520,7 @@ cdef biseq_t slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
         else:
             length = ((stop-start+1)//step)+1
     cdef biseq_t out = allocate_biseq(length, S.itembitsize)
-    cdef unsigned int offset_mod, offset_div
+    cdef int offset_mod, offset_div
     cdef int limb_size
     total_shift = start*S.itembitsize
     if step==1:
@@ -1019,7 +1018,7 @@ cdef class BoundedIntegerSequence:
         """
         cdef __mpz_struct seq
         seq = deref(<__mpz_struct*>self.data.data)
-        cdef unsigned int index, limb_index, bit_index
+        cdef int index, limb_index, bit_index
         cdef int max_limb
         index = 0
         cdef mp_limb_t tmp_limb[2]
@@ -1292,6 +1291,14 @@ cdef class BoundedIntegerSequence:
             sage: S.index(6) == S.index(6+S.bound())
             True
 
+        TESTS::
+
+            sage: S = BoundedIntegerSequence(8, [2, 2, 2, 1, 2, 4, 3, 3, 3, 2, 2, 0])
+            sage: S[11]
+            0
+            sage: S.index(0)
+            11
+
         """
         cdef int out
         if not isinstance(other, BoundedIntegerSequence):
@@ -1515,7 +1522,7 @@ def _biseq_stresstest():
     TESTS::
 
         sage: from sage.misc.bounded_integer_sequences import _biseq_stresstest
-        sage: _biseq_stresstest()
+        sage: #_biseq_stresstest()
 
     """
     cdef int i
@@ -1542,13 +1549,12 @@ def _biseq_stresstest():
         elif branch == 3:
             x = randint(0,99)
             if len(L[x]):
-                t = L[x][randint(0,len(L[x])-1)]
+                y = randint(0,len(L[x])-1)
+                t = L[x][y]
                 try:
                     t = L[x].index(t)
                 except ValueError:
-                    print L[x]
-                    print t
-                    raise
+                    raise ValueError("{} should be in {} (bound {}) at position {}".format(t,L[x],L[x].bound(),y))
             else:
                 L[x] = BoundedIntegerSequence(6, [randint(0,5) for x in range(randint(4,10))])
         elif branch == 4:

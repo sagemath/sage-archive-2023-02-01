@@ -1504,6 +1504,7 @@ def at(ex, *args, **kwds):
     """
     if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)
+    kwds={ (k[10:] if k[:10] == "_SAGE_VAR_" else k):v for k,v in kwds.iteritems()}
     if len(args) == 1 and isinstance(args[0],list):
         for c in args[0]:
             kwds[str(c.lhs())]=c.rhs()
@@ -1737,7 +1738,7 @@ _inverse_laplace = function_factory('ilt',
 # Conversion dict for special maxima objects
 # c,k1,k2 are from ode2()
 symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',\
-            '%c' : '_C', '%k1' : '_K1', '%k2' : '_K2', 
+            '%c' : '_C', '%k1' : '_K1', '%k2' : '_K2',
             'e':'_e', 'i':'_i', 'I':'_I'}
 
 import re
@@ -1852,7 +1853,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     #r = maxima._eval_line('listofvars(_tmp_);')[1:-1]
 
     s = maxima._eval_line('_tmp_;')
-    s = s.replace("_SAGE_VAR_","")
 
     formal_functions = maxima_tick.findall(s)
     if len(formal_functions) > 0:
@@ -1928,7 +1928,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     syms['integrate'] = dummy_integrate
     syms['laplace'] = dummy_laplace
     syms['ilt'] = dummy_inverse_laplace
-
     syms['at'] = at
 
     global is_simplified
@@ -1936,12 +1935,18 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         # use a global flag so all expressions obtained via
         # evaluation of maxima code are assumed pre-simplified
         is_simplified = True
-        return symbolic_expression_from_string(s, syms, accept_sequence=True)
+        global _syms
+        _syms = sage.symbolic.pynac.symbol_table['functions'].copy()
+        try:
+            global _augmented_syms
+            _augmented_syms = syms
+            return SRM_parser.parse_sequence(s)
+        finally:
+            _augmented_syms = {}
     except SyntaxError:
         raise TypeError("unable to make sense of Maxima expression '%s' in Sage"%s)
     finally:
         is_simplified = False
-
 
 # Comma format options for Maxima
 def mapped_opts(v):
@@ -2111,3 +2116,35 @@ def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
             return parse_func(s)
         finally:
             _augmented_syms = {}
+
+def _find_Mvar(name):
+    """
+    Function to pass to Parser for constructing
+    variables from strings.  For internal use.
+
+    EXAMPLES::
+
+        sage: y = var('y')
+        sage: sage.calculus.calculus._find_var('y')
+        y
+        sage: sage.calculus.calculus._find_var('I')
+        I
+    """
+    if name[:10] == "_SAGE_VAR_":
+        return var(name[10:])
+    res = _augmented_syms.get(name)
+    if res is not None and not isinstance(res, Function):
+        return res
+
+    # try to find the name in the global namespace
+    # needed for identifiers like 'e', etc.
+    try:
+        return SR(sage.all.__dict__[name])
+    except (KeyError, TypeError):
+        return var(name)
+
+SRM_parser = Parser(make_int      = lambda x: SR(Integer(x)),
+                    make_float    = lambda x: SR(RealDoubleElement(x)),
+                    make_var      = _find_Mvar,
+                    make_function = _find_func)
+

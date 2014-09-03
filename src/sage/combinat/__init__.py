@@ -12,10 +12,12 @@ Thematic indexes
 ----------------
 
 - :ref:`sage.combinat.algebraic_combinatorics`
+
   - :ref:`sage.combinat.cluster_algebra_quiver`
   - :ref:`sage.combinat.crystals`
   - :ref:`sage.combinat.root_system`
   - :class:`~sage.combinat.sf.sf.SymmetricFunctions`
+
 - :ref:`sage.combinat.counting`
 - :ref:`sage.combinat.enumerated_sets`
 - :ref:`sage.combinat.catalog_partitions`

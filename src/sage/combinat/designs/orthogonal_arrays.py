@@ -36,12 +36,6 @@ It defines the following functions:
     :meth:`OA_n_times_2_pow_c_from_matrix` | Return an `OA(k, \vert G\vert \cdot 2^c)` from a constrained `(G,k-1,2)`-difference matrix.
     :meth:`OA_from_wider_OA` | Return the first `k` columns of `OA`.
 
-.. TODO::
-
-    - A resolvable `OA(k,n)` is equivalent to a `OA(k+1,n)`. Sage should be able
-      to return resolvable OA, with sorted rows (so that building the
-      decomposition is easy.
-
 REFERENCES:
 
 .. [CD96] Making the MOLS table
@@ -57,12 +51,10 @@ Functions
 from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
-from sage.rings.infinity import Infinity
 from designs_pyx import is_orthogonal_array
 from incidence_structures import GroupDivisibleDesign
 
-
-def transversal_design(k,n,check=True,existence=False):
+def transversal_design(k,n,resolvable=False,check=True,existence=False):
     r"""
     Return a transversal design of parameters `k,n`.
 
@@ -86,6 +78,12 @@ def transversal_design(k,n,check=True,existence=False):
 
     - `n,k` -- integers. If ``k is None`` it is set to the largest value
       available.
+
+    - ``resolvable`` (boolean) -- set to ``True`` if you want the design to be
+      resolvable (see
+      :meth:`sage.combinat.designs.incidence_structures.IncidenceStructures.is_resolvable`). The
+      `n` classes of the resolvable design are obtained as the first `n` blocks,
+      then the next `n` blocks, etc ... Set to ``False`` by default.
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
@@ -295,7 +293,31 @@ def transversal_design(k,n,check=True,existence=False):
         Traceback (most recent call last):
         ...
         ValueError: there is no upper bound on k when 0<=n<=1
+
+    Resolvable TD::
+
+        sage: k,n = 5,15
+        sage: TD = designs.transversal_design(k,n,resolvable=True)
+        sage: TD.is_resolvable()
+        True
+        sage: r     = designs.transversal_design(None,n,resolvable=True,existence=True)
+        sage: non_r = designs.transversal_design(None,n,existence=True)
+        sage: r + 1 == non_r
+        True
     """
+    if resolvable:
+        if existence:
+            return orthogonal_array(k,n,resolvable=True,existence=True)
+        else:
+            OA = orthogonal_array(k,n,resolvable=True,check=False)
+            # the call to TransversalDesign will sort the block so we can not
+            # rely on the order *after* the call
+            blocks = [[i*n+c for i,c in enumerate(B)] for B in OA]
+            classes = [blocks[i:i+n] for i in range(0,n*n,n)]
+            TD = TransversalDesign(blocks,k,n,check=check,copy=False)
+            TD._classes = classes
+            return TD
+
     # Is k is None we find the largest available
     if k is None:
         if n == 0 or n == 1:
@@ -322,13 +344,6 @@ def transversal_design(k,n,check=True,existence=False):
         if existence:
             return False
         raise EmptySetError("No Transversal Design exists when k>=n+2 if n>=2")
-
-    elif n == 12 and k <= 6:
-        _OA_cache_set(6,12,True)
-        if existence:
-            return True
-        from sage.combinat.designs.database import TD_6_12
-        TD = [l[:k] for l in TD_6_12()]
 
     # Section 6.6 of [Stinson2004]
     elif orthogonal_array(k, n, existence=True) is not Unknown:
@@ -608,7 +623,7 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
 # corresponding to the max/min values of which orthogonal_array returns
 # truth_value.
 
-_OA_cache = {0:(Infinity,None,None,None),1:(Infinity,None,None,None)}
+_OA_cache = {0:(float("+inf"),None,None,None),1:(float("+inf"),None,None,None)}
 def _OA_cache_set(k,n,truth_value):
     r"""
     Sets a value in the OA cache of existence results
@@ -717,7 +732,7 @@ def _OA_cache_construction_available(k,n):
     else:
         return Unknown
 
-def orthogonal_array(k,n,t=2,check=True,existence=False):
+def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
     r"""
     Return an orthogonal array of parameters `k,n,t`.
 
@@ -728,6 +743,10 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
 
     More general definitions sometimes involve a `\lambda` parameter, and we
     assume here that `\lambda=1`.
+
+    An orthogonal array is said to be *resolvable* if it corresponds to a
+    resolvable transversal design (see
+    :meth:`sage.combinat.designs.incidence_structures.IncidenceStructure.is_resolvable`).
 
     For more information on orthogonal arrays, see
     :wikipedia:`Orthogonal_array`.
@@ -740,6 +759,11 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
     - ``n`` -- (integer) number of symbols
 
     - ``t`` -- (integer; default: 2) -- strength of the array
+
+    - ``resolvable`` (boolean) -- set to ``True`` if you want the design to be
+      resolvable. The `n` classes of the resolvable design are obtained as the
+      first `n` blocks, then the next `n` blocks, etc ... Set to ``False`` by
+      default.
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
@@ -758,7 +782,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
       .. NOTE::
 
           When ``k=None`` and ``existence=True`` the function returns an
-          integer, i.e. the largest `k` such that we can build a `TD(k,n)`.
+          integer, i.e. the largest `k` such that we can build a `OA(k,n)`.
 
     OUTPUT:
 
@@ -859,17 +883,39 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
         sage: designs.orthogonal_array(None,5,t=t,existence=True) == t
         True
         sage: _ = designs.orthogonal_array(t,5,t)
+
+    Resolvable OA::
+
+        sage: k,n = 5,15
+        sage: OA = designs.orthogonal_array(k,n,resolvable=True)
+        sage: for i in range(n):
+        ....:     for j in range(k):
+        ....:         assert set(B[j] for B in OA[i*n:(i+1)*n]) == set(range(n))
+        sage: r     = designs.orthogonal_array(None,n,existence=True,resolvable=True)
+        sage: non_r = designs.orthogonal_array(None,n,existence=True)
+        sage: r + 1 == non_r
+        True
     """
 
-    from latin_squares import mutually_orthogonal_latin_squares
-    from database import OA_constructions, MOLS_constructions
-    from block_design import projective_plane, projective_plane_to_OA
-    from orthogonal_arrays_recursive import find_recursive_construction
+    assert n>=0, "n(={}) must be nonnegative".format(n)
 
-    assert n>=0
+    # A resolvable OA(k,n) is an OA(k+1,n)
+    if resolvable:
+        assert t==2, "resolvable designs are only handled when t=2"
+        if existence and k is not None:
+            return orthogonal_array(k+1,n,existence=True)
+        if k is None:
+            k = orthogonal_array(None,n,existence=True)-1
+            if existence:
+                return k
+        OA = orthogonal_array(k+1,n,check=check)
+        OA.sort()
+        return [B[1:] for B in OA]
 
     # If k is set to None we find the largest value available
+
     if k is None:
+        from block_design import projective_plane
         if n == 0 or n == 1:
             if existence:
                 from sage.rings.infinity import Infinity
@@ -889,6 +935,12 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
 
     if existence and _OA_cache_get(k,n) is not None and t == 2:
         return _OA_cache_get(k,n)
+
+    from block_design import projective_plane
+    from latin_squares import mutually_orthogonal_latin_squares
+    from database import OA_constructions, MOLS_constructions
+    from orthogonal_arrays_recursive import find_recursive_construction
+    from difference_matrices import difference_matrix
 
     may_be_available = _OA_cache_construction_available(k,n) is not False
 
@@ -930,11 +982,13 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
         if k == n+1:
             if existence:
                 return projective_plane(n, existence=True)
+            from block_design import projective_plane_to_OA
             p = projective_plane(n, check=False)
             OA = projective_plane_to_OA(p, check=False)
         else:
             if existence:
                 return True
+            from block_design import projective_plane_to_OA
             p = projective_plane(n, check=False)
             OA = [l[:k] for l in projective_plane_to_OA(p, check=False)]
 
@@ -948,17 +1002,6 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
         OA = OA_from_wider_OA(construction(),k)
 
     # Constructions from the database II
-    elif may_be_available and k <= 6 and n == 12:
-        _OA_cache_set(6,12,True)
-
-        if existence:
-            return True
-        else:
-            from database import TD_6_12
-            TD = TD_6_12()
-            OA = [[x%n for x in R[:k]] for R in TD]
-
-    # Constructions from the database III
     # Section 6.5.1 from [Stinson2004]
     elif may_be_available and n in MOLS_constructions and k-2 <= MOLS_constructions[n][0]:
         _OA_cache_set(MOLS_constructions[n][0]+2,n,True)
@@ -971,6 +1014,14 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
             OA = [[i,j]+[m[i,j] for m in mols]
                   for i in range(n) for j in range(n)]
             OA = OA_from_wider_OA(OA,k)
+
+    # From Difference Matrices
+    elif may_be_available and difference_matrix(n,k-1,existence=True):
+        _OA_cache_set(k,n,True)
+        if existence:
+            return True
+        G,M = difference_matrix(n,k-1)
+        OA = OA_from_quasi_difference_matrix(M,G,add_col=True)
 
     elif may_be_available and find_recursive_construction(k,n):
         _OA_cache_set(k,n,True)
@@ -986,17 +1037,18 @@ def orthogonal_array(k,n,t=2,check=True,existence=False):
         raise NotImplementedError("I don't know how to build an OA({},{})!".format(k,n))
 
     if check:
-        assert is_orthogonal_array(OA,k,n,t)
+        assert is_orthogonal_array(OA,k,n,t), "Sage built an incorrect OA({},{}) O_o".format(k,n)
 
     return OA
 
-def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
+def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=False):
     r"""
     Return an `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)`.
 
     An `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)` is an orthogonal array from
-    which have been removed disjoint `OA(k,s_1),...,OA(k,s_x)`. So it can
-    exist only if a `OA(k,n)` exists.
+    which have been removed disjoint `OA(k,s_1),...,OA(k,s_x)`. If there exist
+    `OA(k,s_1),...,OA(k,s_x)` they can be used to fill the holes and give rise
+    to an `OA(k,n)`.
 
     A very useful particular case (see e.g. the Wilson construction in
     :func:`wilson_construction`) is when all `s_i=1`. In that case the
@@ -1016,6 +1068,10 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
 
           Right now the feature is only available when all holes have size 1,
           i.e. `s_i=1`.
+
+    - ``resolvable`` (boolean) -- set to ``True`` if you want the design to be
+      resolvable. The classes of the resolvable design are obtained as the first
+      `n` blocks, then the next `n` blocks, etc ... Set to ``False`` by default.
 
     - ``existence`` (boolean) -- instead of building the design, return:
 
@@ -1076,6 +1132,30 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
         sage: _ = designs.incomplete_orthogonal_array(k,n,[1,1,1])
         sage: _ = designs.incomplete_orthogonal_array(k,n,[1])
 
+    A resolvable `OA(k,n)-n.OA(k,1)`. We check that extending each class and
+    adding the `[i,i,...]` blocks turns it into an `OA(k+1,n)`.::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: k,n=5,7
+        sage: OA = designs.incomplete_orthogonal_array(k,n,[1]*n,resolvable=True)
+        sage: classes = [OA[i*n:(i+1)*n] for i in range(n-1)]
+        sage: for classs in classes: # The design is resolvable !
+        ....:     assert(len(set(col))==n for col in zip(*classs))
+        sage: OA.extend([[i]*(k) for i in range(n)])
+        sage: for i,R in enumerate(OA):
+        ....:     R.append(i//n)
+        sage: is_orthogonal_array(OA,k+1,n)
+        True
+
+    Non-existent resolvable incomplete OA::
+
+        sage: designs.incomplete_orthogonal_array(9,13,[1]*10,resolvable=True,existence=True)
+        False
+        sage: designs.incomplete_orthogonal_array(9,13,[1]*10,resolvable=True)
+        Traceback (most recent call last):
+        ...
+        EmptySetError: There is no resolvable incomplete OA(9,13) whose holes' sizes sum to 10!=n(=13)
+
     REFERENCES:
 
     .. [BvR82] More mutually orthogonal Latin squares,
@@ -1088,6 +1168,8 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
 
     y = sum(holes_sizes)
     x = len(holes_sizes)
+    if y == 0:
+        return orthogonal_array(k,n,existence=existence,resolvable=resolvable)
     if y > n:
         if existence:
             return False
@@ -1098,8 +1180,33 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
             return Unknown
         raise NotImplementedError("This function is only implemented for holes of size 1")
 
+    if resolvable and y != n:
+        if existence:
+            return False
+        raise EmptySetError("There is no resolvable incomplete OA({},{}) whose holes' sizes sum to {}!=n(={})".format(k,n,y,n))
+
+    if resolvable: # n holes of size 1 --> equivalent to OA(k+1,n)
+        if existence:
+            return orthogonal_array(k+1,n,existence=True)
+
+        OA = orthogonal_array(k+1,n)
+        OA.sort() # The future classes are now well-ordered
+        OA = [B[1:] for B in OA]
+
+        # We now relabel the points so that the last n blocks are the [i,i,...]
+        relabel = [[0]*n for _ in range(k)]
+        for i,B in enumerate(OA[-n:]):
+            for ii,xx in enumerate(B):
+                relabel[ii][xx] = i
+
+        OA = [[relabel[i][xx] for i,xx in enumerate(B)] for B in OA]
+
+        # Let's drop the last blocks
+        assert all(OA[-n+i] == [i]*k for i in range(n)), "The last n blocks should be [i,i,...]"
+        return OA[:-n]
+
     # Easy case
-    if x <= 1:
+    elif x <= 1:
         if existence:
             return orthogonal_array(k,n,existence=True)
         OA = orthogonal_array(k,n)
@@ -1414,7 +1521,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
 
     # check that the first part of the matrix A is a (G,k-1,2)-difference matrix
     B = [[G(a) for a,b in R] for R in A]
-    if check and not is_difference_matrix(B,G,k-1,2):
+    if check and not is_difference_matrix(zip(*B),G,k-1,2):
         raise ValueError("the first part of the matrix A must be a "
                          "(G,k-1,2)-difference matrix")
 
@@ -1450,7 +1557,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
 
     # build the quasi difference matrix and return the associated OA
     Mb = [[e+GG((G.zero(),x*v)) for v in H for e in R] for x,R in izip(Y,A)]
-    return OA_from_quasi_difference_matrix(Mb,GG,add_col=True)
+    return OA_from_quasi_difference_matrix(zip(*Mb),GG,add_col=True)
 
 def OA_from_quasi_difference_matrix(M,G,add_col=True):
     r"""
@@ -1458,12 +1565,12 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
 
     **Difference Matrices**
 
-    Let `G` be a group of order `g`. A *difference matrix* `M` is a `k \times g`
+    Let `G` be a group of order `g`. A *difference matrix* `M` is a `g\times k`
     matrix with entries from `G` such that for any `1\leq i < j < k` the set
-    `\{d_{il}-d_{jl}:1\leq l \leq g\}` is equal to `G`.
+    `\{d_{li}-d_{lj}:1\leq l \leq g\}` is equal to `G`.
 
     By concatenating the `g` matrices `M+x` (where `x\in G`), one obtains a
-    matrix of size `x\times g^2` which is also an `OA(k,g)`.
+    matrix of size `g^2\times x` which is also an `OA(k,g)`.
 
     **Quasi-difference Matrices**
 
@@ -1473,7 +1580,7 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
     a trivial action.
 
     This produces an incomplete orthogonal array with a "hole" (i.e. missing
-    rows) of size 'u' (i.e. the number of missing values per row of `M`). If
+    rows) of size 'u' (i.e. the number of missing values per column of `M`). If
     there exists an `OA(k,u)`, then adding the rows of this `OA(k,u)` to the
     incomplete orthogonal array should lead to an OA...
 
@@ -1481,14 +1588,14 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
 
     Let `G` be an abelian group of order `n`. A
     `(n,k;\lambda,\mu;u)`-quasi-difference matrix (QDM) is a matrix `Q=(q_{ij})`
-    with `k` rows and `\lambda(n-1+2u)+\mu` columns, with each entry either
-    empty or containing an element of `G`. Each row contains exactly `\lambda u`
-    entries, and each column contains at most one empty entry. Furthermore, for
+    with `\lambda(n-1+2u)+\mu` rows and `k` columns, with each entry either
+    empty or containing an element of `G`. Each column contains exactly `\lambda
+    u` entries, and each row contains at most one empty entry. Furthermore, for
     each `1 \leq i < j \leq k` the multiset
 
     .. MATH::
 
-        \{ q_{il} - q_{jl}: 1 \leq l \leq \lambda (n-1+2u)+\mu, \text{ with }q_{il}\text{ and }q_{jl}\text{ not  empty}\}
+        \{ q_{li} - q_{lj}: 1 \leq l \leq \lambda (n-1+2u)+\mu, \text{ with }q_{li}\text{ and }q_{lj}\text{ not  empty}\}
 
     contains every nonzero element of `G` exactly `\lambda` times, and contains
     0 exactly `\mu` times.
@@ -1497,12 +1604,12 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
 
     If a `(n,k;\lambda,\mu;u)`-QDM exists and `\mu \leq \lambda`, then an
     `ITD_\lambda (k,n+u;u)` exists. Start with a `(n,k;\lambda,\mu;u)`-QDM `A`
-    over the group `G`. Append `\lambda-\mu` columns of zeroes. Then select `u`
+    over the group `G`. Append `\lambda-\mu` rows of zeroes. Then select `u`
     elements `\infty_1,\dots,\infty_u` not in `G`, and replace the empty
     entries, each by one of these infinite symbols, so that `\infty_i` appears
-    exactly once in each row. Develop the resulting matrix over the group `G`
-    (leaving infinite symbols fixed), to obtain a `k\times \lambda (n^2+2nu)`
-    matrix `T`. Then `T` is an orthogonal array with `k` rows and index
+    exactly once in each column. Develop the resulting matrix over the group `G`
+    (leaving infinite symbols fixed), to obtain a `\lambda (n^2+2nu)\times k`
+    matrix `T`. Then `T` is an orthogonal array with `k` columns and index
     `\lambda`, having `n+u` symbols and one hole of size `u`.
 
     Adding to `T` an `OA(k,u)` with elements `\infty_1,\dots,\infty_u` yields
@@ -1525,8 +1632,9 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
 
         sage: _ = designs.orthogonal_array(6,20,2) # indirect doctest
     """
+    from itertools import izip
     Gn = int(G.cardinality())
-    k = len(M)+bool(add_col)
+    k = len(M[0])+bool(add_col)
 
     G_to_int = {x:i for i,x in enumerate(G)}
 
@@ -1542,7 +1650,7 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
     # Each line is expanded by [g+x for x in line for g in G] then relabeled
     # with integers. Missing values are also handled.
     new_M = []
-    for line in M:
+    for line in izip(*M):
         inf = Gn
         new_line = []
         for x in line:
@@ -1613,12 +1721,12 @@ def QDM_from_Vmt(m,t,V):
 
     *Construction of a quasi-difference matrix from a `V(m,t)` vector*
 
-    Starting with a `V(m,t)` vector `(a_1,\dots,a_{m+1})`, form a single column
-    of length `m+2` whose first entry is empty, and whose remaining entries are
-    `(a_1,\dots,a_{m+1})`. Form `t` columns by multiplying this column by the
-    `t` th roots, i.e. the powers of `\omega^m`. From each of these `t` columns,
-    form `m+2` columns by taking the `m+2` cyclic shifts of the column. The
-    result is a `(a,m+2;1,0;t)-QDM`.
+    Starting with a `V(m,t)` vector `(a_1,\dots,a_{m+1})`, form a single row of
+    length `m+2` whose first entry is empty, and whose remaining entries are
+    `(a_1,\dots,a_{m+1})`. Form `t` rows by multiplying this row by the `t` th
+    roots, i.e. the powers of `\omega^m`. From each of these `t` rows, form
+    `m+2` rows by taking the `m+2` cyclic shifts of the row. The result is a
+    `(a,m+2;1,0;t)-QDM`.
 
     For more information, refer to the Handbook of Combinatorial Designs
     [DesignHandbook]_.
@@ -1656,7 +1764,7 @@ def QDM_from_Vmt(m,t,V):
 
     M.append([0]*q)
 
-    return zip(*M)
+    return M
 
 def OA_from_PBD(k,n,PBD, check=True):
     r"""

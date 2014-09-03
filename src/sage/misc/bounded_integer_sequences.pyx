@@ -130,12 +130,8 @@ cdef biseq_t* list_to_biseq(biseq_t S, list data) except NULL:
     """
     cdef unsigned long int item
     cdef __mpz_struct *S_boil
-    S_boil = <__mpz_struct*>S.data
     cdef mp_limb_t item_limb
-    cdef mp_limb_t *tmp_limb
-    tmp_limb = <mp_limb_t*>sage_malloc(sizeof(mp_limb_t))
-    if tmp_limb==NULL:
-        raise MemoryError("Cannot even allocate one long integer")
+    cdef mp_limb_t tmp_limb
     cdef int offset_mod, offset_div
     cdef int offset = 0
     if not data:
@@ -145,40 +141,35 @@ cdef biseq_t* list_to_biseq(biseq_t S, list data) except NULL:
         offset_mod = offset&mod_mp_bits_per_limb
         offset_div = offset>>times_mp_bits_per_limb
         if offset_mod:
-            S_boil._mp_d[offset_div+1] = mpn_lshift(tmp_limb, &item_limb, 1, offset_mod)
-            S_boil._mp_d[offset_div] |= tmp_limb[0]
+            (<__mpz_struct*>S.data)._mp_d[offset_div+1] = mpn_lshift(&tmp_limb, &item_limb, 1, offset_mod)
+            (<__mpz_struct*>S.data)._mp_d[offset_div] |= tmp_limb
+            if (<__mpz_struct*>S.data)._mp_d[offset_div+1]!=0 and offset_div+1>=(<__mpz_struct*>S.data)._mp_size:
+                (<__mpz_struct*>S.data)._mp_size = offset_div+2
+            elif tmp_limb!=0 and offset_div>=(<__mpz_struct*>S.data)._mp_size:
+                (<__mpz_struct*>S.data)._mp_size = offset_div+1
         else:
-            S_boil._mp_d[offset_div] = item_limb
+            (<__mpz_struct*>S.data)._mp_d[offset_div] = item_limb
+            if item_limb!=0 and offset_div>=(<__mpz_struct*>S.data)._mp_size:
+                (<__mpz_struct*>S.data)._mp_size = offset_div+1
         offset += S.itembitsize
-    cdef unsigned long int i
-    for i from offset_div+(1 if offset_mod else 0)>=i>=0:
-        if S_boil._mp_d[i]:
-            break
-    S_boil._mp_size = i+1
-    sage_free(tmp_limb)
     return &S
 
 cdef list biseq_to_list(biseq_t S):
     """
     Convert a bounded integer sequence to a list of integers.
     """
-    cdef __mpz_struct seq
-    seq = deref(<__mpz_struct*>S.data)
     cdef unsigned int index, limb_index, bit_index
     cdef int max_limb
     index = 0
-    cdef mp_limb_t *tmp_limb
     cdef list L = []
     cdef size_t n
     # If limb_index<max_limb, then we safely are in allocated memory.
     # If limb_index==max_limb, then we must only consider *one* limb (as it is the last)
     # Otherwise, GMP was clever and has removed trailing zeroes.
-    max_limb = seq._mp_size - 1
+    max_limb = (<__mpz_struct*>S.data)._mp_size - 1
     if max_limb<0:
         return [int(0)]*S.length
-    tmp_limb = <mp_limb_t*>sage_malloc(2<<times_size_of_limb)
-    if tmp_limb==NULL:
-        raise MemoryError("Cannot even allocate two long integers")
+    cdef mp_limb_t tmp_limb[2]
     for n from S.length>=n>0:
         limb_index = index>>times_mp_bits_per_limb
         bit_index  = index&mod_mp_bits_per_limb
@@ -188,23 +179,22 @@ cdef list biseq_to_list(biseq_t S):
         if limb_index < max_limb:
             if bit_index:
                 if bit_index+S.itembitsize >= mp_bits_per_limb:
-                    mpn_rshift(tmp_limb, seq._mp_d+limb_index, 2, bit_index)
+                    mpn_rshift(<mp_limb_t*>tmp_limb, (<__mpz_struct*>S.data)._mp_d+limb_index, 2, bit_index)
                     L.append(<int>(tmp_limb[0]&S.mask_item))
                 else:
-                    L.append(<int>(((seq._mp_d[limb_index])>>bit_index)&S.mask_item))
+                    L.append(<int>((((<__mpz_struct*>S.data)._mp_d[limb_index])>>bit_index)&S.mask_item))
             else:
-                L.append(<int>(seq._mp_d[limb_index]&S.mask_item))
+                L.append(<int>((<__mpz_struct*>S.data)._mp_d[limb_index]&S.mask_item))
         elif limb_index == max_limb:
             if bit_index:
-                L.append(<int>(((seq._mp_d[limb_index])>>bit_index)&S.mask_item))
+                L.append(<int>((((<__mpz_struct*>S.data)._mp_d[limb_index])>>bit_index)&S.mask_item))
             else:
-                L.append(<int>(seq._mp_d[limb_index]&S.mask_item))
+                L.append(<int>((<__mpz_struct*>S.data)._mp_d[limb_index]&S.mask_item))
         else:
             break
         index += S.itembitsize
     if n:
         L.extend([int(0)]*n)
-    sage_free(tmp_limb)
     return L
 
 #
@@ -434,10 +424,7 @@ cdef int index_biseq(biseq_t S, int item, size_t start) except -2:
     seq = deref(<__mpz_struct*>S.data)
 
     cdef unsigned int n, limb_index, bit_index, max_limb
-    cdef mp_limb_t *tmp_limb
-    tmp_limb = <mp_limb_t*>sage_malloc(2<<times_size_of_limb)
-    if tmp_limb==NULL:
-        raise MemoryError("Cannot even allocate two long integers")
+    cdef mp_limb_t tmp_limb[2]
     item &= S.mask_item
     n = 0
     # If limb_index<max_limb, then we safely are in allocated memory.
@@ -453,28 +440,23 @@ cdef int index_biseq(biseq_t S, int item, size_t start) except -2:
                 if bit_index+S.itembitsize >= mp_bits_per_limb:
                     mpn_rshift(tmp_limb, seq._mp_d+limb_index, 2, bit_index)
                     if item==(tmp_limb[0]&S.mask_item):
-                        sage_free(tmp_limb)
                         return index
                 elif item==(((seq._mp_d[limb_index])>>bit_index)&S.mask_item):
-                    sage_free(tmp_limb)
                     return index
             elif item==(seq._mp_d[limb_index]&S.mask_item):
                 return index
         elif limb_index == max_limb:
             if bit_index:
                 if item==(((seq._mp_d[limb_index])>>bit_index)&S.mask_item):
-                    sage_free(tmp_limb)
                     return index
             elif item==(seq._mp_d[limb_index]&S.mask_item):
                 return index
         else:
-            sage_free(tmp_limb)
             if item==0 and index<S.length-1:
                 return index+1
             else:
                 return -1
         n += S.itembitsize
-    sage_free(tmp_limb)
     return -1
 
 cdef int getitem_biseq(biseq_t S, unsigned long int index) except -1:
@@ -488,7 +470,7 @@ cdef int getitem_biseq(biseq_t S, unsigned long int index) except -1:
     index *= S.itembitsize
     limb_index = index>>times_mp_bits_per_limb
     bit_index  = index&mod_mp_bits_per_limb
-    cdef mp_limb_t* tmp_limb
+    cdef mp_limb_t tmp_limb[2]
     cdef int out
     if limb_index>=seq._mp_size:
         return 0
@@ -499,12 +481,8 @@ cdef int getitem_biseq(biseq_t S, unsigned long int index) except -1:
             limb_size = 1 # the second limb may be non-allocated memory and
                           # should be treated as zero.
         if limb_size!=1:
-            tmp_limb = <mp_limb_t*>sage_malloc(limb_size<<times_size_of_limb)
-            if tmp_limb==NULL:
-                raise MemoryError
             mpn_rshift(tmp_limb, seq._mp_d+limb_index, limb_size, bit_index)
-            out = <int>deref(tmp_limb)
-            sage_free(tmp_limb)
+            out = <int>(tmp_limb[0])
         else:
             out = <int>((seq._mp_d[limb_index])>>bit_index)
     else:
@@ -559,10 +537,7 @@ cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
 
     # Convention for variable names: We move data from *_src to *_tgt
     # tmp_limb is used to temporarily store the data that we move/shift
-    cdef mp_limb_t *tmp_limb
-    tmp_limb = <mp_limb_t*>sage_malloc(2<<times_size_of_limb)
-    if tmp_limb==NULL:
-        raise MemoryError("Cannot even allocate two long integers")
+    cdef mp_limb_t tmp_limb[2]
     cdef int offset_mod_src, offset_div_src, max_limb
     cdef int offset_src = total_shift
     cdef __mpz_struct *seq_src
@@ -601,15 +576,16 @@ cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
         if offset_mod_tgt:
             seq_tgt._mp_d[offset_div_tgt+1] = mpn_lshift(tmp_limb, tmp_limb, 1, offset_mod_tgt)
             seq_tgt._mp_d[offset_div_tgt]  |= tmp_limb[0]
+            if seq_tgt._mp_d[offset_div_tgt+1]!=0 and offset_div_tgt+1>=seq_tgt._mp_size:
+                seq_tgt._mp_size = offset_div_tgt+2
+            elif tmp_limb[0]!=0 and offset_div_tgt>=seq_tgt._mp_size:
+                seq_tgt._mp_size = offset_div_tgt+1
         else:
             seq_tgt._mp_d[offset_div_tgt] = tmp_limb[0]
+            if tmp_limb[0]!=0:
+                seq_tgt._mp_size = offset_div_tgt+1
         offset_tgt += S.itembitsize
         offset_src += bitstep
-    for n from offset_div_tgt+(1 if offset_mod_tgt else 0)>=n>=0:
-        if seq_tgt._mp_d[n]:
-            break
-    seq_tgt._mp_size = n+1
-    sage_free(tmp_limb)
     return &out
 
 ###########################################
@@ -1039,10 +1015,7 @@ cdef class BoundedIntegerSequence:
         cdef unsigned int index, limb_index, bit_index
         cdef int max_limb
         index = 0
-        cdef mp_limb_t *tmp_limb
-        tmp_limb = <mp_limb_t*>sage_malloc(2<<times_size_of_limb)
-        if tmp_limb==NULL:
-            raise MemoryError("Cannot even allocate two long integers")
+        cdef mp_limb_t tmp_limb[2]
         cdef size_t n, n2
         # If limb_index<max_limb, then we safely are in allocated memory.
         # If limb_index==max_limb, then we must only consider *one* limb (as it is the last)
@@ -1071,7 +1044,6 @@ cdef class BoundedIntegerSequence:
                     yield <int>0
                 break
             index += self.data.itembitsize
-        sage_free(tmp_limb)
 
     def __getitem__(self, index):
         """
@@ -1518,3 +1490,46 @@ cpdef BoundedIntegerSequence NewBISEQ(data, unsigned long int bitsize, unsigned 
     out.data.length = length
     mpz_set_str(out.data.data, data, 32)
     return out
+
+def _biseq_stresstest():
+    cdef int i
+    from sage.misc.prandom import randint
+    cdef list L = [BoundedIntegerSequence(6, [randint(0,5) for x in range(randint(4,10))]) for y in range(100)]
+    cdef int branch
+    cdef BoundedIntegerSequence S, T
+    for i from 0<=i<10000:
+        if (i%1000) == 0:
+            print i
+        branch = randint(0,4)
+        if branch == 0:
+            L[randint(0,99)] = L[randint(0,99)]+L[randint(0,99)]
+        elif branch == 1:
+            x = randint(0,99)
+            if len(L[x]):
+                y = randint(0,len(L[x])-1)
+                z = randint(y,len(L[x])-1)
+                L[randint(0,99)] = L[x][y:z]
+            else:
+                L[x] = BoundedIntegerSequence(6, [randint(0,5) for x in range(randint(4,10))])
+        elif branch == 2:
+            t = list(L[randint(0,99)])
+            t = repr(L[randint(0,99)])
+            t = L[randint(0,99)].list()
+        elif branch == 3:
+            x = randint(0,99)
+            if len(L[x]):
+                t = L[x][randint(0,len(L[x])-1)]
+                try:
+                    t = L[x].index(t)
+                except ValueError:
+                    print L[x]
+                    print t
+                    raise
+            else:
+                L[x] = BoundedIntegerSequence(6, [randint(0,5) for x in range(randint(4,10))])
+        elif branch == 4:
+            S = L[randint(0,99)]
+            T = L[randint(0,99)]
+            startswith_biseq(S.data,T.data)
+            contains_biseq(S.data, T.data, 0)
+            max_overlap_biseq(S.data, T.data)

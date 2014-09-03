@@ -188,7 +188,8 @@ class FiniteFieldFactory(UniqueFactory):
       such a polynomial.  If ``modulus`` is a string, it is passed to
       :meth:`~sage.rings.polynomial.irreducible_element()` as the
       parameter ``algorithm``; see there for the permissible values of
-      this parameter.
+      this parameter. In particular, you can specify
+      ``modulus="primitive"`` to get a primitive polynomial.
 
     - ``elem_cache`` -- cache all elements to avoid creation time
       (default: order < 500)
@@ -223,7 +224,7 @@ class FiniteFieldFactory(UniqueFactory):
     .. NOTE::
 
         Magma only supports ``proof=False`` for making finite fields,
-        so falsely appears to be faster than Sage -- see :trac:10975.
+        so falsely appears to be faster than Sage -- see :trac:`10975`.
 
     ::
 
@@ -238,6 +239,19 @@ class FiniteFieldFactory(UniqueFactory):
         x^5 + 4*x + 1
         sage: type(f)
          <type 'sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint'>
+
+    By default, the given generator is not guaranteed to be primitive
+    (a generator of the multiplicative group), use
+    ``modulus="primitive"`` if you need this::
+
+        sage: K.<a> = GF(5^40)
+        sage: a.multiplicative_order()
+        4547473508864641189575195312
+        sage: a.is_square()
+        True
+        sage: K.<a> = GF(5^40, modulus="primitive")
+        sage: a.multiplicative_order()
+        9094947017729282379150390624
 
     The modulus must be irreducible::
 

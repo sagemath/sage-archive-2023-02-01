@@ -10,11 +10,11 @@ Quickref
 Thematic tutorials
 ------------------
 
-.. TODO:: how to link to those?
+.. TODO:: get Sphinx to create those cross links properly
 
-- thematic_tutorials/algebraic_combinatorics
-- thematic_tutorials/lie
-- thematic_tutorials/MILP
+- `Algebraic Combinatorics in Sage <../../../../thematic_tutorials/algebraic_combinatorics.html>`_
+- `Lie Methods and Related Combinatorics in Sage <../../../../thematic_tutorials/lie.html>`_
+- `Linear Programming (Mixed Integer) <../../../../thematic_tutorials/linear_programming.html>`_
 
 Enumerated sets of combinatorial objects
 ----------------------------------------

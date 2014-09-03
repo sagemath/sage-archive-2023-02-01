@@ -286,10 +286,9 @@ class Link:
         if self._oriented_gauss_code != None:
             return self._oriented_gauss_code
 
-        if self._PD_code == None:
-            self.PD_code()
 
-        if self._PD_code != None:
+        if self._oriented_gauss_code == None:
+            self.PD_code()
             pd = self._PD_code
             orient = self.orientation()
             crossing_info = {}

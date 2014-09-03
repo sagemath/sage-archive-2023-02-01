@@ -2,8 +2,6 @@ __doc__ = r"""
 Designs and Incidence Structures
 ================================
 
-.. TODO:: Proofread / point to the main classes rather than the modules?
-
 All designs can be accessed by ``designs.<tab>`` and are listed in the
 design catalog:
 

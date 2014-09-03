@@ -26,10 +26,10 @@ Enumerated sets of combinatorial objects
 Combinatorial Hopf Algebras
 ---------------------------
 
-- :class:`~sage.combinat.sf.sf.SymmetricFunctions`
+- :ref:`sage.combinat.sf`
 - :ref:`sage.combinat.ncsf_qsym`
 - :ref:`sage.combinat.schubert_polynomial`
-- :class:`~sage.combinat.ncsym.ncsym.SymmetricFunctionsNonCommutingVariables`
+- :ref:`sage.combinat.ncsym`
 
 Groups and Algebras
 -------------------

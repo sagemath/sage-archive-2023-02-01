@@ -2,12 +2,9 @@ __doc__ = r"""
 Cluster Algebras and Quivers
 ============================
 
-.. TODO::
+- `A compendium on the cluster algebra and quiver package in Sage <http://arxiv.org/abs/1102.4844>`_ arXiv:1102.4844 [math.CO]
 
-   Populate
-
-   ../sage/combinat/cluster_algebra_quiver/quiver_mutation_type
-   ../sage/combinat/cluster_algebra_quiver/quiver
-   ../sage/combinat/cluster_algebra_quiver/cluster_seed
-
+- :ref:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type`
+- :ref:`sage.combinat.cluster_algebra_quiver.quiver`
+- :ref:`sage.combinat.cluster_algebra_quiver.cluster_seed`
 """

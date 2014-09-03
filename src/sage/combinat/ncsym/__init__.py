@@ -2,9 +2,9 @@ __doc__ = r"""
 Symmetric Functions in Non-Commuting Variables
 ==============================================
 
-.. TODO:: Populate
+- :class:`Introduction to Symmetric Functions in Non-Commuting Variables <sage.combinat.ncsym.ncsym.SymmetricFunctionsNonCommutingVariables>`
 
-   ../sage/combinat/ncsym/bases
-   ../sage/combinat/ncsym/dual
-   ../sage/combinat/ncsym/ncsym
+- :ref:`sage.combinat.ncsym.bases`
+- :ref:`sage.combinat.ncsym.dual`
+- :ref:`sage.combinat.ncsym.ncsym`
 """

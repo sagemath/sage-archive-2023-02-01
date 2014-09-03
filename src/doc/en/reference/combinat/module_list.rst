@@ -3,7 +3,7 @@ Alphabetical module list
 
 .. NOTE::
 
-   This can be updated semi-automatically by running in src/sage/combinat::
+   This can be updated semi-automatically by running in ``src/sage/combinat``::
 
         for x in **/*.py*; do echo "    sage/combinat/$x"; done | perl -pe 's/\.pyx?$//' >! /tmp/module_list.rst
 

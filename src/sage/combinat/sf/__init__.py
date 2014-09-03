@@ -2,28 +2,26 @@ __doc__ = r"""
 Symmetric Functions
 ===================
 
-.. TODO::
+- :class:`Introduction to Symmetric Functions <sage.combinat.sf.sf.SymmetricFunctions>`
 
-   Populate
-
-   sage/combinat/sf/sfa
-   sage/combinat/sf/sf
-   sage/combinat/sf/classical
-   sage/combinat/sf/schur
-   sage/combinat/sf/monomial
-   sage/combinat/sf/multiplicative
-   sage/combinat/sf/elementary
-   sage/combinat/sf/homogeneous
-   sage/combinat/sf/powersum
-   sage/combinat/sf/dual
-   sage/combinat/sf/orthotriang
-   sage/combinat/sf/kfpoly
-   sage/combinat/sf/hall_littlewood
-   sage/combinat/sf/jack
-   sage/combinat/sf/new_kschur
-   sage/combinat/sf/k_dual
-   sage/combinat/sf/llt
-   sage/combinat/sf/macdonald
-   sage/combinat/sf/ns_macdonald
-   sage/combinat/sf/witt
+- :ref:`sage.combinat.sf.sfa`
+- :ref:`sage.combinat.sf.sf`
+- :ref:`sage.combinat.sf.classical`
+- :ref:`sage.combinat.sf.schur`
+- :ref:`sage.combinat.sf.monomial`
+- :ref:`sage.combinat.sf.multiplicative`
+- :ref:`sage.combinat.sf.elementary`
+- :ref:`sage.combinat.sf.homogeneous`
+- :ref:`sage.combinat.sf.powersum`
+- :ref:`sage.combinat.sf.dual`
+- :ref:`sage.combinat.sf.orthotriang`
+- :ref:`sage.combinat.sf.kfpoly`
+- :ref:`sage.combinat.sf.hall_littlewood`
+- :ref:`sage.combinat.sf.jack`
+- :ref:`sage.combinat.sf.new_kschur`
+- :ref:`sage.combinat.sf.k_dual`
+- :ref:`sage.combinat.sf.llt`
+- :ref:`sage.combinat.sf.macdonald`
+- :ref:`sage.combinat.sf.ns_macdonald`
+- :ref:`sage.combinat.sf.witt`
 """

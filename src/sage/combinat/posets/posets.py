@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Posets
+Finite posets
 
 This module implements finite partially ordered sets. It defines:
 

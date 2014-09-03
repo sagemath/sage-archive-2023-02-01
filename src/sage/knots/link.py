@@ -286,7 +286,6 @@ class Link:
         if self._oriented_gauss_code != None:
             return self._oriented_gauss_code
 
-
         if self._oriented_gauss_code == None:
             self.PD_code()
             pd = self._PD_code
@@ -795,7 +794,7 @@ class Link:
 
     def is_knot(self):
         r"""
-        Return true if the link is knot.
+        Return True if the link is knot.
         Every knot is a link but the converse is not true.
 
         OUTPUT:
@@ -964,7 +963,7 @@ class Link:
 
     def arf_invariant(self):
         r"""
-        Return the arf invariant only if the link is knot
+        Return the arf invariant. Arf invariant is defined only for knots.
 
         OUTPUT:
             - Arf invariant of knot

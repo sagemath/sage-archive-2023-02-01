@@ -53,14 +53,17 @@ done
 
 echo "Configuring giac..."
 
-# If you experience problems after loading the cython interface: giacpy
-# (Ex: next_prime(11**25) before and after loading giacpy) try the --disable-pari
-# option. (can't reproduce this with sage >= 6)
+#    The reason of the --disable-pari in configure is that giac initializes the PARI library 
+#    and Sage also does the same thing, leading to conflicts with the cython interface giacpy.
+#      
+#    A typical symptom of this conflict is:
+#        - control-c after loading giacpy quits sage
+#        and other problems could appear such as (tested with sage 5.11)
+#        - next_prime(11**25) before and after loading giacpy.
 #
-# Pb2 with pari enabled in giac and cython: control-c after loading giacpy quits sage.
-#
+#    --disable-gmpxx  (broken built)
+
 ./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-pari --disable-gmpxx
-#./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-gmpxx
 
 if [ $? -ne 0 ]; then
     exit 1
@@ -80,7 +83,7 @@ fi
 echo "Installing giac..."
 $MAKE install
 if [ $? -ne 0 ]; then
-    echo >&2 "Error installing libGAP."
+    echo >&2 "Error installing Giac."
     exit 1
 fi
 
@@ -94,4 +97,4 @@ if [ $? -ne 0 ]; then
     echo >&2 "Error running the pexpect interface of giac"
     exit 1
 fi
-#mkdir -p $SAGE_LOCAL_EXT/giac/user
+

@@ -12,15 +12,12 @@ Introductory material
 
 - :ref:`sage.combinat.crystals`              -- This overview
 - :ref:`sage.combinat.crystals.crystals`
-- The ``Lie Methods and Related Combinatorics`` thematic tutorial
+- The `Lie Methods and Related Combinatorics <../../../../thematic_tutorials/lie.html>`_ thematic tutorial
 
 Catalogs of crystals
 --------------------
 
 - :ref:`sage.combinat.crystals.catalog`
-- :ref:`sage.combinat.crystals.catalog_elementary_crystals`
-- :ref:`sage.combinat.crystals.catalog_infinity_crystals`
-- :ref:`sage.combinat.crystals.catalog_kirillov_reshetikhin`
 
 See also
 --------

@@ -150,6 +150,7 @@ cdef biseq_t list_to_biseq(list data, unsigned int bound) except NULL:
         offset_mod = offset&mod_mp_bits_per_limb
         offset_div = offset>>times_mp_bits_per_limb
         if offset_mod:
+            assert offset_div+1<(<__mpz_struct*>S.data)._mp_alloc
             (<__mpz_struct*>S.data)._mp_d[offset_div+1] = mpn_lshift(&tmp_limb, &item_limb, 1, offset_mod)
             (<__mpz_struct*>S.data)._mp_d[offset_div] |= tmp_limb
             if (<__mpz_struct*>S.data)._mp_d[offset_div+1]!=0 and offset_div+1>=(<__mpz_struct*>S.data)._mp_size:
@@ -157,6 +158,7 @@ cdef biseq_t list_to_biseq(list data, unsigned int bound) except NULL:
             elif tmp_limb!=0 and offset_div>=(<__mpz_struct*>S.data)._mp_size:
                 (<__mpz_struct*>S.data)._mp_size = offset_div+1
         else:
+            assert offset_div<(<__mpz_struct*>S.data)._mp_alloc
             (<__mpz_struct*>S.data)._mp_d[offset_div] = item_limb
             if item_limb!=0 and offset_div>=(<__mpz_struct*>S.data)._mp_size:
                 (<__mpz_struct*>S.data)._mp_size = offset_div+1
@@ -272,11 +274,6 @@ cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start):
     cdef __mpz_struct seq
     cdef int limb_size, limb_size_orig
     cdef mpz_t tmp
-    # Idea: We shift-copy enough limbs from S1 to tmp and then compare with
-    # S2, for each shift.
-    sig_on()
-    mpz_init2(tmp, S2.bitsize+mp_bits_per_limb)
-    sig_off()
     # We will use tmp to store enough bits to be able to compare with S2.
     # Hence, we say that its _mp_size is equal to that of S2. This may not be
     # correct, as we move bits from S1 (hence, there might be different
@@ -309,13 +306,19 @@ cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start):
 
     seq = deref(<__mpz_struct*>S1.data)
     cdef int n, limb_index, bit_index
+    # Idea: We shift-copy enough limbs from S1 to tmp and then compare with
+    # S2, for each shift.
+    sig_on()
+    mpz_init2(tmp, S2.bitsize+mp_bits_per_limb)
+    sig_off()
     # The maximal number of limbs of S1 that is safe to use after the current
-    # position.
-    cdef int max_limb_size = seq._mp_size-((start*S1.itembitsize)>>times_mp_bits_per_limb)
+    # position, but not more than what fits into tmp:
+    cdef int max_S1_limbs = seq._mp_size-((start*S1.itembitsize)>>times_mp_bits_per_limb)
+    cdef int max_limb_size = min((<__mpz_struct*>tmp)._mp_alloc, max_S1_limbs)
     if ((start*S1.itembitsize)&mod_mp_bits_per_limb)==0:
         # We increase it, since in the loop it is decreased when the index is
         # zero modulo bits per limb
-        preinc(max_limb_size)
+        preinc(max_S1_limbs)
     n = 0
     cdef int index = 0
     # tmp may have trailing zeroes, and GMP can NOT cope with that!
@@ -327,16 +330,22 @@ cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start):
         bit_index  = n&mod_mp_bits_per_limb
         if bit_index:
             if limb_size < max_limb_size:
+                assert limb_size<(<__mpz_struct*>tmp)._mp_alloc
                 mpn_rshift((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, limb_size+1, bit_index)
             else:
+                assert max_limb_size<=(<__mpz_struct*>tmp)._mp_alloc
                 (<__mpz_struct*>tmp)._mp_size = max_limb_size
                 mpn_rshift((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, max_limb_size, bit_index)
         else:
             # The bit_index is zero, and hence one limb less is remaining. We
-            # thus decrement max_limb_size.
-            if limb_size < predec(max_limb_size):
+            # thus decrement max_S1_limbs.
+            predec(max_S1_limbs)
+            max_limb_size = min((<__mpz_struct*>tmp)._mp_alloc, max_S1_limbs)
+            if limb_size < max_limb_size:
+                assert limb_size<=(<__mpz_struct*>tmp)._mp_alloc
                 mpn_copyi((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, limb_size)
             else:
+                assert max_limb_size<=(<__mpz_struct*>tmp)._mp_alloc
                 (<__mpz_struct*>tmp)._mp_size = max_limb_size
                 mpn_copyi((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, max_limb_size)
         # Now, the first min(limb_size,max_limb_size) limbs of tmp are
@@ -404,8 +413,10 @@ cdef int max_overlap_biseq(biseq_t S1, biseq_t S2) except 0:
             break
         bit_index  = n&mod_mp_bits_per_limb
         if bit_index:
+            assert seq._mp_size-limb_index<=(<__mpz_struct*>tmp)._mp_alloc
             mpn_rshift((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, seq._mp_size-limb_index, bit_index)
         else:
+            assert seq._mp_size-limb_index<=(<__mpz_struct*>tmp)._mp_alloc
             mpn_copyi((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, seq._mp_size-limb_index)
         (<__mpz_struct*>tmp)._mp_size = seq._mp_size-limb_index
         if mpz_congruent_2exp_p(tmp, S2.data, S1.bitsize-n):
@@ -491,6 +502,7 @@ cdef int getitem_biseq(biseq_t S, unsigned long int index) except -1:
             limb_size = 1 # the second limb may be non-allocated memory and
                           # should be treated as zero.
         if limb_size!=1:
+            assert limb_size<=2
             mpn_rshift(tmp_limb, seq._mp_d+limb_index, limb_size, bit_index)
             out = <int>(tmp_limb[0])
         else:
@@ -536,6 +548,7 @@ cdef biseq_t slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
         if limb_size<=0:
             (<__mpz_struct*>(out.data))._mp_size = 0
             return out
+        assert limb_size<=(<__mpz_struct*>(out.data))._mp_alloc
         mpn_rshift((<__mpz_struct*>(out.data))._mp_d, (<__mpz_struct*>(S.data))._mp_d+offset_div, limb_size, offset_mod)
         for n from limb_size>n>=0:
             if (<__mpz_struct*>(out.data))._mp_d[n]:
@@ -583,6 +596,7 @@ cdef biseq_t slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
             tmp_limb[0] = 0
         # put data from tmp_limb[0] to tgt
         if offset_mod_tgt:
+            assert offset_div_tgt+1<(<__mpz_struct*>(out.data))._mp_alloc
             seq_tgt._mp_d[offset_div_tgt+1] = mpn_lshift(tmp_limb, tmp_limb, 1, offset_mod_tgt)
             seq_tgt._mp_d[offset_div_tgt]  |= tmp_limb[0]
             if seq_tgt._mp_d[offset_div_tgt+1]!=0 and offset_div_tgt+1>=seq_tgt._mp_size:
@@ -590,6 +604,7 @@ cdef biseq_t slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
             elif tmp_limb[0]!=0 and offset_div_tgt>=seq_tgt._mp_size:
                 seq_tgt._mp_size = offset_div_tgt+1
         else:
+            assert offset_div_tgt<(<__mpz_struct*>(out.data))._mp_alloc
             seq_tgt._mp_d[offset_div_tgt] = tmp_limb[0]
             if tmp_limb[0]!=0:
                 seq_tgt._mp_size = offset_div_tgt+1
@@ -1522,7 +1537,7 @@ def _biseq_stresstest():
     TESTS::
 
         sage: from sage.misc.bounded_integer_sequences import _biseq_stresstest
-        sage: #_biseq_stresstest()
+        sage: _biseq_stresstest()
 
     """
     cdef int i

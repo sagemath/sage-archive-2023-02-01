@@ -2103,8 +2103,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         The optional argument allows us to omit the fractional part::
 
-            sage: z.eta(omit_frac=True)  # abs tol 1e-12
-            0.998129069926 - 8.12769318782e-22*I
+            sage: z.eta(omit_frac=True)
+            0.998129069926
             sage: pi = CDF(pi)
             sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])  # abs tol 1e-12
             0.998129069926 + 4.59084695545e-19*I
@@ -2182,7 +2182,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: a.agm(b, algorithm='principal')
             0.338175462986 - 0.0135326969565*I
             sage: a.agm(b, algorithm='pari')
-            0.080689185076 + 0.239036532686*I
+            -0.371591652352 + 0.319894660207*I
 
         Some degenerate cases::
 

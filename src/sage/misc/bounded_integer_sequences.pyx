@@ -17,7 +17,7 @@ modules::
        # of length l with items fitting in itemsize bits.
 
     cdef biseq_t* list_to_biseq(list data, unsigned int bound) except NULL
-       # Assumes that S is allocated
+       # Convert a list to a bounded integer sequence
 
     cdef list biseq_to_list(biseq_t S)
        # Convert a bounded integer sequence to a list

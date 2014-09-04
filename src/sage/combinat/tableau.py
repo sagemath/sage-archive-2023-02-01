@@ -1748,74 +1748,6 @@ class Tableau(CombinatorialObject, Element):
         from sage.combinat.skew_tableau import SkewTableau
         return SkewTableau(t)
 
-    def up(self):
-        """
-        Deprecated in :trac:`7983` since this is an operation on standard
-        tableaux.
-
-        EXAMPLES::
-
-            sage: t = Tableau([[1,2]])
-            sage: [x for x in t.up()]
-            doctest:...: DeprecationWarning: Tableau.up() is deprecated since it is an operation on standard tableaux.
-            See http://trac.sagemath.org/7983 for details.
-            [[[1, 2, 3]], [[1, 2], [3]]]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(7983,'Tableau.up() is deprecated since it is an operation on standard tableaux.')
-        return StandardTableau(self).up()
-
-    def up_list(self):
-        """
-        Deprecated in :trac:`7983` since this is an operation on standard
-        tableaux.
-
-        EXAMPLES::
-
-            sage: t = Tableau([[1,2]])
-            sage: t.up_list()
-            doctest:...: DeprecationWarning: Tableau.up_list() is deprecated since it is an operation on standard tableaux.
-            See http://trac.sagemath.org/7983 for details.
-            [[[1, 2, 3]], [[1, 2], [3]]]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(7983,'Tableau.up_list() is deprecated since it is an operation on standard tableaux.')
-        return StandardTableau(self).up_list()
-
-    def down(self):
-        """
-        Deprecated in :trac:`7983` since this is an operation on standard
-        tableaux.
-
-        EXAMPLES::
-
-            sage: t = Tableau([[1,2],[3]])
-            sage: [x for x in t.down()]
-            doctest:...: DeprecationWarning: Tableau.down() is deprecated since it is an operation on standard tableaux.
-            See http://trac.sagemath.org/7983 for details.
-            [[[1, 2]]]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(7983,'Tableau.down() is deprecated since it is an operation on standard tableaux.')
-        return StandardTableau(self).down()
-
-    def down_list(self):
-        """
-        Deprecated in :trac:`7983` since this is an operation on standard
-        tableaux.
-
-        EXAMPLES::
-
-            sage: t = Tableau([[1,2],[3]])
-            sage: t.down_list()
-            doctest:...: DeprecationWarning: Tableau.down_list() is deprecated since it is an operation on standard tableaux.
-            See http://trac.sagemath.org/7983 for details.
-            [[[1, 2]]]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(7983,'Tableau.down_list() is deprecated since it is an operation on standard tableaux.')
-        return StandardTableau(self).down_list()
-
     def to_list(self):
         """
         EXAMPLES::
@@ -3775,7 +3707,6 @@ def from_chain(chain):
                 res[j][k] = i -1
     return Tableau(res)
 
-@rename_keyword(deprecation=13605, order='convention')
 def from_shape_and_word(shape, w, convention="French"):
     r"""
     Returns a tableau from a shape and word.

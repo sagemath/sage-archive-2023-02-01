@@ -1058,7 +1058,11 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
             sage: all(map(lambda x: x.cardinality() == len(x.list()), iv))
             True
         """
-        return integer_list.iterator(self.n, *self._parameters())
+        succ = lambda x: integer_list.next(x, *self._parameters())
+        f = integer_list.first(self.n, *self._parameters())
+        while not f is None:
+            yield f
+            f = succ(f)
 
 class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
     def __init__(self, n, constraints):

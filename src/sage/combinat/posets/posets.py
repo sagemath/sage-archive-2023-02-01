@@ -995,27 +995,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q(5)
             5
 
-        Accessing the n-th element of ``self`` as ``P(i)`` is deprecated::
+        Accessing the i-th element of ``self`` as ``P[i]``::
 
-            sage: P(5) == P(-1)
-            doctest:...: DeprecationWarning: Accessing the i-th element of a poset as P(i) is deprecated. Please use P[i]
-            See http://trac.sagemath.org/13109 for details.
+            sage: P = FinitePoset(DiGraph({'a':['b','c'], 'b':['d'], 'c':['d'], 'd':[]}), facade = False)
+            sage: P('a') == P[0]
             True
-            sage: Q(5) == Q(-1)
-            True
-            sage: R = FinitePoset(DiGraph({'a':['b','c'], 'b':['d'], 'c':['d'], 'd':[]}), facade = False)
-            sage: R(0)
-            a
-            sage: R('a') == R(0)
-            True
-            sage: R('d') == R(-1)
-            True
-
-        Please use instead ``P[i]``::
-
-            sage: R('a') == R[0]
-            True
-            sage: R('d') == R[-1]
+            sage: P('d') == P[-1]
             True
 
         TESTS::
@@ -1030,16 +1015,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         try:
             return self._list[self._element_to_vertex_dict[element]]
         except KeyError:
-            if isinstance(element,Integer):
-                from sage.misc.superseded import deprecation
-                deprecation(13109, "Accessing the i-th element of a poset as P(i) is deprecated. Please use P[i]")
-                if element > -1:
-                    return self.element_class(self, \
-                        self._elements[element], element)
-                else:
-                    return self.element_class(self, \
-                        self._elements[element], self.cardinality()+element)
-            else:
                 raise ValueError("%s is not an element of this poset"%type(element))
 
     def __call__(self, element):

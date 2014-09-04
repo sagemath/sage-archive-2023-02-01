@@ -1946,60 +1946,6 @@ class Compositions_n(Compositions):
             for c in Compositions_n(self.n-i):
                 yield self.element_class(self, [i]+list(c))
 
-def from_descents(descents, nps=None):
-    r"""
-    This has been deprecated in :trac:`14063`. Use
-    :meth:`Compositions.from_descents()` instead.
-
-    EXAMPLES::
-
-        sage: [x-1 for x in Composition([1, 1, 3, 4, 3]).to_subset()]
-        [0, 1, 4, 8]
-        sage: sage.combinat.composition.from_descents([1,0,4,8],12)
-        doctest:...: DeprecationWarning: from_descents is deprecated. Use Compositions().from_descents instead.
-        See http://trac.sagemath.org/14063 for details.
-        [1, 1, 3, 4, 3]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14063, 'from_descents is deprecated. Use Compositions().from_descents instead.')
-    return Compositions().from_descents(descents, nps)
-
-def composition_from_subset(S, n):
-    r"""
-    This has been deprecated in :trac:`14063`. Use
-    :meth:`Compositions.from_subset()` instead.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.composition import composition_from_subset
-        sage: composition_from_subset([2,1,5,9], 12)
-        doctest:...: DeprecationWarning: composition_from_subset is deprecated. Use Compositions().from_subset instead.
-        See http://trac.sagemath.org/14063 for details.
-        [1, 1, 3, 4, 3]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14063, 'composition_from_subset is deprecated. Use Compositions().from_subset instead.')
-    return Compositions().from_subset(S, n)
-
-def from_code(code):
-    r"""
-    This has been deprecated in :trac:`14063`. Use
-    :meth:`Compositions.from_code()` instead.
-
-    EXAMPLES::
-
-        sage: import sage.combinat.composition as composition
-        sage: Composition([4,1,2,3,5]).to_code()
-        [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
-        sage: composition.from_code(_)
-        doctest:...: DeprecationWarning: from_code is deprecated. Use Compositions().from_code instead.
-        See http://trac.sagemath.org/14063 for details.
-        [4, 1, 2, 3, 5]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14063, 'from_code is deprecated. Use Compositions().from_code instead.')
-    return Compositions().from_code(code)
-
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.composition', 'Composition_class', Composition)
 

@@ -484,7 +484,7 @@ class PartitionTuple(CombinatorialObject,Element):
         """
         return self.level()
 
-    def _repr_(self, compact=False):
+    def _repr_(self):
         """
         Return a string representation of ``self`` depending on
         :meth:`PartitionTuples.global_options`.
@@ -526,11 +526,6 @@ class PartitionTuple(CombinatorialObject,Element):
             2, 1 | 3, 2 | 1^3
             sage: PartitionTuples.global_options.reset()
         """
-        if compact:
-            from sage.misc.superseded import deprecation
-            deprecation(13605, 'compact option is deprecated. Use PartitionTuples.global_options instead.')
-            return self._repr_compact_high()
-
         return self.parent().global_options.dispatch(self, '_repr_', 'display')
 
     def _repr_diagram(self):

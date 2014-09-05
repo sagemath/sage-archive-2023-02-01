@@ -45,7 +45,8 @@ class Histogram(GraphicPrimitive):
             sage: Histogram(range(3), [10,3,5], {'width':0.7})
             Histogram defined by a 3 datalist 
         """
-        self.datalist = datalist
+        import numpy as np
+        self.datalist=np.asarray(datalist,dtype=float)
         GraphicPrimitive.__init__(self, options)        
 
     def get_minmax_data(self):
@@ -130,7 +131,7 @@ class Histogram(GraphicPrimitive):
         subplot.hist(self.datalist, **options)
 
 
-@options(color='blue',align='mid', weights=None, range=None, bins=10, normed=False, edgecolor='black')
+@options(aspect_ratio='automatic',align='mid', weights=None, range=None, bins=10, normed=False, edgecolor='black')
 def histogram(datalist, **options):
     """
     Computes and draws the histogram for list(s) of numerical data.

@@ -214,23 +214,17 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self._nrows = parent.nrows()
         self._ncols = parent.ncols()
         self._pivots = None
-        cdef Py_ssize_t i, k
-        self._rows = <mpz_t **> sage_malloc(sizeof(mpz_t*)*self._nrows)
-        self._entries = <mpz_t *> sage_malloc(sizeof(mpz_t) * self._nrows * self._ncols)
-        sig_on()
-        k = 0
-        for i from 0 <= i < self._nrows:
-            self._rows[i] = self._entries + k
-            k += self._ncols
-        sig_off()
         self._initialized_linbox = False
 
     cdef _init_linbox(self):
         cdef Py_ssize_t i, j, k
         if not self._initialized_linbox:
             sig_on()
+            self._rows = <mpz_t **> sage_malloc(sizeof(mpz_t*)*self._nrows)
+            self._entries = <mpz_t *> sage_malloc(sizeof(mpz_t) * self._nrows * self._ncols)
             k = 0
             for i from 0 <= i < self._nrows:
+                self._rows[i] = self._entries + k
                 for j from 0 <= j < self._ncols:
                     mpz_init(self._entries[k])
                     fmpz_get_mpz(self._entries[k],fmpz_mat_entry(self._matrix,i,j))

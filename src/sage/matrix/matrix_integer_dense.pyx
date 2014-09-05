@@ -215,6 +215,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self._ncols = parent.ncols()
         self._pivots = None
         self._initialized_linbox = False
+        self._entries = NULL
+        self._rows = NULL
 
     cdef _init_linbox(self):
         cdef Py_ssize_t i, j, k
@@ -303,8 +305,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         fmpz_mat_clear(self._matrix)
         if self._initialized_linbox:
             self._dealloc_linbox()
-        sage_free(self._rows)
-        sage_free(self._entries)
+        if self._rows != NULL:
+            sage_free(self._rows)
+        if self._entries != NULL:
+            sage_free(self._entries)
 
     def __init__(self, parent, entries, copy, coerce):
         r"""

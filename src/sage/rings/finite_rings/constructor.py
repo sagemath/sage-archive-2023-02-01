@@ -299,17 +299,19 @@ class FiniteFieldFactory(UniqueFactory):
     If you wish to live dangerously, you can tell the constructor not
     to test irreducibility using ``check_irreducible=False``, but this
     can easily lead to crashes and hangs -- so do not do it unless you
-    know that the modulus really is irreducible and has the correct
-    degree!
+    know that the modulus really is irreducible!
 
     ::
 
         sage: F.<x> = GF(5)[]
         sage: K.<a> = GF(5**2, name='a', modulus=x^2 + 2, check_irreducible=False)
 
+    It is always checked that the modulus has the correct degree::
+
         sage: L = GF(3**2, name='a', modulus=QQ[x](x - 1), check_irreducible=False)
-        sage: L.list()  # random
-        [0, a, 1, 2, 1, 2, 1, 2, 1]
+        Traceback (most recent call last):
+        ...
+        ValueError: the degree of the modulus does not equal the degree of the field.
 
     If you specify a modulus when constructing a prime field, it will
     be ignored::
@@ -392,7 +394,7 @@ class FiniteFieldFactory(UniqueFactory):
         True
     """
     def create_key_and_extra_args(self, order, name=None, modulus=None, names=None,
-                                  impl=None, proof=None, **kwds):
+                                  impl=None, proof=None, check_irreducible=True, **kwds):
         """
         EXAMPLES::
 
@@ -409,13 +411,24 @@ class FiniteFieldFactory(UniqueFactory):
                 raise ValueError("the order of a finite field must be > 1.")
 
             if arith.is_prime(order):
-                name = None
-                if modulus is not None:
-                    from warnings import warn
-                    warn("the 'modulus' argument is ignored when constructing prime finite fields")
-                    modulus = None
                 p = integer.Integer(order)
                 n = integer.Integer(1)
+                if impl is None:
+                    impl = 'modn'
+                if impl == 'modn':
+                    name = None
+                    if modulus is not None:
+                        from warnings import warn
+                        warn("the 'modulus' argument is ignored when constructing prime finite fields")
+                        modulus = None
+                else:
+                    # We are not using the default 'modn' implementation.
+                    # In this case, we need to specify a name and modulus.
+                    if name is None:
+                        name = 'x'
+                    if modulus is None:
+                        modulus = PolynomialRing(FiniteField(p), 'x').gen()
+                check_irreducible = False
             elif arith.is_prime_power(order):
                 if not names is None: name = names
                 name = normalize_names(1,name)
@@ -467,40 +480,34 @@ class FiniteFieldFactory(UniqueFactory):
                     # The following raises a RuntimeError if no polynomial is found.
                     modulus = conway_polynomial(p, n)
 
+                R = PolynomialRing(FiniteField(p), 'x')
                 if modulus is None or isinstance(modulus, str):
                     # A string specifies an algorithm to find a suitable modulus.
                     if modulus == "default":    # for backward compatibility
                         modulus = None
-                    modulus = PolynomialRing(GF(p), 'x').irreducible_element(n, algorithm=modulus)
+                    modulus = R.irreducible_element(n, algorithm=modulus)
                 elif isinstance(modulus, (list, tuple)):
-                    modulus = PolynomialRing(GF(p), 'x')(modulus)
+                    modulus = R(modulus)
                 elif sage.rings.polynomial.polynomial_element.is_Polynomial(modulus):
-                    modulus = modulus.change_variable_name('x')
+                    modulus = R(modulus.change_variable_name('x'))
                 else:
                     raise TypeError("wrong type for modulus parameter")
+
+                if impl is None:
+                    if order < zech_log_bound:
+                        impl = 'givaro'
+                    elif p == 2:
+                        impl = 'ntl'
+                    else:
+                        impl = 'pari_ffelt'
             else:
                 raise ValueError("the order of a finite field must be a prime power.")
 
-            if impl is None:
-                if n == 1:
-                    impl = 'modn'
-                elif order < zech_log_bound:
-                    impl = 'givaro'
-                elif p == 2:
-                    impl = 'ntl'
-                else:
-                    impl = 'pari_ffelt'
-
-            if n == 1:
-                if impl != 'modn':
-                    # We are not using the default 'modn' implementation.
-                    # In this case, we need to specify a name and modulus.
-                    if name is None:
-                        name = 'x'
-                    if modulus is None:
-                        modulus = PolynomialRing(FiniteField(order), 'x').gen()
-            elif name is None:
-                raise TypeError("you must specify the generator name.")
+            if check_irreducible:
+                if not modulus.is_irreducible():
+                    raise ValueError("finite field modulus must be irreducible but it is not.")
+            if modulus is not None and modulus.degree() != n:
+                raise ValueError("the degree of the modulus does not equal the degree of the field.")
 
             return (order, name, modulus, impl, str(kwds), p, n, proof), kwds
 
@@ -585,13 +592,6 @@ class FiniteFieldFactory(UniqueFactory):
             # constructors with check options (like above).
             from sage.structure.proof.all import WithProof
             with WithProof('arithmetic', proof):
-                if kwds.get('check_irreducible', True):
-                    if modulus.parent().base_ring().characteristic() == 0:
-                        modulus = modulus.change_ring(FiniteField(p))
-                    if not modulus.is_irreducible():
-                        raise ValueError("finite field modulus must be irreducible but it is not.")
-                    if modulus.degree() != n:
-                        raise ValueError("the degree of the modulus does not equal the degree of the field.")
                 if impl == 'givaro':
                     repr = kwds.get('repr', 'poly')
                     elem_cache = kwds.get('elem_cache', order < 500)

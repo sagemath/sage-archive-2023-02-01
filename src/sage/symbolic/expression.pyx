@@ -8020,6 +8020,15 @@ cdef class Expression(CommutativeRingElement):
             x*sin(2)/x^a
             sage: f.simplify()
             x^(-a + 1)*sin(2)
+
+        TESTS:
+
+        Check that :trac:`14637` is fixed::
+
+            sage: assume(x > 0, x < pi/2)
+            sage: acos(cos(x)).simplify()
+            x
+            sage: forget()
         """
         return self._parent(self._maxima_())
 

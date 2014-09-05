@@ -54,6 +54,9 @@ from sage.misc.unknown import Unknown
 from designs_pyx import is_orthogonal_array
 from incidence_structures import GroupDivisibleDesign
 
+from designs_pyx import _OA_cache_set, _OA_cache_get, _OA_cache_construction_available
+
+
 def transversal_design(k,n,resolvable=False,check=True,existence=False):
     r"""
     Return a transversal design of parameters `k,n`.
@@ -81,7 +84,7 @@ def transversal_design(k,n,resolvable=False,check=True,existence=False):
 
     - ``resolvable`` (boolean) -- set to ``True`` if you want the design to be
       resolvable (see
-      :meth:`sage.combinat.designs.incidence_structures.IncidenceStructures.is_resolvable`). The
+      :meth:`sage.combinat.designs.incidence_structures.IncidenceStructure.is_resolvable`). The
       `n` classes of the resolvable design are obtained as the first `n` blocks,
       then the next `n` blocks, etc ... Set to ``False`` by default.
 
@@ -511,7 +514,7 @@ def wilson_construction(OA,k,r,m,n_trunc,u,check=True):
 
         sage: from sage.combinat.designs.orthogonal_arrays import wilson_construction
         sage: from sage.combinat.designs.orthogonal_arrays import OA_relabel
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_wilson_decomposition_with_one_truncated_group
+        sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_wilson_decomposition_with_one_truncated_group
         sage: total = 0
         sage: for k in range(3,8):
         ....:    for n in range(1,30):
@@ -613,124 +616,6 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
         assert is_transversal_design(TD,k,N)
 
     return TD
-
-# Stores for every integer n the four values :
-# - max_true
-# - min_unknown
-# - max_unknown
-# - min_false
-#
-# corresponding to the max/min values of which orthogonal_array returns
-# truth_value.
-
-_OA_cache = {0:(float("+inf"),None,None,None),1:(float("+inf"),None,None,None)}
-def _OA_cache_set(k,n,truth_value):
-    r"""
-    Sets a value in the OA cache of existence results
-
-    INPUT:
-
-    - ``k,n`` (integers)
-
-    - ``truth_value`` -- one of ``True,False,Unknown``
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays import _OA_cache_set, _OA_cache_get, _OA_cache
-        sage: if 10 in _OA_cache:
-        ....:    del _OA_cache[10]
-        sage: _OA_cache_get(4,10)
-        sage: _OA_cache_set(4,10,True)
-        sage: _OA_cache_get(4,10)
-        True
-    """
-    global _OA_cache
-
-    k = int(k)
-    n = int(n)
-
-    max_true, min_unknown, max_unknown, min_false = _OA_cache.get(n,(0,None,None,n+2))
-
-    if truth_value is True:
-        max_true    = k if k>max_true else max_true
-    elif truth_value is Unknown:
-        min_unknown = k if (min_unknown is None or k<min_unknown) else min_unknown
-        max_unknown = k if (max_unknown is None or k>max_unknown) else max_unknown
-    else:
-        min_false   = k if k<min_false else min_false
-
-    _OA_cache[n] = (max_true, min_unknown, max_unknown, min_false)
-
-def _OA_cache_get(k,n):
-    r"""
-    Gets a value from the OA cache of existence results
-
-    INPUT:
-
-    ``k,n`` (integers)
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays import _OA_cache_set, _OA_cache_get
-        sage: _OA_cache_get(0,10)
-        True
-        sage: _OA_cache_get(1,10)
-        True
-        sage: _OA_cache_get(2,10)
-        True
-        sage: _OA_cache_get(2**10+1,2**10)
-        sage: _OA_cache_set(2**10+1,2**10,True)
-        sage: _OA_cache_get(2**10+1,2**10)
-        True
-    """
-    global _OA_cache
-
-    k = int(k)
-    n = int(n)
-
-    try:
-        max_true, min_unknown, max_unknown, min_false = _OA_cache[n]
-    except KeyError:
-        return None
-
-    if k <= max_true:
-        return True
-    elif min_unknown is not None and (k >= min_unknown and k <= max_unknown):
-        return Unknown
-    elif k >= min_false:
-        return False
-
-    return None
-
-def _OA_cache_construction_available(k,n):
-    r"""
-    Tests if a construction is implemented using the cache's information
-
-    INPUT:
-
-    - ``k,n`` (integers)
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays import _OA_cache_construction_available
-        sage: _OA_cache_construction_available(5,10)
-        Unknown
-        sage: designs.orthogonal_array(5,10,existence=True)
-        Unknown
-        sage: _OA_cache_construction_available(5,10)
-        False
-    """
-    ans = _OA_cache.get(n,None)
-    if ans is not None:
-        max_true, min_unknown, max_unknown, min_false = ans
-        if k <= max_true:
-            return True
-        if min_unknown is not None and k >= min_unknown:
-            return False
-        else:
-            return Unknown
-    else:
-        return Unknown
 
 def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
     r"""
@@ -939,7 +824,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False):
     from block_design import projective_plane
     from latin_squares import mutually_orthogonal_latin_squares
     from database import OA_constructions, MOLS_constructions
-    from orthogonal_arrays_recursive import find_recursive_construction
+    from orthogonal_arrays_find_recursive import find_recursive_construction
     from difference_matrices import difference_matrix
 
     may_be_available = _OA_cache_construction_available(k,n) is not False
@@ -1750,9 +1635,6 @@ def QDM_from_Vmt(m,t,V):
     Fq = FiniteField(q, 'x')
     w = Fq.multiplicative_generator()
 
-    # Cyclic shift of a list
-    cyclic_shift = lambda l,i : l[-i:]+l[:-i]
-
     M = []
     wm = w**m
     for i in range(t):
@@ -1760,7 +1642,7 @@ def QDM_from_Vmt(m,t,V):
         for e in V:
             L.append(e*wm**i)
         for ii in range(m+2):
-            M.append(cyclic_shift(L,ii))
+            M.append(L[-ii:]+L[:-ii]) # cyclic shift
 
     M.append([0]*q)
 

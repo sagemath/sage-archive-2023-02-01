@@ -2117,7 +2117,7 @@ def OA_10_469():
 
     This construction appears in [Brouwer80]_. It is based on the same technique
     used in
-    :func:`~sage.combinat.designs.orthogonal_arrays_recursive.brouwer_separable_design`.
+    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.brouwer_separable_design`.
 
     Julian R. Abel's instructions:
 
@@ -2150,7 +2150,7 @@ def OA_10_469():
         sage: designs.orthogonal_array(10,469,existence=True)
         True
     """
-    from orthogonal_arrays_recursive import _reorder_matrix
+    from orthogonal_arrays_build_recursive import _reorder_matrix
     from orthogonal_arrays import incomplete_orthogonal_array
 
     OA = []
@@ -2189,8 +2189,9 @@ def OA_520_plus_x(x):
     r"""
     Return an `OA(10+x,520+x)`.
 
-    The consruction shared by Julian R. Abel can build three designs:
-    `OA(10,520), OA(12,522), OA(14,524)`.
+    The consruction shared by Julian R. Abel works for :func:`OA(10,520)
+    <OA_10_520>`, :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524)
+    <OA_14_524>`.
 
         Let `n=520+x` and `k=10+x`. Build a `TD(17,31)`. Remove `8-x` points
         contained in a common block, add a new point `p` and create a block

@@ -731,12 +731,6 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.aut_factor(MF.group().V(6), z) == full_factor(MF.group().V(6), z)
             True
 
-            sage: (A, w, fact) = MF.group().get_FD(z, MF.aut_factor)
-            sage: fact == full_factor(A,w)
-            True
-            sage: fact == MF.aut_factor(A,w)
-            True
-
             sage: MF = ModularForms(n=7, k=14/5, ep=-1)
             sage: T = MF.group().T()
             sage: S = MF.group().S()

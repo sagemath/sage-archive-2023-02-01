@@ -497,28 +497,18 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         else:
             return False
 
-    def get_FD(self, z, aut_factor=None):
+    def get_FD(self, z):
         r"""
-        Return a tuple (A,w,fact) which determines how to map ``z``
+        Return a tuple (A,w) which determines how to map ``z``
         to the usual (strict) fundamental domain of ``self``.
 
         INPUT:
 
         - ``z`` -- a complex number or an element of AlgebraicField().
 
-        - ``aut_factor`` -- ``None`` (default) or an automorphy factor.
-            The automorphy factor is a function ``aut_factor(mat, t)``.
-
-            ``aut_factor`` only has to be defined for ``mat`` beeing
-            one of two generators ``mat=self.T()``, `mat=self.S()`` or their
-            inverses. See the remarks below as well.
-
-            ``aut_factor`` has to be defined for ``t`` a complex number
-            or ``t`` an element of AlgebraicField().
-
         OUTPUT:
 
-        A tuple ``(A,w,fact)``.
+        A tuple ``(A, w)``.
 
         - ``A`` -- a matrix in ``self`` such that ``A.acton(w)==z``
           (if ``z`` is exact at least).
@@ -528,47 +518,21 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
           fundamental domain of ``self`` (``self.in_FD(w)==True``) and
           which is equivalent to ``z`` (by the above property).
 
-        - ``factor`` -- ``1`` (if ``aut_factor==None``) or the automorphy
-          factor evaluated on ``A`` and ``w`` (``"aut_factor(A,w)"``).
-
-          An automorphy factor is a function ``factor(mat,t)`` with the property:
-          ``factor(A*B,t) == factor(A,B.acton(t))*factor(B,t)``.
-
-          From this property the function is already determined by its
-          definition on the generators. This function determines
-          ``aut_factor(A,w)`` by using the definition on the generators and
-          by applying the above properties.
-
-          The function is for example used to determine the value of a
-          modular form for Hecke triangle groups by its value ``w`` in
-          the fundamental domain.
-
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: G = HeckeTriangleGroup(8)
             sage: z = AlgebraicField()(1+i/2)
-            sage: (A,w,fact) = G.get_FD(z)
+            sage: (A, w) = G.get_FD(z)
             sage: A
             [-lam    1]
             [  -1    0]
             sage: A.acton(w) == z
             True
-            sage: full_factor = lambda mat, t: (mat[1][0]*t+mat[1][1])**4
-            sage: def aut_factor(mat,t):
-            ....:     if (mat == G.T() or mat == G.T().inverse()):
-            ....:         return 1
-            ....:     elif (mat == G.S() or mat == G.S().inverse()):
-            ....:         return t**4
-            ....:     else:
-            ....:         raise NotImplementedError
-            sage: (A,w,fact) = G.get_FD(z,aut_factor)
-            sage: fact == full_factor(A,w)
-            True
 
             sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: z = (134.12 + 0.22*i).n()
-            sage: (A,w,fact) = G.get_FD(z, ModularForms(group=G, k=ZZ(2)/ZZ(3), ep=-1).aut_factor)
+            sage: (A, w) = G.get_FD(z)
             sage: A
             [-73*lam^3 + 74*lam       73*lam^2 - 1]
             [        -lam^2 + 1                lam]
@@ -578,12 +542,6 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             134.120000000... + 0.220000000000...*I
             sage: A.acton(w)
             134.1200000... + 0.2200000000...*I
-            sage: fact
-            0.766550718635... + 1.31804923936...*I
-
-            sage: (A,w,fact) = G.get_FD(z, ModularForms(group=G, k=ZZ(2)/ZZ(3), ep=1).aut_factor)
-            sage: fact
-            -0.766550718635... - 1.31804923936...*I
         """
 
         ID = self.I()
@@ -592,44 +550,27 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         TI = self.T().inverse()
 
         A = ID
-        L = []
         w = z
         while (abs(w) < ZZ(1) or abs(w.real()) > self.lam()/ZZ(2)):
             if (abs(w) < ZZ(1)):
                 w = self.S().acton(w)
                 A = S*A
-                L.append(-S)
             while (w.real() >= self.lam()/ZZ(2)):
                 w = TI.acton(w)
                 A = TI*A
-                L.append(T)
             while (w.real() < -self.lam()/ZZ(2)):
                 w = T.acton(w)
                 A = T*A
-                L.append(TI)
         if (w.real() == self.lam()/ZZ(2)):
             w = TI.acton(w)
             A = TI*A
-            L.append(T)
         if (abs(w) == ZZ(1) and w.real() > ZZ(0)):
             w = S.acton(w)
             A = S*A
-            L.append(-S)
-
-        if (aut_factor == None):
-            new_factor = ZZ(1)
-        else:
-            B = ID
-            temp_w = A.acton(z)
-            new_factor = ZZ(1)
-            for gamma in reversed(L):
-                B = gamma*B
-                new_factor *= aut_factor(gamma, temp_w)
-                temp_w = gamma.acton(temp_w)
 
         AI = A.inverse()
 
-        return (AI, A.acton(z), new_factor)
+        return (AI, A.acton(z))
 
     def in_FD(self, z):
         r"""

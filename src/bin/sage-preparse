@@ -215,9 +215,11 @@ def do_load_and_attach(G, file, files_before):
                    continue
                 if name.endswith('.sage'):
                     do_preparse(name, files_before + [file])
-                    s += lws + 'execfile("%s.py")\n'%name[:-5]
+                    s += lws + "exec(compile(open({0}.py).read(), {0}.py, \
+                            'exec'))\n".format(name[:-5])
                 elif name.endswith('.py'):
-                    s += lws + 'execfile("%s")\n'%name
+                    s += lws + "exec(compile(open({0}).read(), {0}, \
+                            'exec'))\n".format(name)
         else:
             s += t + '\n'
     return s

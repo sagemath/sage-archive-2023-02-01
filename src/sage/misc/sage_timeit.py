@@ -223,7 +223,7 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
     ns = {}
     if not globals_dict:
         globals_dict = globals()
-    exec code in globals_dict, ns
+    exec(code, globals_dict, ns)
     timer.inner = ns["inner"]
 
 

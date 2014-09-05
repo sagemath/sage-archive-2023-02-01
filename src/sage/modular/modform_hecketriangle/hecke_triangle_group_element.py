@@ -16,7 +16,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.rings.all import AA, ZZ
+
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
+from sage.misc.cachefunc import cached_method
 
 
 class HeckeTriangleGroupElement(MatrixGroupElement_generic):
@@ -24,61 +27,140 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
     Elements of HeckeTriangleGroup.
     """
 
-    def __init__(self, parent, M, check=True, **kwargs):
+    def __init__(self, parent, M, check=False, **kwargs):
         r"""
         An element of HeckeTriangle group given by a matrix ``M``.
 
         INPUT:
 
-        - ``parent``  -- A ``HeckeTriangleGroup``.
+        - ``parent`` -- A ``HeckeTriangleGroup``.
 
-        - ``M``       -- A matrix which coerces into the matrix space
-                         of ``parent``. For example with entries in a
-                         polynomial ring over ``ZZ`` with parameter ``lam``.
+        - ``M``      -- A matrix which coerces into the matrix space
+                        of ``parent``. For example with entries in a
+                        polynomial ring over ``ZZ`` with parameter ``lam``.
 
-        - ``check``   -- ``True`` (default) or ``False``. If ``True``
-                         then a (possibly long) check is performed
-                         whether ``M`` really corresponds to a group
-                         element of ``parent``.
+        - ``check``  -- ``True`` (default) or ``False``. If ``True``
+                        then a (possibly long) check is performed
+                        to see whether ``M`` really corresponds to a
+                        group element of ``parent``.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup, HeckeTriangleGroupElement
             sage: lam = PolynomialRing(ZZ, 'lam').gen()
-            sage: M = matrix([[-1, 0], [1-lam+lam^5, -1]])
-            sage: G = HeckeTriangleGroup(10)
-            sage: HeckeTriangleGroupElement(G, M)
-            [                 -1                   0]
-            [5*lam^3 - 6*lam + 1                  -1]
+            sage: M = matrix([[-1, 0], [-lam^4 + 5*lam^2 + lam - 5, -1]])
             sage: G = HeckeTriangleGroup(4)
-            sage: G(M)
-            [       -1         0]
-            [3*lam + 1        -1]
-            sage: G(M).matrix().parent()
-            Full MatrixSpace of 2 by 2 dense matrices over Order in Number Field in lam with defining polynomial x^2 - 2
-
-            sage: M = matrix([[-1, lam], [0, 1]])
-            sage: HeckeTriangleGroupElement(G, M)
+            sage: G(M, check=True)
             Traceback (most recent call last):
             ...
-            ValueError: The matrix is not an element of Hecke triangle group for n = 4, it has determinant -1 != 1.
+            ValueError: The matrix is not an element of Hecke triangle group for n = 4, up to equivalence it identifies two nonequivalent points.
+
+            sage: G = HeckeTriangleGroup(10)
+            sage: HeckeTriangleGroupElement(G, M, check=True)
+            [ -1   0]
+            [lam  -1]
+            sage: G(M).matrix().parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Maximal Order in Number Field in lam with defining polynomial x^4 - 5*x^2 + 5
+
+            sage: M = matrix([[-1, lam], [0, 1]])
+            sage: HeckeTriangleGroupElement(G, M, check=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: The matrix is not an element of Hecke triangle group for n = 10, it has determinant -1 != 1.
 
             sage: G.T().inverse()
             [   1 -lam]
             [   0    1]
             sage: G.U() == G.T()*G.S()
             True
-            sage: G.U()^(-4) == -G.I()
+            sage: G.U()^(-10) == -G.I()
             True
         """
 
-        MatrixGroupElement_generic.__init__(self, parent, M, check, convert=True)
+        MatrixGroupElement_generic.__init__(self, parent, M, check=True, convert=True)
 
         if (check):
             if self._matrix.determinant() != 1:
                 raise ValueError("The matrix is not an element of {}, it has determinant {} != 1.".format(parent, self._matrix.determinant()))
+            self.decompose_basic()
 
-            #TODO: check if ``self`` really is a group element...
+    @cached_method
+    def decompose_basic(self):
+        r"""
+        Decompose ``self`` into a product of the generators
+        ``S`` and ``T`` of its parent,
+
+        The function returns a tuple ``L`` consisting of either
+        ``parent.S()`` or non-trivial integer powers of ``parent.T()``.
+        Additionally ``L`` starts with +- the identity.
+        It satisfies the property: ``prod(L) == self``.
+
+        If this decomposition is not possible an ``ValueError``
+        is raised. In particular this function can be used to
+        check the membership in ``parent`` of an arbitrary matrix
+        over the base ring.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: G = HeckeTriangleGroup(n=17)
+            sage: L = (-G.V(2)).decompose_basic()
+            sage: L
+            (
+            [  1 lam]  [ 0 -1]  [  1 lam]  [-1  0]
+            [  0   1], [ 1  0], [  0   1], [ 0 -1]
+            )
+            sage: prod(L) == -G.V(2)
+            True
+            sage: L = G.U().decompose_basic()
+            sage: L
+            (
+            [  1 lam]  [ 0 -1]  [1 0]
+            [  0   1], [ 1  0], [0 1]
+            )
+            sage: prod(L) == G.U()
+            True
+        """
+
+        def mshift(A):
+            a = A[0][0]
+            b = A[0][1]
+            c = A[1][0]
+            d = A[1][1]
+
+            return (4*a*c + b*d) / (4*c*c + d*d)
+
+        def mabs(A):
+            a = A[0][0]
+            b = A[0][1]
+            c = A[1][0]
+            d = A[1][1]
+
+            return (4*a*a + b*b) / (4*c*c + d*d)
+
+        res = []
+        T   = self.parent().T()
+        S   = self.parent().S()
+        M   = self
+        lam = self.parent().lam()
+
+        while True:
+            m = (AA(mshift(M) / lam) + ZZ(1)/ZZ(2)).floor()
+            M = T**(-m) * M
+            if (m != 0):
+                res.append(T**m)
+
+            abs_t = mabs(M)
+            if AA(abs_t) < 1:
+                M = (-S) * M
+                res.append(S)
+            elif abs_t == 1:
+                raise ValueError("The matrix is not an element of {}, up to equivalence it identifies two nonequivalent points.".format(self.parent()))
+            elif M.is_identity():
+                res.append(M)
+                return tuple(res)
+            else:
+                raise ValueError("The matrix is not an element of {}, up to equivalence it identifies two nonequivalent points.".format(self.parent()))
 
     def __neg__(self):
         r"""
@@ -174,6 +256,26 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         """
 
         return self._matrix[1][1]
+
+    def is_translation(self, exclude_one=False):
+        exclude_one = bool(exclude_one)
+        a = self.a()
+        b = self.b()
+        c = self.c()
+        d = self.d()
+
+        if (c != 0) or (a != d) or (a != 1 and a != -1):
+            return False
+        elif (exclude_one and b == 0):
+            return False
+        else:
+            return True
+
+    def is_reflection(self):
+        if (self == self.parent().S()) or (self == -self.parent().S()):
+            return True
+        else:
+            return False
 
     def trace(self):
         r"""

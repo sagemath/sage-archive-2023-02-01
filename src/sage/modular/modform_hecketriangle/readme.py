@@ -28,6 +28,9 @@ All classes and functions are also individually documented (with doctest example
   corresponding order in the number field defined by the minimal polynomial
   of lambda (which embedds into ``AlgebraicReal`` accordingly).
 
+  It is possible to check if a given matrix of this form is indeed a member
+  of the corresponding ``HeckeTriangleGroup``.
+
   EXAMPLE::
 
       sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
@@ -62,6 +65,14 @@ All classes and functions are also individually documented (with doctest example
       Hecke triangle group for n = 6
       sage: G.U().matrix().parent()
       Full MatrixSpace of 2 by 2 dense matrices over Order in Number Field in lam with defining polynomial x^2 - 3
+
+      sage: G(matrix([[-1, 1+G.lam()],[0, -1]]), check=True)
+      Traceback (most recent call last):
+      ...
+      ValueError: The matrix is not an element of Hecke triangle group for n = 6, up to equivalence it identifies two nonequivalent points.
+      sage: G(matrix([[-1, G.lam()],[0, -1]]), check=True)
+      [ -1 lam]
+      [  0  -1]
 
 
 - **Analytic type:**
@@ -102,6 +113,8 @@ All classes and functions are also individually documented (with doctest example
   - Specifying the form as a rational function in the basic generators (see below)
   - For weakly holomorphic modular forms it is possible to exactly determine the
     form by specifying (sufficiently many) initial coefficients of its Fourier expansion.
+  - There is even hope (no garantuee) to determine a (exact) form from
+    the initial numerical coefficients (see below).
   - By specifying the coefficients with respect to a basis of the space
     (if the corresponding space supports coordinate vectors)
   - Arithmetic combination of forms or differential operators applied to forms

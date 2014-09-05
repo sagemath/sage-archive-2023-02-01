@@ -549,7 +549,10 @@ cdef biseq_t slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
             (<__mpz_struct*>(out.data))._mp_size = 0
             return out
         assert limb_size<=(<__mpz_struct*>(out.data))._mp_alloc
-        mpn_rshift((<__mpz_struct*>(out.data))._mp_d, (<__mpz_struct*>(S.data))._mp_d+offset_div, limb_size, offset_mod)
+        if offset_mod:
+            mpn_rshift((<__mpz_struct*>(out.data))._mp_d, (<__mpz_struct*>(S.data))._mp_d+offset_div, limb_size, offset_mod)
+        else:
+            mpn_copyi((<__mpz_struct*>(out.data))._mp_d, (<__mpz_struct*>(S.data))._mp_d+offset_div, limb_size)
         for n from limb_size>n>=0:
             if (<__mpz_struct*>(out.data))._mp_d[n]:
                 break

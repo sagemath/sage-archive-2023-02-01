@@ -2,7 +2,7 @@ from libc.stdio cimport FILE
 
 cdef extern from "gmp.h":
     # GMP's configuration of how many bits are stuffed into a limb
-    cdef int GMP_LIMB_BITS
+    cdef unsigned int GMP_LIMB_BITS
 
     ### Type Declarations ###
 
@@ -14,6 +14,7 @@ cdef extern from "gmp.h":
 
     ctypedef long mp_limb_t
     ctypedef mp_limb_t* mp_ptr
+    ctypedef mp_limb_t* mp_srcptr
 
     # This internal structure is not guaranteed to stay the same with
     # future releases of GMP or MPIR.

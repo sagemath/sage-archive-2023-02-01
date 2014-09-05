@@ -105,7 +105,7 @@ cdef long yellow_code(unsigned long a):
         m ^= (m<<s)
     return r
 
-cdef reed_muller(unsigned long *f, int ldn):
+cdef reed_muller(mp_limb_t* f, int ldn):
     r"""
     The Reed Muller transform (also known as binary Moebius transform)
     is an orthogonal transform. For a function `f` defined by

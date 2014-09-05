@@ -392,6 +392,15 @@ class FiniteFieldFactory(UniqueFactory):
         sage: l = GF(3**20, conway=True, prefix='z')
         sage: l(k.gen()**10) == l(k.gen())**10
         True
+
+    Check that :trac:`16934` has been fixed::
+
+        sage: k1.<a> = GF(17^14, impl="pari_ffelt")
+        sage: _ = a/2
+        sage: k2.<a> = GF(17^14, impl="pari_ffelt")
+        sage: k1 is k2
+        True
+
     """
     def create_key_and_extra_args(self, order, name=None, modulus=None, names=None,
                                   impl=None, proof=None, check_irreducible=True, **kwds):

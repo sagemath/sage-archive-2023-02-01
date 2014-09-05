@@ -573,7 +573,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         cdef integer.Integer i
         i = PY_NEW(integer.Integer)
         sig_on()
-        ZZ_to_mpz(&i.value, z)
+        ZZ_to_mpz(i.value, z)
         sig_off()
         return i
 

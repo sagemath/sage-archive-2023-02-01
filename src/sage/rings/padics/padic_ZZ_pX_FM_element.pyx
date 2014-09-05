@@ -227,13 +227,13 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             if ZZ_IsOne(tmp_z):
                 x = x.lift()
                 tmp_Int = PY_NEW(Integer)
-                ZZ_to_mpz(&tmp_Int.value, &(<ntl_ZZ>x).x)
+                ZZ_to_mpz(tmp_Int.value, &(<ntl_ZZ>x).x)
                 x = tmp_Int
             else:
                 raise TypeError, "cannot coerce the given ntl_ZZ_p (modulus not a power of the same prime)"
         elif PY_TYPE_CHECK(x, ntl_ZZ):
             tmp_Int = PY_NEW(Integer)
-            ZZ_to_mpz(&tmp_Int.value, &(<ntl_ZZ>x).x)
+            ZZ_to_mpz(tmp_Int.value, &(<ntl_ZZ>x).x)
             x = tmp_Int
         elif isinstance(x, (int, long)):
             x = Integer(x)
@@ -279,7 +279,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         sig_on()
         mpz_init(tmp_m)
         mpz_set(tmp_m, x)
-        mpz_to_ZZ(&tmp, &tmp_m)
+        mpz_to_ZZ(&tmp, tmp_m)
         mpz_clear(tmp_m)
         ZZ_pX_SetCoeff(self.value, 0, ZZ_to_ZZ_p(tmp))
         sig_off()
@@ -308,10 +308,10 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         cdef ZZ_c tmp_z
         sig_on()
         mpz_init(tmp_m)
-        mpz_invert(tmp_m, mpq_denref(x), self.prime_pow.pow_mpz_t_top()[0])
+        mpz_invert(tmp_m, mpq_denref(x), self.prime_pow.pow_mpz_t_top())
         mpz_mul(tmp_m, tmp_m, mpq_numref(x))
-        mpz_mod(tmp_m, tmp_m, self.prime_pow.pow_mpz_t_top()[0])
-        mpz_to_ZZ(&tmp_z, &tmp_m)
+        mpz_mod(tmp_m, tmp_m, self.prime_pow.pow_mpz_t_top())
+        mpz_to_ZZ(&tmp_z, tmp_m)
         ZZ_pX_SetCoeff(self.value, 0, ZZ_to_ZZ_p(tmp_z))
         mpz_clear(tmp_m)
         sig_off()
@@ -761,7 +761,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             return self.parent(1)
         cdef pAdicZZpXFMElement ans = self._new_c()
         cdef ntl_ZZ rZZ = PY_NEW(ntl_ZZ)
-        mpz_to_ZZ(&rZZ.x, &(<Integer>right).value)
+        mpz_to_ZZ(&rZZ.x, (<Integer>right).value)
         if mpz_sgn((<Integer>right).value) < 0:
             if self.valuation_c() > 0:
                 raise ValueError, "cannot invert non-unit"
@@ -1018,7 +1018,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             raise ValueError, "This element not well approximated by an integer."
         ans = PY_NEW(Integer)
         tmp_z = ZZ_p_rep(ZZ_pX_ConstTerm(self.value))
-        ZZ_to_mpz(&ans.value, &tmp_z)
+        ZZ_to_mpz(ans.value, &tmp_z)
         return ans
 
     def matrix_mod_pn(self):

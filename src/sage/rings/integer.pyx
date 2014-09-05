@@ -251,9 +251,6 @@ cdef set_from_pari_gen(Integer self, pari_gen x):
     # Now we have a true PARI integer, convert it to Sage
     t_INT_to_ZZ(self.value, (<pari_gen>x).g)
 
-cdef mpz_t* get_value(Integer self):
-    return &self.value
-
 
 def _test_mpz_set_longlong(long long v):
     """
@@ -1594,12 +1591,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef void set_from_mpz(Integer self, mpz_t value):
         mpz_set(self.value, value)
 
-    cdef mpz_t* get_value(Integer self):
-        return &self.value
-
     cdef void _to_ZZ(self, ZZ_c *z):
         sig_on()
-        mpz_to_ZZ(z, &self.value)
+        mpz_to_ZZ(z, self.value)
         sig_off()
 
     cpdef ModuleElement _add_(self, ModuleElement right):
@@ -3361,7 +3355,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError, "bound must be positive"
         if mpz_sgn(self.value) == 0:
             raise ValueError, "self must be nonzero"
-        cdef unsigned long n, m=7, i=1, limit, dif[8]
+        cdef unsigned long n, m=7, i=1, limit
+        cdef unsigned long dif[8]
         if start > 7:
             # We need to find i.
             m = start % 30
@@ -6196,26 +6191,7 @@ cdef class long_to_Z(Morphism):
 
 ############### INTEGER CREATION CODE #####################
 
-# We need a couple of internal GMP datatypes.
-
-# This may be potentially very dangerous as it reaches
-# deeply into the internal structure of GMP which may not
-# be consistent across future versions of GMP.
-# See extensive note in the fast_tp_new() function below.
-
 include "sage/ext/python_rich_object.pxi"
-cdef extern from "gmp.h":
-    ctypedef long mp_limb_t
-    ctypedef mp_limb_t* mp_ptr #"mp_ptr"
-
-    # We allocate _mp_d directly (mpz_t is typedef of this in GMP)
-    ctypedef struct __mpz_struct "__mpz_struct":
-        int _mp_alloc
-        int _mp_size
-        mp_ptr _mp_d
-
-    # GMP's configuration of how many Bits are stuffed into a limb
-    cdef int GMP_LIMB_BITS
 
 # This variable holds the size of any Integer object in bytes.
 cdef int sizeof_Integer
@@ -6249,7 +6225,7 @@ cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
     global integer_pool, integer_pool_count, total_alloc, use_pool
 
     cdef PyObject* new
-    cdef __mpz_struct* new_mpz
+    cdef mpz_ptr new_mpz
 
     # for profiling pool usage
     # total_alloc += 1
@@ -6297,7 +6273,7 @@ cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
         #  various internals described here may change in future GMP releases.
         #  Applications expecting to be compatible with future releases should use
         #  only the documented interfaces described in previous chapters."
-        new_mpz = <__mpz_struct*>((<Integer>new).value)
+        new_mpz = <mpz_ptr>((<Integer>new).value)
         new_mpz._mp_d = <mp_ptr>sage_malloc(GMP_LIMB_BITS >> 3)
 
     # This line is only needed if Python is compiled in debugging mode
@@ -6328,7 +6304,7 @@ cdef void fast_tp_dealloc(PyObject* o):
 
     global integer_pool, integer_pool_count
 
-    cdef __mpz_struct* o_mpz = <__mpz_struct*>((<Integer>o).value)
+    cdef mpz_ptr o_mpz = <mpz_ptr>((<Integer>o).value)
 
     if integer_pool_count < integer_pool_size:
 
@@ -6510,7 +6486,7 @@ cdef double mpz_get_d_nearest(mpz_t x) except? -648555075988944.5:
     mpz_tdiv_q_2exp(q, x, shift)
 
     # Convert abs(q) to a 64-bit integer.
-    cdef mp_limb_t* q_limbs = (<__mpz_struct*>q)._mp_d
+    cdef mp_limb_t* q_limbs = (<mpz_ptr>q)._mp_d
     cdef uint64_t q64
     if sizeof(mp_limb_t) >= 8:
         q64 = q_limbs[0]

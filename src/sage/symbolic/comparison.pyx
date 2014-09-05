@@ -217,7 +217,7 @@ cpdef math_sorted(expressions):
 
         sage: from sage.symbolic.comparison import math_sorted
         sage: math_sorted([SR(1), SR(e), SR(pi), sqrt(2)])
-        [e, sqrt(2), pi, 1]
+        [1, sqrt(2), e, pi]
     """
     return sorted(expressions, key=_math_key)
 

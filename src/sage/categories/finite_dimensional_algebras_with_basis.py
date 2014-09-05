@@ -159,11 +159,23 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 product_on_basis = self.product_on_basis
 
             if p == 0:
-                keys = self.basis().keys()
-                mat = matrix(self.base_ring(), [
-                        [sum(product_on_basis(x,j).coefficient(i) * product_on_basis(y,i).coefficient(j)
-                            for i in keys for j in keys) for x in keys] for y in keys
-                        ])
+                keys = list(self.basis().keys())
+                # x[i,j] = product_on_basis(x,i).coefficient(j)
+                cache = [{(i,j): c
+                            for i in keys
+                            for j,c in product_on_basis(y,i)}
+                         for y in keys]
+                mat = [
+                        [ sum(x.get((j, i), 0) * c for (i,j),c in y.items())
+                            for x in cache]
+                        for y in cache]
+
+                mat = matrix(self.base_ring(), mat)
+                # Old algorithm:
+                # mat = matrix(self.base_ring(), [
+                #        [sum(product_on_basis(x,j).coefficient(i) * c
+                #            for i in keys for j,c in product_on_basis(y,i)) for x in keys]
+                #            for y in keys ])
                 rad_basis = mat.kernel().basis()
             else:
                 # TODO: some finite field elements in Sage have both an

@@ -2088,14 +2088,14 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         l = self.length()
         if f is None:
-            return self[:l/2] == self[l/2 + l%2:].reversal()
+            return self[:l//2] == self[l//2 + l%2:].reversal()
         else:
             from sage.combinat.words.morphism import WordMorphism
             if not isinstance(f, WordMorphism):
                 f = WordMorphism(f)
             if not f.is_involution():
                 raise ValueError("f must be an involution")
-            return self[:l/2 + l%2] == f(self[l/2:].reversal())
+            return self[:l//2 + l%2] == f(self[l//2:].reversal())
 
     def lps(self, f=None, l=None):
         r"""
@@ -2990,7 +2990,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         if self.length() == 0:
             return False
-        return self.length_border() > self.length()/2
+        return self.length_border() > self.length()//2
 
     def primitive_length(self):
         r"""
@@ -3060,7 +3060,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         if self.length() == 0:
             return 0
-        return self.length() / self.primitive_length()
+        return self.length() // self.primitive_length()
 
     def has_period(self, p):
         r"""
@@ -3137,7 +3137,7 @@ exponent %s: the length of the word (%s) times the exponent \
             possible = (i for i in xrange(1,n) if n % i == 0)
         else:
             possible = xrange(1, n)
-        return filter(self.has_period, possible)
+        return [x for x in possible if self.has_period(x)]
 
     def longest_common_subword(self,other):
         r"""
@@ -6088,7 +6088,7 @@ exponent %s: the length of the word (%s) times the exponent \
         if self.length() % 2 != 0:
             return False
         else:
-            l = self.length() / 2
+            l = self.length() // 2
             return self[:l] == self[l:]
 
     def is_square_free(self):
@@ -6142,7 +6142,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         if self.length() % 3 != 0:
             return False
-        l = self.length() / 3
+        l = self.length() // 3
         return self[:l] == self[l:2*l] == self[2*l:]
 
     def is_cube_free(self):

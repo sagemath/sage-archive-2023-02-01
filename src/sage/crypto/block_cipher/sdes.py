@@ -210,7 +210,7 @@ class SimplifiedDES(SageObject):
         if len(K) != self._key_size:
             raise ValueError("secret key must be a 10-bit binary string")
 
-        N = len(B) / Blength  # the number of 8-bit blocks
+        N = len(B) // Blength  # the number of 8-bit blocks
         S = ""
         bin = BinaryStrings()
         # encrypt each 8-bit block in succession

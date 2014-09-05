@@ -137,6 +137,7 @@ class Algebras(CategoryWithAxiom_over_base_ring):
                 [Category of algebras over Rational Field]
                 sage: sorted(C.super_categories(), key=str)
                 [Category of Cartesian products of commutative additive groups,
+                 Category of Cartesian products of distributive magmas and additive magmas,
                  Category of Cartesian products of monoids,
                  Category of algebras over Rational Field]
             """

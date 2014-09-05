@@ -194,6 +194,13 @@ the first few zeros::
     Graphics object consisting of 2 graphics primitives
     sage: p1 + p2    # display it
 
+.. NOTE::
+
+    Not all functions in Sage are symbolic. When plotting non-symbolic functions
+    they should be wrapped in ``lambda``::
+    
+        sage: plot(lambda x:fibonacci(round(x)),(x,1,10))
+
 Many concentric circles shrinking toward the origin::
 
     sage: show(sum(circle((i,0), i, hue=sin(i/10)) for i in [10,9.9,..,0])) # long time
@@ -349,6 +356,7 @@ AUTHORS:
 
 
 import os
+from functools import reduce
 
 ## IMPORTANT: Do *not* import matplotlib at module scope.  It takes a
 ## surprisingly long time to initialize itself.  It's better if it is
@@ -711,8 +719,13 @@ def plot(funcs, *args, **kwds):
        - ``"<"`` (triangle left), ``">"`` (triangle right), ``"^"`` (triangle up), ``"v"`` (triangle down)
        - ``"1"`` (tri down), ``"2"`` (tri up), ``"3"`` (tri left), ``"4"`` (tri right)
        - ``0`` (tick left), ``1`` (tick right), ``2`` (tick up), ``3`` (tick down)
-       - ``4`` (caret left), ``5`` (caret right), ``6`` (caret up), ``7`` (caret down)
+       - ``4`` (caret left), ``5`` (caret right), ``6`` (caret up), ``7`` (caret down), ``8`` (octagon)
        - ``"$...$"`` (math TeX string)
+       - ``(numsides, style, angle)`` to create a custom, regular symbol
+
+         - ``numsides`` -- the number of sides
+         - ``style`` -- ``0`` (regular polygon), ``1`` (star shape), ``2`` (asterisk), ``3`` (circle)
+         - ``angle`` -- the angular rotation in degrees
 
     - ``markersize`` - the size of the marker in points
 
@@ -752,13 +765,22 @@ def plot(funcs, *args, **kwds):
     - ``fillalpha`` - (default: 0.5) How transparent the fill is.
       A number between 0 and 1.
 
-    Note that this function does NOT simply sample equally spaced
-    points between ``xmin`` and ``xmax``. Instead it computes equally spaced
-    points and add small perturbations to them. This reduces the
-    possibility of, e.g., sampling sin only at multiples of
-    `2\pi`, which would yield a very misleading graph.
+    .. note::
 
-    EXAMPLES: We plot the sin function::
+        - this function does NOT simply sample equally spaced points
+          between xmin and xmax. Instead it computes equally spaced points
+          and adds small perturbations to them. This reduces the possibility
+          of, e.g., sampling `\sin` only at multiples of `2\pi`, which would
+          yield a very misleading graph.
+
+        - if there is a range of consecutive points where the function has
+          no value, then those points will be excluded from the plot. See
+          the example below on automatic exclusion of points.
+
+
+    EXAMPLES:
+
+    We plot the `\sin` function::
 
         sage: P = plot(sin, (0,10)); print P
         Graphics object consisting of 1 graphics primitive
@@ -1043,6 +1065,23 @@ def plot(funcs, *args, **kwds):
         sage: f(x) = (floor(x)+0.5) / (1-(x-0.5)^2)
         sage: plot(f, (x, -3.5, 3.5), detect_poles = 'show', exclude = [-3..3], ymin = -5, ymax = 5)
 
+    Regions in which the plot has no values are automatically excluded. The
+    regions thus excluded are in addition to the exclusion points present
+    in the ``exclude`` keyword argument.::
+
+        sage: set_verbose(-1)
+        sage: plot(arcsec, (x, -2, 2))  # [-1, 1] is excluded automatically
+
+        sage: plot(arcsec, (x, -2, 2), exclude=[1.5])  # x=1.5 is also excluded
+
+        sage: plot(arcsec(x/2), -2, 2)  # plot should be empty; no valid points
+
+        sage: plot(sqrt(x^2-1), -2, 2)  # [-1, 1] is excluded automatically
+
+        sage: plot(arccsc, -2, 2)       # [-1, 1] is excluded automatically
+
+        sage: set_verbose(0)
+
     TESTS:
 
     We do not randomize the endpoints::
@@ -1110,6 +1149,17 @@ def plot(funcs, *args, **kwds):
     Check that :trac:`15030` is fixed::
 
         sage: plot(abs(log(x)), x)
+
+    Check that if excluded points are less than xmin then the exclusion
+    still works for polar and parametric plots. The following should
+    show two excluded points::
+
+        sage: set_verbose(-1)
+        sage: polar_plot(sin(sqrt(x^2-1)), (x,0,2*pi), exclude=[1/2,2,3])
+
+        sage: parametric_plot((sqrt(x^2-1),sqrt(x^2-1/2)), (x,0,5), exclude=[1,2,3])
+
+        sage: set_verbose(0)
     """
     G_kwds = Graphics._extract_kwds_for_show(kwds, ignore=['xmin', 'xmax'])
 
@@ -1232,11 +1282,17 @@ def _plot(funcs, xrange, parametric=False,
         1
         sage: p1.show(ymin=-10,ymax=10) # should be one legend
 
+    Parametric plots that get evaluated at invalid points should still
+    plot properly (:trac:`13246`)::
+
+        sage: parametric_plot((x, arcsec(x)), (x, -2, 2))
+
     """
 
     from sage.plot.misc import setup_for_eval_on_grid
     if funcs == []:
         return Graphics()
+    excluded_points = []
     funcs, ranges = setup_for_eval_on_grid(funcs, [xrange], options['plot_points'])
     xmin, xmax, delta = ranges[0]
     xrange=ranges[0][:2]
@@ -1295,32 +1351,54 @@ def _plot(funcs, xrange, parametric=False,
             v = exclude.variables()[0]
             points = [e.right() for e in exclude.solve(v) if e.left() == v and (v not in e.right().variables())]
             # We are only interested in real solutions
-            exclude = []
             for x in points:
                 try:
-                    exclude.append(float(x))
+                    excluded_points.append(float(x))
                 except TypeError:
                     pass
+            excluded_points.sort()
 
-        if isinstance(exclude, (list, tuple)):
-            exclude = sorted(exclude)
-            # We make sure that points plot points close to the excluded points are computed
-            epsilon = 0.001*(xmax - xmin)
-            initial_points = reduce(lambda a,b: a+b, [[x - epsilon, x + epsilon] for x in exclude], [])
-            data = generate_plot_points(f, xrange, plot_points, adaptive_tolerance, adaptive_recursion, randomize, initial_points)
+        # We should either have a list in excluded points or exclude
+        # itself must be a list
+        elif isinstance(exclude, (list, tuple)):
+            excluded_points = sorted(exclude)
         else:
             raise ValueError('exclude needs to be a list of numbers or an equation')
 
-        if exclude == []:
-            exclude = None
+        # We make sure that points plot points close to the excluded points are computed
+        epsilon = 0.001*(xmax - xmin)
+        initial_points = reduce(lambda a,b: a+b,
+                                [[x - epsilon, x + epsilon]
+                                 for x in excluded_points], [])
+        data = generate_plot_points(f, xrange, plot_points,
+                                    adaptive_tolerance, adaptive_recursion,
+                                    randomize, initial_points)
     else:
-        data = generate_plot_points(f, xrange, plot_points, adaptive_tolerance, adaptive_recursion, randomize)
+        data = generate_plot_points(f, xrange, plot_points,
+                                    adaptive_tolerance, adaptive_recursion,
+                                    randomize)
+
+
+    for i in range(len(data)-1):
+        # If the difference between consecutive x-values is more than
+        # 2 times the difference between two consecutive plot points, then
+        # add an exclusion point.
+        if abs(data[i+1][0] - data[i][0]) > 2*abs(xmax - xmin)/plot_points:
+            excluded_points.append((data[i][0] + data[i+1][0])/2)
 
     if parametric:
         # We need the original x-values to be able to exclude points in parametric plots
         exclude_data = data
-        data = [(fdata, g(x)) for x, fdata in data]
+        newdata = []
+        for x,fdata in data:
+            try:
+                newdata.append((fdata, g(x)))
+            except (ValueError, TypeError):
+                newdata.append((fdata, 0)) # append a dummy value 0
+                excluded_points.append(x)
+        data = newdata
 
+    excluded_points.sort(reverse=True)
     G = Graphics()
 
     fillcolor = options.pop('fillcolor', 'automatic')
@@ -1388,7 +1466,7 @@ def _plot(funcs, xrange, parametric=False,
 
     detect_poles = options.pop('detect_poles', False)
     legend_label = options.pop('legend_label', None)
-    if exclude is not None or detect_poles != False:
+    if excluded_points or detect_poles != False:
         start_index = 0
         # setup for pole detection
         from sage.rings.all import RDF
@@ -1400,13 +1478,14 @@ def _plot(funcs, xrange, parametric=False,
 
         # setup for exclusion points
         exclusion_point = 0
-        if exclude is not None:
-            exclude.reverse()
-            exclusion_point = exclude.pop()
+        if excluded_points:
+            exclusion_point = excluded_points.pop()
 
+        flag = True
         for i in range(len(data)-1):
             x0, y0 = exclude_data[i]
             x1, y1 = exclude_data[i+1]
+
             # detect poles
             if (not (polar or parametric)) and detect_poles != False \
                and ((y1 > 0 and y0 < 0) or (y1 < 0 and y0 > 0)):
@@ -1422,14 +1501,25 @@ def _plot(funcs, xrange, parametric=False,
                     start_index = i+2
 
             # exclude points
-            if exclude is not None and (x0 <= exclusion_point <= x1):
+            if x0 > exclusion_point:
+                while exclusion_point <= x1:
+                    try:
+                        exclusion_point = excluded_points.pop()
+                    except IndexError:
+                        # all excluded points were considered
+                        flag = False
+                        break
+
+            elif flag and (x0 <= exclusion_point <= x1):
                 G += line(data[start_index:i], **options)
                 start_index = i + 2
-                try:
-                    exclusion_point = exclude.pop()
-                except IndexError:
-                    # all excluded points were considered
-                    exclude = None
+                while exclusion_point <= x1:
+                    try:
+                        exclusion_point = excluded_points.pop()
+                    except IndexError:
+                        # all excluded points were considered
+                        flag = False
+                        break
 
         G += line(data[start_index:], legend_label=legend_label, **options)
     else:
@@ -1761,9 +1851,16 @@ def list_plot(data, plotjoined=False, **kwargs):
 
     TESTS:
 
-    We check to see that the x/y min/max data are set correctly.
+    We check to see whether elements of the Symbolic Ring are properly
+    handled; see :trac:`16378` ::
 
-    ::
+        sage: list_plot([1+I, 2+I])
+
+        sage: list_plot([1+I, 2, CC(3+I)])
+
+        sage: list_plot([2, SR(1), CC(1+i)])
+
+    We check to see that the x/y min/max data are set correctly::
 
         sage: d = list_plot([(100,100), (120, 120)]).get_minmax_data()
         sage: d['xmin']
@@ -1791,8 +1888,17 @@ def list_plot(data, plotjoined=False, **kwargs):
         from sage.rings.all import RDF
         tmp = RDF(data[0])
         data = list(enumerate(data))
-    except TypeError:
-        pass
+    except TypeError: # we can get this TypeError if the element is a list
+                      # or tuple or numpy array, or an element of CC, CDF
+        # We also want to avoid doing CC(data[0]) here since it will go
+        # through if data[0] is really a tuple and every element of the
+        # data will be converted to a complex and later converted back to
+        # a tuple.
+        # So, the only other check we need to do is whether data[0] is an
+        # element of the Symbolic Ring.
+        if data[0] in sage.symbolic.ring.SR:
+            data = list(enumerate(data))
+
     try:
         if plotjoined:
             return line(data, **kwargs)

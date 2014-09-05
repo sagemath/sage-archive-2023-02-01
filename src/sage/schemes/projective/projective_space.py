@@ -76,6 +76,8 @@ from sage.rings.commutative_ring import is_CommutativeRing
 from sage.categories.fields import Fields
 _Fields = Fields()
 
+from sage.categories.homset import Hom
+
 from sage.misc.all import (latex,
                            prod)
 from sage.structure.parent_gens import normalize_names
@@ -534,8 +536,8 @@ class ProjectiveSpace_ring(AmbientSpace):
             for col in range(M.ncols()):
                 f = monoms[col][:i] + monoms[col][i+1:]
                 if min([f[j]-e[j] for j in range(n)]) >= 0:
-                    M[row,col] = prod([binomial(f[j],e[j])*pt[j]**(f[j]-e[j]) \
-                               for j in filter(lambda k: f[k]>e[k], range(n))])
+                    M[row,col] = prod([ binomial(f[j],e[j]) * pt[j]**(f[j]-e[j]) 
+                                        for j in (k for k in range(n) if f[k] > e[k]) ])
         return M
 
     def _morphism(self, *args, **kwds):
@@ -792,6 +794,38 @@ class ProjectiveSpace_ring(AmbientSpace):
         R = self.base_ring()
         return self([(7 - i) * R.an_element() for i in range(n)] + [R.one()])
 
+    def Lattes_map(self, E, m):
+        r"""
+        Given an elliptic curve `E` and an integer `m` return the Lattes map associated to multiplication by `m`.
+        In other words, the rational map on the quotient `E/\{\pm 1\} \cong \mathbb{P}^1` associated to `[m]:E \to E`.
+
+        INPUT:
+
+        - ``E`` -- an elliptic curve
+        - ``m`` -- an integer
+
+        OUTPUT: an endomorphism of ``self``.
+
+        Examples::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: E = EllipticCurve(QQ,[-1, 0])
+            sage: P.Lattes_map(E,2)
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^4 + 2*x^2*y^2 + y^4 : 4*x^3*y - 4*x*y^3)
+        """
+        if self.dimension_relative() != 1:
+            raise TypeError("Must be dimension 1")
+
+        L = E.multiplication_by_m(m, x_only = True)
+        F = [L.numerator(), L.denominator()]
+        R = self.coordinate_ring()
+        x, y = R.gens()
+        phi = F[0].parent().hom([x],R)
+        F = [phi(F[0]).homogenize(y), phi(F[1]).homogenize(y)*y]
+        H = Hom(self,self)
+        return(H(F))
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):

@@ -131,6 +131,7 @@ Check that :trac:`5562` has been fixed::
 
 These may change over time::
 
+    sage: x = var('x')
     sage: type(ZZ['x'].0)
     <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
     sage: type(QQ['x'].0)
@@ -145,6 +146,14 @@ These may change over time::
     <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
     sage: type(CC['t']['x'].0)
     <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
+    sage: type(NumberField(x^2+1,'I')['x'].0)
+    <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_absolute_number_field_dense'>
+    sage: type(NumberField(x^2+1,'I')['x'])
+    <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category'>
+    sage: type(NumberField([x^2-2,x^2-3],'a')['x'].0)
+    <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_relative_number_field_dense'>
+    sage: type(NumberField([x^2-2,x^2-3],'a')[x])
+    <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category'>
 """
 
 
@@ -170,6 +179,7 @@ import sage.rings.polynomial.polynomial_element_generic as polynomial_element_ge
 import sage.rings.rational_field as rational_field
 from sage.rings.integer_ring import is_IntegerRing, IntegerRing
 from sage.rings.integer import Integer
+from sage.rings.number_field.number_field_base import is_NumberField
 from sage.libs.pari.all import pari_gen
 from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default_category
 
@@ -257,8 +267,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             x^3 - 26/3*x^2 + 64/3*x - 32/3
 
             sage: category(ZZ['x'])
-            Join of Category of unique factorization domains and
-                    Category of commutative algebras over euclidean domains
+            Join of Category of unique factorization domains
+                and Category of commutative algebras over
+                        (euclidean domains and infinite enumerated sets)
             sage: category(GF(7)['x'])
             Join of Category of euclidean domains and
                     Category of commutative algebras over (finite fields and
@@ -460,6 +471,34 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
     def is_noetherian(self):
         return self.base_ring().is_noetherian()
+
+    def some_elements(self):
+        r"""
+        Return a list of polynomials.
+
+        This is typically used for running generic tests.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R.some_elements()
+            [x, 0, 1, 1/2, x^2 + 2*x + 1, x^3, x^2 - 1, x^2 + 1, 2*x^2 + 2]
+        """
+        # the comments in the following lines describe the motivation for
+        # adding these elements, they are not accurate over all rings and in
+        # all contexts
+        R = self.base_ring()
+        # Doing things this way is a little robust against rings where
+        #    2 might not convert in
+        one = R.one()
+        return [self.gen(),
+            self.zero(), self(one), self(R.an_element()), # elements of the base ring
+            self([one,2*one,one]), # a square
+            self([0,0,0,one]), # a power but not a square
+            self([-one,0,one]), # a reducible element
+            self([one,0,one]), # an irreducible element
+            self([2*one,0,2*one]), # an element with non-trivial content
+        ]
 
     def construction(self):
         from sage.categories.pushout import PolynomialFunctor
@@ -1090,23 +1129,18 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         return 1
 
-    def random_element(self, degree=2, *args, **kwds):
+    def random_element(self, degree=(-1,2), *args, **kwds):
         r"""
-        Return a random polynomial.
+        Return a random polynomial of given degree or with given degree bounds.
 
         INPUT:
 
-        -  ``degree`` - Integer with degree (default: 2)
-           or a tuple of integers with minimum and maximum degrees
+        -  ``degree`` - optional integer for fixing the degree or
+           or a tuple of minimum and maximum degrees. By default set to
+           ``(-1,2)``.
 
         -  ``*args, **kwds`` - Passed on to the ``random_element`` method for
            the base ring
-
-        OUTPUT:
-
-        -  Polynomial such that the coefficients of `x^i`, for `i` up to
-           ``degree``, are random elements from the base ring, randomized
-           subject to the arguments ``*args`` and ``**kwds``
 
         EXAMPLES::
 
@@ -1116,18 +1150,23 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R.random_element(6)
             x^6 - 3*x^5 - x^4 + x^3 - x^2 + x + 1
             sage: R.random_element(6)
-            -2*x^5 + 2*x^4 - 3*x^3 + 1
+            -2*x^6 - 2*x^5 + 2*x^4 - 3*x^3 + 1
             sage: R.random_element(6)
-            x^4 - x^3 + x - 2
+            -x^6 + x^5 - x^4 + 4*x^3 - x^2 + x
 
-        If a tuple of two integers is given for the degree argument, a random
-        integer will be chosen between the first and second element of the
-        tuple as the degree::
+        If a tuple of two integers is given for the degree argument, a
+        polynomial of degree in between the bound is given::
 
             sage: R.random_element(degree=(0,8))
-            2*x^7 - x^5 + 4*x^4 - 5*x^3 + x^2 + 14*x - 1
+            x^8 + 4*x^7 + 2*x^6 - x^4 + 4*x^3 - 5*x^2 + x + 14
             sage: R.random_element(degree=(0,8))
-            -2*x^3 + x^2 + x + 4
+            -5*x^7 + x^6 - 3*x^5 + 4*x^4 - x^2 - 2*x + 1
+
+        Note that the zero polynomial has degree ``-1``, so if you want to
+        consider it set the minimum degree to ``-1``::
+
+            sage: any(R.random_element(degree=(-1,2),x=-1,y=1) == R.zero() for _ in xrange(100))
+            True
 
         TESTS::
 
@@ -1140,15 +1179,39 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             Traceback (most recent call last):
             ...
             ValueError: minimum degree must be less or equal than maximum degree
+
+        Check that :trac:`16682` is fixed::
+
+            sage: R = PolynomialRing(GF(2), 'z')
+            sage: for _ in xrange(100):
+            ....:     d = randint(-1,20)
+            ....:     P = R.random_element(degree=d)
+            ....:     assert P.degree() == d, "problem with {} which has not degree {}".format(P,d)
+
+            sage: R.random_element(degree=-2)
+            Traceback (most recent call last):
+            ...
+            ValueError: degree should be an integer greater or equal than -1
         """
+        R = self.base_ring()
+
         if isinstance(degree, (list, tuple)):
             if len(degree) != 2:
                 raise ValueError("degree argument must be an integer or a tuple of 2 integers (min_degree, max_degree)")
             if degree[0] > degree[1]:
                 raise ValueError("minimum degree must be less or equal than maximum degree")
-            degree = randint(*degree)
-        R = self.base_ring()
-        return self([R.random_element(*args, **kwds) for _ in xrange(degree+1)])
+        else:
+            degree = (degree,degree)
+
+        if degree[0] <= -2:
+            raise ValueError("degree should be an integer greater or equal than -1")
+
+        p = self([R.random_element(*args,**kwds) for _ in xrange(degree[1]+1)])
+
+        if p.degree() < degree[0]:
+            p += R._random_nonzero_element() * self.gen()**randint(degree[0],degree[1])
+
+        return p
 
     def _monics_degree( self, of_degree ):
         """
@@ -1501,6 +1564,13 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             elif isinstance(base_ring, rational_field.RationalField):
                 from sage.rings.polynomial.polynomial_rational_flint import Polynomial_rational_flint
                 element_class = Polynomial_rational_flint
+            elif is_NumberField(base_ring):
+                if base_ring.is_absolute():
+                    from sage.rings.polynomial.polynomial_number_field import Polynomial_absolute_number_field_dense
+                    element_class = Polynomial_absolute_number_field_dense
+                else:
+                    from sage.rings.polynomial.polynomial_number_field import Polynomial_relative_number_field_dense
+                    element_class = Polynomial_relative_number_field_dense
             elif is_RealField(base_ring):
                 element_class = PolynomialRealDense
             else:
@@ -1901,21 +1971,28 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         - ``algorithm`` -- string: algorithm to use, or ``None``
 
           - ``'random'``: try random polynomials until an irreducible
-            one is found.  This is currently the only algorithm
-            available over non-prime finite fields.
+            one is found.
+
+          - ``'first_lexicographic'``: try polynomials in
+            lexicographic order until an irreducible one is found.
 
         OUTPUT:
 
         A monic irreducible polynomial of degree `n` in ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: GF(5^3, 'a')['x'].irreducible_element(2)
             x^2 + (4*a^2 + a + 4)*x + 2*a^2 + 2
+            sage: GF(19)['x'].irreducible_element(21, algorithm="first_lexicographic")
+            x^21 + x + 5
+            sage: GF(5**2, 'a')['x'].irreducible_element(17, algorithm="first_lexicographic")
+            x^17 + a*x + 4*a + 3
 
         AUTHORS:
 
         - Peter Bruin (June 2013)
+        - Jean-Pierre Flori (May 2014)
         """
         if n < 1:
             raise ValueError("degree must be at least 1")
@@ -1923,6 +2000,11 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         if algorithm is None or algorithm == "random":
             while True:
                 f = self.gen()**n + self.random_element(n - 1)
+                if f.is_irreducible():
+                    return f
+        elif algorithm == "first_lexicographic":
+            for g in self.polynomials(max_degree=n-1):
+                f = self.gen()**n + g
                 if f.is_irreducible():
                     return f
         else:
@@ -2203,8 +2285,7 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             ``RuntimeError`` if it is not found.
 
           - ``'first_lexicographic'``: return the lexicographically
-            smallest irreducible polynomial of degree `n`.  Only
-            implemented for `p = 2`.
+            smallest irreducible polynomial of degree `n`.
 
           - ``'minimal_weight'``: return an irreducible polynomial of
             degree `n` with minimal number of non-zero coefficients.
@@ -2265,7 +2346,8 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             if p == 2:
                 return self(GF2X_BuildIrred_list(n))
             else:
-                raise NotImplementedError("'first_lexicographic' option only implemented for p = 2")
+                # Fallback to PolynomialRing_dense_finite_field.irreducible_element
+                pass
         elif algorithm == "minimal_weight":
             if p == 2:
                 return self(GF2X_BuildSparseIrred_list(n))

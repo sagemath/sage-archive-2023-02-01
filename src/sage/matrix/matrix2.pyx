@@ -35,7 +35,6 @@ from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.sequence import Sequence
 from sage.structure.element import is_Vector
 from sage.misc.misc import verbose, get_verbose
-from sage.misc.temporary_file import graphics_filename
 from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer import Integer
@@ -5287,7 +5286,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: a = matrix(QQ, 4, range(16)); a
+            sage: a = matrix(ZZ, 4, range(16)); a
             [ 0  1  2  3]
             [ 4  5  6  7]
             [ 8  9 10 11]
@@ -5344,49 +5343,66 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.eigenvalues(extend=False)
             [2]
 
+        The method also works for matrices over finite fields::
+
+            sage: M = matrix(GF(3), [[0,1,1],[1,2,0],[2,0,1]])
+            sage: ev = sorted(M.eigenvalues()); ev
+            [2*z3, 2*z3 + 1, 2*z3 + 2]
+
+        Similarly as in the case of QQbar, the eigenvalues belong to some
+        algebraic closure but they can be converted to elements of a finite
+        field::
+
+            sage: e = ev[0]
+            sage: e.parent()
+            Algebraic closure of Finite Field of size 3
+            sage: e.as_finite_field_element()
+            (Finite Field in z3 of size 3^3, 2*z3, Ring morphism:
+              From: Finite Field in z3 of size 3^3
+              To:   Algebraic closure of Finite Field of size 3
+              Defn: z3 |--> z3)
         """
         x = self.fetch('eigenvalues')
-        if not x is None:
+        if x is not None:
             if not extend:
-                x1=Sequence([])
-                for i in x:
-                    if i in self.base_ring():
-                        x1.append(i)
-                x=x1
+                x = Sequence(i for i in x if i in self.base_ring())
             return x
 
         if not self.base_ring().is_exact():
             from warnings import warn
             warn("Using generic algorithm for an inexact ring, which will probably give incorrect results due to numerical precision issues.")
 
-        from sage.rings.qqbar import QQbar
-        G = self.fcp()   # factored charpoly of self.
-        V = []
-        i=0
-        for h, e in G:
-            if h.degree() == 1:
-                alpha = [-h[0]/h[1]]
-                V.extend(alpha*e)
-            else:
-                if extend:
-                    F = h.root_field('%s%s'%('a',i))
-                    try:
-                        alpha = F.gen(0).galois_conjugates(QQbar)
-                    except AttributeError:
-                        raise NotImplementedError, "eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
-                    V.extend(alpha*e)
-            i+=1
-        V = Sequence(V)
-        if extend:
-            self.cache('eigenvalues', V)
         if not extend:
-            V1=Sequence([])
-            for i in V:
-                if i in self.base_ring():
-                    V1.append(i)
-            V=V1
-        return V
+            return Sequence(r for r,m in self.charpoly().roots() for _ in xrange(m))
 
+        # now we need to find a natural algebraic closure for the base ring
+        K = self.base_ring()
+        try:
+            is_field = K.is_field()
+        except (ValueError,AttributeError):
+            is_field = False
+
+        if not is_field:
+            if not K.is_integral_domain():
+                raise NotImplementedError("eigenvalues() not implemented for non integral domains")
+            K = K.fraction_field()
+
+        try:
+            A = K.algebraic_closure()
+        except (AttributeError,ValueError):
+            raise NotImplementedError("algebraic closure is not implemented for %s"%K)
+
+        res = []
+        for f, e in self.charpoly().change_ring(K).factor():
+            if f.degree() == 1:
+                res.extend([-f.constant_coefficient()]*e)
+            else:
+                for r,ee in f.change_ring(A).roots():
+                    res.extend([r]*(e*ee))
+
+        eigenvalues = Sequence(res)
+        self.cache('eigenvalues', eigenvalues)
+        return eigenvalues
 
 
     def eigenvectors_left(self,extend=True):
@@ -7686,7 +7702,7 @@ cdef class Matrix(matrix1.Matrix):
 
         A matrix is said to be bistochastic if both the sums of the
         entries of each row and the sum of the entries of each column
-        are equal to 1.
+        are equal to 1 and all entries are nonnegative.
 
         INPUT:
 
@@ -7709,6 +7725,13 @@ cdef class Matrix(matrix1.Matrix):
             False
             sage: (2 * Matrix(5,5,1)).is_bistochastic(normalized = False)
             True
+
+        Here is a matrix whose row and column sums is 1, but not all entries are
+        nonnegative::
+
+            sage: m = matrix([[-1,2],[2,-1]])
+            sage: m.is_bistochastic()
+            False
         """
 
         row_sums = map(sum, self.rows())
@@ -7718,7 +7741,8 @@ cdef class Matrix(matrix1.Matrix):
                 col_sums[0] == row_sums[0] and\
                 row_sums == col_sums and\
                 row_sums == len(row_sums) * [col_sums[0]] and\
-                ((not normalized) or col_sums[0] == self.base_ring()(1))
+                ((not normalized) or col_sums[0] == self.base_ring()(1)) and\
+                all(entry>=0 for row in self for entry in row)
 
     def is_normal(self):
         r"""
@@ -7924,7 +7948,7 @@ cdef class Matrix(matrix1.Matrix):
         EXAMPLE::
 
             sage: M = random_matrix(CC, 4)
-            sage: M.visualize_structure(os.path.join(SAGE_TMP, "matrix.png"))
+            sage: M.visualize_structure()
         """
         import gd
         import os
@@ -7979,6 +8003,7 @@ cdef class Matrix(matrix1.Matrix):
                 setPixel((y,x), val)
 
         if filename is None:
+            from sage.misc.temporary_file import graphics_filename
             filename = graphics_filename()
 
         im.writePng(filename)
@@ -11406,6 +11431,20 @@ cdef class Matrix(matrix1.Matrix):
             sage: isinstance(ds, tuple), isinstance(dh, tuple)
             (True, True)
 
+        We check that :trac:`16633` is fixed::
+
+            sage: A = matrix(QQ, [[ 4, -2,  4,  2],
+            ....:                 [-2, 10, -2, -7],
+            ....:                 [ 4, -2,  8,  4],
+            ....:                 [ 2, -7,  4,  7]])
+            sage: A.set_immutable()
+            sage: L,d = A._indefinite_factorization('symmetric')
+            sage: A
+            [ 4 -2  4  2]
+            [-2 10 -2 -7]
+            [ 4 -2  8  4]
+            [ 2 -7  4  7]
+
         AUTHOR:
 
         - Rob Beezer (2012-05-24)
@@ -11453,6 +11492,10 @@ cdef class Matrix(matrix1.Matrix):
             # we need a copy no matter what, so we
             # (potentially) change to fraction field at the same time
             L = self.change_ring(F)
+            # The change ring doesn't necessarily return a copy if ``self``
+            #   is immutable and ``F`` is the same as the base ring
+            if L is self:
+                L = self.__copy__()
             m = L._nrows
             zero = F(0)
             one = F(1)
@@ -13211,7 +13254,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.eigenvalues()
             Traceback (most recent call last):
             ...
-            NotImplementedError: eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar
+            NotImplementedError: algebraic closures of finite fields are only implemented for prime fields
 
         Subdivisions are optional.  ::
 
@@ -13588,7 +13631,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.eigenvalues()
             Traceback (most recent call last):
             ...
-            NotImplementedError: eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar
+            NotImplementedError: algebraic closures of finite fields are only implemented for prime fields
 
         Companion matrices may be selected as any one of four different types.
         See the documentation for the companion matrix constructor,

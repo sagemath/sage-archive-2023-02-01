@@ -230,6 +230,7 @@ def ChainComplex(data=None, **kwds):
         TypeError: Unable to coerce 0 (<type 
         'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'>) to Rational
     """
+    
     check = kwds.get('check', True)
     base_ring = kwds.get('base_ring', None)
     grading_group = kwds.get('grading_group', ZZ)
@@ -252,7 +253,7 @@ def ChainComplex(data=None, **kwds):
     elif isinstance(data, dict):  # data is dictionary
         data_dict = data
     else: # data is list/tuple/iterable
-        data_matrices = filter(lambda x: isinstance(x, Matrix), data)
+        data_matrices = [x for x in data if isinstance(x, Matrix)]
         if degree != 1:
             raise ValueError('degree must be +1 if the data argument is a list or tuple')
         if grading_group != ZZ:
@@ -428,7 +429,7 @@ class Chain_class(ModuleElement):
             if v.degree() == 0:
                 return AsciiArt(['0'])
             v = str(v.column()).splitlines()
-            return AsciiArt(v, baseline=len(v)/2)
+            return AsciiArt(v, baseline=len(v)//2)
             
         result = []
         chain_complex = self.parent()
@@ -734,11 +735,11 @@ class ChainComplex_class(Parent):
         EXAMPLES::
 
             sage: G = AdditiveAbelianGroup([0, 3])
-            sage: C = ChainComplex(grading_group=G, degree=G([1,2]))
+            sage: C = ChainComplex(grading_group=G, degree=G(vector([1,2])))
             sage: C.grading_group()
-            Additive abelian group isomorphic to Z/3 + Z
+            Additive abelian group isomorphic to Z + Z/3
             sage: C.degree_of_differential()
-            (2, 1)
+            (1, 2)
         """
         return self._grading_group
         
@@ -1264,7 +1265,7 @@ class ChainComplex_class(Parent):
                 all_divs = all_divs[:d_out_nullity]
                 # divisors equal to 1 produce trivial
                 # summands, so filter them out
-                divisors = filter(lambda x: x != 1, all_divs)
+                divisors = [x for x in all_divs if x != 1]
                 answer = HomologyGroup(len(divisors), base_ring, divisors)
             else:
                 raise NotImplementedError('only base rings ZZ and fields are supported')
@@ -1300,7 +1301,7 @@ class ChainComplex_class(Parent):
             all_divs[i] = N[i][i]
             if N[i][i] == 1:
                 non_triv = non_triv + 1
-        divisors = filter(lambda x: x != 1, all_divs)
+        divisors = [x for x in all_divs if x != 1]
         gens = (K * P.inverse().submatrix(col=non_triv)).columns()
         return divisors, gens
 
@@ -1550,8 +1551,7 @@ class ChainComplex_class(Parent):
             sage: C
             Chain complex with at most 2 nonzero terms over Integer Ring
         """
-        diffs = filter(lambda mat: mat.nrows() + mat.ncols() > 0,
-                       self._diff.values())
+        diffs = [mat for mat in self._diff.values() if mat.nrows() + mat.ncols() > 0]
         if len(diffs) == 0:
             s = 'Trivial chain complex'
         else:

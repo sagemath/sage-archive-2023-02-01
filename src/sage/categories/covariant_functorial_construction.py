@@ -160,8 +160,9 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
             sage: Cat1 = Rings()
             sage: Cat2 = Groups()
             sage: cartesian_product.category_from_categories((Cat1, Cat1, Cat1))
-            Join of Category of Cartesian products of monoids and
-                    Category of Cartesian products of commutative additive groups
+            Join of Category of rings and ...
+                and Category of Cartesian products of monoids
+                and Category of Cartesian products of commutative additive groups
 
             sage: cartesian_product.category_from_categories((Cat1, Cat2))
             Category of Cartesian products of monoids

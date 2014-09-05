@@ -140,7 +140,7 @@ from arith import algdep, bernoulli, is_prime, is_prime_power, \
     prime_powers, primes_first_n, eratosthenes, primes, \
     next_prime_power, next_probable_prime, next_prime, \
     previous_prime, previous_prime_power, random_prime, \
-    divisors, sigma, gcd, GCD, lcm, LCM, xlcm, xgcd, \
+    divisors, sigma, gcd, GCD, lcm, LCM, xlcm, xgcd, xkcd, \
     inverse_mod, get_gcd, get_inverse_mod, power_mod, \
     rational_reconstruction, mqrr_rational_reconstruction, \
     trial_division, factor, prime_divisors, odd_part, prime_to_m_part, \
@@ -151,7 +151,8 @@ from arith import algdep, bernoulli, is_prime, is_prime_power, \
     farey, continued_fraction_list, convergent, convergents, \
     continuant, number_of_divisors, hilbert_symbol, hilbert_conductor, \
     hilbert_conductor_inverse, falling_factorial, rising_factorial, \
-    integer_ceil, integer_floor, two_squares, four_squares, \
+    integer_ceil, integer_floor, \
+    two_squares, three_squares, four_squares, sum_of_k_squares, \
     subfactorial, is_power_of_two, differences, \
     sort_complex_numbers_for_display, \
     fundamental_discriminant, squarefree_divisors, \

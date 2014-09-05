@@ -1,5 +1,5 @@
 r"""
-Module that creates formulas of propositional calculus
+Propositional Calculus
 
 Formulas consist of the following operators:
 
@@ -150,21 +150,19 @@ import logicparser
 
 def formula(s):
     r"""
-    Return an instance of :class:`BooleanFormula`
+    Return an instance of :class:`BooleanFormula`.
 
     INPUT:
 
-    - ``s`` -- a string that contains a logical expression.
+    - ``s`` -- a string that contains a logical expression
 
     OUTPUT:
 
-    An instance of :class:`BooleanFormula`
+    An instance of :class:`BooleanFormula`.
 
     EXAMPLES:
 
-    This example illustrates ways to create a boolean formula.
-
-    ::
+    This example illustrates ways to create a boolean formula::
 
         sage: import sage.logic.propcalc as propcalc
         sage: f = propcalc.formula("a&~b|c")
@@ -172,9 +170,7 @@ def formula(s):
         sage: f&g|f
         ((a&~b|c)&(a^c<->b))|(a&~b|c)
 
-    We now demonstrate some possible errors.
-
-    ::
+    We now demonstrate some possible errors::
 
         sage: propcalc.formula("((a&b)")
         Traceback (most recent call last):

@@ -341,18 +341,21 @@ categories and their super categories::
     Integer Ring
 
     sage: ZZ.category()
-    Category of euclidean domains
+    Join of Category of euclidean domains
+        and Category of infinite enumerated sets
 
     sage: ZZ.categories()
-    [Category of euclidean domains, Category of principal ideal domains,
+    [Join of Category of euclidean domains and Category of infinite enumerated sets,
+     Category of euclidean domains, Category of principal ideal domains,
      Category of unique factorization domains, Category of gcd domains,
      Category of integral domains, Category of domains,
      Category of commutative rings, Category of rings, ...
-     Category of magmas and additive magmas,
+     Category of magmas and additive magmas, ...
      Category of monoids, Category of semigroups,
      Category of commutative magmas, Category of unital magmas, Category of magmas,
      Category of commutative additive groups, ..., Category of additive magmas,
-     Category of sets,
+     Category of infinite enumerated sets, Category of enumerated sets,
+     Category of infinite sets, Category of sets,
      Category of sets with partial maps,
      Category of objects]
 
@@ -623,7 +626,7 @@ appropriate super classes according to
 
     sage: Groups().element_class.__bases__
     (<class 'sage.categories.monoids.Monoids.element_class'>,
-     <class 'sage.categories.magmas.Unital.Inverse.element_class'>)
+     <class 'sage.categories.magmas.Magmas.Unital.Inverse.element_class'>)
 
 We now see that the hierarchy of classes for parents and elements is
 parallel to the hierarchy of categories::
@@ -1123,13 +1126,13 @@ Let us now look at the categories of ``C``::
 
     sage: C.categories()
     [Category of Cartesian products of algebras with basis over Rational Field, ...
-     Category of Cartesian products of monoids, Category of monoids,
-     Category of Cartesian products of semigroups, Category of semigroups,
+     Category of Cartesian products of semigroups, Category of semigroups, ...
      Category of Cartesian products of magmas, ..., Category of magmas, ...
+     Category of Cartesian products of additive magmas, ..., Category of additive magmas,
      Category of Cartesian products of sets, Category of sets, ...]
 
 This reveals the parallel hierarchy of categories for cartesian
-products of monoids, semigroups, ... We are thus glad that Sage uses
+products of semigroups magmas, ... We are thus glad that Sage uses
 its knowledge that a monoid is a semigroup to automatically deduce
 that a cartesian product of monoids is a cartesian product of
 semigroups, and build the hierarchy of classes for parents and

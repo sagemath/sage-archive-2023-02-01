@@ -90,8 +90,13 @@ def is_FreeGroup(x):
         False
         sage: is_FreeGroup(FreeGroup(0))
         True
+        sage: is_FreeGroup(FreeGroup(index_set=ZZ))
+        True
     """
-    return isinstance(x, FreeGroup_class)
+    if isinstance(x, FreeGroup_class):
+        return True
+    from sage.groups.indexed_free_group import IndexedFreeGroup
+    return isinstance(x, IndexedFreeGroup)
 
 def _lexi_gen(zeroes=False):
     """
@@ -433,9 +438,9 @@ class FreeGroupElement(ElementLibGAP):
         return prod( replace[gen] ** power for gen, power in self.syllables() )
 
 
-def FreeGroup(n=None, names='x'):
+def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
     """
-    Construct a Free Group
+    Construct a Free Group.
 
     INPUT:
 
@@ -444,6 +449,17 @@ def FreeGroup(n=None, names='x'):
 
     - ``names`` -- string or list/tuple/iterable of strings (default:
       ``'x'``). The generator names or name prefix.
+
+    - ``index_set`` -- (optional) an index set for the generators; if
+      specified then the optional keyword ``abelian`` can be used
+
+    - ``abelian`` -- (default: ``False``) whether to construct a free
+      abelian group or a free group
+
+    .. NOTE::
+
+        If you want to create a free group, it is currently preferential to
+        use ``Groups().free(...)`` as that does not load GAP.
 
     EXAMPLES::
 
@@ -465,6 +481,13 @@ def FreeGroup(n=None, names='x'):
         Free Group on generators {g0, g1, g2}
         sage: FreeGroup()
         Free Group on generators {x}
+
+    We give two examples using the ``index_set`` option::
+
+        sage: FreeGroup(index_set=ZZ)
+        Free group indexed by Integer Ring
+        sage: FreeGroup(index_set=ZZ, abelian=True)
+        Free abelian group indexed by Integer Ring
 
     TESTS::
 
@@ -490,6 +513,13 @@ def FreeGroup(n=None, names='x'):
             n = len(names)
     from sage.structure.parent import normalize_names
     names = tuple(normalize_names(n, names))
+    if index_set is not None or abelian:
+        if abelian:
+            from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
+            return IndexedFreeAbelianGroup(index_set, names=names, **kwds)
+
+        from sage.groups.indexed_free_group import IndexedFreeGroup
+        return IndexedFreeGroup(index_set, names=names, **kwds)
     return FreeGroup_class(names)
 
 
@@ -646,6 +676,19 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
             a
             sage: type(_)
             <class 'sage.groups.free_group.FreeGroup_class_with_category.element_class'>
+
+        Check that conversion between free groups follow the convention that
+        names are preserved::
+
+            sage: F = FreeGroup('a,b')
+            sage: G = FreeGroup('b,a')
+            sage: G(F.gen(0))
+            a
+            sage: F(G.gen(0))
+            b
+            sage: a,b = F.gens()
+            sage: G(a^2*b^-3*a^-1)
+            a^2*b^-3*a^-1
         """
         if len(args)!=1:
             return self.element_class(self, *args, **kwds)
@@ -656,9 +699,13 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
             P = x.parent()
         except AttributeError:
             return self.element_class(self, x, **kwds)
-        if hasattr(P, '_freegroup_'):
-            if P.FreeGroup() is self:
-                return self.element_class(self, x.Tietze(), **kwds)
+        if isinstance(P, FreeGroup_class):
+            names = set(P._names[abs(i)-1] for i in x.Tietze())
+            if names.issubset(self._names):
+                return self([i.sign()*(self._names.index(P._names[abs(i)-1])+1)
+                             for i in x.Tietze()])
+            else:
+                raise ValueError('generators of %s not in the group'%x)
         return self.element_class(self, x, **kwds)
 
     def abelian_invariants(self):

@@ -397,9 +397,9 @@ class FiniteFieldFactory(UniqueFactory):
         EXAMPLES::
 
             sage: GF.create_key_and_extra_args(9, 'a')
-            ((9, ('a',), x^2 + 2*x + 2, None, '{}', 3, 2, True), {})
+            ((9, ('a',), x^2 + 2*x + 2, 'givaro', '{}', 3, 2, True), {})
             sage: GF.create_key_and_extra_args(9, 'a', foo='value')
-            ((9, ('a',), x^2 + 2*x + 2, None, "{'foo': 'value'}", 3, 2, True), {'foo': 'value'})
+            ((9, ('a',), x^2 + 2*x + 2, 'givaro', "{'foo': 'value'}", 3, 2, True), {'foo': 'value'})
         """
         from sage.structure.proof.all import WithProof, arithmetic
         if proof is None: proof = arithmetic()
@@ -481,6 +481,27 @@ class FiniteFieldFactory(UniqueFactory):
             else:
                 raise ValueError("the order of a finite field must be a prime power.")
 
+            if impl is None:
+                if n == 1:
+                    impl = 'modn'
+                elif order < zech_log_bound:
+                    impl = 'givaro'
+                elif p == 2:
+                    impl = 'ntl'
+                else:
+                    impl = 'pari_ffelt'
+
+            if n == 1:
+                if impl != 'modn':
+                    # We are not using the default 'modn' implementation.
+                    # In this case, we need to specify a name and modulus.
+                    if name is None:
+                        name = 'x'
+                    if modulus is None:
+                        modulus = PolynomialRing(FiniteField(order), 'x').gen()
+            elif name is None:
+                raise TypeError("you must specify the generator name.")
+
             return (order, name, modulus, impl, str(kwds), p, n, proof), kwds
 
     def create_object(self, version, key, check_irreducible=True, elem_cache=None,
@@ -554,22 +575,13 @@ class FiniteFieldFactory(UniqueFactory):
         if elem_cache is None:
             elem_cache = order < 500
 
-        if n == 1 and (impl is None or impl == 'modn'):
+        if n == 1 and impl == 'modn':
             from finite_field_prime_modn import FiniteField_prime_modn
             # Using a check option here is probably a worthwhile
             # compromise since this constructor is simple and used a
             # huge amount.
             K = FiniteField_prime_modn(order, check=False)
         else:
-            if n == 1:
-                # We are not using the default 'modn' implementation.
-                # In this case, we need to specify a name and modulus.
-                if name is None:
-                    name = 'x'
-                if modulus is None:
-                    modulus = PolynomialRing(FiniteField(order), 'x').gen()
-                    check_irreducible = False
-
             # We have to do this with block so that the finite field
             # constructors below will use the proof flag that was
             # passed in when checking for primality, factoring, etc.
@@ -584,15 +596,6 @@ class FiniteFieldFactory(UniqueFactory):
                         raise ValueError("finite field modulus must be irreducible but it is not.")
                     if modulus.degree() != n:
                         raise ValueError("the degree of the modulus does not equal the degree of the field.")
-                if name is None:
-                    raise TypeError("you must specify the generator name.")
-                if impl is None:
-                    if order < zech_log_bound:
-                        impl = 'givaro'
-                    elif p == 2:
-                        impl = 'ntl'
-                    else:
-                        impl = 'pari_ffelt'
                 if impl == 'givaro':
                     if 'repr' in kwds:
                         repr = kwds['repr']
@@ -625,12 +628,11 @@ class FiniteFieldFactory(UniqueFactory):
         EXAMPLES::
 
             sage: key, extra = GF.create_key_and_extra_args(9, 'a'); key
-            (9, ('a',), x^2 + 2*x + 2, None, '{}', 3, 2, True)
+            (9, ('a',), x^2 + 2*x + 2, 'givaro', '{}', 3, 2, True)
             sage: K = GF.create_object(0, key); K
             Finite Field in a of size 3^2
             sage: GF.other_keys(key, K)
-            [(9, ('a',), x^2 + 2*x + 2, None, '{}', 3, 2, True),
-             (9, ('a',), x^2 + 2*x + 2, 'givaro', '{}', 3, 2, True)]
+            [(9, ('a',), x^2 + 2*x + 2, 'givaro', '{}', 3, 2, True)]
         """
         if len(key) == 5: # backward compat
             order, name, modulus, impl, _ = key
@@ -643,24 +645,7 @@ class FiniteFieldFactory(UniqueFactory):
         with WithProof('arithmetic', proof):
             if K.degree() > 1:
                 modulus = K.modulus().change_variable_name('x')
-            new_keys = [(order, name, modulus, impl, _, p, n, proof)]
-            from finite_field_prime_modn import FiniteField_prime_modn
-            if isinstance(K, FiniteField_prime_modn):
-                impl = 'modn'
-            elif isinstance(K, FiniteField_givaro):
-                impl = 'givaro'
-            else:
-                from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
-                from finite_field_ext_pari import FiniteField_ext_pari
-                from finite_field_pari_ffelt import FiniteField_pari_ffelt
-                if isinstance(K, FiniteField_ntl_gf2e):
-                    impl = 'ntl'
-                elif isinstance(K, FiniteField_ext_pari):
-                    impl = 'pari_mod'
-                elif isinstance(K, FiniteField_pari_ffelt):
-                    impl = 'pari_ffelt'
-            new_keys.append( (order, name, modulus, impl, _, p, n, proof) )
-            return new_keys
+            return [(order, name, modulus, impl, _, p, n, proof)]
 
 
 GF = FiniteField = FiniteFieldFactory("FiniteField")

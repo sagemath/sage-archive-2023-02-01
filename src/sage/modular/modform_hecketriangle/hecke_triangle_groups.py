@@ -16,7 +16,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ, QQ, AA, AlgebraicField, infinity
+from sage.rings.all import ZZ, QQ, AA, AlgebraicField, infinity, NumberField
 from sage.functions.all import cos,exp,sec
 from sage.functions.other import psi1
 from sage.symbolic.all import pi,i
@@ -27,15 +27,15 @@ from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGro
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 
-# TODO: This is just a stub implementation, to implement the class
-# properly an element class has to be introduced/etc...
+from hecke_triangle_group_element import HeckeTriangleGroupElement
+
 
 class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
     r"""
     Hecke triangle group (2, n, infinity).
-
-    This is a stub implementation.
     """
+
+    Element = HeckeTriangleGroupElement
 
     @staticmethod
     def __classcall__(cls, n=3):
@@ -83,10 +83,84 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         """
 
         self._n = n
-        self._T = matrix(AA, [[1,self.lam()],[0,1]])
-        self._S = matrix(AA, [[0,-1],[1,0]])
 
-        FinitelyGeneratedMatrixGroup_generic.__init__(self, ZZ(2), AA, [self._S, self._T])
+        if n in [3, infinity]:
+            self._base_ring = ZZ
+            self._lam = ZZ(1) if n==3 else ZZ(2)
+        else:
+            lam_symbolic = 2*cos(pi/n)
+            K = NumberField(self.lam_minpoly(), 'lam', embedding = AA(lam_symbolic))
+            self._base_ring = K.order(K.gens())
+            self._lam = self._base_ring.gen(1)
+
+        T = matrix(self._base_ring, [[1,self._lam],[0,1]])
+        S = matrix(self._base_ring, [[0,-1],[1,0]])
+
+        FinitelyGeneratedMatrixGroup_generic.__init__(self, ZZ(2), self._base_ring, [S, T])
+
+    def _repr_(self):
+        r"""
+        Return the string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: HeckeTriangleGroup(10)
+            Hecke triangle group for n = 10
+        """
+
+        return "Hecke triangle group for n = {}".format(self._n)
+
+    def _latex_(self):
+        r"""
+        Return the LaTeX representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: a = HeckeTriangleGroup(5)
+            sage: latex(a)
+            \Gamma^{(5)}
+        """
+
+        return '\\Gamma^{(%s)}'%(latex(self._n))
+
+    def one_element(self):
+        r"""
+        Return the identity element/matrix for ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: HeckeTriangleGroup(10).one_element()
+            [1 0]
+            [0 1]
+
+            sage: HeckeTriangleGroup(10).one_element().parent()
+            Hecke triangle group for n = 10
+        """
+
+        return self.I()
+
+    @cached_method
+    def lam_minpoly(self):
+        r"""
+        Return the minimal polynomial of the corresponding lambda parameter of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: HeckeTriangleGroup(10).lam_minpoly()
+            x^4 - 5*x^2 + 5
+            sage: HeckeTriangleGroup(17).lam_minpoly()
+            x^8 - x^7 - 7*x^6 + 6*x^5 + 15*x^4 - 10*x^3 - 10*x^2 + 4*x + 1
+            sage: HeckeTriangleGroup(infinity).lam_minpoly()
+            x - 2
+        """
+
+        # TODO: Write an explicit (faster) implementation
+        lam_symbolic = 2*cos(pi/self._n)
+        return AA(lam_symbolic).minpoly()
 
     @cached_method
     def n(self):
@@ -119,20 +193,19 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: HeckeTriangleGroup(3).lam()
             1
+            sage: HeckeTriangleGroup(4).lam()
+            lam
             sage: HeckeTriangleGroup(4).lam()^2
-            2.0000000000000...?
+            2
             sage: HeckeTriangleGroup(6).lam()^2
-            3.0000000000000...?
-            sage: HeckeTriangleGroup(10).lam()
+            3
+            sage: AA(HeckeTriangleGroup(10).lam())
             1.9021130325903...?
             sage: HeckeTriangleGroup(infinity).lam()
             2
         """
 
-        if (self._n == infinity):
-            return AA(2)
-        else:
-            return AA(2 * cos(pi/self._n))
+        return self._lam
 
     @cached_method
     def rho(self):
@@ -226,38 +299,11 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             [1 0]
             [0 1]
 
-        Since this is a stub implementation, the parent of a group
-        element is simply a matrix space.
-
-        ::
-
             sage: HeckeTriangleGroup(10).I().parent()
-            Full MatrixSpace of 2 by 2 dense matrices over Algebraic Real Field
+            Hecke triangle group for n = 10
         """
 
-        return matrix(AA, [[1,0],[0,1]])
-
-    def one_element(self):
-        r"""
-        Return the identity element/matrix for ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
-            sage: HeckeTriangleGroup(10).one_element()
-            [1 0]
-            [0 1]
-
-        Since this is a stub implementation, the parent of a group
-        element is simply a matrix space.
-
-        ::
-
-            sage: HeckeTriangleGroup(10).one_element().parent()
-            Full MatrixSpace of 2 by 2 dense matrices over Algebraic Real Field
-        """
-
-        return self.I()
+        return self(matrix(self._base_ring, [[1,0],[0,1]]))
 
     @cached_method
     def T(self):
@@ -272,19 +318,14 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             [1 1]
             [0 1]
             sage: HeckeTriangleGroup(10).T()
-            [                 1 1.9021130325903...?]
-            [                 0                  1]
-
-        Since this is a stub implementation, the parent of a group
-        element is simply a matrix space.
-
-        ::
+            [  1 lam]
+            [  0   1]
 
             sage: HeckeTriangleGroup(10).T().parent()
-            Full MatrixSpace of 2 by 2 dense matrices over Algebraic Real Field
+            Hecke triangle group for n = 10
         """
 
-        return self._T
+        return self.gen(1)
 
     @cached_method
     def S(self):
@@ -306,16 +347,11 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: HeckeTriangleGroup(10).S()^4 == HeckeTriangleGroup(10).I()
             True
 
-        Since this is a stub implementation, the parent of a group
-        element is simply a matrix space.
-
-        ::
-
             sage: HeckeTriangleGroup(10).S().parent()
-            Full MatrixSpace of 2 by 2 dense matrices over Algebraic Real Field
+            Hecke triangle group for n = 10
         """
 
-        return self._S
+        return self.gen(0)
 
     @cached_method
     def U(self):
@@ -334,23 +370,18 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: HeckeTriangleGroup(3).U()^6 == HeckeTriangleGroup(3).I()
             True
             sage: HeckeTriangleGroup(10).U()
-            [1.9021130325903...?                 -1]
-            [                 1                  0]
+            [lam  -1]
+            [  1   0]
             sage: HeckeTriangleGroup(10).U()^10 == -HeckeTriangleGroup(10).I()
             True
             sage: HeckeTriangleGroup(10).U()^20 == HeckeTriangleGroup(10).I()
             True
 
-        Since this is a stub implementation, the parent of a group
-        element is simply a matrix space.
-
-        ::
-
             sage: HeckeTriangleGroup(10).U().parent()
-            Full MatrixSpace of 2 by 2 dense matrices over Algebraic Real Field
+            Hecke triangle group for n = 10
         """
 
-        return self._T * self._S
+        return self.T() * self.S()
 
     def V(self, j):
         r"""
@@ -385,22 +416,22 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
             sage: G = HeckeTriangleGroup(5)
             sage: G.V(1)
-            [                 1 1.6180339887498...?]
-            [                 0                  1]
+            [  1 lam]
+            [  0   1]
             sage: G.V(2)
-            [1.6180339887498...? 1.6180339887498...?]
-            [                 1 1.6180339887498...?]
+            [lam lam]
+            [  1 lam]
             sage: G.V(3)
-            [1.6180339887498...? 1.0000000000000...?]
-            [1.6180339887498...? 1.6180339887498...?]
+            [lam   1]
+            [lam lam]
             sage: G.V(4)
-            [1.0000000000000...?            0.?e-17]
-            [1.6180339887498...? 1.0000000000000...?]
+            [  1   0]
+            [lam   1]
             sage: G.V(5) == G.S()
             True
         """
 
-        return self.U()**(j-1) * self._T
+        return self.U()**(j-1) * self.T()
 
     @cached_method
     def dvalue(self):
@@ -439,32 +470,6 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         else:
             return exp(-ZZ(2)*psi1(ZZ(1)) + psi1(ZZ(1)-self.alpha())+psi1(ZZ(1)-self.beta()) - pi*sec(pi/self._n))
 
-    def _repr_(self):
-        r"""
-        Return the string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
-            sage: HeckeTriangleGroup(10)
-            Hecke triangle group for n = 10
-        """
-
-        return "Hecke triangle group for n = {}".format(self._n)
-
-    def _latex_(self):
-        r"""
-        Return the LaTeX representation of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
-            sage: a = HeckeTriangleGroup(5)
-            sage: latex(a)
-            \Gamma^{(5)}
-        """
-
-        return '\\Gamma^{(%s)}'%(latex(self._n))
 
     def is_arithmetic(self):
         r"""
@@ -492,46 +497,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         else:
             return False
 
-    def act(self, mat, t, prec=ZZ(53)):
-        r"""
-        Return the image of ``t`` under the action of the matrix ``mat``
-        by linear fractional transformations.
-
-        INPUT:
-
-        - ``mat``   -- An element of the Hecke triangle group (no check is performed
-                       though and the function works for more general matrices as well).
-
-        - ``t``     -- A complex number or an element of AlgebraicField().
-
-        - ``prec``  -- The precision to reduce ``t`` to in case we are forced
-                       to approximate it (e.g. if ``t`` is symbolic), default: 53.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
-            sage: G = HeckeTriangleGroup(5)
-            sage: G.act(G.S(), 1 + i/2)
-            2/5*I - 4/5
-            sage: G.act(G.S(), 1 + i/2).parent()
-            Algebraic Field
-            sage: G.act(G.S(), i + exp(-2))
-            -0.132901114417... + 0.982013790037...*I
-            sage: G.act(G.S(), i + exp(-2), prec=60).parent()
-            Complex Field with 60 bits of precision
-        """
-
-        try:
-            t = AA(1)*t
-        except TypeError:
-            try:
-                t = AlgebraicField()(t)
-            except (TypeError, ValueError):
-                t = t.n(prec=prec)
-
-        return (mat[0][0]*t + mat[0][1])/(mat[1][0]*t + mat[1][1])
-
-    def get_FD(self, z, aut_factor=None, prec=ZZ(53)):
+    def get_FD(self, z, aut_factor=None):
         r"""
         Return a tuple (A,w,fact) which determines how to map ``z``
         to the usual (strict) fundamental domain of ``self``.
@@ -550,14 +516,11 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             ``aut_factor`` has to be defined for ``t`` a complex number
             or ``t`` an element of AlgebraicField().
 
-        - ``prec`` -- The precision to reduce ``z`` to in case we are forced
-                      to approximate it (e.g. if ``z`` is symbolic), default: 53.
-
         OUTPUT:
 
         A tuple ``(A,w,fact)``.
 
-        - ``A`` -- a matrix in ``self`` such that ``self.act(A,w)==z``
+        - ``A`` -- a matrix in ``self`` such that ``A.acton(w)==z``
           (if ``z`` is exact at least).
 
         - ``w`` -- a complex number or an element of AlgebraicField()
@@ -569,7 +532,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
           factor evaluated on ``A`` and ``w`` (``"aut_factor(A,w)"``).
 
           An automorphy factor is a function ``factor(mat,t)`` with the property:
-          ``factor(A*B,t)==factor(A,self.act(B,t))*factor(B,t)``.
+          ``factor(A*B,t) == factor(A,B.acton(t))*factor(B,t)``.
 
           From this property the function is already determined by its
           definition on the generators. This function determines
@@ -587,9 +550,9 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: z = AlgebraicField()(1+i/2)
             sage: (A,w,fact) = G.get_FD(z)
             sage: A
-            [-1.8477590650225...?                   1]
-            [                  -1                   0]
-            sage: G.act(A,w) == z
+            [-lam    1]
+            [  -1    0]
+            sage: A.acton(w) == z
             True
             sage: full_factor = lambda mat, t: (mat[1][0]*t+mat[1][1])**4
             sage: def aut_factor(mat,t):
@@ -607,13 +570,13 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: z = (134.12 + 0.22*i).n()
             sage: (A,w,fact) = G.get_FD(z, ModularForms(group=G, k=ZZ(2)/ZZ(3), ep=-1).aut_factor)
             sage: A
-            [-323.7968455535...?  248.2375900532...?]
-            [-2.414213562373...?  1.847759065022...?]
+            [-73*lam^3 + 74*lam       73*lam^2 - 1]
+            [        -lam^2 + 1                lam]
             sage: w
             0.769070776942... + 0.779859114103...*I
             sage: z
             134.120000000... + 0.220000000000...*I
-            sage: G.act(A,w)
+            sage: A.acton(w)
             134.1200000... + 0.2200000000...*I
             sage: fact
             0.766550718635... + 1.31804923936...*I
@@ -624,32 +587,32 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         """
 
         ID = self.I()
-        T  = self._T
-        S  = self._S
-        TI = self._T.inverse()
+        T  = self.T()
+        S  = self.S()
+        TI = self.T().inverse()
 
         A = ID
         L = []
         w = z
         while (abs(w) < ZZ(1) or abs(w.real()) > self.lam()/ZZ(2)):
             if (abs(w) < ZZ(1)):
-                w = self.act(self._S, w, prec=prec)
+                w = self.S().acton(w)
                 A = S*A
                 L.append(-S)
             while (w.real() >= self.lam()/ZZ(2)):
-                w = self.act(TI, w, prec=prec)
+                w = TI.acton(w)
                 A = TI*A
                 L.append(T)
             while (w.real() < -self.lam()/ZZ(2)):
-                w = self.act(T, w, prec=prec)
+                w = T.acton(w)
                 A = T*A
                 L.append(TI)
         if (w.real() == self.lam()/ZZ(2)):
-            w = self.act(TI, w, prec=prec)
+            w = TI.acton(w)
             A = TI*A
             L.append(T)
         if (abs(w) == ZZ(1) and w.real() > ZZ(0)):
-            w = self.act(S, w, prec=prec)
+            w = S.acton(w)
             A = S*A
             L.append(-S)
 
@@ -657,17 +620,16 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             new_factor = ZZ(1)
         else:
             B = ID
-            temp_w = self.act(A, z, prec=prec)
+            temp_w = A.acton(z)
             new_factor = ZZ(1)
             for gamma in reversed(L):
                 B = gamma*B
                 new_factor *= aut_factor(gamma, temp_w)
-                temp_w = self.act(gamma, temp_w, prec=prec)
+                temp_w = gamma.acton(temp_w)
 
-        # Somehow A.inverse() causes problems with large numbers
-        AI = matrix(AA, [[A[1,1],-A[0,1]], [-A[1,0],A[0,0]]])
+        AI = A.inverse()
 
-        return (AI, self.act(A,z,prec=prec), new_factor)
+        return (AI, A.acton(z), new_factor)
 
     def in_FD(self, z):
         r"""

@@ -305,10 +305,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         fmpz_mat_clear(self._matrix)
         if self._initialized_linbox:
             self._dealloc_linbox()
-        if self._rows != NULL:
-            sage_free(self._rows)
-        if self._entries != NULL:
-            sage_free(self._entries)
+        sage_free(self._rows)
+        sage_free(self._entries)
 
     def __init__(self, parent, entries, copy, coerce):
         r"""

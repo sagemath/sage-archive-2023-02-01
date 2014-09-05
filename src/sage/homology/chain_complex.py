@@ -1667,7 +1667,8 @@ class ChainComplex_class(Parent):
         Return the direct sum (Cartesian product) of ``self`` with ``D``.
 
         Let `C` and `D` be two chain complexes with differentials
-        `\partial_C` and `\partial_D`, respectively, of the same degree.
+        `\partial_C` and `\partial_D`, respectively, of the same degree (so
+        they must also have the same grading group).
         The direct sum `S = C \oplus D` is a chain complex given by
         `S_i = C_i \oplus D_i` with differential
         `\partial = \partial_C \oplus \partial_D`.
@@ -1738,6 +1739,17 @@ class ChainComplex_class(Parent):
                         [-+-+-]
                         [0|0|z]
              0 <-- C_2 <-------- C_1 <-- 0
+
+        ::
+
+            sage: R.<x> = ZZ[]
+            sage: G = AdditiveAbelianGroup([0,7])
+            sage: d = {G(vector([1,1])):matrix([[x]])}
+            sage: C = ChainComplex(d, grading_group=G, degree=G(vector([2,1])))
+            sage: ascii_art(C.cartesian_product(C))
+                             [x 0]
+                             [0 x]
+             0 <-- C_(3, 2) <------ C_(1, 1) <-- 0
         """
         if not factors:
             return self
@@ -1746,6 +1758,8 @@ class ChainComplex_class(Parent):
         deg_diff = self.degree_of_differential()
         if any(D.degree_of_differential() != deg_diff for D in factors):
             raise ValueError("the degrees of the differentials must match")
+        if any(D.grading_group() != self._grading_group for D in factors):
+            raise ValueError("the grading groups must match")
 
         factors = [self] + list(factors)
         R = self.base_ring()
@@ -1758,14 +1772,16 @@ class ChainComplex_class(Parent):
         ret = {k: matrix.block_diagonal([d.get(k, zero) for d in diffs],
                                          subdivide=subdivide)
                for k in keys}
-        return ChainComplex(ret, degree_of_differential=deg_diff)
+        return ChainComplex(ret, degree_of_differential=deg_diff,
+                            grading_group=self._grading_group)
 
     def tensor(self, *factors, **kwds):
         r"""
         Return the tensor product of ``self`` with ``D``.
 
         Let `C` and `D` be two chain complexes with differentials
-        `\partial_C` and `\partial_D`, respectively, of the same degree.
+        `\partial_C` and `\partial_D`, respectively, of the same degree (so
+        they must also have the same grading group).
         The tensor product `S = C \otimes D` is a chain complex given by
 
         .. MATH::
@@ -1776,10 +1792,16 @@ class ChainComplex_class(Parent):
 
         .. MATH::
 
-            \partial(x \otimes y) = \partial_C x \otimes y + (-1)^a x
-            \otimes \partial_D y
+            \partial(x \otimes y) = \partial_C x \otimes y
+            + (-1)^{|a| \cdot |\partial_D|} x \otimes \partial_D y
 
-        for `x \in C_a` and `y \in D_b`.
+        for `x \in C_a` and `y \in D_b`, where `|a|` is the degree of `a` and
+        `|\partial_D|` is the degree of `\partial_D`.
+
+        .. WARNING::
+
+            If the degree of the differential is even, then this may not
+            result in a valid chain complex.
 
         INPUT:
 
@@ -1853,6 +1875,19 @@ class ChainComplex_class(Parent):
                                       [ x  0 -z]       [-y]
                         [x y z]       [ 0  x  y]       [ x]
              0 <-- C_6 <-------- C_5 <----------- C_4 <----- C_3 <-- 0
+
+        ::
+
+            sage: R.<x,y> = ZZ[]
+            sage: G = AdditiveAbelianGroup([0,7])
+            sage: d1 = {G(vector([1,1])):matrix([[x]])}
+            sage: C1 = ChainComplex(d1, grading_group=G, degree=G(vector([2,1])))
+            sage: d2 = {G(vector([3,0])):matrix([[y]])}
+            sage: C2 = ChainComplex(d2, grading_group=G, degree=G(vector([2,1])))
+            sage: ascii_art(C1.tensor(C2))
+                                                [y]
+                             [ x -y]            [x]
+             0 <-- C_(8, 3) <-------- C_(6, 2) <---- C_(4, 1) <-- 0
         """
         if not factors:
             return self
@@ -1861,11 +1896,18 @@ class ChainComplex_class(Parent):
         deg_diff = self.degree_of_differential()
         if any(D.degree_of_differential() != deg_diff for D in factors):
             raise ValueError("the degrees of the differentials must match")
+        if any(D.grading_group() != self._grading_group for D in factors):
+            raise ValueError("the grading groups must match")
 
         R = self.base_ring()
         zero = R.zero()
         subdivide = kwds.get('subdivide', False)
         ret = self
+
+        if self._grading_group is ZZ:
+            scalar = lambda a: (-1)**a
+        else:
+            scalar = lambda a: (-1)**sum(a)
 
         for D in factors:
             # Setup
@@ -1906,7 +1948,7 @@ class ChainComplex_class(Parent):
                             if sp != 0:
                                 vec = [zero]*(r*sp)
                                 for k,val in enumerate(dD[b].column(j)):
-                                    vec[sp*i+k] += (-1)**a * val
+                                    vec[sp*i+k] += scalar(a) * val
                                 cur[(a,b+deg_diff)].append(vec)
 
                     mor[a,b] = cur
@@ -1947,7 +1989,8 @@ class ChainComplex_class(Parent):
             for k in to_delete:
                 del diff[k]
 
-            ret = ChainComplex(diff, degree_of_differential=deg_diff)
+            ret = ChainComplex(diff, degree_of_differential=deg_diff,
+                               grading_group=self._grading_group)
 
         return ret
 

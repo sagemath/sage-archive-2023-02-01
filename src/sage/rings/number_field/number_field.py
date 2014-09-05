@@ -8077,6 +8077,21 @@ class NumberField_absolute(NumberField_generic):
             1
             sage: K.hilbert_symbol(a+5, 2, P)
             -1
+            sage: K.<a> = NumberField(x^3 - 4*x + 2)
+            sage: K.hilbert_symbol(2, -2, K.primes_above(2)[0])
+            1
+
+        Check that the bug reported at :trac:`16043` has been fixed::
+
+            sage: K.<a> = NumberField(x^2 + 5)
+            sage: p = K.primes_above(2)[0]; p
+            Fractional ideal (2, a + 1)
+            sage: K.hilbert_symbol(2*a, -1, p)
+            1
+            sage: K.hilbert_symbol(2*a, 2, p)
+            -1
+            sage: K.hilbert_symbol(2*a, -2, p)
+            -1
 
         AUTHOR:
 

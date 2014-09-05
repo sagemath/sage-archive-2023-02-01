@@ -75,12 +75,12 @@ class SemisimpleAlgebras(Category_over_base_ring):
                     EXAMPLES::
 
                         sage: A3 = SymmetricGroup(3).algebra(QQ)
-                        sage: orth3 = A3.orthogonal_idempotents()
-                        sage: sorted(orth3, key=str)
-                        [1/6*B[()] + 1/6*B[(2,3)] + 1/6*B[(1,2)] + 1/6*B[(1,2,3)] +
-                        1/6*B[(1,3,2)] + 1/6*B[(1,3)], 1/6*B[()] - 1/6*B[(2,3)] -
-                        1/6*B[(1,2)] + 1/6*B[(1,2,3)] + 1/6*B[(1,3,2)] - 1/6*B[(1,3)],
-                        2/3*B[()] - 1/3*B[(1,2,3)] - 1/3*B[(1,3,2)]]
+                        sage: A3.orthogonal_idempotents()
+                        [2/3*B[()] - 1/3*B[(1,2,3)] - 1/3*B[(1,3,2)], 1/6*B[()]
+                        + 1/6*B[(2,3)] + 1/6*B[(1,2)] + 1/6*B[(1,2,3)] +
+                        1/6*B[(1,3,2)] + 1/6*B[(1,3)], 1/6*B[()] - 1/6*B[(2,3)]
+                        - 1/6*B[(1,2)] + 1/6*B[(1,2,3)] + 1/6*B[(1,3,2)] -
+                        1/6*B[(1,3)]]
 
                     ::
 
@@ -89,9 +89,8 @@ class SemisimpleAlgebras(Category_over_base_ring):
                         algebra of the Kronecker quiver (containing the arrows a:x->y
                         and b:x->y) over Rational Field 
                         sage: Aquo = A.semisimple_quotient()
-                        sage: orth = Aquo.orthogonal_idempotents()
-                        sage: sorted(orth, key=str)
-                        [B['x'], B['y']]
+                        sage: Aquo.orthogonal_idempotents()
+                        [B['y'], B['x']]
                     """
                     return [x.lift()
                             for x in self.center().orthogonal_idempotents()]
@@ -125,19 +124,17 @@ class SemisimpleAlgebras(Category_over_base_ring):
                             sage: G5 = SymmetricGroup(5)
                             sage: A5 = G5.algebra(QQ)
                             sage: Z5 = A5.center()
-                            sage: gens = Z5._orthogonal_decomposition()
-                            sage: sorted(gens, key=str)
-                            [B[0] + 1/2*B[1] + 1/4*B[3] - 1/4*B[4] - 1/4*B[6],
-                            B[0] + 1/5*B[1] + 1/5*B[2] - 1/5*B[3] + 1/5*B[4] -
-                            1/5*B[5], B[0] + B[1] + B[2] + B[3] + B[4] + B[5] +
-                            B[6], B[0] - 1/2*B[1] + 1/4*B[3] + 1/4*B[4] -
-                            1/4*B[6], B[0] - 1/3*B[2] + 1/6*B[6], B[0] -
-                            1/5*B[1] + 1/5*B[2] - 1/5*B[3] - 1/5*B[4] +
-                            1/5*B[5], B[0] - B[1] + B[2] + B[3] - B[4] - B[5] +
-                            B[6]]
+                            sage: Z5._orthogonal_decomposition()
+                            [B[0] - 1/3*B[2] + 1/6*B[6], B[0] + B[1] + B[2] +
+                            B[3] + B[4] + B[5] + B[6], B[0] - B[1] + B[2] + B[3]
+                            - B[4] - B[5] + B[6], B[0] + 1/5*B[1] + 1/5*B[2] -
+                            1/5*B[3] + 1/5*B[4] - 1/5*B[5], B[0] - 1/5*B[1] +
+                            1/5*B[2] - 1/5*B[3] - 1/5*B[4] + 1/5*B[5], B[0] +
+                            1/2*B[1] + 1/4*B[3] - 1/4*B[4] - 1/4*B[6], B[0] -
+                            1/2*B[1] + 1/4*B[3] + 1/4*B[4] - 1/4*B[6]]
                         """
                         #Terminal case and stuffs
-                        if listGen==None:
+                        if listGen == None:
                             listGen = self.basis().list()
                         if self.dimension() == 1:
                             if topLevel:
@@ -151,8 +148,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
                         while len(res)<2:
                             if listGen==[]:
                                 raise Exception("Unable to fully decompose...")
-                            curGen = listGen[ZZ.random_element(len(listGen))]
-                            listGen.remove(curGen)
+                            curGen = listGen.pop()
                             phi = self.module_morphism(on_basis=lambda i:
                                     curGen*B[i],
                                     codomain=self,
@@ -195,18 +191,17 @@ class SemisimpleAlgebras(Category_over_base_ring):
                             sage: A5 = SymmetricGroup(5).algebra(QQ)
                             sage: Z5 = A5.center()
                             sage: orth = Z5.orthogonal_idempotents()
-                            sage: sorted(orth, key=str)
-                            [1/120*B[0] + 1/120*B[1] + 1/120*B[2] + 1/120*B[3]
-                            + 1/120*B[4] + 1/120*B[5] + 1/120*B[6], 1/120*B[0]
-                            - 1/120*B[1] + 1/120*B[2] + 1/120*B[3] - 1/120*B[4]
-                            - 1/120*B[5] + 1/120*B[6], 2/15*B[0] + 1/15*B[1] +
-                            1/30*B[3]
-                            - 1/30*B[4] - 1/30*B[6], 2/15*B[0] - 1/15*B[1] +
-                              1/30*B[3] + 1/30*B[4] - 1/30*B[6], 3/10*B[0] -
-                              1/10*B[2] + 1/20*B[6], 5/24*B[0] + 1/24*B[1] +
-                              1/24*B[2] - 1/24*B[3] + 1/24*B[4] - 1/24*B[5],
-                              5/24*B[0] - 1/24*B[1] + 1/24*B[2] - 1/24*B[3] -
-                              1/24*B[4] + 1/24*B[5]]
+                            sage: orth
+                            [3/10*B[0] - 1/10*B[2] + 1/20*B[6], 1/120*B[0] +
+                            1/120*B[1] + 1/120*B[2] + 1/120*B[3] + 1/120*B[4] +
+                            1/120*B[5] + 1/120*B[6], 1/120*B[0] - 1/120*B[1] +
+                            1/120*B[2] + 1/120*B[3] - 1/120*B[4] - 1/120*B[5] +
+                            1/120*B[6], 5/24*B[0] + 1/24*B[1] + 1/24*B[2] -
+                            1/24*B[3] + 1/24*B[4] - 1/24*B[5], 5/24*B[0] -
+                            1/24*B[1] + 1/24*B[2] - 1/24*B[3] - 1/24*B[4] +
+                            1/24*B[5], 2/15*B[0] + 1/15*B[1] + 1/30*B[3] -
+                            1/30*B[4] - 1/30*B[6], 2/15*B[0] - 1/15*B[1] +
+                            1/30*B[3] + 1/30*B[4] - 1/30*B[6]]
                             sage: orth[2] * orth[4]
                             0
                             sage: orth[1] ** 2 == orth[1]

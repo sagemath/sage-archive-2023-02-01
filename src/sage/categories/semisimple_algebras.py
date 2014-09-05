@@ -119,7 +119,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
                         Return a list of generators of simple A-modules.
 
-                        EXAMPLES:
+                        EXAMPLES::
 
                             sage: G5 = SymmetricGroup(5)
                             sage: A5 = G5.algebra(QQ)
@@ -132,6 +132,11 @@ class SemisimpleAlgebras(Category_over_base_ring):
                             1/5*B[2] - 1/5*B[3] - 1/5*B[4] + 1/5*B[5], B[0] +
                             1/2*B[1] + 1/4*B[3] - 1/4*B[4] - 1/4*B[6], B[0] -
                             1/2*B[1] + 1/4*B[3] + 1/4*B[4] - 1/4*B[6]]
+
+                        .. TODO::
+
+                            Improve the function by only using matrix
+                            operations.
                         """
                         #Terminal case and stuffs
                         if listGen == None:

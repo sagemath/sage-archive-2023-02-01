@@ -38,7 +38,7 @@ class Function_exp(GinacFunction):
             sage: exp(float(2.5))
             12.182493960703473
             sage: exp(RDF('2.5'))
-            12.1824939607
+            12.182493960703473
 
         To prevent automatic evaluation, use the ``hold`` parameter::
 
@@ -168,7 +168,7 @@ class Function_log(GinacFunction):
         ::
 
             sage: ln(RDF(10))
-            2.30258509299
+            2.302585092994046
             sage: ln(2.718)
             0.999896315728952
             sage: ln(2.0)
@@ -260,7 +260,7 @@ class Function_log(GinacFunction):
             sage: log(10, 4)
             log(10)/log(4)
             sage: RDF(log(10, 4))
-            1.66096404744
+            1.6609640474436813
             sage: log(10, 2)
             log(10)/log(2)
             sage: n(log(10, 2))
@@ -572,7 +572,7 @@ class Function_lambert_w(BuiltinFunction):
         sage: integrate(lambert_w(x), x, 0, 1)
         (lambert_w(1)^2 - lambert_w(1) + 1)/lambert_w(1) - 1
         sage: integrate(lambert_w(x), x, 0, 1.0)
-        0.330366124762
+        0.3303661247616807
 
     Warning: The integral of a non-principal branch is not implemented,
     neither is numerical integration using GSL. The :meth:`numerical_integral`
@@ -681,7 +681,7 @@ class Function_lambert_w(BuiltinFunction):
         SciPy is used to evaluate for float, RDF, and CDF inputs::
 
             sage: lambert_w(RDF(1))
-            0.56714329041
+            0.5671432904097838
         """
         R = parent or sage_structure_coerce_parent(z)
         if R is float or R is complex or R is RDF or R is CDF:

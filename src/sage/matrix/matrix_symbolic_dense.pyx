@@ -361,9 +361,9 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         In this example we take the symbolic answer and make it
         numerical at the end::
 
-            sage: exp(matrix(SR, [[1.2, 5.6], [3,4]])).change_ring(RDF)
-            [346.557487298 661.734590934]
-            [354.500673715 677.424782765]
+            sage: exp(matrix(SR, [[1.2, 5.6], [3,4]])).change_ring(RDF)  # rel tol 1e-15
+            [ 346.5574872980695  661.7345909344504]
+            [354.50067371488416  677.4247827652946]
 
         Another example involving the reversed identity matrix, which
         we clumsily create::

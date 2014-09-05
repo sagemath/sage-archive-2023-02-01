@@ -669,7 +669,7 @@ class MobiusStrip(ParametricSurface):
             sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
             sage: N = MobiusStrip(7,3,2) # two twists
             sage: N.get_grid(N.default_render_params().ds)
-            ([-1, 1], [0.0, 0.125663706144, 0.251327412287, 0.376991118431, ... 0])
+            ([-1, 1], [0.0, 0.12566370614359174, 0.25132741228718347, 0.37699111843077515, ... 0])
 
         """
         twoPi = RDF.pi()*2

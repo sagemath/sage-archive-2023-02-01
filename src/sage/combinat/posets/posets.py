@@ -62,6 +62,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.is_less_than` | Returns ``True`` if `x` is less than but not equal to `y` in the poset, and ``False`` otherwise.
     :meth:`~FinitePoset.is_linear_extension` | Returns whether ``l`` is a linear extension of ``self``
     :meth:`~FinitePoset.is_meet_semilattice` | Returns True if self has a meet operation, and False otherwise.
+    :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to other poset.
     :meth:`~FinitePoset.join_matrix` | Returns a matrix whose ``(i,j)`` entry is ``k``, where ``self.linear_extension()[k]`` is the join (least upper bound) of ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Returns whether the poset is `(m+n)`-free.
     :meth:`~FinitePoset.is_ranked` | Returns whether this poset is ranked.
@@ -145,7 +146,7 @@ from sage.graphs.digraph_generators import digraphs
 from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.elements import PosetElement
 from sage.combinat.combinatorial_map import combinatorial_map
-
+from sage.misc.misc import uniq
 
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category = None, facade = None, key = None):
     r"""
@@ -1953,21 +1954,24 @@ class FinitePoset(UniqueRepresentation, Parent):
         Return ``True`` if the poset contains a subposet isomorphic to ``other``.
 
         EXAMPLES::
-
+    
             sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
             sage: T = Poset({1:[2,3], 2:[4,5], 3:[6,7]})
             sage: N5 = Posets.PentagonPoset()
 
-            sage: T.has_isomorphic_subposet(D)
+            sage: N5.has_isomorphic_subposet(T)
             False
             sage: N5.has_isomorphic_subposet(D)
             True
 
             sage: len([P for P in Posets(5) if P.has_isomorphic_subposet(D)])
             11
-
         """
-        return self._hasse_diagram.has_isomorphic_subposet(other)
+        if not hasattr(other, 'hasse_diagram'):
+            raise ValueError('The input is not a finite poset.')
+        if self._hasse_diagram.transitive_closure().subgraph_search(other._hasse_diagram.transitive_closure(), induced=True) is None:
+            return False
+        return True
 
     def is_bounded(self):
         """
@@ -2652,6 +2656,29 @@ class FinitePoset(UniqueRepresentation, Parent):
             return self.hasse_diagram().is_isomorphic( other.hasse_diagram() )
         else:
             raise ValueError('The input is not a finite poset.')
+
+    def isomorphic_subposets(self, other):
+        """
+        Return a list of subposets of `self` isomorphic to `other`.
+
+        EXAMPLES::
+
+            sage: C2=Poset({0:[1]})
+            sage: C3=Poset({'a':['b'], 'b':['c']})
+            sage: for x in C3.isomorphic_subposets(C2): print x.cover_relations()
+            [['a', 'b']]
+            [['a', 'c']]
+            [['b', 'c']]
+            sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
+            sage: N5 = Posets.PentagonPoset()
+            sage: len(N5.isomorphic_subposets(D))
+            2
+        """
+        if not hasattr(other, 'hasse_diagram'):
+            raise ValueError('The input is not a finite poset.')
+        L=self.hasse_diagram().transitive_closure().subgraph_search_iterator(other.hasse_diagram().transitive_closure(), induced=True)
+        # Since subgraph_search_iterator returns labelled copies, we remove duplicates.
+        return [self.subposet(x) for x in uniq([frozenset(y) for y in L])]
 
     import __builtin__ # Caveat: list is overridden by the method list above!!!
     def antichains(self, element_constructor = __builtin__.list):

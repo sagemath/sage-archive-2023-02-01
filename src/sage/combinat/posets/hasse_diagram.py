@@ -357,25 +357,6 @@ class HasseDiagram(DiGraph):
         if self.bottom() is not None: return True
         return False
 
-    def has_isomorphic_subposet(self, other):
-        """
-        Return ``True`` if the poset contains a subposet isomorphic to ``other``.
-
-        EXAMPLES::
-
-            sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
-            sage: T = Poset({1:[2,3], 2:[4,5], 3:[6,7]})
-            sage: N5 = Posets.PentagonPoset()
-
-            sage: T.has_isomorphic_subposet(D)
-            False
-            sage: N5.has_isomorphic_subposet(D)
-            True
-        """
-        if DiGraph(self).transitive_closure().subgraph_search(DiGraph(other._hasse_diagram).transitive_closure(), induced=True) is None:
-            return False
-        return True
-
     def top(self):
         """
         Returns the top element of the poset, if it exists.

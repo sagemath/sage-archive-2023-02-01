@@ -241,6 +241,36 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
         else:
             raise NotImplementedError("Must be over a Numberfield or a Numberfield Order")
 
+    def homogenize(self,n):
+        r"""
+        Return the homogenization of ``self`` at the ``nth`` coordinate.
+
+        INPUT:
+
+        - ``n`` -- integer between 0 and dimension of self, inclusive.
+
+        OUTPUT:
+
+        - A point in the projectivization of the codomain of ``self``
+        
+        EXAMPLES::
+        
+            sage: A.<x,y> = AffineSpace(ZZ,2)
+            sage: Q = A(2,3)
+            sage: Q.homogenize(2).dehomogenize(2) == Q
+            True
+    
+            ::
+    
+            sage: A.<x,y> = AffineSpace(QQ,2)
+            sage: Q = A(2,3)
+            sage: P = A(0,1)
+            sage: Q.homogenize(2).codomain() == P.homogenize(2).codomain()
+            True
+        """
+        phi=self.codomain().projective_embedding(n)
+        return(phi(self))
+
 class SchemeMorphism_point_affine_field(SchemeMorphism_point_affine):
     pass
 

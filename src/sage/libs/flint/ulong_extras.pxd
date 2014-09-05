@@ -1,10 +1,4 @@
-include "sage/ext/stdsage.pxi"
-
-from sage.libs.flint.flint cimport *
-
-
 cdef extern from "flint/ulong_extras.h":
-
     ctypedef struct n_factor_t:
         int num
         unsigned long exp[15]

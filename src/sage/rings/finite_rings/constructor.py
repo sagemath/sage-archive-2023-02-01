@@ -504,8 +504,7 @@ class FiniteFieldFactory(UniqueFactory):
 
             return (order, name, modulus, impl, str(kwds), p, n, proof), kwds
 
-    def create_object(self, version, key, check_irreducible=True, elem_cache=None,
-                      names=None, **kwds):
+    def create_object(self, version, key, **kwds):
         """
         EXAMPLES::
 
@@ -572,9 +571,6 @@ class FiniteFieldFactory(UniqueFactory):
         else:
             order, name, modulus, impl, _, p, n, proof = key
 
-        if elem_cache is None:
-            elem_cache = order < 500
-
         if n == 1 and impl == 'modn':
             from finite_field_prime_modn import FiniteField_prime_modn
             # Using a check option here is probably a worthwhile
@@ -589,7 +585,7 @@ class FiniteFieldFactory(UniqueFactory):
             # constructors with check options (like above).
             from sage.structure.proof.all import WithProof
             with WithProof('arithmetic', proof):
-                if check_irreducible and polynomial_element.is_Polynomial(modulus):
+                if kwds.get('check_irreducible', True):
                     if modulus.parent().base_ring().characteristic() == 0:
                         modulus = modulus.change_ring(FiniteField(p))
                     if not modulus.is_irreducible():
@@ -597,10 +593,8 @@ class FiniteFieldFactory(UniqueFactory):
                     if modulus.degree() != n:
                         raise ValueError("the degree of the modulus does not equal the degree of the field.")
                 if impl == 'givaro':
-                    if 'repr' in kwds:
-                        repr = kwds['repr']
-                    else:
-                        repr = 'poly'
+                    repr = kwds.get('repr', 'poly')
+                    elem_cache = kwds.get('elem_cache', order < 500)
                     K = FiniteField_givaro(order, name, modulus, repr=repr, cache=elem_cache)
                 elif impl == 'ntl':
                     from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
@@ -622,30 +616,6 @@ class FiniteFieldFactory(UniqueFactory):
                 K._prefix = kwds['prefix']
 
         return K
-
-    def other_keys(self, key, K):
-        """
-        EXAMPLES::
-
-            sage: key, extra = GF.create_key_and_extra_args(9, 'a'); key
-            (9, ('a',), x^2 + 2*x + 2, 'givaro', '{}', 3, 2, True)
-            sage: K = GF.create_object(0, key); K
-            Finite Field in a of size 3^2
-            sage: GF.other_keys(key, K)
-            [(9, ('a',), x^2 + 2*x + 2, 'givaro', '{}', 3, 2, True)]
-        """
-        if len(key) == 5: # backward compat
-            order, name, modulus, impl, _ = key
-            p, n = arith.factor(order)[0]
-            proof = True
-        else:
-            order, name, modulus, impl, _, p, n, proof = key
-
-        from sage.structure.proof.all import WithProof
-        with WithProof('arithmetic', proof):
-            if K.degree() > 1:
-                modulus = K.modulus().change_variable_name('x')
-            return [(order, name, modulus, impl, _, p, n, proof)]
 
 
 GF = FiniteField = FiniteFieldFactory("FiniteField")

@@ -505,15 +505,15 @@ cdef class UniqueFactory(SageObject):
 
         EXAMPLES:
 
-        We use the ``GF`` factory to build the finite field with `27`
-        elements and generator `k`::
+        The ``GF`` factory used to have a custom :meth:`other_keys`
+        method, but this was removed in :trac:`16934`::
 
             sage: key, _ = GF.create_key_and_extra_args(27, 'k'); key
             (27, ('k',), x^3 + 2*x + 1, 'givaro', '{}', 3, 3, True)
             sage: K = GF.create_object(0, key); K
             Finite Field in k of size 3^3
             sage: GF.other_keys(key, K)
-            [(27, ('k',), x^3 + 2*x + 1, 'givaro', '{}', 3, 3, True)]
+            []
 
             sage: K = GF(7^40, 'a')
             sage: loads(dumps(K)) is K

@@ -17,6 +17,8 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.all import AA, ZZ
+from sage.misc.latex import latex
+from sage.structure.parent_gens import localvars
 
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
 from sage.misc.cachefunc import cached_method
@@ -154,13 +156,26 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             if AA(abs_t) < 1:
                 M = (-S) * M
                 res.append(S)
-            elif abs_t == 1:
-                raise ValueError("The matrix is not an element of {}, up to equivalence it identifies two nonequivalent points.".format(self.parent()))
             elif M.is_identity():
                 res.append(M)
                 return tuple(res)
             else:
                 raise ValueError("The matrix is not an element of {}, up to equivalence it identifies two nonequivalent points.".format(self.parent()))
+
+    def _latex_(self):
+        r"""
+        Return the LaTeX representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: V = HeckeTriangleGroup(17).V(13)
+            sage: latex(V)
+            \begin{pmatrix} \mathit{\lambda}^{3} - 2 \mathit{\lambda} & \mathit{\lambda}^{2} - 1 \\ \mathit{\lambda}^{4} - 3 \mathit{\lambda}^{2} + 1 & \mathit{\lambda}^{3} - 2 \mathit{\lambda} \end{pmatrix}
+        """
+
+        latex_out = "\\begin{pmatrix} %s & %s \\\\ %s & %s \\end{pmatrix}"%(latex(self.a()), latex(self.b()), latex(self.c()), latex(self.d()))
+        return latex_out.replace("lam", "\\lambda")
 
     def __neg__(self):
         r"""
@@ -258,6 +273,21 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         return self._matrix[1][1]
 
     def is_translation(self, exclude_one=False):
+        r"""
+        Return whether ``self`` is a translation. If ``exclude_one = True``,
+        then the identity map is not considered as a translation.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: (-HeckeTriangleGroup(n=7).T()^(-4)).is_translation()
+            True
+            sage: (-HeckeTriangleGroup(n=7).I()).is_translation()
+            True
+            sage: (-HeckeTriangleGroup(n=7).I()).is_translation(exclude_one=True)
+            False
+        """
+
         exclude_one = bool(exclude_one)
         a = self.a()
         b = self.b()
@@ -272,6 +302,18 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             return True
 
     def is_reflection(self):
+        r"""
+        Return whether ``self`` is the usual reflection on the unit circle.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: (-HeckeTriangleGroup(n=7).S()).is_reflection()
+            True
+            sage: HeckeTriangleGroup(n=7).U().is_reflection()
+            False
+        """
+
         if (self == self.parent().S()) or (self == -self.parent().S()):
             return True
         else:

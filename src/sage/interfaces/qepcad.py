@@ -84,7 +84,7 @@ QEPCAD deals with more quantifiers than just 'exists', of course.
 Besides the standard 'forall', there are also 'for infinitely
 many', 'for all but finitely many', 'for a connected subset', and
 'for exactly k'.  The :func:`qepcad` documentation has examples
-of all of these; here we'll just give one example.
+of all of these; here we will just give one example.
 
 First we construct a circle::
 
@@ -93,9 +93,9 @@ First we construct a circle::
 For what values $k$ does a vertical line $x=k$ intersect the combined
 figure of the circle and ellipse exactly three times? ::
 
-    sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F    # optional - qepcad
+    sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F  # optional - qepcad
     (X3 y)[(x^2 + y^2 - 3) (3 x^2 + 2 x y + y^2 - x + y - 7) = 0]
-    sage: qepcad(F)                                           # optional - qepcad
+    sage: qepcad(F)                                         # optional - qepcad
     8 x^2 - 8 x - 29 <= 0 /\ x^2 - 3 <= 0 /\ 8 x^4 - 26 x^2 - 4 x + 13 >= 0 /\ [ 8 x^4 - 26 x^2 - 4 x + 13 = 0 \/ x^2 - 3 = 0 \/ 8 x^2 - 8 x - 29 = 0 ]
 
 Here we see that the solutions are among the eight ($4 + 2 + 2$) roots
@@ -106,16 +106,17 @@ are needed to select those roots that are solutions.
 QEPCAD also supports an extended formula language, where
 ``_root_k`` `P(\bar x, y)` refers to a particular zero of
 `P(\bar x, y)` (viewed as a polynomial in `y`).  If there are `n` roots,
-then ``_root_1`` refers to the least root and ``_root_n`` refers to the greatest. Also, ``_root_-n`` refers to the least root and ``_root_-1`` refers to the
-greatest.
+then ``_root_1`` refers to the least root and ``_root_n`` refers to
+the greatest. Also, ``_root_-n`` refers to the least root and
+``_root_-1`` refers to the greatest.
 
 This extended language is available both on input and output; see the
 QEPCAD documentation for more information on how to use this syntax on
-input.  We can request output that's intended to be easy to interpret
+input.  We can request output that is intended to be easy to interpret
 geometrically; then QEPCAD will use the extended language to produce
 a solution formula without the selection polynomials. ::
 
-    sage: qepcad(F, solution='geometric')                          # optional - qepcad
+    sage: qepcad(F, solution='geometric')                 # optional - qepcad
     x = _root_1 8 x^2 - 8 x - 29
     \/
     8 x^4 - 26 x^2 - 4 x + 13 = 0
@@ -128,20 +129,20 @@ ellipse and the circle, and the vertical tangent on the right side of
 the circle.
 
 Let us do some basic formula simplification and visualization.
-We'll look at the region which is inside both the ellipse and the circle::
+We will look at the region which is inside both the ellipse and the circle::
 
-    sage: F = qf.and_(ellipse < 0, circle < 0); F                     # optional - qepcad
+    sage: F = qf.and_(ellipse < 0, circle < 0); F         # optional - qepcad
     [3 x^2 + 2 x y + y^2 - x + y - 7 < 0 /\ x^2 + y^2 - 3 < 0]
-    sage: qepcad(F)                                                   # optional - qepcad
+    sage: qepcad(F)                                       # optional - qepcad
     y^2 + 2 x y + y + 3 x^2 - x - 7 < 0 /\ y^2 + x^2 - 3 < 0
 
 We get back the same formula we put in.  This is not surprising (we
-started with a pretty simple formula, after all), but it's not very
+started with a pretty simple formula, after all), but it is not very
 enlightening either.  Again, if we ask for a 'geometric' output, then we see
 an output that lets us understand something about the shape of the solution
 set. ::
 
-    sage: qepcad(F, solution='geometric')                             # optional - qepcad
+    sage: qepcad(F, solution='geometric')                 # optional - qepcad
     [
       [
         x = _root_-2 8 x^4 - 26 x^2 - 4 x + 13
@@ -164,25 +165,25 @@ set. ::
       y^2 + x^2 - 3 < 0
     ]
 
-There's another reason to prefer output using _root_ expressions; not
+There is another reason to prefer output using _root_ expressions; not
 only does it sometimes give added insight into the geometric
 structure, it also can be more efficient to construct.  Consider this
 formula for the projection of a particular semicircle onto the $x$
 axis::
 
-    sage: F = qf.exists(y, qf.and_(circle == 0, x + y > 0)); F                # optional - qepcad
+    sage: F = qf.exists(y, qf.and_(circle == 0, x + y > 0)); F   # optional - qepcad
     (E y)[x^2 + y^2 - 3 = 0 /\ x + y > 0]
-    sage: qepcad(F)                                                           # optional - qepcad
+    sage: qepcad(F)                                  # optional - qepcad
     x^2 - 3 <= 0 /\ [ x > 0 \/ 2 x^2 - 3 < 0 ]
 
 Here, the formula $x > 0$ had to be introduced in order to get a
 solution formula; the original CAD of F did not include the
 polynomial $x$.  To avoid having QEPCAD do the extra work to come up
 with a solution formula, we can tell it to use the extended language;
-it's always possible to construct a solution formula in the extended
+it is always possible to construct a solution formula in the extended
 language without introducing new polynomials. ::
 
-    sage: qepcad(F, solution='extended')                                      # optional - qepcad
+    sage: qepcad(F, solution='extended')                 # optional - qepcad
     x^2 - 3 <= 0 /\ x > _root_1 2 x^2 - 3
 
 Up to this point, all the output we have seen has basically been in the
@@ -205,9 +206,9 @@ one point in each connected component of the solution, although you will
 often have many more points than that.)
 
 Let us revisit some of the above examples and get some points to play
-with.  We'll start by finding a point on our ellipse. ::
+with.  We will start by finding a point on our ellipse. ::
 
-    sage: p = qepcad(ellipse == 0, solution='any-point'); p                       # optional - qepcad
+    sage: p = qepcad(ellipse == 0, solution='any-point'); p  # optional - qepcad
     {'y': 0.9685019685029527?, 'x': -1.468501968502953?}
 
 (Note that despite the decimal printing and the question marks, these
@@ -217,13 +218,13 @@ We can verify that this point is a solution.  To do so, we create
 a copy of ellipse as a polynomial over `\QQ` (instead of a symbolic
 expression). ::
 
-    sage: pellipse = QQ['x,y'](ellipse)                                           # optional - qepcad
-    sage: pellipse(**p) == 0                                                      # optional - qepcad
+    sage: pellipse = QQ['x,y'](ellipse)                # optional - qepcad
+    sage: pellipse(**p) == 0                           # optional - qepcad
     True
 
 For cell-points, let us look at points *not* on the ellipse. ::
 
-    sage: pts = qepcad(ellipse != 0, solution='cell-points'); pts                 # optional - qepcad
+    sage: pts = qepcad(ellipse != 0, solution='cell-points'); pts   # optional - qepcad
     [{'y': 0, 'x': 4}, {'y': 1, 'x': 2.468501968502953?}, {'y': -9, 'x': 2.468501968502953?}, {'y': 9, 'x': 1/2}, {'y': -1, 'x': 1/2}, {'y': -5, 'x': 1/2}, {'y': 3, 'x': -1.468501968502953?}, {'y': -1, 'x': -1.468501968502953?}, {'y': 0, 'x': -3}]
 
 For the points here which are in full-dimensional cells, QEPCAD has the
@@ -231,23 +232,23 @@ freedom to choose rational sample points, and it does so.
 
 And, of course, all these points really are not on the ellipse. ::
 
-    sage: [pellipse(**p) != 0 for p in pts]                                       # optional - qepcad
+    sage: [pellipse(**p) != 0 for p in pts]               # optional - qepcad
     [True, True, True, True, True, True, True, True, True]
 
 Finally, for all-points, let us look again at finding vertical lines that
 intersect the union of the circle and the ellipse exactly three times. ::
 
-    sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F                       # optional - qepcad
+    sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F   # optional - qepcad
     (X3 y)[(x^2 + y^2 - 3) (3 x^2 + 2 x y + y^2 - x + y - 7) = 0]
-    sage: pts = qepcad(F, solution='all-points'); pts                            # optional - qepcad
+    sage: pts = qepcad(F, solution='all-points'); pts       # optional - qepcad
     [{'x': 1.732050807568878?}, {'x': 1.731054913462534?}, {'x': 0.678911384208004?}, {'x': -0.9417727377417167?}, {'x': -1.468193559928821?}, {'x': -1.468501968502953?}]
 
 Since $y$ is bound by the quantifier, the solutions only refer to $x$.
 
 We can substitute one of these solutions into the original equation::
 
-    sage: pt = pts[0]                                                           # optional - qepcad
-    sage: pcombo = QQ['x,y'](circle * ellipse)                                  # optional - qepcad
+    sage: pt = pts[0]                             # optional - qepcad
+    sage: pcombo = QQ['x,y'](circle * ellipse)     # optional - qepcad
     sage: intersections = pcombo(y=polygen(AA, 'y'), **pt); intersections       # optional - qepcad
     y^4 + 4.464101615137755?*y^3 + 0.2679491924311227?*y^2
 
@@ -258,7 +259,7 @@ and verify that it does have three roots::
 
 Let us check all six solutions. ::
 
-    sage: [len(pcombo(y=polygen(AA, 'y'), **p).roots()) for p in pts]          # optional - qepcad
+    sage: [len(pcombo(y=polygen(AA, 'y'), **p).roots()) for p in pts]    # optional - qepcad
     [3, 3, 3, 3, 3, 3]
 
 We said earlier that we can run QEPCAD either automatically or
@@ -321,9 +322,9 @@ returned instead. ::
 Let us pick a nice, simple example, return to phase 4, and explore the
 resulting ``qe`` object. ::
 
-    sage: qe = qepcad(circle == 0, interact=True); qe                         # optional - qepcad
+    sage: qe = qepcad(circle == 0, interact=True); qe       # optional - qepcad
     QEPCAD object in phase 'Before Normalization'
-    sage: qe.go(); qe.go(); qe.go()                                           # optional - qepcad
+    sage: qe.go(); qe.go(); qe.go()                         # optional - qepcad
     QEPCAD object has moved to phase 'Before Projection (y)'
     QEPCAD object has moved to phase 'Before Choice'
     QEPCAD object has moved to phase 'Before Solution'
@@ -356,7 +357,7 @@ the circle has index (3,3).
 We can view these cells with the QEPCAD command ``d_cell``.  For
 instance, let us look at the cell for the upper semicircle::
 
-    sage: qe.d_cell(3, 4)                                                        # optional - qepcad
+    sage: qe.d_cell(3, 4)                              # optional - qepcad
     ---------- Information about the cell (3,4) ----------
     Level                       : 2
     Dimension                   : 1
@@ -386,29 +387,30 @@ sample point gives the coordinates of one point in the cell, both
 symbolically and numerically.
 
 For programmatic access to cells, we have defined a \sage wrapper class
-:class:`QepcadCell`.  These cells can be created with the :meth:`cell` method; for example::
+:class:`QepcadCell`.  These cells can be created with the
+:meth:`cell` method; for example::
 
-    sage: c = qe.cell(3, 4); c                                       # optional - qepcad
+    sage: c = qe.cell(3, 4); c                       # optional - qepcad
     QEPCAD cell (3, 4)
 
 A :class:`QepcadCell` has accessor methods for the important state held
 within a cell.  For instance::
 
-    sage: c.level()                                                  # optional - qepcad
+    sage: c.level()                                  # optional - qepcad
     2
-    sage: c.index()                                                  # optional - qepcad
+    sage: c.index()                                  # optional - qepcad
     (3, 4)
-    sage: qe.cell(3).number_of_children()                            # optional - qepcad
+    sage: qe.cell(3).number_of_children()            # optional - qepcad
     5
-    sage: len(qe.cell(3))                                            # optional - qepcad
+    sage: len(qe.cell(3))                            # optional - qepcad
     5
 
 One particularly useful thing we can get from a cell is its sample point,
 as \sage algebraic real numbers. ::
 
-    sage: c.sample_point()                                           # optional - qepcad
+    sage: c.sample_point()                           # optional - qepcad
     (0, 1.732050807568878?)
-    sage: c.sample_point_dict()                                      # optional - qepcad
+    sage: c.sample_point_dict()                      # optional - qepcad
     {'y': 1.732050807568878?, 'x': 0}
 
 We have seen that we can get cells using the :meth:`cell` method.
@@ -416,19 +418,21 @@ There are several QEPCAD commands that print lists of cells; we can
 also get cells using the :meth:`make_cells` method, passing it the
 output of one of these commands. ::
 
-    sage: qe.make_cells(qe.d_true_cells())                          # optional - qepcad
-    [QEPCAD cell (4, 2), QEPCAD cell (3, 4), QEPCAD cell (3, 2), QEPCAD cell (2, 2)]
+    sage: qe.make_cells(qe.d_true_cells())           # optional - qepcad
+    [QEPCAD cell (4, 2), QEPCAD cell (3, 4), QEPCAD cell (3, 2),
+    QEPCAD cell (2, 2)]
 
 Also, the cells in the stack over a given cell can be accessed using
 array subscripting or iteration.  (Remember that cells in a stack are
 numbered starting with one; we preserve this convention in the
 array-subscripting syntax.) ::
 
-    sage: c = qe.cell(3)                                           # optional - qepcad
-    sage: c[1]                                                     # optional - qepcad
+    sage: c = qe.cell(3)                             # optional - qepcad
+    sage: c[1]                                       # optional - qepcad
     QEPCAD cell (3, 1)
-    sage: [c2 for c2 in c]                                         # optional - qepcad
-    [QEPCAD cell (3, 1), QEPCAD cell (3, 2), QEPCAD cell (3, 3), QEPCAD cell (3, 4), QEPCAD cell (3, 5)]
+    sage: [c2 for c2 in c]                           # optional - qepcad
+    [QEPCAD cell (3, 1), QEPCAD cell (3, 2), QEPCAD cell (3, 3),
+    QEPCAD cell (3, 4), QEPCAD cell (3, 5)]
 
 We can do one more thing with a cell: we can set its truth value.
 Once the truth values of the cells have been set, we can get QEPCAD to
@@ -441,17 +445,17 @@ ellipse.  Suppose you want to find all vertical lines that intersect
 the circle twice, and also intersect the ellipse twice.  The vertical
 lines that intersect the circle twice can be found by simplifying::
 
-    sage: F = qf.exactly_k(2, y, circle == 0); F                     # optional - qepcad
+    sage: F = qf.exactly_k(2, y, circle == 0); F         # optional - qepcad
     (X2 y)[x^2 + y^2 - 3 = 0]
 
 and the vertical lines that intersect the ellipse twice are expressed by::
 
-    sage: G = qf.exactly_k(2, y, ellipse == 0); G                   # optional - qepcad
+    sage: G = qf.exactly_k(2, y, ellipse == 0); G        # optional - qepcad
     (X2 y)[3 x^2 + 2 x y + y^2 - x + y - 7 = 0]
 
 and the lines that intersect both figures would be::
 
-    sage: qf.and_(F, G)                                            # optional - qepcad
+    sage: qf.and_(F, G)                                  # optional - qepcad
     Traceback (most recent call last):
     ...
     ValueError: QEPCAD formulas must be in prenex (quantifiers outermost) form
@@ -465,7 +469,7 @@ matter, since we're going to replace the truth values in the cells; we
 just need to use a formula that uses both polynomials.) ::
 
     sage: qe = qepcad(qf.and_(ellipse == 0, circle == 0), interact=True)       # optional - qepcad
-    sage: qe.go(); qe.go(); qe.go()                                            # optional - qepcad
+    sage: qe.go(); qe.go(); qe.go()                      # optional - qepcad
     QEPCAD object has moved to phase 'Before Projection (y)'
     QEPCAD object has moved to phase 'Before Choice'
     QEPCAD object has moved to phase 'Before Solution'
@@ -476,7 +480,7 @@ also contains exactly two cells on the circle.
 
 Our input polynomials are 'level-2 projection factors', we see::
 
-    sage: qe.d_proj_factors()                                                 # optional - qepcad
+    sage: qe.d_proj_factors()                           # optional - qepcad
     P_1,1  = fac(J_1,1) = fac(dis(A_2,1))
            = 8 x^2 - 8 x - 29
     P_1,2  = fac(J_1,2) = fac(dis(A_2,2))
@@ -492,24 +496,24 @@ so we can test whether a cell is on the ellipse by checking that the
 sign of the corresponding projection factor is 0 in our cell.
 For instance, the cell (12,2) is on the ellipse::
 
-    sage: qe.cell(12,2).signs()[1][0]                                          # optional - qepcad
+    sage: qe.cell(12,2).signs()[1][0]                  # optional - qepcad
     0
 
 So we can update the truth values as desired like this::
 
-    sage: for c in qe.cell():                                                 # optional - qepcad
-    ...       count_ellipse = 0                                               # optional - qepcad
-    ...       count_circle = 0                                                # optional - qepcad
-    ...       for c2 in c:                                                    # optional - qepcad
-    ...           count_ellipse += (c2.signs()[1][0] == 0)                    # optional - qepcad
-    ...           count_circle += (c2.signs()[1][1] == 0)                     # optional - qepcad
+    sage: for c in qe.cell():                                        # optional - qepcad
+    ...       count_ellipse = 0                                      # optional - qepcad
+    ...       count_circle = 0                                       # optional - qepcad
+    ...       for c2 in c:                                           # optional - qepcad
+    ...           count_ellipse += (c2.signs()[1][0] == 0)           # optional - qepcad
+    ...           count_circle += (c2.signs()[1][1] == 0)            # optional - qepcad
     ...       c.set_truth(count_ellipse == 2 and count_circle == 2)           # optional - qepcad
 
 and then we can get our desired solution formula.  (The ``'G'`` stands for
 ``'geometric'``, and gives solutions using the same rules as
 ``solution='geometric'`` described above.) ::
 
-    sage: qe.solution_extension('G')              # optional - qepcad
+    sage: qe.solution_extension('G')     # optional - qepcad
     8 x^2 - 8 x - 29 < 0
     /\
     x^2 - 3 < 0
@@ -583,7 +587,7 @@ def _update_command_info():
     EXAMPLES::
 
         sage: from sage.interfaces.qepcad import _update_command_info, _command_info_cache
-        sage: _update_command_info()                         # optional - qepcad
+        sage: _update_command_info()                # optional - qepcad
         sage: _command_info_cache['approx_precision']        # optional - qepcad
         ('46', 'abcde', 'm', 'approx-precision N\n\nApproximate algeraic numbers to N decimal places.\n', None)
     """
@@ -727,7 +731,7 @@ class Qepcad:
         EXAMPLES::
 
             sage: from sage.interfaces.qepcad import Qepcad
-            sage: Qepcad(x^2 - 1 == 0)                     # optional - qepcad
+            sage: Qepcad(x^2 - 1 == 0)            # optional - qepcad
             QEPCAD object in phase 'Before Normalization'
         """
         self._cell_cache = {}
@@ -790,7 +794,7 @@ class Qepcad:
             sage: qepcad(x - 1 == 0, interact=True) # optional - qepcad
             QEPCAD object in phase 'Before Normalization'
         """
-        return "QEPCAD object in phase '%s'"%self.phase()
+        return "QEPCAD object in phase '{}'".format(self.phase())
 
     def assume(self, assume):
         r"""
@@ -804,7 +808,7 @@ class Qepcad:
 
             assume [ a /= 0 ]
 
-        we'll get the solution formula b^2 - 4 a c >= 0.  Without
+        we will get the solution formula b^2 - 4 a c >= 0.  Without
         the assumption we'd get something like [a = 0 /\ b /= 0] \/
         [a /= 0 /\ 4 a c - b^2 <= 0] \/ [a = 0 /\ b = 0 /\ c = 0].
 
@@ -1319,7 +1323,7 @@ def qepcad(formula, assume=None, interact=False, solution=None,
         sage: qepcad('(E x)[a x + b > 0]', vars='(a,b,x)')      # optional - qepcad
         a /= 0 \/ b > 0
 
-        sage: qepcad(a > b)                                     # optional - qepcad
+        sage: qepcad(a > b)                            # optional - qepcad
         b - a < 0
 
         sage: qepcad(qf.exists(x, a*x^2 + b*x + c == 0))        # optional - qepcad
@@ -1346,7 +1350,7 @@ def qepcad(formula, assume=None, interact=False, solution=None,
 
     $3^{75}$ real zeroes? ::
 
-        sage: qepcad(qf.exactly_k(3^75, x, a*x^2 + b*x + c == 0))             # optional - qepcad
+        sage: qepcad(qf.exactly_k(3^75, x, a*x^2 + b*x + c == 0))    # optional - qepcad
         FALSE
 
     We can check that the results don't overlap::
@@ -1396,7 +1400,7 @@ def qepcad(formula, assume=None, interact=False, solution=None,
 
         sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c > 0))        # optional - qepcad
         c > 0 \/ a > 0 \/ 4 a c - b^2 < 0
-        sage: qepcad(qf.exists(x, a*x^2 + b*x + c > 0))                 # optional - qepcad
+        sage: qepcad(qf.exists(x, a*x^2 + b*x + c > 0))        # optional - qepcad
         c > 0 \/ a > 0 \/ 4 a c - b^2 < 0
 
     However, since $y >= 0$ is not open, the equivalence does not
@@ -1466,10 +1470,11 @@ def qepcad(formula, assume=None, interact=False, solution=None,
             qe.quit()
             for c in cells:
                 if c._dimension > 0:
-                    raise ValueError("input formula is true for infinitely many points")
+                    raise ValueError("input formula is true for "
+                                     "infinitely many points")
             return [c.sample_point_dict() for c in cells]
         else:
-            raise ValueError("Unknown solution type (%s)" % solution)
+            raise ValueError("Unknown solution type ({})".format(solution))
 
 
 import os
@@ -1567,7 +1572,7 @@ class qformula:
 
     def __repr__(self):
         r"""
-        Returns a string representation of a qformula (this is just
+        Return a string representation of a qformula (this is just
         the formula it holds).
 
         EXAMPLES::
@@ -1671,7 +1676,8 @@ class qepcad_formula_factory:
         for f in formulas:
             vars = vars | f.vars
             if len(f.qvars):
-                raise ValueError("QEPCAD formulas must be in prenex (quantifiers outermost) form")
+                raise ValueError("QEPCAD formulas must be in prenex"
+                                 " (quantifiers outermost) form")
         return formula_strs, vars
 
     def atomic(self, lhs, op='=', rhs=0):
@@ -1833,7 +1839,7 @@ class qepcad_formula_factory:
 
     def implies(self, f1, f2):
         r"""
-        Returns the implication of its input formulas (that is, given
+        Return the implication of its input formulas (that is, given
         formulas $P$ and $Q$, returns '$P$ implies $Q$').
 
         The input formulas may be a :class:`qformula` as returned by the
@@ -1859,7 +1865,7 @@ class qepcad_formula_factory:
 
     def iff(self, f1, f2):
         r"""
-        Returns the equivalence of its input formulas (that is, given
+        Return the equivalence of its input formulas (that is, given
         formulas $P$ and $Q$, returns '$P$ iff $Q$').
 
         The input formulas may be a :class:`qformula` as returned by the
@@ -2085,9 +2091,11 @@ class qepcad_formula_factory:
             form_str = '[' + form_str + ']'
         v = str(v)
         if not (v in formula.vars):
-            raise ValueError("Attempting to quantify variable which does not occur in formula")
+            raise ValueError("Attempting to quantify variable which "
+                             "does not occur in formula")
         form_str = "(%s %s)%s" % (kind, v, form_str)
-        return qformula(form_str, formula.vars - frozenset([v]), [v] + formula.qvars)
+        return qformula(form_str, formula.vars - frozenset([v]),
+                        [v] + formula.qvars)
 
 
 qepcad_formula = qepcad_formula_factory()
@@ -2135,7 +2143,8 @@ def _eval_qepcad_algebraic(text):
         if intv.lower().exact_rational() == lbound and intv.upper().exact_rational() == ubound:
             return AA.polynomial_root(p, intv)
 
-    raise ValueError("%s or %s not an exact floating-point number"%(lbound, ubound))
+    raise ValueError("%s or %s not an exact floating-point number" % (lbound,
+                                                                      ubound))
 
 
 class QepcadCell:
@@ -2308,7 +2317,8 @@ class QepcadCell:
     def __len__(self):
         r"""
         Return the number of elements in the stack over a QEPCAD cell.
-        (This is always an odd number, if the stack has been constructed.)
+
+        This is always an odd number, if the stack has been constructed.
 
         EXAMPLES::
 
@@ -2328,8 +2338,9 @@ class QepcadCell:
 
     def __repr__(self):
         r"""
-        Return a string representation of a QEPCAD cell.  Just gives the
-        cell index.
+        Return a string representation of a QEPCAD cell.
+
+        Just gives the cell index.
 
         EXAMPLES::
 
@@ -2356,7 +2367,7 @@ class QepcadCell:
 
     def index(self):
         r"""
-        Gives the index of a QEPCAD cell.
+        Give the index of a QEPCAD cell.
 
         EXAMPLES::
 
@@ -2378,7 +2389,7 @@ class QepcadCell:
 
     def level(self):
         r"""
-        Returns the level of a QEPCAD cell.
+        Return the level of a QEPCAD cell.
 
         EXAMPLES::
 
@@ -2400,7 +2411,9 @@ class QepcadCell:
 
     def signs(self):
         r"""
-        Returns the sign vector of a QEPCAD cell.  This is a list of lists.
+        Return the sign vector of a QEPCAD cell.
+
+        This is a list of lists.
         The outer list contains one element for each level of the cell;
         the inner list contains one element for each projection factor at
         that level.  These elements are either -1, 0, or 1.
@@ -2473,7 +2486,7 @@ class QepcadCell:
 
     def sample_point(self):
         r"""
-        Returns the coordinates of a point in the cell, as a tuple of
+        Return the coordinates of a point in the cell, as a tuple of
         \sage algebraic reals.
 
         EXAMPLES::
@@ -2518,7 +2531,7 @@ class QepcadCell:
 
     def sample_point_dict(self):
         r"""
-        Returns the coordinates of a point in the cell, as a dictionary
+        Return the coordinates of a point in the cell, as a dictionary
         mapping variable names (as strings) to \sage algebraic reals.
 
         EXAMPLES::

@@ -1905,9 +1905,9 @@ class ChainComplex_class(Parent):
         ret = self
 
         if self._grading_group is ZZ:
-            scalar = lambda a: (-1)**a
+            scalar = lambda a: (-1)**(a * deg_diff)
         else:
-            scalar = lambda a: (-1)**sum(a)
+            scalar = lambda a: (-1)**(sum(a) * sum(deg_diff))
 
         for D in factors:
             # Setup

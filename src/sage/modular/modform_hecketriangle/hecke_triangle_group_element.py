@@ -494,7 +494,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
                           ``AlgebraicRealField`` resp. ``AlgebraicField``.
                           Default: ``False``.
 
-        - ``order``    -- If ``order="sign"`` the fixed points are always ordered
+        - ``order``    -- If ``order="none"`` the fixed points are choosen
+                          and ordered according to a fixed formula.
+
+                          If ``order="sign"`` the fixed points are always ordered
                           according to the sign in front of the square root.
 
                           If ``order="default"`` (default) then in case the fixed
@@ -526,8 +529,6 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             [+Infinity, +Infinity]
             sage: (-G.S()).fixed_points()
             [1/2*e, -1/2*e]
-            sage: (-G.S()).fixed_points(order="trace") == G.S().fixed_points(order="trace")
-            True
             sage: p = (-G.S()).fixed_points(embedded=True)[0]
             sage: p
             1*I
@@ -546,23 +547,28 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: G = HeckeTriangleGroup(n=7)
             sage: (-G.S()).fixed_points()
             [1/2*e, -1/2*e]
-            sage: (-G.S()).fixed_points(order="trace") == G.S().fixed_points(order="trace")
-            True
             sage: p = (-G.S()).fixed_points(embedded=True)[1]
             sage: p
             -1*I
             sage: (-G.S()).acton(p) == p
             True
-            sage: (G.U()^2).fixed_points()
-            [(-1/2*lam^2 + 1/2*lam + 1)*e + 1/2*lam, (1/2*lam^2 - 1/2*lam - 1)*e + 1/2*lam]
-            sage: (-G.U()^2).fixed_points(order="trace")
-            [(-1/2*lam^2 + 1/2*lam + 1)*e + 1/2*lam, (1/2*lam^2 - 1/2*lam - 1)*e + 1/2*lam]
-            sage: (G.U()^2).fixed_points(order="trace") == (-G.U()^2).fixed_points(order="trace")
+            sage: (G.U()^4).fixed_points()
+            [(1/2*lam^2 - 1/2*lam - 1/2)*e + 1/2*lam, (-1/2*lam^2 + 1/2*lam + 1/2)*e + 1/2*lam]
+            sage: pts = (G.U()^4).fixed_points(order="trace")
+            sage: (G.U()^4).fixed_points() == [pts[1], pts[0]]
             True
-            sage: p = (G.U()^2).fixed_points(embedded=True)[1]
+            sage: (G.U()^4).fixed_points(order="trace") == (-G.U()^4).fixed_points(order="trace")
+            True
+            sage: (G.U()^4).fixed_points() == (G.U()^4).fixed_points(order="none")
+            True
+            sage: (-G.U()^4).fixed_points() == (G.U()^4).fixed_points()
+            True
+            sage: (-G.U()^4).fixed_points(order="none") == pts
+            True
+            sage: p = (G.U()^4).fixed_points(embedded=True)[1]
             sage: p
             0.9009688679024191? - 0.4338837391175581?*I
-            sage: (G.U()^2).acton(p) == p
+            sage: (G.U()^4).acton(p) == p
             True
             sage: (-G.V(5)).fixed_points()
             [(1/2*lam^2 - 1/2*lam - 1/2)*e, (-1/2*lam^2 + 1/2*lam + 1/2)*e]
@@ -588,7 +594,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             d = self.d()
             c = self.c()
 
-            if order == "sign":
+            if order == "none":
+                sgn = ZZ(1)
+            elif order == "sign":
                 sgn = AA(c).sign()
             elif order == "default":
                 if self.is_elliptic() or self.trace() == 0:

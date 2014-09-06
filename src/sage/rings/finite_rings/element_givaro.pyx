@@ -6,13 +6,12 @@ arithmetic in finite fields.
 
 .. NOTE::
 
-    The arithmetic is performed by the Givaro C++ library which uses Zech
-    logs internally to represent finite field elements. This
-    implementation is the default finite extension field implementation in
-    Sage for the cardinality less than `2^{16}`, as it is vastly faster than
-    the PARI implementation which uses polynomials to represent finite field
-    elements. Some functionality in this class however is implemented
-    using the PARI implementation.
+    The arithmetic is performed by the Givaro C++ library which uses
+    Zech logs internally to represent finite field elements. This
+    implementation is the default finite extension field implementation
+    in Sage for the cardinality less than `2^{16}`, as it is a lot
+    faster than the PARI implementation. Some functionality in this
+    class however is implemented using PARI.
 
 EXAMPLES::
 
@@ -151,21 +150,7 @@ cdef class Cache_givaro(SageObject):
 
         - ``name`` -- variable used for poly_repr (default: ``'a'``)
 
-        - ``modulus`` -- you may provide a polynomial to use for reduction or
-          one of the following strings:
-
-          - ``'conway'`` -- force the use of a Conway polynomial, will
-            raise a ``RuntimeError`` if none is found in the database
-          - ``'random'`` -- use a random irreducible polynomial
-          - ``'default'`` -- a Conway polynomial is used if found. Otherwise
-            a random polynomial is used
-
-          Furthermore, for binary fields we allow two more options:
-
-          - ``'minimal_weight'`` -- use a minimal weight polynomial, should
-            result in faster arithmetic;
-          - ``'first_lexicographic'`` -- use the first irreducible polynomial
-            in lexicographic order.
+        - ``modulus`` -- a polynomial to use as modulus.
 
         - ``repr``  -- (default: 'poly') controls the way elements are printed
           to the user:
@@ -215,15 +200,6 @@ cdef class Cache_givaro(SageObject):
             sage: k = GF(2**10, 'a', modulus='minimal_weight')
             sage: k.modulus()
             x^10 + x^3 + 1
-
-        Three different representations are possible::
-
-            sage: sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro(9,repr='poly').gen()
-            a
-            sage: sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro(9,repr='int').gen()
-            3
-            sage: sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro(9,repr='log').gen()
-            1
         """
         # we are calling late_import here because this constructor is
         # called at least once before any arithmetic is performed.
@@ -243,6 +219,10 @@ cdef class Cache_givaro(SageObject):
             self.repr = 2
         else:
             raise RuntimeError
+
+        if not is_Polynomial(modulus):
+            from sage.misc.superseded import deprecation
+            deprecation(16930, "constructing a FiniteField_givaro without giving a polynomial as modulus is deprecated, use the more general FiniteField constructor instead")
 
         if isinstance(modulus,str) and p == 2:
             if modulus == "minimal_weight":
@@ -267,14 +247,15 @@ cdef class Cache_givaro(SageObject):
         if is_Polynomial(modulus):
             modulus = modulus.list()
 
-        if PY_TYPE_CHECK(modulus, list) or PY_TYPE_CHECK(modulus, tuple):
+        if k == 1 or modulus == "random":
+            sig_on()
+            self.objectptr = gfq_factorypk(p,k)
+        elif PY_TYPE_CHECK(modulus, list) or PY_TYPE_CHECK(modulus, tuple):
+            # This crashes if k == 1
             for i in modulus:
                 cPoly.push_back(int( i % p ))
             sig_on()
             self.objectptr = gfq_factorypkp(p, k, cPoly)
-        elif modulus == "random":
-            sig_on()
-            self.objectptr = gfq_factorypk(p,k)
         else:
             raise ValueError, "Cannot understand modulus"
 
@@ -626,12 +607,12 @@ cdef class Cache_givaro(SageObject):
             sage: k._cache._element_repr(a^20)
             '2*a^3 + 2*a^2 + 2'
 
-            sage: k = sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro(3^4,'a', repr='int')
+            sage: k = FiniteField(3^4,'a', impl='givaro', repr='int')
             sage: a = k.gen()
             sage: k._cache._element_repr(a^20)
             '74'
 
-            sage: k = sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro(3^4,'a', repr='log')
+            sage: k = FiniteField(3^4,'a', impl='givaro', repr='log')
             sage: a = k.gen()
             sage: k._cache._element_repr(a^20)
             '20'

@@ -402,10 +402,12 @@ class Link:
             strings_max = strings[-1]
             for i in b:
                 if i > 0:
-                    pd.append([strings[i], strings[i-1], strings_max + 1, strings_max + 2])
+                    pd.append(
+                        [strings[i], strings[i - 1], strings_max + 1, strings_max + 2])
                 else:
-                    pd.append([strings[abs(i)-1], strings_max + 1, strings_max + 2, strings[abs(i)]])
-                strings[abs(i)-1] = strings_max + 1
+                    pd.append(
+                        [strings[abs(i) - 1], strings_max + 1, strings_max + 2, strings[abs(i)]])
+                strings[abs(i) - 1] = strings_max + 1
                 strings[abs(i)] = strings_max + 2
                 strings_max = strings_max + 2
             for i in pd:
@@ -1697,6 +1699,14 @@ class Link:
         f = (((-x ** (3)) ** (-wri)) * poly).expand()
         return f.subs({x: x ** (ZZ(-1) / ZZ(4))})
 
+    def jones_polynomial_nosub(self):
+        pd = self.PD_code()
+        poly = bracket(pd)
+        t = poly.variables()[0]
+        writhe = self.writhe()
+        jones = poly * (-t) ** (-3 * writhe)
+        return jones
+
 #********************** Auxillary methods used ********************************
 # rule_1 and rule_2 are used in the orientation method looks for entering,
 # leaving pairs and fill the gaps where ever necessary.
@@ -1756,3 +1766,49 @@ def _pd_check_(pd):
             if flat.count(i) != 2:
                 pd_error = True
     return pd_error
+
+
+def bracket(pd_code):
+    R = LaurentPolynomialRing(ZZ, 't')
+    t = R.gen()
+    if len(pd_code) == 0:
+        return 1
+    cross = pd_code[0]
+    rest = deepcopy(pd_code[1:])
+    [a, b, c, d] = cross
+    if a == b and c == d and len(rest) > 0:
+        bracket_ = (t ** (-1) + t ** (-5)) * bracket(rest)
+    elif a == d and c == b and len(rest) > 0:
+        bracket_ = (t ** (1) + t ** (5)) * bracket(rest)
+    elif a == b:
+        _rule_4_(rest, d, c)
+        bracket_ = (-t ** (-3)) * bracket(rest)
+    elif a == d:
+        _rule_4_(rest, c, b)
+        bracket_ = (-t ** 3) * bracket(rest)
+    elif c == b:
+        _rule_4_(rest, d, a)
+        bracket_ = (-t ** 3) * bracket(rest)
+    elif c == d:
+        _rule_4_(rest, b, a)
+        bracket_ = (-t ** (-3)) * bracket(rest)
+    else:
+        rest_2 = deepcopy(rest)
+        for cross in rest:
+            if d in cross:
+                cross[cross.index(d)] = a
+            if c in cross:
+                cross[cross.index(c)] = b
+        for cross in rest_2:
+            if d in cross:
+                cross[cross.index(d)] = c
+            if b in cross:
+                cross[cross.index(b)] = a
+        bracket_ = t * bracket(rest) + t ** (-1) * bracket(rest_2)
+    return bracket_
+
+
+def _rule_4_(rest, c_1, c_2):
+    for cross in rest:
+        if c_1 in cross:
+            cross[cross.index(c_1)] = c_2

@@ -19,7 +19,7 @@ a cylindrical algebraic decomposition for $P$, we can eliminate the
 quantifier (find an equivalent formula in the two variables $a$, $b$
 without the quantifier $\exists$) as follows.  For each cell $C$ in
 $\RR^2$, find the cells of $\RR^3$ which project to $C$.  (This
-collection is called the \emph{stack} over $C$.)  Mark $C$ as true if
+collection is called the ``stack`` over $C$.)  Mark $C$ as true if
 some member of the stack has sign $= 0$; otherwise, mark $C$ as false.
 Then, construct a polynomial formula in $a$, $b$ which specifies
 exactly the true cells (this is always possible).  The same technique
@@ -37,8 +37,8 @@ is written for people who may not be familiar with QEPCAD, it is
 documentation for the \sage interface rather than for QEPCAD.  As
 such, it does not cover several issues that are very important to use
 QEPCAD efficiently, such as variable ordering, the efficient use of
-the alternate quantifiers and \code{_root_} expressions, the
-\code{measure-zero-error} command, etc.  For more information on
+the alternate quantifiers and ``_root_`` expressions, the
+``measure-zero-error`` command, etc.  For more information on
 QEPCAD, see the online documentation at
 \url{http://www.cs.usna.edu/~qepcad/B/QEPCAD.html} and Chris Brown's
 tutorial handout and slides from
@@ -52,7 +52,7 @@ QEPCAD can be run in a fully automatic fashion, or interactively.
 We first demonstrate the automatic use of QEPCAD.
 
 Since \sage has no built-in support for quantifiers, this interface
-provides \code{qepcad_formula} which helps construct quantified
+provides ``qepcad_formula`` which helps construct quantified
 formulas in the syntax QEPCAD requires. ::
 
     sage: var('a,b,c,d,x,y,z')
@@ -83,7 +83,7 @@ How about the projection onto the $y$ axis? ::
 QEPCAD deals with more quantifiers than just 'exists', of course.
 Besides the standard 'forall', there are also 'for infinitely
 many', 'for all but finitely many', 'for a connected subset', and
-'for exactly k'.  The \function{qepcad} documentation has examples
+'for exactly k'.  The :func:`qepcad` documentation has examples
 of all of these; here we'll just give one example.
 
 First we construct a circle::
@@ -104,10 +104,9 @@ roots are solutions; the polynomial inequalities outside the brackets
 are needed to select those roots that are solutions.
 
 QEPCAD also supports an extended formula language, where
-$\mbox{_root_}k \quad P(\bar x, y)$ refers to a particular zero of
-$P(\bar x, y)$ (viewed as a polynomial in $y$).  If there are $n$ roots,
-then _root_$1$ refers to the least root and _root_$n$ refers to the greatest;
-also, _root_$-n$ refers to the least root and _root_$-1$ refers to the
+``_root_k`` `P(\bar x, y)` refers to a particular zero of
+`P(\bar x, y)` (viewed as a polynomial in `y`).  If there are `n` roots,
+then ``_root_1`` refers to the least root and ``_root_n`` refers to the greatest. Also, ``_root_-n`` refers to the least root and ``_root_-1`` refers to the
 greatest.
 
 This extended language is available both on input and output; see the
@@ -128,7 +127,7 @@ the left side of the ellipse, the four intersections between the
 ellipse and the circle, and the vertical tangent on the right side of
 the circle.
 
-Let's do some basic formula simplification and visualization.
+Let us do some basic formula simplification and visualization.
 We'll look at the region which is inside both the ellipse and the circle::
 
     sage: F = qf.and_(ellipse < 0, circle < 0); F                     # optional - qepcad
@@ -186,26 +185,26 @@ language without introducing new polynomials. ::
     sage: qepcad(F, solution='extended')                                      # optional - qepcad
     x^2 - 3 <= 0 /\ x > _root_1 2 x^2 - 3
 
-Up to this point, all the output we've seen has basically been in the
+Up to this point, all the output we have seen has basically been in the
 form of strings; there is no support (yet) for parsing these outputs
 back into \sage polynomials (partly because \sage does not yet have
 support for symbolic conjunctions and disjunctions).  The function
-\function{qepcad} supports three more output types that give numbers which
+:func:`qepcad` supports three more output types that give numbers which
 can be manipulated in \sage: any-point, all-points, and cell-points.
 
 These output types give dictionaries mapping variable names to values.
-With any-point, \function{qepcad} either produces a single dictionary
+With any-point, :func:`qepcad` either produces a single dictionary
 specifying a point where the formula is true, or raises an exception
 if the formula is false everywhere.  With all-points,
-\function{qepcad} either produces a list of dictionaries for all
+:func:`qepcad` either produces a list of dictionaries for all
 points where the formula is true, or raises an exception if the
 formula is true on infinitely many points.  With cell-points,
-\function{qepcad} produces a list of dictionaries with one point for
+:func:`qepcad` produces a list of dictionaries with one point for
 each cell where the formula is true.  (This means you will have at least
 one point in each connected component of the solution, although you will
 often have many more points than that.)
 
-Let's revisit some of the above examples and get some points to play
+Let us revisit some of the above examples and get some points to play
 with.  We'll start by finding a point on our ellipse. ::
 
     sage: p = qepcad(ellipse == 0, solution='any-point'); p                       # optional - qepcad
@@ -215,14 +214,14 @@ with.  We'll start by finding a point on our ellipse. ::
 are really exact numbers.)
 
 We can verify that this point is a solution.  To do so, we create
-a copy of ellipse as a polynomial over QQ (instead of a symbolic
+a copy of ellipse as a polynomial over `\QQ` (instead of a symbolic
 expression). ::
 
     sage: pellipse = QQ['x,y'](ellipse)                                           # optional - qepcad
     sage: pellipse(**p) == 0                                                      # optional - qepcad
     True
 
-For cell-points, let's look at points \emph{not} on the ellipse. ::
+For cell-points, let us look at points *not* on the ellipse. ::
 
     sage: pts = qepcad(ellipse != 0, solution='cell-points'); pts                 # optional - qepcad
     [{'y': 0, 'x': 4}, {'y': 1, 'x': 2.468501968502953?}, {'y': -9, 'x': 2.468501968502953?}, {'y': 9, 'x': 1/2}, {'y': -1, 'x': 1/2}, {'y': -5, 'x': 1/2}, {'y': 3, 'x': -1.468501968502953?}, {'y': -1, 'x': -1.468501968502953?}, {'y': 0, 'x': -3}]
@@ -235,7 +234,7 @@ And, of course, all these points really are not on the ellipse. ::
     sage: [pellipse(**p) != 0 for p in pts]                                       # optional - qepcad
     [True, True, True, True, True, True, True, True, True]
 
-Finally, for all-points, let's look again at finding vertical lines that
+Finally, for all-points, let us look again at finding vertical lines that
 intersect the union of the circle and the ellipse exactly three times. ::
 
     sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F                       # optional - qepcad
@@ -257,49 +256,49 @@ and verify that it does have three roots::
     sage: intersections.roots()                                                 # optional - qepcad
     [(-4.403249005600958?, 1), (-0.06085260953679653?, 1), (0, 2)]
 
-Let's check all six solutions. ::
+Let us check all six solutions. ::
 
     sage: [len(pcombo(y=polygen(AA, 'y'), **p).roots()) for p in pts]          # optional - qepcad
     [3, 3, 3, 3, 3, 3]
 
 We said earlier that we can run QEPCAD either automatically or
-interactively.  Now that we've discussed the automatic modes, let's turn
+interactively.  Now that we have discussed the automatic modes, let us turn
 to interactive uses.
 
-If the \function{qepcad} function is passed \code{interact=True}, then
+If the :func:`qepcad` function is passed ``interact=True``, then
 instead of returning a result, it returns an object of class
-\class{Qepcad} representing a running instance of QEPCAD that you can
+:class:`Qepcad` representing a running instance of QEPCAD that you can
 interact with.  For example::
 
     sage: qe = qepcad(qf.forall(x, x^2 + b*x + c > 0), interact=True); qe     # optional - qepcad
     QEPCAD object in phase 'Before Normalization'
 
 This object is a fairly thin wrapper over QEPCAD; most QEPCAD commands
-are available as methods on the \class{Qepcad} object.  Given a
-\class{Qepcad} object \var{qe}, you can type \code{qe.[tab]} to see
+are available as methods on the :class:`Qepcad` object.  Given a
+:class:`Qepcad` object ``qe``, you can type ``qe.[tab]`` to see
 the available QEPCAD commands; to see the documentation for an
-individual QEPCAD command, for example \code{d_setting}, you can type
-\code{qe.d_setting?}.  (In QEPCAD, this command is called
-\code{d-setting}; we systematically replace hyphens with underscores
+individual QEPCAD command, for example ``d_setting``, you can type
+``qe.d_setting?``.  (In QEPCAD, this command is called
+``d-setting``. We systematically replace hyphens with underscores
 for this interface.)
 
-The execution of QEPCAD is divided into four phases; most commands are
+The execution of QEPCAD is divided into four phases. Most commands are
 not available during all phases.  We saw above that QEPCAD starts out
-in phase 'Before Normalization'; we see that the \code{d_cell} command
+in phase ``'Before Normalization'``. We see that the ``d_cell`` command
 is not available in this phase::
 
-    sage: qe.d_cell()                                                         # optional - qepcad
+    sage: qe.d_cell()                                # optional - qepcad
     Error GETCID: This command is not active here.
 
-We will focus here on the fourth (and last) phase, 'Before Solution',
+We will focus here on the fourth (and last) phase, ``'Before Solution'``,
 because this interface has special support for some operations in this
 phase.  Consult the QEPCAD documentation for information on the other
 phases.
 
 We can tell QEPCAD to finish off the current phase and move to the
-next with its \code{go} command.  (There is also the \code{step}
+next with its ``go`` command.  (There is also the ``step``
 command, which partially completes a phase for phases that have
-multiple steps, and the \code{finish} command, which runs QEPCAD to
+multiple steps, and the ``finish`` command, which runs QEPCAD to
 completion.) ::
 
     sage: qe.go()                                        # optional - qepcad
@@ -309,18 +308,18 @@ completion.) ::
     sage: qe.go()                                        # optional - qepcad
     QEPCAD object has moved to phase 'Before Solution'
 
-Note that the \class{Qepcad} object returns the new phase whenever the
+Note that the :class:`Qepcad` object returns the new phase whenever the
 phase changes, as a convenience for interactive use; except that when
-the new phase is 'EXITED', the solution formula printed by QEPCAD is
+the new phase is ``'EXITED'``, the solution formula printed by QEPCAD is
 returned instead. ::
 
-    sage: qe.go()                                                             # optional - qepcad
+    sage: qe.go()                                        # optional - qepcad
     4 c - b^2 > 0
-    sage: qe                                                                  # optional - qepcad
+    sage: qe                                             # optional - qepcad
     QEPCAD object in phase 'EXITED'
 
-Let's pick a nice, simple example, return to phase 4, and explore the
-resulting \var{qe} object. ::
+Let us pick a nice, simple example, return to phase 4, and explore the
+resulting ``qe`` object. ::
 
     sage: qe = qepcad(circle == 0, interact=True); qe                         # optional - qepcad
     QEPCAD object in phase 'Before Normalization'
@@ -338,7 +337,7 @@ these decompositions are as follows:
 The decomposition of $\RR^0$ is trivial (of course).  The
 decomposition of $\RR^1$ has five cells: $x < -\sqrt{3}$, $x =
 -\sqrt{3}$, $-\sqrt{3} < x < \sqrt{3}$, $x = \sqrt{3}$, and $x >
-\sqrt{3}$.  These five cells comprise the \emph{stack} over the single
+\sqrt{3}$.  These five cells comprise the ``stack`` over the single
 cell in the trivial decomposition of $\RR^0$.
 
 These five cells give rise to five stacks in $\RR^2$.  The first and
@@ -348,14 +347,14 @@ five cells: below the circle, the lower semicircle, the interior of
 the circle, the upper semicircle, and above the circle.
 
 QEPCAD (and this QEPCAD interface) number the cells in a stack
-starting with 1.  Each cell has an \emph{index}, which is a tuple of
+starting with 1.  Each cell has an ``index``, which is a tuple of
 integers describing the path to the cell in the tree of all cells.
 For example, the cell 'below the circle' has index (3,1) (the first
 cell in the stack over the third cell of $\RR^1$) and the interior of
 the circle has index (3,3).
 
-We can view these cells with the QEPCAD command \code{d_cell}.  For
-instance, let's look at the cell for the upper semicircle::
+We can view these cells with the QEPCAD command ``d_cell``.  For
+instance, let us look at the cell for the upper semicircle::
 
     sage: qe.d_cell(3, 4)                                                        # optional - qepcad
     ---------- Information about the cell (3,4) ----------
@@ -386,14 +385,13 @@ cell is homeomorphic to a line (rather than a plane or a point).  The
 sample point gives the coordinates of one point in the cell, both
 symbolically and numerically.
 
-For programmatic access to cells, we've defined a \sage wrapper class
-\class{QepcadCell}.  These cells can be created with the \method{cell}
-method; for example::
+For programmatic access to cells, we have defined a \sage wrapper class
+:class:`QepcadCell`.  These cells can be created with the :meth:`cell` method; for example::
 
     sage: c = qe.cell(3, 4); c                                       # optional - qepcad
     QEPCAD cell (3, 4)
 
-A \class{QepcadCell} has accessor methods for the important state held
+A :class:`QepcadCell` has accessor methods for the important state held
 within a cell.  For instance::
 
     sage: c.level()                                                  # optional - qepcad
@@ -413,9 +411,9 @@ as \sage algebraic real numbers. ::
     sage: c.sample_point_dict()                                      # optional - qepcad
     {'y': 1.732050807568878?, 'x': 0}
 
-We've seen that we can get cells using the \method{cell} method.
+We have seen that we can get cells using the :meth:`cell` method.
 There are several QEPCAD commands that print lists of cells; we can
-also get cells using the \method{make_cells} method, passing it the
+also get cells using the :meth:`make_cells` method, passing it the
 output of one of these commands. ::
 
     sage: qe.make_cells(qe.d_true_cells())                          # optional - qepcad
@@ -507,11 +505,11 @@ So we can update the truth values as desired like this::
     ...           count_circle += (c2.signs()[1][1] == 0)                     # optional - qepcad
     ...       c.set_truth(count_ellipse == 2 and count_circle == 2)           # optional - qepcad
 
-and then we can get our desired solution formula.  (The 'G' stands for
-'geometric', and gives solutions using the same rules as
-\code{solution='geometric'} described above.) ::
+and then we can get our desired solution formula.  (The ``'G'`` stands for
+``'geometric'``, and gives solutions using the same rules as
+``solution='geometric'`` described above.) ::
 
-    sage: qe.solution_extension('G')                                         # optional - qepcad
+    sage: qe.solution_extension('G')              # optional - qepcad
     8 x^2 - 8 x - 29 < 0
     /\
     x^2 - 3 < 0
@@ -551,8 +549,9 @@ from expect import Expect, ExpectFunction, AsciiArtString
 
 def _qepcad_cmd(memcells=None):
     r"""
-    Construct a QEPCAD command line.  Optionally set the
-    number of memory cells to use.
+    Construct a QEPCAD command line.
+
+    Optionally set the number of memory cells to use.
 
     EXAMPLES::
 
@@ -573,10 +572,13 @@ def _qepcad_cmd(memcells=None):
 
 _command_info_cache = None
 
+
 def _update_command_info():
     r"""
-    Read the file \file{qepcad.help} to find the list of commands
-    supported by QEPCAD.  Used for tab-completion and documentation.
+    Read the file ``qepcad.help`` to find the list of commands
+    supported by QEPCAD.
+
+    Used for tab-completion and documentation.
 
     EXAMPLES::
 
@@ -659,7 +661,9 @@ class Qepcad_expect(Expect):
                  logfile=None,
                  server=None):
         r"""
-        Initialize a low-level wrapper for QEPCAD.  You can specify
+        Initialize a low-level wrapper for QEPCAD.
+
+        You can specify
         the number of memory cells that QEPCAD allocates on startup
         (which controls the maximum problem size QEPCAD can handle),
         and specify a logfile.  You can also specify a server, and the
@@ -693,29 +697,31 @@ class Qepcad:
                  vars=None, logfile=None, verbose=False,
                  memcells=None, server=None):
         r"""
-        Construct a QEPCAD wrapper object.  Requires a formula, which
-        may be a \class{qformula} as returned by the methods of
-        \code{qepcad_formula}, a symbolic equality or inequality, a
+        Construct a QEPCAD wrapper object.
+
+        Requires a formula, which
+        may be a :class:`qformula` as returned by the methods of
+        ``qepcad_formula``, a symbolic equality or inequality, a
         polynomial $p$ (meaning $p = 0$), or a string, which is passed
         straight to QEPCAD.
 
-        \var{vars} specifies the variables to use; this gives the variable
-        ordering, which may be very important.  If \var{formula} is
-        given as a string, then \var{vars} is required; otherwise,
-        if \var{vars} is omitted, then a default ordering is used
+        ``vars`` specifies the variables to use; this gives the variable
+        ordering, which may be very important.  If ``formula`` is
+        given as a string, then ``vars`` is required; otherwise,
+        if ``vars`` is omitted, then a default ordering is used
         (alphabetical ordering for the free variables).
 
-        A logfile can be specified with \var{logfile}.
-        If \code{verbose=True} is given, then the logfile is automatically
-        set to \code{sys.stdout}, so all QEPCAD interaction is echoed to
+        A logfile can be specified with ``logfile``.
+        If ``verbose=True`` is given, then the logfile is automatically
+        set to ``sys.stdout``, so all QEPCAD interaction is echoed to
         the terminal.
 
         You can set the amount of memory that QEPCAD allocates with
-        \var{memcells}, and you can use \var{server} to run QEPCAD on
+        ``memcells``, and you can use ``server`` to run QEPCAD on
         another machine using ssh.  (UNTESTED)
 
-        Usually you will not call this directly, but use \function{qepcad}
-        to do so.  Check the \function{qepcad} documentation for more
+        Usually you will not call this directly, but use ``qepcad``
+        to do so.  Check the ``qepcad`` documentation for more
         information.
 
         EXAMPLES::
@@ -777,7 +783,7 @@ class Qepcad:
 
     def __repr__(self):
         r"""
-        Return a string representation of this \class{Qepcad} object.
+        Return a string representation of this :class:`Qepcad` object.
 
         EXAMPLES::
 
@@ -788,7 +794,7 @@ class Qepcad:
 
     def assume(self, assume):
         r"""
-        The following documentation is from \file{qepcad.help}:
+        The following documentation is from ``qepcad.help``.
 
         Add an assumption to the problem.  These will not be
         included in the solution formula.
@@ -817,7 +823,8 @@ class Qepcad:
             if len(assume.qvars):
                 raise ValueError("assumptions cannot be quantified")
             if not assume.vars.issubset(frozenset(self._varlist[:self._free_vars])):
-                raise ValueError("assumption contains variables not present in formula")
+                raise ValueError("assumption contains variables not "
+                                 "present in formula")
             assume = repr(assume)
         assume = assume.replace('_', '')
         result = self._eval_line("assume [%s]" % assume)
@@ -826,7 +833,7 @@ class Qepcad:
 
     def solution_extension(self, kind):
         r"""
-        The following documentation is modified from \file{qepcad.help}:
+        The following documentation is modified from ``qepcad.help``:
 
         solution-extension x
 
@@ -871,8 +878,9 @@ class Qepcad:
             y + x > 0 /\ y^2 + x^2 - 3 = 0
         """
         if kind == 'I':
-            raise ValueError("Interactive solution construction not handled by Sage interface")
-        result = self._eval_line('solution-extension %s'%kind)
+            raise ValueError("Interactive solution construction not "
+                             "handled by Sage interface")
+        result = self._eval_line('solution-extension %s' % kind)
         tagline = 'An equivalent quantifier-free formula:'
         loc = result.find(tagline)
         if loc >= 0:
@@ -884,8 +892,9 @@ class Qepcad:
     def set_truth_value(self, index, nv):
         r"""
         Given a cell index (or a cell) and an integer, set the truth value
-        of the cell to that integer.  Valid integers are 0 (false),
-        1 (true), and 2 (undetermined).
+        of the cell to that integer.
+
+        Valid integers are 0 (false), 1 (true), and 2 (undetermined).
 
         EXAMPLES::
 
@@ -997,8 +1006,8 @@ class Qepcad:
 
     def trait_names(self):
         r"""
-        Returns a list of the QEPCAD commands which are available as
-        extra methods on a \class{Qepcad} object.
+        Return a list of the QEPCAD commands which are available as
+        extra methods on a :class:`Qepcad` object.
 
         EXAMPLES::
 
@@ -1013,7 +1022,7 @@ class Qepcad:
 
     def cell(self, *index):
         r"""
-        Given a cell index, returns a \class{QepcadCell} wrapper for that
+        Given a cell index, returns a :class:`QepcadCell` wrapper for that
         cell.  Uses a cache for efficiency.
 
         EXAMPLES::
@@ -1039,7 +1048,7 @@ class Qepcad:
     def make_cells(self, text):
         r"""
         Given the result of some QEPCAD command that returns cells
-        (such as \method{d_cell}, \method{d_witness_list}, etc.),
+        (such as :meth:`d_cell`, :meth:`d_witness_list`, etc.),
         return a list of cell objects.
 
         EXAMPLES::
@@ -1077,7 +1086,7 @@ class Qepcad:
 
     def __getattr__(self, attrname):
         r"""
-        Returns a \class{QepcadFunction} object for any QEPCAD command.
+        Return a :class:`QepcadFunction` object for any QEPCAD command.
 
         EXAMPLES::
 
@@ -1094,8 +1103,9 @@ class Qepcad:
     def _eval_line(self, cmd, restart_if_needed=False):
         r"""
         Send a command to QEPCAD, wait for a prompt, and return the
-        text printed by QEPCAD before the prompt.  Not intended for
-        direct use.
+        text printed by QEPCAD before the prompt.
+
+        Not intended for direct use.
 
         EXAMPLES::
 
@@ -1148,7 +1158,9 @@ class Qepcad:
     def _function_call(self, name, args):
         r"""
         Given a command name and a list of arguments, send the command
-        to QEPCAD and return the result.  Not intended for direct use.
+        to QEPCAD and return the result.
+
+        Not intended for direct use.
 
         EXAMPLES::
 
@@ -1177,9 +1189,11 @@ class Qepcad:
 def _format_cell_index(a):
     """
     Given a tuple (or list, etc.) containing a QEPCAD cell index, return a
-    string with a properly-formatted index.  The input is flattened, so
+    string with a properly-formatted index.
+
+    The input is flattened, so
     extra levels of brackets are ignored.  Also, if the first item
-    in the flattened list is a \class{QepcadCell} object, then its index
+    in the flattened list is a :class:`QepcadCell` object, then its index
     is used in place of the object.
 
     EXAMPLES::
@@ -1214,8 +1228,8 @@ class QepcadFunction(ExpectFunction):
     """
     def _sage_doc_(self):
         r"""
-        Returns the documentation for a QEPCAD command, from
-        \file{qepcad.help}.
+        Return the documentation for a QEPCAD command, from
+        ``qepcad.help``.
 
         EXAMPLES::
 
@@ -1229,12 +1243,12 @@ class QepcadFunction(ExpectFunction):
 
     def __call__(self, *args):
         r"""
-        Calls QEPCAD with the command this is a wrapper for.
+        Call QEPCAD with the command this is a wrapper for.
 
-        For commands which take cell indexes, \function{_format_cell_index}
+        For commands which take cell indexes, :func:`_format_cell_index`
         is automatically called.  For commands which take 'y' or 'n',
         booleans are also allowed.  (These special commands were hand-selected
-        after reading \file{qepcad.help}.)
+        after reading ``qepcad.help``.)
 
         EXAMPLES::
 
@@ -1257,36 +1271,39 @@ class QepcadFunction(ExpectFunction):
                 args[0] = 'y' if args[0] else 'n'
 
         if special == 'interactive':
-            raise ValueError("Cannot call %s through Sage interface... interactive commands not handled")
+            raise ValueError("Cannot call %s through Sage interface... "
+                             "interactive commands not handled")
 
         return self._parent._function_call(self._name, args)
 
-def qepcad(formula, assume=None, interact=False, solution=None, vars=None, **kwargs):
+
+def qepcad(formula, assume=None, interact=False, solution=None,
+           vars=None, **kwargs):
     r"""
     Quantifier elimination and formula simplification using QEPCAD B.
 
-    If \var{assume} is specified, then the given formula is 'assumed',
+    If ``assume`` is specified, then the given formula is ``'assumed'``,
     which is taken into account during final solution formula construction.
 
-    If \code{interact=True} is given, then a \class{Qepcad} object is
+    If ``interact=True`` is given, then a :class:`Qepcad` object is
     returned which can be interacted with either at the command line
     or programmatically.
 
-    The type of solution returned can be adjusted with \var{solution}.
-    The options are \code{'geometric'}, which tries to construct a
-    solution formula with geometric meaning; \code{'extended'}, which
+    The type of solution returned can be adjusted with ``solution``.
+    The options are ``'geometric'``, which tries to construct a
+    solution formula with geometric meaning; ``'extended'``, which
     gives a solution formula in an extended language that may be more
-    efficient to construct; \code{'any-point'}, which returns any
-    point where the formula is true; \code{'all-points'}, which
+    efficient to construct; ``'any-point'``, which returns any
+    point where the formula is true; ``'all-points'``, which
     returns a list of all points where the formula is true (or raises
-    an exception if there are infinitely many); and \code{'cell-points'},
+    an exception if there are infinitely many); and ``'cell-points'``,
     which returns one point in each cell where the formula is true.
 
-    All other keyword arguments are passed through to the \class{Qepcad}
+    All other keyword arguments are passed through to the :class:`Qepcad`
     constructor.
 
     For much more documentation and many more examples, see the module
-    docstring for this module (type \code{sage.interfaces.qepcad?} to
+    docstring for this module (type ``sage.interfaces.qepcad?`` to
     read this docstring from the \sage command line).
 
     The examples below require that the optional qepcad package is installed.
@@ -1659,7 +1676,7 @@ class qepcad_formula_factory:
 
     def atomic(self, lhs, op='=', rhs=0):
         r"""
-        Constructs a QEPCAD formula from the given inputs.
+        Construct a QEPCAD formula from the given inputs.
 
         INPUT:
 
@@ -1667,10 +1684,10 @@ class qepcad_formula_factory:
         - ``op`` -- a relational operator, default '='
         - ``rhs`` -- a polynomial, default 0
 
-        If \var{lhs} is a symbolic equality or inequality, then \var{op}
-        and \var{rhs} are ignored.
+        If ``lhs`` is a symbolic equality or inequality, then ``op``
+        and ``rhs`` are ignored.
 
-        This method works by printing the given polynomials, so we don't
+        This method works by printing the given polynomials, so we do not
         care what ring they are in (as long as they print with integral
         or rational coefficients).
 
@@ -1742,8 +1759,8 @@ class qepcad_formula_factory:
         (This method would be named 'and' if that were not a Python
         keyword.)
 
-        Each input formula may be a \class{qformula} as returned by the
-        methods of \code{qepcad_formula}, a symbolic equality or
+        Each input formula may be a :class:`qformula` as returned by the
+        methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
         EXAMPLES::
@@ -1768,8 +1785,8 @@ class qepcad_formula_factory:
         (This method would be named 'or' if that were not a Python
         keyword.)
 
-        Each input formula may be a \class{qformula} as returned by the
-        methods of \code{qepcad_formula}, a symbolic equality or
+        Each input formula may be a :class:`qformula` as returned by the
+        methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
         EXAMPLES::
@@ -1794,8 +1811,8 @@ class qepcad_formula_factory:
         (This method would be named 'not' if that were not a Python
         keyword.)
 
-        The input formula may be a \class{qformula} as returned by the
-        methods of \code{qepcad_formula}, a symbolic equality or
+        The input formula may be a :class:`qformula` as returned by the
+        methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
         EXAMPLES::
@@ -1819,8 +1836,8 @@ class qepcad_formula_factory:
         Returns the implication of its input formulas (that is, given
         formulas $P$ and $Q$, returns '$P$ implies $Q$').
 
-        The input formulas may be a \class{qformula} as returned by the
-        methods of \code{qepcad_formula}, a symbolic equality or
+        The input formulas may be a :class:`qformula` as returned by the
+        methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
         EXAMPLES::
@@ -1845,8 +1862,8 @@ class qepcad_formula_factory:
         Returns the equivalence of its input formulas (that is, given
         formulas $P$ and $Q$, returns '$P$ iff $Q$').
 
-        The input formulas may be a \class{qformula} as returned by the
-        methods of \code{qepcad_formula}, a symbolic equality or
+        The input formulas may be a :class:`qformula` as returned by the
+        methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
         EXAMPLES::
@@ -1868,11 +1885,11 @@ class qepcad_formula_factory:
         Given a variable (or list of variables) and a formula, returns
         the existential quantification of the formula over the variables.
 
-        This method is available both as \method{exists} and \method{E}
+        This method is available both as :meth:`exists` and :meth:`E`
         (the QEPCAD name for this quantifier).
 
-        The input formula may be a \class{qformula} as returned by the
-        methods of \code{qepcad_formula}, a symbolic equality or
+        The input formula may be a :class:`qformula` as returned by the
+        methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
         EXAMPLE::
@@ -1895,11 +1912,11 @@ class qepcad_formula_factory:
         Given a variable (or list of variables) and a formula, returns
         the universal quantification of the formula over the variables.
 
-        This method is available both as \method{forall} and \method{A}
+        This method is available both as :meth:`forall` and :meth:`A`
         (the QEPCAD name for this quantifier).
 
-        The input formula may be a \class{qformula} as returned by the
-        methods of \code{qepcad_formula}, a symbolic equality or
+        The input formula may be a :class:`qformula` as returned by the
+        methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
         EXAMPLE::
@@ -1923,11 +1940,11 @@ class qepcad_formula_factory:
         true iff the original formula was true for infinitely many
         values of the variable.
 
-        This method is available both as \method{infinitely_many}
-        and \method{F} (the QEPCAD name for this quantifier).
+        This method is available both as :meth:`infinitely_many`
+        and :meth:`F` (the QEPCAD name for this quantifier).
 
-        The input formula may be a \class{qformula} as returned by the
-        methods of \code{qepcad_formula}, a symbolic equality or
+        The input formula may be a :class:`qformula` as returned by the
+        methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
         EXAMPLE::
@@ -1949,11 +1966,11 @@ class qepcad_formula_factory:
         true iff the original formula was true for all but finitely many
         values of the variable.
 
-        This method is available both as \method{all_but_finitely_many}
-        and \method{G} (the QEPCAD name for this quantifier).
+        This method is available both as :meth:`all_but_finitely_many`
+        and :meth:`G` (the QEPCAD name for this quantifier).
 
-        The input formula may be a \class{qformula} as returned by the
-        methods of \code{qepcad_formula}, a symbolic equality or
+        The input formula may be a :class:`qformula` as returned by the
+        methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
         EXAMPLE::
@@ -1976,11 +1993,11 @@ class qepcad_formula_factory:
         original formula was true is connected (including cases where
         this set is empty or is a single point).
 
-        This method is available both as \method{connected_subset}
-        and \method{C} (the QEPCAD name for this quantifier).
+        This method is available both as :meth:`connected_subset`
+        and :meth:`C` (the QEPCAD name for this quantifier).
 
-        The input formula may be a \class{qformula} as returned by the
-        methods of \code{qepcad_formula}, a symbolic equality or
+        The input formula may be a :class:`qformula` as returned by the
+        methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
         EXAMPLE::
@@ -2002,15 +2019,15 @@ class qepcad_formula_factory:
         returns a new formula which is true iff the original formula
         is true for exactly $k$ values of the variable.
 
-        This method is available both as \method{exactly_k}
-        and \method{X} (the QEPCAD name for this quantifier).
+        This method is available both as :meth:`exactly_k`
+        and :meth:`X` (the QEPCAD name for this quantifier).
 
         (Note that QEPCAD does not support $k=0$ with this syntax, so if
-        $k=0$ is requested we implement it with \method{forall} and
+        $k=0$ is requested we implement it with :meth:`forall` and
         :meth:`not_`.)
 
-        The input formula may be a \class{qformula} as returned by the
-        methods of \code{qepcad_formula}, a symbolic equality or
+        The input formula may be a :class:`qformula` as returned by the
+        methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
         EXAMPLE::
@@ -2078,6 +2095,7 @@ qepcad_formula = qepcad_formula_factory()
 _qepcad_algebraic_re = \
     re.compile(' ?the unique root of (.*) between (.*) and (.*)$')
 
+
 def _eval_qepcad_algebraic(text):
     r"""
     Given a string of the form:
@@ -2126,10 +2144,12 @@ class QepcadCell:
     """
     def __init__(self, parent, lines):
         r"""
-        Constructs a \class{QepcadCell} wrapper for a QEPCAD cell, given
-        a \class{Qepcad} object and a list of lines holding QEPCAD's
-        cell output.  This is typically called by the \method{make_cells}
-        method of \class{Qepcad}.
+        Construct a :class:`QepcadCell` wrapper for a QEPCAD cell, given
+        a :class:`Qepcad` object and a list of lines holding QEPCAD's
+        cell output.
+
+        This is typically called by the :meth:`Qepcad.make_cells`
+        method of :class:`Qepcad`.
 
         EXAMPLES::
 
@@ -2424,11 +2444,11 @@ class QepcadCell:
 
     def set_truth(self, v):
         r"""
-        Sets the truth value of this cell, as used by QEPCAD for solution
+        Set the truth value of this cell, as used by QEPCAD for solution
         formula construction.
 
-        The argument \var{v} should be either a boolean or \code{None}
-        (which will set the truth value to 'undetermined').
+        The argument ``v`` should be either a boolean or ``None``
+        (which will set the truth value to ``'undetermined'``).
 
         EXAMPLES::
 

@@ -16,7 +16,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import AA, ZZ, PolynomialRing, infinity, NumberField
+from sage.rings.all import AA, ZZ, PolynomialRing, infinity, NumberField, AlgebraicField
 from sage.misc.latex import latex
 from sage.structure.parent_gens import localvars
 from sage.rings.number_field.structure import AbsoluteFromRelative
@@ -482,6 +482,68 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
             #return NumberField(L.absolute_polynomial(), 'e', structure=AbsoluteFromRelative(L), embedding=(???))
             return L
+
+    def root_extension_embedding(self, K=AlgebraicField()):
+        r"""
+        Return the correct embedding from the root extension field to ``K`` (default: ``AlgebraicField()``).
+        The function assumes that the first/natural embedding is not the correct one.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: G = HeckeTriangleGroup(n=infinity)
+
+            sage: fp = (-G.S()).fixed_points()[0]
+            sage: alg_fp = (-G.S()).root_extension_embedding()(fp)
+            sage: alg_fp
+            1*I
+            sage: alg_fp == (-G.S()).fixed_points(embedded=True)[0]
+            True
+
+            sage: fp = (-G.V(2)).fixed_points()[1]
+            sage: alg_fp = (-G.V(2)).root_extension_embedding(AA)(fp)
+            sage: alg_fp
+            -1.732050807568878?
+            sage: alg_fp == (-G.V(2)).fixed_points(embedded=True)[1]
+            True
+
+            sage: fp = (-G.V(2)).fixed_points()[0]
+            sage: alg_fp = (-G.V(2)).root_extension_embedding(AA)(fp)
+            sage: alg_fp
+            1.732050807568878?
+            sage: alg_fp == (-G.V(2)).fixed_points(embedded=True)[0]
+            True
+
+            sage: G = HeckeTriangleGroup(n=7)
+
+            sage: fp = (-G.S()).fixed_points()[1]
+            sage: alg_fp = (-G.S()).root_extension_embedding()(fp)
+            sage: alg_fp
+            0.?e-51 - 1.000000000000000?*I
+            sage: alg_fp == (-G.S()).fixed_points(embedded=True)[1]
+            True
+
+            sage: fp = (-G.U()^4).fixed_points()[0]
+            sage: alg_fp = (-G.U()^4).root_extension_embedding()(fp)
+            sage: alg_fp
+            0.9009688679024191? + 0.4338837391175581?*I
+            sage: alg_fp == (-G.U()^4).fixed_points(embedded=True)[0]
+            True
+
+            sage: (-G.U()^4).root_extension_embedding(CC)(fp)
+            0.900968867902... + 0.433883739117...*I
+            sage: (-G.U()^4).root_extension_embedding(CC)(fp).parent()
+            Complex Field with 53 bits of precision
+
+            sage: fp = (-G.V(5)).fixed_points()[1]
+            sage: alg_fp = (-G.V(5)).root_extension_embedding(AA)(fp)
+            sage: alg_fp
+            -0.6671145837954892?
+            sage: alg_fp == (-G.V(5)).fixed_points(embedded=True)[1]
+            True
+        """
+
+        return self.root_extension_field().embeddings(K)[-1]
 
     def fixed_points(self, embedded=False, order="default"):
         r"""

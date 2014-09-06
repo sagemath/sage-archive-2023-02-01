@@ -2,20 +2,20 @@ r"""
 An introduction to crystals
 ===========================
 
-Informally, a crystal `\mathcal{B}` is an oriented graph with the
-edges colored in some set `I` such that, for each `i\in I`, each node
-`x` has:
+Informally, a crystal `\mathcal{B}` is an oriented graph with edges
+colored in some set `I` such that, for each `i\in I`, each node `x`
+has:
 
 - at most one `i`-successor, denoted `f_i x`;
 
 - at most one `i`-predecessor, denoted `e_i x`.
 
-and convention, one writes `f_i x=\emptyset` and `e_i x=\emptyset`
-when `x` has no successor / predecessor.
+By convention, one writes `f_i x=\emptyset` and `e_i x=\emptyset` when
+`x` has no successor resp. predecessor.
 
 One may think of `\mathcal{B}` as essentially a deterministic
 automaton whose dual is also deterministic; in this context, the
-`f_i` s and `e_i` s are respectively the transition functions of the
+`f_i`'s and `e_i`'s are respectively the transition functions of the
 automaton and of its dual, and `\emptyset` is the sink.
 
 A crystal comes further endowed with a weight function
@@ -33,17 +33,14 @@ of the weight lattice of the type `C`. Let `\alpha_i` and
 `\alpha^{\vee}_i` denote the simple roots and coroots
 respectively.
 
-A type `C` crystal `\mathcal{B}` is a non-empty set with maps
+A type `C` crystal is a non-empty set `\mathcal{B}` endowed with maps
 `\operatorname{wt} : \mathcal{B} \to L`,
 `e_i, f_i : \mathcal{B} \to \mathcal{B} \cup \{\emptyset\}`, and
 `\varepsilon_i, \varphi_i : \mathcal{B} \to \ZZ \cup \{-\infty\}`
 for `i \in I` satisfying the following properties for all `i \in I`:
 
-- `f_i b^{\prime} = b` if and only if `e_i b = b^{\prime}`
-  for `b, b^{\prime} \in \mathcal{B}`,
+- for `b, b^{\prime} \in \mathcal{B}`, `f_i b^{\prime} = b` if and only if `e_i b = b^{\prime}`;
 
-- `\varphi_i(b) = \varepsilon_i(b) + \langle \alpha^{\vee}_i,
-  \operatorname{wt}(b) \rangle`,
 
 - if `e_i b \in \mathcal{B}`, then:
 
@@ -57,11 +54,14 @@ for `i \in I` satisfying the following properties for all `i \in I`:
   * `\varepsilon_i(f_i b) = \varepsilon_i(b) + 1`,
   * `\varphi_i(f_i b) = \varphi_i(b) - 1`,
 
+- `\varphi_i(b) = \varepsilon_i(b) + \langle \alpha^{\vee}_i,
+  \operatorname{wt}(b) \rangle`,
+
 - if `\varphi_i(b) = -\infty` for `b \in \mathcal{B}`,
-  then `e_i b = f_i b = 0`.
+  then `e_i b = f_i b = \emptyset`.
 
 Some further conditions are required to guarantee that this data
-indeed models a representation of a Lie algebra. In finite simply
+indeed models a representation of a Lie algebra. For finite simply
 laced types a complete characterization is given by Stembridge's local
 axioms [St2003]_.
 

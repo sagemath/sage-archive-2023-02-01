@@ -309,7 +309,7 @@ def _normalize_integral_input(f, v=None, a=None, b=None):
         raise TypeError('only one endpoint was given!')
     return f, v, a, b
 
-def integrate(expression, v=None, a=None, b=None, algorithm=None):
+def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
     r"""
     Returns the indefinite integral with respect to the variable
     `v`, ignoring the constant of integration. Or, if endpoints
@@ -341,6 +341,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
        - 'sympy' - use sympy (also in Sage)
 
        - 'mathematica_free' - use http://integrals.wolfram.com/
+
+    To prevent automatic evaluation use the ``hold`` argument.
 
      EXAMPLES::
 
@@ -384,6 +386,16 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         -2
         sage: integral(sin(x), (y, pi, 2*pi))
         pi*sin(x)
+
+    Using the ``hold`` parameter it is possible to prevent automatic
+    evaluation, which can then be evaluated via :meth:`simplify`::
+
+        sage: integral(x^2, x, 0, 3)
+        9
+        sage: a = integral(x^2, x, 0, 3, hold=True) ; a
+        integrate(x^2, x, 0, 3)
+        sage: a.simplify()
+        9
 
     Constraints are sometimes needed::
 
@@ -694,8 +706,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
             raise ValueError("Unknown algorithm: %s" % algorithm)
         return integrator(expression, v, a, b)
     if a is None:
-        return indefinite_integral(expression, v)
+        return indefinite_integral(expression, v, hold=hold)
     else:
-        return definite_integral(expression, v, a, b)
+        return definite_integral(expression, v, a, b, hold=hold)
 
 integral = integrate

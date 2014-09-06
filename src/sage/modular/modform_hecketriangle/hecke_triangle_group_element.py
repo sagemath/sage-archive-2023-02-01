@@ -622,6 +622,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         INPUT:
 
         - ``z``     -- A complex number or an element of AlgebraicField().
+                      ``infinity`` is also a possible argument or return value.
 
         EXAMPLES::
 
@@ -635,9 +636,23 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             -1/(e^(-2) + I)
             sage: G.S().acton(i + exp(-2)).parent()
             Symbolic Ring
+
+            sage: G.T().acton(infinity) == infinity
+            True
+            sage: G.U().acton(infinity)
+            lam
+            sage: G.V(2).acton(-G.lam()) == infinity
+            True
         """
 
-        return (self.a()*z + self.b()) / (self.c()*z + self.d())
+        if z == infinity and self.c() == 0:
+            return infinity
+        elif z == infinity:
+            return self.a()/self.c()
+        elif self.c() != 0 and z == -self.d()/self.c():
+            return infinity
+        else:
+            return (self.a()*z + self.b()) / (self.c()*z + self.d())
 
     # def _act_on_(self, other, self_on_left):
     #     TODO: implement default actions for "suitable" x

@@ -64,7 +64,7 @@ All classes and functions are also individually documented (with doctest example
       sage: G.U().parent()
       Hecke triangle group for n = 6
       sage: G.U().matrix().parent()
-      Full MatrixSpace of 2 by 2 dense matrices over Order in Number Field in lam with defining polynomial x^2 - 3
+      Full MatrixSpace of 2 by 2 dense matrices over Maximal Order in Number Field in lam with defining polynomial x^2 - 3
 
       sage: G(matrix([[-1, 1+G.lam()],[0, -1]]), check=True)
       Traceback (most recent call last):

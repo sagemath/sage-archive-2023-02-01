@@ -90,7 +90,8 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         else:
             lam_symbolic = 2*cos(pi/n)
             K = NumberField(self.lam_minpoly(), 'lam', embedding = AA(lam_symbolic))
-            self._base_ring = K.order(K.gens())
+            #self._base_ring = K.order(K.gens())
+            self._base_ring = K.maximal_order()
             self._lam = self._base_ring.gen(1)
 
         T = matrix(self._base_ring, [[1,self._lam],[0,1]])
@@ -162,7 +163,39 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         lam_symbolic = 2*cos(pi/self._n)
         return AA(lam_symbolic).minpoly()
 
-    @cached_method
+    def base_ring(self):
+        r"""
+        Return the base ring of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: HeckeTriangleGroup(n=infinity).base_ring()
+            Integer Ring
+            sage: HeckeTriangleGroup(n=7).base_ring()
+            Maximal Order in Number Field in lam with defining polynomial x^3 - x^2 - 2*x + 1
+        """
+
+        return self._base_ring
+
+    def base_field(self):
+        r"""
+        Return the base field of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: HeckeTriangleGroup(n=infinity).base_field()
+            Rational Field
+            sage: HeckeTriangleGroup(n=7).base_field()
+            Number Field in lam with defining polynomial x^3 - x^2 - 2*x + 1
+        """
+
+        if self._n in [3, infinity]:
+            return QQ
+        else:
+            return self._base_ring.number_field()
+
     def n(self):
         r"""
         Return the parameter ``n`` of ``self``, where
@@ -181,7 +214,6 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return self._n
 
-    @cached_method
     def lam(self):
         r"""
         Return the parameter ``lambda`` of ``self``,
@@ -207,7 +239,6 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return self._lam
 
-    @cached_method
     def rho(self):
         r"""
         Return the vertex ``rho`` of the basic hyperbolic
@@ -235,7 +266,6 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         else:
             return AlgebraicField()(exp(pi/self._n*i))
 
-    @cached_method
     def alpha(self):
         r"""
         Return the parameter ``alpha`` of ``self``.
@@ -261,7 +291,6 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return ZZ(1)/ZZ(2) * (ZZ(1)/ZZ(2) - ZZ(1)/self._n)
 
-    @cached_method
     def beta(self):
         r"""
         Return the parameter ``beta`` of ``self``.
@@ -358,6 +387,9 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         r"""
         Return an alternative generator of ``self`` instead of ``T``.
         ``U`` stabilizes ``rho`` and has order ``2*self.n()``.
+
+        If ``n=infinity`` then ``U`` is parabolic and has infinite order,
+        it then fixes the cusp ``[-1]``.
 
         EXAMPLES::
 

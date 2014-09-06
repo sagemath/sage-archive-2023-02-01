@@ -16,9 +16,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import AA, ZZ
+from sage.rings.all import AA, ZZ, PolynomialRing, infinity, NumberField
 from sage.misc.latex import latex
 from sage.structure.parent_gens import localvars
+from sage.rings.number_field.structure import AbsoluteFromRelative
 
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
 from sage.misc.cachefunc import cached_method
@@ -366,7 +367,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             False
         """
 
-        return self.trace().abs() > 2
+        return AA(self.discriminant()) > 0
 
     def is_parabolic(self, exclude_one=False):
         r"""
@@ -392,7 +393,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         if (exclude_one and self.is_identity()):
             return False
 
-        return self.trace().abs() == 2
+        return self.discriminant() == 0
 
     def is_identity(self):
         r"""
@@ -427,7 +428,191 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             True
         """
 
-        return self.trace().abs() < 2
+        return AA(self.discriminant()) < 0
+
+    def root_extension_field(self):
+        r"""
+        Return the extension field of the base field of (the parent of)
+        ``self`` in which the corresponding fixed points of ``self`` lie.
+
+        The variable name of the corresponding generator is ``e``.
+        It corresponds to ``e=sqrt(D)``, where ``D`` is the discriminant of ``self``.
+        If the extension degree is ``1`` then the base field is returned.
+
+        The correct embedding is the positive resp. positive imaginary one.
+        Unfortunately no default embedding can be specified for relative
+        number fields yet.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: G = HeckeTriangleGroup(n=infinity)
+            sage: G.V(3).root_extension_field()
+            Number Field in e with defining polynomial x^2 - 32
+            sage: G.T().root_extension_field() == G.base_field()
+            True
+            sage: (G.S()).root_extension_field()
+            Number Field in e with defining polynomial x^2 + 4
+
+            sage: G = HeckeTriangleGroup(n=7)
+            sage: G.V(3).root_extension_field()
+            Number Field in e with defining polynomial x^2 - 4*lam^2 - 4*lam + 4 over its base field
+            sage: G.V(1).root_extension_field() == G.base_field()
+            True
+            sage: G.U().root_extension_field()
+            Number Field in e with defining polynomial x^2 - lam^2 + 4 over its base field
+        """
+
+        K = self.parent().base_field()
+        x = PolynomialRing(K, 'x').gen()
+        D = self.discriminant()
+
+        if D.is_square():
+            return K
+        else:
+            # unfortunately we can't set embeddings for relative extensions :-(
+            # return K.extension(x**2 - D, 'e', embedding=AA(D).sqrt())
+
+            L = K.extension(x**2 - D, 'e')
+
+            #e = AA(D).sqrt()
+            #emb = L.hom([e])
+            #L._unset_embedding()
+            #L.register_embedding(emb)
+
+            #return NumberField(L.absolute_polynomial(), 'e', structure=AbsoluteFromRelative(L), embedding=(???))
+            return L
+
+    def fixed_points(self, embedded=False, order="default"):
+        r"""
+        Return a pair of (mutually conjugate) fixed points of ``self``
+        in a possible quadratic extension of the base field.
+
+        INPUT:
+
+        - ``embedded`` -- If ``True`` the fixed points are embedded into
+                          ``AlgebraicRealField`` resp. ``AlgebraicField``.
+                          Default: ``False``.
+
+        - ``order``    -- If ``order="sign"`` the fixed points are always ordered
+                          according to the sign in front of the square root.
+
+                          If ``order="default"`` (default) then in case the fixed
+                          points are hyperbolic they are ordered according to the
+                          sign of the trace of ``self`` instead, such that the
+                          attracting fixed point comes first.
+
+                          If ``order="trace"`` the fixed points are always ordered
+                          according to the sign of the trace of ``self``.
+                          If the trace is zero they are ordered by the sign in
+                          front of the square root. In particular the fixed_points
+                          in this case remain the same for ``-self``.
+
+        OUTPUT:
+
+        If ``embedded=True`` an element of either ``AlgebraicRealField`` or
+        ``AlgebraicField`` is returned. Otherwise an element of a relative field
+        extension over the base field of (the parent of) ``self`` is returned.
+
+        Warning: Relative field extensions don't support default embeddings.
+        So the correct embedding (which is the positive resp. imaginary positive
+        one) has to be choosen.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: G = HeckeTriangleGroup(n=infinity)
+            sage: (-G.T()^(-4)).fixed_points()
+            [+Infinity, +Infinity]
+            sage: (-G.S()).fixed_points()
+            [1/2*e, -1/2*e]
+            sage: (-G.S()).fixed_points(order="trace") == G.S().fixed_points(order="trace")
+            True
+            sage: p = (-G.S()).fixed_points(embedded=True)[0]
+            sage: p
+            1*I
+            sage: (-G.S()).acton(p) == p
+            True
+            sage: (-G.V(2)).fixed_points()
+            [1/2*e, -1/2*e]
+            sage: (-G.V(2)).fixed_points() == G.V(2).fixed_points()
+            True
+            sage: p = (-G.V(2)).fixed_points(embedded=True)[1]
+            sage: p
+            -1.732050807568878?
+            sage: (-G.V(2)).acton(p) == p
+            True
+
+            sage: G = HeckeTriangleGroup(n=7)
+            sage: (-G.S()).fixed_points()
+            [1/2*e, -1/2*e]
+            sage: (-G.S()).fixed_points(order="trace") == G.S().fixed_points(order="trace")
+            True
+            sage: p = (-G.S()).fixed_points(embedded=True)[1]
+            sage: p
+            -1*I
+            sage: (-G.S()).acton(p) == p
+            True
+            sage: (G.U()^2).fixed_points()
+            [(-1/2*lam^2 + 1/2*lam + 1)*e + 1/2*lam, (1/2*lam^2 - 1/2*lam - 1)*e + 1/2*lam]
+            sage: (-G.U()^2).fixed_points(order="trace")
+            [(-1/2*lam^2 + 1/2*lam + 1)*e + 1/2*lam, (1/2*lam^2 - 1/2*lam - 1)*e + 1/2*lam]
+            sage: (G.U()^2).fixed_points(order="trace") == (-G.U()^2).fixed_points(order="trace")
+            True
+            sage: p = (G.U()^2).fixed_points(embedded=True)[1]
+            sage: p
+            0.9009688679024191? - 0.4338837391175581?*I
+            sage: (G.U()^2).acton(p) == p
+            True
+            sage: (-G.V(5)).fixed_points()
+            [(1/2*lam^2 - 1/2*lam - 1/2)*e, (-1/2*lam^2 + 1/2*lam + 1/2)*e]
+            sage: (-G.V(5)).fixed_points() == G.V(5).fixed_points()
+            True
+            sage: p = (-G.V(5)).fixed_points(embedded=True)[0]
+            sage: p
+            0.6671145837954892?
+            sage: (-G.V(5)).acton(p) == p
+            True
+        """
+
+        if self.c() == 0:
+            return [infinity, infinity]
+        else:
+            D = self.discriminant()
+            if D.is_square():
+                e = D.sqrt()
+            else:
+                e = self.root_extension_field().gen()
+
+            a = self.a()
+            d = self.d()
+            c = self.c()
+
+            if order == "sign":
+                sgn = AA(c).sign()
+            elif order == "default":
+                if self.is_elliptic() or self.trace() == 0:
+                    sgn = AA(c).sign()
+                else:
+                    sgn = AA(self.trace()).sign()
+            elif order == "trace":
+                if self.trace() == 0:
+                    sgn = AA(c).sign()
+                else:
+                    sgn = AA(self.trace()).sign()
+            else:
+                raise NotImplementedError
+
+            if embedded:
+                e = AA(D).sqrt()
+                a = AA(a)
+                d = AA(d)
+                c = AA(c)
+
+            root1 = (a-d)/(2*c) + sgn*e/(2*c)
+            root2 = (a-d)/(2*c) - sgn*e/(2*c)
+
+            return [root1, root2]
 
     def acton(self, z):
         r"""

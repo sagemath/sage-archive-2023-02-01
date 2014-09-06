@@ -2329,7 +2329,7 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             ...
             RuntimeError: requested Conway polynomial not in database.
             sage: GF(5)['x'].irreducible_element(32, algorithm="primitive")
-            x^32 + 4*x^31 + x^30 + 4*x^29 + 4*x^28 + 3*x^27 + 2*x^26 + x^25 + x^24 + x^23 + 4*x^21 + 3*x^20 + x^19 + 4*x^17 + 4*x^16 + 4*x^15 + 4*x^14 + 3*x^13 + x^12 + 3*x^11 + 4*x^10 + x^9 + 4*x^8 + x^7 + 2*x^6 + 4*x^5 + 4*x^4 + x^3 + 3*x^2 + 4*x + 2
+            x^32 + ...
 
         In characteristic 2::
 

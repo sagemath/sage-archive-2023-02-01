@@ -502,12 +502,12 @@ For instance, the cell (12,2) is on the ellipse::
 So we can update the truth values as desired like this::
 
     sage: for c in qe.cell():                                        # optional - qepcad
-    ...       count_ellipse = 0                                      # optional - qepcad
-    ...       count_circle = 0                                       # optional - qepcad
-    ...       for c2 in c:                                           # optional - qepcad
-    ...           count_ellipse += (c2.signs()[1][0] == 0)           # optional - qepcad
-    ...           count_circle += (c2.signs()[1][1] == 0)            # optional - qepcad
-    ...       c.set_truth(count_ellipse == 2 and count_circle == 2)           # optional - qepcad
+    ....:     count_ellipse = 0
+    ....:     count_circle = 0
+    ....:     for c2 in c:
+    ....:         count_ellipse += (c2.signs()[1][0] == 0)
+    ....:         count_circle += (c2.signs()[1][1] == 0)
+    ....:     c.set_truth(count_ellipse == 2 and count_circle == 2)
 
 and then we can get our desired solution formula.  (The ``'G'`` stands for
 ``'geometric'``, and gives solutions using the same rules as
@@ -1704,7 +1704,7 @@ class qepcad_formula_factory:
             (a, b, c)
             sage: K.<x,y> = QQ[]
             sage: def test_qf(qf):
-            ...       return qf, qf.vars
+            ....:     return qf, qf.vars
             sage: test_qf(qf.atomic(a^2 + 17))
             (a^2 + 17 = 0, frozenset(['a']))
             sage: test_qf(qf.atomic(a*b*c <= c^3))

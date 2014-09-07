@@ -685,7 +685,7 @@ class ModularForm_abstract(ModuleElement):
                      + mu_dN ** n * (mu_d ** (n * b) - eps * mu_d ** (n * c)))
                    for n in range(1, numterms + 1))
 
-    def cuspform_lseries(self, prec=53,
+    def cuspform_lseries(self, conjugate=0, prec=53,
                          max_imaginary_part=0,
                          max_asymp_coeffs=40):
         r"""
@@ -696,6 +696,8 @@ class ModularForm_abstract(ModuleElement):
         for computing with the L-series of the cusp form.
 
         INPUT:
+
+        - ``conjugate`` - (default: 0), integer between 0 and degree-1
 
         - ``prec`` - integer (bits precision)
 
@@ -715,6 +717,16 @@ class ModularForm_abstract(ModuleElement):
            0.0884317737041015
            sage: L(0.5)
            0.0296568512531983
+
+        For non-rational newforms we can specify a conjugate::
+
+           sage: f = Newforms(43, names='a')[1]
+           sage: L = f.cuspform_lseries(conjugate=0)
+           sage: L(1)
+           0.620539857407845
+           sage: L = f.cuspform_lseries(conjugate=1)
+           sage: L(1)
+           0.921328017272472
 
         Consistency check with delta_lseries (which computes coefficients in pari)::
 
@@ -773,7 +785,10 @@ class ModularForm_abstract(ModuleElement):
         # Find out how many coefficients of the Dirichlet series are needed
         # in order to compute to the required precision
         num_coeffs = L.num_coeffs()
-        s = 'coeff = %s;'%self.q_expansion(num_coeffs+1).padded_list()
+        coeffs = self.q_expansion(num_coeffs+1).padded_list()
+        # compute the requested embedding
+        emb = self.base_ring().embeddings(rings.ComplexField(prec))[conjugate]
+        s = 'coeff = %s;'% map(emb, coeffs)
         L.init_coeffs('coeff[k+1]',pari_precode = s,
                       max_imaginary_part=max_imaginary_part,
                       max_asymp_coeffs=max_asymp_coeffs)

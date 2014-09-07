@@ -3849,13 +3849,12 @@ class PermutationGroup_generic(group.Group):
 
     def molien_series(self):
         r"""
-        Returns the Molien series of a transitive permutation group. The
+        Return the Molien series of a permutation group. The
         function
 
         .. math::
 
                      M(x) = (1/|G|)\sum_{g\in G} \det(1-x*g)^{-1}
-
 
         is sometimes called the "Molien series" of `G`. GAP's
         ``MolienSeries`` is associated to a character of a
@@ -3874,16 +3873,26 @@ class PermutationGroup_generic(group.Group):
             sage: G = SymmetricGroup(3)
             sage: G.molien_series()
             1/(-x^6 + x^5 + x^4 - x^2 - x + 1)
+
+        Some further tests (after :trac:`15817`)::
+
+            sage: G = PermutationGroup([[(1,2,3,4)]])
+            sage: S4ms = SymmetricGroup(4).molien_series()
+            sage: G.molien_series() / S4ms
+            x^5 + 2*x^4 + x^3 + x^2 + 1
+
+            sage: G = PermutationGroup([[(1,2)],[(3,4)]])
+            sage: G.molien_series() / S4ms
+            x^4 + x^3 + 2*x^2 + x + 1
         """
         pi = self._gap_().NaturalCharacter()
-        cc = pi.ConstituentsOfCharacter()
-        M = cc.Sum().MolienSeries()
+        M = pi.MolienSeries()
 
         R = QQ['x']
         nn = M.NumeratorOfRationalFunction()
         dd = M.DenominatorOfRationalFunction()
-        return (R(str(nn).replace("_1","")) /
-                R(str(dd).replace("_1","")))
+        return (R(str(nn).replace("_1", "")) /
+                R(str(dd).replace("_1", "")))
 
     def normal_subgroups(self):
         """

@@ -690,7 +690,7 @@ class Order(IntegralDomain):
         INPUT:
 
         - ``prime`` -- a prime ideal of the maximal order in this number field.
-        - ``name`` -- the name of the variable in the residue field
+        - ``names`` -- the name of the variable in the residue field
         - ``check`` -- whether or not to check the primality of prime.
 
         OUTPUT:
@@ -711,8 +711,9 @@ class Order(IntegralDomain):
         """
         if self.is_maximal():
             return self.number_field().residue_field(prime, names, check)
-        else:
-            raise NotImplementedError("Residue fields of non-maximal orders are not yet supported.")
+
+        raise NotImplementedError("Residue fields of non-maximal orders "
+                                  "are not yet supported.")
 
     def fraction_field(self):
         """

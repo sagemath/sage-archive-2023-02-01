@@ -105,6 +105,7 @@ AUTHORS:
 - Andrey Novoseltsev (2010-05-17): subschemes of toric varieties.
 - Volker Braun (2010-12-24): documentation of schemes and
   refactoring. Added coordinate neighborhoods and is_smooth()
+- Ben Hutz (2014): subschemes of cartesian products of projective space
 """
 
 #*****************************************************************************
@@ -2068,12 +2069,12 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_subscheme_projective):
 
     def segre_embedding(self,var='u'):
-        """
-        Returns the Segre embedding of self into the appropriate projective space.
+        r"""
+        Returns the Segre embedding of ``self`` into the appropriate projective space.
 
         INPUT:
 
-        - var -- string. the variables names of the new space
+        - ``var`` -- string. The variables names of the new space.
 
         OUTPUT:
 
@@ -2081,13 +2082,13 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
 
         - Hom -- from self to the appropiate projective space
 
-
         EXAMPLES::
 
             sage: X.<y0,y1,y2,y3,y4,y5> = ProjectiveSpace_cartesian_product(ZZ,[2,2])
             sage: Y,phi = X.subscheme([]).segre_embedding(); phi
             Scheme morphism:
-              From: Closed subscheme of Product of Projective Space of dimension 2 over Integer Ring and Projective Space of dimension 2 over Integer Ring defined by:
+              From: Closed subscheme of Product of Projective Space of dimension 2 over Integer Ring and
+              Projective Space of dimension 2 over Integer Ring defined by:
               (no polynomials)
               To:   Closed subscheme of Projective Space of dimension 8 over Integer Ring defined by:
               -u5*u7 + u4*u8,
@@ -2099,18 +2100,29 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
               -u1*u6 + u0*u7,
               -u2*u3 + u0*u5,
               -u1*u3 + u0*u4
-              Defn: Defined by sending (u0bar : u1bar : u2bar : u3bar : u4bar : u5bar : u6bar : u7bar : u8bar) to
+              Defn: Defined by sending (y0 : y1 : y2 , y3 : y4 : y5) to
                     (y0*y3 : y0*y4 : y0*y5 : y1*y3 : y1*y4 : y1*y5 : y2*y3 : y2*y4 : y2*y5).
 
             ::
 
             sage: X.<x,y,z,w,u,v> =ProjectiveSpace_cartesian_product([2,2],QQ)
             sage: L = (-w - v)*x + (-w*y - u*z)
-            sage: Q = (-u*w - v^2)*x^2 + ((-w^2 - u*w + (-u*v - u^2))*y + (-w^2 - u*v)*z)*x + ((-w^2 - u*w - u^2)*y^2 + (-u*w - v^2)*z*y + (-w^2 + (-v - u)*w)*z^2)
+            sage: Q = (-u*w - v^2)*x^2 + ((-w^2 - u*w + (-u*v - u^2))*y + (-w^2 - u*v)*z)*x + \
+            ((-w^2 - u*w - u^2)*y^2 + (-u*w - v^2)*z*y + (-w^2 + (-v - u)*w)*z^2)
             sage: W = X.subscheme([L,Q])
             sage: Y,phi = W.segre_embedding()
             sage: phi(W([0,1,0,0,0,1])).codomain() == Y
             True
+
+            ::
+
+            sage: T=ProjectiveSpace_cartesian_product([1,2],CC,'z')
+            sage: T.subscheme([]).segre_embedding()[0]
+            Closed subscheme of Projective Space of dimension 5 over Complex Field
+            with 53 bits of precision defined by:
+              -u2*u4 + u1*u5,
+              -u2*u3 + u0*u5,
+              -u1*u3 + u0*u4
         """
         #number components=2, need to do some kind of serial embedding for more than 2.
         AS = self.ambient_space()
@@ -2121,6 +2133,7 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
         vars = list(AS.coordinate_ring().variable_names()) + [var + str(i) for i in range(M+1)]
         from sage.rings.all import PolynomialRing
         R = PolynomialRing(AS.base_ring(),AS.ngens()+M+1,vars,order='lex')
+        #set-up the elimination for the segre embedding
         mapping = []
         k = AS.ngens()
         for i in range(N[0]+1):
@@ -2128,13 +2141,20 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
                 mapping.append(R.gen(k)-R(AS.gen(i)*AS.gen(j)))
                 k+=1
 
+        #change the defining ideal of the subscheme into the variables
         I = R.ideal(list(self.defining_polynomials()) + mapping)
-        J = I.elimination_ideal(R.gens()[0:AS.ngens()])
+        J=I.groebner_basis()
+        s=set(R.gens()[:AS.ngens()])
+        n=len(J)-1
+        L=[]
+        while s.isdisjoint(J[n].variables()):
+            L.append(J[n])
+            n=n-1
 
-        #create new scheme               
+        #create new subscheme
         from sage.schemes.projective.projective_space import ProjectiveSpace
         PS = ProjectiveSpace(self.base_ring(),M,R.gens()[AS.ngens():])
-        Y = PS.subscheme(J.gens())
+        Y = PS.subscheme(L)
 
         #create embedding for points
         mapping = []
@@ -2147,15 +2167,16 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
 
     def dimension(self):
         """
-        Return the dimension of the affine algebraic subscheme.
+        Return the dimension of the algebraic subscheme.
 
         OUTPUT: Integer.
 
         EXAMPLES::
-            
+
             sage: X.<x,y,z,w,u,v> = ProjectiveSpace_cartesian_product([2,2],QQ)
             sage: L = (-w - v)*x + (-w*y - u*z)
-            sage: Q = (-u*w - v^2)*x^2 + ((-w^2 - u*w + (-u*v - u^2))*y + (-w^2 - u*v)*z)*x + ((-w^2 - u*w - u^2)*y^2 + (-u*w - v^2)*z*y + (-w^2 + (-v - u)*w)*z^2)
+            sage: Q = (-u*w - v^2)*x^2 + ((-w^2 - u*w + (-u*v - u^2))*y + (-w^2 - u*v)*z)*x + \
+            ((-w^2 - u*w - u^2)*y^2 + (-u*w - v^2)*z*y + (-w^2 + (-v - u)*w)*z^2)
             sage: W = X.subscheme([L,Q])
             sage: W.dimension()
             2
@@ -2175,12 +2196,13 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
 
             sage: X.<x,y,z,w,u,v> = ProjectiveSpace_cartesian_product([2,2],QQ)
             sage: L = (-w - v)*x + (-w*y - u*z)
-            sage: Q = (-u*w - v^2)*x^2 + ((-w^2 - u*w + (-u*v - u^2))*y + (-w^2 - u*v)*z)*x + ((-w^2 - u*w - u^2)*y^2 + (-u*w - v^2)*z*y + (-w^2 + (-v - u)*w)*z^2)
+            sage: Q = (-u*w - v^2)*x^2 + ((-w^2 - u*w + (-u*v - u^2))*y + (-w^2 - u*v)*z)*x + \
+            ((-w^2 - u*w - u^2)*y^2 + (-u*w - v^2)*z*y + (-w^2 + (-v - u)*w)*z^2)
             sage: W = X.subscheme([L,Q])
             sage: W.is_smooth()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: Not Implemented
         """
         raise NotImplementedError("Not Implemented")
 
@@ -2223,7 +2245,7 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
               z^2 - w^2,
               u^3 - v^3
               Defn: Defined on coordinates by sending (x0, x1, x2, x3) to
-                    (1 : x0 : x1 : x2 : x3 : 1))
+                    (1 : x0 : x1 : x2 , x3 : 1))
         """
         if not isinstance(I, (list, tuple)):
             raise TypeError('The argument I=%s must be a list or tuple of positice integers'%I)
@@ -2235,6 +2257,7 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
         for i in range(len(I)):
             if I[i] < 0 or I[i] > N[i]:
                 raise ValueError("Argument i (= %s) must be between 0 and %s."%(I[i], N[i]))
+        #see if we've already created this affine patch
         try:
             if return_embedding:
                 return self.__affine_patches[I]
@@ -2247,11 +2270,13 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
         from sage.schemes.affine.affine_space import AffineSpace
         AA = AffineSpace(PP.base_ring(),sum(N),'x')
         v = list(AA.gens())
+        #create the proejctive embedding
         index = 0
         for i in range(len(I)):
             v.insert(index+I[i],1)
             index += N[i]+1
         phi = AA.hom(v,self)
+        #find the image of the subscheme
         polys = self.defining_polynomials()
         xi = phi.defining_polynomials()
         U = AA.subscheme([ f(xi) for f in polys ])

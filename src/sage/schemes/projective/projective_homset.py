@@ -1,5 +1,5 @@
 r"""
-Set of homomorphisms between two proejctive schemes
+Set of homomorphisms between two projective schemes
 
 For schemes `X` and `Y`, this module implements the set of morphisms
 `Hom(X,Y)`. This is done by :class:`SchemeHomset_generic`.
@@ -23,6 +23,8 @@ AUTHORS:
 - Volker Braun (2011-08-11): significant improvement and refactoring.
 
 - Ben Hutz (June 2012): added support for projective ring
+
+- Ben Hutz (2014): added support for cartesian products
 """
 
 
@@ -282,7 +284,7 @@ register_unpickle_override('sage.schemes.generic.homset',
                            SchemeHomset_points_abelian_variety_field)
 
 class SchemeHomset_points_projective_cartesian_product(SchemeHomset_points):
-    """
+    r"""
     Set of rational points of a cartesian product of projective spaces.
 
     INPUT:
@@ -299,7 +301,7 @@ class SchemeHomset_points_projective_cartesian_product(SchemeHomset_points):
     """
 
     def _element_constructor_(self, v, **kwds):
-        """
+        r"""
         The element constructor.
 
         INPUT:
@@ -312,10 +314,10 @@ class SchemeHomset_points_projective_cartesian_product(SchemeHomset_points):
 
             sage: P = ProjectiveSpace_cartesian_product([1,1],QQ,'z')
             sage: Q = P([1,2,2,3]); Q
-            (1/2 : 1 : 2/3 : 1)
+            (1/2 : 1 , 2/3 : 1)
             sage: type(Q)
             <class 'sage.schemes.projective.projective_space_cartesian_product.ProjectiveSpace_cartesian_product_point'>
             sage: P(QQ)._element_constructor_([1,2,2,0])
-            (1/2 : 1 : 1 : 0)
+            (1/2 : 1 , 1 : 0)
         """
         return self.codomain()._point(self, v, **kwds)

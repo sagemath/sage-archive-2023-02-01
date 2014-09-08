@@ -833,7 +833,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         INPUT:
 
-        - ``other`` - A projective space with the same base_ring as self
+        - ``other`` - A projective space with the same base ring as self
 
         OUTPUT:
 

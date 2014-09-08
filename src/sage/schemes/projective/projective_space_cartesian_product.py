@@ -12,8 +12,7 @@ EXAMPLES: We construct cartesian products projective spaces of various dimension
     Product of Projective Space of dimension 1 over Integer Ring and
     Projective Space of dimension 2 over Integer Ring
 
-
-We can also construct the product by specifying the dimensions and the base ring.
+We can also construct the product by specifying the dimensions and the base ring::
 
     sage: ProjectiveSpace_cartesian_product([1,2,3],QQ,'z')
     Product of Projective Space of dimension 1 over Rational Field and
@@ -23,13 +22,12 @@ We can also construct the product by specifying the dimensions and the base ring
 TODO:
 
 - should segre embedding be stored or cached since it is an elimination calculation
-- should affine patches store and return both the scheme and map?
 
 - P1.cartesian_product(P2) - documentation
 
 AUTHORS:
 
-- Ben Hutz (11-2012)
+- Ben Hutz (2014)
 
 """
 
@@ -37,24 +35,23 @@ from copy import copy
 from sage.misc.latex import latex
 from sage.rings.all import (PolynomialRing, ZZ)
 
+from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective_cartesian_product
 from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.generic.morphism import SchemeMorphism
 from sage.schemes.generic.morphism import SchemeMorphism_point
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective_cartesian_product
-from sage.schemes.projective.projective_space import ProjectiveSpace
+from sage.schemes.projective.projective_space import ProjectiveSpace, ProjectiveSpace_ring
 from sage.schemes.projective.projective_homset import SchemeHomset_points_projective_cartesian_product
 
 
 def is_ProjectiveSpace_cartesian_product(x):
     r"""
     Return True if `x` is a product of projective spaces, i.e., an ambient space
-    `\mathbb{P}^n_R \times \cdots \times \mathbb{P}^m_R`, where `R` is a ring and `n,m\geq 0`
+    `\mathbb{P}^n_R \times \cdots \times \mathbb{P}^m_R`, where `R` is a ring and `n,\ldots,m\geq 0`
     are integers. 
 
     EXAMPLES::
 
-        sage: from sage.schemes.projective.projective_space_cartesian_product import is_ProjectiveSpace_cartesian_product
         sage: is_ProjectiveSpace_cartesian_product(ProjectiveSpace(5, names='x'))
         False
         sage: is_ProjectiveSpace_cartesian_product(ProjectiveSpace_cartesian_product([1,2,3], ZZ, 'x'))
@@ -62,10 +59,18 @@ def is_ProjectiveSpace_cartesian_product(x):
     """
     return isinstance(x, ProjectiveSpace_cartesian_product_generic)
 
-def ProjectiveSpace_cartesian_product(*args, **kwds):
-    """
+def ProjectiveSpace_cartesian_product(n, R=None, names='x'):
+    r"""
     Returns the cartesian product of projective spaces. Can input either a list of projective spaces
     over the same base ring or the list of dimensions, the base ring, and the variable names.
+
+    INPUT:
+
+    - ``n`` -- a list of integers or a list of projective spaces
+
+    - ``R`` -- a ring
+
+    - ``names`` -- a string
 
     EXAMPLES::
 
@@ -89,16 +94,18 @@ def ProjectiveSpace_cartesian_product(*args, **kwds):
         Traceback (most recent call last):
         ...
         AttributeError: Components must be over the same base ring
-
     """
-    if len(args) == 1:
-        #we assume this is a list of projective spaces
+    if isinstance(R, (list, tuple)):
+        n, R = R, n
+    if R is None:
+        R = ZZ  # default is the integers
+    if isinstance(n[0],ProjectiveSpace_ring):
+        #this should be a list of projective spaces
         names = []
         N = []
         R = None
-        for PS in args[0]:
-            from sage.schemes.projective.projective_space import is_ProjectiveSpace
-            if is_ProjectiveSpace(PS)==False:
+        for PS in n:
+            if isinstance(PS,ProjectiveSpace_ring)==False:
                 raise TypeError("Must be a list of Projective Spaces or (dimensions,base ring,names)")
             if R == None:
                 R = PS.base_ring()
@@ -107,23 +114,18 @@ def ProjectiveSpace_cartesian_product(*args, **kwds):
             N.append(PS.dimension_relative())
             names += PS.variable_names()
         X = ProjectiveSpace_cartesian_product_generic(N, R, names)
-        X._components = args[0]
+        X._components = n
     else:
-        N = args[0]
-        R = args[1]
         if isinstance(R, (list,tuple)):
-           N, R = R, N
-        if not isinstance(N,(list,tuple)):
+           n, R = R, n
+        if not isinstance(n,(list,tuple)):
             raise ValueError("Need list or tuple of dimensions")
         from sage.categories.commutative_rings import CommutativeRings
         if R not in CommutativeRings():
             raise ValueError("Must be a commutative ring")
-        if len(args) == 3:
-            from sage.structure.parent_gens import normalize_names
-            names = normalize_names(sum(N) + len(N), args[2])
-        else:
-            names = kwds.pop("names",[None for i in range(len(N))])
-        X = ProjectiveSpace_cartesian_product_generic(N, R, names)
+        from sage.structure.parent_gens import normalize_names
+        names = normalize_names(sum(n) + len(n), names)
+        X = ProjectiveSpace_cartesian_product_generic(n, R, names)
     return(X)
 
 class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
@@ -142,16 +144,15 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
         sage: P[1]
         Projective Space of dimension 2 over Rational Field
         sage: Q = P(6,3,2,2,2); Q
-        (2 : 1 : 1 : 1 : 1)
+        (2 : 1 , 1 : 1 : 1)
         sage: Q[0]
         (2 : 1)
         sage: H = Hom(P,P)
         sage: f = H([x0^2*x3,x2*x1^2,x2^2,2*x3^2,x4^2])
         sage: f(Q)
-        (4 : 1 : 1 : 2 : 1)
-        
+        (4 : 1 , 1 : 2 : 1)
     """
-    def __init__(self, N, R=ZZ, names=None):
+    def __init__(self, N, R = ZZ, names = None):
         r"""
         The Python constructor
 
@@ -194,7 +195,8 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
         for i in range(len(N)):
             self._components.append(ProjectiveSpace(N[i],R,names[start:start+N[i]+1]))
             start += N[i]+1
-        #TODO: This needs to be the tensor product of the component coordinate rings.
+        #Note that the coordinate ring should really be the tensor product of the component
+        #coordinate rings. But we just deal with them as multihomogeneous polynomial rings
         self._coordinate_ring = PolynomialRing(R,sum(N)+ len(N),names)
 
     def _repr_(self):
@@ -216,52 +218,61 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
         S += self[self.ncomponents()-1]._repr_()
         return(S)
 
-    def _repr_generic_point(self, v=None):
+    def _repr_generic_point(self, v = None):
         """
         Return a string representation of the generic point
-        corresponding to the list of polys on this projective space.
-
-        If polys is None, the representation of the generic point of
-        the projective space is returned.
+        on this product space.
 
         EXAMPLES::
             sage: T = ProjectiveSpace_cartesian_product([1,2,1], QQ, 'x')
-            sage: print T._repr_generic_point()
-            (x0 : x1 : x2 : x3 : x4 : x5 : x6)
+            sage: T._repr_generic_point()
+            '(x0 : x1 , x2 : x3 : x4 , x5 : x6)'
         """
         if v is None:
-            v = self.gens()
-        return '(%s)'%(" : ".join([repr(f) for f in v]))
+            v = list(self.gens())
+        else:
+            v = list(v)
+        start = 0
+        N=self.dimension_relative_components()
+        splitv = []
+        for i in range(len(N)):
+            splitv.append(v[start : start+N[i]+1])
+            start += N[i]+1
+        return '(%s)'%(" , ".join((" : ".join([str(t) for t in P])) for P in splitv))
 
     def _latex_(self):
         r"""
-        Return a LaTeX representation of this projective space.
+        Return a LaTeX representation of this product space.
 
         EXAMPLES::
 
-            sage: print latex(ProjectiveSpace_cartesian_product([1,2,3], ZZ, 'x'))
+            sage: latex(ProjectiveSpace_cartesian_product([1,2,3], ZZ, 'x'))
             {\mathbf P}_{\Bold{Z}}^1 \times {\mathbf P}_{\Bold{Z}}^2 \times {\mathbf
             P}_{\Bold{Z}}^3
         """
         return '%s'%" \\times ".join([latex(PS) for PS in self])
 
-    def _latex_generic_point(self, v=None):
+    def _latex_generic_point(self, v = None):
         """
         Return a LaTeX representation of the generic point
-        corresponding to the list of polys on this projective space.
-
-        If polys is None, the representation of the generic point of
-        the projective space is returned.
+        on this product space.
 
         EXAMPLES::
-            sage: T=ProjectiveSpace_cartesian_product([1,2,3], ZZ, 'x')
-            sage: print T._latex_generic_point()
-            \left(x_{0} : x_{1} : x_{2} : x_{3} : x_{4} : x_{5} : x_{6} : x_{7} :
-            x_{8}\right)
+            sage: T = ProjectiveSpace_cartesian_product([1,2,3], ZZ, 'x')
+            sage: T._latex_generic_point()
+            '\\left(x_{0} : x_{1} , x_{2} : x_{3} : x_{4} , x_{5} : x_{6} : x_{7} : x_{8}\\right)'
         """
         if v is None:
-            v = self.gens()
-        return '\\left(%s\\right)'%(" : ".join([str(latex(f)) for f in v]))
+            v = list(self.gens())
+        else:
+            v = list(v)
+        start = 0
+        N=self.dimension_relative_components()
+        splitv = []
+        for i in range(len(N)):
+            splitv.append(v[start : start+N[i]+1])
+            start += N[i]+1
+        return '\\left(%s\\right)'%(" , ".join((" : ".join([latex(t) for t in P])) for P in splitv))
 
     def __getitem__(self, i):
         r"""
@@ -278,12 +289,12 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
             sage: T.<a,x,y,z,u,v,w> = ProjectiveSpace_cartesian_product([3,2],QQ)
             sage: T[0]
             Projective Space of dimension 3 over Rational Field 
-        """  
+        """
         return(self._components[i])
 
     def __cmp__(self, right):
         r"""
-        Compare two products of projective space.
+        Compare two products of projective spaces.
 
         INPUT:
 
@@ -312,9 +323,9 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
 
     def dimension_relative(self):
         r"""
-        Return the relative dimension of the product of projective space.
+        Return the relative dimension of the product of projective spaces.
 
-        OUTPUT: a positive integers.
+        OUTPUT: a positive integer.
 
         Examples:: 
 
@@ -326,9 +337,9 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
 
     def dimension_absolute(self):
         r"""
-        Return the absolute dimension of the product of projective space.
+        Return the absolute dimension of the product of projective spaces.
 
-        OUTPUT: a positive integers.
+        OUTPUT: a positive integer.
 
         Examples::
 
@@ -347,7 +358,7 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
 
     def dimension_relative_components(self):
         r"""
-        Return the relative dimension of the product of projective space.
+        Return the relative dimension of the product of projective spaces.
 
         OUTPUT: a list of positive integers.
 
@@ -361,7 +372,7 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
 
     def dimension_absolute_components(self):
         r"""
-        Return the absolute dimension of the product of projective space.
+        Return the absolute dimension of the product of projective spaces.
 
         OUTPUT: a list of positive integers.
 
@@ -382,7 +393,7 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
 
     def ncomponents(self):
         r"""
-           Returns the number of components
+           Returns the number of components of ``self``.
 
         OUTPUT: an integer.
 
@@ -405,8 +416,8 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
             sage: P = ProjectiveSpace_cartesian_product([1,1],QQ, 'z')
             sage: point_homset = P._point_homset(Spec(QQ), P)
             sage: P._point(point_homset, [2,2,1,1])
-            (1 : 1 : 1 : 1)
-        """            
+            (1 : 1 , 1 : 1)
+        """
         return ProjectiveSpace_cartesian_product_point(*args, **kwds)
 
     def _morphism(self, *args, **kwds):
@@ -421,8 +432,8 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
             sage: P._morphism(P.Hom(P), [x,y,z,w])
             Scheme endomorphism of Product of Projective Space of dimension 1 over
             Rational Field and Projective Space of dimension 1 over Rational Field
-              Defn: Defined by sending (x : y : z : w) to
-                  (x : y : z : w).
+              Defn: Defined by sending (x : y , z : w) to
+                  (x : y , z : w).
         """
         return ProjectiveSpace_cartesian_product_morphism(*args, **kwds)
 
@@ -441,22 +452,21 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
             Finite Field of size 5
         """
         return SchemeHomset_points_projective_cartesian_product(*args, **kwds)
-    
+
     def _validate(self, polynomials):
         r"""
         If ``polynomials`` is a tuple of valid polynomial functions on self,
-        return ``polynomials``, otherwise raise TypeError.
+        return ``polynomials``, otherwise raise a TypeError.
 
         Since this is a product of projective spaces, the polynomials must be multi-homogeneous.
 
         INPUT:
 
-        - ``polynomials`` -- tuple of polynomials in the coordinate ring of
-            self
+        - ``polynomials`` -- tuple of polynomials in the coordinate ring of ``self``
 
         OUTPUT:
 
-        - tuple of polynomials in the coordinate ring of self
+        - tuple of polynomials in the coordinate ring of ``self``
 
         EXAMPLES::
 
@@ -466,7 +476,7 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
 
         ::
 
-            sage:T.<x,y,z,w,u> = ProjectiveSpace_cartesian_product([2,1],QQ)
+            sage: T.<x,y,z,w,u> = ProjectiveSpace_cartesian_product([2,1],QQ)
             sage: T._validate([x^2+w^2,y^2*w,z^2*u,w^2,u^2])
             Traceback (most recent call last):
             ...
@@ -479,7 +489,8 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
             sage: T._validate([t,t,t,w^2,u^2])
             Traceback (most recent call last):
             ...
-            TypeError: polynomials (=[t, t, t, w^2, u^2]) must be elements of Multivariate Polynomial Ring in x, y, z, w, u over Rational Field
+            TypeError: polynomials (=[t, t, t, w^2, u^2]) must be elements of Multivariate
+            Polynomial Ring in x, y, z, w, u over Rational Field
         """
         if not isinstance(polynomials, (list, tuple)):
             raise TypeError('The argument polynomials=%s must be a list or tuple'%polynomials)
@@ -489,10 +500,7 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
             polynomials = [source_ring(poly) for poly in polynomials]
         except TypeError:
             raise TypeError("polynomials (=%s) must be elements of %s"%(polynomials,source_ring))
-        #check multi-homogeneous
-        #can we not split, because that does not work for subscheme.
-        #Why can't we just check each polynomial is multi-homogeneous,
-        #by looking at the exponenets of each monomial
+        #check multi-homogeneous by looking at the exponents of each monomial
         dims = self.dimension_relative_components()
         for f in polynomials:
             E = f.exponents()
@@ -503,10 +511,10 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
                         raise TypeError("polys (=%s) must be multi-homogeneous"%polynomials)
                 index += dims[i]+1
         return polynomials
-    
+
     def _check_satisfies_equations(self,v):
         """
-        Return True if `v` defines a point on the scheme self; raise a
+        Return True if ``v`` defines a point on the scheme ``self``; raise a
         TypeError otherwise.
 
         EXAMPLES::
@@ -566,12 +574,16 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
         return True
 
     def subscheme(self, X):
-        """
-        Return the closed subscheme defined by X.
+        r"""
+        Return the closed subscheme defined by ``X``.
 
         INPUT:
 
-        -  ``X`` - a list or tuple of equations
+        - ``X`` - a list or tuple of equations
+
+        OUTPUT:
+
+        - :class:`AlgebraicScheme_subscheme_projective_cartesian_product`
 
         EXAMPLES::
 
@@ -605,10 +617,10 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
         """
         return AlgebraicScheme_subscheme_projective_cartesian_product(self, X)
 
-    def change_ring(self,R):
+    def change_ring(self, R):
         r"""
-        Return a product of projective spaces over ring `R` and otherwise the same as self.
-        
+        Return a product of projective spaces over a ring `R` and otherwise the same as ``self``.
+
         INPUT:
 
         - ``R`` -- commutative ring
@@ -635,8 +647,8 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
 
     def affine_patch(self, I, return_embedding = False):
         r"""
-        Return the `I^{th}` affine patch of this projective space
-        where 'I' is a multi-index.
+        Return the `I^{th}` affine patch of this projective space product
+        where ``I`` is a multi-index.
 
         INPUT:
 
@@ -648,7 +660,7 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
 
         - An affine space
 
-        - An embedding into a product of projective space (optional)
+        - An embedding into a product of projective spaces (optional)
 
         EXAMPLES::
 
@@ -662,10 +674,10 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
             Projective Space of dimension 2 over Integer Ring and Projective Space
             of dimension 2 over Integer Ring
               Defn: Defined on coordinates by sending (x0, x1, x2, x3, x4, x5) to
-                    (1 : x0 : x1 : x2 : 1 : x3 : x4 : x5 : 1)
+                    (1 : x0 : x1 , x2 : 1 : x3 , x4 : x5 : 1)
         """
         if not isinstance(I, (list, tuple)):
-            raise TypeError('The argument I=%s must be a list or tuple of positice integers'%I)
+            raise TypeError('The argument I=%s must be a list or tuple of positive integers'%I)
         PP = self.ambient_space()
         N = PP.dimension_relative_components()
         if len(I) != len(N):
@@ -699,15 +711,16 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
 
 class ProjectiveSpace_cartesian_product_point(SchemeMorphism_point):
     r"""
-    The class of points on products of projective space. The components are projective space points.
+    The class of points on products of projective spaces.
+    The components are projective space points.
 
     Examples::
 
         sage: T.<x,y,z,w,u> = ProjectiveSpace_cartesian_product([2,1],QQ)
         sage: T.point([1,2,3,4,5]);
-        (1/3 : 2/3 : 1 : 4/5 : 1)
+        (1/3 : 2/3 : 1 , 4/5 : 1)
     """
-    def __init__(self, parent, polys, check=True):
+    def __init__(self, parent, polys, check = True):
         r"""
         The Python constructor.
 
@@ -727,20 +740,20 @@ class ProjectiveSpace_cartesian_product_point(SchemeMorphism_point):
             sage: Q1 = P1(1,1,1)
             sage: Q2 = P2(1,2,3,4)
             sage: T([Q1,Q2])
-            (1 : 1 : 1 : 1/4 : 1/2 : 3/4 : 1)
+            (1 : 1 : 1 , 1/4 : 1/2 : 3/4 : 1)
 
         ::
 
             sage: T = ProjectiveSpace_cartesian_product([2,2,2],GF(5),'x')
             sage: T.point([1,2,3,4,5,6,7,8,9])
-            (2 : 4 : 1 : 4 : 0 : 1 : 3 : 2 : 1)
+            (2 : 4 : 1 , 4 : 0 : 1 , 3 : 2 : 1)
 
         ::
 
             sage: T.<x,y,z,w> = ProjectiveSpace_cartesian_product([1,1],GF(5))
             sage: X = T.subscheme([x-y,z-2*w])
             sage: X([1,1,2,1])
-            (1 : 1 : 2 : 1)
+            (1 : 1 , 2 : 1)
         """
         SchemeMorphism.__init__(self, parent)
         if all(isinstance(P, SchemeMorphism_point) for P in polys):
@@ -774,9 +787,7 @@ class ProjectiveSpace_cartesian_product_point(SchemeMorphism_point):
 
             - ``i`` - integer
 
-        OUTPUT:
-
-        The projective space point that is the ``n``-th coordinate.
+        OUTPUT: The projective space point that is the ``n``-th coordinate.
 
         EXAMPLES::
 
@@ -802,9 +813,9 @@ class ProjectiveSpace_cartesian_product_point(SchemeMorphism_point):
             sage: T = ProjectiveSpace_cartesian_product([2,2],ZZ,'x')
             sage: P = T([1,2,3,4,5,6])
             sage: P._repr_()
-            '(1 : 2 : 3 : 4 : 5 : 6)'
+            '(1 : 2 : 3 , 4 : 5 : 6)'
         """
-        return('(%s)'%(" : ".join([repr(self[i][j]) for i in range(0,len(self._points)) for j in range(0,len(self[i])) ])))
+        return('(%s)'%(" , ".join((" : ".join([repr(f) for f in Q])) for Q in self._points)))
 
     def __eq__(self, other):
         r"""
@@ -825,7 +836,6 @@ class ProjectiveSpace_cartesian_product_point(SchemeMorphism_point):
             sage: Q = T([2,4,6,4,5,6])
             sage: P == Q
             True
-
         """
         for i in range(self.codomain().ncomponents()):
            if self[i] != other[i]:
@@ -858,16 +868,14 @@ class ProjectiveSpace_cartesian_product_point(SchemeMorphism_point):
         return False
 
     def __cmp__(self, right):
-        """
+        r"""
         Compare two points in products of projective spaces.
 
         INPUT:
 
         - ``other`` -- anything. To compare against the point ``self``.
 
-        OUTPUT:
-
-        ``+1``, ``0``, or ``-1``.
+        OUTPUT: ``+1``, ``0``, or ``-1``.
 
         EXAMPLES::
 
@@ -918,10 +926,10 @@ class ProjectiveSpace_cartesian_product_point(SchemeMorphism_point):
             True
         """
         P = [copy(self[i]) for i in range(self.codomain().ambient_space().ncomponents())]
-        return(self.codomain().point(P,False))
+        return(self.codomain().point(P, False))
 
     def __iter__(self):
-        """
+        r"""
         Iterate over the coordinates of the point.
 
         OUTPUT: An iterator.
@@ -955,16 +963,15 @@ class ProjectiveSpace_cartesian_product_point(SchemeMorphism_point):
             sage: P = T.point([5,10,15,4,2,6]);
             sage: P.normalize_coordinates()
             sage: P
-            (1 : 2 : 3 : 2 : 1 : 3)
+            (1 : 2 : 3 , 2 : 1 : 3)
         """
-
         for i in range(self.codomain().ambient_space().ncomponents()):
             self[i].normalize_coordinates()
 
     def scale_by(self, t):
         r"""
         Scale the coordinates of the point ``self`` by `t`, done componentwise.
-        A ``TypeError`` occurs if the point is not in the base_ring of the codomain after scaling.
+        A ``TypeError`` occurs if the point is not in the base ring of the codomain after scaling.
 
         INPUT:
 
@@ -976,7 +983,7 @@ class ProjectiveSpace_cartesian_product_point(SchemeMorphism_point):
             sage: P = T.point([5,10,15,4,2,6]);
             sage: P.scale_by([2,1,1])
             sage: P
-            (10 : 20 : 15 : 4 : 2 : 6)
+            (10 : 20 , 15 : 4 , 2 : 6)
         """
         if isinstance(t,(tuple,list)) == False:
             raise TypeError("%s must be a list or tuple"%t)
@@ -985,10 +992,10 @@ class ProjectiveSpace_cartesian_product_point(SchemeMorphism_point):
         for i in range(self.codomain().ambient_space().ncomponents()):
             self[i].scale_by(t[i])
 
-    def change_ring(self, R, check=True):
+    def change_ring(self, R, check = True):
         r"""
-        Returns a new :class:`ProjectiveSpace_cartesian_product_point` which is self coerced to R. If `check`
-        is True, then the initialization checks are performed.
+        Returns a new :class:`ProjectiveSpace_cartesian_product_point` which is ``self`` coerced to ``R``.
+        If ``check`` is True, then the initialization checks are performed.
 
         INPUT:
 
@@ -1005,15 +1012,16 @@ class ProjectiveSpace_cartesian_product_point(SchemeMorphism_point):
             sage: T.<x,y,z,u,v,w> = ProjectiveSpace_cartesian_product([1,1,1],ZZ)
             sage: P = T.point([5,3,15,4,2,6]);
             sage: P.change_ring(GF(3))
-            (1 : 0 : 0 : 1 : 1 : 0)
+            (1 : 0 , 0 : 1 , 1 : 0)
         """
         S = self.codomain().change_ring(R)
         Q = [P.change_ring(R,check) for P in self._points]
         return(S.point(Q, check))
-        
+
 class ProjectiveSpace_cartesian_product_morphism(SchemeMorphism_polynomial):
     r"""
-    The class of morphisms on products of projective space. The components are projective space morphisms.
+    The class of morphisms on products of projective spaces.
+    The components are projective space morphisms.
 
     Examples::
 
@@ -1022,10 +1030,11 @@ class ProjectiveSpace_cartesian_product_morphism(SchemeMorphism_polynomial):
         sage: H([x^2,y^2,z^2,w^2,u^2])
         Scheme endomorphism of Product of Projective Space of dimension 2 over
         Rational Field and Projective Space of dimension 1 over Rational Field
-          Defn: Defined by sending (x : y : z : w : u) to 
-                (x^2 : y^2 : z^2 : w^2 : u^2).
+          Defn: Defined by sending (x : y : z , w : u) to 
+                (x^2 : y^2 : z^2 , w^2 : u^2).
     """
-    def __init__(self, parent, polys, check=True):
+
+    def __init__(self, parent, polys, check = True):
         r"""
         The Python constructor.
 
@@ -1044,8 +1053,8 @@ class ProjectiveSpace_cartesian_product_morphism(SchemeMorphism_polynomial):
             sage: H([x^2*u,y^2*w,z^2*u,w^2,u^2])
             Scheme endomorphism of Product of Projective Space of dimension 2 over
             Rational Field and Projective Space of dimension 1 over Rational Field
-              Defn: Defined by sending (x : y : z : w : u) to 
-                    (x^2*u : y^2*w : z^2*u : w^2 : u^2).
+              Defn: Defined by sending (x : y : z , w : u) to 
+                    (x^2*u : y^2*w : z^2*u , w^2 : u^2).
 
         ::
 
@@ -1090,7 +1099,7 @@ class ProjectiveSpace_cartesian_product_morphism(SchemeMorphism_polynomial):
                         index += dims[i]+1
         SchemeMorphism_polynomial.__init__(self, parent, polys, check)
 
-    def __getitem__(self,i):
+    def __getitem__(self, i):
         r"""
         Return the ``n``-th coordinate polynomial.
 
@@ -1124,18 +1133,18 @@ class ProjectiveSpace_cartesian_product_morphism(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2,y^2,z,w])
             sage: f._repr_defn()
-            'Defined by sending (x : y : z : w) to \n(x^2 : y^2 : z : w).'
+            'Defined by sending (x : y , z : w) to \n(x^2 : y^2 , z : w).'
         """
         s  = 'Defined by sending '
-        s += '(' + ' : '.join([repr(var) for var in self.codomain().coordinate_ring().gens()]) + ')'
+        s += self.domain().ambient_space()._repr_generic_point()
         s += ' to \n'
-        s += '(' + ' : '.join([repr(self[i]) for i in range(0,len(self._polys))]) +')'
+        s += self.codomain().ambient_space()._repr_generic_point(self._polys)
         s += '.'
         return s
 
-    def __call__(self, P, check=True):
+    def __call__(self, P, check = True):
         r"""
-        Make morphisms of products of projectice spaces callable.
+        Make morphisms of products of projective spaces callable.
 
         INPUT:
 
@@ -1143,9 +1152,7 @@ class ProjectiveSpace_cartesian_product_morphism(SchemeMorphism_polynomial):
 
         - ``check`` - Boolean - whether or not to perform the input checks on the image point (Default: True)
 
-        OUTPUT:
-
-        The image point in codomain.
+        OUTPUT: The image point in the codomain.
 
         EXAMPLES::
 
@@ -1153,7 +1160,7 @@ class ProjectiveSpace_cartesian_product_morphism(SchemeMorphism_polynomial):
             sage: H = T.Hom(T)
             sage: F = H([x^2*u,y^2*w,z^2*u,w^2,u^2])
             sage: F(T([2,1,3,0,1]))
-            (4/9 : 0 : 1 : 0 : 1)
+            (4/9 : 0 : 1 , 0 : 1)
         """
         A = self.codomain()
         f = self.defining_polynomials()

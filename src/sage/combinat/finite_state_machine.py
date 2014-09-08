@@ -3950,6 +3950,25 @@ class FiniteStateMachine(SageObject):
             \node[state, accepting] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
             \path[->] (v0) edge node[rotate=360.00, anchor=south] {$ $} (v1);
             \end{tikzpicture}
+
+        TESTS:
+
+            Check that :trac:`16943` is fixed::
+
+                sage: latex(Transducer(
+                ....:     [(0, 1), (1, 1), (2, 2), (3, 3), (4, 4)]))
+                \begin{tikzpicture}[auto, initial text=, >=latex]
+                \node[state] (v0) at (3.000000, 0.000000) {$0$};
+                \node[state] (v1) at (0.927051, 2.853170) {$1$};
+                \node[state] (v2) at (-2.427051, 1.763356) {$2$};
+                \node[state] (v3) at (-2.427051, -1.763356) {$3$};
+                \node[state] (v4) at (0.927051, -2.853170) {$4$};
+                \path[->] (v0) edge node[rotate=306.00, anchor=south] {$\varepsilon\mid \varepsilon$} (v1);
+                \path[->] (v1) edge[loop above] node {$\varepsilon\mid \varepsilon$} ();
+                \path[->] (v2) edge[loop above] node {$\varepsilon\mid \varepsilon$} ();
+                \path[->] (v3) edge[loop above] node {$\varepsilon\mid \varepsilon$} ();
+                \path[->] (v4) edge[loop above] node {$\varepsilon\mid \varepsilon$} ();
+                \end{tikzpicture}
         """
         def label_rotation(angle, both_directions):
             """
@@ -3964,6 +3983,10 @@ class FiniteStateMachine(SageObject):
                     # if transitions in both directions, the transition to the
                     # left has its label below the transition, otherwise above
                     anchor_label = "north"
+            if hasattr(angle_label, 'n'):
+                # we may need to convert symbolic expressions to floats,
+                # but int does not have .n()
+                angle_label = angle_label.n()
             return "rotate=%.2f, anchor=%s" % (angle_label, anchor_label)
 
         setup_latex_preamble()

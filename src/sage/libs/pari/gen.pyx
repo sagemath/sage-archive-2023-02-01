@@ -706,7 +706,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: q[6]
             Traceback (most recent call last):
             ...
-            IndexError: index out of bounds
+            IndexError: index out of range
             sage: m = pari('[1,2;3,4]')
             sage: m[0]
             [1, 3]~
@@ -725,7 +725,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: s[13]
             Traceback (most recent call last):
             ...
-            IndexError: index out of bounds
+            IndexError: index out of range
             sage: v = pari('[1,2,3]')
             sage: v[0]
             1
@@ -746,7 +746,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(57)[0]
             Traceback (most recent call last):
             ...
-            TypeError: unindexable object
+            TypeError: PARI object of type 't_INT' cannot be indexed
             sage: m = pari("[[1,2;3,4],5]") ; m[0][1,0]
             3
             sage: v = pari(xrange(20))
@@ -763,7 +763,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: v[-1]
             Traceback (most recent call last):
             ...
-            IndexError: index out of bounds
+            IndexError: index out of range
             sage: v[:-3]
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
             sage: v[5:]
@@ -784,9 +784,9 @@ cdef class gen(sage.structure.element.RingElement):
             j = int(n[1])
 
             if i < 0 or i >= glength(<GEN>(self.g[1])):
-                raise IndexError, "row index out of bounds"
+                raise IndexError("row index out of range")
             if j < 0 or j >= glength(self.g):
-                raise IndexError, "column index out of bounds"
+                raise IndexError("column index out of range")
 
             ind = (i,j)
 
@@ -833,15 +833,15 @@ cdef class gen(sage.structure.element.RingElement):
         elif pari_type == t_SER:
             bound = valp(self.g) + lg(self.g) - 2
             if n >= bound:
-                raise IndexError, "index out of bounds"
+                raise IndexError("index out of range")
             return self.polcoeff(n)
 
-        elif pari_type in (t_INT, t_REAL, t_PADIC, t_QUAD):
+        elif pari_type in (t_INT, t_REAL, t_PADIC, t_QUAD, t_FFELT, t_INTMOD, t_POLMOD):
             # these are definitely scalar!
-            raise TypeError, "unindexable object"
+            raise TypeError("PARI object of type %r cannot be indexed" % self.type())
 
         elif n < 0 or n >= glength(self.g):
-            raise IndexError, "index out of bounds"
+            raise IndexError("index out of range")
 
         elif pari_type == t_VEC or pari_type == t_MAT:
             #t_VEC    : row vector        [ code ] [  x_1  ] ... [  x_k  ]
@@ -869,20 +869,7 @@ cdef class gen(sage.structure.element.RingElement):
             return chr( (<char *>(self.g+1))[n] )
 
         elif pari_type == t_LIST:
-            #t_LIST   : list              [ code ] [ n ] [ nmax ][ vec ]
             return self.component(n+1)
-            #code from previous version, now segfaults:
-            #return P.new_ref(gel(self.g,n+2), self)
-
-        elif pari_type in (t_INTMOD, t_POLMOD):
-            #t_INTMOD : integermods       [ code ] [ mod  ] [ integer ]
-            #t_POLMOD : poly mod          [ code ] [ mod  ] [ polynomial ]
-
-            # if we keep going we would get:
-            #   [0] = modulus
-            #   [1] = lift to t_INT or t_POL
-            # do we want this? maybe the other way around?
-            raise TypeError, "unindexable object"
 
         #elif pari_type in (t_FRAC, t_RFRAC):
             # generic code gives us:

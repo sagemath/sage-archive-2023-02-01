@@ -289,6 +289,41 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         else:
             return str(self)
 
+    def _pari_(self, var=None):
+        r"""
+        Return PARI representation of this finite field element.
+
+        INPUT:
+
+        - ``var`` -- (default: ``None``) optional variable string
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(5^3)
+            sage: a._pari_()
+            a
+            sage: a._pari_('b')
+            b
+            sage: t = 3*a^2 + 2*a + 4
+            sage: t_string = t._pari_init_('y')
+            sage: t_string
+            'Mod(Mod(3, 5)*y^2 + Mod(2, 5)*y + Mod(4, 5), Mod(1, 5)*y^3 + Mod(3, 5)*y + Mod(3, 5))'
+            sage: type(t_string)
+            <type 'str'>
+            sage: t_element = t._pari_('b')
+            sage: t_element
+            3*b^2 + 2*b + 4
+            sage: t_element.parent()
+            Interface to the PARI C library
+        """
+        if var is None:
+            var = self.parent().variable_name()
+        from sage.libs.pari.all import pari
+        ffgen = self._parent.modulus()._pari_with_name(var).ffgen()
+        polypari = self.polynomial()._pari_with_name()
+        # Add ffgen - ffgen to ensure that we really get an FFELT
+        return polypari.subst("x", ffgen) + ffgen - ffgen
+
     def _pari_init_(self, var=None):
         r"""
         Return a string that defines this element when evaluated in PARI.
@@ -308,7 +343,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         TESTS:
 
-        The following tests against a bug fixed in trac ticket #11530.  ::
+        The following tests against a bug fixed in trac:`11530`::
 
             sage: F.<d> = GF(3^4)
             sage: F.modulus()
@@ -318,7 +353,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             sage: (d^2+2*d+1)._pari_init_("p")
             'Mod(Mod(1, 3)*p^2 + Mod(2, 3)*p + Mod(1, 3), Mod(1, 3)*p^4 + Mod(2, 3)*p^3 + Mod(2, 3))'
             sage: d._pari_()
-            Mod(Mod(1, 3)*d, Mod(1, 3)*d^4 + Mod(2, 3)*d^3 + Mod(2, 3))
+            d
 
             sage: K.<M> = GF(2^8)
             sage: K.modulus()

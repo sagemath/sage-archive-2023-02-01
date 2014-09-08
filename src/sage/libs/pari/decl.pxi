@@ -27,11 +27,9 @@ cdef extern from '<stdarg.h>':
 
 ctypedef unsigned long ulong
 
-cdef extern from 'pari/paricfg.h':
+cdef extern from 'parisage.h':
     char* PARIVERSION
 
-
-cdef extern from 'pari/pari.h':
     ctypedef long* GEN
     ctypedef char* byteptr
 

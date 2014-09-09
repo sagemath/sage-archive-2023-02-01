@@ -725,12 +725,23 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
     def acton(self, z):
         r"""
         Return the image of ``z`` under the action of ``self``
-        by linear fractional transformations.
+        by linear fractional transformations or by conjugation
+        in case ``z`` is an element of the parent of ``self``.
+
+        Note: There is a 1-1 correspondence between hyperbolic
+        fixed points and the corresponding primitive element
+        in the stabilizer. The action in the two cases above
+        is compatible with this correspondence.
 
         INPUT:
 
-        - ``z``     -- A complex number or an element of AlgebraicField().
-                      ``infinity`` is also a possible argument or return value.
+        - ``z``     -- Either an element of ``self`` or any
+                       element to which a linear fractional
+                       transformation can be applied in
+                       the usual way.
+
+                       In particular ``infinity`` is a possible
+                       argument and a possible return value.
 
         EXAMPLES::
 
@@ -751,7 +762,16 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             lam
             sage: G.V(2).acton(-G.lam()) == infinity
             True
+
+            sage: G.V(2).acton(G.U()) == G.V(2)*G.U()*G.V(2).inverse()
+            True
+            sage: G.V(2).inverse().acton(G.U())
+            [  0  -1]
+            [  1 lam]
         """
+
+        if z.parent() == self.parent():
+            return self*z*self.inverse()
 
         if z == infinity and self.c() == 0:
             return infinity

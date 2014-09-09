@@ -179,9 +179,6 @@ class HyperbolicPoint(Element):
     def _cached_coordinates(self):
         r"""
         The representation of the current point used for calculations.
-        For example, if the current model uses the HyperbolicMethodsUHP
-        class, then ``_cached_coordinates`` will hold the upper half plane
-        representation of ``self.coordinates()``.
 
         EXAMPLES::
 
@@ -189,8 +186,9 @@ class HyperbolicPoint(Element):
             sage: A._cached_coordinates
             I
         """
-        return self.parent().point_to_model(self.coordinates(),
-                                            self._HMethods.model_name())
+        R = self.parent().realization_of().a_realization()
+        return R(self).coordinates()
+
     def _repr_(self):
         r"""
         Return a string representation of ``self``.
@@ -404,59 +402,6 @@ class HyperbolicPoint(Element):
     # Methods implemented in _HMethods #
     ####################################
 
-    def dist(self, other):
-        r"""
-        Calculate the hyperbolic distance between two points in the same
-        model.
-
-        INPUT:
-
-        - ``other`` -- a hyperbolic point in the same model as ``self``
-
-        OUTPUT:
-
-        - the hyperbolic distance
-
-        EXAMPLES::
-
-            sage: UHP = HyperbolicPlane().UHP()
-            sage: p1 = UHP.get_point(5 + 7*I)
-            sage: p2 = UHP.get_point(1.0 + I)
-            sage: p1.dist(p2)
-            2.23230104635820
-
-            sage: p1 = HyperbolicPlane().PD().get_point(0)
-            sage: p2 = HyperbolicPlane().PD().get_point(I/2)
-            sage: p1.dist(p2)
-            arccosh(5/3)
-
-            sage: UHP(p1).dist(UHP(p2))
-            arccosh(5/3)
-
-            sage: p1 = HyperbolicPlane().KM().get_point((0, 0))
-            sage: p2 = HyperbolicPlane().KM().get_point((1/2, 1/2))
-            sage: numerical_approx(p1.dist(p2))
-            0.881373587019543
-
-            sage: p1 = HyperbolicPlane().HM().get_point((0,0,1))
-            sage: p2 = HyperbolicPlane().HM().get_point((1,0,sqrt(2)))
-            sage: numerical_approx(p1.dist(p2))
-            0.881373587019543
-
-        Distance between a point and itself is 0::
-
-            sage: p = HyperbolicPlane().UHP().get_point(47 + I)
-            sage: p.dist(p)
-            0
-        """
-        tmp_other = other.to_model(self.model_name())
-        if isinstance(other, HyperbolicPoint):
-            return self._HMethods.point_dist(self._cached_coordinates, tmp_other._cached_coordinates)
-        elif isinstance(other, HyperbolicGeodesic):
-            return self._HMethods.geod_dist_from_point(
-                *(other._cached_endpoints + self._cached_coordinates
-              ))
-
     def symmetry_in(self):
         r"""
         Return the involutary isometry fixing the given point.
@@ -502,6 +447,7 @@ class HyperbolicPoint(Element):
             sage: A*A == HyperbolicPlane().UHP().isometry(identity_matrix(2))
             True
         """
+        R = self.parent().realization_of().a_realization()
         A = self._HMethods.symmetry_in(self._cached_coordinates)
         A = self._HMethods.model().isometry_to_model(A, self.model_name())
         return self.parent().get_isometry(A)
@@ -567,6 +513,21 @@ class HyperbolicPointUHP(HyperbolicPoint):
         Boundary point in UHP 1
 
     """
+    def symmetry_in(self):
+        r"""
+        Return the involutary isometry fixing the given point.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.hyperbolic_space.hyperbolic_methods import HyperbolicMethodsUHP
+            sage: HyperbolicMethodsUHP.symmetry_in(3 + 2*I)
+            [  3/2 -13/2]
+            [  1/2  -3/2]
+        """
+        p = self._coordinates
+        x, y = real(p), imag(p)
+        if y > 0:
+            return matrix(2,[x/y,-(x**2/y) - y,1/y,-(x/y)])
 
     def show(self, boundary=True, **options):
         r"""

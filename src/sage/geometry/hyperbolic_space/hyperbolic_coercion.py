@@ -69,6 +69,14 @@ class HyperbolicModelCoercion(Morphism):
         It is an error to try to convert a boundary point to a model
         that doesn't support boundary points::
 
+            sage: HyperbolicPlane.UHP.point_to_model(infinity, 'HM')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: boundary points are not implemented for the HM model
+
+        It is an error to try to convert a boundary point to a model
+        that doesn't support boundary points::
+
             sage: psi(UHP(infinity))
             Traceback (most recent call last):
             ...
@@ -116,7 +124,7 @@ class HyperbolicModelCoercion(Morphism):
             sage: phi(PD.get_point(0.5+0.5*I)) # Wrong test...
             Point in UHP 2.00000000000000 + 1.00000000000000*I
         """
-        return self.codomain().get_isometry(self.image_isometry(x._matrix))
+        return self.codomain().get_isometry(self.image_isometry_matrix(x._matrix))
 
     def __invert__(self):
         """
@@ -154,14 +162,12 @@ class CoercionUHPtoPD(HyperbolicModelCoercion):
             sage: phi = PD.coerce_map_from(UHP)
             sage: phi.image_coordinates(I)
             0
-            sage: phi.image_coorindates(I)
-            +Infinity
         """
         if x == infinity:
             return I
         return (x - I)/(Integer(1) - I*x)
 
-    def image_isometry(self, x):
+    def image_isometry_matrix(self, x):
         """
         Return the image of the matrix of the hyperbolic isometry ``x``
         under ``self``.
@@ -192,7 +198,7 @@ class CoercionUHPtoKM(HyperbolicModelCoercion):
         return ((2*real(x))/(real(x)**2 + imag(x)**2 + 1),
                 (real(x)**2 + imag(x)**2 - 1)/(real(x)**2 + imag(x)**2 + 1))
 
-    def image_isometry(self, x):
+    def image_isometry_matrix(self, x):
         """
         Return the image of the matrix of the hyperbolic isometry ``x``
         under ``self``.
@@ -222,7 +228,7 @@ class CoercionUHPtoHM(HyperbolicModelCoercion):
                       (real(x)**2 + imag(x)**2 - 1)/(2*imag(x)),
                       (real(x)**2 + imag(x)**2 + 1)/(2*imag(x))))
 
-    def image_isometry(self, x):
+    def image_isometry_matrix(self, x):
         """
         Return the image of the matrix of the hyperbolic isometry ``x``
         under ``self``.
@@ -253,12 +259,16 @@ class CoercionPDtoUHP(HyperbolicModelCoercion):
             2.00000000000000 + 1.00000000000000*I
             sage: phi.image_coordinates(0)
             I
+            sage: phi.image_coordinates(I)
+            +Infinity
+            sage: phi.image_coordinates(-I)
+            0
         """
         if x == I:
             return infinity
         return (x + I)/(Integer(1) + I*x)
 
-    def image_isometry(self, x):
+    def image_isometry_matrix(self, x):
         """
         Return the image of the matrix of the hyperbolic isometry ``x``
         under ``self``.
@@ -281,7 +291,7 @@ class CoercionPDtoKM(HyperbolicModelCoercion):
         return (2*real(x)/(Integer(1) + real(x)**2 +imag(x)**2),
                 2*imag(x)/(Integer(1) + real(x)**2 + imag(x)**2))
 
-    def image_isometry(self, x):
+    def image_isometry_matrix(self, x):
         """
         Return the image of the matrix of the hyperbolic isometry ``x``
         under ``self``.
@@ -308,7 +318,7 @@ class CoercionPDtoHM(HyperbolicModelCoercion):
             (real(x)**2 + imag(x)**2 + 1)/(1 - real(x)**2 - imag(x)**2)
             ))
 
-    def image_isometry(self, x):
+    def image_isometry_matrix(self, x):
         """
         Return the image of the matrix of the hyperbolic isometry ``x``
         under ``self``.
@@ -338,6 +348,8 @@ class CoercionKMtoUHP(HyperbolicModelCoercion):
             sage: phi = UHP.coerce_map_from(KM)
             sage: phi.image_coordinates((0, 0))
             I
+            sage: phi.image_coordinates((0, 1))
+            +Infinity
         """
         if tuple(x) == (0, 1):
             return infinity
@@ -345,7 +357,7 @@ class CoercionKMtoUHP(HyperbolicModelCoercion):
                  + I*(-(sqrt(-x[0]**2 -x[1]**2 + 1) - x[0]**2 - x[1]**2 + 1)
                       / ((x[1] - 1)*sqrt(-x[0]**2 - x[1]**2 + 1) + x[1] - 1)) )
 
-    def image_isometry(self, x):
+    def image_isometry_matrix(self, x):
         """
         Return the image of the matrix of the hyperbolic isometry ``x``
         under ``self``.
@@ -368,7 +380,7 @@ class CoercionKMtoPD(HyperbolicModelCoercion):
         return ( x[0]/(1 + (1 - x[0]**2 - x[1]**2).sqrt())
                  + I*x[1]/(1 + (1 - x[0]**2 - x[1]**2).sqrt()) )
 
-    def image_isometry(self, x):
+    def image_isometry_matrix(self, x):
         """
         Return the image of the matrix of the hyperbolic isometry ``x``
         under ``self``.
@@ -398,7 +410,7 @@ class CoercionKMtoHM(HyperbolicModelCoercion):
         return (vector((2*x[0], 2*x[1], 1 + x[0]**2 + x[1]**2))
                 / (1 - x[0]**2 - x[1]**2))
 
-    def image_isometry(self, x):
+    def image_isometry_matrix(self, x):
         """
         Return the image of the matrix of the hyperbolic isometry ``x``
         under ``self``.
@@ -431,7 +443,7 @@ class CoercionHMtoUHP(HyperbolicModelCoercion):
         return -((x[0]*x[2] + x[0]) + I*(x[2] + 1)) / ((x[1] - 1)*x[2]
                                         - x[0]**2 - x[1]**2 + x[1] - 1)
 
-    def image_isometry(self, x):
+    def image_isometry_matrix(self, x):
         """
         Return the image of the matrix of the hyperbolic isometry ``x``
         under ``self``.
@@ -453,7 +465,7 @@ class CoercionHMtoPD(HyperbolicModelCoercion):
         """
         return x[0]/(1 + x[2]) + I*(x[1]/(1 + x[2]))
 
-    def image_isometry(self, x):
+    def image_isometry_matrix(self, x):
         """
         Return the image of the matrix of the hyperbolic isometry ``x``
         under ``self``.
@@ -482,7 +494,7 @@ class CoercionHMtoKM(HyperbolicModelCoercion):
         """
         return (x[0]/(1 + x[2]), x[1]/(1 + x[2]))
 
-    def image_isometry(self, x):
+    def image_isometry_matrix(self, x):
         """
         Return the image of the matrix of the hyperbolic isometry ``x``
         under ``self``.

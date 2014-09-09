@@ -164,8 +164,20 @@ class HyperbolicModels(Category_realization_of_parent):
             """
             return self(self.realization_of().PD().get_point(0))
 
+        def dist(self, a, b):
+            """
+            Return the distance between ``a`` and ``b``.
+            """
+            R = self.realization_of().a_realization()
+            return R.dist(a, b)
+
     class ElementMethods:
-        pass
+        # TODO: Move to a category of metric spaces
+        def dist(self, other):
+            """
+            Return the distance between ``self`` and ``other``.
+            """
+            return self.parent().dist(self, other)
 
 # TODO: Remove this class and move its doctests
 class HyperbolicUserInterface(UniqueRepresentation):

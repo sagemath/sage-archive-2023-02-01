@@ -2739,11 +2739,7 @@ cdef class Matrix(ModuleElement):
             [  0 1/5]
             [2/5 3/5]
         """
-        if have_same_parent(left, right):
-            return (<Matrix>left)._matrix_times_matrix_(~<Matrix>right)
-        else:
-            global coercion_model
-            return coercion_model.bin_op(left, right, div)
+        return left * (~right)
 
     cdef Vector _vector_times_matrix_(matrix_right, Vector vector_left):
         raise TypeError

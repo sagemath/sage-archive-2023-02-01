@@ -1977,6 +1977,14 @@ ext_modules = [
     Extension('sage.stats.intlist',
               sources = ['sage/stats/intlist.pyx']),
 
+    Extension('sage.stats.distributions.discrete_gaussian_integer',
+              sources = ['sage/stats/distributions/discrete_gaussian_integer.pyx', 'sage/stats/distributions/dgs_gauss_mp.c', 'sage/stats/distributions/dgs_gauss_dp.c', 'sage/stats/distributions/dgs_bern.c'],
+              depends = ['sage/stats/distributions/dgs_gauss.h', 'sage/stats/distributions/dgs_bern.h'],
+              libraries = ['gmp', 'mpfr'],
+              extra_compile_args=["-std=c99", "-D_XOPEN_SOURCE=600"],
+              include_dirs = [SAGE_ROOT +"/src/sage/stats/distributions"],
+          ),
+
     ################################
     ##
     ## sage.structure

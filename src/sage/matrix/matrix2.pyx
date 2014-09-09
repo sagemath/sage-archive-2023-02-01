@@ -9066,6 +9066,10 @@ cdef class Matrix(matrix1.Matrix):
                 Q = Q[0:m, 0:n]
                 R = R[0:n, 0:n]
         elif R.is_exact():
+            if self == 1:
+                # this special case occurs frequently enough to deserve a shortcut
+                return (self, self)
+
             if orthonormal:
                 Q, R = self.transpose().QR(full=False)
             else:

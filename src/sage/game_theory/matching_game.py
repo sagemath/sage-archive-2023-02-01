@@ -81,7 +81,7 @@ class MatchingGame(SageObject):
         ....:                 'D': ('M', 'K', 'J', 'L')}
         sage: m = MatchingGame([suitr_pref, reviewr_pref])
         sage: m
-        A matching game with 8 players
+        A matching game with 4 suitors and 4 reviewers
         sage: m.suitors
         ['K', 'J', 'M', 'L']
         sage: m.reviewers
@@ -279,10 +279,10 @@ class MatchingGame(SageObject):
 
             sage: M = MatchingGame(2)
             sage: M
-            A matching game with 4 players
+            A matching game with 2 suitors and 2 reviewers
         """
-        n = len(self.reviewers) + len(self.suitors)
-        return 'A matching game with %s players' % n
+        size = (len(self.reviewers), len(self.suitors))
+        return 'A matching game with %s suitors and %s reviewers' % size
 
     def _latex_(self):
         r"""

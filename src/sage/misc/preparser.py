@@ -214,7 +214,8 @@ Behind the scenes what happens is the following::
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
-import os, re
+import os
+import re
 import base64
 
 implicit_mul_level = False
@@ -251,7 +252,23 @@ def implicit_multiplication(level=None):
         implicit_mul_level = level
 
 def isalphadigit_(s):
-    return s.isalpha() or s.isdigit() or s=="_"
+    """
+    Return ``True`` if ``s`` is a non-empty string of alphabetic characters
+    or a non-empty string of digits or just a single ``_``
+
+    EXAMPLES::
+
+        sage: from sage.misc.preparser import isalphadigit_
+        sage: isalphadigit_('abc')
+        True
+        sage: isalphadigit_('123')
+        True
+        sage: isalphadigit_('_')
+        True
+        sage: isalphadigit_('a123')
+        False
+    """
+    return s.isalpha() or s.isdigit() or s == "_"
 
 keywords = """
 and       del       from      not       while
@@ -448,7 +465,7 @@ def containing_block(code, ix, delimiters=['()','[]','{}'], require_delim=True):
         start -= 1
         if start == -1:
             if require_delim:
-                raise SyntaxError, "Unbalanced or missing ()'s"
+                raise SyntaxError("Unbalanced or missing ()'s")
             else:
                 break
         if code[start] in openings:
@@ -466,7 +483,7 @@ def containing_block(code, ix, delimiters=['()','[]','{}'], require_delim=True):
     while end < len(code):
         end += 1
         if end == len(code):
-            raise SyntaxError, "Unbalanced or missing ()'s"
+            raise SyntaxError("Unbalanced or missing ()'s")
         if code[end] == openings[p]:
             level += 1
         elif code[end] == closings[p]:
@@ -503,7 +520,7 @@ def parse_ellipsis(code, preparse_step=True):
     ix = code.find('..')
     while ix != -1:
         if ix == 0:
-            raise SyntaxError, "Cannot start line with ellipsis."
+            raise SyntaxError("Cannot start line with ellipsis.")
         elif code[ix-1]=='.':
             # '...' be valid Python in index slices
             code = code[:ix-1] + "Ellipsis" + code[ix+2:]
@@ -961,6 +978,11 @@ def preparse_generators(code):
 
         sage: preparse_generators(";  R.<x>=ZZ[];")
         ";  R = ZZ['x']; (x,) = R._first_ngens(1);"
+
+    See :trac:`16731` ::
+
+        sage: preparse_generators('R.<x> = ')
+        'R.<x> = '
     """
     new_code = []
     last_end = 0
@@ -969,7 +991,9 @@ def preparse_generators(code):
         ident, obj, gens, other_objs, constructor = m.groups()
         gens = [v.strip() for v in gens.split(',')]
         constructor = constructor.rstrip()
-        if constructor[-1] == ')':
+        if len(constructor) == 0:
+            pass   # SyntaxError will be raised by Python later
+        elif constructor[-1] == ')':
             if '(' not in constructor:
                 raise SyntaxError("Mismatched ')'")
             opening = constructor.rindex('(')
@@ -1184,11 +1208,6 @@ def preparse_file(contents, globals=None, numeric_literals=True):
     if globals is None:
         globals = {}
 
-    # We keep track of which files have been loaded so far
-    # in order to avoid a recursive load that would result
-    # in creating a massive file and crashing.
-    loaded_files = []
-
     # This is a hack, since when we use @parallel to parallelize code,
     # the numeric literals that are factored out do not get copied
     # to the subprocesses properly.  See trac #4545.
@@ -1343,7 +1362,7 @@ class BackslashOperator:
     """
     Implements Matlab-style backslash operator for solving systems::
 
-        A / b
+        A \\ b
 
     EXAMPLES::
 
@@ -1427,16 +1446,17 @@ def is_loadable_filename(filename):
     return False
 
 def load_cython(name):
+    """
+    """
     import cython
-    cur = os.path.abspath(os.curdir)
     try:
         mod, dir  = cython.cython(name, compile_message=True, use_cache=True)
-    except (IOError, OSError, RuntimeError), msg:
-        print "Error compiling cython file:\n%s"%msg
+    except (IOError, OSError, RuntimeError) as msg:
+        print("Error compiling cython file:\n{}".format(msg))
         return ''
     import sys
     sys.path.append(dir)
-    return 'from %s import *'%mod
+    return 'from {} import *'.format(mod)
 
 def handle_encoding_declaration(contents, out):
     r"""Find a PEP 263-style Python encoding declaration in the first or
@@ -1650,6 +1670,7 @@ def load(filename, globals, attach=False):
 
         sage: sage.misc.preparser.load('http://wstein.org/loadtest.py', globals())  # optional - internet
         hi from the net
+        5
 
     We can load files using secure http (https)::
 
@@ -1730,7 +1751,7 @@ def load(filename, globals, attach=False):
         if attach:
             # But see http://en.wikipedia.org/wiki/HTTP_ETag for how
             # we will do this.
-            # http://www.diveintopython.org/http_web_services/etags.html
+            # http://www.diveintopython.net/http_web_services/etags.html
             raise NotImplementedError("you can't attach a URL")
         from remote_file import get_remote_file
         filename = get_remote_file(filename, verbose=False)
@@ -1779,7 +1800,7 @@ def load(filename, globals, attach=False):
         # further.
         s = globals['magma'].load(fpath)
         i = s.find('\n'); s = s[i+1:]
-        print s
+        print(s)
 
 
 def load_wrap(filename, attach=False):
@@ -1807,6 +1828,5 @@ def load_wrap(filename, attach=False):
         sage: sage.misc.preparser.base64.b64decode("Zm9vLnNhZ2U=")
         'foo.sage'
     """
-    return 'sage.misc.preparser.load(sage.misc.preparser.base64.b64decode("{0}"),globals(),{1})'.format(
+    return 'sage.misc.preparser.load(sage.misc.preparser.base64.b64decode("{}"),globals(),{})'.format(
         base64.b64encode(filename), attach)
-

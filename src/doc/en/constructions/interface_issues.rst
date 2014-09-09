@@ -312,7 +312,7 @@ Read in and execute ``example.sage`` file using the ``load`` command.
 
 ::
 
-    sage: load "example.sage"
+    sage: load("example.sage")
     Hello World
     8
 
@@ -324,7 +324,7 @@ You can also ``attach`` a Sage file to a running session:
 
 ::
 
-    sage: attach "example.sage"
+    sage: attach("example.sage")
     Hello World
     8
 

@@ -118,7 +118,7 @@ class Text(GraphicPrimitive):
             sage: s.jmol_repr(s.testing_render_params())[0][1]
             'color atom  [0,0,255]'
         """
-        if options == None:
+        if options is None:
             options = dict(self.options())
         options_3d = {}
         # TODO: figure out how to implement rather than ignore
@@ -251,7 +251,7 @@ def text(string, xy, **options):
         x, y = xy
     except ValueError:
         if isinstance(xy, (list, tuple)) and len(xy) == 3:
-            raise ValueError, "use text3d instead for text in 3d"
+            raise ValueError("use text3d instead for text in 3d")
         raise
     from sage.plot.all import Graphics
     options['rgbcolor'] = to_mpl_color(options['rgbcolor'])

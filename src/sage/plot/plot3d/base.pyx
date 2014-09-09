@@ -9,7 +9,9 @@ AUTHORS:
 
 - William Stein (2008)
 
-TODO: - finish integrating tachyon - good default lights, camera
+.. TODO::
+
+    finish integrating tachyon -- good default lights, camera
 """
 
 #*****************************************************************************
@@ -31,6 +33,7 @@ TODO: - finish integrating tachyon - good default lights, camera
 from cpython.list cimport *
 
 import os
+from functools import reduce
 from math import atan2
 from random import randint
 import zipfile
@@ -117,11 +120,12 @@ cdef class Graphics3d(SageObject):
         Addition of objects adds them to the same scene.
 
         EXAMPLES::
+
             sage: A = sphere((0,0,0), 1, color='red')
             sage: B = dodecahedron((2, 0, 0), color='yellow')
             sage: A+B
 
-        For convenience, we take 0 and None to be the additive identity::
+        For convenience, we take 0 and ``None`` to be the additive identity::
 
             sage: A + 0 is A
             True
@@ -150,7 +154,8 @@ cdef class Graphics3d(SageObject):
 
     def _set_extra_kwds(self, kwds):
         """
-        Allows one to pass rendering arguments on as if they were set in the constructor.
+        Allow one to pass rendering arguments on as if they were set
+        in the constructor.
 
         EXAMPLES::
 
@@ -162,11 +167,11 @@ cdef class Graphics3d(SageObject):
 
     def aspect_ratio(self, v=None):
         """
-        Sets or gets the preferred aspect ratio of self.
+        Set or get the preferred aspect ratio of ``self``.
 
         INPUT:
 
-        - ``v`` -- (default: None) must be a list or tuple of length three,
+        - ``v`` -- (default: ``None``) must be a list or tuple of length three,
           or the integer ``1``. If no arguments are provided then the
           default aspect ratio is returned.
 
@@ -196,13 +201,13 @@ cdef class Graphics3d(SageObject):
 
     def frame_aspect_ratio(self, v=None):
         """
-        Sets or gets the preferred frame aspect ratio of self.
+        Set or get the preferred frame aspect ratio of ``self``.
 
         INPUT:
 
-        - ``v`` -- (default: None) must be a list or tuple of length three,
-          or the integer ``1``. If no arguments are provided then the
-          default frame aspect ratio is returned.
+        - ``v`` -- (default: ``None``) must be a list or tuple of
+          length three, or the integer ``1``. If no arguments are
+          provided then the default frame aspect ratio is returned.
 
         EXAMPLES::
 
@@ -234,8 +239,10 @@ cdef class Graphics3d(SageObject):
 
     def _safe_bounding_box(self):
         """
-        Returns a bounding box but where no side length is 0. This is used
-        to avoid zero-division errors for pathological plots.
+        Return a bounding box but where no side length is 0.
+
+        This is used to avoid zero-division errors for pathological
+        plots.
 
         EXAMPLES::
 
@@ -256,13 +263,14 @@ cdef class Graphics3d(SageObject):
 
     def bounding_box(self):
         """
-        Returns the lower and upper corners of a 3d bounding box for self.
-        This is used for rendering and self should fit entirely within this
-        box.
+        Return the lower and upper corners of a 3d bounding box for ``self``.
+
+        This is used for rendering and ``self`` should fit entirely
+        within this box.
 
         Specifically, the first point returned should have x, y, and z
-        coordinates should be the respective infimum over all points in self,
-        and the second point is the supremum.
+        coordinates should be the respective infimum over all points
+        in ``self``, and the second point is the supremum.
 
         The default return value is simply the box containing the origin.
 
@@ -278,9 +286,11 @@ cdef class Graphics3d(SageObject):
 
     def transform(self, **kwds):
         """
-        Apply a transformation to self, where the inputs are passed onto a
-        TransformGroup object. Mostly for internal use; see the translate,
-        scale, and rotate methods for more details.
+        Apply a transformation to ``self``, where the inputs are
+        passed onto a TransformGroup object.
+
+        Mostly for internal use; see the translate, scale, and rotate
+        methods for more details.
 
         EXAMPLES::
 
@@ -291,8 +301,8 @@ cdef class Graphics3d(SageObject):
 
     def translate(self, *x):
         """
-        Return self translated by the given vector (which can be given either
-        as a 3-iterable or via positional arguments).
+        Return ``self`` translated by the given vector (which can be
+        given either as a 3-iterable or via positional arguments).
 
         EXAMPLES::
 
@@ -309,13 +319,13 @@ cdef class Graphics3d(SageObject):
             sage: G.translate(-1, 5, 0).bounding_box()
             ((-2.0, 4.0, -1.0), (0.0, 6.0, 1.0))
         """
-        if len(x)==1:
+        if len(x) == 1:
             x = x[0]
         return self.transform(trans=x)
 
     def scale(self, *x):
         """
-        Returns self scaled in the x, y, and z directions.
+        Return ``self`` scaled in the x, y, and z directions.
 
         EXAMPLES::
 
@@ -337,8 +347,8 @@ cdef class Graphics3d(SageObject):
         return self.transform(scale=x)
 
     def rotate(self, v, theta):
-        """
-        Returns self rotated about the vector `v` by `theta` radians.
+        r"""
+        Return ``self`` rotated about the vector `v` by `\theta` radians.
 
         EXAMPLES::
 
@@ -358,7 +368,7 @@ cdef class Graphics3d(SageObject):
 
     def rotateX(self, theta):
         """
-        Returns self rotated about the `x`-axis by the given angle.
+        Return ``self`` rotated about the `x`-axis by the given angle.
 
         EXAMPLES::
 
@@ -366,11 +376,11 @@ cdef class Graphics3d(SageObject):
             sage: G = Cone(1/5, 1) + Cone(1/5, 1, opacity=.25).rotateX(pi/2)
             sage: G.show(aspect_ratio=1)
         """
-        return self.rotate((1,0,0), theta)
+        return self.rotate((1, 0, 0), theta)
 
     def rotateY(self, theta):
         """
-        Returns self rotated about the `y`-axis by the given angle.
+        Return ``self`` rotated about the `y`-axis by the given angle.
 
         EXAMPLES::
 
@@ -378,11 +388,11 @@ cdef class Graphics3d(SageObject):
             sage: G = Cone(1/5, 1) + Cone(1/5, 1, opacity=.25).rotateY(pi/3)
             sage: G.show(aspect_ratio=1)
         """
-        return self.rotate((0,1,0), theta)
+        return self.rotate((0, 1, 0), theta)
 
     def rotateZ(self, theta):
         """
-        Returns self rotated about the `z`-axis by the given angle.
+        Return ``self`` rotated about the `z`-axis by the given angle.
 
         EXAMPLES::
 
@@ -390,12 +400,13 @@ cdef class Graphics3d(SageObject):
             sage: G = Box(1/2, 1/3, 1/5) + Box(1/2, 1/3, 1/5, opacity=.25).rotateZ(pi/5)
             sage: G.show(aspect_ratio=1)
         """
-        return self.rotate((0,0,1), theta)
-
+        return self.rotate((0, 0, 1), theta)
 
     def viewpoint(self):
         """
-        Returns the viewpoint of this plot. Currently only a stub for x3d.
+        Return the viewpoint of this plot.
+
+        Currently only a stub for x3d.
 
         EXAMPLES::
 
@@ -407,7 +418,7 @@ cdef class Graphics3d(SageObject):
 
     def default_render_params(self):
         """
-        Returns an instance of RenderParams suitable for plotting this object.
+        Return an instance of RenderParams suitable for plotting this object.
 
         EXAMPLES::
 
@@ -418,8 +429,10 @@ cdef class Graphics3d(SageObject):
 
     def testing_render_params(self):
         """
-        Returns an instance of RenderParams suitable for testing this object.
-        In particular, it opens up '/dev/null' as an auxiliary zip file for jmol.
+        Return an instance of RenderParams suitable for testing this object.
+
+        In particular, it opens up '/dev/null' as an auxiliary zip
+        file for jmol.
 
         EXAMPLES::
 
@@ -560,8 +573,10 @@ end_scene""" % (render_params.antialiasing,
 
     def obj(self):
         """
-        An .obj scene file (as a string) containing the this object. A
-        .mtl file of the same name must also be produced for coloring.
+        An .obj scene file (as a string) containing the this object.
+
+        A .mtl file of the same name must also be produced for
+        coloring.
 
         EXAMPLES::
 
@@ -699,10 +714,11 @@ end_scene""" % (render_params.antialiasing,
 
     def json_repr(self, render_params):
         """
-        A (possibly nested) list of strings. Each entry is formatted as JSON, so
-        that a JavaScript client could eval it and get an object. Each object
-        has fields to encapsulate the faces and vertices of self. This
-        representation is intended to be consumed by the canvas3d viewer backend.
+        A (possibly nested) list of strings. Each entry is formatted
+        as JSON, so that a JavaScript client could eval it and get an
+        object. Each object has fields to encapsulate the faces and
+        vertices of ``self``. This representation is intended to be
+        consumed by the canvas3d viewer backend.
 
         EXAMPLES::
 
@@ -715,10 +731,12 @@ end_scene""" % (render_params.antialiasing,
     def jmol_repr(self, render_params):
         r"""
         A (possibly nested) list of strings which will be concatenated and
-        used by jmol to render self. (Nested lists of strings are used
-        because otherwise all the intermediate concatenations can kill
-        performance). This may refer to several remove files, which
-        are stored in render_parames.output_archive.
+        used by jmol to render ``self``.
+
+        (Nested lists of strings are used because otherwise all the
+        intermediate concatenations can kill performance). This may
+        refer to several remove files, which are stored in
+        render_parames.output_archive.
 
         EXAMPLES::
 
@@ -734,10 +752,12 @@ end_scene""" % (render_params.antialiasing,
     def tachyon_repr(self, render_params):
         r"""
         A (possibly nested) list of strings which will be concatenated and
-        used by tachyon to render self. (Nested lists of strings are used
-        because otherwise all the intermediate concatenations can kill
-        performance). This may include a reference to color information which
-        is stored elsewhere.
+        used by tachyon to render ``self``.
+
+        (Nested lists of strings are used because otherwise all the
+        intermediate concatenations can kill performance). This may
+        include a reference to color information which is stored
+        elsewhere.
 
         EXAMPLES::
 
@@ -753,10 +773,12 @@ end_scene""" % (render_params.antialiasing,
     def obj_repr(self, render_params):
         """
         A (possibly nested) list of strings which will be concatenated and
-        used to construct an .obj file of self. (Nested lists of strings are
-        used because otherwise all the intermediate concatenations can kill
-        performance). This may include a reference to color information which
-        is stored elsewhere.
+        used to construct an .obj file of ``self``.
+
+        (Nested lists of strings are used because otherwise all the
+        intermediate concatenations can kill performance). This may
+        include a reference to color information which is stored
+        elsewhere.
 
         EXAMPLES::
 
@@ -806,10 +828,11 @@ end_scene""" % (render_params.antialiasing,
 
     def mtl_str(self):
         """
-        Returns the contents of a .mtl file, to be used to provide coloring
+        Return the contents of a .mtl file, to be used to provide coloring
         information for an .obj file.
 
         EXAMPLES::
+
             sage: G = tetrahedron(color='red') + tetrahedron(color='yellow', opacity=0.5)
             sage: print G.mtl_str()
             newmtl ...
@@ -834,7 +857,7 @@ end_scene""" % (render_params.antialiasing,
         Try to reduce the depth of the scene tree by consolidating groups
         and transformations.
 
-        The generic Graphics3d object can't be made flatter.
+        The generic Graphics3d object cannot be made flatter.
 
         EXAMPLES::
 
@@ -1021,8 +1044,7 @@ end_scene""" % (render_params.antialiasing,
         """
         INPUT:
 
-
-        -  ``viewer`` - string (default: 'jmol'), how to view
+        -  ``viewer`` -- string (default: 'jmol'), how to view
            the plot
 
            * 'jmol': Interactive 3D viewer using Java
@@ -1034,34 +1056,33 @@ end_scene""" % (render_params.antialiasing,
            * 'canvas3d': Web-based 3D viewer powered by JavaScript and
              <canvas> (notebook only)
 
-        -  ``filename`` - string (default: a temp file); file
+        -  ``filename`` -- string (default: a temp file); file
            to save the image to
 
-        -  ``verbosity`` - display information about rendering
+        -  ``verbosity`` -- display information about rendering
            the figure
 
-        -  ``figsize`` - (default: 5); x or pair [x,y] for
+        -  ``figsize`` -- (default: 5); x or pair [x,y] for
            numbers, e.g., [5,5]; controls the size of the output figure. E.g.,
            with Tachyon the number of pixels in each direction is 100 times
            figsize[0]. This is ignored for the jmol embedded renderer.
 
-        -  ``aspect_ratio`` - (default: "automatic") - aspect
+        -  ``aspect_ratio`` -- (default: "automatic") -- aspect
            ratio of the coordinate system itself. Give [1,1,1] to make spheres
            look round.
 
-        -  ``frame_aspect_ratio`` - (default: "automatic")
+        -  ``frame_aspect_ratio`` -- (default: "automatic")
            aspect ratio of frame that contains the 3d scene.
 
-        -  ``zoom`` - (default: 1) how zoomed in
+        -  ``zoom`` -- (default: 1) how zoomed in
 
-        -  ``frame`` - (default: True) if True, draw a
+        -  ``frame`` -- (default: True) if True, draw a
            bounding frame with labels
 
-        -  ``axes`` - (default: False) if True, draw coordinate
+        -  ``axes`` -- (default: False) if True, draw coordinate
            axes
 
-
-        -  ``**kwds`` - other options, which make sense for particular
+        -  ``**kwds`` -- other options, which make sense for particular
            rendering engines
 
         CHANGING DEFAULTS: Defaults can be uniformly changed by importing a
@@ -1120,10 +1141,9 @@ end_scene""" % (render_params.antialiasing,
         axes = opts['axes']
 
         import sage.misc.misc
-        if 'filename' in kwds:
-            filename = kwds['filename']
-            del kwds['filename']
-        else:
+        try:
+            filename = kwds.pop('filename')
+        except KeyError:
             filename = tmp_filename()
 
         from sage.plot.plot import EMBEDDED_MODE
@@ -1163,62 +1183,53 @@ end_scene""" % (render_params.antialiasing,
             # (This will be removed once we have dynamic resizing of applets in the browser.)
             base, ext = os.path.splitext(filename)
             fg = figsize[0]
-            #if fg >= 2:
-            #    fg = 2
             filename = '%s-size%s%s'%(base, fg*100, ext)
+
             if EMBEDDED_MODE:
                 ext = "jmol"
-            else:
-                ext = "spt"
-            archive_name = "%s.%s.zip" % (filename, ext)
-            if EMBEDDED_MODE:
                 # jmol doesn't seem to correctly parse the ?params part of a URL
                 archive_name = "%s-%s.%s.zip" % (filename, randint(0, 1 << 30), ext)
+            else:
+                ext = "spt"
+                archive_name = "%s.%s.zip" % (filename, ext)
+                with open(filename + '.' + ext, 'w') as f:
+                    f.write('set defaultdirectory "{0}"\n'.format(archive_name))
+                    f.write('script SCRIPT\n')
 
             T = self._prepare_for_jmol(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
             T.export_jmol(archive_name, force_reload=EMBEDDED_MODE, zoom=zoom*100, **kwds)
-            viewer_app = os.path.join(sage.misc.misc.SAGE_LOCAL, "bin/jmol")
-
-            # We need a script to load the file
-            f = open(filename + '.'+ext, 'w')
-            import sagenb
-            if EMBEDDED_MODE:
-                path = "cells/%s/%s" %(sagenb.notebook.interact.SAGE_CELL_ID, archive_name)
-            else:
-                path = archive_name
-            f.write('set defaultdirectory "%s"\n' %path)
-            f.write('script SCRIPT\n')
-            f.close()
+            viewer_app = os.path.join(sage.misc.misc.SAGE_LOCAL, "bin", "jmol")
 
             # If the server has a Java installation we can make better static images with Jmol
             # Test for Java then make image with Jmol or Tachyon if no JavaVM
             if EMBEDDED_MODE:
-                #name image file
-                head,tail = os.path.split(archive_name)
-                png_path = os.path.join(head,'.jmol_images')
-                if  not os.path.exists(png_path):
-                    os.mkdir(png_path)
-                png_name = os.path.join(png_path,filename)
-                #test for JavaVM
+                # We need a script for the Notebook.
+                # When the notebook sees this file, it will know to
+                # display the static file and the "Make Interactive"
+                # button.
+                import sagenb
+                path = "cells/%s/%s" %(sagenb.notebook.interact.SAGE_CELL_ID, archive_name)
+                with open(filename + '.' + ext, 'w') as f:
+                    f.write('set defaultdirectory "%s"\n' % path)
+                    f.write('script SCRIPT\n')
+
+                # Filename for the static image
+                png_path = '.jmol_images'
+                sage.misc.misc.sage_makedirs(png_path)
+                png_name = os.path.join(png_path, filename + ".jmol.png")
+
                 from sage.interfaces.jmoldata import JmolData
                 jdata = JmolData()
-                if (jdata.is_jvm_available()):
-                    # make the image with Jmol
-                    # hack...need absolute paths since jvm running outside of sage environment
-                    cellhead, celltail =os.path.split(os.path.realpath(os.path.join(os.path.curdir,"data")))
-                    celldir = os.path.join(cellhead,"cells",str(sagenb.notebook.interact.SAGE_CELL_ID))
-                    png_name = png_name+".jmol.png"
-                    png_fullpath = os.path.join(celldir,png_name)
-                    archive_fullpath = os.path.join(celldir,archive_name)
-                    #print png_fullpath
-                    script = 'set defaultdirectory \"'+archive_fullpath+'\"\n script SCRIPT\n'
-                    #print script
-                    jdata.export_image(targetfile = png_fullpath,datafile=script,image_type="PNG", figsize = fg)
+                if jdata.is_jvm_available():
+                    # Java needs absolute paths
+                    archive_name = os.path.abspath(archive_name)
+                    png_name = os.path.abspath(png_name)
+                    script = '''set defaultdirectory "%s"\nscript SCRIPT\n''' % archive_name
+                    jdata.export_image(targetfile=png_name, datafile=script, image_type="PNG", figsize=fg)
                 else:
-                    #make the image with tachyon
+                    # Render the image with tachyon
                     T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
-                    tachyon_rt(T.tachyon(), png_name+".jmol.png", verbosity, True, opts)
-
+                    tachyon_rt(T.tachyon(), png_name, verbosity, True, opts)
 
         if viewer == 'canvas3d':
             T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
@@ -1229,7 +1240,7 @@ end_scene""" % (render_params.antialiasing,
             ext = 'canvas3d'
 
         if ext is None:
-            raise ValueError, "Unknown 3d plot type: %s" % viewer
+            raise ValueError("Unknown 3d plot type: %s" % viewer)
 
         if not DOCTEST_MODE and not EMBEDDED_MODE:
             if verbosity:
@@ -1237,6 +1248,28 @@ end_scene""" % (render_params.antialiasing,
             else:
                 pipes = "2>/dev/null 1>/dev/null &"
             os.system('%s "%s.%s" %s' % (viewer_app, filename, ext, pipes))
+
+    def save_image(self, filename=None, *args, **kwds):
+        r"""
+        Save an image representation of self.  The image type is
+        determined by the extension of the filename.  For example,
+        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
+        ``.svg``.  Currently this is implemented by calling the
+        :meth:`save` method of self, passing along all arguments and
+        keywords.
+
+        .. Note::
+
+            Not all image types are necessarily implemented for all
+            graphics types.  See :meth:`save` for more details.
+
+        EXAMPLES::
+
+            sage: f = tmp_filename() + '.png'
+            sage: G = sphere()
+            sage: G.save_image(f)
+        """
+        self.save(filename, *args, **kwds)
 
     def save(self, filename, **kwds):
         """
@@ -1246,9 +1279,9 @@ end_scene""" % (render_params.antialiasing,
 
         INPUT:
 
-        - ``filename`` - Specify where to save the image or object.
+        - ``filename`` -- Specify where to save the image or object.
 
-        - ``**kwds`` - When specifying an image file to be rendered by Tachyon,
+        - ``**kwds`` -- When specifying an image file to be rendered by Tachyon,
           any of the viewing options accepted by show() are valid as keyword
           arguments to this function and they will behave in the same way.
           Accepted keywords include: ``viewer``, ``verbosity``, ``figsize``,
@@ -1287,7 +1320,7 @@ end_scene""" % (render_params.antialiasing,
                 opts['aspect_ratio'], opts['zoom']
             )
 
-            if ext == 'png':
+            if ext == '.png':
                 # No conversion is necessary
                 out_filename = filename
             else:
@@ -1295,11 +1328,11 @@ end_scene""" % (render_params.antialiasing,
                 out_filename = sage.misc.temporary_file.tmp_filename(ext=ext)
             tachyon_rt(T.tachyon(), out_filename, opts['verbosity'], True,
                 '-res %s %s' % (opts['figsize'][0]*100, opts['figsize'][1]*100))
-            if ext != 'png':
-                import Image
+            if ext != '.png':
+                import PIL.Image as Image
                 Image.open(out_filename).save(filename)
         else:
-            raise ValueError, 'filetype not supported by save()'
+            raise ValueError('filetype not supported by save()')
 
 
 
@@ -1312,8 +1345,6 @@ SHOW_DEFAULTS = {'viewer':'jmol',
                  'zoom':1,
                  'frame':True,
                  'axes':False}
-
-
 
 
 class Graphics3dGroup(Graphics3d):
@@ -1339,6 +1370,7 @@ class Graphics3dGroup(Graphics3d):
         We override this here to make large sums more efficient.
 
         EXAMPLES::
+
             sage: G = sum(tetrahedron(opacity=1-t/11).translate(t, 0, 0) for t in range(10))
             sage: G
             sage: len(G.all)
@@ -1353,7 +1385,7 @@ class Graphics3dGroup(Graphics3d):
     def bounding_box(self):
         """
         Box that contains the bounding boxes of
-        all the objects that make up self.
+        all the objects that make up ``self``.
 
         EXAMPLES::
 
@@ -1540,7 +1572,8 @@ class Graphics3dGroup(Graphics3d):
 
 class TransformGroup(Graphics3dGroup):
     """
-    This class is a container for a group of objects with a common transformation.
+    This class is a container for a group of objects with a common
+    transformation.
     """
     def __init__(self, all=[], rot=None, trans=None, scale=None, T=None):
         """
@@ -1554,7 +1587,6 @@ class TransformGroup(Graphics3dGroup):
             <class 'sage.plot.plot3d.base.TransformGroup'>
             sage: type(dodecahedron().scale(2))
             <class 'sage.plot.plot3d.base.TransformGroup'>
-
         """
         Graphics3dGroup.__init__(self, all)
         self._rot = rot
@@ -1572,8 +1604,8 @@ class TransformGroup(Graphics3dGroup):
 
     def bounding_box(self):
         """
-        Returns the bounding box of self, i.e. the box containing the
-        contents of self after applying the transformation.
+        Return the bounding box of ``self``, i.e., the box containing the
+        contents of ``self`` after applying the transformation.
 
         EXAMPLES::
 
@@ -1697,7 +1729,7 @@ class TransformGroup(Graphics3dGroup):
 
     def get_transformation(self):
         """
-        Returns the actual transformation object associated with self.
+        Return the actual transformation object associated with ``self``.
 
         EXAMPLES::
 
@@ -1757,6 +1789,7 @@ class TransformGroup(Graphics3dGroup):
         """
         return Graphics3d.transform(self, **kwds)
 
+
 class Viewpoint(Graphics3d):
     """
     This class represents a viewpoint, necessary for x3d.
@@ -1785,13 +1818,12 @@ class Viewpoint(Graphics3d):
         return "<Viewpoint position='%s %s %s'/>"%self.pos
 
 
-
 cdef class PrimitiveObject(Graphics3d):
     """
     This is the base class for the non-container 3d objects.
     """
     def __init__(self, **kwds):
-        if kwds.has_key('texture'):
+        if 'texture' in kwds:
             self.texture = kwds['texture']
             if not is_Texture(self.texture):
                 self.texture = Texture(self.texture)
@@ -1917,7 +1949,7 @@ class BoundingSphere(SageObject):
 
     def __add__(self, other):
         """
-        Returns the bounding sphere containing both terms.
+        Return the bounding sphere containing both terms.
 
         EXAMPLES::
 
@@ -1949,7 +1981,7 @@ class BoundingSphere(SageObject):
 
     def transform(self, T):
         """
-        Returns the bounding sphere of this sphere acted on by T. This always
+        Return the bounding sphere of this sphere acted on by T. This always
         returns a new sphere, even if the resulting object is an ellipsoid.
 
         EXAMPLES::
@@ -2068,7 +2100,11 @@ class RenderParams(SageObject):
 
     def unique_name(self, desc="name"):
         """
-        Returns a unique identifier starting with desc.
+        Return a unique identifier starting with ``desc``.
+
+        INPUT:
+
+        - ``desc`` (string) -- the prefix of the names (default 'name')
 
         EXAMPLES::
 
@@ -2085,6 +2121,7 @@ class RenderParams(SageObject):
         else:
             self._uniq_counter += 1
         return "%s_%s" % (desc, self._uniq_counter)
+
 
 def flatten_list(L):
     """
@@ -2144,6 +2181,7 @@ def min3(v):
     """
     return tuple([min([a[i] for a in v]) for i in range(3)])
 
+
 def max3(v):
     """
     Return the componentwise maximum of a list of 3-tuples.
@@ -2156,8 +2194,11 @@ def max3(v):
     """
     return tuple([max([a[i] for a in v]) for i in range(3)])
 
+
 def point_list_bounding_box(v):
     """
+    Return the bounding box of a list of points.
+
     EXAMPLES::
 
         sage: from sage.plot.plot3d.base import point_list_bounding_box
@@ -2176,13 +2217,16 @@ def point_list_bounding_box(v):
         point_c_update_finite_upper_bound(&high, cur)
     return ((low.x, low.y, low.z), (high.x, high.y, high.z))
 
+
 def optimal_aspect_ratios(ratios):
+    """
+    """
     # average the aspect ratios
     n = len(ratios)
     if n > 0:
         return [max([z[i] for z in ratios]) for i in range(3)]
-    else:
-        return [1.0,1.0,1.0]
+    return [1.0, 1.0, 1.0]
+
 
 def optimal_extra_kwds(v):
     """
@@ -2193,7 +2237,6 @@ def optimal_extra_kwds(v):
         return {}
     a = dict(v[0])   # make a copy!
     for b in v[1:]:
-        for k,w in b.iteritems():
+        for k, w in b.iteritems():
             a[k] = w
     return a
-

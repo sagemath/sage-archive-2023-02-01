@@ -217,7 +217,7 @@ class Function_exp_integral_e(BuiltinFunction):
 
         return None # leaves the expression unevaluated
 
-    def _evalf_(self, n, z, parent=None):
+    def _evalf_(self, n, z, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -328,7 +328,7 @@ class Function_exp_integral_e1(BuiltinFunction):
 
         return None # leaves the expression unevaluated
 
-    def _evalf_(self, z, parent=None):
+    def _evalf_(self, z, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -453,7 +453,7 @@ class Function_log_integral(BuiltinFunction):
                 return z
         return None # leaves the expression unevaluated
 
-    def _evalf_(self, z, parent=None):
+    def _evalf_(self, z, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -638,7 +638,7 @@ class Function_log_integral_offset(BuiltinFunction):
         # If we return:(li(z)-li(2)) we get correct symbolic integration.
         # But on definite integration it returns x.xxxx-li(2).
 
-    def _evalf_(self, z, parent=None):
+    def _evalf_(self, z, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -813,7 +813,7 @@ class Function_sin_integral(BuiltinFunction):
 
         return None # leaves the expression unevaluated
 
-    def _evalf_(self, z, parent=None):
+    def _evalf_(self, z, parent=None, algorithm=None):
         """
         EXAMPLES:
 
@@ -973,7 +973,7 @@ class Function_cos_integral(BuiltinFunction):
 
         return None # leaves the expression unevaluated
 
-    def _evalf_(self, z, parent=None):
+    def _evalf_(self, z, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -1128,7 +1128,7 @@ class Function_sinh_integral(BuiltinFunction):
 
         return None # leaves the expression unevaluated
 
-    def _evalf_(self, z, parent=None):
+    def _evalf_(self, z, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -1188,7 +1188,7 @@ class Function_cosh_integral(BuiltinFunction):
 
         sage: f(x) = cosh_integral(x)
         sage: find_root(f, 0.1, 1.0)
-        0.5238225713894826
+        0.523822571389482...
 
     Compare ``cosh_integral(3.0)`` to the definition of the value using
     numerical integration::
@@ -1262,7 +1262,7 @@ class Function_cosh_integral(BuiltinFunction):
 
         return None
 
-    def _evalf_(self, z, parent=None):
+    def _evalf_(self, z, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -1397,7 +1397,7 @@ class Function_exp_integral(BuiltinFunction):
             return self._evalf_(x, parent(x))
         return None
 
-    def _evalf_(self, x, parent=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -1493,10 +1493,10 @@ def exponential_integral_1(x, n=0):
 
         sage: exponential_integral_1(2)
         0.0489005107080611
-        sage: exponential_integral_1(2,4)  # abs tol 1e-18
+        sage: exponential_integral_1(2, 4)  # abs tol 1e-18
         [0.0489005107080611, 0.00377935240984891, 0.000360082452162659, 0.0000376656228439245]
-        sage: exponential_integral_1(40,5)
-        [1.03677326145166e-19, 2.22854325868847e-37, 6.33732515501151e-55, 2.02336191509997e-72, 6.88522610630764e-90]
+        sage: exponential_integral_1(40, 5)
+        [0.000000000000000, 2.22854325868847e-37, 6.33732515501151e-55, 2.02336191509997e-72, 6.88522610630764e-90]
         sage: exponential_integral_1(0)
         +Infinity
         sage: r = exponential_integral_1(RealField(150)(1))
@@ -1569,7 +1569,7 @@ def exponential_integral_1(x, n=0):
     if n <= 0:
         # Add extra bits to the input.
         # (experimentally verified -- Jeroen Demeyer)
-        inprec = prec + math.ceil(math.log(2*prec))
+        inprec = prec + 5 + math.ceil(math.log(prec))
         x = RealField(inprec)(x)._pari_()
         return R(x.eint1())
     else:

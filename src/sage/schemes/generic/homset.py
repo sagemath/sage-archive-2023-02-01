@@ -47,9 +47,7 @@ from sage.rings.rational_field import is_RationalField
 from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.rings.commutative_ring import is_CommutativeRing
 
-
-from sage.schemes.generic.scheme import is_Scheme
-from sage.schemes.generic.spec import Spec, is_Spec
+from sage.schemes.generic.scheme import AffineScheme, is_AffineScheme
 from sage.schemes.generic.morphism import (
     SchemeMorphism,
     SchemeMorphism_structure_map,
@@ -89,18 +87,22 @@ class SchemeHomsetFactory(UniqueFactory):
         sage: A3 = AffineSpace(QQ,3)
         sage: Hom = A3.Hom(A2)
 
-    The Hom-sets are unique::
+    The Hom-sets are uniquely determined by domain and codomain::
 
         sage: Hom is copy(Hom)
         True
         sage: Hom is A3.Hom(A2)
         True
-        sage: loads(Hom.dumps()) is Hom
-        True
 
     Here is a tricky point. The Hom-sets are not identical if
-    domains/codomains are isomorphic but not identiacal::
+    domains/codomains are isomorphic but not identiacal. Affine spaces are not
+    unique, and hence, when pickling and unpickling the homset together with
+    domain and codomain, we obtain non-unique behaviour::
 
+        sage: loads(Hom.dumps()) is Hom
+        False
+        sage: loads(Hom.dumps()) == Hom
+        True
         sage: A3_iso = AffineSpace(QQ,3)
         sage: [ A3_iso is A3, A3_iso == A3 ]
         [False, True]
@@ -119,7 +121,7 @@ class SchemeHomsetFactory(UniqueFactory):
     """
 
     def create_key_and_extra_args(self, X, Y, category=None, base=ZZ,
-                                  check=True):
+                                  check=True, as_point_homset=False):
         """
         Create a key that uniquely determines the Hom-set.
 
@@ -150,29 +152,28 @@ class SchemeHomsetFactory(UniqueFactory):
             sage: SHOMfactory = SchemeHomsetFactory('test')
             sage: key, extra = SHOMfactory.create_key_and_extra_args(A3,A2,check=False)
             sage: key
-            (..., ..., Category of schemes over Integer Ring)
+            (..., ..., Category of schemes over Integer Ring, False)
             sage: extra
             {'Y': Affine Space of dimension 2 over Rational Field,
              'X': Affine Space of dimension 3 over Rational Field,
              'base_ring': Integer Ring, 'check': False}
         """
-        if not is_Scheme(X) and is_CommutativeRing(X):
-            X = Spec(X)
-        if not is_Scheme(Y) and is_CommutativeRing(Y):
-            Y = Spec(Y)
-        if is_Spec(base):
+        if is_CommutativeRing(X):
+            X = AffineScheme(X)
+        if is_CommutativeRing(Y):
+            Y = AffineScheme(Y)
+        if is_AffineScheme(base):
             base_spec = base
             base_ring = base.coordinate_ring()
         elif is_CommutativeRing(base):
-            base_spec = Spec(base)
+            base_spec = AffineScheme(base)
             base_ring = base
         else:
-            raise ValueError(
-                        'The base must be a commutative ring or its spectrum.')
+            raise ValueError('base must be a commutative ring or its spectrum')
         if not category:
             from sage.categories.schemes import Schemes
             category = Schemes(base_spec)
-        key = tuple([id(X), id(Y), category])
+        key = tuple([id(X), id(Y), category, as_point_homset])
         extra = {'X':X, 'Y':Y, 'base_ring':base_ring, 'check':check}
         return key, extra
 
@@ -196,8 +197,8 @@ class SchemeHomsetFactory(UniqueFactory):
             True
             sage: from sage.schemes.generic.homset import SchemeHomsetFactory
             sage: SHOMfactory = SchemeHomsetFactory('test')
-            sage: SHOMfactory.create_object(0, [id(A3),id(A2),A3.category()], check=True,
-            ...                             X=A3, Y=A2, base_ring=QQ)
+            sage: SHOMfactory.create_object(0, [id(A3), id(A2), A3.category(), False],
+            ....:                           check=True, X=A3, Y=A2, base_ring=QQ)
             Set of morphisms
               From: Affine Space of dimension 3 over Rational Field
               To:   Affine Space of dimension 2 over Rational Field
@@ -206,7 +207,7 @@ class SchemeHomsetFactory(UniqueFactory):
         X = extra_args.pop('X')
         Y = extra_args.pop('Y')
         base_ring = extra_args.pop('base_ring')
-        if is_Spec(X):
+        if len(key) >= 4 and key[3]:  # as_point_homset=True
             return Y._point_homset(X, Y, category=category, base=base_ring, **extra_args)
         try:
             return X._homset(X, Y, category=category, base=base_ring, **extra_args)
@@ -246,9 +247,24 @@ class SchemeHomset_generic(HomsetWithBase):
           From: Affine Space of dimension 2 over Rational Field
           To:   Affine Space of dimension 2 over Rational Field
         sage: Hom.category()
-        Category of hom sets in Category of Schemes
+        Category of hom sets in Category of schemes
     """
     Element = SchemeMorphism
+
+    def __reduce__(self):
+        """
+        Used in pickling.
+
+        EXAMPLES::
+
+            sage: A2 = AffineSpace(QQ,2)
+            sage: A3 = AffineSpace(QQ,3)
+            sage: Hom = A3.Hom(A2)
+            sage: loads(Hom.dumps()) == Hom
+            True
+        """
+        return SchemeHomset, (self.domain(), self.codomain(), self.homset_category(),
+                              self.base_ring(), False, False)
 
     def __call__(self, *args, **kwds):
         r"""
@@ -310,7 +326,7 @@ class SchemeHomset_generic(HomsetWithBase):
         """
         X = self.domain()
         Y = self.codomain()
-        if is_Spec(Y) and Y.coordinate_ring() == X.base_ring():
+        if is_AffineScheme(Y) and Y.coordinate_ring() == X.base_ring():
             return SchemeMorphism_structure_map(self)
         raise NotImplementedError
 
@@ -335,7 +351,9 @@ class SchemeHomset_generic(HomsetWithBase):
               To:   Rational Field
 
             sage: H = Hom(Spec(QQ, ZZ), Spec(ZZ)); H
-            Set of rational points of Spectrum of Integer Ring
+            Set of morphisms
+              From: Spectrum of Rational Field
+              To:   Spectrum of Integer Ring
 
             sage: phi = H(f); phi
             Affine Scheme morphism:
@@ -345,7 +363,7 @@ class SchemeHomset_generic(HomsetWithBase):
                       From: Integer Ring
                       To:   Rational Field
 
-        TESTS:
+        TESTS::
 
             sage: H._element_constructor_(f)
             Affine Scheme morphism:
@@ -377,7 +395,7 @@ class SchemeHomset_generic(HomsetWithBase):
         if is_RingHomomorphism(x):
             return SchemeMorphism_spec(self, x, check=check)
 
-        raise TypeError, "x must be a ring homomorphism, list or tuple"
+        raise TypeError("x must be a ring homomorphism, list or tuple")
 
 
 #*******************************************************************
@@ -390,6 +408,11 @@ class SchemeHomset_points(SchemeHomset_generic):
     Recall that the `K`-rational points of a scheme `X` over `k` can
     be identified with the set of morphisms `Spec(K) \to X`. In Sage,
     the rational points are implemented by such scheme morphisms.
+
+    If a scheme has a finite number of points, then the homset is
+    supposed to implement the Python iterator interface. See
+    :class:`~sage.schemes.toric.homset.SchemeHomset_points_toric_field`
+    for example.
 
     INPUT:
 
@@ -416,9 +439,23 @@ class SchemeHomset_points(SchemeHomset_generic):
             sage: SchemeHomset_points(Spec(QQ), AffineSpace(ZZ,2))
             Set of rational points of Affine Space of dimension 2 over Rational Field
         """
-        if check and not is_Spec(X):
+        if check and not is_AffineScheme(X):
             raise ValueError('The domain must be an affine scheme.')
         SchemeHomset_generic.__init__(self, X, Y, category=category, check=check, base=base)
+
+    def __reduce__(self):
+        """
+        Used in pickling.
+
+        EXAMPLES::
+
+            sage: A2 = AffineSpace(QQ,2)
+            sage: Hom = A2(QQ)
+            sage: loads(Hom.dumps()) == Hom
+            True
+        """
+        return SchemeHomset, (self.domain(), self.codomain(), self.homset_category(),
+                              self.base_ring(), False, True)
 
     def _element_constructor_(self, *v, **kwds):
         """
@@ -525,7 +562,46 @@ class SchemeHomset_points(SchemeHomset_generic):
             Rational Field
         """
         dom = self.domain()
-        if not is_Spec(dom):
-            raise ValueError("value rings are defined for Spec domains only!")
+        if not is_AffineScheme(dom):
+            raise ValueError("value rings are defined for affine domains only")
         return dom.coordinate_ring()
 
+    def cardinality(self):
+        """
+        Return the number of points.
+
+        OUTPUT:
+
+        An integer or infinity.
+
+        EXAMPLES::
+
+            sage: toric_varieties.P2().point_set().cardinality()
+            +Infinity
+
+            sage: P2 = toric_varieties.P2(base_ring=GF(3))
+            sage: P2.point_set().cardinality()
+            13
+        """
+        if hasattr(self, 'is_finite') and not self.is_finite():
+            from sage.rings.infinity import Infinity
+            return Infinity
+        return sum(ZZ.one() for point in self)
+
+    __len__ = cardinality
+
+    def list(self):
+        """
+        Return a tuple containing all points.
+
+        OUTPUT:
+
+        A tuple containing all points of the toric variety.
+
+        EXAMPLE::
+
+            sage: P1 = toric_varieties.P1(base_ring=GF(3))
+            sage: P1.point_set().list()
+            ([0 : 1], [1 : 0], [1 : 1], [1 : 2])
+        """
+        return tuple(self)

@@ -203,9 +203,9 @@ def buchberger(F):
 
     """
     G = set(F.gens())
-    B = set(filter(lambda (x,y): x!=y, [(g1,g2) for g1 in G for g2 in G]))
+    B = set((g1, g2) for g1 in G for g2 in G if g1 != g2)
 
-    if get_verbose() >=1:
+    if get_verbose() >= 1:
         reductions_to_zero = 0
 
     while B!=set():
@@ -388,7 +388,7 @@ def select(P):
         sage: select(pairs)
         [x^3 - z - 1, -y + z^3 - 1]
     """
-    return min(P,key = lambda (fi,fj): LCM(LM(fi),LM(fj)).total_degree())
+    return min(P, key=lambda fi_fj: LCM(LM(fi_fj[0]), LM(fi_fj[1])).total_degree())
 
 
 def inter_reduction(Q):

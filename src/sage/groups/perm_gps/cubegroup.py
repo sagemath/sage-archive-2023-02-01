@@ -364,30 +364,30 @@ def color_of_square(facet, colors=['lpurple', 'yellow', 'red', 'green', 'orange'
 
 cubie_center_list = {
     #  centers of the cubies on the F,U, R faces
-    1:  [1/2,1/2,5/2], # ulb
-    2:  [1/2,3/2,5/2], #  ub
-    3:  [1/2,5/2,5/2], #  ubr
-    4:  [3/2,1/2,5/2], #  ul
-    5:  [3/2,5/2,5/2], #  ur
-    6:  [5/2,1/2,5/2], #  ufl
-    7:  [5/2,3/2,5/2], #  uf
-    8:  [5/2,5/2,5/2], #  urf
-    17: [5/2,1/2,5/2], #  flu
-    18: [5/2,3/2,5/2], #  fu
-    19: [5/2,5/2,5/2], #  fur
-    20: [5/2,1/2,3/2], #  fl
-    21: [5/2,5/2,3/2], #  fr
-    22: [5/2,1/2,1/2], #  fdl
-    23: [5/2,3/2,1/2], #  fd
-    24: [5/2,5/2,1/2], #  frd
-    25: [5/2,5/2,5/2], # rfu
-    26: [3/2,5/2,5/2], #  ru
-    27: [1/2,5/2,5/2], #  rub
-    28: [5/2,5/2,3/2], #  rf
-    29: [1/2,5/2,3/2], #  rb
-    30: [5/2,5/2,1/2], #  rdf
-    31: [3/2,5/2,1/2], #  rd
-    32: [1/2,5/2,1/2], # rbd
+    1:  [1//2, 1//2, 5//2], # ulb
+    2:  [1//2, 3//2, 5//2], #  ub
+    3:  [1//2, 5//2, 5//2], #  ubr
+    4:  [3//2, 1//2, 5//2], #  ul
+    5:  [3//2, 5//2, 5//2], #  ur
+    6:  [5//2, 1//2, 5//2], #  ufl
+    7:  [5//2, 3//2, 5//2], #  uf
+    8:  [5//2, 5//2, 5//2], #  urf
+    17: [5//2, 1//2, 5//2], #  flu
+    18: [5//2, 3//2, 5//2], #  fu
+    19: [5//2, 5//2, 5//2], #  fur
+    20: [5//2, 1//2, 3//2], #  fl
+    21: [5//2, 5//2, 3//2], #  fr
+    22: [5//2, 1//2, 1//2], #  fdl
+    23: [5//2, 3//2, 1//2], #  fd
+    24: [5//2, 5//2, 1//2], #  frd
+    25: [5//2, 5//2, 5//2], # rfu
+    26: [3//2, 5//2, 5//2], #  ru
+    27: [1//2, 5//2, 5//2], #  rub
+    28: [5//2, 5//2, 3//2], #  rf
+    29: [1//2, 5//2, 3//2], #  rb
+    30: [5//2, 5//2, 1//2], #  rdf
+    31: [3//2, 5//2, 1//2], #  rd
+    32: [1//2, 5//2, 1//2], # rbd
 }
 
 def cubie_centers(label):
@@ -728,8 +728,7 @@ class CubeGroup(PermutationGroup_generic):
         elif isinstance(mv, dict):
             state = mv
             state_facets = []
-            keyss = state.keys()
-            keyss.sort()
+            keyss = sorted(state.keys())
             for k in keyss:
                 r = state[k][0]+state[k][1]+state[k][2]
                 r.remove(0)
@@ -1453,7 +1452,7 @@ class RubiksCube(SageObject):
             return solver.solve(self._state)
 
         else:
-            raise ValueError, "Unrecognized algorithm: %s" % algorithm
+            raise ValueError("Unrecognized algorithm: %s" % algorithm)
 
     def scramble(self, moves=30):
         """

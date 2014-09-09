@@ -279,7 +279,7 @@ class RealLazyField_class(LazyField):
         else:
             raise ValueError, "RLF has only one generator."
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return a string representation of ``self``.
 
@@ -451,7 +451,7 @@ class ComplexLazyField_class(LazyField):
         """
         return "\\Bold{C}"
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return a string representation of ``self``.
 
@@ -791,7 +791,7 @@ cdef class LazyFieldElement(FieldElement):
         """
         try:
             return self.eval(complex)
-        except StandardError:
+        except Exception:
             from complex_field import ComplexField
             return complex(self.eval(ComplexField(53)))
 

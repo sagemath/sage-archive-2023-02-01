@@ -21,9 +21,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.all import cached_method
 from sage.rings.all import ZZ, infinity
 from sage.graphs.all import Graph, DiGraph
-from sage.rings.all import binomial
+from sage.rings.arith import binomial, Euler_Phi
 from sage.all import prod
-from sage.rings.arith import Euler_Phi
 from sage.matrix.all import matrix
 
 class QuiverMutationTypeFactory(SageObject):
@@ -44,15 +43,15 @@ class QuiverMutationTypeFactory(SageObject):
             data = args
 
         # data is a QuiverMutationType
-        if type( data ) is QuiverMutationType_Irreducible:
+        if isinstance(data, QuiverMutationType_Irreducible):
             return data
-        elif type( data ) is QuiverMutationType_Reducible:
+        elif isinstance(data, QuiverMutationType_Reducible):
             return data
 
         # check that data is a tuple or list
-        if type(data) is tuple and len( data ) > 0:
+        if isinstance(data, tuple) and len( data ) > 0:
             pass
-        elif type(data) is list and len( data ) > 0:
+        elif isinstance(data, list) and len( data ) > 0:
             data = tuple( data )
         else:
             _mutation_type_error( data )
@@ -69,8 +68,8 @@ class QuiverMutationTypeFactory(SageObject):
         elif len(data) == 3: pass
         else: _mutation_type_error(data)
 
-        if type(data[2]) == list: data = (data[0],data[1],tuple(data[2]))
-        if type(data[1]) == list: data = (data[0],tuple(data[1]),data[2])
+        if isinstance(data[2], list): data = (data[0],data[1],tuple(data[2]))
+        if isinstance(data[1], list): data = (data[0],tuple(data[1]),data[2])
 
         # mutation type casting
         if True:
@@ -82,7 +81,7 @@ class QuiverMutationTypeFactory(SageObject):
                 data = ('B',2,None)
             elif data == ('E',9,None):
                 data = ('E',8,1)
-            elif data[0] == 'A' and data[2] == 1 and type(data[1]) is tuple and len(data[1]) == 2 and min(data[1]) == 0:
+            elif data[0] == 'A' and data[2] == 1 and isinstance(data[1], tuple) and len(data[1]) == 2 and min(data[1]) == 0:
                 if max(data[1]) == 0:
                     pass
                 elif max(data[1]) == 1:
@@ -93,7 +92,7 @@ class QuiverMutationTypeFactory(SageObject):
                     data = ('A',3,None)
                 else:
                     data = ('D',max(data[1]),None)
-            elif data[0] == 'GR' and data[2] == None and type(data[1]) == tuple and len(data[1]) == 2 and data[1][1] > data[1][0]:
+            elif data[0] == 'GR' and data[2] is None and isinstance(data[1], tuple) and len(data[1]) == 2 and data[1][1] > data[1][0]:
                 if min(data[1]) > max(data[1])/2 and max(data[1]) != min(data[1])+1:
                     data = (data[0],(max(data[1])-min(data[1]),max(data[1])),data[2])
                 if min(data[1]) == 2 and max(data[1]) > 3:
@@ -152,7 +151,7 @@ class QuiverMutationTypeFactory(SageObject):
                 data = ('F',4,(1,2))
             elif data == ('G',2,(3,1)):
                 data = ('G',2,(1,3))
-            elif data[0] == 'T' and data[2] == None:
+            elif data[0] == 'T' and data[2] is None:
                 data = (data[0],tuple(sorted(data[1])),data[2])
                 r,p,q = data[1]
                 if r == 1:
@@ -167,7 +166,7 @@ class QuiverMutationTypeFactory(SageObject):
                     data = ('E',7,1)
                 elif r == p == q == 3:
                     data = ('E',6,1)
-            elif data[0] == 'R2' and data[2] == None and all(data[1][i] in ZZ and data[1][i] > 0 for i in [0,1]):
+            elif data[0] == 'R2' and data[2] is None and all(data[1][i] in ZZ and data[1][i] > 0 for i in [0,1]):
                 data = (data[0],tuple(sorted(data[1])),data[2])
                 b,c = data[1]
                 if data[1] == (1,1):
@@ -183,11 +182,11 @@ class QuiverMutationTypeFactory(SageObject):
 
         # setting the parameters and returning the mutation type
         letter,rank,twist = data
-        if type(letter) is not str:
+        if not isinstance(letter, str):
             _mutation_type_error(data)
-        if type(rank) == list:
+        if isinstance(rank, list):
             rank = tuple(rank)
-        if type(twist) == list:
+        if isinstance(twist, list):
             twist = tuple(twist)
         return QuiverMutationType_Irreducible(letter,rank,twist)
 
@@ -1047,9 +1046,9 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
         self._info['elliptic'] = False
         self._info['irreducible_components'] = False
 
-        if type(rank) is tuple:
+        if isinstance(rank, tuple):
             rank = list(rank)
-        if type(twist) is tuple:
+        if isinstance(twist, tuple):
             twist = list(twist)
 
         # _letter/twist is the input letter/twist
@@ -1066,8 +1065,8 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 self._info['simply_laced'] = True
                 self._info['skew_symmetric'] = True
                 self._info['finite'] = True
-            elif twist==1 and type(rank) is list and len(rank) == 2 and all( rank[i] in ZZ and rank[i] >= 0 for i in [0,1] ) and rank != [0,0]:
-                if type( rank ) == tuple:
+            elif twist==1 and isinstance(rank, list) and len(rank) == 2 and all( rank[i] in ZZ and rank[i] >= 0 for i in [0,1] ) and rank != [0,0]:
+                if isinstance(rank, tuple):
                     rank = list( rank )
                     data[1] = rank
                 rank = sorted(rank)
@@ -1276,7 +1275,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 elif rank == 8:
                     self._digraph.add_edges( [ (0,1,1),(1,9,1),(3,9,1),(3,4,1),(2,8,1),(2,1,1),(9,2,2),(2,3,1),(8,9,1),(5,4,1),(5,6,1),(7,6,1) ] )
             # type E (mutation infinite)
-            elif rank > 9 and twist == None:
+            elif rank > 9 and twist is None:
                 self._info['simply_laced'] = True
                 self._info['skew_symmetric'] = True
                 self._rank = rank
@@ -1288,8 +1287,8 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
 
         # type AE (mutation infinite)
         elif letter == 'AE':
-            if type(rank) is list and len(rank) == 2 and all( rank[i] in ZZ and rank[i] > 0 for i in [0,1] ) and twist == None:
-                if type( rank ) == tuple:
+            if isinstance(rank, list) and len(rank) == 2 and all( rank[i] in ZZ and rank[i] > 0 for i in [0,1] ) and twist is None:
+                if isinstance(rank, tuple):
                     rank = list( rank )
                     data[1] = rank
                 rank = sorted(rank)
@@ -1298,7 +1297,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 if self._rank > 3: self._info['simply_laced'] = True
                 self._info['skew_symmetric'] = True
                 if self._bi_rank == [1,1]:
-                    self._graph.add_edges( [(0,1,2),(1,2)] )
+                    self._graph.add_edges( [(0,1,2),(1,2,None)] )
                 else:
                     self._digraph.add_edge( self._rank - 2, 0 )
                     for i in xrange(self._rank-2):
@@ -1314,7 +1313,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
 
         # type BE (mutation infinite)
         elif letter == 'BE':
-            if rank >4 and twist == None:
+            if rank >4 and twist is None:
                 self._rank = rank
                 for i in range(rank-3):
                     self._graph.add_edge( i, i+1 )
@@ -1328,7 +1327,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
 
         # type CE (mutation infinite)
         elif letter == 'CE':
-            if rank >4 and twist == None:
+            if rank >4 and twist is None:
                 self._rank = rank
                 for i in range(rank-3):
                     self._graph.add_edge( i, i+1 )
@@ -1342,7 +1341,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
 
         # type DE (mutation infinite)
         elif letter == 'DE':
-            if rank >5 and twist == None:
+            if rank >5 and twist is None:
                 self._rank = rank
                 self._info['simply_laced'] = True
                 self._info['skew_symmetric'] = True
@@ -1359,37 +1358,37 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 self._rank = rank
                 self._info['mutation_finite'] = True
                 self._info['finite'] = True
-                self._graph.add_edges( [ (0,1),(1,2,(2,-1)),(2,3) ] )
+                self._graph.add_edges( [ (0,1,None),(1,2,(2,-1)),(2,3,None) ] )
             elif rank == 4 and twist == 1:
                 self._rank = rank + 1
                 self._info['mutation_finite'] = True
                 self._info['affine'] = True
-                self._graph.add_edges( [ (0,1), (1,2),(2,3,(1,-2)),(3,4) ] )
+                self._graph.add_edges( [ (0,1,None), (1,2,None),(2,3,(1,-2)),(3,4,None) ] )
             elif rank == 4 and twist == -1:
                 self._rank = rank + 1
                 self._info['mutation_finite'] = True
                 self._info['affine'] = True
-                self._graph.add_edges( [ (0,1), (1,2),(2,3,(2,-1)),(3,4) ] )
+                self._graph.add_edges( [ (0,1,None), (1,2,None),(2,3,(2,-1)),(3,4,None) ] )
             elif rank == 4 and (twist == [1,2]):
                 self._rank = rank + 2
                 self._info['mutation_finite'] = True
                 self._info['elliptic'] = True
-                self._digraph.add_edges( [ (0,1), (1,2), (2,3,(2,-1)), (4,2,(1,-2)), (3,4,2), (4,5), (5,3) ])
+                self._digraph.add_edges( [ (0,1,None), (1,2,None), (2,3,(2,-1)), (4,2,(1,-2)), (3,4,2), (4,5,None), (5,3,None) ])
             elif rank == 4 and (twist == [2,1]):
                 self._rank = rank + 2
                 self._info['mutation_finite'] = True
                 self._info['elliptic'] = True
-                self._digraph.add_edges( [ (0,1), (1,2), (2,3,(1,-2)), (4,2,(2,-1)), (3,4,2), (4,5), (5,3) ])
+                self._digraph.add_edges( [ (0,1,None), (1,2,None), (2,3,(1,-2)), (4,2,(2,-1)), (3,4,2), (4,5,None), (5,3,None) ])
             elif rank == 4 and twist == [2,2]:
                 self._rank = rank + 2
                 self._info['mutation_finite'] = True
                 self._info['elliptic'] = True
-                self._digraph.add_edges( [ (0,1), (1,2), (3,1), (2,3,2), (4,2,(2,-1)), (3,4,(1,-2)), (5,4) ] )
+                self._digraph.add_edges( [ (0,1,None), (1,2,None), (3,1,None), (2,3,2), (4,2,(2,-1)), (3,4,(1,-2)), (5,4,None) ] )
             elif rank == 4 and twist == [1,1]:
                 self._rank = rank + 2
                 self._info['mutation_finite'] = True
                 self._info['elliptic'] = True
-                self._digraph.add_edges( [ (0,1), (1,2), (3,1), (2,3,2), (4,2,(1,-2)), (3,4,(2,-1)), (5,4) ] )
+                self._digraph.add_edges( [ (0,1,None), (1,2,None), (3,1,None), (2,3,2), (4,2,(1,-2)), (3,4,(2,-1)), (5,4,None) ] )
             else:
                 _mutation_type_error( data )
 
@@ -1404,40 +1403,40 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 self._rank = rank + 1
                 self._info['mutation_finite'] = True
                 self._info['affine'] = True
-                self._graph.add_edges( [ (0,1),(1,2,(1,-3)) ] )
+                self._graph.add_edges( [ (0,1,None),(1,2,(1,-3)) ] )
             elif rank == 2 and twist == 1:
                 self._rank = rank + 1
                 self._info['mutation_finite'] = True
                 self._info['affine'] = True
-                self._graph.add_edges( [ (0,1),(1,2,(3,-1)) ] )
+                self._graph.add_edges( [ (0,1,None),(1,2,(3,-1)) ] )
             elif rank == 2 and (twist == [1,3]):
                 self._rank = rank + 2
                 self._info['mutation_finite'] = True
                 self._info['elliptic'] = True
-                self._digraph.add_edges( [ (0,1), (1,2,(3,-1)),
+                self._digraph.add_edges( [ (0,1,None), (1,2,(3,-1)),
                                            (3,1,(1,-3)), (2,3,2)] )
             elif rank == 2 and (twist == [3,1]):
                 self._rank = rank + 2
                 self._info['mutation_finite'] = True
                 self._info['elliptic'] = True
-                self._digraph.add_edges( [ (0,1), (1,2,(1,-3)),
+                self._digraph.add_edges( [ (0,1,None), (1,2,(1,-3)),
                                            (3,1,(3,-1)), (2,3,2)] )
             elif rank == 2 and twist == [3,3]:
                 self._rank = rank + 2
                 self._info['mutation_finite'] = True
                 self._info['elliptic'] = True
-                self._digraph.add_edges( [ (1,0), (0,2,2), (3,0,(3,-1)), (2,1), (2,3, (1,-3))])
+                self._digraph.add_edges( [ (1,0,None), (0,2,2), (3,0,(3,-1)), (2,1,None), (2,3, (1,-3))])
             elif rank == 2 and twist == [1,1]:
                 self._rank = rank + 2
                 self._info['mutation_finite'] = True
                 self._info['elliptic'] = True
-                self._digraph.add_edges( [ (1,0), (0,2,2), (3,0,(1,-3)), (2,1), (2,3,(3,-1)) ] )
+                self._digraph.add_edges( [ (1,0,None), (0,2,2), (3,0,(1,-3)), (2,1,None), (2,3,(3,-1)) ] )
             else:
                 _mutation_type_error( data )
 
         # type GR (mutation infinite)
         elif letter == 'GR':
-            if twist == None and type(rank) is list and len(rank) == 2 and all( rank[i] in ZZ and rank[i] > 0 for i in [0,1] ) and rank[1] - 1 > rank[0] > 1:
+            if twist is None and isinstance(rank, list) and len(rank) == 2 and all( rank[i] in ZZ and rank[i] > 0 for i in [0,1] ) and rank[1] - 1 > rank[0] > 1:
                 gr_rank = (rank[0]-1,rank[1]-rank[0]-1)
                 self._rank = prod(gr_rank)
                 self._info['simply_laced'] = True
@@ -1460,7 +1459,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
 
         # type R2 (rank 2 finite mutation types)
         elif letter == 'R2':
-            if twist == None and type(rank) is list and len(rank) == 2 and all( rank[i] in ZZ and rank[i] > 0 for i in [0,1] ):
+            if twist is None and isinstance(rank, list) and len(rank) == 2 and all( rank[i] in ZZ and rank[i] > 0 for i in [0,1] ):
                 rank = sorted(rank)
                 b,c = rank
                 self._rank = 2
@@ -1471,8 +1470,8 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
 
         # type T
         elif letter == 'T':
-            if twist == None and type(rank) is list and len(rank) == 3 and all( rank[i] in ZZ and rank[i] > 0 for i in [0,1,2] ):
-                if type( rank ) == tuple:
+            if twist is None and isinstance(rank, list) and len(rank) == 3 and all( rank[i] in ZZ and rank[i] > 0 for i in [0,1,2] ):
+                if isinstance(rank, tuple):
                     rank = list( rank )
                     data[1] = rank
                 rank = sorted( rank )
@@ -1497,9 +1496,9 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
         # type TR (mutation infinite if rank > 2)
         elif letter == 'TR':
             # type ['TR',1] needs to be treated on itself (as there is no edge)
-            if twist == None and rank == 1:
+            if twist is None and rank == 1:
                 self._graph.add_vertex( 0 )
-            elif twist == None and rank > 1:
+            elif twist is None and rank > 1:
                 self._rank = rank*(rank+1)/2
                 self._info['simply_laced'] = True
                 self._info['skew_symmetric'] = True
@@ -1516,13 +1515,13 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
 
         # type X
         elif letter == 'X':
-            if rank in [6,7] and twist == None:
+            if rank in [6,7] and twist is None:
                 self._rank = rank
                 self._info['mutation_finite'] = True
                 self._info['skew_symmetric'] = True
-                self._digraph.add_edges( [ (0,1,2),(1,2),(2,0),(2,3),(3,4,2),(4,2),(2,5) ] )
+                self._digraph.add_edges( [ (0,1,2),(1,2,None),(2,0,None),(2,3,None),(3,4,2),(4,2,None),(2,5,None) ] )
                 if rank == 7:
-                    self._digraph.add_edges( [ (5,6,2),(6,2) ] )
+                    self._digraph.add_edges( [ (5,6,2),(6,2,None) ] )
             else:
                 _mutation_type_error( data )
 
@@ -1535,7 +1534,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
             if self._graph.is_bipartite():
                 self._digraph = _bipartite_graph_to_digraph( self._graph )
             else:
-                raise ValueError, 'The QuiverMutationType does not have a Coxeter diagram.'
+                raise ValueError('The QuiverMutationType does not have a Coxeter diagram.')
 
         # in the other cases, the graph is constructed from the digraph
         if not self._graph:
@@ -1615,7 +1614,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 n = self._rank
                 a = binomial( 2*(n+1), n+1 ) / (n+2)
                 if n % 2 == 1:
-                    a += binomial( n+1, (n+1)/2 )
+                    a += binomial( n+1, (n+1)//2 )
                 if n % 3 == 0:
                     a += 2 * binomial( 2*n/3, n/3 )
                 return a / (n+3)
@@ -1627,9 +1626,9 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 n = i+j
                 f = Euler_Phi()
                 if i == j:
-                    return ( binomial( 2*i,i ) + sum( f(k) * binomial(2*i/k,i/k)**2 for k in filter( lambda k: k in j.divisors(), i.divisors() ) ) / n ) / 4
+                    return ( binomial( 2*i,i ) + sum( f(k) * binomial(2*i/k,i/k)**2 for k in [k for k in i.divisors() if k in j.divisors()] ) / n ) / 4
                 else:
-                    return sum( f(k) * binomial(2*i/k,i/k) * binomial(2*j/k,j/k) for k in filter( lambda k: k in j.divisors(), i.divisors() ) ) / ( 2 * n )
+                    return sum( f(k) * binomial(2*i/k,i/k) * binomial(2*j/k,j/k) for k in [k for k in i.divisors() if k in j.divisors()] ) / ( 2 * n )
 
         # types B and C (finite and affine)
         elif self._letter in ['B','C']:
@@ -1828,7 +1827,7 @@ class QuiverMutationType_Reducible(QuiverMutationType_abstract,UniqueRepresentat
             [ ['A', 4], ['B', 6] ]
         """
         data = args
-        if len(data) < 2 or not all( type( comp ) is QuiverMutationType_Irreducible for comp in data ):
+        if len(data) < 2 or not all( isinstance(comp, QuiverMutationType_Irreducible) for comp in data ):
             return _mutation_type_error(data)
 
         # _info is initialized
@@ -1967,7 +1966,7 @@ def _construct_classical_mutation_classes(n):
     # finite A
     data[ ('A',n) ] = ClusterQuiver(['A',n]).mutation_class(data_type='dig6')
     # affine A
-    for j in range(1, n/2+1):
+    for j in range(1, n//2+1):
         data[ ('A',(n-j,j),1) ] = ClusterQuiver(['A',[n-j,j],1]).mutation_class(data_type='dig6')
     # finite B
     if n > 1:
@@ -2094,7 +2093,7 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
     data = {}
     possible_types = ['Classical','ClassicalExceptional','Exceptional']
     if types not in possible_types:
-        raise ValueError, 'The third input must be either ClassicalExceptional (default), Classical, or Exceptional.'
+        raise ValueError('The third input must be either ClassicalExceptional (default), Classical, or Exceptional.')
 
     if types in possible_types[:2]:
         data.update(_construct_classical_mutation_classes(n))
@@ -2183,7 +2182,7 @@ def _bipartite_graph_to_digraph( g ):
         Digraph on 2 vertices
     """
     if not g.is_bipartite():
-        raise ValueError, 'The input graph is not bipartite.'
+        raise ValueError('The input graph is not bipartite.')
 
     order = g.bipartite_sets()
     dg = DiGraph()
@@ -2212,7 +2211,7 @@ def _is_mutation_type( data ):
     try:
         QuiverMutationType( data )
         return True
-    except StandardError:
+    except Exception:
         return False
 
 def _mutation_type_error( data ):
@@ -2241,7 +2240,7 @@ def _mutation_type_error( data ):
     return_str += '\n            Elliptic type ? has the form [ \'?\', k, [i, j] ] (1 <= i,j <= 3) for rank k+2'
     return_str += '\n            For correct syntax in other types, please consult the documentation.'
 
-    raise ValueError, return_str
+    raise ValueError(return_str)
 
 def _edge_list_to_matrix( edges, n, m ):
     """

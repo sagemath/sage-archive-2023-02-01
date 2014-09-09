@@ -545,7 +545,7 @@ def hnf_square(A, proof):
 
     try:
         (d1,d2) = double_det (B,c,d, proof=proof)
-    except (ValueError, ZeroDivisionError), msg:
+    except (ValueError, ZeroDivisionError) as msg:
         d1 = B.stack(c).det(proof=proof)
         d2 = B.stack(d).det(proof=proof)
 

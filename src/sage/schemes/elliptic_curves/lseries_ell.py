@@ -67,8 +67,8 @@ class Lseries_ell(SageObject):
             sage: E = EllipticCurve('389a')
             sage: L = E.lseries()
             sage: L.taylor_series(series_prec=3)
-            -1.28158145675273e-23 + (7.26268290541182e-24)*z + 0.759316500288427*z^2 + O(z^3)  # 32-bit
-            -2.69129566562797e-23 + (1.52514901968783e-23)*z + 0.759316500288427*z^2 + O(z^3)  # 64-bit
+            -1.27685190980159e-23 + (7.23588070754027e-24)*z + 0.759316500288427*z^2 + O(z^3)  # 32-bit
+            -2.72911738151096e-23 + (1.54658247036311e-23)*z + 0.759316500288427*z^2 + O(z^3)  # 64-bit
             sage: L.taylor_series(series_prec=3)[2:]
             0.000000000000000 + 0.000000000000000*z + 0.759316500288427*z^2 + O(z^3)
         """
@@ -241,11 +241,9 @@ class Lseries_ell(SageObject):
 
             sage: E = EllipticCurve('37a')
             sage: E.lseries().zeros(2)
-              ***   Warning:...new stack size = ...
             [0.000000000, 5.00317001]
 
             sage: a = E.lseries().zeros(20)             # long time
-              ***   Warning:...new stack size = ...
             sage: point([(1,x) for x in a])             # graph  (long time)
 
         AUTHOR:
@@ -276,7 +274,6 @@ class Lseries_ell(SageObject):
 
             sage: E = EllipticCurve('37a')
             sage: E.lseries().zeros_in_interval(6, 10, 0.1)      # long time
-              ***   Warning:...new stack size = ...
             [(6.87039122, 0.248922780), (8.01433081, -0.140168533), (9.93309835, -0.129943029)]
         """
         from sage.lfunctions.lcalc import lcalc
@@ -304,7 +301,6 @@ class Lseries_ell(SageObject):
 
             sage: E = EllipticCurve('37a')
             sage: E.lseries().values_along_line(1, 0.5 + 20*I, 5)
-              ***   Warning:...new stack size = ...
             [(0.500000000, ...),
              (0.400000000 + 4.00000000*I, 3.31920245 - 2.60028054*I),
              (0.300000000 + 8.00000000*I, -0.886341185 - 0.422640337*I),
@@ -339,7 +335,6 @@ class Lseries_ell(SageObject):
 
             sage: E = EllipticCurve('37a')
             sage: vals = E.lseries().twist_values(1, -12, -4)
-              ***   Warning:...new stack size = ...
             sage: vals  # abs tol 1e-17
             [(-11, 1.47824342), (-8, 8.9590946e-18), (-7, 1.85307619), (-4, 2.45138938)]
             sage: F = E.quadratic_twist(-8)
@@ -374,7 +369,6 @@ class Lseries_ell(SageObject):
 
             sage: E = EllipticCurve('37a')
             sage: E.lseries().twist_zeros(3, -4, -3)         # long time
-              ***   Warning:...new stack size = ...
             {-4: [1.60813783, 2.96144840, 3.89751747], -3: [2.06170900, 3.48216881, 4.45853219]}
         """
         from sage.lfunctions.lcalc import lcalc
@@ -608,7 +602,7 @@ class Lseries_ell(SageObject):
             sage: E.lseries().deriv_at1()
             (-0.00010911444, 0.142428)
             sage: E.lseries().deriv_at1(4000)
-            (6.9902290...e-50, 1.31318e-43)
+            (6.990...e-50, 1.31318e-43)
         """
         sqrtN = sqrt(self.__E.conductor())
         if k:

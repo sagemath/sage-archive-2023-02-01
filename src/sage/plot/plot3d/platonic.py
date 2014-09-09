@@ -84,12 +84,12 @@ def index_face_set(face_list, point_list, enclosed, **kwds):
 
         sage: icosahedron(center=(2,0,0),size=2,color='red')
     """
-    if kwds.has_key('center'):
+    if 'center' in kwds:
         center = kwds['center']
         del kwds['center']
     else:
         center = (0,0,0)
-    if kwds.has_key('size'):
+    if 'size' in kwds:
         size = kwds['size']
         del kwds['size']
     else:
@@ -133,15 +133,12 @@ def tetrahedron(center=(0,0,0), size=1, **kwds):
 
     INPUT:
 
-
     -  ``center`` - (default: (0,0,0))
 
     -  ``size`` - (default: 1)
 
-    -  ``color`` - a word that describes a color
-
-    -  ``rgbcolor`` - (r,g,b) with r, g, b between 0 and 1
-       that describes a color
+    - ``color`` -- a string (``"red"``, ``"green"``, etc)
+      or a tuple (r, g, b) with r, g, b numbers between 0 and 1
 
     -  ``opacity`` - (default: 1) if less than 1 then is
        transparent

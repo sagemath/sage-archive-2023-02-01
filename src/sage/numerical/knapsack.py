@@ -16,31 +16,31 @@ AUTHORS:
 Definition of Knapsack problems
 -------------------------------
 
-You have already had a knapsack problem, so you should know, but in case you
-do not, a knapsack problem is what happens when you have hundred of items to
-put into a bag which is too small for all of them.
+You have already had a knapsack problem, so you should know, but in case you do
+not, a knapsack problem is what happens when you have hundred of items to put
+into a bag which is too small, and you want to pack the most useful of them.
 
 When you formally write it, here is your problem:
 
 * Your bag can contain a weight of at most `W`.
-* Each item `i` you have has a weight `w_i`.
-* Each item `i` has a usefulness of `u_i`.
+* Each item `i` has a weight `w_i`.
+* Each item `i` has a usefulness `u_i`.
 
-You then want to maximize the usefulness of the items you will store into
+You then want to maximize the total usefulness of the items you will store into
 your bag, while keeping sure the weight of the bag will not go over `W`.
 
-As a linear program, this problem can be represented this way
-(if you define `b_i` as the binary variable indicating whether
-the item `i` is to be included in your bag):
+As a linear program, this problem can be represented this way (if you define
+`b_i` as the binary variable indicating whether the item `i` is to be included
+in your bag):
 
 .. MATH::
 
     \mbox{Maximize: }\sum_i b_i u_i \\
     \mbox{Such that: }
     \sum_i b_i w_i \leq W \\
-    \forall i, b_i \mbox{ binary variable}
+    \forall i, b_i \mbox{ binary variable} \\
 
-(For more information, cf. http://en.wikipedia.org/wiki/Knapsack_problem.)
+(For more information, see the :wikipedia:`Knapsack_problem`)
 
 Examples
 --------
@@ -118,11 +118,9 @@ class Superincreasing(SageObject):
     If ``seq`` is ``None``, then construct an empty sequence. By
     definition, this empty sequence is not super-increasing.
 
-
     INPUT:
 
     - ``seq`` -- (default: ``None``) a non-empty sequence.
-
 
     EXAMPLES::
 
@@ -171,7 +169,7 @@ class Superincreasing(SageObject):
             if self.is_superincreasing(seq):
                 self._seq = seq
             else:
-                raise ValueError, "seq must be a super-increasing sequence"
+                raise ValueError("seq must be a super-increasing sequence")
 
     def __cmp__(self, other):
         r"""
@@ -244,7 +242,7 @@ class Superincreasing(SageObject):
         But if no solution exists, return ``None``::
 
             sage: L = [2, 3, 7, 25, 67, 179, 356, 819]
-            sage: Superincreasing(L).largest_less_than(-1) == None
+            sage: Superincreasing(L).largest_less_than(-1) is None
             True
 
         TESTS:
@@ -273,9 +271,9 @@ class Superincreasing(SageObject):
         floor = Function_floor()
         # input error handling
         if len(self._seq) == 0:
-            raise TypeError, "self must be a non-empty list of integers."
+            raise TypeError("self must be a non-empty list of integers.")
         if (not isinstance(N, Integer)) and (not isinstance(N, int)):
-            raise TypeError, "N (= %s) must be an integer." % N
+            raise TypeError("N (= %s) must be an integer." % N)
 
         # halving the list at each iteration, just like binary search
         # TODO: some error handling to ensure that self only contains integers?
@@ -297,7 +295,6 @@ class Superincreasing(SageObject):
     def _latex_(self):
         r"""
         Return LaTeX representation of ``self``.
-
 
         EXAMPLES::
 
@@ -417,15 +414,15 @@ class Superincreasing(SageObject):
                 return False
             # so now self is known to represent a non-empty sequence
             if (not isinstance(self._seq[0], Integer)) and (not isinstance(self._seq[0], int)):
-                raise TypeError, "Element e (= %s) of self must be a non-negative integer." % self._seq[0]
+                raise TypeError("Element e (= %s) of self must be a non-negative integer." % self._seq[0])
             if self._seq[0] < 0:
-                raise TypeError, "Element e (= %s) of self must be a non-negative integer." % self._seq[0]
+                raise TypeError("Element e (= %s) of self must be a non-negative integer." % self._seq[0])
             cumSum = self._seq[0]  # the cumulative sum of the sequence represented by self
             for e in self._seq[1:]:
                 if (not isinstance(e, Integer)) and (not isinstance(e, int)):
-                    raise TypeError, "Element e (= %s) of self must be a non-negative integer." % e
+                    raise TypeError("Element e (= %s) of self must be a non-negative integer." % e)
                 if e < 0:
-                    raise TypeError, "Element e (= %s) of self must be a non-negative integer." % e
+                    raise TypeError("Element e (= %s) of self must be a non-negative integer." % e)
                 if e <= cumSum:
                     return False
                 cumSum += e
@@ -437,15 +434,15 @@ class Superincreasing(SageObject):
                 return False
             # so now seq is known to represent a non-empty sequence
             if (not isinstance(seq[0], Integer)) and (not isinstance(seq[0], int)):
-                raise TypeError, "Element e (= %s) of seq must be a non-negative integer." % seq[0]
+                raise TypeError("Element e (= %s) of seq must be a non-negative integer." % seq[0])
             if seq[0] < 0:
-                raise TypeError, "Element e (= %s) of seq must be a non-negative integer." % seq[0]
+                raise TypeError("Element e (= %s) of seq must be a non-negative integer." % seq[0])
             cumSum = seq[0]  # the cumulative sum of the sequence seq
             for e in seq[1:]:
                 if (not isinstance(e, Integer)) and (not isinstance(e, int)):
-                    raise TypeError, "Element e (= %s) of seq must be a non-negative integer." % e
+                    raise TypeError("Element e (= %s) of seq must be a non-negative integer." % e)
                 if e < 0:
-                    raise TypeError, "Element e (= %s) of seq must be a non-negative integer." % e
+                    raise TypeError("Element e (= %s) of seq must be a non-negative integer." % e)
                 if e <= cumSum:
                     return False
                 cumSum += e
@@ -530,11 +527,11 @@ class Superincreasing(SageObject):
         """
         # input error handling
         if not self.is_superincreasing():
-            raise TypeError, "self is not super-increasing. Only super-increasing sequences are currently supported."
+            raise TypeError("self is not super-increasing. Only super-increasing sequences are currently supported.")
         if (not isinstance(N, Integer)) and (not isinstance(N, int)):
-            raise TypeError, "N (= %s) must be a non-negative integer." % N
+            raise TypeError("N (= %s) must be a non-negative integer." % N)
         if N < 0:
-            raise TypeError, "N (= %s) must be a non-negative integer." % N
+            raise TypeError("N (= %s) must be a non-negative integer." % N)
 
         # solve subset sum problem for super-increasing sequence
         candidates = []
@@ -551,46 +548,61 @@ class Superincreasing(SageObject):
         else:
             return []
 
-def knapsack(seq, binary=True, max=1, value_only=False):
+def knapsack(seq, binary=True, max=1, value_only=False, solver=None, verbose=0):
     r"""
     Solves the knapsack problem
 
-    Knapsack problems:
+    For more information on the knapsack problem, see the documentation of the
+    :mod:`knapsack module <sage.numerical.knapsack>` or the
+    :wikipedia:`Knapsack_problem`.
 
-    You have already had a knapsack problem, so you should know,
-    but in case you do not, a knapsack problem is what happens
-    when you have hundred of items to put into a bag which is
-    too small for all of them.
+    INPUT:
 
-    When you formally write it, here is your problem:
+    - ``seq`` -- Two different possible types:
 
-    * Your bag can contain a weight of at most `W`.
-    * Each item `i` you have has a weight `w_i`.
-    * Each item `i` has a usefulness of `u_i`.
+      - A sequence of tuples ``(weight, value, something1, something2,
+        ...)``. Note that only the first two coordinates (``weight`` and
+        ``values``) will be taken into account. The rest (if any) will be
+        ignored. This can be useful if you need to attach some information to
+        the items.
 
-    You then want to maximize the usefulness of the items you
-    will store into your bag, while keeping sure the weight of
-    the bag will not go over `W`.
+      - A sequence of reals (a value of 1 is assumed).
 
-    As a linear program, this problem can be represented this way
-    (if you define `b_i` as the binary variable indicating whether
-    the item `i` is to be included in your bag):
+    - ``binary`` -- When set to ``True``, an item can be taken 0 or 1 time.
+      When set to ``False``, an item can be taken any amount of times (while
+      staying integer and positive).
 
-    .. MATH::
+    - ``max`` -- Maximum admissible weight.
 
-        \mbox{Maximize: }\sum_i b_i u_i \\
-        \mbox{Such that: }
-        \sum_i b_i w_i \leq W \\
-        \forall i, b_i \mbox{ binary variable} \\
+    - ``value_only`` -- When set to ``True``, only the maximum useful value is
+      returned. When set to ``False``, both the maximum useful value and an
+      assignment are returned.
 
-    (For more information,
-    cf. http://en.wikipedia.org/wiki/Knapsack_problem.)
+    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver to
+      be used. If set to ``None``, the default one is used. For more information
+      on LP solvers and which default solver is used, see the documentation of
+      class :class:`MixedIntegerLinearProgram
+      <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-    EXAMPLE:
+    - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity. Set
+      to 0 by default, which means quiet.
 
-    If your knapsack problem is composed of three
-    items (weight, value) defined by (1,2), (1.5,1), (0.5,3),
-    and a bag of maximum weight 2, you can easily solve it this way::
+    OUTPUT:
+
+    If ``value_only`` is set to ``True``, only the maximum useful value is
+    returned. Else (the default), the function returns a pair ``[value,list]``,
+    where ``list`` can be of two types according to the type of ``seq``:
+
+    - The list of tuples `(w_i, u_i, ...)` occurring in the solution.
+
+    - A list of reals where each real is repeated the number of times it is
+      taken into the solution.
+
+    EXAMPLES:
+
+    If your knapsack problem is composed of three items ``(weight, value)``
+    defined by ``(1,2), (1.5,1), (0.5,3)``, and a bag of maximum weight `2`, you
+    can easily solve it this way::
 
         sage: from sage.numerical.knapsack import knapsack
         sage: knapsack( [(1,2), (1.5,1), (0.5,3)], max=2)
@@ -599,64 +611,40 @@ def knapsack(seq, binary=True, max=1, value_only=False):
         sage: knapsack( [(1,2), (1.5,1), (0.5,3)], max=2, value_only=True)
         5.0
 
-    In the case where all the values (usefulness) of the items
-    are equal to one, you do not need embarrass yourself with
-    the second values, and you can just type for items
-    `(1,1), (1.5,1), (0.5,1)` the command::
+    Besides weight and value, you may attach any data to the items::
+
+        sage: from sage.numerical.knapsack import knapsack
+        sage: knapsack( [(1, 2, 'spam'), (0.5, 3, 'a', 'lot')])
+        [3.0, [(0.500000000000000, 3, 'a', 'lot')]]
+
+    In the case where all the values (usefulness) of the items are equal to one,
+    you do not need embarrass yourself with the second values, and you can just
+    type for items `(1,1), (1.5,1), (0.5,1)` the command::
 
         sage: from sage.numerical.knapsack import knapsack
         sage: knapsack([1,1.5,0.5], max=2, value_only=True)
         2.0
-
-    INPUT:
-
-    - ``seq`` -- Two different possible types:
-
-      - A sequence of pairs (weight, value).
-      - A sequence of reals (a value of 1 is assumed).
-
-    - ``binary`` -- When set to True, an item can be taken 0 or 1 time.
-      When set to False, an item can be taken any amount of
-      times (while staying integer and positive).
-
-    - ``max`` -- Maximum admissible weight.
-
-    - ``value_only`` -- When set to True, only the maximum useful
-      value is returned. When set to False, both the maximum useful
-      value and an assignment are returned.
-
-    OUTPUT:
-
-    If ``value_only`` is set to True, only the maximum useful value
-    is returned. Else (the default), the function returns a pair
-    ``[value,list]``, where ``list`` can be of two types according
-    to the type of ``seq``:
-
-    - A list of pairs `(w_i, u_i)` for each object `i` occurring
-      in the solution.
-    - A list of reals where each real is repeated the number
-      of times it is taken into the solution.
     """
     reals = not isinstance(seq[0], tuple)
     if reals:
         seq = [(x,1) for x in seq]
 
     from sage.numerical.mip import MixedIntegerLinearProgram
-    p = MixedIntegerLinearProgram(maximization=True)
-    present = p.new_variable()
+    p = MixedIntegerLinearProgram(solver=solver, maximization=True)
+
+    if binary:
+        present = p.new_variable(binary = True)
+    else:
+        present = p.new_variable(integer = True)
+
     p.set_objective(p.sum([present[i] * seq[i][1] for i in range(len(seq))]))
     p.add_constraint(p.sum([present[i] * seq[i][0] for i in range(len(seq))]), max=max)
 
-    if binary:
-        p.set_binary(present)
-    else:
-        p.set_integer(present)
-
     if value_only:
-        return p.solve(objective_only=True)
+        return p.solve(objective_only=True, log=verbose)
 
     else:
-        objective = p.solve()
+        objective = p.solve(log=verbose)
         present = p.get_values(present)
 
         val = []

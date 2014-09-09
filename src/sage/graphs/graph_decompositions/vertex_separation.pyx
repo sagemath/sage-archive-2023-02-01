@@ -149,9 +149,9 @@ sets such that an ordering `v_1, ..., v_n` of the vertices correspond to
     :nowrap:
 
     \begin{alignat}{2}
-    \intertext{Minimize:}
+    \text{Minimize:}
     &z&\\
-    \intertext{Such that:}
+    \text{Such that:}
     x_v^t &\leq x_v^{t+1}& \forall v\in V,\ 0\leq t\leq n-2\\
     y_v^t &\leq y_v^{t+1}& \forall v\in V,\ 0\leq t\leq n-2\\
     y_v^t &\leq x_w^t& \forall v\in V,\ \forall w\in N^+(v),\ 0\leq t\leq n-1\\
@@ -324,6 +324,10 @@ def path_decomposition(G, algorithm = "exponential", verbose = False):
         Because of its current implementation, this exponential algorithm only
         works on graphs on less than 32 vertices. This can be changed to 54 if
         necessary, but 32 vertices already require 4GB of memory.
+
+    .. SEEALSO::
+
+        * :meth:`Graph.treewidth` -- computes the treewidth of a graph
 
     EXAMPLE:
 
@@ -790,15 +794,15 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
         ...       if ve != vm:
         ...          print "The solution is not optimal!"
 
-    Comparison with Different values of the integrality parameter::
+    Comparison with different values of the integrality parameter::
 
         sage: from sage.graphs.graph_decompositions import vertex_separation
         sage: for i in range(10):  # long time (11s on sage.math, 2012)
-        ...       G = digraphs.RandomDirectedGNP(10, 0.2)
-        ...       va, la = vertex_separation.vertex_separation_MILP(G, integrality = False)
-        ...       vb, lb = vertex_separation.vertex_separation_MILP(G, integrality = True)
-        ...       if va != vb:
-        ...          print "The integrality parameter change the result!"
+        ....:     G = digraphs.RandomDirectedGNP(10, 0.2)
+        ....:     va, la = vertex_separation.vertex_separation_MILP(G, integrality=False)
+        ....:     vb, lb = vertex_separation.vertex_separation_MILP(G, integrality=True)
+        ....:     if va != vb:
+        ....:        print "The integrality parameter changes the result!"
 
     Giving anything else than a DiGraph::
 
@@ -816,48 +820,48 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     p = MixedIntegerLinearProgram( maximization = False, solver = solver )
 
     # Declaration of variables.
-    x = p.new_variable( binary = integrality, dim = 2 )
-    u = p.new_variable( binary = integrality, dim = 2 )
-    y = p.new_variable( binary = True, dim = 2 )
-    z = p.new_variable( integer = True, dim = 1 )
+    x = p.new_variable(binary=integrality, nonnegative=True)
+    u = p.new_variable(binary=integrality, nonnegative=True)
+    y = p.new_variable(binary=True)
+    z = p.new_variable(integer=True, nonnegative=True)
 
     N = G.num_verts()
     V = G.vertices()
 
-    # (2) x[v][t] <= x[v][t+1]   for all v in V, and for t:=0..N-2
-    # (3) y[v][t] <= y[v][t+1]   for all v in V, and for t:=0..N-2
+    # (2) x[v,t] <= x[v,t+1]   for all v in V, and for t:=0..N-2
+    # (3) y[v,t] <= y[v,t+1]   for all v in V, and for t:=0..N-2
     for v in V:
         for t in xrange(N-1):
-            p.add_constraint( x[v][t] - x[v][t+1] <= 0 )
-            p.add_constraint( y[v][t] - y[v][t+1] <= 0 )
+            p.add_constraint( x[v,t] - x[v,t+1] <= 0 )
+            p.add_constraint( y[v,t] - y[v,t+1] <= 0 )
 
-    # (4) y[v][t] <= x[w][t]  for all v in V, for all w in N^+(v), and for all t:=0..N-1
+    # (4) y[v,t] <= x[w,t]  for all v in V, for all w in N^+(v), and for all t:=0..N-1
     for v in V:
         for w in G.neighbors_out(v):
             for t in xrange(N):
-                p.add_constraint( y[v][t] - x[w][t] <= 0 )
+                p.add_constraint( y[v,t] - x[w,t] <= 0 )
 
-    # (5) sum_{v in V} y[v][t] == t+1 for t:=0..N-1
+    # (5) sum_{v in V} y[v,t] == t+1 for t:=0..N-1
     for t in xrange(N):
-        p.add_constraint( p.sum([ y[v][t] for v in V ]) == t+1 )
+        p.add_constraint( p.sum([ y[v,t] for v in V ]) == t+1 )
 
-    # (6) u[v][t] >= x[v][t]-y[v][t]    for all v in V, and for all t:=0..N-1
+    # (6) u[v,t] >= x[v,t]-y[v,t]    for all v in V, and for all t:=0..N-1
     for v in V:
         for t in xrange(N):
-            p.add_constraint( x[v][t] - y[v][t] - u[v][t] <= 0 )
+            p.add_constraint( x[v,t] - y[v,t] - u[v,t] <= 0 )
 
-    # (7) z >= sum_{v in V} u[v][t]   for all t:=0..N-1
+    # (7) z >= sum_{v in V} u[v,t]   for all t:=0..N-1
     for t in xrange(N):
-        p.add_constraint( p.sum([ u[v][t] for v in V ]) - z['z'] <= 0 )
+        p.add_constraint( p.sum([ u[v,t] for v in V ]) - z['z'] <= 0 )
 
-    # (8)(9) 0 <= x[v][t] and u[v][t] <= 1
+    # (8)(9) 0 <= x[v,t] and u[v,t] <= 1
     if not integrality:
         for v in V:
             for t in xrange(N):
-                p.add_constraint( 0 <= x[v][t] <= 1 )
-                p.add_constraint( 0 <= u[v][t] <= 1 )
+                p.add_constraint( 0 <= x[v,t] <= 1 )
+                p.add_constraint( 0 <= u[v,t] <= 1 )
 
-    # (10) y[v][t] in {0,1}
+    # (10) y[v,t] in {0,1}
     p.set_binary( y )
 
     # (11) 0 <= z <= |V|
@@ -880,7 +884,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     seq = []
     for t in xrange(N):
         for v in V:
-            if (taby[v][t] > 0) and (not v in seq):
+            if (taby[v,t] > 0) and (not v in seq):
                 seq.append(v)
                 break
     vs = int(round( tabz['z'] ))

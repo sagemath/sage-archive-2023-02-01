@@ -710,7 +710,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             0.953760808...
             sage: w = vector(CDF, [-1,0,1])
             sage: w.norm(p=-1.6)
-            doctest:1992: RuntimeWarning: divide by zero encountered in power
+            doctest:...: RuntimeWarning: divide by zero encountered in power
             0.0
 
         Return values are in ``RDF``, or an integer when ``p = 0``.  ::
@@ -741,7 +741,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
         else:
             try:
                 p = RDF(p)
-            except StandardError:
+            except Exception:
                 raise ValueError("vector norm 'p' must be +/- infinity or a real number, not %s" % p)
         n = numpy.linalg.norm(self._vector_numpy, ord=p)
         # p = 0 returns integer *count* of non-zero entries

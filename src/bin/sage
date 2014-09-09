@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
-usage() {
-    echo "----------------------------------------------------------------------"
-    grep -i version "$SAGE_LOCAL/bin/sage-banner"
-    echo "----------------------------------------------------------------------"
+help_banner() {
+    grep -v 'Type' "$SAGE_LOCAL/bin/sage-banner"
     echo
+}
+
+usage() {
+    help_banner
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Optional arguments:"
@@ -46,10 +48,7 @@ usage() {
 }
 
 usage_advanced() {
-    echo "----------------------------------------------------------------------"
-    grep -i version "$SAGE_LOCAL/bin/sage-banner"
-    echo "----------------------------------------------------------------------"
-    echo
+    help_banner
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Running Sage:"
@@ -89,11 +88,11 @@ usage_advanced() {
     echo "  -ipython [...]      -- run Sage's IPython using the default environment (not"
     echo "                         Sage), passing additional options to IPython"
     echo "  -kash [...]         -- run Sage's Kash with given arguments"
-    test -x "$SAGE_LOCAL/bin/kash" || \
+    command -v kash &>/dev/null || \
     echo "                         (not installed currently, run sage -i kash)"
     echo "  -lisp [...]         -- run Lisp interpreter included with Sage"
     echo "  -M2 [...]           -- run Sage's Macaulay2 with given arguments"
-    test -x "$SAGE_LOCAL/bin/M2" || \
+    command -v M2 &>/dev/null || \
     echo "                         (not installed currently, run sage -i macaulay2)"
     echo "  -maxima [...]       -- run Sage's Maxima with given arguments"
     echo "  -mwrank [...]       -- run Sage's mwrank with given arguments"
@@ -136,11 +135,6 @@ usage_advanced() {
     echo "Building and testing the Sage library:"
     echo "  -b [branch]         -- build Sage library.  If branch is given, switch to"
     echo "                         branch in devel/sage-branch and build that branch"
-    echo "  -sync-build         -- delete old code and other files in the Sage library"
-    echo "                         that have already been deleted from devel/sage but"
-    echo "                         remain in the build directory.  This is sometimes"
-    echo "                         necessary because \`sage -b\` merely copies new or"
-    echo "                         modified files to the target directory."
     echo "  -ba [branch]        -- same as -b and rebuild all Cython code"
     echo "  -ba-force [branch]  -- same as -ba, but don't query before rebuilding"
     echo "  -br [branch]        -- switch to, build, and run Sage given branch"
@@ -169,6 +163,7 @@ usage_advanced() {
     echo "                           --failed - only test files that failed last test"
     echo "                           --sagenb - test all sagenb files"
     echo "                           --help - show all testing options"
+    echo "                           --warn-long [timeout] - warning if doctest is slow"
     echo "  -tp <N> [...]       -- like -t above, but tests in parallel using N threads"
     echo "                         with 0 interpreted as a sensible default"
     echo "  -testall [options]  -- test all source files, docs, and examples.  options"
@@ -203,7 +198,6 @@ usage_advanced() {
     ####  |.....................--.|...................................................|
     echo "Making Sage packages or distributions:"
     echo "  -bdist VER          -- build a binary distribution of Sage"
-    echo "  -combinat [...]     -- run sage-combinat patch management script"
     echo "  -crap sage-ver.tar  -- detect suspicious garbage in sage source tarball"
     echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
     echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
@@ -245,6 +239,14 @@ if [ "$1" = '--nodotsage' ]; then
     status=$?
     rm -rf "$DOT_SAGE"
     exit $status
+fi
+
+# Check for '--patchbot' before sourcing sage-env: patchbot needs
+# an unclobbered environment before testing unsafe tickets.
+if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
+    shift
+    cd "$SAGE_ROOT"
+    exec local/bin/patchbot/patchbot.py "$@"
 fi
 
 # Check for '--upgrade' before sourcing sage-env: the top-level "make"
@@ -371,29 +373,24 @@ if [ "$1" = '-axiom' -o "$1" = '--axiom' ]; then
     exec axiom "$@"
 fi
 
-if [ "$1" = '-combinat' -o "$1" = '--combinat' ]; then
-    shift
-    exec sage-combinat "$@"
-fi
-
 if [ "$1" = '-gap' -o "$1" = '--gap' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/gap" "$@"
+    exec gap "$@"
 fi
 
 if [ "$1" = '-gp' -o "$1" = '--gp' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/gp" "$@"
+    exec gp "$@"
 fi
 
 if [ "$1" = '-singular' -o "$1" = '--singular' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/singular" "$@"
+    exec singular "$@"
 fi
 
 if [ "$1" = '-sqlite3' -o "$1" = '--sqlite3' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/sqlite3" "$@"
+    exec sqlite3 "$@"
 fi
 
 if [ "$1" = '-sws2rst' -o "$1" = '--sws2rst' ]; then
@@ -403,22 +400,22 @@ fi
 
 if [ "$1" = '-twistd' -o "$1" = '--twistd' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/twistd" "$@"
+    exec twistd "$@"
 fi
 
 if [ "$1" = '-ecl' -o "$1" = '--ecl' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/ecl" "$@"
+    exec ecl "$@"
 fi
 
 if [ "$1" = '-lisp' -o "$1" = '--lisp' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/ecl" "$@"
+    exec ecl "$@"
 fi
 
 if [ "$1" = '-kash' -o "$1" = '--kash' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/kash" "$@"
+    exec kash "$@"
 fi
 
 if [ "$1" = '-fixdoctests' -o "$1" = '--fixdoctests' ]; then
@@ -428,22 +425,22 @@ fi
 
 if [ "$1" = '-maxima' -o "$1" = '--maxima' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/maxima" "$@"
+    exec maxima "$@"
 fi
 
 if [ "$1" = '-mwrank' -o "$1" = '--mwrank' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/mwrank" "$@"
+    exec mwrank "$@"
 fi
 
 if [ "$1" = '-M2' -o "$1" = '--M2' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/M2" "$@"
+    exec M2 "$@"
 fi
 
 if [ "$1" = '-scons' -o "$1" = '--scons' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/scons" "$@"
+    exec scons "$@"
 fi
 
 if [ "$1" = '-python' -o "$1" = '--python' ]; then
@@ -453,17 +450,17 @@ fi
 
 if [ "$1" = '-R' -o "$1" = '--R' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/R" "$@"
+    exec R "$@"
 fi
 
 if [ "$1" = '-ipython' -o "$1" = '--ipython' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/ipython" "$@"
+    exec ipython "$@"
 fi
 
 if [ "$1" = '-git' -o "$1" = '--git' ]; then
     shift
-    exec "$SAGE_LOCAL/bin/git" "$@"
+    exec git "$@"
 fi
 
 if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
@@ -678,35 +675,10 @@ if [ "$1" = '-r' ]; then
    interactive_sage
 fi
 
-if [ "$1" = '-ba' ]; then
-    shift
-    echo " *** WARNING ***"
-    echo " You are about to rebuild the entire Sage library."
-    echo " This will take a significant amount of time."
-    echo " (Use --ba-force instead of -ba to skip this prompt.)"
-    echo -n " Do you want to proceed? [y/n] "
-    read CHOICE
-    while [ "$CHOICE" != "y" -a "$CHOICE" != "n" ]; do
-        echo -n " Choose one of y, n: "
-        read CHOICE
-    done
-    if [ $CHOICE = 'n' ]; then
-        exit 0
-    fi
-    build_sage -b "$@"
-    exit $?
-fi
-
-if [ "$1" = '-ba-force' -o "$1" = '--ba-force' ]; then
+if [ "$1" = '-ba' -o "$1" = '-ba-force' -o "$1" = '--ba-force' ]; then
     shift
     build_sage -b "$@"
     exit $?
-fi
-
-if [ "$1" = '-sync-build' -o "$1" = '--sync-build' ]; then
-    shift
-    cd "$SAGE_ROOT"
-    exec sage-sync-build.py "$@"
 fi
 
 if [ "$1" = '-t' -o "$1" = '-bt' -o "$1" = '-tp' -o "$1" = '-btp' ]; then
@@ -743,12 +715,6 @@ if [ "$1" = '-testall' -o "$1" = "--testall" ]; then
     SAGE_BANNER="no"
     sage_setup
     exec sage-runtests -a "$@"
-fi
-
-if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
-    shift
-    cd "$SAGE_ROOT"
-    exec "$SAGE_LOCAL/bin/patchbot/patchbot.py" "$@"
 fi
 
 if [ "$1" = '-c' ]; then
@@ -797,6 +763,14 @@ install() {
             exit 1
         fi
     done
+    # Display a message if we actually installed something (using this
+    # file, generated by sage-spkg, is a bit of a hack though)
+    if [ -f "$SAGE_LOCAL/lib/sage-force-relocate.txt" ]; then
+        echo
+        echo "Warning: it might be needed to update the Sage library before"
+        echo "installed packages work: you should run 'make' from \$SAGE_ROOT"
+        echo "before running Sage."
+    fi
     exit 0
 }
 
@@ -885,7 +859,7 @@ if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
             -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     else
         cygdb "$SAGE_SRC/build" "$SAGE_SRC/sage" \
-            -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
+            -- -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
             -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     fi
     exit $?

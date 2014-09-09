@@ -42,13 +42,12 @@ AUTHOR:
 
 - Marshall Hampton: improved doctests, rings, axis-aligned boxes.
 
-TODO:
+.. TODO:
 
-- clean up trianglefactory stuff
+    - clean up trianglefactory stuff
 """
 
 from tri_plot import Triangle, SmoothTriangle, TriangleFactory, TrianglePlot
-
 
 from sage.interfaces.tachyon import tachyon_rt
 
@@ -62,6 +61,7 @@ from sage.misc.temporary_file import tmp_filename, graphics_filename
 import os
 
 from math import sqrt
+
 
 class Tachyon(SageObject):
     r"""
@@ -78,7 +78,7 @@ class Tachyon(SageObject):
     - ``camera_center`` - (default (-3, 0, 0))
     - ``updir`` - (default (0, 0, 1))
     - ``look_at`` - (default (0,0,0))
-    - ``viewdir`` - (default None)
+    - ``viewdir`` - (default ``None``)
     - ``projection`` - (default 'PERSPECTIVE')
 
     OUTPUT: A Tachyon 3d scene.
@@ -98,9 +98,8 @@ class Tachyon(SageObject):
         sage: t.texture('t2', ambient=0.2,diffuse=0.7, specular=0.5, opacity=0.7, color=(0,0,1.0))
         sage: k=0
         sage: for i in srange(-1,1,0.05):
-        ...    k += 1
-        ...    t.sphere((i,i^2-0.5,i^3), 0.1, 't%s'%(k%3))
-        ...
+        ....:    k += 1
+        ....:    t.sphere((i,i^2-0.5,i^3), 0.1, 't%s'%(k%3))
         sage: t.show()
 
     Another twisted cubic, but with a white background, got by putting
@@ -122,10 +121,9 @@ class Tachyon(SageObject):
 
         sage: k=0
         sage: for i in srange(-1,1,0.05):
-        ...    k += 1
-        ...    t.sphere((i,i^2 - 0.5,i^3), 0.1, 't%s'%(k%3))
-        ...    t.cylinder((0,0,0), (0,0,1), 0.05,'t1')
-        ...
+        ....:    k += 1
+        ....:    t.sphere((i,i^2 - 0.5,i^3), 0.1, 't%s'%(k%3))
+        ....:    t.cylinder((0,0,0), (0,0,1), 0.05,'t1')
         sage: t.show()
 
     Many random spheres::
@@ -137,9 +135,8 @@ class Tachyon(SageObject):
         sage: t.texture('t2', ambient=0.2, diffuse=0.7, specular=0.5, opacity=0.7, color=(0,0,1.0))
         sage: k=0
         sage: for i in range(100):
-        ...    k += 1
-        ...    t.sphere((random(),random(), random()), random()/10, 't%s'%(k%3))
-        ...
+        ....:    k += 1
+        ....:    t.sphere((random(),random(), random()), random()/10, 't%s'%(k%3))
         sage: t.show()
 
     Points on an elliptic curve, their height indicated by their height
@@ -155,9 +152,8 @@ class Tachyon(SageObject):
         sage: Q = P
         sage: n = 100
         sage: for i in range(n):   # increase 20 for a better plot
-        ...    Q = Q + P
-        ...    t.sphere((Q[1], Q[0], ZZ(i)/n), 0.1, 't%s'%(i%3))
-        ...
+        ....:    Q = Q + P
+        ....:    t.sphere((Q[1], Q[0], ZZ(i)/n), 0.1, 't%s'%(i%3))
         sage: t.show()
 
     A beautiful picture of rational points on a rank 1 elliptic curve.
@@ -178,12 +174,10 @@ class Tachyon(SageObject):
         sage: Q = P
         sage: n = 100
         sage: for i in range(n):
-        ...    Q = Q + P
-        ...    c = i/n + .1
-        ...    t.texture('r%s'%i,color=(float(i/n),0,0))
-        ...    t.sphere((Q[0], -Q[1], .01), .04, 'r%s'%i)
-        ...
-        ...
+        ....:    Q = Q + P
+        ....:    c = i/n + .1
+        ....:    t.texture('r%s'%i,color=(float(i/n),0,0))
+        ....:    t.sphere((Q[0], -Q[1], .01), .04, 'r%s'%i)
         sage: t.show()    # long time, e.g., 10-20 seconds
 
     A beautiful spiral.
@@ -194,25 +188,33 @@ class Tachyon(SageObject):
         sage: t.light((0,0,100), 1, (1,1,1))
         sage: t.texture('r', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(1,0,0))
         sage: for i in srange(0,50,0.1):
-        ...    t.sphere((i/10,sin(i),cos(i)), 0.05, 'r')
-        ...
+        ....:    t.sphere((i/10,sin(i),cos(i)), 0.05, 'r')
         sage: t.texture('white', color=(1,1,1), opacity=1, specular=1, diffuse=1)
         sage: t.plane((0,0,-100), (0,0,-100), 'white')
         sage: t.show()
+
+    If the optional parameter ``viewdir`` is not set, the camera
+    center should not coincide with the point which
+    is looked at (see :trac:`7232`)::
+
+        sage: t = Tachyon(xres=80,yres=80, camera_center=(2,5,2), look_at=(2,5,2))
+        Traceback (most recent call last):
+        ...
+        ValueError: camera_center and look_at coincide
     """
     def __init__(self,
                  xres=350, yres=350,
-                 zoom = 1.0,
-                 antialiasing = False,
-                 aspectratio = 1.0,
-                 raydepth = 8,
-                 camera_center = (-3, 0, 0),
-                 updir = (0, 0, 1),
-                 look_at = (0,0,0),
-                 viewdir = None,
-                 projection = 'PERSPECTIVE'):
+                 zoom=1.0,
+                 antialiasing=False,
+                 aspectratio=1.0,
+                 raydepth=8,
+                 camera_center=(-3, 0, 0),
+                 updir=(0, 0, 1),
+                 look_at=(0, 0, 0),
+                 viewdir=None,
+                 projection='PERSPECTIVE'):
         r"""
-        Creates an instance of the Tachyon class.
+        Create an instance of the Tachyon class.
 
         EXAMPLES::
 
@@ -231,32 +233,61 @@ class Tachyon(SageObject):
         self._projection = projection
         self._objects = []
         if viewdir is None:
-            self._viewdir = [look_at[i] - camera_center[i] for i in range(3)]
+            if look_at != camera_center:
+                self._viewdir = [look_at[i] - camera_center[i]
+                                 for i in range(3)]
+            else:
+                raise ValueError('camera_center and look_at coincide')
         else:
             self._viewdir = viewdir
 
-
-
-    def __repr__(self):
+    def save_image(self, filename=None, *args, **kwds):
         r"""
-        Returns the string representation of the Tachyon object,
-        which is just the scene string input to tachyon.
+        Save an image representation of ``self``.
+
+        The image type is
+        determined by the extension of the filename.  For example,
+        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
+        ``.svg``.  Currently this is implemented by calling the
+        :meth:`save` method of self, passing along all arguments and
+        keywords.
+
+        .. Note::
+
+            Not all image types are necessarily implemented for all
+            graphics types.  See :meth:`save` for more details.
 
         EXAMPLES::
 
             sage: q = Tachyon()
-            sage: q.light((1,1,1), 1,(1,1,1))
+            sage: q.light((1,1,11), 1,(1,1,1))
             sage: q.texture('s')
-            sage: q.sphere((0,0,0),1,'s')
-            sage: q.__repr__()[-20:]
-            '  \n        end_scene'
+            sage: q.sphere((0,-1,1),1,'s')
+            sage: tempname = tmp_filename()
+            sage: q.save_image(tempname)
+
+        TESTS:
+
+        :meth:`save_image` is used for generating animations::
+
+            sage: def tw_cubic(t):
+            ....:     q = Tachyon()
+            ....:     q.light((1,1,11), 1,(1,1,1))
+            ....:     q.texture('s')
+            ....:     for i in srange(-1,t,0.05):
+            ....:         q.sphere((i,i^2-0.5,i^3), 0.1, 's')
+            ....:     return q
+
+            sage: a = animate([tw_cubic(t) for t in srange(-1,1,.3)])
+            sage: a
+            Animation with 7 frames
+            sage: a.show() # optional -- ImageMagick
         """
-        return self.str()
+        self.save(filename, *args, **kwds)
 
     def save(self, filename='sage.png', verbose=0, block=True, extra_opts=''):
         r"""
         INPUT:
-
 
         -  ``filename`` - (default: 'sage.png') output
            filename; the extension of the filename determines the type.
@@ -301,7 +332,7 @@ class Tachyon(SageObject):
 
     def show(self, verbose=0, extra_opts=''):
         r"""
-        Creates a PNG file of the scene.
+        Create a PNG file of the scene.
 
         EXAMPLES::
 
@@ -309,20 +340,15 @@ class Tachyon(SageObject):
             sage: q.light((-1,-1,10), 1,(1,1,1))
             sage: q.texture('s')
             sage: q.sphere((0,0,0),1,'s')
-            sage: q.show(verbose = False)
+            sage: q.show(verbose=False)
         """
-        import sage.plot.plot
-        if sage.doctest.DOCTEST_MODE:
-            filename = graphics_filename()
-            self.save(os.path.join(SAGE_TMP, 'test.png'), verbose=verbose, extra_opts=extra_opts)
-            return
-        if sage.plot.plot.EMBEDDED_MODE:
-            filename = graphics_filename()
-            self.save(filename, verbose=verbose, extra_opts=extra_opts)
-            return
-        filename = tmp_filename(ext='.png')
+        filename = graphics_filename()
         self.save(filename, verbose=verbose, extra_opts=extra_opts)
-        os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.png_viewer(), filename))
+
+        from sage.doctest import DOCTEST_MODE
+        from sage.plot.plot import EMBEDDED_MODE
+        if not DOCTEST_MODE and not EMBEDDED_MODE:
+            os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.png_viewer(), filename))
 
     def _res(self):
         r"""
@@ -367,7 +393,7 @@ class Tachyon(SageObject):
 
     def str(self):
         r"""
-        Returns the complete tachyon scene file as a string.
+        Return the complete tachyon scene file as a string.
 
         EXAMPLES::
 
@@ -395,7 +421,7 @@ class Tachyon(SageObject):
 
     def light(self, center, radius, color):
         r"""
-        Creates a light source of the given center, radius, and color.
+        Create a light source of the given center, radius, and color.
 
         EXAMPLES::
 
@@ -441,7 +467,7 @@ class Tachyon(SageObject):
         """
         type = int(type)
         if type < 0 or type > 9:
-            raise ValueError, "type must be an integer between 0 and 9"
+            raise ValueError("type must be an integer between 0 and 9")
         return Texfunc(type,center,rotate,scale).str()
 
     def texture(self, name, ambient=0.2, diffuse=0.8,
@@ -498,7 +524,7 @@ class Tachyon(SageObject):
 
     def texture_recolor(self, name, colors):
         r"""
-        Recolors default textures.
+        Recolor default textures.
 
         EXAMPLES::
 
@@ -528,7 +554,7 @@ class Tachyon(SageObject):
 
     def sphere(self, center, radius, texture):
         r"""
-        Creates the scene information for a sphere with the given
+        Create the scene information for a sphere with the given
         center, radius, and texture.
 
         EXAMPLES::
@@ -620,8 +646,8 @@ class Tachyon(SageObject):
             sage: t = Tachyon()
             sage: t.texture('s')
             sage: t.triangle([1,2,3],[4,5,6],[7,8,10],'s')
-            sage: t._objects[1]
-            [1, 2, 3] [4, 5, 6] [7, 8, 10] s
+            sage: t._objects[1].get_vertices()
+            ([1, 2, 3], [4, 5, 6], [7, 8, 10])
 
         """
         self._objects.append(TachyonTriangle(vertex_1,vertex_2,vertex_3,texture))
@@ -636,8 +662,10 @@ class Tachyon(SageObject):
             sage: t.light((1,1,1),.1,(1,1,1))
             sage: t.texture('s')
             sage: t.smooth_triangle([0,0,0],[0,0,1],[0,1,0],[0,1,1],[-1,1,2],[3,0,0],'s')
-            sage: t._objects[2]
-            [0, 0, 0] [0, 0, 1] [0, 1, 0] s [0, 1, 1] [-1, 1, 2] [3, 0, 0]
+            sage: t._objects[2].get_vertices()
+            ([0, 0, 0], [0, 0, 1], [0, 1, 0])
+            sage: t._objects[2].get_normals()
+            ([0, 1, 1], [-1, 1, 2], [3, 0, 0])
         """
         self._objects.append(TachyonSmoothTriangle(vertex_1, vertex_2, vertex_3, normal_1, normal_2, normal_3, texture))
 
@@ -655,8 +683,8 @@ class Tachyon(SageObject):
         """
         self._objects.append(FractalLandscape(res, scale, center, texture))
 
-    def plot(self,f,(xmin,xmax),(ymin,ymax),texture,grad_f=None,
-                  max_bend=.7,max_depth=5,initial_depth=3, num_colors=None):
+    def plot(self, f, xmin_xmax, ymin_ymax, texture, grad_f=None,
+             max_bend=.7, max_depth=5, initial_depth=3, num_colors=None):
         r"""
         INPUT:
 
@@ -701,7 +729,10 @@ class Tachyon(SageObject):
             sage: def f(x,y): return float(sin(x*y))
             sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
             sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=5,initial_depth=3, num_colors=60)  # increase min_depth for better picture
-            sage: t.show()
+            sage: t.show(verbose=1)
+            tachyon ...
+            Scene contains 2713 objects.
+            ...
 
         Plotting with Smooth Triangles (requires explicit gradient
         function)::
@@ -712,7 +743,10 @@ class Tachyon(SageObject):
             sage: def g(x,y): return ( float(y*cos(x*y)), float(x*cos(x*y)), 1 )
             sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
             sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=5,initial_depth=3, grad_f = g)  # increase min_depth for better picture
-            sage: t.show()
+            sage: t.show(verbose=1)
+            tachyon ...
+            Scene contains 2713 objects.
+            ...
 
         Preconditions: f is a scalar function of two variables, grad_f is
         None or a triple-valued function of two variables, min_x !=
@@ -727,6 +761,8 @@ class Tachyon(SageObject):
             ...
             ValueError: Plot rectangle is really a line.  Make sure min_x != max_x and min_y != max_y.
         """
+        (xmin, xmax) = xmin_xmax 
+        (ymin, ymax) = ymin_ymax
         factory = TachyonTriangleFactory(self,texture)
         plot = TrianglePlot(factory, f, (xmin, xmax), (ymin, ymax), g = grad_f,
                              min_depth=initial_depth, max_depth=max_depth, max_bend=max_bend, num_colors = num_colors)
@@ -743,6 +779,10 @@ class Tachyon(SageObject):
             sage: t.texture('t')
             sage: t.light((-20,-20,40), 0.2, (1,1,1))
             sage: t.parametric_plot(f,-5,5,'t',min_depth=6)
+            sage: t.show(verbose=1)
+            tachyon ...
+            Scene contains 514 objects.
+            ...
         """
 
         self._objects.append(ParametricPlot(f, t_0, t_f, tex, r=r, cylinders=cylinders,min_depth=min_depth,max_depth=max_depth,e_rel=.01,e_abs=.01))
@@ -1179,13 +1219,14 @@ class TachyonTriangle(Triangle):
             %s
         """%(tostr(self._a), tostr(self._b),tostr(self._c), self._color)
 
+
 class TachyonSmoothTriangle(SmoothTriangle):
     r"""
     A triangle along with a normal vector, which is used for smoothing.
     """
     def str(self):
         r"""
-        Returns the scene string for a smoothed triangle.
+        Return the scene string for a smoothed triangle.
 
         EXAMPLES::
 
@@ -1200,7 +1241,6 @@ class TachyonSmoothTriangle(SmoothTriangle):
              %s
         """%(tostr(self._a),  tostr(self._b),  tostr(self._c),
              tostr(self._da), tostr(self._db), tostr(self._dc), self._color)
-
 
 
 class TachyonTriangleFactory(TriangleFactory):

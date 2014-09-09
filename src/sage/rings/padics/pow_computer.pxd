@@ -8,6 +8,12 @@ cdef class PowComputer_class(SageObject):
     cdef bint in_field
     cdef int _initialized
 
+    # the following three should be set by the subclasses
+    cdef long ram_prec_cap # = prec_cap * e
+    cdef long deg
+    cdef long e
+    cdef long f
+
     cdef unsigned long cache_limit
     cdef unsigned long prec_cap
 

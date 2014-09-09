@@ -771,7 +771,7 @@ cdef class Riemann_Map:
 
     cpdef compute_on_grid(self, plot_range, int x_points):
         """
-        Computes the riemann map on a grid of points. Note that these points
+        Computes the Riemann map on a grid of points. Note that these points
         are complex of the form z = x + y*i.
 
         INPUT:

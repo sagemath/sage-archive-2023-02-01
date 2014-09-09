@@ -9,7 +9,7 @@ If the optional full CremonaDatabase is not installed, a mini-version
 is included by default with Sage.  It contains Weierstrass equations,
 rank, and torsion for curves up to conductor 10000.
 
-The large database includes all curves of conductor up to 300,000. It
+The large database includes all curves in John Cremona's tables. It
 also includes data related to the BSD conjecture and modular degrees
 for all of these curves, and generators for the Mordell-Weil
 groups. To install it type the following in Sage::
@@ -17,10 +17,7 @@ groups. To install it type the following in Sage::
     !sage -i database_cremona_ellcurve
 
 This causes the latest version of the database to be downloaded from
-the internet.  You can also install it from a local copy of the
-database spkg file, using a command of the form::
-
-    !sage -i database_cremona_ellcurve-*.spkg
+the internet.
 
 Both the mini and full versions of John Cremona's tables are stored in
 SAGE_SHARE/cremona as SQLite databases. The mini version has the layout::
@@ -774,6 +771,123 @@ class MiniCremonaDatabase(SQLDatabase):
             ret['h3'] = [[1,-1,1,-1568,-4669],int(1),int(6)]
         return ret
 
+    def coefficients_and_data(self, label):
+        """
+        Return the Weierstrass coefficients and other data for the
+        curve with given label.
+
+        EXAMPLES::
+
+            sage: c, d = CremonaDatabase().coefficients_and_data('144b1')
+            sage: c
+            [0, 0, 0, 6, 7]
+            sage: d['conductor']
+            144
+            sage: d['cremona_label']
+            '144b1'
+            sage: d['rank']
+            0
+            sage: d['torsion_order']
+            2
+        """
+        # There are two possible strings: the Cremona label and the LMFDB label.
+        # They are distinguished by the presence of a period.
+        if label.find('.') == -1:
+            cremona_label = label
+            lmfdb_label = None
+        else:
+            cremona_label = lmfdb_to_cremona(label)
+            lmfdb_label = label
+
+        N, iso, num = parse_cremona_label(cremona_label)
+        label = str(N)+iso+str(num)
+        if self.get_skeleton() == _miniCremonaSkeleton:
+            q = self.__connection__.cursor().execute("SELECT eqn,rank,tors " \
+                + 'FROM t_curve,t_class USING(class) WHERE curve=?', (label,))
+        else:
+            q = self.__connection__.cursor().execute("SELECT eqn,rank,tors," \
+                + "deg,gens,cp,om,L,reg,sha FROM t_curve,t_class " \
+                + "USING(class) WHERE curve=?",(label,))
+        try:
+            c = q.next()
+        except StopIteration:
+            if N < self.largest_conductor():
+                message = "There is no elliptic curve with label " + label \
+                    + " in the database"
+            elif is_package_installed('database_cremona_ellcurve'):
+                message = "There is no elliptic curve with label " + label \
+                    + " in the currently available databases"
+            else:
+                message = "There is no elliptic curve with label " \
+                    + label + " in the default database; try installing " \
+                    + "the optional package database_cremona_ellcurve which " \
+                    + "contains the complete Cremona database"
+            raise ValueError(message)
+        ainvs = eval(c[0])
+        data = {'cremona_label': label,
+                'rank': c[1],
+                'torsion_order': c[2],
+                'conductor': N}
+        if lmfdb_label:
+            data['lmfdb_label'] = lmfdb_label
+        if len(c) > 3:
+            if num == 1:
+                data['modular_degree'] = (c[3])
+                data['gens'] = eval(c[4])
+                data['db_extra'] = list(c[5:])
+            elif c[1] == 0:
+                # we know the rank is 0, so the gens are empty
+                data['gens'] = []
+        return ainvs, data
+
+    def data_from_coefficients(self, ainvs):
+        """
+        Return elliptic curve data for the curve with given
+        Weierstrass coefficients.
+
+        EXAMPLES::
+
+            sage: d = CremonaDatabase().data_from_coefficients([1, -1, 1, 31, 128])
+            sage: d['conductor']
+            1953
+            sage: d['cremona_label']
+            '1953c1'
+            sage: d['rank']
+            1
+            sage: d['torsion_order']
+            2
+        """
+        ainvs = str(list(ainvs))
+        if self.get_skeleton() == _miniCremonaSkeleton:
+            q = self.__connection__.cursor().execute("SELECT curve,rank,tors "
+                + 'FROM t_curve,t_class USING(class) WHERE eqn=?',
+                (ainvs.replace(' ', ''),))
+        else:
+            q = self.__connection__.cursor().execute("SELECT curve,rank,tors,"
+                + "deg,gens,cp,om,L,reg,sha FROM t_curve,t_class "
+                + "USING(class) WHERE eqn=?",
+                (ainvs.replace(' ', ''),))
+        try:
+            c = q.next()
+        except StopIteration:
+            raise RuntimeError("There is no elliptic curve with coefficients "
+                               + ainvs + " in the database")
+        label = str(c[0])
+        N, iso, num = parse_cremona_label(label)
+        data = {'cremona_label': label,
+                'rank': c[1],
+                'torsion_order': c[2],
+                'conductor': N}
+        if len(c) > 3:
+            if num == 1:
+                data['modular_degree'] = (c[3])
+                data['gens'] = eval(c[4])
+                data['db_extra'] = list(c[5:])
+            elif c[1] == 0:
+                # we know the rank is 0, so the gens are empty
+                data['gens'] = []
+        return data
+
     def elliptic_curve_from_ainvs(self, ainvs):
         """
         Returns the elliptic curve in the database of with minimal
@@ -795,25 +909,20 @@ class MiniCremonaDatabase(SQLDatabase):
             sage: c.elliptic_curve_from_ainvs([1, 0, 0, -101, 382])  # optional - database_cremona_ellcurve
             Elliptic Curve defined by y^2 + x*y = x^3 - 101*x + 382 over Rational Field
 
-        Old (pre-2006) Cremona labels are not allowed::
+        Old (pre-2006) Cremona labels are also allowed::
 
             sage: c.elliptic_curve('9450KKKK1')
             Elliptic Curve defined by y^2 + x*y + y = x^3 - x^2 - 5*x + 7 over Rational Field
 
-        Make sure ticket #12565 is fixed::
+        Make sure :trac:`12565` is fixed::
 
             sage: c.elliptic_curve('10a1')
             Traceback (most recent call last):
             ...
             ValueError: There is no elliptic curve with label 10a1 in the database
         """
-        q = self.__connection__.cursor().execute("SELECT curve FROM t_curve " \
-            + "WHERE eqn=?",(str(ainvs).replace(' ',''),))
-        try:
-            return self.elliptic_curve(q.next()[0])
-        except StopIteration:
-            raise RuntimeError("No elliptic curve with ainvs (=%s) "%ainvs \
-                + "in the database.")
+        data = self.data_from_coefficients(ainvs)
+        return elliptic.EllipticCurve(ainvs, **data)
 
     def elliptic_curve(self, label):
         """
@@ -849,55 +958,8 @@ class MiniCremonaDatabase(SQLDatabase):
             sage: c.elliptic_curve('462.f3')
             Elliptic Curve defined by y^2 + x*y = x^3 - 363*x + 1305 over Rational Field
         """
-        # There are two possible strings: the Cremona label and the LMFDB label.
-        # They are distinguished by the presence of a period.
-        if label.find('.') == -1:
-            cremona_label = label
-            lmfdb_label = None
-        else:
-            cremona_label = lmfdb_to_cremona(label)
-            lmfdb_label = label
-
-        N, iso, num = parse_cremona_label(cremona_label)
-        label = str(N)+iso+str(num)
-        if self.get_skeleton() == _miniCremonaSkeleton:
-            q = self.__connection__.cursor().execute("SELECT eqn,rank,tors " \
-                + 'FROM t_curve,t_class USING(class) WHERE curve=?', (label,))
-        else:
-            q = self.__connection__.cursor().execute("SELECT eqn,rank,tors," \
-                + "deg,gens,cp,om,L,reg,sha FROM t_curve,t_class " \
-                + "USING(class) WHERE curve=?",(label,))
-        try:
-            c = q.next()
-            F = elliptic.EllipticCurve(eval(c[0]))
-            F._set_cremona_label(label)
-            F._set_rank(c[1])
-            F._set_torsion_order(c[2])
-            F._set_conductor(N)
-            if lmfdb_label:
-                F._lmfdb_label = lmfdb_label
-            if len(c) > 3:
-                if num == 1:
-                    F._set_modular_degree(c[3])
-                F._set_gens(eval(c[4]))
-                F.db_extra = list(c[5:])
-            elif c[1] == 0:
-                # we know the rank is 0, so the gens are empty
-                F._set_gens([])
-            return F
-        except StopIteration:
-            if N < self.largest_conductor():
-                message = "There is no elliptic curve with label " + label \
-                    + " in the database"
-            elif is_package_installed('database_cremona_ellcurve'):
-                message = "There is no elliptic curve with label " + label \
-                    + " in the currently available databases"
-            else:
-                message = "There is no elliptic curve with label " \
-                    + label + " in the default database; try installing " \
-                    + "the optional package database_cremona_ellcurve which " \
-                    + "contains the complete Cremona database"
-            raise ValueError(message)
+        ainvs, data = self.coefficients_and_data(label)
+        return elliptic.EllipticCurve(ainvs, **data)
 
     def iter(self, conductors):
         """
@@ -1380,9 +1442,9 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
             sage: c.allbsd(12)            # optional - database_cremona_ellcurve
             {}
             sage: c.allbsd(19)['a3']      # optional - database_cremona_ellcurve
-            [1, 4.079279200464932, 0.4532532444961036, 1.0, 1]
+            [1, 4.07927920046493, 0.453253244496104, 1.0, 1]
             sage: c.allbsd(12001)['a1']   # optional - database_cremona_ellcurve
-            [2, 3.2760813524872185, 1.5491014309050595, 0.23642597118795194, 1]
+            [2, 3.27608135248722, 1.54910143090506, 0.236425971187952, 1.0]
         """
         ret = {}
         for c in self.__connection__.cursor().execute('SELECT curve,cp,om,L,' \
@@ -1574,7 +1636,7 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
         sage: isinstance(c, sage.databases.cremona.LargeCremonaDatabase)  # optional - database_cremona_ellcurve
         True
 
-    Verify that ticket #12341 has been resolved::
+    Verify that :trac:`12341` has been resolved::
 
         sage: c = CremonaDatabase('should not exist',mini=True)
         Traceback (most recent call last):

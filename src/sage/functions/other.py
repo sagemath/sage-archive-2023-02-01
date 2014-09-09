@@ -5,9 +5,8 @@ from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.symbolic.pynac import register_symbol, symbol_table
 from sage.symbolic.pynac import py_factorial_py
-from sage.libs.pari.gen import pari
 from sage.symbolic.all import SR
-from sage.rings.all import Integer, Rational, RealField, RR, ComplexField
+from sage.rings.all import Integer, Rational, RealField, RR, ZZ, ComplexField
 from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
 import math
@@ -193,7 +192,7 @@ class Function_erf(BuiltinFunction):
             return x
         return None
 
-    def _evalf_(self, x, parent):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -244,7 +243,7 @@ class Function_erf(BuiltinFunction):
             sage: derivative(erf(c*x),x)
             2*c*e^(-c^2*x^2)/sqrt(pi)
             sage: erf(c*x).diff(x)._maxima_init_()
-            '((%pi)^(-1/2))*(c)*(exp(((c)^(2))*((x)^(2))*(-1)))*(2)'
+            '((%pi)^(-1/2))*(_SAGE_VAR_c)*(exp(((_SAGE_VAR_c)^(2))*((_SAGE_VAR_x)^(2))*(-1)))*(2)'
         """
         return 2*exp(-x**2)/sqrt(pi)
 
@@ -434,7 +433,7 @@ class Function_ceil(BuiltinFunction):
                     return ceil(SR(x).full_simplify().simplify_radical())
                 except ValueError:
                     pass
-                raise ValueError, "x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits)
+                raise ValueError("x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits))
 
         except TypeError:
             # If x cannot be coerced into a RealField, then
@@ -595,7 +594,7 @@ class Function_floor(BuiltinFunction):
                     return floor(SR(x).full_simplify().simplify_radical())
                 except ValueError:
                     pass
-                raise ValueError, "x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits)
+                raise ValueError("x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits))
 
         except TypeError:
             # If x cannot be coerced into a RealField, then
@@ -661,7 +660,7 @@ class Function_gamma(GinacFunction):
             sage: gamma1(x/2)(x=5)
             3/4*sqrt(pi)
 
-            sage: gamma1(float(6))
+            sage: gamma1(float(6))  # For ARM: rel tol 3e-16
             120.0
             sage: gamma1(x)
             gamma(x)
@@ -781,7 +780,7 @@ class Function_gamma(GinacFunction):
         # without specifying an explicit embedding into CC any more
         try:
             res = GinacFunction.__call__(self, x, coerce=coerce, hold=hold)
-        except TypeError, err:
+        except TypeError as err:
             # the __call__() method returns a TypeError for fast float arguments
             # as well, we only proceed if the error message says that
             # the arguments cannot be coerced to SR
@@ -954,7 +953,7 @@ class Function_gamma_inc(BuiltinFunction):
             return sqrt(pi)*(1-erf(sqrt(y)))
         return None
 
-    def _evalf_(self, x, y, parent=None):
+    def _evalf_(self, x, y, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -964,17 +963,23 @@ class Function_gamma_inc(BuiltinFunction):
             0.0489005107080611
             sage: gamma_inc(3,2).n()
             1.35335283236613
+
+        TESTS:
+
+        Check that :trac:`7099` is fixed::
+
+            sage: R = RealField(1024)
+            sage: gamma(R(9), R(10^-3))  # rel tol 1e-308
+            40319.99999999999999999999999999988898884344822911869926361916294165058203634104838326009191542490601781777105678829520585311300510347676330951251563007679436243294653538925717144381702105700908686088851362675381239820118402497959018315224423868693918493033078310647199219674433536605771315869983788442389633
+            sage: numerical_approx(gamma(9, 10^(-3)) - gamma(9), digits=40)  # abs tol 1e-36
+            -1.110111564516556704267183273042450876294e-28
+
         """
-        try:
-            return x.gamma_inc(y)
-        except AttributeError:
-            if not (is_ComplexNumber(x)):
-                if is_ComplexNumber(y):
-                    C = y.parent()
-                else:
-                    C = ComplexField()
-                    x = C(x)
-            return x.gamma_inc(y)
+        if parent is None:
+            parent = ComplexField()
+        else:
+            parent = ComplexField(parent.precision())
+        return parent(x).gamma_inc(y)
 
 # synonym.
 incomplete_gamma = gamma_inc=Function_gamma_inc()
@@ -1052,7 +1057,7 @@ def gamma(a, *args, **kwds):
     if not args:
         return gamma1(a, **kwds)
     if len(args) > 1:
-        raise TypeError, "Symbolic function gamma takes at most 2 arguments (%s given)"%(len(args)+1)
+        raise TypeError("Symbolic function gamma takes at most 2 arguments (%s given)"%(len(args)+1))
     return incomplete_gamma(a,args[0],**kwds)
 
 # We have to add the wrapper function manually to the symbol_table when we have
@@ -1151,7 +1156,7 @@ class Function_psi2(GinacFunction):
         GinacFunction.__init__(self, "psi", nargs=2, latex_name='\psi',
                 conversions=dict(mathematica='PolyGamma'))
 
-    def _maxima_init_evaled_(self, n, x):
+    def _maxima_init_evaled_(self, *args):
         """
         EXAMPLES:
 
@@ -1159,10 +1164,19 @@ class Function_psi2(GinacFunction):
 
             sage: from sage.functions.other import psi2
             sage: psi2(2, x)._maxima_()
-            psi[2](x)
+            psi[2](_SAGE_VAR_x)
             sage: psi2(4, x)._maxima_()
-            psi[4](x)
+            psi[4](_SAGE_VAR_x)
         """
+        args_maxima = []
+        for a in args:
+            if isinstance(a, str):
+                args_maxima.append(a)
+            elif hasattr(a, '_maxima_init_'):
+                args_maxima.append(a._maxima_init_())
+            else:
+                args_maxima.append(str(a))
+        n, x = args_maxima
         return "psi[%s](%s)"%(n, x)
 
 psi1 = Function_psi1()
@@ -1212,7 +1226,7 @@ def psi(x, *args, **kwds):
     if not args:
         return psi1(x, **kwds)
     if len(args) > 1:
-        raise TypeError, "Symbolic function psi takes at most 2 arguments (%s given)"%(len(args)+1)
+        raise TypeError("Symbolic function psi takes at most 2 arguments (%s given)"%(len(args)+1))
     return psi2(x,args[0],**kwds)
 
 # We have to add the wrapper function manually to the symbol_table when we have
@@ -1287,7 +1301,7 @@ class Function_factorial(GinacFunction):
             sage: factorial._maxima_init_()
             'factorial'
             sage: maxima(factorial(z))
-            factorial(z)
+            factorial(_SAGE_VAR_z)
             sage: _.sage()
             factorial(z)
             sage: k = var('k')
@@ -1425,8 +1439,7 @@ class Function_binomial(GinacFunction):
             sage: binomial(k,i)
             binomial(k, i)
 
-        We can use a ``hold`` parameter to prevent automatic evaluation,
-        but only using method notation::
+        We can use a ``hold`` parameter to prevent automatic evaluation::
 
             sage: SR(5).binomial(3, hold=True)
             binomial(5, 3)
@@ -1440,10 +1453,10 @@ class Function_binomial(GinacFunction):
 
             sage: n,k = var('n,k')
             sage: maxima(binomial(n,k))
-            binomial(n,k)
+            binomial(_SAGE_VAR_n,_SAGE_VAR_k)
             sage: _.sage()
             binomial(n, k)
-            sage: sage.functions.other.binomial._maxima_init_() # temporary workaround until we can get symbolic binomial to import in global namespace, if that's desired
+            sage: binomial._maxima_init_()
             'binomial'
 
         Test pickling::
@@ -1453,6 +1466,91 @@ class Function_binomial(GinacFunction):
         """
         GinacFunction.__init__(self, "binomial", nargs=2,
                 conversions=dict(maxima='binomial', mathematica='Binomial'))
+
+    def _binomial_sym(self, n, k):
+        """
+        Expand the binomial formula symbolically when the second argument
+        is an integer.
+
+        EXAMPLES::
+
+            sage: binomial._binomial_sym(x, 3)
+            1/6*(x - 1)*(x - 2)*x
+            sage: binomial._binomial_sym(x, x)
+            Traceback (most recent call last):
+            ...
+            ValueError: second argument must be an integer
+            sage: binomial._binomial_sym(x, SR(3))
+            1/6*(x - 1)*(x - 2)*x
+
+           sage: binomial._binomial_sym(x, 0r)
+           1
+           sage: binomial._binomial_sym(x, -1)
+           0
+        """
+        if isinstance(k, Expression):
+            if k.is_integer():
+                k = k.pyobject()
+            else:
+                raise ValueError("second argument must be an integer")
+
+        if k < 0:
+            return s_parent(k)(0)
+        if k == 0:
+            return s_parent(k)(1)
+        if k == 1:
+            return n
+
+        from sage.misc.misc import prod
+        return prod([n-i for i in xrange(k)])/factorial(k)
+
+    def _eval_(self, n, k):
+        """
+        EXAMPLES::
+
+            sage: binomial._eval_(5, 3)
+            10
+            sage: type(binomial._eval_(5, 3))
+            <type 'sage.rings.integer.Integer'>
+            sage: type(binomial._eval_(5., 3))
+            <type 'sage.rings.real_mpfr.RealNumber'>
+            sage: binomial._eval_(x, 3)
+            1/6*(x - 1)*(x - 2)*x
+            sage: binomial._eval_(x, x-2)
+            1/2*(x - 1)*x
+            sage: n = var('n')
+            sage: binomial._eval_(x, n) is None
+            True
+        """
+        if not isinstance(k, Expression):
+            if not isinstance(n, Expression):
+                n, k = coercion_model.canonical_coercion(n, k)
+                return self._evalf_(n, k, s_parent(n))
+            if k in ZZ:
+                return self._binomial_sym(n, k)
+        if (n - k) in ZZ:
+            return self._binomial_sym(n, n-k)
+
+        return None
+
+    def _evalf_(self, n, k, parent=None, algorithm=None):
+        """
+        EXAMPLES::
+
+            sage: binomial._evalf_(5.r, 3)
+            10.0
+            sage: type(binomial._evalf_(5.r, 3))
+            <type 'float'>
+            sage: binomial._evalf_(1/2,1/1)
+            1/2
+            sage: binomial._evalf_(10^20+1/1,10^20)
+            100000000000000000001
+            sage: binomial._evalf_(SR(10**7),10**7)
+            1
+            sage: binomial._evalf_(3/2,SR(1/1))
+            3/2
+        """
+        return sage.rings.arith.binomial(n, k)
 
 binomial = Function_binomial()
 
@@ -1593,7 +1691,6 @@ def _do_sqrt(x, prec=None, extend=True, all=False):
             sage: _do_sqrt(3,extend=False)
             sqrt(3)
         """
-        from sage.rings.all import RealField, ComplexField
         if prec:
             if x >= 0:
                  return RealField(prec)(x).sqrt(all=all)
@@ -1723,7 +1820,7 @@ class Function_arg(BuiltinFunction):
             sage: latex(arg(x))
             {\rm arg}\left(x\right)
             sage: maxima(arg(x))
-            atan2(0,x)
+            atan2(0,_SAGE_VAR_x)
             sage: maxima(arg(2+i))
             atan(1/2)
             sage: maxima(arg(sqrt(2)+i))
@@ -1786,7 +1883,7 @@ class Function_arg(BuiltinFunction):
             # or x involves an expression such as sqrt(2)
             return None
 
-    def _evalf_(self, x, parent_d=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -1812,24 +1909,31 @@ class Function_arg(BuiltinFunction):
             3.14159265358979
             sage: arg(2.0+3*i)
             0.982793723247329
+
+        TESTS:
+
+        Make sure that the ``_evalf_`` method works when it receives a
+        keyword argument ``parent`` :trac:`12289`::
+
+            sage: arg(5+I, hold=True).n()
+            0.197395559849881
         """
         try:
             return x.arg()
         except AttributeError:
             pass
         # try to find a parent that support .arg()
-        if parent_d is None:
-            parent_d = s_parent(x)
+        if parent is None:
+            parent = s_parent(x)
         try:
-            parent_d = parent_d.complex_field()
+            parent = parent.complex_field()
         except AttributeError:
-            from sage.rings.complex_field import ComplexField
             try:
-                parent_d = ComplexField(x.prec())
+                parent = ComplexField(x.prec())
             except AttributeError:
-                parent_d = ComplexField()
+                parent = ComplexField()
 
-        return parent_d(x).arg()
+        return parent(x).arg()
 
 arg=Function_arg()
 

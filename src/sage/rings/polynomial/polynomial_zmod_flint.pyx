@@ -2,7 +2,7 @@
 Dense univariate polynomials over `\ZZ/n\ZZ`, implemented using FLINT.
 
 This module gives a fast implementation of `(\ZZ/n\ZZ)[x]` whenever `n` is at
-most ``sys.maxint``. We use it by default in preference to NTL when the modulus
+most ``sys.maxsize``. We use it by default in preference to NTL when the modulus
 is small, falling back to NTL if the modulus is too large, as in the example
 below.
 
@@ -766,4 +766,48 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             nmod_poly_reverse(&res.x, &self.x, d+1) # FLINT expects length
         else:
             nmod_poly_reverse(&res.x, &self.x, nmod_poly_length(&self.x))
+        return res
+
+    def revert_series(self, n):
+        r"""
+        Return a polynomial `f` such that `f(self(x)) = self(f(x)) = x mod x^n`.
+
+        EXAMPLES::
+
+            sage: R.<t> =  GF(5)[]
+            sage: f = t + 2*t^2 - t^3 - 3*t^4
+            sage: f.revert_series(5)
+            3*t^4 + 4*t^3 + 3*t^2 + t
+
+            sage: f.revert_series(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: argument n must be a non-negative integer, got -1
+
+            sage: g = - t^3 + t^5
+            sage: g.revert_series(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: self must have constant coefficient 0 and a unit for coefficient t^1
+
+            sage: g = t + 2*t^2 - t^3 -3*t^4 + t^5
+            sage: g.revert_series(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: the integers 1 up to n=5 are required to be invertible over the base field
+        """
+        cdef Polynomial_zmod_flint res = self._new()
+        cdef unsigned long m
+        if n < 0:
+            raise ValueError("argument n must be a non-negative integer, got {}".format(n))
+        m = n
+        if not self[0].is_zero() or not self[1].is_unit():
+            raise ValueError("self must have constant coefficient 0 and a unit for coefficient {}^1".format(self.parent().gen()))
+        if not all((self.base_ring())(i) != 0 for i in range(1,n)):
+            raise ValueError("the integers 1 up to n={} are required to be invertible over the base field".format(n-1))
+
+        sig_on()
+        nmod_poly_revert_series(&res.x, &self.x, m)
+        sig_off()
+
         return res

@@ -1600,8 +1600,8 @@ ext_modules = [
               libraries = ['mpfr', 'pari', 'gmp'],
               depends = numpy_depends),
 
-    Extension('sage.rings.residue_field',
-              sources = ['sage/rings/residue_field.pyx']),
+    Extension('sage.rings.finite_rings.residue_field',
+              sources = ['sage/rings/finite_rings/residue_field.pyx']),
 
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']),

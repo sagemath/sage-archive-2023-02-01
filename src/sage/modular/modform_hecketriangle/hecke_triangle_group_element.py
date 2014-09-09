@@ -483,10 +483,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             #return NumberField(L.absolute_polynomial(), 'e', structure=AbsoluteFromRelative(L), embedding=(???))
             return L
 
+    @cached_method
     def root_extension_embedding(self, K=AlgebraicField()):
         r"""
         Return the correct embedding from the root extension field to ``K`` (default: ``AlgebraicField()``).
-        The function assumes that the first/natural embedding is not the correct one.
 
         EXAMPLES::
 
@@ -503,14 +503,14 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: fp = (-G.V(2)).fixed_points()[1]
             sage: alg_fp = (-G.V(2)).root_extension_embedding(AA)(fp)
             sage: alg_fp
-            -1.732050807568878?
+            -1.732050807568...?
             sage: alg_fp == (-G.V(2)).fixed_points(embedded=True)[1]
             True
 
             sage: fp = (-G.V(2)).fixed_points()[0]
             sage: alg_fp = (-G.V(2)).root_extension_embedding(AA)(fp)
             sage: alg_fp
-            1.732050807568878?
+            1.732050807568...?
             sage: alg_fp == (-G.V(2)).fixed_points(embedded=True)[0]
             True
 
@@ -519,14 +519,14 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: fp = (-G.S()).fixed_points()[1]
             sage: alg_fp = (-G.S()).root_extension_embedding()(fp)
             sage: alg_fp
-            0.?e-51 - 1.000000000000000?*I
+            0.?... - 1.000000000000...?*I
             sage: alg_fp == (-G.S()).fixed_points(embedded=True)[1]
             True
 
             sage: fp = (-G.U()^4).fixed_points()[0]
             sage: alg_fp = (-G.U()^4).root_extension_embedding()(fp)
             sage: alg_fp
-            0.9009688679024191? + 0.4338837391175581?*I
+            0.9009688679024...? + 0.4338837391175...?*I
             sage: alg_fp == (-G.U()^4).fixed_points(embedded=True)[0]
             True
 
@@ -538,12 +538,50 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: fp = (-G.V(5)).fixed_points()[1]
             sage: alg_fp = (-G.V(5)).root_extension_embedding(AA)(fp)
             sage: alg_fp
-            -0.6671145837954892?
+            -0.6671145837954...?
             sage: alg_fp == (-G.V(5)).fixed_points(embedded=True)[1]
             True
         """
 
-        return self.root_extension_field().embeddings(K)[-1]
+        G = self.parent()
+        D = self.discriminant()
+        F = self.root_extension_field()
+        n = G.n()
+
+        if D.is_square():
+            e   = D.sqrt()
+            lam = G.lam()
+        elif n in [3, infinity]:
+            e   = F.gen(0)
+            lam = G.lam()
+        else:
+            (e, lam) = F.gens()
+
+        emb_lam  = K(G.lam())
+        if self.is_elliptic():
+            emb_e = K(AlgebraicField()(D).sqrt())
+        else:
+            emb_e = K(AA(D).sqrt())
+
+        guess = ZZ(0)
+        min_value = infinity
+        index = ZZ(0)
+
+        for emb in self.root_extension_field().embeddings(K):
+            if K.is_exact():
+                if emb(lam) == emb_lam and emb(e) == emb_e:
+                    return emb
+            else:
+                value = (emb(lam) - emb_lam).n(K.prec()).abs() + (emb(e) - emb_e).n(K.prec()).abs()
+                if (value < min_value):
+                    guess = index
+                    min_value = value
+                index += 1
+
+        if K.is_exact() or min_value == infinity:
+            raise ValueError("No suitable embedding is available for K = {}!".format(K))
+        else:
+            return self.root_extension_field().embeddings(K)[guess]
 
     def fixed_points(self, embedded=False, order="default"):
         r"""

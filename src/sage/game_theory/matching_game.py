@@ -298,19 +298,19 @@ class MatchingGame(SageObject):
             sage: g = MatchingGame([suit, revr])
             sage: latex(g)
             Suitors
-            0=\{(3, 4)\}
-            1=\{(3, 4)\}
+            0\to\{(3, 4)\}
+            1\to\{(3, 4)\}
             Reviewers
-            3=\{(0, 1)\}
-            4=\{(1, 0)\}
+            3\to\{(0, 1)\}
+            4\to\{(1, 0)\}
         """
         suitor_dictionary, reviewer_dictionary = self.game_to_dict()
         output = "Suitors"
         for key in suitor_dictionary:
-            output += "\n%s=\{%s\}" % (key, suitor_dictionary[key])
+            output += "\n%s\\to\{%s\}" % (key, suitor_dictionary[key])
         output += "\nReviewers"
         for key in reviewer_dictionary:
-            output += "\n%s=\{%s\}" % (key, reviewer_dictionary[key])
+            output += "\n%s\\to\{%s\}" % (key, reviewer_dictionary[key])
         return output
 
     def game_to_dict(self):

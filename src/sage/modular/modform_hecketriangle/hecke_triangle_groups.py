@@ -335,10 +335,13 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         return self(matrix(self._base_ring, [[1,0],[0,1]]))
 
     @cached_method
-    def T(self):
+    def T(self, m=1):
         r"""
-        Return the generator of ``self`` corresponding to the translation
-        by ``self.lam()``.
+        Return the element in ``self`` corresponding to the translation by ``m*self.lam()``.
+
+        INPUT:
+
+        - ``m`` -- An integer, default: ``1``, namely the second generator of ``self``.
 
         EXAMPLES::
 
@@ -346,15 +349,14 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: HeckeTriangleGroup(3).T()
             [1 1]
             [0 1]
-            sage: HeckeTriangleGroup(10).T()
-            [  1 lam]
-            [  0   1]
-
+            sage: HeckeTriangleGroup(10).T(-4)
+            [     1 -4*lam]
+            [     0      1]
             sage: HeckeTriangleGroup(10).T().parent()
             Hecke triangle group for n = 10
         """
 
-        return self.gen(1)
+        return self(matrix(self._base_ring, [[1,self._lam*m],[0,1]]))
 
     @cached_method
     def S(self):
@@ -579,7 +581,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         ID = self.I()
         T  = self.T()
         S  = self.S()
-        TI = self.T().inverse()
+        TI = self.T(-1)
 
         A = ID
         w = z

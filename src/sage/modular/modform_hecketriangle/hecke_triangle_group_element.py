@@ -281,7 +281,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
-            sage: (-HeckeTriangleGroup(n=7).T()^(-4)).is_translation()
+            sage: (-HeckeTriangleGroup(n=7).T(-4)).is_translation()
             True
             sage: (-HeckeTriangleGroup(n=7).I()).is_translation()
             True
@@ -625,7 +625,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
             sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: G = HeckeTriangleGroup(n=infinity)
-            sage: (-G.T()^(-4)).fixed_points()
+            sage: (-G.T(-4)).fixed_points()
             [+Infinity, +Infinity]
             sage: (-G.S()).fixed_points()
             [1/2*e, -1/2*e]

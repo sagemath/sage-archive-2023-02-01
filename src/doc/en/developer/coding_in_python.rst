@@ -122,7 +122,7 @@ the context.
 
 Here is an example of the ``_latex_`` and ``_repr_`` functions for the
 ``Pi`` class. It is from the file
-``SAGE_ROOT/devel/sage/sage/functions/constants.py``::
+``SAGE_ROOT/src/sage/functions/constants.py``::
 
     class Pi(Constant):
         """
@@ -151,7 +151,7 @@ matrix over a ring `R`. Then the Sage function ``matrix`` will work
 for this object.
 
 The following is from
-``SAGE_ROOT/devel/sage/sage/graphs/graph.py``::
+``SAGE_ROOT/src/sage/graphs/graph.py``::
 
     class GenericGraph(SageObject):
         ...
@@ -236,11 +236,11 @@ of ``foo.py`` states::
 
 The following files are relevant to preparsing in Sage:
 
-#. ``SAGE_ROOT/spkg/bin/sage``
+#. ``SAGE_ROOT/src/bin/sage``
 
-#. ``SAGE_ROOT/local/bin/sage-preparse``
+#. ``SAGE_ROOT/src/bin/sage-preparse``
 
-#. ``SAGE_ROOT/devel/sage/sage/misc/preparser.py``
+#. ``SAGE_ROOT/src/sage/misc/preparser.py``
 
 In particular, the file ``preparser.py`` contains the Sage preparser
 code.

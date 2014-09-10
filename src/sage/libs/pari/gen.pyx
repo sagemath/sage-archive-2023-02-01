@@ -5155,7 +5155,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(2^12, impl="pari_ffelt")
+            sage: k.<a> = GF(2^12)
             sage: g = pari(a).ffprimroot()
             sage: (g^1234).fflog(g)
             1234
@@ -5171,15 +5171,6 @@ cdef class gen(sage.structure.element.RingElement):
             555
             sage: (b^555).fflog(b, (ord, ord.factor()) )
             555
-
-        For the moment, the above really requires ``impl="pari_ffelt"``
-        in the :func:`FiniteField` constructor::
-
-            sage: k.<a> = GF(2^12)
-            sage: pari(a).ffprimroot()
-            Traceback (most recent call last):
-            ...
-            PariError: incorrect type in ffprimroot (t_POLMOD)
         """
         cdef gen t0 = objtogen(g)
         cdef gen t1
@@ -5209,7 +5200,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(5^80, impl="pari_ffelt")
+            sage: k.<a> = GF(5^80)
             sage: g = pari(a).ffprimroot()
             sage: g.fforder()
             82718061255302767487140869206996285356581211090087890624
@@ -5244,7 +5235,7 @@ cdef class gen(sage.structure.element.RingElement):
         EXAMPLES::
 
             sage: x = polygen(GF(3))
-            sage: k.<a> = GF(9, impl="pari_ffelt", modulus=x^2+1)
+            sage: k.<a> = GF(9, modulus=x^2+1)
             sage: b = pari(a).ffprimroot()
             sage: b  # random
             a + 1

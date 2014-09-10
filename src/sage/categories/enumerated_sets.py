@@ -95,6 +95,21 @@ class EnumeratedSets(Category_singleton):
         """
         return [Sets()]
 
+    def is_structure_category(self):
+        """
+        Return whether ``self`` is a structure category.
+
+        .. SEEALSO:: :meth:`Category.is_structure_category`
+
+        Morphisms of enumerated sets are not required to preserve the
+        enumeration.
+
+        EXAMPLES::
+
+            sage: GcdDomains().is_structure_category()
+            False
+        """
+        return False
 
     def _call_(self, X):
         """

@@ -51,6 +51,22 @@ class AffineWeylGroups(Category_singleton):
         """
         return [WeylGroups().Infinite()]
 
+    def is_structure_category(self):
+        r"""
+        Return whether ``self`` is a structure category.
+
+        .. SEEALSO:: :meth:`Category.is_structure_category`
+
+        The category of affine Weyl groups defines no new structure:
+        affine Weyl gorups are a special class of Weyl groups.
+
+        EXAMPLES::
+
+            sage: AffineWeylGroups().is_structure_category()
+            False
+        """
+        return False
+
     class ParentMethods:
 
         @cached_method

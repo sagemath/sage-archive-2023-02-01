@@ -85,6 +85,23 @@ class ClassicalCrystals(Category_singleton):
         """
         return Crystals().example(n)
 
+    def is_structure_category(self):
+        r"""
+        Return whether ``self`` is a structure category.
+
+        .. SEEALSO:: :meth:`Category.is_structure_category`
+
+        The category of classical crystals defines no new structure:
+        it only states that the object is a `U_q(\mathfrak{g})`-crystal
+        where `\mathfrak{g}` is of finite type.
+
+        EXAMPLES::
+
+            sage: ClassicalCrystals().is_structure_category()
+            False
+        """
+        return False
+
 
     class ParentMethods:
 

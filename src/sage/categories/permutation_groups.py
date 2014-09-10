@@ -46,4 +46,20 @@ class PermutationGroups(Category):
         """
         return [Groups()]
 
+    def is_structure_category(self):
+        r"""
+        Return whether ``self`` is a structure category.
+
+        .. SEEALSO:: :meth:`Category.is_structure_category`
+
+        The category of permutations groups defines no new structure:
+        permutation groups are a special class of groups.
+
+        EXAMPLES::
+
+            sage: PermutationGroups().is_structure_category()
+            False
+        """
+        return False
+
     Finite = LazyImport('sage.categories.finite_permutation_groups', 'FinitePermutationGroups')

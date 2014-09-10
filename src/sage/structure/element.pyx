@@ -2738,6 +2738,21 @@ cdef class Matrix(ModuleElement):
             sage: a / 5
             [  0 1/5]
             [2/5 3/5]
+
+        Check that Trac #16803 works:
+
+           sage: a = matrix(ZZ, 2, range(4))
+           sage: b = matrix(ZZ, 2, [1,1,0,5])
+           sage: a / b
+           [  0 1/5]
+           [  2 1/5]
+           sage: c = matrix(QQ, 2, [3,2,5,7])
+           sage: c / a
+           [-5/2  3/2]
+           [-1/2  5/2]
+           sage: a / c
+           [-5/11  3/11]
+           [-1/11  5/11]
         """
         return left * (~right)
 

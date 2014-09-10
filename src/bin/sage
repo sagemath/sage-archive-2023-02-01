@@ -10,7 +10,7 @@ usage() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Optional arguments:"
-    echo "  file.<sage|py|spyx> -- run given .sage, .py or .spyx files"
+    echo "  file.[sage|py|spyx] -- run given .sage, .py or .spyx file"
     echo "  -advanced           -- list all command line options"
     echo "  -c <cmd>            -- Evaluates cmd as sage code"
     echo "  -experimental       -- list all experimental packages that can be installed"
@@ -52,7 +52,7 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Running Sage:"
-    echo "  file.[sage|py|spyx] -- run given .sage, .py or .spyx files"
+    echo "  file.[sage|py|spyx] -- run given .sage, .py or .spyx file"
     echo "  -advanced           -- print this advanced help message"
     echo "  -c <cmd>            -- Evaluates cmd as sage code"
     echo "  -h, -?              -- print short help message"

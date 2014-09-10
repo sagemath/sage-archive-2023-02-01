@@ -2734,48 +2734,48 @@ cdef class Matrix(ModuleElement):
 
         EXAMPLES::
 
-           sage: a = matrix(ZZ, 2, range(4))
-           sage: a / 5
-           [ 0 1/5]
-           [2/5 3/5]
-           sage: a = matrix(ZZ, 2, range(4))
-           sage: b = matrix(ZZ, 2, [1,1,0,5])
-           sage: a / b
-           [  0 1/5]
-           [  2 1/5]
-           sage: c = matrix(QQ, 2, [3,2,5,7])
-           sage: c / a
-           [-5/2  3/2]
-           [-1/2  5/2]
-           sage: a / c
-           [-5/11  3/11]
-           [-1/11  5/11]
-           sage: a / 7
-           [  0 1/7]
-           [2/7 3/7]
+            sage: a = matrix(ZZ, 2, range(4))
+            sage: a / 5
+            [ 0 1/5]
+            [2/5 3/5]
+            sage: a = matrix(ZZ, 2, range(4))
+            sage: b = matrix(ZZ, 2, [1,1,0,5])
+            sage: a / b
+            [  0 1/5]
+            [  2 1/5]
+            sage: c = matrix(QQ, 2, [3,2,5,7])
+            sage: c / a
+            [-5/2  3/2]
+            [-1/2  5/2]
+            sage: a / c
+            [-5/11  3/11]
+            [-1/11  5/11]
+            sage: a / 7
+            [  0 1/7]
+            [2/7 3/7]
 
         Other rings work just as well::
 
-           sage: a = matrix(GF(3),2,2,[0,1,2,0])
-           sage: b = matrix(ZZ,2,2,[4,6,1,2])
-           sage: a / b
-           [1 2]
-           [2 0]
-           sage: c = matrix(GF(3),2,2,[1,2,1,1])
-           sage: a / c
-           [1 2]
-           [1 1]
-           sage: a = matrix(RDF,2,2,[.1,-.4,1.2,-.6])
-           sage: b = matrix(RDF,2,2,[.3,.1,-.5,1.3])
-           sage: a / b
-           [-0.159090909091 -0.295454545455]
-           [  2.86363636364 -0.681818181818]
-           sage: R.<t> = ZZ['t']
-           sage: a = matrix(R,2,2,[t^2,t+1,-t,t+2])
-           sage: b = matrix(R,2,2,[t^3-1,t,-t+3,t^2])
-           sage: a / b
-           [      (t^4 + t^2 - 2*t - 3)/(t^5 - 3*t)               (t^4 - t - 1)/(t^5 - 3*t)]
-           [       (-t^3 + t^2 - t - 6)/(t^5 - 3*t) (t^4 + 2*t^3 + t^2 - t - 2)/(t^5 - 3*t)]
+            sage: a = matrix(GF(3),2,2,[0,1,2,0])
+            sage: b = matrix(ZZ,2,2,[4,6,1,2])
+            sage: a / b
+            [1 2]
+            [2 0]
+            sage: c = matrix(GF(3),2,2,[1,2,1,1])
+            sage: a / c
+            [1 2]
+            [1 1]
+            sage: a = matrix(RDF,2,2,[.1,-.4,1.2,-.6])
+            sage: b = matrix(RDF,2,2,[.3,.1,-.5,1.3])
+            sage: a / b
+            [-0.159090909091 -0.295454545455]
+            [  2.86363636364 -0.681818181818]
+            sage: R.<t> = ZZ['t']
+            sage: a = matrix(R,2,2,[t^2,t+1,-t,t+2])
+            sage: b = matrix(R,2,2,[t^3-1,t,-t+3,t^2])
+            sage: a / b
+            [      (t^4 + t^2 - 2*t - 3)/(t^5 - 3*t)               (t^4 - t - 1)/(t^5 - 3*t)]
+            [       (-t^3 + t^2 - t - 6)/(t^5 - 3*t) (t^4 + 2*t^3 + t^2 - t - 2)/(t^5 - 3*t)]
         """
         return left * (~right)
 

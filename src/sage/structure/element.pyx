@@ -2777,7 +2777,16 @@ cdef class Matrix(ModuleElement):
             [      (t^4 + t^2 - 2*t - 3)/(t^5 - 3*t)               (t^4 - t - 1)/(t^5 - 3*t)]
             [       (-t^3 + t^2 - t - 6)/(t^5 - 3*t) (t^4 + 2*t^3 + t^2 - t - 2)/(t^5 - 3*t)]
         """
-        return left * (~right)
+        cdef Matrix rightinv
+        if have_same_parent(left, right):
+            rightinv = ~<Matrix>right
+            if have_same_parent(left,rightinv):
+                return (<Matrix>left)._matrix_times_matrix_(rightinv)
+            else:
+                return (<Matrix>(left.change_ring(rightinv.parent().base_ring())))._matrix_times_matrix_(rightinv)
+        else:
+            global coercion_model
+            return coercion_model.bin_op(left, right, div)
 
     cdef Vector _vector_times_matrix_(matrix_right, Vector vector_left):
         raise TypeError

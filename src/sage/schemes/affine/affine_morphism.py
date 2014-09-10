@@ -620,6 +620,38 @@ class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_aff
     pass
 
 class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynomial_affine_space_field):
+    
+    def orbit_structure(self, P):
+        r"""
+        Every point is preperiodic over a finite field. This funtion returns the pair `[m,n]` where `m` is the
+        preperiod and `n` the period of the point ``P`` by ``self``.
+
+        INPUT:
+
+        - ``P`` -- a point in ``self.domain()``
+
+        OUTPUT:
+
+        - a list `[m,n]` of integers
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(GF(13),2)
+            sage: H = Hom(A,A)
+            sage: f = H([x^2 - 1, y^2])
+            sage: f.orbit_structure(A(2,3))
+            [1, 6]
+            
+        ::
+        
+            sage: A.<x,y,z> = AffineSpace(GF(49, 't'),3)
+            sage: H = Hom(A,A)
+            sage: f = H([x^2 - z, x - y + z, y^2 - x^2])
+            sage: f.orbit_structure(A(1,1,2))
+            [7, 6]
+            
+        """
+        return(P.orbit_structure(self))
 
     def cyclegraph(self):
         r"""

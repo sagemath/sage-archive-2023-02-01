@@ -8408,7 +8408,7 @@ class FiniteStateMachine(SageObject):
         Then the expectation of `X_n` is `en+O(1)`, the variance
         of `X_n` is `vn+O(1)` and the covariance of `X_n` and
         the sum of input labels is `cn+O(1)`, cf. [HKW2014]_,
-        Theorem 2.
+        Theorem 3.9.
 
         In the case of non-integer input or output labels, performance
         degrades significantly. For rational input and output labels,
@@ -8417,7 +8417,7 @@ class FiniteStateMachine(SageObject):
         much more efficiently than over the symbolic ring. In fact, we
         compute (parts) of a trivariate generating function where the
         input and output labels are exponents of some indeterminates,
-        see [HKW2014]_, Theorem 2 for details. If those exponents are
+        see [HKW2014]_, Theorem 3.9 for details. If those exponents are
         integers, we can use a polynomial ring.
 
         EXAMPLES:
@@ -8527,7 +8527,7 @@ class FiniteStateMachine(SageObject):
                 sage: moments['covariance']
                 Order(1)
 
-        #.  This is Example 3.1 in [HKW2014]_, where a transducer with
+        #.  This is Example 3.16 in [HKW2014]_, where a transducer with
             variable output labels is given. There, the aim was to
             choose the output labels of this very simple transducer such
             that the input and output sum are asymptotically
@@ -8551,7 +8551,7 @@ class FiniteStateMachine(SageObject):
             Therefore, the asymptotic covariance vanishes if and only if
             `a_2=a_1`.
 
-        #.  This is Example 6.2 in [HKW2014]_, dealing with the
+        #.  This is Example 4.3 in [HKW2014]_, dealing with the
             transducer converting the binary expansion of an integer
             into Gray code (cf. the :wikipedia:`Gray_code` and the
             :ref:`example on Gray code
@@ -8565,7 +8565,7 @@ class FiniteStateMachine(SageObject):
                 sage: moments['covariance']
                 Order(1)
 
-        #.  This is the first part of Example 6.3 in [HKW2014]_,
+        #.  This is the first part of Example 4.4 in [HKW2014]_,
             counting the number of 10 blocks in the standard binary
             expansion. The least significant digit is at the left-most
             position::
@@ -8586,7 +8586,7 @@ class FiniteStateMachine(SageObject):
                 sage: moments['covariance']
                 Order(1)
 
-        #.  This is the second part of Example 6.3 in [HKW2014]_,
+        #.  This is the second part of Example 4.4 in [HKW2014]_,
             counting the number of 11 blocks in the standard binary
             expansion. The least significant digit is at the left-most
             position::
@@ -8611,7 +8611,7 @@ class FiniteStateMachine(SageObject):
                 sage: correlation
                 2/5*sqrt(5)
 
-        #.  This is Example 6.4 in [HKW2014]_, counting the number of
+        #.  This is Example 4.5 in [HKW2014]_, counting the number of
             01 blocks minus the number of 10 blocks in the standard binary
             expansion. The least significant digit is at the left-most
             position::
@@ -8768,13 +8768,13 @@ class FiniteStateMachine(SageObject):
 
         ALGORITHM:
 
-        See [HKW2014]_, Theorem 2.
+        See [HKW2014]_, Theorem 3.9.
 
         REFERENCES:
 
         .. [HKW2014] Clemens Heuberger, Sara Kropf and Stephan Wagner,
-           *Combinatorial Characterization of Independent Transducers via
-           Functional Digraphs*, :arxiv:`1404.3680`.
+           *Variances and Covariances in the Central Limit Theorem for
+           the Output of a Transducer*, :arxiv:`1404.3680v2`.
 
         .. [HP2007] Clemens Heuberger and Helmut Prodinger, *The Hamming
            Weight of the Non-Adjacent-Form under Various Input Statistics*,

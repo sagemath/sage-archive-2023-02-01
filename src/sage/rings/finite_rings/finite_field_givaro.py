@@ -321,6 +321,18 @@ class FiniteField_givaro(FiniteField):
             sage: k(pari('Mod(1,3)*a^20'))
             a^7 + a^5 + a^4 + a^2
 
+        We can coerce from PARI finite field implementations::
+
+            sage: K.<a> = GF(3^10, impl="givaro")
+            sage: a^20
+            2*a^9 + 2*a^8 + a^7 + 2*a^5 + 2*a^4 + 2*a^3 + 1
+            sage: L.<b> = GF(3^10, impl="pari_mod")
+            sage: K(b^20)
+            2*a^9 + 2*a^8 + a^7 + 2*a^5 + 2*a^4 + 2*a^3 + 1
+            sage: M.<c> = GF(3^10, impl="pari_ffelt")
+            sage: K(c^20)
+            2*a^9 + 2*a^8 + a^7 + 2*a^5 + 2*a^4 + 2*a^3 + 1
+
         GAP elements need to be finite field elements::
 
             sage: x = gap('Z(13)')

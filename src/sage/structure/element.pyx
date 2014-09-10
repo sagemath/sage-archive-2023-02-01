@@ -2750,6 +2750,9 @@ cdef class Matrix(ModuleElement):
            sage: a / c
            [-5/11  3/11]
            [-1/11  5/11]
+           sage: a / 7
+           [  0 1/7]
+           [2/7 3/7]
 
         Other rings work just as well::
 

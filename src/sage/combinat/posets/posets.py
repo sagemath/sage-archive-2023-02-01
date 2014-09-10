@@ -62,6 +62,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.is_less_than` | Returns ``True`` if `x` is less than but not equal to `y` in the poset, and ``False`` otherwise.
     :meth:`~FinitePoset.is_linear_extension` | Returns whether ``l`` is a linear extension of ``self``
     :meth:`~FinitePoset.is_meet_semilattice` | Returns True if self has a meet operation, and False otherwise.
+    :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to other poset.
     :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to other poset.
     :meth:`~FinitePoset.join_matrix` | Returns a matrix whose ``(i,j)`` entry is ``k``, where ``self.linear_extension()[k]`` is the join (least upper bound) of ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Returns whether the poset is `(m+n)`-free.
@@ -2657,6 +2658,34 @@ class FinitePoset(UniqueRepresentation, Parent):
         else:
             raise ValueError('The input is not a finite poset.')
 
+    def isomorphic_subposets_iterator(self, other):
+        """Return an iterator over the subposets of `self` isomorphic to `other`.
+
+        EXAMPLES::
+
+            sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
+            sage: N5 = Posets.PentagonPoset()
+            sage: for P in N5.isomorphic_subposets_iterator(D):
+            ...       print P.cover_relations()
+            [[1, 2], [1, 4], [2, 5], [4, 5]]
+            [[1, 2], [1, 3], [2, 5], [3, 5]]
+            [[1, 2], [1, 4], [2, 5], [4, 5]]
+            [[1, 2], [1, 3], [2, 5], [3, 5]]
+
+        .. WARNING::
+        
+            This function will usually return same subposet several
+            times. This is due to
+            :meth:`~sage.graphs.generic_graph.GenericGraph.subgraph_search_iterator`
+            returning labelled subgraphs. On the other hand, this
+            function does not eat memory like
+            :meth:`isomorphic_subposets` does.
+
+        """
+        if not hasattr(other, 'hasse_diagram'):
+            raise ValueError('The input is not a finite poset.')
+        return (self.subposet([self._list[i] for i in x]) for x in self._hasse_diagram.transitive_closure().subgraph_search_iterator(other.hasse_diagram().transitive_closure(), induced=True))
+
     def isomorphic_subposets(self, other):
         """
         Return a list of subposets of `self` isomorphic to `other`.
@@ -2676,9 +2705,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         if not hasattr(other, 'hasse_diagram'):
             raise ValueError('The input is not a finite poset.')
-        L=self.hasse_diagram().transitive_closure().subgraph_search_iterator(other.hasse_diagram().transitive_closure(), induced=True)
-        # Since subgraph_search_iterator returns labelled copies, we remove duplicates.
-        return [self.subposet(x) for x in uniq([frozenset(y) for y in L])]
+        L=self._hasse_diagram.transitive_closure().subgraph_search_iterator(other._hasse_diagram.transitive_closure(), induced=True)
+        # Since subgraph_search_iterator returns labelled copies, we
+        # remove duplicates.
+        return [self.subposet([self._list[i] for i in x]) for x in uniq([frozenset(y) for y in L])]
 
     import __builtin__ # Caveat: list is overridden by the method list above!!!
     def antichains(self, element_constructor = __builtin__.list):

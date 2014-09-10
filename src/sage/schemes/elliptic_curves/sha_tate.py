@@ -763,7 +763,7 @@ class Sha(SageObject):
             OverflowError: Python int too large to convert to C long     # 32-bit
             0                                                            # 64-bit
 
-        Some checks for :trac:`6406` and :trac:`123456`::
+        Some checks for :trac:`6406` and :trac:`16959`::
 
             sage: e.sha().p_primary_bound(7)
             2
@@ -776,6 +776,10 @@ class Sha(SageObject):
 
             sage: E.sha().an_padic(5)
             1 + O(5^22)
+
+            sage: E = EllipticCurve("5040bi1")
+            sage: E.sha().p_primary_bound(5) # long time
+            0
 
         REFERENCES:
 

@@ -161,6 +161,7 @@ import sage.rings.integer as integer
 
 import sage.rings.polynomial.polynomial_element as polynomial_element
 import sage.rings.polynomial.multi_polynomial_element as multi_polynomial_element
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 # We don't late import this because this means trouble with the Givaro library
 # On a Macbook Pro OSX 10.5.8, this manifests as a Bus Error on exiting Sage.
@@ -188,7 +189,25 @@ class FiniteFieldFactory(UniqueFactory):
       such a polynomial.  If ``modulus`` is a string, it is passed to
       :meth:`~sage.rings.polynomial.irreducible_element()` as the
       parameter ``algorithm``; see there for the permissible values of
-      this parameter.
+      this parameter. In particular, you can specify
+      ``modulus="primitive"`` to get a primitive polynomial.
+
+    - ``impl`` -- (optional) a string specifying the implementation of
+      the finite field. Possible values are:
+
+      - ``'modn'`` -- ring of integers modulo `p` (only for prime
+        fields).
+
+      - ``'givaro'`` -- Givaro, which uses Zech logs (only for fields
+        of at most 65521 elements).
+
+      - ``'ntl'`` -- NTL using GF2X (only in characteristic 2).
+
+      - ``'pari_ffelt'`` -- PARI's ``FFELT`` type (only for extension
+        fields).
+
+      - ``'pari_mod'`` -- Older PARI implementation using ``POLMOD``s
+        (slower than ``'pari_ffelt'``, only for extension fields).
 
     - ``elem_cache`` -- cache all elements to avoid creation time
       (default: order < 500)
@@ -223,7 +242,7 @@ class FiniteFieldFactory(UniqueFactory):
     .. NOTE::
 
         Magma only supports ``proof=False`` for making finite fields,
-        so falsely appears to be faster than Sage -- see :trac:10975.
+        so falsely appears to be faster than Sage -- see :trac:`10975`.
 
     ::
 
@@ -238,6 +257,19 @@ class FiniteFieldFactory(UniqueFactory):
         x^5 + 4*x + 1
         sage: type(f)
          <type 'sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint'>
+
+    By default, the given generator is not guaranteed to be primitive
+    (a generator of the multiplicative group), use
+    ``modulus="primitive"`` if you need this::
+
+        sage: K.<a> = GF(5^40)
+        sage: a.multiplicative_order()
+        4547473508864641189575195312
+        sage: a.is_square()
+        True
+        sage: K.<b> = GF(5^40, modulus="primitive")
+        sage: b.multiplicative_order()
+        9094947017729282379150390624
 
     The modulus must be irreducible::
 
@@ -278,6 +310,13 @@ class FiniteFieldFactory(UniqueFactory):
         sage: L = GF(3**2, name='a', modulus=QQ[x](x - 1), check_irreducible=False)
         sage: L.list()  # random
         [0, a, 1, 2, 1, 2, 1, 2, 1]
+
+    If you specify a modulus when constructing a prime field, it will
+    be ignored::
+
+        sage: GF(5, modulus="conway")
+        doctest:...: UserWarning: the 'modulus' argument is ignored when constructing prime finite fields
+        Finite Field of size 5
 
     The order of a finite field must be a prime power::
 
@@ -371,7 +410,10 @@ class FiniteFieldFactory(UniqueFactory):
 
             if arith.is_prime(order):
                 name = None
-                modulus = None
+                if modulus is not None:
+                    from warnings import warn
+                    warn("the 'modulus' argument is ignored when constructing prime finite fields")
+                    modulus = None
                 p = integer.Integer(order)
                 n = integer.Integer(1)
             elif arith.is_prime_power(order):
@@ -429,9 +471,9 @@ class FiniteFieldFactory(UniqueFactory):
                     # A string specifies an algorithm to find a suitable modulus.
                     if modulus == "default":    # for backward compatibility
                         modulus = None
-                    modulus = GF(p)['x'].irreducible_element(n, algorithm=modulus)
+                    modulus = PolynomialRing(GF(p), 'x').irreducible_element(n, algorithm=modulus)
                 elif isinstance(modulus, (list, tuple)):
-                    modulus = GF(p)['x'](modulus)
+                    modulus = PolynomialRing(GF(p), 'x')(modulus)
                 elif sage.rings.polynomial.polynomial_element.is_Polynomial(modulus):
                     modulus = modulus.change_variable_name('x')
                 else:
@@ -448,6 +490,46 @@ class FiniteFieldFactory(UniqueFactory):
 
             sage: K = GF(19) # indirect doctest
             sage: TestSuite(K).run()
+
+        We try to create finite fields with various implementations::
+
+            sage: k = GF(2, impl='modn')
+            sage: k = GF(2, impl='givaro')
+            sage: k = GF(2, impl='ntl')
+            sage: k = GF(2, impl='pari_ffelt')
+            Traceback (most recent call last):
+            ...
+            ValueError: the degree must be at least 2
+            sage: k = GF(2, impl='pari_mod')
+            Traceback (most recent call last):
+            ...
+            ValueError: The size of the finite field must not be prime.
+            sage: k = GF(2, impl='supercalifragilisticexpialidocious')
+            Traceback (most recent call last):
+            ...
+            ValueError: no such finite field implementation: 'supercalifragilisticexpialidocious'
+            sage: k.<a> = GF(2^15, impl='modn')
+            Traceback (most recent call last):
+            ...
+            ValueError: the 'modn' implementation requires a prime order
+            sage: k.<a> = GF(2^15, impl='givaro')
+            sage: k.<a> = GF(2^15, impl='ntl')
+            sage: k.<a> = GF(2^15, impl='pari_ffelt')
+            sage: k.<a> = GF(2^15, impl='pari_mod')
+            sage: k.<a> = GF(3^60, impl='modn')
+            Traceback (most recent call last):
+            ...
+            ValueError: the 'modn' implementation requires a prime order
+            sage: k.<a> = GF(3^60, impl='givaro')
+            Traceback (most recent call last):
+            ...
+            ValueError: q must be < 2^16
+            sage: k.<a> = GF(3^60, impl='ntl')
+            Traceback (most recent call last):
+            ...
+            ValueError: q must be a 2-power
+            sage: k.<a> = GF(3^60, impl='pari_ffelt')
+            sage: k.<a> = GF(3^60, impl='pari_mod')
         """
         # IMPORTANT!  If you add a new class to the list of classes
         # that get cached by this factor object, then you *must* add
@@ -479,6 +561,15 @@ class FiniteFieldFactory(UniqueFactory):
             # huge amount.
             K = FiniteField_prime_modn(order, check=False)
         else:
+            if n == 1:
+                # We are not using the default 'modn' implementation.
+                # In this case, we need to specify a name and modulus.
+                if name is None:
+                    name = 'x'
+                if modulus is None:
+                    modulus = PolynomialRing(FiniteField(order), 'x').gen()
+                    check_irreducible = False
+
             # We have to do this with block so that the finite field
             # constructors below will use the proof flag that was
             # passed in when checking for primality, factoring, etc.
@@ -497,11 +588,8 @@ class FiniteFieldFactory(UniqueFactory):
                     raise TypeError("you must specify the generator name.")
                 if impl is None:
                     if order < zech_log_bound:
-                        # DO *NOT* use for prime subfield, since that would lead to
-                        # a circular reference in the call to ParentWithGens in the
-                        # __init__ method.
                         impl = 'givaro'
-                    elif order % 2 == 0:
+                    elif p == 2:
                         impl = 'ntl'
                     else:
                         impl = 'pari_ffelt'
@@ -521,8 +609,10 @@ class FiniteFieldFactory(UniqueFactory):
                       or impl == 'pari'):    # for unpickling old pickles
                     from finite_field_ext_pari import FiniteField_ext_pari
                     K = FiniteField_ext_pari(order, name, modulus)
+                elif impl == 'modn':
+                    raise ValueError("the 'modn' implementation requires a prime order")
                 else:
-                    raise ValueError("no such finite field implementation: %s" % impl)
+                    raise ValueError("no such finite field implementation: %r" % impl)
 
             # Temporary; see create_key_and_extra_args() above.
             if 'prefix' in kwds:

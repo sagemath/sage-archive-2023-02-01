@@ -907,15 +907,21 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             self._order = self.cardinality_bsgs()
             return self._order
 
-        kj=GF(p**j_deg,name='a',modulus=j_pol)
-        jkj=kj.gen() if j_deg>1 else j_pol.roots(multiplicities=False)[0]
+        # Let jkj be the j-invariant as element of the smallest finite
+        # field over which j is defined.
+        if j_deg == 1:
+            # j_pol is of the form X - j
+            jkj = -j_pol[0]
+        else:
+            jkj = GF(p**j_deg, name='a', modulus=j_pol).gen()
 
         # recursive call which will do all the real work:
         Ej = EllipticCurve_from_j(jkj)
         N=Ej.cardinality(extension_degree=d//j_deg)
 
         # if curve ia a (quadratic) twist of the "standard" one:
-        if not self.is_isomorphic(EllipticCurve_from_j(j)): N=2*(q+1)-N
+        if not self.is_isomorphic(EllipticCurve_from_j(j)):
+            N = 2*(q+1) - N
 
         self._order = N
         return self._order

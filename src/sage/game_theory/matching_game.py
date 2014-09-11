@@ -616,9 +616,15 @@ class MatchingGame(SageObject):
         for i, j in zip(self.reviewers, reviewers):
             i.partner = j.partner
 
+        self._ol_dict = {}
+        for s in self.suitors:
+            self._sol_dict[s] = [s.partner]
+        for r in self.reviewers:
+            self._sol_dict[r] = [r.partner]
+
         if invert:
-            return {key:self._sol_dict()[key] for key in self.reviewers}
-        return {key:self._sol_dict()[key] for key in self.suitors}
+            return {key:self.sol_dict[key] for key in self.reviewers}
+        return {key:self.sol_dict[key] for key in self.suitors}
 
 
 class _Player():

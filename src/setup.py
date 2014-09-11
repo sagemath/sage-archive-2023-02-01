@@ -222,8 +222,14 @@ def execute_list_of_commands_in_parallel(command_list, nthreads):
     """
     from multiprocessing import Pool
     import fpickle_setup #doing this import will allow instancemethods to be pickable
-    p = Pool(nthreads)
-    process_command_results(p.imap(apply_pair, command_list))
+    # map_async handles KeyboardInterrupt correctly if an argument is
+    # given to get().  Plain map() and apply_async() do not work
+    # correctly, see Trac #16113.
+    pool = Pool(nthreads)
+    result = pool.map_async(apply_pair, command_list, 1).get(99999)
+    pool.close()
+    pool.join()
+    process_command_results(result)
 
 def process_command_results(result_values):
     error = None

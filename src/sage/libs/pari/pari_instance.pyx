@@ -20,6 +20,8 @@ AUTHORS:
 
 - Peter Bruin (2013-11-17): split off this file from gen.pyx (#15185)
 
+- Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (#15767)
+
 
 EXAMPLES::
 
@@ -44,7 +46,7 @@ Arithmetic obeys the usual coercion rules::
 
 GUIDE TO REAL PRECISION AND THE PARI LIBRARY
 
-The default real precision in communicating with the Pari library
+The default real precision in communicating with the PARI library
 is the same as the default Sage real precision, which is 53 bits.
 Inexact Pari objects are therefore printed by default to 15 decimal
 digits (even if they are actually more precise).
@@ -132,14 +134,15 @@ with a precision of 100 bits::
     True
 
 Elliptic curves and precision: If you are working with elliptic
-curves and want to compute with a precision other than the default
-53 bits, you should use the precision parameter of ellinit()::
+curves, you should set the precision for each method::
 
-    sage: R = RealField(150)
-    sage: e = pari([0,0,0,-82,0]).ellinit(precision=150)
-    sage: eta1 = e.elleta()[0]
-    sage: R(eta1)
-    3.6054636014326520859158205642077267748102690
+    sage: e = pari([0,0,0,-82,0]).ellinit()
+    sage: eta1 = e.elleta(precision=100)[0]
+    sage: eta1.sage()
+    3.6054636014326520859158205642077267748
+    sage: eta1 = e.elleta(precision=180)[0]
+    sage: eta1.sage()
+    3.60546360143265208591582056420772677481026899659802474544
 
 Number fields and precision: TODO
 
@@ -156,9 +159,6 @@ Sage (ticket #9636)::
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/interrupt.pxi'
-
-cdef extern from 'c_lib/include/memory.h':
-    void init_memory_functions()
 
 import sys
 
@@ -348,8 +348,6 @@ pari_catch_sig_off()
 pari = pari_instance
 
 
-cdef unsigned long num_primes
-
 # Callbacks from PARI to print stuff using sys.stdout.write() instead
 # of C library functions like puts().
 cdef PariOUT sage_pariOut
@@ -432,7 +430,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         if bot:
             return  # pari already initialized.
 
-        global num_primes, top, bot
+        global top, bot
 
         # The size here doesn't really matter, because we will allocate
         # our own stack anyway. We ask PARI not to set up signal and
@@ -444,8 +442,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         # pari_init_opts() overrides MPIR's memory allocation functions,
         # so we need to reset them.
         init_memory_functions()
-
-        num_primes = maxprime
 
         # Free the PARI stack and allocate our own (using Cython)
         pari_free(<void*>bot); bot = 0
@@ -465,6 +461,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pariErr.flush = sage_pariErr_flush
 
         # Display only 15 digits
+        self._real_precision = 15
         sd_format("g.15", d_SILENT)
 
         # Init global prec variable (PARI's precision is always a
@@ -585,11 +582,12 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari.set_real_precision(15)
             60
         """
-        prev = self.get_real_precision()
+        prev = self._real_precision
         cdef bytes strn = str(n)
         pari_catch_sig_on()
         sd_realprecision(strn, d_SILENT)
         pari_catch_sig_off()
+        self._real_precision = n
         return prev
 
     def get_real_precision(self):
@@ -608,10 +606,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari.get_real_precision()
             15
         """
-        pari_catch_sig_on()
-        cdef long prev = itos(sd_realprecision(NULL, d_RETURN))
-        pari_catch_sig_off()
-        return prev
+        return self._real_precision
 
     def set_series_precision(self, long n):
         global precdl
@@ -1147,7 +1142,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     def pari_version(self):
         return str(PARIVERSION)
 
-    def init_primes(self, _M):
+    def init_primes(self, unsigned long M):
         """
         Recompute the primes table including at least all primes up to M
         (but possibly more).
@@ -1156,29 +1151,22 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
             sage: pari.init_primes(200000)
 
-        We make sure that ticket #11741 has been fixed, and double check to
-        make sure that diffptr has not been freed::
+        We make sure that ticket :trac:`11741` has been fixed::
 
-            sage: pari.init_primes(2^62)
+            sage: pari.init_primes(2^30)
             Traceback (most recent call last):
             ...
-            PariError: not enough memory                  # 64-bit
-            OverflowError: long int too large to convert  # 32-bit
-            sage: pari.init_primes(200000)
+            ValueError: Cannot compute primes beyond 436273290
         """
-        cdef unsigned long M
-        cdef char *tmpptr
-        M = _M
-        global diffptr, num_primes
-        if M <= num_primes:
+        # Hardcoded bound in PARI sources
+        if M > 436273290:
+            raise ValueError("Cannot compute primes beyond 436273290")
+
+        if M <= maxprime():
             return
         pari_catch_sig_on()
-        tmpptr = initprimes(M)
+        initprimetable(M)
         pari_catch_sig_off()
-        pari_free(<void*> diffptr)
-        num_primes = M
-        diffptr = tmpptr
-
 
     ##############################################
     ## Support for GP Scripts
@@ -1221,19 +1209,18 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def _primelimit(self):
         """
-        Return the number of primes already computed
-        in this Pari instance.
+        Return the number of primes already computed by PARI.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: pari._primelimit()
-            500000
+            499979
             sage: pari.init_primes(600000)
             sage: pari._primelimit()
-            600000
+            599999
         """
-        global num_primes
         from sage.rings.all import ZZ
-        return ZZ(num_primes)
+        return ZZ(maxprime())
 
     def prime_list(self, long n):
         """
@@ -1302,8 +1289,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         nth_prime(n): returns the n-th prime, where n is a C-int
         """
-        global num_primes
-
         if n <= 0:
             raise ValueError, "nth prime meaningless for non-positive n (=%s)"%n
         cdef GEN g
@@ -1311,14 +1296,14 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         g = prime(n)
         return self.new_gen(g)
 
-
     def nth_prime(self, long n):
         from sage.libs.pari.all import PariError
         try:
             return self.__nth_prime(n)
         except PariError:
-            self.init_primes(max(2*num_primes,20*n))
+            self.init_primes(max(2*maxprime(), 20*n))
             return self.nth_prime(n)
+
 
     def euler(self, unsigned long precision=0):
         """
@@ -1488,16 +1473,16 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         TESTS:
 
-        Check that invalid inputs are handled properly (#11825)::
+        Check that invalid inputs are handled properly (:trac:`11825`)::
 
             sage: pari.setrand(0)
             Traceback (most recent call last):
             ...
-            PariError: incorrect type in setrand
+            PariError: incorrect type in setrand (t_INT)
             sage: pari.setrand("foobar")
             Traceback (most recent call last):
             ...
-            PariError: incorrect type in setrand
+            PariError: incorrect type in setrand (t_POL)
         """
         cdef gen t0 = self(seed)
         pari_catch_sig_on()
@@ -1578,6 +1563,24 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
                     (<GEN>(A.g)[j+1])[i+1] = <long>(x.g)
                     k = k + 1
         return A
+
+    def genus2red(self, Q, P):
+        """
+        Let Q,P be polynomials with integer coefficients. Determine
+        the reduction at p > 2 of the (proper, smooth) hyperelliptic
+        curve C/Q: y^2+Qy = P, of  genus 2. (The special fiber X_p of
+        the minimal regular model X of C over Z.)
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: pari.genus2red(x^3 - 2*x^2 - 2*x + 1, -5*x^5)
+            [1416875, [2, -1; 5, 4; 2267, 1], x^6 - 240*x^4 - 2550*x^3 - 11400*x^2 - 24100*x - 19855, [[2, [2, [Mod(1, 2)]], []], [5, [1, []], ["[V] page 156", [3]]], [2267, [2, [Mod(432, 2267)]], ["[I{1-0-0}] page 170", []]]]]
+        """
+        cdef gen t0 = objtogen(Q)
+        cdef gen t1 = objtogen(P)
+        pari_catch_sig_on()
+        return self.new_gen(genus2red(t0.g, t1.g, NULL))
 
 
 cdef int init_stack(size_t requested_size) except -1:

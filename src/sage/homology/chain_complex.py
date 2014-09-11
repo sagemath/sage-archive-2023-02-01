@@ -230,6 +230,7 @@ def ChainComplex(data=None, **kwds):
         TypeError: Unable to coerce 0 (<type 
         'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'>) to Rational
     """
+    
     check = kwds.get('check', True)
     base_ring = kwds.get('base_ring', None)
     grading_group = kwds.get('grading_group', ZZ)
@@ -734,11 +735,11 @@ class ChainComplex_class(Parent):
         EXAMPLES::
 
             sage: G = AdditiveAbelianGroup([0, 3])
-            sage: C = ChainComplex(grading_group=G, degree=G([1,2]))
+            sage: C = ChainComplex(grading_group=G, degree=G(vector([1,2])))
             sage: C.grading_group()
-            Additive abelian group isomorphic to Z/3 + Z
+            Additive abelian group isomorphic to Z + Z/3
             sage: C.degree_of_differential()
-            (2, 1)
+            (1, 2)
         """
         return self._grading_group
         

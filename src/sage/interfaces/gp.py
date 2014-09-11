@@ -924,7 +924,7 @@ class GpElement(ExpectElement):
         EXAMPLES::
 
             sage: CDF(gp(pi+I*e))
-            3.14159265359 + 2.71828182846*I
+            3.141592653589793 + 2.718281828459045*I
         """
         # Retrieving values from another computer algebra system is
         # slow anyway, right?

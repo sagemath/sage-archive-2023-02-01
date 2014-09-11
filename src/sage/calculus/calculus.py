@@ -1075,9 +1075,9 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: f(x=I)
         (-I + 1)^I
         sage: CDF(f(x=I))
-        2.06287223508 + 0.74500706218*I
+        2.0628722350809046 + 0.7450070621797239*I
         sage: CDF(f.limit(x = I))
-        2.06287223508 + 0.74500706218*I
+        2.0628722350809046 + 0.7450070621797239*I
 
     Notice that Maxima may ask for more information::
 

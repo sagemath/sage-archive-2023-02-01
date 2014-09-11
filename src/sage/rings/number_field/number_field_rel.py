@@ -1583,10 +1583,10 @@ class NumberField_relative(NumberField_generic):
             x^4 + 7/6*x^2 + 1/144
         """
         try:
-            return self.__pari_polynomial.change_variable_name(name)
+            return self._pari_polynomial.change_variable_name(name)
         except AttributeError:
-            self.__pari_polynomial = self._pari_rnfequation()[0].change_variable_name(name)
-            return self.__pari_polynomial
+            self._pari_polynomial = self._pari_rnfequation()[0].change_variable_name(name)
+            return self._pari_polynomial
 
     @cached_method
     def pari_rnf(self):

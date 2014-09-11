@@ -1162,45 +1162,8 @@ class GraphGenerators():
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True)
-        out = sp.stdout
 
-        #start of code to read planar code
-
-        header = out.read(15)
-        assert header == '>>planar_code<<', 'Not a valid planar code header'
-
-        #read graph per graph
-        while True:
-            c = out.read(1)
-            if len(c)==0:
-                return
-
-            # Each graph is stored in the following way :
-            #
-            # The first character is the number of vertices, followed by
-            # n11,...,n1k,null character,n21,...,n2k',null character, ...
-            #
-            # where the n1* are all neighbors of n1 and all n2* are the
-            # neighbors of n2, ...
-            #
-            # Besides, these neighbors are enumerated in clockwise order.
-            order = ord(c)
-
-            zeroCount = 0
-
-            g = [[] for i in range(order)]
-
-            while zeroCount < order:
-                c = out.read(1)
-                if ord(c)==0:
-                    zeroCount += 1
-                else:
-                    g[zeroCount].append(ord(c))
-
-            #construct graph based on g
-            g = {i+1:di for i,di in enumerate(g)}
-            G = graph.Graph(g)
-            G.set_embedding(g)
+        for G in graphs._read_planar_code(sp.stdout):
             yield(G)
 
     def fusenes(self, hexagon_count, benzenoids=False):
@@ -1291,45 +1254,8 @@ class GraphGenerators():
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True)
-        out = sp.stdout
 
-        #start of code to read planar code
-
-        header = out.read(15)
-        assert header == '>>planar_code<<', 'Not a valid planar code header'
-
-        #read graph per graph
-        while True:
-            c = out.read(1)
-            if len(c)==0:
-                return
-
-            # Each graph is stored in the following way :
-            #
-            # The first character is the number of vertices, followed by
-            # n11,...,n1k,null character,n21,...,n2k',null character, ...
-            #
-            # where the n1* are all neighbors of n1 and all n2* are the
-            # neighbors of n2, ...
-            #
-            # Besides, these neighbors are enumerated in clockwise order.
-            order = ord(c)
-
-            zeroCount = 0
-
-            g = [[] for i in range(order)]
-
-            while zeroCount < order:
-                c = out.read(1)
-                if ord(c)==0:
-                    zeroCount += 1
-                else:
-                    g[zeroCount].append(ord(c))
-
-            #construct graph based on g
-            g = {i+1:di for i,di in enumerate(g)}
-            G = graph.Graph(g)
-            G.set_embedding(g)
+        for G in graphs._read_planar_code(sp.stdout):
             yield(G)
 
 ###########################################################################

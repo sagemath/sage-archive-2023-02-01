@@ -370,8 +370,7 @@ class MatchingGame(SageObject):
         """
         self._is_solved()
 
-        sol_dict = self._sol_dict()
-        graph = BipartiteGraph(sol_dict)
+        graph = BipartiteGraph(self.sol_dict)
         return graph
 
     def _is_solved(self):
@@ -547,35 +546,6 @@ class MatchingGame(SageObject):
         for s in self.suitors:
             s.pref = [-1 for r in self.reviewers]
 
-    def _sol_dict(self):
-        r"""
-        Creates a dictionary of the stable matching. Keys are both the
-        reviewers and the suitors, values are their partner as a single
-        element list. This is to allow the creation of ``BipartiteGraph``
-        and is also what is returned when running ``solve``.
-
-        EXAMPLES::
-
-            sage: suit = {0: (3, 4),
-            ....:         1: (3, 4)}
-            sage: revr = {3: (0, 1),
-            ....:         4: (1, 0)}
-            sage: g = MatchingGame([suit, revr])
-            sage: g.solve()
-            {0: [3], 1: [4]}
-            sage: g._sol_dict()
-            {0: [3], 1: [4], 3: [0], 4: [1]}
-
-        """
-        self._is_solved()
-
-        sol_dict = {}
-        for s in self.suitors:
-            sol_dict[s] = [s.partner]
-        for r in self.reviewers:
-            sol_dict[r] = [r.partner]
-        return sol_dict
-
     def solve(self, invert=False):
         r"""
         Computes a stable matching for the game using the Gale-Shapley
@@ -616,11 +586,11 @@ class MatchingGame(SageObject):
         for i, j in zip(self.reviewers, reviewers):
             i.partner = j.partner
 
-        self._ol_dict = {}
+        self.sol_dict = {}
         for s in self.suitors:
-            self._sol_dict[s] = [s.partner]
+            self.sol_dict[s] = [s.partner]
         for r in self.reviewers:
-            self._sol_dict[r] = [r.partner]
+            self.sol_dict[r] = [r.partner]
 
         if invert:
             return {key:self.sol_dict[key] for key in self.reviewers}

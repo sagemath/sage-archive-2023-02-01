@@ -519,9 +519,8 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
             sage: V.change_ring(GF(101)).point_set().cardinality()
             1061208
 
-        For non-smooth varieties over finite fields, the points are
-        actually constructed and iterated over. This works but is much
-        slower::
+        For non-smooth varieties over finite fields, the homogeneous
+        rescalings are solved. This is somewhat slower::
 
             sage: fan = NormalFan(ReflexivePolytope(2, 0))
             sage: X = ToricVariety(fan, base_field=GF(7))
@@ -573,7 +572,10 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
                 from sage.rings.infinity import Infinity
                 return Infinity
         if not variety.is_smooth():
-            return super(SchemeHomset_points_toric_field, self).cardinality()
+            try:
+                return self._enumerator().cardinality()
+            except AttributeError:
+                return super(SchemeHomset_points_toric_field, self).cardinality()
         q = variety.base_ring().order()
         n = variety.dimension()
         d = map(len, variety.fan().cones())

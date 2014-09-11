@@ -134,6 +134,30 @@ class NaiveFinitePointEnumerator(object):
         self.fan = fan
 
     @cached_method
+    def rays(self):
+        """
+        Return all rays (real and virtual).
+
+        OUTPUT:
+
+        Tuple of rays of the fan.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.toric.points import NaiveFinitePointEnumerator
+            sage: fan = toric_varieties.torus(2).fan()
+            sage: fan.rays()
+            Empty collection
+            in 2-d lattice N
+            sage: n = NaiveFinitePointEnumerator(fan, GF(3))
+            sage: n.rays()
+            N(1, 0),
+            N(0, 1)
+            in 2-d lattice N
+        """
+        return self.fan.rays() + self.fan.virtual_rays()
+
+    @cached_method
     def units(self):
         """
         Return the units in the base field.
@@ -193,8 +217,7 @@ class NaiveFinitePointEnumerator(object):
         """
         units = self.units()
         result = []
-        rays = self.fan().rays() + self.fan().virtual_rays()
-        ker = rays.matrix().integer_kernel().matrix()
+        ker = self.rays().matrix().integer_kernel().matrix()
         for phases in CartesianProduct(*([units] * ker.nrows())):
             phases = tuple(prod(mu**exponent for mu, exponent in zip(phases, column))
                            for column in ker.columns())
@@ -222,8 +245,7 @@ class NaiveFinitePointEnumerator(object):
         """
         if self.fan.is_smooth():
             return tuple()
-        rays = self.fan().rays() + self.fan().virtual_rays()
-        image = rays.column_matrix().image()
+        image = self.rays().column_matrix().image()
         torsion = image.saturation().quotient(image)
         result = set()
         for t in torsion:
@@ -231,7 +253,7 @@ class NaiveFinitePointEnumerator(object):
             for root in self.roots(t.order()):
                 phases = tuple(root**exponent for exponent in t_lift)
                 result.add(phases)
-        result.remove(tuple(self.ring.one() for r in rays))
+        result.remove(tuple(self.ring.one() for r in self.rays()))
         return tuple(sorted(result))
 
     @cached_method
@@ -361,8 +383,7 @@ class NaiveFinitePointEnumerator(object):
         """
         units = [x for x in self.ring if x != 0]
         zero = self.ring.zero()
-        rays = self.fan.rays() + self.fan.virtual_rays()
-        big_torus = [units] * len(rays)
+        big_torus = [units] * len(self.rays())
         for cone in self.cone_iter():
             patch = copy(big_torus)
             for i in cone.ambient_ray_indices():
@@ -489,8 +510,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
             ((3, 3, 3),)
         """
         result = []
-        rays = self.fan().rays() + self.fan().virtual_rays()
-        null_space = rays.matrix().integer_kernel()
+        null_space = self.rays().matrix().integer_kernel()
         for ker in null_space.basis():
             phases = tuple(self.multiplicative_generator()**exponent
                            for exponent in ker)
@@ -520,8 +540,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
         """
         if self.fan.is_smooth():
             return tuple()
-        rays = self.fan().rays() + self.fan().virtual_rays()
-        image = rays.column_matrix().image()
+        image = self.rays().column_matrix().image()
         torsion = image.saturation().quotient(image)
         result = set()
         for t in torsion.gens():
@@ -531,7 +550,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
                 continue
             phases = tuple(root**exponent for exponent in t_lift)
             result.add(phases)
-        assert tuple(self.ring.one() for r in rays) not in result  # because we excluded 1 as root
+        assert tuple(self.ring.one() for r in self.rays()) not in result  # because we excluded 1 as root
         return tuple(sorted(result))
     
     def log(self, z):
@@ -623,21 +642,16 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
         result = map(self.log, free + tors)
         return tuple(sorted(result))
 
-    def _cone_point_iter(self, log_relations, cone):
+    def cone_points_iter(self):
         """
-        Helper function for :meth:`__iter__`
-
-        INPUT:
-
-        - ``log_relations`` -- integer matrix whose rows are the log
-          relations.
-
-        - ``cone`` -- a cone of the fan.
-
+        Iterate over the open torus orbits and yield distinct points.
+        
         OUTPUT:
 
-        Iterate over the distinct points in the torus orbit
-        corresponding to ``cone``.
+        For each open torus orbit (cone): A triple consisting of the
+        cone, the nonzero homogeneous coordinates in that orbit (list
+        of integers), and the nonzero log coordinates of distinct
+        points as a cokernel.
 
         EXAMPLES::
 
@@ -645,36 +659,39 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
             sage: X = ToricVariety(fan, base_field=GF(7))
             sage: point_set = X.point_set()
             sage: ffe = point_set._finite_field_enumerator()
-            sage: log_relations = matrix([[0,2,4], [1,1,1], [6,0,0], [0,6,0], [0,0,6]])
-            sage: ci = ffe._cone_point_iter(log_relations, fan(0)[0])
-            sage: list(ci)
-            [(1, 1, 1), (1, 1, 3), (1, 1, 2), (1, 1, 6), (1, 1, 4), 
-             (1, 1, 5), (1, 3, 2), (1, 3, 6), (1, 3, 4), (1, 3, 5), 
-             (1, 3, 1), (1, 3, 3)]
-
-            sage: fan(1)[1].ambient_ray_indices()    # this coordinate will be zero
-            (1,)
-            sage: ci = ffe._cone_point_iter(log_relations, fan(1)[1])
-            sage: list(ci)
-            [(1, 0, 1), (1, 0, 3)]
-
-            sage: ci = ffe._cone_point_iter(log_relations, fan(2)[1])
-            sage: list(ci)
-            [(0, 1, 0)]
+            sage: cpi = ffe.cone_points_iter()
+            sage: cone, nonzero_points, cokernel = list(cpi)[5]
+            sage: cone
+            1-d cone of Rational polyhedral fan in 2-d lattice N
+            sage: cone.ambient_ray_indices()
+            (2,)
+            sage: nonzero_points
+            [0, 1]
+            sage: cokernel
+            Finitely generated module V/W over Integer Ring with invariants (2)
+            sage: list(cokernel)
+            [(0), (1)]
+            sage: [p.lift() for p in cokernel]
+            [(0, 0), (0, 1)]
         """
-        nrays = self.fan().nrays() + len(self.fan().virtual_rays())
-        nonzero_coordinates = [i for i in range(nrays)
-                               if i not in cone.ambient_ray_indices()]
-        log_relations_nonzero = log_relations.matrix_from_columns(nonzero_coordinates)
-        image = log_relations_nonzero.image()
-        cokernel = image.ambient_module().quotient(image)
-        zero = [self.ring.zero()] * nrays
-        for v in cokernel:
-            z_nonzero = self.exp(v.lift())
-            z = copy(zero)
-            for i, value in zip(nonzero_coordinates, z_nonzero):
-                z[i] = value
-            yield tuple(z)
+        from sage.matrix.constructor import matrix, block_matrix, identity_matrix
+        from sage.rings.all import ZZ
+        nrays = len(self.rays())
+        N = self.multiplicative_group_order()
+        # Want cokernel of the log rescalings in (ZZ/N)^(#rays). But
+        # ZZ/N is not a integral domain. Instead: work over ZZ
+        log_generators = self.rescaling_log_generators()
+        log_relations = block_matrix(2, 1, [
+            matrix(ZZ, len(log_generators), nrays, log_generators), 
+            N * identity_matrix(ZZ, nrays)])
+        for cone in self.cone_iter():
+            nrays = self.fan().nrays() + len(self.fan().virtual_rays())
+            nonzero_coordinates = [i for i in range(nrays)
+                                   if i not in cone.ambient_ray_indices()]
+            log_relations_nonzero = log_relations.matrix_from_columns(nonzero_coordinates)
+            image = log_relations_nonzero.image()
+            cokernel = image.ambient_module().quotient(image)
+            yield cone, nonzero_coordinates, cokernel
 
     def __iter__(self):
         """
@@ -707,16 +724,34 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
             sage: set(point_set._naive_enumerator()) == set(ffe)
             True
         """
-        from sage.matrix.constructor import matrix, block_matrix, identity_matrix
-        from sage.rings.all import ZZ
-        nrays = self.fan.nrays() + len(self.fan.virtual_rays())
-        N = self.multiplicative_group_order()
-        # Want cokernel of the log rescalings in (ZZ/N)^(#rays). But
-        # ZZ/N is not a integral domain. Instead: work over ZZ
-        log_generators = self.rescaling_log_generators()
-        log_relations = block_matrix(2, 1, [
-            matrix(ZZ, len(log_generators), nrays, log_generators), 
-            N * identity_matrix(ZZ, nrays)])
-        for cone in self.cone_iter():
-            for point in self._cone_point_iter(log_relations, cone):
-                yield point
+        nrays = len(self.rays())
+        for cone, nonzero_coordinates, cokernel in self.cone_points_iter():
+            zero = [self.ring.zero()] * nrays
+            for v in cokernel:
+                z_nonzero = self.exp(v.lift())
+                z = copy(zero)
+                for i, value in zip(nonzero_coordinates, z_nonzero):
+                    z[i] = value
+                yield tuple(z)
+
+    def cardinality(self):
+        """
+        Return the cardinality of the point set.
+
+        OUTPUT:
+
+        Integer. The number of points.
+
+        EXAMPLES::
+
+            sage: fan = NormalFan(ReflexivePolytope(2, 0))
+            sage: X = ToricVariety(fan, base_field=GF(7))
+            sage: point_set = X.point_set()
+            sage: ffe = point_set._finite_field_enumerator()
+            sage: ffe.cardinality()
+            21
+        """
+        n = 0
+        for cone, nonzero_coordinates, cokernel in self.cone_points_iter():
+            n += cokernel.cardinality()
+        return n

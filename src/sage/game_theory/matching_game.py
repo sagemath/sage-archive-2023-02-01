@@ -234,6 +234,13 @@ class MatchingGame(SageObject):
         else:
             raise TypeError("generator must be an integer or a list of 2 dictionaries.")
 
+        self.suitor_dictionary = {}
+        self.reviewer_dictionary = {}
+        for suitor in self.suitors:
+            self.suitor_dictionary[suitor.name] = suitor.pref
+        for reviewer in self.reviewers:
+            self.reviewer_dictionary[reviewer.name] = reviewer.pref
+
     def _dict_game(self, suitor_dict, reviwer_dict):
         r"""
         Populates the game from 2 dictionaries. One for reviewers and one for
@@ -284,38 +291,13 @@ class MatchingGame(SageObject):
             3\to\{(0, 1)\}
             4\to\{(1, 0)\}
         """
-        suitor_dictionary, reviewer_dictionary = self.game_to_dict()
         output = "Suitors"
-        for key in suitor_dictionary:
-            output += "\n%s\\to\{%s\}" % (key, suitor_dictionary[key])
+        for key in self.suitor_dictionary:
+            output += "\n%s\\to\{%s\}" % (key, self.suitor_dictionary[key])
         output += "\nReviewers"
-        for key in reviewer_dictionary:
-            output += "\n%s\\to\{%s\}" % (key, reviewer_dictionary[key])
+        for key in self.reviewer_dictionary:
+            output += "\n%s\\to\{%s\}" % (key, self.reviewer_dictionary[key])
         return output
-
-    def game_to_dict(self):
-        r"""
-        Obtains the preference dictionaries for a game.
-        This is relevant if a game has been created by adding the preferences
-        manually.
-
-        EXAMPLES::
-
-            sage: suit = {0: (3, 4),
-            ....:         1: (3, 4)}
-            sage: revr = {3: (0, 1),
-            ....:         4: (1, 0)}
-            sage: g = MatchingGame([suit, revr])
-            sage: g.game_to_dict()
-            ({0: (3, 4), 1: (3, 4)}, {3: (0, 1), 4: (1, 0)})
-        """
-        suitor_dictionary = {}
-        reviewer_dictionary = {}
-        for suitor in self.suitors:
-            suitor_dictionary[suitor.name] = suitor.pref
-        for reviewer in self.reviewers:
-            reviewer_dictionary[reviewer.name] = reviewer.pref
-        return suitor_dictionary, reviewer_dictionary
 
     def plot(self):
         r"""
@@ -495,9 +477,20 @@ class MatchingGame(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: Must have the same number of reviewers as suitors
+
+        Note that an error is raised if one tries to add a suitor
+        with a name that already exists::
+
+            sage: g.add_suitor('D')
+            Traceback (most recent call last):
+            ...
+            ValueError: A suitor with name: D already exists
         """
         if name is False:
             name = len(self.suitors) + 1
+        if name in [s.name for s in self.suitors]:
+            raise ValueError("A suitor with name: %s already exists" % name)
+
         new_suitor = _Player(name, 'suitor', len(self.reviewers))
         self.suitors.append(new_suitor)
         for r in self.reviewers:
@@ -538,9 +531,20 @@ class MatchingGame(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: Must have the same number of reviewers as suitors
+
+        Note that an error is raised if one tries to add a reviewer
+        with a name that already exists::
+
+            sage: g.add_reviewer(10)
+            Traceback (most recent call last):
+            ...
+            ValueError: A reviewer with name: 10 already exists
         """
         if name is False:
             name = -len(self.reviewers) - 1
+        if name in [s.name for s in self.reviewers]:
+            raise ValueError("A reviewer with name: %s already exists" % name)
+
         new_reviewer = _Player(name, 'reviewer', len(self.suitors))
         self.reviewers.append(new_reviewer)
         for s in self.suitors:

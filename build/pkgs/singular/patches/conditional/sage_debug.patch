@@ -1,7 +1,7 @@
 diff -ruN a/Singular/Makefile.in b/Singular/Makefile.in
 --- a/Singular/Makefile.in	2012-07-11 12:00:13.000000000 +0200
 +++ b/Singular/Makefile.in	2012-07-12 16:51:29.923359810 +0200
-@@ -82,10 +82,10 @@
+@@ -90,10 +90,10 @@
  CPPFLAGS	= -I${srcdir} -I.. -I@prefix@ @CPPFLAGS@ @PYTHON_CPPFLAGS@
  ## -I/usr/include/python2.4 -I/usr/local/include -I../modules/python
  endif
@@ -14,6 +14,68 @@ diff -ruN a/Singular/Makefile.in b/Singular/Makefile.in
  LDFLAGSG	= -L@prefix@/kernel -L../kernel -lkernel_g @LD_DYN_FLAGS1@ @LDFLAGS@ 
  LDFLAGSP	= -L@prefix@/kernel -L../kernel -lkernel_p @LD_DYN_FLAGS1@ @LDFLAGS@ 
  else
+@@ -137,7 +137,7 @@
+ #
+ # Handle libSINGULAR stuff
+ #
+-LIBSINGULAR_LIBS =-lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc
++LIBSINGULAR_LIBS =-lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug
+ 
+ SO_SUFFIX = so
+ 
+@@ -171,14 +171,14 @@
+ SO_SUFFIX = dll
+ MODULE_SUFFIX    = dll
+ LIBSINGULAR_FLAGS = -shared
+-LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc  -lhtmlhelp
++LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug  -lhtmlhelp
+ endif
+ 
+ ifeq ($(SINGUNAME),ix86-SunOS)
+ SO_SUFFIX  = so
+ MODULE_SUFFIX    = so
+ LIBSINGULAR_FLAGS = -shared
+-LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc
++LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc_ndebug
+ endif
+ 
+ #
+@@ -442,7 +442,7 @@
+    echo "#define CXX \"" ${CXX} ${CXXFLAGS} ${DEFS} "\"" >>version.h
+ 
+ libparse: libparse_main.o utils.o
+-	${CXX}  ${CPPFLAGS} -DSTANDALONE_PARSER -o libparse libparse_main.o utils.o ../kernel/fegetopt.o ${LDFLAGS2} -lomalloc
++	${CXX}  ${CPPFLAGS} -DSTANDALONE_PARSER -o libparse libparse_main.o utils.o ../kernel/fegetopt.o ${LDFLAGS2} -lomalloc_ndebug
+ 
+ libparse_main.o: libparse.cc
+ 	${CXX} ${CPPFLAGS} -c -o libparse_main.o libparse.cc  -DSTANDALONE_PARSER
+@@ -769,7 +769,7 @@
+ Singularg${S_EXT}: scanner.cc  $(OBJG)  $(DL_LIBSG)\
+            iparith.og mpsr_Tok.og claptmpl.og tesths.cc version.h 
+ 	$(CXXG) ${CXXFLAGSG} ${CXXTEMPLFLAGSG} ${CPPFLAGS} ${DEFSG} -o Singularg${S_EXT} \
+-	tesths.cc iparith.og mpsr_Tok.og claptmpl.og $(OBJG) ${LDFLAGSG} ${LIBSG} -lomalloc ../kernel/mmalloc.og \
++	tesths.cc iparith.og mpsr_Tok.og claptmpl.og $(OBJG) ${LDFLAGSG} ${LIBSG} -lomalloc_ndebug ../kernel/mmalloc.og \
+ 	${LD_DYN_FLAGS2} ${LD_LIBC}
+ 
+ iparith.og: iparith.inc iparith.cc
+@@ -784,7 +784,7 @@
+ 
+ ESingularg: mod2.h feOpt.cc version.h emacs.cc \
+            feOptES.inc
+-	${CXXG} ${CXXFLAGSG} ${CPPFLAGS} -DESINGULAR -g ${DEFSG} -o ESingularg emacs.cc ../kernel/fegetopt.og ${LDFLAGS} ${LIBS} -lomalloc ../kernel/mmalloc.og
++	${CXXG} ${CXXFLAGSG} ${CPPFLAGS} -DESINGULAR -g ${DEFSG} -o ESingularg emacs.cc ../kernel/fegetopt.og ${LDFLAGS} ${LIBS} -lomalloc_ndebug ../kernel/mmalloc.og
+ 
+ ##
+ ## .op files for having -O and -g pg object versions available at the same time
+@@ -849,7 +849,7 @@
+            iparith.op mpsr_Tok.op claptmpl.op tesths.cc version.h 
+ 	(cd ../kernel;make libkernel_p.a;make install;cd ../Singular)
+ 	$(CXXP) ${CXXFLAGSP} ${CXXTEMPLFLAGSP} ${CPPFLAGS} ${DEFSP} -o Singularp${S_EXT} \
+-	tesths.cc iparith.op mpsr_Tok.op claptmpl.op $(OBJP) ${LDFLAGSP} ${LIBSP} -lomalloc ../kernel/mmalloc.op \
++	tesths.cc iparith.op mpsr_Tok.op claptmpl.op $(OBJP) ${LDFLAGSP} ${LIBSP} -lomalloc_ndebug ../kernel/mmalloc.op \
+ 	${LD_DYN_FLAGS2}
+ 
+ iparith.op: iparith.inc iparith.cc
 diff -ruN a/kernel/Makefile.in b/kernel/Makefile.in
 --- a/kernel/Makefile.in	2012-04-17 21:00:08.000000000 +0200
 +++ b/kernel/Makefile.in	2012-07-12 16:51:29.923359810 +0200

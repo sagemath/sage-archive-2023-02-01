@@ -961,6 +961,92 @@ class GraphGenerators():
 
         return cospectral_graphs
 
+    def _read_planar_code(self, code_input):
+        r"""
+        Returns a generator for the plane graphs in planar code format in
+        the file code_input (see [plantri-guide]_).
+
+        INPUT:
+
+        - ``code_input`` - a file containing valid planar code data.
+
+        OUTPUT:
+
+        A generator which will produce the plane graphs as Sage graphs
+        with an embedding set. These will be simple graphs: no loops, no
+        multiple edges, no directed edges.
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.set_embedding`,
+              :meth:`~sage.graphs.generic_graph.GenericGraph.get_embedding` --
+              get/set methods for embeddings.
+
+        EXAMPLES:
+
+        The following create a small planar code file in memory and reads it:  ::
+
+            sage: import StringIO
+            sage: code_input = StringIO.StringIO('>>planar_code<<')
+            sage: code_input.write('>>planar_code<<')
+            sage: for c in [4,2,3,4,0,1,4,3,0,1,2,4,0,1,3,2,0]:
+            ....:     code_input.write('{:c}'.format(c))
+            sage: code_input.seek(0)
+            sage: gen = graphs._read_planar_code(code_input)
+            sage: l = list(gen)
+            sage: l
+            [Graph on 4 vertices]
+            sage: l[0].is_isomorphic(graphs.CompleteGraph(4))
+            True
+            sage: l[0].get_embedding()
+            {1: [2, 3, 4],
+             2: [1, 4, 3],
+             3: [1, 2, 4],
+             4: [1, 3, 2]}
+
+        REFERENCE:
+
+        .. [plantri-guide] http://cs.anu.edu.au/~bdm/plantri/plantri-guide.txt
+        """
+        #start of code to read planar code
+
+        header = code_input.read(15)
+        assert header == '>>planar_code<<', 'Not a valid planar code header'
+
+        #read graph per graph
+        while True:
+            c = code_input.read(1)
+            if len(c)==0:
+                return
+
+            # Each graph is stored in the following way :
+            #
+            # The first character is the number of vertices, followed by
+            # n11,...,n1k,null character,n21,...,n2k',null character, ...
+            #
+            # where the n1* are all neighbors of n1 and all n2* are the
+            # neighbors of n2, ...
+            #
+            # Besides, these neighbors are enumerated in clockwise order.
+            order = ord(c)
+
+            zeroCount = 0
+
+            g = [[] for i in range(order)]
+
+            while zeroCount < order:
+                c = code_input.read(1)
+                if ord(c)==0:
+                    zeroCount += 1
+                else:
+                    g[zeroCount].append(ord(c))
+
+            #construct graph based on g
+            g = {i+1:di for i,di in enumerate(g)}
+            G = graph.Graph(g)
+            G.set_embedding(g)
+            yield(G)
+
     def fullerenes(self, order, ipr=False):
         r"""
         Returns a generator which creates fullerene graphs using

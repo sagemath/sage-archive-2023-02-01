@@ -106,11 +106,7 @@ class MatchingGame(SageObject):
     uses the extended Gale-Shapley algorithm [DI1989]_: ::
 
         sage: m.solve()
-        {'A': ['J'],
-         'C': ['K'],
-         'B': ['M'],
-         'D': ['L'],
-         'K': ['C'],
+        {'K': ['C'],
          'J': ['A'],
          'M': ['B'],
          'L': ['D']}
@@ -164,17 +160,7 @@ class MatchingGame(SageObject):
          7: [-5],
          8: [-4],
          9: [-3],
-        10: [-2],
-        -2: [10],
-        -10: [4],
-        -9: [3],
-        -8: [2],
-        -7: [5],
-        -6: [6],
-        -5: [7],
-        -4: [8],
-        -3: [9],
-        -1: [1]}
+        10: [-2]}
 
 
     It can be shown that the Gale Shapley algorithm will return the stable
@@ -192,16 +178,10 @@ class MatchingGame(SageObject):
         sage: quick_game = MatchingGame([left_dict, right_dict])
         sage: quick_game.solve()
         {'a': ['A'],
-         'A': ['a'],
          'c': ['B'],
-         'b': ['C'],
-         'C': ['b'],
-         'B': ['c']}
+         'b': ['C']}
         sage: quick_game.solve(invert=True)
-        {'a': ['B'],
-         'A': ['c'],
-         'c': ['A'],
-         'b': ['C'],
+        {'A': ['c'],
          'C': ['b'],
          'B': ['a']}
 
@@ -357,7 +337,7 @@ class MatchingGame(SageObject):
             ValueError: Game has not been solved yet
 
             sage: g.solve()
-            {0: [3], 1: [4], 3: [0], 4: [1]}
+            {0: [3], 1: [4]}
             sage: plot(g)
         """
         pl = self.bi_partite()
@@ -384,7 +364,7 @@ class MatchingGame(SageObject):
             ValueError: Game has not been solved yet
 
             sage: g.solve()
-            {0: [3], 1: [4], 3: [0], 4: [1]}
+            {0: [3], 1: [4]}
             sage: g.bi_partite()
             Bipartite graph on 4 vertices
         """
@@ -410,7 +390,7 @@ class MatchingGame(SageObject):
             ...
             ValueError: Game has not been solved yet
             sage: g.solve()
-            {0: [3], 1: [4], 3: [0], 4: [1]}
+            {0: [3], 1: [4]}
             sage: g._is_solved()
         """
         suitor_check = all(s.partner for s in self.suitors)
@@ -569,10 +549,10 @@ class MatchingGame(SageObject):
 
     def _sol_dict(self):
         r"""
-        Creates a dictionary of the stable matching. Keys are the player,
-        values are their partner as a single element list. This is to allow
-        the creation of ``BipartiteGraph`` and is also what is returned when
-        running ``solve``.
+        Creates a dictionary of the stable matching. Keys are both the
+        reviewers and the suitors, values are their partner as a single
+        element list. This is to allow the creation of ``BipartiteGraph``
+        and is also what is returned when running ``solve``.
 
         EXAMPLES::
 
@@ -582,7 +562,7 @@ class MatchingGame(SageObject):
             ....:         4: (1, 0)}
             sage: g = MatchingGame([suit, revr])
             sage: g.solve()
-            {0: [3], 1: [4], 3: [0], 4: [1]}
+            {0: [3], 1: [4]}
             sage: g._sol_dict()
             {0: [3], 1: [4], 3: [0], 4: [1]}
 
@@ -636,7 +616,9 @@ class MatchingGame(SageObject):
         for i, j in zip(self.reviewers, reviewers):
             i.partner = j.partner
 
-        return self._sol_dict()
+        if invert:
+            return {key:self._sol_dict()[key] for key in self.reviewers}
+        return {key:self._sol_dict()[key] for key in self.suitors}
 
 
 class _Player():

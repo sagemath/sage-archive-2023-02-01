@@ -966,6 +966,16 @@ class GraphGenerators():
         Returns a generator for the plane graphs in planar code format in
         the file code_input (see [plantri-guide]_).
 
+        A file with planar code starts with a header ``>>planar_code<<``.
+        After the header each graph is stored in the following way :
+
+        The first character is the number of vertices, followed by
+        n11,...,n1k,null character,n21,...,n2k',null character, ...
+
+        where the n1* are all neighbors of n1 and all n2* are the 
+        neighbors of n2, ...
+        Besides, these neighbors are enumerated in clockwise order.
+
         INPUT:
 
         - ``code_input`` - a file containing valid planar code data.
@@ -984,7 +994,8 @@ class GraphGenerators():
 
         EXAMPLES:
 
-        The following create a small planar code file in memory and reads it:  ::
+        The following example creates a small planar code file in memory and
+        reads it using the ``_read_planar_code`` method:  ::
 
             sage: import StringIO
             sage: code_input = StringIO.StringIO('>>planar_code<<')

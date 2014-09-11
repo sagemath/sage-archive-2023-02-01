@@ -604,6 +604,34 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
 
 class SchemeHomset_points_subscheme_toric_field(SchemeHomset_points_toric_base):
 
+    def _enumerator(self):
+        """
+        Return the most suitable enumerator for points.
+
+        OUTPUT:
+
+        An iterable that yields the coordinates of all points as
+        tuples.
+
+        EXAMPLES::
+
+            sage: P123 = toric_varieties.P2_123(base_ring=GF(3))
+            sage: point_set = P123.point_set()
+            sage: point_set._enumerator()
+            <sage.schemes.toric.points.FiniteFieldPointEnumerator object at 0x...>
+        """
+        ambient = super(
+            SchemeHomset_points_subscheme_toric_field, self
+        )._enumerator()
+        ring = self.domain().base_ring()
+        if ring in FiniteFields():
+            from sage.schemes.toric.points import FiniteFieldSubschemePointEnumerator
+            Enumerator = FiniteFieldSubschemePointEnumerator
+        else:
+            from sage.schemes.toric.points import NaiveSubschemePointEnumerator
+            Enumerator = NaiveSubschemePointEnumerator
+        return Enumerator(self.codomain().defining_polynomials(), ambient)
+
     def __iter__(self):
         """
         Iterate over the points of the variety.
@@ -621,14 +649,29 @@ class SchemeHomset_points_subscheme_toric_field(SchemeHomset_points_toric_base):
             sage: cubic.point_set().cardinality()
             6
         """
-        ambient = super(
-            SchemeHomset_points_subscheme_toric_field, self
-        )._enumerator()
-        X = self.codomain()
-        for p in ambient:
-            try:
-                X._check_satisfies_equations(p)
-            except TypeError:
-                continue
+        for p in self._enumerator():
             yield self(p)
+
+    def cardinality(self):
+        """
+        Return the number of points of the toric variety.
+
+        OUTPUT:
+
+        An integer or infinity. The cardinality of the set of points.
+
+        EXAMPLES::
+
+            sage: P2.<x,y,z> = toric_varieties.P2(base_ring=GF(5))
+            sage: cubic = P2.subscheme([x^3 + y^3 + z^3])
+            sage: list(cubic.point_set())
+            [[0 : 1 : 4], [1 : 0 : 4], [1 : 4 : 0], [1 : 2 : 1], [1 : 1 : 2], [1 : 3 : 3]]
+            sage: cubic.point_set().cardinality()
+            6
+        """
+        try:
+            return self._enumerator().cardinality()
+        except AttributeError:
+            return super(SchemeHomset_points_subscheme_toric_field, self).cardinality()
+
             

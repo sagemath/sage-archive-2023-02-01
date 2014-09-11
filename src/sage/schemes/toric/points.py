@@ -42,6 +42,8 @@ from sage.combinat.cartesian_product import CartesianProduct
 from sage.misc.misc import powerset, prod
 from sage.misc.cachefunc import cached_method
 from sage.rings.arith import gcd
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.parallel.decorate import parallel
 
 
 class InfinitePointEnumerator(object):
@@ -208,7 +210,7 @@ class NaiveFinitePointEnumerator(object):
         EXAMPLES::
 
             sage: fan = NormalFan(ReflexivePolytope(2, 0))
-            sage: X = ToricVariety(fan, base_field=GF(7))
+            sage: X = ToricVariety(fan, base_ring=GF(7))
             sage: X.Chow_group().degree(1)
             C3 x Z
             sage: enum = X.point_set()._naive_enumerator()
@@ -236,7 +238,7 @@ class NaiveFinitePointEnumerator(object):
         EXAMPLES::
 
             sage: fan = NormalFan(ReflexivePolytope(2, 0))
-            sage: X = ToricVariety(fan, base_field=GF(7))
+            sage: X = ToricVariety(fan, base_ring=GF(7))
             sage: X.Chow_group().degree(1)
             C3 x Z
             sage: enum = X.point_set()._naive_enumerator()
@@ -500,7 +502,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
         EXAMPLES::
 
             sage: fan = NormalFan(ReflexivePolytope(2, 0))
-            sage: X = ToricVariety(fan, base_field=GF(7))
+            sage: X = ToricVariety(fan, base_ring=GF(7))
             sage: X.Chow_group().degree(1)
             C3 x Z
             sage: enum = X.point_set()._finite_field_enumerator()
@@ -529,7 +531,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
         EXAMPLES::
 
             sage: fan = NormalFan(ReflexivePolytope(2, 0))
-            sage: X = ToricVariety(fan, base_field=GF(7))
+            sage: X = ToricVariety(fan, base_ring=GF(7))
             sage: X.Chow_group().degree(1)
             C3 x Z
             sage: enum = X.point_set()._finite_field_enumerator()
@@ -656,7 +658,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
         EXAMPLES::
 
             sage: fan = NormalFan(ReflexivePolytope(2, 0))
-            sage: X = ToricVariety(fan, base_field=GF(7))
+            sage: X = ToricVariety(fan, base_ring=GF(7))
             sage: point_set = X.point_set()
             sage: ffe = point_set._finite_field_enumerator()
             sage: cpi = ffe.cone_points_iter()
@@ -713,7 +715,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
             [(0, 0, 1), (1, 0, 0), (0, 1, 0), (0, 1, 1), (1, 0, 1), (1, 1, 0), (1, 1, 1)]
 
             sage: fan = NormalFan(ReflexivePolytope(2, 0))
-            sage: X = ToricVariety(fan, base_field=GF(7))
+            sage: X = ToricVariety(fan, base_ring=GF(7))
             sage: point_set = X.point_set()
             sage: ffe = point_set._finite_field_enumerator()
             sage: list(ffe)
@@ -745,7 +747,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
         EXAMPLES::
 
             sage: fan = NormalFan(ReflexivePolytope(2, 0))
-            sage: X = ToricVariety(fan, base_field=GF(7))
+            sage: X = ToricVariety(fan, base_ring=GF(7))
             sage: point_set = X.point_set()
             sage: ffe = point_set._finite_field_enumerator()
             sage: ffe.cardinality()
@@ -755,3 +757,276 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
         for cone, nonzero_coordinates, cokernel in self.cone_points_iter():
             n += cokernel.cardinality()
         return n
+
+
+class NaiveSubschemePointEnumerator(object):
+
+    def __init__(self, polynomials, ambient):
+        """
+        Point enumerator for algebraic subschemes of toric varieties.
+
+        INPUT:
+        
+        - ``polynomials`` -- list/tuple/iterabel of polynomials. The
+          defining polynomials.
+
+        - ``ambient`` -- enumerator for ambient space points.
+
+        TESTS::
+
+            sage: P2.<x,y,z> = toric_varieties.P2()
+            sage: from sage.schemes.toric.points import NaiveSubschemePointEnumerator
+            sage: ne = NaiveSubschemePointEnumerator(
+            ....:    [x^2+y^2-2*z^2], P2.point_set()._enumerator())
+            sage: next(iter(ne))
+            (1, 1, 1)
+        """
+        self.ambient = ambient
+        self.polynomials = tuple(polynomials)
+
+    def __iter__(self):
+        """
+        Iterate over the distinct points of the toric variety.
+
+        This function does identify orbits under the homogeneous
+        rescalings, and returns precisely one representative per
+        orbit.
+
+        OUTPUT:
+
+        Iterator over points. Each point is represented by a tuple of
+        homogeneous coordinates.
+
+        EXAMPLES::
+
+            sage: P2.<x,y,z> = toric_varieties.P2()
+            sage: from sage.schemes.toric.points import NaiveSubschemePointEnumerator
+            sage: ne = NaiveSubschemePointEnumerator(
+            ....:    [x^2+y^2-2*z^2], P2.point_set()._enumerator())
+            sage: next(iter(ne))
+            (1, 1, 1)
+        """
+        for p in self.ambient:
+            if all(eq(p) == 0 for eq in self.polynomials):
+                yield p
+
+
+class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
+
+    def inhomogeneous_equations(self, ring, nonzero_coordinates, cokernel):
+        """
+        Inhomogenize the defining polynomials
+
+        INPUT:
+
+        - ``ring`` -- the polynomial ring for inhomogeneous
+          coordinates.
+
+        - ``nonzero_coordinates`` -- list of integers. The indices of
+          the non-zero homogeneous coordinates in the patch.
+
+        - ``cokernel`` -- the logs of the nonzero coordinates of
+          all distinct points as a cokernel. See
+          :meth:`FiniteFieldPointEnumerator.cone_points_iter`.
+
+        EXAMPLES::
+
+            sage: R.<s> = QQ[]
+            sage: P2.<x,y,z> = toric_varieties.P2(base_ring=GF(7))
+            sage: X = P2.subscheme([x^3 + 2*y^3 + 3*z^3, x*y*z + x*y^2])
+            sage: point_set = X.point_set()
+            sage: ffe = point_set._enumerator()
+            sage: cone, nonzero_coordinates, cokernel = list(ffe.ambient.cone_points_iter())[5]
+            sage: cone.ambient_ray_indices(), nonzero_coordinates
+            ((2,), [0, 1])
+            sage: ffe.inhomogeneous_equations(R, nonzero_coordinates, cokernel)
+            [2*s^3 + 1, s^2]
+        """
+        nrays = len(self.ambient.rays())
+        z_nonzero = [ring.one()] * len(nonzero_coordinates)
+        for t, v in zip(ring.gens(), cokernel.gens()):
+            for i, exponent in enumerate(v.lift()):
+                z_nonzero[i] *= t**exponent
+        z = [ring.zero()] * nrays
+        for i, value in zip(nonzero_coordinates, z_nonzero):
+            z[i] = value
+        return [poly(z) for poly in self.polynomials]
+
+    def solutions_serial(self, inhomogeneous_equations, log_range):
+        """
+        Iterate over solutions in a range.
+
+        INPUT::
+
+        - ``inhomogeneous_equations`` -- list/tuple/iterable of
+          inhomogeneous equations (i.e. output from
+          :meth:`inhomogeneous_equations`).
+
+        - ``log_range`` -- list/tuple/iterable of integer ranges. One
+          for each inhomogeneous coordinate. The logarithms of the
+          homogeneous coordinates.
+
+        OUTPUT:
+
+        All solutions (as tuple of log inhomogeneous coordinates) in
+        the Cartesian product of the ranges.
+
+        EXAMPLES::
+
+            sage: R.<s> = GF(7)[]
+            sage: P2.<x,y,z> = toric_varieties.P2(base_ring=GF(7))
+            sage: X = P2.subscheme(1)
+            sage: point_set = X.point_set()
+            sage: ffe = point_set._enumerator()
+            sage: ffe.solutions_serial([s^2-1, s^6-s^2], [range(6)])
+            <generator object solutions_serial at 0x...>
+            sage: list(_)
+            [[0], [3]]
+        """
+        from sage.combinat.cartesian_product import CartesianProduct
+        for log_t in CartesianProduct(*log_range):
+            t = self.ambient.exp(log_t)
+            if all(poly(t) == 0 for poly in inhomogeneous_equations):
+                yield log_t
+
+    def solutions(self, inhomogeneous_equations, log_range):
+        """
+        Parallel version of :meth:`solutions_serial`
+
+        INPUT/OUTPUT:
+
+        Same as :meth:`solutions_serial`, except that the output
+        points are in random order. Order depends on the number of
+        processors and relative speed of separate processes.
+
+        EXAMPLES::
+
+            sage: R.<s> = GF(7)[]
+            sage: P2.<x,y,z> = toric_varieties.P2(base_ring=GF(7))
+            sage: X = P2.subscheme(1)
+            sage: point_set = X.point_set()
+            sage: ffe = point_set._enumerator()
+            sage: ffe.solutions([s^2-1, s^6-s^2], [range(6)])
+            <generator object solutions at 0x...>
+            sage: sorted(_)
+            [[0], [3]]
+        """
+        # Do simple cases in one process (this includes most doctests)
+        if len(log_range) <= 2:
+            for log_t in self.solutions_serial(inhomogeneous_equations, log_range):
+                yield log_t
+            raise StopIteration
+        # Parallelize the outermost loop of the Cartesian product
+        work = [([[r]] + log_range[1:],) for r in log_range[0]]
+        from sage.parallel.decorate import Parallel
+        parallel = Parallel()
+        def partial_solution(work_range):
+            return list(self.solutions_serial(inhomogeneous_equations, work_range))
+        for partial_result in parallel(partial_solution)(work):
+            for log_t in partial_result[-1]:
+                yield log_t
+
+    def homogeneous_coordinates(self, log_t, nonzero_coordinates, cokernel):
+        """
+        Convert the log of inhomogeneous coordinates back to homogeneous coordinates
+        
+        INPUT:
+
+        - ``log_t`` -- log of inhomogeneous coordinates of a point. 
+
+        - ``nonzero_coordinates`` -- the nonzero homogeneous
+          coordinates in the patch.
+
+        - ``cokernel`` -- the logs of the nonzero coordinates of
+          all distinct points as a cokernel. See
+          :meth:`FiniteFieldPointEnumerator.cone_points_iter`.
+
+        OUTPUT:
+
+        The same point, but as a tuple of homogeneous coordinates.
+
+        EXAMPLES::
+
+            sage: P2.<x,y,z> = toric_varieties.P2(base_ring=GF(7))
+            sage: X = P2.subscheme([x^3 + 2*y^3 + 3*z^3, x*y*z + x*y^2])
+            sage: point_set = X.point_set()
+            sage: ffe = point_set._enumerator()
+            sage: cone, nonzero_coordinates, cokernel = list(ffe.ambient.cone_points_iter())[5]
+            sage: cone.ambient_ray_indices(), nonzero_coordinates
+            ((2,), [0, 1])
+            sage: ffe.homogeneous_coordinates([0], nonzero_coordinates, cokernel)
+            (1, 1, 0)
+            sage: ffe.homogeneous_coordinates([1], nonzero_coordinates, cokernel)
+            (1, 3, 0)
+            sage: ffe.homogeneous_coordinates([2], nonzero_coordinates, cokernel)
+            (1, 2, 0)
+        """
+        z = [self.ambient.ring.zero()] * len(self.ambient.rays())
+        z_nonzero = self.ambient.exp(
+            cokernel.linear_combination_of_smith_form_gens(log_t).lift())
+        for i, value in enumerate(z_nonzero):
+            z[nonzero_coordinates[i]] = value
+        return tuple(z)
+
+    def __iter__(self):
+        """
+        Iterate over the distinct points of the toric variety.
+
+        This function does identify orbits under the homogeneous
+        rescalings, and returns precisely one representative per
+        orbit.
+
+        OUTPUT:
+
+        Iterator over points. Each point is represented by a tuple of
+        homogeneous coordinates.
+
+        EXAMPLES::
+
+            sage: P2.<x,y,z> = toric_varieties.P2(base_ring=GF(7))
+            sage: X = P2.subscheme([x^3 + 2*y^3 + 3*z^3, x*y*z + x*y^2])
+            sage: point_set = X.point_set()
+            sage: ffe = point_set._enumerator()
+            sage: list(ffe)   # indirect doctest
+            [(1, 4, 3), (1, 1, 6), (1, 2, 5)]
+        """ 
+        for cone, nonzero_coordinates, cokernel in self.ambient.cone_points_iter():
+            R = PolynomialRing(self.ambient.ring, cokernel.ngens(), 't')
+            inhomogeneous = self.inhomogeneous_equations(R, nonzero_coordinates, cokernel)
+            for log_t in self.solutions(inhomogeneous, map(range, cokernel.invariants())):
+                yield self.homogeneous_coordinates(log_t, nonzero_coordinates, cokernel)
+
+    def cardinality(self):
+        """
+        Return the cardinality of the point set.
+
+        OUTPUT:
+
+        Integer. The number of points.
+
+        EXAMPLES::
+
+            sage: fan = NormalFan(ReflexivePolytope(2, 0))
+            sage: X.<u,v,w> = ToricVariety(fan, base_ring=GF(7))
+            sage: Y = X.subscheme(u^3 + v^3 + w^3 + u*v*w)
+            sage: point_set = Y.point_set()
+            sage: list(point_set)
+            [[0 : 1 : 3],
+             [1 : 0 : 3],
+             [1 : 3 : 0],
+             [1 : 1 : 6],
+             [1 : 1 : 4],
+             [1 : 3 : 2],
+             [1 : 3 : 5]]
+            sage: ffe = point_set._enumerator()
+            sage: ffe.cardinality()
+            7
+        """
+        n = 0
+        for cone, nonzero_coordinates, cokernel in self.ambient.cone_points_iter():
+            R = PolynomialRing(self.ambient.ring, cokernel.ngens(), 't')
+            inhomogeneous = self.inhomogeneous_equations(R, nonzero_coordinates, cokernel)
+            for log_t in self.solutions(inhomogeneous, map(range, cokernel.invariants())):
+                n += 1
+        return n
+

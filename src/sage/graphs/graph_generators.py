@@ -1258,6 +1258,143 @@ class GraphGenerators():
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
 
+    def plane_graphs(self, order, minimum_degree=None, minimum_connectivity=None,
+                     exact_connectivity=False, only_bipartite=False):
+        r"""
+        Return a generator which creates general plane graphs using
+        the plantri generator (see [plantri]_).
+
+        INPUT:
+
+        - ``order`` - a positive integer smaller than or equal to 64.
+          This specifies the number of vertices in the generated graphs.
+
+        - ``minimum_degree`` - default: ``None`` - a value between 1 and 5,
+          or ``None``. This specifies the minimum degree of the generated
+          graphs. If this is ``None`` and the minimum connectivity is specified,
+          then this is set to the same value as the minimum connectivity.
+          If the minimum connectivity is also equal to ``None``, then this
+          is set to 1.
+
+        - ``minimum_connectivity`` - default: ``None`` - a value between 1
+          and 3, or ``None``. This specifies the minimum connectivity of the
+          generated graphs. If this is ``None`` and the minimum degree is
+          specified, then this is set to the minimum of the minimum degree
+          and 3. If the minimum degree is also equal to ``None``, then this
+          is set to 1.
+
+        - ``exact_connectivity`` - default: ``False`` - if ``True`` only
+          graphs with exactly the specified connectivity will be generated.
+          This option cannot be used with ``minimum_connectivity=3``, or if
+          the minimum connectivity is not explicitely set.
+
+        - ``only_bipartite`` - default: ``False`` - if ``True`` only bipartite
+          graphs will be generated. This option cannot be used for graphs with
+          a minimum degree larger than 3.
+
+        OUTPUT:
+
+        A generator which will produce the general plane graphs as Sage graphs
+        with an embedding set. These will be simple graphs: no loops, no
+        multiple edges, no directed edges.
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.set_embedding`,
+              :meth:`~sage.graphs.generic_graph.GenericGraph.get_embedding` --
+              get/set methods for embeddings.
+
+        EXAMPLES:
+
+        There are 6 plane graphs on 4 vertices:  ::
+
+            sage: gen = graphs.plane_graphs(4)  # optional plantri
+            sage: len(list(gen))  # optional plantri
+            6
+
+        Three of these plane graphs are bipartite:  ::
+
+            sage: gen = graphs.plane_graphs(4, only_bipartite=True)  # optional plantri
+            sage: len(list(gen))  # optional plantri
+            3
+
+        The cycle of length 4 is the only 2-connected bipartite planar graph
+        on 4 vertices: ::
+
+            sage: l = list(graphs.plane_graphs(4, minimum_connectivity=2, only_bipartite=True))  # optional plantri
+            sage: l[0].get_embedding()  # optional plantri
+            {1: [2, 3],
+             2: [1, 4],
+             3: [1, 4],
+             4: [2, 3]}
+
+        REFERENCE:
+
+        .. [plantri] G. Brinkmann and B.D. McKay, Fast generation of planar graphs,
+           MATCH-Communications in Mathematical and in Computer Chemistry, 58(2):323-357, 2007.
+        """
+        from sage.misc.package import is_package_installed
+        if not is_package_installed("plantri"):
+            raise TypeError("the optional plantri package is not installed")
+
+        # number of vertices should be positive
+        if order < 0:
+            raise ValueError("Number of vertices should be positive.")
+
+        # plantri can only output general plane graphs on up to 64 vertices
+        if order > 64:
+            raise ValueError("Number of vertices should be at most 64.")
+
+        if exact_connectivity and minimum_connectivity is None:
+            raise ValueError("Minimum connectivity must be specified to use the exact_connectivity option.")
+
+        # minimum connectivity should be None or a number between 1 and 3
+        if minimum_connectivity is  not None and not (1 <= minimum_connectivity <= 3):
+            raise ValueError("Minimum connectivity should be a number between 1 and 3.")
+
+        # minimum degree should be None or a number between 1 and 5
+        if minimum_degree is  not None and not (1 <= minimum_degree <= 5):
+            raise ValueError("Minimum degree should be a number between 1 and 5.")
+
+        # check combination of values of minimum degree and minimum connectivity
+        if minimum_connectivity is None and minimum_degree is not None:
+            minimum_connectivity = min(3, minimum_degree)
+        elif minimum_connectivity is not None and minimum_degree is None:
+            minimum_degree = minimum_connectivity
+        elif minimum_connectivity is None and minimum_degree is None:
+            minimum_degree, minimum_connectivity = 1, 1
+        elif minimum_degree < minimum_connectivity:
+            raise ValueError("Minimum connectivity can be at most the minimum degree.")
+
+        #exact connectivity is not implemented for minimum connectivity 3
+        if exact_connectivity and minimum_connectivity==3:
+            raise NotImplementedError("Generation of plane graphs with connectivity exactly 3 is not implemented.")
+
+        if only_bipartite and minimum_degree > 3:
+            raise NotImplementedError("Generation of bipartite plane graphs with minimum degree 4 or 5 is not implemented.")
+
+        if order == 0:
+            return
+
+        if order == 1:
+            G = graph.Graph(1)
+            G.set_embedding({0: []})
+            yield(G)
+            return
+
+        command = ('plantri -p' +
+                        ('b' if only_bipartite else '') +
+                        ' -c{}{}'.format(minimum_connectivity, 'x' if exact_connectivity else '') +
+                        ' -m{} {}'.format(minimum_degree, order))
+
+        import subprocess
+        sp = subprocess.Popen(command, shell=True,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, close_fds=True)
+
+        for G in graphs._read_planar_code(sp.stdout):
+            yield(G)
+
 ###########################################################################
 # Basic Graphs
 ###########################################################################

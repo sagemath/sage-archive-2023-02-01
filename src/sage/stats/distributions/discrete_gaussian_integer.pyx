@@ -259,8 +259,10 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
             sage: D = DiscreteGaussianDistributionIntegerSampler(1.0, c=2.5, tau=6, precision="dp")
             sage: l = [D() for _ in xrange(2^18)]
-            sage: min(l)<=-2, max(l)>=6, abs(mean(l)-2.5) < 0.01
+            sage: min(l)<=-1, max(l)>=6, abs(mean(l)-2.5) < 0.01
             (True, True, True)
+            sage: tuple(l.count(i) for i in range(-2,8)) # output random
+            (7, 242, 4519, 34120, 92714, 91700, 33925, 4666, 246, 5)
 
         We plot a histogram::
 

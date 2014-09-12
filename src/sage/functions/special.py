@@ -236,7 +236,7 @@ def _init():
 
         sage: from sage.functions.special import airy_ai
         sage: airy_ai(1.0)
-        0.13529241631288141
+        0.1352924163128814
         sage: sage.functions.special._done
         True
     """
@@ -256,7 +256,7 @@ def meval(x):
 
         sage: from sage.functions.special import airy_ai
         sage: airy_bi(1.0)
-        1.2074235949528713
+        1.207423594952871
     """
     return maxima(x).sage()
 

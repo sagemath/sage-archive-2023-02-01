@@ -3440,7 +3440,7 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
             sage: r=vector([t,t^2,sin(t)])
             sage: vec,answers=r.nintegral(t,0,1)
             sage: vec
-            (0.5, 0.33333333333333337, 0.45969769413186023)
+            (0.5, 0.3333333333333334, 0.4596976941318602)
             sage: type(vec)
             <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
             sage: answers

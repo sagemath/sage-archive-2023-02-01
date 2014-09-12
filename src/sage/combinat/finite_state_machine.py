@@ -4316,6 +4316,25 @@ class FiniteStateMachine(SageObject):
             \node[state, accepting] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
             \path[->] (v0) edge node[rotate=360.00, anchor=south] {$ $} (v1);
             \end{tikzpicture}
+
+        TESTS:
+
+            Check that :trac:`16943` is fixed::
+
+                sage: latex(Transducer(
+                ....:     [(0, 1), (1, 1), (2, 2), (3, 3), (4, 4)]))
+                \begin{tikzpicture}[auto, initial text=, >=latex]
+                \node[state] (v0) at (3.000000, 0.000000) {$0$};
+                \node[state] (v1) at (0.927051, 2.853170) {$1$};
+                \node[state] (v2) at (-2.427051, 1.763356) {$2$};
+                \node[state] (v3) at (-2.427051, -1.763356) {$3$};
+                \node[state] (v4) at (0.927051, -2.853170) {$4$};
+                \path[->] (v0) edge node[rotate=306.00, anchor=south] {$\varepsilon\mid \varepsilon$} (v1);
+                \path[->] (v1) edge[loop above] node {$\varepsilon\mid \varepsilon$} ();
+                \path[->] (v2) edge[loop above] node {$\varepsilon\mid \varepsilon$} ();
+                \path[->] (v3) edge[loop above] node {$\varepsilon\mid \varepsilon$} ();
+                \path[->] (v4) edge[loop above] node {$\varepsilon\mid \varepsilon$} ();
+                \end{tikzpicture}
         """
         def label_rotation(angle, both_directions):
             """
@@ -4330,6 +4349,10 @@ class FiniteStateMachine(SageObject):
                     # if transitions in both directions, the transition to the
                     # left has its label below the transition, otherwise above
                     anchor_label = "north"
+            if hasattr(angle_label, 'n'):
+                # we may need to convert symbolic expressions to floats,
+                # but int does not have .n()
+                angle_label = angle_label.n()
             return "rotate=%.2f, anchor=%s" % (angle_label, anchor_label)
 
         setup_latex_preamble()
@@ -8385,7 +8408,7 @@ class FiniteStateMachine(SageObject):
         Then the expectation of `X_n` is `en+O(1)`, the variance
         of `X_n` is `vn+O(1)` and the covariance of `X_n` and
         the sum of input labels is `cn+O(1)`, cf. [HKW2014]_,
-        Theorem 2.
+        Theorem 3.9.
 
         In the case of non-integer input or output labels, performance
         degrades significantly. For rational input and output labels,
@@ -8394,7 +8417,7 @@ class FiniteStateMachine(SageObject):
         much more efficiently than over the symbolic ring. In fact, we
         compute (parts) of a trivariate generating function where the
         input and output labels are exponents of some indeterminates,
-        see [HKW2014]_, Theorem 2 for details. If those exponents are
+        see [HKW2014]_, Theorem 3.9 for details. If those exponents are
         integers, we can use a polynomial ring.
 
         EXAMPLES:
@@ -8504,7 +8527,7 @@ class FiniteStateMachine(SageObject):
                 sage: moments['covariance']
                 Order(1)
 
-        #.  This is Example 3.1 in [HKW2014]_, where a transducer with
+        #.  This is Example 3.16 in [HKW2014]_, where a transducer with
             variable output labels is given. There, the aim was to
             choose the output labels of this very simple transducer such
             that the input and output sum are asymptotically
@@ -8528,7 +8551,7 @@ class FiniteStateMachine(SageObject):
             Therefore, the asymptotic covariance vanishes if and only if
             `a_2=a_1`.
 
-        #.  This is Example 6.2 in [HKW2014]_, dealing with the
+        #.  This is Example 4.3 in [HKW2014]_, dealing with the
             transducer converting the binary expansion of an integer
             into Gray code (cf. the :wikipedia:`Gray_code` and the
             :ref:`example on Gray code
@@ -8542,7 +8565,7 @@ class FiniteStateMachine(SageObject):
                 sage: moments['covariance']
                 Order(1)
 
-        #.  This is the first part of Example 6.3 in [HKW2014]_,
+        #.  This is the first part of Example 4.4 in [HKW2014]_,
             counting the number of 10 blocks in the standard binary
             expansion. The least significant digit is at the left-most
             position::
@@ -8563,7 +8586,7 @@ class FiniteStateMachine(SageObject):
                 sage: moments['covariance']
                 Order(1)
 
-        #.  This is the second part of Example 6.3 in [HKW2014]_,
+        #.  This is the second part of Example 4.4 in [HKW2014]_,
             counting the number of 11 blocks in the standard binary
             expansion. The least significant digit is at the left-most
             position::
@@ -8588,7 +8611,7 @@ class FiniteStateMachine(SageObject):
                 sage: correlation
                 2/5*sqrt(5)
 
-        #.  This is Example 6.4 in [HKW2014]_, counting the number of
+        #.  This is Example 4.5 in [HKW2014]_, counting the number of
             01 blocks minus the number of 10 blocks in the standard binary
             expansion. The least significant digit is at the left-most
             position::
@@ -8745,13 +8768,13 @@ class FiniteStateMachine(SageObject):
 
         ALGORITHM:
 
-        See [HKW2014]_, Theorem 2.
+        See [HKW2014]_, Theorem 3.9.
 
         REFERENCES:
 
         .. [HKW2014] Clemens Heuberger, Sara Kropf and Stephan Wagner,
-           *Combinatorial Characterization of Independent Transducers via
-           Functional Digraphs*, :arxiv:`1404.3680`.
+           *Variances and Covariances in the Central Limit Theorem for
+           the Output of a Transducer*, :arxiv:`1404.3680v2`.
 
         .. [HP2007] Clemens Heuberger and Helmut Prodinger, *The Hamming
            Weight of the Non-Adjacent-Form under Various Input Statistics*,

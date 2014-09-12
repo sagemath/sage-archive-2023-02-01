@@ -1,235 +1,38 @@
 r"""
-Orthogonal arrays (Recursive constructions)
+Orthogonal arrays (build recursive constructions)
 
-This module implements several functions to find recursive constructions of
-:mod:`Orthogonal Arrays <sage.combinat.designs.orthogonal_arrays>`.
+This module implements several constructions of :mod:`Orthogonal Arrays
+<sage.combinat.designs.orthogonal_arrays>`. As their input can be complex, they
+all have a counterpart in the
+:mod:`~sage.combinat.designs.orthogonal_arrays_find_recursive` module that
+automatically computes it.
 
-The main function of this module, i.e. :func:`find_recursive_construction`,
-queries all implemented recursive constructions of designs. It is used by
-Sage's function
-:func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`.
+All these constructions are automatically queried when the
+:func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array` function is
+called.
 
-REFERENCES:
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
 
-.. [AC07] Concerning eight mutually orthogonal latin squares
-  Julian R. Abel, Nicholas Cavenagh
-  Journal of Combinatorial Designs
-  Vol. 15, n.3, pp. 255-261
-  2007
+    :func:`simple_wilson_construction` | Return an `OA(k,rm + \sum u_i)` from Wilson construction.
+    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_3` | Return an `OA(k,nm+i)`.
+    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_4` | Return a `OA(k,nm+rs)`.
+    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_5` | Return an `OA(k,nm+r+s+t)`.
+    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_6` | Return a `OA(k,nm+i)`.
+    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_q_x` | Return an `OA(k,(q-1)*(q-x)+x+2)` using the `q-x` construction.
+    :func:`OA_and_oval` | Return a `OA(q+1,q)` whose blocks contains `\leq 2` zeroes in the last `q` columns.
+    :func:`thwart_lemma_3_5` | Returns an `OA(k,nm+a+b+c+d)`.
+    :func:`thwart_lemma_4_1` | Returns an `OA(k,nm+4(n-2))`.
+    :func:`three_factor_product` | Returns an `OA(k+1,n_1n_2n_3)`.
+    :func:`brouwer_separable_design` | Returns a `OA(k,t(q^2+q+1)+x)` using Brouwer's result on separable designs.
 
 Functions
 ---------
 """
-from sage.misc.cachefunc import cached_function
-from orthogonal_arrays import orthogonal_array
-from designs_pyx import is_orthogonal_array
 
-@cached_function
-def find_recursive_construction(k,n):
-    r"""
-    Find a recursive construction of a `OA(k,n)`
-
-    This determines whether an `OA(k,n)` can be built through the following
-    constructions:
-
-    - :func:`simple_wilson_construction` (0, 1 or 2 truncated columns)
-    - :func:`construction_3_3`
-    - :func:`construction_3_4`
-    - :func:`construction_3_5`
-    - :func:`construction_3_6`
-    - :func:`construction_q_x`
-    - :func:`thwart_lemma_3_5`
-    - :func:`thwart_lemma_4_1`
-    - :func:`three_factor_product`
-    - :func:`brouwer_separable_design`
-
-    INPUT:
-
-    - ``k,n`` (integers)
-
-    OUTPUT:
-
-    Return a pair ``f,args`` such that ``f(*args)`` returns the requested `OA`
-    if possible, and ``False`` otherwise.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_recursive_construction
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
-        sage: count = 0
-        sage: for n in range(10,150):
-        ....:     k = designs.orthogonal_array(None,n,existence=True)
-        ....:     if find_recursive_construction(k,n):
-        ....:         count = count + 1
-        ....:         f,args = find_recursive_construction(k,n)
-        ....:         OA = f(*args)
-        ....:         assert is_orthogonal_array(OA,k,n,2,verbose=True)
-        sage: print count
-        56
-    """
-    assert k > 3
-
-    for find_c in [find_product_decomposition,
-                   find_wilson_decomposition_with_one_truncated_group,
-                   find_wilson_decomposition_with_two_truncated_groups,
-                   find_construction_3_3,
-                   find_construction_3_4,
-                   find_construction_3_5,
-                   find_construction_3_6,
-                   find_q_x,
-                   find_thwart_lemma_3_5,
-                   find_thwart_lemma_4_1,
-                   find_three_factor_product,
-                   find_brouwer_separable_design]:
-        res = find_c(k,n)
-        if res:
-            return res
-    return False
-
-def find_product_decomposition(k,n):
-    r"""
-    Look for a factorization of `n` in order to build an `OA(k,n)`.
-
-    If Sage can build a `OA(k,n_1)` and a `OA(k,n_2)` such that `n=n_1\times
-    n_2` then a `OA(k,n)` can be built by a product construction (which
-    correspond to Wilson's construction with no truncated column). This
-    function look for a pair of integers `(n_1,n_2)` with `n1 \leq n_2`, `n_1
-    \times n_2 = n` and such that both an `OA(k,n_1)` and an `OA(k,n_2)` are
-    available.
-
-    INPUT:
-
-    - ``k,n`` (integers) -- see above.
-
-    OUTPUT:
-
-    A pair ``f,args`` such that ``f(*args)`` is an `OA(k,n)` or ``False`` if no
-    product decomposition was found.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_product_decomposition
-        sage: f,args = find_product_decomposition(6, 84)
-        sage: args
-        (6, 7, 12, ())
-        sage: _ = f(*args)
-    """
-    from sage.rings.arith import divisors
-    for n1 in divisors(n)[1:-1]: # we ignore 1 and n
-        n2 = n//n1  # n2 is decreasing along the loop
-        if n2 < n1:
-            break
-        if orthogonal_array(k, n1, existence=True) and orthogonal_array(k, n2, existence=True):
-            return simple_wilson_construction, (k,n1,n2,())
-    return False
-
-def find_wilson_decomposition_with_one_truncated_group(k,n):
-    r"""
-    Helper function for Wilson's construction with one truncated column.
-
-    This function looks for possible integers `m,t,u` satisfying that `mt+u=n` and
-    such that Sage knows how to build a `OA(k,m)`, `OA(k,m+1)`, `OA(k+1,t)` and a
-    `OA(k,u)`.
-
-    INPUT:
-
-    - ``k,n`` (integers) -- see above
-
-    OUTPUT:
-
-    A pair ``f,args`` such that ``f(*args)`` is an `OA(k,n)` or ``False`` if no
-    decomposition with one truncated block was found.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_wilson_decomposition_with_one_truncated_group
-        sage: f,args = find_wilson_decomposition_with_one_truncated_group(4,38)
-        sage: args
-        (4, 5, 7, (3,))
-        sage: _ = f(*args)
-
-        sage: find_wilson_decomposition_with_one_truncated_group(4,20)
-        False
-    """
-    # If there exists a TD(k+1,t) then k+1 < t+2, i.e. k <= t
-    for r in range(max(1,k),n-1):
-        u = n%r
-        # We ensure that 1<=u, and that there can exists a TD(k,u), i.e k<u+2
-        # (unless u == 1)
-        if u == 0 or (u>1 and k >= u+2):
-            continue
-
-        m = n//r
-        # If there exists a TD(k,m) then k<m+2
-        if k >= m+2:
-            break
-
-        if (orthogonal_array(k  ,m  , existence=True) and
-            orthogonal_array(k  ,m+1, existence=True) and
-            orthogonal_array(k+1,r  , existence=True) and
-            orthogonal_array(k  ,u  , existence=True)):
-            return simple_wilson_construction, (k,r,m,(u,))
-
-    return False
-
-def find_wilson_decomposition_with_two_truncated_groups(k,n):
-    r"""
-    Helper function for Wilson's construction with two trucated columns.
-
-    Look for integers `r,m,r_1,r_2` satisfying `n=rm+r_1+r_2` and `1\leq r_1,r_2<r`
-    and such that the following designs exist : `OA(k+2,r)`, `OA(k,r1)`,
-    `OA(k,r2)`, `OA(k,m)`, `OA(k,m+1)`, `OA(k,m+2)`.
-
-    INPUT:
-
-    - ``k,n`` (integers) -- see above
-
-    OUTPUT:
-
-    A pair ``f,args`` such that ``f(*args)`` is an `OA(k,n)` or ``False`` if no
-    decomposition with two truncated blocks was found.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_wilson_decomposition_with_two_truncated_groups
-        sage: f,args = find_wilson_decomposition_with_two_truncated_groups(5,58)
-        sage: args
-        (5, 7, 7, (4, 5))
-        sage: _ = f(*args)
-    """
-    for r in [1] + range(k+1,n-2): # as r*1+1+1 <= n and because we need
-                                   # an OA(k+2,r), necessarily r=1 or r >= k+1
-        if not orthogonal_array(k+2,r,existence=True):
-            continue
-        m_min = (n - (2*r-2))//r
-        m_max = (n - 2)//r
-        if m_min > 1:
-            m_values = range(max(m_min,k-1), m_max+1)
-        else:
-            m_values = [1] + range(k-1, m_max+1)
-        for m in m_values:
-            r1_p_r2 = n-r*m # the sum of r1+r2
-                            # it is automatically >= 2 since m <= m_max
-            if (r1_p_r2 > 2*r-2 or
-                not orthogonal_array(k,m  ,existence=True) or
-                not orthogonal_array(k,m+1,existence=True) or
-                not orthogonal_array(k,m+2,existence=True)):
-                continue
-
-            r1_min = r1_p_r2 - (r-1)
-            r1_max = min(r-1, r1_p_r2)
-            if r1_min > 1:
-                r1_values = range(max(k-1,r1_min), r1_max+1)
-            else:
-                r1_values = [1] + range(k-1, r1_max+1)
-            for r1 in r1_values:
-                if not orthogonal_array(k,r1,existence=True):
-                    continue
-                r2 = r1_p_r2-r1
-                if orthogonal_array(k,r2,existence=True):
-                    assert n == r*m+r1+r2
-                    return simple_wilson_construction, (k,r,m,(r1,r2))
-    return False
+from orthogonal_arrays import orthogonal_array, wilson_construction, is_orthogonal_array
 
 def simple_wilson_construction(k,r,m,u):
     r"""
@@ -246,9 +49,13 @@ def simple_wilson_construction(k,r,m,u):
         As soon as wilson construction accepts an empty master design we should
         remove this intermediate functions.
 
+    .. SEEALSO::
+
+        :func:`~sage.combinat.designs.orthogonal_arrays.wilson_construction`
+
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import simple_wilson_construction
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import simple_wilson_construction
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
 
         sage: OA = simple_wilson_construction(6,7,12,())
@@ -263,7 +70,7 @@ def simple_wilson_construction(k,r,m,u):
         sage: is_orthogonal_array(OA,5,58)
         True
     """
-    from sage.combinat.designs.orthogonal_arrays import wilson_construction, OA_relabel
+    from sage.combinat.designs.orthogonal_arrays import OA_relabel
 
     n = r*m + sum(u)
     n_trunc = len(u)
@@ -275,42 +82,6 @@ def simple_wilson_construction(k,r,m,u):
 
     return wilson_construction(OA,k,r,m,n_trunc,u,False)
 
-def find_construction_3_3(k,n):
-    r"""
-    Finds a decomposition for construction 3.3 from [AC07]_
-
-    INPUT:
-
-    - ``k,n`` (integers)
-
-    .. SEEALSO::
-
-        :func:`construction_3_3`
-
-    OUTPUT:
-
-    A pair ``f,args`` such that ``f(*args)`` returns the requested OA.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_construction_3_3
-        sage: find_construction_3_3(11,177)[1]
-        (11, 11, 16, 1)
-        sage: find_construction_3_3(12,11)
-    """
-    for mm in range(k-1,n//2+1):
-        if (not orthogonal_array(k ,mm  , existence=True) or
-            not orthogonal_array(k ,mm+1, existence=True)):
-            continue
-
-        for nn in range(2,n//mm+1):
-            i = n-nn*mm
-            if i<=0:
-                continue
-
-            if (orthogonal_array(k+i, nn  , existence=True) and
-                orthogonal_array(k  , mm+i, existence=True)):
-                return construction_3_3, (k,nn,mm,i)
 
 def construction_3_3(k,n,m,i):
     r"""
@@ -331,12 +102,12 @@ def construction_3_3(k,n,m,i):
 
     .. SEEALSO::
 
-        :func:`find_construction_3_3`
+        :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_construction_3_3`
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_construction_3_3
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import construction_3_3
+        sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_construction_3_3
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import construction_3_3
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: k=11;n=177
         sage: is_orthogonal_array(construction_3_3(*find_construction_3_3(k,n)[1]),k,n,2)
@@ -355,47 +126,6 @@ def construction_3_3(k,n,m,i):
     OA.extend(OA_relabel(orthogonal_array(k,m+i),k,m+i,matrix=matrix))
     assert is_orthogonal_array(OA,k,n*m+i)
     return OA
-
-def find_construction_3_4(k,n):
-    r"""
-    Finds a decomposition for construction 3.4 from [AC07]_
-
-    INPUT:
-
-    - ``k,n`` (integers)
-
-    .. SEEALSO::
-
-        :func:`construction_3_4`
-
-    OUTPUT:
-
-    A pair ``f,args`` such that ``f(*args)`` returns the requested OA.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_construction_3_4
-        sage: find_construction_3_4(8,196)[1]
-        (8, 25, 7, 12, 9)
-        sage: find_construction_3_4(9,24)
-    """
-    for mm in range(k-1,n//2+1):
-        if (not orthogonal_array(k,mm+0,existence=True) or
-            not orthogonal_array(k,mm+1,existence=True) or
-            not orthogonal_array(k,mm+2,existence=True)):
-            continue
-
-        for nn in range(2,n//mm+1):
-            i = n-nn*mm
-            if i<=0:
-                continue
-
-            for s in range(1,min(i,nn)):
-                r = i-s
-                if (orthogonal_array(k+r+1,nn,existence=True) and
-                    orthogonal_array(k    , s,existence=True) and
-                    (orthogonal_array(k,mm+r,existence=True) or orthogonal_array(k,mm+r+1,existence=True))):
-                    return construction_3_4, (k,nn,mm,r,s)
 
 def construction_3_4(k,n,m,r,s):
     r"""
@@ -425,12 +155,12 @@ def construction_3_4(k,n,m,r,s):
 
     .. SEEALSO::
 
-        :func:`find_construction_3_4`
+        :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_construction_3_4`
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_construction_3_4
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import construction_3_4
+        sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_construction_3_4
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import construction_3_4
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: k=8;n=196
         sage: is_orthogonal_array(construction_3_4(*find_construction_3_4(k,n)[1]),k,n,2)
@@ -447,7 +177,7 @@ def construction_3_4(k,n,m,r,s):
         matrix[i][B0[i]] = 0
 
     # Last column
-    if orthogonal_array(k,m+r,existence=True):
+    if   orthogonal_array(k, m+r  ,existence=True):
         last_group = [x for x in range(s+1) if x != B0[-1]][:s]
     elif orthogonal_array(k,m+r+1,existence=True):
         last_group = [x for x in range(s+1) if x != B0[-1]][:s-1] + [B0[-1]]
@@ -460,54 +190,6 @@ def construction_3_4(k,n,m,r,s):
     OA = OA_relabel(master_design,k+r+1,n, matrix=matrix)
     OA = wilson_construction(OA,k,n,m,r+1,[1]*r+[s],check=False)
     return OA
-
-def find_construction_3_5(k,n):
-    r"""
-    Finds a decomposition for construction 3.5 from [AC07]_
-
-    INPUT:
-
-    - ``k,n`` (integers)
-
-    .. SEEALSO::
-
-        :func:`construction_3_5`
-
-    OUTPUT:
-
-    A pair ``f,args`` such that ``f(*args)`` returns the requested OA.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_construction_3_5
-        sage: find_construction_3_5(8,111)[1]
-        (8, 13, 6, 11, 11, 11)
-        sage: find_construction_3_5(9,24)
-    """
-    from sage.combinat.integer_list import IntegerListsLex
-
-    for mm in range(2,n//2+1):
-        if (mm+3 >= n or
-            not orthogonal_array(k,mm+1,existence=True) or
-            not orthogonal_array(k,mm+2,existence=True) or
-            not orthogonal_array(k,mm+3,existence=True)):
-            continue
-
-        for nn in range(2,n//mm+1):
-            i = n-nn*mm
-            if i<=0:
-                continue
-
-            if not orthogonal_array(k+3,nn,existence=True):
-                continue
-
-            for r,s,t in IntegerListsLex(i,length=3,ceiling=[nn-1,nn-1,nn-1]):
-                if (r <= s and
-                    (nn-r-1)*(nn-s) < t and
-                    (r==0 or orthogonal_array(k,r,existence=True)) and
-                    (s==0 or orthogonal_array(k,s,existence=True)) and
-                    (t==0 or orthogonal_array(k,t,existence=True))):
-                    return construction_3_5, (k,nn,mm,r,s,t)
 
 def construction_3_5(k,n,m,r,s,t):
     r"""
@@ -531,12 +213,12 @@ def construction_3_5(k,n,m,r,s,t):
 
     .. SEEALSO::
 
-        :func:`find_construction_3_5`
+        :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_construction_3_5`
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_construction_3_5
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import construction_3_5
+        sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_construction_3_5
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import construction_3_5
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: k=8;n=111
         sage: is_orthogonal_array(construction_3_5(*find_construction_3_5(k,n)[1]),k,n,2)
@@ -585,46 +267,6 @@ def construction_3_5(k,n,m,r,s,t):
     OA = wilson_construction(OA,k,q,m,3,[r,s,t], check=False)
     return OA
 
-def find_construction_3_6(k,n):
-    r"""
-    Finds a decomposition for construction 3.6 from [AC07]_
-
-    INPUT:
-
-    - ``k,n`` (integers)
-
-    .. SEEALSO::
-
-        :func:`construction_3_6`
-
-    OUTPUT:
-
-    A pair ``f,args`` such that ``f(*args)`` returns the requested OA.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_construction_3_6
-        sage: find_construction_3_6(8,95)[1]
-        (8, 13, 7, 4)
-        sage: find_construction_3_6(8,98)
-    """
-    from sage.rings.arith import is_prime_power
-
-    for mm in range(k-1,n//2+1):
-        if (not orthogonal_array(k,mm+0,existence=True) or
-            not orthogonal_array(k,mm+1,existence=True) or
-            not orthogonal_array(k,mm+2,existence=True)):
-            continue
-
-        for nn in range(2,n//mm+1):
-            i = n-nn*mm
-            if i<=0:
-                continue
-
-            if (is_prime_power(nn) and
-                orthogonal_array(k+i,nn,existence=True)):
-                return construction_3_6, (k,nn,mm,i)
-
 def construction_3_6(k,n,m,i):
     r"""
     Return a `OA(k,nm+i)`
@@ -642,13 +284,14 @@ def construction_3_6(k,n,m,i):
 
     .. SEEALSO::
 
-        - :func:`construction_3_6`
+        - :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_construction_3_6`
+
         - :func:`OA_and_oval`
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_construction_3_6
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import construction_3_6
+        sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_construction_3_6
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import construction_3_6
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: k=8;n=95
         sage: is_orthogonal_array(construction_3_6(*find_construction_3_6(k,n)[1]),k,n,2)
@@ -681,12 +324,12 @@ def OA_and_oval(q):
 
     .. NOTE::
 
-            This function is called by :func:`construction_3_6`, an
-            implementation of Construction 3.6 from [AC07]_.
+        This function is called by :func:`construction_3_6`, an implementation
+        of Construction 3.6 from [AC07]_.
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import OA_and_oval
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import OA_and_oval
         sage: _ = OA_and_oval
 
     """
@@ -809,14 +452,14 @@ def construction_q_x(k,q,x,check=True):
 
     .. SEEALSO::
 
-        - :func:`find_q_x`
+        - :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_q_x`
         - :func:`~sage.combinat.designs.block_design.projective_plane`
         - :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`
         - :func:`~sage.combinat.designs.orthogonal_arrays.OA_from_PBD`
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import construction_q_x
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import construction_q_x
         sage: _ = construction_q_x(9,16,6)
 
     REFERENCES:
@@ -879,180 +522,6 @@ def construction_q_x(k,q,x,check=True):
 
     return OA
 
-def find_q_x(k,n):
-    r"""
-    Find integers `q,x` such that the `q-x` construction yields an `OA(k,n)`.
-
-    See the documentation of :func:`construction_q_x` to find out what
-    hypotheses the integers `q,x` must satisfy.
-
-    .. WARNING::
-
-        For efficiency reasons, this function checks that Sage can build an
-        `OA(k+1,q-x-1)` and an `OA(k+1,q-x+1)`, which is stronger than checking
-        that Sage can build a `OA(k,q-x-1)-(q-x-1).OA(k,1)` and a
-        `OA(k,q-x+1)-(q-x+1).OA(k,1)`. The latter would trigger a lot of
-        independent set computations in
-        :func:`sage.combinat.designs.orthogonal_arrays.incomplete_orthogonal_array`.
-
-    INPUT:
-
-    - ``k,n`` (integers)
-
-    .. SEEALSO::
-
-        :func:`construction_q_x`
-
-    EXAMPLE::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_q_x
-        sage: find_q_x(10,9)
-        False
-        sage: find_q_x(9,158)[1]
-        (9, 16, 6)
-    """
-    from sage.rings.arith import is_prime_power
-    # n = (q-1)*(q-x) + x + 2
-    #   = q^2 - q*x - q + 2*x + 2
-
-    for q in range(max(3,k+2),n):
-        # n-q**2+q-2 = 2x-qx
-        #            = x(2-q)
-        x = (n-q**2+q-2)//(2-q)
-        if (x < q and
-            0 < x and
-            n == (q-1)*(q-x)+x+2 and
-            is_prime_power(q) and
-            orthogonal_array(k+1,q-x-1,existence=True) and
-            orthogonal_array(k+1,q-x+1,existence=True) and
-            # The next is always True, because q is a prime power
-            # orthogonal_array(k+1,q,existence=True) and
-            orthogonal_array(k, x+2 ,existence=True)):
-            return construction_q_x, (k,q,x)
-    return False
-
-def find_thwart_lemma_3_5(k,N):
-    r"""
-    A function to find the values for which one can apply the
-    Lemma 3.5 from [Thwarts]_.
-
-    OUTPUT:
-
-    A pair ``(f,args)`` such that ``f(*args)`` returns an `OA(k,n)` or ``False``
-    if the construction is not available.
-
-    .. SEEALSO::
-
-        :func:`thwart_lemma_3_5`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_thwart_lemma_3_5
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-
-        sage: f,args = find_thwart_lemma_3_5(7,66)
-        sage: args
-        (7, 9, 7, 1, 1, 1, 0, False)
-        sage: OA = f(*args)
-        sage: is_orthogonal_array(OA,7,66,2)
-        True
-
-        sage: f,args = find_thwart_lemma_3_5(6,100)
-        sage: args
-        (6, 8, 10, 8, 7, 5, 0, True)
-        sage: OA = f(*args)
-        sage: is_orthogonal_array(OA,6,100,2)
-        True
-
-    Some values from [Thwarts]_::
-
-        sage: kn = ((10,1046), (10,1048), (10,1059), (11,1524),
-        ....:       (11,2164), (12,3362), (12,3992),  (12,3994))
-        sage: for k,n in kn:
-        ....:     print k,n,find_thwart_lemma_3_5(k,n)[1]
-        10 1046 (10, 13, 79, 9, 1, 0, 9, False)
-        10 1048 (10, 13, 79, 9, 1, 0, 11, False)
-        10 1059 (10, 13, 80, 9, 1, 0, 9, False)
-        11 1524 (11, 19, 78, 16, 13, 13, 0, True)
-        11 2164 (11, 27, 78, 23, 19, 16, 0, True)
-        12 3362 (12, 16, 207, 13, 13, 11, 13, True)
-        12 3992 (12, 19, 207, 16, 13, 11, 19, True)
-        12 3994 (12, 19, 207, 16, 13, 13, 19, True)
-
-        sage: for k,n in kn:                                                     # not tested -- too long
-        ....:     assert designs.orthogonal_array(k,n,existence=True) is True    # not tested -- too long
-    """
-    from sage.rings.arith import prime_powers
-
-    k = int(k)
-    N = int(N)
-
-    for n in prime_powers(k+2,N-2): # There must exist a OA(k+3,n) thus n>=k+2
-                                    # At least 3 columns are nonempty thus n<N-2
-
-        # we look for (m,n,a,b,c,d) with N = mn + a + b + c (+d) and
-        # 0 <= a,b,c,d <= n
-        # hence we have N/n-4 <= m <= N/n
-
-        # 1. look for m,a,b,c,d with complement=False
-        # (we restrict to a >= b >= c)
-        for m in xrange(max(k-1,(N+n-1)//n-4), N//n+1):
-            if not (orthogonal_array(k,m+0,existence=True) and
-                    orthogonal_array(k,m+1,existence=True) and
-                    orthogonal_array(k,m+2,existence=True)):
-                continue
-
-            NN = N - n*m
-            # as a >= b >= c and d <= n we can restrict the start of the loops
-            for a in range(max(0, (NN-n+2)//3), min(n, NN)+1): # (NN-n+2)//3 <==> ceil((NN-n)/3)x
-                if not orthogonal_array(k,a,existence=True):
-                    continue
-                for b in range(max(0, (NN-n-a+1)//2), min(a, n+1-a, NN-a)+1):
-                    if not orthogonal_array(k,b,existence=True):
-                        continue
-                    for c in range(max(0, NN-n-a-b), min(b, n+1-a-b, NN-a-b)+1):
-                        if not orthogonal_array(k,c,existence=True):
-                            continue
-
-                        d = NN - (a + b + c)  # necessarily 0 <= d <= n
-                        if d == 0:
-                            return thwart_lemma_3_5, (k,n,m,a,b,c,0,False)
-                        elif (k+4 <= n+1 and
-                            orthogonal_array(k,d,existence=True) and
-                            orthogonal_array(k,m+3,existence=True)):
-                            return thwart_lemma_3_5, (k,n,m,a,b,c,d,False)
-
-        # 2. look for m,a,b,c,d with complement=True
-        # (we restrict to a >= b >= c)
-        for m in xrange(max(k-2,N//n-4), (N+n-1)//n):
-            if not (orthogonal_array(k,m+1,existence=True) and
-                    orthogonal_array(k,m+2,existence=True) and
-                    orthogonal_array(k,m+3,existence=True)):
-                continue
-
-            NN = N - n*m
-            for a in range(max(0, (NN-n+2)//3), min(n, NN)+1): # (NN-n+2)//3 <==> ceil((NN-n)/3)
-                if not orthogonal_array(k,a,existence=True):
-                    continue
-                na = n-a
-                for b in range(max(0, (NN-n-a+1)//2), min(a, NN-a)+1):
-                    nb = n-b
-                    if na+nb > n+1 or not orthogonal_array(k,b,existence=True):
-                        continue
-                    for c in range(max(0, NN-n-a-b), min(b, NN-a-b)+1):
-                        nc = n-c
-                        if na+nb+nc > n+1 or not orthogonal_array(k,c,existence=True):
-                            continue
-
-                        d = NN - (a + b + c)  # necessarily d <= n
-                        if d == 0:
-                            return thwart_lemma_3_5, (k,n,m,a,b,c,0,True)
-                        elif (k+4 <= n+1 and
-                            orthogonal_array(k,d,existence=True) and
-                            orthogonal_array(k,m+4,existence=True)):
-                            return thwart_lemma_3_5, (k,n,m,a,b,c,d,True)
-
-    return False
 
 def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
     r"""
@@ -1119,9 +588,13 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
     - ``complement`` (boolean) -- whether to complement the sets, i.e. follow
       the `n-a,n-b,n-c` variant described above.
 
+    .. SEEALSO::
+
+        - :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_thwart_lemma_3_5`
+
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import thwart_lemma_3_5
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import thwart_lemma_3_5
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: OA = thwart_lemma_3_5(6,23,7,5,7,8)
         sage: is_orthogonal_array(OA,6,23*7+5+7+8,2)
@@ -1147,7 +620,6 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
     """
     from sage.rings.arith import is_prime_power
     from sage.rings.finite_rings.constructor import FiniteField as GF
-    from sage.combinat.designs.orthogonal_arrays import wilson_construction
 
     if complement:
         a,b,c = n-a,n-b,n-c
@@ -1208,50 +680,6 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False):
 
     return wilson_construction(OA,k,n,m,len(sizes),sizes, check=False)
 
-def find_thwart_lemma_4_1(k,n):
-    r"""
-    Finds a decomposition for Lemma 4.1 from [Thwarts]_.
-
-    INPUT:
-
-    - ``k,n`` (integers)
-
-    .. SEEALSO::
-
-        :func:`thwart_lemma_4_1`
-
-    OUTPUT:
-
-    A pair ``f,args`` such that ``f(*args)`` returns the requested OA.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_thwart_lemma_4_1
-        sage: find_thwart_lemma_4_1(10,408)[1]
-        (10, 13, 28)
-        sage: find_thwart_lemma_4_1(10,50)
-        False
-    """
-    from sage.rings.arith import factor
-    #      n  = nn*mm+4(nn-2)
-    # <=> n+8 = nn(mm+4)
-    #
-    # nn is a prime power dividing n+8
-    for nn in (p**i for p,imax in factor(n+8) for i in range(1,imax+1)):
-        mm = (n+8)//nn-4
-        if (k+4 > nn+1 or
-            mm <= 1 or
-            nn % 3 == 2 or
-            not orthogonal_array(k,nn-2,existence=True) or
-            not orthogonal_array(k,mm+1,existence=True) or
-            not orthogonal_array(k,mm+3,existence=True) or
-            not orthogonal_array(k,mm+4,existence=True)):
-            continue
-
-        return thwart_lemma_4_1,(k,nn,mm)
-
-    return False
-
 def thwart_lemma_4_1(k,n,m):
     r"""
     Returns an `OA(k,nm+4(n-2))`.
@@ -1271,6 +699,10 @@ def thwart_lemma_4_1(k,n,m):
     The affine geometry on 9 points contained in the projective geometry
     `PG(2,n)` is given explicitly in [OS64]_ (Thanks to Julian R. Abel for
     finding the reference!).
+
+    .. SEEALSO::
+
+        - :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_thwart_lemma_4_1`
 
     REFERENCES:
 
@@ -1354,49 +786,6 @@ def thwart_lemma_4_1(k,n,m):
 
     return wilson_construction(OA,k,n,m,4,[n-2,]*4,check=False)
 
-def find_three_factor_product(k,n):
-    r"""
-    Finds a decomposition for a three-factor product from [DukesLing14]_
-
-    INPUT:
-
-    - ``k,n`` (integers)
-
-    .. SEEALSO::
-
-        :func:`three_factor_product`
-
-    OUTPUT:
-
-    A pair ``f,args`` such that ``f(*args)`` returns the requested OA.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_three_factor_product
-        sage: find_three_factor_product(10,648)[1]
-        (9, 8, 9, 9)
-        sage: find_three_factor_product(10,50)
-        False
-    """
-    # we want to write n=n1*n2*n3 where n1<=n2<=n3 and we can build:
-    # - a OA(k-1,n1)
-    # - a OA( k ,n2)
-    # - a OA( k ,n3)
-    from sage.rings.arith import divisors
-    for n1 in divisors(n)[1:-1]:
-        if not orthogonal_array(k-1,n1,existence=True):
-            continue
-        for n2 in divisors(n//n1):
-            n3 = n//n1//n2
-            if (n2<n1 or
-                n3<n2 or
-                not orthogonal_array(k,n2,existence=True) or
-                not orthogonal_array(k,n3,existence=True)):
-                continue
-            return three_factor_product,(k-1,n1,n2,n3)
-
-    return False
-
 def three_factor_product(k,n1,n2,n3,check=False):
     r"""
     Returns an `OA(k+1,n_1n_2n_3)`
@@ -1469,10 +858,14 @@ def three_factor_product(k,n1,n2,n3,check=False):
       while the design is being built. It is disabled by default, as the
       constructor of orthogonal arrays checks the final design anyway.
 
+    .. SEEALSO::
+
+        - :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_three_factor_product`
+
     EXAMPLE::
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import three_factor_product
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import three_factor_product
 
         sage: OA = three_factor_product(4,4,4,4)
         sage: is_orthogonal_array(OA,5,64)
@@ -1651,90 +1044,6 @@ def three_factor_product(k,n1,n2,n3,check=False):
 
     return OA
 
-def find_brouwer_separable_design(k,n):
-    r"""
-    Find integers `t,q,x` such that :func:`brouwer_separable_design` gives a `OA(k,t(q^2+q+1)+x)`.
-
-    INPUT:
-
-    - ``k,n`` (integers)
-
-    The assumptions made on the parameters `t,q,x` are explained in the
-    documentation of :func:`brouwer_separable_design`.
-
-    EXAMPLE::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_brouwer_separable_design
-        sage: find_brouwer_separable_design(5,13)[1]
-        (5, 1, 3, 0)
-        sage: find_brouwer_separable_design(5,14)
-        False
-    """
-    from sage.rings.arith import prime_powers
-    for q in prime_powers(2,n):
-        baer_subplane_size = q**2+q+1
-        if baer_subplane_size > n:
-            break
-        #                       x <= q^2+1
-        # <=>        n-t(q^2+q+1) <= q^2+1
-        # <=>             n-q^2-1 <= t(q^2+q+1)
-        # <=> (n-q^2-1)/(q^2+q+1) <= t
-
-        min_t = (n-q**2-1)//baer_subplane_size
-        max_t = min(n//baer_subplane_size,q**2-q+1)
-
-        for t in range(min_t,max_t+1):
-            x = n - t*baer_subplane_size
-            e1 = int(x != q**2-q-t)
-            e2 = int(x != 1)
-            e3 = int(x != q**2)
-            e4 = int(x != t+q+1)
-
-            # i)
-            if (x == 0 and
-                orthogonal_array(k, t,existence=True)  and
-                orthogonal_array(k,t+q,existence=True)):
-                return brouwer_separable_design, (k,t,q,x)
-
-            # ii)
-            elif (x == t+q and
-                  orthogonal_array(k+e3,  t  ,existence=True) and
-                  orthogonal_array(  k , t+q ,existence=True) and
-                  orthogonal_array(k+1 ,t+q+1,existence=True)):
-                return brouwer_separable_design, (k,t,q,x)
-
-            # iii)
-            elif (x == q**2-q+1-t and
-                  orthogonal_array(  k  ,  x  ,existence=True) and
-                  orthogonal_array( k+e2, t+1 ,existence=True) and
-                  orthogonal_array( k+1 , t+q ,existence=True)):
-                return brouwer_separable_design, (k,t,q,x)
-
-            # iv)
-            elif (x == q**2+1 and
-                  orthogonal_array(  k  ,  x  ,existence=True) and
-                  orthogonal_array( k+e4, t+1 ,existence=True) and
-                  orthogonal_array( k+1 ,t+q+1,existence=True)):
-                return brouwer_separable_design, (k,t,q,x)
-
-            # v)
-            elif (0<x and x<q**2-q+1-t and (e1 or e2) and
-                  orthogonal_array(  k  ,  x  ,existence=True) and
-                  orthogonal_array( k+e1,  t  ,existence=True) and
-                  orthogonal_array( k+e2, t+1 ,existence=True) and
-                  orthogonal_array( k+1 , t+q ,existence=True)):
-                return brouwer_separable_design, (k,t,q,x)
-
-            # vi)
-            elif (t+q<x and x<q**2+1 and (e3 or e4) and
-                  orthogonal_array(  k  ,  x  ,existence=True) and
-                  orthogonal_array( k+e3,  t  ,existence=True) and
-                  orthogonal_array( k+e4, t+1 ,existence=True) and
-                  orthogonal_array( k+1 ,t+q+1,existence=True)):
-                return brouwer_separable_design, (k,t,q,x)
-
-    return False
-
 def _reorder_matrix(matrix):
     r"""
     Return a matrix which is obtained from ``matrix`` by permutation of each row
@@ -1751,7 +1060,7 @@ def _reorder_matrix(matrix):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import _reorder_matrix
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import _reorder_matrix
         sage: N = 4; k = 3
         sage: M = [[0,1,2],[0,1,3],[0,2,3],[1,2,3]]
         sage: M2 = _reorder_matrix(M)
@@ -1917,6 +1226,10 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
     - ``verbose`` (boolean) -- whether to print some information on the
       construction and parameters being used.
 
+    .. SEEALSO::
+
+        - :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_brouwer_separable_design`
+
     REFERENCES:
 
     .. [Brouwer80] A Series of Separable Designs with Application to Pairwise Orthogonal Latin Squares,
@@ -1927,7 +1240,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
     Test all possible cases::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_recursive import brouwer_separable_design
+        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import brouwer_separable_design
         sage: k,q,t=4,4,3; _=brouwer_separable_design(k,q,t,0,verbose=True)
         Case i) with k=4,q=3,t=4,x=0
         sage: k,q,t=3,3,3; _=brouwer_separable_design(k,t,q,t+q,verbose=True,check=True)
@@ -2264,9 +1577,9 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False):
 
     # vi)
     elif (t+q<x and x<q**2+1 and (e3 or e4) and # The result is wrong when e3=e4=0
-          orthogonal_array(k   ,x    ,existence=True) and # d0
-          orthogonal_array(k+e3,t    ,existence=True) and # d1-e3
-          orthogonal_array(k+e4,t+1  ,existence=True) and # d2-e4
+          orthogonal_array(k   ,x   ,existence=True) and # d0
+          orthogonal_array(k+e3,t   ,existence=True) and # d1-e3
+          orthogonal_array(k+e4,t+1 ,existence=True) and # d2-e4
           orthogonal_array(k+1,t+q+1,existence=True)):    # d4-1
         if verbose:
             print "Case vi) with k={},q={},t={},x={},e3={},e4={}".format(k,q,t,x,e3,e4)

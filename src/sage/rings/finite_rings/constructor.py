@@ -437,6 +437,11 @@ class FiniteFieldFactory(UniqueFactory):
                         name = 'x'
                     if modulus is None:
                         modulus = PolynomialRing(FiniteField(p), 'x').gen()
+                    else:
+                        # TODO: remove warning if and when non-'modn'
+                        # implementations allow a custom modulus.
+                        from warnings import warn
+                        warn("the 'modulus' argument is ignored when constructing prime finite fields")
                 check_irreducible = False
             elif arith.is_prime_power(order):
                 if not names is None: name = names

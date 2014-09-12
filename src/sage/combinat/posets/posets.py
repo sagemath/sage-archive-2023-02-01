@@ -1954,6 +1954,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         Return ``True`` if the poset contains a subposet isomorphic to ``other``.
 
+        By subposet we mean that there exist a set ``X`` of elements such
+        that ``self.subposet(X)`` is isomorphic to ``other``.
+
         EXAMPLES::
     
             sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
@@ -1967,6 +1970,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: len([P for P in Posets(5) if P.has_isomorphic_subposet(D)])
             11
+
         """
         if not hasattr(other, 'hasse_diagram'):
             raise ValueError('The input is not a finite poset.')
@@ -2661,6 +2665,9 @@ class FinitePoset(UniqueRepresentation, Parent):
     def isomorphic_subposets_iterator(self, other):
         """Return an iterator over the subposets of `self` isomorphic to `other`.
 
+        By subposet we mean ``self.subposet(X)`` which is isomorphic to ``other``
+        and where ``X`` is a subset of elements of ``self``.
+
         EXAMPLES::
 
             sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
@@ -2674,8 +2681,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. WARNING::
         
-            This function will usually return same subposet several
-            times. This is due to
+            This function will return same subposet as many times as
+            there are automorphism on it. This is due to
             :meth:`~sage.graphs.generic_graph.GenericGraph.subgraph_search_iterator`
             returning labelled subgraphs. On the other hand, this
             function does not eat memory like
@@ -2690,6 +2697,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         Return a list of subposets of `self` isomorphic to `other`.
 
+        By subposet we mean ``self.subposet(X)`` which is isomorphic to ``other``
+        and where ``X`` is a subset of elements of ``self``.
+
         EXAMPLES::
 
             sage: C2=Poset({0:[1]})
@@ -2702,6 +2712,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: N5 = Posets.PentagonPoset()
             sage: len(N5.isomorphic_subposets(D))
             2
+
+        .. note::
+
+            If this function takes too much time, try using :meth:`isomorphic_subposets_iterator`.
+
         """
         if not hasattr(other, 'hasse_diagram'):
             raise ValueError('The input is not a finite poset.')

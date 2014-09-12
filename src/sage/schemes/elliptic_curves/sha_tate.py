@@ -765,8 +765,11 @@ class Sha(SageObject):
 
         Some checks for :trac:`6406` and :trac:`16959`::
 
-            sage: e.sha().p_primary_bound(7)
-            2
+            sage: e.sha().p_primary_bound(7)  # long time
+            Traceback (most recent call last):                           # 32-bit
+            ...                                                          # 32-bit
+            OverflowError: Python int too large to convert to C long     # 32-bit
+            2                                                            # 64-bit
 
             sage: E = EllipticCurve('608b1')
             sage: E.sha().p_primary_bound(5)
@@ -774,7 +777,7 @@ class Sha(SageObject):
             ...
             ValueError: The p-adic Galois representation is not surjective or reducible. Current knowledge about Euler systems does not provide an upper bound in this case. Try an_padic for a conjectural bound.
 
-            sage: E.sha().an_padic(5)
+            sage: E.sha().an_padic(5)           # long time
             1 + O(5^22)
 
             sage: E = EllipticCurve("5040bi1")

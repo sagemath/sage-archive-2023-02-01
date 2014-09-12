@@ -290,7 +290,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
        Hautes Études Sci. Publ. Math. No. 47 (1977), 33--186 (1978).
     .. [Rubin] K. Rubin. The "main conjectures" of Iwasawa theory for
        imaginary quadratic fields. Invent. Math. 103 (1991), no. 1, 25--68.
-    .. [SteinWuthrich] W Stein and C Wuthrich, Algorithms
+    .. [SteinWuthrich] W. Stein and C. Wuthrich, Algorithms
        for the Arithmetic of Elliptic Curves using Iwasawa Theory
        Mathematics of Computation 82 (2013), 1757-1792.
     .. [SteinEtAl] G. Grigorov, A. Jorza, S. Patrikis, W. Stein,

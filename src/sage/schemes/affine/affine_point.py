@@ -285,12 +285,12 @@ class SchemeMorphism_point_affine_finite_field(SchemeMorphism_point_affine_field
 
     def orbit_structure(self,f):
         r"""
-        Every points is preperiodic over a finite field. This funtion returns the pair `[m,n]` where `m` is the
-        preperiod and `n` the period of the point ``self`` by ``f``.
+        Every point is preperiodic over a finite field. This function returns the pair `[m,n]` where `m` is the
+        preperiod and `n` is the period of the point ``self`` by ``f``.
 
         INPUT:
 
-        - ``P`` -- a point in ``self.domain()``
+        - ``f`` -- a :class:`ScemeMorphism_polynomial` with ``self`` in ``f.domain()``
 
         OUTPUT:
 

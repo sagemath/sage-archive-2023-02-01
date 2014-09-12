@@ -1160,8 +1160,8 @@ class SchemeMorphism_point_projective_finite_field(SchemeMorphism_point_projecti
 
     def orbit_structure(self,f):
         r"""
-        Every points is preperiodic over a finite field. This funtion returns the pair `[m,n]` where `m` is the
-        preperiod and `n` the period of the point `P` by ``self``.
+        Every point is preperiodic over a finite field. This function returns the pair `[m,n]` where `m` is the
+        preperiod and `n` is the period of the point ``self`` by ``f``.
 
         INPUT:
 

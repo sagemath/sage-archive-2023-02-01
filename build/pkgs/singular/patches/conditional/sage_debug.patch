@@ -88,3 +88,20 @@ diff -ruN a/kernel/Makefile.in b/kernel/Makefile.in
  LDFLAGS		= @LDFLAGS@
  LD_DYN_FLAGS	= @LD_DYN_FLAGS@
  SFLAGS		= @SFLAGS@
+diff -urN a/Singular/configure b/Singular/configure
+--- a/Singular/configure	2014-09-12 13:46:05.407025116 +0100
++++ b/Singular/configure	2014-09-12 13:55:41.380425935 +0100
+@@ -9047,12 +9047,7 @@
+ 
+ NEED_LIBSG="${NEED_LIBS} -lpthread"
+ 
+-if test "$ac_cv_sizeof_voidp" != 4; then
+-  NEED_LIBS="${NEED_LIBS} -lomalloc -lpthread"
+-else
+-  NEED_LIBS="${NEED_LIBS} -lomalloc_ndebug -lpthread"
+-fi
+-
++NEED_LIBS="${NEED_LIBS} -lomalloc_ndebug -lpthread"
+ 
+ 
+ 

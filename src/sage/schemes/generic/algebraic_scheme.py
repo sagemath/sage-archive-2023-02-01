@@ -2068,76 +2068,50 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
 class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_subscheme_projective):
 
-    def segre_embedding(self,var='u'):
+    def segre_embedding(self, PP = None):
         r"""
         Returns the Segre embedding of ``self`` into the appropriate projective space.
 
         INPUT:
 
-        - ``var`` -- string. The variables names of the new space.
+        -  ``PP`` - (default: None) ambient image projective space;
+            this is constructed if it is not given.
 
         OUTPUT:
 
-        - Subscheme of projective space
+        - Hom -- from self to the appropriate subscheme of projective space
 
-        - Hom -- from self to the appropiate projective space
+        .. TODO::
+
+            Cartesian products with more than two components
 
         EXAMPLES::
 
-            sage: X.<y0,y1,y2,y3,y4,y5> = ProjectiveSpace_cartesian_product(ZZ,[2,2])
-            sage: Y,phi = X.subscheme([]).segre_embedding(); phi
-            Scheme morphism:
-              From: Closed subscheme of Product of Projective Space of dimension 2 over Integer Ring and
-              Projective Space of dimension 2 over Integer Ring defined by:
-              (no polynomials)
-              To:   Closed subscheme of Projective Space of dimension 8 over Integer Ring defined by:
-              -u5*u7 + u4*u8,
-              -u5*u6 + u3*u8,
-              -u4*u6 + u3*u7,
-              -u2*u7 + u1*u8,
-              -u2*u4 + u1*u5,
-              -u2*u6 + u0*u8,
-              -u1*u6 + u0*u7,
-              -u2*u3 + u0*u5,
-              -u1*u3 + u0*u4
-              Defn: Defined by sending (y0 : y1 : y2 , y3 : y4 : y5) to
-                    (y0*y3 : y0*y4 : y0*y5 : y1*y3 : y1*y4 : y1*y5 : y2*y3 : y2*y4 : y2*y5).
-
-            ::
-
-            sage: X.<x,y,z,w,u,v> =ProjectiveSpace_cartesian_product([2,2],QQ)
+            sage: X.<x,y,z,w,u,v> = ProjectiveSpace_cartesian_product([2,2],QQ)
+            sage: P = ProjectiveSpace(QQ,8,'t')
             sage: L = (-w - v)*x + (-w*y - u*z)
             sage: Q = (-u*w - v^2)*x^2 + ((-w^2 - u*w + (-u*v - u^2))*y + (-w^2 - u*v)*z)*x + \
             ((-w^2 - u*w - u^2)*y^2 + (-u*w - v^2)*z*y + (-w^2 + (-v - u)*w)*z^2)
             sage: W = X.subscheme([L,Q])
-            sage: Y,phi = W.segre_embedding()
-            sage: phi(W([0,1,0,0,0,1])).codomain() == Y
+            sage: phi = W.segre_embedding(P)
+            sage: phi.codomain().ambient_space() == P
             True
-
-            ::
-
-            sage: T=ProjectiveSpace_cartesian_product([1,2],CC,'z')
-            sage: T.subscheme([]).segre_embedding()[0]
-            Closed subscheme of Projective Space of dimension 5 over Complex Field
-            with 53 bits of precision defined by:
-              -u2*u4 + u1*u5,
-              -u2*u3 + u0*u5,
-              -u1*u3 + u0*u4
         """
-        #number components=2, need to do some kind of serial embedding for more than 2.
         AS = self.ambient_space()
         N = AS.dimension_relative_components()
         if len(N) > 2:
             raise NotImplementedError("Cannot have more than two components.")
         M = (N[0]+1)*(N[1]+1)-1
-        vars = list(AS.coordinate_ring().variable_names()) + [var + str(i) for i in range(M+1)]
+
+        vars = list(AS.coordinate_ring().variable_names()) + ['u' + str(i) for i in range(M+1)]
         from sage.rings.all import PolynomialRing
         R = PolynomialRing(AS.base_ring(),AS.ngens()+M+1,vars,order='lex')
+
         #set-up the elimination for the segre embedding
         mapping = []
         k = AS.ngens()
         for i in range(N[0]+1):
-            for j in range(N[0]+1,N[0]+1+N[1]+1):
+            for j in range(N[0]+1,N[0]+N[1]+2):
                 mapping.append(R.gen(k)-R(AS.gen(i)*AS.gen(j)))
                 k+=1
 
@@ -2152,18 +2126,26 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
             n=n-1
 
         #create new subscheme
-        from sage.schemes.projective.projective_space import ProjectiveSpace
-        PS = ProjectiveSpace(self.base_ring(),M,R.gens()[AS.ngens():])
-        Y = PS.subscheme(L)
+        if PP is None:
+            from sage.schemes.projective.projective_space import ProjectiveSpace
+            PS = ProjectiveSpace(self.base_ring(),M,R.gens()[AS.ngens():])
+            Y = PS.subscheme(L)
+        else:
+            if PP.dimension_relative()!= M:
+                raise ValueError("Projective Space %s must be dimension %s")%(PP, M)
+            S = PP.coordinate_ring()
+            psi = R.hom([0]*(N[0]+N[1]+2) + list(S.gens()),S)
+            L = [psi(l) for l in L]
+            Y = PP.subscheme(L)
 
         #create embedding for points
         mapping = []
         for i in range(N[0]+1):
-            for j in range(N[0]+1,N[0]+1+N[1]+1):
+            for j in range(N[0]+1,N[0]+N[1]+2):
                 mapping.append(AS.gen(i)*AS.gen(j))
         phi = self.hom(mapping,Y)
 
-        return (Y,phi)
+        return phi
 
     def dimension(self):
         """
@@ -2184,8 +2166,8 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
         try:
             return self.__dimension
         except AttributeError:
-            X,phi = self.segre_embedding()
-            self.__dimension = X.defining_ideal().dimension()-1
+            phi = self.segre_embedding()
+            self.__dimension = phi.codomain().defining_ideal().dimension()-1
             return self.__dimension
 
     def is_smooth(self, point=None):

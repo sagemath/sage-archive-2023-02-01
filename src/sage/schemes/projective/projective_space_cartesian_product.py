@@ -1,10 +1,9 @@
 r"""
 Cartesian product of projective spaces
 
-This class builds on the projective space classes and its point and morphism classes.
+This class builds on the projective space classe and its point and morphism classes.
 
-EXAMPLES: We construct cartesian products projective spaces of various dimensions over the same ring.
-
+EXAMPLES: We construct cartesian products projective spaces of various dimensions over the same ring.::
 
     sage: P1 = ProjectiveSpace(ZZ,1,'x')
     sage: P2 = ProjectiveSpace(ZZ,2,'y')
@@ -18,12 +17,6 @@ We can also construct the product by specifying the dimensions and the base ring
     Product of Projective Space of dimension 1 over Rational Field and
     Projective Space of dimension 2 over Rational Field and Projective Space
     of dimension 3 over Rational Field
-
-TODO:
-
-- should segre embedding be stored or cached since it is an elimination calculation
-
-- P1.cartesian_product(P2) - documentation
 
 AUTHORS:
 
@@ -708,6 +701,106 @@ class ProjectiveSpace_cartesian_product_generic(AmbientSpace):
             return AA,phi
         else:
             return AA
+
+
+    def segre_embedding(self, PP = None):
+        r"""
+        Returns the Segre embedding of ``self`` into the appropriate projective space.
+
+        INPUT:
+
+        -  ``PP`` - (default: None) ambient image projective space;
+            this is constructed if it is not given.
+
+        OUTPUT:
+
+        - Hom -- from self to the appropriate subscheme of projective space
+
+        .. TODO::
+
+            Cartesian products with more than two components
+
+        EXAMPLES::
+
+            sage: X.<y0,y1,y2,y3,y4,y5> = ProjectiveSpace_cartesian_product(ZZ,[2,2])
+            sage: phi = X.segre_embedding(); phi
+             Scheme morphism:
+                  From: Product of Projective Space of dimension 2 over Integer Ring and Projective Space of dimension 2 over Integer Ring
+                  To:   Closed subscheme of Projective Space of dimension 8 over Integer Ring defined by:
+                  -u5*u7 + u4*u8,
+                  -u5*u6 + u3*u8,
+                  -u4*u6 + u3*u7,
+                  -u2*u7 + u1*u8,
+                  -u2*u4 + u1*u5,
+                  -u2*u6 + u0*u8,
+                  -u1*u6 + u0*u7,
+                  -u2*u3 + u0*u5,
+                  -u1*u3 + u0*u4
+                  Defn: Defined by sending (y0 : y1 : y2 , y3 : y4 : y5) to 
+                        (y0*y3 : y0*y4 : y0*y5 : y1*y3 : y1*y4 : y1*y5 : y2*y3 : y2*y4 : y2*y5).
+
+            ::
+
+            sage: T = ProjectiveSpace_cartesian_product([1,2],CC,'z')
+            sage: T.segre_embedding()
+            Scheme morphism:
+                  From: Product of Projective Space of dimension 1 over Complex Field with 53 bits of precision and Projective Space of dimension 2 over Complex Field with 53 bits of precision
+                  To:   Closed subscheme of Projective Space of dimension 5 over Complex Field with 53 bits of precision defined by:
+                  -u2*u4 + u1*u5,
+                  -u2*u3 + u0*u5,
+                  -u1*u3 + u0*u4
+                  Defn: Defined by sending (z0 : z1 , z2 : z3 : z4) to 
+                        (z0*z2 : z0*z3 : z0*z4 : z1*z2 : z1*z3 : z1*z4).
+        """
+        N = self.dimension_relative_components()
+        if len(N) > 2:
+            raise NotImplementedError("Cannot have more than two components.")
+        M = (N[0]+1)*(N[1]+1)-1
+
+        vars = list(self.coordinate_ring().variable_names()) + ['u' + str(i) for i in range(M+1)]
+        from sage.rings.all import PolynomialRing
+        R = PolynomialRing(self.base_ring(),self.ngens()+M+1,vars,order='lex')
+
+        #set-up the elimination for the segre embedding
+        mapping = []
+        k = self.ngens()
+        for i in range(N[0]+1):
+            for j in range(N[0]+1,N[0]+N[1]+2):
+                mapping.append(R.gen(k)-R(self.gen(i)*self.gen(j)))
+                k+=1
+
+        #change the defining ideal of the subscheme into the variables
+        I = R.ideal(list(self.defining_polynomials()) + mapping)
+        J=I.groebner_basis()
+        s=set(R.gens()[:self.ngens()])
+        n=len(J)-1
+        L=[]
+        while s.isdisjoint(J[n].variables()):
+            L.append(J[n])
+            n=n-1
+
+        #create new subscheme
+        if PP is None:
+            from sage.schemes.projective.projective_space import ProjectiveSpace
+            PS = ProjectiveSpace(self.base_ring(),M,R.gens()[self.ngens():])
+            Y = PS.subscheme(L)
+        else:
+            if PP.dimension_relative()!= M:
+                raise ValueError("Projective Space %s must be dimension %s")%(PP, M)
+            S = PP.coordinate_ring()
+            psi = R.hom([0]*(N[0]+N[1]+2) + list(S.gens()),S)
+            L = [psi(l) for l in L]
+            Y = PP.subscheme(L)
+
+        #create embedding for points
+        mapping = []
+        for i in range(N[0]+1):
+            for j in range(N[0]+1,N[0]+N[1]+2):
+                mapping.append(self.gen(i)*self.gen(j))
+        phi = self.hom(mapping,Y)
+
+        return phi
+
 
 class ProjectiveSpace_cartesian_product_point(SchemeMorphism_point):
     r"""

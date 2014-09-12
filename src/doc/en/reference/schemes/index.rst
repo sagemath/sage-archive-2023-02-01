@@ -30,6 +30,7 @@ Schemes
    sage/schemes/projective/projective_morphism
    sage/schemes/projective/projective_rational_point
    sage/schemes/projective/projective_homset
+   sage/schemes/projective/projective_space_cartesian_product
 
    sage/schemes/toric/variety
    sage/schemes/toric/fano_variety

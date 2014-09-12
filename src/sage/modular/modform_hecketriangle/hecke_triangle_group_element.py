@@ -1769,9 +1769,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             else:
                 return cyclic_permutations(L, sgn)
 
-    def reduced_forms(self):
+    def reduced_elements(self):
         r"""
-        Return the cycle of reduced forms in the (primitive)
+        Return the cycle of reduced elements in the (primitive)
         conjugacy class of ``self``.
 
         The method assumes that ``self`` is hyperbolic or parabolic.
@@ -1788,7 +1788,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el = G.V(1)
             sage: el.continued_fraction()
             ((0, 1), (1, 1, 2))
-            sage: R = el.reduced_forms()
+            sage: R = el.reduced_elements()
             sage: R
             [T*S*T*S*T^2*S, T*S*T^2*S*T*S, -T*S*T^(-1)*S*T^(-1)]
             sage: [v.continued_fraction() for v in R]
@@ -1797,7 +1797,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el = G.V(3)*G.V(2)^(-1)*G.V(1)*G.V(6)
             sage: el.continued_fraction()
             ((1,), (3,))
-            sage: R = el.reduced_forms()
+            sage: R = el.reduced_elements()
             sage: [v.continued_fraction() for v in R]
             [((), (3,))]
 
@@ -1828,9 +1828,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         return L
 
-    def simple_forms(self):
+    def simple_elements(self):
         r"""
-        Return all simple forms in the conjugacy class of
+        Return all simple elements in the conjugacy class of
         the primitive part of ``self``.
 
         The method assumes that ``self`` is hyperbolic.
@@ -1846,7 +1846,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el = G.V(2)
             sage: el.continued_fraction()
             ((1,), (2,))
-            sage: R = el.simple_forms()
+            sage: R = el.simple_elements()
             sage: R
             [
             [lam lam]
@@ -1858,7 +1858,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el = G.V(3)*G.V(2)^(-1)*G.V(1)*G.V(6)
             sage: el.continued_fraction()
             ((1,), (3,))
-            sage: R = el.simple_forms()
+            sage: R = el.simple_elements()
             sage: R
             [
             [    2*lam 2*lam + 1]  [      lam 2*lam + 1]
@@ -1870,7 +1870,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el = G.V(1)^2*G.V(2)*G.V(4)
             sage: el.discriminant()
             135*lam + 86
-            sage: R = el.simple_forms()
+            sage: R = el.simple_elements()
             sage: R
             [
             [    3*lam 3*lam + 2]  [8*lam + 3 3*lam + 2]  [5*lam + 2 9*lam + 6]
@@ -1898,7 +1898,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         G = self.parent()
         emb = self.root_extension_embedding(AA)
-        R = self.reduced_forms()
+        R = self.reduced_elements()
         L = []
 
         for r in R:
@@ -1954,7 +1954,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         if self.is_identity() or self.is_elliptic():
             raise NotImplementedError
 
-        R = self.simple_forms()
+        R = self.simple_elements()
         FPS = Set([v.fixed_points()[0] for v in R])
 
         if not extended:
@@ -2368,7 +2368,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el = G.V(2)
             sage: el.is_simple()
             True
-            sage: R = el.simple_forms()
+            sage: R = el.simple_elements()
             sage: [v.is_simple() for v in R]
             [True]
             sage: (fp1, fp2) = R[0].fixed_points(embedded=True)
@@ -2380,7 +2380,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el = G.V(3)*G.V(2)^(-1)*G.V(1)*G.V(6)
             sage: el.is_simple()
             False
-            sage: R = el.simple_forms()
+            sage: R = el.simple_elements()
             sage: [v.is_simple() for v in R]
             [True, True]
             sage: (fp1, fp2) = R[1].fixed_points(embedded=True)
@@ -2390,7 +2390,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el = G.V(1)^2*G.V(2)*G.V(4)
             sage: el.is_simple()
             True
-            sage: R = el.simple_forms()
+            sage: R = el.simple_elements()
             sage: el in R
             True
             sage: [v.is_simple() for v in R]
@@ -2593,11 +2593,11 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         z = PolynomialRing(self.parent().base_ring(), 'z').gen()
 
         L1 = []
-        for v in self.simple_forms():
+        for v in self.simple_elements():
             Q = v.c()*z**2 + (v.d() - v.a())*z - v.b()
             L1.append(Q**(-k/ZZ(2)))
         L2 = []
-        for v in self.inverse().simple_forms():
+        for v in self.inverse().simple_elements():
             Q = v.c()*z**2 + (v.d() - v.a())*z - v.b()
             L2.append(-ZZ(-1)**(k/ZZ(2)) * Q**(-k/ZZ(2)))
 

@@ -348,8 +348,8 @@ Hecke triangle groups and elements:
 
 - **Reduced and simple elements, Hecke-symmetric elements:**
   For primitive conjugacy classes of hyperbolic elements
-  the cycle of reduced forms can be obtain as well as
-  all simple forms. It is also possible to determine
+  the cycle of reduced elements can be obtain as well as
+  all simple elements. It is also possible to determine
   whether a class is Hecke-symmetric.
 
   The case ``n=infinity`` is not properly implemented.
@@ -360,12 +360,12 @@ Hecke triangle groups and elements:
       sage: G = HeckeTriangleGroup(n=5)
 
       sage: el = G.V(1)^2*G.V(2)*G.V(4)
-      sage: R = el.reduced_forms()
+      sage: R = el.reduced_elements()
       sage: [v.continued_fraction() for v in R]
       [((), (2, 1, 1, 4)), ((), (1, 1, 4, 2)), ((), (1, 4, 2, 1)), ((), (4, 2, 1, 1))]
 
       sage: el = G.V(1)^2*G.V(2)*G.V(4)
-      sage: R = el.simple_forms()
+      sage: R = el.simple_elements()
       sage: [v.is_simple() for v in R]
       [True, True, True, True]
       sage: (fp1, fp2) = R[2].fixed_points(embedded=True)
@@ -500,7 +500,7 @@ Hecke triangle groups and elements:
   (number of conjugacy classes for a given discriminant).
 
   It also allows to list all occurring discriminants up
-  to some bound. Or to enlist all reduced/simple forms
+  to some bound. Or to enlist all reduced/simple elements
   resp. their corresponding hyperbolic fixed points
   for the given discriminant.
 
@@ -523,10 +523,10 @@ Hecke triangle groups and elements:
       4
       sage: G.class_representatives(68)
       [-S*T^(-1)*S*T^2*S*T, S*T^(-2)*S*T^(-1)*S*T, T^5*S*T, -T*S*T*S*T^(-4)*S]
-      sage: R = G.reduced_forms(68)
+      sage: R = G.reduced_elements(68)
       sage: uniq([v.is_reduced() for v in R])    # long time
       [True]
-      sage: R = G.simple_forms(68)
+      sage: R = G.simple_elements(68)
       sage: uniq([v.is_simple() for v in R])    # long time
       [True]
       sage: G.element_repr_method("default")
@@ -541,10 +541,10 @@ Hecke triangle groups and elements:
       2
       sage: G.class_representatives(9*G.lam() + 5)
       [T^2*S*T, S*T^(-1)*S*T^(-2)*S]
-      sage: R = G.reduced_forms(9*G.lam() + 5)
+      sage: R = G.reduced_elements(9*G.lam() + 5)
       sage: uniq([v.is_reduced() for v in R])    # long time
       [True]
-      sage: R = G.simple_forms(7*G.lam() + 6)
+      sage: R = G.simple_elements(7*G.lam() + 6)
       sage: for v in R: print v.string_repr("default")
       [lam + 2     lam]
       [    lam       1]

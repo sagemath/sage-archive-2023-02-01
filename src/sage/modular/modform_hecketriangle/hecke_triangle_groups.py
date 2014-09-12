@@ -1289,9 +1289,9 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         return sorted(L, key=AA)
 
     # TODO: non-primitive ones?
-    def reduced_forms(self, D):
+    def reduced_elements(self, D):
         r"""
-        Return all reduced (primitive) forms of discriminant ``D``.
+        Return all reduced (primitive) elements of discriminant ``D``.
         Also see the element method ``is_reduced()`` for more information.
 
         - ``D`` -- An element of the base ring corresponding
@@ -1301,7 +1301,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
             sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: G = HeckeTriangleGroup(n=4)
-            sage: R = G.reduced_forms(D=12)
+            sage: R = G.reduced_elements(D=12)
             sage: R
             [
             [    5  -lam]  [     5 -3*lam]
@@ -1309,7 +1309,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             ]
             sage: [v.continued_fraction() for v in R]
             [((), (1, 3)), ((), (3, 1))]
-            sage: R = G.reduced_forms(D=14)
+            sage: R = G.reduced_elements(D=14)
             sage: R
             [
             [3*lam    -1]  [4*lam    -3]  [ 5*lam     -3]  [ 5*lam     -7]
@@ -1322,13 +1322,13 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         L = self.class_representatives(D=D, primitive=True)
         R = []
         for v in L:
-            R += v.reduced_forms()
+            R += v.reduced_elements()
 
         return R
 
-    def simple_forms(self, D):
+    def simple_elements(self, D):
         r"""
-        Return all simple forms of discriminant ``D``.
+        Return all simple elements of discriminant ``D``.
         Also see the element method ``is_simple()`` for more information.
 
         - ``D`` -- An element of the base ring corresponding
@@ -1338,12 +1338,12 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
             sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: G = HeckeTriangleGroup(n=4)
-            sage: G.simple_forms(D=12)
+            sage: G.simple_elements(D=12)
             [
             [  3 lam]  [  1 lam]
             [lam   1], [lam   3]
             ]
-            sage: G.simple_forms(D=14)
+            sage: G.simple_elements(D=14)
             [
             [2*lam     3]  [  lam     3]  [  lam     1]  [2*lam     1]
             [    1   lam], [    1 2*lam], [    3 2*lam], [    3   lam]
@@ -1353,7 +1353,6 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         L = self.class_representatives(D=D, primitive=True)
         R = []
         for v in L:
-            R += v.simple_forms()
+            R += v.simple_elements()
 
         return R
-

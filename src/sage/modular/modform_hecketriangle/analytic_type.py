@@ -323,7 +323,7 @@ class AnalyticType(FiniteLatticePoset):
     (and analytic types) given by "inclusion". We name the analytic type
     according to its maximal analytic properties.
 
-    EXAMPLES:
+    EXAMPLES::
 
     For `n=3` the quasi form ``el = E6 - E2^3`` has the quasi components ``E6``
     which is ``holomorphic`` and ``E2^3`` which is ``quasi holomorphic``.

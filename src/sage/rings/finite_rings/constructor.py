@@ -317,7 +317,8 @@ class FiniteFieldFactory(UniqueFactory):
     be ignored::
 
         sage: GF(5, modulus="conway")
-        doctest:...: UserWarning: the 'modulus' argument is ignored when constructing prime finite fields
+        doctest:...: UserWarning: the 'modulus' argument is currently ignored when constructing prime finite fields.
+        This may change in the future; see http://trac.sagemath.org/16930 for details.
         Finite Field of size 5
 
     The order of a finite field must be a prime power::
@@ -422,26 +423,21 @@ class FiniteFieldFactory(UniqueFactory):
             if arith.is_prime(order):
                 p = integer.Integer(order)
                 n = integer.Integer(1)
+                if modulus is not None:
+                    from warnings import warn
+                    warn("the 'modulus' argument is currently ignored when constructing prime finite fields.\n"
+                         + "This may change in the future; see http://trac.sagemath.org/16930 for details.")
                 if impl is None:
                     impl = 'modn'
                 if impl == 'modn':
                     name = None
-                    if modulus is not None:
-                        from warnings import warn
-                        warn("the 'modulus' argument is ignored when constructing prime finite fields")
-                        modulus = None
+                    modulus = None
                 else:
                     # We are not using the default 'modn' implementation.
                     # In this case, we need to specify a name and modulus.
                     if name is None:
                         name = 'x'
-                    if modulus is None:
-                        modulus = PolynomialRing(FiniteField(p), 'x').gen()
-                    else:
-                        # TODO: remove warning if and when non-'modn'
-                        # implementations allow a custom modulus.
-                        from warnings import warn
-                        warn("the 'modulus' argument is ignored when constructing prime finite fields")
+                    modulus = PolynomialRing(FiniteField(p), 'x').gen()
                 check_irreducible = False
             elif arith.is_prime_power(order):
                 if not names is None: name = names

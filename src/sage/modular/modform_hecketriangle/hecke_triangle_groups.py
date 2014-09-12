@@ -1356,3 +1356,54 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             R += v.simple_elements()
 
         return R
+
+    def rational_period_functions(self, k, D):
+        r"""
+        Return a list of basic rational period functions of weight ``k`` for discriminant ``D``.
+        The list is expected to be a generating set for all rational period functions of the
+        given weight and discriminant (unknown).
+
+        The method assumes that ``D > 0``.
+        Also see the element method `rational_period_function` for more information.
+
+        - ``k`` -- An even integer, the desired weight of the rational period functions.
+
+        - ``D`` -- An element of the base ring corresponding
+                   to a valid discriminant.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: G = HeckeTriangleGroup(n=4)
+            sage: G.rational_period_functions(k=4, D=12)
+            [(z^4 - 1)/z^4]
+            sage: G.rational_period_functions(k=-2, D=12)
+            [-z^2 + 1, 4*lam*z^2 - 4*lam]
+            sage: G.rational_period_functions(k=2, D=14)
+            [(z^2 - 1)/z^2, 1/z, (24*z^6 - 120*z^4 + 120*z^2 - 24)/(9*z^8 - 80*z^6 + 146*z^4 - 80*z^2 + 9), (24*z^6 - 120*z^4 + 120*z^2 - 24)/(9*z^8 - 80*z^6 + 146*z^4 - 80*z^2 + 9)]
+            sage: G.rational_period_functions(k=-4, D=14)
+            [-z^4 + 1, -16*z^4 + 16, 16*z^4 - 16]
+        """
+
+        try:
+            k = ZZ(k)
+            if not ZZ(2).divides(k):
+                raise TypeError
+        except TypeError:
+            raise ValueError("k={} has to be an even integer!".format(k))
+
+        z = PolynomialRing(self.base_ring(), 'z').gen()
+
+        R = []
+        if k != 0:
+            R.append(ZZ(1) - z**(-k))
+        if k == 2:
+            R.append(z**(-1))
+
+        L = self.class_representatives(D=D, primitive=True)
+        for v in L:
+            rat = v.rational_period_function(k)
+            if rat != 0:
+                R.append(rat)
+
+        return R

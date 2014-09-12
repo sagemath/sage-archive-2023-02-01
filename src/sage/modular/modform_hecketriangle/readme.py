@@ -452,6 +452,13 @@ Hecke triangle groups and elements:
       sage: el.rational_period_function(4) == 0
       True
 
+      sage: G = HeckeTriangleGroup(n=4)
+      sage: G.rational_period_functions(k=4, D=12)
+      [(z^4 - 1)/z^4]
+      sage: G.rational_period_functions(k=2, D=14)
+      [(z^2 - 1)/z^2, 1/z, (24*z^6 - 120*z^4 + 120*z^2 - 24)/(9*z^8 - 80*z^6 + 146*z^4 - 80*z^2 + 9), (24*z^6 - 120*z^4 + 120*z^2 - 24)/(9*z^8 - 80*z^6 + 146*z^4 - 80*z^2 + 9)]
+
+
 - **Block decomposition of elements:**
   For each group element a very specfic conjugacy representative
   can be obtained. For hyperbolic and parabolic elements the

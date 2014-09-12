@@ -1721,11 +1721,8 @@ def load(filename, globals, attach=False):
         sage: sage.misc.preparser.load(t, globals())
         2
     """
-    def exec_file_is(fpath):
-        """ To be run before any exec/execfile call """
-        if attach:
-            from sage.misc.attached_files import add_attached_file
-            add_attached_file(fpath)
+    if attach:
+        from sage.misc.attached_files import add_attached_file
 
     try:
         filename = eval(filename, globals)
@@ -1775,8 +1772,11 @@ def load(filename, globals, attach=False):
                 % filename)
 
     if fpath.endswith('.py'):
-        exec_file_is(fpath)
-        execfile(fpath, globals)
+        if attach:
+            add_attached_file(fpath)
+        with open(fpath) as f:
+            code = compile(f.read(), fpath, 'exec')
+            exec(code, globals)
     elif fpath.endswith('.sage'):
         from sage.misc.attached_files import load_attach_mode
         load_debug_mode, attach_debug_mode = load_attach_mode()
@@ -1785,15 +1785,20 @@ def load(filename, globals, attach=False):
             # code snippets. Use preparse_file_named to make
             # the file name appear in the traceback as well.
             # See Trac 11812.
-            exec_file_is(fpath)
-            execfile(preparse_file_named(fpath), globals)
+            if attach:
+                add_attached_file(fpath)
+            with open(preparse_file_named(fpath)) as f:
+                code = compile(f.read(), preparse_file_named(fpath), 'exec')
+                exec(code, globals)
         else:
             # Preparse in memory only for speed.
-            exec_file_is(fpath)
-            exec preparse_file(open(fpath).read()) + "\n" in globals
+            if attach:
+                add_attached_file(fpath)
+            exec(preparse_file(open(fpath).read()) + "\n", globals)
     elif fpath.endswith('.spyx') or fpath.endswith('.pyx'):
-        exec_file_is(fpath)
-        exec load_cython(fpath) in globals
+        if attach:
+            add_attached_file(fpath)
+        exec(load_cython(fpath), globals)
     elif fpath.endswith('.m'):
         # Assume magma for now, though maybe .m is used by maple and
         # mathematica too, and we should really analyze the file

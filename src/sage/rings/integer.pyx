@@ -251,9 +251,6 @@ cdef set_from_pari_gen(Integer self, pari_gen x):
     # Now we have a true PARI integer, convert it to Sage
     t_INT_to_ZZ(self.value, (<pari_gen>x).g)
 
-cdef mpz_t* get_value(Integer self):
-    return &self.value
-
 
 def _test_mpz_set_longlong(long long v):
     """
@@ -1594,12 +1591,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef void set_from_mpz(Integer self, mpz_t value):
         mpz_set(self.value, value)
 
-    cdef mpz_t* get_value(Integer self):
-        return &self.value
-
     cdef void _to_ZZ(self, ZZ_c *z):
         sig_on()
-        mpz_to_ZZ(z, &self.value)
+        mpz_to_ZZ(z, self.value)
         sig_off()
 
     cpdef ModuleElement _add_(self, ModuleElement right):
@@ -3361,7 +3355,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError, "bound must be positive"
         if mpz_sgn(self.value) == 0:
             raise ValueError, "self must be nonzero"
-        cdef unsigned long n, m=7, i=1, limit, dif[8]
+        cdef unsigned long n, m=7, i=1, limit
+        cdef unsigned long dif[8]
         if start > 7:
             # We need to find i.
             m = start % 30
@@ -6196,32 +6191,7 @@ cdef class long_to_Z(Morphism):
 
 ############### INTEGER CREATION CODE #####################
 
-# We need a couple of internal GMP datatypes.
-
-# This may be potentially very dangerous as it reaches
-# deeply into the internal structure of GMP which may not
-# be consistent across future versions of GMP.
-# See extensive note in the fast_tp_new() function below.
-
 include "sage/ext/python_rich_object.pxi"
-cdef extern from "gmp.h":
-    ctypedef long mp_limb_t
-    ctypedef mp_limb_t* mp_ptr #"mp_ptr"
-
-    # We allocate _mp_d directly (mpz_t is typedef of this in GMP)
-    ctypedef struct __mpz_struct "__mpz_struct":
-        int _mp_alloc
-        int _mp_size
-        mp_ptr _mp_d
-
-    # sets the three free, alloc, and realloc function pointers to the
-    # memory management functions set in GMP. Accepts NULL pointer.
-    # Potentially dangerous if changed by calling
-    # mp_set_memory_functions again after we initialized this module.
-    void mp_get_memory_functions (void *(**alloc) (size_t), void *(**realloc)(void *, size_t, size_t), void (**free) (void *, size_t))
-
-    # GMP's configuration of how many Bits are stuffed into a limb
-    cdef int GMP_LIMB_BITS
 
 # This variable holds the size of any Integer object in bytes.
 cdef int sizeof_Integer
@@ -6231,28 +6201,8 @@ cdef int sizeof_Integer
 cdef Integer global_dummy_Integer
 global_dummy_Integer = Integer()
 
-# Accessing the .value attribute of an Integer object causes Cython to
-# refcount it. This is problematic, because that causes overhead and
-# more importantly an infinite loop in the destructor. If you refcount
-# in the destructor and the refcount reaches zero (which is true
-# every time) the destructor is called.
-#
-# To avoid this we calculate the byte offset of the value member and
-# remember it in this variable.
-#
-# Eventually this may be rendered obsolete by a change in Cython allowing
-# non-reference counted extension types.
-cdef long mpz_t_offset
-mpz_t_offset_python = None
 
-
-# stores the GMP alloc function
-cdef void * (* mpz_alloc)(size_t)
-
-# stores the GMP free function
-cdef void (* mpz_free)(void *, size_t)
-
-# A global  pool for performance when integers are rapidly created and destroyed.
+# A global pool for performance when integers are rapidly created and destroyed.
 # It operates on the following principles:
 #
 # - The pool starts out empty.
@@ -6260,8 +6210,6 @@ cdef void (* mpz_free)(void *, size_t)
 #   if available, otherwise a new Integer object is created
 # - When an integer is collected, it will add it to the pool
 #   if there is room, otherwise it will be deallocated.
-
-
 cdef int integer_pool_size = 100
 
 cdef PyObject** integer_pool
@@ -6277,6 +6225,7 @@ cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
     global integer_pool, integer_pool_count, total_alloc, use_pool
 
     cdef PyObject* new
+    cdef mpz_ptr new_mpz
 
     # for profiling pool usage
     # total_alloc += 1
@@ -6293,7 +6242,6 @@ cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
         new = <PyObject *> integer_pool[integer_pool_count]
 
     # Otherwise, we have to create one.
-
     else:
 
         # allocate enough room for the Integer, sizeof_Integer is
@@ -6306,13 +6254,14 @@ cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
 
         # Now set every member as set in z, the global dummy Integer
         # created before this tp_new started to operate.
-
         memcpy(new, (<void*>global_dummy_Integer), sizeof_Integer )
 
-        # We take the address 'new' and move mpz_t_offset bytes (chars)
-        # to the address of 'value'. We treat that address as a pointer
-        # to a mpz_t struct and allocate memory for the _mp_d element of
-        # that struct. We allocate one limb.
+        # We allocate memory for the _mp_d element of the value of this
+        # new Integer. We allocate one limb. Normally, one would use
+        # mpz_init() for this, but we allocate the memory directly.
+        # This saves time both by avoiding extra function calls and
+        # because the rest of the mpz struct was already initialized
+        # fully using the memcpy above.
         #
         # What is done here is potentially very dangerous as it reaches
         # deeply into the internal structure of GMP. Consequently things
@@ -6324,18 +6273,8 @@ cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
         #  various internals described here may change in future GMP releases.
         #  Applications expecting to be compatible with future releases should use
         #  only the documented interfaces described in previous chapters."
-        #
-        # If this line is used Sage is not such an application.
-        #
-        # The clean version of the following line is:
-        #
-        #  mpz_init( <mpz_t>(<char *>new + mpz_t_offset) )
-        #
-        # We save time both by avoiding an extra function call and
-        # because the rest of the mpz struct was already initialized
-        # fully using the memcpy above.
-
-        (<__mpz_struct *>( <char *>new + mpz_t_offset) )._mp_d = <mp_ptr>mpz_alloc(GMP_LIMB_BITS >> 3)
+        new_mpz = <mpz_ptr>((<Integer>new).value)
+        new_mpz._mp_d = <mp_ptr>sage_malloc(GMP_LIMB_BITS >> 3)
 
     # This line is only needed if Python is compiled in debugging mode
     # './configure --with-pydebug' or SAGE_DEBUG=yes. If that is the
@@ -6365,31 +6304,30 @@ cdef void fast_tp_dealloc(PyObject* o):
 
     global integer_pool, integer_pool_count
 
+    cdef mpz_ptr o_mpz = <mpz_ptr>((<Integer>o).value)
+
     if integer_pool_count < integer_pool_size:
 
         # Here we free any extra memory used by the mpz_t by
         # setting it to a single limb.
-        if (<__mpz_struct *>( <char *>o + mpz_t_offset))._mp_alloc > 10:
-            _mpz_realloc(<mpz_t *>( <char *>o + mpz_t_offset), 10)
+        if o_mpz._mp_alloc > 10:
+            _mpz_realloc(o_mpz, 1)
 
         # It's cheap to zero out an integer, so do it here.
-        (<__mpz_struct *>( <char *>o + mpz_t_offset))._mp_size = 0
+        o_mpz._mp_size = 0
 
         # And add it to the pool.
         integer_pool[integer_pool_count] = o
         integer_pool_count += 1
         return
 
-    # Again, we move to the mpz_t and clear it. See above, why this is evil.
-    # The clean version of this line would be:
-    #   mpz_clear(<mpz_t>(<char *>o + mpz_t_offset))
-
-    mpz_free((<__mpz_struct *>( <char *>o + mpz_t_offset) )._mp_d, 0)
+    # Again, we move to the mpz_t and clear it. As in fast_tp_new,
+    # we free the memory directly.
+    sage_free(o_mpz._mp_d)
 
     # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
     # set. If it was set another free function would need to be
     # called.
-
     PyObject_FREE(o)
 
 from sage.misc.allocator cimport hook_tp_functions
@@ -6397,31 +6335,15 @@ cdef hook_fast_tp_functions():
     """
     Initialize the fast integer creation functions.
     """
-    global global_dummy_Integer, mpz_t_offset, sizeof_Integer, integer_pool
+    global global_dummy_Integer, sizeof_Integer, integer_pool
 
     integer_pool = <PyObject**>sage_malloc(integer_pool_size * sizeof(PyObject*))
 
     cdef PyObject* o
     o = <PyObject *>global_dummy_Integer
 
-    # calculate the offset of the GMP mpz_t to avoid casting to/from
-    # an Integer which includes reference counting. Reference counting
-    # is bad in constructors and destructors as it potentially calls
-    # the destructor.
-    # Eventually this may be rendered obsolete by a change in Cython allowing
-    # non-reference counted extension types.
-    mpz_t_offset = <char *>(&global_dummy_Integer.value) - <char *>o
-    global mpz_t_offset_python
-    mpz_t_offset_python = mpz_t_offset
-
     # store how much memory needs to be allocated for an Integer.
     sizeof_Integer = (<RichPyTypeObject *>o.ob_type).tp_basicsize
-
-    # get the functions to do memory management for the GMP elements
-    # WARNING: if the memory management functions are changed after
-    # this initialisation, we are/you are doomed.
-
-    mp_get_memory_functions(&mpz_alloc, NULL, &mpz_free)
 
     # Finally replace the functions called when an Integer needs
     # to be constructed/destructed.
@@ -6441,7 +6363,7 @@ def free_integer_pool():
 
     for i from 0 <= i < integer_pool_count:
         o = integer_pool[i]
-        mpz_clear(<__mpz_struct *>(<char*>o + mpz_t_offset))
+        mpz_clear( (<Integer>o).value )
         # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
         # set. If it was set another free function would need to be
         # called.
@@ -6564,7 +6486,7 @@ cdef double mpz_get_d_nearest(mpz_t x) except? -648555075988944.5:
     mpz_tdiv_q_2exp(q, x, shift)
 
     # Convert abs(q) to a 64-bit integer.
-    cdef mp_limb_t* q_limbs = (<__mpz_struct*>q)._mp_d
+    cdef mp_limb_t* q_limbs = (<mpz_ptr>q)._mp_d
     cdef uint64_t q64
     if sizeof(mp_limb_t) >= 8:
         q64 = q_limbs[0]

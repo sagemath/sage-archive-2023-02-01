@@ -914,6 +914,7 @@ Modular forms ring and spaces for Hecke triangle groups:
   ``1, 2, 3, 4`` respectively.
 
   EXAMPLES::
+
       sage: from sage.modular.modform.eis_series import eisenstein_series_lseries
       sage: from sage.modular.modform_hecketriangle.space import ModularForms
       sage: f = ModularForms(n=3, k=4).E4()/240

@@ -627,7 +627,13 @@ class _Player():
 
     def __hash__(self):
         r"""
-        Used so that instances can be hashed.
+        TESTS:
+
+        sage: from sage.game_theory.matching_game import _Player
+        sage: p = _Player(10, 'suitor', 3)
+        sage: d = {p : (1, 2, 3)}
+        sage: d
+        {10: (1, 2, 3)}
         """
         return hash(self.name)
 

@@ -657,9 +657,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
             sage: (L, R) = G.T()._primitive_block_data()
             sage: L
-            ((6, 1),)
+            ((1, 1),)
             sage: R
-            T^(-1)*S
+            T^(-1)
             sage: (L, R) = G.V(2).acton(G.T(-3))._primitive_block_data()
             sage: L
             ((6, 1),)
@@ -796,6 +796,14 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         else:
             R = G.I()
 
+        # This should determine whether self is conjugate to
+        # a positive power of V(1) or V(n-1)
+        if self.is_parabolic() and AA(self.trace() * (self[1][0] - self[0][1])).sign() < 0:
+            # In this case self should be conjugate to a positive power of V(1)
+            # in either case L is / should be (at the moment) always equal to [n-1, 1]
+            L[0][0] = 1
+            R = R * (-G.S())
+
         R = G.V(initial_ones + 1) * R
         R = prod([G.I()] + [G.T(r) * G.S() for r in preperiod]) * R
 
@@ -894,7 +902,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             True
             sage: el = G.V(2).acton(G.T(-3)).primitive_representative()
             sage: el
-            ((-S*T^(-1)*S) * (V(6)) * (-S*T^(-1)*S)^(-1), (T^(-1)*S) * (V(6)^(-1)) * (T^(-1)*S)^(-1))
+            ((-S*T^(-1)*S) * (V(6)) * (-S*T^(-1)*S)^(-1), (T^(-1)) * (V(1)) * (T^(-1))^(-1))
             sage: (el[0]).is_primitive()
             True
             sage: el = (-G.V(2)).primitive_representative()
@@ -1053,8 +1061,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el.primitive_part() == el.primitive_part(method="block")
             True
 
-            sage: G.T().primitive_part() == G.T().primitive_part(method="block")
-            True
+            sage: G.T().primitive_part()
+            (T^(-1)*S) * (V(6)) * (T^(-1)*S)^(-1)
+            sage: G.T().primitive_part(method="block")
+            (T^(-1)) * (V(1)) * (T^(-1))^(-1)
             sage: G.V(2).acton(G.T(-3)).primitive_part() == G.V(2).acton(G.T(-3)).primitive_part(method="block")
             True
             sage: (-G.V(2)).primitive_part() == (-G.V(2)).primitive_part(method="block")
@@ -1197,10 +1207,12 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         r"""
         Return the primitive power of ``self``. I.e. an integer
         ``power`` such that ``self = sign * primitive_part^power``,
-        where ``sign = self.sign()`` and ``primitive_part = self.primitive_part()``.
+        where ``sign = self.sign()`` and
+        ``primitive_part = self.primitive_part(method)``.
 
-        For elliptic elements (and also in the other cases) the power is
-        choosen such that ``primitive_part^power`` still has a positive sign.
+        Warning: For the parabolic case the sign depends on
+        the method: The "cf" method may return a negative power
+        but the "block" method never will.
 
         Warning: The case ``n=infinity`` is not verified at all
         and probably wrong!
@@ -1212,15 +1224,13 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
                          default: "cf". The parameter is ignored
                          for elliptic elements or +- the identity.
 
-                         The result should not depend on the method.
-
         OUTPUT:
 
-        An integer. For hyperbolic elements a non-negative integer.
-        For parabolic elements a negative sign corresponds to taking
-        the inverse. For elliptic elements a (non-trivial) integer
-        with minimal absolute value is choosen. For +- the identity
-        element ``0`` is returned.
+        An integer. For +- the identity element ``0`` is returned,
+        for parabolic and hyperbolic elements a positive integer.
+        And for elliptic elements a (non-zero) integer with minimal
+        absolute value such that ``primitive_part^power`` still
+        has a positive sign.
 
         EXAMPLES::
 
@@ -1304,19 +1314,13 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
                 else:
                     return j + G.n()
 
-        if self.is_parabolic():
-            if self.parent().n() == infinity:
-                from warnings import warn
-                warn("The case n=infinity here is really not verified at all and probably wrong!")
-                #raise NotImplementedError
-
+        primitive_part = self.primitive_part(method=method)
+        if method == "cf" and self.is_parabolic():
             power_sign = AA(self.trace() * (self[1][0] - self[0][1])).sign()
         else:
             power_sign = ZZ(1)
 
         normalized_self = self.sign() * self**power_sign
-
-        primitive_part = self.primitive_part(method=method)
         M = primitive_part
 
         power = ZZ(1)
@@ -1484,9 +1488,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
             sage: (L, R, sgn) = G.T()._block_data()
             sage: (L, sgn)
-            (((6, -1),), 1)
+            (((1, 1),), 1)
             sage: R
-            T^(-1)*S
+            T^(-1)
             sage: (L, R, sgn) = G.V(2).acton(G.T(-3))._block_data()
             sage: (L, sgn)
             (((6, 3),), 1)
@@ -1586,10 +1590,11 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         # Note that this is includes the parabolic case
         if len(L) == 1:
             # Since L is primitive L[0][1] should be equal to 1
-            L2 = ((L[0][0], self.primitive_power()),)
-        # the remaining cases are all hyperbolic with positive primitive power
+            # Also note that in the non-elliptic case:
+            # abs(self.primitive_power()) == self.primitive_power(method="block")
+            L2 = ((L[0][0], abs(self.primitive_power())),)
         else:
-            L2 = L*self.primitive_power()
+            L2 = L*abs(self.primitive_power())
 
         return (L2, R, sgn)
 
@@ -1614,7 +1619,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: G.element_repr_method("basic")
 
             sage: G.T().decompose_block()
-            ((-S*T*S,), T^(-1)*S, 1)
+            ((T,), T^(-1), 1)
             sage: G.V(2).acton(G.T(-3)).decompose_block()
             ((-S*T^(-3)*S,), T, 1)
             sage: (-G.V(2)^2).decompose_block()

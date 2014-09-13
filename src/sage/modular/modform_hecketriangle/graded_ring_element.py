@@ -1094,7 +1094,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
     # note that this is qd/dq, resp 1/(2*pi*i)*d/dtau
     def derivative(self):
         r"""
-        Return the derivative ``d/dq = 1/(2*pi*i) d/dtau`` of ``self``.
+        Return the derivative ``d/dq = lambda/(2*pi*i) d/dtau`` of ``self``.
 
         Note that the parent might (probably will) change.
         In particular its analytic type will be extended

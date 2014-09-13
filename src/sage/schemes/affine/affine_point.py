@@ -298,26 +298,26 @@ class SchemeMorphism_point_affine_finite_field(SchemeMorphism_point_affine_field
 
         EXAMPLES::
 
-            sage: P.<x,y,z>=AffineSpace(GF(5),3)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2+y^2,y^2,z^2+y*z])
+            sage: P.<x,y,z> = AffineSpace(GF(5),3)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2 + y^2,y^2,z^2 + y * z])
             sage: P(1,1,1).orbit_structure(f)
             [0, 6]
 
         ::
 
-            sage: P.<x,y,z>=AffineSpace(GF(7),3)
-            sage: X=P.subscheme(x^2-y^2)
-            sage: H=Hom(X,X)
-            sage: f=H([x^2,y^2,z^2])
+            sage: P.<x,y,z> = AffineSpace(GF(7),3)
+            sage: X = P.subscheme(x^2 - y^2)
+            sage: H = Hom(X,X)
+            sage: f = H([x^2,y^2,z^2])
             sage: X(1,1,2).orbit_structure(f)
             [0, 2]
 
         ::
 
-            sage: P.<x,y>=AffineSpace(GF(13),2)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2-y^2,y^2])
+            sage: P.<x,y> = AffineSpace(GF(13),2)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2 - y^2,y^2])
             sage: P(3,4).orbit_structure(f)
             [2, 6]
         """

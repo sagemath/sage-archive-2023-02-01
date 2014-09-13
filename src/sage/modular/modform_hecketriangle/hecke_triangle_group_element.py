@@ -554,6 +554,20 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             ((1, 1, 1, 2), (2, 2, 2, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1))
             sage: (G.V(1)^5*G.V(2)*G.V(3)^3).continued_fraction()
             ((6,), (2, 1, 2, 1, 2, 1, 7))
+
+            sage: G = HeckeTriangleGroup(n=8)
+            sage: G.T().continued_fraction()
+            ((0, 1), (1, 1, 1, 1, 1, 2))
+            sage: G.V(2).acton(G.T(-3)).continued_fraction()
+            ((), (2, 1, 1, 1, 1, 1))
+            sage: (-G.V(2)).continued_fraction()
+            ((1,), (2,))
+            sage: (-G.V(2)^3*G.V(6)^2*G.V(3)).continued_fraction()    # long time
+            ((1,), (2, 2, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 2))
+            sage: (G.U()^4*G.S()*G.V(2)).acton(-G.V(2)^3*G.V(6)^2*G.V(3)).continued_fraction()    # long time
+            ((1, 1, 1, 2), (2, 2, 2, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1))
+            sage: (G.V(1)^5*G.V(2)*G.V(3)^3).continued_fraction()    # known bug (doesn't seem to finnish)
+            sage: (G.V(2)^3*G.V(5)*G.V(1)*G.V(6)^2*G.V(4)).continued_fraction()    # known bug (doesn't seem to finnish)
         """
 
         if self.parent().n() == infinity:
@@ -2608,6 +2622,157 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         return sum([z.parent()(0)] + L1 + L2)
 
+    def linking_number(self):
+        r"""
+        Let ``g`` denote a holomorphic primitive of ``E2`` in the sense:
+        ``lambda/(2*pi*i) d/dz g = E2``. Let ``gamma=self`` and let
+        ``M_gamma(z)`` be ``Log((c*z+d) * sgn(a+d))`` if ``c, a+d > 0``,
+        resp. ``Log((c*z+d) / i*sgn(c))`` if ``a+d = 0, c!=0``,
+        resp. ``0`` if ``c=0``. Let ``k=4 * n / (n-2)``, then:
+
+        ``g(gamma.acton(z) - g(z) - k*M_gamma(z)`` is equal to
+        ``2*pi*i / (n-2) * self.linking_number()``.
+
+        In particular it is independent of ``z`` and a conjugacy invariant.
+
+        If ``self`` is hyperbolic then in the classical case ``n=3``
+        this is the linking number of the closed geodesic
+        (corresponding to ``self``) with the trefoil knot.
+
+        .. TODO:
+
+          Improve the documentation!
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
+
+            sage: def E2_primitive(z, n=3, prec=10, num_prec=53):
+            ....:     G = HeckeTriangleGroup(n=n)
+            ....:     MF = QuasiModularForms(group=G, k=2, ep=-1)
+            ....:     q = MF.get_q(prec=prec)
+            ....:     int_series = integrate((MF.E2().q_expansion(prec=prec) - 1) / q)
+            ....:
+            ....:     t_const = (2*pi*i/G.lam()).n(num_prec)
+            ....:     d = MF.get_d(fix_d=True, d_num_prec=num_prec)
+            ....:     q = exp(t_const * z)
+            ....:     return t_const*z + sum([(int_series.coefficients()[m]).subs(d=d) * q**int_series.exponents()[m] for m in range(len(int_series.coefficients()))])
+
+            sage: def M(gamma, z, num_prec=53):
+            ....:     a = ComplexField(num_prec)(gamma.a())
+            ....:     b = ComplexField(num_prec)(gamma.b())
+            ....:     c = ComplexField(num_prec)(gamma.c())
+            ....:     d = ComplexField(num_prec)(gamma.d())
+            ....:
+            ....:     if c == 0:
+            ....:         return 0
+            ....:     elif a + d == 0:
+            ....:         return log(-i.n(num_prec)*(c*z + d)*sign(c))
+            ....:     else:
+            ....:         return log((c*z+d)*sign(a+d))
+
+            sage: def num_linking_number(A, z, n=3, prec=10, num_prec=53):
+            ....:     z = z.n(num_prec)
+            ....:     k = 4 * n / (n - 2)
+            ....:     return (n-2) / (2*pi*i).n(num_prec) * (E2_primitive(A.acton(z), n=n, prec=prec, num_prec=num_prec) - E2_primitive(z, n=n, prec=prec, num_prec=num_prec) - k*M(A, z, num_prec=num_prec))
+
+            sage: G = HeckeTriangleGroup(8)
+            sage: z = i
+            sage: for A in [G.S(), G.T(), G.U(), G.U()^(G.n()//2), G.U()^(-3)]:
+            ....:     print "A={}: ".format(A.string_repr("conj"))
+            ....:     num_linking_number(A, z, G.n())
+            ....:     A.linking_number()
+            A=[S]:
+            0.000000000000...
+            0
+            A=[V(1)]:
+            6.000000000000...
+            6
+            A=[U]:
+            -2.00000000000...
+            -2
+            A=[U^4]:
+            0.596987639289... + 0.926018962976...*I
+            0
+            A=[U^(-3)]:
+            5.40301236071... + 0.926018962976...*I
+            6
+
+            sage: z = - 2.3 + 3.1*i
+            sage: B = G.I()
+            sage: for A in [G.S(), G.T(), G.U(), G.U()^(G.n()//2), G.U()^(-3)]:
+            ....:     print "A={}: ".format(A.string_repr("conj"))
+            ....:     num_linking_number(B.acton(A), z, G.n(), prec=100, num_prec=1000).n(53)
+            ....:     B.acton(A).linking_number()
+            A=[S]:
+            6.63923483989...e-31 + 2.45195568651...e-30*I
+            0
+            A=[V(1)]:
+            6.000000000000...
+            6
+            A=[U]:
+            -2.00000000000... + 2.45195568651...e-30*I
+            -2
+            A=[U^4]:
+            0.00772492873864... + 0.00668936643212...*I
+            0
+            A=[U^(-3)]:
+            5.99730551444... + 0.000847636355069...*I
+            6
+
+            sage: z = - 2.3 + 3.1*i
+            sage: B = G.U()
+            sage: for A in [G.S(), G.T(), G.U(), G.U()^(G.n()//2), G.U()^(-3)]:    # long time
+            ....:     print "A={}: ".format(A.string_repr("conj"))
+            ....:     num_linking_number(B.acton(A), z, G.n(), prec=200, num_prec=5000).n(53)
+            ....:     B.acton(A).linking_number()
+            A=[S]:
+            -7.90944791339...e-34 - 9.38956758807...e-34*I
+            0
+            A=[V(1)]:
+            5.99999997397... - 5.96520311160...e-8*I
+            6
+            A=[U]:
+            -2.00000000000... - 1.33113963568...e-61*I
+            -2
+            A=[U^4]:
+            -2.32704571946...e-6 + 5.91899385948...e-7*I
+            0
+            A=[U^(-3)]:
+            6.00000032148... - 1.82676936467...e-7*I
+            6
+
+            sage: A = G.V(2)*G.V(3)
+            sage: B = G.I()
+            sage: num_linking_number(B.acton(A), z, G.n(), prec=200, num_prec=5000).n(53)    # long time
+            6.00498424588... - 0.00702329345176...*I
+            sage: A.linking_number()
+            6
+
+            The numerical properties for anything larger are basically
+            too bad to make nice further tests...
+        """
+
+        if self.is_identity():
+            return ZZ(0)
+
+        (L, R, sgn) = self._block_data()
+        n = self.parent().n()
+
+        if self.is_elliptic():
+            if L[0] == 0:
+                return ZZ(0)
+            elif ZZ(2).divides(n) and L[1] == n/ZZ(2):
+                return ZZ(0)
+            else:
+                return ZZ(-2*L[1])
+        else:
+            t = sum([v[1] for v in L])
+            u = sum([(v[0]-1) for v in L])
+
+            return ZZ((n-2)*t - 2*u)
+
     def root_extension_field(self):
         r"""
         Return a field extension which contains the fixed points of ``self``.
@@ -2916,7 +3081,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
     def slash(self, f, z=None, k=None):
         r"""
-        Return the `slash-operator` of weight ``k`` to ``f``,
+        Return the `slash-operator` of weight ``k`` to applied to ``f``,
         evaluated at ``z``. I.e. ``(f|_k[self])(z)``.
 
         INPUT:

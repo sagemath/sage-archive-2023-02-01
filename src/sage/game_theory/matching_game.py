@@ -2,7 +2,7 @@
 Matching games.
 
 This module implements a class for matching games (stable marriage problems)
-[DI1989]_. At present the extended Gale Shapley algorithm is implemented
+[DI1989]_. At present the extended Gale-Shapley algorithm is implemented
 which can be used to obtain stable matchings.
 
 AUTHOR:
@@ -31,8 +31,8 @@ class MatchingGame(SageObject):
     extended Gale-Shapley algorithm.
 
     A matching game (also called a stable matching problem) models a situation
-    of in a population of `N` suitors and `N` reviewers. Suitors and reviewers
-    rank their preference and attempt to find a match.
+    in a population of `N` suitors and `N` reviewers. Suitors and reviewers
+    rank their preferences and attempt to find a match.
 
     Formally, a matching game of size `N` is defined by two disjoint sets `S`
     and `R` of size `N`. Associated to each element of `S` and `R` is a
@@ -98,7 +98,7 @@ class MatchingGame(SageObject):
     in other words so that no one individual has an incentive to break their
     current match.
 
-    Formally, a stable matchin is a matching that has no blocking pairs.
+    Formally, a stable matching is a matching that has no blocking pairs.
     A blocking pair is any pair `(s, r)` such that `M(s)\ne r` but `s` prefers
     r to `M(r)` and `r` prefers `s` to `M^{-1}(r)`.
 
@@ -163,7 +163,7 @@ class MatchingGame(SageObject):
         10: [-2]}
 
 
-    It can be shown that the Gale Shapley algorithm will return the stable
+    It can be shown that the Gale-Shapley algorithm will return the stable
     matching that is optimal from the point of view of the suitors and is in
     fact the worst possible matching from the point of view of the reviewers.
     To quickly obtain the matching that is optimal for the reviewers we use the
@@ -608,6 +608,18 @@ class _Player():
     whether or not partners have a preference.
     """
     def __init__(self, name, player_type, len_pref):
+        r"""
+        TESTS:
+
+        sage: from sage.game_theory.matching_game import _Player
+        sage: p = _Player(10, 'suitor', 3)
+        sage: p
+        10
+        sage: p.pref
+        [-1, -1, -1]
+        sage: p.partner
+        False
+        """
         self.name = name
         self.type = player_type
         self.pref = [-1 for i in range(len_pref)]

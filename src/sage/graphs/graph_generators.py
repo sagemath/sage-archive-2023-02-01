@@ -1382,10 +1382,11 @@ class GraphGenerators():
             yield(G)
             return
 
-        command = ('plantri -p' +
-                        ('b' if only_bipartite else '') +
-                        ' -c{}{}'.format(minimum_connectivity, 'x' if exact_connectivity else '') +
-                        ' -m{} {}'.format(minimum_degree, order))
+        command = ('plantri -p{}m{}c{}{} {}'.format('b' if only_bipartite else '',
+                                                    minimum_degree,
+                                                    minimum_connectivity,
+                                                    'x' if exact_connectivity else '',
+                                                    order))
 
         import subprocess
         sp = subprocess.Popen(command, shell=True,

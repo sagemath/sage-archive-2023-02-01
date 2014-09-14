@@ -1395,6 +1395,141 @@ class GraphGenerators():
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
 
+    def triangulations(self, order, minimum_degree=None, minimum_connectivity=None,
+                     exact_connectivity=False, only_eulerian=False):
+        r"""
+        Return a generator which creates plane triangulations using
+        the plantri generator (see [plantri]_).
+
+        INPUT:
+
+        - ``order`` - a positive integer smaller than or equal to 64.
+          This specifies the number of vertices in the generated triangulations.
+
+        - ``minimum_degree`` - default: ``None`` - a value between 3 and 5,
+          or ``None``. This specifies the minimum degree of the generated
+          triangulations. If this is ``None`` and the minimum connectivity
+          is specified, then this is set to the same value as the minimum
+          connectivity. If the minimum connectivity is also equal to ``None``,
+          then this is set to 3.
+
+        - ``minimum_connectivity`` - default: ``None`` - a value between 3
+          and 5, or ``None``. This specifies the minimum connectivity of the
+          generated triangulations. If this is ``None`` and the minimum degree
+          is specified, then this is set to the minimum of the minimum degree
+          and 3. If the minimum degree is also equal to ``None``, then this
+          is set to 3.
+
+        - ``exact_connectivity`` - default: ``False`` - if ``True`` only
+          triangulations with exactly the specified connectivity will be generated.
+          This option cannot be used with ``minimum_connectivity=3``, or if
+          the minimum connectivity is not explicitely set.
+
+        - ``only_eulerian`` - default: ``False`` - if ``True`` only eulerian
+          triangulations will be generated. This option cannot be used if the
+          minimum degree is explicitely set to anything else than 4.
+
+        OUTPUT:
+
+        A generator which will produce the plane triangulations as Sage graphs
+        with an embedding set. These will be simple graphs: no loops, no
+        multiple edges, no directed edges.
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.set_embedding`,
+              :meth:`~sage.graphs.generic_graph.GenericGraph.get_embedding` --
+              get/set methods for embeddings.
+
+        EXAMPLES:
+
+        The unique planar embedding of the `K_4` is the only plane triangulations
+        on 4 vertices:  ::
+
+            sage: gen = graphs.triangulations(4)  # optional plantri
+            sage: [g.get_embedding() for g in gen]  # optional plantri
+            [{1: [2, 3, 4], 2: [1, 4, 3], 3: [1, 2, 4], 4: [1, 3, 2]}]
+
+        but, of course, this graph is not eulerian:  ::
+
+            sage: gen = graphs.triangulations(4, only_eulerian=True)  # optional plantri
+            sage: len(list(gen))  # optional plantri
+            0
+
+        The unique eulerian triangulation on 6 vertices is isomorphic to the octahedral
+        graph. ::
+
+            sage: gen = graphs.triangulations(6, only_eulerian=True)  # optional plantri
+            sage: g = gen.next()  # optional plantri
+            sage: g.is_isomorphic(graphs.OctahedralGraph()) # optional plantri
+            True
+
+        REFERENCE:
+
+        .. [plantri] G. Brinkmann and B.D. McKay, Fast generation of planar graphs,
+           MATCH-Communications in Mathematical and in Computer Chemistry, 58(2):323-357, 2007.
+        """
+        from sage.misc.package import is_package_installed
+        if not is_package_installed("plantri"):
+            raise TypeError("the optional plantri package is not installed")
+
+        # number of vertices should be positive
+        if order < 0:
+            raise ValueError("Number of vertices should be positive.")
+
+        # plantri can only output plane triangulations on up to 64 vertices
+        if order > 64:
+            raise ValueError("Number of vertices should be at most 64.")
+
+        if exact_connectivity and minimum_connectivity is None:
+            raise ValueError("Minimum connectivity must be specified to use the exact_connectivity option.")
+
+        # minimum connectivity should be None or a number between 3 and 5
+        if minimum_connectivity is  not None and not (3 <= minimum_connectivity <= 5):
+            raise ValueError("Minimum connectivity should be None or a number between 3 and 5.")
+
+        # minimum degree should be None or a number between 3 and 5
+        if minimum_degree is  not None and not (3 <= minimum_degree <= 5):
+            raise ValueError("Minimum degree should be None or a number between 3 and 5.")
+
+        # for eulerian triangulations the minimum degree is set to 4 (unless it was already specifically set)
+        if only_eulerian and minimum_degree is None:
+            minimum_degree = 4
+
+        # check combination of values of minimum degree and minimum connectivity
+        if minimum_connectivity is None and minimum_degree is not None:
+            minimum_connectivity = min(3, minimum_degree)
+        elif minimum_connectivity is not None and minimum_degree is None:
+            minimum_degree = minimum_connectivity
+        elif minimum_connectivity is None and minimum_degree is None:
+            minimum_degree, minimum_connectivity = 3, 3
+        elif minimum_degree < minimum_connectivity:
+            raise ValueError("Minimum connectivity can be at most the minimum degree.")
+
+        #exact connectivity is not implemented for minimum connectivity equal to minimum degree
+        if exact_connectivity and minimum_connectivity==minimum_degree:
+            raise NotImplementedError("Generation of triangulations with minimum connectivity equal to minimum degree is not implemented.")
+
+        if order < 4:
+            return
+
+        if only_eulerian and order < 6:
+            return
+
+        command = ('plantri -{}m{}c{}{} {}'.format('b' if only_eulerian else '',
+                                                   minimum_degree,
+                                                   minimum_connectivity,
+                                                   'x' if exact_connectivity else '',
+                                                   order))
+
+        import subprocess
+        sp = subprocess.Popen(command, shell=True,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, close_fds=True)
+
+        for G in graphs._read_planar_code(sp.stdout):
+            yield(G)
+
 ###########################################################################
 # Basic Graphs
 ###########################################################################

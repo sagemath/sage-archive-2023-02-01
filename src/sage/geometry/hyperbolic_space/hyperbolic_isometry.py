@@ -41,6 +41,7 @@ UHP for convenience::
 #                  http://www.gnu.org/licenses/
 #***********************************************************************
 
+from copy import copy
 from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism
 from sage.misc.lazy_attribute import lazy_attribute
@@ -90,7 +91,8 @@ class HyperbolicIsometry(Morphism):
         """
         if check:
             model.isometry_test(A)
-        self._matrix = A
+        self._matrix = copy(A) # Make a copy of the potentially mutable matrix
+        self._matrix.set_immutable() # Make it immutable
         Morphism.__init__(self, Hom(model, model))
 
     @lazy_attribute
@@ -171,19 +173,49 @@ class HyperbolicIsometry(Morphism):
 
         EXAMPLES::
 
-            sage: A = HyperbolicPlane().UHP().get_isometry(identity_matrix(2))
-            sage: B = HyperbolicPlane().UHP().get_isometry(-identity_matrix(2))
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: A = UHP.get_isometry(identity_matrix(2))
+            sage: B = UHP.get_isometry(-identity_matrix(2))
             sage: A == B
+            True
+
+            sage: HM = HyperbolicPlane().HM()
+            sage: A = HM.random_isometry()
+            sage: A == A
             True
         """
         if not isinstance(other, HyperbolicIsometry):
             return False
         pos_matrix = bool(abs(self.matrix() - other.matrix()) < EPSILON)
-        neg_matrix = bool(abs(self.matrix() + other.matrix()) < EPSILON)
         if self.domain().is_isometry_group_projective():
+            neg_matrix = bool(abs(self.matrix() + other.matrix()) < EPSILON)
             return self.domain() is other.domain() and (pos_matrix or neg_matrix)
+        return self.domain() is other.domain() and pos_matrix
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: A = UHP.get_isometry(identity_matrix(2))
+            sage: B = UHP.get_isometry(-identity_matrix(2))
+            sage: hash(A) == hash(B)
+            True
+
+            sage: HM = HyperbolicPlane().HM()
+            sage: A = HM.random_isometry()
+            sage: hash(A) == hash(A)
+            True
+        """
+        if self.domain().is_isometry_group_projective():
+            # Special care must be taken for projective groups
+            m = matrix(self._matrix.nrows(), map(abs, self._matrix.list()))
+            m.set_immutable()
         else:
-            return self.domain() is other.domain() and pos_matrix
+            m = self._matrix
+        return hash((self.domain(), self.codomain(), m))
 
     def __pow__(self, n):
         r"""

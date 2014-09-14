@@ -833,20 +833,21 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         end = self._end.coordinates()
         [x1, x2] = [real(k) for k in [start, end]]
         [y1, y2] = [imag(k) for k in [start, end]]
+        M = self._model
         # infinity is the first endpoint, so the other ideal endpoint
         # is just the real part of the second coordinate
         if start == infinity:
-            return [self._model.get_point(start), self._model.get_point(x2)]
+            return [M.get_point(start), M.get_point(x2)]
         # Same idea as above
         if end == infinity:
-            return [self._model.get_point(x1), self._model.get_point(end)]
+            return [M.get_point(x1), M.get_point(end)]
         # We could also have a vertical line with two interior points
         if x1 == x2:
-            return [self._model.get_point(x1), self._model.get_point(infinity)]
+            return [M.get_point(x1), M.get_point(infinity)]
         # Otherwise, we have a semicircular arc in the UHP
         c = ((x1+x2)*(x2-x1) + (y1+y2)*(y2-y1)) / (2*(x2-x1))
         r = sqrt((c - x1)**2 + y1**2)
-        return [self._model.get_point(c - r), self._model.get_point(c + r)]
+        return [M.get_point(c - r), M.get_point(c + r)]
 
     def common_perpendicular(self, other):
         r"""

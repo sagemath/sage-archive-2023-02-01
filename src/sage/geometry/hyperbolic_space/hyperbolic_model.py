@@ -712,8 +712,8 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
 
         INPUT:
 
-        - ``start`` -- the start coordinates of the geodesic
-        - ``end`` -- the end coordinates of the geodesic
+        - ``start`` -- the start ideal point coordinates of the geodesic
+        - ``end`` -- the end ideal point coordinates of the geodesic
         - ``p`` -- the coordinates of the point
 
         OUTPUT:
@@ -722,15 +722,16 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
 
         EXAMPLES::
 
-            sage: HyperbolicPlane().PD()._dist_geod_point(3/5*I + 4/5, 1/2 + I/2, 0)
+            sage: HyperbolicPlane().PD()._dist_geod_point(3/5*I + 4/5, I, 0)
             arccosh(1/10*sqrt(5)*((sqrt(5) - 1)^2 + 4) + 1)
 
         If `p` is a boundary point, the distance is infinity::
 
-            sage: HyperbolicPlane().PD()._dist_geod_point(3/5*I + 4/5, 1/2 + I/2, 12/13*I + 5/13)
+            sage: HyperbolicPlane().PD()._dist_geod_point(3/5*I + 4/5, I, 12/13*I + 5/13)
             +Infinity
         """
         R = self.realization_of().a_realization()
+        assert R is not self
         phi = lambda c: R.coerce_map_from(self).image_coordinates(c)
         return R._dist_geod_point(phi(start), phi(end), phi(p))
 
@@ -963,12 +964,13 @@ class HyperbolicModelUHP(HyperbolicModel):
 
         EXAMPLES::
 
-            sage: HyperbolicPlane().UHP()._dist_geod_point(2, 2 + I, I)
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: UHP._dist_geod_point(2, infinity, I)
             arccosh(1/10*sqrt(5)*((sqrt(5) - 1)^2 + 4) + 1)
 
         If `p` is a boundary point, the distance is infinity::
 
-            sage: HyperbolicPlane().UHP()._dist_geod_point(2, 2 + I, 5)
+            sage: HyperbolicPlane().UHP()._dist_geod_point(2, infinity, 5)
             +Infinity
         """
         # Here is the trick for computing distance to a geodesic:

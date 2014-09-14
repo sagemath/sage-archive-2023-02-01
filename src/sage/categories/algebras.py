@@ -153,7 +153,8 @@ class Algebras(CategoryWithAxiom_over_base_ring):
                 sage: Algebras(QQ).TensorProducts().extra_super_categories()
                 [Category of algebras over Rational Field]
                 sage: Algebras(QQ).TensorProducts().super_categories()
-                [Category of algebras over Rational Field, Category of tensor products of vector spaces over Rational Field]
+                [Category of algebras over Rational Field,
+                 Category of tensor products of vector spaces over Rational Field]
 
             Meaning: a tensor product of algebras is an algebra
             """

@@ -27,6 +27,7 @@ from sage.libs.singular.decl cimport n_Delete, idInit, fast_map, id_Delete
 from sage.libs.singular.decl cimport omAlloc0, omStrDup, omFree
 from sage.libs.singular.decl cimport p_GetComp, p_SetComp
 from sage.libs.singular.decl cimport pSubst
+from sage.libs.singular.decl cimport p_Normalize
 
 
 from sage.libs.singular.singular cimport sa2si, si2sa, overflow_check
@@ -156,6 +157,9 @@ cdef int singular_polynomial_call(poly **ret, poly *p, ring *r, list args, poly 
     rChangeCurrRing(r)
     cdef ideal *res_id = fast_map(from_id, r, to_id, r)
     ret[0] = res_id.m[0]
+
+    # Unsure why we have to normalize here. See #16958
+    p_Normalize(ret[0], r)
 
     from_id.m[0] = NULL
     res_id.m[0] = NULL

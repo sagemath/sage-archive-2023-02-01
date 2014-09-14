@@ -145,6 +145,26 @@ cdef int singular_polynomial_call(poly **ret, poly *p, ring *r, list args, poly 
 
         sage: (3*x*z)(x,x,x)
         3*x^2
+
+    Test that there is no memory leak in evaluating polynomials. Note
+    that (lib)Singular has pre-allocated buckets, so we have to run a
+    lot of iterations to fill those up first::
+
+        sage: import resource
+        sage: import gc
+        sage: F.<a> = GF(7^2)
+        sage: R.<x,y> = F[]
+        sage: p = x+2*y
+        sage: def leak(N):
+        ....:     before = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        ....:     gc.collect()
+        ....:     for i in range(N):
+        ....:         _ = p(a, a)
+        ....:     after = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        ....:     return (after - before) * 1024   # ru_maxrss is in kilobytes
+        sage: _ = leak(50000)   # warmup and fill up pre-allocated buckets
+        sage: leak(10000)
+        0
     """
     cdef long l = len(args)
     cdef ideal *to_id = idInit(l,1)

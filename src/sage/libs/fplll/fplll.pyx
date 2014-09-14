@@ -1456,12 +1456,10 @@ cdef to_sage(ZZ_mat[mpz_t] *A):
     - ``A`` -- ZZ_mat
     """
     cdef int i,j
-    cdef mpz_t *t
 
     cdef Matrix_integer_dense B = <Matrix_integer_dense>matrix(ZZ, A.getRows(), A.getCols())
 
     for i from 0 <= i < A.getRows():
         for j from 0 <= j < A.getCols():
-            t = &B._matrix[i][j]
-            mpz_set(t[0], A[0][i][j].getData())
+            mpz_set(B._matrix[i][j], A[0][i][j].getData())
     return B

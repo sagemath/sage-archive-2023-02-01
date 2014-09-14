@@ -183,22 +183,22 @@ floating point rings::
     mertens + twinprime + khinchin + log2 + golden_ratio + catalan + euler_gamma + pi + e
     sage: parent(a)
     Symbolic Ring
-    sage: RR(a) #abstol 1e11
+    sage: RR(a)  # abs tol 1e-13
     13.2713479401972
     sage: RealField(212)(a)
     13.2713479401972493100988191995758139408711068200030748178329712
     sage: RealField(230)(a)
     13.271347940197249310098819199575813940871106820003074817832971189555
-    sage: CC(a) #abstol 1e11
+    sage: RDF(a)  # abs tol 1e-13
+    13.271347940197249
+    sage: CC(a)  # abs tol 1e-13
     13.2713479401972
-    sage: CDF(a)
-    13.2713479402
+    sage: CDF(a)  # abs tol 1e-13
+    13.271347940197249
     sage: ComplexField(230)(a)
     13.271347940197249310098819199575813940871106820003074817832971189555
-    sage: RDF(a)
-    13.2713479402
 
-Test if #8237 is fixed::
+Check that :trac:`8237` is fixed::
 
     sage: maxima('infinity').sage()
     Infinity
@@ -584,7 +584,7 @@ class Pi(Constant):
          EXAMPLES::
 
              sage: pi._real_double_(RDF)
-             3.14159265359
+             3.141592653589793
          """
         return R.pi()
 
@@ -802,7 +802,7 @@ class GoldenRatio(Constant):
         EXAMPLES::
 
             sage: RDF(golden_ratio)
-            1.61803398875
+            1.618033988749895
         """
         return R('1.61803398874989484820458')
 
@@ -904,7 +904,7 @@ class Log2(Constant):
         EXAMPLES::
 
             sage: RDF(log2)
-            0.69314718056
+            0.6931471805599453
         """
         return R.log2()
 
@@ -979,7 +979,7 @@ class EulerGamma(Constant):
         EXAMPLES::
 
             sage: RDF(euler_gamma)
-            0.577215664902
+            0.5772156649015329
         """
         return R.euler_constant()
 
@@ -1039,7 +1039,7 @@ class Catalan(Constant):
         EXAMPLES: We coerce to the real double field::
 
             sage: RDF(catalan)
-            0.915965594177
+            0.915965594177219
         """
         return R('0.91596559417721901505460351493252')
 
@@ -1293,7 +1293,7 @@ class LimitedPrecisionConstant(Constant):
             sage: a = LimitedPrecisionConstant('a', '1.234567891011121314').expression(); a
             a
             sage: RDF(a)
-            1.23456789101
+            1.2345678910111213
             sage: RealField(200)(a)
             Traceback (most recent call last):
             ...
@@ -1325,7 +1325,7 @@ class LimitedPrecisionConstant(Constant):
             sage: from sage.symbolic.constants import LimitedPrecisionConstant
             sage: a = LimitedPrecisionConstant('a', '1.234567891011121314').expression()
             sage: RDF(a)
-            1.23456789101
+            1.2345678910111213
         """
         if R.precision() <= self._bits:
             return R(self._value)

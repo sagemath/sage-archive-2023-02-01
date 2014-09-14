@@ -3955,8 +3955,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 E1 = constructor.EllipticCurve([0,0,0,c,0])
             tw = [-1,2,-2,3,-3,6,-6]
             Elist = [E1] + [E1.quadratic_twist(t) for t in tw]
-            crv_cmp = lambda E,F: cmp(E.conductor(),F.conductor())
-            Elist.sort(cmp=crv_cmp)
+            Elist.sort(key=lambda E: E.conductor())
             Et = Elist[0]
 
         Et = Et.minimal_model()

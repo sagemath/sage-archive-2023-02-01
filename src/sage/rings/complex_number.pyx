@@ -2593,7 +2593,7 @@ cdef class CCtoCDF(Map):
             sage: f(CC.0)
             1.0*I
             sage: f(exp(pi*CC.0/4))
-            0.707106781187 + 0.707106781187*I
+            0.7071067811865476 + 0.7071067811865475*I
         """
         cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
         z._complex.dat[0] = mpfr_get_d((<ComplexNumber>x).__re, GMP_RNDN)

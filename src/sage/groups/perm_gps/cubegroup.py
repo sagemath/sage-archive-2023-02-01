@@ -137,7 +137,7 @@ def xproj(x,y,z,r):
         sage: from sage.groups.perm_gps.cubegroup import rotation_list, xproj
         sage: rot = rotation_list(30, 45)
         sage: xproj(1,2,3,rot)
-        0.612372435696
+        0.6123724356957945
     """
     return (y*r[1] - x*r[3])*r[2]
 
@@ -150,7 +150,7 @@ def yproj(x,y,z,r):
         sage: from sage.groups.perm_gps.cubegroup import rotation_list, yproj
         sage: rot = rotation_list(30, 45)
         sage: yproj(1,2,3,rot)
-        1.37849741698
+        1.378497416975604
     """
     return z*r[2] - (x*r[1] + y*r[2])*r[0]
 
@@ -163,7 +163,7 @@ def rotation_list(tilt,turn):
 
         sage: from sage.groups.perm_gps.cubegroup import rotation_list
         sage: rotation_list(30, 45)
-        [0.5, 0.707106781187, 0.866025403784, 0.707106781187]
+        [0.49999999999999994, 0.7071067811865475, 0.8660254037844387, 0.7071067811865476]
     """
     from sage.functions.all import sin, cos
     return [ sin(tilt*pi/180.0), sin(turn*pi/180.0), cos(tilt*pi/180.0), cos(turn*pi/180.0) ]

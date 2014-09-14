@@ -4935,9 +4935,9 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: em = A.change_ring(RDF).eigenmatrix_left()
             sage: eigenvalues = em[0]; eigenvalues.dense_matrix().zero_at(2e-15)
-            [ 13.3484692283            0.0            0.0]
-            [           0.0 -1.34846922835            0.0]
-            [           0.0            0.0            0.0]
+            [ 13.348469228349...                0.0                 0.0]
+            [                0.0 -1.348469228349...                 0.0]
+            [                0.0                0.0                 0.0]
             sage: eigenvectors = em[1]; eigenvectors # not tested
             [ 0.440242867...  0.567868371...  0.695493875...]
             [ 0.897878732...  0.278434036... -0.341010658...]
@@ -4952,7 +4952,6 @@ cdef class Matrix(matrix1.Matrix):
             sage: eigenvectors = em[1]; eigenvectors
             [                                                    1 1/2*(3*x^2 - x - sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2))/y]
             [                                                    1 1/2*(3*x^2 - x + sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2))/y]
-
 
         A request for ``'all'`` the eigenvalues, when it is not
         possible, will raise an error.  Using the ``'galois'``
@@ -5204,9 +5203,9 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: em = B.change_ring(RDF).eigenmatrix_right()
             sage: eigenvalues = em[0]; eigenvalues.dense_matrix().zero_at(1e-15)
-            [ 13.3484692283            0.0            0.0]
-            [           0.0 -1.34846922835            0.0]
-            [           0.0            0.0            0.0]
+            [ 13.348469228349...                0.0                 0.0]
+            [                0.0 -1.348469228349...                 0.0]
+            [                0.0                0.0                 0.0]
             sage: eigenvectors = em[1]; eigenvectors # not tested
             [ 0.164763817...  0.799699663...  0.408248290...]
             [ 0.505774475...  0.104205787... -0.816496580...]
@@ -5218,11 +5217,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: eigenvalues = em[0]; eigenvalues
             [3/2*x^2 + 1/2*x - 1/2*sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2)                                                       0]
             [                                                      0 3/2*x^2 + 1/2*x + 1/2*sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2)]
-
             sage: eigenvectors = em[1]; eigenvectors
             [                                                    1                                                     1]
             [1/2*(3*x^2 - x - sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2))/y 1/2*(3*x^2 - x + sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2))/y]
-
 
         TESTS::
 
@@ -5597,17 +5594,17 @@ cdef class Matrix(matrix1.Matrix):
             sage: A = matrix(QQ, 3, 3, range(9))
             sage: em = A.change_ring(RDF).eigenmatrix_left()
             sage: evalues = em[0]; evalues.dense_matrix().zero_at(2e-15)
-            [ 13.3484692283            0.0            0.0]
-            [           0.0 -1.34846922835            0.0]
-            [           0.0            0.0            0.0]
+            [ 13.348469228349...                0.0                 0.0]
+            [                0.0 -1.348469228349...                 0.0]
+            [                0.0                0.0                 0.0]
             sage: evectors = em[1];
             sage: for i in range(3):
-            ...       scale = evectors[i,0].sign()
-            ...       evectors.rescale_row(i, scale)
-            sage: evectors
-            [ 0.440242867...  0.567868371...  0.695493875...]
-            [ 0.897878732...  0.278434036... -0.341010658...]
-            [ 0.408248290... -0.816496580...  0.408248290...]
+            ....:     scale = evectors[i,0].sign()
+            ....:     evectors.rescale_row(i, scale)
+            sage: evectors  # abs tol 1e-13
+            [0.44024286723591904  0.5678683713143027  0.6954938753926869]
+            [ 0.8978787322617111 0.27843403682172374 -0.3410106586182631]
+            [ 0.4082482904638625 -0.8164965809277263 0.40824829046386324]
         """
         from sage.misc.flatten import flatten
         evecs = self.eigenvectors_left()
@@ -5686,19 +5683,19 @@ cdef class Matrix(matrix1.Matrix):
             sage: B = matrix(QQ, 3, 3, range(9))
             sage: em = B.change_ring(RDF).eigenmatrix_right()
             sage: evalues = em[0]; evalues.dense_matrix().zero_at(2e-15)
-            [ 13.3484692283            0.0            0.0]
-            [           0.0 -1.34846922835            0.0]
-            [           0.0            0.0            0.0]
+            [ 13.348469228349...                0.0                 0.0]
+            [                0.0 -1.348469228349...                 0.0]
+            [                0.0                0.0                 0.0]
             sage: evectors = em[1];
             sage: for i in range(3):
-            ...       scale = evectors[0,i].sign()
-            ...       evectors.rescale_col(i, scale)
-            sage: evectors
-            [ 0.164763817...  0.799699663...  0.408248290...]
-            [ 0.505774475...  0.104205787... -0.816496580...]
-            [ 0.846785134... -0.591288087...  0.408248290...]
+            ....:     scale = evectors[0,i].sign()
+            ....:     evectors.rescale_col(i, scale)
+            sage: evectors  # abs tol 1e-13
+            [ 0.1647638172823028   0.799699663111865 0.40824829046386285]
+            [ 0.5057744759005657 0.10420578771917821 -0.8164965809277261]
+            [ 0.8467851345188293 -0.5912880876735089  0.4082482904638632]
         """
-        D,P=self.transpose().eigenmatrix_left()
+        D,P = self.transpose().eigenmatrix_left()
         return D,P.transpose()
 
     right_eigenmatrix = eigenmatrix_right
@@ -8812,11 +8809,10 @@ cdef class Matrix(matrix1.Matrix):
             [0.0 0.0 0.0]
             [0.0 0.0 0.0]
             [0.0 0.0 0.0]
-            sage: (G*G.conjugate_transpose()).zero_at(10^-12)
-            [1.0 0.0 0.0]
-            [0.0 1.0 0.0]
-            [0.0 0.0 1.0]
-
+            sage: (G*G.conjugate_transpose())  # random
+            [0.9999999999999999                0.0                0.0]
+            [               0.0 0.9999999999999997                0.0]
+            [               0.0                0.0                1.0]
 
         A rectangular matrix.  Note that the ``orthonormal`` keyword
         is ignored in these cases.  ::
@@ -8861,10 +8857,10 @@ cdef class Matrix(matrix1.Matrix):
             [0.0 0.0 0.0]
             [0.0 0.0 0.0]
             [0.0 0.0 0.0]
-            sage: (G*G.transpose()).zero_at(1e-14)
-            [1.0 0.0 0.0]
-            [0.0 1.0 0.0]
-            [0.0 0.0 1.0]
+            sage: (G*G.transpose())  # abs tol 1e-14
+            [0.9999999999999997                0.0                0.0]
+            [               0.0 0.9999999999999998                0.0]
+            [               0.0                0.0                1.0]
 
         Exact Rings, Orthonormalization:
 
@@ -9070,6 +9066,10 @@ cdef class Matrix(matrix1.Matrix):
                 Q = Q[0:m, 0:n]
                 R = R[0:n, 0:n]
         elif R.is_exact():
+            if self == 1:
+                # this special case occurs frequently enough to deserve a shortcut
+                return (self, self)
+
             if orthonormal:
                 Q, R = self.transpose().QR(full=False)
             else:
@@ -12209,13 +12209,13 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: A = matrix(CC, 2, 3, [3*I,4,1-I,1,2,0])
             sage: A.norm('frob')
-            5.65685424949
+            5.656854249492381
             sage: A.norm(2)
-            5.47068444321
+            5.470684443210...
             sage: A.norm(1)
             6.0
             sage: A.norm(Infinity)
-            8.41421356237
+            8.414213562373096
             sage: a = matrix([[],[],[],[]])
             sage: a.norm()
             0.0
@@ -12441,9 +12441,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: a.exp()
             [ 1/11882424341266*(e^(3/1275529100*sqrt(227345670387496707609))*(11*sqrt(227345670387496707609) + 5941212170633) - 11*sqrt(227345670387496707609) + 5941212170633)*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)                            445243650/75781890129165569203*(sqrt(227345670387496707609)*e^(3/1275529100*sqrt(227345670387496707609)) - sqrt(227345670387496707609))*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)]
             [                                     10000/53470909535697*(sqrt(227345670387496707609)*e^(3/1275529100*sqrt(227345670387496707609)) - sqrt(227345670387496707609))*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200) -1/11882424341266*(e^(3/1275529100*sqrt(227345670387496707609))*(11*sqrt(227345670387496707609) - 5941212170633) - 11*sqrt(227345670387496707609) - 5941212170633)*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)]
-            sage: a.change_ring(RDF).exp()
-            [42748127.3153 7368259.24416]
-            [234538976.138 40426191.4516]
+            sage: a.change_ring(RDF).exp()  # rel tol 1e-14
+            [42748127.31532951 7368259.244159399]
+            [234538976.1381042 40426191.45156228]
         """
         from sage.symbolic.ring import SR
         return self.change_ring(SR).exp()

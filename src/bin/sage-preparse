@@ -11,6 +11,9 @@ AUTHOR:
 
 import os, sys, re
 
+from sage.misc.preparser import preparse_file
+from sage.misc.temporary_file import atomic_write
+
 # The spkg/bin/sage script passes the files to be preparsed as
 # arguments (but remove sys.argv[0]).
 files = sys.argv[1:]
@@ -115,7 +118,6 @@ def do_preparse(f, files_before=[]):
             F = '\n'.join(lines[:num] + lines[(num+1):])
 
     # Preparse it
-    from sage.misc.preparser  import preparse_file
     G = preparse_file(F)
 
     # Check for load/attach commands.
@@ -129,8 +131,10 @@ def do_preparse(f, files_before=[]):
     i = find_position_right_after_module_docstring(G)
     G = coding + G[:i] + insert + G[i:]
 
-    # Finally, write out the result.
-    open(fname, 'w').write(G)
+    # Finally, write out the result.  We use atomic_write to avoid
+    # race conditions (for example, the file will never be half written).
+    with atomic_write(fname) as f:
+        f.write(G)
 
 def find_position_right_after_module_docstring(G):
     """
@@ -215,9 +219,11 @@ def do_load_and_attach(G, file, files_before):
                    continue
                 if name.endswith('.sage'):
                     do_preparse(name, files_before + [file])
-                    s += lws + 'execfile("%s.py")\n'%name[:-5]
+                    s += lws + "exec(compile(open({0}.py).read(), {0}.py, \
+                            'exec'))\n".format(name[:-5])
                 elif name.endswith('.py'):
-                    s += lws + 'execfile("%s")\n'%name
+                    s += lws + "exec(compile(open({0}).read(), {0}, \
+                            'exec'))\n".format(name)
         else:
             s += t + '\n'
     return s

@@ -1342,7 +1342,7 @@ class FastCallableConverter(Converter):
             pi
             sage: etb = ExpressionTreeBuilder(vars=['x'], domain=RDF)
             sage: pi._fast_callable_(etb)
-            3.14159265359
+            3.141592653589793
         """
         from sage.symbolic.constants import Constant
         if isinstance(obj, Constant):

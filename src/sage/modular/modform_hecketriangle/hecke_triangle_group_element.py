@@ -73,7 +73,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
     Elements of HeckeTriangleGroup.
     """
 
-    def __init__(self, parent, M, check=False, **kwargs):
+    def __init__(self, parent, M, check=True, **kwargs):
         r"""
         An element of HeckeTriangle group given by a matrix ``M``.
 
@@ -96,20 +96,31 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: lam = PolynomialRing(ZZ, 'lam').gen()
             sage: M = matrix([[-1, 0], [-lam^4 + 5*lam^2 + lam - 5, -1]])
             sage: G = HeckeTriangleGroup(4)
-            sage: G(M, check=True)
+            sage: G(M)
             Traceback (most recent call last):
             ...
             ValueError: The matrix is not an element of Hecke triangle group for n = 4, up to equivalence it identifies two nonequivalent points.
 
             sage: G = HeckeTriangleGroup(10)
-            sage: HeckeTriangleGroupElement(G, M, check=True)
+            sage: el = G(M)
+            sage: el == HeckeTriangleGroupElement(G, M)
+            True
+            sage: type(el)
+            <class 'sage.modular.modform_hecketriangle.hecke_triangle_group_element.HeckeTriangleGroup_with_category.element_class'>
+            sage: el.category()
+            Category of elements of Hecke triangle group for n = 10
+            sage: type(HeckeTriangleGroupElement(G, M))
+            <class 'sage.modular.modform_hecketriangle.hecke_triangle_group_element.HeckeTriangleGroupElement'>
+            sage: HeckeTriangleGroupElement(G, M).category()
+            Category of elements of Hecke triangle group for n = 10
+            sage: el
             [ -1   0]
             [lam  -1]
-            sage: G(M).matrix().parent()
+            sage: el.matrix().parent()
             Full MatrixSpace of 2 by 2 dense matrices over Maximal Order in Number Field in lam with defining polynomial x^4 - 5*x^2 + 5
 
             sage: M = matrix([[-1, lam], [0, 1]])
-            sage: HeckeTriangleGroupElement(G, M, check=True)
+            sage: G(M)
             Traceback (most recent call last):
             ...
             ValueError: The matrix is not an element of Hecke triangle group for n = 10, it has determinant -1 != 1.
@@ -123,7 +134,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             True
         """
 
-        MatrixGroupElement_generic.__init__(self, parent, M, check=True, convert=True)
+        MatrixGroupElement_generic.__init__(self, parent, M, check=check, convert=True)
 
         if (check):
             if self._matrix.determinant() != 1:
@@ -184,9 +195,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             return (4*a*a + b*b) / (4*c*c + d*d)
 
         res = []
-        T   = self.parent().T()
-        S   = self.parent().S()
-        M   = self
+        ID  = self.parent().I().matrix()
+        T   = self.parent().T().matrix()
+        S   = self.parent().S().matrix()
+        M   = self.matrix()
         lam = self.parent().lam()
 
         while True:
@@ -199,12 +211,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             if AA(abs_t) < 1:
                 M = (-S) * M
                 res.append((ZZ(0), ZZ(1)),)
-            elif M.is_identity():
-                if M == self.parent().I():
-                    sgn = ZZ(1)
-                else:
-                    sgn = -ZZ(1)
-                return (tuple(res), sgn)
+            elif M == ID:
+                return (tuple(res), ZZ(1))
+            elif M == -ID:
+                return (tuple(res), ZZ(-1))
             else:
                 raise ValueError("The matrix is not an element of {}, up to equivalence it identifies two nonequivalent points.".format(self.parent()))
 

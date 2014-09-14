@@ -182,6 +182,26 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return self.I()
 
+    def one(self):
+        r"""
+        Return the identity element/matrix for ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: G = HeckeTriangleGroup(10)
+            sage: G(1) == G.one()
+            True
+            sage: G(1)
+            [1 0]
+            [0 1]
+
+            sage: G(1).parent()
+            Hecke triangle group for n = 10
+        """
+
+        return self.I()
+
     @cached_method
     def lam_minpoly(self):
         r"""
@@ -372,7 +392,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             Hecke triangle group for n = 10
         """
 
-        return self(matrix(self._base_ring, [[1,0],[0,1]]))
+        return self(matrix(self._base_ring, [[1,0],[0,1]]), check=False)
 
     @cached_method
     def T(self, m=1):
@@ -396,7 +416,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             Hecke triangle group for n = 10
         """
 
-        return self(matrix(self._base_ring, [[1,self._lam*m],[0,1]]))
+        return self(matrix(self._base_ring, [[1,self._lam*m],[0,1]]), check=False)
 
     @cached_method
     def S(self):

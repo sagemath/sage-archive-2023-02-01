@@ -171,7 +171,7 @@ cdef extern from "gmpxx.h":
         mpz_class(int i)
         mpz_class(mpz_t z)
         mpz_class(mpz_class)
-        mpz_t* get_mpz_t()
+        mpz_t get_mpz_t()
 
 
 ####################################################

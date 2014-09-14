@@ -25,12 +25,12 @@ def integer_to_real_double_dense(Matrix_integer_dense A):
     EXAMPLES:
         sage: a = matrix(ZZ,2,3,[-2,-5,3,4,8,1030339830489349908])
         sage: a.change_ring(RDF)
-        [             -2.0              -5.0               3.0]
-        [              4.0               8.0 1.03033983049e+18]
+        [                  -2.0                   -5.0                    3.0]
+        [                   4.0                    8.0 1.0303398304893499e+18]
         sage: import sage.matrix.change_ring
         sage: sage.matrix.change_ring.integer_to_real_double_dense(a)
-        [             -2.0              -5.0               3.0]
-        [              4.0               8.0 1.03033983049e+18]
+        [                  -2.0                   -5.0                    3.0]
+        [                   4.0                    8.0 1.0303398304893499e+18]
     """
     cdef Py_ssize_t i, j
     cdef Matrix_real_double_dense M

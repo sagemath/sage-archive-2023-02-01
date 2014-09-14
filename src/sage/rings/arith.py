@@ -5565,13 +5565,13 @@ def sort_complex_numbers_for_display(nums):
         sage: sort_c = sort_complex_numbers_for_display
         sage: nums = [CDF(i) for i in range(3)]
         sage: for i in range(3):
-        ...       nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
-        ...                       RDF.random_element()))
-        ...       nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
-        ...                       RDF.random_element()))
+        ....:     nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
+        ....:                     RDF.random_element()))
+        ....:     nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
+        ....:                     RDF.random_element()))
         sage: shuffle(nums)
         sage: sort_c(nums)
-        [0.0, 1.0, 2.0, -2.862406201e-11 - 0.708874026302*I, 2.2108362707e-11 - 0.436810529675*I, 1.00000000001 - 0.758765473764*I, 0.999999999976 - 0.723896589334*I, 1.99999999999 - 0.456080101207*I, 1.99999999999 + 0.609083628313*I]
+        [0.0, 1.0, 2.0, -2.862406201002009e-11 - 0.7088740263015161*I, 2.2108362706985576e-11 - 0.43681052967509904*I, 1.0000000000138833 - 0.7587654737635712*I, 0.9999999999760288 - 0.7238965893336062*I, 1.9999999999874383 - 0.4560801012073723*I, 1.9999999999869107 + 0.6090836283134269*I]
     """
     if len(nums) == 0:
         return nums

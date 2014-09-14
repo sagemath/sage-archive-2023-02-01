@@ -1836,9 +1836,7 @@ class ClusterSeed(SageObject):
             raise ValueError('The variable class can - for infinite types - only be computed up to a given depth')
 
         var_iter = self.variable_class_iter( depth=depth, ignore_bipartite_belt=ignore_bipartite_belt )
-        Vs = [ var for var in var_iter ]
-        Vs.sort(cmp=cmp)
-        return Vs
+        return sorted(var_iter)
 
     def is_finite( self ):
         r"""

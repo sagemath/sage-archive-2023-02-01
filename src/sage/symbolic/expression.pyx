@@ -999,7 +999,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f = sqrt(2) * cos(3); f
             sqrt(2)*cos(3)
             sage: f._convert({'parent':RDF})
-            -1.40006081534
+            -1.40006081533995
             sage: f._convert({'parent':float})
             -1.40006081533995
 
@@ -1087,7 +1087,7 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: RDF(sin(3))
-            0.14112000806
+            0.1411200080598672
         """
         return self._eval_self(R)
 
@@ -1133,15 +1133,15 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: CDF(SR(1/11))
-            0.0909090909091
-            sage: zeta(x).subs(x=I)._complex_double_(CDF)
-            0.00330022368532 - 0.418155449141*I
+            0.09090909090909091
+            sage: zeta(x).subs(x=I)._complex_double_(CDF)  # rel tol 1e-16
+            0.003300223685324103 - 0.4181554491413217*I
             sage: gamma(x).subs(x=I)._complex_double_(CDF)
-            -0.154949828302 - 0.498015668118*I
+            -0.15494982830181067 - 0.49801566811835607*I
             sage: log(x).subs(x=I)._complex_double_(CDF)
-            1.57079632679*I
+            1.5707963267948966*I
             sage: CDF((-1)^(1/3))
-            0.5 + 0.866025403784*I
+            0.5000000000000001 + 0.8660254037844386*I
         """
         return self._eval_self(R)
 
@@ -1602,15 +1602,6 @@ cdef class Expression(CommutativeRingElement):
                     if isinstance(op, SymbolicFunction):
                         return self.operator().name()
         return self._maxima_init_()
-
-
-    _is_real     = deprecated_function_alias(10859, is_real)
-    _is_positive = deprecated_function_alias(10859, is_positive)
-    _is_negative = deprecated_function_alias(10859, is_negative)
-    _is_integer  = deprecated_function_alias(10859, is_integer)
-    _is_symbol   = deprecated_function_alias(10859, is_symbol)
-    _is_constant = deprecated_function_alias(10859, is_constant)
-    _is_numeric  = deprecated_function_alias(10859, is_numeric)
 
     def is_real(self):
         """
@@ -5514,7 +5505,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = x^2*e + x + pi/e
             sage: f.polynomial(RDF)
-            2.71828182846*x^2 + x + 1.15572734979
+            2.718281828459045*x^2 + x + 1.1557273497909217
             sage: g = f.polynomial(RR); g
             2.71828182845905*x^2 + x + 1.15572734979092
             sage: g.parent()
@@ -5522,7 +5513,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.polynomial(RealField(100))
             2.7182818284590452353602874714*x^2 + x + 1.1557273497909217179100931833
             sage: f.polynomial(CDF)
-            2.71828182846*x^2 + x + 1.15572734979
+            2.718281828459045*x^2 + x + 1.1557273497909217
             sage: f.polynomial(CC)
             2.71828182845905*x^2 + x + 1.15572734979092
 
@@ -5544,7 +5535,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f = sum((e*I)^n*x^n for n in range(5)); f
             x^4*e^4 - I*x^3*e^3 - x^2*e^2 + I*x*e + 1
             sage: f.polynomial(CDF)
-            54.5981500331*x^4 - 20.0855369232*I*x^3 - 7.38905609893*x^2 + 2.71828182846*I*x + 1.0
+            54.598150033144236*x^4 - 20.085536923187668*I*x^3 - 7.38905609893065*x^2 + 2.718281828459045*I*x + 1.0
             sage: f.polynomial(CC)
             54.5981500331442*x^4 - 20.0855369231877*I*x^3 - 7.38905609893065*x^2 + 2.71828182845905*I*x + 1.00000000000000
 
@@ -5620,11 +5611,9 @@ cdef class Expression(CommutativeRingElement):
             pi*y^3 + x^3*e + sqrt(2) + I
             sage: R = CDF[x,y]
             sage: R(f)
-            2.71828182846*x^3 + 3.14159265359*y^3 + 1.41421356237 + 1.0*I
+             2.71828182846*x^3 + 3.14159265359*y^3 + 1.41421356237 + 1.0*I
 
-        We coerce to a higher-precision polynomial ring
-
-        ::
+        We coerce to a higher-precision polynomial ring::
 
             sage: R = ComplexField(100)[x,y]
             sage: R(f)
@@ -6170,9 +6159,9 @@ cdef class Expression(CommutativeRingElement):
             sage: a.norm()
             3^(2/3) + 2
             sage: CDF(a).norm()
-            4.08008382305
+            4.080083823051...
             sage: CDF(a.norm())
-            4.08008382305
+            4.080083823051904
         """
         return (self*self.conjugate()).expand()
 
@@ -6994,8 +6983,8 @@ cdef class Expression(CommutativeRingElement):
             1/2*I*pi
             sage: SR(1/2).arccosh()
             arccosh(1/2)
-            sage: SR(CDF(1/2)).arccosh()
-            1.0471975512*I
+            sage: SR(CDF(1/2)).arccosh()  # rel tol 1e-15
+            1.0471975511965976*I
             sage: maxima('acosh(0.5)')
             1.04719755119659...*%i
 
@@ -7220,10 +7209,10 @@ cdef class Expression(CommutativeRingElement):
             1/6*pi^2
             sage: SR(3).zeta()
             zeta(3)
-            sage: SR(CDF(0,1)).zeta()
-            0.00330022368532 - 0.418155449141*I
-            sage: CDF(0,1).zeta()
-            0.00330022368532 - 0.418155449141*I
+            sage: SR(CDF(0,1)).zeta()  # abs tol 1e-16
+            0.003300223685324103 - 0.4181554491413217*I
+            sage: CDF(0,1).zeta()  # abs tol 1e-16
+            0.003300223685324103 - 0.4181554491413217*I
             sage: plot(lambda x: SR(x).zeta(), -10,10).show(ymin=-3,ymax=3)
 
         To prevent automatic evaluation use the ``hold`` argument::
@@ -7397,7 +7386,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(10.0r).gamma()  # For ARM: rel tol 2e-15
             362880.0
             sage: SR(CDF(1,1)).gamma()
-            0.498015668118 - 0.154949828302*I
+            0.49801566811835607 - 0.15494982830181067*I
 
         ::
 
@@ -8020,6 +8009,15 @@ cdef class Expression(CommutativeRingElement):
             x*sin(2)/x^a
             sage: f.simplify()
             x^(-a + 1)*sin(2)
+
+        TESTS:
+
+        Check that :trac:`14637` is fixed::
+
+            sage: assume(x > 0, x < pi/2)
+            sage: acos(cos(x)).simplify()
+            x
+            sage: forget()
         """
         return self._parent(self._maxima_())
 
@@ -8284,7 +8282,6 @@ cdef class Expression(CommutativeRingElement):
 
     trig_simplify = simplify_trig
 
-    @rename_keyword(deprecation=6094, method="algorithm")
     def simplify_rational(self,algorithm='full', map=False):
         r"""
         Simplify rational expressions.
@@ -8540,7 +8537,6 @@ cdef class Expression(CommutativeRingElement):
     radical_simplify = simplify_radical
     simplify_exp = exp_simplify = simplify_radical
 
-    @rename_keyword(deprecation=6094, method="algorithm")
     def simplify_log(self,algorithm=None):
         r"""
         Simplify symbolic expression, which can contain logs.
@@ -8698,7 +8694,6 @@ cdef class Expression(CommutativeRingElement):
 
     log_simplify = simplify_log
 
-    @rename_keyword(deprecation=6094, method="algorithm")
     def expand_log(self,algorithm='products'):
         r"""
         Simplify symbolic expression, which can contain logs.
@@ -9225,7 +9220,7 @@ cdef class Expression(CommutativeRingElement):
 
     def solve(self, x, multiplicities=False, solution_dict=False, explicit_solutions=False, to_poly_solve=False):
         r"""
-        Analytically solve the equation ``self == 0`` or an univarite
+        Analytically solve the equation ``self == 0`` or a univariate
         inequality for the variable `x`.
 
         .. warning::
@@ -9255,8 +9250,8 @@ cdef class Expression(CommutativeRingElement):
            solutions, but possibly encounter approximate solutions.
            This keyword is incompatible with ``multiplicities=True``
            and is not used when solving an inequality. Setting ``to_poly_solve``
-           to 'force' (string) omits Maxima's solve command (usefull when
-           some solution of trigonometric equations are lost).
+           to ``'force'`` omits Maxima's solve command (useful when
+           some solutions of trigonometric equations are lost).
 
         EXAMPLES::
 
@@ -9267,7 +9262,7 @@ cdef class Expression(CommutativeRingElement):
             sage: solve((z^3-1)^3, z, multiplicities=True)
             ([z == 1/2*I*sqrt(3) - 1/2, z == -1/2*I*sqrt(3) - 1/2, z == 1], [3, 3, 3])
 
-        A simple example to show use of the keyword
+        A simple example to show the use of the keyword
         ``multiplicities``::
 
             sage: ((x^2-1)^2).solve(x)
@@ -9290,7 +9285,7 @@ cdef class Expression(CommutativeRingElement):
             sage: solve(x*sin(x)==x^2,x,explicit_solutions=True)
             [x == 0]
 
-        The following examples show use of the keyword ``to_poly_solve``::
+        The following examples show the use of the keyword ``to_poly_solve``::
 
             sage: solve(abs(1-abs(1-x)) == 10, x)
             [abs(abs(x - 1) - 1) == 10]
@@ -9339,34 +9334,34 @@ cdef class Expression(CommutativeRingElement):
 
             sage: forget()
 
-        In some cases it may be worthwhile to directly use to_poly_solve,
+        In some cases it may be worthwhile to directly use ``to_poly_solve``
         if one suspects some answers are being missed::
 
-            sage: solve(cos(x)==0,x)
+            sage: solve(cos(x)==0, x)
             [x == 1/2*pi]
-            sage: solve(cos(x)==0,x,to_poly_solve=True)
+            sage: solve(cos(x)==0, x, to_poly_solve=True)
             [x == 1/2*pi]
-            sage: from sage.calculus.calculus import maxima
-            sage: sol = maxima(cos(x)==0).to_poly_solve(x)
-            sage: sol.sage()
-            [[x == 1/2*pi + pi*z82]]
+            
+            
+            sage: solve(cos(x)==0, x, to_poly_solve='force')
+            [x == 1/2*pi + pi*z...]
 
-        If a returned unsolved expression has a denominator, but the
-        original one did not, this may also be true::
+        The same may also apply if a returned unsolved expression has a
+        denominator, but the original one did not::
 
             sage: solve(cos(x) * sin(x) == 1/2, x, to_poly_solve=True)
             [sin(x) == 1/2/cos(x)]
-            sage: from sage.calculus.calculus import maxima
-            sage: sol = maxima(cos(x) * sin(x) == 1/2).to_poly_solve(x)
-            sage: sol.sage()
-            [[x == 1/4*pi + pi*z...]]
+            sage: solve(cos(x) * sin(x) == 1/2, x, to_poly_solve=True, explicit_solutions=True)
+            [x == 1/4*pi + pi*z...]
+            sage: solve(cos(x) * sin(x) == 1/2, x, to_poly_solve='force')
+            [x == 1/4*pi + pi*z...]
 
         We can also solve for several variables::
 
             sage: var('b, c')
             (b, c)
             sage: solve((b-1)*(c-1), [b,c])
-            [[b == 1, c == r3], [b == r4, c == 1]]
+            [[b == 1, c == r4], [b == r5, c == 1]]
 
         Some basic inequalities can be also solved::
 
@@ -9422,8 +9417,8 @@ cdef class Expression(CommutativeRingElement):
 
         ::
 
-            sage: solve(sin(x)==1/2,x,to_poly_solve='force')
-            [x == 5/6*pi + 2*pi*z..., x == 1/6*pi + 2*pi*z...]
+            sage: solve(sin(x)==1/2, x, to_poly_solve='force')
+            [x == 1/6*pi + 2*pi*z..., x == 5/6*pi + 2*pi*z...]
 
         :trac:`11618` fixed::
 
@@ -9442,6 +9437,17 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: (1, 2) are not valid variables.
+
+        :trac:`16651` fixed::
+
+            sage: (x^7-x-1).solve(x, to_poly_solve=True)     # abs tol 1e-6
+            [x == 1.11277569705,
+             x == (-0.363623519329 - 0.952561195261*I),
+             x == (0.617093477784 - 0.900864951949*I),
+             x == (-0.809857800594 - 0.262869645851*I),
+             x == (-0.809857800594 + 0.262869645851*I),
+             x == (0.617093477784 + 0.900864951949*I),
+             x == (-0.363623519329 + 0.952561195261*I)]
         """
         import operator
         cdef Expression ex
@@ -9462,7 +9468,6 @@ cdef class Expression(CommutativeRingElement):
 
         if multiplicities and to_poly_solve:
             raise NotImplementedError("to_poly_solve does not return multiplicities")
-
 
         if isinstance(x, (list, tuple)):
             if not all([isinstance(i, Expression) for i in x]):
@@ -9525,36 +9530,34 @@ cdef class Expression(CommutativeRingElement):
         # but also allows for the possibility of approximate   #
         # solutions being returned.                            #
         ########################################################
-        if to_poly_solve and not multiplicities:
-            if len(X)==0: # if Maxima's solve gave no solutions, only try it
+        if to_poly_solve:
+            if len(X) == 0:
+                # Maxima's solve gave no solutions
+                solutions_so_far = [ex]
+                ignore_exceptions = True
+            else:
+                solutions_so_far = X
+                ignore_exceptions = False
+            X = []
+            for eq in solutions_so_far:
+                if eq.lhs().is_symbol() and (eq.lhs() == x) and (x not in eq.rhs().variables()):
+                    X.append(eq)
+                    continue
                 try:
-                    s = m.to_poly_solve(x)
+                    m = eq._maxima_()
+                    s = m.to_poly_solve(x, options='algexact:true')
                     T = string_to_list_of_solutions(repr(s))
-                    X = [t[0] for t in T]
-                except Exception: # if that gives an error, stick with no solutions
-                    X = []
-
-            for eq in X:
-                # If the RHS of one solution also has the variable, or if
-                # the LHS is not the variable, try another way to get solutions
-                if repr(x) in map(repr, eq.rhs().variables()) or \
-                        repr(x) in repr(eq.lhs()):
-                    try:
-                        # try to solve it using to_poly_solve
-                        Y = eq._maxima_().to_poly_solve(x).sage()
-                        X.remove(eq)
-                        # replace with the new solutions
-                        X.extend([y[0] for y in Y])
-                    except TypeError as mess:
-                        if "Error executing code in Maxima" in str(mess) or \
-                                "unable to make sense of Maxima expression" in\
-                                str(mess):
-                            if explicit_solutions:
-                                X.remove(eq) # this removes an implicit solution
-                            else:
-                                pass # we keep this implicit solution
-                        else:
-                            raise
+                    X.extend([t[0] for t in T])
+                except TypeError as mess:
+                    if ignore_exceptions:
+                        continue
+                    elif "Error executing code in Maxima" in str(mess) or \
+                         "unable to make sense of Maxima expression" in \
+                         str(mess):
+                        if not explicit_solutions:
+                            X.append(eq) # we keep this implicit solution
+                    else:
+                        raise
 
         # make sure all the assumptions are satisfied
         from sage.symbolic.assumptions import assumptions
@@ -9568,11 +9571,8 @@ cdef class Expression(CommutativeRingElement):
                             del ret_multiplicities[ix]
                         continue
 
-        # if solution_dict is True:
-        # Relaxed form suggested by Mike Hansen (#8553):
         if solution_dict:
-            X=[dict([[sol.left(),sol.right()]]) for sol in X]
-
+            X = [dict([[sol.left(), sol.right()]]) for sol in X]
         if multiplicities:
             return X, ret_multiplicities
         else:
@@ -9667,7 +9667,8 @@ cdef class Expression(CommutativeRingElement):
             sage: b.solve(t)
             []
             sage: b.solve(t, to_poly_solve=True)
-            [t == 1/450*I*pi*z... + 1/900*log(3/4*sqrt(41) + 25/4), t == 1/450*I*pi*z... + 1/900*log(-3/4*sqrt(41) + 25/4)]
+            [t == 1/450*I*pi*z... + 1/900*log(-3/4*sqrt(41) + 25/4),
+             t == 1/450*I*pi*z... + 1/900*log(3/4*sqrt(41) + 25/4)]
             sage: n(1/900*log(-3/4*sqrt(41) + 25/4))
             0.000411051404934985
 
@@ -9785,9 +9786,6 @@ cdef class Expression(CommutativeRingElement):
             var = self.default_variable()
         return find_local_minimum(self._fast_float_(var),
                                         a=a, b=b, tol=tol, maxfun=maxfun )
-
-    find_maximum_on_interval = deprecated_function_alias(2607, find_local_maximum)
-    find_minimum_on_interval = deprecated_function_alias(2607, find_local_minimum)
 
     ###################
     # Fast Evaluation #

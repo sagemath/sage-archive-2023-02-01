@@ -1461,7 +1461,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: v = vector([1..5]); abs(v)
             sqrt(55)
             sage: v = vector(RDF, [1..5]); abs(v)
-            7.4161984871
+            7.416198487095663
         """
         return sum([x**2 for x in self.list()]).sqrt()
 
@@ -1507,9 +1507,9 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
             sage: v=vector(RDF,[1,2,3])
             sage: v.norm(5)
-            3.07738488539
+            3.077384885394063
             sage: v.norm(pi/2)
-            4.2165958647
+            4.216595864704748
             sage: _=var('a b c d p'); v=vector([a, b, c, d])
             sage: v.norm(p)
             (abs(a)^p + abs(b)^p + abs(c)^p + abs(d)^p)^(1/p)
@@ -3440,7 +3440,7 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
             sage: r=vector([t,t^2,sin(t)])
             sage: vec,answers=r.nintegral(t,0,1)
             sage: vec
-            (0.5, 0.333333333333, 0.459697694132)
+            (0.5, 0.33333333333333337, 0.45969769413186023)
             sage: type(vec)
             <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
             sage: answers

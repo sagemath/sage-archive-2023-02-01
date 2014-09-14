@@ -51,7 +51,11 @@ fi
 # build M4RIE
 
 cd $ROOT_DIR/src/
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $ENABLE_DEBUG
+./configure \
+    --prefix="$SAGE_LOCAL" \
+    --libdir="$SAGE_LOCAL/lib" \
+    --enable-shared --disable-static \
+    $ENABLE_DEBUG
 
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring m4rie"

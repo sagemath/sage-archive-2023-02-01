@@ -54,7 +54,11 @@ fi
 
 cd $ROOT_DIR/src/
 
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $ENABLE_DEBUG $DISABLE_SSE2
+./configure \
+    --prefix="$SAGE_LOCAL" \
+    --libdir="$SAGE_LOCAL/lib" \
+    --enable-shared --disable-static \
+    $ENABLE_DEBUG $DISABLE_SSE2
 
 if [ $? -ne 0 ]; then
     echo "Error configuring m4ri"

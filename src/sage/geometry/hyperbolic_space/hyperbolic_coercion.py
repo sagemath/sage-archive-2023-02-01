@@ -18,18 +18,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #***********************************************************************
 
-from sage.geometry.hyperbolic_space.hyperbolic_point import HyperbolicPoint
-from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometry
 from sage.categories.morphism import Morphism
 from sage.symbolic.pynac import I
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
-from sage.rings.all import RR
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
-#from sage.functions.other import real, imag, sqrt
+from sage.functions.other import real, imag, sqrt
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.functions.other', ['real','imag','sqrt'])
 lazy_import('sage.misc.misc', 'attrcall')
 
 class HyperbolicModelCoercion(Morphism):
@@ -64,15 +60,15 @@ class HyperbolicModelCoercion(Morphism):
             Point in UHP 2.00000000000000 + 1.00000000000000*I
             sage: psi = HM.coerce_map_from(UHP)
             sage: psi(UHP.get_point(I))
-            (0, 0, 1)
+            Point in HM (0, 0, 1)
 
         It is an error to try to convert a boundary point to a model
         that doesn't support boundary points::
 
-            sage: HyperbolicPlane.UHP.point_to_model(infinity, 'HM')
+            sage: psi(UHP.get_point(infinity))
             Traceback (most recent call last):
             ...
-            NotImplementedError: boundary points are not implemented for the HM model
+            NotImplementedError: boundary points are not implemented for the Hyperboloid Model
 
         It is an error to try to convert a boundary point to a model
         that doesn't support boundary points::
@@ -83,17 +79,17 @@ class HyperbolicModelCoercion(Morphism):
             NotImplementedError: boundary points are not implemented for the Hyperboloid Model
         """
         C = self.codomain()
-        bdry = False
-        if C.is_bounded():
-            if self.domain().is_bounded():
-                bdry = x.is_boundary()
-            else:
-                bdry = C.boundary_point_in_model(x)
-        elif self.domain().is_bounded() and x.is_boundary():
+        if not C.is_bounded() and self.domain().is_bounded() and x.is_boundary():
             raise NotImplementedError("boundary points are not implemented for"
                                       " the {0}".format(C.name()))
-        return C.element_class(C, self.image_coordinates(x.coordinates()), bdry,
-                               check=False, **x.graphics_options())
+
+        y = self.image_coordinates(x.coordinates())
+        if self.domain().is_bounded():
+            bdry = x.is_boundary()
+        else:
+            bdry = C.boundary_point_in_model(y)
+
+        return C.element_class(C, y, bdry, check=False, **x.graphics_options())
 
     def convert_geodesic(self, x):
         """
@@ -119,12 +115,17 @@ class HyperbolicModelCoercion(Morphism):
         EXAMPLES::
 
             sage: UHP = HyperbolicPlane().UHP()
-            sage: PD = HyperbolicPlane().PD()
-            sage: phi = UHP.coerce_map_from(PD)
-            sage: phi(PD.get_point(0.5+0.5*I)) # Wrong test...
-            Point in UHP 2.00000000000000 + 1.00000000000000*I
+            sage: HM = HyperbolicPlane().HM()
+            sage: phi = HM.coerce_map_from(UHP)
+            sage: I2 = UHP.get_isometry(identity_matrix(2))
+            sage: phi.convert_isometry(I2)
+            Isometry in HM
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
         """
-        return self.codomain().get_isometry(self.image_isometry_matrix(x._matrix))
+        C = self.codomain()
+        return C._Isometry(C, self.image_isometry_matrix(x._matrix), check=False)
 
     def __invert__(self):
         """
@@ -165,7 +166,7 @@ class CoercionUHPtoPD(HyperbolicModelCoercion):
         """
         if x == infinity:
             return I
-        return (x - I)/(Integer(1) - I*x)
+        return (x - I) / (Integer(1) - I*x)
 
     def image_isometry_matrix(self, x):
         """
@@ -173,8 +174,15 @@ class CoercionUHPtoPD(HyperbolicModelCoercion):
         under ``self``.
 
         EXAMPLES::
+
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: PD = HyperbolicPlane().PD()
+            sage: phi = PD.coerce_map_from(UHP)
+            sage: phi.image_isometry_matrix(identity_matrix(2))
+            [1 0]
+            [0 1]
         """
-        return matrix(2,[1,-I,-I,1]) * x * matrix(2,[1,I,I,1])/Integer(2)
+        return matrix([[1,-I],[-I,1]]) * x * matrix([[1,I],[I,1]])/Integer(2)
 
 class CoercionUHPtoKM(HyperbolicModelCoercion):
     """
@@ -273,9 +281,22 @@ class CoercionPDtoUHP(HyperbolicModelCoercion):
         Return the image of the matrix of the hyperbolic isometry ``x``
         under ``self``.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We check that orientation-reversing isometries behave as they
+        should::
+
+            sage: PD = HyperbolicPlane().PD()
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: phi = UHP.coerce_map_from(PD)
+            sage: phi.image_isometry_matrix(matrix([[0,I],[I,0]]))
+            [ 0 -1]
+            [-1  0]
         """
-        return matrix(2,[1,I,I,1]) * x * matrix(2,[1,-I,-I,1])/Integer(2)
+        from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometryPD
+        if not HyperbolicIsometryPD._orientation_preserving(x):
+            x = I*x
+        return matrix([[1,I],[I,1]]) * x * matrix([[1,-I],[-I,1]]) / Integer(2)
 
 class CoercionPDtoKM(HyperbolicModelCoercion):
     """

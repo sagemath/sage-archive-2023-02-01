@@ -23,21 +23,31 @@ EXAMPLES:
 We can construct points in the upper half plane model, abbreviated
 UHP for convenience::
 
-    sage: HyperbolicPlane.UHP.point(2 + I)
+    sage: UHP = HyperbolicPlane().UHP()
+    sage: UHP.get_point(2 + I)
     Point in UHP I + 2
-    sage: g = HyperbolicPlane.UHP.point(3 + I)
-    sage: g.dist(HyperbolicPlane.UHP.point(I))
+    sage: g = UHP.get_point(3 + I)
+    sage: g.dist(UHP.get_point(I))
     arccosh(11/2)
 
 We can also construct boundary points in the upper half plane model::
 
-    sage: HyperbolicPlane.UHP.point(3)
+    sage: UHP.get_point(3)
     Boundary point in UHP 3
 
-Points on the boundary are infinitely far from interior points::
+Some more examples::
 
-    sage: HyperbolicPlane.UHP.point(3).dist(HyperbolicPlane.UHP.point(I))
-    +Infinity
+    sage: HyperbolicPlane().UHP().get_point(0)
+    Boundary point in UHP 0
+
+    sage: HyperbolicPlane().PD().get_point(I/2)
+    Point in PD 1/2*I
+
+    sage: HyperbolicPlane().KM().get_point((0,1))
+    Boundary point in KM (0, 1)
+
+    sage: HyperbolicPlane().HM().get_point((0,0,1))
+    Point in HM (0, 0, 1)
 """
 
 #***********************************************************************
@@ -53,18 +63,14 @@ from sage.structure.element import Element
 from sage.symbolic.pynac import I
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.latex import latex
-from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometry
+from sage.matrix.matrix import is_Matrix
+from sage.matrix.constructor import matrix
+from sage.modules.free_module_element import vector
 from sage.rings.infinity import infinity
 from sage.rings.all import RR, CC
+from sage.functions.other import real, imag
 
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.functions.other', 'real')
-lazy_import('sage.modules.free_module_element', 'vector')
-
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_methods',
-            ['HyperbolicAbstractMethods', 'HyperbolicMethodsUHP'])
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic', 'HyperbolicGeodesic')
-
+from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometry
 
 class HyperbolicPoint(Element):
     r"""
@@ -137,10 +143,38 @@ class HyperbolicPoint(Element):
     It is an error to specify an interior point of hyperbolic space as a
     boundary point::
 
-        sage: HyperbolicPlane().UHP().get_point(0.2 + 0.3*I, boundary=True)
+        sage: HyperbolicPlane().UHP().get_point(0.2 + 0.3*I, is_boundary=True)
         Traceback (most recent call last):
         ...
         ValueError: 0.200000000000000 + 0.300000000000000*I is not a valid boundary point in the UHP model
+
+    TESTS:
+
+    In the PD model, the coordinates of a point are in the unit disk
+    in the complex plane `\CC`::
+
+        sage: HyperbolicPlane().PD().get_point(0)
+        Point in PD 0
+        sage: HyperbolicPlane().PD().get_point(1)
+        Boundary point in PD 1
+
+    In the KM model, the coordinates of a point are in the unit disk
+    in the real plane `\RR^2`::
+
+        sage: HyperbolicPlane().KM().get_point((0,0))
+        Point in KM (0, 0)
+        sage: HyperbolicPlane().KM().get_point((1,0))
+        Boundary point in KM (1, 0)
+
+    In the HM model, the coordinates of a poi nt are on the
+    hyperboloidgiven by `x^2 + y^2 - z^2 = -1`::
+
+        sage: HyperbolicPlane().HM().get_point((0,0,1))
+        Point in HM (0, 0, 1)
+        sage: HyperbolicPlane().HM().get_point((1,0,0), is_boundary=True)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: boundary points are not implemented in the HM model
     """
     def __init__(self, model, coordinates, is_boundary, check=True, **graphics_options):
         r"""
@@ -174,20 +208,6 @@ class HyperbolicPoint(Element):
     #####################
     # "Private" Methods #
     #####################
-
-    @lazy_attribute
-    def _cached_coordinates(self):
-        r"""
-        The representation of the current point used for calculations.
-
-        EXAMPLES::
-
-            sage: A = HyperbolicPlane().HM().get_point((0, 0, 1))
-            sage: A._cached_coordinates
-            I
-        """
-        R = self.parent().realization_of().a_realization()
-        return R(self).coordinates()
 
     def _repr_(self):
         r"""
@@ -273,10 +293,10 @@ class HyperbolicPoint(Element):
             sage: p1 == p2
             True
         """
-        return (self.parent() is other.parent()
+        return (isinstance(other, HyperbolicPoint)
+                and self.parent() is other.parent()
                 and bool(self._coordinates == other._coordinates))
 
-    # TODO: Add a test that this works with isometries
     def __rmul__(self, other):
         r"""
         Implement the action of matrices on points of hyperbolic space.
@@ -284,18 +304,24 @@ class HyperbolicPoint(Element):
         EXAMPLES::
 
             sage: A = matrix(2, [0, 1, 1, 0])
-            sage: A * HyperbolicPlane.UHP.point(2 + I)
+            sage: A = HyperbolicPlane().UHP().get_isometry(A)
+            sage: A * HyperbolicPlane().UHP().get_point(2 + I)
             Point in UHP 1/5*I + 2/5
+
+        We also lift matrices into isometries::
+
             sage: B = diagonal_matrix([-1, -1, 1])
-            sage: B * HyperbolicPlane.HM.point((0, 1, sqrt(2)))
+            sage: B = HyperbolicPlane().HM().get_isometry(B)
+            sage: B * HyperbolicPlane().HM().get_point((0, 1, sqrt(2)))
             Point in HM (0, -1, sqrt(2))
         """
-        from sage.matrix.matrix import is_Matrix
-        if is_Matrix(other):
+        if isinstance(other, HyperbolicIsometry):
+            return other(self)
+        elif is_Matrix(other):
+            # TODO: Currently the __mul__ from the matrices gets called first
+            #    and returns an error instead of calling this method
             A = self.parent().get_isometry(other)
-            return A * self
-        elif isinstance(other, HyperbolicIsometry):
-            return other * self
+            return A(self)
         else:
             raise TypeError("unsupported operand type(s) for *:"
                             "{0} and {1}".format(self, other))
@@ -330,20 +356,40 @@ class HyperbolicPoint(Element):
 
         EXAMPLES::
 
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
             sage: HyperbolicPlane().UHP().get_point(I).model()
-            <class 'sage.geometry.hyperbolic_space.hyperbolic_model.HyperbolicModelUHP'>
+            Hyperbolic plane in the Upper Half Plane Model model
 
             sage: HyperbolicPlane().PD().get_point(0).model()
-            <class 'sage.geometry.hyperbolic_space.hyperbolic_model.HyperbolicModelPD'>
+            Hyperbolic plane in the Poincare Disk Model model
 
             sage: HyperbolicPlane().KM().get_point((0,0)).model()
-            <class 'sage.geometry.hyperbolic_space.hyperbolic_model.HyperbolicModelKM'>
+            Hyperbolic plane in the Klein Disk Model model
 
             sage: HyperbolicPlane().HM().get_point((0,0,1)).model()
-            <class 'sage.geometry.hyperbolic_space.hyperbolic_model.HyperbolicModelHM'>
+            Hyperbolic plane in the Hyperboloid Model model
         """
         return self.parent()
+
+    def to_model(self, model):
+        """
+        Convert ``self`` to the ``model``.
+
+        INPUT:
+
+        - ``other`` -- (a string representing) the image model
+
+        EXAMPLES::
+
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: PD = HyperbolicPlane().PD()
+            sage: PD.get_point(1/2+I/2).to_model(UHP)
+            Point in UHP I + 2
+            sage: PD.get_point(1/2+I/2).to_model('UHP')
+            Point in UHP I + 2
+        """
+        if isinstance(model, str):
+            model = getattr(self.parent().realization_of(), model)()
+        return model(self)
 
     def is_boundary(self):
         """
@@ -368,8 +414,7 @@ class HyperbolicPoint(Element):
 
         EXAMPLES::
 
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
-            sage: p = HyperbolicPointUHP(I); p.graphics_options()
+            sage: p = HyperbolicPlane().UHP().get_point(I); p.graphics_options()
             {}
 
             sage: p.update_graphics(color = "red"); p.graphics_options()
@@ -391,65 +436,59 @@ class HyperbolicPoint(Element):
 
         EXAMPLES::
 
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
-            sage: p = HyperbolicPointUHP(2 + I, color="red")
+            sage: p = HyperbolicPlane().UHP().get_point(2 + I, color="red")
             sage: p.graphics_options()
             {'color': 'red'}
         """
         return self._graphics_options
 
-    ####################################
-    # Methods implemented in _HMethods #
-    ####################################
-
-    def symmetry_in(self):
+    def symmetry_involution(self):
         r"""
         Return the involutary isometry fixing the given point.
 
         EXAMPLES::
 
             sage: z = HyperbolicPlane().UHP().get_point(3 + 2*I)
-            sage: z.symmetry_in()
+            sage: z.symmetry_involution()
             Isometry in UHP
             [  3/2 -13/2]
             [  1/2  -3/2]
 
-            sage: HyperbolicPlane().UHP().get_point(I).symmetry_in()
+            sage: HyperbolicPlane().UHP().get_point(I).symmetry_involution()
             Isometry in UHP
             [ 0 -1]
             [ 1  0]
 
-            sage: HyperbolicPlane().PD().get_point(0).symmetry_in()
+            sage: HyperbolicPlane().PD().get_point(0).symmetry_involution()
             Isometry in PD
             [-I  0]
             [ 0  I]
 
-            sage: HyperbolicPlane().KM().get_point((0, 0)).symmetry_in()
+            sage: HyperbolicPlane().KM().get_point((0, 0)).symmetry_involution()
             Isometry in KM
             [-1  0  0]
             [ 0 -1  0]
             [ 0  0  1]
 
-            sage: HyperbolicPlane().HM().get_point((0,0,1)).symmetry_in()
+            sage: HyperbolicPlane().HM().get_point((0,0,1)).symmetry_involution()
             Isometry in HM
             [-1  0  0]
             [ 0 -1  0]
             [ 0  0  1]
 
             sage: p = HyperbolicPlane().UHP().random_element()
-            sage: A = p.symmetry_in()
+            sage: A = p.symmetry_involution()
             sage: A*p == p
             True
 
-            sage: A.orientation_preserving()
+            sage: A.preserves_orientation()
             True
 
-            sage: A*A == HyperbolicPlane().UHP().isometry(identity_matrix(2))
+            sage: A*A == HyperbolicPlane().UHP().get_isometry(identity_matrix(2))
             True
         """
         R = self.parent().realization_of().a_realization()
-        A = self._HMethods.symmetry_in(self._cached_coordinates)
-        A = self._HMethods.model().isometry_to_model(A, self.model_name())
+        A = R(self).symmetry_involution()
         return self.parent().get_isometry(A)
 
     ###########
@@ -458,6 +497,8 @@ class HyperbolicPoint(Element):
 
     def show(self, boundary=True, **options):
         r"""
+        Plot ``self``.
+
         EXAMPLES::
 
             sage: HyperbolicPlane().PD().get_point(0).show()
@@ -472,6 +513,9 @@ class HyperbolicPoint(Element):
         opts.update(self.graphics_options())
         opts.update(options)
 
+        from sage.plot.point import point
+        from sage.misc.functional import numerical_approx
+
         if self._bdry: # It is a boundary point
             p = numerical_approx(p)
             pic = point((p, 0), **opts)
@@ -479,21 +523,17 @@ class HyperbolicPoint(Element):
                 bd_pic = self._model.get_background_graphic(bd_min = p - 1,
                                                             bd_max = p + 1)
                 pic = bd_pic + pic
-            return pic
-
-        # It is an interior point
-        from sage.misc.functional import numerical_approx
-        if p in RR:
-            p = CC(p)
-        elif hasattr(p, 'iteritems') or hasattr(p, '__iter__'):
-            p = map(numerical_approx, p)
-        else:
-            p = numerical_approx(p)
-        from sage.plot.point import point
-        pic = point(p, **opts)
-        if boundary:
-            bd_pic = self.parent().get_background_graphic()
-            pic = bd_pic + pic
+        else: # It is an interior point
+            if p in RR:
+                p = CC(p)
+            elif hasattr(p, 'iteritems') or hasattr(p, '__iter__'):
+                p = [numerical_approx(k) for k in p]
+            else:
+                p = numerical_approx(p)
+            pic = point(p, **opts)
+            if boundary:
+                bd_pic = self.parent().get_background_graphic()
+                pic = bd_pic + pic
         return pic
 
 class HyperbolicPointUHP(HyperbolicPoint):
@@ -511,103 +551,59 @@ class HyperbolicPointUHP(HyperbolicPoint):
 
         sage: HyperbolicPlane().UHP().get_point(1)
         Boundary point in UHP 1
-
     """
-    def symmetry_in(self):
+    def symmetry_involution(self):
         r"""
         Return the involutary isometry fixing the given point.
 
         EXAMPLES::
 
-            sage: from sage.geometry.hyperbolic_space.hyperbolic_methods import HyperbolicMethodsUHP
-            sage: HyperbolicMethodsUHP.symmetry_in(3 + 2*I)
+            sage: HyperbolicPlane().UHP().get_point(3 + 2*I).symmetry_involution()
+            Isometry in UHP
             [  3/2 -13/2]
             [  1/2  -3/2]
         """
         p = self._coordinates
         x, y = real(p), imag(p)
         if y > 0:
-            return matrix(2,[x/y,-(x**2/y) - y,1/y,-(x/y)])
+            M = matrix([[x/y, -(x**2/y) - y], [1/y, -(x/y)]])
+            return self.parent().get_isometry(M)
+        raise ValueError("cannot determine the isometry of a boundary point")
 
     def show(self, boundary=True, **options):
         r"""
+        Plot ``self``.
+
         EXAMPLES::
 
             sage: HyperbolicPlane().UHP().get_point(I).show()
-
             sage: HyperbolicPlane().UHP().get_point(0).show()
             sage: HyperbolicPlane().UHP().get_point(infinity).show()
             Traceback (most recent call last):
             ...
             NotImplementedError: can't draw the point infinity
         """
-        # FIXME: Something didn't get put into the UHP point's show() properly
-        opts = dict([('axes', False),('aspect_ratio',1)])
+        p = self.coordinates()
+        if p == infinity:
+            raise NotImplementedError("can't draw the point infinity")
+        opts = dict([('axes', False), ('aspect_ratio',1)])
         opts.update(self.graphics_options())
         opts.update(options)
         from sage.misc.functional import numerical_approx
-        p = self.coordinates() + 0*I
-        p = numerical_approx(p)
+        p = numerical_approx(p + 0*I)
         from sage.plot.point import point
-        pic = point(p, **opts)
-        if boundary:
-            cent = real(p)
-            bd_pic = self.parent().get_background_graphic(bd_min = cent - 1,
-                                                          bd_max = cent + 1)
-            pic = bd_pic + pic
+        if self._bdry:
+            pic = point((p, 0), **opts)
+            if boundary:
+                bd_pic = self.parent().get_background_graphic(bd_min = p - 1,
+                                                              bd_max = p + 1)
+                pic = bd_pic + pic
+        else:
+            pic = point(p, **opts)
+            if boundary:
+                cent = real(p)
+                bd_pic = self.parent().get_background_graphic(bd_min = cent - 1,
+                                                              bd_max = cent + 1)
+                pic = bd_pic + pic
         return pic
-
-class HyperbolicPointPD(HyperbolicPoint):
-    r"""
-    Create a point in the PD model.
-
-    INPUT:
-
-    - the coordinates of a point in the unit disk in the complex plane `\CC`
-
-    EXAMPLES::
-
-        sage: HyperbolicPlane().PD().get_point(0)
-        Point in PD 0
-
-        sage: HyperbolicPlane().PD().get_point(1)
-        Boundary point in PD 1
-    """
-
-class HyperbolicPointKM(HyperbolicPoint):
-    r"""
-    Create a point in the KM model.
-
-    INPUT:
-
-    - the coordinates of a point in the unit disk in the real plane `\RR^2`
-
-    EXAMPLES::
-
-        sage: HyperbolicPlane().KM().get_point((0,0))
-        Point in KM (0, 0)
-
-        sage: HyperbolicPlane().KM().get_point((1,0))
-        Boundary point in KM (1, 0)
-    """
-
-class HyperbolicPointHM(HyperbolicPoint):
-    r"""
-    Create a point in the HM model.
-
-    INPUT:
-
-    - the coordinates of a point in the hyperboloid given
-      by `x^2 + y^2 - z^2 = -1`
-
-    EXAMPLES::
-
-        sage: HyperbolicPlane().HM().get_point((0,0,1))
-        Point in HM (0, 0, 1)
-
-        sage: HyperbolicPlane().HM().get_point((1,0,0), is_boundary=True)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: boundary points are not implemented in the HM model
-    """
 

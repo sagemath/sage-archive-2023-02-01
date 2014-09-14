@@ -13,16 +13,31 @@ The interfaces are by default given abbreviated names.  For example,
 UHP (upper half plane model), PD (Poincaré disk model), KM (Klein disk
 model), and HM (hyperboloid model).
 
+.. NOTE::
+
+    All of the current models of 2 dimensional hyperbolic space
+    use the upper half plane model for their computations.  This can
+    lead to some problems, such as long coordinate strings for symbolic
+    points.  For example, the vector ``(1, 0, sqrt(2))`` defines a point
+    in the hyperboloid model.  Performing mapping this point to the upper
+    half plane and performing computations there may return with vector
+    whose components are unsimplified strings have several ``sqrt(2)``'s.
+    Presently, this drawback is outweighed by the rapidity with which new
+    models can be implemented.
+
 AUTHORS:
 
 - Greg Laun (2013): Initial version.
+- Rania Amer, Jean-Philippe Burelle, Bill Goldman, Zach Groton,
+  Jeremy Lent, Leila Vaden, Derrick Wigglesworth (2011): many of the
+  methods spread across the files.
 
 EXAMPLES::
 
-    sage: HyperbolicPlane.UHP.point(2 + I)
+    sage: HyperbolicPlane().UHP().get_point(2 + I)
     Point in UHP I + 2
 
-    sage: HyperbolicPlane.PD.point(1/2 + I/2)
+    sage: HyperbolicPlane().PD().get_point(1/2 + I/2)
     Point in PD 1/2*I + 1/2
 """
 
@@ -39,9 +54,10 @@ EXAMPLES::
 #***********************************************************************
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
+from sage.misc.abstract_method import abstract_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets
 from sage.categories.realizations import Realizations, Category_realization_of_parent
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.geometry.hyperbolic_space.hyperbolic_model import (
         HyperbolicModelUHP, HyperbolicModelPD,
         HyperbolicModelHM, HyperbolicModelKM)
@@ -49,6 +65,12 @@ from sage.geometry.hyperbolic_space.hyperbolic_model import (
 def HyperbolicSpace(n):
     """
     Return ``n`` dimensional hyperbolic space.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicSpace 
+        sage: HyperbolicSpace(2)
+        Hyperbolic plane
     """
     if n == 2:
         return HyperbolicPlane()
@@ -68,18 +90,35 @@ class HyperbolicPlane(Parent, UniqueRepresentation):
     def __init__(self):
         """
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: H = HyperbolicPlane()
+            sage: TestSuite(H).run()
         """
         Parent.__init__(self, category=Sets().WithRealizations())
+        self.a_realization() # We create a realization so at least one is known
 
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: HyperbolicPlane()
+            Hyperbolic plane
         """
         return "Hyperbolic plane"
 
     def a_realization(self):
         """
         Return a realization of ``self``.
+
+        EXAMPLES::
+
+            sage: H = HyperbolicPlane()
+            sage: H.a_realization()
+            Hyperbolic plane in the Upper Half Plane Model model
         """
         return self.UHP()
 
@@ -140,8 +179,7 @@ class HyperbolicModels(Category_realization_of_parent):
             sage: H = HyperbolicPlane()
             sage: models = HyperbolicModels(H)
             sage: models.super_categories()
-            [Category of finite dimensional algebras with basis over Rational Field,
-             Category of realizations of Descent algebra of 4 over Rational Field]
+            [Category of sets, Category of realizations of Hyperbolic plane]
         """
         return [Sets(), Realizations(self.base())]
 
@@ -164,280 +202,32 @@ class HyperbolicModels(Category_realization_of_parent):
             """
             return self(self.realization_of().PD().get_point(0))
 
+        # TODO: Move to a category of metric spaces once created
+        @abstract_method
         def dist(self, a, b):
             """
             Return the distance between ``a`` and ``b``.
+
+            EXAMPLES::
+
+                sage: PD = HyperbolicPlane().PD()
+                sage: PD.dist(PD.get_point(0), PD.get_point(I/2))
+                arccosh(5/3)
             """
-            R = self.realization_of().a_realization()
-            return R.dist(a, b)
 
     class ElementMethods:
-        # TODO: Move to a category of metric spaces
+        # TODO: Move to a category of metric spaces once created
         def dist(self, other):
             """
             Return the distance between ``self`` and ``other``.
+
+            EXAMPLES::
+
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: p1 = UHP.get_point(5 + 7*I)
+            sage: p2 = UHP.get_point(1 + I)
+            sage: p1.dist(p2)
+            arccosh(33/7)
             """
             return self.parent().dist(self, other)
 
-# TODO: Remove this class and move its doctests
-class HyperbolicUserInterface(UniqueRepresentation):
-    r"""
-    Abstract base class for hyperbolic interfaces.  These provide a user
-    interface for interacting with models of hyperbolic geometry without
-    having the interface dictate the class structure.
-    """
-
-    @classmethod
-    def is_bounded(cls):
-        r"""
-        Return ``True`` if the model is bounded and ``False`` otherwise.
-
-        EXAMPLES::
-
-            sage: HyperbolicPlane.UHP.is_bounded()
-            True
-            sage: HyperbolicPlane.PD.is_bounded()
-            True
-            sage: HyperbolicPlane.KM.is_bounded()
-            True
-            sage: HyperbolicPlane.HM.is_bounded()
-            False
-        """
-        return cls.HModel.bounded
-
-    @classmethod
-    def point(cls, p, **kwargs):
-        r"""
-        Return a :class:`HyperbolicPoint` object in the current
-        model with coordinates ``p``.
-
-        EXAMPLES::
-
-            sage: HyperbolicPlane.UHP.point(0)
-            Boundary point in UHP 0
-
-            sage: HyperbolicPlane.PD.point(I/2)
-            Point in PD 1/2*I
-
-            sage: HyperbolicPlane.KM.point((0,1))
-            Boundary point in KM (0, 1)
-
-            sage: HyperbolicPlane.HM.point((0,0,1))
-            Point in HM (0, 0, 1)
-        """
-        return cls.HFactory.get_point(p, **kwargs)
-
-    @classmethod
-    def point_in_model(cls, p):
-        r"""
-        Return ``True`` if ``p`` gives the coordinates of a point in the
-        interior of hyperbolic space in the model.
-
-        EXAMPLES::
-
-            sage: HyperbolicPlane.UHP.point_in_model(I)
-            True
-            sage: HyperbolicPlane.UHP.point_in_model(0) # Not interior point.
-            False
-            sage: HyperbolicPlane.HM.point_in_model((0,1, sqrt(2)))
-            True
-        """
-        return cls.HModel.point_in_model(p)
-
-    @classmethod
-    def boundary_point_in_model(cls, p):
-        r"""
-        Return ``True`` if ``p`` gives the coordinates of a point on the
-        ideal boundary of hyperbolic space in the current model.
-
-        EXAMPLES::
-
-            sage: HyperbolicPlane.UHP.boundary_point_in_model(0)
-            True
-            sage: HyperbolicPlane.UHP.boundary_point_in_model(I) # Not boundary point
-            False
-        """
-        return cls.HModel.boundary_point_in_model(p)
-
-    @classmethod
-    def isometry_in_model(cls, A):
-        r"""
-        Return ``True`` if the matrix ``A`` acts isometrically on
-        hyperbolic space in the current model.
-
-        EXAMPLES::
-
-            sage: A = matrix(2,[10,0,0,10]) # det(A) is not 1
-            sage: HyperbolicPlane.UHP.isometry_in_model(A) # But A acts isometrically
-            True
-        """
-        return cls.HModel.isometry_in_model(A)
-
-    @classmethod
-    def geodesic(cls, start, end, **kwargs):
-        r"""
-        Return an oriented :class:`HyperbolicGeodesic` object in the
-        current model that starts at ``start`` and ends at ``end``.
-
-        EXAMPLES::
-
-            sage: HyperbolicPlane.UHP.geodesic(1, 0)
-            Geodesic in UHP from 1 to 0
-
-            sage: HyperbolicPlane.PD.geodesic(1, 0)
-            Geodesic in PD from 1 to 0
-
-            sage: HyperbolicPlane.KM.geodesic((0,1/2), (1/2, 0))
-            Geodesic in KM from (0, 1/2) to (1/2, 0)
-
-            sage: HyperbolicPlane.HM.geodesic((0,0,1), (0,1, sqrt(2)))
-            Geodesic in HM from (0, 0, 1) to (0, 1, sqrt(2))
-        """
-        return cls.HFactory.get_geodesic(start, end, **kwargs)
-
-    @classmethod
-    def isometry(cls, A):
-        r"""
-        Return an :class:`HyperbolicIsometry` object in the current model
-        that coincides with (in the case of linear isometry groups) or lifts
-        to (in the case of projective isometry groups) the matrix ``A``.
-
-        EXAMPLES::
-
-            sage: HyperbolicPlane.UHP.isometry(identity_matrix(2))
-            Isometry in UHP
-            [1 0]
-            [0 1]
-
-            sage: HyperbolicPlane.PD.isometry(identity_matrix(2))
-            Isometry in PD
-            [1 0]
-            [0 1]
-
-            sage: HyperbolicPlane.KM.isometry(identity_matrix(3))
-            Isometry in KM
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
-
-            sage: HyperbolicPlane.HM.isometry(identity_matrix(3))
-            Isometry in HM
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
-        """
-        return cls.HFactory.get_isometry(A)
-
-    @classmethod
-    def random_point(cls, **kwargs):
-        r"""
-        Return a random point in the current model.
-
-        EXAMPLES::
-
-            sage: p = HyperbolicPlane.UHP.random_point()
-        """
-        return cls.HPoint.random_element(**kwargs)
-
-    @classmethod
-    def random_geodesic(cls, **kwargs):
-        r"""
-        Return a random geodesic in the current model.
-
-        EXAMPLES::
-
-            sage: p = HyperbolicPlane.UHP.random_geodesic()
-        """
-        return cls.HGeodesic.random_element(**kwargs)
-
-    @classmethod
-    def random_isometry(cls, **kwargs):
-        r"""
-        Return a random isometry in the current model.
-
-        EXAMPLES::
-
-            sage: p = HyperbolicPlane.UHP.random_isometry()
-        """
-        return cls.HIsometry.random_element(**kwargs)
-
-    @classmethod
-    def isometry_from_fixed_points(cls, p1, p2):
-        r"""
-        Given two ideal boundary points ``p1`` and ``p2``, return an
-        isometry of hyperbolic type that fixes ``p1`` and ``p2``.
-
-        INPUT:
-
-        - ``p1``, ``p2`` -- points in the ideal boundary of hyperbolic
-          space either as coordinates or as :class:`HyperbolicPoint`.
-
-        OUTPUT:
-
-        - a :class:`HyperbolicIsometry` in the current model whose
-          classification is hyperbolic that fixes ``p1`` and ``p2``
-
-        EXAMPLES::
-
-            sage: UHP = HyperbolicPlane.UHP
-            sage: UHP.isometry_from_fixed_points(0, 4)
-            Isometry in UHP
-            [  -1    0]
-            [-1/5 -1/5]
-            sage: UHP.isometry_from_fixed_points(UHP.point(0), UHP.point(4))
-            Isometry in UHP
-            [  -1    0]
-            [-1/5 -1/5]
-        """
-        return cls.HIsometry.isometry_from_fixed_points(cls.point(p1),
-                                                        cls.point(p2))
-    @classmethod
-    def dist(cls, a, b):
-        r"""
-        Return the hyperbolic distance between points ``a`` and ``b``.
-
-        INPUT:
-
-        - ``a`` -- a hyperbolic point
-        - ``b`` -- a hyperbolic point
-
-        EXAMPLES::
-
-            sage: UHP = HyperbolicPlane.UHP
-            sage: UHP.dist(UHP.point(I), UHP.point(2*I))
-            arccosh(5/4)
-            sage: HyperbolicPlane.UHP.dist(I, 2*I)
-            arccosh(5/4)
-        """
-        try:
-            return a.dist(b)
-        except(AttributeError):
-            return cls.point(a).dist(cls.point(b))
-
-    @classmethod
-    def isometry_to_model(cls, A, model):
-        r"""
-        Return the image of ``A`` in the isometry group of the model
-        given by ``model``.
-
-        INPUT:
-
-        - ``A`` -- a matrix acting isometrically on the current model
-        - ``model`` -- the name of an implemented model of hyperbolic
-          space of the same dimension
-
-        EXAMPLES::
-
-            sage: UHP = HyperbolicPlane.UHP
-            sage: I2 = identity_matrix(2)
-            sage: UHP.isometry_to_model(I2, 'HM')
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
-            sage: UHP.isometry_to_model(UHP.isometry(I2), 'PD')
-            [1 0]
-            [0 1]
-        """
-        if isinstance(A, HyperbolicIsometry):
-            A = A.matrix()
-        return cls.HModel.isometry_to_model(A, model)

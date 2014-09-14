@@ -1442,7 +1442,7 @@ cdef public object py_zeta(object x) except +:
         sage: py_zeta(CC.0)
         0.00330022368532410 - 0.418155449141322*I
         sage: py_zeta(CDF(5))
-        1.03692775514
+        1.03692775514337
         sage: py_zeta(RealField(100)(5))
         1.0369277551433699263313654865
     """

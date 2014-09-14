@@ -766,7 +766,7 @@ framework. Here is a comprehensive list:
 
       sage: y = polygen(RDF, 'y')
       sage: p = (y - 10^16)*(y-10^(-13))*(y-2); p
-      y^3 - 1e+16*y^2 + 2e+16*y - 2000.0
+      y^3 - 1.0000000000000002e+16*y^2 + 2.0000000000001e+16*y - 2000.0
       sage: p.roots(multiplicities=False)[2]     # relative tol 1e-10
       10000000000000000
 

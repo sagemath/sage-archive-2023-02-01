@@ -431,7 +431,7 @@ graph, in which all the edges have a capacity of 1::
 
 ::
 
-    sage: p.solve()
+    sage: p.solve()  # rel tol 2e-12
     2.0
 
 .. image:: media/lp_flot2.png

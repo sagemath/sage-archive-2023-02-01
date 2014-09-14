@@ -29,42 +29,43 @@ from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
 from sage.misc.cachefunc import cached_method
 
 
-def cyclic_permutations(L, append=None):
+def cyclic_representative(L):
     r"""
-    Return a ``Set`` of all cyclic permutations of the given list/tuple.
+    Return a unique representative among all cyclic permutations
+    of the given list/tuple.
 
     INPUT:
 
-    - ``L``       -- A list or tuple.
+    - ``L`` -- A list or tuple.
 
-    - ``append``  -- If ``append != None`` then return a ``Set`` of
-                     tuples instead, consisting of the cyclic permutation
-                     and the (unchanged) ``append`` parameter,
-                     default: ``None``.
+    OUTPUT:
+
+    The maximal element among all cyclic permutations with respect
+    to lexicographical ordering.
 
     EXAMPLES::
 
-        sage: from sage.modular.modform_hecketriangle.hecke_triangle_group_element import cyclic_permutations
-        sage: res = cyclic_permutations((1,2,1,2))
-        sage: res
-        {(1, 2, 1, 2), (2, 1, 2, 1)}
-        sage: type(res)
-        <class 'sage.sets.set.Set_object_enumerated_with_category'>
-        sage: res.list()
-        [(1, 2, 1, 2), (2, 1, 2, 1)]
-
-        sage: res = cyclic_permutations([1,2,1,3], append=ZZ(-1))
-        sage: res
-        {((1, 2, 1, 3), -1), ((2, 1, 3, 1), -1), ((1, 3, 1, 2), -1), ((3, 1, 2, 1), -1)}
+        sage: from sage.modular.modform_hecketriangle.hecke_triangle_group_element import cyclic_representative
+        sage: cyclic_representative((1,))
+        (1,)
+        sage: cyclic_representative((2,2))
+        (2, 2)
+        sage: cyclic_representative((1,2,1,2))
+        (2, 1, 2, 1)
+        sage: cyclic_representative((1,2,3,2,3,1))
+        (3, 2, 3, 1, 1, 2)
     """
 
-    def rotate(l, n, append=None):
-        if append is None:
-            return tuple(l[n:] + l[:n])
-        else:
-            return (rotate(l,n), append)
+    def rotate(l, n):
+        return tuple(l[n:] + l[:n])
 
-    return Set([rotate(L, k, append) for k in range(len(L))])
+    max = L
+    for k in range(len(L)):
+        R = rotate(L, k)
+        if R > max:
+            max = R
+
+    return max
 
 
 class HeckeTriangleGroupElement(MatrixGroupElement_generic):
@@ -810,9 +811,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         else:
             R = G.I()
 
-        # This should determine whether self is conjugate to
-        # a positive power of V(1) or V(n-1)
-        if self.is_parabolic() and AA(self.trace() * (self[1][0] - self[0][1])).sign() < 0:
+        # This should determine whether self is conjugate to a positive power of V(1) or V(n-1)
+        # sign((a+d)*(b-c)) is actually a conjugacy invariant for the parabolic subspace
+        # and distinguishes the two (three) cases (sign(0):=0)
+        if self.is_parabolic() and AA(self.trace() * (self.b() - self.c())).sign() > 0:
             # In this case self should be conjugate to a positive power of V(1)
             # in either case L is / should be (at the moment) always equal to [n-1, 1]
             L[0][0] = 1
@@ -1733,38 +1735,42 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         OUTPUT:
 
-        The set of all possible block data (without the conjugation matrix)
-        in the same conjugacy class. If ``ignore_sign=True`` then
-        the sign is excluded as well.
+        A unique representative for the given block data (without the
+        conjugation matrix) among all cyclic permutations.
+        If ``ignore_sign=True`` then the sign is excluded as well.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: G = HeckeTriangleGroup(n=7)
             sage: (-G.I()).conjugacy_type()
-            {((6, 0),)}
-            sage: G.S().conjugacy_type()
-            {(0, 1)}
+            ((6, 0),)
+            sage: G.U().acton(G.S()).conjugacy_type()
+            (0, 1)
             sage: (G.U()^4).conjugacy_type()
-            {(1, -3)}
-            sage: (G.V(3)^2).conjugacy_type()
-            {((3, 2),)}
+            (1, -3)
+            sage: ((G.V(2)*G.V(3)^2*G.V(2)*G.V(3))^2).conjugacy_type()
+            ((3, 2), (2, 1), (3, 1), (2, 1), (3, 2), (2, 1), (3, 1), (2, 1))
 
             sage: (-G.I()).conjugacy_type(ignore_sign=False)
-            {(((6, 0),), -1)}
+            (((6, 0),), -1)
             sage: G.S().conjugacy_type(ignore_sign=False)
-            {((0, 1), 1)}
+            ((0, 1), 1)
             sage: (G.U()^4).conjugacy_type(ignore_sign=False)
-            {((1, -3), -1)}
+            ((1, -3), -1)
+            sage: G.U().acton((G.V(2)*G.V(3)^2*G.V(2)*G.V(3))^2).conjugacy_type(ignore_sign=False)
+            (((3, 2), (2, 1), (3, 1), (2, 1), (3, 2), (2, 1), (3, 1), (2, 1)), 1)
 
             sage: (-G.I()).conjugacy_type(primitive=True)
-            {((6, 0),)}
+            ((6, 0),)
             sage: G.S().conjugacy_type(primitive=True)
-            {(0, 1)}
-            sage: (G.U()^4).conjugacy_type(primitive=True)
-            {(1, 1)}
+            (0, 1)
+            sage: G.V(2).acton(G.U()^4).conjugacy_type(primitive=True)
+            (1, 1)
             sage: (G.V(3)^2).conjugacy_type(primitive=True)
-            {((3, 1),)}
+            ((3, 1),)
+            sage: G.S().acton((G.V(2)*G.V(3)^2*G.V(2)*G.V(3))^2).conjugacy_type(primitive=True)
+            ((3, 2), (2, 1), (3, 1), (2, 1))
         """
 
         if self.parent().n() == infinity:
@@ -1779,14 +1785,14 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         if self.is_elliptic():
             if ignore_sign:
-                return Set((L,))
+                return L
             else:
-                return Set(((L, sgn),))
+                return (L, sgn)
         else:
             if ignore_sign:
-                return cyclic_permutations(L)
+                return cyclic_representative(L)
             else:
-                return cyclic_permutations(L, sgn)
+                return (cyclic_representative(L), sgn)
 
     def reduced_elements(self):
         r"""

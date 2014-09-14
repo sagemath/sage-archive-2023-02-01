@@ -28,7 +28,7 @@ from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGro
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 
-from hecke_triangle_group_element import HeckeTriangleGroupElement, cyclic_permutations
+from hecke_triangle_group_element import HeckeTriangleGroupElement, cyclic_representative
 
 
 class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
@@ -901,23 +901,16 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: G.element_repr_method("conj")
             sage: G._conjugacy_representatives(2)
 
-            sage: [v[0] for v in G._conj_block[2]]
-            [((1, 1), (2, 1)),
-             ((3, 1), (4, 1)),
-             ((4, 1), (1, 1)),
-             ((2, 2),),
-             ((2, 1), (3, 1)),
-             ((2, 1), (4, 1)),
-             ((3, 1), (1, 1)),
-             ((3, 2),)]
+            sage: list(G._conj_block[2])
+            [((4, 1), (3, 1)), ((2, 2),), ((3, 2),), ((3, 1), (1, 1)), ((4, 1), (1, 1)), ((4, 1), (2, 1)), ((3, 1), (2, 1)), ((2, 1), (1, 1))]
 
             sage: [key for key in G._conj_prim]
             [0, 15*lam + 6, 33*lam + 21, 9*lam + 5, 7*lam + 6, lam - 3, -4, 4*lam]
             sage: for key in G._conj_prim: print G._conj_prim[key]
             [[V(4)]]
-            [[V(4)*V(2)], [V(1)*V(3)]]
-            [[V(3)*V(2)]]
-            [[V(1)*V(2)], [V(4)*V(3)]]
+            [[V(1)*V(3)], [V(2)*V(4)]]
+            [[V(2)*V(3)]]
+            [[V(3)*V(4)], [V(1)*V(2)]]
             [[V(1)*V(4)]]
             [[U], [U]]
             [[S], [S]]
@@ -1011,12 +1004,11 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                         keep = False
 
                     if keep:
-                        conj_type = cyclic_permutations(tuple((ZZ(ex[k]), ZZ(par[k])) for k in range(len_par)))
+                        conj_type = cyclic_representative(tuple((ZZ(ex[k]), ZZ(par[k])) for k in range(len_par)))
                         self._conj_block[t_ZZ].add(conj_type)
 
             for el in self._conj_block[t_ZZ]:
-                L = el.an_element()
-                group_el = prod([self.V(L[k][0])**L[k][1] for k in range(len(L))])
+                group_el = prod([self.V(el[k][0])**el[k][1] for k in range(len(el))])
 
                 #if el != group_el.conjugacy_type():
                 #    raise AssertionError("This shouldn't happen!")
@@ -1030,7 +1022,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
                 # The primitive cases
                 #if group_el.is_primitive():
-                if not ((len(L) == 1 and L[0][1] > 1) or is_cycle(L)):
+                if not ((len(el) == 1 and el[0][1] > 1) or is_cycle(el)):
                     if D not in self._conj_prim:
                         self._conj_prim[D] = []
                     self._conj_prim[D].append(group_el)
@@ -1092,9 +1084,9 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
             sage: R = G.class_representatives(14)
             sage: R
-            [[V(1)*V(2)], [V(3)*V(2)]]
+            [[V(2)*V(3)], [V(1)*V(2)]]
             sage: [v.continued_fraction()[1] for v in R]
-            [(3,), (2, 1, 2)]
+            [(1, 2, 2), (3,)]
 
             sage: R = G.class_representatives(32)
             sage: R
@@ -1312,11 +1304,11 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: R = G.reduced_elements(D=14)
             sage: R
             [
-            [3*lam    -1]  [4*lam    -3]  [ 5*lam     -3]  [ 5*lam     -7]
-            [    1     0], [    3  -lam], [     7 -2*lam], [     3 -2*lam]
+            [ 5*lam     -3]  [ 5*lam     -7]  [4*lam    -3]  [3*lam    -1]
+            [     7 -2*lam], [     3 -2*lam], [    3  -lam], [    1     0]
             ]
             sage: [v.continued_fraction() for v in R]
-            [((), (3,)), ((), (2, 1, 2)), ((), (1, 2, 2)), ((), (2, 2, 1))]
+            [((), (1, 2, 2)), ((), (2, 2, 1)), ((), (2, 1, 2)), ((), (3,))]
         """
 
         L = self.class_representatives(D=D, primitive=True)
@@ -1345,8 +1337,8 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             ]
             sage: G.simple_elements(D=14)
             [
-            [2*lam     3]  [  lam     3]  [  lam     1]  [2*lam     1]
-            [    1   lam], [    1 2*lam], [    3 2*lam], [    3   lam]
+            [2*lam     1]  [  lam     1]  [2*lam     3]  [  lam     3]
+            [    3   lam], [    3 2*lam], [    1   lam], [    1 2*lam]
             ]
         """
 
@@ -1382,7 +1374,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: G.rational_period_functions(k=2, D=14)
             [(z^2 - 1)/z^2, 1/z, (24*z^6 - 120*z^4 + 120*z^2 - 24)/(9*z^8 - 80*z^6 + 146*z^4 - 80*z^2 + 9), (24*z^6 - 120*z^4 + 120*z^2 - 24)/(9*z^8 - 80*z^6 + 146*z^4 - 80*z^2 + 9)]
             sage: G.rational_period_functions(k=-4, D=14)
-            [-z^4 + 1, -16*z^4 + 16, 16*z^4 - 16]
+            [-z^4 + 1, 16*z^4 - 16, -16*z^4 + 16]
         """
 
         try:

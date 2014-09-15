@@ -107,6 +107,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return self._n
 
+    ## TODO: consider renaming to more descriptive name lambda
     @cached_method
     def lam(self):
         r"""

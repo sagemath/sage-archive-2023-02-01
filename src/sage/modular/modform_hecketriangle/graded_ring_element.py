@@ -73,7 +73,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         The functions ``f_rho, f_i, E2`` can be obtained from
         ``self.parent().graded_ring()``.
 
-        NOTE:
+        .. NOTE:
 
         If ``n=Infinity`` then the variable ``x`` refers to ``E4`` instead
         of ``f_rho=1``.
@@ -320,6 +320,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         return self._rat
 
+   ## TODO: consider renaming
     def _fix_d(self, d_num_prec=None):
         r"""
         Return a new version of ``self`` where `d` is replaced by its value.
@@ -337,10 +338,13 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         the base ring changes accordingly and the returned element no longer lies
         in ``self``.
 
-        Note: In the arithmetic case is the main reason for this function. In that case
-        the new element compares equally to ``self`` even though the underlying rational
-        functions differ. Also note that calculations over non-exact rings are generally
-        less reliable.
+        .. NOTE:
+
+        In the arithmetic case is the main reason for this
+        function. In that case the new element compares equally to
+        ``self`` even though the underlying rational functions
+        differ. Also note that calculations over non-exact rings are
+        generally less reliable.
 
         EXAMPLES::
 
@@ -1014,7 +1018,8 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         The new element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
             sage: MR = QuasiMeromorphicModularFormsRing(n=8, red_hom=True)
             sage: (X,Y,Z,dX,dY,dZ) = MR.diff_alg().gens()
@@ -1236,7 +1241,9 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         The function is mainly used to be able to work with the correct
         precision for Laurent series.
 
-        Note: For quasi forms one cannot deduce the analytic type from
+        .. NOTE:
+
+        For quasi forms one cannot deduce the analytic type from
         this order at ``infinity`` since the analytic order is defined by the
         behavior on each quasi part and not by their linear combination.
 
@@ -1326,6 +1333,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                     f_pol = x**n - y**2
             elif (tau.imag() > 0):
                 if (self.group().in_FD(tau)):
+                    ## TODO: Add string
                     raise NotImplementedError
                 else:
                     w = self.group().get_FD(tau, prec=self.parent().default_num_prec())[1]
@@ -1356,6 +1364,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             return order_f
         else:
             if (tau != infinity):
+                ## TODO: Add string
                 raise NotImplementedError
 
             num_val   = prec_num_bound   = 1 #(self.parent()._prec/ZZ(2)).ceil()

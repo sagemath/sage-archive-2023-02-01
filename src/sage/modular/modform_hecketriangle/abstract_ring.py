@@ -614,24 +614,32 @@ class FormsRing_abstract(Parent):
 
         return self._rat_field
 
+    ## TODO: rename this to, say, dvalue?
     def get_d(self, fix_d = False, d_num_prec = None, pol = False):
         r"""
-        Return the parameter ``d`` of self. Also see ``HeckeTriangleGroup().dvalue()``.
+        Return the parameter ``d`` of self. Also see
+        ``HeckeTriangleGroup().dvalue()``.
 
         INPUT:
 
-        - ``fix_d``      -- If ``False`` (default) a formal parameter is used for ``d``.
-                            If ``True`` then the numerical value of ``d`` is used
-                            (resp. an exact value if the group is arithmetic).
-                            Otherwise the given value is used for ``d``.
+        - ``fix_d``      -- If ``False`` (default) a formal parameter is
+                            used for ``d``.
 
-        - ``d_num_prec`` -- An integer, namely the precision to be used if a numerical
-                            value for ``d`` is substituted. Default: ``None`` in which case
-                            the default numerical precision of ``self.parent()`` is used.
+                            If ``True`` then the numerical value of
+                            ``d`` is used (or an exact value if the
+                            group is arithmetic).  Otherwise, the given
+                            value is used for ``d``.
 
-        - ``pol``        -- If ``True`` the other arguments are ignored and the polynomial
-                            variable for ``d`` of the polynomial ring of ``self`` is returned.
-                            Default: ``False``.
+        - ``d_num_prec`` -- An integer.  The numerical precision of
+                            ``d``. Default: ``None``, in which case
+                            the default numerical precision of
+                            ``self.parent()`` is used.
+
+        ## TODO: Single this out as, for example, get_d_poly or get_d_var.
+        - ``pol``        -- If ``True`` the other arguments are
+                            ignored and the polynomialp variable for
+                            ``d`` of the polynomial ring of ``self``
+                            is returned.  Default: ``False``.
 
         OUTPUT:
 
@@ -1136,7 +1144,7 @@ class FormsRing_abstract(Parent):
 
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
-        the corresponding homogeneous space.
+        the corresponding space of homogeneous elements.
 
         The polynomial variable ``x`` exactly corresponds to ``f_rho``.
 
@@ -1273,16 +1281,19 @@ class FormsRing_abstract(Parent):
     @cached_method
     def f_inf(self):
         r"""
-        Return a normalized (according to its first nontrivial Fourier coefficient) cusp form
-        ``f_inf`` with exactly one simple zero at ``infinity`` (up to the group action).
+        Return a normalized (according to its first nontrivial Fourier
+        coefficient) cusp form ``f_inf`` with exactly one simple zero
+        at ``infinity`` (up to the group action).
 
-        It lies in a (cuspidal) extension of the graded ring of ``self``. In case ``has_reduce_hom``
-        is ``True`` it is given as an element of the corresponding homogeneous space.
+        It lies in a (cuspidal) extension of the graded ring of
+        ``self``. In case ``has_reduce_hom`` is ``True`` it is given
+        as an element of the corresponding homogeneous space.
 
         NOTE:
 
-        If ``n=infinity`` then ``f_inf`` is no longer a cusp form since it doesn't
-        vannish at the cusp ``-1``. The first non-trivial cusp form is given by ``E4*f_inf``.
+        If ``n=infinity`` then ``f_inf`` is no longer a cusp form
+        since it doesn't vannish at the cusp ``-1``. The first
+        non-trivial cusp form is given by ``E4*f_inf``.
 
         EXAMPLES::
 
@@ -1349,7 +1360,8 @@ class FormsRing_abstract(Parent):
         I.e. ``G_inv(-1/t) = -G_inv(t)``. It is a holomorphic square root
         of ``J_inv*(J_inv-1)`` with real Fourier coefficients.
 
-        If `2` does not divide `n` the function does not exist and an exception is raised.
+        If `2` does not divide `n` the function does not exist and an
+        exception is raised.
 
         The G-invariant lies in a (weak) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
@@ -1417,18 +1429,21 @@ class FormsRing_abstract(Parent):
         elif (ZZ(2).divides(self._group.n())):
             return self.extend_type("weak", ring=True)(d*y*x**(self._group.n()/ZZ(2))/(x**self._group.n()-y**2)).reduce()
         else:
-            raise ArithmeticError("G_inv doesn't exists for n={}.".format(self._group.n()))
+            raise ArithmeticError("G_inv doesn't exists for odd n(={}).".format(self._group.n()))
 
     @cached_method
     def g_inv(self):
         r"""
         If `2` divides `n`: Return the g-invariant of the group of ``self``.
 
-        The g-invariant is analogous to the j-invariant but has multiplier ``-1``.
-        I.e. ``g_inv(-1/t) = -g_inv(t)``. It is a (normalized) holomorphic square root
-        of ``J_inv*(J_inv-1)``, normalized such that its first nontrivial Fourier coefficient is ``1``.
+        The g-invariant is analogous to the j-invariant but has
+        multiplier ``-1``.  I.e. ``g_inv(-1/t) = -g_inv(t)``. It is a
+        (normalized) holomorphic square root of ``J_inv*(J_inv-1)``,
+        normalized such that its first nontrivial Fourier coefficient
+        is ``1``.
 
-        If `2` does not divide ``n`` the function does not exist and an exception is raised.
+        If `2` does not divide ``n`` the function does not exist and
+        an exception is raised.
 
         The g-invariant lies in a (weak) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
@@ -1486,7 +1501,7 @@ class FormsRing_abstract(Parent):
             (x,y,z,d) = self._pol_ring.gens()
             return self.extend_type("weak", ring=True)(1/d*y*x**(self._group.n()/ZZ(2))/(x**self._group.n()-y**2)).reduce()
         else:
-           raise ArithmeticError("g_inv doesn't exists for n={}.".format(self._group.n()))
+           raise ArithmeticError("g_inv doesn't exists for odd n(={}).".format(self._group.n()))
 
     @cached_method
     def E4(self):
@@ -1635,12 +1650,13 @@ class FormsRing_abstract(Parent):
         r"""
         Return an analog of the Delta-function.
 
-        It lies in the graded ring of ``self``. In case ``has_reduce_hom`` is ``True``
-        it is given as an element of the corresponding homogeneous space.
+        It lies in the graded ring of ``self``. In case
+        ``has_reduce_hom`` is ``True`` it is given as an element of
+        the corresponding homogeneous space.
 
-        It is a cusp form of weight `12` and is equal to
-        ``d*(E4^3 - E6^2)`` or (in terms of the generators) ``d*x^(2*n-6)*(x^n - y^2)``.
-
+        It is a cusp form of weight `12` and is equal to ``d*(E4^3 -
+        E6^2)`` or (in terms of the generators) ``d*x^(2*n-6)*(x^n -
+        y^2)``.
 
         Note that ``Delta`` is also a cusp form for ``n=infinity``.
 
@@ -1789,9 +1805,12 @@ class FormsRing_abstract(Parent):
         OUTPUT:
 
         A modular form element lying in a (holomorphic) extension of
-        the graded ring of ``self``. In case ``has_reduce_hom`` is
+       the graded ring of ``self``. In case ``has_reduce_hom`` is
         ``True`` it is given as an element of the corresponding
         homogeneous space.
+
+        TODO: In the case n = infinity, the Eisenstein series is not
+        unique.  So its better to raise ValueError in this case.
 
         EXAMPLES::
 
@@ -1859,10 +1878,10 @@ class FormsRing_abstract(Parent):
         if (k is None):
             try:
                 if not self.is_homogeneous():
-                    raise TypeError
+                    raise TypeError(None)
                 k = self.weight()
                 if k < 0:
-                    raise TypeError
+                    raise TypeError(None)
                 k = 2*ZZ(k/2)
                 #if self.ep() != ZZ(-1)**ZZ(k/2):
                 #    raise TypeError
@@ -1871,10 +1890,10 @@ class FormsRing_abstract(Parent):
 
         try:
             if k < 0:
-                raise TypeError
+                raise TypeError(None)
             k = 2*ZZ(k/2)
         except TypeError:
-            raise TypeError("k={} has to be a non-negative even integer!".format(k))
+            raise TypeError("k={} must be a non-negative even integer!".format(k))
 
         n = self.hecke_n()
 
@@ -1917,6 +1936,7 @@ class FormsRing_abstract(Parent):
         # TODO: the n = infinity case(s) (doable)
         # TODO: the n = 5 case (hard)
         if (not self.group().is_arithmetic() or n == infinity):
+            ## TODO: Don't raise classes like TypeError.  Always isntanciate them with a string.
             raise NotImplementedError
 
         # The arithmetic cases

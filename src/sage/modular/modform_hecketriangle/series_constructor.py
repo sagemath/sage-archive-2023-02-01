@@ -186,7 +186,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         This is the main function used to determine all Fourier expansions!
 
-        Note: The Fourier expansion of ``J_inv`` for ``d!=1``
+        .. NOTE:
+
+        The Fourier expansion of ``J_inv`` for ``d!=1``
         is given by ``J_inv_ZZ(q/d)``.
 
         .. TODO:
@@ -248,7 +250,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``f_rho``,
         where the parameter ``d`` is replaced by ``1``.
 
-        Note: The Fourier expansion of ``f_rho`` for ``d!=1``
+        .. NOTE:
+
+        The Fourier expansion of ``f_rho`` for ``d!=1``
         is given by ``f_rho_ZZ(q/d)``.
 
         EXAMPLES::
@@ -280,7 +284,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``f_i``,
         where the parameter ``d`` is replaced by ``1``.
 
-        Note: The Fourier expansion of ``f_i`` for ``d!=1``
+        .. NOTE:
+
+        The Fourier expansion of ``f_i`` for ``d!=1``
         is given by ``f_i_ZZ(q/d)``.
 
         EXAMPLES::
@@ -312,7 +318,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``f_inf``,
         where the parameter ``d`` is replaced by ``1``.
 
-        Note: The Fourier expansion of ``f_inf`` for ``d!=1``
+        .. NOTE:
+
+        The Fourier expansion of ``f_inf`` for ``d!=1``
         is given by ``d*f_inf_ZZ(q/d)``.
 
         EXAMPLES::
@@ -344,7 +352,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``G_inv``,
         where the parameter ``d`` is replaced by ``1``.
 
-        Note: The Fourier expansion of ``G_inv`` for ``d!=1``
+        .. NOTE:
+
+        The Fourier expansion of ``G_inv`` for ``d!=1``
         is given by ``d*G_inv_ZZ(q/d)``.
 
         EXAMPLES::
@@ -379,7 +389,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``E_4``,
         where the parameter ``d`` is replaced by ``1``.
 
-        Note: The Fourier expansion of ``E4`` for ``d!=1``
+        .. NOTE:
+
+        The Fourier expansion of ``E4`` for ``d!=1``
         is given by ``E4_ZZ(q/d)``.
 
         EXAMPLES::
@@ -406,7 +418,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``E_6``,
         where the parameter ``d`` is replaced by ``1``.
 
-        Note: The Fourier expansion of ``E6`` for ``d!=1``
+        .. NOTE:
+
+        The Fourier expansion of ``E6`` for ``d!=1``
         is given by ``E6_ZZ(q/d)``.
 
         EXAMPLES::
@@ -433,7 +447,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``Delta``,
         where the parameter ``d`` is replaced by ``1``.
 
-        Note: The Fourier expansion of ``Delta`` for ``d!=1``
+        .. NOTE:
+
+        The Fourier expansion of ``Delta`` for ``d!=1``
         is given by ``d*Delta_ZZ(q/d)``.
 
         EXAMPLES::
@@ -458,7 +474,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``E2``,
         where the parameter ``d`` is replaced by ``1``.
 
-        Note: The Fourier expansion of ``E2`` for ``d!=1``
+        .. NOTE:
+
+        The Fourier expansion of ``E2`` for ``d!=1``
         is given by ``E2_ZZ(q/d)``.
 
         EXAMPLES::
@@ -534,13 +552,14 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         try:
             if k < 0:
-                raise TypeError
+                raise TypeError(None)
             k = 2*ZZ(k/2)
         except TypeError:
             raise TypeError("k={} has to be a non-negative even integer!".format(k))
 
         if (not self.group().is_arithmetic() or self.group().n() == infinity):
             # Exceptional cases should be called manually (see in FormsRing_abstract)
+            ## TODO: Add string
             raise NotImplementedError
 
         # Trivial case

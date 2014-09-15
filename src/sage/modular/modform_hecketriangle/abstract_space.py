@@ -225,9 +225,11 @@ class FormsSpace_abstract(FormsRing_abstract):
         from graded_ring_element import FormsRingElement
         if isinstance(x, FormsRingElement):
             return self.element_class(self, x._rat)
-        # This assumes that the series corresponds to a _weakly holomorphic_ (quasi) form
-        # It also assumes that the form is holomorphic at -1 for n=infinity
-        # (this assumption however can be changed in construct_form resp. construct_quasi_form))
+        # This assumes that the series corresponds to a _weakly
+        # holomorphic_ (quasi) form. It also assumes that the form is
+        # holomorphic at -1 for n=infinity (this assumption however
+        # can be changed in construct_form
+        # resp. construct_quasi_form))
         if hasattr(x, 'parent') and (is_LaurentSeriesRing(x.parent()) or is_PowerSeriesRing(x.parent())):
             if (self.is_modular()):
                 return self.construct_form(x)
@@ -294,47 +296,23 @@ class FormsSpace_abstract(FormsRing_abstract):
             and isinstance(self, SubSpaceForms) ):
                 if (self.ambient_space().has_coerce_map_from(S.ambient_space())):
                     S2 = S.change_ambient_space(self.ambient_space())
-                    if (self.module().has_coerce_map_from(S2.module())):
-                        return True
-                    else:
-                        return False
+                    return self.module().has_coerce_map_from(S2.module())
                 else:
-                        return False
+                    return False
         elif (  isinstance(S, FormsSpace_abstract)\
             and self.graded_ring().has_coerce_map_from(S.graded_ring())\
             and S.weight()    == self._weight\
             and S.ep()        == self._ep\
             and not isinstance(self, SubSpaceForms)):
                 return True
-        elif (self.contains_coeff_ring() and self.coeff_ring().has_coerce_map_from(S) ):
-            return True
         else:
-            return False
+            return self.contains_coeff_ring() \
+                and self.coeff_ring().has_coerce_map_from(S)
 
     # Since forms spaces are modules instead of rings
     # we have to manually define the one element.
     # This makes it possible to take negative powers of elements.
     @cached_method
-    def one_element(self):
-        r"""
-        Return the one element from the corresponding space
-        of constant forms.
-
-        Note: The one element does not lie in ``self`` in general.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.space import CuspForms
-            sage: MF = CuspForms(k=12)
-            sage: (MF.Delta()^(-1)).parent()
-            MeromorphicModularForms(n=3, k=-12, ep=1) over Integer Ring
-            sage: MF.one_element()
-            1 + O(q^5)
-        """
-
-        return self.extend_type("holo", ring=True)(1).reduce()
-
-    # To be able to take power 0 of an element we apparently also need to define one()
     def one(self):
         r"""
         Return the one element from the corresponding space
@@ -352,7 +330,26 @@ class FormsSpace_abstract(FormsRing_abstract):
             ModularForms(n=3, k=0, ep=1) over Integer Ring
         """
 
-        return self.one_element()
+        return self.extend_type("holo", ring=True)(1).reduce()
+
+    def one_element(self):
+        r"""
+        Return the one element from the corresponding space
+        of constant forms.
+
+        Note: The one element does not lie in ``self`` in general.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
+            sage: MF = CuspForms(k=12)
+            sage: (MF.Delta()^(-1)).parent()
+            MeromorphicModularForms(n=3, k=-12, ep=1) over Integer Ring
+            sage: MF.one_element()
+            1 + O(q^5)
+        """
+
+        return self.one()
 
     def is_ambient(self):
         r"""
@@ -688,6 +685,7 @@ class FormsSpace_abstract(FormsRing_abstract):
                 # (l1 and l2 are no longer defined in an analog/unique way)
                 #l2 = num % ZZ(2)
                 #l1 = ((num-l2)/ZZ(2)).numerator()
+                ## TODO: The correct generalization seems (l1,l2) = (0,num)
                 l2 = ZZ(0)
                 l1 = num
             else:
@@ -772,6 +770,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         The main part of the element is given by the ``(l1 - order_1)``-th power
         of ``f_inf``, up to a small holomorphic correction factor.
 
+        TODO: Add INPUT section.
+
         If ``n=infinity`` a non-trivial order of ``-1`` can be specified through the
         parameter ``order_1`` (default: 0). Otherwise it is ignored.
 
@@ -826,6 +826,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         return new_space(rat)
 
+    ## TODO: Why did you switch to the less instuctive arguement signature **kwargs?
     def Faber_pol(self, m, order_1=ZZ(0), **kwargs):
         r"""
         Return the ``m``'th Faber polynomial of ``self``.
@@ -975,6 +976,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         return fab_pol.polynomial()
 
+    ## TODO: same as above
     # very similar to Faber_pol: faber_pol(q)=Faber_pol(d*q)
     def faber_pol(self, m, order_1=ZZ(0), **kwargs):
         r"""
@@ -1353,31 +1355,41 @@ class FormsSpace_abstract(FormsRing_abstract):
 
     def quasi_part_gens(self, r=None, min_exp=0, max_exp=infinity, order_1=ZZ(0)):
         r"""
-        Return a basis in ``self`` of the subspace of (quasi) weakly holomorphic forms which
-        satisfy the specified properties on the quasi parts and the initial Fourier coefficient.
+        Return a basis in ``self`` of the subspace of (quasi) weakly
+        holomorphic forms which satisfy the specified properties on
+        the quasi parts and the initial Fourier coefficient.
 
         INPUT:
 
-        - ``r``        -- An integer or ``None`` (default), indicating the desired power of ``E2``
-                          If ``r=None`` then all possible powers (``r``) are choosen.
+        - ``r``        -- An integer or ``None`` (default), indicating
+                          the desired power of ``E2`` If ``r=None``
+                          then all possible powers (``r``) are
+                          choosen.
 
-        - ``min_exp``  -- An integer giving a lower bound for the first non-trivial
-                          Fourier coefficient of the generators (default: 0).
+        - ``min_exp``  -- An integer giving a lower bound for the
+                          first non-trivial Fourier coefficient of the
+                          generators (default: 0).
 
-        - ``max_exp``  -- An integer or ``infinity`` (default) giving an upper bound for the first
-                          non-trivial Fourier coefficient of the generators.
-                          If ``max_exp==infinity`` then no upper bound is assumed.
+        - ``max_exp``  -- An integer or ``infinity`` (default) giving
+                          an upper bound for the first non-trivial
+                          Fourier coefficient of the generators.  If
+                          ``max_exp==infinity`` then no upper bound is
+                          assumed.
 
-        - ``order_1``  -- A lower bound for the order at ``-1`` of all quasi parts of the
-                          basis elements (default: 0). If ``n!=infinity`` this parameter is ignored.
+        - ``order_1``  -- A lower bound for the order at ``-1`` of all
+                          quasi parts of the basis elements (default:
+                          0). If ``n!=infinity`` this parameter is
+                          ignored.
 
         OUTPUT:
 
-        A basis in ``self`` of the subspace of forms which are modular after dividing by ``E2^r``
-        and which have a Fourier expansion of the form ``q^m + O(q^(m+1))`` with
-        ``min_exp <= m <= max_exp`` for each quasi part (and at least the specified order at ``-1``
-        in case ``n=infinity``). Note that linear combinations of forms/quasi parts maybe have a
-        higher order at infinity than ``max_exp``.
+        A basis in ``self`` of the subspace of forms which are modular
+        after dividing by ``E2^r`` and which have a Fourier expansion
+        of the form ``q^m + O(q^(m+1))`` with ``min_exp <= m <=
+        max_exp`` for each quasi part (and at least the specified
+        order at ``-1`` in case ``n=infinity``). Note that linear
+        combinations of forms/quasi parts maybe have a higher order at
+        infinity than ``max_exp``.
 
         EXAMPLES::
 
@@ -1795,11 +1807,15 @@ class FormsSpace_abstract(FormsRing_abstract):
         # the precision by about 20% of the column size
         if (A.rank() < column_size):
             if (incr_prec_by == 0):
+                ## TODO: Use verbose instead
                 print "Encountered a base change matrix with not-yet-maximal rank (rare, please report)!"
             incr_prec_by += column_size//ZZ(5) + 1
             return self._quasi_form_matrix(min_exp=min_exp, order_1=order_1, incr_prec_by=incr_prec_by)
         elif (incr_prec_by == 0):
             return A
+
+        ## TODO: What do you want to achieve here? Could you do it by
+        ## A.transpose().echelonize().pivots(), too?
 
         # We do an initial binary search to delete some unnecessary rows
         while (A.rank() == column_size):
@@ -1812,6 +1828,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             B = A
             A = A.delete_rows([r for r in range(column_size + (row_size-column_size)//2 - 1, row_size)])
 
+        # TODO: You don't return A, so this has no effect on the return value
         # Next we simply delete row by row
         while (B.rank() == column_size):
             A = B
@@ -1826,7 +1843,9 @@ class FormsSpace_abstract(FormsRing_abstract):
         uniquely determine a corresponding (quasi) form in ``self`` with the given
         lower bound ``min_exp`` for the order at infinity (for each quasi part).
 
-        Note: For ``n=infinity`` only the holomorphic case (``min_exp >= 0``)
+        .. NOTE:
+
+        For ``n=infinity`` only the holomorphic case (``min_exp >= 0``)
         is supported (in particular a non-negative order at ``-1`` is assumed).
 
         INPUT:
@@ -1839,8 +1858,9 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         OUTPUT:
 
-        An integer, namely an upper bound for the number of required Laurent coefficients.
-        The bound should be precise or at least pretty sharp.
+        An integer, namely an upper bound for the number of required
+        Laurent coefficients.  The bound should be precise or at least
+        pretty sharp.
 
         EXAMPLES::
 
@@ -1911,7 +1931,8 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: el == constructed_el
             True
 
-            If a q_basis is available the construction uses a different algorithm which we also check:
+        If a q_basis is available the construction uses a different algorithm which we also check::
+
             sage: basis = QF.q_basis(min_exp=-1)
             sage: QF(qexp) == constructed_el
             True
@@ -2319,7 +2340,9 @@ class FormsSpace_abstract(FormsRing_abstract):
         r"""
         Return the dimension of ``self``.
 
-        Note: This method should be overloaded by subclasses.
+        .. NOTE:
+
+        This method should be overloaded by subclasses.
 
         EXAMPLES::
 

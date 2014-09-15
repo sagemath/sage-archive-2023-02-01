@@ -429,7 +429,7 @@ class HasseDiagram(DiGraph):
             False
         """
         # Quick check: for |V| verts there must be |V|-1 edges.
-        if self.num_edges()+1 <> self.num_verts():
+        if self.num_edges()+1 != self.num_verts():
             return False
         # There is one minimum and all other vertices have out-degree 1
         seen_0 = False

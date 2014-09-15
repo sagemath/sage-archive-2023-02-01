@@ -48,6 +48,7 @@ from sage.misc.mrange              import xmrange
 from sage.modules.free_module_element import vector
 from sage.rings.all                import Integer, moebius
 from sage.rings.arith              import gcd, lcm, next_prime, binomial, primes
+from sage.categories.number_fields import NumberFields
 from sage.rings.complex_field      import ComplexField
 from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
@@ -2514,11 +2515,20 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             Traceback (most recent call last):
             ...
             TypeError: Point must be in codomain of self
+
+        ::
+            A Numberfield example
+            sage: z = QQ['z'].0
+            sage: K.<a> = NumberField(z^2 - 2);
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + y^2,y^2])
+            sage: f.rational_preimages(P(3,1))
+            [(a : 1), (-a : 1)]
         """
+        
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
-        if self.domain().base_ring() != QQ:
-            raise NotImplementedError("Must be QQ")
         if (Q in self.codomain()) == False:
             raise TypeError("Point must be in codomain of self")
         PS = self.domain()
@@ -2624,11 +2634,24 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: sorted(f.all_rational_preimages([P(17,15)]))
             [(1/3 : 1), (3/5 : 1), (5/3 : 1), (3 : 1)]
 
+        ::
+
+            A Numberfield example.
+            sage: z = QQ['z'].0
+            sage: K.<w> = NumberField(z^3 + (z^2)/4 - (41/16)*z + 23/64);
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([16*x^2 - 29*y^2,16*y^2])
+            sage: f.all_rational_preimages([P(16*w^2 - 29,16)])
+            [(-w^2 + 21/16 : 1), (-w^2 - w + 33/16 : 1), (w + 1/2 : 1), (-w^2 - w +
+            25/16 : 1), (w^2 - 29/16 : 1), (w^2 - 21/16 : 1), (w^2 + w - 25/16 : 1),
+            (-w - 1/2 : 1), (w : 1), (-w : 1), (-w^2 + 29/16 : 1), (w^2 + w - 33/16
+            : 1)]
         """
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
-        if self.domain().base_ring() != QQ:
-            raise NotImplementedError("Must be QQ")
+        if self.domain().base_ring() not in NumberFields():
+            raise TypeError("Field won't return finite list of elements")
 
         PS = self.domain()
         RPS = PS.base_ring()

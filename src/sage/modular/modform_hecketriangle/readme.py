@@ -1160,11 +1160,12 @@ Modular forms ring and spaces for Hecke triangle groups:
      sage: qexp.parent()
      Laurent Series Ring in q over Real Field with 1000 bits of precision
      sage: qexp_int = WF.rationalize_series(qexp)
+     doctest:...: UserWarning: Using an experimental rationalization of coefficients, please check the result for correctness!
      sage: qexp_int.parent()
      Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
      sage: qexp_int == WF.J_inv().q_expansion()
      True
-     sage: WF(qexp) == WF.J_inv()
+     sage: WF(qexp_int) == WF.J_inv()
      True
 
      sage: QF = QuasiCuspForms(n=8, k=22/3, ep=-1)
@@ -1173,7 +1174,7 @@ Modular forms ring and spaces for Hecke triangle groups:
      sage: qexp_int = QF.rationalize_series(qexp)
      sage: qexp_int == el.q_expansion()
      True
-     sage: QF(qexp) == el
+     sage: QF(qexp_int) == el
      True
 
 

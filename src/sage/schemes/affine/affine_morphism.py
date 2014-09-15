@@ -641,15 +641,14 @@ class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynom
             sage: f = H([x^2 - 1, y^2])
             sage: f.orbit_structure(A(2,3))
             [1, 6]
-            
+
         ::
-        
+
             sage: A.<x,y,z> = AffineSpace(GF(49, 't'),3)
             sage: H = Hom(A,A)
             sage: f = H([x^2 - z, x - y + z, y^2 - x^2])
             sage: f.orbit_structure(A(1,1,2))
             [7, 6]
-            
         """
         return(P.orbit_structure(self))
 

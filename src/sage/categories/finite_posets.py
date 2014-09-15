@@ -89,11 +89,11 @@ class FinitePosets(CategoryWithAxiom):
                 True
             """
             # Two quick checks before full isomorphic test
-            if sorted(self._hasse_diagram.in_degree()) <> sorted(self._hasse_diagram.out_degree()):
+            if sorted(self._hasse_diagram.in_degree()) != sorted(self._hasse_diagram.out_degree()):
                 return False
-            levels_orig=[len(x) for x in self.level_sets()]
+            levels_orig=[len(x) for x in self._hasse_diagram.level_sets()]
             dual_poset=self.dual()
-            levels_dual=[len(x) for x in dual_poset.level_sets()]
+            levels_dual=[len(x) for x in dual_poset._hasse_diagram.level_sets()]
             if levels_orig <> levels_dual:
                 return False
             return self.is_isomorphic(dual_poset)

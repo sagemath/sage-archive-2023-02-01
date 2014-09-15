@@ -14,4 +14,5 @@ Rigged Configuration Bijections
    ../sage/combinat/rigged_configurations/bij_type_A2_even
    ../sage/combinat/rigged_configurations/bij_type_A2_dual
    ../sage/combinat/rigged_configurations/bij_type_D_twisted
+   ../sage/combinat/rigged_configurations/bij_type_D_tri
 

@@ -10,13 +10,13 @@ AUTHORS:
 
 TESTS::
 
-    sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 3], [[2,1]])
+    sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 3], [[2, 1]])
     sage: from sage.combinat.rigged_configurations.bij_type_D_tri import KRTToRCBijectionTypeDTri
     sage: bijection = KRTToRCBijectionTypeDTri(KRT(pathlist=[[-1,2]]))
     sage: TestSuite(bijection).run()
     sage: RC = RiggedConfigurations(['D', 4, 3], [[2, 1]])
     sage: from sage.combinat.rigged_configurations.bij_type_D_tri import RCToKRTBijectionTypeDTri
-    sage: bijection = RCToKRTBijectionTypeDTri(RC(partition_list=[[],[],[]]))
+    sage: bijection = RCToKRTBijectionTypeDTri(RC(partition_list=[[],[]]))
     sage: TestSuite(bijection).run()
 """
 
@@ -46,7 +46,6 @@ class KRTToRCBijectionTypeDTri(KRTToRCBijectionTypeA):
     This inherits from type `A_n^{(1)}` because we use the same methods in
     some places.
     """
-
     def next_state(self, val):
         r"""
         Build the next state for type `D_4^{(3)}`.
@@ -61,15 +60,13 @@ class KRTToRCBijectionTypeDTri(KRTToRCBijectionTypeA):
             sage: bijection.cur_path[0].insert(0, [2])
             sage: bijection.next_state(2)
         """
-
-        n = self.n
         tableau_height = len(self.cur_path[0]) - 1
 
         if val == 'E':
-            self.ret_rig_con[0].insert_cell(max_width)
-            self.ret_rig_con[1].insert_cell(max_width)
+            self.ret_rig_con[0].insert_cell(0)
+            self.ret_rig_con[1].insert_cell(0)
             if tableau_height == 0:
-                self.ret_rig_con[0].insert_cell(max_width)
+                self.ret_rig_con[0].insert_cell(0)
             self._update_vacancy_nums(0)
             self._update_vacancy_nums(1)
             self._update_partition_values(0)
@@ -84,7 +81,7 @@ class KRTToRCBijectionTypeDTri(KRTToRCBijectionTypeA):
         pos_val = -val
 
         if pos_val == 0:
-            if len(self.ret_rig_con[pos_val - 1]) > 0:
+            if len(self.ret_rig_con[0]) > 0:
                 max_width = self.ret_rig_con[0][0]
             else:
                 max_width = 1
@@ -92,15 +89,12 @@ class KRTToRCBijectionTypeDTri(KRTToRCBijectionTypeA):
             width_n = max_width + 1
 
             # Follow regular A_n rules
-            for a in reversed(range(tableau_height, 1)):
+            for a in reversed(range(tableau_height, 2)):
                 max_width = self.ret_rig_con[a].insert_cell(max_width)
-                self._update_vacancy_nums(a + 1)
-                self._update_partition_values(a + 1)
-            self._update_vacancy_nums(tableau_height)
-            self._update_partition_values(tableau_height)
-            if tableau_height > 0:
-                self._update_vacancy_nums(tableau_height-1)
-                self._update_partition_values(tableau_height-1)
+            self._update_vacancy_nums(0)
+            self._update_partition_values(0)
+            self._update_vacancy_nums(1)
+            self._update_partition_values(1)
 
             # Make the largest string at \nu^{(1)} quasi-singular
             p = self.ret_rig_con[0]
@@ -115,10 +109,10 @@ class KRTToRCBijectionTypeDTri(KRTToRCBijectionTypeA):
                     break
             return
 
-        case_S = [None] * n
+        case_S = [None] * 2
         pos_val = -val
 
-        if pos_val > 3:
+        if pos_val < 3:
             # Always add a cell to the first singular value in the first
             #   tableau we are updating.
             if len(self.ret_rig_con[pos_val - 1]) > 0:
@@ -186,87 +180,64 @@ class KRTToRCBijectionTypeDTri(KRTToRCBijectionTypeA):
                     # No need to set max_width here since we will find a singular string
 
         # Now go back following the regular C_n (ish) rules
-        for a in reversed(range(tableau_height, 2)):
-            if case_S[a] == max_width:
-                self._insert_cell_case_S(self.ret_rig_con[a])
+        if case_S[1] == max_width:
+            P = self.ret_rig_con[1]
+
+            # Special case when adding twice to the first row
+            if P.rigging[0] is None:
+                P._list[0] += 1
             else:
-                max_width = self.ret_rig_con[a].insert_cell(max_width)
-            self._update_vacancy_nums(a + 1)
-            self._update_partition_values(a + 1)
+                for i in reversed(range(1, len(P))):
+                    if P.rigging[i] is None:
+                        j = i - 1
+                        while j >= 0 and P._list[j] == P._list[i]:
+                            P.rigging[j+1] = P.rigging[j] # Shuffle it along
+                            j -= 1
+                        P._list[j+1] += 1
+                        P.rigging[j+1] = None
+                        break
+        else:
+            max_width = self.ret_rig_con[1].insert_cell(max_width)
 
-        # Update the final rigged partitions
-        self._update_vacancy_nums(tableau_height)
-        if tableau_height >= n - 1:
-            self._correct_vacancy_nums()
-        self._update_partition_values(tableau_height)
+        if tableau_height == 0:
+            if case_S[0] == max_width:
+                P = self.ret_rig_con[0]
+                # Since this is on the way back, the added string we want
+                #   to bump will never be the first (largest) string
+                for i in reversed(range(1, len(P))):
+                    if P.rigging[i] is None:
+                        j = i - 1
+                        while j >= 0 and P._list[j] == P._list[i]:
+                            P.rigging[j+1] = P.rigging[j] # Shuffle it along
+                            j -= 1
+                        P._list[j+1] += 1
+                        P.rigging[j+1] = None
+                        break
+            else:
+                max_width = self.ret_rig_con[0].insert_cell(max_width)
 
-        if pos_val <= tableau_height:
-            for a in range(pos_val-1, tableau_height):
-                self._update_vacancy_nums(a)
-                self._update_partition_values(a)
-            if pos_val > 1:
-                self._update_vacancy_nums(pos_val - 2)
-                self._update_partition_values(pos_val - 2)
-        elif tableau_height > 0:
-            self._update_vacancy_nums(tableau_height - 1)
-            self._update_partition_values(tableau_height - 1)
+        self._update_vacancy_nums(0)
+        self._update_partition_values(0)
+        self._update_vacancy_nums(1)
+        self._update_partition_values(1)
 
         if case_QS:
             # Make the new string quasi-singular
-            num_rows = len(partition)
+            num_rows = len(P)
             for i in range(num_rows):
-                if partition._list[i] == width_n:
+                if P._list[i] == width_n:
                     j = i+1
-                    while j < num_rows and partition._list[j] == width_n \
-                      and partition.vacancy_numbers[j] == partition.rigging[j]:
+                    while j < num_rows and P._list[j] == width_n \
+                      and P.vacancy_numbers[j] == P.rigging[j]:
                         j += 1
-                    partition.rigging[j-1] -= 1
+                    P.rigging[j-1] -= 1
                     break
-
-    def _insert_cell_case_S(self, partition):
-        """
-        Insert a cell when case `(S)` holds.
-
-        TESTS::
-
-            sage: RC = RiggedConfigurations(['C', 2, 1], [[2, 2]])
-            sage: RP = RC(partition_list=[[2],[2,2]])[1]
-            sage: RP
-            -4[ ][ ]-4
-            -4[ ][ ]-4
-            <BLANKLINE>
-            sage: RP.rigging[0] = None
-            sage: from sage.combinat.rigged_configurations.bij_type_D_tri import KRTToRCBijectionTypeDTri
-            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 3], [[2,1]])
-            sage: bijection = KRTToRCBijectionTypeDTri(KRT(pathlist=[[-1,2]]))
-            sage: bijection._insert_cell_case_S(RP)
-            sage: RP
-            -4[ ][ ][ ]None
-            -4[ ][ ]-4
-            <BLANKLINE>
-        """
-        # Special case when adding twice to the first row
-        if partition.rigging[0] is None:
-            partition._list[0] += 1
-            return
-
-        num_rows = len(partition)
-        for i in reversed(range(1, num_rows)):
-            if partition.rigging[i] is None:
-                j = i - 1
-                while j >= 0 and partition._list[j] == partition._list[i]:
-                    partition.rigging[j+1] = partition.rigging[j] # Shuffle it along
-                    j -= 1
-                partition._list[j+1] += 1
-                partition.rigging[j+1] = None
-                return
 
 class RCToKRTBijectionTypeDTri(RCToKRTBijectionTypeA):
     r"""
     Specific implementation of the bijection from rigged configurations to
     tensor products of KR tableaux for type `D_4^{(3)}`.
     """
-
     def next_state(self, height):
         r"""
         Build the next state for type `D_4^{(3)}`.
@@ -275,9 +246,9 @@ class RCToKRTBijectionTypeDTri(RCToKRTBijectionTypeA):
 
             sage: RC = RiggedConfigurations(['D', 4, 3], [[2, 1]])
             sage: from sage.combinat.rigged_configurations.bij_type_D_tri import RCToKRTBijectionTypeDTri
-            sage: bijection = RCToKRTBijectionTypeDTri(RC(partition_list=[[2],[2],[1]]))
-            sage: bijection.next_state(0)
-            -1
+            sage: bijection = RCToKRTBijectionTypeDTri(RC(partition_list=[[3],[2]]))
+            sage: bijection.next_state(1)
+            -3
         """
         ell = [None] * 6
         case_S = [False] * 3

@@ -190,7 +190,7 @@ def is_line_graph(g, certificate = False):
         True
 
     The Petersen Graph not being claw-free, it is not a line
-    graph:
+    graph::
 
         sage: graphs.PetersenGraph().is_line_graph()
         False

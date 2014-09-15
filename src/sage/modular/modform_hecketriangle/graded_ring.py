@@ -92,7 +92,7 @@ class QuasiMeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, U
 
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
-                            This is mainly used by the homogeneous spaces.
+                            This is mainly used by the spaces of homogeneous elements.
 
         OUTPUT:
 
@@ -153,7 +153,7 @@ class QuasiWeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRe
 
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
-                            This is mainly used by the homogeneous spaces.
+                            This is mainly used by the spaces of homogeneous elements.
 
         OUTPUT:
 
@@ -211,7 +211,7 @@ class QuasiModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepres
 
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
-                            This is mainly used by the homogeneous spaces.
+                            This is mainly used by the spaces of homogeneous elements.
 
         OUTPUT:
 
@@ -269,7 +269,7 @@ class QuasiCuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresent
 
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
-                            This is mainly used by the homogeneous spaces.
+                            This is mainly used by the spaces of homogeneous elements.
 
         OUTPUT:
 
@@ -327,7 +327,7 @@ class MeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, Unique
 
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
-                            This is mainly used by the homogeneous spaces.
+                            This is mainly used by the spaces of homogeneous elements.
 
         OUTPUT:
 
@@ -385,7 +385,7 @@ class WeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueReprese
 
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
-                            This is mainly used by the homogeneous spaces.
+                            This is mainly used by the spaces of homogeneous elements.
 
         OUTPUT:
 
@@ -442,7 +442,7 @@ class ModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentat
 
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
-                            This is mainly used by the homogeneous spaces.
+                            This is mainly used by the spaces of homogeneous elements.
 
         OUTPUT:
 
@@ -500,7 +500,7 @@ class CuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation
 
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
-                            This is mainly used by the homogeneous spaces.
+                            This is mainly used by the spaces of homogeneous elements.
 
         OUTPUT:
 

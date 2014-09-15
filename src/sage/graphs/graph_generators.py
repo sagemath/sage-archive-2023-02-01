@@ -1531,6 +1531,116 @@ class GraphGenerators():
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
 
+    def quadrangulations(self, order, minimum_degree=None, minimum_connectivity=None,
+                        no_nonfacial_quadrangles=False):
+        r"""
+        Return a generator which creates plane quadrangulations using
+        the plantri generator (see [plantri]_).
+
+        INPUT:
+
+        - ``order`` - a positive integer smaller than or equal to 64.
+          This specifies the number of vertices in the generated quadrangulations.
+
+        - ``minimum_degree`` - default: ``None`` - a value between 2 and 3,
+          or ``None``. This specifies the minimum degree of the generated
+          quadrangulations. If this is ``None`` and the minimum connectivity
+          is specified, then this is set to the same value as the minimum
+          connectivity. If the minimum connectivity is also equal to ``None``,
+          then this is set to 2.
+
+        - ``minimum_connectivity`` - default: ``None`` - a value between 2
+          and 3, or ``None``. This specifies the minimum connectivity of the
+          generated quadrangulations. If this is ``None`` and the option
+          ``no_nonfacial_quadrangles`` is set to ``True``, then this is set to
+          3. Otherwise if this is ``None`` and the minimum degree is specified,
+          then this is set to the minimum degree. If the minimum degree is also
+          equal to ``None``, then this is set to 3.
+
+        - ``no_nonfacial_quadrangles`` - default: ``False`` - if ``True`` only
+          quadrangulations with no non-facial quadrangles are generated. This
+          option cannot be used if ``minimum_connectivity`` is set to 2.
+
+        OUTPUT:
+
+        A generator which will produce the plane quadrangulations as Sage graphs
+        with an embedding set. These will be simple graphs: no loops, no
+        multiple edges, no directed edges.
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.set_embedding`,
+              :meth:`~sage.graphs.generic_graph.GenericGraph.get_embedding` --
+              get/set methods for embeddings.
+
+        EXAMPLES:
+
+        The cube is the only 3-connected plane quadrangulation on 8 vertices:  ::
+
+            sage: gen = graphs.quadrangulations(8, minimum_connectivity=3)  # optional plantri
+            sage: g = gen.next()  # optional plantri
+            sage: g.is_isomorphic(graphs.CubeGraph(3)) # optional plantri
+            True
+            sage: gen.next()  # optional plantri
+            Traceback (most recent call last):
+            ...
+            StopIteration
+
+        REFERENCE:
+
+        .. [plantri] G. Brinkmann and B.D. McKay, Fast generation of planar graphs,
+           MATCH-Communications in Mathematical and in Computer Chemistry, 58(2):323-357, 2007.
+        """
+        from sage.misc.package import is_package_installed
+        if not is_package_installed("plantri"):
+            raise TypeError("the optional plantri package is not installed")
+
+        # number of vertices should be positive
+        if order < 0:
+            raise ValueError("Number of vertices should be positive.")
+
+        # plantri can only output plane quadrangulations on up to 64 vertices
+        if order > 64:
+            raise ValueError("Number of vertices should be at most 64.")
+
+        # minimum connectivity should be None, 2 or 3
+        if minimum_connectivity not in {None, 2, 3}:
+            raise ValueError("Minimum connectivity should be None, 2 or 3.")
+
+        # minimum degree should be None, 2 or 3
+        if minimum_degree not in {None, 2, 3}:
+            raise ValueError("Minimum degree should be None, 2 or 3.")
+
+        if no_nonfacial_quadrangles and minimum_connectivity == 2:
+                raise NotImplementedError("Generation of no non-facial quadrangles and minimum connectivity 2 is not implemented")
+
+        # check combination of values of minimum degree and minimum connectivity
+        if minimum_connectivity is None and minimum_degree is not None:
+            minimum_connectivity = min(2, minimum_degree)
+        elif minimum_connectivity is not None and minimum_degree is None:
+            minimum_degree = minimum_connectivity
+        elif minimum_connectivity is None and minimum_degree is None:
+            minimum_degree, minimum_connectivity = 2, 2
+        elif minimum_degree < minimum_connectivity:
+            raise ValueError("Minimum connectivity can be at most the minimum degree.")
+
+        if order < 8:
+            return
+
+        if no_nonfacial_quadrangles:
+            # for plantri -q the option -c4 means 3-connected with no non-facial quadrangles
+            minimum_connectivity = 4
+
+        command = ('plantri -qm{}c{} {}'.format(minimum_degree, minimum_connectivity, order))
+
+        import subprocess
+        sp = subprocess.Popen(command, shell=True,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, close_fds=True)
+
+        for G in graphs._read_planar_code(sp.stdout):
+            yield(G)
+
 ###########################################################################
 # Basic Graphs
 ###########################################################################

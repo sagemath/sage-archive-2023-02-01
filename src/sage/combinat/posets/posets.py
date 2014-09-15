@@ -62,8 +62,8 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.is_less_than` | Returns ``True`` if `x` is less than but not equal to `y` in the poset, and ``False`` otherwise.
     :meth:`~FinitePoset.is_linear_extension` | Returns whether ``l`` is a linear extension of ``self``
     :meth:`~FinitePoset.is_meet_semilattice` | Returns True if self has a meet operation, and False otherwise.
-    :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to other poset.
-    :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to other poset.
+    :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to another poset.
+    :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to another poset.
     :meth:`~FinitePoset.join_matrix` | Returns a matrix whose ``(i,j)`` entry is ``k``, where ``self.linear_extension()[k]`` is the join (least upper bound) of ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Returns whether the poset is `(m+n)`-free.
     :meth:`~FinitePoset.is_ranked` | Returns whether this poset is ranked.
@@ -147,7 +147,6 @@ from sage.graphs.digraph_generators import digraphs
 from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.elements import PosetElement
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.misc.misc import uniq
 
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category = None, facade = None, key = None):
     r"""
@@ -1952,10 +1951,15 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def has_isomorphic_subposet(self, other):
         """
-        Return ``True`` if the poset contains a subposet isomorphic to ``other``.
+        Return ``True`` if the poset contains a subposet isomorphic to
+        ``other``.
 
         By subposet we mean that there exist a set ``X`` of elements such
         that ``self.subposet(X)`` is isomorphic to ``other``.
+
+        INPUT:
+
+        - ``other`` -- a finite poset
 
         EXAMPLES::
     
@@ -2663,10 +2667,17 @@ class FinitePoset(UniqueRepresentation, Parent):
             raise ValueError('The input is not a finite poset.')
 
     def isomorphic_subposets_iterator(self, other):
-        """Return an iterator over the subposets of `self` isomorphic to `other`.
+        """
+        Return an iterator over the subposets of `self` isomorphic to
+        `other`.
 
-        By subposet we mean ``self.subposet(X)`` which is isomorphic to ``other``
-        and where ``X`` is a subset of elements of ``self``.
+        By subposet we mean ``self.subposet(X)`` which is isomorphic
+        to ``other`` and where ``X`` is a subset of elements of
+        ``self``.
+
+        INPUT:
+
+        - ``other`` -- a finite poset
 
         EXAMPLES::
 
@@ -2674,10 +2685,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: N5 = Posets.PentagonPoset()
             sage: for P in N5.isomorphic_subposets_iterator(D):
             ...       print P.cover_relations()
-            [[1, 2], [1, 4], [2, 5], [4, 5]]
-            [[1, 2], [1, 3], [2, 5], [3, 5]]
-            [[1, 2], [1, 4], [2, 5], [4, 5]]
-            [[1, 2], [1, 3], [2, 5], [3, 5]]
+            [[0, 1], [0, 2], [1, 4], [2, 4]]
+            [[0, 1], [0, 3], [1, 4], [3, 4]]
+            [[0, 1], [0, 2], [1, 4], [2, 4]]
+            [[0, 1], [0, 3], [1, 4], [3, 4]]
 
         .. WARNING::
         
@@ -2697,17 +2708,21 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         Return a list of subposets of `self` isomorphic to `other`.
 
-        By subposet we mean ``self.subposet(X)`` which is isomorphic to ``other``
-        and where ``X`` is a subset of elements of ``self``.
+        By subposet we mean ``self.subposet(X)`` which is isomorphic to
+        ``other`` and where ``X`` is a subset of elements of ``self``.
+
+        INPUT:
+
+        - ``other`` -- a finite poset
 
         EXAMPLES::
 
             sage: C2=Poset({0:[1]})
             sage: C3=Poset({'a':['b'], 'b':['c']})
             sage: for x in C3.isomorphic_subposets(C2): print x.cover_relations()
-            [['a', 'b']]
-            [['a', 'c']]
             [['b', 'c']]
+            [['a', 'c']]
+            [['a', 'b']]
             sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
             sage: N5 = Posets.PentagonPoset()
             sage: len(N5.isomorphic_subposets(D))
@@ -2718,6 +2733,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             If this function takes too much time, try using :meth:`isomorphic_subposets_iterator`.
 
         """
+        from sage.misc.misc import uniq
+
         if not hasattr(other, 'hasse_diagram'):
             raise ValueError('The input is not a finite poset.')
         L=self._hasse_diagram.transitive_closure().subgraph_search_iterator(other._hasse_diagram.transitive_closure(), induced=True)

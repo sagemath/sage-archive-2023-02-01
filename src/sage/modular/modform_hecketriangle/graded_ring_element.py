@@ -320,31 +320,13 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         return self._rat
 
-   ## TODO: consider renaming
-    def _fix_d(self, d_num_prec=None):
+    def _reduce_d(self):
         r"""
-        Return a new version of ``self`` where `d` is replaced by its value.
+        Return a new version of ``self`` where `d` is replaced by its value in
+        the presentation of ``self`` as a rational function in the polynomial generators.
 
-        INPUT:
-
-        - ``d_num_prec``  -- An integer, the numerical precision to be used for ``d``
-                             in the non-arithmetic case. Default: ``None``, meaning that
-                             the default numerical precision is used.
-
-        OUTPUT:
-
-        The element obtained from ``self`` by substituting `d` for its value
-        in the defining rational function. Unless ``self`` is arithmetic
-        the base ring changes accordingly and the returned element no longer lies
-        in ``self``.
-
-        .. NOTE:
-
-        In the arithmetic case is the main reason for this
-        function. In that case the new element compares equally to
-        ``self`` even though the underlying rational functions
-        differ. Also note that calculations over non-exact rings are
-        generally less reliable.
+        The new element still compares equal to the old one but the corresponding
+        rational function no longer contains any ``d`` (in the arithmetic cases).
 
         EXAMPLES::
 
@@ -352,28 +334,18 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: Delta = ModularForms().Delta()
             sage: Delta.rat()
             x^3*d - y^2*d
-            sage: Delta2 = Delta._fix_d()
+            sage: Delta2 = Delta._reduce_d()
             sage: Delta2.rat()
-            1/1728*x^3 - 1/1728*y^2
+            (x^3 - y^2)/1728
             sage: Delta == Delta2
             True
-
-            sage: f = WeakModularForms(n=5).F_basis(-1)
-            sage: f.rat()
-            (121*x^5 + 79*y^2)/(200*x^5*d - 200*y^2*d)
-            sage: f2 = f._fix_d(d_num_prec=40)
-            sage: f2.rat()
-            (121.00000000*x^5 + 79.000000000*y^2)/(1.4104468363*x^5 - 1.4104468363*y^2)
-            sage: f == f2
-            False
-            sage: f2.parent()
-            WeakModularForms(n=5, k=0, ep=1) over Real Field with 40 bits of precision
         """
 
-        d = self.parent().get_d(fix_d=True, d_num_prec=d_num_prec)
-        base_ring = (self.base_ring()(1) * d).parent()
+        if not self.group().is_arithmetic():
+            return self
 
-        return self.parent().change_ring(base_ring)(self._rat.subs(d=d))
+        d = self.parent().get_d(fix_d=True)
+        return self.parent()(self._rat.subs(d=d))
 
     def is_homogeneous(self):
         r"""
@@ -1333,8 +1305,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                     f_pol = x**n - y**2
             elif (tau.imag() > 0):
                 if (self.group().in_FD(tau)):
-                    ## TODO: Add string
-                    raise NotImplementedError
+                    raise NotImplementedError("Orders at general points (here: tau={}) are not yet implemented!".format(tau))
                 else:
                     w = self.group().get_FD(tau, prec=self.parent().default_num_prec())[1]
                     return self.order_at(w)
@@ -1364,8 +1335,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             return order_f
         else:
             if (tau != infinity):
-                ## TODO: Add string
-                raise NotImplementedError
+                raise NotImplementedError("Only the order at infinity is supported for non-homogeneous or quasi forms!")
 
             num_val   = prec_num_bound   = 1 #(self.parent()._prec/ZZ(2)).ceil()
             denom_val = prec_denom_bound = 1 #(self.parent()._prec/ZZ(2)).ceil()
@@ -1405,7 +1375,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         In case ``self.parent().has_reduce_hom() == True``
         (or ``force==True``) and ``self`` is homogeneous
         the converted element lying in the corresponding
-        homogeneous_space is returned.
+        homogeneous_part is returned.
 
         Otherwise ``self`` is returned.
 
@@ -1432,7 +1402,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         """
 
         if (force or self.parent().has_reduce_hom()) and self.is_homogeneous():
-            return self.parent().homogeneous_space(self._weight, self._ep)(self._rat)
+            return self.parent().homogeneous_part(self._weight, self._ep)(self._rat)
         else:
             return self
 

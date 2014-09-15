@@ -498,56 +498,55 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         return E2_ZZ
 
     @cached_method
-    def EisensteinSeries(self, k):
+    def EisensteinSeries_ZZ(self, k):
         r"""
-        Return the power series expansion of the normalized Eisenstein series
-        of weight ``k`` for the given group if possible.
+        Return the rational Fourier expansion of the normalized Eisenstein series
+        of weight ``k``, where the parameter ``d`` is replaced by ``1``.
 
         Only arithmetic groups with ``n < infinity`` are supported!
+
+        .. NOTE:
+
+        THe Fourier expansion of the series is given by ``EisensteinSeries_ZZ(q/d)``.
 
         INPUT:
 
         - ``k``  -- A non-negative even integer, namely the weight.
 
-        OUTPUT:
-
-        The power series of the normalized Eisenstein series of weight ``k``
-        for the (assumed arithmetic) group and precision of ``self``.
-
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFC = MFSeriesConstructor(prec=6)
-            sage: MFC.EisensteinSeries(k=0)
+            sage: MFC.EisensteinSeries_ZZ(k=0)
             1
-            sage: MFC.EisensteinSeries(k=2)
-            1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)
-            sage: MFC.EisensteinSeries(k=6)
-            1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)
-            sage: MFC.EisensteinSeries(k=12)
-            1 + 65520/691*q + 134250480/691*q^2 + 11606736960/691*q^3 + 274945048560/691*q^4 + 3199218815520/691*q^5 + O(q^6)
-            sage: MFC.EisensteinSeries(k=12).parent()
+            sage: MFC.EisensteinSeries_ZZ(k=2)
+            1 - 1/72*q - 1/41472*q^2 - 1/53747712*q^3 - 7/371504185344*q^4 - 1/106993205379072*q^5 + O(q^6)
+            sage: MFC.EisensteinSeries_ZZ(k=6)
+            1 - 7/24*q - 77/13824*q^2 - 427/17915904*q^3 - 7399/123834728448*q^4 - 3647/35664401793024*q^5 + O(q^6)
+            sage: MFC.EisensteinSeries_ZZ(k=12)
+            1 + 455/8292*q + 310765/4776192*q^2 + 20150585/6189944832*q^3 + 1909340615/42784898678784*q^4 + 3702799555/12322050819489792*q^5 + O(q^6)
+            sage: MFC.EisensteinSeries_ZZ(k=12).parent()
             Power Series Ring in q over Rational Field
 
             sage: MFC = MFSeriesConstructor(group=4, prec=5)
-            sage: MFC.EisensteinSeries(k=2)
-            1 - 8*q - 40*q^2 - 32*q^3 - 104*q^4 + O(q^5)
-            sage: MFC.EisensteinSeries(k=4)
-            1 + 48*q + 624*q^2 + 1344*q^3 + 5232*q^4 + O(q^5)
-            sage: MFC.EisensteinSeries(k=6)
-            1 - 56*q - 2296*q^2 - 13664*q^3 - 73976*q^4 + O(q^5)
-            sage: MFC.EisensteinSeries(k=12)
-            1 + 1008/691*q + 2129904/691*q^2 + 178565184/691*q^3 + 4362108912/691*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries_ZZ(k=2)
+            1 - 1/32*q - 5/8192*q^2 - 1/524288*q^3 - 13/536870912*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries_ZZ(k=4)
+            1 + 3/16*q + 39/4096*q^2 + 21/262144*q^3 + 327/268435456*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries_ZZ(k=6)
+            1 - 7/32*q - 287/8192*q^2 - 427/524288*q^3 - 9247/536870912*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries_ZZ(k=12)
+            1 + 63/11056*q + 133119/2830336*q^2 + 2790081/181141504*q^3 + 272631807/185488900096*q^4 + O(q^5)
 
             sage: MFC = MFSeriesConstructor(group=6, prec=5)
-            sage: MFC.EisensteinSeries(k=2)
-            1 - 6*q - 18*q^2 - 42*q^3 - 42*q^4 + O(q^5)
-            sage: MFC.EisensteinSeries(k=4)
-            1 + 24*q + 216*q^2 + 888*q^3 + 1752*q^4 + O(q^5)
-            sage: MFC.EisensteinSeries(k=6)
-            1 - 18*q - 594*q^2 - 4878*q^3 - 19026*q^4 + O(q^5)
-            sage: MFC.EisensteinSeries(k=12)
-            1 + 6552/50443*q + 13425048/50443*q^2 + 1165450104/50443*q^3 + 27494504856/50443*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries_ZZ(k=2)
+            1 - 1/18*q - 1/648*q^2 - 7/209952*q^3 - 7/22674816*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries_ZZ(k=4)
+            1 + 2/9*q + 1/54*q^2 + 37/52488*q^3 + 73/5668704*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries_ZZ(k=6)
+            1 - 1/6*q - 11/216*q^2 - 271/69984*q^3 - 1057/7558272*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries_ZZ(k=12)
+            1 + 182/151329*q + 62153/2723922*q^2 + 16186807/882550728*q^3 + 381868123/95315478624*q^4 + O(q^5)
         """
 
         try:
@@ -559,8 +558,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         if (not self.group().is_arithmetic() or self.group().n() == infinity):
             # Exceptional cases should be called manually (see in FormsRing_abstract)
-            ## TODO: Add string
-            raise NotImplementedError
+            raise NotImplementedError("Eisenstein series are only supported in the finite arithmetic cases!")
 
         # Trivial case
         if k == 0:
@@ -568,6 +566,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         M    = ZZ(self.group().lam()**2)
         lamk = M**(ZZ(k/2))
+        dval = self.group().dvalue()
 
         def coeff(m):
             m = ZZ(m)
@@ -591,7 +590,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
                     N = ZZ(m / M**ZZ(m.valuation(M)))
                 sum3 = -sigma(ZZ(N), k-1) * ZZ(m/N)**(k-1) / (lamk + 1)
 
-            return factor * (sum1 + sum2 + sum3)
+            return factor * (sum1 + sum2 + sum3) * dval**m
 
         q = self._series_ring.gen()
 

@@ -214,6 +214,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return self._n
 
+    # TODO: rename this to a more descriptive lambda in a later update/patch
     def lam(self):
         r"""
         Return the parameter ``lambda`` of ``self``,

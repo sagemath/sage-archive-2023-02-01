@@ -5,7 +5,7 @@ Kirillov-Reshetikhin tableaux are rectangular tableaux with `r` rows and
 `s` columns that naturally arise under the bijection between rigged
 configurations and tableaux [RigConBijection]_. They are in bijection with
 the elements of the Kirillov-Reshetikhin crystal `B^{r,s}` under the (inverse)
-filling map. They do not have to satisfy the semistandard row or column
+filling map [OSS13]_ [SchScr]_. They do not have to satisfy the semistandard row or column
 restrictions. These tensor products are the result from the bijection from
 rigged configurations [RigConBijection]_.
 
@@ -16,6 +16,12 @@ AUTHORS:
 
 - Travis Scrimshaw (2012-01-03): Initial version
 - Travis Scrimshaw (2012-11-14): Added bijection to KR crystals
+
+REFERENCES:
+
+.. [OSS13] Masato Okado, Reiho Sakamoto, and Anne Schilling.
+   *Affine crystal structure on rigged configurations of type* `D_n^{(1)}`.
+   J. Algebraic Combinatorics, **37** (2013). 571-599. :arxiv:`1109.3523`.
 """
 
 #*****************************************************************************

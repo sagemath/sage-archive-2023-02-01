@@ -569,7 +569,7 @@ class MatchingGame(SageObject):
             suitors = deepcopy(self.suitors)
             reviewers = deepcopy(self.reviewers)
 
-        while len([s for s in suitors if s.partner is False]) != 0:
+        while not all([s.partner for s in suitors]):
             s = [s for s in suitors if s.partner is False][0]
             r = next((x for x in reviewers if x.name == s.pref[0]), None)
             if r.partner is False:

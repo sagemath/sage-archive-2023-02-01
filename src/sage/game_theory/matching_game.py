@@ -196,31 +196,31 @@ class MatchingGame(SageObject):
         r"""
         Initializes a Matching Game and checks the inputs.
 
-        TESTS:
+        TESTS::
 
-        8 player letter game. ::
+            8 player letter game. ::
 
-            sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
-            ....:               'K': ('A', 'B', 'C', 'D'),
-            ....:               'L': ('B', 'D', 'C', 'A'),
-            ....:               'M': ('C', 'A', 'B', 'D')}
-            sage: reviewr_pref = {'A': ('L', 'J', 'K', 'M'),
-            ....:                 'B': ('J', 'M', 'L', 'K'),
-            ....:                 'C': ('K', 'M', 'L', 'J'),
-            ....:                 'D': ('M', 'K', 'J', 'L')}
-            sage: m = MatchingGame([suitr_pref, reviewr_pref])
-            sage: m.suitors
-            ['K', 'J', 'M', 'L']
-            sage: m.reviewers
-            ['A', 'C', 'B', 'D']
+                sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
+                ....:               'K': ('A', 'B', 'C', 'D'),
+                ....:               'L': ('B', 'D', 'C', 'A'),
+                ....:               'M': ('C', 'A', 'B', 'D')}
+                sage: reviewr_pref = {'A': ('L', 'J', 'K', 'M'),
+                ....:                 'B': ('J', 'M', 'L', 'K'),
+                ....:                 'C': ('K', 'M', 'L', 'J'),
+                ....:                 'D': ('M', 'K', 'J', 'L')}
+                sage: m = MatchingGame([suitr_pref, reviewr_pref])
+                sage: m.suitors
+                ['K', 'J', 'M', 'L']
+                sage: m.reviewers
+                ['A', 'C', 'B', 'D']
 
-        Also works for numbers. ::
+            Also works for numbers. ::
 
-            sage: suit = {0: (3, 4),
-            ....:         1: (3, 4)}
-            sage: revr = {3: (0, 1),
-            ....:         4: (1, 0)}
-            sage: g = MatchingGame([suit, revr])
+                sage: suit = {0: (3, 4),
+                ....:         1: (3, 4)}
+                sage: revr = {3: (0, 1),
+                ....:         4: (1, 0)}
+                sage: g = MatchingGame([suit, revr])
 
         """
         self.suitors = []
@@ -555,43 +555,43 @@ class MatchingGame(SageObject):
         Computes a stable matching for the game using the Gale-Shapley
         algorithm.
 
-        TESTS:
+        TESTS::
 
-        sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
-        ....:               'K': ('A', 'B', 'C', 'D'),
-        ....:               'L': ('B', 'C', 'D', 'A'),
-        ....:               'M': ('C', 'A', 'B', 'D')}
-        sage: reviewr_pref = {'A': ('L', 'J', 'K', 'M'),
-        ....:                 'B': ('J', 'M', 'L', 'K'),
-        ....:                 'C': ('M', 'K', 'L', 'J'),
-        ....:                 'D': ('M', 'K', 'J', 'L')}
-        sage: m = MatchingGame([suitr_pref, reviewr_pref])
-        sage: m.solve()
-        {'K': ['D'], 'J': ['A'], 'M': ['C'], 'L': ['B']}
+            sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
+            ....:               'K': ('A', 'B', 'C', 'D'),
+            ....:               'L': ('B', 'C', 'D', 'A'),
+            ....:               'M': ('C', 'A', 'B', 'D')}
+            sage: reviewr_pref = {'A': ('L', 'J', 'K', 'M'),
+            ....:                 'B': ('J', 'M', 'L', 'K'),
+            ....:                 'C': ('M', 'K', 'L', 'J'),
+            ....:                 'D': ('M', 'K', 'J', 'L')}
+            sage: m = MatchingGame([suitr_pref, reviewr_pref])
+            sage: m.solve()
+            {'K': ['D'], 'J': ['A'], 'M': ['C'], 'L': ['B']}
 
-        sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
-        ....:               'K': ('A', 'B', 'C', 'D'),
-        ....:               'L': ('B', 'C', 'D', 'A'),
-        ....:               'M': ('C', 'A', 'B', 'D')}
-        sage: reviewr_pref = {'A': ('L', 'J', 'K', 'M'),
-        ....:                 'B': ('J', 'M', 'L', 'K'),
-        ....:                 'C': ('M', 'K', 'L', 'J'),
-        ....:                 'D': ('M', 'K', 'J', 'L')}
-        sage: m = MatchingGame([suitr_pref, reviewr_pref])
-        sage: m.solve(invert=True)
-        {'A': ['L'], 'C': ['M'], 'B': ['J'], 'D': ['K']}
+            sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
+            ....:               'K': ('A', 'B', 'C', 'D'),
+            ....:               'L': ('B', 'C', 'D', 'A'),
+            ....:               'M': ('C', 'A', 'B', 'D')}
+            sage: reviewr_pref = {'A': ('L', 'J', 'K', 'M'),
+            ....:                 'B': ('J', 'M', 'L', 'K'),
+            ....:                 'C': ('M', 'K', 'L', 'J'),
+            ....:                 'D': ('M', 'K', 'J', 'L')}
+            sage: m = MatchingGame([suitr_pref, reviewr_pref])
+            sage: m.solve(invert=True)
+            {'A': ['L'], 'C': ['M'], 'B': ['J'], 'D': ['K']}
 
-        sage: suitr_pref = {1: (-1,)}
-        sage: reviewr_pref = {-1: (1,)}
-        sage: m = MatchingGame([suitr_pref, reviewr_pref])
-        sage: m.solve()
-        {1: [-1]}
+            sage: suitr_pref = {1: (-1,)}
+            sage: reviewr_pref = {-1: (1,)}
+            sage: m = MatchingGame([suitr_pref, reviewr_pref])
+            sage: m.solve()
+            {1: [-1]}
 
-        sage: suitr_pref = {}
-        sage: reviewr_pref = {}
-        sage: m = MatchingGame([suitr_pref, reviewr_pref])
-        sage: m.solve()
-        {}
+            sage: suitr_pref = {}
+            sage: reviewr_pref = {}
+            sage: m = MatchingGame([suitr_pref, reviewr_pref])
+            sage: m.solve()
+            {}
         """
         self._is_complete()
 
@@ -607,7 +607,7 @@ class MatchingGame(SageObject):
             suitors = deepcopy(self.suitors)
             reviewers = deepcopy(self.reviewers)
 
-        while not all([s.partner for s in suitors]):
+        while not all(s.partner for s in suitors):
             s = [s for s in suitors if s.partner is False][0]
             r = next((x for x in reviewers if x.name == s.pref[0]), None)
             if r.partner is False:
@@ -647,16 +647,16 @@ class _Player():
     """
     def __init__(self, name, player_type, len_pref):
         r"""
-        TESTS:
+        TESTS::
 
-        sage: from sage.game_theory.matching_game import _Player
-        sage: p = _Player(10, 'suitor', 3)
-        sage: p
-        10
-        sage: p.pref
-        []
-        sage: p.partner
-        False
+            sage: from sage.game_theory.matching_game import _Player
+            sage: p = _Player(10, 'suitor', 3)
+            sage: p
+            10
+            sage: p.pref
+            []
+            sage: p.partner
+            False
         """
         self.name = name
         self.type = player_type
@@ -665,45 +665,45 @@ class _Player():
 
     def __hash__(self):
         r"""
-        TESTS:
+        TESTS::
 
-        sage: from sage.game_theory.matching_game import _Player
-        sage: p = _Player(10, 'suitor', 3)
-        sage: d = {p : (1, 2, 3)}
-        sage: d
-        {10: (1, 2, 3)}
+            sage: from sage.game_theory.matching_game import _Player
+            sage: p = _Player(10, 'suitor', 3)
+            sage: d = {p : (1, 2, 3)}
+            sage: d
+            {10: (1, 2, 3)}
         """
         return hash(self.name)
 
     def __repr__(self):
         r"""
-        TESTS:
+        TESTS::
 
-        sage: from sage.game_theory.matching_game import _Player
-        sage: p = _Player(10, 'suitor', 3)
-        sage: p
-        10
+            sage: from sage.game_theory.matching_game import _Player
+            sage: p = _Player(10, 'suitor', 3)
+            sage: p
+            10
 
-        sage: p = _Player('Karl', 'reviewer', 2)
-        sage: p
-        'Karl'
+            sage: p = _Player('Karl', 'reviewer', 2)
+            sage: p
+            'Karl'
         """
         return repr(self.name)
 
     def __eq__(self, other):
         r"""
-        TESTS:
+        TESTS::
 
-        sage: from sage.game_theory.matching_game import _Player
-        sage: p = _Player(10, 'suitor', 3)
-        sage: q = _Player('Karl', 'reviewer', 2)
-        sage: p == q
-        False
+            sage: from sage.game_theory.matching_game import _Player
+            sage: p = _Player(10, 'suitor', 3)
+            sage: q = _Player('Karl', 'reviewer', 2)
+            sage: p == q
+            False
 
-        sage: from sage.game_theory.matching_game import _Player
-        sage: p = _Player(10, 'suitor', 3)
-        sage: q = _Player(10, 'reviewer', 2)
-        sage: p == q
-        True
+            sage: from sage.game_theory.matching_game import _Player
+            sage: p = _Player(10, 'suitor', 3)
+            sage: q = _Player(10, 'reviewer', 2)
+            sage: p == q
+            True
         """
         return self.__repr__() == other.__repr__()

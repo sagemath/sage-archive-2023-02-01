@@ -19,7 +19,7 @@ AUTHORS:
 
 from element_pari_ffelt import FiniteFieldElement_pari_ffelt
 from finite_field_base import FiniteField
-import constructor
+from constructor import GF
 
 class FiniteField_pari_ffelt(FiniteField):
     """
@@ -113,15 +113,11 @@ class FiniteField_pari_ffelt(FiniteField):
             sage: k = FiniteField_pari_ffelt(3, x^2 + 2*x + 2, 'a'); k
             Finite Field in a of size 3^2
         """
-        if modulus is None:
-            n = 1
-        else:
-            n = modulus.degree()
+        n = modulus.degree()
         if n < 2:
             raise ValueError("the degree must be at least 2")
 
-        Fp = constructor.FiniteField(p)
-        FiniteField.__init__(self, base=Fp, names=name, normalize=True)
+        FiniteField.__init__(self, base=GF(p), names=name, normalize=True)
 
         self._modulus = modulus
         self._degree = n

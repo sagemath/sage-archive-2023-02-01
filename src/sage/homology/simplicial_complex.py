@@ -787,7 +787,14 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         True
         """
 
-    def __init__(self, maximal_faces=None, from_characteristic_function=None, **kwds):
+    def __init__(self,
+                 maximal_faces=None,
+                 from_characteristic_function=None,
+                 maximality_check=True,
+                 sort_facets=True,
+                 name_check=False,
+                 is_mutable=True,
+                 is_immutable=False):
         """
         Define a simplicial complex.  See ``SimplicialComplex`` for more
         documentation.
@@ -819,11 +826,6 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         assert (maximal_faces is None) or (from_characteristic_function is None)
         CategoryObject.__init__(self, category=SimplicialComplexes())
         from sage.misc.misc import union
-        # process kwds
-        sort_facets = kwds.get('sort_facets', True)
-        maximality_check = kwds.get('maximality_check', True)
-        name_check = kwds.get('name_check', False)
-        # done with kwds except mutability
 
         C = None
         vertex_set = []
@@ -936,7 +938,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
 
         # Handle mutability keywords
         self._is_mutable = True
-        if not kwds.get('is_mutable', True) or kwds.get('is_immutable', False):
+        if not is_mutable or is_immutable:
             self.set_immutable()
 
     def __hash__(self):

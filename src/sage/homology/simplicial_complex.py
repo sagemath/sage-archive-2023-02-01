@@ -696,6 +696,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
     Define a simplicial complex.
 
     :param maximal_faces: set of maximal faces
+    :param from_characteristic_function: see below
     :param maximality_check: see below
     :type maximality_check: boolean; optional, default ``True``
     :param sort_facets: see below
@@ -710,6 +711,14 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
     anything which may be converted to a set) whose elements are lists
     (or tuples, etc.) of vertices.  Maximal faces are also known as
     'facets'.
+
+    Alternatively, the maximal faces can be defined from a monotome boolean
+    function on the subsets of a set `X`. While defining ``maximal_faces=None``,
+    you can thus set ``from_characteristic_function=(f,X)`` where ``X`` is the
+    set of points and ``f`` a boolean monotone hereditary function that accepts
+    a list of elements from ``X`` as input (see
+    :func:`~sage.combinat.subsets_hereditary.subsets_with_hereditary_property`
+    for more information).
 
     If ``maximality_check`` is ``True``, check that each maximal face is,
     in fact, maximal. In this case, when producing the internal
@@ -756,6 +765,12 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         sage: Ts.homology()
         {0: 0, 1: Z x Z, 2: Z}
 
+    From a characteristic monotone boolean function, i.e. the simplicial complex
+    of all subsets `S\subseteq \{0,1,2,3,4\}` such that `sum(S)\leq 4`::
+
+        sage: SimplicialComplex(from_characteristic_function=(lambda x:sum(x)<=4,range(5)))
+        Simplicial complex with vertex set () and facets {(0, 4), (0, 1, 2), (0, 1, 3)}
+
     TESTS:
 
     Check that we can make mutable copies (see :trac:`14142`)::
@@ -772,7 +787,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         True
         """
 
-    def __init__(self, maximal_faces=None, **kwds):
+    def __init__(self, maximal_faces=None, from_characteristic_function=None, **kwds):
         """
         Define a simplicial complex.  See ``SimplicialComplex`` for more
         documentation.
@@ -801,6 +816,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: TestSuite(S).run()
             sage: TestSuite(S3).run()
         """
+        assert (maximal_faces is None) or (from_characteristic_function is None)
         CategoryObject.__init__(self, category=SimplicialComplexes())
         from sage.misc.misc import union
         # process kwds
@@ -812,7 +828,12 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         C = None
         vertex_set = []
         if maximal_faces is None:
-            maximal_faces = []
+            if from_characteristic_function is None:
+                maximal_faces = []
+            else:
+                from sage.combinat.subsets_hereditary import subsets_with_hereditary_property
+                f,X = from_characteristic_function
+                maximal_faces = subsets_with_hereditary_property(f,X)
         elif isinstance(maximal_faces, SimplicialComplex):
             C = maximal_faces
         else:

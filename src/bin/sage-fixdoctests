@@ -116,9 +116,13 @@ for block in doctests:
 
 
 # Overwrite the source (or whatever output file was specified on the command line)
-open(test_output,'w').write(
-    '\n'.join( line for line in src_in_lines if line is not None)
-)
+with open(test_output, 'w') as out:
+    for line in src_in_lines:
+        if line is None:
+            continue
+        out.write(line)
+        out.write('\n')
+
 
 # Show summary of changes
 if test_file != test_output:
@@ -127,7 +131,7 @@ else:
     from sage.env import SAGE_ROOT
     relative = os.path.relpath(test_output, SAGE_ROOT)
     print relative
-    if relative.startswith('.'):
+    if relative.startswith('..'):
         print('Fixed source file is not part of Sage.')
     else:
         subprocess.call(['git', 'diff', relative], cwd=SAGE_ROOT)

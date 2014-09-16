@@ -1,0 +1,59 @@
+commit 7630f584371c3db43c5fd6f57900c70a2c832b8e
+Author: Karim Belabas <Karim.Belabas@math.u-bordeaux1.fr>
+Date:   Tue Jun 17 13:24:37 2014 +0200
+
+    32- nffactor() could overflow the stack when default accuracy too low: e.g.
+       nffactor(y^2-22, x^2+926246528884912528275985458927067632*y-4344481316563541186659879867597013188)
+    
+    due to logmax_modulus called with (approximate) polynomial T s.t. T(0) = 0
+
+diff --git a/src/basemath/rootpol.c b/src/basemath/rootpol.c
+index d63f8b3..f1ced73 100644
+--- a/src/basemath/rootpol.c
++++ b/src/basemath/rootpol.c
+@@ -652,7 +652,8 @@ lower_bound(GEN p, long *k, double eps)
+   avma = ltop; return R;
+ }
+ 
+-/* log of modulus of the largest root of p with relative error tau */
++/* log of modulus of the largest root of p with relative error tau. Assume
++ * P(0) != 0 and P non constant */
+ static double
+ logmax_modulus(GEN p, double tau)
+ {
+@@ -696,10 +697,12 @@ logmax_modulus(GEN p, double tau)
+   r = itor(r, DEFAULTPREC); shiftr_inplace(r, -M);
+   avma = ltop; return -rtodbl(r) * LOG2; /* -log(2) sum e_i 2^-i */
+ }
++/* assume P non constant */
+ GEN
+ logmax_modulus_bound(GEN P)
+ {
+-  return dblexp(logmax_modulus(P, 0.01) + 0.01);
++  (void)RgX_valrem_inexact(P,&P);
++  return lg(P)==3? gen_0: dblexp(logmax_modulus(P, 0.01) + 0.01);
+ }
+ 
+ /* log of modulus of the smallest root of p, with relative error tau */
+diff --git a/src/test/32/nffactor b/src/test/32/nffactor
+index 824ca6b..accbc30 100644
+--- a/src/test/32/nffactor
++++ b/src/test/32/nffactor
+@@ -729,4 +729,6 @@ x^6 + 10/7*x^5 - 867/49*x^4 - 76/245*x^3 + 3148/35*x^2 - 25944/245*x + 48771
+ 10
+ 10
+ [0]
+-Total time spent: 1385595334334
++[x + (-314226370217524044*y + 1473852319020386314), x + (314226370217524044*
++y - 1473852319020386314)]~
++Total time spent: 8061
+diff --git a/src/test/in/nffactor b/src/test/in/nffactor
+index 0992107..a3579a0 100644
+--- a/src/test/in/nffactor
++++ b/src/test/in/nffactor
+@@ -104,3 +104,5 @@ test(polcyclo(503),3)
+ test(polcyclo(211),18446744073709551667)
+ 
+ nfroots(a^2+1,x^2)
++
++do(y^2-22,x^2+926246528884912528275985458927067632*y-4344481316563541186659879867597013188)

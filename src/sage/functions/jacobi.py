@@ -949,10 +949,10 @@ def jacobi(kind, z, m, **kwargs):
         sage: jacobi('cd', 1, 1/2)
         jacobi_cd(1, 1/2)
         sage: RDF(jacobi('cd', 1, 1/2))
-        0.724009721659
+        0.7240097216593705
         sage: (RDF(jacobi('cn', 1, 1/2)), RDF(jacobi('dn', 1, 1/2)),
         ....:  RDF(jacobi('cn', 1, 1/2) / jacobi('dn', 1, 1/2)))
-        (0.595976567672, 0.823161001632, 0.724009721659)
+        (0.5959765676721407, 0.8231610016315962, 0.7240097216593705)
         sage: jsn = jacobi('sn', x, 1)
         sage: P = plot(jsn, 0, 1)
     """

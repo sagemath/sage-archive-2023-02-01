@@ -654,13 +654,13 @@ class _Player():
         sage: p
         10
         sage: p.pref
-        [-1, -1, -1]
+        []
         sage: p.partner
         False
         """
         self.name = name
         self.type = player_type
-        self.pref = [-1 for i in range(len_pref)]
+        self.pref = []
         self.partner = False
 
     def __hash__(self):

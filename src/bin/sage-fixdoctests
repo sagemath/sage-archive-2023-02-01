@@ -17,6 +17,7 @@ AUTHORS::
 """
 
 import os, sys, difflib
+import subprocess
 from optparse import OptionParser
 from sage.misc.temporary_file import tmp_dir
 
@@ -129,5 +130,5 @@ else:
     if relative.startswith('.'):
         print('Fixed source file is not part of Sage.')
     else:
-        os.system('sage -git diff {0}'.format(relative))
+        subprocess.call(['git', 'diff', relative], cwd=SAGE_ROOT)
 

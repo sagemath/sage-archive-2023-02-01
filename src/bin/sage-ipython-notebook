@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Sage IPython Notebook startup script.
+"""
+from sage.repl.ipython_notebook import SageNotebookApp
+
+app = SageNotebookApp.instance()
+app.initialize()
+app.start()

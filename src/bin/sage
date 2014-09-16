@@ -23,6 +23,7 @@ usage() {
     echo "  -mwrank [...]       -- run Sage's mwrank with given arguments"
     echo "  -n, -notebook [...] -- start the Sage notebook (options are the same"
     echo "                         as for the notebook command in Sage)"
+    echo "  -ipynb [...]        -- start the Sage Ipython notebook"
     echo "  -optional           -- list all optional packages that can be installed"
     echo "  -python [...]       -- run the Python interpreter"
     echo "  -R [...]            -- run Sage's R with given arguments"
@@ -631,6 +632,12 @@ if [ "$1" = "-notebook" -o "$1" = '--notebook' -o "$1" = '-n' ]; then
     shift
     sage-cleaner &>/dev/null &
     exec sage-notebook "$@"
+fi
+
+if [ "$1" = "-ipynb" -o "$1" = '--ipython-notebook' ]; then
+    shift
+    sage-cleaner &>/dev/null &
+    exec sage-ipython-notebook "$@"
 fi
 
 if [ "$1" = "-bn" -o "$1" = "--build-and-notebook" ]; then

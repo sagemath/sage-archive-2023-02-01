@@ -260,7 +260,7 @@ class MatchingGame(SageObject):
         r"""
         Returns a basic representation of the game stating how many players are in the game.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Matching game with 2 reviewers and 2 suitors. ::
 
@@ -304,7 +304,7 @@ class MatchingGame(SageObject):
         Creates the plot representing the stable matching for the game.
         Note that the game must be solved for this to work.
 
-        EXAMPLES::
+        EXAMPLES:
 
         An error is returned if the game is not solved::
 
@@ -331,7 +331,7 @@ class MatchingGame(SageObject):
         This method is similar to the plot method.
         Note that the game must be solved for this to work.
 
-        EXAMPLES::
+        EXAMPLES:
 
         An error is returned if the game is not solved::
 
@@ -359,7 +359,7 @@ class MatchingGame(SageObject):
         r"""
         Raises an error if the Game has been solved yet.
 
-        EXAMPLES::
+        EXAMPLES:
 
             sage: suit = {0: (3, 4),
             ....:         1: (3, 4)}
@@ -451,7 +451,7 @@ class MatchingGame(SageObject):
         -``name`` - Can be a string or a number. If left blank will automatically
                     generate an integer.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Creating a two player game::
 
@@ -505,7 +505,7 @@ class MatchingGame(SageObject):
         -``name`` - Can be a string or number. If left blank will automatically
                     generate an integer.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Creating a two player game::
 

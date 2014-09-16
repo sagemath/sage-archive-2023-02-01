@@ -58,7 +58,7 @@ class AffineWeylGroups(Category_singleton):
         .. SEEALSO:: :meth:`Category.is_structure_category`
 
         The category of affine Weyl groups defines no new structure:
-        affine Weyl gorups are a special class of Weyl groups.
+        affine Weyl groups are a special class of Weyl groups.
 
         EXAMPLES::
 

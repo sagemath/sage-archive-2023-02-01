@@ -1223,9 +1223,9 @@ class Category(UniqueRepresentation, SageObject):
         .. WARNING::
 
             A positive answer is guaranteed to be mathematically
-            correct. A negative answer may mean that Sage has not (or
-            can not yet within the current model) be taught enough
-            information to derive this information. See
+            correct. A negative answer may mean that Sage has not been
+            taught enough information (or can not yet within the
+            current model) to derive this information. See
             :meth:`full_super_categories` for a discussion.
 
         .. SEEALSO::

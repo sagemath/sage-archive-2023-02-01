@@ -764,6 +764,11 @@ def prime_powers(start, stop=None):
         sage: type(v[0])      # trac #922
         <type 'sage.rings.integer.Integer'>
 
+        sage: prime_powers(0,1)
+        []
+        sage: prime_powers(0,2)
+        [1]
+
         sage: prime_powers("foo")
         Traceback (most recent call last):
         ...
@@ -775,45 +780,39 @@ def prime_powers(start, stop=None):
         TypeError: stop must be an integer, bar is not an integer
 
     """
-    from sage.rings.integer import Integer
+    from integer import Integer
     # check to ensure that both inputs are positive integers
     if not isinstance(start, (int, Integer)):
         raise TypeError("start must be an integer, {} is not an integer".format(start))
     if not (isinstance(stop, (int, Integer)) or stop is None):
         raise TypeError("stop must be an integer, {} is not an integer".format(stop))
 
+    ZZ_1 = Integer(1)
+
     # coerce inputs that are ints into Integers for efficiency
     start = Integer(start)
-    if(stop is not None):
+    if stop is not None:
         stop = Integer(stop)
-
-    # deal with the case in which only one input is given
-    if stop is None:
-        start, stop = 1, Integer(start)
+    else:  # deal with the case in which only one input is given
+        start, stop = ZZ_1, Integer(start)
 
     # inserted to prevent an error from occurring
-    if stop < 1:
-        return [];
+    if stop <= ZZ_1 or start >= stop:
+        return []
 
     # find all the primes in the given range
     from fast_arith import prime_range
-    temp = prime_range(stop)
-    output = [p for p in temp if p>=start]
+    output = []
 
-    if start <= 1:
-        output.append(Integer(1))
+    if start <= ZZ_1:
+        output.append(ZZ_1)
 
-    s = stop.sqrt()
-    for p in temp:
-        # if p > the square root of stop, p^2 will be outside the given
-        # range
-        if p > s:
-            break
-        q = p*p
-        # check if each power of p falls within the given range
+    for p in prime_range(stop):
+        q = p
+        while q < start:
+            q *= p
         while q < stop:
-            if start <= q:
-                output.append(q)
+            output.append(q)
             q *= p
 
     output.sort()
@@ -1559,8 +1558,8 @@ def gcd(a, b=None, **kwargs):
 
         sage: R.<x>=QQ[]
         sage: S.<x>=ZZ[]
-        sage: p = S.random_element()
-        sage: q = R.random_element()
+        sage: p = S.random_element(degree=(0,10))
+        sage: q = R.random_element(degree=(0,10))
         sage: parent(gcd(1/p,q))
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
         sage: parent(gcd([1/p,q]))
@@ -1708,8 +1707,8 @@ def lcm(a, b=None):
 
         sage: R.<x>=QQ[]
         sage: S.<x>=ZZ[]
-        sage: p = S.random_element()
-        sage: q = R.random_element()
+        sage: p = S.random_element(degree=(0,5))
+        sage: q = R.random_element(degree=(0,5))
         sage: parent(lcm([1/p,q]))
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
 
@@ -1948,6 +1947,59 @@ XGCD = xgcd
 ##         p = r; q = s
 ##         r = new_r; s = new_s
 ##     return (a, p*psign, q*qsign)
+
+def xkcd(n=""):
+    r"""
+    This function is similar to the xgcd function, but behaves
+    in a completely different way.
+
+    INPUT:
+
+    -  ``n`` - an integer (optional)
+
+    OUTPUT:
+
+    This function outputs nothing it just prints something. Note that this
+    function does not feel itself at ease in a html deprived environment.
+
+    EXAMPLES::
+
+        sage: xkcd(353) # optional - internet
+        <html><font color='black'><h1>Python</h1><img src="http://imgs.xkcd.com/comics/python.png" title="I wrote 20 short programs in Python yesterday.  It was wonderful.  Perl, I'm leaving you."><div>Source: <a href="http://xkcd.com/353" target="_blank">http://xkcd.com/353</a></div></font></html>
+    """
+    import contextlib
+    import urllib2
+    import json
+    from sage.misc.html import html
+
+    data = None
+    url = "http://dynamic.xkcd.com/api-0/jsonp/comic/{}".format(n)
+
+    try:
+        with contextlib.closing(urllib2.urlopen(url)) as f:
+            data = f.read()
+    except urllib2.HTTPError as error:
+        if error.getcode() == 400: # this error occurs when asking for a non valid comic number
+            raise RuntimeError("Could not obtain comic data from {}. Maybe you should enable time travel!".format(url))
+    except urllib2.URLError:
+        pass
+
+    if n == 1024:
+        data = None
+
+    if data:
+        data = json.loads(data)
+        img = data['img']
+        alt = data['alt']
+        title = data['safe_title']
+        link = "http://xkcd.com/{}".format(data['num'])
+        html('<h1>{}</h1><img src="{}" title="{}">'.format(title, img, alt)
+            + '<div>Source: <a href="{0}" target="_blank">{0}</a></div>'.format(link))
+        return
+
+    # TODO: raise this error in such a way that it's not clear that
+    # it is produced by sage, see http://xkcd.com/1024/
+    html('<script> alert("Error: -41"); </script>')
 
 def inverse_mod(a, m):
     """
@@ -2443,7 +2495,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
 
         sage: K.<i> = QuadraticField(-1)
         sage: factor(122 - 454*i)
-        (-1) * (-i - 4) * (-3*i - 2) * (-i - 2)^3 * (i + 1)^3
+        (-3*i - 2) * (-i - 2)^3 * (i + 1)^3 * (i + 4)
 
     To access the data in a factorization::
 
@@ -4530,6 +4582,8 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
     b = QQ(b).numerator() * QQ(b).denominator()
 
     if algorithm == "pari":
+        if p == -1:
+            p = 0
         return ZZ(pari(a).hilbert(b,p))
 
     elif algorithm == 'direct':
@@ -5655,7 +5709,7 @@ def dedekind_sum(p, q, algorithm='default'):
         sage: dedekind_sum(3^54 - 1, 2^93 + 1, algorithm='pari')
         459340694971839990630374299870/29710560942849126597578981379
 
-    Pari uses a different definition if the inputs are not coprime::
+    We check consistency of the results::
 
         sage: dedekind_sum(5, 7, algorithm='default')
         -1/14
@@ -5668,7 +5722,7 @@ def dedekind_sum(p, q, algorithm='default'):
         sage: dedekind_sum(6, 8, algorithm='flint')
         -1/8
         sage: dedekind_sum(6, 8, algorithm='pari')
-        -1/24
+        -1/8
 
     REFERENCES:
 

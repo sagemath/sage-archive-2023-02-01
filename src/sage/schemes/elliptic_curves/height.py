@@ -1800,7 +1800,7 @@ class EllipticCurveCanonicalHeight:
         This curve does have a point of good reduction whose canonical
         point is approximately 1.68::
 
-            sage: P = E.gens()[0]
+            sage: P = E.gens(lim3=5)[0]
             sage: P.height()
             1.68038085233673
             sage: P.has_good_reduction()

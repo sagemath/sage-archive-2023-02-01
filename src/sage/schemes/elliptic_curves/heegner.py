@@ -22,7 +22,7 @@ EXAMPLES::
     1
     sage: K.<a> = QuadraticField(-8)
     sage: K.factor(3)
-    (Fractional ideal (1/2*a + 1)) * (Fractional ideal (1/2*a - 1))
+    (Fractional ideal (1/2*a + 1)) * (Fractional ideal (-1/2*a + 1))
 
 Next try an inert prime::
 

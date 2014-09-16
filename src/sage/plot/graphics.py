@@ -2335,12 +2335,6 @@ class Graphics(SageObject):
         subplot = sub
         if not subplot:
             subplot = figure.add_subplot(111)
-        if aspect_ratio is None:
-            aspect_ratio=self.aspect_ratio()
-        if aspect_ratio == 'automatic':
-            subplot.set_aspect('auto', adjustable='box')
-        else:
-            subplot.set_aspect(aspect_ratio, adjustable='box')
         #add all the primitives to the subplot
         old_opts = dict()
         for g in self._objects:
@@ -2353,6 +2347,13 @@ class Graphics(SageObject):
             g._render_on_subplot(subplot)
             if hasattr(g, '_bbox_extra_artists'):
                 self._bbox_extra_artists.extend(g._bbox_extra_artists)
+        # Set the aspect ratio
+        if aspect_ratio is None:
+            aspect_ratio=self.aspect_ratio()
+        if aspect_ratio == 'automatic':
+            subplot.set_aspect('auto', adjustable='box')
+        else:
+            subplot.set_aspect(aspect_ratio, adjustable='box')
 
         #---------------- Set the axes limits and scale ------------------#
         self.set_axes_range(xmin, xmax, ymin, ymax)

@@ -552,10 +552,15 @@ def symbolic_sum(expression, *args, **kwds):
 
     - ``b`` - upper endpoint of the sum
 
-    - ``algorithm`` - (default: 'maxima')  one of
-      - 'maxima' - use Maxima (the default)
-      - 'maple' - (optional) use Maple
-      - 'mathematica' - (optional) use Mathematica
+    - ``algorithm`` - (default: ``'maxima'``)  one of
+
+      - ``'maxima'`` - use Maxima (the default)
+
+      - ``'maple'`` - (optional) use Maple
+
+      - ``'mathematica'`` - (optional) use Mathematica
+
+      - ``'giac'`` - (optional) use Giac
 
     EXAMPLES::
 
@@ -634,7 +639,7 @@ def symbolic_sum(expression, *args, **kwds):
         sage: sum(2^(-k)/(k*(k+1)), k, 1, oo)
         -log(2) + 1
 
-    Another binomial identity (trac #7952)::
+    Another binomial identity (:trac:`7952`)::
 
         sage: t,k,i = var('t,k,i')
         sage: sum(binomial(i+t,t),i,0,k)
@@ -682,7 +687,7 @@ def symbolic_sum(expression, *args, **kwds):
         sage: sum(binomial(n,k)*x^k, k, 0, n, algorithm = 'maple')      # optional - maple
         (x + 1)^n
 
-    Python ints should work as limits of summation (trac #9393)::
+    Python ints should work as limits of summation (:trac:`9393`)::
 
         sage: sum(x, x, 1r, 5r)
         15
@@ -1425,7 +1430,7 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         [18.1681536508882, -0.0840768254441065 - 0.219026148480291*I, -0.0840768254441065 + 0.219026148480291*I]
 
     Make sure we've rounded up log(10,2) enough to guarantee
-    sufficient precision (trac #10164)::
+    sufficient precision (:trac:`10164`)::
 
         sage: ks = 4*10**5, 10**6
         sage: check_str_length = lambda k: len(str(numerical_approx(1+10**-k,digits=k+1)))-1 >= k+1

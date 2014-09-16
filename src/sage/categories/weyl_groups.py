@@ -58,6 +58,22 @@ class WeylGroups(Category_singleton):
         """
         return [CoxeterGroups()]
 
+    def is_structure_category(self):
+        r"""
+        Return whether ``self`` is a structure category.
+
+        .. SEEALSO:: :meth:`Category.is_structure_category`
+
+        The category of Weyl groups defines no new structure:
+        Weyl groups are a special class of Coxeter groups.
+
+        EXAMPLES::
+
+            sage: WeylGroups().is_structure_category()
+            False
+        """
+        return False
+
     Finite = LazyImport('sage.categories.finite_weyl_groups', 'FiniteWeylGroups')
 
     class ParentMethods:

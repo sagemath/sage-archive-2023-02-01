@@ -3,8 +3,14 @@
 """
 Sage IPython Notebook startup script.
 """
-from sage.repl.ipython_notebook import SageNotebookApp
+import os
+from sage.repl.notebook_ipy import NOTEBOOK_DIR, SageNotebookApp
+
+# The IPython notebook directory must exist
+if not os.path.exists(NOTEBOOK_DIR):
+    os.makedirs(NOTEBOOK_DIR)
 
 app = SageNotebookApp.instance()
 app.initialize()
 app.start()
+

@@ -2854,8 +2854,8 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
     def orbit_structure(self, P):
         r"""
-        Every point is preperiodic over a finite field. This funtion returns the pair `[m,n]` where `m` is the
-        preperiod and `n` the period of the point ``P`` by ``self``.
+        Every point is preperiodic over a finite field. This function returns the pair `[m,n]` where `m` is the
+        preperiod and `n` is the period of the point ``P`` by ``self``.
 
         INPUT:
 
@@ -2869,7 +2869,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
             sage: P.<x,y,z> = ProjectiveSpace(GF(5),2)
             sage: H = Hom(P,P)
-            sage: f = H([x^2+y^2,y^2,z^2 + y*z])
+            sage: f = H([x^2 + y^2,y^2,z^2 + y*z])
             sage: f.orbit_structure(P(2,1,2))
             [0, 6]
 
@@ -2886,7 +2886,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
             sage: P.<x,y> = ProjectiveSpace(GF(13),1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2-y^2,y^2])
+            sage: f = H([x^2 - y^2,y^2])
             sage: f.orbit_structure(P(3,4))
             [2, 3]
         """

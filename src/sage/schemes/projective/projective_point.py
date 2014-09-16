@@ -1160,8 +1160,8 @@ class SchemeMorphism_point_projective_finite_field(SchemeMorphism_point_projecti
 
     def orbit_structure(self,f):
         r"""
-        Every points is preperiodic over a finite field. This funtion returns the pair `[m,n]` where `m` is the
-        preperiod and `n` the period of the point `P` by ``self``.
+        Every point is preperiodic over a finite field. This function returns the pair `[m,n]` where `m` is the
+        preperiod and `n` is the period of the point ``self`` by ``f``.
 
         INPUT:
 
@@ -1173,27 +1173,27 @@ class SchemeMorphism_point_projective_finite_field(SchemeMorphism_point_projecti
 
         EXAMPLES::
 
-            sage: P.<x,y,z>=ProjectiveSpace(GF(5),2)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2+y^2,y^2,z^2 + y*z])
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5),2)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2 + y^2,y^2,z^2 + y*z])
             sage: P(1,0,1).orbit_structure(f)
             [0, 1]
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(GF(17),2)
-            sage: X=P.subscheme(x^2-y^2)
-            sage: H=Hom(X,X)
-            sage: f=H([x^2,y^2,z^2])
+            sage: P.<x,y,z> = ProjectiveSpace(GF(17),2)
+            sage: X = P.subscheme(x^2-y^2)
+            sage: H = Hom(X,X)
+            sage: f = H([x^2,y^2,z^2])
             sage: X(1,1,2).orbit_structure(f)
             [3, 1]
 
         ::
 
             sage: R.<t> = GF(13^3)
-            sage: P.<x,y>=ProjectiveSpace(R,1)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2-y^2,y^2])
+            sage: P.<x,y> = ProjectiveSpace(R,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2 - y^2,y^2])
             sage: P(t,4).orbit_structure(f)
             [11, 6]
         """

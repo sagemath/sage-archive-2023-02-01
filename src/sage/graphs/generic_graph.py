@@ -11613,7 +11613,7 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES:
 
-        A Petersen Graph is not chordal, nor car it be an interval
+        A Petersen Graph is not chordal, nor can it be an interval
         graph ::
 
             sage: g = graphs.PetersenGraph()
@@ -15694,7 +15694,7 @@ class GenericGraph(GenericGraph_pyx):
               :meth:`sage.graphs.graph_plot_js.gen_html_code`. Depending on
               whether d3js optional package is installed or not, the javascript
               code will be used locally or fetched from d3js.org website by the
-              browser. 
+              browser.
 
         This method accepts any other option understood by
         :meth:`~sage.graphs.generic_graph.GenericGraph.plot` (graph-specific) or
@@ -16358,7 +16358,7 @@ class GenericGraph(GenericGraph_pyx):
 
         """
         from sage.graphs.dot2tex_utils import quoted_latex, quoted_str
-        
+
         if self.is_directed():
             graph_string = "digraph"
             default_edge_string = "->"

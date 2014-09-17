@@ -83,8 +83,7 @@ class GaloisRepresentation(SageObject):
 
     def __init__(self, E):
         r"""
-
-        see ``GaloisRepresentation`` for documentation
+        See ``GaloisRepresentation`` for documentation.
 
         EXAMPLES::
 
@@ -98,10 +97,9 @@ class GaloisRepresentation(SageObject):
         """
         self.E = E
 
-
     def __repr__(self):
         r"""
-        string representation of the class
+        Return a string representation of the class.
 
         EXAMPLES::
 
@@ -117,8 +115,9 @@ class GaloisRepresentation(SageObject):
     def __eq__(self,other):
         r"""
         Compares two Galois representations.
-        We define two compatible families of representations
-        attached to elliptic curves to be isomorphic if the curves are equal
+
+        We define two compatible families of representations attached
+        to elliptic curves to be equal if the curves are isomorphic.
 
         EXAMPLES::
 
@@ -136,10 +135,9 @@ class GaloisRepresentation(SageObject):
             return False
         return self.E.is_isomorphic(other.E)
 
-
     def elliptic_curve(self):
         r"""
-        The elliptic curve associated to this representation.
+        Return the elliptic curve associated to this representation.
 
         EXAMPLES::
 
@@ -154,7 +152,7 @@ class GaloisRepresentation(SageObject):
 
     def non_surjective(self, A=100):
         r"""
-        Returns a list of primes `p` including all primes for which the mod-`p`
+        Return a list of primes `p` including all primes for which the mod-`p`
         representation might not be surjective.
 
         INPUT:
@@ -164,9 +162,10 @@ class GaloisRepresentation(SageObject):
 
         OUTPUT:
 
-        - ``list`` - A list of primes where mod-`p` representation is very likely
-          not surjective. At any prime not in this list, the representation is
-          definitely surjective. If E has CM, the list [0] is returned.
+        - ``list`` - A list of primes where mod-`p` representation is
+          very likely not surjective. At any prime not in this list,
+          the representation is definitely surjective. If `E` has CM,
+          the list [0] is returned.
 
         EXAMPLES::
 
@@ -198,10 +197,9 @@ class GaloisRepresentation(SageObject):
 
     def is_surjective(self, p, A=100):
         r"""
-        Returns True if the mod-p representation is (provably) surjective
-        onto `Aut(E[p]) = GL_2(\mathbb{F}_p)`.
-
-        False if it is (probably) not.
+        Return ``True`` if the mod-p representation is (provably)
+        surjective onto `Aut(E[p]) = GL_2(\mathbb{F}_p)`.  Return
+        ``False`` if it is (probably) not.
 
         INPUT:
 
@@ -240,21 +238,24 @@ class GaloisRepresentation(SageObject):
 
     def isogeny_bound(self, A=100):
         r"""
-        Returns a list of primes `p` including all primes for which the mod-`p`
-        representation might not be contained in a Borel.
+        Returns a list of primes `p` including all primes for which
+        the image of the mod-`p` representation is contained in a
+        Borel.
 
         INPUT:
 
-        * ``A`` - int (a bound on the number of traces of Frobenius to use
-                     while trying to prove the mod-`p` representation isn't contained
-                     in a Borel).
+        - ``A`` - int (a bound on the number of traces of Frobenius to
+                     use while trying to prove the mod-`p`
+                     representation is not contained in a Borel).
 
         OUTPUT:
 
-        - ``list`` - A list of primes which contains (but may not be equal to) all `p`
-          for which the mod-`p` representation is contained in a Borel subgroup.
-          At any prime not in this list, the representation is definitely not contained
-          in a Borel. If E has CM *defined over K*, the list [0] is returned.
+        - ``list`` - A list of primes which contains (but may not be
+          equal to) all `p` for which the image of the mod-`p`
+          representation is contained in a Borel subgroup.  At any
+          prime not in this list, the image is definitely not
+          contained in a Borel. If E has `CM` defined over `K`, the list
+          [0] is returned.
 
         EXAMPLES::
 
@@ -278,13 +279,21 @@ class GaloisRepresentation(SageObject):
 
         char = lambda P: P.smallest_integer() # cheaper than constructing the residue field
 
+        # semistable reducible primes (function raises an error for CM curves)
         try:
-            bad_primes = Set([char(P) for P in (K.ideal(E.c4()) + K.ideal(E.discriminant())).prime_factors()]) + Set(K.discriminant().prime_factors()) + Set(_semistable_reducible_primes(E))
+            bad_primes = _semistable_reducible_primes(E)
         except ValueError:
             return [0]
+        # primes of additive reduction
+        bad_primesK = (K.ideal(E.c4()) + K.ideal(E.discriminant())).prime_factors()
+        bad_primes += [char(P) for P in bad_primesK]
+        # ramified primes
+        bad_primes += K.absolute_discriminant().prime_factors()
 
-        return _maybe_borels(E, list(bad_primes), A)
+        # remove repeats:
+        bad_primes = list(Set(bad_primes))
 
+        return _maybe_borels(E, bad_primes, A)
 
 def _non_surjective(E, patience=100):
     r"""
@@ -320,7 +329,7 @@ def _non_surjective(E, patience=100):
     E = _over_numberfield(E)
     K = E.base_field()
 
-    exceptional_primes = Set([2, 3, 5, 7, 11, 13, 17, 19])
+    exceptional_primes = [2, 3, 5, 7, 11, 13, 17, 19]
     # The possible primes l unramified in K/QQ for which the image of the mod l
     # Galois representation could be contained in an exceptional subgroup.
 
@@ -338,18 +347,29 @@ def _non_surjective(E, patience=100):
 
     char = lambda P: P.smallest_integer() # cheaper than constructing the residue field
 
-    bad_primes = exceptional_primes + Set([char(P) for P in SA]) + Set(K.discriminant().prime_factors()) + Set(_semistable_reducible_primes(E)) + Set(_possible_normalizers(E, SA))
+    bad_primes = exceptional_primes
+    bad_primes += [char(P) for P in SA]
+    bad_primes += K.discriminant().prime_factors()
+    bad_primes += _semistable_reducible_primes(E)
+    bad_primes += _possible_normalizers(E, SA)
 
-    return _exceptionals(E, list(bad_primes), patience)
+    bad_primes = list(Set(bad_primes))
+
+    return _exceptionals(E, bad_primes, patience)
 
 
 def _maybe_borels(E, L, patience=100):
     r"""
-    Determine which primes in L might have an image contained in a Borel subgroup,
-    using straight-forward checking of traces of Frobenius.
+    Determine which primes in L might have an image contained in a
+    Borel subgroup, using straight-forward checking of traces of
+    Frobenius.
 
-    Note: Will sometimes return primes for which the image is not contained in
-    a Borel subgroup. (And this issue cannot be fixed by increasing patience.)
+    .. NOTE:
+
+       This function will sometimes return primes for which the image
+       is not contained in a Borel subgroup.  This issue cannot always
+       be fixed by increasing patience as it may be a result of a
+       failure of a local-global principle for isogenies.
 
     INPUT:
 
@@ -633,10 +653,12 @@ def _semistable_reducible_primes(E):
 
     - ``E`` - EllipticCurve - over a number field.
 
-    OUTPUT: list - A list of primes, which contains all primes l unramified
-                   in K/QQ, such that E is semistable at all primes lying
-                   over l, and the Galois image at l is reducible. If E has
-                   CM defined over its ground field, a ValueError is raised.
+    OUTPUT:
+
+    A list of primes, which contains all primes `l` unramified in
+    `K/\mathbb{QQ}`, such that `E` is semistable at all primes lying
+    over `l`, and the Galois image at `l` is reducible. If `E` has CM
+    defined over its ground field, a ``ValueError`` is raised.
 
     EXAMPLES::
 

@@ -396,7 +396,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         sage: c_4 = lambda p: -30*p[0]-33*p[1]+2100
         sage: a = minimize_constrained(f,[c_1,c_2,c_3,c_4],[2,3])
         sage: a
-        (45.0, 6.25)
+        (45.0, 6.25...)
 
     Let's find a minimum of `\sin(xy)`::
 
@@ -524,12 +524,12 @@ def linear_program(c,G,h,A=None,b=None,solver=None):
         sage: h=vector([2400.0,2100.0,-45.0,-5.0,1.0,-1.0])
         sage: sol=linear_program(v,m,h)
         sage: sol['x']
-        (45.000000..., 6.2499999...3, 1.00000000...)
+        (45.000000..., 6.2499999..., 1.00000000...)
         sage: sol=linear_program(v,m,h,solver='glpk')
         GLPK Simplex Optimizer...
         OPTIMAL SOLUTION FOUND
         sage: sol['x']
-        (45.0..., 6.25, 1.0...)
+        (45.0..., 6.25..., 1.0...)
     """
     from cvxopt.base import matrix as m
     from cvxopt import solvers

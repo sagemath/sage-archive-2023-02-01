@@ -1067,7 +1067,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
         temp = ZZX_discriminant(&ntl_poly, proof)
         x = PY_NEW(Integer)
-        ZZ_to_mpz(&x.value, temp)
+        ZZ_to_mpz(x.value, temp)
         ZZ_delete(temp)
 
         return x

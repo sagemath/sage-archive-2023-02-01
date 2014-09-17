@@ -1159,13 +1159,13 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
     Try some inexact rings::
 
         sage: srange(0.5, 1.1, 0.1, universe=RDF, include_endpoint=False)
-        [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        [0.5, 0.6, 0.7, 0.7999999999999999, 0.8999999999999999, 0.9999999999999999]
         sage: srange(0.5, 1, 0.1, universe=RDF, include_endpoint=False)
-        [0.5, 0.6, 0.7, 0.8, 0.9]
+        [0.5, 0.6, 0.7, 0.7999999999999999, 0.8999999999999999]
         sage: srange(0.5, 0.9, 0.1, universe=RDF, include_endpoint=False)
-        [0.5, 0.6, 0.7, 0.8]
+        [0.5, 0.6, 0.7, 0.7999999999999999]
         sage: srange(0, 1.1, 0.1, universe=RDF, include_endpoint=True)
-        [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1]
+        [0.0, 0.1, 0.2, 0.30000000000000004, 0.4, 0.5, 0.6, 0.7, 0.7999999999999999, 0.8999999999999999, 0.9999999999999999, 1.1]
         sage: srange(0, 0.2, 0.1, universe=RDF, include_endpoint=True)
         [0.0, 0.1, 0.2]
         sage: srange(0, 0.3, 0.1, universe=RDF, include_endpoint=True)
@@ -1173,7 +1173,7 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
 
     TESTS:
 
-    These are doctests from trac ticket #6409::
+    These are doctests from :trac:`6409`::
 
         sage: srange(1,0,include_endpoint=True)
         []

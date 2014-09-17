@@ -20,6 +20,8 @@ matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following me
     :meth:`~IncidenceStructure.incidence_matrix` | Return the incidence matrix `A` of the design
     :meth:`~IncidenceStructure.incidence_graph` | Return the incidence graph of the design
     :meth:`~IncidenceStructure.packing` | Return a maximum packing
+    :meth:`~IncidenceStructure.relabel` | Relabel the ground set
+    :meth:`~IncidenceStructure.is_resolvable` | Test whether the hypergraph is resolvable
     :meth:`~IncidenceStructure.is_t_design` | Test whether ``self`` is a `t-(v,k,l)` design.
     :meth:`~IncidenceStructure.dual` | Return the dual design.
     :meth:`~IncidenceStructure.automorphism_group` | Return the automorphism group
@@ -279,6 +281,7 @@ class IncidenceStructure(object):
             self._blocks = blocks
 
         self._name = str(name) if name is not None else 'IncidenceStructure'
+        self._classes = None
 
     def __iter__(self):
         """
@@ -676,7 +679,7 @@ class IncidenceStructure(object):
 
     def relabel(self, perm):
         r"""
-        Relabels the ground set
+        Relabel the ground set
 
         - ``label`` (dictionary) -- associated every point of the ground set
           with its image. All images must be distinct.
@@ -1076,6 +1079,158 @@ class IncidenceStructure(object):
         else:
             gens = [[tuple([i-1 for i in cycle]) for cycle in g] for g in gens]
         return PermutationGroup(gens, domain=self._points)
+
+    def is_resolvable(self, certificate=False, solver=None, verbose=0, copy=True, check=True):
+        r"""
+        Test whether the hypergraph is resolvable
+
+        A hypergraph is said to be resolvable if its sets can be partitionned
+        into classes, each of which is a partition of the ground set.
+
+        .. NOTE::
+
+            This problem is solved using an Integer Linear Program, and GLPK
+            (the default LP solver) has been reported to be very slow on some
+            instances. If you hit this wall, consider installing a more powerful
+            LP solver (CPLEX, Gurobi, ...).
+
+        INPUT:
+
+        - ``certificate`` (boolean) -- whether to return the classes along with
+          the binary answer (see examples below).
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``copy`` (boolean) -- ``True`` by default. When set to ``False``, a
+          pointer toward the object's internal data is given. Set it to
+          ``False`` only if you know what you are doing.
+
+        - ``check`` (boolean) -- whether to check that output is correct before
+          returning it. As this is expected to be useless (but we are cautious
+          guys), you may want to disable it whenever you want speed. Set to ``True``
+          by default.
+
+        EXAMPLES:
+
+        Some resolvable designs::
+
+            sage: TD = designs.transversal_design(2,2,resolvable=True)
+            sage: TD.is_resolvable()
+            True
+
+            sage: AG = designs.AffineGeometryDesign(3,1,GF(2))
+            sage: AG.is_resolvable()
+            True
+
+        Their classes::
+
+            sage: b,cls = TD.is_resolvable(True)
+            sage: b
+            True
+            sage: cls # random
+            [[[0, 3], [1, 2]], [[1, 3], [0, 2]]]
+
+            sage: b,cls = AG.is_resolvable(True)
+            sage: b
+            True
+            sage: cls # random
+            [[[6, 7], [4, 5], [0, 1], [2, 3]],
+             [[5, 7], [0, 4], [3, 6], [1, 2]],
+             [[0, 2], [4, 7], [1, 3], [5, 6]],
+             [[3, 4], [0, 7], [1, 5], [2, 6]],
+             [[3, 7], [1, 6], [0, 5], [2, 4]],
+             [[0, 6], [2, 7], [1, 4], [3, 5]],
+             [[4, 6], [0, 3], [2, 5], [1, 7]]]
+
+        A non-resolvable design::
+
+            sage: Fano = designs.balanced_incomplete_block_design(7,3)
+            sage: Fano.is_resolvable()
+            False
+            sage: Fano.is_resolvable(True)
+            (False, [])
+
+        TESTS::
+
+            sage: _,cls1 = AG.is_resolvable(certificate=True, copy=True)
+            sage: _,cls2 = AG.is_resolvable(certificate=True, copy=True)
+            sage: cls1 is cls2
+            False
+
+            sage: _,cls1 = AG.is_resolvable(certificate=True, copy=False)
+            sage: _,cls2 = AG.is_resolvable(certificate=True, copy=False)
+            sage: cls1 is cls2
+            True
+        """
+        if self._classes is None:
+            degrees = set(self.degree().itervalues())
+            if len(degrees) != 1:
+                self._classes = False
+            else:
+                from sage.numerical.mip import MixedIntegerLinearProgram
+                from sage.numerical.mip import MIPSolverException
+                n_classes = degrees.pop()
+                p = MixedIntegerLinearProgram(solver=solver)
+                b = p.new_variable(binary=True)
+                domain = range(self.num_points())
+
+                # Lists of blocks containing i for every i
+                dual = [[] for i in domain]
+                for i,B in enumerate(self._blocks):
+                    for x in B:
+                        dual[x].append(i)
+
+                # Each class is a partition
+                for t in range(n_classes):
+                    for x in domain:
+                        p.add_constraint(p.sum(b[t,i] for i in dual[x]) == 1)
+
+                # Each set appears exactly once
+                for i in range(len(self._blocks)):
+                    p.add_constraint(p.sum(b[t,i] for t in range(n_classes)) == 1)
+
+                try:
+                    p.solve(log=verbose)
+                except MIPSolverException:
+                    self._classes = False
+                else:
+                    # each class is stored as the list of indices of its blocks
+                    self._classes = [[] for _ in range(n_classes)]
+                    for (t,i),v in p.get_values(b).iteritems():
+                        if v:
+                            self._classes[t].append(self._blocks[i])
+
+        if check and self._classes is not False:
+            assert sorted(id(c) for cls in self._classes for c in cls) == sorted(id(b) for b in self._blocks), "some set does not appear exactly once"
+            domain = range(self.num_points())
+            for i,c in enumerate(self._classes):
+                assert sorted(sum(c,[])) == domain, "class {} is not a partition".format(i)
+
+        if self._classes is False:
+            return (False, []) if certificate else False
+
+        if certificate:
+            if copy:
+                if self._point_to_index is None:
+                    classes = [[block[:] for block in classs] for classs in self._classes]
+                else:
+                    classes = [[[self._points[i] for i in block] for block in classs] for classs in self._classes]
+            else:
+                classes = self._classes
+
+            return (True, classes)
+
+        else:
+            return True
 
     ###############
     # Deprecation #

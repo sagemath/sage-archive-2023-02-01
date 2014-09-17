@@ -43,8 +43,8 @@ cdef extern from "eclsig.h":
     cdef Sigaction ecl_sigint_handler
     cdef Sigaction ecl_sigbus_handler
     cdef Sigaction ecl_sigsegv_handler
-    cdef mpz_t* ecl_mpz_from_bignum(cl_object obj)
-    cdef cl_object ecl_bignum_from_mpz(mpz_t* num)
+    cdef mpz_t ecl_mpz_from_bignum(cl_object obj)
+    cdef cl_object ecl_bignum_from_mpz(mpz_t num)
 
 cdef cl_object string_to_object(char * s):
     return ecl_read_from_cstring(s)
@@ -451,7 +451,7 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
         if pyobj >= MOST_NEGATIVE_FIXNUM and pyobj <= MOST_POSITIVE_FIXNUM:
             return ecl_make_integer(pyobj)
         else:
-            return ecl_bignum_from_mpz( (<Integer>pyobj).get_value() )
+            return ecl_bignum_from_mpz( (<Integer>pyobj).value )
     elif isinstance(pyobj,Rational):
         return ecl_make_ratio(
                 python_to_ecl( (<Rational>pyobj).numerator()  ),

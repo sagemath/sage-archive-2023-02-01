@@ -417,7 +417,7 @@ class Animation(SageObject):
 
         EXAMPLES::
 
-            sage: a = animate([plot(x^2 + n) for n in range(4)], ymin=0)
+            sage: a = animate([plot(x^2 + n) for n in range(4)], ymin=0, ymax=4)
             sage: d = a.png(); v = os.listdir(d); v.sort(); v  # long time
             ['00000000.png', '00000001.png', '00000002.png', '00000003.png']
         """

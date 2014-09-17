@@ -343,7 +343,6 @@ GAP=`newest_version gap`
 GCC=`newest_version gcc`
 GD=`newest_version gd`
 GDMODULE=`newest_version gdmodule`
-GENUS2REDUCTION=`newest_version genus2reduction`
 GFAN=`newest_version gfan`
 GF2X=`newest_version gf2x`
 GIT=`newest_version git`

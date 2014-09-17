@@ -88,7 +88,15 @@ class FinitePosets(CategoryWithAxiom):
                 sage: P.is_selfdual()
                 True
             """
-            return self.is_isomorphic( self.dual() )
+            # Two quick checks before full isomorphic test.
+            if sorted(self._hasse_diagram.in_degree()) != sorted(self._hasse_diagram.out_degree()):
+                return False
+            levels_orig=[len(x) for x in self._hasse_diagram.level_sets()]
+            dual_poset_hasse=self._hasse_diagram.reverse()
+            levels_dual=[len(x) for x in dual_poset_hasse.level_sets()]
+            if levels_orig != levels_dual:
+                return False
+            return self._hasse_diagram.is_isomorphic(dual_poset_hasse)
 
 
         ##########################################################################

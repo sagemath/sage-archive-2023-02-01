@@ -55,9 +55,13 @@ AUTHORS:
 - Volker Braun (2013): refactored into DisplayHookBase
 """
 
-import sys, __builtin__
+import __builtin__
+import sys
+import types
+
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.matrix.matrix','is_Matrix')
+lazy_import('sage.matrix.matrix', 'is_Matrix')
+
 
 class ListFormatter(object):
 
@@ -259,27 +263,13 @@ class DisplayHookBase(object):
             sage: dhb.simple_format_obj(
             ....:     [matrix([[1], [2]]), matrix([[3], [4]])])
             '[\n[1]  [3]\n[2], [4]\n]'
-
-        TESTS:
-
-        In :trac:`14466` we override IPython's special printing of
-        ``type`` objects and revert it to Python's standard string
-        representation::
-
-            sage: shell=sage.repl.interpreter.get_test_shell()
-            sage: shell.displayhook(type)
-            <type 'type'>
         """
-        if isinstance(obj, type):
-            return repr(obj)
-
         # since #15036, we check in displayhook if a matrix is has
         # large enough dimensions to be printed in abbreviated form.
         # If so, we append a helpful message to indicate how to print
         # the entries of the matrix.
         # we need to do a late import of the is_Matrix method here to
         # avoid startup problems.
-
         if is_Matrix(obj):
             from sage.matrix.matrix0 import max_rows,max_cols
             if obj.nrows() >= max_rows or obj.ncols() >= max_cols:
@@ -433,13 +423,97 @@ class SagePlainTextFormatter(DisplayHookBase, PlainTextFormatter):
         sage: from sage.repl.interpreter import get_test_shell
         sage: shell = get_test_shell()
         sage: shell.display_formatter.formatters['text/plain']
-        <...displayhook.SagePlainTextFormatter at 0x...>
+        <...displayhook.SagePlainTextFormatter object at 0x...>
         sage: shell.run_cell('a = identity_matrix(ZZ, 2); [a,a]')
         [
         [1 0]  [1 0]
         [0 1], [0 1]
         ]
     """
+    def __init__(self, *args, **kwds):
+        import IPython.lib.pretty
+        IPython.lib.pretty._default_pprint = self._python_default_pprint
+        super(SagePlainTextFormatter, self).__init__(*args, **kwds)
+
+    def _python_default_pprint(self, obj, p, cycle):
+        """
+        The default print function.
+
+        IPython 2.2.0 has a non-configurable default pretty printer
+        that doesn't do what we want. So we are forced to monkey-patch
+        it with this method.
+        """
+        from IPython.lib.pretty import _safe_repr
+        p.text(_safe_repr(obj))
+
+    def _type_printers_default(self):
+        """
+        The default pretty printers
+
+        OUTPUT:
+
+        Dictionary with key the type to handle and value a
+        pretty-print function for said type.
+
+        EXAMPLES::
+
+            sage: shell = sage.repl.interpreter.get_test_shell()
+            sage: sptf = shell.display_formatter.formatters[u'text/plain']
+            sage: sptf._type_printers_default()
+            {<type 'datetime.timedelta'>: <function IPython.lib.pretty._repr_pprint>,
+             ...
+            sage: shell.displayhook(type)
+            <type 'type'>
+            sage: shell.displayhook([type, type])
+            [<type 'type'>, <type 'type'>]
+
+        TESTS:
+
+        We don't like the following IPython defaults, see :trac:`14466`:
+
+            sage: import types
+            sage: def ugly(obj):    # show IPython defaults
+            ....:     from StringIO import StringIO
+            ....:     stream = StringIO()
+            ....:     from IPython.lib import pretty
+            ....:     printer = pretty.RepresentationPrinter(stream, False,
+            ....:         78, u'\n', 
+            ....:         singleton_pprinters=pretty._singleton_pprinters,
+            ....:         type_pprinters=pretty._type_pprinters,
+            ....:         deferred_pprinters=pretty._deferred_type_pprinters)
+            ....:     printer.pretty(obj)
+            ....:     printer.flush()
+            ....:     return stream.getvalue()
+
+            sage: cls_type = types.ClassType('name', (), {});  cls_type
+            <class __main__.name at 0x...>
+            sage: ugly(cls_type)
+            '__main__.name'
+
+            sage: types.TypeType
+            <type 'type'>
+            sage: ugly(types.TypeType) 
+            'type'
+
+            sage: types.BuiltinFunctionType
+            <type 'builtin_function_or_method'>
+            sage: ugly(types.BuiltinFunctionType)
+            'builtin_function_or_method'
+        """
+        from IPython.lib.pretty import _safe_repr
+        pprinters = super(SagePlainTextFormatter, self)._type_printers_default()
+        # We don't like how IPython abbreviates types :trac:`14466`
+        del pprinters[types.TypeType]# = python_default
+        del pprinters[types.ClassType]# = python_default
+        del pprinters[types.BuiltinFunctionType]# = python_default
+        return pprinters
+
+
+    def _deferred_printers_default(self):
+        pprinters = super(SagePlainTextFormatter, self)._deferred_printers_default()
+        return pretty._deferred_type_pprinters.copy()
+
+
     def __call__(self, obj):
         r"""
         Computes the format data of ``result``.  If the
@@ -452,7 +526,7 @@ class SagePlainTextFormatter(DisplayHookBase, PlainTextFormatter):
             sage: shell = get_test_shell()
             sage: fmt = shell.display_formatter.formatters['text/plain']
             sage: fmt
-            <...displayhook.SagePlainTextFormatter at 0x...>
+            <...displayhook.SagePlainTextFormatter object at 0x...>
             sage: shell.displayhook.compute_format_data(2)
             ({u'text/plain': '2'}, {})
             sage: a = identity_matrix(ZZ, 2)

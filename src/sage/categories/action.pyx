@@ -126,7 +126,7 @@ cdef class Action(Functor):
     def is_left(self):
         return self._is_left
 
-    def __repr__(self):
+    def _repr_(self):
         side = "Left" if self._is_left else "Right"
         return "%s %s by %r on %r"%(side, self._repr_name_(), self.G,
                                     self.underlying_set())
@@ -339,7 +339,7 @@ cdef class PrecomposedAction(Action):
     def __invert__(self):
         return PrecomposedAction(~self._action, self.left_precomposition, self.right_precomposition)
 
-    def __repr__(self):
+    def _repr_(self):
         s = repr(self._action)
         if self.left_precomposition is not None:
             s += "\nwith precomposition on left by %s" % self.left_precomposition._default_repr_()

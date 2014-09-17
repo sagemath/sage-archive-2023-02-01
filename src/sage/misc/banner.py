@@ -12,7 +12,6 @@ Sage version and banner info
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 from sage.env import SAGE_VERSION, SAGE_DATE, SAGE_SRC
 
 def version(clone = False):
@@ -97,7 +96,7 @@ def banner():
         │ Type "help()" for help.                                            │
         ...
     """
-    print banner_text()
+    print(banner_text())
 
 
 def version_dict():
@@ -207,8 +206,7 @@ def require_version(major, minor=0, tiny=0, prerelease=False,
         return True
     else:
         if print_message:
-            print "This code requires at least version",
-            print "%g" % (major + 0.1 * minor + 0.01 * tiny,),
-            print "of Sage to run correctly."
-            print "You are running version %s." % SAGE_VERSION
+            print("This code requires at least version {} of Sage to run correctly.". 
+                   format(major + 0.1 * minor + 0.01 * tiny))
+            print("You are running version {}.".format(SAGE_VERSION))
         return False

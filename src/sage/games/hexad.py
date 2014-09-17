@@ -154,7 +154,7 @@ class Minimog():
         elif type == "modulo11":
             self.minimog = minimog_modulo11
         else:
-            raise ValueError, "That Minimog type is not implemented."
+            raise ValueError("That Minimog type is not implemented.")
         # This initializes the variables in the game.
         MS34 = MatrixSpace(SR,3,4)
         A = self.minimog

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Common Graphs (Graph Generators)
+Common Graphs
 
 All graphs in Sage can be built through the ``graphs`` object. In order to
 build a complete graph on 15 elements, one can do::
@@ -93,6 +93,8 @@ __append_to_doc(
      "BrouwerHaemersGraph",
      "BuckyBall",
      "CameronGraph",
+     "Cell600",
+     "Cell120",
      "ChvatalGraph",
      "ClebschGraph",
      "CoxeterGraph",
@@ -173,7 +175,8 @@ or a list of graphs or ...)
 """
 
 __append_to_doc(
-    ["BalancedTree",
+    ["AffineOrthogonalPolarGraph",
+     "BalancedTree",
      "BarbellGraph",
      "BubbleSortGraph",
      "CirculantGraph",
@@ -199,6 +202,7 @@ __append_to_doc(
      "NKStarGraph",
      "NStarGraph",
      "OddGraph",
+     "OrthogonalPolarGraph",
      "PaleyGraph",
      "petersen_family",
      "RingedTree",
@@ -226,7 +230,9 @@ of objects yield the graph edges.
 """
 
 __append_to_doc(
-    ["IntervalGraph",
+    ["IntersectionGraph",
+     "IntervalGraph",
+     "OrthogonalArrayBlockGraph",
      "PermutationGraph",
      "ToleranceGraph"])
 
@@ -1268,6 +1274,8 @@ class GraphGenerators():
     BrouwerHaemersGraph      = staticmethod(sage.graphs.generators.smallgraphs.BrouwerHaemersGraph)
     BuckyBall                = staticmethod(sage.graphs.generators.smallgraphs.BuckyBall)
     CameronGraph             = staticmethod(sage.graphs.generators.smallgraphs.CameronGraph)
+    Cell600                  = staticmethod(sage.graphs.generators.smallgraphs.Cell600)
+    Cell120                  = staticmethod(sage.graphs.generators.smallgraphs.Cell120)
     ChvatalGraph             = staticmethod(sage.graphs.generators.smallgraphs.ChvatalGraph)
     ClebschGraph             = staticmethod(sage.graphs.generators.smallgraphs.ClebschGraph)
     CoxeterGraph             = staticmethod(sage.graphs.generators.smallgraphs.CoxeterGraph)
@@ -1341,6 +1349,7 @@ class GraphGenerators():
 # Families
 ###########################################################################
     import sage.graphs.generators.families
+    AffineOrthogonalPolarGraph = staticmethod(sage.graphs.generators.families.AffineOrthogonalPolarGraph)
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BarbellGraph           = staticmethod(sage.graphs.generators.families.BarbellGraph)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
@@ -1364,6 +1373,7 @@ class GraphGenerators():
     NKStarGraph            = staticmethod(sage.graphs.generators.families.NKStarGraph)
     NStarGraph             = staticmethod(sage.graphs.generators.families.NStarGraph)
     OddGraph               = staticmethod(sage.graphs.generators.families.OddGraph)
+    OrthogonalPolarGraph   = staticmethod(sage.graphs.generators.families.OrthogonalPolarGraph)
     PaleyGraph             = staticmethod(sage.graphs.generators.families.PaleyGraph)
     petersen_family        = staticmethod(sage.graphs.generators.families.petersen_family)
     RingedTree             = staticmethod(sage.graphs.generators.families.RingedTree)
@@ -1387,7 +1397,9 @@ class GraphGenerators():
 ###########################################################################
     import sage.graphs.generators.intersection
     IntervalGraph            = staticmethod(sage.graphs.generators.intersection.IntervalGraph)
+    IntersectionGraph        = staticmethod(sage.graphs.generators.intersection.IntersectionGraph)
     PermutationGraph         = staticmethod(sage.graphs.generators.intersection.PermutationGraph)
+    OrthogonalArrayBlockGraph  = staticmethod(sage.graphs.generators.intersection.OrthogonalArrayBlockGraph)
     ToleranceGraph           = staticmethod(sage.graphs.generators.intersection.ToleranceGraph)
 
 ###########################################################################
@@ -1578,7 +1590,7 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
                         yield a
                 else:
                     for possibility in check_aut(z_aut_gens, cut_vert, n):
-                        if m_z.relabel(possibility, inplace=False) == g:
+                        if m_z.relabel(dict(enumerate(possibility)), check_input=False, inplace=False) == g:
                             for a in canaug_traverse_vert(z, z_aut_gens, max_verts, property, dig=dig, loops=loops, implementation=implementation, sparse=sparse):
                                 yield a
                             break

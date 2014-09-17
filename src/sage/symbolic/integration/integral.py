@@ -309,7 +309,7 @@ def _normalize_integral_input(f, v=None, a=None, b=None):
         raise TypeError('only one endpoint was given!')
     return f, v, a, b
 
-def integrate(expression, v=None, a=None, b=None, algorithm=None):
+def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
     r"""
     Returns the indefinite integral with respect to the variable
     `v`, ignoring the constant of integration. Or, if endpoints
@@ -341,6 +341,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
        - 'sympy' - use sympy (also in Sage)
 
        - 'mathematica_free' - use http://integrals.wolfram.com/
+
+    To prevent automatic evaluation use the ``hold`` argument.
 
      EXAMPLES::
 
@@ -385,6 +387,16 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: integral(sin(x), (y, pi, 2*pi))
         pi*sin(x)
 
+    Using the ``hold`` parameter it is possible to prevent automatic
+    evaluation, which can then be evaluated via :meth:`simplify`::
+
+        sage: integral(x^2, x, 0, 3)
+        9
+        sage: a = integral(x^2, x, 0, 3, hold=True) ; a
+        integrate(x^2, x, 0, 3)
+        sage: a.simplify()
+        9
+
     Constraints are sometimes needed::
 
         sage: var('x, n')
@@ -393,10 +405,10 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         Traceback (most recent call last):
         ...
         ValueError: Computation failed since Maxima requested additional
-        constraints; using the 'assume' command before integral evaluation
-        *may* help (example of legal syntax is 'assume(n+1>0)', see `assume?`
+        constraints; using the 'assume' command before evaluation
+        *may* help (example of legal syntax is 'assume(n>0)', see `assume?`
         for more details)
-        Is  n+1  zero or nonzero?
+        Is n equal to -1?
         sage: assume(n > 0)
         sage: integral(x^n,x)
         x^(n + 1)/(n + 1)
@@ -502,7 +514,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
     ::
 
         sage: integral(e^(-x^2),(x, 0, 0.1))
-        0.0562314580091*sqrt(pi)
+        0.05623145800914245*sqrt(pi)
 
     ALIASES: integral() and integrate() are the same.
 
@@ -515,10 +527,10 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         Traceback (most recent call last):
         ...
         ValueError: Computation failed since Maxima requested additional
-        constraints; using the 'assume' command before integral evaluation
+        constraints; using the 'assume' command before evaluation
         *may* help (example of legal syntax is 'assume(a>0)', see `assume?`
         for more details)
-        Is  a  positive or negative?
+        Is a positive or negative?
 
     So we just assume that `a>0` and the integral works::
 
@@ -555,11 +567,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: res = integral(f,x,0.0001414, 1.); res
         Traceback (most recent call last):
         ...
-        ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(50015104*y^2-50015103>0)', see `assume?` for more details)
-        Is  50015104*y^2-50015103  positive, negative, or zero?
+        ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before evaluation *may* help (example of legal syntax is 'assume(50015104*y^2-50015103>0)', see `assume?` for more details)
+        Is 50015104*y^2-50015103 positive, negative or zero?
         sage: assume(y>1)
         sage: res = integral(f,x,0.0001414, 1.); res
-        -2*y*arctan(0.0001414/y) + 2*y*arctan(1/y) + log(y^2 + 1.0) - 0.0001414*log(y^2 + 1.999396e-08) - 1.9997172
+        -2*y*arctan(0.0001414/y) + 2*y*arctan(1/y) + log(y^2 + 1.0) - 0.0001414*log(y^2 + 1.9993959999999997e-08) - 1.9997172
         sage: nres = numerical_integral(f.subs(y=2), 0.0001414, 1.); nres
         (1.4638323264144..., 1.6251803529759...e-14)
         sage: res.subs(y=2).n()
@@ -668,6 +680,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: F = integrate(f, t, 1, Infinity)
         sage: F(x=1, a=7).numerical_approx() # abs tol 1e-10
         4.32025625668262
+        sage: forget()
 
     Verify that MinusInfinity works with sympy (:trac:`12345`)::
 
@@ -677,8 +690,14 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
     Check that :trac:`11737` is fixed::
 
         sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))
-        0.285736646322858
+        0.285736646322853
 
+    Check that :trac:`14209` is fixed::
+
+        sage: integral(e^(-abs(x))/cosh(x),x,-infinity,infinity)
+        2*log(2)
+        sage: integral(e^(-abs(x))/cosh(x),x,-infinity,infinity)
+        2*log(2)
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:
@@ -687,8 +706,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
             raise ValueError("Unknown algorithm: %s" % algorithm)
         return integrator(expression, v, a, b)
     if a is None:
-        return indefinite_integral(expression, v)
+        return indefinite_integral(expression, v, hold=hold)
     else:
-        return definite_integral(expression, v, a, b)
+        return definite_integral(expression, v, a, b, hold=hold)
 
 integral = integrate

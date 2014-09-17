@@ -79,7 +79,7 @@ from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_s
 from sage.rings.polynomial.polydict import PolyDict, ETuple
 from sage.rings.polynomial.term_order import TermOrder
 
-from sage.interfaces.all import is_SingularElement
+from sage.interfaces.singular import is_SingularElement
 from sage.interfaces.all import macaulay2 as macaulay2_default
 from sage.interfaces.macaulay2 import is_Macaulay2Element
 
@@ -113,7 +113,7 @@ class MPolynomialRing_macaulay2_repr:
         elif is_IntegerRing(self.base_ring()):
             return "ZZ"
         else:
-            raise TypeError, "no conversion of to a Macaulay2 ring defined"
+            raise TypeError("no conversion of to a Macaulay2 ring defined")
 
     def _macaulay2_set_ring(self, macaulay2):
         macaulay2.ring(self._macaulay2_base_str(), str(self.gens()), \
@@ -448,14 +448,14 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             if x.denominator() == 1:
                 return x.numerator()
             else:
-                raise TypeError, "unable to coerce since the denominator is not 1"
+                raise TypeError("unable to coerce since the denominator is not 1")
 
         elif is_SingularElement(x) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return x.sage_poly(self)
             except TypeError:
-                raise TypeError, "unable to coerce singular object"
+                raise TypeError("unable to coerce singular object")
 
         elif hasattr(x, '_polynomial_'):
             return x._polynomial_(self)
@@ -465,7 +465,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
                 from sage.misc.sage_eval import sage_eval
                 return self(sage_eval(x, self.gens_dict_recursive()))
             except NameError as e:
-                raise TypeError, "unable to convert string"
+                raise TypeError("unable to convert string")
 
         elif is_Macaulay2Element(x):
             try:
@@ -478,7 +478,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
                 # This took a while to figure out!
                 return self(eval(s, {}, self.gens_dict()))
             except (AttributeError, TypeError, NameError, SyntaxError):
-                raise TypeError, "Unable to coerce macaulay2 object"
+                raise TypeError("Unable to coerce macaulay2 object")
             return MPolynomial_polydict(self, x)
 
         if isinstance(x, dict):
@@ -859,7 +859,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             return tempvector
 
         if not t.is_monomial():
-          raise TypeError, "Only monomials are supported"
+          raise TypeError("Only monomials are supported")
 
         R = self
         one = self.base_ring()(1)

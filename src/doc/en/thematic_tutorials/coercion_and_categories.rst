@@ -105,24 +105,27 @@ it makes sense to build on top of the base class
 This base class provides a lot more methods than a general parent::
 
     sage: [p for p in dir(Field) if p not in dir(Parent)]
-    ['__div__', '__fraction_field', '__ideal_monoid', '__iter__', '__pow__',
-    '__rdiv__', '__rpow__', '__rxor__', '__xor__', '_an_element',
-    '_an_element_c', '_an_element_impl', '_coerce_', '_coerce_c',
-    '_coerce_impl', '_coerce_self', '_coerce_try', '_default_category', '_gens',
-    '_gens_dict', '_has_coerce_map_from', '_ideal_class_', '_latex_names',
-    '_list', '_one_element', '_pseudo_fraction_field',
-    '_random_nonzero_element', '_richcmp', '_unit_ideal', '_zero_element',
-    '_zero_ideal', 'algebraic_closure', 'base_extend', 'cardinality',
-    'class_group', 'coerce_map_from_c', 'coerce_map_from_impl', 'content',
-    'divides', 'extension', 'fraction_field', 'frobenius_endomorphism', 'gcd',
-    'gen', 'gens', 'get_action_c', 'get_action_impl', 'has_coerce_map_from_c',
-    'has_coerce_map_from_impl', 'ideal', 'ideal_monoid', 'integral_closure',
-    'is_commutative', 'is_field', 'is_finite', 'is_integral_domain',
-    'is_integrally_closed', 'is_noetherian', 'is_prime_field', 'is_ring',
-    'is_subring', 'krull_dimension', 'list', 'ngens', 'one', 'one_element',
-    'order', 'prime_subfield', 'principal_ideal', 'quo', 'quotient',
-    'quotient_ring', 'random_element', 'unit_ideal', 'zero', 'zero_element',
-    'zero_ideal', 'zeta', 'zeta_order']
+    ['__div__', '__fraction_field', '__ideal_monoid', '__iter__',
+     '__pow__', '__rdiv__', '__rpow__', '__rxor__', '__xor__',
+     '_an_element', '_an_element_c', '_an_element_impl', '_coerce_',
+     '_coerce_c', '_coerce_impl', '_coerce_self', '_coerce_try',
+     '_default_category', '_gens', '_gens_dict',
+     '_has_coerce_map_from', '_ideal_class_', '_latex_names', '_list',
+     '_one_element', '_pseudo_fraction_field',
+     '_random_nonzero_element', '_richcmp', '_unit_ideal',
+     '_zero_element', '_zero_ideal', 'algebraic_closure',
+     'base_extend', 'cardinality', 'class_group', 'coerce_map_from_c',
+     'coerce_map_from_impl', 'content', 'divides', 'extension',
+     'fraction_field', 'frobenius_endomorphism', 'gcd', 'gen', 'gens',
+     'get_action_c', 'get_action_impl', 'has_coerce_map_from_c',
+     'has_coerce_map_from_impl', 'ideal', 'ideal_monoid',
+     'integral_closure', 'is_commutative', 'is_field', 'is_finite',
+     'is_integral_domain', 'is_integrally_closed', 'is_noetherian',
+     'is_prime_field', 'is_ring', 'is_subring',
+     'krull_dimension', 'list', 'ngens', 'one', 'one_element',
+     'order', 'prime_subfield', 'principal_ideal', 'quo', 'quotient',
+     'quotient_ring', 'random_element', 'unit_ideal', 'zero',
+     'zero_element', 'zero_ideal', 'zeta', 'zeta_order']
 
 The following is a very basic implementation of fraction fields, that needs to
 be complemented later.
@@ -396,16 +399,23 @@ Sage's category framework can differentiate the two cases::
 
 .. end of output
 
-Surprisingly, ``MS2`` has *more* methods than ``MS1``, even though their classes
-coincide::
+And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    56
+    57
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    80
-    sage: MS1.__class__ is MS2.__class__
-    True
+    82
+
+This is because the class of ``MS2`` also inherits from the parent
+class for algebras::
+
+    sage: MS1.__class__.__bases__
+    (<class 'sage.matrix.matrix_space.MatrixSpace'>,
+     <class 'sage.categories.vector_spaces.VectorSpaces.parent_class'>)
+    sage: MS2.__class__.__bases__
+    (<class 'sage.matrix.matrix_space.MatrixSpace'>,
+     <class 'sage.categories.algebras.Algebras.parent_class'>)
 
 .. end of output
 
@@ -523,7 +533,7 @@ monoids\---see
 :meth:`~sage.categories.commutative_additive_monoids.CommutativeAdditiveMonoids.ParentMethods.sum`::
 
     sage: P.sum.__module__
-    'sage.categories.commutative_additive_monoids'
+    'sage.categories.additive_monoids'
 
 .. end of output
 
@@ -1476,9 +1486,12 @@ Here are the tests that form the test suite of quotient fields::
      '_test_elements_eq_symmetric',
      '_test_elements_eq_transitive',
      '_test_elements_neq',
+     '_test_euclidean_degree',
      '_test_one', '_test_prod',
+     '_test_quo_rem',
      '_test_some_elements',
-     '_test_zero']
+     '_test_zero',
+     '_test_zero_divisors']
 
 .. end of output
 
@@ -1524,12 +1537,15 @@ Let us see what tests are actually performed::
     running ._test_elements_eq_transitive() . . . pass
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
+    running ._test_euclidean_degree() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
     running ._test_prod() . . . pass
+    running ._test_quo_rem() . . . pass
     running ._test_some_elements() . . . pass
     running ._test_zero() . . . pass
+    running ._test_zero_divisors() . . . pass
 
 .. end of output
 
@@ -1689,12 +1705,15 @@ interesting.
     running ._test_elements_eq_transitive() . . . pass
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
+    running ._test_euclidean_degree() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
     running ._test_prod() . . . pass
+    running ._test_quo_rem() . . . pass
     running ._test_some_elements() . . . pass
     running ._test_zero() . . . pass
+    running ._test_zero_divisors() . . . pass
 
 .. end of output
 

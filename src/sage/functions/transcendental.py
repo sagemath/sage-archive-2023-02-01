@@ -255,6 +255,14 @@ class Function_zetaderiv(GinacFunction):
         GinacFunction.__init__(self, "zetaderiv", nargs=2)
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
+        r"""
+        TESTS::
+
+            sage: zetaderiv(0, 3, hold=True).n() == zeta(3).n()
+            True
+            sage: zetaderiv(2, 3 + I).n()
+            0.0213814086193841 - 0.174938812330834*I
+        """
         from mpmath import zeta
         return mpmath_utils.call(zeta, x, 1, n, parent=parent)
 

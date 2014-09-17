@@ -322,13 +322,13 @@ class BoundarySpace(hecke.HeckeModule_generic):
         """
         weight = int(weight)
         if weight <= 1:
-            raise ArithmeticError, "weight must be at least 2"
+            raise ArithmeticError("weight must be at least 2")
         if not arithgroup.is_CongruenceSubgroup(group):
-            raise TypeError, "group must be a congruence subgroup"
+            raise TypeError("group must be a congruence subgroup")
         sign = int(sign)
         if not isinstance(base_ring, rings.Ring) and rings.is_CommutativeRing(base_ring):
-            raise TypeError, "base_ring must be a commutative ring"
-        if character == None and arithgroup.is_Gamma0(group):
+            raise TypeError("base_ring must be a commutative ring")
+        if character is None and arithgroup.is_Gamma0(group):
             character = dirichlet.TrivialCharacter(group.level(), base_ring)
         (self.__group, self.__weight, self.__character,
           self.__sign, self.__base_ring) = (group, weight,
@@ -448,7 +448,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
             [1/3]
         """
         if i >= len(self._known_gens) or i < 0:
-            raise ValueError, "only %s generators known for %s"%(len(self._known_gens), self)
+            raise ValueError("only %s generators known for %s"%(len(self._known_gens), self))
         return BoundarySpaceElement(self, {i:1})
 
     def __len__(self):
@@ -569,10 +569,10 @@ class BoundarySpace(hecke.HeckeModule_generic):
         elif element.is_ModularSymbolsElement(x):
             M = x.parent()
             if not isinstance(M, ambient.ModularSymbolsAmbient):
-                raise TypeError, "x (=%s) must be an element of a space of modular symbols of type ModularSymbolsAmbient"%x
+                raise TypeError("x (=%s) must be an element of a space of modular symbols of type ModularSymbolsAmbient"%x)
             if M.level() != self.level():
-                raise TypeError, "x (=%s) must have level %s but has level %s"%(
-                    x, self.level(), M.level())
+                raise TypeError("x (=%s) must have level %s but has level %s"%(
+                    x, self.level(), M.level()))
             S = x.manin_symbol_rep()
             if len(S) == 0:
                 return self(0)
@@ -582,7 +582,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
             y = dict([(i,x[i]) for i in xrange(len(x))])
             return BoundarySpaceElement(self, y)
 
-        raise TypeError, "Coercion of %s (of type %s) into %s not (yet) defined."%(x, type(x), self)
+        raise TypeError("Coercion of %s (of type %s) into %s not (yet) defined."%(x, type(x), self))
 
     def _repr_(self):
         """
@@ -651,9 +651,9 @@ class BoundarySpace_wtk_g0(BoundarySpace):
         sign = int(sign)
         weight = int(weight)
         if not sign in [-1,0,1]:
-            raise ArithmeticError, "sign must be an int in [-1,0,1]"
+            raise ArithmeticError("sign must be an int in [-1,0,1]")
         if level <= 0:
-            raise ArithmeticError, "level must be positive"
+            raise ArithmeticError("level must be positive")
         BoundarySpace.__init__(self,
                                  weight = weight,
                                  group  = arithgroup.Gamma0(level),
@@ -794,9 +794,9 @@ class BoundarySpace_wtk_g1(BoundarySpace):
         level = int(level)
         sign = int(sign)
         if not sign in [-1,0,1]:
-            raise ArithmeticError, "sign must be an int in [-1,0,1]"
+            raise ArithmeticError("sign must be an int in [-1,0,1]")
         if level <= 0:
-            raise ArithmeticError, "level must be positive"
+            raise ArithmeticError("level must be positive")
 
         BoundarySpace.__init__(self,
                 weight = weight,
@@ -996,7 +996,7 @@ class BoundarySpace_wtk_gamma_h(BoundarySpace):
         """
         sign = int(sign)
         if not sign in [-1,0,1]:
-            raise ArithmeticError, "sign must be an int in [-1,0,1]"
+            raise ArithmeticError("sign must be an int in [-1,0,1]")
 
         BoundarySpace.__init__(self,
                 weight = weight,
@@ -1217,9 +1217,9 @@ class BoundarySpace_wtk_eps(BoundarySpace):
         sign = int(sign)
         self.__eps = eps
         if not sign in [-1,0,1]:
-            raise ArithmeticError, "sign must be an int in [-1,0,1]"
+            raise ArithmeticError("sign must be an int in [-1,0,1]")
         if level <= 0:
-            raise ArithmeticError, "level must be positive"
+            raise ArithmeticError("level must be positive")
         BoundarySpace.__init__(self,
                 weight = weight,
                 group = arithgroup.Gamma1(level),

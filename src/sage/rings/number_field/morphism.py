@@ -46,7 +46,7 @@ class NumberFieldHomset(RingHomset_generic):
             try:
                 return self._coerce_impl(im_gens)
             except TypeError:
-                raise TypeError, "images do not define a valid homomorphism"
+                raise TypeError("images do not define a valid homomorphism")
 
     def _coerce_impl(self, x):
         r"""
@@ -66,7 +66,7 @@ class NumberFieldHomset(RingHomset_generic):
         if x.parent() is self:
             return x
         if x.parent() == self:
-            return NumberFieldHomomorphism_im_gens(self, x.im_gens())
+            return NumberFieldHomomorphism_im_gens(self, x.im_gens(), check=False)
         raise TypeError
 
     def _an_element_(self):
@@ -92,7 +92,7 @@ class NumberFieldHomset(RingHomset_generic):
         if len(L) != 0:
             return L[0]
         else:
-            raise ValueError, "Set is empty"
+            raise ValueError("Set is empty")
 
     def _repr_(self):
         r"""
@@ -252,7 +252,7 @@ class NumberFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
         K = self.domain()
         L = self.codomain()
         if K.degree() != L.degree():
-            raise TypeError, "Can only invert isomorphisms"
+            raise TypeError("Can only invert isomorphisms")
         V, V_into_K, _ = K.vector_space()
         _, _, L_into_W = L.vector_space()
         linear_inverse = ~V.hom(map(L_into_W*self*V_into_K, V.basis()))
@@ -315,7 +315,7 @@ class NumberFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
         try:
             xvec = M.solve_right(yvec)      # solve the linear system, throws an exception if there is no solution
         except ValueError:
-            raise ValueError, "Element '%s' is not in the image of this homomorphism."%y
+            raise ValueError("Element '%s' is not in the image of this homomorphism."%y)
         return VtoK(xvec)               # pass from the vector space representation of K back to a point in K
 
 class RelativeNumberFieldHomset(NumberFieldHomset):
@@ -384,12 +384,12 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
             abs_hom = im_gen
             K = abs_hom.domain()
             if K != self.domain().absolute_field(K.variable_name()):
-                raise TypeError, "domain of morphism must be absolute field of domain."
+                raise TypeError("domain of morphism must be absolute field of domain.")
             from_K, to_K = K.structure()
             if abs_hom.domain() != K:
-                raise ValueError, "domain of absolute homomorphism must be absolute field of domain."
+                raise ValueError("domain of absolute homomorphism must be absolute field of domain.")
             if abs_hom.codomain() != self.codomain():
-                raise ValueError, "codomain of absolute homomorphism must be codomain of this homset."
+                raise ValueError("codomain of absolute homomorphism must be codomain of this homset.")
             return RelativeNumberFieldHomomorphism_from_abs(self, abs_hom)
         if isinstance(im_gen, RelativeNumberFieldHomomorphism_from_abs):
             return self._coerce_impl(im_gen)
@@ -470,7 +470,7 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
             pass
         v = self.domain().base_field().embeddings(self.codomain())
         if len(v) == 0:
-            raise ValueError, "no way to map base field to codomain."
+            raise ValueError("no way to map base field to codomain.")
         self.__default_base_hom = v[0]
         return v[0]
 
@@ -663,7 +663,7 @@ class CyclotomicFieldHomset(NumberFieldHomset):
             try:
                 return self._coerce_impl(im_gens)
             except TypeError:
-                raise TypeError, "images do not define a valid homomorphism"
+                raise TypeError("images do not define a valid homomorphism")
 
     def _coerce_impl(self, x):
         r"""

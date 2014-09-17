@@ -43,8 +43,8 @@ cdef extern from "eclsig.h":
     cdef Sigaction ecl_sigint_handler
     cdef Sigaction ecl_sigbus_handler
     cdef Sigaction ecl_sigsegv_handler
-    cdef mpz_t* ecl_mpz_from_bignum(cl_object obj)
-    cdef cl_object ecl_bignum_from_mpz(mpz_t* num)
+    cdef mpz_t ecl_mpz_from_bignum(cl_object obj)
+    cdef cl_object ecl_bignum_from_mpz(mpz_t num)
 
 cdef cl_object string_to_object(char * s):
     return ecl_read_from_cstring(s)
@@ -457,7 +457,7 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
         if pyobj >= MOST_NEGATIVE_FIXNUM and pyobj <= MOST_POSITIVE_FIXNUM:
             return ecl_make_integer(pyobj)
         else:
-            return ecl_bignum_from_mpz( (<Integer>pyobj).get_value() )
+            return ecl_bignum_from_mpz( (<Integer>pyobj).value )
     elif isinstance(pyobj,Rational):
         return ecl_make_ratio(
                 python_to_ecl( (<Rational>pyobj).numerator()  ),
@@ -568,15 +568,15 @@ cdef class EclObject:
     Floats in Python are IEEE double, which LISP has as well. However,
     the printing of floating point types in LISP depends on settings::
 
-        sage: a = EclObject(float(10**40))
+        sage: a = EclObject(float(10^40))
         sage: ecl_eval("(setf *read-default-float-format* 'single-float)")
         <ECL: SINGLE-FLOAT>
         sage: a
-        <ECL: 9.999999999999999d39>
+        <ECL: 1.d40>
         sage: ecl_eval("(setf *read-default-float-format* 'double-float)")
         <ECL: DOUBLE-FLOAT>
         sage: a
-        <ECL: 9.999999999999999e39>
+        <ECL: 1.e40>
 
     Tuples are translated to dotted lists::
 

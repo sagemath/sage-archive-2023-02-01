@@ -16,7 +16,6 @@ import sage.structure.sage_object
 import sage.misc.latex
 import sage.misc.pager
 
-import sage.misc.sagedoc as sagedoc
 import sage.misc.sageinspect as sageinspect
 
 from sage.misc.preparser import preparse
@@ -279,7 +278,8 @@ def source_code(s, globs, system='sage'):
         filename = sageinspect.sage_getfile(obj)
         lines, lineno = sageinspect.sage_getsourcelines(obj, is_binary=False)
         src = indent.join(lines)
-        src = indent + sagedoc.format_src(src)
+        from sage.misc.sagedoc import format_src
+        src = indent + format_src(src)
         if not lineno is None:
             output = "**File:** %s"%filename
             output += newline

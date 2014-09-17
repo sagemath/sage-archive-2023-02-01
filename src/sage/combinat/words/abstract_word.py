@@ -149,7 +149,7 @@ class Word_class(SageObject):
             ...
             NotImplementedError: you need to define an iterator in __iter__
         """
-        raise NotImplementedError, "you need to define an iterator in __iter__"
+        raise NotImplementedError("you need to define an iterator in __iter__")
 
     def length(self):
         r"""
@@ -249,7 +249,7 @@ class Word_class(SageObject):
         if L is None or L is Infinity:
             msg = "Python len method can not return a non integer value (=%s): "%L
             msg += "use length method instead."
-            raise TypeError, msg
+            raise TypeError(msg)
         return int(L)
 
     def __cmp__(self, other):
@@ -1154,7 +1154,7 @@ class Word_class(SageObject):
         elif algorithm == 'recursive':
             it = self._iterated_right_palindromic_closure_recursive_iterator(f=f)
         else:
-            raise ValueError, "algorithm (=%s) must be either 'definition' or 'recursive'"
+            raise ValueError("algorithm (=%s) must be either 'definition' or 'recursive'")
         return self._parent(it, length=length)
 
     def prefixes_iterator(self, max_length=None):
@@ -1291,7 +1291,7 @@ class Word_class(SageObject):
             sum = Zn(start)
 
         else:
-            raise TypeError, 'mod(=%s) must be None or an integer'%mod
+            raise TypeError('mod(=%s) must be None or an integer'%mod)
 
         yield sum
         for letter in self:
@@ -1425,7 +1425,7 @@ class Word_class(SageObject):
                 yield Zn(j.next() - i.next())
 
         else:
-            raise TypeError, 'mod(=%s) must be None or an integer'%mod
+            raise TypeError('mod(=%s) must be None or an integer'%mod)
 
     def finite_differences(self, mod=None):
         r"""
@@ -1571,7 +1571,7 @@ class Word_class(SageObject):
         elif mod in ZZ and mod >= 2:
             alphabet = range(mod)
         else:
-            raise ValueError, "base (=%s) and mod (=%s) must be integers greater or equal to 2"%(base, mod)
+            raise ValueError("base (=%s) and mod (=%s) must be integers greater or equal to 2"%(base, mod))
 
         # The iterator
         f = partial(words._ThueMorseWord_nth_digit, alphabet=alphabet, base=base)
@@ -1613,9 +1613,9 @@ class Word_class(SageObject):
             24
         """
         if fact.is_empty():
-            raise NotImplementedError, "The factor must be non empty"
+            raise NotImplementedError("The factor must be non empty")
         if not fact.is_finite():
-            raise ValueError, "The factor must be finite"
+            raise ValueError("The factor must be finite")
         p = fact._pos_in(self, 0)
         while p is not None:
             yield p

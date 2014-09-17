@@ -41,7 +41,7 @@ Different operations with cusps over a number field:
     sage: alpha.ideal()
     Fractional ideal (7, a + 3)
     sage: alpha.ABmatrix()
-    [a + 10, 3*a - 1, 7, 2*a]
+    [a + 10, -3*a + 1, 7, -2*a]
     sage: alpha.apply([0, 1, -1,0])
     Cusp [7: -a - 10] of Number Field in a with defining polynomial x^2 + 5
 
@@ -521,7 +521,7 @@ class NFCusp(Element):
                     self.__a = R(a.__a)
                     self.__b = R(a.__b)
                 else:
-                    raise ValueError, "Cannot coerce cusps from one field to another"
+                    raise ValueError("Cannot coerce cusps from one field to another")
             elif a in R:
                 self.__a = R(a)
                 self.__b = R(1)
@@ -536,8 +536,8 @@ class NFCusp(Element):
                 self.__b = R(1)
             elif isinstance(a, (tuple, list)):
                 if len(a) != 2:
-                    raise TypeError, "Unable to convert %s to a cusp \
-                                      of the number field"%a
+                    raise TypeError("Unable to convert %s to a cusp \
+                                      of the number field"%a)
                 if a[1].is_zero():
                     self.__a = R(1)
                     self.__b = R(0)
@@ -558,28 +558,28 @@ class NFCusp(Element):
                         self.__b = R(r.denominator())
                         self.__a = R(r * self.__b)
                     except (ValueError, TypeError):
-                        raise TypeError, "Unable to convert %s to a cusp \
-                                          of the number field"%a
+                        raise TypeError("Unable to convert %s to a cusp \
+                                          of the number field"%a)
             else:
                 try:
                     r = number_field(a)
                     self.__b = R(r.denominator())
                     self.__a = R(r * self.__b)
                 except (ValueError, TypeError):
-                    raise TypeError, "Unable to convert %s to a cusp \
-                                      of the number field"%a
+                    raise TypeError("Unable to convert %s to a cusp \
+                                      of the number field"%a)
         else:#'b' is given
             if is_InfinityElement(b):
                 if is_InfinityElement(a) or (isinstance(a, NFCusp) and a.is_infinity()):
-                    raise TypeError, "Unable to convert (%s, %s) \
-                                      to a cusp of the number field"%(a, b)
+                    raise TypeError("Unable to convert (%s, %s) \
+                                      to a cusp of the number field"%(a, b))
                 self.__a = R(0)
                 self.__b = R(1)
                 return
             elif not b:
                 if not a:
-                     raise TypeError, "Unable to convert (%s, %s) \
-                                       to a cusp of the number field"%(a, b)
+                     raise TypeError("Unable to convert (%s, %s) \
+                                       to a cusp of the number field"%(a, b))
                 self.__a = R(1)
                 self.__b = R(0)
                 return
@@ -607,15 +607,15 @@ class NFCusp(Element):
                     r = R(a) / b
                 elif isinstance(a, (tuple, list)):
                     if len(a) != 2:
-                        raise TypeError, "Unable to convert (%s, %s) \
-                                          to a cusp of the number field"%(a, b)
+                        raise TypeError("Unable to convert (%s, %s) \
+                                          to a cusp of the number field"%(a, b))
                     r = R(a[0]) / (R(a[1]) * b)
                 else:
                     try:
                         r = number_field(a) / b
                     except (ValueError, TypeError):
-                        raise TypeError, "Unable to convert (%s, %s) \
-                                          to a cusp of the number field"%(a, b)
+                        raise TypeError("Unable to convert (%s, %s) \
+                                          to a cusp of the number field"%(a, b))
                 self.__b = R(r.denominator())
                 self.__a = R(r * self.__b)
         if not lreps is None:
@@ -732,8 +732,8 @@ class NFCusp(Element):
             -1/3*a + 1/3
         """
         if self.__b.is_zero():
-            raise TypeError, "%s is not an element of %s"%(self, \
-                                                          self.number_field())
+            raise TypeError("%s is not an element of %s"%(self, \
+                                                          self.number_field()))
         k = self.number_field()
         return k(self.__a / self.__b)
 
@@ -755,13 +755,13 @@ class NFCusp(Element):
         if self.__b.is_one():
             return self.__a
         if self.__b.is_zero():
-            raise TypeError, "%s is not an element of %s"%(self, \
-                                         self.number_field.ring_of_integers())
+            raise TypeError("%s is not an element of %s"%(self, \
+                                         self.number_field.ring_of_integers()))
         R = self.number_field().ring_of_integers()
         try:
             return R(self.__a/self.__b)
         except (ValueError, TypeError):
-            raise TypeError, "%s is not an integral element"%self
+            raise TypeError("%s is not an integral element"%self)
 
     def _latex_(self):
         r"""
@@ -895,7 +895,7 @@ class NFCusp(Element):
         Given R a Dedekind domain and A, B ideals of R in inverse classes, an
         AB-matrix is a matrix realizing the isomorphism between R+R and A+B.
         An AB-matrix associated to a cusp [a1: a2] is an AB-matrix with A the
-        ideal associated to the cusp (A=<a1, a2>) and  first column given by
+        ideal associated to the cusp (A=<a1, a2>) and first column given by
         the coefficients of the cusp.
 
         EXAMPLES:
@@ -1295,7 +1295,7 @@ def units_mod_ideal(I):
         [1]
         sage: I = k.ideal(3)
         sage: units_mod_ideal(I)
-        [1, -a, -1, a]
+        [1, a, -1, -a]
 
     ::
 

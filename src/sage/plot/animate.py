@@ -29,7 +29,7 @@ The sine function::
 
 Animate using ffmpeg instead of ImageMagick::
 
-    sage: f = sage.misc.temporary_file.tmp_filename(ext='.gif')
+    sage: f = tmp_filename(ext='.gif')
     sage: a.save(filename=f,use_ffmpeg=True) # optional -- ffmpeg
 
 An animated :class:`sage.plot.graphics.GraphicsArray` of rotating ellipses::
@@ -97,7 +97,7 @@ REFERENCES:
 import os
 
 from sage.structure.sage_object import SageObject
-from sage.misc.temporary_file import tmp_filename, tmp_dir
+from sage.misc.temporary_file import tmp_dir, graphics_filename
 import plot
 import sage.misc.misc
 import sage.misc.viewer
@@ -461,7 +461,8 @@ class Animation(SageObject):
 
             sage: g = a.graphics_array(ncols=2); print g
             Graphics Array of size 2 x 2
-            sage: g.show('sage.png') # optional
+            sage: f = tmp_filename(ext='.png')
+            sage: g.show(f) # optional
 
         Frames can be specified as a generator too; it is internally converted to a list::
 
@@ -557,10 +558,10 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
                     msg = """
 Error: ffmpeg does not appear to be installed.  Download it from
 www.ffmpeg.org, or use 'convert' to produce gifs instead."""
-                raise OSError, msg
+                raise OSError(msg)
         else:
             if not savefile:
-                savefile = tmp_filename(ext='.gif')
+                savefile = graphics_filename(ext='gif')
             if not savefile.endswith('.gif'):
                 savefile += '.gif'
             savefile = os.path.abspath(savefile)
@@ -580,7 +581,7 @@ Error: Cannot generate GIF animation.  Verify that convert
 the animate command can be saved in PNG image format.
 
 See www.imagemagick.org and www.ffmpeg.org for more information."""
-                raise OSError, msg
+                raise OSError(msg)
 
     def show(self, delay=20, iterations=0):
         r"""
@@ -631,16 +632,9 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
-        if sage.doctest.DOCTEST_MODE:
-            filename = tmp_filename(ext='.gif')
-            self.gif(savefile=filename, delay=delay, iterations=iterations)
-            return
-
-        if plot.EMBEDDED_MODE:
-            self.gif(delay = delay, iterations = iterations)
-        else:
-            filename = tmp_filename(ext='.gif')
-            self.gif(delay=delay, savefile=filename, iterations=iterations)
+        filename = graphics_filename(ext='gif')
+        self.gif(savefile=filename, delay=delay, iterations=iterations)
+        if not (sage.doctest.DOCTEST_MODE or plot.EMBEDDED_MODE):
             os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                 sage.misc.viewer.browser(), filename))
 
@@ -741,7 +735,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
             msg = """Error: ffmpeg does not appear to be installed. Saving an animation to
 a movie file in any format other than GIF requires this software, so
 please install it and try again."""
-            raise OSError, msg
+            raise OSError(msg)
         else:
             if savefile is None:
                 if output_format is None:
@@ -749,7 +743,7 @@ please install it and try again."""
                 else:
                     if output_format[0] != '.':
                         output_format = '.'+output_format
-                savefile = tmp_filename(ext=output_format)
+                savefile = graphics_filename(ext=output_format[1:])
             else:
                 if output_format is None:
                     suffix = os.path.splitext(savefile)[1]

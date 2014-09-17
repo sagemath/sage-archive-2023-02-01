@@ -57,6 +57,11 @@ Number Theory
 * :ref:`numtheory_rsa`
 * :ref:`sage.rings.padics.tutorial`
 
+Coding Theory
+-------------
+
+* :ref:`coding_theory`
+
 .. Monoids, Groups, representation Theory
 .. --------------------------------------
 
@@ -64,6 +69,7 @@ Combinatorics
 =============
 
 * :ref:`sage.combinat.tutorial`
+* :ref:`algebraic_combinatorics`
 
 Algebraic Combinatorics
 -----------------------

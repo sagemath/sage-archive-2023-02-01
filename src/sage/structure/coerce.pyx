@@ -271,7 +271,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.record_exceptions()
             sage: cm._test_exception_stack()
             sage: cm.exception_stack()
-            ['Traceback (most recent call last):\n  File "coerce.pyx", line ...TypeError: just a test']
+            ['Traceback (most recent call last):\n  File "sage/structure/coerce.pyx", line ...TypeError: just a test']
             sage: cm.record_exceptions(False)
             sage: cm._test_exception_stack()
             sage: cm.exception_stack()
@@ -299,7 +299,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             []
             sage: cm._test_exception_stack()
             sage: cm.exception_stack()
-            ['Traceback (most recent call last):\n  File "coerce.pyx", line ...TypeError: just a test']
+            ['Traceback (most recent call last):\n  File "sage/structure/coerce.pyx", line ...TypeError: just a test']
 
         The function _test_exception_stack is executing the following code::
 
@@ -329,7 +329,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             []
             sage: cm._test_exception_stack()
             sage: cm.exception_stack()
-            ['Traceback (most recent call last):\n  File "coerce.pyx", line ...TypeError: just a test']
+            ['Traceback (most recent call last):\n  File "sage/structure/coerce.pyx", line ...TypeError: just a test']
         """
         try:
             raise TypeError, "just a test"
@@ -1031,7 +1031,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
               From: Rational Field
               To:   Univariate Polynomial Ring in x over Rational Field
 
-            sage: cm.coercion_maps(QQ, GF(7)) == None
+            sage: cm.coercion_maps(QQ, GF(7)) is None
             True
 
         Note that to break symmetry, if there is a coercion map in both

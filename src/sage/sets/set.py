@@ -131,7 +131,7 @@ def Set(X=frozenset()):
         return X
 
     if isinstance(X, Element):
-        raise TypeError, "Element has no defined underlying set"
+        raise TypeError("Element has no defined underlying set")
     elif isinstance(X, (list, tuple, set, frozenset)):
         return Set_object_enumerated(frozenset(X))
     try:
@@ -145,32 +145,6 @@ def Set(X=frozenset()):
         # sage: set(an iterator which does not terminate)
         return Set_object_enumerated(list(X))
     return Set_object(X)
-
-def EnumeratedSet(X):
-    """
-    Return the enumerated set associated to ``X``.
-
-    The input object ``X`` must be finite.
-
-    EXAMPLES::
-
-        sage: EnumeratedSet([1,1,2,3])
-        doctest:1: DeprecationWarning: EnumeratedSet is deprecated; use Set instead.
-        See http://trac.sagemath.org/8930 for details.
-        {1, 2, 3}
-        sage: EnumeratedSet(ZZ)
-        Traceback (most recent call last):
-        ...
-        ValueError: X (=Integer Ring) must be finite
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(8930, 'EnumeratedSet is deprecated; use Set instead.')
-    try:
-        if not X.is_finite():
-            raise ValueError, "X (=%s) must be finite"%X
-    except AttributeError:
-        pass
-    return Set_object_enumerated(X)
 
 def is_Set(x):
     """
@@ -413,7 +387,7 @@ class Set_object(Set_generic):
             if self is X:
                 return self
             return Set_object_union(self, X)
-        raise TypeError, "X (=%s) must be a Set"%X
+        raise TypeError("X (=%s) must be a Set"%X)
 
     def __add__(self, X):
         """
@@ -473,7 +447,7 @@ class Set_object(Set_generic):
             if self is X:
                 return self
             return Set_object_intersection(self, X)
-        raise TypeError, "X (=%s) must be a Set"%X
+        raise TypeError("X (=%s) must be a Set"%X)
 
 
     def difference(self, X):
@@ -503,7 +477,7 @@ class Set_object(Set_generic):
             if self is X:
                 return Set([])
             return Set_object_difference(self, X)
-        raise TypeError, "X (=%s) must be a Set"%X
+        raise TypeError("X (=%s) must be a Set"%X)
 
     def symmetric_difference(self, X):
         r"""
@@ -520,7 +494,7 @@ class Set_object(Set_generic):
             if self is X:
                 return Set([])
             return Set_object_symmetric_difference(self, X)
-        raise TypeError, "X (=%s) must be a Set"%X
+        raise TypeError("X (=%s) must be a Set"%X)
 
 
     def __sub__(self, X):
@@ -593,7 +567,7 @@ class Set_object(Set_generic):
         try:
             return len(self.__object)
         except TypeError:
-            raise NotImplementedError, "computation of cardinality of %s not yet implemented"%self.__object
+            raise NotImplementedError("computation of cardinality of %s not yet implemented"%self.__object)
 
     def is_empty(self):
         """

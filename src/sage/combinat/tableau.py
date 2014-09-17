@@ -423,10 +423,10 @@ class Tableau(CombinatorialObject, Element):
             [   1  2  3,   2   ,   3   ,   3 ]
             sage: Tableaux.global_options(ascii_art="compact")
             sage: ascii_art(list(StandardTableaux(3)))
-            [                        |3| ]
-            [          |2|    |3|    |2| ]
-            [ |1|2|3|, |1|3|, |1|2|, |1| ]
-            sage: Tableaux.global_options(ascii_art="table")
+            [                        |1| ]
+            [          |1|3|  |1|2|  |2| ]
+            [ |1|2|3|, |2|  , |3|  , |3| ]
+            sage: Tableaux.global_options(convention="french", ascii_art="table")
             sage: ascii_art(list(StandardTableaux(3)))
             [                                      +---+ ]
             [                                      | 3 | ]
@@ -435,7 +435,6 @@ class Tableau(CombinatorialObject, Element):
             [ +---+---+---+  +---+---+  +---+---+  +---+ ]
             [ | 1 | 2 | 3 |  | 1 | 3 |  | 1 | 2 |  | 1 | ]
             [ +---+---+---+, +---+---+, +---+---+, +---+ ]
-            sage: Tableaux.global_options(convention="french")
             sage: Tableaux.global_options(ascii_art="repr")
             sage: ascii_art(list(StandardTableaux(3)))
             [                              3 ]
@@ -451,9 +450,19 @@ class Tableau(CombinatorialObject, Element):
 
     def _ascii_art_table(self):
         """
-        TESTS::
+        TESTS:
 
-            sage: t = Tableau([[1,2,3],[4,5]]); print t._ascii_art_table()
+        We check that :trac:`16487` is fixed::
+
+            sage: t = Tableau([[1,2,3],[4,5]])
+            sage: print t._ascii_art_table()
+            +---+---+---+
+            | 1 | 2 | 3 |
+            +---+---+---+
+            | 4 | 5 |
+            +---+---+
+            sage: Tableaux.global_options(convention="french")
+            sage: print t._ascii_art_table()
             +---+---+
             | 4 | 5 |
             +---+---+---+
@@ -462,37 +471,109 @@ class Tableau(CombinatorialObject, Element):
             sage: t = Tableau([]); print t._ascii_art_table()
             ++
             ++
+            sage: Tableaux.global_options.reset()
+
+            sage: t = Tableau([[1,2,3,10,15],[12,15,17]])
+            sage: print t._ascii_art_table()
+            +----+----+----+----+----+
+            |  1 |  2 |  3 | 10 | 15 |
+            +----+----+----+----+----+
+            | 12 | 15 | 17 |
+            +----+----+----+
+
+            sage: t = Tableau([[1,2,15,7],[12,5,6],[8,10],[9]])
+            sage: Tableaux.global_options(ascii_art='table')
+            sage: ascii_art(t)
+            +----+----+----+---+
+            |  1 |  2 | 15 | 7 |
+            +----+----+----+---+
+            | 12 |  5 |  6 |
+            +----+----+----+
+            |  8 | 10 |
+            +----+----+
+            |  9 |
+            +----+
+            sage: Tableaux.global_options(convention='french')
+            sage: ascii_art(t)
+            +----+
+            |  9 |
+            +----+----+
+            |  8 | 10 |
+            +----+----+----+
+            | 12 |  5 |  6 |
+            +----+----+----+---+
+            |  1 |  2 | 15 | 7 |
+            +----+----+----+---+
+            sage: Tableaux.global_options.reset()
         """
-        if len(self) == 0: return "++\n++"
-        matr = ""
-        for row in self:
-            l1 = ""; l2 =  ""
-            for e in row:
-                l1 += "+---"
-                l2 += "| " + str(e) + " "
+        if len(self) == 0:
+            return "++\n++"
+
+        # Get the widths of the columns
+        str_tab = map(lambda row: map(str, row), self)
+        col_widths = [1]*len(str_tab[0])
+        for row in str_tab:
+            for i,e in enumerate(row):
+                col_widths[i] = max(col_widths[i], len(e))
+
+        matr = []  # just the list of lines
+        l1 = ""
+        for w in col_widths:
+            l1 += "+--" + '-'*w
+        matr.append(l1 + "+")
+        for row in str_tab:
+            l1 = ""; l2 = ""
+            for i,e in enumerate(row):
+                l1 += "+--" + '-'*col_widths[i]
+                l2 += "| {:^{width}} ".format(e, width=col_widths[i])
             l1 += "+"; l2 += "|"
-            matr = l1 + "\n" + l2 + "\n" + matr
-        matr += "+---"** Integer(len(self[0])) + "+"
-        return matr
+            matr.append(l2)
+            matr.append(l1)
+
+        if self.parent().global_options('convention') == "English":
+            return "\n".join(matr)
+        else:
+            return "\n".join(reversed(matr))
 
     def _ascii_art_compact(self):
         """
-        TESTS::
+        TESTS:
 
-            sage: t = Tableau([[1,2,3],[4,5]]); print t._ascii_art_compact()
+        We check that :trac:`16487` is fixed::
+
+            sage: t = Tableau([[1,2,3],[4,5]])
+            sage: print t._ascii_art_compact()
+            |1|2|3|
+            |4|5|
+            sage: Tableaux.global_options(convention="french")
+            sage: print t._ascii_art_compact()
             |4|5|
             |1|2|3|
+            sage: Tableaux.global_options.reset()
+
+            sage: t = Tableau([[1,2,3,10,15],[12,15,17]])
+            sage: print t._ascii_art_compact()
+            |1 |2 |3 |10|15|
+            |12|15|17|
         """
         if len(self) == 0:
             return "."
-        matr = ''
-        for row in self:
-            l1 = ""
-            for e in row:
-                l1 += "|" + str(e)
-            l1 += "|"
-            matr = l1 + "\n" + matr
-        return matr
+
+        if self.parent().global_options('convention') == "English":
+            T = self
+        else:
+            T = reversed(self)
+
+        # Get the widths of the columns
+        str_tab = map(lambda row: map(str, row), T)
+        col_widths = [1]*len(self[0])
+        for row in str_tab:
+            for i,e in enumerate(row):
+                col_widths[i] = max(col_widths[i], len(e))
+
+        return "\n".join("|"
+                       + "|".join("{:^{width}}".format(e,width=col_widths[i]) for i,e in enumerate(row))
+                       + "|" for row in str_tab)
 
     def _latex_(self):
         r"""
@@ -611,7 +692,7 @@ class Tableau(CombinatorialObject, Element):
         try:
             return self[i][j]
         except IndexError:
-            raise IndexError, "The cell (%d,%d) is not contained in %s"%(i,j,self)
+            raise IndexError("The cell (%d,%d) is not contained in %s"%(i,j,self))
 
     def level(self):
         """
@@ -775,23 +856,6 @@ class Tableau(CombinatorialObject, Element):
             word: 325146
         """
         return self.to_word_by_row()
-
-
-    def to_permutation(self):
-        """
-        Deprecated in :trac:`14724`. Use :meth:`reading_word_permutation()`
-        instead.
-
-        EXAMPLES::
-
-            sage: Tableau([[1,2],[3,4]]).to_permutation()
-            doctest:...: DeprecationWarning: to_permutation() is deprecated. Use instead reading_word_permutation()
-            See http://trac.sagemath.org/14724 for details.
-            [3, 4, 1, 2]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14724, 'to_permutation() is deprecated. Use instead reading_word_permutation()')
-        return self.reading_word_permutation()
 
     def attacking_pairs(self):
         """
@@ -1042,7 +1106,7 @@ class Tableau(CombinatorialObject, Element):
         the reading word::
 
             sage: T = SemistandardTableaux(shape=[6,3,3,1], max_entry=5)
-            sage: all(t.to_word().standard_permutation() == t.standardization().reading_word_permutation() for t in T)
+            sage: all(t.to_word().standard_permutation() == t.standardization().reading_word_permutation() for t in T) # long time
             True
         """
         if check and self not in SemistandardTableaux():
@@ -1966,7 +2030,7 @@ class Tableau(CombinatorialObject, Element):
             [[1, 1, 2, 2, 3], [2, 2, 3, 5], [3, 4, 5], [4, 6, 6], [5]]
         """
         if not isinstance(right, Tableau):
-            raise TypeError, "right must be a Tableau"
+            raise TypeError("right must be a Tableau")
 
         row = len(right)
         product = copy.deepcopy(left)
@@ -2542,7 +2606,7 @@ class Tableau(CombinatorialObject, Element):
                 tab[r].append(m)
 
             else:
-                raise IndexError, '%s is not an addable cell of the tableau' % ((r,c),)
+                raise IndexError('%s is not an addable cell of the tableau' % ((r,c),))
 
         # attempt to return a tableau of the same type as self
         if tab in self.parent():
@@ -3067,7 +3131,7 @@ class Tableau(CombinatorialObject, Element):
             sage: sorted(t._segments().items())
             [((0, 2), 2), ((0, 3), 3), ((0, 5), 4), ((1, 3), 1), ((1, 5), 2), ((2, 4), 1)]
 
-            sage: B = CrystalOfTableaux("A4", shape=[4,3,2,1])
+            sage: B = crystals.Tableaux("A4", shape=[4,3,2,1])
             sage: t = B[31].to_tableau()
             sage: sorted(t._segments().items())
             [((0, 5), 3), ((1, 4), 2), ((2, 4), 1)]
@@ -3101,7 +3165,7 @@ class Tableau(CombinatorialObject, Element):
             sage: t.seg()
             6
 
-            sage: B = CrystalOfTableaux("A4",shape=[4,3,2,1])
+            sage: B = crystals.Tableaux("A4",shape=[4,3,2,1])
             sage: t = B[31].to_tableau()
             sage: t.seg()
             3
@@ -3129,7 +3193,7 @@ class Tableau(CombinatorialObject, Element):
             sage: t.flush()
             3
 
-            sage: B = CrystalOfTableaux("A4",shape=[4,3,2,1])
+            sage: B = crystals.Tableaux("A4",shape=[4,3,2,1])
             sage: t = B[32].to_tableau()
             sage: t.flush()
             4
@@ -3864,7 +3928,7 @@ class Tableaux(UniqueRepresentation, Parent):
         else:
             n = None
 
-        if n == None:
+        if n is None:
             return Tableaux_all()
         else:
             if not isinstance(n,(int, Integer)) or n < 0:
@@ -4524,7 +4588,7 @@ class SemistandardTableaux_all(SemistandardTableaux, DisjointUnionEnumeratedSets
             sage: TestSuite(T).run()
 
             sage: T=sage.combinat.tableau.SemistandardTableaux_all(max_entry=3)
-            sage: TestSuite(T).run()
+            sage: TestSuite(T).run() # long time
         """
         if max_entry is not PlusInfinity():
             self.max_entry = max_entry
@@ -5705,7 +5769,7 @@ class StandardTableaux_shape(StandardTableaux):
 
         yield self.element_class(self, tableau)
 
-        # iterate until we reach the last tableau which is 
+        # iterate until we reach the last tableau which is
         # filled with the row indices.
         last_tableau=flatten([ [row]*l for (row,l) in enumerate(pi)])
 

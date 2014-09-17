@@ -142,7 +142,7 @@ class CHomP:
         from sage.combinat.free_module import CombinatorialFreeModule
 
         if not have_chomp(program):
-            raise OSError, "Program %s not found" % program
+            raise OSError("Program %s not found" % program)
 
         verbose = kwds.get('verbose', False)
         generators = kwds.get('generators', False)
@@ -179,7 +179,7 @@ class CHomP:
                 print "Chain complex over %s" % base_ring
 
         if base_ring == QQ:
-            raise ValueError, "CHomP doesn't compute over the rationals, only over Z or F_p."
+            raise ValueError("CHomP doesn't compute over the rationals, only over Z or F_p.")
         if base_ring.is_prime_field():
             p = base_ring.characteristic()
             extra_opts.append('-p%s' % p)
@@ -193,7 +193,7 @@ class CHomP:
         try:
             data = complex._chomp_repr_()
         except AttributeError:
-            raise AttributeError, "Complex can not be converted to use with CHomP."
+            raise AttributeError("Complex can not be converted to use with CHomP.")
 
         datafile = tmp_filename()
         f = open(datafile, 'w')
@@ -228,7 +228,7 @@ class CHomP:
             try:
                 sub = subcomplex._chomp_repr_()
             except AttributeError:
-                raise AttributeError, "Subcomplex can not be converted to use with CHomP."
+                raise AttributeError("Subcomplex can not be converted to use with CHomP.")
             subfile = tmp_filename()
             f = open(subfile, 'w')
             f.write(sub)
@@ -361,7 +361,7 @@ class CHomP:
                 if g:
                     if not mod_p:
                         # sort generators to match up with corresponding invariant
-                        g = [_[1] for _ in sorted(zip(invts, g), cmp=lambda x,y: cmp(x[0], y[0]))]
+                        g = [_[1] for _ in sorted(zip(invts, g), key=lambda x: x[0])]
                     d[dim] = (hom, g)
                 else:
                     d[dim] = hom
@@ -485,7 +485,7 @@ def homsimpl(complex=None, subcomplex=None, **kwds):
         and (subcomplex is None or isinstance(subcomplex, SimplicialComplex))):
         return CHomP()('homsimpl', complex, subcomplex=subcomplex, **kwds)
     else:
-        raise TypeError, "Complex and/or subcomplex are not simplicial complexes."
+        raise TypeError("Complex and/or subcomplex are not simplicial complexes.")
 
 def homcubes(complex=None, subcomplex=None, **kwds):
     r"""
@@ -534,7 +534,7 @@ def homcubes(complex=None, subcomplex=None, **kwds):
         and (subcomplex is None or isinstance(subcomplex, CubicalComplex))):
         return CHomP()('homcubes', complex, subcomplex=subcomplex, **kwds)
     else:
-        raise TypeError, "Complex and/or subcomplex are not cubical complexes."
+        raise TypeError("Complex and/or subcomplex are not cubical complexes.")
 
 def homchain(complex=None, **kwds):
     r"""
@@ -588,7 +588,7 @@ def homchain(complex=None, **kwds):
     if isinstance(complex, ChainComplex_class):
         return CHomP()('homchain', complex, **kwds)
     else:
-        raise TypeError, "Complex is not a chain complex."
+        raise TypeError("Complex is not a chain complex.")
 
 def process_generators_cubical(gen_string, dim):
     r"""

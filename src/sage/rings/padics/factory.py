@@ -38,6 +38,7 @@ from padic_base_leaves import pAdicRingCappedRelative, \
 ######################################################
 
 from padic_extension_leaves import *
+from functools import reduce
 #This imports all of the classes used in the ext_table below.
 
 ext_table = {}
@@ -83,7 +84,7 @@ def get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, pr
         if not isinstance(halt, Integer):
             halt = Integer(halt)
         if not p.is_prime():
-            raise ValueError, "p must be prime"
+            raise ValueError("p must be prime")
     print_ram_name = ram_name
     if isinstance(print_mode, dict):
         if 'pos' in print_mode:
@@ -138,7 +139,7 @@ def get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, pr
         if not isinstance(print_ram_name, str):
             print_ram_name = str(print_ram_name)
         if names != print_ram_name:
-            raise ValueError, "If both names (%s) and print_ram_name (%s) are specified, they must agree"%(names, print_ram_name)
+            raise ValueError("If both names (%s) and print_ram_name (%s) are specified, they must agree"%(names, print_ram_name))
         name = names
     else:
         if names is None:
@@ -153,7 +154,7 @@ def get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, pr
         key = (p, prec, halt, print_mode, name, print_pos, print_sep, tuple(print_alphabet), print_max_terms)
     else:
         print type
-        raise ValueError, "type must be %s or lazy"%(", ".join(valid_non_lazy_types))
+        raise ValueError("type must be %s or lazy"%(", ".join(valid_non_lazy_types)))
     return key
 
 #######################################################################################################
@@ -487,7 +488,7 @@ class Qp_class(UniqueFactory):
             p, prec, type, print_mode, name, print_pos, print_sep, print_alphabet, print_max_terms = key
         if isinstance(type, Integer):
             # lazy
-            raise NotImplementedError, "lazy p-adics need more work.  Sorry."
+            raise NotImplementedError("lazy p-adics need more work.  Sorry.")
         if version[0] < 4 or (len(version) > 1 and version[0] == 4 and version[1] < 5) or (len(version) > 2 and version[0] == 4 and version[1] == 5 and version[2] < 3):
             # keys changed in order to reduce irrelevant duplications: e.g. two Qps with print_mode 'series' that are identical except for different 'print_alphabet' now return the same object.
             key = get_key_base(p, prec, type, print_mode, 0, name, None, print_pos, print_sep, print_alphabet, print_max_terms, False, ['capped-rel', 'fixed-mod', 'capped-abs'])
@@ -505,7 +506,7 @@ class Qp_class(UniqueFactory):
             else:
                 return pAdicFieldCappedRelative(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'ram_name': name, 'max_ram_terms': print_max_terms}, name)
         else:
-            raise ValueError, "unexpected type"
+            raise ValueError("unexpected type")
 
 Qp = Qp_class("Qp")
 
@@ -994,7 +995,7 @@ def Qq(q, prec = DEFAULT_PREC, type = 'capped-rel', modulus = None, names=None,
             raise ValueError("must provide exactly one generator name")
         names = names[0]
     if names is None:
-        raise TypeError, "You must specify the name of the generator."
+        raise TypeError("You must specify the name of the generator.")
     if not isinstance(names, str):
        names = str(names)
 
@@ -1473,7 +1474,7 @@ class Zp_class(UniqueFactory):
             p, prec, type, print_mode, name, print_pos, print_sep, print_alphabet, print_max_terms = key
         if isinstance(type, Integer):
             # lazy
-            raise NotImplementedError, "lazy p-adics need more work.  Sorry."
+            raise NotImplementedError("lazy p-adics need more work.  Sorry.")
         if version[0] < 4 or (len(version) > 1 and version[0] == 4 and version[1] < 5) or (len(version) > 2 and version[0] == 4 and version[1] == 5 and version[2] < 3):
             # keys changed in order to reduce irrelevant duplications: e.g. two Zps with print_mode 'series' that are identical except for different 'print_alphabet' now return the same object.
             key = get_key_base(p, prec, type, print_mode, 0, name, None, print_pos, print_sep, print_alphabet, print_max_terms, False, ['capped-rel', 'fixed-mod', 'capped-abs'])
@@ -1491,7 +1492,7 @@ class Zp_class(UniqueFactory):
         elif type == 'capped-abs':
             return pAdicRingCappedAbsolute(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'ram_name': name, 'max_ram_terms': print_max_terms}, name)
         else:
-            raise ValueError, "unexpected type"
+            raise ValueError("unexpected type")
 
 Zp = Zp_class("Zp")
 
@@ -1983,10 +1984,14 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-abs', modulus = None, names=None,
             names = names[0]
         from sage.symbolic.expression import is_Expression
         if not (modulus is None or is_Polynomial(modulus) or is_Expression(modulus)):
-            raise TypeError, "modulus must be a polynomial"
+            raise TypeError("modulus must be a polynomial")
         if names is not None and not isinstance(names, str):
             names = str(names)
             #raise TypeError, "names must be a string"
+        q = Integer(q)
+        F = q.factor()
+        if len(F) != 1:
+            raise ValueError, "q must be a prime power"
     else:
         F = q
         q = F[0][0]**F[0][1]
@@ -1994,7 +1999,7 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-abs', modulus = None, names=None,
     if F[0][1] == 1:
         return base
     elif names is None:
-        raise TypeError, "You must specify the name of the generator."
+        raise TypeError("You must specify the name of the generator.")
     if res_name is None:
         res_name = names + '0'
     if modulus is None:
@@ -2197,16 +2202,16 @@ class pAdicExtension_class(UniqueFactory):
         if check:
             if is_Expression(premodulus):
                 if len(premodulus.variables()) != 1:
-                    raise ValueError, "symbolic expression must be in only one variable"
+                    raise ValueError("symbolic expression must be in only one variable")
                 modulus = premodulus.polynomial(base)
             elif is_Polynomial(premodulus):
                 if premodulus.parent().ngens() != 1:
-                    raise ValueError, "must use univariate polynomial"
+                    raise ValueError("must use univariate polynomial")
                 modulus = premodulus.change_ring(base)
             else:
-                raise ValueError, "modulus must be a polynomial"
+                raise ValueError("modulus must be a polynomial")
             if modulus.degree() <= 1:
-                raise NotImplementedError, "degree of modulus must be at least 2"
+                raise NotImplementedError("degree of modulus must be at least 2")
             # need to add more checking here.
             if not unram: #this is not quite the condition we want for not checking these things; deal with fixed-mod sanely
                 if not modulus.is_monic():
@@ -2219,12 +2224,12 @@ class pAdicExtension_class(UniqueFactory):
                         base = base.fraction_field()
                 #Now modulus is monic
                 if not krasner_check(modulus, prec):
-                    raise ValueError, "polynomial does not determine a unique extension.  Please specify more precision or use parameter check=False."
+                    raise ValueError("polynomial does not determine a unique extension.  Please specify more precision or use parameter check=False.")
             if names is None:
                 if var_name is not None:
                     names = var_name
                 else:
-                    raise ValueError, "must specify name of generator of extension"
+                    raise ValueError("must specify name of generator of extension")
             if isinstance(names, tuple):
                 names = names[0]
             if not isinstance(names, str):
@@ -2383,7 +2388,7 @@ def split(poly, prec):
         NotImplementedError: Extensions by general polynomials not yet supported. Please use an unramified or Eisenstein polynomial.
 
     """
-    raise NotImplementedError, "Extensions by general polynomials not yet supported.  Please use an unramified or Eisenstein polynomial."
+    raise NotImplementedError("Extensions by general polynomials not yet supported.  Please use an unramified or Eisenstein polynomial.")
 
 def truncate_to_prec(poly, absprec):
     """

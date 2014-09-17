@@ -344,7 +344,7 @@ class Cryptosystem(parent_old.Parent, Set_generic):
 
     def period(self):
         if self._period is None:
-            raise TypeError, "Argument has no associated period."
+            raise TypeError("Argument has no associated period.")
         return self._period
 
 class SymmetricKeyCryptosystem(Cryptosystem):

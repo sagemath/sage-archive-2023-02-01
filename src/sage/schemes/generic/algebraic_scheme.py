@@ -234,7 +234,7 @@ class AlgebraicScheme(scheme.Scheme):
             Category of schemes over Integer Ring
         """
         if not ambient_space.is_AmbientSpace(A):
-            raise TypeError, "A (=%s) must be an ambient space"
+            raise TypeError("A (=%s) must be an ambient space")
         self.__A = A
         self.__divisor_group = {}
         scheme.Scheme.__init__(self, A.base_scheme())
@@ -444,7 +444,7 @@ class AlgebraicScheme(scheme.Scheme):
         if '_embedding_morphism' in self.__dict__:
             hom = self._embedding_morphism
             if isinstance(hom, tuple):
-                raise(hom[0], hom[1])
+                raise hom[0]
             return hom
         ambient = self.ambient_space()
         return self.hom(ambient.coordinate_ring().gens(), ambient)
@@ -490,7 +490,7 @@ class AlgebraicScheme(scheme.Scheme):
         """
         if '_embedding_center' in self.__dict__:
             return self._embedding_center
-        raise AttributeError, 'This algebraic scheme does not have a designated point.'
+        raise AttributeError('This algebraic scheme does not have a designated point.')
 
     def ngens(self):
         """
@@ -637,11 +637,11 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
         self.__X = X
         self.__Y = Y
         if not isinstance(X, AlgebraicScheme_subscheme):
-            raise TypeError, "X must be a closed subscheme of an ambient space."
+            raise TypeError("X must be a closed subscheme of an ambient space.")
         if not isinstance(Y, AlgebraicScheme_subscheme):
-            raise TypeError, "Y must be a closed subscheme of an ambient space."
+            raise TypeError("Y must be a closed subscheme of an ambient space.")
         if X.ambient_space() != Y.ambient_space():
-            raise ValueError, "X and Y must be embedded in the same ambient space."
+            raise ValueError("X and Y must be embedded in the same ambient space.")
         # _latex_ and _repr_ assume all of the above conditions and should be
         # probably changed if they are relaxed!
         A = X.ambient_space()
@@ -813,11 +813,11 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
         coords = list(v)
         for f in self.__X.defining_polynomials():
             if f(coords) != 0:
-                raise TypeError, "Coordinates %s do not define a point on %s"%(v,self)
+                raise TypeError("Coordinates %s do not define a point on %s"%(v,self))
         for f in self.__Y.defining_polynomials():
             if f(coords) != 0:
                 return True
-        raise TypeError, "Coordinates %s do not define a point on %s"%(v,self)
+        raise TypeError("Coordinates %s do not define a point on %s"%(v,self))
 
     def rational_points(self, F=None, bound=0):
         """
@@ -849,9 +849,9 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
 
         if bound == 0:
             if is_RationalField(F):
-                raise TypeError, "A positive bound (= %s) must be specified."%bound
+                raise TypeError("A positive bound (= %s) must be specified."%bound)
             if not is_FiniteField(F):
-                raise TypeError, "Argument F (= %s) must be a finite field."%F
+                raise TypeError("Argument F (= %s) must be a finite field."%F)
         pts = []
         for P in self.ambient_space().rational_points(F):
             try:
@@ -964,11 +964,11 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         for f in self.defining_polynomials():
             if f(coords) != 0:   # it must be "!=0" instead of "if f(v)", e.g.,
                                  # because of p-adic base rings.
-                raise TypeError, "Coordinates %s do not define a point on %s"%(coords,self)
+                raise TypeError("Coordinates %s do not define a point on %s"%(coords,self))
         try:
             return self.ambient_space()._check_satisfies_equations(coords)
         except TypeError:
-            raise TypeError, "Coordinates %s do not define a point on %s"%(coords,self)
+            raise TypeError("Coordinates %s do not define a point on %s"%(coords,self))
 
     def base_extend(self, R):
         """
@@ -1357,10 +1357,10 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             True
         """
         if not isinstance(other, AlgebraicScheme_subscheme):
-            raise TypeError, "other (=%s) must be a closed algebraic subscheme of an ambient space"%other
+            raise TypeError("other (=%s) must be a closed algebraic subscheme of an ambient space"%other)
         A = self.ambient_space()
         if other.ambient_space() != A:
-            raise ValueError, "other (=%s) must be in the same ambient space as self"%other
+            raise ValueError("other (=%s) must be in the same ambient space as self"%other)
         return A.subscheme(self.defining_ideal().intersection(other.defining_ideal()))
 
     __add__ = union
@@ -1381,10 +1381,10 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
               y
         """
         if not isinstance(other, AlgebraicScheme_subscheme):
-            raise TypeError, "other (=%s) must be a closed algebraic subscheme of an ambient space"%other
+            raise TypeError("other (=%s) must be a closed algebraic subscheme of an ambient space"%other)
         A = self.ambient_space()
         if other.ambient_space() != A:
-            raise ValueError, "other (=%s) must be in the same ambient space as self"%other
+            raise ValueError("other (=%s) must be in the same ambient space as self"%other)
         return A.subscheme(self.defining_ideal() + other.defining_ideal())
 
     def complement(self, other=None):
@@ -1436,10 +1436,9 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             if other == A:
                 other = A.subscheme([])
             else:
-                raise TypeError, \
-                      "Argument other (=%s) must be a closed algebraic subscheme of an ambient space"%other
+                raise TypeError("Argument other (=%s) must be a closed algebraic subscheme of an ambient space"%other)
         if other.ambient_space() != A:
-            raise ValueError, "other (=%s) must be in the same ambient space as self"%other
+            raise ValueError("other (=%s) must be in the same ambient space as self"%other)
         return AlgebraicScheme_quasi(other, self)
 
     def rational_points(self, F=None, bound=0):
@@ -1483,20 +1482,20 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
            resolve singularities and find two points (1 : 1 : 0) and
            (-1 : 1 : 0) at infinity.
         """
-        if F == None:
+        if F is None:
             F = self.base_ring()
         X = self(F)
         if is_RationalField(F) or F == ZZ:
             if not bound > 0:
-                raise TypeError, "A positive bound (= %s) must be specified."%bound
+                raise TypeError("A positive bound (= %s) must be specified."%bound)
             try:
                 return X.points(bound)
             except TypeError:
-                raise TypeError, "Unable to enumerate points over %s."%F
+                raise TypeError("Unable to enumerate points over %s."%F)
         try:
             return X.points()
         except TypeError:
-            raise TypeError, "Unable to enumerate points over %s."%F
+            raise TypeError("Unable to enumerate points over %s."%F)
 
     def change_ring(self,R):
         r"""
@@ -1613,7 +1612,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
             self.__dimension = self.defining_ideal().dimension()
             return self.__dimension
 
-    def projective_embedding(self, i=None, X=None):
+    def projective_embedding(self, i=None, PP=None):
         """
         Returns a morphism from this affine scheme into an ambient
         projective space of the same dimension.
@@ -1625,9 +1624,8 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
            embedding is that which has a 1 in the i-th coordinate, numbered
            from 0.
 
-
-        -  ``X`` -- (default: None) projective scheme, i.e., codomain of
-           morphism; this is constructed if it is not given.
+        -  ``PP`` -- (default: None) ambient projective space, i.e., ambient space
+            of codomain of morphism; this is constructed if it is not given.
 
         EXAMPLES::
 
@@ -1641,6 +1639,22 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
               x0*x1 - x2*x3
               Defn: Defined on coordinates by sending (x, y, z) to
                     (x : y : z : 1)
+
+        ::
+
+            sage: A.<x, y, z> = AffineSpace(3, ZZ)
+            sage: P = ProjectiveSpace(3,ZZ,'u')
+            sage: S = A.subscheme([x^2-y*z])
+            sage: S.projective_embedding(1,P)
+            Scheme morphism:
+              From: Closed subscheme of Affine Space of dimension 3 over Integer
+            Ring defined by:
+              x^2 - y*z
+              To:   Closed subscheme of Projective Space of dimension 3 over Integer
+            Ring defined by:
+              u0^2 - u2*u3
+              Defn: Defined on coordinates by sending (x, y, z) to
+                    (x : 1 : y : z)
         """
         AA = self.ambient_space()
         n = AA.dimension_relative()
@@ -1652,21 +1666,27 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         else:
             i = int(i)
         if i < 0 or i > n:
-            raise ValueError, \
-                  "Argument i (=%s) must be between 0 and %s, inclusive"%(i, n)
+            raise ValueError("Argument i (=%s) must be between 0 and %s, inclusive"%(i, n))
         try:
-            return self.__projective_embedding[i]
+            phi = self.__projective_embedding[i]
+            #assume that if you've passed in a new ambient projective space
+            #you want to override the existing embedding
+            if PP is None or phi.codomain().ambient_space() == PP:
+                return(phi)
         except AttributeError:
             self.__projective_embedding = {}
         except KeyError:
             pass
-        if X is None:
-            PP = sage.schemes.projective.projective_space.ProjectiveSpace(n, AA.base_ring())
-            v = list(PP.gens())
-            z = v.pop(i)
-            v.append(z)
-            polys = self.defining_polynomials()
-            X = PP.subscheme([ f.homogenize()(v) for f in polys ])
+        if PP is None:
+            PP = AA.projective_embedding(i).codomain()
+        elif PP.dimension_relative() != n:
+            raise ValueError("Projective Space must be of dimension %s"%(n))
+        PR = PP.coordinate_ring()
+        v = list(PP.gens())
+        z = v.pop(i)
+        v.append(z)
+        polys = self.defining_polynomials()
+        X = PP.subscheme([ PR(f.homogenize())(v) for f in polys ])
         R = AA.coordinate_ring()
         v = list(R.gens())
         v.insert(i, R(1))
@@ -1841,7 +1861,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             self.__dimension = self.defining_ideal().dimension() - 1
             return self.__dimension
 
-    def affine_patch(self, i):
+    def affine_patch(self, i, AA = None):
         r"""
         Return the `i^{th}` affine patch of this projective scheme.
         This is the intersection with this `i^{th}` affine patch of
@@ -1850,6 +1870,9 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         INPUT:
 
         - ``i`` -- integer between 0 and dimension of self, inclusive.
+
+        - ``AA`` -- (default: None) ambient affine space, this is constructed
+            if it is not given.
 
         OUTPUT:
 
@@ -1876,25 +1899,50 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
                     (1 : x0 : x1)
             sage: U.projective_embedding() is U.embedding_morphism()
             True
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(QQ,3)
+            sage: X = A.subscheme([x-y*z])
+            sage: Y = X.projective_embedding(1).codomain()
+            sage: Y.affine_patch(1,A).ambient_space() == A
+            True
+
+        ::
+
+            sage: P.<u,v,w> = ProjectiveSpace(2,ZZ)
+            sage: S = P.subscheme([u^2-v*w])
+            sage: A.<x, y> = AffineSpace(2, ZZ)
+            sage: S.affine_patch(1, A)
+            Closed subscheme of Affine Space of dimension 2 over Integer Ring
+            defined by:
+              x^2 - y
         """
         i = int(i)   # implicit type checking
         PP = self.ambient_space()
-        n = PP.dimension()
+        n = PP.dimension_relative()
         if i < 0 or i > n:
-            raise ValueError, "Argument i (= %s) must be between 0 and %s."%(i, n)
+            raise ValueError("Argument i (= %s) must be between 0 and %s."%(i, n))
         try:
-            return self.__affine_patches[i]
+            A = self.__affine_patches[i]
+            #assume that if you've passed in a new ambient affine space
+            #you want to override the existing patch
+            if AA is None or A.ambient_space() == AA:
+                return self.__affine_patches[i]
         except AttributeError:
             self.__affine_patches = {}
         except KeyError:
             pass
-        AA = PP.affine_patch(i)
-        phi = AA.projective_embedding()
+        if AA is None:
+            AA = PP.affine_patch(i)
+        elif AA.dimension_relative() != n:
+            raise ValueError("Affine Space must be of the dimension %s"%(n))
+        phi = AA.projective_embedding(i, PP)
         polys = self.defining_polynomials()
         xi = phi.defining_polynomials()
         U = AA.subscheme([ f(xi) for f in polys ])
         U._default_embedding_index = i
-        phi = U.projective_embedding(i, self)
+        phi = U.projective_embedding(i, PP)
         self.__affine_patches[i] = U
         U._embedding_morphism = phi
         return U
@@ -2098,25 +2146,24 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
     TESTS::
 
-        sage: fan = FaceFan(lattice_polytope.octahedron(2))
-        sage: P1xP1 = ToricVariety(fan, "x s y t")
+        sage: P1xP1 = toric_varieties.P1xP1()
         sage: P1xP1.inject_variables()
-        Defining x, s, y, t
+        Defining s, t, x, y
         sage: import sage.schemes.generic.algebraic_scheme as SCM
         sage: X = SCM.AlgebraicScheme_subscheme_toric(
         ...         P1xP1, [x*s + y*t, x^3+y^3])
         sage: X
-        Closed subscheme of 2-d toric variety
+        Closed subscheme of 2-d CPR-Fano toric variety
         covered by 4 affine patches defined by:
-          x*s + y*t,
+          s*x + t*y,
           x^3 + y^3
 
     A better way to construct the same scheme as above::
 
         sage: P1xP1.subscheme([x*s + y*t, x^3+y^3])
-        Closed subscheme of 2-d toric variety
+        Closed subscheme of 2-d CPR-Fano toric variety
         covered by 4 affine patches defined by:
-          x*s + y*t,
+          s*x + t*y,
           x^3 + y^3
     """
 
@@ -2130,17 +2177,16 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
         TESTS::
 
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan, "x s y t")
+            sage: P1xP1 = toric_varieties.P1xP1()
             sage: P1xP1.inject_variables()
-            Defining x, s, y, t
+            Defining s, t, x, y
             sage: import sage.schemes.generic.algebraic_scheme as SCM
             sage: X = SCM.AlgebraicScheme_subscheme_toric(
             ...         P1xP1, [x*s + y*t, x^3+y^3])
             sage: X
-            Closed subscheme of 2-d toric variety
+            Closed subscheme of 2-d CPR-Fano toric variety
             covered by 4 affine patches defined by:
-              x*s + y*t,
+              s*x + t*y,
               x^3 + y^3
         """
         # Just to make sure that keyword arguments will be passed correctly
@@ -2162,29 +2208,28 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
         TESTS::
 
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan)
+            sage: P1xP1 = toric_varieties.P1xP1()
             sage: P1xP1.inject_variables()
-            Defining z0, z1, z2, z3
-            sage: P1 = P1xP1.subscheme(z0-z2)
+            Defining s, t, x, y
+            sage: P1 = P1xP1.subscheme(s - t)
             sage: H = P1.Hom(P1xP1)
-            sage: H([z0,z1,z0,z3])
+            sage: H([s, s, x, y])
             Scheme morphism:
-              From: Closed subscheme of 2-d toric variety
+              From: Closed subscheme of 2-d CPR-Fano toric variety
               covered by 4 affine patches defined by:
-              z0 - z2
-              To:   2-d toric variety covered by 4 affine patches
-              Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
-                    [z2 : z1 : z2 : z3]
+              s - t
+              To:   2-d CPR-Fano toric variety covered by 4 affine patches
+              Defn: Defined on coordinates by sending [s : t : x : y] to
+                    [t : t : x : y]
 
-            sage: P1._morphism(H, [z0,z1,z0,z3])
+            sage: P1._morphism(H, [s, s, x, y])
             Scheme morphism:
-              From: Closed subscheme of 2-d toric variety
+              From: Closed subscheme of 2-d CPR-Fano toric variety
               covered by 4 affine patches defined by:
-              z0 - z2
-              To:   2-d toric variety covered by 4 affine patches
-              Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
-                    [z2 : z1 : z2 : z3]
+              s - t
+              To:   2-d CPR-Fano toric variety covered by 4 affine patches
+              Defn: Defined on coordinates by sending [s : t : x : y] to
+                    [t : t : x : y]
         """
         from sage.schemes.toric.morphism import SchemeMorphism_polynomial_toric_variety
         return SchemeMorphism_polynomial_toric_variety(*args, **kwds)
@@ -2258,22 +2303,21 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
         EXAMPLES::
 
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan, "x s y t")
+            sage: P1xP1 = toric_varieties.P1xP1()
             sage: patch1 = P1xP1.affine_patch(1)
             sage: patch1.embedding_morphism()
             Scheme morphism:
               From: 2-d affine toric variety
-              To:   2-d toric variety covered by 4 affine patches
-              Defn: Defined on coordinates by sending [y : t] to
-                    [1 : 1 : y : t]
+              To:   2-d CPR-Fano toric variety covered by 4 affine patches
+              Defn: Defined on coordinates by sending [t : x] to
+                    [1 : t : x : 1]
             sage: P1xP1.inject_variables()
-            Defining x, s, y, t
+            Defining s, t, x, y
             sage: P1 = P1xP1.subscheme(x-y)
             sage: subpatch = P1.affine_patch(1)
             sage: subpatch
             Closed subscheme of 2-d affine toric variety defined by:
-              -y + 1
+              x - 1
         """
         i = int(i)   # implicit type checking
         try:
@@ -2350,7 +2394,8 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         the singularity of the ambient space and the second is the
         pull-back of `x^2+y^2-1` ::
 
-            sage: lp = LatticePolytope([(1,0,0),(1,1,0),(1,1,1),(1,0,1),(-2,-1,-1)])
+            sage: lp = LatticePolytope([(1,0,0),(1,1,0),(1,1,1),(1,0,1),(-2,-1,-1)],
+            ...                        lattice=ToricLattice(3))
             sage: X.<x,y,u,v,t> = CPRFanoToricVariety(Delta_polar=lp)
             sage: Y = X.subscheme(x*v+y*u+t)
             sage: cone = Cone([(1,0,0),(1,1,0),(1,1,1),(1,0,1)])
@@ -2397,7 +2442,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         polynomials = map(pullback_polynomial, polynomials)
         patch_cover = sage.schemes.affine.affine_space.AffineSpace(R)
         polynomials = list(I.gens()) + polynomials
-        polynomials = filter( lambda x:not x.is_zero(), polynomials)
+        polynomials = [x for x in polynomials if not x.is_zero()]
         patch = patch_cover.subscheme(polynomials)
 
         # TODO: If the cone is not smooth, then the coordinate_ring()
@@ -2557,16 +2602,15 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
         EXAMPLES::
 
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan)
+            sage: P1xP1 = toric_varieties.P1xP1()
             sage: P1xP1.inject_variables()
-            Defining z0, z1, z2, z3
-            sage: P1 = P1xP1.subscheme(z0-z2)
+            Defining s, t, x, y
+            sage: P1 = P1xP1.subscheme(s-t)
             sage: P1.dimension()
             1
-            sage: P1xP1.subscheme([z0-z2, (z0-z2)^2]).dimension()
+            sage: P1xP1.subscheme([s-t, (s-t)^2]).dimension()
             1
-            sage: P1xP1.subscheme([z0,z2]).dimension()
+            sage: P1xP1.subscheme([s, t]).dimension()
             -1
         """
         if '_dimension' in self.__dict__:
@@ -2622,7 +2666,8 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
         A smooth hypersurface in a compact singular toric variety::
 
-            sage: lp = LatticePolytope(matrix([(1,0,0),(1,1,0),(1,1,1),(1,0,1),(-2,-1,-1)]).transpose())
+            sage: lp = LatticePolytope([(1,0,0),(1,1,0),(1,1,1),(1,0,1),(-2,-1,-1)],
+            ...                        lattice=ToricLattice(3))
             sage: X.<x,y,u,v,t> = CPRFanoToricVariety(Delta_polar=lp)
             sage: Y = X.subscheme(x*v+y*u+t)
             sage: cone = Cone([(1,0,0),(1,1,0),(1,1,1),(1,0,1)])
@@ -2667,25 +2712,24 @@ class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
 
     TESTS::
 
-        sage: fan = FaceFan(lattice_polytope.octahedron(2))
-        sage: P1xP1 = ToricVariety(fan, "x s y t")
+        sage: P1xP1 = toric_varieties.P1xP1()
         sage: P1xP1.inject_variables()
-        Defining x, s, y, t
+        Defining s, t, x, y
         sage: import sage.schemes.generic.algebraic_scheme as SCM
         sage: X = SCM.AlgebraicScheme_subscheme_toric(
         ...         P1xP1, [x*s + y*t, x^3+y^3])
         sage: X
-        Closed subscheme of 2-d toric variety
+        Closed subscheme of 2-d CPR-Fano toric variety
         covered by 4 affine patches defined by:
-          x*s + y*t,
+          s*x + t*y,
           x^3 + y^3
 
     A better way to construct the same scheme as above::
 
         sage: P1xP1.subscheme([x*s + y*t, x^3+y^3])
-        Closed subscheme of 2-d toric variety
+        Closed subscheme of 2-d CPR-Fano toric variety
         covered by 4 affine patches defined by:
-          x*s + y*t,
+          s*x + t*y,
           x^3 + y^3
     """
 
@@ -2695,17 +2739,16 @@ class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
 
         TESTS::
 
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan, "x s y t")
+            sage: P1xP1 = toric_varieties.P1xP1()
             sage: P1xP1.inject_variables()
-            Defining x, s, y, t
+            Defining s, t, x, y
             sage: import sage.schemes.generic.algebraic_scheme as SCM
             sage: X = SCM.AlgebraicScheme_subscheme_toric(
             ...         P1xP1, [x*s + y*t, x^3+y^3])
             sage: X
-            Closed subscheme of 2-d toric variety
+            Closed subscheme of 2-d CPR-Fano toric variety
             covered by 4 affine patches defined by:
-              x*s + y*t,
+              s*x + t*y,
               x^3 + y^3
         """
         assert toric_variety.is_affine(), 'The toric variety must be affine!'

@@ -25,7 +25,7 @@ Sie können ``beispiel.sage`` einlesen und ausführen, indem Sie den
 
 ::
 
-    sage: load "beispiel.sage"
+    sage: load("beispiel.sage")
     Hello World
     8
 
@@ -36,7 +36,7 @@ indem Sie den ``attach``-Befehl verwenden:
 
 ::
 
-    sage: attach "beispiel.sage"
+    sage: attach("beispiel.sage")
     Hello World
     8
 
@@ -153,7 +153,7 @@ Dann funktioniert das Folgende:
 
 ::
 
-    sage: attach "test.spyx"
+    sage: attach("test.spyx")
     Compiling (...)/test.spyx...
     sage: test(10)
     11

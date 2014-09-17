@@ -267,7 +267,7 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
                 from sage.schemes.toric.morphism import SchemeMorphism_fan_toric_variety
                 return SchemeMorphism_fan_toric_variety(self, x, check=check)
 
-        raise TypeError, "x must be a fan morphism or a list/tuple of polynomials"
+        raise TypeError("x must be a fan morphism or a list/tuple of polynomials")
 
 
     def _an_element_(self):
@@ -455,7 +455,7 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: V = ToricVariety(FaceFan(o))
             sage: V.change_ring(GF(2)).point_set().cardinality()
             27

@@ -30,11 +30,12 @@ graphs. Here is what they can do
     :meth:`~DiGraph.outgoing_edge_iterator` | Return an iterator over all departing edges from vertices
     :meth:`~DiGraph.incoming_edges` | Returns a list of edges arriving at vertices.
     :meth:`~DiGraph.incoming_edge_iterator` | Return an iterator over all arriving edges from vertices
+    :meth:`~DiGraph.sources` | Returns the list of all sources (vertices without incoming edges) of this digraph.
+    :meth:`~DiGraph.sinks` | Returns the list of all sinks (vertices without outoing edges) of this digraph.
     :meth:`~DiGraph.to_undirected` | Returns an undirected version of the graph.
     :meth:`~DiGraph.to_directed` | Since the graph is already directed, simply returns a copy of itself.
     :meth:`~DiGraph.is_directed` | Since digraph is directed, returns True.
     :meth:`~DiGraph.dig6_string` | Returns the dig6 representation of the digraph as an ASCII string.
-
 
 **Paths and cycles:**
 
@@ -48,6 +49,14 @@ graphs. Here is what they can do
     :meth:`~DiGraph.all_cycles_iterator` | Returns an iterator over all the cycles of self starting
     :meth:`~DiGraph.all_simple_cycles` | Returns a list of all simple cycles of self.
 
+**Representation theory:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~DiGraph.path_semigroup` | Returns the (partial) semigroup formed by the paths of the digraph.
 
 **Connectivity:**
 
@@ -73,6 +82,7 @@ graphs. Here is what they can do
     :meth:`~DiGraph.is_directed_acyclic` | Returns whether the digraph is acyclic or not.
     :meth:`~DiGraph.is_transitive` | Returns whether the digraph is transitive or not.
     :meth:`~DiGraph.is_aperiodic` | Returns whether the digraph is aperiodic or not.
+    :meth:`~DiGraph.period` | Returns the period of the digraph.
     :meth:`~DiGraph.level_sets` | Returns the level set decomposition of the digraph.
     :meth:`~DiGraph.topological_sort_generator` | Returns a list of all topological sorts of the digraph if it is acyclic
     :meth:`~DiGraph.topological_sort` | Returns a topological sort of the digraph if it is acyclic
@@ -547,6 +557,13 @@ class DiGraph(GenericGraph):
             sage: copy(g) is g
             True
 
+        Check the error when multiple edges are sent but ``multiple_edges`` is
+        set to ``False`` (:trac:`16215`)::
+
+            sage: DiGraph([(0,1),(1,0),(0,1)], multiedges=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: Non-multidigraph got several edges (0,1)
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -833,7 +850,8 @@ class DiGraph(GenericGraph):
                 verts = verts.union([v for v in data[u] if v not in verts])
                 if len(uniq(data[u])) != len(data[u]):
                     if multiedges is False:
-                        raise ValueError("Non-multidigraph input dict has multiple edges (%s,%s)"%(u, choice([v for v in data[u] if data[u].count(v) > 1])))
+                        v = (v for v in data[u] if data[u].count(v) > 1).next()
+                        raise ValueError("Non-multidigraph got several edges (%s,%s)"%(u,v))
                     if multiedges is None: multiedges = True
             if multiedges is None: multiedges = False
             num_verts = len(verts)
@@ -926,7 +944,7 @@ class DiGraph(GenericGraph):
             for i in xrange(n):
                 for j in xrange(n):
                     if m[k] == '1':
-                        self.add_edge(i, j)
+                        self._backend.add_edge(i, j, None, True)
                     k += 1
         elif format == 'adjacency_matrix':
             e = []
@@ -950,26 +968,28 @@ class DiGraph(GenericGraph):
                 for v in xrange(num_verts):
                     uu,vv = verts[u], verts[v]
                     if f(uu,vv):
-                        self.add_edge(uu,vv)
+                        self._backend.add_edge(uu,vv,None,True)
         elif format == 'dict_of_dicts':
             if convert_empty_dict_labels_to_None:
                 for u in data:
                     for v in data[u]:
                         if multiedges:
-                            self.add_edges([(u,v,l) for l in data[u][v]])
+                            for l in data[u][v]:
+                                self._backend.add_edge(u,v,l,True)
                         else:
-                            self.add_edge((u,v,data[u][v] if data[u][v] != {} else None))
+                            self._backend.add_edge(u,v,data[u][v] if data[u][v] != {} else None,True)
             else:
                 for u in data:
                     for v in data[u]:
                         if multiedges:
-                            self.add_edges([(u,v,l) for l in data[u][v]])
+                            for l in data[u][v]:
+                                self._backend.add_edge(u,v,l,True)
                         else:
-                            self.add_edge((u,v,data[u][v]))
+                            self._backend.add_edge(u,v,data[u][v],True)
         elif format == 'dict_of_lists':
             for u in data:
                 for v in data[u]:
-                    self.add_edge(u,v)
+                    self._backend.add_edge(u,v,None,True)
         else:
             assert format == 'int'
         self._pos = pos
@@ -1149,7 +1169,7 @@ class DiGraph(GenericGraph):
             sage: G.edges(labels=False)
             [(0, 1), (0, 2)]
         """
-        if sparse != None:
+        if sparse is not None:
             deprecation(14806,"The 'sparse' keyword has been deprecated, and "
                         "is now replaced by 'data_structure' which has a different "
                         "meaning. Please consult the documentation.")
@@ -1542,6 +1562,44 @@ class DiGraph(GenericGraph):
         """
         return sorted(self.out_degree_iterator(), reverse=True)
 
+    def sources(self):
+        r"""
+        Returns a list of sources of the digraph.
+
+        OUTPUT:
+
+        - list, the vertices of the digraph that have no edges going into them
+
+        EXAMPLES::
+
+            sage: G = DiGraph({1:{3:['a']}, 2:{3:['b']}})
+            sage: G.sources()
+            [1, 2]
+            sage: T = DiGraph({1:{}})
+            sage: T.sources()
+            [1]
+        """
+        return [x for x in self if self.in_degree(x)==0]
+
+    def sinks(self):
+        """
+        Returns a list of sinks of the digraph.
+
+        OUTPUT:
+
+        - list, the vertices of the digraph that have no edges beginning at them
+
+        EXAMPLES::
+
+            sage: G = DiGraph({1:{3:['a']}, 2:{3:['b']}})
+            sage: G.sinks()
+            [3]
+            sage: T = DiGraph({1:{}})
+            sage: T.sinks()
+            [1]
+        """
+        return [x for x in self if self.out_degree(x)==0]
+
 
     def feedback_edge_set(self, constraint_generation= True, value_only=False, solver=None, verbose=0):
         r"""
@@ -1726,8 +1784,8 @@ class DiGraph(GenericGraph):
         else:
             p=MixedIntegerLinearProgram(maximization=False, solver=solver)
 
-            b=p.new_variable(binary = True)
-            d=p.new_variable(integer = True)
+            b=p.new_variable(binary=True)
+            d=p.new_variable(integer=True, nonnegative=True)
 
             n=self.order()
 
@@ -1948,11 +2006,11 @@ class DiGraph(GenericGraph):
                     pass
 
         if not self.has_edge(u,v,label):
-            raise ValueError, "Input edge must exist in the digraph."
+            raise ValueError("Input edge must exist in the digraph.")
 
         tempG = self if inplace else self.copy()
 
-        if label == None:
+        if label is None:
             if not tempG.allows_multiple_edges():
                 label = tempG.edge_label(u,v)
             else:
@@ -2832,6 +2890,24 @@ class DiGraph(GenericGraph):
         """
         return list(self.all_cycles_iterator(starting_vertices=starting_vertices, simple=True, rooted=rooted, max_length=max_length, trivial=trivial))
 
+    def path_semigroup(self):
+        """
+        The partial semigroup formed by the paths of this quiver.
+
+        EXAMPLES::
+
+            sage: Q = DiGraph({1:{2:['a','c']}, 2:{3:['b']}})
+            sage: F = Q.path_semigroup(); F
+            Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
+            sage: list(F)
+            [e_1, e_2, e_3, a, c, b, a*b, c*b]
+
+        """
+        from sage.quivers.path_semigroup import PathSemigroup
+        # If self is immutable, then the copy is really cheap:
+        # __copy__ just returns self.
+        return PathSemigroup(self.copy(immutable=True))
+
     ### Directed Acyclic Graphs (DAGs)
 
     def topological_sort(self, implementation = "default"):
@@ -3339,9 +3415,88 @@ class DiGraph(GenericGraph):
             sage: g.is_aperiodic()
             True
 
+        .. SEEALSO::
+
+            :meth:`period`
         """
         import networkx
         return networkx.is_aperiodic(self.networkx_graph(copy=False))
+
+    def period(self):
+        r"""
+        Return the period of the current ``DiGraph``.
+
+        The period of a directed graph is the largest integer that
+        divides the length of every cycle in the graph, cf.
+        :wikipedia:`Aperiodic_graph`.
+
+        EXAMPLES:
+
+        The following graph has period ``2``::
+
+            sage: g = DiGraph({0: [1], 1: [0]})
+            sage: g.period()
+            2
+
+        The following graph has a cycle of length 2 and a cycle of length 3,
+        so it has period ``1``::
+
+            sage: g = DiGraph({0: [1, 4], 1: [2], 2: [0], 4: [0]})
+            sage: g.period()
+            1
+
+        Here is an example of computing the period of a digraph which is
+        not strongly connected. By definition, it is the :func:`gcd` of
+        the periods of its strongly connected components::
+
+            sage: g = DiGraph({-1: [-2], -2: [-3], -3: [-1],
+            ....:     1: [2], 2: [1]})
+            sage: g.period()
+            1
+            sage: sorted([s.period() for s
+            ....:         in g.strongly_connected_components_subgraphs()])
+            [2, 3]
+
+        ALGORITHM:
+
+        See the networkX implementation of ``is_aperiodic``, that is based
+        on breadth first search.
+
+        .. SEEALSO::
+
+            :meth:`is_aperiodic`
+        """
+        from sage.rings.arith import gcd
+
+        g = 0
+
+        for component in self.strongly_connected_components():
+            levels = dict((s, None) for s in component)
+            vertices_in_scc = levels # considers level as a set
+            s = component[0]
+            levels[s] = 0
+            this_level = [s]
+            l = 1
+            while this_level:
+                next_level = []
+                for u in this_level:
+                    # we have levels[u] == l-1
+                    for v in self.neighbor_out_iterator(u):
+                        # ignore edges leaving the component
+                        if v not in vertices_in_scc:
+                            continue
+                        level_v = levels[v]
+                        if level_v is not None: # Non-Tree Edge
+                            g = gcd(g, l - level_v)
+                            if g == 1:
+                                return 1
+                        else: # Tree Edge
+                            next_level.append(v)
+                            levels[v] = l
+                this_level = next_level
+                l += 1
+
+        return g
 
 import types
 

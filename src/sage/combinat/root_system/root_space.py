@@ -187,7 +187,7 @@ class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule):
         try:
             return self.root_system.root_lattice().sum_of_terms( (i, ZZ(c)) for (i,c) in x)
         except TypeError:
-            raise ValueError, "%s does not have integral coefficients"%x
+            raise ValueError("%s does not have integral coefficients"%x)
 
     @cached_method
     def _to_classical_on_basis(self, i):
@@ -244,7 +244,7 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
         """
         # Find some better test
         if not (lambdacheck in self.parent().coroot_lattice() or lambdacheck in self.parent().coroot_space()):
-            raise TypeError, "%s is not in a coroot lattice/space"%(lambdacheck)
+            raise TypeError("%s is not in a coroot lattice/space"%(lambdacheck))
         zero = self.parent().base_ring().zero()
         cartan_matrix = self.parent().dynkin_diagram()
         return sum( (sum( (lambdacheck[i]*s for i,s in cartan_matrix.column(j)), zero) * c for j,c in self), zero)
@@ -332,7 +332,7 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
             alpha[1] + alpha[2] False
         """
 
-        return len(self.associated_reflection()) == -1 + (self.parent().positive_roots_nonparabolic_sum(())).scalar(self.associated_coroot())
+        return len(self.associated_reflection()) == -1 + (self.parent().nonparabolic_positive_root_sum(())).scalar(self.associated_coroot())
 
     def max_coroot_le(self):
         r"""
@@ -377,9 +377,9 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
             NotImplementedError: Only implemented for finite Cartan type
         """
         if not self.parent().cartan_type().is_finite():
-            raise NotImplementedError, "Only implemented for finite Cartan type"
+            raise NotImplementedError("Only implemented for finite Cartan type")
         if not self.is_positive_root():
-            raise ValueError, "%s is not in the positive cone of roots"%(self)
+            raise ValueError("%s is not in the positive cone of roots"%(self))
         coroots = self.parent().coroot_lattice().positive_roots_by_height(increasing=False)
         for beta in coroots:
             if beta.quantum_root():

@@ -1797,19 +1797,17 @@ def sage_getsourcelines(obj, is_binary=False):
         (['cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):\n',
           '\n',
           '    def __cinit__(self):\n',
-        ...
-          '          M.append(new_MP(self, p_Copy(tempvector, _ring)))\n',
-          '          return M\n'], ...)
+        ...)
         sage: sage_getsourcelines(I)
         (['class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
-        ...
-        '        return result_ring.ideal(result)\n'], ...)
+        ...)
         sage: x = var('x')
         sage: sage_getsourcelines(x)
         (['cdef class Expression(CommutativeRingElement):\n',
           '    cpdef object pyobject(self):\n',
-        ...
-          '        return self / x\n'], ...)
+        ...)
+        sage: sage_getsourcelines(x)[0][-1]    # last line
+        '        return self / x\n'
 
     We show some enhancements provided by :trac:`11768`. First, we
     use a dummy parent class that has defined an element class by a
@@ -1839,8 +1837,7 @@ def sage_getsourcelines(obj, is_binary=False):
         sage: C = Rings()
         sage: HC = C.hom_category()
         sage: sage_getsourcelines(HC)
-        (['    class HomCategory(HomCategory):\n', ...], ...)
-
+        (['    class HomCategory(HomCategory):\n', ...)
 
     Testing against a bug that has occured during work on #11768::
 
@@ -1852,8 +1849,7 @@ def sage_getsourcelines(obj, is_binary=False):
           '                        MPolynomialIdeal_magma_repr, \\\n',
           '                        Ideal_generic ):\n',
           '    def __init__(self, ring, gens, coerce=True):\n',
-          ...
-          '        return result_ring.ideal(result)\n'], ...)
+          ...)
 
     AUTHORS:
 

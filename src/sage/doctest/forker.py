@@ -100,8 +100,8 @@ def init_sage():
     sage.doctest.DOCTEST_MODE=True
     import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()
-    import sage.misc.displayhook
-    sys.displayhook = sage.misc.displayhook.DisplayHook()
+    import sage.repl.display.python_hook
+    sys.displayhook = sage.repl.display.python_hook.DoctestDisplayHook()
 
     # Switch on extra debugging
     from sage.structure.debug_options import debug

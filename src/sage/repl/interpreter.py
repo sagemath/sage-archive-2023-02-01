@@ -440,6 +440,11 @@ def get_test_shell():
     app = SageTerminalApp.instance(config=copy.deepcopy(DEFAULT_SAGE_CONFIG))
     if app.shell is None:
         app.initialize(argv=[])
+    # overwrite the default (console + graphics) formatter with the plain text one
+    import sage.repl.display.formatter as formatter
+    app.shell.display_formatter.formatters['text/plain'] = (
+        formatter.SagePlainTextFormatter(config=app.shell.config))
+    # No quit noise
     app.shell.verbose_quit = False
     return app.shell
 

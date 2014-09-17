@@ -667,46 +667,46 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x , y > = ProjectiveSpace (L.fraction_field() , 1 )
             sage: H = Hom (P , P )
             sage: f = H ([x^2 + (t ^ 2 + 1) * y^2 , y^2 ])
-            sage: dynatomic_polynomial (f , 2 )
+            sage: f.dynatomic_polynomial(2)
+            x^2 + x*y + (t^2 + 2)*y^2
        """
-        if ( isinstance ( period , ( list , tuple ) ) is False ) :
-            period = [0 , period ]
-        if period [ 0 ] != 0 :
-            m = period [ 0 ]
-            fm = self.nth_iterate_map( m )
-            fm1 = self.nth_iterate_map( m - 1 )
-            n = period [ 1 ]
-            PHI = 1 ;
-            x = self.domain( ).gen ( 0 )
-            y = self.domain( ).gen ( 1 )
-            F = self._polys
-            f = F
-            for d in range (1 , n + 1 ) :
-                if n % d == 0 :
-                    PHI = PHI * ( ( y * F [ 0 ] - x * F [ 1 ] ) ^ moebius ( n / d ) )
-                if d != n : # avoid extra iteration
-                    F = [f[0](F[0], F[1]), f[1](F[0], F[1])]
-            if m != 0 :
-                PHI = PHI(fm._polys)/ PHI(fm1._polys )
-        else :
-            PHI = 1 ;
+        if self.domain().ngens() > 2:
+            raise TypeError("Does not make sense in dimension >1")
+        if (isinstance(period, (list, tuple)) is False):
+            period = [0, period]
+        if period[0] != 0:
+            m = period[0]
+            fm = self.nth_iterate_map(m)
+            fm1 = self.nth_iterate_map(m-1)
+            n = period [1]
+            PHI = 1;
             x = self.domain().gen(0)
             y = self.domain().gen(1)
             F = self._polys
             f = F
-            for d in range (1 , period [ 1 ] + 1 ) :
-                if period [ 1 ] % d == 0 :
-                    PHI = PHI * ( ( y * F [ 0 ] - x * F [ 1 ] ) ^ moebius( period [ 1 ] / d )
-                    )
-                    PHI
-                    
-                if d != period [ 1 ] : # avoid extra iteration
+            for d in range(1, n+1):
+                if n % d == 0:
+                    PHI = PHI * ((y*F[0] - x*F[1]) ** moebius(n/d))
+                if d != n: # avoid extra iteration
                     F = [f[0](F[0], F[1]), f[1](F[0], F[1])]
-        try :
-            QR = PHI.numerator().quo_rem( PHI . denominator ( ) )
-            if QR [ 1 ] == 0 :
-                return ( QR [ 0 ] )
-        except TypeError : # something Singular can't handle
+            if m != 0:
+                PHI = PHI(fm._polys)/ PHI(fm1._polys )
+        else:
+            PHI = 1
+            x = self.domain().gen(0)
+            y = self.domain().gen(1)
+            F = self._polys
+            f = F
+            for d in range(1, period[1] + 1):
+                if period[1] % d == 0 :
+                    PHI = PHI * ((y*F[0] - x*F[1]) ** moebius(period[1]/d))
+                if d != period[1]: # avoid extra iteration
+                    F = [f[0](F[0], F[1]), f[1](F[0], F[1])]
+        try:
+            QR = PHI.numerator().quo_rem(PHI.denominator())
+            if QR[1] == 0:
+                return(QR[0])
+        except TypeError: # something Singular can't handle
             pass
         from sage.rings.padics.generic_nodes import is_pAdicField, is_pAdicRing
         BR = self.domain().base_ring().base_ring()

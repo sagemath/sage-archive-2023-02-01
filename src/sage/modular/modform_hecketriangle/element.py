@@ -293,7 +293,7 @@ class FormsElement(FormsRingElement):
         from sage.lfunctions.dokchitser import Dokchitser
 
         if (not (self.is_modular() and self.is_holomorphic()) or self.weight() == 0):
-            raise NotImplementedError
+            raise NotImplementedError("L-series are only implemented for non-trivial holomorphic modular forms.")
 
         if (num_prec is None):
             num_prec = self.parent().default_num_prec()
@@ -334,7 +334,7 @@ class FormsElement(FormsRingElement):
                         residues = residues,
                             prec = num_prec)
 
-        # TODO: L.set_coeff_growth(...)
+        # TODO for later: Figure out the correct coefficient growth and do L.set_coeff_growth(...)
 
         # num_coeffs = L.num_coeffs()
         num_coeffs = L.num_coeffs(1.2)

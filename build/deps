@@ -93,6 +93,7 @@ all-sage: \
      $(INST)/$(PYNAC) \
      $(INST)/$(PYPARSING) \
      $(INST)/$(PYTHON) \
+     $(INST)/$(PYZMQ) \
      $(INST)/$(RATPOINTS) \
      $(INST)/$(R) \
      $(INST)/$(RPY) \
@@ -114,6 +115,7 @@ all-sage: \
      $(INST)/$(TACHYON) \
      $(INST)/$(TORNADO) \
      $(INST)/$(NCURSES) \
+     $(INST)/$(ZEROMQ) \
      $(INST)/$(ZLIB) \
      $(INST)/$(ZNPOLY) \
      $(INST)/sage \
@@ -356,6 +358,9 @@ $(INST)/$(NETWORKX): $(INST)/$(PYTHON)
 $(INST)/$(MPMATH): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(MPMATH) 2>&1" "tee -a $(SAGE_LOGS)/$(MPMATH).log"
 
+$(INST)/$(ZEROMQ):
+	+$(PIPE) "$(SAGE_SPKG) $(ZEROMQ) 2>&1" "tee -a $(SAGE_LOGS)/$(ZEROMQ).log"
+
 $(INST)/$(ZLIB):
 	+$(PIPE) "$(SAGE_SPKG) $(ZLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(ZLIB).log"
 
@@ -376,6 +381,9 @@ $(INST)/$(DATEUTIL): $(INST)/$(PYTHON) $(INST)/$(SIX) $(INST)/$(SETUPTOOLS)
 
 $(INST)/$(PYPARSING): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(PYPARSING) 2>&1" "tee -a $(SAGE_LOGS)/$(PYPARSING).log"
+
+$(INST)/$(PYZMQ): $(INST)/$(PYTHON) $(INST)/$(ZEROMQ) $(INST)/$(SETUPTOOLS)
+	+$(PIPE) "$(SAGE_SPKG) $(PYZMQ) 2>&1" "tee -a $(SAGE_LOGS)/$(PYZMQ).log"
 
 $(INST)/$(TORNADO): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(TORNADO) 2>&1" "tee -a $(SAGE_LOGS)/$(TORNADO).log"

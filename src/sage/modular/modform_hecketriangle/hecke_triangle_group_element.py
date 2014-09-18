@@ -29,6 +29,15 @@ from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
 from sage.misc.cachefunc import cached_method
 
 
+# We want to simplify p after the coercion (pari bug for AA)
+def coerce_AA(p):
+    el = AA(p)
+    el.simplify()
+    #el.exactify()
+
+    return el
+
+
 def cyclic_representative(L):
     r"""
     Return a unique representative among all cyclic permutations
@@ -202,13 +211,13 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         lam = self.parent().lam()
 
         while True:
-            m = (AA(mshift(M) / lam) + ZZ(1)/ZZ(2)).floor()
+            m = (coerce_AA(mshift(M) / lam) + ZZ(1)/ZZ(2)).floor()
             M = T**(-m) * M
             if (m != 0):
                 res.append((ZZ(1), m),)
 
             abs_t = mabs(M)
-            if AA(abs_t) < 1:
+            if coerce_AA(abs_t) < 1:
                 M = (-S) * M
                 res.append((ZZ(0), ZZ(1)),)
             elif M == ID:
@@ -573,12 +582,14 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             ((), (2, 1, 1, 1, 1, 1))
             sage: (-G.V(2)).continued_fraction()
             ((1,), (2,))
-            sage: (-G.V(2)^3*G.V(6)^2*G.V(3)).continued_fraction()    # long time
+            sage: (-G.V(2)^3*G.V(6)^2*G.V(3)).continued_fraction()
             ((1,), (2, 2, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 2))
-            sage: (G.U()^4*G.S()*G.V(2)).acton(-G.V(2)^3*G.V(6)^2*G.V(3)).continued_fraction()    # long time
+            sage: (G.U()^4*G.S()*G.V(2)).acton(-G.V(2)^3*G.V(6)^2*G.V(3)).continued_fraction()
             ((1, 1, 1, 2), (2, 2, 2, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1))
-            sage: (G.V(1)^5*G.V(2)*G.V(3)^3).continued_fraction()    # known bug (doesn't seem to finnish)
-            sage: (G.V(2)^3*G.V(5)*G.V(1)*G.V(6)^2*G.V(4)).continued_fraction()    # known bug (doesn't seem to finnish)
+            sage: (G.V(1)^5*G.V(2)*G.V(3)^3).continued_fraction()
+            ((6,), (2, 1, 2, 1, 2, 1, 7))
+            sage: (G.V(2)^3*G.V(5)*G.V(1)*G.V(6)^2*G.V(4)).continued_fraction()
+            ((1,), (2, 2, 2, 1, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 2))
         """
 
         if self.parent().n() == infinity:
@@ -612,7 +623,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             #elif self.is_elliptic():
             #    r = ZZ(emb(p/lam).real().floor() + 1)
             else:
-                r = ZZ(emb(p/lam).floor() + 1)
+                emb_res = emb(p/lam)
+                emb_res.simplify()
+                emb_res.exactify()
+                r = ZZ(emb_res.floor() + 1)
             L.append(r)
             p = (S*TI**r).acton(p)
             cf_index += 1
@@ -752,10 +766,15 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
             emb    = self.root_extension_embedding(AlgebraicField())
             p      = self.fixed_points()[0]
-            (R, embw) = G.get_FD(emb(p))
+            embp   = emb(p)
+            embp.simplify()
+            embp.exactify()
+            (R, embw) = G.get_FD(embp)
             w      = R.inverse().acton(p)
             # we should have: embw == emb(w)
             embw   = emb(w)
+            embw.simplify()
+            embw.exactify()
 
             if (embw == AlgebraicField()(i)):
                 R = -R
@@ -824,7 +843,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         # This should determine whether self is conjugate to a positive power of V(1) or V(n-1)
         # sign((a+d)*(b-c)) is actually a conjugacy invariant for the parabolic subspace
         # and distinguishes the two (three) cases (sign(0):=0)
-        if self.is_parabolic() and AA(self.trace() * (self.b() - self.c())).sign() > 0:
+        if self.is_parabolic() and coerce_AA(self.trace() * (self.b() - self.c())).sign() > 0:
             # In this case self should be conjugate to a positive power of V(1)
             # in either case L is / should be (at the moment) always equal to [n-1, 1]
             L[0][0] = 1
@@ -1213,14 +1232,14 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             [ 0 -1]
         """
 
-        sgn = AA(self._matrix.trace()).sign()
+        sgn = coerce_AA(self._matrix.trace()).sign()
 
         if sgn > 0:
             return self.parent().I()
         elif sgn < 0:
             return -self.parent().I()
         else:
-            sgnc = AA(self.c()).sign()
+            sgnc = coerce_AA(self.c()).sign()
             if sgnc > 0:
                 return self.parent().I()
             elif sgnc < 0:
@@ -1342,7 +1361,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         primitive_part = self.primitive_part(method=method)
         if method == "cf" and self.is_parabolic():
-            power_sign = AA(self.trace() * (self[1][0] - self[0][1])).sign()
+            power_sign = coerce_AA(self.trace() * (self[1][0] - self[0][1])).sign()
         else:
             power_sign = ZZ(1)
 
@@ -1939,7 +1958,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         for r in R:
             fp = r.fixed_points()[0]
 
-            for j in range(1, emb(fp/G.lam()).floor()+1):
+            emb_res = emb(fp/G.lam())
+            emb_res.simplify()
+            emb_res.exactify()
+            for j in range(1, emb_res.floor()+1):
                 L.append(G.T(-j).acton(r))
 
         return L
@@ -2204,7 +2226,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             False
         """
 
-        return AA(self.discriminant()) > 0
+        return coerce_AA(self.discriminant()) > 0
 
     def is_parabolic(self, exclude_one=False):
         r"""
@@ -2265,7 +2287,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             True
         """
 
-        return AA(self.discriminant()) < 0
+        return coerce_AA(self.discriminant()) < 0
 
     def is_primitive(self):
         r"""
@@ -2439,7 +2461,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             return False
 
         # The last condition is/should be equivalent to:
-        return (AA(self.a()) > 0 and AA(self.b()) > 0 and AA(self.c()) > 0 and AA(self.d()) > 0)
+        return (coerce_AA(self.a()) > 0 and coerce_AA(self.b()) > 0 and coerce_AA(self.c()) > 0 and coerce_AA(self.d()) > 0)
 
     def is_hecke_symmetric(self):
         r"""
@@ -2891,6 +2913,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         return self.parent().root_extension_embedding(self.discriminant(), K)
 
+    @cached_method
     def fixed_points(self, embedded=False, order="default"):
         r"""
         Return a pair of (mutually conjugate) fixed points of ``self``
@@ -3005,28 +3028,35 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             if order == "none":
                 sgn = ZZ(1)
             elif order == "sign":
-                sgn = AA(c).sign()
+                sgn = coerce_AA(c).sign()
             elif order == "default":
                 if self.is_elliptic() or self.trace() == 0:
-                    sgn = AA(c).sign()
+                    sgn = coerce_AA(c).sign()
                 else:
-                    sgn = AA(self.trace()).sign()
+                    sgn = coerce_AA(self.trace()).sign()
             elif order == "trace":
                 if self.trace() == 0:
-                    sgn = AA(c).sign()
+                    sgn = coerce_AA(c).sign()
                 else:
-                    sgn = AA(self.trace()).sign()
+                    sgn = coerce_AA(self.trace()).sign()
             else:
                 raise NotImplementedError
 
             if embedded:
-                e = AA(D).sqrt()
-                a = AA(a)
-                d = AA(d)
-                c = AA(c)
+                e = coerce_AA(D).sqrt()
+                e.simplify()
+                a = coerce_AA(a)
+                d = coerce_AA(d)
+                c = coerce_AA(c)
 
             root1 = (a-d)/(2*c) + sgn*e/(2*c)
             root2 = (a-d)/(2*c) - sgn*e/(2*c)
+
+            if embedded:
+                root1.simplify()
+                root1.exactify()
+                root2.simplify()
+                root2.exactify()
 
             return (root1, root2)
 

@@ -28,7 +28,7 @@ from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGro
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 
-from hecke_triangle_group_element import HeckeTriangleGroupElement, cyclic_representative
+from hecke_triangle_group_element import HeckeTriangleGroupElement, cyclic_representative, coerce_AA
 
 
 class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
@@ -91,7 +91,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             self._lam = ZZ(1) if n==3 else ZZ(2)
         else:
             lam_symbolic = 2*cos(pi/n)
-            K = NumberField(self.lam_minpoly(), 'lam', embedding = AA(lam_symbolic))
+            K = NumberField(self.lam_minpoly(), 'lam', embedding = coerce_AA(lam_symbolic))
             #self._base_ring = K.order(K.gens())
             self._base_ring = K.maximal_order()
             self._lam = self._base_ring.gen(1)
@@ -220,7 +220,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         # TODO: Write an explicit (faster) implementation
         lam_symbolic = 2*cos(pi/self._n)
-        return AA(lam_symbolic).minpoly()
+        return coerce_AA(lam_symbolic).minpoly()
 
     def base_ring(self):
         r"""
@@ -323,9 +323,12 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         # TODO: maybe rho should be replaced by -rhobar
         # Also we could use NumberFields...
         if (self._n == infinity):
-            return AA(1)
+            return coerce_AA(1)
         else:
-            return AlgebraicField()(exp(pi/self._n*i))
+            rho = AlgebraicField()(exp(pi/self._n*i))
+            rho.simplify()
+
+            return rho
 
     def alpha(self):
         r"""
@@ -804,48 +807,61 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
               From: Number Field in e with defining polynomial x^2 - lam^2 + 4 over its base field
               To:   Algebraic Field
               Defn: e |--> 0.?... + 0.867767478235...?*I
-                    lam |--> 1.801937735804...? + 0.?...*I
+                    lam |--> 1.801937735804...?
         """
 
         D = self.base_ring()(D)
         F = self.root_extension_field(D)
         if K is None:
-            if AA(D) > 0:
+            if coerce_AA(D) > 0:
                 K = AA
             else:
                 K = AlgebraicField()
 
-        if D.is_square():
-            e   = D.sqrt()
-            lam = self.lam()
-        elif self.n() in [ZZ(3), infinity]:
-            e   = F.gen(0)
-            lam = self.lam()
-        else:
-            (e, lam) = F.gens()
+        L = [emb for emb in F.embeddings(K)]
 
-        emb_lam = K(self.lam())
-        emb_e   = K(D).sqrt()
+        # Three possibilities up to numerical artefacts:
+        # (1) emb = e, purely imaginary
+        # (2) emb = e or lam (can't distinguish), purely real
+        # (3) emb = (e,lam), e purely imaginary, lam purely real
+        # (4) emb = (e,lam), e purely real, lam purely real
+        # There always exists one emb with "e" positive resp. positive imaginary
+        # and if there is a lam there exists a positive one...
+        #
+        # Criteria to pick the correct "maximum":
+        # 1. First figure out if e resp. lam is purely real or imaginary
+        #    (using "abs(e.imag()) > abs(e.real())")
+        # 2. In the purely imaginary case we don't want anything negative imaginary
+        #    and we know the positive case is unique after sorting lam
+        # 3. For the remaining cases we want the biggest real part
+        #    (and lam should get comparison priority)
+        def emb_key(emb):
+            L = []
+            gens_len = len(emb.im_gens())
+            for k in range(gens_len):
+                a = emb.im_gens()[k]
+                try:
+                    a.simplify()
+                    a.exactify()
+                except AttributeError:
+                    pass
+                # If a is purely imaginary:
+                if abs(a.imag()) > abs(a.real()):
+                    if a.imag() < 0:
+                        a = -infinity
+                    else:
+                        a = ZZ(0)
+                else:
+                    a = a.real()
 
-        guess = ZZ(0)
-        min_value = infinity
-        index = ZZ(0)
+                L.append(a)
 
-        for emb in F.embeddings(K):
-            if K.is_exact():
-                if emb(lam) == emb_lam and emb(e) == emb_e:
-                    return emb
-            else:
-                value = (emb(lam) - emb_lam).n(K.prec()).abs() + (emb(e) - emb_e).n(K.prec()).abs()
-                if (value < min_value):
-                    guess = index
-                    min_value = value
-                index += 1
+            L.reverse()
+            return L
 
-        if K.is_exact() or min_value == infinity:
-            raise ValueError("No suitable embedding is available for K = {}!".format(K))
-        else:
-            return F.embeddings(K)[guess]
+        if len(L) > 1:
+            L.sort(key = emb_key)
+        return L[-1]
 
     def _elliptic_conj_reps(self):
         r"""
@@ -952,7 +968,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         from sage.rings.arith import divisors
 
         if not D is None:
-            max_block_length = max(AA(0), AA((D + 4)/(self.lam()**2))).sqrt().floor()
+            max_block_length = max(coerce_AA(0), coerce_AA((D + 4)/(self.lam()**2))).sqrt().floor()
         else:
             try:
                 max_block_length = ZZ(max_block_length)
@@ -1035,9 +1051,9 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                 #    raise AssertionError("This shouldn't happen!")
 
                 D = group_el.discriminant()
-                if AA(D) < 0:
+                if coerce_AA(D) < 0:
                     raise AssertionError("This shouldn't happen!")
-                if AA(D) == 0:
+                if coerce_AA(D) == 0:
                     raise AssertionError("This shouldn't happen!")
                     #continue
 
@@ -1122,7 +1138,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: G.element_repr_method("default")
         """
 
-        if AA(D) == 0 and not primitive:
+        if coerce_AA(D) == 0 and not primitive:
             raise ValueError("There are infinitely many non-primitive conjugacy classes of discriminant 0.")
 
         self._conjugacy_representatives(D=D)
@@ -1175,7 +1191,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             4
         """
 
-        if AA(D) <= 0:
+        if coerce_AA(D) <= 0:
             raise NotImplementedError
 
         self._conjugacy_representatives(D=D)
@@ -1225,7 +1241,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         """
 
         self._conjugacy_representatives(0)
-        t_bound = max(AA(0), AA((D + 4)/(self.lam()**2))).sqrt().floor()
+        t_bound = max(coerce_AA(0), coerce_AA((D + 4)/(self.lam()**2))).sqrt().floor()
         for t in range(self._max_block_length + 1, t_bound + 1):
             self._conjugacy_representatives(t)
 
@@ -1285,21 +1301,21 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         if incomplete:
             max_D = infinity
         else:
-            max_D = AA(D)
+            max_D = coerce_AA(D)
 
         L = []
         if hyperbolic:
-            L += [key for key in self._conj_prim if AA(key) > 0 and AA(key) <= max_D]
+            L += [key for key in self._conj_prim if coerce_AA(key) > 0 and coerce_AA(key) <= max_D]
         else:
-            L += [key for key in self._conj_prim if AA(key) <= max_D]
+            L += [key for key in self._conj_prim if coerce_AA(key) <= max_D]
 
         if not primitive:
             if hyperbolic:
-                L += [key for key in self._conj_nonprim if AA(key) > 0 and AA(key) <= max_D and key not in L]
+                L += [key for key in self._conj_nonprim if coerce_AA(key) > 0 and coerce_AA(key) <= max_D and key not in L]
             else:
-                L += [key for key in self._conj_nonprim if AA(key) <= max_D and key not in L]
+                L += [key for key in self._conj_nonprim if coerce_AA(key) <= max_D and key not in L]
 
-        return sorted(L, key=AA)
+        return sorted(L, key=coerce_AA)
 
     # TODO: non-primitive ones?
     def reduced_elements(self, D):

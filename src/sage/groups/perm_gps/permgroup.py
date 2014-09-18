@@ -233,14 +233,19 @@ def from_gap_list(G, src):
         sage: L[1].parent() is G
         True
     """
-    # trim away the list constructs
-    src = src.replace("[", "").replace("]", "")
-    # cut out the individual elements
-    srcs = src.split("),")
-    for i in range(len(srcs[:-1])):
-        srcs[i] = srcs[i] + ")"
-    srcs = map(G, srcs)
-    return srcs
+    # src is a list of strings, each of which is a permutation of
+    # integers in cycle notation. It may contain \n and spaces.
+    src = [str(g)[1:].split(")(")
+           for g in str(src).replace(" ","").replace("\n","")[1:-2].split("),")]
+
+    # src is a list of list of strings. Each string is a list of
+    # integers separated by ','
+    src = [G([tuple(map(lambda x:G._domain_from_gap[int(x)],cycle.split(",")))
+                 for cycle in g])
+           for g in src]
+
+    # src is now a list of group elements
+    return src
 
 def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, category=None):
     """
@@ -3181,6 +3186,25 @@ class PermutationGroup_generic(group.Group):
                 group.remove(e)
             decomposition.append(coset)
         return decomposition
+
+    def minimal_generating_set(self):
+        r"""
+        Return a minimal generating set
+
+        EXAMPLE::
+
+            sage: g = graphs.CompleteGraph(4)
+            sage: g.relabel(['a','b','c','d'])
+            sage: g.automorphism_group().minimal_generating_set()
+            [('b','d','c'), ('a','c','b','d')]
+
+
+        TESTS::
+
+            sage: PermutationGroup(["(1,2,3)(4,5,6)","(1,2,3,4,5,6)"]).minimal_generating_set()
+            [(2,5)(3,6), (1,5,3,4,2,6)]
+        """
+        return from_gap_list(self,str(self._gap_().MinimalGeneratingSet()))
 
     def normalizer(self, g):
         """

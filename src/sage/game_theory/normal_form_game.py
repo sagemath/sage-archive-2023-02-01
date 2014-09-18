@@ -55,15 +55,15 @@ class NormalFormGame(SageObject, MutableMapping):
 
     EXAMPLES:
 
-    Normal form games, also referred to as strategic form games are used to
-    model situations where agents/players make strategic choices the outcome
+    Normal form games, also referred to as strategic form games, are used to
+    model situations where agents/players make strategic choices, the outcome
     of which depends on the strategic choices of all players involved.
 
     A very simple and well known example of this is referred to as the
-    'Battle of the Sexes' in which two players Amy and Bob are modelled.
-    Amy prefers to player video games and Bob prefers to watch a movie.
+    'Battle of the Sexes' in which two players Amy and Bob are modeled.
+    Amy prefers to play video games and Bob prefers to watch a movie.
     They both however want to spend their evening together.
-    This can be modelled using the following two matrices:
+    This can be modeled using the following two matrices:
 
     .. MATH::
 
@@ -103,7 +103,7 @@ class NormalFormGame(SageObject, MutableMapping):
     other situation where Amy and Bob have no reason to change their choice
     of action:
 
-    Here is how we create the game in Sage: ::
+    Here is how we create the game in Sage::
 
         sage: A = matrix([[3, 1], [0, 2]])
         sage: B = matrix([[2, 1], [0, 3]])
@@ -113,7 +113,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     To obtain the Nash equilibria we run the ``obtain_Nash()`` method. In the
     first few examples we will use the 'support enumeration' algorithm.
-    A discussion about the different algorithms will be given later: ::
+    A discussion about the different algorithms will be given later::
 
         sage: battle_of_the_sexes.obtain_Nash(algorithm='enumeration')
         [[(1, 0), (1, 0)], [(0, 1), (0, 1)], [(3/4, 1/4), (1/4, 3/4)]]
@@ -123,20 +123,20 @@ class NormalFormGame(SageObject, MutableMapping):
     Nash Equilibrium represented as a probability distribution over the
     available strategies:
 
-    * `[(1.0, 0.0), (1.0, 0.0)]` corresponds to the first player only
+    * `[(1, 0), (1, 0)]` corresponds to the first player only
       playing their first strategy and the second player also only playing
       their first strategy. In other words Amy and Bob both play video games.
 
-    * `[(0.0, 1.0), (0.0, 1.0)]` corresponds to the first player only
+    * `[(0, 1), (0, 1)]` corresponds to the first player only
       playing their second strategy and the second player also only playing
       their second strategy. In other words Amy and Bob both watch movies.
 
-    * `[(0.75, 0.25), (0.25, 0.75)]` corresponds to players `mixing` their
+    * `[(3/4, 1/4), (1/4, 3/4)]` corresponds to players `mixing` their
       strategies. Amy plays video games 75% of the time and Bob watches
       movies 75% of the time. At this equilibrium point Amy and Bob will
       only ever do the same activity `3/8` of the time.
 
-    We can use sage to compute the expected utility for any mixed strategy
+    We can use Sage to compute the expected utility for any mixed strategy
     pair `(\sigma_1, \sigma_2)`. The payoff to player 1 is given by:
 
     .. MATH::
@@ -149,7 +149,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         \sigma_1 B \sigma_2
 
-    To compute this in sage we have: ::
+    To compute this in Sage we have::
 
         sage: for ne in battle_of_the_sexes.obtain_Nash(algorithm='enumeration'):
         ....:     print "Utility for %s: " % ne
@@ -189,7 +189,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     We can plot the utility of player 1 when player 2 is playing a mixed
     strategy `\sigma_2=(y,1-y)` (so that the utility to player 1 for
-    playing strategy `i` is given by (`(Ay)_i`). ::
+    playing strategy `i` is given by (`(Ay)_i`)::
 
         sage: y = var('y')
         sage: A = matrix([[1, -1], [-1, 1]])
@@ -200,7 +200,7 @@ class NormalFormGame(SageObject, MutableMapping):
     available strategies is when `y=1/2`.
 
     If we compute the Nash equilibria we see that this corresponds to a point
-    at which both players are indifferent: ::
+    at which both players are indifferent::
 
         sage: y = var('y')
         sage: A = matrix([[1, -1], [-1, 1]])
@@ -210,13 +210,13 @@ class NormalFormGame(SageObject, MutableMapping):
         [[(1/2, 1/2), (1/2, 1/2)]]
 
     The utilities to both players at this Nash equilibrium
-    is easily computed: ::
+    is easily computed::
 
         sage: [vector([1/2, 1/2]) * M * vector([1/2, 1/2]) for M in matching_pennies.payoff_matrices()]
         [0, 0]
 
     Note that the above uses the ``payoff_matrices`` method
-    which returns the payoff matrices for a 2 player game: ::
+    which returns the payoff matrices for a 2 player game::
 
         sage: matching_pennies.payoff_matrices()
         (
@@ -225,7 +225,7 @@ class NormalFormGame(SageObject, MutableMapping):
         )
 
     One can also input a single matrix and then a zero sum game is constructed.
-    Here is an instance of Rock-Paper-Scissors-Lizard-Spock: ::
+    Here is an instance of Rock-Paper-Scissors-Lizard-Spock::
 
         sage: A = matrix([[0, -1, 1, 1, -1],
         ....:             [1, 0, -1, -1, 1],
@@ -238,7 +238,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     We can also study games where players aim to minimize their utility.
     Here is the Prisoner's Dilemma (where players are aiming to reduce
-    time spent in prison): ::
+    time spent in prison)::
 
         sage: A = matrix([[2, 5], [0, 4]])
         sage: B = matrix([[2, 0], [5, 4]])
@@ -259,7 +259,7 @@ class NormalFormGame(SageObject, MutableMapping):
       algorithm. An excellent overview of this algorithm is given in
       [SLB2008]_.
 
-    Below we show how the two algorithms are called: ::
+    Below we show how the two algorithms are called::
 
         sage: matching_pennies.obtain_Nash(algorithm='lrs')  # optional - lrs
         [[(1/2, 1/2), (1/2, 1/2)]]
@@ -273,13 +273,9 @@ class NormalFormGame(SageObject, MutableMapping):
         1. ``lrs`` (requires lrs)
         2. ``enumeration``
 
-    Gambit has it's own Python api which can be used independently from
-    Sage and to ensure compatibility between the two systems, gambit like
-    syntax is compatible.
-
     Here is a game being constructed using gambit syntax (note that a
     ``NormalFormGame`` object acts like a dictionary with strategy tuples as
-    keys and payoffs as their values): ::
+    keys and payoffs as their values)::
 
         sage: f = NormalFormGame()
         sage: f.add_player(2)
@@ -295,7 +291,7 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: f
         {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
 
-    Once this game is constructed we can view the payoff matrices and solve the game: ::
+    Once this game is constructed we can view the payoff matrices and solve the game::
 
         sage: f.payoff_matrices()
         (
@@ -305,14 +301,14 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: f.obtain_Nash(algorithm='enumeration')
         [[(0, 1), (0, 1)]]
 
-    We can add an extra strategy to the first player. ::
+    We can add an extra strategy to the first player::
 
         sage: f.add_strategy(0)
         sage: f
         {(0, 1): [2, 3], (0, 0): [1, 3], (2, 1): [False, False], (2, 0): [False, False], (1, 0): [3, 1], (1, 1): [4, 4]}
 
     If we do this and try and obtain the Nash equilibrium or view the payoff
-    matrices(without specifying the utilities), an error is returned: ::
+    matrices(without specifying the utilities), an error is returned::
 
         sage: f.obtain_Nash()
         Traceback (most recent call last):
@@ -323,7 +319,7 @@ class NormalFormGame(SageObject, MutableMapping):
         ...
         ValueError: utilities have not been populated
 
-    We can use the same syntax as above to create games with more than 2 players: ::
+    We can use the same syntax as above to create games with more than 2 players::
 
         sage: threegame = NormalFormGame()
         sage: threegame.add_player(2)
@@ -357,7 +353,7 @@ class NormalFormGame(SageObject, MutableMapping):
         {(0, 1, 1): [3, 5, 8], (1, 1, 0): [8, 4, 6], (1, 0, 0): [9, 7, 9], (0, 0, 1): [1, 5, 9], (1, 0, 1): [3, 2, 3], (0, 0, 0): [3, 1, 4], (0, 1, 0): [2, 6, 5], (1, 1, 1): [2, 6, 4]}
 
     At present no algorithm has been implemented in Sage for games with
-    more than 2 players. ::
+    more than 2 players::
 
         sage: threegame.obtain_Nash()
         Traceback (most recent call last):
@@ -365,9 +361,6 @@ class NormalFormGame(SageObject, MutableMapping):
         NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
 
         There are however a variety of such algorithms available in gambit,
-    further compatibility between Sage and gambit is actively being developed:
-    https://github.com/tturocy/gambit/tree/sage_integration.
-
 
     Here is a slightly longer game that would take too long to solve with
     ``enumeration``. Consider the following:
@@ -390,7 +383,7 @@ class NormalFormGame(SageObject, MutableMapping):
     strategy should both travelers follow to decide the value they should
     write down?
 
-    In the following we create the game and solve it ::
+    In the following we create the game and solve i::
 
         sage: K = 10  # Modifying this value lets us play with games of any size
         sage: A = matrix([[min(i,j) + 2 * sign(j-i)  for j in range(2, K+1)]  for i in range(2, K+1)])
@@ -403,7 +396,7 @@ class NormalFormGame(SageObject, MutableMapping):
     of their suitcase is 2.
 
     Importantly this algorithm is known to fail in the case of a degenerate
-    game. In fact degenerate games can cause problems for most algorithms ::
+    game. In fact degenerate games can cause problems for most algorithm::
 
         sage: A = matrix([[3,3],[2,5],[0,6]])
         sage: B = matrix([[3,3],[2,6],[3,1]])
@@ -462,7 +455,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         EXAMPLES:
 
-        Can have games with more than 2 players. ::
+        Can have games with more than 2 players::
 
             sage: threegame = NormalFormGame()
             sage: threegame.add_player(2)
@@ -499,7 +492,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         TESTS:
 
-        Raise error if matrices aren't the same size. ::
+        Raise error if matrices aren't the same size::
 
             sage: p1 = matrix([[1, 2], [3, 4]])
             sage: p2 = matrix([[3, 3], [1, 4], [6, 6]])
@@ -546,7 +539,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         EXAMPLES:
 
-        LaTeX method shows the two payoff matrices for a two player game: ::
+        LaTeX method shows the two payoff matrices for a two player game::
 
         sage: A = matrix([[-1, -2], [-12, 2]])
         sage: B = matrix([[1, 0], [1, -1]])
@@ -560,7 +553,7 @@ class NormalFormGame(SageObject, MutableMapping):
         1 & -1
         \end{array}\right)\right)
 
-        LaTeX method shows nothing interesting for games with more players: ::
+        LaTeX method shows nothing interesting for games with more players::
 
         sage: g = NormalFormGame()
         sage: g.add_player(2)
@@ -580,7 +573,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         EXAMPLES:
 
-        A small example game. ::
+        A small example game::
 
             sage: A = matrix([[1, 0], [-2, 3]])
             sage: B = matrix([[3, 2], [-1, 0]])
@@ -661,7 +654,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         EXAMPLES:
 
-        A simple example. ::
+        A simple example::
 
             sage: s = matrix([[1, 0], [-2, 3]])
             sage: t = matrix([[3, 2], [-1, 0]])
@@ -683,7 +676,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         EXAMPLES:
 
-        A simple example. ::
+        A simple example::
 
             sage: s = matrix([[1, 0], [-2, 3]])
             sage: t = matrix([[3, 2], [-1, 0]])
@@ -727,7 +720,7 @@ class NormalFormGame(SageObject, MutableMapping):
         EXAMPLES:
 
         A game with 2 equilibria when ``maximization`` is ``True`` and 3 when
-        ``maximization`` is ``False``. ::
+        ``maximization`` is ``False``::
 
             sage: A = matrix([[160, 205, 44],
             ....:       [175, 180, 45],
@@ -743,7 +736,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.obtain_Nash(algorithm='lrs', maximization=False) # optional - lrs
             [[(1, 0, 0, 0), (127/1212, 115/1212, 485/606)], [(0, 1, 0, 0), (0, 1/26, 25/26)]]
 
-        This particular game has 3 Nash equilibria. ::
+        This particular game has 3 Nash equilibria::
 
             sage: A = matrix([[3,3],
             ....:             [2,5],
@@ -755,7 +748,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.obtain_Nash(maximization=False)
             [[(1, 0, 0), (0, 1)]]
 
-        Here is a slightly larger game ::
+        Here is a slightly larger gam::
 
             sage: A = matrix([[160, 205, 44],
             ....:             [175, 180, 45],
@@ -769,7 +762,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.obtain_Nash(algorithm='enumeration')
             [[(0, 0, 3/4, 1/4), (1/28, 27/28, 0)]]
 
-        2 random matrices. ::
+        2 random matrices::
 
             sage: player1 = matrix([[2, 8, -1, 1, 0],
             ....:                   [1, 1, 2, 1, 80],
@@ -788,7 +781,7 @@ class NormalFormGame(SageObject, MutableMapping):
             [[(1, 0, 0, 0, 0), (0, 1, 0, 0, 0)]]
 
 
-        Here is an example of a 3 by 2 game with 3 Nash equilibrium: ::
+        Here is an example of a 3 by 2 game with 3 Nash equilibrium::
 
             sage: A = matrix([[3,3],
             ....:             [2,5],
@@ -831,7 +824,7 @@ class NormalFormGame(SageObject, MutableMapping):
         r"""
         EXAMPLES:
 
-        A simple game. ::
+        A simple game::
 
             sage: A = matrix([[1, 2], [3, 4]])
             sage: B = matrix([[3, 3], [1, 4]])
@@ -839,7 +832,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: C._solve_lrs() # optional - lrs
             [[(0, 1), (0, 1)]]
 
-        2 random matrices. ::
+        2 random matrices::
 
         sage: p1 = matrix([[-1, 4, 0, 2, 0],
         ....:              [-17, 246, -5, 1, -2],
@@ -882,7 +875,7 @@ class NormalFormGame(SageObject, MutableMapping):
         r"""
         EXAMPLES:
 
-        A Game. ::
+        A Game::
 
             sage: A = matrix([[160, 205, 44],
             ....:       [175, 180, 45],
@@ -896,7 +889,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g._solve_enumeration()
             [[(0, 0, 3/4, 1/4), (1/28, 27/28, 0)]]
 
-        A game with 3 equilibria. ::
+        A game with 3 equilibria::
 
             sage: A = matrix([[3,3],
             ....:             [2,5],
@@ -908,7 +901,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g._solve_enumeration(maximization=False)
             [[(1, 0, 0), (0, 1)]]
 
-        A simple example. ::
+        A simple example::
 
             sage: s = matrix([[1, 0], [-2, 3]])
             sage: t = matrix([[3, 2], [-1, 0]])
@@ -916,7 +909,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: example._solve_enumeration()
             [[(1, 0), (1, 0)], [(0, 1), (0, 1)], [(1/2, 1/2), (1/2, 1/2)]]
 
-        Another. ::
+        Another::
 
             sage: A = matrix([[0, 1, 7, 1],
             ....:             [2, 1, 3, 1],
@@ -930,7 +923,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: C._solve_enumeration()
             [[(1, 0, 0, 0), (0, 0, 1, 0)], [(0, 0, 0, 1), (1, 0, 0, 0)], [(2/7, 0, 0, 5/7), (5/11, 0, 6/11, 0)]]
 
-        Again. ::
+        Again::
 
             sage: X = matrix([[1, 4, 2],
             ....:             [4, 0, 3],

@@ -618,7 +618,7 @@ cdef class PowComputer_ext(PowComputer_class):
             ZZ_to_mpz(self.temp_m, &self.top_power)
         else:
             mpz_pow_ui(self.temp_m, self.prime.value, n)
-        return address_of_mpz(self.temp_m)
+        return <mpz_srcptr>address_of_mpz(self.temp_m)
 
     #def _pow_mpz_t_tmp_test(self, n):
     #    """
@@ -731,7 +731,7 @@ cdef class PowComputer_ext(PowComputer_class):
             15625
         """
         ZZ_to_mpz(self.temp_m, &self.top_power)
-        return address_of_mpz(self.temp_m)
+        return <mpz_srcptr>address_of_mpz(self.temp_m)
 
     #def _pow_mpz_t_top_test(self):
     #    """

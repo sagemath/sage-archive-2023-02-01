@@ -435,18 +435,92 @@ class NormalFormGame(SageObject, MutableMapping):
     """
 
     def __delitem__(self, key):
+        r"""
+        Method is needed to make an instance of Normal Form Game
+        behave like a dictionary. Here we set up deleting an element
+        of the utilities dictionary::
+
+            sage: A = matrix([[2, 5], [0, 4]])
+            sage: B = matrix([[2, 0], [5, 4]])
+            sage: prisoners_dilemma = NormalFormGame([A, B])
+            sage: prisoners_dilemma
+            {(0, 1): [5, 0], (1, 0): [0, 5], (0, 0): [2, 2], (1, 1): [4, 4]}
+            sage: del(prisoners_dilemma[(0,1)])
+            sage: prisoners_dilemma
+            {(1, 0): [0, 5], (0, 0): [2, 2], (1, 1): [4, 4]}
+
+        """
         self.utilities.pop(key, None)
 
     def __getitem__(self, key):
+        r"""
+        Method is needed to make an instance of Normal Form Game
+        behave like a dictionary. Here we allow for querying a key::
+
+            sage: A = matrix([[2, 5], [0, 4]])
+            sage: B = matrix([[2, 0], [5, 4]])
+            sage: prisoners_dilemma = NormalFormGame([A, B])
+            sage: prisoners_dilemma[(0, 1)]
+            [5, 0]
+            sage: del(prisoners_dilemma[(0,1)])
+            sage: prisoners_dilemma[(0, 1)]
+            Traceback (most recent call last):
+            ...
+            KeyError: (0, 1)
+        """
+
         return self.utilities[key]
 
     def __iter__(self):
+        r"""
+        Method is needed to make an instance of Normal Form Game
+        behave like a dictionary. Here we allow for iteration over
+        the game to correspond to iteration over keys of the utility
+        dictionary::
+
+            sage: A = matrix([[2, 5], [0, 4]])
+            sage: B = matrix([[2, 0], [5, 4]])
+            sage: prisoners_dilemma = NormalFormGame([A, B])
+            sage: for key in prisoners_dilemma:
+            ....:     print key
+            (0, 1)
+            (1, 0)
+            (0, 0)
+            (1, 1)
+        """
         return iter(self.utilities)
 
     def __len__(self):
+        r"""
+        Method is needed to make an instance of Normal Form Game
+        behave like a dictionary. Here we return the length of the
+        game to be the length of the utilities::
+
+            sage: A = matrix([[2, 5], [0, 4]])
+            sage: B = matrix([[2, 0], [5, 4]])
+            sage: prisoners_dilemma = NormalFormGame([A, B])
+            sage: len(prisoners_dilemma)
+            4
+        """
         return len(self.utilities)
 
     def __setitem__(self, key, value):
+        r"""
+        Method is needed to make an instance of Normal Form Game
+        behave like a dictionary. Here we set up setting the value
+        of a key::
+
+            sage: A = matrix([[2, 5], [0, 4]])
+            sage: B = matrix([[2, 0], [5, 4]])
+            sage: prisoners_dilemma = NormalFormGame([A, B])
+            sage: del(prisoners_dilemma[(0,1)])
+            sage: prisoners_dilemma[(0,1)] = [5,6]
+            sage: prisoners_dilemma.payoff_matrices()
+            (
+            [2 5]  [2 6]
+            [0 4], [5 4]
+            )
+        """
         self.utilities[key] = value
 
     def __init__(self, generator=None):
@@ -1135,7 +1209,24 @@ class NormalFormGame(SageObject, MutableMapping):
 
 class _Player():
     def __init__(self, num_strategies):
+        r"""
+        TESTS:
+
+        sage: from sage.game_theory.normal_form_game import _Player
+        sage: p = _Player(5)
+        sage: p.num_strategies
+        5
+        """
         self.num_strategies = num_strategies
 
     def add_strategy(self):
+        r"""
+        TESTS:
+
+        sage: from sage.game_theory.normal_form_game import _Player
+        sage: p = _Player(5)
+        sage: p.add_strategy()
+        sage: p.num_strategies
+        6
+        """
         self.num_strategies += 1

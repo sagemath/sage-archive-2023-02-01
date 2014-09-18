@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Galois Representations for Elliptic Curves over Number Fields.
+Galois representations for elliptic curves over number fields.
 
 This file contains the code to compute for which primes the Galois
 representation attached to an elliptic curve (over an arbitrary

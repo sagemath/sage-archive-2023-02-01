@@ -175,7 +175,7 @@ cdef class Morphism(Map):
             sage: R.<t> = ZZ[]
             sage: f = R.hom([t**2])
             sage: f.category()
-            Join of Category of hom sets in Category of modules over euclidean domains and Category of hom sets in Category of rings
+            Join of Category of hom sets in Category of modules over (euclidean domains and infinite enumerated sets) and Category of hom sets in Category of rings
 
             sage: K = CyclotomicField(12)
             sage: L = CyclotomicField(132)

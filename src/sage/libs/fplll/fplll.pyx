@@ -487,6 +487,16 @@ cdef class FP_LLL:
             sage: F._sage_()[0].norm().n()
             6.164...
 
+
+            sage: from sage.libs.fplll.fplll import FP_LLL
+            sage: A = sage.crypto.gen_lattice(type='random', n=1, m=60, q=2^90, seed=42)
+            sage: F = FP_LLL(A)
+            sage: F.BKZ(10, max_loops=10, verbose=True)
+            ====== Wrapper: calling fast<mpz_t,double> method ======
+            ...
+            loops limit exceeded in BKZ
+            sage: F._sage_()[0].norm().n()
+            6.480...
         """
         if block_size <= 0:
             raise ValueError("block size must be > 0")
@@ -526,7 +536,12 @@ cdef class FP_LLL:
         cdef int r = bkzReduction(o)
         sig_off()
         if r:
-            raise RuntimeError( str(getRedStatusStr(r)) )
+            if r in (RED_BKZ_LOOPS_LIMIT, RED_BKZ_TIME_LIMIT):
+                if verbose:
+                    print str(getRedStatusStr(r))
+            else:
+                raise RuntimeError( str(getRedStatusStr(r)) )
+
 
     def HKZ(self):
         """
@@ -1441,12 +1456,10 @@ cdef to_sage(ZZ_mat[mpz_t] *A):
     - ``A`` -- ZZ_mat
     """
     cdef int i,j
-    cdef mpz_t *t
 
     cdef Matrix_integer_dense B = <Matrix_integer_dense>matrix(ZZ, A.getRows(), A.getCols())
 
     for i from 0 <= i < A.getRows():
         for j from 0 <= j < A.getCols():
-            t = &B._matrix[i][j]
-            mpz_set(t[0], A[0][i][j].getData())
+            mpz_set(B._matrix[i][j], A[0][i][j].getData())
     return B

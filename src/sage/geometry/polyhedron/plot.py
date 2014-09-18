@@ -339,10 +339,10 @@ class ProjectionFuncStereographic():
             sage: from sage.geometry.polyhedron.plot import ProjectionFuncStereographic
             sage: proj = ProjectionFuncStereographic([1.0,1.0])
             sage: proj.__call__(vector([1,2]))
-            (-1.0)
+            (-1.0000000000000002)
             sage: proj = ProjectionFuncStereographic([2.0,1.0])
-            sage: proj.__call__(vector([1,2]))
-            (3.0)
+            sage: proj.__call__(vector([1,2]))  # abs tol 1e-14
+            (2.9999999999999996)
             sage: proj = ProjectionFuncStereographic([0,0,2])
             sage: proj.__call__(vector([0,0,1]))
             (0.0, 0.0)

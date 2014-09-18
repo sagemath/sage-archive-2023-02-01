@@ -104,6 +104,8 @@ class Timer:
         """
         Start the timer.
 
+        Can be called multiple times to reset the timer.
+
         EXAMPLES::
 
             sage: from sage.doctest.util import Timer

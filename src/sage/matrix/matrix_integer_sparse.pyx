@@ -139,7 +139,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         cdef Integer x
         x = Integer()
-        mpz_vector_get_entry(&x.value, &self._matrix[i], j)
+        mpz_vector_get_entry(x.value, &self._matrix[i], j)
         return x
 
     def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.

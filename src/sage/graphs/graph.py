@@ -95,7 +95,7 @@ graphs.
     :meth:`~Graph.clique_maximum` | Returns the vertex set of a maximal order complete subgraph.
     :meth:`~Graph.cliques_maximum` | Returns the list of all maximum cliques
     :meth:`~Graph.cliques_maximal` | Returns the list of all maximal cliques
-
+    :meth:`~Graph.clique_polynomial` | Returns the clique polynomial
 
 **Algorithmically hard stuff:**
 
@@ -118,7 +118,7 @@ graphs.
     :meth:`~Graph.chromatic_polynomial` | Returns the chromatic polynomial of the graph.
     :meth:`~Graph.tutte_polynomial` | Returns the Tutte polynomial of the graph.
     :meth:`~Graph.is_perfect` | Tests whether the graph is perfect.
-
+    :meth:`~Graph.treewidth` | Computes the tree-width and provides a decomposition.
 
 
 **Leftovers:**
@@ -211,6 +211,7 @@ AUTHORS:
 
 - Alexandre P. Zuge (2013-07): added join operation.
 
+- Amritanshu Prasad (2014-08): added clique polynomial
 
 Graph Format
 ------------
@@ -525,12 +526,15 @@ Methods
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.misc.superseded import deprecated_function_alias
 from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.digraph import DiGraph
+from sage.graphs.independent_sets import IndependentSets
 from sage.combinat.combinatorial_map import combinatorial_map
 
 class Graph(GenericGraph):
@@ -2603,6 +2607,215 @@ class Graph(GenericGraph):
 
         return left == right
 
+    def treewidth(self,k=None,certificate=False):
+        r"""
+        Computes the tree-width of `G` (and provides a decomposition)
+
+        INPUT:
+
+        - ``k`` (integer) -- the width to be considered. When ``k`` is an
+          integer, the method checks that the graph has treewidth `\leq k`. If
+          ``k`` is ``None`` (default), the method computes the optimal
+          tree-width.
+
+        - ``certificate`` -- whether to return the tree-decomposition itself.
+
+        OUTPUT:
+
+            ``g.treewidth()`` returns the treewidth of ``g``. When ``k`` is
+             specified, it returns ``False`` when no tree-decomposition of width
+             `\leq k` exists or ``True`` otherwise. When ``certificate=True``,
+             the tree-decomposition is also returned.
+
+        ALGORITHM:
+
+            This function virtually explores the graph of all pairs
+            ``(vertex_cut,cc)``, where ``vertex_cut`` is a vertex cut of the
+            graph of cardinality `\leq k+1`, and ``connected_component`` is a
+            connected component of the graph induced by ``G-vertex_cut``.
+
+            We deduce that the pair ``(vertex_cut,cc)`` is feasible with
+            tree-width `k` if ``cc`` is empty, or if a vertex ``v`` from
+            ``vertex_cut`` can be replaced with a vertex from ``cc``, such that
+            the pair ``(vertex_cut+v,cc-v)`` is feasible.
+
+        .. NOTE::
+
+            The implementation would be much faster if ``cc``, the argument of the
+            recursive function, was a bitset. It would also be very nice to not copy
+            the graph in order to compute connected components, for this is really a
+            waste of time.
+
+        .. SEEALSO::
+
+            :meth:`~sage.graphs.graph_decompositions.vertex_separation.path_decomposition`
+            computes the pathwidth of a graph. See also the
+            :mod:`~sage.graphs.graph_decompositions.vertex_separation` module.
+
+        EXAMPLES:
+
+        The PetersenGraph has treewidth 4::
+
+            sage: graphs.PetersenGraph().treewidth()
+            4
+            sage: graphs.PetersenGraph().treewidth(certificate=True)
+            Graph on 7 vertices
+
+        The treewidth of a 2d grid is its smallest side::
+
+            sage: graphs.Grid2dGraph(2,5).treewidth()
+            2
+            sage: graphs.Grid2dGraph(3,5).treewidth()
+            3
+
+        TESTS::
+
+            sage: g = graphs.PathGraph(3)
+            sage: g.treewidth()
+            1
+            sage: g = 2*graphs.PathGraph(3)
+            sage: g.treewidth()
+            1
+            sage: g.treewidth(certificate=True)
+            Graph on 6 vertices
+            sage: g.treewidth(2)
+            True
+            sage: g.treewidth(1)
+            True
+            sage: Graph(1).treewidth()
+            1
+            sage: Graph(0).treewidth()
+            0
+            sage: graphs.PetersenGraph().treewidth(k=2)
+            False
+            sage: graphs.PetersenGraph().treewidth(k=6)
+            True
+            sage: graphs.PetersenGraph().treewidth(certificate=True).is_tree()
+            True
+            sage: graphs.PetersenGraph().treewidth(k=3,certificate=True)
+            False
+            sage: graphs.PetersenGraph().treewidth(k=4,certificate=True)
+            Graph on 7 vertices
+        """
+        from sage.misc.cachefunc import cached_function
+        from sage.sets.set import Set
+        g = self
+
+        # Stupid cases
+        if g.order() == 0:
+            if certificate: return Graph()
+            elif k is None: return 0
+            else:           return True
+
+        # Disconnected cases
+        if not g.is_connected():
+            if certificate is False:
+                if k is None:
+                    return max(cc.treewidth() for cc in g.connected_components_subgraphs())
+                else:
+                    return all(cc.treewidth(k) for cc in g.connected_components_subgraphs())
+            else:
+                return Graph(sum([cc.treewidth(certificate=True).edges(labels=False)
+                                  for cc in g.connected_components_subgraphs()],[]))
+
+        # Forcing k to be defined
+        if k is None:
+            for i in range(max(1,g.clique_number()-1,min(g.degree())),
+                           g.order()+1):
+                ans = g.treewidth(k=i, certificate=certificate)
+                if ans:
+                    return ans if certificate else i
+
+        # This is the recursion described in the method's documentation. All
+        # computations are cached, and depends on the pair ``cut,
+        # connected_component`` only.
+        #
+        # It returns either a boolean or the corresponding tree-decomposition, as a
+        # list of edges between vertex cuts (as it is done for the complete
+        # tree-decomposition at the end of the main function.
+        @cached_function
+        def rec(cut,cc):
+            # Easy cases
+            if len(cut) > k:
+                return False
+            if len(cc)+len(cut) <= k+1:
+                return [(cut,cut.union(cc))] if certificate else True
+
+            # The list of potential vertices that could be added to the current cut
+            extensions = {v for u in cut for v in g.neighbors(u) if v in cc}
+            for v in extensions:
+
+                # New cuts and connected components, with v respectively added and
+                # removed
+                cutv = cut.union([v])
+                ccv = cc.difference([v])
+
+                # The values returned by the recursive calls.
+                sons = []
+
+                # Removing v may have disconnected cc. We iterate on its connected
+                # components
+                for cci in g.subgraph(ccv).connected_components():
+
+                    # The recursive subcalls. We remove on-the-fly the vertices from
+                    # the cut which play no role in separating the connected
+                    # component from the rest of the graph.
+                    reduced_cut = frozenset([x for x in cutv if any(xx in cci for xx in g.neighbors(x))])
+                    son = rec(reduced_cut,frozenset(cci))
+                    if son is False:
+                        break
+
+                    if certificate:
+                        sons.extend(son)
+                        sons.append((cut,reduced_cut))
+
+                # Weird Python syntax which is useful once in a lifetime : if break
+                # was never called in the loop above, we return "sons".
+                else:
+                    return sons if certificate else True
+
+            return False
+
+        # Main call to rec function, i.e. rec({v},V-{v})
+        V = g.vertices()
+        v = frozenset([V.pop(0)])
+        TD = rec(v,frozenset(V))
+
+        if TD is False:
+            return False
+
+        if not certificate:
+            return True
+
+        # Building the Tree-Decomposition graph. Its vertices are cuts of the
+        # decomposition, and there is an edge from a cut C1 to a cut C2 if C2 is an
+        # immediate subcall of C1
+        G = Graph()
+        G.add_edges([(Set(x),Set(y)) for x,y in TD])
+
+        # The Tree-Decomposition contains a lot of useless nodes that we now remove.
+        prune_list = G.vertices()
+
+        for v in prune_list:
+            # We remove any vertex of degree 1 whose corresponding set is contained
+            # in the set represented by its unique neighbor.
+            if G.degree(v)==1:
+                v1 = G.neighbors(v)[0]
+                if v.issubset(v1):
+                    G.delete_vertex(v)
+                    prune_list.append(v1)
+
+            # We remove a vertex v with two neighbors v1,v2 if v1 is a subset of v
+            # and v is a subset of v2
+            elif G.degree(v) == 2:
+                v1,v2 = G.neighbors(v)
+                if ((v1.issubset(v)   and v.issubset(v2)) or
+                    (v1.issuperset(v) and v.issuperset(v2))):
+                    G.add_edge(v1,v2)
+                    G.delete_vertex(v)
+
+        return G
+
     def is_perfect(self, certificate = False):
         r"""
         Tests whether the graph is perfect.
@@ -3894,7 +4107,7 @@ class Graph(GenericGraph):
         except MIPSolverException:
             return False
 
-    def fractional_chromatic_index(self, verbose_constraints = 0, verbose = 0):
+    def fractional_chromatic_index(self, solver = None, verbose_constraints = 0, verbose = 0):
         r"""
         Computes the fractional chromatic index of ``self``
 
@@ -3926,6 +4139,19 @@ class Graph(GenericGraph):
 
         INPUT:
 
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+          .. NOTE::
+
+              If you want exact results, i.e. a rational number, use
+              ``solver="PPL"``. This may be slower, though.
+
         - ``verbose_constraints`` -- whether to display which constraints are
           being generated.
 
@@ -3940,7 +4166,6 @@ class Graph(GenericGraph):
             just have to update the weights on the edges between each call to
             ``solve`` (and so avoiding the generation of all the constraints).
 
-
         EXAMPLE:
 
         The fractional chromatic index of a `C_5` is `5/2`::
@@ -3948,12 +4173,17 @@ class Graph(GenericGraph):
             sage: g = graphs.CycleGraph(5)
             sage: g.fractional_chromatic_index()
             2.5
+
+        With PPL::
+
+            sage: g.fractional_chromatic_index(solver="PPL")
+            5/2
         """
         self._scream_if_not_simple()
         from sage.numerical.mip import MixedIntegerLinearProgram
 
         g = self.copy()
-        p = MixedIntegerLinearProgram(constraint_generation = True)
+        p = MixedIntegerLinearProgram(solver=solver, constraint_generation = True)
 
         # One variable per edge
         r = p.new_variable(nonnegative=True)
@@ -5836,6 +6066,35 @@ class Graph(GenericGraph):
         C._graph = self
         return C
 
+    def clique_polynomial(self, t = None):
+        """
+        Returns the clique polynomial of self.
+
+        This is the polynomial where the coefficient of `t^n` is the number of
+        cliques in the graph with `n` vertices. The constant term of the
+        clique polynomial is always taken to be one.
+
+        EXAMPLES::
+
+            sage: g = Graph()
+            sage: g.clique_polynomial()
+            1
+            sage: g = Graph({0:[1]})
+            sage: g.clique_polynomial()
+            t^2 + 2*t + 1
+            sage: g = graphs.CycleGraph(4)
+            sage: g.clique_polynomial()
+            4*t^2 + 4*t + 1
+
+        """
+        if t is None:
+            R = PolynomialRing(ZZ, 't')
+            t = R.gen()
+        number_of = [0]*(self.order() + 1)
+        for x in IndependentSets(self, complement = True):
+            number_of[len(x)] += 1
+        return sum([coeff*t**i for i,coeff in enumerate(number_of) if coeff])
+    
     ### Miscellaneous
 
     def cores(self, k = None, with_labels=False):

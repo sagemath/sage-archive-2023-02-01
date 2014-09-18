@@ -51,8 +51,7 @@ cdef class FiniteFieldIterator:
 
         EXAMPLES::
 
-            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: k = iter(FiniteField_ext_pari(9, 'a')) # indirect doctest
+            sage: k = iter(FiniteField(9, 'a', impl='pari_mod')) # indirect doctest
             sage: isinstance(k, sage.rings.finite_rings.finite_field_base.FiniteFieldIterator)
             True
         """
@@ -65,8 +64,7 @@ cdef class FiniteFieldIterator:
 
         EXAMPLE::
 
-            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: k = iter(FiniteField_ext_pari(9, 'a'))
+            sage: k = iter(FiniteField(9, 'a', impl='pari_mod'))
             sage: k.next() # indirect doctest
             0
         """
@@ -318,8 +316,7 @@ cdef class FiniteField(Field):
 
         EXAMPLES::
 
-            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(8, 'a')
+            sage: k = FiniteField(8, 'a', impl='pari_mod')
             sage: i = iter(k); i # indirect doctest
             <sage.rings.finite_rings.finite_field_base.FiniteFieldIterator object at ...>
             sage: i.next()

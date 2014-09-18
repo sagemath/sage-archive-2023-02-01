@@ -59,6 +59,22 @@ class FiniteGroups(CategoryWithAxiom):
             """
             return self.group_generators()
 
+        def monoid_generators(self):
+            """
+            Return monoid generators for ``self``.
+
+            For finite groups, the group generators are also monoid
+            generators. Hence, this default implementation calls
+            :meth:`~sage.categories.groups.Groups.ParentMethods.group_generators`.
+
+            EXAMPLES::
+
+                sage: A = AlternatingGroup(4)
+                sage: A.monoid_generators()
+                Family ((2,3,4), (1,2,3))
+            """
+            return self.group_generators()
+
         def cardinality(self):
             """
             Returns the cardinality of ``self``, as per

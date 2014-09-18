@@ -139,12 +139,14 @@ class DiGraph(GenericGraph):
 
         sage: g = digraphs.ButterflyGraph(3)
         sage: g.plot()
+        Graphics object consisting of 81 graphics primitives
 
     You can also use the collection of pre-defined graphs, then create a
     digraph from them. ::
 
         sage: g = DiGraph(graphs.PetersenGraph())
         sage: g.plot()
+        Graphics object consisting of 50 graphics primitives
 
     Calling ``Digraph`` on a graph returns the original graph in which every
     edge is replaced by two different edges going toward opposite directions.
@@ -170,12 +172,14 @@ class DiGraph(GenericGraph):
     connected components with only two lines::
 
         sage: for component in g.connected_components():
-        ...      g.subgraph(component).plot()
+        ....:      g.subgraph(component).plot()
+        Graphics object consisting of 50 graphics primitives
 
     The same methods works for strongly connected components ::
 
         sage: for component in g.strongly_connected_components():
-        ...      g.subgraph(component).plot()
+        ....:      g.subgraph(component).plot()
+        Graphics object consisting of 50 graphics primitives
 
 
     INPUT:

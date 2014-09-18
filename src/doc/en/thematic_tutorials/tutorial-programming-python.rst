@@ -86,7 +86,7 @@ The *standard types* are :class:`bool`, :class:`int`, :class:`list`,
   must be hashable::
 
       sage: set([2,2,1,4,5])
-      set([1, 2, 4, 5])
+      {1, 2, 4, 5}
 
       sage: set([ [1], [2] ])
       Traceback (most recent call last):
@@ -102,7 +102,7 @@ The *standard types* are :class:`bool`, :class:`int`, :class:`list`,
   For example::
 
       sage: age = {'toto' : 8, 'mom' : 27}; age
-      {'toto': 8, 'mom': 27}
+      {'mom': 27, 'toto': 8}
 
 * Quotes (simple ``' '`` or double ``" "``) enclose *character
   strings*. One can concatenate them using ``+``.
@@ -705,7 +705,7 @@ braces, ``{}``, with comma-separated entries given in the form
 
     sage: d = {3:17, "key":[4,1,5,2,3], (3,1,2):"goo", 3/2 : 17}
     sage: d
-    {3/2: 17, 3: 17, (3, 1, 2): 'goo', 'key': [4, 1, 5, 2, 3]}
+    {3/2: 17, 3: 17, 'key': [4, 1, 5, 2, 3], (3, 1, 2): 'goo'}
 
 A second method is to use the constructor :class:`dict` which admits a
 list (or actually any iterable) of 2-tuples *(key, value)*::
@@ -732,7 +732,7 @@ Dictionaries behave as lists and tuples for several important operations.
 
     sage: d[10]='a'
     sage: d
-    {3/2: 17, 10: 'a', 3: 17, (3, 1, 2): 'goo', 'key': [4, 1, 5, 2, 3]}
+    {3/2: 17, 3: 17, 10: 'a', 'key': [4, 1, 5, 2, 3], (3, 1, 2): 'goo'}
 
 A dictionary can have the same value multiple times, but each key must only
 appear once and must be immutable::
@@ -765,7 +765,7 @@ updates the dictionary from another dictionary::
 
     sage: d.update( {10 : 'newvalue', 20: 'newervalue', 3: 14, 'a':[1,2,3]} )
     sage: d
-    {'a': [1, 2, 3], 10: 'newvalue', 3: 14, 20: 'newervalue'}
+    {3: 14, 10: 'newvalue', 20: 'newervalue', 'a': [1, 2, 3]}
 
 We can iterate through the *keys*, or *values*, or both, of a dictionary::
 

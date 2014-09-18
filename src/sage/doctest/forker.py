@@ -808,9 +808,9 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: globs['doctest_var']
             42
             sage: globs.set
-            set(['doctest_var'])
+            {'doctest_var'}
             sage: globs.got
-            set(['Integer'])
+            {'Integer'}
 
         Now we can execute some more doctests to see the dependencies. ::
 
@@ -820,7 +820,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: sorted(list(globs.set))
             ['R', 'a']
             sage: globs.got
-            set(['ZZ'])
+            {'ZZ'}
             sage: ex1.predecessors
             []
 
@@ -2043,7 +2043,7 @@ class DocTestTask(object):
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
             sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: DocTestTask(FDS)
-            <sage.doctest.forker.DocTestTask at ...>
+            <sage.doctest.forker.DocTestTask object at 0x...>
         """
         self.source = source
 

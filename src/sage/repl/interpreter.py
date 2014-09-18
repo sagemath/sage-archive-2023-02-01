@@ -288,7 +288,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
             sage: shell = interface_shell_embed(maxima)
             sage: ift = shell.prefilter_manager.transformers[0]
             sage: ift.temporary_objects
-            set([])
+            set()
             sage: ift._sage_import_re.findall('sage(a) + maxima(b)')
             ['a', 'b']
         """
@@ -357,7 +357,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
             sage: ift.transform(r'sage(a)+4', False)
             'sage.misc.all.logstr("""8""")'
             sage: ift.temporary_objects
-            set([])
+            set()
             sage: shell = interface_shell_embed(gap)
             sage: ift = InterfaceShellTransformer(shell=shell, config=shell.config, prefilter_manager=shell.prefilter_manager)
             sage: ift.transform('2+2', False)

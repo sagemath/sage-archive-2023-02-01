@@ -1325,9 +1325,9 @@ class HierarchyElement(object):
             sage: from sage.misc.c3_controlled import HierarchyElement
             sage: P = Poset((divisors(30), lambda x,y: y.divides(x)), facade=True)
             sage: HierarchyElement(1, P).all_bases()
-            set([1])
-            sage: HierarchyElement(10, P).all_bases()
-            set([...])
+            {1}
+            sage: HierarchyElement(10, P).all_bases()  # random output
+            {10, 5, 2, 1}
             sage: sorted([x.value for x in HierarchyElement(10, P).all_bases()])
             [1, 2, 5, 10]
         """

@@ -1728,8 +1728,8 @@ def powerset(X):
 
     You may also use subsets as an alias for powerset::
 
-        sage: subsets([1,2,3])   # random object location in output
-        <generator object at 0xaeae418c>
+        sage: subsets([1,2,3])
+        <generator object powerset at 0x...>
         sage: list(subsets([1,2,3]))
         [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
 

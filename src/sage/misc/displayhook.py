@@ -17,8 +17,8 @@ class DisplayHook(DoctestDisplayHook):
 
         EXAMPLES::
 
-            sage: from sage.repl.display.python_hook import DisplayHook
-            sage: d = DisplayHook()
+            sage: from sage.repl.display.python_hook import DoctestDisplayHook
+            sage: d = DoctestDisplayHook()
             sage: d(set([1, 2, 3]))       # Sage commandline output
             {1, 2, 3}
             sage: print(set([1, 2, 3]))   # Plain Python output

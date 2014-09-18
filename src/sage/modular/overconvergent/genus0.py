@@ -1602,6 +1602,7 @@ class OverconvergentModularFormElement(ModuleElement):
             sage: o=OverconvergentModularForms(3, 0, 1/2)
             sage: f=o.eigenfunctions(4)[1]
             sage: f.valuation_plot()
+            Graphics object consisting of 1 graphics primitive
         """
         if rmax is None: rmax = ZZ(self.prime())/ZZ(1 + self.prime())
         return plot(self.r_ord, (0, rmax) )

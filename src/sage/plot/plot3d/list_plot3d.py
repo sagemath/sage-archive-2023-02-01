@@ -64,6 +64,7 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
     ::
 
         sage: n = 5; list_plot3d(matrix(RDF,n,[(i+j)%n for i in [1..n] for j in [1..n]]))
+        Graphics3d Object
 
     We plot a matrix of values of sin.
 
@@ -72,6 +73,7 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
         sage: pi = float(pi)
         sage: m = matrix(RDF, 6, [sin(i^2 + j^2) for i in [0,pi/5,..,pi] for j in [0,pi/5,..,pi]])
         sage: list_plot3d(m, texture='yellow', frame_aspect_ratio=[1,1,1/3])
+        Graphics3d Object
 
     Though it doesn't change the shape of the graph, increasing
     num_points can increase the clarity of the graph.
@@ -79,24 +81,28 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
     ::
 
         sage: list_plot3d(m, texture='yellow', frame_aspect_ratio=[1,1,1/3],num_points=40)
+        Graphics3d Object
 
     We can change the interpolation type.
 
     ::
 
         sage: list_plot3d(m, texture='yellow', interpolation_type='nn',frame_aspect_ratio=[1,1,1/3])
+        Graphics3d Object
 
     We can make this look better by increasing the number of samples.
 
     ::
 
         sage: list_plot3d(m, texture='yellow', interpolation_type='nn',frame_aspect_ratio=[1,1,1/3],num_points=40)
+        Graphics3d Object
 
     Let's try a spline.
 
     ::
 
         sage: list_plot3d(m, texture='yellow', interpolation_type='spline',frame_aspect_ratio=[1,1,1/3])
+        Graphics3d Object
 
     That spline doesn't capture the oscillation very well; let's try a
     higher degree spline.
@@ -104,6 +110,7 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
     ::
 
         sage: list_plot3d(m, texture='yellow', interpolation_type='spline', degree=5, frame_aspect_ratio=[1,1,1/3])
+        Graphics3d Object
 
     We plot a list of lists::
 
@@ -120,6 +127,7 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
         ...      for j in range(6):
         ...         l.append((float(i*pi/5),float(j*pi/5),m[i,j]))
         sage: list_plot3d(l,texture='yellow')
+        Graphics3d Object
 
     Note that the points do not have to be regularly sampled. For example::
 
@@ -128,20 +136,24 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
         ...    for j in range(-5,5):
         ...      l.append((normalvariate(0,1),normalvariate(0,1),normalvariate(0,1)))
         sage: list_plot3d(l,interpolation_type='nn',texture='yellow',num_points=100)
+        Graphics3d Object
 
     TESTS:
 
     We plot 0, 1, and 2 points::
 
         sage: list_plot3d([])
+        Graphics3d Object
 
     ::
 
         sage: list_plot3d([(2,3,4)])
+        Graphics3d Object
 
     ::
 
         sage: list_plot3d([(0,0,1), (2,3,4)])
+        Graphics3d Object
 
     However, if two points are given with the same x,y coordinates but
     different z coordinates, an exception will be raised::
@@ -218,6 +230,7 @@ def list_plot3d_matrix(m, texture, **kwds):
     We plot a matrix that illustrates summation modulo `n`::
 
         sage: n = 5; list_plot3d(matrix(RDF,n,[(i+j)%n for i in [1..n] for j in [1..n]])) # indirect doctest
+        Graphics3d Object
 
     The interpolation type for matrices is 'linear'; for other types
     use other :func:`list_plot3d` input types.
@@ -227,7 +240,9 @@ def list_plot3d_matrix(m, texture, **kwds):
         sage: pi = float(pi)
         sage: m = matrix(RDF, 6, [sin(i^2 + j^2) for i in [0,pi/5,..,pi] for j in [0,pi/5,..,pi]])
         sage: list_plot3d(m, texture='yellow', frame_aspect_ratio=[1,1,1/3]) # indirect doctest
+        Graphics3d Object
         sage: list_plot3d(m, texture='yellow', interpolation_type='linear') # indirect doctest
+        Graphics3d Object
     """
     from parametric_surface import ParametricSurface
     f = lambda i,j: (i,j,float(m[int(i),int(j)]))
@@ -336,10 +351,12 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
         sage: pi = float(pi)
         sage: m = matrix(RDF, 6, [sin(i^2 + j^2) for i in [0,pi/5,..,pi] for j in [0,pi/5,..,pi]])
         sage: list_plot3d(m, texture='yellow', interpolation_type='linear', num_points=5) # indirect doctest
+        Graphics3d Object
 
     ::
 
         sage: list_plot3d(m, texture='yellow', interpolation_type='spline',frame_aspect_ratio=[1,1,1/3])
+        Graphics3d Object
 
     ::
 
@@ -348,6 +365,7 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
     ::
 
         sage: list_plot3d([(1,2,3),(0,1,3),(2,1,4),(1,0,-2)], texture='yellow', num_points=50)
+        Graphics3d Object
     """
     from matplotlib import delaunay
     import numpy

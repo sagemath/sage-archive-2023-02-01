@@ -499,15 +499,15 @@ ensemblistes usuelles.
 
     sage: X = set([1,19,'a']);   Y = set([1,1,1, 2/3])
     sage: X
-    set(['a', 1, 19])
+    {1, 19, 'a'}
     sage: Y
-    set([1, 2/3])
+    {2/3, 1}
     sage: 'a' in X
     True
     sage: 'a' in Y
     False
     sage: X.intersection(Y)
-    set([1])
+    {1}
 
 Sage a son propre type ensemble, qui est (dans certains cas) implémenté
 au-dessus du type Python, mais offre quelques fonctionnalités

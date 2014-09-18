@@ -139,6 +139,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     ::
 
         sage: plot(f)
+        Graphics object consisting of 1 graphics primitive
 
     We can also solve second-order differential equations.::
 

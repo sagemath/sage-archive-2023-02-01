@@ -245,6 +245,7 @@ class Lseries_ell(SageObject):
 
             sage: a = E.lseries().zeros(20)             # long time
             sage: point([(1,x) for x in a])             # graph  (long time)
+            Graphics object consisting of 1 graphics primitive
 
         AUTHOR:
             -- Uses Rubinstein's L-functions calculator.

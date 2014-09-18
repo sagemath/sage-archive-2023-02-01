@@ -726,8 +726,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         The operator can be any callable::
 
-            set Rational Field Integer Ring <function <lambda> at 0xc0b2270> None None
-            (Rational Field, Rational Field)
             sage: R.<x> = ZZ['x']
             sage: cm.bin_op(x^2-1, x+1, gcd)
             x + 1

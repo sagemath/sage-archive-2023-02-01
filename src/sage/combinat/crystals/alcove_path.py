@@ -815,7 +815,7 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             sage: C=crystals.AlcovePaths(['A',2],[1,1])
             sage: x=C( () ).f(1)
             sage: x._folding_data(2)
-            {(alpha[1] + alpha[2], 1): 1, 'infinity': 1, (alpha[2], 0): 1}
+            {(alpha[2], 0): 1, (alpha[1] + alpha[2], 1): 1, 'infinity': 1}
         """
         Parent = self.parent()
 

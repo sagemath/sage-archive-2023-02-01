@@ -326,7 +326,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
         sage: visitor.visit(ast.parse('[1,2,3]').body[0].value)
         [1, 2, 3]
         sage: visitor.visit(ast.parse("{'a':('e',2,[None,({False:True},'pi')]), 37.0:'temp'}").body[0].value)
-        {'a': ('e', 2, [None, ({False: True}, 'pi')]), 37.0: 'temp'}
+        {37.0: 'temp', 'a': ('e', 2, [None, ({False: True}, 'pi')])}
         sage: v = ast.parse("jc = ['veni', 'vidi', 'vici']").body[0]; v
         <_ast.Assign object at ...>
         sage: [x for x in dir(v) if not x.startswith('__')]
@@ -906,7 +906,7 @@ def _sage_getargspec_from_ast(source):
         sage: from_ast(s) == inspect.getargspec(context['f'])
         True
         sage: set(from_ast(sms.sage_getsource(x)) == inspect.getargspec(x) for x in [factor, identity_matrix, Graph.__init__])
-        set([True])
+        {True}
     """
     ast_args = ast.parse(source.lstrip()).body[0].args
 

@@ -483,15 +483,15 @@ or not, along with standard set-theoretic operations.
 
     sage: X = set([1,19,'a']);   Y = set([1,1,1, 2/3])
     sage: X
-    set(['a', 1, 19])
+    {1, 19, 'a'}
     sage: Y
-    set([1, 2/3])
+    {2/3, 1}
     sage: 'a' in X
     True
     sage: 'a' in Y
     False
     sage: X.intersection(Y)
-    set([1])
+    {1}
 
 Sage also has its own set type that is (in some cases) implemented using
 the built-in Python set type, but has a little bit of extra Sage-related

@@ -306,7 +306,7 @@ cdef class MonoDict:
         [(-15, 3), ('a', 1), ('ab', 2)]
         sage: # the following seems to be more consistent
         sage: set(L.iteritems())
-        set([('a', 1), ('ab', 2), (-15, 3)])
+        {(-15, 3), ('a', 1), ('ab', 2)}
         sage: del L[c]
         sage: sorted(L.iteritems())
         [('a', 1), ('ab', 2)]

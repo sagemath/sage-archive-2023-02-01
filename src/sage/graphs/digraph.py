@@ -1137,8 +1137,7 @@ class DiGraph(GenericGraph):
             sage: DiGraph({0:[1,2,3],4:[5,1]}).to_directed()
             Digraph on 6 vertices
         """
-        from copy import copy
-        return copy(self)
+        return self.copy()
 
     def to_undirected(self, implementation='c_graph', data_structure=None,
                       sparse=None):
@@ -1185,10 +1184,15 @@ class DiGraph(GenericGraph):
             else:
                 data_structure = "static_sparse"
         from sage.graphs.all import Graph
-        G = Graph(name=self.name(), pos=self._pos, boundary=self._boundary,
-                  multiedges=self.allows_multiple_edges(), loops=self.allows_loops(),
-                  implementation=implementation, data_structure=data_structure)
-        G.name(self.name())
+        G = Graph(name           = self.name(),
+                  pos            = self._pos,
+                  boundary       = self._boundary,
+                  multiedges     = self.allows_multiple_edges(),
+                  loops          = self.allows_loops(),
+                  implementation = implementation,
+                  data_structure = (data_structure if data_structure!="static_sparse"
+                                    else "sparse")) # we need a mutable copy first
+
         G.add_vertices(self.vertex_iterator())
         G.add_edges(self.edge_iterator())
         if hasattr(self, '_embedding'):

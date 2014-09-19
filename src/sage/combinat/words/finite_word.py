@@ -3899,8 +3899,8 @@ exponent %s: the length of the word (%s) times the exponent \
 
         EXAMPLES::
 
-            sage: Word('21331233213231').return_words(Word('2'))
-            set([word: 213, word: 21331, word: 233])
+            sage: sorted(Word('21331233213231').return_words(Word('2')))
+            [word: 213, word: 21331, word: 233]
             sage: Word().return_words(Word('213'))
             set([])
             sage: Word('121212').return_words(Word('1212'))
@@ -3908,9 +3908,9 @@ exponent %s: the length of the word (%s) times the exponent \
 
         ::
 
-            sage: TM = words.ThueMorseWord()[:10000]
-            sage: TM.return_words(Word([0]))     # optional long time (1.34 s)
-            set([word: 0, word: 01, word: 011])
+            sage: TM = words.ThueMorseWord()[:1000]
+            sage: sorted(TM.return_words(Word([0])))
+            [word: 0, word: 01, word: 011]
 
         REFERENCES:
 

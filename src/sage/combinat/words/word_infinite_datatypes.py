@@ -53,9 +53,9 @@ class WordDatatype_callable(WordDatatype):
 
             sage: from sage.combinat.words.word_infinite_datatypes import WordDatatype_callable
             sage: WordDatatype_callable(Words(),lambda n:n%3)
-            <class 'sage.combinat.words.word_infinite_datatypes.WordDatatype_callable'>
+            <sage.combinat.words.word_infinite_datatypes.WordDatatype_callable object at ...>
             sage: WordDatatype_callable(Words([0,1,2]),lambda n:n%3)
-            <class 'sage.combinat.words.word_infinite_datatypes.WordDatatype_callable'>
+            <sage.combinat.words.word_infinite_datatypes.WordDatatype_callable object at ...>
         """
         self._len = Infinity if length is None else length
         self._func = callable
@@ -76,6 +76,8 @@ class WordDatatype_callable(WordDatatype):
 
             sage: from sage.combinat.words.word_infinite_datatypes import WordDatatype_callable
             sage: s = WordDatatype_callable(Words(), lambda n:n%3+10, length=10); s
+            <sage.combinat.words.word_infinite_datatypes.WordDatatype_callable object at ...>
+
             <class 'sage.combinat.words.word_infinite_datatypes.WordDatatype_callable'>
             sage: it = iter(s)
             sage: [it.next() for _ in range(10)]

@@ -2767,7 +2767,7 @@ cdef class Matrix(ModuleElement):
             [1 1]
             sage: a = matrix(RDF,2,2,[.1,-.4,1.2,-.6])
             sage: b = matrix(RDF,2,2,[.3,.1,-.5,1.3])
-            sage: a / b
+            sage: a / b # rel tol 1e-10
             [-0.15909090909090906 -0.29545454545454547]
             [   2.863636363636364  -0.6818181818181817]
             sage: R.<t> = ZZ['t']

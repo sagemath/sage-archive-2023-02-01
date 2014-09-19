@@ -216,19 +216,10 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
             sage: from sage.rings.finite_rings.element_ext_pari import FiniteField_ext_pariElement
             sage: a = FiniteField_ext_pariElement(K,pari(0),value_from_pari=True)
-            sage: a
-            0
-            sage: a == K(0)
-            False
-
-        The reason is that the pari elements representing ``a`` and ``K(0)``
-        are different::
-
-            sage: pari(a).lift()
-            0
-            sage: pari(K(0)).lift()
-            Mod(0, 3)
-
+            sage: a._pari_().type()
+            't_INT'
+            sage: K(0)._pari_().type()
+            't_POLMOD'
         """
         field_element.FieldElement.__init__(self, parent)
         self.__class__ = dynamic_FiniteField_ext_pariElement

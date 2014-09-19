@@ -59,7 +59,8 @@ cimport cython
 
 cdef extern from "misc.h":
     int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
-    int     gcmp_sage(GEN x, GEN y)
+    int     gcmp_try(GEN x, GEN y)
+    int     gcmp_string(GEN x, GEN y)
 
 cdef extern from "mpz_pylong.h":
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
@@ -1056,13 +1057,9 @@ cdef class gen(sage.structure.element.RingElement):
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cdef _richcmp_c_impl(left, Element right, int op):
         """
-        Comparisons
-
-        First uses PARI's cmp routine; if it decides the objects are not
-        comparable, it then compares the underlying strings (since in
-        Python all objects are supposed to be comparable).
+        Compare ``left`` and ``right`` using ``op``.
 
         EXAMPLES::
 
@@ -1085,8 +1082,6 @@ cdef class gen(sage.structure.element.RingElement):
             sage: a is 5
             False
 
-        ::
-
             sage: pari(2.5) > None
             True
             sage: pari(3) == pari(3)
@@ -1095,8 +1090,82 @@ cdef class gen(sage.structure.element.RingElement):
             False
             sage: pari(I) == pari(I)
             True
+
+        TESTS:
+
+        Check that :trac:`16127` has been fixed::
+
+            sage: pari(1/2) < pari(1/3)
+            False
+            sage: pari(1) < pari(1/2)
+            False
+
+            sage: pari('O(x)') == 0
+            True
+            sage: pari('O(2)') == 0
+            True
         """
-        return gcmp_sage(left.g, (<gen>right).g)
+        cdef bint r
+        cdef int i
+        cdef GEN x = (<gen>left).g
+        cdef GEN y = (<gen>right).g
+        pari_catch_sig_on()
+        if op == 2:    # ==
+            r = (gequal(x, y) != 0)
+        elif op == 3:  # !=
+            r = (gequal(x, y) == 0)
+        else:
+            i = gcmp_try(x, y)
+            if i == 2:        # gcmp() failed
+                r = 0
+            elif op == 0:     # <
+                r = (i < 0)
+            elif op == 1:     # <=
+                r = (i <= 0)
+            elif op == 4:     # >
+                r = (i > 0)
+            elif op == 5:     # >=
+                r = (i >= 0)
+        pari_catch_sig_off()
+        return r
+
+    def __cmp__(left, right):
+        return (<Element>left)._cmp(right)
+
+    cdef int _cmp_c_impl(left, Element right) except -2:
+        """
+        Compare ``left`` and ``right``.
+
+        First uses PARI's `gcmp()` routine; if it decides the objects
+        are not comparable, it then compares the underlying strings
+        (since in Python all objects are supposed to be comparable).
+
+        EXAMPLES::
+
+            sage: a = pari(5)
+            sage: b = 10
+            sage: cmp(a, b)
+            -1
+            sage: cmp(a, 5)
+            0
+            sage: cmp(a, pari(10))
+            -1
+            sage: cmp(pari(2.5), None)
+            1
+            sage: cmp(pari(3), pari(3))
+            0
+            sage: cmp(pari('x^2 + 1'), pari('I-1'))
+            1
+            sage: cmp(pari(I), pari(I))
+            0
+        """
+        cdef int r
+        pari_catch_sig_on()
+        r = gcmp_try(left.g, (<gen>right).g)
+        if r == 2:  # gcmp() failed
+            r = gcmp_string(left.g, (<gen>right).g)
+        pari_catch_sig_off()
+        return r
 
     def __copy__(gen self):
         pari_catch_sig_on()
@@ -5888,11 +5957,11 @@ cdef class gen(sage.structure.element.RingElement):
             sage: e = pari([0,0,0,-82,0]).ellinit()
             sage: e.elleta()
             [3.60546360143265, 3.60546360143265*I]
-            sage: w1,w2 = e.omega()
+            sage: w1, w2 = e.omega()
             sage: eta1, eta2 = e.elleta()
-            sage: w1*eta2-w2*eta1
+            sage: w1*eta2 - w2*eta1
             6.28318530717959*I
-            sage: w1*eta2-w2*eta1 == pari(2*pi*I)
+            sage: w1*eta2 - w2*eta1 - pari(2*pi*I) == 0
             True
         """
         pari_catch_sig_on()

@@ -139,6 +139,7 @@ from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.finite_rings.constructor import is_FiniteField
 
+from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from sage.misc.misc import is_iterator
 from sage.structure.all import Sequence
@@ -2066,8 +2067,9 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         self._smooth = (sing_dim <= 0)
         return self._smooth
 
-class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_subscheme_projective):
+class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_projective):
 
+    @cached_method
     def segre_embedding(self, PP = None):
         r"""
         Returns the Segre embedding of ``self`` into the appropriate projective space.
@@ -2077,17 +2079,15 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
         -  ``PP`` - (default: None) ambient image projective space;
             this is constructed if it is not given.
 
-        OUTPUT:
-
-        - Hom -- from self to the appropriate subscheme of projective space
+        OUTPUT: Hom from ``self`` to the appropriate subscheme of projective space
 
         .. TODO::
 
-            Cartesian products with more than two components
+            products with more than two components
 
         EXAMPLES::
 
-            sage: X.<x,y,z,w,u,v> = ProjectiveSpace_cartesian_product([2,2],QQ)
+            sage: X.<x,y,z,w,u,v> = ProductProjectiveSpaces([2,2],QQ)
             sage: P = ProjectiveSpace(QQ,8,'t')
             sage: L = (-w - v)*x + (-w*y - u*z)
             sage: Q = (-u*w - v^2)*x^2 + ((-w^2 - u*w + (-u*v - u^2))*y + (-w^2 - u*v)*z)*x + \
@@ -2105,36 +2105,36 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
 
         vars = list(AS.coordinate_ring().variable_names()) + ['u' + str(i) for i in range(M+1)]
         from sage.rings.all import PolynomialRing
-        R = PolynomialRing(AS.base_ring(),AS.ngens()+M+1,vars,order='lex')
+        R = PolynomialRing(AS.base_ring(), AS.ngens()+M+1, vars, order='lex')
 
         #set-up the elimination for the segre embedding
         mapping = []
         k = AS.ngens()
         for i in range(N[0]+1):
-            for j in range(N[0]+1,N[0]+N[1]+2):
+            for j in range(N[0]+1, N[0]+N[1]+2):
                 mapping.append(R.gen(k)-R(AS.gen(i)*AS.gen(j)))
                 k+=1
 
         #change the defining ideal of the subscheme into the variables
         I = R.ideal(list(self.defining_polynomials()) + mapping)
-        J=I.groebner_basis()
-        s=set(R.gens()[:AS.ngens()])
-        n=len(J)-1
-        L=[]
+        J  =I.groebner_basis()
+        s = set(R.gens()[:AS.ngens()])
+        n = len(J)-1
+        L = []
         while s.isdisjoint(J[n].variables()):
             L.append(J[n])
-            n=n-1
+            n = n-1
 
         #create new subscheme
         if PP is None:
             from sage.schemes.projective.projective_space import ProjectiveSpace
-            PS = ProjectiveSpace(self.base_ring(),M,R.gens()[AS.ngens():])
+            PS = ProjectiveSpace(self.base_ring(), M, R.gens()[AS.ngens():])
             Y = PS.subscheme(L)
         else:
             if PP.dimension_relative()!= M:
                 raise ValueError("Projective Space %s must be dimension %s")%(PP, M)
             S = PP.coordinate_ring()
-            psi = R.hom([0]*(N[0]+N[1]+2) + list(S.gens()),S)
+            psi = R.hom([0]*(N[0]+N[1]+2) + list(S.gens()), S)
             L = [psi(l) for l in L]
             Y = PP.subscheme(L)
 
@@ -2143,7 +2143,7 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
         for i in range(N[0]+1):
             for j in range(N[0]+1,N[0]+N[1]+2):
                 mapping.append(AS.gen(i)*AS.gen(j))
-        phi = self.hom(mapping,Y)
+        phi = self.hom(mapping, Y)
 
         return phi
 
@@ -2155,7 +2155,7 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
 
         EXAMPLES::
 
-            sage: X.<x,y,z,w,u,v> = ProjectiveSpace_cartesian_product([2,2],QQ)
+            sage: X.<x,y,z,w,u,v> = ProductProjectiveSpaces([2,2],QQ)
             sage: L = (-w - v)*x + (-w*y - u*z)
             sage: Q = (-u*w - v^2)*x^2 + ((-w^2 - u*w + (-u*v - u^2))*y + (-w^2 - u*v)*z)*x + \
             ((-w^2 - u*w - u^2)*y^2 + (-u*w - v^2)*z*y + (-w^2 + (-v - u)*w)*z^2)
@@ -2176,7 +2176,7 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
 
         EXAMPLES::
 
-            sage: X.<x,y,z,w,u,v> = ProjectiveSpace_cartesian_product([2,2],QQ)
+            sage: X.<x,y,z,w,u,v> = ProductProjectiveSpaces([2,2],QQ)
             sage: L = (-w - v)*x + (-w*y - u*z)
             sage: Q = (-u*w - v^2)*x^2 + ((-w^2 - u*w + (-u*v - u^2))*y + (-w^2 - u*v)*z)*x + \
             ((-w^2 - u*w - u^2)*y^2 + (-u*w - v^2)*z*y + (-w^2 + (-v - u)*w)*z^2)
@@ -2188,7 +2188,7 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
         """
         raise NotImplementedError("Not Implemented")
 
-    def affine_patch(self, I, return_embedding=False):
+    def affine_patch(self, I, return_embedding = False):
         r"""
         Return the `I^{th}` affine patch of this projective scheme
         where 'I' is a multi-index.
@@ -2197,9 +2197,9 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
 
         - ``I`` -- a list or tuple of positive integers
 
-        - ``return_embedding`` -- Boolean, if true the projective embedding is also returned 
+        - ``return_embedding`` -- Boolean, if true the projective embedding is also returned
 
-        OUTPUT: 
+        OUTPUT:
 
         - An affine algebraic scheme
 
@@ -2207,22 +2207,18 @@ class AlgebraicScheme_subscheme_projective_cartesian_product(AlgebraicScheme_sub
 
         EXAMPLES::
 
-            sage: PP.<x,y,z,w,u,v> = ProjectiveSpace_cartesian_product([3,1],QQ)
+            sage: PP.<x,y,z,w,u,v> = ProductProjectiveSpaces([3,1],QQ)
             sage: W = PP.subscheme([y^2*z-x^3,z^2-w^2,u^3-v^3])
             sage: W.affine_patch([0,1],True)
-            (Closed subscheme of Affine Space of dimension 4 over Rational Field
-            defined by:
+            (Closed subscheme of Affine Space of dimension 4 over Rational Field defined by:
               x0^2*x1 - 1,
               x1^2 - x2^2,
               x3^3 - 1, Scheme morphism:
-              From: Closed subscheme of Affine Space of dimension 4 over Rational
-            Field defined by:
+              From: Closed subscheme of Affine Space of dimension 4 over Rational Field defined by:
               x0^2*x1 - 1,
               x1^2 - x2^2,
               x3^3 - 1
-              To:   Closed subscheme of Product of Projective Space of dimension 3
-            over Rational Field and Projective Space of dimension 1 over Rational
-            Field defined by:
+              To:   Closed subscheme of Product of projective spaces P^3 x P^1 over Rational Field defined by:
               -x^3 + y^2*z,
               z^2 - w^2,
               u^3 - v^3

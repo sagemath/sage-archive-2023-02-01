@@ -844,13 +844,12 @@ class ProjectiveSpace_ring(AmbientSpace):
             sage: P1 = ProjectiveSpace(QQ,1,'x')
             sage: P2 = ProjectiveSpace(QQ,2,'y')
             sage: PP = P1.cartesian_product(P2); PP
-            Product of Projective Space of dimension 1 over Rational Field and
-            Projective Space of dimension 2 over Rational Field
+            Product of projective spaces P^1 x P^2 over Rational Field
             sage: PP.gens()
             (x0, x1, y0, y1, y2)
         """
-        from sage.schemes.projective.projective_space_cartesian_product import ProjectiveSpace_cartesian_product
-        return ProjectiveSpace_cartesian_product([self,other])
+        from sage.schemes.product_projective.space import ProductProjectiveSpaces
+        return ProductProjectiveSpaces([self, other])
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):

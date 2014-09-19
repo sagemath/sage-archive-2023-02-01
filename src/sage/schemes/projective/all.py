@@ -21,7 +21,4 @@ all.py -- export of projective schemes to Sage
 #*****************************************************************************
 
 from projective_space import ProjectiveSpace, is_ProjectiveSpace
-from projective_space_cartesian_product import ProjectiveSpace_cartesian_product, is_ProjectiveSpace_cartesian_product
-
-
 

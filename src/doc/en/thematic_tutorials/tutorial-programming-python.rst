@@ -799,6 +799,7 @@ below::
     [(1, 2, 3), 'newvalue', 14, 'newervalue']
     sage: set(d.values()) == set([14, (1, 2, 3), 'newvalue', 'newervalue'])
     True
+
 ::
 
     sage: d.items()    # random order

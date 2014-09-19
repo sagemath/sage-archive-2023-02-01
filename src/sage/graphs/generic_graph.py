@@ -14748,7 +14748,12 @@ class GenericGraph(GenericGraph_pyx):
              ('1', 0): [1.12..., -0.830...],
              ('1', 1): [2.50..., -0.545...]}
         
-            sage: x = g.layout(layout = "acyclic_dummy", save_pos = True)
+            sage: g.layout(layout = "acyclic_dummy", save_pos = True)
+            {('0', 0): [0.33..., 0],
+             ('0', 1): [0.33..., 1],
+             ('1', 0): [0.67..., 0],
+             ('1', 1): [0.67..., 1]}
+
             sage: g.layout(dim = 3)
             {('0', 0): [2.02..., 0.528..., 0.343...],
              ('0', 1): [1.61..., 0.260..., -0.927...],

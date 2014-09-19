@@ -28,7 +28,10 @@ from sage.repl.display.util import format_list
 class ObjectReprABC(object):
     """
     The abstract base class of an object representer.
+
+    .. automethod:: __call__
     """
+
     def __repr__(self):
         """
         Return string representation.
@@ -46,7 +49,7 @@ class ObjectReprABC(object):
         return('{0} pretty printer'.format(self.__class__.__name__))
 
     def __call__(self, obj, p, cycle):
-        """
+        r"""
         Format object.
 
         INPUT:
@@ -112,6 +115,8 @@ class SomeIPythonRepr(ObjectReprABC):
             sage: from sage.repl.display.fancy_repr import SomeIPythonRepr
             sage: SomeIPythonRepr()
             SomeIPythonRepr pretty printer
+
+        .. automethod:: __call__
         """
         type_repr = _type_pprinters.copy()
         del type_repr[types.TypeType]
@@ -156,10 +161,12 @@ class SomeIPythonRepr(ObjectReprABC):
 class LargeMatrixHelpRepr(ObjectReprABC):
     """
     Representation including help for large Sage matrices
+
+    .. automethod:: __call__
     """
 
     def __call__(self, obj, p, cycle):
-        """
+        r"""
         Format matrix.
 
         INPUT:
@@ -212,10 +219,12 @@ class LargeMatrixHelpRepr(ObjectReprABC):
 class PlainPythonRepr(ObjectReprABC):
     """
     The ordinary Python representation
+
+    .. automethod:: __call__
     """
 
     def __call__(self, obj, p, cycle):
-        """
+        r"""
         Format matrix.
 
         INPUT:
@@ -255,10 +264,12 @@ class PlainPythonRepr(ObjectReprABC):
 class AsciiArtRepr(ObjectReprABC):
     """
     Ascii Art representation
+
+    .. automethod:: __call__
     """
 
     def __call__(self, obj, p, cycle):
-        """
+        r"""
         Return ascii art format.
 
         INPUT:
@@ -290,10 +301,12 @@ class AsciiArtRepr(ObjectReprABC):
 class TypesetRepr(ObjectReprABC):
     """
     Typeset representation
+
+    .. automethod:: __call__
     """
 
     def __call__(self, obj, p, cycle):
-        """
+        r"""
         Return typeset format.
 
         INPUT:
@@ -327,10 +340,12 @@ class TypesetRepr(ObjectReprABC):
 class TallListRepr(ObjectReprABC):
     """
     Special representation for lists with tall entries (e.g. matrices)
+
+    .. automethod:: __call__
     """
 
     def __call__(self, obj, p, cycle):
-        """
+        r"""
         Format list/tuple.
 
         INPUT:

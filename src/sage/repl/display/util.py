@@ -16,9 +16,11 @@ methods elsewhere.
 #*****************************************************************************
 
 
-class _TallListFormatter(object):
+class TallListFormatter(object):
     """
     Special representation for lists with tall entries (e.g. matrices)
+
+    .. automethod:: __call__
     """
 
     # This is used to wrap lines when printing "tall" lists.
@@ -160,4 +162,4 @@ class _TallListFormatter(object):
         return output
 
 
-format_list = _TallListFormatter()
+format_list = TallListFormatter()

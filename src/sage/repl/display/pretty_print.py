@@ -45,7 +45,7 @@ class SagePrettyPrinter(PrettyPrinter):
     )
 
     def toplevel(self):
-        """
+        r"""
         Return whether we are currently at the top level.
 
         OUTPUT:
@@ -159,6 +159,9 @@ class SagePrettyPrinter(PrettyPrinter):
 
 
 class AsciiArtPrettyPrinter(SagePrettyPrinter):
+    """
+    Pretty printer returning ASCII art
+    """
 
     pretty_repr = (
         AsciiArtRepr(),
@@ -166,6 +169,11 @@ class AsciiArtPrettyPrinter(SagePrettyPrinter):
 
 
 class TypesetPrettyPrinter(SagePrettyPrinter):
+    """
+    Pretty printer returning typeset html
+
+    This is also used in the emacs-mode.
+    """
 
     pretty_repr = (
         TypesetRepr(),

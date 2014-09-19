@@ -16,7 +16,7 @@ to read format::
     ]
 
 This facility uses :meth:`_repr_` (and a simple string) to try do a nice read
-format (see :meth:`sage.structure.parent._repr_option` for details).
+format (see :meth:`sage.structure.parent.Parent._repr_option` for details).
 
 With this displayhook there exists an other way for displaying object and more
 generally, all sage expression as an ASCII art object::
@@ -46,10 +46,9 @@ generally, all sage expression as an ASCII art object::
     ,   4   ,   4 ]
     sage: shell.run_cell('%display simple')
 
-This other facility uses a simple `AsciiArt` object (see
-:class:`sage.misc.ascii_art.AsciiArt` and
-:meth:`sage.structure.parent._ascii_art_`).
-"""
+This other facility uses a simple
+:class:`~sage.misc.ascii_art.AsciiArt` object (see and
+:meth:`sage.structure.sage_object.SageObject._ascii_art_`).  """
 
 #*****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
@@ -78,10 +77,10 @@ class SagePlainTextFormatter(PlainTextFormatter):
         In particular, it has the following two features:
     
         - correctly print lists of matrices or other objects (see
-          :meth:`sage.structure.parent._repr_option`),
+          :meth:`sage.structure.parent.Parent._repr_option`),
 
         - print ASCII art objects (like expressions) (see
-          :meth:`sage.structure.parent._ascii_art_`).
+          :meth:`sage.structure.sage_object.SageObject._ascii_art_`).
     
         EXAMPLES::
     

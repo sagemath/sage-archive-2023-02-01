@@ -691,10 +691,18 @@ class RCToKRTBijectionTypeD(RCToKRTBijectionTypeA):
             sage: from sage.combinat.rigged_configurations.bij_type_D import RCToKRTBijectionTypeD
             sage: bijection = RCToKRTBijectionTypeD(RC(partition_list=[[],[],[],[1]]))
             sage: bijection.cur_partitions
-            [(/), (/), (/), -1[ ]-1]
+            [(/)
+             , (/)
+             , (/)
+             , -1[ ]-1
+             ]
             sage: bijection.doubling_map()
             sage: bijection.cur_partitions
-            [(/), (/), (/), -2[ ][ ]-2]
+            [(/)
+             , (/)
+             , (/)
+             , -2[ ][ ]-2
+             ]
         """
         # Skip the first column since it is a spinor
         for i in range(1, len(self.cur_dims)):

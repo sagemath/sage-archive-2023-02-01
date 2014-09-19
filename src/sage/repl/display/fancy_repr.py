@@ -246,6 +246,25 @@ class PlainPythonRepr(ObjectReprABC):
             sage: pp = PlainPythonRepr()
             sage: pp.format_string(type(1))
             "<type 'sage.rings.integer.Integer'>"
+
+        Do not swallow a trailing newline at the end of the output of
+        a custom representer. Note that it is undesirable to have a
+        trailing newline, and if we don't display it you can't fix
+        it::
+    
+            sage: class Newline(object):
+            ....:     def __repr__(self):
+            ....:         return 'newline\n'
+            sage: n = Newline()
+            sage: pp.format_string(n)
+            'newline\n'
+            sage: pp.format_string([n, n, n])
+            '[newline\n, newline\n, newline\n]'
+            sage: [n, n, n]
+            [newline
+             , newline
+             , newline
+             ]
         """
         klass = _safe_getattr(obj, '__class__', None) or type(obj)
         klass_repr = _safe_getattr(klass, '__repr__', None)
@@ -254,7 +273,7 @@ class PlainPythonRepr(ObjectReprABC):
         else:
             # A user-provided repr. Find newlines and replace them with p.break_()
             output = _safe_repr(obj)
-            for idx, output_line in enumerate(output.splitlines()):
+            for idx, output_line in enumerate(output.split('\n')):
                 if idx:
                     p.break_()
                 p.text(output_line)

@@ -21,8 +21,8 @@ NOTEBOOK_DIR = os.path.join(DOT_SAGE, 'notebooks_ipy')
 DEFAULT_SAGE_NOTEBOOK_CONFIG = Config(
     SageNotebookApp = Config(
         notebook_dir = NOTEBOOK_DIR,
-        # log_level = 'DEBUG',       # if you want more logs
-        # open_browser = False,      # if you want to avoid browser restart
+        log_level = 'DEBUG',       # if you want more logs
+        open_browser = False,      # if you want to avoid browser restart
     ),
 )
 

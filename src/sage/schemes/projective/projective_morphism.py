@@ -967,9 +967,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2-y^2,y^2])
             sage: f.dehomogenize((0,1))
-            Scheme morphism:
-              From: Affine Space of dimension 1 over Rational Field
-              To:   Affine Space of dimension 1 over Rational Field
+            Scheme endomorphism of Affine Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x) to
                     ((-x^2 + 1)/x^2)
 

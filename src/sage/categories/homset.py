@@ -505,16 +505,12 @@ class Homset(Set_generic):
         sage: loads(H.dumps()) is H
         True
 
-    Homsets of non-unique parents are non-unique as well::
+    Homsets of unique parents are unique as well::
 
         sage: H = End(AffineSpace(2, names='x,y'))
         sage: loads(dumps(AffineSpace(2, names='x,y'))) is AffineSpace(2, names='x,y')
-        False
-        sage: loads(dumps(AffineSpace(2, names='x,y'))) == AffineSpace(2, names='x,y')
         True
         sage: loads(dumps(H)) is H
-        False
-        sage: loads(dumps(H)) == H
         True
 
     """

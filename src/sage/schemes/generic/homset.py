@@ -94,22 +94,16 @@ class SchemeHomsetFactory(UniqueFactory):
         sage: Hom is A3.Hom(A2)
         True
 
-    Here is a tricky point. The Hom-sets are not identical if
-    domains/codomains are isomorphic but not identiacal. Affine spaces are not
-    unique, and hence, when pickling and unpickling the homset together with
-    domain and codomain, we obtain non-unique behaviour::
+    The Hom-sets are identical if the domains and codomains are
+    identical::
 
         sage: loads(Hom.dumps()) is Hom
-        False
-        sage: loads(Hom.dumps()) == Hom
         True
         sage: A3_iso = AffineSpace(QQ,3)
-        sage: [ A3_iso is A3, A3_iso == A3 ]
-        [False, True]
+        sage: A3_iso is A3
+        True
         sage: Hom_iso = A3_iso.Hom(A2)
         sage: Hom_iso is Hom
-        False
-        sage: Hom_iso == Hom
         True
 
     TESTS::

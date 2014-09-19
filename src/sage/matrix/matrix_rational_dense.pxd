@@ -1,6 +1,14 @@
 include "sage/ext/cdefs.pxi"
+include "sage/libs/ntl/decl.pxi"
+include "sage/libs/flint/fmpz.pxi"
+include "sage/libs/flint/fmpz_poly.pxi"
+include "sage/libs/flint/fmpz_mat.pxi"
 
 cimport matrix_dense
+cimport matrix_integer_dense
+cimport sage.rings.integer
+from sage.rings.integer cimport Integer
+from sage.ext.mod_int cimport *
 
 cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 

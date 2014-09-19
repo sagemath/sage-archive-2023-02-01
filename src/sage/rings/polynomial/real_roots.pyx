@@ -4521,11 +4521,12 @@ def dprod_imatrow_vec(Matrix_integer_dense m, Vector_integer_dense v, int k):
     cdef int vsize = len(v)
     cdef int ra
     cdef int a
-
+    mpz_init(tmp)
     for a from 0 <= a < msize:
         ra = subsample_vec(a, msize, vsize)
-        mpz_addmul(sum.value, m._matrix[k][a], v._entries[ra])
-
+        m.get_unsafe_mpz(k,a,tmp)
+        mpz_addmul(sum.value, tmp, v._entries[ra])
+    mpz_clear(tmp)
     return sum
 
 def min_max_delta_intvec(Vector_integer_dense a, Vector_integer_dense b):
@@ -4622,4 +4623,3 @@ def min_max_diff_doublevec(Vector_real_double_dense c):
             max_diff = diff
 
     return (min_diff, max_diff)
-

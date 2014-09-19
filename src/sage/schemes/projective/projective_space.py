@@ -53,6 +53,8 @@ two lines.
 AUTHORS:
 
 - Ben Hutz: (June 2012): support for rings
+
+- Ben Hutz (9/2014): added support for cartesian products
 """
 
 #*****************************************************************************

@@ -23,8 +23,6 @@ AUTHORS:
 - Volker Braun (2011-08-11): significant improvement and refactoring.
 
 - Ben Hutz (June 2012): added support for projective ring
-
-- Ben Hutz (2014): added support for cartesian products
 """
 
 

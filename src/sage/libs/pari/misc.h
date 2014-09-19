@@ -13,31 +13,36 @@
   Adapted from the PARI function gen2.c:gequal_try().
 */
 inline int gcmp_try(GEN x, GEN y) {
-  int i;
-  pari_CATCH(CATCH_ALL) {
-    GEN E = pari_err_last();
-    switch(err_get_num(E))
-      {
-      case e_STACK: case e_MEM: case e_ALARM:
-        pari_err(0, E); /* rethrow */
-      }
-    i = 2;
-  } pari_TRY {
-    i = gcmp(x, y);
-  } pari_ENDCATCH;
-  return i;
+    int i;
+    pari_CATCH(CATCH_ALL) {
+        GEN E = pari_err_last();
+        switch(err_get_num(E))
+        {
+            case e_STACK: case e_MEM: case e_ALARM:
+            pari_err(0, E); /* rethrow */
+        }
+        /* Comparison failed, try equality */
+        if (gequal(x, y))
+            i = 0;
+        else
+            i = 2;
+    } pari_TRY {
+        i = gcmp(x, y);
+    } pari_ENDCATCH;
+    return i;
 }
 
 /* Compare the string representations of x and y.  */
 inline int gcmp_string(GEN x, GEN y) {
-  char *a = GENtostr(x);
-  char *b = GENtostr(y);
-  int i = strcmp(a, b);
-  pari_free(a);
-  pari_free(b);
-  return i>0 ? 1 :
-         i ? -1 :
-         0;
+    sig_block();
+    char *a = GENtostr(x);
+    char *b = GENtostr(y);
+    int i = strcmp(a, b);
+    free(a);
+    free(b);
+    sig_unblock();
+    if (i == 0) return 0;
+    return i > 0 ? 1 : -1;
 }
 
 

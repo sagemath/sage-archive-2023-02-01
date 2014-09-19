@@ -1049,9 +1049,6 @@ cdef class gen(sage.structure.element.RingElement):
 
     ###########################################
     # comparisons
-    # I had to rewrite PARI's compare, since
-    # otherwise trapping signals and other horrible,
-    # memory-leaking and slow stuff occurs.
     ###########################################
 
     def __richcmp__(left, right, int op):
@@ -1091,6 +1088,20 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(I) == pari(I)
             True
 
+        This does not define a total order::
+
+            sage: pari("Mod(1,3)") <= pari("Mod(2,3)")
+            False
+            sage: pari("Mod(1,3)") >= pari("Mod(2,3)")
+            False
+
+        Operators ``<=`` and ``>=`` return ``True`` for equal objects::
+
+            sage: pari("[0]") <= pari("0")
+            True
+            sage: pari("[0]") >= pari("0")
+            True
+
         TESTS:
 
         Check that :trac:`16127` has been fixed::
@@ -1118,14 +1129,8 @@ cdef class gen(sage.structure.element.RingElement):
             i = gcmp_try(x, y)
             if i == 2:        # gcmp() failed
                 r = 0
-            elif op == 0:     # <
-                r = (i < 0)
-            elif op == 1:     # <=
-                r = (i <= 0)
-            elif op == 4:     # >
-                r = (i > 0)
-            elif op == 5:     # >=
-                r = (i >= 0)
+            else:
+                r = left._rich_to_bool(op, i)
         pari_catch_sig_off()
         return r
 

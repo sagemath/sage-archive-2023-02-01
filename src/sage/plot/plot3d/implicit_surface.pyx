@@ -341,7 +341,7 @@ cdef class MarchingCubesTriangles(MarchingCubes):
             ...       cube_marcher.process_slice(x, slices[x, :, :])
             sage: faces = cube_marcher.finish()
             sage: faces[0][0]
-            {'x': 1.5555555555555554, 'y': -1.1111111111111112, 'z': -0.5555555555555551}
+            {'x': 1.555555555555..., 'y': -1.111111111111..., 'z': -0.555555555555...}
 
         We render the isosurface using IndexFaceSet::
 

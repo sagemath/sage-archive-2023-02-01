@@ -236,6 +236,51 @@ class SagePlainTextFormatter(PlainTextFormatter):
         return stream.getvalue()
 
 
+class SageDoctestTextFormatter(SagePlainTextFormatter):
+
+    @warn_format_error
+    def __call__(self, obj):
+        """
+        Display ``obj``.
+
+        For doctests, we both 
+
+        * Print the textual representation. This makes it clear in the
+          documentation that the command returns graphics.
+
+        * Run ``show()`` on graphics objects, to test that it
+          correctly generates graphics. Note that, in
+          ``DOCTEST_MODE``, the ``show()`` method will save graphics
+          to temporary files but not launch a viewer.
+
+        INPUT:
+
+        - ``obj`` -- anything.
+
+        OUTPUT:
+
+        String. The plain text representation.
+
+        EXAMPLES::
+
+            sage: class FooGraphics(SageObject):
+            ....:     def _graphics_(self):
+            ....:         print('showing graphics') 
+            ....:         return True
+            ....:     def _repr_(self):
+            ....:         return 'Textual representation'
+            sage: from sage.repl.display.formatter import SageDoctestTextFormatter
+            sage: fmt = SageDoctestTextFormatter()
+            sage: fmt(FooGraphics())
+            showing graphics
+            'Textual representation'
+        """
+        from sage.structure.sage_object import SageObject
+        if isinstance(obj, SageObject) and hasattr(obj, '_graphics_'):
+            obj._graphics_()      # ignore whether there actually is graphics
+        return super(SageDoctestTextFormatter, self).__call__(obj)
+
+
 class SageConsoleTextFormatter(SagePlainTextFormatter):
 
     @warn_format_error
@@ -266,6 +311,8 @@ class SageConsoleTextFormatter(SagePlainTextFormatter):
             ....:     def _graphics_(self):
             ....:         print('showing graphics') 
             ....:         return True
+            ....:     def _repr_(self):
+            ....:         return 'Textual representation'
             sage: from sage.repl.display.formatter import SageConsoleTextFormatter
             sage: fmt = SageConsoleTextFormatter()
             sage: fmt(FooGraphics())

@@ -1882,7 +1882,7 @@ cdef class PrimitiveObject(Graphics3d):
 
             sage: G = dodecahedron(color='red')
             sage: G.texture_set()
-            {Texture(texture540, red, ff0000)}
+            {Texture(texture..., red, ff0000)}
         """
         return set([self.texture])
 

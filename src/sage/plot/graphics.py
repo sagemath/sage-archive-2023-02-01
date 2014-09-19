@@ -1828,6 +1828,10 @@ class Graphics(SageObject):
         specify ``ticks`` manually, this safety measure can be defeated::
 
             sage: list_plot_loglog([(1,2),(2,3)], plotjoined=True, ticks=[[1],[1]])
+            doctest:...: UserWarning: The x-axis contains fewer than 2 ticks; 
+            the logarithmic scale of the plot may not be apparent to the reader.
+            doctest:...: UserWarning: The y-axis contains fewer than 2 ticks; 
+            the logarithmic scale of the plot may not be apparent to the reader.
             Graphics object consisting of 1 graphics primitive
 
         This one works, since the horizontal axis is automatically expanded
@@ -2318,7 +2322,9 @@ class Graphics(SageObject):
         ``typeset`` must not be set to an arbitrary string::
 
             sage: plot(x, typeset='garbage')
-            Graphics object consisting of 1 graphics primitive
+            doctest:...: FormatterWarning: Exception in text/plain formatter: 
+            typeset must be set to one of 'default', 'latex', or 'type1'; got 'garbage'.
+            None
 
         We verify that numerical options are changed to float before saving (:trac:`14741`).
         By default, Sage 5.10 changes float objects to the `RealLiteral` type.

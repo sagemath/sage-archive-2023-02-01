@@ -20,7 +20,7 @@ Sage, for example when running doctests.
 import __builtin__
 
 
-from sage.repl.display.formatter import SagePlainTextFormatter
+from sage.repl.display.formatter import SageDoctestTextFormatter
 
 
 class DoctestDisplayHook(object):
@@ -38,7 +38,7 @@ class DoctestDisplayHook(object):
             sage: print(set([1, 2, 3]))   # Plain Python output
             set([1, 2, 3])
         """
-        self.formatter = SagePlainTextFormatter()
+        self.formatter = SageDoctestTextFormatter()
 
     def __call__(self, obj):
         """

@@ -639,7 +639,7 @@ class MatchingGame(SageObject):
         return {key:self.sol_dict[key] for key in self.suitors}
 
 
-class Player(SageObject):
+class Player(object):
     r"""
     A class to act as a data holder for the players used of the matching games
     These instances are used when initiating players and to keep track of

@@ -515,3 +515,46 @@ cdef class WordDatatype_char(WordDatatype):
             return True
 
         raise TypeError("not able to initialize a word from {}".format(other))
+
+    def is_square(self):
+        r"""
+        Returns True if self is a square, and False otherwise.
+
+        EXAMPLES::
+
+            sage: w = Word([n % 4 for n in range(48)], alphabet=[0,1,2,3])
+            sage: w.is_square()
+            True
+
+        ::
+
+            sage: w = Word([n % 4 for n in range(49)], alphabet=[0,1,2,3])
+            sage: w.is_square()
+            False
+            sage: (w*w).is_square()
+            True
+
+        TESTS:
+
+        The above tests correspond to the present class (char)::
+
+            sage: type(w)
+            <class 'sage.combinat.words.word.FiniteWord_char'>
+
+        ::
+
+            sage: Word([], alphabet=[0,1]).is_square()
+            True
+            sage: Word([0], alphabet=[0,1]).is_square()
+            False
+            sage: Word([0,0], alphabet=[0,1]).is_square()
+            True
+        """
+        cdef size_t l
+        if self._length % 2 != 0:
+            return False
+        else:
+            l = self._length // 2
+            return memcmp(self._data, 
+                          self._data + l, 
+                          l * sizeof(unsigned char)) == 0

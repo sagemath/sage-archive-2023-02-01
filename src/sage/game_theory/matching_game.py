@@ -69,7 +69,7 @@ class MatchingGame(SageObject):
         (M, K, J, L),& \text{ if } s=D\\
         \end{cases}
 
-    To implement the above game in Sage: ::
+    To implement the above game in Sage::
 
         sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
         ....:               'K': ('A', 'B', 'C', 'D'),
@@ -103,7 +103,7 @@ class MatchingGame(SageObject):
     r to `M(r)` and `r` prefers `s` to `M^{-1}(r)`.
 
     To obtain the stable matching in Sage we use the ``solve`` method which
-    uses the extended Gale-Shapley algorithm [DI1989]_: ::
+    uses the extended Gale-Shapley algorithm [DI1989]_::
 
         sage: m.solve()
         {'K': ['C'],
@@ -111,19 +111,19 @@ class MatchingGame(SageObject):
          'M': ['B'],
          'L': ['D']}
 
-    Matchings have a natural representations as bi-partite graph: ::
+    Matchings have a natural representations as bi-partite graph::
 
         sage: plot(m)
 
     The above plots the bi-partite graph associated with the matching.
-    This plot can be accessed directly: ::
+    This plot can be accessed directly::
 
         sage: graph = m.bipartite()
         sage: graph
         Bipartite graph on 8 vertices
 
     It is possible to initiate a matching game without having to name each
-    suitor and reviewer: ::
+    suitor and reviewer::
 
         sage: n = 10
         sage: big_game = MatchingGame(n)
@@ -133,7 +133,7 @@ class MatchingGame(SageObject):
         [-1, -2, -3, -4, -5, -6, -7, -8, -9, -10]
 
     If we attempt to obtain the stable matching for the above game,
-    without defining the preference function we obtain an error: ::
+    without defining the preference function we obtain an error::
 
         sage: big_game.solve()
         Traceback (most recent call last):
@@ -142,7 +142,7 @@ class MatchingGame(SageObject):
 
     To continue we have to populate the preference dictionary. Here
     is one example where the preferences are simply the corresponding
-    element of the permutation group: ::
+    element of the permutation group::
 
         sage: from itertools import permutations
         sage: suitr_preferences = list(permutations([-i-1 for i in range(n)]))
@@ -167,7 +167,7 @@ class MatchingGame(SageObject):
     matching that is optimal from the point of view of the suitors and is in
     fact the worst possible matching from the point of view of the reviewers.
     To quickly obtain the matching that is optimal for the reviewers we use the
-    ``solve`` method with the ``invert=True`` option: ::
+    ``solve`` method with the ``invert=True`` option::
 
         sage: left_dict = {'a': ('A', 'B', 'C'),
         ....:              'b': ('B', 'C', 'A'),

@@ -23,15 +23,18 @@ AUTHORS:
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
+from sage.misc.misc import repr_lincomb
 from sage.algebras.algebra import Algebra
 from sage.algebras.lie_algebras.lie_algebra import InfinitelyGeneratedLieAlgebra, \
     LieAlgebraFromAssociative, FinitelyGeneratedLieAlgebra
 from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement, LieGenerator
 from sage.categories.lie_algebras import LieAlgebras
+from sage.combinat.cartesian_product import CartesianProduct
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.infinity import infinity
 from sage.sets.family import Family
+from sage.sets.positive_integers import PositiveIntegers
 
 class HeisenbergGenerator(LieGenerator):
     """
@@ -193,7 +196,19 @@ class HeisenbergAlgebra_abstract:
             return self.z()
         return self.zero()
 
-    Element = LieAlgebraElement
+    class Element(LieAlgebraElement):
+        """
+        An element in the Heisenberg Lie algebra.
+        """
+        def _repr_(self):
+            """
+            Return a string representation of ``self``.
+
+            EXAMPLES::
+            """
+            if not self._monomial_coefficients:
+                return '0'
+            return repr_lincomb(self.list())
 
 class HeisenbergAlgebra(HeisenbergAlgebra_abstract, FinitelyGeneratedLieAlgebra):
     """
@@ -236,7 +251,7 @@ class HeisenbergAlgebra(HeisenbergAlgebra_abstract, FinitelyGeneratedLieAlgebra)
             sage: TestSuite(L).run()
         """
         self._n = n
-        names = ['p%s'%i for i in range(1,n+1)] + ['q%s'%i for i in range(1,n+1)] + ['z']
+        names = ['p%s'%i for i in range(1,n+1)] + ['q%s'%i for i in range(1,n+1)] #+ ['z']
         FinitelyGeneratedLieAlgebra.__init__(self, R, names,
             category=LieAlgebras(R).FiniteDimensional().WithBasis())
 
@@ -260,11 +275,11 @@ class HeisenbergAlgebra(HeisenbergAlgebra_abstract, FinitelyGeneratedLieAlgebra)
 
             sage: H = lie_algebras.Heisenberg(QQ, 2)
             sage: H.gens()
-            (p1, p2, q1, q2, z)
+            (p1, p2, q1, q2)
         """
         L  = [self.p(i) for i in range(1, self._n+1)]
         L += [self.q(i) for i in range(1, self._n+1)]
-        L += [self.z()]
+        #L += [self.z()]
         return tuple(L)
 
     def gen(self, i):
@@ -281,18 +296,24 @@ class HeisenbergAlgebra(HeisenbergAlgebra_abstract, FinitelyGeneratedLieAlgebra)
         """
         return self.gens()[i]
 
-    def algebra_generators(self):
+    @cached_method
+    def lie_algebra_generators(self):
         """
         Return the algebra generators of ``self``.
 
         EXAMPLES::
 
             sage: H = lie_algebras.Heisenberg(QQ, 1)
-            sage: H.algebra_generators()
+            sage: H.lie_algebra_generators()
             Finite family {'q1': q1, 'p1': p1}
         """
-        return Family({self.variable_names()[i]: x for i,x in enumerate(self.gens()[:-1])})
+        d = {}
+        for i in range(1, self._n+1):
+            d['p%s'%i] = self.p(i)
+            d['q%s'%i] = self.q(i)
+        return Family(d)
 
+    @cached_method
     def basis(self):
         """
         Return the basis of ``self``.
@@ -303,7 +324,12 @@ class HeisenbergAlgebra(HeisenbergAlgebra_abstract, FinitelyGeneratedLieAlgebra)
             sage: H.basis()
             Finite family {'q1': q1, 'p1': p1, 'z': z}
         """
-        return Family({self.variable_names()[i]: x for i,x in enumerate(self.gens())})
+        d = {}
+        for i in range(1, self._n+1):
+            d['p%s'%i] = self.p(i)
+            d['q%s'%i] = self.q(i)
+        d['z'] = self.z()
+        return Family(d)
 
 class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedLieAlgebra):
     """
@@ -342,10 +368,23 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
 
             sage: L = lie_algebras.Heisenberg(QQ, oo)
             sage: L._an_element_()
-            p2 - 1/2*q2 + z
+            p2 + q2 - 1/2*q3 + z
         """
         c = self.base_ring().an_element()
-        return self.p(2) - c * self.q(2) + self.z()
+        return self.p(2) + self.q(2) - c * self.q(3) + self.z()
+
+    def lie_algebra_generators(self):
+        """
+        Return the generators of ``self`` as a Lie algebra.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Heisenberg(QQ, oo)
+            sage: L.lie_algebra_generators()
+        """
+        gen_func = lambda i, l: getattr(self, l)(i)
+        S = CartesianProduct(PositiveIntegers(), ['p','q'])
+        return Family(S, gen_func, name='generator map')
 
     def basis(self):
         """
@@ -361,8 +400,6 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
               Family (z,))
         """
         from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-        from sage.sets.positive_integers import PositiveIntegers
-        from sage.sets.family import Family
         p = Family(PositiveIntegers(), self.p)
         q = Family(PositiveIntegers(), self.q)
         z = Family([self.z()])

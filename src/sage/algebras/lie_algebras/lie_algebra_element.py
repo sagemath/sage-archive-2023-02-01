@@ -242,15 +242,15 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
     """
     A Lie algebra element.
     """
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-        """
-        if not self._monomial_coefficients:
-            return '0'
-        return repr_lincomb(self.list())
+    #def _repr_(self):
+    #    """
+    #    Return a string representation of ``self``.
+    #
+    #    EXAMPLES::
+    #    """
+    #    if not self._monomial_coefficients:
+    #        return '0'
+    #    return repr_lincomb(self.list())
 
     # Default implementation
     def _latex_monomial(self, m):
@@ -262,15 +262,15 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
         from sage.misc.latex import latex
         return latex(m)
 
-    def _latex_(self):
-        r"""
-        Return a `\LaTeX` representation of ``self``.
-
-        EXAMPLES::
-        """
-        if not self._monomial_coefficients:
-            return '0'
-        return repr_lincomb(self.list(), repr_monomial=self._latex_monomial, is_latex=True)
+    #def _latex_(self):
+    #    r"""
+    #    Return a `\LaTeX` representation of ``self``.
+    #
+    #    EXAMPLES::
+    #    """
+    #    if not self._monomial_coefficients:
+    #        return '0'
+    #    return repr_lincomb(self.list(), repr_monomial=self._latex_monomial, is_latex=True)
 
     def _mul_(self, y):
         """
@@ -299,7 +299,7 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
         return codomain.sum(c * t._im_gens_(codomain, im_gens, names)
                             for t, c in self._monomial_coefficients.iteritems())
 
-    # TODO: Move to the category/lift morphism
+    # TODO: Move to the category/lift morphism?
     def lift(self):
         """
         Lift ``self`` to the universal enveloping algebra.

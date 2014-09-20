@@ -23,32 +23,15 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.lie_algebras import LieAlgebras
+from sage.rings.all import ZZ
+from sage.sets.family import Family
+from sage.sets.set import Set
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.structure.indexed_generators import IndexedGenerators
 from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LieAlgebraElement
 from sage.algebras.lie_algebras.lie_algebra import InfinitelyGeneratedLieAlgebra
 
-# This is why we should use the repr_term in the parent
-class RegVecFieldsGen(LieGenerator):
-    r"""
-    Generator class for the Lie algebra of regular vector fields
-    of `\CC^{\times}`. This is known as the Witt algebra.
-
-    REFERENCES:
-
-    - :wikipedia:`Witt_algebra`
-    """
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: L = lie_algebras.regular_vector_fields(QQ)
-            sage: L.d(2)
-            d[2]
-        """
-        return "d[" + repr(self._name) + "]"
-
-class LieAlgebraRegularVectorFields(InfinitelyGeneratedLieAlgebra):
+class LieAlgebraRegularVectorFields(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
     The Lie algebra of regular vector fields on `C^{\times}`.
 
@@ -58,6 +41,12 @@ class LieAlgebraRegularVectorFields(InfinitelyGeneratedLieAlgebra):
     .. MATH::
 
         [d_i, d_j] = (j - i) d_{i+j}.
+
+    This is known as the Witt (Lie) algebra.
+
+    REFERENCES:
+
+    - :wikipedia:`Witt_algebra`
     """
     def __init__(self, R):
         """
@@ -68,7 +57,9 @@ class LieAlgebraRegularVectorFields(InfinitelyGeneratedLieAlgebra):
             sage: L = lie_algebras.regular_vector_fields(QQ)
             sage: TestSuite(L).run()
         """
-        InfinitelyGeneratedLieAlgebra.__init__(self, R, category=LieAlgebras(R).WithBasis())
+        cat = LieAlgebras(R).WithBasis()
+        InfinitelyGeneratedLieAlgebra.__init__(self, R, index_set=ZZ, category=cat)
+        IndexedGenerators.__init__(self, ZZ, prefix='d', bracket='[')
 
     def _repr_(self):
         """
@@ -81,40 +72,35 @@ class LieAlgebraRegularVectorFields(InfinitelyGeneratedLieAlgebra):
         """
         return "The Lie algebra of regular vector fields over {}".format(self.base_ring())
 
-    def d(self, i):
+    @cached_method
+    def lie_algebra_generators(self):
         """
-        The generator `d_i`.
+        Return the generators of ``self`` as a Lie algebra.
 
         EXAMPLES::
 
             sage: L = lie_algebras.regular_vector_fields(QQ)
-            sage: L.d(4)
-            d[4]
-            sage: L.d(-2)
-            d[-2]
+            sage: L.lie_algebra_generators()
         """
-        return self.element_class(self, {RegVecFieldsGen(i): self.base_ring().one()})
+        return Family(self._indices, self.monomial, name='generator map')
 
-    def bracket_on_basis(self, x, y):
+    def bracket_on_basis(self, i, j):
         """
-        Return the bracket of the basis elements indexed by ``x`` and ``y``.
+        Return the bracket of the basis elements indexed by ``i`` and ``j``.
 
         EXAMPLES::
 
             sage: L = lie_algebras.regular_vector_fields(QQ)
-            sage: d2 = L.d(2)
-            sage: dm2 = L.d(-2)
-            sage: d2.bracket(dm2) # indirect doctest
+            sage: L.bracket_on_basis(2, -2)
             -4*d[0]
+            sage: d2 = L.d(2)
             sage: d4 = L.d(4)
             sage: d2.bracket(d4)
             2*d[6]
             sage: L.bracket(d4, d4)
             0
         """
-        i = x._name
-        j = y._name
-        return self._from_dict({RegVecFieldsGen(i + j): j-i})
+        return self.term(i + j, j - i)
 
     def _an_element_(self):
         """
@@ -126,7 +112,7 @@ class LieAlgebraRegularVectorFields(InfinitelyGeneratedLieAlgebra):
             sage: L.an_element()
             d[-1] + d[0] - 3*d[1]
         """
-        return self.d(0) - 3*self.d(1) + self.d(-1)
+        return self.monomial(0) - 3*self.monomial(1) + self.monomial(-1)
 
     def some_elements(self):
         """
@@ -138,27 +124,11 @@ class LieAlgebraRegularVectorFields(InfinitelyGeneratedLieAlgebra):
             sage: L.some_elements()
             [d[0], d[2], d[-2], d[-1] + d[0] - 3*d[1]]
         """
-        return [self.d(0), self.d(2), self.d(-2), self.an_element()]
+        return [self.monomial(0), self.monomial(2), self.monomial(-2), self.an_element()]
 
     Element = LieAlgebraElement
 
-class CentralElement(LieGenerator):
-    """
-    The central element in the Virasoro algebra.
-    """
-    def __init__(self):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: d = lie_algebras.VirasoroAlgebra(QQ)
-            sage: d.c()
-            c
-        """
-        return LieGenerator.__init__(self, 'c')
-
-class VirasoroAlgebra(LieAlgebraRegularVectorFields):
+class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
     The Virasoro algebra.
 
@@ -187,6 +157,20 @@ class VirasoroAlgebra(LieAlgebraRegularVectorFields):
 
     - :wikipedia:`Virasoro_algebra`
     """
+    def __init__(self, R):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.regular_vector_fields(QQ)
+            sage: TestSuite(L).run()
+        """
+        cat = LieAlgebras(R).WithBasis()
+        I = DisjointUnionEnumeratedSets([Set(['c']), ZZ])
+        InfinitelyGeneratedLieAlgebra.__init__(self, R, index_set=I, category=cat)
+        IndexedGenerators.__init__(self, I, prefix='d', bracket='[')
+
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -199,6 +183,23 @@ class VirasoroAlgebra(LieAlgebraRegularVectorFields):
         return "The Virasoro algebra over {}".format(self.base_ring())
 
     @cached_method
+    def lie_algebra_generators(self):
+        """
+        Return the generators of ``self`` as a Lie algebra.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.regular_vector_fields(QQ)
+            sage: L.lie_algebra_generators()
+        """
+        return Family(self._indices, self.monomial, name='generator map')
+
+    def d(self, i):
+        """
+        Return the element `d_i` in ``self``.
+        """
+        return self.monomial(i)
+
     def c(self):
         """
         The central element in ``self``.
@@ -209,11 +210,11 @@ class VirasoroAlgebra(LieAlgebraRegularVectorFields):
             sage: d.c()
             c
         """
-        return self.element_class(self, {CentralElement(): self.base_ring().one()})
+        return self.monomial(c)
 
-    def bracket_on_basis(self, x, y):
+    def bracket_on_basis(self, i, j):
         """
-        Return the bracket of the basis elements indexed by ``x`` and ``y``.
+        Return the bracket of the basis elements indexed by ``i`` and ``j``.
 
         EXAMPLES::
 
@@ -226,12 +227,38 @@ class VirasoroAlgebra(LieAlgebraRegularVectorFields):
             sage: d2.bracket(dm2)
             -4*d[0] - 1/2*c
         """
-        i = x._name
-        j = y._name
         if i == 'c' or j == 'c':
             return self.zero()
         ret = self._from_dict({RegVecFieldsGen(i + j): j-i})
         if i == -j:
             ret += (j**3 - j) / 12 * self.c()
         return ret
+
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.VirasoroAlgebra(QQ)
+            sage: L.an_element()
+            d[-1] + d[0] - 3*d[1]
+        """
+        d = self.monomial
+        return d(0) - self.base_ring().an_element()*d(1) + d(-1) + d('c')
+
+    def some_elements(self):
+        """
+        Return some elements of ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.VirasoroAlgebra(QQ)
+            sage: L.some_elements()
+            [d[0], d[2], d[-2], d[-1] + d[0] - 3*d[1]]
+        """
+        d = self.monomial
+        return [d(0), d(2), d(-2), d('c'), self.an_element()]
+
+    Element = LieAlgebraElement
 

@@ -35,12 +35,11 @@ from sage.categories.lie_algebras import LieAlgebras
 from sage.categories.finite_dimensional_lie_algebras_with_basis import FiniteDimensionalLieAlgebrasWithBasis
 
 from sage.algebras.free_algebra import FreeAlgebra
-from sage.algebras.lie_algebras.lie_algebra_element import (LieGenerator,
-    LieBracket, LieAlgebraElement)
+from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
 from sage.algebras.lie_algebras.lie_algebra import FinitelyGeneratedLieAlgebra
 from sage.algebras.lie_algebras.subalgebra import LieSubalgebra
-from sage.algebras.lie_algebras.ideal import LieAlgebraIdeal
-from sage.algebras.lie_algebras.quotient import QuotientLieAlgebra
+#from sage.algebras.lie_algebras.ideal import LieAlgebraIdeal
+#from sage.algebras.lie_algebras.quotient import QuotientLieAlgebra
 from sage.rings.all import ZZ
 from sage.rings.ring import Ring
 from sage.rings.integer import Integer
@@ -80,9 +79,9 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
 
         EXAMPLES::
 
-            sage: L = LieAlgebra(QQ, 'x,y', {('x','y'):{'x':1}})
+            sage: L1 = LieAlgebra(QQ, 'x,y', {('x','y'):{'x':1}})
             sage: L2 = LieAlgebra(QQ, 'x,y', {('y','x'):{'x':-1}})
-            sage: L is L2
+            sage: L1 is L2
             True
         """
         s_coeff = LieAlgebraWithStructureCoefficients._standardize_s_coeff(s_coeff)
@@ -109,8 +108,8 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         cardinality is infinite).
         """
         # Try to handle infinite basis (once/if supported)
-        if isinstance(s_coeff, AbstractFamily) and s_coeff.cardinality() == infinity:
-            return s_coeff
+        #if isinstance(s_coeff, AbstractFamily) and s_coeff.cardinality() == infinity:
+        #    return s_coeff
 
         sc = {}
         # Make sure the first gen is smaller than the second in each key
@@ -120,10 +119,10 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
                 v = v.items()
 
             if k[0] > k[1]:
-                key = LieBracket(k[1], k[0])
+                key = (k[1], k[0])
                 vals = tuple((g, -val) for g, val in v if val != 0)
             else:
-                key = LieBracket(*k)
+                key = tuple(k)
                 vals = tuple((g, val) for g, val in v if val != 0)
 
             if key in sc.keys() and sorted(sc[key]) != sorted(vals):
@@ -143,13 +142,14 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             sage: L = LieAlgebra(QQ, 'x,y', {('x','y'):{'x':1}})
             sage: TestSuite(L).run()
         """
-        cat = LieAlgebras(R).WithBasis().or_subcategory(category)
+        cat = LieAlgebras(R).WithBasis().FiniteDimensional().or_subcategory(category)
         FinitelyGeneratedLieAlgebra.__init__(self, R, names, index_set, cat)
         IndexedGenerators.__init__(self, self._indices, prefix=prefix, bracket=bracket,
                                    latex_bracket=latex_bracket, **kwds)
 
         # Transform the values in the structure coefficients to elements
-        self._s_coeff = Family({k: self._from_dict(dict(s_coeff[k])) for k in s_coeff.keys()})
+        self._s_coeff = Family({k: self._from_dict(dict(s_coeff[k]))
+                                for k in s_coeff.keys()})
 
     def basis(self):
         """
@@ -171,7 +171,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
 
             sage: L = LieAlgebra(QQ, 'x,y', {('x','y'):{'x':1}})
             sage: L.structure_coefficients()
-            Finite family {[x, y]: x}
+            Finite family {('x', 'y'): x}
         """
         return self._s_coeff
 
@@ -187,17 +187,16 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         return self.basis().cardinality()
 
-    # Move to FiniteDimensionalLieAlgebrasWithBasis category?
     def bracket_on_basis(self, x, y):
         """
-        Return the Lie bracket of ``[self, y]``.
+        Return the Lie bracket of ``[x, y]``.
 
         EXAMPLES::
 
             sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}, ('y','z'):{'x':1}, ('z','x'):{'y':1}})
-            sage: L.bracket(x, y) # indirect doctest
+            sage: L.bracket_on_basis('x', 'y')
             z
-            sage: L.bracket(y, x)
+            sage: L.bracket_on_basis('y', 'x')
             -z
             sage: L.bracket(x + y - z, x - y + z)
             -2*y - 2*z
@@ -207,7 +206,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         if comp(x, y) > 0: # x > y
             x,y = y,x
             ordered = False
-        b = LieBracket(x, y)
+        b = (x, y)
         try:
             val = self._s_coeff[b]
         except KeyError:
@@ -321,13 +320,13 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
                                 repr_monomial = self.parent()._latex_generator,
                                 is_latex=True, strip_one = True)
 
-        def _bracket_(self, y):
-            """
-            Return the Lie bracket ``[self, y]``.
-            """
-            P = self.parent()
-            return P.sum(cx * cy * P.bracket_on_basis(mx, my)
-                         for mx,cx in self for my,cy in y)
+        #def _bracket_(self, y):
+        #    """
+        #    Return the Lie bracket ``[self, y]``.
+        #    """
+        #    P = self.parent()
+        #    return P.sum(cx * cy * P.bracket_on_basis(mx, my)
+        #                 for mx,cx in self for my,cy in y)
 
         def to_vector(self):
             """
@@ -386,7 +385,7 @@ class LieSubalgebraWithStructureCoefficients(LieSubalgebra):
                         # Rewrite as a linear combination of the current basis
                         s = -dep[-1] # Guaranteed to be non-zero
                         d = {k: R(c*~s) for k,c in enumerate(dep[:-1]) if c != 0}
-                        s_coeff[LieBracket(i,j)] = d
+                        s_coeff[(i,j)] = d
                     else:
                         added = True
                         cur = cur.stack(bv)
@@ -396,15 +395,15 @@ class LieSubalgebraWithStructureCoefficients(LieSubalgebra):
         r"""
         Initialize ``self``.
         """
-        self._s_coeff = s_coeff # TODO: convert the values to elements of ``self``
         # TODO: make sure the category is in subobjects?
         LieSubalgebra.__init__(self, ambient, basis, names, index_set, category)
+        self._s_coeff = s_coeff # TODO: convert the values to elements of ``self``
 
     def _repr_(self):
         """
         Return a string representation of ``self``.
         """
-        return "Subalgebra generated of {} with basis:\n{}".format(self._ambient, self.gens())
+        return "Subalgebra of {} with basis:\n{}".format(self._ambient, self.gens())
 
     def basis(self):
         """
@@ -423,63 +422,6 @@ class LieSubalgebraWithStructureCoefficients(LieSubalgebra):
         assert len(B) != self._ambient.dimension()
         return LieSubalgebraWithStructureCoefficients(self._ambient, B, s_coeff,
                                                       names, index_set, category)
-
-class LieAlgebraIdealWithStructureCoefficients(LieAlgebraIdeal,
-                        LieSubalgebraWithStructureCoefficients):
-    """
-    A Lie algebra ideal of a Lie algebra given by structure coefficients.
-    """
-    def reduce(self, y):
-        """
-        Return ``y`` modulo ``self``.
-        """
-        M = self._ambient.free_module()
-        I = M.subspace(map(lambda x: x.to_vector(), self._gens))
-        R = I.complement()
-        ld = M.linear_dependence(R.basis() + I.basis() + [y.to_vector()])[0]
-        normalizer = -ld[-1]
-        coeffs = map(lambda x: x / normalizer, ld[:len(R)])
-        vec = M(R.linear_combination_of_basis(coeffs))
-        return self._ambient(vec)
-
-# This should either not inherit from QuotientLieAlgebra or refactor out common code
-# This should inherit from LieAlgebraWithStructureCoefficients
-class QuotientLieAlgebraWithStructureCoefficients(QuotientLieAlgebra):
-    """
-    A quotient Lie algebra of a Lie algebra given by structure coefficients.
-
-    INPUT:
-
-    - ``I`` -- an ideal of a Lie algebra given by structure coefficients
-    - ``names`` -- the names of the generators
-    - ``index_set`` -- the indexing set for the generators
-    - ``category`` -- the category of the quotient Lie algebra
-    """
-    def __init__(self, lie, I, names=None, index_set=None, category=None):
-        """
-        Initialize ``self``.
-        """
-        R = lie.base_ring()
-        #cat = LieAlgebras(R).FiniteDimensional().WithBasis()
-        cat = FiniteDimensionalLieAlgebrasWithBasis(R)#.Quotients()
-        QuotientLieAlgebra.__init__(self, lie, I, names, index_set, cat)
-
-        # Construct the structure coefficients
-        M = lie.free_module()
-        IM = M.subspace(map(lambda x: x.to_vector(), I._gens))
-        RM = IM.complement()
-        B = RM.basis() + IM.basis()
-        dim = len(RM)
-        self._s_coeff = {}
-        for i,kl,zl in enumerate(gens):
-            for kr,zr in gens[i+1:]:
-                b = LieBracket(zl, zr)
-                ld = M.linear_dependence(B + [y.to_vector()])[0]
-                normalizer = -ld[-1]
-                self._s_coeffs[b] = {indices[j]: val / normalizer
-                                      for j,val in enumerate(ld[:dim])}
-
-    Element = LieAlgebraElement
 
 class AbelianLieAlgebra(LieAlgebraWithStructureCoefficients):
     r"""
@@ -568,3 +510,4 @@ class AbelianLieAlgebra(LieAlgebraWithStructureCoefficients):
                 0
             """
             return self.parent().zero()
+

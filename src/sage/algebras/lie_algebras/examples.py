@@ -128,7 +128,14 @@ def three_dimensional_by_rank(R, n, a=None, names=['X', 'Y', 'Z']):
             L.rename("Lie algebra of dimension 3 and rank 2 with parameter {} over {}".format(a, R))
         return L
     if n == 3:
-        return sl(R, 2)
+        #return sl(R, 2)
+        E = names[0]
+        F = names[1]
+        H = names[2]
+        s_coeff = { (E,F): {H:R.one()}, (H,E): {E:R(2)}, (H,F): {E:R(-2)} }
+        L = LieAlgebraWithStructureCoefficients(R, s_coeff, tuple(names))
+        L.rename("sl2 over {}".format(R))
+        return L
     raise ValueError("Invalid rank")
 
 def affine_transformations_line(R, names=['X', 'Y'], representation='bracket'):
@@ -145,10 +152,12 @@ def affine_transformations_line(R, names=['X', 'Y'], representation='bracket'):
         names = names.split(',')
     names = tuple(names)
     if representation == 'matrix':
+        from sage.matrix.matrix_space import MatrixSpace
         MS = MatrixSpace(R, 2, sparse=True)
         one = R.one()
         gens = tuple(MS({(0,i):one}) for i in range(2))
-        return LieAlgebraFromAssociative(self, R, M, gens, names)
+        from sage.algebras.lie_algebras.lie_algebra import LieAlgebraFromAssociative
+        return LieAlgebraFromAssociative(R, MS, gens, names)
     X = names[0]
     Y = names[1]
     from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStructureCoefficients

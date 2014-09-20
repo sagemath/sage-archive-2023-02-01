@@ -43,21 +43,19 @@ def reversed_word_iterator(WordDatatype_char w):
     EXAMPLES::
 
         sage: W = Words([0,1,2])
-        sage: w = W([0,1,0,0,1])
-        sage: for i in reversed(w): # indirect doctest
-        ....:     print i,
-        1 0 0 1 0
+        sage: w = W([0,1,0,0,1,2])
+        sage: list(reversed(w)) # indirect doctest
+        [2, 1, 0, 0, 1, 0]
     """
     cdef ssize_t i
-    for i in range(w._length-1, 0, -1):
+    for i in range(w._length-1, -1, -1):
         yield w._data[i]
-    yield w._data[0]
 
 cdef class WordDatatype_char(WordDatatype):
     r"""
-    A Fast class for words.
+    A Fast class for words represented by an array ``unsigned char *``.
 
-    Currently, only handles letters in [0,256].
+    Currently, only handles letters in [0,255].
     """
     cdef unsigned char * _data
     cdef size_t _length
@@ -111,6 +109,12 @@ cdef class WordDatatype_char(WordDatatype):
             self._data[i] = data[i]
 
     def __dealloc__(self):
+        r"""
+        Deallocate memory only if self uses it own memory.
+
+        Note that ``sage_free`` will not deallocate memory if self is the
+        master of another word.
+        """
         if self._master is None:
             sage_free(self._data)
 
@@ -127,6 +131,20 @@ cdef class WordDatatype_char(WordDatatype):
             False
         """
         return self._length != 0
+
+    def is_empty(self):
+        r"""
+        Return whether the word is empty.
+
+        EXAMPLES::
+
+            sage: W = Words([0,1,2])
+            sage: W([0,1,2,2]).is_empty()
+            False
+            sage: W([]).is_empty()
+            True
+        """
+        return not self
 
     def __len__(self):
         r"""
@@ -160,9 +178,11 @@ cdef class WordDatatype_char(WordDatatype):
         """
         return smallInteger(self._length)
 
-    # TO DISCUSS: in Integer (sage.rings.integer) this method is actually an
-    # external function. But we might want to have several possible inheritance.
     cdef _new_c(self, unsigned char * data, size_t length, WordDatatype_char master):
+        r"""
+        TO DISCUSS: in Integer (sage.rings.integer) this method is actually an
+        external function. But we might want to have several possible inheritance.
+        """
         cdef WordDatatype_char other = PY_NEW_SAME_TYPE(self)
         if HAS_DICTIONARY(self):
             other.__class__ = self.__class__
@@ -195,6 +215,11 @@ cdef class WordDatatype_char(WordDatatype):
 
     def __richcmp__(self, other, op):
         r"""
+        INPUT:
+
+        - ``other`` -- a word (WordDatatype_char)
+        - ``op`` -- int, from 0 to 5
+
         TESTS::
 
             sage: W = Words(range(100))
@@ -233,6 +258,10 @@ cdef class WordDatatype_char(WordDatatype):
 
     def __cmp__(self, other):
         r"""
+        INPUT:
+
+        - ``other`` -- a word (WordDatatype_char)
+
         TESTS::
 
             sage: W = Words([0,1,2,3])
@@ -271,6 +300,10 @@ cdef class WordDatatype_char(WordDatatype):
 
     def __getitem__(self, key):
         r"""
+        INPUT:
+
+        - ``key`` -- index
+
         TESTS::
 
             sage: W = Words([0,1,2,3])
@@ -341,9 +374,15 @@ cdef class WordDatatype_char(WordDatatype):
         EXAMPLES::
 
             sage: W = Words([0,1,2,3])
-            sage: for i in reversed(W([0,0,1,0])): # indirect doctest
-            ....:     print i,
-            0 1 0 0
+            sage: list(reversed(W([0,0,1,0]))) # indirect doctest
+            [0, 1, 0, 0]
+
+        TESTS::
+
+            sage: list(reversed(W([])))
+            []
+            sage: list(reversed(W([1])))
+            [1]
         """
         return reversed_word_iterator(self)
 
@@ -393,6 +432,10 @@ cdef class WordDatatype_char(WordDatatype):
     def __pow__(self, exp, mod):
         r"""
         Power
+
+        INPUT:
+
+        -  ``exp``  - an integer, a rational, a float number or plus infinity.
 
         TESTS::
 

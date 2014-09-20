@@ -218,7 +218,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
 
 class FiniteWord_char(WordDatatype_char, FiniteWord_class):
     r"""
-    Finite word represented by an array of `unsigned char` (i.e. integers
+    Finite word represented by an array ``unsigned char *`` (i.e. integers
     between 0 and 255).
 
     For any word ``w``, type ``w.<TAB>`` to see the functions that can be applied

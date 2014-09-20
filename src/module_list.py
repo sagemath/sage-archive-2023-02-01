@@ -231,12 +231,10 @@ ext_modules = [
               language='c++'),
 
     Extension('sage.combinat.words.word_datatypes',
-            sources=['sage/combinat/words/word_datatypes.pyx'],
-            include_dirs = ['sage/combinat/words']),
+            sources=['sage/combinat/words/word_datatypes.pyx']),
 
     Extension('sage.combinat.words.word_char',
-            sources=['sage/combinat/words/word_char.pyx'],
-            include_dirs = ['sage/combinat/words']),
+            sources=['sage/combinat/words/word_char.pyx']),
 
     Extension('sage.combinat.permutation_cython',
               sources=['sage/combinat/permutation_cython.pyx']),

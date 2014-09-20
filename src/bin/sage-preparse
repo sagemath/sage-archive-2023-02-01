@@ -7,6 +7,7 @@ AUTHOR:
     -- William Stein (2008): fix trac #2391 and document the code.
     -- Dan Drake (2009): fix trac #5052
     -- Dan Drake (2010-12-08): fix trac #10440
+    -- Johan S. R. Nielsen (2014-09-20): fix trac #17019
 """
 
 import os, sys, re
@@ -114,23 +115,29 @@ def do_preparse(f, files_before=[]):
             coding = line + '\n'
             F = '\n'.join(lines[:num] + lines[(num+1):])
 
-    # Preparse it
+    # It is ** critical ** that all the preparser-stuff we put into
+    # the file are put after the module docstring, since
+    # otherwise the docstring will not be understood by Python.
+    i = find_position_right_after_module_docstring(F)
+    header, body = F[:i] , F[i:]
+    # Preparse the body
     from sage.misc.preparser  import preparse_file
-    G = preparse_file(F)
+    body = preparse_file(body)
 
     # Check for load/attach commands.
-    G = do_load_and_attach(G, f, files_before)
+    body = do_load_and_attach(body, f, files_before)
 
-
-    # Put the Sage library include along with a autogen message in the file.
-    # It is ** critical ** that we put this after the mdoule docstring, since
-    # otherwise the module docstring will disappear.
-    insert = '%s%s.\nfrom sage.all_cmdline import *   # import sage library\n'%(AUTOGEN_MSG, f)
-    i = find_position_right_after_module_docstring(G)
-    G = coding + G[:i] + insert + G[i:]
+    # The Sage library include line along with a autogen message
+    sage_incl = '%s%s.\nfrom sage.all_cmdline import *   # import sage library\n'%(AUTOGEN_MSG, f)
 
     # Finally, write out the result.
-    open(fname, 'w').write(G)
+    wr = open(fname, 'w')
+    wr.write(header)
+    wr.write('\n')
+    wr.write(sage_incl)
+    wr.write('\n')
+    wr.write(body)
+    wr.write('\n')
 
 def find_position_right_after_module_docstring(G):
     """
@@ -157,6 +164,7 @@ def find_position_right_after_module_docstring(G):
     if i >= len(v):
         # No module docstring --- entire file is commented out
         return 0
+
     # Now v[i] contains the first line of the first statement in the file.
     # Is it a docstring?
     n = v[i].lstrip()

@@ -491,7 +491,7 @@ class MatchingGame(SageObject):
         if name in [s.name for s in self.suitors]:
             raise ValueError("A suitor with name: %s already exists" % name)
 
-        new_suitor = _Player(name, 'suitor', len(self.reviewers))
+        new_suitor = Player(name, 'suitor', len(self.reviewers))
         self.suitors.append(new_suitor)
         for r in self.reviewers:
             r.pref = [-1 for s in self.suitors]
@@ -545,7 +545,7 @@ class MatchingGame(SageObject):
         if name in [s.name for s in self.reviewers]:
             raise ValueError("A reviewer with name: %s already exists" % name)
 
-        new_reviewer = _Player(name, 'reviewer', len(self.suitors))
+        new_reviewer = Player(name, 'reviewer', len(self.suitors))
         self.reviewers.append(new_reviewer)
         for s in self.suitors:
             s.pref = [-1 for r in self.reviewers]
@@ -639,7 +639,7 @@ class MatchingGame(SageObject):
         return {key:self.sol_dict[key] for key in self.suitors}
 
 
-class _Player(SageObject):
+class Player(SageObject):
     r"""
     A class to act as a data holder for the players used of the matching games
     These instances are used when initiating players and to keep track of
@@ -649,8 +649,8 @@ class _Player(SageObject):
         r"""
         TESTS::
 
-            sage: from sage.game_theory.matching_game import _Player
-            sage: p = _Player(10, 'suitor', 3)
+            sage: from sage.game_theory.matching_game import Player
+            sage: p = Player(10, 'suitor', 3)
             sage: p
             10
             sage: p.pref
@@ -667,8 +667,8 @@ class _Player(SageObject):
         r"""
         TESTS::
 
-            sage: from sage.game_theory.matching_game import _Player
-            sage: p = _Player(10, 'suitor', 3)
+            sage: from sage.game_theory.matching_game import Player
+            sage: p = Player(10, 'suitor', 3)
             sage: d = {p : (1, 2, 3)}
             sage: d
             {10: (1, 2, 3)}
@@ -679,12 +679,12 @@ class _Player(SageObject):
         r"""
         TESTS::
 
-            sage: from sage.game_theory.matching_game import _Player
-            sage: p = _Player(10, 'suitor', 3)
+            sage: from sage.game_theory.matching_game import Player
+            sage: p = Player(10, 'suitor', 3)
             sage: p
             10
 
-            sage: p = _Player('Karl', 'reviewer', 2)
+            sage: p = Player('Karl', 'reviewer', 2)
             sage: p
             'Karl'
         """
@@ -694,15 +694,15 @@ class _Player(SageObject):
         r"""
         TESTS::
 
-            sage: from sage.game_theory.matching_game import _Player
-            sage: p = _Player(10, 'suitor', 3)
-            sage: q = _Player('Karl', 'reviewer', 2)
+            sage: from sage.game_theory.matching_game import Player
+            sage: p = Player(10, 'suitor', 3)
+            sage: q = Player('Karl', 'reviewer', 2)
             sage: p == q
             False
 
-            sage: from sage.game_theory.matching_game import _Player
-            sage: p = _Player(10, 'suitor', 3)
-            sage: q = _Player(10, 'reviewer', 2)
+            sage: from sage.game_theory.matching_game import Player
+            sage: p = Player(10, 'suitor', 3)
+            sage: q = Player(10, 'reviewer', 2)
             sage: p == q
             True
         """

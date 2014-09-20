@@ -448,7 +448,7 @@ class MatchingGame(SageObject):
 
         INPUTS:
 
-        -``name`` - Can be a string or a number. If left blank will automatically
+        -``name`` -- Can be a string or a number; if left blank will automatically
                     generate an integer.
 
         EXAMPLES:
@@ -502,7 +502,7 @@ class MatchingGame(SageObject):
 
         INPUTS:
 
-        -``name`` - Can be a string or number. If left blank will automatically
+        -``name`` -- Can be a string or number; if left blank will automatically
                     generate an integer.
 
         EXAMPLES:

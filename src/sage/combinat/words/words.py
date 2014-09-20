@@ -212,7 +212,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         """
         return self([])
 
-    def __call__(self, data=None, length=None, datatype=None, caching=True, **kwds):
+    def __call__(self, data=None, length=None, datatype=None, caching=True):
         r"""
         Construct a new word object with parent self.
 
@@ -231,14 +231,14 @@ class Words_all(InfiniteAbstractCombinatorialClass):
            iterator terminates; "finite" if you know that the iterator
            terminates, but do know know the length.
 
-        -  ``datatype`` - (default: None) None, "list", "str", "tuple", "iter",
-           "callable" or "pickled_function". If None, then the function tries
-           to guess this from the data.
+        -  ``datatype`` - (default: None) None, "char", "list", "str",
+           "tuple", "iter", "callable" or "pickled_function". If None, then
+           the function tries to guess this from the data.
 
         -  ``caching`` - (default: True) True or False. Whether to keep a cache
            of the letters computed by an iterator or callable.
 
-        NOTE:
+        .. NOTE::
 
             We only check that the first 40 letters of the word are
             actually in the alphabet. This is a quick check implemented to
@@ -246,63 +246,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             infinite words, we cannot really implement a more accurate
             check.
 
-        EXAMPLES::
-
-            sage: from itertools import count
-            sage: Words()(count())
-            word: 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,...
-            sage: Words(range(10))(count())
-            Traceback (most recent call last):
-            ...
-            ValueError: 10 not in alphabet!
-            sage: Words()("abba")
-            word: abba
-            sage: Words("ab")("abba")
-            word: abba
-            sage: Words("ab")("abca")
-            Traceback (most recent call last):
-            ...
-            ValueError: c not in alphabet!
-
-        """
-        from sage.combinat.words.word import Word
-        kwds['data'] = data
-        kwds['length'] = length
-        kwds['datatype'] = datatype
-        kwds['caching'] = caching
-        #kwds['alphabet'] = self
-
-        # The function _construct_word handles the construction of the words.
-        w = self._construct_word(**kwds)
-        self._check(w)
-        return w
-
-    def _construct_word(self, data=None, length=None, datatype=None, caching=True):
-        r"""
-        Construct a word.
-
-        INPUT:
-
-        -  ``data`` - (default: None) list, string, tuple, iterator, None
-           (shorthand for []), or a callable defined on [0,1,...,length].
-
-        -  ``length`` - (default: None) This is dependent on the type of data.
-           It is ignored for words defined by lists, strings, tuples,
-           etc., because they have a naturally defined length.
-           For callables, this defines the domain of definition,
-           which is assumed to be [0, 1, 2, ..., length-1].
-           For iterators: Infinity if you know the iterator will not
-           terminate (default); "unknown" if you do not know whether the
-           iterator terminates; "finite" if you know that the iterator
-           terminates, but do know know the length.
-
-        -  ``datatype`` - (default: None) None, "list", "str", "tuple", "iter",
-           "callable". If None, then the function
-           tries to guess this from the data.
-        -  ``caching`` - (default: True) True or False. Whether to keep a cache
-           of the letters computed by an iterator or callable.
-
-        .. note::
+        .. WARNING::
 
            Be careful when defining words using callables and iterators. It
            appears that islice does not pickle correctly causing various errors
@@ -313,75 +257,83 @@ class Words_all(InfiniteAbstractCombinatorialClass):
 
         Empty word::
 
-            sage: Words()._construct_word()
+            sage: Words()()
             word:
 
         Word with string::
 
-            sage: Words()._construct_word("abbabaab")
+            sage: Words()("abbabaab")
             word: abbabaab
 
         Word with string constructed from other types::
 
-            sage: Words()._construct_word([0,1,1,0,1,0,0,1], datatype="str")
+            sage: Words()([0,1,1,0,1,0,0,1], datatype="str")
             word: 01101001
-            sage: Words()._construct_word((0,1,1,0,1,0,0,1), datatype="str")
+            sage: Words()((0,1,1,0,1,0,0,1), datatype="str")
             word: 01101001
 
         Word with list::
 
-            sage: Words()._construct_word([0,1,1,0,1,0,0,1])
+            sage: Words()([0,1,1,0,1,0,0,1])
             word: 01101001
 
         Word with list constructed from other types::
 
-            sage: Words()._construct_word("01101001", datatype="list")
+            sage: Words()("01101001", datatype="list")
             word: 01101001
-            sage: Words()._construct_word((0,1,1,0,1,0,0,1), datatype="list")
+            sage: Words()((0,1,1,0,1,0,0,1), datatype="list")
             word: 01101001
 
         Word with tuple::
 
-            sage: Words()._construct_word((0,1,1,0,1,0,0,1))
+            sage: Words()((0,1,1,0,1,0,0,1))
             word: 01101001
 
         Word with tuple constructed from other types::
 
-            sage: Words()._construct_word([0,1,1,0,1,0,0,1], datatype="tuple")
+            sage: Words()([0,1,1,0,1,0,0,1], datatype="tuple")
             word: 01101001
-            sage: Words()._construct_word("01101001", datatype="str")
+            sage: Words()("01101001", datatype="str")
             word: 01101001
 
         Word with iterator::
 
             sage: from itertools import count
-            sage: Words()._construct_word(count())
+            sage: Words()(count())
             word: 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,...
-            sage: Words()._construct_word(iter("abbabaab")) # iterators default to infinite words
+            sage: Words()(iter("abbabaab")) # iterators default to infinite words
             word: abbabaab
-            sage: Words()._construct_word(iter("abbabaab"), length="unknown")
+            sage: Words()(iter("abbabaab"), length="unknown")
             word: abbabaab
-            sage: Words()._construct_word(iter("abbabaab"), length="finite")
+            sage: Words()(iter("abbabaab"), length="finite")
             word: abbabaab
 
         Word with function (a 'callable')::
 
             sage: f = lambda n : add(Integer(n).digits(2)) % 2
-            sage: Words()._construct_word(f)
+            sage: Words()(f)
             word: 0110100110010110100101100110100110010110...
-            sage: Words()._construct_word(f, length=8)
+            sage: Words()(f, length=8)
             word: 01101001
 
         Word over a string with a parent::
 
-            sage: w = Words('abc')._construct_word("abbabaab"); w
+            sage: w = Words('abc')("abbabaab"); w
             word: abbabaab
             sage: w.parent()
             Words over {'a', 'b', 'c'}
 
+        The fourty first letters of the word are checked if they are in the
+        parent alphbet::
+
+            sage: Words("ab")("abca")
+            Traceback (most recent call last):
+            ...
+            ValueError: c not in alphabet!
+
         The default parent is the combinatorial class of all words::
 
-            sage: w = Words()._construct_word("abbabaab"); w
+            sage: w = Words()("abbabaab"); w
             word: abbabaab
             sage: w.parent()
             Words
@@ -598,7 +550,9 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         word_classes = self._element_classes
         if cls_str not in word_classes:
             raise ValueError("Unknwon datatype (=%s)" % datatype)
-        return word_classes[cls_str](**kwds)
+        w = word_classes[cls_str](**kwds)
+        self._check(w)
+        return w
 
     def _check(self, w, length=40):
         r"""
@@ -626,6 +580,89 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         for a in itertools.islice(w, length):
             if a not in self._alphabet:
                 raise ValueError("%s not in alphabet!" % a)
+
+    def finite_word_list(self, data):
+        r"""
+        Return a word represented by a list.
+
+        The data is assumed to be ok, no check is performed.
+
+        INPUT:
+
+        -  ``data`` - list
+
+        EXAMPLES::
+
+            sage: W = Words([0,1,2])
+            sage: L = [choice([0,1,2]) for _ in range(1000)]
+            sage: W.finite_word_list(L)
+            word: 0100102021220221211212111012221200002012...
+        """
+        word_classes = self._element_classes
+        cls_str = 'FiniteWord_list'
+        return word_classes[cls_str](parent=self, data=data)
+    def finite_word_tuple(self, data):
+        r"""
+        Return a word represented by a tuple.
+
+        The data is assumed to be ok, no check is performed.
+
+        INPUT:
+
+        -  ``data`` - tuple
+
+        EXAMPLES::
+
+            sage: W = Words([0,1,2])
+            sage: T = tuple([choice([0,1,2]) for _ in range(1000)])
+            sage: W.finite_word_tuple(T)
+            word: 0100102021220221211212111012221200002012...
+        """
+        word_classes = self._element_classes
+        cls_str = 'FiniteWord_tuple'
+        return word_classes[cls_str](parent=self, data=data)
+
+    def finite_word_str(self, data):
+        r"""
+        Return a word represented by a str.
+
+        The data is assumed to be ok, no check is performed.
+
+        INPUT:
+
+        -  ``data`` - str
+
+        EXAMPLES::
+
+            sage: W = Words('abc')
+            sage: s = 'abcabcaa' * 1000
+            sage: W.finite_word_str(s)
+            word: abcabcaaabcabcaaabcabcaaabcabcaaabcabcaa...
+        """
+        word_classes = self._element_classes
+        cls_str = 'FiniteWord_str'
+        return word_classes[cls_str](parent=self, data=data)
+
+    def finite_word_char(self, data):
+        r"""
+        Return a word represented by an ``unsigned char *``.
+
+        The data is assumed to be ok, no check is performed.
+
+        INPUT:
+
+        -  ``data`` - iterable of integers in [0, 255]
+
+        EXAMPLES::
+
+            sage: W = Words([0,1,2])
+            sage: L = [choice([0,1,2]) for _ in range(1000)]
+            sage: W.finite_word_char(L)
+            word: 0100102021220221211212111012221200002012...
+        """
+        word_classes = self._element_classes
+        cls_str = 'FiniteWord_char'
+        return word_classes[cls_str](parent=self, data=data)
 
     def _repr_(self):
         """
@@ -1019,6 +1056,11 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
 
         - ``l`` - integer (default: 1), the length of the desired words
 
+        .. TODO::
+
+            This method should not be using the unrank method of alphabet,
+            because it is too slow.
+
         EXAMPLES::
 
             sage: W = Words('ab')
@@ -1042,10 +1084,9 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         """
         if not isinstance(l, (int,Integer)):
             raise TypeError("the parameter l (=%r) must be an integer"%l)
-        #if l == Integer(0):
-        #    yield self()
+        A = self.alphabet()
         for w in xmrange([self.size_of_alphabet()]*l):
-            yield self(map(lambda x: self.alphabet().unrank(x), w))
+            yield self.finite_word_list(map(A.unrank, w))
 
     def random_element(self):
         r"""

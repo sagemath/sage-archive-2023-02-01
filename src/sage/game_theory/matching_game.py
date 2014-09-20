@@ -118,7 +118,7 @@ class MatchingGame(SageObject):
     The above plots the bi-partite graph associated with the matching.
     This plot can be accessed directly: ::
 
-        sage: graph = m.bi_partite()
+        sage: graph = m.bipartite()
         sage: graph
         Bipartite graph on 8 vertices
 
@@ -322,10 +322,10 @@ class MatchingGame(SageObject):
             {0: [3], 1: [4]}
             sage: plot(g)
         """
-        pl = self.bi_partite()
+        pl = self.bipartite()
         return pl.plot()
 
-    def bi_partite(self):
+    def bipartite(self):
         r"""
         Constructs a ``BipartiteGraph`` Object of the game.
         This method is similar to the plot method.
@@ -340,14 +340,14 @@ class MatchingGame(SageObject):
             sage: revr = {3: (0, 1),
             ....:         4: (1, 0)}
             sage: g = MatchingGame([suit, revr])
-            sage: g.bi_partite()
+            sage: g.bipartite()
             Traceback (most recent call last):
             ...
             ValueError: Game has not been solved yet
 
             sage: g.solve()
             {0: [3], 1: [4]}
-            sage: g.bi_partite()
+            sage: g.bipartite()
             Bipartite graph on 4 vertices
         """
         self._is_solved()

@@ -194,7 +194,7 @@ class MatchingGame(SageObject):
     """
     def __init__(self, generator):
         r"""
-        Initializes a Matching Game and checks the inputs.
+        Initialize a Matching Game and check the inputs.
 
         TESTS:
 
@@ -258,7 +258,7 @@ class MatchingGame(SageObject):
 
     def _repr_(self):
         r"""
-        Returns a basic representation of the game stating how many players are in the game.
+        Return a basic representation of the game stating how many players are in the game.
 
         EXAMPLES:
 
@@ -273,7 +273,7 @@ class MatchingGame(SageObject):
 
     def _latex_(self):
         r"""
-        Creates the LaTeX representation of the dictionaries for suitors
+        Create the LaTeX representation of the dictionaries for suitors
         and reviewers.
 
         EXAMPLES::
@@ -301,7 +301,7 @@ class MatchingGame(SageObject):
 
     def plot(self):
         r"""
-        Creates the plot representing the stable matching for the game.
+        Create the plot representing the stable matching for the game.
         Note that the game must be solved for this to work.
 
         EXAMPLES:
@@ -327,7 +327,7 @@ class MatchingGame(SageObject):
 
     def bipartite(self):
         r"""
-        Constructs a ``BipartiteGraph`` Object of the game.
+        Construct a ``BipartiteGraph`` Object of the game.
         This method is similar to the plot method.
         Note that the game must be solved for this to work.
 
@@ -357,7 +357,7 @@ class MatchingGame(SageObject):
 
     def _is_solved(self):
         r"""
-        Raises an error if the Game has been solved yet.
+        Raise an error if the Game has been solved yet.
 
         EXAMPLES:
 
@@ -381,7 +381,7 @@ class MatchingGame(SageObject):
 
     def _is_complete(self):
         r"""
-        Raises an error if all players do not have acceptable preferences.
+        Raise an error if all players do not have acceptable preferences.
 
         EXAMPLES:
 
@@ -444,7 +444,7 @@ class MatchingGame(SageObject):
 
     def add_suitor(self, name=False):
         r"""
-        Adds a suitor to the game.
+        Add a suitor to the game.
 
         INPUTS:
 
@@ -498,7 +498,7 @@ class MatchingGame(SageObject):
 
     def add_reviewer(self, name=False):
         r"""
-        Adds a reviewer to the game.
+        Add a reviewer to the game.
 
         INPUTS:
 
@@ -552,7 +552,7 @@ class MatchingGame(SageObject):
 
     def solve(self, invert=False):
         r"""
-        Computes a stable matching for the game using the Gale-Shapley
+        Compute a stable matching for the game using the Gale-Shapley
         algorithm.
 
         TESTS::

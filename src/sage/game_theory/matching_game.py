@@ -609,7 +609,7 @@ class MatchingGame(SageObject):
 
         while not all(s.partner for s in suitors):
             s = [s for s in suitors if s.partner is False][0]
-            r = next((x for x in reviewers if x.name == s.pref[0]), None)
+            r = next((x for x in reviewers if x == s.pref[0]), None)
             if r.partner is False:
                 r.partner = s
                 s.partner = r

@@ -927,13 +927,18 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         return self.implicit_suffix_tree()
 
-    def number_of_factors(self,n=None):
+    def number_of_factors(self, n=None, algorithm='suffix tree'):
         r"""
         Counts the number of distinct factors of self.
 
         INPUT:
 
         -  ``n`` - an integer, or None.
+        - ``algorithm`` - string (default: ``'suffix tree'``), takes the
+          following values:
+
+          - ``'suffix tree'`` -- construct and use the suffix tree of the word
+          - ``'naive'`` -- algorithm uses a sliding window
 
         OUTPUT:
 
@@ -984,9 +989,14 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: map(blueberry.number_of_factors, range(10))
             [1, 6, 8, 7, 6, 5, 4, 3, 2, 1]
         """
-        return self.suffix_tree().number_of_factors(n)
+        if algorithm == 'suffix tree':
+            return self.suffix_tree().number_of_factors(n)
+        elif algorithm == 'naive':
+            return len(self.factor_set(n, algorithm='naive'))
+        else:
+            raise ValueError('Unknown algorithm (={})'.format(algorithm))
 
-    def factor_iterator(self,n=None):
+    def factor_iterator(self, n=None):
         r"""
         Generates distinct factors of ``self``.
 
@@ -1057,13 +1067,18 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         return self.suffix_tree().factor_iterator(n)
 
-    def factor_set(self, n=None):
+    def factor_set(self, n=None, algorithm='suffix tree'):
         r"""
         Returns the set of factors (of length n) of self.
 
         INPUT:
 
         - ``n`` - an integer or ``None`` (default: None).
+        - ``algorithm`` - string (default: ``'suffix tree'``), takes the
+          following values:
+
+          - ``'suffix tree'`` -- construct and use the suffix tree of the word
+          - ``'naive'`` -- algorithm uses a sliding window
 
         OUTPUT:
 
@@ -1074,8 +1089,9 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: w = Word('121')
-            sage: s = w.factor_set()
-            sage: sorted(s)
+            sage: sorted(w.factor_set())
+            [word: , word: 1, word: 12, word: 121, word: 2, word: 21]
+            sage: sorted(w.factor_set(algorithm='naive'))
             [word: , word: 1, word: 12, word: 121, word: 2, word: 21]
 
         ::
@@ -1108,8 +1124,31 @@ exponent %s: the length of the word (%s) times the exponent \
 
             sage: Set(Word().factor_set())
             {word: }
+
+        ::
+
+            sage: w = Word(range(10), alphabet=range(10))
+            sage: S1 = w.factor_set(3, algorithm='suffix tree')
+            sage: S2 = w.factor_set(3, algorithm='naive')
+            sage: S1 == S2
+            True
         """
-        return Set(set(self.factor_iterator(n)))
+        if algorithm == 'suffix tree':
+            return Set(self.factor_iterator(n))
+        elif algorithm == 'naive':
+            if n is None:
+                S = set([self[0:0]])
+                for n in range(1, self.length()+1):
+                    for i in range(self.length()-n+1):
+                        S.add(self[i:i+n])
+                return Set(S)
+            else:
+                S = set()
+                for i in range(self.length()-n+1):
+                    S.add(self[i:i+n])
+                return Set(S)
+        else:
+            raise ValueError('Unknown algorithm (={})'.format(algorithm))
 
     def topological_entropy(self, n):
         r"""

@@ -47,7 +47,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.has_bottom` | Returns True if the poset has a unique minimal element.
     :meth:`~FinitePoset.hasse_diagram` | Returns the Hasse diagram of ``self`` as a Sage :class:`DiGraph`.
     :meth:`~FinitePoset.has_top` | Returns True if the poset contains a unique maximal element, and False otherwise.
-    :meth:`~FinitePoset.height` | Return the height (the length of longest chain) of the poset.
+    :meth:`~FinitePoset.height` | Return the height (number of elements in the longest chain) of the poset.
     :meth:`~FinitePoset.incomparability_graph` | Returns the incomparability graph of the poset.
     :meth:`~FinitePoset.interval` | Returns a list of the elements `z` such that `x \le z \le y`.
     :meth:`~FinitePoset.is_bounded` | Returns True if the poset contains a unique maximal element and a unique minimal element, and False otherwise.
@@ -1950,7 +1950,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def height(self):
         """
-        Return the height (the length of longest chain) of the poset.
+        Return the height (number of elements in the longest chain) of the poset.
 
         EXAMPLES::
 

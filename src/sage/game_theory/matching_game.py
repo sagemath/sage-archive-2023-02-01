@@ -196,31 +196,38 @@ class MatchingGame(SageObject):
         r"""
         Initializes a Matching Game and checks the inputs.
 
-        TESTS::
+        TESTS:
 
-            8 player letter game. ::
+        8 player letter game. ::
 
-                sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
-                ....:               'K': ('A', 'B', 'C', 'D'),
-                ....:               'L': ('B', 'D', 'C', 'A'),
-                ....:               'M': ('C', 'A', 'B', 'D')}
-                sage: reviewr_pref = {'A': ('L', 'J', 'K', 'M'),
-                ....:                 'B': ('J', 'M', 'L', 'K'),
-                ....:                 'C': ('K', 'M', 'L', 'J'),
-                ....:                 'D': ('M', 'K', 'J', 'L')}
-                sage: m = MatchingGame([suitr_pref, reviewr_pref])
-                sage: m.suitors
-                ['K', 'J', 'M', 'L']
-                sage: m.reviewers
-                ['A', 'C', 'B', 'D']
+            sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
+            ....:               'K': ('A', 'B', 'C', 'D'),
+            ....:               'L': ('B', 'D', 'C', 'A'),
+            ....:               'M': ('C', 'A', 'B', 'D')}
+            sage: reviewr_pref = {'A': ('L', 'J', 'K', 'M'),
+            ....:                 'B': ('J', 'M', 'L', 'K'),
+            ....:                 'C': ('K', 'M', 'L', 'J'),
+            ....:                 'D': ('M', 'K', 'J', 'L')}
+            sage: m = MatchingGame([suitr_pref, reviewr_pref])
+            sage: m.suitors
+            ['K', 'J', 'M', 'L']
+            sage: m.reviewers
+            ['A', 'C', 'B', 'D']
 
-            Also works for numbers. ::
+        Also works for numbers. ::
 
-                sage: suit = {0: (3, 4),
-                ....:         1: (3, 4)}
-                sage: revr = {3: (0, 1),
-                ....:         4: (1, 0)}
-                sage: g = MatchingGame([suit, revr])
+            sage: suit = {0: (3, 4),
+            ....:         1: (3, 4)}
+            sage: revr = {3: (0, 1),
+            ....:         4: (1, 0)}
+            sage: g = MatchingGame([suit, revr])
+
+        Can create a game from an integer which then requires
+        a bespoke creation of preferences::
+
+            sage: g = MatchingGame(3)
+            sage: g
+            A matching game with 3 suitors and 3 reviewers
 
         """
         self.suitors = []
@@ -230,7 +237,15 @@ class MatchingGame(SageObject):
                 self.add_suitor()
                 self.add_reviewer()
         elif type(generator[0]) is dict and type(generator[1]) is dict:
-            self._dict_game(generator[0], generator[1])
+            for i in generator[0]:
+                self.add_suitor(i)
+            for k in generator[1]:
+                self.add_reviewer(k)
+
+            for i in self.suitors:
+                i.pref = generator[0][i.name]
+            for k in self.reviewers:
+                k.pref = generator[1][k.name]
         else:
             raise TypeError("generator must be an integer or a list of 2 dictionaries.")
 
@@ -240,21 +255,6 @@ class MatchingGame(SageObject):
             self.suitor_dictionary[suitor.name] = suitor.pref
         for reviewer in self.reviewers:
             self.reviewer_dictionary[reviewer.name] = reviewer.pref
-
-    def _dict_game(self, suitor_dict, reviwer_dict):
-        r"""
-        Populates the game from 2 dictionaries. One for reviewers and one for
-        suitors.
-        """
-        for i in suitor_dict:
-            self.add_suitor(i)
-        for k in reviwer_dict:
-            self.add_reviewer(k)
-
-        for i in self.suitors:
-            i.pref = suitor_dict[i.name]
-        for k in self.reviewers:
-            k.pref = reviwer_dict[k.name]
 
     def _repr_(self):
         r"""

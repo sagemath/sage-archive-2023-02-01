@@ -2,7 +2,7 @@
 The Sage ZMQ Kernel
 
 Version of the IPython kernel when running Sage inside the IPython
-notebook.
+notebook or remote IPython sessions.
 """
 
 from IPython.kernel.zmq.ipkernel import Kernel
@@ -20,6 +20,16 @@ from sage.structure.sage_object import SageObject
 class SageZMQDisplayFormatter(DisplayFormatter):
 
     def __init__(self, *args, **kwds):
+        """
+        Override for IPython's display formatter class
+
+        IPython always creates all representations of an object, and
+        the frontend then picks which one it displays. This would be
+        rather ineffective for Sage, where we have numerous output
+        graphics formats. We want to only create the most suitable
+        output representation, and not png/jpg/pdf/svg/... versions
+        for each image.
+        """
         shell = kwds['parent']
         self.plain_text = SagePlainTextFormatter(config=shell.config)
 
@@ -62,11 +72,30 @@ class SageZMQDisplayFormatter(DisplayFormatter):
         """
         return self._format_types
 
-    # TODO: setter for format_types
+    # TODO: setter for format_types?
 
     def format(self, obj, include=None, exclude=None):
         """
         Return a format data dict for an object
+
+        INPUT:
+
+        - ``obj`` -- anything. The object to represent.
+        
+        - ``include``, ``exclude`` -- IPython mime types to
+          include/exclude. (currently ignored)
+
+        OUTPUT:
+
+        A pair consisting of the representation dictionary and the metadata dictionary.
+
+        EXAMPLES::
+
+            sage: from sage.repl.zmq_kernel import SageZMQDisplayFormatter
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: fmt = SageZMQDisplayFormatter(parent=get_test_shell())
+            sage: fmt.format(123)
+            ({u'text/plain': '123'}, {})
         """
         output = dict()
         if isinstance(obj, SageObject) and hasattr(obj, '_graphics_'):
@@ -81,6 +110,9 @@ class SageZMQDisplayFormatter(DisplayFormatter):
 class SageZMQInteractiveShell(SageInteractiveShell, ZMQInteractiveShell):
 
     def init_display_formatter(self):
+        """
+        Use our display formatter instead of the IPython default.
+        """
         self.display_formatter = SageZMQDisplayFormatter(parent=self)
         self.configurables.append(self.display_formatter)
 

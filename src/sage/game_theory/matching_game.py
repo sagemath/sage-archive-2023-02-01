@@ -706,4 +706,6 @@ class Player(SageObject):
             sage: p == q
             True
         """
-        return self.__repr__() == other.__repr__()
+        if isinstance(other, Player):
+            return self.name == other.name
+        return self.name == other

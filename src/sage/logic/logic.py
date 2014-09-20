@@ -143,10 +143,24 @@ class SymbolicLogic:
         We can now create truthtable of rows 1 to 5::
 
             sage: s2 = log.truthtable(s, 1, 5); s2
-            [[['OPAREN', 'a', 'AND', 'b', 'OR', 'NOT', 'OPAREN', 'c', 'OR', 'a', 'CPAREN', 'CPAREN'],
-              {'a': 'False', 'c': 'True', 'b': 'False'}, ['a', 'b', 'c']],
-             ['False', 'False', 'True', 'False'], ['False', 'True', 'False', 'True'],
-             ['False', 'True', 'True', 'True'], ['True', 'False', 'False', 'False']]
+            [[['OPAREN',
+               'a',
+               'AND',
+               'b',
+               'OR',
+               'NOT',
+               'OPAREN',
+               'c',
+               'OR',
+               'a',
+               'CPAREN',
+               'CPAREN'],
+              {'a': 'False', 'b': 'False', 'c': 'True'},
+              ['a', 'b', 'c']],
+             ['False', 'False', 'True', 'False'],
+             ['False', 'True', 'False', 'True'],
+             ['False', 'True', 'True', 'True'],
+             ['True', 'False', 'False', 'False']]
 
         .. NOTE::
 

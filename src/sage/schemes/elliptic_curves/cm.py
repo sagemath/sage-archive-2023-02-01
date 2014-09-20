@@ -268,7 +268,7 @@ def cm_orders(h, proof=None):
         sage: len(v)
         29
         sage: set([hilbert_class_polynomial(D*f^2).degree() for D,f in v])
-        set([2])
+        {2}
 
     Any degree up to 100 is implemented, but may be prohibitively slow::
 

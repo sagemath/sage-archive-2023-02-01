@@ -12361,6 +12361,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: A = matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]])
             sage: A.plot()
+            Graphics object consisting of 1 graphics primitive
 
         Here we make a random matrix over RR and use cmap='hsv' to color
         the matrix elements different RGB colors (see documentation for
@@ -12368,11 +12369,13 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: A = random_matrix(RDF, 50)
             sage: plot(A, cmap='hsv')
+            Graphics object consisting of 1 graphics primitive
 
         Another random plot, but over GF(389)::
 
             sage: A = random_matrix(GF(389), 10)
             sage: A.plot(cmap='Oranges')
+            Graphics object consisting of 1 graphics primitive
         """
         from sage.plot.plot import matrix_plot
         return matrix_plot(self, *args, **kwds)

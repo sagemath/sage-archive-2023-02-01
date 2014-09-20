@@ -144,8 +144,7 @@ Sage example in ./mpoly.tex, line 387::
 Sage example in ./mpoly.tex, line 401::
 
   sage: set(pt[zz].minpoly() for pt in V[:-1])
-  set([x^16 + x^15 + x^14 + x^13 + x^12 + x^11 + x^10 + x^9 +
-  x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1])
+    {x^16 + x^15 + x^14 + x^13 + x^12 + x^11 + x^10 + x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1}
 
 Sage example in ./mpoly.tex, line 413::
 
@@ -283,6 +282,7 @@ Sage example in ./mpoly.tex, line 900::
 Sage example in ./mpoly.tex, line 906::
 
   sage: env.change_ring(QQ[x,y]).plot()
+  Graphics object consisting of 1 graphics primitive
 
 Sage example in ./mpoly.tex, line 933::
 

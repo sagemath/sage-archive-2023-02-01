@@ -349,22 +349,22 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: P.order_ideal_complement_generators([1])
-                set([2])
+                {2}
                 sage: P.order_ideal_complement_generators([3])
-                set([])
+                set()
                 sage: P.order_ideal_complement_generators([1,2])
-                set([3])
+                {3}
                 sage: P.order_ideal_complement_generators([1,2,3])
-                set([])
+                set()
 
                 sage: P.order_ideal_complement_generators([1], direction="down")
-                set([2])
+                {2}
                 sage: P.order_ideal_complement_generators([3], direction="down")
-                set([1, 2])
+                {1, 2}
                 sage: P.order_ideal_complement_generators([1,2], direction="down")
-                set([])
+                set()
                 sage: P.order_ideal_complement_generators([1,2,3], direction="down")
-                set([])
+                set()
 
             .. WARNING::
 
@@ -1253,17 +1253,17 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: P.panyushev_orbits()
-                [[set([2]), set([1])], [set([]), set([1, 2]), set([3])]]
+                [[{2}, {1}], [set(), {1, 2}, {3}]]
                 sage: P.panyushev_orbits(element_constructor=list)
                 [[[2], [1]], [[], [1, 2], [3]]]
                 sage: P.panyushev_orbits(element_constructor=frozenset)
-                [[frozenset([2]), frozenset([1])],
-                 [frozenset([]), frozenset([1, 2]), frozenset([3])]]
+                [[frozenset({2}), frozenset({1})],
+                 [frozenset(), frozenset({1, 2}), frozenset({3})]]
                 sage: P.panyushev_orbits(element_constructor=tuple)
                 [[(2,), (1,)], [(), (1, 2), (3,)]]
                 sage: P = Poset( {} )
                 sage: P.panyushev_orbits()
-                [[set([])]]
+                [[set()]]
             """
             # TODO: implement a generic function taking a set and
             # bijections on this set, and returning the orbits.
@@ -1418,32 +1418,32 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: list(P.panyushev_orbit_iter(set([1, 2])))
-                [set([1, 2]), set([3]), set([])]
+                [{1, 2}, {3}, set()]
                 sage: list(P.panyushev_orbit_iter([1, 2]))
-                [set([1, 2]), set([3]), set([])]
+                [{1, 2}, {3}, set()]
                 sage: list(P.panyushev_orbit_iter([2, 1]))
-                [set([1, 2]), set([3]), set([])]
+                [{1, 2}, {3}, set()]
                 sage: list(P.panyushev_orbit_iter(set([1, 2]), element_constructor=list))
                 [[1, 2], [3], []]
                 sage: list(P.panyushev_orbit_iter(set([1, 2]), element_constructor=frozenset))
-                [frozenset([1, 2]), frozenset([3]), frozenset([])]
+                [frozenset({1, 2}), frozenset({3}), frozenset()]
                 sage: list(P.panyushev_orbit_iter(set([1, 2]), element_constructor=tuple))
                 [(1, 2), (3,), ()]
 
                 sage: P = Poset( {} )
                 sage: list(P.panyushev_orbit_iter([]))
-                [set([])]
+                [set()]
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.panyushev_orbit_iter([2], stop=False)
                 sage: Piter.next()
-                set([2])
+                {2}
                 sage: Piter.next()
-                set([3])
+                {3}
                 sage: Piter.next()
-                set([2])
+                {2}
                 sage: Piter.next()
-                set([3])
+                {3}
             """
             # TODO: implement a generic function taking a set and
             # bijections on this set, and returning an orbit of a given
@@ -1507,34 +1507,34 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: list(P.rowmotion_orbit_iter(set([1, 2])))
-                [set([1, 2]), set([1, 2, 3]), set([])]
+                [{1, 2}, {1, 2, 3}, set()]
                 sage: list(P.rowmotion_orbit_iter([1, 2]))
-                [set([1, 2]), set([1, 2, 3]), set([])]
+                [{1, 2}, {1, 2, 3}, set()]
                 sage: list(P.rowmotion_orbit_iter([2, 1]))
-                [set([1, 2]), set([1, 2, 3]), set([])]
+                [{1, 2}, {1, 2, 3}, set()]
                 sage: list(P.rowmotion_orbit_iter(set([1, 2]), element_constructor=list))
                 [[1, 2], [1, 2, 3], []]
                 sage: list(P.rowmotion_orbit_iter(set([1, 2]), element_constructor=frozenset))
-                [frozenset([1, 2]), frozenset([1, 2, 3]), frozenset([])]
+                [frozenset({1, 2}), frozenset({1, 2, 3}), frozenset()]
                 sage: list(P.rowmotion_orbit_iter(set([1, 2]), element_constructor=tuple))
                 [(1, 2), (1, 2, 3), ()]
 
                 sage: P = Poset( {} )
                 sage: list(P.rowmotion_orbit_iter([]))
-                [set([])]
+                [set()]
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.rowmotion_orbit_iter([1, 2, 3], stop=False)
                 sage: Piter.next()
-                set([1, 2, 3])
+                {1, 2, 3}
                 sage: Piter.next()
-                set([1, 2, 3, 4])
+                {1, 2, 3, 4}
                 sage: Piter.next()
-                set([])
+                set()
                 sage: Piter.next()
-                set([1])
+                {1}
                 sage: Piter.next()
-                set([1, 2, 3])
+                {1, 2, 3}
 
                 sage: P = Poset({ 1: [4], 2: [4, 5], 3: [5] })
                 sage: list(P.rowmotion_orbit_iter([1, 2], element_constructor=list))
@@ -1618,15 +1618,15 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: list(P.toggling_orbit_iter([1, 3, 1], set([1, 2])))
-                [set([1, 2])]
+                [{1, 2}]
                 sage: list(P.toggling_orbit_iter([1, 2, 3], set([1, 2])))
-                [set([1, 2]), set([]), set([1, 2, 3])]
+                [{1, 2}, set(), {1, 2, 3}]
                 sage: list(P.toggling_orbit_iter([3, 2, 1], set([1, 2])))
-                [set([1, 2]), set([1, 2, 3]), set([])]
+                [{1, 2}, {1, 2, 3}, set()]
                 sage: list(P.toggling_orbit_iter([3, 2, 1], set([1, 2]), element_constructor=list))
                 [[1, 2], [1, 2, 3], []]
                 sage: list(P.toggling_orbit_iter([3, 2, 1], set([1, 2]), element_constructor=frozenset))
-                [frozenset([1, 2]), frozenset([1, 2, 3]), frozenset([])]
+                [frozenset({1, 2}), frozenset({1, 2, 3}), frozenset()]
                 sage: list(P.toggling_orbit_iter([3, 2, 1], set([1, 2]), element_constructor=tuple))
                 [(1, 2), (1, 2, 3), ()]
                 sage: list(P.toggling_orbit_iter([3, 2, 1], [2, 1], element_constructor=tuple))
@@ -1634,20 +1634,20 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset( {} )
                 sage: list(P.toggling_orbit_iter([], []))
-                [set([])]
+                [set()]
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.toggling_orbit_iter([1, 2, 4, 3], [1, 2, 3], stop=False)
                 sage: Piter.next()
-                set([1, 2, 3])
+                {1, 2, 3}
                 sage: Piter.next()
-                set([1])
+                {1}
                 sage: Piter.next()
-                set([])
+                set()
                 sage: Piter.next()
-                set([1, 2, 3])
+                {1, 2, 3}
                 sage: Piter.next()
-                set([1])
+                {1}
             """
             # TODO: implement a generic function taking a set and
             # bijections on this set, and returning an orbit of a given

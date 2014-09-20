@@ -1622,10 +1622,9 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
             sage: fan = toric_varieties.P1xP1().fan()
             sage: fan._ray_to_cones(0)
-            frozenset([0, 3])
+            frozenset({0, 3})
             sage: fan._ray_to_cones()
-            (frozenset([0, 3]), frozenset([1, 2]),
-             frozenset([0, 1]), frozenset([2, 3]))
+            (frozenset({0, 3}), frozenset({1, 2}), frozenset({0, 1}), frozenset({2, 3}))
         """
         # This function is close to self(1)[i].star_generator_indices(), but
         # it does not require computation of the cone lattice and is
@@ -2548,11 +2547,11 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
             sage: fan = toric_varieties.dP8().fan()
             sage: fan._2d_echelon_forms()
-            frozenset([[ 1  0 -1  1]
-                       [ 0  1  0 -1], [ 1  0 -1 -1]
-                                      [ 0  1  0 -1], [ 1  0 -1  0]
-                                                     [ 0  1  1 -1], [ 1  0 -1  0]
-                                                                    [ 0  1 -1 -1]])
+            frozenset({[ 1  0 -1 -1]
+                       [ 0  1  0 -1], [ 1  0 -1  0]
+                       [ 0  1 -1 -1], [ 1  0 -1  0]
+                       [ 0  1  1 -1], [ 1  0 -1  1]
+                       [ 0  1  0 -1]})
         """
         from sage.geometry.fan_isomorphism import fan_2d_echelon_forms
         return fan_2d_echelon_forms(self)
@@ -2781,6 +2780,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
             sage: fan = toric_varieties.dP6().fan()
             sage: fan.plot()
+            Graphics object consisting of 31 graphics primitives
         """
         tp = ToricPlotter(options, self.lattice().degree(), self.rays())
         result = tp.plot_lattice() + tp.plot_rays() + tp.plot_generators()
@@ -2988,7 +2988,10 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
             sage: fan = Fan([[0,1,3],[3,4],[2,0],[1,2,4]], [(-3, -2, 1), (0, 0, 1), (3, -2, 1), (-1, -1, 1), (1, -1, 1)])
             sage: fan.primitive_collections()
-            [frozenset([0, 4]), frozenset([2, 3]), frozenset([0, 1, 2]), frozenset([1, 3, 4])]
+            [frozenset({0, 4}),
+             frozenset({2, 3}),
+             frozenset({0, 1, 2}),
+             frozenset({1, 3, 4})]
         """
         try:
             return self._primitive_collections
@@ -3275,7 +3278,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: K_extended = fan.complex(extended=True); K_extended
             Chain complex with at most 5 nonzero terms over Integer Ring
             sage: K_extended.homology()
-            {0: 0, 1: 0, 2: 0, 3: 0, -1: 0}
+            {-1: 0, 0: 0, 1: 0, 2: 0, 3: 0}
 
         Homology computations are much faster over `\QQ` if you don't
         care about the torsion coefficients::
@@ -3283,10 +3286,10 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: toric_varieties.P2_123().fan().complex(extended=True, base_ring=QQ)
             Chain complex with at most 4 nonzero terms over Rational Field
             sage: _.homology()
-            {0: Vector space of dimension 0 over Rational Field,
+            {-1: Vector space of dimension 0 over Rational Field,
+             0: Vector space of dimension 0 over Rational Field,
              1: Vector space of dimension 0 over Rational Field,
-             2: Vector space of dimension 0 over Rational Field,
-             -1: Vector space of dimension 0 over Rational Field}
+             2: Vector space of dimension 0 over Rational Field}
 
         The extended complex is only defined for complete fans::
 

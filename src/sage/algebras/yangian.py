@@ -16,8 +16,9 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 
-#from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
+from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
+from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.rings.all import ZZ
 from sage.rings.infinity import infinity
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -31,24 +32,26 @@ class Yangian(CombinatorialFreeModule):
     r"""
     The Yangian `Y(\mathfrak{gl}_n)`.
 
-    .. NOTE::
-
-        We using the grading defined by `\deg t_{ij}^{(r)} = r - 1` as opposed
-        to the natural filtering of `\deg t_{ij}^{(r)} = r`.
-
     INPUT:
 
     - ``base_ring`` -- the base ring
     - ``n`` -- the size `n`
     - ``level`` -- (optional) the level of the Yangian
     - ``variable_name`` -- (default: ``'t'``) the name of the variable
+    - ``filtration`` -- (default: ``'hopf'``) the filtration and can be
+      one of the following:
+
+      * ``'natural'`` -- we have `\deg t_{ij}^{(r)} = r`; this has the
+        associated graded algebra as a polynomial algebra
+      * ``'Hopf'`` -- we have `\deg t_{ij}^{(r)} = r - 1`; this has the
+        associated graded algebra as a Hopf algebra
 
     EXAMPLES::
 
         sage: Y = Yangian(QQ, 4)
     """
     @staticmethod
-    def __classcall_private__(cls, base_ring, n, level=None, variable_name='t'):
+    def __classcall_private__(cls, base_ring, n, level=None, variable_name='t', filtration='Hopf'):
         """
         Return the correct parent based upon input.
 
@@ -63,22 +66,28 @@ class Yangian(CombinatorialFreeModule):
             sage: YL is YL2
             True
         """
+        if filtration not in ['natural', 'Hopf']:
+            raise ValueError("invalid degree")
+
         if level is not None:
-            return YangianLevel(base_ring, n, level, variable_name)
+            return YangianLevel(base_ring, n, level, variable_name, filtration)
         # We need to specify the parameter name for pickling, so it doesn't pass
         #   ``variable_name`` as ``level``
-        return super(Yangian, cls).__classcall__(cls, base_ring, n, variable_name=variable_name)
+        return super(Yangian, cls).__classcall__(cls, base_ring, n,
+                                                 variable_name=variable_name,
+                                                 filtration=filtration)
 
-    def __init__(self, base_ring, n, variable_name):
+    def __init__(self, base_ring, n, variable_name, filtration):
         r"""
         Initialize ``self``.
 
         EXAMPLES::
 
             sage: Y = Yangian(QQ, 4)
-            sage: TestSuite(Y).run(skip="_test_antipode")
+            sage: TestSuite(Y).run(skip="_test_antipode") # Not implemented
         """
         self._n = n
+        self._filtration = filtration
         category = HopfAlgebrasWithBasis(base_ring)#.Filtered() # TODO - once implemented
         self._index_set = tuple(range(1,n+1))
         # The keys for the basis are tuples of these indices
@@ -96,9 +105,23 @@ class Yangian(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: Yangian(QQ, 4)
-            The Yangian of gl(4) over Rational Field
+            Yangian of gl(4) in the Hopf filtration over Rational Field
+            sage: Yangian(QQ, 4, filtration='natural')
+            Yangian of gl(4) in the natural filtration over Rational Field
         """
-        return "The Yangian of gl({}) over {}".format(self._n, self.base_ring())
+        return "Yangian of gl({}) in the {} filtration over {}".format(self._n, self._filtration, self.base_ring())
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(Yangian(QQ, 4))
+            Y(\mathfrak{gl}_{4}, \Bold{Q})
+        """
+        from sage.misc.latex import latex
+        return "Y(\\mathfrak{{gl}}_{{{}}}, {})".format(self._n, latex(self.base_ring()))
 
     def _repr_term(self, m):
         """
@@ -110,6 +133,8 @@ class Yangian(CombinatorialFreeModule):
             sage: I = Y._indices
             sage: Y._repr_term(I.gen((3,1,2))^2 * I.gen((4,3,1)))
             't(3)[1,2]^2*t(4)[3,1]'
+            sage: Y._repr_term(Y.one_basis())
+            '1'
         """
         if len(m) == 0:
             return '1'
@@ -129,6 +154,8 @@ class Yangian(CombinatorialFreeModule):
             sage: I = Y._indices
             sage: Y._latex_term(I.gen((3,1,2))^2 * I.gen((4,3,1)))
             '\\left(t^{(3)}_{1,2}\\right)^{2} t^{(4)}_{3,1}'
+            sage: Y._latex_term(Y.one_basis())
+            '1'
         """
         if len(m) == 0:
             return '1'
@@ -140,6 +167,28 @@ class Yangian(CombinatorialFreeModule):
                 return s
             return '\\left({}\\right)^{{{}}}'.format(s, exp)
         return ' '.join(term(r, i, j, exp) for (r,i,j), exp in m._sorted_items())
+
+    def _element_constructor_(self, x):
+        """
+        Construct an element of ``self`` from ``x``.
+
+        EXAMPLES::
+
+            sage: Y = Yangian(QQ, 4)
+            sage: Yn = Yangian(QQ, 4, filtration='natural')
+            sage: Yn(Y.an_element()) == Yn.an_element()
+            True
+            sage: Y(Yn.an_element()) == Y.an_element()
+            True
+            sage: Y6 = Yangian(QQ, 4, level=6, filtration='natural')
+            sage: Y(Y6.an_element())
+            t(1)[1,1]^2*t(1)[1,2]^2*t(1)[1,3]^3
+        """
+        if isinstance(x, CombinatorialFreeModule.Element):
+            if isinstance(x.parent(), Yangian) and x.parent()._n <= self._n:
+                R = self.base_ring()
+                return self._from_dict({i:R(c) for i,c in x})
+        return super(Yangian, self)._element_constructor_(x)
 
     def gen(self, r, i=None, j=None):
         """
@@ -217,8 +266,39 @@ class Yangian(CombinatorialFreeModule):
             (t[1, 2, 4]*t[2, 1, 1]*t[10, 3, 1], 10)
             (t[1, 2, 4]*t[10, 3, 1], 9)
             (t[1, 2, 4]*t[11, 3, 1], 10)
+
+            sage: Y = Yangian(QQ, 4, filtration='natural')
+            sage: Y.degree_on_basis(Y.gen(2,1,1).leading_support())
+            2
+            sage: x = Y.gen(5,2,3)^4
+            sage: Y.degree_on_basis(x.leading_support())
+            20
+            sage: elt = Y.gen(10,3,1) * Y.gen(2,1,1) * Y.gen(1,2,4)
+            sage: for s in elt.support(): s, Y.degree_on_basis(s)
+            (t[1, 1, 1]*t[1, 2, 4]*t[10, 3, 1], 12)
+            (t[1, 2, 4]*t[1, 3, 1]*t[10, 1, 1], 12)
+            (t[1, 2, 4]*t[2, 1, 1]*t[10, 3, 1], 13)
+            (t[1, 2, 4]*t[10, 3, 1], 11)
+            (t[1, 2, 4]*t[11, 3, 1], 12)
         """
+        if self._filtration == 'natural':
+            return sum(r[0][0] * r[1] for r in m._sorted_items())
         return sum(max(0, r[0][0] - 1) * r[1] for r in m._sorted_items())
+
+    def graded_algebra(self):
+        """
+        Return the associated graded algebra of ``self``.
+
+        EXAMPLES::
+
+            sage: Yangian(QQ, 4).graded_algebra()
+            Graded Algebra of Yangian of gl(4) in the Hopf filtration over Rational Field
+            sage: Yangian(QQ, 4, filtration='natural').graded_algebra()
+            Graded Algebra of Yangian of gl(4) in the natural filtration over Rational Field
+        """
+        if self._filtration == 'natural':
+            return GradedYangianNatural(self)
+        return GradedYangianHopf(self)
 
     def dimension(self):
         """
@@ -381,6 +461,10 @@ class YangianLevel(Yangian):
     r"""
     The Yangian `Y_{\ell}(\mathfrak{gl_n})` of level `\ell`.
 
+    The Yangian of level `\ell` is the quotient of the Yangian
+    `Y(\mathfrak{g})` by the two-sided ideal generated by `t_{ij}^{(r)}`
+    for all `r > p` and all `i,j \in \{1, \ldots, n\}`.
+
     EXAMPLES::
 
         sage: Y = Yangian(QQ, 4, 3)
@@ -389,7 +473,7 @@ class YangianLevel(Yangian):
         -t(3)[1,3] + t(1)[1,3]*t(3)[2,2] + t(1)[1,2]*t(1)[1,3]*t(3)[2,1]
          + t(1)[1,2]*t(3)[2,3] - t(1)[1,3]*t(3)[1,1]
     """
-    def __init__(self, base_ring, n, level, variable_name):
+    def __init__(self, base_ring, n, level, variable_name, filtration):
         """
         Initialize ``self``.
 
@@ -400,6 +484,7 @@ class YangianLevel(Yangian):
         """
         self._level = level
         self._n = n
+        self._filtration = filtration
         category = HopfAlgebrasWithBasis(base_ring)#.Filtered() # TODO - once implemented
         self._index_set = tuple(range(1,n+1))
         # The keys for the basis are tuples of these indices
@@ -417,9 +502,71 @@ class YangianLevel(Yangian):
         EXAMPLES::
 
             sage: Yangian(QQ, 4, 3)
-            The Yangian of level 3 of gl(4) over Rational Field
+            Yangian of level 3 of gl(4) in the Hopf filtration over Rational Field
         """
-        return "The Yangian of level {} of gl({}) over {}".format(self._level, self._n, self.base_ring())
+        return "Yangian of level {} of gl({}) in the {} filtration over {}".format(
+                        self._level, self._n, self._filtration, self.base_ring())
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(Yangian(QQ, 4))
+            Y(\mathfrak{gl}_{4}, \Bold{Q})
+        """
+        from sage.misc.latex import latex
+        return "Y_{{{}}}(\\mathfrak{{gl}}_{{{}}}, {})".format(
+                        self._level, self._n, latex(self.base_ring()))
+
+    def _coerce_map_from_(self, R):
+        """
+        Return ``True`` or the coercion if there exists a coerce
+        map from ``R``.
+
+        EXAMPLES::
+
+            sage: Y5 = Yangian(QQ, 7, level=5)
+            sage: Y = Yangian(QQ, 3)
+            sage: Y5._coerce_map_from_(Y)
+            Generic morphism:
+              From: Yangian of gl(3) in the Hopf filtration over Rational Field
+              To:   Yangian of level 5 of gl(7) in the Hopf filtration over Rational Field
+            sage: phi = Y5.coerce_map_from(Y)
+            sage: x = Y.gen(5,2,1) * Y.gen(4,3,2)
+            sage: phi(x)
+            -t(1)[2,2]*t(5)[3,1] - t(2)[2,1]*t(5)[3,2]
+             + t(3)[3,1]*t(5)[2,2] + t(1)[3,1]*t(5)[2,2]
+             + t(4)[3,2]*t(5)[2,1] + t(2)[3,2]*t(5)[2,1]
+             - t(3)[2,2]*t(5)[3,1]
+
+            sage: Y = Yangian(QQ, 10)
+            sage: Y5.has_coerce_map_from(Y)
+            False
+
+            sage: Y10 = Yangian(QQ, 4, level=10)
+            sage: phi = Y5.coerce_map_from(Y10); phi
+            Generic morphism:
+              From: Yangian of level 10 of gl(4) in the Hopf filtration over Rational Field
+              To:   Yangian of level 5 of gl(7) in the Hopf filtration over Rational Field
+            sage: x = Y10.gen(5,2,1) * Y10.gen(4,3,2)
+            sage: phi(x)
+            -t(1)[2,2]*t(5)[3,1] - t(2)[2,1]*t(5)[3,2]
+             + t(3)[3,1]*t(5)[2,2] + t(1)[3,1]*t(5)[2,2]
+             + t(4)[3,2]*t(5)[2,1] + t(2)[3,2]*t(5)[2,1]
+             - t(3)[2,2]*t(5)[3,1]
+
+            sage: Y = Yangian(QQ, 3, filtration='natural')
+            sage: Y5.has_coerce_map_from(Y)
+            False
+        """
+        if isinstance(R, Yangian) and R._n <= self._n and R._filtration == self._filtration:
+            if isinstance(R, YangianLevel) and self._level > R._level:
+                return False
+            on_gens = lambda m: self.prod(self.gen(*a)**exp for a,exp in m._sorted_items())
+            return R.module_morphism(on_gens, codomain=self)
+        return super(YangianLevel, self)._coerce_map_from_(R)
 
     def level(self):
         """
@@ -563,4 +710,291 @@ class YangianLevel(Yangian):
                 self.monomial( I.gen([x-1, b[1], a[2]]) * I.gen([a[0]+b[0]-x, a[1], b[2]]) )
                 - self.product_on_gens((a[0]+b[0]-x, b[1], a[2]), (x-1, a[1], b[2]))
                 for x in range(2, b[0]+1) if a[0]+b[0]-x <= self._level)
+
+#####################################################################
+## Graded algebras
+
+# TODO: Refactor this out once filtered algebras are implemented
+class AssociatedGradedAlgebra(CombinatorialFreeModule):
+    """
+    The associated graded algebra `\mathrm{gr} A` corresponding to
+    a filtered algebra `A`.
+
+    INPUT:
+
+    - ``A`` -- a filtered algebra
+    """
+    def __init__(self, A, category=None):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: grY = Yangian(QQ, 4, filtration='natural').graded_algebra()
+            sage: TestSuite(grY).run()
+        """
+        self._A = A
+        if category is None:
+            category = A.category().Graded()
+        from copy import copy
+        opts = copy(A.print_options())
+        opts['prefix'] = opts['prefix'] + 'bar'
+        CombinatorialFreeModule.__init__(self, A.base_ring(), A.indices(),
+                                         category=category, **opts)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: Yangian(QQ, 4).graded_algebra()
+            Graded Algebra of Yangian of gl(4) in the Hopf filtration over Rational Field
+        """
+        return "Graded Algebra of {}".format(self._A)
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(Yangian(QQ, 4).graded_algebra())
+            \mathrm{gr}\; Y(\mathfrak{gl}_{4}, \Bold{Q})
+        """
+        from sage.misc.latex import latex
+        return "\\mathrm{gr}\; " + latex(self._A)
+
+    def _element_constructor_(self, x):
+        """
+        Construct an element of ``self`` from ``x``.
+
+        EXAMPLES::
+
+            sage: Y = Yangian(QQ, 4)
+            sage: grY = Y.graded_algebra()
+            sage: grY(Y.an_element())
+            tbar(1)[1,1]^2*tbar(1)[1,2]^2*tbar(1)[1,3]^3
+            sage: grY(Y.an_element() + Y.gen(2,1,1) + 2)
+            tbar(2)[1,1] + 2 + tbar(1)[1,1]^2*tbar(1)[1,2]^2*tbar(1)[1,3]^3
+        """
+        if isinstance(x, CombinatorialFreeModule.Element):
+            if x.parent() is self._A:
+                return self._from_dict(dict(x))
+        return super(AssociatedGradedAlgebra, self)._element_constructor_(x)
+
+    def gen(self, *args, **kwds):
+        """
+        Return a generator of ``self``.
+
+        EXAMPLES::
+
+            sage: grY = Yangian(QQ, 4).graded_algebra()
+            sage: grY.gen(2,1,3)
+            tbar(2)[1,3]
+        """
+        return self(self._A.gen(*args, **kwds))
+
+    @cached_method
+    def algebra_generators(self):
+        """
+        Return the algebra generators of ``self``.
+
+        EXAMPLES::
+
+            sage: grY = Yangian(QQ, 4).graded_algebra()
+            sage: grY.algebra_generators()
+            Lazy family (generator(i))_{i in Cartesian product of
+             Positive integers, (1, 2, 3, 4), (1, 2, 3, 4)}
+        """
+        G = self._A.algebra_generators()
+        return Family(G.keys(), lambda x: self(G[x]), name="generator")
+
+    @cached_method
+    def one_basis(self):
+        """
+        Return the basis index of the element `1`.
+
+        EXAMPLES::
+
+            sage: grY = Yangian(QQ, 4).graded_algebra()
+            sage: grY.one_basis()
+            1
+        """
+        return self._A.one_basis()
+
+    def product_on_basis(self, x, y):
+        """
+        Return the product on basis elements given by the
+        indices ``x`` and ``y``.
+
+        EXAMPLES::
+
+            sage: grY = Yangian(QQ, 4).graded_algebra()
+            sage: grY.gen(12, 2, 1) * grY.gen(2, 1, 1) # indirect doctest
+            tbar(13)[2,1] + tbar(2)[1,1]*tbar(12)[2,1]
+        """
+        ret = self._A.product_on_basis(x, y)
+        deg = self._A.degree_on_basis(x) + self._A.degree_on_basis(y)
+        return self.sum_of_terms([(i,c) for i,c in ret
+                                     if self._A.degree_on_basis(i) == deg],
+                                 distinct=True)
+
+class GradedYangianBase(AssociatedGradedAlgebra):
+    """
+    Base class for graded algebras associated to a Yangian.
+    """
+    def _repr_term(self, m):
+        """
+        Return a string representation of the monomial indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: grY = Yangian(QQ, 4).graded_algebra()
+            sage: I = grY._indices
+            sage: grY._repr_term(I.gen((3,1,2))^2 * I.gen((4,3,1)))
+            'tbar(3)[1,2]^2*tbar(4)[3,1]'
+        """
+        if len(m) == 0:
+            return '1'
+        prefix = self.prefix()
+        return '*'.join(prefix + '({})[{},{}]'.format(r,i,j)
+                        + ('^{}'.format(exp) if exp > 1 else '')
+                        for (r,i,j), exp in m._sorted_items())
+
+    def _latex_term(self, m):
+        r"""
+        Return a latex representation of the monomial indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: grY = Yangian(QQ, 4).graded_algebra()
+            sage: I = grY._indices
+            sage: grY._latex_term(I.gen((3,1,2))^2 * I.gen((4,3,1)))
+            '\\left(\\overline{t}^{(3)}_{1,2}\\right)^{2} \\overline{t}^{(4)}_{3,1}'
+        """
+        if len(m) == 0:
+            return '1'
+
+        prefix = "\\overline{{{}}}".format(self._A.prefix())
+        def term(r, i, j, exp):
+            s = prefix + '^{{({})}}_{{{},{}}}'.format(r,i,j)
+            if exp == 1:
+                return s
+            return '\\left({}\\right)^{{{}}}'.format(s, exp)
+        return ' '.join(term(r, i, j, exp) for (r,i,j), exp in m._sorted_items())
+
+class GradedYangianNatural(GradedYangianBase):
+    r"""
+    The associated graded algebra corresponding to a Yangian
+    `\mathrm{gr} Y(\mathfrak{gl}_n)` with the natural filtration
+    of `\deg t_{ij}^{(r)} = r`.
+
+    INPUT:
+
+    - ``Y`` -- a Yangian
+    """
+    def __init__(self, Y):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: grY = Yangian(QQ, 4, filtration='natural').graded_algebra()
+            sage: TestSuite(grY).run()
+        """
+        cat = GradedAlgebrasWithBasis(Y.base_ring()).Commutative()
+        GradedYangianBase.__init__(self, Y, cat)
+
+    def product_on_basis(self, x, y):
+        """
+        Return the product on basis elements given by the
+        indices ``x`` and ``y``.
+
+        EXAMPLES::
+
+            sage: grY = Yangian(QQ, 4, filtration='natural').graded_algebra()
+            sage: x = grY.gen(12, 2, 1) * grY.gen(2, 1, 1) # indirect doctest
+            sage: x
+            tbar(2)[1,1]*tbar(12)[2,1]
+            sage: x == grY.gen(2, 1, 1) * grY.gen(12, 2, 1)
+            True
+        """
+        return self.monomial(x*y)
+
+class GradedYangianHopf(GradedYangianBase):
+    r"""
+    The associated graded algebra corresponding to a Yangian
+    `\mathrm{gr} Y(\mathfrak{gl}_n)` with the filtration
+    of `\deg t_{ij}^{(r)} = r - 1`.
+
+    Using this filtration for the Yangian, this has a natural Hopf algebra
+    structure induced from the Yangian.
+
+    INPUT:
+
+    - ``Y`` -- a Yangian
+    """
+    def __init__(self, Y):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: grY = Yangian(QQ, 4).graded_algebra()
+            sage: TestSuite(grY).run()
+        """
+        cat = GradedHopfAlgebrasWithBasis(Y.base_ring())
+        GradedYangianBase.__init__(self, Y, cat)
+
+    def antipode_on_basis(self, m):
+        """
+        Return the antipode on a basis element indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: grY = Yangian(QQ, 4).graded_algebra()
+            sage: grY.antipode_on_basis(grY.gen(2,1,1).leading_support())
+            -tbar(2)[1,1]
+            sage: grY.antipode_on_basis(grY.an_element().leading_support())
+            -25*tbar(1)[1,2]^2*tbar(1)[1,3]^3
+             - tbar(1)[1,1]^2*tbar(1)[1,2]^2*tbar(1)[1,3]^3
+             + 10*tbar(1)[1,1]*tbar(1)[1,2]^2*tbar(1)[1,3]^3
+        """
+        return self.prod( (-1)**exp * self.monomial(a**exp)
+                          for a,exp in reversed(list(m)) )
+
+    def coproduct_on_basis(self, m):
+        """
+        Return the coproduct on the basis element indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: grY = Yangian(QQ, 4).graded_algebra()
+            sage: grY.coproduct_on_basis(grY.gen(2,1,1).leading_support())
+            1 # tbar(2)[1,1] + tbar(2)[1,1] # 1
+            sage: grY.gen(2,3,1).coproduct()
+            1 # tbar(2)[3,1] + tbar(2)[3,1] # 1
+        """
+        T = self.tensor_square()
+        I = self._indices
+        one = I.one()
+        return T.prod(T.sum_of_monomials([(one, a), (a, one)])
+                      for a,exp in m for p in range(exp))
+
+    def counit_on_basis(self, m):
+        """
+        Return the antipode on the basis element indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: grY = Yangian(QQ, 4).graded_algebra()
+            sage: grY.counit_on_basis(grY.gen(2,3,1).leading_support())
+            0
+            sage: grY.gen(0,0,0).counit()
+            1
+        """
+        if len(m) == 0:
+            return self.base_ring().one()
+        return self.base_ring().zero()
 

@@ -1258,11 +1258,13 @@ class GraphGenerators():
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
 
-    def plane_graphs(self, order, minimum_degree=None, minimum_connectivity=None,
-                     exact_connectivity=False, only_bipartite=False):
+    def planar_graphs(self, order, minimum_degree=None, minimum_connectivity=None,
+                      exact_connectivity=False, only_bipartite=False):
         r"""
-        Return a generator which creates general plane graphs using
-        the plantri generator (see [plantri]_).
+        An iterator over planar graphs using the plantri generator. This uses the
+        plantri generator (see [plantri]_) which is available through the optional
+        package plantri. If the graphs are not 3-connected, then this iterator will
+        output all different embeddings for each graph.
 
         INPUT:
 
@@ -1294,7 +1296,7 @@ class GraphGenerators():
 
         OUTPUT:
 
-        A generator which will produce the general plane graphs as Sage graphs
+        A generator which will produce the general planar graphs as Sage graphs
         with an embedding set. These will be simple graphs: no loops, no
         multiple edges, no directed edges.
 
@@ -1306,22 +1308,22 @@ class GraphGenerators():
 
         EXAMPLES:
 
-        There are 6 plane graphs on 4 vertices:  ::
+        There are 6 planar graphs on 4 vertices:  ::
 
-            sage: gen = graphs.plane_graphs(4)  # optional plantri
+            sage: gen = graphs.planar_graphs(4)  # optional plantri
             sage: len(list(gen))  # optional plantri
             6
 
-        Three of these plane graphs are bipartite:  ::
+        Three of these planar graphs are bipartite:  ::
 
-            sage: gen = graphs.plane_graphs(4, only_bipartite=True)  # optional plantri
+            sage: gen = graphs.planar_graphs(4, only_bipartite=True)  # optional plantri
             sage: len(list(gen))  # optional plantri
             3
 
         The cycle of length 4 is the only 2-connected bipartite planar graph
         on 4 vertices: ::
 
-            sage: l = list(graphs.plane_graphs(4, minimum_connectivity=2, only_bipartite=True))  # optional plantri
+            sage: l = list(graphs.planar_graphs(4, minimum_connectivity=2, only_bipartite=True))  # optional plantri
             sage: l[0].get_embedding()  # optional plantri
             {1: [2, 3],
              2: [1, 4],

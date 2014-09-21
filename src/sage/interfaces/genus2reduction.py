@@ -192,7 +192,7 @@ def divisors_to_string(divs):
 
     OUTPUT: a string representation of these numbers
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.interfaces.genus2reduction import divisors_to_string
         sage: print divisors_to_string([])

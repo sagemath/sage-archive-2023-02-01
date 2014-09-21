@@ -816,8 +816,7 @@ cdef class CachedFunction(object):
                 #on code objects you'll find it in co_filename and co_firstlineno)
                 #however, this hasn't been factored out yet in sageinspect
                 #and the logic in sage_getsourcelines is rather intricate.
-                _, lineno = sage_getsourcelines(f)
-                file_info = "File: %s (starting at line %d)\n"%(filename,lineno)
+                file_info = "File: {} (starting at line {})".format(filename,sourcelines[1])+os.linesep
 
                 doc = file_info+doc
             except IOError:

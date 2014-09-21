@@ -101,7 +101,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.unwrap` | Unwraps an element of this poset
     :meth:`~FinitePoset.upper_covers_iterator` | Returns an iterator for the upper covers of the element y. An upper cover of y is an element x such that y x is a cover relation.
     :meth:`~FinitePoset.upper_covers` | Returns a list of upper covers of the element y. An upper cover of y is an element x such that y x is a cover relation.
-    :meth:`~FinitePoset.width` | Return the width of the poset
+    :meth:`~FinitePoset.width` | Return the width of the poset (the size of its longest antichain)
     :meth:`~FinitePoset.with_linear_extension` | Returns a copy of ``self`` with a different default linear extension
     :meth:`~FinitePoset.zeta_polynomial` | Returns the zeta polynomial of the poset.
 
@@ -2716,10 +2716,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def width(self):
         r"""
-        Return the width of the poset
+        Return the width of the poset (the size of its longest antichain)
 
-        The width of the poset is the cardinality of its longest antichain. For
-        more information, see :wikipedia:`Dilworth's_theorem`.
+        It is computed through a matching in a bipartite graph. See
+        :wikipedia:`Dilworth's_theorem` for more information.
 
         .. SEEALSO::
 
@@ -2765,7 +2765,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             union of chains.
 
             According to Dilworth's theorem, the number of chains is equal to
-            `\alpha` (the posets's width).
+            `\alpha` (the posets' width).
 
         EXAMPLE::
 

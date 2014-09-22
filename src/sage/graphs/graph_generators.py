@@ -1274,9 +1274,10 @@ class GraphGenerators():
         - ``order`` - a positive integer smaller than or equal to 64.
           This specifies the number of vertices in the generated graphs.
 
-        - ``minimum_degree`` - default: ``None`` - a value between 1 and 5,
+        - ``minimum_degree`` - default: ``None`` - a value between 0 and 5,
           or ``None``. This specifies the minimum degree of the generated
-          graphs. If this is ``None`` and the minimum connectivity is specified,
+          graphs. If this is ``None`` and the order is 1, then this is set
+          to 0. If this is ``None`` and the minimum connectivity is specified,
           then this is set to the same value as the minimum connectivity.
           If the minimum connectivity is also equal to ``None``, then this
           is set to 1.
@@ -1358,8 +1359,13 @@ class GraphGenerators():
             raise ValueError("Minimum connectivity should be a number between 1 and 3.")
 
         # minimum degree should be None or a number between 1 and 5
-        if minimum_degree is  not None and not (1 <= minimum_degree <= 5):
+        if minimum_degree == 0 and order != 1:
+            raise ValueError("Minimum degree equal to 0 is only possible if the graphs have 1 vertex.")
+        elif minimum_degree is  not None and not (1 <= minimum_degree <= 5):
             raise ValueError("Minimum degree should be a number between 1 and 5.")
+
+        if order == 1 and minimum_degree is None:
+            minimum_degree = 0
 
         # check combination of values of minimum degree and minimum connectivity
         if minimum_connectivity is None and minimum_degree is not None:
@@ -1368,7 +1374,7 @@ class GraphGenerators():
             minimum_degree = minimum_connectivity
         elif minimum_connectivity is None and minimum_degree is None:
             minimum_degree, minimum_connectivity = 1, 1
-        elif minimum_degree < minimum_connectivity:
+        elif minimum_degree < minimum_connectivity and minimum_degree > 0:
             raise ValueError("Minimum connectivity can be at most the minimum degree.")
 
         #exact connectivity is not implemented for minimum connectivity 3
@@ -1382,9 +1388,10 @@ class GraphGenerators():
             return
 
         if order == 1:
-            G = graph.Graph(1)
-            G.set_embedding({0: []})
-            yield(G)
+            if minimum_degree == 0:
+                G = graph.Graph(1)
+                G.set_embedding({0: []})
+                yield(G)
             return
 
         command = ('plantri -p{}m{}c{}{} {}'.format('b' if only_bipartite else '',

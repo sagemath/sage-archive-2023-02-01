@@ -1466,11 +1466,6 @@ class GraphGenerators():
             sage: g = gen.next()  # optional plantri
             sage: g.is_isomorphic(graphs.OctahedralGraph()) # optional plantri
             True
-
-        REFERENCE:
-
-        .. [plantri] G. Brinkmann and B.D. McKay, Fast generation of planar graphs,
-           MATCH-Communications in Mathematical and in Computer Chemistry, 58(2):323-357, 2007.
         """
         from sage.misc.package import is_package_installed
         if not is_package_installed("plantri"):
@@ -1587,11 +1582,6 @@ class GraphGenerators():
             Traceback (most recent call last):
             ...
             StopIteration
-
-        REFERENCE:
-
-        .. [plantri] G. Brinkmann and B.D. McKay, Fast generation of planar graphs,
-           MATCH-Communications in Mathematical and in Computer Chemistry, 58(2):323-357, 2007.
         """
         from sage.misc.package import is_package_installed
         if not is_package_installed("plantri"):

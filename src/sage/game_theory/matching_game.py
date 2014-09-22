@@ -263,7 +263,7 @@ class MatchingGame(SageObject):
         else:
             raise TypeError("generator must be an integer or a pair of 2 dictionaries")
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Return a basic representation of the game stating how many
         players are in the game.

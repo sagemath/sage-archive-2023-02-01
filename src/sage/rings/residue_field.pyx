@@ -235,7 +235,7 @@ class ResidueFieldFactory(UniqueFactory):
 
     An example where the residue class field is large but of degree 1::
 
-        sage: K.<a> = NumberField(x^3-875); P = K.ideal(2007).factor()[0][0]; k = K.residue_field(P); k
+        sage: K.<a> = NumberField(x^3-875); P = K.ideal(2007).factor()[2][0]; k = K.residue_field(P); k
         Residue field of Fractional ideal (223, 1/5*a + 11)
         sage: k(a)
         168
@@ -728,7 +728,7 @@ class ResidueField_generic(Field):
 
             sage: K.<a> = NumberField(x^3-11)
             sage: F = K.ideal(37).factor(); F
-            (Fractional ideal (37, a + 12)) * (Fractional ideal (2*a - 5)) * (Fractional ideal (37, a + 9))
+            (Fractional ideal (37, a + 9)) * (Fractional ideal (37, a + 12)) * (Fractional ideal (2*a - 5))
             sage: k = K.residue_field(F[0][0])
             sage: l = K.residue_field(F[1][0])
             sage: k == l
@@ -1022,7 +1022,7 @@ cdef class ReductionMap(Map):
             sage: g = l.convert_map_from(L)
             sage: s = g.section(); s
             Lifting map:
-              From: Residue field in bbar of Fractional ideal (53, b^2 + 21*b + 14)
+              From: Residue field in bbar of Fractional ideal (53, b^2 + 23*b + 8)
               To:   Number Field in b with defining polynomial x^5 + 17*x + 1
             sage: s(l.gen()).parent()
             Number Field in b with defining polynomial x^5 + 17*x + 1
@@ -1233,7 +1233,7 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
             sage: g = l.coerce_map_from(L.ring_of_integers())
             sage: s = g.section(); s
             Lifting map:
-              From: Residue field in bbar of Fractional ideal (53, b^2 + 21*b + 14)
+              From: Residue field in bbar of Fractional ideal (53, b^2 + 23*b + 8)
               To:   Maximal Order in Number Field in b with defining polynomial x^5 + 17*x + 1
             sage: s(l.gen()).parent()
             Maximal Order in Number Field in b with defining polynomial x^5 + 17*x + 1

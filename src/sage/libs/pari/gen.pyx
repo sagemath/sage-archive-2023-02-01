@@ -59,8 +59,6 @@ cimport cython
 
 cdef extern from "misc.h":
     int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
-    int     gcmp_try(GEN x, GEN y)
-    int     gcmp_string(GEN x, GEN y)
 
 cdef extern from "mpz_pylong.h":
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
@@ -1133,19 +1131,15 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Compare ``left`` and ``right``.
 
-        First uses PARI's ``gcmp()`` routine; if it decides the objects
-        are not comparable, it then compares the underlying strings
-        (since in Python all objects are supposed to be comparable).
+        This uses PARI's ``cmp_universal()`` routine, which defines
+        a total ordering on the set of all PARI objects (up to the
+        indistinguishability relation given by ``gidentical()``).
 
         EXAMPLES::
 
-            sage: a = pari(5)
-            sage: b = 10
-            sage: cmp(a, b)
-            -1
-            sage: cmp(a, 5)
+            sage: cmp(pari(5), 5)
             0
-            sage: cmp(a, pari(10))
+            sage: cmp(pari(5), 10)
             -1
             sage: cmp(pari(2.5), None)
             1
@@ -1155,12 +1149,28 @@ cdef class gen(sage.structure.element.RingElement):
             1
             sage: cmp(pari(I), pari(I))
             0
+
+        Since :trac:`17026`, different elements with the same string
+        representation can be distinguished by ``cmp()``::
+
+            sage: a = pari(0); a
+            0
+            sage: b = pari("0*ffgen(ffinit(29, 10))"); b
+            0
+            sage: cmp(a, b)
+            -1
+
+            sage: x = pari("x"); x
+            x
+            sage: y = pari("ffgen(ffinit(3, 5))"); y
+            x
+            sage: cmp(x, y)
+            1
+
         """
         cdef int r
         pari_catch_sig_on()
-        r = gcmp_try(left.g, (<gen>right).g)
-        if r == 2:  # gcmp() failed
-            r = gcmp_string(left.g, (<gen>right).g)
+        r = cmp_universal(left.g, (<gen>right).g)
         pari_catch_sig_off()
         return r
 

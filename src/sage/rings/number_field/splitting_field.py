@@ -87,7 +87,7 @@ class SplittingData:
         delta = self.dm.__cmp__(other.dm)
         if delta:
             return delta
-        return self.pol.__cmp__(other.pol)
+        return cmp(str(self.pol), str(other.pol))
 
     def poldegree(self):
         """

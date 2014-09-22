@@ -397,7 +397,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             sage: F(2).square_root()
             4
             sage: F(3).square_root()
-            5*a + 1
+            2*a + 6
             sage: F(3).square_root()**2
             3
             sage: F(4).square_root()
@@ -431,7 +431,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
             sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: (a^3 - a - 1).sqrt()
-            2*a^16 + a^15 + 2*a^13 + a^12 + 2*a^10 + a^9 + a^8 + 2*a^7 + 2*a^6 + a^5 + 2*a^4 + a^2 + a + 1
+            a^16 + 2*a^15 + a^13 + 2*a^12 + a^10 + 2*a^9 + 2*a^8 + a^7 + a^6 + 2*a^5 + a^4 + 2*a^2 + 2*a + 2
         """
         return self.square_root(extend=extend, all=all)
 
@@ -841,7 +841,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             sage: a > a**2
             False
         """
-        return cmp(self.__value, other.__value)
+        return cmp(self.__value.lift().lift().Pol(), other.__value.lift().lift().Pol())
 
     def log(self, base):
         """

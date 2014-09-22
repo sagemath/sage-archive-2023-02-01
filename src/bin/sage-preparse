@@ -124,7 +124,6 @@ def do_preparse(f, files_before=[]):
     i = find_position_right_after_module_docstring(F)
     header, body = F[:i] , F[i:]
     # Preparse the body
-    from sage.misc.preparser  import preparse_file
     body = preparse_file(body)
 
     # Check for load/attach commands.

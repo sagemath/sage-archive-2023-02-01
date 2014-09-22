@@ -318,6 +318,25 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: out.find("1 item had failures:") >= 0
         True
 
+    Testing ``sage --preparse FILE`` #17019: module docstrings are preserved::
+
+        sage: s = "'''This is my docstring\nin two lines'''\nimport inspect\ndef f(x):\n    return 1\nprint inspect.getmodule(f).__doc__\n"
+        sage: script = os.path.join(tmp_dir(), 'my_script.sage')
+        sage: script_py = script[:-5] + '.py'
+        sage: F = open(script, 'w')
+        sage: F.write(s)
+        sage: F.close()
+        sage: (out, err, ret) = test_executable(["sage", "--preparse", script])
+        sage: ret
+        0
+        sage: os.path.isfile(script_py)
+        True
+        sage: (out, err, ret) = test_executable(["sage", script_py])
+        sage: out
+        'This is my docstring\nin two lines\n'
+        sage: ret
+        0
+
     Test ``sage -t --debug -p 2`` on a ReST file, the ``-p 2`` should
     be ignored. In Pdb, we run the ``help`` command::
 

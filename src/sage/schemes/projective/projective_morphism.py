@@ -604,8 +604,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             (x^4*y + (2 + O(5^20))*x^2*y^3 - x*y^4 + (2 + O(5^20))*y^5)/(x^2*y -
             x*y^2 + y^3)
 
-        .. TODO:: It would be nice to get this to actually be a polynomial.
-
         ::
 
             sage: L.<t> = PolynomialRing(QQ)
@@ -665,8 +663,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         ::
 
             sage: L.<t> = PolynomialRing (QuadraticField(2).maximal_order())
-            sage: P.<x , y > = ProjectiveSpace (L.fraction_field() , 1 )
-            sage: H = Hom (P , P )
+            sage: P.<x, y> = ProjectiveSpace (L.fraction_field() , 1 )
+            sage: H = Hom (P, P )
             sage: f = H ([x^2 + (t ^ 2 + 1) * y^2 , y^2 ])
             sage: f.dynatomic_polynomial(2)
             x^2 + x*y + (t^2 + 2)*y^2

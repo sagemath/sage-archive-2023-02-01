@@ -335,6 +335,14 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f = H([x^2-10/9])
             sage: f.dynatomic_polynomial([2,1])
             531441*x^4 - 649539*x^2 - 524880
+
+            ::
+
+            sage: A.<x> = AffineSpace(CC,1)
+            sage: H = Hom(A,A)
+            sage: f = H([x^2+CC.0])
+            sage: f.dynatomic_polynomial(2)
+            x^2 + x + 1.00000000000000 + 1.00000000000000*I
         """
         if self.domain() != self.codomain():
             raise TypeError("Must have same domain and codomain to iterate")

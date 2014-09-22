@@ -5,9 +5,9 @@ This module implements a class for matching games (stable marriage problems)
 [DI1989]_. At present the extended Gale-Shapley algorithm is implemented
 which can be used to obtain stable matchings.
 
-AUTHOR:
+AUTHORS:
 
-    - James Campbell and Vince Knight 06-2014: Original version
+- James Campbell and Vince Knight 06-2014: Original version
 """
 
 #*****************************************************************************
@@ -40,9 +40,9 @@ class MatchingGame(SageObject):
 
     .. MATH::
 
-        f:S\to R^N
+        f : S \to R^N
         \text{ and }
-        g:R\to S^N
+        g : R \to S^N
 
     Here is an example of matching game on 4 players:
 
@@ -56,17 +56,17 @@ class MatchingGame(SageObject):
     .. MATH::
 
         f(s) = \begin{cases}
-        (A, D, C, B),& \text{ if } s=J\\
-        (A, B, C, D),& \text{ if } s=K\\
-        (B, D, C, A),& \text{ if } s=L\\
-        (C, A, B, D),& \text{ if } s=M\\
+        (A, D, C, B) & \text{ if } s=J,\\
+        (A, B, C, D) & \text{ if } s=K,\\
+        (B, D, C, A) & \text{ if } s=L,\\
+        (C, A, B, D) & \text{ if } s=M,\\
         \end{cases}
 
         g(s) = \begin{cases}
-        (L, J, K, M),& \text{ if } s=A\\
-        (J, M, L, K),& \text{ if } s=B\\
-        (K, M, L, J),& \text{ if } s=C\\
-        (M, K, J, L),& \text{ if } s=D\\
+        (L, J, K, M) & \text{ if } s=A,\\
+        (J, M, L, K) & \text{ if } s=B,\\
+        (K, M, L, J) & \text{ if } s=C,\\
+        (M, K, J, L) & \text{ if } s=D,\\
         \end{cases}
 
     To implement the above game in Sage::
@@ -92,15 +92,15 @@ class MatchingGame(SageObject):
 
     .. MATH::
 
-        M(s)=r
+        M(s) = r.
 
-    On any given matching game one intends to find a matching that is stable,
-    in other words so that no one individual has an incentive to break their
+    On any given matching game, one intends to find a matching that is stable.
+    In other words, so that no one individual has an incentive to break their
     current match.
 
     Formally, a stable matching is a matching that has no blocking pairs.
-    A blocking pair is any pair `(s, r)` such that `M(s)\ne r` but `s` prefers
-    r to `M(r)` and `r` prefers `s` to `M^{-1}(r)`.
+    A blocking pair is any pair `(s, r)` such that `M(s) \neq r` but `s`
+    prefers `r` to `M(r)` and `r` prefers `s` to `M^{-1}(r)`.
 
     To obtain the stable matching in Sage we use the ``solve`` method which
     uses the extended Gale-Shapley algorithm [DI1989]_::
@@ -111,11 +111,11 @@ class MatchingGame(SageObject):
          'M': ['B'],
          'L': ['D']}
 
-    Matchings have a natural representations as bi-partite graph::
+    Matchings have a natural representations as bipartite graph::
 
         sage: plot(m)
 
-    The above plots the bi-partite graph associated with the matching.
+    The above plots the bipartite graph associated with the matching.
     This plot can be accessed directly::
 
         sage: graph = m.bipartite()
@@ -138,7 +138,7 @@ class MatchingGame(SageObject):
         sage: big_game.solve()
         Traceback (most recent call last):
         ...
-        ValueError: Suitor preferences are not complete
+        ValueError: suitor preferences are not complete
 
     To continue we have to populate the preference dictionary. Here
     is one example where the preferences are simply the corresponding
@@ -162,12 +162,11 @@ class MatchingGame(SageObject):
          9: [-3],
         10: [-2]}
 
-
     It can be shown that the Gale-Shapley algorithm will return the stable
     matching that is optimal from the point of view of the suitors and is in
     fact the worst possible matching from the point of view of the reviewers.
-    To quickly obtain the matching that is optimal for the reviewers we use the
-    ``solve`` method with the ``invert=True`` option::
+    To quickly obtain the matching that is optimal for the reviewers we
+    use the ``solve`` method with the ``invert=True`` option::
 
         sage: left_dict = {'a': ('A', 'B', 'C'),
         ....:              'b': ('B', 'C', 'A'),
@@ -185,50 +184,58 @@ class MatchingGame(SageObject):
          'C': ['b'],
          'B': ['a']}
 
+    EXAMPLES:
+
+    8 player letter game::
+
+        sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
+        ....:               'K': ('A', 'B', 'C', 'D'),
+        ....:               'L': ('B', 'D', 'C', 'A'),
+        ....:               'M': ('C', 'A', 'B', 'D')}
+        sage: reviewr_pref = {'A': ('L', 'J', 'K', 'M'),
+        ....:                 'B': ('J', 'M', 'L', 'K'),
+        ....:                 'C': ('K', 'M', 'L', 'J'),
+        ....:                 'D': ('M', 'K', 'J', 'L')}
+        sage: m = MatchingGame([suitr_pref, reviewr_pref])
+        sage: m.suitors
+        ['K', 'J', 'M', 'L']
+        sage: m.reviewers
+        ['A', 'C', 'B', 'D']
+
+    Also works for numbers::
+
+        sage: suit = {0: (3, 4),
+        ....:         1: (3, 4)}
+        sage: revr = {3: (0, 1),
+        ....:         4: (1, 0)}
+        sage: g = MatchingGame([suit, revr])
+
+    Can create a game from an integer which then requires
+    a bespoke creation of preferences::
+
+        sage: g = MatchingGame(3)
+        sage: g
+        A matching game with 3 suitors and 3 reviewers
 
     REFERENCES:
 
-    .. [DI1989]  Gusfield, Dan, and Robert W. Irving.
-       *The stable marriage problem: structure and algorithms.*
+    .. [DI1989]  Dan Gusfield and Robert W. Irving.
+       *The stable marriage problem: structure and algorithms*.
        Vol. 54. Cambridge: MIT press, 1989.
     """
     def __init__(self, generator):
         r"""
-        Initialize a Matching Game and check the inputs.
+        Initialize a matching game and check the inputs.
 
-        TESTS:
+        TESTS::
 
-        8 player letter game. ::
-
-            sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
-            ....:               'K': ('A', 'B', 'C', 'D'),
-            ....:               'L': ('B', 'D', 'C', 'A'),
-            ....:               'M': ('C', 'A', 'B', 'D')}
-            sage: reviewr_pref = {'A': ('L', 'J', 'K', 'M'),
-            ....:                 'B': ('J', 'M', 'L', 'K'),
-            ....:                 'C': ('K', 'M', 'L', 'J'),
-            ....:                 'D': ('M', 'K', 'J', 'L')}
-            sage: m = MatchingGame([suitr_pref, reviewr_pref])
-            sage: m.suitors
-            ['K', 'J', 'M', 'L']
-            sage: m.reviewers
-            ['A', 'C', 'B', 'D']
-
-        Also works for numbers. ::
-
-            sage: suit = {0: (3, 4),
-            ....:         1: (3, 4)}
-            sage: revr = {3: (0, 1),
-            ....:         4: (1, 0)}
+            sage: suit = {0: (3, 4), 1: (3, 4)}
+            sage: revr = {3: (0, 1), 4: (1, 0)}
             sage: g = MatchingGame([suit, revr])
-
-        Can create a game from an integer which then requires
-        a bespoke creation of preferences::
+            sage: TestSuite(g).run()
 
             sage: g = MatchingGame(3)
-            sage: g
-            A matching game with 3 suitors and 3 reviewers
-
+            sage: TestSuite(g).run()
         """
         self.suitors = []
         self.reviewers = []
@@ -247,7 +254,7 @@ class MatchingGame(SageObject):
             for k in self.reviewers:
                 k.pref = generator[1][k.name]
         else:
-            raise TypeError("generator must be an integer or a list of 2 dictionaries.")
+            raise TypeError("generator must be an integer or a list of 2 dictionaries")
 
         self.suitor_dictionary = {}
         self.reviewer_dictionary = {}
@@ -258,18 +265,19 @@ class MatchingGame(SageObject):
 
     def _repr_(self):
         r"""
-        Return a basic representation of the game stating how many players are in the game.
+        Return a basic representation of the game stating how many
+        players are in the game.
 
         EXAMPLES:
 
-        Matching game with 2 reviewers and 2 suitors. ::
+        Matching game with 2 reviewers and 2 suitors::
 
             sage: M = MatchingGame(2)
             sage: M
             A matching game with 2 suitors and 2 reviewers
         """
-        size = (len(self.reviewers), len(self.suitors))
-        return 'A matching game with %s suitors and %s reviewers' % size
+        return 'A matching game with {} suitors and {} reviewers'.format(
+                    len(self.reviewers), len(self.suitors))
 
     def _latex_(self):
         r"""
@@ -284,20 +292,24 @@ class MatchingGame(SageObject):
             ....:         4: (1, 0)}
             sage: g = MatchingGame([suit, revr])
             sage: latex(g)
-            Suitors
-            0\to\{(3, 4)\}
-            1\to\{(3, 4)\}
-            Reviewers
-            3\to\{(0, 1)\}
-            4\to\{(1, 0)\}
+            \text{Suitors:}
+            \begin{aligned}
+            \\ 0 & \to (3, 4)
+            \\ 1 & \to (3, 4)
+            \end{aligned}
+            \text{Reviewers:}
+            \begin{aligned}
+            \\ 3 & \to (0, 1)
+            \\ 4 & \to (1, 0)
+            \end{aligned}
         """
-        output = "Suitors"
+        output = "\\text{Suitors:}\n\\begin{aligned}"
         for key in self.suitor_dictionary:
-            output += "\n%s\\to\{%s\}" % (key, self.suitor_dictionary[key])
-        output += "\nReviewers"
+            output += "\n\\\\ %s & \\to %s"%(key, self.suitor_dictionary[key])
+        output += "\n\\end{aligned}\n\\text{Reviewers:}\n\\begin{aligned}"
         for key in self.reviewer_dictionary:
-            output += "\n%s\\to\{%s\}" % (key, self.reviewer_dictionary[key])
-        return output
+            output += "\n\\\\ %s & \\to %s"%(key, self.reviewer_dictionary[key])
+        return output + "\n\\end{aligned}"
 
     def plot(self):
         r"""
@@ -316,7 +328,7 @@ class MatchingGame(SageObject):
             sage: plot(g)
             Traceback (most recent call last):
             ...
-            ValueError: Game has not been solved yet
+            ValueError: game has not been solved yet
 
             sage: g.solve()
             {0: [3], 1: [4]}
@@ -343,7 +355,7 @@ class MatchingGame(SageObject):
             sage: g.bipartite()
             Traceback (most recent call last):
             ...
-            ValueError: Game has not been solved yet
+            ValueError: game has not been solved yet
 
             sage: g.solve()
             {0: [3], 1: [4]}
@@ -351,15 +363,14 @@ class MatchingGame(SageObject):
             Bipartite graph on 4 vertices
         """
         self._is_solved()
-
         graph = BipartiteGraph(self.sol_dict)
         return graph
 
     def _is_solved(self):
         r"""
-        Raise an error if the Game has been solved yet.
+        Raise an error if the game has been solved yet.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: suit = {0: (3, 4),
             ....:         1: (3, 4)}
@@ -369,7 +380,7 @@ class MatchingGame(SageObject):
             sage: g._is_solved()
             Traceback (most recent call last):
             ...
-            ValueError: Game has not been solved yet
+            ValueError: game has not been solved yet
             sage: g.solve()
             {0: [3], 1: [4]}
             sage: g._is_solved()
@@ -377,7 +388,7 @@ class MatchingGame(SageObject):
         suitor_check = all(s.partner for s in self.suitors)
         reviewer_check = all(r.partner for r in self.reviewers)
         if not suitor_check or not reviewer_check:
-            raise ValueError("Game has not been solved yet")
+            raise ValueError("game has not been solved yet")
 
     def _is_complete(self):
         r"""
@@ -385,7 +396,7 @@ class MatchingGame(SageObject):
 
         EXAMPLES:
 
-        Not enough reviewers. ::
+        Not enough reviewers::
 
             sage: suit = {0: (3, 4),
             ....:         1: (3, 4)}
@@ -394,9 +405,9 @@ class MatchingGame(SageObject):
             sage: g._is_complete()
             Traceback (most recent call last):
             ...
-            ValueError: Must have the same number of reviewers as suitors
+            ValueError: must have the same number of reviewers as suitors
 
-        Not enough suitors. ::
+        Not enough suitors::
 
             sage: suit = {0: (3, 4)}
             sage: revr = {1: (0, 2),
@@ -405,9 +416,9 @@ class MatchingGame(SageObject):
             sage: g._is_complete()
             Traceback (most recent call last):
             ...
-            ValueError: Must have the same number of reviewers as suitors
+            ValueError: must have the same number of reviewers as suitors
 
-        Suitors preferences are incomplete. ::
+        Suitors preferences are incomplete::
 
             sage: suit = {0: (3, 8),
             ....:         1: (0, 0)}
@@ -417,9 +428,9 @@ class MatchingGame(SageObject):
             sage: g._is_complete()
             Traceback (most recent call last):
             ...
-            ValueError: Suitor preferences are not complete
+            ValueError: suitor preferences are not complete
 
-        Reviewer preferences are incomplete. ::
+        Reviewer preferences are incomplete::
 
             sage: suit = {0: (3, 4),
             ....:         1: (3, 4)}
@@ -429,18 +440,18 @@ class MatchingGame(SageObject):
             sage: g._is_complete()
             Traceback (most recent call last):
             ...
-            ValueError: Reviewer preferences are not complete
+            ValueError: reviewer preferences are not complete
         """
         if len(self.suitors) != len(self.reviewers):
-            raise ValueError("Must have the same number of reviewers as suitors")
+            raise ValueError("must have the same number of reviewers as suitors")
 
         for suitor in self.suitors:
             if set(suitor.pref) != set(self.reviewers):
-                raise ValueError("Suitor preferences are not complete")
+                raise ValueError("suitor preferences are not complete")
 
         for reviewer in self.reviewers:
             if set(reviewer.pref) != set(self.suitors):
-                raise ValueError("Reviewer preferences are not complete")
+                raise ValueError("reviewer preferences are not complete")
 
     def add_suitor(self, name=False):
         r"""
@@ -448,8 +459,8 @@ class MatchingGame(SageObject):
 
         INPUTS:
 
-        -``name`` -- Can be a string or a number; if left blank will automatically
-         generate an integer.
+        - ``name`` -- can be a string or a number; if left blank will
+          automatically generate an integer
 
         EXAMPLES:
 
@@ -476,7 +487,7 @@ class MatchingGame(SageObject):
             sage: g._is_complete()
             Traceback (most recent call last):
             ...
-            ValueError: Must have the same number of reviewers as suitors
+            ValueError: must have the same number of reviewers as suitors
 
         Note that an error is raised if one tries to add a suitor
         with a name that already exists::
@@ -484,12 +495,12 @@ class MatchingGame(SageObject):
             sage: g.add_suitor('D')
             Traceback (most recent call last):
             ...
-            ValueError: A suitor with name: D already exists
+            ValueError: a suitor with name "D" already exists
         """
         if name is False:
             name = len(self.suitors) + 1
         if name in [s.name for s in self.suitors]:
-            raise ValueError("A suitor with name: %s already exists" % name)
+            raise ValueError('a suitor with name "{}" already exists'.format(name))
 
         new_suitor = Player(name, 'suitor', len(self.reviewers))
         self.suitors.append(new_suitor)
@@ -502,8 +513,8 @@ class MatchingGame(SageObject):
 
         INPUTS:
 
-        -``name`` -- Can be a string or number; if left blank will automatically
-         generate an integer.
+        - ``name`` -- can be a string or number; if left blank will
+          automatically generate an integer
 
         EXAMPLES:
 
@@ -530,7 +541,7 @@ class MatchingGame(SageObject):
             sage: g._is_complete()
             Traceback (most recent call last):
             ...
-            ValueError: Must have the same number of reviewers as suitors
+            ValueError: must have the same number of reviewers as suitors
 
         Note that an error is raised if one tries to add a reviewer
         with a name that already exists::
@@ -538,12 +549,12 @@ class MatchingGame(SageObject):
             sage: g.add_reviewer(10)
             Traceback (most recent call last):
             ...
-            ValueError: A reviewer with name: 10 already exists
+            ValueError: a reviewer with name "10" already exists
         """
         if name is False:
             name = -len(self.reviewers) - 1
         if name in [s.name for s in self.reviewers]:
-            raise ValueError("A reviewer with name: %s already exists" % name)
+            raise ValueError('a reviewer with name "{}" already exists'.format(name))
 
         new_reviewer = Player(name, 'reviewer', len(self.suitors))
         self.reviewers.append(new_reviewer)
@@ -641,7 +652,9 @@ class MatchingGame(SageObject):
 
 class Player(object):
     r"""
-    A class to act as a data holder for the players used of the matching games
+    A class to act as a data holder for the players used of the
+    matching games.
+
     These instances are used when initiating players and to keep track of
     whether or not partners have a preference.
     """
@@ -709,3 +722,4 @@ class Player(object):
         if isinstance(other, Player):
             return self.name == other.name
         return self.name == other
+

@@ -1484,6 +1484,23 @@ class GraphGenerators():
             sage: g = gen.next()  # optional plantri
             sage: g.is_isomorphic(graphs.OctahedralGraph()) # optional plantri
             True
+
+        An overview of the number of 5-connected triangulations on up to 22 vertices. This
+        agrees with Sloane's OEIS sequence A081621.  ::
+
+            sage: for i in range(12, 23):  # optional plantri
+            ....:     print("{}   {:3d}".format(i, len(list(graphs.triangulations(i, minimum_connectivity=5)))))
+            12     1
+            13     0
+            14     1
+            15     1
+            16     3
+            17     4
+            18    12
+            19    23
+            20    71
+            21   187
+            22   627
         """
         from sage.misc.package import is_package_installed
         if not is_package_installed("plantri"):

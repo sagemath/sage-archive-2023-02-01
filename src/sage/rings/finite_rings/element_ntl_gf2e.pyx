@@ -415,6 +415,14 @@ cdef class Cache_ntl_gf2e(SageObject):
             sage: k.<a> = GF(2^48)
             sage: k._cache.fetch_int(2^33 + 2 + 1)
             a^33 + a + 1
+
+        TESTS:
+
+        We test that #17027 is fixed::
+
+            sage: K.<a> = GF(2^16)
+            sage: K._cache.fetch_int(0r)
+            0
         """
         cdef FiniteField_ntl_gf2eElement a = self._new()
         cdef GF2X_c _a
@@ -428,8 +436,11 @@ cdef class Cache_ntl_gf2e(SageObject):
             raise TypeError, "n must be between 0 and self.order()"
 
         if PY_TYPE_CHECK(number, int) or PY_TYPE_CHECK(number, long):
-            from sage.misc.functional import log
-            n = int(log(number,2))/8 + 1
+            if not number:
+                n = 0
+            else:
+                from sage.misc.functional import log
+                n = int(log(number,2))/8 + 1
         elif PY_TYPE_CHECK(number, Integer):
             n = int(number.nbits())/8 + 1
         else:

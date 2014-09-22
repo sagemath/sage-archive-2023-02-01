@@ -80,6 +80,7 @@ def is_Graphics(x):
     """
     return isinstance(x, Graphics)
 
+
 class Graphics(SageObject):
     """
     The Graphics object is an empty list of graphics objects. It is
@@ -2955,6 +2956,7 @@ class Graphics(SageObject):
             # Restore the rcParams to the original, possibly user-set values
             (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
                                            rcParams['text.usetex']) = rc_backup
+
     def _latex_(self, **kwds):
         """
         Return a string plotting ``self`` with PGF.
@@ -3346,7 +3348,7 @@ class GraphicsArray(SageObject):
         :meth:`save` method of self, passing along all arguments and
         keywords.
 
-        .. Note::
+        .. NOTE::
 
             Not all image types are necessarily implemented for all
             graphics types.  See :meth:`save` for more details.
@@ -3359,8 +3361,7 @@ class GraphicsArray(SageObject):
         """
         self.save(filename, *args, **kwds)
 
-
-    def _latex_(self, dpi=DEFAULT_DPI, figsize=None, axes = None, **args):
+    def _latex_(self, dpi=DEFAULT_DPI, figsize=None, axes=None, **args):
         """
         Return a string plotting ``self`` with PGF.
 
@@ -3386,7 +3387,7 @@ class GraphicsArray(SageObject):
         return ''.join(latex_list)
 
     def show(self, filename=None, dpi=DEFAULT_DPI, figsize=None,
-             axes = None, **kwds):
+             axes=None, **kwds):
         r"""
         Show this graphics array using the default viewer.
 
@@ -3415,7 +3416,7 @@ class GraphicsArray(SageObject):
         """
         if filename is None:
             filename = graphics_filename()
-        self.save(filename, dpi=dpi, figsize=figsize, axes = axes, **kwds)
+        self.save(filename, dpi=dpi, figsize=figsize, axes=axes, **kwds)
         if not sage.doctest.DOCTEST_MODE and not sage.plot.plot.EMBEDDED_MODE:
             os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                          sage.misc.viewer.png_viewer(), filename))

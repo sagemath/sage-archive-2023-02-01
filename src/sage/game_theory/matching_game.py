@@ -20,15 +20,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.sage_object import SageObject
-from sage.rings.integer import Integer
+from sage.rings.all import ZZ
 from copy import deepcopy
 from sage.graphs.bipartite_graph import BipartiteGraph
 
-
 class MatchingGame(SageObject):
     r"""
-    An object representing a Matching Game. Includes an implementation of the
-    extended Gale-Shapley algorithm.
+    A matching game.
 
     A matching game (also called a stable matching problem) models a situation
     in a population of `N` suitors and `N` reviewers. Suitors and reviewers
@@ -42,14 +40,14 @@ class MatchingGame(SageObject):
 
         f : S \to R^N
         \text{ and }
-        g : R \to S^N
+        g : R \to S^N.
 
     Here is an example of matching game on 4 players:
 
     .. MATH::
 
-        S = \{J, K, L, M\}\\
-        R = \{A, B, C, D\}
+        S = \{J, K, L, M\}, \\
+        R = \{A, B, C, D\}.
 
     With preference functions:
 
@@ -66,7 +64,7 @@ class MatchingGame(SageObject):
         (L, J, K, M) & \text{ if } s=A,\\
         (J, M, L, K) & \text{ if } s=B,\\
         (K, M, L, J) & \text{ if } s=C,\\
-        (M, K, J, L) & \text{ if } s=D,\\
+        (M, K, J, L) & \text{ if } s=D.\\
         \end{cases}
 
     To implement the above game in Sage::
@@ -82,13 +80,13 @@ class MatchingGame(SageObject):
         sage: m = MatchingGame([suitr_pref, reviewr_pref])
         sage: m
         A matching game with 4 suitors and 4 reviewers
-        sage: m.suitors
+        sage: m._suitors
         ['K', 'J', 'M', 'L']
-        sage: m.reviewers
+        sage: m._reviewers
         ['A', 'C', 'B', 'D']
 
-    A matching `M` is any bijection between `S` and `R`. If `s\in S` and
-    `r\in R` are matched by `M` we denote:
+    A matching `M` is any bijection between `S` and `R`. If `s \in S` and
+    `r \in R` are matched by `M` we denote:
 
     .. MATH::
 
@@ -127,10 +125,10 @@ class MatchingGame(SageObject):
 
         sage: n = 10
         sage: big_game = MatchingGame(n)
-        sage: big_game.suitors
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        sage: big_game.reviewers
-        [-1, -2, -3, -4, -5, -6, -7, -8, -9, -10]
+        sage: big_game.suitors()
+        (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+        sage: big_game.reviewers()
+        (-1, -2, -3, -4, -5, -6, -7, -8, -9, -10)
 
     If we attempt to obtain the stable matching for the above game,
     without defining the preference function we obtain an error::
@@ -148,8 +146,8 @@ class MatchingGame(SageObject):
         sage: suitr_preferences = list(permutations([-i-1 for i in range(n)]))
         sage: revr_preferences = list(permutations([i+1 for i in range(n)]))
         sage: for player in range(n):
-        ....:     big_game.suitors[player].pref = suitr_preferences[player]
-        ....:     big_game.reviewers[player].pref = revr_preferences[-player]
+        ....:     big_game.suitors()[player].pref = suitr_preferences[player]
+        ....:     big_game.reviewers()[player].pref = revr_preferences[-player]
         sage: big_game.solve()
         {1: [-1],
          2: [-8],
@@ -197,9 +195,9 @@ class MatchingGame(SageObject):
         ....:                 'C': ('K', 'M', 'L', 'J'),
         ....:                 'D': ('M', 'K', 'J', 'L')}
         sage: m = MatchingGame([suitr_pref, reviewr_pref])
-        sage: m.suitors
+        sage: m._suitors
         ['K', 'J', 'M', 'L']
-        sage: m.reviewers
+        sage: m._reviewers
         ['A', 'C', 'B', 'D']
 
     Also works for numbers::
@@ -223,7 +221,7 @@ class MatchingGame(SageObject):
        *The stable marriage problem: structure and algorithms*.
        Vol. 54. Cambridge: MIT press, 1989.
     """
-    def __init__(self, generator):
+    def __init__(self, generator, revr=None):
         r"""
         Initialize a matching game and check the inputs.
 
@@ -236,34 +234,36 @@ class MatchingGame(SageObject):
 
             sage: g = MatchingGame(3)
             sage: TestSuite(g).run()
+
+        ::
+
+            sage: g2 = MatchingGame(QQ(3))
+            sage: g == g2
+            True
         """
-        self.suitors = []
-        self.reviewers = []
-        if type(generator) is Integer:
+        self._suitors = []
+        self._reviewers = []
+        if revr is not None:
+            generator = [generator, revr]
+
+        if generator in ZZ:
             for i in range(generator):
                 self.add_suitor()
                 self.add_reviewer()
-        elif type(generator[0]) is dict and type(generator[1]) is dict:
+        elif isinstance(generator[0], dict) and isinstance(generator[1], dict):
             for i in generator[0]:
                 self.add_suitor(i)
             for k in generator[1]:
                 self.add_reviewer(k)
 
-            for i in self.suitors:
-                i.pref = generator[0][i.name]
-            for k in self.reviewers:
-                k.pref = generator[1][k.name]
+            for i in self._suitors:
+                i.pref = generator[0][i._name]
+            for k in self._reviewers:
+                k.pref = generator[1][k._name]
         else:
-            raise TypeError("generator must be an integer or a list of 2 dictionaries")
+            raise TypeError("generator must be an integer or a pair of 2 dictionaries")
 
-        self.suitor_dictionary = {}
-        self.reviewer_dictionary = {}
-        for suitor in self.suitors:
-            self.suitor_dictionary[suitor.name] = suitor.pref
-        for reviewer in self.reviewers:
-            self.reviewer_dictionary[reviewer.name] = reviewer.pref
-
-    def _repr_(self):
+    def __repr__(self):
         r"""
         Return a basic representation of the game stating how many
         players are in the game.
@@ -277,7 +277,7 @@ class MatchingGame(SageObject):
             A matching game with 2 suitors and 2 reviewers
         """
         return 'A matching game with {} suitors and {} reviewers'.format(
-                    len(self.reviewers), len(self.suitors))
+                    len(self._reviewers), len(self._suitors))
 
     def _latex_(self):
         r"""
@@ -286,10 +286,8 @@ class MatchingGame(SageObject):
 
         EXAMPLES::
 
-            sage: suit = {0: (3, 4),
-            ....:         1: (3, 4)}
-            sage: revr = {3: (0, 1),
-            ....:         4: (1, 0)}
+            sage: suit = {0: (3, 4), 1: (3, 4)}
+            sage: revr = {3: (0, 1), 4: (1, 0)}
             sage: g = MatchingGame([suit, revr])
             sage: latex(g)
             \text{Suitors:}
@@ -304,12 +302,40 @@ class MatchingGame(SageObject):
             \end{aligned}
         """
         output = "\\text{Suitors:}\n\\begin{aligned}"
-        for key in self.suitor_dictionary:
-            output += "\n\\\\ %s & \\to %s"%(key, self.suitor_dictionary[key])
+        for suitor in self._suitors:
+            output += "\n\\\\ %s & \\to %s"%(suitor, suitor.pref)
         output += "\n\\end{aligned}\n\\text{Reviewers:}\n\\begin{aligned}"
-        for key in self.reviewer_dictionary:
-            output += "\n\\\\ %s & \\to %s"%(key, self.reviewer_dictionary[key])
+        for reviewer in self._reviewers:
+            output += "\n\\\\ %s & \\to %s"%(reviewer, reviewer.pref)
         return output + "\n\\end{aligned}"
+
+    def __eq__(self, other):
+        """
+        Check equality.
+
+            sage: suit = {0: (3, 4), 1: (3, 4)}
+            sage: revr = {3: (0, 1), 4: (1, 0)}
+            sage: g = MatchingGame([suit, revr])
+            sage: g2 = MatchingGame([suit, revr])
+            sage: g == g2
+            True
+        """
+        return (isinstance(other, MatchingGame)
+                and set(self._suitors) == set(other._suitors)
+                and set(self._reviewers) == set(other._reviewers))
+
+    def __hash__(self):
+        """
+        Raise an error because this is mutable.
+
+        EXAMPLES::
+
+            sage: hash(MatchingGame(3))
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable because matching games are mutable
+        """
+        raise TypeError("unhashable because matching games are mutable")
 
     def plot(self):
         r"""
@@ -385,8 +411,8 @@ class MatchingGame(SageObject):
             {0: [3], 1: [4]}
             sage: g._is_solved()
         """
-        suitor_check = all(s.partner for s in self.suitors)
-        reviewer_check = all(r.partner for r in self.reviewers)
+        suitor_check = all(s.partner for s in self._suitors)
+        reviewer_check = all(r.partner for r in self._reviewers)
         if not suitor_check or not reviewer_check:
             raise ValueError("game has not been solved yet")
 
@@ -442,18 +468,18 @@ class MatchingGame(SageObject):
             ...
             ValueError: reviewer preferences are not complete
         """
-        if len(self.suitors) != len(self.reviewers):
+        if len(self._suitors) != len(self._reviewers):
             raise ValueError("must have the same number of reviewers as suitors")
 
-        for suitor in self.suitors:
-            if set(suitor.pref) != set(self.reviewers):
+        for suitor in self._suitors:
+            if set(suitor.pref) != set(self._reviewers):
                 raise ValueError("suitor preferences are not complete")
 
-        for reviewer in self.reviewers:
-            if set(reviewer.pref) != set(self.suitors):
+        for reviewer in self._reviewers:
+            if set(reviewer.pref) != set(self._suitors):
                 raise ValueError("reviewer preferences are not complete")
 
-    def add_suitor(self, name=False):
+    def add_suitor(self, name=None):
         r"""
         Add a suitor to the game.
 
@@ -467,20 +493,20 @@ class MatchingGame(SageObject):
         Creating a two player game::
 
             sage: g = MatchingGame(2)
-            sage: g.suitors
-            [1, 2]
+            sage: g.suitors()
+            (1, 2)
 
         Adding a suitor without specifying a name::
 
             sage: g.add_suitor()
-            sage: g.suitors
-            [1, 2, 3]
+            sage: g.suitors()
+            (1, 2, 3)
 
         Adding a suitor while specifying a name::
 
             sage: g.add_suitor('D')
-            sage: g.suitors
-            [1, 2, 3, 'D']
+            sage: g.suitors()
+            (1, 2, 3, 'D')
 
         Note that now our game is no longer complete::
 
@@ -497,17 +523,17 @@ class MatchingGame(SageObject):
             ...
             ValueError: a suitor with name "D" already exists
         """
-        if name is False:
-            name = len(self.suitors) + 1
-        if name in [s.name for s in self.suitors]:
+        if name is None:
+            name = len(self._suitors) + 1
+        if any(s._name == name for s in self._suitors):
             raise ValueError('a suitor with name "{}" already exists'.format(name))
 
-        new_suitor = Player(name, 'suitor', len(self.reviewers))
-        self.suitors.append(new_suitor)
-        for r in self.reviewers:
-            r.pref = [-1 for s in self.suitors]
+        new_suitor = Player(name)
+        self._suitors.append(new_suitor)
+        for r in self._reviewers:
+            r.pref = [-1 for s in self._suitors]
 
-    def add_reviewer(self, name=False):
+    def add_reviewer(self, name=None):
         r"""
         Add a reviewer to the game.
 
@@ -521,20 +547,20 @@ class MatchingGame(SageObject):
         Creating a two player game::
 
             sage: g = MatchingGame(2)
-            sage: g.reviewers
-            [-1, -2]
+            sage: g.reviewers()
+            (-1, -2)
 
         Adding a suitor without specifying a name::
 
             sage: g.add_reviewer()
-            sage: g.reviewers
-            [-1, -2, -3]
+            sage: g.reviewers()
+            (-1, -2, -3)
 
         Adding a suitor while specifying a name::
 
             sage: g.add_reviewer(10)
-            sage: g.reviewers
-            [-1, -2, -3, 10]
+            sage: g.reviewers()
+            (-1, -2, -3, 10)
 
         Note that now our game is no longer complete::
 
@@ -551,15 +577,39 @@ class MatchingGame(SageObject):
             ...
             ValueError: a reviewer with name "10" already exists
         """
-        if name is False:
-            name = -len(self.reviewers) - 1
-        if name in [s.name for s in self.reviewers]:
+        if name is None:
+            name = -len(self._reviewers) - 1
+        if any(r._name == name for r in self._reviewers):
             raise ValueError('a reviewer with name "{}" already exists'.format(name))
 
-        new_reviewer = Player(name, 'reviewer', len(self.suitors))
-        self.reviewers.append(new_reviewer)
-        for s in self.suitors:
-            s.pref = [-1 for r in self.reviewers]
+        new_reviewer = Player(name)
+        self._reviewers.append(new_reviewer)
+        for s in self._suitors:
+            s.pref = [-1 for r in self._reviewers]
+
+    def suitors(self):
+        """
+        Return the suitors of ``self``.
+
+        EXAMPLES::
+
+            sage: g = MatchingGame(2)
+            sage: g.suitors()
+            (1, 2)
+        """
+        return tuple(self._suitors)
+
+    def reviewers(self):
+        """
+        Return the reviewers of ``self``.
+
+        EXAMPLES::
+
+            sage: g = MatchingGame(2)
+            sage: g.reviewers()
+            (-1, -2)
+        """
+        return tuple(self._reviewers)
 
     def solve(self, invert=False):
         r"""
@@ -606,17 +656,17 @@ class MatchingGame(SageObject):
         """
         self._is_complete()
 
-        for s in self.suitors:
+        for s in self._suitors:
             s.partner = False
-        for r in self.reviewers:
+        for r in self._reviewers:
             r.partner = False
 
         if invert:
-            reviewers = deepcopy(self.suitors)
-            suitors = deepcopy(self.reviewers)
+            reviewers = deepcopy(self._suitors)
+            suitors = deepcopy(self._reviewers)
         else:
-            suitors = deepcopy(self.suitors)
-            reviewers = deepcopy(self.reviewers)
+            suitors = deepcopy(self._suitors)
+            reviewers = deepcopy(self._reviewers)
 
         while not all(s.partner for s in suitors):
             s = [s for s in suitors if s.partner is False][0]
@@ -624,7 +674,7 @@ class MatchingGame(SageObject):
             if r.partner is False:
                 r.partner = s
                 s.partner = r
-            elif r.pref.index(s.name) < r.pref.index(r.partner.name):
+            elif r.pref.index(s._name) < r.pref.index(r.partner._name):
                 r.partner.partner = False
                 r.partner = s
                 s.partner = r
@@ -634,20 +684,20 @@ class MatchingGame(SageObject):
         if invert:
             suitors, reviewers = reviewers, suitors
 
-        for i, j in zip(self.suitors, suitors):
+        for i, j in zip(self._suitors, suitors):
             i.partner = j.partner
-        for i, j in zip(self.reviewers, reviewers):
+        for i, j in zip(self._reviewers, reviewers):
             i.partner = j.partner
 
         self.sol_dict = {}
-        for s in self.suitors:
+        for s in self._suitors:
             self.sol_dict[s] = [s.partner]
-        for r in self.reviewers:
+        for r in self._reviewers:
             self.sol_dict[r] = [r.partner]
 
         if invert:
-            return {key:self.sol_dict[key] for key in self.reviewers}
-        return {key:self.sol_dict[key] for key in self.suitors}
+            return {key:self.sol_dict[key] for key in self._reviewers}
+        return {key:self.sol_dict[key] for key in self._suitors}
 
 
 class Player(object):
@@ -658,12 +708,12 @@ class Player(object):
     These instances are used when initiating players and to keep track of
     whether or not partners have a preference.
     """
-    def __init__(self, name, player_type, len_pref):
+    def __init__(self, name):
         r"""
         TESTS::
 
             sage: from sage.game_theory.matching_game import Player
-            sage: p = Player(10, 'suitor', 3)
+            sage: p = Player(10)
             sage: p
             10
             sage: p.pref
@@ -671,8 +721,7 @@ class Player(object):
             sage: p.partner
             False
         """
-        self.name = name
-        self.type = player_type
+        self._name = name
         self.pref = []
         self.partner = False
 
@@ -681,45 +730,45 @@ class Player(object):
         TESTS::
 
             sage: from sage.game_theory.matching_game import Player
-            sage: p = Player(10, 'suitor', 3)
+            sage: p = Player(10)
             sage: d = {p : (1, 2, 3)}
             sage: d
             {10: (1, 2, 3)}
         """
-        return hash(self.name)
+        return hash(self._name)
 
     def __repr__(self):
         r"""
         TESTS::
 
             sage: from sage.game_theory.matching_game import Player
-            sage: p = Player(10, 'suitor', 3)
+            sage: p = Player(10)
             sage: p
             10
 
-            sage: p = Player('Karl', 'reviewer', 2)
+            sage: p = Player('Karl')
             sage: p
             'Karl'
         """
-        return repr(self.name)
+        return repr(self._name)
 
     def __eq__(self, other):
         r"""
         TESTS::
 
             sage: from sage.game_theory.matching_game import Player
-            sage: p = Player(10, 'suitor', 3)
-            sage: q = Player('Karl', 'reviewer', 2)
+            sage: p = Player(10)
+            sage: q = Player('Karl')
             sage: p == q
             False
 
             sage: from sage.game_theory.matching_game import Player
-            sage: p = Player(10, 'suitor', 3)
-            sage: q = Player(10, 'reviewer', 2)
+            sage: p = Player(10)
+            sage: q = Player(10)
             sage: p == q
             True
         """
         if isinstance(other, Player):
-            return self.name == other.name
-        return self.name == other
+            return self._name == other._name
+        return self._name == other
 

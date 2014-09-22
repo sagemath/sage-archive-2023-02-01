@@ -784,7 +784,7 @@ cdef class CachedFunction(object):
                ALGORITHM: Uses Singular, Magma (if available), Macaulay2 (if
                available), or a toy implementation.
 
-        test that #15184 is fixed::
+        Test that :trac:`15184` is fixed::
 
             sage: from sage.misc.sageinspect import sage_getfile
             sage: type(I.groebner_basis)

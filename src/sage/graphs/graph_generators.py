@@ -1334,6 +1334,13 @@ class GraphGenerators():
              3: [1, 4],
              4: [2, 3]}
 
+        There is one planar graph with one vertex. This graph obviously has minimum degree equal to 0.
+
+            sage: list(graphs.planar_graphs(1))  # optional plantri
+            [Graph on 1 vertex]
+            sage: list(graphs.planar_graphs(1, minimum_degree=1))  # optional plantri
+            []
+
         REFERENCE:
 
         .. [plantri] G. Brinkmann and B.D. McKay, Fast generation of planar graphs,
@@ -1359,10 +1366,11 @@ class GraphGenerators():
             raise ValueError("Minimum connectivity should be a number between 1 and 3.")
 
         # minimum degree should be None or a number between 1 and 5
-        if minimum_degree == 0 and order != 1:
-            raise ValueError("Minimum degree equal to 0 is only possible if the graphs have 1 vertex.")
+        if minimum_degree == 0:
+            if order != 1:
+                raise ValueError("Minimum degree equal to 0 is only possible if the graphs have 1 vertex.")
         elif minimum_degree is  not None and not (1 <= minimum_degree <= 5):
-            raise ValueError("Minimum degree should be a number between 1 and 5.")
+            raise ValueError("Minimum degree should be a number between 1 and 5 if the order is greater than 1.")
 
         if order == 1 and minimum_degree is None:
             minimum_degree = 0

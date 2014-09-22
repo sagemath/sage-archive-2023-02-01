@@ -205,9 +205,12 @@ __append_to_doc(
      "OrthogonalPolarGraph",
      "PaleyGraph",
      "petersen_family",
+     "planar_graphs",
+     "quadrangulations",
      "RingedTree",
      "SymplecticGraph",
      "trees",
+     "triangulations",
      "WheelGraph"])
 
 __doc__ += """

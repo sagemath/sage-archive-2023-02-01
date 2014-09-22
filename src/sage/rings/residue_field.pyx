@@ -32,12 +32,12 @@ We can also form residue fields from `\ZZ`::
     sage: ZZ.residue_field(17)
     Residue field of Integers modulo 17
 
-#And for polynomial rings over finite fields:
-#
-    #sage: R.<t> = GF(5)[]
-    #sage: I = R.ideal(t^2 + 2)
-    #sage: k = ResidueField(I); k
-    #Residue field in tbar of Principal ideal (t^2 + 2) of Univariate Polynomial Ring in t over Finite Field of size 5
+And for polynomial rings over finite fields::
+
+    sage: R.<t> = GF(5)[]
+    sage: I = R.ideal(t^2 + 2)
+    sage: k = ResidueField(I); k
+    Residue field in tbar of Principal ideal (t^2 + 2) of Univariate Polynomial Ring in t over Finite Field of size 5
 
 AUTHORS:
 
@@ -65,12 +65,12 @@ Verify that :trac:`15192` has been resolved::
     sage: a.is_unit()
     True
 
-    #sage: R.<t> = GF(11)[]; P = R.ideal(t^3 + t + 4)
-    #sage: ff.<a> = ResidueField(P)
-    #sage: a == ff(t)
-    #True
-    #sage: parent(a*a)
-    #Residue field in a of Principal ideal (t^3 + t + 4) of Univariate Polynomial Ring in t over Finite Field of size 11
+    sage: R.<t> = GF(11)[]; P = R.ideal(t^3 + t + 4)
+    sage: ff.<a> = ResidueField(P)
+    sage: a == ff(t)
+    True
+    sage: parent(a*a)
+    Residue field in a of Principal ideal (t^3 + t + 4) of Univariate Polynomial Ring in t over Finite Field of size 11
 
 Verify that :trac:`7475` is fixed::
 
@@ -88,10 +88,12 @@ Reducing a curve modulo a prime::
     sage: E.base_extend(Fpp)
     Elliptic Curve defined by y^2  = x^3 + x + 5 over Residue field of Fractional ideal (13, 1/2*s + 9/2)
 
-    #sage: R.<t> = GF(11)[]; K = R.fraction_field(); P = R.ideal(t^3 + t + 4); ff.<a> = K.residue_field(P)
-    #sage: E = EllipticCurve([0,0,0,K(1),K(t)])
-    #sage: E.base_extend(ff)
-    #Elliptic Curve defined by y^2 = x^3 + x + a over Residue field in a of Principal ideal (t^3 + t + 4) of Univariate Polynomial Ring in t over Finite Field of size 11
+    sage: R.<t> = GF(11)[]
+    sage: P = R.ideal(t^3 + t + 4)
+    sage: ff.<a> = R.residue_field(P)
+    sage: E = EllipticCurve([0,0,0,R(1),R(t)])
+    sage: E.base_extend(ff)
+    Elliptic Curve defined by y^2 = x^3 + x + a over Residue field in a of Principal ideal (t^3 + t + 4) of Univariate Polynomial Ring in t over Finite Field of size 11
 
 Calculating Groebner bases over various residue fields.
 First over a small non-prime field::
@@ -210,17 +212,17 @@ class ResidueFieldFactory(UniqueFactory):
         sage: k.order()
         841
 
-#    It also works for polynomial rings::
-#
-        #sage: R.<t> = GF(31)[]
-        #sage: P = R.ideal(t^5 + 2*t + 11)
-        #sage: ResidueField(P)
-        #Residue field in tbar of Principal ideal (t^5 + 2*t + 11) of Univariate Polynomial Ring in t over Finite Field of size 31
-#
-        #sage: ResidueField(P) is ResidueField(P)
-        #True
-        #sage: k = ResidueField(P); k.order()
-        #28629151
+    It also works for polynomial rings::
+
+        sage: R.<t> = GF(31)[]
+        sage: P = R.ideal(t^5 + 2*t + 11)
+        sage: ResidueField(P)
+        Residue field in tbar of Principal ideal (t^5 + 2*t + 11) of Univariate Polynomial Ring in t over Finite Field of size 31
+
+        sage: ResidueField(P) is ResidueField(P)
+        True
+        sage: k = ResidueField(P); k.order()
+        28629151
 
     An example where the generator of the number field doesn't
     generate the residue class field::
@@ -242,13 +244,14 @@ class ResidueFieldFactory(UniqueFactory):
         sage: k(a)^3 - 875
         0
 
-#    And for polynomial rings::
-#
-        #sage: R.<t> = GF(next_prime(2^18))[]; P = R.ideal(t - 5)
-        #sage: k = ResidueField(P); k
-        #Residue field of Principal ideal (t + 262142) of Univariate Polynomial Ring in t over Finite Field of size 262147
-        #sage: k(t)
-        #5
+    And for polynomial rings::
+
+        sage: R.<t> = GF(next_prime(2^18))[]
+        sage: P = R.ideal(t - 5)
+        sage: k = ResidueField(P); k
+        Residue field of Principal ideal (t + 262142) of Univariate Polynomial Ring in t over Finite Field of size 262147
+        sage: k(t)
+        5
 
     In this example, 2 is an inessential discriminant divisor, so divides
     the index of ``ZZ[a]`` in the maximal order for all ``a``::
@@ -431,10 +434,10 @@ class ResidueField_generic(Field):
         sage: type(k)
         <class 'sage.rings.residue_field.ResidueFiniteField_prime_modn_with_category'>
 
-        #sage: R.<t> = GF(29)[]; P = R.ideal(t^2 + 2); k.<a> = ResidueField(P); k
-        #Residue field in a of Principal ideal (t^2 + 2) of Univariate Polynomial Ring in t over Finite Field of size 29
-        #sage: type(k)
-        #<class 'sage.rings.residue_field.ResidueFiniteField_givaro'>
+        sage: R.<t> = GF(29)[]; P = R.ideal(t^2 + 2); k.<a> = ResidueField(P); k
+        Residue field in a of Principal ideal (t^2 + 2) of Univariate Polynomial Ring in t over Finite Field of size 29
+        sage: type(k)
+        <class 'sage.rings.residue_field.ResidueFiniteField_givaro_with_category'>
     """
     def __init__(self, p):
         """
@@ -458,8 +461,8 @@ class ResidueField_generic(Field):
             sage: k = K.residue_field(P) # indirect doctest
             sage: F = ZZ.residue_field(17)  # indirect doctest
 
-            #sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
-            #sage: k.<a> = P.residue_field() # indirect doctest
+            sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
+            sage: k.<a> = P.residue_field() # indirect doctest
 
             sage: k.category()
             Category of finite fields
@@ -491,10 +494,10 @@ class ResidueField_generic(Field):
             sage: k.ideal().norm() == p
             True
 
-            #sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
-            #sage: k.<a> = R.residue_field(P)
-            #sage: k.ideal()
-            #Principal ideal (t^3 + t^2 + 7) of Univariate Polynomial Ring in t over Finite Field of size 17
+            sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
+            sage: k.<a> = R.residue_field(P)
+            sage: k.ideal()
+            Principal ideal (t^3 + t^2 + 7) of Univariate Polynomial Ring in t over Finite Field of size 17
         """
         return self.p
 
@@ -576,15 +579,15 @@ class ResidueField_generic(Field):
 
         TESTS:
 
-        Checking :trac:`11319` is fixed::
+        Check that :trac:`11319` is fixed::
 
             sage: GF(13).has_coerce_map_from(F)
             True
 
-            #sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
-            #sage: k.<a> = P.residue_field()
-            #sage: k.has_coerce_map_from(Qp(17)) # indirect doctest
-            #False
+            sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
+            sage: k.<a> = P.residue_field()
+            sage: k.has_coerce_map_from(Qp(17)) # indirect doctest
+            False
         """
         OK = self.p.ring()
         if OK.is_field():
@@ -606,9 +609,9 @@ class ResidueField_generic(Field):
             sage: F = ZZ.residue_field(17); F
             Residue field of Integers modulo 17
 
-            #sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
-            #sage: k.<a> = P.residue_field(); k # indirect doctest
-            #Residue field in a of Principal ideal (t^3 + t^2 + 7) of Univariate Polynomial Ring in t over Finite Field of size 17
+            sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
+            sage: k.<a> = P.residue_field(); k # indirect doctest
+            Residue field in a of Principal ideal (t^3 + t^2 + 7) of Univariate Polynomial Ring in t over Finite Field of size 17
         """
         if self.p.ring() is ZZ:
             return "Residue field of Integers modulo %s"%self.p.gen()
@@ -632,10 +635,10 @@ class ResidueField_generic(Field):
             sage: k.lift(12821*b+918)
             3*a + 19
 
-            #sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
-            #sage: k.<a> = P.residue_field()
-            #sage: k.lift(a^2 + 5)
-            #t^2 + 5
+            sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
+            sage: k.<a> = P.residue_field()
+            sage: k.lift(a^2 + 5)
+            t^2 + 5
         """
         if hasattr(self.p, "ring"):
             R = self.p.ring()
@@ -674,13 +677,13 @@ class ResidueField_generic(Field):
             sage: F.reduction_map().codomain()
             Residue field of Fractional ideal (1/4*a)
 
-            #sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
-            #sage: k.<a> = P.residue_field(); f = k.reduction_map(); f
-            #Partially defined reduction map:
-            #  From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 17
-            #  To:   Residue field in a of Principal ideal (t^3 + t^2 + 7) of Univariate Polynomial Ring in t over Finite Field of size 17
-            #sage: f(1/t)
-            #12*a^2 + 12*a
+            sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
+            sage: k.<a> = P.residue_field(); f = k.reduction_map(); f
+            Partially defined reduction map:
+              From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 17
+              To:   Residue field in a of Principal ideal (t^3 + t^2 + 7) of Univariate Polynomial Ring in t over Finite Field of size 17
+            sage: f(1/t)
+            12*a^2 + 12*a
         """
         return self.convert_map_from(self.p.ring().fraction_field())
 
@@ -706,13 +709,15 @@ class ResidueField_generic(Field):
             sage: f(k.0)
             1
 
-            #sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
-            #sage: k.<a> = P.residue_field(); f = k.lift_map(); f
-            #Lifting map:
-            #  From: Residue field in a of Principal ideal (t^3 + t^2 + 7) of Univariate Polynomial Ring in t over Finite Field of size 17
-            #  To:   Univariate Polynomial Ring in t over Finite Field of size 17
-            #sage: f(a^2 + 5)
-            #t^2 + 5
+            sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
+            sage: k.<a> = P.residue_field()
+            sage: f = k.lift_map(); f
+            (map internal to coercion system -- copy before use)
+            Lifting map:
+              From: Residue field in a of Principal ideal (t^3 + t^2 + 7) of Univariate Polynomial Ring in t over Finite Field of size 17
+              To:   Univariate Polynomial Ring in t over Finite Field of size 17
+            sage: f(a^2 + 5)
+            t^2 + 5
         """
         OK = self.p.ring()
         if OK.is_field():
@@ -734,15 +739,15 @@ class ResidueField_generic(Field):
             sage: k == l
             False
 
-            #sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
-            #sage: k.<a> = P.residue_field()
-            #sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 11)
-            #sage: l.<b> = P.residue_field()
-            #sage: k == l
-            #False
-            #sage: ll.<c> = P.residue_field()
-            #sage: ll == l
-            #False
+            sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
+            sage: k.<a> = P.residue_field()
+            sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 11)
+            sage: l.<b> = P.residue_field()
+            sage: k == l
+            False
+            sage: ll.<c> = P.residue_field()
+            sage: ll == l
+            False
         """
         c = cmp(type(self), type(x))
         if c: return c
@@ -762,9 +767,9 @@ class ResidueField_generic(Field):
             -6463132282686559142
             sage: hash(K.residue_field(K.prime_above(2^60))) # random
             -6939519969600666586
-            #sage: K = GF(13)['t'].fraction_field()
-            #sage: hash(K.residue_field(GF(13)['t'].gen() + 2)) # random
-            #743237312
+            sage: R.<t> = GF(13)[]
+            sage: hash(R.residue_field(t + 2)) # random
+            3521289879659800254
         """
         return 1 + hash(self.ideal())
 
@@ -787,12 +792,12 @@ cdef class ReductionMap(Map):
           From: Number Field in sqrt17 with defining polynomial x^2 - 17
           To:   Residue field in sqrt17bar of Fractional ideal (5)
 
-        #sage: R.<t> = GF(next_prime(2^20))[]; P = R.ideal(t^2 + t + 1)
-        #sage: k = P.residue_field()
-        #sage: k.reduction_map()
-        #Partially defined reduction map:
-        #  From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 1048583
-        #  To:   Residue field in tbar of Principal ideal (t^2 + t + 1) of Univariate Polynomial Ring in t over Finite Field of size 1048583
+        sage: R.<t> = GF(next_prime(2^20))[]; P = R.ideal(t^2 + t + 1)
+        sage: k = P.residue_field()
+        sage: k.reduction_map()
+        Partially defined reduction map:
+          From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 1048583
+          To:   Residue field in tbar of Principal ideal (t^2 + t + 1) of Univariate Polynomial Ring in t over Finite Field of size 1048583
     """
     def __init__(self, K, F, to_vs, to_order, PB, PBinv):
         """
@@ -814,14 +819,14 @@ cdef class ReductionMap(Map):
               From: Cyclotomic Field of order 5 and degree 4
               To:   Residue field in theta_5bar of Fractional ideal (7)
 
-            #sage: R.<t> = GF(2)[]; P = R.ideal(t^7 + t^6 + t^5 + t^4 + 1)
-            #sage: k = P.residue_field()
-            #sage: k.reduction_map()
-            #Partially defined reduction map:
-            #  From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
-            #  To:   Residue field in tbar of Principal ideal (t^7 + t^6 + t^5 + t^4 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
-            #sage: type(k)
-            #<class 'sage.rings.residue_field.ResidueFiniteField_givaro'>
+            sage: R.<t> = GF(2)[]; P = R.ideal(t^7 + t^6 + t^5 + t^4 + 1)
+            sage: k = P.residue_field()
+            sage: k.reduction_map()
+            Partially defined reduction map:
+              From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+              To:   Residue field in tbar of Principal ideal (t^7 + t^6 + t^5 + t^4 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: type(k)
+            <class 'sage.rings.residue_field.ResidueFiniteField_givaro_with_category'>
         """
         self._K = K
         self._F = F   # finite field
@@ -916,17 +921,18 @@ cdef class ReductionMap(Map):
             ...
             ZeroDivisionError: Cannot reduce field element 1/2*a modulo Fractional ideal (a + 1): it has negative valuation
 
-            #sage: R.<t> = GF(2)[]; h = t^5 + t^2 + 1
-            #sage: k.<a> = R.residue_field(h); K = R.fraction_field()
-            #sage: f = k.convert_map_from(K)
-            #sage: type(f)
-            #<type 'sage.rings.residue_field.ReductionMap'>
-            #sage: f(1/t)
-            #a^4 + a
-            #sage: f(1/h)
-            #Traceback (most recent call last):
-            #...
-            #ZeroDivisionError: division by zero in finite field.
+            sage: R.<t> = GF(2)[]; h = t^5 + t^2 + 1
+            sage: k.<a> = R.residue_field(h)
+            sage: K = R.fraction_field()
+            sage: f = k.convert_map_from(K)
+            sage: type(f)
+            <type 'sage.rings.residue_field.ReductionMap'>
+            sage: f(1/t)
+            a^4 + a
+            sage: f(1/h)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero in finite field.
 
         An example to show that the issue raised in :trac:`1951`
         has been fixed::
@@ -1027,13 +1033,14 @@ cdef class ReductionMap(Map):
             sage: s(l.gen()).parent()
             Number Field in b with defining polynomial x^5 + 17*x + 1
 
-            #sage: R.<t> = GF(2)[]; h = t^5 + t^2 + 1
-            #sage: k.<a> = R.residue_field(h); K = R.fraction_field()
-            #sage: f = k.convert_map_from(K)
-            #sage: f.section()
-            #Lifting map:
-            #  From: Residue field in a of Principal ideal (t^5 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
-            #  To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: R.<t> = GF(2)[]; h = t^5 + t^2 + 1
+            sage: k.<a> = R.residue_field(h)
+            sage: K = R.fraction_field()
+            sage: f = k.convert_map_from(K)
+            sage: f.section()
+            Lifting map:
+              From: Residue field in a of Principal ideal (t^5 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+              To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
         """
         if self._section is None:
             self._section = LiftingMap(self, self._to_order, self._PB)
@@ -1065,12 +1072,12 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
         sage: phi(OK.1)
         abar
 
-        #sage: R.<t> = GF(19)[]; P = R.ideal(t^2 + 5)
-        #sage: k.<a> = R.residue_field(P)
-        #sage: f = k.coerce_map_from(R); f
-        #Ring morphism:
-        #  From: Univariate Polynomial Ring in t over Finite Field of size 19
-        #  To:   Residue field in a of Principal ideal (t^2 + 5) of Univariate Polynomial Ring in t over Finite Field of size 19
+        sage: R.<t> = GF(19)[]; P = R.ideal(t^2 + 5)
+        sage: k.<a> = R.residue_field(P)
+        sage: f = k.coerce_map_from(R); f
+        Ring morphism:
+          From: Univariate Polynomial Ring in t over Finite Field of size 19
+          To:   Residue field in a of Principal ideal (t^2 + 5) of Univariate Polynomial Ring in t over Finite Field of size 19
     """
     def __init__(self, K, F, to_vs, to_order, PB, PBinv):
         """
@@ -1101,10 +1108,10 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
             sage: type(phi)
             <type 'sage.rings.residue_field.ResidueFieldHomomorphism_global'>
 
-            #sage: R.<t> = GF(2)[]; P = R.ideal(t^7 + t^6 + t^5 + t^4 + 1)
-            #sage: k = P.residue_field(); f = k.coerce_map_from(R)
-            #sage: f(t^10)
-            #tbar^6 + tbar^3 + tbar^2
+            sage: R.<t> = GF(2)[]; P = R.ideal(t^7 + t^6 + t^5 + t^4 + 1)
+            sage: k = P.residue_field(); f = k.coerce_map_from(R)
+            sage: f(t^10)
+            tbar^6 + tbar^3 + tbar^2
         """
         self._K = K
         self._F = F   # finite field
@@ -1186,13 +1193,13 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
             sage: k.coerce_map_from(OK)(OK(a)^7) # indirect doctest
             13*abar^2 + 7*abar + 21
 
-            #sage: R.<t> = GF(next_prime(2^18))[]; P = R.ideal(t - 71)
-            #sage: k = ResidueField(P); f = k.coerce_map_from(R); f
-            #Ring morphism:
-            #  From: Univariate Polynomial Ring in t over Finite Field of size 262147
-            #  To:   Residue field of Principal ideal (t + 262076) of Univariate Polynomial Ring in t over Finite Field of size 262147
-            #sage: f(t^2)
-            #5041
+            sage: R.<t> = GF(next_prime(2^18))[]; P = R.ideal(t - 71)
+            sage: k = ResidueField(P); f = k.coerce_map_from(R); f
+            Ring morphism:
+              From: Univariate Polynomial Ring in t over Finite Field of size 262147
+              To:   Residue field of Principal ideal (t + 262076) of Univariate Polynomial Ring in t over Finite Field of size 262147
+            sage: f(t^2)
+            5041
         """
         # The reduction map is just x |--> F(to_vs(x) * (PB**(-1))) if
         # either x is integral or the denominator of x is coprime to
@@ -1238,12 +1245,14 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
             sage: s(l.gen()).parent()
             Maximal Order in Number Field in b with defining polynomial x^5 + 17*x + 1
 
-            #sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
-            #sage: k.<a> = P.residue_field(); f = k.coerce_map_from(R)
-            #sage: f.section()
-            #Lifting map:
-            #  From: Residue field in a of Principal ideal (t^3 + t^2 + 7) of Univariate Polynomial Ring in t over Finite Field of size 17
-            #  To:   Univariate Polynomial Ring in t over Finite Field of size 17
+            sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
+            sage: k.<a> = P.residue_field()
+            sage: f = k.coerce_map_from(R)
+            sage: f.section()
+            (map internal to coercion system -- copy before use)
+            Lifting map:
+              From: Residue field in a of Principal ideal (t^3 + t^2 + 7) of Univariate Polynomial Ring in t over Finite Field of size 17
+              To:   Univariate Polynomial Ring in t over Finite Field of size 17
         """
         if self._section is None:
             self._section = LiftingMap(self, self._to_order, self._PB)
@@ -1268,12 +1277,12 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
             sage: f.lift(12821*b+918)
             3*a + 19
 
-            #sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
-            #sage: k.<a> = P.residue_field(); f = k.coerce_map_from(R)
-            #sage: f.lift(a^2 + 5*a + 1)
-            #t^2 + 5*t + 1
-            #sage: f(f.lift(a^2 + 5*a + 1)) == a^2 + 5*a + 1
-            #True
+            sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
+            sage: k.<a> = P.residue_field(); f = k.coerce_map_from(R)
+            sage: f.lift(a^2 + 5*a + 1)
+            t^2 + 5*t + 1
+            sage: f(f.lift(a^2 + 5*a + 1)) == a^2 + 5*a + 1
+            True
         """
         if self.domain() is ZZ:
             return x.lift()
@@ -1299,11 +1308,13 @@ cdef class LiftingMap(Section):
         sage: L(3*a + 1) == F.0^2
         True
 
-        #sage: R.<t> = GF(13)[]; P = R.ideal(8*t^12 + 9*t^11 + 11*t^10 + 2*t^9 + 11*t^8 + 3*t^7 + 12*t^6 + t^4 + 7*t^3 + 5*t^2 + 12*t + 1)
-        #sage: k.<a> = P.residue_field(); k.lift_map()
-        #Lifting map:
-        #  From: Residue field in a of Principal ideal (8*t^12 + 9*t^11 + 11*t^10 + 2*t^9 + 11*t^8 + 3*t^7 + 12*t^6 + t^4 + 7*t^3 + 5*t^2 + 12*t + 1) of Univariate Polynomial Ring in t over Finite Field of size 13
-        #  To:   Univariate Polynomial Ring in t over Finite Field of size 13
+        sage: R.<t> = GF(13)[]
+        sage: P = R.ideal(8*t^12 + 9*t^11 + 11*t^10 + 2*t^9 + 11*t^8 + 3*t^7 + 12*t^6 + t^4 + 7*t^3 + 5*t^2 + 12*t + 1)
+        sage: k.<a> = P.residue_field()
+        sage: k.lift_map()
+        Lifting map:
+          From: Residue field in a of Principal ideal (t^12 + 6*t^11 + 3*t^10 + 10*t^9 + 3*t^8 + 2*t^7 + 8*t^6 + 5*t^4 + 9*t^3 + 12*t^2 + 8*t + 5) of Univariate Polynomial Ring in t over Finite Field of size 13
+          To:   Univariate Polynomial Ring in t over Finite Field of size 13
     """
     def __init__(self, reduction, to_order, PB):
         """
@@ -1336,10 +1347,11 @@ cdef class LiftingMap(Section):
             sage: L.codomain()
             Maximal Order in Cyclotomic Field of order 7 and degree 6
 
-            #sage: R.<t> = GF(2)[]; h = t^5 + t^2 + 1
-            #sage: k.<a> = R.residue_field(h); K = R.fraction_field()
-            #sage: L = k.lift_map(); L.codomain()
-            #Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: R.<t> = GF(2)[]; h = t^5 + t^2 + 1
+            sage: k.<a> = R.residue_field(h)
+            sage: K = R.fraction_field()
+            sage: L = k.lift_map(); L.codomain()
+            Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
         """
         self._K = reduction._K
         self._F = reduction._F   # finite field
@@ -1412,13 +1424,14 @@ cdef class LiftingMap(Section):
             sage: F(a)
             abar
 
-            #sage: R.<t> = GF(2)[]; h = t^5 + t^2 + 1
-            #sage: k.<a> = R.residue_field(h); K = R.fraction_field()
-            #sage: f = k.lift_map()
-            #sage: f(a^2)
-            #t^2
-            #sage: f(a^6)
-            #t^3 + t
+            sage: R.<t> = GF(2)[]; h = t^5 + t^2 + 1
+            sage: k.<a> = R.residue_field(h)
+            sage: K = R.fraction_field()
+            sage: f = k.lift_map()
+            sage: f(a^2)
+            t^2
+            sage: f(a^6)
+            t^3 + t
         """
         if self._K is QQ or self._K is ZZ:
             return self._K(x.lift())  # x.lift() is in ZZ
@@ -1478,13 +1491,13 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
         sage: b + c
         3
 
-        #sage: R.<t> = GF(7)[]; P = R.ideal(2*t + 3)
-        #sage: k = P.residue_field(); k
-        #Residue field of Principal ideal (2*t + 3) of Univariate Polynomial Ring in t over Finite Field of size 7
-        #sage: k(t^2)
-        #4
-        #sage: k.order()
-        #7
+        sage: R.<t> = GF(7)[]; P = R.ideal(2*t + 3)
+        sage: k = P.residue_field(); k
+        Residue field of Principal ideal (t + 5) of Univariate Polynomial Ring in t over Finite Field of size 7
+        sage: k(t^2)
+        4
+        sage: k.order()
+        7
     """
     def __init__(self, p, name, intp, to_vs, to_order, PB):
         """
@@ -1505,9 +1518,9 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
             sage: type(kk)
             <class 'sage.rings.residue_field.ResidueFiniteField_prime_modn_with_category'>
 
-            #sage: R.<t> = GF(7)[]; P = R.ideal(2*t + 3)
-            #sage: k = P.residue_field(); type(k)
-            #<class 'sage.rings.residue_field.ResidueFiniteField_prime_modn_with_category'>
+            sage: R.<t> = GF(7)[]; P = R.ideal(2*t + 3)
+            sage: k = P.residue_field(); type(k)
+            <class 'sage.rings.residue_field.ResidueFiniteField_prime_modn_with_category'>
         """
         ResidueField_generic.__init__(self, p)
         FiniteField_prime_modn.__init__(self, intp)
@@ -1558,10 +1571,10 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
             sage: k(v) # indirect doctest
             3
 
-            #sage: R.<t> = GF(2)[]; P = R.ideal(t+1); k.<a> = P.residue_field()
-            #sage: V = k.vector_space(); v = V([1])
-            #sage: k(v)
-            #1
+            sage: R.<t> = GF(2)[]; P = R.ideal(t+1); k.<a> = P.residue_field()
+            sage: V = k.vector_space(); v = V([1])
+            sage: k(v)
+            1
         """
         if isinstance(x, FreeModuleElement) and len(x) == 1:
             x = x[0]
@@ -1592,12 +1605,12 @@ class ResidueFiniteField_ext_pari(ResidueField_generic, FiniteField_ext_pari):
         sage: k.base_ring()
         Finite Field of size 923478923
 
-        #sage: R.<t> = GF(5)[]; P = R.ideal(4*t^12 + 3*t^11 + 4*t^10 + t^9 + t^8 + 3*t^7 + 2*t^6 + 3*t^4 + t^3 + 3*t^2 + 2)
-        #sage: k.<a> = P.residue_field()
-        #sage: type(k)
-        #<class 'sage.rings.residue_field.ResidueFiniteField_ext_pari'>
-        #sage: k(1/t)
-        #3*a^11 + a^10 + 3*a^9 + 2*a^8 + 2*a^7 + a^6 + 4*a^5 + a^3 + 2*a^2 + a
+        sage: R.<t> = GF(5)[]; P = R.ideal(4*t^12 + 3*t^11 + 4*t^10 + t^9 + t^8 + 3*t^7 + 2*t^6 + 3*t^4 + t^3 + 3*t^2 + 2)
+        sage: k.<a> = P.residue_field()
+        sage: type(k)
+        <class 'sage.rings.residue_field.ResidueFiniteField_ext_pari_with_category'>
+        sage: k(1/t)
+        3*a^11 + a^10 + 3*a^9 + 2*a^8 + 2*a^7 + a^6 + 4*a^5 + a^3 + 2*a^2 + a
     """
     def __init__(self, p, q, name, modulus, to_vs, to_order, PB):
         """
@@ -1649,10 +1662,10 @@ class ResidueFiniteField_ext_pari(ResidueField_generic, FiniteField_ext_pari):
             sage: ff(v) # indirect doctest
             10005*alpha + 3
 
-            #sage: R.<t> = GF(5)[]; P = R.ideal(4*t^12 + 3*t^11 + 4*t^10 + t^9 + t^8 + 3*t^7 + 2*t^6 + 3*t^4 + t^3 + 3*t^2 + 2)
-            #sage: k.<a> = P.residue_field()
-            #sage: V = k.vector_space(); v = V([1,2,3,4,5,6,7,8,9,0,1,2]); k(v) # indirect doctest
-            #2*a^11 + a^10 + 4*a^8 + 3*a^7 + 2*a^6 + a^5 + 4*a^3 + 3*a^2 + 2*a + 1
+            sage: R.<t> = GF(5)[]; P = R.ideal(4*t^12 + 3*t^11 + 4*t^10 + t^9 + t^8 + 3*t^7 + 2*t^6 + 3*t^4 + t^3 + 3*t^2 + 2)
+            sage: k.<a> = P.residue_field()
+            sage: V = k.vector_space(); v = V([1,2,3,4,5,6,7,8,9,0,1,2]); k(v) # indirect doctest
+            2*a^11 + a^10 + 4*a^8 + 3*a^7 + 2*a^6 + a^5 + 4*a^3 + 3*a^2 + 2*a + 1
         """
         try:
             return FiniteField_ext_pari._element_constructor_(self, x)
@@ -1680,11 +1693,11 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
         sage: b*c
         13*abar + 5
 
-        #sage: R.<t> = GF(7)[]; P = R.ideal(t^2 + 4)
-        #sage: k.<a> = R.residue_field(P); type(k)
-        #<class 'sage.rings.residue_field.ResidueFiniteField_givaro'>
-        #sage: k(1/t)
-        #5*a
+        sage: R.<t> = GF(7)[]; P = R.ideal(t^2 + 4)
+        sage: k.<a> = R.residue_field(P); type(k)
+        <class 'sage.rings.residue_field.ResidueFiniteField_givaro_with_category'>
+        sage: k(1/t)
+        5*a
     """
     def __init__(self, p, q, name, modulus, to_vs, to_order, PB):
         r"""
@@ -1712,10 +1725,10 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
             sage: P = K.ideal(61).factor()[0][0]
             sage: k = K.residue_field(P)
 
-            #sage: R.<t> = GF(3)[]; P = R.ideal(t^4 - t^3 + t + 1); k.<a> = P.residue_field(); type(k)
-            #<class 'sage.rings.residue_field.ResidueFiniteField_givaro'>
-            #sage: a^5
-            #a^3 + 2*a^2 + a + 2
+            sage: R.<t> = GF(3)[]; P = R.ideal(t^4 - t^3 + t + 1); k.<a> = P.residue_field(); type(k)
+            <class 'sage.rings.residue_field.ResidueFiniteField_givaro_with_category'>
+            sage: a^5
+            a^3 + 2*a^2 + a + 2
         """
         ResidueField_generic.__init__(self, p)
         FiniteField_givaro.__init__(self, q, name, modulus)
@@ -1750,10 +1763,10 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
             sage: k(v) # indirect doctest
             59*abar + 3
 
-            #sage: R.<t> = GF(3)[]; P = R.ideal(t^4 - t^3 + t + 1); k.<a> = P.residue_field()
-            #sage: V = k.vector_space(); v = V([0,1,2,3])
-            #sage: k(v) # indirect doctest
-            #2*a^2 + a
+            sage: R.<t> = GF(3)[]; P = R.ideal(t^4 - t^3 + t + 1); k.<a> = P.residue_field()
+            sage: V = k.vector_space(); v = V([0,1,2,3])
+            sage: k(v) # indirect doctest
+            2*a^2 + a
         """
         try:
             return FiniteField_givaro._element_constructor_(self, x)
@@ -1782,13 +1795,13 @@ class ResidueFiniteField_ntl_gf2e(ResidueField_generic, FiniteField_ntl_gf2e):
         sage: b*c
         13*abar + 5
 
-        #sage: R.<t> = GF(2)[]; P = R.ideal(t^19 + t^5 + t^2 + t + 1)
-        #sage: k.<a> = R.residue_field(P); type(k)
-        #<class 'sage.rings.residue_field.ResidueFiniteField_ntl_gf2e'>
-        #sage: k(1/t)
-        #a^18 + a^4 + a + 1
-        #sage: k(1/t)*t
-        #1
+        sage: R.<t> = GF(2)[]; P = R.ideal(t^19 + t^5 + t^2 + t + 1)
+        sage: k.<a> = R.residue_field(P); type(k)
+        <class 'sage.rings.residue_field.ResidueFiniteField_ntl_gf2e_with_category'>
+        sage: k(1/t)
+        a^18 + a^4 + a + 1
+        sage: k(1/t)*t
+        1
     """
     # we change the order for consistency with FiniteField_ntl_gf2e's __cinit__
     def __init__(self, q, name, modulus, repr, p, to_vs, to_order, PB):
@@ -1818,10 +1831,10 @@ class ResidueFiniteField_ntl_gf2e(ResidueField_generic, FiniteField_ntl_gf2e):
             sage: P = K.ideal(61).factor()[0][0]
             sage: k = K.residue_field(P)
 
-            #sage: R.<t> = GF(3)[]; P = R.ideal(t^4 - t^3 + t + 1); k.<a> = P.residue_field(); type(k)
-            #<class 'sage.rings.residue_field.ResidueFiniteField_givaro'>
-            #sage: a^5
-            #a^3 + 2*a^2 + a + 2
+            sage: R.<t> = GF(3)[]; P = R.ideal(t^4 - t^3 + t + 1); k.<a> = P.residue_field(); type(k)
+            <class 'sage.rings.residue_field.ResidueFiniteField_givaro_with_category'>
+            sage: a^5
+            a^3 + 2*a^2 + a + 2
         """
         ResidueField_generic.__init__(self, p)
         FiniteField_ntl_gf2e.__init__(self, q, name, modulus, repr)
@@ -1856,10 +1869,10 @@ class ResidueFiniteField_ntl_gf2e(ResidueField_generic, FiniteField_ntl_gf2e):
             sage: k(v) # indirect doctest
             59*abar + 3
 
-            #sage: R.<t> = GF(3)[]; P = R.ideal(t^4 - t^3 + t + 1); k.<a> = P.residue_field()
-            #sage: V = k.vector_space(); v = V([0,1,2,3])
-            #sage: k(v) # indirect doctest
-            #2*a^2 + a
+            sage: R.<t> = GF(3)[]; P = R.ideal(t^4 - t^3 + t + 1); k.<a> = P.residue_field()
+            sage: V = k.vector_space(); v = V([0,1,2,3])
+            sage: k(v) # indirect doctest
+            2*a^2 + a
         """
         try:
             return FiniteField_ntl_gf2e._element_constructor_(self, x)

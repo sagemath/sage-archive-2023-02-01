@@ -184,7 +184,8 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 .. warning::
 
    SciPy's versions are poorly documented and seem less
-   accurate than the Maxima and PARI versions.
+   accurate than the Maxima and PARI versions; typically they are limited
+   by hardware floats precision.
 """
 
 #*****************************************************************************
@@ -208,7 +209,7 @@ from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
 from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
-from sage.rings.all import ZZ, RR, RDF
+from sage.rings.all import ZZ, RR, RDF, CDF
 from sage.functions.other import real, imag, log_gamma
 from sage.symbolic.function import BuiltinFunction, is_inexact
 from sage.symbolic.expression import Expression
@@ -526,11 +527,7 @@ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
         if prec != 53:
             raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
-        ans = str(scipy.special.hyperu(float(alpha),float(beta),float(x)))
-        ans = ans.replace("(","")
-        ans = ans.replace(")","")
-        ans = ans.replace("j","*I")
-        return sage_eval(ans)
+        return RDF(scipy.special.hyperu(float(alpha),float(beta),float(x)))
     elif algorithm=='pari':
         from sage.libs.pari.all import pari
         R = RealField(prec)
@@ -556,7 +553,7 @@ def spherical_bessel_J(n, var, algorithm="maxima"):
     """
     if algorithm=="scipy":
         from scipy.special.specfun import sphj
-        return sphj(int(n), float(var))[1][-1]
+        return CDF(sphj(int(n), float(var))[1][-1])
     elif algorithm == 'maxima':
         _init()
         return meval("spherical_bessel_j(%s,%s)"%(ZZ(n),var))
@@ -578,11 +575,7 @@ def spherical_bessel_Y(n,var, algorithm="maxima"):
     """
     if algorithm=="scipy":
         import scipy.special
-        ans = str(scipy.special.sph_yn(int(n),float(var)))
-        ans = ans.replace("(","")
-        ans = ans.replace(")","")
-        ans = ans.replace("j","*I")
-        return sage_eval(ans)
+        return CDF(scipy.special.sph_yn(int(n),float(var)))
     elif algorithm == 'maxima':
         _init()
         return meval("spherical_bessel_y(%s,%s)"%(ZZ(n),var))

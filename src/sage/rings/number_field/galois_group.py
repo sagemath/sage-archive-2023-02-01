@@ -190,7 +190,9 @@ class GaloisGroup_v2(PermutationGroup_generic):
         g = self._pari_gc.galoisinit()
         self._pari_data = g
 
-        PermutationGroup_generic.__init__(self, sorted(g[6]))
+        # Sort the vector of permutations using cmp() to avoid errors
+        # from using comparison operators on non-scalar PARI objects.
+        PermutationGroup_generic.__init__(self, sorted(g[6], cmp=cmp))
 
         # PARI computes all the elements of self anyway, so we might as well store them
         self._elts = sorted([self(x, check=False) for x in g[5]])

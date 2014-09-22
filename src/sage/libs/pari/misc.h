@@ -21,11 +21,7 @@ inline int gcmp_try(GEN x, GEN y) {
             case e_STACK: case e_MEM: case e_ALARM:
             pari_err(0, E); /* rethrow */
         }
-        /* Comparison failed, try equality */
-        if (gequal(x, y))
-            i = 0;
-        else
-            i = 2;
+        i = 2;
     } pari_TRY {
         i = gcmp(x, y);
     } pari_ENDCATCH;

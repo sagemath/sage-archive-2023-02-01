@@ -1046,7 +1046,6 @@ cdef class gen(sage.structure.element.RingElement):
         return glength(self.g)
 
 
-
     ###########################################
     # comparisons
     ###########################################
@@ -1088,19 +1087,17 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(I) == pari(I)
             True
 
-        This does not define a total order::
+        This does not define a total order.  An error is raised when
+        applying inequality operators to non-ordered types::
 
             sage: pari("Mod(1,3)") <= pari("Mod(2,3)")
-            False
-            sage: pari("Mod(1,3)") >= pari("Mod(2,3)")
-            False
-
-        Operators ``<=`` and ``>=`` return ``True`` for equal objects::
-
+            Traceback (most recent call last):
+            ...
+            PariError: forbidden comparison t_INTMOD , t_INTMOD
             sage: pari("[0]") <= pari("0")
-            True
-            sage: pari("[0]") >= pari("0")
-            True
+            Traceback (most recent call last):
+            ...
+            PariError: forbidden comparison t_VEC (1 elts) , t_INT
 
         TESTS:
 
@@ -1117,7 +1114,6 @@ cdef class gen(sage.structure.element.RingElement):
             True
         """
         cdef bint r
-        cdef int i
         cdef GEN x = (<gen>left).g
         cdef GEN y = (<gen>right).g
         pari_catch_sig_on()
@@ -1126,11 +1122,7 @@ cdef class gen(sage.structure.element.RingElement):
         elif op == 3:  # !=
             r = (gequal(x, y) == 0)
         else:
-            i = gcmp_try(x, y)
-            if i == 2:        # gcmp() failed
-                r = 0
-            else:
-                r = left._rich_to_bool(op, i)
+            r = left._rich_to_bool(op, gcmp(x, y))
         pari_catch_sig_off()
         return r
 
@@ -1141,7 +1133,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         Compare ``left`` and ``right``.
 
-        First uses PARI's `gcmp()` routine; if it decides the objects
+        First uses PARI's ``gcmp()`` routine; if it decides the objects
         are not comparable, it then compares the underlying strings
         (since in Python all objects are supposed to be comparable).
 

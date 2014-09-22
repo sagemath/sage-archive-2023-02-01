@@ -80,10 +80,10 @@ class MatchingGame(SageObject):
         sage: m = MatchingGame([suitr_pref, reviewr_pref])
         sage: m
         A matching game with 4 suitors and 4 reviewers
-        sage: m._suitors
-        ['K', 'J', 'M', 'L']
-        sage: m._reviewers
-        ['A', 'C', 'B', 'D']
+        sage: m.suitors()
+        ('K', 'J', 'M', 'L')
+        sage: m.reviewers()
+        ('A', 'C', 'B', 'D')
 
     A matching `M` is any bijection between `S` and `R`. If `s \in S` and
     `r \in R` are matched by `M` we denote:
@@ -104,10 +104,10 @@ class MatchingGame(SageObject):
     uses the extended Gale-Shapley algorithm [DI1989]_::
 
         sage: m.solve()
-        {'K': ['C'],
-         'J': ['A'],
-         'M': ['B'],
-         'L': ['D']}
+        {'K': 'C',
+         'J': 'A',
+         'M': 'B',
+         'L': 'D'}
 
     Matchings have a natural representations as bipartite graph::
 
@@ -149,16 +149,16 @@ class MatchingGame(SageObject):
         ....:     big_game.suitors()[player].pref = suitr_preferences[player]
         ....:     big_game.reviewers()[player].pref = revr_preferences[-player]
         sage: big_game.solve()
-        {1: [-1],
-         2: [-8],
-         3: [-9],
-         4: [-10],
-         5: [-7],
-         6: [-6],
-         7: [-5],
-         8: [-4],
-         9: [-3],
-        10: [-2]}
+        {1: -1,
+         2: -8,
+         3: -9,
+         4: -10,
+         5: -7,
+         6: -6,
+         7: -5,
+         8: -4,
+         9: -3,
+        10: -2}
 
     It can be shown that the Gale-Shapley algorithm will return the stable
     matching that is optimal from the point of view of the suitors and is in
@@ -174,13 +174,13 @@ class MatchingGame(SageObject):
         ....:               'C': ('a', 'b', 'c')}
         sage: quick_game = MatchingGame([left_dict, right_dict])
         sage: quick_game.solve()
-        {'a': ['A'],
-         'c': ['B'],
-         'b': ['C']}
+        {'a': 'A',
+         'c': 'B',
+         'b': 'C'}
         sage: quick_game.solve(invert=True)
-        {'A': ['c'],
-         'C': ['b'],
-         'B': ['a']}
+        {'A': 'c',
+         'C': 'b',
+         'B': 'a'}
 
     EXAMPLES:
 
@@ -357,7 +357,7 @@ class MatchingGame(SageObject):
             ValueError: game has not been solved yet
 
             sage: g.solve()
-            {0: [3], 1: [4]}
+            {0: 3, 1: 4}
             sage: plot(g)
         """
         pl = self.bipartite()
@@ -384,12 +384,12 @@ class MatchingGame(SageObject):
             ValueError: game has not been solved yet
 
             sage: g.solve()
-            {0: [3], 1: [4]}
+            {0: 3, 1: 4}
             sage: g.bipartite()
             Bipartite graph on 4 vertices
         """
         self._is_solved()
-        graph = BipartiteGraph(self.sol_dict)
+        graph = BipartiteGraph(self._sol_dict)
         return graph
 
     def _is_solved(self):
@@ -408,7 +408,7 @@ class MatchingGame(SageObject):
             ...
             ValueError: game has not been solved yet
             sage: g.solve()
-            {0: [3], 1: [4]}
+            {0: 3, 1: 4}
             sage: g._is_solved()
         """
         suitor_check = all(s.partner for s in self._suitors)
@@ -531,7 +531,7 @@ class MatchingGame(SageObject):
         new_suitor = Player(name)
         self._suitors.append(new_suitor)
         for r in self._reviewers:
-            r.pref = [-1 for s in self._suitors]
+            r.pref = []
 
     def add_reviewer(self, name=None):
         r"""
@@ -585,7 +585,7 @@ class MatchingGame(SageObject):
         new_reviewer = Player(name)
         self._reviewers.append(new_reviewer)
         for s in self._suitors:
-            s.pref = [-1 for r in self._reviewers]
+            s.pref = []
 
     def suitors(self):
         """
@@ -616,7 +616,7 @@ class MatchingGame(SageObject):
         Compute a stable matching for the game using the Gale-Shapley
         algorithm.
 
-        TESTS::
+        EXAMPLES::
 
             sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
             ....:               'K': ('A', 'B', 'C', 'D'),
@@ -628,7 +628,7 @@ class MatchingGame(SageObject):
             ....:                 'D': ('M', 'K', 'J', 'L')}
             sage: m = MatchingGame([suitr_pref, reviewr_pref])
             sage: m.solve()
-            {'K': ['D'], 'J': ['A'], 'M': ['C'], 'L': ['B']}
+            {'K': 'D', 'J': 'A', 'M': 'C', 'L': 'B'}
 
             sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
             ....:               'K': ('A', 'B', 'C', 'D'),
@@ -640,26 +640,36 @@ class MatchingGame(SageObject):
             ....:                 'D': ('M', 'K', 'J', 'L')}
             sage: m = MatchingGame([suitr_pref, reviewr_pref])
             sage: m.solve(invert=True)
-            {'A': ['L'], 'C': ['M'], 'B': ['J'], 'D': ['K']}
+            {'A': 'L', 'C': 'M', 'B': 'J', 'D': 'K'}
 
             sage: suitr_pref = {1: (-1,)}
             sage: reviewr_pref = {-1: (1,)}
             sage: m = MatchingGame([suitr_pref, reviewr_pref])
             sage: m.solve()
-            {1: [-1]}
+            {1: -1}
 
             sage: suitr_pref = {}
             sage: reviewr_pref = {}
             sage: m = MatchingGame([suitr_pref, reviewr_pref])
             sage: m.solve()
             {}
+
+        TESTS:
+
+        This also works for players who are both a suitor and reviewer::
+
+            sage: suit = {0: (3,4,2), 1: (3,4,2), 2: (2,3,4)}
+            sage: revr = {2: (2,0,1), 3: (0,1,2), 4: (1,0,2)}
+            sage: g = MatchingGame(suit, revr)
+            sage: g.solve()
+            {0: 3, 1: 4, 2: 2}
         """
         self._is_complete()
 
         for s in self._suitors:
-            s.partner = False
+            s.partner = None
         for r in self._reviewers:
-            r.partner = False
+            r.partner = None
 
         if invert:
             reviewers = deepcopy(self._suitors)
@@ -668,14 +678,18 @@ class MatchingGame(SageObject):
             suitors = deepcopy(self._suitors)
             reviewers = deepcopy(self._reviewers)
 
-        while not all(s.partner for s in suitors):
-            s = [s for s in suitors if s.partner is False][0]
+        while any(s.partner is None for s in suitors):
+            s = None
+            for x in suitors:
+                if x.partner is None:
+                    s = x
+                    break
             r = next((x for x in reviewers if x == s.pref[0]), None)
-            if r.partner is False:
+            if r.partner is None:
                 r.partner = s
                 s.partner = r
             elif r.pref.index(s._name) < r.pref.index(r.partner._name):
-                r.partner.partner = False
+                r.partner.partner = None
                 r.partner = s
                 s.partner = r
             else:
@@ -689,15 +703,15 @@ class MatchingGame(SageObject):
         for i, j in zip(self._reviewers, reviewers):
             i.partner = j.partner
 
-        self.sol_dict = {}
+        self._sol_dict = {}
         for s in self._suitors:
-            self.sol_dict[s] = [s.partner]
+            self._sol_dict[s] = [s.partner]
         for r in self._reviewers:
-            self.sol_dict[r] = [r.partner]
+            self._sol_dict[r] = [r.partner]
 
         if invert:
-            return {key:self.sol_dict[key] for key in self._reviewers}
-        return {key:self.sol_dict[key] for key in self._suitors}
+            return {key:self._sol_dict[key][0] for key in self._reviewers}
+        return {key:self._sol_dict[key][0] for key in self._suitors}
 
 
 class Player(object):
@@ -718,12 +732,12 @@ class Player(object):
             10
             sage: p.pref
             []
-            sage: p.partner
-            False
+            sage: p.partner is None
+            True
         """
         self._name = name
         self.pref = []
-        self.partner = False
+        self.partner = None
 
     def __hash__(self):
         r"""

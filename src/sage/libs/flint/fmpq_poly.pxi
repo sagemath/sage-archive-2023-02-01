@@ -6,12 +6,15 @@
 #                        http://www.gnu.org/licenses/                         #
 ###############################################################################
 
-cdef extern from "gmp.h":
-    ctypedef void * mpz_t
-    ctypedef void * mpq_t
+include 'fmpz.pxi'
+
+from sage.libs.gmp.all cimport mpz_t, mpq_t
 
 cdef extern from "flint/fmpq.h":
-    ctypedef void * fmpq_t
+    ctypedef struct fmpq_struct:
+        pass
+    ctypedef fmpq_struct[1] fmpq_t
+
     void fmpq_init(fmpq_t)
     void fmpq_clear(fmpq_t)
     void fmpq_get_mpq(mpq_t, fmpq_t)
@@ -21,8 +24,9 @@ cdef extern from "flint/fmpz_vec.h":
     long _fmpz_vec_max_limbs(void * c, long n)
 
 cdef extern from "flint/fmpq_poly.h":
-    ctypedef void * fmpz_t
-    ctypedef void * fmpq_poly_t
+    ctypedef struct fmpq_poly_struct:
+        pass
+    ctypedef fmpq_poly_struct[1] fmpq_poly_t
 
     void fmpq_poly_canonicalise(fmpq_poly_t)
 

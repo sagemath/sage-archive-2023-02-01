@@ -9,6 +9,7 @@ cpdef long prec_bits_to_words(unsigned long prec_in_bits)
 
 @cython.final
 cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
+    cdef long _real_precision
     cdef gen PARI_ZERO, PARI_ONE, PARI_TWO
     cdef inline gen new_gen(self, GEN x)
     cdef inline gen new_gen_noclear(self, GEN x)

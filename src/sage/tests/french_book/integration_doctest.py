@@ -180,7 +180,7 @@ Sage example in ./integration.tex, line 838::
 
     sage: t, y = var('t, y')
     sage: desolve_rk4(t*y*(2-y), y, ics=[0,1], end_points=[0, 1], step=0.5)
-    [[0, 1], [0.5, 1.12419127425], [1.0, 1.46159016229]]
+    [[0, 1], [0.5, 1.12419127424558], [1.0, 1.4615901622888245]]
 
 Sage example in ./integration.tex, line 861::
 

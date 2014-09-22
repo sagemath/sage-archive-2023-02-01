@@ -1641,71 +1641,11 @@ class Link:
             -q^(3/2) + sqrt(q) - 2/sqrt(q) + 1/q^(3/2) - 2/q^(5/2) + 1/q^(7/2)
         """
         pd = self.PD_code()
-        x = SR.symbol('q')
-        # here we look at the smoothings, either x or x**-1
-        label_1 = [x for i in range(len(pd))]
-        label_2 = [x ** -1 for i in range(len(pd))]
-        label_1.extend(label_2)
-        P = Permutations(label_1, len(pd))
-        crossing_to_label = []
-        # we record how each crossing is smoothened
-        for i in P.list():
-            tmp = {}
-            for j, k in enumerate(i):
-                tmp.update({tuple(pd[j]): k})
-            crossing_to_label.append(tmp)
-        # the product of the coefficients is calcaluated
-        product = []
-        for i in crossing_to_label:
-            p = 1
-            for j in i.itervalues():
-                p = p * j
-            product.append(p)
-        # here we calculate the number of circles after the smoothing has been performed at
-        # every crossing.
-        pd_edit = []
-        for i in crossing_to_label:
-            pd_copy = deepcopy(pd)
-            tmp = []
-            for j in pd_copy:
-                if i[tuple(j)] == x ** -1:
-                    tmp.append(
-                        [pd_copy[pd_copy.index(j)][0], pd_copy[pd_copy.index(j)][1]])
-                    tmp.append(
-                        [pd_copy[pd_copy.index(j)][3], pd_copy[pd_copy.index(j)][2]])
-                elif i[tuple(j)] == x:
-                    tmp.append(
-                        [pd_copy[pd_copy.index(j)][1], pd_copy[pd_copy.index(j)][2]])
-                    tmp.append(
-                        [pd_copy[pd_copy.index(j)][0], pd_copy[pd_copy.index(j)][3]])
-            pd_edit.append(tmp)
-        # replacing the old edges with the new ones to get the circles and also
-        # the number of circles.
-        pd_edit = _rule_3_(pd_edit)
-        pd_edit = _rule_3_(pd_edit)
-        for i in pd_edit:
-            for j in range(len(i)):
-                for k in reversed(range(j + 1, len(i))):
-                    if i[j] == i[k]:
-                        del i[k]
-        # the number of circles.
-        circle_count = [len(i) for i in pd_edit]
-        # we calculate the terms of the polynomial
-        terms = [i * ((-x ** 2 - (x ** (-1)) ** 2) ** (j - 1))
-                 for i, j in zip(product, circle_count)]
-        # add the terms to generate the polynomial
-        poly = sum(terms).expand()
-        wri = self.writhe()
-        f = (((-x ** (3)) ** (-wri)) * poly).expand()
-        return f.subs({x: x ** (ZZ(-1) / ZZ(4))})
-
-    def jones_polynomial_nosub(self):
-        pd = self.PD_code()
-        poly = bracket(pd)
-        t = poly.variables()[0]
+        poly = _bracket_(pd)
         writhe = self.writhe()
-        jones = poly * (-t) ** (-3 * writhe)
-        return jones
+        t = SR.symbol('q')
+        jones = (poly * (-t) ** (-3 * writhe)).expand()
+        return jones.subs({t: t ** (ZZ(-1) / ZZ(4))})
 
 #********************** Auxillary methods used ********************************
 # rule_1 and rule_2 are used in the orientation method looks for entering,
@@ -1743,17 +1683,6 @@ def _rule_2_(over):
     return over
 
 
-def _rule_3_(pd):
-    for i in pd:
-        for j, k in enumerate(i):
-            a = min(k)
-            b = max(k)
-            for l in i[0:]:
-                if b in l:
-                    i[i.index(l)][l.index(b)] = min(k)
-    return pd
-
-
 def _pd_check_(pd):
     pd_error = False
     for i in pd:
@@ -1768,30 +1697,29 @@ def _pd_check_(pd):
     return pd_error
 
 
-def bracket(pd_code):
-    R = LaurentPolynomialRing(ZZ, 't')
-    t = R.gen()
+def _bracket_(pd_code):
+    t = SR.symbol('q')
     if len(pd_code) == 0:
         return 1
     cross = pd_code[0]
     rest = deepcopy(pd_code[1:])
     [a, b, c, d] = cross
     if a == b and c == d and len(rest) > 0:
-        bracket_ = (t ** (-1) + t ** (-5)) * bracket(rest)
+        bracket_ = ((t ** (-1) + t ** (-5)) * _bracket_(rest)).expand()
     elif a == d and c == b and len(rest) > 0:
-        bracket_ = (t ** (1) + t ** (5)) * bracket(rest)
+        bracket_ = ((t ** (1) + t ** (5)) * _bracket_(rest)).expand()
     elif a == b:
         _rule_4_(rest, d, c)
-        bracket_ = (-t ** (-3)) * bracket(rest)
+        bracket_ = ((-t ** (-3)) * _bracket_(rest)).expand()
     elif a == d:
         _rule_4_(rest, c, b)
-        bracket_ = (-t ** 3) * bracket(rest)
+        bracket_ = ((-t ** 3) * _bracket_(rest)).expand()
     elif c == b:
         _rule_4_(rest, d, a)
-        bracket_ = (-t ** 3) * bracket(rest)
+        bracket_ = ((-t ** 3) * _bracket_(rest)).expand()
     elif c == d:
         _rule_4_(rest, b, a)
-        bracket_ = (-t ** (-3)) * bracket(rest)
+        bracket_ = ((-t ** (-3)) * _bracket_(rest)).expand()
     else:
         rest_2 = deepcopy(rest)
         for cross in rest:
@@ -1804,7 +1732,7 @@ def bracket(pd_code):
                 cross[cross.index(d)] = c
             if b in cross:
                 cross[cross.index(b)] = a
-        bracket_ = t * bracket(rest) + t ** (-1) * bracket(rest_2)
+        bracket_ = (t * _bracket_(rest) + t ** (-1) * _bracket_(rest_2)).expand()
     return bracket_
 
 

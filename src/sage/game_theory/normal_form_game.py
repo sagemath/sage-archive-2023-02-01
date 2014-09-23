@@ -1087,15 +1087,18 @@ class NormalFormGame(SageObject, MutableMapping):
         by a given pair of supports are conditionally dominated.
         Returns False if a row is conditionally dominated.
 
-        TESTS::
+        TESTS:
+
+        A matrix that depending on the support for the column player
+        has a dominated row::
 
             sage: g = NormalFormGame()
             sage: A = matrix([[1, 1, 5], [2, 2, 0]])
             sage: g._row_cond_dominance((0, 1), (0, 1), A)
             False
 
-            sage: g = NormalFormGame()
-            sage: A = matrix([[1, 1, 5], [2, 2, 0]])
+        or does not have a dominated row:
+
             sage: g._row_cond_dominance((0, 1), (0, 2), A)
             True
         """

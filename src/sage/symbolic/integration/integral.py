@@ -494,10 +494,10 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
     We integrate the above function in Maple now::
 
-        sage: g = maple(f); g                  # random ; optional - maple
-        sin(x^2)+y^z
-        sage: g.integrate(x)                   # random ; optional - maple
-        1/2*2^(1/2)*Pi^(1/2)*FresnelS(2^(1/2)/Pi^(1/2)*x)+y^z*x
+        sage: g = maple(f); g.sort()         # optional - maple
+        y^z+sin(x^2)
+        sage: g.integrate(x).sort()          # optional - maple
+        x*y^z+1/2*2^(1/2)*Pi^(1/2)*FresnelS(2^(1/2)/Pi^(1/2)*x)
 
     We next integrate a function with no closed form integral. Notice
     that the answer comes back as an expression that contains an

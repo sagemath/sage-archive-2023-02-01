@@ -3127,7 +3127,7 @@ class QuotientMap:
               From: Number Field in a with defining polynomial x^3 + 4
               To:   Residue field of Fractional ideal (1/2*a^2 + 1)
             sage: f.__class__
-            <type 'sage.rings.residue_field.ReductionMap'>
+            <type 'sage.rings.finite_rings.residue_field.ReductionMap'>
         """
         self.__M_OK_change = M_OK_change
         self.__Q = Q
@@ -3182,7 +3182,7 @@ class LiftMap:
             sage: I = K.ideal(1 + a^2/2)
             sage: f = I.residue_field().lift_map()
             sage: f.__class__
-            <type 'sage.rings.residue_field.LiftingMap'>
+            <type 'sage.rings.finite_rings.residue_field.LiftingMap'>
         """
         self.__I = I
         self.__OK = OK

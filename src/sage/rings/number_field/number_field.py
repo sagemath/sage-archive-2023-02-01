@@ -5458,7 +5458,7 @@ class NumberField_generic(number_field_base.NumberField):
             raise ValueError("%s is not an ideal of %s"%(prime,self))
         if check and not prime.is_prime():
             raise ValueError("%s is not a prime ideal"%prime)
-        from sage.rings.residue_field import ResidueField
+        from sage.rings.finite_rings.residue_field import ResidueField
         return ResidueField(prime, names=names, check=False)
 
     def signature(self):

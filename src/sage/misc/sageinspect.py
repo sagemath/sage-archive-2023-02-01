@@ -1326,6 +1326,12 @@ def sage_getargspec(obj):
         sage: sage_getargspec(Bar.meet)
         ArgSpec(args=['categories', 'as_list', 'ignore_axioms', 'axioms'], varargs=None, keywords=None, defaults=(False, (), ()))
 
+    Test that :trac:`17009` is fixed::
+
+        sage: sage_getargspec(gap)
+        ArgSpec(args=['self', 'x', 'name'], varargs=None, keywords=None, defaults=(None,))
+
+
     AUTHORS:
 
     - William Stein: a modified version of inspect.getargspec from the
@@ -1350,7 +1356,7 @@ def sage_getargspec(obj):
             return inspect.ArgSpec(args, varargs, varkw, obj.func_defaults)
         except (TypeError, AttributeError):
             pass
-    elif isclassinstance(obj):
+    if isclassinstance(obj):
         if hasattr(obj,'_sage_src_'): #it may be a decorator!
             source = sage_getsource(obj)
             # we try to find the definition and parse it by _sage_getargspec_ast

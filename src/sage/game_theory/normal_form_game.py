@@ -1115,14 +1115,23 @@ class NormalFormGame(SageObject, MutableMapping):
         For a support pair obtains vector pair that ensures indifference
         amongst support strategies.
 
-        TESTS::
+        TESTS:
+
+        Find the indifference vector for a support pair that has
+        no dominated strategies::
 
             sage: A = matrix([[1, 1, 5], [2, 2, 0]])
             sage: g = NormalFormGame([A])
             sage: g._solve_indifference((0, 1), (0, 2), A, -A)
             [(1/3, 2/3), (5/6, 0, 1/6)]
+
+        When a support pair has a dominated strategy there is no
+        solution to the indifference equation::
+
             sage: g._solve_indifference((0, 1), (0, 1), A, -A)
             False
+
+        Particular case of a game with 1 strategy for each for each player::
 
             sage: A = matrix([[10]])
             sage: g = NormalFormGame([A])

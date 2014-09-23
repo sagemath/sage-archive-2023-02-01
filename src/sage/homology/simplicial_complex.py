@@ -696,6 +696,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
     Define a simplicial complex.
 
     :param maximal_faces: set of maximal faces
+    :param from_characteristic_function: see below
     :param maximality_check: see below
     :type maximality_check: boolean; optional, default ``True``
     :param sort_facets: see below
@@ -710,6 +711,14 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
     anything which may be converted to a set) whose elements are lists
     (or tuples, etc.) of vertices.  Maximal faces are also known as
     'facets'.
+
+    Alternatively, the maximal faces can be defined from a monotome boolean
+    function on the subsets of a set `X`. While defining ``maximal_faces=None``,
+    you can thus set ``from_characteristic_function=(f,X)`` where ``X`` is the
+    set of points and ``f`` a boolean monotone hereditary function that accepts
+    a list of elements from ``X`` as input (see
+    :func:`~sage.combinat.subsets_hereditary.subsets_with_hereditary_property`
+    for more information).
 
     If ``maximality_check`` is ``True``, check that each maximal face is,
     in fact, maximal. In this case, when producing the internal
@@ -756,6 +765,19 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         sage: Ts.homology()
         {0: 0, 1: Z x Z, 2: Z}
 
+    From a characteristic monotone boolean function, e.g. the simplicial complex
+    of all subsets `S\subseteq \{0,1,2,3,4\}` such that `sum(S)\leq 4`::
+
+        sage: SimplicialComplex(from_characteristic_function=(lambda x:sum(x)<=4,range(5)))
+        Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 4), (0, 1, 2), (0, 1, 3)}
+
+    or e.g. the simplicial complex of all 168 hyperovals of the projective plane of order 4::
+    
+        sage: l=map(Set, designs.ProjectiveGeometryDesign(2,1,GF(4,name='a')).blocks()) # long time
+        sage: SimplicialComplex(from_characteristic_function=(lambda S: \
+        ....: not any(Set(S).intersection(x).cardinality()>2 for x in l), range(21))) # long time
+        Simplicial complex with 21 vertices and 168 facets
+
     TESTS:
 
     Check that we can make mutable copies (see :trac:`14142`)::
@@ -772,7 +794,14 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         True
         """
 
-    def __init__(self, maximal_faces=None, **kwds):
+    def __init__(self,
+                 maximal_faces=None,
+                 from_characteristic_function=None,
+                 maximality_check=True,
+                 sort_facets=True,
+                 name_check=False,
+                 is_mutable=True,
+                 is_immutable=False):
         """
         Define a simplicial complex.  See ``SimplicialComplex`` for more
         documentation.
@@ -801,16 +830,17 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: TestSuite(S).run()
             sage: TestSuite(S3).run()
         """
+        assert (maximal_faces is None) or (from_characteristic_function is None)
         CategoryObject.__init__(self, category=SimplicialComplexes())
         from sage.misc.misc import union
-        # process kwds
-        sort_facets = kwds.get('sort_facets', True)
-        maximality_check = kwds.get('maximality_check', True)
-        name_check = kwds.get('name_check', False)
-        # done with kwds except mutability
 
         C = None
         vertex_set = []
+        if from_characteristic_function is not None:
+            from sage.combinat.subsets_hereditary import subsets_with_hereditary_property
+            f,X = from_characteristic_function
+            maximal_faces = subsets_with_hereditary_property(f,X)
+
         if maximal_faces is None:
             maximal_faces = []
         elif isinstance(maximal_faces, SimplicialComplex):
@@ -915,7 +945,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
 
         # Handle mutability keywords
         self._is_mutable = True
-        if not kwds.get('is_mutable', True) or kwds.get('is_immutable', False):
+        if not is_mutable or is_immutable:
             self.set_immutable()
 
     def __hash__(self):

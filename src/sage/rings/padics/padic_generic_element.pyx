@@ -759,14 +759,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
             s += t * (u[0] << k)
         return R(-s)
 
-    def gamma(self, flag='pari'):
+    def gamma(self, algorithm='pari'):
         r"""
         Return the value of the `p`-adic Gamma function.
 
         INPUT:
 
-        - ``flag`` -- string. Can be set to ``'pari'`` to call the
-          pari function, or ``'sage'`` to call the function
+        - ``algorithm`` -- string. Can be set to ``'pari'`` to call
+          the pari function, or ``'sage'`` to call the function
           implemented in sage.  set to ``'pari'`` by default, since
           pari is about 10 times faster than sage.
 
@@ -825,11 +825,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if self.valuation() < 0:
             raise ValueError('The p-adic gamma function only works '
                              'on elements of Zp')
-        if flag == 'pari':
-            return self._pari_().gamma()
-        elif flag == 'sage':
+        parent = self.parent()
+        if algorithm == 'pari':
+            return parent(self._pari_().gamma())
+        elif algorithm == 'sage':
             from sage.misc.all import prod
-            p = self.parent().prime()
+            p = parent.prime()
             n = self.precision_absolute()
             bd = n + 2*n//p
             if self.is_padic_unit():

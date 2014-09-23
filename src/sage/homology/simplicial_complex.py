@@ -769,7 +769,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
     of all subsets `S\subseteq \{0,1,2,3,4\}` such that `sum(S)\leq 4`::
 
         sage: SimplicialComplex(from_characteristic_function=(lambda x:sum(x)<=4,range(5)))
-        Simplicial complex with vertex set () and facets {(0, 4), (0, 1, 2), (0, 1, 3)}
+        Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 4), (0, 1, 2), (0, 1, 3)}
 
     TESTS:
 
@@ -829,13 +829,13 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
 
         C = None
         vertex_set = []
+        if from_characteristic_function is not None:
+            from sage.combinat.subsets_hereditary import subsets_with_hereditary_property
+            f,X = from_characteristic_function
+            maximal_faces = subsets_with_hereditary_property(f,X)
+
         if maximal_faces is None:
-            if from_characteristic_function is None:
-                maximal_faces = []
-            else:
-                from sage.combinat.subsets_hereditary import subsets_with_hereditary_property
-                f,X = from_characteristic_function
-                maximal_faces = subsets_with_hereditary_property(f,X)
+            maximal_faces = []
         elif isinstance(maximal_faces, SimplicialComplex):
             C = maximal_faces
         else:

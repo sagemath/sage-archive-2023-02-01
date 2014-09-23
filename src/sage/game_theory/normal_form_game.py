@@ -600,8 +600,13 @@ class NormalFormGame(SageObject, MutableMapping):
 
         EXAMPLES:
 
-        Basic description of the game shown when calling the game instance.
+        Basic description of the game shown when calling the game instance::
 
+            sage: p1 = matrix([[1, 2], [3, 4]])
+            sage: p2 = matrix([[3, 3], [1, 4]])
+            sage: g = NormalFormGame([p1, p2])
+            sage: g
+            {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
 
 
         """
@@ -666,6 +671,17 @@ class NormalFormGame(SageObject, MutableMapping):
         r"""
         Returns 2 matrices representing the payoffs for each player.
 
+        Examples ::
+
+
+            sage: p1 = matrix([[1, 2], [3, 4]])
+            sage: p2 = matrix([[3, 3], [1, 4]])
+            sage: g = NormalFormGame([p1, p2])
+            sage: g.payoff_matrices()
+            (
+            [1 2]  [3 3]
+            [3 4], [1 4]
+            )
         """
         if len(self.players) != 2:
             raise ValueError("Only available for 2 player games")
@@ -688,7 +704,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         - ``num_strategies`` - the number of strategies the player should have.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: g = NormalFormGame()
             sage: g.add_player(2)

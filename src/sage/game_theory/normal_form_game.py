@@ -714,16 +714,37 @@ class NormalFormGame(SageObject, MutableMapping):
             {(1, 0, 0): [False, False, False], (0, 0, 0): [False, False, False]}
         """
         self.players.append(_Player(num_strategies))
-        self._generateutilities(True)
+        self._generate_utilities(True)
 
-    def _generateutilities(self, replacement):
+    def _generate_utilities(self, replacement):
         r"""
         Creates all the required keys for ``self.utilities``.
+        This is used when generating players and/or adding strategies.
 
         INPUT:
 
             - replacement - Boolean value of whether previously created
                             profiles should be replaced or not.
+
+        TESTS::
+
+
+            sage: from sage.game_theory.normal_form_game import _Player
+            sage: g = NormalFormGame()
+            sage: g.players.append(_Player(2))
+            sage: g.players.append(_Player(2))
+            sage: g
+            {}
+
+            sage: g._generate_utilities(True)
+            sage: g
+            {(0, 1): [False, False], (1, 0): [False, False], (0, 0): [False, False], (1, 1): [False, False]}
+
+            sage: g[(0,1)] = [2, 3]
+            sage: g.add_strategy(1)
+            sage: g._generate_utilities(False)
+            sage: g
+            {(0, 1): [2, 3], (1, 2): [False, False], (0, 0): [False, False], (0, 2): [False, False], (1, 0): [False, False], (1, 1): [False, False]}
 
         """
         strategy_sizes = [range(p.num_strategies) for p in self.players]
@@ -757,7 +778,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         """
         self.players[player].add_strategy()
-        self._generateutilities(False)
+        self._generate_utilities(False)
 
     def _is_complete(self):
         r"""
@@ -1064,6 +1085,8 @@ class NormalFormGame(SageObject, MutableMapping):
         r"""
         Checks if any row strategies of a sub matrix defined
         by a given pair of supports are conditionally dominated.
+
+        TESTS::
         """
         subm = matrix.matrix_from_rows_and_columns(list(p1_sup), list(p2_sup))
         for strategy in subm.rows():
@@ -1078,6 +1101,8 @@ class NormalFormGame(SageObject, MutableMapping):
         r"""
         For a support pair obtains vector pair that ensures indifference
         amongst support strategies.
+
+        TESTS::
         """
         linearsystem1 = matrix(QQ, len(p2_support)+1, self.players[0].num_strategies)
         linearsystem2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)

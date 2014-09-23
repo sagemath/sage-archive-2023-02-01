@@ -1,5 +1,10 @@
 r"""
 Link class
+
+AUTHOR:
+
+- Amit Jamadagni
+- Miguel Angel Marco Buzunariz
 """
 #*****************************************************************************
 #  Copyright (C) 2014

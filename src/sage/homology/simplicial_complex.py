@@ -770,6 +770,10 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
 
         sage: SimplicialComplex(from_characteristic_function=(lambda x:sum(x)<=4,range(5)))
         Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 4), (0, 1, 2), (0, 1, 3)}
+        sage: l=map(Set, designs.ProjectiveGeometryDesign(2,1,GF(4,name='a')).blocks()) # long time
+        sage: SimplicialComplex(from_characteristic_function=(lambda S: \
+        ....: not exists(l, lambda x: Set(S).intersection(x).cardinality()>2)[0],range(21))) # long time
+        Simplicial complex with 21 vertices and 168 facets
 
     TESTS:
 

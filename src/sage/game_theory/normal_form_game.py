@@ -1050,7 +1050,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         Due to the nature of the linear equations solved in this algorithm
         some negative vectors can be returned. Here is a test that ensures
-        this doesn't happen. :
+        this doesn't happen::
 
             sage: a = matrix([[-13, 59],
             ....:             [27, 86]])
@@ -1085,15 +1085,25 @@ class NormalFormGame(SageObject, MutableMapping):
         r"""
         Checks if any row strategies of a sub matrix defined
         by a given pair of supports are conditionally dominated.
+        Returns False if a row is conditionally dominated.
 
         TESTS::
+
+            sage: g = NormalFormGame()
+            sage: A = matrix([[1, 1, 5], [2, 2, 0]])
+            sage: g._row_cond_dominance((0, 1), (0, 1), A)
+            False
+
+            sage: g = NormalFormGame()
+            sage: A = matrix([[1, 1, 5], [2, 2, 0]])
+            sage: g._row_cond_dominance((0, 1), (0, 2), A)
+            True
         """
         subm = matrix.matrix_from_rows_and_columns(list(p1_sup), list(p2_sup))
         for strategy in subm.rows():
                 for row in subm.rows():
-                    if strategy == row:
-                        pass
-                    elif all(strategy[i] < row[i] for i in range(subm.ncols())):
+                    if strategy != row and all(strategy[i] < row[i]
+                            for i in range(subm.ncols())):
                         return False
         return True
 

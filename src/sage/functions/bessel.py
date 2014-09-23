@@ -906,7 +906,7 @@ class Function_Bessel_K(BuiltinFunction):
             NotImplementedError: derivative with respect to order
         """
         if diff_param == 1:
-            return (bessel_K(n - 1, x) + bessel_K(n + 1, x)) / Integer(2)
+            return -(bessel_K(n - 1, x) + bessel_K(n + 1, x)) / Integer(2)
         else:
             raise NotImplementedError('derivative with respect to order')
 

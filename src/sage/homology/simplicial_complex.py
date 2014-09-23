@@ -765,14 +765,17 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         sage: Ts.homology()
         {0: 0, 1: Z x Z, 2: Z}
 
-    From a characteristic monotone boolean function, i.e. the simplicial complex
+    From a characteristic monotone boolean function, e.g. the simplicial complex
     of all subsets `S\subseteq \{0,1,2,3,4\}` such that `sum(S)\leq 4`::
 
         sage: SimplicialComplex(from_characteristic_function=(lambda x:sum(x)<=4,range(5)))
         Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 4), (0, 1, 2), (0, 1, 3)}
+
+    or e.g. the simplicial complex of all 168 hyperovals of the projective plane of order 4::
+    
         sage: l=map(Set, designs.ProjectiveGeometryDesign(2,1,GF(4,name='a')).blocks()) # long time
         sage: SimplicialComplex(from_characteristic_function=(lambda S: \
-        ....: not exists(l, lambda x: Set(S).intersection(x).cardinality()>2)[0],range(21))) # long time
+        ....: not any(Set(S).intersection(x).cardinality()>2 for x in l), range(21))) # long time
         Simplicial complex with 21 vertices and 168 facets
 
     TESTS:

@@ -24,125 +24,36 @@ AUTHORS:
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import repr_lincomb
+from sage.structure.indexed_generators import IndexedGenerators
+
 from sage.algebras.algebra import Algebra
 from sage.algebras.lie_algebras.lie_algebra import InfinitelyGeneratedLieAlgebra, \
     LieAlgebraFromAssociative, FinitelyGeneratedLieAlgebra
-from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement, LieGenerator
+from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
 from sage.categories.lie_algebras import LieAlgebras
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.infinity import infinity
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.positive_integers import PositiveIntegers
+from sage.sets.set import Set
 
-class HeisenbergGenerator(LieGenerator):
+class HeisenbergAlgebra_abstract(IndexedGenerators):
     """
-    Generator for the Heisenberg algebra.
+    The common methods for the (non-matrix) Heisenberg algebras.
     """
-    def __init__(self, name, i=None):
+    def __init__(self, I):
         """
         Initialize ``self``.
 
         EXAMPLES::
 
-            sage: from sage.algebras.lie_algebras.heisenberg import HeisenbergGenerator
-            sage: gen = HeisenbergGenerator('p', 2)
-            sage: TestSuite(gen).run()
+            sage: L = lie_algebras.Heisenberg(QQ, oo) # indirect doctest
         """
-        self._i = i
-        LieGenerator.__init__(self, name)
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.lie_algebras.heisenberg import HeisenbergGenerator
-            sage: HeisenbergGenerator('p', 2)
-            p2
-            sage: HeisenbergGenerator('d')
-            d
-        """
-        if self._i is None:
-            return self._name
-        return self._name + repr(self._i)
-
-    def _latex_(self):
-        r"""
-        Return a `LaTeX` representation of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.lie_algebras.heisenberg import HeisenbergGenerator
-            sage: latex(HeisenbergGenerator('p', 2))
-            p_{2}
-            sage: latex(HeisenbergGenerator('d'))
-            d
-        """
-        if self._i is None:
-            return self._name
-        return self._name + "_{{{}}}".format(self._i)
-
-    def __eq__(self, rhs):
-        """
-        Compare equals.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.lie_algebras.heisenberg import HeisenbergGenerator
-            sage: p2 = HeisenbergGenerator('p', 2)
-            sage: p2 == HeisenbergGenerator('p', 2)
-            True
-            sage: p2 == HeisenbergGenerator('q', 2)
-            False
-            sage: p2 == HeisenbergGenerator('p', 4)
-            False
-        """
-        return isinstance(rhs, LieGenerator) and self._name == rhs._name \
-                and self._i == rhs._i
-
-    def __ne__(self, rhs):
-        """
-        Compare equals.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.lie_algebras.heisenberg import HeisenbergGenerator
-            sage: p2 = HeisenbergGenerator('p', 2)
-            sage: p2 != HeisenbergGenerator('p', 2)
-            False
-            sage: p2 != HeisenbergGenerator('q', 2)
-            True
-            sage: p2 != HeisenbergGenerator('p', 4)
-            True
-        """
-        return not self.__eq__(rhs)
-
-    def __lt__(self, rhs):
-        """
-        Compare less than.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.lie_algebras.heisenberg import HeisenbergGenerator
-            sage: p2 = HeisenbergGenerator('p', 2)
-            sage: q2 = HeisenbergGenerator('q', 2)
-            sage: p3 = HeisenbergGenerator('p', 3)
-            sage: p2 < p3
-            True
-            sage: p2 < q2
-            True
-        """
-        if isinstance(rhs, HeisenbergGenerator):
-            return self._name < rhs._name or (self._name == rhs._name and self._i < rhs._i)
-        return False
-
-class HeisenbergAlgebra_abstract:
-    """
-    The common methods for the (non-matrix) Heisenberg algebras.
-    """
+        IndexedGenerators.__init__(self, I, prefix='', bracket=False,
+                                   latex_bracket=False, string_quotes=False)
     def p(self, i):
         """
         The generator `p_i`.
@@ -153,7 +64,7 @@ class HeisenbergAlgebra_abstract:
             sage: L.p(2)
             p2
         """
-        return self.element_class(self, {HeisenbergGenerator('p', i): self.base_ring().one()})
+        return self.element_class(self, {('p', i): self.base_ring().one()})
 
     def q(self, i):
         """
@@ -165,7 +76,7 @@ class HeisenbergAlgebra_abstract:
             sage: L.q(2)
             q2
         """
-        return self.element_class(self, {HeisenbergGenerator('q', i): self.base_ring().one()})
+        return self.element_class(self, {('q', i): self.base_ring().one()})
 
     def z(self):
         """
@@ -177,7 +88,7 @@ class HeisenbergAlgebra_abstract:
             sage: L.z()
             z
         """
-        return self.element_class(self, {HeisenbergGenerator('z'): self.base_ring().one()})
+        return self.element_class(self, {'z': self.base_ring().one()})
 
     def bracket_on_basis(self, x, y):
         """
@@ -185,32 +96,134 @@ class HeisenbergAlgebra_abstract:
 
         EXAMPLES::
 
-            sage: from sage.algebras.lie_algebras.heisenberg import HeisenbergGenerator
             sage: H = lie_algebras.Heisenberg(QQ, 3)
-            sage: p1 = HeisenbergGenerator('p', 1)
-            sage: q1 = HeisenbergGenerator('q', 1)
+            sage: p1 = ('p', 1)
+            sage: q1 = ('q', 1)
             sage: H.bracket_on_basis(p1, q1)
             z
         """
-        if x._name == 'p' and y._name == 'q' and x._i == y._i:
+        if x == 'z' or y == 'z':
+            return self.zero()
+        if x[0] == 'p' and y[0] == 'q' and x[1] == y[1]:
             return self.z()
         return self.zero()
 
-    class Element(LieAlgebraElement):
-        """
-        An element in the Heisenberg Lie algebra.
-        """
-        def _repr_(self):
-            """
-            Return a string representation of ``self``.
+    def _repr_term(self, m):
+        r"""
+        Return a string representation of the term indexed by ``m``.
 
-            EXAMPLES::
-            """
-            if not self._monomial_coefficients:
-                return '0'
-            return repr_lincomb(self.list())
+        EXAMPLES::
 
-class HeisenbergAlgebra(HeisenbergAlgebra_abstract, FinitelyGeneratedLieAlgebra):
+            sage: H = lie_algebras.Heisenberg(QQ, 3)
+            sage: H._repr_term(('p', 1))
+            'p1'
+            sage: H._repr_term('z')
+            'z'
+        """
+        if isinstance(m, str):
+            return m
+        return m[0] + str(m[1])
+
+    def _latex_term(self, m):
+        r"""
+        Return a string representation of the term indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: H = lie_algebras.Heisenberg(QQ, 3)
+            sage: H._latex_term(('p', 1))
+            'p_{1}'
+            sage: H._latex_term('z')
+            'z'
+        """
+        if isinstance(m, str):
+            return m
+        return "%s_{%s}" % m # else it is a tuple of length 2
+
+class HeisenbergAlgebra_fd:
+    """
+    Common methods for finite-dimensional Heisenberg algebras.
+    """
+    def __init__(self, n):
+        """
+        Initialize ``self``.
+
+        INPUT:
+
+        - ``n`` -- the rank
+
+        TESTS::
+
+            sage: H = lie_algebras.Heisenberg(QQ, 3) # indirect doctest
+        """
+        self._n = n
+
+    @cached_method
+    def gens(self):
+        """
+        Return the generators of ``self``.
+
+        EXAMPLES::
+
+            sage: H = lie_algebras.Heisenberg(QQ, 2)
+            sage: H.gens()
+            (p1, p2, q1, q2)
+        """
+        L  = [self.p(i) for i in range(1, self._n+1)]
+        L += [self.q(i) for i in range(1, self._n+1)]
+        #L += [self.z()]
+        return tuple(L)
+
+    def gen(self, i):
+        """
+        Return the ``i``-th generator of ``self``.
+
+        EXAMPLES::
+
+            sage: H = lie_algebras.Heisenberg(QQ, 2)
+            sage: H.gen(0)
+            p1
+            sage: H.gen(3)
+            q2
+        """
+        return self.gens()[i]
+
+    @cached_method
+    def lie_algebra_generators(self):
+        """
+        Return the algebra generators of ``self``.
+
+        EXAMPLES::
+
+            sage: H = lie_algebras.Heisenberg(QQ, 1)
+            sage: H.lie_algebra_generators()
+            Finite family {'q1': q1, 'p1': p1}
+        """
+        d = {}
+        for i in range(1, self._n+1):
+            d['p%s'%i] = self.p(i)
+            d['q%s'%i] = self.q(i)
+        return Family(d)
+
+    @cached_method
+    def basis(self):
+        """
+        Return the basis of ``self``.
+
+        EXAMPLES::
+
+            sage: H = lie_algebras.Heisenberg(QQ, 1)
+            sage: H.basis()
+            Finite family {'q1': q1, 'p1': p1, 'z': z}
+        """
+        d = {}
+        for i in range(1, self._n+1):
+            d['p%s'%i] = self.p(i)
+            d['q%s'%i] = self.q(i)
+        d['z'] = self.z()
+        return Family(d)
+
+class HeisenbergAlgebra(HeisenbergAlgebra_fd, HeisenbergAlgebra_abstract, FinitelyGeneratedLieAlgebra):
     """
     A Heisenberg algebra defined using structure coefficients.
 
@@ -250,10 +263,11 @@ class HeisenbergAlgebra(HeisenbergAlgebra_abstract, FinitelyGeneratedLieAlgebra)
             sage: L = lie_algebras.Heisenberg(QQ, 2)
             sage: TestSuite(L).run()
         """
-        self._n = n
+        HeisenbergAlgebra_fd.__init__(self, n)
         names = ['p%s'%i for i in range(1,n+1)] + ['q%s'%i for i in range(1,n+1)] #+ ['z']
         FinitelyGeneratedLieAlgebra.__init__(self, R, names,
             category=LieAlgebras(R).FiniteDimensional().WithBasis())
+        HeisenbergAlgebra_abstract.__init__(self, names)
 
     def _repr_(self):
         """
@@ -265,71 +279,6 @@ class HeisenbergAlgebra(HeisenbergAlgebra_abstract, FinitelyGeneratedLieAlgebra)
             Heisenberg algebra of rank 3 over Rational Field
         """
         return "Heisenberg algebra of rank {0} over {1}".format(self._n, self.base_ring())
-
-    @cached_method
-    def gens(self):
-        """
-        Return the generators of ``self``.
-
-        EXAMPLES::
-
-            sage: H = lie_algebras.Heisenberg(QQ, 2)
-            sage: H.gens()
-            (p1, p2, q1, q2)
-        """
-        L  = [self.p(i) for i in range(1, self._n+1)]
-        L += [self.q(i) for i in range(1, self._n+1)]
-        #L += [self.z()]
-        return tuple(L)
-
-    def gen(self, i):
-        """
-        Return the ``i``-th generator of ``self``.
-
-        EXAMPLES::
-
-            sage: H = lie_algebras.Heisenberg(QQ, 2)
-            sage: H.gen(2)
-            q1
-            sage: H.gen(4)
-            z
-        """
-        return self.gens()[i]
-
-    @cached_method
-    def lie_algebra_generators(self):
-        """
-        Return the algebra generators of ``self``.
-
-        EXAMPLES::
-
-            sage: H = lie_algebras.Heisenberg(QQ, 1)
-            sage: H.lie_algebra_generators()
-            Finite family {'q1': q1, 'p1': p1}
-        """
-        d = {}
-        for i in range(1, self._n+1):
-            d['p%s'%i] = self.p(i)
-            d['q%s'%i] = self.q(i)
-        return Family(d)
-
-    @cached_method
-    def basis(self):
-        """
-        Return the basis of ``self``.
-
-        EXAMPLES::
-
-            sage: H = lie_algebras.Heisenberg(QQ, 1)
-            sage: H.basis()
-            Finite family {'q1': q1, 'p1': p1, 'z': z}
-        """
-        d = {}
-        for i in range(1, self._n+1):
-            d['p%s'%i] = self.p(i)
-            d['q%s'%i] = self.q(i)
-        d['z'] = self.z()
-        return Family(d)
 
 class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedLieAlgebra):
     """
@@ -347,7 +296,10 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
             sage: L = lie_algebras.Heisenberg(QQ, oo)
             sage: TestSuite(L).run()
         """
-        InfinitelyGeneratedLieAlgebra.__init__(self, R, category=LieAlgebras(R).WithBasis())
+        S = CartesianProduct(PositiveIntegers(), ['p','q'])
+        cat = LieAlgebras(R).WithBasis()
+        InfinitelyGeneratedLieAlgebra.__init__(self, R, index_set=S, category=cat)
+        HeisenbergAlgebra_abstract.__init__(self, S)
 
     def _repr_(self):
         """
@@ -368,7 +320,7 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
 
             sage: L = lie_algebras.Heisenberg(QQ, oo)
             sage: L._an_element_()
-            p2 + q2 - 1/2*q3 + z
+            z + p2 + q2 - 1/2*q3
         """
         c = self.base_ring().an_element()
         return self.p(2) + self.q(2) - c * self.q(3) + self.z()
@@ -381,10 +333,11 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
 
             sage: L = lie_algebras.Heisenberg(QQ, oo)
             sage: L.lie_algebra_generators()
+            Lazy family (generator map(i))_{i in Cartesian product of
+                                            Positive integers, ['p', 'q']}
         """
-        gen_func = lambda i, l: getattr(self, l)(i)
         S = CartesianProduct(PositiveIntegers(), ['p','q'])
-        return Family(S, gen_func, name='generator map')
+        return Family(S, self.monomial, name='generator map')
 
     def basis(self):
         """
@@ -394,21 +347,17 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
 
             sage: L = lie_algebras.Heisenberg(QQ, oo)
             sage: L.basis()
-            Disjoint union of Family
-             (Lazy family (<bound method InfiniteHeisenbergAlgebra_with_category.p of The infinite Heisenberg algebra over Rational Field>(i))_{i in Positive integers},
-              Lazy family (<bound method InfiniteHeisenbergAlgebra_with_category.q of The infinite Heisenberg algebra over Rational Field>(i))_{i in Positive integers},
-              Family (z,))
+            Lazy family (basis map(i))_{i in Disjoint union of
+             Family ({'z'}, Cartesian product of Positive integers, ['p', 'q'])}
         """
-        from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-        p = Family(PositiveIntegers(), self.p)
-        q = Family(PositiveIntegers(), self.q)
-        z = Family([self.z()])
-        return DisjointUnionEnumeratedSets([p, q, z])
+        S = CartesianProduct(PositiveIntegers(), ['p','q'])
+        I = DisjointUnionEnumeratedSets([Set(['z']), S])
+        return Family(I, self.monomial, name="basis map")
 
 #######################################################
 ## Finite rank Heisenberg algebra using matrices
 
-class HeisenbergAlgebra_matrix(LieAlgebraFromAssociative, HeisenbergAlgebra):
+class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
     r"""
     A Heisenberg algebra represented using matrices.
 
@@ -452,6 +401,18 @@ class HeisenbergAlgebra_matrix(LieAlgebraFromAssociative, HeisenbergAlgebra):
 
     - ``R`` -- the base ring
     - ``n`` -- the size of the matrices
+
+    EXAMPLES::
+
+        sage: L = lie_algebras.Heisenberg(QQ, 1, representation="matrix")
+        sage: p = L.p(1)
+        sage: q = L.q(1)
+        sage: z = L.bracket(p, q); z
+        [0 0 1]
+        [0 0 0]
+        [0 0 0]
+        sage: z == L.z()
+        True
     """
     def __init__(self, R, n):
         """
@@ -462,16 +423,16 @@ class HeisenbergAlgebra_matrix(LieAlgebraFromAssociative, HeisenbergAlgebra):
             sage: L = lie_algebras.Heisenberg(QQ, 2, representation="matrix")
             sage: TestSuite(L).run()
         """
-        self._n = n
+        HeisenbergAlgebra_fd.__init__(self, n)
         MS = MatrixSpace(R, n+2, sparse=True)
         one = R.one()
-        p = [MS({(0,i):one}) for i in range(1, n+1)]
-        q = [MS({(i,n+1):one}) for i in range(1, n+1)]
-        names = ['p%s'%i for i in range(n)] + ['q%s'%i for i in range(n)] + ['z']
-        LieAlgebraFromAssociative.__init__(self, R, MS, tuple(p + q + [MS({(0,n+1):one})]), tuple(names))
-        self._p = self.gens()[:n]
-        self._q = self.gens()[n:2*n]
-        self._z = self.gen(2*n)
+        p = tuple(MS({(0,i):one}) for i in range(1, n+1))
+        q = tuple(MS({(i,n+1):one}) for i in range(1, n+1))
+        names = tuple('p%s'%i for i in range(1,n+1))
+        names = names + tuple('q%s'%i for i in range(1,n+1)) + ('z',)
+        cat = LieAlgebras(R).FiniteDimensional().WithBasis()
+        LieAlgebraFromAssociative.__init__(self, R, MS, p + q + (MS({(0,n+1):one}),),
+                                           names=names, category=cat)
 
     def _repr_(self):
         """
@@ -491,12 +452,12 @@ class HeisenbergAlgebra_matrix(LieAlgebraFromAssociative, HeisenbergAlgebra):
         EXAMPLES::
 
             sage: L = lie_algebras.Heisenberg(QQ, 1, representation="matrix")
-            sage: L.p(0)
+            sage: L.p(1)
             [0 1 0]
             [0 0 0]
             [0 0 0]
         """
-        return self._p[i]
+        return self._gens['p%s'%i]
 
     def q(self, i):
         r"""
@@ -505,12 +466,12 @@ class HeisenbergAlgebra_matrix(LieAlgebraFromAssociative, HeisenbergAlgebra):
         EXAMPLES::
 
             sage: L = lie_algebras.Heisenberg(QQ, 1, representation="matrix")
-            sage: L.q(0)
+            sage: L.q(1)
             [0 0 0]
             [0 0 1]
             [0 0 0]
         """
-        return self._q[i]
+        return self._gens['q%s'%i]
 
     def z(self):
         """
@@ -524,21 +485,5 @@ class HeisenbergAlgebra_matrix(LieAlgebraFromAssociative, HeisenbergAlgebra):
             [0 0 0]
             [0 0 0]
         """
-        return self._z
-
-    def bracket_on_basis(self, x, y):
-        """
-        Return the bracket of basis elements indexed by ``x`` and ``y``.
-
-        EXAMPLES::
-
-            sage: L = lie_algebras.Heisenberg(QQ, 1, representation="matrix")
-            sage: p = matrix(QQ, 3, 3, {(0,1):1})
-            sage: q = matrix(QQ, 3, 3, {(1,2):1})
-            sage: L.bracket_on_basis(p, q)
-            [0 0 1]
-            [0 0 0]
-            [0 0 0]
-        """
-        return self(x*y - y*x)
+        return self._gens['z']
 

@@ -37,8 +37,8 @@ from sage.categories.map import Map
 from sage.categories.homset import Hom
 
 from sage.algebras.free_algebra import FreeAlgebra
-from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, \
-    LieBracket, LieAlgebraElement, LieAlgebraElementWrapper
+from sage.algebras.lie_algebras.lie_algebra_element import (LieAlgebraElement,
+    LieAlgebraElementWrapper)
 from sage.rings.all import ZZ
 from sage.rings.ring import Ring
 from sage.rings.integer import Integer
@@ -491,6 +491,8 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         """
         return Family(self._indices, self.monomial, name="monomial map")
 
+    Element = LieAlgebraElement # Default for all Lie algebras
+
 class FinitelyGeneratedLieAlgebra(LieAlgebra):
     """
     An fintely generated Lie algebra.
@@ -722,9 +724,10 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
         # We register the coercion here since the UEA already exists
         self.lift.register_as_coercion()
         if isinstance(gens, dict):
-            F = Family(self._indices, lambda i: gens[i])
+            F = Family(self._indices, lambda i: self.element_class(self, gens[i]))
         else:
-            F = Family({self._indices[i]: v for i,v in enumerate(gens)})
+            F = Family({self._indices[i]: self.element_class(self, v)
+                        for i,v in enumerate(gens)})
         self._gens = F
 
     def _repr_option(self, key):

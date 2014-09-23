@@ -1180,7 +1180,12 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def _is_NE(self, a, b, p1_support, p2_support, M1, M2):
         r"""
-        TESTS:
+        For vectors that obey indifference for a given support pair,
+        checks if it corresponds to a Nash equilibria (support is obeyed and
+        no negative values, also that no player has incentive to deviate
+        out of supports).
+
+        TESTS::
 
             sage: X = matrix([[1, 4, 2],
             ....:             [4, 0, 3],
@@ -1189,8 +1194,11 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [0, 3, 1],
             ....:             [5, 4, 6]])
             sage: Z = NormalFormGame([X, Y])
-            sage: Z._is_NE([0, 1/4, 3/4], [3/5, 2/5, 0], (1,2,), (0,1,), X, Y)
+            sage: Z._is_NE([0, 1/4, 3/4], [3/5, 2/5, 0], (1, 2,), (0, 1,), X, Y)
             False
+
+            sage: Z._is_NE([2/9, 0, 7/9], [0, 3/4, 1/4], (0, 2), (1, 2), X, Y)
+            True
 
         """
         # Check that supports are obeyed

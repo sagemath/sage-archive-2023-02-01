@@ -20,6 +20,10 @@ from sage.combinat.permutation import Permutations
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.symbolic.ring import SR, var
 from sage.rings.integer import Integer
+from sage.numerical.mip import MixedIntegerLinearProgram
+from sage.functions.generalized import sign
+from sage.plot.line import line
+from sage.plot.bezier_path import bezier_path
 
 
 class Link:
@@ -57,7 +61,7 @@ class Link:
         A Link can be created by using one of the conventions mentioned below:
 
         Braid:
-        =========
+        ======
 
         Generators of the braid group are used to generate the link.
 
@@ -1133,7 +1137,6 @@ class Link:
         flatten = [x for y in seifert_pairs for x in y]
         flatten = [x for y in flatten for x in y]
         dic = {}
-        dic = {}
         for i in range(0, len(flatten), 2):
             dic.update({flatten[i]: [flatten[i + 1]]})
         D = DiGraph(dic)
@@ -1732,7 +1735,8 @@ def _bracket_(pd_code):
                 cross[cross.index(d)] = c
             if b in cross:
                 cross[cross.index(b)] = a
-        bracket_ = (t * _bracket_(rest) + t ** (-1) * _bracket_(rest_2)).expand()
+        bracket_ = (
+            t * _bracket_(rest) + t ** (-1) * _bracket_(rest_2)).expand()
     return bracket_
 
 

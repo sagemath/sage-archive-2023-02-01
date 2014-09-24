@@ -30,7 +30,7 @@ cdef extern from "Python.h":
     # get numbers from Python slice
     int PySlice_GetIndicesEx(object slice, Py_ssize_t length,
             Py_ssize_t *start, Py_ssize_t *stop, Py_ssize_t *step,
-            Py_ssize_t *slicelength)
+            Py_ssize_t *slicelength) except -1
 
 # the maximum value of a size_t
 cdef size_t SIZE_T_MAX = -(<size_t> 1)
@@ -320,18 +320,21 @@ cdef class WordDatatype_char(WordDatatype):
             sage: w = W([randint(0,3) for _ in range(20)])
             sage: list(w) == [w[i] for i in range(len(w))]
             True
+
+            sage: w['foo':'bar']
+            Traceback (most recent call last):
+            ...
+            TypeError: slice indices must be integers or None or have an __index__ method
         """
         cdef Py_ssize_t i, start, stop, step, slicelength
         cdef unsigned char * data
         cdef size_t j,k
         if PySlice_Check(key):
             # here the key is a slice
-            if PySlice_GetIndicesEx(key,
+            PySlice_GetIndicesEx(key,
                     self._length,
                     &start, &stop, &step,
-                    &slicelength) < 0:
-                return  # this automatically raise an error because
-                        # PySlice_GetIndices already did the job
+                    &slicelength) 
             if step == 1:
                 return self._new_c(self._data+start, stop-start, self)
             data = <unsigned char *> sage_malloc(slicelength * sizeof(unsigned char))

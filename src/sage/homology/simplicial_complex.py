@@ -3166,7 +3166,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: group.domain()
             {'1', '2', '3', 'a'}
 
-        Check that :trac:`17032` is solved::
+        Check that :trac:`17032` is fixed::
 
             sage: s = SimplicialComplex([[(0,1),(2,3)]])
             sage: s.automorphism_group().cardinality()
@@ -3177,13 +3177,13 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         G = Graph()
         G.add_vertices(self.vertices())
         G.add_edges((f.tuple(), v) for f in self.facets() for v in f)
-        groupe = G.automorphism_group(partition=[list(self.vertices()),
-                                                 [f.tuple()
-                                                  for f in self.facets()]])
+        group = G.automorphism_group(partition=[list(self.vertices()),
+                                                [f.tuple()
+                                                 for f in self.facets()]])
 
         gens = [[tuple(c) for c in g.cycle_tuples()
                  if c[0] in self.vertices()]
-                for g in groupe.gens()]
+                for g in group.gens()]
 
         return PermutationGroup(gens=gens, domain=self.vertices())
 

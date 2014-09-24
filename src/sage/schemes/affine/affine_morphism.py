@@ -152,7 +152,33 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
                 polys = [f.lift() for f in polys]
         self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring()) # Needed for _fast_eval and _fastpolys
         SchemeMorphism_polynomial.__init__(self, parent,polys, False)
-    
+
+    def __call__(self, x, check=True):
+        """
+        Evaluate affine morphism at point described by ``x``.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = AffineSpace(QQ,3)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+y^2,y^2,z^2 + y*z])
+            sage: f(P([1,1,1]))
+            (2, 1, 2)
+        """
+        from sage.schemes.affine.affine_point import SchemeMorphism_point_affine
+        if check:
+            if not isinstance(x, SchemeMorphism_point_affine):
+                try:
+                    x = self.domain()(x)
+                except (TypeError, NotImplementedError):
+                    raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+            elif self.domain()!=x.codomain():
+                raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+
+        # Passes the array of args to _fast_eval
+        P = self._fast_eval(x._coords)
+        return self.codomain().point(P, check)
+
     @lazy_attribute
     def _fastpolys(self):
         """
@@ -160,33 +186,53 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            sage: P.<x,y>=AffineSpace(QQ,2)
+            sage: P.<x,y> = AffineSpace(QQ,2)
             sage: H = Hom(P,P)
-            sage: f = H([x^2+y^2,y^2])
-            sage: [g.op_list() for g in f._fastpolys]
-            [[('load_const', 0), ('load_const', 1), ('load_arg', 1), ('ipow', 2), 'mul', 'add', ('load_const', 1), ('load_arg', 0), ('ipow', 2), 'mul', 'add', 'return'], [('load_const', 0), ('load_const', 1), ('load_arg', 1), ('ipow', 2), 'mul', 'add', 'return']]
+            sage: f = H([x^2+y^2,y^2/(1+x)])
+            sage: [t.op_list() for g in f._fastpolys for t in g]
+            [[('load_const', 0), ('load_const', 1), ('load_arg', 1), ('ipow', 2),
+            'mul', 'add', ('load_const', 1), ('load_arg', 0), ('ipow', 2), 'mul',
+            'add', 'return'], [('load_const', 0), ('load_const', 1), ('load_arg',
+            1), ('ipow', 2), 'mul', 'add', 'return'], [('load_const', 0),
+            ('load_const', 1), 'add', 'return'], [('load_const', 0), ('load_const',
+            1), ('load_arg', 0), ('ipow', 1), 'mul', 'add', ('load_const', 1),
+            'add', 'return']]
         """
         polys = self._polys
 
-        fastpolys = []
+        R = self.domain().ambient_space().coordinate_ring()
+        # fastpolys[0] corresponds to the numerator polys, fastpolys[1] corresponds to denominator polys
+        fastpolys = [[], []]
         for poly in polys:
+            # Determine if truly polynomials. Store the numerator and denominator as separate polynomials
+            # and repeat the normal process for both.
+            try:
+                poly_numerator=R(poly)
+                poly_denominator=R.one()
+            except TypeError:
+                poly_numerator=R(poly.numerator())
+                poly_denominator=R(poly.denominator())
+
             # These tests are in place because the float and integer domain evaluate
             # faster than using the base_ring
             if self._is_prime_finite_field:
                 prime = polys[0].base_ring().characteristic()
-                degree = polys[0].degree()
-                coefficients = poly.coefficients()
-                height = max(abs(c.lift()) for c in coefficients)
-                num_terms = len(coefficients)
+                degree = max(poly_numerator.degree(), poly_denominator.degree())
+                height = max([abs(c.lift()) for c in poly_numerator.coefficients()]\
+                              + [abs(c.lift()) for c in poly_denominator.coefficients()])
+                num_terms = max(len(poly_numerator.coefficients()), len(poly_denominator.coefficients()))
                 largest_value = num_terms * height * (prime - 1) ** degree
                 # If the calculations will not overflow the float data type use domain float
                 # Else use domain integer
                 if largest_value < (2 ** sys.float_info.mant_dig):
-                    fastpolys.append(fast_callable(poly, domain=float))
+                    fastpolys[0].append(fast_callable(poly_numerator, domain=float))
+                    fastpolys[1].append(fast_callable(poly_denominator, domain=float))
                 else:
-                    fastpolys.append(fast_callable(poly, domain=ZZ))
+                    fastpolys[0].append(fast_callable(poly_numerator, domain=ZZ))
+                    fastpolys[1].append(fast_callable(poly_denominator, domain=ZZ))
             else:
-                fastpolys.append(fast_callable(poly, domain=poly.base_ring()))
+                fastpolys[0].append(fast_callable(poly_numerator, domain=poly.base_ring()))
+                fastpolys[1].append(fast_callable(poly_denominator, domain=poly.base_ring()))
         return fastpolys
 
     def _fast_eval(self, x):
@@ -195,13 +241,29 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            sage: P.<x,y,z>=AffineSpace(QQ,3)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2+y^2,y^2,z^2 + y*z])
+            sage: P.<x,y,z> = AffineSpace(QQ,3)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+y^2,y^2,z^2 + y*z])
             sage: f._fast_eval([1,1,1])
             [2, 1, 2]
+
+        ::
+
+            sage: P.<x,y,z> = AffineSpace(QQ,3)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2/y, y/x, (y^2+z)/(x*y)])
+            sage: f._fast_eval([2,3,1])
+            [4/3, 3/2, 5/3]
         """
-        P = [f(*x) for f in self._fastpolys]
+        R = self.domain().ambient_space().coordinate_ring()
+
+        P=[]
+        for i in range(len(self._fastpolys[0])):
+            # Check if denominator is the identity; if not, then must append the fraction evaluated at the point
+            if self._fastpolys[1][i] is R.one():
+                P.append(self._fastpolys[0][i](*x))
+            else:
+                P.append(self._fastpolys[0][i](*x)/self._fastpolys[1][i](*x))
         return P
 
     def homogenize(self,n,newvar='h'):
@@ -672,24 +734,44 @@ class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_aff
     pass
 
 class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynomial_affine_space_field):
-    
+
     def _fast_eval(self, x):
         """
         Evaluate affine morphism at point described by x.
 
         EXAMPLES::
 
-            sage: P.<x,y,z>=AffineSpace(GF(7),3)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2+y^2,y^2,z^2 + y*z])
+            sage: P.<x,y,z> = AffineSpace(GF(7),3)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+y^2,y^2,z^2 + y*z])
             sage: f._fast_eval([1,1,1])
             [2, 1, 2]
+
+        ::
+
+            sage: P.<x,y,z> = AffineSpace(GF(19),3)
+            sage: H = Hom(P,P)
+            sage: f = H([x/(y+1), y, (z^2 + y^2)/(x^2 + 1)])
+            sage: f._fast_eval([2,1,3])
+            [1, 1, 2]
         """
-        if self._is_prime_finite_field:
-            p = self.base_ring().characteristic()
-            P = [f(*x) % p for f in self._fastpolys]
-        else:
-            P = [f(*x) for f in self._fastpolys]
+
+        R = self.domain().ambient_space().coordinate_ring()
+
+        P=[]
+        for i in range(len(self._fastpolys[0])):
+            if self._fastpolys[1][i] is R.one():
+                if self._is_prime_finite_field:
+                    p = self.base_ring().characteristic()
+                    P.append(self._fastpolys[0][i](*x) % p)
+                else:
+                    P.append(self._fastpolys[0][i](*x))
+            else:
+                if self._is_prime_finite_field:
+                    p = self.base_ring().characteristic()
+                    P.append((self._fastpolys[0][i](*x) % p)/(self._fastpolys[1][i](*x) % p))
+                else:
+                    P.append(self._fastpolys[0][i](*x)/self._fastpolys[1][i](*x))
         return P
 
     def cyclegraph(self):
@@ -749,5 +831,3 @@ class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynom
         from sage.graphs.digraph import DiGraph
         g=DiGraph(dict(zip(V,E)), loops=True)
         return g
-
-

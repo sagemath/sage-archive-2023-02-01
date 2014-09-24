@@ -2570,7 +2570,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                             for pol, pow in L:
                                 if pol.degree() == 1 and len(pol.variables()) == 1:
                                     good = 1
-                                    r = pol.variable()
+                                    r = pol.variables()[0]
                                     varindex = R.gens().index(r)
                                     #add this coordinates information to th
                                     #each dictionary entry

@@ -964,9 +964,11 @@ class NormalFormGame(SageObject, MutableMapping):
             m1 = - m1
             m2 = - m2
         # so that we don't call _Hrepresentation() twice.
-        in_str = self._Hrepresentation(m1, m2)
-        game1_str = in_str[0]
-        game2_str = in_str[1]
+        #raw_string = self._Hrepresentation(m1, m2)
+#        game1_str = raw_string[0]
+#        game2_str = raw_string[1]
+        game1_str, game2_str = self._Hrepresentation(m1, m2)
+
 
         g1_name = tmp_filename()
         g2_name = tmp_filename()

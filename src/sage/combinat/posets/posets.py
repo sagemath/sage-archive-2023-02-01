@@ -29,13 +29,13 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.chain_polytope` | Returns the chain polytope of the poset.
     :meth:`~FinitePoset.chain_polynomial` | Returns the chain polynomial of the poset.
     :meth:`~FinitePoset.closed_interval` | Returns a list of the elements `z` such that `x \le z \le y`.
-    :meth:`~FinitePoset.compare_elements` | Compare `x` and `y` in the poset.
+    :meth:`~FinitePoset.compare_elements` | Compares `x` and `y` in the poset.
     :meth:`~FinitePoset.comparability_graph` | Returns the comparability graph of the poset.
     :meth:`~FinitePoset.cover_relations_iterator` | Returns an iterator for the cover relations of the poset.
     :meth:`~FinitePoset.cover_relations` | Returns the list of pairs [u,v] which are cover relations
     :meth:`~FinitePoset.covers` | Returns True if y covers x and False otherwise.
-    :meth:`~FinitePoset.coxeter_transformation` | Returns the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules
-    :meth:`~FinitePoset.dilworth_decomposition` | Return a partition of the points into the minimal number of chains
+    :meth:`~FinitePoset.coxeter_transformation` | Returns the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules.
+    :meth:`~FinitePoset.dilworth_decomposition` | Returns a partition of the points into the minimal number of chains.
     :meth:`~FinitePoset.dual` | Returns the dual poset of the given poset.
     :meth:`~FinitePoset.evacuation` | Computes evacuation on the linear extension associated to the poset ``self``.
     :meth:`~FinitePoset.f_polynomial` | Returns the f-polynomial of a bounded poset.
@@ -101,8 +101,8 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.unwrap` | Unwraps an element of this poset
     :meth:`~FinitePoset.upper_covers_iterator` | Returns an iterator for the upper covers of the element y. An upper cover of y is an element x such that y x is a cover relation.
     :meth:`~FinitePoset.upper_covers` | Returns a list of upper covers of the element y. An upper cover of y is an element x such that y x is a cover relation.
-    :meth:`~FinitePoset.width` | Return the width of the poset (the size of its longest antichain)
-    :meth:`~FinitePoset.with_linear_extension` | Returns a copy of ``self`` with a different default linear extension
+    :meth:`~FinitePoset.width` | Returns the width of the poset (the size of its longest antichain).
+    :meth:`~FinitePoset.with_linear_extension` | Returns a copy of ``self`` with a different default linear extension.
     :meth:`~FinitePoset.zeta_polynomial` | Returns the zeta polynomial of the poset.
 
 Classes and functions
@@ -2716,7 +2716,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def width(self):
         r"""
-        Return the width of the poset (the size of its longest antichain)
+        Return the width of the poset (the size of its longest antichain).
 
         It is computed through a matching in a bipartite graph. See
         :wikipedia:`Dilworth's_theorem` for more information.
@@ -2724,11 +2724,11 @@ class FinitePoset(UniqueRepresentation, Parent):
         .. SEEALSO::
 
             :meth:`dilworth_decomposition` -- return a partition of the poset
-            into the smallest number of chain.
+            into the smallest number of chains.
 
         EXAMPLE::
 
-            sage: p=posets.BooleanLattice(4)
+            sage: p = posets.BooleanLattice(4)
             sage: p.width()
             6
         """
@@ -2737,47 +2737,49 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.graphs.graph import Graph
         n = self.cardinality()
         g = Graph()
-        for v,u in self._hasse_diagram.transitive_closure().edge_iterator(labels=False):
-            g.add_edge(u+n,v)
-        return n-len(g.matching())
+        for v, u in self._hasse_diagram.transitive_closure().edge_iterator(labels=False):
+            g.add_edge(u + n, v)
+        return n - len(g.matching())
 
     def dilworth_decomposition(self):
         r"""
-        Return a partition of the points into the minimal number of chains
+        Return a partition of the points into the minimal number of chains.
 
-        According to Dilworth's theorem, a the points of a poset can be
-        partitionned into `\alpha` chains, where `\alpha` is the cardinality of
+        According to Dilworth's theorem, the points of a poset can be
+        partitioned into `\alpha` chains, where `\alpha` is the cardinality of
         its largest antichain. This method returns such a partition.
+
+        See :wikipedia:`Dilworth's_theorem`.
 
         .. SEEALSO::
 
             :meth:`width` -- return the width of the poset.
 
-        Algorithm:
+        ALGORITHM:
 
-            We build a bipartite graph in which a vertex `v` of the poset is
-            represented by two vertices `v^-,v^+`. For any two `u,v` such that
-            `u<v` in the poset we add an edge `v^+u^-`.
+        We build a bipartite graph in which a vertex `v` of the poset is
+        represented by two vertices `v^-,v^+`. For any two `u,v` such that
+        `u<v` in the poset we add an edge `v^+u^-`.
 
-            A matching in this graph is equivalent to a partition of the poset
-            into chains: indeed, a chain `v_1...v_k` gives rise to the matching
-            `v_1^+v_2^-,v_2^+v_3^-,...`, and from a matching one can build the
-            union of chains.
+        A matching in this graph is equivalent to a partition of the poset
+        into chains: indeed, a chain `v_1...v_k` gives rise to the matching
+        `v_1^+v_2^-,v_2^+v_3^-,...`, and from a matching one can build the
+        union of chains.
 
-            According to Dilworth's theorem, the number of chains is equal to
+        According to Dilworth's theorem, the number of chains is equal to
             `\alpha` (the posets' width).
 
         EXAMPLE::
 
-            sage: p=posets.BooleanLattice(4)
+            sage: p = posets.BooleanLattice(4)
             sage: p.width()
             6
-            sage: p.dilworth_decomposition() # random
+            sage: p.dilworth_decomposition()  # random
             [[7, 6, 4], [11, 3], [12, 8, 0], [13, 9, 1], [14, 10, 2], [15, 5]]
 
         TESTS::
 
-            sage: p=posets.IntegerCompositions(5)
+            sage: p = posets.IntegerCompositions(5)
             sage: d = p.dilworth_decomposition()
             sage: for chain in d:
             ....:    for i in range(len(chain)-1):
@@ -2788,12 +2790,12 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.graphs.graph import Graph
         n = self.cardinality()
         g = Graph()
-        for v,u in self._hasse_diagram.transitive_closure().edge_iterator(labels=False):
-            g.add_edge(u+n,v)
+        for v, u in self._hasse_diagram.transitive_closure().edge_iterator(labels=False):
+            g.add_edge(u + n,v)
         matching = {}
-        for u,v,_ in g.matching():
-            matching[u]=v
-            matching[v]=u
+        for u, v, _ in g.matching():
+            matching[u] = v
+            matching[v] = u
         chains = []
         for v in range(n):
             if v in matching:
@@ -2802,7 +2804,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             chain = []
             while True:
                 chain.append(self._list[v])
-                v = matching.get(v+n,None)
+                v = matching.get(v + n, None)
                 if v is None:
                     break
             chains.append(chain)

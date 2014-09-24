@@ -171,11 +171,11 @@ from sage.tensor.all     import *
 
 from sage.matroids.all   import *
 
-<<<<<<< HEAD
+
 from sage.game_theory.all import *
-=======
+
 from sage.knots.all import *
->>>>>>> 106e1d31a69335c434a5ef5b1646e0aa381d6d8a
+
 
 # Lazily import notebook functions and interacts (#15335)
 lazy_import('sagenb.notebook.notebook_object', 'notebook')

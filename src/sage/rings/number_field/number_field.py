@@ -3090,7 +3090,7 @@ class NumberField_generic(number_field_base.NumberField):
             from sage.misc.all import flatten
             P = flatten([pp for pp in [self.primes_above(p) for p in primes(B+1)]])
             P = [p for p in P if p.norm() <= B]
-            P.sort()
+            P.sort(key=lambda P: (P.norm(),P))
             return P
 
     def primes_of_bounded_norm_iter(self, B):

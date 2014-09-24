@@ -3071,15 +3071,23 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<i> = QuadraticField(-1)
             sage: K.primes_of_bounded_norm(10)
-            [Fractional ideal (i + 1), Fractional ideal (3), Fractional ideal (-i - 2), Fractional ideal (2*i + 1)]
+            [Fractional ideal (i + 1), Fractional ideal (-i - 2), Fractional ideal (2*i + 1), Fractional ideal (3)]
             sage: K.primes_of_bounded_norm(1)
             []
+            sage: K.<a> = NumberField(x^3-2)
+            sage: P = K.primes_of_bounded_norm(30)
+            sage: P
+            [Fractional ideal (a),
+             Fractional ideal (a + 1),
+             Fractional ideal (-a^2 - 1),
+             Fractional ideal (a^2 + a - 1),
+             Fractional ideal (2*a + 1),
+             Fractional ideal (-2*a^2 - a - 1),
+             Fractional ideal (a^2 - 2*a - 1),
+             Fractional ideal (a + 3)]
+            sage: [p.norm() for p in P]
+            [2, 3, 5, 11, 17, 23, 25, 29]
         """
-        try:
-            B = ZZ(B.ceil())
-        except (TypeError, AttributeError):
-            raise TypeError("%s is not valid bound on prime ideals" % B)
-
         if B<2:
             return []
 
@@ -3087,8 +3095,7 @@ class NumberField_generic(number_field_base.NumberField):
         if self is QQ:
             return primes(B+1)
         else:
-            from sage.misc.all import flatten
-            P = flatten([pp for pp in [self.primes_above(p) for p in primes(B+1)]])
+            P = [pp for p in primes(B+1) for pp in self.primes_above(p)]
             P = [p for p in P if p.norm() <= B]
             P.sort(key=lambda P: (P.norm(),P))
             return P

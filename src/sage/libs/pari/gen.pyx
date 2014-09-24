@@ -1558,7 +1558,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
 
-        The Hurwitx class number is 0 if n is congruent to 1 or 2 modulo 4::
+        The Hurwitz class number is 0 if n is congruent to 1 or 2 modulo 4::
 
             sage: pari(10009).qfbhclassno()
             0
@@ -1603,23 +1603,18 @@ cdef class gen(sage.structure.element.RingElement):
 
         The class number of the quadratic order with discriminant `d`.
 
-        .. note::
-
-           If `n` is large (more than `5*10^5`), the result is
-           conditional upon GRH.
-
         .. warning::
 
            Using Euler products and the functional equation is
-           reliable but has complexity `O(|d|^{1/2})`.  Using Shaks's
-           method for `d<0` is `O(|d|^{1/4})` but (from the PARI/GP
-           documentation for version 2.7.0) this function may give
+           reliable but has complexity `O(|d|^{1/2})`.  Using Shanks's
+           method for `d<0` is `O(|d|^{1/4})` but this function may give
            incorrect results when the class group has many cyclic
            factors, because implementing Shanks's method in full
            generality slows it down immensely. It is therefore
            strongly recommended to double-check results using either
            the version with ``flag`` = 1 or the function
-           ``quadclassunit``.
+           ``quadclassunit``. The result is unconditionally correct
+           for `-d < 2e10`.
 
         EXAMPLES::
 
@@ -1644,18 +1639,16 @@ cdef class gen(sage.structure.element.RingElement):
            sage: pari(3).qfbclassno()
            Traceback (most recent call last):
            ...
-           PariError: discriminant not congruent to 0,1 mod 4 in classno2
-
+           PariError: domain error in classno2: disc % 4 > 1
            sage: pari(4).qfbclassno()
            Traceback (most recent call last):
            ...
-           PariError: square discriminant in classno2
-
+           PariError: domain error in classno2: issquare(disc) = 1
         """
         pari_catch_sig_on()
         return P.new_gen(qfbclassno0(d.g, flag))
 
-    def quadclassunit(gen d):
+    def quadclassunit(gen d, long precision=0):
         r"""
         Returns the class group of a quadratic order of discriminant `d`.
 
@@ -1704,16 +1697,14 @@ cdef class gen(sage.structure.element.RingElement):
            sage: pari(3).quadclassunit()
            Traceback (most recent call last):
            ...
-           PariError: discriminant not congruent to 0,1 mod 4 in Buchquad
-
+           PariError: domain error in Buchquad: disc % 4 > 1
            sage: pari(4).quadclassunit()
            Traceback (most recent call last):
            ...
-           PariError: square discriminant in Buchquad
-
+           PariError: domain error in Buchquad: issquare(disc) = 1
         """
         pari_catch_sig_on()
-        return P.new_gen(quadclassunit0(d.g, 0, NULL, 0))
+        return P.new_gen(quadclassunit0(d.g, 0, NULL, prec_bits_to_words(precision)))
 
     def ispseudoprime(gen self, long flag=0):
         """

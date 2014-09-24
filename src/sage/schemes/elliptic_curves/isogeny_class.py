@@ -875,7 +875,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
                 allQs[d] = BinaryQF_reduced_representatives(d, primitive_only=True)
             # now test which of the Qs represents n
             for Q in allQs[d]:
-                if Q.solve(n):
+                if Q.solve_integer(n):
                     return Q
             raise ValueError("No form of discriminant %d represents %s" %(d,n))
 

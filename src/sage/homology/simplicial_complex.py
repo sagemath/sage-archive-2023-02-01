@@ -3122,13 +3122,13 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         else:
             return FG.quotient(rels)
 
-    def is_isomorphic(self,other, certify = False):
+    def is_isomorphic(self, other, certify=False):
         r"""
-        Checks whether two simplicial complexes are isomorphic
+        Check whether two simplicial complexes are isomorphic.
 
         INPUT:
 
-        - ``certify`` - if ``True``, then output is ``(a,b)``, where ``a``
+        - ``certify`` -- if ``True``, then output is ``(a,b)``, where ``a``
           is a boolean and ``b`` is either a map or ``None``.
 
         This is done by creating two graphs and checking whether they
@@ -3148,10 +3148,12 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         """
         g1 = Graph()
         g2 = Graph()
-        g1.add_edges((v,f) for f in self.facets() for v in f)
-        g2.add_edges((v,f) for f in other.facets() for v in f)
-        g1.add_edges(("fake_vertex",v,"special_edge") for v in self.vertices())
-        g2.add_edges(("fake_vertex",v,"special_edge") for v in other.vertices())
+        g1.add_edges((v, f) for f in self.facets() for v in f)
+        g2.add_edges((v, f) for f in other.facets() for v in f)
+        g1.add_edges(("fake_vertex", v, "special_edge")
+                     for v in self.vertices())
+        g2.add_edges(("fake_vertex", v, "special_edge")
+                     for v in other.vertices())
         if not certify:
             return g1.is_isomorphic(g2)
         isisom, tr = g1.is_isomorphic(g2, certify = True)
@@ -3161,11 +3163,11 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
                 tr.pop(f)
             tr.pop("fake_vertex")
 
-        return isisom,tr
+        return isisom, tr
 
     def automorphism_group(self):
         r"""
-        Returns the automorphism group of the simplicial complex
+        Return the automorphism group of the simplicial complex.
 
         This is done by creating a bipartite graph, whose vertices are
         vertices and facets of the simplicial complex, and computing
@@ -3193,22 +3195,27 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: group = Z.automorphism_group()
             sage: group.domain()
             {'1', '2', '3', 'a'}
+
+        Check that :trac:`17032` is fixed::
+
+            sage: s = SimplicialComplex([[(0,1),(2,3)]])
+            sage: s.automorphism_group().cardinality()
+            2
         """
         from sage.groups.perm_gps.permgroup import PermutationGroup
 
         G = Graph()
         G.add_vertices(self.vertices())
-        G.add_edges((f.tuple(),v) for f in self.facets() for v in f)
-        groupe = G.automorphism_group(partition=[list(self.vertices()),
-                                                 [f.tuple() for f in self.facets()]])
+        G.add_edges((f.tuple(), v) for f in self.facets() for v in f)
+        group = G.automorphism_group(partition=[list(self.vertices()),
+                                                [f.tuple()
+                                                 for f in self.facets()]])
 
+        gens = [[tuple(c) for c in g.cycle_tuples()
+                 if c[0] in self.vertices()]
+                for g in group.gens()]
 
-        gens = [ [tuple(c) for c in g.cycle_tuples() if not isinstance(c[0],tuple)]
-                 for g in groupe.gens()]
-
-        permgroup = PermutationGroup(gens = gens, domain = self.vertices())
-
-        return permgroup
+        return PermutationGroup(gens=gens, domain=self.vertices())
 
     def fixed_complex(self, G):
         r"""

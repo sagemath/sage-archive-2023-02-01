@@ -963,10 +963,6 @@ class NormalFormGame(SageObject, MutableMapping):
         if maximization is False:
             m1 = - m1
             m2 = - m2
-        # so that we don't call _Hrepresentation() twice.
-        #raw_string = self._Hrepresentation(m1, m2)
-#        game1_str = raw_string[0]
-#        game2_str = raw_string[1]
         game1_str, game2_str = self._Hrepresentation(m1, m2)
 
 

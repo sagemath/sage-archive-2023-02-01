@@ -1099,7 +1099,7 @@ def hnf_cmp(I, J):
     if t:
         return cmp(t,0)
 
-    return cmp(I.pari_hnf(), J.pari_hnf())
+    return cmp(I.pari_hnf().sage(), J.pari_hnf().sage())
 
 def prime_ideals(F, B):
     r"""
@@ -1121,7 +1121,7 @@ def prime_ideals(F, B):
         sage: from sage.schemes.elliptic_curves.isogeny_class import prime_ideals
         sage: F.<i> = QuadraticField(-1)
         sage: P = prime_ideals(F,15); P
-        [Fractional ideal (i + 1), Fractional ideal (-i - 2), Fractional ideal (i - 2), Fractional ideal (3), Fractional ideal (-3*i - 2), Fractional ideal (3*i - 2)]
+        [Fractional ideal (i + 1), Fractional ideal (-i - 2), Fractional ideal (2*i + 1), Fractional ideal (3), Fractional ideal (-3*i - 2), Fractional ideal (3*i - 2)]
         sage: [p.pari_hnf() for p in P]
         [[2, 1; 0, 1], [5, 2; 0, 1], [5, 3; 0, 1], [3, 0; 0, 3], [13, 5; 0, 1], [13, 8; 0, 1]]
     """

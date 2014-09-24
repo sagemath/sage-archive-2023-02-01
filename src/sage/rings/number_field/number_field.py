@@ -3044,6 +3044,55 @@ class NumberField_generic(number_field_base.NumberField):
             raise ValueError("No prime of degree %s above %s" % (degree, self.ideal(x)))
         return ids[0]
 
+    def primes_of_bounded_norm(self, B):
+        r"""
+        Returns a sorted list of all prime ideals with norm at most `B`.
+
+        INPUT:
+
+        - ``B`` -- a positive integer; upper bound on the norms of the
+          primes generated.
+
+        OUTPUT:
+
+        A list of all prime ideals of this number field of norm at
+        most `B`, sorted by norm.  Primes of the same norm are sorted
+        using the comparison function for ideals, which is based on
+        the Hermite Normal Form.
+
+        .. note::
+
+            See also :meth:`primes_of_bounded_norm_iter` for an
+            iterator version of this, but note that the iterator sorts
+            the primes in order of underlying rational prime, not by
+            norm.
+
+        EXAMPLES::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: K.primes_of_bounded_norm(10)
+            [Fractional ideal (i + 1), Fractional ideal (3), Fractional ideal (-i - 2), Fractional ideal (2*i + 1)]
+            sage: K.primes_of_bounded_norm(1)
+            []
+        """
+        try:
+            B = ZZ(B.ceil())
+        except (TypeError, AttributeError):
+            raise TypeError("%s is not valid bound on prime ideals" % B)
+
+        if B<2:
+            return []
+
+        from sage.rings.arith import primes
+        if self is QQ:
+            return primes(B+1)
+        else:
+            from sage.misc.all import flatten
+            P = flatten([pp for pp in [self.primes_above(p) for p in primes(B+1)]])
+            P = [p for p in P if p.norm() <= B]
+            P.sort()
+            return P
+
     def primes_of_bounded_norm_iter(self, B):
         r"""
         Iterator yielding all prime ideals with norm at most `B`.

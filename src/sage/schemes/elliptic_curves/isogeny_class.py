@@ -818,8 +818,13 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         if verbose:
             print("... isogeny class has size %s" % ncurves)
 
-        self.curves = sorted(curves,cmp=curve_cmp_cm if E.has_rational_cm()
-                             else curve_cmp)
+        # key function for sorting
+        if E.has_rational_cm():
+            key_function = lambda E: (-E.cm_discriminant(),flatten([list(ai) for ai in E.ainvs()]))
+        else:
+            key_function = lambda E: flatten([list(ai) for ai in E.ainvs()])
+
+        self.curves = sorted(curves,key=key_function)
         perm = dict([(i,self.curves.index(E)) for i,E in enumerate(curves)])
         if verbose:
             print "Sorting permutation = %s" % perm
@@ -870,7 +875,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
                 allQs[d] = BinaryQF_reduced_representatives(d, primitive_only=True)
             # now test which of the Qs represents n
             for Q in allQs[d]:
-                if BinaryQF_solver(Q,n):
+                if Q.solve(n):
                     return Q
             raise ValueError("No form of discriminant %d represents %s" %(d,n))
 
@@ -892,7 +897,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
                     else: # horizontal isogeny
                         q = find_quadratic_form(d,mat[i,j])
                         qfmat[i][j] = list(q)
-                        mat[i,j] = small_prime_value(q)
+                        mat[i,j] = q.small_prime_value()
 
         self._mat = mat
         self._qfmat = qfmat
@@ -1058,258 +1063,6 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
                 self._maps[i][j]=phi
         else:
             raise ValueError("unknown algorithm '%s'"%algorithm)
-
-#
-# Various utility functions
-#
-
-def hnf_cmp(I, J):
-    r"""
-    Comparison function for ideals in number fields.
-
-    INPUT:
-
-    - ``I``, ``J`` -- ideals in a number field.
-
-    OUTPUT:
-
-    0, +1 or -1 according as ``I==J``, ``I>J``, ``I<J``.
-
-    .. note::
-
-       Ideals are first sorted by norm.  Ideals of the same norm are
-       sorted using their HNF matrix.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.isogeny_class import hnf_cmp
-        sage: K.<i> = QuadraticField(-1)
-        sage: I1, I2 = K.primes_above(5)
-        sage: J = K.prime_above(3)
-        sage: hnf_cmp(I1,I2)
-        -1
-        sage: hnf_cmp(I1,J)
-        -1
-        sage: hnf_cmp(J,J)
-        0
-        sage: hnf_cmp(J,I2)
-        1
-    """
-    t = int(I.norm() - J.norm())
-    if t:
-        return cmp(t,0)
-
-    return cmp(I.pari_hnf().sage(), J.pari_hnf().sage())
-
-def prime_ideals(F, B):
-    r"""
-    Returns a sorted list of primes of bounded norm.
-
-    INPUT:
-
-    - ``F`` -- a number field.
-
-    - ``B`` -- a positive number
-
-    OUTPUT:
-
-    A sorted list of prime ideals of ``F``, sorted first by norm and
-    then by the HNF of the ideal.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.isogeny_class import prime_ideals
-        sage: F.<i> = QuadraticField(-1)
-        sage: P = prime_ideals(F,15); P
-        [Fractional ideal (i + 1), Fractional ideal (-i - 2), Fractional ideal (2*i + 1), Fractional ideal (3), Fractional ideal (-3*i - 2), Fractional ideal (3*i - 2)]
-        sage: [p.pari_hnf() for p in P]
-        [[2, 1; 0, 1], [5, 2; 0, 1], [5, 3; 0, 1], [3, 0; 0, 3], [13, 5; 0, 1], [13, 8; 0, 1]]
-    """
-    from sage.rings.all import primes
-    from sage.misc.all import flatten
-    P = flatten([pp for pp in [F.primes_above(p) for p in primes(B)]])
-    P = [p for p in P if p.norm() <= B]
-    P.sort(cmp = hnf_cmp)
-    return P
-
-def curve_cmp(E1,E2):
-    r"""
-    Comparison function for elliptic curves over number fields.
-
-    INPUT:
-
-    - ``E1``, ``E2`` -- elliptic curves over a number field.
-
-    OUTPUT:
-
-    0, +1 or -1 according as ``E1==E2``, ``E1>E2``, ``E1<E2``.
-
-    .. note::
-
-       Curves are sorted by lexicographical order of the list of `5d`
-       coefficients of the `a`-invariants, where `d` is the degree if
-       the number field.
-
-    .. note::
-
-       This function was designed for the purpose of sorting elliptic
-       curves in an isogeny class, which have the same conductor.  To
-       sort a more general list of elliptic curves we would first sort
-       by conductor.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.isogeny_class import curve_cmp
-        sage: K.<i> = QuadraticField(-1)
-        sage: E1 = EllipticCurve([1+i, -i, i, 1, 0])
-        sage: E2 = EllipticCurve([1+2*i, -i, i, 1, 0])
-        sage: curve_cmp(E1,E2)
-        -1
-        sage: curve_cmp(E1,E1)
-        0
-        sage: curve_cmp(E2,E1)
-        1
-    """
-    ai1 = flatten([list(ai) for ai in E1.ainvs()])
-    ai2 = flatten([list(ai) for ai in E2.ainvs()])
-    return cmp(ai1,ai2)
-
-def curve_cmp_cm(E1,E2):
-    r"""
-    Comparison function for CM elliptic curves over number fields.
-
-    INPUT:
-
-    - ``E1``, ``E2`` -- elliptic curves over a number field with CM by
-      orders in the same imaginary quadratic field.
-
-    OUTPUT:
-
-    0, +1 or -1 according as ``E1==E2``, ``E1>E2``, ``E1<E2``.
-
-    .. note::
-
-       Curves are first sorted by the conductor of the endomorphism
-       ring in the associated maximal order, then by lexicographical
-       order of the list of `5d` coefficients of the `a`-invariants,
-       where `d` is the degree if the number field.
-
-    .. note::
-
-       This function was designed for the purpose of sorting elliptic
-       curves in an isogeny class, which have the same conductor.  To
-       sort a more general list of elliptic curves we would first sort
-       by conductor.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.isogeny_class import curve_cmp_cm
-        sage: K.<i> = QuadraticField(-1)
-        sage: E1 = EllipticCurve(j=K(1728))
-        sage: E1.cm_discriminant()
-        -4
-        sage: E2 = E1.isogenies_prime_degree(2)[0].codomain()
-        sage: E2.cm_discriminant()
-        -16
-        sage: curve_cmp_cm(E1,E2)
-        -1
-
-    """
-    d1 = E1.cm_discriminant()
-    d2 = E2.cm_discriminant()
-    t = cmp(d2,d1) # NB the discriminants are negative!  We want -4 before -16
-    if t:
-        return t
-    else:
-        return curve_cmp(E1,E2)
-
-def small_prime_value(Q, Bmax = 1000):
-    r"""
-    returns a prime represented by a positive primitive definite binary form.
-
-    INPUT:
-
-    - ``Q`` -- a positive definite binary quadratic form.
-
-    - ``Bmax`` -- a positive bound on the representing integers.
-
-    OUTPUT:
-
-    A prime number represented by the form.
-
-    .. note::
-
-       This is a very elementary implementation which just substitutes
-       values until a prime is found.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.isogeny_class import small_prime_value
-        sage: [small_prime_value(Q) for Q in BinaryQF_reduced_representatives(-23, primitive_only=True)]
-        [23, 2, 2]
-        sage: [small_prime_value(Q) for Q in BinaryQF_reduced_representatives(-47, primitive_only=True)]
-        [47, 2, 2, 3, 3]
-    """
-    from sage.sets.all import Set
-    from sage.misc.all import srange
-    d = Q.discriminant()
-    B = 10
-    while B < Bmax:
-        llist = list(Set([Q(x,y) for x in srange(-B,B) for y in srange(B)]))
-        llist = [l for l in llist if l.is_prime()]
-        llist.sort()
-        if llist:
-            return llist[0]
-        B += 10
-    raise ValueError("Unable to find a prime value of Q")
-
-def BinaryQF_solver(Q,n):
-    r"""
-    Solves Q(x,y)=n where Q is a quadratic form
-
-    INPUT:
-
-    - ``Q`` (BinaryQF) -- a positive definite primitive integral
-      binary quadratic form
-
-    - ``n`` (int) -- a positive integer
-
-    OUTPUT:
-
-    (tuple) (x,y) integers satisfying Q(x,y)=n, or 0 is no such x,y exist.
-
-    EXAMPLES::
-
-        sage: from sage.schemes.elliptic_curves.isogeny_class import BinaryQF_solver
-        sage: Qs = BinaryQF_reduced_representatives(-23,primitive_only=True)
-        sage: Qs
-        [x^2 + x*y + 6*y^2, 2*x^2 - x*y + 3*y^2, 2*x^2 + x*y + 3*y^2]
-        sage: [BinaryQF_solver(Q,3) for Q in Qs]
-        [0, (0, 1), (0, 1)]
-        sage: [BinaryQF_solver(Q,5) for Q in Qs]
-        [0, 0, 0]
-        sage: [BinaryQF_solver(Q,6) for Q in Qs]
-        [(0, 1), (-1, 1), (1, 1)]
-    """
-    a, b, c  = Q
-    if not a>0:
-        raise ValueError("%s is not positive definite (a=%s)" % (Q,a))
-    d = Q.discriminant()
-    if not d<0:
-        raise ValueError("%s is not positive definite (disc=%s)" % (Q,d))
-    ad = -d
-    an4 = 4*a*n
-    a2 = 2*a
-    from sage.misc.all import srange
-    for y in srange(0,1+an4//ad):
-        z2 = an4+d*y**2
-        if z2.is_square():
-            for z in z2.sqrt(all=True):
-                if a2.divides(z-b*y):
-                    x = (z-b*y)//a2
-                    return (x,y)
-    return 0
-
 
 def possible_isogeny_degrees(E, verbose=False):
     r""" Return a list of primes `\ell` sufficient to generate the
@@ -1505,10 +1258,10 @@ def possible_isogeny_degrees(E, verbose=False):
         # 2:
 
         if E.has_rational_cm():
-            from sage.quadratic_forms.binary_qf import BinaryQF, BinaryQF_reduced_representatives
+            from sage.quadratic_forms.binary_qf import BinaryQF
             Qs = [BinaryQF(list(q)) for q in data[2]]
 
-            L1 = [small_prime_value(Q) for Q in Qs]
+            L1 = [Q.small_prime_value() for Q in Qs]
             if verbose:
                 print("primes generating the class group: %s" % L1)
             L += Set(L1)

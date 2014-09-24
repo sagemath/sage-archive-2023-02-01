@@ -1161,14 +1161,40 @@ class RationalFunctionField(FunctionField):
             sage: a.parent()
             Rational function field in t over Rational Field
 
+        TESTS:
+
+        Conversion of a string::
+
+            sage: K('t')
+            t
+            sage: K('1/t')
+            1/t
+
+        Conversion of a constant polynomial over the function field::
+
+            sage: K(K.polynomial_ring().one())
+            1
+
+        Some indirect test of conversion::
+
+            sage: S.<x, y> = K[]
+            sage: I = S*[x^2 - y^2, y-t]
+            sage: I.groebner_basis()
+            [x^2 - t^2, y - t]
+
         """
-        if x.parent() is self._field:
-            return FunctionFieldElement_rational(self, x)
         if isinstance(x, FunctionFieldElement):
-            return FunctionFieldElement_rational(self, self._field(x.element()))
-        if x.parent() is self.polynomial_ring():
-            return x[0]
-        return FunctionFieldElement_rational(self, self._field(x))
+            return FunctionFieldElement_rational(self, self._field(x._x))
+        try:
+            x = self._field(x)
+        except TypeError:
+            try:
+                if x.parent() is self.polynomial_ring():
+                    return x[0]
+            except AttributeError:
+                pass
+            raise
+        return FunctionFieldElement_rational(self, x)
 
     def _to_bivariate_polynomial(self, f):
         """

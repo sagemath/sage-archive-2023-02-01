@@ -311,7 +311,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             ...
             TypeError: Does not make sense in dimension >1
 
-            ::
+        ::
 
             sage: A.<x> = AffineSpace(ZZ,1)
             sage: H = Hom(A,A)
@@ -319,7 +319,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f.dynatomic_polynomial(4)
             2*x^12 + 18*x^10 + 57*x^8 + 79*x^6 + 48*x^4 + 12*x^2 + 1
 
-            ::
+        ::
 
             sage: A.<x> = AffineSpace(CC,1)
             sage: H = Hom(A,A)
@@ -328,7 +328,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             13.0000000000000*x^6 + 117.000000000000*x^4 + 78.0000000000000*x^2 +
             1.00000000000000
 
-            ::
+        ::
 
             sage: A.<x> = AffineSpace(QQ,1)
             sage: H = Hom(A,A)
@@ -336,7 +336,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f.dynatomic_polynomial([2,1])
             531441*x^4 - 649539*x^2 - 524880
 
-            ::
+        ::
 
             sage: A.<x> = AffineSpace(CC,1)
             sage: H = Hom(A,A)

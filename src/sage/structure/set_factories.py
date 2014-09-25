@@ -98,7 +98,7 @@ We now come to the point of factories: constructing custom elements. By
 default, the writer of :func:`~.set_factories_example.XYPairs` decided that
 the parents ``Sx2``, ``Sy3`` and ``S23`` are facade for parent ``S``. This
 means that each element constructed by those subsets behaves as if they where
-directly constructed by ``S`` istelf::
+directly constructed by ``S`` itself::
 
     sage: Sx2.an_element().parent()
     AllPairs
@@ -171,7 +171,7 @@ parent created them. The corresponding policy is called
 - the factory;
 - the class used for elements.
 
-Here is an examples::
+Here is an example::
 
     sage: selfpolicy = SelfParentPolicy(XYPairs, NewXYPair)
     sage: selfS = XYPairs(policy=selfpolicy)
@@ -196,7 +196,7 @@ Here are the currently implemented policies:
 - :class:`TopMostParentPolicy`: use a parent created by the factory
   itself and provide a class ``Element`` for it. In this case, we need
   to specify the set of constraints which build this parent taking the
-  ownership of all elements and the class which will be use for the
+  ownership of all elements and the class which will be used for the
   ``Element``.
 
 - :class:`SelfParentPolicy`: provide systematically ``Element`` and
@@ -205,7 +205,7 @@ Here are the currently implemented policies:
 .. TODO::
 
     Generalize :class:`TopMostParentPolicy` to be able to have several
-    topmost parent.
+    topmost parents.
 
 .. RUBRIC:: Technicalities: how policies inform parents
 
@@ -213,11 +213,11 @@ Parents built from factories should inherit from
 :class:`ParentWithSetFactory`. This class provide a few methods
 related to factories and policies. The ``__init__`` method of
 :class:`ParentWithSetFactory` must be provided with the set of
-constraints and the policy. A parent built from a factory must creates
+constraints and the policy. A parent built from a factory must create
 elements through a call to the method ``_element_constructor_``. The
-current way policies inform parents how to builds their elements is
+current way in which policies inform parents how to builds their elements is
 set by a few attributes. So the class must accept attribute
-adding. The precise details of which attribute are set may be subject
+adding. The precise details of which attributes are set may be subject
 to change in the future.
 
 .. RUBRIC:: How to write a set factory
@@ -658,7 +658,7 @@ class FacadeParentPolicy(SetFactoryPolicy):
     - ``factory`` -- an instance of :class:`SetFactory`
     - ``parent`` -- an instance of :class:`Parent`
 
-    Given a factory ``F`` an a class ``E``, returns a policy for
+    Given a factory ``F`` and a class ``E``, returns a policy for
     parent ``P`` creating elements as if they were created by
     ``parent``.
 
@@ -993,8 +993,7 @@ class ParentWithSetFactory(Parent):
                 return False
             else:
                 return True
-        else:
-            return False
+        return False
 
     def __call__(self, *args, **keywords):
         r"""

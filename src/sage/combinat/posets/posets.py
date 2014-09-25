@@ -29,12 +29,13 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.chain_polytope` | Returns the chain polytope of the poset.
     :meth:`~FinitePoset.chain_polynomial` | Returns the chain polynomial of the poset.
     :meth:`~FinitePoset.closed_interval` | Returns a list of the elements `z` such that `x \le z \le y`.
-    :meth:`~FinitePoset.compare_elements` | Compare `x` and `y` in the poset.
+    :meth:`~FinitePoset.compare_elements` | Compares `x` and `y` in the poset.
     :meth:`~FinitePoset.comparability_graph` | Returns the comparability graph of the poset.
     :meth:`~FinitePoset.cover_relations_iterator` | Returns an iterator for the cover relations of the poset.
     :meth:`~FinitePoset.cover_relations` | Returns the list of pairs [u,v] which are cover relations
     :meth:`~FinitePoset.covers` | Returns True if y covers x and False otherwise.
-    :meth:`~FinitePoset.coxeter_transformation` | Returns the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules
+    :meth:`~FinitePoset.coxeter_transformation` | Returns the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules.
+    :meth:`~FinitePoset.dilworth_decomposition` | Returns a partition of the points into the minimal number of chains.
     :meth:`~FinitePoset.dual` | Returns the dual poset of the given poset.
     :meth:`~FinitePoset.evacuation` | Computes evacuation on the linear extension associated to the poset ``self``.
     :meth:`~FinitePoset.f_polynomial` | Returns the f-polynomial of a bounded poset.
@@ -51,6 +52,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.interval` | Returns a list of the elements `z` such that `x \le z \le y`.
     :meth:`~FinitePoset.is_bounded` | Returns True if the poset contains a unique maximal element and a unique minimal element, and False otherwise.
     :meth:`~FinitePoset.is_chain` | Returns True if the poset is totally ordered, and False otherwise.
+    :meth:`~FinitePoset.is_connected` | Return ``True`` if the poset is connected, and ``False`` otherwise.
     :meth:`~FinitePoset.is_EL_labelling` | Returns whether ``f`` is an EL labelling of ``self``
     :meth:`~FinitePoset.is_gequal` | Returns ``True`` if `x` is greater than or equal to `y` in the poset, and ``False`` otherwise.
     :meth:`~FinitePoset.is_graded` | Returns whether this poset is graded.
@@ -88,7 +90,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.plot` | Returns a Graphic object corresponding the Hasse diagram of the poset.
     :meth:`~FinitePoset.product` | Returns the cartesian product of ``self`` and ``other``.
     :meth:`~FinitePoset.promotion` | Computes the (extended) promotion on the linear extension of the poset ``self``
-    :meth:`~FinitePoset.random_subposet` | Returns a random subposet that contains each element with probability p.
+    :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with probability p.
     :meth:`~FinitePoset.rank_function` | Returns a rank function of the poset, if it exists.
     :meth:`~FinitePoset.rank` | Returns the rank of an element, or the rank of the poset if element is None.
     :meth:`~FinitePoset.relabel` | Returns a copy of this poset with its elements relabelled
@@ -100,7 +102,8 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.unwrap` | Unwraps an element of this poset
     :meth:`~FinitePoset.upper_covers_iterator` | Returns an iterator for the upper covers of the element y. An upper cover of y is an element x such that y x is a cover relation.
     :meth:`~FinitePoset.upper_covers` | Returns a list of upper covers of the element y. An upper cover of y is an element x such that y x is a cover relation.
-    :meth:`~FinitePoset.with_linear_extension` | Returns a copy of ``self`` with a different default linear extension
+    :meth:`~FinitePoset.width` | Returns the width of the poset (the size of its longest antichain).
+    :meth:`~FinitePoset.with_linear_extension` | Returns a copy of ``self`` with a different default linear extension.
     :meth:`~FinitePoset.zeta_polynomial` | Returns the zeta polynomial of the poset.
 
 Classes and functions
@@ -122,7 +125,6 @@ Classes and functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import random
 import copy
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -1981,6 +1983,25 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self._hasse_diagram.is_chain()
 
+    def is_connected(self):
+        """
+        Return ``True`` if the poset is connected, and ``False`` otherwise.
+
+        Poset is not connected if it can be divided to disjoint parts
+        `S_1` and `S_2` so that every element of `S_1` is incomparable to
+        every element of `S_2`.
+
+        EXAMPLES::
+
+            sage: P=Poset({1:[2,3], 3:[4,5]})
+            sage: P.is_connected()
+            True
+            sage: P=Poset({1:[2,3], 3:[4,5], 6:[7,8]})
+            sage: P.is_connected()
+            False
+        """
+        return self._hasse_diagram.is_connected()
+
     def is_chain_of_poset(self, o, ordered=False):
         """
         Return whether an iterable ``o`` is a chain of ``self``,
@@ -2712,6 +2733,102 @@ class FinitePoset(UniqueRepresentation, Parent):
         for antichain in self._hasse_diagram.antichains_iterator():
             yield map(vertex_to_element, antichain)
 
+    def width(self):
+        r"""
+        Return the width of the poset (the size of its longest antichain).
+
+        It is computed through a matching in a bipartite graph. See
+        :wikipedia:`Dilworth's_theorem` for more information.
+
+        .. SEEALSO::
+
+            :meth:`dilworth_decomposition` -- return a partition of the poset
+            into the smallest number of chains.
+
+        EXAMPLE::
+
+            sage: p = posets.BooleanLattice(4)
+            sage: p.width()
+            6
+        """
+        # See the doc of dilworth_decomposition for an explanation of what is
+        # going on.
+        from sage.graphs.graph import Graph
+        n = self.cardinality()
+        g = Graph()
+        for v, u in self._hasse_diagram.transitive_closure().edge_iterator(labels=False):
+            g.add_edge(u + n, v)
+        return n - len(g.matching())
+
+    def dilworth_decomposition(self):
+        r"""
+        Return a partition of the points into the minimal number of chains.
+
+        According to Dilworth's theorem, the points of a poset can be
+        partitioned into `\alpha` chains, where `\alpha` is the cardinality of
+        its largest antichain. This method returns such a partition.
+
+        See :wikipedia:`Dilworth's_theorem`.
+
+        .. SEEALSO::
+
+            :meth:`width` -- return the width of the poset.
+
+        ALGORITHM:
+
+        We build a bipartite graph in which a vertex `v` of the poset is
+        represented by two vertices `v^-,v^+`. For any two `u,v` such that
+        `u<v` in the poset we add an edge `v^+u^-`.
+
+        A matching in this graph is equivalent to a partition of the poset
+        into chains: indeed, a chain `v_1...v_k` gives rise to the matching
+        `v_1^+v_2^-,v_2^+v_3^-,...`, and from a matching one can build the
+        union of chains.
+
+        According to Dilworth's theorem, the number of chains is equal to
+            `\alpha` (the posets' width).
+
+        EXAMPLE::
+
+            sage: p = posets.BooleanLattice(4)
+            sage: p.width()
+            6
+            sage: p.dilworth_decomposition()  # random
+            [[7, 6, 4], [11, 3], [12, 8, 0], [13, 9, 1], [14, 10, 2], [15, 5]]
+
+        TESTS::
+
+            sage: p = posets.IntegerCompositions(5)
+            sage: d = p.dilworth_decomposition()
+            sage: for chain in d:
+            ....:    for i in range(len(chain)-1):
+            ....:        assert p.is_greater_than(chain[i],chain[i+1])
+            sage: set(p) == set().union(*d)
+            True
+        """
+        from sage.graphs.graph import Graph
+        n = self.cardinality()
+        g = Graph()
+        for v, u in self._hasse_diagram.transitive_closure().edge_iterator(labels=False):
+            g.add_edge(u + n,v)
+        matching = {}
+        for u, v, _ in g.matching():
+            matching[u] = v
+            matching[v] = u
+        chains = []
+        for v in range(n):
+            if v in matching:
+                continue
+            # v is the top element of its chain
+            chain = []
+            while True:
+                chain.append(self._list[v])
+                v = matching.get(v + n, None)
+                if v is None:
+                    break
+            chains.append(chain)
+        return chains
+
     def chains(self, element_constructor=__builtin__.list, exclude=None):
         """
         Return all the chains of ``self``.
@@ -3104,18 +3221,25 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def random_subposet(self, p):
         """
-        Returns a random subposet that contains each element with
-        probability p.
+        Return a random subposet that contains each element with
+        probability ``p``.
 
         EXAMPLES::
 
-            sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
-            sage: Q = P.random_subposet(.25)
+            sage: P = Posets.BooleanLattice(3)
+            sage: set_random_seed(0)
+            sage: Q = P.random_subposet(0.5)
+            sage: Q.cover_relations()
+            [[0, 2], [0, 5], [2, 3], [3, 7], [5, 7]]
         """
+        from sage.misc.randstate import current_randstate
+        random = current_randstate().python_random().random
         elements = []
         p = float(p)
+        if p<0 or p>1:
+            raise ValueError("The probability p must be in [0..1].")
         for v in self:
-            if random.random() <= p:
+            if random() <= p:
                 elements.append(v)
         return self.subposet(elements)
 

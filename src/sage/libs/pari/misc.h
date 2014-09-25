@@ -5,70 +5,40 @@
 #define SAGE_LIBS_PARI_MISC_H
 
 #include <pari/pari.h>
+#include <string.h>
 
 
-inline int strcmp_to_cmp(int f) {
-    if (f > 0) {
-      return 1;
-    } else if (f) {
-      return -1;
-    } else {
-      return 0;
-    }
+/*
+  Like gcmp(x, y), but returns 2 if comparison fails.
+  Adapted from the PARI function gen2.c:gequal_try().
+*/
+inline int gcmp_try(GEN x, GEN y) {
+    int i;
+    pari_CATCH(CATCH_ALL) {
+        GEN E = pari_err_last();
+        switch(err_get_num(E))
+        {
+            case e_STACK: case e_MEM: case e_ALARM:
+            pari_err(0, E); /* rethrow */
+        }
+        i = 2;
+    } pari_TRY {
+        i = gcmp(x, y);
+    } pari_ENDCATCH;
+    return i;
 }
 
-inline int
-gcmp_sage(GEN x, GEN y)
-{
-  long tx = typ(x), ty = typ(y), f;
-  GEN tmp;
-  pari_sp av;
-
-  if (is_intreal_t(tx) && is_intreal_t(ty)) {
-    /* Compare two numbers that can be considered as reals. */
-    return mpcmp(x,y);
-  }
-
-  /***** comparing strings *****/
-  if (tx==t_STR) {
-    /* Compare two strings */
-    if (ty != t_STR)  {
-      return 1;
-    }
-
-    return strcmp_to_cmp(strcmp(GSTR(x),GSTR(y)));
-  }
-  if (ty == t_STR) /* tx is not a string */
-     return -1;
-  /***** end comparing strings *****/
-
-  /*if (!is_intreal_t(ty) && ty != t_FRAC)  */
-  /*     return 1; */
- /* pari_err(typeer,"comparison"); */
-
-  av = avma;
-  char *c, *d;
-  c = GENtostr(x);
-  d = GENtostr(y);
-  f = strcmp_to_cmp(strcmp(c, d));
-  free(c);
-  free(d);
-  avma = av;
-  return f;
-
-  /*
-  av = avma;
-  y = gneg_i(y);
-  tmp = gadd(x,y);
-  switch(typ(tmp)) {
-     case t_INT:
-     case t_REAL:
-        return signe(tmp);
-     case t_FRAC:
-        return signe(tmp[1]);
-  }
-  avma = av;
-  */
+/* Compare the string representations of x and y.  */
+inline int gcmp_string(GEN x, GEN y) {
+    sig_block();
+    char *a = GENtostr(x);
+    char *b = GENtostr(y);
+    int i = strcmp(a, b);
+    free(a);
+    free(b);
+    sig_unblock();
+    if (i == 0) return 0;
+    return i > 0 ? 1 : -1;
 }
 
 

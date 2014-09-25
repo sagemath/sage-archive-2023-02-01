@@ -2248,7 +2248,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         An instance of the class
         :class:`sage.schemes.elliptic_curves.isogeny_class.IsogenyClass_EC_NumberField`.
         From this object may be obtained a list of curves in the
-        class, a mtrix of the degrees of the isogenies between them,
+        class, a matrix of the degrees of the isogenies between them,
         and the isogenies themselves.
 
         .. note::
@@ -2296,7 +2296,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         plotting it::
 
             sage: G = C.graph()
-            sage: G.show(edges_labels=True) # not tested
+            sage: G.show(edge_labels=True) # long time
 
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve([1+i, -i, i, 1, 0])
@@ -2392,28 +2392,28 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [2 4 4 3 1 3]
             [4 4 2 3 3 1]
 
-         The graph of this isogeny class has a shape which does not
-         occur over `\QQ`: a triangular prism.  Note that for curves
-         without CM, the graph has an edge between two curves if and
-         only if they are connected by an isogeny of prime degree, and
-         this degree is uniquely determined by the two curves, but in
-         the CM case this property does not hold, since for pairs of
-         curves in the class with the same endomorphism ring `O`, the
-         set of degrees of isogenies between them is the set of
-         integers represented by a primitive integral binary quadratic
-         form of discriminant `\text{disc}(O)`, and this form
-         represents infinitely many primes.  In the matrix we give a
-         small prime represented by the appropriate form.  In this
-         example, the matrix is formed by four `3\times3` blocks.  The
-         isogenies of degree `2` indicated by the upper left
-         `3\times3` block of the matrix could be replaced by isogenies
-         of any degree represented by the quadratic form
-         `2x^2+xy+3y^2` of discriminant `-23`.  Similarly in the lower
-         right block, the entries of `3` could be represented by any
-         integers represented by the quadratic form `3x^2+2xy+8y^2` of
-         discriminant `-92`.  In the top right block and lower left
-         blocks, by contrast, the prime entries `2` are unique
-         determined::
+        The graph of this isogeny class has a shape which does not
+        occur over `\QQ`: a triangular prism.  Note that for curves
+        without CM, the graph has an edge between two curves if and
+        only if they are connected by an isogeny of prime degree, and
+        this degree is uniquely determined by the two curves, but in
+        the CM case this property does not hold, since for pairs of
+        curves in the class with the same endomorphism ring `O`, the
+        set of degrees of isogenies between them is the set of
+        integers represented by a primitive integral binary quadratic
+        form of discriminant `\text{disc}(O)`, and this form
+        represents infinitely many primes.  In the matrix we give a
+        small prime represented by the appropriate form.  In this
+        example, the matrix is formed by four `3\times3` blocks.  The
+        isogenies of degree `2` indicated by the upper left `3\times3`
+        block of the matrix could be replaced by isogenies of any
+        degree represented by the quadratic form `2x^2+xy+3y^2` of
+        discriminant `-23`.  Similarly in the lower right block, the
+        entries of `3` could be represented by any integers
+        represented by the quadratic form `3x^2+2xy+8y^2` of
+        discriminant `-92`.  In the top right block and lower left
+        blocks, by contrast, the prime entries `2` are unique
+        determined::
 
             sage: G = C.graph()
             sage: G.adjacency_matrix()
@@ -2426,13 +2426,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         To display the graph without any edge labels::
 
-            G.show() # not tested
+            G.show() # long time
 
         To display the graph with edge labels: by default, for curves
         with rational CM, the labels are the coefficients of the
         associated quadratic forms::
 
-            G.show(edge_labels=True) # not tested
+            G.show(edge_labels=True) # long time
 
         For an alternative view, first relabel the edges using only 2
         labels to distinguish between isogenies between curves with
@@ -2451,16 +2451,16 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<a> = NumberField(pol)
             sage: L.<b> = K.extension(x^2+26)
 
-       Only `2` of the `j`-invariants with discriminant -104 are in
-       `K`, though all are in `L`::
+        Only `2` of the `j`-invariants with discriminant -104 are in
+        `K`, though all are in `L`::
 
            sage: len(pol26.roots(K))
            2
            sage: len(pol26.roots(L))
            6
 
-       We create an elliptic curve defined over `K` with one of the
-       `j`-invariants in `K`::
+        We create an elliptic curve defined over `K` with one of the
+        `j`-invariants in `K`::
 
             sage: j1 = pol26.roots(K)[0][0]
             sage: E = EllipticCurve(j=j1)
@@ -2524,13 +2524,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
         the edge_labels::
 
             sage: G = C.graph()
-            sage: G.show(edges_labels=False) # not tested
+            sage: G.show(edge_labels=False) # long time
 
         It is possible to display a 3-dimensional plot, with colours
         to represent the different edge labels, in a form which can be
         rotated!::
 
-            sage: G.show3d(color_by_label=True)
+            sage: G.show3d(color_by_label=True) # long time
         """
         try:
             return self._isoclass

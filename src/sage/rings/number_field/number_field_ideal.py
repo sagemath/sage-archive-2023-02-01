@@ -509,9 +509,9 @@ class NumberFieldIdeal(Ideal_generic):
             sage: K.<a> = NumberField(x^4 + 389); K
             Number Field in a with defining polynomial x^4 + 389
             sage: I = K.factor(17)[0][0]; I
-            Fractional ideal (17, a^2 - 6)
+            Fractional ideal (17, a^2 + 6)
             sage: I._repr_short()
-            '(17, a^2 - 6)'
+            '(17, a^2 + 6)'
 
         We use reduced gens, because the discriminant is small::
 
@@ -527,9 +527,9 @@ class NumberFieldIdeal(Ideal_generic):
             sage: K.<a> = NumberField(x^2 + 902384094); K
             Number Field in a with defining polynomial x^2 + 902384094
             sage: I = K.factor(19)[0][0]; I
-            Fractional ideal (19, a + 14)
+            Fractional ideal (19, a + 5)
             sage: I.gens_reduced()
-            (19, a + 14)
+            (19, a + 5)
         """
         return '(%s)'%(', '.join(map(str, self._gens_repr())))
 
@@ -3306,6 +3306,3 @@ def quotient_char_p(I, p):
     Q_to_OK = LiftMap(OK, M_OK_mat, Q, I)
 
     return Q, K_to_Q, Q_to_OK
-
-
-

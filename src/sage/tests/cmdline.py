@@ -283,7 +283,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
 
         sage: s = "'''\nThis is a test file.\n'''\ndef my_add(a,b):\n    '''\n    Add a to b.\n\n        EXAMPLES::\n\n            sage: my_add(2,2)\n            4\n        '''\n    return a + b\n"
         sage: script = os.path.join(tmp_dir(), 'my_script.sage')
-        sage: script_py = script[:-5] + '.py'
+        sage: script_py = script + '.py'
         sage: F = open(script, 'w')
         sage: F.write(s)
         sage: F.close()
@@ -293,7 +293,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: os.path.isfile(script_py)
         True
 
-    Now test my_script.sage and the preparsed version my_script.py::
+    Now test my_script.sage and the preparsed version my_script.sage.py::
 
         sage: (out, err, ret) = test_executable(["sage", "-t", script])
         sage: ret
@@ -322,7 +322,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
 
         sage: s = "'''This is my docstring\nin two lines'''\nimport inspect\ndef f(x):\n    return 1\nprint inspect.getmodule(f).__doc__\n"
         sage: script = os.path.join(tmp_dir(), 'my_script.sage')
-        sage: script_py = script[:-5] + '.py'
+        sage: script_py = script + '.py'
         sage: F = open(script, 'w')
         sage: F.write(s)
         sage: F.close()

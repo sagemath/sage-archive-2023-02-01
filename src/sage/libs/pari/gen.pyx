@@ -1135,6 +1135,13 @@ cdef class gen(sage.structure.element.RingElement):
         a total ordering on the set of all PARI objects (up to the
         indistinguishability relation given by ``gidentical()``).
 
+        .. WARNING::
+            
+            This comparison is only mathematically meaningful when
+            comparing 2 integers. In particular, when comparing
+            rationals or reals, this does not correspond to the natural
+            ordering.
+
         EXAMPLES::
 
             sage: cmp(pari(5), 5)
@@ -1149,6 +1156,18 @@ cdef class gen(sage.structure.element.RingElement):
             1
             sage: cmp(pari(I), pari(I))
             0
+
+        Beware when comparing rationals or reals::
+
+            sage: cmp(pari(2/3), pari(2/5))
+            -1
+            sage: two = RealField(256)(2)._pari_()
+            sage: cmp(two, pari(1.0))
+            1
+            sage: cmp(two, pari(2.0))
+            1
+            sage: cmp(two, pari(3.0))
+            1
 
         Since :trac:`17026`, different elements with the same string
         representation can be distinguished by ``cmp()``::

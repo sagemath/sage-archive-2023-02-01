@@ -1017,7 +1017,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         Return the tensor product of ``self`` with ``crystals``.
 
         If ``crystals`` is a list of rigged configurations of the same
-        Cartan type, then this returns a new :class:`RiggedConfiguraitons`.
+        Cartan type, then this returns a new :class:`RiggedConfigurations`.
 
         EXAMPLES::
 

@@ -494,8 +494,8 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         """
         Return the tensor product of ``self`` with ``crystals``.
 
-        If ``crystals`` is a list of rigged configurations of the same
-        Cartan type, then this returns a new :class:`RiggedConfiguraitons`.
+        If ``crystals`` is a list of (a tensor product of) KR tableaux, this
+        returns a :class:`TensorProductOfKirillovReshetikhinTableaux`.
 
         EXAMPLES::
 

@@ -682,15 +682,29 @@ class TensorProductOfCrystals(CrystalOfWords):
             sage: T = crystals.TensorProduct(B, B)
             sage: T.category()
             Category of infinite tensor products of highest weight crystals
+
+        TESTS:
+
+        Check that mismatched Cartan types raise an error::
+
+            sage: A2 = crystals.Letters(['A', 2])
+            sage: A3 = crystals.Letters(['A', 3])
+            sage: crystals.TensorProduct(A2, A3)
+            Traceback (most recent call last):
+            ...
+            ValueError: all crystals must be of the same Cartan type
         """
         crystals = tuple(crystals)
         if "cartan_type" in options:
-            cartan_type = CartanType(options["cartan_type"])
+            cartan_type = CartanType(options.pop("cartan_type"))
         else:
-            if len(crystals) == 0:
+            if not crystals:
                 raise ValueError("you need to specify the Cartan type if the tensor product list is empty")
             else:
                 cartan_type = crystals[0].cartan_type()
+
+        if any(c.cartan_type() != cartan_type for c in crystals):
+            raise ValueError("all crystals must be of the same Cartan type")
 
         if "generators" in options:
             generators = tuple(tuple(x) if isinstance(x, list) else x for x in options["generators"])

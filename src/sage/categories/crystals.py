@@ -839,12 +839,12 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: C = crystals.Letters(['A', 3])
-                sage: B = crystals.infinity.Tableaux(['A',2])
+                sage: B = crystals.infinity.Tableaux(['A', 3])
                 sage: T = C.tensor(C, B); T
                 Full tensor product of the crystals
                  [The crystal of letters for type ['A', 3],
                   The crystal of letters for type ['A', 3],
-                  The infinity crystal of tableaux of type ['A', 2]]
+                  The infinity crystal of tableaux of type ['A', 3]]
                 sage: tensor([C, C, B]) is T
                 True
 

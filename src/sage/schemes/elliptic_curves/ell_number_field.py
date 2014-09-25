@@ -2481,7 +2481,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [ 2  1 26 13]
             [13 26  1  2]
             [26 13  2  1]
-            sage: len(Set([EE.j_invariant() for EE in C.curves]))
+            sage: len(Set([EE.j_invariant() for EE in C.curves]))  # long time
             2
 
         Over `L`, the isogeny class grows to size `6` (the class
@@ -2510,7 +2510,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         To see the array of binary quadratic forms::
 
-            sage: CL.qf_matrix()
+            sage: CL.qf_matrix()  # long time
             [[[1], [2, 0, 13], [3, -2, 9], [3, -2, 9], [5, -4, 6], [5, -4, 6]],
             [[2, 0, 13], [1], [5, -4, 6], [5, -4, 6], [3, -2, 9], [3, -2, 9]],
             [[3, -2, 9], [5, -4, 6], [1], [3, -2, 9], [2, 0, 13], [5, -4, 6]],

@@ -281,7 +281,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     Testing ``sage --preparse FILE`` and ``sage -t FILE``.  First create
     a file and preparse it::
 
-        sage: s = "'''\nThis is a test file.\n'''\ndef my_add(a,b):\n    '''\n    Add a to b.\n\n        EXAMPLES::\n\n            sage: my_add(2,2)\n            4\n        '''\n    return a + b\n"
+        sage: s = "# -*- coding: utf-8 -*-\n'''This is a test file.\nAnd I am its doctest'''\ndef my_add(a,b):\n    '''\n    Add a to b.\n\n        EXAMPLES::\n\n            sage: my_add(2,2)\n            4\n        '''\n    return a + b\n"
         sage: script = os.path.join(tmp_dir(), 'my_script.sage')
         sage: script_py = script + '.py'
         sage: F = open(script, 'w')
@@ -306,6 +306,15 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: out.find("All tests passed!") >= 0
         True
 
+    Test that the coding line and doctest are preserved::
+        sage: Fpy = open(script_py, "r")
+        sage: Fpy.readline()
+        '# -*- coding: utf-8 -*-\n'
+        sage: Fpy.readline()
+        "'''This is a test file.\n"
+        sage: Fpy.readline()
+        "And I am its doctest'''\n"
+
     Now for a file which should fail tests::
 
         sage: s = s.replace('4', '5') # (2+2 != 5)
@@ -317,25 +326,6 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         1
         sage: out.find("1 item had failures:") >= 0
         True
-
-    Testing ``sage --preparse FILE`` #17019: module docstrings are preserved::
-
-        sage: s = "'''This is my docstring\nin two lines'''\nimport inspect\ndef f(x):\n    return 1\nprint inspect.getmodule(f).__doc__\n"
-        sage: script = os.path.join(tmp_dir(), 'my_script.sage')
-        sage: script_py = script + '.py'
-        sage: F = open(script, 'w')
-        sage: F.write(s)
-        sage: F.close()
-        sage: (out, err, ret) = test_executable(["sage", "--preparse", script])
-        sage: ret
-        0
-        sage: os.path.isfile(script_py)
-        True
-        sage: (out, err, ret) = test_executable(["sage", script_py])
-        sage: out
-        'This is my docstring\nin two lines\n'
-        sage: ret
-        0
 
     Test ``sage -t --debug -p 2`` on a ReST file, the ``-p 2`` should
     be ignored. In Pdb, we run the ``help`` command::

@@ -56,6 +56,9 @@ math_substitutes = [ # don't forget leading backslash '\\'
     ('\\cdot', ' *'),
     (' \\times', ' x'),
     ('\\times', ' x'),
+    ('\\quad', '  '),
+    ('\\qquad', '    '),
+    ('\\mid', '|'),
     ('\\backslash','\\'),
     ('\\mapsto', ' |--> '),
 ]

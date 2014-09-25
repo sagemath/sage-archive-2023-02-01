@@ -134,6 +134,7 @@ def do_preparse(f, files_before=[]):
     # Finally, write out the result.  We use atomic_write to avoid
     # race conditions (for example, the file will never be half written).
     with atomic_write(fname) as f:
+        f.write(coding)
         f.write(header)
         f.write('\n')
         f.write(sage_incl)

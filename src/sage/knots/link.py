@@ -685,7 +685,7 @@ class Link:
                 hom_gen.append(0)
         return hom_gen
 
-    def seifert_Matrix(self):
+    def seifert_matrix(self):
         r"""
         Return the Seifert Matrix associated with the braidword.
 
@@ -698,17 +698,17 @@ class Link:
 
             sage: B = BraidGroup(4)
             sage: L = Link(B([-1, 3, 1, 3]))
-            sage: L.seifert_Matrix()
+            sage: L.seifert_matrix()
             [ 0  0]
             [ 0 -1]
             sage: B = BraidGroup(8)
             sage: L = Link(B([-1, 3, 1, 5, 1, 7, 1, 6]))
-            sage: L.seifert_Matrix()
+            sage: L.seifert_matrix()
             [ 0  0  0]
             [ 1 -1  0]
             [ 0  1 -1]
             sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
-            sage: L.seifert_Matrix()
+            sage: L.seifert_matrix()
             [-1  0]
             [ 0 -1]
         """
@@ -888,7 +888,7 @@ class Link:
             sage: L.signature()
             -2
         """
-        m = 2 * (self.seifert_Matrix() + self.seifert_Matrix().transpose())
+        m = 2 * (self.seifert_matrix() + self.seifert_matrix().transpose())
         e = m.eigenvalues()
         sum = 0
         s = []
@@ -926,8 +926,8 @@ class Link:
         """
         R = LaurentPolynomialRing(ZZ, var)
         t = R.gen()
-        f = (self.seifert_Matrix() - t *
-             (self.seifert_Matrix().transpose())).determinant()
+        f = (self.seifert_matrix() - t *
+             (self.seifert_matrix().transpose())).determinant()
         return t ** ((-max(f.exponents()) - min(f.exponents())) / 2) * f if f != 0 else f
 
     def knot_determinant(self):

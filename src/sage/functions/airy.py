@@ -213,10 +213,10 @@ class FunctionAiryAiSimple(BuiltinFunction):
             0.00659113935746072
             sage: airy_ai_simple(3).n(algorithm='mpmath', prec=100)
             0.0065911393574607191442574484080
-            sage: airy_ai_simple(3).n(algorithm='scipy')
-            0.00659113935746
-            sage: airy_ai_simple(I).n(algorithm='scipy')
-            0.331493305432 - 0.317449858968*I
+            sage: airy_ai_simple(3).n(algorithm='scipy')  # rel tol 1e-10
+            0.006591139357460719
+            sage: airy_ai_simple(I).n(algorithm='scipy')  # rel tol 1e-10
+            0.33149330543214117 - 0.3174498589684438*I
         """
         if algorithm == 'scipy':
             from sage.rings.all import RR
@@ -289,10 +289,10 @@ class FunctionAiryAiPrime(BuiltinFunction):
             -0.00195864095020418
             sage: airy_ai_prime(4).n(algorithm='mpmath', prec=100)
             -0.0019586409502041789001381409184
-            sage: airy_ai_prime(4).n(algorithm='scipy')
-            -0.0019586409502
-            sage: airy_ai_prime(I).n(algorithm='scipy')
-            -0.432492659842 + 0.0980478562292*I
+            sage: airy_ai_prime(4).n(algorithm='scipy')    # rel tol 1e-10
+            -0.00195864095020418
+            sage: airy_ai_prime(I).n(algorithm='scipy')    # rel tol 1e-10
+            -0.43249265984180707 + 0.09804785622924324*I
         """
         if algorithm == 'scipy':
             from sage.rings.all import RR
@@ -386,8 +386,8 @@ def airy_ai(alpha, x=None, hold_derivative=False, *args, **kwds):
         0.034924130423274379135322080792
         sage: airy_ai(2).n(algorithm='mpmath', prec=100)
         0.034924130423274379135322080792
-        sage: airy_ai(2).n(algorithm='scipy')
-        0.0349241304233
+        sage: airy_ai(2).n(algorithm='scipy')  # rel tol 1e-10
+        0.03492413042327323
 
     And the derivatives can be evaluated::
 
@@ -601,10 +601,10 @@ class FunctionAiryBiSimple(BuiltinFunction):
             14.0373289637302
             sage: airy_bi_simple(3).n(algorithm='mpmath', prec=100)
             14.037328963730232031740267314
-            sage: airy_bi_simple(3).n(algorithm='scipy')
-            14.0373289637
-            sage: airy_bi_simple(I).n(algorithm='scipy')
-            0.64885820833 + 0.344958634768*I
+            sage: airy_bi_simple(3).n(algorithm='scipy')  # rel tol 1e-10
+            14.037328963730136
+            sage: airy_bi_simple(I).n(algorithm='scipy')  # rel tol 1e-10
+            0.648858208330395 + 0.34495863476804844*I
         """
         algorithm = kwargs.get('algorithm', None) or 'mpmath'
         parent = kwargs.get('parent')
@@ -679,10 +679,10 @@ class FunctionAiryBiPrime(BuiltinFunction):
             161.926683504613
             sage: airy_bi_prime(4).n(algorithm='mpmath', prec=100)
             161.92668350461340184309492429
-            sage: airy_bi_prime(4).n(algorithm='scipy')
-            161.926683505
-            sage: airy_bi_prime(I).n(algorithm='scipy')
-            0.135026646711 - 0.128837386781*I
+            sage: airy_bi_prime(4).n(algorithm='scipy')  # rel tol 1e-10
+            161.92668350461398
+            sage: airy_bi_prime(I).n(algorithm='scipy')  # rel tol 1e-10
+            0.135026646710819 - 0.1288373867812549*I
         """
         algorithm = kwargs.get('algorithm', None) or 'mpmath'
         parent = sage_structure_coerce_parent(x)
@@ -779,8 +779,8 @@ def airy_bi(alpha, x=None, hold_derivative=False, *args, **kwds):
         3.2980949999782147102806044252
         sage: airy_bi(2).n(algorithm='mpmath', prec=100)
         3.2980949999782147102806044252
-        sage: airy_bi(2).n(algorithm='scipy')
-        3.29809499998
+        sage: airy_bi(2).n(algorithm='scipy')  # rel tol 1e-10
+        3.2980949999782134
 
     And the derivatives can be evaluated::
 

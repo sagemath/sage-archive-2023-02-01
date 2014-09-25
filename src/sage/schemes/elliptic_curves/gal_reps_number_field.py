@@ -1,10 +1,12 @@
+# -*- coding: utf-8 -*-
 r"""
-Surjectivity of Galois Representations for Elliptic Curves over Number Fields.
+Galois Representations for Elliptic Curves over Number Fields.
 
 This file contains the code to compute for which primes the Galois
 representation attached to an elliptic curve (over an arbitrary
 number field) is surjective. The functions in this file are called by
-the is_surjective and non_surjective methods in ell_number_field.py.
+the `is_surjective` and `non_surjective` methods of an elliptic curve
+over a number field.
 
 EXAMPLES::
 
@@ -25,15 +27,17 @@ EXAMPLES::
 AUTHORS:
 
 - Eric Larson (2012-05-28): initial version.
-- Eric Larson (2014-08-13): added .isogeny_bound() function.
+- Eric Larson (2014-08-13): added isogeny_bound function.
 
 REFERENCES:
 
-[Serre72] Serre. ``Proprietes Galoisiennes des Points d'Ordre Fini des Courbes
-Elliptiques.'' Inventiones mathematicae, 1972.
+.. [Serre72] Serre. Propriétés galoisiennes des points d'ordre fini des
+    courbes elliptiques. Inventiones mathematicae, 1972.
 
-[Sutherland12] Sutherland. ``A local-global principle for rational isogenies of
-prime degree.'' Journal de Theorie des Nombres de Bordeaux, 2012.
+.. [Sutherland12] Sutherland. A local-global principle for rational
+    isogenies of prime degree. Journal de Theorie des Nombres de Bordeaux,
+    2012.
+
 """
 
 #*****************************************************************************

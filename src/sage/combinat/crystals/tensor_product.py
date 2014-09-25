@@ -38,6 +38,7 @@ from sage.structure.global_options import GlobalOptions
 from sage.categories.category import Category
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.regular_crystals import RegularCrystals
+from sage.categories.sets_cat import Sets
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.combinat import CombinatorialObject
@@ -680,7 +681,7 @@ class TensorProductOfCrystals(CrystalOfWords):
             sage: B = crystals.infinity.Tableaux(['A',2])
             sage: T = crystals.TensorProduct(B, B)
             sage: T.category()
-            Category of tensor products of highest weight crystals
+            Category of infinite tensor products of highest weight crystals
         """
         crystals = tuple(crystals)
         if "cartan_type" in options:
@@ -778,12 +779,15 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
             sage: TestSuite(T).run()
         """
         category = Category.meet([crystal.category() for crystal in crystals])
-        Parent.__init__(self, category=category.TensorProducts())
+        category = category.TensorProducts()
+        if any(c in Sets().Infinite() for c in crystals):
+            category = category.Infinite()
+        Parent.__init__(self, category=category)
         self.crystals = crystals
         if 'cartan_type' in options:
             self._cartan_type = CartanType(options['cartan_type'])
         else:
-            if len(crystals) == 0:
+            if not crystals:
                 raise ValueError("you need to specify the Cartan type if the tensor product list is empty")
             else:
                 self._cartan_type = crystals[0].cartan_type()

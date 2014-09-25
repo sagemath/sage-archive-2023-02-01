@@ -669,7 +669,7 @@ class TensorProductOfCrystals(CrystalOfWords):
             sage: T is T2
             True
             sage: T.category()
-            Category of classical crystals
+            Category of tensor products of classical crystals
 
             sage: B1 = crystals.TensorProduct(T, C)
             sage: B2 = crystals.TensorProduct(C, T)
@@ -680,7 +680,7 @@ class TensorProductOfCrystals(CrystalOfWords):
             sage: B = crystals.infinity.Tableaux(['A',2])
             sage: T = crystals.TensorProduct(B, B)
             sage: T.category()
-            Join of Category of infinite enumerated sets and Category of highest weight crystals
+            Category of tensor products of highest weight crystals
         """
         crystals = tuple(crystals)
         if "cartan_type" in options:

@@ -58,7 +58,7 @@ class Link:
           Link with 2 components represented by 5 crossings
     """
 
-    def __init__(self, input_):
+    def __init__(self, data):
         r"""
 
         The Python constructor.
@@ -125,48 +125,46 @@ class Link:
             sage: L
             Link with 2 components represented by 2 crossings
         """
-        if type(input_) == list:
-            if len(input_) != 2:
-                pd_error = _pd_check_(input_)
-                if pd_error == True:
-                    raise Exception("Invalid Input")
-                elif pd_error == False:
-                    self._PD_code = input_
+        if isinstance(data, list):
+            if len(data) != 2:
+                if _pd_error_(data):
+                    raise ValueError("Either every number does not repeat twice or the length of each array is not four")
+                else:
+                    self._PD_code = data
                     self._oriented_gauss_code = None
                     self._braid = None
 
-            elif len(input_) == 2:
-                for i in input_[0]:
+            elif len(data) == 2:
+                for i in data[0]:
                     if type(i) == list:
                         ogc = True
                         break
                 else:
                     ogc = False
                 if ogc == False:
-                    pd_error = _pd_check_(input_)
-                    if pd_error == True:
-                        raise Exception("Invalid Input")
-                    elif pd_error == False:
-                        self._PD_code = input_
+                    if _pd_error_(data):
+                        raise ValueError("Either every number does not repeat twice or the length of each array is not four")
+                    else:
+                        self._PD_code = data
                         self._oriented_gauss_code = None
                         self._braid = None
                 elif ogc == True:
-                    for i in input_[0]:
-                        if type(i) != list:
-                            raise Exception("Invalid Input")
+                    for i in data[0]:
+                        if not isinstance(i, list):
+                            raise TypeError("Every entry must be a list")
                     else:
-                        flat = [x for y in input_[0] for x in y]
+                        flat = [x for y in data[0] for x in y]
                         a, b = max(flat), min(flat)
-                        if 2 * len(input_[1]) == len(flat) and set(range(b, a + 1)) - set([0]) == set(flat):
-                            self._oriented_gauss_code = input_
+                        if 2 * len(data[1]) == len(flat) and set(range(b, a + 1)) - set([0]) == set(flat):
+                            self._oriented_gauss_code = data
                             self._PD_code = None
                             self._braid = None
                         else:
                             raise Exception("Invalid Input")
         else:
             from sage.groups.braid import Braid
-            if isinstance(input_, Braid):
-                self._braid = input_
+            if isinstance(data, Braid):
+                self._braid = data
                 self._oriented_gauss_code = None
                 self._PD_code = None
 
@@ -179,7 +177,7 @@ class Link:
 
         OUTPUT:
 
-        A string.
+        - A string.
 
         EXAMPLES::
 
@@ -207,7 +205,7 @@ class Link:
 
         OUTPUT:
 
-            - Braidword representation of the link.
+        - Braidword representation of the link.
 
         EXAMPLES::
 
@@ -228,7 +226,8 @@ class Link:
         Return the braid representation of the link.
 
         OUTPUT:
-            - Braid representation of the link.
+
+        - Braid representation of the link.
 
         EXAMPLES::
 
@@ -276,7 +275,8 @@ class Link:
         Convention : under is denoted by -1, and over by +1 in the crossing info.
 
         OUTPUT:
-            - Oriented gauss code of the link
+
+        - Oriented gauss code of the link
 
         EXAMPLES::
 
@@ -347,7 +347,8 @@ class Link:
         Leaving over crossing to leaving under crossing in anticlockwise direction denoted by 1
 
         OUTPUT:
-            - Planar Diagram representation of the link.
+
+        - Planar Diagram representation of the link.
 
         EXAMPLES::
 
@@ -438,7 +439,8 @@ class Link:
            overcrossing.
 
         OUTPUT:
-            - Gauss code representation of the link.
+
+        - Gauss code representation of the link.
 
         EXAMPLES::
 
@@ -468,8 +470,9 @@ class Link:
         that we are encountering.
 
         OUTPUT:
-            - DT Code representation of the knot. This is implemented only
-              for knots.
+
+        - DT Code representation of the knot. This is implemented only
+          for knots.
 
         EXAMPLES::
 
@@ -547,8 +550,9 @@ class Link:
         gives the dowker notation.
 
         OUTPUT:
-            - List containing the pair of incoming under cross and the incoming
-              over cross.
+
+        - List containing the pair of incoming under cross and the incoming
+          over cross.
 
         EXAMPLES::
 
@@ -579,7 +583,8 @@ class Link:
         independent components in the braid).
 
         OUTPUT:
-            - List containing the components is returned
+
+        - List containing the components is returned
 
         EXAMPLES::
 
@@ -623,7 +628,8 @@ class Link:
         The list from the braidwordcomponents is flattened to give out the vector form.
 
         OUTPUT:
-            - Vector containing braidwordcomponents
+
+        - Vector containing braidwordcomponents
 
         EXAMPLES::
 
@@ -650,7 +656,8 @@ class Link:
         compiled into a list.
 
         OUTPUT:
-            - The homology generators relating to the braid word representation
+
+        - The homology generators relating to the braid word representation
 
         EXAMPLES::
 
@@ -678,29 +685,30 @@ class Link:
                 hom_gen.append(0)
         return hom_gen
 
-    def Seifert_Matrix(self):
+    def seifert_Matrix(self):
         r"""
         Return the Seifert Matrix associated with the braidword.
 
         OUTPUT:
-            - The intersection matrix of a (not necessarily minimal) Seifert surface of the
-              link.
+
+        - The intersection matrix of a (not necessarily minimal) Seifert surface of the
+          link.
 
         EXAMPLES::
 
             sage: B = BraidGroup(4)
             sage: L = Link(B([-1, 3, 1, 3]))
-            sage: L.Seifert_Matrix()
+            sage: L.seifert_Matrix()
             [ 0  0]
             [ 0 -1]
             sage: B = BraidGroup(8)
             sage: L = Link(B([-1, 3, 1, 5, 1, 7, 1, 6]))
-            sage: L.Seifert_Matrix()
+            sage: L.seifert_Matrix()
             [ 0  0  0]
             [ 1 -1  0]
             [ 0  1 -1]
             sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
-            sage: L.Seifert_Matrix()
+            sage: L.seifert_Matrix()
             [-1  0]
             [ 0 -1]
         """
@@ -755,7 +763,8 @@ class Link:
         Return the number of connected components of the link.
 
         OUTPUT:
-            - Connected components of the link
+
+        - Connected components of the link
 
         EXAMPLES::
 
@@ -780,7 +789,8 @@ class Link:
         Every knot is a link but the converse is not true.
 
         OUTPUT:
-            - True if knot else False
+
+        - True if knot else False
 
         EXAMPLES::
 
@@ -803,7 +813,8 @@ class Link:
         Return the genus of the link
 
         OUTPUT:
-            - Genus of the Link
+
+        - Genus of the Link
 
         EXAMPLES::
 
@@ -860,7 +871,8 @@ class Link:
         Return the signature of the link
 
         OUTPUT:
-            - Signature of the Link
+
+        - Signature of the Link
 
         EXAMPLES::
 
@@ -876,7 +888,7 @@ class Link:
             sage: L.signature()
             -2
         """
-        m = 2 * (self.Seifert_Matrix() + self.Seifert_Matrix().transpose())
+        m = 2 * (self.seifert_Matrix() + self.seifert_Matrix().transpose())
         e = m.eigenvalues()
         sum = 0
         s = []
@@ -890,11 +902,13 @@ class Link:
         Return the alexander polynomial of the link
 
         INPUT:
-            - ``var`` -- string (default: ``'t'``); the name of the
-                variable in the entries of the matrix
+
+        - ``var`` -- string (default: ``'t'``); the name of the
+          variable in the entries of the matrix
 
         OUTPUT:
-            - Alexander Polynomial of the Link
+
+        - Alexander Polynomial of the Link
 
         EXAMPLES::
 
@@ -912,8 +926,8 @@ class Link:
         """
         R = LaurentPolynomialRing(ZZ, var)
         t = R.gen()
-        f = (self.Seifert_Matrix() - t *
-             (self.Seifert_Matrix().transpose())).determinant()
+        f = (self.seifert_Matrix() - t *
+             (self.seifert_Matrix().transpose())).determinant()
         return t ** ((-max(f.exponents()) - min(f.exponents())) / 2) * f if f != 0 else f
 
     def knot_determinant(self):
@@ -921,7 +935,8 @@ class Link:
         Return the determinant of the knot
 
         OUTPUT:
-            - Determinant of the Knot
+
+        - Determinant of the Knot
 
         EXAMPLES::
 
@@ -948,7 +963,8 @@ class Link:
         Return the arf invariant. Arf invariant is defined only for knots.
 
         OUTPUT:
-            - Arf invariant of knot
+
+        - Arf invariant of knot
 
         EXAMPLES::
 
@@ -983,7 +999,8 @@ class Link:
         the knot is not alternating False is returned.
 
         OUTPUT:
-            - True if the knot diagram is alternating else False
+
+        - True if the knot diagram is alternating else False
 
         EXAMPLES::
 
@@ -1036,7 +1053,8 @@ class Link:
         each crossing to get to the orientation.
 
         OUTPUT:
-            - Orientation  of the crossings.
+
+        - Orientation  of the crossings.
 
         Convention :
         Entering component is denoted by 1
@@ -1099,7 +1117,8 @@ class Link:
         the above rule until we return to the starting component.
 
         OUTPUT:
-            - Seifert circles of the given knot.
+
+        - Seifert circles of the given knot.
 
         EXAMPLES::
 
@@ -1162,7 +1181,8 @@ class Link:
         the direction it is actually in.
 
         OUTPUT:
-            - Regions of the knot.
+
+        - Regions of the knot.
 
         EXAMPLES::
 
@@ -1236,7 +1256,7 @@ class Link:
     def _vogel_move_(self):
         r"""
         Return the Planar Diagram code if there is a vogel's move required, else returns
-        "no move required". Whether a move is required or not is decided by the following
+        False. Whether a move is required or not is decided by the following
         criteria:
         A bad region is one that has two components with the same sign, but that belong
         to different Seifert circles.
@@ -1247,16 +1267,17 @@ class Link:
         diagram
 
         OUTPUT:
-            - Planar diagram after the move is performed.
+
+        - Planar diagram after the move is performed.
 
         EXAMPLES::
 
             sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
             sage: L._vogel_move_()
-            'No Vogel Move'
+            False
             sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
             sage: L._vogel_move_()
-            'No Vogel Move'
+            False
             sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
             sage: L._vogel_move_()
             [[1, 7, 2, 6], [7, 3, 8, 2], [16, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [18, 9, 14, 8], [12, 9, 13, 10], [13, 15, 17, 16], [17, 15, 18, 3]]
@@ -1308,7 +1329,7 @@ class Link:
             else:
                 bad_region.append(i)
         if bad_region == []:
-            return "No Vogel Move"
+            return False
         else:
             # here there might be many bad regions but we only select one
             # here it is the first one
@@ -1388,8 +1409,9 @@ class Link:
         have been removed by performing the vogel's move.
 
         OUTPUT:
-            - Planar Diagram code, Seifert circle, Regions, orientation after the bad regions have been
-              removed
+
+        - Planar Diagram code, Seifert circle, Regions, orientation after the bad regions have been
+          removed
 
         EXAMPLES::
 
@@ -1423,7 +1445,7 @@ class Link:
             link = Link(x)
             PD_code_old = x
             x = link._vogel_move_()
-            if x == "No Vogel Move":
+            if x == False:
                 x = PD_code_old
                 break
         L = Link(x)
@@ -1442,7 +1464,8 @@ class Link:
         they belong, thereby developing the braidword
 
         OUTPUT:
-            - Braidword representation of the link.
+
+        - Braidword representation of the link.
 
         EXAMPLES::
 
@@ -1594,7 +1617,8 @@ class Link:
         Return the writhe of the knot.
 
         OUTPUT:
-            - Writhe of the knot.
+
+        - Writhe of the knot.
 
         EXAMPLES::
 
@@ -1629,7 +1653,8 @@ class Link:
                 polynomial = sigma[(no. of A^-1)*(no. of A)*d**((no. of circles) - 1)]
 
         OUTPUT:
-            - Jones Polynomial of the link.
+
+        - Jones Polynomial of the link.
 
         EXAMPLES::
 
@@ -1691,7 +1716,7 @@ def _rule_2_(over):
     return over
 
 
-def _pd_check_(pd):
+def _pd_error_(pd):
     pd_error = False
     for i in pd:
         if len(i) != 4:

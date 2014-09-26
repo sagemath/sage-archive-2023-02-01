@@ -335,7 +335,7 @@ class Posets(Category):
                 return self.order_filter(elements)
             if direction == 'down':
                 return self.order_ideal(elements)
-            raise ValueError, "Direction must be either 'up' or 'down'."
+            raise ValueError("Direction must be either 'up' or 'down'.")
 
         def principal_order_ideal(self, x):
             r"""

@@ -1777,5 +1777,5 @@ class FinitePosets(CategoryWithAxiom):
                 [[]]
             """
             if direction != 'up' and direction != 'down':
-                raise ValueError, "Direction must be either 'up' or 'down'."
+                raise ValueError("Direction must be either 'up' or 'down'.")
             return self.antichains().map(lambda elements: self.directed_subset(elements, direction))

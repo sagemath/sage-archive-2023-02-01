@@ -260,7 +260,7 @@ class Giac(Expect):
 
 
     """
-    def __init__(self, maxread=10000, script_subdirectory="", server=None, server_tmpdir=None, logfile=None):
+    def __init__(self, maxread=10000, script_subdirectory=None, server=None, server_tmpdir=None, logfile=None):
         """
         Create an instance of the Giac interpreter.
 
@@ -1127,7 +1127,7 @@ class GiacElement(ExpectElement):
 
 
 # An instance
-giac = Giac(script_subdirectory='user')
+giac = Giac()
 
 def reduce_load_Giac():
     """

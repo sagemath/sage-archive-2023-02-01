@@ -470,6 +470,44 @@ class FiniteWord_class(Word_class):
 exponent %s: the length of the word (%s) times the exponent \
 (%s) must be a positive integer"  % (exp, self.length(), exp))
 
+    @cached_method
+    def alphabet(self):
+        r"""
+        Return the set of letters occuring in self.
+
+        .. NOTE::
+
+            This is not to be confused with the alphabet of the parent.
+
+        OUTPUT:
+
+            sorted list
+
+        EXAMPLES::
+
+            sage: w = Word([0,1,1,2,1,2])
+            sage: w.alphabet()
+            [0, 1, 2]
+            sage: w.parent().alphabet()
+            Set of Python objects of type 'object'
+
+        ::
+
+            sage: W = Words([0,1,2,3])
+            sage: w = W([0,2,0,2,2])
+            sage: w.alphabet()
+            [0, 2]
+            sage: sorted(w.parent().alphabet())
+            [0, 1, 2, 3]
+
+        TESTS::
+
+            sage: Word().alphabet()
+            []
+
+        """
+        return sorted(set(self))
+
     def length(self):
         r"""
         Returns the length of self.
@@ -626,7 +664,7 @@ exponent %s: the length of the word (%s) times the exponent \
             [1, 0, 0, 2]
         """
         cmp_fcn = self._parent.cmp_letters
-        ordered_alphabet = sorted(set(self), cmp=cmp_fcn)
+        ordered_alphabet = sorted(self.alphabet(), cmp=cmp_fcn)
         index = dict((b,a) for (a,b) in enumerate(ordered_alphabet))
         return [index[a] for a in self]
 
@@ -2610,7 +2648,7 @@ exponent %s: the length of the word (%s) times the exponent \
             if not f.is_involution():
                 raise ValueError("f must be an involution")
             D = f.domain()
-            A = set(map(D,set(self)))
+            A = set(map(D, self.alphabet()))
             while A:
                 x = A.pop()
                 if f(x) != x: # count only non f-palindromic letters
@@ -4824,7 +4862,7 @@ exponent %s: the length of the word (%s) times the exponent \
            Encyclopedia of Mathematics and its Applications, Cambridge
            University Press, U.K., 2002.
         """
-        alphabet = set(self)
+        alphabet = self.alphabet()
         best = 0
         for i in range(1, self.length()):
             start = iter(self)
@@ -4906,7 +4944,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         if not isinstance(q, (int, Integer)) or q <= 0:
             raise TypeError("the balance level must be a positive integer")
-        alphabet = set(self)
+        alphabet = self.alphabet()
         for i in xrange(2, self.length()):
             empty_sets = [set() for _ in range(len(alphabet))]
             tab = dict(zip(alphabet, empty_sets))
@@ -4919,6 +4957,94 @@ exponent %s: the length of the word (%s) times the exponent \
                     return False
         return True
 
+
+    def abelian_vectors(self, n):
+        r"""
+        Returns the abelian vectors of factors of length n of self.
+
+        INPUT:
+
+        - ``n`` -- integer
+
+        OUTPUT:
+
+            Set of tuples
+
+        .. NOTE::
+            
+            This method should be implemented also in the data side (class
+            WordDatatype_char for instance). I think there is some timing
+            gain to expect when the alphabet made of integers (no need to
+            use a dictionary).
+
+        EXAMPLES::
+
+            sage: w = words.FibonacciWord()[:100]
+            sage: sorted(w.abelian_vectors(0))
+            [(0, 0)]
+            sage: sorted(w.abelian_vectors(1))
+            [(0, 1), (1, 0)]
+            sage: sorted(w.abelian_vectors(7))
+            [(4, 3), (5, 2)]
+
+        ::
+
+            sage: w = Word([0,0,0])
+            sage: sorted(w.abelian_vectors(3))
+            [(3,)]
+            sage: w = Word([0,0,0,1])
+            sage: sorted(w.abelian_vectors(3))
+            [(2, 1), (3, 0)]
+            sage: w = Word([0,0,0,1,1])
+            sage: sorted(w.abelian_vectors(3))
+            [(1, 2), (2, 1), (3, 0)]
+            sage: w = Word([0,0,0,1,1,1])
+            sage: sorted(w.abelian_vectors(3))
+            [(0, 3), (1, 2), (2, 1), (3, 0)]
+
+        """
+        alphabet = self.alphabet()
+        start = iter(self)
+        end = iter(self)
+        abelian = dict(zip(alphabet, [0]*len(alphabet)))
+        S = set()
+        for _ in range(n):
+            abelian[end.next()] += 1
+        S.add(tuple(abelian[a] for a in alphabet))
+        for _ in range(self.length() - n):
+            lost = start.next()
+            gain = end.next()
+            abelian[gain] += 1
+            abelian[lost] -= 1
+            S.add(tuple(abelian[a] for a in alphabet))
+        return S
+
+    def abelian_complexity(self, n):
+        r"""
+        Returns the number of abelian vectors of factors of length n of self.
+
+        INPUT:
+
+        - ``n`` -- integer
+
+        OUTPUT:
+
+            integer
+
+        EXAMPLES::
+
+            sage: w = words.FibonacciWord()[:100]
+            sage: map(w.abelian_complexity, range(20))
+            [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+
+        ::
+
+            sage: w = words.ThueMorseWord()[:100]
+            sage: map(w.abelian_complexity, range(20))
+            [1, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2]
+
+        """
+        return len(self.abelian_vectors(n))
 
     def sturmian_desubstitute_as_possible(self):
         r"""
@@ -5010,13 +5136,11 @@ exponent %s: the length of the word (%s) times the exponent \
         if (W.size_of_alphabet() == 2):
             alphabet = W.alphabet()
         else:
-            alphabet_as_set = set(self)
-            if len(alphabet_as_set) > 2:
+            alphabet = self.alphabet()
+            if len(alphabet) > 2:
                 raise TypeError('your word must be defined on a binary alphabet or use at most two different letters')
-            elif len(alphabet_as_set) < 2:
+            elif len(alphabet) < 2:
                 return W()
-            else:
-                alphabet = list(alphabet_as_set)
         word_from_letter = {l:W([l],datatype="list") for l in alphabet}
         is_prefix = True
         current_run_length = 0
@@ -6204,7 +6328,7 @@ exponent %s: the length of the word (%s) times the exponent \
         try:
             l = list(self.parent().alphabet())
         except AttributeError:
-            l = list(set(self))
+            l = self.alphabet()
         M = FreeMonoid(len(l), l)
         return M(self)
 

@@ -1338,9 +1338,27 @@ class Link:
             pd_max = max([max(i) for i in pd_copy])
             # editing the previous crossings
             # the maximum is corrected
-            for i in pd_copy:
-                if max(bad_region) == i[0]:
-                    i[0] = pd_max + 4
+            #for i in pd_copy:
+                #if max(bad_region) == i[0]:
+                    #i[0] = pd_max + 4
+            max_cross = [[j, orient[i]]
+                         for i, j in enumerate(pd_copy) if max(bad_region) in j]
+            y = [[] for i in range(len(max_cross))]
+            for i, j in enumerate(max_cross):
+                if j[1] == -1:
+                    y[i].append((j[0][0], 1))
+                    y[i].append((j[0][1], -1))
+                    y[i].append((j[0][2], -1))
+                    y[i].append((j[0][3], 1))
+                if j[1] == 1:
+                    y[i].append((j[0][0], 1))
+                    y[i].append((j[0][1], 1))
+                    y[i].append((j[0][2], -1))
+                    y[i].append((j[0][3], -1))
+            for i in y:
+                if (max(bad_region), 1) in i:
+                    pd_copy[pd_copy.index(max_cross[y.index(i)][0])][
+                        (pd_copy[pd_copy.index(max_cross[y.index(i)][0])]).index(max(bad_region))] = pd_max + 4
             # editing the contents of the pd code with the minimum
             # the minimum is corrected
             min_cross = [[j, orient[i]]

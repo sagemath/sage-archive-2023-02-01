@@ -87,7 +87,7 @@ cdef class StaticSparseCGraph(CGraph):
         if self.g_rev != NULL:
             free_short_digraph(self.g_rev)
 
-    cpdef bint has_vertex(self, int n):
+    cpdef bint has_vertex(self, int n) except -1:
         r"""
         Tests if a vertex belongs to the graph
 
@@ -106,8 +106,11 @@ cdef class StaticSparseCGraph(CGraph):
         """
         return 0 <= n and n < self.g.n
 
-    cdef int add_vertex_unsafe(self, int k):
+    cdef int add_vertex_unsafe(self, int k) except -1:
         raise ValueError("Thou shalt not add a vertex to an immutable graph")
+
+    cdef int del_vertex_unsafe(self, int v) except -1:
+        raise ValueError("Thou shalt not remove a vertex from an immutable graph")
 
     def add_vertex(self, int k):
         r"""
@@ -123,7 +126,7 @@ cdef class StaticSparseCGraph(CGraph):
             ValueError: Thou shalt not add a vertex to an immutable graph
 
         """
-        raise ValueError("Thou shalt not add a vertex to an immutable graph")
+        self.add_vertex_unsafe(k)
 
     def del_vertex(self, int k):
         r"""
@@ -139,10 +142,7 @@ cdef class StaticSparseCGraph(CGraph):
             ValueError: Thou shalt not remove a vertex from an immutable graph
 
         """
-        raise ValueError("Thou shalt not remove a vertex from an immutable graph")
-
-    cdef int del_vertex_unsafe(self, int v):
-        raise ValueError("Thou shalt not remove a vertex from an immutable graph")
+        self.del_vertex_unsafe(k)
 
     cpdef list verts(self):
         r"""
@@ -157,14 +157,14 @@ cdef class StaticSparseCGraph(CGraph):
         """
         return range(self.g.n)
 
-    cdef int has_arc_unsafe(self, int u, int v):
+    cdef int has_arc_unsafe(self, int u, int v) except -1:
         return ((0 <= u) and
                 (0 <= v) and
                 (u < self.g.n) and
                 (v < self.g.n) and
                 has_edge(self.g, u, v) != NULL)
 
-    cpdef bint has_arc(self, int u, int v):
+    cpdef bint has_arc(self, int u, int v) except -1:
         r"""
         Tests if uv is an edge of the graph
 
@@ -183,14 +183,14 @@ cdef class StaticSparseCGraph(CGraph):
         """
         return self.has_arc_unsafe(u, v)
 
-    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except? -2:
+    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
         cdef int degree = self.g.neighbors[u+1] - self.g.neighbors[u]
         cdef int i
         for i in range(min(degree,size)):
             neighbors[i] = self.g.neighbors[u][i]
         return -1 if size < degree else degree
 
-    cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except? -2:
+    cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
         if not self._directed:
             return self.out_neighbors_unsafe(u,neighbors,size)
 

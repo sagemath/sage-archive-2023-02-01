@@ -51,7 +51,7 @@ cdef class CGraph:
     # Vertex Functions
     ###################################
 
-    cpdef bint has_vertex(self, int n):
+    cpdef bint has_vertex(self, int n) except -1:
         """
         Determine whether the vertex ``n`` is in ``self``.
 
@@ -171,7 +171,7 @@ cdef class CGraph:
         if not self.has_vertex(n):
             raise LookupError("Vertex ({0}) is not a vertex of the graph.".format(n))
 
-    cdef int add_vertex_unsafe(self, int k):
+    cdef int add_vertex_unsafe(self, int k) except -1:
         """
         Adds the vertex ``k`` to the graph.
 
@@ -383,7 +383,7 @@ cdef class CGraph:
 
         return new_names if new_names != [] else None
 
-    cdef int del_vertex_unsafe(self, int v):
+    cdef int del_vertex_unsafe(self, int v) except -1:
         """
         Deletes the vertex ``v``, along with all edges incident to it.
 
@@ -726,19 +726,19 @@ cdef class CGraph:
     # Edge Functions
     ###################################
 
-    cdef int add_arc_unsafe(self, int u, int v) except? -1:
+    cdef int add_arc_unsafe(self, int u, int v) except -1:
         raise NotImplementedError()
 
-    cdef int has_arc_unsafe(self, int u, int v) except? -1:
+    cdef int has_arc_unsafe(self, int u, int v) except -1:
         raise NotImplementedError()
 
-    cdef int del_arc_unsafe(self, int u, int v) except? -1:
+    cdef int del_arc_unsafe(self, int u, int v) except -1:
         raise NotImplementedError()
 
-    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except? -2:
+    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
         raise NotImplementedError()
 
-    cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except? -2:
+    cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
         raise NotImplementedError()
 
     cpdef add_arc(self, int u, int v):
@@ -805,15 +805,11 @@ cdef class CGraph:
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
             sage: G.has_arc(0, 1)
-            Not Implemented!
-            False
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
-        # The following is due to a hard to reproduce bug in Cython where except,
-        # cpdef, and classes don't play well together:
-        print "Not Implemented!"
-        # raise NotImplementedError() ... results in:
-        # Exception exceptions.NotImplementedError: NotImplementedError() in 'sage.graphs.base.c_graph.CGraph.has_arc' ignored
-        # False
+        raise NotImplementedError
 
     cpdef del_all_arcs(self, int u, int v):
         """

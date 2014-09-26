@@ -121,13 +121,15 @@ class gc_disabled(object):
             gc.enable()
         return False
 
+
 class Expect(Interface):
     """
     Expect interface object.
     """
-    def __init__(self, name, prompt, command=None, server=None, server_tmpdir=None,
+    def __init__(self, name, prompt, command=None, server=None,
+                 server_tmpdir=None,
                  ulimit = None, maxread=100000,
-                 script_subdirectory="", restart_on_ctrlc=False,
+                 script_subdirectory=None, restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=None,
                  logfile = None, eval_using_file_cutoff=0,
                  do_cleaner=True, remote_cleaner=False, path=None,

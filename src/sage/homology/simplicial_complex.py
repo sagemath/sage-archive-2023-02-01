@@ -830,7 +830,9 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: TestSuite(S).run()
             sage: TestSuite(S3).run()
         """
-        assert (maximal_faces is None) or (from_characteristic_function is None)
+        if (maximal_faces is not None and
+            from_characteristic_function is not None):
+            raise ValueError("maximal_faces and from_characteristic_function cannot be both defined")
         CategoryObject.__init__(self, category=SimplicialComplexes())
         from sage.misc.misc import union
 

@@ -559,7 +559,7 @@ exponent %s: the length of the word (%s) times the exponent \
                 n = max(w)
         for k in range(r.length()):
             w[k] = n+1 - w[k]
-        return parent.finite_word_list(w)
+        return parent(w, check=False)
 
     def is_empty(self):
         r"""
@@ -4500,7 +4500,7 @@ exponent %s: the length of the word (%s) times the exponent \
                 out[p] = i
             else:
                 out[p] = i+1
-        return self.parent().finite_word_list(out)
+        return self.parent()(out, check=False)
 
     def _to_partition_content(self):
         r"""
@@ -4706,7 +4706,7 @@ exponent %s: the length of the word (%s) times the exponent \
         if self.is_empty():
            return self
         conjugates = sorted(self._conjugates_list())
-        return self.parent().finite_word_list([x[x.length()-1] for x in conjugates])
+        return self.parent()([x[x.length()-1] for x in conjugates], check=False)
 
     def iterated_left_palindromic_closure(self, f=None):
         r"""
@@ -5018,7 +5018,7 @@ exponent %s: the length of the word (%s) times the exponent \
                 return W()
             else:
                 alphabet = list(alphabet_as_set)
-        word_from_letter = {l:W.finite_word_list([l]) for l in alphabet}
+        word_from_letter = {l:W([l],datatype="list",check=False) for l in alphabet}
         is_prefix = True
         current_run_length = 0
         prefix_length = 0
@@ -5482,7 +5482,7 @@ exponent %s: the length of the word (%s) times the exponent \
             from sage.combinat.words.shuffle_product import ShuffleProduct_shifted
             return ShuffleProduct_shifted(self, other)
         else:
-            return self.shuffle(self._parent.finite_word_list([x + shift for x in other]))
+            return self.shuffle(self._parent([x + shift for x in other], check=False))
 
     def delta_inv(self, W=None, s=None):
         r"""
@@ -5723,7 +5723,7 @@ exponent %s: the length of the word (%s) times the exponent \
             W = self.parent()
         if self.is_empty():
             return W()
-        v = self.parent().finite_word_tuple((self[-1],))
+        v = self.parent()((self[-1],), check=False)
         for i in xrange(self.length()-2, -1, -1):
             v = v.delta_inv(W, self[i])
         return v
@@ -5910,7 +5910,7 @@ exponent %s: the length of the word (%s) times the exponent \
                 permutation = Permutation(permutation.domain())
             else:
                 permutation = Permutation(permutation)
-        return self.parent().finite_word_list(permutation.action(self))
+        return self.parent()(permutation.action(self), check=False)
 
     def apply_permutation_to_letters(self, permutation):
         r"""

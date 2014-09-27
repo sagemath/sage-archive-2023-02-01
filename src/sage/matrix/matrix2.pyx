@@ -2635,6 +2635,8 @@ cdef class Matrix(matrix1.Matrix):
 
           - 'default' - allows the algorithm to be chosen automatically
           - 'generic' - naive algorithm usable for matrices over any field
+          - 'flint' - FLINT library code for matrices over the rationals
+            or the integers
           - 'pari' - PARI library code for matrices over number fields
             or the integers
           - 'padic' - padic algorithm from IML library for matrices
@@ -2739,20 +2741,14 @@ cdef class Matrix(matrix1.Matrix):
             sage: B = copy(A).sparse_matrix()
             sage: set_verbose(1)
             sage: D = A.right_kernel(); D
-            verbose ...
-            verbose 1 (<module>) computing right kernel matrix over the rationals for 4x5 matrix
-            ...
-            verbose 1 (<module>) done computing right kernel matrix over the rationals for 4x5 matrix
+            verbose 1 (<module>) computing a right kernel for 4x5 matrix over Rational Field
             ...
             Vector space of degree 5 and dimension 2 over Rational Field
             Basis matrix:
             [   1    0    1  1/2 -1/2]
             [   0    1 -1/2 -1/4 -1/4]
             sage: S = B.right_kernel(); S
-            verbose ...
-            verbose 1 (<module>) computing right kernel matrix over the rationals for 4x5 matrix
-            ...
-            verbose 1 (<module>) done computing right kernel matrix over the rationals for 4x5 matrix
+            verbose 1 (<module>) computing a right kernel for 4x5 matrix over Rational Field
             ...
             Vector space of degree 5 and dimension 2 over Rational Field
             Basis matrix:
@@ -3002,8 +2998,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: B = copy(A).sparse_matrix()
             sage: set_verbose(1)
             sage: D = A.right_kernel(); D
-            verbose ...
+            verbose 1 (<module>) computing a right kernel for 4x7 matrix over Integer Ring
             verbose 1 (<module>) computing right kernel matrix over the integers for 4x7 matrix
+            ...
             verbose 1 (<module>) done computing right kernel matrix over the integers for 4x7 matrix
             ...
             Free module of degree 7 and rank 3 over Integer Ring
@@ -3012,8 +3009,9 @@ cdef class Matrix(matrix1.Matrix):
             [  0  35   0  25  -1 -31  17]
             [  0   0   7  12  -3  -1  -8]
             sage: S = B.right_kernel(); S
-            verbose ...
+            verbose 1 (<module>) computing a right kernel for 4x7 matrix over Integer Ring
             verbose 1 (<module>) computing right kernel matrix over the integers for 4x7 matrix
+            ...
             verbose 1 (<module>) done computing right kernel matrix over the integers for 4x7 matrix
             ...
             Free module of degree 7 and rank 3 over Integer Ring
@@ -3154,10 +3152,12 @@ cdef class Matrix(matrix1.Matrix):
         algorithm = kwds.pop('algorithm', None)
         if algorithm is None:
             algorithm = 'default'
-        elif not algorithm in ['default', 'generic', 'pari', 'padic', 'pluq']:
+        elif not algorithm in ['default', 'generic', 'flint', 'pari', 'padic', 'pluq']:
             raise ValueError("matrix kernel algorithm '%s' not recognized" % algorithm )
         elif algorithm == 'padic' and not (is_IntegerRing(R) or is_RationalField(R)):
             raise ValueError("'padic' matrix kernel algorithm only available over the rationals and the integers, not over %s" % R)
+        elif algorithm == 'flint' and not (is_IntegerRing(R) or is_RationalField(R)):
+            raise ValueError("'flint' matrix kernel algorithm only available over the rationals and the integers, not over %s" % R)
         elif algorithm == 'pari' and not (is_IntegerRing(R) or (is_NumberField(R) and not is_RationalField(R))):
             raise ValueError("'pari' matrix kernel algorithm only available over non-trivial number fields and the integers, not over %s" % R)
         elif algorithm == 'generic' and not R.is_field():
@@ -3278,6 +3278,8 @@ cdef class Matrix(matrix1.Matrix):
 
           - 'default' - allows the algorithm to be chosen automatically
           - 'generic' - naive algorithm usable for matrices over any field
+          - 'flint' - FLINT library code for matrices over the rationals
+            or the integers
           - 'pari' - PARI library code for matrices over number fields
             or the integers
           - 'padic' - padic algorithm from IML library for matrices
@@ -3620,6 +3622,8 @@ cdef class Matrix(matrix1.Matrix):
 
           - 'default' - allows the algorithm to be chosen automatically
           - 'generic' - naive algorithm usable for matrices over any field
+          - 'flint' - FLINT library code for matrices over the rationals
+            or the integers
           - 'pari' - PARI library code for matrices over number fields
             or the integers
           - 'padic' - padic algorithm from IML library for matrices
@@ -6640,7 +6644,7 @@ cdef class Matrix(matrix1.Matrix):
         going along each row.
 
         INPUT:
-        
+
         - ``check`` -- (default: ``False``) If ``True`` return a tuple of
             the maximal matrix and the permutations taking taking ``self``
             to the maximal matrix.
@@ -6671,8 +6675,8 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: M.permutation_normal_form(check=True)
             (
-            [ 5 -1]                  
-            [ 4  2]                  
+            [ 5 -1]
+            [ 4  2]
             [ 3 -1],
             ((1,2,3), (1,2))
             )
@@ -6754,7 +6758,7 @@ cdef class Matrix(matrix1.Matrix):
                     n = [j for j in range(nrows - l) if SN[j] == nb]
                     # Now compare to our previous max
                     if b < nb:
-                        # Bigger so save line 
+                        # Bigger so save line
                         b = nb
                         m = [n]
                         # and delete all previous attempts
@@ -12361,6 +12365,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: A = matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]])
             sage: A.plot()
+            Graphics object consisting of 1 graphics primitive
 
         Here we make a random matrix over RR and use cmap='hsv' to color
         the matrix elements different RGB colors (see documentation for
@@ -12368,11 +12373,13 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: A = random_matrix(RDF, 50)
             sage: plot(A, cmap='hsv')
+            Graphics object consisting of 1 graphics primitive
 
         Another random plot, but over GF(389)::
 
             sage: A = random_matrix(GF(389), 10)
             sage: A.plot(cmap='Oranges')
+            Graphics object consisting of 1 graphics primitive
         """
         from sage.plot.plot import matrix_plot
         return matrix_plot(self, *args, **kwds)

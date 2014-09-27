@@ -289,6 +289,7 @@ def to_graphics_arrays(list, **kwds):
         sage: len(w)
         1
         sage: w[0]
+        Graphics Array of size 3 x 4
     """
     from sage.plot.plot import graphics_array
     from sage.graphs import graph

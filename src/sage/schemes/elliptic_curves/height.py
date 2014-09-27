@@ -997,19 +997,19 @@ class EllipticCurveCanonicalHeight:
             9
             sage: E.conductor().norm().factor()
             2^10 * 20921
-            sage: p1,p2 = K.primes_above(20921)
+            sage: p1, p2 = K.primes_above(20921)
             sage: E.local_data(p1)
-            Local data at Fractional ideal (40*i + 139):
-            Reduction type: good
-            ...
-            sage: H.e_p(p1)
-            20815
-            sage: E.local_data(p2)
             Local data at Fractional ideal (-40*i + 139):
             Reduction type: bad split multiplicative
             ...
-            sage: H.e_p(p2)
+            sage: H.e_p(p1)
             20920
+            sage: E.local_data(p2)
+            Local data at Fractional ideal (40*i + 139):
+            Reduction type: good
+            ...
+            sage: H.e_p(p2)
+            20815
         """
         kp = self.K.residue_field(p)
         if self.E.has_bad_reduction(p):

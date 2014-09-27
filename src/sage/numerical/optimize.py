@@ -72,6 +72,7 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
     This agrees with the plot::
 
         sage: plot(f,2,2.01)
+        Graphics object consisting of 1 graphics primitive
     """
     try:
         return f.find_root(a=a,b=b,xtol=xtol,rtol=rtol,maxiter=maxiter,full_output=full_output)

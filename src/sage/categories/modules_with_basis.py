@@ -1076,10 +1076,11 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             EXAMPLES::
 
                 sage: ModulesWithBasis(QQ).CartesianProducts().extra_super_categories()
-                [Category of modules with basis over Rational Field]
+                [Category of vector spaces with basis over Rational Field]
                 sage: ModulesWithBasis(QQ).CartesianProducts().super_categories()
-                [Category of modules with basis over Rational Field,
-                 Category of Cartesian products of commutative additive groups]
+                [Category of Cartesian products of modules with basis over Rational Field,
+                 Category of vector spaces with basis over Rational Field,
+                 Category of Cartesian products of vector spaces over Rational Field]
             """
             return [self.base_category()]
 
@@ -1112,9 +1113,11 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             EXAMPLES::
 
                 sage: ModulesWithBasis(QQ).TensorProducts().extra_super_categories()
-                [Category of modules with basis over Rational Field]
+                [Category of vector spaces with basis over Rational Field]
                 sage: ModulesWithBasis(QQ).TensorProducts().super_categories()
-                [Category of modules with basis over Rational Field]
+                [Category of tensor products of modules with basis over Rational Field,
+                 Category of vector spaces with basis over Rational Field,
+                 Category of tensor products of vector spaces over Rational Field]
             """
             return [self.base_category()]
 

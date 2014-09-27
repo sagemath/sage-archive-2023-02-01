@@ -3051,10 +3051,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         OUTPUT:
 
-        ``True`` if the `j`-invariant of this curve is the
-        `j`-invariant of an immaginary quadratic order, otherwise
-        ``False``.  See also :meth:`cm_discriminant()` and
-        :meth:`has_rational_cm`.
+        ``True`` if this curve has CM over the algebraic closure
+        of the base field, otherwise ``False``.  See also
+        :meth:`cm_discriminant()` and :meth:`has_rational_cm`.
 
         .. note::
 
@@ -3091,7 +3090,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def has_rational_cm(self, field=None):
         """
-        Returns whether or not this curve has CM defined over its base field or a given extension.
+        Returns whether or not this curve has CM defined over its
+        base field or a given extension.
 
         INPUT:
 
@@ -3101,13 +3101,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         OUTPUT:
 
-        ``True`` if the `j`-invariant of this curve `E` is the
-        `j`-invariant of an imaginary quadratic order and the
-        discriminant of the order is a square in the given field (by
-        default the base field of `E`), so that the ring of
-        endomorphisms of `E` defined over the given field is larger
-        than `\ZZ`; otherwise ``False``.  See also
-        :meth:`cm_discriminant()` and :meth:`has_cm`.
+        ``True`` if the ring of endomorphisms of this curve over
+        the given field is larger than `\ZZ`; otherwise ``False``.
+        See also :meth:`cm_discriminant()` and :meth:`has_cm`.
 
         .. note::
 

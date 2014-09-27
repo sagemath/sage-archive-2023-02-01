@@ -474,6 +474,7 @@ the parent as its first argument::
 ########################################################################
 from function_mangling import ArgumentFixer
 import os
+from os.path import relpath,normpath,commonprefix
 from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getargspec
 
 import sage.misc.weak_dict
@@ -783,6 +784,14 @@ cdef class CachedFunction(object):
                ALGORITHM: Uses Singular, Magma (if available), Macaulay2 (if
                available), or a toy implementation.
 
+        Test that :trac:`15184` is fixed::
+
+            sage: from sage.misc.sageinspect import sage_getfile
+            sage: type(I.groebner_basis)
+            <type 'sage.misc.cachefunc.CachedMethodCaller'>
+            sage: os.path.exists(sage_getfile(I.groebner_basis))
+            True        
+
         """
         from sage.misc.sageinspect import _extract_embedded_position
         f = self.f
@@ -792,14 +801,23 @@ cdef class CachedFunction(object):
                 sourcelines = sage_getsourcelines(f)
                 from sage.env import SAGE_SRC, SAGE_LIB
                 filename = sage_getfile(f)
-                # The following is a heuristics to get
-                # the file name of the cached function
-                # or method
-                if filename.startswith(SAGE_SRC):
-                    filename = filename[len(SAGE_SRC):]
-                elif filename.startswith(SAGE_LIB):
-                    filename = filename[len(SAGE_LIB):]
-                file_info = "File: %s (starting at line %d)\n"%(filename,sourcelines[1])
+                
+                #it would be nice if we could be sure that SAGE_SRC and
+                #SAGE_LIB were already normalized (e.g. not end in a slash)
+                S=normpath(SAGE_SRC)
+                L=normpath(SAGE_LIB)
+                if commonprefix([filename,S]) == S:
+                    filename = relpath(filename,S)
+                elif commonprefix([filename,L]) == L:
+                    filename = relpath(filename,L)
+                #this is a rather expensive way of getting the line number, because
+                #retrieving the source requires reading the source file and in many
+                #cases this is not required (in cython it's embedded in the docstring,
+                #on code objects you'll find it in co_filename and co_firstlineno)
+                #however, this hasn't been factored out yet in sageinspect
+                #and the logic in sage_getsourcelines is rather intricate.
+                file_info = "File: {} (starting at line {})".format(filename,sourcelines[1])+os.linesep
+
                 doc = file_info+doc
             except IOError:
                 pass

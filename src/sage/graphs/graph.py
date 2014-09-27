@@ -568,11 +568,13 @@ class Graph(GenericGraph):
 
         sage: g = graphs.PetersenGraph()
         sage: g.plot()
+        Graphics object consisting of 26 graphics primitives
 
     or::
 
         sage: g = graphs.ChvatalGraph()
         sage: g.plot()
+        Graphics object consisting of 37 graphics primitives
 
     In order to obtain more information about these graph constructors, access
     the documentation using the command ``graphs.RandomGNP?``.
@@ -596,7 +598,8 @@ class Graph(GenericGraph):
     connected components with only two lines::
 
         sage: for component in g.connected_components():
-        ...      g.subgraph(component).plot()
+        ....:      g.subgraph(component).plot()
+        Graphics object consisting of 37 graphics primitives
 
 
     INPUT:
@@ -3681,7 +3684,7 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: graphs.CycleGraph(4).bipartite_sets()
-            (set([0, 2]), set([1, 3]))
+            ({0, 2}, {1, 3})
             sage: graphs.CycleGraph(5).bipartite_sets()
             Traceback (most recent call last):
             ...
@@ -3834,6 +3837,7 @@ class Graph(GenericGraph):
             sage: P = G.coloring(algorithm="DLX"); P
             [[1, 2, 3], [0, 5, 6], [4]]
             sage: G.plot(partition=P)
+            Graphics object consisting of 16 graphics primitives
             sage: H = G.coloring(hex_colors=True, algorithm="MILP")
             sage: for c in sorted(H.keys()):
             ...       print c, H[c]
@@ -3847,6 +3851,7 @@ class Graph(GenericGraph):
             #00ff00 [1, 2, 3]
             #ff0000 [0, 5, 6]
             sage: G.plot(vertex_colors=H)
+            Graphics object consisting of 16 graphics primitives
 
         TESTS::
 
@@ -6654,6 +6659,7 @@ class Graph(GenericGraph):
             sage: g = graphs.CirculantGraph(24, [7, 11])
             sage: cl = g.two_factor_petersen()
             sage: g.plot(edge_colors={'black':cl[0], 'red':cl[1]})
+            Graphics object consisting of 73 graphics primitives
 
         """
         self._scream_if_not_simple()

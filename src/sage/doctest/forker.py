@@ -88,14 +88,20 @@ def init_sage():
         <BLANKLINE>
         2
           + x
+
+    The displayhook sorts dictionary keys to simplify doctesting of
+    dictionary output::
+
+        sage: {'a':23, 'b':34, 'au':56, 'bbf':234, 'aaa':234}
+        {'a': 23, 'aaa': 234, 'au': 56, 'b': 34, 'bbf': 234}
     """
     # Do this once before forking.
     import sage.doctest
     sage.doctest.DOCTEST_MODE=True
     import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()
-    import sage.misc.displayhook
-    sys.displayhook = sage.misc.displayhook.DisplayHook(sys.displayhook)
+    import sage.repl.display.python_hook
+    sys.displayhook = sage.repl.display.python_hook.DoctestDisplayHook()
 
     # Switch on extra debugging
     from sage.structure.debug_options import debug
@@ -802,9 +808,9 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: globs['doctest_var']
             42
             sage: globs.set
-            set(['doctest_var'])
+            {'doctest_var'}
             sage: globs.got
-            set(['Integer'])
+            {'Integer'}
 
         Now we can execute some more doctests to see the dependencies. ::
 
@@ -814,7 +820,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: sorted(list(globs.set))
             ['R', 'a']
             sage: globs.got
-            set(['ZZ'])
+            {'ZZ'}
             sage: ex1.predecessors
             []
 
@@ -2037,7 +2043,7 @@ class DocTestTask(object):
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
             sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: DocTestTask(FDS)
-            <sage.doctest.forker.DocTestTask object at ...>
+            <sage.doctest.forker.DocTestTask object at 0x...>
         """
         self.source = source
 

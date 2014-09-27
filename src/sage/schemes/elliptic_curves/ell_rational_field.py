@@ -3819,7 +3819,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         OUTPUT:
 
         ``True`` if the `j`-invariant of this curve is the
-        `j`-invariant of an immaginary quadratic order, otherwise
+        `j`-invariant of an imaginary quadratic order, otherwise
         ``False``.  See also :meth:`cm_discriminant()` and
         :meth:`has_rational_cm`.
 
@@ -3849,10 +3849,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def cm_discriminant(self):
         """
         Returns the associated quadratic discriminant if this elliptic
-        curve has Complex Multiplication.
+        curve has Complex Multiplication over the algebraic closure.
 
         A ValueError is raised if the curve does not have CM (see the
-        function has_cm()).
+        function :meth:`has_cm()`).
 
         EXAMPLES::
 
@@ -3876,7 +3876,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def has_rational_cm(self, field=None):
         """
-        Returns whether or not this curve has CM defined over `\QQ` or the given field.
+        Returns whether or not this curve has CM defined over `\QQ`
+        or the given field.
 
         INPUT:
 
@@ -3886,13 +3887,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         OUTPUT:
 
-        ``True`` if the `j`-invariant of this curve `E` is the
-        `j`-invariant of an imaginary quadratic order and the
-        discriminant of the order is a square in the given field, so
-        that the ring of endomorphisms of `E` defined over the given
-        field is larger than `\ZZ`; otherwise ``False``.  If ``field``
-        is ``None`` the output will always be ``False``. See also
-        :meth:`cm_discriminant()` and :meth:`has_cm`.
+        ``True`` if the ring of endomorphisms of this curve over
+        the given field is larger than `\ZZ`; otherwise ``False``.
+        If ``field`` is ``None`` the output will always be ``False``.
+        See also :meth:`cm_discriminant()` and :meth:`has_cm`.
 
         .. note::
 
@@ -4621,6 +4619,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             7 Elliptic Curve defined by y^2 + x*y  = x^3 - 7930*x - 296725 over Rational Field
             8 Elliptic Curve defined by y^2 + x*y  = x^3 - 130000*x - 18051943 over Rational Field
             sage: G.plot(edge_labels=True)
+            Graphics object consisting of 23 graphics primitives
         """
         return self.isogeny_class(order=order).graph()
 

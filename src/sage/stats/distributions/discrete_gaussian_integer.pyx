@@ -270,6 +270,7 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
             sage: D = DiscreteGaussianDistributionIntegerSampler(17.0)
             sage: S = [D() for _ in range(2^16)]
             sage: list_plot([(v,S.count(v)) for v in set(S)]) # long time
+            Graphics object consisting of 1 graphics primitive
 
         These generators cache random bits for performance reasons. Hence, resetting
         the seed of the PRNG might not have the expected outcome. You can flush this cache with

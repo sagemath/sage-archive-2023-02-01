@@ -785,7 +785,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         - a dictionary mapping back elements to vertices::
 
             sage: P._element_to_vertex_dict
-            {'a': 0, 'c': 2, 'b': 1, 'd': 3}
+            {'a': 0, 'b': 1, 'c': 2, 'd': 3}
 
         - and a boolean stating whether the poset is a facade poset::
 
@@ -1372,16 +1372,20 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: D = Poset({ 1:[2,3], 2:[4], 3:[4,5] })
             sage: D.plot(label_elements=False)
+            Graphics object consisting of 6 graphics primitives
             sage: D.plot()
+            Graphics object consisting of 11 graphics primitives
             sage: type(D.plot())
             <class 'sage.plot.graphics.Graphics'>
             sage: elm_labs = {1:'a', 2:'b', 3:'c', 4:'d', 5:'e'}
             sage: D.plot(element_labels=elm_labs)
+            Graphics object consisting of 11 graphics primitives
 
         Plot of the empy poset::
 
             sage: P = Poset({})
             sage: P.plot()
+            Graphics object consisting of 0 graphics primitives
 
         Plot of a ranked poset::
 
@@ -1389,6 +1393,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.is_ranked()
             True
             sage: P.plot()
+            Graphics object consisting of 12 graphics primitives
 
         TESTS:
 
@@ -1452,6 +1457,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: D = Poset({ 0:[1,2], 1:[3], 2:[3,4] })
             sage: D.plot(label_elements=False)
+            Graphics object consisting of 6 graphics primitives
             sage: D.show()
             sage: elm_labs = {0:'a', 1:'b', 2:'c', 3:'d', 4:'e'}
             sage: D.show(element_labels=elm_labs)
@@ -2139,7 +2145,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.is_EL_labelling(label)
             True
             sage: P.is_EL_labelling(label,return_raising_chains=True)
-            {((0, 0), (0, 1)): [1], ((0, 0), (1, 0)): [0], ((0, 1), (1, 1)): [0], ((1, 0), (1, 1)): [1], ((0, 0), (1, 1)): [0, 1]}
+            {((0, 0), (0, 1)): [1],
+             ((0, 0), (1, 0)): [0],
+             ((0, 0), (1, 1)): [0, 1],
+             ((0, 1), (1, 1)): [0],
+             ((1, 0), (1, 1)): [1]}
 
         REFERENCES:
 
@@ -2802,7 +2812,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         ``element_constructor`` option::
 
             sage: list(Posets.ChainPoset(3).antichains(element_constructor = set))
-            [set([]), set([0]), set([1]), set([2])]
+            [set(), {0}, {1}, {2}]
 
         .. note:: Internally, this uses
             :class:`sage.combinat.subsets_pairwise.PairwiseCompatibleSubsets`
@@ -4265,10 +4275,60 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: G.edges()
             [((-1, 0), (0, -13), None), ((-1, 0), (0, 12), None), ((-1, 0), (0, 14), None), ((-1, 0), (0, 16), None), ((0, -13), (1, -13), None), ((0, -13), (1, 12), None), ((0, -13), (1, 14), None), ((0, -13), (1, 16), None), ((0, 12), (1, 12), None), ((0, 14), (1, 12), None), ((0, 14), (1, 14), None), ((0, 16), (1, 12), None), ((0, 16), (1, 16), None), ((1, -13), (2, 0), None), ((1, 12), (2, 0), None), ((1, 14), (2, 0), None), ((1, 16), (2, 0), None)]
             sage: e
-            {((-1, 0), (0, 14)): 0, ((0, -13), (1, 12)): 0, ((-1, 0), (0, -13)): 0, ((0, 16), (1, 12)): 0, ((1, 16), (2, 0)): 0, ((0, -13), (1, 16)): 0, ((1, -13), (2, 0)): 0, ((0, -13), (1, -13)): 1, ((0, -13), (1, 14)): 0, ((-1, 0), (0, 16)): 0, ((0, 12), (1, 12)): 1, ((-1, 0), (0, 12)): 0, ((1, 14), (2, 0)): 0, ((1, 12), (2, 0)): 0, ((0, 14), (1, 12)): 0, ((0, 16), (1, 16)): 1, ((0, 14), (1, 14)): 1}
+            {((-1, 0), (0, -13)): 0,
+             ((-1, 0), (0, 12)): 0,
+             ((-1, 0), (0, 14)): 0,
+             ((-1, 0), (0, 16)): 0,
+             ((0, -13), (1, -13)): 1,
+             ((0, -13), (1, 12)): 0,
+             ((0, -13), (1, 14)): 0,
+             ((0, -13), (1, 16)): 0,
+             ((0, 12), (1, 12)): 1,
+             ((0, 14), (1, 12)): 0,
+             ((0, 14), (1, 14)): 1,
+             ((0, 16), (1, 12)): 0,
+             ((0, 16), (1, 16)): 1,
+             ((1, -13), (2, 0)): 0,
+             ((1, 12), (2, 0)): 0,
+             ((1, 14), (2, 0)): 0,
+             ((1, 16), (2, 0)): 0}
             sage: qs = [[1,2,3,4,5,6,7,8,9],[[1,3],[3,4],[5,7],[1,9],[2,3]]]
             sage: Poset(qs).frank_network()
-            (Digraph on 20 vertices, {((0, 3), (1, 1)): 0, ((1, 8), (2, 0)): 0, ((-1, 0), (0, 3)): 0, ((0, 6), (1, 6)): 1, ((1, 9), (2, 0)): 0, ((0, 9), (1, 9)): 1, ((1, 7), (2, 0)): 0, ((0, 3), (1, 2)): 0, ((0, 3), (1, 3)): 1, ((0, 4), (1, 4)): 1, ((1, 2), (2, 0)): 0, ((0, 4), (1, 3)): 0, ((-1, 0), (0, 5)): 0, ((-1, 0), (0, 8)): 0, ((1, 3), (2, 0)): 0, ((0, 1), (1, 1)): 1, ((1, 1), (2, 0)): 0, ((0, 8), (1, 8)): 1, ((0, 4), (1, 1)): 0, ((1, 4), (2, 0)): 0, ((0, 2), (1, 2)): 1, ((-1, 0), (0, 1)): 0, ((0, 7), (1, 7)): 1, ((-1, 0), (0, 2)): 0, ((0, 7), (1, 5)): 0, ((0, 9), (1, 1)): 0, ((0, 5), (1, 5)): 1, ((-1, 0), (0, 9)): 0, ((-1, 0), (0, 7)): 0, ((0, 4), (1, 2)): 0, ((-1, 0), (0, 6)): 0, ((-1, 0), (0, 4)): 0, ((1, 6), (2, 0)): 0, ((1, 5), (2, 0)): 0})
+            (Digraph on 20 vertices,
+             {((-1, 0), (0, 1)): 0,
+              ((-1, 0), (0, 2)): 0,
+              ((-1, 0), (0, 3)): 0,
+              ((-1, 0), (0, 4)): 0,
+              ((-1, 0), (0, 5)): 0,
+              ((-1, 0), (0, 6)): 0,
+              ((-1, 0), (0, 7)): 0,
+              ((-1, 0), (0, 8)): 0,
+              ((-1, 0), (0, 9)): 0,
+              ((0, 1), (1, 1)): 1,
+              ((0, 2), (1, 2)): 1,
+              ((0, 3), (1, 1)): 0,
+              ((0, 3), (1, 2)): 0,
+              ((0, 3), (1, 3)): 1,
+              ((0, 4), (1, 1)): 0,
+              ((0, 4), (1, 2)): 0,
+              ((0, 4), (1, 3)): 0,
+              ((0, 4), (1, 4)): 1,
+              ((0, 5), (1, 5)): 1,
+              ((0, 6), (1, 6)): 1,
+              ((0, 7), (1, 5)): 0,
+              ((0, 7), (1, 7)): 1,
+              ((0, 8), (1, 8)): 1,
+              ((0, 9), (1, 1)): 0,
+              ((0, 9), (1, 9)): 1,
+              ((1, 1), (2, 0)): 0,
+              ((1, 2), (2, 0)): 0,
+              ((1, 3), (2, 0)): 0,
+              ((1, 4), (2, 0)): 0,
+              ((1, 5), (2, 0)): 0,
+              ((1, 6), (2, 0)): 0,
+              ((1, 7), (2, 0)): 0,
+              ((1, 8), (2, 0)): 0,
+              ((1, 9), (2, 0)): 0})
 
         AUTHOR:
 

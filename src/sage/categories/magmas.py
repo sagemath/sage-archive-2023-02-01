@@ -399,7 +399,7 @@ class Magmas(Category_singleton):
                     sage: C.extra_super_categories();
                     [Category of unital magmas]
                     sage: C.axioms()
-                    frozenset(['Unital'])
+                    frozenset({'Unital'})
 
                     sage: Monoids().CartesianProducts().is_subcategory(Monoids())
                     True

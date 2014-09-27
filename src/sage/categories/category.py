@@ -900,7 +900,14 @@ class Category(UniqueRepresentation, SageObject):
         EXAMPLES::
 
             sage: Groups()._set_of_super_categories
-            frozenset([...])
+            frozenset({Category of inverse unital magmas,
+                       Category of unital magmas,
+                       Category of magmas,
+                       Category of monoids,
+                       Category of objects,
+                       Category of semigroups,
+                       Category of sets with partial maps,
+                       Category of sets})
             sage: sorted(Groups()._set_of_super_categories, key=str)
             [Category of inverse unital magmas, Category of magmas, Category of monoids,
              Category of objects, Category of semigroups, Category of sets,
@@ -1338,7 +1345,8 @@ class Category(UniqueRepresentation, SageObject):
         EXAMPLES::
 
             sage: Algebras(QQ).required_methods()
-            {'parent': {'required': ['__contains__'], 'optional': ['algebra_generators']}, 'element': {'required': ['__nonzero__'], 'optional': ['_add_', '_mul_']}}
+            {'element': {'optional': ['_add_', '_mul_'], 'required': ['__nonzero__']},
+             'parent': {'optional': ['algebra_generators'], 'required': ['__contains__']}}
         """
         return { "parent"  : abstract_methods_of_class(self.parent_class),
                  "element" : abstract_methods_of_class(self.element_class) }
@@ -1567,9 +1575,9 @@ class Category(UniqueRepresentation, SageObject):
         EXAMPLES::
 
             sage: Monoids().axioms()
-            frozenset(['Associative', 'Unital'])
+            frozenset({'Associative', 'Unital'})
             sage: (EnumeratedSets().Infinite() & Sets().Facade()).axioms()
-            frozenset(['Infinite', 'Facade'])
+            frozenset({'Facade', 'Infinite'})
         """
         return frozenset(axiom
                          for category in self._super_categories
@@ -1989,7 +1997,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: TCF is (T.Facade() & T.Commutative())
             True
             sage: TCF.axioms()
-            frozenset(['Facade', 'Commutative'])
+            frozenset({'Commutative', 'Facade'})
             sage: type(TCF)
             <class 'sage.categories.category_with_axiom.TestObjects.Commutative.Facade_with_category'>
 
@@ -2236,8 +2244,10 @@ def category_graph(categories = None):
         ['groups', 'inverse unital magmas', 'magmas', 'monoids', 'objects',
          'semigroups', 'sets', 'sets with partial maps', 'unital magmas']
         sage: G.plot()
+        Graphics object consisting of 20 graphics primitives
 
         sage: sage.categories.category.category_graph().plot()
+        Graphics object consisting of 312 graphics primitives
     """
     from sage import graphs
     if categories is None:

@@ -697,6 +697,7 @@ class Function_gamma(GinacFunction):
         ::
 
             sage: plot(gamma1(x),(x,1,5))
+            Graphics object consisting of 1 graphics primitive
 
         To prevent automatic evaluation use the ``hold`` argument::
 

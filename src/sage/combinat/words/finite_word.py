@@ -3625,7 +3625,7 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: Word('1231232').last_position_dict()
-            {'1': 3, '3': 5, '2': 6}
+            {'1': 3, '2': 6, '3': 5}
         """
         d = {}
         for (i, letter) in enumerate(self):
@@ -3938,12 +3938,12 @@ exponent %s: the length of the word (%s) times the exponent \
 
         EXAMPLES::
 
-            sage: sorted(Word('21331233213231').return_words(Word('2')))
-            [word: 213, word: 21331, word: 233]
+            sage: Word('21331233213231').return_words(Word('2'))
+            {word: 213, word: 21331, word: 233}
             sage: Word().return_words(Word('213'))
-            set([])
+            set()
             sage: Word('121212').return_words(Word('1212'))
-            set([word: 12])
+            {word: 12}
 
         ::
 
@@ -3981,9 +3981,9 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: sorted(s)
             [word: 2132, word: 213312, word: 2332]
             sage: Word('').complete_return_words(Word('213'))
-            set([])
+            set()
             sage: Word('121212').complete_return_words(Word('1212'))
-            set([word: 121212])
+            {word: 121212}
 
         REFERENCES:
 
@@ -4167,7 +4167,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word([2,1,4,2,3,4,2]).evaluation_dict()
             {1: 1, 2: 3, 3: 1, 4: 2}
             sage: Word('badbcdb').evaluation_dict()
-            {'a': 1, 'c': 1, 'b': 3, 'd': 2}
+            {'a': 1, 'b': 3, 'c': 1, 'd': 2}
             sage: Word().evaluation_dict()
             {}
 
@@ -6013,12 +6013,18 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: Word(range(20)).colored_vector()
+            Graphics object consisting of 21 graphics primitives
             sage: Word(range(100)).colored_vector(0,0,10,1)
+            Graphics object consisting of 101 graphics primitives
             sage: Words(range(100))(range(10)).colored_vector()
+            Graphics object consisting of 11 graphics primitives
             sage: w = Word('abbabaab')
             sage: w.colored_vector()
+            Graphics object consisting of 9 graphics primitives
             sage: w.colored_vector(cmap='autumn')
+            Graphics object consisting of 9 graphics primitives
             sage: Word(range(20)).colored_vector(label='Rainbow')
+            Graphics object consisting of 23 graphics primitives
 
         When two words are defined under the same parent, same letters are
         mapped to same colors::
@@ -6027,13 +6033,16 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w = W(range(20))
             sage: y = W(range(10,20))
             sage: y.colored_vector(y=1, x=10) + w.colored_vector()
+            Graphics object consisting of 32 graphics primitives
 
         TESTS:
 
         The empty word::
 
             sage: Word().colored_vector()
+            Graphics object consisting of 1 graphics primitive
             sage: Word().colored_vector(label='empty')
+            Graphics object consisting of 3 graphics primitives
 
         Unknown cmap::
 

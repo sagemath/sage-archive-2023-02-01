@@ -317,6 +317,7 @@ for :math:`0 <= t <= 2`. The same result can be obtained by using ``desolve_syst
     sage: p1 = list_plot([[i,j] for i,j,k in P], plotjoined=True)
     sage: p2 = list_plot([[i,k] for i,j,k in P], plotjoined=True, color='red')
     sage: p1+p2
+    Graphics object consisting of 2 graphics primitives
 
 Another way this system can be solved is to use the command ``desolve_system``.
 

@@ -908,6 +908,7 @@ class Polyomino(SageObject):
             sage: from sage.combinat.tiling import Polyomino
             sage: p = Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
             sage: p.show3d()
+            Graphics3d Object
         """
         assert self._dimension == 3, "Dimension of the polyomino must be 3."
         G = Graphics()
@@ -938,6 +939,7 @@ class Polyomino(SageObject):
             sage: from sage.combinat.tiling import Polyomino
             sage: p = Polyomino([(0,0),(1,0),(1,1),(1,2)], color='deeppink')
             sage: p.show2d()              # long time (0.5s)
+            Graphics object consisting of 17 graphics primitives
         """
         assert self._dimension == 2, "Dimension of the polyomino must be 2."
         h = size / 2.0

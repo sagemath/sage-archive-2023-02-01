@@ -947,7 +947,7 @@ cdef class BooleanFunction(SageObject):
             True
             sage: g = BooleanFunction( f.annihilator(3) )
             sage: set([ fi*g(i) for i,fi in enumerate(f) ])
-            set([0])
+            {0}
         """
         # NOTE: this is a toy implementation
         from sage.rings.polynomial.pbori import BooleanPolynomialRing

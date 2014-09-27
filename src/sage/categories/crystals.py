@@ -54,7 +54,7 @@ class Crystals(Category_singleton):
 
         sage: from sage.misc.abstract_method import abstract_methods_of_class
         sage: abstract_methods_of_class(Crystals().element_class)
-        {'required': ['e', 'epsilon', 'f', 'phi', 'weight'], 'optional': []}
+        {'optional': [], 'required': ['e', 'epsilon', 'f', 'phi', 'weight']}
 
     TESTS::
 

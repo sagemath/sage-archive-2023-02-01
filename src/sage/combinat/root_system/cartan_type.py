@@ -1573,7 +1573,7 @@ class CartanType_crystallographic(CartanType_abstract):
         EXAMPLES::
 
             sage: CartanType(['A',5]).index_set_bipartition()
-            (set([1, 3, 5]), set([2, 4]))
+            ({1, 3, 5}, {2, 4})
 
             sage: CartanType(['A',2,1]).index_set_bipartition()
             Traceback (most recent call last):

@@ -14,6 +14,7 @@ Sage example in ./integration.tex, line 44::
     sage: N(integrate(f, x, 1, 3))
     0.035860294991267694
     sage: plot(f, 1, 3, fill='axis')
+    Graphics object consisting of 2 graphics primitives
 
 Sage example in ./integration.tex, line 103::
 
@@ -175,6 +176,7 @@ Sage example in ./integration.tex, line 786::
 Sage example in ./integration.tex, line 801::
 
     sage: plot(f, 0, 100)
+    Graphics object consisting of 1 graphics primitive
 
 Sage example in ./integration.tex, line 838::
 

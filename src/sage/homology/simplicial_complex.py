@@ -403,7 +403,7 @@ class Simplex(SageObject):
         EXAMPLES::
 
             sage: Simplex(3).set()
-            frozenset([0, 1, 2, 3])
+            frozenset({0, 1, 2, 3})
         """
         return self.__set
 
@@ -1075,10 +1075,10 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
 
             sage: Y = SimplicialComplex([[1,2], [1,4]])
             sage: Y.faces()
-            {0: set([(4,), (2,), (1,)]), 1: set([(1, 2), (1, 4)]), -1: set([()])}
+            {-1: {()}, 0: {(1,), (2,), (4,)}, 1: {(1, 2), (1, 4)}}
             sage: L = SimplicialComplex([[1,2]])
             sage: Y.faces(subcomplex=L)
-            {0: set([(4,)]), 1: set([(1, 4)]), -1: set([])}
+            {-1: set(), 0: {(4,)}, 1: {(1, 4)}}
         """
         # Make the subcomplex immutable if it is not
         if subcomplex is not None and subcomplex._is_mutable:
@@ -1165,10 +1165,10 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: Z
             Simplicial complex with vertex set (1, 2, 3, 4) and facets {(1, 2, 3, 4)}
             sage: Z.n_faces(2)
-            set([(1, 3, 4), (1, 2, 3), (2, 3, 4), (1, 2, 4)])
+            {(1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4)}
             sage: K = SimplicialComplex([[1,2,3], [2,3,4]])
             sage: Z.n_faces(2, subcomplex=K)
-            set([(1, 3, 4), (1, 2, 4)])
+            {(1, 2, 4), (1, 3, 4)}
         """
         if n in self.faces(subcomplex):
             return self.faces(subcomplex)[n]

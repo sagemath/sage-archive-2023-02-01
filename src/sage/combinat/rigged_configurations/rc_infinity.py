@@ -23,9 +23,12 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.flatten import flatten
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
+from sage.categories.homset import Hom
+from sage.categories.morphism import Morphism
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.rigged_configurations.rigged_configuration_element import (
      RiggedConfigurationElement, RCNonSimplyLacedElement)
@@ -175,6 +178,25 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
                    -2[ ]-1
         """
         return self.element_class(self, lst, **options)
+
+    def _coerce_map_from_(self, P):
+        """
+        Return ``True`` or the coerce map from ``P`` if a map exists.
+
+        EXAMPLES::
+
+            sage: T = crystals.infinity.Tableaux(['A',3])
+            sage: RC = crystals.infinity.RiggedConfigurations(['A',3])
+            sage: RC._coerce_map_from_(T)
+            Crystal Isomorphism morphism:
+              From: The infinity crystal of tableaux of type ['A', 3]
+              To:   The infinity crystal of rigged configurations of type ['A', 3]
+        """
+        if self.cartan_type().is_finite():
+            from sage.combinat.crystals.infinity_crystals import InfinityCrystalOfTableaux
+            if isinstance(P, InfinityCrystalOfTableaux):
+                return FromTableauIsomorphism(Hom(P, self))
+        return super(InfinityCrystalOfRiggedConfigurations, self)._coerce_map_from_(P)
 
     def _calc_vacancy_number(self, partitions, a, i, **options):
         r"""
@@ -424,4 +446,64 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
             P = self.parent().weight_lattice_realization()
             alpha = list(P.simple_roots())
             return sum(sum(x) * alpha[i] for i,x in enumerate(self))
+
+class FromTableauIsomorphism(Morphism):
+    r"""
+    Crystal isomorphism of `B(\infty)` in the tableau model to the
+    rigged configuration model.
+    """
+    def _repr_type(self):
+        """
+        Return the type of morphism of ``self``.
+
+        EXAMPLES::
+
+            sage: RC = crystals.infinity.RiggedConfigurations(['A',3])
+            sage: T = crystals.infinity.Tableaux(['A',3])
+            sage: phi = RC.coerce_map_from(T)
+            sage: phi._repr_type()
+            'Crystal Isomorphism'
+        """
+        return "Crystal Isomorphism"
+
+    def __invert__(self):
+        """
+        Return the inverse of ``self``.
+
+        EXAMPLES::
+
+            sage: RC = crystals.infinity.RiggedConfigurations(['A',3])
+            sage: T = crystals.infinity.Tableaux(['A',3])
+            sage: phi = RC.coerce_map_from(T)
+            sage: ~phi
+            Crystal Isomorphism morphism:
+              From: The infinity crystal of rigged configurations of type ['A', 3]
+              To:   The infinity crystal of tableaux of type ['A', 3]
+        """
+        from sage.combinat.crystals.infinity_crystals import FromRCIsomorphism
+        return FromRCIsomorphism(Hom(self.codomain(), self.domain()))
+
+    def _call_(self, x):
+        r"""
+        Return the image of ``x`` in the rigged configuration model
+        of `B(\infty)`.
+
+        EXAMPLES::
+
+            sage: RC = crystals.infinity.RiggedConfigurations(['A',3])
+            sage: T = crystals.infinity.Tableaux(['A',3])
+            sage: phi = RC.coerce_map_from(T)
+            sage: x = T.an_element().f_string([2,2,1,1,3,2,1,2,1,3])
+            sage: y = phi(x); ascii_art(y)
+            -4[ ][ ][ ][ ]-2  -3[ ][ ][ ]-1  -1[ ][ ]-1
+                              -2[ ]-1
+            sage: (~phi)(y) == x
+            True
+        """
+        from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
+        conj = x.to_tableau().conjugate()
+        TP = TensorProductOfKirillovReshetikhinTableaux(self.domain().cartan_type().affine(),
+                                                        [[r,1] for r in conj.shape()])
+        y = TP(pathlist=[reversed(row) for row in conj]).to_rigged_configuration()
+        return self.codomain()(y)
 

@@ -30,6 +30,8 @@ AUTHORS:
 from sage.structure.parent import Parent
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
+from sage.categories.homset import Hom
+from sage.categories.morphism import Morphism
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 
@@ -272,6 +274,24 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
             [[1, 2], [3, 4]]
         """
         return self.element_class(self, *args, **options)
+
+    def _coerce_map_from_(self, P):
+        """
+        Return ``True`` or the coerce map from ``P`` if a map exists.
+
+        EXAMPLES::
+
+            sage: T = crystals.infinity.Tableaux(['A',3])
+            sage: RC = crystals.infinity.RiggedConfigurations(['A',3])
+            sage: T._coerce_map_from_(RC)
+            Crystal Isomorphism morphism:
+              From: The infinity crystal of rigged configurations of type ['A', 3]
+              To:   The infinity crystal of tableaux of type ['A', 3]
+        """
+        from sage.combinat.rigged_configurations.rc_infinity import InfinityCrystalOfRiggedConfigurations
+        if isinstance(P, InfinityCrystalOfRiggedConfigurations):
+            return FromRCIsomorphism(Hom(P, self))
+        return super(InfinityCrystalOfTableaux, self)._coerce_map_from_(P)
 
     class Element(CrystalOfTableauxElement):
         r"""
@@ -812,4 +832,77 @@ class InfinityCrystalOfTableauxTypeD(InfinityCrystalOfTableaux):
                 for j in range(i-1):
                     ret._list.insert(0,self.parent().letters(j+1))
             return ret
+
+class FromRCIsomorphism(Morphism):
+    r"""
+    Crystal isomorphism of `B(\infty)` in the rigged configuration model
+    to the tableau model.
+    """
+    def _repr_type(self):
+        """
+        Return the type of morphism of ``self``.
+
+        EXAMPLES::
+
+            sage: T = crystals.infinity.Tableaux(['A',3])
+            sage: RC = crystals.infinity.RiggedConfigurations(['A',3])
+            sage: phi = T.coerce_map_from(RC)
+            sage: phi._repr_type()
+            'Crystal Isomorphism'
+        """
+        return "Crystal Isomorphism"
+
+    def __invert__(self):
+        """
+        Return the inverse of ``self``.
+
+        EXAMPLES::
+
+            sage: T = crystals.infinity.Tableaux(['A',3])
+            sage: RC = crystals.infinity.RiggedConfigurations(['A',3])
+            sage: phi = T.coerce_map_from(RC)
+            sage: ~phi
+            Crystal Isomorphism morphism:
+              From: The infinity crystal of tableaux of type ['A', 3]
+              To:   The infinity crystal of rigged configurations of type ['A', 3]
+        """
+        from sage.combinat.rigged_configurations.rc_infinity import FromTableauIsomorphism
+        return FromTableauIsomorphism(Hom(self.codomain(), self.domain()))
+
+    def _call_(self, x):
+        r"""
+        Return the image of ``x`` in the tableau model of `B(\infty)`.
+
+        EXAMPLES::
+
+            sage: T = crystals.infinity.Tableaux(['A',3])
+            sage: RC = crystals.infinity.RiggedConfigurations(['A',3])
+            sage: phi = T.coerce_map_from(RC)
+            sage: x = RC.an_element().f_string([2,2,1,1,3,2,1,2,1,3])
+            sage: y = phi(x); y.pp()
+              1  1  1  1  1  2  2  3  4
+              2  2  3  4
+              3
+            sage: (~phi)(y) == x
+            True
+        """
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+        from sage.combinat.crystals.letters import CrystalOfLetters
+        lam = map(sum, x)
+        ct = self.domain().cartan_type()
+        I = ct.index_set()
+        l = sum([ [[r,1]]*(lam[i]+1) for i,r in enumerate(I) ], [])
+        RC = RiggedConfigurations(ct.affine(), reversed(l))
+        y = RC(x).to_tensor_product_of_kirillov_reshetikhin_tableaux()
+        # Now make the result marginally large
+        y = map(list, y)
+        cur = []
+        L = CrystalOfLetters(ct)
+        for i in I:
+            cur.insert(0, L(i))
+            c = y.count(cur)
+            while c > 1:
+                y.remove(cur)
+                c -= 1
+        return self.codomain()(*flatten(y))
 

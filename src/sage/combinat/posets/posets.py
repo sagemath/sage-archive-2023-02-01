@@ -76,6 +76,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.list` | List the elements of the poset. This just returns the result of :meth:`linear_extension`.
     :meth:`~FinitePoset.lower_covers_iterator` | Returns an iterator for the lower covers of the element y. An lower cover of y is an element x such that y x is a cover relation.
     :meth:`~FinitePoset.lower_covers` | Returns a list of lower covers of the element y. An lower cover of y is an element x such that y x is a cover relation.
+    :meth:`~FinitePoset.maximal_antichains` | Return all maximal antichains of the poset.
     :meth:`~FinitePoset.maximal_chains` | Returns all maximal chains of this poset.  Each chain is listed in increasing order.
     :meth:`~FinitePoset.maximal_elements` | Returns a list of the maximal elements of the poset.
     :meth:`~FinitePoset.meet_matrix` | Returns a matrix whose ``(i,j)`` entry is ``k``, where ``self.linear_extension()[k]`` is the meet (greatest lower bound) of ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
@@ -2827,6 +2828,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             On the other hand, this returns a full featured enumerated
             set, with containment testing, etc.
 
+        .. seealso:: :meth:`maximal_antichains`
         """
         vertex_to_element = self._vertex_to_element
         def f(antichain):
@@ -3418,6 +3420,24 @@ class FinitePoset(UniqueRepresentation, Parent):
         G.rename('Incomparability graph on %s vertices' % self.cardinality())
         return G
 
+    def maximal_antichains(self):
+        """
+        Return all maximal antichains of the poset.
+
+        EXAMPLES::
+        
+            sage: P=Poset({'a':['b', 'c'], 'b':['d','e']})
+            sage: P.maximal_antichains()
+            [['a'], ['b', 'c'], ['c', 'd', 'e']]
+
+            sage: Posets.PentagonPoset().maximal_antichains()
+            [[0], [1, 2], [1, 3], [4]]
+
+        .. seealso:: :meth:`maximal_chains`, :meth:`antichains`
+        """
+        # Maximal antichains are maximum cliques on incomparability graph.
+        return self.incomparability_graph().cliques_maximal()
+
     def maximal_chains(self, partial=None):
         """
         Returns all maximal chains of this poset.
@@ -3443,6 +3463,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = Posets.ChainPoset(6)
             sage: Q.maximal_chains()
             [[0, 1, 2, 3, 4, 5]]
+
+        .. seealso:: :meth:`maximal_antichains`, :meth:`chains`
         """
         if partial is None or len(partial) == 0:
             start = self.minimal_elements()

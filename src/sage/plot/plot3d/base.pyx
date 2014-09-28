@@ -1421,7 +1421,9 @@ end_scene""" % (render_params.antialiasing,
 
         See :wikipedia:`Additive_Manufacturing_File_Format`
 
-        This should be saved as a ZIP archive to save space.
+        .. TODO::
+
+            This should rather be saved as a ZIP archive to save space.
 
         EXAMPLES::
 
@@ -1471,7 +1473,7 @@ end_scene""" % (render_params.antialiasing,
         the :meth:`save` method of ``self``, passing along all arguments
         and keywords.
 
-        .. Note::
+        .. NOTE::
 
             Not all image types are necessarily implemented for all
             graphics types.  See :meth:`save` for more details.

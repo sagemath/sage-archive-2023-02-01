@@ -1354,7 +1354,7 @@ class GraphGenerators():
         if order < 0:
             raise ValueError("Number of vertices should be positive.")
 
-        # plantri can only output general plane graphs on up to 64 vertices
+        # plantri can only output general planar graphs on up to 64 vertices
         if order > 64:
             raise ValueError("Number of vertices should be at most 64.")
 
@@ -1387,10 +1387,10 @@ class GraphGenerators():
 
         #exact connectivity is not implemented for minimum connectivity 3
         if exact_connectivity and minimum_connectivity==3:
-            raise NotImplementedError("Generation of plane graphs with connectivity exactly 3 is not implemented.")
+            raise NotImplementedError("Generation of planar graphs with connectivity exactly 3 is not implemented.")
 
         if only_bipartite and minimum_degree > 3:
-            raise NotImplementedError("Generation of bipartite plane graphs with minimum degree 4 or 5 is not implemented.")
+            raise NotImplementedError("Generation of bipartite planar graphs with minimum degree 4 or 5 is not implemented.")
 
         if order == 0:
             return
@@ -1465,7 +1465,7 @@ class GraphGenerators():
 
         EXAMPLES:
 
-        The unique planar embedding of the `K_4` is the only plane triangulations
+        The unique planar embedding of the `K_4` is the only planar triangulations
         on 4 vertices:  ::
 
             sage: gen = graphs.triangulations(4)  # optional plantri
@@ -1511,7 +1511,7 @@ class GraphGenerators():
         if order < 0:
             raise ValueError("Number of vertices should be positive.")
 
-        # plantri can only output plane triangulations on up to 64 vertices
+        # plantri can only output planar triangulations on up to 64 vertices
         if order > 64:
             raise ValueError("Number of vertices should be at most 64.")
 
@@ -1609,7 +1609,7 @@ class GraphGenerators():
 
         EXAMPLES:
 
-        The cube is the only 3-connected plane quadrangulation on 8 vertices:  ::
+        The cube is the only 3-connected planar quadrangulation on 8 vertices:  ::
 
             sage: gen = graphs.quadrangulations(8, minimum_connectivity=3)  # optional plantri
             sage: g = gen.next()  # optional plantri
@@ -1628,7 +1628,7 @@ class GraphGenerators():
         if order < 0:
             raise ValueError("Number of vertices should be positive.")
 
-        # plantri can only output plane quadrangulations on up to 64 vertices
+        # plantri can only output planar quadrangulations on up to 64 vertices
         if order > 64:
             raise ValueError("Number of vertices should be at most 64.")
 

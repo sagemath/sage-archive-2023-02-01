@@ -1395,6 +1395,11 @@ class GraphGenerators():
         if order == 0:
             return
 
+        minimum_order = {0:1, 1:2, 2:3, 3:4, 4:6, 5:12}[minimum_degree]
+
+        if order < minimum_order:
+            return
+
         if order == 1:
             if minimum_degree == 0:
                 G = graph.Graph(1)

@@ -35,7 +35,8 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurationOptions
 from sage.combinat.rigged_configurations.rigged_configuration_element import (
-     RCHighestWeightElement, RCHWNonSimplyLacedElement)
+     RiggedConfigurationElement, RCHighestWeightElement, RCHWNonSimplyLacedElement)
+from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
 
 # Note on implementation, this class is used for simply-laced types only
 class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
@@ -183,7 +184,30 @@ class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
             <BLANKLINE>
             -2[ ][ ]-2
             <BLANKLINE>
+
+        TESTS:
+
+        Check that :trac:`17054` is fixed::
+
+            sage: La = RootSystem(['A', 2]).weight_lattice().fundamental_weights()
+            sage: RC = crystals.RiggedConfigurations(4*La[1] + 4*La[2])
+            sage: B = crystals.infinity.RiggedConfigurations(['A',2])
+            sage: x = B.an_element().f_string([2,2,1,1,2,1,2,1])
+            sage: ascii_art(x)
+            -4[ ][ ][ ][ ]-4  -4[ ][ ][ ][ ]0
+            sage: ascii_art(RC(x.nu()))
+            0[ ][ ][ ][ ]-4  0[ ][ ][ ][ ]0
+            sage: x == B.an_element().f_string([2,2,1,1,2,1,2,1])
+            True
         """
+        if isinstance(lst[0], (list, tuple)):
+            lst = lst[0]
+
+        if isinstance(lst[0], RiggedPartition):
+            lst = [p._clone() for p in lst] # Make a deep copy
+        elif isinstance(lst[0], RiggedConfigurationElement):
+            lst = [p._clone() for p in lst[0]] # Make a deep copy
+
         return self.element_class(self, list(lst), **options)
 
     def _calc_vacancy_number(self, partitions, a, i, **options):

@@ -722,8 +722,8 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             -4[ ][ ][ ][ ]-4  -4[ ][ ][ ][ ]0
             sage: ascii_art(RC(x))
             0[ ][ ][ ][ ]-4  0[ ][ ][ ][ ]0
-            sage: ascii_art(x)
-            -4[ ][ ][ ][ ]-4  -4[ ][ ][ ][ ]0
+            sage: x == B.an_element().f_string([2,2,1,1,2,1,2,1])
+            True
         """
         if not lst:
             return self.element_class(self, [], **options)
@@ -746,9 +746,9 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         if isinstance(lst[0], (list, tuple)):
             lst = lst[0]
 
-        if isinstance(lst[0], (RiggedPartition)):
+        if isinstance(lst[0], RiggedPartition):
             lst = [p._clone() for p in lst] # Make a deep copy
-        elif isinstance(lst[0], (RiggedConfigurationElement)):
+        elif isinstance(lst[0], RiggedConfigurationElement):
             lst = [p._clone() for p in lst[0]] # Make a deep copy
 
         return self.element_class(self, list(lst), **options)

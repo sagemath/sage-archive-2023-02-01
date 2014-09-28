@@ -1641,6 +1641,27 @@ class GraphGenerators():
             Traceback (most recent call last):
             ...
             StopIteration
+
+        An overview of the number of quadrangulations on up to 12 vertices. This
+        agrees with Sloane's OEIS sequence A113201.  ::
+
+            sage: for i in range(4,13):  # optional plantri
+            ....:     print("{:2d}   {:3d}".format(i, len(list(graphs.quadrangulations(i)))))
+             4     1
+             5     1
+             6     2
+             7     3
+             8     9
+             9    18
+            10    62
+            11   198
+            12   803
+
+        There are 2 planar quadrangulation on 12 vertices that do not have a
+        non-facial quadrangle:  ::
+
+            sage: len([g for g in graphs.quadrangulations(12, no_nonfacial_quadrangles=True)])  # optional plantri
+            2
         """
         from sage.misc.package import is_package_installed
         if not is_package_installed("plantri"):

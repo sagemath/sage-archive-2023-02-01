@@ -59,7 +59,13 @@ cdef class WordDatatype_char(WordDatatype):
     """
     cdef unsigned char * _data
     cdef size_t _length
+
+    # _master is a just a reference to another Python object in case the finite
+    # word is just a slice of another one. But because Cython takes care of
+    # Python attributes *before* the call to __dealloc__ we need to duplicate
+    # the information.
     cdef WordDatatype_char _master
+    cdef int _is_slice
 
     def __cinit__(self):
         r"""
@@ -72,6 +78,7 @@ cdef class WordDatatype_char(WordDatatype):
         """
         self._data = NULL
         self._length = 0
+        self._is_slice = 0
 
     def __init__(self, parent, data):
         r"""
@@ -115,7 +122,9 @@ cdef class WordDatatype_char(WordDatatype):
         Note that ``sage_free`` will not deallocate memory if self is the
         master of another word.
         """
-        if self._master is None:
+        # it is strictly forbidden here to access _master here! (it will be set
+        # to None most of the time)
+        if self._is_slice == 0:
             sage_free(self._data)
 
     def __nonzero__(self):
@@ -184,10 +193,9 @@ cdef class WordDatatype_char(WordDatatype):
         external function. But we might want to have several possible inheritance.
         """
         cdef WordDatatype_char other = PY_NEW_SAME_TYPE(self)
-        if HAS_DICTIONARY(self):
-            other.__class__ = self.__class__
         other._data = data
         other._master = master # can be None
+        other._is_slice = 0 if master is None else 1
         other._length = length
         other._parent = self._parent
 
@@ -325,6 +333,11 @@ cdef class WordDatatype_char(WordDatatype):
             Traceback (most recent call last):
             ...
             TypeError: slice indices must be integers or None or have an __index__ method
+
+        Check a weird behavior of PySlice_GetIndicesEx (:trac:`17056`)::
+
+            sage: w[1:0]
+            word:
         """
         cdef Py_ssize_t i, start, stop, step, slicelength
         cdef unsigned char * data
@@ -335,6 +348,8 @@ cdef class WordDatatype_char(WordDatatype):
                     self._length,
                     &start, &stop, &step,
                     &slicelength) 
+            if slicelength == 0:
+                return self._new_c(NULL, 0, None)
             if step == 1:
                 return self._new_c(self._data+start, stop-start, self)
             data = <unsigned char *> sage_malloc(slicelength * sizeof(unsigned char))

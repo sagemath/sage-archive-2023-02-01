@@ -25,15 +25,47 @@ EXAMPLES::
     False
     sage: S.show()
 
+By default, the surface is colored with one single color. ::
+
+    sage: P = ParametricSurface(f, (srange(0,10,0.1), srange(-5,5.0,0.1)),
+    ....:  color="red")
+    sage: P.show()
+
+One can instead provide a coloring function and a color map::
+
+    sage: def f(x,y): return x+y, x-y, x*y
+    sage: def c(x,y): return sin((x+y)/2)**2
+    sage: cm = colormaps.RdYlGn
+    sage: P = ParametricSurface(f, (srange(-5,5,0.1), srange(-5,5.0,0.1)),
+    ....:  (c,cm))
+    sage: P.show(viewer='tachyon')
+
+Note that the coloring function should have values between 0 and
+1. This value is passed to the chosen colormap.
+
+Warning: this kind of coloring cannot currently be visualized using
+Jmol. It works with the options ``viewer='tachyon'`` and
+``viewer='canvas3d'`` (in the notebook), and can be saved as an x3d file.
+
+Another colored example::
+
+    sage: cm = colormaps.autumn
+    sage: def g(x,y): return x, y, x**2 + y**2
+    sage: P = ParametricSurface(g, (srange(-10,10,0.1), srange(-5,5.0,0.1)),
+    ....:  (c,cm))
+    sage: P.show(viewer='tachyon')
+
 .. NOTE::
 
     One may override ``eval()`` or ``eval_c()`` in a subclass
     rather than passing in a function for greater speed.
     One also would want to override get_grid.
 
-TODO: actually remove unused points, fix the below code::
+.. TODO::
 
-    S = ParametricSurface(f=(lambda (x,y):(x,y,0)), domain=(range(10),range(10)))
+    actually remove unused points, fix the below code::
+
+        S = ParametricSurface(f=(lambda (x,y):(x,y,0)), domain=(range(10),range(10)))
 
 """
 
@@ -76,6 +108,7 @@ cdef inline bint smash_edge(point_c* vs, face_c* f, int a, int b):
     else:
         return 0
 
+
 cdef class ParametricSurface(IndexFaceSet):
     """
     Base class that initializes the ParametricSurface
@@ -84,13 +117,18 @@ cdef class ParametricSurface(IndexFaceSet):
 
     INPUT:
 
-    - ``f`` - (default: None) The defining function. Either a tuple of
+    - ``f`` - (default: ``None``) The defining function. Either a tuple of
       three functions, or a single function which returns a tuple, taking
-      two python floats as input. To subclass, pass None for f and override
-      eval_c or eval instead.
+      two python floats as input. To subclass, pass ``None`` for ``f`` and
+      override ``eval_c`` or ``eval`` instead.
 
-    - ``domain`` - (default: None) A tuple of two lists, defining the
-      grid of `u,v` values. If None, this will be calculate automatically.
+    - ``domain`` - (default: ``None``) A tuple of two lists, defining the
+      grid of `u,v` values. If ``None``, this will be calculated automatically.
+
+    - ``color_data`` - (default: ``None``) A pair `(h,c)` where `h` is
+      a function with values in `[0,1]` and `c` is a colormap. The
+      color of a point `p` is then defined as the composition
+      `c(h(p))`
 
     EXAMPLES::
 
@@ -107,21 +145,30 @@ cdef class ParametricSurface(IndexFaceSet):
     ::
 
         sage: def f(u,v):
-        ...       a = 1
-        ...       from math import cos, sin, sinh, cosh
-        ...       x = cos(a)*(cos(u)*sinh(v)-cos(3*u)*sinh(3*v)/3) + sin(a)*(
-        ...           sin(u)*cosh(v)-sin(3*u)*cosh(3*v)/3)
-        ...       y = cos(a)*(sin(u)*sinh(v)+sin(3*u)*sinh(3*v)/3) + sin(a)*(
-        ...           -cos(u)*cosh(v)-cos(3*u)*cosh(3*v)/3)
-        ...       z = cos(a)*cos(2*u)*cosh(2*v)+sin(a)*sin(2*u)*sinh(2*v)
-        ...       return (x,y,z)
+        ....:     a = 1
+        ....:     from math import cos, sin, sinh, cosh
+        ....:     x = cos(a)*(cos(u)*sinh(v)-cos(3*u)*sinh(3*v)/3) + sin(a)*(
+        ....:         sin(u)*cosh(v)-sin(3*u)*cosh(3*v)/3)
+        ....:     y = cos(a)*(sin(u)*sinh(v)+sin(3*u)*sinh(3*v)/3) + sin(a)*(
+        ....:         -cos(u)*cosh(v)-cos(3*u)*cosh(3*v)/3)
+        ....:     z = cos(a)*cos(2*u)*cosh(2*v)+sin(a)*sin(2*u)*sinh(2*v)
+        ....:     return (x,y,z)
         sage: v = srange(float(0),float((3/2)*pi),float(0.1))
         sage: S = ParametricSurface(f, (srange(float(0),float(pi),float(0.1)),
-        ...                  srange(float(-1),float(1),float(0.1))), color="blue")
+        ....:                srange(float(-1),float(1),float(0.1))), color="blue")
         sage: show(S)
+
+    A colored example using the ``color_data`` keyword::
+
+        sage: def g(x,y): return x, y, - x**2 + y**2
+        sage: def c(x,y): return sin((x-y/2)*y/4)**2
+        sage: cm = colormaps.gist_rainbow
+        sage: P = ParametricSurface(g, (srange(-10,10,0.1),
+        ....:   srange(-5,5.0,0.1)),color_data=(c,cm))
+        sage: P.show(viewer='tachyon')
     """
 
-    def __init__(self, f=None, domain=None, **kwds):
+    def __init__(self, f=None, domain=None, color_data=None, **kwds):
         """
         Create the graphics primitive :class:`ParametricSurface`.  See the
         docstring of this class for full documentation.
@@ -136,11 +183,19 @@ cdef class ParametricSurface(IndexFaceSet):
             f = tuple(f)
         self.f = f
         self.render_grid = domain
-        IndexFaceSet.__init__(self, [], [], **kwds)
+        if color_data is not None:
+            # case of a color depending on parameters
+            self.color_function = color_data[0]
+            self.colormap = color_data[1]
+            IndexFaceSet.__init__(self, [], [], texture_list=[], **kwds)
+        else:
+            # case of a global color
+            self.color_function = None
+            IndexFaceSet.__init__(self, [], [], **kwds)
 
     def default_render_params(self):
         """
-        Returns an instance of RenderParams suitable for plotting this object.
+        Return an instance of RenderParams suitable for plotting this object.
 
         TEST::
 
@@ -152,7 +207,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def x3d_geometry(self):
         r"""
-        Returns XML-like representation of the coordinates of all points
+        Return XML-like representation of the coordinates of all points
         in a triangulation of the object along with an indexing of those
         points.
 
@@ -160,7 +215,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
             sage: _ = var('x,y')
             sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
-            sage: s = P.x3d_str()
+            sage: s = P.x3d_str()    # indirect doctest
             sage: s[:100]
             "<Shape>\n<IndexedFaceSet coordIndex='0,1,..."
         """
@@ -169,7 +224,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def tachyon_repr(self, render_params):
         """
-        Returns representation of the object suitable for plotting
+        Return representation of the object suitable for plotting
         using Tachyon ray tracer.
 
         TESTS::
@@ -185,7 +240,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def obj_repr(self, render_params):
         """
-        Returns complete representation of object with name, texture, and
+        Return a complete representation of object with name, texture, and
         lists of vertices, faces, and back-faces.
 
         TESTS::
@@ -201,7 +256,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def jmol_repr(self, render_params):
         r"""
-        Returns representation of the object suitable for plotting
+        Return a representation of the object suitable for plotting
         using Jmol.
 
         TESTS::
@@ -217,9 +272,9 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def json_repr(self, render_params):
         """
-        Returns representation of the object in JSON format as
+        Return a representation of the object in JSON format as
         a list with one element, which is a string of a dictionary
-        listing vertices and faces.
+        listing vertices, faces and colors.
 
         TESTS::
 
@@ -234,7 +289,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def is_enclosed(self):
         """
-        Returns a boolean telling whether or not it is necessary to
+        Return a boolean telling whether or not it is necessary to
         render the back sides of the polygons (assuming, of course,
         that they have the correct orientation).
 
@@ -257,7 +312,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def dual(self):
         """
-        Returns an ``IndexFaceSet`` which is the dual of the
+        Return an ``IndexFaceSet`` which is the dual of the
         :class:`ParametricSurface` object as a triangulated surface.
 
         EXAMPLES:
@@ -287,24 +342,24 @@ cdef class ParametricSurface(IndexFaceSet):
             Traceback (most recent call last):
             ...
             NotImplementedError: This is only implemented for enclosed surfaces
-
         """
         # This doesn't completely make sense...
         if self.fcount == 0:
             self.triangulate()
         if not self.is_enclosed():
-            raise NotImplementedError, "This is only implemented for enclosed surfaces"
+            raise NotImplementedError("This is only implemented for enclosed surfaces")
         return IndexFaceSet.dual(self)
 
     def bounding_box(self):
         """
-        Returns the lower and upper corners of a 3D bounding box for self.
-        This is used for rendering and self should fit entirely within this
+        Return the lower and upper corners of a 3D bounding box for ``self``.
+
+        This is used for rendering and ``self`` should fit entirely within this
         box.
 
         Specifically, the first point returned should have x, y, and z
-        coordinates should be the respective infimum over all points in self,
-        and the second point is the supremum.
+        coordinates should be the respective infimum over all points in
+        ``self``, and the second point is the supremum.
 
         EXAMPLES::
 
@@ -322,7 +377,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def triangulate(self, render_params=None):
         r"""
-        Calls self.eval_grid() for all `(u,v)` in
+        Call self.eval_grid() for all `(u,v)` in
         `\text{urange} \times \text{vrange}` to construct this surface.
 
         The most complicated part of this code is identifying shared
@@ -373,7 +428,8 @@ cdef class ParametricSurface(IndexFaceSet):
         #   |   |
         #   3 - 2
 
-        cdef face_c *face, *last_face
+        cdef face_c *face
+        cdef face_c *last_face
 
         for i from 0 <= i < n:
             for j from 0 <= j < m:
@@ -381,6 +437,8 @@ cdef class ParametricSurface(IndexFaceSet):
                 face = &self._faces[ix]
                 face.n = 4
                 face.vertices = &self.face_indices[4*ix]
+                if self.color_function is not None:
+                    face.color.r, face.color.g, face.color.b, _ = self.colormap(self.color_function(urange[i], vrange[j]))
 
                 # Connect to the i-1 row
                 if i == 0:
@@ -408,7 +466,8 @@ cdef class ParametricSurface(IndexFaceSet):
         # Now we see if it wraps around or is otherwise enclosed
         cdef bint enclosed = 1
 
-        cdef face_c *first, *last
+        cdef face_c *first
+        cdef face_c *last
         for j from 0 <= j < m:
             first = &self._faces[j]
             last  = &self._faces[(n-1)*m+j]
@@ -470,7 +529,7 @@ cdef class ParametricSurface(IndexFaceSet):
             NotImplementedError: You must override the get_grid method.
         """
         if self.render_grid is None:
-            raise NotImplementedError, "You must override the get_grid method."
+            raise NotImplementedError("You must override the get_grid method.")
         return self.render_grid
 
     cdef int eval_grid(self, urange, vrange) except -1:
@@ -481,10 +540,10 @@ cdef class ParametricSurface(IndexFaceSet):
 
         We branch outside the loops for efficiency. The options for self.f are:
 
-            None     -- call self.eval_c() or self.eval()
+        - ``None`` -- call self.eval_c() or self.eval()
                         (One of these is presumably overridden.)
-            tuple    -- split into fx, fy, fz and call each separately
-            callable -- call f(u,v)
+        - tuple -- split into fx, fy, fz and call each separately
+        - callable -- call f(u,v)
 
         In addition, branches are taken for efficient calling of FastDoubleFunc
         (including whether to iterate over python or c doubles).
@@ -632,7 +691,7 @@ class MobiusStrip(ParametricSurface):
 
         sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
         sage: M = MobiusStrip(3,3)
-        sage: M.show()
+        sage: M.show() 
     """
 
     def __init__(self, r, width, twists=1, **kwds):
@@ -660,12 +719,13 @@ class MobiusStrip(ParametricSurface):
 
     def get_grid(self, ds):
         """
-        Returns appropriate `u` and `v` ranges for this MobiusStrip instance.
+        Return appropriate `u` and `v` ranges for this MobiusStrip instance.
+
         This is intended for internal use in creating an actual plot.
 
         INPUT:
 
-        -  ``ds`` - A number, typically coming from a RenderParams object,
+        -  ``ds`` -- A number, typically coming from a RenderParams object,
            which helps determine the increment for the `v` range for the
            MobiusStrip object.
 
@@ -675,18 +735,17 @@ class MobiusStrip(ParametricSurface):
             sage: N = MobiusStrip(7,3,2) # two twists
             sage: N.get_grid(N.default_render_params().ds)
             ([-1, 1], [0.0, 0.12566370614359174, 0.25132741228718347, 0.37699111843077515, ... 0])
-
         """
-        twoPi = RDF.pi()*2
+        twoPi = RDF.pi() * 2
         # Previous code, which doesn't seem to use any of the parameters
         # TODO: figure out how to use it properly.
         # res = max(min(twoPi*(self.r+self.twists*self.width)/ds, 10), 6*self.twists, 50)
-        res = max(6*self.twists, 50)
-        return [-1,1],[twoPi*k/res for k in range(res)] + [0]
+        res = max(6 * self.twists, 50)
+        return [-1, 1], [twoPi * k / res for k in range(res + 1)]
 
     def eval(self, u, v):
         """
-        Returns tuple for `x,y,z` coordinates for the given ``u`` and ``v``
+        Return a tuple for `x,y,z` coordinates for the given ``u`` and ``v``
         for this MobiusStrip instance.
 
         EXAMPLE::

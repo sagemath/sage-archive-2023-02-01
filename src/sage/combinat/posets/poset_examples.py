@@ -155,7 +155,7 @@ class Posets(object):
         return Poset((range(n), []))
 
     @staticmethod
-    def PentagonPoset(facade = False):
+    def PentagonPoset(facade = True):
         """
         Returns the "pentagon poset".
 
@@ -165,14 +165,6 @@ class Posets(object):
             Finite lattice containing 5 elements
             sage: P.cover_relations()
             [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
-
-        This lattice and the diamond poset on 5 elements are the two
-        smallest lattices which are not distributive::
-
-            sage: P.is_distributive()
-            False
-            sage: Posets.DiamondPoset(5).is_distributive()
-            False
         """
         p = LatticePoset([[1,2],[4],[3],[4],[]], facade = facade)
         p.hasse_diagram()._pos = {0:[2,0],1:[0,2],2:[3,1],3:[3,3],4:[2,4]}

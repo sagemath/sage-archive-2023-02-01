@@ -256,7 +256,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
            the 40 first letters are in the parent alphabet. This is a
            check done to test for small programming errors. Since we also
            support infinite words, we cannot really implement a more
-           accurate check. 
+           accurate check.
 
         .. NOTE::
 
@@ -488,7 +488,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
                 w = self._word_from_callable(data, length, caching)
             else:
                 raise ValueError("Unknown datatype (={})".format(datatype))
-        
+
         elif isinstance(data, list):
             if 'FiniteWord_char' in self._element_classes:
                 w = self._element_classes['FiniteWord_char'](self, data)
@@ -505,7 +505,10 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             w = self._element_classes['FiniteWord_str'](self, data)
 
         elif isinstance(data, tuple):
-            w = self._element_classes['FiniteWord_tuple'](self, data)
+            if 'FiniteWord_char' in self._element_classes:
+                w = self._element_classes['FiniteWord_char'](self, data)
+            else:
+                w = self._element_classes['FiniteWord_tuple'](self, data)
 
         elif callable(data):
             w = self._word_from_callable(data, length, caching)
@@ -521,7 +524,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             raise ValueError("Cannot guess a datatype from data (=%s); please specify one" % data)
 
         if check:
-            self._check(w, length=40)
+            self._check(w)
         return w
 
     def _check(self, w, length=40):
@@ -531,6 +534,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         INPUT:
 
         - ``w`` -- word
+
         - ``length`` -- integer (default: ``40``)
 
         EXAMPLES::
@@ -586,7 +590,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         # recover the data, the length and the datatype of the input `data`
         ###########################
         from sage.combinat.words.word_char import WordDatatype_char
-        from sage.combinat.words.word_infinite_datatypes import (WordDatatype_callable, 
+        from sage.combinat.words.word_infinite_datatypes import (WordDatatype_callable,
                                                                  WordDatatype_iter)
         from sage.combinat.words.word_datatypes import (WordDatatype_str,
                           WordDatatype_list, WordDatatype_tuple)
@@ -656,8 +660,10 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         INPUT:
 
         -  ``data`` - iterable
+
         -  ``length`` - integer, ``"unknown"``, ``"infinite"``,
            ``Infinity``, ``None`` or ``"finite"``
+
         -  ``caching`` - (default: True) True or False. Whether to keep a cache
            of the letters computed by the iterator.
 

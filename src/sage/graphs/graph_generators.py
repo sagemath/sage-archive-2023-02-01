@@ -1559,7 +1559,9 @@ class GraphGenerators():
         if exact_connectivity and minimum_connectivity==minimum_degree:
             raise NotImplementedError("Generation of triangulations with minimum connectivity equal to minimum degree is not implemented.")
 
-        if order < 4:
+        minimum_order = {3:4, 4:6, 5:12}[minimum_degree]
+
+        if order < minimum_order:
             return
 
         if only_eulerian and order < 6:

@@ -1474,24 +1474,25 @@ class FreeModuleTensor(ModuleElement):
             res._latex_name = res_latex
         return res
 
-    def self_contract(self, pos1, pos2):
+    def trace(self, pos1=0, pos2=1):
         r""" 
-        Contraction on two slots of the tensor. 
+        Trace (contraction) on two slots of the tensor. 
         
         INPUT:
             
-        - ``pos1`` -- position of the first index for the contraction, with the
-          convention ``pos1=0`` for the first slot
-        - ``pos2`` -- position of the second index for the contraction, with 
-          the same convention as for ``pos1``. 
+        - ``pos1`` -- (default: 0) position of the first index for the 
+          contraction, with the convention ``pos1=0`` for the first slot
+        - ``pos2`` -- (default: 1) position of the second index for the 
+          contraction, with the same convention as for ``pos1``. The variance 
+          type of ``pos2`` must be opposite to that of ``pos1``
           
         OUTPUT:
         
-        - tensor resulting from the (pos1, pos2) contraction
+        - tensor or scalar resulting from the (pos1, pos2) contraction
        
         EXAMPLES:
         
-        Contraction on the two slots of a type-(1,1) tensor::
+        Trace of a type-(1,1) tensor::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e') ; e
@@ -1499,12 +1500,14 @@ class FreeModuleTensor(ModuleElement):
             sage: a = M.tensor((1,1), name='a') ; a
             endomorphism a on the rank-3 free module M over the Integer Ring
             sage: a[:] = [[1,2,3], [4,5,6], [7,8,9]]
-            sage: a.self_contract(0,1)  # contraction of slot 0 with slot 1
+            sage: a.trace() 
+            15 
+            sage: a.trace(0,1)  # equivalent to above (contraction of slot 0 with slot 1)
             15
-            sage: a.self_contract(1,0)  # the order of the slots does not matter
+            sage: a.trace(1,0)  # the order of the slots does not matter
             15
             
-        Instead of the explicit call to the method :meth:`self_contract`, one
+        Instead of the explicit call to the method :meth:`trace`, one
         may use the index notation with Einstein convention (summation over
         repeated indices); it suffices to pass the indices as a string inside
         square brackets::
@@ -1528,7 +1531,7 @@ class FreeModuleTensor(ModuleElement):
             sage: b =  M.tensor((2,0), name='b') ; b
             type-(2,0) tensor b on the rank-3 free module M over the Integer Ring
             sage: b[:] = [[1,2,3], [4,5,6], [7,8,9]]
-            sage: b.self_contract(0,1)
+            sage: b.trace(0,1)
             Traceback (most recent call last):
             ...
             IndexError: Contraction on two contravariant indices is not allowed.
@@ -1543,7 +1546,7 @@ class FreeModuleTensor(ModuleElement):
             sage: # by construction, t is a tensor field antisymmetric w.r.t. its last two slots:
             sage: t.symmetries()
             no symmetry;  antisymmetry: (2, 3)
-            sage: s = t.self_contract(0,1) ; s   # contraction on the first two slots
+            sage: s = t.trace(0,1) ; s   # contraction on the first two slots
             alternating form of degree 2 on the rank-3 free module M over the Integer Ring
             sage: s.symmetries()    # the antisymmetry is preserved
             no symmetry;  antisymmetry: (0, 1)
@@ -1553,7 +1556,7 @@ class FreeModuleTensor(ModuleElement):
             [-30 -15   0]
             sage: s == 15*b  # check
             True
-            sage: s = t.self_contract(0,2) ; s   # contraction on the first and third slots
+            sage: s = t.trace(0,2) ; s   # contraction on the first and third slots
             type-(0,2) tensor on the rank-3 free module M over the Integer Ring
             sage: s.symmetries()  # the antisymmetry has been destroyed by the above contraction:
             no symmetry;  no antisymmetry
@@ -1564,25 +1567,25 @@ class FreeModuleTensor(ModuleElement):
             sage: s[:] == matrix( [[sum(t[k,i,k,j] for k in M.irange()) for j in M.irange()] for i in M.irange()] )  # check
             True
             
-        Use of index notation instead of :meth:`self_contract`::
+        Use of index notation instead of :meth:`trace`::
         
-            sage: t['^k_kij'] == t.self_contract(0,1)
+            sage: t['^k_kij'] == t.trace(0,1)
             True
-            sage: t['^k_{kij}'] == t.self_contract(0,1) # LaTeX notation
+            sage: t['^k_{kij}'] == t.trace(0,1) # LaTeX notation
             True
-            sage: t['^k_ikj'] == t.self_contract(0,2)
+            sage: t['^k_ikj'] == t.trace(0,2)
             True
-            sage: t['^k_ijk'] == t.self_contract(0,3)
+            sage: t['^k_ijk'] == t.trace(0,3)
             True
 
         Index symbols not involved in the contraction may be replaced by
         dots::
         
-            sage: t['^k_k..'] == t.self_contract(0,1)
+            sage: t['^k_k..'] == t.trace(0,1)
             True
-            sage: t['^k_.k.'] == t.self_contract(0,2)
+            sage: t['^k_.k.'] == t.trace(0,2)
             True
-            sage: t['^k_..k'] == t.self_contract(0,3)
+            sage: t['^k_..k'] == t.trace(0,3)
             True
         
         """
@@ -1600,7 +1603,7 @@ class FreeModuleTensor(ModuleElement):
             basis = self._fmodule._def_basis
         else: # a basis is picked arbitrarily:
             basis = self.pick_a_basis()     
-        resu_comp = self._components[basis].self_contract(pos1, pos2)
+        resu_comp = self._components[basis].trace(pos1, pos2)
         if self._tensor_rank == 2:  # result is a scalar
             return resu_comp
         else:
@@ -1608,20 +1611,25 @@ class FreeModuleTensor(ModuleElement):
 
     def contract(self, *args):
         r""" 
-        Contraction with another tensor. 
+        Contraction on one or more indices with another tensor. 
         
         INPUT:
             
-        - ``pos1`` -- position of the first index (in ``self``) for the 
-          contraction; if not given, the last index position is assumed
+        - ``pos1`` -- positions of the indices in ``self`` involved in the
+          contraction; ``pos1`` must be a sequence of integers, with 0 standing
+          for the first index position, 1 for the second one, etc. If ``pos1`` 
+          is not provided, a single contraction on the last index position of
+          ``self`` is assumed
         - ``other`` -- the tensor to contract with
-        - ``pos2`` -- position of the second index (in ``other``) for the 
-          contraction; if not given, the first index position is assumed
-          
+        - ``pos2`` -- positions of the indices in ``other`` involved in the
+          contraction, with the same conventions as for ``pos1``. If ``pos2``
+          is not provided, a single contraction on the first index position of
+          ``other`` is assumed
+                    
         OUTPUT:
         
-        - tensor resulting from the (pos1, pos2) contraction of ``self`` with 
-          ``other``
+        - tensor resulting from the contraction at the positions ``pos1`` and
+          ``pos2`` of ``self`` with ``other``
        
         EXAMPLES:
         
@@ -1718,7 +1726,7 @@ class FreeModuleTensor(ModuleElement):
             sage: a.contract(0, b)
             Traceback (most recent call last):
             ...
-            TypeError: Contraction not possible: the two index positions are both contravariant.
+            TypeError: Contraction on two contravariant indices not permitted.
 
         In the present case, performing the contraction is identical to 
         applying the endomorphism to the module element::
@@ -1782,64 +1790,97 @@ class FreeModuleTensor(ModuleElement):
             sage: s1 == s  # ... and yields the same result as previously:
             True
 
+        The contraction can be performed on more than a single index; for 
+        instance a 2-indices contraction of a type-(2,1) tensor with a 
+        type-(1,2) one is::
+        
+            sage: a  # a is a tensor of type-(2,1)
+            type-(2,1) tensor on the rank-3 free module M over the Integer Ring
+            sage: b = M([1,-1,2])*b ; b # a tensor of type (1,2)
+            type-(1,2) tensor on the rank-3 free module M over the Integer Ring
+            sage: s = a.contract(1,2,b,1,0) ; s # the double contraction 
+            endomorphism on the rank-3 free module M over the Integer Ring
+            sage: s[:]
+            [ -36   30   15]
+            [-252  210  105]
+            [-204  170   85]
+            sage: s == a['^.k_l']*b['^l_k.']  # the same thing in index notation
+            True
+            
         """
+        #
+        # Treatment of the input
+        #
         nargs = len(args)
-        if nargs == 1:
-            pos1 = self._tensor_rank - 1
-            other = args[0]
-            pos2 = 0
-        elif nargs == 2:
-            if isinstance(args[0], FreeModuleTensor):
-                pos1 = self._tensor_rank - 1
-                other = args[0]
-                pos2 = args[1]
-            else:
-                pos1 = args[0]
-                other = args[1]
-                pos2 = 0
-        elif nargs == 3:
-            pos1 = args[0]
-            other = args[1]
-            pos2 = args[2]
+        for i, arg in enumerate(args):
+            if isinstance(arg, FreeModuleTensor):
+                other = arg
+                it = i
+                break
         else:
-            raise TypeError("Wrong number of arguments in contract(): " + 
-                str(nargs) + 
-                " arguments provided, while between 1 and 3 are expected.")
-        if not isinstance(other, FreeModuleTensor):
-            raise TypeError("For the contraction, other must be a tensor ")
+            raise TypeError("A tensor must be provided in the argument list.")
+        if it == 0:
+            pos1 = (self._tensor_rank - 1,)
+        else:
+            pos1 = args[:it]
+        if it == nargs-1:
+            pos2 = (0,)
+        else:
+            pos2 = args[it+1:]
+        ncontr = len(pos1) # number of contractions
+        if len(pos2) != ncontr:
+            raise TypeError("Different number of indices for the contraction.")
         k1, l1 = self._tensor_type
         k2, l2 = other._tensor_type
-        if pos1 < k1 and pos2 < k2:
-            raise TypeError("Contraction not possible: the two index " + 
-                            "positions are both contravariant.")
-        if pos1 >= k1 and pos2 >= k2:
-            raise TypeError("Contraction not possible: the two index " + 
-                            "positions are both covavariant.")
+        for i in range(ncontr):
+            p1 = pos1[i]
+            p2 = pos2[i]
+            if p1 < k1 and p2 < k2:
+                raise TypeError("Contraction on two contravariant indices " + 
+                                "not permitted.")
+            if p1 >= k1 and p2 >= k2:
+                raise TypeError("Contraction on two covariant indices " + 
+                                "not permitted.")
+        #
+        # Contraction at the component level
+        #
         basis = self.common_basis(other)
         if basis is None:
             raise ValueError("No common basis for the contraction.")
-        cmp_res = self._components[basis].contract(pos1, 
-                                            other._components[basis], pos2)
-        # reordering of the indices to have all contravariant indices first:
-        if k2 > 1:
-            if pos1 < k1:
-                cmp_res = cmp_res.swap_adjacent_indices(k1-1, k1+l1-1, k1+l1+k2-1)
-            else:
-                cmp_res = cmp_res.swap_adjacent_indices(k1, k1+l1-1, k1+l1+k2-2)
-        type_res = (k1+k2-1, l1+l2-1)
-        if type_res == (0, 0):
-            return cmp_res  # scalar case
-        else:
-            return self._fmodule.tensor_from_comp(type_res, cmp_res)
+        args = pos1 + (other._components[basis],) + pos2
+        cmp_res = self._components[basis].contract(*args)
+        if self._tensor_rank + other._tensor_rank - 2*ncontr == 0:
+            # Case of scalar output:
+            return cmp_res
+        #
+        # Reordering of the indices to have all contravariant indices first:
+        #
+        nb_cov_s = 0  # Number of covariant indices of self not involved in the
+                      # contraction
+        for pos in range(k1,k1+l1):
+            if pos not in pos1:
+                nb_cov_s += 1
+        nb_con_o = 0  # Number of contravariant indices of other not involved 
+                      # in the contraction
+        for pos in range(0,k2):
+            if pos not in pos2:
+                nb_con_o += 1
+        if nb_cov_s != 0 and nb_con_o !=0:
+            # some reodering is necessary:
+            p2 = k1 + l1 - ncontr 
+            p1 = p2 - nb_cov_s
+            p3 = p2 + nb_con_o
+            cmp_res = cmp_res.swap_adjacent_indices(p1, p2, p3)
+        type_res = (k1+k2-ncontr, l1+l2-ncontr)
+        return self._fmodule.tensor_from_comp(type_res, cmp_res)
 
-
-    def symmetrize(self, pos=None, basis=None):
+    def symmetrize(self, *pos, **kwargs):
         r"""
         Symmetrization over some arguments.
         
         INPUT:
         
-        - ``pos`` -- (default: None) list of argument positions involved in the 
+        - ``pos`` -- list of argument positions involved in the 
           symmetrization (with the convention position=0 for the first 
           argument); if none, the symmetrization is performed over all the 
           arguments
@@ -1904,7 +1945,7 @@ class FreeModuleTensor(ModuleElement):
         
             sage: t = M.tensor((0,3))
             sage: t[:] = [[[1,2,3], [-4,5,6], [7,8,-9]], [[10,-11,12], [13,14,-15], [16,17,18]], [[19,-20,-21], [-22,23,24], [25,26,-27]]]
-            sage: s = t.symmetrize((0,1)) ; s  # (0,1) = the first two arguments
+            sage: s = t.symmetrize(0,1) ; s  # (0,1) = the first two arguments
             type-(0,3) tensor on the rank-3 free module M over the Rational Field
             sage: s.symmetries()
             symmetry: (0, 1);  no antisymmetry
@@ -1919,23 +1960,23 @@ class FreeModuleTensor(ModuleElement):
             ....:             print s[i,j,k] == 1/2*(t[i,j,k]+t[j,i,k]), 
             ....:             
             True True True True True True True True True True True True True True True True True True True True True True True True True True True
-            sage: s.symmetrize((0,1)) == s  # another test
+            sage: s.symmetrize(0,1) == s  # another test
             True
 
         Again the index notation can be used::
         
-            sage: t['_(ij)k'] == t.symmetrize((0,1))
+            sage: t['_(ij)k'] == t.symmetrize(0,1)
             True
-            sage: t['_(..).'] == t.symmetrize((0,1))  # no index name
+            sage: t['_(..).'] == t.symmetrize(0,1)  # no index name
             True
-            sage: t['_{(ij)k}'] == t.symmetrize((0,1))  # LaTeX notation
+            sage: t['_{(ij)k}'] == t.symmetrize(0,1)  # LaTeX notation
             True
-            sage: t['_{(..).}'] == t.symmetrize((0,1))  # this also allowed
+            sage: t['_{(..).}'] == t.symmetrize(0,1)  # this also allowed
             True
 
         Symmetrization of a tensor of type (0,3) on the first and last arguments::
 
-            sage: s = t.symmetrize((0,2)) ; s  # (0,2) = first and last arguments
+            sage: s = t.symmetrize(0,2) ; s  # (0,2) = first and last arguments
             type-(0,3) tensor on the rank-3 free module M over the Rational Field
             sage: s.symmetries()
             symmetry: (0, 2);  no antisymmetry
@@ -1949,12 +1990,12 @@ class FreeModuleTensor(ModuleElement):
             ....:             print s[i,j,k] == 1/2*(t[i,j,k]+t[k,j,i]),
             ....:             
             True True True True True True True True True True True True True True True True True True True True True True True True True True True
-            sage: s.symmetrize((0,2)) == s  # another test
+            sage: s.symmetrize(0,2) == s  # another test
             True
 
         Symmetrization of a tensor of type (0,3) on the last two arguments::
         
-            sage: s = t.symmetrize((1,2)) ; s  # (1,2) = the last two arguments
+            sage: s = t.symmetrize(1,2) ; s  # (1,2) = the last two arguments
             type-(0,3) tensor on the rank-3 free module M over the Rational Field
             sage: s.symmetries()
             symmetry: (1, 2);  no antisymmetry
@@ -1969,16 +2010,16 @@ class FreeModuleTensor(ModuleElement):
             ....:             print s[i,j,k] == 1/2*(t[i,j,k]+t[i,k,j]),  
             ....:             
             True True True True True True True True True True True True True True True True True True True True True True True True True True True
-            sage: s.symmetrize((1,2)) == s  # another test
+            sage: s.symmetrize(1,2) == s  # another test
             True
     
         Use of the index notation::
         
-            sage: t['_i(jk)'] == t.symmetrize((1,2))
+            sage: t['_i(jk)'] == t.symmetrize(1,2)
             True
-            sage: t['_.(..)'] == t.symmetrize((1,2))
+            sage: t['_.(..)'] == t.symmetrize(1,2)
             True
-            sage: t['_{i(jk)}'] == t.symmetrize((1,2))  # LaTeX notation
+            sage: t['_{i(jk)}'] == t.symmetrize(1,2)  # LaTeX notation
             True
 
         Full symmetrization of a tensor of type (0,3)::
@@ -2012,38 +2053,38 @@ class FreeModuleTensor(ModuleElement):
         
             sage: t = M.tensor((1,2))
             sage: t[:] = [[[1,2,3], [-4,5,6], [7,8,-9]], [[10,-11,12], [13,14,-15], [16,17,18]], [[19,-20,-21], [-22,23,24], [25,26,-27]]]
-            sage: s = t.symmetrize((0,1)) 
+            sage: s = t.symmetrize(0,1) 
             Traceback (most recent call last):
             ...
             TypeError: 0 is a contravariant position, while 1 is a covariant position; 
             symmetrization is meaningfull only on tensor arguments of the same type.
-            sage: s = t.symmetrize((1,2)) # OK: both 1 and 2 are covariant positions
+            sage: s = t.symmetrize(1,2) # OK: both 1 and 2 are covariant positions
 
         The order of positions does not matter::
         
-            sage: t.symmetrize((2,1)) == t.symmetrize((1,2))
+            sage: t.symmetrize(2,1) == t.symmetrize(1,2)
             True
         
         Use of the index notation::
         
-            sage: t['^i_(jk)'] == t.symmetrize((1,2))
+            sage: t['^i_(jk)'] == t.symmetrize(1,2)
             True
-            sage: t['^._(..)'] ==  t.symmetrize((1,2))
+            sage: t['^._(..)'] ==  t.symmetrize(1,2)
             True
         
         The character '^' can be skipped, the character '_' being sufficient
         to separate contravariant indices from covariant ones::
         
-            sage: t['i_(jk)'] == t.symmetrize((1,2))
+            sage: t['i_(jk)'] == t.symmetrize(1,2)
             True
         
         The LaTeX notation can be employed::
         
-            sage: t['^{i}_{(jk)}'] == t.symmetrize((1,2))
+            sage: t['^{i}_{(jk)}'] == t.symmetrize(1,2)
             True
 
         """
-        if pos is None:
+        if not pos:
             pos = range(self._tensor_rank)
         # check whether the symmetrization is possible:
         pos_cov = self._tensor_type[0]   # first covariant position 
@@ -2064,19 +2105,21 @@ class FreeModuleTensor(ModuleElement):
                         str(pos[k]) + " is a contravariant position; \n"
                         "symmetrization is meaningfull only on tensor " + 
                         "arguments of the same type.")                
-        if basis is None:
+        if 'basis' in kwargs:
+            basis = kwargs['basis']
+        else:
             basis = self.pick_a_basis()
-        res_comp = self._components[basis].symmetrize(pos)
+        res_comp = self._components[basis].symmetrize(*pos)
         return self._fmodule.tensor_from_comp(self._tensor_type, res_comp)
 
         
-    def antisymmetrize(self, pos=None, basis=None):
+    def antisymmetrize(self, *pos, **kwargs):
         r"""
         Antisymmetrization over some arguments.
         
         INPUT:
         
-        - ``pos`` -- (default: None) list of argument positions involved in the 
+        - ``pos`` -- list of argument positions involved in the 
           antisymmetrization (with the convention position=0 for the first 
           argument); if none, the antisymmetrization is performed over all the 
           arguments
@@ -2116,7 +2159,7 @@ class FreeModuleTensor(ModuleElement):
             True True True True True True True True True
             sage: s.antisymmetrize() == s  # another test
             True
-            sage: t.antisymmetrize() == t.antisymmetrize((0,1))
+            sage: t.antisymmetrize() == t.antisymmetrize(0,1)
             True
 
         Antisymmetrization of a tensor of type (0,3) over the first two 
@@ -2124,7 +2167,7 @@ class FreeModuleTensor(ModuleElement):
 
             sage: t = M.tensor((0,3))
             sage: t[:] = [[[1,2,3], [-4,5,6], [7,8,-9]], [[10,-11,12], [13,14,-15], [16,17,18]], [[19,-20,-21], [-22,23,24], [25,26,-27]]]
-            sage: s = t.antisymmetrize((0,1)) ; s  # (0,1) = the first two arguments
+            sage: s = t.antisymmetrize(0,1) ; s  # (0,1) = the first two arguments
             type-(0,3) tensor on the rank-3 free module M over the Rational Field
             sage: s.symmetries()
             no symmetry;  antisymmetry: (0, 1)
@@ -2139,9 +2182,9 @@ class FreeModuleTensor(ModuleElement):
             ....:             print s[i,j,k] == 1/2*(t[i,j,k]-t[j,i,k]),
             ....:             
             True True True True True True True True True True True True True True True True True True True True True True True True True True True
-            sage: s.antisymmetrize((0,1)) == s  # another test
+            sage: s.antisymmetrize(0,1) == s  # another test
             True
-            sage: s.symmetrize((0,1)) == 0  # of course
+            sage: s.symmetrize(0,1) == 0  # of course
             True
 
         Instead of invoking the method :meth:`antisymmetrize`, one can use
@@ -2170,7 +2213,7 @@ class FreeModuleTensor(ModuleElement):
         Antisymmetrization of a tensor of type (0,3) over the first and last 
         arguments::
 
-            sage: s = t.antisymmetrize((0,2)) ; s  # (0,2) = first and last arguments
+            sage: s = t.antisymmetrize(0,2) ; s  # (0,2) = first and last arguments
             type-(0,3) tensor on the rank-3 free module M over the Rational Field
             sage: s.symmetries()
             no symmetry;  antisymmetry: (0, 2)
@@ -2185,17 +2228,17 @@ class FreeModuleTensor(ModuleElement):
             ....:             print s[i,j,k] == 1/2*(t[i,j,k]-t[k,j,i]),
             ....:             
             True True True True True True True True True True True True True True True True True True True True True True True True True True True
-            sage: s.antisymmetrize((0,2)) == s  # another test
+            sage: s.antisymmetrize(0,2) == s  # another test
             True
-            sage: s.symmetrize((0,2)) == 0  # of course
+            sage: s.symmetrize(0,2) == 0  # of course
             True
-            sage: s.symmetrize((0,1)) == 0  # no reason for this to hold
+            sage: s.symmetrize(0,1) == 0  # no reason for this to hold
             False
         
         Antisymmetrization of a tensor of type (0,3) over the last two 
         arguments::
 
-            sage: s = t.antisymmetrize((1,2)) ; s  # (1,2) = the last two arguments
+            sage: s = t.antisymmetrize(1,2) ; s  # (1,2) = the last two arguments
             type-(0,3) tensor on the rank-3 free module M over the Rational Field
             sage: s.symmetries()
             no symmetry;  antisymmetry: (1, 2)
@@ -2210,15 +2253,15 @@ class FreeModuleTensor(ModuleElement):
             ....:             print s[i,j,k] == 1/2*(t[i,j,k]-t[i,k,j]),
             ....:             
             True True True True True True True True True True True True True True True True True True True True True True True True True True True
-            sage: s.antisymmetrize((1,2)) == s  # another test
+            sage: s.antisymmetrize(1,2) == s  # another test
             True
-            sage: s.symmetrize((1,2)) == 0  # of course
+            sage: s.symmetrize(1,2) == 0  # of course
             True
 
         The index notation can be used instead of the explicit call to 
         :meth:`antisymmetrize`::
         
-            sage: t['_i[jk]'] == t.antisymmetrize((1,2))
+            sage: t['_i[jk]'] == t.antisymmetrize(1,2)
             True
 
         Full antisymmetrization of a tensor of type (0,3)::
@@ -2240,13 +2283,13 @@ class FreeModuleTensor(ModuleElement):
             True True True True True True True True True True True True True True True True True True True True True True True True True True True
             sage: s.antisymmetrize() == s  # another test
             True
-            sage: s.symmetrize((0,1)) == 0  # of course
+            sage: s.symmetrize(0,1) == 0  # of course
             True
-            sage: s.symmetrize((0,2)) == 0  # of course
+            sage: s.symmetrize(0,2) == 0  # of course
             True
-            sage: s.symmetrize((1,2)) == 0  # of course
+            sage: s.symmetrize(1,2) == 0  # of course
             True
-            sage: t.antisymmetrize() == t.antisymmetrize((0,1,2))
+            sage: t.antisymmetrize() == t.antisymmetrize(0,1,2)
             True
 
         The index notation can be used instead of the explicit call to 
@@ -2265,32 +2308,32 @@ class FreeModuleTensor(ModuleElement):
         
             sage: t = M.tensor((1,2))
             sage: t[:] = [[[1,2,3], [-4,5,6], [7,8,-9]], [[10,-11,12], [13,14,-15], [16,17,18]], [[19,-20,-21], [-22,23,24], [25,26,-27]]]
-            sage: s = t.antisymmetrize((0,1)) 
+            sage: s = t.antisymmetrize(0,1) 
             Traceback (most recent call last):
             ...
             TypeError: 0 is a contravariant position, while 1 is a covariant position; 
             antisymmetrization is meaningfull only on tensor arguments of the same type.
-            sage: s = t.antisymmetrize((1,2)) # OK: both 1 and 2 are covariant positions
+            sage: s = t.antisymmetrize(1,2) # OK: both 1 and 2 are covariant positions
 
         The order of positions does not matter::
         
-            sage: t.antisymmetrize((2,1)) == t.antisymmetrize((1,2))
+            sage: t.antisymmetrize(2,1) == t.antisymmetrize(1,2)
             True
         
         Again, the index notation can be used::
         
-            sage: t['^i_[jk]'] == t.antisymmetrize((1,2))
+            sage: t['^i_[jk]'] == t.antisymmetrize(1,2)
             True
-            sage: t['^i_{[jk]}'] == t.antisymmetrize((1,2))  # LaTeX notation
+            sage: t['^i_{[jk]}'] == t.antisymmetrize(1,2)  # LaTeX notation
             True
 
         The character '^' can be skipped::
         
-            sage: t['i_[jk]'] == t.antisymmetrize((1,2))
+            sage: t['i_[jk]'] == t.antisymmetrize(1,2)
             True
             
         """
-        if pos is None:
+        if not pos:
             pos = range(self._tensor_rank)
         # check whether the antisymmetrization is possible:
         pos_cov = self._tensor_type[0]   # first covariant position 
@@ -2311,9 +2354,11 @@ class FreeModuleTensor(ModuleElement):
                         str(pos[k]) + " is a contravariant position; \n"
                         "antisymmetrization is meaningfull only on tensor " + 
                         "arguments of the same type.")                
-        if basis is None:
+        if 'basis' in kwargs:
+            basis = kwargs['basis']
+        else:
             basis = self.pick_a_basis()
-        res_comp = self._components[basis].antisymmetrize(pos)
+        res_comp = self._components[basis].antisymmetrize(*pos)
         return self._fmodule.tensor_from_comp(self._tensor_type, res_comp)
 
 

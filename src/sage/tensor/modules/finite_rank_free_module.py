@@ -629,8 +629,13 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         elif tensor_type==(1,1):
             return FreeModuleEndomorphism(self, name=name, 
                                                          latex_name=latex_name)
-        elif tensor_type[0]==0 and tensor_type[1]>1 and antisym is not None:
-            if len(antisym)==tensor_type[1]:
+        elif tensor_type[0]==0 and tensor_type[1]>1 and antisym is not None\
+                                                              and antisym !=[]:
+            if isinstance(antisym, list):
+                antisym0 = antisym[0]
+            else:
+                antisym0 = antisym
+            if len(antisym0)==tensor_type[1]:
                 return FreeModuleAltForm(self, tensor_type[1], name=name, 
                                          latex_name=latex_name)
             else:

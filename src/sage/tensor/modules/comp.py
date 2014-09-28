@@ -1163,7 +1163,7 @@ class Components(SageObject):
             result._comp[ind] = val / other
         return result
 
-    def self_contract(self, pos1, pos2):
+    def trace(self, pos1, pos2):
         r""" 
         Index contraction.
         
@@ -1185,7 +1185,7 @@ class Components(SageObject):
             sage: V = VectorSpace(QQ, 3)
             sage: c = Components(QQ, V.basis(), 2)
             sage: c[:] = [[1,2,3], [4,5,6], [7,8,9]]
-            sage: c.self_contract(0,1)
+            sage: c.trace(0,1)
             15
             sage: c[0,0] + c[1,1] + c[2,2]  # check
             15
@@ -1200,7 +1200,7 @@ class Components(SageObject):
             (0, 1, 0),
             (0, 0, 1)
             ]
-            sage: s = a.self_contract(0,1) ; s  # contraction on the first two indices
+            sage: s = a.trace(0,1) ; s  # contraction on the first two indices
             1-index components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -1210,11 +1210,11 @@ class Components(SageObject):
             [-15, 30, 45]
             sage: [sum(a[j,j,i] for j in range(3)) for i in range(3)]  # check
             [-15, 30, 45]
-            sage: s = a.self_contract(0,2) ; s[:]  # contraction on the first and last indices
+            sage: s = a.trace(0,2) ; s[:]  # contraction on the first and last indices
             [28, 32, 36]
             sage: [sum(a[j,i,j] for j in range(3)) for i in range(3)]  # check
             [28, 32, 36]
-            sage: s = a.self_contract(1,2) ; s[:] # contraction on the last two indices
+            sage: s = a.trace(1,2) ; s[:] # contraction on the last two indices
             [12, 24, 36]
             sage: [sum(a[i,j,j] for j in range(3)) for i in range(3)]  # check
             [12, 24, 36]
@@ -1250,22 +1250,27 @@ class Components(SageObject):
                     result[[ind_res]] += val
             return result
 
-
-    def contract(self, pos1, other, pos2):
+    def contract(self, *args):
         r""" 
-        Index contraction with another instance of :class:`Components`. 
+        Contraction on one or many indices with another instance of
+        :class:`Components`. 
         
         INPUT:
             
-        - ``pos1`` -- position of the first index (in ``self``) for the 
-          contraction (with the convention position=0 for the first slot)
+        - ``pos1`` -- positions of the indices in ``self`` involved in the
+          contraction; ``pos1`` must be a sequence of integers, with 0 standing
+          for the first index position, 1 for the second one, etc. If ``pos1`` 
+          is not provided, a single contraction on the last index position of
+          ``self`` is assumed
         - ``other`` -- the set of components to contract with
-        - ``pos2`` -- position of the second index (in ``other``) for the 
-          contraction (with the convention position=0 for the first slot)
+        - ``pos2`` -- positions of the indices in ``other`` involved in the
+          contraction, with the same conventions as for ``pos1``. If ``pos2``
+          is not provided, a single contraction on the first index position of
+          ``other`` is assumed
           
         OUTPUT:
         
-        - set of components resulting from the (pos1, pos2) contraction
+        - set of components resulting from the contraction
        
         EXAMPLES:
 
@@ -1291,10 +1296,28 @@ class Components(SageObject):
             [12, 24, 36]
             sage: [sum(a[j]*b[i,j] for j in range(3)) for i in range(3)]  # check
             [12, 24, 36]
+        
+        Contraction on 2 indices::
+        
+            sage: c = a*b ; c 
+            3-indices components w.r.t. [
+            (1, 0, 0),
+            (0, 1, 0),
+            (0, 0, 1)
+            ]
+            sage: s = c.contract(1,2, b, 0,1) ; s  
+            1-index components w.r.t. [
+            (1, 0, 0),
+            (0, 1, 0),
+            (0, 0, 1)
+            ]
+            sage: s[:]
+            [-285, 570, 855]
+            sage: [sum(sum(c[i,j,k]*b[j,k] for k in range(3)) for j in range(3)) for i in range(3)] # check
+            [-285, 570, 855]  
 
-        Consistency check with :meth:`self_contract`::
+        Consistency check with :meth:`trace`::
 
-            sage: a[:] = (1,2,-3)
             sage: b = a*a ; b   # the tensor product of a with itself
             fully symmetric 2-indices components w.r.t. [
             (1, 0, 0),
@@ -1302,27 +1325,189 @@ class Components(SageObject):
             (0, 0, 1)
             ]
             sage: b[:]
-            [ 1  2 -3]
-            [ 2  4 -6]
-            [-3 -6  9]
-            sage: b.self_contract(0,1)
+            [ 1 -2 -3]
+            [-2  4  6]
+            [-3  6  9]
+            sage: b.trace(0,1)
             14
-            sage: a.contract(0, a, 0) == b.self_contract(0,1)
+            sage: a.contract(0, a, 0) == b.trace(0,1)
             True
 
         """
-        if not isinstance(other, Components):
-            raise TypeError("For the contraction, other must be an instance " +
-                            "of Components.")
-        if pos1 < 0 or pos1 > self._nid - 1:
-            raise IndexError("pos1 out of range.")
-        if pos2 < 0 or pos2 > other._nid - 1:
-            raise IndexError("pos2 out of range.")
-        return (self*other).self_contract(pos1, 
-                                          pos2+self._nid) 
-        #!# the above is correct (in particular the symmetries are delt by 
-        #   self_contract()), but it is not optimal (unnecessary terms are 
-        #   evaluated when performing the tensor product self*other)
+        #
+        # Treatment of the input
+        #
+        nargs = len(args)
+        for i, arg in enumerate(args):
+            if isinstance(arg, Components):
+                other = arg
+                it = i
+                break
+        else:
+            raise TypeError("A set of components must be provided in the " + 
+                            "argument list.")
+        if it == 0:
+            pos1 = (self._nid - 1,)
+        else:
+            pos1 = args[:it]
+        if it == nargs-1:
+            pos2 = (0,)
+        else:
+            pos2 = args[it+1:]
+        ncontr = len(pos1) # number of contractions
+        if len(pos2) != ncontr:
+            raise TypeError("Different number of indices for the contraction.")
+        if other._frame != self._frame:
+            raise TypeError("The two sets of components are not defined on " +
+                            "the same frame.")
+        if other._sindex != self._sindex:
+            raise TypeError("The two sets of components do not have the " + 
+                            "same starting index.")
+        contractions = [(pos1[i], pos2[i]) for i in range(ncontr)]
+        res_nid = self._nid + other._nid - 2*ncontr
+        # 
+        # Special case of a scalar result
+        #
+        if res_nid == 0:
+            # To generate the indices tuples (of size ncontr) involved in the 
+            # the contraction, we create an empty instance of Components with
+            # ncontr indices and call the method index_generator() on it:
+            comp_for_contr = Components(self._ring, self._frame, ncontr, 
+                                        start_index=self._sindex) 
+            res = 0
+            for ind in comp_for_contr.index_generator():
+                res += self[[ind]] * other[[ind]]
+            return res
+        #
+        # Positions of self and other indices in the result
+        #  (None = the position is involved in a contraction and therefore 
+        #   does not appear in the final result)
+        #
+        pos_s = [None for i in range(self._nid)]  # initialization
+        pos_o = [None for i in range(other._nid)] # initialization
+        shift = 0
+        for pos in range(self._nid):
+            for contract_pair in contractions:
+                if pos == contract_pair[0]:
+                    shift += 1
+                    break
+            else:
+                pos_s[pos] = pos - shift
+        for pos in range(other._nid):
+            for contract_pair in contractions:
+                if pos == contract_pair[1]:
+                    shift += 1
+                    break
+            else:
+                pos_o[pos] = self._nid + pos - shift
+        rev_s = [pos_s.index(i) for i in range(self._nid-ncontr)]
+        rev_o = [pos_o.index(i) for i in range(self._nid-ncontr, res_nid)]
+        #
+        # Determination of the symmetries of the result
+        #
+        max_len_sym = 0 # maximum length of symmetries in the result
+        max_len_antisym = 0 # maximum length of antisymmetries in the result
+        if res_nid > 1:  # no need to search for symmetries if res_nid == 1
+            if isinstance(self, CompWithSym):
+                s_sym = self._sym
+                s_antisym = self._antisym
+            else:
+                s_sym = []
+                s_antisym = []
+            if isinstance(other, CompWithSym):
+                o_sym = other._sym
+                o_antisym = other._antisym
+            else:
+                o_sym = []
+                o_antisym = []
+            # print "s_sym, s_antisym: ", s_sym, s_antisym
+            # print "o_sym, o_antisym: ", o_sym, o_antisym
+            res_sym = []
+            res_antisym = []
+            for isym in s_sym:
+                r_isym = []
+                for pos in isym:
+                    if pos_s[pos] is not None:
+                        r_isym.append(pos_s[pos])
+                if len(r_isym) > 1:
+                    res_sym.append(r_isym)
+                    max_len_sym = max(max_len_sym, len(r_isym))
+            for isym in s_antisym:
+                r_isym = []
+                for pos in isym:
+                    if pos_s[pos] is not None:
+                        r_isym.append(pos_s[pos])
+                if len(r_isym) > 1:
+                    res_antisym.append(r_isym)
+                    max_len_antisym = max(max_len_antisym, len(r_isym))
+            for isym in o_sym:
+                r_isym = []
+                for pos in isym:
+                    if pos_o[pos] is not None:
+                        r_isym.append(pos_o[pos])
+                if len(r_isym) > 1:
+                    res_sym.append(r_isym)
+                    max_len_sym = max(max_len_sym, len(r_isym))
+            for isym in o_antisym:
+                r_isym = []
+                for pos in isym:
+                    if pos_o[pos] is not None:
+                        r_isym.append(pos_o[pos])
+                if len(r_isym) > 1:
+                    res_antisym.append(r_isym)
+                    max_len_antisym = max(max_len_antisym, len(r_isym))
+            # print "res_sym: ", res_sym
+            # print "res_antisym: ", res_antisym
+            # print "max_len_sym: ", max_len_sym 
+            # print "max_len_antisym: ", max_len_antisym 
+        #
+        # Construction of the result object in view of the remaining symmetries:
+        #
+        if max_len_sym == 0 and max_len_antisym == 0:
+            res = Components(self._ring, self._frame, res_nid, 
+                             start_index=self._sindex, 
+                             output_formatter=self._output_formatter)
+        elif max_len_sym == res_nid:
+            res = CompFullySym(self._ring, self._frame, res_nid, 
+                               start_index=self._sindex, 
+                               output_formatter=self._output_formatter)
+        elif max_len_antisym == res_nid:
+            res = CompFullyAntiSym(self._ring, self._frame, res_nid, 
+                                   start_index=self._sindex, 
+                                   output_formatter=self._output_formatter)
+        else:
+            res = CompWithSym(self._ring, self._frame, res_nid, 
+                              start_index=self._sindex, 
+                              output_formatter=self._output_formatter, 
+                              sym=res_sym, antisym=res_antisym)
+        #
+        # Performing the contraction
+        #
+        # To generate the indices tuples (of size ncontr) involved in the 
+        # the contraction, we create an empty instance of Components with
+        # ncontr indices and call the method index_generator() on it:
+        comp_for_contr = Components(self._ring, self._frame, ncontr, 
+                                    start_index=self._sindex) 
+        shift_o = self._nid - ncontr
+        for ind in res.non_redundant_index_generator():
+            ind_s = [None for i in range(self._nid)]  # initialization
+            ind_o = [None for i in range(other._nid)] # initialization
+            for i, pos in enumerate(rev_s):
+                ind_s[pos] = ind[i]
+            for i, pos in enumerate(rev_o):
+                ind_o[pos] = ind[shift_o+i]
+            sm = 0
+            for ind_c in comp_for_contr.index_generator():
+                ic = 0
+                for pos_s, pos_o in contractions:
+                    k = ind_c[ic]
+                    ind_s[pos_s] = k
+                    ind_o[pos_o] = k
+                    ic += 1
+                sm += self[[ind_s]] * other[[ind_o]]
+            res[[ind]] = sm
+        return res
+        
 
     def index_generator(self):
         r"""
@@ -1399,13 +1584,13 @@ class Components(SageObject):
             yield ind
 
 
-    def symmetrize(self, pos=None):
+    def symmetrize(self, *pos):
         r"""
         Symmetrization over the given index positions
         
         INPUT:
         
-        - ``pos`` -- (default: None) tuple of index positions involved in the 
+        - ``pos`` -- list of index positions involved in the 
           symmetrization (with the convention position=0 for the first slot); 
           if none, the symmetrization is performed over all the indices
           
@@ -1434,7 +1619,7 @@ class Components(SageObject):
             [4 5 6]  [3 5 7]
             [7 8 9], [5 7 9]
             )
-            sage: c.symmetrize() == c.symmetrize((0,1))
+            sage: c.symmetrize() == c.symmetrize(0,1)
             True
 
         Full symmetrization of 3-indices components::
@@ -1461,12 +1646,12 @@ class Components(SageObject):
             ....:             print s[i,j,k] == (c[i,j,k]+c[i,k,j]+c[j,k,i]+c[j,i,k]+c[k,i,j]+c[k,j,i])/6,
             ....:             
             True True True True True True True True True True True True True True True True True True True True True True True True True True True
-            sage: c.symmetrize() == c.symmetrize((0,1,2))
+            sage: c.symmetrize() == c.symmetrize(0,1,2)
             True
 
         Partial symmetrization of 3-indices components::
         
-            sage: s = c.symmetrize((0,1)) ; s   # symmetrization on the first two indices
+            sage: s = c.symmetrize(0,1) ; s   # symmetrization on the first two indices
             3-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -1486,7 +1671,7 @@ class Components(SageObject):
             ....:             print s[i,j,k] == (c[i,j,k]+c[j,i,k])/2,
             ....:             
             True True True True True True True True True True True True True True True True True True True True True True True True True True True
-            sage: s = c.symmetrize([1,2]) ; s   # symmetrization on the last two indices
+            sage: s = c.symmetrize(1,2) ; s   # symmetrization on the last two indices
             3-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -1506,7 +1691,7 @@ class Components(SageObject):
             ....:             print s[i,j,k] == (c[i,j,k]+c[i,k,j])/2,
             ....:             
             True True True True True True True True True True True True True True True True True True True True True True True True True True True
-            sage: s = c.symmetrize((0,2)) ; s   # symmetrization on the first and last indices
+            sage: s = c.symmetrize(0,2) ; s   # symmetrization on the first and last indices
             3-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -1529,7 +1714,7 @@ class Components(SageObject):
 
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-        if pos is None:
+        if not pos:
             pos = range(self._nid)
         else:
             if len(pos) < 2:
@@ -1558,16 +1743,15 @@ class Components(SageObject):
         return result
 
             
-    def antisymmetrize(self, pos=None):
+    def antisymmetrize(self, *pos):
         r"""
         Antisymmetrization over the given index positions
         
         INPUT:
         
-        - ``pos`` -- (default: None) tuple of index positions involved in the 
-          antisymmetrization (with the convention position=0 for the first 
-          slot); if none, the antisymmetrization is performed over all the 
-          indices
+        - ``pos`` -- list of index positions involved in the antisymmetrization 
+          (with the convention position=0 for the first slot); if none, the 
+          antisymmetrization is performed over all the indices
           
         OUTPUT:
         
@@ -1594,7 +1778,7 @@ class Components(SageObject):
             [4 5 6]  [ 1  0 -1]
             [7 8 9], [ 2  1  0]
             )
-            sage: c.antisymmetrize() == c.antisymmetrize((0,1))
+            sage: c.antisymmetrize() == c.antisymmetrize(0,1)
             True
            
         Full antisymmetrization of 3-indices components::
@@ -1620,12 +1804,12 @@ class Components(SageObject):
             ....:         for k in range(3):
             ....:             print s[i,j,k] == (c[i,j,k]-c[i,k,j]+c[j,k,i]-c[j,i,k]+c[k,i,j]-c[k,j,i])/6,
             True True True True True True True True True True True True True True True True True True True True True True True True True True True
-            sage: c.symmetrize() == c.symmetrize((0,1,2))
+            sage: c.symmetrize() == c.symmetrize(0,1,2)
             True
 
         Partial antisymmetrization of 3-indices components::
             
-            sage: s = c.antisymmetrize((0,1)) ; s  # antisymmetrization on the first two indices
+            sage: s = c.antisymmetrize(0,1) ; s  # antisymmetrization on the first two indices
             3-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -1645,7 +1829,7 @@ class Components(SageObject):
             ....:              print s[i,j,k] == (c[i,j,k]-c[j,i,k])/2,
             ....:             
             True True True True True True True True True True True True True True True True True True True True True True True True True True True
-            sage: s = c.antisymmetrize((1,2)) ; s  # antisymmetrization on the last two indices
+            sage: s = c.antisymmetrize(1,2) ; s  # antisymmetrization on the last two indices
             3-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -1665,7 +1849,7 @@ class Components(SageObject):
             ....:              print s[i,j,k] == (c[i,j,k]-c[i,k,j])/2,
             ....:             
             True True True True True True True True True True True True True True True True True True True True True True True True True True True
-            sage: s = c.antisymmetrize((0,2)) ; s  # antisymmetrization on the first and last indices
+            sage: s = c.antisymmetrize(0,2) ; s  # antisymmetrization on the first and last indices
             3-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -1688,16 +1872,16 @@ class Components(SageObject):
             
         The order of index positions in the argument does not matter::
             
-            sage: c.antisymmetrize((1,0)) == c.antisymmetrize((0,1))
+            sage: c.antisymmetrize(1,0) == c.antisymmetrize(0,1)
             True
-            sage: c.antisymmetrize((2,1)) == c.antisymmetrize((1,2))
+            sage: c.antisymmetrize(2,1) == c.antisymmetrize(1,2)
             True
-            sage: c.antisymmetrize((2,0)) == c.antisymmetrize((0,2))
+            sage: c.antisymmetrize(2,0) == c.antisymmetrize(0,2)
             True
         
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-        if pos is None:
+        if not pos:
             pos = range(self._nid)
         else:
             if len(pos) < 2:
@@ -2369,7 +2553,7 @@ class CompWithSym(Components):
         return result
 
 
-    def self_contract(self, pos1, pos2):
+    def trace(self, pos1, pos2):
         r""" 
         Index contraction, taking care of the symmetries.
         
@@ -2392,7 +2576,7 @@ class CompWithSym(Components):
             sage: V = VectorSpace(QQ, 3)
             sage: a = CompFullySym(QQ, V.basis(), 2)
             sage: a[:] = [[1,2,3],[2,4,5],[3,5,6]]
-            sage: a.self_contract(0,1)
+            sage: a.trace(0,1)
             11
             sage: a[0,0] + a[1,1] + a[2,2]
             11
@@ -2401,7 +2585,7 @@ class CompWithSym(Components):
         
             sage: b = CompFullyAntiSym(QQ, V.basis(), 2)
             sage: b[0,1], b[0,2], b[1,2] = (3, -2, 1)
-            sage: b.self_contract(0,1)  # must be zero by antisymmetry
+            sage: b.trace(0,1)  # must be zero by antisymmetry
             0
 
 
@@ -2415,7 +2599,7 @@ class CompWithSym(Components):
             (0, 1, 0),
             (0, 0, 1)
             ], with antisymmetry on the index positions (1, 2)
-            sage: s = c.self_contract(0,1) ; s
+            sage: s = c.trace(0,1) ; s
             1-index components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -2425,7 +2609,7 @@ class CompWithSym(Components):
             [-28, 2, 8]
             sage: [sum(v[k]*b[k,i] for k in range(3)) for i in range(3)] # check
             [-28, 2, 8]
-            sage: s = c.self_contract(1,2) ; s
+            sage: s = c.trace(1,2) ; s
             1-index components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -2439,10 +2623,10 @@ class CompWithSym(Components):
             (0, 1, 0),
             (0, 0, 1)
             ], with antisymmetry on the index positions (0, 1)
-            sage: s = c.self_contract(0,1)
+            sage: s = c.trace(0,1)
             sage: s[:]  # is zero by antisymmetry
             [0, 0, 0]
-            sage: s = c.self_contract(1,2) ; s[:]
+            sage: s = c.trace(1,2) ; s[:]
             [28, -2, -8]
             sage: [sum(b[i,k]*v[k] for k in range(3)) for i in range(3)]  # check 
             [28, -2, -8]
@@ -2455,7 +2639,7 @@ class CompWithSym(Components):
             (0, 1, 0),
             (0, 0, 1)
             ], with symmetry on the index positions (0, 1), with antisymmetry on the index positions (2, 3)
-            sage: s = c.self_contract(0,1) ; s  # the symmetry on (0,1) is lost:
+            sage: s = c.trace(0,1) ; s  # the symmetry on (0,1) is lost:
             fully antisymmetric 2-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -2467,7 +2651,7 @@ class CompWithSym(Components):
             [ 22 -11   0]
             sage: [[sum(c[k,k,i,j] for k in range(3)) for j in range(3)] for i in range(3)]  # check
             [[0, 33, -22], [-33, 0, 11], [22, -11, 0]]
-            sage: s = c.self_contract(1,2) ; s  # both symmetries are lost by this contraction
+            sage: s = c.trace(1,2) ; s  # both symmetries are lost by this contraction
             2-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -2682,13 +2866,13 @@ class CompWithSym(Components):
                         ind[pos] = si
                         ret = 1
 
-    def symmetrize(self, pos=None):
+    def symmetrize(self, *pos):
         r"""
         Symmetrization over the given index positions
         
         INPUT:
         
-        - ``pos`` -- (default: None) list of index positions involved in the 
+        - ``pos`` -- list of index positions involved in the 
           symmetrization (with the convention position=0 for the first slot); 
           if none, the symmetrization is performed over all the indices
           
@@ -2706,7 +2890,7 @@ class CompWithSym(Components):
             sage: V = VectorSpace(QQ, 3)
             sage: c = Components(QQ, V.basis(), 3)
             sage: c[:] = [[[1,2,3], [4,5,6], [7,8,9]], [[10,11,12], [13,14,15], [16,17,18]], [[19,20,21], [22,23,24], [25,26,27]]]
-            sage: cs = c.symmetrize((0,1)) ; cs
+            sage: cs = c.symmetrize(0,1) ; cs
             3-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -2727,7 +2911,7 @@ class CompWithSym(Components):
               [[29/3, 14, 55/3], [14, 55/3, 68/3], [55/3, 68/3, 27]]])
             sage: s == c.symmetrize() # should be true
             True
-            sage: s1 = cs.symmetrize((0,1)) ; s1   # should return a copy of cs
+            sage: s1 = cs.symmetrize(0,1) ; s1   # should return a copy of cs
             3-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -2738,7 +2922,7 @@ class CompWithSym(Components):
 
         Let us now start with a symmetry on the last two indices::
 
-            sage: cs1 = c.symmetrize((1,2)) ; cs1
+            sage: cs1 = c.symmetrize(1,2) ; cs1
             3-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -2757,13 +2941,13 @@ class CompWithSym(Components):
         the index positions (1,2) a set of components that is symmetric w.r.t.
         the index positions (0,1)::
 
-            sage: cs = c.symmetrize((0,1)) ; cs 
+            sage: cs = c.symmetrize(0,1) ; cs 
             3-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
             (0, 0, 1)
             ], with symmetry on the index positions (0, 1)
-            sage: css = cs.symmetrize((1,2)) 
+            sage: css = cs.symmetrize(1,2) 
             sage: css # the symmetry (0,1) has been lost: 
             3-indices components w.r.t. [
             (1, 0, 0),
@@ -2794,7 +2978,7 @@ class CompWithSym(Components):
             (0, 1, 0),
             (0, 0, 1)
             ], with symmetry on the index positions (1, 2, 3)
-            sage: a1 = a.symmetrize((0,1)) ; a1 # the symmetry (1,2,3) has been reduced to (2,3):
+            sage: a1 = a.symmetrize(0,1) ; a1 # the symmetry (1,2,3) has been reduced to (2,3):
             4-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -2824,7 +3008,7 @@ class CompWithSym(Components):
             (0, 1, 0),
             (0, 0, 1)
             ], with antisymmetry on the index positions (2, 3)
-            sage: s = c.symmetrize((0,1)) ; s  # symmetrization on the first two indices
+            sage: s = c.symmetrize(0,1) ; s  # symmetrization on the first two indices
             4-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -2840,7 +3024,7 @@ class CompWithSym(Components):
             ]
             sage: s == 0    # the full symmetrization results in zero due to the antisymmetry on the last two indices
             True
-            sage: s = c.symmetrize((2,3)) ; s
+            sage: s = c.symmetrize(2,3) ; s
             4-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -2848,7 +3032,7 @@ class CompWithSym(Components):
             ], with symmetry on the index positions (2, 3)
             sage: s == 0    # must be zero since the symmetrization has been performed on the antisymmetric indices
             True
-            sage: s = c.symmetrize((0,2)) ; s
+            sage: s = c.symmetrize(0,2) ; s
             4-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -2870,14 +3054,14 @@ class CompWithSym(Components):
             (0, 1, 0),
             (0, 0, 1)
             ], with antisymmetry on the index positions (1, 2, 3)
-            sage: s = c.symmetrize((0,1)) ; s
+            sage: s = c.symmetrize(0,1) ; s
             4-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
             (0, 0, 1)
             ], with symmetry on the index positions (0, 1), with antisymmetry on the index positions (2, 3)
             sage: # Note that the antisymmetry on (1, 2, 3) has been reduced to (2, 3) only
-            sage: s = c.symmetrize((1,2)) ; s
+            sage: s = c.symmetrize(1,2) ; s
             4-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -2888,7 +3072,7 @@ class CompWithSym(Components):
             
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-        if pos is None:
+        if not pos:
             pos = range(self._nid)
         else:
             if len(pos) < 2:
@@ -2983,15 +3167,15 @@ class CompWithSym(Components):
         return result
 
 
-    def antisymmetrize(self, pos=None):
+    def antisymmetrize(self, *pos):
         r"""
         Antisymmetrization over the given index positions
         
         INPUT:
         
-        - ``pos`` -- (default: None) list of index positions involved in the 
-          antisymmetrization (with the convention position=0 for the first slot); 
-          if none, the antisymmetrization is performed over all the indices
+        - ``pos`` -- list of index positions involved in the antisymmetrization
+          (with the convention position=0 for the first slot); if none, the 
+          antisymmetrization is performed over all the indices
           
         OUTPUT:
         
@@ -3038,7 +3222,7 @@ class CompWithSym(Components):
                         
         Antisymmetrization over already antisymmetric indices does not change anything::
         
-            sage: s1 = s.antisymmetrize((1,2)) ; s1
+            sage: s1 = s.antisymmetrize(1,2) ; s1
             fully antisymmetric 3-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -3046,7 +3230,7 @@ class CompWithSym(Components):
             ]
             sage: s1 == s
             True
-            sage: c1 = c.antisymmetrize((1,2)) ; c1
+            sage: c1 = c.antisymmetrize(1,2) ; c1
             3-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -3057,7 +3241,7 @@ class CompWithSym(Components):
 
         But in general, antisymmetrization may alter previous antisymmetries::
         
-            sage: c2 = c.antisymmetrize((0,1)) ; c2  # the antisymmetry (2,3) is lost: 
+            sage: c2 = c.antisymmetrize(0,1) ; c2  # the antisymmetry (2,3) is lost: 
             3-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -3071,7 +3255,7 @@ class CompWithSym(Components):
             (0, 1, 0),
             (0, 0, 1)
             ], with antisymmetry on the index positions (0, 1, 2)
-            sage: s = c.antisymmetrize((1,3)) ; s
+            sage: s = c.antisymmetrize(1,3) ; s
             4-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -3093,7 +3277,7 @@ class CompWithSym(Components):
             (0, 1, 0),
             (0, 0, 1)
             ], with symmetry on the index positions (0, 1)
-            sage: s = c.antisymmetrize((2,3)) ; s
+            sage: s = c.antisymmetrize(2,3) ; s
             4-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -3120,7 +3304,7 @@ class CompWithSym(Components):
 
         Similarly, the partial antisymmetrization on the first two indices results in zero::
         
-            sage: s = c.antisymmetrize((0,1)) ; s
+            sage: s = c.antisymmetrize(0,1) ; s
             4-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -3131,7 +3315,7 @@ class CompWithSym(Components):
 
         The partial antisymmetrization on the positions (0,2) destroys the symmetry on (0,1)::
         
-            sage: s = c.antisymmetrize((0,2)) ; s
+            sage: s = c.antisymmetrize(0,2) ; s
             4-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
@@ -3148,7 +3332,7 @@ class CompWithSym(Components):
 
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-        if pos is None:
+        if not pos:
             pos = range(self._nid)
         else:
             if len(pos) < 2:

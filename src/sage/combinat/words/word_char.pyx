@@ -334,9 +334,9 @@ cdef class WordDatatype_char(WordDatatype):
             ...
             TypeError: slice indices must be integers or None or have an __index__ method
 
-        Check a weird behavior of PySlice_GetIndicesEx::
+        Check a weird behavior of PySlice_GetIndicesEx (:trac:`17056`)::
 
-            sage: w[:0]
+            sage: w[1:0]
             word:
         """
         cdef Py_ssize_t i, start, stop, step, slicelength

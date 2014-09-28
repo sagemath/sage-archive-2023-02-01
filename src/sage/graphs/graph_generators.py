@@ -1675,7 +1675,9 @@ class GraphGenerators():
         elif minimum_degree < minimum_connectivity:
             raise ValueError("Minimum connectivity can be at most the minimum degree.")
 
-        if order < 8:
+        minimum_order = {2:4, 3:8}[minimum_degree]
+
+        if order < minimum_order:
             return
 
         if no_nonfacial_quadrangles:

@@ -1502,6 +1502,21 @@ class GraphGenerators():
             20    71
             21   187
             22   627
+
+        The minimum connectivity can be at most the minimum degree. ::
+
+            sage: gen = graphs.triangulations(10, minimum_degree=3, minimum_connectivity=5).next()  # optional plantri
+            Traceback (most recent call last):
+            ...
+            ValueError: Minimum connectivity can be at most the minimum degree.
+
+        There are 5 triangulations with 9 vertices and minimum degree equal
+        to 4 that are 3-connected, but only one of them is not 4-connected.
+
+            sage: len([g for g in graphs.triangulations(9, minimum_degree=4, minimum_connectivity=3)])
+            5
+            sage: len([g for g in graphs.triangulations(9, minimum_degree=4, minimum_connectivity=3, exact_connectivity=True)])
+            1
         """
         from sage.misc.package import is_package_installed
         if not is_package_installed("plantri"):

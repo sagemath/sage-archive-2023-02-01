@@ -1300,9 +1300,9 @@ class GraphGenerators():
 
         OUTPUT:
 
-        A generator which will produce the general planar graphs as Sage graphs
-        with an embedding set. These will be simple graphs: no loops, no
-        multiple edges, no directed edges.
+        An iterator which will produce all planar graphs with the given
+        number of vertices as Sage graphs with an embedding set. These will be
+        simple graphs: no loops, no multiple edges, no directed edges.
 
         .. SEEALSO::
 
@@ -1419,8 +1419,9 @@ class GraphGenerators():
     def triangulations(self, order, minimum_degree=None, minimum_connectivity=None,
                      exact_connectivity=False, only_eulerian=False):
         r"""
-        Return a generator which creates plane triangulations using
-        the plantri generator (see [plantri]_).
+        An iterator over planar triangulations using the plantri generator. This
+        uses the plantri generator (see [plantri]_) which is available through the
+        optional package plantri.
 
         INPUT:
 
@@ -1452,9 +1453,9 @@ class GraphGenerators():
 
         OUTPUT:
 
-        A generator which will produce the plane triangulations as Sage graphs
-        with an embedding set. These will be simple graphs: no loops, no
-        multiple edges, no directed edges.
+        An iterator which will produce all planar triangulations with the given
+        number of vertices as Sage graphs with an embedding set. These will be
+        simple graphs: no loops, no multiple edges, no directed edges.
 
         .. SEEALSO::
 
@@ -1566,8 +1567,9 @@ class GraphGenerators():
     def quadrangulations(self, order, minimum_degree=None, minimum_connectivity=None,
                         no_nonfacial_quadrangles=False):
         r"""
-        Return a generator which creates plane quadrangulations using
-        the plantri generator (see [plantri]_).
+        An iterator over planar quadrangulations using the plantri generator. This
+        uses the plantri generator (see [plantri]_) which is available through the
+        optional package plantri.
 
         INPUT:
 
@@ -1595,9 +1597,9 @@ class GraphGenerators():
 
         OUTPUT:
 
-        A generator which will produce the plane quadrangulations as Sage graphs
-        with an embedding set. These will be simple graphs: no loops, no
-        multiple edges, no directed edges.
+        An iterator which will produce all planar quadrangulations with the given
+        number of vertices as Sage graphs with an embedding set. These will be
+        simple graphs: no loops, no multiple edges, no directed edges.
 
         .. SEEALSO::
 

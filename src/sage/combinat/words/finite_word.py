@@ -4961,25 +4961,14 @@ class FiniteWord_class(Word_class):
 
     def abelian_vectors(self, n):
         r"""
-        Return the abelian vectors of factors of length n of self.
+        Return the abelian vectors of factors of length ``n`` of self.
 
         The vectors are defined w.r.t the order of the alphabet of the
         parent.
 
-        INPUT:
-
-        - ``self`` -- word having a parent on a finite alphabet
-        - ``n`` -- integer
-
         OUTPUT:
 
             Set of tuples
-
-        .. NOTE::
-
-            This method should be implemented also in the data side (class
-            WordDatatype_char for instance). I think there is some timing
-            gain to expect when the alphabet made of integers.
 
         EXAMPLES::
 
@@ -5037,38 +5026,30 @@ class FiniteWord_class(Word_class):
             0
 
         """
-        size = self.parent().size_of_alphabet()
+        alphabet = self.parent().alphabet()
+        size = alphabet.cardinality()
         if size == float('inf'):
             raise TypeError("The alphabet of the parent is infinite; define"
                    " the word with a parent on a finite alphabet")
-        alphabet = self.parent().alphabet()
-        rank = dict(zip(alphabet, range(size)))
-        start = iter(self)
-        end = iter(self)
-        abelian = [0] * size
         S = set()
         if n > self.length():
             return S
+        rank = dict((letter,i) for i,letter in enumerate(alphabet))
+        start = iter(self)
+        end = iter(self)
+        abelian = [0] * size
         for _ in range(n):
             abelian[rank[end.next()]] += 1
         S.add(tuple(abelian))
-        for _ in range(self.length() - n):
+        for letter in end:
+            abelian[rank[letter]] += 1
             abelian[rank[start.next()]] -= 1
-            abelian[rank[end.next()]] += 1
             S.add(tuple(abelian))
         return S
 
     def abelian_complexity(self, n):
         r"""
-        Return the number of abelian vectors of factors of length n of self.
-
-        INPUT:
-
-        - ``n`` -- integer
-
-        OUTPUT:
-
-            integer
+        Return the number of abelian vectors of factors of length ``n`` of self.
 
         EXAMPLES::
 

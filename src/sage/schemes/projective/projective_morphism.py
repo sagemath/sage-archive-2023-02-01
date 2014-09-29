@@ -2489,9 +2489,8 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f.rational_preimages(P(-9,-4,1))
             [(0 : 4 : 1)]
 
-        ::
+        A non-periodic example ::
 
-            A non-periodic example.
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^2 + y^2,2*x*y])
@@ -2516,8 +2515,8 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             ...
             TypeError: Point must be in codomain of self
 
-        ::
-            A Numberfield example
+        A number field example ::
+            
             sage: z = QQ['z'].0
             sage: K.<a> = NumberField(z^2 - 2);
             sage: P.<x,y> = ProjectiveSpace(K,1)
@@ -2525,23 +2524,47 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f = H([x^2 + y^2,y^2])
             sage: f.rational_preimages(P(3,1))
             [(a : 1), (-a : 1)]
+
+        ::
+
+            sage: z = QQ['z'].0
+            sage: K.<a> = NumberField(z^2 - 2);
+            sage: P.<x,y,z> = ProjectiveSpace(K,2)
+            sage: X = P.subscheme([x^2 - z^2])
+            sage: H = Hom(X,X)
+            sage: f= H([x^2 - z^2, a*y^2, z^2 - x^2])
+            sage: f.rational_preimages(X([1,2,-1]))
+            []
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: X = P.subscheme([x^2 - z^2])
+            sage: H = Hom(X,X)
+            sage: f= H([x^2-z^2, y^2, z^2-x^2])
+            sage: f.rational_preimages(X([0,1,0]))
+            Traceback (click to the left of this block for traceback)
+            ...
+            NotImplementedError: Subschemes as Preimages not implemented
         """
         
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
         if (Q in self.codomain()) == False:
             raise TypeError("Point must be in codomain of self")
-        PS = self.domain()
+        PS = self.domain().ambient_space()
         R = PS.coordinate_ring()
         N = PS.dimension_relative()
         #need a lexicographic ordering for elimination
         R = PolynomialRing(R.base_ring(), N + 1, R.gens(), order='lex')
-        I = []
+        I = list(self.domain().defining_polynomials())
         preimages = set()
         for i in range(N + 1):
             for j in range(i + 1, N + 1):
                 I.append(Q[i] * self[j] - Q[j] * self[i])
         I = I * R
+        if I.dimension() > 1:
+            raise NotImplementedError("Subschemes as Preimages not implemented")
         I0 = R.ideal(0)
         #Determine the points through elimination
         #This is much faster than using the I.variety() function on each affine chart.
@@ -2572,7 +2595,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                                     good = 1
                                     r = pol.variables()[0]
                                     varindex = R.gens().index(r)
-                                    #add this coordinates information to th
+                                    #add this coordinates information to 
                                     #each dictionary entry
                                     P.update({R.gen(varindex):-pol.coefficient({r:0}) / pol.coefficient({r:1})})
                                     new_points.append(copy(P))
@@ -2585,9 +2608,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                     if len(points[i]) == N + 1 and I.subs(points[i]) == I0:
                         S = PS([points[i][R.gen(j)] for j in range(N + 1)])
                         S.normalize_coordinates()
-                        preimages.add(S)
+                        if all([g(tuple(S)) != 0 for g in self]):
+                            preimages.add(S)
         return(list(preimages))
-
 
     def all_rational_preimages(self, points):
         r"""
@@ -2625,18 +2648,16 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             [(-9 : -4 : 1), (0 : -1 : 1), (0 : 0 : 1), (0 : 1 : 1), (0 : 4 : 1), (1
             : 0 : 1), (1 : 1 : 1), (1 : 2 : 1), (1 : 3 : 1)]
 
-        ::
+        A non-periodic example ::
 
-            A non-periodic example.
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^2 + y^2,2*x*y])
             sage: sorted(f.all_rational_preimages([P(17,15)]))
             [(1/3 : 1), (3/5 : 1), (5/3 : 1), (3 : 1)]
 
-        ::
+        A number field example.::
 
-            A Numberfield example.
             sage: z = QQ['z'].0
             sage: K.<w> = NumberField(z^3 + (z^2)/4 - (41/16)*z + 23/64);
             sage: P.<x,y> = ProjectiveSpace(K,1)

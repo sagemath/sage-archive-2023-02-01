@@ -126,41 +126,25 @@ class Link:
             Link with 2 components represented by 2 crossings
         """
         if isinstance(data, list):
-            if len(data) != 2:
+            if not data:
+                raise ValueError("Does not accept empty list as arguement")
+
+            if len(data) != 2 or not all(isinstance(i, list) for i in data[0]):
                 if _pd_error_(data):
                     raise ValueError("Either every number does not repeat twice or the length of each array is not four")
-                else:
-                    self._PD_code = data
-                    self._oriented_gauss_code = None
-                    self._braid = None
+                self._PD_code = data
+                self._oriented_gauss_code = None
+                self._braid = None
 
-            elif len(data) == 2:
-                for i in data[0]:
-                    if type(i) == list:
-                        ogc = True
-                        break
-                else:
-                    ogc = False
-                if ogc == False:
-                    if _pd_error_(data):
-                        raise ValueError("Either every number does not repeat twice or the length of each array is not four")
-                    else:
-                        self._PD_code = data
-                        self._oriented_gauss_code = None
-                        self._braid = None
-                elif ogc == True:
-                    for i in data[0]:
-                        if not isinstance(i, list):
-                            raise TypeError("Every entry must be a list")
-                    else:
-                        flat = [x for y in data[0] for x in y]
-                        a, b = max(flat), min(flat)
-                        if 2 * len(data[1]) == len(flat) and set(range(b, a + 1)) - set([0]) == set(flat):
-                            self._oriented_gauss_code = data
-                            self._PD_code = None
-                            self._braid = None
-                        else:
-                            raise Exception("Invalid Input")
+            else:
+                flat = [x for y in data[0] for x in y]
+                a, b = max(flat), min(flat)
+                if 2 * len(data[1]) != len(flat) or set(range(b, a + 1)) - set([0]) != set(flat):
+                    raise ValueError("Invalid Input: Data is not a valid Oriented Gauss Code")
+                self._oriented_gauss_code = data
+                self._PD_code = None
+                self._braid = None
+
         else:
             from sage.groups.braid import Braid
             if isinstance(data, Braid):
@@ -169,7 +153,7 @@ class Link:
                 self._PD_code = None
 
             else:
-                raise Exception("Invalid Input")
+                raise Exception("Invalid Input: Data must be either a list or a Braid")
 
     def __repr__(self):
         r"""
@@ -1338,9 +1322,6 @@ class Link:
             pd_max = max([max(i) for i in pd_copy])
             # editing the previous crossings
             # the maximum is corrected
-            #for i in pd_copy:
-                #if max(bad_region) == i[0]:
-                    #i[0] = pd_max + 4
             max_cross = [[j, orient[i]]
                          for i, j in enumerate(pd_copy) if max(bad_region) in j]
             y = [[] for i in range(len(max_cross))]
@@ -1389,10 +1370,6 @@ class Link:
                         pos_neg[i][1].append(k)
             pos = [i[0] for i in pos_neg if i[0] != []]
             neg = [[-j for j in i[1]] for i in pos_neg if i[1] != []]
-            # creating the new components, the lesser in the bad region is
-            # always over and the greater is always under
-            new_component_1 = [min(bad_region), pd_max + 1, pd_max + 2]
-            new_component_2 = [max(bad_region), pd_max + 3, pd_max + 4]
             # creating new crossings
             crossing_1 = [None for i in range(4)]
             crossing_2 = [None for i in range(4)]

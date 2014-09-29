@@ -1283,8 +1283,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         - ``algorithm`` -- the algorithm to use, either "dense" or "sparse".
           The "dense" algorithm calls `_roots_from_factorization`, and the
-          "sparse" algorithm is described in [CKS1999]_. Default is based on
-          whether `p.parent()` is sparse or not.
+          "sparse" algorithm is described in [CKS1999]_. Default is "sparse".
 
         .. NOTE::
 
@@ -1323,6 +1322,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: ZZ._roots_univariate_polynomial(p,multiplicities=False)
             [100, -5445, 1, -1]
 
+            sage: ZZ._roots_univariate_polynomial(p,algorithm="sparse")
+            [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            sage: ZZ._roots_univariate_polynomial(p,algorithm="dense")
+            [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            sage: ZZ._roots_univariate_polynomial(p,algorithm="foobar")
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown algorithm 'foobar'
 
         """
 

@@ -4961,14 +4961,14 @@ class FiniteWord_class(Word_class):
 
     def abelian_vectors(self, n):
         r"""
-        Returns the abelian vectors of factors of length n of self.
+        Return the abelian vectors of factors of length n of self.
 
-        The order of the alphabet of the parent is used if it has one.
-        Otherwise, the order of the sorted set of letters appearing in self
-        is used.
+        The vectors are defined w.r.t the order of the alphabet of the
+        parent.
 
         INPUT:
 
+        - ``self`` -- word having a parent on a finite alphabet
         - ``n`` -- integer
 
         OUTPUT:
@@ -4976,11 +4976,10 @@ class FiniteWord_class(Word_class):
             Set of tuples
 
         .. NOTE::
-            
+
             This method should be implemented also in the data side (class
             WordDatatype_char for instance). I think there is some timing
-            gain to expect when the alphabet made of integers (no need to
-            use a dictionary).
+            gain to expect when the alphabet made of integers.
 
         EXAMPLES::
 
@@ -5003,33 +5002,53 @@ class FiniteWord_class(Word_class):
             sage: sorted(w.abelian_vectors(7))
             [(4, 3), (5, 2)]
 
-        ::
+        The word must be defined with a parent on a finite alphabet::
 
-            sage: w = Word([0,0,0])
+            sage: from itertools import count
+            sage: w = Word(count(), alphabet=NN)
+            sage: w[:2].abelian_vectors(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: The alphabet of the parent is infinite; define the
+            word with a parent on a finite alphabet
+
+        TESTS::
+
+            sage: W = Words([0, 1])
+            sage: w = W([0,0,0])
             sage: sorted(w.abelian_vectors(3))
-            [(3,)]
-            sage: w = Word([0,0,0,1])
+            [(3, 0)]
+            sage: w = W([0,0,0,1])
             sage: sorted(w.abelian_vectors(3))
             [(2, 1), (3, 0)]
-            sage: w = Word([0,0,0,1,1])
+            sage: w = W([0,0,0,1,1])
             sage: sorted(w.abelian_vectors(3))
             [(1, 2), (2, 1), (3, 0)]
-            sage: w = Word([0,0,0,1,1,1])
+            sage: w = W([0,0,0,1,1,1])
             sage: sorted(w.abelian_vectors(3))
             [(0, 3), (1, 2), (2, 1), (3, 0)]
 
+        ::
+
+            sage: w = Word([0,1,0], alphabet=[0,1])
+            sage: w.abelian_complexity(3)
+            1
+            sage: w.abelian_complexity(4)
+            0
+
         """
-        size = self.parent().size_of_alphabet() 
-        if size < Infinity:
-            alphabet = self.parent().alphabet()
-        else:
-            alphabet = sorted(self.letters())
-            size = len(alphabet)
+        size = self.parent().size_of_alphabet()
+        if size == float('inf'):
+            raise TypeError("The alphabet of the parent is infinite; define"
+                   " the word with a parent on a finite alphabet")
+        alphabet = self.parent().alphabet()
         rank = dict(zip(alphabet, range(size)))
         start = iter(self)
         end = iter(self)
         abelian = [0] * size
         S = set()
+        if n > self.length():
+            return S
         for _ in range(n):
             abelian[rank[end.next()]] += 1
         S.add(tuple(abelian))
@@ -5041,7 +5060,7 @@ class FiniteWord_class(Word_class):
 
     def abelian_complexity(self, n):
         r"""
-        Returns the number of abelian vectors of factors of length n of self.
+        Return the number of abelian vectors of factors of length n of self.
 
         INPUT:
 
@@ -5441,17 +5460,15 @@ class FiniteWord_class(Word_class):
 
     def abelian_vector(self, alphabet=None):
         r"""
-        Returns the abelian vector of self, i.e., the vector containing the
-        number of occurrences of each letter, given in the order of the
-        alphabet.
+        Return the abelian vector of self counting the occurrences of each letter.
 
-        See also :meth:`evaluation_dict`.
+        The vector is defined w.r.t the order of the alphabet of the
+        parent. See also :meth:`evaluation_dict`.
 
         INPUT:
 
-        -  ``alphabet`` - (default: None) finite ordered alphabet, if None it
-           uses the set of letters in self with the ordering defined by the
-           parent
+        - ``self`` -- word having a parent on a finite alphabet
+        - ``alphabet`` -- DEPRECATED
 
         OUTPUT:
 
@@ -5459,34 +5476,54 @@ class FiniteWord_class(Word_class):
 
         EXAMPLES::
 
-            sage: Words('ab')().abelian_vector()
+            sage: W = Words('ab')
+            sage: W('aaabbbbb').abelian_vector()
+            [3, 5]
+            sage: W('a').abelian_vector()
+            [1, 0]
+            sage: W().abelian_vector()
             [0, 0]
+
+        The argument alphabet is deprecated::
+
             sage: Word('aabaa').abelian_vector('abc')
+            doctest:...: DeprecationWarning: The argument alphabet of
+            methods abelian_vector and parikh_vector is deprecated and will
+            be removed in a future version of Sage. In order to fix this,
+            you must define your word on a parent with a finite alphabet.
+            See http://trac.sagemath.org/17058 for details.
             [4, 1, 0]
-            sage: Word('a').abelian_vector('abc')
-            [1, 0, 0]
-            sage: Word('a').abelian_vector('cab')
-            [0, 1, 0]
-            sage: Word('a').abelian_vector('bca')
-            [0, 0, 1]
-            sage: Word().abelian_vector('ab')
-            [0, 0]
-            sage: Word().abelian_vector('abc')
-            [0, 0, 0]
-            sage: Word().abelian_vector('abcd')
-            [0, 0, 0, 0]
+
+        You may fix the above deprecated use of alphabet argument this way::
+
+            sage: W = Words('abc')
+            sage: W('aabaa').abelian_vector()
+            [4, 1, 0]
 
         TESTS::
 
-            sage: Word('aabaa').abelian_vector()
+            sage: W = Words()
+            sage: W('aabaa').abelian_vector()
             Traceback (most recent call last):
             ...
-            TypeError: the alphabet is infinite; specify a finite alphabet or use evaluation_dict() instead
+            TypeError: The alphabet of the parent is infinite; define the
+            word with a parent on a finite alphabet or use
+            evaluation_dict() instead
         """
-        if alphabet is None and self._parent.size_of_alphabet() is Infinity:
-            raise TypeError("the alphabet is infinite; specify a finite alphabet or use evaluation_dict() instead")
         if alphabet is None:
-            alphabet = self._parent._alphabet
+            if self.parent().size_of_alphabet() is Infinity:
+                raise TypeError("The alphabet of the parent is infinite; define "
+                        "the word with a parent on a finite alphabet or use "
+                        "evaluation_dict() instead")
+            alphabet = self.parent().alphabet()
+        else:
+            from sage.misc.superseded import deprecation
+            deprecation(17058, "The argument alphabet of methods abelian_vector "
+                        "and parikh_vector is deprecated and will be "
+                        "removed in a future version of Sage. In order to "
+                        "fix this, you must define your word on a parent "
+                        "with a finite alphabet.")
+
         ev_dict = self.evaluation_dict()
         return [ev_dict.get(a,0) for a in alphabet]
 
@@ -5935,7 +5972,6 @@ class FiniteWord_class(Word_class):
                 return False
         return True
 
-    @cached_method
     def letters(self):
         r"""
         Return a list of the letters that appear in self, listed in the

@@ -2933,6 +2933,106 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return Poset(self._hasse_diagram.cartesian_product(other._hasse_diagram),cover_relations=True)
 
+    def disjoint_union(self, other, labels='pairs'):
+        """
+        Return a poset isomorphic to disjoint union (=direct sum) of the poset with ''other''.
+    
+        Disjoint union of P and Q is a poset that contains every element and relation from
+        both P and Q, and where every element of P is incomparable to every element of Q.
+        Mathematically it is defined when P and Q has no common elements; here we force
+        that by relabeling posets.
+        
+        INPUT:
+            
+        - ''other'', a poset.
+    
+        - ''labels'', either 'pairs' (default) or 'integers'. If labels='pairs', then \
+        result have elements (0,x) and (1,y), where x is an element of this poset and \
+        y is an element of ''other''. If labels='integers' then result have elements \
+        just numbered starting from 0.
+    
+        EXAMPLES::
+            
+            sage: P1=Poset({'a':['b']})
+            sage: P2=Poset({'c':['d']})
+            sage: P=P1.disjoint_union(P2)
+            sage: P.cover_relations()
+            [[(0,'a'), (0, 'b')], [(1, 'c'), (1, 'd')]]
+    
+            sage: N5=Posets.PentagonPoset(); P
+            Finite lattice containing 5 elements
+            sage: N5.disjoint_union(N5)  # Union of lattices is not a lattice
+            Finite poset containing 10 elements 
+            sage: # More examples here
+    
+        We show how to get literally direct sum with elements untouched::
+    
+            sage: P1=Poset({'a':['b']})
+            sage: P2=Poset({'c':['d']})
+            sage: P=P1.disjoint_union(P2).relabel(lambda x: x[1])
+            sage: P.cover_relations()
+            [['a', 'b'], ['c', 'd']]
+        """
+        if not hasattr(other, 'hasse_diagram'):
+            raise ValueError('The input is not a finite poset.')
+        if labels == 'pairs':
+            return Poset(self.hasse_diagram().disjoint_union(other.hasse_diagram()))
+        if labels == 'integers':
+            return Poset(self.hasse_diagram().disjoint_union(other.hasse_diagram(), verbose_relabel=False))
+        raise ValueError("Labels must be either 'pairs' or 'integers'.")
+    
+    def ordinal_sum(self, other, labels='pairs'):
+        """
+        Return a poset or (semi)lattice isomorphic to ordinal sum of the poset with ''other''.
+    
+        Ordinal sum of P and Q is a poset that contains every element and relation from
+        both P and Q, and where every element of P is greater than every element of Q.
+        Mathematically it is defined when P and Q has no common elements; here we force
+        that by relabeling posets.
+    
+        Ordinal sum on lattices is lattice; resp. for meet- and join-semilattices.
+        Hence we check if we can return (semi)lattice instead of plain poset.
+        
+        INPUT:
+            
+        - ''other'', a poset.
+        
+        - ''labels'', either 'pairs' (default) or 'integers'. If labels='pairs', then \
+        result have elements (0,x) and (1,y), where x is an element of this poset and \
+        y is an element of ''other''. If labels='integers' then result have elements \
+        just numbered starting from 0.
+    
+        EXAMPLES::
+    
+            sage: P1=Poset({'a':['b']})
+            sage: P2=Poset({'c':['d']})
+            sage: P=P1.ordinal_sum(P2)
+            sage: P.cover_relations()
+            [[(1, 'c'), (1, 'd')], [(1, 'd'), (0, 'a')], [(0, 'a'), (0, 'b')]]
+                    
+            sage: # More examples here
+        """
+    
+        if not hasattr(other, 'hasse_diagram'):
+            raise ValueError('The input is not a finite poset.')
+        G=self.hasse_diagram().disjoint_union(other.hasse_diagram())
+        for u in self.minimal_elements():
+            for v in other.maximal_elements():
+                G.add_edge((1,v), (0,u))
+        if labels == 'integers':
+            G.relabel()
+        else:
+            if labels != 'pairs':
+                raise ValueError("Labels must be either 'pairs' or 'integers'.")            
+        if self in LatticePosets() and other in LatticePosets():
+            return LatticePoset(G)
+        # There should be easier way to following checks
+        if type(self) == type(JoinSemilattice({})) and type(other) == type(JoinSemilattice({})):
+            return JoinSemilattice(G)
+        if type(self) == type(MeetSemilattice({})) and type(other) == type(MeetSemilattice({})):
+            return MeetSemilattice(G)
+        return Poset(G)
+
     def interval_iterator(self):
         """
         Returns an iterator over all pairs `x<y` in ``self``.

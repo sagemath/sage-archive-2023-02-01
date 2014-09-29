@@ -671,8 +671,8 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
                 if a.is_ultra_parallel(b):
                     perp = a.common_perpendicular(b)
                     # Find where a and b intersect the common perp...
-                    p = a.intersection(perp)
-                    q = b.intersection(perp)
+                    p = a.intersection(perp)[0]
+                    q = b.intersection(perp)[0]
                     # ...and return their distance
                     return self._dist_points(coords(p), coords(q))
 

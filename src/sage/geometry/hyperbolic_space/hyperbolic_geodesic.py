@@ -528,7 +528,7 @@ class HyperbolicGeodesic(SageObject):
         """
         return self._cached_geodesic.reflection_involution().to_model(self._model)
 
-    def common_perpendicular(self, other):
+    def common_perpendicula(self, other):
         r"""
         Return the unique hyperbolic geodesic perpendicular to two given
         geodesics, if such a geodesic exists.  If none exists, raise a
@@ -600,7 +600,7 @@ class HyperbolicGeodesic(SageObject):
 
             sage: g = HyperbolicPlane().PD().random_geodesic()
             sage: h = g.perpendicular_bisector()
-            sage: bool(h.intersection(g).coordinates() - g.midpoint().coordinates() < 10**-9)
+            sage: bool(h.intersection(g)[0].coordinates() - g.midpoint().coordinates() < 10**-9)
             True
 
         Complete geodesics cannot be bisected::
@@ -956,7 +956,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: g = UHP.random_geodesic()
             sage: h = g.perpendicular_bisector()
             sage: c = lambda x: x.coordinates()
-            sage: bool(c(g.intersection(h).start()) - c(g.midpoint()) < 10**-9)
+            sage: bool(c(g.intersection(h)[0]) - c(g.midpoint()) < 10**-9)
             True
 
         Infinite geodesics cannot be bisected::
@@ -973,7 +973,10 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         S = self.complete()._to_std_geod(start)
         T1 = matrix([[exp(d/2), 0], [0, exp(-d/2)]])
         T2 = matrix([[cos(pi/4), -sin(pi/4)], [sin(pi/4), cos(pi/4)]])
-        H = self._model.get_isometry(S.inverse() * (T1 * T2) * S)
+        isom_mtrx = S.inverse() * (T1 * T2) * S # We need to clean this matrix up.
+        if (isom_mtrx - isom_mtrx.conjugate()).norm() < 2**-9: # Imaginary part is small.
+            isom_mtrx = (isom_mtrx + isom_mtrx.conjugate()) / 2 # Set it to its real part.
+        H = self._model.get_isometry(isom_mtrx)
         return self._model.get_geodesic(H(self._start), H(self._end))
 
     def midpoint(self): #UHP

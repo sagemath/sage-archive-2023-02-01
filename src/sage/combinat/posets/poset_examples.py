@@ -171,22 +171,21 @@ class Posets(object):
         return p
 
     @staticmethod
-    def DiamondPoset(n, facade = False):
+    def DiamondPoset(n, facade = True):
         """
-        Returns the lattice of rank two containing ``n`` elements.
+        Return the lattice of rank two containing ``n`` elements.
 
         EXAMPLES::
 
             sage: Posets.DiamondPoset(7)
             Finite lattice containing 7 elements
         """
+        if n <= 2:
+            raise ValueError("n must be an integer bigger than 2.")
         c = [[n-1] for x in range(n)]
         c[0] = [x for x in range(1,n-1)]
         c[n-1] = []
-        if n > 2:
-            return LatticePoset(c, facade = facade)
-        else:
-            return Poset(c, facade = facade)
+        return LatticePoset(c, facade = facade)
 
     @staticmethod
     def IntegerCompositions(n):

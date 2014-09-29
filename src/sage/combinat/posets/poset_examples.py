@@ -175,13 +175,19 @@ class Posets(object):
         """
         Return the lattice of rank two containing ``n`` elements.
 
+        INPUT:
+
+        - ``n`` - number of vertices, an integer at least 3.
+
+        - ``facade`` - boolean value telling to make facade poset or not.
+
         EXAMPLES::
 
             sage: Posets.DiamondPoset(7)
             Finite lattice containing 7 elements
         """
         if n <= 2:
-            raise ValueError("n must be an integer bigger than 2.")
+            raise ValueError("n must be an integer at least 3.")
         c = [[n-1] for x in range(n)]
         c[0] = [x for x in range(1,n-1)]
         c[n-1] = []

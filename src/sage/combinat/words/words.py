@@ -35,6 +35,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.combinat.combinat import InfiniteAbstractCombinatorialClass
+from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.words.alphabet import build_alphabet
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.plot.misc import rename_keyword
@@ -509,6 +510,9 @@ class Words_all(InfiniteAbstractCombinatorialClass):
                 w = self._element_classes['FiniteWord_char'](self, data)
             else:
                 w = self._element_classes['FiniteWord_tuple'](self, data)
+
+        elif isinstance(data, CombinatorialObject):
+            w = self._element_classes['FiniteWord_list'](self, list(data))
 
         elif callable(data):
             w = self._word_from_callable(data, length, caching)

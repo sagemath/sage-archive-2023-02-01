@@ -1880,10 +1880,10 @@ class KRRCSimplyLacedElement(KRRiggedConfigurationElement):
 
         .. MATH::
 
-            cc(\nu, J) = \frac{1}{2} \sum_{a, b \in J}
-            \sum_{j,k \geq 1} \left( \alpha_a \mid \alpha_b \right)
+            cc(\nu, J) = \frac{1}{2} \sum_{a, b \in I_0}
+            \sum_{j,k > 0} \left( \alpha_a \mid \alpha_b \right)
             \min(j, k) m_j^{(a)} m_k^{(b)}
-            + \sum_{a, i} \left\lvert J^{(a, i)} \right\rvert.
+            + \sum_{a \in I} \sum_{i > 0} \left\lvert J^{(a, i)} \right\rvert.
 
         EXAMPLES::
 
@@ -2145,6 +2145,17 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
     def cocharge(self):
         r"""
         Compute the cocharge statistic.
+
+        Computes the cocharge statistic [RigConBijection]_ on this
+        rigged configuration `(\nu, J)`. The cocharge statistic is
+        computed as:
+
+        .. MATH::
+
+            cc(\nu, J) = \frac{1}{2} \sum_{a \in I_0} \sum_{i > 0}
+            t_a^{\vee} m_i^{(a)} \left( \sum_{j > 0} \min(i, j) L_j^{(a)}
+            - p_i^{(a)} \right) + \sum_{a \in I} t_a^{\vee} \sum_{i > 0}
+            \left\lvert J^{(a, i)} \right\rvert.
 
         EXAMPLES::
 

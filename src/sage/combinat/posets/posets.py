@@ -53,6 +53,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.interval` | Returns a list of the elements `z` such that `x \le z \le y`.
     :meth:`~FinitePoset.is_bounded` | Returns True if the poset contains a unique maximal element and a unique minimal element, and False otherwise.
     :meth:`~FinitePoset.is_chain` | Returns True if the poset is totally ordered, and False otherwise.
+    :meth:`~FinitePoset.is_connected` | Return ``True`` if the poset is connected, and ``False`` otherwise.
     :meth:`~FinitePoset.is_EL_labelling` | Returns whether ``f`` is an EL labelling of ``self``
     :meth:`~FinitePoset.is_gequal` | Returns ``True`` if `x` is greater than or equal to `y` in the poset, and ``False`` otherwise.
     :meth:`~FinitePoset.is_graded` | Returns whether this poset is graded.
@@ -2120,6 +2121,25 @@ class FinitePoset(UniqueRepresentation, Parent):
             # HasseDiagram.
             sorted_o = sorted(o, key=self._element_to_vertex)
             return all(self.le(a, b) for a, b in zip(sorted_o, sorted_o[1:]))
+
+    def is_connected(self):
+        """
+        Return ``True`` if the poset is connected, and ``False`` otherwise.
+
+        Poset is not connected if it can be divided to disjoint parts
+        `S_1` and `S_2` so that every element of `S_1` is incomparable to
+        every element of `S_2`.
+
+        EXAMPLES::
+
+            sage: P=Poset({1:[2,3], 3:[4,5]})
+            sage: P.is_connected()
+            True
+            sage: P=Poset({1:[2,3], 3:[4,5], 6:[7,8]})
+            sage: P.is_connected()
+            False
+        """
+        return self._hasse_diagram.is_connected()
 
     def is_EL_labelling(self, f, return_raising_chains=False):
         r"""

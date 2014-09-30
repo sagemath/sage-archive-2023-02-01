@@ -2937,24 +2937,27 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def disjoint_union(self, other, labels='pairs'):
         """
-        Return a poset isomorphic to disjoint union (=direct sum) of the poset with ``other``.
-    
-        Disjoint union of `P` and `Q` is a poset that contains every element and relation from
-        both `P` and `Q`, and where every element of `P` is incomparable to every element of `Q`.
-        Mathematically it is defined when `P` and `Q` has no common elements; here we force
-        that by relabeling posets.
-        
+        Return a poset isomorphic to disjoint union (=direct sum) of the
+        poset with ``other``.
+
+        Disjoint union of `P` and `Q` is a poset that contains every
+        element and relation from both `P` and `Q`, and where every
+        element of `P` is incomparable to every element of `Q`.
+        Mathematically it is defined when `P` and `Q` has no common
+        elements; here we force that by relabeling posets.
+
         INPUT:
-            
+
         - ``other``, a poset.
-    
-        - ``labels``, either 'pairs' (default) or 'integers'. If labels='pairs', then \
-        result have elements (0,x) and (1,y), where x is an element of this poset and \
-        y is an element of ``other``. If labels='integers' then result have elements \
-        just numbered starting from 0.
-    
+
+        - ``labels``, either 'pairs' (default) or 'integers'. If
+          ``labels='pairs'``, then result have elements ``(0,x)`` and
+          ``(1,y)``, where ``x`` is an element of this poset and ``y``
+          is an element of ``other``. If labels='integers' then result
+          have elements just numbered starting from 0.
+
         EXAMPLES::
-            
+
             sage: P1=Poset( (['a', 'b'], [['a', 'b']]) )
             sage: P2=Poset( (['c', 'd'], [['c', 'd']]) )
             sage: P=P1.disjoint_union(P2); P
@@ -2964,45 +2967,51 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P=P1.disjoint_union(P2, labels='integers');
             sage: P.cover_relations()
             [[2,3], [0, 1]]
-    
+
             sage: N5=Posets.PentagonPoset(); N5
             Finite lattice containing 5 elements
             sage: N5.disjoint_union(N5)  # Union of lattices is not a lattice
-            Finite poset containing 10 elements 
-    
+            Finite poset containing 10 elements
+
         We show how to get literally direct sum with elements untouched::
-    
+
             sage: P=P1.disjoint_union(P2).relabel(lambda x: x[1])
             sage: P.cover_relations()
             [['a', 'b'], ['c', 'd']]
+
         """
         if not hasattr(other, 'hasse_diagram'):
             raise ValueError('The input is not a finite poset.')
-        return Poset(self.hasse_diagram().disjoint_union(other.hasse_diagram(), labels))
-    
+        return Poset(self.hasse_diagram().disjoint_union(other.hasse_diagram(),
+                     labels))
+
     def ordinal_sum(self, other, labels='pairs'):
         """
-        Return a poset or (semi)lattice isomorphic to ordinal sum of the poset with ``other``.
-    
-        Ordinal sum of `P` and `Q` is a poset that contains every element and relation from
-        both `P` and `Q`, and where every element of `P` is greater than every element of `Q`.
-        Mathematically it is defined when `P` and `Q` has no common elements; here we force
-        that by relabeling posets.
-    
-        Ordinal sum on lattices is lattice; resp. for meet- and join-semilattices.
-        Hence we check if we can return (semi)lattice instead of plain poset.
-        
+        Return a poset or (semi)lattice isomorphic to ordinal sum of the
+        poset with ``other``.
+
+        Ordinal sum of `P` and `Q` is a poset that contains every
+        element and relation from both `P` and `Q`, and where every
+        element of `P` is greater than every element of `Q`.
+        Mathematically it is defined when `P` and `Q` has no common
+        elements; here we force that by relabeling posets.
+
+        Ordinal sum on lattices is lattice; resp. for meet- and
+        join-semilattices.  Hence we check if we can return
+        (semi)lattice instead of plain poset.
+
         INPUT:
-            
+
         - ``other``, a poset.
-        
-        - ``labels``, either 'pairs' (default) or 'integers'. If labels='pairs', then \
-        result have elements (0,x) and (1,y), where x is an element of this poset and \
-        y is an element of ``other``. If labels='integers', then result have elements \
-        just numbered starting from 0.
-    
+
+        - ``labels``, either 'pairs' (default) or 'integers'. If
+          ``labels='pairs'``, then result have elements ``(0,x)`` and
+          ``(1,y)``, where ``x`` is an element of this poset and ``y``
+          is an element of ``other``. If labels='integers' then result
+          have elements just numbered starting from 0.
+
         EXAMPLES::
-    
+
             sage: P1=Poset( ([1, 2, 3,], [[2,1], [3,1]]) )
             sage: P2=Poset( ([1, 2, 3, 4], [[1, 2], [1, 3], [1, 4]]) )
             sage: P3=P1.ordinal_sum(P2); P3
@@ -3011,14 +3020,14 @@ class FinitePoset(UniqueRepresentation, Parent):
             6
             sage: len(P1.cover_relations()+P2.cover_relations())
             5
-            sage: len(P3.cover_relations())  # Every element of P1 is greater than elements of P2.
+            sage: len(P3.cover_relations()) # Every element of P1 is greater than elements of P2.
             11
             sage: P3.list()
             [(0, 1), (0, 2), (0, 3), (0, 4), (1, 1), (1, 2), (1, 3)]
             sage: P4=P1.ordinal_sum(P2, labels='integers')
             sage: P4.list()  # random
             [3, 4, 5, 6, 2, 1, 0]
-                    
+
         Return type depends on input types::
 
             sage: P=Poset({1:[2]}); P
@@ -3033,9 +3042,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             Finite join-semilattice containing 4 elements
             sage: L.ordinal_sum(L)
             Finite lattice containing 4 elements
+
         """
         from sage.categories.lattice_posets import LatticePosets
-        from sage.combinat.posets.lattices import LatticePoset, JoinSemilattice, MeetSemilattice
+        from sage.combinat.posets.lattices import LatticePoset, \
+             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
+             FiniteMeetSemilattice, FiniteJoinSemilattice
 
         if not hasattr(other, 'hasse_diagram'):
             raise ValueError('The input is not a finite poset.')
@@ -3045,23 +3057,17 @@ class FinitePoset(UniqueRepresentation, Parent):
                 G.add_edge((1,v), (0,u))
         if labels == 'integers':
             G.relabel()
-        else:
-            if labels != 'pairs':
-                raise ValueError("Labels must be either 'pairs' or 'integers'.")            
-        # There should be easier way to following checks
-        if self in LatticePosets():
-            if other in LatticePosets():
-                return LatticePoset(G)
-            if type(other) == type(JoinSemilattice({})):
-                return JoinSemilattice(G)
-            if type(other) == type(MeetSemilattice({})):
-                return MeetSemilattice(G)
-        if type(self) == type(JoinSemilattice({})):
-            if other in LatticePosets() or type(other) == type(JoinSemilattice({})):
-                return JoinSemilattice(G)
-        if type(self) == type(MeetSemilattice({})):
-            if other in LatticePosets() or type(other) == type(MeetSemilattice({})):
-                return MeetSemilattice(G)
+        elif labels != 'pairs':
+            raise ValueError("Labels must be either 'pairs' or 'integers'.")
+        if isinstance(self, FiniteLatticePoset) and \
+        isinstance(other, FiniteLatticePoset):
+            return LatticePoset(G)
+        if isinstance(self, FiniteMeetSemilattice) and \
+        isinstance(other, FiniteMeetSemilattice):
+            return MeetSemilattice(G)
+        if isinstance(self, FiniteJoinSemilattice) and \
+        isinstance(other, FiniteJoinSemilattice):
+            return JoinSemilattice(G)
         return Poset(G)
 
     def interval_iterator(self):

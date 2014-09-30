@@ -46,7 +46,6 @@ import sys
 import weakref
 import time
 import gc
-import operator
 import quit
 import cleaner
 from random import randrange
@@ -58,10 +57,8 @@ from random import randrange
 ########################################################
 import pexpect
 from pexpect import ExceptionPexpect
-from sage.interfaces.interface import Interface, InterfaceElement, InterfaceFunction, InterfaceFunctionElement, AsciiArtString
+from sage.interfaces.interface import Interface, InterfaceElement, InterfaceFunction, InterfaceFunctionElement
 
-from sage.structure.sage_object import SageObject
-from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import RingElement
 
 import sage.misc.sage_eval
@@ -89,6 +86,7 @@ failed_to_start = []
 # The garbage collector will be returned to its original state
 # whenever the code exits by any means (falling off the end, executing
 # "return", "break", or "continue", raising an exception, ...)
+
 
 class gc_disabled(object):
     """
@@ -382,7 +380,6 @@ If this all works, you can then make calls like:
         global failed_to_start
 
         self._session_number += 1
-        dir = self.__path
 
         #If the 'SAGE_PEXPECT_LOG' environment variable is set and
         #the current logfile is None, then set the logfile to be one
@@ -431,7 +428,7 @@ If this all works, you can then make calls like:
             self._expect = None
             self._session_number = BAD_SESSION
             failed_to_start.append(self.name())
-            raise RuntimeError("unable to start %s because the command %r failed\n%s"%(
+            raise RuntimeError("unable to start %s because the command %r failed\n%s" % (
                 self.name(), cmd, self._install_hints()))
 
         self._expect.timeout = self.__max_startup_time
@@ -444,7 +441,7 @@ If this all works, you can then make calls like:
             self._expect = None
             self._session_number = BAD_SESSION
             failed_to_start.append(self.name())
-            raise RuntimeError("unable to start %s"%self.name())
+            raise RuntimeError("unable to start %s" % self.name())
         self._expect.timeout = None
 
         # Calling tcsetattr earlier exposes bugs in various pty
@@ -1427,9 +1424,6 @@ class StdOutContext:
         self.stdout.write("\n")
         self.interface._expect.logfile = self._logfile_backup
 
-import os
+
 def console(cmd):
     os.system(cmd)
-
-
-

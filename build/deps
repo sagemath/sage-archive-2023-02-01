@@ -3,11 +3,8 @@
 # $SAGE_ROOT/build/Makefile by $SAGE_ROOT/build/install
 ###############################################################################
 
-# Let e.g. SAGE_ROOT/build/install pass options to sage-spkg, i.e. currently
-# "-f", to force rebuilding dependent packages during an upgrade (#9896).
-
 # Do not put an explicit path for sage-spkg here, it will be found in $PATH.
-SAGE_SPKG = sage-spkg $${SAGE_SPKG_OPTS}
+SAGE_SPKG = sage-spkg -f
 PIPE = $(SAGE_ROOT)/build/pipestatus
 
 # Tell make not to look for files with these names:

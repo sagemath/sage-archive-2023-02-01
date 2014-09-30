@@ -1455,9 +1455,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def green_function(self, P, v, **kwds):
         r"""
         Evaluates the local Green's function at the place ``v`` for ``P`` with ``N`` terms of the
-        series or, in dimension 1, to within a given error bound.
+        series or, in dimension 1, to within a given error bound.  Must be over a number field
+        or order of a number field. Note that this is abosolute local greens function
+        so is scaled by the degree of the base field.
 
-        Use ``v=0`` for the archimedean place. Must be over `\ZZ` or `\QQ`.
+        Use ``v=0`` for the archimedean place over `\QQ` or field embedding. Local places are prime ideals
+        for number fields or primes over `\QQ`. 
 
         ALGORITHM:
 
@@ -1493,20 +1496,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.green_function(P.point([1,1],False),0,N=30)
             0.43288629610862338612700146098
         """
-        if self.base_ring() != ZZ and self.base_ring() != QQ:
-            raise TypeError("Must be ZZ or QQ")
         return(P.green_function(self, v, **kwds))
 
     def canonical_height(self, P, **kwds):
         r"""
-        Evaluates the canonical height of ``P`` with respect to ``self``. Must be over `\ZZ` or `\QQ`.
-
+        Evaluates the (absolute) canonical height of ``self`` with respect to ``F``. Must be over number field
+        or order of a number field.
         Specify either the number of terms of the series to evaluate
         or, in dimension 1, the error bound required.
 
         ALGORITHM:
 
-        The sum of the Green's function at the archimedean place and the places of bad reduction.
+        The sum of the Green's function at the archimedean places and the places of bad reduction.
 
         INPUT:
 
@@ -1531,9 +1532,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(ZZ,1)
             sage: H = Hom(P,P)
             sage: f = H([x^2+y^2,2*x*y]);
-            sage: f.canonical_height(P.point([5,4]),error_bound=0.001)
+            sage: f.canonical_height(P.point([5,4]), error_bound=0.001)
             2.1970553519503404898926835324
-            sage: f.canonical_height(P.point([2,1]),error_bound=0.001)
+            sage: f.canonical_height(P.point([2,1]), error_bound=0.001)
             1.0984430632822307984974382955
 
         Notice that preperiodic points may not be exactly 0::
@@ -1541,8 +1542,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = Hom(P,P)
             sage: f = H([x^2-29/16*y^2,y^2]);
-            sage: f.canonical_height(P.point([1,4]),N=60)
-            1.2024186864216154694752186858e-18
+            sage: f.canonical_height(P.point([1,4]), error_bound=0.000001)
+            3.5711911601471793573322582827e-7
 
         ::
 
@@ -1551,11 +1552,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(X,X)
             sage: f = H([x^2,y^2,4*z^2]);
             sage: Q = X([4,4,1])
-            sage: f.canonical_height(Q,badprimes=[2])
+            sage: f.canonical_height(Q, badprimes=[2])
             0.0013538030870311431824555314882
         """
-        if self.base_ring() != ZZ and self.base_ring() != QQ:
-            raise TypeError("Must be ZZ or QQ")
         return(P.canonical_height(self, **kwds))
 
     def global_height(self, prec=None):

@@ -18,7 +18,7 @@ include "sage/misc/bitset.pxi"
 cimport cython
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
-from libc.string cimport memcpy, memcmp, memset
+from libc.string cimport memcpy, memcmp
 from sage.combinat.words.word_datatypes cimport WordDatatype
 
 cdef extern from "Python.h":

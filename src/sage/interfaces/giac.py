@@ -275,7 +275,6 @@ class Giac(Expect):
                         command = "giac --sage",
                         init_code= ['maple_mode(0);I:=i;'],      #  coercion could be broken in maple_mode
                         maxread = maxread,
-#                        script_subdirectory = None,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,                        server = server,
                         server_tmpdir = server_tmpdir,

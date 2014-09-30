@@ -57,7 +57,7 @@ from random import randrange
 ########################################################
 import pexpect
 from pexpect import ExceptionPexpect
-from sage.interfaces.interface import Interface, InterfaceElement, InterfaceFunction, InterfaceFunctionElement
+from sage.interfaces.interface import Interface, InterfaceElement, InterfaceFunction, InterfaceFunctionElement, AsciiArtString
 
 from sage.structure.element import RingElement
 

@@ -155,9 +155,16 @@ class Posets(object):
         return Poset((range(n), []))
 
     @staticmethod
-    def PentagonPoset(facade = True):
+    def PentagonPoset(facade = None):
         """
-        Returns the "pentagon poset".
+        Returns the Pentagon poset.
+
+        INPUT:
+
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`). The
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor).
 
         EXAMPLES::
 
@@ -170,13 +177,21 @@ class Posets(object):
 
             sage: P.is_modular()
             False
+
+        This poset and the :meth:`DiamondPoset` are the two smallest
+        lattices which are not distributive::
+
+            sage: P.is_distributive()
+            False
+            sage: Posets.DiamondPoset(5).is_distributive()
+            False
         """
         p = LatticePoset([[1,2],[4],[3],[4],[]], facade = facade)
         p.hasse_diagram()._pos = {0:[2,0],1:[0,2],2:[3,1],3:[3,3],4:[2,4]}
         return p
 
     @staticmethod
-    def DiamondPoset(n, facade = True):
+    def DiamondPoset(n, facade = None):
         """
         Return the lattice of rank two containing ``n`` elements.
 
@@ -184,7 +199,10 @@ class Posets(object):
 
         - ``n`` - number of vertices, an integer at least 3.
 
-        - ``facade`` - boolean value telling to make facade poset or not.
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`). The
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor).
 
         EXAMPLES::
 

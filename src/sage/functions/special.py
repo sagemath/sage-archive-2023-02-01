@@ -214,10 +214,6 @@ def _init():
 
     Then after using one of the MaximaFunctions, it changes::
 
-        sage: from sage.functions.airy import airy_ai
-        sage: airy_ai(1.0)   # rel tol 1e-10
-        0.13529241631288141
-
         sage: from sage.functions.special import elliptic_ec
         sage: elliptic_ec(0.1)
         1.53075763689776
@@ -239,10 +235,6 @@ def meval(x):
     This is used to evaluate several of these special functions.
 
     TEST::
-
-        sage: from sage.functions.airy import airy_ai
-        sage: airy_bi(1.0)      # rel tol 1e-10
-        1.2074235949528713
 
         sage: from sage.functions.special import spherical_bessel_J
         sage: spherical_bessel_J(2.,3.)      # rel tol 1e-10

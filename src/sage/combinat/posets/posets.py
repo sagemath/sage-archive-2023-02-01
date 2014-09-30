@@ -2958,12 +2958,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P1=Poset( (['a', 'b'], [['a', 'b']]) )
             sage: P2=Poset( (['c', 'd'], [['c', 'd']]) )
             sage: P=P1.disjoint_union(P2); P
-            Finite lattice containing 4 elements
+            Finite poset containing 4 elements
             sage: P.cover_relations()
             [[(0,'a'), (0, 'b')], [(1, 'c'), (1, 'd')]]
             sage: P=P1.disjoint_union(P2, labels='integers');
             sage: P.cover_relations()
-            [[0, 1], [2, 3]]
+            [[2,3], [0, 1]]
     
             sage: N5=Posets.PentagonPoset(); N5
             Finite lattice containing 5 elements
@@ -2998,7 +2998,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         
         - ``labels``, either 'pairs' (default) or 'integers'. If labels='pairs', then \
         result have elements (0,x) and (1,y), where x is an element of this poset and \
-        y is an element of ``other``. If labels='integers' then result have elements \
+        y is an element of ``other``. If labels='integers', then result have elements \
         just numbered starting from 0.
     
         EXAMPLES::
@@ -3011,12 +3011,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             6
             sage: len(P1.cover_relations()+P2.cover_relations())
             5
-            sage: len(P3.cover_relations())  # Every element of P1 is bigger than elements of P2.
+            sage: len(P3.cover_relations())  # Every element of P1 is greater than elements of P2.
             11
-            sage: P3.elements()
+            sage: P3.list()
             [(0, 1), (0, 2), (0, 3), (0, 4), (1, 1), (1, 2), (1, 3)]
-            sage: P3=P1.ordinal_sum(P2, labels='integers')
-            [0, 1, 2, 3, 4, 5, 6, 7]
+            sage: P4=P1.ordinal_sum(P2, labels='integers')
+            sage: P4.list()  # random
+            [3, 4, 5, 6, 2, 1, 0]
                     
         Return type depends on input types::
 
@@ -3024,7 +3025,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             Finite poset containing 2 elements
             sage: JL=JoinSemilattice({1:[2]}); JL
             Finite join-semilattice containing 2 elements
-            sage: L=LatticePoset({1:[2]})
+            sage: L=LatticePoset({1:[2]}); L
             Finite lattice containing 2 elements
             sage: P.ordinal_sum(L)
             Finite poset containing 4 elements

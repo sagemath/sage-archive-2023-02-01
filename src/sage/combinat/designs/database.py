@@ -27,6 +27,9 @@ This module implements:
 - `(v,k,\lambda)`-difference matrices:
 {LIST_OF_DM}
 
+- `(n,k;\lambda,\mu;u)`-quasi-difference matrices:
+    {LIST_OF_QDM}
+
 REFERENCES:
 
 .. [DesignHandbook] Handbook of Combinatorial Designs (2ed)
@@ -340,303 +343,6 @@ def OA_7_18():
     M = [M[i] for i in range(len(M)) if i%18<9] # only develop w.r.t the last two coordinates
     return M
 
-def OA_6_20():
-    r"""
-    Return an OA(6,20)
-
-    As explained in the Handbook III.3.49 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_6_20
-        sage: OA = OA_6_20()
-        sage: print is_orthogonal_array(OA,6,20,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(6,20,existence=True)
-        True
-    """
-    M=[[None,   7,  13,   1,  16,   9,   2],
-       [   0,   1,  15,   7,  17,   6,  14],
-       [   0,  11,  10,  11,   5,   4,   3],
-       [   7,None,  13,  16,   1,   2,   9],
-       [   1,   0,  15,  17,   7,  14,   6],
-       [  11,   0,  10,   5,  11,   3,   4]]
-
-    Mb=[]
-
-    for R in zip(*M):
-        a,b,c,d,e,f = R
-        Mb.append([a,b,c,d,e,f])
-        Mb.append([b,c,a,f,d,e])
-        Mb.append([c,a,b,e,f,d])
-
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    M = OA_from_quasi_difference_matrix(Mb,AdditiveCyclic(19),add_col=False)
-
-    return M
-
-def OA_5_22():
-    r"""
-    Return an OA(5,22)
-
-    As explained in the Handbook III.3.51 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_5_22
-        sage: OA = OA_5_22()
-        sage: print is_orthogonal_array(OA,5,22,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(5,22,existence=True)
-        True
-    """
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    G = AdditiveCyclic(21)
-    M = [
-        [   1,  13,  18,   3,  16,  19,None],
-        [  16,  19,   1,  13,  18,   3,   0],
-        [  18,   3,  16,  19,   1,  13,   0],
-        [   6,  15,   6,  15,   6,  15,   0],
-        [  12,   9,  19,  16,   5,   2,   0],
-        ]
-
-    Mb=[[0,7,14,None,0],
-        [0,14,7,0,None]]
-
-    for R in zip(*M):
-        a,b,c,d,e = [G(x) if x is not None else None for x in R]
-        Mb.append([a,b,c,d,e])
-
-        Mb.append([16*c,
-                   None if a is None else 16*a,
-                   16*b,
-                   16*d+7,
-                   16*e+14])
-
-        Mb.append([4*b,
-                   4*c,
-                   None if a is None else 4*a,
-                   4*d+14,
-                   4*e+7])
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col=False)
-    return M
-
-def OA_6_26():
-    r"""
-    Return an OA(6,26)
-
-    As explained in the Handbook III.3.53 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_6_26
-        sage: OA = OA_6_26()
-        sage: print is_orthogonal_array(OA,6,26,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(6,26,existence=True)
-        True
-    """
-    M = [
-        [None,None,None,None,None],
-        [   0,   0,   0,   0,   0],
-        [   1,   6,   7,   8,  14],
-        [   3,  11,  20,  18,  10],
-        [   6,  10,  14,   1,   5],
-        [   4,  19,   5,  12,   2],
-        ]
-
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    G = AdditiveCyclic(21)
-    Mb=[[0,0,0,0,0,0]]
-
-    for R in zip(*M):
-        a,b,c,d,e,f = R
-        Mb.append([a,b,c,d,e,f])
-        Mb.append([b,c,d,e,f,a])
-        Mb.append([c,d,e,f,a,b])
-        Mb.append([d,e,f,a,b,c])
-        Mb.append([e,f,a,b,c,d])
-        Mb.append([f,a,b,c,d,e])
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
-    return M
-
-def OA_6_30():
-    r"""
-    Return an OA(6,30)
-
-    As explained in the Handbook III.3.55 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_6_30
-        sage: OA = OA_6_30()
-        sage: print is_orthogonal_array(OA,6,30,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(6,30,existence=True)
-        True
-    """
-    M = [
-        [(0,0),None,(0,0),(0,0),(0,0),(0,0),(0,0)],
-        [(0,0),(0,0),None,(0,4),(0,2),(0,3),(0,1)],
-        [(0,0),(3,1),(3,0),None,(4,0),(1,0),(2,0)],
-        [(0,0),(3,0),(0,2),(1,2),None,(0,1),(0,3)],
-        [(0,0),(3,3),(1,2),(4,2),(2,0),None,(0,4)],
-        [(0,0),(4,2),(2,4),(0,3),(2,3),(3,2),None]
-        ]
-
-    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
-    from sage.modules.free_module_element import free_module_element as vector
-    G = AdditiveAbelianGroup([5,5])
-    M = [[None if x is None else G(vector(x)) for x in L] for L in M]
-
-    Mb=[]
-
-    for R in zip(*M):
-        a,b,c,d,e,f = R
-        for i in range(5):
-            Mb.append([
-                None if a is None else a+G(vector((i,i))),
-                None if b is None else b+G(vector((2*i,i))),
-                None if c is None else c+G(vector((i,0))),
-                None if d is None else d+G(vector((4*i,0))),
-                None if e is None else e+G(vector((3*i,4*i))),
-                None if f is None else f+G(vector((4*i,4*i)))])
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
-    return M
-
-def OA_6_34():
-    r"""
-    Return an OA(6,34)
-
-    As explained in the Handbook III.3.57 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_6_34
-        sage: OA = OA_6_34()
-        sage: print is_orthogonal_array(OA,6,34,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(6,34,existence=True)
-        True
-    """
-    M = [
-        [None,   0,   0,   0,   0,   0],
-        [  30,  17,  10,  25,  23,   8],
-        [  22,   4,  32,  29,  28,  22],
-        [  25,  10,  20,  15,  21,  16],
-        [   0,  12,  15,  16,  32,  23],
-        [   6,  11,  18,  14,   9,  20]
-        ]
-
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    G = AdditiveCyclic(33)
-
-    Mb = [[ 0,  0,  0,  0,  0,   0],
-          [ 1,  4, 16, 31, 25,  11],
-          [ 3, 12, 15, 27,  9,  11],
-          [10,  7, 28, 13, 19,   0],
-          [ 5, 20, 14, 23, 26,None]]
-
-    times4 = lambda x : None if x is None else 4*x
-    for R in zip(*M):
-        a,b,c,d,e,f = [None if x is None else G(x) for x in R]
-        for i in range(5):
-            Mb.append([a,b,c,d,e,f])
-            a,b,c,d,e,f = map(times4,[e,a,b,c,d,f])
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
-    return M
-
-def OA_6_38():
-    r"""
-    Return an OA(6,38)
-
-    As explained in the Handbook III.3.60 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_6_38
-        sage: OA = OA_6_38()
-        sage: print is_orthogonal_array(OA,6,38,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(6,38,existence=True)
-        True
-    """
-    M = [
-        [None,  10,   1,   2,   6,   3,  22,   5,   7,   9,  14,  18,  28],
-        [   0,   1,  10,  20,  23,  30,  35,  13,  33,  16,  29,  32,  21],
-        [   0,  26,  26,  15,   8,   4,  17,  19,  34,  12,  31,  24,  25],
-        [  10,None,  10,   6,   2,  22,   3,   7,   5,  14,   9,  28,  18],
-        [   1,   0,  26,  23,  20,  35,  30,  33,  13,  29,  16,  21,  32],
-        [  26,   0,   1,   8,  15,  17,   4,  34,  19,  31,  12,  25,  24]
-        ]
-
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    G = AdditiveCyclic(37)
-
-    Mb=[]
-
-    for R in zip(*M):
-        a,b,c,d,e,f = R
-        Mb.append([a,b,c,d,e,f])
-        Mb.append([b,c,a,f,d,e])
-        Mb.append([c,a,b,e,f,d])
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
-    return M
-
-
 def OA_9_40():
     r"""
     Return an OA(9,40)
@@ -676,176 +382,6 @@ def OA_9_40():
     Y = [None, 0, 1, 6, 5, 4, 3, 2]
 
     return OA_n_times_2_pow_c_from_matrix(9,3,FiniteField(5),A,Y,check=False)
-
-def OA_7_42():
-    r"""
-    Return an OA(7,42)
-
-    As explained in the Handbook III.3.63 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_7_42
-        sage: OA = OA_7_42()
-        sage: print is_orthogonal_array(OA,7,42,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(7,42,existence=True)
-        True
-    """
-    M = [
-        [None,None,None,None,None,None,None],
-        [   0,   0,   0,   0,   0,   0,   0],
-        [  18, -18,  11, -11,   5,  -5,   4],
-        [  26, -26,  10, -10,  30, -30,  23],
-        [  20, -20,   3,  -3,  33, -33,  23],
-        [   5,  -5,  25, -25,  24, -24,   4],
-        [  17, -17,   4,  -4,  22, -22,   0]
-        ]
-
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    G = AdditiveCyclic(35)
-
-    Mb=[]
-
-    for R in zip(*M):
-        for i in range(7):
-            Mb.append(cyclic_shift(R,i))
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
-    return M
-
-def OA_7_54():
-    r"""
-    Return an OA(7,54)
-
-    As explained in the Handbook III.3.71 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_7_54
-        sage: OA = OA_7_54()
-        sage: print is_orthogonal_array(OA,7,54,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(7,54,existence=True)
-        True
-    """
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    G = AdditiveCyclic(45)
-
-    M = [
-        [None,None,None,None,None,None,None,None,None],
-        [   0,   0,   0,   0,   0,   0,   0,   0,   0],
-        [   1,  27,  16,   7,  -1, -27, -16,  -7,   3],
-        [  24,  40,   1,  35, -24, -40,  -1, -35,   7],
-        [  10,  30,  22,  44, -10, -30, -22, -44,   7],
-        [   5,  18,  14,  33,  -5, -18, -14, -33,   3],
-        [  30,  16,  33,  27, -30, -16, -33, -27,   0],
-        ]
-
-    Mb=[]
-
-    for R in zip(*M):
-        for c in range(7):
-            Mb.append(cyclic_shift(R,c))
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
-    return M
-
-def OA_7_62():
-    r"""
-    Return an OA(7,62)
-
-    As explained in the Handbook III.3.74 [DesignHandbook]_.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_7_62
-        sage: OA = OA_7_62()
-        sage: print is_orthogonal_array(OA,7,62,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(7,62,existence=True)
-        True
-    """
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
-    G = AdditiveCyclic(54)
-
-    M = [
-        [ 0 ,None,None,None, 0   ,None ,None ,None,None,None],
-        [17 , 0  , 0  , 0  , -17 ,  0  ,  0  ,  0 ,  1 , 11 ],
-        [29 , 28 , 35 , 23 , -29 , -28 , -35 , -23,  3 , 19 ],
-        [36 , 50 , 5  , 33 , -36 , -50 , -5  , -33,  7 , 33 ],
-        [31 ,  2 , 43 , 30 , -31 , - 2 , -43 , -30, 34 , 33 ],
-        [16 , 47 , 44 , 51 , -16 , -47 , -44 , -51, 30 , 19 ],
-        [41 , 11 ,  1 , 17 , -41 , -11 , - 1 , -17, 28 , 11 ]
-        ]
-
-    Mb=[]
-
-    for R in zip(*M):
-        for c in range(7):
-            Mb.append(cyclic_shift(R,c))
-
-    M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
-    return M
-
-def OA_9_65():
-    r"""
-    Return an OA(9,65)
-
-    Construction shared by Julian R. Abel
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_9_65
-        sage: OA = OA_9_65()
-        sage: print is_orthogonal_array(OA,9,65,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(9,65,existence=True)
-        True
-    """
-    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as G
-
-    B = [None,1, 6, 7, 9, 19, 38, 42, 49] # Base block of a (57,8,1)-BIBD
-    OA = orthogonal_array(9,9,2)
-    M = [R for R in OA if any(R[0] != x for x in R)]
-
-    M = [[B[x] for x in R] for R in M] # replacing [0,..,8] by the elements of B
-    M.append([0]*9)
-
-    M = OA_from_quasi_difference_matrix(M, G(57),add_col=False)
-    return M
 
 def OA_7_66():
     r"""
@@ -1834,42 +1370,6 @@ def OA_20_416():
 
     return OA_n_times_2_pow_c_from_matrix(20,5,FiniteField(13),zip(*A),Y,check=False)
 
-def OA_9_514():
-    r"""
-    Returns an OA(9,514)
-
-    Construction shared by Julian R. Abel:
-
-        A `V(8,57)` vector appears on page p281 of the Brouwer-Van Rees paper
-        [BvR82]_. This gives a `TD(8+2, 514) - TD(8+2,57)`. Using a `TD(9,57)`
-        (not a `TD(10,57)`) it yields a `TD(9,514)`.
-
-    .. SEEALSO::
-
-        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_9_514
-        sage: OA = OA_9_514()
-        sage: print is_orthogonal_array(OA,9,514,2)
-        True
-
-    The design is available from the general constructor::
-
-        sage: designs.orthogonal_array(9,514,existence=True)
-        True
-    """
-    from sage.rings.finite_rings.constructor import FiniteField
-    q = 8*57+1
-    Fq = FiniteField(q)
-
-    Vm8_57 = [0,1,3,2,12,333,363,154,340]
-    QDM = QDM_from_Vmt(8,57,Vm8_57)
-    QDM = [B[:-1] for B in QDM]
-    return OA_from_quasi_difference_matrix(QDM,Fq,add_col=False)
-
 def OA_20_544():
     r"""
     Returns an OA(20,544)
@@ -2117,7 +1617,7 @@ def OA_10_469():
 
     This construction appears in [Brouwer80]_. It is based on the same technique
     used in
-    :func:`~sage.combinat.designs.orthogonal_arrays_recursive.brouwer_separable_design`.
+    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.brouwer_separable_design`.
 
     Julian R. Abel's instructions:
 
@@ -2150,7 +1650,7 @@ def OA_10_469():
         sage: designs.orthogonal_array(10,469,existence=True)
         True
     """
-    from orthogonal_arrays_recursive import _reorder_matrix
+    from orthogonal_arrays_build_recursive import _reorder_matrix
     from orthogonal_arrays import incomplete_orthogonal_array
 
     OA = []
@@ -2189,8 +1689,9 @@ def OA_520_plus_x(x):
     r"""
     Return an `OA(10+x,520+x)`.
 
-    The consruction shared by Julian R. Abel can build three designs:
-    `OA(10,520), OA(12,522), OA(14,524)`.
+    The consruction shared by Julian R. Abel works for :func:`OA(10,520)
+    <OA_10_520>`, :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524)
+    <OA_14_524>`.
 
         Let `n=520+x` and `k=10+x`. Build a `TD(17,31)`. Remove `8-x` points
         contained in a common block, add a new point `p` and create a block
@@ -2416,17 +1917,7 @@ def OA_25_1262():
 
 OA_constructions = {
     18  : (7  , OA_7_18),
-    20  : (6  , OA_6_20),
-    22  : (5  , OA_5_22),
-    26  : (6  , OA_6_26),
-    30  : (6  , OA_6_30),
-    34  : (6  , OA_6_34),
-    38  : (6  , OA_6_38),
     40  : (9  , OA_9_40),
-    42  : (7  , OA_7_42),
-    54  : (7  , OA_7_54),
-    62  : (7  , OA_7_62),
-    65  : (9  , OA_9_65),
     66  : (7  , OA_7_66),
     68  : (7  , OA_7_68),
     69  : (8  , OA_8_69),
@@ -2446,7 +1937,6 @@ OA_constructions = {
     352 : (20 , OA_20_352),
     416 : (20 , OA_20_416),
     469 : (10 , OA_10_469),
-    514 : (9  , OA_9_514),
     520 : (10 , OA_10_520),
     522 : (12 , OA_12_522),
     524 : (14 , OA_14_524),
@@ -2461,6 +1951,423 @@ OA_constructions = {
 LIST_OF_OA_CONSTRUCTIONS = join((":func:`OA({},{}) <OA_{}_{}>`".format(k,n,k,n)
                                 for n,(k,_) in OA_constructions.items()),
                                ", ")
+
+def QDM_19_6_1_1_1():
+    r"""
+    Return a `(19,6;1,1;1)`-quasi-difference matrix.
+
+    Used to build an `OA(6,20)`
+
+    Given in the Handbook III.3.49 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_19_6_1_1_1
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_19_6_1_1_1()
+        sage: is_quasi_difference_matrix(M,G,6,1,1,1)
+        True
+    """
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    M=[[None,   7,  13,   1,  16,   9,   2],
+       [   0,   1,  15,   7,  17,   6,  14],
+       [   0,  11,  10,  11,   5,   4,   3],
+       [   7,None,  13,  16,   1,   2,   9],
+       [   1,   0,  15,  17,   7,  14,   6],
+       [  11,   0,  10,   5,  11,   3,   4]]
+
+    Mb=[]
+
+    for R in zip(*M):
+        a,b,c,d,e,f = R
+        Mb.append([a,b,c,d,e,f])
+        Mb.append([b,c,a,f,d,e])
+        Mb.append([c,a,b,e,f,d])
+
+    return AdditiveCyclic(19), Mb
+
+def QDM_21_5_1_1_1():
+    r"""
+    Return a `(21,5;1,1;1)`-quasi-difference matrix.
+
+    Used to build an `OA(5,22)`
+
+    Given in the Handbook III.3.51 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_21_5_1_1_1
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_21_5_1_1_1()
+        sage: is_quasi_difference_matrix(M,G,5,1,1,1)
+        True
+    """
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(21)
+    M = [
+        [   1,  13,  18,   3,  16,  19,None],
+        [  16,  19,   1,  13,  18,   3,   0],
+        [  18,   3,  16,  19,   1,  13,   0],
+        [   6,  15,   6,  15,   6,  15,   0],
+        [  12,   9,  19,  16,   5,   2,   0],
+        ]
+
+    Mb=[[0,7,14,None,0],
+        [0,14,7,0,None]]
+
+    for R in zip(*M):
+        a,b,c,d,e = [G(x) if x is not None else None for x in R]
+        Mb.append([a,b,c,d,e])
+
+        Mb.append([16*c,
+                   None if a is None else 16*a,
+                   16*b,
+                   16*d+7,
+                   16*e+14])
+
+        Mb.append([4*b,
+                   4*c,
+                   None if a is None else 4*a,
+                   4*d+14,
+                   4*e+7])
+
+    return G, Mb
+
+def QDM_21_6_1_1_5():
+    r"""
+    Return a `(21,6;1,1;5)`-quasi-difference matrix.
+
+    Used to build an `OA(6,26)`
+
+    Given in the Handbook III.3.53 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_21_6_1_1_5
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_21_6_1_1_5()
+        sage: is_quasi_difference_matrix(M,G,6,1,1,5)
+        True
+    """
+    M = [
+        [None,None,None,None,None],
+        [   0,   0,   0,   0,   0],
+        [   1,   6,   7,   8,  14],
+        [   3,  11,  20,  18,  10],
+        [   6,  10,  14,   1,   5],
+        [   4,  19,   5,  12,   2],
+        ]
+
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(21)
+    Mb=[[0,0,0,0,0,0]]
+
+    for R in zip(*M):
+        a,b,c,d,e,f = R
+        Mb.append([a,b,c,d,e,f])
+        Mb.append([b,c,d,e,f,a])
+        Mb.append([c,d,e,f,a,b])
+        Mb.append([d,e,f,a,b,c])
+        Mb.append([e,f,a,b,c,d])
+        Mb.append([f,a,b,c,d,e])
+
+    return G, Mb
+
+def QDM_25_6_1_1_5():
+    r"""
+    Return a `(25,6;1,1;5)`-quasi-difference matrix.
+
+    Used to build an `OA(6,30)`
+
+    Given in the Handbook III.3.55 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_25_6_1_1_5
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_25_6_1_1_5()
+        sage: is_quasi_difference_matrix(M,G,6,1,1,5)
+        True
+    """
+    M = [
+        [(0,0),None,(0,0),(0,0),(0,0),(0,0),(0,0)],
+        [(0,0),(0,0),None,(0,4),(0,2),(0,3),(0,1)],
+        [(0,0),(3,1),(3,0),None,(4,0),(1,0),(2,0)],
+        [(0,0),(3,0),(0,2),(1,2),None,(0,1),(0,3)],
+        [(0,0),(3,3),(1,2),(4,2),(2,0),None,(0,4)],
+        [(0,0),(4,2),(2,4),(0,3),(2,3),(3,2),None]
+        ]
+
+    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+    from sage.modules.free_module_element import free_module_element as vector
+    G = AdditiveAbelianGroup([5,5])
+    M = [[None if x is None else G(vector(x)) for x in L] for L in M]
+
+    Mb=[]
+
+    for R in zip(*M):
+        a,b,c,d,e,f = R
+        for i in range(5):
+            Mb.append([
+                None if a is None else a+G(vector((i,i))),
+                None if b is None else b+G(vector((2*i,i))),
+                None if c is None else c+G(vector((i,0))),
+                None if d is None else d+G(vector((4*i,0))),
+                None if e is None else e+G(vector((3*i,4*i))),
+                None if f is None else f+G(vector((4*i,4*i)))])
+
+    return G, Mb
+
+def QDM_33_6_1_1_1():
+    r"""
+    Return a `(33,6;1,1;1)`-quasi-difference matrix.
+
+    Used to build an `OA(6,34)`
+
+    Given in the Handbook III.3.57 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_33_6_1_1_1
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_33_6_1_1_1()
+        sage: is_quasi_difference_matrix(M,G,6,1,1,1)
+        True
+    """
+    M = [
+        [None,   0,   0,   0,   0,   0],
+        [  30,  17,  10,  25,  23,   8],
+        [  22,   4,  32,  29,  28,  22],
+        [  25,  10,  20,  15,  21,  16],
+        [   0,  12,  15,  16,  32,  23],
+        [   6,  11,  18,  14,   9,  20]
+        ]
+
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(33)
+
+    Mb = [[ 0,  0,  0,  0,  0,   0],
+          [ 1,  4, 16, 31, 25,  11],
+          [ 3, 12, 15, 27,  9,  11],
+          [10,  7, 28, 13, 19,   0],
+          [ 5, 20, 14, 23, 26,None]]
+
+    times4 = lambda x : None if x is None else 4*x
+    for R in zip(*M):
+        a,b,c,d,e,f = [None if x is None else G(x) for x in R]
+        for i in range(5):
+            Mb.append([a,b,c,d,e,f])
+            a,b,c,d,e,f = map(times4,[e,a,b,c,d,f])
+
+    return G, Mb
+
+def QDM_37_6_1_1_1():
+    r"""
+    Return a `(37,6;1,1;1)`-quasi-difference matrix.
+
+    Used to build an `OA(6,38)`
+
+    Given in the Handbook III.3.60 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_37_6_1_1_1
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_37_6_1_1_1()
+        sage: is_quasi_difference_matrix(M,G,6,1,1,1)
+        True
+    """
+    M = [
+        [None,  10,   1,   2,   6,   3,  22,   5,   7,   9,  14,  18,  28],
+        [   0,   1,  10,  20,  23,  30,  35,  13,  33,  16,  29,  32,  21],
+        [   0,  26,  26,  15,   8,   4,  17,  19,  34,  12,  31,  24,  25],
+        [  10,None,  10,   6,   2,  22,   3,   7,   5,  14,   9,  28,  18],
+        [   1,   0,  26,  23,  20,  35,  30,  33,  13,  29,  16,  21,  32],
+        [  26,   0,   1,   8,  15,  17,   4,  34,  19,  31,  12,  25,  24]
+        ]
+
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(37)
+
+    Mb=[]
+
+    for R in zip(*M):
+        a,b,c,d,e,f = R
+        Mb.append([a,b,c,d,e,f])
+        Mb.append([b,c,a,f,d,e])
+        Mb.append([c,a,b,e,f,d])
+
+    return G, Mb
+
+def QDM_35_7_1_1_7():
+    r"""
+    Return a `(35,7;1,1;7)`-quasi-difference matrix.
+
+    Used to build an `OA(7,42)`
+
+    As explained in the Handbook III.3.63 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_35_7_1_1_7
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_35_7_1_1_7()
+        sage: is_quasi_difference_matrix(M,G,7,1,1,7)
+        True
+    """
+    M = [
+        [None,None,None,None,None,None,None],
+        [   0,   0,   0,   0,   0,   0,   0],
+        [  18, -18,  11, -11,   5,  -5,   4],
+        [  26, -26,  10, -10,  30, -30,  23],
+        [  20, -20,   3,  -3,  33, -33,  23],
+        [   5,  -5,  25, -25,  24, -24,   4],
+        [  17, -17,   4,  -4,  22, -22,   0]
+        ]
+
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(35)
+
+    Mb=[]
+
+    for R in zip(*M):
+        for i in range(7):
+            Mb.append(cyclic_shift(R,i))
+
+    return G, Mb
+
+def QDM_45_7_1_1_9():
+    r"""
+    Return a `(45,7;1,1;9)`-quasi-difference matrix.
+
+    Used to build an `OA(7,54)`
+
+    As explained in the Handbook III.3.71 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_45_7_1_1_9
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_45_7_1_1_9()
+        sage: is_quasi_difference_matrix(M,G,7,1,1,9)
+        True
+    """
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(45)
+
+    M = [
+        [None,None,None,None,None,None,None,None,None],
+        [   0,   0,   0,   0,   0,   0,   0,   0,   0],
+        [   1,  27,  16,   7,  -1, -27, -16,  -7,   3],
+        [  24,  40,   1,  35, -24, -40,  -1, -35,   7],
+        [  10,  30,  22,  44, -10, -30, -22, -44,   7],
+        [   5,  18,  14,  33,  -5, -18, -14, -33,   3],
+        [  30,  16,  33,  27, -30, -16, -33, -27,   0],
+        ]
+
+    Mb=[]
+
+    for R in zip(*M):
+        for c in range(7):
+            Mb.append(cyclic_shift(R,c))
+
+    return G, Mb
+
+def QDM_54_7_1_1_8():
+    r"""
+    Return a `(54,7;1,1;8)`-quasi-difference matrix.
+
+    Used to build an `OA(7,62)`
+
+    As explained in the Handbook III.3.74 [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_54_7_1_1_8
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_54_7_1_1_8()
+        sage: is_quasi_difference_matrix(M,G,7,1,1,8)
+        True
+    """
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(54)
+
+    M = [
+        [ 0 ,None,None,None, 0   ,None ,None ,None,None,None],
+        [17 , 0  , 0  , 0  , -17 ,  0  ,  0  ,  0 ,  1 , 11 ],
+        [29 , 28 , 35 , 23 , -29 , -28 , -35 , -23,  3 , 19 ],
+        [36 , 50 , 5  , 33 , -36 , -50 , -5  , -33,  7 , 33 ],
+        [31 ,  2 , 43 , 30 , -31 , - 2 , -43 , -30, 34 , 33 ],
+        [16 , 47 , 44 , 51 , -16 , -47 , -44 , -51, 30 , 19 ],
+        [41 , 11 ,  1 , 17 , -41 , -11 , - 1 , -17, 28 , 11 ]
+        ]
+
+    Mb=[]
+
+    for R in zip(*M):
+        for c in range(7):
+            Mb.append(cyclic_shift(R,c))
+
+    return G, Mb
+
+def QDM_57_9_1_1_8():
+    r"""
+    Return a `(57,9;1,1;8)`-quasi-difference matrix.
+
+    Used to build an `OA(9,65)`
+
+    Construction shared by Julian R. Abel
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import QDM_57_9_1_1_8
+        sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+        sage: G,M = QDM_57_9_1_1_8()
+        sage: is_quasi_difference_matrix(M,G,9,1,1,8)
+        True
+    """
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as G
+
+    B = [None,1, 6, 7, 9, 19, 38, 42, 49] # Base block of a (57,8,1)-BIBD
+    OA = orthogonal_array(9,9,2)
+    M = [R for R in OA if any(R[0] != x for x in R)]
+
+    M = [[B[x] for x in R] for R in M] # replacing [0,..,8] by the elements of B
+    M.append([0]*9)
+
+    return  G(57), M
+
+# Quasi-difference matrices
+#
+# The syntax of the dictionary is
+#
+# QDM = {
+#     (n+u,lmbda): { # QDM with mu<=lmbda=1 yields a OA(k,n+u)-OA(k,u)
+#         (n,lmbda,mu,u): (k,qdm_constructor),
+#         }
+# }
+
+QDM = {}
+for ((n,k,lmbda,mu,u),f) in [((19,6,1,1,1), QDM_19_6_1_1_1),
+                             ((21,5,1,1,1), QDM_21_5_1_1_1),
+                             ((21,6,1,1,5), QDM_21_6_1_1_5),
+                             ((25,6,1,1,5), QDM_25_6_1_1_5),
+                             ((33,6,1,1,1), QDM_33_6_1_1_1),
+                             ((37,6,1,1,1), QDM_37_6_1_1_1),
+                             ((35,7,1,1,7), QDM_35_7_1_1_7),
+                             ((45,7,1,1,9), QDM_45_7_1_1_9),
+                             ((54,7,1,1,8), QDM_54_7_1_1_8),
+                             ((57,9,1,1,8), QDM_57_9_1_1_8)]:
+    if not (n+u,lmbda) in QDM:
+        QDM[n+u,lmbda] = {}
+    QDM[n+u,lmbda][n,lmbda,mu,u] = (k,f)
+
+# Create the list of QDM matrices for the doc
+LIST_OF_QDM = join(("`({},{};{},{};{})`".format(n,k,lmbda,mu,u)
+                    for n,k,lmbda,mu,u in
+                    sorted((n,k,lmbda,mu,u) for entry in QDM.values()
+                           for (n,lmbda,mu,u),(k,_) in sorted(entry.items()))),
+                   ", ")
 
 Vmt_vectors = {
     (4,9) : ((0,1,3,2,8),
@@ -2486,6 +2393,10 @@ Vmt_vectors = {
     (8,29) : ((0,1,4,11,94,60,85,16,198),
               """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
               Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
+
+    (8,57) : ((0,1,3,2,12,333,363,154,340),
+              """A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
+              Discrete Mathematics 1982, vol 39, num 3, pp 263-281"""),
 
     (10,13) : ((0,1,5,10,22,6,14,9,53,129,84),
                """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
@@ -2579,6 +2490,10 @@ Vmt_vectors = {
                """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
                Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
 
+    (12,185) : ((0,1,404,324,935,605,366,360,178,221,533,1940,30),
+               """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+               Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
+
     (12,191) : ((0,1,491,527,939,377,1685,1735,1967,1176,391,2192,681),
                """J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
                Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
@@ -2592,9 +2507,12 @@ Vmt_vectors = {
                Australasian Journal of Combinatorics 2008, vol 40, pp 69-85"""),
 
 }
-# Translate all V(m,t) into OA constructors
+# Translate all V(m,t) into (mt+1,m+2;1,0;t)-QDM constructors
 for (m,t),(vec,source) in Vmt_vectors.iteritems():
-    OA_constructions[(m+1)*t+1] = (m+2, lambda m=m,t=t,vec=vec:OA_from_Vmt(m,t,vec))
+    n,k,lmbda,mu,u = (m*t+1,m+2,1,0,t)
+    if not (n+u,lmbda) in QDM:
+        QDM[n+u,lmbda] = {}
+    QDM[n+u,lmbda][n,lmbda,mu,u] = (k,lambda m=m,t=t,vec=vec:QDM_from_Vmt(m,t,vec))
 
 # Create the list of V(m,t) vectors for the doc
 _all_m = sorted(set(m for m,_ in Vmt_vectors.keys()))
@@ -2607,13 +2525,13 @@ Tests for the Vmt vectors
 
 EXAMPLES::
 
-    sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
-    sage: from sage.combinat.designs.orthogonal_arrays import OA_from_Vmt
+    sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
+    sage: from sage.combinat.designs.orthogonal_arrays import QDM_from_Vmt
     sage: from sage.combinat.designs.database import Vmt_vectors
     sage: for (m,t),(vec,source) in sorted(Vmt_vectors.items()):
-    ....:     k,n = m+2,(m+1)*t+1
+    ....:     G,M = QDM_from_Vmt(m,t,vec)
     ....:     if n < 1000:
-    ....:         assert is_orthogonal_array(OA_from_Vmt(m,t,vec),k,n)
+    ....:         assert  is_quasi_difference_matrix(M,G,m+2,1,1,t,verbose=1),(m,t)
     ....:     print "{:11}{}".format("V({},{}):".format(m,t),source)
     V(4,9):    A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
                  Discrete Mathematics 1982, vol 39, num 3, pp 263-281
@@ -2627,6 +2545,8 @@ EXAMPLES::
                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
     V(8,29):   Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
+    V(8,57):   A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
+                  Discrete Mathematics 1982, vol 39, num 3, pp 263-281
     V(10,13):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
                    Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
     V(10,19):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
@@ -2673,6 +2593,8 @@ EXAMPLES::
                    Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
     V(12,169): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
                    Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
+    V(12,185): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
+                   Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
     V(12,191): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
                    Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
     V(12,199): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
@@ -2680,7 +2602,6 @@ EXAMPLES::
     V(12,229): J.R. Abel, Some V(12,t) vectors and designs from difference and quasi-difference matrices,
                    Australasian Journal of Combinatorics 2008, vol 40, pp 69-85
 """
-
 
 DF = {
 ##############
@@ -3966,7 +3887,7 @@ DM = {
 # Create the list of DM for the documentation
 _all_l = sorted(set(l for v,l in DM.keys()))
 LIST_OF_DM = join(("    - `\lambda={}`:\n       ".format(l)+
-                   join(("`({},{},{})`".format(v,k,l) for (v,l),(k,_) in sorted(DM.items()) if _ == l),", ")
+                   join(("`({},{},{})`".format(v,k,l) for (v,_),(k,__) in sorted(DM.items()) if _ == l),", ")
                    for l in _all_l), "\n")
 
 def RBIBD_120_8_1():
@@ -4066,5 +3987,6 @@ __doc__ = __doc__.format(
     LIST_OF_MOLS_CONSTRUCTIONS = LIST_OF_MOLS_CONSTRUCTIONS,
     LIST_OF_VMT_VECTORS        = LIST_OF_VMT_VECTORS,
     LIST_OF_DF                 = LIST_OF_DF,
-    LIST_OF_DM                 = LIST_OF_DM)
-del LIST_OF_OA_CONSTRUCTIONS, LIST_OF_MOLS_CONSTRUCTIONS, LIST_OF_VMT_VECTORS, LIST_OF_DF, LIST_OF_DM
+    LIST_OF_DM                 = LIST_OF_DM,
+    LIST_OF_QDM                = LIST_OF_QDM)
+del LIST_OF_OA_CONSTRUCTIONS, LIST_OF_MOLS_CONSTRUCTIONS, LIST_OF_VMT_VECTORS, LIST_OF_DF, LIST_OF_DM, LIST_OF_QDM

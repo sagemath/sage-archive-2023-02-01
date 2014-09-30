@@ -45,8 +45,8 @@ struct ZZ;
 
 EXTERN int ZZ_to_int(const struct ZZ* x);
 EXTERN struct ZZ* int_to_ZZ(int value);
-EXTERN void ZZ_to_mpz(mpz_t* output, const struct ZZ* x);
-EXTERN void mpz_to_ZZ(struct ZZ *output, const mpz_t* x);
+EXTERN void ZZ_to_mpz(mpz_t output, const struct ZZ* x);
+EXTERN void mpz_to_ZZ(struct ZZ *output, const mpz_t x);
 EXTERN void ZZ_set_from_int(struct ZZ* x, int value);
 /*Random-number generation */
 //EXTERN void setSeed(const struct ZZ* n);
@@ -88,7 +88,7 @@ EXTERN char* ZZX_repr(struct ZZX* x);
 EXTERN struct ZZX* ZZX_copy(struct ZZX* x);
 EXTERN void ZZX_setitem_from_int(struct ZZX* x, long i, int value);
 EXTERN int ZZX_getitem_as_int(struct ZZX* x, long i);
-EXTERN void ZZX_getitem_as_mpz(mpz_t* output, struct ZZX* x, long i);
+EXTERN void ZZX_getitem_as_mpz(mpz_t output, struct ZZX* x, long i);
 EXTERN struct ZZX* ZZX_div(struct ZZX* x, struct ZZX* y, int* divisible);
 EXTERN void ZZX_quo_rem(struct ZZX* x, struct ZZX* other, struct ZZX** r, struct ZZX** q);
 EXTERN struct ZZX* ZZX_square(struct ZZX* x);

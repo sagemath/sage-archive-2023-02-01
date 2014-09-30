@@ -32,7 +32,8 @@ from sage.env import SAGE_DOC, SAGE_SRC
 #     SAGE_DOC, LANGUAGES, SPHINXOPTS, PAPER, OMIT,
 #     PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS
 # from build_options.py.
-execfile(os.path.join(SAGE_DOC, 'common' , 'build_options.py'))
+fpath = os.path.join(SAGE_DOC, 'common', 'build_options.py')
+exec(compile(open(fpath).read(), fpath, 'exec'))
 
 
 def delete_empty_directories(root_dir, verbose=True):
@@ -106,7 +107,7 @@ def builder_helper(type):
         # Execute custom-sphinx-build.py
         sys.argv = [os.path.join(SAGE_DOC, 'common', 'custom-sphinx-build.py')]
         sys.argv.extend(build_command.split())
-        execfile(sys.argv[0])
+        eval(compile(open(sys.argv[0]).read(), sys.argv[0], 'exec'))
 
         # Print message about location of output:
         #   - by default if html output

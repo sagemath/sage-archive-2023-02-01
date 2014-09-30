@@ -124,6 +124,7 @@ class HasseDiagram(DiGraph):
 
             sage: P = Posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [3,4,1,2])
             sage: P._hasse_diagram.plot()
+            Graphics object consisting of 42 graphics primitives
         """
         # Set element_labels to default to the vertex set.
         if element_labels is None:
@@ -428,6 +429,9 @@ class HasseDiagram(DiGraph):
             sage: p.is_chain()
             False
         """
+        # Quick check: for |V| verts there must be |V|-1 edges.
+        if self.num_edges()+1 != self.num_verts():
+            return False
         # There is one minimum and all other vertices have out-degree 1
         seen_0 = False
         for d in self.out_degree():

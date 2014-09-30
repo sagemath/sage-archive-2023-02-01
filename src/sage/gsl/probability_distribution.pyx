@@ -255,12 +255,12 @@ cdef class SphericalDistribution(ProbabilityDistribution):
             sage: T = SphericalDistribution()
             sage: T.set_random_number_generator('default')
             sage: T.set_seed(0)
-            sage: T.get_random_element()
-            (0.0796156410464, -0.0523767162758, 0.995448657286)
+            sage: T.get_random_element()  # rel tol 4e-16
+            (0.07961564104639995, -0.05237671627581255, 0.9954486572862178)
             sage: T.set_random_number_generator('luxury')
             sage: T.set_seed(0)
-            sage: T.get_random_element()
-            (0.0796156410464, -0.0523767162758, 0.995448657286)
+            sage: T.get_random_element()  # rel tol 4e-16
+            (0.07961564104639995, -0.05237671627581255, 0.9954486572862178)
         """
         if rng == 'default':
             self.T = gsl_rng_default
@@ -283,8 +283,8 @@ cdef class SphericalDistribution(ProbabilityDistribution):
         EXAMPLE::
 
             sage: T = SphericalDistribution(seed = 0)
-            sage: T.get_random_element()
-            (0.0796156410464, -0.0523767162758, 0.995448657286)
+            sage: T.get_random_element()  # rel tol 4e-16
+            (0.07961564104639995, -0.05237671627581255, 0.9954486572862178)
         """
 
         cdef int i
@@ -301,11 +301,11 @@ cdef class SphericalDistribution(ProbabilityDistribution):
         EXAMPLE::
 
             sage: T = SphericalDistribution(seed = 0)
-            sage: [T.get_random_element() for _ in range(4)]
-            [(0.0796156410464, -0.0523767162758, 0.995448657286), (0.412359949059, 0.560681785936, -0.718049585566), (-0.961986089162, -0.272647349404, -0.0156903512115), (0.567429757944, -0.0112067838004, -0.823345539732)]
+            sage: [T.get_random_element() for _ in range(4)]  # rel tol 4e-16
+            [(0.07961564104639995, -0.05237671627581255, 0.9954486572862178), (0.4123599490593727, 0.5606817859360097, -0.7180495855658982), (-0.9619860891623148, -0.2726473494040498, -0.015690351211529927), (0.5674297579435619, -0.011206783800420301, -0.8233455397322326)]
             sage: T.reset_distribution()
-            sage: [T.get_random_element() for _ in range(4)]
-            [(0.0796156410464, -0.0523767162758, 0.995448657286), (0.412359949059, 0.560681785936, -0.718049585566), (-0.961986089162, -0.272647349404, -0.0156903512115), (0.567429757944, -0.0112067838004, -0.823345539732)]
+            sage: [T.get_random_element() for _ in range(4)]  # rel tol 4e-16
+            [(0.07961564104639995, -0.05237671627581255, 0.9954486572862178), (0.4123599490593727, 0.5606817859360097, -0.7180495855658982), (-0.9619860891623148, -0.2726473494040498, -0.015690351211529927), (0.5674297579435619, -0.011206783800420301, -0.8233455397322326)]
         """
         if self.r != NULL:
             gsl_rng_free(self.r)
@@ -345,9 +345,9 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: T.get_random_element() # random
         0.818610064197
         sage: T.distribution_function(0)
-        0.398942280401
+        0.3989422804014327
         sage: T.cum_distribution_function(1)
-        0.841344746069
+        0.8413447460685429
         sage: T.cum_distribution_function_inv(.5)
         0.0
 
@@ -360,9 +360,9 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: T.distribution_function(0)
         0.0
         sage: T.cum_distribution_function(1)
-        0.0540405310932
+        0.054040531093234534
         sage: T.cum_distribution_function_inv(.5)
-        3.53223006755
+        3.532230067546424
 
     The lognormal distribution has two parameters ``sigma``
     and ``zeta``::
@@ -400,9 +400,9 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: T.get_random_element() # random
         -0.994514581164
         sage: T.distribution_function(0)
-        0.318309886184
+        0.3183098861837906
         sage: T.cum_distribution_function(1)
-        0.75
+        0.7499999999999998
         sage: T.cum_distribution_function_inv(.5)
         0.0
 
@@ -412,12 +412,12 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: F = RealDistribution('F', [nu1,nu2])
         sage: F.get_random_element() # random
         1.65211335491
-        sage: F.distribution_function(1)
-        0.669502550519
-        sage: F.cum_distribution_function(3.68)
-        0.98997177723
-        sage: F.cum_distribution_function_inv(0.99)
-        3.68224152405
+        sage: F.distribution_function(1)  # rel tol 1e-14
+        0.6695025505192798
+        sage: F.cum_distribution_function(3.68)  # rel tol 1e-14
+        0.9899717772300652
+        sage: F.cum_distribution_function_inv(0.99)  # rel tol 1e-14
+        3.682241524045864
 
     The chi-squared distribution has one parameter ``nu``::
 
@@ -427,10 +427,10 @@ cdef class RealDistribution(ProbabilityDistribution):
         0.103230507883
         sage: T.distribution_function(0)
         +infinity
-        sage: T.cum_distribution_function(1)
-        0.682689492137
-        sage: T.cum_distribution_function_inv(.5)
-        0.45493642312
+        sage: T.cum_distribution_function(1)  # rel tol 1e-14
+        0.6826894921370856
+        sage: T.cum_distribution_function_inv(.5)  # rel tol 1e-14
+        0.45493642311957305
 
     The exponential power distribution has two parameters ``a`` and
     ``b``::
@@ -440,10 +440,10 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: T = RealDistribution('exppow', [a, b])
         sage: T.get_random_element() # random
         0.570108609774
-        sage: T.distribution_function(0)
-        0.563530248993
-        sage: T.cum_distribution_function(1)
-        0.940263052543
+        sage: T.distribution_function(0)  # rel tol 1e-14
+        0.5635302489930136
+        sage: T.cum_distribution_function(1)  # rel tol 1e-14
+        0.940263052542855
 
     The beta distribution has two parameters ``a`` and ``b``::
 
@@ -467,9 +467,9 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: T.distribution_function(0)
         1.0
         sage: T.cum_distribution_function(1)
-        0.632120558829
+        0.6321205588285577
         sage: T.cum_distribution_function_inv(.5)
-        0.69314718056
+        0.6931471805599453
 
     It is possible to select which random number generator drives the
     sampling as well as the seed.  The default is the Mersenne
@@ -510,8 +510,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         EXAMPLES::
 
             sage: T = RealDistribution('gaussian', 1, seed = 0)
-            sage: T.get_random_element()
-            0.133918608119
+            sage: T.get_random_element()  # rel tol 4e-16
+            0.13391860811867587
 
         TESTS:
 
@@ -566,15 +566,13 @@ cdef class RealDistribution(ProbabilityDistribution):
             sage: T = SphericalDistribution()
             sage: T.set_random_number_generator('default')
             sage: T.set_seed(0)
-            sage: T.get_random_element()
-            (0.0796156410464, -0.0523767162758, 0.995448657286)
+            sage: T.get_random_element()  # rel tol 4e-16
+            (0.07961564104639995, -0.05237671627581255, 0.9954486572862178)
             sage: T.set_random_number_generator('luxury')
             sage: T.set_seed(0)
-            sage: T.get_random_element()
-            (0.0796156410464, -0.0523767162758, 0.995448657286)
-
+            sage: T.get_random_element()  # rel tol 4e-16
+            (0.07961564104639995, -0.05237671627581255, 0.9954486572862178)
         """
-
         if rng == 'default':
             self.T = gsl_rng_default
         elif rng == 'luxury':
@@ -612,8 +610,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         EXAMPLE::
 
             sage: T = RealDistribution('gaussian', 1, seed = 0)
-            sage: T.get_random_element()
-            0.133918608119
+            sage: T.get_random_element()  # rel tol 4e-16
+            0.13391860811867587
 
         """
         cdef double result
@@ -783,19 +781,12 @@ cdef class RealDistribution(ProbabilityDistribution):
         EXAMPLE::
 
             sage: T = RealDistribution('gaussian', 1, seed = 10)
-            sage: [T.get_random_element() for _ in range(10)]
-            [-0.746099959575, -0.00464460662641, -0.872053831721,
-             0.691625992167, 2.67668674666, 0.632500281366,
-             -0.797426352196, -0.528497689337, 1.13531198495,
-             0.991250567323]
+            sage: [T.get_random_element() for _ in range(10)]  # rel tol 4e-16
+            [-0.7460999595745819, -0.004644606626413462, -0.8720538317207641, 0.6916259921666037, 2.67668674666043, 0.6325002813661014, -0.7974263521959355, -0.5284976893366636, 1.1353119849528792, 0.9912505673230749]
             sage: T.reset_distribution()
-            sage: [T.get_random_element() for _ in range(10)]
-            [-0.746099959575, -0.00464460662641, -0.872053831721,
-             0.691625992167, 2.67668674666, 0.632500281366,
-             -0.797426352196, -0.528497689337, 1.13531198495,
-             0.991250567323]
+            sage: [T.get_random_element() for _ in range(10)]  # rel tol 4e-16
+            [-0.7460999595745819, -0.004644606626413462, -0.8720538317207641, 0.6916259921666037, 2.67668674666043, 0.6325002813661014, -0.7974263521959355, -0.5284976893366636, 1.1353119849528792, 0.9912505673230749]
         """
-
         if self.r != NULL:
             gsl_rng_free(self.r)
         self.r = gsl_rng_alloc(self.T)

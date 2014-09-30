@@ -12,17 +12,15 @@ Cython bitset types
 
 # This file declares the bitset types. The implementation of the basic
 # Cython type bitset_t (inline functions) is in bitset.pxi, the
-# implementation of the Python later is in bitset.pyx. The latter file
+# implementation of the Python class is in bitset.pyx. The latter file
 # also contains all doctests.
 
 cdef extern from *:
-    # constant literals
-    int index_shift "(sizeof(unsigned long)==8 ? 6 : 5)"
-    unsigned long offset_mask "(sizeof(unsigned long)==8 ? 0x3F : 0x1F)"
-
     # Given an element index n in a set, (n >> index_shift) gives the
-    # corresponding limb number, while (n & offset_mask) gives the bit
-    # number inside of the limb.
+    # corresponding limb number.
+    int index_shift "(sizeof(mp_limb_t) == 8 ? 6 : 5)"
+
+from sage.libs.gmp.types cimport *
 
 cdef struct bitset_s:
     # The size of a bitset B counts the maximum number of bits that B can
@@ -30,9 +28,9 @@ cdef struct bitset_s:
     # 1. For example, say B is the bitset 1001. Then B has size 4, with the
     # first and fourth elements toggled to 1, reading from left to right.
     # We can also think of the size of a bitset as its capacity.
-    long size
+    mp_bitcnt_t size
 
-    # A limb is that part of a bitset that can fit into an unsigned long
+    # A limb is that part of a bitset that can fit into an mp_limb_t
     # (typically, 32 bits on a 32-bit machine and 64 bits on a 64-bit
     # machine). This counts the number of limbs to represent a bitset.
     # If a bitset has size <= n, then the whole bitset fits into a limb
@@ -42,12 +40,12 @@ cdef struct bitset_s:
     # and the bitset has size 96 bits, then we require at most two limbs
     # to represent the bitset.
     #
-    # NOTE: we assume that a limb corresponds to an MPIR limb (this
-    # assumption is always true in practice).
-    long limbs
+    # NOTE: some code assumes that mp_limb_t is an unsigned long
+    # (this assumption is always true in practice).
+    mp_size_t limbs
 
     # The individual bits of a bitset.
-    unsigned long *bits
+    mp_limb_t* bits
 
 ctypedef bitset_s bitset_t[1]
 

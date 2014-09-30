@@ -134,7 +134,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
 
             sage: E = CombinatorialFreeModule(QQ, ["a", "b", "c"])
             sage: tensor.category_from_parents((E, E, E))
-            Category of tensor products of modules with basis over Rational Field
+            Category of tensor products of vector spaces with basis over Rational Field
         """
         from sage.structure.parent import Parent
         assert(all(isinstance(parent, Parent) for parent in parents))
@@ -183,7 +183,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         EXAMPLES::
 
             sage: tensor.category_from_category(ModulesWithBasis(QQ))
-            Category of tensor products of modules with basis over Rational Field
+            Category of tensor products of vector spaces with basis over Rational Field
 
         # TODO: add support for parametrized functors
         """
@@ -265,7 +265,7 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
         EXAMPLES::
 
             sage: sage.categories.tensor.TensorProductsCategory.category_of(ModulesWithBasis(QQ))
-            Category of tensor products of modules with basis over Rational Field
+            Category of tensor products of vector spaces with basis over Rational Field
 
             sage: sage.categories.algebra_functor.AlgebrasCategory.category_of(FiniteMonoids(), QQ)
             Join of Category of finite dimensional algebras with basis over Rational Field
@@ -429,7 +429,7 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
             sage: latex(Semigroups().Subquotients())   # indirect doctest
             \mathbf{Subquotients}(\mathbf{Semigroups})
             sage: latex(ModulesWithBasis(QQ).TensorProducts())
-            \mathbf{TensorProducts}(\mathbf{ModulesWithBasis}_{\Bold{Q}})
+            \mathbf{TensorProducts}(\mathbf{WithBasis}_{\Bold{Q}})
             sage: latex(Semigroups().Algebras(QQ))
             \mathbf{Algebras}(\mathbf{Semigroups})
         """

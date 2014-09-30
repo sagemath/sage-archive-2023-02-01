@@ -1717,16 +1717,12 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i, j
 
         cdef Matrix_integer_dense L
-        L = Matrix_integer_dense.__new__(Matrix_integer_dense,
-                                         self.parent().change_ring(ZZ),
-                                         0, 0, 0)
-        cdef mpz_t* L_row
+        L = Matrix_integer_dense._new_uninitialized_matrix(Matrix_integer_dense,self._nrows,self._ncols)
         cdef mod_int* A_row
         for i from 0 <= i < self._nrows:
-            L_row = L._matrix[i]
             A_row = self._matrix[i]
             for j from 0 <= j < self._ncols:
-                mpz_init_set_si(L_row[j], A_row[j])
+                fmpz_set_si(fmpz_mat_entry(L._matrix,i,j),A_row[j])
         L._initialized = 1
         L.subdivide(self.subdivisions())
         return L

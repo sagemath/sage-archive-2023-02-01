@@ -13,11 +13,12 @@ Fast word datatype using an array of unsigned char.
 
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
+include "sage/misc/bitset.pxi"
 
 cimport cython
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
-from libc.string cimport memcpy, memcmp
+from libc.string cimport memcpy, memcmp, memset
 from sage.combinat.words.word_datatypes cimport WordDatatype
 
 cdef extern from "Python.h":
@@ -177,6 +178,31 @@ cdef class WordDatatype_char(WordDatatype):
             <type 'int'>
         """
         return smallInteger(self._length)
+
+    def letters(self):
+        r"""
+        Return the list of letters that appear in this word, listed in the
+        order of first appearance.
+
+        EXAMPLES::
+
+            sage: W = Words(5)
+            sage: W([1,3,1,2,2,3,1]).letters()
+            [1, 3, 2]
+        """
+        cdef bitset_t seen
+        bitset_init(seen, 256) # allocation + initialization to 0
+
+        cdef size_t i
+        cdef list res = []
+        cdef unsigned char letter
+        for i in range(self._length):
+            letter = self._data[i]
+            if not bitset_in(seen, letter):
+                bitset_add(seen, letter)
+                res.append(letter)
+        bitset_free(seen)
+        return res
 
     cdef _new_c(self, unsigned char * data, size_t length, WordDatatype_char master):
         r"""

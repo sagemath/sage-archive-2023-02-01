@@ -5955,12 +5955,8 @@ class FiniteWord_class(Word_class):
 
     def letters(self):
         r"""
-        Return a list of the letters that appear in self, listed in the
+        Return the list of letters that appear in this word, listed in the
         order of first appearance.
-
-        OUTPUT:
-
-            list
 
         EXAMPLES::
 
@@ -5974,11 +5970,12 @@ class FiniteWord_class(Word_class):
             sage: Word().letters()
             []
         """
-        seen, res = {}, []
+        seen = set()
+        res = []
         for x in self:
             if x not in seen:
                 res.append(x)
-                seen[x] = True
+                seen.add(x)
         return res
 
     def standard_factorization(self):

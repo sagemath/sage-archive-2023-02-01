@@ -1106,20 +1106,26 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         EXAMPLES::
 
             sage: UHP = HyperbolicPlane().UHP()
-            sage: (p1, p2, p3) = [UHP.random_point() for k in range(3)]
-            sage: A = UHP.get_geodesic(p1, p3)._to_std_geod(p2.coordinates())
+            sage: (p1, p2) = [UHP.random_point() for k in range(2)]
+            sage: g = UHP.get_geodesic(p1, p2)
+            sage: A = g._to_std_geod(g.midpoint().coordinates()) # Send midpoint to I.
             sage: A = UHP.get_isometry(A)
-            sage: bool(abs(A(p1).coordinates()) < 10**-9)
+            sage: [s, e]= g.complete().endpoints()
+            sage: bool(abs(A(s).coordinates()) < 10**-9)
             True
-            sage: bool(abs(A(p2).coordinates() - I) < 10**-9)
+            sage: bool(abs(A(g.midpoint()).coordinates() - I) < 10**-9)
             True
-            sage: bool(A(p3).coordinates() == infinity)
+            sage: bool(A(e).coordinates() == infinity)
             True
         """
         B = matrix([[1, 0], [0, -I]])
-        s = self._start.coordinates()
-        e = self._end.coordinates()
-        return B * HyperbolicGeodesicUHP._crossratio_matrix(s, p, e)
+        [s, e]= [k.coordinates() for k in self.complete().endpoints()]
+        # outmat below will be returned after we normalize the determinant.
+        outmat =  B * HyperbolicGeodesicUHP._crossratio_matrix(s, p, e)
+        outmat = outmat/outmat.det().sqrt()
+        if abs(outmat - outmat.conjugate()) < 10**-9: # Small imaginary part.
+            outmat = (outmat + outmat.conjugate()) / 2 # Set it equal to its real part.
+        return outmat
 
     @staticmethod
     def _crossratio_matrix(p0, p1, p2): #UHP

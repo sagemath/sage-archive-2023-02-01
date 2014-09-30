@@ -749,6 +749,13 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
 
             sage: UHP = HyperbolicPlane().UHP()
             sage: PD = HyperbolicPlane().PD()
+            sage: PD.isometry_from_fixed_points(-i, i)
+            Isometry in PD
+            [   3/4  1/4*I]
+            [-1/4*I    3/4]
+
+            ::
+
             sage: p, q = PD.get_point(1/2 + I/2), PD.get_point(6/13 + 9/13*I)
             sage: PD.isometry_from_fixed_points(p, q)
             Traceback (most recent call last):
@@ -762,7 +769,8 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
             [ 1/3*I - 1/6 -1/6*I - 2/3]
         """
         R = self.realization_of().a_realization()
-        return R.isometry_from_fixed_points(R(repel), R(attract)).to_model(self)
+        return R.isometry_from_fixed_points(R(self(repel)), R(self(attract))).to_model(self)
+
 
 #####################################################################
 ## Upper half plane model

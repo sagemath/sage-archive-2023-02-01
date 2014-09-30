@@ -136,6 +136,7 @@ cdef class HiddenMarkovModel:
             sage: G.edges()
             [(0, 0, 0.3), (0, 2, 0.7), (1, 2, 1.0), (2, 0, 0.5), (2, 1, 0.5)]
             sage: G.plot()
+            Graphics object consisting of 11 graphics primitives
         """
         cdef int i, j
         m = self.transition_matrix()
@@ -291,6 +292,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         sage: m.sample(10)
         [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
         sage: m.graph().plot()
+        Graphics object consisting of 6 graphics primitives
 
     A 3-state model that happens to always outputs 'b'::
 

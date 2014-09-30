@@ -82,7 +82,7 @@ class FiniteField_ext_pari(FiniteField_generic):
     The following is a native Python set::
 
         sage: set(k)
-        set([0, 1, 2, a, a + 1, a + 2, 2*a, 2*a + 1, 2*a + 2])
+        {0, 1, 2, a, 2*a, a + 1, 2*a + 1, a + 2, 2*a + 2}
 
     And the following is a Sage set::
 

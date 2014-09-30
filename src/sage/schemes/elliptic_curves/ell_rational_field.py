@@ -3814,7 +3814,24 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def has_cm(self):
         """
-        Returns True iff this elliptic curve has Complex Multiplication.
+        Returns whether or not this curve has a CM `j`-invariant.
+
+        OUTPUT:
+
+        ``True`` if the `j`-invariant of this curve is the
+        `j`-invariant of an imaginary quadratic order, otherwise
+        ``False``.  See also :meth:`cm_discriminant()` and
+        :meth:`has_rational_cm`.
+
+        .. note::
+
+           Even if `E` has CM in this sense (that its `j`-invariant is
+           a CM `j`-invariant), since the associated negative
+           discriminant `D` is not a square in `\QQ`, the extra
+           endomorphisms will not be defined over `\QQ`.  See also the
+           method :meth:`has_rational_cm` which tests whether `E` has
+           extra endomorphisms defined over `\QQ` or a given extension
+           of `\QQ`.
 
         EXAMPLES::
 
@@ -3827,16 +3844,15 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.j_invariant()
             1728
         """
-
         return self.j_invariant() in CMJ
 
     def cm_discriminant(self):
         """
         Returns the associated quadratic discriminant if this elliptic
-        curve has Complex Multiplication.
+        curve has Complex Multiplication over the algebraic closure.
 
         A ValueError is raised if the curve does not have CM (see the
-        function has_cm()).
+        function :meth:`has_cm()`).
 
         EXAMPLES::
 
@@ -3854,10 +3870,96 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
 
         try:
-            return CMJ[self.j_invariant()]
+            return ZZ(CMJ[self.j_invariant()])
         except KeyError:
             raise ValueError("%s does not have CM"%self)
 
+    def has_rational_cm(self, field=None):
+        """
+        Returns whether or not this curve has CM defined over `\QQ`
+        or the given field.
+
+        INPUT:
+
+        - ``field`` -- a field, which should be an extension of `\QQ`.
+          If ``field`` is ``None`` (the default), it is taken to be
+          `\QQ`.
+
+        OUTPUT:
+
+        ``True`` if the ring of endomorphisms of this curve over
+        the given field is larger than `\ZZ`; otherwise ``False``.
+        If ``field`` is ``None`` the output will always be ``False``.
+        See also :meth:`cm_discriminant()` and :meth:`has_cm`.
+
+        .. note::
+
+           If `E` has CM but the discriminant `D` is not a square in
+           the given field `K`, which will certainly be the case for
+           `K=\QQ` since `D<0`, then the extra endomorphisms will not
+           be defined over `K`, and this function will return
+           ``False``.  See also :meth:`has_cm`.  To obtain the CM
+           discriminant, use :meth:`cm_discriminant()`.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve(j=0)
+            sage: E.has_cm()
+            True
+            sage: E.has_rational_cm()
+            False
+            sage: D = E.cm_discriminant(); D
+            -3
+
+        If we extend scalars to a field in which the discriminant is a
+        square, the CM becomes rational::
+
+            sage: E.has_rational_cm(QuadraticField(-3))
+            True
+
+            sage: E = EllipticCurve(j=8000)
+            sage: E.has_cm()
+            True
+            sage: E.has_rational_cm()
+            False
+            sage: D = E.cm_discriminant(); D
+            -8
+
+        Again, we may extend scalars to a field in which the
+        discriminant is a square, where the CM becomes rational::
+
+            sage: E.has_rational_cm(QuadraticField(-2))
+            True
+
+        The field need not be a number field provided that it is an
+        extension of `\QQ`::
+
+            sage: E.has_rational_cm(RR)
+            False
+            sage: E.has_rational_cm(CC)
+            True
+
+        An error is raised if a field is given which is not an
+        extension of `\QQ`, i.e., not of characteristic `0`::
+
+            sage: E.has_rational_cm(GF(2))
+            Traceback (most recent call last):
+            ...
+            ValueError: Error in has_rational_cm: Finite Field of size 2 is not an extension field of QQ
+        """
+        if field is None:
+            return False
+        try:
+            D = self.cm_discriminant()
+        except ValueError:
+            return False
+        try:
+            if field.characteristic()==0:
+                D = field(D)
+                return D.is_square()
+            raise ValueError("Error in has_rational_cm: %s is not an extension field of QQ" % field)
+        except AttributeError:
+            raise ValueError("Error in has_rational_cm: %s is not an extension field of QQ" % field)
 
     def quadratic_twist(self, D):
         """
@@ -4517,6 +4619,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             7 Elliptic Curve defined by y^2 + x*y  = x^3 - 7930*x - 296725 over Rational Field
             8 Elliptic Curve defined by y^2 + x*y  = x^3 - 130000*x - 18051943 over Rational Field
             sage: G.plot(edge_labels=True)
+            Graphics object consisting of 23 graphics primitives
         """
         return self.isogeny_class(order=order).graph()
 

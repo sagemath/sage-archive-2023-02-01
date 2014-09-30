@@ -10,7 +10,7 @@ usage() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Optional arguments:"
-    echo "  file.<sage|py|spyx> -- run given .sage, .py or .spyx files"
+    echo "  file.[sage|py|spyx] -- run given .sage, .py or .spyx file"
     echo "  -advanced           -- list all command line options"
     echo "  -c <cmd>            -- Evaluates cmd as sage code"
     echo "  -experimental       -- list all experimental packages that can be installed"
@@ -52,7 +52,7 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Running Sage:"
-    echo "  file.[sage|py|spyx] -- run given .sage, .py or .spyx files"
+    echo "  file.[sage|py|spyx] -- run given .sage, .py or .spyx file"
     echo "  -advanced           -- print this advanced help message"
     echo "  -c <cmd>            -- Evaluates cmd as sage code"
     echo "  -h, -?              -- print short help message"
@@ -133,20 +133,17 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Building and testing the Sage library:"
-    echo "  -b [branch]         -- build Sage library.  If branch is given, switch to"
-    echo "                         branch in devel/sage-branch and build that branch"
-    echo "  -ba [branch]        -- same as -b and rebuild all Cython code"
-    echo "  -ba-force [branch]  -- same as -ba, but don't query before rebuilding"
-    echo "  -br [branch]        -- switch to, build, and run Sage given branch"
+    echo "  -b                  -- build Sage library."
+    echo "  -ba                 -- same as -b and rebuild all Cython code"
+    echo "  -ba-force           -- same as -ba, but don't query before rebuilding"
+    echo "  -br                 -- build and run Sage"
     echo "  -bt [...]           -- build and test, options like -t below"
     echo "  -btp <N> [...]      -- build and test parallel, options like -tp below"
     echo "  -btnew [...]        -- build and test modified files, options like -tnew"
     echo "  -fixdoctests <file.py> [output_file] [--long]"
-    echo "                      -- writes a new version of file.py to output_file"
-    echo "                         (defaults: to file.py.out) that will pass the doctests."
-    echo "                         With the optional --long argument the long time tests"
-    echo "                         are also checked."
-    echo "                         A patch for the new file is printed to stdout."
+    echo "                      -- replace failing doctests with the actual output. With"
+    echo "                         optional output_file: redirect there. With the --long"
+    echo "                         option: include #long time tests."
     echo "  -startuptime [module] -- display how long each component of Sage takes to"
     echo "                         start up; optionally specify a module to get more"
     echo "                         details about that particular module"

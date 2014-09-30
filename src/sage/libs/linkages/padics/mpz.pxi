@@ -77,7 +77,7 @@ cdef inline int ccmp(mpz_t a, mpz_t b, long prec, bint reduce_a, bint reduce_b, 
     cdef int ans
     if reduce_a or reduce_b:
         mpz_sub(holder.value, a, b)
-        mpz_mod(holder.value, holder.value, prime_pow.pow_mpz_t_tmp(prec))
+        mpz_mod(holder.value, holder.value, &prime_pow.pow_mpz_t_tmp(prec)[0])
         return mpz_sgn(holder.value)
     else:
         ans = mpz_cmp(a,b)

@@ -54,24 +54,28 @@ fi
 
 cd $ROOT_DIR/src/
 
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $ENABLE_DEBUG $DISABLE_SSE2
+./configure \
+    --prefix="$SAGE_LOCAL" \
+    --libdir="$SAGE_LOCAL/lib" \
+    --enable-shared --disable-static \
+    $ENABLE_DEBUG $DISABLE_SSE2
 
 if [ $? -ne 0 ]; then
-    echo "Error configuring libm4ri"
+    echo "Error configuring m4ri"
     exit 1
 fi
 
 $MAKE
 
 if [ $? -ne 0 ]; then
-    echo "Error building libm4ri"
+    echo "Error building m4ri"
     exit 1
 fi
 
 $MAKE install
 
 if [ $? -ne 0 ]; then
-    echo "Error installing libm4ri"
+    echo "Error installing m4ri"
     exit 1
 fi
 

@@ -27,6 +27,15 @@ cdef process(s):
 
 
 cdef class SageObject:
+    """
+    Base class for all (user-visible) objects in Sage
+
+    Every object that can end up being returned to the user should
+    inherit from :class:`SageObject`.
+
+    .. automethod:: _ascii_art_
+    .. automethod:: _cache_key
+    """
 
     #######################################################################
     # Textual representation code
@@ -161,10 +170,7 @@ cdef class SageObject:
         you must override this method. Unlike :meth:`_repr_`, which is
         sometimes used for the hash key, the output of
         :meth:`_ascii_art_` may depend on settings and is allowed to
-        change during runtime. For example,
-        :meth:`~sage.combinat.tableau.Tableau.set_ascii_art` can be
-        used to switch the ASCII art of tableaux between different
-        mathematical conventions.
+        change during runtime.
 
         OUTPUT:
 

@@ -42,7 +42,7 @@ example::
     sage: f_scalar = (3 + b[7] + 2*b[9]);  f_scalar
     3 + x_0 + 2*x_1
     sage: f_scalar.dict()
-    {0: 1.0, 1: 2.0, -1: 3.0}
+    {-1: 3.0, 0: 1.0, 1: 2.0}
     sage: f_scalar.dict()[1]
     2.0
     sage: f_scalar.coefficient(b[9])

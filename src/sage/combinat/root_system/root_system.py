@@ -241,6 +241,7 @@ class RootSystem(UniqueRepresentation, SageObject):
 
         sage: L = RootSystem(['A',2]).ambient_space()
         sage: L.plot()
+        Graphics object consisting of 13 graphics primitives
 
     For more on plotting, see :ref:`sage.combinat.root_system.plot`.
 

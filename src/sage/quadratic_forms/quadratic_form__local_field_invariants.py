@@ -315,7 +315,7 @@ def hasse_invariant(self, p):
         sage: K.<a>=NumberField(x^2-23)
         sage: Q=DiagonalQuadraticForm(K,[-a,a+2])
         sage: [Q.hasse_invariant(p) for p in K.primes_above(19)]
-        [1, -1]
+        [-1, 1]
 
     """
     ## TO DO: Need to deal with the case n=1 separately somewhere!

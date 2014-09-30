@@ -274,8 +274,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: x = polygen(GF(389))
             sage: plot(x^2 + 1, rgbcolor=(0,0,1))
+            Graphics object consisting of 1 graphics primitive
             sage: x = polygen(QQ)
             sage: plot(x^2 + 1, rgbcolor=(1,0,0))
+            Graphics object consisting of 1 graphics primitive
         """
         R = self.base_ring()
         from sage.plot.all import plot, point, line
@@ -1379,7 +1381,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.any_root(GF(11^6, 'a'))
             a^5 + a^4 + 7*a^3 + 2*a^2 + 10*a
             sage: sorted(f.roots(GF(11^6, 'a')))
-            [(10*a^5 + 2*a^4 + 8*a^3 + 9*a^2 + a, 1), (10*a^5 + 3*a^4 + 8*a^3 + a^2 + 10*a + 4, 1), (2*a^5 + 8*a^4 + 3*a^3 + 6*a + 2, 1), (9*a^5 + 5*a^4 + 10*a^3 + 8*a^2 + 3*a + 1, 1), (a^5 + 3*a^4 + 8*a^3 + 2*a^2 + 3*a + 4, 1), (a^5 + a^4 + 7*a^3 + 2*a^2 + 10*a, 1)]
+            [(10*a^5 + 2*a^4 + 8*a^3 + 9*a^2 + a, 1), (a^5 + a^4 + 7*a^3 + 2*a^2 + 10*a, 1), (9*a^5 + 5*a^4 + 10*a^3 + 8*a^2 + 3*a + 1, 1), (2*a^5 + 8*a^4 + 3*a^3 + 6*a + 2, 1), (a^5 + 3*a^4 + 8*a^3 + 2*a^2 + 3*a + 4, 1), (10*a^5 + 3*a^4 + 8*a^3 + a^2 + 10*a + 4, 1)]
             sage: f.any_root(GF(11^6, 'a'))
             a^5 + a^4 + 7*a^3 + 2*a^2 + 10*a
 
@@ -1387,9 +1389,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g.any_root(ring=GF(11^10, 'b'), degree=1)
             1
             sage: g.any_root(ring=GF(11^10, 'b'), degree=2)
-            6*b^9 + 7*b^7 + 7*b^6 + 3*b^5 + b^2 + b + 3
+            5*b^9 + 4*b^7 + 4*b^6 + 8*b^5 + 10*b^2 + 10*b + 5
             sage: g.any_root(ring=GF(11^10, 'b'), degree=5)
-            7*b^9 + 2*b^8 + 6*b^7 + 3*b^6 + 2*b^5 + 7*b^3 + 7*b^2 + 2
+            5*b^9 + b^8 + 3*b^7 + 2*b^6 + b^5 + 4*b^4 + 3*b^3 + 7*b^2 + 10*b
 
         TESTS::
 
@@ -2426,7 +2428,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             {}
             sage: f = 7*x^5 + x^2 - 2*x - 3
             sage: f._mpoly_dict_recursive()
-            {(0,): -3, (1,): -2, (5,): 7, (2,): 1}
+            {(0,): -3, (1,): -2, (2,): 1, (5,): 7}
         """
         if not self:
             return {}
@@ -3561,7 +3563,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
              Ring morphism:
                From: Finite Field in a of size 7^3
                To:   Finite Field in b of size 7^6
-               Defn: a |--> 4*b^5 + 4*b^4 + 4*b^3 + 2*b^2 + 4*b + 5)
+               Defn: a |--> 2*b^4 + 6*b^3 + 2*b^2 + 3*b + 2)
 
         If the extension is trivial and the generators have the same
         name, the map will be the identity::

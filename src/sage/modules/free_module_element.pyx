@@ -1981,6 +1981,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: A = plot(v)
             sage: B = v.plot()
             sage: A+B # should just show one vector
+            Graphics object consisting of 2 graphics primitives
 
         Examples of the plot types::
 
@@ -1988,53 +1989,64 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: B = plot(v, plot_type='point', color='green', size=20)
             sage: C = plot(v, plot_type='step') # calls v.plot_step()
             sage: A+B+C
+            Graphics object consisting of 3 graphics primitives
 
         You can use the optional arguments for :meth:`plot_step`::
 
             sage: eps = 0.1
             sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
+            Graphics object consisting of 1 graphics primitive
 
         Three-dimensional examples::
 
             sage: v = vector(RDF, (1,2,1))
             sage: plot(v) # defaults to an arrow plot
+            Graphics3d Object
 
         ::
 
             sage: plot(v, plot_type='arrow')
+            Graphics3d Object
 
         ::
 
             sage: from sage.plot.plot3d.shapes2 import frame3d
             sage: plot(v, plot_type='point')+frame3d((0,0,0), v.list())
+            Graphics3d Object
 
         ::
 
             sage: plot(v, plot_type='step') # calls v.plot_step()
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
             sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
+            Graphics object consisting of 1 graphics primitive
 
         With greater than three coordinates, it defaults to a step plot::
 
             sage: v = vector(RDF, (1,2,3,4))
             sage: plot(v)
+            Graphics object consisting of 1 graphics primitive
 
         One dimensional vectors are plotted along the horizontal axis of
         the coordinate plane::
 
             sage: plot(vector([1]))
+            Graphics object consisting of 1 graphics primitive
 
         An optional start argument may also be specified by a tuple, list, or vector::
 
             sage: u = vector([1,2]); v = vector([2,5])
             sage: plot(u, start=v)
+            Graphics object consisting of 1 graphics primitive
 
         TESTS::
 
             sage: u = vector([1,1]); v = vector([2,2,2]); z=(3,3,3)
             sage: plot(u) #test when start=None
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
@@ -2117,6 +2129,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: eps=0.1
             sage: v = vector(RDF, [sin(n*eps) for n in range(100)])
             sage: v.plot_step(eps=eps, xmax=5, hue=0)
+            Graphics object consisting of 1 graphics primitive
         """
         if res is None:
             res = self.degree()
@@ -3440,7 +3453,7 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
             sage: r=vector([t,t^2,sin(t)])
             sage: vec,answers=r.nintegral(t,0,1)
             sage: vec
-            (0.5, 0.33333333333333337, 0.45969769413186023)
+            (0.5, 0.3333333333333334, 0.4596976941318602)
             sage: type(vec)
             <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
             sage: answers
@@ -4358,9 +4371,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         This lack of bounds checking causes trouble later::
 
             sage: v
-            Traceback (most recent call last):
-            ...
-            IndexError: list assignment index out of range
+            <repr(<sage.modules.free_module_element.FreeModuleElement_generic_sparse at 0x...>) failed: IndexError: list assignment index out of range>
         """
         if not self._is_mutable:
             raise ValueError("vector is immutable; please change a copy instead (use copy())")

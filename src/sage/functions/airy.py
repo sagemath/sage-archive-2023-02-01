@@ -11,11 +11,13 @@ Four global function symbols are immediately available, please see
 
 - :func:`airy_ai`: for the Airy Ai function
 
-- :func:`airy_ai_prime()<FunctionAiryAiPrime>`: for the first differential of the Airy Ai function
+- :func:`airy_ai_prime()<FunctionAiryAiPrime>`: for the first differential
+  of the Airy Ai function
 
 - :func:`airy_bi`: for the Airy Bi function
 
-- :func:`airy_bi_prime()<FunctionAiryBiPrime>`: for the first differential of the Airy Bi function
+- :func:`airy_bi_prime()<FunctionAiryBiPrime>`: for the first differential
+   of the Airy Bi function
 
 AUTHORS:
 
@@ -107,7 +109,8 @@ class FunctionAiryAiGeneral(BuiltinFunction):
             ValueError: cannot differentiate airy_ai in the first parameter
         """
         if diff_param == 0:
-            raise ValueError("cannot differentiate airy_ai in the first parameter")
+            raise ValueError("cannot differentiate airy_ai in the"
+                             " first parameter")
         return airy_ai_general(alpha + 1, x)
 
     def _eval_(self, alpha, x):
@@ -398,13 +401,14 @@ def airy_ai(alpha, x=None, hold_derivative=False, *args, **kwds):
 
     Plots::
 
-        sage: plot(airy_ai(x), (x, -10, 5)) + plot(airy_ai_prime(x), (x, -10, 5), color='red')
+        sage: plot(airy_ai(x), (x, -10, 5)) + plot(airy_ai_prime(x),
+        ....:  (x, -10, 5), color='red')
 
     **References**
 
     - Abramowitz, Milton; Stegun, Irene A., eds. (1965), "Chapter 10"
 
-    - http://en.wikipedia.org/wiki/Airy_function
+    - :wikipedia:`Airy_function`
     """
     # We catch the case with no alpha
     if x is None:
@@ -491,7 +495,8 @@ class FunctionAiryBiGeneral(BuiltinFunction):
             ValueError: cannot differentiate airy_bi in the first parameter
         """
         if diff_param == 0:
-            raise ValueError("cannot differentiate airy_bi in the first parameter")
+            raise ValueError("cannot differentiate airy_bi in the"
+                             " first parameter")
         return airy_bi_general(alpha + 1, x)
 
     def _eval_(self, alpha, x):
@@ -791,13 +796,14 @@ def airy_bi(alpha, x=None, hold_derivative=False, *args, **kwds):
 
     Plots::
 
-        sage: plot(airy_bi(x), (x, -10, 5)) + plot(airy_bi_prime(x), (x, -10, 5), color='red')
+        sage: plot(airy_bi(x), (x, -10, 5)) + plot(airy_bi_prime(x),
+        ....:  (x, -10, 5), color='red')
 
     **References**
 
     - Abramowitz, Milton; Stegun, Irene A., eds. (1965), "Chapter 10"
 
-    - http://en.wikipedia.org/wiki/Airy_function
+    - :wikipedia:`Airy_function`
     """
     # We catch the case with no alpha
     if x is None:

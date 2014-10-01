@@ -13926,18 +13926,18 @@ class GenericGraph(GenericGraph_pyx):
         g.allow_multiple_edges(False)
         return g
 
-    def disjoint_union(self, other, labels="pairs", verbose_relabel=None):
+    def disjoint_union(self, other, verbose_relabel=None, labels="pairs"):
         """
-        Returns the disjoint union of self and other.
+        Return the disjoint union of self and other.
 
         INPUT:
 
         - ``labels`` - (defaults to 'pairs') If set to 'pairs', each
           vertex v in the first graph will be named '0,v' and each
           vertex u in the second graph will be named '1,u' in the
-          final graph. If set to 'integers', the vertices of the first graph and
-          the second graph will be relabeled with consecutive
-          integers.
+          final graph. If set to 'integers', the vertices of the first
+          graph and the second graph will be relabeled with
+          consecutive integers.
 
         - ``verbose_relabel`` - deprecated.
 

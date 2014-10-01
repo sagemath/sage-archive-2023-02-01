@@ -2937,8 +2937,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def disjoint_union(self, other, labels='pairs'):
         """
-        Return a poset isomorphic to disjoint union (=direct sum) of the
-        poset with ``other``.
+        Return a poset isomorphic to disjoint union (also called direct
+        sum) of the poset with ``other``.
 
         Disjoint union of `P` and `Q` is a poset that contains every
         element and relation from both `P` and `Q`, and where every
@@ -2950,11 +2950,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - ``other``, a poset.
 
-        - ``labels``, either 'pairs' (default) or 'integers'. If
-          ``labels='pairs'``, then result have elements ``(0,x)`` and
-          ``(1,y)``, where ``x`` is an element of this poset and ``y``
-          is an element of ``other``. If labels='integers' then result
-          have elements just numbered starting from 0.
+        - ``labels`` - (defaults to 'pairs') If set to 'pairs', each
+          element v in this poset will be named '0,v' and each
+          element u in ``other`` will be named '1,u' in the
+          result. If set to 'integers', the elements of the result
+          will be relabeled with consecutive integers.
 
         EXAMPLES::
 
@@ -3004,29 +3004,29 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - ``other``, a poset.
 
-        - ``labels``, either 'pairs' (default) or 'integers'. If
-          ``labels='pairs'``, then result have elements ``(0,x)`` and
-          ``(1,y)``, where ``x`` is an element of this poset and ``y``
-          is an element of ``other``. If labels='integers' then result
-          have elements just numbered starting from 0.
+        - ``labels`` - (defaults to 'pairs') If set to 'pairs', each
+          element v in this poset will be named '0,v' and each
+          element u in ``other`` will be named '1,u' in the
+          result. If set to 'integers', the elements of the result
+          will be relabeled with consecutive integers.
 
         EXAMPLES::
 
-            sage: P1=Poset( ([1, 2, 3,], [[2,1], [3,1]]) )
-            sage: P2=Poset( ([1, 2, 3, 4], [[1, 2], [1, 3], [1, 4]]) )
+            sage: P1=Poset( ([1, 2, 3, 4], [[1, 2], [1, 3], [1, 4]]) )
+            sage: P2=Poset( ([1, 2, 3,], [[2,1], [3,1]]) )
             sage: P3=P1.ordinal_sum(P2); P3
             Finite poset containing 7 elements
-            sage: len(P1.minimal_elements())*len(P2.maximal_elements())
+            sage: len(P1.maximal_elements())*len(P2.minimal_elements())
             6
             sage: len(P1.cover_relations()+P2.cover_relations())
             5
-            sage: len(P3.cover_relations()) # Every element of P1 is greater than elements of P2.
+            sage: len(P3.cover_relations()) # Every element of P2 is greater than elements of P1.
             11
-            sage: P3.list()
-            [(0, 1), (0, 2), (0, 3), (0, 4), (1, 1), (1, 2), (1, 3)]
+            sage: P3.list()  # random
+            [(0, 1), (0, 2), (0, 4), (0, 3), (1, 2), (1, 3), (1, 1)]
             sage: P4=P1.ordinal_sum(P2, labels='integers')
             sage: P4.list()  # random
-            [3, 4, 5, 6, 2, 1, 0]
+            [0, 1, 2, 3, 5, 6, 4]
 
         Return type depends on input types::
 
@@ -3052,9 +3052,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         if not hasattr(other, 'hasse_diagram'):
             raise ValueError('The input is not a finite poset.')
         G=self.hasse_diagram().disjoint_union(other.hasse_diagram())
-        for u in self.minimal_elements():
-            for v in other.maximal_elements():
-                G.add_edge((1,v), (0,u))
+        for u in self.maximal_elements():
+            for v in other.minimal_elements():
+                G.add_edge((0,u), (1,v))
         if labels == 'integers':
             G.relabel()
         elif labels != 'pairs':
@@ -4861,4 +4861,3 @@ def _ford_fulkerson_chronicle(G, s, t, a):
             p += 1
 
         yield (p, val)
-

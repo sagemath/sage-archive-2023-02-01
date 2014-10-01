@@ -351,7 +351,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             Polynomial Ring in a over Algebraic Field
               Defn: Defined on coordinates by sending (x0 : x1 : x2) to
                     (1.414213562373095?*x0*x1 : a*x0^2 : x2^2)
-        """                    (1.4142135623730950^2 : x2^2)
+        """
         #it is possible to homogenize the domain and codomain at different coordinates
         if isinstance(n,(tuple,list)):
             ind = tuple(n)

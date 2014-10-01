@@ -9347,7 +9347,7 @@ cdef class Expression(CommutativeRingElement):
             sage: solve(cos(x)==0, x, to_poly_solve=True)
             [x == 1/2*pi]
             sage: solve(cos(x)==0, x, to_poly_solve='force')
-            [x == 1/2*pi + pi*z85]
+            [x == 1/2*pi + pi*z77]
 
         The same may also apply if a returned unsolved expression has a
         denominator, but the original one did not::

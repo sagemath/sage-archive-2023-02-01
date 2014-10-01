@@ -22,7 +22,7 @@ fi
 set -e
 
 # Untar ECL tarball
-ECLVERSION=12.12.1
+ECLVERSION=13.5.1
 tar xf ecl-"$ECLVERSION".tgz
 cd ecl-"$ECLVERSION"
 

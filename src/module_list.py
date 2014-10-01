@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
-import os, sys
-from distutils.core import setup
+import os
 from distutils.extension import Extension
-from sage.env import *
+from sage.env import SAGE_LOCAL
 
 SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
@@ -1063,7 +1062,7 @@ ext_modules = [
               extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
               # order matters for cygwin!!
               libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2],
-              depends = [SAGE_INC + '/m4ri/m4ri.h']+ flint_depends),
+              depends = [SAGE_INC + '/m4ri/m4ri.h'] + flint_depends),
 
     Extension('sage.matrix.matrix_integer_sparse',
               sources = ['sage/matrix/matrix_integer_sparse.pyx'],
@@ -1086,10 +1085,10 @@ ext_modules = [
     Extension('sage.matrix.matrix_modn_dense',
               sources = ['sage/matrix/matrix_modn_dense.pyx'],
               language="c++",
-              extra_compile_args = ["-D_XPG6"]+ m4ri_extra_compile_args,
+              extra_compile_args = ["-D_XPG6"] + m4ri_extra_compile_args,
               # order matters for cygwin!!
               libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2],
-              depends = [SAGE_INC + '/m4ri/m4ri.h']+ flint_depends),
+              depends = [SAGE_INC + '/m4ri/m4ri.h'] + flint_depends),
 
     Extension('sage.matrix.matrix_modn_dense_float',
               sources = ['sage/matrix/matrix_modn_dense_float.pyx'],
@@ -1101,7 +1100,8 @@ ext_modules = [
               sources = ['sage/matrix/matrix_modn_dense_double.pyx'],
               language="c++",
               libraries = ['linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp', BLAS, BLAS2],
-              extra_compile_args = ["-D_XPG6" '-DDISABLE_COMMENTATOR']+ m4ri_extra_compile_args + givaro_extra_compile_args),
+              extra_compile_args = ["-D_XPG6", "-DDISABLE_COMMENTATOR"]
+                    + m4ri_extra_compile_args + givaro_extra_compile_args),
 
     Extension('sage.matrix.matrix_modn_sparse',
               sources = ['sage/matrix/matrix_modn_sparse.pyx'],
@@ -1117,10 +1117,10 @@ ext_modules = [
     Extension('sage.matrix.matrix_rational_dense',
               sources = ['sage/matrix/matrix_rational_dense.pyx'],
               language="c",
-              extra_compile_args = ["-std=c99",  "-D_XPG6"]+ m4ri_extra_compile_args,
+              extra_compile_args = ["-std=c99", "-D_XPG6"] + m4ri_extra_compile_args,
               # order matters for cygwin!!
               libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2],
-              depends = [SAGE_INC + '/m4ri/m4ri.h']+ flint_depends),
+              depends = [SAGE_INC + '/m4ri/m4ri.h'] + flint_depends),
 
     Extension('sage.matrix.matrix_rational_sparse',
               sources = ['sage/matrix/matrix_rational_sparse.pyx'],

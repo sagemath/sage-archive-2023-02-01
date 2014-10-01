@@ -2543,7 +2543,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: H = Hom(X,X)
             sage: f= H([x^2-z^2, y^2, z^2-x^2])
             sage: f.rational_preimages(X([0,1,0]))
-            Traceback (click to the left of this block for traceback)
+            Traceback (most recent call last):
             ...
             NotImplementedError: Subschemes as Preimages not implemented
         """
@@ -2608,7 +2608,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                     if len(points[i]) == N + 1 and I.subs(points[i]) == I0:
                         S = PS([points[i][R.gen(j)] for j in range(N + 1)])
                         S.normalize_coordinates()
-                        if all([g(tuple(S)) != 0 for g in self]):
+                        if not all([g(tuple(S)) == 0 for g in self]):
                             preimages.add(S)
         return(list(preimages))
 

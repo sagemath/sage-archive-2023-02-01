@@ -175,8 +175,8 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             \begin{pmatrix} \mathit{\lambda}^{3} - 2 \mathit{\lambda} & \mathit{\lambda}^{2} - 1 \\ \mathit{\lambda}^{4} - 3 \mathit{\lambda}^{2} + 1 & \mathit{\lambda}^{3} - 2 \mathit{\lambda} \end{pmatrix}
         """
 
-        latex_out = "\\begin{pmatrix} %s & %s \\\\ %s & %s \\end{pmatrix}"%(latex(self.a()), latex(self.b()), latex(self.c()), latex(self.d()))
-        return latex_out.replace("lam", "\\lambda")
+        latex_out = r"\begin{pmatrix} %s & %s \\ %s & %s \end{pmatrix}"%(latex(self.a()), latex(self.b()), latex(self.c()), latex(self.d()))
+        return latex_out.replace("lam", r"\lambda")
 
     def __neg__(self):
         r"""
@@ -567,7 +567,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         min_value = infinity
         index = ZZ(0)
 
-        for emb in self.root_extension_field().embeddings(K):
+        for (index, emb) in enumerate(self.root_extension_field().embeddings(K)):
             if K.is_exact():
                 if emb(lam) == emb_lam and emb(e) == emb_e:
                     return emb
@@ -576,7 +576,6 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
                 if (value < min_value):
                     guess = index
                     min_value = value
-                index += 1
 
         if K.is_exact() or min_value == infinity:
             raise ValueError("No suitable embedding is available for K = {}!".format(K))
@@ -728,7 +727,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         by linear fractional transformations or by conjugation
         in case ``z`` is an element of the parent of ``self``.
 
-        Note: There is a 1-1 correspondence between hyperbolic
+        .. NOTE:
+
+        There is a 1-1 correspondence between hyperbolic
         fixed points and the corresponding primitive element
         in the stabilizer. The action in the two cases above
         is compatible with this correspondence.

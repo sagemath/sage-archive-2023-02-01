@@ -2,12 +2,6 @@
 This file contains a bunch of tests extracted from the published book
 'Modular Forms: a Computational Approach' by William Stein, AMS 2007.
 
-One doctest is commented out below, because it does not work in
-Sage currently. The original answer in the book is wrong, but the
-correct answer has been put in below. This is trac #4357.
-"""
-
-"""
 sage: G = SL(2,ZZ); G
 Special Linear Group of degree 2 over Integer Ring
 sage: S, T = G.gens()
@@ -549,9 +543,10 @@ q - q^4 - q^10 - 2*q^13 + O(q^14),
 q^2 - q^5 - 3*q^8 + 4*q^11 + O(q^14),
 q^3 - q^6 - q^9 - q^12 + O(q^14)
 ]
-
-sage: S.new_subspace().basis() # not tested
-(q + q^2 - q^4 -q^5 - 3*q^8 - q^10 + 4*q^11 - 2*q^13 + O(q^14),)
+sage: S.new_subspace().basis()
+[
+q + q^2 - q^4 - q^5 - 3*q^8 - q^10 + 4*q^11 - 2*q^13 + O(q^14)
+]
 sage: CuspForms(Gamma0(9),2)
 Cuspidal subspace of dimension 0 of Modular Forms space
 of dimension 3 for Congruence Subgroup Gamma0(9) of

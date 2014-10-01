@@ -38,7 +38,7 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
          Category of objects]
 
         sage: C.axioms()
-        frozenset(['AdditiveAssociative'])
+        frozenset({'AdditiveAssociative'})
         sage: C is AdditiveMagmas().AdditiveAssociative()
         True
 
@@ -97,7 +97,7 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
                 sage: C.extra_super_categories()
                 [Category of additive semigroups]
                 sage: C.axioms()
-                frozenset(['AdditiveAssociative'])
+                frozenset({'AdditiveAssociative'})
             """
             return [AdditiveSemigroups()]
 

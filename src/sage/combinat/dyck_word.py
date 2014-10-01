@@ -474,7 +474,13 @@ class DyckWord(CombinatorialObject, Element):
 
             sage: D = DyckWord([1,0,1,0,1,0])
             sage: D.latex_options()
-            {'valleys': False, 'peaks': False, 'tikz_scale': 1, 'color': 'black', 'diagonal': False, 'bounce path': False, 'line width': 2}
+            {'bounce path': False,
+             'color': 'black',
+             'diagonal': False,
+             'line width': 2,
+             'peaks': False,
+             'tikz_scale': 1,
+             'valleys': False}
         """
         d = self._latex_options.copy()
         if "tikz_scale" not in d:

@@ -218,7 +218,7 @@ class Scilab(Expect):
         Expect.__init__(self,
                         name = 'scilab',
                         prompt = '-->',
-                        command = "scilab -nogui",
+                        command = "scilab -nw",
                         maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
@@ -495,7 +495,7 @@ def scilab_console():
     Scilab, like Sage, remembers its history from one session to
     another.
     """
-    os.system('scilab -nogui')
+    os.system('scilab -nw')
 
 
 def scilab_version():

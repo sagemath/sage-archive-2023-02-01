@@ -262,37 +262,35 @@ class Scheme(Parent):
 
         We create some points::
 
-            sage: A(QQ)([1,0])
+            sage: A(QQ)([1, 0])
             (1, 0)
 
         We create the same point by giving the coordinates of the point
         directly::
 
-            sage: A( 1,0 )
+            sage: A(1, 0)
             (1, 0)
-        """
-        if len(args) == 0:
-            raise TypeError('You need to specify at least one argument.')
 
-        S = args[0]
-        if is_CommutativeRing(S):
-            return self.point_homset(S)
-        if is_Scheme(S):
-            return S.Hom(self)
-        from sage.schemes.generic.morphism import SchemeMorphism_point
-        if isinstance(S, (list, tuple)):
-            args = S
-        elif isinstance(S, SchemeMorphism_point):
-            if S.codomain() == self:
-                return S
-        else:
-            # TODO: fix circular import resulting from non-multiple inheritance
-            from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
-            if isinstance(S, EllipticCurvePoint_field):
-                if S.codomain() == self:
+        Check that :trac:`16832` is fixed::
+
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: X=P.subscheme(x^2 - y^2)
+            sage: X(P([4, 4, 1]))
+            (4 : 4 : 1)
+        """
+        if len(args) == 1:
+            from sage.schemes.generic.morphism import SchemeMorphism_point
+            S = args[0]
+            if is_CommutativeRing(S):
+                return self.point_homset(S)
+            elif is_Scheme(S):
+                return S.Hom(self)
+            elif isinstance(S, (list, tuple)):
+                args = S
+            elif isinstance(S, SchemeMorphism_point):
+                if S.codomain() is self:
                     return S
-                else:
-                    return self.point(S)
+                args = S
         return self.point(args)
 
     @cached_method
@@ -368,7 +366,7 @@ class Scheme(Parent):
             except AttributeError:  # legacy code without point_homset
                 return self._point(self, v, check=check)
 
-        return self.point_homset() (v, check=check)
+        return self.point_homset()(v, check=check)
 
     def _point(self):
         """

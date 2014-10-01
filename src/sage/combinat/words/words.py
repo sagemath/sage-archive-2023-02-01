@@ -165,7 +165,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             True
         """
         import sage.combinat.words.word as word
-        return {
+        classes = {
             'FiniteWord_list': word.FiniteWord_list,
             'FiniteWord_str': word.FiniteWord_str,
             'FiniteWord_tuple': word.FiniteWord_tuple,
@@ -180,6 +180,16 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             'Word_iter_with_caching': word.Word_iter_with_caching,
             'Word_iter': word.Word_iter
             }
+
+        # test whether or not we can use the class Finiteword_char
+        if (self.alphabet().cardinality() <= 256 and
+                all(isinstance(i, (int,Integer)) and 0 <= i < 256 for i in self.alphabet())):
+            L = self.alphabet().list()
+            if (all(L[i] < L[i+1] for i in range(len(L)-1)) and
+                    all(self.cmp_letters(L[i],L[i+1]) == -1 for i in range(len(L)-1))):
+                classes['FiniteWord_char'] = word.FiniteWord_char
+
+        return classes
 
     def _an_element_(self):
         r"""
@@ -253,6 +263,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             Traceback (most recent call last):
             ...
             ValueError: c not in alphabet!
+
         """
         from sage.combinat.words.word import Word
         kwds['data'] = data
@@ -462,8 +473,31 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             sage: Word(s, datatype='pickled_function')
             word: 0123456789012345678901234567890123456789...
 
+        If the alphabet is a subset of [0, 255], then it uses char as datatype::
+
+            sage: type(Word([0,1,1,2,0], alphabet=range(256)))
+            <class 'sage.combinat.words.word.FiniteWord_char'>
+
+        If the alphabet is a subset of [0, 255], then the letters must
+        convert to an unsigned char. Otherwise an error is raised before
+        the check is done::
+
+            sage: type(Word([0,1,1,2,0,257], alphabet=range(256)))
+            Traceback (most recent call last):
+            ...
+            OverflowError: value too large to convert to unsigned char
+            sage: type(Word([0,1,1,2,0,258], alphabet=range(257)))
+            Traceback (most recent call last):
+            ...
+            ValueError: 258 not in alphabet!
+            sage: type(Word([0,1,1,2,0,103], alphabet=range(100)))
+            Traceback (most recent call last):
+            ...
+            ValueError: 103 not in alphabet!
+
         """
         from sage.combinat.words.abstract_word import Word_class
+        from sage.combinat.words.word_char import WordDatatype_char
         from sage.combinat.words.word_infinite_datatypes import WordDatatype_callable, WordDatatype_iter
         from sage.combinat.words.word_datatypes import WordDatatype
         if isinstance(data, Word_class):
@@ -489,10 +523,12 @@ class Words_all(InfiniteAbstractCombinatorialClass):
                 if length is None:
                     length = data._len
                 data = data._func
-            elif isinstance(data,  WordDatatype_iter):
+            elif isinstance(data, WordDatatype_iter):
                 if length is None:
                     length = data._len
                 data = iter(data)
+            elif isinstance(data, WordDatatype_char):
+                data = list(data)
             elif isinstance(data, WordDatatype):
                 data = data._data
             else:
@@ -503,10 +539,12 @@ class Words_all(InfiniteAbstractCombinatorialClass):
 
         # Guess the datatype if it is not given.
         if datatype is None:
-            if isinstance(data, (list, CombinatorialObject)):
-                datatype = "list"
-            elif isinstance(data, (str)):
+            if 'FiniteWord_char' in self._element_classes and isinstance(data, (list,CombinatorialObject,tuple)):
+                datatype = 'char'
+            elif isinstance(data, str):
                 datatype = "str"
+            elif isinstance(data, (list, CombinatorialObject)):
+                datatype = "list"
             elif isinstance(data, tuple):
                 datatype = "tuple"
             elif callable(data):
@@ -521,9 +559,6 @@ class Words_all(InfiniteAbstractCombinatorialClass):
                 raise ValueError("Your data is not iterable")
             elif datatype == "callable" and not callable(data):
                 raise ValueError("Your data is not callable")
-            elif datatype not in ("list", "tuple", "str",
-                                "callable", "iter", "pickled_function"):
-                raise ValueError("Unknown datatype (=%s)" % datatype)
 
         # If `data` is a pickled_function, restore the function
         if datatype == 'pickled_function':
@@ -532,7 +567,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             datatype = 'callable'
 
         # Construct the word class and keywords
-        if datatype in ('list','str','tuple'):
+        if datatype in ('char', 'list','str','tuple'):
             cls_str = 'FiniteWord_%s'%datatype
             kwds = dict(parent=self,data=data)
         elif datatype == 'callable':
@@ -558,12 +593,12 @@ class Words_all(InfiniteAbstractCombinatorialClass):
                 cls_str += '_with_caching'
             kwds = dict(parent=self,iter=data,length=length)
         else:
-            raise ValueError("Not known datatype")
+            raise ValueError("Unknown datatype (=%s)" % datatype)
 
-        wordclass = self._element_classes
-        cls = wordclass[cls_str]
-        w = cls(**kwds)
-        return w
+        word_classes = self._element_classes
+        if cls_str not in word_classes:
+            raise ValueError("Unknwon datatype (=%s)" % datatype)
+        return word_classes[cls_str](**kwds)
 
     def _check(self, w, length=40):
         r"""

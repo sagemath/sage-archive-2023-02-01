@@ -94,7 +94,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.plot` | Returns a Graphic object corresponding the Hasse diagram of the poset.
     :meth:`~FinitePoset.product` | Returns the cartesian product of ``self`` and ``other``.
     :meth:`~FinitePoset.promotion` | Computes the (extended) promotion on the linear extension of the poset ``self``
-    :meth:`~FinitePoset.random_subposet` | Returns a random subposet that contains each element with probability p.
+    :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with probability ``p``.
     :meth:`~FinitePoset.rank_function` | Returns a rank function of the poset, if it exists.
     :meth:`~FinitePoset.rank` | Returns the rank of an element, or the rank of the poset if element is None.
     :meth:`~FinitePoset.relabel` | Returns a copy of this poset with its elements relabelled
@@ -128,7 +128,6 @@ Classes and functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import random
 import copy
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -3272,18 +3271,25 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def random_subposet(self, p):
         """
-        Returns a random subposet that contains each element with
-        probability p.
+        Return a random subposet that contains each element with
+        probability ``p``.
 
         EXAMPLES::
 
-            sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
-            sage: Q = P.random_subposet(.25)
+            sage: P = Posets.BooleanLattice(3)
+            sage: set_random_seed(0)
+            sage: Q = P.random_subposet(0.5)
+            sage: Q.cover_relations()
+            [[0, 2], [0, 5], [2, 3], [3, 7], [5, 7]]
         """
+        from sage.misc.randstate import current_randstate
+        random = current_randstate().python_random().random
         elements = []
         p = float(p)
+        if p<0 or p>1:
+            raise ValueError("The probability p must be in [0..1].")
         for v in self:
-            if random.random() <= p:
+            if random() <= p:
                 elements.append(v)
         return self.subposet(elements)
 

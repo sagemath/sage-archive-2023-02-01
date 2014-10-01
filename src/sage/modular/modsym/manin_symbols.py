@@ -58,9 +58,9 @@ import sage.modular.cusps as cusps
 import sage.modular.modsym.p1list as p1list
 import sage.modular.modsym.g1list as g1list
 import sage.modular.modsym.ghlist as ghlist
-import sage.modular.modsym.modular_symbols
-import sage.rings.arith as arith
-import sage.rings.all as rings
+from sage.rings.arith import xgcd, gcd
+from sage.rings.all import Infinity
+from sage.rings.all import ZZ, Integer
 
 from sage.structure.sage_object import SageObject
 
@@ -609,7 +609,7 @@ class ManinSymbolList_group(ManinSymbolList):
         else:
             s = -1
         z = []
-        a = rings.ZZ(k-2-i)
+        a = Integer(k-2-i)
         for j in range(k-2-i+1):
             m = self.index((j, u, v))
             z.append((m, s * a.binomial(j)))
@@ -652,7 +652,7 @@ class ManinSymbolList_group(ManinSymbolList):
         else:
             s = -1
         z = []
-        a = rings.ZZ(i)
+        a = Integer(i)
         for j in range(i+1):
             m = self.index((k-2-i+j, u, v))
             z.append((m, s * a.binomial(j)))
@@ -1164,7 +1164,7 @@ class ManinSymbolList_character(ManinSymbolList):
         else:
             s = -r
         z = []
-        a = rings.ZZ(k-2-i)
+        a = Integer(k-2-i)
         for j in range(k-2-i+1):
             m, r = self.index((j, u, v))
             z.append((m, s * r * a.binomial(j)))
@@ -1206,7 +1206,7 @@ class ManinSymbolList_character(ManinSymbolList):
         else:
             s = -r
         z = []
-        a = rings.ZZ(i)
+        a = Integer(i)
         for j in range(i+1):
             m, r = self.index((k-2-i+j, u, v))
             z.append((m, s * r * a.binomial(j)))
@@ -1761,10 +1761,10 @@ class ManinSymbol(SageObject):
         if N is None:
             N = self.level()
         if N == 1:
-            return [1,0,0,1]
-        c = self.u
-        d = self.v
-        g, z1, z2 = arith.XGCD(c,d)
+            return [ZZ.one(), ZZ.zero(), ZZ.zero(), ZZ.one()]
+        c = Integer(self.u)
+        d = Integer(self.v)
+        g, z1, z2 = xgcd(c,d)
 
         # We're lucky: z1*c + z2*d = 1.
         if g==1:
@@ -1779,19 +1779,19 @@ class ManinSymbol(SageObject):
 
         # compute prime-to-d part of m.
         while True:
-            g = arith.GCD(m,d)
+            g = gcd(m,d)
             if g == 1:
                 break
             m //= g
 
         # compute prime-to-N part of m.
         while True:
-            g = arith.GCD(m,N);
+            g = gcd(m,N);
             if g == 1:
                 break
             m //= g
         d += N*m
-        g, z1, z2 = arith.XGCD(c,d)
+        g, z1, z2 = xgcd(c,d)
         assert g==1
         return [z2, -z1, c, d]
 
@@ -1882,7 +1882,7 @@ class ManinSymbol(SageObject):
         """
         # TODO: It would likely be much better to do this slightly more directly
         from sage.modular.modsym.modular_symbols import ModularSymbol
-        x = ModularSymbol(self.__parent, self.i, 0, rings.infinity)
+        x = ModularSymbol(self.__parent, self.i, 0, Infinity)
         a,b,c,d = self.lift_to_sl2z()
         return x.apply([a,b,c,d])
 

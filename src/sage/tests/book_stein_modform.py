@@ -92,7 +92,7 @@ sage: M.manin_generators()
  (2,3), (2,5), (3,1), (3,2)]
 sage: M = ModularSymbols(2,2)
 sage: [x.lift_to_sl2z(2) for x in M.manin_generators()]
-[[1, 0, 0, 1], [0, -1, 1, 0], [0, -1, 1, 1]]
+[[1, 0, 0, 1], [0, -1, 1, 0], [1, 0, 1, 1]]
 sage: M = ModularSymbols(6,2)
 sage: x = M.manin_generators()[9]
 sage: x

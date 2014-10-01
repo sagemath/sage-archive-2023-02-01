@@ -642,7 +642,6 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             [(1, t), (-t^3 + 1, t^2), ((-t^5 - t^3 + 1)/(-t^3 + 1), -t^6 + t^3),
             ((-t^16 + 3*t^13 - 3*t^10 + t^7 + t^5 + t^3 - 1)/(t^5 + t^3 - 1), -t^9 -
             t^7 + t^4)]
-
         """
         return(P.orbit(self,n))
 
@@ -748,7 +747,7 @@ class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_aff
     pass
 
 class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynomial_affine_space_field):
-    
+
     def orbit_structure(self, P):
         r"""
         Every point is preperiodic over a finite field. This function returns the pair `[m,n]` where `m` is the

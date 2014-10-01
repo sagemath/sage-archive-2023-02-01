@@ -124,7 +124,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: set([x*y*z, z*y+x*z,x*y*z])  # indirect doctest
-            set([x*z + z*y, x*y*z])
+            {x*z + z*y, x*y*z}
 
         """
         return hash(self._poly)

@@ -582,6 +582,7 @@ class Polytopes():
             sage: perm4
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 24 vertices
             sage: polytopes.permutahedron(5).show()    # long time
+            Graphics3d Object
         """
         verts = range(1,n+1)
         verts = Permutations(verts).list()

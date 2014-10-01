@@ -17,7 +17,6 @@ A collection of posets and lattices.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import random
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 import sage.categories.posets
 from sage.combinat.permutation import Permutations, Permutation
@@ -347,6 +346,7 @@ class Posets(object):
             ...
             ValueError: probability must be between 0 and 1, not -0.5
         """
+        from sage.misc.prandom import random
         try:
             n = Integer(n)
         except TypeError:
@@ -364,7 +364,7 @@ class Posets(object):
         D.add_vertices(range(n))
         for i in range(n):
             for j in range(n):
-                if random.random() < p:
+                if random() < p:
                     D.add_edge(i,j)
                     if not D.is_directed_acyclic():
                         D.delete_edge(i,j)

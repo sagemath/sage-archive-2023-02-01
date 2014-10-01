@@ -408,7 +408,7 @@ cdef class FpTElement(RingElement):
             sage: hash(K(5))
             5
             sage: set([1, t, 1/t, t, t, 1/t, 1+1/t, t/t])
-            set([1, 1/t, t, (t + 1)/t])
+            {1, 1/t, t, (t + 1)/t}
             sage: a = (t+1)/(t^2-1); hash(a) == hash((a.numer(),a.denom()))
             True
         """

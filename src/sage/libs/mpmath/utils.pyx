@@ -403,7 +403,7 @@ def call(func, *args, **kwargs):
         sage: type(_)
         <type 'sage.rings.complex_number.ComplexNumber'>
         sage: a.call(a.polylog, 2, 1/2, parent=RDF)
-        0.582240526465
+        0.5822405264650125
         sage: type(_)
         <type 'sage.rings.real_double.RealDoubleElement'>
 

@@ -41,6 +41,7 @@ class NonNegativeIntegerSemiring(NonNegativeIntegers):
         sage: G
         Looped multi-digraph on 9 vertices
         sage: G.plot()
+        Graphics object consisting of 48 graphics primitives
 
     This is the Hasse diagram of the divisibility order on ``NN``.
 

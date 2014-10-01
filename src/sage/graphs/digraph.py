@@ -768,28 +768,25 @@ class DiGraph(GenericGraph):
                     break
             num_verts = data.nrows()
         elif format == 'incidence_matrix':
-            try:
-                positions = []
-                for c in data.columns():
-                    NZ = c.nonzero_positions()
-                    if len(NZ) != 2:
-                        msg += "There must be two nonzero entries (-1 & 1) per column."
-                        assert False
-                    L = sorted(uniq(c.list()))
-                    if L != [-1,0,1]:
-                        msg += "Each column represents an edge: -1 goes to 1."
-                        assert False
-                    if c[NZ[0]] == -1:
-                        positions.append(tuple(NZ))
-                    else:
-                        positions.append((NZ[1],NZ[0]))
-                if loops      is None: loops     = False
-                if weighted   is None: weighted  = False
-                if multiedges is None:
-                    total = len(positions)
-                    multiedges = (  len(uniq(positions)) < total  )
-            except AssertionError:
-                raise ValueError(msg)
+            positions = []
+            for c in data.columns():
+                NZ = c.nonzero_positions()
+                if len(NZ) != 2:
+                    msg += "There must be two nonzero entries (-1 & 1) per column."
+                    raise ValueError(msg)
+                L = sorted(uniq(c.list()))
+                if L != [-1,0,1]:
+                    msg += "Each column represents an edge: -1 goes to 1."
+                    raise ValueError(msg)
+                if c[NZ[0]] == -1:
+                    positions.append(tuple(NZ))
+                else:
+                    positions.append((NZ[1],NZ[0]))
+            if loops      is None: loops     = False
+            if weighted   is None: weighted  = False
+            if multiedges is None:
+                total = len(positions)
+                multiedges = (  len(uniq(positions)) < total  )
             num_verts = data.nrows()
         elif format == 'DiGraph':
             if loops is None: loops = data.allows_loops()
@@ -3114,10 +3111,11 @@ class DiGraph(GenericGraph):
             sage: H.layout_acyclic_dummy()
             Traceback (most recent call last):
             ...
-            AssertionError: `self` should be an acyclic graph
+            ValueError: `self` should be an acyclic graph
         """
         if heights is None:
-            assert self.is_directed_acyclic(), "`self` should be an acyclic graph"
+            if not self.is_directed_acyclic():
+                raise ValueError("`self` should be an acyclic graph")
             levels = self.level_sets()
             levels = [sorted(z) for z in levels]
             heights = dict([[i, levels[i]] for i in range(len(levels))])

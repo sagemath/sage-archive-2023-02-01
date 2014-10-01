@@ -1120,11 +1120,11 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
         Constructor
         """
         try:
-            int(points)
-        except:
+            i = int(points)
+        except TypeError:
             pass
         else:
-            points = range(points)
+            points = range(i)
 
         GroupDivisibleDesign.__init__(self,
                                       points,

@@ -2314,9 +2314,10 @@ def reshape(v, n, m):
         sage: graphics_array(L,0,-1) # indirect doctest
         Traceback (most recent call last):
         ...
-        AssertionError: array sizes must be positive
+        ValueError: array sizes must be positive
     """
-    assert n>0 and m>0, 'array sizes must be positive'
+    if not (n > 0 and m > 0):
+        raise ValueError('array sizes must be positive')
     G = Graphics()
     G.axes(False)
     if len(v) == 0:

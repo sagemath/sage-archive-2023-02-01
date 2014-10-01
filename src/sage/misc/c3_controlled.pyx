@@ -278,8 +278,7 @@ algorithms succeed; along the way, we collect some statistics::
     ....:     x = HierarchyElement(10, l.to_poset())
     ....:     try:
     ....:         x.mro_standard
-    ....:         assert False
-    ....:     except:
+    ....:     except Exception:
     ....:         pass
     ....:     assert x.mro            == list(P)
     ....:     assert x.mro_controlled == list(P)

@@ -727,8 +727,9 @@ how it is built:
   ``make testalllong``, or ``make ptestalllong``.
 
 - ``make distclean`` restores the Sage directory to its state before doing any
-  building: it is equivalent to deleting the entire Sage's home directory and
-  unpacking the source tarfile again.
+  building: it is almost equivalent to deleting Sage's entire home directory and
+  unpacking the source tarfile again, the only difference being that the
+  :file:`.git` directory is preserved, so git branches are not deleted.
 
 .. _section_envvar:
 

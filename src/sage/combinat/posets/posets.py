@@ -2960,7 +2960,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_isomorphic(Posets.BooleanLattice(4))
             True
         """
-        return Poset(self._hasse_diagram.cartesian_product(other._hasse_diagram),cover_relations=True)
+        return Poset(self.hasse_diagram().cartesian_product(other.hasse_diagram()),cover_relations=True)
 
     def interval_iterator(self):
         """

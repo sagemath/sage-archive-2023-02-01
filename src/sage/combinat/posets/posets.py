@@ -2940,19 +2940,21 @@ class FinitePoset(UniqueRepresentation, Parent):
         Return a poset isomorphic to disjoint union (also called direct
         sum) of the poset with ``other``.
 
-        Disjoint union of `P` and `Q` is a poset that contains every
-        element and relation from both `P` and `Q`, and where every
-        element of `P` is incomparable to every element of `Q`.
-        Mathematically it is defined when `P` and `Q` has no common
-        elements; here we force that by relabeling posets.
+        The disjoint union of `P` and `Q` is a poset that contains
+        every element and relation from both `P` and `Q`, and where
+        every element of `P` is incomparable to every element of `Q`.
+
+        Mathematically, it is only defined when `P` and `Q` have no
+        common element; here we force that by giving them different
+        names in the resulting poset.
 
         INPUT:
 
         - ``other``, a poset.
 
         - ``labels`` - (defaults to 'pairs') If set to 'pairs', each
-          element v in this poset will be named '0,v' and each
-          element u in ``other`` will be named '1,u' in the
+          element ``v`` in this poset will be named ``(0,v)`` and each
+          element ``u`` in ``other`` will be named ``(1,u)`` in the
           result. If set to 'integers', the elements of the result
           will be relabeled with consecutive integers.
 
@@ -2990,14 +2992,16 @@ class FinitePoset(UniqueRepresentation, Parent):
         Return a poset or (semi)lattice isomorphic to ordinal sum of the
         poset with ``other``.
 
-        Ordinal sum of `P` and `Q` is a poset that contains every
+        The ordinal sum of `P` and `Q` is a poset that contains every
         element and relation from both `P` and `Q`, and where every
-        element of `P` is greater than every element of `Q`.
-        Mathematically it is defined when `P` and `Q` has no common
-        elements; here we force that by relabeling posets.
+        element of `P` is smaller than every element of `Q`.
 
-        Ordinal sum on lattices is lattice; resp. for meet- and
-        join-semilattices.  Hence we check if we can return
+        Mathematically, it is only defined when `P` and `Q` have no
+        common element; here we force that by giving them different
+        names in the resulting poset.
+
+        The ordinal sum on lattices is lattice; resp. for meet- and
+        join-semilattices. Hence we check if we can return
         (semi)lattice instead of plain poset.
 
         INPUT:
@@ -3005,8 +3009,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         - ``other``, a poset.
 
         - ``labels`` - (defaults to 'pairs') If set to 'pairs', each
-          element v in this poset will be named '0,v' and each
-          element u in ``other`` will be named '1,u' in the
+          element ``v`` in this poset will be named ``(0,v)`` and each
+          element ``u`` in ``other`` will be named ``(1,u)`` in the
           result. If set to 'integers', the elements of the result
           will be relabeled with consecutive integers.
 
@@ -3059,14 +3063,15 @@ class FinitePoset(UniqueRepresentation, Parent):
             G.relabel()
         elif labels != 'pairs':
             raise ValueError("Labels must be either 'pairs' or 'integers'.")
-        if isinstance(self, FiniteLatticePoset) and \
-        isinstance(other, FiniteLatticePoset):
+
+        if (isinstance(self, FiniteLatticePoset) and
+            isinstance(other, FiniteLatticePoset)):
             return LatticePoset(G)
-        if isinstance(self, FiniteMeetSemilattice) and \
-        isinstance(other, FiniteMeetSemilattice):
+        if (isinstance(self, FiniteMeetSemilattice) and
+            isinstance(other, FiniteMeetSemilattice)):
             return MeetSemilattice(G)
-        if isinstance(self, FiniteJoinSemilattice) and \
-        isinstance(other, FiniteJoinSemilattice):
+        if (isinstance(self, FiniteJoinSemilattice) and
+            isinstance(other, FiniteJoinSemilattice)):
             return JoinSemilattice(G)
         return Poset(G)
 

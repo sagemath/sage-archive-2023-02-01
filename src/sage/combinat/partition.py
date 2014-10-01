@@ -7019,6 +7019,7 @@ def number_of_partitions(n, algorithm='default'):
         ValueError: n (=-5) must be a nonnegative integer
 
     ::
+
         sage: number_of_partitions(10)
         42
         sage: number_of_partitions(3)

@@ -55,6 +55,8 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/ext/gmp.pxi"
 include "sage/ext/random.pxi"
+include "sage/libs/flint/fmpz.pxi"
+include "sage/libs/flint/fmpz_mat.pxi"
 
 cimport sage.structure.element
 

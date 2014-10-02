@@ -99,6 +99,8 @@ include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/random.pxi'
+include "sage/libs/flint/fmpz.pxi"
+include "sage/libs/flint/fmpz_mat.pxi"
 from cpython.string cimport *
 
 cimport sage.rings.fast_arith

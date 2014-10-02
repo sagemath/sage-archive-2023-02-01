@@ -1,11 +1,7 @@
-include "sage/ext/cdefs.pxi"
-include "sage/libs/ntl/decl.pxi"
-include "sage/libs/flint/fmpz.pxi"
+from sage.libs.gmp.types cimport *
 include "sage/libs/flint/fmpz_mat.pxi"
-include "sage/libs/flint/fmpz_poly.pxi"
 
 cimport matrix_dense
-cimport sage.rings.integer
 from sage.rings.integer cimport Integer
 from sage.ext.mod_int cimport *
 

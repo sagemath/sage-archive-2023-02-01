@@ -67,8 +67,8 @@ class Lseries_ell(SageObject):
             sage: E = EllipticCurve('389a')
             sage: L = E.lseries()
             sage: L.taylor_series(series_prec=3)
-            -1.28158145675273e-23 + (7.26268290541182e-24)*z + 0.759316500288427*z^2 + O(z^3)  # 32-bit
-            -2.69129566562797e-23 + (1.52514901968783e-23)*z + 0.759316500288427*z^2 + O(z^3)  # 64-bit
+            -1.27685190980159e-23 + (7.23588070754027e-24)*z + 0.759316500288427*z^2 + O(z^3)  # 32-bit
+            -2.72911738151096e-23 + (1.54658247036311e-23)*z + 0.759316500288427*z^2 + O(z^3)  # 64-bit
             sage: L.taylor_series(series_prec=3)[2:]
             0.000000000000000 + 0.000000000000000*z + 0.759316500288427*z^2 + O(z^3)
         """
@@ -602,7 +602,7 @@ class Lseries_ell(SageObject):
             sage: E.lseries().deriv_at1()
             (-0.00010911444, 0.142428)
             sage: E.lseries().deriv_at1(4000)
-            (6.9902290...e-50, 1.31318e-43)
+            (6.990...e-50, 1.31318e-43)
         """
         sqrtN = sqrt(self.__E.conductor())
         if k:

@@ -840,7 +840,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             timer.start()
             compiled = compiler(example)
             timer.start()    # reset timer
-            exec compiled in globs
+            exec(compiled, globs)
         finally:
             timer.stop().annotate(example)
             if isinstance(globs, RecordingDict):

@@ -230,9 +230,9 @@ class MatrixPlot(GraphicPrimitive):
 
 @suboptions('colorbar', orientation='vertical', format=None)
 @suboptions('subdivision',boundaries=None, style=None)
-@options(cmap='gray',marker='.',frame=True, axes=False, norm=None,
-         vmin=None, vmax=None, origin='upper',ticks_integer=True,
-         subdivisions=False, colorbar=False)
+@options(aspect_ratio=1, axes=False, cmap='gray', colorbar=False,
+         frame=True, marker='.', norm=None, origin='upper',
+         subdivisions=False, ticks_integer=True, vmin=None, vmax=None)
 def matrix_plot(mat, **options):
     r"""
     A plot of a given matrix or 2D array.
@@ -452,6 +452,12 @@ def matrix_plot(mat, **options):
     Test that sparse matrices also work with subdivisions::
 
         sage: matrix_plot(sparse, subdivisions=True, subdivision_boundaries=[[2,4],[6,8]])
+
+    Test that matrix plots have aspect ratio one (see :trac:`15315`)::
+
+        sage: P = matrix_plot(random_matrix(RDF, 5))
+        sage: P.aspect_ratio()
+        1
     """
     import numpy as np
     import scipy.sparse as scipysparse

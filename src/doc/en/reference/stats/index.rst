@@ -11,5 +11,8 @@ Statistics
    sage/stats/hmm/distributions
    sage/stats/hmm/util
 
+   sage/stats/distributions/discrete_gaussian_integer
+   sage/stats/distributions/discrete_gaussian_polynomial
+   sage/stats/distributions/discrete_gaussian_lattice
 
 .. include:: ../footer.txt

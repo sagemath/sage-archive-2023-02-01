@@ -2034,8 +2034,8 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             \begin{pmatrix} \mathit{\lambda}^{3} - 2 \mathit{\lambda} & \mathit{\lambda}^{2} - 1 \\ \mathit{\lambda}^{4} - 3 \mathit{\lambda}^{2} + 1 & \mathit{\lambda}^{3} - 2 \mathit{\lambda} \end{pmatrix}
         """
 
-        latex_out = "\\begin{pmatrix} %s & %s \\\\ %s & %s \\end{pmatrix}"%(latex(self.a()), latex(self.b()), latex(self.c()), latex(self.d()))
-        return latex_out.replace("lam", "\\lambda")
+        latex_out = r"\begin{pmatrix} %s & %s \\ %s & %s \end{pmatrix}"%(latex(self.a()), latex(self.b()), latex(self.c()), latex(self.d()))
+        return latex_out.replace("lam", r"\lambda")
 
     def __neg__(self):
         r"""
@@ -3066,7 +3066,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         by linear fractional transformations or by conjugation
         in case ``z`` is an element of the parent of ``self``.
 
-        Note: There is a 1-1 correspondence between hyperbolic
+        .. NOTE:
+
+        There is a 1-1 correspondence between hyperbolic
         fixed points and the corresponding primitive element
         in the stabilizer. The action in the two cases above
         is compatible with this correspondence.

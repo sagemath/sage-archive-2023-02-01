@@ -490,8 +490,9 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Equality and hash do not depend on ordering of vertices. That is,
-        parts 1 and 2 of ticket :trac:`17086` are fixed ::
+        Equality and hash do not depend on ordering of vertices. In other words,
+        `G1==G2` can be `True` even when `G1.vertices() == G2.vertices()` is
+        `False`. This is parts 1 and 2 of ticket :trac:`17086`. ::
 
             sage: import functools
             sage: @functools.total_ordering

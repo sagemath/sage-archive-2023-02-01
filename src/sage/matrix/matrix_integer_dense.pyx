@@ -715,7 +715,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for j from 0 <= j < self._ncols:
                 s = data[k]
                 k += 1
-                # fmpz_init(fmpz_mat_entry(self._matrix,i,j))
                 if fmpz_set_str(fmpz_mat_entry(self._matrix,i,j), s, 32):
                     raise RuntimeError("invalid pickle data")
         self._initialized = True
@@ -942,10 +941,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Matrix_integer_dense M
         M = self._new_uninitialized_matrix(self._nrows,self._ncols)
         sig_on()
-        fmpz_init(z)
-        fmpz_set_mpz(z, x.value)
+        fmpz_init_set_readonly(z, x.value)
         fmpz_mat_scalar_mul_fmpz(M._matrix, self._matrix, z)
-        fmpz_clear(z)
+        fmpz_clear_readonly(z)
         sig_off()
         M._initialized = True
         return M
@@ -1277,9 +1275,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef mpz_t h
         cdef Integer x
 
-        sig_on()
         self.mpz_height(h)
-        sig_off()
         x = Integer()
         x.set_from_mpz(h)
         mpz_clear(h)
@@ -1317,48 +1313,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         fmpz_clear(x)
         sig_off()
         return 0   # no error occurred.
-
-    cpdef double _log_avg_sq1(self) except -1.0:
-        """
-        Return the logarithm of the average of `x^2 + 1`, where `x`
-        ranges over the matrix entries.
-
-        This is used to determine which determinant algorithm to use.
-
-        TESTS::
-
-            sage: M = random_matrix(ZZ,100)
-            sage: L1 = M._log_avg_sq1()
-            sage: L2 = log(RR(sum([i*i+1 for i in M.list()])/10000))
-            sage: abs(L1 - L2) < 1e-13
-            True
-            sage: matrix(ZZ,10)._log_avg_sq1()
-            0.0
-        """
-        cdef unsigned long i, j
-        cdef unsigned long N = self._nrows * self._ncols
-        # wsq * 4^wsq_e = sum of entries squared plus number of entries
-        cdef double wsq = N
-        cdef long wsq_e = 0
-
-        cdef double d
-        cdef long e = 0
-
-        sig_on()
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self._ncols:
-                d = fmpz_get_d_2exp(&e,fmpz_mat_entry(self._matrix,i,j))
-                if (e > wsq_e):
-                    wsq = ldexp(wsq, 2*(wsq_e - e))
-                    wsq_e = e
-                elif (e < wsq_e):
-                    d = ldexp(d, e - wsq_e)
-                wsq += d*d
-        sig_off()
-
-        # Compute log(wsq * 4^wsq_e / N) =
-        # log(wsq * 4^wsq_e / N) = log(wsq/N) + wsq_e * log(4)
-        return log(wsq/N) + wsq_e * log(4.0)
 
     def _multiply_multi_modular(self, Matrix_integer_dense right):
         """
@@ -1409,8 +1363,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef fmpz_t mod
         cdef fmpz_t *aij = <fmpz_t *>fmpz_mat_entry(self._matrix,i,j)
         sig_on()
-        fmpz_init(mod)
-        fmpz_set_mpz(mod,modulus.value)
+        fmpz_init_set_readonly(mod, modulus.value)
         fmpz_init(z)
         if fmpz_cmp(aij[0], mod) >= 0 or fmpz_cmp_ui(aij[0], 0) < 0:
             fmpz_mod(z, aij[0], mod)
@@ -1418,7 +1371,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             if self._initialized_linbox:
                 fmpz_get_mpz(self._entries[i*self._ncols + j],z)
         fmpz_clear(z)
-        fmpz_clear(mod)
+        fmpz_clear_readonly(mod)
         sig_off()
 
     def _mod_int(self, modulus):
@@ -1926,28 +1879,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     H_m[i,j] = w1[nr-i-1,nc-j-1]
 
         elif algorithm == 'flint':
-            raise NotImplementedError,'Not yet implemented'
-            # This is how it should like, but fmpz_mat_rref_fraction_free()
-            # looks like is missing! -- Marc Masdeu
-            if transformation:
-                raise ValueError("transformation matrix only available with p-adic algorithm")
-            w = self.new_matrix()
-            sig_on()
-            fmpz_init(den)
-            rank = fmpz_mat_rref_fraction_free(NULL , w._matrix,den,self._matrix)
-            fmpz_clear(den)
-            sig_off()
-            if include_zero_rows:
-             H_m = self.new_matrix()
-            else:
-             H_m = self.new_matrix(nrows=rank)
-            nr = H_m.nrows()
-            nc = H_m.ncols()
-            for i from 0 <= i < nr:
-             for j from 0 <= j < nc:
-                 fmpz_set(fmpz_mat_entry(H_m._matrix,i,j),fmpz_mat_entry(w._matrix,i,j))
+            raise NotImplementedError('not yet implemented')
         else:
-            raise TypeError("algorithm '%s' not understood"%(algorithm))
+            raise ValueError("algorithm %r not understood" % algorithm)
 
         H_m._initialized = True
         H_m.set_immutable()
@@ -3448,8 +3382,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         - ``algorithm``
 
-          - ``'default'`` -- automatically determine which algorithm
-                             to use depending on the matrix.
+          - ``'default'`` -- use ``flint``
 
           - ``'flint'`` -- let flint do the determinant
 
@@ -3481,16 +3414,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         `d`. This gives a divisor of the determinant. Then we
         compute `\det(A)/d` using a multimodular algorithm and the
         Hadamard bound, skipping primes that divide `d`.
-
-        TIMINGS: This is perhaps the fastest implementation of determinants
-        in the world. E.g., for a 500x500 random matrix with 32-bit entries
-        on a core2 duo 2.6Ghz running OS X, Sage takes 4.12 seconds,
-        whereas Magma takes 62.87 seconds (both with proof False). With
-        proof=True on the same problem Sage takes 5.73 seconds. For another
-        example, a 200x200 random matrix with 1-digit entries takes 4.18
-        seconds in pari, 0.18 in Sage with proof True, 0.11 in Sage with
-        proof False, and 0.21 seconds in Magma with proof True and 0.18 in
-        Magma with proof False.
 
         EXAMPLES::
 
@@ -3556,48 +3479,19 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Py_ssize_t n = self.nrows()
         cdef Integer det = Integer()
         cdef fmpz_t e
-        cdef double difficulty
-
-        if n <=4 or algorithm == 'flint':
-            fmpz_init(e)
-            fmpz_mat_det(e, self._matrix)
-            fmpz_get_mpz(det.value,e)
-            fmpz_clear(e)
-            return det
 
         proof = get_proof_flag(proof, "linear_algebra")
 
         if algorithm == 'default':
             algorithm = 'flint'
-            # These heuristics are by Jeroen Demeyer (#14007).  There
-            # is no mathematics behind this, it was experimentally
-            # observed to work well.  I tried various estimates for
-            # the "difficulty" of a matrix, and this one worked best.
-            # I tested matrices with entries uniformly distributed in
-            # [0,n] as well as random_matrix(ZZ,s).
-            #
-            # linbox works sometimes better for large matrices with
-            # mostly small entries, but it is never much faster than
-            # padic (and it only works with proof=False), so we never
-            # default to using linbox.
-            # I favor FLINT instead of PARI. -- Marc Masdeu.
-            # (the thresholds have to be recalculated)
-            #difficulty = (self._log_avg_sq1() + 2.0) * (n * n)
-            #if difficulty <= 800:
-            #    algorithm = 'flint'
-            #elif n <= 48 or (proof and n <= 72) or (proof and n <= 400 and difficulty <= 600000):
-            #    algorithm = 'ntl'
-            #else:
-            #    algorithm = 'padic'
 
         if algorithm == 'flint':
             fmpz_init(e)
             fmpz_mat_det(e, self._matrix)
-            fmpz_get_mpz(det.value,e)
+            fmpz_get_mpz(det.value, e)
             fmpz_clear(e)
-            return det
-
-        if algorithm == 'padic':
+            d = det
+        elif algorithm == 'padic':
             import matrix_integer_dense_hnf
             d = matrix_integer_dense_hnf.det_padic(self, proof=proof, stabilize=stabilize)
         elif algorithm == 'linbox':
@@ -3648,7 +3542,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         t_INT_to_ZZ(e.value, d)
         pari.clear_stack()
         return e
-
 
     def _det_ntl(self):
         """
@@ -5382,30 +5275,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             <type 'sage.libs.pari.gen.gen'>
         """
         return pari.integer_matrix(self._matrix, self._nrows, self._ncols, 0)
-
-    def _det_pari(self, int flag=0):
-        """
-        Determinant of this matrix using Gauss-Bareiss. If (optional)
-        flag is set to 1, use classical Gaussian elimination.
-
-        For efficiency purposes, this det is computed entirely on the
-        PARI stack then the PARI stack is cleared.  This function is
-        most useful for very small matrices.
-
-        EXAMPLES::
-
-            sage: matrix(ZZ,3,[1..9])._det_pari()
-            0
-            sage: matrix(ZZ,3,[1..9])._det_pari(1)
-            0
-        """
-        pari_catch_sig_on()
-        cdef GEN d = det0(pari_GEN(self), flag)
-        # now convert d to a Sage integer e
-        cdef Integer e = Integer()
-        t_INT_to_ZZ(e.value, d)
-        pari.clear_stack()
-        return e
 
     def _rank_pari(self):
         """

@@ -537,7 +537,7 @@ class GenericGraph(GenericGraph_pyx):
                 edge_items = Counter(edge_items).items()
             return hash((frozenset(self.vertex_iterator()),
                          self._weighted,
-                         frozenset(edge_items))
+                         frozenset(edge_items)))
         raise TypeError("This graph is mutable, and thus not hashable. "
                         "Create an immutable copy by `g.copy(immutable=True)`")
 

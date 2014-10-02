@@ -186,7 +186,9 @@ Combinatorics
    sage/combinat/similarity_class_type
    sage/combinat/subset
    sage/combinat/subsets_pairwise
+   sage/combinat/subsets_hereditary
    sage/combinat/tuple
+   sage/combinat/gray_codes
 
    root_systems
    crystals

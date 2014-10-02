@@ -301,7 +301,7 @@ cdef class Element(sage_object.SageObject):
         category of ``CommutativeRings()``::
 
             sage: 1.is_idempotent
-            <bound method EuclideanDomains.element_class.is_idempotent of 1>
+            <bound method JoinCategory.element_class.is_idempotent of 1>
             sage: 1.is_idempotent.__module__
             'sage.categories.magmas'
 
@@ -380,7 +380,10 @@ cdef class Element(sage_object.SageObject):
             sage: R.<x,y> = QQ[]
             sage: i = ideal(x^2 - y^2 + 1)
             sage: i.__getstate__()
-            (Monoid of ideals of Multivariate Polynomial Ring in x, y over Rational Field, {'_Ideal_generic__ring': Multivariate Polynomial Ring in x, y over Rational Field, '_Ideal_generic__gens': (x^2 - y^2 + 1,), '_gb_by_ordering': {}})
+            (Monoid of ideals of Multivariate Polynomial Ring in x, y over Rational Field,
+             {'_Ideal_generic__gens': (x^2 - y^2 + 1,),
+              '_Ideal_generic__ring': Multivariate Polynomial Ring in x, y over Rational Field,
+              '_gb_by_ordering': {}})
         """
         return (self._parent, self.__dict__)
 
@@ -2524,7 +2527,7 @@ cdef class Vector(ModuleElement):
 def is_Vector(x):
     return IS_INSTANCE(x, Vector)
 
-cdef class Matrix(AlgebraElement):
+cdef class Matrix(ModuleElement):
 
     cdef bint is_sparse_c(self):
         raise NotImplementedError
@@ -2538,36 +2541,6 @@ cdef class Matrix(AlgebraElement):
         else:
             global coercion_model
             return coercion_model.bin_op(left, right, imul)
-
-    cpdef RingElement _mul_(left, RingElement right):
-        """
-        TESTS::
-
-            sage: m = matrix
-            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
-            sage: 3*a
-            [[ 3  6]
-            [ 9 12] [15 18]
-            [21 24]]
-            [[27 30]
-            [33 36] [39 42]
-            [45 48]]
-
-            sage: m = matrix
-            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
-            sage: a*3
-            [[ 3  6]
-            [ 9 12] [15 18]
-            [21 24]]
-            [[27 30]
-            [33 36] [39 42]
-            [45 48]]
-        """
-        if have_same_parent(left, right):
-            return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
-        else:
-            global coercion_model
-            return coercion_model.bin_op(left, right, mul)
 
     def __mul__(left, right):
         """
@@ -2730,12 +2703,93 @@ cdef class Matrix(AlgebraElement):
             ...
             TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Rational Field'
 
+        Examples with matrices having matrix coefficients::
+
+            sage: m = matrix
+            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
+            sage: 3*a
+            [[ 3  6]
+            [ 9 12] [15 18]
+            [21 24]]
+            [[27 30]
+            [33 36] [39 42]
+            [45 48]]
+
+            sage: m = matrix
+            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
+            sage: a*3
+            [[ 3  6]
+            [ 9 12] [15 18]
+            [21 24]]
+            [[27 30]
+            [33 36] [39 42]
+            [45 48]]
         """
         if have_same_parent(left, right):
             return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
         else:
             global coercion_model
             return coercion_model.bin_op(left, right, mul)
+
+    def __div__(left, right):
+        """
+        Division of the matrix ``left`` by the matrix or scalar ``right``.
+
+        EXAMPLES::
+
+            sage: a = matrix(ZZ, 2, range(4))
+            sage: a / 5
+            [ 0 1/5]
+            [2/5 3/5]
+            sage: a = matrix(ZZ, 2, range(4))
+            sage: b = matrix(ZZ, 2, [1,1,0,5])
+            sage: a / b
+            [  0 1/5]
+            [  2 1/5]
+            sage: c = matrix(QQ, 2, [3,2,5,7])
+            sage: c / a
+            [-5/2  3/2]
+            [-1/2  5/2]
+            sage: a / c
+            [-5/11  3/11]
+            [-1/11  5/11]
+            sage: a / 7
+            [  0 1/7]
+            [2/7 3/7]
+
+        Other rings work just as well::
+
+            sage: a = matrix(GF(3),2,2,[0,1,2,0])
+            sage: b = matrix(ZZ,2,2,[4,6,1,2])
+            sage: a / b
+            [1 2]
+            [2 0]
+            sage: c = matrix(GF(3),2,2,[1,2,1,1])
+            sage: a / c
+            [1 2]
+            [1 1]
+            sage: a = matrix(RDF,2,2,[.1,-.4,1.2,-.6])
+            sage: b = matrix(RDF,2,2,[.3,.1,-.5,1.3])
+            sage: a / b # rel tol 1e-10
+            [-0.15909090909090906 -0.29545454545454547]
+            [   2.863636363636364  -0.6818181818181817]
+            sage: R.<t> = ZZ['t']
+            sage: a = matrix(R,2,2,[t^2,t+1,-t,t+2])
+            sage: b = matrix(R,2,2,[t^3-1,t,-t+3,t^2])
+            sage: a / b
+            [      (t^4 + t^2 - 2*t - 3)/(t^5 - 3*t)               (t^4 - t - 1)/(t^5 - 3*t)]
+            [       (-t^3 + t^2 - t - 6)/(t^5 - 3*t) (t^4 + 2*t^3 + t^2 - t - 2)/(t^5 - 3*t)]
+        """
+        cdef Matrix rightinv
+        if have_same_parent(left, right):
+            rightinv = ~<Matrix>right
+            if have_same_parent(left,rightinv):
+                return (<Matrix>left)._matrix_times_matrix_(rightinv)
+            else:
+                return (<Matrix>(left.change_ring(rightinv.parent().base_ring())))._matrix_times_matrix_(rightinv)
+        else:
+            global coercion_model
+            return coercion_model.bin_op(left, right, div)
 
     cdef Vector _vector_times_matrix_(matrix_right, Vector vector_left):
         raise TypeError

@@ -232,7 +232,7 @@ by a web search.
 
 * `Building Skills in Python <http://homepage.mac.com/s_lott/books/python.html>`_
   by Steven F. Lott
-* `Dive into Python <http://www.diveintopython.org>`_ by Mark Pilgrim
+* `Dive into Python <http://www.diveintopython.net>`_ by Mark Pilgrim
 * `How to Think Like a Computer Scientist <http://www.openbookproject.net/thinkCSpy>`_
   by Jeffrey Elkner, Allen B. Downey, and Chris Meyers
 * `Official Python Tutorial <http://docs.python.org/tutorial>`_
@@ -384,18 +384,6 @@ unzip the fonts into your ``~/.fonts`` directory. You can also install
 the ``jsmath-fonts`` package.
 
 
-I created the file SAGE_ROOT/devel/sage/sage/calculus/stokes.py, and have changed my mind and want to completely delete it from Sage, but it keeps coming back (i.e. it is still importable) when I type "sage -br". What do I do?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-Delete both of the file ::
-
-    SAGE_ROOT/devel/sage/build/sage/calculus/stokes.py
-
-**and** the file ::
-
-    SAGE_ROOT/devel/sage/build/lib.*/sage/calculus/stokes.py
-
-
 Does Sage contain a function similar to Mathematica's ToCharacterCode[]?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -491,7 +479,7 @@ When I run doctests on Mac OS X I see the messages with "malloc", but in the end
 The "malloc" messages you refer to might be something such as the
 following::
 
-    sage -t  devel/sage-main/sage/libs/pari/gen.pyx
+    sage -t  src/sage/libs/pari/gen.pyx
     python(4563) malloc: *** vm_allocate(size=4096000000) failed (error code=3)
     python(4563) malloc: *** error: can't allocate region
     python(4563) malloc: *** set a breakpoint in szone_error to debug
@@ -545,10 +533,11 @@ The problem can be fixed by running the following command::
 Upgrading Sage went fine, but now the banner still shows the old version. How can I fix this?
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Try doing ``hg_scripts.merge()``, followed by
-``hg_scripts.commit()``. Run both of these commands from the Sage
-command line. As an alternative, you can simply try
-``hg_scripts.pull()``.
+The banner is stored and not computed at every new start of Sage. If
+it has not been updated, this should not prevent Sage to run
+correctly. Type ``banner()`` in a Sage session to check the real
+version. If you want the correct banner, you need to build Sage again
+by typing ``make build`` in a terminal.
 
 
 How do I run sage in daemon mode, i.e. as a service?

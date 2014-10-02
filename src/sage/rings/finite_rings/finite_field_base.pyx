@@ -51,8 +51,7 @@ cdef class FiniteFieldIterator:
 
         EXAMPLES::
 
-            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: k = iter(FiniteField_ext_pari(9, 'a')) # indirect doctest
+            sage: k = iter(FiniteField(9, 'a', impl='pari_mod')) # indirect doctest
             sage: isinstance(k, sage.rings.finite_rings.finite_field_base.FiniteFieldIterator)
             True
         """
@@ -65,8 +64,7 @@ cdef class FiniteFieldIterator:
 
         EXAMPLE::
 
-            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: k = iter(FiniteField_ext_pari(9, 'a'))
+            sage: k = iter(FiniteField(9, 'a', impl='pari_mod'))
             sage: k.next() # indirect doctest
             0
         """
@@ -318,8 +316,7 @@ cdef class FiniteField(Field):
 
         EXAMPLES::
 
-            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(8, 'a')
+            sage: k = FiniteField(8, 'a', impl='pari_mod')
             sage: i = iter(k); i # indirect doctest
             <sage.rings.finite_rings.finite_field_base.FiniteFieldIterator object at ...>
             sage: i.next()
@@ -379,11 +376,9 @@ cdef class FiniteField(Field):
             Automorphism group of Finite Field in a of size 5^2
         """
         from sage.rings.finite_rings.homset import FiniteFieldHomset
-        from sage.rings.homset import RingHomset
         if category.is_subcategory(FiniteFields()):
             return FiniteFieldHomset(self, codomain, category)
-        else:
-            return RingHomset(self, codomain, category)
+        return super(FiniteField, self)._Hom_(codomain, category)
 
     def _squarefree_decomposition_univariate_polynomial(self, f):
         """
@@ -939,16 +934,16 @@ cdef class FiniteField(Field):
         if R is int or R is long or R is ZZ:
             return True
         if is_IntegerModRing(R) and self.characteristic().divides(R.characteristic()):
-            return True
+            return R.hom((self.one_element(),), check=False)
         if is_FiniteField(R):
             if R is self:
                 return True
-            from sage.rings.residue_field import ResidueField_generic
+            from residue_field import ResidueField_generic
             if isinstance(R, ResidueField_generic):
                 return False
             if R.characteristic() == self.characteristic():
                 if R.degree() == 1:
-                    return True
+                    return R.hom((self.one_element(),), check=False)
                 elif (R.degree().divides(self.degree())
                       and hasattr(self, '_prefix') and hasattr(R, '_prefix')):
                     return R.hom((self.gen() ** ((self.order() - 1)//(R.order() - 1)),))
@@ -1025,9 +1020,10 @@ cdef class FiniteField(Field):
             sage: E
             Finite Field in b of size 5^2
             sage: f
-            Conversion map:
+            Ring morphism:
               From: Finite Field of size 5
               To:   Finite Field in b of size 5^2
+              Defn: 1 |--> 1
             sage: f.parent()
             Set of field embeddings from Finite Field of size 5 to Finite Field in b of size 5^2
 
@@ -1099,9 +1095,10 @@ cdef class FiniteField(Field):
             sage: k.<a> = GF(2^21, conway=True, prefix='z')
             sage: k.subfields()
             [(Finite Field of size 2,
-              Conversion map:
+              Ring morphism:
                   From: Finite Field of size 2
-                  To:   Finite Field in a of size 2^21),
+                  To:   Finite Field in a of size 2^21
+                  Defn: 1 |--> 1),
              (Finite Field in z3 of size 2^3,
               Ring morphism:
                   From: Finite Field in z3 of size 2^3

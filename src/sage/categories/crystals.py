@@ -13,6 +13,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
+from sage.categories.tensor import TensorProductsCategory
 from sage.misc.latex import latex
 from sage.graphs.dot2tex_utils import have_dot2tex
 
@@ -53,7 +54,7 @@ class Crystals(Category_singleton):
 
         sage: from sage.misc.abstract_method import abstract_methods_of_class
         sage: abstract_methods_of_class(Crystals().element_class)
-        {'required': ['e', 'epsilon', 'f', 'phi', 'weight'], 'optional': []}
+        {'optional': [], 'required': ['e', 'epsilon', 'f', 'phi', 'weight']}
 
     TESTS::
 
@@ -259,8 +260,8 @@ class Crystals(Category_singleton):
         def subcrystal(self, index_set=None, generators=None, max_depth=float("inf"),
                        direction="both"):
             r"""
-            Construct the subcrystal from ``generators`` using `e_i` and `f_i`
-            for all `i` in ``index_set``.
+            Construct the subcrystal from ``generators`` using `e_i` and/or
+            `f_i` for all `i` in ``index_set``.
 
             INPUT:
 
@@ -831,6 +832,33 @@ class Crystals(Category_singleton):
             G = self.digraph(**options)
             return G.plot3d()
 
+        def tensor(self, *crystals, **options):
+            """
+            Return the tensor product of ``self`` with the crystals ``B``.
+
+            EXAMPLES::
+
+                sage: C = crystals.Letters(['A', 3])
+                sage: B = crystals.infinity.Tableaux(['A', 3])
+                sage: T = C.tensor(C, B); T
+                Full tensor product of the crystals
+                 [The crystal of letters for type ['A', 3],
+                  The crystal of letters for type ['A', 3],
+                  The infinity crystal of tableaux of type ['A', 3]]
+                sage: tensor([C, C, B]) is T
+                True
+
+                sage: C = crystals.Letters(['A',2])
+                sage: T = C.tensor(C, C, generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]]); T
+                The tensor product of the crystals
+                 [The crystal of letters for type ['A', 2],
+                  The crystal of letters for type ['A', 2],
+                  The crystal of letters for type ['A', 2]]
+                sage: T.module_generators
+                [[2, 1, 1], [1, 2, 1]]
+            """
+            from sage.combinat.crystals.tensor_product import TensorProductOfCrystals
+            return TensorProductOfCrystals(self, *crystals, **options)
 
     class ElementMethods:
 
@@ -1200,6 +1228,41 @@ class Crystals(Category_singleton):
             """
             return self.parent().subcrystal(generators=[self], index_set=index_set,
                                             max_depth=max_depth, direction=direction)
+
+    class SubcategoryMethods:
+        """
+        Methods for all subcategories.
+        """
+        def TensorProducts(self):
+            r"""
+            Return the full subcategory of objects of ``self`` constructed
+            as tensor products.
+
+            .. SEEALSO::
+
+                - :class:`.tensor.TensorProductsCategory`
+                - :class:`~.covariant_functorial_construction.RegressiveCovariantFunctorialConstruction`.
+
+            EXAMPLES::
+
+                sage: HighestWeightCrystals().TensorProducts()
+                Category of tensor products of highest weight crystals
+            """
+            return TensorProductsCategory.category_of(self)
+
+    class TensorProducts(TensorProductsCategory):
+        """
+        The category of crystals constructed by tensor product of crystals.
+        """
+        @cached_method
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: Crystals().TensorProducts().extra_super_categories()
+                [Category of crystals]
+            """
+            return [self.base_category()]
 
     Finite = LazyImport('sage.categories.finite_crystals', 'FiniteCrystals')
 

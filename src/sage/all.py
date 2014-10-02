@@ -171,6 +171,8 @@ from sage.tensor.all     import *
 
 from sage.matroids.all   import *
 
+from sage.game_theory.all import *
+
 # Lazily import notebook functions and interacts (#15335)
 lazy_import('sagenb.notebook.notebook_object', 'notebook')
 lazy_import('sagenb.notebook.notebook_object', 'inotebook')
@@ -211,21 +213,11 @@ ZZ = IntegerRing()
 # overwritten by the user, unless they want to change the meaning of
 # int and real in the interpreter (which is a potentially valid thing
 # to do, and doesn't mess up anything else in the Sage library).
-# E.g., typing "int = ZZ" in the Sage interpreter makes int literals
-# acts as Python ints again.
 
 
-
-# Some shorter shortcuts:
-# Q = QQ
-# Z = ZZ
-# C = CC
-#i = CC.gen(0)
 true = True
 false = False
-
 oo = infinity
-#x = PolynomialRing(QQ,'x').gen()
 
 from sage.misc.copying import license
 copying = license

@@ -89,6 +89,9 @@ class FiniteFieldHomset(RingHomset_generic):
         if isinstance(im_gens, FiniteFieldHomomorphism_generic):
             return self._coerce_impl(im_gens)
         try:
+            if self.domain().degree() == 1:
+                from sage.rings.finite_rings.hom_prime_finite_field import FiniteFieldHomomorphism_prime
+                return FiniteFieldHomomorphism_prime(self, im_gens, check=check)
             return FiniteFieldHomomorphism_generic(self, im_gens, check=check)
         except (NotImplementedError, ValueError) as err:
             try:
@@ -197,11 +200,11 @@ class FiniteFieldHomset(RingHomset_generic):
             sage: L.<z> = GF(7^6)
             sage: [g for g in End(L) if (g^3)(z) == z]
             [Ring endomorphism of Finite Field in z of size 7^6
+              Defn: z |--> z,
+             Ring endomorphism of Finite Field in z of size 7^6
               Defn: z |--> 5*z^4 + 5*z^3 + 4*z^2 + 3*z + 1,
              Ring endomorphism of Finite Field in z of size 7^6
-              Defn: z |--> 3*z^5 + 5*z^4 + 5*z^2 + 2*z + 3,
-             Ring endomorphism of Finite Field in z of size 7^6
-              Defn: z |--> z]
+              Defn: z |--> 3*z^5 + 5*z^4 + 5*z^2 + 2*z + 3]
 
         TESTS:
 

@@ -273,11 +273,11 @@ cdef class FrozenBitset:
         sage: FrozenBitset("110110", capacity=-2)
         Traceback (most recent call last):
         ...
-        OverflowError: can't convert negative value to unsigned long
+        OverflowError: can't convert negative value to mp_bitcnt_t
     """
     def __cinit__(self, iter=None, capacity=None):
         """
-        Allocate the bitset.
+        Allocate the bitset, which is initially empty.
 
         See the class documentation of :class:`FrozenBitset` for details
         on the parameters.
@@ -366,7 +366,7 @@ cdef class FrozenBitset:
             iter = list(iter)
 
         if iter is None:
-            bitset_clear(self._bitset)
+            pass  # Leave bitset empty
         elif isinstance(iter, (FrozenBitset, Bitset)):
             b = iter
             if capacity is None:
@@ -448,7 +448,7 @@ cdef class FrozenBitset:
             sage: list(FrozenBitset('00001' * 20))
             [4, 9, 14, 19, 24, 29, 34, 39, 44, 49, 54, 59, 64, 69, 74, 79, 84, 89, 94, 99]
             sage: set(FrozenBitset('11011'))
-            set([0, 1, 3, 4])
+            {0, 1, 3, 4}
         """
         return iter(bitset_list(self._bitset))
 
@@ -1891,7 +1891,7 @@ cdef class Bitset(FrozenBitset):
             sage: a = Bitset('011' * 32)
             sage: a.clear()
             sage: set(a)
-            set([])
+            set()
         """
         bitset_clear(self._bitset)
 

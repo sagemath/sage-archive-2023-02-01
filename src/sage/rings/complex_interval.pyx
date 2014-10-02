@@ -254,10 +254,12 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: sum(plot(CIF(RIF(1/k, 1/k), RIF(-k, k))) for k in [1..10])
+            Graphics object consisting of 20 graphics primitives
 
         Exact and nearly exact points are still visible::
 
             sage: plot(CIF(pi, 1), color='red') + plot(CIF(1, e), color='purple') + plot(CIF(-1, -1))
+            Graphics object consisting of 6 graphics primitives
 
         A demonstration that `z \mapsto z^2` acts chaotically on `|z|=1`::
 
@@ -268,6 +270,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             ...       g += z.plot(color=(1./(40-i), 0, 1))
             ...
             sage: g
+            Graphics object consisting of 80 graphics primitives
         """
         from sage.plot.polygon import polygon2d
         x, y = self.real(), self.imag()

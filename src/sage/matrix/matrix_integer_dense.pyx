@@ -937,14 +937,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 9/4    3 15/4]
         """
         cdef Py_ssize_t i
-        cdef Integer _x
+        cdef Integer x = Integer(right)
         cdef fmpz_t z
-        _x = Integer(right)
         cdef Matrix_integer_dense M
         M = self._new_uninitialized_matrix(self._nrows,self._ncols)
         sig_on()
-        fmpz_set_mpz(z,_x.value)
-        fmpz_mat_scalar_mul_fmpz(M._matrix,self._matrix,z)
+        fmpz_init(z)
+        fmpz_set_mpz(z, x.value)
+        fmpz_mat_scalar_mul_fmpz(M._matrix, self._matrix, z)
+        fmpz_clear(z)
         sig_off()
         M._initialized = True
         return M
@@ -1156,7 +1157,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         """
         cdef long i,n
-        cdef fmpz_t x
         cdef Integer z
         cdef Polynomial_integer_dense_flint g
         if algorithm == 'generic':
@@ -1165,7 +1165,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         g = self.fetch(cache_key)
         if g is not None:
             return g.change_variable_name(var)
-
 
         if algorithm == 'flint' or (algorithm == 'linbox' and not USE_LINBOX_POLY):
             g = PolynomialRing(ZZ,names = var).gen()
@@ -1305,7 +1304,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Py_ssize_t i,j
 
         sig_on()
-        fmpz_init_set_ui(h, 0)
+        fmpz_init(h)
         fmpz_init(x)
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
@@ -3168,13 +3167,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Py_ssize_t c, row
         cdef fmpz_t s,pr
         fmpz_init(s)
-        fmpz_init(pr)
+        fmpz_init_set_ui(pr, 1)
 
-        fmpz_set_si(pr, 1)
         for row from 0 <= row < self._nrows:
             fmpz_set_si(s, 0)
             for c in cols:
                 if c<0 or c >= self._ncols:
+                    fmpz_clear(s)
+                    fmpz_clear(pr)
                     raise IndexError("matrix column index out of range")
                 fmpz_add(s, s, fmpz_mat_entry(self._matrix,row,c))
             fmpz_mul(pr, pr, s)
@@ -3852,10 +3852,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         fmpz_clear(fden)
         if check_invertible and res == 0:
             raise ZeroDivisionError('Matrix is singular')
-        if fmpz_cmp_si(fden,0) < 0:
-            return -M,-den
+        if den < 0:
+            return -M, -den
         else:
-            return M,den
+            return M, den
 
     def _solve_right_nonsingular_square(self, B, check_rank=True, algorithm = 'iml'):
         r"""
@@ -5190,7 +5190,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     fmpz_set(fmpz_mat_entry(self._matrix,i,j),tmp)
         fmpz_clear(g)
         fmpz_clear(tmp)
-        return
 
     def gcd(self):
         """

@@ -360,9 +360,11 @@ class GenericGraph(GenericGraph_pyx):
 
     def __eq__(self, other):
         """
-        Comparison of self and other. For equality, must be in the same
-        class, have the same settings for loops and multiedges, output the
-        same vertex list (in order) and the same adjacency matrix.
+        Compare self and other.
+
+        For equality, must be in the same class, have the same settings for
+        loops, multiedges, weightedness, have same set of vertices, and same
+        (multi)set of arrows (taking labels into account if weighted).
 
         Note that this is _not_ an isomorphism test.
 
@@ -466,11 +468,9 @@ class GenericGraph(GenericGraph_pyx):
     @cached_method
     def __hash__(self):
         """
-        Only immutable graphs are hashable.
+        Computes a hash for self, if self is immutable.
 
-        The hash value of an immutable graph relies on the tuple
-        of vertices and the tuple of edges. The resulting value
-        is cached.
+        Only immutable graphs are hashable. The resulting value is cached.
 
         EXAMPLE::
 
@@ -488,9 +488,56 @@ class GenericGraph(GenericGraph_pyx):
             sage: G_imm.__hash__() is G_imm.__hash__()
             True
 
+        TESTS:
+
+        Equality and hash do not depend on ordering of vertices. That is,
+        parts 1 and 2 of ticket :trac:`17086` are fixed ::
+
+            sage: import functools
+            sage: @functools.total_ordering
+            ....: class C:
+            ....:     def __init__(self, val, reverse):
+            ....:         self.val = val
+            ....:         self.reverse = reverse
+            ....:     def __repr__(self):
+            ....:         return 'C(%r, %r)' % (self.val, self.reverse)
+            ....:     def __hash__(self):
+            ....:         return hash(self.val)
+            ....:     def __eq__(self, other):
+            ....:         return self.val == other.val
+            ....:     def __lt__(self, other):
+            ....:         if self.reverse:
+            ....:             return self.val > other.val
+            ....:         else:
+            ....:             return self.val < other.val
+            sage: G1 = Graph({C(0, False): [], C(1, False): []}, immutable=True)
+            sage: G2 = Graph({C(0, True ): [], C(1, True ): []}, immutable=True)
+            sage: [G1.vertices(), G2.vertices()]
+            [[C(0, False), C(1, False)], [C(1, True), C(0, True)]]
+            sage: G1 == G2
+            True
+            sage: G1.__hash__() == G2.__hash__()
+            True
+
+        Hash of unweighted graphs does not depend on edge labels. That is,
+        part 3 of ticket :trac:`17086` is fixed ::
+
+            sage: G1 = Graph({0: {1: 'edge label A'}}, immutable=True)
+            sage: G2 = Graph({0: {1: 'edge label B'}}, immutable=True)
+            sage: G1 == G2
+            True
+            sage: G1.__hash__() == G2.__hash__()
+            True
+
         """
         if getattr(self, "_immutable", False):
-            return hash((tuple(self.vertices()), tuple(self.edges())))
+            edge_items = self.edge_iterator(labels = self._weighted)
+            if self.allows_multiple_edges():
+                from collections import Counter
+                edge_items = Counter(edge_items).items()
+            return hash((frozenset(self.vertex_iterator()),
+                         self._weighted,
+                         frozenset(edge_items))
         raise TypeError("This graph is mutable, and thus not hashable. "
                         "Create an immutable copy by `g.copy(immutable=True)`")
 

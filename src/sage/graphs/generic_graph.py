@@ -711,9 +711,12 @@ class GenericGraph(GenericGraph_pyx):
     ### Formats
 
     def __copy__(self, implementation='c_graph', data_structure=None,
-                 sparse=None, immutable=None):
+                 sparse=None, immutable=None, weighted=None):
         """
         Return a copy of the graph.
+
+        If ``weighted`` is passed and is not the weightedness of the
+        original, then the copy will not equal the original.
 
         INPUT:
 
@@ -743,6 +746,18 @@ class GenericGraph(GenericGraph_pyx):
              ``immutable=False`` is used to copy an immutable graph, the data
              structure used is ``"sparse"`` unless anything else is specified.
 
+         - ``weighted`` (boolean) -- weightedness for the copy. Might
+           change the equality class.
+
+           * ``weighted=None`` (default) means that the graph and its
+             copy will behave the same way.
+
+           * ``weighted=True`` makes the copy weighted, making it
+             unequal to the original if the original is non-weighted.
+
+           * ``weighted=False`` makes the copy non-weighted, making it
+             unequal to the original if the original is weighted.
+
         .. NOTE::
 
             If the graph uses
@@ -757,8 +772,8 @@ class GenericGraph(GenericGraph_pyx):
         .. warning::
 
            Please use this method only if you need to copy but change the
-           underlying implementation.  Otherwise simply do ``copy(g)``
-           instead of ``g.copy()``.
+           underlying implementation or weightedness.  Otherwise simply
+           do ``copy(g)`` instead of ``g.copy()``.
 
         EXAMPLES::
 
@@ -798,6 +813,19 @@ class GenericGraph(GenericGraph_pyx):
             sage: G2 = copy(G)
             sage: G2 is G
             False
+
+        Argument ``weighted`` affects the equality class::
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: H1 = G.copy(weighted=False)
+            sage: H2 = G.copy(weighted=True)
+            sage: [G.weighted(), H1.weighted(), H2.weighted()]
+            [False, False, True]
+            sage: [G == H1, G == H2, H1 == H2]
+            [True, False, False]
+            sage: G.weighted(True)
+            sage: [G == H1, G == H2, H1 == H2]
+            [False, True, False]
 
         TESTS:
 
@@ -918,8 +946,14 @@ class GenericGraph(GenericGraph_pyx):
         elif sparse is False:
             data_structure = "dense"
 
+        # normalize weighted to None/True/False
+        if weighted is not None:
+            weighted = bool(weighted)
+
         # Immutable copy of an immutable graph ? return self !
-        if getattr(self, '_immutable', False):
+        # (if okay for weightedness)
+        if (getattr(self, '_immutable', False) and
+                (weighted is None or self._weighted == weighted)):
             from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             if (isinstance(self._backend, StaticSparseBackend) and
                 implementation=='c_graph' and
@@ -952,7 +986,10 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     setattr(G, attr, copy(old_attr))
 
-        G._weighted = self._weighted
+        if weighted is None:
+            G._weighted = self._weighted
+        else:
+            G._weighted = weighted # boolean by previous normalization
         return G
 
     copy = __copy__

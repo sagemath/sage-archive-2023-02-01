@@ -2908,9 +2908,7 @@ class DiGraph(GenericGraph):
 
         """
         from sage.quivers.path_semigroup import PathSemigroup
-        # If self is immutable, then the copy is really cheap:
-        # __copy__ just returns self.
-        return PathSemigroup(self.copy(immutable=True))
+        return PathSemigroup(self)
 
     ### Directed Acyclic Graphs (DAGs)
 

@@ -263,6 +263,9 @@ ext_modules = [
     Extension('sage.combinat.designs.designs_pyx',
               sources=['sage/combinat/designs/designs_pyx.pyx']),
 
+    Extension('sage.combinat.designs.orthogonal_arrays_find_recursive',
+              sources=['sage/combinat/designs/orthogonal_arrays_find_recursive.pyx']),
+
     ################################
     ##
     ## sage.crypto
@@ -838,18 +841,15 @@ ext_modules = [
 
     Extension('sage.libs.gap.util',
               sources = ["sage/libs/gap/util.pyx"],
-              libraries = ['gmp', 'gap', 'm'],
-              include_dirs = [SAGE_INC]),
+              libraries = ['gmp', 'gap', 'm']),
 
     Extension('sage.libs.gap.element',
               sources = ["sage/libs/gap/element.pyx"],
-              libraries = ['gmp', 'gap', 'm'],
-              include_dirs = [SAGE_INC]),
+              libraries = ['gmp', 'gap', 'm']),
 
     Extension('sage.libs.gap.libgap',
               sources = ["sage/libs/gap/libgap.pyx"],
-              libraries = ['gmp', 'gap', 'm'],
-              include_dirs = [SAGE_INC]),
+              libraries = ['gmp', 'gap', 'm']),
 
         ###################################
         ##
@@ -1388,38 +1388,36 @@ ext_modules = [
 
     Extension("sage.numerical.mip",
               ["sage/numerical/mip.pyx"],
-              include_dirs=[SAGE_INC],
               libraries=["stdc++"]),
 
     Extension("sage.numerical.linear_functions",
               ["sage/numerical/linear_functions.pyx"],
+              libraries=["stdc++"]),
+
+    Extension("sage.numerical.linear_tensor_element",
+              ["sage/numerical/linear_tensor_element.pyx"],
               include_dirs=[SAGE_INC],
               libraries=["stdc++"]),
 
     Extension("sage.numerical.backends.generic_backend",
               ["sage/numerical/backends/generic_backend.pyx"],
-              include_dirs = [SAGE_INC, "sage/c_lib/include/"],
               libraries=["stdc++"]),
 
     Extension("sage.numerical.backends.glpk_backend",
               ["sage/numerical/backends/glpk_backend.pyx"],
-              include_dirs = [SAGE_INC, "sage/c_lib/include/"],
               language = 'c++',
               libraries=["stdc++", "glpk", "gmp", "z"]),
 
     Extension("sage.numerical.backends.ppl_backend",
               ["sage/numerical/backends/ppl_backend.pyx"],
-              include_dirs = [SAGE_INC, "sage/c_lib/include/"],
               libraries=["stdc++"]),
 
     Extension("sage.numerical.backends.cvxopt_backend",
               ["sage/numerical/backends/cvxopt_backend.pyx"],
-              include_dirs = [SAGE_INC, "sage/c_lib/include/"],
               libraries=["stdc++"]),
 
     Extension("sage.numerical.backends.glpk_graph_backend",
               ["sage/numerical/backends/glpk_graph_backend.pyx"],
-              include_dirs = [SAGE_INC, "sage/c_lib/include/"],
               language = 'c++',
               libraries=["stdc++", "glpk", "gmp", "z"]),
 
@@ -1979,6 +1977,14 @@ ext_modules = [
     Extension('sage.stats.intlist',
               sources = ['sage/stats/intlist.pyx']),
 
+    Extension('sage.stats.distributions.discrete_gaussian_integer',
+              sources = ['sage/stats/distributions/discrete_gaussian_integer.pyx', 'sage/stats/distributions/dgs_gauss_mp.c', 'sage/stats/distributions/dgs_gauss_dp.c', 'sage/stats/distributions/dgs_bern.c'],
+              depends = ['sage/stats/distributions/dgs_gauss.h', 'sage/stats/distributions/dgs_bern.h'],
+              libraries = ['gmp', 'mpfr'],
+              extra_compile_args=["-std=c99", "-D_XOPEN_SOURCE=600"],
+              include_dirs = [SAGE_ROOT +"/src/sage/stats/distributions"],
+          ),
+
     ################################
     ##
     ## sage.structure
@@ -2111,7 +2117,6 @@ if is_package_installed('fes'):
     ext_modules.extend([
        Extension("sage.libs.fes",
                  ["sage/libs/fes.pyx"],
-                 include_dirs = [SAGE_INC, "sage/c_lib/include/"],
                  language = "c",
                  libraries = ['fes'])
        ])
@@ -2122,7 +2127,6 @@ if (os.path.isfile(SAGE_INC + "/gurobi_c.h") and
     ext_modules.append(
         Extension("sage.numerical.backends.gurobi_backend",
                   ["sage/numerical/backends/gurobi_backend.pyx"],
-                  include_dirs = [SAGE_INC, "sage/c_lib/include/"],
                   language = 'c',
                   libraries = ["stdc++", "gurobi"])
         )
@@ -2143,7 +2147,6 @@ if (os.path.isfile(SAGE_INC + "/cplex.h") and
     ext_modules.append(
         Extension("sage.numerical.backends.cplex_backend",
                   ["sage/numerical/backends/cplex_backend.pyx"],
-                  include_dirs = [SAGE_INC, "sage/c_lib/include/"],
                   language = 'c',
                   libraries = ["stdc++", "cplex"])
         )
@@ -2152,7 +2155,6 @@ if is_package_installed('cbc'):
     ext_modules.append(
         Extension("sage.numerical.backends.coin_backend",
                   ["sage/numerical/backends/coin_backend.pyx"],
-                  include_dirs = [SAGE_INC, "sage/c_lib/include/"],
                   language = 'c++',
                   libraries = ["stdc++", "Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils", "OsiCbc", "OsiClp", "Osi", "lapack"])
         )

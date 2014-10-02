@@ -860,6 +860,11 @@ Here are some of the more commonly used variables affecting the build process:
     These will be notably slower but, for example, make it much easier to
     pinpoint memory allocation problems.
 
+- :envvar:`SAGE_PROFILE` - controls profiling support. If this is set
+  to ``yes``, profiling support is enabled where possible. Note that
+  Python-level profiling is always avaliable; This option enables
+  profiling in Cython modules.
+
 - :envvar:`SAGE_SPKG_LIST_FILES` - if set to ``yes``, then enable verbose
   extraction of tar files, i.e. Sage's spkg files.
   Since some spkgs contain such a huge number of files that the log files

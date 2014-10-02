@@ -1,5 +1,5 @@
 r"""
-Finite Fields of characteristic 2 and order strictly greater than 2.
+Finite Fields of characteristic 2.
 
 This implementation uses NTL's GF2E class to perform the arithmetic
 and is the standard implementation for ``GF(2^n)`` for ``n >= 16``.
@@ -10,31 +10,23 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
 #       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 include "sage/libs/ntl/decl.pxi"
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
+include "sage/libs/pari/decl.pxi"
+include "sage/libs/pari/pari_err.pxi"
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
-from sage.structure.parent  cimport Parent
+from sage.structure.parent cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 
@@ -43,14 +35,14 @@ from sage.rings.ring cimport Ring
 from sage.rings.finite_rings.finite_field_base cimport FiniteField
 
 from sage.libs.pari.all import pari
-from sage.libs.pari.gen import gen
+from sage.libs.pari.gen cimport gen
 
 from sage.interfaces.gap import is_GapElement
 
 from sage.misc.randstate import current_randstate
 
-from finite_field_ext_pari import FiniteField_ext_pari
 from element_ext_pari import FiniteField_ext_pariElement
+from element_pari_ffelt import FiniteFieldElement_pari_ffelt
 from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -292,6 +284,18 @@ cdef class Cache_ntl_gf2e(SageObject):
 
             sage: k(2^63)
             0
+
+        We can coerce from PARI finite field implementations::
+
+            sage: K.<a> = GF(2^19, impl="ntl")
+            sage: a^20
+            a^6 + a^3 + a^2 + a
+            sage: L.<b> = GF(2^19, impl="pari_mod")
+            sage: K(b^20)
+            a^6 + a^3 + a^2 + a
+            sage: M.<c> = GF(2^19, impl="pari_ffelt")
+            sage: K(c^20)
+            a^6 + a^3 + a^2 + a
         """
         if PY_TYPE_CHECK(e, FiniteField_ntl_gf2eElement) and e.parent() is self._parent: return e
         cdef FiniteField_ntl_gf2eElement res = self._new()
@@ -355,31 +359,42 @@ cdef class Cache_ntl_gf2e(SageObject):
         elif PY_TYPE_CHECK(e, gen):
             pass # handle this in next if clause
 
-        elif PY_TYPE_CHECK(e,FiniteField_ext_pariElement):
-            # reduce FiniteField_ext_pariElements to pari
+        elif PY_TYPE_CHECK(e, FiniteFieldElement_pari_ffelt) or \
+             PY_TYPE_CHECK(e, FiniteField_ext_pariElement):
+            # Reduce to pari
             e = e._pari_()
 
         elif is_GapElement(e):
             from sage.interfaces.gap import gfq_gap_to_sage
             return gfq_gap_to_sage(e, self._parent)
         else:
-            raise TypeError, "unable to coerce"
+            raise TypeError("unable to coerce %r" % type(e))
 
+        cdef GEN t
         if PY_TYPE_CHECK(e, gen):
-            e = e.lift().lift()
-            try:
-                GF2E_conv_long(res.x, int(e[0]))
-            except TypeError:
-                GF2E_conv_long(res.x, int(e))
+            pari_catch_sig_on()
+            t = (<gen>e).g
+            if typ(t) == t_FFELT:
+                t = FF_to_FpXQ(t)
+            else:
+                t = liftall_shallow(t)
 
-            g = self._gen
-            x = self._new()
-            GF2E_conv_long(x.x,1)
+            if typ(t) == t_INT:
+                GF2E_conv_long(res.x, itos(t))
+                pari_catch_sig_off()
+            elif typ(t) == t_POL:
+                g = self._gen
+                x = self._new()
+                GF2E_conv_long(x.x, 1)
 
-            for i from 0 < i <= e.poldegree():
-                GF2E_mul(x.x, x.x, g.x)
-                if e[i]:
-                    GF2E_add(res.x, res.x, x.x )
+                for i from 0 <= i <= degpol(t):
+                    if gtolong(gel(t, i+2)):
+                        GF2E_add(res.x, res.x, x.x)
+                    GF2E_mul(x.x, x.x, g.x)
+                pari_catch_sig_off()
+            else:
+                raise TypeError("bad PARI type %r" % e.type())
+
             return res
 
         raise ValueError, "Cannot coerce element %s to this field."%(e)
@@ -1146,44 +1161,6 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         """
         return GF2X_weight(GF2E_rep(self.x))
 
-    def _finite_field_ext_pari_element(FiniteField_ntl_gf2eElement self, k=None):
-        r"""
-        Return an element of ``k`` supposed to match this
-        element.
-
-        .. WANRING::
-
-            No checks if ``k`` equals ``self.parent()`` are performed.
-
-        INPUT:
-
-        - ``k`` -- (optional) :class:`FiniteField_ext_pari`
-
-        OUTPUT:
-
-        equivalent of ``self in k``
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(2^17)
-            sage: a._finite_field_ext_pari_element()
-            a
-        """
-        if k is None:
-            k = self.parent()._finite_field_ext_pari_()
-        elif not PY_TYPE_CHECK(k, FiniteField_ext_pari):
-            raise TypeError, "k must be a pari finite field."
-        cdef GF2X_c r = GF2E_rep(self.x)
-        cdef int i
-
-        g = k.gen()
-        o = k(1)
-        ret = k(0)
-        for i from 0 <= i <= GF2X_deg(r):
-            ret += GF2_conv_to_long(GF2X_coeff(r,i))*o
-            o *= g
-        return ret
-
     def _magma_init_(self, magma):
         r"""
         Return a string representation of ``self`` that MAGMA can
@@ -1216,38 +1193,6 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             True
         """
         return self
-
-    def _pari_(self, var=None):
-        r"""
-        Return PARI representation of this element.
-
-        INPUT:
-
-        - ``var`` -- (default: ``None``) optional variable string
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(2^17)
-            sage: e = a^3 + a + 1
-            sage: e._pari_()
-            Mod(Mod(1, 2)*a^3 + Mod(1, 2)*a + Mod(1, 2), Mod(1, 2)*a^17 + Mod(1, 2)*a^3 + Mod(1, 2))
-
-            sage: e._pari_('w')
-            Mod(Mod(1, 2)*w^3 + Mod(1, 2)*w + Mod(1, 2), Mod(1, 2)*w^17 + Mod(1, 2)*w^3 + Mod(1, 2))
-
-            sage: t = a^5 + a + 4
-            sage: t_string = t._pari_init_('y')
-            sage: t_string
-            'Mod(Mod(1, 2)*y^5 + Mod(1, 2)*y, Mod(1, 2)*y^17 + Mod(1, 2)*y^3 + Mod(1, 2))'
-            sage: type(t_string)
-            <type 'str'>
-            sage: t_element = t._pari_('b')
-            sage: t_element
-            Mod(Mod(1, 2)*b^5 + Mod(1, 2)*b, Mod(1, 2)*b^17 + Mod(1, 2)*b^3 + Mod(1, 2))
-            sage: t_element.parent()
-            Interface to the PARI C library
-        """
-        return pari(self._pari_init_(var))
 
     def _gap_init_(self):
         r"""

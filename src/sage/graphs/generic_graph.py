@@ -11807,7 +11807,7 @@ class GenericGraph(GenericGraph_pyx):
             - :meth:`~GenericGraph.subgraph_search_iterator` -- Iterate over all
               the copies of `G` contained in `self`.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
             sage: G = P.subgraph(range(6))

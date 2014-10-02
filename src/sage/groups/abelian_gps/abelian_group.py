@@ -213,6 +213,7 @@ from sage.misc.misc import prod
 from sage.misc.mrange import mrange, cartesian_product_iterator
 from sage.rings.arith import lcm
 from sage.groups.group import AbelianGroup as AbelianGroupBase
+from sage.categories.groups import Groups
 
 
 # TODO: this uses perm groups - the AbelianGroupElement instance method
@@ -501,7 +502,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         (2, 4, 12, 24, 120)
 
         sage: F.category()
-        Category of groups
+        Category of finite commutative groups
 
     TESTS::
 
@@ -525,6 +526,15 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: G = AbelianGroup([0,5,0,7],names = list("abcd")); G
             Multiplicative Abelian group isomorphic to Z x C5 x Z x C7
             sage: TestSuite(G).run()
+
+        We check that :trac:`15140` is fixed::
+
+            sage: A = AbelianGroup([3,3])
+            sage: A.category()
+            Category of finite commutative groups
+            sage: A = AbelianGroup([3,0,7])
+            sage: A.category()
+            Category of commutative groups
         """
         assert isinstance(names, (basestring, tuple))
         assert isinstance(generator_orders, tuple)
@@ -533,7 +543,10 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         n = ZZ(len(generator_orders))
         names = self.normalize_names(n, names)
         self._assign_names(names)
-        AbelianGroupBase.__init__(self) # TODO: category=CommutativeGroups()
+        cat = Groups().Commutative()
+        if all(order > 0 for order in generator_orders):
+            cat = cat.Finite()
+        AbelianGroupBase.__init__(self, category=cat)
 
     def is_isomorphic(left, right):
         """

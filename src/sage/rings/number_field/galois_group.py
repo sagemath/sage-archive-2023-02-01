@@ -404,10 +404,12 @@ class GaloisGroup_v2(PermutationGroup_generic):
 
         EXAMPLE::
 
-            sage: L = CyclotomicField(7)
+            sage: L.<z> = CyclotomicField(7)
             sage: G = L.galois_group()
-            sage: G.complex_conjugation()
-            (1,6)(2,3)(4,5)
+            sage: conj = G.complex_conjugation(); conj
+            (1,4)(2,5)(3,6)
+            sage: conj(z)
+            -z^5 - z^4 - z^3 - z^2 - z - 1
 
         An example where the field is not CM, so complex conjugation really
         depends on the choice of embedding::

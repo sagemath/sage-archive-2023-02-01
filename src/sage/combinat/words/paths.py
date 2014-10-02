@@ -2012,7 +2012,7 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
             sage: P('ab').is_closed()
             False
         """
-        tab = self.parikh_vector()
+        tab = self.abelian_vector()
         return tab[0] == tab[2] and tab[1] == tab[3]
 
     def area(self):

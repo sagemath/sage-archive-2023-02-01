@@ -496,24 +496,28 @@ class GenericGraph(GenericGraph_pyx):
             sage: import functools
             sage: @functools.total_ordering
             ....: class C:
-            ....:     def __init__(self, val, reverse):
-            ....:         self.val = val
-            ....:         self.reverse = reverse
+            ....:     order = ((0,0), (0,1), (1,1), (1,0))
+            ....:     # Hasse diagram:
+            ....:     #   0,0 < 0,1
+            ....:     #    ^     ^
+            ....:     #   1,0 > 1,1
+            ....:     def __init__(self, x):
+            ....:         assert x in self.order
+            ....:         self.x = x
             ....:     def __repr__(self):
-            ....:         return 'C(%r, %r)' % (self.val, self.reverse)
-            ....:     def __hash__(self):
-            ....:         return hash(self.val)
-            ....:     def __eq__(self, other):
-            ....:         return self.val == other.val
+            ....:         return 'C(%r)' % (self.x,)
+            ....:     # ordering depends on full self.x
             ....:     def __lt__(self, other):
-            ....:         if self.reverse:
-            ....:             return self.val > other.val
-            ....:         else:
-            ....:             return self.val < other.val
-            sage: G1 = Graph({C(0, False): [], C(1, False): []}, immutable=True)
-            sage: G2 = Graph({C(0, True ): [], C(1, True ): []}, immutable=True)
-            sage: [G1.vertices(), G2.vertices()]
-            [[C(0, False), C(1, False)], [C(1, True), C(0, True)]]
+            ....:         return self.order.index(self.x) < self.order.index(other.x)
+            ....:     # equality depends only on the second coordinate.
+            ....:     def __eq__(self, other):
+            ....:         return self.x[1] == other.x[1]
+            ....:     def __hash__(self):
+            ....:         return hash(self.x[1])
+            sage: G1 = Graph({C((0, 0)): [], C((0, 1)): []}, immutable=True)
+            sage: G2 = Graph({C((1, 0)): [], C((1, 1)): []}, immutable=True)
+            sage: (G1.vertices(), G2.vertices())
+            ([C((0, 0)), C((0, 1))], [C((1, 1)), C((1, 0))])
             sage: G1 == G2
             True
             sage: G1.__hash__() == G2.__hash__()

@@ -2308,7 +2308,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                     raise ValueError("plotting classical roots only available in affine type")
                 raise NotImplementedError("classical roots")
             elif collection == "all":
-                assert self.cartan_type().is_finite(), "plotting all roots only available in finite type"
+                if not self.cartan_type().is_finite():
+                    raise ValueError("plotting all roots only available in finite type")
                 roots = root_lattice.roots()
             elif isinstance(collection, (list, tuple)):
                 roots = collection
@@ -2364,7 +2365,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                     raise ValueError("plotting classical coroots only available in affine type")
                 raise NotImplementedError("classical coroots")
             elif collection == "all":
-                assert self.cartan_type().is_finite(), "plotting all coroots only available in finite type"
+                if not self.cartan_type().is_finite():
+                    raise ValueError("plotting all coroots only available in finite type")
                 coroots = coroot_lattice.roots()
             elif isinstance(collection, (list, tuple)):
                 coroots = collection
@@ -2498,7 +2500,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                     raise ValueError("plotting classical reflection hyperplanes only available in affine type")
                 raise NotImplementedError("classical roots")
             elif collection == "all":
-                assert self.cartan_type().is_finite(), "plotting all reflection hyperplanes only available in finite type"
+                if not self.cartan_type().is_finite():
+                    raise ValueError("plotting all reflection hyperplanes only available in finite type")
                 coroots = coroot_lattice.positive_roots()
             elif isinstance(collection, (list, tuple)):
                 coroots = collection
@@ -2560,7 +2563,8 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             from sage.geometry.polyhedron.all import Polyhedron
             plot_options = self.plot_parse_options(**options)
-            assert self.cartan_type().is_finite()
+            if not self.cartan_type().is_finite():
+                raise ValueError("the Cartan type must be finite")
             vertices = [plot_options.projection(vertex)
                         for vertex in self.rho().orbit()]
             return Polyhedron(vertices=vertices).plot()

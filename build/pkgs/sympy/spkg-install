@@ -12,6 +12,7 @@ mv sympy/mpmath/tests/__init__.py tmp
 rm -rf sympy/mpmath
 mkdir -p sympy/mpmath/tests
 mv tmp sympy/mpmath/tests/__init__.py
+rm -rf doc/src/modules/mpmath
 
 echo "Applying patches to upstream sources..."
 for patch in ../patches/*.patch; do

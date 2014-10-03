@@ -717,8 +717,8 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-         - ``weighted`` boolean (default: `None`) -- weightedness for
-           the copy. Might change the equality class if not `None`.
+         - ``weighted`` boolean (default: ``None``) -- weightedness for
+           the copy. Might change the equality class if not ``None``.
 
          - ``implementation`` - string (default: 'c_graph') the implementation
            goes here.  Current options are only 'networkx' or 'c_graph'.

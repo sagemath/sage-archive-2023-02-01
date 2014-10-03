@@ -505,25 +505,47 @@ class HyperbolicGeodesic(SageObject):
         EXAMPLES::
 
             sage: H = HyperbolicPlane()
-            sage: H.UHP().get_geodesic(2,4).reflection_involution()
+            sage: gU = H.UHP().get_geodesic(2,4)
+            sage: RU = gU.reflection_involution(); RU
             Isometry in UHP
             [ 3 -8]
             [ 1 -3]
 
-            sage: H.PD().get_geodesic(0, I).reflection_involution()
-            Isometry in PD
-            [ 0 -1]
-            [ 1  0]
+            sage: RU*gU == gU
+            True
 
-            sage: H.KM().get_geodesic((0,0), (0,1)).reflection_involution()
+            sage: gP = H.PD().get_geodesic(0, I)
+            sage: RP = gP.reflection_involution(); RP
+            Isometry in PD
+            [ 0  I]
+            [-I  0]
+        
+            sage: RP*gP == gP
+            True
+
+            sage: gK = H.KM().get_geodesic((0,0), (0,1))
+            sage: RK = gK.reflection_involution(); RK
             Isometry in KM
             [-1  0  0]
             [ 0  1  0]
             [ 0  0  1]
 
+            sage: RK*gK == gK
+            True
+
             sage: A = H.HM().get_geodesic((0,0,1), (1,0, n(sqrt(2)))).reflection_involution()
             sage: B = diagonal_matrix([1, -1, 1])
             sage: bool((B - A.matrix()).norm() < 10**-9)
+            True
+        
+        The above tests go through the Upper Half Plane.  It remains to
+        test that the matrices in the models do what we intend.
+
+            ::
+
+            sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import mobius_transform
+            sage: R = H.PD().get_geodesic(-1,1).reflection_involution() 
+            sage: mobius_transform(R.matrix(), 0) == 0
             True
         """
         return self._cached_geodesic.reflection_involution().to_model(self._model)
@@ -734,7 +756,8 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         EXAMPLES::
 
             sage: UHP = HyperbolicPlane().UHP()
-            sage: UHP.get_geodesic(0, 1).reflection_involution()
+            sage: g1 = UHP.get_geodesic(0, 1)
+            sage: .reflection_involution()
             Isometry in UHP
             [ 1  0]
             [ 2 -1]

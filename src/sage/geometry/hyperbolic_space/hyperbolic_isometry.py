@@ -908,8 +908,6 @@ class HyperbolicIsometryPD(HyperbolicIsometry):
             True
         """
         _image = mobius_transform(self._matrix, p.coordinates())
-        if not self.preserves_orientation():
-            _image = mobius_transform(I*matrix([[0,1],[1,0]]), _image)
         return self.codomain().get_point(_image)
 
     def preserves_orientation(self):
@@ -1044,7 +1042,6 @@ def mobius_transform(A, z):
         if c*z + d == 0:
             return infinity
         return (a*w + b) / (c*w + d)
-
     raise TypeError("A must be an invertible 2x2 matrix over the"
                     " complex numbers or a symbolic ring")
 
